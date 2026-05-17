@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2C5F5D">
+<title>الأستاذ - رفيق المسلم الصغير</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: #FAF7F2;
+    direction: rtl;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { height: 100vh; height: 100dvh; }
+  input:focus { outline: none; border-color: #2C5F5D !important; }
+  button { font-family: inherit; }
+  button:active { transform: scale(0.97); }
+  @keyframes typing {
+    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-4px); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+// ============================================================
+// رمز الأهل الافتراضي (يمكن تغييره)
+// ============================================================
+const PARENT_PIN = '1234';
+
+// ============================================================
+// أيقونات SVG
+// ============================================================
+const Icon = ({ children, size = 20, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {children}
+  </svg>
+);
+const SendIcon = (p) => <Icon {...p}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></Icon>;
+const LockIcon = (p) => <Icon {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Icon>;
+const BookIcon = (p) => <Icon {...p}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></Icon>;
+const MicIcon = (p) => <Icon {...p}><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></Icon>;
+const MicOffIcon = (p) => <Icon {...p}><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></Icon>;
+const VolumeIcon = (p) => <Icon {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></Icon>;
+const VolumeOffIcon = (p) => <Icon {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></Icon>;
+const ResetIcon = (p) => <Icon {...p}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></Icon>;
+
+// ============================================================
+// شخصية الأستاذ (System Prompt)
+// ============================================================
+const buildSystemPrompt = (name, age) => `أنت "الأستاذ"، معلم إسلامي لطيف وصبور، تتحدث مع طفل مسلم اسمه ${name} عمره ${age} سنة.
+
+دورك الأساسي:
+- تستمع للطفل وهو يقص عليك يومه، يسألك، أو يحدثك عن أي شيء.
+- توجهه تربوياً وفق منهج أهل السنة والجماعة.
+- تثني بصدق على ما أحسن فيه (الصلاة، البر بالوالدين، الصدق، الكرم، إلخ).
+- تصحح بلطف ما أخطأ فيه، وتبيّن له الصواب بأسلوب لا يجرحه.
+- تستشهد عند الحاجة بآية قرآنية أو حديث صحيح أو قصة من السيرة.
+- تشجعه وتدعو له ("بارك الله فيك"، "جعلك الله من الصالحين").
+- تعلمه ببساطة: أركان الإسلام والإيمان، الصلاة، الوضوء، القرآن، الأذكار، الأخلاق، السيرة النبوية.
+
+أسلوبك:
+- لطيف، صبور، دافئ، كأنك معلم يحبه الطفل.
+- بسيط جداً ومناسب لعمر ${age} سنة. (إن كان 4-7 جمل قصيرة جداً وكلمات سهلة وقصص. إن كان 8-12 توسع قليلاً بلمسة تربوية. إن كان مراهقاً 13-18 خاطبه كشاب واعٍ بأسلوب احترام ونقاش عقلاني، عمّق الأدلة الشرعية والحكمة.)
+- مختصر ومركّز: 2-5 جمل في الرد الواحد، لا تُطيل ولا تعظ كثيراً.
+- **مهم جداً للنطق الصوتي**: اكتب كل ردودك **بالتشكيل الكامل** (الفتحة، الكسرة، الضمة، السكون، الشدة، التنوين) على جميع الحروف. هذا أساسي لأن النطق صوتي. مثال صحيح: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ، السَّلَامُ عَلَيْكَ يَا حَبِيبِي". مثال خاطئ: "بسم الله الرحمن الرحيم، السلام عليك يا حبيبي".
+- تجنّب الإيموجي والرموز تماماً (لأن الكلام يُنطق صوتياً).
+- استخدم كلمات محببة مناسبة للعمر: للصغار "حَبِيبِي"، "يَا بَطَل"؛ للمراهقين "أَخِي الْكَرِيم"، "بَارَكَ اللَّهُ فِيك".
+- اطرح أحياناً سؤالاً واحداً لاستمرار الحوار.
+
+قواعد صارمة:
+1. لا تفتي في مسائل فقهية. إن سُئلت قل: "هذا أمر اسأل فيه والديك أو شيخاً موثوقاً".
+2. لا تتطرق لأي محتوى خارج التربية الإسلامية.
+3. لا تذكر آية أو حديثاً إلا إذا كنت متأكداً تماماً من نصه.
+4. لا تخض في خلافات بين العلماء.
+5. إذا أخبرك الطفل بأمر مقلق، شجعه فوراً على إخبار والديه.
+6. لا توافق على شيء مخالف للشرع.
+
+مصادرك (منهج أهل السنة):
+- القرآن وتفاسير ابن كثير والسعدي. الصحيحان والسنن.
+- الإسلام سؤال وجواب، الدرر السنية، إسلام ويب.
+- ابن باز، ابن عثيمين، الفوزان، عثمان الخميس، الخثلان، المصلح، فركوس، البدر، الرحيلي، العصيمي.
+
+=== مرجعياتك التربوية (طبّق مناهجهم دون ذكر أسمائهم للطفل) ===
+
+في التربية الإيمانية (د. خالد الدريس):
+- ابدأ دائماً بحب الله قبل الخوف منه.
+- رحّب بأسئلة الطفل الإيمانية مهما بدت محرجة، لا تخوّفه من السؤال.
+- اربط الرقابة الذاتية بمعية الله (يَعْلَمُ خَائِنَةَ الْأَعْيُنِ).
+- التقنية أداة لا سيد، لا تمنع كلياً ولا تطلق كلياً، علّمه إدارتها.
+
+في الصحة النفسية للطفل (د. خالد الجابر):
+- اقبل المشاعر قبل أن تقوّم السلوك. الغضب والحزن والخوف مشاعر مشروعة.
+- سمّ المشاعر للطفل: "أرى أنك حزين"، "يبدو أنك خائف".
+- لا تستهن بمخاوفه ولو بدت لك تافهة.
+- الاتصال قبل التصحيح: تواصل عاطفياً قبل أن توجّه.
+
+في التأسيس العقلي (أحمد السيد):
+- الشبهات تُعالَج لا تُكتَم، لا تخف من سؤال يبدو خطيراً.
+- أجب بالدليل البسيط لا بالسلطة.
+- علّم الطفل التفكير قبل التلقين.
+- اربط بين العقل والوحي.
+
+في أسلوب التربية (فايز الزهراني):
+- التربية بالعلاقة لا بالسيطرة، الطفل يقبل توجيه من يحبه.
+- غرس القيم لا فرضها.
+- التركيز على الإيجابي قبل السلبي.
+- اجعل الطفل يحكم على فعله بضميره لا بخوفه من العقاب.
+
+في التبسيط للناشئة (إسماعيل عرفة):
+- بسّط دون أن تسطّح المعنى.
+- القصة طريق للقلب، استخدمها بدل المحاضرة.
+- اربط الدين بحياة الطفل اليومية.
+
+تطبيق عملي حسب الموقف:
+- إذا أخطأ الطفل → تقبّل مشاعره أولاً، ذكّر بسعة رحمة الله، اطرح سؤال "ماذا لو كنت مكان فلان؟".
+- إذا سأل سؤالاً عقدياً صعباً → احتفِ بالسؤال، أجب بدليل بسيط مناسب لعمره.
+- إذا حكى عن خوف أو حزن → سمّ المشاعر، تعاطف، ثم اربط بالتوكل على الله، لا تستخف.
+- إذا سأل عن حلال وحرام دقيق → اذكر الحكم العام بدليله، وللتفاصيل أحله لوالديه أو شيخ موثوق.
+- إذا حكى عن استخدام الجهاز/الإنترنت → ذكّر بمعية الله الدائمة، علّمه الحدود برفق دون منع مطلق.
+
+ابدأ بالترحيب بـ${name} بحرارة وسأله عن يومه.`;
+
+const SUGGESTIONS = [
+  'أبغى أحكي لك عن يومي',
+  'علمني دعاء جميل',
+  'احكي لي قصة من السيرة',
+  'كيف أصلي صح؟',
+  'ساعدني أحفظ سورة قصيرة',
+];
+
+// ============================================================
+// التطبيق
+// ============================================================
+function App() {
+  const [screen, setScreen] = useState('loading');
+  const [profile, setProfile] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceError, setVoiceError] = useState('');
+  const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const transcriptRef = useRef('');
+  const sendMessageRef = useRef(null);
+  const audioRef = useRef(null);
+
+  // تحميل البيانات من التخزين
+  useEffect(() => {
+    try {
+      const profileData = localStorage.getItem('child_profile');
+      if (profileData) {
+        const p = JSON.parse(profileData);
+        setProfile(p);
+        const msgs = localStorage.getItem('messages');
+        if (msgs) setMessages(JSON.parse(msgs));
+        setScreen('chat');
+      } else {
+        setScreen('onboarding');
+      }
+    } catch {
+      setScreen('onboarding');
+    }
+  }, []);
+
+  // إعداد التعرف على الصوت
+  useEffect(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+    const recognition = new SR();
+    recognition.lang = 'ar-SA';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.onresult = (event) => {
+      let final = '', interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+        else interim += event.results[i][0].transcript;
+      }
+      transcriptRef.current = transcriptRef.current + final;
+      setInput(transcriptRef.current + interim);
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+      const finalText = transcriptRef.current.trim();
+      transcriptRef.current = '';
+      if (finalText && sendMessageRef.current) {
+        setInput('');
+        sendMessageRef.current(finalText);
+      }
+    };
+    recognition.onerror = (event) => {
+      setIsListening(false);
+      transcriptRef.current = '';
+      const errorMap = {
+        'not-allowed': '🚫 لم يتم السماح بالميكروفون. افتح إعدادات المتصفح واسمح بالميكروفون.',
+        'no-speech': '🤫 لم أسمع شيئاً، جرب مرة أخرى.',
+        'audio-capture': '🎤 الميكروفون غير متصل.',
+        'network': '📡 خطأ في الشبكة.',
+        'aborted': '',
+      };
+      const msg = errorMap[event.error] !== undefined ? errorMap[event.error] : `خطأ: ${event.error}`;
+      if (msg) {
+        setVoiceError(msg);
+        setTimeout(() => setVoiceError(''), 6000);
+      }
+    };
+    recognitionRef.current = recognition;
+    if (window.speechSynthesis) window.speechSynthesis.getVoices();
+  }, []);
+
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const saveMessages = (msgs) => {
+    try { localStorage.setItem('messages', JSON.stringify(msgs)); } catch (e) {}
+  };
+
+  const speakText = async (text) => {
+    if (!text) return;
+    const cleanText = text.replace(/[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu, '').trim();
+    if (!cleanText) return;
+
+    // إيقاف أي صوت سابق
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+    setIsSpeaking(true);
+
+    // محاولة 1: ElevenLabs (جودة عالية)
+    try {
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: cleanText }),
+      });
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+        audio.onended = () => {
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          audioRef.current = null;
+        };
+        audio.onerror = () => {
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          audioRef.current = null;
+        };
+        await audio.play();
+        return;
+      } else {
+        console.warn('ElevenLabs failed, falling back to browser TTS');
+      }
+    } catch (e) {
+      console.warn('ElevenLabs error, falling back:', e);
+    }
+
+    // محاولة 2: المتصفح (fallback مجاني)
+    if (!window.speechSynthesis) {
+      setIsSpeaking(false);
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'ar-SA';
+    utterance.rate = 0.92;
+    const voices = window.speechSynthesis.getVoices();
+    const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
+    if (arabicVoice) utterance.voice = arabicVoice;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
+  const startListening = async () => {
+    if (!recognitionRef.current) {
+      setVoiceError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
+      setTimeout(() => setVoiceError(''), 6000);
+      return;
+    }
+    try {
+      if (navigator.mediaDevices?.getUserMedia) {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+        s.getTracks().forEach(t => t.stop());
+      }
+    } catch (e) {
+      setVoiceError('🚫 لم يُمنح إذن الميكروفون.');
+      setTimeout(() => setVoiceError(''), 6000);
+      return;
+    }
+    if (isSpeaking) stopSpeaking();
+    transcriptRef.current = '';
+    setInput('');
+    setVoiceError('');
+    setIsListening(true);
+    try { recognitionRef.current.start(); } catch (e) { setIsListening(false); }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) recognitionRef.current.stop();
+  };
+
+  const startChat = async (name, age) => {
+    const p = { name, age, createdAt: new Date().toISOString() };
+    setProfile(p);
+    setScreen('chat');
+    try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
+    await sendInitialGreeting(p);
+  };
+
+  const callAI = async (history, p) => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          system: buildSystemPrompt(p.name, p.age),
+          messages: history.map(m => ({ role: m.role, content: m.content })),
+        }),
+      });
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`خطأ ${response.status}: ${errText.slice(0, 200)}`);
+      }
+      const data = await response.json();
+      const text = data.content.map(c => c.type === 'text' ? c.text : '').filter(Boolean).join('\n');
+      return text || 'عذراً، لم أفهم. جرب مرة أخرى.';
+    } catch (e) {
+      return `⚠️ خطأ في الاتصال:\n${e.message}\n\nتحقق من إعدادات Vercel ومفتاح API.`;
+    }
+  };
+
+  const sendInitialGreeting = async (p) => {
+    setIsLoading(true);
+    const reply = await callAI([{ role: 'user', content: 'السلام عليكم، أنا هنا.' }], p);
+    const newMsgs = [{ role: 'assistant', content: reply, timestamp: new Date().toISOString() }];
+    setMessages(newMsgs);
+    saveMessages(newMsgs);
+    setIsLoading(false);
+    if (voiceMode) speakText(reply);
+  };
+
+  const sendMessage = async (text) => {
+    if (!text.trim() || isLoading) return;
+    const userMsg = { role: 'user', content: text, timestamp: new Date().toISOString() };
+    const updated = [...messages, userMsg];
+    setMessages(updated);
+    setInput('');
+    setIsLoading(true);
+    const reply = await callAI(updated, profile);
+    const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString() };
+    const final = [...updated, aiMsg];
+    setMessages(final);
+    saveMessages(final);
+    setIsLoading(false);
+    if (voiceMode) speakText(reply);
+  };
+
+  useEffect(() => { sendMessageRef.current = sendMessage; });
+
+  const resetAll = () => {
+    if (confirm('هل أنت متأكد من حذف كل البيانات؟')) {
+      localStorage.removeItem('child_profile');
+      localStorage.removeItem('messages');
+      setProfile(null);
+      setMessages([]);
+      setScreen('onboarding');
+    }
+  };
+
+  if (screen === 'loading') return <div style={s.loadingScreen}><div style={s.loadingSpinner}>✨</div></div>;
+  if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
+  if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
+  if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} />;
+
+  return (
+    <div style={s.chatContainer}>
+      <div style={s.header}>
+        <div style={s.headerContent}>
+          <div style={{ ...s.avatar, ...(isSpeaking ? { animation: 'pulse 1s ease-in-out infinite' } : {}) }}>
+            <BookIcon size={20} color="#FAF7F2" />
+          </div>
+          <div>
+            <div style={s.headerTitle}>الأستاذ</div>
+            <div style={s.headerSubtitle}>
+              {isSpeaking ? '🔊 يتحدث...' : isListening ? '🎤 يستمع...' : 'معلمك الصبور 🌙'}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => { if (voiceMode) stopSpeaking(); setVoiceMode(!voiceMode); }} style={{ ...s.settingsBtn, background: voiceMode ? '#2C5F5D' : '#F0EBE0' }}>
+            {voiceMode ? <VolumeIcon size={18} color="#FAF7F2" /> : <VolumeOffIcon size={18} color="#2C5F5D" />}
+          </button>
+          <button onClick={() => setScreen('parentGate')} style={s.settingsBtn}>
+            <LockIcon size={18} color="#2C5F5D" />
+          </button>
+        </div>
+      </div>
+
+      <div style={s.messagesArea}>
+        {messages.length === 0 && !isLoading && (
+          <div style={s.welcomeCard}>
+            <div style={s.welcomeEmoji}>🌟</div>
+            <div style={s.welcomeText}>أهلاً {profile?.name}!</div>
+            <div style={s.welcomeSubtext}>احكي لي أي شيء يدور في بالك</div>
+          </div>
+        )}
+        {messages.map((m, i) => <MessageBubble key={i} message={m} />)}
+        {isLoading && (
+          <div style={{ ...s.messageBubble, ...s.assistantBubble }}>
+            <div style={s.typingDots}>
+              <span style={s.dot}>●</span>
+              <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+              <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {messages.length <= 2 && !isLoading && (
+        <div style={s.suggestionsBar}>
+          {SUGGESTIONS.map((sg, i) => (
+            <button key={i} onClick={() => sendMessage(sg)} style={s.suggestionChip}>{sg}</button>
+          ))}
+        </div>
+      )}
+
+      {voiceError && <div style={s.errorBanner}>{voiceError}</div>}
+
+      <div style={s.inputBar}>
+        <button
+          onClick={isListening ? stopListening : startListening}
+          disabled={isLoading}
+          style={{
+            ...s.micBtn,
+            background: isListening ? 'linear-gradient(135deg, #C44536 0%, #A03828 100%)' : 'linear-gradient(135deg, #C9A961 0%, #B5944A 100%)',
+            animation: isListening ? 'pulse 1.2s ease-in-out infinite' : 'none',
+            opacity: isLoading ? 0.4 : 1,
+          }}
+        >
+          {isListening ? <MicOffIcon size={20} color="#FAF7F2" /> : <MicIcon size={20} color="#FAF7F2" />}
+        </button>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage(input)}
+          placeholder={isListening ? 'استمع إليك...' : 'اكتب هنا...'}
+          style={s.input}
+          disabled={isLoading || isListening}
+        />
+        <button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
+          <SendIcon size={20} color="#FAF7F2" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MessageBubble({ message }) {
+  const isUser = message.role === 'user';
+  return <div style={{ ...s.messageBubble, ...(isUser ? s.userBubble : s.assistantBubble), animation: 'fadeIn 0.3s ease-out' }}>{message.content}</div>;
+}
+
+function Onboarding({ onStart }) {
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState('');
+  const [age, setAge] = useState(null);
+  return (
+    <div style={s.onboardingContainer}>
+      <div style={s.onboardingCard}>
+        {step === 0 && (
+          <>
+            <div style={s.bigEmoji}>🌙</div>
+            <div style={s.onboardingTitle}>السلام عليكم</div>
+            <div style={s.onboardingSubtitle}>أنا "الأستاذ"، صديقك الجديد الذي سيعلّمك أمور دينك ويسمع منك يومك</div>
+            <button onClick={() => setStep(1)} style={s.primaryBtn}>هيا نبدأ ✨</button>
+          </>
+        )}
+        {step === 1 && (
+          <>
+            <div style={s.bigEmoji}>👋</div>
+            <div style={s.onboardingTitle}>ما اسمك يا حبيبي؟</div>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اكتب اسمك هنا" style={s.onboardingInput} autoFocus />
+            <button onClick={() => name.trim() && setStep(2)} disabled={!name.trim()} style={{ ...s.primaryBtn, opacity: name.trim() ? 1 : 0.4 }}>التالي</button>
+          </>
+        )}
+        {step === 2 && (
+          <>
+            <div style={s.bigEmoji}>🎂</div>
+            <div style={s.onboardingTitle}>كم عمرك يا {name}؟</div>
+            <div style={s.onboardingSubtitle}>اضغط على عمرك لتبدأ ✨</div>
+            <div style={s.ageGrid}>
+              {[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(n => (
+                <button key={n} onClick={() => { setAge(n); setTimeout(() => onStart(name, n), 250); }} style={{ ...s.ageBtn, ...(age === n ? s.ageBtnActive : {}) }}>{n}</button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, onBack }) {
+  const handleSubmit = () => {
+    if (pinInput === PARENT_PIN) onSuccess();
+    else { setPinError(true); setTimeout(() => setPinError(false), 1500); }
+  };
+  return (
+    <div style={s.onboardingContainer}>
+      <div style={s.onboardingCard}>
+        <div style={s.bigEmoji}>🔒</div>
+        <div style={s.onboardingTitle}>لوحة الأهل</div>
+        <div style={s.onboardingSubtitle}>أدخل رمز الدخول (الافتراضي: 1234)</div>
+        <input type="password" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSubmit()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? '#C44536' : '#E5DDD0' }} autoFocus />
+        {pinError && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>رمز خاطئ</div>}
+        <button onClick={handleSubmit} style={s.primaryBtn}>دخول</button>
+        <button onClick={onBack} style={s.secondaryBtn}>رجوع</button>
+      </div>
+    </div>
+  );
+}
+
+function ParentDashboard({ profile, messages, onBack, onReset }) {
+  return (
+    <div style={s.dashboardContainer}>
+      <div style={s.dashboardHeader}>
+        <button onClick={onBack} style={s.backBtn}>← رجوع</button>
+        <div style={s.dashboardTitle}>لوحة الأهل</div>
+      </div>
+      <div style={s.dashboardContent}>
+        <div style={s.dashboardCard}>
+          <div style={s.dashboardLabel}>الطفل</div>
+          <div style={s.dashboardValue}>{profile?.name} — {profile?.age} سنة</div>
+        </div>
+        <div style={s.dashboardCard}>
+          <div style={s.dashboardLabel}>عدد الرسائل</div>
+          <div style={s.dashboardValue}>{messages.length} رسالة</div>
+        </div>
+        <div style={s.dashboardCard}>
+          <div style={s.dashboardLabel}>سجل المحادثات</div>
+          <div style={s.conversationLog}>
+            {messages.length === 0 ? (
+              <div style={{ color: '#8A8378', textAlign: 'center', padding: 20 }}>لا توجد محادثات بعد</div>
+            ) : (
+              messages.map((m, i) => (
+                <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#F0EBE0' : '#E8F0EE' }}>
+                  <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : '👨‍🏫 الأستاذ'}</div>
+                  <div style={s.logContent}>{m.content}</div>
+                  <div style={s.logTime}>{new Date(m.timestamp).toLocaleString('ar-SA')}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <button onClick={onReset} style={s.dangerBtn}>
+          <ResetIcon size={16} color="#C44536" />
+          <span style={{ marginRight: 8 }}>حذف كل البيانات وإعادة البدء</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// الأنماط
+// ============================================================
+const s = {
+  loadingScreen: { minHeight: '100vh', background: 'linear-gradient(135deg, #FAF7F2 0%, #E8E0D0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  loadingSpinner: { fontSize: 48, animation: 'pulse 1.5s ease-in-out infinite' },
+  onboardingContainer: { minHeight: '100vh', background: 'linear-gradient(135deg, #FAF7F2 0%, #E8E0D0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  onboardingCard: { background: '#FFFFFF', borderRadius: 28, padding: 32, maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(44, 95, 93, 0.15)', textAlign: 'center', border: '1px solid #F0EBE0' },
+  bigEmoji: { fontSize: 64, marginBottom: 16, animation: 'fadeIn 0.5s ease-out' },
+  onboardingTitle: { fontSize: 26, fontWeight: 800, color: '#2C5F5D', marginBottom: 12 },
+  onboardingSubtitle: { fontSize: 16, color: '#6B6358', marginBottom: 24, lineHeight: 1.6 },
+  onboardingInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 16, border: '2px solid #E5DDD0', background: '#FAF7F2', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
+  ageGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
+  ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid #E5DDD0', background: '#FAF7F2', color: '#2C5F5D', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  ageBtnActive: { background: '#2C5F5D', color: '#FAF7F2', borderColor: '#2C5F5D', transform: 'scale(1.05)' },
+  primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(44, 95, 93, 0.3)' },
+  secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6B6358', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
+  chatContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: '#FAF7F2' },
+  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#FFFFFF', borderBottom: '1px solid #F0EBE0', boxShadow: '0 2px 12px rgba(44, 95, 93, 0.05)' },
+  headerContent: { display: 'flex', alignItems: 'center', gap: 12 },
+  avatar: { width: 44, height: 44, borderRadius: 14, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(44, 95, 93, 0.25)' },
+  headerTitle: { fontSize: 17, fontWeight: 800, color: '#2C5F5D' },
+  headerSubtitle: { fontSize: 12, color: '#8A8378', marginTop: 2 },
+  settingsBtn: { width: 40, height: 40, borderRadius: 12, background: '#F0EBE0', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  messagesArea: { flex: 1, overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 10 },
+  welcomeCard: { textAlign: 'center', padding: 24, background: 'linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, rgba(44, 95, 93, 0.05) 100%)', borderRadius: 20, margin: '20px 0' },
+  welcomeEmoji: { fontSize: 40, marginBottom: 8 },
+  welcomeText: { fontSize: 20, fontWeight: 700, color: '#2C5F5D' },
+  welcomeSubtext: { fontSize: 14, color: '#8A8378', marginTop: 6 },
+  messageBubble: { maxWidth: '78%', padding: '12px 16px', borderRadius: 18, fontSize: 16, lineHeight: 1.7, wordWrap: 'break-word', whiteSpace: 'pre-wrap' },
+  userBubble: { alignSelf: 'flex-start', background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', borderBottomRightRadius: 6, boxShadow: '0 4px 12px rgba(44, 95, 93, 0.2)' },
+  assistantBubble: { alignSelf: 'flex-end', background: '#FFFFFF', color: '#2C2C2C', borderBottomLeftRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #F0EBE0' },
+  typingDots: { display: 'flex', gap: 4, padding: '4px 0' },
+  dot: { fontSize: 10, color: '#2C5F5D', animation: 'typing 1.4s infinite' },
+  suggestionsBar: { display: 'flex', gap: 8, padding: '8px 16px', overflowX: 'auto', background: '#FAF7F2', borderTop: '1px solid #F0EBE0' },
+  suggestionChip: { padding: '10px 16px', borderRadius: 20, background: '#FFFFFF', border: '1px solid #E5DDD0', color: '#2C5F5D', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 },
+  errorBanner: { margin: '0 14px 8px 14px', padding: '12px 16px', background: '#FFF4E5', border: '1px solid #F0C674', borderRadius: 12, fontSize: 14, color: '#8B5A00', fontWeight: 500, textAlign: 'center' },
+  inputBar: { display: 'flex', gap: 10, padding: 14, background: '#FFFFFF', borderTop: '1px solid #F0EBE0' },
+  input: { flex: 1, padding: '14px 18px', fontSize: 16, borderRadius: 24, border: '2px solid #E5DDD0', background: '#FAF7F2', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', boxSizing: 'border-box' },
+  sendBtn: { width: 48, height: 48, borderRadius: 24, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(44, 95, 93, 0.3)', flexShrink: 0 },
+  micBtn: { width: 48, height: 48, borderRadius: 24, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(201, 169, 97, 0.35)', flexShrink: 0 },
+  dashboardContainer: { minHeight: '100vh', background: '#FAF7F2' },
+  dashboardHeader: { display: 'flex', alignItems: 'center', padding: '14px 18px', background: '#FFFFFF', borderBottom: '1px solid #F0EBE0', gap: 12 },
+  backBtn: { background: 'transparent', border: 'none', color: '#2C5F5D', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  dashboardTitle: { fontSize: 18, fontWeight: 800, color: '#2C5F5D' },
+  dashboardContent: { padding: 16, display: 'flex', flexDirection: 'column', gap: 12 },
+  dashboardCard: { background: '#FFFFFF', borderRadius: 16, padding: 18, border: '1px solid #F0EBE0' },
+  dashboardLabel: { fontSize: 13, color: '#8A8378', marginBottom: 6, fontWeight: 600 },
+  dashboardValue: { fontSize: 17, fontWeight: 700, color: '#2C5F5D' },
+  conversationLog: { maxHeight: 400, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 },
+  logEntry: { padding: 12, borderRadius: 12, fontSize: 14 },
+  logRole: { fontWeight: 700, color: '#2C5F5D', fontSize: 13, marginBottom: 6 },
+  logContent: { color: '#2C2C2C', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
+  logTime: { fontSize: 11, color: '#8A8378', marginTop: 6 },
+  dangerBtn: { padding: 14, background: 'transparent', color: '#C44536', border: '1px solid #C44536', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
