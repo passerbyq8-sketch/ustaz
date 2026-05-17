@@ -1,4 +1,4 @@
-const DEFAULT_VOICE_ID = 'pNInz6obpgDQGcFmaJgB';
+const DEFAULT_VOICE_ID = 'usjDi9nBY6UHvtKrL4ba';
 const MODEL_ID = 'eleven_multilingual_v2';
 
 export default async function handler(req, res) {
