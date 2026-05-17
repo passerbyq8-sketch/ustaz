@@ -5,8 +5,18 @@
 // المفتاح يُحفظ كـ ELEVENLABS_API_KEY في Vercel Environment Variables
 // ============================================================
 
-// صوت افتراضي — تم اختياره من ElevenLabs Voice Library
-const DEFAULT_VOICE_ID = 'usjDi9nBY6UHvtKrL4ba';
+// ============================================================
+// اختيار الصوت حسب جنس الطفل
+// ============================================================
+// لاحقاً: استبدل هذين الـ Voice IDs بعد اختيار أصوات أفضل من
+// ElevenLabs Voice Library — حالياً كلاهما يستخدمان نفس الـ ID
+// ============================================================
+
+const FEMALE_VOICE_ID = 'usjDi9nBY6UHvtKrL4ba';  // صوت للبنات (استبدله بصوت بناتي أفضل)
+const MALE_VOICE_ID   = 'usjDi9nBY6UHvtKrL4ba';  // صوت للأولاد (استبدله بصوت رجالي أفضل)
+
+// الافتراضي إن لم يُحدَّد الجنس
+const DEFAULT_VOICE_ID = FEMALE_VOICE_ID;
 
 // النموذج: multilingual_v2 (أفضل جودة) أو turbo_v2_5 (أسرع)
 const MODEL_ID = 'eleven_multilingual_v2';
@@ -28,12 +38,23 @@ export default async function handler(req, res) {
     });
   }
 
-  const { text, voiceId } = req.body;
+  const { text, voiceId, gender } = req.body;
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: 'النص مطلوب' });
   }
 
-  const useVoiceId = voiceId || DEFAULT_VOICE_ID;
+  // ترتيب الأولويات:
+  // 1. voiceId صريح من الطلب (إن وُجد)
+  // 2. الصوت حسب جنس الطفل (gender = 'male' / 'female')
+  // 3. الصوت الافتراضي
+  let useVoiceId = DEFAULT_VOICE_ID;
+  if (voiceId) {
+    useVoiceId = voiceId;
+  } else if (gender === 'male') {
+    useVoiceId = MALE_VOICE_ID;
+  } else if (gender === 'female') {
+    useVoiceId = FEMALE_VOICE_ID;
+  }
 
   try {
     const response = await fetch(
@@ -49,15 +70,10 @@ export default async function handler(req, res) {
           text: text,
           model_id: MODEL_ID,
           voice_settings: {
-            // ----------------------------------------------------------------
-            // إعدادات معدّلة لزيادة حيوية الصوت وتفاعله:
-            // stability منخفض = تنويع أكثر في النبرة (لا روبوتي ثابت)
-            // style مرتفع = تعبير عاطفي أكثر (يحمس مع المحتوى الحماسي)
-            // similarity_boost = ثبات شخصية الصوت
-            // ----------------------------------------------------------------
-            stability: 0.30,         // كان 0.55 — تنويع أكبر في النبرة
-            similarity_boost: 0.75,  // ثابت لحفظ هوية الصوت
-            style: 0.60,             // كان 0.30 — تعبير عاطفي أوضح
+            // إعدادات معدّلة لزيادة حيوية الصوت وتفاعله
+            stability: 0.30,         // تنويع أكبر في النبرة
+            similarity_boost: 0.75,  // ثبات هوية الصوت
+            style: 0.60,             // تعبير عاطفي أوضح
             use_speaker_boost: true,
           },
         }),
