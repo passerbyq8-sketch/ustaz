@@ -69,7 +69,7 @@ const ResetIcon = (p) => <Icon {...p}><polyline points="1 4 1 10 7 10"/><path d=
 // ============================================================
 // شخصية الأستاذ (System Prompt)
 // ============================================================
-const buildSystemPrompt = (name, age) => `أنت "الأستاذ" — معلمٌ مسلمٌ محبٌّ كأنّك شيخٌ في الحيّ يعرفه أهله، يأنس به الأطفال، ويثقون فيه آباؤهم. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء. اسم الطفل ${name} وعمره ${age} سنة.
+const buildSystemPrompt = (name, age, gender) => `أنت "الأستاذ" — معلمٌ مسلمٌ محبٌّ كأنّك شيخٌ في الحيّ يعرفه أهله، يأنس به الأطفال، ويثقون فيه آباؤهم. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء. اسم الطفل ${name} وعمره ${age} سنة وجنسه ${gender === 'female' ? 'بنت (استخدم صيغة المؤنث في كل خطاب: حَبِيبَتِي، عَلَيْكِ، أَنْتِ، تَدْرِينَ، يَا قَمَر)' : 'ولد (استخدم صيغة المذكر في كل خطاب: حَبِيبِي، عَلَيْكَ، أَنْتَ، تَدْرِي، يَا بَطَل)'}.
 
 ═══ فلسفتك الأساسية ═══
 
@@ -102,7 +102,14 @@ const buildSystemPrompt = (name, age) => `أنت "الأستاذ" — معلمٌ
   • مصرية: "كِدَه"، "إِزَّيَّك"، "أَوْلَدْ" (للأطفال)، "كُوَيِّس"، "دِلْوَقْتِي".
   • إن لم تكن الكلمة فصحى ولا خليجية كويتية، استبدلها بالفصحى.
 
-- تشكيل كامل لكل ردودك (فتحة، كسرة، ضمة، سكون، شدة، تنوين) — أساسي لأنّ الكلام يُنطق صوتياً. مثال صحيح: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ، السَّلَامُ عَلَيْكِ يَا حَبِيبَتِي".
+- **تشكيل كامل وإجباري على كل حرف** — هذه قاعدة حياتية للنطق الصوتي:
+  • كل حرف يجب أن يحمل علامة تشكيل (فتحة، كسرة، ضمة، سكون، شدة، تنوين) — لا استثناء.
+  • قبل أن تكتب أي رد، راجعه كلمة كلمة وتأكّد أنّ كل حرف مُشَكَّل.
+  • للأفعال المضارعة للمؤنث: "تَنْحَنِينَ"، "تَنْزِلِينَ"، "تَقُولِينَ" (بنون مكسورة + ياء ساكنة + نون مفتوحة).
+  • للضمائر: "عَلَيْكِ" (للمؤنث) و"عَلَيْكَ" (للمذكر) — الفرق دقيق ومهم.
+  • للأسماء الخليجية المُدلَّعة: "يَا هَنُود" (الهاء مفتوحة، النون مضمومة، الواو ساكنة، الدال مفتوحة).
+  • مثال كامل صحيح: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ، السَّلَامُ عَلَيْكِ يَا حَبِيبَتِي".
+  • مثال خاطئ يجب تجنّبه: "السلام عليك يا حبيبتي" (بدون تشكيل = مرفوض).
 
 - ممنوع منعاً باتاً تنسيق Markdown: لا تستخدم النجمتين (**) ولا النجمة الواحدة (*) ولا الشرطتين السفليتين (__) ولا الهاش (#) ولا أي رمز تنسيق. اكتب نصاً عربياً نقياً فقط — الرموز ستُنطق صوتياً وتظهر بصرياً.
 
@@ -176,6 +183,14 @@ const buildSystemPrompt = (name, age) => `أنت "الأستاذ" — معلمٌ
 **أسلوب التربية (فايز الزهراني):** التربية بالعلاقة لا بالسيطرة. غرس القيم لا فرضها. ركّز على الإيجابي. اجعله يحكم بضميره.
 
 **التبسيط للناشئة (إسماعيل عرفة):** بسّط دون تسطيح. القصة طريق للقلب. اربط الدين بحياة الطفل اليومية.
+
+**ثقافة الحوار والإنصات (د. أسامة الجامع):** الإنصات قبل الإرشاد. استخدم "أَخْبِرْنِي بِالْمَزِيد" بدل الأوامر. لا تكتفِ بالتعليمات، افهم ما يدور في عقل الطفل. التقنية والألعاب الإلكترونية لها فوائد ومضار — وازِن بحكمة.
+
+**بناء الشخصية القوية (ياسر الحزيمي):** علّم الطفل توكيد الذات وتقبّل الذات والثقة بالنفس. ادمج علم النفس مع السيرة النبوية. "ليسَ هناكَ مشروعٌ أفضلُ من عيالك" — اجعله يحس أنّه مهم ومحبوب لذاته.
+
+**حماية الفطرة (د. هبة حريري):** علّم الطفل حدود جسده وأنّ بعض المواضع خاصة لا يلمسها أحد. شجّعه أن يخبر والديه فوراً إن لمسه أحد أو طلب منه ما يُشعره بعدم الراحة. التربية الجنسية حسب العمر تحمي الفطرة لا تُفسدها — أجب بحياء وعلم. "جسمك أمانة من الله، احفظه".
+
+**هندسة القيم (د. صالح الدقلة):** القيم لا تُلقَّن بل تُبنى بهندسة منهجية. اربط القيمة بالذائقة (يحبها بقلبه) قبل المتعة بفعلها. استخدم القصة، التكرار، الربط بالقرآن، والقدوة. غرس القيمة الواحدة يحتاج عدة مرات بطرق مختلفة.
 
 ═══ أمثلة لردود نموذجية (تَمثّل روحها لا حرفها) ═══
 
@@ -309,7 +324,7 @@ function App() {
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: cleanText }),
+        body: JSON.stringify({ text: cleanText, gender: profile?.gender }),
       });
       if (response.ok) {
         const audioBlob = await response.blob();
@@ -388,8 +403,8 @@ function App() {
     if (recognitionRef.current && isListening) recognitionRef.current.stop();
   };
 
-  const startChat = async (name, age) => {
-    const p = { name, age, createdAt: new Date().toISOString() };
+  const startChat = async (name, age, gender) => {
+    const p = { name, age, gender, createdAt: new Date().toISOString() };
     setProfile(p);
     setScreen('chat');
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
@@ -404,7 +419,7 @@ function App() {
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 1000,
-          system: buildSystemPrompt(p.name, p.age),
+          system: buildSystemPrompt(p.name, p.age, p.gender),
           messages: history.map(m => ({ role: m.role, content: m.content })),
         }),
       });
@@ -556,6 +571,7 @@ function Onboarding({ onStart }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [age, setAge] = useState(null);
+  const [gender, setGender] = useState(null);
   return (
     <div style={s.onboardingContainer}>
       <div style={s.onboardingCard}>
@@ -577,12 +593,33 @@ function Onboarding({ onStart }) {
         )}
         {step === 2 && (
           <>
+            <div style={s.bigEmoji}>🌸</div>
+            <div style={s.onboardingTitle}>أنت ولد أم بنت يا {name}؟</div>
+            <div style={s.onboardingSubtitle}>هذا يساعدني أكلمك بالطريقة المناسبة لك</div>
+            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+              <button
+                onClick={() => { setGender('male'); setStep(3); }}
+                style={{ ...s.primaryBtn, flex: 1, background: gender === 'male' ? '#2C5F5D' : '#E5DDD0', color: gender === 'male' ? '#FFF' : '#2C5F5D' }}
+              >
+                👦 ولد
+              </button>
+              <button
+                onClick={() => { setGender('female'); setStep(3); }}
+                style={{ ...s.primaryBtn, flex: 1, background: gender === 'female' ? '#2C5F5D' : '#E5DDD0', color: gender === 'female' ? '#FFF' : '#2C5F5D' }}
+              >
+                👧 بنت
+              </button>
+            </div>
+          </>
+        )}
+        {step === 3 && (
+          <>
             <div style={s.bigEmoji}>🎂</div>
             <div style={s.onboardingTitle}>كم عمرك يا {name}؟</div>
             <div style={s.onboardingSubtitle}>اضغط على عمرك لتبدأ ✨</div>
             <div style={s.ageGrid}>
               {[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(n => (
-                <button key={n} onClick={() => { setAge(n); setTimeout(() => onStart(name, n), 250); }} style={{ ...s.ageBtn, ...(age === n ? s.ageBtnActive : {}) }}>{n}</button>
+                <button key={n} onClick={() => { setAge(n); setTimeout(() => onStart(name, n, gender), 250); }} style={{ ...s.ageBtn, ...(age === n ? s.ageBtnActive : {}) }}>{n}</button>
               ))}
             </div>
           </>
