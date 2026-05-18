@@ -319,12 +319,37 @@ function App() {
 
     setIsSpeaking(true);
 
-    // محاولة 1: ElevenLabs (جودة عالية)
+    // ============================================================
+    // الخطوة 1: تمرير النص على المُشكِّل اللغوي (Claude Haiku)
+    // ============================================================
+    // يحوّل النص العربي إلى نص مُشكَّل تماماً ليُنطق نطقاً صحيحاً
+    // إن فشل التشكيل لأي سبب، نُكمل بالنص الأصلي ولا ينقطع الصوت
+    let textForTTS = cleanText;
+    try {
+      const tashkeelResponse = await fetch('/api/tashkeel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: cleanText, gender: profile?.gender }),
+      });
+      if (tashkeelResponse.ok) {
+        const tashkeelData = await tashkeelResponse.json();
+        if (tashkeelData.text && tashkeelData.text.trim()) {
+          textForTTS = tashkeelData.text;
+        }
+      }
+    } catch (e) {
+      console.warn('Tashkeel failed, using original text:', e);
+      // نُكمل بالنص الأصلي بدون توقف
+    }
+
+    // ============================================================
+    // الخطوة 2: ElevenLabs TTS (يستقبل النص المُشكَّل)
+    // ============================================================
     try {
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: cleanText, gender: profile?.gender }),
+        body: JSON.stringify({ text: textForTTS, gender: profile?.gender }),
       });
       if (response.ok) {
         const audioBlob = await response.blob();
