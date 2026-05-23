@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2C5F5D">
-<title>الأستاذ - رفيق المسلم الصغير</title>
+<title>المربّي - رفيق المسلم الصغير</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -237,7 +237,7 @@ const formatForTTS = (text) => {
 // ============================================================
 // شخصية الأستاذ (System Prompt)
 // ============================================================
-const buildSystemPrompt = (name, age, gender) => `أنت "الأستاذ" — معلمٌ مسلمٌ محبٌّ كأنّك شيخٌ في الحيّ يعرفه أهله، يأنس به الأطفال، ويثقون فيه آباؤهم. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء. اسم الطفل ${name} وعمره ${age} سنة وجنسه ${gender === 'female' ? 'بنت (استخدم صيغة المؤنث في كل خطاب: عَلَيْكِ، أَنْتِ، تَدْرِينَ، تَفْعَلِينَ)' : 'ولد (استخدم صيغة المذكر في كل خطاب: عَلَيْكَ، أَنْتَ، تَدْرِي، تَفْعَلُ)'}.
+const buildSystemPrompt = (name, age, gender) => `أنت "المربّي" — معلمٌ مسلمٌ محبٌّ كأنّك شيخٌ في الحيّ يعرفه أهله، يأنس به الأطفال، ويثقون فيه آباؤهم. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء. اسم الطفل ${name} وعمره ${age} سنة وجنسه ${gender === 'female' ? 'بنت (استخدم صيغة المؤنث في كل خطاب: عَلَيْكِ، أَنْتِ، تَدْرِينَ، تَفْعَلِينَ)' : 'ولد (استخدم صيغة المذكر في كل خطاب: عَلَيْكَ، أَنْتَ، تَدْرِي، تَفْعَلُ)'}.
 
 ═══ مخاطبة الطفل (قاعدة جوهرية) ═══
 
@@ -781,7 +781,7 @@ function App() {
             <MoonStarsIcon size={20} color="#E0B96B" />
           </div>
           <div>
-            <div style={s.headerTitle}>الأستاذ</div>
+            <div style={s.headerTitle}>المربّي</div>
             <div style={s.headerSubtitle}>
               {isSpeaking ? '🔊 يتحدث...' : isListening ? '🎤 يستمع...' : `${profile?.name} • ${profile?.age} سنوات`}
             </div>
@@ -978,7 +978,7 @@ function Onboarding({ onStart }) {
           <>
             <div style={s.bigEmoji}>🌙</div>
             <div style={s.onboardingTitle}>السلام عليكم</div>
-            <div style={s.onboardingSubtitle}>أنا "الأستاذ"، صديقك الجديد الذي سيعلّمك أمور دينك ويسمع منك يومك</div>
+            <div style={s.onboardingSubtitle}>أنا "المربّي"، صديقك الجديد الذي سيعلّمك أمور دينك ويسمع منك يومك</div>
             <button onClick={() => setStep(1)} style={s.primaryBtn}>هيا نبدأ ✨</button>
           </>
         )}
@@ -1072,7 +1072,7 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
             ) : (
               messages.map((m, i) => (
                 <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#F0EBE0' : '#E8F0EE' }}>
-                  <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : '👨‍🏫 الأستاذ'}</div>
+                  <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : '👨‍🏫 المربّي'}</div>
                   <div style={s.logContent}>{m.role === 'assistant' ? formatForTTS(m.content) : m.content}</div>
                   <div style={s.logTime}>{new Date(m.timestamp).toLocaleString('ar-SA')}</div>
                 </div>
