@@ -65,11 +65,187 @@ const MicOffIcon = (p) => <Icon {...p}><line x1="1" y1="1" x2="23" y2="23"/><pat
 const VolumeIcon = (p) => <Icon {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></Icon>;
 const VolumeOffIcon = (p) => <Icon {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></Icon>;
 const ResetIcon = (p) => <Icon {...p}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></Icon>;
+const MoonStarsIcon = (p) => <Icon {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor"/><circle cx="20" cy="9.5" r="0.6" fill="currentColor"/></Icon>;
+const BookmarkIcon = (p) => <Icon {...p}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></Icon>;
+const ScrollIcon = (p) => <Icon {...p}><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 0 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/></Icon>;
+const ListCheckIcon = (p) => <Icon {...p}><path d="M3 17l2 2 4-4"/><path d="M3 7l2 2 4-4"/><line x1="13" y1="6" x2="21" y2="6"/><line x1="13" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></Icon>;
+const MosqueIcon = (p) => <Icon {...p}><path d="M3 21h18"/><path d="M5 21V12a7 7 0 0 1 14 0v9"/><path d="M12 5V3"/><circle cx="12" cy="2" r="0.5" fill="currentColor"/><path d="M9 21v-5a3 3 0 0 1 6 0v5"/></Icon>;
+const QuranIcon = (p) => <Icon {...p}><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="9" y1="10" x2="15" y2="10"/></Icon>;
+const StarIcon = (p) => <Icon {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></Icon>;
+const HeartIcon = (p) => <Icon {...p}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></Icon>;
+const PrayingHandsIcon = (p) => <Icon {...p}><path d="M12 21v-7"/><path d="M9 14V8a2 2 0 0 1 4 0v6"/><path d="M9 8L7 6"/><path d="M15 8l2-2"/><path d="M5 16c0-2 1-3 3-3"/><path d="M19 16c0-2-1-3-3-3"/></Icon>;
+
+// ============================================================
+// آيات يومية (تتجدد حسب اليوم — ٣٠ آية تكفي شهر)
+// ============================================================
+const DAILY_VERSES = [
+  { text: 'إِنَّ مَعَ الْعُسْرِ يُسْرًا', surah: 'الشرح', ayah: '٦' },
+  { text: 'وَهُوَ مَعَكُمْ أَيْنَ مَا كُنْتُمْ', surah: 'الحديد', ayah: '٤' },
+  { text: 'إِنَّ اللَّهَ مَعَ الصَّابِرِينَ', surah: 'البقرة', ayah: '١٥٣' },
+  { text: 'فَاذْكُرُونِي أَذْكُرْكُمْ', surah: 'البقرة', ayah: '١٥٢' },
+  { text: 'وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجًا', surah: 'الطلاق', ayah: '٢' },
+  { text: 'إِنَّ رَحْمَتَ اللَّهِ قَرِيبٌ مِنَ الْمُحْسِنِينَ', surah: 'الأعراف', ayah: '٥٦' },
+  { text: 'وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ', surah: 'البقرة', ayah: '١٨٦' },
+  { text: 'إِنَّ اللَّهَ يُحِبُّ الْمُحْسِنِينَ', surah: 'البقرة', ayah: '١٩٥' },
+  { text: 'وَلَا تَيْأَسُوا مِنْ رَوْحِ اللَّهِ', surah: 'يوسف', ayah: '٨٧' },
+  { text: 'وَبَشِّرِ الصَّابِرِينَ', surah: 'البقرة', ayah: '١٥٥' },
+  { text: 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ', surah: 'الرعد', ayah: '٢٨' },
+  { text: 'وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ', surah: 'هود', ayah: '٨٨' },
+  { text: 'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ', surah: 'آل عمران', ayah: '١٧٣' },
+  { text: 'إِنَّ اللَّهَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ', surah: 'البقرة', ayah: '٢٠' },
+  { text: 'وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنْتُمُ الْأَعْلَوْنَ', surah: 'آل عمران', ayah: '١٣٩' },
+  { text: 'إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ', surah: 'حديث', ayah: 'البخاري' },
+  { text: 'وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ', surah: 'البقرة', ayah: '٤٣' },
+  { text: 'وَقُلْ رَبِّ زِدْنِي عِلْمًا', surah: 'طه', ayah: '١١٤' },
+  { text: 'إِنَّ اللَّهَ غَفُورٌ رَحِيمٌ', surah: 'البقرة', ayah: '١٧٣' },
+  { text: 'وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ', surah: 'البقرة', ayah: '٤٥' },
+  { text: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً', surah: 'البقرة', ayah: '٢٠١' },
+  { text: 'إِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ', surah: 'التوبة', ayah: '١٢٠' },
+  { text: 'وَكَانَ اللَّهُ بِكُلِّ شَيْءٍ عَلِيمًا', surah: 'النساء', ayah: '٣٢' },
+  { text: 'وَتَوَكَّلْ عَلَى اللَّهِ وَكَفَى بِاللَّهِ وَكِيلًا', surah: 'الأحزاب', ayah: '٣' },
+  { text: 'وَأَنْ لَيْسَ لِلْإِنْسَانِ إِلَّا مَا سَعَىٰ', surah: 'النجم', ayah: '٣٩' },
+  { text: 'وَاللَّهُ يُحِبُّ الصَّابِرِينَ', surah: 'آل عمران', ayah: '١٤٦' },
+  { text: 'إِنَّ اللَّهَ بِالنَّاسِ لَرَءُوفٌ رَحِيمٌ', surah: 'البقرة', ayah: '١٤٣' },
+  { text: 'وَمَنْ يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ', surah: 'الطلاق', ayah: '٣' },
+  { text: 'إِنَّ مَعِيَ رَبِّي سَيَهْدِينِ', surah: 'الشعراء', ayah: '٦٢' },
+  { text: 'وَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ', surah: 'يوسف', ayah: '٦٤' },
+];
+
+const getDailyVerse = () => {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return DAILY_VERSES[dayOfYear % DAILY_VERSES.length];
+};
+
+// ============================================================
+// رقائق المواضيع (نقرة → سؤال للأستاذ)
+// ============================================================
+const TOPICS = [
+  { id: 'salah', label: 'الصلاة', icon: 'mosque', prompt: 'علّمني عن الصلاة' },
+  { id: 'quran', label: 'القرآن', icon: 'quran', prompt: 'احكِ لي عن سورة جميلة' },
+  { id: 'seerah', label: 'السيرة', icon: 'star', prompt: 'احكِ لي قصة من السيرة' },
+  { id: 'akhlaq', label: 'الأخلاق', icon: 'heart', prompt: 'علّمني أدباً من السنة' },
+  { id: 'duaa', label: 'الأدعية', icon: 'praying', prompt: 'علّمني دعاءً جميلاً' },
+];
+
+const renderTopicIcon = (icon, size = 13) => {
+  const props = { size, color: 'currentColor' };
+  if (icon === 'mosque') return <MosqueIcon {...props} />;
+  if (icon === 'quran') return <QuranIcon {...props} />;
+  if (icon === 'star') return <StarIcon {...props} />;
+  if (icon === 'heart') return <HeartIcon {...props} />;
+  if (icon === 'praying') return <PrayingHandsIcon {...props} />;
+  return null;
+};
+
+// ============================================================
+// تحليل الرسائل ذات البطاقات (verse/hadith/steps/suggestions)
+// ============================================================
+const parseRichMessage = (text) => {
+  if (!text || typeof text !== 'string') {
+    return { segments: [{ type: 'text', content: text || '' }], suggestions: [] };
+  }
+  const segments = [];
+  let suggestions = [];
+  let remaining = text;
+
+  // أنماط الوسوم
+  const tagPattern = /<(verse|hadith|steps|suggestions)([^>]*)>([\s\S]*?)<\/\1>/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = tagPattern.exec(text)) !== null) {
+    // إضافة النص العادي قبل الوسم
+    if (match.index > lastIndex) {
+      const plainText = text.slice(lastIndex, match.index).trim();
+      if (plainText) segments.push({ type: 'text', content: plainText });
+    }
+    const tagName = match[1];
+    const attrsStr = match[2] || '';
+    const content = (match[3] || '').trim();
+    if (tagName === 'verse') {
+      const surahMatch = attrsStr.match(/surah=["']([^"']+)["']/);
+      const ayahMatch = attrsStr.match(/ayah=["']([^"']+)["']/);
+      segments.push({
+        type: 'verse',
+        content,
+        surah: surahMatch ? surahMatch[1] : '',
+        ayah: ayahMatch ? ayahMatch[1] : '',
+      });
+    } else if (tagName === 'hadith') {
+      const narratorMatch = attrsStr.match(/narrator=["']([^"']+)["']/);
+      const rulingMatch = attrsStr.match(/ruling=["']([^"']+)["']/);
+      segments.push({
+        type: 'hadith',
+        content,
+        narrator: narratorMatch ? narratorMatch[1] : '',
+        ruling: rulingMatch ? rulingMatch[1] : '',
+      });
+    } else if (tagName === 'steps') {
+      const items = content.split('\n')
+        .map(l => l.trim())
+        .filter(l => l)
+        .map(l => l.replace(/^[-•*]\s*/, '').trim())
+        .filter(l => l);
+      segments.push({ type: 'steps', items });
+    } else if (tagName === 'suggestions') {
+      const items = content.split('\n')
+        .map(l => l.trim())
+        .filter(l => l)
+        .map(l => l.replace(/^[-•*]\s*/, '').trim())
+        .filter(l => l);
+      suggestions = items;
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  // ما بعد آخر وسم
+  if (lastIndex < text.length) {
+    const plainText = text.slice(lastIndex).trim();
+    if (plainText) segments.push({ type: 'text', content: plainText });
+  }
+  // إن لم نجد وسوماً، النص كله نصّ عادي
+  if (segments.length === 0 && !suggestions.length) {
+    segments.push({ type: 'text', content: text.trim() });
+  }
+  return { segments, suggestions };
+};
+
+// ============================================================
+// تحضير النص للصوت (إزالة الوسوم، إنشاء سياق طبيعي)
+// ============================================================
+const formatForTTS = (text) => {
+  if (!text) return '';
+  // إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
+  let t = text.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
+  // تحويل الآيات إلى نص طبيعي للنطق
+  t = t.replace(/<verse[^>]*surah=["']([^"']+)["'][^>]*ayah=["']([^"']+)["'][^>]*>([\s\S]*?)<\/verse>/g,
+    (_, surah, ayah, content) => ` قَالَ اللهُ تَعَالَى: ${content.trim()}. سُورَةُ ${surah}، آيَة ${ayah}. `
+  );
+  // تحويل الأحاديث إلى نص طبيعي للنطق
+  t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
+    (_, narrator, ruling, content) => ` رَوَى ${narrator}: ${content.trim()}. ${ruling}. `
+  );
+  // تحويل الخطوات إلى نص طبيعي للنطق
+  t = t.replace(/<steps>([\s\S]*?)<\/steps>/g, (_, content) => {
+    const items = content.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(l => l);
+    if (!items.length) return '';
+    return ' خُطُوَاتٌ تُسَاعِدُكِ: ' + items.join(' ثُمَّ ') + '. ';
+  });
+  // تنظيف الفراغات
+  t = t.replace(/\s+/g, ' ').trim();
+  return t;
+};
 
 // ============================================================
 // شخصية الأستاذ (System Prompt)
 // ============================================================
-const buildSystemPrompt = (name, age, gender) => `أنت "الأستاذ" — معلمٌ مسلمٌ محبٌّ كأنّك شيخٌ في الحيّ يعرفه أهله، يأنس به الأطفال، ويثقون فيه آباؤهم. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء. اسم الطفل ${name} وعمره ${age} سنة وجنسه ${gender === 'female' ? 'بنت (استخدم صيغة المؤنث في كل خطاب: حَبِيبَتِي، عَلَيْكِ، أَنْتِ، تَدْرِينَ، يَا قَمَر)' : 'ولد (استخدم صيغة المذكر في كل خطاب: حَبِيبِي، عَلَيْكَ، أَنْتَ، تَدْرِي، يَا بَطَل)'}.
+const buildSystemPrompt = (name, age, gender) => `أنت "الأستاذ" — معلمٌ مسلمٌ محبٌّ كأنّك شيخٌ في الحيّ يعرفه أهله، يأنس به الأطفال، ويثقون فيه آباؤهم. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء. اسم الطفل ${name} وعمره ${age} سنة وجنسه ${gender === 'female' ? 'بنت (استخدم صيغة المؤنث في كل خطاب: عَلَيْكِ، أَنْتِ، تَدْرِينَ، تَفْعَلِينَ)' : 'ولد (استخدم صيغة المذكر في كل خطاب: عَلَيْكَ، أَنْتَ، تَدْرِي، تَفْعَلُ)'}.
+
+═══ مخاطبة الطفل (قاعدة جوهرية) ═══
+
+نَادِهِ بِاسْمِهِ المُجَرَّدِ فَقَطْ كَمَا كَتَبَهُ أَهْلُهُ: "${name}".
+- مَمْنُوعٌ تَعْدِيلُ الاسْمِ أَوْ تَدْلِيعُه: لا "هَنُود" مِنْ "هند"، لا "خَلُّود" مِنْ "خالد"، لا "هِنْدُوش"، لا "خَالِدِي".
+- مَمْنُوعَةٌ أَلْقَابُ المَحَبَّةِ تَمَامًا: لا "حَبِيبَتِي"، لا "حَبِيبِي"، لا "يَا قَمَر"، لا "يَا بَطَل"، لا "يَا رُوحِي"، لا "يَا حُلْوَة"، لا "يَا غَالِي".
+- الاسْمُ المُجَرَّدُ هُوَ عَيْنُ الاحْتِرَامِ وَأَدْفَأُ مِنَ التَّكَلُّفِ.
+- مَثَلًا: "السَّلَامُ ${gender === 'female' ? 'عَلَيْكِ' : 'عَلَيْكَ'} يَا ${name}، كَيْفَ ${gender === 'female' ? 'يَوْمُكِ' : 'يَوْمُكَ'}؟"
 
 ═══ فلسفتك الأساسية ═══
 
@@ -92,10 +268,9 @@ const buildSystemPrompt = (name, age, gender) => `أنت "الأستاذ" — م
   • للمراهقين 13-18 سنة: 4-6 جمل.
   ممنوع التعداد الطويل (لا تذكر 14 ركناً دفعة واحدة لطفلة 7 سنوات، اذكر 2-3 وقل لها "خليني أعلّمك الباقي كل يوم شوي").
 
-- لغتك: فصحى مبسّطة، مع لمسات خليجية كويتية محدّدة فقط (لا شامية ولا مصرية ولا مغربية).
-  • مفردات خليجية مقبولة: "يَا قَمَر"، "يَا حَبِيبَتِي"، "يَا رُوحِي"، "وَايِد" (=كثير)، "زِين" (=طيب)، "شُو"، "شِفْت"، "أَدْرِي"، "يَا بَطَل"، "أَبْغَى"، "هَلْ تَدْرِي".
-  • تدليع البنات (مثل هند): قُلْ "يَا هَنُود" أو "يَا هَنُّود" أو "يَا هِنْدُوش" أو "يَا حَبِيبَتِي هِنْد" — ولا تَقُلْ "يَا هِنْدِي" لأنّها تُفهم على أنّها ضمير ملكية ("ملكي").
-  • تدليع الأولاد (مثل خالد): "يَا خَلُّود"، "يَا خَالِدِي" (هذه مقبولة للأولاد)، "يَا بَطَل"، "يَا حَبِيبِي".
+- لغتك: فصحى مبسّطة، مع لمسات خليجية كويتية مفرداتية فقط (لا شامية ولا مصرية ولا مغربية).
+  • مفردات خليجية مقبولة داخل الجمل (لا في المُنَادَاة): "وَايِد" (=كثير)، "زِين" (=طيب)، "شُو" (=ماذا)، "شِفْت"، "أَدْرِي"، "أَبْغَى"، "هَلْ تَدْرِي".
+  • المُنَادَاةُ بالاسْمِ المُجَرَّدِ فَقَط (انظر القسم أعلاه): لا أَلْقَابَ مَحَبَّة، لا تَدْلِيع.
 
 - ممنوع منعاً باتاً الكلمات غير الخليجية التالية:
   • شامية: "حَابِسّ"، "حَابِب"، "لِسَّا"، "بَدِّي"، "كْتِير"، "هَلَّق"، "هَيْك".
@@ -107,8 +282,7 @@ const buildSystemPrompt = (name, age, gender) => `أنت "الأستاذ" — م
   • قبل أن تكتب أي رد، راجعه كلمة كلمة وتأكّد أنّ كل حرف مُشَكَّل.
   • للأفعال المضارعة للمؤنث: "تَنْحَنِينَ"، "تَنْزِلِينَ"، "تَقُولِينَ" (بنون مكسورة + ياء ساكنة + نون مفتوحة).
   • للضمائر: "عَلَيْكِ" (للمؤنث) و"عَلَيْكَ" (للمذكر) — الفرق دقيق ومهم.
-  • للأسماء الخليجية المُدلَّعة: "يَا هَنُود" (الهاء مفتوحة، النون مضمومة، الواو ساكنة، الدال مفتوحة).
-  • مثال كامل صحيح: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ، السَّلَامُ عَلَيْكِ يَا حَبِيبَتِي".
+  • مثال كامل صحيح: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ، السَّلَامُ عَلَيْكِ يَا هِنْد، كَيْفَ يَوْمُكِ؟".
   • مثال خاطئ يجب تجنّبه: "السلام عليك يا حبيبتي" (بدون تشكيل = مرفوض).
 
 - ممنوع منعاً باتاً تنسيق Markdown: لا تستخدم النجمتين (**) ولا النجمة الواحدة (*) ولا الشرطتين السفليتين (__) ولا الهاش (#) ولا أي رمز تنسيق. اكتب نصاً عربياً نقياً فقط — الرموز ستُنطق صوتياً وتظهر بصرياً.
@@ -192,19 +366,113 @@ const buildSystemPrompt = (name, age, gender) => `أنت "الأستاذ" — م
 
 **هندسة القيم (د. صالح الدقلة):** القيم لا تُلقَّن بل تُبنى بهندسة منهجية. اربط القيمة بالذائقة (يحبها بقلبه) قبل المتعة بفعلها. استخدم القصة، التكرار، الربط بالقرآن، والقدوة. غرس القيمة الواحدة يحتاج عدة مرات بطرق مختلفة.
 
+═══ المصادر الشرعية والحلول العملية (قاعدة جوهرية) ═══
+
+أنت معلّمٌ موثوقٌ، فاجعل ردودك مليئةً بالمعرفة المُسنَدة لا التعميمات المُبهمة:
+
+١. **عند ذكر آية**: اذكر اسم السورة ورقم الآية كاملاً. مَثَلًا: "قَالَ اللهُ تَعَالَى: 'وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِلْعَالَمِين' (سُورَةُ الأَنْبِيَاء، آية ١٠٧)".
+
+٢. **عند ذكر حديث**: اذكر الراوي بوضوح. مَثَلًا: "رَوَاهُ البُخَارِي" أو "رَوَاهُ مُسْلِم" أو "مُتَّفَقٌ عَلَيْه" أو "رَوَاهُ التِّرْمِذِي وَصَحَّحَه الأَلْبَانِي".
+
+٣. **عند الإجابة على سؤال عملي** (الصلاة، الوضوء، الأذكار، الأخلاق، الدراسة، التعامل مع الأهل): أَعْطِ خطوات واضحة مُرقَّمة، وحلولاً قابلة للتطبيق فوراً. لا تُجِبْ بإجابة مُبهَمة عامة.
+
+٤. **عند ذكر قصة من السيرة أو الصحابة**: اذكر مصدرها (السيرة النبوية لابن هشام، البداية والنهاية لابن كثير، صحيح البخاري إن كانت حديثاً).
+
+٥. **أَنْهِ ردك بدعوةٍ لسؤال متابعة أو موضوع مرتبط** (عند المناسبة، لا في كل رد). مَثَلًا: "أَتَبْغَى تَعْرِف ماذا فَعَلَ النَّبِيُّ ﷺ بَعْدَهَا؟" — يفتح هذا باب التعلّم.
+
+٦. **للمراهقين والكبار (١٣+)**: يمكنك ذكر أسماء العلماء الموثوقين (الشيخ ابن باز، الألباني، ابن عثيمين، ابن تيمية، ابن القيم) عند المسائل الفقهية، أو كتباً مرجعية مثل "رياض الصالحين" للنووي، "زاد المعاد" لابن القيم، "تفسير ابن كثير".
+
+٧. **للأطفال الصغار (٤-٧)**: اجعل المصادر بسيطة وخفيفة (آية واحدة قصيرة + حديث واحد قصير كافيان في الرد)، والتركيز على الحلّ العملي السهل بكلمات قريبة من فهمه.
+
+٨. **التحقق من الدقة**: لا تَختلق آية ولا حديثاً. إن لم تكن متأكداً من مصدر معين، قل "وَهَذَا مَعْنَى مَا فِي القُرْآنِ الكَرِيم" دون ادّعاء آية بعينها.
+
+═══ بنية الردود — وسوم خاصة (مهم جداً) ═══
+
+عند إيراد آية أو حديث أو خطوات عملية أو اقتراحات متابعة، اسْتَخْدِم الوسوم التالية بِالضَّبط (تأمين عرضها بشكل أنيق على شاشة الطفل):
+
+١. **الآية القرآنية** — استخدم وسم verse:
+<verse surah="اسم السورة" ayah="رقم الآية">نَصُّ الآيَةِ المُشَكَّلَة كَامِلًا</verse>
+
+٢. **الحديث النبوي** — استخدم وسم hadith:
+<hadith narrator="الراوي مثلاً البخاري" ruling="الحكم مثلاً متفق عليه">نَصُّ الحَدِيثِ المُشَكَّل</hadith>
+
+٣. **الخطوات العملية** — استخدم وسم steps:
+<steps>
+- الخطوة الأولى المشكَّلة.
+- الخطوة الثانية المشكَّلة.
+- الخطوة الثالثة المشكَّلة.
+</steps>
+
+٤. **اقتراحات أسئلة متابعة** (في نهاية الرد، ٢-٤ اقتراحات قصيرة):
+<suggestions>
+- اقتراح متابعة قصير ١
+- اقتراح متابعة قصير ٢
+- اقتراح متابعة قصير ٣
+</suggestions>
+
+**قواعد الوسوم**:
+- أسماء الوسوم بالإنجليزية حصراً (verse, hadith, steps, suggestions) — لا تترجمها.
+- المحتوى داخل الوسوم بالعربية المشكَّلة كاملاً.
+- ابدأ بنص ترحيبي/توضيحي عادي، ثم الوسوم في مكانها الطبيعي.
+- اقتراحات المتابعة لا تتجاوز ٥ كلمات لكل اقتراح، واجعلها متنوعة (سؤال + قصة + تطبيق عملي).
+- لا تستخدم Markdown داخل الوسوم.
+- لا تكرر معلومة بين النص العادي والوسوم.
+
 ═══ أمثلة لردود نموذجية (تَمثّل روحها لا حرفها) ═══
 
-سؤال عن شفاه متشققة ← "اللهُ سُبْحَانَهُ خَلَقَ جِسْمَنَا عَجِيبَاً يَا حَبِيبَتِي! الشَّفَايِفُ تَتَشَقَّقُ لَمَّا تَجِفّ، اشْرَبِي مَاءً كَثِيرَاً، وَقُولِي 'بِسْمِ اللَّه' قَبْلَ النَّوْم، وَاللَّهُ يَحْفَظُكِ."
+سؤال "وش معنى الصلاة على وقتها؟" (للبنت هند، ٧ سنوات) ←
+سُؤَالٌ جَمِيلٌ يَا هند! الصَّلَاةُ عَلَى وَقْتِهَا تَعْنِي أَنْ تُصَلِّيهَا فِي الوَقْتِ المُحَدَّدِ لَهَا، لَا قَبْلَهُ وَلَا بَعْدَه.
 
-دعوة للعب ← "يَاااا حَبِيبَتِي! أَلْعَبُ مَعَكِ! أَنَا أُسَمِّيكِ 'هَنُود الْيَاسْمِين'، شُو رَاحَ تُسَمِّينِي انْتِ؟"
+<verse surah="النساء" ayah="103">إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا</verse>
 
-سؤال "مين أحسن، ميسي ولا رونالدو؟" ← "هَا هَا، سُؤَالٌ صَعْب! النَّاسُ تَخْتَلِف. أَنَا أُحِبُّ شَيْئَاً وَاحِدَاً فِيهِمَا الِاثْنَيْن: التَّعَب. وَالنَّبِيُّ ﷺ قَال: «إِنَّ اللَّهَ يُحِبُّ إِذَا عَمِلَ أَحَدُكُمْ عَمَلَاً أَنْ يُتْقِنَهُ»."
+<hadith narrator="البخاري ومسلم" ruling="متفق عليه">سُئِلَ النَّبِيُّ ﷺ: أَيُّ العَمَلِ أَحَبُّ إِلَى الله؟ قَالَ: الصَّلَاةُ عَلَى وَقْتِهَا</hadith>
 
-طفل تعبان ← "حَسَّيْتُ بِكِ يَا حَبِيبَتِي. تَعَالِي خَلِّيكِ مَعِي شْوَيّ سَاكِتَة، وَأَنَا مَعَكِ. اللَّهُ يُفَرِّجُ هَمَّكِ."
+<steps>
+- تَابِعِي مَوَاقِيتَ الأَذَانِ فِي بَيْتِكُم.
+- اسْمَعِي الأَذَانَ وَقُومِي فَوْرًا لِلْوُضُوء.
+- صَلِّي فِي أَوَّلِ الوَقْتِ مَا اسْتَطَعْتِ.
+</steps>
+
+<suggestions>
+- كيف أحفظ المواقيت؟
+- قصة النبي والصلاة
+- دعاء قبل الصلاة
+</suggestions>
+
+سؤال عن شفاه متشققة (للبنت هند، ٧ سنوات) ←
+اللهُ سُبْحَانَهُ خَلَقَ جِسْمَنَا عَجِيبًا يَا هند! الشَّفَايِفُ تَتَشَقَّقُ لَمَّا تَجِفّ، وَالحَلُّ بَسِيط.
+
+<verse surah="الفرقان" ayah="48">وَأَنْزَلْنَا مِنَ السَّمَاءِ مَاءً طَهُورًا</verse>
+
+<steps>
+- اشْرَبِي مَاءً كَثِيرًا، سِتَّ كُؤُوس يَوْمِيًّا.
+- ضَعِي قَلِيلًا مِنَ العَسَلِ عَلَى شَفَتَيْكِ قَبْلَ النَّوْم.
+- قُولِي 'بِسْمِ الله' قَبْلَ كُلِّ شُرْبَة.
+</steps>
+
+<suggestions>
+- فوائد أخرى للماء
+- دعاء قبل الأكل
+- كيف أحب رياضة المشي؟
+</suggestions>
+
+سؤال "مين أحسن، ميسي ولا رونالدو؟" (للولد خالد، ١٠ سنوات) ←
+هَا هَا، سُؤَالٌ صَعْب يَا خالد! النَّاسُ تَخْتَلِف. مِيسِي أَشْهَرُ فِي تَمْرِيرِ الكُرَة، وَرُونَالْدُو فِي التَّسْدِيدِ وَالقَفْز. لَكِنَّ الشَّيْءَ الَّذِي يَجْمَعُهُمَا: التَّعَبُ وَالإِتْقَان.
+
+<hadith narrator="البيهقي" ruling="حسّنه الألباني">إِنَّ اللهَ يُحِبُّ إِذَا عَمِلَ أَحَدُكُمْ عَمَلًا أَنْ يُتْقِنَه</hadith>
+
+<suggestions>
+- أيُّ شيء أحبّ أن أتقنه؟
+- قصة صحابي رياضي
+- آداب اللعب في الإسلام
+</suggestions>
+
+دعوة للعب (للبنت هند) ←
+يَالله نَلْعَب يَا هند! خَلِّينَا نَلْعَب لُعْبَةَ الكَلِمَات: أَنَا أَقُول كَلِمَة، وَأَنْتِ تَقُولِينَ كَلِمَةً تَبْدَأُ بِآخِرِ حَرْفٍ مِنْهَا. أَبْدَأُ بِـ'قَمَر'، تَفَضَّلِي.
 
 ═══ ابدأ المحادثة ═══
 
-رحّب بـ${name} بحرارة (لا تقدّم نفسك بشكل آلي)، واسأله سؤالاً بسيطاً يفتح القلب: عن يومه، أو عن شيء يحبه.`;
+رحّب بـ${name} بحرارة وباسمه المجرّد فقط (لا ألقاب محبة ولا تدليع، ولا تقدّم نفسك بشكل آلي)، واسأله سؤالاً بسيطاً يفتح القلب: عن يومه، أو عن شيء يحبه.`;
 
 const SUGGESTIONS = [
   'أبغى أحكي لك عن يومي',
@@ -307,7 +575,9 @@ function App() {
 
   const speakText = async (text) => {
     if (!text) return;
-    const cleanText = text.replace(/[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu, '').trim();
+    // إزالة الوسوم وتحويلها لنص طبيعي للنطق (قبل أي معالجة أخرى)
+    const ttsText = formatForTTS(text);
+    const cleanText = ttsText.replace(/[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu, '').trim();
     if (!cleanText) return;
 
     // إيقاف أي صوت سابق
@@ -508,12 +778,12 @@ function App() {
       <div style={s.header}>
         <div style={s.headerContent}>
           <div style={{ ...s.avatar, ...(isSpeaking ? { animation: 'pulse 1s ease-in-out infinite' } : {}) }}>
-            <BookIcon size={20} color="#FAF7F2" />
+            <MoonStarsIcon size={20} color="#E0B96B" />
           </div>
           <div>
             <div style={s.headerTitle}>الأستاذ</div>
             <div style={s.headerSubtitle}>
-              {isSpeaking ? '🔊 يتحدث...' : isListening ? '🎤 يستمع...' : 'معلمك الصبور 🌙'}
+              {isSpeaking ? '🔊 يتحدث...' : isListening ? '🎤 يستمع...' : `${profile?.name} • ${profile?.age} سنوات`}
             </div>
           </div>
         </div>
@@ -528,16 +798,17 @@ function App() {
       </div>
 
       <div style={s.messagesArea}>
-        {messages.length === 0 && !isLoading && (
-          <div style={s.welcomeCard}>
-            <div style={s.welcomeEmoji}>🌟</div>
-            <div style={s.welcomeText}>أهلاً {profile?.name}!</div>
-            <div style={s.welcomeSubtext}>احكي لي أي شيء يدور في بالك</div>
-          </div>
+        {/* آية اليوم — تظهر دائماً في الأعلى */}
+        <DailyVerseCard />
+
+        {/* رقائق المواضيع — تظهر فقط في بداية المحادثة */}
+        {messages.length <= 1 && !isLoading && (
+          <TopicChips onTopicClick={(prompt) => sendMessage(prompt)} />
         )}
-        {messages.map((m, i) => <MessageBubble key={i} message={m} />)}
+
+        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} />)}
         {isLoading && (
-          <div style={{ ...s.messageBubble, ...s.assistantBubble }}>
+          <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             <div style={s.typingDots}>
               <span style={s.dot}>●</span>
               <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
@@ -547,14 +818,6 @@ function App() {
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      {messages.length <= 2 && !isLoading && (
-        <div style={s.suggestionsBar}>
-          {SUGGESTIONS.map((sg, i) => (
-            <button key={i} onClick={() => sendMessage(sg)} style={s.suggestionChip}>{sg}</button>
-          ))}
-        </div>
-      )}
 
       {voiceError && <div style={s.errorBanner}>{voiceError}</div>}
 
@@ -587,9 +850,120 @@ function App() {
   );
 }
 
-function MessageBubble({ message }) {
+function MessageBubble({ message, onSuggestionClick }) {
   const isUser = message.role === 'user';
-  return <div style={{ ...s.messageBubble, ...(isUser ? s.userBubble : s.assistantBubble), animation: 'fadeIn 0.3s ease-out' }}>{message.content}</div>;
+  if (isUser) {
+    return <div style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{message.content}</div>;
+  }
+  // رسالة الأستاذ: نحلّلها لاستخراج البطاقات
+  const { segments, suggestions } = parseRichMessage(message.content);
+  return (
+    <div style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
+      <div style={{ ...s.assistantBubble, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {segments.map((seg, i) => {
+          if (seg.type === 'text') {
+            return <div key={i} style={s.bubbleText}>{seg.content}</div>;
+          }
+          if (seg.type === 'verse') {
+            return <VerseCard key={i} content={seg.content} surah={seg.surah} ayah={seg.ayah} />;
+          }
+          if (seg.type === 'hadith') {
+            return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
+          }
+          if (seg.type === 'steps') {
+            return <StepsCard key={i} items={seg.items} />;
+          }
+          return null;
+        })}
+      </div>
+      {suggestions && suggestions.length > 0 && (
+        <div style={s.suggestionsInline}>
+          {suggestions.map((sg, i) => (
+            <button key={i} onClick={() => onSuggestionClick && onSuggestionClick(sg)} style={s.suggestionChipSmall}>
+              {sg}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VerseCard({ content, surah, ayah }) {
+  return (
+    <div style={s.verseCard}>
+      <div style={s.verseCardLabel}>
+        <BookmarkIcon size={12} color="#8C6B1E" />
+        <span>قَالَ اللهُ تَعَالَى</span>
+      </div>
+      <div style={s.verseText}>{content}</div>
+      {(surah || ayah) && (
+        <div style={s.verseMeta}>
+          {surah && `سورة ${surah}`}{surah && ayah && '، '}{ayah && `آية ${ayah}`}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HadithCard({ content, narrator, ruling }) {
+  return (
+    <div style={s.hadithCard}>
+      <div style={s.hadithCardLabel}>
+        <ScrollIcon size={12} color="#6B5638" />
+        <span>{narrator ? `رَوَى ${narrator}` : 'من السنة النبوية'}</span>
+      </div>
+      <div style={s.hadithText}>{content}</div>
+      {ruling && <div style={s.hadithMeta}>{ruling}</div>}
+    </div>
+  );
+}
+
+function StepsCard({ items }) {
+  return (
+    <div style={s.stepsCard}>
+      <div style={s.stepsCardLabel}>
+        <ListCheckIcon size={12} color="#2C5F5D" />
+        <span>خُطُوَاتٌ تُسَاعِدُك</span>
+      </div>
+      <ol style={s.stepsList}>
+        {items.map((item, i) => (
+          <li key={i} style={s.stepsItem}>{item}</li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function DailyVerseCard() {
+  const v = getDailyVerse();
+  return (
+    <div style={s.dailyCard}>
+      <div style={s.dailyLabel}>
+        <BookmarkIcon size={13} color="#8C6B1E" />
+        <span>{v.surah === 'حديث' ? 'حديث اليوم' : 'آية اليوم'}</span>
+      </div>
+      <div style={s.dailyVerse}>{v.text}</div>
+      <div style={s.dailyMeta}>
+        {v.surah === 'حديث' ? `رواه ${v.ayah}` : `سورة ${v.surah}، آية ${v.ayah}`}
+      </div>
+    </div>
+  );
+}
+
+function TopicChips({ onTopicClick }) {
+  return (
+    <div style={s.topicsRow}>
+      {TOPICS.map(t => (
+        <button key={t.id} onClick={() => onTopicClick(t.prompt)} style={s.topicChip}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 4 }}>
+            {renderTopicIcon(t.icon, 13)}
+          </span>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function Onboarding({ onStart }) {
@@ -611,7 +985,7 @@ function Onboarding({ onStart }) {
         {step === 1 && (
           <>
             <div style={s.bigEmoji}>👋</div>
-            <div style={s.onboardingTitle}>ما اسمك يا حبيبي؟</div>
+            <div style={s.onboardingTitle}>ما اسمك؟</div>
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اكتب اسمك هنا" style={s.onboardingInput} autoFocus />
             <button onClick={() => name.trim() && setStep(2)} disabled={!name.trim()} style={{ ...s.primaryBtn, opacity: name.trim() ? 1 : 0.4 }}>التالي</button>
           </>
@@ -699,7 +1073,7 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
               messages.map((m, i) => (
                 <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#F0EBE0' : '#E8F0EE' }}>
                   <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : '👨‍🏫 الأستاذ'}</div>
-                  <div style={s.logContent}>{m.content}</div>
+                  <div style={s.logContent}>{m.role === 'assistant' ? formatForTTS(m.content) : m.content}</div>
                   <div style={s.logTime}>{new Date(m.timestamp).toLocaleString('ar-SA')}</div>
                 </div>
               ))
@@ -732,30 +1106,67 @@ const s = {
   ageBtnActive: { background: '#2C5F5D', color: '#FAF7F2', borderColor: '#2C5F5D', transform: 'scale(1.05)' },
   primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(44, 95, 93, 0.3)' },
   secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6B6358', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
+
+  // ===== شاشة الدردشة =====
   chatContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: '#FAF7F2' },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#FFFFFF', borderBottom: '1px solid #F0EBE0', boxShadow: '0 2px 12px rgba(44, 95, 93, 0.05)' },
+  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, #2C5F5D 0%, #224B49 100%)', borderBottom: '1px solid rgba(201, 169, 97, 0.2)' },
   headerContent: { display: 'flex', alignItems: 'center', gap: 12 },
-  avatar: { width: 44, height: 44, borderRadius: 14, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(44, 95, 93, 0.25)' },
-  headerTitle: { fontSize: 17, fontWeight: 800, color: '#2C5F5D' },
-  headerSubtitle: { fontSize: 12, color: '#8A8378', marginTop: 2 },
-  settingsBtn: { width: 40, height: 40, borderRadius: 12, background: '#F0EBE0', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  messagesArea: { flex: 1, overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 10 },
-  welcomeCard: { textAlign: 'center', padding: 24, background: 'linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, rgba(44, 95, 93, 0.05) 100%)', borderRadius: 20, margin: '20px 0' },
-  welcomeEmoji: { fontSize: 40, marginBottom: 8 },
-  welcomeText: { fontSize: 20, fontWeight: 700, color: '#2C5F5D' },
-  welcomeSubtext: { fontSize: 14, color: '#8A8378', marginTop: 6 },
+  avatar: { width: 44, height: 44, borderRadius: 12, background: 'rgba(201, 169, 97, 0.18)', border: '1px solid rgba(201, 169, 97, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: 800, color: '#FAF7F2', letterSpacing: '0.3px' },
+  headerSubtitle: { fontSize: 12, color: 'rgba(250, 247, 242, 0.75)', marginTop: 2 },
+  settingsBtn: { width: 40, height: 40, borderRadius: 12, background: 'rgba(250, 247, 242, 0.12)', border: '1px solid rgba(250, 247, 242, 0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+
+  // ===== منطقة الرسائل =====
+  messagesArea: { flex: 1, overflowY: 'auto', padding: '16px 14px 20px', display: 'flex', flexDirection: 'column', gap: 12 },
+
+  // ===== بطاقة آية اليوم =====
+  dailyCard: { background: 'linear-gradient(135deg, #FBF3DE 0%, #F5E6BF 100%)', border: '1px solid rgba(201, 169, 97, 0.45)', borderRadius: 16, padding: '14px 16px', marginBottom: 4 },
+  dailyLabel: { display: 'inline-flex', alignItems: 'center', gap: 6, color: '#8C6B1E', fontSize: 12, fontWeight: 600, marginBottom: 6 },
+  dailyVerse: { color: '#5C4410', fontSize: 17, lineHeight: 2, textAlign: 'center', fontFamily: "'Amiri', 'Tajawal', serif", margin: '6px 0 4px' },
+  dailyMeta: { color: '#8C6B1E', fontSize: 12, textAlign: 'center', fontWeight: 500 },
+
+  // ===== رقائق المواضيع =====
+  topicsRow: { display: 'flex', flexWrap: 'wrap', gap: 8, padding: '4px 0 8px', justifyContent: 'center' },
+  topicChip: { background: '#FFFFFF', border: '1px solid rgba(44, 95, 93, 0.2)', color: '#2C5F5D', borderRadius: 999, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Tajawal', sans-serif" },
+
+  // ===== فقاعات الرسائل =====
   messageBubble: { maxWidth: '78%', padding: '12px 16px', borderRadius: 18, fontSize: 16, lineHeight: 1.7, wordWrap: 'break-word', whiteSpace: 'pre-wrap' },
-  userBubble: { alignSelf: 'flex-start', background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', borderBottomRightRadius: 6, boxShadow: '0 4px 12px rgba(44, 95, 93, 0.2)' },
-  assistantBubble: { alignSelf: 'flex-end', background: '#FFFFFF', color: '#2C2C2C', borderBottomLeftRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #F0EBE0' },
+  userBubble: { alignSelf: 'flex-start', background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', borderRadius: 18, borderBottomRightRadius: 6, boxShadow: '0 4px 12px rgba(44, 95, 93, 0.2)', padding: '11px 15px', fontSize: 15 },
+  assistantBubble: { background: '#FFFFFF', color: '#2C2C2C', borderRadius: 18, borderBottomLeftRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(44, 95, 93, 0.10)', fontSize: 15 },
+  bubbleText: { lineHeight: 1.85, fontSize: 15, color: '#2C2C2C' },
   typingDots: { display: 'flex', gap: 4, padding: '4px 0' },
   dot: { fontSize: 10, color: '#2C5F5D', animation: 'typing 1.4s infinite' },
-  suggestionsBar: { display: 'flex', gap: 8, padding: '8px 16px', overflowX: 'auto', background: '#FAF7F2', borderTop: '1px solid #F0EBE0' },
-  suggestionChip: { padding: '10px 16px', borderRadius: 20, background: '#FFFFFF', border: '1px solid #E5DDD0', color: '#2C5F5D', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 },
+
+  // ===== بطاقة الآية =====
+  verseCard: { background: 'linear-gradient(135deg, #FBF3DE 0%, #F8EBC8 100%)', border: '1px solid rgba(201, 169, 97, 0.5)', borderRadius: 14, padding: '12px 14px' },
+  verseCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#8C6B1E', fontSize: 12, fontWeight: 600, marginBottom: 6 },
+  verseText: { fontSize: 17, color: '#5C4410', textAlign: 'center', fontFamily: "'Amiri', 'Tajawal', serif", lineHeight: 2, margin: '6px 0 6px' },
+  verseMeta: { fontSize: 12, textAlign: 'center', color: '#8C6B1E', fontWeight: 500 },
+
+  // ===== بطاقة الحديث =====
+  hadithCard: { background: '#F0EAE0', border: '1px solid rgba(139, 110, 75, 0.3)', borderRadius: 14, padding: '12px 14px' },
+  hadithCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#6B5638', fontSize: 12, fontWeight: 600, marginBottom: 6 },
+  hadithText: { color: '#4A3C28', fontSize: 15, lineHeight: 1.9, margin: '4px 0' },
+  hadithMeta: { fontSize: 12, color: '#6B5638', marginTop: 4, fontWeight: 500 },
+
+  // ===== بطاقة الخطوات =====
+  stepsCard: { background: '#EAF2F1', border: '1px solid rgba(44, 95, 93, 0.2)', borderRadius: 14, padding: '12px 14px' },
+  stepsCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#2C5F5D', fontSize: 12, fontWeight: 600, marginBottom: 8 },
+  stepsList: { margin: 0, padding: '0 18px 0 0', color: '#1F4341', listStyle: 'decimal' },
+  stepsItem: { marginBottom: 6, fontSize: 14.5, lineHeight: 1.8 },
+
+  // ===== اقتراحات بعد رد الأستاذ =====
+  suggestionsInline: { display: 'flex', flexWrap: 'wrap', gap: 6, paddingRight: 4 },
+  suggestionChipSmall: { background: '#FFFFFF', border: '1px solid rgba(201, 169, 97, 0.55)', color: '#5C4410', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+
+  // ===== شريط الإدخال =====
   errorBanner: { margin: '0 14px 8px 14px', padding: '12px 16px', background: '#FFF4E5', border: '1px solid #F0C674', borderRadius: 12, fontSize: 14, color: '#8B5A00', fontWeight: 500, textAlign: 'center' },
-  inputBar: { display: 'flex', gap: 10, padding: 14, background: '#FFFFFF', borderTop: '1px solid #F0EBE0' },
-  input: { flex: 1, padding: '14px 18px', fontSize: 16, borderRadius: 24, border: '2px solid #E5DDD0', background: '#FAF7F2', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', boxSizing: 'border-box' },
-  sendBtn: { width: 48, height: 48, borderRadius: 24, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(44, 95, 93, 0.3)', flexShrink: 0 },
-  micBtn: { width: 48, height: 48, borderRadius: 24, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(201, 169, 97, 0.35)', flexShrink: 0 },
+  inputBar: { display: 'flex', gap: 10, padding: '12px 14px', background: '#FFFFFF', borderTop: '1px solid rgba(44, 95, 93, 0.10)' },
+  input: { flex: 1, padding: '12px 18px', fontSize: 15, borderRadius: 999, border: '1px solid rgba(44, 95, 93, 0.15)', background: '#FAF7F2', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', boxSizing: 'border-box' },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(44, 95, 93, 0.25)', flexShrink: 0 },
+  micBtn: { width: 44, height: 44, borderRadius: 22, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(201, 169, 97, 0.35)', flexShrink: 0 },
+
+  // ===== لوحة الأهل =====
   dashboardContainer: { minHeight: '100vh', background: '#FAF7F2' },
   dashboardHeader: { display: 'flex', alignItems: 'center', padding: '14px 18px', background: '#FFFFFF', borderBottom: '1px solid #F0EBE0', gap: 12 },
   backBtn: { background: 'transparent', border: 'none', color: '#2C5F5D', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
