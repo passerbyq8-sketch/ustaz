@@ -789,17 +789,20 @@ function App() {
   // تحميل البيانات من التخزين
   useEffect(() => {
     try {
+      // مؤقت: التخزين مُعطَّل — تصرّف كأنه تثبيت جديد في كل فتح: امسح الملف والمحادثة معاً،
+      // ولا تُحمِّل ملف الطفل، وابدأ دائماً من شاشة التهيئة (لاختبار أطفال مختلفين على نفس الجهاز).
+      if (!PERSIST_CONVERSATION) {
+        localStorage.removeItem('messages');
+        localStorage.removeItem('child_profile');
+        setScreen('onboarding');
+        return;
+      }
       const profileData = localStorage.getItem('child_profile');
       if (profileData) {
         const p = JSON.parse(profileData);
         setProfile(p);
-        if (PERSIST_CONVERSATION) {
-          const msgs = localStorage.getItem('messages');
-          if (msgs) setMessages(JSON.parse(msgs));
-        } else {
-          // مؤقت: التخزين مُعطَّل — ابدأ بمحادثة فارغة وامسح أي محادثة قديمة محفوظة (مع إبقاء ملف الطفل).
-          localStorage.removeItem('messages');
-        }
+        const msgs = localStorage.getItem('messages');
+        if (msgs) setMessages(JSON.parse(msgs));
         setScreen('chat');
       } else {
         setScreen('onboarding');
