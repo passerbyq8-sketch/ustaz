@@ -50,6 +50,11 @@ const { useState, useEffect, useRef } = React;
 const PARENT_PIN = '1234';
 
 // ============================================================
+// تخزين المحادثة (Feature Flag)
+// ============================================================
+const PERSIST_CONVERSATION = false; // مؤقت: إيقاف حفظ/تحميل المحادثة أثناء مرحلة التجارب. اجعلها true لإعادة التخزين.
+
+// ============================================================
 // قصّ السجلّ قبل إرساله للـ API (Sliding Window)
 // ============================================================
 // نُرسل آخر ٦ جولات (= ١٢ رسالة) فقط للـ API:
@@ -788,8 +793,13 @@ function App() {
       if (profileData) {
         const p = JSON.parse(profileData);
         setProfile(p);
-        const msgs = localStorage.getItem('messages');
-        if (msgs) setMessages(JSON.parse(msgs));
+        if (PERSIST_CONVERSATION) {
+          const msgs = localStorage.getItem('messages');
+          if (msgs) setMessages(JSON.parse(msgs));
+        } else {
+          // مؤقت: التخزين مُعطَّل — ابدأ بمحادثة فارغة وامسح أي محادثة قديمة محفوظة (مع إبقاء ملف الطفل).
+          localStorage.removeItem('messages');
+        }
         setScreen('chat');
       } else {
         setScreen('onboarding');
@@ -848,6 +858,7 @@ function App() {
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const saveMessages = (msgs) => {
+    if (!PERSIST_CONVERSATION) return; // مؤقت: لا تكتب المحادثة أثناء مرحلة التجارب.
     try { localStorage.setItem('messages', JSON.stringify(msgs)); } catch (e) {}
   };
 
