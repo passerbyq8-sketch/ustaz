@@ -1,5 +1,7 @@
 node_modules/
 babel-block.jsx
 babel-gate.cjs
+runtime-gate.cjs
+live*.html
 package.json
 package-lock.json
