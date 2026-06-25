@@ -1091,9 +1091,10 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Opus 4.7 — أقوى نموذج عند Anthropic، التزامه بالتشكيل واللهجة الخليجية
+          // Opus 4.8 — أقوى نموذج عند Anthropic، التزامه بالتشكيل واللهجة الخليجية
           // أعلى بكثير من Sonnet 4.6، خاصة في النصوص العربية الطويلة المُشَكَّلة
-          model: 'claude-opus-4-7',
+          // ملاحظة: 4.8 يرفض temperature/top_p/top_k غير الافتراضية (400) — لا نرسلها
+          model: 'claude-opus-4-8',
           max_tokens: 1000,
           system: buildSystemPrompt(p.name, p.age, p.gender),
           messages: history.map(m => ({ role: m.role, content: m.content })),
