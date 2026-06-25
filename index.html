@@ -55,6 +55,65 @@ const PARENT_PIN = '1234';
 const PERSIST_CONVERSATION = false; // مؤقت: إيقاف حفظ/تحميل المحادثة أثناء مرحلة التجارب. اجعلها true لإعادة التخزين.
 
 // ============================================================
+// خريطة أسماء السور → أرقامها (لبناء رابط تلاوة everyayah)
+// ============================================================
+// الاسم للعرض، والرقم لبناء رابط MP3 (everyayah.com / الحُصري 64kbps).
+// إن أرسل النموذج surah_num استُخدم مباشرة؛ وإلا نرجع لهذه الخريطة بالاسم.
+const SURAH_NUMBERS = {
+  'الفاتحة': 1, 'البقرة': 2, 'آل عمران': 3, 'النساء': 4, 'المائدة': 5,
+  'الأنعام': 6, 'الأعراف': 7, 'الأنفال': 8, 'التوبة': 9, 'يونس': 10,
+  'هود': 11, 'يوسف': 12, 'الرعد': 13, 'إبراهيم': 14, 'الحجر': 15,
+  'النحل': 16, 'الإسراء': 17, 'الكهف': 18, 'مريم': 19, 'طه': 20,
+  'الأنبياء': 21, 'الحج': 22, 'المؤمنون': 23, 'النور': 24, 'الفرقان': 25,
+  'الشعراء': 26, 'النمل': 27, 'القصص': 28, 'العنكبوت': 29, 'الروم': 30,
+  'لقمان': 31, 'السجدة': 32, 'الأحزاب': 33, 'سبأ': 34, 'فاطر': 35,
+  'يس': 36, 'الصافات': 37, 'ص': 38, 'الزمر': 39, 'غافر': 40,
+  'فصلت': 41, 'الشورى': 42, 'الزخرف': 43, 'الدخان': 44, 'الجاثية': 45,
+  'الأحقاف': 46, 'محمد': 47, 'الفتح': 48, 'الحجرات': 49, 'ق': 50,
+  'الذاريات': 51, 'الطور': 52, 'النجم': 53, 'القمر': 54, 'الرحمن': 55,
+  'الواقعة': 56, 'الحديد': 57, 'المجادلة': 58, 'الحشر': 59, 'الممتحنة': 60,
+  'الصف': 61, 'الجمعة': 62, 'المنافقون': 63, 'التغابن': 64, 'الطلاق': 65,
+  'التحريم': 66, 'الملك': 67, 'القلم': 68, 'الحاقة': 69, 'المعارج': 70,
+  'نوح': 71, 'الجن': 72, 'المزمل': 73, 'المدثر': 74, 'القيامة': 75,
+  'الإنسان': 76, 'المرسلات': 77, 'النبأ': 78, 'النازعات': 79, 'عبس': 80,
+  'التكوير': 81, 'الانفطار': 82, 'المطففين': 83, 'الانشقاق': 84, 'البروج': 85,
+  'الطارق': 86, 'الأعلى': 87, 'الغاشية': 88, 'الفجر': 89, 'البلد': 90,
+  'الشمس': 91, 'الليل': 92, 'الضحى': 93, 'الشرح': 94, 'التين': 95,
+  'العلق': 96, 'القدر': 97, 'البينة': 98, 'الزلزلة': 99, 'العاديات': 100,
+  'القارعة': 101, 'التكاثر': 102, 'العصر': 103, 'الهمزة': 104, 'الفيل': 105,
+  'قريش': 106, 'الماعون': 107, 'الكوثر': 108, 'الكافرون': 109, 'النصر': 110,
+  'المسد': 111, 'الإخلاص': 112, 'الفلق': 113, 'الناس': 114,
+  // أسماء بديلة شائعة (قد يستخدمها النموذج)
+  'براءة': 9, 'بني إسرائيل': 17, 'الملائكة': 35, 'المؤمن': 40,
+  'حم السجدة': 41, 'القتال': 47, 'الدهر': 76, 'الانشراح': 94,
+  'الزلزال': 99, 'اللهب': 111, 'تبت': 111, 'التوحيد': 112,
+};
+
+// تطبيع عربي خفيف: إزالة التشكيل + توحيد الألف بأنواعها + إزالة التطويل
+// — يغطي معظم اختلافات الإملاء (الهمزات) دون الحاجة لإدراج كل صيغة يدوياً.
+const normalizeArabic = (str) => (str || '')
+  .replace(/[ً-ْٰـ]/g, '') // تشكيل + ألف خنجرية + تطويل
+  .replace(/[آأإٱ]/g, 'ا') // آ أ إ ٱ → ا
+  .replace(/\s+/g, ' ')
+  .trim();
+
+// خريطة مطبَّعة تُبنى مرة واحدة من SURAH_NUMBERS للبحث المرن بالاسم
+const SURAH_NUMBERS_NORM = {};
+for (const _k in SURAH_NUMBERS) { SURAH_NUMBERS_NORM[normalizeArabic(_k)] = SURAH_NUMBERS[_k]; }
+
+// يُرجع رقم السورة (1..114) أو null. يفضّل surah_num الرقمي، ثم يبحث بالاسم.
+const resolveSurahNumber = (surahName, surahNum) => {
+  const n = parseInt(surahNum, 10);
+  if (n >= 1 && n <= 114) return n;
+  if (!surahName) return null;
+  const raw = String(surahName).trim();
+  if (SURAH_NUMBERS[raw]) return SURAH_NUMBERS[raw];
+  // إزالة بادئة "سورة" إن وُجدت ثم البحث في الخريطة المطبَّعة
+  const norm = normalizeArabic(raw).replace(/^سوره?\s+/, '').replace(/^سورة\s+/, '').trim();
+  return SURAH_NUMBERS_NORM[norm] || null;
+};
+
+// ============================================================
 // قصّ السجلّ قبل إرساله للـ API (Sliding Window)
 // ============================================================
 // نُرسل آخر ٦ جولات (= ١٢ رسالة) فقط للـ API:
@@ -122,6 +181,8 @@ const VolumeOffIcon = (p) => <Icon {...p}><polygon points="11 5 6 9 2 9 2 15 6 1
 const ResetIcon = (p) => <Icon {...p}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></Icon>;
 const MoonStarsIcon = (p) => <Icon {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor"/><circle cx="20" cy="9.5" r="0.6" fill="currentColor"/></Icon>;
 const BookmarkIcon = (p) => <Icon {...p}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></Icon>;
+const PlayIcon = (p) => <Icon {...p}><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></Icon>;
+const PauseIcon = (p) => <Icon {...p}><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></Icon>;
 const ScrollIcon = (p) => <Icon {...p}><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 0 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/></Icon>;
 const ListCheckIcon = (p) => <Icon {...p}><path d="M3 17l2 2 4-4"/><path d="M3 7l2 2 4-4"/><line x1="13" y1="6" x2="21" y2="6"/><line x1="13" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></Icon>;
 const MosqueIcon = (p) => <Icon {...p}><path d="M3 21h18"/><path d="M5 21V12a7 7 0 0 1 14 0v9"/><path d="M12 5V3"/><circle cx="12" cy="2" r="0.5" fill="currentColor"/><path d="M9 21v-5a3 3 0 0 1 6 0v5"/></Icon>;
@@ -218,11 +279,13 @@ const parseRichMessage = (text) => {
     const content = (match[3] || '').trim();
     if (tagName === 'verse') {
       const surahMatch = attrsStr.match(/surah=["']([^"']+)["']/);
+      const surahNumMatch = attrsStr.match(/surah_num=["']([^"']+)["']/);
       const ayahMatch = attrsStr.match(/ayah=["']([^"']+)["']/);
       segments.push({
         type: 'verse',
         content,
         surah: surahMatch ? surahMatch[1] : '',
+        surahNum: surahNumMatch ? surahNumMatch[1] : '',
         ayah: ayahMatch ? ayahMatch[1] : '',
       });
     } else if (tagName === 'hadith') {
@@ -270,10 +333,9 @@ const formatForTTS = (text) => {
   if (!text) return '';
   // إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
   let t = text.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
-  // تحويل الآيات إلى نص طبيعي للنطق
-  t = t.replace(/<verse[^>]*surah=["']([^"']+)["'][^>]*ayah=["']([^"']+)["'][^>]*>([\s\S]*?)<\/verse>/g,
-    (_, surah, ayah, content) => ` قَالَ اللهُ تَعَالَى: ${content.trim()}. سُورَةُ ${surah}، آيَة ${ayah}. `
-  );
+  // إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
+  // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
+  t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
   // تحويل الأحاديث إلى نص طبيعي للنطق
   t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
     (_, narrator, ruling, content) => ` رَوَى ${narrator}: ${content.trim()}. ${ruling}. `
@@ -285,6 +347,33 @@ const formatForTTS = (text) => {
     return ' خُطُوَاتٌ تُسَاعِدُكِ: ' + items.join(' ثُمَّ ') + '. ';
   });
   // تنظيف الفراغات
+  t = t.replace(/\s+/g, ' ').trim();
+  return t;
+};
+
+// ============================================================
+// تجهيز النص لسجل الأهل (عرض فقط) — مثل formatForTTS لكنه يُبقي نصّ الآية مقروءاً
+// ============================================================
+// الصوت يحذف الآية (يسمعها الطفل من القارئ)، أما الأهل فيجب أن يَرَوا نصّها في السجلّ.
+const formatForLog = (text) => {
+  if (!text) return '';
+  let t = text.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
+  // الآية: تُعرض بين علامتي اقتباس «» (مدعومة في كل الخطوط، لا تتحول لمربّع) مع المرجع
+  // (يدعم أي ترتيب للسمات ووجود surah_num)
+  t = t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g, (_, attrs, content) => {
+    const sm = attrs.match(/surah=["']([^"']+)["']/);
+    const am = attrs.match(/ayah=["']([^"']+)["']/);
+    const ref = [sm && sm[1], am && `آية ${am[1]}`].filter(Boolean).join('، ');
+    return ` «${content.trim()}»${ref ? ` (${ref})` : ''} `;
+  });
+  // الحديث والخطوات: نفس تحويل الصوت كي يبقى السجلّ مقروءاً
+  t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
+    (_, narrator, ruling, content) => ` رَوَى ${narrator}: ${content.trim()}. ${ruling}. `
+  );
+  t = t.replace(/<steps>([\s\S]*?)<\/steps>/g, (_, content) => {
+    const items = content.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(l => l);
+    return items.length ? ' خُطُوَات: ' + items.join(' ثُمَّ ') + '. ' : '';
+  });
   t = t.replace(/\s+/g, ' ').trim();
   return t;
 };
@@ -583,7 +672,9 @@ const buildSystemPrompt = (name, age, gender) => `أنت "المربّي" — م
 عند إيراد آية أو حديث أو خطوات عملية أو اقتراحات متابعة، اسْتَخْدِم الوسوم التالية بِالضَّبط (تأمين عرضها بشكل أنيق على شاشة الطفل):
 
 ١. **الآية القرآنية** — استخدم وسم verse:
-<verse surah="اسم السورة" ayah="رقم الآية">نَصُّ الآيَةِ المُشَكَّلَة كَامِلًا</verse>
+<verse surah="اسم السورة" surah_num="رقم السورة" ayah="رقم الآية">نَصُّ الآيَةِ المُشَكَّلَة كَامِلًا</verse>
+— surah يبقى اسم السورة للعرض (مثل "النساء")، وأضِف surah_num برقم السورة (١..١١٤ بالأرقام الإنجليزية، مثل 4) و ayah برقم الآية بالأرقام الإنجليزية (مثل 103) — فهذان الرقمان يُشغّلان تلاوة القارئ الحقيقي للطفل. لا تنطق الآية بنفسك؛ سيستمع الطفل لها من القارئ.
+مثال: <verse surah="النساء" surah_num="4" ayah="103">إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا</verse>
 
 ٢. **الحديث النبوي** — استخدم وسم hadith:
 <hadith narrator="الراوي مثلاً البخاري" ruling="الحكم مثلاً متفق عليه">نَصُّ الحَدِيثِ المُشَكَّل</hadith>
@@ -1182,7 +1273,7 @@ function MessageBubble({ message, onSuggestionClick }) {
             return <div key={i} style={s.bubbleText}>{seg.content}</div>;
           }
           if (seg.type === 'verse') {
-            return <VerseCard key={i} content={seg.content} surah={seg.surah} ayah={seg.ayah} />;
+            return <VerseCard key={i} content={seg.content} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} />;
           }
           if (seg.type === 'hadith') {
             return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
@@ -1206,19 +1297,66 @@ function MessageBubble({ message, onSuggestionClick }) {
   );
 }
 
-function VerseCard({ content, surah, ayah }) {
+function VerseCard({ content, surah, surahNum, ayah }) {
+  const [playing, setPlaying] = useState(false);
+  const [audioFailed, setAudioFailed] = useState(false);
+  const audioRef = useRef(null);
+
+  const sNum = resolveSurahNumber(surah, surahNum);
+  const aNum = parseInt(ayah, 10);
+  const canPlay = !!sNum && aNum >= 1;
+  const pad3 = (x) => String(x).padStart(3, '0');
+  const audioUrl = canPlay
+    ? `https://everyayah.com/data/Husary_64kbps/${pad3(sNum)}${pad3(aNum)}.mp3`
+    : null;
+
+  // إيقاف الصوت وتنظيفه عند إزالة البطاقة
+  useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
+
+  const togglePlay = () => {
+    setAudioFailed(false);
+    if (!audioRef.current) {
+      const audio = new Audio(audioUrl);
+      audio.onended = () => setPlaying(false);
+      audio.onerror = () => { setPlaying(false); setAudioFailed(true); };
+      audioRef.current = audio;
+    }
+    const audio = audioRef.current;
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+    } else {
+      setPlaying(true);
+      const p = audio.play();
+      if (p && p.catch) p.catch(() => { setPlaying(false); setAudioFailed(true); });
+    }
+  };
+
   return (
     <div style={s.verseCard}>
       <div style={s.verseCardLabel}>
-        <BookmarkIcon size={12} color="#8C6B1E" />
         <span>قَالَ اللهُ تَعَالَى</span>
       </div>
       <div style={s.verseText}>{content}</div>
-      {(surah || ayah) && (
-        <div style={s.verseMeta}>
-          {surah && `سورة ${surah}`}{surah && ayah && '، '}{ayah && `آية ${ayah}`}
-        </div>
-      )}
+      <div style={s.verseFooter}>
+        {(surah || ayah) && (
+          <div style={s.verseMeta}>
+            {surah && `سورة ${surah}`}{surah && ayah && '، '}{ayah && `آية ${ayah}`}
+          </div>
+        )}
+        {canPlay && (
+          <button
+            type="button"
+            onClick={togglePlay}
+            style={s.versePlayBtn}
+            aria-label={playing ? 'إيقاف التلاوة' : 'تشغيل التلاوة'}
+          >
+            {playing ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
+            <span>{playing ? 'إيقاف' : 'استمع للتلاوة'}</span>
+          </button>
+        )}
+      </div>
+      {audioFailed && <div style={s.verseAudioError}>تعذّر تحميل التلاوة</div>}
     </div>
   );
 }
@@ -1227,7 +1365,6 @@ function HadithCard({ content, narrator, ruling }) {
   return (
     <div style={s.hadithCard}>
       <div style={s.hadithCardLabel}>
-        <ScrollIcon size={12} color="#6B5638" />
         <span>{narrator ? `رَوَى ${narrator}` : 'من السنة النبوية'}</span>
       </div>
       <div style={s.hadithText}>{content}</div>
@@ -1257,7 +1394,6 @@ function DailyVerseCard() {
   return (
     <div style={s.dailyCard}>
       <div style={s.dailyLabel}>
-        <BookmarkIcon size={13} color="#8C6B1E" />
         <span>{v.surah === 'حديث' ? 'حديث اليوم' : 'آية اليوم'}</span>
       </div>
       <div style={s.dailyVerse}>{v.text}</div>
@@ -1390,7 +1526,7 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
               messages.map((m, i) => (
                 <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#F0EBE0' : '#E8F0EE' }}>
                   <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : '👨‍🏫 المربّي'}</div>
-                  <div style={s.logContent}>{m.role === 'assistant' ? formatForTTS(m.content) : m.content}</div>
+                  <div style={s.logContent}>{m.role === 'assistant' ? formatForLog(m.content) : m.content}</div>
                   <div style={s.logTime}>{new Date(m.timestamp).toLocaleString('ar-SA')}</div>
                 </div>
               ))
@@ -1459,6 +1595,9 @@ const s = {
   verseCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#8C6B1E', fontSize: 12, fontWeight: 600, marginBottom: 6 },
   verseText: { fontSize: 17, color: '#5C4410', textAlign: 'center', fontFamily: "'Amiri', 'Tajawal', serif", lineHeight: 2, margin: '6px 0 6px' },
   verseMeta: { fontSize: 12, textAlign: 'center', color: '#8C6B1E', fontWeight: 500 },
+  verseFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 },
+  versePlayBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#8C6B1E', color: '#FBF3DE', border: 'none', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  verseAudioError: { fontSize: 11, textAlign: 'center', color: '#B4453A', marginTop: 6 },
 
   // ===== بطاقة الحديث =====
   hadithCard: { background: '#F0EAE0', border: '1px solid rgba(139, 110, 75, 0.3)', borderRadius: 14, padding: '12px 14px' },
