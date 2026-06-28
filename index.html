@@ -858,7 +858,8 @@ function App() {
   const recognitionRef = useRef(null);
   const transcriptRef = useRef('');
   const sendMessageRef = useRef(null);
-  const audioRef = useRef(null);
+  const audioRef = useRef(null);          // عنصر الصوت الوحيد النشِط (TTS أو تلاوة)
+  const sequenceIdRef = useRef(0);        // رمز إلغاء تسلسل الصوت الجاري
 
   // تحميل البيانات من التخزين
   useEffect(() => {
@@ -939,35 +940,47 @@ function App() {
     try { localStorage.setItem('messages', JSON.stringify(msgs)); } catch (e) {}
   };
 
-  const speakText = async (text) => {
-    if (!text) return;
-    // إزالة الوسوم وتحويلها لنص طبيعي للنطق (قبل أي معالجة أخرى)
-    const ttsText = formatForTTS(text);
-    const cleanText = ttsText.replace(/[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu, '').trim();
-    if (!cleanText) return;
+  // ============================================================
+  // مُنسِّق الصوت الموحَّد — مصدر واحد يعمل في كل لحظة
+  // ============================================================
+  // كل الأصوات (نُطق المربّي عبر ElevenLabs + تلاوة الحُصري) تمرّ عبر audioRef
+  // الواحد. بدء أيّ مصدر يُوقف الآخر (takeAudioFocus)، ويُنسَّق التسلسل
+  // «كلام → تلاوة → كلام» عبر speakReply. sequenceIdRef يُلغي أي تسلسل جارٍ.
 
-    // إيقاف أي صوت سابق
+  // إيقاف الصوت النشِط حالياً (دون إلغاء التسلسل) — يُستخدم للتبديل بين المصادر
+  const takeAudioFocus = () => {
     if (audioRef.current) {
-      audioRef.current.pause();
+      try { audioRef.current.pause(); } catch (e) {}
       audioRef.current = null;
     }
     if (window.speechSynthesis) window.speechSynthesis.cancel();
+  };
 
-    setIsSpeaking(true);
+  // إلغاء التسلسل الجاري بالكامل (رسالة جديدة / بدء استماع / إيقاف يدوي)
+  const cancelAudio = () => {
+    sequenceIdRef.current++;
+    takeAudioFocus();
+    setIsSpeaking(false);
+  };
+  const stopSpeaking = cancelAudio;
 
-    // ============================================================
-    // الخطوة 1: فَحص ذكيّ — هل النصّ مُشكَّل أصلاً؟
-    // ============================================================
-    // Opus 4.7 يَلتزم بالتشكيل في غالب ردوده، فلا داعي لاستدعاء Haiku
-    // إن كان الـ ratio عالياً (٦٠٪+). هذا يَقطع ثانية كاملة في الغالب،
-    // ويُبقي Haiku كشَبكة أمان للحالات النادرة التي يَقصِّر فيها Opus.
-    const diacriticCount = (cleanText.match(/[\u064B-\u0652\u0670]/g) || []).length;
-    const letterCount = (cleanText.match(/[\u0621-\u064A]/g) || []).length;
+  // نُطق مقطع نصّي واحد عبر ElevenLabs — awaitable: يُحَلّ عند انتهاء/خطأ/إيقاف الصوت
+  const speakSegment = async (rawText, myId) => {
+    // إزالة الوسوم وتحويلها لنص طبيعي للنطق (الآية محذوفة هنا — تُتلى لا تُنطق)
+    const ttsText = formatForTTS(rawText);
+    const cleanText = ttsText.replace(/[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu, '').trim();
+    if (!cleanText) return;
+    const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
+    if (!isCurrent()) return;
+
+    takeAudioFocus();
+
+    // فَحص ذكيّ للتشكيل — نتخطّى Haiku إن كان تشكيل Opus كافياً (٦٠٪+)
+    const diacriticCount = (cleanText.match(/[ً-ْٰ]/g) || []).length;
+    const letterCount = (cleanText.match(/[ء-ي]/g) || []).length;
     const diacriticRatio = letterCount > 0 ? diacriticCount / letterCount : 0;
-    const ALREADY_DIACRITIZED_THRESHOLD = 0.6;
-
     let textForTTS = cleanText;
-    if (diacriticRatio >= ALREADY_DIACRITIZED_THRESHOLD) {
+    if (diacriticRatio >= 0.6) {
       // النصّ مُشكَّل جيداً من Opus — نَتخطّى Haiku، نوفِّر ثانيةً كاملة
       console.log(`[المربّي] تشكيل Opus كافٍ (${Math.round(diacriticRatio * 100)}٪) — تخطّينا Haiku`);
     } else {
@@ -990,63 +1003,133 @@ function App() {
         // نُكمل بالنص الأصلي بدون توقف
       }
     }
+    if (!isCurrent()) return; // أُلغِيَ أثناء التشكيل
 
-    // ============================================================
-    // الخطوة 2: ElevenLabs TTS (يستقبل النص المُشكَّل)
-    // ============================================================
+    // ElevenLabs TTS (يستقبل النص المُشكَّل)
     try {
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textForTTS, gender: profile?.gender }),
       });
+      if (!isCurrent()) return; // أُلغِيَ أثناء جلب الصوت
       if (response.ok) {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
+        if (!isCurrent()) { URL.revokeObjectURL(audioUrl); return; }
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
-        audio.onended = () => {
-          setIsSpeaking(false);
-          URL.revokeObjectURL(audioUrl);
-          audioRef.current = null;
-        };
-        audio.onerror = () => {
-          setIsSpeaking(false);
-          URL.revokeObjectURL(audioUrl);
-          audioRef.current = null;
-        };
-        await audio.play();
+        await new Promise((resolve) => {
+          let settled = false;
+          const done = () => {
+            if (settled) return;
+            settled = true;
+            URL.revokeObjectURL(audioUrl);
+            if (audioRef.current === audio) audioRef.current = null;
+            resolve();
+          };
+          audio.onended = done;
+          audio.onerror = done;
+          audio.onpause = done; // سحب التركيز من مصدر آخر يُنهي الانتظار
+          const p = audio.play();
+          if (p && p.catch) p.catch(done);
+        });
         return;
-      } else {
-        console.warn('ElevenLabs failed, falling back to browser TTS');
       }
+      console.warn('ElevenLabs failed, falling back to browser TTS');
     } catch (e) {
       console.warn('ElevenLabs error, falling back:', e);
     }
 
-    // محاولة 2: المتصفح (fallback مجاني)
-    if (!window.speechSynthesis) {
-      setIsSpeaking(false);
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'ar-SA';
-    utterance.rate = 0.92;
-    const voices = window.speechSynthesis.getVoices();
-    const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
-    if (arabicVoice) utterance.voice = arabicVoice;
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+    // fallback المتصفح (مجاني)
+    if (!window.speechSynthesis) return;
+    await new Promise((resolve) => {
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'ar-SA';
+      utterance.rate = 0.92;
+      const voices = window.speechSynthesis.getVoices();
+      const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
+      if (arabicVoice) utterance.voice = arabicVoice;
+      utterance.onend = resolve;
+      utterance.onerror = resolve;
+      window.speechSynthesis.speak(utterance);
+    });
   };
 
-  const stopSpeaking = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
+  // تشغيل تلاوة الحُصري — awaitable: يُحَلّ {failed} عند انتهاء/خطأ/إيقاف الصوت
+  const playRecitation = (sNum, aNum, myId) => new Promise((resolve) => {
+    if (myId !== undefined && myId !== sequenceIdRef.current) return resolve({ failed: false });
+    takeAudioFocus();
+    const pad3 = (x) => String(x).padStart(3, '0');
+    const url = `https://everyayah.com/data/Husary_64kbps/${pad3(sNum)}${pad3(aNum)}.mp3`;
+    const audio = new Audio(url);
+    audioRef.current = audio;
+    let settled = false;
+    const done = (failed) => {
+      if (settled) return;
+      settled = true;
+      if (audioRef.current === audio) audioRef.current = null;
+      resolve({ failed: !!failed });
+    };
+    audio.onended = () => done(false);
+    audio.onerror = () => done(true);
+    audio.onpause = () => done(false); // سحب التركيز من مصدر آخر / إيقاف يدوي
+    const p = audio.play();
+    if (p && p.catch) p.catch(() => done(true));
+  });
+
+  // بناء تسلسل الصوت من الردّ: مقاطع كلام + تلاوات آيات، بالترتيب.
+  // نَقسِم عند حدود <verse> فقط — الحديث/الخطوات تبقى داخل مقاطع الكلام
+  // (تُنطق كما اليوم عبر formatForTTS)، ونصّ الآية يقع بين الحدود فلا يُنطق.
+  const buildAudioSequence = (text) => {
+    const parts = [];
+    const verseRe = /<verse([^>]*)>[\s\S]*?<\/verse>/g;
+    let last = 0, m;
+    while ((m = verseRe.exec(text)) !== null) {
+      const before = text.slice(last, m.index);
+      if (before.trim()) parts.push({ kind: 'speak', text: before });
+      const attrs = m[1] || '';
+      const sNum = resolveSurahNumber(
+        (attrs.match(/surah=["']([^"']+)["']/) || [])[1],
+        (attrs.match(/surah_num=["']([^"']+)["']/) || [])[1]
+      );
+      const aNum = parseInt((attrs.match(/ayah=["']([^"']+)["']/) || [])[1], 10);
+      if (sNum && aNum >= 1) parts.push({ kind: 'recite', sNum, aNum });
+      last = m.index + m[0].length;
     }
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    setIsSpeaking(false);
+    const tail = text.slice(last);
+    if (tail.trim()) parts.push({ kind: 'speak', text: tail });
+    return parts;
+  };
+
+  // تشغيل الردّ كاملاً بالتنسيق: كلام-قبل → تلاوة → كلام-بعد، مع إمكان الإلغاء.
+  // لا آية → مقطع كلام واحد = سلوك اليوم نفسه تماماً.
+  const speakReply = async (text) => {
+    if (!text) return;
+    const parts = buildAudioSequence(text);
+    if (!parts.length) return;
+    const myId = ++sequenceIdRef.current; // يُلغي أي تسلسل سابق
+    takeAudioFocus();
+    setIsSpeaking(true);
+    for (const part of parts) {
+      if (myId !== sequenceIdRef.current) return; // أُلغِيَ
+      try {
+        if (part.kind === 'speak') await speakSegment(part.text, myId);
+        else await playRecitation(part.sNum, part.aNum, myId);
+      } catch (e) {}
+      if (myId !== sequenceIdRef.current) return;
+    }
+    if (myId === sequenceIdRef.current) setIsSpeaking(false);
+  };
+
+  // إعادة تشغيل التلاوة يدوياً من زر البطاقة — يُوقف كلام المربّي أولاً. awaitable.
+  const playVerseManual = async (sNum, aNum) => {
+    const myId = ++sequenceIdRef.current; // يُلغي أي تسلسل/كلام جارٍ
+    takeAudioFocus();
+    setIsSpeaking(true);
+    const res = await playRecitation(sNum, aNum, myId);
+    if (myId === sequenceIdRef.current) setIsSpeaking(false);
+    return res;
   };
 
   const startListening = async () => {
@@ -1126,11 +1209,13 @@ function App() {
     setMessages(newMsgs);
     saveMessages(newMsgs);
     setIsLoading(false);
-    if (voiceMode) speakText(reply);
+    if (voiceMode) speakReply(reply);
   };
 
   const sendMessage = async (text) => {
     if (!text.trim() || isLoading) return;
+    // رسالة جديدة وسط تسلسل صوتي جارٍ → ألغِ الصوت الحالي كي يبدأ الردّ الجديد نظيفاً
+    cancelAudio();
     const userMsg = { role: 'user', content: text, timestamp: new Date().toISOString() };
     const updated = [...messages, userMsg];
     setMessages(updated);
@@ -1145,7 +1230,7 @@ function App() {
     setMessages(final);
     saveMessages(final);
     setIsLoading(false);
-    if (voiceMode) speakText(reply);
+    if (voiceMode) speakReply(reply);
   };
 
   useEffect(() => { sendMessageRef.current = sendMessage; });
@@ -1198,7 +1283,7 @@ function App() {
           <TopicChips onTopicClick={(prompt) => sendMessage(prompt)} />
         )}
 
-        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} />)}
+        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onStopAudio={cancelAudio} />)}
         {isLoading && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             <div style={s.typingDots}>
@@ -1242,7 +1327,7 @@ function App() {
   );
 }
 
-function MessageBubble({ message, onSuggestionClick }) {
+function MessageBubble({ message, onSuggestionClick, onPlayVerse, onStopAudio }) {
   const isUser = message.role === 'user';
   if (isUser) {
     return <div style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{message.content}</div>;
@@ -1257,7 +1342,7 @@ function MessageBubble({ message, onSuggestionClick }) {
             return <div key={i} style={s.bubbleText}>{seg.content}</div>;
           }
           if (seg.type === 'verse') {
-            return <VerseCard key={i} content={seg.content} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} />;
+            return <VerseCard key={i} content={seg.content} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
           }
           if (seg.type === 'hadith') {
             return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
@@ -1281,10 +1366,10 @@ function MessageBubble({ message, onSuggestionClick }) {
   );
 }
 
-function VerseCard({ content, surah, surahNum, ayah }) {
+function VerseCard({ content, surah, surahNum, ayah, onPlayVerse, onStopAudio }) {
   const [playing, setPlaying] = useState(false);
   const [audioFailed, setAudioFailed] = useState(false);
-  const audioRef = useRef(null);
+  const audioRef = useRef(null); // fallback محلي فقط (إن لم تُمرَّر دوال المنسِّق)
 
   const sNum = resolveSurahNumber(surah, surahNum);
   const aNum = parseInt(ayah, 10);
@@ -1294,10 +1379,27 @@ function VerseCard({ content, surah, surahNum, ayah }) {
     ? `https://everyayah.com/data/Husary_64kbps/${pad3(sNum)}${pad3(aNum)}.mp3`
     : null;
 
-  // إيقاف الصوت وتنظيفه عند إزالة البطاقة
+  // إيقاف صوت fallback المحلي وتنظيفه عند إزالة البطاقة
   useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
 
+  // إعادة تشغيل يدوية — عبر منسِّق App: يُوقف كلام المربّي أولاً ثم يُعيد التلاوة.
+  // الزر الآن «تكرار» يدوي؛ التلاوة تُشغَّل تلقائياً ضمن تسلسل الردّ في App.
   const togglePlay = () => {
+    // مسار المنسِّق الموحَّد (الاستخدام الفعلي في المحادثة)
+    if (onPlayVerse) {
+      if (playing) {
+        if (onStopAudio) onStopAudio();
+        setPlaying(false);
+        return;
+      }
+      setAudioFailed(false);
+      setPlaying(true);
+      Promise.resolve(onPlayVerse(sNum, aNum))
+        .then((res) => { setPlaying(false); if (res && res.failed) setAudioFailed(true); })
+        .catch(() => { setPlaying(false); setAudioFailed(true); });
+      return;
+    }
+    // fallback محلي (لو رُكِّبت البطاقة خارج المحادثة بدون دوال المنسِّق)
     setAudioFailed(false);
     if (!audioRef.current) {
       const audio = new Audio(audioUrl);
