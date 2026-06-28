@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#2C5F5D">
 <title>المربّي - رفيق المسلم الصغير</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
@@ -100,6 +100,38 @@ const normalizeArabic = (str) => (str || '')
 // خريطة مطبَّعة تُبنى مرة واحدة من SURAH_NUMBERS للبحث المرن بالاسم
 const SURAH_NUMBERS_NORM = {};
 for (const _k in SURAH_NUMBERS) { SURAH_NUMBERS_NORM[normalizeArabic(_k)] = SURAH_NUMBERS[_k]; }
+
+// خريطة عكسية رقم→اسم (أول اسم لكل رقم = الاسم الأساسي) — لعنوان بطاقة الآية
+// عندما يرسل النموذج surah_num فقط بلا اسم سورة.
+const SURAH_NAMES = {};
+for (const _name in SURAH_NUMBERS) { const _n = SURAH_NUMBERS[_name]; if (!SURAH_NAMES[_n]) SURAH_NAMES[_n] = _name; }
+
+// ============================================================
+// المصحف الكنسي (Hafs/Uthmani) — يُحمَّل مرة واحدة من /quran-uthmani.json
+// ============================================================
+// مصدر موثوق (quran.com text_uthmani، مطابق لترقيم تلاوة الحُصري في everyayah).
+// نصّ الآية يُعرَض من هذا المصدر فقط — لا من مخرجات النموذج أبداً.
+// مفتاح الوصول: `${surahNum}:${ayah}` بالأرقام الصحيحة (نفس مفاتيح رابط الصوت).
+let __quranData = null;       // الكائن المُحمَّل (مخزَّن في الذاكرة)
+let __quranPromise = null;    // وعدٌ جارٍ لمنع جلب مكرّر
+const loadQuran = () => {
+  if (__quranData) return Promise.resolve(__quranData);
+  if (!__quranPromise) {
+    // Promise.resolve().then(...) يضمن أنّ أيّ خطأ (حتى غياب fetch) يصبح رفضاً
+    // لا رميةً متزامنة — فلا ينكسر استدعاء loadQuran().catch(...) أبداً.
+    __quranPromise = Promise.resolve()
+      .then(() => fetch('/quran-uthmani.json'))
+      .then((r) => { if (!r.ok) throw new Error('quran fetch ' + r.status); return r.json(); })
+      .then((d) => { __quranData = d; return d; })
+      .catch((e) => { __quranPromise = null; throw e; }); // اسمح بإعادة المحاولة لاحقاً
+  }
+  return __quranPromise;
+};
+// نصّ الآية الكنسي أو null (لا يقع أبداً على نصّ النموذج)
+const getVerseText = (sNum, aNum) => {
+  if (!__quranData || !(sNum >= 1) || !(aNum >= 1)) return null;
+  return __quranData[`${sNum}:${aNum}`] || null;
+};
 
 // يُرجع رقم السورة (1..114) أو null. يفضّل surah_num الرقمي، ثم يبحث بالاسم.
 const resolveSurahNumber = (surahName, surahNum) => {
@@ -246,6 +278,9 @@ const KNOWN_TAGS = 'verse|hadith|steps|suggestions';
 const stripIncompleteTags = (text) => {
   if (!text || typeof text !== 'string') return text || '';
   let t = text;
+  // ٠. طَبِّع وسم الآية ذاتيّ الإغلاق <verse .../> → <verse ...></verse> حتى لا يَعدّه
+  //    كاشفُ الوسوم الناقصة وسماً مقطوعاً فيحذفه. (الوسم الآن فارغ بلا نصّ آية.)
+  t = t.replace(/<verse([^>]*?)\s*\/>/g, '<verse$1></verse>');
   // ١. أول وسم معروف مفتوح بلا إغلاق مطابق → احذف من بدايته حتى نهاية النص.
   const openRe = new RegExp(`<(${KNOWN_TAGS})\\b`, 'g');
   let m, cut = -1;
@@ -376,13 +411,18 @@ const formatForLog = (text) => {
   // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
   let t = stripIncompleteTags(text);
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
-  // الآية: تُعرض بين علامتي اقتباس «» (مدعومة في كل الخطوط، لا تتحول لمربّع) مع المرجع
-  // (يدعم أي ترتيب للسمات ووجود surah_num)
-  t = t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g, (_, attrs, content) => {
-    const sm = attrs.match(/surah=["']([^"']+)["']/);
-    const am = attrs.match(/ayah=["']([^"']+)["']/);
-    const ref = [sm && sm[1], am && `آية ${am[1]}`].filter(Boolean).join('، ');
-    return ` «${content.trim()}»${ref ? ` (${ref})` : ''} `;
+  // الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
+  // نعرض المرجع فقط. نتجاهل أيّ نصّ بداخل الوسم تماماً (قد يرسله النموذج خطأً).
+  t = t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g, (_, attrs) => {
+    const sNum = resolveSurahNumber(
+      (attrs.match(/surah=["']([^"']+)["']/) || [])[1],
+      (attrs.match(/surah_num=["']([^"']+)["']/) || [])[1]
+    );
+    const aNum = parseInt((attrs.match(/ayah=["']([^"']+)["']/) || [])[1], 10);
+    const name = sNum ? SURAH_NAMES[sNum] : '';
+    const ref = [name && `سورة ${name}`, aNum >= 1 && `آية ${aNum}`].filter(Boolean).join('، ');
+    const canon = (sNum && aNum >= 1) ? getVerseText(sNum, aNum) : null;
+    return canon ? ` «${canon}»${ref ? ` (${ref})` : ''} ` : (ref ? ` [${ref}] ` : ' ');
   });
   // الحديث والخطوات: نفس تحويل الصوت كي يبقى السجلّ مقروءاً
   t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
@@ -691,10 +731,11 @@ const buildSystemPrompt = (name, age, gender) => {
 
 عند إيراد آية أو حديث أو خطوات عملية أو اقتراحات متابعة، اسْتَخْدِم الوسوم التالية بِالضَّبط (تأمين عرضها بشكل أنيق على شاشة الطفل):
 
-١. **الآية القرآنية** — استخدم وسم verse:
-<verse surah="اسم السورة" surah_num="رقم السورة" ayah="رقم الآية">نَصُّ الآيَةِ المُشَكَّلَة كَامِلًا</verse>
-— surah يبقى اسم السورة للعرض (مثل "النساء")، وأضِف surah_num برقم السورة (١..١١٤ بالأرقام الإنجليزية، مثل 4) و ayah برقم الآية بالأرقام الإنجليزية (مثل 103) — فهذان الرقمان يُشغّلان تلاوة القارئ الحقيقي للطفل. لا تنطق الآية بنفسك؛ سيستمع الطفل لها من القارئ.
-مثال: <verse surah="النساء" surah_num="4" ayah="103">إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا</verse>
+١. **الآية القرآنية** — استخدم وسم verse فارغاً (بالأرقام فقط، بلا أيّ نصّ قرآني):
+<verse surah_num="رقم السورة" ayah="رقم الآية"></verse>
+— ضع surah_num برقم السورة (١..١١٤ بالأرقام الإنجليزية، مثل 4) و ayah برقم الآية بالأرقام الإنجليزية (مثل 103). هذان الرقمان وحدهما كافيان: التطبيق يعرض نصّ الآية من مصحفٍ كنسيّ موثوق ويُشغّل تلاوة القارئ الحقيقي للطفل.
+‼ مَمْنُوعٌ مَنْعًا بَاتًّا أن تكتب نصّ الآية بنفسك — لا داخل الوسم ولا خارجه. اكتفِ برقم السورة ورقم الآية فقط. (كتابتك للنصّ قد تُخطئ حرفاً أو حركة، والتطبيق يتكفّل بالنصّ الصحيح كاملاً، وهذا أيضاً يُقصّر ردّك.)
+مثال صحيح: <verse surah_num="4" ayah="103"></verse>
 
 ٢. **الحديث النبوي** — استخدم وسم hadith:
 <hadith narrator="الراوي مثلاً البخاري" ruling="الحكم مثلاً متفق عليه">نَصُّ الحَدِيثِ المُشَكَّل</hadith>
@@ -726,7 +767,7 @@ const buildSystemPrompt = (name, age, gender) => {
 سؤال "وش معنى الصلاة على وقتها؟" (للبنت هند، ٧ سنوات) ←
 سُؤَالٌ جَمِيلٌ يَا هند! الصَّلَاةُ عَلَى وَقْتِهَا تَعْنِي أَنْ تُصَلِّيهَا فِي الوَقْتِ المُحَدَّدِ لَهَا، لَا قَبْلَهُ وَلَا بَعْدَه.
 
-<verse surah="النساء" ayah="103">إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا</verse>
+<verse surah_num="4" ayah="103"></verse>
 
 <hadith narrator="البخاري ومسلم" ruling="متفق عليه">سُئِلَ النَّبِيُّ ﷺ: أَيُّ العَمَلِ أَحَبُّ إِلَى الله؟ قَالَ: الصَّلَاةُ عَلَى وَقْتِهَا</hadith>
 
@@ -745,7 +786,7 @@ const buildSystemPrompt = (name, age, gender) => {
 سؤال عن شفاه متشققة (للبنت هند، ٧ سنوات) ←
 اللهُ سُبْحَانَهُ خَلَقَ جِسْمَنَا عَجِيبًا يَا هند! الشَّفَايِفُ تَتَشَقَّقُ لَمَّا تَجِفّ، وَالحَلُّ بَسِيط.
 
-<verse surah="الفرقان" ayah="48">وَأَنْزَلْنَا مِنَ السَّمَاءِ مَاءً طَهُورًا</verse>
+<verse surah_num="25" ayah="48"></verse>
 
 <steps>
 - اشْرَبِي مَاءً كَثِيرًا، سِتَّ كُؤُوس يَوْمِيًّا.
@@ -777,7 +818,7 @@ const buildSystemPrompt = (name, age, gender) => {
 
 قَبْلَ أَنْ تُرْسِلَ رَدَّك، أَجِبْ عَلَى هَذِهِ الأَسْئِلَة ذِهْنِيًّا:
 
-☑ هَلْ ذَكَرْتُ آيَةً قُرْآنِيَّة؟ → يَجِبُ أَنْ تَكُونَ دَاخِلَ \`<verse surah="..." ayah="...">...</verse>\`.
+☑ هَلْ ذَكَرْتُ آيَةً قُرْآنِيَّة؟ → ضَعْ رَقْمَهَا فَقَطْ: \`<verse surah_num="..." ayah="..."></verse>\` بِلَا نَصٍّ — التَّطْبِيقُ يَعْرِضُ النَّصَّ الصَّحِيحَ مِنَ المُصْحَف.
 ☑ هَلْ ذَكَرْتُ حَدِيثًا نَبَوِيًّا؟ → يَجِبُ أَنْ يَكُونَ دَاخِلَ \`<hadith narrator="..." ruling="...">...</hadith>\`.
 ☑ هَلْ أَعْطَيْتُ خُطُوَاتٍ عَمَلِيَّة (أَكْثَر مِنْ خُطْوَة)؟ → يَجِبُ أَنْ تَكُونَ دَاخِلَ \`<steps>...</steps>\` بِنِقَاط.
 ☑ هَلْ أَنْهَيْتُ رَدِّي بِاقْتِرَاحَاتٍ لِلْمُتَابَعَة؟ → يَجِبُ أَنْ تَكُونَ دَاخِلَ \`<suggestions>...</suggestions>\`.
@@ -787,7 +828,7 @@ const buildSystemPrompt = (name, age, gender) => {
 ═══ أَمْثِلَةٌ لِلْخَطَأ المُتَكَرِّر (شُوهِدَ فِي الاخْتِبَارِ المَيْدَانِيّ) ═══
 
 ❌ خَطَأ: "قَالَ تَعَالَى: إِنَّ مَعَ الْعُسْرِ يُسْرًا. هَذِهِ آيَةٌ جَمِيلَة."
-✓ صَوَاب: "قَالَ اللهُ تَعَالَى: <verse surah=\"الشرح\" ayah=\"6\">إِنَّ مَعَ الْعُسْرِ يُسْرًا</verse> جَمِيلَة، صَح؟"
+✓ صَوَاب: "قَالَ اللهُ تَعَالَى آيَةً جَمِيلَة: <verse surah_num=\"94\" ayah=\"6\"></verse> صَح؟"
 
 ❌ خَطَأ: "خُطُوَاتُ الوُضُوء: ١. اغْسِلِ اليَدَيْن ٢. تَمَضْمَض ٣. اسْتَنْشِق..."
 ✓ صَوَاب: "<steps>- اغْسِلْ يَدَيْكَ ثَلَاثًا. - تَمَضْمَضْ ثَلَاثًا. - اسْتَنْشِقِ المَاءَ ثَلَاثًا.</steps>"
@@ -876,6 +917,9 @@ function App() {
       setScreen('onboarding');
     }
   }, []);
+
+  // تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
+  useEffect(() => { loadQuran().catch(() => {}); }, []);
 
   // إعداد التعرف على الصوت
   useEffect(() => {
@@ -1340,7 +1384,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onStopAudio })
             return <div key={i} style={s.bubbleText}>{seg.content}</div>;
           }
           if (seg.type === 'verse') {
-            return <VerseCard key={i} content={seg.content} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
+            return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
           }
           if (seg.type === 'hadith') {
             return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
@@ -1364,18 +1408,38 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onStopAudio })
   );
 }
 
-function VerseCard({ content, surah, surahNum, ayah, onPlayVerse, onStopAudio }) {
+function VerseCard({ surah, surahNum, ayah, onPlayVerse, onStopAudio }) {
   const [playing, setPlaying] = useState(false);
   const [audioFailed, setAudioFailed] = useState(false);
+  // نصّ الآية يأتي حصراً من المصحف الكنسي المُحمَّل، لا من النموذج.
+  const [verseText, setVerseText] = useState('');
+  const [textState, setTextState] = useState('loading'); // loading | ok | fail
   const audioRef = useRef(null); // fallback محلي فقط (إن لم تُمرَّر دوال المنسِّق)
 
   const sNum = resolveSurahNumber(surah, surahNum);
   const aNum = parseInt(ayah, 10);
   const canPlay = !!sNum && aNum >= 1;
+  const surahName = surah || (sNum ? SURAH_NAMES[sNum] : '');
   const pad3 = (x) => String(x).padStart(3, '0');
   const audioUrl = canPlay
     ? `https://everyayah.com/data/Husary_64kbps/${pad3(sNum)}${pad3(aNum)}.mp3`
     : null;
+
+  // جلب نصّ الآية الكنسي مرة واحدة (مُخزَّن في الذاكرة). عند الفشل: لا نصّ —
+  // نعرض المرجع وزرّ التلاوة فقط، ولا نقع أبداً على نصّ النموذج أو ترميز خام.
+  useEffect(() => {
+    let alive = true;
+    if (!canPlay) { setTextState('fail'); return; }
+    loadQuran()
+      .then(() => {
+        if (!alive) return;
+        const t = getVerseText(sNum, aNum);
+        if (t) { setVerseText(t); setTextState('ok'); }
+        else { setTextState('fail'); }
+      })
+      .catch(() => { if (alive) setTextState('fail'); });
+    return () => { alive = false; };
+  }, [sNum, aNum, canPlay]);
 
   // إيقاف صوت fallback المحلي وتنظيفه عند إزالة البطاقة
   useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
@@ -1421,11 +1485,11 @@ function VerseCard({ content, surah, surahNum, ayah, onPlayVerse, onStopAudio })
       <div style={s.verseCardLabel}>
         <span>قَالَ اللهُ تَعَالَى</span>
       </div>
-      <div style={s.verseText}>{content}</div>
+      {textState === 'ok' && <div style={s.verseText}>{verseText}</div>}
       <div style={s.verseFooter}>
-        {(surah || ayah) && (
+        {(surahName || ayah) && (
           <div style={s.verseMeta}>
-            {surah && `سورة ${surah}`}{surah && ayah && '، '}{ayah && `آية ${ayah}`}
+            {surahName && `سورة ${surahName}`}{surahName && ayah && '، '}{ayah && `آية ${ayah}`}
           </div>
         )}
         {canPlay && (
@@ -1709,7 +1773,7 @@ const s = {
   // ===== بطاقة الآية =====
   verseCard: { background: 'linear-gradient(135deg, #FBF3DE 0%, #F8EBC8 100%)', border: '1px solid rgba(201, 169, 97, 0.5)', borderRadius: 14, padding: '12px 14px' },
   verseCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#8C6B1E', fontSize: 12, fontWeight: 600, marginBottom: 6 },
-  verseText: { fontSize: 17, color: '#5C4410', textAlign: 'center', fontFamily: "'Amiri', 'Tajawal', serif", lineHeight: 2, margin: '6px 0 6px' },
+  verseText: { fontSize: 19, color: '#5C4410', textAlign: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.1, margin: '6px 0 6px' },
   verseMeta: { fontSize: 12, textAlign: 'center', color: '#8C6B1E', fontWeight: 500 },
   verseFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 },
   versePlayBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#8C6B1E', color: '#FBF3DE', border: 'none', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
