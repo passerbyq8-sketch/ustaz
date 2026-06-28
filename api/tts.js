@@ -86,7 +86,9 @@ export default async function handler(req, res) {
           model_id: MODEL_ID,
           language_code: LANGUAGE_CODE,
           voice_settings: {
-            stability: 0.50,
+            // 0.75 بدل 0.50: الاستقرار المنخفض يُسبّب تأتأة على عناقيد الشدّة
+            // (التَّشْرِيك = تّ+شْ) في eleven_multilingual_v2. رفعه يقلّل هذا الأثر.
+            stability: 0.75,
             similarity_boost: 0.75,
             style: 0.0,
             use_speaker_boost: true,  // مدعوم في v2، يحسّن وضوح الصوت

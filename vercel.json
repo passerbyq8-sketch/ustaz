@@ -1,4 +1,9 @@
 {
   "version": 2,
-  "name": "ustaz-app"
+  "name": "ustaz-app",
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 60
+    }
+  }
 }

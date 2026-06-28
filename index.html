@@ -239,10 +239,41 @@ const TOPICS = [
 // ============================================================
 // تحليل الرسائل ذات البطاقات (verse/hadith/steps/suggestions)
 // ============================================================
+// يحذف أي وسم معروف (<verse>/<hadith>/<steps>/<suggestions>) فُتِح ولم يُغلَق — يحدث
+// عند اقتطاع الردّ منتصف الوسم — وأي بقايا "<...>" يتيمة في آخر النص، كي لا يتسرّب
+// ترميز خام إلى الطفل (عرض) ولا إلى ElevenLabs (صوت). مستقلّ تماماً عن max_tokens.
+const KNOWN_TAGS = 'verse|hadith|steps|suggestions';
+const stripIncompleteTags = (text) => {
+  if (!text || typeof text !== 'string') return text || '';
+  let t = text;
+  // ١. أول وسم معروف مفتوح بلا إغلاق مطابق → احذف من بدايته حتى نهاية النص.
+  const openRe = new RegExp(`<(${KNOWN_TAGS})\\b`, 'g');
+  let m, cut = -1;
+  while ((m = openRe.exec(t)) !== null) {
+    const closeRe = new RegExp(`</${m[1]}>`, 'g');
+    closeRe.lastIndex = m.index;
+    if (!closeRe.test(t)) { cut = m.index; break; }
+  }
+  if (cut >= 0) t = t.slice(0, cut);
+  // ٢. "<" مقطوع في آخر النص بلا ">" مطابق (مثل "<ver" أو "<verse surah=") → احذفه.
+  t = t.replace(/<[^>]*$/, '');
+  return t;
+};
+
+// مفتاح تجريبي (A/B) — صحّحه إلى true لمقارنة النطق بلا تشكيل في المتصفح:
+// عند true نُرسِل لـ ElevenLabs نصّاً مُجرَّداً من كل تشكيل (نطق MSA نثريّ فقط —
+// القرآن يُتلى من الحُصري لا من الذكاء الاصطناعي، فالتجريد آمن هنا). النصّ المعروض
+// للطفل وللأهل يبقى مُشَكَّلاً بالكامل. السبب: عناقيد الشدّة (التَّشْرِيك = تّ+شْ)
+// تُسبّب تأتأة في eleven_multilingual_v2. هذا تطبيع للمُدخَل الصوتي فقط.
+const STRIP_TASHKEEL_FOR_TTS = false;
+const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
+
 const parseRichMessage = (text) => {
   if (!text || typeof text !== 'string') {
     return { segments: [{ type: 'text', content: text || '' }], suggestions: [] };
   }
+  // نُنظّف الترميز الناقص قبل التحليل كي لا يظهر "<verse surah=..." كنصّ خام للطفل
+  text = stripIncompleteTags(text);
   const segments = [];
   let suggestions = [];
   let remaining = text;
@@ -314,8 +345,10 @@ const parseRichMessage = (text) => {
 // ============================================================
 const formatForTTS = (text) => {
   if (!text) return '';
+  // نحذف أي وسم ناقص/بقايا "<...>" قبل أي معالجة كي لا يصل ترميز خام إلى ElevenLabs
+  let t = stripIncompleteTags(text);
   // إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
-  let t = text.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
+  t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
   // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
   t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
@@ -340,7 +373,9 @@ const formatForTTS = (text) => {
 // الصوت يحذف الآية (يسمعها الطفل من القارئ)، أما الأهل فيجب أن يَرَوا نصّها في السجلّ.
 const formatForLog = (text) => {
   if (!text) return '';
-  let t = text.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
+  // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
+  let t = stripIncompleteTags(text);
+  t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // الآية: تُعرض بين علامتي اقتباس «» (مدعومة في كل الخطوط، لا تتحول لمربّع) مع المرجع
   // (يدعم أي ترتيب للسمات ووجود surah_num)
   t = t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g, (_, attrs, content) => {
@@ -960,12 +995,15 @@ function App() {
     }
     if (!isCurrent()) return; // أُلغِيَ أثناء التشكيل
 
-    // ElevenLabs TTS (يستقبل النص المُشكَّل)
+    // مفتاح A/B: تجريد التشكيل من النصّ المُرسَل للنطق فقط (العرض يبقى مُشَكَّلاً)
+    const spokenText = STRIP_TASHKEEL_FOR_TTS ? stripAllTashkeel(textForTTS) : textForTTS;
+
+    // ElevenLabs TTS (يستقبل النص المُشكَّل أو المُجرَّد حسب المفتاح أعلاه)
     try {
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textForTTS, gender: profile?.gender }),
+        body: JSON.stringify({ text: spokenText, gender: profile?.gender }),
       });
       if (!isCurrent()) return; // أُلغِيَ أثناء جلب الصوت
       if (response.ok) {
@@ -1037,6 +1075,8 @@ function App() {
   // نَقسِم عند حدود <verse> فقط — الحديث/الخطوات تبقى داخل مقاطع الكلام
   // (تُنطق كما اليوم عبر formatForTTS)، ونصّ الآية يقع بين الحدود فلا يُنطق.
   const buildAudioSequence = (text) => {
+    // نُنظّف الترميز الناقص أوّلاً كي لا يُرسَل "<verse surah=..." خاماً إلى ElevenLabs
+    text = stripIncompleteTags(text);
     const parts = [];
     const verseRe = /<verse([^>]*)>[\s\S]*?<\/verse>/g;
     let last = 0, m;
@@ -1133,7 +1173,10 @@ function App() {
           // أعلى بكثير من Sonnet 4.6، خاصة في النصوص العربية الطويلة المُشَكَّلة
           // ملاحظة: 4.8 يرفض temperature/top_p/top_k غير الافتراضية (400) — لا نرسلها
           model: 'claude-opus-4-8',
-          max_tokens: 1000,
+          // 8192 يعطي مساحة كافية لردّ عربي طويل مُشَكَّل بالكامل (كل حركة = توكن)
+          // مع وسوم <verse>/<hadith>/<steps>/<suggestions>. 1000 كانت تُقتَطع منتصف الوسم.
+          // الحدّ الأقصى لـ opus-4-8 هو 128K، فـ 8192 آمنة تماماً لطلب مُخزَّن (غير متدفّق).
+          max_tokens: 8192,
           system: buildSystemPrompt(p.name, p.age, p.gender),
           messages: history.map(m => ({ role: m.role, content: m.content })),
         }),
