@@ -102,6 +102,89 @@ const normalizeArabic = (str) => (str || '')
   .replace(/\s+/g, ' ')
   .trim();
 
+// ============================================================
+// المحفّظ Layer B "سمِّعني" — recite-from-memory matching (pure, in-browser, no API).
+// ============================================================
+// A SEPARATE, broader normalizer than normalizeArabic (which resolveSurahNumber depends on —
+// do not touch it). Strips every combining/annotation mark present in the Uthmani dataset so
+// undiacritized ar-SA output can be compared fairly to the canonical text on WORD identity:
+//   U+064B–U+065F harakat + maddah/hamza-above, U+0670 dagger alef,
+//   U+06D6–U+06ED Quranic pause marks + small-high pronoun letters, U+0640 tatweel.
+// Then folds orthographic variants: alef forms → ا, ة → ه, ى → ي. Word identity only — NOT
+// tashkeel/tajweed.
+const normalizeForRecite = (str) => (str || '')
+  .replace(/[ً-ٰٟۖ-ۭـ]/g, '')
+  .replace(/[آأإٱ]/g, 'ا')
+  .replace(/ة/g, 'ه')
+  .replace(/ى/g, 'ي')
+  .replace(/\s+/g, ' ')
+  .trim();
+// Tokenize on whitespace AFTER normalizing — standalone pause-mark glyphs normalize to '' and
+// are dropped by filter(Boolean), so they never count as words.
+const tokenizeForRecite = (str) => normalizeForRecite(str).split(/\s+/).filter(Boolean);
+
+// Lenient per-word similarity: a heard word this close to an expected word counts as correct.
+// False red in the Quran is worse than a missed slip (Musaed), so the bar is forgiving.
+const RECITE_LENIENT_THRESHOLD = 0.8;
+
+// Normalized Levenshtein ratio (1 - dist/maxLen) on two already-normalized tokens. Cheap
+// single-row DP; ayat are short.
+const wordSim = (a, b) => {
+  if (a === b) return 1;
+  if (!a || !b) return 0;
+  const m = a.length, n = b.length;
+  let prev = new Array(n + 1);
+  for (let j = 0; j <= n; j++) prev[j] = j;
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+    }
+    prev = cur;
+  }
+  const maxLen = Math.max(m, n);
+  return maxLen === 0 ? 1 : 1 - prev[n] / maxLen;
+};
+
+// Word-level alignment of the child's heard tokens against the expected ayah tokens, via LCS
+// with (wordSim >= threshold) as the equality predicate (tolerates near-misses, skips, extras,
+// minor order wobble). Returns a per-expected-word state:
+//   'matched'  — part of the alignment (child said a close-enough word) → black
+//   'mismatch' — BEFORE the furthest matched index but not aligned (reached past it, got it
+//                wrong/substituted/skipped) → red
+//   'pending'  — at/after the furthest matched index (not reached yet) → dim, NEVER red
+// "pending never red" biases hard against false reds: silence / slow pace shows dim, not wrong.
+const alignRecite = (expected, heard) => {
+  const m = expected.length, n = heard.length;
+  if (m === 0) return [];
+  const close = (e, h) => wordSim(e, h) >= RECITE_LENIENT_THRESHOLD;
+  // dp[i][j] = LCS length of expected[i..], heard[j..]
+  const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+  for (let i = m - 1; i >= 0; i--) {
+    for (let j = n - 1; j >= 0; j--) {
+      dp[i][j] = close(expected[i], heard[j])
+        ? dp[i + 1][j + 1] + 1
+        : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+  const matched = new Array(m).fill(false);
+  let i = 0, j = 0;
+  while (i < m && j < n) {
+    if (close(expected[i], heard[j])) { matched[i] = true; i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) i++;
+    else j++;
+  }
+  let furthest = -1;
+  for (let k = 0; k < m; k++) if (matched[k]) furthest = k;
+  const states = new Array(m);
+  for (let k = 0; k < m; k++) states[k] = matched[k] ? 'matched' : (k < furthest ? 'mismatch' : 'pending');
+  return states;
+};
+
+// Reused verbatim from the chat/call mic's not-supported message (line ~1526) — not new copy.
+const RECITE_NO_SR = '🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.';
+
 // خريطة مطبَّعة تُبنى مرة واحدة من SURAH_NUMBERS للبحث المرن بالاسم
 const SURAH_NUMBERS_NORM = {};
 for (const _k in SURAH_NUMBERS) { SURAH_NUMBERS_NORM[normalizeArabic(_k)] = SURAH_NUMBERS[_k]; }
@@ -2604,6 +2687,11 @@ const MEM = {
   ADNAN_STOP: 'إيقاف',
   ADNAN_REPEAT: 'أعد الآية',
   ADNAN_AYAH_LABEL: 'آية',
+  MODE_RECITE: 'سمِّعني',
+  RECITE_HINT: 'هذا تمرينٌ يعينك على الحفظ، والتسميع الحقيقيّ يكون عند معلّمك أو والديك.',
+  RECITE_START: 'ابدأ التسميع',
+  RECITE_STOP: 'إيقاف',
+  RECITE_DONE: 'أحسنت، تابِع حفظك.',
 };
 
 function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio }) {
@@ -2620,6 +2708,13 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const [adnanRunning, setAdnanRunning] = useState(false);
   const adnanTimeoutRef = useRef(null);                 // pending repeat-pause timer
   const runIdRef = useRef(0);                           // local loop cancel token (sequenceIdRef is App-owned, not in scope)
+  // Layer B — سمِّعني recite-from-memory (own recognizer; transcript NEVER rendered/stored).
+  const [reciteListening, setReciteListening] = useState(false);
+  const [reciteStates, setReciteStates] = useState([]); // per-expected-word: matched|mismatch|pending
+  const [reciteErr, setReciteErr] = useState('');       // graceful-fail note (no SR / mic denied)
+  const reciteRecognitionRef = useRef(null);            // own SpeechRecognition (separate from chat/call refs)
+  const reciteRunIdRef = useRef(0);                     // cancel token so a stale onend can't reopen the mic
+  const reciteHeardRef = useRef('');                    // transient transcript — never rendered, never saved
 
   const isFemale = profile?.gender === 'female';
 
@@ -2651,6 +2746,9 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   useEffect(() => () => {
     runIdRef.current++;
     if (adnanTimeoutRef.current) clearTimeout(adnanTimeoutRef.current);
+    // Layer B: stop the recite recognizer on unmount (the App [screen] cleanup doesn't know it).
+    reciteRunIdRef.current++;
+    try { reciteRecognitionRef.current?.stop(); } catch (e) {}
   }, []);
 
   const surahCount = (counts && selectedSurah) ? (counts[selectedSurah] || 0) : 0; // last ayah of range
@@ -2723,7 +2821,68 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     try { await onPlayVerse(selectedSurah, a); } catch (e) {} // replay this ayah once; user presses ابدأ to continue
   };
 
-  const setMode = (m) => { if (m === drillMode) return; stopAdnan(); setDrillMode(m); };
+  // ---------- سمِّعني recite-from-memory ----------
+  // Own ar-SA recognizer, mirroring the call handler's cumulative-finals prefix-merge. On each
+  // onresult we re-match the WHOLE heard-so-far against the WHOLE expected ayah (cheap; ayat are
+  // short) and recolor. The transcript lives only in reciteHeardRef — never rendered, never saved.
+  const stopRecite = () => {
+    reciteRunIdRef.current++;            // invalidate: a stale onend can't restart the mic
+    setReciteListening(false);
+    const rec = reciteRecognitionRef.current;
+    if (rec) { try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) {} }
+    // leave reciteStates as-is so the last result stays visible after stop
+  };
+
+  const startRecite = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { setReciteErr(RECITE_NO_SR); return; } // graceful fail, same message as chat/call
+    setReciteErr('');
+    // Capture the expected ayah once for this session (the focus ayah the manual mode uses).
+    const expectedTokens = tokenizeForRecite(getVerseText(selectedSurah, focusAyah) || '');
+    reciteHeardRef.current = '';
+    setReciteStates([]);
+    const rec = new SR();
+    rec.lang = 'ar-SA';
+    rec.continuous = true;
+    rec.interimResults = true;
+    const myRun = ++reciteRunIdRef.current;
+    rec.onresult = (event) => {
+      // Cumulative-finals prefix-merge — identical to the call recognizer.
+      let finalText = '', interim = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          const seg = t.trim();
+          if (!seg) continue;
+          if (!finalText) finalText = seg;
+          else if (seg.startsWith(finalText)) finalText = seg;
+          else if (finalText.startsWith(seg)) { /* covered */ }
+          else finalText = finalText + ' ' + seg;
+        } else { interim += t; }
+      }
+      reciteHeardRef.current = (finalText + ' ' + interim).trim();
+      setReciteStates(alignRecite(expectedTokens, tokenizeForRecite(reciteHeardRef.current)));
+    };
+    rec.onend = () => {
+      // Auto-restart only if this run is still current (stopRecite/unmount bumped the id otherwise).
+      if (reciteRunIdRef.current === myRun) { try { rec.start(); } catch (e) {} }
+    };
+    rec.onerror = (e) => {
+      const fatal = ['not-allowed', 'audio-capture', 'service-not-allowed'];
+      if (fatal.includes(e.error)) { reciteRunIdRef.current++; setReciteListening(false); setReciteErr(RECITE_NO_SR); }
+    };
+    reciteRecognitionRef.current = rec;
+    setReciteListening(true);
+    try { rec.start(); } catch (e) {}
+  };
+
+  const setMode = (m) => {
+    if (m === drillMode) return;
+    stopAdnan();
+    stopRecite();
+    if (m === 'recite') { setReciteStates([]); reciteHeardRef.current = ''; setReciteErr(''); } // fresh
+    setDrillMode(m);
+  };
 
   // ---------- PICKER ----------
   if (view === 'picker') {
@@ -2789,10 +2948,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <span style={s.memRangeBadge}>{`${MEM.GRAN_AYAH} ${toArabicDigits(startAyah)}`}</span>
         <button onClick={openPicker} style={s.memChangeBtn}>{MEM.CHANGE_SURAH}</button>
       </div>
-      {/* Layer C — drill mode switch: manual reveal vs. عدنان listen-and-repeat. */}
+      {/* Drill mode switch: manual reveal · عدنان listen-and-repeat (Layer C) · سمِّعني recite (Layer B). */}
       <div style={s.memToggleRow}>
         <button onClick={() => setMode('manual')} style={{ ...s.memGranBtn, ...(drillMode === 'manual' ? s.memGranBtnActive : {}) }}>{MEM.MODE_MANUAL}</button>
         <button onClick={() => setMode('adnan')} style={{ ...s.memGranBtn, ...(drillMode === 'adnan' ? s.memGranBtnActive : {}) }}>{MEM.MODE_ADNAN}</button>
+        <button onClick={() => setMode('recite')} style={{ ...s.memGranBtn, ...(drillMode === 'recite' ? s.memGranBtnActive : {}) }}>{MEM.MODE_RECITE}</button>
       </div>
       {drillMode === 'manual' && (
       <div style={s.memToggleRow}>
@@ -2842,6 +3002,33 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       <div style={s.memControls}>
         <button onClick={() => (adnanRunning ? stopAdnan() : startAdnan())} style={s.memRevealBtn}>{adnanRunning ? MEM.ADNAN_STOP : MEM.ADNAN_START}</button>
         <button onClick={repeatAyah} style={s.memListenBtn}>{MEM.ADNAN_REPEAT}</button>
+      </div>
+      )}
+      {drillMode === 'recite' && (
+      <div style={s.memDrillArea}>
+        <div style={s.memReciteHint}>{MEM.RECITE_HINT}</div>
+        <div style={s.memDrillText}>
+          {(() => {
+            // Display the ORIGINAL (diacritized) ayah words, colored by match state. Standalone
+            // ornament/pause glyphs normalize to '' — render them dim and don't consume a state,
+            // so the state index stays aligned with the matchable words. Child's words never shown.
+            const displayWords = (getVerseText(selectedSurah, focusAyah) || '').split(/\s+/).filter(Boolean);
+            let wordIdx = 0;
+            return displayWords.map((dw, i) => {
+              if (!normalizeForRecite(dw)) return <span key={i} style={s.memWordPending}>{dw}</span>;
+              const st = reciteStates[wordIdx]; wordIdx++;
+              const wstyle = st === 'matched' ? s.memWord : st === 'mismatch' ? s.memWordWrong : s.memWordPending;
+              return <span key={i} style={wstyle}>{dw}</span>;
+            });
+          })()}
+        </div>
+        {reciteErr && <div style={s.memMsg}>{reciteErr}</div>}
+        {reciteStates.length > 0 && reciteStates.every((x) => x === 'matched') && <div style={s.memMsg}>{MEM.RECITE_DONE}</div>}
+      </div>
+      )}
+      {drillMode === 'recite' && (
+      <div style={s.memControls}>
+        <button onClick={() => (reciteListening ? stopRecite() : startRecite())} style={s.memRevealBtn}>{reciteListening ? MEM.RECITE_STOP : MEM.RECITE_START}</button>
       </div>
       )}
     </div>
@@ -2980,6 +3167,10 @@ const s = {
   memUnit: { display: 'inline-flex', alignItems: 'center', gap: 6 },
   memAyahBadge: { minWidth: 26, height: 26, borderRadius: 8, background: 'rgba(201, 169, 97, 0.2)', color: '#8C6B1E', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Tajawal', sans-serif" },
   memWord: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 26, color: '#2C3E2D', lineHeight: 2 },
+  // Layer B — سمِّعني word states: wrong (red), not-yet-reached (dim), and the soft-framing hint.
+  memWordWrong: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 26, color: '#C0392B', fontWeight: 600, lineHeight: 2 },
+  memWordPending: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 26, color: '#B8AE9C', lineHeight: 2 },
+  memReciteHint: { fontSize: 13, color: '#8C8275', textAlign: 'center', padding: '0 8px 6px', lineHeight: 1.7 },
   memPlaceholder: { fontFamily: "'Tajawal', sans-serif", fontSize: 18, color: '#B9A98C', background: '#F0EBE0', borderRadius: 8, padding: '2px 14px', letterSpacing: '2px' },
   memMsg: { fontSize: 15, fontWeight: 700, color: '#2C5F5D', textAlign: 'center' },
   memControls: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderTop: '1px solid #E5DDD0', background: '#FFFFFF' },
