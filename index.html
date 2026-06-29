@@ -1008,6 +1008,9 @@ function App() {
   const [isCallMuted, setIsCallMuted] = useState(false);
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
+  // Layer 3 (continuous call) — anti-leak + auto-end machinery.
+  const callGenRef = useRef(0);            // increments on every call ENTER and EXIT; any async continuation comparing a captured value against this ref aborts if they differ.
+  const inactivityTimerRef = useRef(null); // 45s no-speech auto-end timer handle (the real loop terminator)
 
   // تحميل البيانات من التخزين
   useEffect(() => {
@@ -1634,8 +1637,36 @@ function App() {
   // (speakReply / cancelAudio). A dedicated callRecognitionRef is fully isolated from the dictation
   // mic. Call onresult writes ONLY to callTranscriptRef / callHeard — never to the chat `input`.
 
-  // Start (or re-arm) a listen turn. Primary trigger is the avatar tap-to-talk.
-  const startCallListening = () => {
+  // ===== Layer 3: 45s inactivity auto-end (silent — no spoken goodbye) =====
+  const clearInactivityTimer = () => {
+    if (inactivityTimerRef.current) { clearTimeout(inactivityTimerRef.current); inactivityTimerRef.current = null; }
+  };
+  // Silent auto-end. setScreen('chat') fires the call useEffect cleanup, which stops rec,
+  // aborts the in-flight callAI, cancels audio, and bumps callGenRef (invalidating continuations).
+  const endCallSilently = () => {
+    clearInactivityTimer();
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+    callActiveRef.current = false;
+    try { callRecognitionRef.current?.stop(); } catch (e) {}
+    if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
+    cancelAudio();
+    setScreen('chat');
+  };
+  // (Re)start the 45s idle clock. Armed on a FRESH listening turn and on detected speech only —
+  // NOT on the silence self-close re-arm (that passes armIdleClock=false), so genuine silence
+  // accumulates toward the 45s end instead of resetting on every engine self-close.
+  const armInactivityTimer = () => {
+    clearInactivityTimer();
+    const genAtArm = callGenRef.current;
+    inactivityTimerRef.current = setTimeout(() => {
+      if (callGenRef.current !== genAtArm) return; // call ended/changed → bail
+      endCallSilently();
+    }, 45000);
+  };
+
+  // Start (or re-arm) a listen turn. armIdleClock=true resets the 45s idle clock (a fresh turn);
+  // the silence self-close re-arm passes false so silence keeps counting toward the auto-end.
+  const startCallListening = (armIdleClock = true) => {
     if (callMutedRef.current) return; // muted = do not listen
     const rec = callRecognitionRef.current;
     if (!rec) return;
@@ -1643,7 +1674,10 @@ function App() {
     setCallHeard('');
     callActiveRef.current = true;
     setCallState('listening');
-    try { rec.start(); } catch (e) { callActiveRef.current = false; setCallState('idle'); }
+    try {
+      rec.start();
+      if (armIdleClock) armInactivityTimer();
+    } catch (e) { callActiveRef.current = false; setCallState('idle'); }
   };
 
   // End the active listen turn and route it to the brain. Guarded so the silence timer and
@@ -1662,8 +1696,10 @@ function App() {
   // the SHARED messages array (so the Q&A shows in chat history and guardrails are identical), then
   // speaks the reply via the existing speakReply(). No setInput, no streamingText bubble.
   const runCallTurn = async (text) => {
+    const myGen = callGenRef.current; // capture the call session; re-arm after playback only if still valid
     setCallHeard('');
     setCallState('thinking');
+    clearInactivityTimer(); // child is engaged (thinking/speaking) — pause the idle clock
     cancelAudio();
     if (abortRef.current) abortRef.current.abort();
     const userMsg = { role: 'user', content: text, timestamp: new Date().toISOString() };
@@ -1687,7 +1723,11 @@ function App() {
     saveMessages(final);
     setCallState('speaking');
     await speakReply(reply); // completion hook — resolves when playback fully finishes
-    setCallState('idle');    // one turn complete — back to idle "tap to talk" (no auto re-arm in Layer 2)
+    // Layer 3 guarded auto-rearm. speakReply cannot reject and resolves only after playback ends.
+    if (callGenRef.current !== myGen) return;                   // End/exit or session change during playback → do NOT re-arm
+    if (callActiveRef.current) return;                          // a manual interrupt already re-opened the mic → don't double-arm
+    if (callMutedRef.current) { setCallState('idle'); return; } // muted → idle; user re-arms manually
+    startCallListening();                                       // continuous: reopen the mic for the next turn
   };
 
   // Keep callTurnRef pointing at the latest runCallTurn so the (once-created) SR handlers always
@@ -1702,6 +1742,7 @@ function App() {
       if (next) {
         callActiveRef.current = false;
         if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+        clearInactivityTimer(); // leaving listening (muted) — stop the idle clock; user re-arms manually
         try { callRecognitionRef.current?.stop(); } catch (e) {}
         setCallState((csNow) => (csNow === 'listening' ? 'idle' : csNow));
       }
@@ -1709,10 +1750,19 @@ function App() {
     });
   };
 
-  // Avatar tap-to-talk: start a listen turn from idle only (Layer 2 = one turn, no re-arm).
+  // Avatar tap = "my turn". Layer 3 makes it state-aware: it is the manual interrupt (no voice
+  // barge-in). Tapping during think/speak cancels the tutor and opens the mic; from idle it starts.
   const onCallTalk = () => {
     if (callMutedRef.current) return;
+    if (callState === 'thinking' || callState === 'speaking') {
+      // Manual interrupt: cancel the in-flight turn + tutor audio, then open the mic for the child.
+      if (abortRef.current) abortRef.current.abort(); // thinking: aborts callAI -> runCallTurn bails at the AbortError guard (before re-arm)
+      cancelAudio();                                  // speaking: stops playback (speakReply resolves; EDIT-A re-arm suppressed by its callActiveRef guard)
+      startCallListening();
+      return;
+    }
     if (callState === 'idle') startCallListening();
+    // 'listening' → no-op (unchanged from Layer 2)
   };
 
   // Call-screen lifecycle: create/tear down the dedicated recognition with the call screen.
@@ -1720,6 +1770,7 @@ function App() {
   // On exit: stop recognition, clear the timer, abort any in-flight turn, and stop audio.
   useEffect(() => {
     if (screen !== 'call') return;
+    callGenRef.current++; // ENTER: open a new call session (invalidates any stale continuation)
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
       setVoiceError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
@@ -1761,6 +1812,8 @@ function App() {
       }
       callTranscriptRef.current = finalText;
       setCallHeard((finalText + interim).trim()); // feedback only — NEVER setInput
+      // Layer 3: actual speech this event → child present → reset the 45s idle clock.
+      if ((finalText + interim).trim()) armInactivityTimer();
       // Reset the end-of-turn debounce on any speech activity.
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = setTimeout(() => {
@@ -1770,9 +1823,21 @@ function App() {
     };
     rec.onend = () => {
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
-      // Layer 2: NO auto-restart. If the engine stopped while still active with speech, finalize.
-      if (callActiveRef.current && callTranscriptRef.current.trim()) endCallTurnNow();
-      else if (callActiveRef.current) { callActiveRef.current = false; setCallState('idle'); }
+      if (callActiveRef.current && callTranscriptRef.current.trim()) { endCallTurnNow(); return; }
+      // Layer 3: empty/silence engine self-close during an active listen → stay live by re-arming
+      // after a short backoff (prevents a tight start→onend→start loop). The 45s idle clock is NOT
+      // reset here (armIdleClock=false), so genuine silence still reaches the inactivity auto-end.
+      if (callActiveRef.current) {
+        callActiveRef.current = false;
+        const genAtEnd = callGenRef.current;
+        if (callMutedRef.current) { setCallState('idle'); return; }
+        setCallState('listening'); // keep the UI in listening; we are re-opening
+        setTimeout(() => {
+          if (callGenRef.current !== genAtEnd) return;          // ended/changed during backoff → bail
+          if (callMutedRef.current) { setCallState('idle'); return; }
+          startCallListening(false);                            // re-open WITHOUT resetting the idle clock
+        }, 400);
+      }
     };
     rec.onerror = (event) => {
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
@@ -1787,8 +1852,10 @@ function App() {
     callRecognitionRef.current = rec;
 
     return () => {
+      callGenRef.current++; // EXIT: invalidate every in-flight continuation (re-arm / backoff / inactivity)
       callActiveRef.current = false;
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+      clearInactivityTimer();
       try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) {}
       callRecognitionRef.current = null;
       if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
@@ -2365,8 +2432,9 @@ function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTa
     animation: reduceMotion ? 'none' : `callPulse ${cs.speed} ease-in-out infinite`,
   };
 
-  // Tap-to-talk is allowed only from idle (one turn at a time in Layer 2) and when not muted.
-  const canTalk = callState === 'idle' && !isMuted;
+  // Layer 3: the avatar stays tappable while the tutor is thinking/speaking — tapping there is the
+  // manual interrupt ("my turn"). Disabled only when muted, or during 'listening' (no-op as before).
+  const canTalk = !isMuted && (callState === 'idle' || callState === 'thinking' || callState === 'speaking');
 
   return (
     <div style={s.callContainer}>
