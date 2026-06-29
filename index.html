@@ -1059,11 +1059,19 @@ function App() {
   // تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
   useEffect(() => { loadQuran().catch(() => {}); }, []);
 
-  // Stop any shared audio (greeting TTS or recitation) when leaving a screen. App never
-  // unmounts on a screen switch, so playing Audio() objects in audioRef survive; this cleanup
-  // fires on every `screen` transition. Covers chat→memorize (greeting) and memorize→chat
-  // (recitation), reusing the same cancelAudio() CallScreen's teardown uses.
-  useEffect(() => { return () => cancelAudio(); }, [screen]);
+  // Stop audio when leaving a screen. App never unmounts on a screen switch, so playing
+  // Audio() objects in audioRef survive; this cleanup fires on every `screen` transition.
+  // The greeting starts only AFTER callAI resolves, so cancelAudio() alone runs while
+  // nothing is playing yet (audioRef null) and the greeting then speaks post-switch. So we
+  // also ABORT the in-flight request: that makes callAI throw AbortError, which
+  // sendInitialGreeting catches and returns on BEFORE its speakReply line. Same abort+cancel
+  // pair the call lifecycle already uses (endCallSilently / call cleanup).
+  useEffect(() => {
+    return () => {
+      try { abortRef.current?.abort(); } catch (e) {}
+      cancelAudio();
+    };
+  }, [screen]);
 
   // Mobile autoplay fix: with chat voice ON by default, the first spoken reply (the greeting) plays
   // after an async callAI gap, so user-activation can lapse and mobile Safari/Chrome may block it.
@@ -2719,7 +2727,6 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
       <div style={s.memControls}>
         <button onClick={() => onPlayVerse && onPlayVerse(selectedSurah, focusAyah)} style={s.memListenBtn}>{MEM.LISTEN_BTN}</button>
         <button onClick={() => setRevealedCount((c) => Math.min(c + 1, units.length))} style={{ ...s.memRevealBtn, opacity: allRevealed ? 0.5 : 1 }} disabled={allRevealed}>{MEM.REVEAL_BTN}</button>
-        <button onClick={() => onPlaySurah && onPlaySurah(selectedSurah, startAyah, surahCount)} style={s.memListenBtn}>{MEM.LISTEN_RANGE_BTN}</button>
         {/* Re-hide/reset the same range. */}
         <button onClick={() => setRevealedCount(0)} style={s.memListenBtn}>{MEM.HIDE}</button>
       </div>
