@@ -968,7 +968,8 @@ function App() {
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   const transcriptRef = useRef('');
-  const sendMessageRef = useRef(null);
+  const baseTextRef = useRef('');        // input snapshot when dictation (re)starts — new speech is appended after it
+  const shouldListenRef = useRef(false); // desired mic state; true between start-tap and stop-tap (survives auto-restarts)
   const audioRef = useRef(null);          // عنصر الصوت الوحيد النشِط (TTS أو تلاوة)
   const sequenceIdRef = useRef(0);        // رمز إلغاء تسلسل الصوت الجاري
   const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
@@ -1009,7 +1010,7 @@ function App() {
     if (!SR) return;
     const recognition = new SR();
     recognition.lang = 'ar-SA';
-    recognition.continuous = false;
+    recognition.continuous = true;       // keep listening across pauses until the user taps the mic off
     recognition.interimResults = true;
     recognition.onresult = (event) => {
       let final = '', interim = '';
@@ -1018,20 +1019,33 @@ function App() {
         else interim += event.results[i][0].transcript;
       }
       transcriptRef.current = transcriptRef.current + final;
-      setInput(transcriptRef.current + interim);
+      setInput(baseTextRef.current + transcriptRef.current + interim);
     };
     recognition.onend = () => {
-      setIsListening(false);
-      const finalText = transcriptRef.current.trim();
-      transcriptRef.current = '';
-      if (finalText && sendMessageRef.current) {
-        setInput('');
-        sendMessageRef.current(finalText);
+      // Browsers end recognition periodically even in continuous mode. If the user still
+      // wants to dictate, fold finalized speech into the base and restart so dictation
+      // continues until the mic is tapped off. The mic NEVER sends.
+      if (shouldListenRef.current) {
+        baseTextRef.current = baseTextRef.current + transcriptRef.current;
+        transcriptRef.current = '';
+        try {
+          recognition.start();
+          return;
+        } catch (e) {
+          // Restart failed (mic dropped or rapid toggling) — stop cleanly, do not loop.
+          shouldListenRef.current = false;
+          setIsListening(false);
+          return;
+        }
       }
+      shouldListenRef.current = false;
+      setIsListening(false);
+      // Transcribed text stays in the box for the owner to review/edit/send. No auto-send.
     };
     recognition.onerror = (event) => {
-      setIsListening(false);
-      transcriptRef.current = '';
+      // Fatal errors end dictation; transient ones (e.g. no-speech) let onend restart it.
+      const fatal = ['not-allowed', 'audio-capture', 'service-not-allowed', 'network'];
+      if (fatal.includes(event.error)) shouldListenRef.current = false;
       const errorMap = {
         'not-allowed': '🚫 لم يتم السماح بالميكروفون. افتح إعدادات المتصفح واسمح بالميكروفون.',
         'no-speech': '🤫 لم أسمع شيئاً، جرب مرة أخرى.',
@@ -1413,15 +1427,20 @@ function App() {
       return;
     }
     if (isSpeaking) stopSpeaking();
+    // Snapshot the current box (typed or previously dictated, incl. hand-edits) as the base.
+    // New speech is appended AFTER it — nothing already there is erased or replaced.
+    baseTextRef.current = input && !/\s$/.test(input) ? input + ' ' : input;
     transcriptRef.current = '';
-    setInput('');
+    shouldListenRef.current = true;
     setVoiceError('');
     setIsListening(true);
-    try { recognitionRef.current.start(); } catch (e) { setIsListening(false); }
+    try { recognitionRef.current.start(); } catch (e) { shouldListenRef.current = false; setIsListening(false); }
   };
 
   const stopListening = () => {
-    if (recognitionRef.current && isListening) recognitionRef.current.stop();
+    // User tapped the mic off: prevent the onend auto-restart and keep the text in the box.
+    shouldListenRef.current = false;
+    if (recognitionRef.current) recognitionRef.current.stop();
   };
 
   const startChat = async (name, age, gender) => {
@@ -1580,8 +1599,6 @@ function App() {
     setIsLoading(false);
     if (voiceMode) speakReply(reply); // audio runs on the final full text — not during the stream
   };
-
-  useEffect(() => { sendMessageRef.current = sendMessage; });
 
   const resetAll = () => {
     if (confirm('هل أنت متأكد من حذف كل البيانات؟')) {
