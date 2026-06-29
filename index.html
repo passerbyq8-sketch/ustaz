@@ -1061,14 +1061,16 @@ function App() {
 
   // Stop audio when leaving a screen. App never unmounts on a screen switch, so playing
   // Audio() objects in audioRef survive; this cleanup fires on every `screen` transition.
-  // The greeting starts only AFTER callAI resolves, so cancelAudio() alone runs while
-  // nothing is playing yet (audioRef null) and the greeting then speaks post-switch. So we
-  // also ABORT the in-flight request: that makes callAI throw AbortError, which
-  // sendInitialGreeting catches and returns on BEFORE its speakReply line. Same abort+cancel
-  // pair the call lifecycle already uses (endCallSilently / call cleanup).
+  // cancelAudio() is UNCONDITIONAL (stops greeting TTS + recitation on any transition). The
+  // abort is gated to "leaving chat" only: the greeting-leak fix needs the abort when leaving
+  // chat (chat→memorize/call), but on the startup onboarding→chat transition the greeting's
+  // controller is set DURING that transition, so an unconditional abort here would kill the
+  // just-started greeting (leaving the UI stuck on the typing dots). `leaving` captures the
+  // screen this cleanup belongs to, so we abort only when that screen was 'chat'.
   useEffect(() => {
+    const leaving = screen;
     return () => {
-      try { abortRef.current?.abort(); } catch (e) {}
+      if (leaving === 'chat') { try { abortRef.current?.abort(); } catch (e) {} }
       cancelAudio();
     };
   }, [screen]);
@@ -1646,10 +1648,16 @@ function App() {
         onDelta: (partial) => { if (abortRef.current === controller) setStreamingText(partial); },
       });
     } catch (e) {
-      if (e.name === 'AbortError') return; // superseded by a newer stream
+      if (e.name === 'AbortError') {
+        // Aborted (e.g. a screen-change cleanup). Clear the loading/typing UI so the chat
+        // isn't wedged on the dots — but ONLY if this controller still owns the UI; if a
+        // newer request took over, leave the state to it.
+        if (abortRef.current === controller) { setIsLoading(false); setStreamingText(null); }
+        return;
+      }
       reply = getFriendlyError('network', p.gender);
     }
-    if (abortRef.current !== controller) return;
+    if (abortRef.current !== controller) return; // a newer request owns the UI — leave its state alone
     abortRef.current = null;
     setStreamingText(null);
     const newMsgs = [{ role: 'assistant', content: reply, timestamp: new Date().toISOString() }];
