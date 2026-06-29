@@ -16,6 +16,39 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY غير مضبوط' });
   }
 
+  // Server-authoritative transforms — the proxy, not the client, decides the model and
+  // adds prompt caching. Degrades gracefully to the original body if anything goes wrong,
+  // so a parse/shape surprise can never crash the relay.
+  let outgoingBody = req.body;
+  try {
+    // req.body is an object on Vercel Node functions, but tolerate a raw string too.
+    const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : { ...req.body };
+
+    // (A) Model is decided here, not by the client. Default stays Opus; the cheaper dev
+    //     model is chosen ONLY via the Vercel env var MODEL (set in the dashboard).
+    parsed.model = process.env.MODEL || 'claude-opus-4-8';
+
+    // (B) Ephemeral prompt caching on the system prompt (the bulk of input cost). The client
+    //     sends `system` as a plain string; wrap it in a single cached text block. If it is
+    //     already an array (future-proof), just ensure the LAST text block carries
+    //     cache_control without double-adding. Prompt caching is GA on anthropic-version
+    //     2023-06-01 — no beta header required.
+    if (typeof parsed.system === 'string' && parsed.system.trim()) {
+      parsed.system = [{ type: 'text', text: parsed.system, cache_control: { type: 'ephemeral' } }];
+    } else if (Array.isArray(parsed.system)) {
+      for (let i = parsed.system.length - 1; i >= 0; i--) {
+        if (parsed.system[i] && parsed.system[i].type === 'text') {
+          if (!parsed.system[i].cache_control) parsed.system[i].cache_control = { type: 'ephemeral' };
+          break;
+        }
+      }
+    }
+
+    outgoingBody = parsed; // messages / max_tokens / stream are left exactly as the client sent them
+  } catch (e) {
+    outgoingBody = req.body; // graceful passthrough — never crash the proxy on a body surprise
+  }
+
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -24,7 +57,7 @@ export default async function handler(req, res) {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(outgoingBody),
     });
 
     // Upstream error (429 / credit exhausted / 5xx): forward body + status as-is so the
