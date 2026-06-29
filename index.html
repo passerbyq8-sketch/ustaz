@@ -1732,13 +1732,15 @@ function App() {
     rec.continuous = true;       // interim events keep resetting the silence timer (smoother end-of-turn)
     rec.interimResults = true;
     rec.onresult = (event) => {
-      let final = '', interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+      // Rebuild the transcript FRESH from the engine's full cumulative results list each event
+      // (continuous mode re-includes earlier finals). SET, never +=, so finals can't double-count.
+      let finalText = '', interim = '';
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) finalText += event.results[i][0].transcript;
         else interim += event.results[i][0].transcript;
       }
-      if (final) callTranscriptRef.current += final;
-      setCallHeard((callTranscriptRef.current + interim).trim()); // feedback only — NEVER setInput
+      callTranscriptRef.current = finalText;
+      setCallHeard((finalText + interim).trim()); // feedback only — NEVER setInput
       // Reset the end-of-turn debounce on any speech activity.
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = setTimeout(() => {
