@@ -973,6 +973,17 @@ const SUGGESTIONS = [
 ];
 
 // ============================================================
+// Mode dropdown (header) — dispatch table per the two-kinds-of-mode design.
+// 'screen' options navigate to another screen; 'chatMode' options only set the in-chat
+// answer style (no navigation). Future لايت/عميق slot in as more {kind:'chatMode'} rows
+// with zero structural change. `id` is both the <option> value and the select's value.
+// ============================================================
+const MODE_OPTIONS = [
+  { id: 'chat',     label: 'عادي',    kind: 'chatMode', value: 'chat' },
+  { id: 'memorize', label: 'المحفّظ', kind: 'screen',   value: 'memorize' },
+];
+
+// ============================================================
 // التطبيق
 // ============================================================
 function App() {
@@ -984,6 +995,7 @@ function App() {
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
   const [voiceMode, setVoiceMode] = useState(true); // chat TTS on by default; user can mute via the header speaker button
+  const [chatMode, setChatMode] = useState('chat'); // dropdown-selected in-chat answer style; 'chat' = normal (المحفّظ switches screen, not chatMode)
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState('');
@@ -1918,6 +1930,9 @@ function App() {
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} />;
   if (screen === 'call') return <CallScreen profileName={profile?.name} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
+  // المحفّظ — full screen (mirrors CallScreen). Husary playback reuses the App-scoped manual
+  // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
+  if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('chat')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} />;
 
   return (
     <div style={s.chatContainer}>
@@ -1934,6 +1949,19 @@ function App() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <select
+            value={chatMode}
+            onChange={(e) => {
+              const opt = MODE_OPTIONS.find((o) => o.id === e.target.value);
+              if (!opt) return;
+              if (opt.kind === 'screen') setScreen(opt.value);          // navigate (e.g. المحفّظ)
+              else if (opt.kind === 'chatMode') setChatMode(opt.value); // in-chat style only
+            }}
+            style={s.modeSelect}
+            aria-label="وضع المربّي"
+          >
+            {MODE_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+          </select>
           <button onClick={() => setScreen('call')} style={s.settingsBtn} aria-label="مكالمة صوتية مباشرة">
             <PhoneCallIcon size={18} color="#FAF7F2" />
           </button>
@@ -2500,6 +2528,188 @@ function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTa
 }
 
 // ============================================================
+// Memorization screen (المحفّظ) — Layer A: full-mushaf surah picker + progressive reveal.
+// ============================================================
+// Quran text is read ONLY from the canonical mushaf via getVerseText — never model output
+// (honors the guarantee at the loadQuran definition). No AI / prompt branch, no persistence,
+// no continuous live-ASR, and no error/red-highlight detection in this layer.
+const MEM = {
+  TITLE: 'المُحفّظ',
+  PICKER_HEADING: 'اختر سورةً لتبدأ الحفظ',
+  START_LABEL: 'ابدأ من آية',
+  START_BTN: 'ابدأ',
+  REVEAL_BTN: 'افتح عليّ',
+  LISTEN_BTN: 'استمع',
+  LISTEN_RANGE_BTN: 'استمع للمقطع',
+  REVEAL_LABEL: 'الكشف',
+  GRAN_AYAH: 'آية',
+  GRAN_WORD: 'كلمة',
+  CHANGE_SURAH: 'سورة أخرى',
+  HIDE: 'إخفاء',
+  BACK_BTN: 'رجوع',
+  LOADING: 'لحظة، يُحضَّر المصحف…',
+  PRAISE_M: 'أحسنتَ، تابِع.',
+  PRAISE_F: 'أحسنتِ، تابِعي.',
+  FINISH_M: 'أتممتَ المقطع، بارك الله فيك.',
+  FINISH_F: 'أتممتِ المقطع، بارك الله فيكِ.',
+};
+
+function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
+  const [ready, setReady] = useState(!!__quranData); // true once the mushaf JSON is in memory
+  const [counts, setCounts] = useState(null);        // { [surahNum]: ayahCount } — built once, single pass
+  const [view, setView] = useState('picker');        // 'picker' | 'drill'
+  const [selectedSurah, setSelectedSurah] = useState(null); // 1..114
+  const [startAyah, setStartAyah] = useState(1);
+  const [granularity, setGranularity] = useState('ayah'); // 'ayah' | 'word' (default ayah)
+  const [revealedCount, setRevealedCount] = useState(0);
+
+  const isFemale = profile?.gender === 'female';
+
+  // Load the mushaf once, then tally ayah counts per surah in a SINGLE pass over all keys
+  // (keys are "surahNum:ayah" — the same prefix shape getSurahAyahCount relies on). This
+  // avoids calling getSurahAyahCount 114 times (= 114 full scans).
+  useEffect(() => {
+    let alive = true;
+    loadQuran()
+      .then(() => {
+        if (!alive) return;
+        const c = {};
+        for (const k in __quranData) {
+          const colon = k.indexOf(':');
+          if (colon < 1) continue;
+          const sn = parseInt(k.slice(0, colon), 10);
+          if (sn >= 1) c[sn] = (c[sn] || 0) + 1;
+        }
+        setCounts(c);
+        setReady(true);
+      })
+      .catch(() => { /* fail-safe: stay on the loading string; never fall back to model text */ });
+    return () => { alive = false; };
+  }, []);
+
+  const surahCount = (counts && selectedSurah) ? (counts[selectedSurah] || 0) : 0; // last ayah of range
+
+  // Ordered reveal units for [startAyah .. last ayah]. Ayah text is canonical only.
+  // ayah granularity → one unit per ayah; word granularity → one unit per word, grouped by ayah.
+  const buildUnits = () => {
+    if (!ready || !selectedSurah || !surahCount) return [];
+    const out = [];
+    for (let a = startAyah; a <= surahCount; a++) {
+      const text = getVerseText(selectedSurah, a) || '';
+      if (granularity === 'word') {
+        const words = text.split(/\s+/).filter(Boolean);
+        words.forEach((w, wi) => out.push({ ayah: a, text: w, firstInAyah: wi === 0 }));
+      } else {
+        out.push({ ayah: a, text, firstInAyah: true });
+      }
+    }
+    return out;
+  };
+  const units = view === 'drill' ? buildUnits() : [];
+  const allRevealed = units.length > 0 && revealedCount >= units.length;
+  // Focus ayah for the single-ayah "listen": the ayah holding the next hidden unit, else the last.
+  const focusAyah = units.length === 0 ? startAyah
+    : (revealedCount < units.length ? units[revealedCount].ayah : units[units.length - 1].ayah);
+  // Light, occasional praise — every few units while drilling, NOT on every press.
+  const showPraise = !allRevealed && granularity === 'ayah' && revealedCount > 0 && revealedCount % 4 === 0;
+
+  const openPicker = () => { setView('picker'); setRevealedCount(0); };
+  const startDrill = () => { setView('drill'); setRevealedCount(0); };
+  const setGran = (g) => { setGranularity(g); setRevealedCount(0); }; // switching re-hides the range
+
+  // ---------- PICKER ----------
+  if (view === 'picker') {
+    return (
+      <div style={s.memContainer}>
+        <div style={s.memHeader}>
+          <div style={s.memTitle}>{MEM.TITLE}</div>
+          <button onClick={onExit} style={s.memBackBtn}>{MEM.BACK_BTN}</button>
+        </div>
+        <div style={s.memHeading}>{MEM.PICKER_HEADING}</div>
+        {!ready && <div style={s.memLoading}>{MEM.LOADING}</div>}
+        <div style={s.memList}>
+          {Array.from({ length: 114 }, (_, i) => i + 1).map((n) => (
+            <button
+              key={n}
+              onClick={() => { setSelectedSurah(n); setStartAyah(1); }}
+              style={{ ...s.memRow, ...(selectedSurah === n ? s.memRowActive : {}) }}
+            >
+              <span style={s.memRowNum}>{toArabicDigits(n)}</span>
+              <span style={{ ...s.memRowName, ...(selectedSurah === n ? { color: '#FAF7F2' } : {}) }}>{SURAH_NAMES[n]}</span>
+              <span style={s.memRowCount}>{counts && counts[n] ? `${toArabicDigits(counts[n])} ${MEM.GRAN_AYAH}` : ''}</span>
+            </button>
+          ))}
+        </div>
+        {selectedSurah && (
+          <div style={s.memStartBar}>
+            <span style={s.memStartLabel}>{MEM.START_LABEL}</span>
+            <select
+              value={startAyah}
+              onChange={(e) => setStartAyah(parseInt(e.target.value, 10) || 1)}
+              style={s.memAyahSelect}
+              disabled={!ready || !surahCount}
+            >
+              {Array.from({ length: surahCount || 1 }, (_, i) => i + 1).map((a) => (
+                <option key={a} value={a}>{toArabicDigits(a)}</option>
+              ))}
+            </select>
+            <button onClick={startDrill} style={{ ...s.memStartBtn, opacity: (!ready || !surahCount) ? 0.5 : 1 }} disabled={!ready || !surahCount}>{MEM.START_BTN}</button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ---------- DRILL ----------
+  const praiseLine = isFemale ? MEM.PRAISE_F : MEM.PRAISE_M;
+  const finishLine = isFemale ? MEM.FINISH_F : MEM.FINISH_M;
+  return (
+    <div style={s.memContainer}>
+      <div style={s.memHeader}>
+        <div style={s.memTitle}>{MEM.TITLE}</div>
+        <button onClick={onExit} style={s.memBackBtn}>{MEM.BACK_BTN}</button>
+      </div>
+      <div style={s.memSubBar}>
+        <span style={s.memSurahTitle}>{SURAH_NAMES[selectedSurah]}</span>
+        <span style={s.memRangeBadge}>{`${MEM.GRAN_AYAH} ${toArabicDigits(startAyah)}`}</span>
+        <button onClick={openPicker} style={s.memChangeBtn}>{MEM.CHANGE_SURAH}</button>
+      </div>
+      <div style={s.memToggleRow}>
+        <span style={s.memToggleLabel}>{MEM.REVEAL_LABEL}</span>
+        <button onClick={() => setGran('ayah')} style={{ ...s.memGranBtn, ...(granularity === 'ayah' ? s.memGranBtnActive : {}) }}>{MEM.GRAN_AYAH}</button>
+        <button onClick={() => setGran('word')} style={{ ...s.memGranBtn, ...(granularity === 'word' ? s.memGranBtnActive : {}) }}>{MEM.GRAN_WORD}</button>
+      </div>
+      <div style={s.memDrillArea}>
+        <div style={s.memDrillText}>
+          {units.map((u, i) => {
+            const revealed = i < revealedCount;
+            const isNext = i === revealedCount;
+            if (!revealed && !isNext) return null; // beyond the next unit stays fully hidden
+            return (
+              <span key={i} style={s.memUnit}>
+                {u.firstInAyah && <span style={s.memAyahBadge}>{toArabicDigits(u.ayah)}</span>}
+                {revealed
+                  ? <span style={s.memWord}>{u.text}</span>
+                  : <span style={s.memPlaceholder}>{granularity === 'word' ? '—' : '— — —'}</span>}
+              </span>
+            );
+          })}
+        </div>
+        {showPraise && <div style={s.memMsg}>{praiseLine}</div>}
+        {allRevealed && <div style={s.memMsg}>{finishLine}</div>}
+      </div>
+      <div style={s.memControls}>
+        <button onClick={() => onPlayVerse && onPlayVerse(selectedSurah, focusAyah)} style={s.memListenBtn}>{MEM.LISTEN_BTN}</button>
+        <button onClick={() => setRevealedCount((c) => Math.min(c + 1, units.length))} style={{ ...s.memRevealBtn, opacity: allRevealed ? 0.5 : 1 }} disabled={allRevealed}>{MEM.REVEAL_BTN}</button>
+        <button onClick={() => onPlaySurah && onPlaySurah(selectedSurah, startAyah, surahCount)} style={s.memListenBtn}>{MEM.LISTEN_RANGE_BTN}</button>
+        {/* Re-hide/reset the same range. */}
+        <button onClick={() => setRevealedCount(0)} style={s.memListenBtn}>{MEM.HIDE}</button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // الأنماط
 // ============================================================
 const s = {
@@ -2526,6 +2736,7 @@ const s = {
   headerTitle: { fontSize: 17, fontWeight: 800, color: '#FAF7F2', letterSpacing: '0.3px' },
   headerSubtitle: { fontSize: 12, color: 'rgba(250, 247, 242, 0.75)', marginTop: 2 },
   settingsBtn: { width: 40, height: 40, borderRadius: 12, background: 'rgba(250, 247, 242, 0.12)', border: '1px solid rgba(250, 247, 242, 0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  modeSelect: { height: 40, borderRadius: 12, background: 'rgba(250, 247, 242, 0.12)', color: '#FAF7F2', border: '1px solid rgba(250, 247, 242, 0.15)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 13, fontWeight: 600, padding: '0 8px' },
 
   // ===== منطقة الرسائل =====
   messagesArea: { flex: 1, overflowY: 'auto', padding: '16px 14px 20px', display: 'flex', flexDirection: 'column', gap: 12 },
@@ -2598,6 +2809,43 @@ const s = {
   dangerBtn: { padding: 14, background: 'transparent', color: '#C44536', border: '1px solid #C44536', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
 
   // ===== Live call screen (Layer 1 — UI only) =====
+  // ===== شاشة المحفّظ =====
+  memContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: '#FAF7F2', direction: 'rtl' },
+  memHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, #2C5F5D 0%, #224B49 100%)', borderBottom: '1px solid rgba(201, 169, 97, 0.2)' },
+  memTitle: { fontSize: 18, fontWeight: 800, color: '#FAF7F2', letterSpacing: '0.3px' },
+  memBackBtn: { height: 36, padding: '0 16px', borderRadius: 12, background: 'rgba(250, 247, 242, 0.12)', color: '#FAF7F2', border: '1px solid rgba(250, 247, 242, 0.15)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
+  memHeading: { fontSize: 16, fontWeight: 700, color: '#2C5F5D', textAlign: 'center', padding: '14px 16px 6px' },
+  memLoading: { fontSize: 14, color: '#6B6358', textAlign: 'center', padding: 8 },
+  memList: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 14px 16px' },
+  memRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 14, background: '#FFFFFF', border: '1px solid #E5DDD0', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", textAlign: 'right', width: '100%' },
+  memRowActive: { background: '#2C5F5D', borderColor: '#2C5F5D' },
+  memRowNum: { minWidth: 34, height: 34, borderRadius: 10, background: 'rgba(201, 169, 97, 0.18)', color: '#8C6B1E', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  memRowName: { flex: 1, fontSize: 16, fontWeight: 600, color: '#2C5F5D' },
+  memRowCount: { fontSize: 12, color: '#8C6B1E', fontWeight: 500 },
+  memStartBar: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#FFFFFF', borderTop: '1px solid #E5DDD0' },
+  memStartLabel: { fontSize: 14, fontWeight: 600, color: '#2C5F5D', whiteSpace: 'nowrap' },
+  memAyahSelect: { flex: 1, height: 40, borderRadius: 12, border: '2px solid #E5DDD0', background: '#FAF7F2', color: '#2C5F5D', fontFamily: "'Tajawal', sans-serif", fontSize: 15, padding: '0 10px' },
+  memStartBtn: { height: 40, padding: '0 22px', borderRadius: 12, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 15, fontWeight: 700 },
+  memSubBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 16px', background: '#FBF3DE', borderBottom: '1px solid rgba(201, 169, 97, 0.3)' },
+  memSurahTitle: { fontSize: 16, fontWeight: 700, color: '#5C4410' },
+  memRangeBadge: { fontSize: 12, fontWeight: 600, color: '#8C6B1E', background: 'rgba(201, 169, 97, 0.18)', borderRadius: 8, padding: '3px 10px' },
+  memChangeBtn: { height: 34, padding: '0 14px', borderRadius: 10, background: 'transparent', color: '#8C6B1E', border: '1px solid rgba(201, 169, 97, 0.5)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 13, fontWeight: 600 },
+  memToggleRow: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' },
+  memToggleLabel: { fontSize: 14, fontWeight: 600, color: '#6B6358' },
+  memGranBtn: { height: 34, padding: '0 18px', borderRadius: 10, background: '#F0EBE0', color: '#2C5F5D', border: '1px solid #E5DDD0', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
+  memGranBtnActive: { background: '#2C5F5D', color: '#FAF7F2', borderColor: '#2C5F5D' },
+  memDrillArea: { flex: 1, overflowY: 'auto', padding: '12px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14 },
+  memDrillText: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'center', direction: 'rtl', lineHeight: 2.2 },
+  memUnit: { display: 'inline-flex', alignItems: 'center', gap: 6 },
+  memAyahBadge: { minWidth: 26, height: 26, borderRadius: 8, background: 'rgba(201, 169, 97, 0.2)', color: '#8C6B1E', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Tajawal', sans-serif" },
+  memWord: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 26, color: '#2C3E2D', lineHeight: 2 },
+  memPlaceholder: { fontFamily: "'Tajawal', sans-serif", fontSize: 18, color: '#B9A98C', background: '#F0EBE0', borderRadius: 8, padding: '2px 14px', letterSpacing: '2px' },
+  memMsg: { fontSize: 15, fontWeight: 700, color: '#2C5F5D', textAlign: 'center' },
+  memControls: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderTop: '1px solid #E5DDD0', background: '#FFFFFF' },
+  memRevealBtn: { flex: 1, height: 50, borderRadius: 14, background: 'linear-gradient(135deg, #C9A961 0%, #B5944A 100%)', color: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 17, fontWeight: 700 },
+  memListenBtn: { height: 50, padding: '0 16px', borderRadius: 14, background: '#F0EBE0', color: '#2C5F5D', border: '1px solid #E5DDD0', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
+  memResetBtn: { width: 50, height: 50, borderRadius: 14, background: '#F0EBE0', color: '#2C5F5D', border: '1px solid #E5DDD0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+
   callContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(160deg, #2C5F5D 0%, #1C3D3C 100%)', padding: '32px 24px', direction: 'rtl' },
   callTopLabel: { color: 'rgba(250, 247, 242, 0.7)', fontSize: 15, fontWeight: 600, letterSpacing: '0.3px', marginTop: 8 },
   callCenter: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
