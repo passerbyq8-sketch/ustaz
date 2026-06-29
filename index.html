@@ -982,6 +982,18 @@ function App() {
   const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
 
+  // ===== Live voice-call mode (Layer 2) — dedicated recognition + one-turn loop, isolated from the dictation mic =====
+  const callRecognitionRef = useRef(null); // dedicated SpeechRecognition for call mode (NOT the dictation instance)
+  const callTranscriptRef = useRef('');    // accumulated finals for the current call turn (NEVER written to `input`)
+  const silenceTimerRef = useRef(null);    // end-of-turn debounce handle
+  const callActiveRef = useRef(false);     // true while a turn is listening; guards against double-fire (timer + onend)
+  const callTurnRef = useRef(null);        // latest runCallTurn closure (avoids stale `messages` inside the SR handlers)
+  const callMutedRef = useRef(false);      // mirror of isCallMuted for use inside handlers/timers
+  const [callState, setCallState] = useState('idle'); // 'idle' | 'listening' | 'thinking' | 'speaking'
+  const [isCallMuted, setIsCallMuted] = useState(false);
+  const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
+  const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
+
   // تحميل البيانات من التخزين
   useEffect(() => {
     try {
@@ -1607,6 +1619,165 @@ function App() {
     if (voiceMode) speakReply(reply); // audio runs on the final full text — not during the stream
   };
 
+  // ============================================================
+  // Live voice-call mode (Layer 2) — ONE automatic turn
+  // ============================================================
+  // Reuses the existing brain (callAI + sliceHistoryForAPI + buildSystemPrompt) and audio-out
+  // (speakReply / cancelAudio). A dedicated callRecognitionRef is fully isolated from the dictation
+  // mic. Call onresult writes ONLY to callTranscriptRef / callHeard — never to the chat `input`.
+
+  // Start (or re-arm) a listen turn. Primary trigger is the avatar tap-to-talk.
+  const startCallListening = () => {
+    if (callMutedRef.current) return; // muted = do not listen
+    const rec = callRecognitionRef.current;
+    if (!rec) return;
+    callTranscriptRef.current = '';
+    setCallHeard('');
+    callActiveRef.current = true;
+    setCallState('listening');
+    try { rec.start(); } catch (e) { callActiveRef.current = false; setCallState('idle'); }
+  };
+
+  // End the active listen turn and route it to the brain. Guarded so the silence timer and
+  // recognition.onend can never both fire a turn (double-send guard via callActiveRef).
+  const endCallTurnNow = () => {
+    if (!callActiveRef.current) return;
+    callActiveRef.current = false;
+    if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+    try { callRecognitionRef.current?.stop(); } catch (e) {}
+    const text = callTranscriptRef.current.trim();
+    if (!text) { setCallState('idle'); return; } // never send an empty turn
+    if (callTurnRef.current) callTurnRef.current(text);
+  };
+
+  // One full call turn — mirrors sendMessage exactly: pushes the same user+assistant messages to
+  // the SHARED messages array (so the Q&A shows in chat history and guardrails are identical), then
+  // speaks the reply via the existing speakReply(). No setInput, no streamingText bubble.
+  const runCallTurn = async (text) => {
+    setCallHeard('');
+    setCallState('thinking');
+    cancelAudio();
+    if (abortRef.current) abortRef.current.abort();
+    const userMsg = { role: 'user', content: text, timestamp: new Date().toISOString() };
+    const updated = [...messages, userMsg];
+    setMessages(updated);
+    const apiHistory = sliceHistoryForAPI(updated);
+    const controller = new AbortController();
+    abortRef.current = controller;
+    let reply;
+    try {
+      reply = await callAI(apiHistory, profile, { signal: controller.signal });
+    } catch (e) {
+      if (e.name === 'AbortError') return; // exited mid-turn — do not write state
+      reply = getFriendlyError('network', profile?.gender);
+    }
+    if (abortRef.current !== controller) return; // superseded or call exited
+    abortRef.current = null;
+    const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString() };
+    const final = [...updated, aiMsg];
+    setMessages(final);
+    saveMessages(final);
+    setCallState('speaking');
+    await speakReply(reply); // completion hook — resolves when playback fully finishes
+    setCallState('idle');    // one turn complete — back to idle "tap to talk" (no auto re-arm in Layer 2)
+  };
+
+  // Keep callTurnRef pointing at the latest runCallTurn so the (once-created) SR handlers always
+  // see the current messages/profile rather than a stale closure.
+  useEffect(() => { callTurnRef.current = runCallTurn; });
+
+  // Mute toggle — actually gates the mic: muted = stop/suppress listening (not just visual).
+  const toggleCallMute = () => {
+    setIsCallMuted((m) => {
+      const next = !m;
+      callMutedRef.current = next;
+      if (next) {
+        callActiveRef.current = false;
+        if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+        try { callRecognitionRef.current?.stop(); } catch (e) {}
+        setCallState((csNow) => (csNow === 'listening' ? 'idle' : csNow));
+      }
+      return next;
+    });
+  };
+
+  // Avatar tap-to-talk: start a listen turn from idle only (Layer 2 = one turn, no re-arm).
+  const onCallTalk = () => {
+    if (callMutedRef.current) return;
+    if (callState === 'idle') startCallListening();
+  };
+
+  // Call-screen lifecycle: create/tear down the dedicated recognition with the call screen.
+  // On entry: force the dictation mic OFF and stop any audio so the two can never fight.
+  // On exit: stop recognition, clear the timer, abort any in-flight turn, and stop audio.
+  useEffect(() => {
+    if (screen !== 'call') return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setVoiceError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
+      setTimeout(() => setVoiceError(''), 6000);
+      return;
+    }
+    // Force the dictation mic off (never modify it — just ensure it is not running).
+    shouldListenRef.current = false;
+    try { recognitionRef.current?.stop(); } catch (e) {}
+    cancelAudio();
+    callActiveRef.current = false;
+    callTranscriptRef.current = '';
+    setCallHeard('');
+    setCallState('idle');
+
+    const rec = new SR();
+    rec.lang = 'ar-SA';
+    rec.continuous = true;       // interim events keep resetting the silence timer (smoother end-of-turn)
+    rec.interimResults = true;
+    rec.onresult = (event) => {
+      let final = '', interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+        else interim += event.results[i][0].transcript;
+      }
+      if (final) callTranscriptRef.current += final;
+      setCallHeard((callTranscriptRef.current + interim).trim()); // feedback only — NEVER setInput
+      // Reset the end-of-turn debounce on any speech activity.
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = setTimeout(() => {
+        // Fire only with a non-empty transcript; silence on an empty turn keeps listening.
+        if (callActiveRef.current && callTranscriptRef.current.trim()) endCallTurnNow();
+      }, CALL_SILENCE_MS);
+    };
+    rec.onend = () => {
+      if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+      // Layer 2: NO auto-restart. If the engine stopped while still active with speech, finalize.
+      if (callActiveRef.current && callTranscriptRef.current.trim()) endCallTurnNow();
+      else if (callActiveRef.current) { callActiveRef.current = false; setCallState('idle'); }
+    };
+    rec.onerror = (event) => {
+      if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+      callActiveRef.current = false;
+      setCallState('idle');
+      const fatal = ['not-allowed', 'audio-capture', 'service-not-allowed'];
+      if (fatal.includes(event.error)) {
+        setVoiceError('🚫 لم يُمنح إذن الميكروفون.');
+        setTimeout(() => setVoiceError(''), 6000);
+      }
+    };
+    callRecognitionRef.current = rec;
+
+    return () => {
+      callActiveRef.current = false;
+      if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
+      try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) {}
+      callRecognitionRef.current = null;
+      if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
+      cancelAudio();
+      callMutedRef.current = false;
+      setIsCallMuted(false);
+      setCallHeard('');
+      setCallState('idle');
+    };
+  }, [screen]);
+
   const resetAll = () => {
     if (confirm('هل أنت متأكد من حذف كل البيانات؟')) {
       localStorage.removeItem('child_profile');
@@ -1621,7 +1792,7 @@ function App() {
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} />;
-  if (screen === 'call') return <CallScreen profileName={profile?.name} onExit={() => setScreen('chat')} />;
+  if (screen === 'call') return <CallScreen profileName={profile?.name} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
 
   return (
     <div style={s.chatContainer}>
@@ -2149,28 +2320,22 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
 }
 
 // ============================================================
-// Live call screen (Layer 1 — UI ONLY: no mic / STT / TTS / AI yet)
+// Live call screen (Layer 2 — one automatic turn; presentational, driven by App state)
 // ============================================================
-// Placeholder visual states only. Real audio events wire in Layer 2+.
-function CallScreen({ profileName, onExit }) {
-  const [callState, setCallState] = useState('listening'); // 'listening' | 'thinking' | 'speaking'
-  const [isMuted, setIsMuted] = useState(false);
-
+// callState is owned by App and driven by real audio events (tap → listening → thinking →
+// speaking → idle). The avatar is tap-to-talk; Mute gates the mic. No audio logic lives here.
+function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTalk, onExit }) {
   // Accessibility: respect reduced-motion — fall back to a static (non-pulsing) ring.
   const reduceMotion = (typeof window !== 'undefined' && window.matchMedia)
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 
   const STATES = {
+    idle:      { label: 'اضغط للتحدّث',       ring: 'rgba(250, 247, 242, 0.35)', speed: '3.6s' },
     listening: { label: 'أستمع إليك...',     ring: '#3FA66A',                 speed: '2.4s' },
     thinking:  { label: 'لحظة...',            ring: 'rgba(201, 169, 97, 0.55)', speed: '3.2s' },
     speaking:  { label: 'المربّي يتحدّث...',  ring: '#C9A961',                 speed: '1.2s' },
   };
-  const cs = STATES[callState] || STATES.listening;
-
-  // TEMPORARY PLACEHOLDER (Layer 1 only): tap the avatar to cycle the three visual states so the
-  // owner can preview them without any real audio. Replaced by real audio events in Layer 2.
-  const cycleState = () => setCallState((p) =>
-    p === 'listening' ? 'thinking' : p === 'thinking' ? 'speaking' : 'listening');
+  const cs = STATES[callState] || STATES.idle;
 
   const ringStyle = {
     ...s.callRing,
@@ -2178,21 +2343,24 @@ function CallScreen({ profileName, onExit }) {
     animation: reduceMotion ? 'none' : `callPulse ${cs.speed} ease-in-out infinite`,
   };
 
+  // Tap-to-talk is allowed only from idle (one turn at a time in Layer 2) and when not muted.
+  const canTalk = callState === 'idle' && !isMuted;
+
   return (
     <div style={s.callContainer}>
       <div style={s.callTopLabel}>مكالمة مع المربّي</div>
       <div style={s.callCenter}>
-        <div style={s.callAvatarWrap} onClick={cycleState}>
+        <div style={{ ...s.callAvatarWrap, cursor: canTalk ? 'pointer' : 'default' }} onClick={canTalk ? onTalk : undefined}>
           <div style={ringStyle} />
           <div style={s.callAvatar}><MoonStarsIcon size={56} color="#E0B96B" /></div>
         </div>
         <div style={s.callStatusLabel}>{cs.label}</div>
         {profileName && <div style={s.callSubLabel}>{profileName}</div>}
-        {/* Placeholder hint — Layer 1 only */}
-        <div style={s.callHint}>اضغط الدائرة لتجربة الحالات (مؤقّت)</div>
+        {/* Live feedback: what the mic is hearing (interim). Empty when not listening. */}
+        <div style={s.callHint}>{callState === 'listening' && heard ? heard : (isMuted ? 'الميكروفون مكتوم' : '')}</div>
       </div>
       <div style={s.callControls}>
-        <button onClick={() => setIsMuted((m) => !m)} style={s.callMuteBtn}>
+        <button onClick={onToggleMute} style={s.callMuteBtn}>
           {isMuted ? <MicOffIcon size={24} color="#2C5F5D" /> : <MicIcon size={24} color="#2C5F5D" />}
           <span style={s.callBtnLabel}>{isMuted ? 'مكتوم' : 'كتم'}</span>
         </button>
