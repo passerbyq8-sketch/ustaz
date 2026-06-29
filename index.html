@@ -1079,7 +1079,6 @@ function App() {
       }
     };
     recognitionRef.current = recognition;
-    if (window.speechSynthesis) window.speechSynthesis.getVoices();
   }, []);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, streamingText]);
@@ -1102,7 +1101,6 @@ function App() {
       try { audioRef.current.pause(); } catch (e) {}
       audioRef.current = null;
     }
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
   };
 
   // إلغاء التسلسل الجاري بالكامل (رسالة جديدة / بدء استماع / إيقاف يدوي)
@@ -1116,7 +1114,7 @@ function App() {
   // ===== خطّ أنابيب الصوت: نفصل "جلب" المقطع الكلاميّ عن "تشغيله" =====
   // fetchSpeechAudio يُحضّر الصوت (tashkeel عند اللزوم + ElevenLabs → blob) دون تشغيلٍ
   // ودون سحبِ التركيز — فيمكن استدعاؤه مُسبقاً أثناء تشغيل مقطعٍ آخر، فيزول صمتُ الانتظار.
-  // يُرجع {kind:'blob',url} أو {kind:'tts',text} (احتياط المتصفح) أو null (فارغ/مُلغى).
+  // يُرجع {kind:'blob',url} (صوت ElevenLabs) أو null (فارغ/مُلغى/فشل — فشل آمن بلا صوت).
   const SPEAK_EMOJI_RE = /[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu;
   const fetchSpeechAudio = async (rawText, myId) => {
     const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
@@ -1173,12 +1171,18 @@ function App() {
         if (!isCurrent()) { URL.revokeObjectURL(url); return null; } // مُلغى → لا تُسرّب blob
         return { kind: 'blob', url, consumed: false };
       }
-      console.warn('ElevenLabs failed, falling back to browser TTS');
+      console.warn('ElevenLabs TTS failed (HTTP ' + response.status + ') — failing safe: no audio, no system-voice fallback');
     } catch (e) {
-      console.warn('ElevenLabs error, falling back:', e);
+      console.warn('ElevenLabs TTS error — failing safe: no audio, no system-voice fallback:', e);
     }
-    // فشل ElevenLabs → احتياط المتصفح (نُمرّر النصّ ليُنطَق وقت التشغيل)
-    return { kind: 'tts', text: cleanText, consumed: false };
+    // فشل ElevenLabs → فشل آمن: لا صوت إطلاقاً. تطبيق الأطفال يجب ألّا يُصدر صوت نظامٍ
+    // مجهولاً/عشوائياً أبداً، لذا لا نرجع أيّ مقطعٍ كلاميّ. مؤشّر بصري خفيف غير معطِّل يظهر
+    // في واجهة المحادثة (يُمسح تلقائياً بعد ٦ ثوانٍ) — لا نُشغّل احتياط المتصفح.
+    if (isCurrent()) {
+      setVoiceError('🔇 تعذّر تشغيل الصوت — تحقّق من الاتصال وحاول مرة أخرى.');
+      setTimeout(() => setVoiceError(''), 6000);
+    }
+    return null;
   };
 
   // playPreparedSpeech يستقبل وعدَ تحضيرٍ (قد يكون اكتمل مسبقاً) ويُشغّله. هنا فقط نسحب
@@ -1215,19 +1219,8 @@ function App() {
       });
       return;
     }
-    // احتياط المتصفح (مجاني)
-    if (!window.speechSynthesis) return;
-    await new Promise((resolve) => {
-      const utterance = new SpeechSynthesisUtterance(r.text);
-      utterance.lang = 'ar-SA';
-      utterance.rate = 0.92;
-      const voices = window.speechSynthesis.getVoices();
-      const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
-      if (arabicVoice) utterance.voice = arabicVoice;
-      utterance.onend = resolve;
-      utterance.onerror = resolve;
-      window.speechSynthesis.speak(utterance);
-    });
+    // فشل آمن: لم يَعُد هناك احتياط صوت نظام. أيّ نتيجةٍ غير 'blob' لا تُنطَق إطلاقاً
+    // (تطبيق أطفال يجب ألّا يُصدر صوتاً مجهولاً). عملياً الآن تكون النتيجة إمّا 'blob' أو null.
   };
 
   // تشغيل تلاوة الحُصري — awaitable: يُحَلّ {failed} عند انتهاء/خطأ/إيقاف الصوت
