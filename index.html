@@ -2886,7 +2886,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       const { tokens, curOffset, curLen } = buildExpected(cur);
       const fullStates = alignRecite(tokens, tokenizeForRecite(reciteHeardRef.current));
       const currentSlice = fullStates.slice(curOffset, curOffset + curLen);
-      const allMatched = currentSlice.length > 0 && currentSlice.every((x) => x === 'matched');
+      // TEMP (error-flagging disabled): treat 'mismatch' as reached/black so red never renders and a
+      // tashkeel/madd slip can't block progression. 'pending' (not-yet-reached) still gates advance.
+      // alignRecite is untouched — we only reinterpret its output here. Revisit when tashkeel/madd is handled.
+      const shown = currentSlice.map((x) => (x === 'mismatch' ? 'matched' : x));
+      const allMatched = shown.length > 0 && shown.every((x) => x === 'matched');
       if (allMatched && cur < surahCount) {
         // Auto-advance. Set the ref synchronously so a rapid follow-up onresult can't re-advance the
         // same completion; blank the slice so the new ayah renders dim until the next onresult fills it.
@@ -2895,7 +2899,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         setReciteAyah(next);
         setReciteStates([]);
       } else {
-        setReciteStates(currentSlice);
+        setReciteStates(shown);
         if (allMatched && cur >= surahCount) { setReciteFinished(true); stopRecite(); } // last ayah → finish
       }
     };
