@@ -1752,12 +1752,24 @@ function App() {
     rec.continuous = true;       // interim events keep resetting the silence timer (smoother end-of-turn)
     rec.interimResults = true;
     rec.onresult = (event) => {
-      // Rebuild the transcript FRESH from the engine's full cumulative results list each event
-      // (continuous mode re-includes earlier finals). SET, never +=, so finals can't double-count.
+      // This ar-SA engine emits multiple isFinal results where each later final RE-INCLUDES the
+      // earlier final text (cumulative restatement), so concatenating all finals double-counts.
+      // Merge instead: a final that extends what we have (starts with the accumulated text) REPLACES
+      // it; a final already covered is skipped; only a genuinely new (non-overlapping) final is
+      // appended. Correct for this cumulative engine AND standard segmented engines.
       let finalText = '', interim = '';
       for (let i = 0; i < event.results.length; i++) {
-        if (event.results[i].isFinal) finalText += event.results[i][0].transcript;
-        else interim += event.results[i][0].transcript;
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          const seg = t.trim();
+          if (!seg) continue;
+          if (!finalText) finalText = seg;
+          else if (seg.startsWith(finalText)) finalText = seg;        // cumulative restatement -> replace
+          else if (finalText.startsWith(seg)) { /* shorter prefix already covered -> skip */ }
+          else finalText = finalText + ' ' + seg;                     // genuine new segment -> append
+        } else {
+          interim += t;
+        }
       }
       callTranscriptRef.current = finalText;
       // TEMP DEBUG — dump full cumulative results so we can see segmented-vs-cumulative + which instance fired
