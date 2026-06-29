@@ -469,6 +469,22 @@ const formatForLog = (text) => {
 };
 
 // ============================================================
+// Live stream preview: clean prose only — hides all known tags and any leftover "<...>"
+// so no raw markup (<surah ...>/<verse ...>) flashes while streaming. Lightweight; display only.
+// ============================================================
+const formatForStreamPreview = (text) => {
+  if (!text) return '';
+  let t = stripIncompleteTags(text); // drops the first unclosed known tag + any truncated trailing "<..."
+  t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
+  t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
+  t = t.replace(/<surah[^>]*>[\s\S]*?<\/surah>/g, ' ');
+  t = t.replace(/<hadith[^>]*>[\s\S]*?<\/hadith>/g, ' ');
+  t = t.replace(/<steps[^>]*>[\s\S]*?<\/steps>/g, ' ');
+  t = t.replace(/<\/?[a-z][^>]*>/gi, ' '); // any remaining tag
+  return t.replace(/\s+/g, ' ').trim();
+};
+
+// ============================================================
 // شخصية الأستاذ (System Prompt)
 // ============================================================
 const buildSystemPrompt = (name, age, gender) => {
@@ -933,6 +949,8 @@ function App() {
   const sendMessageRef = useRef(null);
   const audioRef = useRef(null);          // عنصر الصوت الوحيد النشِط (TTS أو تلاوة)
   const sequenceIdRef = useRef(0);        // رمز إلغاء تسلسل الصوت الجاري
+  const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
+  const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
 
   // تحميل البيانات من التخزين
   useEffect(() => {
@@ -1009,7 +1027,7 @@ function App() {
     if (window.speechSynthesis) window.speechSynthesis.getVoices();
   }, []);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, streamingText]);
 
   const saveMessages = (msgs) => {
     if (!PERSIST_CONVERSATION) return; // مؤقت: لا تكتب المحادثة أثناء مرحلة التجارب.
@@ -1392,74 +1410,153 @@ function App() {
     await sendInitialGreeting(p);
   };
 
-  const callAI = async (history, p) => {
+  const callAI = async (history, p, { onDelta, signal } = {}) => {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal,
         body: JSON.stringify({
-          // Opus 4.8 — أقوى نموذج عند Anthropic، التزامه بالتشكيل واللهجة الخليجية
-          // أعلى بكثير من Sonnet 4.6، خاصة في النصوص العربية الطويلة المُشَكَّلة
-          // ملاحظة: 4.8 يرفض temperature/top_p/top_k غير الافتراضية (400) — لا نرسلها
+          // Opus 4.8 — strongest Anthropic model; far better at tashkeel + Gulf dialect
+          // than Sonnet 4.6, especially long fully-vocalized Arabic.
+          // Note: 4.8 rejects non-default temperature/top_p/top_k (400) — do not send them.
           model: 'claude-opus-4-8',
-          // 8192 يعطي مساحة كافية لردّ عربي طويل مُشَكَّل بالكامل (كل حركة = توكن)
-          // مع وسوم <verse>/<hadith>/<steps>/<suggestions>. 1000 كانت تُقتَطع منتصف الوسم.
-          // الحدّ الأقصى لـ opus-4-8 هو 128K، فـ 8192 آمنة تماماً لطلب مُخزَّن (غير متدفّق).
+          // 8192 leaves room for a long fully-vocalized Arabic reply (each diacritic = a token)
+          // with <verse>/<hadith>/<steps>/<suggestions> tags.
           max_tokens: 8192,
+          // True streaming: first words appear in ~1-2s and long replies no longer die on the timeout.
+          stream: true,
           system: buildSystemPrompt(p.name, p.age, p.gender),
           messages: history.map(m => ({ role: m.role, content: m.content })),
         }),
       });
       if (!response.ok) {
-        // أيّ خطأ تقني يُسجَّل في console (للأهل عبر devtools)، ولا يظهر للطفل أبداً
+        // Upstream error via the proxy — distinct from a network drop. Logged to console
+        // (for parents via devtools), never shown raw to the child.
         const errText = await response.text().catch(() => '');
-        console.error(`[المربّي] API error ${response.status}:`, errText.slice(0, 500));
-        // رسالة لطيفة بحسب نوع الخطأ
+        console.error(`[Al-Murabbi] API error ${response.status}:`, errText.slice(0, 500));
         if (response.status === 429) return getFriendlyError('rateLimit', p.gender);
         if (response.status >= 500) return getFriendlyError('server', p.gender);
         return getFriendlyError('general', p.gender);
       }
-      const data = await response.json();
-      const text = data.content.map(c => c.type === 'text' ? c.text : '').filter(Boolean).join('\n');
-      return text || getFriendlyError('general', p.gender);
+
+      // Read the SSE stream: accumulate text_delta and notify onDelta on every update.
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let full = '';
+      let streamError = null;
+
+      const handleEvent = (block) => {
+        let dataStr = '';
+        for (const line of block.split('\n')) {
+          const l = line.trim();
+          if (l.startsWith('data:')) dataStr += l.slice(5).trim();
+        }
+        if (!dataStr) return;
+        let evt;
+        try { evt = JSON.parse(dataStr); } catch { return; }
+        if (evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
+          full += evt.delta.text;
+          if (onDelta) onDelta(full);
+        } else if (evt.type === 'error') {
+          streamError = evt.error || { message: 'stream error' };
+        }
+        // message_stop / ping / message_start / ... -> ignore
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buffer.indexOf('\n\n')) !== -1) {
+          handleEvent(buffer.slice(0, idx));
+          buffer = buffer.slice(idx + 2);
+        }
+      }
+      if (buffer.trim()) handleEvent(buffer);
+
+      if (streamError) {
+        // Anthropic error event mid-stream (overloaded / rate / ...) — distinct message, not "weak connection".
+        console.error('[Al-Murabbi] Stream error:', streamError);
+        const sig = `${streamError.type || ''} ${streamError.message || ''}`;
+        if (/rate|429|overloaded/i.test(sig)) return getFriendlyError('rateLimit', p.gender);
+        return getFriendlyError('server', p.gender);
+      }
+      // Return the full accumulated text so the existing parse + audio pipeline runs unchanged.
+      return full || getFriendlyError('general', p.gender);
     } catch (e) {
-      // أخطاء الشبكة (المتصفح غير متّصل، CORS، ...) — نَعرض رسالة لطيفة
-      console.error('[المربّي] Network error:', e);
+      if (e.name === 'AbortError') throw e; // cancelled by a new message — handled by the caller
+      // Genuine network failure (offline browser, CORS, ...) — friendly message.
+      console.error('[Al-Murabbi] Network error:', e);
       return getFriendlyError('network', p.gender);
     }
   };
 
   const sendInitialGreeting = async (p) => {
     setIsLoading(true);
-    // المربّي يَفتَح المحادثة: نُرسل مُحفِّزاً محايداً فقط — لا سلاماً وهميّاً — وقاعدةُ
-    // الافتتاح في الـ system prompt هي التي تُمليه أن يُبادر بـ"السلام عليكم" لا أن يردّ.
-    const reply = await callAI([{ role: 'user', content: 'ابدأ المحادثة' }], p);
+    setStreamingText('');
+    // The opener: send a neutral trigger only — no fake greeting — the opening rule in the
+    // system prompt is what makes it initiate with "السلام عليكم" rather than reply.
+    const controller = new AbortController();
+    abortRef.current = controller;
+    let reply;
+    try {
+      reply = await callAI([{ role: 'user', content: 'ابدأ المحادثة' }], p, {
+        signal: controller.signal,
+        onDelta: (partial) => { if (abortRef.current === controller) setStreamingText(partial); },
+      });
+    } catch (e) {
+      if (e.name === 'AbortError') return; // superseded by a newer stream
+      reply = getFriendlyError('network', p.gender);
+    }
+    if (abortRef.current !== controller) return;
+    abortRef.current = null;
+    setStreamingText(null);
     const newMsgs = [{ role: 'assistant', content: reply, timestamp: new Date().toISOString() }];
     setMessages(newMsgs);
     saveMessages(newMsgs);
     setIsLoading(false);
-    if (voiceMode) speakReply(reply);
+    if (voiceMode) speakReply(reply); // audio runs on the final full text only — as today
   };
 
   const sendMessage = async (text) => {
     if (!text.trim() || isLoading) return;
-    // رسالة جديدة وسط تسلسل صوتي جارٍ → ألغِ الصوت الحالي كي يبدأ الردّ الجديد نظيفاً
+    // New message mid audio sequence -> cancel current audio so the new reply starts clean.
     cancelAudio();
+    // Abort any in-flight stream cleanly (ties into the cancellation discipline).
+    if (abortRef.current) abortRef.current.abort();
     const userMsg = { role: 'user', content: text, timestamp: new Date().toISOString() };
     const updated = [...messages, userMsg];
     setMessages(updated);
     setInput('');
     setIsLoading(true);
-    // Sliding Window: نُرسل فقط آخر ١٢ رسالة للـ API (يمنع 429 ويُخفّف Tokens)
-    // كامل `updated` يبقى محفوظاً في الواجهة وفي localStorage للأهل
+    setStreamingText('');
+    // Sliding window: send only the last 12 messages to the API (avoids 429, fewer tokens).
+    // The full `updated` stays in the UI and in localStorage for parents.
     const apiHistory = sliceHistoryForAPI(updated);
-    const reply = await callAI(apiHistory, profile);
+    const controller = new AbortController();
+    abortRef.current = controller;
+    let reply;
+    try {
+      reply = await callAI(apiHistory, profile, {
+        signal: controller.signal,
+        onDelta: (partial) => { if (abortRef.current === controller) setStreamingText(partial); },
+      });
+    } catch (e) {
+      if (e.name === 'AbortError') return; // a newer message superseded this one — do not write state
+      reply = getFriendlyError('network', profile?.gender);
+    }
+    if (abortRef.current !== controller) return;
+    abortRef.current = null;
+    setStreamingText(null);
     const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString() };
     const final = [...updated, aiMsg];
     setMessages(final);
     saveMessages(final);
     setIsLoading(false);
-    if (voiceMode) speakReply(reply);
+    if (voiceMode) speakReply(reply); // audio runs on the final full text — not during the stream
   };
 
   useEffect(() => { sendMessageRef.current = sendMessage; });
@@ -1513,13 +1610,15 @@ function App() {
         )}
 
         {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />)}
-        {isLoading && (
+        {streamingText !== null && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
-            <div style={s.typingDots}>
-              <span style={s.dot}>●</span>
-              <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
-              <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
-            </div>
+            {formatForStreamPreview(streamingText)
+              ? <div style={s.bubbleText}>{formatForStreamPreview(streamingText)}</div>
+              : <div style={s.typingDots}>
+                  <span style={s.dot}>●</span>
+                  <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+                  <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+                </div>}
           </div>
         )}
         <div ref={messagesEndRef} />

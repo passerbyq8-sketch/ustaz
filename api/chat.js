@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -26,9 +26,37 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify(req.body),
     });
-    const data = await response.json();
-    return res.status(response.status).json(data);
+
+    // Upstream error (429 / credit exhausted / 5xx): forward body + status as-is so the
+    // client can show a real reason. This separates a credit/rate-limit error from a
+    // network drop (no more misleading "weak connection").
+    if (!upstream.ok) {
+      const errText = await upstream.text().catch(() => '');
+      res.status(upstream.status);
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      return res.end(errText || JSON.stringify({ error: { message: `upstream ${upstream.status}` } }));
+    }
+
+    // Thin streaming relay: forward the SSE bytes unmodified; the client parses the events.
+    res.status(200);
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('X-Accel-Buffering', 'no'); // disable any proxy buffering
+    res.flushHeaders?.();
+    const reader = upstream.body.getReader();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(value); // Uint8Array — res.write accepts it
+      }
+    } finally {
+      res.end();
+    }
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    if (!res.headersSent) {
+      return res.status(500).json({ error: error.message });
+    }
+    res.end();
   }
 }
