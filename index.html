@@ -494,7 +494,7 @@ const formatForStreamPreview = (text) => {
 // ============================================================
 // شخصية الأستاذ (System Prompt)
 // ============================================================
-const buildSystemPrompt = (name, age, gender) => {
+const buildSystemPrompt = (name, age, gender, mode = 'chat') => {
   const ageNum = parseInt(age, 10) || 0;
   const isAdult = ageNum >= 18;
   const genderClause = gender === 'female' ? 'أنثى (استخدم صيغة المؤنث في كل خطاب: عَلَيْكِ، أَنْتِ، تَدْرِينَ، تَفْعَلِينَ)' : 'ذكر (استخدم صيغة المذكر في كل خطاب: عَلَيْكَ، أَنْتَ، تَدْرِي، تَفْعَلُ)';
@@ -642,6 +642,21 @@ const buildSystemPrompt = (name, age, gender) => {
   هذا يجعل الصوت متفاعلاً وحيّاً، لا روبوتياً ثابتاً.
 
 - تجنّب الإيموجي والرموز التعبيرية تماماً.
+${mode === 'call' ? `
+
+═══ وضع المكالمة الصوتيّة (هذا القسم يعمل في المكالمة فقط) ═══
+
+أنت الآن في مكالمة صوتيّة مباشرة. الطفل **يسمع** ردّك بصوتك ولا يقرؤه على شاشة. تكلّم كما يتكلّم معلّمٌ يجلس بجانب طالبه: أسلوبٌ محكيٌّ طبيعيٌّ متدفّق، لا كأنّك تقرأ مقالاً مكتوباً بصوتٍ عالٍ. اجعل الفكرة تنساب في إيقاع الكلام لا في صورة نصٍّ مُقطَّع.
+
+⚠️ هذا ليس أمراً بالاختصار ولا التبسيط ولا الإنقاص. أجب السؤال بما يستحقّه تماماً، والتزم بسُلّم الطول حسب العمر كما هو في قسم «أسلوبك في الحديث». التغيير في طريقة القول لا في مقداره ولا عمقه.
+
+في المكالمة فقط:
+- لا تستخدم وسم <suggestions> إطلاقاً — هي أزرارٌ تُلمَس، والطفل لا يراها ولا يضغطها وهو يكلّمك صوتاً.
+- للقرآن: استعمل <verse> و<surah> تماماً كالمعتاد — فهي تشغّل التلاوة الحقيقيّة بصوت القارئ، وهذا أنسب شيءٍ في مكالمة.
+- إذا ذكرت حديثاً: اذكر تخريجه منطوقاً ضمن كلامك (مثل: «هذا رواه البخاريّ») حتى يسمع الطفل المصدر، فالنقل الموثّق يُسمَع كما يُكتَب.
+
+ما عدا ذلك يبقى دون أيّ تغيير: التشكيل الكامل على كلّ حرف، منع تنسيق Markdown، الصلاة على النبيّ بالكلمات الكاملة، وجميع قواعد الأمان والمرجعيّات والمناداة بلا استثناء.
+` : ''}
 
 ═══ نبرتك حسب العمر (اقرأ عمر المخاطب وتكيّف معه جذرياً) ═══
 
@@ -1463,7 +1478,7 @@ function App() {
     await sendInitialGreeting(p);
   };
 
-  const callAI = async (history, p, { onDelta, signal } = {}) => {
+  const callAI = async (history, p, { onDelta, signal, mode = 'chat' } = {}) => {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -1479,7 +1494,7 @@ function App() {
           max_tokens: 8192,
           // True streaming: first words appear in ~1-2s and long replies no longer die on the timeout.
           stream: true,
-          system: buildSystemPrompt(p.name, p.age, p.gender),
+          system: buildSystemPrompt(p.name, p.age, p.gender, mode),
           messages: history.map(m => ({ role: m.role, content: m.content })),
         }),
       });
@@ -1659,7 +1674,7 @@ function App() {
     abortRef.current = controller;
     let reply;
     try {
-      reply = await callAI(apiHistory, profile, { signal: controller.signal });
+      reply = await callAI(apiHistory, profile, { signal: controller.signal, mode: 'call' });
     } catch (e) {
       if (e.name === 'AbortError') return; // exited mid-turn — do not write state
       reply = getFriendlyError('network', profile?.gender);
