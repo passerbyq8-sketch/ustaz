@@ -1691,10 +1691,17 @@ function App() {
         onDelta: (partial) => { if (abortRef.current === controller) setStreamingText(partial); },
       });
     } catch (e) {
-      if (e.name === 'AbortError') return; // a newer message superseded this one — do not write state
+      if (e.name === 'AbortError') {
+        // Aborted (newer message, or leaving chat via the [screen] cleanup). Clear the
+        // loading/typing UI so the chat isn't wedged on the dots with input/mic disabled —
+        // but ONLY if this controller still owns the UI; if a newer send took over, leave it.
+        // The partial reply is discarded (the assistant message is only pushed below on success).
+        if (abortRef.current === controller) { setIsLoading(false); setStreamingText(null); }
+        return;
+      }
       reply = getFriendlyError('network', profile?.gender);
     }
-    if (abortRef.current !== controller) return;
+    if (abortRef.current !== controller) return; // a newer request owns the UI — leave its state alone
     abortRef.current = null;
     setStreamingText(null);
     const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString() };
