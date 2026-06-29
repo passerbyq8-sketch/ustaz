@@ -993,8 +993,6 @@ function App() {
   const [isCallMuted, setIsCallMuted] = useState(false);
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
-  const callDbgSeqRef = useRef(0); // TEMP DEBUG — counts call-recognition instances created
-  const [callDebugLog, setCallDebugLog] = useState([]); // TEMP DEBUG — on-screen mirror of [CALL-DEBUG] logs (last ~20)
 
   // تحميل البيانات من التخزين
   useEffect(() => {
@@ -1628,14 +1626,6 @@ function App() {
   // (speakReply / cancelAudio). A dedicated callRecognitionRef is fully isolated from the dictation
   // mic. Call onresult writes ONLY to callTranscriptRef / callHeard — never to the chat `input`.
 
-  // TEMP DEBUG — log to BOTH the console and an on-screen buffer (last ~20 lines) so the owner can
-  // screenshot the [CALL-DEBUG] trace on a phone where the console is impractical.
-  const callDbg = (msg) => {
-    console.log('[CALL-DEBUG] ' + msg);
-    const stamp = ((Date.now() % 100000) / 1000).toFixed(2); // short seconds.ms timestamp
-    setCallDebugLog((prev) => [...prev, stamp + ' ' + msg].slice(-20));
-  };
-
   // Start (or re-arm) a listen turn. Primary trigger is the avatar tap-to-talk.
   const startCallListening = () => {
     if (callMutedRef.current) return; // muted = do not listen
@@ -1645,20 +1635,17 @@ function App() {
     setCallHeard('');
     callActiveRef.current = true;
     setCallState('listening');
-    callDbg('startCallListening'); // TEMP DEBUG
-    try { rec.start(); } catch (e) { callActiveRef.current = false; setCallState('idle'); callDbg('rec.start() threw ' + (e && e.message)); } // TEMP DEBUG
+    try { rec.start(); } catch (e) { callActiveRef.current = false; setCallState('idle'); }
   };
 
   // End the active listen turn and route it to the brain. Guarded so the silence timer and
   // recognition.onend can never both fire a turn (double-send guard via callActiveRef).
   const endCallTurnNow = () => {
-    callDbg('endCallTurnNow fired; active=' + callActiveRef.current); // TEMP DEBUG
     if (!callActiveRef.current) return;
     callActiveRef.current = false;
     if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
     try { callRecognitionRef.current?.stop(); } catch (e) {}
     const text = callTranscriptRef.current.trim();
-    callDbg('endCallTurnNow text=' + JSON.stringify(text)); // TEMP DEBUG
     if (!text) { setCallState('idle'); return; } // never send an empty turn
     if (callTurnRef.current) callTurnRef.current(text);
   };
@@ -1667,7 +1654,6 @@ function App() {
   // the SHARED messages array (so the Q&A shows in chat history and guardrails are identical), then
   // speaks the reply via the existing speakReply(). No setInput, no streamingText bubble.
   const runCallTurn = async (text) => {
-    callDbg('runCallTurn START ' + JSON.stringify(text)); // TEMP DEBUG
     setCallHeard('');
     setCallState('thinking');
     cancelAudio();
@@ -1679,24 +1665,20 @@ function App() {
     const controller = new AbortController();
     abortRef.current = controller;
     let reply;
-    const __tAI = Date.now(); callDbg('callAI ->'); // TEMP DEBUG
     try {
       reply = await callAI(apiHistory, profile, { signal: controller.signal });
     } catch (e) {
-      if (e.name === 'AbortError') { callDbg('callAI aborted'); return; } // exited mid-turn — do not write state // TEMP DEBUG
+      if (e.name === 'AbortError') return; // exited mid-turn — do not write state
       reply = getFriendlyError('network', profile?.gender);
     }
-    callDbg('callAI <- done ms=' + (Date.now() - __tAI)); // TEMP DEBUG
-    if (abortRef.current !== controller) { callDbg('runCallTurn superseded — bail'); return; } // superseded or call exited // TEMP DEBUG
+    if (abortRef.current !== controller) return; // superseded or call exited
     abortRef.current = null;
     const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString() };
     const final = [...updated, aiMsg];
     setMessages(final);
     saveMessages(final);
     setCallState('speaking');
-    const __tSpk = Date.now(); callDbg('speakReply ->'); // TEMP DEBUG
     await speakReply(reply); // completion hook — resolves when playback fully finishes
-    callDbg('speakReply <- done ms=' + (Date.now() - __tSpk)); // TEMP DEBUG
     setCallState('idle');    // one turn complete — back to idle "tap to talk" (no auto re-arm in Layer 2)
   };
 
@@ -1746,8 +1728,6 @@ function App() {
     setCallState('idle');
 
     const rec = new SR();
-    const myId = ++callDbgSeqRef.current; // TEMP DEBUG — unique id per created instance
-    callDbg('CREATE instance #' + myId); // TEMP DEBUG
     rec.lang = 'ar-SA';
     rec.continuous = true;       // interim events keep resetting the silence timer (smoother end-of-turn)
     rec.interimResults = true;
@@ -1772,10 +1752,6 @@ function App() {
         }
       }
       callTranscriptRef.current = finalText;
-      // TEMP DEBUG — dump full cumulative results so we can see segmented-vs-cumulative + which instance fired
-      callDbg('onresult inst#' + myId + ' len=' + event.results.length
-        + ' results=' + JSON.stringify(Array.from(event.results).map((r) => ({ f: r.isFinal, t: r[0].transcript })))
-        + ' rebuilt=' + JSON.stringify(finalText));
       setCallHeard((finalText + interim).trim()); // feedback only — NEVER setInput
       // Reset the end-of-turn debounce on any speech activity.
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
@@ -1785,14 +1761,12 @@ function App() {
       }, CALL_SILENCE_MS);
     };
     rec.onend = () => {
-      callDbg('onend inst#' + myId); // TEMP DEBUG
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
       // Layer 2: NO auto-restart. If the engine stopped while still active with speech, finalize.
       if (callActiveRef.current && callTranscriptRef.current.trim()) endCallTurnNow();
       else if (callActiveRef.current) { callActiveRef.current = false; setCallState('idle'); }
     };
     rec.onerror = (event) => {
-      callDbg('onerror inst#' + myId + ' ' + event.error); // TEMP DEBUG
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
       callActiveRef.current = false;
       setCallState('idle');
@@ -1805,7 +1779,6 @@ function App() {
     callRecognitionRef.current = rec;
 
     return () => {
-      callDbg('CLEANUP instance #' + myId); // TEMP DEBUG
       callActiveRef.current = false;
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
       try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) {}
@@ -1833,7 +1806,7 @@ function App() {
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} />;
-  if (screen === 'call') return <CallScreen profileName={profile?.name} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} debugLog={callDebugLog} />;
+  if (screen === 'call') return <CallScreen profileName={profile?.name} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
 
   return (
     <div style={s.chatContainer}>
@@ -2365,7 +2338,7 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
 // ============================================================
 // callState is owned by App and driven by real audio events (tap → listening → thinking →
 // speaking → idle). The avatar is tap-to-talk; Mute gates the mic. No audio logic lives here.
-function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTalk, onExit, debugLog }) {
+function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTalk, onExit }) {
   // Accessibility: respect reduced-motion — fall back to a static (non-pulsing) ring.
   const reduceMotion = (typeof window !== 'undefined' && window.matchMedia)
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
@@ -2409,10 +2382,6 @@ function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTa
           <PhoneOffIcon size={24} color="#FAF7F2" />
           <span style={{ ...s.callBtnLabel, color: '#FAF7F2' }}>إنهاء</span>
         </button>
-      </div>
-      {/* TEMP DEBUG — on-screen [CALL-DEBUG] mirror for phone testing (remove with instrumentation). dir=ltr so JSON reads correctly. */}
-      <div dir="ltr" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, maxHeight: '30vh', overflow: 'auto', background: 'rgba(0,0,0,0.6)', color: '#9FE7B8', fontFamily: 'monospace', fontSize: 10, lineHeight: 1.35, padding: '6px 8px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', zIndex: 50 }}>
-        {(debugLog || []).map((line, i) => <div key={i}>{line}</div>)}
       </div>
     </div>
   );
