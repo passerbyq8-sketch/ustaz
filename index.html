@@ -1951,7 +1951,7 @@ function App() {
   if (screen === 'call') return <CallScreen profileName={profile?.name} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
   // المحفّظ — full screen (mirrors CallScreen). Husary playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
-  if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('chat')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} />;
+  if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('chat')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
 
   return (
     <div style={s.chatContainer}>
@@ -2571,9 +2571,15 @@ const MEM = {
   PRAISE_F: 'أحسنتِ، تابِعي.',
   FINISH_M: 'أتممتَ المقطع، بارك الله فيك.',
   FINISH_F: 'أتممتِ المقطع، بارك الله فيكِ.',
+  MODE_MANUAL: 'تلقين يدوي',
+  MODE_ADNAN: 'استماع وترديد',
+  ADNAN_START: 'ابدأ',
+  ADNAN_STOP: 'إيقاف',
+  ADNAN_REPEAT: 'أعد الآية',
+  ADNAN_AYAH_LABEL: 'آية',
 };
 
-function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
+function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio }) {
   const [ready, setReady] = useState(!!__quranData); // true once the mushaf JSON is in memory
   const [counts, setCounts] = useState(null);        // { [surahNum]: ayahCount } — built once, single pass
   const [view, setView] = useState('picker');        // 'picker' | 'drill'
@@ -2581,6 +2587,12 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
   const [startAyah, setStartAyah] = useState(1);
   const [granularity, setGranularity] = useState('word'); // 'ayah' | 'word' (default word — one word per reveal)
   const [revealedCount, setRevealedCount] = useState(0);
+  // Layer C — عدنان listen-and-repeat audio talqin (alongside the manual reveal).
+  const [drillMode, setDrillMode] = useState('manual'); // 'manual' | 'adnan'
+  const [adnanAyah, setAdnanAyah] = useState(null);     // current ayah playing in the loop
+  const [adnanRunning, setAdnanRunning] = useState(false);
+  const adnanTimeoutRef = useRef(null);                 // pending repeat-pause timer
+  const runIdRef = useRef(0);                           // local loop cancel token (sequenceIdRef is App-owned, not in scope)
 
   const isFemale = profile?.gender === 'female';
 
@@ -2604,6 +2616,14 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
       })
       .catch(() => { /* fail-safe: stay on the loading string; never fall back to model text */ });
     return () => { alive = false; };
+  }, []);
+
+  // Layer C teardown — runs on MemorizeScreen unmount (leaving the memorize screen). cancelAudio
+  // does NOT clear timers, so we clear the pending repeat-pause; we also bump runIdRef so a loop
+  // mid-ayah bails after the App-level [screen] cleanup pauses its audio (instead of advancing).
+  useEffect(() => () => {
+    runIdRef.current++;
+    if (adnanTimeoutRef.current) clearTimeout(adnanTimeoutRef.current);
   }, []);
 
   const surahCount = (counts && selectedSurah) ? (counts[selectedSurah] || 0) : 0; // last ayah of range
@@ -2635,6 +2655,48 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
   const openPicker = () => { setView('picker'); setRevealedCount(0); };
   const startDrill = () => { setView('drill'); setRevealedCount(0); };
   const setGran = (g) => { setGranularity(g); setRevealedCount(0); }; // switching re-hides the range
+
+  // ---------- عدنان listen-and-repeat loop ----------
+  // Cancellation uses a LOCAL runIdRef (App's sequenceIdRef/cancelAudio are not in scope, and
+  // playVerseManual bumps the sequence token every call so it can't be our stable loop token).
+  // Audio is stopped via the onStopAudio prop (App cancelAudio). The pause between ayat is
+  // proportional to the ayah's measured playback time, clamped to a sane floor/ceiling.
+  const ADNAN_PAUSE_FACTOR = 1.15, ADNAN_PAUSE_FLOOR = 1500, ADNAN_PAUSE_CEIL = 9000; // ms
+
+  const stopAdnan = () => {
+    runIdRef.current++;                       // invalidate the running loop so it bails at its next guard
+    if (adnanTimeoutRef.current) { clearTimeout(adnanTimeoutRef.current); adnanTimeoutRef.current = null; }
+    if (onStopAudio) onStopAudio();           // App cancelAudio: pause current ayah + bump sequenceIdRef
+    setAdnanRunning(false);
+  };
+
+  const startAdnan = async () => {
+    if (!ready || !selectedSurah || !surahCount) return;
+    if (onStopAudio) onStopAudio();           // clear any prior audio before starting fresh
+    if (adnanTimeoutRef.current) { clearTimeout(adnanTimeoutRef.current); adnanTimeoutRef.current = null; }
+    const myRun = ++runIdRef.current;         // local cancel token for THIS run
+    setAdnanRunning(true);
+    for (let a = startAyah; a <= surahCount; a++) {
+      if (runIdRef.current !== myRun) return; // stopped / mode switched / screen left / restarted
+      setAdnanAyah(a);
+      const t0 = performance.now();
+      try { await onPlayVerse(selectedSurah, a); } catch (e) {} // resolves when the ayah audio ENDS
+      if (runIdRef.current !== myRun) return;
+      const elapsed = performance.now() - t0;
+      const pause = Math.min(ADNAN_PAUSE_CEIL, Math.max(ADNAN_PAUSE_FLOOR, elapsed * ADNAN_PAUSE_FACTOR));
+      await new Promise((r) => { adnanTimeoutRef.current = setTimeout(r, pause); });
+      if (runIdRef.current !== myRun) return;
+    }
+    if (runIdRef.current === myRun) { setAdnanRunning(false); setAdnanAyah(null); } // natural completion
+  };
+
+  const repeatAyah = async () => {
+    const a = adnanAyah || startAyah;
+    stopAdnan();                              // halt the loop + audio + pending pause first
+    try { await onPlayVerse(selectedSurah, a); } catch (e) {} // replay this ayah once; user presses ابدأ to continue
+  };
+
+  const setMode = (m) => { if (m === drillMode) return; stopAdnan(); setDrillMode(m); };
 
   // ---------- PICKER ----------
   if (view === 'picker') {
@@ -2700,11 +2762,19 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
         <span style={s.memRangeBadge}>{`${MEM.GRAN_AYAH} ${toArabicDigits(startAyah)}`}</span>
         <button onClick={openPicker} style={s.memChangeBtn}>{MEM.CHANGE_SURAH}</button>
       </div>
+      {/* Layer C — drill mode switch: manual reveal vs. عدنان listen-and-repeat. */}
+      <div style={s.memToggleRow}>
+        <button onClick={() => setMode('manual')} style={{ ...s.memGranBtn, ...(drillMode === 'manual' ? s.memGranBtnActive : {}) }}>{MEM.MODE_MANUAL}</button>
+        <button onClick={() => setMode('adnan')} style={{ ...s.memGranBtn, ...(drillMode === 'adnan' ? s.memGranBtnActive : {}) }}>{MEM.MODE_ADNAN}</button>
+      </div>
+      {drillMode === 'manual' && (
       <div style={s.memToggleRow}>
         <span style={s.memToggleLabel}>{MEM.REVEAL_LABEL}</span>
         <button onClick={() => setGran('ayah')} style={{ ...s.memGranBtn, ...(granularity === 'ayah' ? s.memGranBtnActive : {}) }}>{MEM.GRAN_AYAH}</button>
         <button onClick={() => setGran('word')} style={{ ...s.memGranBtn, ...(granularity === 'word' ? s.memGranBtnActive : {}) }}>{MEM.GRAN_WORD}</button>
       </div>
+      )}
+      {drillMode === 'manual' && (
       <div style={s.memDrillArea}>
         <div style={s.memDrillText}>
           {units.map((u, i) => {
@@ -2724,12 +2794,29 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
         {showPraise && <div style={s.memMsg}>{praiseLine}</div>}
         {allRevealed && <div style={s.memMsg}>{finishLine}</div>}
       </div>
+      )}
+      {drillMode === 'manual' && (
       <div style={s.memControls}>
         <button onClick={() => onPlayVerse && onPlayVerse(selectedSurah, focusAyah)} style={s.memListenBtn}>{MEM.LISTEN_BTN}</button>
         <button onClick={() => setRevealedCount((c) => Math.min(c + 1, units.length))} style={{ ...s.memRevealBtn, opacity: allRevealed ? 0.5 : 1 }} disabled={allRevealed}>{MEM.REVEAL_BTN}</button>
         {/* Re-hide/reset the same range. */}
         <button onClick={() => setRevealedCount(0)} style={s.memListenBtn}>{MEM.HIDE}</button>
       </div>
+      )}
+      {drillMode === 'adnan' && (
+      <div style={s.memDrillArea}>
+        <div style={s.memSurahTitle}>{`${SURAH_NAMES[selectedSurah]} · ${MEM.ADNAN_AYAH_LABEL} ${toArabicDigits(adnanAyah || startAyah)}`}</div>
+        <div style={s.memDrillText}>
+          <span style={s.memWord}>{getVerseText(selectedSurah, adnanAyah || startAyah) || ''}</span>
+        </div>
+      </div>
+      )}
+      {drillMode === 'adnan' && (
+      <div style={s.memControls}>
+        <button onClick={() => (adnanRunning ? stopAdnan() : startAdnan())} style={s.memRevealBtn}>{adnanRunning ? MEM.ADNAN_STOP : MEM.ADNAN_START}</button>
+        <button onClick={repeatAyah} style={s.memListenBtn}>{MEM.ADNAN_REPEAT}</button>
+      </div>
+      )}
     </div>
   );
 }
