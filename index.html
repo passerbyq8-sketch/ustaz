@@ -132,6 +132,16 @@ const getVerseText = (sNum, aNum) => {
   if (!__quranData || !(sNum >= 1) || !(aNum >= 1)) return null;
   return __quranData[`${sNum}:${aNum}`] || null;
 };
+// عدد آيات سورة من المصحف المُحمَّل (عدّ المفاتيح ذات البادئة `${num}:`)؛ 0 إن لم يُحمَّل.
+const getSurahAyahCount = (sNum) => {
+  if (!__quranData || !(sNum >= 1)) return 0;
+  const prefix = `${sNum}:`;
+  let c = 0;
+  for (const k in __quranData) if (k.startsWith(prefix)) c++;
+  return c;
+};
+// تحويل الأرقام إلى أرقام عربية-هندية (٠١٢…) لفواصل الآيات ۝ واللُّصوقات
+const toArabicDigits = (n) => String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
 
 // يُرجع رقم السورة (1..114) أو null. يفضّل surah_num الرقمي، ثم يبحث بالاسم.
 const resolveSurahNumber = (surahName, surahNum) => {
@@ -274,13 +284,13 @@ const TOPICS = [
 // يحذف أي وسم معروف (<verse>/<hadith>/<steps>/<suggestions>) فُتِح ولم يُغلَق — يحدث
 // عند اقتطاع الردّ منتصف الوسم — وأي بقايا "<...>" يتيمة في آخر النص، كي لا يتسرّب
 // ترميز خام إلى الطفل (عرض) ولا إلى ElevenLabs (صوت). مستقلّ تماماً عن max_tokens.
-const KNOWN_TAGS = 'verse|hadith|steps|suggestions';
+const KNOWN_TAGS = 'verse|surah|hadith|steps|suggestions';
 const stripIncompleteTags = (text) => {
   if (!text || typeof text !== 'string') return text || '';
   let t = text;
-  // ٠. طَبِّع وسم الآية ذاتيّ الإغلاق <verse .../> → <verse ...></verse> حتى لا يَعدّه
-  //    كاشفُ الوسوم الناقصة وسماً مقطوعاً فيحذفه. (الوسم الآن فارغ بلا نصّ آية.)
-  t = t.replace(/<verse([^>]*?)\s*\/>/g, '<verse$1></verse>');
+  // ٠. طَبِّع وسمَي الآية/السورة ذاتيَّي الإغلاق (<verse .../>، <surah .../>) إلى صيغةٍ
+  //    مُغلَقة حتى لا يَعدّهما كاشفُ الوسوم الناقصة وسماً مقطوعاً فيحذفهما. (كلاهما فارغ بلا نصّ.)
+  t = t.replace(/<(verse|surah)([^>]*?)\s*\/>/g, '<$1$2></$1>');
   // ١. أول وسم معروف مفتوح بلا إغلاق مطابق → احذف من بدايته حتى نهاية النص.
   const openRe = new RegExp(`<(${KNOWN_TAGS})\\b`, 'g');
   let m, cut = -1;
@@ -314,7 +324,7 @@ const parseRichMessage = (text) => {
   let remaining = text;
 
   // أنماط الوسوم
-  const tagPattern = /<(verse|hadith|steps|suggestions)([^>]*)>([\s\S]*?)<\/\1>/g;
+  const tagPattern = /<(verse|surah|hadith|steps|suggestions)([^>]*)>([\s\S]*?)<\/\1>/g;
   let lastIndex = 0;
   let match;
   while ((match = tagPattern.exec(text)) !== null) {
@@ -336,6 +346,17 @@ const parseRichMessage = (text) => {
         surah: surahMatch ? surahMatch[1] : '',
         surahNum: surahNumMatch ? surahNumMatch[1] : '',
         ayah: ayahMatch ? ayahMatch[1] : '',
+      });
+    } else if (tagName === 'surah') {
+      // سورة كاملة أو مدًى متّصل — بطاقة واحدة، نصّ متّصل، زرّ تلاوة واحد
+      const numMatch = attrsStr.match(/num=["']([^"']+)["']/);
+      const fromMatch = attrsStr.match(/from=["']([^"']+)["']/);
+      const toMatch = attrsStr.match(/to=["']([^"']+)["']/);
+      segments.push({
+        type: 'surah',
+        num: numMatch ? numMatch[1] : '',
+        from: fromMatch ? fromMatch[1] : '',
+        to: toMatch ? toMatch[1] : '',
       });
     } else if (tagName === 'hadith') {
       const narratorMatch = attrsStr.match(/narrator=["']([^"']+)["']/);
@@ -387,6 +408,8 @@ const formatForTTS = (text) => {
   // إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
   // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
   t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
+  // وكذلك السورة الكاملة: يتلوها القارئ الحقيقي عبر الزرّ، لا ينطقها المربّي
+  t = t.replace(/<surah[^>]*>[\s\S]*?<\/surah>/g, ' ');
   // تحويل الأحاديث إلى نص طبيعي للنطق
   t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
     (_, narrator, ruling, content) => ` رَوَى ${narrator}: ${content.trim()}. ${ruling}. `
@@ -423,6 +446,15 @@ const formatForLog = (text) => {
     const ref = [name && `سورة ${name}`, aNum >= 1 && `آية ${aNum}`].filter(Boolean).join('، ');
     const canon = (sNum && aNum >= 1) ? getVerseText(sNum, aNum) : null;
     return canon ? ` «${canon}»${ref ? ` (${ref})` : ''} ` : (ref ? ` [${ref}] ` : ' ');
+  });
+  // السورة: مرجعٌ مختصرٌ للأهل (الاسم + المدى إن كان جزئياً) — لا نصّ خام
+  t = t.replace(/<surah([^>]*)>([\s\S]*?)<\/surah>/g, (_, attrs) => {
+    const sNum = resolveSurahNumber(undefined, (attrs.match(/num=["']([^"']+)["']/) || [])[1]);
+    const name = sNum ? SURAH_NAMES[sNum] : '';
+    const from = parseInt((attrs.match(/from=["']([^"']+)["']/) || [])[1], 10);
+    const to = parseInt((attrs.match(/to=["']([^"']+)["']/) || [])[1], 10);
+    const rangePart = (from >= 1 && to >= 1) ? `، الآيات ${from}–${to}` : '';
+    return name ? ` [تلاوة سورة ${name}${rangePart}] ` : ' ';
   });
   // الحديث والخطوات: نفس تحويل الصوت كي يبقى السجلّ مقروءاً
   t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
@@ -739,6 +771,14 @@ const buildSystemPrompt = (name, age, gender) => {
 ‼ مَمْنُوعٌ مَنْعًا بَاتًّا أن تكتب نصّ الآية بنفسك — لا داخل الوسم ولا خارجه. اكتفِ برقم السورة ورقم الآية فقط. (كتابتك للنصّ قد تُخطئ حرفاً أو حركة، والتطبيق يتكفّل بالنصّ الصحيح كاملاً، وهذا أيضاً يُقصّر ردّك.)
 مثال صحيح: <verse surah_num="4" ayah="103"></verse>
 
+**لِتِلَاوَةِ/قِرَاءَةِ سُورَةٍ كَامِلَة أَوْ مَدًى مُتَّصِلٍ مِنَ الآيَات** — استخدم وسم surah واحداً فقط، فارغاً (بالأرقام فقط):
+<surah num="رقم السورة"></surah>  — للسورة كاملة.
+<surah num="رقم السورة" from="أول آية" to="آخر آية"></surah>  — لمدًى متّصل من الآيات.
+يَعرِض التطبيق السورة كبطاقةٍ واحدةٍ بنصٍّ متّصلٍ وأرقامِ آياتٍ ۝ وبسملةٍ في أعلاها وزرٍّ واحدٍ يتلو الكلَّ بصوت القارئ الحقيقي.
+‼ **مَمْنُوع** أن تُصدِر وسوم verse مُنفصلة لنفس آيات السورة المطلوبة — وسمُ surah واحدٌ يكفي ويُغني عنها. أبقِ verse للآية المفردة أو لآياتٍ قليلةٍ غير متتالية فقط.
+‼ مَمْنُوعٌ كذلك أن تكتب نصّ السورة بنفسك — اكتفِ بالرقم.
+مثال: لِطلب "اقْرَأْ لِي سُورَةَ الضُّحَى" → <surah num="93"></surah>
+
 ٢. **الحديث النبوي** — استخدم وسم hadith:
 <hadith narrator="الراوي مثلاً البخاري" ruling="الحكم مثلاً متفق عليه">نَصُّ الحَدِيثِ المُشَكَّل</hadith>
 
@@ -1000,16 +1040,17 @@ function App() {
   };
   const stopSpeaking = cancelAudio;
 
-  // نُطق مقطع نصّي واحد عبر ElevenLabs — awaitable: يُحَلّ عند انتهاء/خطأ/إيقاف الصوت
-  const speakSegment = async (rawText, myId) => {
+  // ===== خطّ أنابيب الصوت: نفصل "جلب" المقطع الكلاميّ عن "تشغيله" =====
+  // fetchSpeechAudio يُحضّر الصوت (tashkeel عند اللزوم + ElevenLabs → blob) دون تشغيلٍ
+  // ودون سحبِ التركيز — فيمكن استدعاؤه مُسبقاً أثناء تشغيل مقطعٍ آخر، فيزول صمتُ الانتظار.
+  // يُرجع {kind:'blob',url} أو {kind:'tts',text} (احتياط المتصفح) أو null (فارغ/مُلغى).
+  const SPEAK_EMOJI_RE = /[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu;
+  const fetchSpeechAudio = async (rawText, myId) => {
+    const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
     // إزالة الوسوم وتحويلها لنص طبيعي للنطق (الآية محذوفة هنا — تُتلى لا تُنطق)
     const ttsText = formatForTTS(rawText);
-    const cleanText = ttsText.replace(/[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu, '').trim();
-    if (!cleanText) return;
-    const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
-    if (!isCurrent()) return;
-
-    takeAudioFocus();
+    const cleanText = ttsText.replace(SPEAK_EMOJI_RE, '').trim();
+    if (!cleanText || !isCurrent()) return null;
 
     // فَحص ذكيّ للتشكيل — نتخطّى Haiku إن كان تشكيل Opus كافياً (٦٠٪+)
     const diacriticCount = (cleanText.match(/[ً-ْٰ]/g) || []).length;
@@ -1039,51 +1080,72 @@ function App() {
         // نُكمل بالنص الأصلي بدون توقف
       }
     }
-    if (!isCurrent()) return; // أُلغِيَ أثناء التشكيل
+    if (!isCurrent()) return null; // أُلغِيَ أثناء التشكيل
 
     // مفتاح A/B: تجريد التشكيل من النصّ المُرسَل للنطق فقط (العرض يبقى مُشَكَّلاً)
     const spokenText = STRIP_TASHKEEL_FOR_TTS ? stripAllTashkeel(textForTTS) : textForTTS;
 
-    // ElevenLabs TTS (يستقبل النص المُشكَّل أو المُجرَّد حسب المفتاح أعلاه)
+    // ElevenLabs TTS — نُحضّر الـ blob فقط، ولا نُشغّل ولا نسحب التركيز هنا
     try {
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: spokenText, gender: profile?.gender }),
       });
-      if (!isCurrent()) return; // أُلغِيَ أثناء جلب الصوت
+      if (!isCurrent()) return null; // أُلغِيَ أثناء جلب الصوت
       if (response.ok) {
         const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        if (!isCurrent()) { URL.revokeObjectURL(audioUrl); return; }
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
-        await new Promise((resolve) => {
-          let settled = false;
-          const done = () => {
-            if (settled) return;
-            settled = true;
-            URL.revokeObjectURL(audioUrl);
-            if (audioRef.current === audio) audioRef.current = null;
-            resolve();
-          };
-          audio.onended = done;
-          audio.onerror = done;
-          audio.onpause = done; // سحب التركيز من مصدر آخر يُنهي الانتظار
-          const p = audio.play();
-          if (p && p.catch) p.catch(done);
-        });
-        return;
+        if (!isCurrent()) return null;
+        const url = URL.createObjectURL(audioBlob);
+        if (!isCurrent()) { URL.revokeObjectURL(url); return null; } // مُلغى → لا تُسرّب blob
+        return { kind: 'blob', url, consumed: false };
       }
       console.warn('ElevenLabs failed, falling back to browser TTS');
     } catch (e) {
       console.warn('ElevenLabs error, falling back:', e);
     }
+    // فشل ElevenLabs → احتياط المتصفح (نُمرّر النصّ ليُنطَق وقت التشغيل)
+    return { kind: 'tts', text: cleanText, consumed: false };
+  };
 
-    // fallback المتصفح (مجاني)
+  // playPreparedSpeech يستقبل وعدَ تحضيرٍ (قد يكون اكتمل مسبقاً) ويُشغّله. هنا فقط نسحب
+  // التركيز ونشغّل — awaitable حتى الانتهاء/الخطأ/الإيقاف. يحترم الإلغاء قبل التشغيل.
+  const playPreparedSpeech = async (prepPromise, myId) => {
+    const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
+    if (!prepPromise) return;
+    let r = null;
+    try { r = await prepPromise; } catch (e) { r = null; }
+    if (!r) return;
+    if (!isCurrent()) { // أُلغِيَ قبل أن نُشغّله — تخلّص من blob المُحضَّر دون تشغيلٍ بائت
+      if (r.kind === 'blob' && r.url) { r.consumed = true; URL.revokeObjectURL(r.url); }
+      return;
+    }
+    r.consumed = true;
+    takeAudioFocus();
+    if (r.kind === 'blob') {
+      const audio = new Audio(r.url);
+      audioRef.current = audio;
+      await new Promise((resolve) => {
+        let settled = false;
+        const done = () => {
+          if (settled) return;
+          settled = true;
+          URL.revokeObjectURL(r.url);
+          if (audioRef.current === audio) audioRef.current = null;
+          resolve();
+        };
+        audio.onended = done;
+        audio.onerror = done;
+        audio.onpause = done; // سحب التركيز من مصدر آخر يُنهي الانتظار
+        const p = audio.play();
+        if (p && p.catch) p.catch(done);
+      });
+      return;
+    }
+    // احتياط المتصفح (مجاني)
     if (!window.speechSynthesis) return;
     await new Promise((resolve) => {
-      const utterance = new SpeechSynthesisUtterance(cleanText);
+      const utterance = new SpeechSynthesisUtterance(r.text);
       utterance.lang = 'ar-SA';
       utterance.rate = 0.92;
       const voices = window.speechSynthesis.getVoices();
@@ -1117,25 +1179,32 @@ function App() {
     if (p && p.catch) p.catch(() => done(true));
   });
 
-  // بناء تسلسل الصوت من الردّ: مقاطع كلام + تلاوات آيات، بالترتيب.
-  // نَقسِم عند حدود <verse> فقط — الحديث/الخطوات تبقى داخل مقاطع الكلام
-  // (تُنطق كما اليوم عبر formatForTTS)، ونصّ الآية يقع بين الحدود فلا يُنطق.
+  // بناء تسلسل الصوت من الردّ: مقاطع كلام + تلاوات (آية مفردة <verse> أو سورة/مدى <surah>).
+  // نَقسِم عند حدود <verse>/<surah> — الحديث/الخطوات تبقى داخل مقاطع الكلام (تُنطق عبر
+  // formatForTTS)، ونصّ الآية/السورة يقع بين الحدود فلا يُنطق (يتلوه القارئ الحقيقي).
   const buildAudioSequence = (text) => {
     // نُنظّف الترميز الناقص أوّلاً كي لا يُرسَل "<verse surah=..." خاماً إلى ElevenLabs
     text = stripIncompleteTags(text);
     const parts = [];
-    const verseRe = /<verse([^>]*)>[\s\S]*?<\/verse>/g;
+    const blockRe = /<(verse|surah)([^>]*)>[\s\S]*?<\/\1>/g;
     let last = 0, m;
-    while ((m = verseRe.exec(text)) !== null) {
+    while ((m = blockRe.exec(text)) !== null) {
       const before = text.slice(last, m.index);
       if (before.trim()) parts.push({ kind: 'speak', text: before });
-      const attrs = m[1] || '';
-      const sNum = resolveSurahNumber(
-        (attrs.match(/surah=["']([^"']+)["']/) || [])[1],
-        (attrs.match(/surah_num=["']([^"']+)["']/) || [])[1]
-      );
-      const aNum = parseInt((attrs.match(/ayah=["']([^"']+)["']/) || [])[1], 10);
-      if (sNum && aNum >= 1) parts.push({ kind: 'recite', sNum, aNum });
+      const tag = m[1], attrs = m[2] || '';
+      if (tag === 'verse') {
+        const sNum = resolveSurahNumber(
+          (attrs.match(/surah=["']([^"']+)["']/) || [])[1],
+          (attrs.match(/surah_num=["']([^"']+)["']/) || [])[1]
+        );
+        const aNum = parseInt((attrs.match(/ayah=["']([^"']+)["']/) || [])[1], 10);
+        if (sNum && aNum >= 1) parts.push({ kind: 'recite', sNum, aNum });
+      } else { // surah — تلاوة متتابعة لمدًى من الآيات
+        const sNum = resolveSurahNumber(undefined, (attrs.match(/num=["']([^"']+)["']/) || [])[1]);
+        const from = parseInt((attrs.match(/from=["']([^"']+)["']/) || [])[1], 10);
+        const to = parseInt((attrs.match(/to=["']([^"']+)["']/) || [])[1], 10);
+        if (sNum) parts.push({ kind: 'reciteSurah', sNum, from: from >= 1 ? from : 1, to: to >= 1 ? to : null });
+      }
       last = m.index + m[0].length;
     }
     const tail = text.slice(last);
@@ -1143,8 +1212,87 @@ function App() {
     return parts;
   };
 
+  // تلاوة سورة/مدًى متتابعاً بصوت القارئ، مع تحميلٍ مُسبقٍ للآية التالية → بلا فجوات.
+  // يحترم الإلغاء (sequenceIdRef/takeAudioFocus). يُرجع {failed}.
+  const playSurahRecitation = async (sNum, from, to, myId) => {
+    const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
+    if (!sNum) return { failed: true };
+    let f = from >= 1 ? from : 1;
+    let t = to;
+    if (!(t >= 1)) { // المدى مفتوح → السورة كاملة: نحتاج عدد الآيات من المصحف
+      try { await loadQuran(); } catch (e) {}
+      t = getSurahAyahCount(sNum);
+    }
+    if (!(t >= f)) return { failed: true };
+    const pad3 = (x) => String(x).padStart(3, '0');
+    const mkUrl = (a) => `https://everyayah.com/data/Husary_64kbps/${pad3(sNum)}${pad3(a)}.mp3`;
+    const makePreload = (a) => {
+      if (a > t) return null;
+      const au = new Audio();
+      au.preload = 'auto';
+      au.src = mkUrl(a);
+      try { au.load(); } catch (e) {}
+      return au;
+    };
+    const playOne = (audio) => new Promise((res) => {
+      if (!isCurrent()) return res({ failed: false });
+      takeAudioFocus();
+      audioRef.current = audio;
+      let settled = false;
+      const done = (failed) => {
+        if (settled) return;
+        settled = true;
+        if (audioRef.current === audio) audioRef.current = null;
+        res({ failed: !!failed });
+      };
+      audio.onended = () => done(false);
+      audio.onerror = () => done(true);
+      audio.onpause = () => done(false); // سحب التركيز من مصدر آخر / إيقاف يدوي
+      const p = audio.play();
+      if (p && p.catch) p.catch(() => done(true));
+    });
+    let failedAny = false;
+    let cur = makePreload(f);
+    for (let a = f; a <= t; a++) {
+      if (!isCurrent()) break;
+      const audio = cur || makePreload(a);
+      const nextAudio = makePreload(a + 1); // حضّر التالية أثناء تشغيل الحالية → بلا فجوة
+      const res = await playOne(audio);
+      if (res.failed) failedAny = true;
+      if (!isCurrent()) {
+        if (nextAudio) { try { nextAudio.pause(); nextAudio.src = ''; } catch (e) {} }
+        break;
+      }
+      cur = nextAudio;
+    }
+    return { failed: failedAny };
+  };
+
+  // إعادة تشغيل تلاوة السورة يدوياً من زرّ البطاقة — يُوقف كلام المربّي أولاً. awaitable.
+  const playSurahManual = async (sNum, from, to) => {
+    const myId = ++sequenceIdRef.current; // يُلغي أي تسلسل/كلام جارٍ
+    takeAudioFocus();
+    setIsSpeaking(true);
+    const res = await playSurahRecitation(sNum, from, to, myId);
+    if (myId === sequenceIdRef.current) setIsSpeaking(false);
+    return res;
+  };
+
+  // تحميل مسبق رخيص لتلاوةٍ قادمة (تسخين كاش المتصفح) — أفضل جهد، يُتجاهَل أيّ فشل.
+  const __preloadedRecitations = new Set();
+  const preloadRecitation = (sNum, aNum) => {
+    if (!sNum || !(aNum >= 1)) return;
+    const pad3 = (x) => String(x).padStart(3, '0');
+    const url = `https://everyayah.com/data/Husary_64kbps/${pad3(sNum)}${pad3(aNum)}.mp3`;
+    if (__preloadedRecitations.has(url)) return;
+    __preloadedRecitations.add(url);
+    try { fetch(url, { mode: 'no-cors' }).catch(() => {}); } catch (e) {}
+  };
+
   // تشغيل الردّ كاملاً بالتنسيق: كلام-قبل → تلاوة → كلام-بعد، مع إمكان الإلغاء.
-  // لا آية → مقطع كلام واحد = سلوك اليوم نفسه تماماً.
+  // الإصلاح (ب): نُحضّر المقطع الكلاميّ التالي (ElevenLabs) أثناء تشغيل الحاليّ، فيبدأ
+  // فوراً عند انتهاء التلاوة/الكلام بلا صمتِ انتظار. كلّ تحضيرٍ يحترم الإلغاء (sequenceIdRef)،
+  // وأيّ صوتٍ مُحضَّرٍ لم يُشغَّل يُلغى ويُحرَّر (لا يُشغَّل مقطعٌ بائت أبداً).
   const speakReply = async (text) => {
     if (!text) return;
     const parts = buildAudioSequence(text);
@@ -1152,15 +1300,50 @@ function App() {
     const myId = ++sequenceIdRef.current; // يُلغي أي تسلسل سابق
     takeAudioFocus();
     setIsSpeaking(true);
-    for (const part of parts) {
-      if (myId !== sequenceIdRef.current) return; // أُلغِيَ
+
+    // وعود تحضير المقاطع الكلامية (index → Promise<{kind,...}|null>)
+    const prep = new Array(parts.length).fill(null);
+    const prepareSpeak = (i) => {
+      if (i < 0 || i >= parts.length || parts[i].kind !== 'speak') return null;
+      if (!prep[i]) prep[i] = fetchSpeechAudio(parts[i].text, myId);
+      return prep[i];
+    };
+    const nextSpeakIndex = (from) => {
+      for (let j = from; j < parts.length; j++) if (parts[j].kind === 'speak') return j;
+      return -1;
+    };
+
+    // ابدأ تحضير أوّل مقطعٍ كلاميّ فوراً (لا شيء نُوازيه قبله — تأخيره الابتدائيّ كاليوم).
+    prepareSpeak(nextSpeakIndex(0));
+
+    for (let i = 0; i < parts.length; i++) {
+      if (myId !== sequenceIdRef.current) break; // أُلغِيَ
+      const part = parts[i];
+      // أثناء تشغيل المقطع الحاليّ: حضّر المقطع الكلاميّ القادم، وسخّن التلاوة التالية إن وُجدت.
+      const nx = nextSpeakIndex(i + 1);
+      if (nx >= 0) prepareSpeak(nx);
+      if (i + 1 < parts.length) {
+        const np = parts[i + 1];
+        if (np.kind === 'recite') preloadRecitation(np.sNum, np.aNum);
+        else if (np.kind === 'reciteSurah') preloadRecitation(np.sNum, np.from || 1);
+      }
       try {
-        if (part.kind === 'speak') await speakSegment(part.text, myId);
+        if (part.kind === 'speak') await playPreparedSpeech(prepareSpeak(i), myId);
+        else if (part.kind === 'reciteSurah') await playSurahRecitation(part.sNum, part.from || 1, part.to, myId);
         else await playRecitation(part.sNum, part.aNum, myId);
       } catch (e) {}
-      if (myId !== sequenceIdRef.current) return;
+      if (myId !== sequenceIdRef.current) break;
     }
     if (myId === sequenceIdRef.current) setIsSpeaking(false);
+
+    // نظافة: حرّر أيّ صوتٍ كلاميّ مُحضَّرٍ لم يُشغَّل (إلغاء/خطأ) كي لا تتسرّب blob URLs.
+    for (let i = 0; i < prep.length; i++) {
+      const pr = prep[i];
+      if (!pr) continue;
+      Promise.resolve(pr).then((r) => {
+        if (r && r.kind === 'blob' && r.url && !r.consumed) URL.revokeObjectURL(r.url);
+      }).catch(() => {});
+    }
   };
 
   // إعادة تشغيل التلاوة يدوياً من زر البطاقة — يُوقف كلام المربّي أولاً. awaitable.
@@ -1329,7 +1512,7 @@ function App() {
           <TopicChips onTopicClick={(prompt) => sendMessage(prompt)} />
         )}
 
-        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onStopAudio={cancelAudio} />)}
+        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />)}
         {isLoading && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             <div style={s.typingDots}>
@@ -1373,7 +1556,7 @@ function App() {
   );
 }
 
-function MessageBubble({ message, onSuggestionClick, onPlayVerse, onStopAudio }) {
+function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio }) {
   const isUser = message.role === 'user';
   if (isUser) {
     return <div style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{message.content}</div>;
@@ -1389,6 +1572,9 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onStopAudio })
           }
           if (seg.type === 'verse') {
             return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
+          }
+          if (seg.type === 'surah') {
+            return <SurahCard key={i} num={seg.num} from={seg.from} to={seg.to} onPlaySurah={onPlaySurah} onStopAudio={onStopAudio} />;
           }
           if (seg.type === 'hadith') {
             return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
@@ -1505,6 +1691,94 @@ function VerseCard({ surah, surahNum, ayah, onPlayVerse, onStopAudio }) {
           >
             {playing ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
             <span>{playing ? 'إيقاف' : 'استمع للتلاوة'}</span>
+          </button>
+        )}
+      </div>
+      {audioFailed && <div style={s.verseAudioError}>تعذّر تحميل التلاوة</div>}
+    </div>
+  );
+}
+
+// بطاقة السورة الكاملة (أو مدًى متّصل): نصّ واحد متّصل بأرقام آيات ۝، وزرّ تلاوة واحد.
+// النصّ من المصحف الكنسي حصراً؛ عند الفشل نعرض الاسم والمدى فقط (لا نصّ نموذج ولا ترميز خام).
+function SurahCard({ num, from, to, onPlaySurah, onStopAudio }) {
+  const [playing, setPlaying] = useState(false);
+  const [audioFailed, setAudioFailed] = useState(false);
+  const [body, setBody] = useState('');
+  const [state, setState] = useState('loading'); // loading | ok | fail
+  const [range, setRange] = useState({ from: 0, to: 0, whole: false });
+
+  const sNum = resolveSurahNumber(undefined, num);
+  const surahName = sNum ? SURAH_NAMES[sNum] : '';
+
+  useEffect(() => {
+    let alive = true;
+    if (!sNum) { setState('fail'); return; }
+    loadQuran()
+      .then(() => {
+        if (!alive) return;
+        const count = getSurahAyahCount(sNum);
+        if (!count) { setState('fail'); return; }
+        let f = parseInt(from, 10); if (!(f >= 1)) f = 1;
+        let t = parseInt(to, 10); if (!(t >= 1) || t > count) t = count;
+        if (f > t) { setState('fail'); return; }
+        setRange({ from: f, to: t, whole: f === 1 && t === count });
+        const pieces = [];
+        // البسملة (للسورة كاملة من الآية ١) — غير مرقّمة، إلا الفاتحة (آية ١) والتوبة (لا بسملة).
+        // نُعيد استخدام نصّ البسملة الكنسي getVerseText(1,1) — لا نكتب نصّاً قرآنياً يدوياً.
+        if (f === 1 && sNum !== 1 && sNum !== 9) {
+          const basmala = getVerseText(1, 1);
+          if (basmala) pieces.push(basmala);
+        }
+        let missing = false;
+        for (let a = f; a <= t; a++) {
+          const vt = getVerseText(sNum, a);
+          if (!vt) { missing = true; break; }
+          pieces.push(`${vt} ۝${toArabicDigits(a)}`); // آية + رقمها داخل زخرفة نهاية الآية
+        }
+        if (missing) { setState('fail'); return; }
+        setBody(pieces.join(' '));
+        setState('ok');
+      })
+      .catch(() => { if (alive) setState('fail'); });
+    return () => { alive = false; };
+  }, [sNum, from, to]);
+
+  const metaLabel = !surahName ? ''
+    : range.whole ? `سورة ${surahName}`
+    : (range.from ? `سورة ${surahName}، الآيات ${toArabicDigits(range.from)}–${toArabicDigits(range.to)}` : `سورة ${surahName}`);
+
+  const togglePlay = () => {
+    if (!onPlaySurah) return;
+    if (playing) {
+      if (onStopAudio) onStopAudio();
+      setPlaying(false);
+      return;
+    }
+    setAudioFailed(false);
+    setPlaying(true);
+    Promise.resolve(onPlaySurah(sNum, range.from || 1, range.to || null))
+      .then((res) => { setPlaying(false); if (res && res.failed) setAudioFailed(true); })
+      .catch(() => { setPlaying(false); setAudioFailed(true); });
+  };
+
+  return (
+    <div style={s.verseCard}>
+      <div style={s.verseCardLabel}>
+        <span>قَالَ اللهُ تَعَالَى{surahName ? ` — سُورَةُ ${surahName}` : ''}</span>
+      </div>
+      {state === 'ok' && <div style={s.surahText}>{body}</div>}
+      <div style={s.verseFooter}>
+        {metaLabel && <div style={s.verseMeta}>{metaLabel}</div>}
+        {sNum && (
+          <button
+            type="button"
+            onClick={togglePlay}
+            style={s.versePlayBtn}
+            aria-label={playing ? 'إيقاف التلاوة' : 'تشغيل التلاوة كاملة'}
+          >
+            {playing ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
+            <span>{playing ? 'إيقاف' : 'استمع للتلاوة (كاملة)'}</span>
           </button>
         )}
       </div>
@@ -1778,6 +2052,7 @@ const s = {
   verseCard: { background: 'linear-gradient(135deg, #FBF3DE 0%, #F8EBC8 100%)', border: '1px solid rgba(201, 169, 97, 0.5)', borderRadius: 14, padding: '12px 14px' },
   verseCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#8C6B1E', fontSize: 12, fontWeight: 600, marginBottom: 6 },
   verseText: { fontSize: 19, color: '#5C4410', textAlign: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.1, margin: '6px 0 6px' },
+  surahText: { fontSize: 19, color: '#5C4410', textAlign: 'justify', textAlignLast: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.3, margin: '6px 2px 8px', direction: 'rtl' },
   verseMeta: { fontSize: 12, textAlign: 'center', color: '#8C6B1E', fontWeight: 500 },
   verseFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 },
   versePlayBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#8C6B1E', color: '#FBF3DE', border: 'none', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
