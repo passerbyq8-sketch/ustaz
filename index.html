@@ -1119,12 +1119,24 @@ function App() {
     recognition.continuous = true;       // keep listening across pauses until the user taps the mic off
     recognition.interimResults = true;
     recognition.onresult = (event) => {
-      let final = '', interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) final += event.results[i][0].transcript;
-        else interim += event.results[i][0].transcript;
+      // This ar-SA engine emits CUMULATIVE isFinal results (each later final RE-INCLUDES the
+      // earlier text), so appending stacks/duplicates. Mirror the proven call-mode handler:
+      // rebuild from index 0 with a prefix-merge and REPLACE the committed buffer (not +=).
+      let finalText = '', interim = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          const seg = t.trim();
+          if (!seg) continue;
+          if (!finalText) finalText = seg;
+          else if (seg.startsWith(finalText)) finalText = seg;        // cumulative restatement -> replace
+          else if (finalText.startsWith(seg)) { /* shorter prefix already covered -> skip */ }
+          else finalText = finalText + ' ' + seg;                     // genuine new segment -> append
+        } else {
+          interim += t;
+        }
       }
-      transcriptRef.current = transcriptRef.current + final;
+      transcriptRef.current = finalText;                              // REPLACE (not append) — dedupes cumulative finals
       setInput(baseTextRef.current + transcriptRef.current + interim);
     };
     recognition.onend = () => {
