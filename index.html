@@ -32,6 +32,11 @@
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.08); }
   }
+  /* Live call screen ring pulse (Layer 1) */
+  @keyframes callPulse {
+    0%, 100% { transform: scale(0.92); opacity: 0.55; }
+    50% { transform: scale(1.08); opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -225,6 +230,8 @@ const MoonStarsIcon = (p) => <Icon {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7
 const PlayIcon = (p) => <Icon {...p}><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></Icon>;
 const PauseIcon = (p) => <Icon {...p}><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></Icon>;
 const ListCheckIcon = (p) => <Icon {...p}><path d="M3 17l2 2 4-4"/><path d="M3 7l2 2 4-4"/><line x1="13" y1="6" x2="21" y2="6"/><line x1="13" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></Icon>;
+const PhoneCallIcon = (p) => <Icon {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></Icon>;
+const PhoneOffIcon = (p) => <Icon {...p}><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></Icon>;
 
 // ============================================================
 // آيات يومية (تتجدد حسب اليوم — ٣٠ آية تكفي شهر)
@@ -1614,6 +1621,7 @@ function App() {
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} />;
+  if (screen === 'call') return <CallScreen profileName={profile?.name} onExit={() => setScreen('chat')} />;
 
   return (
     <div style={s.chatContainer}>
@@ -1630,6 +1638,9 @@ function App() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setScreen('call')} style={s.settingsBtn} aria-label="مكالمة صوتية مباشرة">
+            <PhoneCallIcon size={18} color="#FAF7F2" />
+          </button>
           <button onClick={() => { if (voiceMode) stopSpeaking(); setVoiceMode(!voiceMode); }} style={{ ...s.settingsBtn, background: voiceMode ? '#2C5F5D' : '#F0EBE0' }}>
             {voiceMode ? <VolumeIcon size={18} color="#FAF7F2" /> : <VolumeOffIcon size={18} color="#2C5F5D" />}
           </button>
@@ -2138,6 +2149,63 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
 }
 
 // ============================================================
+// Live call screen (Layer 1 — UI ONLY: no mic / STT / TTS / AI yet)
+// ============================================================
+// Placeholder visual states only. Real audio events wire in Layer 2+.
+function CallScreen({ profileName, onExit }) {
+  const [callState, setCallState] = useState('listening'); // 'listening' | 'thinking' | 'speaking'
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Accessibility: respect reduced-motion — fall back to a static (non-pulsing) ring.
+  const reduceMotion = (typeof window !== 'undefined' && window.matchMedia)
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+
+  const STATES = {
+    listening: { label: 'أستمع إليك...',     ring: '#3FA66A',                 speed: '2.4s' },
+    thinking:  { label: 'لحظة...',            ring: 'rgba(201, 169, 97, 0.55)', speed: '3.2s' },
+    speaking:  { label: 'المربّي يتحدّث...',  ring: '#C9A961',                 speed: '1.2s' },
+  };
+  const cs = STATES[callState] || STATES.listening;
+
+  // TEMPORARY PLACEHOLDER (Layer 1 only): tap the avatar to cycle the three visual states so the
+  // owner can preview them without any real audio. Replaced by real audio events in Layer 2.
+  const cycleState = () => setCallState((p) =>
+    p === 'listening' ? 'thinking' : p === 'thinking' ? 'speaking' : 'listening');
+
+  const ringStyle = {
+    ...s.callRing,
+    borderColor: cs.ring,
+    animation: reduceMotion ? 'none' : `callPulse ${cs.speed} ease-in-out infinite`,
+  };
+
+  return (
+    <div style={s.callContainer}>
+      <div style={s.callTopLabel}>مكالمة مع المربّي</div>
+      <div style={s.callCenter}>
+        <div style={s.callAvatarWrap} onClick={cycleState}>
+          <div style={ringStyle} />
+          <div style={s.callAvatar}><MoonStarsIcon size={56} color="#E0B96B" /></div>
+        </div>
+        <div style={s.callStatusLabel}>{cs.label}</div>
+        {profileName && <div style={s.callSubLabel}>{profileName}</div>}
+        {/* Placeholder hint — Layer 1 only */}
+        <div style={s.callHint}>اضغط الدائرة لتجربة الحالات (مؤقّت)</div>
+      </div>
+      <div style={s.callControls}>
+        <button onClick={() => setIsMuted((m) => !m)} style={s.callMuteBtn}>
+          {isMuted ? <MicOffIcon size={24} color="#2C5F5D" /> : <MicIcon size={24} color="#2C5F5D" />}
+          <span style={s.callBtnLabel}>{isMuted ? 'مكتوم' : 'كتم'}</span>
+        </button>
+        <button onClick={onExit} style={s.callEndBtn}>
+          <PhoneOffIcon size={24} color="#FAF7F2" />
+          <span style={{ ...s.callBtnLabel, color: '#FAF7F2' }}>إنهاء</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // الأنماط
 // ============================================================
 const s = {
@@ -2234,6 +2302,21 @@ const s = {
   logContent: { color: '#2C2C2C', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
   logTime: { fontSize: 11, color: '#8A8378', marginTop: 6 },
   dangerBtn: { padding: 14, background: 'transparent', color: '#C44536', border: '1px solid #C44536', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+
+  // ===== Live call screen (Layer 1 — UI only) =====
+  callContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(160deg, #2C5F5D 0%, #1C3D3C 100%)', padding: '32px 24px', direction: 'rtl' },
+  callTopLabel: { color: 'rgba(250, 247, 242, 0.7)', fontSize: 15, fontWeight: 600, letterSpacing: '0.3px', marginTop: 8 },
+  callCenter: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
+  callAvatarWrap: { position: 'relative', width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+  callRing: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: '50%', border: '3px solid #C9A961' },
+  callAvatar: { width: 120, height: 120, borderRadius: '50%', background: 'rgba(201, 169, 97, 0.16)', border: '1px solid rgba(201, 169, 97, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  callStatusLabel: { color: '#FAF7F2', fontSize: 22, fontWeight: 700, fontFamily: "'Amiri', 'Tajawal', serif", marginTop: 8 },
+  callSubLabel: { color: 'rgba(250, 247, 242, 0.6)', fontSize: 14 },
+  callHint: { color: 'rgba(250, 247, 242, 0.35)', fontSize: 12, marginTop: 4 },
+  callControls: { display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'center', paddingBottom: 16 },
+  callMuteBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  callEndBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: 'linear-gradient(135deg, #C44536 0%, #A03828 100%)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  callBtnLabel: { fontSize: 12, fontWeight: 600, color: '#2C5F5D' },
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
