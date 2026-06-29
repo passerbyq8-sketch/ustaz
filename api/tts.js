@@ -27,7 +27,7 @@
 const FEMALE_VOICE_ID = 'VwC51uc4PUblWEJSPzeo';  // صوت بناتي للبنات
 const MALE_VOICE_ID   = 'G1QUjBCuRBbLbAmYlTgl';  // صوت رجالي للأولاد
 
-const DEFAULT_VOICE_ID = FEMALE_VOICE_ID;
+const DEFAULT_VOICE_ID = MALE_VOICE_ID; // fail-safe: missing/unknown gender → male tutor voice (never an unexpected female voice in a kids' app)
 
 // ============================================================
 // إعدادات النموذج
