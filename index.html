@@ -111,6 +111,11 @@ for (const _k in SURAH_NUMBERS) { SURAH_NUMBERS_NORM[normalizeArabic(_k)] = SURA
 const SURAH_NAMES = {};
 for (const _name in SURAH_NUMBERS) { const _n = SURAH_NUMBERS[_name]; if (!SURAH_NAMES[_n]) SURAH_NAMES[_n] = _name; }
 
+// Revelation place per the standard Egyptian (1924) mushaf header classification.
+// These 28 surahs are Medinan (مدنية); all others are Meccan (مكية).
+const MEDINAN_SURAHS = new Set([2,3,4,5,8,9,13,22,24,33,47,48,49,55,57,58,59,60,61,62,63,64,65,66,76,98,99,110]);
+const revelationLabel = (n) => MEDINAN_SURAHS.has(n) ? 'مدنية' : 'مكية';
+
 // ============================================================
 // المصحف الكنسي (Hafs/Uthmani) — يُحمَّل مرة واحدة من /quran-uthmani.json
 // ============================================================
@@ -1054,6 +1059,12 @@ function App() {
   // تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
   useEffect(() => { loadQuran().catch(() => {}); }, []);
 
+  // Stop any shared audio (greeting TTS or recitation) when leaving a screen. App never
+  // unmounts on a screen switch, so playing Audio() objects in audioRef survive; this cleanup
+  // fires on every `screen` transition. Covers chat→memorize (greeting) and memorize→chat
+  // (recitation), reusing the same cancelAudio() CallScreen's teardown uses.
+  useEffect(() => { return () => cancelAudio(); }, [screen]);
+
   // Mobile autoplay fix: with chat voice ON by default, the first spoken reply (the greeting) plays
   // after an async callAI gap, so user-activation can lapse and mobile Safari/Chrome may block it.
   // Prime the audio channel once, synchronously inside the first real gesture anywhere in the app
@@ -1960,7 +1971,7 @@ function App() {
             style={s.modeSelect}
             aria-label="وضع المربّي"
           >
-            {MODE_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+            {MODE_OPTIONS.map((o) => <option key={o.id} value={o.id} style={{ color: '#2C5F5D', background: '#FFFFFF' }}>{o.label}</option>)}
           </select>
           <button onClick={() => setScreen('call')} style={s.settingsBtn} aria-label="مكالمة صوتية مباشرة">
             <PhoneCallIcon size={18} color="#FAF7F2" />
@@ -2560,7 +2571,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
   const [view, setView] = useState('picker');        // 'picker' | 'drill'
   const [selectedSurah, setSelectedSurah] = useState(null); // 1..114
   const [startAyah, setStartAyah] = useState(1);
-  const [granularity, setGranularity] = useState('ayah'); // 'ayah' | 'word' (default ayah)
+  const [granularity, setGranularity] = useState('word'); // 'ayah' | 'word' (default word — one word per reveal)
   const [revealedCount, setRevealedCount] = useState(0);
 
   const isFemale = profile?.gender === 'female';
@@ -2628,17 +2639,24 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah }) {
         <div style={s.memHeading}>{MEM.PICKER_HEADING}</div>
         {!ready && <div style={s.memLoading}>{MEM.LOADING}</div>}
         <div style={s.memList}>
-          {Array.from({ length: 114 }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              onClick={() => { setSelectedSurah(n); setStartAyah(1); }}
-              style={{ ...s.memRow, ...(selectedSurah === n ? s.memRowActive : {}) }}
-            >
-              <span style={s.memRowNum}>{toArabicDigits(n)}</span>
-              <span style={{ ...s.memRowName, ...(selectedSurah === n ? { color: '#FAF7F2' } : {}) }}>{SURAH_NAMES[n]}</span>
-              <span style={s.memRowCount}>{counts && counts[n] ? `${toArabicDigits(counts[n])} ${MEM.GRAN_AYAH}` : ''}</span>
-            </button>
-          ))}
+          {Array.from({ length: 114 }, (_, i) => i + 1).map((n) => {
+            const active = selectedSurah === n;
+            return (
+              <button
+                key={n}
+                onClick={() => { setSelectedSurah(n); setStartAyah(1); }}
+                style={{ ...s.memRow, ...(active ? s.memRowActive : {}) }}
+              >
+                {/* RTL row: number badge (rightmost) · name + ayah count (center) · revelation label (leftmost) */}
+                <span style={s.memRowNum}>{toArabicDigits(n)}</span>
+                <span style={s.memRowNameWrap}>
+                  <span style={{ ...s.memRowName, ...(active ? { color: '#FAF7F2' } : {}) }}>{SURAH_NAMES[n]}</span>
+                  <span style={{ ...s.memRowCount, ...(active ? { color: 'rgba(250,247,242,0.8)' } : {}) }}>{counts && counts[n] ? `${toArabicDigits(counts[n])} ${MEM.GRAN_AYAH}` : ''}</span>
+                </span>
+                <span style={s.memRowReveal}>{revelationLabel(n)}</span>
+              </button>
+            );
+          })}
         </div>
         {selectedSurah && (
           <div style={s.memStartBar}>
@@ -2816,12 +2834,14 @@ const s = {
   memBackBtn: { height: 36, padding: '0 16px', borderRadius: 12, background: 'rgba(250, 247, 242, 0.12)', color: '#FAF7F2', border: '1px solid rgba(250, 247, 242, 0.15)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
   memHeading: { fontSize: 16, fontWeight: 700, color: '#2C5F5D', textAlign: 'center', padding: '14px 16px 6px' },
   memLoading: { fontSize: 14, color: '#6B6358', textAlign: 'center', padding: 8 },
-  memList: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 14px 16px' },
-  memRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 14, background: '#FFFFFF', border: '1px solid #E5DDD0', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", textAlign: 'right', width: '100%' },
+  memList: { flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8, padding: '8px 14px 16px', alignContent: 'start' },
+  memRow: { display: 'flex', alignItems: 'center', gap: 8, minHeight: 52, padding: '8px 10px', borderRadius: 14, background: '#FFFFFF', border: '1px solid #E5DDD0', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", textAlign: 'right' },
   memRowActive: { background: '#2C5F5D', borderColor: '#2C5F5D' },
-  memRowNum: { minWidth: 34, height: 34, borderRadius: 10, background: 'rgba(201, 169, 97, 0.18)', color: '#8C6B1E', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  memRowName: { flex: 1, fontSize: 16, fontWeight: 600, color: '#2C5F5D' },
-  memRowCount: { fontSize: 12, color: '#8C6B1E', fontWeight: 500 },
+  memRowNum: { flexShrink: 0, minWidth: 32, height: 32, borderRadius: 10, background: 'rgba(201, 169, 97, 0.18)', color: '#8C6B1E', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  memRowNameWrap: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden' },
+  memRowName: { fontSize: 15, fontWeight: 600, color: '#2C5F5D', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  memRowCount: { fontSize: 11, color: '#8C6B1E', fontWeight: 500 },
+  memRowReveal: { flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#8C6B1E', background: 'rgba(201,169,97,0.15)', borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' },
   memStartBar: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#FFFFFF', borderTop: '1px solid #E5DDD0' },
   memStartLabel: { fontSize: 14, fontWeight: 600, color: '#2C5F5D', whiteSpace: 'nowrap' },
   memAyahSelect: { flex: 1, height: 40, borderRadius: 12, border: '2px solid #E5DDD0', background: '#FAF7F2', color: '#2C5F5D', fontFamily: "'Tajawal', sans-serif", fontSize: 15, padding: '0 10px' },
