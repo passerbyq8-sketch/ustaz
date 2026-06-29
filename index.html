@@ -983,7 +983,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
-  const [voiceMode, setVoiceMode] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(true); // chat TTS on by default; user can mute via the header speaker button
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState('');
@@ -993,6 +993,7 @@ function App() {
   const baseTextRef = useRef('');        // input snapshot when dictation (re)starts — new speech is appended after it
   const shouldListenRef = useRef(false); // desired mic state; true between start-tap and stop-tap (survives auto-restarts)
   const audioRef = useRef(null);          // عنصر الصوت الوحيد النشِط (TTS أو تلاوة)
+  const audioUnlockedRef = useRef(false); // true after the one-time first-gesture audio unlock (mobile autoplay)
   const sequenceIdRef = useRef(0);        // رمز إلغاء تسلسل الصوت الجاري
   const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
@@ -1040,6 +1041,41 @@ function App() {
 
   // تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
   useEffect(() => { loadQuran().catch(() => {}); }, []);
+
+  // Mobile autoplay fix: with chat voice ON by default, the first spoken reply (the greeting) plays
+  // after an async callAI gap, so user-activation can lapse and mobile Safari/Chrome may block it.
+  // Prime the audio channel once, synchronously inside the first real gesture anywhere in the app
+  // (the onboarding tap always precedes the greeting; also covers a returning user who lands in chat).
+  // Best-effort and fully guarded — must never break onboarding or the greeting. Does NOT touch the
+  // existing blob-play path; it only unlocks the channel.
+  const unlockAudioPlayback = () => {
+    if (audioUnlockedRef.current) return; // one-time only
+    audioUnlockedRef.current = true;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        const ctx = new Ctx();
+        if (ctx.state === 'suspended' && ctx.resume) ctx.resume().catch(() => {});
+        // A 1-sample silent buffer started within the gesture satisfies the user-activation requirement.
+        const src = ctx.createBufferSource();
+        src.buffer = ctx.createBuffer(1, 1, 22050);
+        src.connect(ctx.destination);
+        src.start(0);
+      }
+    } catch (e) { /* fail silent — never block onboarding or audio */ }
+  };
+
+  useEffect(() => {
+    const handler = () => { unlockAudioPlayback(); };
+    const opts = { capture: true };
+    // once:true auto-removes each after the first gesture; the ref guard makes a second call a no-op.
+    window.addEventListener('pointerdown', handler, { ...opts, once: true });
+    window.addEventListener('keydown', handler, { ...opts, once: true });
+    return () => {
+      window.removeEventListener('pointerdown', handler, opts);
+      window.removeEventListener('keydown', handler, opts);
+    };
+  }, []);
 
   // إعداد التعرف على الصوت
   useEffect(() => {
