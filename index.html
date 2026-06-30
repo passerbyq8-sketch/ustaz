@@ -1199,6 +1199,16 @@ function App() {
         src.start(0);
       }
     } catch (e) { /* fail silent — never block onboarding or audio */ }
+    // iOS: HTML5 <audio> has a SEPARATE activation gate from AudioContext. The blob-play path
+    // uses `new Audio()`, so we must also prime an HTML5 element here, inside the gesture, or
+    // iOS keeps audio muted. A 1-sample silent WAV (built inline as a Blob — no network) does it.
+    try {
+      const wav = new Uint8Array([82,73,70,70,38,0,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,64,31,0,0,128,62,0,0,2,0,16,0,100,97,116,97,2,0,0,0,0,0]);
+      const url = URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }));
+      const u = new Audio(url);
+      const pr = u.play();
+      if (pr && pr.then) pr.then(() => { try { u.pause(); } catch (e) {} URL.revokeObjectURL(url); }).catch(() => { try { URL.revokeObjectURL(url); } catch (e) {} });
+    } catch (e) { /* fail silent — never block onboarding or audio */ }
   };
 
   useEffect(() => {
