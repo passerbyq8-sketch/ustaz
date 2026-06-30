@@ -586,7 +586,12 @@ const buildSystemPrompt = (name, age, gender, mode = 'chat') => {
   const ageNum = parseInt(age, 10) || 0;
   const isAdult = ageNum >= 18;
   const genderClause = gender === 'female' ? 'أنثى (استخدم صيغة المؤنث في كل خطاب: عَلَيْكِ، أَنْتِ، تَدْرِينَ، تَفْعَلِينَ)' : 'ذكر (استخدم صيغة المذكر في كل خطاب: عَلَيْكَ، أَنْتَ، تَدْرِي، تَفْعَلُ)';
-  return `أنت "المربّي" — معلمٌ مسلمٌ محبٌّ، رحيمٌ دافئٌ كأنّك شيخٌ في الحيّ يعرفه أهله ويثقون فيه. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء. اسم من تخاطبه ${name} وعمره ${age} سنة وجنسه ${genderClause}.${isAdult ? ' تنبيهٌ جوهريٌّ يَعلو على كل ما يأتي بعده من أمثلةٍ موجَّهةٍ للأطفال: مُخاطَبُك بالغٌ راشدٌ لا طفل، فخاطبه مخاطبة الكبار للكبار بعقلانيةٍ واحترامٍ وعمق، واترك أسلوب الأطفال وألعابهم وتبسيطهم؛ خذ من تلك الأمثلة روحَها التربوية فقط لا أسلوبَها الطفولي.' : ''}
+  const isFemalePersona = gender === 'female';
+  const openingIdentity = isFemalePersona
+    ? 'أنتِ "المربّية" — معلِّمةٌ مسلمةٌ محبَّةٌ، رحيمةٌ دافئةٌ كأنّكِ مربِّيةٌ فاضلةٌ في الحيّ تعرفها الأمّهاتُ ويثقن بها. لستِ مساعدةً ذكيةً ولا روبوتاً، بل أنتِ شخصيةٌ كاملةٌ لها قلبٌ ودفء.\n\n⚠️ تنبيهٌ جوهريٌّ على هُويّتكِ: أنتِ أنثى — "المربّية". هذا الدليلُ كلُّه مكتوبٌ بصيغة المذكّر؛ فكلُّ فعلٍ أو أمرٍ أو وصفٍ موجَّهٍ إليكِ أو واصفٍ لكِ اقرئيه وطبّقيه بصيغة المؤنث، وتحدّثي عن نفسكِ بالمؤنث دائمًا (معلِّمة، مربِّية، مستشارة، وأختًا كبرى لا أخًا أكبر). هذا يخصُّ حديثكِ عن نفسكِ فقط؛ أمّا مخاطبتُكِ للطفل فتبقى حسب جنسه كما هو محدَّدٌ أدناه، وردُّ السلام الثابت لا يتغيّر بحال.'
+    : 'أنت "المربّي" — معلمٌ مسلمٌ محبٌّ، رحيمٌ دافئٌ كأنّك شيخٌ في الحيّ يعرفه أهله ويثقون فيه. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء.';
+  const addressVerb = isFemalePersona ? 'تخاطبينه' : 'تخاطبه';
+  return `${openingIdentity} اسم من ${addressVerb} ${name} وعمره ${age} سنة وجنسه ${genderClause}.${isAdult ? ' تنبيهٌ جوهريٌّ يَعلو على كل ما يأتي بعده من أمثلةٍ موجَّهةٍ للأطفال: مُخاطَبُك بالغٌ راشدٌ لا طفل، فخاطبه مخاطبة الكبار للكبار بعقلانيةٍ واحترامٍ وعمق، واترك أسلوب الأطفال وألعابهم وتبسيطهم؛ خذ من تلك الأمثلة روحَها التربوية فقط لا أسلوبَها الطفولي.' : ''}
 
 ═══ مخاطبة الطفل (قاعدة جوهرية) ═══
 
@@ -2071,7 +2076,7 @@ function App() {
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} />;
-  if (screen === 'call') return <CallScreen profileName={profile?.name} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
+  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
   // المحفّظ — full screen (mirrors CallScreen). Husary playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('chat')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
@@ -2084,7 +2089,7 @@ function App() {
             <MoonStarsIcon size={20} color="#E0B96B" />
           </div>
           <div>
-            <div style={s.headerTitle}>المربّي</div>
+            <div style={s.headerTitle}>{profile?.gender === 'female' ? 'المربّية' : 'المربّي'}</div>
             <div style={s.headerSubtitle}>
               {isSpeaking ? '🔊 يتحدث...' : isListening ? '🎤 يستمع...' : `${profile?.name} • ${profile?.age} سنوات`}
             </div>
@@ -2100,7 +2105,7 @@ function App() {
               else if (opt.kind === 'chatMode') setChatMode(opt.value); // in-chat style only
             }}
             style={s.modeSelect}
-            aria-label="وضع المربّي"
+            aria-label={profile?.gender === 'female' ? 'وضع المربّية' : 'وضع المربّي'}
           >
             {MODE_OPTIONS.map((o) => <option key={o.id} value={o.id} style={{ color: '#2C5F5D', background: '#FFFFFF' }}>{o.label}</option>)}
           </select>
@@ -2597,7 +2602,7 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
             ) : (
               messages.map((m, i) => (
                 <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#F0EBE0' : '#E8F0EE' }}>
-                  <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : '👨‍🏫 المربّي'}</div>
+                  <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : (profile?.gender === 'female' ? '👩‍🏫 المربّية' : '👨‍🏫 المربّي')}</div>
                   <div style={s.logContent}>{m.role === 'assistant' ? formatForLog(m.content) : m.content}</div>
                   <div style={s.logTime}>{new Date(m.timestamp).toLocaleString('ar-SA')}</div>
                 </div>
@@ -2619,7 +2624,7 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
 // ============================================================
 // callState is owned by App and driven by real audio events (tap → listening → thinking →
 // speaking → idle). The avatar is tap-to-talk; Mute gates the mic. No audio logic lives here.
-function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTalk, onExit }) {
+function CallScreen({ profileName, gender, callState, heard, isMuted, onToggleMute, onTalk, onExit }) {
   // Accessibility: respect reduced-motion — fall back to a static (non-pulsing) ring.
   const reduceMotion = (typeof window !== 'undefined' && window.matchMedia)
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
@@ -2628,7 +2633,7 @@ function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTa
     idle:      { label: 'اضغط للتحدّث',       ring: 'rgba(250, 247, 242, 0.35)', speed: '3.6s' },
     listening: { label: 'أستمع إليك...',     ring: '#3FA66A',                 speed: '2.4s' },
     thinking:  { label: 'لحظة...',            ring: 'rgba(201, 169, 97, 0.55)', speed: '3.2s' },
-    speaking:  { label: 'المربّي يتحدّث...',  ring: '#C9A961',                 speed: '1.2s' },
+    speaking:  { label: gender === 'female' ? 'المربّية تتحدّث...' : 'المربّي يتحدّث...',  ring: '#C9A961',                 speed: '1.2s' },
   };
   const cs = STATES[callState] || STATES.idle;
 
@@ -2644,7 +2649,7 @@ function CallScreen({ profileName, callState, heard, isMuted, onToggleMute, onTa
 
   return (
     <div style={s.callContainer}>
-      <div style={s.callTopLabel}>مكالمة مع المربّي</div>
+      <div style={s.callTopLabel}>{gender === 'female' ? 'مكالمة مع المربّية' : 'مكالمة مع المربّي'}</div>
       <div style={s.callCenter}>
         <div style={{ ...s.callAvatarWrap, cursor: canTalk ? 'pointer' : 'default' }} onClick={canTalk ? onTalk : undefined}>
           <div style={ringStyle} />
