@@ -25,7 +25,7 @@
 // اختيار الصوت حسب جنس الطفل
 // ============================================================
 const FEMALE_VOICE_ID = 'qi4PkV9c01kb869Vh7Su';  // صوت بناتي للبنات
-const MALE_VOICE_ID   = 'G1QUjBCuRBbLbAmYlTgl';  // صوت رجالي للأولاد
+const MALE_VOICE_ID   = 'G1HOkzin3NMwRHSq60UI';  // صوت رجالي للأولاد
 
 const DEFAULT_VOICE_ID = MALE_VOICE_ID; // fail-safe: missing/unknown gender → male tutor voice (never an unexpected female voice in a kids' app)
 
