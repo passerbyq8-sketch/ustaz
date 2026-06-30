@@ -56,20 +56,16 @@ export default async function handler(req, res) {
     });
   }
 
-  const { text, voiceId, gender } = req.body;
+  const { text, gender } = req.body;
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: 'النص مطلوب' });
   }
 
-  // ترتيب الأولويات لاختيار الصوت
+  // Server-authoritative: voice is chosen ONLY by gender. We intentionally ignore any
+  // client-sent voiceId so a stale/cached old client cannot override with an outdated voice.
   let useVoiceId = DEFAULT_VOICE_ID;
-  if (voiceId) {
-    useVoiceId = voiceId;
-  } else if (gender === 'male') {
-    useVoiceId = MALE_VOICE_ID;
-  } else if (gender === 'female') {
-    useVoiceId = FEMALE_VOICE_ID;
-  }
+  if (gender === 'female') useVoiceId = FEMALE_VOICE_ID;
+  else if (gender === 'male') useVoiceId = MALE_VOICE_ID;
 
   try {
     const response = await fetch(
