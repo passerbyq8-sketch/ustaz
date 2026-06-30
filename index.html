@@ -123,6 +123,41 @@ const normalizeForRecite = (str) => (str || '')
 // are dropped by filter(Boolean), so they never count as words.
 const tokenizeForRecite = (str) => normalizeForRecite(str).split(/\s+/).filter(Boolean);
 
+const collapseRepeats = (text) => {
+  let words = (text || '').split(/\s+/).filter(Boolean);
+  if (words.length < 3) return text;
+  let changed = true, guard = 0;
+  while (changed && guard++ < 12) {
+    changed = false;
+    for (let w = 1; w <= 4; w++) {
+      const out = [];
+      let i = 0;
+      while (i < words.length) {
+        let reps = 1;
+        while (i + (reps + 1) * w <= words.length) {
+          let same = true;
+          for (let j = 0; j < w; j++) {
+            if (words[i + j] !== words[i + reps * w + j]) { same = false; break; }
+          }
+          if (!same) break;
+          reps++;
+        }
+        if (reps >= 3) {
+          for (let r = 0; r < 2; r++)
+            for (let j = 0; j < w; j++) out.push(words[i + j]);
+          i += reps * w;
+          changed = true;
+        } else {
+          out.push(words[i]);
+          i++;
+        }
+      }
+      words = out;
+    }
+  }
+  return words.join(' ');
+};
+
 // Lenient per-word similarity: a heard word this close to an expected word counts as correct.
 // False red in the Quran is worse than a missed slip (Musaed), so the bar is forgiving.
 const RECITE_LENIENT_THRESHOLD = 0.8;
@@ -1909,7 +1944,7 @@ function App() {
     callActiveRef.current = false;
     if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
     try { callRecognitionRef.current?.stop(); } catch (e) {}
-    const text = callTranscriptRef.current.trim();
+    const text = collapseRepeats(callTranscriptRef.current.trim());
     if (!text) { setCallState('idle'); return; } // never send an empty turn
     if (callTurnRef.current) callTurnRef.current(text);
   };
