@@ -1114,6 +1114,9 @@ function App() {
   const profileRef = useRef(null);        // synchronous mirror of profile for the audio path — avoids the stale-closure male voice on the greeting
   const audioUnlockedRef = useRef(false); // true after the one-time first-gesture audio unlock (mobile autoplay)
   const sequenceIdRef = useRef(0);        // رمز إلغاء تسلسل الصوت الجاري
+  const audioElRef = useRef(null);     // single gesture-unlocked element, REUSED for TTS (iOS autoplay)
+  const audioDoneRef = useRef(null);    // current TTS playback resolver, so takeAudioFocus can cancel it cleanly
+  const audioPlayTokenRef = useRef(0);  // invalidates stale pause/ended events on the reused element
   const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
 
@@ -1205,7 +1208,7 @@ function App() {
     try {
       const wav = new Uint8Array([82,73,70,70,38,0,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,64,31,0,0,128,62,0,0,2,0,16,0,100,97,116,97,2,0,0,0,0,0]);
       const url = URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }));
-      const u = new Audio(url);
+      const u = audioElRef.current || (audioElRef.current = new Audio()); u.src = url;
       const pr = u.play();
       if (pr && pr.then) pr.then(() => { try { u.pause(); } catch (e) {} URL.revokeObjectURL(url); }).catch(() => { try { URL.revokeObjectURL(url); } catch (e) {} });
     } catch (e) { /* fail silent — never block onboarding or audio */ }
@@ -1309,10 +1312,15 @@ function App() {
 
   // إيقاف الصوت النشِط حالياً (دون إلغاء التسلسل) — يُستخدم للتبديل بين المصادر
   const takeAudioFocus = () => {
+    audioPlayTokenRef.current++;                 // stale TTS events become no-ops
+    const f = audioDoneRef.current;
+    audioDoneRef.current = null;
+    if (f) { try { f(); } catch (e) {} }          // resolve+detach the in-flight TTS playback
     if (audioRef.current) {
-      try { audioRef.current.pause(); } catch (e) {}
+      try { audioRef.current.pause(); } catch (e) {}   // recitation path: pause fires its onpause -> resolves
       audioRef.current = null;
     }
+    try { if (audioElRef.current) audioElRef.current.pause(); } catch (e) {}  // actually stop the reused TTS element
   };
 
   // إلغاء التسلسل الجاري بالكامل (رسالة جديدة / بدء استماع / إيقاف يدوي)
@@ -1412,22 +1420,28 @@ function App() {
     r.consumed = true;
     takeAudioFocus();
     if (r.kind === 'blob') {
-      const audio = new Audio(r.url);
+      const audio = audioElRef.current || (audioElRef.current = new Audio());  // REUSE the unlocked element (iOS)
       audioRef.current = audio;
+      const myPlay = ++audioPlayTokenRef.current;
       await new Promise((resolve) => {
         let settled = false;
-        const done = () => {
+        const finish = () => {
           if (settled) return;
           settled = true;
-          URL.revokeObjectURL(r.url);
+          audio.onended = null; audio.onerror = null; audio.onpause = null;
+          try { URL.revokeObjectURL(r.url); } catch (e) {}
           if (audioRef.current === audio) audioRef.current = null;
+          if (audioDoneRef.current === finish) audioDoneRef.current = null;
           resolve();
         };
-        audio.onended = done;
-        audio.onerror = done;
-        audio.onpause = done; // سحب التركيز من مصدر آخر يُنهي الانتظار
+        audioDoneRef.current = finish;                                   // lets takeAudioFocus cancel cleanly
+        const guard = () => { if (myPlay === audioPlayTokenRef.current) finish(); };  // ignore stale events
+        audio.onended = guard;
+        audio.onerror = guard;
+        audio.onpause = guard;
+        audio.src = r.url;
         const p = audio.play();
-        if (p && p.catch) p.catch(done);
+        if (p && p.catch) p.catch(guard);
       });
       return;
     }
