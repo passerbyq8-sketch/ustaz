@@ -2846,7 +2846,8 @@ function Onboarding({ onStart }) {
   const [gender, setGender] = useState(null);
   const [showAdultInput, setShowAdultInput] = useState(false); // عند اختيار "أكبر من ١٨" نكشف حقل العمر الدقيق
   const [adultAge, setAdultAge] = useState('');
-  const adultAgeNum = parseInt(adultAge, 10);
+  const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+  const adultAgeNum = parseInt(toLatinDigits(adultAge), 10);
   const adultAgeValid = adultAgeNum >= 18 && adultAgeNum <= 99;
   return (
     <div style={s.onboardingContainer}>
@@ -2908,10 +2909,8 @@ function Onboarding({ onStart }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16, alignItems: 'stretch' }}>
                 <div style={s.onboardingSubtitle}>اكتب عمرك بالضبط (من ١٨ إلى ٩٩)</div>
                 <input
-                  type="number"
+                  type="text"
                   inputMode="numeric"
-                  min="18"
-                  max="99"
                   value={adultAge}
                   onChange={(e) => setAdultAge(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && adultAgeValid) onStart(name, adultAgeNum, gender); }}
