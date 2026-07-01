@@ -2846,10 +2846,10 @@ function Onboarding({ onStart }) {
   const [gender, setGender] = useState(null);
   const [showAdultInput, setShowAdultInput] = useState(false); // عند اختيار "أكبر من ١٨" نكشف حقل العمر الدقيق
   const [adultAge, setAdultAge] = useState('');
+  const adultInputRef = useRef(null);
   const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
   const adultAgeNum = parseInt(toLatinDigits(adultAge), 10);
   const adultAgeValid = adultAgeNum >= 18 && adultAgeNum <= 99;
-  const _ageDebug = 'raw=[' + adultAge + '] codes=[' + Array.from(String(adultAge)).map(c => c.charCodeAt(0)).join(',') + '] latin=[' + toLatinDigits(adultAge) + '] num=' + adultAgeNum + ' valid=' + adultAgeValid;
   return (
     <div style={s.onboardingContainer}>
       <div style={s.onboardingCard}>
@@ -2900,7 +2900,7 @@ function Onboarding({ onStart }) {
                 <button key={n} onClick={() => { setShowAdultInput(false); setAge(n); setTimeout(() => onStart(name, n, gender), 250); }} style={{ ...s.ageBtn, ...(age === n ? s.ageBtnActive : {}) }}>{n}</button>
               ))}
               <button
-                onClick={() => { setAge(null); setShowAdultInput(true); }}
+                onClick={() => { setAge(null); setShowAdultInput(true); setTimeout(() => { if (adultInputRef.current) adultInputRef.current.focus(); }, 50); }}
                 style={{ ...s.ageBtn, ...s.ageBtnWide, ...(showAdultInput ? s.ageBtnActive : {}) }}
               >
                 أكبر من ١٨
@@ -2910,19 +2910,19 @@ function Onboarding({ onStart }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16, alignItems: 'stretch' }}>
                 <div style={s.onboardingSubtitle}>اكتب عمرك بالضبط (من ١٨ إلى ٩٩)</div>
                 <input
+                  ref={adultInputRef}
                   type="text"
                   inputMode="numeric"
                   value={adultAge}
                   onChange={(e) => setAdultAge(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && adultAgeValid) onStart(name, adultAgeNum, gender); }}
+                  onClick={() => { if (adultInputRef.current) adultInputRef.current.focus(); }}
                   placeholder="مثال: ٣٥"
                   style={{ ...s.onboardingInput, textAlign: 'center' }}
-                  autoFocus
                 />
-                <div style={{ fontSize: 11, color: '#B00', direction: 'ltr', textAlign: 'left', wordBreak: 'break-all', background: '#FFF3F3', padding: 6, borderRadius: 6 }}>{_ageDebug}</div>
                 <button
-                  onClick={() => onStart(name, (adultAgeNum >= 18 && adultAgeNum <= 99) ? adultAgeNum : (parseInt(toLatinDigits(adultAge),10) || 0), gender)}
-                  disabled={false}
+                  onClick={() => adultAgeValid && onStart(name, adultAgeNum, gender)}
+                  disabled={!adultAgeValid}
                   style={{ ...s.primaryBtn, opacity: adultAgeValid ? 1 : 0.4 }}
                 >
                   ابدأ
