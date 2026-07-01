@@ -488,7 +488,7 @@ const parseRichMessage = (text) => {
   let remaining = text;
 
   // أنماط الوسوم
-  const tagPattern = /<(verse|surah|hadith|steps|suggestions)([^>]*)>([\s\S]*?)<\/\1>/g;
+  const tagPattern = /<(verse|surah|hadith|steps|suggestions|board)([^>]*)>([\s\S]*?)<\/\1>/g;
   let lastIndex = 0;
   let match;
   while ((match = tagPattern.exec(text)) !== null) {
@@ -545,6 +545,8 @@ const parseRichMessage = (text) => {
         .map(l => l.replace(/^[-•*]\s*/, '').trim())
         .filter(l => l);
       suggestions = items;
+    } else if (tagName === 'board') {
+      segments.push({ type: 'board', content });
     }
     lastIndex = match.index + match[0].length;
   }
@@ -574,6 +576,14 @@ const formatForTTS = (text) => {
   t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
   // وكذلك السورة الكاملة: يتلوها القارئ الحقيقي عبر الزرّ، لا ينطقها المربّي
   t = t.replace(/<surah[^>]*>[\s\S]*?<\/surah>/g, ' ');
+  // اللوح: يُعرَض مكتوبًا ولا يُنطَق (كالآيات) — يبقى الشرحُ المنطوقُ كلماتٍ سهلة
+  t = t.replace(/<board[^>]*>[\s\S]*?<\/board>/g, ' ');
+  // رموزٌ رياضيّةٌ شائعةٌ خارج <board> → كلماتٌ منطوقة (شبكة أمان)
+  t = t.replace(/×/g, ' في ').replace(/÷/g, ' على ').replace(/√/g, ' الجذر التربيعيّ لـ ')
+       .replace(/≤/g, ' أصغر أو يساوي ').replace(/≥/g, ' أكبر أو يساوي ').replace(/≠/g, ' لا يساوي ')
+       .replace(/²/g, ' تربيع ').replace(/³/g, ' تكعيب ').replace(/\^/g, ' أُس ')
+       .replace(/\+/g, ' زائد ').replace(/−/g, ' ناقص ')
+       .replace(/%/g, ' بالمئة ').replace(/=/g, ' يساوي ');
   // تحويل الأحاديث إلى نص طبيعي للنطق
   t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
     (_, narrator, ruling, content) => ` رَوَى ${narrator}: ${content.trim()}. ${ruling}. `
@@ -850,6 +860,7 @@ ${mode === 'call' ? `
 - **تدرّجْ من الأبسط إلى الأعمق**، واربطِ الفكرةَ بمثالٍ من حياته حين يُعِين.
 - الموادُّ **كلُّها** ميدانُك بعمق — لا تقتصر على القليل منها.
 - **العمرُ يحكم العمق:** للصغار (٤–١٠) إعانةٌ بسيطةٌ مشجِّعةٌ لا درسٌ مطوّل؛ ولليافعين والراشدين عمِّقْ بقدرِ مرحلتهم. وابقَ في نبرةِ المعلّمِ الواثق: لا تتردّدْ ولا تعتذرْ، وصحِّحِ الخطأَ بلطف.
+- **للرياضيّاتِ والرموز:** ضعِ المعادلاتِ والخطواتِ الرمزيّةَ داخلَ وسمِ <board>…</board> — تُعرَضُ مكتوبةً واضحةً ولا تُنطَق، فيبقى شرحُك المنطوقُ كلماتٍ سهلةً تُسمَع. مثال: قُلْ منطوقًا «نطرحُ خمسةً من الطرفين ثمّ نقسمُ على اثنين»، وضعِ العمليّةَ بالأرقامِ والرموزِ في <board>.
 
 ═══ الاسْتِمَاعُ النَّشِط (مَهَارَةٌ حَاسِمَة) ═══
 
@@ -2383,6 +2394,9 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
           if (seg.type === 'steps') {
             return <StepsCard key={i} items={seg.items} />;
           }
+          if (seg.type === 'board') {
+            return <BoardCard key={i} content={seg.content} />;
+          }
           return null;
         })}
       </div>
@@ -2612,6 +2626,19 @@ function StepsCard({ items }) {
           <li key={i} style={s.stepsItem}>{item}</li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+function BoardCard({ content }) {
+  return (
+    <div style={{
+      direction: 'ltr', textAlign: 'left', background: '#F7FAF9',
+      border: '1px solid #D6E3E1', borderRadius: 10, padding: '12px 14px',
+      fontFamily: "'Courier New', monospace", fontSize: 15, lineHeight: 1.9,
+      color: '#1f2b2a', whiteSpace: 'pre-wrap', overflowX: 'auto', width: '100%',
+    }}>
+      {content}
     </div>
   );
 }
