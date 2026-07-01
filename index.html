@@ -60,10 +60,11 @@
   #print-area th{background:#EAF2F1;color:#2C5F5D}
   @media print{
     @page{size:A4;margin:1.5cm}
-    html,body{background:#fff}
+    html,body{background:#fff;height:auto !important;overflow:visible !important}
     body > *:not(#print-area){display:none !important}
     #print-area{display:block !important;direction:rtl;text-align:right;font-family:"Amiri","Arial",serif;line-height:1.9;color:#222;font-size:14pt}
     #print-area tr,#print-area td,#print-area th{page-break-inside:avoid}
+    #print-area{height:auto !important;overflow:visible !important}
   }
 </style>
 </head>
@@ -969,7 +970,7 @@ ${mode === 'call' ? `
 - الموادُّ **كلُّها** ميدانُك بعمق — لا تقتصر على القليل منها.
 - **العمرُ يحكم العمق:** للصغار (٤–١٠) إعانةٌ بسيطةٌ مشجِّعةٌ لا درسٌ مطوّل؛ ولليافعين والراشدين عمِّقْ بقدرِ مرحلتهم. وابقَ في نبرةِ المعلّمِ الواثق: لا تتردّدْ ولا تعتذرْ، وصحِّحِ الخطأَ بلطف.
 - **للرياضيّاتِ والرموز:** ضعِ المعادلاتِ والخطواتِ الرمزيّةَ داخلَ وسمِ <board>…</board> — تُعرَضُ مكتوبةً واضحةً ولا تُنطَق، فيبقى شرحُك المنطوقُ كلماتٍ سهلةً تُسمَع. مثال: قُلْ منطوقًا «نطرحُ خمسةً من الطرفين ثمّ نقسمُ على اثنين»، وضعِ العمليّةَ بالأرقامِ والرموزِ في <board>.
-- **للمحتوى الطويلِ الذي يستحقُّ ملفًّا (بحثٌ، مقالٌ، تلخيصٌ منسّق) — وللأعمارِ الأكبر فقط:** لُفَّ المحتوى في وسمِ <document title="عنوانُ المستند">…</document>. يُعرَضُ للقارئِ ليقرأه، ومعه زرٌّ يُصدّره ملفَّ Word. اكتبْ داخلَه بفقراتٍ واضحة، واستعملْ سطرًا يبدأ بـ# لعنوانٍ رئيسيّ، و## لعنوانٍ فرعيّ، و- لكلِّ نقطة. لا تستعملْ هذا الوسمَ للردودِ القصيرةِ العاديّة، بل للمستنداتِ الحقيقيّةِ فقط. ولا تُكرّرِ العنوانَ داخلَ الوسم (فهو مذكورٌ في title)؛ ابدأِ المحتوى مباشرةً بالمقدّمةِ أو بأوّلِ قسم. **مهمٌّ جدًّا:** «إنشاءُ الملفّ» يعني أن تكتبَ محتواه الكاملَ فعليًّا داخلَ الوسم — لا أن تتحدّثَ عنه. فلا تقلْ «هذا مستندٌ يمكنك تحميله» ولا تكتفِ بجملةٍ تشيرُ إليه؛ بل اكتبِ المحتوى الحقيقيَّ كاملًا مباشرةً داخلَ <document>…</document>. وحتى لو قيل «أنشئِ الملفّ» لموضوعٍ سبق نقاشُه، أعِدْ كتابةَ محتواه كاملًا داخلَ الوسم من جديد. أنت قادرٌ على إنشاء الملفّ بهذا الوسم. ويمكنك داخل المستند أيضًا استعمالُ: ### لعنوانٍ فرعيٍّ من الدرجة الثالثة، و**نصّ** للتشديد، وسطرٍ يبدأ بـ - لنقاط قائمة، وجداول Markdown (صفوفٌ تفصلها | مع سطر فاصلٍ |---|) حين تناسب البياناتُ جدولًا.
+- **للمحتوى الطويلِ الذي يستحقُّ ملفًّا (بحثٌ، مقالٌ، تلخيصٌ منسّق) — وللأعمارِ الأكبر فقط:** لُفَّ المحتوى في وسمِ <document title="عنوانُ المستند">…</document>. يُعرَضُ للقارئِ ليقرأه، ومعه زرٌّ يُصدّره ملفَّ Word. اكتبْ داخلَه بفقراتٍ واضحة، العنوان الرئيسيّ يُضاف تلقائيًّا (من title)، فلا تضع # داخل النصّ إطلاقًا؛ ابدأ عناوين الأقسام بـ##، والأدقّ منها بـ###، وابدأ كلّ نقطةٍ بـ-. لا تستعملْ هذا الوسمَ للردودِ القصيرةِ العاديّة، بل للمستنداتِ الحقيقيّةِ فقط. ولا تُكرّرِ العنوانَ داخلَ الوسم (فهو مذكورٌ في title)؛ ابدأِ المحتوى مباشرةً بالمقدّمةِ أو بأوّلِ قسم. **مهمٌّ جدًّا:** «إنشاءُ الملفّ» يعني أن تكتبَ محتواه الكاملَ فعليًّا داخلَ الوسم — لا أن تتحدّثَ عنه. فلا تقلْ «هذا مستندٌ يمكنك تحميله» ولا تكتفِ بجملةٍ تشيرُ إليه؛ بل اكتبِ المحتوى الحقيقيَّ كاملًا مباشرةً داخلَ <document>…</document>. وحتى لو قيل «أنشئِ الملفّ» لموضوعٍ سبق نقاشُه، أعِدْ كتابةَ محتواه كاملًا داخلَ الوسم من جديد. أنت قادرٌ على إنشاء الملفّ بهذا الوسم. ويمكنك داخل المستند أيضًا استعمالُ: ### لعنوانٍ فرعيٍّ من الدرجة الثالثة، و**نصّ** للتشديد، وسطرٍ يبدأ بـ - لنقاط قائمة، وجداول Markdown (صفوفٌ تفصلها | مع سطر فاصلٍ |---|) حين تناسب البياناتُ جدولًا. وحين يكون المطلوب بحثًا أو تقريرًا أو مقالًا، نظّمه: مقدّمةٌ موجزة، ثمّ محاورُ بعناوين ##، ثمّ خاتمةٌ أو خلاصة، بلغةٍ تناسب عمر الطفل، ودون اختلاق مصادرَ أو أرقامٍ أو روابط. وهذه الميزة للأعمار ١١ سنةً فأكثر فقط؛ أمّا الصغار (٤–١٠) فلا تُنشئ لهم مستندًا إطلاقًا، بل أجب في المحادثة العاديّة.
 
 ═══ الاسْتِمَاعُ النَّشِط (مَهَارَةٌ حَاسِمَة) ═══
 
@@ -2410,7 +2411,7 @@ function App() {
           <TopicChips onTopicClick={(prompt) => sendMessage(prompt)} />
         )}
 
-        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />)}
+        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} age={profile?.age} />)}
         {streamingText !== null && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             {formatForStreamPreview(streamingText)
@@ -2466,7 +2467,7 @@ function App() {
   );
 }
 
-function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio }) {
+function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, age }) {
   const isUser = message.role === 'user';
   if (isUser) {
     const c = message.content;
@@ -2507,7 +2508,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
             return <BoardCard key={i} content={seg.content} />;
           }
           if (seg.type === 'document') {
-            return <DocumentCard key={i} title={seg.title} content={seg.content} />;
+            return <DocumentCard key={i} title={seg.title} content={seg.content} age={age} />;
           }
           return null;
         })}
@@ -2755,13 +2756,15 @@ function BoardCard({ content }) {
   );
 }
 
-function DocumentCard({ title, content }) {
+function DocumentCard({ title, content, age }) {
   const exportDoc = () => downloadAsWord(title || 'مستند', title || 'مستند', '<h1>' + escapeHtml(title || 'مستند') + '</h1>' + docToHtml(content));
   const exportPdf = () => printAsPdf(title || 'مستند', docToHtml(content));
+  const canExport = (parseInt(age, 10) || 0) >= 11;
   return (
     <div style={{ border: '1px solid #D6E3E1', borderRadius: 12, padding: '14px 16px', background: '#FBFDFC', width: '100%' }}>
       <div style={{ fontWeight: 'bold', color: '#2C5F5D', fontSize: 17, marginBottom: 8 }}>{title}</div>
       <div className="doc-rendered" style={{ fontSize: 14.5, lineHeight: 1.9, color: '#2b2b2b', maxHeight: 320, overflowY: 'auto' }} dangerouslySetInnerHTML={{ __html: docToHtml(content) }} />
+      {canExport && (<>
       <button onClick={exportDoc} style={{ marginTop: 12, background: '#2C5F5D', color: '#FAF7F2', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg>
         صدِّر كملف Word
@@ -2770,6 +2773,7 @@ function DocumentCard({ title, content }) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C5F5D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-4"/></svg>
         PDF
       </button>
+      </>)}
     </div>
   );
 }
