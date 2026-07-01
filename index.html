@@ -2849,6 +2849,7 @@ function Onboarding({ onStart }) {
   const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
   const adultAgeNum = parseInt(toLatinDigits(adultAge), 10);
   const adultAgeValid = adultAgeNum >= 18 && adultAgeNum <= 99;
+  const _ageDebug = 'raw=[' + adultAge + '] codes=[' + Array.from(String(adultAge)).map(c => c.charCodeAt(0)).join(',') + '] latin=[' + toLatinDigits(adultAge) + '] num=' + adultAgeNum + ' valid=' + adultAgeValid;
   return (
     <div style={s.onboardingContainer}>
       <div style={s.onboardingCard}>
@@ -2918,9 +2919,10 @@ function Onboarding({ onStart }) {
                   style={{ ...s.onboardingInput, textAlign: 'center' }}
                   autoFocus
                 />
+                <div style={{ fontSize: 11, color: '#B00', direction: 'ltr', textAlign: 'left', wordBreak: 'break-all', background: '#FFF3F3', padding: 6, borderRadius: 6 }}>{_ageDebug}</div>
                 <button
-                  onClick={() => adultAgeValid && onStart(name, adultAgeNum, gender)}
-                  disabled={!adultAgeValid}
+                  onClick={() => onStart(name, (adultAgeNum >= 18 && adultAgeNum <= 99) ? adultAgeNum : (parseInt(toLatinDigits(adultAge),10) || 0), gender)}
+                  disabled={false}
                   style={{ ...s.primaryBtn, opacity: adultAgeValid ? 1 : 0.4 }}
                 >
                   ابدأ
