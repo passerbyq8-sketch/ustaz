@@ -578,12 +578,15 @@ const formatForTTS = (text) => {
   t = t.replace(/<surah[^>]*>[\s\S]*?<\/surah>/g, ' ');
   // اللوح: يُعرَض مكتوبًا ولا يُنطَق (كالآيات) — يبقى الشرحُ المنطوقُ كلماتٍ سهلة
   t = t.replace(/<board[^>]*>[\s\S]*?<\/board>/g, ' ');
-  // رموزٌ رياضيّةٌ شائعةٌ خارج <board> → كلماتٌ منطوقة (شبكة أمان)
-  t = t.replace(/×/g, ' في ').replace(/÷/g, ' على ').replace(/√/g, ' الجذر التربيعيّ لـ ')
+  // رموزٌ ودوالُّ رياضيّةٌ خارج <board> → أسماؤها المتعارَف عليها (شبكة أمان للنطق)
+  t = t
+       .replace(/cos/gi, ' كوساين ').replace(/sin/gi, ' ساين ').replace(/tan/gi, ' تانجنت ')
+       .replace(/π/g, ' باي ').replace(/°/g, ' درجة ').replace(/√/g, ' الجذر التربيعيّ لـ ')
+       .replace(/×/g, ' في ').replace(/÷/g, ' على ').replace(/\//g, ' على ')
+       .replace(/\+/g, ' زائد ').replace(/−/g, ' ناقص ').replace(/=/g, ' يساوي ')
        .replace(/≤/g, ' أصغر أو يساوي ').replace(/≥/g, ' أكبر أو يساوي ').replace(/≠/g, ' لا يساوي ')
-       .replace(/²/g, ' تربيع ').replace(/³/g, ' تكعيب ').replace(/\^/g, ' أُس ')
-       .replace(/\+/g, ' زائد ').replace(/−/g, ' ناقص ')
-       .replace(/%/g, ' بالمئة ').replace(/=/g, ' يساوي ');
+       .replace(/²/g, ' تربيع ').replace(/³/g, ' تكعيب ').replace(/\^/g, ' أُس ').replace(/%/g, ' بالمئة ')
+       .replace(/½/g, ' نصف ').replace(/⅓/g, ' ثلث ').replace(/⅔/g, ' ثلثين ').replace(/¼/g, ' ربع ').replace(/¾/g, ' ثلاثة أرباع ');
   // تحويل الأحاديث إلى نص طبيعي للنطق
   t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
     (_, narrator, ruling, content) => ` رَوَى ${narrator}: ${content.trim()}. ${ruling}. `
