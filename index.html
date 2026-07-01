@@ -495,6 +495,26 @@ const downloadAsWord = (filename, title, bodyHtml) => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
+// يهرّب رموز HTML كي لا يُحقَن ترميزٌ من المحتوى (احتياطًا)
+const escapeHtml = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// يحوّل محتوى المستند (فقرات، عناوين بـ# أو ##، نقاط بـ- أو •) إلى HTML للتصدير
+const docToHtml = (content) => {
+  const lines = (content || '').split('\n');
+  let html = '', inList = false;
+  const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+  for (let raw of lines) {
+    const line = raw.trim();
+    if (!line) { closeList(); continue; }
+    if (/^##\s+/.test(line)) { closeList(); html += '<h2>' + escapeHtml(line.replace(/^##\s+/, '')) + '</h2>'; }
+    else if (/^#\s+/.test(line)) { closeList(); html += '<h1>' + escapeHtml(line.replace(/^#\s+/, '')) + '</h1>'; }
+    else if (/^[-•]\s+/.test(line)) { if (!inList) { html += '<ul>'; inList = true; } html += '<li>' + escapeHtml(line.replace(/^[-•]\s+/, '')) + '</li>'; }
+    else { closeList(); html += '<p>' + escapeHtml(line) + '</p>'; }
+  }
+  closeList();
+  return html;
+};
+
 const parseRichMessage = (text) => {
   if (!text || typeof text !== 'string') {
     return { segments: [{ type: 'text', content: text || '' }], suggestions: [] };
@@ -506,7 +526,7 @@ const parseRichMessage = (text) => {
   let remaining = text;
 
   // أنماط الوسوم
-  const tagPattern = /<(verse|surah|hadith|steps|suggestions|board)([^>]*)>([\s\S]*?)<\/\1>/g;
+  const tagPattern = /<(verse|surah|hadith|steps|suggestions|board|document)([^>]*)>([\s\S]*?)<\/\1>/g;
   let lastIndex = 0;
   let match;
   while ((match = tagPattern.exec(text)) !== null) {
@@ -565,6 +585,9 @@ const parseRichMessage = (text) => {
       suggestions = items;
     } else if (tagName === 'board') {
       segments.push({ type: 'board', content });
+    } else if (tagName === 'document') {
+      const titleMatch = attrsStr.match(/title=["']([^"']+)["']/);
+      segments.push({ type: 'document', title: titleMatch ? titleMatch[1] : 'مستند', content });
     }
     lastIndex = match.index + match[0].length;
   }
@@ -882,6 +905,7 @@ ${mode === 'call' ? `
 - الموادُّ **كلُّها** ميدانُك بعمق — لا تقتصر على القليل منها.
 - **العمرُ يحكم العمق:** للصغار (٤–١٠) إعانةٌ بسيطةٌ مشجِّعةٌ لا درسٌ مطوّل؛ ولليافعين والراشدين عمِّقْ بقدرِ مرحلتهم. وابقَ في نبرةِ المعلّمِ الواثق: لا تتردّدْ ولا تعتذرْ، وصحِّحِ الخطأَ بلطف.
 - **للرياضيّاتِ والرموز:** ضعِ المعادلاتِ والخطواتِ الرمزيّةَ داخلَ وسمِ <board>…</board> — تُعرَضُ مكتوبةً واضحةً ولا تُنطَق، فيبقى شرحُك المنطوقُ كلماتٍ سهلةً تُسمَع. مثال: قُلْ منطوقًا «نطرحُ خمسةً من الطرفين ثمّ نقسمُ على اثنين»، وضعِ العمليّةَ بالأرقامِ والرموزِ في <board>.
+- **للمحتوى الطويلِ الذي يستحقُّ ملفًّا (بحثٌ، مقالٌ، تلخيصٌ منسّق) — وللأعمارِ الأكبر فقط:** لُفَّ المحتوى في وسمِ <document title="عنوانُ المستند">…</document>. يُعرَضُ للقارئِ ليقرأه، ومعه زرٌّ يُصدّره ملفَّ Word. اكتبْ داخلَه بفقراتٍ واضحة، واستعملْ سطرًا يبدأ بـ# لعنوانٍ رئيسيّ، و## لعنوانٍ فرعيّ، و- لكلِّ نقطة. لا تستعملْ هذا الوسمَ للردودِ القصيرةِ العاديّة، بل للمستنداتِ الحقيقيّةِ فقط.
 
 ═══ الاسْتِمَاعُ النَّشِط (مَهَارَةٌ حَاسِمَة) ═══
 
@@ -2362,9 +2386,6 @@ function App() {
         <button onClick={() => fileInputRef.current && fileInputRef.current.click()} disabled={isLoading || isListening} style={{ ...s.sendBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }} aria-label="إرفاق صورة">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
         </button>
-        <button onClick={() => downloadAsWord('Murabbi-test', 'تجربة تصدير Word', '<h1>بسم الله الرحمن الرحيم</h1><p>هذا ملفٌّ تجريبيٌّ من تطبيق المربّي للتأكّد من أنّ العربيّةَ تظهرُ صحيحةً باتّجاهِ RTL عند فتحِ الملفّ في Word أو Google Docs.</p><h2>قائمةُ تحقّق</h2><ul><li>الاتّجاهُ من اليمين إلى اليسار.</li><li>التشكيلُ والحروفُ المتّصلةُ سليمة.</li><li>الأرقامُ مثل ١٢٣ و 2024 والكلماتُ اللاتينيّةُ مثل Word تظهرُ في مكانها.</li></ul><p>وصلّى اللهُ على نبيّنا محمّدٍ وعلى آله وصحبه وسلّم.</p>')} style={s.sendBtn} aria-label="تجربة تصدير Word">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/></svg>
-        </button>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -2420,6 +2441,9 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
           }
           if (seg.type === 'board') {
             return <BoardCard key={i} content={seg.content} />;
+          }
+          if (seg.type === 'document') {
+            return <DocumentCard key={i} title={seg.title} content={seg.content} />;
           }
           return null;
         })}
@@ -2663,6 +2687,21 @@ function BoardCard({ content }) {
       color: '#1f2b2a', whiteSpace: 'pre-wrap', overflowX: 'auto', width: '100%',
     }}>
       {content}
+    </div>
+  );
+}
+
+function DocumentCard({ title, content }) {
+  const preview = (content || '').replace(/^#+\s*/gm, '').replace(/^[-•]\s*/gm, '• ');
+  const exportDoc = () => downloadAsWord(title || 'مستند', title || 'مستند', '<h1>' + escapeHtml(title || 'مستند') + '</h1>' + docToHtml(content));
+  return (
+    <div style={{ border: '1px solid #D6E3E1', borderRadius: 12, padding: '14px 16px', background: '#FBFDFC', width: '100%' }}>
+      <div style={{ fontWeight: 'bold', color: '#2C5F5D', fontSize: 17, marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 14.5, lineHeight: 1.9, color: '#2b2b2b', whiteSpace: 'pre-wrap', maxHeight: 320, overflowY: 'auto' }}>{preview}</div>
+      <button onClick={exportDoc} style={{ marginTop: 12, background: '#2C5F5D', color: '#FAF7F2', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg>
+        صدِّر كملف Word
+      </button>
     </div>
   );
 }
