@@ -303,6 +303,40 @@ const sliceHistoryForAPI = (messages) => {
   return sliced;
 };
 
+// Plain-text view of a message's content (string, or [image,text] array) for logs.
+const contentToText = (content) => {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    const t = content.find(b => b && b.type === 'text');
+    const img = content.some(b => b && b.type === 'image');
+    return (img ? '📷 ' : '') + (t ? t.text : '');
+  }
+  return '';
+};
+
+// Read an image File → downscale to ≤1568px long edge, normalize to JPEG, return
+// { media_type, data } (base64, no prefix). Keeps uploads well under the 5MB API limit.
+const fileToImageBlock = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1568;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) { const s = MAX / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const out = canvas.toDataURL('image/jpeg', 0.85);
+      resolve({ media_type: 'image/jpeg', data: out.slice(out.indexOf(',') + 1) });
+    };
+    img.onerror = reject;
+    img.src = reader.result;
+  };
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+});
+
 // ============================================================
 // رسائل الأخطاء اللطيفة (مكان رسائل الـ API التقنية)
 // ============================================================
@@ -696,6 +730,7 @@ const buildSystemPrompt = (name, age, gender, mode = 'chat') => {
 - إِنْ طَلَبَ نُكْتَة → **اضْحَكْ مَعَه**، فَالبَسْمَةُ صَدَقَة.
 - إِنْ سَأَلَكَ عَنْ لَوْنِكَ المُفَضَّل أَوْ طَعَامِكَ المُفَضَّل → **اخْتَرْ بِمَرَح** ("أُحِبُّ الأَخْضَر، مِثْلَ وَرَقِ الشَّجَر!").
 - إِنْ سَأَلَكَ الطِّفْلُ صَرَاحَةً «مَنْ أَنْت؟» / «شُو أَنْت؟» / «إِنْتَ مِين؟» → **عَرِّفْ بِنَفْسِكَ بِدِفْءٍ وَأَنْتَ فِي شَخْصِيَّتِك**: أَنْتَ ${gender === 'female' ? '«المُرَبِّيَة»' : '«المُرَبِّي»'} — صَدِيقُهُ وَمُعَلِّمُهُ الَّذِي يُعَلِّمُهُ دِينَهُ، وَيَسْمَعُ يَوْمَهُ، وَيَلْعَبُ مَعَهُ، وَيُحَفِّظُهُ القُرْآن. ابْقَ فِي شَخْصِيَّتِكَ — لَسْتَ بَرْنَامَجًا وَلَا رُوبُوت — وَاجْعَلْهَا لِلصَّغِيرِ جُمْلَةً أَوْ جُمْلَتَيْنِ بَسِيطَتَيْن. **وَلَا تُبَادِرْ بِهَذَا التَّعْرِيفِ إِلَّا إِذَا سُئِلْتَ عَنْهُ** (قَاعِدَةُ مَنْعِ الدِّيبَاجَةِ تَبْقَى سَارِيَة).
+- إِنْ أَرْسَلَ الطِّفْلُ صُورَةً (وَرَقَةً، تَمْرِينًا، رَسْمَةً، شَيْئًا يَسْأَلُ عَنْه) → **انْظُرْ إِلَيْهَا وَأَعِنْهُ بِمَا يُنَاسِبُ عُمْرَه**: اشْرَحْ، أَجِبْ، سَاعِدْهُ فِي تَمْرِينِه، أَوْ شَجِّعْ رَسْمَتَه — بِنَفْسِ دِفْئِكَ وَقَوَاعِدِ الأَمَانِ نَفْسِهَا. لِلصَّغِيرِ بَسِّطْ وَلِلْأَكْبَرِ عَمِّقْ. وَإِنْ كَانَتِ الصُّورَةُ غَيْرَ لَائِقَةٍ أَوْ مُقْلِقَة فَلَا تَصِفْهَا وَلَا تُكْمِلْ، وَوَجِّهْهُ بِلُطْفٍ لِأَهْلِه.
 - إِنْ أَرَادَ أَنْ يَحْكِيَ لَكَ يَوْمَه → **اسْتَمِعْ وَلَا تُقَاطِع**.
 - إِنْ سَأَلَ سُؤَالًا عِلْمِيًّا (لِمَاذَا السَّمَاءُ زَرْقَاء؟ كَيْفَ تَطِيرُ الطُّيُور؟) → **أَجِبْ بِعِلْم**، ثُمَّ اذْكُرْ بَدِيعَ صُنْعِ الله.
 
@@ -1169,6 +1204,8 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
+  const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
@@ -1879,16 +1916,30 @@ function App() {
     if (voiceMode) speakReply(reply); // audio runs on the final full text only — as today
   };
 
+  const onPickImage = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ''; // allow re-picking the same file
+    if (!file || !file.type.startsWith('image/')) return;
+    try { setPendingImage(await fileToImageBlock(file)); } catch (err) {}
+  };
+
   const sendMessage = async (text) => {
-    if (!text.trim() || isLoading) return;
+    if ((!text.trim() && !pendingImage) || isLoading) return;
     // New message mid audio sequence -> cancel current audio so the new reply starts clean.
     cancelAudio();
     // Abort any in-flight stream cleanly (ties into the cancellation discipline).
     if (abortRef.current) abortRef.current.abort();
-    const userMsg = { role: 'user', content: text, timestamp: new Date().toISOString() };
+    const content = pendingImage
+      ? [
+          { type: 'image', source: { type: 'base64', media_type: pendingImage.media_type, data: pendingImage.data } },
+          ...(text.trim() ? [{ type: 'text', text: text.trim() }] : []),
+        ]
+      : text;
+    const userMsg = { role: 'user', content, timestamp: new Date().toISOString() };
     const updated = [...messages, userMsg];
     setMessages(updated);
     setInput('');
+    setPendingImage(null);
     setIsLoading(true);
     setStreamingText('');
     // Sliding window: send only the last 12 messages to the API (avoids 429, fewer tokens).
@@ -2246,6 +2297,12 @@ function App() {
 
       {voiceError && <div style={s.errorBanner}>{voiceError}</div>}
 
+      {pendingImage && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px' }}>
+          <img src={`data:${pendingImage.media_type};base64,${pendingImage.data}`} style={{ height: 56, borderRadius: 8, border: '1px solid #E5DDD0' }} />
+          <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: '#C44536', fontSize: 18, cursor: 'pointer' }} aria-label="إزالة الصورة">×</button>
+        </div>
+      )}
       <div style={s.inputBar}>
         <button
           onClick={isListening ? stopListening : startListening}
@@ -2259,6 +2316,10 @@ function App() {
         >
           {isListening ? <MicOffIcon size={20} color="#FAF7F2" /> : <MicIcon size={20} color="#FAF7F2" />}
         </button>
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
+        <button onClick={() => fileInputRef.current && fileInputRef.current.click()} disabled={isLoading || isListening} style={{ ...s.sendBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }} aria-label="إرفاق صورة">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </button>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -2267,7 +2328,7 @@ function App() {
           style={s.input}
           disabled={isLoading || isListening}
         />
-        <button onClick={() => sendMessage(input)} disabled={isLoading || !input.trim()} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
+        <button onClick={() => sendMessage(input)} disabled={isLoading || (!input.trim() && !pendingImage)} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
           <SendIcon size={20} color="#FAF7F2" />
         </button>
       </div>
@@ -2278,7 +2339,18 @@ function App() {
 function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio }) {
   const isUser = message.role === 'user';
   if (isUser) {
-    return <div style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{message.content}</div>;
+    const c = message.content;
+    if (Array.isArray(c)) {
+      const imgBlock = c.find(b => b && b.type === 'image');
+      const txtBlock = c.find(b => b && b.type === 'text');
+      return (
+        <div style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>
+          {imgBlock && <img src={`data:${imgBlock.source.media_type};base64,${imgBlock.source.data}`} style={{ maxWidth: '100%', borderRadius: 10, marginBottom: txtBlock ? 8 : 0, display: 'block' }} />}
+          {txtBlock && txtBlock.text}
+        </div>
+      );
+    }
+    return <div style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{c}</div>;
   }
   // رسالة الأستاذ: نحلّلها لاستخراج البطاقات
   const { segments, suggestions } = parseRichMessage(message.content);
@@ -2702,7 +2774,7 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
               messages.map((m, i) => (
                 <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#F0EBE0' : '#E8F0EE' }}>
                   <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : (profile?.gender === 'female' ? '👩‍🏫 المربّية' : '👨‍🏫 المربّي')}</div>
-                  <div style={s.logContent}>{m.role === 'assistant' ? formatForLog(m.content) : m.content}</div>
+                  <div style={s.logContent}>{m.role === 'assistant' ? formatForLog(m.content) : contentToText(m.content)}</div>
                   <div style={s.logTime}>{new Date(m.timestamp).toLocaleString('ar-SA')}</div>
                 </div>
               ))
