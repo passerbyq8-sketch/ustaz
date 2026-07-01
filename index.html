@@ -40,6 +40,7 @@
   .doc-rendered h1{font-size:18px;color:#2C5F5D;margin:10px 0 6px}
   .doc-rendered h2{font-size:16px;color:#2C5F5D;margin:9px 0 5px}
   .doc-rendered h3{font-size:14.5px;color:#2C5F5D;margin:8px 0 4px}
+  .doc-rendered h4{font-size:13.5px;color:#2C5F5D;margin:7px 0 4px}
   .doc-rendered p{margin:6px 0}
   .doc-rendered ul,.doc-rendered ol{margin:6px 1.2em 6px 0;padding:0}
   .doc-rendered li{margin:3px 0}
@@ -51,6 +52,7 @@
   #print-area h1{font-size:20pt;color:#2C5F5D;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#2C5F5D;margin:12pt 0 5pt}
   #print-area h3{font-size:13pt;color:#2C5F5D;margin:10pt 0 4pt}
+  #print-area h4{font-size:12pt;color:#2C5F5D;margin:8pt 0 4pt}
   #print-area p{margin:6pt 0}
   #print-area ul,#print-area ol{margin:6pt 1.2em 6pt 0;padding:0}
   #print-area li{margin:3pt 0}
@@ -74,6 +76,7 @@
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef } = React;
@@ -511,7 +514,7 @@ const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 const downloadAsWord = (filename, title, bodyHtml) => {
   const html = '\ufeff<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
     + '<head><meta charset="utf-8"><title>' + title + '</title>'
-    + '<style>@page{size:A4;margin:2cm} body{font-family:"Arial","Amiri",serif;direction:rtl;text-align:right;line-height:1.9;font-size:14pt;color:#222} h1{color:#2C5F5D;font-size:20pt} h2{color:#2C5F5D;font-size:15pt} h3{color:#2C5F5D;font-size:13pt} ul,ol{margin-right:1em} strong{font-weight:bold} table{border-collapse:collapse;width:100%;margin:8pt 0} th,td{border:1px solid #999;padding:4pt 8pt;text-align:right} th{background:#EAF2F1;color:#2C5F5D}</style>'
+    + '<style>@page{size:A4;margin:2cm} body{font-family:"Arial","Amiri",serif;direction:rtl;text-align:right;line-height:1.9;font-size:14pt;color:#222} h1{color:#2C5F5D;font-size:20pt} h2{color:#2C5F5D;font-size:15pt} h3{color:#2C5F5D;font-size:13pt} h4{color:#2C5F5D;font-size:12pt} ul,ol{margin-right:1em} strong{font-weight:bold} table{border-collapse:collapse;width:100%;margin:8pt 0} th,td{border:1px solid #999;padding:4pt 8pt;text-align:right} th{background:#EAF2F1;color:#2C5F5D}</style>'
     + '</head><body dir="rtl" lang="ar">' + bodyHtml + '</body></html>';
   const blob = new Blob([html], { type: 'application/msword' });
   const url = URL.createObjectURL(blob);
@@ -532,11 +535,22 @@ const inlineFmt = (s) => escapeHtml(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</
 const printAsPdf = (title, bodyHtml) => {
   const area = document.getElementById('print-area');
   if (!area) return;
-  const prevTitle = document.title;
   area.innerHTML = '<h1>' + escapeHtml(title) + '</h1>' + bodyHtml;
-  document.title = title;
-  window.onafterprint = () => { area.innerHTML = ''; document.title = prevTitle; window.onafterprint = null; };
-  window.print();
+  if (!window.html2pdf) { document.title = title; window.print(); return; } // fallback if CDN failed
+  const opt = {
+    margin: [12, 12, 12, 12],
+    filename: (title || 'مستند') + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }
+  };
+  const target = area.cloneNode(true);
+  target.style.display = 'block';
+  target.style.direction = 'rtl';
+  target.style.textAlign = 'right';
+  target.style.padding = '0';
+  window.html2pdf().set(opt).from(target).save().then(() => { area.innerHTML = ''; }).catch(() => { area.innerHTML = ''; });
 };
 
 // يحوّل محتوى المستند (فقرات، عناوين بـ# أو ##، نقاط بـ- أو •) إلى HTML للتصدير
@@ -560,6 +574,7 @@ const docToHtml = (md) => {
       out.push(tbl); continue;
     }
     let m;
+    if ((m = t.match(/^####\s+(.*)$/))) { out.push('<h4>' + inlineFmt(m[1]) + '</h4>'); i++; continue; }
     if ((m = t.match(/^###\s+(.*)$/))) { out.push('<h3>' + inlineFmt(m[1]) + '</h3>'); i++; continue; }
     if ((m = t.match(/^##\s+(.*)$/)))  { out.push('<h2>' + inlineFmt(m[1]) + '</h2>'); i++; continue; }
     if ((m = t.match(/^#\s+(.*)$/)))   { out.push('<h1>' + inlineFmt(m[1]) + '</h1>'); i++; continue; }
@@ -578,7 +593,7 @@ const docToHtml = (md) => {
   return out.join('\n');
 };
 
-const parseRichMessage = (text) => {
+const parseRichMessage = (text, viewerAge) => {
   // Tolerate a <document> whose </document> never arrived (stream/token cutoff): close it so it still renders as a card.
   { const _d = text.search(/<document\b[^>]*>/); if (_d !== -1 && text.indexOf('</document>', _d) === -1) text = text + '</document>'; }
   if (!text || typeof text !== 'string') {
@@ -652,7 +667,11 @@ const parseRichMessage = (text) => {
       segments.push({ type: 'board', content });
     } else if (tagName === 'document') {
       const titleMatch = attrsStr.match(/title=["']([^"']+)["']/);
-      segments.push({ type: 'document', title: titleMatch ? titleMatch[1] : 'مستند', content });
+      if ((parseInt(viewerAge, 10) || 0) >= 11) {
+        segments.push({ type: 'document', title: titleMatch ? titleMatch[1] : 'مستند', content });
+      } else {
+        segments.push({ type: 'text', content: (titleMatch ? titleMatch[1] + '\n\n' : '') + content });
+      }
     }
     lastIndex = match.index + match[0].length;
   }
@@ -972,7 +991,7 @@ ${mode === 'call' ? `
 - الموادُّ **كلُّها** ميدانُك بعمق — لا تقتصر على القليل منها.
 - **العمرُ يحكم العمق:** للصغار (٤–١٠) إعانةٌ بسيطةٌ مشجِّعةٌ لا درسٌ مطوّل؛ ولليافعين والراشدين عمِّقْ بقدرِ مرحلتهم. وابقَ في نبرةِ المعلّمِ الواثق: لا تتردّدْ ولا تعتذرْ، وصحِّحِ الخطأَ بلطف.
 - **للرياضيّاتِ والرموز:** ضعِ المعادلاتِ والخطواتِ الرمزيّةَ داخلَ وسمِ <board>…</board> — تُعرَضُ مكتوبةً واضحةً ولا تُنطَق، فيبقى شرحُك المنطوقُ كلماتٍ سهلةً تُسمَع. مثال: قُلْ منطوقًا «نطرحُ خمسةً من الطرفين ثمّ نقسمُ على اثنين»، وضعِ العمليّةَ بالأرقامِ والرموزِ في <board>.
-- **للمحتوى الطويلِ الذي يستحقُّ ملفًّا (بحثٌ، مقالٌ، تلخيصٌ منسّق) — وللأعمارِ الأكبر فقط:** لُفَّ المحتوى في وسمِ <document title="عنوانُ المستند">…</document>. يُعرَضُ للقارئِ ليقرأه، ومعه زرٌّ يُصدّره ملفَّ Word. اكتبْ داخلَه بفقراتٍ واضحة، العنوان الرئيسيّ يُضاف تلقائيًّا (من title)، فلا تضع # داخل النصّ إطلاقًا؛ ابدأ عناوين الأقسام بـ##، والأدقّ منها بـ###، وابدأ كلّ نقطةٍ بـ-. لا تستعملْ هذا الوسمَ للردودِ القصيرةِ العاديّة، بل للمستنداتِ الحقيقيّةِ فقط. ولا تُكرّرِ العنوانَ داخلَ الوسم (فهو مذكورٌ في title)؛ ابدأِ المحتوى مباشرةً بالمقدّمةِ أو بأوّلِ قسم. **مهمٌّ جدًّا:** «إنشاءُ الملفّ» يعني أن تكتبَ محتواه الكاملَ فعليًّا داخلَ الوسم — لا أن تتحدّثَ عنه. فلا تقلْ «هذا مستندٌ يمكنك تحميله» ولا تكتفِ بجملةٍ تشيرُ إليه؛ بل اكتبِ المحتوى الحقيقيَّ كاملًا مباشرةً داخلَ <document>…</document>. وحتى لو قيل «أنشئِ الملفّ» لموضوعٍ سبق نقاشُه، أعِدْ كتابةَ محتواه كاملًا داخلَ الوسم من جديد. أنت قادرٌ على إنشاء الملفّ بهذا الوسم. ويمكنك داخل المستند أيضًا استعمالُ: ### لعنوانٍ فرعيٍّ من الدرجة الثالثة، و**نصّ** للتشديد، وسطرٍ يبدأ بـ - لنقاط قائمة، وجداول Markdown (صفوفٌ تفصلها | مع سطر فاصلٍ |---|) حين تناسب البياناتُ جدولًا. وحين يكون المطلوب بحثًا أو تقريرًا أو مقالًا، نظّمه: مقدّمةٌ موجزة، ثمّ محاورُ بعناوين ##، ثمّ خاتمةٌ أو خلاصة، بلغةٍ تناسب عمر الطفل، ودون اختلاق مصادرَ أو أرقامٍ أو روابط. وهذه الميزة للأعمار ١١ سنةً فأكثر فقط؛ أمّا الصغار (٤–١٠) فلا تُنشئ لهم مستندًا إطلاقًا، بل أجب في المحادثة العاديّة. وداخل المستند لا تستعمل وسوم البطاقات إطلاقًا (مثل <verse> أو <hadith> أو <board>)؛ اكتب الآياتِ نصًّا صريحًا بين قوسي الآية ﴿ ﴾ متبوعةً بالمرجع هكذا (المؤمنون: ١٨)، والأحاديثَ نصًّا مع نسبتها إلى مصدرها، لأنّ المستند يُصدَّر ملفًّا مستقلًّا لا تظهر فيه البطاقات. وزرّا التصدير (Word وPDF) يظهران تلقائيًّا أسفل المستند لمن يحقّ له؛ فلا تشرح خطوات تحويلٍ يدويّة، ولا تقل إنّ PDF غير متاح، بل اكتفِ بإنشاء المستند. وإن طُلب منك إكمالُ بحثٍ أو مستندٍ سبق أن انقطع، فأكمِل من النقطة التي توقّفتَ عندها تمامًا — لا تُعِد ما كُتب، ولا تبدأ من جديد؛ تابِع الجملةَ أو القسمَ الأخير مباشرةً داخل وسم <document>…</document> جديد، بنفس التنسيق والعناوين.
+- **للمحتوى الطويلِ الذي يستحقُّ ملفًّا (بحثٌ، مقالٌ، تلخيصٌ منسّق) — وللأعمارِ الأكبر فقط:** لُفَّ المحتوى في وسمِ <document title="عنوانُ المستند">…</document>. يُعرَضُ للقارئِ ليقرأه، ومعه زرٌّ يُصدّره ملفَّ Word. اكتبْ داخلَه بفقراتٍ واضحة، العنوان الرئيسيّ يُضاف تلقائيًّا (من title)، فلا تضع # داخل النصّ إطلاقًا؛ ابدأ عناوين الأقسام بـ##، والفرعيّة بـ###، ولا تستعمل أكثر من ثلاث علامات # إطلاقًا (لا #### ولا أكثر)، وابدأ كلّ نقطةٍ بـ-. لا تستعملْ هذا الوسمَ للردودِ القصيرةِ العاديّة، بل للمستنداتِ الحقيقيّةِ فقط. ولا تُكرّرِ العنوانَ داخلَ الوسم (فهو مذكورٌ في title)؛ ابدأِ المحتوى مباشرةً بالمقدّمةِ أو بأوّلِ قسم. **مهمٌّ جدًّا:** «إنشاءُ الملفّ» يعني أن تكتبَ محتواه الكاملَ فعليًّا داخلَ الوسم — لا أن تتحدّثَ عنه. فلا تقلْ «هذا مستندٌ يمكنك تحميله» ولا تكتفِ بجملةٍ تشيرُ إليه؛ بل اكتبِ المحتوى الحقيقيَّ كاملًا مباشرةً داخلَ <document>…</document>. وحتى لو قيل «أنشئِ الملفّ» لموضوعٍ سبق نقاشُه، أعِدْ كتابةَ محتواه كاملًا داخلَ الوسم من جديد. أنت قادرٌ على إنشاء الملفّ بهذا الوسم. ويمكنك داخل المستند أيضًا استعمالُ: ### لعنوانٍ فرعيٍّ من الدرجة الثالثة، و**نصّ** للتشديد، وسطرٍ يبدأ بـ - لنقاط قائمة، وجداول Markdown (صفوفٌ تفصلها | مع سطر فاصلٍ |---|) حين تناسب البياناتُ جدولًا. وحين يكون المطلوب بحثًا أو تقريرًا أو مقالًا، نظّمه: مقدّمةٌ موجزة، ثمّ محاورُ بعناوين ##، ثمّ خاتمةٌ أو خلاصة، بلغةٍ تناسب عمر الطفل، ودون اختلاق مصادرَ أو أرقامٍ أو روابط. وهذه الميزة للأعمار ١١ سنةً فأكثر فقط؛ أمّا الصغار (٤–١٠) فلا تُنشئ لهم مستندًا إطلاقًا، بل أجب في المحادثة العاديّة. وداخل المستند يُمنع منعًا باتًّا استعمالُ أيّ وسمٍ من وسوم البطاقات أو أيّ وسمٍ زاويّ < > مهما كانت خصائصه — لا <verse> ولا <surah> ولا <hadith narrator=… ruling=…> ولا <board> ولا <steps> ولا <suggestions> ولا غيرها؛ اكتب الآياتِ نصًّا صريحًا بين ﴿ ﴾ متبوعةً بالمرجع هكذا (المؤمنون: ١٨)، والأحاديثَ نصًّا صريحًا بين قوسين «...» متبوعةً بنسبتها ودرجتها هكذا (متفق عليه)، لأنّ المستند ملفٌّ مستقلّ لا تُعرَض فيه البطاقات. واكتب المستندَ كلَّه بالعربيّة الفصحى فقط، دون أيّ كلمةٍ إنجليزيّة. وزرّا التصدير (Word وPDF) يظهران تلقائيًّا أسفل المستند لمن يحقّ له؛ فلا تشرح خطوات تحويلٍ يدويّة، ولا تقل إنّ PDF غير متاح، بل اكتفِ بإنشاء المستند. وإن طُلب منك إكمالُ بحثٍ أو مستندٍ سبق أن انقطع، فأكمِل من النقطة التي توقّفتَ عندها تمامًا — لا تُعِد ما كُتب، ولا تبدأ من جديد؛ تابِع الجملةَ أو القسمَ الأخير مباشرةً داخل وسم <document>…</document> جديد، بنفس التنسيق والعناوين.
 
 ═══ الاسْتِمَاعُ النَّشِط (مَهَارَةٌ حَاسِمَة) ═══
 
@@ -2486,7 +2505,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
     return <div style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{c}</div>;
   }
   // رسالة الأستاذ: نحلّلها لاستخراج البطاقات
-  const { segments, suggestions } = parseRichMessage(message.content);
+  const { segments, suggestions } = parseRichMessage(message.content, age);
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
       <div style={{ ...s.assistantBubble, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
