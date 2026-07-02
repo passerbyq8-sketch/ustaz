@@ -1430,7 +1430,9 @@ function App() {
   const audioDoneRef = useRef(null);    // current TTS playback resolver, so takeAudioFocus can cancel it cleanly
   const audioPlayTokenRef = useRef(0);  // invalidates stale pause/ended events on the reused element
   const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
+  const [searchingSources, setSearchingSources] = useState(false); // TEXT path only: shows "يبحث في المصادر…" during the silent RAG round-1 wait
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
+  const searchTimerRef = useRef(null);    // delayed trigger for the "searching sources…" hint (client-side, time-based)
 
   // ===== Live voice-call mode (Layer 2) — dedicated recognition + one-turn loop, isolated from the dictation mic =====
   const callRecognitionRef = useRef(null); // dedicated SpeechRecognition for call mode (NOT the dictation instance)
@@ -2192,6 +2194,16 @@ function App() {
     e.target.value = ''; // allow re-selecting the same file
   };
 
+  // "Searching sources…" hint (TEXT path only). On a search question, /api/ask's round 1 is
+  // non-streamed + retrieval is silent, so onDelta stays quiet for ~20-35s. This is a purely
+  // CLIENT-SIDE, TIME-BASED reassurance — the client can't know from the server whether a search
+  // is running (round 1 is opaque), so we use a timer, not a server signal. Cleared on the first
+  // delta, on completion, on error, and on abort — never lingers.
+  const clearSearchingHint = () => {
+    if (searchTimerRef.current) { clearTimeout(searchTimerRef.current); searchTimerRef.current = null; }
+    setSearchingSources(false);
+  };
+
   const sendMessage = async (text) => {
     if ((!text.trim() && !pendingImage) || isLoading) return;
     // New message mid audio sequence -> cancel current audio so the new reply starts clean.
@@ -2226,11 +2238,19 @@ function App() {
     const apiHistory = sliceHistoryForAPI(updated);
     const controller = new AbortController();
     abortRef.current = controller;
+    // Arm the "searching sources…" hint: if no delta has arrived after ~4s (fast non-search
+    // answers reply well before this), swap the blank dots for the reassurance text. Guarded on
+    // controller ownership so a superseded send can't flip it back on.
+    clearSearchingHint();
+    searchTimerRef.current = setTimeout(() => {
+      if (abortRef.current === controller) setSearchingSources(true);
+    }, 4000);
     let reply;
     try {
       reply = await callAI(apiHistory, profile, {
         signal: controller.signal,
-        onDelta: (partial) => { if (abortRef.current === controller) setStreamingText(partial); },
+        // First delta = streaming has begun -> retire the searching hint and show real text.
+        onDelta: (partial) => { if (abortRef.current === controller) { clearSearchingHint(); setStreamingText(partial); } },
       });
     } catch (e) {
       if (e.name === 'AbortError') {
@@ -2238,13 +2258,14 @@ function App() {
         // loading/typing UI so the chat isn't wedged on the dots with input/mic disabled —
         // but ONLY if this controller still owns the UI; if a newer send took over, leave it.
         // The partial reply is discarded (the assistant message is only pushed below on success).
-        if (abortRef.current === controller) { setIsLoading(false); setStreamingText(null); }
+        if (abortRef.current === controller) { clearSearchingHint(); setIsLoading(false); setStreamingText(null); }
         return;
       }
       reply = getFriendlyError('network', profile?.gender);
     }
     if (abortRef.current !== controller) return; // a newer request owns the UI — leave its state alone
     abortRef.current = null;
+    clearSearchingHint();
     setStreamingText(null);
     const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString() };
     const final = [...updated, aiMsg];
@@ -2564,11 +2585,18 @@ function App() {
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             {formatForStreamPreview(streamingText)
               ? <div style={s.bubbleText}>{formatForStreamPreview(streamingText)}</div>
-              : <div style={s.typingDots}>
-                  <span style={s.dot}>●</span>
-                  <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
-                  <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
-                </div>}
+              : searchingSources
+                ? <div style={s.searchingHint}>
+                    <span>يبحث في المصادر…</span>
+                    <span style={s.dot}>●</span>
+                    <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+                    <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+                  </div>
+                : <div style={s.typingDots}>
+                    <span style={s.dot}>●</span>
+                    <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+                    <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+                  </div>}
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -3724,6 +3752,7 @@ const s = {
   assistantBubble: { background: '#FFFFFF', color: '#2C2C2C', borderRadius: 18, borderBottomLeftRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid rgba(44, 95, 93, 0.10)', fontSize: 15 },
   bubbleText: { lineHeight: 1.85, fontSize: 15, color: '#2C2C2C' },
   typingDots: { display: 'flex', gap: 4, padding: '4px 0' },
+  searchingHint: { display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', fontSize: 14, color: '#2C5F5D' },
   dot: { fontSize: 10, color: '#2C5F5D', animation: 'typing 1.4s infinite' },
 
   // ===== بطاقة الآية =====
