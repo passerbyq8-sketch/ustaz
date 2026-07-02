@@ -2117,9 +2117,22 @@ function App() {
         setPendingImage({ kind: 'pdf', name: file.name, media_type: 'application/pdf', data });
       } else if (isTxt) {
         if (file.size > 1 * 1024 * 1024) return fail('ملف النصّ كبير (الحدّ ١ ميغابايت).');
-        const raw = await file.text();
+        let raw = '';
+        try {
+          const buf = await file.arrayBuffer();
+          // UTF-8 first; if it produces nothing usable, fall back to Windows-1256 (common for Arabic .txt from Notepad)
+          raw = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+          if (!raw.trim() || raw.indexOf('\uFFFD') !== -1) {
+            const alt = new TextDecoder('windows-1256', { fatal: false }).decode(buf);
+            if (alt.trim() && (alt.match(/\uFFFD/g) || []).length < (raw.match(/\uFFFD/g) || []).length + 1) raw = alt;
+          }
+        } catch (tErr) {
+          return fail('تعذّرت قراءة الملف النصّي. حاول حفظه بترميز UTF-8.');
+        }
+        const text0 = raw.replace(/^\uFEFF/, '').trim(); // strip BOM + trim
+        if (!text0) return fail('الملف النصّي فارغ أو بترميز غير مدعوم. احفظه بترميز UTF-8 ثمّ أعد رفعه.');
         const MAX = 100000;
-        const clipped = raw.length > MAX ? raw.slice(0, MAX) + '\n\n[تم اختصار بقيّة الملف]' : raw;
+        const clipped = text0.length > MAX ? text0.slice(0, MAX) + '\n\n[تم اختصار بقيّة الملف]' : text0;
         setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clipped });
       } else if (isDocx) {
         if (file.size > 5 * 1024 * 1024) return fail('ملف Word كبير (الحدّ ٥ ميغابايت). الرجاء ملفًّا أصغر.');
@@ -2137,7 +2150,7 @@ function App() {
         const clippedDoc = extracted.length > MAXD ? extracted.slice(0, MAXD) + '\n\n[تم اختصار بقيّة الملف]' : extracted;
         setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clippedDoc });
       } else if (isLegacyDoc) {
-        return fail('صيغة ‎.doc القديمة غير مدعومة. الرجاء حفظه بصيغة ‎.docx ثمّ رفعه.');
+        return fail('صيغة قديمة غير مدعومة: ' + (rawName || 'بلا اسم') + ' | ' + (mime || 'بلا نوع') + ' — احفظه بصيغة .docx.');
       } else {
         return fail('نوع الملف غير مدعوم: ' + (rawName || 'بلا اسم') + ' | ' + (mime || 'بلا نوع'));
       }
