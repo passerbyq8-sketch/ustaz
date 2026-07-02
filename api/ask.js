@@ -88,12 +88,11 @@ export default async function handler(req, res) {
   if (req.body && (req.body.__diag === true || (typeof req.body === 'string' && req.body.includes('"__diag"')))) {
     const out = { node: process.version };
     try {
-      const { JSDOM } = await import('jsdom');
-      // Actually parse HTML — the failing require path only triggers on real use.
-      new JSDOM('<!doctype html><title>t</title><body>hello world</body>');
-      out.jsdom = 'ok';
+      const { parseHTML } = await import('linkedom');
+      const { document } = parseHTML('<!doctype html><title>t</title><body>hello world</body>');
+      out.linkedom = document.body.textContent === 'hello world' ? 'ok' : 'parsed-unexpected';
     } catch (e) {
-      out.jsdom = `FAIL: ${e.message}`;
+      out.linkedom = `FAIL: ${e.message}`;
     }
     try {
       await import('@mozilla/readability');
