@@ -369,6 +369,16 @@ const fileToImageBlock = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file);
 });
 
+const fileToBase64 = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const s = String(reader.result);
+    resolve(s.slice(s.indexOf(',') + 1)); // strip the "data:...;base64," prefix
+  };
+  reader.onerror = () => reject(reader.error);
+  reader.readAsDataURL(file);
+});
+
 // ============================================================
 // رسائل الأخطاء اللطيفة (مكان رسائل الـ API التقنية)
 // ============================================================
@@ -2083,9 +2093,32 @@ function App() {
 
   const onPickImage = async (e) => {
     const file = e.target.files && e.target.files[0];
-    e.target.value = ''; // allow re-picking the same file
-    if (!file || !file.type.startsWith('image/')) return;
-    try { setPendingImage(await fileToImageBlock(file)); } catch (err) {}
+    if (!file) return;
+    const isImage = file.type.startsWith('image/');
+    const isPdf   = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+    const isTxt   = file.type === 'text/plain'      || /\.txt$/i.test(file.name);
+    const fail = (msg) => { alert(msg); e.target.value = ''; };
+    try {
+      if (isImage) {
+        const block = await fileToImageBlock(file); // { media_type, data }
+        setPendingImage({ kind: 'image', name: file.name, media_type: block.media_type, data: block.data });
+      } else if (isPdf) {
+        if (file.size > 2 * 1024 * 1024) return fail('ملف PDF كبير على الإرسال (الحدّ نحو ٢ ميغابايت مع سياق المحادثة). الرجاء ملفًّا أصغر.');
+        const data = await fileToBase64(file); // base64, no data-URI prefix
+        setPendingImage({ kind: 'pdf', name: file.name, media_type: 'application/pdf', data });
+      } else if (isTxt) {
+        if (file.size > 1 * 1024 * 1024) return fail('ملف النصّ كبير (الحدّ ١ ميغابايت).');
+        const raw = await file.text();
+        const MAX = 100000;
+        const clipped = raw.length > MAX ? raw.slice(0, MAX) + '\n\n[تم اختصار بقيّة الملف]' : raw;
+        setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clipped });
+      } else {
+        return fail('نوع الملف غير مدعوم حاليًّا. المدعوم: صورة، أو PDF، أو ملف نصّي (‎.txt).');
+      }
+    } catch (err) {
+      return fail('تعذّرت قراءة الملف. حاول ملفًّا آخر.');
+    }
+    e.target.value = ''; // allow re-selecting the same file
   };
 
   const sendMessage = async (text) => {
@@ -2094,9 +2127,19 @@ function App() {
     cancelAudio();
     // Abort any in-flight stream cleanly (ties into the cancellation discipline).
     if (abortRef.current) abortRef.current.abort();
-    const content = pendingImage
+    let attachBlock = null;
+    if (pendingImage) {
+      if (pendingImage.kind === 'pdf') {
+        attachBlock = { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pendingImage.data } };
+      } else if (pendingImage.kind === 'txt') {
+        attachBlock = { type: 'text', text: 'المستند المرفق «' + (pendingImage.name || 'ملف نصّي') + '»:\n\n' + pendingImage.data };
+      } else {
+        attachBlock = { type: 'image', source: { type: 'base64', media_type: pendingImage.media_type, data: pendingImage.data } };
+      }
+    }
+    const content = attachBlock
       ? [
-          { type: 'image', source: { type: 'base64', media_type: pendingImage.media_type, data: pendingImage.data } },
+          attachBlock,
           ...(text.trim() ? [{ type: 'text', text: text.trim() }] : []),
         ]
       : text;
@@ -2464,7 +2507,15 @@ function App() {
 
       {pendingImage && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px' }}>
-          <img src={`data:${pendingImage.media_type};base64,${pendingImage.data}`} style={{ height: 56, borderRadius: 8, border: '1px solid #E5DDD0' }} />
+          {(pendingImage.kind === 'image' || pendingImage.kind === undefined) ? (
+            <img src={`data:${pendingImage.media_type};base64,${pendingImage.data}`} style={{ height: 56, borderRadius: 8, border: '1px solid #E5DDD0' }} />
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, border: '1px solid #E5DDD0', background: '#FAF7F2', fontSize: 14 }}>
+              <span>📄</span>
+              <span>{pendingImage.name}</span>
+              <span style={{ color: '#8A7E6B', fontSize: 12 }}>{pendingImage.kind === 'pdf' ? 'PDF' : 'نصّ'}</span>
+            </span>
+          )}
           <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: '#C44536', fontSize: 18, cursor: 'pointer' }} aria-label="إزالة الصورة">×</button>
         </div>
       )}
@@ -2481,7 +2532,7 @@ function App() {
         >
           {isListening ? <MicOffIcon size={20} color="#FAF7F2" /> : <MicIcon size={20} color="#FAF7F2" />}
         </button>
-        <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
+        <input ref={fileInputRef} type="file" accept="image/*,application/pdf,.txt,text/plain" onChange={onPickImage} style={{ display: 'none' }} />
         <button onClick={() => fileInputRef.current && fileInputRef.current.click()} disabled={isLoading || isListening} style={{ ...s.sendBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }} aria-label="إرفاق صورة">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
         </button>
