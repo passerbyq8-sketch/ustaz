@@ -491,7 +491,7 @@ const TOPICS = [
 // يحذف أي وسم معروف (<verse>/<hadith>/<steps>/<suggestions>) فُتِح ولم يُغلَق — يحدث
 // عند اقتطاع الردّ منتصف الوسم — وأي بقايا "<...>" يتيمة في آخر النص، كي لا يتسرّب
 // ترميز خام إلى الطفل (عرض) ولا إلى ElevenLabs (صوت). مستقلّ تماماً عن max_tokens.
-const KNOWN_TAGS = 'verse|surah|hadith|steps|suggestions';
+const KNOWN_TAGS = 'verse|surah|hadith|steps|suggestions|source';
 const stripIncompleteTags = (text) => {
   if (!text || typeof text !== 'string') return text || '';
   let t = text;
@@ -628,7 +628,7 @@ const parseRichMessage = (text, viewerAge) => {
   let remaining = text;
 
   // أنماط الوسوم
-  const tagPattern = /<(verse|surah|hadith|steps|suggestions|board|document)([^>]*)>([\s\S]*?)<\/\1>/g;
+  const tagPattern = /<(verse|surah|hadith|steps|suggestions|board|document|source)([^>]*)>([\s\S]*?)<\/\1>/g;
   let lastIndex = 0;
   let match;
   while ((match = tagPattern.exec(text)) !== null) {
@@ -670,6 +670,15 @@ const parseRichMessage = (text, viewerAge) => {
         content,
         narrator: narratorMatch ? narratorMatch[1] : '',
         ruling: rulingMatch ? rulingMatch[1] : '',
+      });
+    } else if (tagName === 'source') {
+      const siteMatch = attrsStr.match(/site=["']([^"']+)["']/);
+      const urlMatch = attrsStr.match(/url=["']([^"']+)["']/);
+      segments.push({
+        type: 'source',
+        content,
+        site: siteMatch ? siteMatch[1] : '',
+        url: urlMatch ? urlMatch[1] : '',
       });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
@@ -718,6 +727,8 @@ const formatForTTS = (text) => {
   let t = stripIncompleteTags(text);
   // إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
+  // إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
+  t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' ');
   // إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
   // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
   t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
@@ -762,6 +773,11 @@ const formatForLog = (text) => {
   // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
   let t = stripIncompleteTags(text);
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
+  // المصدر: نُبقي عنوانه نصّاً مقروءاً في سجلّ الأهل (للتحقّق) ونُسقِط الرابط — لا نعرض URL خاماً
+  t = t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g, (_, title) => {
+    const s = (title || '').trim();
+    return s ? ` [المصدر: ${s}] ` : ' ';
+  });
   // الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
   // نعرض المرجع فقط. نتجاهل أيّ نصّ بداخل الوسم تماماً (قد يرسله النموذج خطأً).
   t = t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g, (_, attrs) => {
@@ -808,6 +824,7 @@ const formatForStreamPreview = (text) => {
   t = t.replace(/<surah[^>]*>[\s\S]*?<\/surah>/g, ' ');
   t = t.replace(/<hadith[^>]*>[\s\S]*?<\/hadith>/g, ' ');
   t = t.replace(/<steps[^>]*>[\s\S]*?<\/steps>/g, ' ');
+  t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' '); // hide the source chip (tag + inner title) while streaming
   t = t.replace(/<\/?[a-z][^>]*>/gi, ' '); // any remaining tag
   return t.replace(/\s+/g, ' ').trim();
 };
@@ -983,6 +1000,7 @@ ${mode === 'call' ? `
 - للقرآن: استعمل <verse> و<surah> تماماً كالمعتاد — فهي تشغّل التلاوة الحقيقيّة بصوت القارئ، وهذا أنسب شيء في مكالمة. والإيجاز لا يمسّ التلاوة: متى ناسب الموضعَ استشهادٌ قرآنيّ فأخرِج الوسم وأكمِل التلاوة كاملةً، فهي لا تُحسَب من الإيجاز.
 - إذا ذكرت حديثاً: اذكر تخريجه منطوقاً ضمن كلامك (مثل: «هذا رواه البخاريّ») حتى يسمع الطفل المصدر، فالنقل الموثّق يُسمَع كما يُكتَب.
 - لا تستخدم وسم <steps> في المكالمة إطلاقًا: الخطواتُ تُقال منطوقةً متسلسلةً في كلامك («أوّلًا... ثمّ... وأخيرًا...») لا في بطاقةٍ مرئيّة، فالطفل يسمع ولا يقرأ.
+- لا تستخدم وسم <source> في المكالمة إطلاقًا: هي شريحةُ رابطٍ تُلمَس والطفل لا يراها؛ اذكرِ المصدرَ منطوقاً ضمن كلامك (كتخريج الحديث أعلاه) لا في بطاقة.
 - اقتصِرْ على استشهادٍ قرآنيٍّ واحدٍ على الأكثر في الرّدّ الواحد (آيةٌ واحدةٌ عبر <verse> أو سورةٌ واحدةٌ عبر <surah>)، فتعدّدُ التلاوات يُثقل المكالمةَ المنطوقة. وهذا لا يَمسّ تلاوةَ السورة المطلوبةِ كاملةً متى طُلبت.
 
 ما عدا ذلك يبقى دون أيّ تغيير: التشكيل الكامل على كلّ حرف، منع تنسيق Markdown، الصلاة على النبيّ بالكلمات الكاملة، وجميع قواعد الأمان والمرجعيّات والمناداة بلا استثناء.
@@ -1230,6 +1248,12 @@ ${mode === 'call' ? `
 ٢. **الحديث النبوي** — استخدم وسم hadith:
 <hadith narrator="الراوي مثلاً البخاري" ruling="الحكم مثلاً متفق عليه">نَصُّ الحَدِيثِ المُشَكَّل</hadith>
 
+**بطاقة المصدر (source)** — حين يستند جوابُك إلى بحثٍ في مصادرَ خارجيّةٍ موثوقة، انسُبْ كلَّ مصدرٍ استعملتَه فعلاً ببطاقةِ source مستقلّةٍ **في نهاية الرَّدّ بعد النثر** (بطاقةٌ لكلِّ مصدر):
+<source site="النطاق مثل islamweb.net" url="الرابط الكامل للصفحة">وصفٌ عربيٌّ موجزٌ لِما يقوله هذا المصدر</source>
+— site: اسمُ النطاق فقط (islamweb.net، binbaz.org.sa، alukah.net، islamqa.info). url: رابطُ الصفحةِ بالضبط. النصُّ الداخليُّ: وصفٌ عربيٌّ قصيرٌ لِمضمون المصدر.
+‼ **لا تُلغِ النِّسبةَ النثريّةَ المعتادة**: أبقِ في متنِ جوابك عزوَك الطبيعيَّ («قال جمهورُ العلماء…»، ذِكرَ أسماءِ العلماءِ والكتب) كما هو، **وأضِفْ** بطاقاتِ source في النهاية لِيتحقّقَ القارئُ بالنقر. النثرُ يشرح، والبطاقةُ توثّق.
+‼ لا تختلق رابطاً ولا تضع بطاقةً لمصدرٍ لم تَقرأه فعلاً. أسماءُ الوسمِ وصفاتُه بالإنجليزيّة، ومحتواه بالعربيّة — كسائر الوسوم.
+
 ٣. **الخطوات العملية** — استخدم وسم steps:
 <steps>
 - الخطوة الأولى المشكَّلة.
@@ -1310,6 +1334,7 @@ ${mode === 'call' ? `
 
 ☑ هَلْ ذَكَرْتُ آيَةً قُرْآنِيَّة؟ → ضَعْ رَقْمَهَا فَقَطْ: \`<verse surah_num="..." ayah="..."></verse>\` بِلَا نَصٍّ — التَّطْبِيقُ يَعْرِضُ النَّصَّ الصَّحِيحَ مِنَ المُصْحَف.
 ☑ هَلْ ذَكَرْتُ حَدِيثًا نَبَوِيًّا؟ → يَجِبُ أَنْ يَكُونَ دَاخِلَ \`<hadith narrator="..." ruling="...">...</hadith>\`.
+☑ هَلِ اسْتَنَدَ رَدِّي إِلَى بَحْثٍ فِي مَصَادِرَ خَارِجِيَّة؟ → انْسُبْ كُلَّ مَصْدَرٍ فِي نِهَايَةِ الرَّدِّ دَاخِلَ \`<source site="..." url="...">...</source>\`، مَعَ إِبْقَاءِ النِّسْبَةِ النَّثْرِيَّةِ فِي المَتْن.
 ☑ هَلْ أَعْطَيْتُ خُطُوَاتٍ عَمَلِيَّة (أَكْثَر مِنْ خُطْوَة)؟ → يَجِبُ أَنْ تَكُونَ دَاخِلَ \`<steps>...</steps>\` بِنِقَاط.
 ☑ هَلْ أَنْهَيْتُ رَدِّي بِاقْتِرَاحَاتٍ لِلْمُتَابَعَة؟ → يَجِبُ أَنْ تَكُونَ دَاخِلَ \`<suggestions>...</suggestions>\`.
 ☑ هَلْ فِي رَدِّي حِسَابٌ (ضَرْبٌ أَوْ جَمْع)؟ → فَكِّكْهُ وَتَحَقَّقْ مِنَ النَّاتِجِ قَبْلَ نُطْقِهِ؛ لِلْأَعْدَادِ ذَاتِ الأَصْفَارِ اضْرِبِ الأَرْقَامَ ثُمَّ أَضِفْ كُلَّ الأَصْفَار (٢٠٠×٥٠ = عَشَرَةُ آلَاف).
@@ -2658,6 +2683,9 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
           if (seg.type === 'hadith') {
             return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
           }
+          if (seg.type === 'source') {
+            return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
+          }
           if (seg.type === 'steps') {
             return <StepsCard key={i} items={seg.items} />;
           }
@@ -2881,6 +2909,32 @@ function HadithCard({ content, narrator, ruling }) {
       <div style={s.hadithText}>{content}</div>
       {ruling && <div style={s.hadithMeta}>{ruling}</div>}
     </div>
+  );
+}
+
+// بطاقة المصدر: شريحةُ عزوٍ قابلةٌ للنقر في نهاية الجواب — أوّلُ رابطٍ خارجيٍّ في التطبيق.
+// تُظهِر اسمَ النطاق (site) ثمّ وصفاً عربيّاً موجزاً (المحتوى)، وتفتح url في تبويبٍ جديد.
+function SourceCard({ site, url, content }) {
+  // اسمُ النطاق للعرض: نُفضّل site، وإلا نشتقّه من رابط الصفحة إن أمكن.
+  let host = (site || '').trim();
+  if (!host && url) {
+    try { host = new URL(url).hostname.replace(/^www\./, ''); } catch (e) { host = ''; }
+  }
+  const label = host || 'المصدر';
+  const text = (content || '').trim() || host || url || '';
+  const body = [
+    <span key="site" style={s.sourceChipSite}>{label}</span>,
+    text ? <span key="text" style={s.sourceChipText}>{text}</span> : null,
+    <span key="arrow" style={s.sourceChipArrow} aria-hidden="true">↗</span>,
+  ];
+  // حمايةٌ من رابطٍ مفقود: بلا url نرسم شريحةً نصّيّةً غير قابلةٍ للنقر — لا <a href=""> أبداً.
+  if (!url) {
+    return <div style={s.sourceChip}>{body}</div>;
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" style={{ ...s.sourceChip, ...s.sourceChipLink }}>
+      {body}
+    </a>
   );
 }
 
@@ -3681,6 +3735,13 @@ const s = {
   hadithCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#6B5638', fontSize: 12, fontWeight: 600, marginBottom: 6 },
   hadithText: { color: '#4A3C28', fontSize: 15, lineHeight: 1.9, margin: '4px 0' },
   hadithMeta: { fontSize: 12, color: '#6B5638', marginTop: 4, fontWeight: 500 },
+
+  // ===== بطاقة المصدر (شريحة عزوٍ قابلة للنقر) =====
+  sourceChip: { display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', maxWidth: '100%', background: '#FFFFFF', border: '1px solid rgba(201, 169, 97, 0.55)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, color: '#5C4410', fontFamily: "'Tajawal', sans-serif", textDecoration: 'none', boxSizing: 'border-box' },
+  sourceChipLink: { cursor: 'pointer' },
+  sourceChipSite: { display: 'inline-flex', alignItems: 'center', gap: 4, color: '#8C6B1E', fontWeight: 600, flexShrink: 0 },
+  sourceChipText: { color: '#5C4410', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  sourceChipArrow: { color: '#8C6B1E', fontWeight: 700, flexShrink: 0, fontSize: 13 },
 
   // ===== بطاقة الخطوات =====
   stepsCard: { background: '#EAF2F1', border: '1px solid rgba(44, 95, 93, 0.2)', borderRadius: 14, padding: '12px 14px' },
