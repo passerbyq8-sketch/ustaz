@@ -145,24 +145,33 @@ export default async function handler(req, res) {
       return sendSynthesizedText(res, text);
     }
 
-    // (b) tool_use — run retrieval for the first 2 tool_use blocks, then round 2.
+    // (b) tool_use — run retrieval for the first 2 tool_use blocks CONCURRENTLY, then round 2.
     const toolUses = (round1.content || []).filter((b) => b.type === 'tool_use').slice(0, 2);
 
-    const toolResults = [];
-    for (const block of toolUses) {
-      let retrievedText;
-      try {
-        const q = (block.input && block.input.query) || '';
-        const { retrieve } = await import('../lib/retrieve.js');
-        const out = await retrieve(q);
-        retrievedText = out.text;
-      } catch (e) {
-        // Never 500 on a retrieval error — degrade gracefully so the model won't fabricate.
-        console.warn('[ask] retrieval threw:', e.message);
-        retrievedText = 'لم يُعثر على مصدرٍ موثوقٍ في المواقع المعتمدة للإجابة عن هذا السؤال.';
-      }
-      toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: retrievedText });
-    }
+    // Lazy import — only reached in the tool_use branch, so a greeting never loads
+    // retrieve/linkedom. Imported ONCE here, shared by the concurrent branches below.
+    const { retrieve } = await import('../lib/retrieve.js');
+
+    // Run every angle's retrieve() concurrently: ~A+B collapses to ~max(A,B).
+    // Promise.all preserves input order, so toolResults stays aligned 1:1 with
+    // toolUses (each tool_result carries its own block.id). The try/catch is INSIDE
+    // each branch so one angle throwing degrades to the "no source" text without
+    // rejecting the batch or 500-ing — the other angle still returns real sources.
+    const toolResults = await Promise.all(
+      toolUses.map(async (block) => {
+        let retrievedText;
+        try {
+          const q = (block.input && block.input.query) || '';
+          const out = await retrieve(q);
+          retrievedText = out.text;
+        } catch (e) {
+          // Never 500 on a retrieval error — degrade gracefully so the model won't fabricate.
+          console.warn('[ask] retrieval threw:', e.message);
+          retrievedText = 'لم يُعثر على مصدرٍ موثوقٍ في المواقع المعتمدة للإجابة عن هذا السؤال.';
+        }
+        return { type: 'tool_result', tool_use_id: block.id, content: retrievedText };
+      })
+    );
 
     const round2Messages = [
       ...body.messages,
