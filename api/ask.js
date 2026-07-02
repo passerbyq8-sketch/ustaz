@@ -142,7 +142,15 @@ export default async function handler(req, res) {
         .filter((b) => b.type === 'text')
         .map((b) => b.text)
         .join('');
-      return sendSynthesizedText(res, text);
+      // HARD GUARD: branch (a) means the model answered WITHOUT calling the search tool, so any
+      // <source> card it emitted is fabricated — not backed by real retrieval. Strip every
+      // <source>…</source> pair, plus any dangling '<source…' with no close (defensive vs a
+      // truncated stream), so a no-search answer reaches the client with ZERO source cards.
+      // (Only branch (b) below, where retrieve() actually ran, may legitimately carry <source>.)
+      const clean = text
+        .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+        .replace(/<source\b[^>]*>?[\s\S]*$/i, '');
+      return sendSynthesizedText(res, clean);
     }
 
     // (b) tool_use — run retrieval for the first 2 tool_use blocks CONCURRENTLY, then round 2.
