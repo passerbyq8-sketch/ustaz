@@ -86,9 +86,11 @@ export default async function handler(req, res) {
   // TEMP DIAGNOSTIC (remove in 5B): surface the real jsdom/retrieve load error.
   // POST {"__diag":true} to probe which import fails in the Vercel runtime.
   if (req.body && (req.body.__diag === true || (typeof req.body === 'string' && req.body.includes('"__diag"')))) {
-    const out = {};
+    const out = { node: process.version };
     try {
-      await import('jsdom');
+      const { JSDOM } = await import('jsdom');
+      // Actually parse HTML — the failing require path only triggers on real use.
+      new JSDOM('<!doctype html><title>t</title><body>hello world</body>');
       out.jsdom = 'ok';
     } catch (e) {
       out.jsdom = `FAIL: ${e.message}`;
