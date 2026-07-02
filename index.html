@@ -2097,11 +2097,15 @@ function App() {
   const onPickImage = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const isImage = file.type.startsWith('image/');
-    const isPdf   = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-    const isTxt   = file.type === 'text/plain'      || /\.txt$/i.test(file.name);
-    const isDocx  = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || /\.docx$/i.test(file.name);
-    const isLegacyDoc = /\.docx$/i.test(file.name) === false && /\.doc$/i.test(file.name);
+    const rawName = (file.name || '').trim();
+    const lowerName = rawName.toLowerCase();
+    const ext = (lowerName.match(/\.([a-z0-9]+)\s*$/) || [,''])[1]; // extension without dot, or ''
+    const mime = file.type || '';
+    const isImage = mime.startsWith('image/') || ['png','jpg','jpeg','gif','webp','bmp','heic','heif'].includes(ext);
+    const isPdf   = mime === 'application/pdf' || ext === 'pdf';
+    const isTxt   = mime === 'text/plain' || ext === 'txt';
+    const isDocx  = ext === 'docx' || mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    const isLegacyDoc = ext === 'doc';
     const fail = (msg) => { alert(msg); e.target.value = ''; };
     try {
       if (isImage) {
@@ -2135,7 +2139,7 @@ function App() {
       } else if (isLegacyDoc) {
         return fail('صيغة ‎.doc القديمة غير مدعومة. الرجاء حفظه بصيغة ‎.docx ثمّ رفعه.');
       } else {
-        return fail('نوع الملف غير مدعوم حاليًّا. المدعوم: صورة، أو PDF، أو ملف نصّي (‎.txt)، أو Word (‎.docx).');
+        return fail('نوع الملف غير مدعوم: ' + (rawName || 'بلا اسم') + ' | ' + (mime || 'بلا نوع'));
       }
     } catch (err) {
       return fail('تعذّرت قراءة الملف. حاول ملفًّا آخر.');
