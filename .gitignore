@@ -3,5 +3,7 @@ babel-block.jsx
 babel-gate.cjs
 runtime-gate.cjs
 live*.html
-package.json
-package-lock.json
+
+# spike secrets — never commit
+spike/.env
+.env
