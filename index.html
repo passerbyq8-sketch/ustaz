@@ -2118,8 +2118,9 @@ function App() {
       } else if (isTxt) {
         if (file.size > 1 * 1024 * 1024) return fail('ملف النصّ كبير (الحدّ ١ ميغابايت).');
         let raw = '';
+        let buf = null;
         try {
-          const buf = await file.arrayBuffer();
+          buf = await file.arrayBuffer();
           // UTF-8 first; if it produces nothing usable, fall back to Windows-1256 (common for Arabic .txt from Notepad)
           raw = new TextDecoder('utf-8', { fatal: false }).decode(buf);
           if (!raw.trim() || raw.indexOf('\uFFFD') !== -1) {
@@ -2130,7 +2131,11 @@ function App() {
           return fail('تعذّرت قراءة الملف النصّي. حاول حفظه بترميز UTF-8.');
         }
         const text0 = raw.replace(/^\uFEFF/, '').trim(); // strip BOM + trim
-        if (!text0) return fail('الملف النصّي فارغ أو بترميز غير مدعوم. احفظه بترميز UTF-8 ثمّ أعد رفعه.');
+        if (!text0) {
+          const b = new Uint8Array(buf).slice(0, 8);
+          const hex = Array.from(b).map(function(x){return x.toString(16).padStart(2,'0');}).join(' ');
+          return fail('تشخيص مؤقّت — أوّل البايتات: ' + hex + ' | حجم: ' + buf.byteLength + ' | utf8=' + raw.length + ' نصّ=' + text0.length);
+        }
         const MAX = 100000;
         const clipped = text0.length > MAX ? text0.slice(0, MAX) + '\n\n[تم اختصار بقيّة الملف]' : text0;
         setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clipped });
