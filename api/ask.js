@@ -9,7 +9,10 @@
 // ROUND 2 (streamed, WITHOUT tools): stream the sourced answer, bytes relayed
 //   verbatim exactly like chat.js. Omitting tools caps retrieval at one round.
 
-import { retrieve } from '../lib/retrieve.js';
+// NOTE: retrieve() (and its jsdom/readability deps) is imported LAZILY inside the
+// tool_use branch, not at module top — so a greeting (no search) never loads jsdom,
+// and any jsdom load failure is contained to retrieval instead of crashing the whole
+// function at invocation.
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -78,6 +81,31 @@ export default async function handler(req, res) {
   }
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
+  }
+
+  // TEMP DIAGNOSTIC (remove in 5B): surface the real jsdom/retrieve load error.
+  // POST {"__diag":true} to probe which import fails in the Vercel runtime.
+  if (req.body && (req.body.__diag === true || (typeof req.body === 'string' && req.body.includes('"__diag"')))) {
+    const out = {};
+    try {
+      await import('jsdom');
+      out.jsdom = 'ok';
+    } catch (e) {
+      out.jsdom = `FAIL: ${e.message}`;
+    }
+    try {
+      await import('@mozilla/readability');
+      out.readability = 'ok';
+    } catch (e) {
+      out.readability = `FAIL: ${e.message}`;
+    }
+    try {
+      const m = await import('../lib/retrieve.js');
+      out.retrieve = typeof m.retrieve === 'function' ? 'ok' : 'loaded-but-no-export';
+    } catch (e) {
+      out.retrieve = `FAIL: ${e.message}`;
+    }
+    return res.status(200).json(out);
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -152,6 +180,7 @@ export default async function handler(req, res) {
       let retrievedText;
       try {
         const q = (block.input && block.input.query) || '';
+        const { retrieve } = await import('../lib/retrieve.js');
         const out = await retrieve(q);
         retrievedText = out.text;
       } catch (e) {
