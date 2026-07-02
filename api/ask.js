@@ -55,13 +55,12 @@ function wrapSystem(system) {
 
 // Emit the client-parser-accepted SSE shape: `data: {json}\n\n`, only
 // content_block_delta/text_delta events (see index.html handleEvent).
-function sendSynthesizedText(res, text, dbg) {
+function sendSynthesizedText(res, text) {
   res.status(200);
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders?.();
-  if (dbg) res.write(`data: ${JSON.stringify({ type: '__diag', ...dbg })}\n\n`); // TEMP (5B removes)
   const frame = {
     type: 'content_block_delta',
     index: 0,
@@ -84,32 +83,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  // TEMP DIAGNOSTIC (remove in 5B): surface the real jsdom/retrieve load error.
-  // POST {"__diag":true} to probe which import fails in the Vercel runtime.
-  if (req.body && (req.body.__diag === true || (typeof req.body === 'string' && req.body.includes('"__diag"')))) {
-    const out = { node: process.version };
-    try {
-      const { parseHTML } = await import('linkedom');
-      const { document } = parseHTML('<!doctype html><title>t</title><body>hello world</body>');
-      out.linkedom = document.body.textContent === 'hello world' ? 'ok' : 'parsed-unexpected';
-    } catch (e) {
-      out.linkedom = `FAIL: ${e.message}`;
-    }
-    try {
-      await import('@mozilla/readability');
-      out.readability = 'ok';
-    } catch (e) {
-      out.readability = `FAIL: ${e.message}`;
-    }
-    try {
-      const m = await import('../lib/retrieve.js');
-      out.retrieve = typeof m.retrieve === 'function' ? 'ok' : 'loaded-but-no-export';
-    } catch (e) {
-      out.retrieve = `FAIL: ${e.message}`;
-    }
-    return res.status(200).json(out);
-  }
-
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY غير مضبوط' });
@@ -129,8 +102,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'system string required' });
   }
 
-  // TEMP (5B removes): __model lets a curl test A/B the model without touching Vercel env.
-  const model = body.__model || process.env.MODEL || 'claude-opus-4-8';
+  const model = process.env.MODEL || 'claude-opus-4-8';
   const maxTokens = body.max_tokens || 32768;
   const system = wrapSystem(body.system);
 
@@ -163,10 +135,6 @@ export default async function handler(req, res) {
     }
 
     const round1 = await r1.json();
-    console.log('[ask] round-1 stop_reason:', round1.stop_reason);
-
-    // TEMP (5B removes): diagnostic payload surfaced as an SSE frame the client ignores.
-    const dbg = { requested_model: model, answered_model: round1.model, round1_stop_reason: round1.stop_reason };
 
     // (a) No search needed — synthesize text frames for the client.
     if (round1.stop_reason !== 'tool_use') {
@@ -174,16 +142,11 @@ export default async function handler(req, res) {
         .filter((b) => b.type === 'text')
         .map((b) => b.text)
         .join('');
-      return sendSynthesizedText(res, text, { ...dbg, branch: 'a-no-search' });
+      return sendSynthesizedText(res, text);
     }
 
     // (b) tool_use — run retrieval for the first 2 tool_use blocks, then round 2.
     const toolUses = (round1.content || []).filter((b) => b.type === 'tool_use').slice(0, 2);
-    console.log('[ask] tool queries:', toolUses.map((t) => t.input && t.input.query));
-
-    dbg.branch = 'b-search';
-    dbg.queries = toolUses.map((t) => t.input && t.input.query);
-    dbg.retrieval = []; // TEMP (5B removes): per-source outcomes
 
     const toolResults = [];
     for (const block of toolUses) {
@@ -193,12 +156,10 @@ export default async function handler(req, res) {
         const { retrieve } = await import('../lib/retrieve.js');
         const out = await retrieve(q);
         retrievedText = out.text;
-        if (out.diag) dbg.retrieval.push(...out.diag);
       } catch (e) {
         // Never 500 on a retrieval error — degrade gracefully so the model won't fabricate.
         console.warn('[ask] retrieval threw:', e.message);
         retrievedText = 'لم يُعثر على مصدرٍ موثوقٍ في المواقع المعتمدة للإجابة عن هذا السؤال.';
-        dbg.retrieval.push({ error: e.message });
       }
       toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: retrievedText });
     }
@@ -208,8 +169,6 @@ export default async function handler(req, res) {
       { role: 'assistant', content: round1.content },
       { role: 'user', content: toolResults },
     ];
-
-    console.log('[ask] round-2 start');
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──
     const r2 = await fetch(ANTHROPIC_URL, {
@@ -237,7 +196,6 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders?.();
-    res.write(`data: ${JSON.stringify({ type: '__diag', ...dbg })}\n\n`); // TEMP (5B removes)
     const reader = r2.body.getReader();
     try {
       while (true) {
