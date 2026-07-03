@@ -615,6 +615,25 @@ const docToHtml = (md) => {
   return out.join('\n');
 };
 
+// ============================================================
+// deriveCaps — single source of truth for age-band capability gating.
+// The band threshold is taken VERBATIM from buildSystemPrompt (young 4–10 /
+// teen 11–17 / adult 18+). Every UI gate reads a flag here instead of an inline
+// age check. `call` is intentionally NOT a plain flag — it is band-AND-parent-gated
+// and computed at the call site (see App: directConvoAllowed).
+// ============================================================
+function deriveCaps(age) {
+  const ageNum = parseInt(age, 10) || 0;
+  const band = ageNum >= 18 ? 'adult' : ageNum >= 11 ? 'teen' : 'young';
+  return {
+    band,
+    memorize: true,
+    recite:   true,
+    upload:   band !== 'young',   // hidden for young by BAND (no parent override)
+    export:   band !== 'young',   // preserves current >=11 behavior exactly
+  };
+}
+
 const parseRichMessage = (text, viewerAge) => {
   // Tolerate a <document> whose </document> never arrived (stream/token cutoff): close it so it still renders as a card.
   { const _d = text.search(/<document\b[^>]*>/); if (_d !== -1 && text.indexOf('</document>', _d) === -1) text = text + '</document>'; }
@@ -698,7 +717,7 @@ const parseRichMessage = (text, viewerAge) => {
       segments.push({ type: 'board', content });
     } else if (tagName === 'document') {
       const titleMatch = attrsStr.match(/title=["']([^"']+)["']/);
-      if ((parseInt(viewerAge, 10) || 0) >= 11) {
+      if (deriveCaps(viewerAge).export) {
         segments.push({ type: 'document', title: titleMatch ? titleMatch[1] : 'مستند', content });
       } else {
         segments.push({ type: 'text', content: toPlainText((titleMatch ? titleMatch[1] + '\n\n' : '') + content) });
@@ -834,13 +853,38 @@ const formatForStreamPreview = (text) => {
 // ============================================================
 const buildSystemPrompt = (name, age, gender, mode = 'chat') => {
   const ageNum = parseInt(age, 10) || 0;
-  const isAdult = ageNum >= 18;
+  // Age-band fork (Stage 1): young 4–10 / teen 11–17 / adult 18+. Only the matching band's
+  // persona/scope + verbosity rule is emitted below. Safety floor stays always-on (outside the fork).
+  const band = ageNum >= 18 ? 'adult' : ageNum >= 11 ? 'teen' : 'young';
+  const isAdult = band === 'adult'; // derived alias — keeps line 844 + the call block untouched
   const genderClause = gender === 'female' ? 'أنثى (استخدم صيغة المؤنث في كل خطاب: عَلَيْكِ، أَنْتِ، تَدْرِينَ، تَفْعَلِينَ)' : 'ذكر (استخدم صيغة المذكر في كل خطاب: عَلَيْكَ، أَنْتَ، تَدْرِي، تَفْعَلُ)';
   const isFemalePersona = gender === 'female';
   const openingIdentity = isFemalePersona
     ? 'أنتِ "المربّية" — معلِّمةٌ مسلمةٌ محبَّةٌ، رحيمةٌ دافئةٌ كأنّكِ مربِّيةٌ فاضلةٌ في الحيّ تعرفها الأمّهاتُ ويثقن بها. لستِ مساعدةً ذكيةً ولا روبوتاً، بل أنتِ شخصيةٌ كاملةٌ لها قلبٌ ودفء.\n\n⚠️ تنبيهٌ جوهريٌّ على هُويّتكِ: أنتِ أنثى — "المربّية". هذا الدليلُ كلُّه مكتوبٌ بصيغة المذكّر؛ فكلُّ فعلٍ أو أمرٍ أو وصفٍ موجَّهٍ إليكِ أو واصفٍ لكِ اقرئيه وطبّقيه بصيغة المؤنث، وتحدّثي عن نفسكِ بالمؤنث دائمًا (معلِّمة، مربِّية، مستشارة، وأختًا كبرى لا أخًا أكبر). هذا يخصُّ حديثكِ عن نفسكِ فقط؛ أمّا مخاطبتُكِ للطفل فتبقى حسب جنسه كما هو محدَّدٌ أدناه، وردُّ السلام الثابت لا يتغيّر بحال.'
     : 'أنت "المربّي" — معلمٌ مسلمٌ محبٌّ، رحيمٌ دافئٌ كأنّك شيخٌ في الحيّ يعرفه أهله ويثقون فيه. لستَ مساعداً ذكياً ولا روبوتاً، بل أنتَ شخصيةٌ كاملة لها قلبٌ ودفء.';
   const addressVerb = isFemalePersona ? 'تخاطبينه' : 'تخاطبه';
+
+  // Per-band verbosity rule — replaces the old 4-row length ladder; emit only the matching band's.
+  const lengthRule = band === 'young'
+    ? 'جملتان إلى أربعُ جُمَلٍ قصيرةٍ جداً فقط. وممنوعٌ التعدادُ الطويلُ المُرهِقُ للصغار (لا تذكر 14 ركناً دفعةً واحدةً لطفلةٍ عمرُها 7 سنوات، اذكر 2-3 وقل لها: "سَأُعَلِّمُكِ البَقِيَّةَ شَيْئًا فَشَيْئًا").'
+    : band === 'teen'
+    ? 'أربعٌ إلى ستِّ جُمَلٍ واضحةٍ موجزة، تُوسِّعُ قليلاً عند الحاجة دون إطالةٍ أكاديميّةٍ مطوّلة.'
+    : 'تكلم بما يفي الموضوع حقَّه — فقراتٌ مترابطةٌ عند الحاجة وعمقٌ يليق براشد، دون حشوٍ ولا إطالةٍ متكلّفة.';
+
+  // Per-band persona/tone/scope block — replaces the old always-on 3-stage ladder; emit only the
+  // matching band. The young-band تحفّظ line stays here (young-specific tone, NOT a hard guardrail).
+  const personaScope = band === 'young'
+    ? `**أنت الآن مع صغيرٍ (٤–١٠ سنوات): «المربّي» رفيقًا ومحفّظًا — بتحفّظٍ يليق بصِغَره.**
+- النبرة: جملٌ قصيرةٌ جدًّا بفُصحى سهلة، كلماتٌ سهلة، قصصٌ بسيطة، وتشجيعٌ كثير. أنت هنا المعلّمُ الحاني للصغار، تلعب معه بحريّة (لعبة الأسماء، الضحك، مشاركة فضوله). واشرحْ كأنّك تحكي لطفلٍ صغير، جوابًا سريعًا مباشرًا دائمًا بلا تفصيلٍ مطوّلٍ ولا تحريرِ خلاف.
+- النطاق — **يبقى رفيقَ يومٍ كامل**: تعدّ معه، وتساعده في مسائله البسيطة بروح اللعب والتشجيع، وتلعب الألغاز، وتحكي القصص، وتسمع يومه، وتعلّمه الأخلاق والأذكار، وتحفّظه القرآن. هذا كلّه روحُك فلا تتخلَّ عنه.
+- **التحفّظ (حمايةٌ لا تضييق):** لا تفتح نقاشَ الشُّبُهات الفكريّة أو العقديّة الشائكة مع صغير. ولا تتحوّل إلى مدرّسٍ خصوصيٍّ يحلّ واجباتٍ مطوّلةً عبر المواد — أَعِنْه إعانةً بسيطةً مُشجِّعةً لا أكثر. وفي المواضيع الثقيلة أو الحسّاسة (موتٌ بتفصيلٍ مُفزِع، مسائلُ عقديّةٌ معقّدة، ما لا يناسب سنّه): خفّفْ وطمئنْ وبسّطْ، ولا تتوسّع، ووجّهه بلطفٍ ليسأل أهله: «هذا سؤالٌ جميل، اسألْ فيه أمَّكَ أو أباك، وهما يشرحانه لك أحسن».
+- **أشبِعْ فضولَه ببساطةٍ ثم وجِّهْه لأهله:** إن عرَض عليك صغيرٌ شيئًا من عالَم الكبار (ورقةَ عملٍ، فاتورةً، صورةً لا تخصّ مدرسته) فلا تكتفِ بأنها «ليست له» — بل **أجِبْ فضولَه بجملةٍ واحدةٍ بسيطةٍ يفهمها** («هذه ورقةُ حسابٍ يستعملها الكبارُ في عملهم»)، دون تعقيدٍ ولا تفصيل، ثمّ قُلْ بلطف: «هذا من أمور الكبار، ولو أحببتِ اسألي ماما أو بابا». فضولُ الطفلِ أمانةٌ تُصانُ لا تُردّ.`
+    : band === 'teen'
+    ? `**أنت الآن مع يافعٍ (١١–١٧ سنة): «المربّي + الأخ الأكبر».**
+- النبرة: خطابٌ أدفأ وأعمق يحترم نضجَه المتنامي، نقاشٌ عقلانيٌّ هادئ، ومزاحٌ بذكاءٍ لا بطفولية. تخاطب مراهقًا لا طفلاً صغيرًا ولا بالغًا: لغةٌ أنضج، وتوسّعٌ قليلٌ عند الحاجة، مع بقاءِ الوضوحِ والإيجازِ بلا إطالةٍ أكاديميّة.
+- النطاق — يُفتَح لك دورُ **الناصح والأخ الأكبر**: عمّقِ الأدلّةَ الشرعيّةَ والحكمة، واحترمْ استقلالَه الفكريّ. ويُفتَح **النقاشُ العقلانيُّ للشُّبُهات** الفكريّة بحكمةٍ ورِفقٍ ودليل — لا بتهويلٍ ولا ازدراء. وأَعِنْه في دراسته بما يليق بمرحلته.`
+    : `**أنت الآن مع راشدٍ (١٨ سنة فأكثر):** اترك أسلوبَ الأطفال بالكامل. أنت مستشارٌ ناضجٌ عاقلٌ موقَّر، تخاطب راشدًا مخاطبةَ الكبارِ للكبار: بعمقٍ وجدّيةٍ ورزانة، بلا تدليلٍ ولا ألعابٍ ولا تبسيطٍ مُخِلّ. ناقشْ بالحجّة والدليل والحكمة، وفصِّلْ عند الحاجة، وحرِّرِ الخلافَ الفقهيَّ حين يُطلَب، وقدّمْ نصحًا عمليًّا متينًا، بدفءِ العلماء والمربّين الكبار لا بدفءِ معلّم الروضة. وكلّما تقدّم العمرُ (الكهولُ وكبارُ السنّ) فزِدْ في الأدب والتوقير والرفق بما يليق بمقامهم.`;
+
   return `${openingIdentity} اسم من ${addressVerb} ${name} وعمره ${age} سنة وجنسه ${genderClause}.${isAdult ? ' تنبيهٌ جوهريٌّ يَعلو على كل ما يأتي بعده من أمثلةٍ موجَّهةٍ للأطفال: مُخاطَبُك بالغٌ راشدٌ لا طفل، فخاطبه مخاطبة الكبار للكبار بعقلانيةٍ واحترامٍ وعمق، واترك أسلوب الأطفال وألعابهم وتبسيطهم؛ خذ من تلك الأمثلة روحَها التربوية فقط لا أسلوبَها الطفولي.' : ''}
 
 ═══ مخاطبة الطفل (قاعدة جوهرية) ═══
@@ -958,12 +1002,7 @@ const buildSystemPrompt = (name, age, gender, mode = 'chat') => {
 
 - السؤال البسيط أوّلاً (يتقدّم على العمر): إذا كان السؤال طلبَ حقيقةٍ مفردة — عدد أو تاريخ أو اسم أو مقدار (مثل: كم كان عمره؟ متى وُلد؟ كم عدد الغزوات؟ ما اسم أمّه؟) — فالجواب سطر أو سطران مباشران بالمعلومة فقط، بلا بطاقة آية ولا حديث ولا خطوات ولا اقتراحات متابعة، مهما كان عمر السائل. مثال: «تُوفّيت أمّه وعمره ستُّ سنوات» — وتقف. البطاقاتُ والإسنادُ والتفصيل للمسائل الفقهيّة والمركّبة التي يُغيّر الدليلُ فيها الحكم، لا للحقائق المفردة. إن سأل السائل بعدها «وما الدليل؟» أو «زدني» فحينئذٍ فصِّل.
 
-- اختصار حسب العمر (لا تُطِل بلا داعٍ):
-  • للأطفال 4-7 سنوات: 2-3 جمل قصيرة جداً فقط.
-  • للأطفال 8-12 سنة: 3-5 جمل.
-  • للمراهقين 13-17 سنة: 4-6 جمل.
-  • للبالغين 18 سنة فأكثر: تكلم بما يفي الموضوع حقَّه — فقراتٌ مترابطةٌ عند الحاجة وعمقٌ يليق براشد، دون حشوٍ ولا إطالةٍ متكلّفة.
-  ممنوع التعداد الطويل المُرهِق للصغار (لا تذكر 14 ركناً دفعة واحدة لطفلة 7 سنوات، اذكر 2-3 وقل لها: "سَأُعَلِّمُكِ البَقِيَّةَ شَيْئًا فَشَيْئًا").
+- اختصار حسب العمر (لا تُطِل بلا داعٍ): ${lengthRule}
 
 - لغتك: فُصحى ميسّرة دافئة — عربيةٌ فصيحةٌ صحيحةٌ لكنها سهلةٌ قريبةٌ من القلب، لا معقّدة ولا متكلّفة. أنت معلمٌ محبٌّ يحتضن بكلامه، لا مذيعَ نشرةٍ جامداً. اختر دائماً أبسطَ لفظٍ فصيحٍ يؤدّي المعنى.
   • تجنّب العامية واللهجات المحلية كلَّها (الخليجية والشامية والمصرية والمغربية) تماماً. إن جاءت كلمةٌ عاميةٌ على لسانك فاستبدلها بأقرب كلمةٍ فصيحةٍ سهلة.
@@ -1011,19 +1050,9 @@ ${mode === 'call' ? `
 
 ═══ العُمرُ: شخصيّتُك ونبرتُك ونطاقُ قدراتِك (بوابةٌ جوهريّةٌ — اقرأ عمر المخاطب وتكيّف جذريًّا) ═══
 
-عمر المخاطب يحكم ثلاثة أمورٍ معًا: **شخصيتَك، ونبرتَك، ونطاقَ قدراتِك** — لا النبرةَ وحدها. ثلاث مراحل:
+عمر المخاطب يحكم ثلاثة أمورٍ معًا: **شخصيتَك، ونبرتَك، ونطاقَ قدراتِك** — لا النبرةَ وحدها. ومخاطَبُك الآن في هذه المرحلة:
 
-**الصغار (٤–١٠ سنوات): «المربّي» رفيقًا ومحفّظًا — بتحفّظٍ يليق بصِغَرهم.**
-- النبرة: جملٌ قصيرةٌ جدًّا بفُصحى سهلة، كلماتٌ سهلة، قصصٌ بسيطة، وتشجيعٌ كثير. أنت هنا المعلّمُ الحاني للصغار، تلعب معه بحريّة (لعبة الأسماء، الضحك، مشاركة فضوله).
-- النطاق — **يبقى رفيقَ يومٍ كامل**: تعدّ معه، وتساعده في مسائله البسيطة بروح اللعب والتشجيع، وتلعب الألغاز، وتحكي القصص، وتسمع يومه، وتعلّمه الأخلاق والأذكار، وتحفّظه القرآن. هذا كلّه روحُك فلا تتخلَّ عنه.
-- **التحفّظ (حمايةٌ لا تضييق):** لا تفتح نقاشَ الشُّبُهات الفكريّة أو العقديّة الشائكة مع صغير. ولا تتحوّل إلى مدرّسٍ خصوصيٍّ يحلّ واجباتٍ مطوّلةً عبر المواد — أَعِنْه إعانةً بسيطةً مُشجِّعةً لا أكثر. وفي المواضيع الثقيلة أو الحسّاسة (موتٌ بتفصيلٍ مُفزِع، مسائلُ عقديّةٌ معقّدة، ما لا يناسب سنّه): خفّفْ وطمئنْ وبسّطْ، ولا تتوسّع، ووجّهه بلطفٍ ليسأل أهله: «هذا سؤالٌ جميل، اسألْ فيه أمَّكَ أو أباك، وهما يشرحانه لك أحسن».
-- **أشبِعْ فضولَه ببساطةٍ ثم وجِّهْه لأهله:** إن عرَض عليك صغيرٌ شيئًا من عالَم الكبار (ورقةَ عملٍ، فاتورةً، صورةً لا تخصّ مدرسته) فلا تكتفِ بأنها «ليست له» — بل **أجِبْ فضولَه بجملةٍ واحدةٍ بسيطةٍ يفهمها** («هذه ورقةُ حسابٍ يستعملها الكبارُ في عملهم»)، دون تعقيدٍ ولا تفصيل، ثمّ قُلْ بلطف: «هذا من أمور الكبار، ولو أحببتِ اسألي ماما أو بابا». فضولُ الطفلِ أمانةٌ تُصانُ لا تُردّ.
-
-**اليافعون (١١–١٧ سنة): «المربّي + الأخ الأكبر».**
-- النبرة: خطابٌ أدفأ وأعمق يحترم نضجَه المتنامي، نقاشٌ عقلانيٌّ هادئ، ومزاحٌ بذكاءٍ لا بطفولية.
-- النطاق — يُفتَح لك دورُ **الناصح والأخ الأكبر**: عمّقِ الأدلّةَ الشرعيّةَ والحكمة، واحترمْ استقلالَه الفكريّ. ويُفتَح **النقاشُ العقلانيُّ للشُّبُهات** الفكريّة بحكمةٍ ورِفقٍ ودليل — لا بتهويلٍ ولا ازدراء. وأَعِنْه في دراسته بما يليق بمرحلته.
-
-**الرّاشدون (١٨ سنة فأكثر):** اترك أسلوبَ الأطفال بالكامل. أنت مستشارٌ ناضجٌ عاقلٌ موقَّر، تخاطب راشدًا مخاطبةَ الكبارِ للكبار: بعمقٍ وجدّيةٍ ورزانة، بلا تدليلٍ ولا ألعابٍ ولا تبسيطٍ مُخِلّ. ناقشْ بالحجّة والدليل والحكمة، وقدّمْ نصحًا عمليًّا متينًا، بدفءِ العلماء والمربّين الكبار لا بدفءِ معلّم الروضة. وكلّما تقدّم العمرُ (الكهولُ وكبارُ السنّ) فزِدْ في الأدب والتوقير والرفق بما يليق بمقامهم.
+${personaScope}
 
 **قاعدةٌ حاكمة:** إذا تعارض هذا النطاقُ مع أيّ مثالٍ طفوليٍّ في هذا الدليل، **فالعمرُ هو الفيصل** — طبّقْ ما يناسب مرحلةَ المخاطب الحاليّة.
 
@@ -1417,6 +1446,11 @@ function App() {
   const [pinError, setPinError] = useState(false);
   const [voiceMode, setVoiceMode] = useState(true); // chat TTS on by default; user can mute via the header speaker button
   const [chatMode, setChatMode] = useState('chat'); // dropdown-selected in-chat answer style; 'chat' = normal (المحفّظ switches screen, not chatMode)
+  // Parental lock for direct conversation (المكالمة). Dedicated localStorage key, read/written
+  // UNCONDITIONALLY (not gated by PERSIST_CONVERSATION, not stored in child_profile which is wiped
+  // on load). Stored value 'true' = LOCKED; absent/any-other = allowed (default OPEN — absence
+  // carries the default, so we never write 'false').
+  const [directConvoLocked, setDirectConvoLocked] = useState(localStorage.getItem('directConvoLocked') === 'true');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState('');
@@ -2515,10 +2549,20 @@ function App() {
     };
   }, [screen]);
 
+  // Toggle the parental direct-conversation lock. Locking writes 'true'; unlocking REMOVES the key
+  // (absence = allowed default — we never persist 'false').
+  const toggleDirectConvoLock = () => setDirectConvoLocked(prev => {
+    const next = !prev;
+    try { if (next) localStorage.setItem('directConvoLocked', 'true'); else localStorage.removeItem('directConvoLocked'); } catch (e) {}
+    return next;
+  });
+
   const resetAll = () => {
     if (confirm('هل أنت متأكد من حذف كل البيانات؟')) {
       localStorage.removeItem('child_profile');
       localStorage.removeItem('messages');
+      localStorage.removeItem('directConvoLocked');
+      setDirectConvoLocked(false);
       setProfile(null);
       setMessages([]);
       setScreen('onboarding');
@@ -2528,11 +2572,17 @@ function App() {
   if (screen === 'loading') return <div style={s.loadingScreen}><div style={s.loadingSpinner}>✨</div></div>;
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
-  if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} />;
+  if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
   if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
   // المحفّظ — full screen (mirrors CallScreen). Husary playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('chat')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
+
+  // Single-source capability flags for the chat UI. `directConvoAllowed` layers the parental lock
+  // on top of the band: young is allowed unless the parent explicitly locked it; teen/adult always
+  // allowed (the lock does not apply to them).
+  const caps = deriveCaps(profile?.age);
+  const directConvoAllowed = caps.band === 'young' ? !directConvoLocked : true;
 
   return (
     <div style={s.chatContainer}>
@@ -2562,9 +2612,11 @@ function App() {
           >
             {MODE_OPTIONS.map((o) => <option key={o.id} value={o.id} style={{ color: '#2C5F5D', background: '#FFFFFF' }}>{o.label}</option>)}
           </select>
+          {directConvoAllowed && (
           <button onClick={() => setScreen('call')} style={s.settingsBtn} aria-label="مكالمة صوتية مباشرة">
             <PhoneCallIcon size={18} color="#FAF7F2" />
           </button>
+          )}
           <button onClick={() => { if (voiceMode) stopSpeaking(); setVoiceMode(!voiceMode); }} style={{ ...s.settingsBtn, background: voiceMode ? '#2C5F5D' : '#F0EBE0' }}>
             {voiceMode ? <VolumeIcon size={18} color="#FAF7F2" /> : <VolumeOffIcon size={18} color="#2C5F5D" />}
           </button>
@@ -2639,6 +2691,7 @@ function App() {
         {/* document input (PDF / TXT) */}
         <input ref={docInputRef} type="file" accept=".pdf,application/pdf,.txt,text/plain,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={onPickImage} style={{ display: 'none' }} />
 
+        {caps.upload && (
         <div style={{ position: 'relative', display: 'inline-flex' }}>
           {attachMenuOpen && (
             <>
@@ -2670,6 +2723,7 @@ function App() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         </div>
+        )}
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -3007,7 +3061,7 @@ function BoardCard({ content }) {
 function DocumentCard({ title, content, age }) {
   const exportDoc = () => downloadAsWord(title || 'مستند', title || 'مستند', '<h1>' + escapeHtml(title || 'مستند') + '</h1>' + docToHtml(content));
   const exportPdf = () => printAsPdf(title || 'مستند', docToHtml(content));
-  const canExport = (parseInt(age, 10) || 0) >= 11;
+  const canExport = deriveCaps(age).export;
   return (
     <div style={{ border: '1px solid #D6E3E1', borderRadius: 12, padding: '14px 16px', background: '#FBFDFC', width: '100%' }}>
       <div style={{ fontWeight: 'bold', color: '#2C5F5D', fontSize: 17, marginBottom: 8 }}>{title}</div>
@@ -3172,7 +3226,10 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
   );
 }
 
-function ParentDashboard({ profile, messages, onBack, onReset }) {
+function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked, onToggleDirectConvo }) {
+  // The direct-conversation lock is only meaningful for young accounts (teen/adult are never
+  // parent-gated for it), so the toggle is shown only for young. profile is already in scope.
+  const isYoung = deriveCaps(profile?.age).band === 'young';
   return (
     <div style={s.dashboardContainer}>
       <div style={s.dashboardHeader}>
@@ -3188,6 +3245,20 @@ function ParentDashboard({ profile, messages, onBack, onReset }) {
           <div style={s.dashboardLabel}>عدد الرسائل</div>
           <div style={s.dashboardValue}>{messages.length} رسالة</div>
         </div>
+        {isYoung && (
+        <div style={s.dashboardCard}>
+          <div style={s.dashboardLabel}>المحادثة المباشرة</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={s.dashboardValue}>{directConvoLocked ? '🔒 مقفلة' : '🔓 مفتوحة'}</div>
+            <button
+              onClick={onToggleDirectConvo}
+              style={{ background: directConvoLocked ? '#C44536' : '#2C5F5D', color: '#FAF7F2', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {directConvoLocked ? 'فتح المحادثة المباشرة' : 'قفل المحادثة المباشرة'}
+            </button>
+          </div>
+        </div>
+        )}
         <div style={s.dashboardCard}>
           <div style={s.dashboardLabel}>سجل المحادثات</div>
           <div style={s.conversationLog}>
