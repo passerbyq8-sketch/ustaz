@@ -2018,9 +2018,9 @@ function App() {
           // than Sonnet 4.6, especially long fully-vocalized Arabic.
           // Note: 4.8 rejects non-default temperature/top_p/top_k (400) — do not send them.
           model: 'claude-opus-4-8',
-          // 8192 leaves room for a long fully-vocalized Arabic reply (each diacritic = a token)
-          // with <verse>/<hadith>/<steps>/<suggestions> tags.
-          max_tokens: 32768,
+          // 4096 leaves room for a long fully-vocalized Arabic reply (each diacritic = a token)
+          // with <verse>/<hadith>/<steps>/<suggestions> tags; effort now caps overall spend server-side.
+          max_tokens: 4096,
           // True streaming: first words appear in ~1-2s and long replies no longer die on the timeout.
           stream: true,
           system: buildSystemPrompt(p.name, p.age, p.gender, mode),

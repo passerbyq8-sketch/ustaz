@@ -115,7 +115,7 @@ export default async function handler(req, res) {
   }
 
   const model = process.env.MODEL || 'claude-opus-4-8';
-  const maxTokens = body.max_tokens || 32768;
+  const maxTokens = body.max_tokens || 4096;
   const system = wrapSystem(body.system);
 
   const headers = {
@@ -132,6 +132,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model,
         max_tokens: maxTokens,
+        output_config: { effort: 'low' },
         system,
         messages: body.messages,
         tools,
@@ -206,6 +207,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model,
         max_tokens: maxTokens,
+        output_config: { effort: 'medium' },
         system,
         messages: round2Messages,
         stream: true,
