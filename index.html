@@ -1518,6 +1518,7 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [depthMode, setDepthMode] = useState('brief'); // 'brief' | 'detailed' — adult-only; DEAD until callAI wiring (surgery 3)
   const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
@@ -2772,6 +2773,25 @@ function App() {
         {/* document input (PDF / TXT) */}
         <input ref={docInputRef} type="file" accept=".pdf,application/pdf,.txt,text/plain,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={onPickImage} style={{ display: 'none' }} />
 
+        {caps.band === 'adult' && (
+          <button
+            onClick={() => setDepthMode(depthMode === 'brief' ? 'detailed' : 'brief')}
+            disabled={isLoading}
+            title={depthMode === 'brief' ? 'الوضع: موجز — اضغط للتفصيل' : 'الوضع: مفصّل — اضغط للإيجاز'}
+            aria-label={depthMode === 'brief' ? 'موجز' : 'مفصّل'}
+            style={{
+              ...s.sendBtn,
+              background: depthMode === 'detailed' ? 'linear-gradient(135deg, #2C5F5D 0%, #244F4D 100%)' : '#F0EBE0',
+              opacity: isLoading ? 0.4 : 1,
+              fontSize: 13,
+              fontWeight: 700,
+              color: depthMode === 'detailed' ? '#FAF7F2' : '#2C5F5D',
+              minWidth: 52,
+            }}
+          >
+            {depthMode === 'brief' ? 'موجز' : 'مفصّل'}
+          </button>
+          )}
         {caps.upload && (
         <div style={{ position: 'relative', display: 'inline-flex' }}>
           {attachMenuOpen && (
