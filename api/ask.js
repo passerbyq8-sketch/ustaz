@@ -14,6 +14,9 @@
 // and any jsdom load failure is contained to retrieval instead of crashing the whole
 // function at invocation.
 
+import { checkAskLimit } from '../lib/ratelimit.js';
+import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
+
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
 // Server-declared tool. The client never sends this.
@@ -82,6 +85,15 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
+
+  // Per-IP ask throttle (fail-open). Runs before any work — body parse, retrieval,
+  // or upstream call — so a throttled request costs nothing. On limit hit we emit the
+  // gentle Arabic message via the existing SSE synthesizer (HTTP 200, no client change).
+  const ip = req.headers['x-real-ip']
+    || (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || 'unknown';
+  const { ok } = await checkAskLimit(ip);
+  if (!ok) { return sendSynthesizedText(res, ASK_LIMIT_MESSAGE); }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
