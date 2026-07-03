@@ -758,6 +758,22 @@ const formatForTTS = (text) => {
   // المستند: يُقرأ ويُصدَّر مكتوبًا، فلا يُنطَق كاملًا — نستبدله بعبارةٍ قصيرة
   t = t.replace(/<document[^>]*>[\s\S]*?<\/document>/g, ' هذا مستندٌ مكتوبٌ، يمكن قراءتُه وتصديرُه. ');
   t = t.replace(/<document[^>]*>[\s\S]*$/g, ' هذا مستندٌ مكتوبٌ، يمكن قراءتُه وتصديرُه. ');
+  // تحويل الأحاديث إلى نص طبيعي للنطق — يجب أن يسبق تجريدَ الأقواس الزاويّة أدناه، وإلا فُقِد الوسم.
+  // متسامحٌ مع ترتيب الخصائص وغيابها: نستخرج narrator وruling كلاًّ على حدة، ولا نلفظ أسماء الوسوم نفسها.
+  t = t.replace(/<hadith([^>]*)>([\s\S]*?)<\/hadith>/g, (_, attrs, content) => {
+    const nm = attrs.match(/narrator=["']([^"']+)["']/);
+    const rm = attrs.match(/ruling=["']([^"']+)["']/);
+    const body = content.trim();
+    let out = nm ? ` رَوَى ${nm[1]}: ${body}.` : ` ${body}.`;
+    if (rm) out += ` ${rm[1]}.`;
+    return out + ' ';
+  });
+  // تحويل الخطوات إلى نص طبيعي للنطق — كذلك قبل تجريد الأقواس. نسمح بخصائص اختياريّة على الوسم المفتوح.
+  t = t.replace(/<steps[^>]*>([\s\S]*?)<\/steps>/g, (_, content) => {
+    const items = content.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(l => l);
+    if (!items.length) return '';
+    return ' خُطُوَاتٌ تُسَاعِدُكِ: ' + items.join(' ثُمَّ ') + '. ';
+  });
   t = t.replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g, ' ').replace(/[ \t]{2,}/g, ' ');
   // رموزٌ ودوالُّ رياضيّةٌ خارج <board> → أسماؤها المتعارَف عليها (شبكة أمان للنطق)
   t = t
@@ -768,16 +784,10 @@ const formatForTTS = (text) => {
        .replace(/≤/g, ' أصغر أو يساوي ').replace(/≥/g, ' أكبر أو يساوي ').replace(/≠/g, ' لا يساوي ')
        .replace(/²/g, ' تربيع ').replace(/³/g, ' تكعيب ').replace(/\^/g, ' أُس ').replace(/%/g, ' بالمئة ')
        .replace(/½/g, ' نصف ').replace(/⅓/g, ' ثلث ').replace(/⅔/g, ' ثلثين ').replace(/¼/g, ' ربع ').replace(/¾/g, ' ثلاثة أرباع ');
-  // تحويل الأحاديث إلى نص طبيعي للنطق
-  t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
-    (_, narrator, ruling, content) => ` رَوَى ${narrator}: ${content.trim()}. ${ruling}. `
-  );
-  // تحويل الخطوات إلى نص طبيعي للنطق
-  t = t.replace(/<steps>([\s\S]*?)<\/steps>/g, (_, content) => {
-    const items = content.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(l => l);
-    if (!items.length) return '';
-    return ' خُطُوَاتٌ تُسَاعِدُكِ: ' + items.join(' ثُمَّ ') + '. ';
-  });
+  // شبكة أمان أخيرة (دفاعٌ في العمق): أيّ اسمِ وسمٍ إنجليزيّ ناجٍ — بقايا وسمٍ مشوّهٍ فلَتَ من
+  // المحوّلات أعلاه — يُحذَف كي لا يُنطَق أبداً. نطابق كلماتِ ASCII وحدها عبر \b…\b، فلا يُمَسّ
+  // النصُّ العربيّ إطلاقاً (لا حدودَ كلماتٍ ASCII داخله).
+  t = t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document)\b/gi, ' ');
   // تنظيف الفراغات
   t = t.replace(/\s+/g, ' ').trim();
   return t;
