@@ -1518,7 +1518,7 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [depthMode, setDepthMode] = useState('brief'); // 'brief' | 'detailed' — adult-only; DEAD until callAI wiring (surgery 3)
+  const [depthMode, setDepthMode] = useState('brief'); // 'brief' | 'detailed' | 'scholar' — adult-only 3-state cycle
   const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
@@ -2147,7 +2147,7 @@ function App() {
           // depth: adult-only, text-route-only, only when user chose 'detailed'.
           // Conditional spread — field is ABSENT on voice (/api/chat), greeting, non-adult, or 'brief'.
           // Server (api/ask.js) reads body.depth === 'deep' => round-2 effort 'high'; anything else => 'medium' (today's behavior).
-          ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode === 'detailed' ? { depth: 'deep' } : {}),
+          ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
         }),
       });
       if (!response.ok) {
@@ -2779,21 +2779,23 @@ function App() {
 
         {caps.band === 'adult' && (
           <button
-            onClick={() => setDepthMode(depthMode === 'brief' ? 'detailed' : 'brief')}
+            onClick={() => setDepthMode(depthMode === 'brief' ? 'detailed' : depthMode === 'detailed' ? 'scholar' : 'brief')}
             disabled={isLoading}
-            title={depthMode === 'brief' ? 'الوضع: موجز — اضغط للتفصيل' : 'الوضع: مفصّل — اضغط للإيجاز'}
-            aria-label={depthMode === 'brief' ? 'موجز' : 'مفصّل'}
+            title={"اضغط لتغيير العمق المعرفي"}
+            aria-label={depthMode === 'brief' ? "موجز" : depthMode === 'detailed' ? "مفصّل" : "طالب العلم"}
             style={{
               ...s.sendBtn,
-              background: depthMode === 'detailed' ? 'linear-gradient(135deg, #2C5F5D 0%, #244F4D 100%)' : '#F0EBE0',
+              background: depthMode === 'brief' ? '#F0EBE0' : depthMode === 'detailed' ? 'linear-gradient(135deg, #2C5F5D 0%, #244F4D 100%)' : 'linear-gradient(135deg, #7A5C2E 0%, #5E4522 100%)',
               opacity: isLoading ? 0.4 : 1,
               fontSize: 13,
               fontWeight: 700,
-              color: depthMode === 'detailed' ? '#FAF7F2' : '#2C5F5D',
+              color: depthMode === 'brief' ? '#2C5F5D' : '#FAF7F2',
               minWidth: 52,
+                    whiteSpace: 'nowrap',
+                    paddingInline: 10,
             }}
           >
-            {depthMode === 'brief' ? 'موجز' : 'مفصّل'}
+            {depthMode === 'brief' ? "موجز" : depthMode === 'detailed' ? "مفصّل" : "طالب العلم"}
           </button>
           )}
         {caps.upload && (
