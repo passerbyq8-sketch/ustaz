@@ -1643,16 +1643,16 @@ function App() {
       const url = URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }));
       const u = audioElRef.current || (audioElRef.current = new Audio()); u.src = url;
       const pr = u.play();
-      if (pr && pr.then) pr.then(() => { try { u.pause(); } catch (e) {} URL.revokeObjectURL(url); }).catch(() => { try { URL.revokeObjectURL(url); } catch (e) {} });
-    } catch (e) { /* fail silent — never block onboarding or audio */ }
+      if (pr && pr.then) pr.then(() => { try { u.pause(); } catch (e) {} URL.revokeObjectURL(url); }).catch(() => { try { URL.revokeObjectURL(url); } catch (e) {} audioUnlockedRef.current = false; }); // play() rejected -> not actually unlocked; allow a later gesture to retry
+    } catch (e) { audioUnlockedRef.current = false; /* prime threw -> allow a later gesture to retry */ }
   };
 
   useEffect(() => {
     const handler = () => { unlockAudioPlayback(); };
     const opts = { capture: true };
-    // once:true auto-removes each after the first gesture; the ref guard makes a second call a no-op.
-    window.addEventListener('pointerdown', handler, { ...opts, once: true });
-    window.addEventListener('keydown', handler, { ...opts, once: true });
+    // Stay armed: after a real success the ref guard makes each call a no-op; before success we retry on every gesture.
+    window.addEventListener('pointerdown', handler, opts);
+    window.addEventListener('keydown', handler, opts);
     return () => {
       window.removeEventListener('pointerdown', handler, opts);
       window.removeEventListener('keydown', handler, opts);
