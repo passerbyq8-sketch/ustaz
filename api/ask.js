@@ -56,6 +56,42 @@ function wrapSystem(system) {
   return system;
 }
 
+// Depth-based instruction. Returns '' for brief (no injection), or the Arabic
+// instruction text for 'deep' (مفصّل) / 'scholar' (طالب العلم). Approved verbatim.
+function buildDepthInstruction(depth) {
+  if (depth === 'deep') {
+    return 'وسِّعِ الشرحَ في هذا الجواب: فصّلْ أكثرَ، واذكرْ أدلّةً إضافيّةً من الكتاب والسنّة حيث تناسب، مع بقاءِ الجوابِ على القول المعتمَد دون سردِ خلاف.';
+  }
+  if (depth === 'scholar') {
+    return [
+      'هذا سؤالٌ في وضع طالب العلم. لا تُعطِ حكمًا مباشرًا ولا تُرجّح من عندك؛ مهمّتُك أن تعرِض ما قاله العلماءُ في المسألة مادّةَ دراسةٍ للطالب، لا فتوى.',
+      'اعرِض في هذه الإجابة حتّى أربعةَ أقوالٍ متمايزةٍ في المسألة — بتمايز المضمون لا بتعدّد الأسماء — لكلّ قولٍ دليلُه من الكتاب والسنّة، ومن قال به من العلماء ومذاهبهم. واحرِصْ، إن سمحت المصادرُ، أن تُمثِّل الأقوالَ بشواهدَ من العلماء المتقدّمين والمعاصرين معًا. وانقُلْ ما ورد في المصادر من ترجيحٍ وقولِ الجمهور نقلًا منسوبًا لقائله، دون أن تُرجّح أنت.',
+      'فإن كانت أقوالُ المسألة أكثرَ من أربعة، فاذكُرْ ذلك واسأل الطالبَ صراحةً: هل تريد أن أزيدك من الأقوال؟ — فإن طلب، اسرِدِ الباقيَ.',
+      'وإن لم تكن المسألةُ خلافيّةً أصلًا (فيها إجماعٌ أو حقيقةٌ مستقرّة)، فبيِّن ذلك واعرِضِ القولَ المستقرَّ بدليله، ولا تصطنع خلافًا.',
+      'اعتمِدْ حصرًا على ما استرجعتَه من المصادر المعتمدة؛ وما لم تجده فيها، قُلْ صراحةً "لم أقف عليه في المراجع المتاحة" ولا تملأ الفراغَ من معرفتك.',
+    ].join(' ');
+  }
+  return '';
+}
+
+// Append the depth instruction as a SEPARATE text block WITHOUT cache_control,
+// so it varies per-request and never busts the cached static system prefix.
+// Mirrors the retrieval principle (per-request content stays out of the cached prefix).
+function appendDepthBlock(systemBlocks, instruction) {
+  if (!instruction) return systemBlocks;
+  if (Array.isArray(systemBlocks)) {
+    return [...systemBlocks, { type: 'text', text: instruction }];
+  }
+  // string or other: build a fresh array — cached prefix (if string) + uncached instruction
+  if (typeof systemBlocks === 'string') {
+    return [
+      { type: 'text', text: systemBlocks, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: instruction },
+    ];
+  }
+  return systemBlocks;
+}
+
 // Emit the client-parser-accepted SSE shape: `data: {json}\n\n`, only
 // content_block_delta/text_delta events (see index.html handleEvent).
 function sendSynthesizedText(res, text) {
@@ -116,8 +152,10 @@ export default async function handler(req, res) {
 
   const model = process.env.MODEL || 'claude-opus-4-8';
   const maxTokens = body.max_tokens || 4096;
-  const round2Effort = body.depth === 'deep' ? 'high' : 'medium';
-  const system = wrapSystem(body.system);
+  // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
+  const round2Effort = (body.depth === 'deep' || body.depth === 'scholar') ? 'high' : 'medium';
+  const depthInstruction = buildDepthInstruction(body.depth);
+  const system = appendDepthBlock(wrapSystem(body.system), depthInstruction);
 
   const headers = {
     'Content-Type': 'application/json',
