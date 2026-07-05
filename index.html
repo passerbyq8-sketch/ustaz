@@ -1908,6 +1908,31 @@ function App() {
   // بناء تسلسل الصوت من الردّ: مقاطع كلام + تلاوات (آية مفردة <verse> أو سورة/مدى <surah>).
   // نَقسِم عند حدود <verse>/<surah> — الحديث/الخطوات تبقى داخل مقاطع الكلام (تُنطق عبر
   // formatForTTS)، ونصّ الآية/السورة يقع بين الحدود فلا يُنطق (يتلوه القارئ الحقيقي).
+  // Sentence-level TTS streaming: split the teacher's prose into short sentences that flow
+  // through the EXISTING prefetch machinery (prep[]/prepareSpeak in speakReply). Only the
+  // first sentence is awaited before audio starts; the rest are generated/fetched while the
+  // current sentence plays. Does NOT touch fetchSpeechAudio, the mobile audio unlock, or the server.
+  // We run formatForTTS BEFORE splitting so a multi-line tag (<steps>/<source>/<hadith> …) is
+  // never cut across two chunks; fetchSpeechAudio re-runs formatForTTS per chunk, which is
+  // idempotent on already-clean text, so double formatting is safe.
+  const splitSpeechIntoSentences = (prose) => {
+    const clean = formatForTTS(prose).trim();
+    if (!clean) return [];
+    const SENT = '\uE000'; // private-use sentinel; never appears in real text
+    const marked = clean
+      .replace(/([.!\u061F?\u061B])\s+/g, '$1' + SENT) // after . ! ؟ ? ؛ + space (won't split "3.5")
+      .replace(/\n+/g, SENT);                           // and at line breaks
+    const MIN_CHARS = 40; // merge tiny fragments to avoid choppy micro-requests
+    const chunks = [];
+    for (let s of marked.split(SENT)) {
+      s = s.trim();
+      if (!s) continue;
+      const n = chunks.length;
+      if (n && chunks[n - 1].length < MIN_CHARS) chunks[n - 1] += ' ' + s;
+      else chunks.push(s);
+    }
+    return chunks.length ? chunks : [clean];
+  };
   const buildAudioSequence = (text) => {
     // نُنظّف الترميز الناقص أوّلاً كي لا يُرسَل "<verse surah=..." خاماً إلى ElevenLabs
     text = stripIncompleteTags(text);
@@ -1916,7 +1941,7 @@ function App() {
     let last = 0, m;
     while ((m = blockRe.exec(text)) !== null) {
       const before = text.slice(last, m.index);
-      if (before.trim()) parts.push({ kind: 'speak', text: before });
+      for (const chunk of splitSpeechIntoSentences(before)) parts.push({ kind: 'speak', text: chunk });
       const tag = m[1], attrs = m[2] || '';
       if (tag === 'verse') {
         const sNum = resolveSurahNumber(
@@ -1934,7 +1959,7 @@ function App() {
       last = m.index + m[0].length;
     }
     const tail = text.slice(last);
-    if (tail.trim()) parts.push({ kind: 'speak', text: tail });
+    for (const chunk of splitSpeechIntoSentences(tail)) parts.push({ kind: 'speak', text: chunk });
     return parts;
   };
 
