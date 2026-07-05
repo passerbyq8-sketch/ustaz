@@ -2177,6 +2177,9 @@ function App() {
           // Conditional spread — field is ABSENT on voice (/api/chat), greeting, non-adult, or 'brief'.
           // Server (api/ask.js) reads body.depth === 'deep' => round-2 effort 'high'; anything else => 'medium' (today's behavior).
           ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
+          // band: sent on the TEXT route only, so the server can restrict RAG sources by age
+          // (khilaf-policy §6: under-18 => islamqa + binbaz only). Voice (/api/chat) has no RAG loop, so omit there.
+          ...(mode === 'chat' && endpoint === '/api/ask' ? { band: deriveCaps(p.age).band } : {}),
         }),
       });
       if (!response.ok) {

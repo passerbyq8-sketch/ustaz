@@ -155,6 +155,8 @@ export default async function handler(req, res) {
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (body.depth === 'deep' || body.depth === 'scholar') ? 'high' : 'medium';
   const depthInstruction = buildDepthInstruction(body.depth);
+  // Age band for RAG source-gating (khilaf-policy §6). Optional; absent => adult list in retrieve().
+  const band = (body.band === 'young' || body.band === 'teen' || body.band === 'adult') ? body.band : undefined;
   const system = appendDepthBlock(wrapSystem(body.system), depthInstruction);
 
   const headers = {
@@ -222,7 +224,7 @@ export default async function handler(req, res) {
         let retrievedText;
         try {
           const q = (block.input && block.input.query) || '';
-          const out = await retrieve(q);
+          const out = await retrieve(q, { band });
           retrievedText = out.text;
         } catch (e) {
           // Never 500 on a retrieval error — degrade gracefully so the model won't fabricate.
