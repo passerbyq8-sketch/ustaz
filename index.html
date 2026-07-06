@@ -293,6 +293,36 @@ const getVerseText = (sNum, aNum) => {
   if (!__quranData || !(sNum >= 1) || !(aNum >= 1)) return null;
   return __quranData[`${sNum}:${aNum}`] || null;
 };
+// ============================================================
+// أذكار حصن المسلم — تُحمَّل مرة واحدة (كنمط loadQuran). النصّ يأتي حصراً من
+// adhkar.json المجلوب من حصن المسلم، لا من النموذج — كالآيات تماماً.
+// ============================================================
+let __adhkarData = null;      // { byId: {id -> dhikr}, byCat: {catId -> [dhikr]} }
+let __adhkarPromise = null;
+const loadAdhkar = () => {
+  if (__adhkarData) return Promise.resolve(__adhkarData);
+  if (!__adhkarPromise) {
+    __adhkarPromise = Promise.resolve()
+      .then(() => fetch('/adhkar.json'))
+      .then((r) => { if (!r.ok) throw new Error('adhkar fetch ' + r.status); return r.json(); })
+      .then((raw) => {
+        const byId = {}, byCat = {};
+        (raw.adhkar || []).forEach((d) => {
+          byId[d.id] = d;
+          (byCat[d.categoryId] = byCat[d.categoryId] || []).push(d);
+        });
+        __adhkarData = { byId, byCat, categories: raw.categories || [] };
+        return __adhkarData;
+      })
+      .catch((e) => { __adhkarPromise = null; throw e; });
+  }
+  return __adhkarPromise;
+};
+// كل أذكار بابٍ بعددِ التكرار والصوت، أو [] (لا يقع أبداً على نصّ النموذج)
+const getDhikrByCategory = (catId) => {
+  if (!__adhkarData) return [];
+  return __adhkarData.byCat[parseInt(catId, 10)] || [];
+};
 // عدد آيات سورة من المصحف المُحمَّل (عدّ المفاتيح ذات البادئة `${num}:`)؛ 0 إن لم يُحمَّل.
 const getSurahAyahCount = (sNum) => {
   if (!__quranData || !(sNum >= 1)) return 0;
