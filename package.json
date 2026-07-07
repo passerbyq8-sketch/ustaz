@@ -31,6 +31,7 @@
     "@mozilla/readability": "^0.6.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
-    "linkedom": "^0.18.12"
+    "linkedom": "^0.18.12",
+    "minisearch": "^7.2.0"
   }
 }
