@@ -7,3 +7,4 @@ live*.html
 # spike secrets — never commit
 spike/.env
 .env
+lib/data/fiqh-encyclopedia.jsonl

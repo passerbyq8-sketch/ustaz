@@ -214,6 +214,17 @@ export default async function handler(req, res) {
     // retrieve/linkedom. Imported ONCE here, shared by the concurrent branches below.
     const { retrieve } = await import('../lib/retrieve.js');
 
+    // GOVERNANCE GATE (khilaf-policy §3/§6/§8): the Kuwaiti Fiqh Encyclopedia is
+    // multi-madhhab (raw اختلاف الحكم) and is therefore SCHOLAR-ONLY background material.
+    // Fire it ONLY for depth==='scholar' AND adult band. Any other case (ordinary user,
+    // under-18, or an absent band) leaves scholarMode false and the encyclopedia untouched.
+    const scholarMode = body.depth === 'scholar' && band === 'adult';
+    let retrieveEncyclopedia = null;
+    if (scholarMode) {
+      // Lazy: non-scholar requests never load the encyclopedia module or MiniSearch.
+      ({ retrieveEncyclopedia } = await import('../lib/encyclopedia.js'));
+    }
+
     // Run every angle's retrieve() concurrently: ~A+B collapses to ~max(A,B).
     // Promise.all preserves input order, so toolResults stays aligned 1:1 with
     // toolUses (each tool_result carries its own block.id). The try/catch is INSIDE
@@ -221,17 +232,35 @@ export default async function handler(req, res) {
     // rejecting the batch or 500-ing — the other angle still returns real sources.
     const toolResults = await Promise.all(
       toolUses.map(async (block) => {
-        let retrievedText;
+        const q = (block.input && block.input.query) || '';
+        let webText;
         try {
-          const q = (block.input && block.input.query) || '';
           const out = await retrieve(q, { band });
-          retrievedText = out.text;
+          webText = out.text;
         } catch (e) {
           // Never 500 on a retrieval error — degrade gracefully so the model won't fabricate.
           console.warn('[ask] retrieval threw:', e.message);
-          retrievedText = 'لم يُعثر على مصدرٍ موثوقٍ في المواقع المعتمدة للإجابة عن هذا السؤال.';
+          webText = 'لم يُعثر على مصدرٍ موثوقٍ في المواقع المعتمدة للإجابة عن هذا السؤال.';
         }
-        return { type: 'tool_result', tool_use_id: block.id, content: retrievedText };
+        // Scholar mode (18+) only: append the encyclopedia as clearly-labelled study
+        // background. Soft-fail — any error keeps the web-only result. This content lands
+        // in round2Messages (the messages array), i.e. AFTER the cached system prefix, so
+        // the prompt cache is never busted.
+        let content = webText;
+        if (scholarMode && retrieveEncyclopedia) {
+          try {
+            const enc = await retrieveEncyclopedia(q);
+            if (enc.text) {
+              content = webText
+                + '\n' + '═'.repeat(40) + '\n'
+                + '【مادّةٌ مرجعيّةٌ للدراسة — الموسوعة الفقهية الكويتية. خلفيّةٌ لطالب العلم تُعرَض منسوبةً لأصحابها لا حكمًا، ولا تُستعمَل في صفة عبادةٍ مقفلة.】\n'
+                + enc.text;
+            }
+          } catch (e) {
+            console.warn('[ask] encyclopedia retrieval threw:', e.message);
+          }
+        }
+        return { type: 'tool_result', tool_use_id: block.id, content };
       })
     );
 
