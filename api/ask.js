@@ -144,13 +144,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'system string required' });
   }
 
-  const model = process.env.MODEL || 'claude-opus-4-8';
   const maxTokens = body.max_tokens || 4096;
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (body.depth === 'deep' || body.depth === 'scholar') ? 'high' : 'medium';
   const depthInstruction = buildDepthInstruction(body.depth);
   // Age band for RAG source-gating (khilaf-policy §6). Optional; absent => adult list in retrieve().
   const band = (body.band === 'young' || body.band === 'teen' || body.band === 'adult') ? body.band : undefined;
+  const usePremium = band === 'adult' && (body.depth === 'deep' || body.depth === 'scholar');
+  const model = usePremium
+    ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-4-8')
+    : (process.env.MODEL_STANDARD || process.env.MODEL || 'claude-opus-4-8');
+  console.log('[tier]', { band, depth: body.depth, usePremium, model });
   const system = appendDepthBlock(wrapSystem(body.system), depthInstruction);
 
   const headers = {
@@ -167,7 +171,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model,
         max_tokens: maxTokens,
-        output_config: { effort: 'low' },
+        ...(usePremium ? { output_config: { effort: 'low' } } : {}),
         system,
         messages: body.messages,
         tools,
@@ -271,7 +275,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model,
         max_tokens: maxTokens,
-        output_config: { effort: round2Effort },
+        ...(usePremium ? { output_config: { effort: round2Effort } } : {}),
         system,
         messages: round2Messages,
         stream: true,
