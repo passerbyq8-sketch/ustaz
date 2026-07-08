@@ -3576,6 +3576,30 @@ function TopicChips({ onTopicClick }) {
   );
 }
 
+function AdultGate({ a, b, onPass, onCancel }) {
+  const [answer, setAnswer] = useState("");
+  const [error, setError] = useState(false);
+  const submit = () => {
+    const v = parseInt(String(answer).replace(/[٠-٩]/g, x => x.charCodeAt(0) - 0x0660), 10);
+    if (v === a * b) onPass();
+    else { setError(true); setTimeout(() => setError(false), 1500); }
+  };
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: "rgba(30,30,30,0.6)" }}>
+      <div style={{ ...s.onboardingCard, maxWidth: 360 }}>
+        <div style={s.bigEmoji}>🔒</div>
+        <div style={s.onboardingTitle}>تأكيد ولي الأمر</div>
+        <div style={s.onboardingSubtitle}>هذا القسم مخصّص للكبار. للتأكيد أنّ وليًّا حاضر، احسب الناتج:</div>
+        <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: "0.08em", margin: "12px 0", color: "#2C5F5D", direction: "ltr" }}>{a} × {b}</div>
+        <input type="text" inputMode="numeric" value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="الجواب" autoFocus style={{ ...s.onboardingInput, textAlign: "center", borderColor: error ? "#C44536" : "#E5DDD0" }} />
+        {error && <div style={{ color: "#C44536", fontSize: 14, marginTop: -4, marginBottom: 8 }}>جواب غير صحيح، حاول مرة أخرى</div>}
+        <button onClick={submit} style={s.primaryBtn}>تأكيد</button>
+        <button onClick={onCancel} style={{ background: "none", border: "none", color: "#7A7267", fontSize: 14, marginTop: 10, cursor: "pointer" }}>رجوع</button>
+      </div>
+    </div>
+  );
+}
+
 function Onboarding({ onStart }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
@@ -3587,10 +3611,21 @@ function Onboarding({ onStart }) {
   const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
   const adultAgeNum = parseInt(toLatinDigits(adultAge), 10);
   const adultAgeValid = adultAgeNum >= 18 && adultAgeNum <= 99;
+  const [gate, setGate] = useState(null);
+  const requestStart = (n) => {
+    if (n >= 18) {
+      const a = 13 + Math.floor(Math.random() * 87);
+      const b = 3 + Math.floor(Math.random() * 7);
+      setGate({ a, b, age: n });
+    } else {
+      onStart(name, n, gender);
+    }
+  };
   return (
     <div style={s.onboardingContainer}>
       <div style={s.onboardingInner}>
         <div style={s.onboardingCard}>
+        {gate && <AdultGate a={gate.a} b={gate.b} onPass={() => onStart(name, gate.age, gender)} onCancel={() => setGate(null)} />}
         {step === 0 && (
           <>
             <div style={s.bigEmoji}>🌙</div>
@@ -3633,9 +3668,10 @@ function Onboarding({ onStart }) {
             <div style={s.bigEmoji}>🎂</div>
             <div style={s.onboardingTitle}>كم عمرك يا {name}؟</div>
             <div style={s.onboardingSubtitle}>اضغط على عمرك لتبدأ ✨</div>
+            <div style={{ ...s.onboardingSubtitle, fontSize: 13, opacity: 0.85 }}>اختر عمرك الحقيقي حتى أقدّم لك ما يناسبك</div>
             <div style={s.ageGrid}>
               {[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(n => (
-                <button key={n} onClick={() => { setShowAdultInput(false); setAge(n); setTimeout(() => onStart(name, n, gender), 250); }} style={{ ...s.ageBtn, ...(age === n ? s.ageBtnActive : {}) }}>{n}</button>
+                <button key={n} onClick={() => { setShowAdultInput(false); setAge(n); setTimeout(() => requestStart(n), 250); }} style={{ ...s.ageBtn, ...(age === n ? s.ageBtnActive : {}) }}>{n}</button>
               ))}
               <button
                 onClick={() => { setAge(null); setShowAdultInput(true); setTimeout(() => { if (adultInputRef.current) adultInputRef.current.focus(); }, 50); }}
@@ -3652,14 +3688,14 @@ function Onboarding({ onStart }) {
                   type="text"
                   inputMode="numeric"
                   value={adultAge}
-                  onChange={(e) => { const v = e.target.value; setAdultAge(v); const n = parseInt(toLatinDigits(v), 10); if (n >= 18 && n <= 99) setTimeout(() => onStart(name, n, gender), 250); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && adultAgeValid) onStart(name, adultAgeNum, gender); }}
+                  onChange={(e) => { const v = e.target.value; setAdultAge(v); const n = parseInt(toLatinDigits(v), 10); if (n >= 18 && n <= 99) setTimeout(() => requestStart(n), 250); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && adultAgeValid) requestStart(adultAgeNum); }}
                   onClick={() => { if (adultInputRef.current) adultInputRef.current.focus(); }}
                   placeholder="مثال: ٣٥"
                   style={{ ...s.onboardingInput, textAlign: 'center' }}
                 />
                 <button
-                  onClick={() => adultAgeValid && onStart(name, adultAgeNum, gender)}
+                  onClick={() => adultAgeValid && requestStart(adultAgeNum)}
                   disabled={!adultAgeValid}
                   style={{ ...s.primaryBtn, opacity: adultAgeValid ? 1 : 0.4 }}
                 >
