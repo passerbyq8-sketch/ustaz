@@ -164,6 +164,22 @@ export default async function handler(req, res) {
     'anthropic-version': '2023-06-01',
   };
 
+  // -- Commit to SSE now, then keep the socket warm during the byte-silent phase --
+  // Round 1 is non-streamed, so a long fully-vocalized answer (e.g. the salah card)
+  // generates for ~35s with NO bytes reaching the client. Mobile carriers reset an
+  // idle socket (~30s) -> ERR_CONNECTION_RESET, so the finished answer never arrives
+  // (exactly why the shorter wudu card survived and the longer salah card did not).
+  // A periodic SSE comment keeps the socket alive; the client parser ignores any
+  // block with no `data:` line (index.html handleEvent), so it stays invisible to it.
+  // Round 2 streams real deltas, so keepalive is cleared right before that relay.
+  res.status(200);
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+  let keepAlive = setInterval(() => { try { res.write(': keepalive\n\n'); } catch {} }, 10000);
+  const clearKeepAlive = () => { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } };
+
   try {
     // ── ROUND 1: non-streamed, WITH tools ──────────────────────────────────
     const r1 = await fetch(ANTHROPIC_URL, {
@@ -182,9 +198,10 @@ export default async function handler(req, res) {
 
     if (!r1.ok) {
       const errText = await r1.text().catch(() => '');
-      res.status(r1.status);
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      return res.end(errText || JSON.stringify({ error: { message: `upstream ${r1.status}` } }));
+      console.error('[ask] round1 upstream', r1.status, errText.slice(0, 300));
+      clearKeepAlive();
+      res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${r1.status}` } })}\n\n`);
+      return res.end();
     }
 
     const round1 = await r1.json();
@@ -203,7 +220,10 @@ export default async function handler(req, res) {
       const clean = text
         .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
         .replace(/<source\b[^>]*>?[\s\S]*$/i, '');
-      return sendSynthesizedText(res, clean);
+      clearKeepAlive();
+      res.write(`data: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: clean } })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+      return res.end();
     }
 
     // (b) tool_use — run retrieval for the first 2 tool_use blocks CONCURRENTLY, then round 2.
@@ -285,17 +305,15 @@ export default async function handler(req, res) {
 
     if (!r2.ok) {
       const errText = await r2.text().catch(() => '');
-      res.status(r2.status);
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      return res.end(errText || JSON.stringify({ error: { message: `upstream ${r2.status}` } }));
+      console.error('[ask] round2 upstream', r2.status, errText.slice(0, 300));
+      clearKeepAlive();
+      res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${r2.status}` } })}\n\n`);
+      return res.end();
     }
 
     // Thin streaming relay — identical byte-pipe to chat.js.
-    res.status(200);
-    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-transform');
-    res.setHeader('X-Accel-Buffering', 'no');
-    res.flushHeaders?.();
+    // Headers already committed at the top; stop keepalive, then relay real deltas.
+    clearKeepAlive();
     const reader = r2.body.getReader();
     try {
       while (true) {
@@ -307,9 +325,12 @@ export default async function handler(req, res) {
       res.end();
     }
   } catch (error) {
+    console.error('[ask] handler error', error?.message);
+    clearKeepAlive();
     if (!res.headersSent) {
       return res.status(500).json({ error: error.message });
     }
+    try { res.write(`data: ${JSON.stringify({ type: 'error', error: { message: 'server error' } })}\n\n`); } catch {}
     res.end();
   }
 }
