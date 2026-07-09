@@ -35,6 +35,7 @@ const DEFAULT_VOICE_ID = MALE_VOICE_ID; // fail-safe: missing/unknown gender →
 // eleven_multilingual_v2 : التوازن الأمثل بين الجودة والسرعة
 // (للجودة القصوى مع قبول التأخير: استبدل بـ 'eleven_v3')
 const MODEL_ID = 'eleven_flash_v2_5';
+const TTS_SPEED = 1.1; // speech pace: 1.0 = default, range 0.7-1.2 (voice_settings.speed)
 
 // كود اللغة (ISO 639-1) — يقفل المخرجات على العربية
 const LANGUAGE_CODE = 'ar';
@@ -87,6 +88,7 @@ export default async function handler(req, res) {
             stability: 0.75,
             similarity_boost: 0.75,
             style: 0.0,
+            speed: TTS_SPEED,
             use_speaker_boost: true,  // مدعوم في v2، يحسّن وضوح الصوت
           },
         }),
