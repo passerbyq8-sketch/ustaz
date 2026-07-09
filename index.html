@@ -3592,6 +3592,7 @@ function TopicChips({ onTopicClick }) {
   );
 }
 
+const PARENTAL_GATE_ENABLED = false; // Session 08: gate off during testing - MUST be true before store release
 function AdultGate({ a, b, onPass, onCancel }) {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState(false);
@@ -3629,7 +3630,7 @@ function Onboarding({ onStart }) {
   const adultAgeValid = adultAgeNum >= 18 && adultAgeNum <= 99;
   const [gate, setGate] = useState(null);
   const requestStart = (n) => {
-    if (n >= 18) {
+    if (PARENTAL_GATE_ENABLED && n >= 18) {
       const a = 13 + Math.floor(Math.random() * 87);
       const b = 3 + Math.floor(Math.random() * 7);
       setGate({ a, b, age: n });
