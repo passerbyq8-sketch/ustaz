@@ -34,7 +34,7 @@ const DEFAULT_VOICE_ID = MALE_VOICE_ID; // fail-safe: missing/unknown gender →
 // ============================================================
 // eleven_multilingual_v2 : التوازن الأمثل بين الجودة والسرعة
 // (للجودة القصوى مع قبول التأخير: استبدل بـ 'eleven_v3')
-const MODEL_ID = 'eleven_multilingual_v2';
+const MODEL_ID = 'eleven_flash_v2_5';
 
 // كود اللغة (ISO 639-1) — يقفل المخرجات على العربية
 const LANGUAGE_CODE = 'ar';
