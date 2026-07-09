@@ -1859,6 +1859,18 @@ function App() {
       const profileData = localStorage.getItem('child_profile');
       if (profileData) {
         const p = JSON.parse(profileData);
+        // Session 06 / Commit 2 (DOB) -- one-shot migration: legacy profiles carry age only.
+        // Derive birthYear from it once and persist, so nobody loses their band or re-onboards.
+        if (p && p.birthYear == null && p.age != null) {
+          p.birthYear = new Date().getFullYear() - (parseInt(p.age, 10) || 0);
+          try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
+        }
+        // DOB refresh: age is DERIVED from birthYear on every boot (approx, +/- 1y accepted),
+        // so the stored account ages automatically; deriveCaps/buildSystemPrompt keep reading p.age.
+        if (p && p.birthYear != null) {
+          const derivedAge = new Date().getFullYear() - (parseInt(p.birthYear, 10) || 0);
+          if (derivedAge >= 0 && derivedAge <= 120) p.age = derivedAge;
+        }
         profileRef.current = p;
         setProfile(p);
         const msgs = localStorage.getItem('messages');
@@ -2417,7 +2429,11 @@ function App() {
   };
 
   const startChat = async (name, age, gender) => {
-    const p = { name, age, gender, createdAt: new Date().toISOString() };
+    // Session 06 / Commit 2 (DOB, option A): birthYear is the authoritative stored datum.
+    // age stays on the object as a DERIVED value (approx, +/- 1y: month unknown) and is
+    // recomputed from birthYear on every boot load, so accounts grow automatically.
+    const birthYear = new Date().getFullYear() - (parseInt(age, 10) || 0);
+    const p = { name, age, gender, birthYear, createdAt: new Date().toISOString() };
     profileRef.current = p;
     setProfile(p);
     setScreen('chat');
