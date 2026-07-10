@@ -2833,7 +2833,7 @@ function App() {
     const content = attachBlock
       ? [
           attachBlock,
-          ...(text.trim() ? [{ type: 'text', text: text.trim() }] : []),
+          ...(text.trim() ? [{ type: 'text', text: text.trim() }] : [{ type: 'text', text: 'اشرح لي هذا' }]),
         ]
       : text;
     const userMsg = { role: 'user', content, timestamp: new Date().toISOString() };
