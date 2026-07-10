@@ -548,6 +548,7 @@ const stripIncompleteTags = (text) => {
 // للطفل وللأهل يبقى مُشَكَّلاً بالكامل. السبب: عناقيد الشدّة (التَّشْرِيك = تّ+شْ)
 // تُسبّب تأتأة في eleven_multilingual_v2. هذا تطبيع للمُدخَل الصوتي فقط.
 const STRIP_TASHKEEL_FOR_TTS = false;
+const TTS_TASHKEEL_ENABLED = false; // false = skip Haiku tashkeel add-call for speech (pre-diacritized canonical text unaffected); flip true to restore original behavior
 const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 
 // تصدير محتوى HTML كملفّ Word (.doc): Word/Docs يعرضان العربيّة RTL بأنفسهما،
@@ -2074,7 +2075,7 @@ function App() {
     const letterCount = (cleanText.match(/[ء-ي]/g) || []).length;
     const diacriticRatio = letterCount > 0 ? diacriticCount / letterCount : 0;
     let textForTTS = cleanText;
-    if (diacriticRatio >= 0.6) {
+    if (diacriticRatio >= 0.6 || !TTS_TASHKEEL_ENABLED) {
       // النصّ مُشكَّل جيداً من Opus — نَتخطّى Haiku، نوفِّر ثانيةً كاملة
       console.log(`[المربّي] تشكيل Opus كافٍ (${Math.round(diacriticRatio * 100)}٪) — تخطّينا Haiku`);
     } else {
