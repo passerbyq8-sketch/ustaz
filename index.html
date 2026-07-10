@@ -1910,8 +1910,14 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenSetting
         </div>
         <button onClick={g.tappable ? onOpenAdhkar : undefined} style={{ ...s.homeHero, ...(g.tappable ? {} : { cursor: 'default' }) }} aria-label={g.text}>
           <div style={s.homeHeroIcon}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
-          </div>
+              {g.period === 'morning' ? (
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>
+              ) : g.period === 'evening' ? (
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+              ) : (
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" /></svg>
+              )}
+            </div>
           <div style={s.homeHeroText}>{g.text}</div>
         </button>
         <div style={s.homeCardRow}>
@@ -4689,7 +4695,7 @@ const s = {
   homeSalam: { fontSize: 14, color: 'var(--muted)', fontWeight: 500, marginBottom: 2 },
   homeWelcome: { fontSize: 22, color: 'var(--ink)', fontWeight: 800 },
   homeAvatarBtn: { width: 44, height: 44, borderRadius: '50%', background: 'var(--white)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
-  homeHero: { width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '22px 20px', borderRadius: 'var(--radius-card)', background: 'var(--red)', border: 'none', cursor: 'pointer', marginBottom: 16, boxShadow: '0 10px 24px rgba(200,16,46,0.28)', textAlign: 'right' },
+  homeHero: { width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '22px 20px', borderRadius: 'var(--radius-card)', background: 'var(--red)', border: 'none', cursor: 'pointer', marginBottom: 16, boxShadow: '0 10px 24px rgba(29,78,216,0.28)', textAlign: 'right' },
   homeHeroIcon: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   homeHeroText: { fontSize: 20, fontWeight: 800, color: 'var(--white)' },
   homeCardRow: { display: 'flex', gap: 12, marginBottom: 16 },
@@ -4701,7 +4707,7 @@ const s = {
   homeNavItem: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--nav-off)', padding: 8 },
   homeNavItemActive: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', padding: 8 },
   homeNavLabel: { fontSize: 11, fontWeight: 600 },
-  homeFab: { width: 60, height: 60, borderRadius: '50%', background: 'var(--red)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(200,16,46,0.35)', marginTop: -24 },
+  homeFab: { width: 60, height: 60, borderRadius: '50%', background: 'var(--red)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(29,78,216,0.35)', marginTop: -24 },
   // Session 13.3-A - Adhkar browse screen (Boubyan). Reuses DhikrCard for content/audio.
   adhkarContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
   adhkarHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--white)', borderBottom: '1px solid var(--line)' },
