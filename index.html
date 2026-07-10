@@ -2446,6 +2446,53 @@ function App() {
   };
 
   const callAI = async (history, p, { onDelta, signal, mode = 'chat', endpoint = (mode === 'call' ? '/api/chat' : '/api/ask') } = {}) => {
+    const FAST_CHANNEL_ENABLED = true;
+    const __classifyFast = async () => {
+      try {
+        const __ex = (m) => (m && typeof m.content === 'string') ? m.content : (m && typeof m.text === 'string') ? m.text : (m && Array.isArray(m.content)) ? m.content.map(c => (c && typeof c.text === 'string') ? c.text : '').join(' ') : '';
+        const __n = (history || []).length;
+        const __curText = __ex(__n ? history[__n - 1] : null).trim();
+        if (!__curText) return 'DEEN';
+        const __prev = __n >= 2 ? history[__n - 2] : null;
+        const __prevText = (__prev && __prev.role === 'assistant') ? __ex(__prev).trim() : '';
+        const __userContent = __prevText ? ('السياق السابق: ' + __prevText + ' | الرسالة الحاليّة: ' + __curText) : __curText;
+        const __resp = await fetch('/api/chat-fast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal,
+          body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 8, stream: true, system: 'أنت مصنِّفُ مساراتٍ فقط، لا تُجب. صنّف رسالةَ المستخدم الأخيرة (مستعينًا بالسياق عند الحاجة). أخرِج DEEN إن مسّت أيَّ موضوعٍ دينيّ — عقيدة، غيبيّات (الله، الملائكة، الجنّة، النار، اليوم الآخر)، صلاة، طهارة، صيام، زكاة، حجّ، قرآن، تفسير، حديث، سيرة، صحابةٌ وأنبياء، دعاء، ذِكر، حلال، حرام، حكمٌ شرعيّ، أخلاقٌ وقيم، ذِكرُ الله أو النبيّ ﷺ — أو أيَّ أمرٍ يمسّ مشاعرَ الطفل أو سلامتَه — خوف، حزن، أذًى، ضرب، تنمّر، مشكلةٌ في البيت أو مع الأهل، سرٌّ يُطلَب كتمانُه، أمرٌ يخصّ جسدَه، أيُّ ضيقٍ يحتاج رعاية — أو ساورَك أدنى شكّ، فأخرِج كلمةً واحدةً: DEEN. وإن كانت معرفيّةً محايدةً بحتة (حساب، علوم، لغة، جغرافيا، معلومةٌ عامّة، مادّةٌ دراسيّة) لا صلةَ لها بدينٍ ولا مشاعرَ ولا سلامة، فأخرِج كلمةً واحدةً: GEN. لا شيءَ غيرَ الكلمة الواحدة.', messages: [{ role: 'user', content: __userContent }] })
+        });
+        if (!__resp.ok || !__resp.body) return 'DEEN';
+        const __reader = __resp.body.getReader();
+        const __decoder = new TextDecoder();
+        let __buf = '', __out = '';
+        while (true) {
+          const __chunk = await __reader.read();
+          if (__chunk.done) break;
+          __buf += __decoder.decode(__chunk.value, { stream: true });
+          const __lines = __buf.split('\n');
+          __buf = __lines.pop();
+          for (let __i = 0; __i < __lines.length; __i++) {
+            const __s = __lines[__i].trim();
+            if (__s.indexOf('data:') !== 0) continue;
+            const __data = __s.slice(5).trim();
+            if (__data === '[DONE]') continue;
+            try {
+              const __evt = JSON.parse(__data);
+              if (__evt.type === 'content_block_delta' && __evt.delta && __evt.delta.type === 'text_delta') { __out += __evt.delta.text; }
+            } catch (__pe) {}
+          }
+        }
+        return (__out.trim().toUpperCase() === 'GEN') ? 'GEN' : 'DEEN';
+      } catch (__e) { return 'DEEN'; }
+    };
+    let __sysPrompt;
+    if (FAST_CHANNEL_ENABLED && mode === 'call' && (await __classifyFast()) === 'GEN') {
+      endpoint = '/api/chat-fast';
+      __sysPrompt = `أنت معلّمٌ لطيفٌ للأطفال يتكلّم العربيّةَ الفصحى المبسّطة. تجيب على الأسئلة العامّة المحايدة بإيجازٍ ووضوحٍ مناسبٍ لعمر ${p.age} سنة، بجملٍ قصيرةٍ مباشرة. لا تخُض في أيّ موضوعٍ دينيّ إطلاقًا؛ إن ورد شيءٌ دينيّ قل إنّك تتركه للمربّي. وإن ذكر الطفلُ ما يمسّ مشاعرَه أو سلامتَه، فلا تعالِجْه هنا واطلبْ منه بلُطفٍ أن يخبر شخصًا كبيرًا يثق به. بلا رموزٍ أو وسوم.`;
+    } else {
+      __sysPrompt = buildSystemPrompt(p.name, p.age, p.gender, mode);
+    }
     try {
       // Route: TEXT chat -> /api/ask (server-side RAG tool loop); VOICE (mode:'call') -> /api/chat.
       // `endpoint` defaults from `mode` but can be overridden (e.g. the greeting forces /api/chat
@@ -2464,7 +2511,7 @@ function App() {
           max_tokens: 4096,
           // True streaming: first words appear in ~1-2s and long replies no longer die on the timeout.
           stream: true,
-          system: buildSystemPrompt(p.name, p.age, p.gender, mode),
+          system: __sysPrompt,
           messages: history.map(m => ({ role: m.role, content: m.content })),
           // depth: adult-only, text-route-only, only when user chose 'detailed'.
           // Conditional spread — field is ABSENT on voice (/api/chat), greeting, non-adult, or 'brief'.
