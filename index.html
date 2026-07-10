@@ -2230,13 +2230,16 @@ function App() {
     // نُنظّف الترميز الناقص أوّلاً كي لا يُرسَل "<verse surah=..." خاماً إلى ElevenLabs
     text = stripIncompleteTags(text);
     const parts = [];
-    const blockRe = /<(verse|surah)([^>]*)>[\s\S]*?<\/\1>/g;
+    const blockRe = /<(verse|surah|dhikr)([^>]*)>[\s\S]*?<\/\1>/g;
     let last = 0, m;
     while ((m = blockRe.exec(text)) !== null) {
       const before = text.slice(last, m.index);
       for (const chunk of splitSpeechIntoSentences(before)) parts.push({ kind: 'speak', text: chunk });
       const tag = m[1], attrs = m[2] || '';
-      if (tag === 'verse') {
+      if (tag === 'dhikr') { // dhikr - recorded Hisn al-Muslim recitation, auto-played inline (empty <dhikr id="N">)
+        const catId = (attrs.match(/id=["']([^"']+)["']/) || [])[1];
+        if (catId) parts.push({ kind: 'reciteDhikr', catId });
+      } else if (tag === 'verse') {
         const sNum = resolveSurahNumber(
           (attrs.match(/surah=["']([^"']+)["']/) || [])[1],
           (attrs.match(/surah_num=["']([^"']+)["']/) || [])[1]
@@ -2374,6 +2377,7 @@ function App() {
       try {
         if (part.kind === 'speak') await playPreparedSpeech(prepareSpeak(i), myId);
         else if (part.kind === 'reciteSurah') await playSurahRecitation(part.sNum, part.from || 1, part.to, myId);
+        else if (part.kind === 'reciteDhikr') await playDhikrRecitation(part.catId, myId);
         else await playRecitation(part.sNum, part.aNum, myId);
       } catch (e) {}
       if (myId !== sequenceIdRef.current) break;
@@ -2398,6 +2402,49 @@ function App() {
     const res = await playRecitation(sNum, aNum, myId);
     if (myId === sequenceIdRef.current) setIsSpeaking(false);
     return res;
+  };
+
+  // Auto-play the recorded Hisn al-Muslim recitation for a dua/dhikr category, inline in the
+  // audio sequence -- the dhikr counterpart of playSurahRecitation for a verse. Plays each
+  // item's d.audio (from adhkar.json) in order, in the reciter's recorded voice (NOT Murabbi
+  // TTS). Respects cancellation (sequenceIdRef/takeAudioFocus) and reuses the same new Audio
+  // pattern as the recitation path -- no parallel player. Items without audio stay silent.
+  const playDhikrRecitation = async (catId, myId) => {
+    const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
+    if (!catId) return { failed: true };
+    let items = [];
+    try {
+      const db = await loadAdhkar();
+      items = (db && db.byCat && db.byCat[parseInt(catId, 10)]) || [];
+    } catch (e) { return { failed: true }; }
+    const urls = items.map((d) => d && d.audio).filter(Boolean);
+    if (!urls.length) return { failed: false };
+    const playOne = (url) => new Promise((res) => {
+      if (!isCurrent()) return res({ failed: false });
+      takeAudioFocus();
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      let settled = false;
+      const done = (failed) => {
+        if (settled) return;
+        settled = true;
+        if (audioRef.current === audio) audioRef.current = null;
+        res({ failed: !!failed });
+      };
+      audio.onended = () => done(false);
+      audio.onerror = () => done(true);
+      audio.onpause = () => done(false);
+      const p = audio.play();
+      if (p && p.catch) p.catch(() => done(true));
+    });
+    let failedAny = false;
+    for (const url of urls) {
+      if (!isCurrent()) break;
+      const res = await playOne(url);
+      if (res.failed) failedAny = true;
+      if (!isCurrent()) break;
+    }
+    return { failed: failedAny };
   };
 
   const startListening = async () => {
