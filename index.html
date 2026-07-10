@@ -1845,7 +1845,56 @@ const MODE_OPTIONS = [
 // ============================================================
 // التطبيق
 // ============================================================
+const HOME_GREETINGS_GENERAL = [
+    "كيف أقدر أعينك اليوم؟",
+    "على بركة الله، بماذا نبدأ؟",
+    "اسألني عمّا يهمّك في دينك ودنياك.",
+    "هل قرأتَ وردك اليوم؟",
+    "أنا هنا متى احتجتَني.",
+    "سلامٌ عليك، بماذا تحبّ أن نبدأ؟",
+    "ما الذي تودّ أن تتعلّمه اليوم؟",
+    "سؤالك الأول اليوم… بماذا يكون؟",
+    "ماذا يشغل بالك اليوم؟",
+    "هل من آيةٍ تودّ أن نتدبّرها؟",
+    "أنا معك لنتعلّم سويًّا.",
+    "ابدأ يومك بنيّةٍ طيّبة.",
+    "سلْ، وسأجيبك بما ينفعك.",
+    "علّمْ نفسك اليوم شيئًا جديدًا.",
+    "كلُّ يومٍ فرصةٌ لتتعلّم.",
+    "بماذا نبدأ رحلة اليوم؟"
+  ];
+const HOME_GREETINGS_MORNING = [
+    "صباحك طاعة — هل قرأتَ أذكار الصباح؟",
+    "بكّر بذكر الله، أذكار الصباح بانتظارك.",
+    "افتتحْ يومك بأذكار الصباح.",
+    "صباح الخير، هل بدأتَ بأذكار الصباح؟",
+    "استقبلِ الصباح بذكر الله.",
+    "أذكار الصباح تُعينك على يومك.",
+    "طابَ صباحك — أذكار الصباح بانتظارك.",
+    "ابدأ نهارك بحصنٍ من الأذكار."
+  ];
+const HOME_GREETINGS_EVENING = [
+    "مساؤك ذكرٌ — هل قرأتَ أذكار المساء؟",
+    "اختم نهارك بأذكار المساء.",
+    "قبل أن يهدأ اليوم، أذكار المساء.",
+    "مساء الخير، هل قرأتَ أذكار المساء؟",
+    "استقبلِ المساء بذكر الله.",
+    "أذكار المساء تحفظك في ليلتك.",
+    "طابَ مساؤك — أذكار المساء بانتظارك.",
+    "اختم يومك بحصنٍ من الأذكار."
+  ];
+const getHomeGreeting = () => {
+  const now = new Date();
+  const day = Math.floor((Date.now() - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  const h = now.getHours();
+  const pick = (arr) => arr[(day * 5) % arr.length];
+  if (h >= 5 && h < 11) return { text: pick(HOME_GREETINGS_MORNING), period: 'morning', tappable: true };
+  if (h >= 16 && h < 19) return { text: pick(HOME_GREETINGS_EVENING), period: 'evening', tappable: true };
+  return { text: pick(HOME_GREETINGS_GENERAL), period: 'day', tappable: false };
+};
+
 function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenSettings }) {
+  const g = getHomeGreeting();
   return (
     <div style={s.homeContainer}>
       {/* S13.2-home */}
@@ -1859,11 +1908,11 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenSetting
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
           </button>
         </div>
-        <button onClick={onOpenChat} style={s.homeHero}>
+        <button onClick={g.tappable ? onOpenAdhkar : undefined} style={{ ...s.homeHero, ...(g.tappable ? {} : { cursor: 'default' }) }} aria-label={g.text}>
           <div style={s.homeHeroIcon}>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
           </div>
-          <div style={s.homeHeroText}>تحدّث مع المعلّم</div>
+          <div style={s.homeHeroText}>{g.text}</div>
         </button>
         <div style={s.homeCardRow}>
           <button onClick={onOpenMemorize} style={s.homeCard}>
@@ -1886,7 +1935,7 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenSetting
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
           <span style={s.homeNavLabel}>الرئيسية</span>
         </button>
-        <button onClick={onOpenChat} style={s.homeFab} aria-label="المعلّم">
+        <button onClick={onOpenChat} style={s.homeFab} aria-label="المربّي">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
         </button>
         <button onClick={onOpenSettings} style={s.homeNavItem} aria-label="الإعدادات">
