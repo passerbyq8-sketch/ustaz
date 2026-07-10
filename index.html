@@ -549,7 +549,7 @@ const stripIncompleteTags = (text) => {
 // تُسبّب تأتأة في eleven_multilingual_v2. هذا تطبيع للمُدخَل الصوتي فقط.
 const STRIP_TASHKEEL_FOR_TTS = false;
 const TTS_TASHKEEL_ENABLED = false; // false = skip Haiku tashkeel add-call for speech (pre-diacritized canonical text unaffected); flip true to restore original behavior
-const CALL_STREAM_SPEECH = true; // false = classic (speak full reply after generation). true = stream complete prose sentences BEFORE the first tag as they arrive (first-audio latency win); tags + trailing prose still handled by buildAudioSequence at finish.
+const CALL_STREAM_SPEECH = false; // false = classic (speak full reply after generation). true = stream complete prose sentences BEFORE the first tag as they arrive (first-audio latency win); tags + trailing prose still handled by buildAudioSequence at finish.
 const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 
 // تصدير محتوى HTML كملفّ Word (.doc): Word/Docs يعرضان العربيّة RTL بأنفسهما،
