@@ -12,6 +12,8 @@
 // التأخير المُضاف: ~0.5-1 ثانية فقط (Haiku سريع جداً)
 // ============================================================
 
+import { checkAudioLimit } from '../lib/ratelimit.js';
+
 // Hard input cap: skip diacritization for oversized text so we never spend Haiku
 // credits on abuse/bugs. Returns the original text (status 200) unchanged so the
 // client's audio flow is unbroken; the tts endpoint enforces the real cost gate.
@@ -43,6 +45,11 @@ export default async function handler(req, res) {
   // Over cap: skip Haiku, return the original text (audio still proceeds; tts caps cost).
   if (text.length > MAX_TASHKEEL_CHARS) {
     return res.status(200).json({ text: text, warning: `Tashkeel skipped: input too long (${text.length} chars)` });
+  }
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.headers['x-real-ip'] || 'unknown';
+  const rl = await checkAudioLimit(ip, 'tashkeel');
+  if (!rl.ok) {
+    return res.status(429).json({ error: 'audio rate limit exceeded' });
   }
 
   // إزالة أي تشكيل موجود لضمان معالجة موحّدة ومُتَّسقة

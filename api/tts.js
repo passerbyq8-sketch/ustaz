@@ -24,6 +24,8 @@
 // ============================================================
 // اختيار الصوت حسب جنس الطفل
 // ============================================================
+import { checkAudioLimit } from '../lib/ratelimit.js';
+
 const FEMALE_VOICE_ID = 'qi4PkV9c01kb869Vh7Su';  // صوت بناتي للبنات
 const MALE_VOICE_ID   = 'G1HOkzin3NMwRHSq60UI';  // صوت رجالي للأولاد
 
@@ -70,6 +72,11 @@ export default async function handler(req, res) {
   }
   if (text.length > MAX_TTS_CHARS) {
     return res.status(400).json({ error: `النص طويل جداً (الحد ${MAX_TTS_CHARS} حرف)` });
+  }
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.headers['x-real-ip'] || 'unknown';
+  const rl = await checkAudioLimit(ip, 'tts');
+  if (!rl.ok) {
+    return res.status(429).json({ error: 'audio rate limit exceeded' });
   }
 
   // Server-authoritative: voice is chosen ONLY by gender. We intentionally ignore any
