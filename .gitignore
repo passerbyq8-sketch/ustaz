@@ -8,3 +8,15 @@ live*.html
 spike/.env
 .env
 lib/data/fiqh-encyclopedia.jsonl
+.vercel
+.env*
+
+# throwaway one-off edit/probe scripts + backups (not part of the app)
+*.bak
+*.cjs.txt
+apply-*.cjs
+recon-*.cjs
+fix-*.cjs
+probe-*.mjs
+probe-*.txt
+payload-*.txt
