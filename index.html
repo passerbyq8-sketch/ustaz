@@ -4,10 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#2C5F5D">
+<meta name="theme-color" content="#C8102E">
 <title>المربّي - رفيق المسلم الصغير</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --red:#C8102E; --red-deep:#9E0C24; --red-lift:#E8586A; --red-soft:#F3E3E5;
+    --black:#141414; --ink:#1A1A1A; --muted:#6E6E6E; --nav-off:#9A9A9A;
+    --white:#FFFFFF; --page:#F6F5F4; --line:#ECEAEA; --tint:#EFEDED;
+    --scholar:#141414; --radius-card:22px; --radius-btn:16px;
+  }
+  /* Session 13.1 Welcome/Onboarding reskin - press state for the red primary CTA */
+  .welcome-primary:active { background: var(--red-deep) !important; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
   body {
@@ -3882,41 +3892,45 @@ function Onboarding({ onStart }) {
     }
   };
   return (
-    <div style={s.onboardingContainer}>
-      <div style={s.onboardingInner}>
-        <div style={s.onboardingCard}>
+    <div style={s.welcomeContainer}>
+      <div style={s.welcomeInner}>
+        <div style={s.welcomeCard}>
         {gate && <AdultGate a={gate.a} b={gate.b} onPass={() => onStart(name, gate.age, gender)} onCancel={() => setGate(null)} />}
         {step === 0 && (
+          /* S13.1-welcome-hero */
           <>
-            <div style={s.bigEmoji}>🌙</div>
-            <div style={s.onboardingTitle}>السلام عليكم</div>
-            <div style={s.onboardingSubtitle}>أنا "المربّي"، صديقك الجديد الذي سيعلّمك أمور دينك ويسمع منك يومك</div>
-            <button onClick={() => setStep(1)} style={s.primaryBtn}>هيا نبدأ ✨</button>
+            <div style={s.welcomeLogoSquare}>
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+            </div>
+            <div style={s.welcomeTitle}>المربّي</div>
+            <div style={s.welcomeBrand}>رفيق المسلم</div>
+            <div style={s.welcomeGreeting}>أهلاً بك</div>
+            <button onClick={() => setStep(1)} className="welcome-primary" style={s.welcomePrimaryBtn}>ابدأ</button>
           </>
         )}
         {step === 1 && (
           <>
-            <div style={s.bigEmoji}>👋</div>
-            <div style={s.onboardingTitle}>ما اسمك؟</div>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اكتب اسمك هنا" style={s.onboardingInput} autoFocus />
-            <button onClick={() => name.trim() && setStep(2)} disabled={!name.trim()} style={{ ...s.primaryBtn, opacity: name.trim() ? 1 : 0.4 }}>التالي</button>
+            <div style={s.welcomeEmoji}>👋</div>
+            <div style={s.welcomeStepTitle}>ما اسمك؟</div>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اكتب اسمك هنا" style={s.welcomeInput} autoFocus />
+            <button onClick={() => name.trim() && setStep(2)} disabled={!name.trim()} style={{ ...s.welcomePrimaryBtn, opacity: name.trim() ? 1 : 0.4 }}>التالي</button>
           </>
         )}
         {step === 2 && (
           <>
-            <div style={s.bigEmoji}>🌸</div>
-            <div style={s.onboardingTitle}>أنت ولد أم بنت يا {name}؟</div>
-            <div style={s.onboardingSubtitle}>هذا يساعدني أكلمك بالطريقة المناسبة لك</div>
+            <div style={s.welcomeEmoji}>🌸</div>
+            <div style={s.welcomeStepTitle}>أنت ولد أم بنت يا {name}؟</div>
+            <div style={s.welcomeSubtitle}>هذا يساعدني أكلمك بالطريقة المناسبة لك</div>
             <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
               <button
                 onClick={() => { setGender('male'); setStep(3); }}
-                style={{ ...s.primaryBtn, flex: 1, background: gender === 'male' ? '#2C5F5D' : '#E5DDD0', color: gender === 'male' ? '#FFF' : '#2C5F5D' }}
+                style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'male' ? 'var(--red)' : 'var(--white)', color: gender === 'male' ? '#FFF' : 'var(--ink)' }}
               >
                 👦 ولد
               </button>
               <button
                 onClick={() => { setGender('female'); setStep(3); }}
-                style={{ ...s.primaryBtn, flex: 1, background: gender === 'female' ? '#2C5F5D' : '#E5DDD0', color: gender === 'female' ? '#FFF' : '#2C5F5D' }}
+                style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'female' ? 'var(--red)' : 'var(--white)', color: gender === 'female' ? '#FFF' : 'var(--ink)' }}
               >
                 👧 بنت
               </button>
@@ -3925,24 +3939,24 @@ function Onboarding({ onStart }) {
         )}
         {step === 3 && (
           <>
-            <div style={s.bigEmoji}>🎂</div>
-            <div style={s.onboardingTitle}>كم عمرك يا {name}؟</div>
-            <div style={s.onboardingSubtitle}>اضغط على عمرك لتبدأ ✨</div>
-            <div style={{ ...s.onboardingSubtitle, fontSize: 13, opacity: 0.85 }}>اختر عمرك الحقيقي حتى أقدّم لك ما يناسبك</div>
-            <div style={s.ageGrid}>
+            <div style={s.welcomeEmoji}>🎂</div>
+            <div style={s.welcomeStepTitle}>كم عمرك يا {name}؟</div>
+            <div style={s.welcomeSubtitle}>اضغط على عمرك لتبدأ ✨</div>
+            <div style={{ ...s.welcomeSubtitle, fontSize: 13, opacity: 0.85 }}>اختر عمرك الحقيقي حتى أقدّم لك ما يناسبك</div>
+            <div style={s.welcomeAgeGrid}>
               {[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(n => (
-                <button key={n} onClick={() => { setShowAdultInput(false); setAge(n); setTimeout(() => requestStart(n), 250); }} style={{ ...s.ageBtn, ...(age === n ? s.ageBtnActive : {}) }}>{n}</button>
+                <button key={n} onClick={() => { setShowAdultInput(false); setAge(n); setTimeout(() => requestStart(n), 250); }} style={{ ...s.welcomeAgeBtn, ...(age === n ? s.welcomeAgeBtnActive : {}) }}>{n}</button>
               ))}
               <button
                 onClick={() => { setAge(null); setShowAdultInput(true); setTimeout(() => { if (adultInputRef.current) adultInputRef.current.focus(); }, 50); }}
-                style={{ ...s.ageBtn, ...s.ageBtnWide, ...(showAdultInput ? s.ageBtnActive : {}) }}
+                style={{ ...s.welcomeAgeBtn, ...s.welcomeAgeBtnWide, ...(showAdultInput ? s.welcomeAgeBtnActive : {}) }}
               >
                 أكبر من ١٨
               </button>
             </div>
             {showAdultInput && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16, alignItems: 'stretch' }}>
-                <div style={s.onboardingSubtitle}>اكتب عمرك بالضبط (من ١٨ إلى ٩٩)</div>
+                <div style={s.welcomeSubtitle}>اكتب عمرك بالضبط (من ١٨ إلى ٩٩)</div>
                 <input
                   ref={adultInputRef}
                   type="text"
@@ -3952,12 +3966,12 @@ function Onboarding({ onStart }) {
                   onKeyDown={(e) => { if (e.key === 'Enter' && adultAgeValid) requestStart(adultAgeNum); }}
                   onClick={() => { if (adultInputRef.current) adultInputRef.current.focus(); }}
                   placeholder="مثال: ٣٥"
-                  style={{ ...s.onboardingInput, textAlign: 'center' }}
+                  style={{ ...s.welcomeInput, textAlign: 'center' }}
                 />
                 <button
                   onClick={() => adultAgeValid && requestStart(adultAgeNum)}
                   disabled={!adultAgeValid}
-                  style={{ ...s.primaryBtn, opacity: adultAgeValid ? 1 : 0.4 }}
+                  style={{ ...s.welcomePrimaryBtn, opacity: adultAgeValid ? 1 : 0.4 }}
                 >
                   ابدأ
                 </button>
@@ -4558,6 +4572,23 @@ const s = {
   ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid #E5DDD0', background: '#FAF7F2', color: '#2C5F5D', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
   ageBtnActive: { background: '#2C5F5D', color: '#FAF7F2', borderColor: '#2C5F5D', transform: 'scale(1.05)' },
   ageBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
+  // Session 13.1 - Welcome/Onboarding reskin (Boubyan black+red). Scoped to the first-run flow only.
+  welcomeContainer: { minHeight: '100dvh', height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'var(--black)' },
+  welcomeInner: { minHeight: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'safe center', alignItems: 'center', padding: 24 },
+  welcomeCard: { width: '100%', maxWidth: 380, textAlign: 'center' },
+  welcomeLogoSquare: { width: 88, height: 88, borderRadius: 'var(--radius-card)', background: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px' },
+  welcomeTitle: { fontSize: 34, fontWeight: 800, color: 'var(--white)', marginBottom: 6, letterSpacing: '-0.5px' },
+  welcomeBrand: { fontSize: 18, fontWeight: 700, color: 'var(--red-lift)', marginBottom: 18 },
+  welcomeGreeting: { fontSize: 16, fontWeight: 500, color: 'var(--nav-off)', marginBottom: 28 },
+  welcomeEmoji: { fontSize: 56, marginBottom: 14, animation: 'fadeIn 0.5s ease-out' },
+  welcomeStepTitle: { fontSize: 25, fontWeight: 800, color: 'var(--white)', marginBottom: 12 },
+  welcomeSubtitle: { fontSize: 15.5, color: 'var(--nav-off)', marginBottom: 22, lineHeight: 1.6 },
+  welcomeInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 'var(--radius-btn)', border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
+  welcomePrimaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 'var(--radius-btn)', background: 'var(--red)', color: 'var(--white)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  welcomeAgeGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
+  welcomeAgeBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  welcomeAgeBtnActive: { background: 'var(--red)', color: 'var(--white)', borderColor: 'var(--red)', transform: 'scale(1.05)' },
+  welcomeAgeBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
   primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(44, 95, 93, 0.3)' },
   secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6B6358', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
 
