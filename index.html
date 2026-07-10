@@ -2959,7 +2959,9 @@ function App() {
     if (abortRef.current) abortRef.current.abort();
     const userMsg = { role: 'user', content: text, timestamp: new Date().toISOString() };
     const updated = [...messages, userMsg];
-    setMessages(updated);
+    // Do NOT commit the user msg to messages here. It is written together with the reply on
+    // success (final = [...updated, aiMsg]). So an interrupted/superseded turn leaves NO orphan
+    // user message -> fixes empty-reply-in-transcript AND the abandoned-question-answered-later bug.
     const apiHistory = sliceHistoryForAPI(updated);
     const controller = new AbortController();
     abortRef.current = controller;
