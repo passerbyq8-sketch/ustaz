@@ -20,3 +20,4 @@ fix-*.cjs
 probe-*.mjs
 probe-*.txt
 payload-*.txt
+probe-*.cjs
