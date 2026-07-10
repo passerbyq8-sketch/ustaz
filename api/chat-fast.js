@@ -13,8 +13,9 @@
 // SIBLING CONTRACT: if you ever change the caching or SSE-relay logic in api/chat.js,
 // mirror it here (and vice-versa) or the two relays will drift.
 //
-// This file is DORMANT until the client is wired to POST here (Step 2). Deploying it
-// alone changes nothing live.
+// This relay is LIVE: index.html (callAI, FAST_CHANNEL_ENABLED=true) POSTs GEN-
+// classified CALL turns here. It still carries NO prompt of its own (see SAFETY NOTE);
+// the client sends the GEN system prompt + messages, and this relay swaps in Haiku.
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

@@ -28,9 +28,10 @@ export default async function handler(req, res) {
     //     model is chosen ONLY via the Vercel env var MODEL (set in the dashboard).
     parsed.model = process.env.MODEL_STANDARD || process.env.MODEL || 'claude-opus-4-8';
     console.log('[tier] voice', { model: parsed.model });
-    // (A2) Cut latency on call turns + the greeting by capping overall effort. `effort`
-    //     is GA (no beta header) and lives inside output_config; default is 'high' (slow).
-    //     'medium' keeps replies coherent while spending fewer tokens than the default.
+    // NOTE: no effort cap is set on this voice relay; it runs at the API default
+    //     (effort high). Graduated effort lives in api/ask.js (the text path), not here.
+    //     A 'medium' cap to cut call latency is a candidate change, but it alters
+    //     behavior and needs a live voice-quality check, so it is intentionally unset here.
 
     // (B) Ephemeral prompt caching on the system prompt (the bulk of input cost). The client
     //     sends `system` as a plain string; wrap it in a single cached text block. If it is
