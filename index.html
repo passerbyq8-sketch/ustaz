@@ -3871,17 +3871,14 @@ function AdultGate({ a, b, onPass, onCancel }) {
 }
 
 function Onboarding({ onStart }) {
-  const [step, setStep] = useState(0);
   const [name, setName] = useState('');
-  const [age, setAge] = useState(null);
+  const [age, setAge] = useState('');
   const [gender, setGender] = useState(null);
-  const [showAdultInput, setShowAdultInput] = useState(false); // عند اختيار "أكبر من ١٨" نكشف حقل العمر الدقيق
-  const [adultAge, setAdultAge] = useState('');
-  const adultInputRef = useRef(null);
-  const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-  const adultAgeNum = parseInt(toLatinDigits(adultAge), 10);
-  const adultAgeValid = adultAgeNum >= 18 && adultAgeNum <= 99;
   const [gate, setGate] = useState(null);
+  const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+  const ageNum = parseInt(toLatinDigits(age), 10);
+  const ageValid = Number.isInteger(ageNum) && ageNum >= 4 && ageNum <= 99;
+  const canStart = !!(name.trim() && gender && ageValid);
   const requestStart = (n) => {
     if (PARENTAL_GATE_ENABLED && n >= 18) {
       const a = 13 + Math.floor(Math.random() * 87);
@@ -3891,95 +3888,27 @@ function Onboarding({ onStart }) {
       onStart(name, n, gender);
     }
   };
+  const submit = () => { if (canStart) requestStart(ageNum); };
   return (
     <div style={s.welcomeContainer}>
       <div style={s.welcomeInner}>
         <div style={s.welcomeCard}>
         {gate && <AdultGate a={gate.a} b={gate.b} onPass={() => onStart(name, gate.age, gender)} onCancel={() => setGate(null)} />}
-        {step === 0 && (
-          /* S13.1-welcome-hero */
-          <>
-            <div style={s.welcomeLogoSquare}>
-              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
-            </div>
-            <div style={s.welcomeTitle}>المربّي</div>
-            <div style={s.welcomeBrand}>رفيق المسلم</div>
-            <div style={s.welcomeGreeting}>أهلاً بك</div>
-            <button onClick={() => setStep(1)} className="welcome-primary" style={s.welcomePrimaryBtn}>ابدأ</button>
-          </>
-        )}
-        {step === 1 && (
-          <>
-            <div style={s.welcomeEmoji}>👋</div>
-            <div style={s.welcomeStepTitle}>ما اسمك؟</div>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اكتب اسمك هنا" style={s.welcomeInput} autoFocus />
-            <button onClick={() => name.trim() && setStep(2)} disabled={!name.trim()} style={{ ...s.welcomePrimaryBtn, opacity: name.trim() ? 1 : 0.4 }}>التالي</button>
-          </>
-        )}
-        {step === 2 && (
-          <>
-            <div style={s.welcomeEmoji}>🌸</div>
-            <div style={s.welcomeStepTitle}>أنت ولد أم بنت يا {name}؟</div>
-            <div style={s.welcomeSubtitle}>هذا يساعدني أكلمك بالطريقة المناسبة لك</div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-              <button
-                onClick={() => { setGender('male'); setStep(3); }}
-                style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'male' ? 'var(--red)' : 'var(--white)', color: gender === 'male' ? '#FFF' : 'var(--ink)' }}
-              >
-                👦 ولد
-              </button>
-              <button
-                onClick={() => { setGender('female'); setStep(3); }}
-                style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'female' ? 'var(--red)' : 'var(--white)', color: gender === 'female' ? '#FFF' : 'var(--ink)' }}
-              >
-                👧 بنت
-              </button>
-            </div>
-          </>
-        )}
-        {step === 3 && (
-          <>
-            <div style={s.welcomeEmoji}>🎂</div>
-            <div style={s.welcomeStepTitle}>كم عمرك يا {name}؟</div>
-            <div style={s.welcomeSubtitle}>اضغط على عمرك لتبدأ ✨</div>
-            <div style={{ ...s.welcomeSubtitle, fontSize: 13, opacity: 0.85 }}>اختر عمرك الحقيقي حتى أقدّم لك ما يناسبك</div>
-            <div style={s.welcomeAgeGrid}>
-              {[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(n => (
-                <button key={n} onClick={() => { setShowAdultInput(false); setAge(n); setTimeout(() => requestStart(n), 250); }} style={{ ...s.welcomeAgeBtn, ...(age === n ? s.welcomeAgeBtnActive : {}) }}>{n}</button>
-              ))}
-              <button
-                onClick={() => { setAge(null); setShowAdultInput(true); setTimeout(() => { if (adultInputRef.current) adultInputRef.current.focus(); }, 50); }}
-                style={{ ...s.welcomeAgeBtn, ...s.welcomeAgeBtnWide, ...(showAdultInput ? s.welcomeAgeBtnActive : {}) }}
-              >
-                أكبر من ١٨
-              </button>
-            </div>
-            {showAdultInput && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16, alignItems: 'stretch' }}>
-                <div style={s.welcomeSubtitle}>اكتب عمرك بالضبط (من ١٨ إلى ٩٩)</div>
-                <input
-                  ref={adultInputRef}
-                  type="text"
-                  inputMode="numeric"
-                  value={adultAge}
-                  onChange={(e) => { const v = e.target.value; setAdultAge(v); const n = parseInt(toLatinDigits(v), 10); if (n >= 18 && n <= 99) setTimeout(() => requestStart(n), 250); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && adultAgeValid) requestStart(adultAgeNum); }}
-                  onClick={() => { if (adultInputRef.current) adultInputRef.current.focus(); }}
-                  placeholder="مثال: ٣٥"
-                  style={{ ...s.welcomeInput, textAlign: 'center' }}
-                />
-                <button
-                  onClick={() => adultAgeValid && requestStart(adultAgeNum)}
-                  disabled={!adultAgeValid}
-                  style={{ ...s.welcomePrimaryBtn, opacity: adultAgeValid ? 1 : 0.4 }}
-                >
-                  ابدأ
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+        {/* S13.1b-welcome-single */}
+        <div style={s.welcomeLogoSquare}>
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+        </div>
+        <div style={s.welcomeTitle}>المربّي</div>
+        <div style={s.welcomeBrand}>رفيق المسلم</div>
+        <div style={s.welcomeGreeting}>أهلاً بك</div>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم" style={s.welcomeInput} autoFocus />
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+          <button onClick={() => setGender('male')} style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'male' ? 'var(--red)' : 'var(--white)', color: gender === 'male' ? '#FFF' : 'var(--ink)' }}>ذكر</button>
+          <button onClick={() => setGender('female')} style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'female' ? 'var(--red)' : 'var(--white)', color: gender === 'female' ? '#FFF' : 'var(--ink)' }}>أنثى</button>
+        </div>
+        <input value={age} onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="العمر" type="text" inputMode="numeric" pattern="[0-9]*" style={s.welcomeInput} />
+        <button onClick={submit} disabled={!canStart} className="welcome-primary" style={{ ...s.welcomePrimaryBtn, opacity: canStart ? 1 : 0.4 }}>ابدأ</button>
+        </div>
       </div>
     </div>
   );
