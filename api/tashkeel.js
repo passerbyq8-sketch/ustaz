@@ -12,6 +12,13 @@
 // التأخير المُضاف: ~0.5-1 ثانية فقط (Haiku سريع جداً)
 // ============================================================
 
+// Hard input cap: skip diacritization for oversized text so we never spend Haiku
+// credits on abuse/bugs. Returns the original text (status 200) unchanged so the
+// client's audio flow is unbroken; the tts endpoint enforces the real cost gate.
+// Keep this ~1/1.6 of MAX_TTS_CHARS (diacritics expand the text). Raise if a real
+// answer is ever skipped.
+const MAX_TASHKEEL_CHARS = 5000;
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -32,6 +39,10 @@ export default async function handler(req, res) {
   const { text, gender } = req.body;
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: 'النص مطلوب' });
+  }
+  // Over cap: skip Haiku, return the original text (audio still proceeds; tts caps cost).
+  if (text.length > MAX_TASHKEEL_CHARS) {
+    return res.status(200).json({ text: text, warning: `Tashkeel skipped: input too long (${text.length} chars)` });
   }
 
   // إزالة أي تشكيل موجود لضمان معالجة موحّدة ومُتَّسقة

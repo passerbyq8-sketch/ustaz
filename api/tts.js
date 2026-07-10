@@ -40,6 +40,13 @@ const TTS_SPEED = 1.1; // speech pace: 1.0 = default, range 0.7-1.2 (voice_setti
 // كود اللغة (ISO 639-1) — يقفل المخرجات على العربية
 const LANGUAGE_CODE = 'ar';
 
+// Hard input cap: reject oversized text BEFORE spending ElevenLabs credits / quota.
+// tts receives the DIACRITIZED text (post-tashkeel), which is ~1.5-1.6x the raw
+// input, so this sits above MAX_TASHKEEL_CHARS x ~1.6. Any legit single answer
+// (even a long worship card) is well under this; larger is abuse or a bug. If a
+// real answer is ever clipped, raise this AND MAX_TASHKEEL_CHARS together.
+const MAX_TTS_CHARS = 8000;
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -60,6 +67,9 @@ export default async function handler(req, res) {
   const { text, gender } = req.body;
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: 'النص مطلوب' });
+  }
+  if (text.length > MAX_TTS_CHARS) {
+    return res.status(400).json({ error: `النص طويل جداً (الحد ${MAX_TTS_CHARS} حرف)` });
   }
 
   // Server-authoritative: voice is chosen ONLY by gender. We intentionally ignore any
