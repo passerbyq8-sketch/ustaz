@@ -517,6 +517,7 @@ const getDailyVerse = () => {
 // ============================================================
 // رقائق المواضيع (نقرة → سؤال للأستاذ)
 // ============================================================
+const HOME_ADHKAR_PROMPT = 'علّمني بعض الأذكار';
 const TOPICS = [
   { id: 'salah', label: 'الصلاة', prompt: 'علّمني عن الصلاة' },
   { id: 'quran', label: 'القرآن', prompt: 'احكِ لي عن سورة جميلة' },
@@ -1845,6 +1846,59 @@ const MODE_OPTIONS = [
 // ============================================================
 // التطبيق
 // ============================================================
+function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenSettings }) {
+  return (
+    <div style={s.homeContainer}>
+      {/* S13.2-home */}
+      <div style={s.homeScroll}>
+        <div style={s.homeGreetRow}>
+          <div>
+            <div style={s.homeSalam}>السلام عليكم</div>
+            <div style={s.homeWelcome}>مرحباً يا {profile?.name}</div>
+          </div>
+          <button onClick={onOpenSettings} style={s.homeAvatarBtn} aria-label="الحساب">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+          </button>
+        </div>
+        <button onClick={onOpenChat} style={s.homeHero}>
+          <div style={s.homeHeroIcon}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
+          </div>
+          <div style={s.homeHeroText}>تحدّث مع المعلّم</div>
+        </button>
+        <div style={s.homeCardRow}>
+          <button onClick={onOpenMemorize} style={s.homeCard}>
+            <div style={s.homeIconSquareBlack}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+            </div>
+            <div style={s.homeCardLabel}>المحفّظ</div>
+          </button>
+          <button onClick={onOpenAdhkar} style={s.homeCard}>
+            <div style={s.homeIconSquareRed}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="5" r="1.5" fill="#FFFFFF" /><circle cx="19" cy="12" r="1.5" fill="#FFFFFF" /><circle cx="12" cy="19" r="1.5" fill="#FFFFFF" /><circle cx="5" cy="12" r="1.5" fill="#FFFFFF" /></svg>
+            </div>
+            <div style={s.homeCardLabel}>الأذكار</div>
+          </button>
+        </div>
+        <DailyVerseCard />
+      </div>
+      <div style={s.homeNav}>
+        <button style={s.homeNavItemActive} aria-label="الرئيسية">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
+          <span style={s.homeNavLabel}>الرئيسية</span>
+        </button>
+        <button onClick={onOpenChat} style={s.homeFab} aria-label="المعلّم">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
+        </button>
+        <button onClick={onOpenSettings} style={s.homeNavItem} aria-label="الإعدادات">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
+          <span style={s.homeNavLabel}>الإعدادات</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [screen, setScreen] = useState('loading');
   const [profile, setProfile] = useState(null);
@@ -1931,7 +1985,7 @@ function App() {
         setProfile(p);
         const msgs = localStorage.getItem('messages');
         if (msgs) setMessages(JSON.parse(msgs));
-        setScreen('chat');
+        setScreen('home');
       } else {
         setScreen('onboarding');
       }
@@ -2605,7 +2659,7 @@ function App() {
     const p = { name, age, gender, birthYear, createdAt: new Date().toISOString() };
     profileRef.current = p;
     setProfile(p);
-    setScreen('chat');
+    setScreen('home');
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
     await sendInitialGreeting(p);
   };
@@ -3201,6 +3255,7 @@ function App() {
 
   if (screen === 'loading') return <div style={s.loadingScreen}><div style={s.loadingSpinner}>✨</div></div>;
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
+  if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => { setScreen('chat'); sendMessage(HOME_ADHKAR_PROMPT); }} onOpenSettings={() => setScreen('parentGate')} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
   if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
@@ -4518,6 +4573,26 @@ const s = {
   welcomeAgeBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
   welcomeAgeBtnActive: { background: 'var(--red)', color: 'var(--white)', borderColor: 'var(--red)', transform: 'scale(1.05)' },
   welcomeAgeBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
+  // Session 13.2 - Home screen (Boubyan). Launcher into existing screens; no new destinations.
+  homeContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
+  homeScroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '20px 18px 12px', boxSizing: 'border-box' },
+  homeGreetRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+  homeSalam: { fontSize: 14, color: 'var(--muted)', fontWeight: 500, marginBottom: 2 },
+  homeWelcome: { fontSize: 22, color: 'var(--ink)', fontWeight: 800 },
+  homeAvatarBtn: { width: 44, height: 44, borderRadius: '50%', background: 'var(--white)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+  homeHero: { width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '22px 20px', borderRadius: 'var(--radius-card)', background: 'var(--red)', border: 'none', cursor: 'pointer', marginBottom: 16, boxShadow: '0 10px 24px rgba(200,16,46,0.28)', textAlign: 'right' },
+  homeHeroIcon: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  homeHeroText: { fontSize: 20, fontWeight: 800, color: 'var(--white)' },
+  homeCardRow: { display: 'flex', gap: 12, marginBottom: 16 },
+  homeCard: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '20px 12px', borderRadius: 'var(--radius-card)', background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer' },
+  homeIconSquareBlack: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'var(--black)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  homeIconSquareRed: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  homeCardLabel: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
+  homeNav: { display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 24px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
+  homeNavItem: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--nav-off)', padding: 8 },
+  homeNavItemActive: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', padding: 8 },
+  homeNavLabel: { fontSize: 11, fontWeight: 600 },
+  homeFab: { width: 60, height: 60, borderRadius: '50%', background: 'var(--red)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(200,16,46,0.35)', marginTop: -24 },
   primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(44, 95, 93, 0.3)' },
   secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6B6358', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
 
