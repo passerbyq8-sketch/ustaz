@@ -549,6 +549,7 @@ const stripIncompleteTags = (text) => {
 // تُسبّب تأتأة في eleven_multilingual_v2. هذا تطبيع للمُدخَل الصوتي فقط.
 const STRIP_TASHKEEL_FOR_TTS = false;
 const TTS_TASHKEEL_ENABLED = false; // false = skip Haiku tashkeel add-call for speech (pre-diacritized canonical text unaffected); flip true to restore original behavior
+const CALL_STREAM_SPEECH = false; // false = classic (speak full reply after generation). true = stream complete prose sentences BEFORE the first tag as they arrive (first-audio latency win); tags + trailing prose still handled by buildAudioSequence at finish.
 const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 
 // تصدير محتوى HTML كملفّ Word (.doc): Word/Docs يعرضان العربيّة RTL بأنفسهما،
@@ -2447,6 +2448,72 @@ function App() {
     return { failed: failedAny };
   };
 
+  // CALL_STREAM_SPEECH streaming speech. Speaks COMPLETE prose sentences that arrive
+  // BEFORE the first tag (first-audio latency win); the moment any tag appears, streaming
+  // stops and everything from the first tag onward is played by the PROVEN buildAudioSequence
+  // at finish(). One session (sequenceIdRef) so barge-in / cancelAudio stops it; reuses the
+  // existing play machinery -- no parallel player. feed(full) is used as callAI onDelta;
+  // finish(fullReply) replaces speakReply(reply) and resolves when playback ends.
+  const createCallSpeechStream = () => {
+    const myId = ++sequenceIdRef.current;   // one session; cancelAudio()/barge-in bump this to stop us
+    takeAudioFocus();
+    setIsSpeaking(true);
+    const queue = [];
+    let consuming = false, inputDone = false, hitTag = false, consumedLen = 0;
+    let resolveDone;
+    const donePromise = new Promise((r) => { resolveDone = r; });
+    const isCurrent = () => myId === sequenceIdRef.current;
+    const finishUp = () => { if (isCurrent()) setIsSpeaking(false); resolveDone(); };
+    const pump = async () => {
+      if (consuming) return;
+      consuming = true;
+      while (true) {
+        if (!isCurrent()) { consuming = false; finishUp(); return; }         // barge-in / superseded
+        if (queue.length === 0) {
+          if (inputDone) { consuming = false; finishUp(); return; }
+          consuming = false; return;                                          // idle; re-kicked by enqueue/finish
+        }
+        const seg = queue.shift();
+        try {
+          if (seg.kind === 'speak') await playPreparedSpeech(fetchSpeechAudio(seg.text, myId), myId);
+          else if (seg.kind === 'reciteSurah') await playSurahRecitation(seg.sNum, seg.from || 1, seg.to, myId);
+          else if (seg.kind === 'reciteDhikr') await playDhikrRecitation(seg.catId, myId);
+          else await playRecitation(seg.sNum, seg.aNum, myId);
+        } catch (e) {}
+      }
+    };
+    const enqueue = (segs) => { for (const s of segs) queue.push(s); pump(); };
+    // last safe cut inside tag-free prose: end of the last COMPLETE sentence
+    const lastSentenceCut = (s) => {
+      let cut = 0, re = /[.!\u061F?\u061B]\s|\n/g, m;
+      while ((m = re.exec(s)) !== null) cut = m.index + m[0].length;
+      return cut;
+    };
+    const feed = (full) => {
+      if (!isCurrent() || hitTag) return;
+      const safe = stripIncompleteTags(full);                 // drops any incomplete trailing tag
+      const tm = /<(verse|surah|hadith|steps|suggestions|source|dhikr)[\s>\/]/.exec(safe);
+      const firstTag = tm ? tm.index : safe.length;           // prose is streamable only BEFORE the first tag
+      const region = safe.slice(consumedLen, firstTag);       // tag-free prose not yet spoken
+      const cut = tm ? region.length : lastSentenceCut(region); // tag present -> flush prose up to it; else complete sentences only
+      if (cut > 0) {
+        const segs = [];
+        for (const c of splitSpeechIntoSentences(region.slice(0, cut))) segs.push({ kind: 'speak', text: c });
+        consumedLen += cut;
+        enqueue(segs);
+      }
+      if (tm) hitTag = true;   // reached a tag -> stop streaming; finish() plays the rest via buildAudioSequence
+    };
+    const finish = async (fullReply) => {
+      const rest = (fullReply || '').slice(consumedLen);      // tags + any trailing prose not yet spoken
+      if (rest.trim()) enqueue(buildAudioSequence(rest));
+      inputDone = true;
+      pump();
+      await donePromise;
+    };
+    return { feed, finish };
+  };
+
   const startListening = async () => {
     if (!recognitionRef.current) {
       setVoiceError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
@@ -2897,8 +2964,12 @@ function App() {
     const controller = new AbortController();
     abortRef.current = controller;
     let reply;
+    let callStream = null; // CALL_STREAM_SPEECH: lazily-created streaming session (off -> stays null; classic speakReply used)
     try {
-      reply = await callAI(apiHistory, profile, { signal: controller.signal, mode: 'call' });
+      reply = await callAI(apiHistory, profile, {
+        signal: controller.signal, mode: 'call',
+        ...(CALL_STREAM_SPEECH ? { onDelta: (full) => { if (abortRef.current !== controller) return; if (!callStream) { callStream = createCallSpeechStream(); setCallState('speaking'); } callStream.feed(full); } } : {}),
+      });
     } catch (e) {
       if (e.name === 'AbortError') return; // exited mid-turn — do not write state
       reply = getFriendlyError('network', profile?.gender);
@@ -2910,7 +2981,8 @@ function App() {
     setMessages(final);
     saveMessages(final);
     setCallState('speaking');
-    await speakReply(reply); // completion hook — resolves when playback fully finishes
+    if (CALL_STREAM_SPEECH && callStream) await callStream.finish(reply); // stream: flush remainder + await playback drain (same completion contract)
+    else await speakReply(reply); // completion hook -- resolves when playback fully finishes
     // Layer 3 guarded auto-rearm. speakReply cannot reject and resolves only after playback ends.
     if (callGenRef.current !== myGen) return;                   // End/exit or session change during playback → do NOT re-arm
     if (callActiveRef.current) return;                          // a manual interrupt already re-opened the mic → don't double-arm
