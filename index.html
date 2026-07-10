@@ -1849,7 +1849,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
-  const [voiceMode, setVoiceMode] = useState(true); // chat TTS on by default; user can mute via the header speaker button
+  const [voiceMode, setVoiceMode] = useState(false); // chat TTS OFF by default (opt-in): silent unless the user taps a message’s listen button or turns on the header speaker toggle
   const [chatMode, setChatMode] = useState('chat'); // dropdown-selected in-chat answer style; 'chat' = normal (المحفّظ switches screen, not chatMode)
   // Parental lock for direct conversation (المكالمة). Dedicated localStorage key, read/written
   // UNCONDITIONALLY (not gated by PERSIST_CONVERSATION, not stored in child_profile which is wiped
@@ -3255,7 +3255,7 @@ function App() {
           <TopicChips onTopicClick={(prompt) => sendMessage(prompt)} />
         )}
 
-        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} age={profile?.age} />)}
+        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} />)}
         {streamingText !== null && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             {formatForStreamPreview(streamingText)
@@ -3381,7 +3381,36 @@ function App() {
   );
 }
 
-function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, age }) {
+// Per-message listen button (opt-in TTS). Mirrors VerseCard's play/stop pattern:
+// local `playing` state; unified App audio via onPlayMessage (speakReply), which
+// resolves when playback ends or is cancelled; onStopAudio (cancelAudio) stops it.
+// The reply is spoken through the SAME pipeline (formatForTTS -> smart tashkeel
+// skip -> tts), so the shipped audio rate-limit governs it. Verses inside the
+// reply are recited by the reciter exactly as in the old auto-play path.
+function MessageListenButton({ text, onPlayMessage, onStopAudio }) {
+  const [playing, setPlaying] = useState(false);
+  if (!text || !onPlayMessage) return null;
+  const toggle = () => {
+    if (playing) { if (onStopAudio) onStopAudio(); setPlaying(false); return; }
+    setPlaying(true);
+    Promise.resolve(onPlayMessage(text))
+      .then(() => setPlaying(false))
+      .catch(() => setPlaying(false));
+  };
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={playing ? 'إيقاف الصوت' : 'استمع للرد'}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: '#2C5F5D', border: '1px solid #D9D2C5', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+    >
+      {playing ? <PauseIcon size={13} /> : <PlayIcon size={13} />}
+      <span>{playing ? 'إيقاف' : 'استمع'}</span>
+    </button>
+  );
+}
+
+function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age }) {
   const isUser = message.role === 'user';
   if (isUser) {
     const c = message.content;
@@ -3433,6 +3462,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
           return null;
         })}
       </div>
+      <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
       {suggestions && suggestions.length > 0 && (
         <div style={s.suggestionsInline}>
           {suggestions.map((sg, i) => (
