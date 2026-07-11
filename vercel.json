@@ -4,6 +4,7 @@
   "functions": {
     "api/ask.js": { "maxDuration": 300, "includeFiles": "lib/data/fiqh-search.json.gz" },
     "api/chat.js": { "maxDuration": 300 },
+    "api/chat-fast.js": { "maxDuration": 300 },
     "api/tashkeel.js": { "maxDuration": 300 },
     "api/tts.js": { "maxDuration": 300 }
   },
