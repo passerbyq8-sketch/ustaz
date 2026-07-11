@@ -20,13 +20,16 @@
 // and skipWaiting + clients.claim hand control to the new build IMMEDIATELY -- no tester left
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (mushaf/manifest/fonts).
-const CACHE = 'almurabbi-v1';
+const CACHE = 'almurabbi-v2';
 const CORE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/quran-uthmani.json',
   '/mushaf-layout.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-maskable-512.png',
 ];
 
 self.addEventListener('install', (event) => {
