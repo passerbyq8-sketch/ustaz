@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#C8102E">
+<meta name="theme-color" content="#1D4ED8">
 <title>المربّي - رفيق المسلم الصغير</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,12 +22,12 @@
   html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
   body {
     font-family: 'Tajawal', sans-serif;
-    background: #FAF7F2;
+    background: #F1F6FD;
     direction: rtl;
     -webkit-font-smoothing: antialiased;
   }
   #root { height: 100vh; height: 100dvh; }
-  input:focus { outline: none; border-color: #2C5F5D !important; }
+  input:focus { outline: none; border-color: #12327A !important; }
   button { font-family: inherit; }
   button:active { transform: scale(0.97); }
   @keyframes typing {
@@ -47,29 +47,29 @@
     0%, 100% { transform: scale(0.92); opacity: 0.55; }
     50% { transform: scale(1.08); opacity: 1; }
   }
-  .doc-rendered h1{font-size:18px;color:#2C5F5D;margin:10px 0 6px}
-  .doc-rendered h2{font-size:16px;color:#2C5F5D;margin:9px 0 5px}
-  .doc-rendered h3{font-size:14.5px;color:#2C5F5D;margin:8px 0 4px}
-  .doc-rendered h4{font-size:13.5px;color:#2C5F5D;margin:7px 0 4px}
+  .doc-rendered h1{font-size:18px;color:#12327A;margin:10px 0 6px}
+  .doc-rendered h2{font-size:16px;color:#12327A;margin:9px 0 5px}
+  .doc-rendered h3{font-size:14.5px;color:#12327A;margin:8px 0 4px}
+  .doc-rendered h4{font-size:13.5px;color:#12327A;margin:7px 0 4px}
   .doc-rendered p{margin:6px 0}
   .doc-rendered ul,.doc-rendered ol{margin:6px 1.2em 6px 0;padding:0}
   .doc-rendered li{margin:3px 0}
   .doc-rendered strong{font-weight:700}
   .doc-rendered table{border-collapse:collapse;width:100%;margin:8px 0}
-  .doc-rendered th,.doc-rendered td{border:1px solid #d0d7d6;padding:5px 8px;text-align:right}
-  .doc-rendered th{background:#EAF2F1;color:#2C5F5D}
+  .doc-rendered th,.doc-rendered td{border:1px solid #E5EBF5;padding:5px 8px;text-align:right}
+  .doc-rendered th{background:#EDF1FA;color:#12327A}
   #print-area{display:none}
-  #print-area h1{font-size:20pt;color:#2C5F5D;margin:0 0 10pt}
-  #print-area h2{font-size:15pt;color:#2C5F5D;margin:12pt 0 5pt}
-  #print-area h3{font-size:13pt;color:#2C5F5D;margin:10pt 0 4pt}
-  #print-area h4{font-size:12pt;color:#2C5F5D;margin:8pt 0 4pt}
+  #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
+  #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
+  #print-area h3{font-size:13pt;color:#12327A;margin:10pt 0 4pt}
+  #print-area h4{font-size:12pt;color:#12327A;margin:8pt 0 4pt}
   #print-area p{margin:6pt 0}
   #print-area ul,#print-area ol{margin:6pt 1.2em 6pt 0;padding:0}
   #print-area li{margin:3pt 0}
   #print-area strong{font-weight:700}
   #print-area table{border-collapse:collapse;width:100%;margin:8pt 0}
   #print-area th,#print-area td{border:1px solid #999;padding:5pt 8pt;text-align:right}
-  #print-area th{background:#EAF2F1;color:#2C5F5D}
+  #print-area th{background:#EDF1FA;color:#12327A}
   @media print{
     @page{size:A4;margin:1.5cm}
     html,body{background:#fff;height:auto !important;overflow:visible !important}
@@ -691,7 +691,7 @@ const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 const downloadAsWord = (filename, title, bodyHtml) => {
   const html = '\ufeff<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
     + '<head><meta charset="utf-8"><title>' + title + '</title>'
-    + '<style>@page{size:A4;margin:2cm} body{font-family:"Arial","Amiri",serif;direction:rtl;text-align:right;line-height:1.9;font-size:14pt;color:#222} h1{color:#2C5F5D;font-size:20pt} h2{color:#2C5F5D;font-size:15pt} h3{color:#2C5F5D;font-size:13pt} h4{color:#2C5F5D;font-size:12pt} ul,ol{margin-right:1em} strong{font-weight:bold} table{border-collapse:collapse;width:100%;margin:8pt 0} th,td{border:1px solid #999;padding:4pt 8pt;text-align:right} th{background:#EAF2F1;color:#2C5F5D}</style>'
+    + '<style>@page{size:A4;margin:2cm} body{font-family:"Arial","Amiri",serif;direction:rtl;text-align:right;line-height:1.9;font-size:14pt;color:#222} h1{color:#12327A;font-size:20pt} h2{color:#12327A;font-size:15pt} h3{color:#12327A;font-size:13pt} h4{color:#12327A;font-size:12pt} ul,ol{margin-right:1em} strong{font-weight:bold} table{border-collapse:collapse;width:100%;margin:8pt 0} th,td{border:1px solid #999;padding:4pt 8pt;text-align:right} th{background:#EDF1FA;color:#12327A}</style>'
     + '</head><body dir="rtl" lang="ar">' + bodyHtml + '</body></html>';
   const blob = new Blob([html], { type: 'application/msword' });
   const url = URL.createObjectURL(blob);
@@ -4150,11 +4150,11 @@ function AdultGate({ a, b, onPass, onCancel }) {
         <div style={s.bigEmoji}>🔒</div>
         <div style={s.onboardingTitle}>تأكيد ولي الأمر</div>
         <div style={s.onboardingSubtitle}>هذا القسم مخصّص للكبار. للتأكيد أنّ وليًّا حاضر، احسب الناتج:</div>
-        <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: "0.08em", margin: "12px 0", color: "#2C5F5D", direction: "ltr" }}>{a} × {b}</div>
-        <input type="text" inputMode="numeric" value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="الجواب" autoFocus style={{ ...s.onboardingInput, textAlign: "center", borderColor: error ? "#C44536" : "#E5DDD0" }} />
+        <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: "0.08em", margin: "12px 0", color: "#12327A", direction: "ltr" }}>{a} × {b}</div>
+        <input type="text" inputMode="numeric" value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="الجواب" autoFocus style={{ ...s.onboardingInput, textAlign: "center", borderColor: error ? "#C44536" : "#E5EBF5" }} />
         {error && <div style={{ color: "#C44536", fontSize: 14, marginTop: -4, marginBottom: 8 }}>جواب غير صحيح، حاول مرة أخرى</div>}
         <button onClick={submit} style={s.primaryBtn}>تأكيد</button>
-        <button onClick={onCancel} style={{ background: "none", border: "none", color: "#7A7267", fontSize: 14, marginTop: 10, cursor: "pointer" }}>رجوع</button>
+        <button onClick={onCancel} style={{ background: "none", border: "none", color: "#6E6E6E", fontSize: 14, marginTop: 10, cursor: "pointer" }}>رجوع</button>
       </div>
     </div>
   );
@@ -4215,7 +4215,7 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
         <div style={s.bigEmoji}>🔒</div>
         <div style={s.onboardingTitle}>لوحة الأهل</div>
         <div style={s.onboardingSubtitle}>أدخل رمز الدخول (الافتراضي: 1234)</div>
-        <input type="password" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSubmit()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? '#C44536' : '#E5DDD0' }} autoFocus />
+        <input type="password" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSubmit()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? '#C44536' : '#E5EBF5' }} autoFocus />
         {pinError && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>رمز خاطئ</div>}
         <button onClick={handleSubmit} style={s.primaryBtn}>دخول</button>
         <button onClick={onBack} style={s.secondaryBtn}>رجوع</button>
@@ -4250,7 +4250,7 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
             <div style={s.dashboardValue}>{directConvoLocked ? '🔒 مقفلة' : '🔓 مفتوحة'}</div>
             <button
               onClick={onToggleDirectConvo}
-              style={{ background: directConvoLocked ? '#C44536' : '#2C5F5D', color: '#FAF7F2', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ background: directConvoLocked ? '#C44536' : '#12327A', color: '#FFFFFF', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
             >
               {directConvoLocked ? 'فتح المحادثة المباشرة' : 'قفل المحادثة المباشرة'}
             </button>
@@ -4261,10 +4261,10 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
           <div style={s.dashboardLabel}>سجل المحادثات</div>
           <div style={s.conversationLog}>
             {messages.length === 0 ? (
-              <div style={{ color: '#8A8378', textAlign: 'center', padding: 20 }}>لا توجد محادثات بعد</div>
+              <div style={{ color: '#6E6E6E', textAlign: 'center', padding: 20 }}>لا توجد محادثات بعد</div>
             ) : (
               messages.map((m, i) => (
-                <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#F0EBE0' : '#E8F0EE' }}>
+                <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#E5EBF5' : '#E6EEFB' }}>
                   <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : (profile?.gender === 'female' ? '👩‍🏫 المربّية' : '👨‍🏫 المربّي')}</div>
                   <div style={s.logContent}>{m.role === 'assistant' ? formatForLog(m.content) : contentToText(m.content)}</div>
                   <div style={s.logTime}>{new Date(m.timestamp).toLocaleString('ar-SA')}</div>
@@ -4293,10 +4293,10 @@ function CallScreen({ profileName, gender, callState, heard, isMuted, onToggleMu
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 
   const STATES = {
-    idle:      { label: 'اضغط للتحدّث',       ring: 'rgba(250, 247, 242, 0.35)', speed: '3.6s' },
+    idle:      { label: 'اضغط للتحدّث',       ring: 'rgba(255, 255, 255, 0.35)', speed: '3.6s' },
     listening: { label: 'أستمع إليك...',     ring: '#3FA66A',                 speed: '2.4s' },
-    thinking:  { label: 'لحظة...',            ring: 'rgba(201, 169, 97, 0.55)', speed: '3.2s' },
-    speaking:  { label: gender === 'female' ? 'المربّية تتحدّث...' : 'المربّي يتحدّث...',  ring: '#C9A961',                 speed: '1.2s' },
+    thinking:  { label: 'لحظة...',            ring: 'rgba(42, 166, 222, 0.55)', speed: '3.2s' },
+    speaking:  { label: gender === 'female' ? 'المربّية تتحدّث...' : 'المربّي يتحدّث...',  ring: '#2AA6DE',                 speed: '1.2s' },
   };
   const cs = STATES[callState] || STATES.idle;
 
@@ -4316,7 +4316,7 @@ function CallScreen({ profileName, gender, callState, heard, isMuted, onToggleMu
       <div style={s.callCenter}>
         <div style={{ ...s.callAvatarWrap, cursor: canTalk ? 'pointer' : 'default' }} onClick={canTalk ? onTalk : undefined}>
           <div style={ringStyle} />
-          <div style={s.callAvatar}><MoonStarsIcon size={56} color="#E0B96B" /></div>
+          <div style={s.callAvatar}><MoonStarsIcon size={56} color="#2AA6DE" /></div>
         </div>
         {profileName && <div style={s.callSubLabel}>{profileName}</div>}
         {/* Live feedback: what the mic is hearing (interim). Empty when not listening. */}
@@ -4324,12 +4324,12 @@ function CallScreen({ profileName, gender, callState, heard, isMuted, onToggleMu
       </div>
       <div style={s.callControls}>
         <button onClick={onToggleMute} style={s.callMuteBtn}>
-          {isMuted ? <MicOffIcon size={24} color="#2C5F5D" /> : <MicIcon size={24} color="#2C5F5D" />}
+          {isMuted ? <MicOffIcon size={24} color="#12327A" /> : <MicIcon size={24} color="#12327A" />}
           <span style={s.callBtnLabel}>{isMuted ? 'مكتوم' : 'كتم'}</span>
         </button>
         <button onClick={onExit} style={s.callEndBtn}>
-          <PhoneOffIcon size={24} color="#FAF7F2" />
-          <span style={{ ...s.callBtnLabel, color: '#FAF7F2' }}>إنهاء</span>
+          <PhoneOffIcon size={24} color="#FFFFFF" />
+          <span style={{ ...s.callBtnLabel, color: '#FFFFFF' }}>إنهاء</span>
         </button>
       </div>
     </div>
@@ -5053,18 +5053,18 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 // الأنماط
 // ============================================================
 const s = {
-  loadingScreen: { minHeight: '100vh', background: 'linear-gradient(135deg, #FAF7F2 0%, #E8E0D0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  loadingScreen: { minHeight: '100vh', background: 'linear-gradient(135deg, #F1F6FD 0%, #E5EBF5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   loadingSpinner: { fontSize: 48, animation: 'pulse 1.5s ease-in-out infinite' },
-  onboardingContainer: { height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'linear-gradient(135deg, #FAF7F2 0%, #E8E0D0 100%)' },
+  onboardingContainer: { height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'linear-gradient(135deg, #F1F6FD 0%, #E5EBF5 100%)' },
   onboardingInner: { minHeight: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'safe center', alignItems: 'center', padding: 20 },
-  onboardingCard: { background: '#FFFFFF', borderRadius: 28, padding: 32, maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(44, 95, 93, 0.15)', textAlign: 'center', border: '1px solid #F0EBE0' },
+  onboardingCard: { background: '#FFFFFF', borderRadius: 28, padding: 32, maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(18, 50, 122, 0.15)', textAlign: 'center', border: '1px solid #E5EBF5' },
   bigEmoji: { fontSize: 64, marginBottom: 16, animation: 'fadeIn 0.5s ease-out' },
-  onboardingTitle: { fontSize: 26, fontWeight: 800, color: '#2C5F5D', marginBottom: 12 },
-  onboardingSubtitle: { fontSize: 16, color: '#6B6358', marginBottom: 24, lineHeight: 1.6 },
-  onboardingInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 16, border: '2px solid #E5DDD0', background: '#FAF7F2', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
+  onboardingTitle: { fontSize: 26, fontWeight: 800, color: '#12327A', marginBottom: 12 },
+  onboardingSubtitle: { fontSize: 16, color: '#6E6E6E', marginBottom: 24, lineHeight: 1.6 },
+  onboardingInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 16, border: '2px solid #E5EBF5', background: '#F1F6FD', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
   ageGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
-  ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid #E5DDD0', background: '#FAF7F2', color: '#2C5F5D', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
-  ageBtnActive: { background: '#2C5F5D', color: '#FAF7F2', borderColor: '#2C5F5D', transform: 'scale(1.05)' },
+  ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid #E5EBF5', background: '#F1F6FD', color: '#12327A', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  ageBtnActive: { background: '#12327A', color: '#FFFFFF', borderColor: '#12327A', transform: 'scale(1.05)' },
   ageBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
   // Session 13.1 - Welcome/Onboarding reskin (Boubyan black+red). Scoped to the first-run flow only.
   welcomeContainer: { minHeight: '100dvh', height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'var(--black)' },
@@ -5114,8 +5114,8 @@ const s = {
   adhkarRowTitle: { flex: 1, fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   adhkarCount: { minWidth: 28, height: 24, padding: '0 8px', borderRadius: 999, background: 'var(--red-soft)', color: 'var(--red)', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   adhkarEmpty: { textAlign: 'center', color: 'var(--muted)', fontSize: 15, padding: '32px 0' },
-  primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #2C5F5D 0%, #1F4544 100%)', color: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(44, 95, 93, 0.3)' },
-  secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6B6358', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
+  primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #1D4ED8 0%, #12327A 100%)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(18, 50, 122, 0.3)' },
+  secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6E6E6E', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
 
   // ===== شاشة الدردشة =====
   chatContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)' },
@@ -5189,19 +5189,19 @@ const s = {
   micBtn: { width: 44, height: 44, borderRadius: 22, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.18)', flexShrink: 0 },
 
   // ===== لوحة الأهل =====
-  dashboardContainer: { minHeight: '100vh', background: '#FAF7F2' },
-  dashboardHeader: { display: 'flex', alignItems: 'center', padding: '14px 18px', background: '#FFFFFF', borderBottom: '1px solid #F0EBE0', gap: 12 },
-  backBtn: { background: 'transparent', border: 'none', color: '#2C5F5D', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
-  dashboardTitle: { fontSize: 18, fontWeight: 800, color: '#2C5F5D' },
+  dashboardContainer: { minHeight: '100vh', background: '#F1F6FD' },
+  dashboardHeader: { display: 'flex', alignItems: 'center', padding: '14px 18px', background: '#FFFFFF', borderBottom: '1px solid #E5EBF5', gap: 12 },
+  backBtn: { background: 'transparent', border: 'none', color: '#12327A', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  dashboardTitle: { fontSize: 18, fontWeight: 800, color: '#12327A' },
   dashboardContent: { padding: 16, display: 'flex', flexDirection: 'column', gap: 12 },
-  dashboardCard: { background: '#FFFFFF', borderRadius: 16, padding: 18, border: '1px solid #F0EBE0' },
-  dashboardLabel: { fontSize: 13, color: '#8A8378', marginBottom: 6, fontWeight: 600 },
-  dashboardValue: { fontSize: 17, fontWeight: 700, color: '#2C5F5D' },
+  dashboardCard: { background: '#FFFFFF', borderRadius: 16, padding: 18, border: '1px solid #E5EBF5' },
+  dashboardLabel: { fontSize: 13, color: '#6E6E6E', marginBottom: 6, fontWeight: 600 },
+  dashboardValue: { fontSize: 17, fontWeight: 700, color: '#12327A' },
   conversationLog: { maxHeight: 400, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 },
   logEntry: { padding: 12, borderRadius: 12, fontSize: 14 },
-  logRole: { fontWeight: 700, color: '#2C5F5D', fontSize: 13, marginBottom: 6 },
-  logContent: { color: '#2C2C2C', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
-  logTime: { fontSize: 11, color: '#8A8378', marginTop: 6 },
+  logRole: { fontWeight: 700, color: '#12327A', fontSize: 13, marginBottom: 6 },
+  logContent: { color: '#1A1A1A', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
+  logTime: { fontSize: 11, color: '#6E6E6E', marginTop: 6 },
   dangerBtn: { padding: 14, background: 'transparent', color: '#C44536', border: '1px solid #C44536', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
 
   // ===== Live call screen (Layer 1 — UI only) =====
@@ -5280,19 +5280,19 @@ const s = {
   memListenBtn: { height: 50, padding: '0 16px', borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
-  callContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(160deg, #2C5F5D 0%, #1C3D3C 100%)', padding: '32px 24px', direction: 'rtl' },
-  callTopLabel: { color: 'rgba(250, 247, 242, 0.7)', fontSize: 15, fontWeight: 600, letterSpacing: '0.3px', marginTop: 8 },
+  callContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(160deg, #12327A 0%, #141414 100%)', padding: '32px 24px', direction: 'rtl' },
+  callTopLabel: { color: 'rgba(255, 255, 255, 0.7)', fontSize: 15, fontWeight: 600, letterSpacing: '0.3px', marginTop: 8 },
   callCenter: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
   callAvatarWrap: { position: 'relative', width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
-  callRing: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: '50%', border: '3px solid #C9A961' },
-  callAvatar: { width: 120, height: 120, borderRadius: '50%', background: 'rgba(201, 169, 97, 0.16)', border: '1px solid rgba(201, 169, 97, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  callStatusLabel: { color: '#FAF7F2', fontSize: 22, fontWeight: 700, fontFamily: "'Amiri', 'Tajawal', serif", marginTop: 8 },
-  callSubLabel: { color: 'rgba(250, 247, 242, 0.6)', fontSize: 14 },
-  callHint: { color: 'rgba(250, 247, 242, 0.35)', fontSize: 12, marginTop: 4 },
+  callRing: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: '50%', border: '3px solid #2AA6DE' },
+  callAvatar: { width: 120, height: 120, borderRadius: '50%', background: 'rgba(42, 166, 222, 0.16)', border: '1px solid rgba(42, 166, 222, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  callStatusLabel: { color: '#FFFFFF', fontSize: 22, fontWeight: 700, fontFamily: "'Amiri', 'Tajawal', serif", marginTop: 8 },
+  callSubLabel: { color: 'rgba(255, 255, 255, 0.6)', fontSize: 14 },
+  callHint: { color: 'rgba(255, 255, 255, 0.35)', fontSize: 12, marginTop: 4 },
   callControls: { display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'center', paddingBottom: 16 },
-  callMuteBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: '#FAF7F2', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  callMuteBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: '#F1F6FD', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
   callEndBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: 'linear-gradient(135deg, #C44536 0%, #A03828 100%)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
-  callBtnLabel: { fontSize: 12, fontWeight: 600, color: '#2C5F5D' },
+  callBtnLabel: { fontSize: 12, fontWeight: 600, color: '#12327A' },
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
