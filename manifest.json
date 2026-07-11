@@ -1,0 +1,13 @@
+{
+  "name": "المربّي",
+  "short_name": "المربّي",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "ar",
+  "background_color": "#1D4ED8",
+  "theme_color": "#1D4ED8",
+  "icons": []
+}
