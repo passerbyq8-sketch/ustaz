@@ -4466,10 +4466,14 @@ function PagedMushaf({ startSurah, onExit }) {
     else { setDrag(0); setAnim(true); }
   };
 
-  const pct = -33.3333 + slide * 33.3333;
+  /* 14.2f1 */
+  // الشريط الآن موضوعٌ وضعاً مطلقاً، والخانات بإزاحاتٍ صريحة (-100% / 0 / +100%).
+  // لا يعتمد على ترتيب flex ولا على جهة الفيض — وكلاهما ينقلب مع direction:rtl.
+  // انزياح +100% ⇒ الشريط يتحرّك يميناً ⇒ تدخل الخانة التي على اليسار = الصفحة التالية.
+  // وهذا هو قلبُ ورقة المصحف بعينه.
   const strip = {
     ...s.pgStrip,
-    transform: 'translateX(calc(' + pct + '% + ' + drag + 'px))',
+    transform: 'translateX(calc(' + (slide * 100) + '% + ' + drag + 'px))',
     transition: anim ? 'transform .26s cubic-bezier(.22,.61,.36,1)' : 'none',
   };
   const firstText = cur.l.find((x) => x.t === 't' && x.w && x.w.length);
@@ -4484,9 +4488,9 @@ function PagedMushaf({ startSurah, onExit }) {
       </div>
       <div style={s.pgViewport} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
         <div style={strip} onTransitionEnd={onTransEnd}>
-          <div style={s.pgSlot}>{nxt && <MushafPage page={nxt} headerSurah={hs} />}</div>
-          <div style={s.pgSlot}><MushafPage page={cur} headerSurah={hs} /></div>
-          <div style={s.pgSlot}>{prv && <MushafPage page={prv} headerSurah={hs} />}</div>
+          <div style={{ ...s.pgSlot, left: '-100%' }}>{nxt && <MushafPage page={nxt} headerSurah={hs} />}</div>
+          <div style={{ ...s.pgSlot, left: '0%' }}><MushafPage page={cur} headerSurah={hs} /></div>
+          <div style={{ ...s.pgSlot, left: '100%' }}>{prv && <MushafPage page={prv} headerSurah={hs} />}</div>
         </div>
       </div>
       <div style={s.pgBar}>
@@ -5122,16 +5126,22 @@ const s = {
   mushafRowMain: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
   mushafName: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   mushafSub: { fontSize: 12, color: 'var(--muted)', fontWeight: 500 },
-  pgViewport: { flex: 1, overflow: 'hidden', position: 'relative', touchAction: 'pan-y', background: 'var(--page)' },
-  pgStrip: { display: 'flex', width: '300%', height: '100%', willChange: 'transform' },
-  pgSlot: { width: '33.3333%', height: '100%', flexShrink: 0, boxSizing: 'border-box', padding: '10px 10px 4px', overflow: 'hidden' },
-  pgPage: { height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-btn)', padding: '10px 10px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
+  // 14.2f1 — النافذة والشريط ltr قسراً: موضعةٌ مطلقة بإزاحاتٍ فيزيائيّة صريحة، لا
+  // ترتيبَ flex ولا جهةَ فيض — فلا يقدر direction:rtl الوارث من memContainer أن يقلبها.
+  // والعربيّ يستعيد rtl داخل الخانة والصفحة، حيث يخصّه وحده.
+  // minHeight:0 — نفسُ عطل s.input الذي كلّفنا جلسةً: عنصرُ flex لا يتقلّص دونه.
+  pgViewport: { flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', touchAction: 'pan-y', background: 'var(--page)', direction: 'ltr' },
+  pgStrip: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, willChange: 'transform', direction: 'ltr' },
+  pgSlot: { position: 'absolute', top: 0, bottom: 0, width: '100%', boxSizing: 'border-box', padding: '10px 10px 4px', direction: 'rtl' },
+  pgPage: { height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-btn)', padding: '10px 10px', overflowY: 'auto', WebkitOverflowScrolling: 'touch', direction: 'rtl' },
   pgLine: { fontFamily: "'Amiri Quran', 'Amiri', serif", fontSize: 'clamp(14px, 4.4vw, 24px)', lineHeight: 1.85, color: 'var(--ink)', direction: 'rtl', textAlign: 'center', wordSpacing: '1px' },
   pgHeader: { fontFamily: "'Amiri', serif", fontSize: 15, fontWeight: 700, color: 'var(--red-deep)', textAlign: 'center', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 0', margin: '2px 0' },
   pgBasmala: { fontFamily: "'Amiri Quran', 'Amiri', serif", fontSize: 'clamp(13px, 4vw, 21px)', color: 'var(--red-deep)', direction: 'rtl', textAlign: 'center' },
   pgBlank: { minHeight: 4 },
   pgBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 14px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
-  pgNavBtn: { width: 44, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 20, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1 },
+  // direction:'ltr' — الحرفان › ‹ من المنعكسات ثنائيّة الاتّجاه (Bidi_Mirrored),
+  // فيقلبهما المتصفّح داخل سياق rtl ويشير كلٌّ منهما إلى عكس وجهته. العزلُ يوقف القلب.
+  pgNavBtn: { width: 44, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 20, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1, direction: 'ltr' },
   pgNavOff: { opacity: 0.32, cursor: 'default' },
   pgMeta: { fontSize: 13, fontWeight: 600, color: 'var(--muted)' },
   memContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', direction: 'rtl' },
