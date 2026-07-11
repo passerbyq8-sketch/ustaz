@@ -67,10 +67,22 @@ export default async function handler(req, res) {
     // (A2) Output cap decided HERE, not by the client. The app asks for 4096; an
     //      attacker asks for 64000 and multiplies the bill by 16 on one request.
     parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
-    // NOTE: no effort cap is set on this voice relay; it runs at the API default
-    //     (effort high). Graduated effort lives in api/ask.js (the text path), not here.
-    //     A 'medium' cap to cut call latency is a candidate change, but it alters
-    //     behavior and needs a live voice-quality check, so it is intentionally unset here.
+    // (A3) Effort + thinking. ENV-gated. Unset = API default = today's behavior, byte for byte.
+    //      Sonnet 5 defaults to effort:high with adaptive thinking ON: it thinks deeply before
+    //      the first token on EVERY call turn. In a voice call that is dead latency.
+    //      WORSHIP GATE: any flip here must be re-verified against the salah card
+    //      (golden: 19 segments / 3028 & 2939 chars, tolerance 5%). Never flip blind.
+    const CALL_EFFORT = String(process.env.CALL_EFFORT || '').trim();
+    if (CALL_EFFORT === 'low' || CALL_EFFORT === 'medium' || CALL_EFFORT === 'high') {
+      parsed.output_config = { ...(parsed.output_config || {}), effort: CALL_EFFORT };
+    }
+    if (String(process.env.CALL_THINKING || '').trim() === 'disabled') {
+      parsed.thinking = { type: 'disabled' };
+    }
+    console.log('[effort] voice', {
+      effort: (parsed.output_config && parsed.output_config.effort) || 'default(high)',
+      thinking: (parsed.thinking && parsed.thinking.type) || 'default(adaptive)'
+    });
 
     // (B) Ephemeral prompt caching on the system prompt (the bulk of input cost). The client
     //     sends `system` as a plain string; wrap it in a single cached text block. If it is
