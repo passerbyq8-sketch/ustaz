@@ -1,3 +1,6 @@
+/* 15 */
+import { checkChatLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -9,6 +12,27 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
+  }
+
+  // Throttle. This relay was bare -- eight unthrottled POSTs to production proved it.
+  // Runs before ANY work, so a throttled request costs nothing. callAI already handles
+  // a 429 (getFriendlyError('rateLimit')), so no client change is needed.
+  const ip = req.headers['x-real-ip']
+    || (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || 'unknown';
+  const { ok } = await checkChatLimit(ip);
+  if (!ok) {
+    return res.status(429).json({ error: 'rate limit' });
+  }
+
+  // Hard INPUT cap. Also before any upstream call. Does not depend on Redis, so it
+  // holds even when the throttle above fails open.
+  const bodyBytes = Buffer.byteLength(
+    typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {}),
+    'utf8'
+  );
+  if (bodyBytes > MAX_CHAT_BODY_BYTES) {
+    return res.status(413).json({ error: 'body too large' });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -24,10 +48,17 @@ export default async function handler(req, res) {
     // req.body is an object on Vercel Node functions, but tolerate a raw string too.
     const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : { ...req.body };
 
-    // (A) Model is decided here, not by the client. Default stays Opus; the cheaper dev
-    //     model is chosen ONLY via the Vercel env var MODEL (set in the dashboard).
-    parsed.model = process.env.MODEL_STANDARD || process.env.MODEL || 'claude-opus-4-8';
+    // (A) Model is decided here, not by the client. The hardcoded fallback is SONNET,
+    //     not Opus: if MODEL_STANDARD ever goes missing from the Vercel env, this relay
+    //     must degrade to the tier the voice route is SUPPOSED to run (sonnet-5), not
+    //     silently UPGRADE to the most expensive model in the account. A fallback that
+    //     costs 5x more than the intended path is not a fallback; it is a trap.
+    parsed.model = process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5';
     console.log('[tier] voice', { model: parsed.model });
+
+    // (A2) Output cap decided HERE, not by the client. The app asks for 4096; an
+    //      attacker asks for 64000 and multiplies the bill by 16 on one request.
+    parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
     // NOTE: no effort cap is set on this voice relay; it runs at the API default
     //     (effort high). Graduated effort lives in api/ask.js (the text path), not here.
     //     A 'medium' cap to cut call latency is a candidate change, but it alters
@@ -49,9 +80,14 @@ export default async function handler(req, res) {
       }
     }
 
-    outgoingBody = parsed; // messages / max_tokens / stream are left exactly as the client sent them
+    outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.
   } catch (e) {
-    outgoingBody = req.body; // graceful passthrough — never crash the proxy on a body surprise
+    // We do NOT pass the raw client body through any more. The old "graceful
+    // passthrough" was a bypass of the very thing it guarded: on any transform error
+    // the client's OWN model and max_tokens went upstream untouched. A relay that
+    // cannot enforce its own policy must not relay. Fail, loudly, for zero cost.
+    console.warn('[chat] body transform failed:', e && e.message ? e.message : e);
+    return res.status(400).json({ error: 'bad body' });
   }
 
   try {

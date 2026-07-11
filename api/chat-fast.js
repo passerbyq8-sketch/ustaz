@@ -17,6 +17,9 @@
 // classified CALL turns here. It still carries NO prompt of its own (see SAFETY NOTE);
 // the client sends the GEN system prompt + messages, and this relay swaps in Haiku.
 
+/* 15 */
+import { checkChatLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -28,6 +31,27 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
+  }
+
+  // Throttle. SIBLING CONTRACT: mirrors api/chat.js exactly. This relay was bare too --
+  // and it is hit on EVERY voice turn, because the classifier lives here.
+  // A 429 makes the classifier return DEEN, which falls back to the FULL system prompt.
+  // It fails TOWARD the guarded route. That is the correct direction.
+  const ip = req.headers['x-real-ip']
+    || (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || 'unknown';
+  const { ok } = await checkChatLimit(ip);
+  if (!ok) {
+    return res.status(429).json({ error: 'rate limit' });
+  }
+
+  // Hard INPUT cap. Does not depend on Redis, so it holds when the throttle fails open.
+  const bodyBytes = Buffer.byteLength(
+    typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {}),
+    'utf8'
+  );
+  if (bodyBytes > MAX_CHAT_BODY_BYTES) {
+    return res.status(413).json({ error: 'body too large' });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -46,6 +70,10 @@ export default async function handler(req, res) {
     parsed.model = process.env.MODEL_FAST || 'claude-haiku-4-5-20251001';
     console.log('[tier] voice-fast', { model: parsed.model });
 
+    // Output cap decided HERE, not by the client. The classifier asks for 8 and the GEN
+    // answer for 4096 -- both pass through untouched. An attacker asking for 64000 does not.
+    parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
+
     // Ephemeral caching on the system prompt, identical to api/chat.js. For the thin
     // call-mode prompt this is effectively a no-op (below the cache minimum) but it is
     // harmless, degrades gracefully, and keeps this relay byte-faithful to its sibling.
@@ -60,9 +88,12 @@ export default async function handler(req, res) {
       }
     }
 
-    outgoingBody = parsed; // messages / max_tokens / stream left exactly as the client sent them
+    outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.
   } catch (e) {
-    outgoingBody = req.body; // graceful passthrough — never crash the relay on a body surprise
+    // No raw passthrough. Same reason as api/chat.js: the old fallback handed the client
+    // back control of the model and the token cap on any transform error. SIBLING CONTRACT.
+    console.warn('[chat-fast] body transform failed:', e && e.message ? e.message : e);
+    return res.status(400).json({ error: 'bad body' });
   }
 
   try {
