@@ -4430,15 +4430,20 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
 
   const size = fs || PG_BASE_FS;
   const out = [];
+  const done = {};   /* 14.2f4 */  // رأسٌ حُقن لهذه السورة على هذه الصفحة — فلا يُحقن مرّتين
   for (let i = 0; i < page.l.length; i++) {
     const ln = page.l[i];
     if (ln.t === 't') {
-      // سطرٌ يفتتح سورةً أسقط المصدرُ رأسَها أو بسملتها ← نحقنهما فوقه، في موضعهما.
+      // سطرٌ يفتتح سورةً بلا بسملةٍ في المصدر (٨١ و٨٥) ← الرأسُ ثمّ البسملةُ فوقه.
+      // أمّا السور التي للمصدر بسملتُها (١٠ و٨٢ و٨٦) فرأسُها يُحقن عند سطر البسملة
+      // نفسِه، فوقَه — لا هنا. وإلّا نزل الرأسُ تحت البسملة، وانقلب ترتيبُ المصحف.
       const op = ln.w[0].split(':');
       if (op[1] === '1' && op[2] === '1') {
         const sn0 = parseInt(op[0], 10);
-        if (needHeader && needHeader[sn0])
+        if (needHeader && needHeader[sn0] && !done[sn0]) {
+          done[sn0] = 1;
           out.push(<div key={'h' + i} style={s.pgHeader}>{'سُورَةُ ' + SURAH_NAMES[sn0]}</div>);
+        }
         if (needBasmala && needBasmala[sn0])
           out.push(<div key={'b' + i} style={{ ...s.pgBasmala, fontSize: Math.round(size * 0.92) }}>{getVerseText(1, 1) || ''}</div>);
       }
@@ -4461,6 +4466,21 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
       const sn = headerSurah[page.n + ':' + ln.n];
       out.push(<div key={i} style={sn ? s.pgHeader : s.pgBlank}>{sn ? 'سُورَةُ ' + SURAH_NAMES[sn] : ''}</div>);
     } else {
+      // ترتيبُ المصحف لا يُقلب: الرأسُ، ثمّ البسملةُ، ثمّ أوّلُ آية.
+      // فإن كانت هذه بسملةَ سورةٍ أسقط المصدرُ رأسَها (١٠ يونس · ٨٢ الانفطار · ٨٦ الطارق)
+      // حُقن الرأسُ هنا — فوقها. سورةُ البسملة تُشتقّ من أوّل خانةٍ بعدها، لا من لافتة.
+      let sb = 0;
+      for (let j = i + 1; j < page.l.length; j++) {
+        const nx = page.l[j];
+        if (nx.t !== 't' || !nx.w || !nx.w.length) continue;
+        const b0 = nx.w[0].split(':');
+        if (b0[1] === '1' && b0[2] === '1') sb = parseInt(b0[0], 10);
+        break;
+      }
+      if (sb && needHeader && needHeader[sb] && !done[sb]) {
+        done[sb] = 1;
+        out.push(<div key={'h' + i} style={s.pgHeader}>{'سُورَةُ ' + SURAH_NAMES[sb]}</div>);
+      }
       // البسملة من getVerseText(1,1) — لا نكتب نصّاً قرآنياً بيدنا أبداً.
       out.push(<div key={i} style={{ ...s.pgBasmala, fontSize: Math.round(size * 0.92) }}>{getVerseText(1, 1) || ''}</div>);
     }
