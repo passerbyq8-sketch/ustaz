@@ -687,7 +687,7 @@ const stripIncompleteTags = (text) => {
 // تُسبّب تأتأة في eleven_multilingual_v2. هذا تطبيع للمُدخَل الصوتي فقط.
 const STRIP_TASHKEEL_FOR_TTS = false;
 const TTS_TASHKEEL_ENABLED = false; // false = skip Haiku tashkeel add-call for speech (pre-diacritized canonical text unaffected); flip true to restore original behavior
-const CALL_STREAM_SPEECH = false; // false = classic (speak full reply after generation). true = stream complete prose sentences BEFORE the first tag as they arrive (first-audio latency win); tags + trailing prose still handled by buildAudioSequence at finish.
+const CALL_STREAM_SPEECH = true; // false = classic (speak full reply after generation). true = stream complete prose sentences BEFORE the first tag as they arrive (first-audio latency win); tags + trailing prose still handled by buildAudioSequence at finish.
 const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 
 // تصدير محتوى HTML كملفّ Word (.doc): Word/Docs يعرضان العربيّة RTL بأنفسهما،
@@ -2191,6 +2191,7 @@ function App() {
   // ===== Live voice-call mode (Layer 2) — dedicated recognition + one-turn loop, isolated from the dictation mic =====
   const callRecognitionRef = useRef(null); // dedicated SpeechRecognition for call mode (NOT the dictation instance)
   const callTranscriptRef = useRef('');    // accumulated finals for the current call turn (NEVER written to `input`)
+  const callBaseTextRef = useRef('');      // turn text carried ACROSS SR restarts within ONE turn
   const silenceTimerRef = useRef(null);    // end-of-turn debounce handle
   const callActiveRef = useRef(false);     // true while a turn is listening; guards against double-fire (timer + onend)
   const callTurnRef = useRef(null);        // latest runCallTurn closure (avoids stale `messages` inside the SR handlers)
@@ -3278,6 +3279,7 @@ function App() {
     const rec = callRecognitionRef.current;
     if (!rec) return;
     callTranscriptRef.current = '';
+    callBaseTextRef.current = '';
     setCallHeard('');
     callActiveRef.current = true;
     setCallState('listening');
@@ -3294,7 +3296,7 @@ function App() {
     callActiveRef.current = false;
     if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
     try { callRecognitionRef.current?.stop(); } catch (e) {}
-    const text = collapseRepeats(callTranscriptRef.current.trim());
+    const text = collapseRepeats((callBaseTextRef.current + ' ' + callTranscriptRef.current).trim());
     if (!text) { setCallState('idle'); return; } // never send an empty turn
     if (callTurnRef.current) callTurnRef.current(text);
   };
@@ -3432,26 +3434,26 @@ function App() {
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = setTimeout(() => {
         // Fire only with a non-empty transcript; silence on an empty turn keeps listening.
-        if (callActiveRef.current && callTranscriptRef.current.trim()) endCallTurnNow();
+        if (callActiveRef.current && (callBaseTextRef.current + callTranscriptRef.current).trim()) endCallTurnNow();
       }, CALL_SILENCE_MS);
     };
     rec.onend = () => {
-      if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
-      if (callActiveRef.current && callTranscriptRef.current.trim()) { endCallTurnNow(); return; }
-      // Layer 3: empty/silence engine self-close during an active listen → stay live by re-arming
-      // after a short backoff (prevents a tight start→onend→start loop). The 45s idle clock is NOT
-      // reset here (armIdleClock=false), so genuine silence still reaches the inactivity auto-end.
-      if (callActiveRef.current) {
-        callActiveRef.current = false;
-        const genAtEnd = callGenRef.current;
-        if (callMutedRef.current) { setCallState('idle'); return; }
-        setCallState('listening'); // keep the UI in listening; we are re-opening
-        setTimeout(() => {
-          if (callGenRef.current !== genAtEnd) return;          // ended/changed during backoff → bail
-          if (callMutedRef.current) { setCallState('idle'); return; }
-          startCallListening(false);                            // re-open WITHOUT resetting the idle clock
-        }, 400);
-      }
+      // Chrome owns onend and fires it on its own schedule (short Arabic pauses, engine timeouts).
+      // It must NEVER end a turn: doing so shipped truncated questions to the model.
+      // The CLIENT-OWNED silence timer is the SOLE turn-ender. onend only RESTARTS the recognizer,
+      // carrying this session's transcript into callBaseTextRef first (the proven dictation pattern).
+      if (!callActiveRef.current) return;                  // turn already ended, or call exited
+      callBaseTextRef.current = (callBaseTextRef.current + ' ' + callTranscriptRef.current).trim();
+      callTranscriptRef.current = '';                      // new SR session => results[] restarts at 0
+      // DO NOT clear silenceTimerRef here. It is the only turn-ender and must survive the restart.
+      const genAtEnd = callGenRef.current;
+      const tryStart = (attempt) => {
+        if (callGenRef.current !== genAtEnd) return;       // call ended/changed
+        if (!callActiveRef.current) return;                // turn ended during the gap
+        try { rec.start(); }
+        catch (e) { if (attempt < 5) setTimeout(() => tryStart(attempt + 1), 150); }  // never leave the mic dead
+      };
+      setTimeout(() => tryStart(0), 120);
     };
     rec.onerror = (event) => {
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
@@ -3464,6 +3466,7 @@ function App() {
       }
     };
     callRecognitionRef.current = rec;
+    startCallListening();    // child just enters and talks - no button
 
     return () => {
       callGenRef.current++; // EXIT: invalidate every in-flight continuation (re-arm / backoff / inactivity)
