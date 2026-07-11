@@ -446,7 +446,37 @@ const buildLayoutIndex = () => {
       }
     }
   }
-  __layoutIndex = { startPage, headerSurah };
+  /* 14.2f3 */
+  // ماذا أسقط المصدر؟ نمشي من أوّل كلمةٍ في كلّ سورة إلى الوراء فوق أسطر الرأس
+  // والبسملة الملاصقة. مقيسٌ من البيانات نفسها، لا من قائمةٍ مكتوبةٍ بيدنا:
+  //   خمسُ سورٍ بلا رأس  : ١٠ · ٨١ · ٨٢ · ٨٥ · ٨٦
+  //   سورتان بلا بسملة  : ٨١ (التكوير) · ٨٥ (البروج)
+  // والفاتحة والتوبة استثناءان صحيحان: بسملةُ الفاتحة آيتُها الأولى، والتوبة بلا بسملة.
+  // عرضُ سورةٍ بلا بسملتها نقصٌ في المصحف لا في الشكل — فنحقنها من getVerseText(1,1)
+  // ومن SURAH_NAMES. ولا نكتب حرفاً قرآنياً بأيدينا، هنا ولا في أيّ موضع.
+  const firstLine = {};
+  for (let i = 0; i < flat.length; i++) {
+    const F = flat[i];
+    if (F.ln.t !== 't') continue;
+    for (const loc of F.ln.w) {
+      const a = loc.split(':');
+      if (a[1] === '1' && a[2] === '1') { const sn = parseInt(a[0], 10); if (firstLine[sn] === undefined) firstLine[sn] = i; }
+    }
+  }
+  const needHeader = {}, needBasmala = {};
+  for (let sn = 1; sn <= 114; sn++) {
+    const i = firstLine[sn];
+    if (i === undefined) continue;
+    let hasH = false, hasB = false, j = i - 1;
+    while (j >= 0 && (flat[j].ln.t === 'h' || flat[j].ln.t === 'b')) {
+      if (flat[j].ln.t === 'h') hasH = true;
+      if (flat[j].ln.t === 'b') hasB = true;
+      j--;
+    }
+    if (!hasH) needHeader[sn] = 1;
+    if (!hasB && sn !== 1 && sn !== 9) needBasmala[sn] = 1;
+  }
+  __layoutIndex = { startPage, headerSurah, needHeader, needBasmala };
   return __layoutIndex;
 };
 
@@ -4353,11 +4383,65 @@ const MEM = {
 // carries the full-surah recitation button. No new Quran-text path is introduced here.
 /* 14.2 */
 // صفحةٌ واحدةٌ من المصحف. كلُّ خانةٍ في التخطيط تُجلب كلمتَها من المصحف المحروس.
-function MushafPage({ page, headerSurah }) {
+/* 14.2f2 */
+// ضبطُ السطر — وهو ما يجعل الصفحة مصحفاً لا نصّاً.
+// كلُّ كلمةٍ عنصرُ flex مستقلّ، و justify-content:space-between يفرد ما بينها حتى
+// يمتدّ السطرُ من حافةٍ لحافة. ثمّ نقيس أعرضَ سطرٍ في الصفحة ونشتقّ منه حجمَ خطٍّ
+// واحداً يجعله يفي بالضبط — فيبقى الخطّ موحّداً عبر الصفحة (كالمصحف)، ولا يلتفّ
+// سطرٌ أبداً، ولا يُقصّ حرف. القياس يجري قبل الرسم (useLayoutEffect) فلا تُرى قفزة.
+// ولو فشل القياس لأيّ سبب، نرسم بحجم الأساس — مقروءاً. لا نُخفي المصحف أبداً.
+const PG_BASE_FS = 22;    // حجمُ القياس. النتيجة تُشتقّ منه ولا يُستعمل كما هو.
+const PG_GAP_EM = 0.22;   // أدنى فجوةٍ بين كلمتين، نسبةً للخطّ (تكبر وتصغر معه)
+const PG_LINE_H = 1.75;   // ارتفاعُ السطر. يدخل في حساب السقف الرأسيّ وفي النمط معاً.
+
+function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
+  const ref = useRef(null);
+  const [fs, setFs] = useState(0);   // 0 = لم يُقَس بعد
+
+  React.useLayoutEffect(() => {
+    if (fs) return;
+    const el = ref.current;
+    if (!el) return;
+    // (أ) سقفٌ بالعرض: أضيقُ نسبةٍ عبر الأسطر هي السطرُ الأعرض — وهو الذي يحكم.
+    // نقيس بمجموع عرض الكلمات لا بـ scrollWidth: دلالةُ الأخير تتلوّن بالاتّجاه.
+    let ratio = Infinity;
+    const rows = el.querySelectorAll('[data-l]');
+    for (let r = 0; r < rows.length; r++) {
+      const row = rows[r];
+      const box = row.clientWidth;
+      const kids = row.children;
+      if (!box || !kids.length) continue;
+      let content = 0;
+      for (let k = 0; k < kids.length; k++) content += kids[k].offsetWidth;
+      content += (kids.length - 1) * (PG_BASE_FS * PG_GAP_EM);
+      if (content > 0) ratio = Math.min(ratio, box / content);
+    }
+    if (!isFinite(ratio) || !(ratio > 0)) return;      // القياس فشل ← ابقَ على الأساس
+    const byWidth = PG_BASE_FS * ratio;
+    // (ب) سقفٌ بالارتفاع: أسطرُ الصفحة لازم تسع فيها. بلا هذا القيد يكبر الخطّ على
+    // شاشةٍ عريضةٍ قصيرة حتى يفيض آخرُ سطرٍ تحت الحافة — ويُقصّ من غير أن يُرى.
+    // el.children.length لا page.l.length — الصفحة قد تحمل سطراً أو سطرين نحقنهما
+    // نحن (رأس/بسملة أسقطهما المصدر). العدُّ من الـDOM يقيس ما رُسم فعلاً.
+    const byHeight = el.clientHeight / ((el.children.length || page.l.length) * PG_LINE_H * 1.06);
+    // الأرضيّة ٨: أعرضُ سطرٍ في المصحف (صفحة ٥٧٩) يحتاج نحو ١٠px على جوّالٍ
+    // عرضُه ٣٢٠px. أرضيّةٌ ترفع الحجم فوق ما يسع = قصُّ حرفٍ من القرآن. لا.
+    setFs(Math.max(8, Math.min(32, Math.floor(Math.min(byWidth, byHeight) * 0.99))));
+  }, [fs]);
+
+  const size = fs || PG_BASE_FS;
   const out = [];
   for (let i = 0; i < page.l.length; i++) {
     const ln = page.l[i];
     if (ln.t === 't') {
+      // سطرٌ يفتتح سورةً أسقط المصدرُ رأسَها أو بسملتها ← نحقنهما فوقه، في موضعهما.
+      const op = ln.w[0].split(':');
+      if (op[1] === '1' && op[2] === '1') {
+        const sn0 = parseInt(op[0], 10);
+        if (needHeader && needHeader[sn0])
+          out.push(<div key={'h' + i} style={s.pgHeader}>{'سُورَةُ ' + SURAH_NAMES[sn0]}</div>);
+        if (needBasmala && needBasmala[sn0])
+          out.push(<div key={'b' + i} style={{ ...s.pgBasmala, fontSize: Math.round(size * 0.92) }}>{getVerseText(1, 1) || ''}</div>);
+      }
       const parts = [];
       for (const loc of ln.w) {
         const a = loc.split(':');
@@ -4368,16 +4452,20 @@ function MushafPage({ page, headerSurah }) {
         parts.push(w);
         if (wi === words.length) parts.push('۝' + toArabicDigits(an));  // آخرُ كلمةٍ ← رقمُ الآية
       }
-      out.push(<div key={i} style={s.pgLine}>{parts.join(' ')}</div>);
+      out.push(
+        <div key={i} data-l="1" style={{ ...s.pgLine, fontSize: size, gap: PG_GAP_EM + 'em' }}>
+          {parts.map((p, j) => <span key={j} style={s.pgWord}>{p}</span>)}
+        </div>
+      );
     } else if (ln.t === 'h') {
       const sn = headerSurah[page.n + ':' + ln.n];
       out.push(<div key={i} style={sn ? s.pgHeader : s.pgBlank}>{sn ? 'سُورَةُ ' + SURAH_NAMES[sn] : ''}</div>);
     } else {
       // البسملة من getVerseText(1,1) — لا نكتب نصّاً قرآنياً بيدنا أبداً.
-      out.push(<div key={i} style={s.pgBasmala}>{getVerseText(1, 1) || ''}</div>);
+      out.push(<div key={i} style={{ ...s.pgBasmala, fontSize: Math.round(size * 0.92) }}>{getVerseText(1, 1) || ''}</div>);
     }
   }
-  return <div style={s.pgPage}>{out}</div>;
+  return <div ref={ref} style={s.pgPage}>{out}</div>;
 }
 
 // القارئ المُصفَّح — صفحةٌ لكلّ شاشة، ٦٠٤ صفحة، بأسطر مصحف المدينة.
@@ -4479,6 +4567,8 @@ function PagedMushaf({ startSurah, onExit }) {
   const firstText = cur.l.find((x) => x.t === 't' && x.w && x.w.length);
   const curSurah = firstText ? parseInt(firstText.w[0].split(':')[0], 10) : null;
   const hs = idx.current.headerSurah;
+  const nh = idx.current.needHeader;
+  const nb = idx.current.needBasmala;
 
   return (
     <div style={s.memContainer}>
@@ -4488,9 +4578,9 @@ function PagedMushaf({ startSurah, onExit }) {
       </div>
       <div style={s.pgViewport} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
         <div style={strip} onTransitionEnd={onTransEnd}>
-          <div style={{ ...s.pgSlot, left: '-100%' }}>{nxt && <MushafPage page={nxt} headerSurah={hs} />}</div>
-          <div style={{ ...s.pgSlot, left: '0%' }}><MushafPage page={cur} headerSurah={hs} /></div>
-          <div style={{ ...s.pgSlot, left: '100%' }}>{prv && <MushafPage page={prv} headerSurah={hs} />}</div>
+          <div style={{ ...s.pgSlot, left: '-100%' }}>{nxt && <MushafPage key={nxt.n} page={nxt} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
+          <div style={{ ...s.pgSlot, left: '0%' }}><MushafPage key={cur.n} page={cur} headerSurah={hs} needHeader={nh} needBasmala={nb} /></div>
+          <div style={{ ...s.pgSlot, left: '100%' }}>{prv && <MushafPage key={prv.n} page={prv} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
         </div>
       </div>
       <div style={s.pgBar}>
@@ -5133,10 +5223,14 @@ const s = {
   pgViewport: { flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', touchAction: 'pan-y', background: 'var(--page)', direction: 'ltr' },
   pgStrip: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, willChange: 'transform', direction: 'ltr' },
   pgSlot: { position: 'absolute', top: 0, bottom: 0, width: '100%', boxSizing: 'border-box', padding: '10px 10px 4px', direction: 'rtl' },
-  pgPage: { height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-btn)', padding: '10px 10px', overflowY: 'auto', WebkitOverflowScrolling: 'touch', direction: 'rtl' },
-  pgLine: { fontFamily: "'Amiri Quran', 'Amiri', serif", fontSize: 'clamp(14px, 4.4vw, 24px)', lineHeight: 1.85, color: 'var(--ink)', direction: 'rtl', textAlign: 'center', wordSpacing: '1px' },
+  // maxWidth — صفحةُ المصحف لها نسبةٌ. بلا سقفٍ تتمدّد على الشاشة العريضة فتصير شريطاً.
+  pgPage: { height: '100%', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-btn)', padding: '12px 14px', overflow: 'hidden', direction: 'rtl' },
+  // السطر: عنصرُ flex أفقيّ. space-between يفرد ما بين الكلمات فيمتدّ من حافةٍ لحافة.
+  // fontSize و gap يُحقنان في الرسم — يُشتقّان من قياس أعرضِ سطرٍ في الصفحة.
+  pgLine: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', width: '100%', direction: 'rtl', fontFamily: "'Amiri Quran', 'Amiri', serif", lineHeight: PG_LINE_H, color: 'var(--ink)', whiteSpace: 'nowrap' },
+  pgWord: { flexShrink: 0, whiteSpace: 'nowrap' },
   pgHeader: { fontFamily: "'Amiri', serif", fontSize: 15, fontWeight: 700, color: 'var(--red-deep)', textAlign: 'center', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 0', margin: '2px 0' },
-  pgBasmala: { fontFamily: "'Amiri Quran', 'Amiri', serif", fontSize: 'clamp(13px, 4vw, 21px)', color: 'var(--red-deep)', direction: 'rtl', textAlign: 'center' },
+  pgBasmala: { fontFamily: "'Amiri Quran', 'Amiri', serif", color: 'var(--red-deep)', direction: 'rtl', textAlign: 'center', whiteSpace: 'nowrap' },
   pgBlank: { minHeight: 4 },
   pgBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 14px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
   // direction:'ltr' — الحرفان › ‹ من المنعكسات ثنائيّة الاتّجاه (Bidi_Mirrored),
