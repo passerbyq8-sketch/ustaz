@@ -31,6 +31,14 @@ export default async function handler(req, res) {
     typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {}),
     'utf8'
   );
+  // Warn LONG before we break. The client ships the whole ~111 KB system prompt on every
+  // turn, so this cap sits close to real traffic by nature. If the prompt ever grows past
+  // 80% of the cap, say so -- otherwise the next person to add a worship card discovers it
+  // as a silent 413 on every religious voice turn, which is exactly what happened once.
+  if (bodyBytes > MAX_CHAT_BODY_BYTES * 0.8) {
+    console.warn('[chat] body ' + bodyBytes + 'B is at ' + Math.round((bodyBytes / MAX_CHAT_BODY_BYTES) * 100) +
+      '% of MAX_CHAT_BODY_BYTES. RAISE THE CAP in lib/ratelimit.js BEFORE it starts rejecting real turns.');
+  }
   if (bodyBytes > MAX_CHAT_BODY_BYTES) {
     return res.status(413).json({ error: 'body too large' });
   }
