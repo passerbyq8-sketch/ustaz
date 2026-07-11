@@ -2154,6 +2154,10 @@ function App() {
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
   const [reportFor, setReportFor] = useState(null); // {ai,user} of the reply being flagged, or null
+  // First-run disclosure acknowledgement. Independent of profile: an existing profiled user who
+  // has never acknowledged still sees it. Never wiped with the profile; never forces re-onboarding.
+  const [disclosureAck, setDisclosureAck] = useState(() => { try { return localStorage.getItem('disclosureAck') === '1'; } catch (e) { return false; } });
+  const ackDisclosure = () => { try { localStorage.setItem('disclosureAck', '1'); } catch (e) {} setDisclosureAck(true); };
   const [voiceMode, setVoiceMode] = useState(false); // chat TTS OFF by default (opt-in): silent unless the user taps a message’s listen button or turns on the header speaker toggle
   // Parental lock for direct conversation (المكالمة). Dedicated localStorage key, read/written
   // UNCONDITIONALLY (not gated by PERSIST_CONVERSATION, not stored in child_profile which is wiped
@@ -3493,6 +3497,11 @@ function App() {
     }
   };
 
+  // First-run disclosure (step 4a). Shown once to anyone who has NOT acknowledged yet -- keyed on
+  // the independent `disclosureAck`, NOT on profile age, so existing profiled users see it too and
+  // nobody is wiped or forced to re-onboard. Gated on `profile` so it lands at the END of onboarding
+  // (right after the profile is created), before entering -- never over the onboarding form itself.
+  if (profile && !disclosureAck) return <DisclosureGate onAck={ackDisclosure} />;
   if (screen === 'loading') return <div style={s.loadingScreen}><div style={s.loadingSpinner}>✨</div></div>;
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
   if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => setScreen('parentGate')} />;
@@ -4271,14 +4280,35 @@ function AdultGate({ a, b, onPass, onCancel }) {
   );
 }
 
+// First-run disclosure gate (step 4a). One-time, acknowledge-to-dismiss; the ack persists in
+// localStorage ('disclosureAck'). Copies AdultGate's overlay+card shape. The body text is fixed --
+// do not reword it. No hex: only existing style tokens + the shared backdrop rgba.
+function DisclosureGate({ onAck }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'rgba(30,30,30,0.6)' }}>
+      <div style={{ ...s.onboardingCard, maxWidth: 360 }}>
+        <div style={s.bigEmoji}>💡</div>
+        <div style={s.onboardingTitle}>قبل أن نبدأ</div>
+        <div style={{ ...s.onboardingSubtitle, lineHeight: 1.9, marginBottom: 20 }}>المربّي مساعدٌ يعمل بالذكاء الاصطناعيّ. ليس عالِمًا ولا شيخًا، وقد يُخطئ في المعلومة وفي الحكم الشرعيّ. اجعله مُعينًا لا مرجعًا — والمرجعُ أهلُ العلم.</div>
+        <button onClick={onAck} style={s.primaryBtn}>فهمت</button>
+      </div>
+    </div>
+  );
+}
+
 function Onboarding({ onStart }) {
   const [name, setName] = useState('');
-  const [age, setAge] = useState('');
+  const [birthYear, setBirthYear] = useState('');
   const [gender, setGender] = useState(null);
   const [gate, setGate] = useState(null);
   const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-  const ageNum = parseInt(toLatinDigits(age), 10);
-  const ageValid = Number.isInteger(ageNum) && ageNum >= 4 && ageNum <= 99;
+  // Neutral age screen (step 4a): we ask the BIRTH YEAR — a fact with no "right" answer —
+  // never "are you an adult?". Age is DERIVED from it and passed on unchanged; the band
+  // thresholds and profile shape stay untouched (startChat re-derives the same birthYear).
+  const CUR_YEAR = new Date().getFullYear();
+  const yearNum = parseInt(toLatinDigits(birthYear), 10);
+  const derivedAge = CUR_YEAR - yearNum;
+  const ageValid = Number.isInteger(yearNum) && derivedAge >= 4 && derivedAge <= 99;
   const canStart = !!(name.trim() && gender && ageValid);
   const requestStart = (n) => {
     if (PARENTAL_GATE_ENABLED && n >= 18) {
@@ -4289,7 +4319,7 @@ function Onboarding({ onStart }) {
       onStart(name, n, gender);
     }
   };
-  const submit = () => { if (canStart) requestStart(ageNum); };
+  const submit = () => { if (canStart) requestStart(derivedAge); };
   return (
     <div style={s.welcomeContainer}>
       <div style={s.welcomeInner}>
@@ -4307,7 +4337,8 @@ function Onboarding({ onStart }) {
           <button onClick={() => setGender('male')} style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'male' ? 'var(--red)' : 'var(--white)', color: gender === 'male' ? '#FFF' : 'var(--ink)' }}>ذكر</button>
           <button onClick={() => setGender('female')} style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'female' ? 'var(--red)' : 'var(--white)', color: gender === 'female' ? '#FFF' : 'var(--ink)' }}>أنثى</button>
         </div>
-        <input value={age} onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="العمر" type="text" inputMode="numeric" pattern="[0-9]*" style={s.welcomeInput} />
+        <input value={birthYear} onChange={(e) => setBirthYear(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="سنة الميلاد — مثال ٢٠١٥" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
+        {birthYear.trim() && !ageValid && <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: -8, marginBottom: 12, textAlign: 'center' }}>اكتب سنةَ ميلادك بأربعة أرقام — مثل ٢٠١٥</div>}
         <button onClick={submit} disabled={!canStart} className="welcome-primary" style={{ ...s.welcomePrimaryBtn, opacity: canStart ? 1 : 0.4 }}>ابدأ</button>
         </div>
       </div>
