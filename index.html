@@ -3677,6 +3677,7 @@ function App() {
           <SendIcon size={20} color="var(--white)" />
         </button>
       </div>
+      <div style={{ textAlign: 'center', padding: '0 16px 10px', fontSize: 11, lineHeight: 1.5, color: 'var(--muted)' }}>المربّي ذكاءٌ اصطناعيّ وقد يُخطئ — راجِعْ ما يهمُّك مع والديك أو مع أهل العلم.</div>
     </div>
   );
 }
@@ -4313,6 +4314,7 @@ function CallScreen({ profileName, gender, callState, heard, isMuted, onToggleMu
   return (
     <div style={s.callContainer}>
       <div style={s.callTopLabel}>{gender === 'female' ? 'مكالمة مع المربّية' : 'مكالمة مع المربّي'}</div>
+      <div style={{ textAlign: 'center', maxWidth: 320, padding: '6px 16px 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255, 255, 255, 0.6)' }}>تتحدّث إلى ذكاءٍ اصطناعيّ — لا إلى إنسان.</div>
       <div style={s.callCenter}>
         <div style={{ ...s.callAvatarWrap, cursor: canTalk ? 'pointer' : 'default' }} onClick={canTalk ? onTalk : undefined}>
           <div style={ringStyle} />
