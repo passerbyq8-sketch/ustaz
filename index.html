@@ -356,6 +356,100 @@ const resolveSurahNumber = (surahName, surahNum) => {
   return SURAH_NUMBERS_NORM[norm] || null;
 };
 
+/* 14.2 */
+// ============================================================
+// تخطيط مصحف المدينة — /mushaf-layout.json (٦٠٤ صفحة).
+// ============================================================
+// الملفّ لا يحمل حرفاً قرآنياً واحداً: مواقع كلماتٍ وحدود أسطرٍ فقط ("سورة:آية:كلمة").
+// الرباط مبرهَن ومحروس بـ layout-guard.cjs (البوّابة الخامسة):
+//   ٦٢٣٦/٦٢٣٦ آية  ·  ٧٧٤٢٩/٧٧٤٢٩ كلمة تنزل في خانتها.
+// كلُّ حرفٍ يراه القارئ يأتي من __quranData وحده — كالآيات في المحادثة تماماً.
+let __layoutData = null;
+let __layoutPromise = null;
+const loadLayout = () => {
+  if (__layoutData) return Promise.resolve(__layoutData);
+  if (!__layoutPromise) {
+    __layoutPromise = Promise.resolve()
+      .then(() => fetch('/mushaf-layout.json'))
+      .then((r) => { if (!r.ok) throw new Error('layout fetch ' + r.status); return r.json(); })
+      .then((d) => { __layoutData = d; return d; })
+      .catch((e) => { __layoutPromise = null; throw e; }); // اسمح بإعادة المحاولة
+  }
+  return __layoutPromise;
+};
+
+// "حرفٌ عربيّ" — لا علامة. هذه القاعدةُ بعينها هي التي بُرهن بها الرباط في
+// layout-guard.cjs. لو اختلف تقطيعُ العارض عن عدّاد الحارس بحرفٍ واحد، نزلت
+// الكلمةُ في الخانة الخطأ بصمت — والعدد يبقى صحيحاً. فلا تمسّها.
+const __isArabicLetter = (cp) =>
+  (cp >= 0x0621 && cp <= 0x063A) ||   // الهمزة .. الغين
+  (cp >= 0x0641 && cp <= 0x064A) ||   // الفاء .. الياء (التطويل 0x0640 مستبعَد)
+  (cp >= 0x0671 && cp <= 0x06D3);     // ألف الوصل والحروف الممتدّة
+const __hasLetter = (t) => { for (const ch of t) if (__isArabicLetter(ch.codePointAt(0))) return true; return false; };
+
+// الوصلات الأربع: خانةٌ واحدة في المصحف تبتلع كلمتين («بَعْدَ مَا» و«إِلْ يَاسِينَ»).
+// ليست عطلاً — المصدر يقولها بنفسه. الرقم = رقم الخانة التي تبتلع التي بعدها.
+const __LIGATURES = { '2:181': 3, '8:6': 4, '13:37': 8, '37:130': 3 };
+
+// تقطيع الآية إلى كلمات بحيث كلمة[i] == خانة[i+1] في التخطيط.
+// العلاماتُ تلتصق في اتّجاهين — وهذا ليس تفصيلاً تجميلياً:
+//   • علامة الوقف (ۖ ۗ ۚ ۛ) والسجدة (۩) تلتصق بما قبلها.
+//   • ۞ (رأس الربع) تفتتح ١٩٩ آية ولا شيءَ قبلها — فتلتصق بما بعدها.
+// لو التصقت ۞ بما قبلها (ولا شيءَ قبلها) لصارت كلمةً بذاتها، فانزاح كلُّ شيءٍ
+// بعدها خانةً واحدة، وسقطت آخرُ كلمةٍ من ١٩٩ آية. مقيسٌ، لا مفترَض.
+const __wordCache = {};
+const wordsOfAyah = (sNum, aNum) => {
+  const key = sNum + ':' + aNum;
+  if (__wordCache[key]) return __wordCache[key];
+  const text = getVerseText(sNum, aNum);
+  if (!text) return [];
+  const out = [];
+  let lead = '';
+  for (const tok of text.split(/\s+/)) {
+    if (!tok) continue;
+    if (__hasLetter(tok)) { out.push(lead ? lead + ' ' + tok : tok); lead = ''; }
+    else if (out.length) out[out.length - 1] += ' ' + tok;   // وقف/سجدة → إلى الخلف
+    else lead = lead ? lead + ' ' + tok : tok;               // ۞ → إلى الأمام
+  }
+  if (key in __LIGATURES) { const i = __LIGATURES[key] - 1; out.splice(i, 2, out[i] + ' ' + out[i + 1]); }
+  __wordCache[key] = out;
+  return out;
+};
+
+// فهرسٌ يُبنى مرّةً واحدة من التخطيط:
+//   startPage[سورة]  = أوّل صفحةٍ تبدأ فيها.
+//   headerSurah["صفحة:سطر"] = السورة التي يُعلنها سطرُ الرأس.
+// كلاهما مشتقٌّ من المواقع، لا من لافتات المصدر — لافتاتُ الرؤوس فيه مكسورةٌ في
+// ١٨ موضعاً (تسمّي السورة التي انتهت لا التي تبدأ) وزائدةٌ في موضع. ولهذا لا
+// يحمل mushaf-layout.json أيَّ لافتةٍ أصلاً: أرقامُ صفحاتٍ وأسطرٍ ومواقعُ كلماتٍ فقط.
+// ورأسٌ لا تليه آيةٌ أولى = رأسٌ زائد → لا نرسم له اسماً كاذباً.
+let __layoutIndex = null;
+const buildLayoutIndex = () => {
+  if (__layoutIndex) return __layoutIndex;
+  const startPage = {}, headerSurah = {};
+  const flat = [];
+  for (const pg of __layoutData.p) for (const ln of pg.l) flat.push({ p: pg.n, ln });
+  for (let i = 0; i < flat.length; i++) {
+    const F = flat[i];
+    if (F.ln.t === 't') {
+      for (const loc of F.ln.w) {
+        const a = loc.split(':');
+        if (a[1] === '1' && a[2] === '1') { const sn = parseInt(a[0], 10); if (!startPage[sn]) startPage[sn] = F.p; }
+      }
+    } else if (F.ln.t === 'h') {
+      for (let j = i + 1; j < flat.length; j++) {
+        const nx = flat[j].ln;
+        if (nx.t !== 't' || !nx.w || !nx.w.length) continue;
+        const a = nx.w[0].split(':');
+        if (a[1] === '1' && a[2] === '1') headerSurah[F.p + ':' + F.ln.n] = parseInt(a[0], 10);
+        break;
+      }
+    }
+  }
+  __layoutIndex = { startPage, headerSurah };
+  return __layoutIndex;
+};
+
 // ============================================================
 // قصّ السجلّ قبل إرساله للـ API (Sliding Window)
 // ============================================================
@@ -4257,6 +4351,153 @@ const MEM = {
 // getVerseText(1,1) (never hand-written), skips it for al-Fatiha (it IS ayah 1) and
 // at-Tawbah (it has none), stamps every ayah with U+06DD + its Arabic-Indic number, and
 // carries the full-surah recitation button. No new Quran-text path is introduced here.
+/* 14.2 */
+// صفحةٌ واحدةٌ من المصحف. كلُّ خانةٍ في التخطيط تُجلب كلمتَها من المصحف المحروس.
+function MushafPage({ page, headerSurah }) {
+  const out = [];
+  for (let i = 0; i < page.l.length; i++) {
+    const ln = page.l[i];
+    if (ln.t === 't') {
+      const parts = [];
+      for (const loc of ln.w) {
+        const a = loc.split(':');
+        const sn = parseInt(a[0], 10), an = parseInt(a[1], 10), wi = parseInt(a[2], 10);
+        const words = wordsOfAyah(sn, an);
+        const w = words[wi - 1];
+        if (w === undefined) continue;                 // لا يقع — ٧٧٤٢٩/٧٧٤٢٩ مبرهَنة
+        parts.push(w);
+        if (wi === words.length) parts.push('۝' + toArabicDigits(an));  // آخرُ كلمةٍ ← رقمُ الآية
+      }
+      out.push(<div key={i} style={s.pgLine}>{parts.join(' ')}</div>);
+    } else if (ln.t === 'h') {
+      const sn = headerSurah[page.n + ':' + ln.n];
+      out.push(<div key={i} style={sn ? s.pgHeader : s.pgBlank}>{sn ? 'سُورَةُ ' + SURAH_NAMES[sn] : ''}</div>);
+    } else {
+      // البسملة من getVerseText(1,1) — لا نكتب نصّاً قرآنياً بيدنا أبداً.
+      out.push(<div key={i} style={s.pgBasmala}>{getVerseText(1, 1) || ''}</div>);
+    }
+  }
+  return <div style={s.pgPage}>{out}</div>;
+}
+
+// القارئ المُصفَّح — صفحةٌ لكلّ شاشة، ٦٠٤ صفحة، بأسطر مصحف المدينة.
+// الاتّجاه: المصحفُ يُقلب من اليسار إلى اليمين، فجرُّ الورقة يميناً يكشف التالية.
+function PagedMushaf({ startSurah, onExit }) {
+  const [state, setState] = useState('loading');   // loading | ok | fail
+  const [page, setPage] = useState(1);
+  const [drag, setDrag] = useState(0);
+  const [slide, setSlide] = useState(0);
+  const [anim, setAnim] = useState(false);
+  const idx = useRef(null);
+  const touch = useRef({ x: 0, y: 0, on: false, lock: null });
+  const timer = useRef(null);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([loadQuran(), loadLayout()])
+      .then(() => {
+        if (!alive) return;
+        idx.current = buildLayoutIndex();
+        setPage(idx.current.startPage[startSurah] || 1);
+        setState('ok');
+      })
+      .catch(() => { if (alive) setState('fail'); });
+    return () => { alive = false; };
+  }, [startSurah]);
+
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  if (state !== 'ok') {
+    return (
+      <div style={s.memContainer}>
+        <div style={s.memHeader}>
+          <div style={s.memTitle}>المصحف</div>
+          <button onClick={onExit} style={s.memBackBtn}>السور</button>
+        </div>
+        <div style={s.mushafHint}>{state === 'fail' ? 'تعذّر فتح المصحف' : 'جارٍ فتح المصحف…'}</div>
+      </div>
+    );
+  }
+
+  const L = __layoutData.p;
+  const cur = L[page - 1];
+  const nxt = page < 604 ? L[page] : null;         // التالية — يسارَ الحالية
+  const prv = page > 1 ? L[page - 2] : null;       // السابقة — يمينَها
+
+  // الهبوط: يُستدعى من transitionend، أو من مؤقّتٍ احتياطيّ لو خان.
+  // بلا هذا المؤقّت، انتقالٌ لا يُطلق transitionend (تبويبةٌ في الخلفية، أو
+  // prefers-reduced-motion) يُجمّد المُصفَّح إلى الأبد. الهبوط مرّتين آمن: الثانية لا تجد slide.
+  const land = (sl) => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    setAnim(false);
+    if (sl) { setPage(page + sl); setSlide(0); }
+  };
+  const commit = (d) => {
+    const n = page + d;
+    const eff = (n >= 1 && n <= 604) ? d : 0;   // خارج المدى ← ارتدّ في مكانك
+    setDrag(0);
+    setAnim(true);
+    setSlide(eff);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => { timer.current = null; land(eff); }, 420);
+  };
+  const onTransEnd = () => land(slide);
+  const onStart = (e) => {
+    if (slide) return;                           // ورقةٌ في الطيران — لا تلمسها
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY, on: true, lock: null };
+    setAnim(false);
+  };
+  const onMove = (e) => {
+    const T = touch.current;
+    if (!T.on) return;
+    const t = e.touches[0];
+    const dx = t.clientX - T.x, dy = t.clientY - T.y;
+    if (T.lock === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) T.lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    if (T.lock === 'x') setDrag(dx);
+  };
+  const onEnd = () => {
+    const T = touch.current;
+    if (!T.on) return;
+    T.on = false;
+    if (T.lock !== 'x') { setDrag(0); return; }
+    if (drag > 55) commit(1);
+    else if (drag < -55) commit(-1);
+    else { setDrag(0); setAnim(true); }
+  };
+
+  const pct = -33.3333 + slide * 33.3333;
+  const strip = {
+    ...s.pgStrip,
+    transform: 'translateX(calc(' + pct + '% + ' + drag + 'px))',
+    transition: anim ? 'transform .26s cubic-bezier(.22,.61,.36,1)' : 'none',
+  };
+  const firstText = cur.l.find((x) => x.t === 't' && x.w && x.w.length);
+  const curSurah = firstText ? parseInt(firstText.w[0].split(':')[0], 10) : null;
+  const hs = idx.current.headerSurah;
+
+  return (
+    <div style={s.memContainer}>
+      <div style={s.memHeader}>
+        <div style={s.memTitle}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'}</div>
+        <button onClick={onExit} style={s.memBackBtn}>السور</button>
+      </div>
+      <div style={s.pgViewport} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
+        <div style={strip} onTransitionEnd={onTransEnd}>
+          <div style={s.pgSlot}>{nxt && <MushafPage page={nxt} headerSurah={hs} />}</div>
+          <div style={s.pgSlot}><MushafPage page={cur} headerSurah={hs} /></div>
+          <div style={s.pgSlot}>{prv && <MushafPage page={prv} headerSurah={hs} />}</div>
+        </div>
+      </div>
+      <div style={s.pgBar}>
+        <button onClick={() => commit(-1)} disabled={page <= 1} style={{ ...s.pgNavBtn, ...(page <= 1 ? s.pgNavOff : {}) }}>›</button>
+        <div style={s.pgMeta}>صفحة {toArabicDigits(page)} من ٦٠٤</div>
+        <button onClick={() => commit(1)} disabled={page >= 604} style={{ ...s.pgNavBtn, ...(page >= 604 ? s.pgNavOff : {}) }}>‹</button>
+      </div>
+    </div>
+  );
+}
+
 function MushafScreen({ onBack, onPlaySurah, onStopAudio }) {
   const [ready, setReady] = useState(!!__quranData);
   const [counts, setCounts] = useState(null);       // { [surah]: ayahCount } -- ONE pass
@@ -4285,19 +4526,9 @@ function MushafScreen({ onBack, onPlaySurah, onStopAudio }) {
   const leaveSurah = () => { if (onStopAudio) onStopAudio(); setSelected(null); };
   const leaveScreen = () => { if (onStopAudio) onStopAudio(); onBack(); };
 
-  if (selected) {
-    return (
-      <div style={s.memContainer}>
-        <div style={s.memHeader}>
-          <div style={s.memTitle}>سورة {SURAH_NAMES[selected]}</div>
-          <button onClick={leaveSurah} style={s.memBackBtn}>السور</button>
-        </div>
-        <div style={s.mushafBody}>
-          <SurahCard num={selected} onPlaySurah={onPlaySurah} onStopAudio={onStopAudio} />
-        </div>
-      </div>
-    );
-  }
+  // 14.2 — الفهرس يفتح على صفحة السورة في المصحف المُصفَّح.
+  // SurahCard انسحبت من هنا وبقيت في المحادثة، حيث وُلدت — ومعها قِشرتها.
+  if (selected) return <PagedMushaf startSurah={selected} onExit={leaveSurah} />;
 
   return (
     <div style={s.memContainer}>
@@ -4891,6 +5122,18 @@ const s = {
   mushafRowMain: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
   mushafName: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   mushafSub: { fontSize: 12, color: 'var(--muted)', fontWeight: 500 },
+  pgViewport: { flex: 1, overflow: 'hidden', position: 'relative', touchAction: 'pan-y', background: 'var(--page)' },
+  pgStrip: { display: 'flex', width: '300%', height: '100%', willChange: 'transform' },
+  pgSlot: { width: '33.3333%', height: '100%', flexShrink: 0, boxSizing: 'border-box', padding: '10px 10px 4px', overflow: 'hidden' },
+  pgPage: { height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-btn)', padding: '10px 10px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
+  pgLine: { fontFamily: "'Amiri Quran', 'Amiri', serif", fontSize: 'clamp(14px, 4.4vw, 24px)', lineHeight: 1.85, color: 'var(--ink)', direction: 'rtl', textAlign: 'center', wordSpacing: '1px' },
+  pgHeader: { fontFamily: "'Amiri', serif", fontSize: 15, fontWeight: 700, color: 'var(--red-deep)', textAlign: 'center', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 8, padding: '3px 0', margin: '2px 0' },
+  pgBasmala: { fontFamily: "'Amiri Quran', 'Amiri', serif", fontSize: 'clamp(13px, 4vw, 21px)', color: 'var(--red-deep)', direction: 'rtl', textAlign: 'center' },
+  pgBlank: { minHeight: 4 },
+  pgBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 14px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
+  pgNavBtn: { width: 44, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 20, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1 },
+  pgNavOff: { opacity: 0.32, cursor: 'default' },
+  pgMeta: { fontSize: 13, fontWeight: 600, color: 'var(--muted)' },
   memContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', direction: 'rtl' },
   memHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
   memTitle: { fontSize: 18, fontWeight: 800, color: 'var(--white)', letterSpacing: '0.3px' },
