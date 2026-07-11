@@ -1887,7 +1887,7 @@ const getHomeGreeting = () => {
   return { text: pick(HOME_GREETINGS_GENERAL), period: 'day', tappable: false };
 };
 
-function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenSettings }) {
+function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings }) {
   const g = getHomeGreeting();
   return (
     <div style={s.homeContainer}>
@@ -1926,6 +1926,14 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenSetting
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="5" r="1.5" fill="#FFFFFF" /><circle cx="19" cy="12" r="1.5" fill="#FFFFFF" /><circle cx="12" cy="19" r="1.5" fill="#FFFFFF" /><circle cx="5" cy="12" r="1.5" fill="#FFFFFF" /></svg>
             </div>
             <div style={s.homeCardLabel}>الأذكار</div>
+          </button>
+        </div>
+        <div style={s.homeCardRow}>
+          <button onClick={onOpenMushaf} style={s.homeCard}>
+            <div style={s.homeIconSquareDeep}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.5C10.5 5 8 4.5 5 5v13c3-.5 5.5 0 7 1.5 1.5-1.5 4-2 7-1.5V5c-3-.5-5.5 0-7 1.5z" /><path d="M12 6.5v13" /></svg>
+            </div>
+            <div style={s.homeCardLabel}>المصحف</div>
           </button>
         </div>
         <DailyVerseCard />
@@ -3362,13 +3370,14 @@ function App() {
 
   if (screen === 'loading') return <div style={s.loadingScreen}><div style={s.loadingSpinner}>✨</div></div>;
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
-  if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSettings={() => setScreen('parentGate')} />;
+  if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => setScreen('parentGate')} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
   if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
   // المحفّظ — full screen (mirrors CallScreen). Husary playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('chat')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
+  if (screen === 'mushaf') return <MushafScreen onBack={() => setScreen('home')} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'adhkar') return <AdhkarScreen onBack={() => setScreen('home')} />;
 
   // Single-source capability flags for the chat UI. `directConvoAllowed` layers the parental lock
@@ -4242,6 +4251,80 @@ const MEM = {
   RECITE_NEXT: 'الآية التالية',
 };
 
+/* 14.1 */
+// Standalone mushaf reader. NOT part of MemorizeScreen -- separate tile, separate screen.
+// Reuses SurahCard verbatim: it already loads the mushaf, sources the basmalah from
+// getVerseText(1,1) (never hand-written), skips it for al-Fatiha (it IS ayah 1) and
+// at-Tawbah (it has none), stamps every ayah with U+06DD + its Arabic-Indic number, and
+// carries the full-surah recitation button. No new Quran-text path is introduced here.
+function MushafScreen({ onBack, onPlaySurah, onStopAudio }) {
+  const [ready, setReady] = useState(!!__quranData);
+  const [counts, setCounts] = useState(null);       // { [surah]: ayahCount } -- ONE pass
+  const [selected, setSelected] = useState(null);   // 1..114
+
+  useEffect(() => {
+    let alive = true;
+    loadQuran()
+      .then(() => {
+        if (!alive) return;
+        const c = {};
+        for (const k in __quranData) {
+          const n = parseInt(k.split(':')[0], 10);
+          c[n] = (c[n] || 0) + 1;
+        }
+        setCounts(c);
+        setReady(true);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  // Leaving the screen must silence a running recitation.
+  useEffect(() => () => { if (onStopAudio) onStopAudio(); }, []);
+
+  const leaveSurah = () => { if (onStopAudio) onStopAudio(); setSelected(null); };
+  const leaveScreen = () => { if (onStopAudio) onStopAudio(); onBack(); };
+
+  if (selected) {
+    return (
+      <div style={s.memContainer}>
+        <div style={s.memHeader}>
+          <div style={s.memTitle}>سورة {SURAH_NAMES[selected]}</div>
+          <button onClick={leaveSurah} style={s.memBackBtn}>السور</button>
+        </div>
+        <div style={s.mushafBody}>
+          <SurahCard num={selected} onPlaySurah={onPlaySurah} onStopAudio={onStopAudio} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={s.memContainer}>
+      <div style={s.memHeader}>
+        <div style={s.memTitle}>المصحف</div>
+        <button onClick={leaveScreen} style={s.memBackBtn}>رجوع</button>
+      </div>
+      <div style={s.mushafBody}>
+        {!ready && <div style={s.mushafHint}>جارٍ تحميل المصحف…</div>}
+        {ready && (
+          <div style={s.mushafList}>
+            {Array.from({ length: 114 }, (_, i) => i + 1).map((n) => (
+              <button key={n} onClick={() => setSelected(n)} style={s.mushafRow}>
+                <div style={s.mushafNum}>{toArabicDigits(n)}</div>
+                <div style={s.mushafRowMain}>
+                  <div style={s.mushafName}>{SURAH_NAMES[n]}</div>
+                  <div style={s.mushafSub}>{revelationLabel(n)} · {toArabicDigits(counts && counts[n] ? counts[n] : 0)} آية</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio }) {
   const [ready, setReady] = useState(!!__quranData); // true once the mushaf JSON is in memory
   const [counts, setCounts] = useState(null);        // { [surahNum]: ayahCount } — built once, single pass
@@ -4798,6 +4881,16 @@ const s = {
 
   // ===== Live call screen (Layer 1 — UI only) =====
   // ===== شاشة المحفّظ =====
+  /* 14.1 */
+  homeIconSquareDeep: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'var(--red-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  mushafBody: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '14px 14px 24px', boxSizing: 'border-box' },
+  mushafHint: { textAlign: 'center', color: 'var(--muted)', fontSize: 13, padding: '28px 0' },
+  mushafList: { display: 'flex', flexDirection: 'column', gap: 8 },
+  mushafRow: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '12px 14px', borderRadius: 'var(--radius-btn)', background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer', textAlign: 'right', fontFamily: 'inherit' },
+  mushafNum: { flexShrink: 0, width: 34, height: 34, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 },
+  mushafRowMain: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
+  mushafName: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
+  mushafSub: { fontSize: 12, color: 'var(--muted)', fontWeight: 500 },
   memContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', direction: 'rtl' },
   memHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
   memTitle: { fontSize: 18, fontWeight: 800, color: 'var(--white)', letterSpacing: '0.3px' },
