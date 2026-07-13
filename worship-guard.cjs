@@ -143,7 +143,7 @@ worship-guard.cjs — حارسُ نصوصِ العبادة (قراءةٌ فقط)
   node worship-guard.cjs --list        index.html
   node worship-guard.cjs --save-golden index.html worship-golden.json
   node worship-guard.cjs --compare     index.html worship-golden.json
-`); }
+`); process.exit(2); }   // ق٥٠ — حارسٌ لم يقارنْ شيئاً لا يخرجُ بصفر
 
 const a = process.argv.slice(2);
 if (a[0]==='--list' && a[1]) cmdList(a[1]);
