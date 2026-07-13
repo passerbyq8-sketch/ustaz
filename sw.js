@@ -20,7 +20,7 @@
 // and skipWaiting + clients.claim hand control to the new build IMMEDIATELY -- no tester left
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (mushaf/manifest/fonts).
-const CACHE = 'almurabbi-v2';
+const CACHE = 'almurabbi-v3';
 const CORE = [
   '/',
   '/index.html',

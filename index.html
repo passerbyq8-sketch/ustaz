@@ -332,6 +332,24 @@ const loadAdhkar = () => {
   }
   return __adhkarPromise;
 };
+// worship-display.json — the CLIENT-rendered worship text. Loaded once (same shape as
+// loadAdhkar). GENERATED from worship-golden.json by build-worship-display.cjs; never the model.
+let __worshipData = null;     // { cells: { "id:band" -> { rawHash, band, chars, text } } }
+let __worshipPromise = null;
+const loadWorship = () => {
+  if (__worshipData) return Promise.resolve(__worshipData);
+  if (!__worshipPromise) {
+    __worshipPromise = Promise.resolve()
+      .then(() => fetch('/worship-display.json'))
+      .then((r) => { if (!r.ok) throw new Error('worship fetch ' + r.status); return r.json(); })
+      .then((raw) => {
+        __worshipData = raw;
+        return __worshipData;
+      })
+      .catch((e) => { __worshipPromise = null; throw e; });
+  }
+  return __worshipPromise;
+};
 // كل أذكار بابٍ بعددِ التكرار والصوت، أو [] (لا يقع أبداً على نصّ النموذج)
 const getDhikrByCategory = (catId) => {
   if (!__adhkarData) return [];
@@ -817,7 +835,7 @@ const parseRichMessage = (text, viewerAge) => {
   let remaining = text;
 
   // أنماط الوسوم
-  const tagPattern = /<(verse|surah|hadith|steps|suggestions|board|document|source|dhikr)([^>]*)>([\s\S]*?)<\/\1>/g;
+  const tagPattern = /<(verse|surah|hadith|steps|suggestions|board|document|source|dhikr|worship)([^>]*)>([\s\S]*?)<\/\1>/g;
   let lastIndex = 0;
   let match;
   while ((match = tagPattern.exec(text)) !== null) {
@@ -865,6 +883,12 @@ const parseRichMessage = (text, viewerAge) => {
       segments.push({
         type: 'dhikr',
         catId: dhikrIdMatch ? dhikrIdMatch[1] : '',
+      });
+    } else if (tagName === 'worship') {
+      const worshipIdMatch = attrsStr.match(/id=["']([^"']+)["']/);
+      segments.push({
+        type: 'worship',
+        id: worshipIdMatch ? worshipIdMatch[1] : '',
       });
     } else if (tagName === 'source') {
       const siteMatch = attrsStr.match(/site=["']([^"']+)["']/);
@@ -1399,6 +1423,15 @@ ${band === 'young' ? `═══ صفةُ التيمّم — نصٌّ ثابتٌ 
 
 الدليل من السنة (الحديث)
 الأصل في هذه الصفة هو حديث عمار بن ياسر رضي الله عنهما، عندما سأل النبي ﷺ عن التيمم، فقال له النبي ﷺ: «إنَّما كانَ يَكْفِيكَ أنْ تَصْنَعَ هَكَذَا، فَضَرَبَ بكَفَّيْهِ ضَرْبَةً علَى الأرْضِ، ثُمَّ نَفَضَهُمَا، ثُمَّ مَسَحَ بهِما ظَهْرَهُمَا ووَجْهَهُ» (متفق عليه).`}
+${mode === 'call' ? '' : `
+═══ قاعدةٌ قاطعة: أعمدةُ العبادةِ تُعرَضُ ولا تُكتَب ═══
+
+متى طُلبت صفةُ عبادةٍ من الأربعِ التالية، أخرِجْ وسمَها وحدَه، ولا تكتبْ خطواتِها بنفسِك أبدًا:
+<worship id="salah"></worship> · <worship id="wudu"></worship> · <worship id="ghusl"></worship> · <worship id="tayammum"></worship>
+
+والتطبيقُ يعرضُ النصَّ المعتمَدَ حرفيًّا من ملفٍّ مجمَّد. فلا تُعِدْ كتابتَه، ولا تُلخِّصْه، ولا تُبسِّطْه بالعمر، ولا تزدْ عليه حرفًا ولا تنقصْ منه حرفًا — لأنّك لن تكتبَه أصلًا.
+ولك أن تُقدِّمَ للوسمِ بجملةٍ ترحيبيّةٍ قصيرة، وأن تُعقِّبَ بجملةٍ قصيرةٍ بعده. أمّا الصفةُ نفسُها فمن التطبيقِ لا منك.
+⛔ وهذه القاعدةُ تَغلِبُ كلَّ أمرِ تلاوةٍ سبقها في أعمدةِ العبادةِ الأربعة.`}
 
 ${mode === 'call' ? `
 
@@ -3835,6 +3868,9 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
           if (seg.type === 'dhikr') {
             return <DhikrCard key={i} catId={seg.catId} />;
           }
+          if (seg.type === 'worship') {
+            return <WorshipCard key={i} id={seg.id} band={deriveCaps(age).band} />;
+          }
           if (seg.type === 'steps') {
             return <StepsCard key={i} items={seg.items} />;
           }
@@ -4206,6 +4242,41 @@ function DhikrCard({ catId }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function WorshipCard({ id, band }) {
+  const [display, setDisplay] = useState(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    loadWorship()
+      .then((d) => { if (alive) setDisplay(d); })
+      .catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  // arm: byte-for-byte the prompt's own ternary (band === 'young'). A teen (13-17) takes the
+  // ADULT arm. That is TODAY's behaviour — this commit changes ZERO policy.
+  const arm = (band === 'young') ? 'young' : 'adult';
+  // FAIL CLOSED: a missing cell renders a VISIBLE error, never model text, never empty silence.
+  const errorCard = (why) => (
+    <div style={{ background: 'var(--tint)', border: '1px solid var(--red)', borderRadius: 10, padding: '12px 14px', color: 'var(--red)', direction: 'ltr', textAlign: 'left', fontSize: 13, fontFamily: 'monospace' }}>
+      worship card unavailable — {why}
+    </div>
+  );
+  if (failed) return errorCard('display fetch failed');
+  if (display === null) return <div style={s.hadithCard}><div style={s.hadithText}>…</div></div>;
+  const cell = display.cells && display.cells[id + ':' + arm];
+  if (!cell || !cell.text) return errorCard('no cell for ' + id + ':' + arm);
+  // Render cell.text VERBATIM: no markdown pass, no tashkeel pass, no age simplification,
+  // no truncation, line breaks preserved (pre-wrap). The text is authored+guarded, not model output.
+  return (
+    <div style={s.stepsCard}>
+      <div style={s.stepsCardLabel}>
+        <ListCheckIcon size={12} color="var(--red)" />
+      </div>
+      <div style={{ ...s.hadithText, whiteSpace: 'pre-wrap' }}>{cell.text}</div>
     </div>
   );
 }
