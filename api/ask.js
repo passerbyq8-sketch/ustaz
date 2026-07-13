@@ -147,9 +147,13 @@ export default async function handler(req, res) {
   const maxTokens = body.max_tokens || 4096;
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (body.depth === 'deep' || body.depth === 'scholar') ? 'high' : 'medium';
-  const depthInstruction = buildDepthInstruction(body.depth);
   // Age band for RAG source-gating (khilaf-policy §6). Optional; absent => adult list in retrieve().
   const band = (body.band === 'young' || body.band === 'teen' || body.band === 'adult') ? body.band : undefined;
+  // BAND GATE (khilaf-policy §1/§2/§3). The depth instruction is ADULT-ONLY. 'scholar' orders the model
+  // to present up to FOUR differing scholarly opinions with evidence; injecting that into a child's
+  // system prompt is a direct policy breach. Mirrors usePremium (next line) and scholarMode (round 2),
+  // both of which already check the band. Fail-CLOSED: an absent or garbled band gets NO instruction.
+  const depthInstruction = band === 'adult' ? buildDepthInstruction(body.depth) : '';
   const usePremium = band === 'adult' && (body.depth === 'deep' || body.depth === 'scholar');
   const model = usePremium
     ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-4-8')
