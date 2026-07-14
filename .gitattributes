@@ -1,0 +1,22 @@
+# Al-Murabbi - line-ending pins.
+# Defect 40, MEASURED in session 28: a fresh clone with core.autocrlf=true injects
+# 77 CR into worship-golden.json (SHA8 A13C34BA -> F48CB7C7) and 55 CR into
+# worship-display.json (64B8A2C9 -> 9A56CC5B), and gate 7 exits 1.
+
+# Byte-compared or SHA-pinned by the guards. LF forever, on every machine.
+worship-golden.json      text eol=lf
+worship-display.json     text eol=lf
+quran-golden.json        text eol=lf
+referral-golden.json     text eol=lf
+adhkar.json              text eol=lf
+lib/data/adhkar.json     text eol=lf
+
+# recon-audit requires bare-LF = 0 inside index.html. Pure CRLF, on every machine.
+index.html               text eol=crlf
+
+# Zero-newline by design (gate 5 depends on it). Git must never rewrap these.
+quran-uthmani.json       -text
+mushaf-layout.json       -text
+
+# Binary. Never convert.
+*.gz                     binary
