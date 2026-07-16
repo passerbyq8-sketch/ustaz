@@ -350,6 +350,18 @@ const loadWorship = () => {
   }
   return __worshipPromise;
 };
+
+const resolveWorshipTags = async (text, band) => {
+  if (!text || text.indexOf('<worship') === -1) return text;
+  let data = null;
+  try { data = await loadWorship(); } catch (e) { data = null; }
+  const arm = (band === 'adult' || band === 'teen') ? 'adult' : 'young';
+  return text.replace(/<worship([^>]*)>[\s\S]*?<\/worship>/g, (_w, attrs) => {
+    const m = attrs.match(/id=["']([^"']+)["']/);
+    const cell = m && data && data.cells && data.cells[m[1] + ':' + arm];
+    return (cell && cell.text) ? ' ' + cell.text + ' ' : ' ';
+  });
+};
 // كل أذكار بابٍ بعددِ التكرار والصوت، أو [] (لا يقع أبداً على نصّ النموذج)
 const getDhikrByCategory = (catId) => {
   if (!__adhkarData) return [];
@@ -977,6 +989,10 @@ const formatForTTS = (text) => {
     if (!items.length) return '';
     return ' خُطُوَاتٌ تُسَاعِدُكِ: ' + items.join(' ثُمَّ ') + '. ';
   });
+  // <worship> is resolved to the frozen cell text up-front (resolveWorshipTags).
+  // Any tag surviving to here -> a single space (silence): never the raw tag, never model text.
+  t = t.replace(/<worship[^>]*>[\s\S]*?<\/worship>/g, ' ');
+  t = t.replace(/<worship[^>]*\/?>/g, ' ');
   t = t.replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g, ' ').replace(/[ \t]{2,}/g, ' ');
   // رموزٌ ودوالُّ رياضيّةٌ خارج <board> → أسماؤها المتعارَف عليها (شبكة أمان للنطق)
   t = t
@@ -1425,7 +1441,7 @@ ${band === 'young' ? `═══ صفةُ التيمّم — نصٌّ ثابتٌ 
 الدليل من السنة (الحديث)
 الأصل في هذه الصفة هو حديث عمار بن ياسر رضي الله عنهما، عندما سأل النبي ﷺ عن التيمم، فقال له النبي ﷺ: «إنَّما كانَ يَكْفِيكَ أنْ تَصْنَعَ هَكَذَا، فَضَرَبَ بكَفَّيْهِ ضَرْبَةً علَى الأرْضِ، ثُمَّ نَفَضَهُمَا، ثُمَّ مَسَحَ بهِما ظَهْرَهُمَا ووَجْهَهُ» (متفق عليه).`}
 ` : ''}
-${mode === 'call' ? '' : `
+${`
 ═══ قاعدةٌ قاطعة: أعمدةُ العبادةِ تُعرَضُ ولا تُكتَب ═══
 
 متى طُلبت صفةُ عبادةٍ من الأربعِ التالية، أخرِجْ وسمَها وحدَه، ولا تكتبْ خطواتِها بنفسِك أبدًا:
@@ -1450,14 +1466,14 @@ ${mode === 'call' ? `
 
 ⚡ سقفُ الطولِ الصارم: لا يتجاوزُ ردُّك في المكالمةِ أربعَ جُملٍ قصيرةٍ مسموعةٍ كحدٍّ أعلى، والأصلُ جملتان أو ثلاث (وإن كان المخاطَبُ صغيرًا فأقلُّ، كما في تعليماتِ فئتِه). ادخُلِ الجوابَ من أوّلِ كلمةٍ بلا تمهيدٍ ولا إعادةِ صياغةِ سؤاله. وإن كان الموضوعُ متشعّبًا (كأحكامِ السفر) فأعطِ زُبدتَه في جملتين ثمّ اعرِضْ بجملةٍ واحدةٍ أن تزيدَ إن شاء.
 
-ويُستثنى من هذا السقفِ أمرانِ يُقالانِ تامَّينِ مهما طالا: (١) النصُّ الثابتُ الذي يُتلى ولا يُولَّد — آيةٌ أو حديثٌ أو صفةُ عبادةٍ مقرّرةٌ (كالوضوءِ والصلاة) أو ذِكرٌ مأثور — يُنطَقُ حرفيًّا كاملًا كما قرّرَه بابُه بلا اختصارٍ ولا حذف. (٢) ما طلبَ المخاطَبُ تفصيلَه صراحةً، فيُفصَّلُ له لكن في جُملٍ قصيرةٍ متتابعةٍ مسموعةٍ لا فقرةٍ واحدةٍ طويلة.
+ويُستثنى من هذا السقفِ أمرانِ يُقالانِ تامَّينِ مهما طالا: (١) النصُّ الثابتُ الذي يُتلى ولا يُولَّد — آيةٌ أو حديثٌ أو ذِكرٌ مأثور — يُنطَقُ حرفيًّا كاملًا كما قرّرَه بابُه بلا اختصارٍ ولا حذف. (٢) ما طلبَ المخاطَبُ تفصيلَه صراحةً، فيُفصَّلُ له لكن في جُملٍ قصيرةٍ متتابعةٍ مسموعةٍ لا فقرةٍ واحدةٍ طويلة.
 
 لا بطاقاتٍ إطلاقاً في المكالمة — كلُّ شيءٍ يُقال منطوقاً:
 - لا تستخدم وسم <steps> ولا <suggestions> ولا <source> ولا بطاقةَ <hadith> في المكالمة إطلاقاً؛ فهذه بطاقاتٌ ولمساتٌ مرئيّة، والطفلُ يسمع ولا يرى ولا يلمس.
 - إن احتجتَ ذكرَ حديثٍ فقُلْ تخريجَه منطوقاً داخل كلامك (مثل: «هذا رواه البخاريّ») لا كبطاقة، فالنقلُ الموثّقُ يُسمَع كما يُكتَب. والخطواتُ تُقال متسلسلةً في كلامك («أوّلاً... ثمّ... وأخيراً...») لا في وسمٍ مرئيّ.
 - والعزوُ القرآنيُّ آيةٌ واحدةٌ قصيرةٌ عبر <verse> عند الحاجة فقط (لأنها تُشغّل التلاوةَ الحقيقيّةَ بصوت القارئ، وهذا أنسبُ شيءٍ في مكالمة)، ويجوز سورةٌ واحدةٌ عبر <surah> متى طُلبت تلاوتُها. واقتصِرْ على استشهادٍ واحدٍ على الأكثر في الرّدّ، فتعدُّدُ التلاواتِ يُثقلُ المكالمةَ المنطوقة. والتلاوةُ لا تُحسَبُ من الإيجاز: متى ناسب الموضعَ استشهادٌ فأخرِجِ الوسمَ وأكمِلِ التلاوةَ كاملةً.
 
-⛔ قاعدةٌ قاطعةٌ لا استثناءَ فيها إلا ما يُذكَرُ صراحةً (وهي تَغلِبُ قائمةَ التحقّقِ النهائيّةَ وكلَّ قواعدِ بِنيةِ البطاقات): في المكالمةِ الصوتيّةِ لا تُخرِجْ أيَّ وسمٍ زاويٍّ < > من أيِّ نوعٍ إطلاقاً — لا <steps> ولا <hadith narrator= ruling=> ولا <suggestions> ولا <source> ولا <document> ولا <board> ولا أيَّ وسمٍ آخرَ ذي أقواسٍ زاويّة. الاستثناءُ الوحيدُ المسموحُ هو <verse> و<surah> فقط (لأنّهما يُشغّلانِ تلاوةَ القارئِ الحقيقيّةَ بصوته كما تقدّم)، وما عداهما ممنوعٌ منعاً باتّاً في المكالمة.
+⛔ قاعدةٌ قاطعةٌ لا استثناءَ فيها إلا ما يُذكَرُ صراحةً (وهي تَغلِبُ قائمةَ التحقّقِ النهائيّةَ وكلَّ قواعدِ بِنيةِ البطاقات): في المكالمةِ الصوتيّةِ لا تُخرِجْ أيَّ وسمٍ زاويٍّ < > من أيِّ نوعٍ إطلاقاً — لا <steps> ولا <hadith narrator= ruling=> ولا <suggestions> ولا <source> ولا <document> ولا <board> ولا أيَّ وسمٍ آخرَ ذي أقواسٍ زاويّة. والاستثناءُ المسموحُ هو <verse> و<surah> (لأنّهما يُشغّلانِ تلاوةَ القارئِ الحقيقيّةَ بصوته كما تقدّم) و<worship> (فالتطبيقُ ينطِقُ نصَّه المعتمَدَ المجمَّدَ عوضًا عنك — أخرِجِ الوسمَ وحدَه ولا تنطِقِ الصفةَ بنفسك)، وما عداها ممنوعٌ منعاً باتّاً في المكالمة.
 
 وبدلاً من الوسومِ الممنوعةِ انطِقْ كلَّ شيءٍ كلاماً محكيّاً منطوقاً، ولا تُسقِطِ النقلَ ولا العزوَ — إنّما تُسقِطُ غلافَ الوسمِ وحده:
 - الخطواتُ تُقالُ متسلسلةً في كلامك: «أوّلاً... ثُمّ... وأخيراً...» منطوقةً، لا داخلَ وسمِ <steps>.
@@ -2762,6 +2778,7 @@ function App() {
   // وأيّ صوتٍ مُحضَّرٍ لم يُشغَّل يُلغى ويُحرَّر (لا يُشغَّل مقطعٌ بائت أبداً).
   const speakReply = async (text) => {
     if (!text) return;
+    text = await resolveWorshipTags(text, deriveCaps(profileRef.current?.age).band);
     const parts = buildAudioSequence(text);
     if (!parts.length) return;
     const myId = ++sequenceIdRef.current; // يُلغي أي تسلسل سابق
@@ -2911,7 +2928,7 @@ function App() {
     const feed = (full) => {
       if (!isCurrent() || hitTag) return;
       const safe = stripIncompleteTags(full);                 // drops any incomplete trailing tag
-      const tm = /<(verse|surah|hadith|steps|suggestions|source|dhikr)[\s>\/]/.exec(safe);
+      const tm = /<(verse|surah|hadith|steps|suggestions|source|dhikr|worship)[\s>\/]/.exec(safe);
       const firstTag = tm ? tm.index : safe.length;           // prose is streamable only BEFORE the first tag
       const region = safe.slice(consumedLen, firstTag);       // tag-free prose not yet spoken
       const cut = tm ? region.length : lastSentenceCut(region); // tag present -> flush prose up to it; else complete sentences only
@@ -2924,7 +2941,8 @@ function App() {
       if (tm) hitTag = true;   // reached a tag -> stop streaming; finish() plays the rest via buildAudioSequence
     };
     const finish = async (fullReply) => {
-      const rest = (fullReply || '').slice(consumedLen);      // tags + any trailing prose not yet spoken
+      let rest = (fullReply || '').slice(consumedLen);      // tags + any trailing prose not yet spoken
+      rest = await resolveWorshipTags(rest, deriveCaps(profileRef.current?.age).band);
       if (rest.trim()) enqueue(buildAudioSequence(rest));
       inputDone = true;
       pump();
