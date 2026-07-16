@@ -116,6 +116,17 @@ function cmdCompare(file, goldenPath){
   const cols = extractColumns(readOrDie(file));
   const cur = new Map(cols.map(c => [keyOf(c), c.body]));
   let hard = 0, soft = 0;
+  // خطأ ٢٨ (ق٥٠/ق٢٥): حارسٌ لم يقارنْ شيئًا لا يمرّ — ذهبيٌّ فارغٌ أو استخراجٌ فارغٌ ⟹ خروجٌ غيرُ صفريّ.
+  const goldKeys = new Set(Object.keys(golden.blocks || {}));
+  if (goldKeys.size === 0 || cols.length === 0){
+    console.error(`✗ لا مقارنة: ذهبيٌّ=${goldKeys.size} · حاليٌّ=${cols.length}. حارسٌ لم يقارنْ شيئًا لا يمرّ.`);
+    process.exit(2);
+  }
+  // خطأ ٢٩: مقارنةٌ ثنائيّة. الحلقةُ أدناه تمسكُ ما في الذهبيِّ وغابَ عن index.html؛ وهذه تمسكُ العكسَ:
+  // عمودًا في index.html غائبًا عن الذهبيِّ (عمودٌ غيرُ محروس). كلا الاتّجاهَينِ انحرافٌ صلب.
+  for (const key of cur.keys()){
+    if (!goldKeys.has(key)){ console.log(`  ✗ زائد    | ${key}`); hard++; }
+  }
   console.log(`\nمقارنةُ ${file} بالمرجعِ ${goldenPath}:\n`);
   for (const [key, ref] of Object.entries(golden.blocks)){
     if (!cur.has(key)){ console.log(`  ✗ مفقود   | ${key}`); hard++; continue; }
