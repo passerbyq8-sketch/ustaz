@@ -14,7 +14,7 @@
 // and any jsdom load failure is contained to retrieval instead of crashing the whole
 // function at invocation.
 
-import { checkAskLimit } from '../lib/ratelimit.js';
+import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
@@ -144,7 +144,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'system string required' });
   }
 
-  const maxTokens = body.max_tokens || 4096;
+  // Body-size cap (bug 6): the client controls system+messages verbatim, so an
+  // oversized body is pure upstream cost. Reject before the SSE commit + the
+  // Anthropic call. MAX_CHAT_BODY_BYTES is the same measured 256 KB ceiling chat.js uses.
+  const bodyBytes = typeof req.body === 'string'
+    ? Buffer.byteLength(req.body, 'utf8')
+    : Buffer.byteLength(JSON.stringify(body), 'utf8');
+  if (bodyBytes > MAX_CHAT_BODY_BYTES) {
+    return res.status(413).json({ error: 'Request body too large' });
+  }
+
+  const maxTokens = Math.min(body.max_tokens || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (body.depth === 'deep' || body.depth === 'scholar') ? 'high' : 'medium';
   // Age band for RAG source-gating (khilaf-policy §6). Optional; absent => adult list in retrieve().
