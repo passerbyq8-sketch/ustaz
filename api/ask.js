@@ -157,7 +157,7 @@ export default async function handler(req, res) {
   const maxTokens = Math.min(body.max_tokens || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (body.depth === 'deep' || body.depth === 'scholar') ? 'high' : 'medium';
-  // Age band for RAG source-gating (khilaf-policy §6). Optional; absent => adult list in retrieve().
+  // Age band for RAG source-gating (khilaf-policy §6). Optional; absent/garbled => undefined => retrieve() fails CLOSED to the minor list (NOT adult).
   const band = (body.band === 'young' || body.band === 'teen' || body.band === 'adult') ? body.band : undefined;
   // BAND GATE (khilaf-policy §1/§2/§3). The depth instruction is ADULT-ONLY. 'scholar' orders the model
   // to present up to FOUR differing scholarly opinions with evidence; injecting that into a child's
@@ -167,7 +167,7 @@ export default async function handler(req, res) {
   const usePremium = band === 'adult' && (body.depth === 'deep' || body.depth === 'scholar');
   const model = usePremium
     ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-4-8')
-    : (process.env.MODEL_STANDARD || process.env.MODEL || 'claude-opus-4-8');
+    : (process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5');
   console.log('[tier]', { band, depth: body.depth, usePremium, model });
   const system = appendDepthBlock(wrapSystem(body.system), depthInstruction);
 
