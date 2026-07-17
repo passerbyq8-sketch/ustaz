@@ -6,7 +6,8 @@
     "api/chat.js": { "maxDuration": 300 },
     "api/chat-fast.js": { "maxDuration": 300 },
     "api/tashkeel.js": { "maxDuration": 300 },
-    "api/tts.js": { "maxDuration": 300 }
+    "api/tts.js": { "maxDuration": 300 },
+    "api/report.js": { "maxDuration": 300 }
   },
   "headers": [
     { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
