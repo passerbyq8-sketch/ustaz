@@ -97,9 +97,13 @@
 const { useState, useEffect, useRef } = React;
 
 // ============================================================
-// رمز الأهل الافتراضي (يمكن تغييره)
+// رمز لوحة الأهل — يضعه الأهل أول مرة، ويُخزَّن مُجزّأً (SHA-256) في localStorage. لا رمز افتراضي، ولا يُعرَض أبداً.
 // ============================================================
-const PARENT_PIN = '1234';
+const PIN_HASH_KEY = 'parent_pin_hash';
+async function hashPin(pin) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(pin)));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 // ============================================================
 // تخزين المحادثة (Feature Flag)
@@ -4476,19 +4480,36 @@ function Onboarding({ onStart }) {
 }
 
 function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, onBack }) {
-  const handleSubmit = () => {
-    if (pinInput === PARENT_PIN) onSuccess();
-    else { setPinError(true); setTimeout(() => setPinError(false), 1500); }
+  const hasPin = (() => { try { return !!localStorage.getItem(PIN_HASH_KEY); } catch (e) { return false; } })();
+  const [adultOk, setAdultOk] = useState(false);
+  const [challenge] = useState(() => ({ a: 13 + Math.floor(Math.random() * 87), b: 3 + Math.floor(Math.random() * 7) }));
+  const [confirmPin, setConfirmPin] = useState('');
+  const [errMsg, setErrMsg] = useState('رمز خاطئ');
+  const fail = (msg) => { setErrMsg(msg); setPinError(true); setTimeout(() => setPinError(false), 1800); };
+  const verify = async () => {
+    try {
+      const stored = localStorage.getItem(PIN_HASH_KEY);
+      if (stored && (await hashPin(pinInput)) === stored) { onSuccess(); return; }
+    } catch (e) {}
+    fail('رمز خاطئ');
   };
+  const create = async () => {
+    if (!/^[0-9]{4,}$/.test(pinInput)) return fail('اختر ٤ أرقام على الأقل');
+    if (pinInput !== confirmPin) return fail('الرمزان غير متطابقان');
+    try { localStorage.setItem(PIN_HASH_KEY, await hashPin(pinInput)); } catch (e) { return fail('تعذّر الحفظ'); }
+    setConfirmPin(''); onSuccess();
+  };
+  if (!hasPin && !adultOk) return <AdultGate a={challenge.a} b={challenge.b} onPass={() => setAdultOk(true)} onCancel={onBack} />;
   return (
     <div style={s.onboardingContainer}>
       <div style={s.onboardingCard}>
         <div style={s.bigEmoji}>🔒</div>
-        <div style={s.onboardingTitle}>لوحة الأهل</div>
-        <div style={s.onboardingSubtitle}>أدخل رمز الدخول (الافتراضي: 1234)</div>
-        <input type="password" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSubmit()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? '#C44536' : '#E5EBF5' }} autoFocus />
-        {pinError && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>رمز خاطئ</div>}
-        <button onClick={handleSubmit} style={s.primaryBtn}>دخول</button>
+        <div style={s.onboardingTitle}>{hasPin ? 'لوحة الأهل' : 'إنشاء رمز لوحة الأهل'}</div>
+        <div style={s.onboardingSubtitle}>{hasPin ? 'أدخل رمز الدخول' : 'اختر رمزاً من ٤ أرقام على الأقل — لن يُعرض، فاحفظه في مكان آمن'}</div>
+        <input type="password" inputMode="numeric" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && hasPin && verify()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? '#C44536' : '#E5EBF5' }} autoFocus />
+        {!hasPin && <input type="password" inputMode="numeric" value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && create()} placeholder="أعد الرمز" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? '#C44536' : '#E5EBF5' }} />}
+        {pinError && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>{errMsg}</div>}
+        <button onClick={hasPin ? verify : create} style={s.primaryBtn}>{hasPin ? 'دخول' : 'حفظ الرمز'}</button>
         <button onClick={onBack} style={s.secondaryBtn}>رجوع</button>
       </div>
     </div>
