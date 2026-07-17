@@ -107,7 +107,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         // Haiku أسرع وأرخص بكثير من Sonnet، ومناسب للمهمة المركّزة
-        model: 'claude-haiku-4-5',
+        model: process.env.TASHKEEL_MODEL || 'claude-haiku-4-5',
         max_tokens: 2000,
         system: systemPrompt,
         messages: [
