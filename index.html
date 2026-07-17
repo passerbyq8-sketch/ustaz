@@ -2287,7 +2287,7 @@ function App() {
   const [callState, setCallState] = useState('idle'); // 'idle' | 'listening' | 'thinking' | 'speaking'
   const [isCallMuted, setIsCallMuted] = useState(false);
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
-  const CALL_SILENCE_MS = 2000; // silence after which a non-empty turn auto-ends (tunable)
+  const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
   // Layer 3 (continuous call) — anti-leak + auto-end machinery.
   const callGenRef = useRef(0);            // increments on every call ENTER and EXIT; any async continuation comparing a captured value against this ref aborts if they differ.
   const inactivityTimerRef = useRef(null); // 45s no-speech auto-end timer handle (the real loop terminator)
