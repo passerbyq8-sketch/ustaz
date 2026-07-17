@@ -2235,7 +2235,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [depthMode, setDepthMode] = useState('brief'); // 'brief' | 'detailed' | 'scholar' — adult-only 3-state cycle
-  const SCHOLAR_ENABLED = true; // scholar (طالب العلم) hidden until RAG expansion; server still accepts it. Flip to true to re-enable the 3rd cycle state.
+  const SCHOLAR_ENABLED = true; // scholar (طالب العلم) = adult-only 3rd depth state; ENABLED. Set false to hide it (cycle -> brief/detailed only). Server accepts scholar regardless of this flag.
   const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
