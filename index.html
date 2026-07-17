@@ -2332,6 +2332,24 @@ function App() {
   // تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
   useEffect(() => { loadQuran().catch(() => {}); }, []);
 
+  // زر الرجوع (أندرويد/المتصفح) — خطأ ١٥: بلا هذا يُغلق التطبيق فوراً من أي شاشة فرعية.
+  // من أي شاشة فرعية يرجع إلى home؛ ومن home يخرج (سلوك أندرويد القياسي). إضافيّ بحت — لا يمسّ أزرار الرجوع داخل الشاشات.
+  const backNavRef = useRef(false);
+  useEffect(() => {
+    const onPop = () => {
+      backNavRef.current = true;
+      setScreen((cur) => (cur === 'home' || cur === 'onboarding' || cur === 'loading') ? cur : 'home');
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  useEffect(() => {
+    if (backNavRef.current) { backNavRef.current = false; return; }
+    if (screen !== 'home' && screen !== 'onboarding' && screen !== 'loading') {
+      window.history.pushState({ screen }, '');
+    }
+  }, [screen]);
+
   // Stop audio when leaving a screen. App never unmounts on a screen switch, so playing
   // Audio() objects in audioRef survive; this cleanup fires on every `screen` transition.
   // cancelAudio() is UNCONDITIONAL (stops greeting TTS + recitation on any transition). The
