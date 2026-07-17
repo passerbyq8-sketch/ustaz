@@ -1,0 +1,34 @@
+# .vercelignore -- files EXCLUDED from the Vercel deployment.
+# Source of truth: AL-MURABBI-MASTER.md section 13 (both lists measured).
+# Everything below is build-time / reference only -- nothing the browser or a
+# serverless function fetches at runtime.
+# NEVER add here: index.html, sw.js, manifest.json, adhkar.json (root),
+# quran-uthmani.json, mushaf-layout.json, icon-*.png, icon.svg, privacy.html,
+# delete.html, worship-display.json, api/**, lib/**, package.json, package-lock.json
+
+# build + guard scripts (run on the dev machine, never in production)
+worship-guard.cjs
+quran-guard.cjs
+layout-guard.cjs
+quran-verify.cjs
+build-mushaf-layout.cjs
+build-worship-display.cjs
+build-golden-md.cjs
+esc.cjs
+flip-stream-flag.cjs
+
+# golden / reference data (read at BUILD time only)
+quran-golden.json
+referral-golden.json
+golden-set-worship.md
+
+# worship-golden.json: safe to exclude NOW -- the client fetches worship-display.json.
+# defect 38: once the worship-strip (part two / defect 5b) lands, the client will
+# need this at runtime. REMOVE the next line then, or the worship columns die.
+worship-golden.json
+
+# source docs (public on GitHub, not served as pages), experiments, and the
+# redundant data copy (the root adhkar.json is the one that ships)
+docs/
+spike/
+lib/data/adhkar.json
