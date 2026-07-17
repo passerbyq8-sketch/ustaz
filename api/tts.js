@@ -5,20 +5,13 @@
 // المفتاح يُحفظ كـ ELEVENLABS_API_KEY في Vercel Environment Variables
 // ============================================================
 //
-// التغييرات في هذه النسخة:
-// ✅ الرجوع إلى نموذج eleven_multilingual_v2 (أسرع من v3 للمحادثات)
-//    — v3 جودته أعلى لكنه أبطأ، v2 أنسب للحوار مع طفل
-//    — الجودة لا تزال ممتازة، والاستجابة سريعة
-//
-// ✅ النص الذي يصلنا الآن مشكّل عبر api/tashkeel
-//    — لذلك الجودة الصوتية ستكون أعلى بكثير من قبل
-//
-// ✅ language_code: 'ar' (مدعوم في v2 أيضاً)
-//
-// ✅ الإعدادات الرسمية الموصى بها من ElevenLabs:
-//    stability: 0.50, similarity_boost: 0.75, style: 0.0
-//
-// ✅ use_speaker_boost: true (مدعوم في v2، يحسّن وضوح الصوت)
+// ملاحظات النسخة الحالية:
+// ✅ النموذج: eleven_flash_v2_5 — نموذج ElevenLabs منخفض زمن الاستجابة،
+//    مناسب لحوار فوريّ مع طفل، ويدعم العربية.
+// ✅ النص يصل مشكّلاً عبر api/tashkeel — يرفع جودة النطق العربي كثيراً.
+// ✅ language_code: 'ar' — يقفل المخرجات على العربية.
+// ✅ voice_settings: stability 0.75 (فوق افتراضي ElevenLabs 0.50 — السبب في تعليق الإعدادات أدناه)،
+//    similarity_boost 0.75، style 0.0، speed 1.1، use_speaker_boost: true.
 // ============================================================
 
 // ============================================================
@@ -34,8 +27,7 @@ const DEFAULT_VOICE_ID = MALE_VOICE_ID; // fail-safe: missing/unknown gender →
 // ============================================================
 // إعدادات النموذج
 // ============================================================
-// eleven_multilingual_v2 : التوازن الأمثل بين الجودة والسرعة
-// (للجودة القصوى مع قبول التأخير: استبدل بـ 'eleven_v3')
+// eleven_flash_v2_5 : أدنى زمن استجابة مع جودة عالية — الأنسب للحوار.
 const MODEL_ID = 'eleven_flash_v2_5';
 const TTS_SPEED = 1.1; // speech pace: 1.0 = default, range 0.7-1.2 (voice_settings.speed)
 
@@ -101,7 +93,7 @@ export default async function handler(req, res) {
           language_code: LANGUAGE_CODE,
           voice_settings: {
             // 0.75 بدل 0.50: الاستقرار المنخفض يُسبّب تأتأة على عناقيد الشدّة
-            // (التَّشْرِيك = تّ+شْ) في eleven_multilingual_v2. رفعه يقلّل هذا الأثر.
+            // (التَّشْرِيك = تّ+شْ). رفعه يقلّل هذا الأثر.
             stability: 0.75,
             similarity_boost: 0.75,
             style: 0.0,
