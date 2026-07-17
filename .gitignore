@@ -4,7 +4,7 @@ babel-gate.cjs
 runtime-gate.cjs
 live*.html
 
-# spike secrets — never commit
+# spike secrets â€” never commit
 spike/.env
 .env
 lib/data/fiqh-encyclopedia.jsonl
@@ -21,3 +21,4 @@ probe-*.mjs
 probe-*.txt
 payload-*.txt
 probe-*.cjs
+spike/.env.example
