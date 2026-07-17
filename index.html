@@ -3034,7 +3034,7 @@ function App() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal,
-          body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 8, stream: true, system: 'أنت مصنِّفُ مساراتٍ فقط، لا تُجب. صنّف رسالةَ المستخدم الأخيرة (مستعينًا بالسياق عند الحاجة). أخرِج DEEN إن مسّت أيَّ موضوعٍ دينيّ — عقيدة، غيبيّات (الله، الملائكة، الجنّة، النار، اليوم الآخر)، صلاة، طهارة، صيام، زكاة، حجّ، قرآن، تفسير، حديث، سيرة، صحابةٌ وأنبياء، دعاء، ذِكر، حلال، حرام، حكمٌ شرعيّ، أخلاقٌ وقيم، ذِكرُ الله أو النبيّ ﷺ — أو أيَّ أمرٍ يمسّ مشاعرَ الطفل أو سلامتَه — خوف، حزن، أذًى، ضرب، تنمّر، مشكلةٌ في البيت أو مع الأهل، سرٌّ يُطلَب كتمانُه، أمرٌ يخصّ جسدَه، أيُّ ضيقٍ يحتاج رعاية — أو ساورَك أدنى شكّ، فأخرِج كلمةً واحدةً: DEEN. وإن كانت معرفيّةً محايدةً بحتة (حساب، علوم، لغة، جغرافيا، معلومةٌ عامّة، مادّةٌ دراسيّة) لا صلةَ لها بدينٍ ولا مشاعرَ ولا سلامة، فأخرِج كلمةً واحدةً: GEN. لا شيءَ غيرَ الكلمة الواحدة.', messages: [{ role: 'user', content: __userContent }] })
+          body: JSON.stringify({ max_tokens: 8, stream: true, system: 'أنت مصنِّفُ مساراتٍ فقط، لا تُجب. صنّف رسالةَ المستخدم الأخيرة (مستعينًا بالسياق عند الحاجة). أخرِج DEEN إن مسّت أيَّ موضوعٍ دينيّ — عقيدة، غيبيّات (الله، الملائكة، الجنّة، النار، اليوم الآخر)، صلاة، طهارة، صيام، زكاة، حجّ، قرآن، تفسير، حديث، سيرة، صحابةٌ وأنبياء، دعاء، ذِكر، حلال، حرام، حكمٌ شرعيّ، أخلاقٌ وقيم، ذِكرُ الله أو النبيّ ﷺ — أو أيَّ أمرٍ يمسّ مشاعرَ الطفل أو سلامتَه — خوف، حزن، أذًى، ضرب، تنمّر، مشكلةٌ في البيت أو مع الأهل، سرٌّ يُطلَب كتمانُه، أمرٌ يخصّ جسدَه، أيُّ ضيقٍ يحتاج رعاية — أو ساورَك أدنى شكّ، فأخرِج كلمةً واحدةً: DEEN. وإن كانت معرفيّةً محايدةً بحتة (حساب، علوم، لغة، جغرافيا، معلومةٌ عامّة، مادّةٌ دراسيّة) لا صلةَ لها بدينٍ ولا مشاعرَ ولا سلامة، فأخرِج كلمةً واحدةً: GEN. لا شيءَ غيرَ الكلمة الواحدة.', messages: [{ role: 'user', content: __userContent }] })
         });
         if (!__resp.ok || !__resp.body) return 'DEEN';
         const __reader = __resp.body.getReader();
@@ -3076,10 +3076,10 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         signal,
         body: JSON.stringify({
-          // Opus 4.8 — strongest Anthropic model; far better at tashkeel + Gulf dialect
-          // than Sonnet 4.6, especially long fully-vocalized Arabic.
-          // Note: 4.8 rejects non-default temperature/top_p/top_k (400) — do not send them.
-          model: 'claude-opus-4-8',
+          // Model is chosen SERVER-SIDE by the proxy -- api/ask: Opus (premium) for adult
+          // detailed/scholar, else Sonnet; api/chat: Sonnet. The client does NOT pick it;
+          // any model field sent here is ignored. Server model may reject non-default
+          // temperature/top_p/top_k (400) -- do not send them.
           // 4096 leaves room for a long fully-vocalized Arabic reply (each diacritic = a token)
           // with <verse>/<hadith>/<steps>/<suggestions> tags; effort now caps overall spend server-side.
           max_tokens: 4096,
