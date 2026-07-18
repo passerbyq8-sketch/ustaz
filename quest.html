@@ -65,7 +65,8 @@ body{
 }
 /* منطقةُ التمريرِ الوحيدة */
 .app{
-  flex:1 1 auto; width:100%; max-width:980px; margin:0 auto; padding:0 16px 28px;
+  flex:1 1 auto; min-height:0;          /* بدونها لا ينكمشُ العنصرُ فيُقَصُّ ذيلُ كلِّ شاشةٍ طويلة */
+  width:100%; max-width:980px; margin:0 auto; padding:0 16px 28px;
   overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
 }
 
@@ -83,6 +84,8 @@ h1{font-size:44px}h2{font-size:34px}h3{font-size:26px}
   padding:calc(9px + env(safe-area-inset-top)) 16px 9px;
 }
 .hud-in{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.gear{width:40px;height:40px;flex:none;border-radius:50%;border:1px solid var(--line);background:var(--card);
+  display:grid;place-items:center;font-size:19px}
 .pill{
   display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
   border-radius:999px;padding:5px 13px;font-size:14px;font-weight:600;white-space:nowrap
@@ -1000,6 +1003,27 @@ function buildMemory(questions, n) {
 
 let VIEW, HUD, NAV, TAB = "map";
 
+/* سجلُّ رجوعٍ خاصٌّ باللعبة: زرُّ الرجوعِ يمشي بين شاشاتِها،
+   ولا يغادرُ إلى المربّي إلّا من الخريطةِ نفسِها. */
+const Nav = {
+  stack: [], lock: false,
+  push(re) {
+    if (this.lock) return;
+    this.stack.push(re);
+    if (this.stack.length > 1) { try { history.pushState({ q: this.stack.length }, ""); } catch (e) { } }
+  },
+  back() {
+    if (this.stack.length <= 1) return false;      /* لم يبقَ لنا شيء — المتصفّحُ يغادرُ للتطبيق */
+    this.stack.pop();
+    const re = this.stack[this.stack.length - 1];
+    this.lock = true;
+    try { re(); } catch (e) { ErrLog.push("رجوع", (e && e.message) || String(e), "Nav"); }
+    this.lock = false;
+    return true;
+  }
+};
+window.addEventListener("popstate", () => { Nav.back(); });
+
 function mount(node, tab) {
   if (tab) TAB = tab;
   VIEW.innerHTML = ""; VIEW.appendChild(node);
@@ -1057,6 +1081,10 @@ function drawHUD() {
   wrap.appendChild(h("span", "pill coin", "🪙 <b>" + ar(P.s.coins) + "</b>"));
   wrap.appendChild(h("span", "pill star", "★ <b>" + ar(P.starsTotal()) + "</b>"));
   if (P.s.streak > 0) wrap.appendChild(h("span", "pill streak", "🔥 <b>" + ar(P.s.streak) + "</b>"));
+  const gear = el("button", "gear", "⚙"); gear.type = "button";
+  gear.setAttribute("aria-label", "الإعدادات");
+  gear.onclick = Screens.settings;                 /* مفتاحُ «اعرضِ المسوّدات» لا يُدفَنُ أبدًا */
+  wrap.appendChild(gear);
   HUD.appendChild(wrap);
 }
 function drawNav() {
@@ -1141,6 +1169,7 @@ const Screens = {
 
   /* ---------- 3.1 the map ---------- */
   map() {
+    Nav.push(() => Screens.map());
     const v = document.createElement("div");
     if (P.s.allowDrafts && Data.bank.questions.some(q => q.status !== "approved"))
       v.appendChild(h("div", "notice", "<b>وضعُ التجربة:</b> البنكُ فيه أسئلةٌ غيرُ مراجَعة (<code>draft</code>). النموذجُ يعرضُها للفحصِ فقط — أطفئْ «اعرضِ المسوّدات» من الإعداداتِ قبلَ أن يلعبَ طفل."));
@@ -1190,6 +1219,7 @@ const Screens = {
 
   /* ---------- 3.2 region ---------- */
   region(rid) {
+    Nav.push(() => Screens.region(rid));
     const r = Data.regions[rid], sts = Data.stations(rid);
     const v = document.createElement("div");
     const back = el("button", "btn quiet sm", "→ الخريطة"); back.onclick = Screens.map; v.appendChild(back);
@@ -1241,6 +1271,7 @@ const Screens = {
 
   /* ---------- 3.3 challenges hub ---------- */
   challenges() {
+    Nav.push(() => Screens.challenges());
     const v = document.createElement("div");
     v.appendChild(el("div", "eyebrow", "أوضاعُ اللعب"));
     v.appendChild(el("h1", null, "التحدّيات"));
@@ -1283,6 +1314,7 @@ const Screens = {
      لا لوحةَ فئاتٍ ولا سُلَّمَ قيَم. الفريقُ يختارُ إقليمًا فقط،
      والصعوبةُ تُكشَفُ مع السؤال، والجائزةُ خطواتٌ على درب. */
   teamsSetup() {
+    Nav.push(() => Screens.teamsSetup());
     const T0 = Data.rewards.teams || {};
     const v = document.createElement("div");
     v.appendChild(el("div", "eyebrow", "وضعُ الفِرَق"));
@@ -1494,6 +1526,7 @@ const Screens = {
 
   /* ---------- 3.7 collection book ---------- */
   book() {
+    Nav.push(() => Screens.book());
     const v = document.createElement("div");
     v.appendChild(el("div", "eyebrow", "كتابُ الكنوز"));
     v.appendChild(el("h1", null, "ما تعلّمتَه"));
@@ -1532,6 +1565,7 @@ const Screens = {
 
   /* ---------- 3.8 profile ---------- */
   profile() {
+    Nav.push(() => Screens.profile());
     const v = document.createElement("div");
     v.appendChild(el("div", "eyebrow", "الملفّ"));
     v.appendChild(el("h1", null, "أنا"));
@@ -1600,6 +1634,7 @@ const Screens = {
 
   /* ---------- 3.9 settings ---------- */
   settings() {
+    Nav.push(() => Screens.settings());
     const v = document.createElement("div");
     v.appendChild(el("div", "eyebrow", "ضبط"));
     v.appendChild(el("h1", null, "الإعدادات"));
@@ -1683,6 +1718,7 @@ const Screens = {
 
   /* ---------- 3.10 bank inspector ---------- */
   inspect() {
+    Nav.push(() => Screens.inspect());
     const v = document.createElement("div");
     const back = el("button", "btn quiet sm", "→ التحدّيات"); back.onclick = Screens.challenges; v.appendChild(back);
     v.appendChild(el("h1", null, "تدقيقُ البنك"));
@@ -1753,6 +1789,7 @@ const Round = {
   st: null, tid: null, timerNode: null,
 
   start(cfg) {
+    Nav.push(() => { if (cfg.onEnd) cfg.onEnd(); });
     P.touchDay();
     this.st = {
       cfg, i: 0, correct: 0, xp: 0, coins: 0, combo: 0, done: false,
