@@ -1958,13 +1958,7 @@ else boot();
 
 </script>
 <script>
-(function(){var d=document.documentElement,b=document.body;
-var p=document.createElement('div');p.style.cssText='position:fixed;left:-9999px;top:0;width:1px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';b.appendChild(p);
-var x=document.createElement('div');x.id='vpbox';x.style.cssText='position:fixed;left:6px;right:6px;top:6px;z-index:9999;background:#7a1020;color:#fff;font:11px/1.4 monospace;padding:6px 8px;border-radius:8px;direction:ltr;text-align:left;white-space:pre;pointer-events:none';b.appendChild(x);
-function ap(){var vv=window.visualViewport;var h=Math.round((vv&&vv.height)||window.innerHeight||d.clientHeight);d.style.setProperty('--vh',h+'px');
-var n=document.getElementById('nav');var r=n?n.getBoundingClientRect():{top:0,bottom:0,height:0};var cs=getComputedStyle(p);
-x.textContent='innerH='+window.innerHeight+'  clientH='+d.clientHeight+'  vvH='+(vv?Math.round(vv.height):'-')+'\nsaTop='+cs.paddingTop+'  saBot='+cs.paddingBottom+'  dpr='+window.devicePixelRatio+'\nnavTop='+Math.round(r.top)+'  navBot='+Math.round(r.bottom)+'  navH='+Math.round(r.height)+'\nvh='+h+'  outH='+window.outerHeight+'  scrH='+screen.height;}
-ap();addEventListener('resize',ap);if(window.visualViewport){visualViewport.addEventListener('resize',ap);}setTimeout(ap,400);setTimeout(ap,1500);})();
+(function(){var d=document.documentElement;function ap(){var vv=window.visualViewport;d.style.setProperty('--vh',Math.round((vv&&vv.height)||window.innerHeight||d.clientHeight)+'px');}ap();addEventListener('resize',ap);if(window.visualViewport){visualViewport.addEventListener('resize',ap);}setTimeout(ap,400);setTimeout(ap,1500);})();
 </script>
 </body>
 </html>
