@@ -1,0 +1,386 @@
+{
+  "schema": "murabbi-rewards/v1",
+  "note": "طبقةُ المكافآت كلُّها بيانات. شروطُ الأوسمةِ والإنجازاتِ تُقيَّمُ بمحرّكٍ واحد (Rewards.check) — إضافةُ وسامٍ أو لقبٍ أو سِمةٍ جديدة = سطرٌ هنا بلا تعديلِ كود. المفاتيحُ المتاحةُ للشرط: starsTotal · correctTotal · perfectStations · regionsDone · streak · speedBest · dailyDone · collection · level · coinsEarned.",
+  "economy": {
+    "xpPerDiff": {
+      "1": 10,
+      "2": 25,
+      "3": 45
+    },
+    "coinPerDiff": {
+      "1": 3,
+      "2": 7,
+      "3": 14
+    },
+    "comboStep": 0.25,
+    "comboMax": 2,
+    "speedBonusPerCorrect": 5,
+    "starThresholds": [
+      60,
+      80,
+      100
+    ]
+  },
+  "levelCurve": [
+    0,
+    120,
+    280,
+    500,
+    780,
+    1120,
+    1520,
+    1980,
+    2500,
+    3080,
+    3720,
+    4420,
+    5180,
+    6000,
+    6880,
+    7820
+  ],
+  "levelStep": 1000,
+  "chests": {
+    "station": {
+      "icon": "🎁",
+      "name": "صندوقُ المحطّة",
+      "coins": 20,
+      "xp": 15
+    },
+    "region": {
+      "icon": "🧰",
+      "name": "صندوقُ الإقليم",
+      "coins": 120,
+      "xp": 90
+    },
+    "daily": {
+      "icon": "🗝️",
+      "name": "صندوقُ اليوم",
+      "coins": 45,
+      "xp": 40
+    }
+  },
+  "titles": [
+    {
+      "id": "seeker",
+      "name": "طالبُ عِلم",
+      "need": {
+        "level": 1
+      }
+    },
+    {
+      "id": "rawi",
+      "name": "الراوي",
+      "need": {
+        "level": 3
+      }
+    },
+    {
+      "id": "hafidh",
+      "name": "حافظُ الكنوز",
+      "need": {
+        "collection": 25
+      }
+    },
+    {
+      "id": "rahhal",
+      "name": "الرحّالة",
+      "need": {
+        "regionsDone": 2
+      }
+    },
+    {
+      "id": "muhaqiq",
+      "name": "المُحقِّق",
+      "need": {
+        "correctTotal": 150
+      }
+    },
+    {
+      "id": "ustadh",
+      "name": "الأستاذُ الصغير",
+      "need": {
+        "level": 8
+      }
+    }
+  ],
+  "badges": [
+    {
+      "id": "first",
+      "icon": "🌱",
+      "name": "أوّلُ الطريق",
+      "need": {
+        "correctTotal": 1
+      },
+      "hint": "أجِبْ إجابةً صحيحةً واحدة"
+    },
+    {
+      "id": "ten",
+      "icon": "🔟",
+      "name": "عَشْرٌ صحيحة",
+      "need": {
+        "correctTotal": 10
+      },
+      "hint": "١٠ إجاباتٍ صحيحة"
+    },
+    {
+      "id": "century",
+      "icon": "💯",
+      "name": "مِئةُ إصابة",
+      "need": {
+        "correctTotal": 100
+      },
+      "hint": "١٠٠ إجابةٍ صحيحة"
+    },
+    {
+      "id": "star10",
+      "icon": "⭐",
+      "name": "عاشقُ النجوم",
+      "need": {
+        "starsTotal": 10
+      },
+      "hint": "١٠ نجوم"
+    },
+    {
+      "id": "star30",
+      "icon": "🌟",
+      "name": "سماءٌ صافية",
+      "need": {
+        "starsTotal": 30
+      },
+      "hint": "٣٠ نجمة"
+    },
+    {
+      "id": "perfect",
+      "icon": "🎯",
+      "name": "محطّةٌ كاملة",
+      "need": {
+        "perfectStations": 1
+      },
+      "hint": "محطّةٌ بلا خطأ"
+    },
+    {
+      "id": "perfect5",
+      "icon": "🏹",
+      "name": "خمسٌ بلا خطأ",
+      "need": {
+        "perfectStations": 5
+      },
+      "hint": "٥ محطّاتٍ كاملة"
+    },
+    {
+      "id": "region1",
+      "icon": "🏝️",
+      "name": "فاتحُ إقليم",
+      "need": {
+        "regionsDone": 1
+      },
+      "hint": "أكمِلْ إقليمًا"
+    },
+    {
+      "id": "region4",
+      "icon": "🗺️",
+      "name": "سيّدُ الخريطة",
+      "need": {
+        "regionsDone": 4
+      },
+      "hint": "أكمِلْ ٤ أقاليم"
+    },
+    {
+      "id": "streak3",
+      "icon": "🔥",
+      "name": "ثلاثةُ أيّام",
+      "need": {
+        "streak": 3
+      },
+      "hint": "٣ أيّامٍ متتالية"
+    },
+    {
+      "id": "streak7",
+      "icon": "🏆",
+      "name": "أسبوعٌ كامل",
+      "need": {
+        "streak": 7
+      },
+      "hint": "٧ أيّامٍ متتالية"
+    },
+    {
+      "id": "speed20",
+      "icon": "⚡",
+      "name": "برقُ الجواب",
+      "need": {
+        "speedBest": 20
+      },
+      "hint": "٢٠ إصابةً في تحدّي السرعة"
+    },
+    {
+      "id": "book25",
+      "icon": "📖",
+      "name": "كتابٌ عامر",
+      "need": {
+        "collection": 25
+      },
+      "hint": "٢٥ بطاقةً في كتابِ الكنوز"
+    },
+    {
+      "id": "book100",
+      "icon": "📚",
+      "name": "خِزانةُ العِلم",
+      "need": {
+        "collection": 100
+      },
+      "hint": "١٠٠ بطاقة"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "a_start",
+      "name": "انطلقتِ الرحلة",
+      "desc": "أكمِلْ أوّلَ محطّة",
+      "need": {
+        "stationsDone": 1
+      },
+      "reward": {
+        "coins": 30,
+        "xp": 20
+      }
+    },
+    {
+      "id": "a_daily3",
+      "name": "عادةٌ حسنة",
+      "desc": "٣ تحدّياتٍ يوميّة",
+      "need": {
+        "dailyDone": 3
+      },
+      "reward": {
+        "coins": 60,
+        "xp": 50
+      }
+    },
+    {
+      "id": "a_level5",
+      "name": "المستوى الخامس",
+      "desc": "ابلغِ المستوى ٥",
+      "need": {
+        "level": 5
+      },
+      "reward": {
+        "coins": 150,
+        "xp": 0
+      }
+    },
+    {
+      "id": "a_all1",
+      "name": "قلبُ الخريطة",
+      "desc": "أكمِلْ إقليمَين",
+      "need": {
+        "regionsDone": 2
+      },
+      "reward": {
+        "coins": 200,
+        "xp": 150
+      }
+    },
+    {
+      "id": "a_book50",
+      "name": "جامعُ الفوائد",
+      "desc": "٥٠ بطاقةً في كتابِ الكنوز",
+      "need": {
+        "collection": 50
+      },
+      "reward": {
+        "coins": 120,
+        "xp": 100
+      }
+    }
+  ],
+  "themes": [
+    {
+      "id": "sand",
+      "name": "الرمالُ الدافئة",
+      "need": {},
+      "tokens": {}
+    },
+    {
+      "id": "night",
+      "name": "ليلُ الصحراء",
+      "need": {
+        "level": 4
+      },
+      "tokens": {
+        "--paper": "#171410",
+        "--paper2": "#211C15",
+        "--card": "#221D16",
+        "--ink": "#F3E9D8",
+        "--ink2": "#C3B39A",
+        "--ink3": "#8D7F6C",
+        "--honey": "#E9BA55",
+        "--honey2": "#D9A238",
+        "--line": "#3A3227",
+        "--honey-soft": "#2E2619",
+        "--palm-soft": "#1C2A24",
+        "--pom-soft": "#2E1D1F",
+        "--lapis-soft": "#1B2532",
+        "--shadow": "24px 32px 60px -34px rgba(0,0,0,.75)"
+      }
+    },
+    {
+      "id": "palm",
+      "name": "واحةُ النخيل",
+      "need": {
+        "coins": 400
+      },
+      "cost": 400,
+      "tokens": {
+        "--paper": "#F3F7F0",
+        "--paper2": "#E3EEE2",
+        "--card": "#FFFFFF",
+        "--honey": "#3F9B6D",
+        "--honey2": "#2A6E4B",
+        "--honey-soft": "#DDF0E4",
+        "--line": "#CFE3D2",
+        "--ink": "#1E2A22",
+        "--ink2": "#4F6357",
+        "--ink3": "#7E9186"
+      }
+    },
+    {
+      "id": "pearl",
+      "name": "لؤلؤُ الخليج",
+      "need": {
+        "starsTotal": 20
+      },
+      "tokens": {
+        "--paper": "#F4F7FA",
+        "--paper2": "#E6EDF4",
+        "--card": "#FFFFFF",
+        "--honey": "#3E7FB5",
+        "--honey2": "#2B5C8A",
+        "--honey-soft": "#DEEAF4",
+        "--line": "#D3E0EC",
+        "--ink": "#1B2530",
+        "--ink2": "#4E5E6E",
+        "--ink3": "#7E8D9C"
+      }
+    }
+  ],
+  "teams": {
+    "note": "درب القافلة — لا لوحةَ قيمٍ ولا نقاط. الإجابةُ تُقدّمُ القافلةَ خطواتٍ بحسبِ صعوبةِ السؤال، والخطفةُ خطوةٌ واحدة.",
+    "stepsPerDiff": {
+      "1": 1,
+      "2": 2,
+      "3": 3
+    },
+    "stealSteps": 1,
+    "trackFactor": 1.2,
+    "minTarget": 8,
+    "questionOptions": [
+      10,
+      15,
+      20,
+      30
+    ],
+    "defaultQuestions": 15,
+    "defaultSeconds": 30
+  }
+}

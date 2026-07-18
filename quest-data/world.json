@@ -1,0 +1,197 @@
+{
+  "schema": "murabbi-world/v1",
+  "note": "خريطةُ العالم. كلُّ إقليمٍ يُعرَّفُ هنا فقط — لا في الكود. cats = معرّفاتُ الفئاتِ في trivia-golden.json التي تغذّي الإقليم. gen = مولّدٌ برمجيٌّ مسجَّلٌ في GENERATORS بدلَ بنكِ الأسئلة. unlock.stars = مجموعُ النجومِ المطلوبُ لفتحِ الإقليم. stationSize = عددُ أسئلةِ المحطّةِ الواحدة. إضافةُ إقليمٍ جديد = سطرٌ هنا. إضافةُ آلافِ الأسئلة = إضافتُها للبنكِ بنفسِ cat — بلا أيِّ تعديلٍ في الواجهة.",
+  "defaults": {
+    "stationSize": 6,
+    "maxStations": 14,
+    "passPercent": 60
+  },
+  "worlds": [
+    {
+      "id": "iman",
+      "name": "ديارُ الإيمان",
+      "tagline": "من أصولِ الدينِ إلى سِيَرِ الصالحين",
+      "regions": [
+        {
+          "id": "deen",
+          "name": "أصولُ الدين",
+          "letter": "د",
+          "hue": 38,
+          "cats": [
+            "deen"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "مِفتاحُ البداية"
+        },
+        {
+          "id": "prayer",
+          "name": "الصلاة",
+          "letter": "ص",
+          "hue": 205,
+          "cats": [
+            "prayer"
+          ],
+          "unlock": {
+            "stars": 3
+          },
+          "treasure": "سجّادةُ النور"
+        },
+        {
+          "id": "quran",
+          "name": "القرآنُ الكريم",
+          "letter": "ق",
+          "hue": 158,
+          "cats": [
+            "quran",
+            "juz-amma",
+            "juz-tabarak"
+          ],
+          "unlock": {
+            "stars": 3
+          },
+          "treasure": "مِصباحُ التلاوة"
+        },
+        {
+          "id": "adhkar",
+          "name": "أذكارُ اليوم",
+          "letter": "ذ",
+          "hue": 268,
+          "cats": [
+            "adhkar"
+          ],
+          "unlock": {
+            "stars": 6
+          },
+          "treasure": "سُبحةُ الصباح"
+        },
+        {
+          "id": "prophets",
+          "name": "قصصُ الأنبياء",
+          "letter": "ن",
+          "hue": 22,
+          "cats": [
+            "prophets"
+          ],
+          "unlock": {
+            "stars": 6
+          },
+          "treasure": "لوحُ القصص"
+        },
+        {
+          "id": "seerah",
+          "name": "السيرةُ النبويّة",
+          "letter": "س",
+          "hue": 348,
+          "cats": [
+            "seerah"
+          ],
+          "unlock": {
+            "stars": 10
+          },
+          "treasure": "رايةُ المدينة"
+        },
+        {
+          "id": "manners",
+          "name": "الآدابُ والأخلاق",
+          "letter": "أ",
+          "hue": 96,
+          "cats": [
+            "manners"
+          ],
+          "unlock": {
+            "stars": 14
+          },
+          "treasure": "مِيزانُ الخُلُق"
+        },
+        {
+          "id": "islamic-history",
+          "name": "التاريخُ الإسلاميّ",
+          "letter": "ت",
+          "hue": 45,
+          "cats": [
+            "islamic-history"
+          ],
+          "unlock": {
+            "stars": 18
+          },
+          "treasure": "خارطةُ الفتوح"
+        }
+      ]
+    },
+    {
+      "id": "afaq",
+      "name": "آفاقُ الكون",
+      "tagline": "﴿وَفِي أَنفُسِكُمْ ۚ أَفَلَا تُبْصِرُونَ﴾",
+      "regions": [
+        {
+          "id": "earth",
+          "name": "الأرضُ والبلدان",
+          "letter": "ر",
+          "hue": 195,
+          "cats": [
+            "geography",
+            "capitals"
+          ],
+          "unlock": {
+            "stars": 4
+          },
+          "treasure": "بوصلةُ الرحّالة"
+        },
+        {
+          "id": "life",
+          "name": "عالمُ الأحياء",
+          "letter": "ح",
+          "hue": 130,
+          "cats": [
+            "animals",
+            "biology"
+          ],
+          "unlock": {
+            "stars": 8
+          },
+          "treasure": "عدسةُ الحياة"
+        },
+        {
+          "id": "matter",
+          "name": "المادّةُ والطاقة",
+          "letter": "ط",
+          "hue": 250,
+          "cats": [
+            "physics",
+            "chemistry"
+          ],
+          "unlock": {
+            "stars": 12
+          },
+          "treasure": "بلّورةُ الذرّة"
+        },
+        {
+          "id": "world-history",
+          "name": "تاريخُ العالم",
+          "letter": "خ",
+          "hue": 18,
+          "cats": [
+            "world-history"
+          ],
+          "unlock": {
+            "stars": 16
+          },
+          "treasure": "ساعةُ القرون"
+        },
+        {
+          "id": "numbers",
+          "name": "الرياضيات",
+          "letter": "٧",
+          "hue": 212,
+          "gen": "math",
+          "unlock": {
+            "stars": 2
+          },
+          "treasure": "مِعدادُ الحكيم"
+        }
+      ]
+    }
+  ]
+}
