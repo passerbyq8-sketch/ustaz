@@ -369,7 +369,12 @@ input:focus-visible,select:focus-visible{outline:3px solid var(--honey);outline-
   .mpair{grid-template-columns:1fr}
   .mlink{display:none}
   .pickgrid{grid-template-columns:repeat(3,1fr)}
-  .app{padding-bottom:88px}
+  .app{padding-bottom:20px}
+  .nav{background:var(--paper);backdrop-filter:none;box-shadow:0 -12px 26px -20px rgba(0,0,0,.5)}
+  .nav button{padding:9px 4px 11px;font-size:14px;color:var(--ink2)}
+  .nav button .ic{font-size:23px}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .errbar{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
