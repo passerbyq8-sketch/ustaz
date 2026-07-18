@@ -58,6 +58,10 @@ self.addEventListener('fetch', (event) => {
   // straight to the network with zero SW involvement, so nothing is ever stored for it.
   if (sameOrigin && url.pathname.startsWith('/api/')) return;
 
+  // NETWORK-ONLY, never cached: the quest test surface. Its bank JSON is replaced on the
+  // server between test rounds, so a cache-first copy would freeze testers on an old bank.
+  if (sameOrigin && (url.pathname === '/quest.html' || url.pathname.startsWith('/quest-data/'))) return;
+
   // NETWORK-FIRST for the app shell: navigations and the HTML entry points. Serving index.html
   // cache-first stranded users on a dead build whenever the cache version was not bumped --
   // human discipline is not a deploy mechanism. Fetch fresh; refresh the cached copy on success;
