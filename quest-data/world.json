@@ -1,6 +1,6 @@
 {
   "schema": "murabbi-world/v1",
-  "note": "خريطةُ العالم. كلُّ إقليمٍ يُعرَّفُ هنا فقط — لا في الكود. cats = معرّفاتُ الفئاتِ في trivia-golden.json التي تغذّي الإقليم. gen = مولّدٌ برمجيٌّ مسجَّلٌ في GENERATORS بدلَ بنكِ الأسئلة. unlock.stars = مجموعُ النجومِ المطلوبُ لفتحِ الإقليم. stationSize = عددُ أسئلةِ المحطّةِ الواحدة. إضافةُ إقليمٍ جديد = سطرٌ هنا. إضافةُ آلافِ الأسئلة = إضافتُها للبنكِ بنفسِ cat — بلا أيِّ تعديلٍ في الواجهة. [وضعُ التجربة: كلُّ الأقاليمِ مفتوحةٌ — unlock.stars=0. لإعادةِ التدرّجِ غيِّرِ الأرقامَ هنا فقط.]",
+  "note": "خريطةُ العالم. كلُّ إقليمٍ يُعرَّفُ هنا فقط — لا في الكود. cats = معرّفاتُ الفئاتِ في trivia-golden.json التي تغذّي الإقليم. gen = مولّدٌ برمجيٌّ مسجَّلٌ في GENERATORS بدلَ بنكِ الأسئلة. unlock.stars = مجموعُ النجومِ المطلوبُ لفتحِ الإقليم. stationSize = عددُ أسئلةِ المحطّةِ الواحدة (يُغلَبُ عليه لكلِّ إقليمٍ عندَ الحاجة). إضافةُ إقليمٍ جديد = سطرٌ هنا. [ج٤٢: فئةٌ واحدةٌ = إقليمٌ واحد — ٣٢ إقليمًا · ١٧ في ديارِ الإيمانِ و١٥ في آفاقِ الكون. وضعُ التجربة: كلُّ الأقاليمِ مفتوحةٌ — unlock.stars=0.]",
   "defaults": {
     "stationSize": 6,
     "maxStations": 14,
@@ -18,8 +18,7 @@
           "letter": "د",
           "hue": 38,
           "cats": [
-            "deen",
-            "hadith"
+            "deen"
           ],
           "unlock": {
             "stars": 0
@@ -27,27 +26,12 @@
           "treasure": "مِفتاحُ البداية"
         },
         {
-          "id": "prayer",
-          "name": "الصلاة",
-          "letter": "ص",
-          "hue": 205,
-          "cats": [
-            "prayer"
-          ],
-          "unlock": {
-            "stars": 0
-          },
-          "treasure": "سجّادةُ النور"
-        },
-        {
           "id": "quran",
           "name": "القرآنُ الكريم",
           "letter": "ق",
           "hue": 158,
           "cats": [
-            "quran",
-            "juz-amma",
-            "juz-tabarak"
+            "quran"
           ],
           "unlock": {
             "stars": 0
@@ -55,17 +39,31 @@
           "treasure": "مِصباحُ التلاوة"
         },
         {
-          "id": "adhkar",
-          "name": "أذكارُ اليوم",
-          "letter": "ذ",
-          "hue": 268,
+          "id": "juz-amma",
+          "name": "جزءُ عمّ",
+          "letter": "ج",
+          "hue": 140,
           "cats": [
-            "adhkar"
+            "juz-amma"
           ],
           "unlock": {
             "stars": 0
           },
-          "treasure": "سُبحةُ الصباح"
+          "treasure": "نجمُ الجزء"
+        },
+        {
+          "id": "juz-tabarak",
+          "name": "جزءُ تبارك",
+          "letter": "ب",
+          "hue": 172,
+          "cats": [
+            "juz-tabarak"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "قنديلُ تبارك"
         },
         {
           "id": "prophets",
@@ -94,6 +92,46 @@
           "treasure": "رايةُ المدينة"
         },
         {
+          "id": "hadith",
+          "name": "الأحاديثُ النبويّة",
+          "letter": "ح",
+          "hue": 8,
+          "cats": [
+            "hadith"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "خاتمُ الرواية"
+        },
+        {
+          "id": "prayer",
+          "name": "الصلاة",
+          "letter": "ص",
+          "hue": 205,
+          "cats": [
+            "prayer"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "سجّادةُ النور"
+        },
+        {
+          "id": "adhkar",
+          "name": "أذكارُ اليوم",
+          "letter": "ذ",
+          "hue": 268,
+          "cats": [
+            "adhkar"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "سُبحةُ الصباح"
+        },
+        {
           "id": "manners",
           "name": "الآدابُ والأخلاق",
           "letter": "أ",
@@ -114,28 +152,95 @@
           "cats": [
             "islamic-history"
           ],
+          "stationSize": 3,
           "unlock": {
             "stars": 0
           },
           "treasure": "خارطةُ الفتوح"
         },
         {
-          "id": "khilafah",
-          "name": "عصورُ الخلافة",
-          "letter": "ع",
+          "id": "rashidun",
+          "name": "الخلفاءُ الراشدون",
+          "letter": "ر",
           "hue": 312,
           "cats": [
-            "rashidun",
-            "umayyad",
-            "abbasid",
-            "ayyubid",
-            "mamluk",
-            "ottoman"
+            "rashidun"
           ],
+          "stationSize": 3,
           "unlock": {
             "stars": 0
           },
-          "treasure": "تاجُ الخلافة"
+          "treasure": "عهدُ الراشدين"
+        },
+        {
+          "id": "umayyad",
+          "name": "الدولةُ الأمويّة",
+          "letter": "م",
+          "hue": 288,
+          "cats": [
+            "umayyad"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "قبّةُ دمشق"
+        },
+        {
+          "id": "abbasid",
+          "name": "الدولةُ العبّاسيّة",
+          "letter": "ع",
+          "hue": 328,
+          "cats": [
+            "abbasid"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "مِدادُ بغداد"
+        },
+        {
+          "id": "ayyubid",
+          "name": "الدولةُ الأيّوبيّة",
+          "letter": "ي",
+          "hue": 60,
+          "cats": [
+            "ayyubid"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "سيفُ حطّين"
+        },
+        {
+          "id": "mamluk",
+          "name": "دولةُ المماليك",
+          "letter": "ك",
+          "hue": 240,
+          "cats": [
+            "mamluk"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "درعُ عينِ جالوت"
+        },
+        {
+          "id": "ottoman",
+          "name": "الدولةُ العثمانيّة",
+          "letter": "ث",
+          "hue": 112,
+          "cats": [
+            "ottoman"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "مِفتاحُ القسطنطينيّة"
         }
       ]
     },
@@ -145,49 +250,32 @@
       "tagline": "﴿وَفِي أَنفُسِكُمْ ۚ أَفَلَا تُبْصِرُونَ﴾",
       "regions": [
         {
-          "id": "earth",
-          "name": "الأرضُ والبلدان",
-          "letter": "ر",
-          "hue": 195,
+          "id": "palestine-history",
+          "name": "تاريخُ فلسطين",
+          "letter": "ف",
+          "hue": 84,
           "cats": [
-            "geography",
-            "capitals",
-            "landmarks",
-            "waters",
-            "flags"
+            "palestine-history"
           ],
+          "stationSize": 3,
           "unlock": {
             "stars": 0
           },
-          "treasure": "بوصلةُ الرحّالة"
+          "treasure": "حجرُ النطوف"
         },
         {
-          "id": "life",
-          "name": "عالمُ الأحياء",
-          "letter": "ح",
-          "hue": 130,
+          "id": "kuwait-history",
+          "name": "تاريخُ الكويت",
+          "letter": "و",
+          "hue": 128,
           "cats": [
-            "animals",
-            "biology"
+            "kuwait-history"
           ],
+          "stationSize": 3,
           "unlock": {
             "stars": 0
           },
-          "treasure": "عدسةُ الحياة"
-        },
-        {
-          "id": "matter",
-          "name": "المادّةُ والطاقة",
-          "letter": "ط",
-          "hue": 250,
-          "cats": [
-            "physics",
-            "chemistry"
-          ],
-          "unlock": {
-            "stars": 0
-          },
-          "treasure": "بلّورةُ الذرّة"
+          "treasure": "بوّابةُ الجهراء"
         },
         {
           "id": "world-history",
@@ -195,31 +283,164 @@
           "letter": "خ",
           "hue": 18,
           "cats": [
-            "world-history",
-            "palestine-history",
-            "kuwait-history"
+            "world-history"
           ],
+          "stationSize": 3,
           "unlock": {
             "stars": 0
           },
           "treasure": "ساعةُ القرون"
         },
         {
-          "id": "taam",
-          "name": "موائدُ الدنيا",
-          "letter": "م",
+          "id": "geography",
+          "name": "الجغرافيا",
+          "letter": "ز",
+          "hue": 195,
+          "cats": [
+            "geography"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "بوصلةُ الرحّالة"
+        },
+        {
+          "id": "capitals",
+          "name": "عواصمُ الدول",
+          "letter": "ل",
+          "hue": 228,
+          "cats": [
+            "capitals"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "خاتمُ العواصم"
+        },
+        {
+          "id": "landmarks",
+          "name": "معالمُ الدول",
+          "letter": "ه",
+          "hue": 300,
+          "cats": [
+            "landmarks"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "حجرُ الأساس"
+        },
+        {
+          "id": "waters",
+          "name": "الأنهارُ والبحار",
+          "letter": "ط",
+          "hue": 185,
+          "cats": [
+            "waters"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "صَدَفةُ الأعماق"
+        },
+        {
+          "id": "flags",
+          "name": "أعلامُ الدول",
+          "letter": "غ",
+          "hue": 32,
+          "cats": [
+            "flags"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "صاريةُ الرايات"
+        },
+        {
+          "id": "arabic-cuisine",
+          "name": "المطبخُ العربيّ",
+          "letter": "ش",
           "hue": 72,
           "cats": [
-            "arabic-cuisine",
+            "arabic-cuisine"
+          ],
+          "stationSize": 3,
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "قِدرُ الديار"
+        },
+        {
+          "id": "world-cuisine",
+          "name": "المطبخُ العالميّ",
+          "letter": "ض",
+          "hue": 52,
+          "cats": [
             "world-cuisine"
           ],
+          "stationSize": 3,
           "unlock": {
             "stars": 0
           },
           "treasure": "مِلعقةُ الرحّالة"
         },
         {
-          "id": "numbers",
+          "id": "animals",
+          "name": "عالمُ الحيوان",
+          "letter": "ا",
+          "hue": 130,
+          "cats": [
+            "animals"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "عدسةُ الحياة"
+        },
+        {
+          "id": "physics",
+          "name": "الفيزياء",
+          "letter": "ظ",
+          "hue": 250,
+          "cats": [
+            "physics"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "بلّورةُ الذرّة"
+        },
+        {
+          "id": "biology",
+          "name": "الأحياء",
+          "letter": "٥",
+          "hue": 108,
+          "cats": [
+            "biology"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "خيطُ الحياة"
+        },
+        {
+          "id": "chemistry",
+          "name": "الكيمياء",
+          "letter": "٦",
+          "hue": 276,
+          "cats": [
+            "chemistry"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "قارورةُ العناصر"
+        },
+        {
+          "id": "math",
           "name": "الرياضيات",
           "letter": "٧",
           "hue": 212,
