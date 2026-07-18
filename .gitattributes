@@ -20,3 +20,4 @@ mushaf-layout.json       -text
 
 # Binary. Never convert.
 *.gz                     binary
+quest-data/*.json -text
