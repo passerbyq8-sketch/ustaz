@@ -74,12 +74,6 @@
       "review": "factual"
     },
     {
-      "id": "capitals",
-      "name": "عواصم ودول",
-      "group": "secular",
-      "review": "factual"
-    },
-    {
       "id": "world-history",
       "name": "تاريخ العالم",
       "group": "secular",
@@ -170,32 +164,8 @@
       "review": "factual"
     },
     {
-      "id": "landmarks",
-      "name": "معالم الدول",
-      "group": "secular",
-      "review": "factual"
-    },
-    {
-      "id": "waters",
-      "name": "الأنهار والبحار",
-      "group": "secular",
-      "review": "factual"
-    },
-    {
-      "id": "flags",
-      "name": "أعلام الدول",
-      "group": "secular",
-      "review": "factual"
-    },
-    {
-      "id": "arabic-cuisine",
-      "name": "المطبخ العربي",
-      "group": "secular",
-      "review": "factual"
-    },
-    {
-      "id": "world-cuisine",
-      "name": "المطبخ العالمي",
+      "id": "cuisine",
+      "name": "المطبخ",
       "group": "secular",
       "review": "factual"
     }
@@ -778,7 +748,7 @@
     },
     {
       "id": "cap-0001",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -794,7 +764,7 @@
     },
     {
       "id": "cap-0002",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -810,7 +780,7 @@
     },
     {
       "id": "cap-0003",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -826,7 +796,7 @@
     },
     {
       "id": "cap-0004",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "teen",
       "diff": 3,
       "type": "mcq",
@@ -842,7 +812,7 @@
     },
     {
       "id": "cap-0005",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "adult",
       "diff": 3,
       "type": "mcq",
@@ -1596,7 +1566,7 @@
     },
     {
       "id": "cap-0006",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -1612,7 +1582,7 @@
     },
     {
       "id": "cap-0007",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -1628,7 +1598,7 @@
     },
     {
       "id": "cap-0008",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -1644,7 +1614,7 @@
     },
     {
       "id": "cap-0009",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -1660,7 +1630,7 @@
     },
     {
       "id": "cap-0010",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "adult",
       "diff": 3,
       "type": "mcq",
@@ -2302,7 +2272,7 @@
     },
     {
       "id": "cap-0011",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -2318,7 +2288,7 @@
     },
     {
       "id": "cap-0012",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -2334,7 +2304,7 @@
     },
     {
       "id": "cap-0013",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "teen",
       "diff": 3,
       "type": "mcq",
@@ -2350,7 +2320,7 @@
     },
     {
       "id": "cap-0014",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "adult",
       "diff": 3,
       "type": "mcq",
@@ -4118,7 +4088,7 @@
     },
     {
       "id": "cap-0015",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -5549,7 +5519,7 @@
     },
     {
       "id": "cap-0016",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -5567,7 +5537,7 @@
     },
     {
       "id": "cap-0017",
-      "cat": "capitals",
+      "cat": "geography",
       "band": "adult",
       "diff": 2,
       "type": "mcq",
@@ -5585,7 +5555,7 @@
     },
     {
       "id": "land-0001",
-      "cat": "landmarks",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -5603,7 +5573,7 @@
     },
     {
       "id": "land-0002",
-      "cat": "landmarks",
+      "cat": "geography",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -5621,7 +5591,7 @@
     },
     {
       "id": "land-0003",
-      "cat": "landmarks",
+      "cat": "geography",
       "band": "adult",
       "diff": 3,
       "type": "mcq",
@@ -5639,7 +5609,7 @@
     },
     {
       "id": "water-0001",
-      "cat": "waters",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -5657,7 +5627,7 @@
     },
     {
       "id": "water-0002",
-      "cat": "waters",
+      "cat": "geography",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -5675,7 +5645,7 @@
     },
     {
       "id": "water-0003",
-      "cat": "waters",
+      "cat": "geography",
       "band": "adult",
       "diff": 3,
       "type": "mcq",
@@ -5693,7 +5663,7 @@
     },
     {
       "id": "flag-0001",
-      "cat": "flags",
+      "cat": "geography",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -5711,7 +5681,7 @@
     },
     {
       "id": "flag-0002",
-      "cat": "flags",
+      "cat": "geography",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -5729,7 +5699,7 @@
     },
     {
       "id": "flag-0003",
-      "cat": "flags",
+      "cat": "geography",
       "band": "adult",
       "diff": 3,
       "type": "mcq",
@@ -5747,7 +5717,7 @@
     },
     {
       "id": "acuis-0001",
-      "cat": "arabic-cuisine",
+      "cat": "cuisine",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -5765,7 +5735,7 @@
     },
     {
       "id": "acuis-0002",
-      "cat": "arabic-cuisine",
+      "cat": "cuisine",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -5783,7 +5753,7 @@
     },
     {
       "id": "acuis-0003",
-      "cat": "arabic-cuisine",
+      "cat": "cuisine",
       "band": "adult",
       "diff": 3,
       "type": "mcq",
@@ -5801,7 +5771,7 @@
     },
     {
       "id": "wcuis-0001",
-      "cat": "world-cuisine",
+      "cat": "cuisine",
       "band": "young",
       "diff": 1,
       "type": "mcq",
@@ -5819,7 +5789,7 @@
     },
     {
       "id": "wcuis-0002",
-      "cat": "world-cuisine",
+      "cat": "cuisine",
       "band": "teen",
       "diff": 2,
       "type": "mcq",
@@ -5837,7 +5807,7 @@
     },
     {
       "id": "wcuis-0003",
-      "cat": "world-cuisine",
+      "cat": "cuisine",
       "band": "adult",
       "diff": 3,
       "type": "mcq",

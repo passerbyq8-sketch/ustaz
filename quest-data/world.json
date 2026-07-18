@@ -1,6 +1,6 @@
 {
   "schema": "murabbi-world/v1",
-  "note": "خريطةُ العالم. كلُّ إقليمٍ يُعرَّفُ هنا فقط — لا في الكود. cats = معرّفاتُ الفئاتِ في trivia-golden.json التي تغذّي الإقليم. gen = مولّدٌ برمجيٌّ مسجَّلٌ في GENERATORS بدلَ بنكِ الأسئلة. unlock.stars = مجموعُ النجومِ المطلوبُ لفتحِ الإقليم. stationSize = عددُ أسئلةِ المحطّةِ الواحدة (يُغلَبُ عليه لكلِّ إقليمٍ عندَ الحاجة). إضافةُ إقليمٍ جديد = سطرٌ هنا. [ج٤٢: فئةٌ واحدةٌ = إقليمٌ واحد — ٣٢ إقليمًا · ١٧ في ديارِ الإيمانِ و١٥ في آفاقِ الكون. وضعُ التجربة: كلُّ الأقاليمِ مفتوحةٌ — unlock.stars=0.]",
+  "note": "خريطةُ العالم. كلُّ إقليمٍ يُعرَّفُ هنا فقط — لا في الكود. cats = معرّفاتُ الفئاتِ في trivia-golden.json التي تغذّي الإقليم. gen = مولّدٌ برمجيٌّ مسجَّلٌ في GENERATORS بدلَ بنكِ الأسئلة. unlock.stars = مجموعُ النجومِ المطلوبُ لفتحِ الإقليم. stationSize = عددُ أسئلةِ المحطّةِ الواحدة (يُغلَبُ عليه لكلِّ إقليمٍ عندَ الحاجة). إضافةُ إقليمٍ جديد = سطرٌ هنا. [ج٤٣: دمجُ التصنيف — ٢٧ إقليمًا · ١٧ في ديارِ الإيمانِ و١٠ في آفاقِ الكون. ذابت capitals+landmarks+waters+flags في geography، و arabic-cuisine+world-cuisine في cuisine. وضعُ التجربة: كلُّ الأقاليمِ مفتوحةٌ — unlock.stars=0.]",
   "defaults": {
     "stationSize": 6,
     "maxStations": 14,
@@ -305,87 +305,18 @@
           "treasure": "بوصلةُ الرحّالة"
         },
         {
-          "id": "capitals",
-          "name": "عواصمُ الدول",
-          "letter": "ل",
-          "hue": 228,
-          "cats": [
-            "capitals"
-          ],
-          "unlock": {
-            "stars": 0
-          },
-          "treasure": "خاتمُ العواصم"
-        },
-        {
-          "id": "landmarks",
-          "name": "معالمُ الدول",
-          "letter": "ه",
-          "hue": 300,
-          "cats": [
-            "landmarks"
-          ],
-          "stationSize": 3,
-          "unlock": {
-            "stars": 0
-          },
-          "treasure": "حجرُ الأساس"
-        },
-        {
-          "id": "waters",
-          "name": "الأنهارُ والبحار",
-          "letter": "ط",
-          "hue": 185,
-          "cats": [
-            "waters"
-          ],
-          "stationSize": 3,
-          "unlock": {
-            "stars": 0
-          },
-          "treasure": "صَدَفةُ الأعماق"
-        },
-        {
-          "id": "flags",
-          "name": "أعلامُ الدول",
-          "letter": "غ",
-          "hue": 32,
-          "cats": [
-            "flags"
-          ],
-          "stationSize": 3,
-          "unlock": {
-            "stars": 0
-          },
-          "treasure": "صاريةُ الرايات"
-        },
-        {
-          "id": "arabic-cuisine",
-          "name": "المطبخُ العربيّ",
+          "id": "cuisine",
+          "name": "المطبخ",
           "letter": "ش",
           "hue": 72,
           "cats": [
-            "arabic-cuisine"
+            "cuisine"
           ],
           "stationSize": 3,
           "unlock": {
             "stars": 0
           },
           "treasure": "قِدرُ الديار"
-        },
-        {
-          "id": "world-cuisine",
-          "name": "المطبخُ العالميّ",
-          "letter": "ض",
-          "hue": 52,
-          "cats": [
-            "world-cuisine"
-          ],
-          "stationSize": 3,
-          "unlock": {
-            "stars": 0
-          },
-          "treasure": "مِلعقةُ الرحّالة"
         },
         {
           "id": "animals",
