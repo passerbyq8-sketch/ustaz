@@ -18,7 +18,8 @@
           "letter": "د",
           "hue": 38,
           "cats": [
-            "deen"
+            "deen",
+            "hadith"
           ],
           "unlock": {
             "stars": 0
@@ -117,6 +118,24 @@
             "stars": 0
           },
           "treasure": "خارطةُ الفتوح"
+        },
+        {
+          "id": "khilafah",
+          "name": "عصورُ الخلافة",
+          "letter": "ع",
+          "hue": 312,
+          "cats": [
+            "rashidun",
+            "umayyad",
+            "abbasid",
+            "ayyubid",
+            "mamluk",
+            "ottoman"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "تاجُ الخلافة"
         }
       ]
     },
@@ -132,7 +151,10 @@
           "hue": 195,
           "cats": [
             "geography",
-            "capitals"
+            "capitals",
+            "landmarks",
+            "waters",
+            "flags"
           ],
           "unlock": {
             "stars": 0
@@ -173,12 +195,28 @@
           "letter": "خ",
           "hue": 18,
           "cats": [
-            "world-history"
+            "world-history",
+            "palestine-history",
+            "kuwait-history"
           ],
           "unlock": {
             "stars": 0
           },
           "treasure": "ساعةُ القرون"
+        },
+        {
+          "id": "taam",
+          "name": "موائدُ الدنيا",
+          "letter": "م",
+          "hue": 72,
+          "cats": [
+            "arabic-cuisine",
+            "world-cuisine"
+          ],
+          "unlock": {
+            "stars": 0
+          },
+          "treasure": "مِلعقةُ الرحّالة"
         },
         {
           "id": "numbers",

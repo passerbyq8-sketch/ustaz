@@ -114,6 +114,90 @@
       "name": "الرياضيات",
       "group": "procedural",
       "gen": "math-gen.js"
+    },
+    {
+      "id": "hadith",
+      "name": "الأحاديث النبوية",
+      "group": "religious",
+      "review": "scholarly+attested-text"
+    },
+    {
+      "id": "rashidun",
+      "name": "الخلفاء الراشدون",
+      "group": "religious",
+      "review": "scholarly"
+    },
+    {
+      "id": "umayyad",
+      "name": "الدولة الأموية",
+      "group": "religious",
+      "review": "scholarly"
+    },
+    {
+      "id": "abbasid",
+      "name": "الدولة العباسية",
+      "group": "religious",
+      "review": "scholarly"
+    },
+    {
+      "id": "ayyubid",
+      "name": "الدولة الأيوبية",
+      "group": "religious",
+      "review": "scholarly"
+    },
+    {
+      "id": "mamluk",
+      "name": "دولة المماليك",
+      "group": "religious",
+      "review": "scholarly"
+    },
+    {
+      "id": "ottoman",
+      "name": "الدولة العثمانية",
+      "group": "religious",
+      "review": "scholarly"
+    },
+    {
+      "id": "palestine-history",
+      "name": "تاريخ فلسطين",
+      "group": "secular",
+      "review": "factual"
+    },
+    {
+      "id": "kuwait-history",
+      "name": "تاريخ الكويت",
+      "group": "secular",
+      "review": "factual"
+    },
+    {
+      "id": "landmarks",
+      "name": "معالم الدول",
+      "group": "secular",
+      "review": "factual"
+    },
+    {
+      "id": "waters",
+      "name": "الأنهار والبحار",
+      "group": "secular",
+      "review": "factual"
+    },
+    {
+      "id": "flags",
+      "name": "أعلام الدول",
+      "group": "secular",
+      "review": "factual"
+    },
+    {
+      "id": "arabic-cuisine",
+      "name": "المطبخ العربي",
+      "group": "secular",
+      "review": "factual"
+    },
+    {
+      "id": "world-cuisine",
+      "name": "المطبخ العالمي",
+      "group": "secular",
+      "review": "factual"
     }
   ],
   "questions": [
