@@ -1400,13 +1400,71 @@ const Screens = {
     const go = el("button", "btn primary wide", "انطلقتِ القافلة"); go.style.marginTop = "18px";
     go.onclick = () => {
       const target = Math.max(T0.minTarget || 8, Math.ceil(total * (T0.trackFactor || 1.2)));
-      Screens.teamsTrack({
+      Screens.teamsCats({
         names: inputs.slice(0, n).map((x, i) => (x.value || defs[i]).trim() || defs[i]),
-        steps: new Array(n).fill(0), turn: 0, used: new Set(),
+        steps: new Array(n).fill(0), turn: 0, used: new Set(), cats: [],
         total: total, asked: 0, target: target, secs: Math.max(5, +secs.value || 30)
       });
     };
     c.appendChild(go); v.appendChild(c);
+    mount(v, "challenge");
+  },
+
+  /* اختيارُ فئاتِ تحدّي الفِرَق — جلسةٌ مستقلّةٌ عن رحلةِ صاحبِ الجهاز (ج٤٣).
+     البِركةُ تحترمُ الفئةَ العمريّةَ والمسوّداتِ (عبرَ regionQuestions)، وتستبعدُ
+     الفارغَ وmath بالبناء (خطأ ٤٩). ⛔ لا P.unlocked هنا · لا شبكةَ قيَمٍ ولا صعوبة. */
+  teamsCats(T) {
+    Nav.push(() => Screens.teamsCats(T));
+    const MAX = 6;
+    const pool = Object.values(Data.regions).filter(r => !r.gen && Data.regionQuestions(r.id).length > 0);
+    const chosen = new Set(Array.isArray(T.cats) ? T.cats.filter(id => pool.some(r => r.id === id)) : []);
+
+    const v = document.createElement("div");
+    v.appendChild(el("div", "eyebrow", "وضعُ الفِرَق"));
+    v.appendChild(el("h1", null, "اختاروا فئاتِ الجولة"));
+    v.appendChild(el("div", "muted", "من فئةٍ واحدةٍ إلى ستّ. تُطرَحُ أسئلةُ المختارِ وحدَه في هذه المباراة."));
+
+    const counter = el("div", "tiny"); counter.style.margin = "14px 0 4px";
+    const grid = el("div", "pickgrid");
+    const start = el("button", "btn primary wide", "ابدؤوا المباراة"); start.style.marginTop = "18px";
+
+    const sync = () => {
+      counter.textContent = "تم اختيار " + ar(chosen.size) + " من " + ar(MAX);
+      start.disabled = chosen.size < 1;
+      Array.from(grid.children).forEach(card => {
+        const on = chosen.has(card.dataset.rid);
+        card.setAttribute("aria-pressed", String(on));
+        card.style.borderColor = on ? "var(--honey)" : "";
+        card.style.background = on ? "var(--honey-soft)" : "";
+      });
+    };
+
+    pool.forEach(r => {
+      const n = Data.regionQuestions(r.id).length;
+      const b = el("button", "pickcard"); b.type = "button"; b.dataset.rid = r.id;
+      b.appendChild(medal(r, false));
+      b.appendChild(el("b", null, r.name));
+      b.appendChild(el("span", null, ar(n) + " سؤالًا"));
+      b.onclick = () => {
+        if (chosen.has(r.id)) chosen.delete(r.id);
+        else if (chosen.size >= MAX) { toast("الحدُّ الأقصى ستُّ فئات"); return; }
+        else chosen.add(r.id);
+        sync();
+      };
+      grid.appendChild(b);
+    });
+
+    const tools = el("div", "row"); tools.style.marginTop = "12px";
+    const rand = el("button", "btn sm", "تحديدٌ عشوائيّ"); rand.type = "button";
+    rand.onclick = () => { chosen.clear(); shuffle(pool).slice(0, MAX).forEach(r => chosen.add(r.id)); sync(); };
+    const clr = el("button", "btn quiet sm", "امسحِ الاختيار"); clr.type = "button";
+    clr.onclick = () => { chosen.clear(); sync(); };
+    tools.appendChild(rand); tools.appendChild(clr);
+
+    start.onclick = () => { T.cats = Array.from(chosen); Screens.teamsTrack(T); };   /* لهذه المباراةِ وحدَها — لا كتابةَ في world/rewards/التقدّم */
+
+    v.appendChild(counter); v.appendChild(grid); v.appendChild(tools); v.appendChild(start);
+    sync();
     mount(v, "challenge");
   },
 
@@ -1444,15 +1502,19 @@ const Screens = {
     v.appendChild(h("div", "tiny", "الدورُ على <b>" + T.names[T.turn] + "</b> — اختاروا إقليمًا. الصعوبةُ تُكشَفُ مع السؤال: سهلٌ خطوة، متوسّطٌ خطوتان، صعبٌ ثلاث. ومن خطفَ الإجابةَ من غيرِ صاحبِ الدورِ تقدّمَ خطوةً واحدة."));
 
     const grid = el("div", "pickgrid");
-    Object.values(Data.regions).filter(r => !r.gen && P.unlocked(r.id)).forEach(r => {
+    const cats = Array.isArray(T.cats) ? T.cats : [];
+    let anyLeft = false;
+    Object.values(Data.regions).filter(r => cats.indexOf(r.id) >= 0).forEach(r => {
       const left = Data.regionQuestions(r.id).filter(q => !T.used.has(q.id));
+      if (left.length) anyLeft = true;
       const b = el("button", "pickcard"); b.type = "button";
       b.appendChild(medal(r, false));
       b.appendChild(el("b", null, r.name));
-      b.appendChild(el("span", null, left.length ? ar(left.length) + " سؤالًا" : "نفدت"));
+      b.appendChild(el("span", null, left.length ? ar(left.length) + " سؤالًا" : "نفدت أسئلتها في هذه الجولة"));
       if (!left.length) b.disabled = true; else b.onclick = () => Screens.teamsAsk(T, r, left);
       grid.appendChild(b);
     });
+    if (!anyLeft) return Screens.teamsEnd(T);   /* نفدت كلُّ الفئاتِ المختارة (ج٤٣) */
     v.appendChild(grid);
 
     const row = el("div", "row"); row.style.marginTop = "18px";
