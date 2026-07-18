@@ -549,7 +549,8 @@ const P = {
       streak: 0, lastDay: null, dailyDone: 0, lastDaily: null, speedBest: 0,
       badges: [], titles: [], title: null, themes: ["sand"], theme: "sand",
       collection: [], seen: [],
-      band: "adult", allowDrafts: true, sound: true   /* التجربةُ الحيّة: كلُّ الفئاتِ مفتوحة */
+      band: "adult", allowDrafts: true, sound: true,   /* التجربةُ الحيّة: كلُّ الفئاتِ مفتوحة */
+      answerMode: "reveal"                             /* reveal = تحدٍّ بلا خيارات · mcq = اختيارٌ من متعدّد (ج٤٣) */
     };
   },
   load() { this.s = Object.assign(this.fresh(), Store.get(this.KEY, {})); },
@@ -953,6 +954,33 @@ function choiceBody(p, done, cls) {
     g.appendChild(b);
   });
   return g;
+}
+
+/* الكشفُ الذاتيّ — بلا خيارات: يُكشَفُ الجوابُ ثمّ يحكمُ اللاعبُ على نفسِه (ج٤٣).
+   يُستعمَلُ في الفردي عندما answerMode === "reveal" لأنواعِ mcq/tf/complete وحدَها.
+   الجوابُ من Q.answerText(p) لا من اشتقاقٍ جديد · done(ok) تُستدعى مرّةً واحدةً فقط. */
+function revealBody(p, done) {
+  const box = document.createElement("div");
+  let used = false;
+  const rev = el("button", "btn primary wide", "اكشفِ الإجابة"); rev.type = "button"; rev.style.marginTop = "20px";
+  box.appendChild(rev);
+  rev.onclick = () => {
+    if (used) return;
+    rev.remove();
+    const ans = el("div", "verdict good");
+    ans.appendChild(el("h4", null, "الإجابة"));
+    const a = el("div", null, Q.answerText(p));                 /* بخطٍّ بارز، من Q.answerText */
+    a.style.fontFamily = "var(--display)"; a.style.fontSize = "26px"; a.style.fontWeight = "700";
+    ans.appendChild(a);
+    box.appendChild(ans);
+    box.appendChild(el("div", "tiny", "هل كانت إجابتُك صحيحة؟")).style.marginTop = "14px";
+    const row = el("div", "row"); row.style.marginTop = "8px";
+    const lock = ok => { if (used) return; used = true; row.querySelectorAll("button").forEach(b => b.disabled = true); done(ok); };
+    const yes = el("button", "btn primary", "إجابتي صحيحة"); yes.type = "button"; yes.onclick = () => lock(true);
+    const no = el("button", "btn", "إجابتي غير صحيحة"); no.type = "button"; no.onclick = () => lock(false);
+    row.appendChild(yes); row.appendChild(no); box.appendChild(row);
+  };
+  return box;
 }
 
 /* سحبٌ وإفلاتٌ يعملُ باللمسِ والفأرةِ معًا */
@@ -1668,6 +1696,18 @@ const Screens = {
     tog("الصوت", "sound", "نغماتٌ مولَّدةٌ برمجيًّا — بلا ملفّات");
     v.appendChild(c);
 
+    /* طريقةُ الإجابة — الفردي وحدَه (ج٤٣). وضعُ الفِرَقِ بلا خيارات دائمًا. */
+    const am = el("div", "card"); am.style.marginTop = "14px";
+    am.appendChild(el("h3", null, "طريقةُ الإجابة"));
+    am.appendChild(el("div", "tiny", "في اللعبِ الفرديّ فقط. أوضاعُ الفِرَقِ والسرعةِ لا تتأثّر."));
+    const amsel = document.createElement("select"); amsel.style.marginTop = "10px";
+    [["reveal", "تحدّي بلا خيارات"], ["mcq", "اختيار من متعدّد"]].forEach(([val, lab]) => {
+      const o = document.createElement("option"); o.value = val; o.textContent = lab;
+      if (P.s.answerMode === val) o.selected = true; amsel.appendChild(o);
+    });
+    amsel.onchange = () => { P.s.answerMode = amsel.value; P.save(); Screens.settings(); };
+    am.appendChild(amsel); v.appendChild(am);
+
     const d = el("div", "card"); d.style.marginTop = "14px";
     d.appendChild(el("h3", null, "البيانات"));
     d.appendChild(el("div", "tiny", "المحتوى كلُّه JSON محلّيّ. حمّلْ نسخةً أحدثَ بلا تعديلِ كود."));
@@ -1836,7 +1876,10 @@ const Round = {
     const card = el("div", "card qcard"); card.style.marginTop = "10px";
     card.appendChild(Q.meta(q, cfg.kind !== "speed"));
     card.appendChild(Q.stem(p));
-    card.appendChild(Q.body(p, ok => this.judge(q, p, ok, card)));
+    if (P.s.answerMode === "reveal" && cfg.kind !== "speed" && (p.type === "mcq" || p.type === "tf" || p.type === "complete"))
+      card.appendChild(revealBody(p, ok => this.judge(q, p, ok, card)));
+    else
+      card.appendChild(Q.body(p, ok => this.judge(q, p, ok, card)));
     if (!q.generated) card.appendChild(reportBtn(q));
     v.appendChild(card);
     mount(v, TAB);
