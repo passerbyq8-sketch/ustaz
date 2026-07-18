@@ -2153,6 +2153,12 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
             </div>
             <div style={s.homeCardLabel}>المصحف</div>
           </button>
+          <button onClick={() => { window.location.href = '/quest.html'; }} style={s.homeCard}>
+            <div style={s.homeIconSquareBlack}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14" /><path d="M15 6v14" /></svg>
+            </div>
+            <div style={s.homeCardLabel}>{'\u0631\u062d\u0644\u0629\u064f \u0627\u0644\u0643\u0646\u0648\u0632'}</div>
+          </button>
         </div>
         <DailyVerseCard />
       </div>
