@@ -106,6 +106,20 @@ async function hashPin(pin) {
 }
 
 // ============================================================
+// قفل الإنفاق — جهة العميل فقط (بقرار المالك؛ devtools يتجاوزه وهذا مقبول).
+// يحرس ما يُنفق الرصيد: المحادثة (chat/ask/chat-fast) والنطق (tashkeel/tts) والمكالمة.
+// SPEND_GATE_SHA256 = بصمة SHA-256 (٦٤ خانة hex) لرمز الدخول — لا يُخزَّن الرمز نفسه، تُقارَن البصمات فقط.
+// ٦٤ صفراً = القفل مُعطَّل تماماً: يعمل التطبيق كما هو اليوم بلا أي مطالبة في أي مكان.
+// لتفعيله: ضع بصمة رمزٍ حقيقي مكان الأصفار. نشرُ هذا الكوميت بالأصفار لا يقفل أحداً، ولا المالك.
+const SPEND_GATE_SHA256 = '0000000000000000000000000000000000000000000000000000000000000000';
+const SPEND_GATE_KEY = 'spend_gate_unlock';
+const SPEND_GATE_DISABLED = SPEND_GATE_SHA256 === '0'.repeat(64);
+function spendGateOpen() {
+  if (SPEND_GATE_DISABLED) return true;                          // القفل مُعطَّل ⇐ مفتوح دائماً (فشلٌ آمن للفتح)
+  try { return localStorage.getItem(SPEND_GATE_KEY) === SPEND_GATE_SHA256; } catch (e) { return false; }
+}
+
+// ============================================================
 // تخزين المحادثة (Feature Flag)
 // ============================================================
 const PERSIST_CONVERSATION = true; // الإنتاج: يُحفَظ/يُحمَّل ملف الطفل والمحادثة عبر localStorage — لا يُمسح عند كل فتح.
@@ -2342,6 +2356,12 @@ function App() {
   // has never acknowledged still sees it. Never wiped with the profile; never forces re-onboarding.
   const [disclosureAck, setDisclosureAck] = useState(() => { try { return localStorage.getItem('disclosureAck') === '1'; } catch (e) { return false; } });
   const ackDisclosure = () => { try { localStorage.setItem('disclosureAck', '1'); } catch (e) {} setDisclosureAck(true); };
+  // قفل الإنفاق: مفتوحٌ دائماً حين يكون القفل مُعطَّلاً (٦٤ صفراً) فلا يتغيّر سلوك اليوم إطلاقاً.
+  // spendGateRef مرآةٌ متزامنة يقرؤها callAI/fetchSpeechAudio دون إغلاقٍ على قيمةٍ بائتة.
+  const [spendGateOpenState, setSpendGateOpenState] = useState(spendGateOpen());
+  const spendGateRef = useRef(spendGateOpenState);
+  useEffect(() => { spendGateRef.current = spendGateOpenState; }, [spendGateOpenState]);
+  const unlockSpendGate = () => { try { localStorage.setItem(SPEND_GATE_KEY, SPEND_GATE_SHA256); } catch (e) {} setSpendGateOpenState(true); };
   const [voiceMode, setVoiceMode] = useState(false); // chat TTS OFF by default (opt-in): silent unless the user taps a message’s listen button or turns on the header speaker toggle
   // Parental lock for direct conversation (المكالمة). Dedicated localStorage key, read/written
   // UNCONDITIONALLY (not gated by PERSIST_CONVERSATION, not stored in child_profile which is wiped
@@ -2628,6 +2648,7 @@ function App() {
   // يُرجع {kind:'blob',url} (صوت ElevenLabs) أو null (فارغ/مُلغى/فشل — فشل آمن بلا صوت).
   const SPEAK_EMOJI_RE = /[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu;
   const fetchSpeechAudio = async (rawText, myId) => {
+    if (!spendGateRef.current) return null;                      // قفل الإنفاق مغلق ⇐ لا نداءَ tashkeel/tts
     const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
     // إزالة الوسوم وتحويلها لنص طبيعي للنطق (الآية محذوفة هنا — تُتلى لا تُنطق)
     const ttsText = formatForTTS(rawText);
@@ -3122,10 +3143,11 @@ function App() {
     setProfile(p);
     setScreen('home');
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
-    await sendInitialGreeting(p);
+    if (spendGateRef.current) await sendInitialGreeting(p);       // تحيّة الإقلاع تُنفِق ⇐ تُؤجَّل حتى فتح القفل (0d)
   };
 
   const callAI = async (history, p, { onDelta, signal, mode = 'chat', endpoint = (mode === 'call' ? '/api/chat' : '/api/ask') } = {}) => {
+    if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
     const FAST_CHANNEL_ENABLED = true;
     const __classifyFast = async () => {
       try {
@@ -3730,6 +3752,9 @@ function App() {
   if (profile && !disclosureAck) return <DisclosureGate onAck={ackDisclosure} />;
   if (screen === 'loading') return <div style={s.loadingScreen}><div style={s.loadingSpinner}>✨</div></div>;
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
+  // قفل الإنفاق: المطالبة تظهر فقط أمام الشاشتين اللتين تُنفقان (المحادثة/المكالمة) وحين يكون القفل مفعّلاً وغير مفتوح.
+  // القفل المُعطَّل (٦٤ صفراً) ⇒ spendGateOpenState=true دائماً ⇒ لا تظهر هذه السطر أبداً. أما 0b (المصحف/المحفّظ/الأذكار) فتبقى مفتوحة.
+  if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate onUnlock={unlockSpendGate} onExit={() => setScreen('home')} />;
   if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => setScreen('parentGate')} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
@@ -4642,6 +4667,30 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
         {pinError && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>{errMsg}</div>}
         <button onClick={hasPin ? verify : create} style={s.primaryBtn}>{hasPin ? 'دخول' : 'حفظ الرمز'}</button>
         <button onClick={onBack} style={s.secondaryBtn}>رجوع</button>
+      </div>
+    </div>
+  );
+}
+
+// قفل الإنفاق — مطالبةٌ بسيطة على نمط لوحة الأهل. تُقارَن بصمة SHA-256 للرمز المُدخَل
+// بالثابت SPEND_GATE_SHA256؛ لا يُخزَّن الرمز نفسه أبداً. النجاح يفتح القفل ويُحفَظ لهذا الجهاز.
+function SpendGate({ onUnlock, onExit }) {
+  const [code, setCode] = useState('');
+  const [err, setErr] = useState(false);
+  const submit = async () => {
+    try { if ((await hashPin(code)) === SPEND_GATE_SHA256) { onUnlock(); return; } } catch (e) {}
+    setErr(true); setTimeout(() => setErr(false), 1800);
+  };
+  return (
+    <div style={s.onboardingContainer}>
+      <div style={s.onboardingCard}>
+        <div style={s.bigEmoji}>🔒</div>
+        <div style={s.onboardingTitle}>رمز الدخول</div>
+        <div style={s.onboardingSubtitle}>أدخل رمز الدخول لتفعيل المحادثة</div>
+        <input type="password" inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: err ? '#C44536' : '#E5EBF5' }} autoFocus />
+        {err && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>رمز خاطئ</div>}
+        <button onClick={submit} style={s.primaryBtn}>دخول</button>
+        <button onClick={onExit} style={s.secondaryBtn}>رجوع</button>
       </div>
     </div>
   );
