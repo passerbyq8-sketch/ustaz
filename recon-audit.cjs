@@ -479,6 +479,73 @@ head('13) REPORT BODY CAP vs WORSHIP GOLDEN');
 }
 
 /* ---------------------------------------------------------------- *
+ * 14) GATE ROSTER  (gates.json is the single gate-roster source -- item 50)
+ * ---------------------------------------------------------------- */
+head('14) GATE ROSTER (single source: gates.json)');
+{
+  // Lock on the gate roster: gates.json is the ONE authoritative list of gate
+  // scripts. Adding or removing a gate requires deliberately updating this count,
+  // exactly like REFERRAL_CASES_EXPECTED above -- a silent drift here means a guard
+  // stopped being enforced and nobody noticed.
+  const GATES_EXPECTED = 9;
+  // Root *.cjs files that are deliberately NOT gates (build helpers / one-shot tools).
+  // Every root .cjs must be classified as either a gate (in gates.json) or listed here.
+  const NON_GATE_CJS = new Set([
+    'build-golden-md.cjs',
+    'build-mushaf-layout.cjs',
+    'esc.cjs',
+    'flip-stream-flag.cjs',
+    'quran-verify.cjs',
+  ]);
+
+  const gRaw = read('gates.json');
+  if (gRaw === null){
+    fail('gates.json missing -- the single gate-roster source is gone');
+  } else {
+    let gates = null;
+    try { gates = JSON.parse(gRaw); } catch(e){ fail('gates.json INVALID JSON: ' + e.message); }
+    if (gates === null){ /* parse failure already reported */ }
+    else if (!Array.isArray(gates)){
+      fail('gates.json is not a JSON array of {name, script, args} entries');
+    } else {
+      // (b) roster-count lock
+      if (gates.length === GATES_EXPECTED) pass('gates.json entry count = ' + GATES_EXPECTED);
+      else fail('gates.json entry count = ' + gates.length + ' (expected exactly ' + GATES_EXPECTED + ' -- update GATES_EXPECTED deliberately)');
+
+      // .gitattributes eol=lf pins (normalize whitespace: single- and multi-space lines both match)
+      const ga = read('.gitattributes') || '';
+      const gaPinned = new Set();
+      for (const line of ga.split(NL)){
+        const toks = line.trim().split(/\s+/);
+        if (toks.length >= 3 && toks[1] === 'text' && toks.slice(2).includes('eol=lf')) gaPinned.add(toks[0]);
+      }
+
+      // (a) each gate script: present on disk + tracked in git + pinned eol=lf
+      const gateScripts = new Set();
+      for (const entry of gates){
+        const s = entry && entry.script;
+        if (!s){ fail('gates.json entry has no "script" field: ' + JSON.stringify(entry)); continue; }
+        gateScripts.add(s);
+        if (!stat(s)) fail('gate script missing on disk: ' + s + '  (named in gates.json)');
+        else if (isRepo && !TRACKED_SET.has(s)) fail('gate script not tracked in git: ' + s + '  (named in gates.json)');
+        else if (!gaPinned.has(s)) fail('gate script not pinned "' + s + ' text eol=lf" in .gitattributes');
+        else pass('gate ok (on disk, tracked, eol=lf pinned): ' + s);
+      }
+
+      // (c) every root .cjs must be classified: gate or non-gate
+      let unclassified = 0;
+      for (const rel of fs.readdirSync(ROOT)){
+        if (!rel.endsWith('.cjs')) continue;
+        if (gateScripts.has(rel) || NON_GATE_CJS.has(rel)) continue;
+        unclassified++;
+        fail('new .cjs must be classified: gate or non-gate -- ' + rel);
+      }
+      if (!unclassified) pass('every root .cjs is classified (gate or non-gate)');
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- *
  * SUMMARY
  * ---------------------------------------------------------------- */
 console.log('\n==================================================================');
