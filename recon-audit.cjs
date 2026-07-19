@@ -546,6 +546,38 @@ head('14) GATE ROSTER (single source: gates.json)');
 }
 
 /* ---------------------------------------------------------------- *
+ * 15) CLIENT/SERVER BODY-CAP MIRROR  (item 1 / defects 44+45)
+ * ---------------------------------------------------------------- */
+head('15) CLIENT/SERVER BODY-CAP MIRROR');
+{
+  // The client refuses/trims an oversized body BEFORE the server 413s it -- but only while the
+  // client's mirror equals the server's cap. This makes the mirror unable to drift: read the number
+  // from BOTH files and FAIL on any mismatch (same shape as GATES_EXPECTED). Server of record is
+  // lib/ratelimit.js MAX_CHAT_BODY_BYTES; the client mirror is index.html SERVER_MAX_CHAT_BODY_BYTES.
+  const evalIntExpr = (expr) => {
+    const e = String(expr).trim();
+    if (!/^[\d_*+\-/()\s]+$/.test(e)) return null; // arithmetic over integer literals only -- no identifiers
+    try { const v = Function('"use strict"; return (' + e + ');')(); return Number.isFinite(v) ? v : null; }
+    catch (_) { return null; }
+  };
+  const grab = (rel, re, label) => {
+    const s = read(rel);
+    if (s === null) return { err: 'cannot read ' + rel };
+    const m = s.match(re);
+    if (!m) return { err: label + ' not found in ' + rel };
+    const v = evalIntExpr(m[1]);
+    return v === null ? { err: label + ' unparseable in ' + rel + ': ' + m[1].trim() } : { v };
+  };
+  const server = grab('lib/ratelimit.js', /MAX_CHAT_BODY_BYTES\s*=\s*([^;]+);/, 'MAX_CHAT_BODY_BYTES');
+  const client = grab('index.html', /SERVER_MAX_CHAT_BODY_BYTES\s*=\s*([^;]+);/, 'SERVER_MAX_CHAT_BODY_BYTES');
+  if (server.err) fail('body-cap mirror: ' + server.err);
+  else if (client.err) fail('body-cap mirror: ' + client.err);
+  else if (server.v !== client.v) fail('body-cap mirror DRIFT: lib/ratelimit.js MAX_CHAT_BODY_BYTES=' + server.v +
+    ' != index.html SERVER_MAX_CHAT_BODY_BYTES=' + client.v + ' -- the client no longer measures what the server enforces (re-sync the mirror)');
+  else pass('body-cap mirror intact: client SERVER_MAX_CHAT_BODY_BYTES == server MAX_CHAT_BODY_BYTES == ' + server.v + ' bytes');
+}
+
+/* ---------------------------------------------------------------- *
  * SUMMARY
  * ---------------------------------------------------------------- */
 console.log('\n==================================================================');
