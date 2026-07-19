@@ -111,7 +111,7 @@ async function hashPin(pin) {
 // SPEND_GATE_SHA256 = بصمة SHA-256 (٦٤ خانة hex) لرمز الدخول — لا يُخزَّن الرمز نفسه، تُقارَن البصمات فقط.
 // ٦٤ صفراً = القفل مُعطَّل تماماً: يعمل التطبيق كما هو اليوم بلا أي مطالبة في أي مكان.
 // لتفعيله: ضع بصمة رمزٍ حقيقي مكان الأصفار. نشرُ هذا الكوميت بالأصفار لا يقفل أحداً، ولا المالك.
-const SPEND_GATE_SHA256 = '0000000000000000000000000000000000000000000000000000000000000000';
+const SPEND_GATE_SHA256 = '0d7d18425ed54dbff1313b8ff37425a50f5aa2abefbe6f79159ce89ec09bd510';
 const SPEND_GATE_KEY = 'spend_gate_unlock';
 const SPEND_GATE_DISABLED = SPEND_GATE_SHA256 === '0'.repeat(64);
 function spendGateOpen() {
