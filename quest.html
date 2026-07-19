@@ -1153,6 +1153,16 @@ function drawHUD() {
   wrap.appendChild(h("span", "pill coin", "🪙 <b>" + ar(P.s.coins) + "</b>"));
   wrap.appendChild(h("span", "pill star", "★ <b>" + ar(P.starsTotal()) + "</b>"));
   if (P.s.streak > 0) wrap.appendChild(h("span", "pill streak", "🔥 <b>" + ar(P.s.streak) + "</b>"));
+  /* الخروجُ إلى المربّي — الزرُّ الوحيدُ للمغادرة، يظهرُ في كلِّ شاشةٍ عبرَ الـHUD.
+     إن كان سؤالٌ معروضًا الآن (‎.qcard‎ = جولةٌ جارية) نسألُ مرّةً قبلَ فقدِ نجمتِها. */
+  const exit = el("button", "gear", "🚪"); exit.type = "button";
+  exit.setAttribute("aria-label", "الخروجُ إلى المربّي");
+  exit.onclick = () => {
+    const midRound = !!(VIEW && VIEW.querySelector(".qcard"));
+    if (midRound && !window.confirm("تُفقَدُ نجمةُ الجولةِ إنْ خرجتَ الآن. أتخرج؟")) return;
+    window.location.href = "/";
+  };
+  wrap.appendChild(exit);
   const gear = el("button", "gear", "⚙"); gear.type = "button";
   gear.setAttribute("aria-label", "الإعدادات");
   gear.onclick = Screens.settings;                 /* مفتاحُ «اعرضِ المسوّدات» لا يُدفَنُ أبدًا */
