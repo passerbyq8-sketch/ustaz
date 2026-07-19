@@ -538,6 +538,55 @@ const sliceHistoryForAPI = (messages) => {
   return sliced;
 };
 
+// ============================================================
+// Body-size budget — the client must measure what the server measures (item 1 / defects 44+45).
+// ============================================================
+// Mirror of the server's hard INPUT cap. MUST equal MAX_CHAT_BODY_BYTES in lib/ratelimit.js:239;
+// recon-audit.cjs FAILs if the two ever drift. The server 413s any POST body whose
+// Buffer.byteLength(JSON.stringify(body),'utf8') exceeds this, so the client sizes the body the
+// SAME way and trims/refuses BEFORE sending — the child never sees a silent 413.
+const SERVER_MAX_CHAT_BODY_BYTES = 2 * 1024 * 1024;
+// The client stays strictly UNDER the server: 64 KB headroom absorbs re-stringify slack + headers,
+// so a body the client accepts can never 413 the server. The client is never more permissive.
+const CLIENT_BODY_HEADROOM = 64 * 1024;
+const CLIENT_BUDGET = SERVER_MAX_CHAT_BODY_BYTES - CLIENT_BODY_HEADROOM;
+
+// Size a candidate outgoing body EXACTLY as the server does (api/chat.js:30, api/ask.js:150):
+// Buffer.byteLength(JSON.stringify(body),'utf8'). TextEncoder yields identical UTF-8 byte counts.
+const bodyByteSize = (body) => new TextEncoder().encode(JSON.stringify(body)).length;
+
+// Byte-driven history fit. mkBody(msgs) assembles the REAL outgoing body; drop the OLDEST messages
+// until it fits CLIENT_BUDGET, measured the server's way. Never touches the system prompt (not part
+// of `messages`) nor the newest message (msgs[last], the current user turn).
+const fitMessagesToBudget = (mkBody, messages) => {
+  let msgs = messages.slice();
+  while (msgs.length > 1 && bodyByteSize(mkBody(msgs)) > CLIENT_BUDGET) {
+    msgs = msgs.slice(1); // drop oldest turn; keep the system prompt + the newest user message
+  }
+  return msgs;
+};
+
+// File gate, budget half (defect 45): the per-type cap is not the only ceiling. Once the ~111KB
+// system prompt + history already fill CLIENT_BUDGET, even a small file 413s the server. Model the
+// REAL /api/ask body this attachment would produce (base64 inflation lives inside attachBlock.data)
+// and return an Arabic refusal naming the conversation-size bound + the real remaining room if it
+// would not fit; null if it fits. Effective ceiling = min(per-type cap, this).
+const attachOverBudget = (attachBlock, messages, profile) => {
+  const p = profile || {};
+  const system = buildSystemPrompt(p.name, p.age, p.gender, 'chat');
+  const band = deriveCaps(p.age).band;
+  const mk = (msgs) => ({ max_tokens: 4096, stream: true, system, messages: msgs, band });
+  const toApi = (arr) => sliceHistoryForAPI(arr).map(m => ({ role: m.role, content: m.content }));
+  const userWith = { role: 'user', content: [attachBlock, { type: 'text', text: 'اشرح لي هذا' }] };
+  const baseBytes = bodyByteSize(mk(toApi(messages || [])));
+  const withBytes = bodyByteSize(mk(toApi([...(messages || []), userWith])));
+  if (withBytes <= CLIENT_BUDGET) return null;
+  const room = Math.max(0, CLIENT_BUDGET - baseBytes); // bytes that were free for this attachment
+  const need = withBytes - baseBytes;                  // bytes this attachment actually adds
+  const kb = (n) => Math.max(0, Math.round(n / 1024));
+  return 'المحادثة طويلة ولم يبقَ متّسعٌ كافٍ لهذا الملف في هذه الرسالة (المتبقّي نحو ' + kb(room) + ' ك.ب، والملف يحتاج نحو ' + kb(need) + ' ك.ب). ابدأ محادثةً جديدة أو أرسل ملفًّا أصغر.';
+};
+
 // Plain-text view of a message's content (string, or [image,text] array) for logs.
 const contentToText = (content) => {
   if (typeof content === 'string') return content;
@@ -3094,30 +3143,26 @@ function App() {
       // Route: TEXT chat -> /api/ask (server-side RAG tool loop); VOICE (mode:'call') -> /api/chat.
       // `endpoint` defaults from `mode` but can be overridden (e.g. the greeting forces /api/chat
       // to skip pointless round-1 tool overhead while STILL using the normal 'chat' prompt).
+      // Model is chosen SERVER-SIDE (api/ask: Opus for adult detailed/scholar, else Sonnet;
+      // api/chat: Sonnet). The client does NOT pick it; any model/temperature/top_p/top_k sent here
+      // is ignored or 400s -- so we send none. max_tokens 4096 leaves room for a long fully-vocalized
+      // Arabic reply (each diacritic = a token); server effort caps overall spend. depth/band below
+      // are TEXT-route (/api/ask) only.
+      const __extra = {
+        // depth: adult-only, non-'brief' -> server reads body.depth==='deep'/'scholar' for round-2 effort.
+        ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
+        // band: so the server restricts RAG sources by age (khilaf-policy §6: under-18 => islamqa+binbaz).
+        ...(mode === 'chat' && endpoint === '/api/ask' ? { band: deriveCaps(p.age).band } : {}),
+      };
+      const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, system: __sysPrompt, messages: msgs, ...__extra });
+      // Item 1 / defect 44: drop OLDEST turns until the body fits CLIENT_BUDGET, measured the SERVER's
+      // way -- never shipping a body the server would 413. Keeps the system prompt + the newest turn.
+      const __apiMessages = fitMessagesToBudget(__mkBody, history.map(m => ({ role: m.role, content: m.content })));
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal,
-        body: JSON.stringify({
-          // Model is chosen SERVER-SIDE by the proxy -- api/ask: Opus (premium) for adult
-          // detailed/scholar, else Sonnet; api/chat: Sonnet. The client does NOT pick it;
-          // any model field sent here is ignored. Server model may reject non-default
-          // temperature/top_p/top_k (400) -- do not send them.
-          // 4096 leaves room for a long fully-vocalized Arabic reply (each diacritic = a token)
-          // with <verse>/<hadith>/<steps>/<suggestions> tags; effort now caps overall spend server-side.
-          max_tokens: 4096,
-          // True streaming: first words appear in ~1-2s and long replies no longer die on the timeout.
-          stream: true,
-          system: __sysPrompt,
-          messages: history.map(m => ({ role: m.role, content: m.content })),
-          // depth: adult-only, text-route-only, only when user chose 'detailed'.
-          // Conditional spread — field is ABSENT on voice (/api/chat), greeting, non-adult, or 'brief'.
-          // Server (api/ask.js) reads body.depth === 'deep' => round-2 effort 'high'; anything else => 'medium' (today's behavior).
-          ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
-          // band: sent on the TEXT route only, so the server can restrict RAG sources by age
-          // (khilaf-policy §6: under-18 => islamqa + binbaz only). Voice (/api/chat) has no RAG loop, so omit there.
-          ...(mode === 'chat' && endpoint === '/api/ask' ? { band: deriveCaps(p.age).band } : {}),
-        }),
+        body: JSON.stringify(__mkBody(__apiMessages)),
       });
       if (!response.ok) {
         // Upstream error via the proxy — distinct from a network drop. Logged to console
@@ -3235,10 +3280,14 @@ function App() {
     try {
       if (isImage) {
         const block = await fileToImageBlock(file); // { media_type, data }
+        const over = attachOverBudget({ type: 'image', source: { type: 'base64', media_type: block.media_type, data: block.data } }, messages, profileRef.current);
+        if (over) return fail(over);
         setPendingImage({ kind: 'image', name: file.name, media_type: block.media_type, data: block.data });
       } else if (isPdf) {
         if (file.size > 2 * 1024 * 1024) return fail('ملف PDF كبير على الإرسال (الحدّ نحو ٢ ميغابايت مع سياق المحادثة). الرجاء ملفًّا أصغر.');
         const data = await fileToBase64(file); // base64, no data-URI prefix
+        const over = attachOverBudget({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }, messages, profileRef.current);
+        if (over) return fail(over);
         setPendingImage({ kind: 'pdf', name: file.name, media_type: 'application/pdf', data });
       } else if (isTxt) {
         if (file.size > 1 * 1024 * 1024) return fail('ملف النصّ كبير (الحدّ ١ ميغابايت).');
@@ -3259,6 +3308,8 @@ function App() {
         if (!text0) return fail('الملف النصّي فارغ أو بترميز غير مدعوم. احفظه بترميز UTF-8 ثمّ أعد رفعه.');
         const MAX = 100000;
         const clipped = text0.length > MAX ? text0.slice(0, MAX) + '\n\n[تم اختصار بقيّة الملف]' : text0;
+        const over = attachOverBudget({ type: 'text', text: 'المستند المرفق «' + (file.name || 'ملف نصّي') + '»:\n\n' + clipped }, messages, profileRef.current);
+        if (over) return fail(over);
         setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clipped });
       } else if (isDocx) {
         if (file.size > 5 * 1024 * 1024) return fail('ملف Word كبير (الحدّ ٥ ميغابايت). الرجاء ملفًّا أصغر.');
@@ -3274,6 +3325,8 @@ function App() {
         if (!extracted) return fail('لم يُعثَر على نصٍّ في ملف Word. قد يكون فارغًا أو صورًا فقط.');
         const MAXD = 100000;
         const clippedDoc = extracted.length > MAXD ? extracted.slice(0, MAXD) + '\n\n[تم اختصار بقيّة الملف]' : extracted;
+        const over = attachOverBudget({ type: 'text', text: 'المستند المرفق «' + (file.name || 'ملف نصّي') + '»:\n\n' + clippedDoc }, messages, profileRef.current);
+        if (over) return fail(over);
         setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clippedDoc });
       } else if (isLegacyDoc) {
         return fail('صيغة ‎.doc القديمة غير مدعومة. الرجاء حفظه بصيغة ‎.docx ثمّ رفعه.');
