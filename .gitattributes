@@ -21,3 +21,16 @@ mushaf-layout.json       -text
 # Binary. Never convert.
 *.gz                     binary
 quest-data/*.json -text
+
+# Defect 40 extended: these nine guard scripts were brought under git tracking in
+# bug 43. Pin them to LF so a fresh clone with core.autocrlf=true cannot inject CR
+# into them (a CR shift would corrupt the byte counts the guards measure).
+worship-guard.cjs         text eol=lf
+quran-guard.cjs           text eol=lf
+layout-guard.cjs          text eol=lf
+babel-gate.cjs            text eol=lf
+runtime-gate.cjs          text eol=lf
+recon-audit.cjs           text eol=lf
+build-worship-display.cjs text eol=lf
+referral-guard.cjs        text eol=lf
+classifier-guard.cjs      text eol=lf
