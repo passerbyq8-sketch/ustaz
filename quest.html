@@ -413,6 +413,36 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function el(tag, cls, txt) { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; }
 function h(tag, cls, html) { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; }
 function shuffle(a, rnd) { const b = a.slice(), r = rnd || Math.random; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+/* النصُّ المحلولُ للإجابةِ الصحيحة — يطابقُ Q.answerText حرفًا بحرف (order/match بالفواصلِ نفسِها).
+   يُقلَّصُ الفراغُ ويُشذَّبُ الطرفان فقط؛ التشكيلُ ذو دلالةٍ فلا يُجرَّد. */
+function answerKey(q) {
+  let t;
+  switch (q && q.type) {
+    case "mcq":      t = (q.choices || [])[q.answer]; break;
+    case "complete": t = (q.bank || [])[q.answer]; break;
+    case "tf":       t = q.answer ? "صح" : "خطأ"; break;
+    case "order":    t = (q.answer || []).map(i => (q.items || [])[i]).join("  ←  "); break;
+    case "match":    t = (q.left || []).map((l, i) => l + " ← " + (q.right || [])[(q.a || [])[i]]).join("  ·  "); break;
+    default:         t = "";
+  }
+  return String(t == null ? "" : t).replace(/\s+/g, " ").trim();
+}
+/* قيدٌ ليّنٌ لا مرشِّحٌ صارم: يقدّمُ الأسئلةَ ذاتَ الأجوبةِ الفريدةِ ضمنَ الجولةِ الواحدة،
+   ثمّ يُكمِلُ الطولَ من المكرَّراتِ إن لزم. لا يُقصِّرُ جولةً ولا يُفرِغُ ولا يرمي.
+   يعيدُ دائمًا min(n, pool.length) سؤالًا. */
+function distinctAnswers(pool, n) {
+  const src = (pool || []);
+  const want = Math.min(n, src.length);
+  const used = new Set(), out = [], dup = [];
+  for (let i = 0; i < src.length && out.length < want; i++) {
+    const q = src[i], k = answerKey(q);
+    if (k && used.has(k)) { dup.push(q); continue; }
+    if (k) used.add(k);
+    out.push(q);
+  }
+  for (let i = 0; i < dup.length && out.length < want; i++) out.push(dup[i]);
+  return out;
+}
 function seeded(seedStr) {                       /* deterministic PRNG — الدفعةُ اليوميّةُ نفسُها للجميع بلا خادم */
   let s = 2166136261; for (let i = 0; i < seedStr.length; i++) { s ^= seedStr.charCodeAt(i); s = Math.imul(s, 16777619); }
   return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return ((s >>> 0) % 100000) / 100000; };
@@ -495,14 +525,23 @@ const Data = {
     const size = r.stationSize || d.stationSize || 6;
     if (r.gen) return Array.from({ length: 8 }, (_, i) => ({ index: i, gen: r.gen, size, diff: 1 + Math.floor(i / 3) }));
     const qs = this.regionQuestions(rid), out = [];
-    for (let i = 0; i < qs.length; i += size) out.push({ index: out.length, list: qs.slice(i, i + size), size });
-    return out.slice(0, r.maxStations || d.maxStations || 14);
+    const cap = r.maxStations || d.maxStations || 14;
+    /* كلُّ محطّةٍ تُملأُ بأجوبةٍ فريدةٍ ما أمكن (قيدٌ ليّن)، مستهلكةً من مجمَّعِ الإقليم؛
+       يبقى كلُّ سؤالٍ في محطّةٍ واحدة، وعددُ المحطّاتِ وحجمُها كما كانا. */
+    let pool = qs.slice();
+    while (pool.length && out.length < cap) {
+      const list = distinctAnswers(pool, size);
+      const picked = new Set(list);
+      pool = pool.filter(q => !picked.has(q));
+      out.push({ index: out.length, list, size });
+    }
+    return out;
   },
   /* عيّنةٌ عامّةٌ لأوضاعِ السرعة/اليوميّ/الفِرَق */
   sample(filter, n, rnd) {
     let qs = (this.bank.questions || []).filter(q => P.allowsBand(q.band) && P.allowsStatus(q.status));
     if (filter) qs = qs.filter(filter);
-    return shuffle(qs, rnd).slice(0, n);
+    return distinctAnswers(shuffle(qs, rnd), n);   /* لا سؤالان بجوابٍ واحدٍ في الجولة (قيدٌ ليّن) */
   }
 };
 /* يُجرَّبُ المجلّدُ المجاورُ أوّلًا ثمّ الملفُّ المجاورُ ثمّ النسخةُ المدموجة.
