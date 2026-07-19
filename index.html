@@ -2241,6 +2241,7 @@ function AdhkarScreen({ onBack }) {
 
 function App() {
   const [screen, setScreen] = useState('loading');
+  const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -2344,10 +2345,22 @@ function App() {
 
   // زر الرجوع (أندرويد/المتصفح) — خطأ ١٥: بلا هذا يُغلق التطبيق فوراً من أي شاشة فرعية.
   // من أي شاشة فرعية يرجع إلى home؛ ومن home يخرج (سلوك أندرويد القياسي). إضافيّ بحت — لا يمسّ أزرار الرجوع داخل الشاشات.
+  // خطأ ٤٦: داخل المصحف يقشر الرجوع طبقة واحدة (قارئ السورة ← منتقي السورة) بدل القفز إلى home، ثم يعيد دفع مدخل تاريخ كي لا تُخرج الضغطة التالية من التطبيق قبل بلوغ home؛ ما عدا المصحف يبقى على قرار ج٣٤.
   const backNavRef = useRef(false);
+  const screenRef = useRef(screen);               // مرآة متزامنة للشاشة الحالية (onPop مسجّل بـ[] فيغلق على قيمة بائتة)
+  const selectedSurahRef = useRef(selectedSurah); // مرآة متزامنة لسورة المصحف المفتوحة، للسبب ذاته
+  useEffect(() => { screenRef.current = screen; }, [screen]);
+  useEffect(() => { selectedSurahRef.current = selectedSurah; }, [selectedSurah]);
   useEffect(() => {
     const onPop = () => {
       backNavRef.current = true;
+      // خطأ ٤٦: في المصحف مع سورة مفتوحة، اقشر طبقة واحدة (عُد إلى منتقي السورة) وأعِد دفع
+      // مدخل تاريخ كي لا تُخرج الضغطة التالية من التطبيق قبل بلوغ home، دون تغيير الشاشة.
+      if (screenRef.current === 'mushaf' && selectedSurahRef.current != null) {
+        setSelectedSurah(null);
+        window.history.pushState({ screen: 'mushaf' }, '');
+        return;
+      }
       setScreen((cur) => (cur === 'home' || cur === 'onboarding' || cur === 'loading') ? cur : 'home');
     };
     window.addEventListener('popstate', onPop);
@@ -3634,7 +3647,7 @@ function App() {
   // المحفّظ — full screen (mirrors CallScreen). Husary playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('chat')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
-  if (screen === 'mushaf') return <MushafScreen onBack={() => setScreen('home')} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
+  if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={() => { setSelectedSurah(null); setScreen('home'); }} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'adhkar') return <AdhkarScreen onBack={() => setScreen('home')} />;
 
   // Single-source capability flags for the chat UI. `directConvoAllowed` layers the parental lock
@@ -4933,10 +4946,10 @@ function PagedMushaf({ startSurah, onExit }) {
   );
 }
 
-function MushafScreen({ onBack, onPlaySurah, onStopAudio }) {
+function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio }) {
   const [ready, setReady] = useState(!!__quranData);
   const [counts, setCounts] = useState(null);       // { [surah]: ayahCount } -- ONE pass
-  const [selected, setSelected] = useState(null);   // 1..114
+  // خطأ ٤٦: `selected` (السورة المفتوحة) رُفعت إلى App لتُقشَر بزر الرجوع؛ تصل عبر props بلا تغيير سلوك
 
   useEffect(() => {
     let alive = true;
