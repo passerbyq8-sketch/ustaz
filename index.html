@@ -587,6 +587,40 @@ const attachOverBudget = (attachBlock, messages, profile) => {
   return 'المحادثة طويلة ولم يبقَ متّسعٌ كافٍ لهذا الملف في هذه الرسالة (المتبقّي نحو ' + kb(room) + ' ك.ب، والملف يحتاج نحو ' + kb(need) + ' ك.ب). ابدأ محادثةً جديدة أو أرسل ملفًّا أصغر.';
 };
 
+// Item A: the largest RAW file of a base64-sent type that could ever fit CLIENT_BUDGET on an EMPTY
+// conversation -- system prompt, JSON envelope, and base64 inflation (4 chars per 3 bytes) all
+// counted. Derived here, never typed. Text types (txt/docx) are CLIPPED before sending, so their
+// file size never inflates the body; their true ceiling is the product policy limit (theoretical
+// = unbounded). Returns { ceilingBytes, bound } where bound names WHICH ceiling won: 'budget' (the
+// live message capacity) or 'policy' (the type's product limit). ceilingBytes = min(policy, theoretical).
+const deriveTypeCeiling = (kind, policyBytes, profile) => {
+  const BASE64_MEDIA = { pdf: 'application/pdf', image: 'image/jpeg' };
+  const media = BASE64_MEDIA[kind];
+  if (!media) return { ceilingBytes: policyBytes, bound: 'policy' }; // clipped text: policy IS the true ceiling
+  const p = profile || {};
+  const system = buildSystemPrompt(p.name, p.age, p.gender, 'chat');
+  const band = deriveCaps(p.age).band;
+  const block = { type: kind === 'pdf' ? 'document' : 'image', source: { type: 'base64', media_type: media, data: '' } };
+  const body = { max_tokens: 4096, stream: true, system, band, messages: [{ role: 'user', content: [block, { type: 'text', text: 'اشرح لي هذا' }] }] };
+  const overhead = bodyByteSize(body);                          // the whole empty-convo body minus the base64 data
+  const maxBase64Chars = Math.max(0, CLIENT_BUDGET - overhead); // base64 chars (== bytes) that still fit
+  const theoreticalRaw = Math.floor(maxBase64Chars / 4) * 3;    // invert base64: 3 raw bytes per 4 chars
+  return theoreticalRaw < policyBytes ? { ceilingBytes: theoreticalRaw, bound: 'budget' } : { ceilingBytes: policyBytes, bound: 'policy' };
+};
+
+// Item A: render a byte count as an Arabic size string (Arabic-Indic digits) -- computed at the
+// moment it is shown, never a literal.
+const humanBytesAr = (n) => toArabicDigits(n >= 1024 * 1024 ? (n / (1024 * 1024)).toFixed(1) + ' ميغابايت' : Math.max(1, Math.round(n / 1024)) + ' كيلوبايت');
+
+// Item A: a per-type "too big" refusal naming the THREE things a trustworthy limit must state:
+// (1) which bound refused it -- the live message capacity ('سعة الرسالة') or the type's product
+// limit ('حدّ النوع') -- (2) the TRUE current ceiling, and (3) the file's own size. All computed.
+const fileTooBigMsg = (typeLabel, fileSize, ceilingBytes, bound) => {
+  const why = bound === 'budget' ? 'سعة الرسالة' : 'حدّ النوع';
+  return typeLabel + ' أكبر من المسموح به الآن. الحدّ الحاليّ نحو ' + humanBytesAr(ceilingBytes) +
+    ' (السقف من: ' + why + ')، وحجم ملفك نحو ' + humanBytesAr(fileSize) + '. الرجاء ملفًّا أصغر.';
+};
+
 // Plain-text view of a message's content (string, or [image,text] array) for logs.
 const contentToText = (content) => {
   if (typeof content === 'string') return content;
@@ -3284,13 +3318,15 @@ function App() {
         if (over) return fail(over);
         setPendingImage({ kind: 'image', name: file.name, media_type: block.media_type, data: block.data });
       } else if (isPdf) {
-        if (file.size > 2 * 1024 * 1024) return fail('ملف PDF كبير على الإرسال (الحدّ نحو ٢ ميغابايت مع سياق المحادثة). الرجاء ملفًّا أصغر.');
+        const pdfCeil = deriveTypeCeiling('pdf', 2 * 1024 * 1024, profileRef.current); // policy 2MB kept as upper bound; announce the smaller derived ceiling
+        if (file.size > pdfCeil.ceilingBytes) return fail(fileTooBigMsg('ملف PDF', file.size, pdfCeil.ceilingBytes, pdfCeil.bound));
         const data = await fileToBase64(file); // base64, no data-URI prefix
         const over = attachOverBudget({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }, messages, profileRef.current);
         if (over) return fail(over);
         setPendingImage({ kind: 'pdf', name: file.name, media_type: 'application/pdf', data });
       } else if (isTxt) {
-        if (file.size > 1 * 1024 * 1024) return fail('ملف النصّ كبير (الحدّ ١ ميغابايت).');
+        const txtCeil = deriveTypeCeiling('txt', 1 * 1024 * 1024, profileRef.current); // clipped text: policy is the true ceiling
+        if (file.size > txtCeil.ceilingBytes) return fail(fileTooBigMsg('ملف النصّ', file.size, txtCeil.ceilingBytes, txtCeil.bound));
         let raw = '';
         let buf = null;
         try {
@@ -3312,7 +3348,8 @@ function App() {
         if (over) return fail(over);
         setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clipped });
       } else if (isDocx) {
-        if (file.size > 5 * 1024 * 1024) return fail('ملف Word كبير (الحدّ ٥ ميغابايت). الرجاء ملفًّا أصغر.');
+        const docxCeil = deriveTypeCeiling('docx', 5 * 1024 * 1024, profileRef.current); // clipped text: policy is the true ceiling
+        if (file.size > docxCeil.ceilingBytes) return fail(fileTooBigMsg('ملف Word', file.size, docxCeil.ceilingBytes, docxCeil.bound));
         if (!window.mammoth) return fail('تعذّر تحميل أداة قراءة ملفات Word. تحقّق من الاتصال وأعد المحاولة.');
         let extracted = '';
         try {
