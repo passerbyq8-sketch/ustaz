@@ -74,17 +74,22 @@ const TRACKED_SET = new Set(TRACKED);
 head('1) FILE INVENTORY');
 const EXPECT = [
   { rel:'index.html',                  mustTrack:true  },
+  { rel:'quest.html',                  mustTrack:true  },
   { rel:'api/ask.js',                  mustTrack:true  },
   { rel:'api/chat.js',                 mustTrack:true  },
   { rel:'api/chat-fast.js',            mustTrack:true  },
   { rel:'api/tts.js',                  mustTrack:true  },
   { rel:'api/tashkeel.js',             mustTrack:true  },
+  { rel:'api/report.js',               mustTrack:true  },
   { rel:'lib/retrieve.js',             mustTrack:true  },
   { rel:'lib/encyclopedia.js',         mustTrack:true  },
   { rel:'lib/ratelimit.js',            mustTrack:true  },
   { rel:'lib/limit-message.js',        mustTrack:true  },
   { rel:'lib/data/adhkar.json',        mustTrack:true  },
   { rel:'quran-uthmani.json',          mustTrack:true  },
+  { rel:'quest-data/trivia-golden.json',mustTrack:true  },
+  { rel:'quest-data/world.json',        mustTrack:true  },
+  { rel:'quest-data/rewards.json',      mustTrack:true  },
   { rel:'lib/data/fiqh-search.json.gz',mustTrack:true  },
   { rel:'babel-gate.cjs',              mustTrack:true  },
   { rel:'runtime-gate.cjs',            mustTrack:true  },
@@ -387,6 +392,11 @@ const REFERRAL_CASES_EXPECTED = 9;
 checkJson('referral-golden.json', REFERRAL_CASES_EXPECTED, 'cases');
 checkJson('lib/data/adhkar.json');
 checkJson('quran-uthmani.json');
+// Quest game data: validate JSON parses. NO expected count -- the trivia bank grows
+// intentionally each batch; a fixed count would turn red on every legitimate addition.
+checkJson('quest-data/trivia-golden.json');
+checkJson('quest-data/world.json');
+checkJson('quest-data/rewards.json');
 {
   const buf = readBuf('lib/data/fiqh-search.json.gz');
   if (!buf) fail('missing: lib/data/fiqh-search.json.gz');
