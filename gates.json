@@ -1,0 +1,11 @@
+[
+  { "name": "worship",    "script": "worship-guard.cjs",         "args": "--compare index.html worship-golden.json" },
+  { "name": "quran",      "script": "quran-guard.cjs",           "args": "--compare quran-uthmani.json quran-golden.json" },
+  { "name": "layout",     "script": "layout-guard.cjs",          "args": "" },
+  { "name": "babel",      "script": "babel-gate.cjs",            "args": "" },
+  { "name": "runtime",    "script": "runtime-gate.cjs",          "args": "" },
+  { "name": "recon",      "script": "recon-audit.cjs",           "args": "" },
+  { "name": "display",    "script": "build-worship-display.cjs", "args": "--verify" },
+  { "name": "referral",   "script": "referral-guard.cjs",        "args": "--compare index.html referral-golden.json" },
+  { "name": "classifier", "script": "classifier-guard.cjs",      "args": "index.html" }
+]
