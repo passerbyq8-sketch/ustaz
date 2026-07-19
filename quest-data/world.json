@@ -337,7 +337,8 @@
           "letter": "ظ",
           "hue": 250,
           "cats": [
-            "physics"
+            "physics",
+            "math"
           ],
           "unlock": {
             "stars": 0
