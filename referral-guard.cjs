@@ -48,6 +48,12 @@ const cases = (golden && Array.isArray(golden.cases)) ? golden.cases : null;
 if (!cases) { console.error('ABORT: ' + goldenFile + ' has no cases[] array'); process.exit(2); }
 info(goldenFile + ' cases = ' + cases.length);
 
+// Lock on the referral case roster: deleting a case must not pass silently at zero.
+// Deliberately bump this when the golden set legitimately changes (mirrors recon-audit REFERRAL_CASES_EXPECTED).
+const REFERRAL_CASES_EXPECTED = 9;
+if (cases.length === REFERRAL_CASES_EXPECTED) pass('A case count = ' + REFERRAL_CASES_EXPECTED);
+else fail('A case count = ' + cases.length + ' (expected exactly ' + REFERRAL_CASES_EXPECTED + ' -- update REFERRAL_CASES_EXPECTED deliberately)');
+
 const BANDS = new Set(['young', 'teen', 'adult']);
 let malformed = 0;
 for (const c of cases) {

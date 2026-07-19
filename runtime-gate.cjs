@@ -154,5 +154,6 @@ setTimeout(() => {
   } else {
     console.log('WARNING: no runtime error thrown, but #root is EMPTY after mount.');
     console.log('(App may render null, or mount target/logic differs.)');
+    process.exit(1);
   }
 }, 200);
