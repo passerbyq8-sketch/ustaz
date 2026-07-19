@@ -22,3 +22,8 @@ probe-*.txt
 payload-*.txt
 probe-*.cjs
 spike/.env.example
+
+# bug 43: track local guard scripts (explicit un-ignore; general rules above kept)
+!babel-gate.cjs
+!runtime-gate.cjs
+!recon-audit.cjs
