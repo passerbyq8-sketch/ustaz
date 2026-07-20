@@ -5280,6 +5280,8 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const [markPage, setMarkPage] = useState(() => { const b = readMushafBookmark(); return b ? b.p : null; });
   const marked = markPage === page;
   const putMark = () => { writeMushafBookmark(page, startSurah); setMarkPage(page); };
+  // 14.4 — القفز إلى صفحةٍ برقمها. null = الشريط يعرض اللافتة، ونصٌّ = الخانة مفتوحة.
+  const [jump, setJump] = useState(null);
 
   if (state !== 'ok') {
     return (
@@ -5316,6 +5318,12 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     timer.current = setTimeout(() => { timer.current = null; land(eff); }, 420);
   };
   const onTransEnd = () => land(slide);
+  // 14.4 — القفزةُ البعيدة لا تمرُّ بـ commit: انزياحُ الشريط هو slide*100% وخاناتُه ثلاثٌ فقط،
+  // فقفزةٌ بمقدار ٥٨٥ صفحةً تعني انزياحاً بـ ٥٨٥٠٠٪ — لا شيء. فالمسلكُ هو مهبطُ commit نفسُه:
+  // نفسُ التنظيف الذي يفعله land ونفسُ setPage، بصفحةٍ مطلقةٍ بدل page + sl.
+  const jumpTo = (n) => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setDrag(0); setAnim(false); setSlide(0); setPage(n); };
+  // التطبيع: تُقبل الأرقامُ الهنديّة واللاتينيّة معاً. وما بقي بعد نزع الفراغ وليس رقماً — تُردُّ الخانةُ كلُّها.
+  const jumpGo = () => { const raw = String(jump == null ? '' : jump).replace(/\s+/g, '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)); setJump(null); if (!/^[0-9]+$/.test(raw)) return; const n = parseInt(raw, 10); if (n >= 1 && n <= 604) jumpTo(n); };
   const onStart = (e) => {
     if (slide) return;                           // ورقةٌ في الطيران — لا تلمسها
     const t = e.touches[0];
@@ -5376,7 +5384,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
       </div>
       <div style={s.pgBar}>
         <button onClick={() => commit(-1)} disabled={page <= 1} style={{ ...s.pgNavBtn, ...(page <= 1 ? s.pgNavOff : {}) }}>›</button>
-        <div style={s.pgMeta}>صفحة {toArabicDigits(page)} من ٦٠٤</div>
+        <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" style={{ ...s.pgMeta, ...s.pgJumpBtn }}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
         <button onClick={() => commit(1)} disabled={page >= 604} style={{ ...s.pgNavBtn, ...(page >= 604 ? s.pgNavOff : {}) }}>‹</button>
       </div>
     </div>
@@ -6077,6 +6085,10 @@ const s = {
   pgNavBtn: { width: 44, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 20, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1, direction: 'ltr' },
   pgNavOff: { opacity: 0.32, cursor: 'default' },
   pgMeta: { fontSize: 13, fontWeight: 600, color: 'var(--muted)' },
+  // 14.4 — غلافُ القفز: ارتفاعُه ٣٦ = ارتفاعُ زرّي التصفّح، فلا يتغيّر علوُّ الشريط بين اللافتة والخانة.
+  pgJumpWrap: { minWidth: 128, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  pgJumpBtn: { background: 'none', border: 0, padding: 0, cursor: 'pointer', fontFamily: 'inherit', lineHeight: 1 },
+  pgJumpInput: { width: 96, height: 32, boxSizing: 'border-box', textAlign: 'center', fontSize: 16, fontWeight: 600, fontFamily: 'inherit', color: 'var(--ink)', background: 'var(--page)', border: '1px solid var(--line)', borderRadius: 10, padding: 0, direction: 'rtl' },
   memContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', direction: 'rtl' },
   memHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
   memTitle: { fontSize: 18, fontWeight: 800, color: 'var(--white)', letterSpacing: '0.3px' },
