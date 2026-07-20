@@ -3738,6 +3738,7 @@ function App() {
       localStorage.removeItem('child_profile');
       localStorage.removeItem('messages');
       localStorage.removeItem('directConvoLocked');
+      localStorage.removeItem(MUSHAF_POS_KEY);
       setDirectConvoLocked(false);
       setProfile(null);
       setMessages([]);
@@ -4961,9 +4962,30 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
   return <div ref={ref} style={s.pgPage}>{out}</div>;
 }
 
+// Session 51 -- last read position in the mushaf. One flat device key: the child profile
+// carries no stable identifier, and adding one for this feature is out of scope. The key is
+// cleared alongside the other three in resetAll, so a wiped profile inherits no position.
+const MUSHAF_POS_KEY = 'mushaf_pos_v1';
+// Returns null on the slightest doubt -- missing key, damaged JSON, non-integer or
+// out-of-range page or surah -- and never surfaces an error to the reader.
+function readMushafPos() {
+  try {
+    const raw = localStorage.getItem(MUSHAF_POS_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (!o || typeof o !== 'object') return null;
+    if (!Number.isInteger(o.p) || o.p < 1 || o.p > 604) return null;
+    if (!Number.isInteger(o.s) || o.s < 1 || o.s > 114) return null;
+    return { p: o.p, s: o.s };
+  } catch (e) { return null; }
+}
+function writeMushafPos(pg, sr) {
+  try { localStorage.setItem(MUSHAF_POS_KEY, JSON.stringify({ p: pg, s: sr })); } catch (e) {}
+}
+
 // القارئ المُصفَّح — صفحةٌ لكلّ شاشة، ٦٠٤ صفحة، بأسطر مصحف المدينة.
 // الاتّجاه: المصحفُ يُقلب من اليسار إلى اليمين، فجرُّ الورقة يميناً يكشف التالية.
-function PagedMushaf({ startSurah, onExit }) {
+function PagedMushaf({ startSurah, startPage, onExit }) {
   const [state, setState] = useState('loading');   // loading | ok | fail
   const [page, setPage] = useState(1);
   const [drag, setDrag] = useState(0);
@@ -4979,14 +5001,28 @@ function PagedMushaf({ startSurah, onExit }) {
       .then(() => {
         if (!alive) return;
         idx.current = buildLayoutIndex();
-        setPage(idx.current.startPage[startSurah] || 1);
+        setPage(startPage || idx.current.startPage[startSurah] || 1);
         setState('ok');
       })
       .catch(() => { if (alive) setState('fail'); });
     return () => { alive = false; };
-  }, [startSurah]);
+  }, [startSurah, startPage]);
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  // Session 51 -- one central write point. Drag, prev, next and the programmatic jump all
+  // land on `page`, so no button carries a copy of this logic. A commit outside 1..604 sets
+  // eff = 0, so `page` never moves and nothing is written: the no-save-on-failed-turn rule
+  // holds by construction. A blocked localStorage cannot break the pager -- the write is
+  // wrapped and its failure is silent.
+  const lastPos = useRef('');
+  useEffect(() => {
+    if (state !== 'ok') return;
+    const sig = page + ':' + startSurah;
+    if (sig === lastPos.current) return;
+    lastPos.current = sig;
+    writeMushafPos(page, startSurah);
+  }, [page, state]);
 
   if (state !== 'ok') {
     return (
@@ -5088,6 +5124,7 @@ function PagedMushaf({ startSurah, onExit }) {
 function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio }) {
   const [ready, setReady] = useState(!!__quranData);
   const [counts, setCounts] = useState(null);       // { [surah]: ayahCount } -- ONE pass
+  const [resume, setResume] = useState(null);       // Session 51 -- validated saved position, consumed once
   // خطأ ٤٦: `selected` (السورة المفتوحة) رُفعت إلى App لتُقشَر بزر الرجوع؛ تصل عبر props بلا تغيير سلوك
 
   useEffect(() => {
@@ -5107,15 +5144,23 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
     return () => { alive = false; };
   }, []);
 
+  // Session 51 -- restore the last read page. A valid stored position opens the pager straight
+  // at that page (via `selected`, so the back button still peels back to the index). Anything
+  // else leaves the index exactly as it behaved before this commit.
+  useEffect(() => {
+    const pos = readMushafPos();
+    if (pos) { setResume(pos); setSelected(pos.s); }
+  }, []);
+
   // Leaving the screen must silence a running recitation.
   useEffect(() => () => { if (onStopAudio) onStopAudio(); }, []);
 
-  const leaveSurah = () => { if (onStopAudio) onStopAudio(); setSelected(null); };
+  const leaveSurah = () => { if (onStopAudio) onStopAudio(); setResume(null); setSelected(null); };
   const leaveScreen = () => { if (onStopAudio) onStopAudio(); onBack(); };
 
   // 14.2 — الفهرس يفتح على صفحة السورة في المصحف المُصفَّح.
   // SurahCard انسحبت من هنا وبقيت في المحادثة، حيث وُلدت — ومعها قِشرتها.
-  if (selected) return <PagedMushaf startSurah={selected} onExit={leaveSurah} />;
+  if (selected) return <PagedMushaf startSurah={selected} startPage={resume && resume.s === selected ? resume.p : null} onExit={leaveSurah} />;
 
   return (
     <div style={s.memContainer}>
