@@ -5795,10 +5795,10 @@ const s = {
   pgStrip: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, willChange: 'transform', direction: 'ltr' },
   pgSlot: { position: 'absolute', top: 0, bottom: 0, width: '100%', boxSizing: 'border-box', padding: '10px 10px 4px', direction: 'rtl' },
   // maxWidth — صفحةُ المصحف لها نسبةٌ. بلا سقفٍ تتمدّد على الشاشة العريضة فتصير شريطاً.
-  pgPage: { height: '100%', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', background: 'var(--white)', border: '1px solid var(--red-lift)', borderRadius: 6, boxShadow: '0 0 0 3px var(--white), 0 0 0 4px var(--red-deep)', padding: '12px 14px', overflow: 'hidden', direction: 'rtl' },
+  pgPage: { height: '100%', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: 'var(--white)', border: '1px solid var(--red-lift)', borderRadius: 6, boxShadow: '0 0 0 3px var(--white), 0 0 0 4px var(--red-deep)', padding: '12px 14px 20px', overflow: 'hidden', direction: 'rtl' },
   // 51 -- the frame wrapper carries the ornaments so pgPage's child count stays exact.
   pgFrame: { position: 'relative', height: '100%', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' },
-  pgMedal: { position: 'absolute', left: '50%', bottom: 1, transform: 'translateX(-50%)', width: 22, height: 22, boxSizing: 'border-box', borderRadius: '50%', border: '1px solid var(--red-lift)', background: 'var(--white)', color: 'var(--red-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, pointerEvents: 'none' },
+  pgMedal: { position: 'absolute', left: '50%', bottom: 4, transform: 'translateX(-50%)', color: 'var(--red-deep)', fontSize: 11, fontWeight: 700, lineHeight: 1, pointerEvents: 'none' },
   // السطر: عنصرُ flex أفقيّ. space-between يفرد ما بين الكلمات فيمتدّ من حافةٍ لحافة.
   // fontSize و gap يُحقنان في الرسم — يُشتقّان من قياس أعرضِ سطرٍ في الصفحة.
   pgLine: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', width: '100%', direction: 'rtl', fontFamily: "'Amiri Quran', 'Amiri', serif", lineHeight: PG_LINE_H, color: 'var(--ink)', whiteSpace: 'nowrap' },
