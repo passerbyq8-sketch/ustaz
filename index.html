@@ -4861,49 +4861,84 @@ const MEM = {
 /* 14.2f2 */
 // ضبطُ السطر — وهو ما يجعل الصفحة مصحفاً لا نصّاً.
 // كلُّ كلمةٍ عنصرُ flex مستقلّ، و justify-content:space-between يفرد ما بينها حتى
-// يمتدّ السطرُ من حافةٍ لحافة. ثمّ نقيس أعرضَ سطرٍ في الصفحة ونشتقّ منه حجمَ خطٍّ
-// واحداً يجعله يفي بالضبط — فيبقى الخطّ موحّداً عبر الصفحة (كالمصحف)، ولا يلتفّ
-// سطرٌ أبداً، ولا يُقصّ حرف. القياس يجري قبل الرسم (useLayoutEffect) فلا تُرى قفزة.
-// ولو فشل القياس لأيّ سبب، نرسم بحجم الأساس — مقروءاً. لا نُخفي المصحف أبداً.
+// يمتدّ السطرُ من حافةٍ لحافة. وكان لنا حجمٌ واحدٌ للصفحة يُقاس بأضيقِ سطرٍ فيها،
+// فيَنقُص ما سواه عن عرضه ويُملأ الفارقُ فراغاً. الآن لكلِّ سطرٍ حجمُه: يفي بعرضه
+// بحروفه لا بفراغه، والتفاوتُ بين أسطر الصفحة محصورٌ بـ+١٨٪ فوق أصغرها — فلا
+// يصغر سطرٌ عمّا كان، ولا تتبعثر الصفحة. ولا يلتفّ سطرٌ أبداً، ولا يُقصّ حرف.
+// القياس يجري قبل الرسم (useLayoutEffect) فلا تُرى قفزة. ولو فشل القياس لأيّ
+// سبب، نرسم بحجم الأساس — مقروءاً. لا نُخفي المصحف أبداً.
 const PG_BASE_FS = 22;    // حجمُ القياس. النتيجة تُشتقّ منه ولا يُستعمل كما هو.
 const PG_GAP_EM = 0.22;   // أدنى فجوةٍ بين كلمتين، نسبةً للخطّ (تكبر وتصغر معه)
 const PG_LINE_H = 1.75;   // ارتفاعُ السطر. يدخل في حساب السقف الرأسيّ وفي النمط معاً.
 
 function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
   const ref = useRef(null);
-  const [fs, setFs] = useState(0);   // 0 = لم يُقَس بعد
+  const [fit, setFit] = useState(null);   // null = لم يُقَس بعد
 
   React.useLayoutEffect(() => {
-    if (fs) return;
+    if (fit) return;
     const el = ref.current;
     if (!el) return;
-    // (أ) سقفٌ بالعرض: أضيقُ نسبةٍ عبر الأسطر هي السطرُ الأعرض — وهو الذي يحكم.
-    // نقيس بمجموع عرض الكلمات لا بـ scrollWidth: دلالةُ الأخير تتلوّن بالاتّجاه.
-    let ratio = Infinity;
+    // (أ) لكلِّ سطرٍ نسبتُه وحدَه — ولا نأخذ أضيقَها كما كنّا. نقيس بمجموع عرض
+    // الكلمات لا بـ scrollWidth: دلالةُ الأخير تتلوّن بالاتّجاه.
+    const fill = {};                 // فهرسُ السطر ← الحجمُ الذي يملأ عرضَه بحروفه
+    let minFill = Infinity;
     const rows = el.querySelectorAll('[data-l]');
     for (let r = 0; r < rows.length; r++) {
       const row = rows[r];
       const box = row.clientWidth;
       const kids = row.children;
-      if (!box || !kids.length) continue;
+      if (!box || !kids.length) continue;   // عجز قياسُه ← يرث أصغرَ حجمٍ في الصفحة
       let content = 0;
       for (let k = 0; k < kids.length; k++) content += kids[k].offsetWidth;
       content += (kids.length - 1) * (PG_BASE_FS * PG_GAP_EM);
-      if (content > 0) ratio = Math.min(ratio, box / content);
+      if (!(content > 0)) continue;
+      const f = PG_BASE_FS * (box / content);
+      fill[row.getAttribute('data-l')] = f;
+      if (f < minFill) minFill = f;
     }
-    if (!isFinite(ratio) || !(ratio > 0)) return;      // القياس فشل ← ابقَ على الأساس
-    const byWidth = PG_BASE_FS * ratio;
-    // (ب) سقفٌ بالارتفاع: أسطرُ الصفحة لازم تسع فيها. بلا هذا القيد يكبر الخطّ على
-    // شاشةٍ عريضةٍ قصيرة حتى يفيض آخرُ سطرٍ تحت الحافة — ويُقصّ من غير أن يُرى.
-    // el.children.length لا page.l.length — الصفحة قد تحمل سطراً أو سطرين نحقنهما
-    // نحن (رأس/بسملة أسقطهما المصدر). العدُّ من الـDOM يقيس ما رُسم فعلاً.
-    const byHeight = el.clientHeight / ((el.children.length || page.l.length) * PG_LINE_H * 1.06);
-    // الأرضيّة ٨: أعرضُ سطرٍ في المصحف (صفحة ٥٧٩) يحتاج نحو ١٠px على جوّالٍ
-    // عرضُه ٣٢٠px. أرضيّةٌ ترفع الحجم فوق ما يسع = قصُّ حرفٍ من القرآن. لا.
-    setFs(Math.max(8, Math.min(40, Math.floor(Math.min(byWidth, byHeight) * 0.99))));
-  }, [fs]);
+    if (!isFinite(minFill) || !(minFill > 0)) return;   // لم يُقَس سطرٌ واحد ← ابقَ على الأساس
+    // (ب) minFill هو حجمُ الأمس بعينه: أضيقُ نسبةٍ عبر الأسطر. فهو أرضيّةُ الصفحة —
+    // لا سطرَ يصغر عنه — والسقفُ فوقه بـ١٨٪ فقط، فيبقى التفاوتُ محسوساً لا مبعثراً.
+    const cap = Math.min(40, minFill * 1.18);
+    const keys = Object.keys(fill);
+    const size = {};
+    for (let q = 0; q < keys.length; q++) size[keys[q]] = Math.min(fill[keys[q]], cap);
+    // (ج) الملاءمة الرأسيّة: مجموعُ الأسطر بأحجامها الجديدة، مضافاً إليه ارتفاعُ ما
+    // ليس سطراً (رأسٌ · بسملةٌ · فاصل) كما قيس فعلاً من الـDOM. فإن فاض عن الصفحة
+    // ضُرب كلُّ الأحجام بنسبةٍ واحدة — تصغر الصفحة معاً ولا ينكسر تناسبُها.
+    let total = 0;
+    for (let q = 0; q < keys.length; q++) total += size[keys[q]] * PG_LINE_H * 1.06;
+    const kidsPage = el.children;
+    for (let c = 0; c < kidsPage.length; c++)
+      if (!kidsPage[c].hasAttribute('data-l')) total += kidsPage[c].offsetHeight;
+    const room = el.clientHeight;
+    if (room > 0 && total > room) {
+      const k = room / total;
+      for (let q = 0; q < keys.length; q++) size[keys[q]] *= k;
+    }
+    // (د) الحصرُ الأخير لكلِّ سطر. الأرضيّة ٨: أعرضُ سطرٍ في المصحف (صفحة ٥٧٩)
+    // يحتاج نحو ١٠px على جوّالٍ عرضُه ٣٢٠px. أرضيّةٌ ترفع الحجم فوق ما يسع = قصُّ
+    // حرفٍ من القرآن. لا.
+    let least = Infinity;
+    for (let q = 0; q < keys.length; q++) {
+      size[keys[q]] = Math.max(8, Math.min(40, Math.floor(size[keys[q]] * 0.99)));
+      if (size[keys[q]] < least) least = size[keys[q]];
+    }
+    // (هـ) عرضُ السطر: من امتلأ عرضُه (٩٢٪ فأكثر بحجمه النهائيّ) يُفرد كما اليوم.
+    // ومن قصر — وهو آخرُ سطرٍ في السورة غالباً — يتوسّط بفجوته الطبيعيّة وحدها،
+    // وذاك صنيعُ المصحف المطبوع. النسبةُ size/fill لأنّ المحتوى يكبر مع الحجم خطّيّاً.
+    const spread = {};
+    for (let q = 0; q < keys.length; q++) spread[keys[q]] = (size[keys[q]] / fill[keys[q]]) >= 0.92;
+    // البسملةُ تتبع وسيطَ الصفحة لا سطراً بعينه — فلا يجرّها سطرٌ شاذٌّ طولاً أو قصراً.
+    const sorted = keys.map((q) => size[q]).sort((a, b) => a - b);
+    const n = sorted.length;
+    const mid = n ? (n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2) : PG_BASE_FS;
+    setFit({ size, spread, least: isFinite(least) ? least : PG_BASE_FS, basmala: Math.round(mid * 0.92) });
+  }, [fit]);
 
-  const size = fs || PG_BASE_FS;
+  // قبل القياس تُرسم الصفحة كلُّها بحجم الأساس مفرودةً — وهي حالةُ القياس نفسها.
+  const basmalaFs = fit ? fit.basmala : Math.round(PG_BASE_FS * 0.92);
   const out = [];
   const done = {};   /* 14.2f4 */  // رأسٌ حُقن لهذه السورة على هذه الصفحة — فلا يُحقن مرّتين
   for (let i = 0; i < page.l.length; i++) {
@@ -4920,7 +4955,7 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
           out.push(<div key={'h' + i} style={s.pgHeader}>{'سُورَةُ ' + SURAH_NAMES[sn0]}</div>);
         }
         if (needBasmala && needBasmala[sn0])
-          out.push(<div key={'b' + i} style={{ ...s.pgBasmala, fontSize: Math.round(size * 0.92) }}>{getVerseText(1, 1) || ''}</div>);
+          out.push(<div key={'b' + i} style={{ ...s.pgBasmala, fontSize: basmalaFs }}>{getVerseText(1, 1) || ''}</div>);
       }
       const parts = [];
       for (const loc of ln.w) {
@@ -4932,8 +4967,9 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
         parts.push(w);
         if (wi === words.length) parts.push('۝' + toArabicDigits(an));  // آخرُ كلمةٍ ← رقمُ الآية
       }
+      const lfs = fit ? (fit.size[i] !== undefined ? fit.size[i] : fit.least) : PG_BASE_FS;
       out.push(
-        <div key={i} data-l="1" style={{ ...s.pgLine, fontSize: size, gap: PG_GAP_EM + 'em' }}>
+        <div key={i} data-l={i} style={{ ...s.pgLine, fontSize: lfs, gap: PG_GAP_EM + 'em', justifyContent: fit && !fit.spread[i] ? 'center' : 'space-between' }}>
           {parts.map((p, j) => <span key={j} style={s.pgWord}>{p}</span>)}
         </div>
       );
@@ -4957,7 +4993,7 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
         out.push(<div key={'h' + i} style={s.pgHeader}>{'سُورَةُ ' + SURAH_NAMES[sb]}</div>);
       }
       // البسملة من getVerseText(1,1) — لا نكتب نصّاً قرآنياً بيدنا أبداً.
-      out.push(<div key={i} style={{ ...s.pgBasmala, fontSize: Math.round(size * 0.92) }}>{getVerseText(1, 1) || ''}</div>);
+      out.push(<div key={i} style={{ ...s.pgBasmala, fontSize: basmalaFs }}>{getVerseText(1, 1) || ''}</div>);
     }
   }
   return <div ref={ref} style={s.pgPage}>{out}</div>;
