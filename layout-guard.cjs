@@ -46,13 +46,27 @@ const QURAN_SHA =
 
 // Byte-sha of the layout asset as emitted and proven. Catches a silent swap.
 const LAYOUT_SHA =
-  '52aaafeafdfd2993d8c54b78211fbf2399bc24ae9627892cd38597e87400e90f';
+  'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351';
 
 const N_PAGES = 604;
 const N_AYAT = 6236;
 const N_SURAHS = 114;
 const N_SLOTS = 77429;
-const N_LINES = 9040;
+
+/* 9046 = 602 pages of 15 lines + pages 1 and 2 of 8.
+ *
+ * This was 9040 while the layout came from zonetecde/mushaf-layout, which
+ * dropped three whole lines from each of pages 586 and 590 -- the surah headers
+ * for 81 (at-Takwir) and 85 (al-Buruj), their bismillahs, and the text line
+ * closing the surah before. Two surahs therefore had no header line at all, and
+ * index.html had to synthesise them at render time.
+ *
+ * The layout now comes from the KFGQPC QCF v4 page data and every page carries
+ * its full complement of lines. This number went UP because six lines that the
+ * print has and the old source lacked came back. It is a corrected count, not a
+ * relaxed one -- it is still exact, and still fails closed.
+ */
+const N_LINES = 9046;
 
 /* THE FOUR TYPOGRAPHIC LIGATURES.
  * These are NOT defects. The Madani layout prints two words inside a single
