@@ -3738,7 +3738,8 @@ function App() {
       localStorage.removeItem('child_profile');
       localStorage.removeItem('messages');
       localStorage.removeItem('directConvoLocked');
-      localStorage.removeItem(MUSHAF_POS_KEY);
+      localStorage.removeItem(MUSHAF_BOOKMARK_KEY);
+      localStorage.removeItem('mushaf_pos_v1');   // Session 51 -- one-shot sweep of the pre-bookmark name
       setDirectConvoLocked(false);
       setProfile(null);
       setMessages([]);
@@ -4962,15 +4963,15 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
   return <div ref={ref} style={s.pgPage}>{out}</div>;
 }
 
-// Session 51 -- last read position in the mushaf. One flat device key: the child profile
+// Session 51 -- the mushaf bookmark (the thread). One flat device key: the child profile
 // carries no stable identifier, and adding one for this feature is out of scope. The key is
-// cleared alongside the other three in resetAll, so a wiped profile inherits no position.
-const MUSHAF_POS_KEY = 'mushaf_pos_v1';
+// cleared alongside the other three in resetAll, so a wiped profile inherits no bookmark.
+const MUSHAF_BOOKMARK_KEY = 'mushaf_bookmark_v1';
 // Returns null on the slightest doubt -- missing key, damaged JSON, non-integer or
 // out-of-range page or surah -- and never surfaces an error to the reader.
-function readMushafPos() {
+function readMushafBookmark() {
   try {
-    const raw = localStorage.getItem(MUSHAF_POS_KEY);
+    const raw = localStorage.getItem(MUSHAF_BOOKMARK_KEY);
     if (!raw) return null;
     const o = JSON.parse(raw);
     if (!o || typeof o !== 'object') return null;
@@ -4979,8 +4980,8 @@ function readMushafPos() {
     return { p: o.p, s: o.s };
   } catch (e) { return null; }
 }
-function writeMushafPos(pg, sr) {
-  try { localStorage.setItem(MUSHAF_POS_KEY, JSON.stringify({ p: pg, s: sr })); } catch (e) {}
+function writeMushafBookmark(pg, sr) {
+  try { localStorage.setItem(MUSHAF_BOOKMARK_KEY, JSON.stringify({ p: pg, s: sr })); } catch (e) {}
 }
 
 // القارئ المُصفَّح — صفحةٌ لكلّ شاشة، ٦٠٤ صفحة، بأسطر مصحف المدينة.
@@ -5010,19 +5011,12 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
-  // Session 51 -- one central write point. Drag, prev, next and the programmatic jump all
-  // land on `page`, so no button carries a copy of this logic. A commit outside 1..604 sets
-  // eff = 0, so `page` never moves and nothing is written: the no-save-on-failed-turn rule
-  // holds by construction. A blocked localStorage cannot break the pager -- the write is
-  // wrapped and its failure is silent.
-  const lastPos = useRef('');
-  useEffect(() => {
-    if (state !== 'ok') return;
-    const sig = page + ':' + startSurah;
-    if (sig === lastPos.current) return;
-    lastPos.current = sig;
-    writeMushafPos(page, startSurah);
-  }, [page, state]);
+  // Session 51 -- the bookmark is placed by hand and only by hand: this button is the sole
+  // writer in the file. Paging, dragging and entering a surah move nothing. `markPage` is
+  // read once at mount purely to light the button when the reader is standing on it.
+  const [markPage, setMarkPage] = useState(() => { const b = readMushafBookmark(); return b ? b.p : null; });
+  const marked = markPage === page;
+  const putMark = () => { writeMushafBookmark(page, startSurah); setMarkPage(page); };
 
   if (state !== 'ok') {
     return (
@@ -5103,7 +5097,10 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     <div style={s.memContainer}>
       <div style={s.memHeader}>
         <div style={s.memTitle}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'}</div>
-        <button onClick={onExit} style={s.memBackBtn}>السور</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button onClick={putMark} title={marked ? 'علامتك هنا' : 'ضع العلامة'} style={marked ? { ...s.memBackBtn, background: 'var(--white)', color: 'var(--red-deep)' } : s.memBackBtn}>{marked ? 'علامتك هنا' : 'ضع العلامة'}</button>
+          <button onClick={onExit} style={s.memBackBtn}>السور</button>
+        </div>
       </div>
       <div style={s.pgViewport} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
         <div style={strip} onTransitionEnd={onTransEnd}>
@@ -5124,7 +5121,13 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
 function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio }) {
   const [ready, setReady] = useState(!!__quranData);
   const [counts, setCounts] = useState(null);       // { [surah]: ayahCount } -- ONE pass
-  const [resume, setResume] = useState(null);       // Session 51 -- validated saved position, consumed once
+  // Session 51 -- the bookmark, read once. Nothing on this screen writes it; the bar only
+  // opens it or removes it. Opening goes through `selected`, the same door a surah tap uses,
+  // so the back button still peels back to the index instead of leaving the mushaf.
+  const [bookmark, setBookmark] = useState(readMushafBookmark);
+  const [openAt, setOpenAt] = useState(null);       // set only by tapping the bar
+  const openBookmark = () => { if (bookmark) { setOpenAt(bookmark); setSelected(bookmark.s); } };
+  const clearBookmark = () => { try { localStorage.removeItem(MUSHAF_BOOKMARK_KEY); } catch (e) {} setBookmark(null); };
   // خطأ ٤٦: `selected` (السورة المفتوحة) رُفعت إلى App لتُقشَر بزر الرجوع؛ تصل عبر props بلا تغيير سلوك
 
   useEffect(() => {
@@ -5144,23 +5147,20 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
     return () => { alive = false; };
   }, []);
 
-  // Session 51 -- restore the last read page. A valid stored position opens the pager straight
-  // at that page (via `selected`, so the back button still peels back to the index). Anything
-  // else leaves the index exactly as it behaved before this commit.
-  useEffect(() => {
-    const pos = readMushafPos();
-    if (pos) { setResume(pos); setSelected(pos.s); }
-  }, []);
+  // Session 51 -- MushafScreen never unmounts when a surah is left (only `selected` drops to
+  // null), so the bar would keep showing a bookmark read at mount. Re-read whenever we are back
+  // on the index -- that is the only moment the bar is about to be drawn.
+  useEffect(() => { if (selected == null) setBookmark(readMushafBookmark()); }, [selected]);
 
   // Leaving the screen must silence a running recitation.
   useEffect(() => () => { if (onStopAudio) onStopAudio(); }, []);
 
-  const leaveSurah = () => { if (onStopAudio) onStopAudio(); setResume(null); setSelected(null); };
+  const leaveSurah = () => { if (onStopAudio) onStopAudio(); setOpenAt(null); setSelected(null); };
   const leaveScreen = () => { if (onStopAudio) onStopAudio(); onBack(); };
 
   // 14.2 — الفهرس يفتح على صفحة السورة في المصحف المُصفَّح.
   // SurahCard انسحبت من هنا وبقيت في المحادثة، حيث وُلدت — ومعها قِشرتها.
-  if (selected) return <PagedMushaf startSurah={selected} startPage={resume && resume.s === selected ? resume.p : null} onExit={leaveSurah} />;
+  if (selected) return <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={leaveSurah} />;
 
   return (
     <div style={s.memContainer}>
@@ -5169,11 +5169,19 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
         <button onClick={leaveScreen} style={s.memBackBtn}>رجوع</button>
       </div>
       <div style={s.mushafBody}>
+        {bookmark && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <button onClick={openBookmark} style={{ ...s.mushafRow, flex: 1 }}>
+              <div style={s.mushafName}>علامتك · صفحة {toArabicDigits(bookmark.p)}</div>
+            </button>
+            <button onClick={clearBookmark} title="إزالة العلامة" style={{ ...s.pgNavBtn, height: 'auto' }}>×</button>
+          </div>
+        )}
         {!ready && <div style={s.mushafHint}>جارٍ تحميل المصحف…</div>}
         {ready && (
           <div style={s.mushafList}>
             {Array.from({ length: 114 }, (_, i) => i + 1).map((n) => (
-              <button key={n} onClick={() => setSelected(n)} style={s.mushafRow}>
+              <button key={n} onClick={() => { setOpenAt(null); setSelected(n); }} style={s.mushafRow}>
                 <div style={s.mushafNum}>{toArabicDigits(n)}</div>
                 <div style={s.mushafRowMain}>
                   <div style={s.mushafName}>{SURAH_NAMES[n]}</div>
