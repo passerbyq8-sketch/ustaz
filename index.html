@@ -5098,7 +5098,9 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
       <div style={s.memHeader}>
         <div style={s.memTitle}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={putMark} title={marked ? 'علامتك هنا' : 'ضع العلامة'} style={marked ? { ...s.memBackBtn, background: 'var(--white)', color: 'var(--red-deep)' } : s.memBackBtn}>{marked ? 'علامتك هنا' : 'ضع العلامة'}</button>
+          <button onClick={putMark} title={marked ? 'علامتك هنا' : 'ضع العلامة'} aria-label={marked ? 'علامتك هنا' : 'ضع العلامة'} style={{ ...s.memBackBtn, padding: '0 10px', display: 'inline-flex', alignItems: 'center', ...(marked ? { background: 'var(--white)', color: 'var(--red-deep)' } : {}) }}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill={marked ? 'var(--red)' : 'none'} stroke={marked ? 'var(--red-deep)' : 'currentColor'} strokeWidth={marked ? 1.5 : 1.8} strokeLinejoin="round" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z" /></svg>
+          </button>
           <button onClick={onExit} style={s.memBackBtn}>السور</button>
         </div>
       </div>
@@ -5172,6 +5174,7 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
         {bookmark && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <button onClick={openBookmark} style={{ ...s.mushafRow, flex: 1 }}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--red)" stroke="var(--red-deep)" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z" /></svg>
               <div style={s.mushafName}>علامتك · صفحة {toArabicDigits(bookmark.p)}</div>
             </button>
             <button onClick={clearBookmark} title="إزالة العلامة" style={{ ...s.pgNavBtn, height: 'auto' }}>×</button>
