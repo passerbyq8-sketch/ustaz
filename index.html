@@ -532,6 +532,59 @@ const buildLayoutIndex = () => {
   return __layoutIndex;
 };
 
+/* 14.3 */
+// ============================================================
+// فهرس المصحف — صفحةُ بدءٍ لكلّ سورة ولكلّ جزء.
+// ============================================================
+// أوّلُ آيةٍ في كلّ جزء هي الثابتُ الوحيد هنا. أمّا الصفحاتُ فلا تُكتب بيدٍ أبداً:
+// تُستخرَج من مواقع الكلمات كما تُستخرَج رؤوسُ السور — صفحةُ السورة أوّلُ صفحةٍ
+// تحمل «س:١:١»، وصفحةُ الجزء الصفحةُ التي تنزل فيها أوّلُ كلمةٍ من أوّلِ آياته.
+// لو سقطت واحدةٌ أو لم تتصاعد الأجزاء رجعنا بـ null: فهرسٌ بلا أرقامٍ خيرٌ من
+// فهرسٍ برقمٍ كاذب.
+const JUZ_FIRST_AYAH = {
+  1: '1:1', 2: '2:142', 3: '2:253', 4: '3:92', 5: '4:24',
+  6: '4:148', 7: '5:82', 8: '6:111', 9: '7:88', 10: '8:41',
+  11: '9:93', 12: '11:6', 13: '12:53', 14: '15:1', 15: '17:1',
+  16: '18:75', 17: '21:1', 18: '23:1', 19: '25:21', 20: '27:56',
+  21: '29:46', 22: '33:31', 23: '36:28', 24: '39:32', 25: '41:47',
+  26: '46:1', 27: '51:31', 28: '58:1', 29: '67:1', 30: '78:1',
+};
+
+// صفوفُ الفهرس مرتَّبةً: بالصفحة، ثمّ الجزءُ قبل السورة عند التساوي، ثمّ بالرقم.
+// تُبنى مرّةً واحدة — لا في كلّ رسم.
+let __mushafNav = null;
+const buildMushafNav = () => {
+  if (__mushafNav) return __mushafNav;
+  const startPage = buildLayoutIndex().startPage;
+  const wordPage = {};
+  for (const pg of __layoutData.p) for (const ln of pg.l) {
+    if (ln.t !== 't' || !ln.w) continue;
+    for (const loc of ln.w) if (!(loc in wordPage)) wordPage[loc] = pg.n;
+  }
+  const rows = [];
+  for (let sn = 1; sn <= 114; sn++) {
+    const p = startPage[sn];
+    if (!p) return null;
+    rows.push({ k: 's', n: sn, p });
+  }
+  let prev = 0;
+  for (let jz = 1; jz <= 30; jz++) {
+    const ref = JUZ_FIRST_AYAH[jz];
+    const p = wordPage[ref + ':1'];
+    if (!p || p <= prev) return null;
+    prev = p;
+    rows.push({ k: 'j', n: jz, p, s: parseInt(ref.split(':')[0], 10) });
+  }
+  if (rows.length !== 144) return null;
+  rows.sort((a, b) => a.p - b.p || (a.k === b.k ? a.n - b.n : (a.k === 'j' ? -1 : 1)));
+  __mushafNav = rows;
+  return rows;
+};
+
+// ما يُرسَم قبل وصول التخطيط: السورُ وحدها بلا رقمِ صفحة. خانةُ الرقم محجوزةٌ في
+// النمط، فلا تقفز القائمةُ حين تصل الأرقام.
+const MUSHAF_NAV_FALLBACK = Array.from({ length: 114 }, (_, i) => ({ k: 's', n: i + 1, p: 0 }));
+
 // ============================================================
 // قصّ السجلّ قبل إرساله للـ API (Sliding Window)
 // ============================================================
@@ -5338,6 +5391,8 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // so the back button still peels back to the index instead of leaving the mushaf.
   const [bookmark, setBookmark] = useState(readMushafBookmark);
   const [openAt, setOpenAt] = useState(null);       // set only by tapping the bar
+  // 14.3 — صفوفُ الفهرس (١١٤ سورة + ٣٠ جزءاً) حين يصل التخطيط، وإلّا null.
+  const [nav, setNav] = useState(__mushafNav);
   const openBookmark = () => { if (bookmark) { setOpenAt(bookmark); setSelected(bookmark.s); } };
   const clearBookmark = () => { try { localStorage.removeItem(MUSHAF_BOOKMARK_KEY); } catch (e) {} setBookmark(null); };
   // خطأ ٤٦: `selected` (السورة المفتوحة) رُفعت إلى App لتُقشَر بزر الرجوع؛ تصل عبر props بلا تغيير سلوك
@@ -5356,6 +5411,14 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
         setReady(true);
       })
       .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  // 14.3 — التخطيطُ لا يحبس الفهرس: السورُ تُرسَم فوراً بلا أرقام، ثمّ تُحقن أرقامُ
+  // الصفحات وتُدسّ صفوفُ الأجزاء حين يصل. وإن لم يصل بقيت القائمةُ كما كانت.
+  useEffect(() => {
+    let alive = true;
+    loadLayout().then(() => { if (alive) setNav(buildMushafNav()); }).catch(() => {});
     return () => { alive = false; };
   }, []);
 
@@ -5393,14 +5456,22 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
         {!ready && <div style={s.mushafHint}>جارٍ تحميل المصحف…</div>}
         {ready && (
           <div style={s.mushafList}>
-            {Array.from({ length: 114 }, (_, i) => i + 1).map((n) => (
-              <button key={n} onClick={() => { setOpenAt(null); setSelected(n); }} style={s.mushafRow}>
-                <div style={s.mushafNum}>{toArabicDigits(n)}</div>
-                <div style={s.mushafRowMain}>
-                  <div style={s.mushafName}>{SURAH_NAMES[n]}</div>
-                  <div style={s.mushafSub}>{revelationLabel(n)} · {toArabicDigits(counts && counts[n] ? counts[n] : 0)} آية</div>
-                </div>
-              </button>
+            {(nav || MUSHAF_NAV_FALLBACK).map((r) => (
+              r.k === 'j' ? (
+                <button key={'j' + r.n} onClick={() => { setOpenAt({ p: r.p, s: r.s }); setSelected(r.s); }} style={s.mushafJuzRow}>
+                  <div style={s.mushafJuzName}>الجزء {toArabicDigits(r.n)}</div>
+                  <div style={s.mushafJuzPage}>صفحة {toArabicDigits(r.p)}</div>
+                </button>
+              ) : (
+                <button key={'s' + r.n} onClick={() => { setOpenAt(null); setSelected(r.n); }} style={s.mushafRow}>
+                  <div style={s.mushafNum}>{toArabicDigits(r.n)}</div>
+                  <div style={s.mushafRowMain}>
+                    <div style={s.mushafName}>{SURAH_NAMES[r.n]}</div>
+                    <div style={s.mushafSub}>{revelationLabel(r.n)} · {toArabicDigits(counts && counts[r.n] ? counts[r.n] : 0)} آية</div>
+                  </div>
+                  <div style={s.mushafPage}>{r.p ? 'صفحة ' + toArabicDigits(r.p) : ''}</div>
+                </button>
+              )
             ))}
           </div>
         )}
@@ -5975,6 +6046,10 @@ const s = {
   mushafRowMain: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
   mushafName: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   mushafSub: { fontSize: 12, color: 'var(--muted)', fontWeight: 500 },
+  mushafPage: { flexShrink: 0, minWidth: 56, textAlign: 'left', fontSize: 11.5, fontWeight: 600, color: 'var(--muted)' },
+  mushafJuzRow: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '6px 14px', borderRadius: 'var(--radius-btn)', background: 'var(--tint)', border: 'none', cursor: 'pointer', textAlign: 'right', fontFamily: 'inherit' },
+  mushafJuzName: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--red-deep)' },
+  mushafJuzPage: { flexShrink: 0, minWidth: 56, textAlign: 'left', fontSize: 11.5, fontWeight: 600, color: 'var(--red-deep)', opacity: 0.75 },
   // 14.2f1 — النافذة والشريط ltr قسراً: موضعةٌ مطلقة بإزاحاتٍ فيزيائيّة صريحة، لا
   // ترتيبَ flex ولا جهةَ فيض — فلا يقدر direction:rtl الوارث من memContainer أن يقلبها.
   // والعربيّ يستعيد rtl داخل الخانة والصفحة، حيث يخصّه وحده.
