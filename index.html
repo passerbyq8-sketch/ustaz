@@ -4870,6 +4870,129 @@ const MEM = {
 const PG_BASE_FS = 22;    // حجمُ القياس. النتيجة تُشتقّ منه ولا يُستعمل كما هو.
 const PG_GAP_EM = 0.22;   // أدنى فجوةٍ بين كلمتين، نسبةً للخطّ (تكبر وتصغر معه)
 const PG_LINE_H = 1.75;   // ارتفاعُ السطر. يدخل في حساب السقف الرأسيّ وفي النمط معاً.
+// خطُّ المصحف في موضعٍ واحد: يستعمله النمطُ المرسوم والقياسُ الخفيّ معاً. لو افترقا
+// بحرفٍ لقِسنا خطّاً ورسمنا آخر، وسقط الثابتُ العالميّ كلُّه بصمت. لا خطَّ جديداً هنا.
+const PG_FONT = "'Amiri Quran', 'Amiri', serif";
+
+/* Session 51 -- ONE font size for all 604 pages.
+ * ---------------------------------------------------------------------------
+ * الحجمُ كان يُشتقّ من أضيق سطرٍ *داخل الصفحة الواحدة*، فاختلف من صفحةٍ لصفحة:
+ * النساء ٧٩ كبيرةٌ والتين ٥٩٧ صغيرة. والمصحفُ المطبوع حجمُه واحدٌ في الـ٦٠٤.
+ * فصار المقياسُ عالمياً: أعرضُ أسطر المصحف كلِّه تُقاس مرّةً واحدة، ومنها ثابتٌ
+ * واحد K يحكم كلَّ صفحة. القياسُ مرّةٌ لكلّ جلسةٍ (ولكلّ عرضِ حاوية)، لا مرّةً
+ * لكلّ صفحة: فتحُ صفحةٍ لا يقيس مئةً وخمسين سطراً، بل يقرأ K المخزَّن.
+ */
+const PG_CAND_N = 150;    // عددُ المرشّحين. ١٥٠ لا ٤٠: تقديرُ المحارف تقريبيٌّ للعربية
+const PG_AVG_CH = 0.5;    // عرضُ المحرف الوسطيّ بالـem — لتحويل الفجوة إلى «محارف»
+let PG_K = null;          // الثابتُ العالميّ: أكبرُ تكبيرٍ يسعه أعرضُ سطرٍ في المصحف
+let PG_K_BOX = 0;         // العرضُ الذي قيس عنده. اختلافُه ⟹ إبطالٌ وإعادةُ قياس
+let PG_K_MS = 0;          // كلفةُ القياس الأولى بالمللي ثانية — للتقرير لا للمنطق
+const PG_GUARD_PAGES = new Set();   // صفحاتٌ اضطرّ فيها حارسُ الفيض لتصغيرٍ خاصّ
+
+// العلاماتُ لا تُقدّم القلم، فلا تدخل في كلفة السطر. (الحركاتُ · الصغرى · علاماتُ الوقف)
+const pgAdvChars = (t) => {
+  let n = 0;
+  for (const ch of t) {
+    const u = ch.codePointAt(0);
+    if (!((u >= 0x064b && u <= 0x065f) || u === 0x0670 || (u >= 0x06d6 && u <= 0x06ed))) n++;
+  }
+  return n;
+};
+
+// خاناتُ السطر ← ما يُرسم فيه فعلاً. مصدرٌ واحدٌ للتصيير وللقياس معاً: لو افترقا
+// لقِسنا سطراً غيرَ الذي نرسم. كلُّ حرفٍ من __quranData وحده — لا نصَّ بأيدينا.
+const pgLineTokens = (ln) => {
+  const parts = [];
+  if (!ln || !ln.w) return parts;
+  for (const loc of ln.w) {
+    const a = loc.split(':');
+    const sn = parseInt(a[0], 10), an = parseInt(a[1], 10), wi = parseInt(a[2], 10);
+    const words = wordsOfAyah(sn, an);
+    const w = words[wi - 1];
+    if (w === undefined) continue;                 // لا يقع — ٧٧٤٢٩/٧٧٤٢٩ مبرهَنة
+    parts.push(w);
+    if (wi === words.length) parts.push('۝' + toArabicDigits(an));  // آخرُ كلمةٍ ← رقمُ الآية
+  }
+  return parts;
+};
+
+// (أ) المرشّحون — من البيانات وحدها، بلا DOM. كلفةُ السطر = محارفُه ذواتُ العرض
+// زائدَ فجواتِه محسوبةً بالمحارف. تقديرٌ تقريبيّ يُرتّب فقط؛ الحكمُ للقياس الحقيقيّ
+// بعده، ولذا نأخذ ١٥٠ لا الأعرضَ وحده: خطأُ الترتيب يُبتلع في الهامش.
+let __pgCands = null;
+const pgCandidates = () => {
+  if (__pgCands) return __pgCands;
+  if (!__layoutData || !__layoutData.p || !__quranData) return null;
+  const gapCh = PG_GAP_EM / PG_AVG_CH;
+  const all = [];
+  for (const pg of __layoutData.p) {
+    for (const ln of pg.l) {
+      if (ln.t !== 't') continue;
+      const parts = pgLineTokens(ln);
+      if (!parts.length) continue;
+      let cost = (parts.length - 1) * gapCh;
+      for (const p of parts) cost += pgAdvChars(p);
+      all.push({ cost, parts });
+    }
+  }
+  if (!all.length) return null;
+  all.sort((a, b) => b.cost - a.cost);
+  __pgCands = all.slice(0, PG_CAND_N).map((x) => x.parts);
+  return __pgCands;
+};
+
+// (ب) القياسُ الحقيقيّ — مرّةً واحدة. المرشّحون يُصيَّرون خارج الشاشة بعرض الصفحة
+// نفسِه وبأنماط السطر والكلمة نفسِها وبحجم الأساس، فيؤخذ أضيقُ نسبةٍ فيهم.
+// خارج الشاشة لا مخفيّاً بـdisplay:none — المخفيُّ لا يُقاس أصلاً.
+const pgMeasureK = (box) => {
+  if (PG_K !== null && PG_K_BOX === box) return PG_K;
+  if (!(box > 0) || typeof document === 'undefined') return null;
+  const cands = pgCandidates();
+  if (!cands) return null;
+  const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : 0;
+  const host = document.createElement('div');
+  host.setAttribute('aria-hidden', 'true');
+  host.style.cssText = 'position:absolute;left:-99999px;top:0;visibility:hidden;pointer-events:none;width:' + box + 'px;';
+  const rows = [];
+  for (let i = 0; i < cands.length; i++) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;flex-direction:row;align-items:baseline;justify-content:space-between;width:100%;direction:rtl;white-space:nowrap;line-height:' + PG_LINE_H + ';font-size:' + PG_BASE_FS + 'px;font-family:' + PG_FONT + ';';
+    const parts = cands[i];
+    for (let j = 0; j < parts.length; j++) {
+      const sp = document.createElement('span');
+      sp.style.cssText = 'flex-shrink:0;white-space:nowrap;';
+      sp.textContent = parts[j];
+      row.appendChild(sp);
+    }
+    host.appendChild(row);
+    rows.push(row);
+  }
+  document.body.appendChild(host);
+  let k = Infinity;
+  try {
+    for (let i = 0; i < rows.length; i++) {
+      const kids = rows[i].children;
+      if (!kids.length) continue;
+      let content = 0;
+      for (let j = 0; j < kids.length; j++) content += kids[j].offsetWidth;
+      content += (kids.length - 1) * (PG_BASE_FS * PG_GAP_EM);
+      if (content > 0) { const r = box / content; if (r < k) k = r; }
+    }
+  } finally {
+    if (host.parentNode) host.parentNode.removeChild(host);
+  }
+  if (!isFinite(k) || !(k > 0)) return null;
+  PG_K = k;
+  PG_K_BOX = box;
+  PG_K_MS = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : 0) - t0;
+  return k;
+};
+
+// إبطالٌ صريح: تدويرُ الشاشة (تغيّرُ العرض) أو وصولُ الخطّ بعد قياسٍ بخطٍّ بديل.
+// كلاهما يجعل K المخزَّن كذباً — والكذبُ هنا يعمّ الـ٦٠٤ لا صفحةً واحدة.
+const pgInvalidateK = () => { PG_K = null; PG_K_BOX = 0; PG_GUARD_PAGES.clear(); };
+// نافذةُ فحصٍ للمالك وحدها: قراءةٌ محضة، لا يقرأها منطقُ التطبيق ولا يتفرّع عليها.
+try { window.__mushafFit = { k: () => PG_K, box: () => PG_K_BOX, ms: () => PG_K_MS, guard: () => Array.from(PG_GUARD_PAGES) }; } catch (e) {}
 
 function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
   const ref = useRef(null);
@@ -4879,85 +5002,65 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
     if (fit) return;
     const el = ref.current;
     if (!el) return;
-    // (أ) لكلِّ سطرٍ نسبتُه وحدَه — ولا نأخذ أضيقَها كما كنّا. نقيس بمجموع عرض
-    // الكلمات لا بـ scrollWidth: دلالةُ الأخير تتلوّن بالاتّجاه.
-    const fill = {};                 // فهرسُ السطر ← الحجمُ الذي يملأ عرضَه بحروفه
-    let minFill = Infinity;
+    // (أ) عرضُ الخانة من الصفحة نفسِها، ثمّ الثابتُ العالميّ. لا يُقاس هنا سطرٌ
+    // واحدٌ لأجل الحجم: K محسوبٌ مرّةً لكلّ الجلسة، وفتحُ الصفحة يقرأه فحسب.
     const rows = el.querySelectorAll('[data-l]');
+    let box = 0;
+    for (let r = 0; r < rows.length; r++) { const b = rows[r].clientWidth; if (b > box) box = b; }
+    if (!box) return;                                  // لم تُقَس خانةٌ ← ابقَ على الأساس
+    const K = pgMeasureK(box);
+    if (K === null) return;                            // عجز القياسُ ← ابقَ على الأساس
+    // (ب) حجمٌ واحدٌ للمصحف كلِّه. الـ٠٫٩٩ هامشُ التقريب نفسُه الذي كان.
+    let uni = Math.max(8, Math.min(40, Math.floor(PG_BASE_FS * K * 0.99)));
+    // (ج) حارسُ الفيض — الثابتُ الذي لا يُخرَق. أضيقُ نسبةٍ في هذه الصفحة بعينها،
+    // مقيسةً من الـDOM لا مقدَّرة. إن كانت دون العالميّ فالسطرُ سيفيض بالعالميّ،
+    // فتُصغَّر هذه الصفحةُ وحدَها إلى ما يسعها. K لا يُمَسّ: صفحةٌ شاذّةٌ لا تحكم ٦٠٤.
+    let guard = Infinity;
     for (let r = 0; r < rows.length; r++) {
-      const row = rows[r];
-      const box = row.clientWidth;
-      const kids = row.children;
-      if (!box || !kids.length) continue;   // عجز قياسُه ← يرث أصغرَ حجمٍ في الصفحة
+      const kids = rows[r].children;
+      const b = rows[r].clientWidth;
+      if (!b || !kids.length) continue;
       let content = 0;
       for (let k = 0; k < kids.length; k++) content += kids[k].offsetWidth;
       content += (kids.length - 1) * (PG_BASE_FS * PG_GAP_EM);
       if (!(content > 0)) continue;
-      const f = PG_BASE_FS * (box / content);
-      fill[row.getAttribute('data-l')] = f;
-      if (f < minFill) minFill = f;
+      const f = PG_BASE_FS * (b / content);
+      if (f < guard) guard = f;
     }
-    if (!isFinite(minFill) || !(minFill > 0)) return;   // لم يُقَس سطرٌ واحد ← ابقَ على الأساس
-    // (ب) minFill هو حجمُ الأمس بعينه: أضيقُ نسبةٍ عبر الأسطر. فهو أرضيّةُ الصفحة —
-    // لا سطرَ يصغر عنه — والسقفُ فوقه بـ١٨٪ فقط، فيبقى التفاوتُ محسوساً لا مبعثراً.
-    const cap = Math.min(40, minFill * 1.18);
-    const keys = Object.keys(fill);
-    const size = {};
-    for (let q = 0; q < keys.length; q++) size[keys[q]] = Math.min(fill[keys[q]], cap);
-    // (ج) الملاءمة الرأسيّة: مجموعُ الأسطر بأحجامها الجديدة، مضافاً إليه ارتفاعُ ما
-    // ليس سطراً (رأسٌ · بسملةٌ · فاصل) كما قيس فعلاً من الـDOM. فإن فاض عن الصفحة
-    // ضُرب كلُّ الأحجام بنسبةٍ واحدة — تصغر الصفحة معاً ولا ينكسر تناسبُها.
-    let total = 0;
-    for (let q = 0; q < keys.length; q++) total += size[keys[q]] * PG_LINE_H * 1.06;
+    if (isFinite(guard) && guard > 0) {
+      const g = Math.max(8, Math.min(40, Math.floor(guard * 0.99)));
+      if (g < uni) { uni = g; PG_GUARD_PAGES.add(page.n); }
+    }
+    // (د) الملاءمة الرأسيّة: مجموعُ الأسطر بالحجم الواحد، مضافاً إليه ارتفاعُ ما ليس
+    // سطراً (رأسٌ · بسملةٌ · فاصل) كما قيس من الـDOM. فإن فاض ضُرب الحجمُ بنسبةٍ
+    // واحدة — والصفحةُ تصغر معاً ولا ينكسر تناسبُها.
     const kidsPage = el.children;
+    let otherH = 0;
     for (let c = 0; c < kidsPage.length; c++)
-      if (!kidsPage[c].hasAttribute('data-l')) total += kidsPage[c].offsetHeight;
+      if (!kidsPage[c].hasAttribute('data-l')) otherH += kidsPage[c].offsetHeight;
     const room = el.clientHeight;
-    if (room > 0 && total > room) {
-      const k = room / total;
-      for (let q = 0; q < keys.length; q++) size[keys[q]] *= k;
-    }
-    // (د) الحصرُ الأخير لكلِّ سطر. الأرضيّة ٨: أعرضُ سطرٍ في المصحف (صفحة ٥٧٩)
-    // يحتاج نحو ١٠px على جوّالٍ عرضُه ٣٢٠px. أرضيّةٌ ترفع الحجم فوق ما يسع = قصُّ
-    // حرفٍ من القرآن. لا.
-    let least = Infinity;
-    for (let q = 0; q < keys.length; q++) {
-      size[keys[q]] = Math.max(8, Math.min(40, Math.floor(size[keys[q]] * 0.99)));
-      if (size[keys[q]] < least) least = size[keys[q]];
-    }
-    // (هـ) عرضُ السطر: من امتلأ عرضُه (٩٢٪ فأكثر بحجمه النهائيّ) يُفرد كما اليوم.
-    // ومن قصر — وهو آخرُ سطرٍ في السورة غالباً — يتوسّط بفجوته الطبيعيّة وحدها،
-    // وذاك صنيعُ المصحف المطبوع. النسبةُ size/fill لأنّ المحتوى يكبر مع الحجم خطّيّاً.
-    const spread = {};
-    for (let q = 0; q < keys.length; q++) spread[keys[q]] = (size[keys[q]] / fill[keys[q]]) >= 0.92;
-    // (و) الفائضُ الرأسيّ. الأحجامُ أعلاه تُقاس بالعرض وحده: أعرضُ سطرٍ يفرض نحو ١٠px
-    // على شاشةٍ عرضُها ٣٦٠، فخمسةَ عشرَ سطراً لا تبلغ نصفَ طول الخانة، ويبقى الفائضُ
-    // ثابتاً في كلِّ صفحةٍ تقريباً. توزيعُه بين السطور يبعثرها، وتكويمُه فوق وتحت
-    // يترك الإطارَ خاوياً — والوجهُ استهلاكُه: يرتفع تباعدُ السطر وحدَه حتى يملأ النصُّ
-    // إطارَه. ولا يُمَسّ حجمٌ واحد، فلا يصغر سطرٌ عمّا كان ولا يكبر.
+    const total = rows.length * uni * PG_LINE_H * 1.06 + otherH;
+    if (room > 0 && total > room)
+      uni = Math.max(8, Math.min(40, Math.floor(uni * (room / total) * 0.99)));
+    // (هـ) الفائضُ الرأسيّ — كما استقرّ في c4393fe بلا تغيير في جوهره. الحجمُ يُقاس
+    // بالعرض وحده، فيبقى في الطول فائضٌ في أكثر الصفحات. توزيعُه فراغاً يبعثر السطور،
+    // وتكويمُه فوق وتحت يترك الإطارَ خاوياً — والوجهُ استهلاكُه: يرتفع تباعدُ السطر
+    // وحدَه حتى يملأ النصُّ إطارَه، ولا يُمَسّ الحجم.
     // السقفُ ١٫٥× قاطعٌ: بلا سقفٍ تنفرط الصفحةُ الشحيحة — سطران في خانةٍ كاملة —
     // إلى سطرين متباعدين لا يُقرآن نصّاً واحداً.
-    // avail يطرح حشوةَ الصفحة، بخلاف room أعلاه الذي بقي كما كان حرفاً بحرف: زيادةُ
-    // التباعد لا تصغّر سطراً، أمّا مسُّ room فيغيّر أحجامَ الصفحات الممتلئة.
+    // avail يطرح حشوةَ الصفحة، بخلاف room أعلاه: زيادةُ التباعد لا تصغّر حجماً، أمّا
+    // مسُّ room فيغيّر ما تحكم به الملاءمةُ الرأسيّة.
     let lead = PG_LINE_H;
-    let lines = 0;
-    for (let q = 0; q < keys.length; q++) lines += size[keys[q]] * PG_LINE_H * 1.06;
-    let other = 0;
-    for (let c = 0; c < kidsPage.length; c++)
-      if (!kidsPage[c].hasAttribute('data-l')) other += kidsPage[c].offsetHeight;
     let pad = 0;
     try {
       const cs = window.getComputedStyle(el);
       pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
     } catch (e) { pad = 0; }
     const avail = room - pad;
-    const textH = lines + other;
+    const textH = rows.length * uni * PG_LINE_H * 1.06 + otherH;
     if (avail > 0 && textH > 0 && textH < avail) lead = Math.min(PG_LINE_H * 1.5, PG_LINE_H * (avail / textH));
-    // البسملةُ تتبع وسيطَ الصفحة لا سطراً بعينه — فلا يجرّها سطرٌ شاذٌّ طولاً أو قصراً.
-    const sorted = keys.map((q) => size[q]).sort((a, b) => a - b);
-    const n = sorted.length;
-    const mid = n ? (n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2) : PG_BASE_FS;
-    setFit({ size, spread, lead, least: isFinite(least) ? least : PG_BASE_FS, basmala: Math.round(mid * 0.92) });
+    // البسملةُ تتبع الحجمَ الواحد — ولم يعد ثَمَّ وسيطٌ تتبعه، فالأسطرُ كلُّها سواء.
+    setFit({ uni, lead, basmala: Math.round(uni * 0.92) });
   }, [fit]);
 
   // قبل القياس تُرسم الصفحة كلُّها بحجم الأساس مفرودةً — وهي حالةُ القياس نفسها.
@@ -4980,19 +5083,13 @@ function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
         if (needBasmala && needBasmala[sn0])
           out.push(<div key={'b' + i} style={{ ...s.pgBasmala, fontSize: basmalaFs }}>{getVerseText(1, 1) || ''}</div>);
       }
-      const parts = [];
-      for (const loc of ln.w) {
-        const a = loc.split(':');
-        const sn = parseInt(a[0], 10), an = parseInt(a[1], 10), wi = parseInt(a[2], 10);
-        const words = wordsOfAyah(sn, an);
-        const w = words[wi - 1];
-        if (w === undefined) continue;                 // لا يقع — ٧٧٤٢٩/٧٧٤٢٩ مبرهَنة
-        parts.push(w);
-        if (wi === words.length) parts.push('۝' + toArabicDigits(an));  // آخرُ كلمةٍ ← رقمُ الآية
-      }
-      const lfs = fit ? (fit.size[i] !== undefined ? fit.size[i] : fit.least) : PG_BASE_FS;
+      // نفسُ الدالّة التي بها اختير المرشّحون وقيسوا — فلا يفترق المرسومُ عن المقيس.
+      const parts = pgLineTokens(ln);
+      // حجمٌ واحدٌ لكلّ سطرٍ في الصفحة، وهو نفسُه في الـ٦٠٤ إلا حيث عمل الحارس.
+      // و space-between دائماً بلا استثناء: السطرُ يمتدّ من حافةٍ لحافة كالمطبوع.
+      const lfs = fit ? fit.uni : PG_BASE_FS;
       out.push(
-        <div key={i} data-l={i} style={{ ...s.pgLine, fontSize: lfs, lineHeight: fit ? fit.lead : PG_LINE_H, gap: PG_GAP_EM + 'em', justifyContent: fit && !fit.spread[i] ? 'center' : 'space-between' }}>
+        <div key={i} data-l={i} style={{ ...s.pgLine, fontSize: lfs, lineHeight: fit ? fit.lead : PG_LINE_H, gap: PG_GAP_EM + 'em' }}>
           {parts.map((p, j) => <span key={j} style={s.pgWord}>{p}</span>)}
         </div>
       );
@@ -5089,6 +5186,25 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const idx = useRef(null);
   const touch = useRef({ x: 0, y: 0, on: false, lock: null });
   const timer = useRef(null);
+  // الثابتُ العالميّ يُبطَل في حالتين لا ثالثة، وكلتاهما تجعله كذباً يعمّ الـ٦٠٤:
+  //   • تغيّرُ عرض النافذة (تدويرُ الشاشة) — الخانةُ صارت غيرَها.
+  //   • وصولُ خطّ المصحف بعد قياسٍ جرى بخطٍّ بديل — الحروفُ صارت غيرَها.
+  // ارتفاعُ النافذة وحده لا يُبطل شيئاً: شريطُ المتصفّح يطلع وينزل فيغيّره بلا سبب.
+  // الإبطالُ يرفع epoch، وهي في مفاتيح الصفحات الثلاث، فتُعاد ملاءمتُها وحدها.
+  const [epoch, setEpoch] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    let w = window.innerWidth;
+    const redo = () => { if (!alive) return; pgInvalidateK(); setEpoch((e) => e + 1); };
+    const onResize = () => { if (window.innerWidth !== w) { w = window.innerWidth; redo(); } };
+    window.addEventListener('resize', onResize);
+    // لو كان الخطُّ حاضراً سلفاً (مخزَّناً) فلا إبطالَ ولا إعادةَ قياسٍ بلا سبب.
+    try {
+      if (document.fonts && document.fonts.ready && document.fonts.status !== 'loaded')
+        document.fonts.ready.then(redo);
+    } catch (e) {}
+    return () => { alive = false; window.removeEventListener('resize', onResize); };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -5200,9 +5316,9 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
       </div>
       <div style={s.pgViewport} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
         <div style={strip} onTransitionEnd={onTransEnd}>
-          <div style={{ ...s.pgSlot, left: '-100%' }}>{nxt && <MushafPage key={nxt.n} page={nxt} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
-          <div style={{ ...s.pgSlot, left: '0%' }}><MushafPage key={cur.n} page={cur} headerSurah={hs} needHeader={nh} needBasmala={nb} /></div>
-          <div style={{ ...s.pgSlot, left: '100%' }}>{prv && <MushafPage key={prv.n} page={prv} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
+          <div style={{ ...s.pgSlot, left: '-100%' }}>{nxt && <MushafPage key={nxt.n + ':' + epoch} page={nxt} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
+          <div style={{ ...s.pgSlot, left: '0%' }}><MushafPage key={cur.n + ':' + epoch} page={cur} headerSurah={hs} needHeader={nh} needBasmala={nb} /></div>
+          <div style={{ ...s.pgSlot, left: '100%' }}>{prv && <MushafPage key={prv.n + ':' + epoch} page={prv} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
         </div>
       </div>
       <div style={s.pgBar}>
@@ -5875,7 +5991,7 @@ const s = {
   pgMedal: { position: 'absolute', left: '50%', bottom: 4, transform: 'translateX(-50%)', color: 'var(--red-deep)', fontSize: 11, fontWeight: 700, lineHeight: 1, pointerEvents: 'none' },
   // السطر: عنصرُ flex أفقيّ. space-between يفرد ما بين الكلمات فيمتدّ من حافةٍ لحافة.
   // fontSize و gap يُحقنان في الرسم — يُشتقّان من قياس أعرضِ سطرٍ في الصفحة.
-  pgLine: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', width: '100%', direction: 'rtl', fontFamily: "'Amiri Quran', 'Amiri', serif", lineHeight: PG_LINE_H, color: 'var(--ink)', whiteSpace: 'nowrap' },
+  pgLine: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', width: '100%', direction: 'rtl', fontFamily: PG_FONT, lineHeight: PG_LINE_H, color: 'var(--ink)', whiteSpace: 'nowrap' },
   pgWord: { flexShrink: 0, whiteSpace: 'nowrap' },
   pgHeader: { fontFamily: "'Amiri', serif", fontSize: 15, fontWeight: 700, color: 'var(--red-deep)', textAlign: 'center', background: 'linear-gradient(180deg, var(--red-soft), var(--white))', borderTop: '1px solid var(--red-lift)', borderBottom: '1px solid var(--red-lift)', borderRadius: 4, padding: '3px 0', margin: '2px 0' },
   pgBasmala: { fontFamily: "'Amiri Quran', 'Amiri', serif", color: 'var(--red-deep)', direction: 'rtl', textAlign: 'center', whiteSpace: 'nowrap' },
