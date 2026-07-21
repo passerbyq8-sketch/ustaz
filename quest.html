@@ -1330,7 +1330,7 @@ const Screens = {
   startStation(rid, s) {
     let list;
     if (s.gen) list = Array.from({ length: s.size }, () => GENERATORS[s.gen](P.s.band, s.diff));
-    else list = s.list.slice();
+    else list = distinctAnswers(shuffle(Data.regionQuestions(rid)), s.size);
     Round.start({
       kind: "journey", title: Data.regions[rid].name + " — المحطّة " + ar(s.index + 1),
       list: shuffle(list), region: rid, station: s.index, onEnd: () => Screens.region(rid)
