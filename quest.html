@@ -814,17 +814,7 @@ const Q = {
 
   /* شريطُ البياناتِ فوقَ السؤال — يُظهرُ حالةَ المراجعةِ دائمًا */
   meta(q, full) {
-    const m = el("div", "qmeta");
-    m.appendChild(el("span", "tag gold", Q.label(q)));
-    if (q.cat) m.appendChild(el("span", "tag", Data.catName(q.cat)));
-    m.appendChild(el("span", "tag", DIFF_LABEL[q.diff] || ""));
-    if (full) {
-      if (q.band) m.appendChild(el("span", "tag", BAND_LABEL[q.band] || q.band));
-      if (q.id) m.appendChild(el("span", "tag", q.id));
-      if (q.src) m.appendChild(el("span", "tag" + (/يُراجَع/.test(q.src) ? " warn" : ""), q.src));
-      if (q.status && q.status !== "approved") m.appendChild(el("span", "tag warn", "مسوّدة"));
-    }
-    return m;
+    return document.createDocumentFragment();
   },
 
   /* المتن: النصُّ أو الآيةُ فقط — يُستعمَلُ في وضعِ الفِرَقِ بلا خيارات */
@@ -1149,7 +1139,6 @@ function drawHUD() {
   who.appendChild(el("div", "tiny", "المستوى " + ar(P.level())));
   lv.appendChild(who); wrap.appendChild(lv);
   wrap.appendChild(el("div", "grow"));
-  if (Data.bank.questions.some(q => q.status !== "approved")) wrap.appendChild(h("span", "pill streak", "تجربة"));
   wrap.appendChild(h("span", "pill coin", "🪙 <b>" + ar(P.s.coins) + "</b>"));
   wrap.appendChild(h("span", "pill star", "★ <b>" + ar(P.starsTotal()) + "</b>"));
   if (P.s.streak > 0) wrap.appendChild(h("span", "pill streak", "🔥 <b>" + ar(P.s.streak) + "</b>"));
@@ -1253,9 +1242,6 @@ const Screens = {
   map() {
     Nav.push(() => Screens.map());
     const v = document.createElement("div");
-    if (P.s.allowDrafts && Data.bank.questions.some(q => q.status !== "approved"))
-      v.appendChild(h("div", "notice", "<b>وضعُ التجربة:</b> البنكُ فيه أسئلةٌ غيرُ مراجَعة (<code>draft</code>). النموذجُ يعرضُها للفحصِ فقط — أطفئْ «اعرضِ المسوّدات» من الإعداداتِ قبلَ أن يلعبَ طفل."));
-
     const head = el("div", "worldhead");
     const l = document.createElement("div");
     l.appendChild(el("div", "eyebrow", "رحلةُ الكنوز"));
