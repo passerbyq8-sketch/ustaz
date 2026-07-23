@@ -125,6 +125,19 @@ function spendGateOpen() {
 const PERSIST_CONVERSATION = true; // الإنتاج: يُحفَظ/يُحمَّل ملف الطفل والمحادثة عبر localStorage — لا يُمسح عند كل فتح.
 
 // ============================================================
+// غ‑٣ — حاجزُ صوتِ الأطفال (fail-closed)
+// ============================================================
+// كلُّ مسارِ صوتٍ خارجيّ (ميكروفون + إرسالُ نطقٍ لخدمة) مقفولٌ على ملفّات الأطفال
+// (band==="young" ⇔ age<13) ما دام العلمُ مطفأً. تعذُّرُ تحديدِ العمر ⇒ مقفول.
+// التلاوةُ الجاهزة (everyayah) خارجَ الحاجز: ملفّاتٌ ثابتةٌ بلا أيّ بياناتِ طفل.
+const CHILD_VOICE_ENABLED = false;   // غ‑٣: يُفتح بتحديثٍ مقيس بعد حسم الامتثال
+const CHILD_VOICE_NOTICE = 'الميزةُ الصوتيةُ للأطفالِ قيدَ التجهيز، وستتوفّرُ بعدَ اكتمالِ اختباراتِ الأمانِ والخصوصيّة.';
+// مرآةٌ على مستوى الوحدة لملفّ المستخدم. App يكتبها في اللحظة نفسها التي يكتب فيها
+// profileRef.current (تحميلُ التخزين + إنشاءُ الملفّ)، فيقرؤها الحاجزُ من App ومن
+// MemorizeScreen معاً — وprofileRef داخلُ App فلا تراه المكوّناتُ الأخرى. تبدأ null ⇒ مقفولة.
+const voiceProfileRef = { current: null };
+
+// ============================================================
 // خريطة أسماء السور → أرقامها (لبناء رابط تلاوة everyayah)
 // ============================================================
 // الاسم للعرض، والرقم لبناء رابط MP3 (everyayah.com / الحُصري 64kbps).
@@ -986,6 +999,29 @@ function deriveCaps(age) {
     upload:   band !== 'young',   // hidden for young by BAND (no parent override)
     export:   band !== 'young',   // preserves current >=11 behavior exactly
   };
+}
+
+// ============================================================
+// childVoiceBlocked — الحكمُ الوحيدُ لحاجزِ صوتِ الأطفال (غ‑٣). fail-closed:
+// لا ملفّ / ملفٌّ تالف / رميةُ استثناء ⇒ مقفول. يقرأ المرآةَ لا حالةَ الرسم،
+// كي لا يُفتحَ الميكروفونُ في دورةٍ يكون فيها profile ما يزال بائتاً.
+// ============================================================
+function childVoiceBlocked() {
+  if (CHILD_VOICE_ENABLED) return false;
+  try {
+    const p = voiceProfileRef.current;
+    if (!p) return true;                       // fail-closed
+    return deriveCaps(p.age).band === 'young';
+  } catch (e) { return true; }                 // fail-closed
+}
+
+// تنبيهُ الحاجز — يحتذي نمطَ التنبيهات القائم (رسالةٌ غيرُ معطِّلة تُمسح بعد ٦ ثوانٍ).
+// لا يوحي بخطأ، ولا يطلب عمراً أكبر، ولا يذكر مزوّداً.
+function showChildVoiceNotice(setMsg) {
+  try {
+    setMsg(CHILD_VOICE_NOTICE);
+    setTimeout(() => { try { setMsg(''); } catch (e) {} }, 6000);
+  } catch (e) {}
 }
 
 const parseRichMessage = (text, viewerAge) => {
@@ -2484,6 +2520,7 @@ function App() {
           if (derivedAge >= 0 && derivedAge <= 120) p.age = derivedAge;
         }
         profileRef.current = p;
+        voiceProfileRef.current = p;            // غ‑٣: مرآةُ حاجزِ الصوت — تُكتب مع profileRef دائماً
         setProfile(p);
         const msgs = localStorage.getItem('messages');
         if (msgs) setMessages(JSON.parse(msgs));
@@ -2620,6 +2657,11 @@ function App() {
       setInput(baseTextRef.current + transcriptRef.current + interim);
     };
     recognition.onend = () => {
+      if (childVoiceBlocked()) {                                 // غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
+        shouldListenRef.current = false;
+        setIsListening(false);
+        return;
+      }
       // Browsers end recognition periodically even in continuous mode. If the user still
       // wants to dictate, fold finalized speech into the base and restart so dictation
       // continues until the mic is tapped off. The mic NEVER sends.
@@ -2702,6 +2744,10 @@ function App() {
   const SPEAK_EMOJI_RE = /[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu;
   const fetchSpeechAudio = async (rawText, myId) => {
     if (!spendGateRef.current) return null;                      // قفل الإنفاق مغلق ⇐ لا نداءَ tashkeel/tts
+    if (childVoiceBlocked()) {                                   // غ‑٣: لا إرسالَ نصٍّ لأيّ خدمةِ نطقٍ من ملفّ طفل
+      showChildVoiceNotice(setVoiceError);                       // فشلٌ آمنٌ بلا صوت — ولا زرٌّ أخرس
+      return null;
+    }
     const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
     // إزالة الوسوم وتحويلها لنص طبيعي للنطق (الآية محذوفة هنا — تُتلى لا تُنطق)
     const ttsText = formatForTTS(rawText);
@@ -3154,6 +3200,10 @@ function App() {
   };
 
   const startListening = async () => {
+    if (childVoiceBlocked()) {                                   // غ‑٣: لا getUserMedia ولا recognition.start
+      showChildVoiceNotice(setVoiceError);
+      return;
+    }
     if (!recognitionRef.current) {
       setVoiceError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
       setTimeout(() => setVoiceError(''), 6000);
@@ -3193,6 +3243,7 @@ function App() {
     const birthYear = new Date().getFullYear() - (parseInt(age, 10) || 0);
     const p = { name, age, gender, birthYear, createdAt: new Date().toISOString() };
     profileRef.current = p;
+    voiceProfileRef.current = p;                // غ‑٣: مرآةُ حاجزِ الصوت — قبل أيّ نطقٍ أو تحيّة
     setProfile(p);
     setScreen('home');
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
@@ -3570,6 +3621,7 @@ function App() {
   // the silence self-close re-arm passes false so silence keeps counting toward the auto-end.
   const startCallListening = (armIdleClock = true) => {
     if (callMutedRef.current) return; // muted = do not listen
+    if (childVoiceBlocked()) return; // غ‑٣: مقفول ⇒ لا فتحَ ميكروفونٍ (صامت — التنبيهُ يظهر بدل الشاشة)
     const rec = callRecognitionRef.current;
     if (!rec) return;
     callTranscriptRef.current = '';
@@ -3637,6 +3689,7 @@ function App() {
     if (callGenRef.current !== myGen) return;                   // End/exit or session change during playback → do NOT re-arm
     if (callActiveRef.current) return;                          // a manual interrupt already re-opened the mic → don't double-arm
     if (callMutedRef.current) { setCallState('idle'); return; } // muted → idle; user re-arms manually
+    if (childVoiceBlocked()) { setCallState('idle'); return; }   // غ‑٣: لا إعادةَ تسليحٍ بعد الحجب
     startCallListening();                                       // continuous: reopen the mic for the next turn
   };
 
@@ -3680,6 +3733,7 @@ function App() {
   // On exit: stop recognition, clear the timer, abort any in-flight turn, and stop audio.
   useEffect(() => {
     if (screen !== 'call') return;
+    if (childVoiceBlocked()) return; // غ‑٣: لا يُبنى معرِّفُ كلامٍ أصلاً — الرسمُ يعرض التنبيهَ بدل الشاشة
     callGenRef.current++; // ENTER: open a new call session (invalidates any stale continuation)
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
@@ -3737,11 +3791,17 @@ function App() {
       // The CLIENT-OWNED silence timer is the SOLE turn-ender. onend only RESTARTS the recognizer,
       // carrying this session's transcript into callBaseTextRef first (the proven dictation pattern).
       if (!callActiveRef.current) return;                  // turn already ended, or call exited
+      if (childVoiceBlocked()) {                         // غ‑٣: لا إعادةَ تشغيلٍ بعد الحجب — أوقفِ الحلقة
+        callActiveRef.current = false;
+        setCallState('idle');
+        return;
+      }
       callBaseTextRef.current = (callBaseTextRef.current + ' ' + callTranscriptRef.current).trim();
       callTranscriptRef.current = '';                      // new SR session => results[] restarts at 0
       // DO NOT clear silenceTimerRef here. It is the only turn-ender and must survive the restart.
       const genAtEnd = callGenRef.current;
       const tryStart = (attempt) => {
+        if (childVoiceBlocked()) return;                 // غ‑٣: الحجبُ يقطع محاولاتِ إعادةِ التشغيل الخمس
         if (callGenRef.current !== genAtEnd) return;       // call ended/changed
         if (!callActiveRef.current) return;                // turn ended during the gap
         try { rec.start(); }
@@ -3795,6 +3855,7 @@ function App() {
       localStorage.removeItem('mushaf_pos_v1');   // Session 51 -- one-shot sweep of the pre-bookmark name
       setDirectConvoLocked(false);
       setProfile(null);
+      voiceProfileRef.current = null;           // غ‑٣: حذفُ البيانات يُعيد الحاجزَ إلى المقفول
       setMessages([]);
       setScreen('onboarding');
     }
@@ -3813,6 +3874,8 @@ function App() {
   if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => setScreen('parentGate')} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
+  // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
+  if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice onBack={() => setScreen('chat')} />;
   if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
   // المحفّظ — full screen (mirrors CallScreen). Husary playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
@@ -4635,6 +4698,21 @@ function DisclosureGate({ onAck }) {
         <div style={s.onboardingTitle}>قبل أن نبدأ</div>
         <div style={{ ...s.onboardingSubtitle, lineHeight: 1.9, marginBottom: 20 }}>المربّي مساعدٌ يعمل بالذكاء الاصطناعيّ. ليس عالِمًا ولا شيخًا، وقد يُخطئ في المعلومة وفي الحكم الشرعيّ. اجعله مُعينًا لا مرجعًا — والمرجعُ أهلُ العلم.</div>
         <button onClick={onAck} style={s.primaryBtn}>فهمت</button>
+      </div>
+    </div>
+  );
+}
+
+// غ‑٣ — بديلُ شاشةِ المكالمة حين يكون الصوتُ مقفولاً. يحتذي شكلَ DisclosureGate بالضبط:
+// رموزُ التنسيق القائمة فقط، بلا أيّ لونٍ جديد. نصٌّ واحدٌ ثابت + زرُّ رجوعٍ ظاهر.
+function ChildVoiceNotice({ onBack }) {
+  return (
+    <div style={s.onboardingContainer}>
+      <div style={s.onboardingCard}>
+        <div style={s.bigEmoji}>🔈</div>
+        <div style={s.onboardingTitle}>الصوتُ قيدَ التجهيز</div>
+        <div style={{ ...s.onboardingSubtitle, lineHeight: 1.9, marginBottom: 20 }}>{CHILD_VOICE_NOTICE}</div>
+        <button onClick={onBack} style={s.primaryBtn}>رجوع</button>
       </div>
     </div>
   );
@@ -5633,6 +5711,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   };
 
   const startRecite = () => {
+    if (childVoiceBlocked()) { setReciteErr(CHILD_VOICE_NOTICE); return; } // غ‑٣: لا ميكروفونَ لسمِّعني
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { setReciteErr(RECITE_NO_SR); return; } // graceful fail, same message as chat/call
     setReciteErr('');
@@ -5700,6 +5779,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     };
     rec.onend = () => {
       // Auto-restart only if this run is still current (stopRecite/unmount bumped the id otherwise).
+      if (childVoiceBlocked()) {                         // غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
+        reciteRunIdRef.current++;
+        setReciteListening(false);
+        return;
+      }
       if (reciteRunIdRef.current === myRun) { try { rec.start(); } catch (e) {} }
     };
     rec.onerror = (e) => {
