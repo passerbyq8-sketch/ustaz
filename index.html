@@ -2766,6 +2766,7 @@ function App() {
     const letterCount = (cleanText.match(/[ء-ي]/g) || []).length;
     const diacriticRatio = letterCount > 0 ? diacriticCount / letterCount : 0;
     let textForTTS = cleanText;
+    const bandForVoice = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
     if (diacriticRatio >= 0.6 || !TTS_TASHKEEL_ENABLED) {
       // النصّ مُشكَّل جيداً من Opus — نَتخطّى Haiku، نوفِّر ثانيةً كاملة
       console.log(`[المربّي] تشكيل Opus كافٍ (${Math.round(diacriticRatio * 100)}٪) — تخطّينا Haiku`);
@@ -2776,7 +2777,7 @@ function App() {
         const tashkeelResponse = await fetch('/api/tashkeel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: cleanText, gender: profileRef.current?.gender }),
+          body: JSON.stringify({ text: cleanText, gender: profileRef.current?.gender, band: bandForVoice }),
         });
         if (tashkeelResponse.ok) {
           const tashkeelData = await tashkeelResponse.json();
@@ -2799,7 +2800,7 @@ function App() {
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: spokenText, gender: profileRef.current?.gender }),
+        body: JSON.stringify({ text: spokenText, gender: profileRef.current?.gender, band: bandForVoice }),
       });
       if (!isCurrent()) return null; // أُلغِيَ أثناء جلب الصوت
       if (response.ok) {

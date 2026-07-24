@@ -38,7 +38,15 @@ export default async function handler(req, res) {
     });
   }
 
-  const { text, gender } = req.body;
+  const { text, gender, band } = req.body;
+  // Second layer -- NOT a lock. band is client-asserted, so this only raises the cost of a
+  // casual bypass; real enforcement needs server-side identity, which this product has none
+  // of by design (no accounts). Mirrors CHILD_VOICE_ENABLED=false at index.html:133 -- if
+  // that flag is ever flipped to true this guard must be removed in the SAME commit and
+  // Data Safety updated BEFORE deploy. A stale client sending no band is not blocked.
+  if (band === 'young') {
+    return res.status(403).json({ error: 'child voice disabled' });
+  }
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: 'النص مطلوب' });
   }
