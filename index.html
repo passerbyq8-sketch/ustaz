@@ -2867,27 +2867,47 @@ function App() {
     // (تطبيق أطفال يجب ألّا يُصدر صوتاً مجهولاً). عملياً الآن تكون النتيجة إمّا 'blob' أو null.
   };
 
-  // تشغيل تلاوة القارئ — awaitable: يُحَلّ {failed} عند انتهاء/خطأ/إيقاف الصوت
-  const playRecitation = (sNum, aNum, myId) => new Promise((resolve) => {
+  // تشغيل مقطعِ تلاوةٍ (mp3) على العنصر المفتوح بإيماءة المستخدم — نفس عنصر TTS (audioElRef).
+  // العطبُ عاش سنةً لأن التلاوة كانت تُنشئ new Audio() بعد await‑ات فيَنقضي التفعيلُ الصوتيّ
+  // للجوّال ويُحجَب play()، والرفضُ يُبتلع. هنا نُعيد استخدام العنصر المفتوح، ونحمي الأحداثَ
+  // البائتة بـaudioPlayTokenRef، ونُسجّل المُنهيَ في audioDoneRef كي يُنهيَه takeAudioFocus مباشرةً.
+  // لا يمرّ عبر fetchSpeechAudio ولا بوّابة TTS — التلاوة مسموحة للطفل (mp3 قارئٍ حقيقيّ).
+  const playRecitationUrl = (url, myId) => new Promise((resolve) => {
     if (myId !== undefined && myId !== sequenceIdRef.current) return resolve({ failed: false });
     takeAudioFocus();
-    const pad3 = (x) => String(x).padStart(3, '0');
-    const url = `https://everyayah.com/data/${QURAN_RECITER}/${pad3(sNum)}${pad3(aNum)}.mp3`;
-    const audio = new Audio(url);
+    const audio = audioElRef.current || (audioElRef.current = new Audio()); // العنصر المفتوح (iOS)
     audioRef.current = audio;
+    const myPlay = ++audioPlayTokenRef.current;                              // يُبطِل أحداثَ التشغيل البائتة
     let settled = false;
-    const done = (failed) => {
+    const finish = (failed) => {
       if (settled) return;
       settled = true;
+      audio.onended = null; audio.onerror = null; audio.onpause = null;
       if (audioRef.current === audio) audioRef.current = null;
+      if (audioDoneRef.current === finishExternal) audioDoneRef.current = null;
       resolve({ failed: !!failed });
     };
-    audio.onended = () => done(false);
-    audio.onerror = () => done(true);
-    audio.onpause = () => done(false); // سحب التركيز من مصدر آخر / إيقاف يدوي
+    const finishExternal = () => finish(false);   // takeAudioFocus/إيقاف خارجيّ: يُنهي المقطعَ مباشرةً
+    audioDoneRef.current = finishExternal;
+    audio.onended = () => { if (myPlay === audioPlayTokenRef.current) finish(false); };
+    audio.onerror = () => { if (myPlay === audioPlayTokenRef.current) finish(true); };
+    audio.onpause = () => { if (myPlay === audioPlayTokenRef.current) finish(false); }; // سحبُ تركيزٍ/إيقافٌ يدويّ
+    audio.src = url;
     const p = audio.play();
-    if (p && p.catch) p.catch(() => done(true));
+    if (p && p.catch) p.catch((e) => {
+      // ⛔ لا نبتلع الفشل صامتاً — نُسجّل سببَ الرفض (تفعيلٌ صوتيّ محجوب / شبكة) بدل تمريره كنجاح
+      console.warn('[المربّي] تعذّر تشغيل التلاوة:', (e && (e.name || e.message)) || e);
+      if (myPlay === audioPlayTokenRef.current) finish(true);
+    });
   });
+
+  // تشغيل تلاوة آيةٍ مفردةٍ بصوت القارئ — awaitable: يُحَلّ {failed} عند انتهاء/خطأ/إيقاف الصوت
+  const playRecitation = (sNum, aNum, myId) => {
+    if (myId !== undefined && myId !== sequenceIdRef.current) return Promise.resolve({ failed: false });
+    const pad3 = (x) => String(x).padStart(3, '0');
+    const url = `https://everyayah.com/data/${QURAN_RECITER}/${pad3(sNum)}${pad3(aNum)}.mp3`;
+    return playRecitationUrl(url, myId);
+  };
 
   // بناء تسلسل الصوت من الردّ: مقاطع كلام + تلاوات (آية مفردة <verse> أو سورة/مدى <surah>).
   // نَقسِم عند حدود <verse>/<surah> — الحديث/الخطوات تبقى داخل مقاطع الكلام (تُنطق عبر
@@ -2964,44 +2984,16 @@ function App() {
     if (!(t >= f)) return { failed: true };
     const pad3 = (x) => String(x).padStart(3, '0');
     const mkUrl = (a) => `https://everyayah.com/data/${QURAN_RECITER}/${pad3(sNum)}${pad3(a)}.mp3`;
-    const makePreload = (a) => {
-      if (a > t) return null;
-      const au = new Audio();
-      au.preload = 'auto';
-      au.src = mkUrl(a);
-      try { au.load(); } catch (e) {}
-      return au;
-    };
-    const playOne = (audio) => new Promise((res) => {
-      if (!isCurrent()) return res({ failed: false });
-      takeAudioFocus();
-      audioRef.current = audio;
-      let settled = false;
-      const done = (failed) => {
-        if (settled) return;
-        settled = true;
-        if (audioRef.current === audio) audioRef.current = null;
-        res({ failed: !!failed });
-      };
-      audio.onended = () => done(false);
-      audio.onerror = () => done(true);
-      audio.onpause = () => done(false); // سحب التركيز من مصدر آخر / إيقاف يدوي
-      const p = audio.play();
-      if (p && p.catch) p.catch(() => done(true));
-    });
+    // كلُّ آيةٍ تُشغَّل على العنصر المفتوح (playRecitationUrl) بدل new Audio() بعد await، فينجو
+    // التفعيلُ الصوتيّ للجوّال. لا عنصرَ ثانٍ يُسبَق (كان يفلت من takeAudioFocus)؛ نُسخّن كاشَ الآية
+    // التالية بجلبٍ رخيصٍ (preloadRecitation) لتبقى الفجوة صغرى. takeAudioFocus/cancelAudio يوقفان العنصر ذاته.
     let failedAny = false;
-    let cur = makePreload(f);
     for (let a = f; a <= t; a++) {
       if (!isCurrent()) break;
-      const audio = cur || makePreload(a);
-      const nextAudio = makePreload(a + 1); // حضّر التالية أثناء تشغيل الحالية → بلا فجوة
-      const res = await playOne(audio);
+      if (a + 1 <= t) preloadRecitation(sNum, a + 1);
+      const res = await playRecitationUrl(mkUrl(a), myId);
       if (res.failed) failedAny = true;
-      if (!isCurrent()) {
-        if (nextAudio) { try { nextAudio.pause(); nextAudio.src = ''; } catch (e) {} }
-        break;
-      }
-      cur = nextAudio;
+      if (!isCurrent()) break;
     }
     return { failed: failedAny };
   };
@@ -3099,8 +3091,8 @@ function App() {
   // Auto-play the recorded Hisn al-Muslim recitation for a dua/dhikr category, inline in the
   // audio sequence -- the dhikr counterpart of playSurahRecitation for a verse. Plays each
   // item's d.audio (from adhkar.json) in order, in the reciter's recorded voice (NOT Murabbi
-  // TTS). Respects cancellation (sequenceIdRef/takeAudioFocus) and reuses the same new Audio
-  // pattern as the recitation path -- no parallel player. Items without audio stay silent.
+  // TTS). Respects cancellation (sequenceIdRef/takeAudioFocus) and reuses the unlocked audio
+  // element (playRecitationUrl) -- no parallel player. Items without audio stay silent.
   const playDhikrRecitation = async (catId, myId) => {
     const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
     if (!catId) return { failed: true };
@@ -3111,28 +3103,11 @@ function App() {
     } catch (e) { return { failed: true }; }
     const urls = items.map((d) => d && d.audio).filter(Boolean);
     if (!urls.length) return { failed: false };
-    const playOne = (url) => new Promise((res) => {
-      if (!isCurrent()) return res({ failed: false });
-      takeAudioFocus();
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      let settled = false;
-      const done = (failed) => {
-        if (settled) return;
-        settled = true;
-        if (audioRef.current === audio) audioRef.current = null;
-        res({ failed: !!failed });
-      };
-      audio.onended = () => done(false);
-      audio.onerror = () => done(true);
-      audio.onpause = () => done(false);
-      const p = audio.play();
-      if (p && p.catch) p.catch(() => done(true));
-    });
+    // كلُّ ذِكرٍ يُشغَّل على العنصر المفتوح (playRecitationUrl) بدل new Audio() بعد await.
     let failedAny = false;
     for (const url of urls) {
       if (!isCurrent()) break;
-      const res = await playOne(url);
+      const res = await playRecitationUrl(url, myId);
       if (res.failed) failedAny = true;
       if (!isCurrent()) break;
     }
