@@ -14,6 +14,12 @@ lib/data/adhkar.json     text eol=lf
 # recon-audit requires bare-LF = 0 inside index.html. Pure CRLF, on every machine.
 index.html               text eol=crlf
 
+# Not measured by any guard. Pinned only so every machine agrees -- and so the local
+# bytes match what git stores and Vercel serves, which is LF for both today.
+privacy.html             text eol=lf
+sw.js                    text eol=lf
+.gitattributes           text eol=lf
+
 # Zero-newline by design (gate 5 depends on it). Git must never rewrap these.
 quran-uthmani.json       -text
 mushaf-layout.json       -text
