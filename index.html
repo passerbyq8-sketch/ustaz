@@ -3862,7 +3862,7 @@ function App() {
   if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
   // المحفّظ — full screen (mirrors CallScreen). Quran playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
-  if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('chat')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
+  if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('home')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={() => { setSelectedSurah(null); setScreen('home'); }} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'adhkar') return <AdhkarScreen onBack={() => setScreen('home')} />;
 
