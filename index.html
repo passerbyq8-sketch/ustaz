@@ -4645,7 +4645,7 @@ function TopicChips({ onTopicClick }) {
   );
 }
 
-const PARENTAL_GATE_ENABLED = false; // Session 08: gate off during testing - MUST be true before store release
+const PARENTAL_GATE_ENABLED = true; // Session 08: gate off during testing - MUST be true before store release
 function AdultGate({ a, b, onPass, onCancel }) {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState(false);
