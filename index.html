@@ -2496,6 +2496,7 @@ function App() {
   const [isCallMuted, setIsCallMuted] = useState(false);
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
+  const CALL_RESTART_GRACE_MS = 3000; // deaf window BETWEEN SR sessions - must never count as user silence
   // Layer 3 (continuous call) — anti-leak + auto-end machinery.
   const callGenRef = useRef(0);            // increments on every call ENTER and EXIT; any async continuation comparing a captured value against this ref aborts if they differ.
   const inactivityTimerRef = useRef(null); // 45s no-speech auto-end timer handle (the real loop terminator)
@@ -3781,7 +3782,15 @@ function App() {
       }
       callBaseTextRef.current = (callBaseTextRef.current + ' ' + callTranscriptRef.current).trim();
       callTranscriptRef.current = '';                      // new SR session => results[] restarts at 0
-      // DO NOT clear silenceTimerRef here. It is the only turn-ender and must survive the restart.
+      // RESTART-GAP GUARD: the recognizer is DEAF between sessions, so that window must not be
+      // counted as user silence. Re-arm the silence timer here with a longer grace deadline;
+      // the first onresult of the new session restores the normal CALL_SILENCE_MS cadence.
+      // The timer still SURVIVES the restart and stays the sole turn-ender - it only gets a fair
+      // deadline instead of counting a window in which nobody could have been heard.
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = setTimeout(() => {
+        if (callActiveRef.current && (callBaseTextRef.current + callTranscriptRef.current).trim()) endCallTurnNow();
+      }, CALL_RESTART_GRACE_MS);
       const genAtEnd = callGenRef.current;
       const tryStart = (attempt) => {
         if (childVoiceBlocked()) return;                 // غ‑٣: الحجبُ يقطع محاولاتِ إعادةِ التشغيل الخمس
