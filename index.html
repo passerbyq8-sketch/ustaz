@@ -2497,6 +2497,56 @@ function App() {
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
   const CALL_RESTART_GRACE_MS = 3000; // deaf window BETWEEN SR sessions - must never count as user silence
+  const CALL_VAD = true;                 // WebAudio VAD owns end-of-turn: SR events are DEAF between sessions
+  const VAD_SILENCE_MS = 1200;           // real acoustic silence (ms) that ends a turn
+  const VAD_RMS_ON = 0.02;               // speech energy threshold (RMS 0..1)
+  const vadOkRef = useRef(false);        // true only while a live VAD loop owns the turn-ender
+  const vadCtxRef = useRef(null);
+  const vadStreamRef = useRef(null);
+  const vadGenRef = useRef(-1);
+  const vadLastVoiceRef = useRef(0);
+  const stopVad = () => {
+    vadOkRef.current = false;
+    try { vadStreamRef.current?.getTracks().forEach((tr) => tr.stop()); } catch (e) {}
+    try { vadCtxRef.current?.close(); } catch (e) {}
+    vadStreamRef.current = null;
+    vadCtxRef.current = null;
+  };
+  // The Android recognizer is DEAF between sessions, so SR events cannot measure user silence.
+  // This loop reads microphone energy directly and is the SOLE turn-ender while it lives.
+  const ensureVad = async () => {
+    if (vadCtxRef.current) { vadGenRef.current = callGenRef.current; vadLastVoiceRef.current = Date.now(); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
+      const an = ctx.createAnalyser();
+      an.fftSize = 1024;
+      ctx.createMediaStreamSource(stream).connect(an);
+      vadStreamRef.current = stream;
+      vadCtxRef.current = ctx;
+      vadGenRef.current = callGenRef.current;
+      vadLastVoiceRef.current = Date.now();
+      vadOkRef.current = true;
+      const buf = new Uint8Array(an.fftSize);
+      const tick = () => {
+        if (!vadCtxRef.current) return;
+        if (vadGenRef.current !== callGenRef.current) { stopVad(); return; }
+        an.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+        const now = Date.now();
+        if (Math.sqrt(sum / buf.length) > VAD_RMS_ON) {
+          vadLastVoiceRef.current = now;
+          if (callActiveRef.current) armInactivityTimer();
+        } else if (callActiveRef.current && (now - vadLastVoiceRef.current) > VAD_SILENCE_MS && (callBaseTextRef.current + callTranscriptRef.current).trim()) {
+          endCallTurnNow();
+        }
+        setTimeout(tick, 100);
+      };
+      tick();
+    } catch (e) { vadOkRef.current = false; }
+  };
   // Layer 3 (continuous call) — anti-leak + auto-end machinery.
   const callGenRef = useRef(0);            // increments on every call ENTER and EXIT; any async continuation comparing a captured value against this ref aborts if they differ.
   const inactivityTimerRef = useRef(null); // 45s no-speech auto-end timer handle (the real loop terminator)
@@ -3615,6 +3665,7 @@ function App() {
     setCallState('listening');
     try {
       rec.start();
+      if (CALL_VAD) { vadLastVoiceRef.current = Date.now(); ensureVad(); }
       if (armIdleClock) armInactivityTimer();
     } catch (e) { callActiveRef.current = false; setCallState('idle'); }
   };
@@ -3767,7 +3818,7 @@ function App() {
       silenceTimerRef.current = setTimeout(() => {
         // Fire only with a non-empty transcript; silence on an empty turn keeps listening.
         if (callActiveRef.current && (callBaseTextRef.current + callTranscriptRef.current).trim()) endCallTurnNow();
-      }, CALL_SILENCE_MS);
+      }, vadOkRef.current ? 86400000 : CALL_SILENCE_MS);
     };
     rec.onend = () => {
       // Chrome owns onend and fires it on its own schedule (short Arabic pauses, engine timeouts).
@@ -3790,7 +3841,7 @@ function App() {
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = setTimeout(() => {
         if (callActiveRef.current && (callBaseTextRef.current + callTranscriptRef.current).trim()) endCallTurnNow();
-      }, CALL_RESTART_GRACE_MS);
+      }, vadOkRef.current ? 86400000 : CALL_RESTART_GRACE_MS);
       const genAtEnd = callGenRef.current;
       const tryStart = (attempt) => {
         if (childVoiceBlocked()) return;                 // غ‑٣: الحجبُ يقطع محاولاتِ إعادةِ التشغيل الخمس
