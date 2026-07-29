@@ -2497,7 +2497,7 @@ function App() {
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
   const CALL_RESTART_GRACE_MS = 3000; // deaf window BETWEEN SR sessions - must never count as user silence
-  const CALL_VAD = true;                 // WebAudio VAD owns end-of-turn: SR events are DEAF between sessions
+  const CALL_VAD = false;                // OFF: on Android, getUserMedia steals the mic from the recogniser (measured, live device)
   const VAD_SILENCE_MS = 1200;           // real acoustic silence (ms) that ends a turn
   const VAD_RMS_ON = 0.02;               // speech energy threshold (RMS 0..1)
   const vadOkRef = useRef(false);        // true only while a live VAD loop owns the turn-ender
