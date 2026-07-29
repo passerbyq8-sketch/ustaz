@@ -892,7 +892,41 @@ const stripIncompleteTags = (text) => {
 const STRIP_TASHKEEL_FOR_TTS = false;
 const TTS_TASHKEEL_ENABLED = false; // false = skip Haiku tashkeel add-call for speech (pre-diacritized canonical text unaffected); flip true to restore original behavior
 const CALL_STREAM_SPEECH = true; // false = classic (speak full reply after generation). true = stream complete prose sentences BEFORE the first tag as they arrive (first-audio latency win); tags + trailing prose still handled by buildAudioSequence at finish.
-const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
+// Tashkeel is stripped from the tutor's prose by default (the owner's call), but NEVER from a
+// Quranic span: anything between the ornate parentheses U+FD3F..U+FD3E is scripture and is left
+// byte-for-byte as it came. Everything outside them loses the harakat marks only.
+const QURAN_SPAN_RE = /\uFD3F[\s\S]*?\uFD3E/g;
+const HARAKAT_RE = /[\u064B-\u0652\u0670]/g;
+const stripTashkeelOutsideQuran = (s) => {
+  const src = s || '';
+  let out = '';
+  let last = 0;
+  let m;
+  QURAN_SPAN_RE.lastIndex = 0;
+  while ((m = QURAN_SPAN_RE.exec(src)) !== null) {
+    out += src.slice(last, m.index).replace(HARAKAT_RE, '');
+    out += m[0];
+    last = m.index + m[0].length;
+  }
+  return out + src.slice(last).replace(HARAKAT_RE, '');
+};
+const miniBtnStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 8px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', color: 'inherit', opacity: 0.7 };
+const CopyReplyButton = ({ text }) => {
+  const [done, setDone] = useState(false);
+  if (!text) return null;
+  const doCopy = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); }
+      else {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      }
+      setDone(true); setTimeout(() => setDone(false), 1500);
+    } catch (e) {}
+  };
+  return <button type="button" onClick={doCopy} aria-label={'\u0646\u0633\u062E'} style={miniBtnStyle}>{done ? '\u062A\u0645 \u0627\u0644\u0646\u0633\u062E' : '\u0646\u0633\u062E'}</button>;
+};const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 
 // تصدير محتوى HTML كملفّ Word (.doc): Word/Docs يعرضان العربيّة RTL بأنفسهما،
 // فنتخطّى مشكلة تشكيل العربيّة في توليد PDF داخل المتصفّح. (نمط تنزيل قياسيّ عبر <a download>)
@@ -2496,6 +2530,8 @@ function App() {
   const [isCallMuted, setIsCallMuted] = useState(false);
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
+  const [tashkeelOn, setTashkeelOn] = useState(() => { try { return localStorage.getItem('tashkeel_v1') === '1'; } catch (e) { return false; } });
+  const toggleTashkeel = () => setTashkeelOn((v) => { const n = !v; try { localStorage.setItem('tashkeel_v1', n ? '1' : '0'); } catch (e) {} return n; });
   const CALL_RESTART_GRACE_MS = 3000; // deaf window BETWEEN SR sessions - must never count as user silence
   const CALL_VAD = false;                // OFF: on Android, getUserMedia steals the mic from the recogniser (measured, live device)
   // ---- Path B: the app records the turn itself and transcribes it server-side (api/stt.js). ----
@@ -4133,7 +4169,7 @@ function App() {
           <TopicChips onTopicClick={(prompt) => sendMessage(prompt)} />
         )}
 
-        {messages.map((m, i) => <MessageBubble key={i} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} />)}
+        {messages.map((m, i) => <MessageBubble key={i} tashkeel={tashkeelOn} onToggleTashkeel={toggleTashkeel} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} />)}
         {streamingText !== null && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             {formatForStreamPreview(streamingText)
@@ -4290,7 +4326,7 @@ function MessageListenButton({ text, onPlayMessage, onStopAudio }) {
   );
 }
 
-function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport }) {
+function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel }) {
   const isUser = message.role === 'user';
   if (isUser) {
     const c = message.content;
@@ -4308,12 +4344,18 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
   }
   // رسالة الأستاذ: نحلّلها لاستخراج البطاقات
   const { segments, suggestions } = parseRichMessage(message.content, age);
+  const copyRaw = segments.map((sg) => {
+    if (typeof sg.content === 'string') return sg.content;
+    if (Array.isArray(sg.items)) return sg.items.join('\n');
+    return '';
+  }).filter(Boolean).join('\n\n');
+  const copyText = tashkeel ? copyRaw : stripTashkeelOutsideQuran(copyRaw);
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
       <div style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {segments.map((seg, i) => {
           if (seg.type === 'text') {
-            return <div key={i} style={s.bubbleText}>{seg.content}</div>;
+            return <div key={i} style={s.bubbleText}>{tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)}</div>;
           }
           if (seg.type === 'verse') {
             return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
@@ -4347,6 +4389,8 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
+        <CopyReplyButton text={copyText} />
+        <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>
         <button type="button" onClick={onReport} aria-label="بلّغ عن هذا الردّ" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
           <span>بلّغ</span>
