@@ -3371,12 +3371,71 @@ function App() {
     return { feed, finish };
   };
 
-  const startListening = async () => {
+  // Chat dictation goes through api/stt (Scribe) too: tap to record, tap again to transcribe.
+  // The Google engine is not used here at all -- it mishears Kuwaiti Arabic and cannot be tuned,
+  // and a round-trip proof (our own TTS -> /api/stt) came back letter-perfect. DICTATE_CLOUD=false
+  // restores the Web Speech path untouched.
+  const DICTATE_CLOUD = true;
+  const dictStreamRef = useRef(null);
+  const dictRecRef = useRef(null);
+  const dictChunksRef = useRef([]);
+  const stopDictAll = () => {
+    try { if (dictRecRef.current && dictRecRef.current.state !== 'inactive') dictRecRef.current.stop(); } catch (e) {}
+    dictRecRef.current = null;
+    try { dictStreamRef.current?.getTracks().forEach((tr) => tr.stop()); } catch (e) {}
+    dictStreamRef.current = null;
+  };
+  const startCloudDictation = async () => {
+    try {
+      dictStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      dictChunksRef.current = [];
+      const mr = new MediaRecorder(dictStreamRef.current, pickRecMime());
+      mr.ondataavailable = (e) => { if (e.data && e.data.size) dictChunksRef.current.push(e.data); };
+      dictRecRef.current = mr;
+      mr.start(250);
+      setIsListening(true);
+    } catch (e) {
+      stopDictAll();
+      setIsListening(false);
+      setVoiceError('\u0644\u0645 \u0623\u062A\u0645\u0643\u0651\u0646 \u0645\u0646 \u0641\u062A\u062D \u0627\u0644\u0645\u0627\u064A\u0643.');
+      setTimeout(() => setVoiceError(''), 6000);
+    }
+  };
+  const stopCloudDictation = async () => {
+    const mr = dictRecRef.current;
+    setIsListening(false);
+    if (!mr) { stopDictAll(); return; }
+    const blob = await new Promise((resolve) => {
+      mr.onstop = () => { try { resolve(new Blob(dictChunksRef.current, { type: mr.mimeType || 'audio/webm' })); } catch (e) { resolve(null); } };
+      try { mr.stop(); } catch (e) { resolve(null); }
+    });
+    stopDictAll();
+    if (!blob || blob.size < 1500) return;
+    const b64 = await blobToBase64(blob);
+    let text = '';
+    try {
+      const band = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
+      const r = await fetch('/api/stt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: b64, mime: blob.type, band }) });
+      if (r.ok) { const d = await r.json(); text = String(d.text || '').trim(); }
+    } catch (e) {}
+    if (!text) {
+      setVoiceError('\u0644\u0645 \u0623\u0633\u0645\u0639\u0643\u060C \u062D\u0627\u0648\u0644 \u0645\u0631\u0651\u0629\u064B \u0623\u062E\u0631\u0649.');
+      setTimeout(() => setVoiceError(''), 5000);
+      return;
+    }
+    setInput((baseTextRef.current || '') + text);
+  };  const startListening = async () => {
     if (childVoiceBlocked()) {                                   // غ‑٣: لا getUserMedia ولا recognition.start
       showChildVoiceNotice(setVoiceError);
       return;
     }
-    if (!recognitionRef.current) {
+    if (DICTATE_CLOUD) {
+      if (isSpeaking) stopSpeaking();
+      baseTextRef.current = input && !/\s$/.test(input) ? input + ' ' : input;
+      setVoiceError('');
+      await startCloudDictation();
+      return;
+    }    if (!recognitionRef.current) {
       setVoiceError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
       setTimeout(() => setVoiceError(''), 6000);
       return;
@@ -3403,6 +3462,7 @@ function App() {
   };
 
   const stopListening = () => {
+    if (DICTATE_CLOUD) { stopCloudDictation(); return; }
     // User tapped the mic off: prevent the onend auto-restart and keep the text in the box.
     shouldListenRef.current = false;
     if (recognitionRef.current) recognitionRef.current.stop();
