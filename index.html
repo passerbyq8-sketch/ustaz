@@ -2498,6 +2498,107 @@ function App() {
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
   const CALL_RESTART_GRACE_MS = 3000; // deaf window BETWEEN SR sessions - must never count as user silence
   const CALL_VAD = false;                // OFF: on Android, getUserMedia steals the mic from the recogniser (measured, live device)
+  // ---- Path B: the app records the turn itself and transcribes it server-side (api/stt.js). ----
+  // Why: on Android the Web Speech engine owns the microphone exclusively, so no client VAD can
+  // measure the user's silence, and every engine session plays Google's start/stop tone. Recording
+  // locally removes BOTH -- and the vendor key never leaves the server.
+  const CALL_STT_CLOUD = true;      // flip to false to fall straight back to the Web Speech path
+  const CLOUD_MAX_TURN_MS = 60000;  // hard cap on a single recorded turn
+  const cloudStreamRef = useRef(null);
+  const cloudChunksRef = useRef([]);
+  const mediaRecRef = useRef(null);
+  const vadAnalyserRef = useRef(null);
+  const pickRecMime = () => {
+    const cands = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+    for (let i = 0; i < cands.length; i++) {
+      try { if (window.MediaRecorder && MediaRecorder.isTypeSupported(cands[i])) return { mimeType: cands[i] }; } catch (e) {}
+    }
+    return {};
+  };
+  const blobToBase64 = (blob) => new Promise((resolve) => {
+    const fr = new FileReader();
+    fr.onloadend = () => { const s = String(fr.result || ''); const i = s.indexOf(','); resolve(i >= 0 ? s.slice(i + 1) : ''); };
+    fr.onerror = () => resolve('');
+    fr.readAsDataURL(blob);
+  });
+  const stopCloudAll = () => {
+    try { if (mediaRecRef.current && mediaRecRef.current.state !== 'inactive') mediaRecRef.current.stop(); } catch (e) {}
+    mediaRecRef.current = null;
+    try { cloudStreamRef.current?.getTracks().forEach((tr) => tr.stop()); } catch (e) {}
+    cloudStreamRef.current = null;
+    try { vadCtxRef.current?.close(); } catch (e) {}
+    vadCtxRef.current = null;
+    vadAnalyserRef.current = null;
+  };
+  const startCloudListening = async () => {
+    const myGen = callGenRef.current;
+    try {
+      if (!cloudStreamRef.current) cloudStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (callGenRef.current !== myGen) { stopCloudAll(); return; }
+      try { if (mediaRecRef.current && mediaRecRef.current.state !== 'inactive') mediaRecRef.current.stop(); } catch (e) {}
+      cloudChunksRef.current = [];
+      const mr = new MediaRecorder(cloudStreamRef.current, pickRecMime());
+      mr.ondataavailable = (e) => { if (e.data && e.data.size) cloudChunksRef.current.push(e.data); };
+      mediaRecRef.current = mr;
+      mr.start(250);
+      callActiveRef.current = true;
+      setCallState('listening');
+      if (!vadCtxRef.current) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        vadCtxRef.current = new Ctx();
+        vadAnalyserRef.current = vadCtxRef.current.createAnalyser();
+        vadAnalyserRef.current.fftSize = 1024;
+        vadCtxRef.current.createMediaStreamSource(cloudStreamRef.current).connect(vadAnalyserRef.current);
+      }
+      const an = vadAnalyserRef.current;
+      const buf = new Uint8Array(an.fftSize);
+      const startedAt = Date.now();
+      vadLastVoiceRef.current = startedAt;
+      let heard = false;
+      const tick = () => {
+        if (callGenRef.current !== myGen) { stopCloudAll(); return; }
+        if (!callActiveRef.current) return;
+        an.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+        const now = Date.now();
+        if (Math.sqrt(sum / buf.length) > VAD_RMS_ON) { vadLastVoiceRef.current = now; heard = true; armInactivityTimer(); }
+        else if (heard && (now - vadLastVoiceRef.current) > VAD_SILENCE_MS) { stopCloudTurn(); return; }
+        if (heard && (now - startedAt) > CLOUD_MAX_TURN_MS) { stopCloudTurn(); return; }
+        setTimeout(tick, 100);
+      };
+      tick();
+    } catch (e) { callActiveRef.current = false; setCallState('idle'); }
+  };
+  const stopCloudTurn = async () => {
+    if (!callActiveRef.current) return;
+    callActiveRef.current = false;
+    const myGen = callGenRef.current;
+    setCallState('thinking');
+    let blob = null;
+    const mr = mediaRecRef.current;
+    if (mr && mr.state !== 'inactive') {
+      blob = await new Promise((resolve) => {
+        mr.onstop = () => { try { resolve(new Blob(cloudChunksRef.current, { type: mr.mimeType || 'audio/webm' })); } catch (e) { resolve(null); } };
+        try { mr.stop(); } catch (e) { resolve(null); }
+      });
+    }
+    mediaRecRef.current = null;
+    if (callGenRef.current !== myGen) { stopCloudAll(); return; }
+    if (!blob || blob.size < 1500) { startCloudListening(); return; }
+    const b64 = await blobToBase64(blob);
+    if (callGenRef.current !== myGen) { stopCloudAll(); return; }
+    let text = '';
+    try {
+      const band = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
+      const r = await fetch('/api/stt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: b64, mime: blob.type, band }) });
+      if (r.ok) { const d = await r.json(); text = String(d.text || '').trim(); }
+    } catch (e) {}
+    if (callGenRef.current !== myGen) { stopCloudAll(); return; }
+    if (!text) { startCloudListening(); return; }
+    setCallHeard('');
+    if (callTurnRef.current) callTurnRef.current(text);
+  };
   const VAD_SILENCE_MS = 1200;           // real acoustic silence (ms) that ends a turn
   const VAD_RMS_ON = 0.02;               // speech energy threshold (RMS 0..1)
   const vadOkRef = useRef(false);        // true only while a live VAD loop owns the turn-ender
@@ -3659,6 +3760,16 @@ function App() {
   const startCallListening = (armIdleClock = true) => {
     if (callMutedRef.current) return; // muted = do not listen
     if (childVoiceBlocked()) return; // غ‑٣: مقفول ⇒ لا فتحَ ميكروفونٍ (صامت — التنبيهُ يظهر بدل الشاشة)
+    if (CALL_STT_CLOUD) {
+      callTranscriptRef.current = '';
+      callBaseTextRef.current = '';
+      setCallHeard('');
+      callActiveRef.current = true;
+      setCallState('listening');
+      startCloudListening();
+      if (armIdleClock) armInactivityTimer();
+      return;
+    }
     const rec = callRecognitionRef.current;
     if (!rec) return;
     callTranscriptRef.current = '';
