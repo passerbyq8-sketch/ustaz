@@ -3408,20 +3408,20 @@ function App() {
   const stopCloudDictation = async () => {
     const mr = dictRecRef.current;
     setIsListening(false);
-    if (!mr) { stopDictAll(); return; }
+    if (!mr) { stopDictAll(); setVoiceError('DBG A no-recorder'); setTimeout(() => setVoiceError(''), 8000); return; }
     const blob = await new Promise((resolve) => {
       mr.onstop = () => { try { resolve(new Blob(dictChunksRef.current, { type: mr.mimeType || 'audio/webm' })); } catch (e) { resolve(null); } };
       try { mr.stop(); } catch (e) { resolve(null); }
     });
     stopDictAll();
-    if (!blob || blob.size < 1500) return;
+    if (!blob || blob.size < 1500) { setVoiceError('DBG B bytes=' + (blob ? blob.size : -1)); setTimeout(() => setVoiceError(''), 8000); return; }
     const b64 = await blobToBase64(blob);
     let text = '';
     try {
       const band = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
       const r = await fetch('/api/stt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: b64, mime: blob.type, band }) });
-      if (r.ok) { const d = await r.json(); text = String(d.text || '').trim(); }
-    } catch (e) {}
+      if (r.ok) { const d = await r.json(); text = String(d.text || '').trim(); } else { setVoiceError('DBG C http=' + r.status); setTimeout(() => setVoiceError(''), 8000); return; }
+    } catch (e) { setVoiceError('DBG E ' + String(e && e.message).slice(0, 40)); setTimeout(() => setVoiceError(''), 8000); return; }
     if (!text) {
       setVoiceError('\u0644\u0645 \u0623\u0633\u0645\u0639\u0643\u060C \u062D\u0627\u0648\u0644 \u0645\u0631\u0651\u0629\u064B \u0623\u062E\u0631\u0649.');
       setTimeout(() => setVoiceError(''), 5000);
