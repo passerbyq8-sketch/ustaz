@@ -926,7 +926,11 @@ const CopyReplyButton = ({ text }) => {
     } catch (e) {}
   };
   return <button type="button" onClick={doCopy} aria-label={'\u0646\u0633\u062E'} style={miniBtnStyle}>{done ? '\u062A\u0645 \u0627\u0644\u0646\u0633\u062E' : '\u0646\u0633\u062E'}</button>;
-};const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
+};// The Web Speech engine ends a session on every pause and the next one starts a fresh
+// transcript. Concatenating the two halves raw welded the last word of one onto the first
+// word of the next. Every seam goes through this joiner instead.
+const joinSpeech = (a, b) => { const l = a || ''; const r = b || ''; if (!l) return r; if (!r) return l; return (/\s$/.test(l) || /^\s/.test(r)) ? l + r : l + ' ' + r; };
+const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 
 // تصدير محتوى HTML كملفّ Word (.doc): Word/Docs يعرضان العربيّة RTL بأنفسهما،
 // فنتخطّى مشكلة تشكيل العربيّة في توليد PDF داخل المتصفّح. (نمط تنزيل قياسيّ عبر <a download>)
@@ -2850,7 +2854,7 @@ function App() {
         }
       }
       transcriptRef.current = finalText;                              // REPLACE (not append) — dedupes cumulative finals
-      setInput(baseTextRef.current + transcriptRef.current + interim);
+      setInput(joinSpeech(joinSpeech(baseTextRef.current, transcriptRef.current), interim));
     };
     recognition.onend = () => {
       if (childVoiceBlocked()) {                                 // غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
@@ -2862,7 +2866,7 @@ function App() {
       // wants to dictate, fold finalized speech into the base and restart so dictation
       // continues until the mic is tapped off. The mic NEVER sends.
       if (shouldListenRef.current) {
-        baseTextRef.current = baseTextRef.current + transcriptRef.current;
+        baseTextRef.current = joinSpeech(baseTextRef.current, transcriptRef.current);
         transcriptRef.current = '';
         try {
           recognition.start();
