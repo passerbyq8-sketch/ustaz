@@ -3643,6 +3643,9 @@ function App() {
   // NOT on the silence self-close re-arm (that passes armIdleClock=false), so genuine silence
   // accumulates toward the 45s end instead of resetting on every engine self-close.
   const armInactivityTimer = () => {
+    // The idle clock runs ONLY while we are actually listening. A late SR result arriving during
+    // thinking/playback used to re-arm it, and 45s later it exited the call MID-ANSWER.
+    if (!callActiveRef.current) return;
     clearInactivityTimer();
     const genAtArm = callGenRef.current;
     inactivityTimerRef.current = setTimeout(() => {
