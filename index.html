@@ -3375,7 +3375,7 @@ function App() {
   // The Google engine is not used here at all -- it mishears Kuwaiti Arabic and cannot be tuned,
   // and a round-trip proof (our own TTS -> /api/stt) came back letter-perfect. DICTATE_CLOUD=false
   // restores the Web Speech path untouched.
-  const DICTATE_CLOUD = true;
+  const DICTATE_CLOUD = false; // OFF until the silent failure after the second tap is measured (call mode is unaffected)
   const inputElRef = useRef(null);
   // The composer grows from STATE, not from the keystroke: dictation fills it programmatically
   // and an onChange-only resize would leave a one-line box holding six lines of speech.
