@@ -41,6 +41,12 @@ build-worship-display.cjs text eol=lf
 referral-guard.cjs        text eol=lf
 classifier-guard.cjs      text eol=lf
 gates.json text eol=lf
+
+# Gate 10 (hafs-map-guard) and the correspondence map it SHA-pins. Defect 40 again:
+# the map's sha256 is asserted by the gate, so a fresh clone with core.autocrlf=true
+# would inject CR, move the hash and fail the gate on a machine that changed nothing.
+hafs-map-guard.cjs        text eol=lf
+data/mushaf-hafs-map.json text eol=lf
 build-golden-md.cjs text eol=lf
 build-mushaf-layout.cjs text eol=lf
 esc.cjs text eol=lf
