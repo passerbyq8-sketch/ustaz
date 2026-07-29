@@ -2557,7 +2557,8 @@ function App() {
       let heard = false;
       const tick = () => {
         if (callGenRef.current !== myGen) { stopCloudAll(); return; }
-        if (!callActiveRef.current) return;
+        if (!callActiveRef.current) { setTimeout(tick, 200); return; } // keep watching for the exit so the mic is always released
+        if (mediaRecRef.current !== mr) return; // a newer turn owns the audio graph now
         an.getByteTimeDomainData(buf);
         let sum = 0;
         for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
@@ -3856,6 +3857,7 @@ function App() {
         if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
         clearInactivityTimer(); // leaving listening (muted) — stop the idle clock; user re-arms manually
         try { callRecognitionRef.current?.stop(); } catch (e) {}
+        if (CALL_STT_CLOUD) stopCloudAll(); // mute must STOP capturing, not merely ignore the audio
         setCallState((csNow) => (csNow === 'listening' ? 'idle' : csNow));
       }
       return next;
