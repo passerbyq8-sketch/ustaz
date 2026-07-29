@@ -4777,8 +4777,8 @@ function Onboarding({ onStart }) {
   const canStart = !!(name.trim() && gender && ageValid);
   const requestStart = (n) => {
     if (PARENTAL_GATE_ENABLED && n >= 18) {
-      const a = 13 + Math.floor(Math.random() * 87);
-      const b = 3 + Math.floor(Math.random() * 7);
+      const a = 2 + Math.floor(Math.random() * 8);   // single digit: a parental gate must be solvable in the head, not on a calculator
+      const b = 2 + Math.floor(Math.random() * 8);
       setGate({ a, b, age: n });
     } else {
       onStart(name, n, gender);
@@ -4814,7 +4814,7 @@ function Onboarding({ onStart }) {
 function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, onBack }) {
   const hasPin = (() => { try { return !!localStorage.getItem(PIN_HASH_KEY); } catch (e) { return false; } })();
   const [adultOk, setAdultOk] = useState(false);
-  const [challenge] = useState(() => ({ a: 13 + Math.floor(Math.random() * 87), b: 3 + Math.floor(Math.random() * 7) }));
+  const [challenge] = useState(() => ({ a: 2 + Math.floor(Math.random() * 8), b: 2 + Math.floor(Math.random() * 8) })); // single digit, same as the welcome gate
   const [confirmPin, setConfirmPin] = useState('');
   const [errMsg, setErrMsg] = useState('رمز خاطئ');
   const fail = (msg) => { setErrMsg(msg); setPinError(true); setTimeout(() => setPinError(false), 1800); };
