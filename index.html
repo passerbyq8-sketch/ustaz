@@ -5497,6 +5497,26 @@ const MUSHAF_DESK = '#EDE7DB';    // the surface the page sits on, outside the f
 // The corner motif's rendered size. Its widest reach from the corner point is 6/16 of this,
 // so at 10px it reaches 3.75px -- leaving it 2.50px clear of the crop window's edge.
 const MUSHAF_CORNER_PX = 10;
+
+// Session 75/E -- ZOOM, AND IT IS CONTAINER-LOCAL. The app-wide viewport meta at line 5 is NOT
+// touched and must not be: it governs every screen in the app, and widening it to let the mushaf
+// zoom would let every other screen zoom too -- a cross-cutting change to a product in closed
+// testing. All of the magnification below is one CSS transform on one element inside the page
+// container, and it is gated by the flag like everything else in this session.
+const MUSHAF_ZOOM_K = 2.2;      // the single fixed magnification a double tap goes to
+const MUSHAF_TAP_MS = 300;      // the double-tap window
+const MUSHAF_TAP_SLOP = 32;     // how far the second tap may land from the first, in px
+
+// The pan clamp. Kept as a pure function of numbers on purpose: it is the one piece of Part E
+// with arithmetic worth getting wrong, and this way it can be lifted out of the file and tested
+// without a browser. You may pan only as far as the magnified page overflows its window, so no
+// gap can ever open at an edge and the page cannot be dragged off screen. When the page is
+// smaller than the window on an axis the limit is 0, so that axis simply does not pan.
+const mushafClampPan = (tx, ty, k, fw, fh, sw, sh) => {
+  const mx = Math.max(0, (fw * k - sw) / 2);
+  const my = Math.max(0, (fh * k - sh) / 2);
+  return { tx: Math.min(mx, Math.max(-mx, tx)), ty: Math.min(my, Math.max(-my, ty)) };
+};
 // Upstream naming, verified against 604/604 files: three digits always, 001.svg .. 604.svg.
 const mushafSvgUrl = (n) => MUSHAF_SVG_ORIGIN + '/pages/' + String(n).padStart(3, '0') + '.svg';
 
@@ -5796,7 +5816,13 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // pinned true for the life of the screen and the reader is exactly what it is today: the
   // initialiser is the only writer the fallback ever reaches, and the toggle below is gated.
   const [chromeOn, setChromeOn] = useState(!MUSHAF_SVG_ON);
+  // 75/E -- null means FIT, and fit means no transform on the element at all rather than a
+  // scale of 1. That is what makes "a second double tap returns to fit, exactly" true by
+  // construction: there is nothing left to accumulate a rounding error in.
+  const [zoom, setZoom] = useState(null);   // null | { k, tx, ty }
   const idx = useRef(null);
+  const tapRef = useRef({ t: 0, x: 0, y: 0, timer: null });
+  const slotRef = useRef(null);
   const touch = useRef({ x: 0, y: 0, on: false, lock: null });
   const timer = useRef(null);
   // الثابتُ العالميّ يُبطَل في حالتين لا ثالثة، وكلتاهما تجعله كذباً يعمّ الـ٦٠٤:
@@ -5832,7 +5858,14 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     return () => { alive = false; };
   }, [startSurah, startPage]);
 
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); if (tapRef.current.timer) clearTimeout(tapRef.current.timer); }, []);
+
+  // 75/E -- the zoom belongs to the page being looked at and never outlives it. Paging, jumping
+  // and the prev/next buttons all return to fit, so no page inherits the previous page's
+  // transform. Leaving the surah unmounts PagedMushaf outright (MushafScreen renders it only
+  // while `selected` is set, index.html:6027), so leaving the screen cannot leave a transform
+  // behind either -- the state does not survive to be restored.
+  useEffect(() => { setZoom(null); }, [page]);
 
   // Session 51 -- the bookmark is placed by hand and only by hand: this button is the sole
   // writer in the file. Paging, dragging and entering a surah move nothing. `markPage` is
@@ -5884,6 +5917,37 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const jumpTo = (n) => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setDrag(0); setAnim(false); setSlide(0); setPage(n); };
   // التطبيع: تُقبل الأرقامُ الهنديّة واللاتينيّة معاً. وما بقي بعد نزع الفراغ وليس رقماً — تُردُّ الخانةُ كلُّها.
   const jumpGo = () => { const raw = String(jump == null ? '' : jump).replace(/\s+/g, '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)); setJump(null); if (!/^[0-9]+$/.test(raw)) return; const n = parseInt(raw, 10); if (n >= 1 && n <= 604) jumpTo(n); };
+  // 75/E -- one tap recalls the chrome, two taps zoom. A single tap therefore waits out the
+  // double-tap window before it acts: without that wait, the first tap of every double tap
+  // would flash the chrome on and then off again. MUSHAF_TAP_MS is the whole price of telling
+  // the two gestures apart, and it is paid only on the single tap.
+  const onTap = (x, y) => {
+    const R = tapRef.current;
+    const now = Date.now();
+    if (R.timer && now - R.t <= MUSHAF_TAP_MS &&
+        Math.abs(x - R.x) <= MUSHAF_TAP_SLOP && Math.abs(y - R.y) <= MUSHAF_TAP_SLOP) {
+      clearTimeout(R.timer); R.timer = null; R.t = 0;
+      setZoom((z) => (z ? null : { k: MUSHAF_ZOOM_K, tx: 0, ty: 0 }));
+      return;
+    }
+    R.t = now; R.x = x; R.y = y;
+    if (R.timer) clearTimeout(R.timer);
+    R.timer = setTimeout(() => { R.timer = null; setChromeOn((v) => !v); }, MUSHAF_TAP_MS);
+  };
+  // The window the pan is clamped against: the slot's CONTENT box, and the frame's unscaled box.
+  // Both are read from the DOM rather than assumed, so a maxWidth cap or a short screen is
+  // accounted for without this code knowing about either.
+  const panBox = () => {
+    const el = slotRef.current;
+    const fr = el && el.firstElementChild;
+    if (!el || !fr) return null;
+    return {
+      sw: el.clientWidth - 2 * MUSHAF_FRAME_BAND,
+      sh: el.clientHeight - 2 * MUSHAF_FRAME_BAND,
+      fw: fr.offsetWidth, fh: fr.offsetHeight,
+    };
+  };
+
   const onStart = (e) => {
     if (slide) return;                           // ورقةٌ في الطيران — لا تلمسها
     const t = e.touches[0];
@@ -5894,6 +5958,22 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     const T = touch.current;
     if (!T.on) return;
     const t = e.touches[0];
+    // 75/E -- magnified: one finger pans, clamped, and the page flip does not get a look in.
+    // The deltas are taken incrementally and T is re-based every move, so the pan needs no
+    // separate gesture-start baseline and cannot drift away from the finger.
+    if (zoom) {
+      const b = panBox();
+      const ddx = t.clientX - T.x, ddy = t.clientY - T.y;
+      setZoom((z) => {
+        if (!z) return z;
+        if (!b) return z;
+        const p = mushafClampPan(z.tx + ddx, z.ty + ddy, z.k, b.fw, b.fh, b.sw, b.sh);
+        return { k: z.k, tx: p.tx, ty: p.ty };
+      });
+      T.x = t.clientX; T.y = t.clientY;
+      T.lock = 'z';
+      return;
+    }
     const dx = t.clientX - T.x, dy = t.clientY - T.y;
     if (T.lock === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) T.lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
     if (T.lock === 'x') setDrag(dx);
@@ -5906,7 +5986,8 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     // finger never really moved: a TAP. With the flag on, a tap recalls the chrome or hides it
     // again. This is still a still page -- it toggles our own two bars and touches nothing in
     // the sheet: no ayah tap, no highlight, no selection.
-    if (T.lock === null) { setDrag(0); if (MUSHAF_SVG_ON) setChromeOn((v) => !v); return; }
+    if (T.lock === 'z') return;                  // 75/E -- that was a pan, not a tap or a flip
+    if (T.lock === null) { setDrag(0); if (MUSHAF_SVG_ON) onTap(T.x, T.y); return; }
     if (T.lock !== 'x') { setDrag(0); return; }
     if (drag > 55) commit(1);
     else if (drag < -55) commit(-1);
@@ -5926,7 +6007,12 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // 75/D -- the warm surface the page sits on. pgViewport is SHARED with the fallback reader, so
   // the tone is applied here at the use site and the style object is left alone. Behind the page,
   // never over it: this is the background of the box the page is centred in.
-  const vpSt = MUSHAF_SVG_ON ? { ...s.pgViewport, background: MUSHAF_DESK } : s.pgViewport;
+  const vpSt = MUSHAF_SVG_ON ? { ...s.pgViewport, background: MUSHAF_DESK, ...(zoom ? { touchAction: 'none' } : {}) } : s.pgViewport;
+  // 75/E -- the whole of the zoom, and it lives on one element inside the page container. scale
+  // is rightmost so it applies FIRST, which leaves the pan in unscaled pixels and keeps the
+  // clamp arithmetic in a single unit. At fit this is null, so the style carries no transform
+  // key at all and the element is exactly what it was before the first zoom.
+  const zoomSt = zoom ? { transform: 'translate(' + zoom.tx + 'px, ' + zoom.ty + 'px) scale(' + zoom.k + ')', willChange: 'transform' } : null;
   const strip = {
     ...s.pgStrip,
     transform: 'translateX(calc(' + (slide * 100) + '% + ' + drag + 'px))',
@@ -5957,7 +6043,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
               fails). Same three slots, same keys, same props. Only the current sheet carries
               onSheetLoad, so the neighbour prefetch fires once the visible page has loaded. */}
           <div style={{ ...slotSt, left: '-100%' }}>{nxt && <MushafSheet key={nxt.n + ':' + epoch} page={nxt} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
-          <div style={{ ...slotSt, left: '0%' }}><MushafSheet key={cur.n + ':' + epoch} page={cur} headerSurah={hs} needHeader={nh} needBasmala={nb} onSheetLoad={prefetchMushafSvg} /></div>
+          <div ref={slotRef} style={{ ...slotSt, left: '0%', ...zoomSt }}><MushafSheet key={cur.n + ':' + epoch} page={cur} headerSurah={hs} needHeader={nh} needBasmala={nb} onSheetLoad={prefetchMushafSvg} /></div>
           <div style={{ ...slotSt, left: '100%' }}>{prv && <MushafSheet key={prv.n + ':' + epoch} page={prv} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
         </div>
       </div>
