@@ -1,10 +1,11 @@
 /* 15 */
 import { checkChatLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
+import { guardDayCap, dayCapMessage, sendCapMessageSse } from '../lib/daycap.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -111,6 +112,25 @@ export default async function handler(req, res) {
   }
 
   try {
+    // DAILY QUESTION CAP (directive 78). One guard call, after body parse, before the
+    // first Anthropic call. Counts the ANSWER turn only: api/chat-fast.js (the classifier)
+    // and api/tashkeel.js are deliberately NOT capped, because one voice question fires
+    // 2+N requests and counting each would make DAY_CAP=10 mean ~3 voice questions but 10
+    // text ones. FAIL-CLOSED. guardDayCap never throws, so the surrounding try is not a
+    // bypass -- but it must stay ABOVE the fetch or a capped request still costs money.
+    const cap = await guardDayCap(req, res);
+    if (!cap.allowed) {
+      // Same ruling as api/ask.js: the daily limit is a normal in-conversation message, not
+      // an error. This relay is a raw upstream byte pipe with no gentle path of its own, so
+      // it emits the ONE shape index.html:3666 consumes (content_block_delta / text_delta),
+      // identical in form to api/ask.js sendSynthesizedText. No invented frame type.
+      if (cap.reason === 'day-cap-reached') {
+        return sendCapMessageSse(res, dayCapMessage(cap.reason));
+      }
+      // cap-unavailable KEEPS its 429, for the same reason as api/ask.js.
+      return res.status(429).json({ error: cap.reason, message: dayCapMessage(cap.reason) });
+    }
+
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {

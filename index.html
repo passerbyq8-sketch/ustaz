@@ -781,6 +781,46 @@ const FRIENDLY_ERRORS = {
   },
 };
 
+// ============================================================
+// Daily question cap — client half (directive 78). NO IP anywhere in this feature.
+// ============================================================
+// One stable uuid per browser profile, minted on first use. It is HALF the identity: the
+// server also sets an httpOnly cookie (mrb_did) that it can read and this script cannot.
+// So clearing localStorage alone does NOT reset the day's allowance, and clearing cookies
+// alone does not either — only clearing BOTH does. That is the declared ceiling of a
+// no-IP design, not a defect.
+const DEVICE_ID_KEY = 'mrb_device_v1';
+const FOUNDER_TOKEN_KEY = 'mrb_founder_v1';
+// Must satisfy the server's /^[A-Za-z0-9_-]{8,64}$/ (lib/daycap.js safeId) or the server
+// treats it as ABSENT and leans on the cookie counter alone.
+const DEVICE_ID_RE = /^[A-Za-z0-9_-]{8,64}$/;
+const getDeviceId = () => {
+  try {
+    let id = localStorage.getItem(DEVICE_ID_KEY);
+    if (!id || !DEVICE_ID_RE.test(id)) {
+      id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : ('d-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10));
+      localStorage.setItem(DEVICE_ID_KEY, id);
+    }
+    return id;
+  } catch (e) {
+    // Private mode / storage blocked: send nothing and let the cookie counter carry the cap.
+    return null;
+  }
+};
+
+// Extra headers for a capped request. The founder TOKEN may be present; the founder PIN
+// never travels — the token is base64url(HMAC(FOUNDER_SECRET, deviceId)), minted elsewhere.
+// Absent or invalid token = counted like anyone.
+const capHeaders = () => {
+  const h = {};
+  const id = getDeviceId();
+  if (id) h['x-murabbi-device'] = id;
+  try { const t = localStorage.getItem(FOUNDER_TOKEN_KEY); if (t) h['x-murabbi-founder'] = t; } catch (e) {}
+  return h;
+};
+
 const getFriendlyError = (type, gender) => {
   const bucket = FRIENDLY_ERRORS[type] || FRIENDLY_ERRORS.general;
   return bucket[gender === 'female' ? 'female' : 'male'];
@@ -3564,16 +3604,39 @@ function App() {
       const __apiMessages = fitMessagesToBudget(__mkBody, history.map(m => ({ role: m.role, content: m.content })));
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        // capHeaders() carries the device id (and a founder token when one exists) for the
+        // daily question cap. credentials:'same-origin' is what lets the server's httpOnly
+        // mrb_did cookie travel — it is already fetch()'s default, stated here so the cap's
+        // second counter cannot be broken by someone tightening the default later.
+        headers: { 'Content-Type': 'application/json', ...capHeaders() },
+        credentials: 'same-origin',
         signal,
         body: JSON.stringify(__mkBody(__apiMessages)),
       });
+      // NOTE: the server still reports the remaining allowance in a response header. That is
+      // an OPERATIONS witness for the live deploy check ONLY, and is deliberately not read
+      // here -- the child is never shown a count of any kind (directive 79).
       if (!response.ok) {
         // Upstream error via the proxy — distinct from a network drop. Logged to console
         // (for parents via devtools), never shown raw to the child.
         const errText = await response.text().catch(() => '');
         console.error(`[Al-Murabbi] API error ${response.status}:`, errText.slice(0, 500));
-        if (response.status === 429) return getFriendlyError('rateLimit', p.gender);
+        if (response.status === 429) {
+          // Day cap (directive 78): the SERVER owns the wording, so the child is told the
+          // truth — the allowance is spent, or we could not verify it. NEVER the generic
+          // "weak connection" line, which blames the child for our own failure and sends
+          // them chasing a working network. Any other 429 (the per-IP burst windows in
+          // lib/ratelimit.js, which carry no message) still falls back to the friendly line.
+          let capMsg = '';
+          try {
+            const j = JSON.parse(errText);
+            if (j && typeof j.message === 'string' && j.message) {
+              capMsg = j.message;
+            }
+          } catch (e) {}
+          if (capMsg) return capMsg;
+          return getFriendlyError('rateLimit', p.gender);
+        }
         if (response.status >= 500) return getFriendlyError('server', p.gender);
         return getFriendlyError('general', p.gender);
       }

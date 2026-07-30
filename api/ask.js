@@ -15,6 +15,7 @@
 // function at invocation.
 
 import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
+import { guardDayCap, dayCapMessage } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
@@ -107,7 +108,7 @@ function sendSynthesizedText(res, text) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -152,6 +153,27 @@ export default async function handler(req, res) {
     : Buffer.byteLength(JSON.stringify(body), 'utf8');
   if (bodyBytes > MAX_CHAT_BODY_BYTES) {
     return res.status(413).json({ error: 'Request body too large' });
+  }
+
+  // DAILY QUESTION CAP (directive 78). Sits AFTER body parse + the size cap and BEFORE the
+  // first Anthropic call, so a capped request costs nothing. NO IP: identity is the device
+  // header plus an httpOnly cookie. FAIL-CLOSED, unlike checkAskLimit above -- a burst
+  // throttle that fails open costs a little money, a spend cap that fails open costs all of
+  // it. This route normally answers a throttle with a 200 SSE message (see the note in
+  // lib/ratelimit.js), but the cap answers 429 so the client can surface the real reason
+  // instead of a generic "try again".
+  const cap = await guardDayCap(req, res);
+  if (!cap.allowed) {
+    // Reaching the daily limit is NOT an error screen. It arrives as a normal reply in the
+    // conversation, through this route's OWN gentle path -- sendSynthesizedText above, the
+    // same HTTP 200 SSE mechanism the per-IP throttle already answers with. No second
+    // mechanism, and no number in the wording.
+    if (cap.reason === 'day-cap-reached') {
+      return sendSynthesizedText(res, dayCapMessage(cap.reason));
+    }
+    // cap-unavailable KEEPS its 429: the store being down is a real failure and must look
+    // like one, carrying our own truthful wording rather than a generic line.
+    return res.status(429).json({ error: cap.reason, message: dayCapMessage(cap.reason) });
   }
 
   const maxTokens = Math.min(body.max_tokens || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
