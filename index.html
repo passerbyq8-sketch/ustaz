@@ -5425,6 +5425,40 @@ const MUSHAF_SVG_KEY = 'mushaf_svg_v1';   // device key. '1' = on, '0'/absent = 
 // Held as a ratio so the sheet never re-flows and never changes shape between phones.
 const MUSHAF_SVG_RATIO = 382.68 / 547.09;
 const MUSHAF_SVG_AR = '382.68 / 547.09';
+const MUSHAF_VB_W = 382.68;
+const MUSHAF_VB_H = 547.09;
+
+// Session 75/C -- THE SAFE CROP. The pages carry a wide inner margin of their own, and that
+// margin was the largest single cause of the cramped look: 6.99% of the width on the left,
+// 7.04% on the right, 2.18% at the top, 4.20% at the bottom, all of it blank.
+//
+// This box is MEASURED, not chosen. It is the UNION of the ink bounding boxes of ALL 604
+// pages -- never an average, which would silently behead the pages whose ink reaches
+// furthest. Each box is the exact extent of every path on the page, solved from the cubic
+// beziers analytically; the corpus has one viewBox, no transforms and no strokes, so the
+// geometric extent is the painted extent. The parser was checked against Chrome's own
+// getBBox() on 15 pages including all three that set these bounds, worst disagreement
+// 0.0003 units.
+//
+//   union over all 604 = 26.730, 11.914, 355.741, 524.100
+//   x_min from 563.svg (sura-name header)   y_min from 177.svg (sura-name header)
+//   x_max from 004.svg (juz-name header)    y_max from 004.svg (page number)
+//
+// The constants below round OUTWARD from that union, so the shipped box can never be tighter
+// than what was measured. Sajda, sakta, hizb/juz margin marks, both headers, the page number
+// and the juz stars were each measured as their own sub-box across every page that carries
+// one, and all seven lie inside this box -- three of them ARE its edges.
+//
+// Proof, witness and method: _mushaf-probe-71/75-skin-recon.md. The assertion runs on all
+// 604 pages and it fires when the box is deliberately shrunk; a check that cannot fail on a
+// bad input is not a check.
+const MUSHAF_CROP_X0 = 26.73;
+const MUSHAF_CROP_Y0 = 11.91;
+const MUSHAF_CROP_X1 = 355.75;
+const MUSHAF_CROP_Y1 = 524.11;
+const MUSHAF_CROP_W = MUSHAF_CROP_X1 - MUSHAF_CROP_X0;   // 329.02 viewBox units
+const MUSHAF_CROP_H = MUSHAF_CROP_Y1 - MUSHAF_CROP_Y0;   // 512.20 viewBox units
+const MUSHAF_CROP_AR = MUSHAF_CROP_W + ' / ' + MUSHAF_CROP_H;
 // Upstream naming, verified against 604/604 files: three digits always, 001.svg .. 604.svg.
 const mushafSvgUrl = (n) => MUSHAF_SVG_ORIGIN + '/pages/' + String(n).padStart(3, '0') + '.svg';
 
@@ -6563,8 +6597,21 @@ const s = {
   // 75/B1 -- borderRadius was 6: with the inset gone the rounded white card read as a photograph
   // pasted on the screen. The sheet is now square-edged and flush. This key is reached ONLY from
   // the flagged branch of MushafSheet, so the fallback reader cannot see this change.
-  svgSheet: { width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', aspectRatio: MUSHAF_SVG_AR, maxHeight: '100%', background: 'var(--white)', borderRadius: 0, overflow: 'hidden' },
-  svgImg: { display: 'block', width: '100%', height: '100%', pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none' },
+  // 75/C -- the sheet is now the CROP WINDOW. Its ratio is the measured union box's ratio, not
+  // the viewBox's, and overflow:hidden is what does the cropping. position:relative anchors the
+  // oversized image inside it. The <img> is still an <img>: it is the security isolation and it
+  // does not change.
+  svgSheet: { position: 'relative', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', aspectRatio: MUSHAF_CROP_AR, maxHeight: '100%', background: 'var(--white)', borderRadius: 0, overflow: 'hidden' },
+  // 75/C -- NOT object-fit: cover. Cover crops by ratio, blindly, and would cut letters on the
+  // pages whose ink reaches furthest. Instead the image is scaled by the viewBox-to-crop mapping
+  // and offset so the measured union box lands exactly on the wrapper's four edges:
+  //   viewBox x = MUSHAF_CROP_X0  ->  wrapper left edge      viewBox x = X1  ->  right edge
+  //   viewBox y = MUSHAF_CROP_Y0  ->  wrapper top edge       viewBox y = Y1  ->  bottom edge
+  // Width and height are scaled by the same mapping, so the <img> box keeps the SVG's own
+  // viewBox ratio (382.68/547.09) exactly. That matters: the pages carry
+  // preserveAspectRatio="xMidYMid meet", and because the box ratio still matches the viewBox
+  // ratio there is nothing for "meet" to letterbox. The mapping is exact, not approximate.
+  svgImg: { position: 'absolute', display: 'block', width: (100 * MUSHAF_VB_W / MUSHAF_CROP_W) + '%', height: (100 * MUSHAF_VB_H / MUSHAF_CROP_H) + '%', left: (-100 * MUSHAF_CROP_X0 / MUSHAF_CROP_W) + '%', top: (-100 * MUSHAF_CROP_Y0 / MUSHAF_CROP_H) + '%', pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none' },
   pgMedal: { position: 'absolute', left: '50%', bottom: 4, transform: 'translateX(-50%)', color: 'var(--red-deep)', fontSize: 11, fontWeight: 700, lineHeight: 1, pointerEvents: 'none' },
   // السطر: عنصرُ flex أفقيّ. space-between يفرد ما بين الكلمات فيمتدّ من حافةٍ لحافة.
   // fontSize و gap يُحقنان في الرسم — يُشتقّان من قياس أعرضِ سطرٍ في الصفحة.
