@@ -16,12 +16,45 @@
      loaded as an <img> src, a no-CORS request, which will not reuse a CORS-mode socket. -->
 <link rel="preconnect" href="https://mushaf.almurabbi.app">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<!-- D88. Blocking, in <head>, AFTER the theme-color meta it edits and BEFORE the stylesheet
+     that reacts to it. #root is empty until React mounts, so this attribute is on <html>
+     before anything is painted: a stored dark theme never flashes light. Fails to light. -->
+<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}document.documentElement.setAttribute('data-theme',t);var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();</script>
 <style>
   :root {
     --red:#1D4ED8; --red-deep:#12327A; --red-lift:#2AA6DE; --red-soft:#E6EEFB;
     --black:#141414; --ink:#1A1A1A; --muted:#6E6E6E; --nav-off:#93A0B8;
     --white:#FFFFFF; --page:#F1F6FD; --line:#E5EBF5; --tint:#EDF1FA;
     --scholar:#6B4A2B; --radius-card:22px; --radius-btn:16px;
+    /* D88. Three tokens split roles that ONE token used to carry. Every light value below
+       is byte-for-byte the value those sites already resolved to, so LIGHT RENDERS EXACTLY
+       AS IT DID BEFORE THIS PHASE. Only the dark block gives them a second value.
+       --on-accent   foreground sitting ON the blue accent   (was --white, which also means 'card')
+       --accent-fill solid accent UNDER white text           (was --red, which also means 'accent text')
+       --verse-ink   the ayah text on the verse card         (was --red-deep, which is also a gradient END) */
+    --on-accent:#FFFFFF; --accent-fill:#1D4ED8; --verse-ink:#12327A;
+    /* the pre-React boot paint. The loading screen is the only thing drawn before the chat. */
+    --boot-bg:linear-gradient(135deg, #F1F6FD 0%, #E5EBF5 100%);
+    color-scheme: light;
+  }
+  /* D88 DARK. Document level: only the boot paint and the browser's own UI colours, so a
+     stored dark theme is on screen before the first pixel and there is no light flash. */
+  :root[data-theme="dark"] { --boot-bg:#0E1116; color-scheme: dark; }
+  :root[data-theme="dark"] body { background:#0E1116; }
+  /* D88 DARK, SCOPED. The full palette is redefined ONLY under .theme-dark, which is carried
+     by the chat container and the settings sheet -- and therefore by the drawer, which is a
+     child of the chat container. Custom properties inherit, so every var() inside those two
+     subtrees flips and nothing outside them can. This is deliberate: the mushaf reader draws
+     its chrome in var(--red-deep) directly on a HARDCODED paper white (#FDFBF6), so a
+     document-wide flip would paint light ink on light paper. The reader is also out of scope
+     for this phase. Every surface left light is named in the phase report. */
+  :root[data-theme="dark"] .theme-dark {
+    --red:#5B8DEF; --red-deep:#2B4FA8; --red-lift:#2AA6DE; --red-soft:#18243C;
+    --black:#F2F4F8; --ink:#E6EAF2; --muted:#9AA4B5; --nav-off:#6B7689;
+    --white:#171B24; --page:#0E1116; --line:#2A313D; --tint:#1E242F;
+    --scholar:#8A6136;
+    --on-accent:#FFFFFF; --accent-fill:#2E56C4; --verse-ink:#A8C6FF;
+    color-scheme: dark;
   }
   /* Session 13.1 Welcome/Onboarding reskin - press state for the red primary CTA */
   .welcome-primary:active { background: var(--red-deep) !important; }
@@ -29,12 +62,12 @@
   html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
   body {
     font-family: 'Tajawal', sans-serif;
-    background: #F1F6FD;
+    background: var(--page);
     direction: rtl;
     -webkit-font-smoothing: antialiased;
   }
   #root { height: 100vh; height: 100dvh; }
-  input:focus { outline: none; border-color: #12327A !important; }
+  input:focus { outline: none; border-color: var(--red-deep) !important; }
   button { font-family: inherit; }
   button:active { transform: scale(0.97); }
   @keyframes typing {
@@ -115,13 +148,27 @@ async function hashPin(pin) {
 // SPEND_GATE_SHA256 = بصمة SHA-256 (٦٤ خانة hex) لرمز الدخول — لا يُخزَّن الرمز نفسه، تُقارَن البصمات فقط.
 // ٦٤ صفراً = القفل مُعطَّل تماماً: يعمل التطبيق كما هو اليوم بلا أي مطالبة في أي مكان.
 // لتفعيله: ضع بصمة رمزٍ حقيقي مكان الأصفار. نشرُ هذا الكوميت بالأصفار لا يقفل أحداً، ولا المالك.
-const SPEND_GATE_SHA256 = '0d7d18425ed54dbff1313b8ff37425a50f5aa2abefbe6f79159ce89ec09bd510';
+const SPEND_GATE_SHA256 = '0000000000000000000000000000000000000000000000000000000000000000'; // D86: disabled by its own documented kill switch -- no PIN wall at boot. Call/deep tiers stay walled by UnlockSheet + founder token; the day cap still counts server-side.
 const SPEND_GATE_KEY = 'spend_gate_unlock';
 const SPEND_GATE_DISABLED = SPEND_GATE_SHA256 === '0'.repeat(64);
 function spendGateOpen() {
   if (SPEND_GATE_DISABLED) return true;                          // القفل مُعطَّل ⇐ مفتوح دائماً (فشلٌ آمن للفتح)
   try { return localStorage.getItem(SPEND_GATE_KEY) === SPEND_GATE_SHA256; } catch (e) { return false; }
 }
+
+// ============================================================
+// D88 -- theme. One stored value, 'light' or 'dark', nothing else accepted. applyTheme is the
+// SAME code path the <head> boot script runs, so a toggle and a reload cannot disagree.
+// ============================================================
+const THEME_KEY = 'murabbi_theme_v1';
+const readStoredTheme = () => { try { const t = localStorage.getItem(THEME_KEY); return (t === 'dark' || t === 'light') ? t : 'light'; } catch (e) { return 'light'; } };
+const applyTheme = (t) => {
+  const v = (t === 'dark') ? 'dark' : 'light';                     // anything unrecognised falls to light
+  try { document.documentElement.setAttribute('data-theme', v); } catch (e) {}
+  try { const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', v === 'dark' ? '#0E1116' : '#1D4ED8'); } catch (e) {}
+  try { localStorage.setItem(THEME_KEY, v); } catch (e) {}
+  return v;
+};
 
 // ============================================================
 // تخزين المحادثة (Feature Flag)
@@ -2533,6 +2580,11 @@ function App() {
   const SCHOLAR_ENABLED = true; // scholar (طالب العلم) = adult-only 3rd depth state; ENABLED. Set false to hide it (cycle -> brief/detailed only). Server accepts scholar regardless of this flag.
   const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);   // D85: the chat drawer (menu button)
+  // D88: seeded from the SAME reader the boot script used, so the first render already agrees
+  // with the attribute already on <html>. No effect runs at mount, so nothing can repaint.
+  const [theme, setTheme] = useState(readStoredTheme);
+  const chooseTheme = (t) => setTheme(applyTheme(t));
   const fileInputRef = useRef(null);
   const docInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -2782,7 +2834,7 @@ function App() {
         setProfile(p);
         const msgs = localStorage.getItem('messages');
         if (msgs) setMessages(JSON.parse(msgs));
-        setScreen('home');
+        setScreen('chat');   // D85: a returning profile also lands on the chat
       } else {
         setScreen('onboarding');
       }
@@ -2812,14 +2864,16 @@ function App() {
         window.history.pushState({ screen: 'mushaf' }, '');
         return;
       }
-      setScreen((cur) => (cur === 'home' || cur === 'onboarding' || cur === 'loading') ? cur : 'home');
+      // D85: the chat is the root -- back from the chat exits; back from any screen the drawer
+      // opens (home and everything reached from it) returns to the chat.
+      setScreen((cur) => (cur === 'chat' || cur === 'onboarding' || cur === 'loading') ? cur : 'chat');
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
   useEffect(() => {
     if (backNavRef.current) { backNavRef.current = false; return; }
-    if (screen !== 'home' && screen !== 'onboarding' && screen !== 'loading') {
+    if (screen !== 'chat' && screen !== 'onboarding' && screen !== 'loading') {
       window.history.pushState({ screen }, '');
     }
   }, [screen]);
@@ -3543,9 +3597,10 @@ function App() {
     profileRef.current = p;
     voiceProfileRef.current = p;                // غ‑٣: مرآةُ حاجزِ الصوت — قبل أيّ نطقٍ أو تحيّة
     setProfile(p);
-    setScreen('home');
+    // D85: after the age step the landing screen is the chat, and it opens EMPTY. The boot
+    // greeting is NOT sent -- nothing sits in the thread until the child writes the first line.
+    setScreen('chat');
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
-    if (spendGateRef.current) await sendInitialGreeting(p);       // تحيّة الإقلاع تُنفِق ⇐ تُؤجَّل حتى فتح القفل (0d)
   };
 
   const callAI = async (history, p, { onDelta, signal, mode = 'chat', endpoint = (mode === 'call' ? '/api/chat' : '/api/ask') } = {}) => {
@@ -3608,7 +3663,7 @@ function App() {
       // are TEXT-route (/api/ask) only.
       const __extra = {
         // depth: adult-only, non-'brief' -> server reads body.depth==='deep'/'scholar' for round-2 effort.
-        ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
+        ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' && hasFounderToken() ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
         // band: so the server restricts RAG sources by age (khilaf-policy §6: under-18 => islamqa+binbaz).
         ...(mode === 'chat' && endpoint === '/api/ask' ? { band: deriveCaps(p.age).band } : {}),
       };
@@ -4220,6 +4275,9 @@ function App() {
   if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => setScreen('parentGate')} />;
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
+  // D88: the settings sheet. Reached from the drawer's gear only; the drawer's PROFILE entry
+  // keeps the ParentGate wiring it had, because no profile screen exists to send it to.
+  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={() => setScreen('chat')} />;
   // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
   if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice onBack={() => setScreen('chat')} />;
   // CALL UNLOCK (directive 82). Sits at the SCREEN transition, immediately AFTER the child
@@ -4281,51 +4339,38 @@ function App() {
     }
   };
 
+  // D85: "new chat" -- returns the thread to the empty state. It stops anything in flight
+  // (a streaming reply, playing audio) and clears the composer too, so nothing survives it.
+  const newChat = () => {
+    try { abortRef.current?.abort(); } catch (e) {}
+    abortRef.current = null;
+    cancelAudio();
+    setMessages([]);
+    saveMessages([]);
+    setStreamingText(null);
+    setIsLoading(false);
+    setInput('');
+    setPendingImage(null);
+    setDrawerOpen(false);
+  };
+
   return (
-    <div style={s.chatContainer}>
+    <div className="theme-dark" style={s.chatContainer}>
+      {/* D85: the chat top bar carries exactly ONE control -- the drawer menu. The old home,
+          call, speaker and lock buttons are gone. Per-reply audio already sits beneath every
+          reply, so the header speaker was redundant; the other three moved into the drawer
+          (القائمة and the pinned profile/settings row). */}
       <div style={s.header}>
-        <div style={s.headerContent}>
-          <div style={{ ...s.avatar, ...(isSpeaking ? { animation: 'pulse 1s ease-in-out infinite' } : {}) }}>
-            <MoonStarsIcon size={20} color="var(--white)" />
-          </div>
-          <div>
-            <div style={s.headerTitle}>{profile?.gender === 'female' ? 'المربّية' : 'المربّي'}</div>
-            <div style={s.headerSubtitle}>
-              {isSpeaking ? '🔊 يتحدث...' : isListening ? '🎤 يستمع...' : `${profile?.name} • ${profile?.age} سنوات`}
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {/* 13.4-c: back to Home. Chat had no in-app route home, and the hardware back button exits the app. */}
-          <button onClick={() => setScreen('home')} style={s.settingsBtn} aria-label="العودة إلى الرئيسية">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--white)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-          </button>
-          {directConvoAllowed && (
-          <button onClick={() => setScreen('call')} style={s.settingsBtn} aria-label="مكالمة صوتية مباشرة">
-            <PhoneCallIcon size={18} color="var(--white)" />
-          </button>
-          )}
-          <button onClick={() => { if (voiceMode) stopSpeaking(); setVoiceMode(!voiceMode); }} style={{ ...s.settingsBtn, background: voiceMode ? 'var(--red)' : 'rgba(255,255,255,0.12)' }}>
-            {voiceMode ? <VolumeIcon size={18} color="var(--white)" /> : <VolumeOffIcon size={18} color="var(--white)" />}
-          </button>
-          <button onClick={() => setScreen('parentGate')} style={s.settingsBtn}>
-            <LockIcon size={18} color="var(--white)" />
-          </button>
-        </div>
+        <button onClick={() => setDrawerOpen(true)} style={s.settingsBtn} aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
       </div>
 
       <div style={s.messagesArea}>
-        {/* آية اليوم — تظهر دائماً في الأعلى */}
-        <DailyVerseCard />
-
-        {/* رقائق المواضيع — تظهر فقط في بداية المحادثة */}
-        {messages.length <= 1 && !isLoading && (
-          <TopicChips onTopicClick={(prompt) => sendMessage(prompt)} />
-        )}
-
         {messages.map((m, i) => <MessageBubble key={i} tashkeel={tashkeelOn} onToggleTashkeel={toggleTashkeel} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} />)}
         {streamingText !== null && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
@@ -4365,100 +4410,173 @@ function App() {
         </div>
       )}
       <div style={s.inputBar}>
-        <button
-          onClick={isListening ? stopListening : startListening}
-          disabled={isLoading}
-          style={{
-            ...s.micBtn,
-            background: isListening ? 'linear-gradient(135deg, #C44536 0%, #A03828 100%)' : 'var(--tint)',
-            animation: isListening ? 'pulse 1.2s ease-in-out infinite' : 'none',
-            opacity: isLoading ? 0.4 : 1,
-          }}
-        >
-          {isListening ? <MicOffIcon size={20} color="var(--white)" /> : <MicIcon size={20} color="var(--red)" />}
-        </button>
-        {/* image-only input */}
-        <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
-        {/* document input (PDF / TXT) */}
-        <input ref={docInputRef} type="file" accept=".pdf,application/pdf,.txt,text/plain,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={onPickImage} style={{ display: 'none' }} />
-
-        {caps.band === 'adult' && (
-          <button
-            onClick={() => {
-              const next = depthMode === 'brief' ? 'detailed' : depthMode === 'detailed' ? (SCHOLAR_ENABLED ? 'scholar' : 'brief') : 'brief';
-              // The two deep tiers additionally require the unlock token to be SELECTED. The 18+
-              // visibility rule wrapping this button is UNCHANGED. This is not the lock: api/ask.js
-              // drops an unearned depth server-side no matter what the UI does. It only stops a user
-              // selecting a tier that would silently do nothing.
-              if ((next === 'detailed' || next === 'scholar') && !hasFounderToken()) { setUnlockAsk(next); return; }
-              setDepthMode(next);
-            }}
-            disabled={isLoading}
-            title={"اضغط لتغيير العمق المعرفي"}
-            aria-label={depthMode === 'brief' ? "موجز" : depthMode === 'detailed' ? "مفصّل" : "طالب العلم"}
-            style={{
-              ...s.sendBtn,
-              background: depthMode === 'brief' ? 'var(--tint)' : depthMode === 'detailed' ? 'var(--red)' : 'var(--scholar)',
-              opacity: isLoading ? 0.4 : 1,
-              fontSize: 13,
-              fontWeight: 700,
-              color: depthMode === 'brief' ? 'var(--red)' : 'var(--white)',
-              minWidth: 52,
-                    whiteSpace: 'nowrap',
-                    paddingInline: 10,
-            }}
-          >
-            {depthMode === 'brief' ? "موجز" : depthMode === 'detailed' ? "مفصّل" : "طالب العلم"}
-          </button>
-          )}
-        {caps.upload && (
-        <div style={{ position: 'relative', display: 'inline-flex' }}>
-          {attachMenuOpen && (
-            <>
-              {/* backdrop: closes menu on outside click */}
-              <div onClick={() => setAttachMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-              {/* menu: opens above the button (composer is at the bottom) */}
-              <div style={{ position: 'absolute', bottom: '120%', right: 0, zIndex: 41, background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.14)', padding: 6, minWidth: 168, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <button
-                  onClick={() => { setAttachMenuOpen(false); if (fileInputRef.current) fileInputRef.current.click(); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
-                >
-                  <span style={{ fontSize: 18 }}>🖼️</span><span>صورة</span>
-                </button>
-                <button
-                  onClick={() => { setAttachMenuOpen(false); if (docInputRef.current) docInputRef.current.click(); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
-                >
-                  <span style={{ fontSize: 18 }}>📄</span><span>ملف</span>
-                </button>
-              </div>
-            </>
-          )}
-          <button
-            onClick={() => setAttachMenuOpen(v => !v)}
-            disabled={isLoading || isListening}
-            style={{ ...s.sendBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }}
-            aria-label="إرفاق ملف أو صورة"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-        </div>
-        )}
         <textarea
           ref={inputElRef}
           rows={1}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.style.height = 'auto'; sendMessage(input); } }}
-          placeholder={isListening ? 'استمع إليك...' : 'اكتب هنا...'}
           style={s.input}
           disabled={isLoading || isListening}
         />
         <button onClick={() => sendMessage(input)} disabled={isLoading || (!input.trim() && !pendingImage)} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
-          <SendIcon size={20} color="var(--white)" />
+          <SendIcon size={20} color="var(--on-accent)" />
         </button>
       </div>
+
+      {/* D87: the tool row -- ONE line beneath the composer. The page is RTL, so the first
+          group paints at the RIGHT ([+] then the model selector) and the second at the LEFT
+          (mic then live call). Nothing here is new machinery. The [+] drives the SAME two
+          hidden file inputs and the SAME onPickImage that already shipped. The selector is the
+          SAME depthMode cycle and opens the SAME UnlockSheet through unlockAsk -- there is no
+          second PIN surface. The mic is the SAME startListening/stopListening, untouched. The
+          call button only sets the screen: the EXISTING screen chain then applies the child
+          barrier FIRST and the founder token SECOND, so a child gets the notice and is never
+          offered the PIN sheet. */}
+      {/* image-only input */}
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
+      {/* document input (PDF / TXT) */}
+      <input ref={docInputRef} type="file" accept=".pdf,application/pdf,.txt,text/plain,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={onPickImage} style={{ display: 'none' }} />
+      <div style={s.toolBar}>
+        <div style={s.toolGroup}>
+          {caps.upload && (
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            {attachMenuOpen && (
+              <>
+                {/* backdrop: closes menu on outside click */}
+                <div onClick={() => setAttachMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                {/* menu: opens above the button (the tool row is at the bottom) */}
+                <div style={{ position: 'absolute', bottom: '120%', right: 0, zIndex: 41, background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.14)', padding: 6, minWidth: 168, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <button
+                    onClick={() => { setAttachMenuOpen(false); if (fileInputRef.current) fileInputRef.current.click(); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
+                  >
+                    <span style={{ fontSize: 18 }}>{'\uD83D\uDDBC\uFE0F'}</span><span>{'\u0635\u0648\u0631\u0629'}</span>
+                  </button>
+                  <button
+                    onClick={() => { setAttachMenuOpen(false); if (docInputRef.current) docInputRef.current.click(); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
+                  >
+                    <span style={{ fontSize: 18 }}>{'\uD83D\uDCC4'}</span><span>{'\u0645\u0644\u0641'}</span>
+                  </button>
+                </div>
+              </>
+            )}
+            <button
+              onClick={() => setAttachMenuOpen(v => !v)}
+              disabled={isLoading || isListening}
+              style={{ ...s.toolBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }}
+              aria-label={'\u0625\u0631\u0641\u0627\u0642 \u0645\u0644\u0641 \u0623\u0648 \u0635\u0648\u0631\u0629'}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          )}
+          {/* Model selector. RENDERED FOR EVERY BAND so موجز is always available; the two deep
+              tiers keep their EXISTING 18+ visibility -- a non-adult sees the chip fixed on
+              موجز and cannot cycle into them. For an adult the cycle is byte-for-byte the
+              one that shipped, including the UnlockSheet hand-off through setUnlockAsk. */}
+          <button
+            onClick={() => {
+              if (caps.band !== 'adult') return;                  // 18+ visibility on the deep tiers is unchanged
+              const next = depthMode === 'brief' ? 'detailed' : depthMode === 'detailed' ? (SCHOLAR_ENABLED ? 'scholar' : 'brief') : 'brief';
+              // The two deep tiers additionally require the unlock token to be SELECTED. This is
+              // not the lock: api/ask.js drops an unearned depth server-side no matter what the
+              // UI does. It only stops a user selecting a tier that would silently do nothing.
+              if ((next === 'detailed' || next === 'scholar') && !hasFounderToken()) { setUnlockAsk(next); return; }
+              setDepthMode(next);
+            }}
+            disabled={isLoading || caps.band !== 'adult'}
+            title={caps.band === 'adult' ? '\u0627\u0636\u063a\u0637 \u0644\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0639\u0645\u0642 \u0627\u0644\u0645\u0639\u0631\u0641\u064a' : undefined}
+            aria-label={depthMode === 'brief' ? '\u0645\u0648\u062c\u0632' : depthMode === 'detailed' ? '\u0645\u0641\u0635\u0651\u0644' : '\u0637\u0627\u0644\u0628 \u0627\u0644\u0639\u0644\u0645'}
+            style={{
+              ...s.sendBtn,
+              background: depthMode === 'brief' ? 'var(--tint)' : depthMode === 'detailed' ? 'var(--red)' : 'var(--scholar)',
+              opacity: isLoading ? 0.4 : 1,
+              cursor: caps.band === 'adult' ? 'pointer' : 'default',
+              fontSize: 13,
+              fontWeight: 700,
+              color: depthMode === 'brief' ? 'var(--red)' : 'var(--white)',
+              minWidth: 52,
+              whiteSpace: 'nowrap',
+              paddingInline: 10,
+            }}
+          >
+            {depthMode === 'brief' ? '\u0645\u0648\u062c\u0632' : depthMode === 'detailed' ? '\u0645\u0641\u0635\u0651\u0644' : '\u0637\u0627\u0644\u0628 \u0627\u0644\u0639\u0644\u0645'}
+          </button>
+        </div>
+        <div style={s.toolGroup}>
+          <button
+            onClick={isListening ? stopListening : startListening}
+            disabled={isLoading}
+            aria-label={'\u0625\u0645\u0644\u0627\u0621 \u0635\u0648\u062a\u064a'}
+            style={{
+              ...s.micBtn,
+              background: isListening ? 'linear-gradient(135deg, #C44536 0%, #A03828 100%)' : 'var(--tint)',
+              animation: isListening ? 'pulse 1.2s ease-in-out infinite' : 'none',
+              opacity: isLoading ? 0.4 : 1,
+            }}
+          >
+            {isListening ? <MicOffIcon size={20} color="var(--on-accent)" /> : <MicIcon size={20} color="var(--red)" />}
+          </button>
+          {/* Live call -- the entry D85 removed, restored here. It sets the screen and NOTHING
+              else, which is precisely how the guard ORDER is preserved: the screen chain runs
+              childVoiceBlocked() -> ChildVoiceNotice BEFORE hasFounderToken() -> UnlockSheet.
+              directConvoAllowed is the parental lock that wrapped this button before D85. */}
+          {directConvoAllowed && (
+          <button
+            onClick={() => setScreen('call')}
+            disabled={isLoading || isListening}
+            aria-label={'\u0645\u0643\u0627\u0644\u0645\u0629 \u0635\u0648\u062a\u064a\u0629 \u0645\u0628\u0627\u0634\u0631\u0629'}
+            style={{ ...s.toolBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }}
+          >
+            <PhoneCallIcon size={20} color="var(--red)" />
+          </button>
+          )}
+        </div>
+      </div>
       <div style={{ textAlign: 'center', padding: '0 16px 10px', fontSize: 11, lineHeight: 1.5, color: 'var(--muted)' }}>المربّي ذكاءٌ اصطناعيّ وقد يُخطئ — راجِعْ ما يهمُّك مع والديك أو مع أهل العلم.</div>
+      {/* D85: the drawer. Order is fixed: new chat, القائمة (the existing home screen -- the
+          mushaf, the adhkar, the memorizer and the quest are all reached from there), then the
+          profile entry pinned at the bottom with settings beside it. Both pinned entries open the
+          account area the home screen already opens (الحساب / الإعدادات both call it today).
+          The theme settings screen is phase C and is deliberately not built here. */}
+      {drawerOpen && (
+        <>
+          <div onClick={() => setDrawerOpen(false)} style={s.drawerOverlay} />
+          <div style={s.drawerPanel} role="dialog" aria-modal="true">
+            <div style={s.drawerTop}>
+              <button onClick={newChat} style={s.drawerItem}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" />
+                  <line x1="12" y1="8" x2="12" y2="14" />
+                  <line x1="9" y1="11" x2="15" y2="11" />
+                </svg>
+                <span>{'\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629'}</span>
+              </button>
+              <button onClick={() => { setDrawerOpen(false); setScreen('home'); }} style={s.drawerItem}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+                <span>{'\u0627\u0644\u0642\u0627\u0626\u0645\u0629'}</span>
+              </button>
+            </div>
+            <div style={s.drawerPinned}>
+              <button onClick={() => { setDrawerOpen(false); setScreen('parentGate'); }} style={s.drawerProfile}>
+                <span style={s.drawerAvatar}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+                </span>
+                <span style={s.drawerProfileName}>{profile?.name}</span>
+              </button>
+              <button onClick={() => { setDrawerOpen(false); setScreen('settings'); }} style={s.drawerGear} aria-label={'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a'}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
       {reportFor && <ReportModal onClose={() => setReportFor(null)} onSubmit={submitReport} />}
       {unlockAsk && <UnlockSheet onUnlocked={() => { setFounderUnlocked(true); setDepthMode(unlockAsk); setUnlockAsk(null); }} onBack={() => setUnlockAsk(null)} />}
     </div>
@@ -4993,8 +5111,8 @@ function DocumentCard({ title, content, age }) {
       <div style={{ fontWeight: 'bold', color: 'var(--ink)', fontSize: 17, marginBottom: 8 }}>{title}</div>
       <div className="doc-rendered" style={{ fontSize: 14.5, lineHeight: 1.9, color: 'var(--ink)', maxHeight: 320, overflowY: 'auto' }} dangerouslySetInnerHTML={{ __html: docToHtml(content) }} />
       {canExport && (<>
-      <button onClick={exportDoc} style={{ marginTop: 12, background: 'var(--red)', color: 'var(--white)', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--white)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg>
+      <button onClick={exportDoc} style={{ marginTop: 12, background: 'var(--red)', color: 'var(--on-accent)', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg>
         صدِّر كملف Word
       </button>
       <button onClick={exportPdf} style={{ marginTop: 12, marginRight: 8, background: 'transparent', color: 'var(--red)', border: '1px solid var(--red)', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -5246,6 +5364,91 @@ function SpendGate({ onUnlock, onExit }) {
         {err && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>رمز خاطئ</div>}
         <button onClick={submit} style={s.primaryBtn}>دخول</button>
         <button onClick={onExit} style={s.secondaryBtn}>رجوع</button>
+      </div>
+    </div>
+  );
+}
+
+// D88 -- the settings sheet. It carries .theme-dark itself so it is themed by the same scoped
+// palette the chat uses; reached from the drawer's gear. The choice is written through
+// applyTheme, the one code path that also runs at boot, and persisted immediately.
+function SettingsSheet({ theme, onTheme, onBack }) {
+  // D89: this entry is rendered ONLY while a valid founder token is held. hasFounderToken() is
+  // read here, at render, and never from a cached flag -- the rule every other gate in this file
+  // follows. It is a VISIBILITY rule, not the lock: api/unlock.js refuses a set-pin call that
+  // arrives without a token no matter what this UI chooses to draw.
+  const canSetPin = hasFounderToken();
+  const [pin1, setPin1] = useState('');
+  const [pin2, setPin2] = useState('');
+  const [pinMsg, setPinMsg] = useState('');
+  const [pinBusy, setPinBusy] = useState(false);
+  const savePin = async () => {
+    if (pinBusy) return;
+    // The ONLY check made here, because the server is sent one value and never sees the second
+    // field. Length, shape and authorisation are the server's to judge and the server's to word.
+    if (pin1 !== pin2) { setPinMsg('\u0627\u0644\u0631\u0645\u0632\u0627\u0646 \u063A\u064A\u0631 \u0645\u062A\u0637\u0627\u0628\u0642\u064A\u0646.'); return; }
+    setPinBusy(true); setPinMsg('');
+    try {
+      const r = await fetch('/api/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...capHeaders() },   // carries the founder token
+        credentials: 'same-origin',
+        body: JSON.stringify({ action: 'set-pin', pin: pin1, deviceId: getDeviceId() }),
+      });
+      const d = await r.json().catch(() => ({}));
+      const good = r.ok && d && d.ok === true;
+      // The SERVER owns every refusal's wording: a missing token, a short code and an
+      // unreachable store are three different truths and only it knows which.
+      setPinMsg(good ? '\u062A\u0645 \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0631\u0645\u0632.' : ((d && d.message) || ''));
+      if (good) { setPin1(''); setPin2(''); }
+    } catch (e) {
+      setPinMsg('');   // a network failure carries no server message; do not invent one
+    }
+    setPinBusy(false);
+  };
+  const Opt = ({ value, label }) => (
+    <button
+      onClick={() => onTheme(value)}
+      aria-pressed={theme === value}
+      style={{ ...s.themeOpt, ...(theme === value ? s.themeOptActive : {}) }}
+    >
+      <span style={{ ...s.themeSwatch, background: value === 'dark' ? '#171B24' : '#FFFFFF', borderColor: value === 'dark' ? '#2A313D' : '#E5EBF5' }} />
+      <span>{label}</span>
+    </button>
+  );
+  return (
+    <div className="theme-dark" style={s.settingsContainer}>
+      <div style={s.settingsHeader}>
+        <button onClick={onBack} style={s.backBtn}>{'\u2190 \u0631\u062c\u0648\u0639'}</button>
+        <div style={s.settingsTitle}>{'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a'}</div>
+      </div>
+      <div style={s.settingsBody}>
+        <div style={s.settingsCard}>
+          <div style={s.settingsLabel}>{'\u0627\u0644\u0645\u0638\u0647\u0631'}</div>
+          <div style={s.themeRow}>
+            <Opt value="light" label={'\u0641\u0627\u062a\u062d'} />
+            <Opt value="dark" label={'\u062f\u0627\u0643\u0646'} />
+          </div>
+          <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
+        </div>
+        {/* D89 -- change the unlock PIN. Rendered ONLY with a founder token in hand. Two fields,
+            new and confirm; both are type=password so nothing is ever shown on screen, and no
+            stored PIN is read, displayed or defaulted into either box -- the client has no way
+            to learn the current one and does not ask for it. */}
+        {canSetPin && (
+        <div style={{ ...s.settingsCard, marginTop: 12 }}>
+          <div style={s.settingsLabel}>{'\u062A\u063A\u064A\u064A\u0631 \u0631\u0645\u0632 \u0627\u0644\u0641\u062A\u062D'}</div>
+          <input type="password" inputMode="numeric" autoComplete="new-password" value={pin1}
+            onChange={(e) => setPin1(e.target.value)} placeholder={'\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u062C\u062F\u064A\u062F'} style={s.settingsInput} />
+          <input type="password" inputMode="numeric" autoComplete="new-password" value={pin2}
+            onChange={(e) => setPin2(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') savePin(); }}
+            placeholder={'\u062A\u0623\u0643\u064A\u062F \u0627\u0644\u0631\u0645\u0632'} style={s.settingsInput} />
+          {pinMsg && <div style={s.settingsMsg}>{pinMsg}</div>}
+          <button onClick={savePin} disabled={pinBusy || !pin1 || !pin2}
+            style={{ ...s.settingsSaveBtn, opacity: (pinBusy || !pin1 || !pin2) ? 0.5 : 1 }}>{'\u062D\u0641\u0638'}</button>
+        </div>
+        )}
       </div>
     </div>
   );
@@ -6607,7 +6810,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
                 {/* RTL row: number badge (rightmost) · name + ayah count (center) · revelation label (leftmost) */}
                 <span style={s.memRowNum}>{toArabicDigits(n)}</span>
                 <span style={s.memRowNameWrap}>
-                  <span style={{ ...s.memRowName, ...(active ? { color: 'var(--white)' } : {}) }}>{SURAH_NAMES[n]}</span>
+                  <span style={{ ...s.memRowName, ...(active ? { color: 'var(--on-accent)' } : {}) }}>{SURAH_NAMES[n]}</span>
                   <span style={{ ...s.memRowCount, ...(active ? { color: 'rgba(255,255,255,0.8)' } : {}) }}>{counts && counts[n] ? `${toArabicDigits(counts[n])} ${MEM.GRAN_AYAH}` : ''}</span>
                 </span>
                 <span style={s.memRowReveal}>{revelationLabel(n)}</span>
@@ -6742,7 +6945,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 // الأنماط
 // ============================================================
 const s = {
-  loadingScreen: { minHeight: '100vh', background: 'linear-gradient(135deg, #F1F6FD 0%, #E5EBF5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  loadingScreen: { minHeight: '100vh', background: 'var(--boot-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   loadingSpinner: { fontSize: 48, animation: 'pulse 1.5s ease-in-out infinite' },
   onboardingContainer: { height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'linear-gradient(135deg, #F1F6FD 0%, #E5EBF5 100%)' },
   onboardingInner: { minHeight: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'safe center', alignItems: 'center', padding: 20 },
@@ -6760,17 +6963,17 @@ const s = {
   welcomeInner: { minHeight: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'safe center', alignItems: 'center', padding: 24 },
   welcomeCard: { width: '100%', maxWidth: 380, textAlign: 'center' },
   welcomeLogoSquare: { width: 88, height: 88, borderRadius: 'var(--radius-card)', background: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px' },
-  welcomeTitle: { fontSize: 34, fontWeight: 800, color: 'var(--white)', marginBottom: 6, letterSpacing: '-0.5px' },
+  welcomeTitle: { fontSize: 34, fontWeight: 800, color: 'var(--on-accent)', marginBottom: 6, letterSpacing: '-0.5px' },
   welcomeBrand: { fontSize: 18, fontWeight: 700, color: 'var(--red-lift)', marginBottom: 18 },
   welcomeGreeting: { fontSize: 16, fontWeight: 500, color: 'var(--nav-off)', marginBottom: 28 },
   welcomeEmoji: { fontSize: 56, marginBottom: 14, animation: 'fadeIn 0.5s ease-out' },
-  welcomeStepTitle: { fontSize: 25, fontWeight: 800, color: 'var(--white)', marginBottom: 12 },
+  welcomeStepTitle: { fontSize: 25, fontWeight: 800, color: 'var(--on-accent)', marginBottom: 12 },
   welcomeSubtitle: { fontSize: 15.5, color: 'var(--nav-off)', marginBottom: 22, lineHeight: 1.6 },
   welcomeInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 'var(--radius-btn)', border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
-  welcomePrimaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 'var(--radius-btn)', background: 'var(--red)', color: 'var(--white)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  welcomePrimaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 'var(--radius-btn)', background: 'var(--red)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
   welcomeAgeGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
   welcomeAgeBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
-  welcomeAgeBtnActive: { background: 'var(--red)', color: 'var(--white)', borderColor: 'var(--red)', transform: 'scale(1.05)' },
+  welcomeAgeBtnActive: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red)', transform: 'scale(1.05)' },
   welcomeAgeBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
   // Session 13.2 - Home screen (Boubyan). Launcher into existing screens; no new destinations.
   homeContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
@@ -6781,7 +6984,7 @@ const s = {
   homeAvatarBtn: { width: 44, height: 44, borderRadius: '50%', background: 'var(--white)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   homeHero: { width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '22px 20px', borderRadius: 'var(--radius-card)', background: 'var(--red)', border: 'none', cursor: 'pointer', marginBottom: 16, boxShadow: '0 10px 24px rgba(29,78,216,0.28)', textAlign: 'right' },
   homeHeroIcon: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  homeHeroText: { fontSize: 20, fontWeight: 800, color: 'var(--white)' },
+  homeHeroText: { fontSize: 20, fontWeight: 800, color: 'var(--on-accent)' },
   homeCardRow: { display: 'flex', gap: 12, marginBottom: 16 },
   homeCard: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '20px 12px', borderRadius: 'var(--radius-card)', background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer' },
   homeIconSquareBlack: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'var(--black)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -6808,12 +7011,36 @@ const s = {
 
   // ===== شاشة الدردشة =====
   chatContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)' },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
+  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--accent-fill) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
   headerContent: { display: 'flex', alignItems: 'center', gap: 12 },
   avatar: { width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: 800, color: 'var(--white)', letterSpacing: '0.3px' },
+  headerTitle: { fontSize: 17, fontWeight: 800, color: 'var(--on-accent)', letterSpacing: '0.3px' },
   headerSubtitle: { fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
   settingsBtn: { width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  drawerOverlay: { position: 'fixed', inset: 0, background: 'rgba(20,20,20,0.38)', zIndex: 60 },
+  drawerPanel: { position: 'fixed', top: 0, right: 0, bottom: 0, width: 278, maxWidth: '82vw', zIndex: 61, background: 'var(--white)', borderLeft: '1px solid var(--line)', boxShadow: '-8px 0 28px rgba(18, 50, 122, 0.16)', display: 'flex', flexDirection: 'column', padding: '14px 12px' },
+  drawerTop: { display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minHeight: 0, overflowY: 'auto' },
+  drawerItem: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '13px 12px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15.5, color: 'var(--ink)', textAlign: 'right' },
+  drawerPinned: { display: 'flex', alignItems: 'center', gap: 8, paddingTop: 10, borderTop: '1px solid var(--line)' },
+  drawerProfile: { display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, padding: '10px 10px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, color: 'var(--ink)', textAlign: 'right' },
+  drawerAvatar: { width: 32, height: 32, flexShrink: 0, borderRadius: '50%', background: 'var(--accent-fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  drawerProfileName: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  drawerGear: { width: 40, height: 40, flexShrink: 0, borderRadius: 12, background: 'var(--tint)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  // D88 settings sheet. Every colour here is a token, so the sheet themes with the chat.
+  settingsContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
+  settingsHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--white)', borderBottom: '1px solid var(--line)' },
+  settingsTitle: { fontSize: 17, fontWeight: 800, color: 'var(--ink)' },
+  settingsBody: { flex: 1, overflowY: 'auto', padding: '16px 14px' },
+  settingsCard: { background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-card)', padding: '14px 16px' },
+  settingsLabel: { fontSize: 13, fontWeight: 700, color: 'var(--muted)', marginBottom: 10 },
+  settingsHint: { fontSize: 12, color: 'var(--muted)', marginTop: 10 },
+  themeRow: { display: 'flex', gap: 10 },
+  themeOpt: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 10px', borderRadius: 14, border: '1px solid var(--line)', background: 'var(--tint)', color: 'var(--ink)', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' },
+  themeOptActive: { border: '2px solid var(--red)', background: 'var(--red-soft)', color: 'var(--red)' },
+  themeSwatch: { width: 18, height: 18, borderRadius: '50%', border: '1px solid', flexShrink: 0 },
+  settingsInput: { width: '100%', boxSizing: 'border-box', padding: '12px 14px', marginBottom: 8, borderRadius: 12, border: '1px solid var(--line)', background: 'var(--tint)', color: 'var(--ink)', fontFamily: 'inherit', fontSize: 15, textAlign: 'center', letterSpacing: '0.4em', direction: 'ltr' },
+  settingsMsg: { fontSize: 13, lineHeight: 1.8, color: 'var(--red)', margin: '2px 0 8px' },
+  settingsSaveBtn: { width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: 'var(--accent-fill)', color: 'var(--on-accent)', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, cursor: 'pointer' },
 
   // ===== منطقة الرسائل =====
   messagesArea: { flex: 1, overflowY: 'auto', padding: '16px 14px 20px', display: 'flex', flexDirection: 'column', gap: 12 },
@@ -6830,7 +7057,7 @@ const s = {
 
   // ===== فقاعات الرسائل =====
   messageBubble: { maxWidth: '78%', padding: '12px 16px', borderRadius: 18, fontSize: 16, lineHeight: 1.7, wordWrap: 'break-word', whiteSpace: 'pre-wrap' },
-  userBubble: { alignSelf: 'flex-start', background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--white)', borderRadius: 18, borderBottomRightRadius: 6, boxShadow: '0 4px 12px rgba(29,78,216,0.22)', padding: '11px 15px', fontSize: 15 },
+  userBubble: { alignSelf: 'flex-start', background: 'linear-gradient(135deg, var(--accent-fill) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', borderRadius: 18, borderBottomRightRadius: 6, boxShadow: '0 4px 12px rgba(29,78,216,0.22)', padding: '11px 15px', fontSize: 15 },
   assistantBubble: { background: 'var(--white)', color: 'var(--ink)', borderRadius: 18, borderBottomLeftRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid var(--line)', fontSize: 15 },
   bubbleText: { overflowWrap: 'anywhere', /* 13.4-b2 */ lineHeight: 1.85, fontSize: 15, color: 'var(--ink)' },
   typingDots: { display: 'flex', gap: 4, padding: '4px 0' },
@@ -6840,11 +7067,11 @@ const s = {
   // ===== بطاقة الآية =====
   verseCard: { background: 'var(--red-soft)', border: '1px solid var(--line)', borderRadius: 14, padding: '12px 14px' },
   verseCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 6 },
-  verseText: { fontSize: 19, color: 'var(--red-deep)', textAlign: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.1, margin: '6px 0 6px' },
-  surahText: { fontSize: 19, color: 'var(--red-deep)', textAlign: 'justify', textAlignLast: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.3, margin: '6px 2px 8px', direction: 'rtl' },
+  verseText: { fontSize: 19, color: 'var(--verse-ink)', textAlign: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.1, margin: '6px 0 6px' },
+  surahText: { fontSize: 19, color: 'var(--verse-ink)', textAlign: 'justify', textAlignLast: 'center', fontFamily: "'Amiri Quran', 'Amiri', 'Tajawal', serif", lineHeight: 2.3, margin: '6px 2px 8px', direction: 'rtl' },
   verseMeta: { fontSize: 12, textAlign: 'center', color: 'var(--muted)', fontWeight: 500 },
   verseFooter: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 },
-  versePlayBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--red)', color: 'var(--white)', border: 'none', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  versePlayBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--accent-fill)', color: 'var(--on-accent)', border: 'none', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
   verseAudioError: { fontSize: 11, textAlign: 'center', color: '#B4453A', marginTop: 6 },
 
   // ===== بطاقة الحديث =====
@@ -6874,8 +7101,15 @@ const s = {
   errorBanner: { margin: '0 14px 8px 14px', padding: '12px 16px', background: '#FFF4E5', border: '1px solid #F0C674', borderRadius: 12, fontSize: 14, color: '#8B5A00', fontWeight: 500, textAlign: 'center' },
   inputBar: { display: 'flex', gap: 10, padding: '12px 14px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
   input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.5, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '12px 18px', fontSize: 15, borderRadius: 18, border: '1px solid var(--line)', background: 'var(--page)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', boxSizing: 'border-box' },
-  sendBtn: { width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.28)', flexShrink: 0 },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, var(--accent-fill) 0%, var(--red-deep) 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.28)', flexShrink: 0 },
   micBtn: { width: 44, height: 44, borderRadius: 22, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.18)', flexShrink: 0 },
+  // D87: the tool row beneath the composer. space-between + RTL puts the first group on the
+  // RIGHT and the second on the LEFT, which is the order the row is specified in.
+  toolBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '0 14px 12px', background: 'var(--white)' },
+  toolGroup: { display: 'flex', alignItems: 'center', gap: 8 },
+  // Same geometry as micBtn, tinted. The old [+] drew a var(--red) icon on the var(--red)
+  // sendBtn gradient -- blue on blue, invisible. The tool row draws all three circles alike.
+  toolBtn: { width: 44, height: 44, borderRadius: 22, background: 'var(--tint)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.18)', flexShrink: 0 },
 
   // ===== لوحة الأهل =====
   dashboardContainer: { minHeight: '100vh', background: '#F1F6FD' },
@@ -6985,8 +7219,8 @@ const s = {
   pgJumpInput: { width: 96, height: 32, boxSizing: 'border-box', textAlign: 'center', fontSize: 16, fontWeight: 600, fontFamily: 'inherit', color: 'var(--ink)', background: 'var(--page)', border: '1px solid var(--line)', borderRadius: 10, padding: 0, direction: 'rtl' },
   memContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', direction: 'rtl' },
   memHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
-  memTitle: { fontSize: 18, fontWeight: 800, color: 'var(--white)', letterSpacing: '0.3px' },
-  memBackBtn: { height: 36, padding: '0 16px', borderRadius: 12, background: 'rgba(255,255,255,0.12)', color: 'var(--white)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
+  memTitle: { fontSize: 18, fontWeight: 800, color: 'var(--on-accent)', letterSpacing: '0.3px' },
+  memBackBtn: { height: 36, padding: '0 16px', borderRadius: 12, background: 'rgba(255,255,255,0.12)', color: 'var(--on-accent)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
   memHeading: { fontSize: 16, fontWeight: 700, color: 'var(--ink)', textAlign: 'center', padding: '14px 16px 6px' },
   memLoading: { fontSize: 14, color: 'var(--muted)', textAlign: 'center', padding: 8 },
   memList: { flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8, padding: '8px 14px 16px', alignContent: 'start' },
@@ -7000,7 +7234,7 @@ const s = {
   memStartBar: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
   memStartLabel: { fontSize: 14, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap' },
   memAyahSelect: { flex: 1, height: 40, borderRadius: 12, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 15, padding: '0 10px' },
-  memStartBtn: { height: 40, padding: '0 22px', borderRadius: 12, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--white)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 15, fontWeight: 700 },
+  memStartBtn: { height: 40, padding: '0 22px', borderRadius: 12, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 15, fontWeight: 700 },
   memSubBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 16px', background: 'var(--red-soft)', borderBottom: '1px solid var(--line)' },
   memSurahTitle: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   memRangeBadge: { fontSize: 12, fontWeight: 600, color: 'var(--red)', background: 'var(--white)', borderRadius: 8, padding: '3px 10px' },
@@ -7008,7 +7242,7 @@ const s = {
   memToggleRow: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' },
   memToggleLabel: { fontSize: 14, fontWeight: 600, color: 'var(--muted)' },
   memGranBtn: { height: 34, padding: '0 18px', borderRadius: 10, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
-  memGranBtnActive: { background: 'var(--red)', color: 'var(--white)', borderColor: 'var(--red)' },
+  memGranBtnActive: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red)' },
   memDrillArea: { flex: 1, overflowY: 'auto', padding: '12px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14 },
   memDrillText: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'center', direction: 'rtl', lineHeight: 2.2 },
   memUnit: { display: 'inline-flex', alignItems: 'center', gap: 6 },
@@ -7021,7 +7255,7 @@ const s = {
   memPlaceholder: { fontFamily: "'Tajawal', sans-serif", fontSize: 18, color: 'var(--nav-off)', background: 'var(--tint)', borderRadius: 8, padding: '2px 14px', letterSpacing: '2px' },
   memMsg: { fontSize: 15, fontWeight: 700, color: 'var(--red)', textAlign: 'center' },
   memControls: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderTop: '1px solid var(--line)', background: 'var(--white)' },
-  memRevealBtn: { flex: 1, height: 50, borderRadius: 14, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--white)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 17, fontWeight: 700 },
+  memRevealBtn: { flex: 1, height: 50, borderRadius: 14, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 17, fontWeight: 700 },
   memListenBtn: { height: 50, padding: '0 16px', borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 

@@ -16,7 +16,7 @@
 
 import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
-import { safeId, founderTokenFor, kuwaitDayStamp, DAY_CAP_TTL_SECONDS } from '../lib/daycap.js';
+import { safeId, founderTokenFor, hasValidFounderToken, kuwaitDayStamp, DAY_CAP_TTL_SECONDS } from '../lib/daycap.js';
 
 // Attempts per device per Kuwait day, and across all devices per Kuwait day. The global one
 // exists because a per-device limit cannot stop an attacker who mints a new device id per try.
@@ -30,6 +30,10 @@ export const UNLOCK_MESSAGES = {
   'unlock-refused': '\u0627\u0644\u0631\u0645\u0632 \u063A\u064A\u0631 \u0635\u062D\u064A\u062D.',
   'unlock-locked': '\u0623\u0648\u0642\u0641\u0646\u0627 \u0645\u062D\u0627\u0648\u0644\u0627\u062A \u0627\u0644\u0641\u062A\u062D \u0627\u0644\u064A\u0648\u0645. \u062C\u0631\u0651\u0628 \u0628\u0639\u062F \u0645\u0646\u062A\u0635\u0641 \u0627\u0644\u0644\u064A\u0644 \u0628\u062A\u0648\u0642\u064A\u062A \u0627\u0644\u0643\u0648\u064A\u062A.',
   'unlock-unavailable': '\u062A\u0639\u0630\u0651\u0631 \u0627\u0644\u062A\u062D\u0642\u0651\u0642 \u0645\u0646 \u0627\u0644\u0631\u0645\u0632 \u0639\u0646\u062F\u0646\u0627\u060C \u0641\u0623\u0648\u0642\u0641\u0646\u0627 \u0627\u0644\u0641\u062A\u062D \u0645\u0624\u0642\u062A\u064B\u0627. \u062C\u0631\u0651\u0628 \u0628\u0639\u062F \u0642\u0644\u064A\u0644.',
+  // D89. The ONE refusal on this endpoint that is deliberately distinguishable, because it is
+  // about the caller's OWN new code and gives away nothing about the secret. The count is
+  // spelled as a word, never as a numeral: no digit is shown to any user anywhere.
+  'pin-weak': '\u0627\u0644\u0631\u0645\u0632 \u0642\u0635\u064A\u0631. \u0627\u062C\u0639\u0644\u0647 \u0633\u062A\u0629 \u0623\u0631\u0642\u0627\u0645 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644.',
 };
 
 let _redis = null;
@@ -43,6 +47,52 @@ function client() {
 
 // Test seam, mirroring lib/daycap.js.
 export function __setRedisForTest(r) { _redis = r; }
+
+// ============================================================
+// D89 -- the owner-set PIN.
+// ============================================================
+// What lands in Redis is a SALTED SCRYPT DIGEST and a random salt. The PIN itself is never
+// written to the store, never logged, never returned in a body and never placed in a URL.
+// A six-digit code has only a million possibilities, so a bare SHA-256 of it is a lookup, not
+// a hash: scrypt with a per-PIN random salt is what makes a stolen store dump worthless.
+const PIN_KEY = 'ul:v1:pin';
+const MIN_PIN_DIGITS = 6;
+const PIN_SHAPE = /^[0-9]{6,64}$/;
+const SCRYPT = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
+// Used when there is NO stored record, so the verify path does the same scrypt work whether a
+// PIN has ever been set or not. Its digest can never match: nothing hashes to 32 zero bytes.
+const DUMMY_SALT = '0'.repeat(32);
+const scryptHash = (pin, saltHex) => crypto.scryptSync(String(pin), Buffer.from(saltHex, 'hex'), 32, SCRYPT);
+
+// -> { ok:true, rec } | { ok:true, rec:null } | { ok:false }
+// A store we cannot READ is not an empty store. ok:false becomes a refusal, never a fallback
+// to the bootstrap env PIN: a reachable attacker must not be able to force the older secret.
+async function loadStoredPin() {
+  try {
+    const raw = await client().get(PIN_KEY);
+    if (raw === null || raw === undefined || raw === '') return { ok: true, rec: null };
+    const rec = typeof raw === 'string' ? JSON.parse(raw) : raw;   // Upstash may return it parsed
+    const usable = rec && typeof rec.salt === 'string' && typeof rec.hash === 'string'
+      && /^[0-9a-f]{32}$/.test(rec.salt) && /^[0-9a-f]{64}$/.test(rec.hash);
+    return { ok: true, rec: usable ? rec : null };
+  } catch (e) {
+    // No PIN and no device id in this line -- only the transport failure.
+    console.warn('[unlock] pin store unreadable, fail-CLOSED:', e && e.message ? e.message : e);
+    return { ok: false, rec: null };
+  }
+}
+
+// true only when the write is confirmed. A write we cannot confirm is a refusal: telling the
+// owner the code changed when it did not would lock them out of their own app.
+async function storePinHash(saltHex, hashHex) {
+  try {
+    await client().set(PIN_KEY, JSON.stringify({ v: 1, alg: 'scrypt', salt: saltHex, hash: hashHex }));
+    return true;
+  } catch (e) {
+    console.warn('[unlock] pin store write failed, fail-CLOSED:', e && e.message ? e.message : e);
+    return false;
+  }
+}
 
 // Counts this attempt and reports whether the caller is locked out. FAIL-CLOSED: if the store
 // cannot be read the answer is "unavailable", which the handler turns into a refusal. An
@@ -79,7 +129,7 @@ async function noteAttempt(deviceId) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
@@ -105,18 +155,64 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'unlock-locked', message: UNLOCK_MESSAGES['unlock-locked'] });
   }
 
-  // CONSTANT WORK from here down. Both the right and the wrong PIN hash two values, run one
-  // timingSafeEqual over two 32-byte digests, and compute the HMAC. Nothing branches on the
+  // ============================================================
+  // D89 -- SET A NEW PIN. Requires a VALID FOUNDER TOKEN and nothing else: never the old PIN
+  // alone, never an env check, never an IP. The attempt limiter above has ALREADY run and
+  // counted this call, so this path cannot be used to grind the store either.
+  // ============================================================
+  if (body && body.action === 'set-pin') {
+    const authorised = hasValidFounderToken(req);          // the ONE verifier, imported not re-written
+    const next = typeof body.pin === 'string' ? body.pin : '';
+    const shapeOk = PIN_SHAPE.test(next);
+    // CONSTANT WORK: the salt is drawn and the scrypt is run whatever the answers are, so an
+    // unauthorised caller and a bad-shape caller cost the same as a real change.
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = scryptHash(shapeOk ? next : '0'.repeat(MIN_PIN_DIGITS), salt).toString('hex');
+    // Authorisation is judged BEFORE shape, so a caller without a token cannot even learn the
+    // shape rule: it gets the SAME refusal a wrong PIN gets, byte for byte.
+    if (!authorised) {
+      return res.status(401).json({ error: 'unlock-refused', message: UNLOCK_MESSAGES['unlock-refused'] });
+    }
+    if (!shapeOk) {
+      return res.status(400).json({ error: 'pin-weak', message: UNLOCK_MESSAGES['pin-weak'] });
+    }
+    const wrote = await storePinHash(salt, hash);
+    if (!wrote) {
+      return res.status(429).json({ error: 'unlock-unavailable', message: UNLOCK_MESSAGES['unlock-unavailable'] });
+    }
+    // No PIN, no hash, no salt in the body. Only that it happened.
+    return res.status(200).json({ ok: true });
+  }
+
+  // CONSTANT WORK from here down. Both the stored-hash comparison and the bootstrap-env
+  // comparison are computed on EVERY call -- the right PIN and the wrong one do the same scrypt,
+  // the same two sha256 digests and the same two timingSafeEqual calls. Nothing branches on a
   // comparison until the single return below, so response timing cannot reveal the answer.
   // Hashing first also means timingSafeEqual never throws on a length mismatch, and the PIN
   // LENGTH cannot leak either -- only its bytes are secret, but its length need not be given away.
+  //
+  // ORDER (D89): a hash stored in Redis WINS if one exists; process.env.UNLOCK_PIN is only the
+  // bootstrap for an owner who has not set one yet. Once set, the env value stops mattering --
+  // which is the whole point: the owner never opens the dashboard again. A store we could not
+  // READ refuses outright rather than falling back, or an attacker who can break the store
+  // could force the app back onto the older secret.
+  const store = await loadStoredPin();
+  if (!store.ok) {
+    return res.status(429).json({ error: 'unlock-unavailable', message: UNLOCK_MESSAGES['unlock-unavailable'] });
+  }
+  const rec = store.rec;
   const expected = String(process.env.UNLOCK_PIN || '');
   const supplied = typeof (body && body.pin) === 'string' ? body.pin : '';
   const digest = (s) => crypto.createHash('sha256').update(String(s), 'utf8').digest();
+  const suppliedScrypt = scryptHash(supplied, (rec && rec.salt) || DUMMY_SALT);
+  const recHash = Buffer.from((rec && rec.hash) || '0'.repeat(64), 'hex');
+  const storedOk = !!rec && crypto.timingSafeEqual(suppliedScrypt, recHash);
   const equal = crypto.timingSafeEqual(digest(supplied), digest(expected));
+  const envOk = expected.length > 0 && equal;
   // An unset or empty UNLOCK_PIN fails here regardless of what was sent, the empty string
-  // included: an absent secret means NOBODY unlocks, never everybody.
-  const pinOk = expected.length > 0 && equal;
+  // included: an absent secret means NOBODY unlocks, never everybody. With no stored record AND
+  // no env value, both halves are false and nobody unlocks -- unchanged from before this phase.
+  const pinOk = rec ? storedOk : envOk;
   // Computed unconditionally so the success path does no extra work. null when FOUNDER_SECRET
   // is unset -- and then we refuse exactly as for a wrong PIN, rather than issue nothing with a
   // success status.
