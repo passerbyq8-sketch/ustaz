@@ -11,6 +11,10 @@
 <title>المربّي - رفيق المسلم</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Session 74 -- the mushaf asset origin. Inert when the flag is off: a preconnect is a
+     hint, it fetches nothing. Bare form (not crossorigin) on purpose -- the page SVG is
+     loaded as an <img> src, a no-CORS request, which will not reuse a CORS-mode socket. -->
+<link rel="preconnect" href="https://mushaf.almurabbi.app">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -5398,6 +5402,99 @@ const pgInvalidateK = () => { PG_K = null; PG_K_BOX = 0; PG_GUARD_PAGES.clear();
 // نافذةُ فحصٍ للمالك وحدها: قراءةٌ محضة، لا يقرأها منطقُ التطبيق ولا يتفرّع عليها.
 try { window.__mushafFit = { k: () => PG_K, box: () => PG_K_BOX, ms: () => PG_K_MS, guard: () => Array.from(PG_GUARD_PAGES) }; } catch (e) {}
 
+/* 14.6 */
+// Session 74 -- PHASE ONE: the official Madinah mushaf page, drawn as one image.
+// ---------------------------------------------------------------------------
+// OFF BY DEFAULT. Nothing below runs for anybody until the device sets the key, and the
+// key is set by visiting the app with ?mushafsvg=1 -- so the owner can try the real page
+// on his own phone while every tester keeps the reader they have today. When the flag is
+// off MushafSheet returns <MushafPage> with the same four props and nothing else happens:
+// no image element, no request, no style, no prefetch.
+//
+// Phase one is a STILL PAGE. No ayah tap, no highlight, no selection, no audio. An <img>
+// has no words in it, so there is no mapping layer here and mushaf-layout.json is not
+// consulted by this path at all.
+//
+// The origin lives in ONE named const so moving it is a one-line edit. Measured live on
+// 2026-07-30: mushaf.almurabbi.app serves 001.svg at 200, image/svg+xml, Content-Encoding
+// br, Cache-Control public/max-age=31536000/immutable, ACAO *, and the decoded body SHA-256
+// equals the local asset byte for byte. It is our own domain, so nothing is owed here later.
+const MUSHAF_SVG_ORIGIN = 'https://mushaf.almurabbi.app';
+const MUSHAF_SVG_KEY = 'mushaf_svg_v1';   // device key. '1' = on, '0'/absent = off
+// The viewBox, measured over all 604 local pages: one distinct value, 0 0 382.68 547.09.
+// Held as a ratio so the sheet never re-flows and never changes shape between phones.
+const MUSHAF_SVG_RATIO = 382.68 / 547.09;
+const MUSHAF_SVG_AR = '382.68 / 547.09';
+// Upstream naming, verified against 604/604 files: three digits always, 001.svg .. 604.svg.
+const mushafSvgUrl = (n) => MUSHAF_SVG_ORIGIN + '/pages/' + String(n).padStart(3, '0') + '.svg';
+
+// The switch. Read ONCE at startup: the parameter writes the device key and then no longer
+// matters, so it does not need to stay in the URL afterwards. Same shape as tashkeel_v1
+// (index.html:2537) -- compare === '1', write '1'/'0', every localStorage touch in a
+// try/catch. THE DEFAULT IS OFF, and it is off along both exits: an absent key makes
+// getItem return null and null === '1' is false, and a throwing storage returns false.
+const readMushafSvgFlag = () => {
+  try {
+    const p = new URLSearchParams(window.location.search).get('mushafsvg');
+    if (p === '1' || p === '0') localStorage.setItem(MUSHAF_SVG_KEY, p);
+  } catch (e) {}
+  try { return localStorage.getItem(MUSHAF_SVG_KEY) === '1'; } catch (e) { return false; }
+};
+const MUSHAF_SVG_ON = readMushafSvgFlag();
+
+// Latency, not bytes: transfer is 0.01-0.05s and time-to-first-byte is ~0.30s, so the win
+// is a warm connection and a page already in cache. Two Image objects, next and previous,
+// nothing more -- no cache API, no service worker, no waterfall. Fired ONLY from the current
+// sheet's onLoad, and the `warm` latch means a page's neighbours are prefetched once, not on
+// every drag, resize or re-render.
+let __mushafSvgWarm = 0;
+const prefetchMushafSvg = (n) => {
+  if (!MUSHAF_SVG_ON || n === __mushafSvgWarm) return;
+  __mushafSvgWarm = n;
+  try {
+    for (const d of [1, -1]) {
+      const t = n + d;
+      if (t < 1 || t > 604) continue;
+      const im = new Image();
+      im.decoding = 'async';
+      im.src = mushafSvgUrl(t);
+    }
+  } catch (e) {}
+};
+
+// One sheet of the reader. This is the ONLY place that decides which renderer runs, and it
+// is the fallback too. Two ways back to the current reader, and both return the identical
+// element with the identical four props:
+//   • the flag is off  -> MUSHAF_SVG_ON is false, first branch, no image is ever created
+//   • the image failed  -> onError latches `broke`, and the next render takes that branch
+// Offline, 404, origin down, decode failure: all of them arrive as onError, and all of them
+// land on the reader that ships today. The reader never shows a blank or a broken image.
+// `broke` is per-sheet state and the key at the call site is page + epoch, so a page that
+// failed once gets a fresh attempt when it is paged back to -- one bad response does not
+// poison the session.
+// useState runs before the branch, so hook order is identical on every render either way.
+function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }) {
+  const [broke, setBroke] = useState(false);
+  if (!MUSHAF_SVG_ON || broke)
+    return <MushafPage page={page} headerSurah={headerSurah} needHeader={needHeader} needBasmala={needBasmala} />;
+  // No interaction of any kind: pointerEvents none lets the strip keep the drag (the touch
+  // handlers sit on pgViewport and the events pass straight through), draggable false kills
+  // the native image drag. No onClick, no ayah tap, no selection. Phase one is a still page.
+  return (
+    <div style={s.svgSheet}>
+      <img
+        src={mushafSvgUrl(page.n)}
+        alt=""
+        decoding="async"
+        draggable="false"
+        style={s.svgImg}
+        onLoad={() => { if (onSheetLoad) onSheetLoad(page.n); }}
+        onError={() => setBroke(true)}
+      />
+    </div>
+  );
+}
+
 function MushafPage({ page, headerSurah, needHeader, needBasmala }) {
   const ref = useRef(null);
   const [fit, setFit] = useState(null);   // null = لم يُقَس بعد
@@ -5730,9 +5827,12 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
       </div>
       <div style={s.pgViewport} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
         <div style={strip} onTransitionEnd={onTransEnd}>
-          <div style={{ ...s.pgSlot, left: '-100%' }}>{nxt && <MushafPage key={nxt.n + ':' + epoch} page={nxt} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
-          <div style={{ ...s.pgSlot, left: '0%' }}><MushafPage key={cur.n + ':' + epoch} page={cur} headerSurah={hs} needHeader={nh} needBasmala={nb} /></div>
-          <div style={{ ...s.pgSlot, left: '100%' }}>{prv && <MushafPage key={prv.n + ':' + epoch} page={prv} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
+          {/* Session 74 -- MushafSheet is MushafPage when the flag is off (and when the image
+              fails). Same three slots, same keys, same props. Only the current sheet carries
+              onSheetLoad, so the neighbour prefetch fires once the visible page has loaded. */}
+          <div style={{ ...s.pgSlot, left: '-100%' }}>{nxt && <MushafSheet key={nxt.n + ':' + epoch} page={nxt} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
+          <div style={{ ...s.pgSlot, left: '0%' }}><MushafSheet key={cur.n + ':' + epoch} page={cur} headerSurah={hs} needHeader={nh} needBasmala={nb} onSheetLoad={prefetchMushafSvg} /></div>
+          <div style={{ ...s.pgSlot, left: '100%' }}>{prv && <MushafSheet key={prv.n + ':' + epoch} page={prv} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
         </div>
       </div>
       <div style={s.pgBar}>
@@ -6436,6 +6536,13 @@ const s = {
   pgPage: { height: '100%', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: 'var(--white)', borderRadius: 6, boxShadow: '0 0 0 1px var(--red-lift), 0 0 0 4px var(--white), 0 0 0 5px var(--red-deep)', padding: '20px 5px', overflow: 'hidden', direction: 'rtl' },
   // 51 -- the frame wrapper carries the ornaments so pgPage's child count stays exact.
   pgFrame: { position: 'relative', height: '100%', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' },
+  // Session 74 -- the flagged sheet only. Deliberately NOT added to pgFrame or pgPage: the
+  // fit measurement reads pgPage's clientHeight and its rows' clientWidth (index.html:5413,
+  // 5445), so pinning a ratio on the shared boxes would silently resize the drawn text on
+  // all 604 pages. The fallback keeps the old geometry exactly because these keys are unused
+  // by it. Width first, height from the ratio -- the page cannot re-flow or change shape.
+  svgSheet: { width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', aspectRatio: MUSHAF_SVG_AR, maxHeight: '100%', background: 'var(--white)', borderRadius: 6, overflow: 'hidden' },
+  svgImg: { display: 'block', width: '100%', height: '100%', pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none' },
   pgMedal: { position: 'absolute', left: '50%', bottom: 4, transform: 'translateX(-50%)', color: 'var(--red-deep)', fontSize: 11, fontWeight: 700, lineHeight: 1, pointerEvents: 'none' },
   // السطر: عنصرُ flex أفقيّ. space-between يفرد ما بين الكلمات فيمتدّ من حافةٍ لحافة.
   // fontSize و gap يُحقنان في الرسم — يُشتقّان من قياس أعرضِ سطرٍ في الصفحة.
