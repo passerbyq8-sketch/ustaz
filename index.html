@@ -4612,6 +4612,112 @@ function MessageListenButton({ text, onPlayMessage, onStopAudio }) {
   );
 }
 
+// ============================================================
+// D90 -- plain-text serialization of a reply, for the copy button.
+// ============================================================
+// MessageBubble renders ONE component per segment type. This table produces ONE plain-text form
+// per segment type, from the SAME segment objects and the SAME stores those cards read -- so the
+// clipboard carries what is on the screen, in display order. It renders nothing and changes no
+// component; it is a serializer only.
+//
+// TASHKEEL: the toggle touches PROSE ONLY. MessageBubble applies stripTashkeelOutsideQuran to
+// seg.type==='text' and to NOTHING else -- every card body is drawn verbatim. So card bodies are
+// copied verbatim too. Stripping an ayah or a hadith here would put on the clipboard something
+// that was never on the screen, and would strip harakat from canonical scripture, which
+// stripTashkeelOutsideQuran only protects when it is wrapped in U+FD3F..U+FD3E ornaments.
+//
+// ASYNC BODIES: verse/surah/dhikr/worship segments carry no text of their own -- their cards
+// resolve it from the canonical stores after a fetch. We read the SAME module caches through the
+// SAME accessors (getVerseText / __adhkarData / __worshipData). A cache not yet filled means the
+// card is not showing that text either, so the body is omitted and what IS on screen is copied.
+// A verse's seg.content -- the MODEL's wording -- is deliberately never used, exactly as
+// VerseCard never uses it.
+const REPLY_LINE = (parts) => parts.filter((x) => x && String(x).trim()).join('\n');
+const REPLY_SERIALIZERS = {
+  text: (sg, ctx) => (ctx.tashkeel ? sg.content : stripTashkeelOutsideQuran(sg.content)),
+  verse: (sg) => {
+    const sNum = resolveSurahNumber(sg.surah, sg.surahNum);
+    const aNum = parseInt(sg.ayah, 10);
+    const surahName = sg.surah || (sNum ? SURAH_NAMES[sNum] : '');
+    const body = (sNum && aNum >= 1) ? getVerseText(sNum, aNum) : null;   // canonical only
+    const meta = [surahName ? '\u0633\u0648\u0631\u0629 ' + surahName : '', sg.ayah ? '\u0622\u064A\u0629 ' + sg.ayah : '']
+      .filter(Boolean).join('\u060C ');
+    return REPLY_LINE(['\u0642\u064E\u0627\u0644\u064E \u0627\u0644\u0644\u0647\u064F \u062A\u064E\u0639\u064E\u0627\u0644\u064E\u0649', body, meta]);
+  },
+  surah: (sg) => {
+    const sNum = resolveSurahNumber(undefined, sg.num);
+    const surahName = sNum ? SURAH_NAMES[sNum] : '';
+    const head = '\u0642\u064E\u0627\u0644\u064E \u0627\u0644\u0644\u0647\u064F \u062A\u064E\u0639\u064E\u0627\u0644\u064E\u0649' + (surahName ? ' \u2014 \u0633\u064F\u0648\u0631\u064E\u0629\u064F ' + surahName : '');
+    const count = sNum ? getSurahAyahCount(sNum) : 0;
+    let body = '', meta = '';
+    if (count) {
+      let f = parseInt(sg.from, 10); if (!(f >= 1)) f = 1;
+      let t = parseInt(sg.to, 10); if (!(t >= 1) || t > count) t = count;
+      if (f <= t) {
+        const pieces = [];
+        if (f === 1 && sNum !== 1 && sNum !== 9) { const b = getVerseText(1, 1); if (b) pieces.push(b); }
+        let missing = false;
+        for (let a = f; a <= t; a++) {
+          const vt = getVerseText(sNum, a);
+          if (!vt) { missing = true; break; }
+          pieces.push(vt + ' \u06DD' + toArabicDigits(a));
+        }
+        if (!missing) body = pieces.join(' ');
+        meta = (f === 1 && t === count) ? '\u0633\u0648\u0631\u0629 ' + surahName
+          : '\u0633\u0648\u0631\u0629 ' + surahName + '\u060C \u0627\u0644\u0622\u064A\u0627\u062A ' + toArabicDigits(f) + '\u2013' + toArabicDigits(t);
+      }
+    }
+    if (!meta && surahName) meta = '\u0633\u0648\u0631\u0629 ' + surahName;
+    return REPLY_LINE([head, body, meta]);
+  },
+  hadith: (sg) => REPLY_LINE([sg.narrator ? '\u0631\u064E\u0648\u064E\u0649 ' + sg.narrator : '\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064A\u0629', sg.content, sg.ruling]),
+  dhikr: (sg) => {
+    const db = (typeof __adhkarData !== 'undefined') ? __adhkarData : null;
+    const list = (db && db.byCat && db.byCat[parseInt(sg.catId, 10)]) || [];
+    if (!list.length) return '';
+    const head = ((list[0] && list[0].category) || '\u0630\u0643\u0631') + ' \u2014 \u062D\u0635\u0646 \u0627\u0644\u0645\u0633\u0644\u0645';
+    return REPLY_LINE([head].concat(list.map((d) => REPLY_LINE([
+      d.text, d.repeat > 1 ? '\u062A\u064F\u0642\u0627\u0644 ' + toArabicDigits(d.repeat) + ' \u0645\u0631\u0651\u0627\u062A' : '',
+    ]))));
+  },
+  worship: (sg, ctx) => {
+    const d = (typeof __worshipData !== 'undefined') ? __worshipData : null;
+    const arm = (ctx.band === 'young') ? 'young' : 'adult';   // byte-for-byte WorshipCard's ternary
+    const cell = d && d.cells && d.cells[sg.id + ':' + arm];
+    return (cell && cell.text) ? cell.text : '';
+  },
+  source: (sg) => {
+    let host = (sg.site || '').trim();
+    if (!host && sg.url) { try { host = new URL(sg.url).hostname.replace(/^www\./, ''); } catch (e) { host = ''; } }
+    const label = host || '\u0627\u0644\u0645\u0635\u062F\u0631';
+    const text = (sg.content || '').trim();
+    // The url is the REFERENCE. A fiqh answer pasted into a message without it is incomplete,
+    // and the chip's own href is the only place it exists on screen.
+    return REPLY_LINE([text ? label + ' \u2014 ' + text : label, sg.url || '']);
+  },
+  steps: (sg) => REPLY_LINE(['\u062E\u064F\u0637\u064F\u0648\u064E\u0627\u062A\u064C \u062A\u064F\u0633\u064E\u0627\u0639\u0650\u062F\u064F\u0643'].concat(
+    (sg.items || []).map((it, i) => (i + 1) + '. ' + it))),   // matches the card's <ol> decimal marks
+  board: (sg) => sg.content,
+  document: (sg) => REPLY_LINE([sg.title || '\u0645\u0633\u062A\u0646\u062F', toPlainText(sg.content)]),
+};
+// Every type MessageBubble can render must have an entry above. A new card added to the renderer
+// without one lands here and is announced -- loudly, and visibly in the copied text -- instead of
+// vanishing from the clipboard the way every card did before this directive.
+const serializeReply = (segments, ctx) => {
+  const out = [];
+  (segments || []).forEach((sg) => {
+    const fn = sg && REPLY_SERIALIZERS[sg.type];
+    if (!fn) {
+      try { console.error('[copy] no serializer for segment type:', sg && sg.type); } catch (e) {}
+      out.push('[' + ((sg && sg.type) || 'unknown') + ': not serialized]');
+      return;
+    }
+    const piece = fn(sg, ctx || {});
+    if (piece && String(piece).trim()) out.push(String(piece).trim());
+  });
+  return out.join('\n\n');
+};
+
 function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel }) {
   const isUser = message.role === 'user';
   if (isUser) {
@@ -4630,12 +4736,9 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
   }
   // رسالة الأستاذ: نحلّلها لاستخراج البطاقات
   const { segments, suggestions } = parseRichMessage(message.content, age);
-  const copyRaw = segments.map((sg) => {
-    if (typeof sg.content === 'string') return sg.content;
-    if (Array.isArray(sg.items)) return sg.items.join('\n');
-    return '';
-  }).filter(Boolean).join('\n\n');
-  const copyText = tashkeel ? copyRaw : stripTashkeelOutsideQuran(copyRaw);
+  // D90: the clipboard now carries EVERY rendered block, in display order -- not just the two
+  // generic fields (content/items) the old inline map could see. Rendering below is untouched.
+  const copyText = serializeReply(segments, { tashkeel, band: deriveCaps(age).band });
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
       <div style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
