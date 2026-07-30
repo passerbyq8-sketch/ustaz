@@ -5459,6 +5459,44 @@ const MUSHAF_CROP_Y1 = 524.11;
 const MUSHAF_CROP_W = MUSHAF_CROP_X1 - MUSHAF_CROP_X0;   // 329.02 viewBox units
 const MUSHAF_CROP_H = MUSHAF_CROP_Y1 - MUSHAF_CROP_Y0;   // 512.20 viewBox units
 const MUSHAF_CROP_AR = MUSHAF_CROP_W + ' / ' + MUSHAF_CROP_H;
+
+// Session 75/D -- OUR OWN ORNAMENT. Nothing here is copied, traced or derived from the King
+// Fahd Complex, from nourelquran, or from any other publisher: a thin double rule, a diamond
+// corner motif, a warm paper tone and a soft edge shadow, all drawn in CSS and inline SVG in
+// this file. No image file, no font, no external asset.
+//
+// Every pixel of frame shrinks the Quran directly, so the cost is spelled out here and paid
+// once. The directive's budget is 3% of the container width per side; this band is 6.25px,
+// which at a 360-wide viewport is 1.736% per side.
+//
+// THE BAND, from the ink outward:
+//     2.00px   paper breathing room, so that no rule ever touches a letter
+//     0.75px   the inner rule, lighter
+//     2.00px   the gap between the two rules
+//     1.50px   the outer rule, heavier
+//     ------
+//     6.25px   per side
+//
+// The band is paid for by the slot's padding and by nothing else. The two rules and the four
+// corner motifs are absolutely positioned on negative insets, so they add no layout width of
+// their own -- and that is also what makes them provably clear of the ink. The crop window's
+// edge IS the union of all 604 ink boxes (see 75/C above), so anything painted outside that
+// edge cannot touch a letter on any page. Every painted part of this ornament is outside it.
+const MUSHAF_FRAME_INSET = 2;
+const MUSHAF_FRAME_INNER = 0.75;
+const MUSHAF_FRAME_GAP = 2;
+const MUSHAF_FRAME_OUTER = 1.5;
+const MUSHAF_FRAME_BAND = MUSHAF_FRAME_INSET + MUSHAF_FRAME_INNER + MUSHAF_FRAME_GAP + MUSHAF_FRAME_OUTER;
+// Where the inner rule hangs: just outside the breathing room.
+const MUSHAF_FRAME_INNER_AT = MUSHAF_FRAME_INSET + MUSHAF_FRAME_INNER;
+// The two warm tones, and they are the only new colours. The app palette is cool blue
+// throughout, and against it the page read as a screenshot pasted on grey. These are
+// near-white and warm, so the paper reads as paper.
+const MUSHAF_PAPER = '#FDFBF6';   // the sheet, and the band around it
+const MUSHAF_DESK = '#EDE7DB';    // the surface the page sits on, outside the frame
+// The corner motif's rendered size. Its widest reach from the corner point is 6/16 of this,
+// so at 10px it reaches 3.75px -- leaving it 2.50px clear of the crop window's edge.
+const MUSHAF_CORNER_PX = 10;
 // Upstream naming, verified against 604/604 files: three digits always, 001.svg .. 604.svg.
 const mushafSvgUrl = (n) => MUSHAF_SVG_ORIGIN + '/pages/' + String(n).padStart(3, '0') + '.svg';
 
@@ -5507,6 +5545,30 @@ const prefetchMushafSvg = (n) => {
 // failed once gets a fresh attempt when it is paged back to -- one bad response does not
 // poison the session.
 // useState runs before the branch, so hook order is identical on every render either way.
+// Session 75/D -- our own corner motif: two nested diamonds, geometric, drawn here and nowhere
+// else. Each is centred exactly on the outer rule's corner, so it reads as a knot where the two
+// rules meet. Its outer diamond is filled with the paper tone so the rules do not show through
+// it. pointerEvents none throughout -- the page drag belongs to the viewport and passes
+// straight through the ornament, exactly as PageDecor does for the fallback reader.
+function SheetCorners() {
+  const at = (extra) => (
+    <svg viewBox="0 0 16 16" width={MUSHAF_CORNER_PX} height={MUSHAF_CORNER_PX} aria-hidden="true" style={{ position: 'absolute', pointerEvents: 'none', ...extra }}>
+      <path d="M8 2 L14 8 L8 14 L2 8 Z" fill={MUSHAF_PAPER} stroke="var(--red-deep)" strokeWidth="1.4" />
+      <path d="M8 5.6 L10.4 8 L8 10.4 L5.6 8 Z" fill="var(--red-lift)" />
+    </svg>
+  );
+  // Centre the motif on the outer rule's corner: half its own size beyond the band.
+  const off = -(MUSHAF_FRAME_BAND + MUSHAF_CORNER_PX / 2);
+  return (
+    <React.Fragment>
+      {at({ top: off, left: off })}
+      {at({ top: off, right: off })}
+      {at({ bottom: off, left: off })}
+      {at({ bottom: off, right: off })}
+    </React.Fragment>
+  );
+}
+
 function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }) {
   const [broke, setBroke] = useState(false);
   if (!MUSHAF_SVG_ON || broke)
@@ -5514,17 +5576,26 @@ function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }
   // No interaction of any kind: pointerEvents none lets the strip keep the drag (the touch
   // handlers sit on pgViewport and the events pass straight through), draggable false kills
   // the native image drag. No onClick, no ayah tap, no selection. Phase one is a still page.
+  // 75/D -- the frame is the positioning anchor and the ratio holder; the sheet inside it is the
+  // crop window. The two rules come FIRST in DOM order on purpose: their paper tone is then
+  // painted BEHIND the page image and can never sit over it. The corner motifs come last, and
+  // they paint only outside the crop window.
   return (
-    <div style={s.svgSheet}>
-      <img
-        src={mushafSvgUrl(page.n)}
-        alt=""
-        decoding="async"
-        draggable="false"
-        style={s.svgImg}
-        onLoad={() => { if (onSheetLoad) onSheetLoad(page.n); }}
-        onError={() => setBroke(true)}
-      />
+    <div style={s.svgFrame}>
+      <div style={s.svgRuleOuter} />
+      <div style={s.svgRuleInner} />
+      <div style={s.svgSheet}>
+        <img
+          src={mushafSvgUrl(page.n)}
+          alt=""
+          decoding="async"
+          draggable="false"
+          style={s.svgImg}
+          onLoad={() => { if (onSheetLoad) onSheetLoad(page.n); }}
+          onError={() => setBroke(true)}
+        />
+      </div>
+      <SheetCorners />
     </div>
   );
 }
@@ -5851,7 +5922,11 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // the viewport: 348px of drawn width at a 360 viewport becomes 360px. pgSlot is SHARED with
   // the fallback MushafPage, so the padding is dropped here at the use site and the style object
   // is left alone -- the reader that ships today keeps its inset exactly.
-  const slotSt = MUSHAF_SVG_ON ? { ...s.pgSlot, padding: 0 } : s.pgSlot;
+  const slotSt = MUSHAF_SVG_ON ? { ...s.pgSlot, padding: MUSHAF_FRAME_BAND } : s.pgSlot;
+  // 75/D -- the warm surface the page sits on. pgViewport is SHARED with the fallback reader, so
+  // the tone is applied here at the use site and the style object is left alone. Behind the page,
+  // never over it: this is the background of the box the page is centred in.
+  const vpSt = MUSHAF_SVG_ON ? { ...s.pgViewport, background: MUSHAF_DESK } : s.pgViewport;
   const strip = {
     ...s.pgStrip,
     transform: 'translateX(calc(' + (slide * 100) + '% + ' + drag + 'px))',
@@ -5876,7 +5951,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
         </div>
       </div>
       )}
-      <div style={s.pgViewport} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
+      <div style={vpSt} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
         <div style={strip} onTransitionEnd={onTransEnd}>
           {/* Session 74 -- MushafSheet is MushafPage when the flag is off (and when the image
               fails). Same three slots, same keys, same props. Only the current sheet carries
@@ -6601,7 +6676,21 @@ const s = {
   // the viewBox's, and overflow:hidden is what does the cropping. position:relative anchors the
   // oversized image inside it. The <img> is still an <img>: it is the security isolation and it
   // does not change.
-  svgSheet: { position: 'relative', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', aspectRatio: MUSHAF_CROP_AR, maxHeight: '100%', background: 'var(--white)', borderRadius: 0, overflow: 'hidden' },
+  // 75/D -- the frame. It is a DIRECT child of the slot and it carries the three properties that
+  // used to sit on svgSheet -- width, aspectRatio, maxHeight -- so the ratio-versus-height
+  // behaviour is byte-for-byte the one that already shipped; only the element they sit on moved.
+  // overflow is left visible so the rules and the corner motifs can hang outside it.
+  svgFrame: { position: 'relative', width: '100%', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto', aspectRatio: MUSHAF_CROP_AR, maxHeight: '100%' },
+  // The outer rule, heavier, and the paper the whole band is painted on. The shadow lifts the
+  // page off the desk instead of letting it float in it. FIRST in DOM order, so this paper tone
+  // is painted behind the page image.
+  svgRuleOuter: { position: 'absolute', top: -MUSHAF_FRAME_BAND, right: -MUSHAF_FRAME_BAND, bottom: -MUSHAF_FRAME_BAND, left: -MUSHAF_FRAME_BAND, border: MUSHAF_FRAME_OUTER + 'px solid var(--red-deep)', background: MUSHAF_PAPER, boxShadow: '0 1px 2px rgba(18,50,122,0.10), 0 8px 24px rgba(18,50,122,0.12)', pointerEvents: 'none' },
+  // The inner rule, lighter, hanging just outside the breathing room.
+  svgRuleInner: { position: 'absolute', top: -MUSHAF_FRAME_INNER_AT, right: -MUSHAF_FRAME_INNER_AT, bottom: -MUSHAF_FRAME_INNER_AT, left: -MUSHAF_FRAME_INNER_AT, border: MUSHAF_FRAME_INNER + 'px solid var(--red-lift)', pointerEvents: 'none' },
+  // The crop window itself: it fills the frame exactly, and its overflow:hidden is what crops.
+  // The background is the paper tone, and a background is painted behind content by definition,
+  // so it is behind the page image and never over it.
+  svgSheet: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: MUSHAF_PAPER, overflow: 'hidden' },
   // 75/C -- NOT object-fit: cover. Cover crops by ratio, blindly, and would cut letters on the
   // pages whose ink reaches furthest. Instead the image is scaled by the viewBox-to-crop mapping
   // and offset so the measured union box lands exactly on the wrapper's four edges:
