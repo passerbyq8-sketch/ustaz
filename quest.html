@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FAF4E9">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
-<title>المربّي — رحلةُ الكنوز</title>
+<title>عزك — رحلةُ الكنوز</title>
 <!--
   رحلةُ الكنوز · صفحةٌ مستقلّةٌ تعملُ بلا إنترنت
   لا تمسُّ index.html ولا أيَّ ملفٍّ من التطبيق. حذفُها = حذفُ هذا الملفِّ ومجلّدِ quest-data.
@@ -1145,7 +1145,7 @@ function drawHUD() {
   /* الخروجُ إلى المربّي — الزرُّ الوحيدُ للمغادرة، يظهرُ في كلِّ شاشةٍ عبرَ الـHUD.
      إن كان سؤالٌ معروضًا الآن (‎.qcard‎ = جولةٌ جارية) نسألُ مرّةً قبلَ فقدِ نجمتِها. */
   const exit = el("button", "gear", "🚪"); exit.type = "button";
-  exit.setAttribute("aria-label", "الخروجُ إلى المربّي");
+  exit.setAttribute("aria-label", "الخروجُ إلى عزك");
   exit.onclick = () => {
     const midRound = !!(VIEW && VIEW.querySelector(".qcard"));
     if (midRound && !window.confirm("تُفقَدُ نجمةُ الجولةِ إنْ خرجتَ الآن. أتخرج؟")) return;

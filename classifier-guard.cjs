@@ -198,7 +198,7 @@ const AR = [
   ['C1 classifier-identity',        'مصنف مسارات'],
   ['C1 doubt-to-DEEN',              'أدنى شك'],
   ['C1 feelings-safety-to-DEEN',    'مشاعر الطفل'],
-  ['C4 gen-defers-religious',       'تركه للمربي'],
+  ['C4 gen-defers-religious',       'تركه لعزك'],
   ['C4 gen-defers-safety',          'شخصا كبيرا'],
 ];
 const strRaws = [], comRaws = [];

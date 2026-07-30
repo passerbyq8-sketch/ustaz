@@ -27,7 +27,7 @@ const GOLDEN = path.join(__dirname, 'worship-golden.json');
 const OUT = path.join(__dirname, 'worship-display.json');
 
 // --- pinned: the golden this script was written against -----------------------
-const GOLDEN_SHA = 'A13C34BA4BA52A11D8EA632BF624D0B2665818B8AB6456CF2F2E4A6CA62ACBED';
+const GOLDEN_SHA = '1ED255A3881736B05AEB19FB0091F617092533558C65EE55BF76E8F1FE64E4A8';
 
 // --- the ghusl:young display text. Authored by the user, 13 July 2026. --------
 // Every sentence is drawn from his own golden block; only the pronoun moved.
@@ -50,14 +50,14 @@ const GHUSL_YOUNG_SHA16 = '67c7605e965cb068';   // sha256(utf8 bytes).slice(0,16
 // Everything before `first` is the banner + the governing paragraph + the model's
 // warning line -- instructions to the MODEL, never shown to a human.
 const CELLS = [
-  { id: 'salah',    band: 'young', rawHash: '58a124157da52bf0', lines: [6, 23] },
-  { id: 'salah',    band: 'adult', rawHash: 'dccc30bb7fc9584f', lines: [6, 23] },
-  { id: 'wudu',     band: 'young', rawHash: 'decd0881a0dfa01f', lines: [6, 17] },
-  { id: 'wudu',     band: 'adult', rawHash: '02492dcf115aea87', lines: [6, 18] },
+  { id: 'salah',    band: 'young', rawHash: '771d14a75ef3d865', lines: [6, 23] },
+  { id: 'salah',    band: 'adult', rawHash: '1edb4b7c018953db', lines: [6, 23] },
+  { id: 'wudu',     band: 'young', rawHash: 'b288599c3c1f17fe', lines: [6, 17] },
+  { id: 'wudu',     band: 'adult', rawHash: '612d5d60ac798fde', lines: [6, 18] },
   { id: 'ghusl',    band: 'young', rawHash: '6c347163199b02e1', lines: null   },  // authored
-  { id: 'ghusl',    band: 'adult', rawHash: '26660fca572bd7b9', lines: [4, 16] },
-  { id: 'tayammum', band: 'young', rawHash: 'd9512af1670c69ba', lines: [4, 13] },
-  { id: 'tayammum', band: 'adult', rawHash: 'd9512af1670c69ba', lines: [4, 13] },
+  { id: 'ghusl',    band: 'adult', rawHash: '99671ce843485bb9', lines: [4, 16] },
+  { id: 'tayammum', band: 'young', rawHash: '98fab1fd0984aea3', lines: [4, 13] },
+  { id: 'tayammum', band: 'adult', rawHash: '98fab1fd0984aea3', lines: [4, 13] },
 ];
 
 function die(msg) { console.error('[worship-display] FAIL: ' + msg); process.exit(1); }
