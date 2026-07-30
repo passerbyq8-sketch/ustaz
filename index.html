@@ -5404,12 +5404,13 @@ try { window.__mushafFit = { k: () => PG_K, box: () => PG_K_BOX, ms: () => PG_K_
 
 /* 14.6 */
 // Session 74 -- PHASE ONE: the official Madinah mushaf page, drawn as one image.
+// Session 76 -- PUBLISHED: this is now what a first-time visitor sees.
 // ---------------------------------------------------------------------------
-// OFF BY DEFAULT. Nothing below runs for anybody until the device sets the key, and the
-// key is set by visiting the app with ?mushafsvg=1 -- so the owner can try the real page
-// on his own phone while every tester keeps the reader they have today. When the flag is
-// off MushafSheet returns <MushafPage> with the same four props and nothing else happens:
-// no image element, no request, no style, no prefetch.
+// ON BY DEFAULT. A device that has never touched the key gets the official page, and that
+// single line is the whole of what session 76 changed. The escape did not move: opening
+// the app with ?mushafsvg=0 writes '0' to the key and that device keeps the text reader
+// for good. When the flag is off MushafSheet returns <MushafPage> with the same four
+// props and nothing else happens: no image element, no request, no style, no prefetch.
 //
 // Phase one is a STILL PAGE. No ayah tap, no highlight, no selection, no audio. An <img>
 // has no words in it, so there is no mapping layer here and mushaf-layout.json is not
@@ -5420,7 +5421,7 @@ try { window.__mushafFit = { k: () => PG_K, box: () => PG_K_BOX, ms: () => PG_K_
 // br, Cache-Control public/max-age=31536000/immutable, ACAO *, and the decoded body SHA-256
 // equals the local asset byte for byte. It is our own domain, so nothing is owed here later.
 const MUSHAF_SVG_ORIGIN = 'https://mushaf.almurabbi.app';
-const MUSHAF_SVG_KEY = 'mushaf_svg_v1';   // device key. '1' = on, '0'/absent = off
+const MUSHAF_SVG_KEY = 'mushaf_svg_v1';   // device key. '0' = off, absent/anything = on
 // The viewBox, measured over all 604 local pages: one distinct value, 0 0 382.68 547.09.
 // Held as a ratio so the sheet never re-flows and never changes shape between phones.
 const MUSHAF_SVG_RATIO = 382.68 / 547.09;
@@ -5521,16 +5522,19 @@ const mushafClampPan = (tx, ty, k, fw, fh, sw, sh) => {
 const mushafSvgUrl = (n) => MUSHAF_SVG_ORIGIN + '/pages/' + String(n).padStart(3, '0') + '.svg';
 
 // The switch. Read ONCE at startup: the parameter writes the device key and then no longer
-// matters, so it does not need to stay in the URL afterwards. Same shape as tashkeel_v1
-// (index.html:2537) -- compare === '1', write '1'/'0', every localStorage touch in a
-// try/catch. THE DEFAULT IS OFF, and it is off along both exits: an absent key makes
-// getItem return null and null === '1' is false, and a throwing storage returns false.
+// matters, so it does not need to stay in the URL afterwards. The parameter still writes
+// '1'/'0' exactly as it did, and every localStorage touch is still in a try/catch.
+// THE DEFAULT IS ON, and only an explicit refusal turns it off. The test is against '0'
+// rather than for '1', so all three ways of holding no answer -- an absent key, a value
+// we do not recognise, and a storage that throws -- land on the official page. No input
+// produces a blank screen, and the one input that produces the text reader is the one a
+// person typed on purpose.
 const readMushafSvgFlag = () => {
   try {
     const p = new URLSearchParams(window.location.search).get('mushafsvg');
     if (p === '1' || p === '0') localStorage.setItem(MUSHAF_SVG_KEY, p);
   } catch (e) {}
-  try { return localStorage.getItem(MUSHAF_SVG_KEY) === '1'; } catch (e) { return false; }
+  try { return localStorage.getItem(MUSHAF_SVG_KEY) !== '0'; } catch (e) { return true; }
 };
 const MUSHAF_SVG_ON = readMushafSvgFlag();
 
