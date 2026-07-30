@@ -5815,11 +5815,37 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const [drag, setDrag] = useState(0);
   const [slide, setSlide] = useState(0);
   const [anim, setAnim] = useState(false);
-  // 75/B2 -- immersive chrome. With the flag ON the two bars start collapsed, so the page owns
-  // the whole screen from the first paint, and a tap recalls them. With the flag OFF this is
-  // pinned true for the life of the screen and the reader is exactly what it is today: the
-  // initialiser is the only writer the fallback ever reaches, and the toggle below is gated.
-  const [chromeOn, setChromeOn] = useState(!MUSHAF_SVG_ON);
+  // 75/B2 -- immersive chrome: two bars the page can take the whole screen from.
+  // 77 -- but they INTRODUCE THEMSELVES BEFORE THEY HIDE. They start VISIBLE for everybody,
+  // so a reader opening the mushaf for the first time sees the sura name, the bookmark, the
+  // page bar and the way back -- and they collapse ONCE, after that reader turns the first
+  // page. The gesture teaches itself: you see the furniture, you turn a page, it makes room,
+  // and a tap brings it back. Before 77 the flag decided the initial value, so from 7a4a2aa
+  // -- when the flag became everybody -- a first-time reader met a page with no way back on it.
+  //
+  // Unconditional `true` is SAFER for the fallback, not riskier. With the flag off the tap
+  // toggle is gated (see onEnd) and readerTurnedPage refuses to write, so the initialiser
+  // remains the only writer the fallback ever reaches and its bars stay pinned visible
+  // exactly as they are today.
+  const [chromeOn, setChromeOn] = useState(true);
+  // The one-shot latch is a REF, not state: a re-render cannot re-fire it, and it is never
+  // read during rendering so it cannot be stale. commit() lands twice on purpose (the
+  // transitionend and the fallback timer both call land), and the latch is what makes the
+  // second landing free.
+  //
+  // It is called from the two places the READER moves the page and from nowhere else:
+  // land() for a committed swipe and for the prev/next buttons, and jumpTo() for a jump.
+  // Deliberately NOT a useEffect on `page`. There is a third writer of `page` -- the load
+  // effect above, which sets the opening page from the surah index -- and an effect on
+  // `page` would fire for it, collapsing the bars before the reader had touched anything,
+  // which is the defect this replaces. The epoch bump from a screen rotation or a font load
+  // never touches `page` at all, so it cannot reach this either.
+  const chromeAuto = useRef(false);
+  const readerTurnedPage = () => {
+    if (!MUSHAF_SVG_ON || chromeAuto.current) return;
+    chromeAuto.current = true;
+    setChromeOn(false);
+  };
   // 75/E -- null means FIT, and fit means no transform on the element at all rather than a
   // scale of 1. That is what makes "a second double tap returns to fit, exactly" true by
   // construction: there is nothing left to accumulate a rounding error in.
@@ -5903,7 +5929,10 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const land = (sl) => {
     if (timer.current) { clearTimeout(timer.current); timer.current = null; }
     setAnim(false);
-    if (sl) { setPage(page + sl); setSlide(0); }
+    // 77 -- inside the `if`, so a swipe that bounced at page 1 or 604 arrives with sl === 0
+    // and is correctly not a page turn. commit() is what the prev/next buttons call too, so
+    // both reader-driven paths arrive here.
+    if (sl) { setPage(page + sl); setSlide(0); readerTurnedPage(); }
   };
   const commit = (d) => {
     const n = page + d;
@@ -5918,7 +5947,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // 14.4 — القفزةُ البعيدة لا تمرُّ بـ commit: انزياحُ الشريط هو slide*100% وخاناتُه ثلاثٌ فقط،
   // فقفزةٌ بمقدار ٥٨٥ صفحةً تعني انزياحاً بـ ٥٨٥٠٠٪ — لا شيء. فالمسلكُ هو مهبطُ commit نفسُه:
   // نفسُ التنظيف الذي يفعله land ونفسُ setPage، بصفحةٍ مطلقةٍ بدل page + sl.
-  const jumpTo = (n) => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setDrag(0); setAnim(false); setSlide(0); setPage(n); };
+  const jumpTo = (n) => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setDrag(0); setAnim(false); setSlide(0); setPage(n); if (n !== page) readerTurnedPage(); };   /* 77 -- jumping to the page you are already on is not a page change */
   // التطبيع: تُقبل الأرقامُ الهنديّة واللاتينيّة معاً. وما بقي بعد نزع الفراغ وليس رقماً — تُردُّ الخانةُ كلُّها.
   const jumpGo = () => { const raw = String(jump == null ? '' : jump).replace(/\s+/g, '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)); setJump(null); if (!/^[0-9]+$/.test(raw)) return; const n = parseInt(raw, 10); if (n >= 1 && n <= 604) jumpTo(n); };
   // 75/E -- one tap recalls the chrome, two taps zoom. A single tap therefore waits out the
