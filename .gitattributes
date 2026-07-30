@@ -53,3 +53,4 @@ esc.cjs text eol=lf
 flip-stream-flag.cjs text eol=lf
 quran-verify.cjs text eol=lf
 lib/daycap.js text eol=lf
+api/unlock.js text eol=crlf

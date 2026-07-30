@@ -15,7 +15,7 @@
 // function at invocation.
 
 import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
-import { guardDayCap, dayCapMessage } from '../lib/daycap.js';
+import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
@@ -177,20 +177,28 @@ export default async function handler(req, res) {
   }
 
   const maxTokens = Math.min(body.max_tokens || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
+  // TIER LOCK (directive 82). The UI cannot be the lock: anyone can POST here directly with
+  // depth:"scholar" and get the premium model on our bill. So the SERVER decides -- without a
+  // valid founder token the requested depth is dropped and the default tier is served.
+  // Deliberately silent: no error and no "you were downgraded" field, because telling a prober
+  // which requests would have been expensive is telling them what to forge. The downgrade is
+  // recorded server-side in the [tier] line below instead.
+  const founderUnlocked = hasValidFounderToken(req);
+  const effectiveDepth = founderUnlocked ? body.depth : undefined;
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
-  const round2Effort = (body.depth === 'deep' || body.depth === 'scholar') ? 'high' : 'medium';
+  const round2Effort = (effectiveDepth === 'deep' || effectiveDepth === 'scholar') ? 'high' : 'medium';
   // Age band for RAG source-gating (khilaf-policy §6). Optional; absent/garbled => undefined => retrieve() fails CLOSED to the minor list (NOT adult).
   const band = (body.band === 'young' || body.band === 'teen' || body.band === 'adult') ? body.band : undefined;
   // BAND GATE (khilaf-policy §1/§2/§3). The depth instruction is ADULT-ONLY. 'scholar' orders the model
   // to present up to FOUR differing scholarly opinions with evidence; injecting that into a child's
   // system prompt is a direct policy breach. Mirrors usePremium (next line) and scholarMode (round 2),
   // both of which already check the band. Fail-CLOSED: an absent or garbled band gets NO instruction.
-  const depthInstruction = band === 'adult' ? buildDepthInstruction(body.depth) : '';
-  const usePremium = band === 'adult' && (body.depth === 'deep' || body.depth === 'scholar');
+  const depthInstruction = band === 'adult' ? buildDepthInstruction(effectiveDepth) : '';
+  const usePremium = band === 'adult' && (effectiveDepth === 'deep' || effectiveDepth === 'scholar');
   const model = usePremium
     ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-4-8')
     : (process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5');
-  console.log('[tier]', { band, depth: body.depth, usePremium, model });
+  console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, usePremium, model });
   const system = appendDepthBlock(wrapSystem(body.system), depthInstruction);
 
   const headers = {
@@ -272,7 +280,7 @@ export default async function handler(req, res) {
     // multi-madhhab (raw اختلاف الحكم) and is therefore SCHOLAR-ONLY background material.
     // Fire it ONLY for depth==='scholar' AND adult band. Any other case (ordinary user,
     // under-18, or an absent band) leaves scholarMode false and the encyclopedia untouched.
-    const scholarMode = body.depth === 'scholar' && band === 'adult';
+    const scholarMode = effectiveDepth === 'scholar' && band === 'adult';
     let retrieveEncyclopedia = null;
     if (scholarMode) {
       // Lazy: non-scholar requests never load the encyclopedia module or MiniSearch.
