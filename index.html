@@ -1011,21 +1011,59 @@ const stripTashkeelOutsideQuran = (s) => {
   return out + src.slice(last).replace(HARAKAT_RE, '');
 };
 const miniBtnStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 8px', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', color: 'inherit', opacity: 0.7 };
-const CopyReplyButton = ({ text }) => {
-  const [done, setDone] = useState(false);
+// D91. Two live-browser failures the in-process harness could not see:
+//
+// (1) WHEN the text is built. It used to be built during MessageBubble's render. But the
+//     canonical stores (quran / adhkar / worship) fill asynchronously AFTER the cards mount,
+//     and each card holds its resolved text in its OWN state -- so the store landing re-renders
+//     the CARD and never its parent. The render-time string therefore froze whatever had not
+//     arrived at first paint: an ayah, a whole surah, the adhkar list, the salah card. A
+//     worship-only reply froze to the empty string, and this button then hid itself entirely.
+//     getText is now invoked on the TAP, seconds later, reading the very stores the cards read.
+//
+// (2) WHETHER the write actually happened. navigator.clipboard.writeText REJECTS in an Android
+//     WebView, on an insecure origin, and without a user gesture. The old code treated the mere
+//     PRESENCE of the API as success-or-nothing: on rejection it fell into catch(e){} and did
+//     not try the legacy path, so the button did nothing at all and said nothing at all. And on
+//     the legacy path it ignored execCommand's return value, so a REFUSED copy still flashed
+//     "copied" -- indistinguishable, to the owner, from a broken serializer.
+const CopyReplyButton = ({ text, getText }) => {
+  const [flash, setFlash] = useState('');            // '' | 'ok' | 'fail'
   if (!text) return null;
-  const doCopy = async () => {
+  // The legacy path is not a relic: it is the ONLY path that works where the Clipboard API is
+  // present but refuses. Returns true only when the document actually reports the copy done.
+  const legacyCopy = (payload) => {
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); }
-      else {
-        const ta = document.createElement('textarea');
-        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-      }
-      setDone(true); setTimeout(() => setDone(false), 1500);
-    } catch (e) {}
+      const ta = document.createElement('textarea');
+      ta.value = payload;
+      ta.setAttribute('readonly', '');               // keeps the mobile keyboard shut
+      ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0';
+      ta.style.width = '1px'; ta.style.height = '1px'; ta.style.padding = '0';
+      ta.style.border = 'none'; ta.style.outline = 'none'; ta.style.boxShadow = 'none';
+      ta.style.background = 'transparent'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      try { ta.setSelectionRange(0, String(payload).length); } catch (e) {}   // iOS needs the range
+      const done = document.execCommand('copy') === true;
+      document.body.removeChild(ta);
+      return done;
+    } catch (e) { return false; }
   };
-  return <button type="button" onClick={doCopy} aria-label={'\u0646\u0633\u062E'} style={miniBtnStyle}>{done ? '\u062A\u0645 \u0627\u0644\u0646\u0633\u062E' : '\u0646\u0633\u062E'}</button>;
+  const doCopy = async () => {
+    const payload = (typeof getText === 'function') ? getText() : text;
+    if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
+    let wrote = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(payload);
+        wrote = true;
+      }
+    } catch (e) { wrote = false; }                   // a refusal is not the end -- fall through
+    if (!wrote) wrote = legacyCopy(payload);
+    setFlash(wrote ? 'ok' : 'fail');                 // never claim a write that did not happen
+    setTimeout(() => setFlash(''), 1500);
+  };
+  return <button type="button" onClick={doCopy} aria-label={'\u0646\u0633\u062E'} style={miniBtnStyle}>{flash === 'ok' ? '\u062A\u0645 \u0627\u0644\u0646\u0633\u062E' : flash === 'fail' ? '\u062A\u0639\u0630\u0651\u0631\u064E \u0627\u0644\u0646\u0633\u062E' : '\u0646\u0633\u062E'}</button>;
 };// The Web Speech engine ends a session on every pause and the next one starts a fresh
 // transcript. Concatenating the two halves raw welded the last word of one onto the first
 // word of the next. Every seam goes through this joiner instead.
@@ -4736,9 +4774,9 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
   }
   // رسالة الأستاذ: نحلّلها لاستخراج البطاقات
   const { segments, suggestions } = parseRichMessage(message.content, age);
-  // D90: the clipboard now carries EVERY rendered block, in display order -- not just the two
-  // generic fields (content/items) the old inline map could see. Rendering below is untouched.
-  const copyText = serializeReply(segments, { tashkeel, band: deriveCaps(age).band });
+  // D90: the clipboard carries EVERY rendered block, in display order. D91: it is built on the
+  // TAP, not here, because the stores the cards read are still filling while this runs.
+  const buildCopyText = () => serializeReply(segments, { tashkeel, band: deriveCaps(age).band });
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
       <div style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -4778,7 +4816,9 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
-        <CopyReplyButton text={copyText} />
+        {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
+            always exists, so the button can no longer vanish because a fetch had not landed. */}
+        <CopyReplyButton text={String(message.content || '').trim()} getText={buildCopyText} />
         <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>
         <button type="button" onClick={onReport} aria-label="بلّغ عن هذا الردّ" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
