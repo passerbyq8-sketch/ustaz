@@ -5104,6 +5104,12 @@ function HadithCard({ content, narrator, ruling }) {
 // بطاقة المصدر: شريحةُ عزوٍ قابلةٌ للنقر في نهاية الجواب — أوّلُ رابطٍ خارجيٍّ في التطبيق.
 // تُظهِر اسمَ النطاق (site) ثمّ وصفاً عربيّاً موجزاً (المحتوى)، وتفتح url في تبويبٍ جديد.
 function SourceCard({ site, url, content }) {
+  // D92: this chip is the app's ONLY external navigation -- tapping it leaves for the system
+  // browser (a Custom Tab in the standalone/TWA shell, which the web side cannot intercept, so
+  // the decision has to be made here). Google's Families policy puts a parental gate exactly
+  // here, and before D92 there was none. The hook sits above the missing-url early return so the
+  // hook order is stable on every render.
+  const [gate, setGate] = useState(null);
   // اسمُ النطاق للعرض: نُفضّل site، وإلا نشتقّه من رابط الصفحة إن أمكن.
   let host = (site || '').trim();
   if (!host && url) {
@@ -5120,10 +5126,26 @@ function SourceCard({ site, url, content }) {
   if (!url) {
     return <div style={s.sourceChip}>{body}</div>;
   }
+  const chipStyle = { ...s.sourceChip, ...s.sourceChipLink };
+  if (!(PARENTAL_GATE_ENABLED && childProfileActive())) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" style={chipStyle}>
+        {body}
+      </a>
+    );
+  }
+  // The href stays real, so long-press / copy-link still behave. Only the tap is intercepted:
+  // the navigation happens in onPass, which is itself a button click, so no popup blocker fires.
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" style={{ ...s.sourceChip, ...s.sourceChipLink }}>
-      {body}
-    </a>
+    <>
+      <a href={url} target="_blank" rel="noopener noreferrer" style={chipStyle}
+        onClick={(e) => { e.preventDefault(); setGate({ a: 2 + Math.floor(Math.random() * 8), b: 2 + Math.floor(Math.random() * 8) }); }}>
+        {body}
+      </a>
+      {gate && <AdultGate a={gate.a} b={gate.b}
+        onPass={() => { setGate(null); try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} }}
+        onCancel={() => setGate(null)} />}
+    </>
   );
 }
 
@@ -5294,6 +5316,19 @@ function TopicChips({ onTopicClick }) {
   );
 }
 
+// childProfileActive -- is the ACTIVE stored profile a child (young band)? SourceCard is a leaf
+// and carries no profile prop, so the judgement is read from storage at call time, the same way
+// childVoiceBlocked reads its mirror. fail-closed: no readable profile => treat as a child, so a
+// broken read raises the gate rather than opening the door. Nothing renders a source chip before
+// onboarding, so this is never consulted at boot.
+function childProfileActive() {
+  try {
+    const raw = localStorage.getItem('child_profile');
+    if (!raw) return true;
+    return deriveCaps(JSON.parse(raw).age).band === 'young';
+  } catch (e) { return true; }
+}
+
 const PARENTAL_GATE_ENABLED = true; // Session 08: gate off during testing - MUST be true before store release
 function AdultGate({ a, b, onPass, onCancel }) {
   const [answer, setAnswer] = useState("");
@@ -5405,7 +5440,6 @@ function Onboarding({ onStart }) {
   const [name, setName] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [gender, setGender] = useState(null);
-  const [gate, setGate] = useState(null);
   const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
   // Neutral age screen (step 4a): we ask the BIRTH YEAR — a fact with no "right" answer —
   // never "are you an adult?". Age is DERIVED from it and passed on unchanged; the band
@@ -5415,21 +5449,18 @@ function Onboarding({ onStart }) {
   const derivedAge = CUR_YEAR - yearNum;
   const ageValid = Number.isInteger(yearNum) && derivedAge >= 4 && derivedAge <= 99;
   const canStart = !!(name.trim() && gender && ageValid);
+  // D92: the parental gate is NOT an entry condition for anyone. Onboarding hands the derived
+  // age straight to startChat -- no arithmetic at boot, on the chat, or for a teen/adult profile
+  // at any point. The gate itself is untouched and still stands at the one real boundary a child
+  // profile can cross: an external URL leaving the app (see SourceCard).
   const requestStart = (n) => {
-    if (PARENTAL_GATE_ENABLED && n >= 18) {
-      const a = 2 + Math.floor(Math.random() * 8);   // single digit: a parental gate must be solvable in the head, not on a calculator
-      const b = 2 + Math.floor(Math.random() * 8);
-      setGate({ a, b, age: n });
-    } else {
-      onStart(name, n, gender);
-    }
+    onStart(name, n, gender);
   };
   const submit = () => { if (canStart) requestStart(derivedAge); };
   return (
     <div style={s.welcomeContainer}>
       <div style={s.welcomeInner}>
         <div style={s.welcomeCard}>
-        {gate && <AdultGate a={gate.a} b={gate.b} onPass={() => onStart(name, gate.age, gender)} onCancel={() => setGate(null)} />}
         {/* S13.1b-welcome-single */}
         <div style={s.welcomeLogoSquare}>
           <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
@@ -5471,7 +5502,10 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
     try { localStorage.setItem(PIN_HASH_KEY, await hashPin(pinInput)); } catch (e) { return fail('تعذّر الحفظ'); }
     setConfirmPin(''); onSuccess();
   };
-  if (!hasPin && !adultOk) return <AdultGate a={challenge.a} b={challenge.b} onPass={() => setAdultOk(true)} onCancel={onBack} />;
+  // D92: unchanged for a child profile -- this is a real boundary (the parents-only panel) and the
+  // gate belongs here. An adult or teen profile setting its own PIN meets no arithmetic, per the
+  // ruling that no teen or adult profile faces a challenge at any point.
+  if (!hasPin && !adultOk && PARENTAL_GATE_ENABLED && childProfileActive()) return <AdultGate a={challenge.a} b={challenge.b} onPass={() => setAdultOk(true)} onCancel={onBack} />;
   return (
     <div style={s.onboardingContainer}>
       <div style={s.onboardingCard}>
