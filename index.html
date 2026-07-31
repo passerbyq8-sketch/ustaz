@@ -3147,7 +3147,8 @@ function AdhkarScreenV1({ onBack }) {
     return (
       <div style={s.adhkarContainer}>
         <div style={s.adhkarHeader}>
-          <button onClick={() => setSelected(null)} style={s.adhkarBackBtn}>رجوع</button>
+          {/* S91: the layer owns a history entry, so its back is the same pop the device makes. */}
+          <button onClick={ezikGoBack} style={s.adhkarBackBtn}>رجوع</button>
           <div style={s.adhkarTitle}>{selected.title}</div>
         </div>
         <div style={s.adhkarScroll}>
@@ -3292,7 +3293,10 @@ function AdhkarScreenV2({ onBack }) {
     setUsage(readAdhkarUsage());
   };
   useEzikBackLayer(!!selected, closeAdhkarDetail);
-  if (selected) return <AdhkarCategoryV2 cat={selected} startAt={startAt} onBack={closeAdhkarDetail} />;
+  // S91: the reader's own back presses the application back, which spends the entry this layer
+  // took when it opened and then runs closeAdhkarDetail through the registry -- the same closer,
+  // reached by the same route the device button uses.
+  if (selected) return <AdhkarCategoryV2 cat={selected} startAt={startAt} onBack={ezikGoBack} />;
   // COMPLETED means target reached, counted over distinct items, and capped for DISPLAY at the
   // goal -- min(done, 8) of 8. A ninth completion is real and is not shown as a ninth eighth.
   const done = adhkarCompletedToday(prog, db && db.byCat);
@@ -3874,7 +3878,42 @@ function AdhkarScreen({ onBack }) {
 // state, so nothing is lifted: while a layer is open the feature REGISTERS its own closer here,
 // and the application's single resolver asks the registry before it considers leaving a screen.
 // The last registration is the deepest layer, closing or unmounting removes that exact entry,
-// and a closed layer therefore can never answer a later press. No history is touched here.
+// and a closed layer therefore can never answer a later press.
+//
+// SESSION 91 -- EVERY LAYER OWNS ITS OWN HISTORY ENTRY.
+// ------------------------------------------------------------
+// THE DEFECT THIS REPLACES: a nested layer (an opened dhikr, an opened mushaf page, a running
+// drill) pushed NOTHING when it opened, so it was not represented in the history at all. The
+// first device back therefore had no entry of its own to spend and consumed the SECTION's entry
+// instead; the popstate handler then closed the layer and MINTED A REPLACEMENT entry to stand in
+// for the one it had just destroyed. The web stack looked right afterwards, but the browser's
+// back-forward list had been truncated and re-appended on every nested back, and a native
+// WebView wrapper that caches canGoBack around that window is left holding a stale answer -- so
+// the SECOND device back in the same section reached the wrapper's exit path instead of the app.
+// Below, opening a layer pushes one real entry at the moment it opens, and closing it spends
+// exactly that entry. Nothing is minted inside a popstate handler any more.
+//
+// THE LEDGER. One counter for the entries this app owns and has not yet spent, at module scope
+// because two writers push into the same browser stack -- the App's screen effect and the layer
+// hook below -- and they must count the same entries. `current` is that count, so it reads and
+// means exactly what it always did.
+const histDepthRef = { current: 0 };
+function ezikHistPush(state) {
+  try { window.history.pushState(state, ''); histDepthRef.current++; return true; } catch (e) { return false; }
+}
+// A pop already happened in the browser: just stop counting the entry it spent. Never negative.
+function ezikHistSpend() { if (histDepthRef.current > 0) histDepthRef.current--; }
+// Ask the browser to go back, and ONLY while an entry of ours is on the stack -- so a back can
+// never reach past the app's first entry and the platform's exit at the root is untouched.
+function ezikHistBack() {
+  if (histDepthRef.current <= 0) return false;
+  try { window.history.back(); return true; } catch (e) { return false; }
+}
+// The one back the WHOLE app presses. Module scope so a nested layer's own visible back button
+// reaches the same resolver the device button reaches -- same route, same result -- without
+// threading a callback down through every feature. App installs its resolver here.
+let ezikBackHandler = null;
+function ezikGoBack() { return typeof ezikBackHandler === 'function' ? ezikBackHandler() : false; }
 const ezikBackLayers = [];
 function ezikCloseDeepestLayer() {
   for (let i = ezikBackLayers.length - 1; i >= 0; i--) {
@@ -3892,6 +3931,10 @@ function useEzikBackLayer(open, close) {
   useEffect(() => { closeRef.current = close; });
   useEffect(() => {
     if (!open) return undefined;
+    // S91: THE LAYER TAKES ITS ENTRY HERE, on the closed->open edge and nowhere else. `open` is a
+    // boolean and it is the whole dependency list, so changing WHICH dhikr, page or surah is being
+    // read inside an already-open layer re-runs nothing and pushes nothing -- one layer, one entry.
+    ezikHistPush({ layer: true });
     const entry = () => { const f = closeRef.current; if (typeof f !== 'function') return false; f(); return true; };
     ezikBackLayers.push(entry);
     return () => { const i = ezikBackLayers.indexOf(entry); if (i !== -1) ezikBackLayers.splice(i, 1); };
@@ -4210,10 +4253,8 @@ function App() {
   // التحكم -- and a single slot was overwritten by the inner one, so the outer sheet forgot who
   // opened it and fell back to home. Each open pushes its own opener; each back pops that one.
   const sheetOriginRef = useRef([]);              // which screen opened each open settings/parental sheet
-  // S90: how many history entries THIS APP has pushed and not yet spent. It is the only thing
-  // that authorises the synthetic back below, so the app can never pop past its own first entry
-  // and the platform's exit at the root is exactly where it always was.
-  const histDepthRef = useRef(0);
+  // S91: the ledger that counts the entries this app owns now lives at module scope, next to the
+  // layer registry, because the layer hook pushes into the same stack the screen effect does.
   useEffect(() => { screenRef.current = screen; }, [screen]);
   useEffect(() => { selectedSurahRef.current = selectedSurah; }, [selectedSurah]);
 
@@ -4238,9 +4279,9 @@ function App() {
     const rooted = EZIK_ROOT_SCREENS.indexOf(cur) !== -1;
     // 1. The deepest open layer closes, and NOTHING else happens: the section is retained.
     if (!rooted && closeEzikNested()) {
-      // A pop spent this section's single entry on closing a layer, so put one back -- the
-      // section keeps exactly one entry, and the NEXT press is the one that leaves it.
-      if (viaPop) { try { window.history.pushState({ screen: cur }, ''); histDepthRef.current++; } catch (e) {} }
+      // S91: the entry the pop just spent BELONGED to the layer that has now closed, so there is
+      // nothing to put back. The section's own entry was never touched and is still underneath,
+      // which is exactly what a native wrapper reads when it asks whether it can go back.
       return true;
     }
     // 2. The screen itself leaves, to its own parent from the table -- never to the chat by default.
@@ -4270,10 +4311,17 @@ function App() {
   // resolution is kept, so a back can never reach past the app's first entry.
   const goEzikBack = () => {
     const cur = screenRef.current;
-    if (EZIK_ROOT_SCREENS.indexOf(cur) === -1 && closeEzikNested()) return true;
+    if (EZIK_ROOT_SCREENS.indexOf(cur) === -1) {
+      // S91: a REGISTERED layer owns an entry, so its visible back takes the same route the
+      // device button takes -- a real pop, resolved by the same popstate listener. The direct
+      // close below is kept for the one layer that owns no entry (the mushaf's unregistered
+      // safety net), and only for it.
+      if (ezikBackLayers.length > 0 && ezikHistBack()) return true;
+      if (closeEzikNested()) return true;
+    }
     const dest = ezikBackDestination(cur);
     if (!dest || dest === cur) return false;
-    if (histDepthRef.current > 0) { try { window.history.back(); return true; } catch (e) {} }
+    if (ezikHistBack()) return true;
     return resolveEzikBack(false);
   };
   // Sheets remember their opener so their back returns THERE: home when home opened them, the
@@ -4285,9 +4333,11 @@ function App() {
   // second one keeps one entry per layer, so the parental screen's back lands on الإعدادات and
   // leaves no spent entry behind to swallow a later press.
   const replaceEzikScreen = (target) => { histReplaceRef.current = true; setScreen(target); };
+  // S91: publish this resolver so a nested layer's own back button presses the same one.
+  useEffect(() => { ezikBackHandler = goEzikBack; });
 
   useEffect(() => {
-    const onPop = () => { if (histDepthRef.current > 0) histDepthRef.current--; resolveEzikBack(true); };
+    const onPop = () => { ezikHistSpend(); resolveEzikBack(true); };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
@@ -4303,7 +4353,7 @@ function App() {
       if (!rooted) { try { window.history.replaceState({ screen }, ''); } catch (e) {} }
       return;
     }
-    if (!rooted) { window.history.pushState({ screen }, ''); histDepthRef.current++; }
+    if (!rooted) ezikHistPush({ screen });
   }, [screen]);
 
   // Stop audio when leaving a screen. App never unmounts on a screen switch, so playing
@@ -8644,7 +8694,9 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
 
   // 14.2 — الفهرس يفتح على صفحة السورة في المصحف المُصفَّح.
   // SurahCard انسحبت من هنا وبقيت في المحادثة، حيث وُلدت — ومعها قِشرتها.
-  if (selected) return <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={leaveSurah} />;
+  // S91: same route as the device button -- the pop spends the entry this open surah took, and
+  // the registry then runs leaveSurah, so the recitation is silenced exactly as before.
+  if (selected) return <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
 
   return (
     <div style={s.memContainer}>
@@ -9020,12 +9072,17 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         {/* S87: the drill's back closes the inner activity and lands on the picker -- the
             memorizer's parent screen -- instead of leaving the memorizer in one press. Same
             label, same control, same place; the level it returns to is the one above it. */}
-        <button onClick={leaveDrill} style={s.memBackBtn}>{MEM.BACK_BTN}</button>
+        {/* S91: routed through the application back, so the drill's entry is spent by the same
+            pop the device button makes; the registry still runs leaveDrill, which stops عدنان
+            and the recognizer before showing the picker. */}
+        <button onClick={ezikGoBack} style={s.memBackBtn}>{MEM.BACK_BTN}</button>
       </div>
       <div style={s.memSubBar}>
         <span style={s.memSurahTitle}>{SURAH_NAMES[selectedSurah]}</span>
         <span style={s.memRangeBadge}>{`${MEM.GRAN_AYAH} ${toArabicDigits(startAyah)}`}</span>
-        <button onClick={openPicker} style={s.memChangeBtn}>{MEM.CHANGE_SURAH}</button>
+        {/* S91: this also leaves the drill for the picker, so it leaves by the same door -- it
+            must not abandon the drill's history entry on the stack. */}
+        <button onClick={ezikGoBack} style={s.memChangeBtn}>{MEM.CHANGE_SURAH}</button>
       </div>
       {/* Drill mode switch: manual reveal · عدنان listen-and-repeat (Layer C) · سمِّعني recite (Layer B). */}
       <div style={s.memToggleRow}>
