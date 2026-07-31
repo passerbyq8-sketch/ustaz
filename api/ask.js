@@ -536,7 +536,10 @@ export default async function handler(req, res) {
         const q = (block.input && block.input.query) || '';
         let webText;
         try {
-          const out = await retrieve(q, { band });
+          // `depth` is passed for RETRIEVAL TARGETING only (lib/source-intent.js reads it
+          // to tell a detailed question from an ordinary one). It does not reach the model,
+          // and effectiveDepth is already the server-decided value, not the client's claim.
+          const out = await retrieve(q, { band, depth: effectiveDepth });
           webText = out.text;
           // PRESERVE (was: dropped). Allow-list trust is already established upstream.
           if (Array.isArray(out.sources) && out.sources.length) {
