@@ -105,6 +105,117 @@ function sendSynthesizedText(res, text) {
   res.end();
 }
 
+// ── VERIFIED SOURCE TRANSPORT ────────────────────────────────────────────────
+// retrieve() already returns a STRUCTURED sources array (lib/retrieve.js:332) whose
+// every entry survived the hard band allow-list check on its FINAL post-redirect host
+// (lib/retrieve.js:298-304). That array used to be dropped on the floor here, leaving
+// attribution to whether the model voluntarily typed a <source> card. It no longer is:
+// the first structurally valid entry is carried through and emitted as ONE canonical
+// card at the tail of the reply.
+//
+// SCOPE NOTE: the allow-list itself is deliberately NOT re-declared here. lib/retrieve.js
+// keeps ONE list object driving both the query filter and the post-fetch host enforcement
+// (see its comment at lines 38-42); a second copy in this file is exactly the drift that
+// comment forbids. So this file re-validates SHAPE and SCHEME only and leans on the
+// upstream hard gate for host trust.
+
+// Longest title we will put inside a card. Keeps the chip readable; the client falls
+// back to the hostname when the title is empty (index.html:6594).
+const SOURCE_TITLE_MAX = 120;
+
+// Compare two URLs for "is this the same page". Used only to avoid showing the same
+// card twice when the model already cited the very source we retrieved.
+function normalizeSourceUrl(u) {
+  const raw = String(u == null ? '' : u).trim();
+  try {
+    const x = new URL(raw);
+    return (
+      x.protocol + '//' + x.hostname.toLowerCase().replace(/^www\./, '') +
+      x.pathname.replace(/\/+$/, '') + x.search
+    ).toLowerCase();
+  } catch {
+    return raw.toLowerCase();
+  }
+}
+
+// Build the canonical card for ONE structured source, or null when it cannot be encoded
+// safely. The output must satisfy the EXACT grammar the live client parses:
+//   index.html:1264  /<(...|source|...)([^>]*)>([\s\S]*?)<\/\1>/g   -> attrs may not hold '>'
+//   index.html:1320-1321  site=["']([^"']+)["'] and url=["']([^"']+)["']  -> values hold no quote
+// Anything that will not fit that grammar is REJECTED rather than escaped into something
+// the parser would silently truncate.
+function buildSourceTag(src) {
+  if (!src || typeof src.url !== 'string') return null;
+  const raw = src.url.trim();
+  if (!raw) return null;
+
+  let u;
+  try { u = new URL(raw); } catch { return null; }
+  // https ONLY. This is also what rejects javascript:, data:, file: and bare http:.
+  if (u.protocol !== 'https:') return null;
+
+  const host = (u.hostname || '').toLowerCase().replace(/^www\./, '');
+  // Plain dotted hostname. No userinfo, no IP-literal brackets, no stray punctuation.
+  if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(host)) return null;
+  if (u.username || u.password) return null;
+
+  // WHATWG href already percent-encodes " < > and whitespace; the apostrophe is not
+  // encoded but WOULD close the attribute early under the client's [^"']+ class, so
+  // encode it explicitly, then refuse anything still hostile to the grammar.
+  const url = u.href.replace(/'/g, '%27');
+  if (/["'<>\s]/.test(url)) return null;
+
+  const title = String(src.title == null ? '' : src.title)
+    .replace(/[<>]/g, ' ')       // never let the card's own text open or close a tag
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, SOURCE_TITLE_MAX)
+    .trim();
+
+  return { url, host, tag: `<source site="${host}" url="${url}">${title || host}</source>` };
+}
+
+// SELECTION RULE: the first structurally valid source in retrieval order. retrieve()
+// keeps at most ONE clean source per query (lib/retrieve.js:319-321) and Promise.all
+// preserves tool order, so this is the first angle's source, deterministically.
+// Invalid entries are skipped, not fatal; if none can be encoded, we emit nothing.
+function pickCanonicalSource(sources) {
+  for (const s of sources || []) {
+    const built = buildSourceTag(s);
+    if (built) return built;
+  }
+  return null;
+}
+
+// Did the model already cite this exact page in a WELL-FORMED card? Uses the client's
+// own tag grammar, so a malformed half-tag the client would never render does not count
+// as a citation and therefore does not suppress ours.
+function modelAlreadyCited(text, url) {
+  const want = normalizeSourceUrl(url);
+  const re = /<source\b([^>]*)>[\s\S]*?<\/source>/gi;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const got = (m[1].match(/url=["']([^"']+)["']/) || [])[1];
+    if (got && normalizeSourceUrl(got) === want) return true;
+  }
+  return false;
+}
+
+// Read ONE complete SSE frame exactly the way the live client reads it
+// (index.html:5198-5206): concatenate every `data:` line, JSON.parse, ignore the rest.
+// Returns null for keepalive comments and anything unparseable.
+function readSseFrame(buf) {
+  const s = buf.toString('utf8');
+  if (s.indexOf('data:') === -1) return null;
+  let dataStr = '';
+  for (const line of s.split('\n')) {
+    const l = line.trim();
+    if (l.startsWith('data:')) dataStr += l.slice(5).trim();
+  }
+  if (!dataStr) return null;
+  try { return JSON.parse(dataStr); } catch { return null; }
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -292,13 +403,21 @@ export default async function handler(req, res) {
     // toolUses (each tool_result carries its own block.id). The try/catch is INSIDE
     // each branch so one angle throwing degrades to the "no source" text without
     // rejecting the batch or 500-ing — the other angle still returns real sources.
+    // Structured sources, kept per-angle so the order matches toolUses 1:1 (Promise.all
+    // preserves input order). This is the ONLY place a verified source can enter the
+    // response: nothing here is ever reconstructed from model prose.
+    const retrievedSources = [];
     const toolResults = await Promise.all(
-      toolUses.map(async (block) => {
+      toolUses.map(async (block, angle) => {
         const q = (block.input && block.input.query) || '';
         let webText;
         try {
           const out = await retrieve(q, { band });
           webText = out.text;
+          // PRESERVE (was: dropped). Allow-list trust is already established upstream.
+          if (Array.isArray(out.sources) && out.sources.length) {
+            retrievedSources[angle] = out.sources;
+          }
         } catch (e) {
           // Never 500 on a retrieval error — degrade gracefully so the model won't fabricate.
           console.warn('[ask] retrieval threw:', e.message);
@@ -354,16 +473,76 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // Thin streaming relay — identical byte-pipe to chat.js.
-    // Headers already committed at the top; stop keepalive, then relay real deltas.
+    // Streaming relay — still a byte-faithful pipe, now FRAMED so one verified source
+    // card can be appended at the tail.
+    //
+    // Every upstream byte is forwarded UNCHANGED and IN ORDER. The only difference from
+    // the old raw pipe is that bytes leave in whole SSE frames (split on the same '\n\n'
+    // the client parser uses, index.html:5221) instead of arbitrary chunks. That costs no
+    // visible latency: a partial frame is not actionable by the client either.
+    //
+    // When the upstream message_stop frame arrives we emit ONE extra text_delta carrying
+    // the canonical <source> card BEFORE relaying that stop frame. So the card is always
+    // the last text in the reply, exactly once, and nothing is emitted after it.
+    //
+    // The answer prose is never buffered, rewritten or delayed; strip the source tags from
+    // what the client receives and it is byte-for-byte the upstream model text.
     clearKeepAlive();
+    const canonical = pickCanonicalSource(retrievedSources.filter(Boolean).flat());
     const reader = r2.body.getReader();
+    const SEP = Buffer.from('\n\n');
+    // Pathological-framing backstop: if a separator never arrives, flush rather than grow.
+    const MAX_PENDING = 1 << 20;
+    let pending = Buffer.alloc(0);
+    let modelText = '';
+    let emitted = false;
+
+    // Fires once, immediately before the upstream completion frame. A card is skipped
+    // (but still marked spent) when the model already cited the same page, so the reader
+    // never sees the same source twice.
+    const emitCanonicalSource = () => {
+      if (emitted || !canonical) return;
+      emitted = true;
+      if (modelAlreadyCited(modelText, canonical.url)) {
+        console.log('[source] canonical already cited by model', { host: canonical.host });
+        return;
+      }
+      console.log('[source] appending verified card', { host: canonical.host });
+      res.write(`data: ${JSON.stringify({
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'text_delta', text: canonical.tag },
+      })}\n\n`);
+    };
+
     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        res.write(value);
+        const chunk = Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+        pending = pending.length ? Buffer.concat([pending, chunk]) : chunk;
+        let idx;
+        // '\n' (0x0A) can never occur inside a UTF-8 multi-byte sequence, so splitting on
+        // the raw bytes can never cut a character in half.
+        while ((idx = pending.indexOf(SEP)) !== -1) {
+          const whole = pending.subarray(0, idx + SEP.length);   // frame + its separator
+          const evt = readSseFrame(pending.subarray(0, idx));
+          pending = pending.subarray(idx + SEP.length);
+          if (evt) {
+            if (evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
+              modelText += evt.delta.text;
+            } else if (evt.type === 'message_stop') {
+              emitCanonicalSource();
+            }
+          }
+          res.write(whole);
+        }
+        if (pending.length > MAX_PENDING) { res.write(pending); pending = Buffer.alloc(0); }
       }
+      // Trailing bytes with no separator (unexpected end). Relay them verbatim; do NOT
+      // append a card, because without a completion frame the answer may be truncated and
+      // a source card under a half-answer would be a claim we cannot stand behind.
+      if (pending.length) res.write(pending);
     } finally {
       res.end();
     }
