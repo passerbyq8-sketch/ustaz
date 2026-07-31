@@ -106,13 +106,20 @@ function sendSynthesizedText(res, text) {
   res.end();
 }
 
-// ── VERIFIED SOURCE TRANSPORT ────────────────────────────────────────────────
-// retrieve() already returns a STRUCTURED sources array (lib/retrieve.js:332) whose
-// every entry survived the hard band allow-list check on its FINAL post-redirect host
-// (lib/retrieve.js:298-304). That array used to be dropped on the floor here, leaving
-// attribution to whether the model voluntarily typed a <source> card. It no longer is:
-// the first structurally valid entry is carried through and emitted as ONE canonical
-// card at the tail of the reply.
+// ── VERIFIED SOURCE ENFORCEMENT ──────────────────────────────────────────────
+// retrieve() returns a STRUCTURED sources array (lib/retrieve.js:332) whose every entry
+// survived the hard band allow-list check on its FINAL post-redirect host
+// (lib/retrieve.js:298-304). That array is the ONLY thing allowed to become a card.
+//
+// A religious reply now ends with EXACTLY ONE card, and it is always the verified one:
+//   * every <source> the model typed in round 2 is stripped from the stream, no matter
+//     which host it names -- an allow-listed domain in model prose is still an unchecked
+//     URL, and the old URL-equality dedup let a different path on the same host through
+//     as a second card (and, when the paths matched, let the MODEL's card be the survivor);
+//   * the canonical card is then appended once, last;
+//   * and if retrieval produced no usable structured source, round 2 never runs at all —
+//     the route answers with a plain "I could not verify a source" line instead of an
+//     unsourced ruling. Fail closed, no extra model or retrieval call.
 //
 // SCOPE NOTE: the allow-list itself is deliberately NOT re-declared here. lib/retrieve.js
 // keeps ONE list object driving both the query filter and the post-fetch host enforcement
@@ -124,20 +131,11 @@ function sendSynthesizedText(res, text) {
 // back to the hostname when the title is empty (index.html:6594).
 const SOURCE_TITLE_MAX = 120;
 
-// Compare two URLs for "is this the same page". Used only to avoid showing the same
-// card twice when the model already cited the very source we retrieved.
-function normalizeSourceUrl(u) {
-  const raw = String(u == null ? '' : u).trim();
-  try {
-    const x = new URL(raw);
-    return (
-      x.protocol + '//' + x.hostname.toLowerCase().replace(/^www\./, '') +
-      x.pathname.replace(/\/+$/, '') + x.search
-    ).toLowerCase();
-  } catch {
-    return raw.toLowerCase();
-  }
-}
+// Shown INSTEAD of a ruling when retrieval came back with nothing we can stand behind.
+// Deliberately not a fatwa and deliberately carries no source card: it makes no religious
+// claim at all, so there is nothing to attribute.
+const NO_VERIFIED_SOURCE_MESSAGE =
+  'تعذّر عليّ التحقق من مصدر موثوق لهذه الإجابة الآن، لذلك لن أعطيك حكماً بلا مصدر. حاول مرة أخرى بعد قليل أو أعد صياغة السؤال.';
 
 // Build the canonical card for ONE structured source, or null when it cannot be encoded
 // safely. The output must satisfy the EXACT grammar the live client parses:
@@ -186,20 +184,6 @@ function pickCanonicalSource(sources) {
     if (built) return built;
   }
   return null;
-}
-
-// Did the model already cite this exact page in a WELL-FORMED card? Uses the client's
-// own tag grammar, so a malformed half-tag the client would never render does not count
-// as a citation and therefore does not suppress ours.
-function modelAlreadyCited(text, url) {
-  const want = normalizeSourceUrl(url);
-  const re = /<source\b([^>]*)>[\s\S]*?<\/source>/gi;
-  let m;
-  while ((m = re.exec(text)) !== null) {
-    const got = (m[1].match(/url=["']([^"']+)["']/) || [])[1];
-    if (got && normalizeSourceUrl(got) === want) return true;
-  }
-  return false;
 }
 
 // Read ONE complete SSE frame exactly the way the live client reads it
@@ -536,6 +520,23 @@ export default async function handler(req, res) {
       })
     );
 
+    // ── FAIL CLOSED: no verified source => no ruling ───────────────────────
+    // Decided BEFORE round 2, so an unsourceable question costs one model call instead of
+    // two and can never come back as a confident answer with nothing behind it. This is
+    // the whole guarantee: on the DEEN route the reader either gets a verified card or
+    // gets told plainly that we could not verify one.
+    const canonical = pickCanonicalSource(retrievedSources.filter(Boolean).flat());
+    if (!canonical) {
+      console.warn('[source] no verified structured source — refusing to answer unsourced');
+      clearKeepAlive();
+      res.write(`data: ${JSON.stringify({
+        type: 'content_block_delta', index: 0,
+        delta: { type: 'text_delta', text: NO_VERIFIED_SOURCE_MESSAGE },
+      })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+      return res.end();
+    }
+
     const round2Messages = [
       ...body.messages,
       { role: 'assistant', content: round1.content },
@@ -564,46 +565,38 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // Streaming relay — still a byte-faithful pipe, now FRAMED so one verified source
-    // card can be appended at the tail.
+    // Streaming relay, FRAMED, with the source layer owned entirely by the server.
     //
-    // Every upstream byte is forwarded UNCHANGED and IN ORDER. The only difference from
-    // the old raw pipe is that bytes leave in whole SSE frames (split on the same '\n\n'
-    // the client parser uses, index.html:5221) instead of arbitrary chunks. That costs no
-    // visible latency: a partial frame is not actionable by the client either.
+    // Frames are split on the same '\n\n' the client parser uses (index.html:5221), which
+    // costs no visible latency — a partial frame is not actionable by the client either.
+    // Text frames are re-emitted through createSourceFilter(), which deletes every
+    // model-written <source>…</source> across chunk and frame boundaries while holding
+    // back only a few bytes. Everything that is not a source tag survives byte for byte,
+    // and the answer is never buffered.
     //
-    // When the upstream message_stop frame arrives we emit ONE extra text_delta carrying
-    // the canonical <source> card BEFORE relaying that stop frame. So the card is always
-    // the last text in the reply, exactly once, and nothing is emitted after it.
-    //
-    // The answer prose is never buffered, rewritten or delayed; strip the source tags from
-    // what the client receives and it is byte-for-byte the upstream model text.
+    // On the upstream message_stop we flush the filter and emit ONE text_delta carrying
+    // the canonical card, then relay the stop frame. So the verified card is always the
+    // last thing in the reply, exactly once, and it is the only card that can appear.
     clearKeepAlive();
-    const canonical = pickCanonicalSource(retrievedSources.filter(Boolean).flat());
+    const filter = createSourceFilter();
     const reader = r2.body.getReader();
     const SEP = Buffer.from('\n\n');
     // Pathological-framing backstop: if a separator never arrives, flush rather than grow.
     const MAX_PENDING = 1 << 20;
     let pending = Buffer.alloc(0);
-    let modelText = '';
     let emitted = false;
 
-    // Fires once, immediately before the upstream completion frame. A card is skipped
-    // (but still marked spent) when the model already cited the same page, so the reader
-    // never sees the same source twice.
-    const emitCanonicalSource = () => {
-      if (emitted || !canonical) return;
-      emitted = true;
-      if (modelAlreadyCited(modelText, canonical.url)) {
-        console.log('[source] canonical already cited by model', { host: canonical.host });
-        return;
-      }
-      console.log('[source] appending verified card', { host: canonical.host });
+    const writeText = (t) => {
+      if (!t) return;
       res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta',
-        index: 0,
-        delta: { type: 'text_delta', text: canonical.tag },
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t },
       })}\n\n`);
+    };
+    const emitCanonicalSource = () => {
+      if (emitted) return;
+      emitted = true;
+      console.log('[source] appending verified card', { host: canonical.host });
+      writeText(canonical.tag);
     };
 
     try {
@@ -619,20 +612,22 @@ export default async function handler(req, res) {
           const whole = pending.subarray(0, idx + SEP.length);   // frame + its separator
           const evt = readSseFrame(pending.subarray(0, idx));
           pending = pending.subarray(idx + SEP.length);
-          if (evt) {
-            if (evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
-              modelText += evt.delta.text;
-            } else if (evt.type === 'message_stop') {
+          if (evt && evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
+            writeText(filter.push(evt.delta.text));   // model <source> tags never survive this
+          } else {
+            if (evt && evt.type === 'message_stop') {
+              writeText(filter.end());
               emitCanonicalSource();
             }
+            res.write(whole);                          // every other frame relayed verbatim
           }
-          res.write(whole);
         }
         if (pending.length > MAX_PENDING) { res.write(pending); pending = Buffer.alloc(0); }
       }
-      // Trailing bytes with no separator (unexpected end). Relay them verbatim; do NOT
-      // append a card, because without a completion frame the answer may be truncated and
-      // a source card under a half-answer would be a claim we cannot stand behind.
+      // Unexpected end (no completion frame). Flush the prose the filter still holds, but
+      // do NOT append a card: a source under a possibly truncated answer would read as a
+      // completed, attributed ruling that we cannot stand behind.
+      writeText(filter.end());
       if (pending.length) res.write(pending);
     } finally {
       res.end();
