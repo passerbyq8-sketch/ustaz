@@ -215,12 +215,157 @@ for (const [id, needle] of AR) {
   else fail(id + '  [A4] safety phrase gone from the tree');
 }
 
-// ---- summary ----
-console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
-if (F > 0) {
-  console.log('  -- FAILURES (classifier drift) --');
-  FAILS.forEach((m) => console.log('    * ' + m));
-  process.exit(1);
-}
-console.log('  OK: DEEN/GEN classifier safety scaffolding intact (AST-verified).');
-process.exit(0);
+// ============================================================================
+// PART 2 — the TEXT route (lib/route-classify.js + api/ask.js)
+// ============================================================================
+// Part 1 above guards the VOICE classifier (__classifyFast), which picks a system prompt
+// and a model tier for a call turn. This part guards a different, independent decision:
+// whether a TEXT turn is forced to search. The two never share code -- the voice one is a
+// model call, this one is pure lexical logic -- but they share the same governing rule:
+// real doubt resolves to DEEN. Behavioural (not AST) checks, because a lexical router is
+// only worth what its corpus says it does.
+(async () => {
+  const path = require('path');
+  const RC_PATH = path.join(__dirname, 'lib', 'route-classify.js');
+  if (!fs.existsSync(RC_PATH)) {
+    fail('T0 route-classify-present  lib/route-classify.js is missing (text router gone)');
+  } else {
+    let RC = null;
+    try {
+      RC = await import(require('url').pathToFileURL(RC_PATH).href);
+    } catch (e) {
+      fail('T0 route-classify-loads  lib/route-classify.js failed to import: ' + (e && e.message));
+    }
+    if (RC && typeof RC.classifyRoute === 'function' && typeof RC.createSourceFilter === 'function') {
+      pass('T0 route-classify-present  classifyRoute + createSourceFilter exported');
+      const U = (t) => ({ role: 'user', content: t });
+      const A = (t) => ({ role: 'assistant', content: t });
+      const R = (msgs) => RC.classifyRoute(msgs);
+
+      // ---- T1: religious wording must force the search route ----
+      const DEEN_CORPUS = [
+        'ما حكم صيام المريض في رمضان', 'هل يجوز للحائض قراءة القرآن', 'كيف أتوضأ',
+        'علمني كيف أصلي', 'ما هي أركان الإسلام', 'درجة حديث من حسن إسلام المرء تركه ما لا يعنيه',
+        'معنى قوله تعالى إياك نعبد وإياك نستعين', 'فضل بر الوالدين في الإسلام',
+        'ما حكم الجهر بالبسملة في الصلاة الجهرية', 'هل الربا حرام في البنوك',
+        'كم عدد ركعات صلاة الفجر', 'علمني دعاء قبل النوم', 'من هو الله',
+        'شنو حكم الأكل بالشمال', 'ابغى اعرف كيف اتوضا صح', 'وش حكم لبس الذهب للرجال',
+        'متى تجب الزكاة', 'ما هي كفارة اليمين', 'اذكار الصباح والمساء',
+        'هل يجوز الجمع بين الصلاتين في السفر',
+      ];
+      const badDeen = DEEN_CORPUS.filter((q) => R([U(q)]) !== 'DEEN');
+      if (badDeen.length === 0) pass('T1 religious-to-DEEN  all ' + DEEN_CORPUS.length + ' religious cases route to DEEN');
+      else fail('T1 religious-to-DEEN  ' + badDeen.length + ' religious case(s) escaped to GEN: ' + JSON.stringify(badDeen.slice(0, 3)));
+
+      // ---- T2: plainly general wording must NOT be dragged into a fatwa search ----
+      const GEN_CORPUS = [
+        'كَمْ يَسَاوِي ٧ × ٨؟', 'السلام عليكم', 'مرحبا كيف حالك', 'ما هي عاصمة اليابان',
+        'اشرح لي قانون نيوتن الأول', 'كيف أحل معادلة من الدرجة الثانية',
+        'ما الفرق بين الخلية النباتية والحيوانية', 'ساعدني في واجب الإنجليزي',
+        'كم عدد الكواكب في المجموعة الشمسية', 'شنو افضل طريقة احفظ جدول الضرب',
+        'ابغى افكار لمشروع علوم', 'اعطني ملخص عن الحرب العالمية الثانية',
+        'كيف اسوي بحث عن البيئة', 'ما هو الذكاء الاصطناعي', 'كيف أكتب رسالة رسمية',
+        'ما حجم الكرة الأرضية',
+      ];
+      const badGen = GEN_CORPUS.filter((q) => R([U(q)]) !== 'GEN');
+      if (badGen.length === 0) pass('T2 general-to-GEN  all ' + GEN_CORPUS.length + ' general cases route to GEN');
+      else fail('T2 general-to-GEN  ' + badGen.length + ' general case(s) forced into search: ' + JSON.stringify(badGen.slice(0, 3)));
+
+      // ---- T3: a courtesy formula must not turn a clear general question into a fatwa ----
+      const COURTESY = [
+        'الله يعطيك العافية، كم يساوي ٧ × ٨؟',
+        'مشكور، اشرح لي الكسور',
+        'جزاك الله خير، ساعدني في مسألة رياضيات',
+      ];
+      const badCourtesy = COURTESY.filter((q) => R([U(q)]) !== 'GEN');
+      if (badCourtesy.length === 0) pass('T3 courtesy-not-fatwa  devotional set-phrases do not flip a general question');
+      else fail('T3 courtesy-not-fatwa  a courtesy phrase forced a search: ' + JSON.stringify(badCourtesy));
+
+      // ---- T4: short follow-ups inherit the thread, in BOTH directions ----
+      const relThread = [U('ما حكم صيام المريض في رمضان'), A('...')];
+      const techThread = [U('اشرح لي قانون نيوتن الأول'), A('...')];
+      const FOLLOWUPS = ['ليش؟', 'وإذا نسي؟', 'شنو الدليل؟', 'طيب؟', 'وبعدين؟', 'زدني', 'مثال؟', 'وضح أكثر', 'ولو كان مسافر؟', 'اكيد؟'];
+      const missDeen = FOLLOWUPS.filter((f) => R([...relThread, U(f)]) !== 'DEEN');
+      const missGen = FOLLOWUPS.filter((f) => R([...techThread, U(f)]) !== 'GEN');
+      if (missDeen.length === 0) pass('T4 followup-inherits-DEEN  all ' + FOLLOWUPS.length + ' short follow-ups stay DEEN after a religious turn');
+      else fail('T4 followup-inherits-DEEN  follow-up lost the religious thread: ' + JSON.stringify(missDeen));
+      if (missGen.length === 0) pass('T4 followup-inherits-GEN  the same follow-ups stay GEN after a technical turn');
+      else fail('T4 followup-inherits-GEN  follow-up wrongly forced a search: ' + JSON.stringify(missGen));
+      if (R([...relThread, U('كم يساوي ٧ × ٨؟')]) === 'GEN') pass('T4 general-inside-religious-thread  a complete general question is not treated as a follow-up');
+      else fail('T4 general-inside-religious-thread  a complete general question inherited the religious thread');
+
+      // ---- T5: fail-CLOSED on doubt ----
+      const closedOk = R([A('x')]) === 'DEEN' && R([]) === 'DEEN'
+        && R([...relThread, U('جزاك الله خير')]) === 'DEEN';
+      if (closedOk) pass('T5 doubt-to-DEEN  no readable user turn / bare formula in a religious thread -> DEEN');
+      else fail('T5 doubt-to-DEEN  an unreadable or empty turn escaped to GEN (fail-OPEN)');
+
+      // ---- T6: determinism -- the same input must never wobble ----
+      const relQ = [U('ما حكم صيام المريض في رمضان')];
+      const genQ = [U('كَمْ يَسَاوِي ٧ × ٨؟')];
+      const rs = new Set(), gs = new Set();
+      for (let i = 0; i < 20; i++) { rs.add(R(relQ)); gs.add(R(genQ)); }
+      if (rs.size === 1 && rs.has('DEEN') && gs.size === 1 && gs.has('GEN')) {
+        pass('T6 deterministic  20/20 identical verdicts for both a religious and a general question');
+      } else {
+        fail('T6 deterministic  verdict wobbled: religious=' + [...rs] + ' general=' + [...gs]);
+      }
+
+      // ---- T7: the GEN stream filter must equal branch (a)'s regex for ANY chunking ----
+      const regexClean = (t) => t
+        .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+        .replace(/<source\b[^>]*>?[\s\S]*$/i, '');
+      const FTEXTS = [
+        'نص عادي بلا وسوم.',
+        'مقدمة <source site="a.com" url="https://a.com/x">وصف</source> خاتمة.',
+        'نص <source site="a.com" url="https://a.com/x">غير مغلق للأبد',
+        'نص <sourced>ليس وسم مصدر</sourced> يبقى كما هو.',
+        'مع اقتراحات <source site="a.com" url="https://a.com/1">و</source>\n<suggestions>\n- س\n</suggestions>',
+      ];
+      let mism = 0, tried = 0;
+      for (const t of FTEXTS) {
+        const want = regexClean(t);
+        for (let i = 0; i <= t.length; i++) {
+          const f = RC.createSourceFilter();
+          const got = f.push(t.slice(0, i)) + f.push(t.slice(i)) + f.end();
+          tried++; if (got !== want) mism++;
+        }
+        const f2 = RC.createSourceFilter();
+        let perChar = '';
+        for (const ch of t) perChar += f2.push(ch);
+        perChar += f2.end();
+        tried++; if (perChar !== want) mism++;
+      }
+      if (mism === 0) pass('T7 stream-filter-equivalence  ' + tried + ' chunkings all byte-identical to the branch-(a) regex');
+      else fail('T7 stream-filter-equivalence  ' + mism + '/' + tried + ' chunkings diverged (unbacked <source> could leak or prose could be eaten)');
+    }
+  }
+
+  // ---- T8: api/ask.js must actually WIRE the router (forced search + tool-free GEN) ----
+  const askPath = path.join(__dirname, 'api', 'ask.js');
+  const ask = fs.existsSync(askPath) ? fs.readFileSync(askPath, 'utf8') : '';
+  if (!ask) {
+    fail('T8 ask-wiring  api/ask.js unreadable');
+  } else {
+    const imports = /from\s+['"]\.\.\/lib\/route-classify\.js['"]/.test(ask);
+    const routed = /classifyRoute\s*\(\s*body\.messages\s*\)/.test(ask);
+    const forced = /tool_choice\s*:\s*\{\s*type\s*:\s*['"]tool['"]\s*,\s*name\s*:\s*tools\[0\]\.name\s*\}/.test(ask);
+    const clientTrust = /body\.route|body\.deen|body\.classification/i.test(ask);
+    if (imports && routed) pass('T8 ask-wiring  api/ask.js routes on the SERVER via classifyRoute(body.messages)');
+    else fail('T8 ask-wiring  api/ask.js no longer routes through lib/route-classify.js');
+    if (forced) pass('T8 forced-search  DEEN round 1 pins tool_choice to the declared search tool');
+    else fail('T8 forced-search  tool_choice is gone -- religious turns are back to optional search');
+    if (!clientTrust) pass('T8 no-client-trust  the route is never read from the request body');
+    else fail('T8 no-client-trust  a client-supplied route field is being read (untrusted religious routing)');
+  }
+
+  // ---- summary ----
+  console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
+  if (F > 0) {
+    console.log('  -- FAILURES (classifier drift) --');
+    FAILS.forEach((m) => console.log('    * ' + m));
+    process.exit(1);
+  }
+  console.log('  OK: voice DEEN/GEN scaffolding intact (AST) + text route deterministic (corpus).');
+  process.exit(0);
+})();

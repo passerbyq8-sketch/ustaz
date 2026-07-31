@@ -17,6 +17,7 @@
 import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
 import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
+import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -312,6 +313,18 @@ export default async function handler(req, res) {
   console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, usePremium, model });
   const system = appendDepthBlock(wrapSystem(body.system), depthInstruction);
 
+  // DETERMINISTIC ROUTE (lib/route-classify.js). Decided HERE, on the server, from the
+  // messages themselves -- never from a client-supplied field, because the whole point is
+  // that a religious turn cannot opt out of being sourced.
+  //   GEN  -> one streamed round, no tools: general questions stop paying for a decision
+  //           round they never needed, and text appears while it is still being written.
+  //   DEEN -> round 1 with the search tool FORCED, so the same fatwa searches every time
+  //           instead of depending on the model's mood.
+  // It changes neither the model, the system prompt, the effort, the token cap, the band,
+  // nor the allow-list. Real doubt resolves to DEEN.
+  const route = classifyRoute(body.messages);
+  console.log('[route]', { route, band });
+
   const headers = {
     'Content-Type': 'application/json',
     'x-api-key': apiKey,
@@ -335,7 +348,80 @@ export default async function handler(req, res) {
   const clearKeepAlive = () => { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } };
 
   try {
-    // ── ROUND 1: non-streamed, WITH tools ──────────────────────────────────
+    // ── GEN ROUTE: ONE streamed round, NO tools ────────────────────────────
+    // Same model, same system prompt, same token cap, same effort the final round uses
+    // today. The ONLY difference from the old path is that `tools` is absent — so there is
+    // no decision round to wait out, no retrieval, and no possibility of a tool_use block.
+    // That last part is what makes streaming safe here: with no tools in the request the
+    // model cannot switch to a search half-way, so no draft can ever be shown and then
+    // replaced. Every text delta is forwarded as it arrives.
+    if (route === 'GEN') {
+      const g = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          ...(usePremium ? { output_config: { effort: round2Effort } } : {}),
+          system,
+          messages: body.messages,
+          stream: true,
+        }),
+      });
+
+      if (!g.ok) {
+        const errText = await g.text().catch(() => '');
+        console.error('[ask] gen upstream', g.status, errText.slice(0, 300));
+        clearKeepAlive();
+        res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${g.status}` } })}\n\n`);
+        return res.end();
+      }
+
+      // GEN never retrieves, so ANY <source> card here is unbacked. createSourceFilter()
+      // removes them across chunk and frame boundaries while holding back only a few
+      // bytes — byte-identical to the branch-(a) regex, never buffering the answer.
+      clearKeepAlive();
+      const filter = createSourceFilter();
+      const reader = g.body.getReader();
+      const SEP = Buffer.from('\n\n');
+      const MAX_PENDING = 1 << 20;
+      let pending = Buffer.alloc(0);
+      const writeText = (t) => {
+        if (!t) return;
+        res.write(`data: ${JSON.stringify({
+          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t },
+        })}\n\n`);
+      };
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+          pending = pending.length ? Buffer.concat([pending, chunk]) : chunk;
+          let idx;
+          while ((idx = pending.indexOf(SEP)) !== -1) {
+            const whole = pending.subarray(0, idx + SEP.length);
+            const evt = readSseFrame(pending.subarray(0, idx));
+            pending = pending.subarray(idx + SEP.length);
+            if (evt && evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
+              writeText(filter.push(evt.delta.text));   // filtered text replaces this frame
+            } else {
+              if (evt && evt.type === 'message_stop') writeText(filter.end());
+              res.write(whole);                          // every other frame relayed verbatim
+            }
+          }
+          if (pending.length > MAX_PENDING) { res.write(pending); pending = Buffer.alloc(0); }
+        }
+        writeText(filter.end());        // stream ended without a completion frame
+        if (pending.length) res.write(pending);
+      } finally {
+        res.end();
+      }
+      return;
+    }
+
+    // ── ROUND 1 (DEEN): non-streamed, WITH tools, search FORCED ────────────
     const r1 = await fetch(ANTHROPIC_URL, {
       method: 'POST',
       headers,
@@ -346,6 +432,11 @@ export default async function handler(req, res) {
         system,
         messages: body.messages,
         tools,
+        // FORCED, not suggested. This is the whole point of the DEEN route: the same
+        // religious question must search every time instead of depending on the model
+        // choosing to. Forcing the tool also means round 1 emits no prose at all, so
+        // there is nothing from it that could reach the reader.
+        tool_choice: { type: 'tool', name: tools[0].name },
         stream: false,
       }),
     });
