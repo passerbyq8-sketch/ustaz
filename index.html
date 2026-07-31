@@ -131,14 +131,13 @@
   :root[data-theme="dark"] .adhkar3,:root[data-theme="dark"] .ezhome{--a3-page:#0A1020;--a3-surface:#121A2C;--a3-line:#263554;--a3-ice:#1C2A45;
     --a3-ink:#E7EEFB;--a3-muted:#A2B2CE;--a3-blue:#6E9BFF;--a3-navy:#0A1020;--a3-cyan:#3FD6F5;
     --a3-soft:#18233A;--a3-shadow:0 2px 12px rgba(0,0,0,0.34);--a3-lift:0 8px 26px rgba(0,0,0,0.42)}
-  /* The three things an inline style cannot express, all of them scoped to .ezhome-* class
+  /* The two things an inline style cannot express, both of them scoped to .ezhome-* class
      names that exist nowhere else in this file. The journey path is two balanced columns on
      a phone already (cards alternate around the route), so a wide display only needs the
-     reading column to stop being a phone-width ribbon; the quick row steps 2 -> 4. */
+     reading column to stop being a phone-width ribbon. S87: the quick-row grid went out with
+     the duplicated row it laid out -- every module is drawn once, by the deck itself. */
   .ezhome-wrap{width:100%;max-width:640px;margin:0 auto}
   @media (min-width:900px){.ezhome-wrap{max-width:900px}}
-  .ezhome-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  @media (min-width:600px){.ezhome-quick{grid-template-columns:repeat(4,minmax(0,1fr))}}
   .ezhome-focus:focus-visible{outline:3px solid var(--a3-cyan);outline-offset:2px}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
@@ -2584,8 +2583,8 @@ const getHomeGreeting = () => {
 //
 // CHROME STRINGS, written as escapes so this block stays ASCII and no editor can reflow a
 // bidirectional literal. Every one of them is a label the home screen ALREADY showed, code
-// point for code point; the single addition is EZH_QUICK, the heading over the deck's
-// quick-access row, and it is chrome. No devotional text is authored, moved or read here.
+// point for code point. No devotional text is authored, moved or read here. (S87 removed
+// EZH_QUICK with the duplicated quick-access row it titled -- it has no other reader.)
 const EZH_SALAM    = '\u{0627}\u{0644}\u{0633}\u{0644}\u{0627}\u{0645} \u{0639}\u{0644}\u{064A}\u{0643}\u{0645}';   // "peace be upon you"
 const EZH_HELLO    = '\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}\u{064B} \u{064A}\u{0627}';                            // "welcome, O"
 const EZH_ACCOUNT  = '\u{0627}\u{0644}\u{062D}\u{0633}\u{0627}\u{0628}';                                             // "the account"
@@ -2596,7 +2595,6 @@ const EZH_MEMORIZE = '\u{0627}\u{0644}\u{0645}\u{062D}\u{0641}\u{0651}\u{0638}';
 const EZH_ADHKAR   = '\u{0627}\u{0644}\u{0623}\u{0630}\u{0643}\u{0627}\u{0631}';                                     // "the adhkar"
 const EZH_MUSHAF   = '\u{0627}\u{0644}\u{0645}\u{0635}\u{062D}\u{0641}';                                             // "the mushaf"
 const EZH_TREASURE = '\u{0631}\u{062D}\u{0644}\u{0629}\u{064F} \u{0627}\u{0644}\u{0643}\u{0646}\u{0648}\u{0632}';     // "the treasure journey"
-const EZH_QUICK    = '\u{0648}\u{0635}\u{0648}\u{0644} \u{0633}\u{0631}\u{064A}\u{0639}';                            // "quick access"
 
 // THE REAL MODULE ICONS. Every path below is the path the home screen already drew, moved here
 // unchanged and re-stroked in currentColor so it can sit on a soft chip instead of inside a
@@ -2634,17 +2632,19 @@ const EZH_ICON_NAV_SET = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
 );
 
-// THE FOUR MODULES, in the order the home screen already listed them, built ONCE from the
-// owner's real callbacks and shared by both styles. Neither style may add an entry, drop one,
-// reorder one or substitute a handler: this list IS the home screen's module set, and both
-// components render all four of it. `meta` is a genuine local reading or it is null.
+// THE FOUR MODULES, in the order the home screen already listed them. S87: this builder is now
+// called in EXACTLY ONE PLACE -- the Home owner below -- and the resulting array is handed to
+// whichever style draws it as `v.modules`. A presentation component may not build, extend,
+// reorder or re-render this list; it maps it once. Each descriptor carries the stable `id` that
+// becomes data-ezik-home-module on the one element that renders it, so counting those elements
+// counts the modules. `meta` is a genuine local reading or it is null.
 function ezHomeModules(v) {
   const wird = v.wird ? (toArabicDigits(v.wird.done) + ' / ' + toArabicDigits(v.wird.target)) : null;
   return [
-    { key: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
-    { key: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
-    { key: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
-    { key: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
+    { id: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
+    { id: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
+    { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
+    { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
   ];
 }
 
@@ -2709,7 +2709,7 @@ function EzHomeNav({ onOpenChat, onOpenSettings }) {
 // when no target has actually been set.
 // ============================================================
 function EzikJourneyHome(v) {
-  const mods = ezHomeModules(v);
+  const mods = v.modules || [];   // S87: the owner's one array, never a second build of it
   const now = (v.greeting && v.greeting.tappable) ? 1 : 0;
   return (
     <div className="theme-dark ezhome" style={s.ezhContainer}>
@@ -2721,9 +2721,9 @@ function EzikJourneyHome(v) {
           <div style={s.ezhPath}>
             <span style={s.ezhPathLine} aria-hidden="true" />
             {mods.map((m, i) => (
-              <div key={m.key} style={s.ezhPathRow}>
+              <div key={m.id} style={s.ezhPathRow}>
                 <span style={i === now ? { ...s.ezhMark, ...s.ezhMarkNow } : s.ezhMark} aria-hidden="true" />
-                <button type="button" className="ezhome-focus" onClick={m.onClick}
+                <button type="button" className="ezhome-focus" onClick={m.onClick} data-ezik-home-module={m.id}
                   style={{ ...s.ezhNode, gridColumn: (i % 2 === 0) ? 1 : 3 }}>
                   <span style={s.ezhIcon} aria-hidden="true">{m.icon}</span>
                   <span style={s.ezhNodeTitle}>{m.label}</span>
@@ -2744,14 +2744,20 @@ function EzikJourneyHome(v) {
 // STYLE 2 -- STACKED CARDS. The same four modules as a premium deck, and the geometry is the
 // guarantee: each card is offset EZH_DECK_OFF from the one in front of it, so every card in the
 // stack keeps a 56px strip that is its own button, and its icon and its label both sit inside
-// that strip. The stack is a look, never a lost target. Underneath it a compact four-item quick
-// row repeats all four modules, so no module ever needs the deck manipulated to be reached --
-// and the tab order visits every one of them twice, in list order, either way.
+// that strip. The stack is a look, never a lost target -- the strip IS the touch target, at the
+// platform's own minimum and then some, and the tab order visits all four in list order.
+//
+// S87 -- THE DUPLICATE IS GONE. This screen used to repeat all four modules underneath the deck
+// as a "quick access" grid, so every module was drawn, labelled and tab-stopped TWICE and the
+// same handler hung off two elements. That row, its heading and its styles are removed rather
+// than hidden: the deck below is the only place a module is rendered, each card carries the
+// owner's descriptor id on data-ezik-home-module, and no decorative layer exists that could
+// carry a second copy of one. Four descriptors in, four module elements out.
 // ============================================================
 const EZH_DECK_OFF = 56;
 const EZH_DECK_CARD = 132;
 function EzikDeckHome(v) {
-  const mods = ezHomeModules(v);
+  const mods = v.modules || [];   // S87: the owner's one array, never a second build of it
   return (
     <div className="theme-dark ezhome" style={s.ezhContainer}>
       {/* S86-home-deck */}
@@ -2761,7 +2767,7 @@ function EzikDeckHome(v) {
           <EzHomeCallout g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
           <div style={{ ...s.ezhDeck, height: (mods.length - 1) * EZH_DECK_OFF + EZH_DECK_CARD }}>
             {mods.map((m, i) => (
-              <button key={m.key} type="button" className="ezhome-focus" onClick={m.onClick}
+              <button key={m.id} type="button" className="ezhome-focus" onClick={m.onClick} data-ezik-home-module={m.id}
                 style={{ ...s.ezhDeckCard, ...(i === 0 ? s.ezhDeckCardFront : null),
                   height: EZH_DECK_CARD, top: (mods.length - 1 - i) * EZH_DECK_OFF,
                   left: i * 10, right: i * 10, zIndex: mods.length - i }}>
@@ -2774,17 +2780,6 @@ function EzikDeckHome(v) {
                 {i === 0 && <span style={s.ezhDeckAccent} aria-hidden="true" />}
               </button>
             ))}
-          </div>
-          <div style={s.ezhSection}>
-            <div style={s.ezhSectionTitle}>{EZH_QUICK}</div>
-            <div className="ezhome-quick">
-              {mods.map((m) => (
-                <button key={m.key} type="button" className="ezhome-focus" onClick={m.onClick} style={s.ezhQuickBtn}>
-                  <span style={s.ezhIcon} aria-hidden="true">{m.icon}</span>
-                  <span style={s.ezhQuickLabel}>{m.label}</span>
-                </button>
-              ))}
-            </div>
           </div>
           <div style={s.ezhVerseWrap}><DailyVerseCard /></div>
         </div>
@@ -2818,8 +2813,13 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
   };
+  // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
+  // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
+  // element per module, whichever style is on -- there is no second collection to fall out of
+  // sync with this one, and no second callback bound to the same action.
+  const home = { ...view, modules: ezHomeModules(view) };
   // The whole of the style switch on this screen: which component receives the view above.
-  return style === EZIK_UI_STYLE_DECK ? <EzikDeckHome {...view} /> : <EzikJourneyHome {...view} />;
+  return style === EZIK_UI_STYLE_DECK ? <EzikDeckHome {...home} /> : <EzikJourneyHome {...home} />;
 }
 
 // ============================================================
@@ -3138,6 +3138,11 @@ function AdhkarScreenV1({ onBack }) {
     .replace(/\u0629/g, '\u0647');
   const q = normAr(query).trim();
   const list = (cats || []).filter((c) => !q || normAr(c.title).includes(q));
+  // S87 -- the ONE line this rollback screen gains, and it renders nothing: while a category is
+  // open, the hardware/browser back runs the SAME closer its own back button runs, so V1 obeys
+  // the application hierarchy too (open category -> this list -> home). Its markup, its state,
+  // its storage and its DhikrCard are untouched.
+  useEzikBackLayer(!!selected, () => setSelected(null));
   if (selected) {
     return (
       <div style={s.adhkarContainer}>
@@ -3272,15 +3277,22 @@ function AdhkarScreenV2({ onBack }) {
     setStartAt(Number.isFinite(n) && n > 0 ? n : 0);
     setSelected(c);
   };
-  // Returning re-reads progress from storage rather than trusting a stale copy, so the card
-  // shows what the counter actually wrote -- including a day that rolled over mid-session.
-  const back = () => {
+  // ===== closeAdhkarDetail -- THE ADHKAR'S OWN NESTED CLOSER =====
+  // It closes the OPEN CATEGORY (with the item being read inside it) and reveals this browse
+  // screen; it does not leave the adhkar, and only the browse screen's own back does that. It
+  // touches no storage: the counters, the favourites and the per-category open counts are
+  // RE-READ from the same keys the reader just wrote, so returning shows exactly what the
+  // counter recorded -- including a day that rolled over mid-session -- and nothing is cleared,
+  // reset or re-mounted. Audio and share belong to the reader and stop with it, as they always
+  // did. S87: this is also what a hardware/browser back runs first while a category is open.
+  const closeAdhkarDetail = () => {
     setSelected(null);
     setProg(readAdhkarProgress());
     setFavs(readAdhkarFavorites());
     setUsage(readAdhkarUsage());
   };
-  if (selected) return <AdhkarCategoryV2 cat={selected} startAt={startAt} onBack={back} />;
+  useEzikBackLayer(!!selected, closeAdhkarDetail);
+  if (selected) return <AdhkarCategoryV2 cat={selected} startAt={startAt} onBack={closeAdhkarDetail} />;
   // COMPLETED means target reached, counted over distinct items, and capped for DISPLAY at the
   // goal -- min(done, 8) of 8. A ninth completion is real and is not shown as a ninth eighth.
   const done = adhkarCompletedToday(prog, db && db.byCat);
@@ -3844,6 +3856,70 @@ function AdhkarScreen({ onBack }) {
   return ADHKAR_UI_V2_ON ? <AdhkarScreenV2 onBack={onBack} /> : <AdhkarScreenV1 onBack={onBack} />;
 }
 
+// ============================================================
+// SESSION 87 -- ONE BACK HIERARCHY FOR THE WHOLE APPLICATION.
+// ------------------------------------------------------------
+// THE DEFECT THIS REPLACES: every non-chat screen resolved a browser/hardware back to the CHAT,
+// because the chat was written as the generic fallback. Reading a dhikr and pressing back left
+// the adhkar altogether; so did the mushaf's second back, and the memorizer's, and the settings
+// sheet's. The hierarchy below is the one the app already looks like:
+//
+//   nested layer (open surah / opened adhkar category / running drill) -> its own parent screen
+//   feature section (mushaf, adhkar, memorizer)                        -> HOME
+//   sheet (parent gate, parent dashboard, settings)                    -> whoever opened it
+//   home                                                               -> the app root, as before
+//   call                                                               -> the chat, as before
+//
+// THE REGISTRY. A feature owns its nested layer and nothing outside it may reach into that
+// state, so nothing is lifted: while a layer is open the feature REGISTERS its own closer here,
+// and the application's single resolver asks the registry before it considers leaving a screen.
+// The last registration is the deepest layer, closing or unmounting removes that exact entry,
+// and a closed layer therefore can never answer a later press. No history is touched here.
+const ezikBackLayers = [];
+function ezikCloseDeepestLayer() {
+  for (let i = ezikBackLayers.length - 1; i >= 0; i--) {
+    const close = ezikBackLayers[i];
+    if (typeof close === 'function' && close() !== false) return true;
+  }
+  return false;
+}
+// The registration hook. `open` says whether this feature currently HAS a nested layer; while it
+// does, `close` peels exactly one level off it and nothing more. The closer is read through a
+// ref so a re-render does not churn the registry, and the cleanup removes this entry by
+// identity -- never one another feature registered.
+function useEzikBackLayer(open, close) {
+  const closeRef = useRef(close);
+  useEffect(() => { closeRef.current = close; });
+  useEffect(() => {
+    if (!open) return undefined;
+    const entry = () => { const f = closeRef.current; if (typeof f !== 'function') return false; f(); return true; };
+    ezikBackLayers.push(entry);
+    return () => { const i = ezikBackLayers.indexOf(entry); if (i !== -1) ezikBackLayers.splice(i, 1); };
+  }, [open]);
+}
+// THE DESTINATION TABLE, and it is the whole of the policy. It is a pure function of the screen
+// being left and of the origin the sheets recorded, so the visible back button and the hardware
+// back button cannot disagree: both ask this. `null` means "this screen has no parent inside the
+// app" -- the roots -- and the caller then changes nothing at all.
+const EZIK_ROOT_SCREENS = ['loading', 'onboarding', 'chat'];
+const EZIK_SHEET_SCREENS = ['parentGate', 'parentDashboard', 'settings'];
+function ezikBackTarget(cur, sheetOrigin) {
+  if (EZIK_ROOT_SCREENS.indexOf(cur) !== -1) return null;
+  // The call keeps its own documented exit contract: ending a call returns to the chat, and the
+  // hardware button now agrees with the call screen's own button instead of contradicting it.
+  if (cur === 'call') return 'chat';
+  // Home is the root of the feature sections. Leaving home is the platform-level exit the app
+  // has always had -- the entry underneath home is the chat the app booted into -- so this line
+  // preserves that behaviour and invents no loop.
+  if (cur === 'home') return 'chat';
+  // A sheet returns to the screen that opened it, and to home when nothing valid was recorded.
+  if (EZIK_SHEET_SCREENS.indexOf(cur) !== -1) {
+    return (sheetOrigin === 'chat' || sheetOrigin === 'home') ? sheetOrigin : 'home';
+  }
+  // Every feature section: home, never the chat.
+  return 'home';
+}
+
 function App() {
   const [screen, setScreen] = useState('loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
@@ -4121,35 +4197,74 @@ function App() {
   useEffect(() => { loadQuran().catch(() => {}); }, []);
 
   // زر الرجوع (أندرويد/المتصفح) — خطأ ١٥: بلا هذا يُغلق التطبيق فوراً من أي شاشة فرعية.
-  // من أي شاشة فرعية يرجع إلى home؛ ومن home يخرج (سلوك أندرويد القياسي). إضافيّ بحت — لا يمسّ أزرار الرجوع داخل الشاشات.
-  // خطأ ٤٦: داخل المصحف يقشر الرجوع طبقة واحدة (قارئ السورة ← منتقي السورة) بدل القفز إلى home، ثم يعيد دفع مدخل تاريخ كي لا تُخرج الضغطة التالية من التطبيق قبل بلوغ home؛ ما عدا المصحف يبقى على قرار ج٣٤.
-  const backNavRef = useRef(false);
+  // خطأ ٤٦: داخل المصحف يقشر الرجوع طبقة واحدة (قارئ السورة ← منتقي السورة) بدل القفز إلى home، ثم يعيد دفع مدخل تاريخ كي لا تُخرج الضغطة التالية من التطبيق قبل بلوغ home.
+  // S87: القرار صار واحداً لكل الشاشات — goEzikBack أدناه — فالزرّ المرئيّ وزرّ الجهاز يسألان الجدول نفسه، والمحادثة لم تعد وجهةَ الرجوع الافتراضية.
+  const backNavRef = useRef(false);      // this transition was CAUSED by a pop: the entry is already spent
+  const histReplaceRef = useRef(false);  // this transition is a BACK: relabel the entry, never deepen the stack
   const screenRef = useRef(screen);               // مرآة متزامنة للشاشة الحالية (onPop مسجّل بـ[] فيغلق على قيمة بائتة)
   const selectedSurahRef = useRef(selectedSurah); // مرآة متزامنة لسورة المصحف المفتوحة، للسبب ذاته
+  const sheetOriginRef = useRef(null);            // which screen opened the settings/profile sheet
   useEffect(() => { screenRef.current = screen; }, [screen]);
   useEffect(() => { selectedSurahRef.current = selectedSurah; }, [selectedSurah]);
+
+  // The nested layer, if any, and it is asked FIRST by both back paths. The registry answers for
+  // the adhkar's opened category, the memorizer's running drill and the mushaf's open surah; the
+  // second line is a safety net for the mushaf alone, whose open surah is App state, so a first
+  // back inside the mushaf peels to the index even if that screen never registered.
+  const closeEzikNested = () => {
+    if (ezikCloseDeepestLayer()) return true;
+    if (screenRef.current === 'mushaf' && selectedSurahRef.current != null) { setSelectedSurah(null); return true; }
+    return false;
+  };
+
+  // ===== goEzikBack -- THE ONE APPLICATION BACK RESOLVER =====
+  // Every visible section-level back control and the browser/hardware button both end here, so
+  // there is exactly one hierarchy and one place to read it. `viaPop` says the press was the
+  // browser's own and has therefore ALREADY consumed a history entry; it changes the bookkeeping
+  // and never the destination. It reads screenRef/refs only, so the popstate listener may keep
+  // the identity it captured at mount and still resolve against the live screen.
+  const resolveEzikBack = (viaPop) => {
+    const cur = screenRef.current;
+    const rooted = EZIK_ROOT_SCREENS.indexOf(cur) !== -1;
+    // 1. The deepest open layer closes, and NOTHING else happens: the section is retained.
+    if (!rooted && closeEzikNested()) {
+      // A pop spent this section's single entry on closing a layer, so put one back -- the
+      // section keeps exactly one entry, and the NEXT press is the one that leaves it.
+      if (viaPop) { try { window.history.pushState({ screen: cur }, ''); } catch (e) {} }
+      return true;
+    }
+    // 2. The screen itself leaves, to its own parent from the table -- never to the chat by default.
+    const dest = ezikBackTarget(cur, sheetOriginRef.current);
+    sheetOriginRef.current = null;
+    if (!dest || dest === cur) return false;
+    if (viaPop) backNavRef.current = true;   // the entry is gone: do not push a replacement
+    else histReplaceRef.current = true;      // a visible press moves within the entry it stands on
+    setScreen(dest);
+    return true;
+  };
+  const goEzikBack = () => resolveEzikBack(false);
+  // Sheets remember their opener so their back returns THERE: home when home opened them, the
+  // chat when the chat's own drawer did. Recorded on the way in, spent once on the way out.
+  const openEzikSheet = (target) => { sheetOriginRef.current = screen; setScreen(target); };
+
   useEffect(() => {
-    const onPop = () => {
-      backNavRef.current = true;
-      // خطأ ٤٦: في المصحف مع سورة مفتوحة، اقشر طبقة واحدة (عُد إلى منتقي السورة) وأعِد دفع
-      // مدخل تاريخ كي لا تُخرج الضغطة التالية من التطبيق قبل بلوغ home، دون تغيير الشاشة.
-      if (screenRef.current === 'mushaf' && selectedSurahRef.current != null) {
-        setSelectedSurah(null);
-        window.history.pushState({ screen: 'mushaf' }, '');
-        return;
-      }
-      // D85: the chat is the root -- back from the chat exits; back from any screen the drawer
-      // opens (home and everything reached from it) returns to the chat.
-      setScreen((cur) => (cur === 'chat' || cur === 'onboarding' || cur === 'loading') ? cur : 'chat');
-    };
+    const onPop = () => { resolveEzikBack(true); };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
+  // ONE ENTRY PER OPENED SCREEN, and never one for a back. Opening a section pushes; a back
+  // relabels the entry it is standing on (replaceState) instead of stacking a second copy of the
+  // parent; a pop-driven change pushes nothing at all, because the pop already spent the entry.
+  // Nothing here runs during render -- this is an effect, after commit, as it always was.
   useEffect(() => {
     if (backNavRef.current) { backNavRef.current = false; return; }
-    if (screen !== 'chat' && screen !== 'onboarding' && screen !== 'loading') {
-      window.history.pushState({ screen }, '');
+    const rooted = EZIK_ROOT_SCREENS.indexOf(screen) !== -1;
+    if (histReplaceRef.current) {
+      histReplaceRef.current = false;
+      if (!rooted) { try { window.history.replaceState({ screen }, ''); } catch (e) {} }
+      return;
     }
+    if (!rooted) window.history.pushState({ screen }, '');
   }, [screen]);
 
   // Stop audio when leaving a screen. App never unmounts on a screen switch, so playing
@@ -5564,12 +5679,18 @@ function App() {
   // قفل الإنفاق: المطالبة تظهر فقط أمام الشاشتين اللتين تُنفقان (المحادثة/المكالمة) وحين يكون القفل مفعّلاً وغير مفتوح.
   // القفل المُعطَّل (٦٤ صفراً) ⇒ spendGateOpenState=true دائماً ⇒ لا تظهر هذه السطر أبداً. أما 0b (المصحف/المحفّظ/الأذكار) فتبقى مفتوحة.
   if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate onUnlock={unlockSpendGate} onExit={() => setScreen('home')} />;
-  if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => setScreen('parentGate')} />;
-  if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); setScreen('chat'); }} />;
-  if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={() => setScreen('chat')} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
+  // S87: the home's chat entry is the FAB in its own bottom bar and nothing else -- the chat is
+  // opened by an explicit chat action, and no back path resolves to it. The profile entry records
+  // home as its opener through openEzikSheet, so the gate's back comes back HERE.
+  if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => openEzikSheet('parentGate')} />;
+  // S87: the three sheets resolve their back through goEzikBack, which returns them to the screen
+  // recorded when they were opened (home or the chat drawer) and to home when nothing valid was.
+  // The gate still clears its own PIN field first -- that is its state, not navigation.
+  if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); goEzikBack(); }} />;
+  if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={goEzikBack} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
   // D88: the settings sheet. Reached from the drawer's gear only; the drawer's PROFILE entry
   // keeps the ParentGate wiring it had, because no profile screen exists to send it to.
-  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={() => setScreen('chat')} />;
+  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} />;
   // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
   if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice onBack={() => setScreen('chat')} />;
   // CALL UNLOCK (directive 82). Sits at the SCREEN transition, immediately AFTER the child
@@ -5581,9 +5702,13 @@ function App() {
   if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
   // المحفّظ — full screen (mirrors CallScreen). Quran playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
-  if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={() => setScreen('home')} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
-  if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={() => { setSelectedSurah(null); setScreen('home'); }} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
-  if (screen === 'adhkar') return <AdhkarScreen onBack={() => setScreen('home')} />;
+  // S87 -- THE THREE FEATURE SECTIONS. Each hands goEzikBack to its OWN section-level back
+  // control, so the visible button and the hardware button resolve through the same table: a
+  // nested layer (drill / open surah / opened adhkar category) closes first and the section is
+  // retained, and only a back taken from the section's own top level goes home.
+  if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={goEzikBack} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
+  if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
+  if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
 
   // Single-source capability flags for the chat UI. `directConvoAllowed` layers the parental lock
   // on top of the band: young is allowed unless the parent explicitly locked it; teen/adult always
@@ -5856,13 +5981,13 @@ function App() {
               </button>
             </div>
             <div style={s.drawerPinned}>
-              <button onClick={() => { setDrawerOpen(false); setScreen('parentGate'); }} style={s.drawerProfile}>
+              <button onClick={() => { setDrawerOpen(false); openEzikSheet('parentGate'); }} style={s.drawerProfile}>
                 <span style={s.drawerAvatar}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
                 </span>
                 <span style={s.drawerProfileName}>{profile?.name}</span>
               </button>
-              <button onClick={() => { setDrawerOpen(false); setScreen('settings'); }} style={s.drawerGear} aria-label={'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a'}>
+              <button onClick={() => { setDrawerOpen(false); openEzikSheet('settings'); }} style={s.drawerGear} aria-label={'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a'}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
               </button>
             </div>
@@ -8452,6 +8577,10 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
 
   const leaveSurah = () => { if (onStopAudio) onStopAudio(); setOpenAt(null); setSelected(null); };
   const leaveScreen = () => { if (onStopAudio) onStopAudio(); onBack(); };
+  // S87: the open surah IS this screen's nested layer, so a hardware/browser back peels it back
+  // to the index through the SAME closer the reader's own back button calls -- one behaviour,
+  // one place, and the recitation is silenced either way. Back from the index is leaveScreen.
+  useEzikBackLayer(selected != null, leaveSurah);
 
   // 14.2 — الفهرس يفتح على صفحة السورة في المصحف المُصفَّح.
   // SurahCard انسحبت من هنا وبقيت في المحادثة، حيث وُلدت — ومعها قِشرتها.
@@ -8761,6 +8890,16 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     setDrillMode(m);
   };
 
+  // ===== THE MEMORIZER'S NESTED CLOSER =====
+  // S87: the drill is the INNER activity and the picker is the memorizer's parent screen, so a
+  // back taken in the drill lands on the picker -- never straight out of the memorizer. It stops
+  // exactly what switching mode stops (the listen-and-repeat loop, its pending pause, its audio,
+  // and the recite recognizer), then shows the picker through the screen's own openPicker. Leaving the
+  // memorizer altogether is the picker's own back, one level up. The same closer answers the
+  // hardware/browser button while the drill is open.
+  const leaveDrill = () => { stopAdnan(); stopRecite(); openPicker(); };
+  useEzikBackLayer(view === 'drill', leaveDrill);
+
   // ---------- PICKER ----------
   if (view === 'picker') {
     return (
@@ -8818,7 +8957,10 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     <div style={s.memContainer}>
       <div style={s.memHeader}>
         <div style={s.memTitle}>{MEM.TITLE}</div>
-        <button onClick={onExit} style={s.memBackBtn}>{MEM.BACK_BTN}</button>
+        {/* S87: the drill's back closes the inner activity and lands on the picker -- the
+            memorizer's parent screen -- instead of leaving the memorizer in one press. Same
+            label, same control, same place; the level it returns to is the one above it. */}
+        <button onClick={leaveDrill} style={s.memBackBtn}>{MEM.BACK_BTN}</button>
       </div>
       <div style={s.memSubBar}>
         <span style={s.memSurahTitle}>{SURAH_NAMES[selectedSurah]}</span>
@@ -9001,11 +9143,8 @@ const s = {
   ezhDeckHead: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 44 },
   ezhDeckTitle: { flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   ezhDeckAccent: { width: 44, height: 3, flexShrink: 0, marginTop: 'auto', borderRadius: 999, background: 'var(--a3-cyan)' },
-  // The quick row underneath the deck: all four modules again, none of them behind anything.
-  ezhSection: { marginBottom: 16 },
-  ezhSectionTitle: { fontSize: 13, fontWeight: 800, color: 'var(--a3-muted)', marginBottom: 8 },
-  ezhQuickBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 88, padding: '12px 8px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
-  ezhQuickLabel: { fontSize: 13, fontWeight: 700, color: 'var(--a3-ink)', textAlign: 'center' },
+  // S87: ezhSection / ezhSectionTitle / ezhQuickBtn / ezhQuickLabel are deleted with the
+  // duplicated quick row they dressed. Nothing else in this file referenced them.
   ezhVerseWrap: { marginTop: 4 },
   // THE BOTTOM BAR: pure white, 44px floors, and the safe-area inset so it clears a home bar.
   ezhNav: { flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 20px calc(8px + env(safe-area-inset-bottom, 0px))', background: 'var(--a3-surface)', borderTop: '1px solid var(--a3-line)' },
