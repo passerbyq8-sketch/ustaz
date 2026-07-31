@@ -6491,17 +6491,6 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     if (R.timer) clearTimeout(R.timer);
     R.timer = setTimeout(() => { R.timer = null; setChromeOn((v) => !v); }, MUSHAF_TAP_MS);
   };
-  // 78/V1 -- the official reading surface takes the WHOLE screen. The two bars stop being flex
-  // rows in the column -- which charged the page their height -- and become overlays laid on top
-  // of it, so the viewport is the full 100dvh and the page is sized by the screen alone. One
-  // local flag read straight off MUSHAF_SVG_ON: with the flag off nothing below changes and the
-  // fallback reader keeps the stacked layout it ships with today.
-  const svgFull = MUSHAF_SVG_ON;
-  // 78/V2 -- and once the bars are off the column the slot gives up its inset as well, so the
-  // page reaches both edges of the viewport. This is the inset the OFFICIAL slot is drawn with,
-  // and panBox subtracts this same number, so the pan clamp window can never drift from the
-  // padding the slot actually has.
-  const officialSlotPad = 0;
   // The window the pan is clamped against: the slot's CONTENT box, and the frame's unscaled box.
   // Both are read from the DOM rather than assumed, so a maxWidth cap or a short screen is
   // accounted for without this code knowing about either.
@@ -6510,8 +6499,8 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     const fr = el && el.firstElementChild;
     if (!el || !fr) return null;
     return {
-      sw: el.clientWidth - 2 * officialSlotPad,
-      sh: el.clientHeight - 2 * officialSlotPad,
+      sw: el.clientWidth - 2 * MUSHAF_FRAME_BAND,
+      sh: el.clientHeight - 2 * MUSHAF_FRAME_BAND,
       fw: fr.offsetWidth, fh: fr.offsetHeight,
     };
   };
@@ -6571,28 +6560,11 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // the viewport: 348px of drawn width at a 360 viewport becomes 360px. pgSlot is SHARED with
   // the fallback MushafPage, so the padding is dropped here at the use site and the style object
   // is left alone -- the reader that ships today keeps its inset exactly.
-  // 78/V2 -- and now the frame band goes with it. The two rules and the four corner motifs hang
-  // on NEGATIVE insets, so at zero padding they sit outside the slot and are clipped at the
-  // screen edge: that loss is the accepted price of a page that reaches 100% of the viewport
-  // width. The sheet keeps its measured aspect ratio, so it stays uncropped and simply does not
-  // fill the height. MUSHAF_FRAME_BAND is untouched -- svgRuleOuter, svgRuleInner and
-  // SheetCorners still position themselves with it.
-  const slotSt = MUSHAF_SVG_ON ? { ...s.pgSlot, padding: officialSlotPad } : s.pgSlot;
+  const slotSt = MUSHAF_SVG_ON ? { ...s.pgSlot, padding: MUSHAF_FRAME_BAND } : s.pgSlot;
   // 75/D -- the warm surface the page sits on. pgViewport is SHARED with the fallback reader, so
   // the tone is applied here at the use site and the style object is left alone. Behind the page,
   // never over it: this is the background of the box the page is centred in.
   const vpSt = MUSHAF_SVG_ON ? { ...s.pgViewport, background: MUSHAF_DESK, ...(zoom ? { touchAction: 'none' } : {}) } : s.pgViewport;
-  // 78/V1 -- the three overlay styles. memContainer, memHeader and pgBar are all SHARED objects
-  // (the surah index, the memorisation screens and the fallback reader render them too), so the
-  // overlay is applied HERE at the use site and the objects themselves are left alone. The
-  // container only gains the containing block the two bars are positioned against; the bars keep
-  // every other declaration they have, gain their edge and a zIndex that puts them over the
-  // page, and stop contributing height to the flex column. chromeOn still mounts and unmounts
-  // them, so the tap toggle and the first-turn collapse behave exactly as before -- what changes
-  // is that hiding them no longer resizes the page, it only uncovers it.
-  const memSt = svgFull ? { ...s.memContainer, position: 'relative' } : s.memContainer;
-  const hdrSt = svgFull ? { ...s.memHeader, position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2 } : s.memHeader;
-  const barSt = svgFull ? { ...s.pgBar, position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2 } : s.pgBar;
   // 75/E -- the whole of the zoom, and it lives on one element inside the page container. scale
   // is rightmost so it applies FIRST, which leaves the pan in unscaled pixels and keeps the
   // clamp arithmetic in a single unit. At fit this is null, so the style carries no transform
@@ -6610,9 +6582,9 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const nb = idx.current.needBasmala;
 
   return (
-    <div style={memSt}>
+    <div style={s.memContainer}>
       {chromeOn && (
-      <div style={hdrSt}>
+      <div style={s.memHeader}>
         <div style={s.memTitle}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button onClick={putMark} title={marked ? 'علامتك هنا' : 'ضع العلامة'} aria-label={marked ? 'علامتك هنا' : 'ضع العلامة'} style={{ ...s.memBackBtn, padding: '0 10px', display: 'inline-flex', alignItems: 'center', ...(marked ? { background: 'var(--white)', color: 'var(--red-deep)' } : {}) }}>
@@ -6633,7 +6605,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
         </div>
       </div>
       {chromeOn && (
-      <div style={barSt}>
+      <div style={s.pgBar}>
         <button onClick={() => commit(-1)} disabled={page <= 1} style={{ ...s.pgNavBtn, ...(page <= 1 ? s.pgNavOff : {}) }}>›</button>
         <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" style={{ ...s.pgMeta, ...s.pgJumpBtn }}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
         <button onClick={() => commit(1)} disabled={page >= 604} style={{ ...s.pgNavBtn, ...(page >= 604 ? s.pgNavOff : {}) }}>‹</button>
