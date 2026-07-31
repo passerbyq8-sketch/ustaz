@@ -8,5 +8,6 @@
   { "name": "display",    "script": "build-worship-display.cjs", "args": "--verify" },
   { "name": "referral",   "script": "referral-guard.cjs",        "args": "--compare index.html referral-golden.json" },
   { "name": "classifier", "script": "classifier-guard.cjs",      "args": "index.html" },
-  { "name": "hafs",       "script": "hafs-map-guard.cjs",        "args": "" }
+  { "name": "hafs",       "script": "hafs-map-guard.cjs",        "args": "" },
+  { "name": "call",       "script": "call-mode-guard.cjs",       "args": "index.html" }
 ]

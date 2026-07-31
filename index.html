@@ -863,6 +863,14 @@ const FRIENDLY_ERRORS = {
     male: 'عُذْرًا، لَمْ أَفْهَمْ سُؤَالَكَ تَمَامًا. أَعِدْ كَلَامَكَ مِنْ فَضْلِك.',
     female: 'عُذْرًا، لَمْ أَفْهَمْ سُؤَالَكِ تَمَامًا. أَعِيدِي كَلَامَكِ مِنْ فَضْلِكِ.',
   },
+  // A NON-2xx answer from our own proxy. The request never became an answer, so nothing about
+  // the child's sentence was ever judged -- and telling them "I did not understand your
+  // question" for OUR 400/413/403 is a lie that sends them rephrasing a perfectly good
+  // question forever while a real outage stays invisible. Own the failure instead.
+  technical: {
+    male: 'حَدَثَ خَلَلٌ تِقْنِيٌّ عِنْدِي، لَا فِي سُؤَالِكَ. حَاوِلْ مَرَّةً ثَانِيَةً بَعْدَ قَلِيل.',
+    female: 'حَدَثَ خَلَلٌ تِقْنِيٌّ عِنْدِي، لَا فِي سُؤَالِكِ. حَاوِلِي مَرَّةً ثَانِيَةً بَعْدَ قَلِيل.',
+  },
   network: {
     male: 'يَبْدُو أَنَّ الاتِّصَالَ ضَعِيفٌ الآن. تَحَقَّقْ مِنَ الإِنْتَرْنِت وَحَاوِلْ ثَانِيَة.',
     female: 'يَبْدُو أَنَّ الاتِّصَالَ ضَعِيفٌ الآن. تَحَقَّقِي مِنَ الإِنْتَرْنِت وَحَاوِلِي ثَانِيَة.',
@@ -4050,6 +4058,36 @@ function App() {
   // locally removes BOTH -- and the vendor key never leaves the server.
   const CALL_STT_CLOUD = true;      // flip to false to fall straight back to the Web Speech path
   const CLOUD_MAX_TURN_MS = 60000;  // hard cap on a single recorded turn
+  // ---- Failures on this path must SPEAK. ----
+  // Every cloud-STT failure used to end in `catch (e) {}` + a re-opened microphone: a denied
+  // permission, a missing vendor key and a working-but-silent room were pixel-identical, and the
+  // call sat there listening forever. These three helpers are the ONLY exit for a failure now.
+  const CALL_ERROR_MS = 8000;
+  const callErrorTimerRef = useRef(null);
+  const showCallError = (msg) => {
+    setVoiceError(msg);
+    if (callErrorTimerRef.current) clearTimeout(callErrorTimerRef.current);
+    callErrorTimerRef.current = setTimeout(() => setVoiceError(''), CALL_ERROR_MS);
+  };
+  // getUserMedia rejection -> a sentence naming what the user must actually DO about it.
+  const micErrorMessage = (e) => {
+    const name = String((e && (e.name || e.code)) || '');
+    if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError')
+      return '🚫 لم يُسمح باستخدام الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.';
+    if (name === 'NotFoundError' || name === 'DevicesNotFoundError')
+      return '🎤 لا يوجد ميكروفون متاح على هذا الجهاز.';
+    if (name === 'NotReadableError' || name === 'TrackStartError')
+      return '🎤 الميكروفون مشغول بتطبيق آخر. أغلقه ثم أعد المحاولة.';
+    return '🎤 تعذّر فتح الميكروفون. تحقّق من الإذن ثم أعد المحاولة.';
+  };
+  // A NON-OK /api/stt. Distinct from "heard nothing": the audio WAS recorded and sent.
+  const sttErrorMessage = (status) => {
+    if (status === 429) return '⏳ تجاوزنا حدّ الاستماع المسموح الآن. انتظر قليلاً ثم أعد المحاولة.';
+    if (status === 413) return '🎤 المقطع طويل جدًّا. تكلّم بمقاطع أقصر.';
+    if (status === 403) return '🚫 خدمة تحويل الكلام غير متاحة لهذا الحساب.';
+    if (status >= 500) return '🛠️ خدمة تحويل الكلام متوقّفة مؤقّتًا. حاول بعد قليل.';
+    return '🛠️ تعذّر تحويل كلامك إلى نصّ (رمز ' + status + '). حاول مرّة أخرى.';
+  };
   const cloudStreamRef = useRef(null);
   const cloudChunksRef = useRef([]);
   const mediaRecRef = useRef(null);
@@ -4115,7 +4153,16 @@ function App() {
         setTimeout(tick, 100);
       };
       tick();
-    } catch (e) { callActiveRef.current = false; setCallState('idle'); }
+    } catch (e) {
+      // The microphone never opened. A SILENT fall to 'idle' here was the whole bug: on a denied
+      // permission the ring simply stopped and the call looked like it was working but deaf.
+      console.error('[Al-Murabbi] call mic error:', e);
+      callActiveRef.current = false;
+      stopCloudAll();                 // release whatever half-opened, so a retry starts clean
+      setCallHeard('');
+      setCallState('idle');
+      showCallError(micErrorMessage(e));
+    }
   };
   const stopCloudTurn = async () => {
     if (!callActiveRef.current) return;
@@ -4136,12 +4183,32 @@ function App() {
     const b64 = await blobToBase64(blob);
     if (callGenRef.current !== myGen) { stopCloudAll(); return; }
     let text = '';
+    let sttError = '';
     try {
       const band = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
       const r = await fetch('/api/stt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: b64, mime: blob.type, band }) });
       if (r.ok) { const d = await r.json(); text = String(d.text || '').trim(); }
-    } catch (e) {}
+      else {
+        const body = await r.text().catch(() => '');
+        console.error('[Al-Murabbi] /api/stt ' + r.status + ':', body.slice(0, 300));
+        sttError = sttErrorMessage(r.status);
+      }
+    } catch (e) {
+      console.error('[Al-Murabbi] /api/stt network error:', e);
+      sttError = '📡 تعذّر الوصول إلى خدمة تحويل الكلام. تحقّق من الاتصال ثم أعد المحاولة.';
+    }
     if (callGenRef.current !== myGen) { stopCloudAll(); return; }
+    if (sttError) {
+      // A FAILED transcription is not silence, so it must not be answered with more listening.
+      // Re-opening the mic here (the old behaviour) hid a dead key / spent quota behind a call
+      // that recorded turn after turn and answered none of them, forever.
+      callActiveRef.current = false;
+      setCallHeard('');
+      setCallState('idle');
+      showCallError(sttError);
+      return;
+    }
+    // Transcribed OK but empty => genuine silence. THAT is the one case that keeps listening.
     if (!text) { startCloudListening(); return; }
     setCallHeard('');
     if (callTurnRef.current) callTurnRef.current(text);
@@ -5185,7 +5252,11 @@ function App() {
           return getFriendlyError('rateLimit', p.gender);
         }
         if (response.status >= 500) return getFriendlyError('server', p.gender);
-        return getFriendlyError('general', p.gender);
+        // Every remaining non-2xx is a TECHNICAL failure of ours (400 bad body, 403, 413 too
+        // large, ...). It used to answer with the 'general' line -- "لم أفهم سؤالك" -- which
+        // blamed the child for a request the model never even saw. One env var setting an
+        // unsupported field on api/chat.js was enough to make EVERY call turn say it.
+        return getFriendlyError('technical', p.gender);
       }
 
       // Read the SSE stream: accumulate text_delta and notify onDelta on every update.
@@ -5607,11 +5678,17 @@ function App() {
     if (!hasFounderToken()) return; // directive 82: no token => the call session is never built
     callGenRef.current++; // ENTER: open a new call session (invalidates any stale continuation)
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      setVoiceError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
-      setTimeout(() => setVoiceError(''), 6000);
+    // CLOUD STT DOES NOT USE SpeechRecognition AT ALL. It records with MediaRecorder and
+    // transcribes in api/stt.js, so demanding SR here refused the ENTIRE call screen over a
+    // dependency the live path never touches -- every engine without Web Speech (Android
+    // WebView shells, Firefox) got a "your browser is not supported" banner and a dead call,
+    // while the path that would have worked was never even started. Only the Web Speech
+    // FALLBACK may require SR.
+    if (!SR && !CALL_STT_CLOUD) {
+      showCallError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
       return;
     }
+    setVoiceError(''); // entering a call clears any stale banner from the chat screen
     // Force the dictation mic off (never modify it — just ensure it is not running).
     shouldListenRef.current = false;
     try { recognitionRef.current?.stop(); } catch (e) {}
@@ -5621,11 +5698,16 @@ function App() {
     setCallHeard('');
     setCallState('idle');
 
-    const rec = new SR();
-    rec.lang = 'ar-SA';
-    rec.continuous = true;       // interim events keep resetting the silence timer (smoother end-of-turn)
-    rec.interimResults = true;
-    rec.onresult = (event) => {
+    // `rec` is NULL when the engine has no Web Speech and the cloud path is carrying the call.
+    // The three handlers below are still DEFINED either way (they are the fallback's behaviour,
+    // unchanged), but they are only WIRED when there is an engine to fire them.
+    const rec = SR ? new SR() : null;
+    if (rec) {
+      rec.lang = 'ar-SA';
+      rec.continuous = true;     // interim events keep resetting the silence timer (smoother end-of-turn)
+      rec.interimResults = true;
+    }
+    const onRecResult = (event) => {
       // This ar-SA engine emits multiple isFinal results where each later final RE-INCLUDES the
       // earlier final text (cumulative restatement), so concatenating all finals double-counts.
       // Merge instead: a final that extends what we have (starts with the accumulated text) REPLACES
@@ -5656,7 +5738,7 @@ function App() {
         if (callActiveRef.current && (callBaseTextRef.current + callTranscriptRef.current).trim()) endCallTurnNow();
       }, vadOkRef.current ? 86400000 : CALL_SILENCE_MS);
     };
-    rec.onend = () => {
+    const onRecEnd = () => {
       // Chrome owns onend and fires it on its own schedule (short Arabic pauses, engine timeouts).
       // It must NEVER end a turn: doing so shipped truncated questions to the model.
       // The CLIENT-OWNED silence timer is the SOLE turn-ender. onend only RESTARTS the recognizer,
@@ -5688,16 +5770,22 @@ function App() {
       };
       setTimeout(() => tryStart(0), 120);
     };
-    rec.onerror = (event) => {
+    const onRecError = (event) => {
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
       callActiveRef.current = false;
+      setCallHeard('');
       setCallState('idle');
+      // A denied mic is fatal and MUST be said. 'no-speech'/'aborted' are routine and stay quiet.
       const fatal = ['not-allowed', 'audio-capture', 'service-not-allowed'];
       if (fatal.includes(event.error)) {
-        setVoiceError('🚫 لم يُمنح إذن الميكروفون.');
-        setTimeout(() => setVoiceError(''), 6000);
+        showCallError(event.error === 'audio-capture'
+          ? '🎤 الميكروفون غير متاح على هذا الجهاز.'
+          : '🚫 لم يُمنح إذن الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.');
+      } else if (event.error === 'network') {
+        showCallError('📡 انقطع الاتّصال بمحرّك التعرّف على الصوت. تحقّق من الإنترنت ثم أعد المحاولة.');
       }
     };
+    if (rec) { rec.onresult = onRecResult; rec.onend = onRecEnd; rec.onerror = onRecError; }
     callRecognitionRef.current = rec;
     startCallListening();    // child just enters and talks - no button
 
@@ -5706,7 +5794,12 @@ function App() {
       callActiveRef.current = false;
       if (silenceTimerRef.current) { clearTimeout(silenceTimerRef.current); silenceTimerRef.current = null; }
       clearInactivityTimer();
-      try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) {}
+      // Clear the banner WITH its dismiss timer. Cancelling the timer alone would strand a
+      // call-mode error on the chat screen with nothing left running to ever take it down.
+      if (callErrorTimerRef.current) { clearTimeout(callErrorTimerRef.current); callErrorTimerRef.current = null; }
+      setVoiceError('');
+      if (rec) { try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) {} }
+      stopCloudAll();   // EXIT must release the recorder + the mic track, SR path or not
       callRecognitionRef.current = null;
       if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
       cancelAudio();
@@ -5795,7 +5888,9 @@ function App() {
   // startCallListening and the call useEffect, because that effect runs on [screen] whatever
   // this chain renders -- a screen that mounts unlocked would otherwise be a mic that opens.
   if (screen === 'call' && !hasFounderToken()) return <UnlockSheet onUnlocked={() => setFounderUnlocked(true)} onBack={goEzikBack} />;
-  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={goEzikBack} />;
+  // `error` is what makes a failed call SAY something: voiceError was rendered on the chat screen
+  // ONLY, so every banner a call raised was written to a view the user was not looking at.
+  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} error={voiceError} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={goEzikBack} />;
   // المحفّظ — full screen (mirrors CallScreen). Quran playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
   // S87 -- THE THREE FEATURE SECTIONS. Each hands goEzikBack to its OWN section-level back
@@ -7229,7 +7324,7 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
 // ============================================================
 // callState is owned by App and driven by real audio events (tap → listening → thinking →
 // speaking → idle). The avatar is tap-to-talk; Mute gates the mic. No audio logic lives here.
-function CallScreen({ profileName, gender, callState, heard, isMuted, onToggleMute, onTalk, onExit }) {
+function CallScreen({ profileName, gender, callState, heard, isMuted, error, onToggleMute, onTalk, onExit }) {
   // Accessibility: respect reduced-motion — fall back to a static (non-pulsing) ring.
   const reduceMotion = (typeof window !== 'undefined' && window.matchMedia)
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
@@ -7264,6 +7359,10 @@ function CallScreen({ profileName, gender, callState, heard, isMuted, onToggleMu
         {profileName && <div style={s.callSubLabel}>{profileName}</div>}
         {/* Live feedback: what the mic is hearing (interim). Empty when not listening. */}
         <div style={s.callHint}>{callState === 'listening' && heard ? heard : (isMuted ? 'الميكروفون مكتوم' : '')}</div>
+        {/* A failure that cannot be seen is a failure that reads as "the app just does nothing".
+            Rendered on the DARK call background, so it carries its own light-on-red styling
+            rather than reusing the chat banner. */}
+        {error ? <div style={s.callErrorBanner} role="alert">{error}</div> : null}
       </div>
       <div style={s.callControls}>
         <button onClick={onToggleMute} style={s.callMuteBtn}>
@@ -9792,6 +9891,9 @@ const s = {
   callStatusLabel: { color: '#FFFFFF', fontSize: 22, fontWeight: 700, fontFamily: "'Amiri', 'Tajawal', serif", marginTop: 8 },
   callSubLabel: { color: 'rgba(255, 255, 255, 0.6)', fontSize: 14 },
   callHint: { color: 'rgba(255, 255, 255, 0.35)', fontSize: 12, marginTop: 4 },
+  // Call-screen failure banner. Its own colours because the call background is dark: the chat
+  // errorBanner (cream on tan) is unreadable there. Palette reuses the existing call end-button red.
+  callErrorBanner: { maxWidth: 320, margin: '14px 16px 0', padding: '10px 14px', background: 'rgba(196, 69, 54, 0.92)', border: '1px solid rgba(255, 255, 255, 0.28)', borderRadius: 12, color: '#FFFFFF', fontSize: 13, lineHeight: 1.6, fontWeight: 500, textAlign: 'center' },
   callControls: { display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'center', paddingBottom: 16 },
   callMuteBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: '#F1F6FD', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
   callEndBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: 'linear-gradient(135deg, #C44536 0%, #A03828 100%)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },

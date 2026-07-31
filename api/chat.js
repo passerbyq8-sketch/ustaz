@@ -68,20 +68,24 @@ export default async function handler(req, res) {
     // (A2) Output cap decided HERE, not by the client. The app asks for 4096; an
     //      attacker asks for 64000 and multiplies the bill by 16 on one request.
     parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
-    // (A3) Effort + thinking. ENV-gated. Unset = API default = today's behavior, byte for byte.
-    //      Sonnet 5 defaults to effort:high with adaptive thinking ON: it thinks deeply before
-    //      the first token on EVERY call turn. In a voice call that is dead latency.
-    //      WORSHIP GATE: any flip here must be re-verified against the salah card
-    //      (golden: 19 segments / 3028 & 2939 chars, tolerance 5%). Never flip blind.
-    const CALL_EFFORT = String(process.env.CALL_EFFORT || '').trim();
-    if (CALL_EFFORT === 'low' || CALL_EFFORT === 'medium' || CALL_EFFORT === 'high') {
-      parsed.output_config = { ...(parsed.output_config || {}), effort: CALL_EFFORT };
+    // (A3) EFFORT IS PERMANENTLY OFF. `output_config` (and its `effort` field) is NOT a
+    //      parameter this endpoint's upstream accepts: /v1/messages rejects the whole
+    //      request with a 400 the moment it appears. The old ENV gate (CALL_EFFORT) meant
+    //      one env var set in Vercel turned EVERY call turn into a 400 -- which the client
+    //      then rendered as "لم أفهم سؤالك", blaming the child for our own bad request.
+    //      So we do not read CALL_EFFORT, and we STRIP any output_config the client sent:
+    //      the relay must never forward a field that cannot be accepted. Do not
+    //      reintroduce this without first proving the upstream accepts it.
+    if (parsed.output_config !== undefined) {
+      console.warn('[chat] stripped unsupported output_config from the outgoing body');
+      delete parsed.output_config;
     }
+    // Thinking stays ENV-gated: `thinking` IS an accepted parameter. Unset = API default.
     if (String(process.env.CALL_THINKING || '').trim() === 'disabled') {
       parsed.thinking = { type: 'disabled' };
     }
     console.log('[effort] voice', {
-      effort: (parsed.output_config && parsed.output_config.effort) || 'default(high)',
+      effort: 'unset(never sent)',
       thinking: (parsed.thinking && parsed.thinking.type) || 'default(adaptive)'
     });
 

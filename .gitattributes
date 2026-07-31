@@ -54,3 +54,8 @@ flip-stream-flag.cjs text eol=lf
 quran-verify.cjs text eol=lf
 lib/daycap.js text eol=lf
 api/unlock.js text eol=crlf
+
+# Gate 11 (call-mode-guard). Same reason as every gate above: it brace-slices index.html,
+# so a clone that injected CR into the GATE itself would shift nothing -- but a gate that
+# is not LF-pinned is the one file in the roster whose bytes nobody agrees on.
+call-mode-guard.cjs text eol=lf

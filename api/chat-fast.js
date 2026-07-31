@@ -79,6 +79,15 @@ export default async function handler(req, res) {
     // answer for 4096 -- both pass through untouched. An attacker asking for 64000 does not.
     parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
 
+    // SIBLING CONTRACT (api/chat.js A3): `output_config` is NOT accepted by /v1/messages -- its
+    // mere presence 400s the whole request. This relay never added it, but it must not FORWARD
+    // one either: on this path a 400 kills the classifier too, which is the thing that decides
+    // whether a religious question is allowed on the thin route at all.
+    if (parsed.output_config !== undefined) {
+      console.warn('[chat-fast] stripped unsupported output_config from the outgoing body');
+      delete parsed.output_config;
+    }
+
     // Ephemeral caching on the system prompt, identical to api/chat.js. For the thin
     // call-mode prompt this is effectively a no-op (below the cache minimum) but it is
     // harmless, degrades gracefully, and keeps this relay byte-faithful to its sibling.
