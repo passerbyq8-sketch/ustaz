@@ -98,6 +98,18 @@
   .doc-rendered table{border-collapse:collapse;width:100%;margin:8px 0}
   .doc-rendered th,.doc-rendered td{border:1px solid #E5EBF5;padding:5px 8px;text-align:right}
   .doc-rendered th{background:#EDF1FA;color:#12327A}
+  /* Session 84 -- Adhkar UI V2. Exactly two things an inline style cannot express: a media
+     query and :focus-visible. Both selectors are NEW class names used only by the two V2
+     components, so ?adhkarui=0 (the S13.3-A screen, which carries neither class) renders
+     byte-identically with these rules present. The grid is 2 columns on a phone and steps to
+     3 then 4 on wider displays -- never more, so a tile never shrinks to a chip on a desktop. */
+  .adhkar2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  @media (min-width:600px){.adhkar2-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media (min-width:900px){.adhkar2-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  /* Keyboard only: :focus-visible does not fire on touch, so the ring appears for a tabbing
+     reader and never as a stuck outline after a tap. Drawn in a token, so it stays visible
+     on the royal-blue band, on the white cards and on the ivory reading page alike. */
+  .adhkar2-focus:focus-visible{outline:3px solid var(--red-lift);outline-offset:2px}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -2548,7 +2560,280 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   );
 }
 
-function AdhkarScreen({ onBack }) {
+// ============================================================
+// EZIK ADHKAR UI V2 -- the premium Arabic RTL redesign of the adhkar browse screen.
+// ------------------------------------------------------------
+// THE SWITCH, and it has the same shape as MADINA_IMG_ON below: the parameter ANSWERS
+// rather than merely writing, so an explicit '1' or '0' returns straight from the URL and
+// never consults storage at all. A stale key, a value some other build wrote, a quota-full
+// setItem or a storage that throws cannot make ?adhkarui=0 keep V2 on or ?adhkarui=1 keep
+// it off. The write is still attempted, in its own try/catch, so the answer survives the
+// next visit without the parameter -- but the write failing changes nothing about THIS visit.
+//
+//   no adhkarui parameter -> V2   (unless this device stored an explicit refusal)
+//   ?adhkarui=1           -> V2
+//   ?adhkarui=0           -> V1   (the S13.3-A screen, immediate rollback, sticks on device)
+//
+// V1 IS NOT EDITED. AdhkarScreenV1 below is the previous component with its name changed and
+// not one other byte touched, so the rollback path is the old screen itself and not a
+// reconstruction of it. V2 is additive: new component, new style keys, no shared mutable state.
+//
+// NO DEVOTIONAL CONTENT IS AUTHORED, REWRITTEN OR REORDERED HERE. Every title, every dhikr
+// body, every repetition target and every audio URL is read from adhkar.json through the same
+// loadAdhkar() store the old screen and the chat card read, rendered in the store's own order.
+// The only strings this file adds are chrome: the back label, the search placeholder, the
+// empty-result line, the source attribution and the listen/stop labels -- and each one is
+// LIFTED, code point for code point, from the V1 screen or from DhikrCard. Not one of them
+// is a new phrase. They are hoisted into named constants below so the difference between
+// chrome and content is visible at a glance and so a future edit cannot drift one of them
+// away from the V1 wording without the constant showing it.
+const ADHKAR_UI_V2_KEY = 'adhkar_ui_v2';   // device key. '0' = V1, anything else = V2
+const readAdhkarUiFlag = () => {
+  let p = null;
+  try { p = new URLSearchParams(window.location.search).get('adhkarui'); } catch (e) { p = null; }
+  if (p === '1' || p === '0') {
+    try { localStorage.setItem(ADHKAR_UI_V2_KEY, p); } catch (e) {}
+    return p === '1';
+  }
+  // No parameter: the default is V2, and only a stored, well-formed refusal turns it off.
+  try { return localStorage.getItem(ADHKAR_UI_V2_KEY) !== '0'; } catch (e) { return true; }
+};
+const ADHKAR_UI_V2_ON = readAdhkarUiFlag();
+
+// The header pattern, and it is CSS ONLY: four gradient layers in one backgroundImage, no
+// file, no data URI, no SVG element, nothing to fetch and nothing to cache. Top layer first.
+// The two repeating 45/-45 rules cross into a lattice of diamonds -- the geometry of a mashrabiya
+// screen reduced to hairlines -- at 5.5% white, which reads as texture on royal blue and
+// disappears entirely at a glance. The radial is the light falling on the top corner; the
+// linear underneath is the royal blue itself, accent -> deep, so the band is never flat.
+const ADHKAR2_PATTERN = [
+  'repeating-linear-gradient(45deg, rgba(255,255,255,0.055) 0 1.5px, rgba(255,255,255,0) 1.5px 16px)',
+  'repeating-linear-gradient(-45deg, rgba(255,255,255,0.055) 0 1.5px, rgba(255,255,255,0) 1.5px 16px)',
+  'radial-gradient(circle at 84% -12%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 48%)',
+  'linear-gradient(155deg, var(--accent-fill) 0%, var(--red-deep) 100%)',
+].join(', ');
+
+// Chrome strings. Every one of them is a string the app ALREADY shows on this journey
+// (V1 header/search/empty, DhikrCard label/meta/buttons); none is new devotional text.
+// A2_TITLE is the one intentional wording change on this screen, and it is chrome, not
+// content: the V2 header names the screen for the du'a it opens onto.
+const A2_BRAND  = 'عزك';
+const A2_TITLE  = 'الأدعية';
+const A2_BACK   = 'رجوع';
+const A2_SEARCH = 'ابحث عن ذكر';
+const A2_EMPTY  = 'لا نتائج';
+const A2_SOURCE = 'حصن المسلم';
+const A2_LISTEN = 'استماع';
+const A2_STOP   = 'إيقاف';
+// Byte-for-byte the meta line V1 renders: the same two words around the same Arabic-Indic digits.
+const a2Repeat = (n) => 'تُقال ' + toArabicDigits(n) + ' مرّات';
+// A module-level COPY of the V1 search normaliser, so V2 filters identically without reaching
+// into V1's closure and without V1 changing. Same replacements, same order, same result.
+const adhkarNormAr = (str) => String(str || '')
+  .replace(/[ؐ-ًؚ-ٰٟ]/g, '')
+  .replace(/[أإآ]/g, 'ا')
+  .replace(/ى/g, 'ي')
+  .replace(/ؤ/g, 'و')
+  .replace(/ئ/g, 'ي')
+  .replace(/ة/g, 'ه');
+
+// ============================================================
+// ADHKAR UI V2 -- DEVICE-LOCAL STATE. Three keys, and everything true of them is true of all
+// three: they are written and read ONLY by the two V2 components below and by resetAll, they
+// hold IDENTIFIERS AND INTEGERS AND NOTHING ELSE, and no line of this file passes any of them
+// to fetch(), to a request body, to a server handler, to an analytics call or to anything that
+// builds an AI payload. There is no beacon, no sync, no background transmission and nothing to
+// transmit: a dhikr, a title, a source and an audio URL all stay in adhkar.json, and what is
+// stored is '<categoryId>:<index>' plus a count. Clearing the keys loses counters; it cannot
+// lose devotional text, because none was ever put there.
+const ADHKAR_PROGRESS_KEY = 'adhkar_daily_progress_v1';
+const ADHKAR_FAVORITES_KEY = 'adhkar_favorites_v1';
+const ADHKAR_USAGE_KEY = 'adhkar_usage_v1';
+const ADHKAR_DAILY_GOAL = 8;
+
+// The identifier, and it is deliberately (category id, position) rather than d.id: it is stable
+// for a given store, it is two integers, and it says nothing about what the item contains.
+const A2_ID_RE = /^[0-9]+:[0-9]+$/;
+const adhkarItemKey = (catId, i) => String(catId) + ':' + String(i);
+// DEVICE-LOCAL day, not toISOString: the day a reader lives by is their own midnight. Same
+// reasoning, and the same three getters, as wirdDayKey -- and its OWN function, so the mushaf
+// wird keeps every byte of its behaviour whatever happens here.
+function adhkarDayKey(d) {
+  const t = d || new Date();
+  const y = t.getFullYear();
+  const m = t.getMonth() + 1;
+  const day = t.getDate();
+  return String(y) + '-' + (m < 10 ? '0' : '') + String(m) + '-' + (day < 10 ? '0' : '') + String(day);
+}
+// The item's REAL repetition target, read off the stored item and never computed. A missing,
+// zero or unparseable repeat is one recitation -- the same reading V1 and DhikrCard take when
+// they show the meta line only for repeat > 1. Nothing here can invent a larger target.
+const adhkarTarget = (d) => {
+  const n = parseInt(d && d.repeat, 10);
+  return (Number.isFinite(n) && n > 0) ? n : 1;
+};
+
+// { d: 'YYYY-MM-DD', n: { '<catId>:<index>': count } }. Anything that is not TODAY'S well-formed
+// record reads as today's EMPTY record: a record from another local date, damaged JSON, a
+// missing key, a non-object map, a storage that throws. That is the whole of the day rollover --
+// no timer, no midnight listener, no cleanup pass; the first read after the local date changes
+// simply does not recognise yesterday and starts the day at zero. Keys that do not match the
+// identifier shape and counts that are not positive integers are dropped on the way out, so a
+// hand-edited store cannot produce a count the UI would then present as devotion performed.
+function readAdhkarProgress() {
+  const today = adhkarDayKey();
+  const empty = { d: today, n: {} };
+  let raw = null;
+  try { raw = localStorage.getItem(ADHKAR_PROGRESS_KEY); } catch (e) { return empty; }
+  if (!raw) return empty;
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return empty; }
+  if (!o || typeof o !== 'object' || o.d !== today) return empty;
+  if (!o.n || typeof o.n !== 'object') return empty;
+  const n = {};
+  for (const k of Object.keys(o.n)) {
+    if (!A2_ID_RE.test(k)) continue;
+    const v = o.n[k];
+    if (!Number.isInteger(v) || v < 1) continue;
+    n[k] = v;
+  }
+  return { d: today, n: n };
+}
+const adhkarCountOf = (rec, catId, i) => (rec && rec.n && rec.n[adhkarItemKey(catId, i)]) || 0;
+// The ONLY writer of the progress key. One press is one increment: it adds exactly 1 and it
+// refuses at the target, so a held finger, a double tap or a replayed click cannot carry an
+// item past its real repetition count. localStorage only -- no request, no beacon.
+function bumpAdhkarCount(catId, i, target) {
+  const rec = readAdhkarProgress();
+  const key = adhkarItemKey(catId, i);
+  if (!A2_ID_RE.test(key)) return rec;
+  const cap = (Number.isInteger(target) && target > 0) ? target : 1;
+  const cur = rec.n[key] || 0;
+  if (cur >= cap) return rec;
+  const n = Object.assign({}, rec.n);
+  n[key] = cur + 1;
+  const next = { d: rec.d, n: n };
+  try { localStorage.setItem(ADHKAR_PROGRESS_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+// COMPLETE means the item's own target was reached, and nothing else means it. Both counters
+// below resolve every stored count against the REAL item it names and skip any key that no
+// longer resolves, so a renumbered store shows fewer completions rather than phantom ones.
+function adhkarCatDone(rec, catId, items) {
+  if (!rec || !Array.isArray(items)) return 0;
+  let done = 0;
+  for (let i = 0; i < items.length; i++) {
+    if (adhkarCountOf(rec, catId, i) >= adhkarTarget(items[i])) done += 1;
+  }
+  return done;
+}
+function adhkarCompletedToday(rec, byCat) {
+  if (!rec || !rec.n || !byCat) return 0;
+  let done = 0;
+  for (const k of Object.keys(rec.n)) {
+    const parts = k.split(':');
+    const list = byCat[parseInt(parts[0], 10)];
+    if (!Array.isArray(list)) continue;
+    const item = list[parseInt(parts[1], 10)];
+    if (!item) continue;
+    if (rec.n[k] >= adhkarTarget(item)) done += 1;
+  }
+  return done;
+}
+
+// Favourites: an ARRAY OF IDENTIFIERS. No text, no title, no audio URL, no timestamp. Entries
+// that are not well-formed identifiers, and duplicates, are dropped on read.
+function readAdhkarFavorites() {
+  let raw = null;
+  try { raw = localStorage.getItem(ADHKAR_FAVORITES_KEY); } catch (e) { return []; }
+  if (!raw) return [];
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return []; }
+  if (!Array.isArray(o)) return [];
+  const out = [];
+  for (const v of o) {
+    if (typeof v !== 'string' || !A2_ID_RE.test(v)) continue;
+    if (out.indexOf(v) !== -1) continue;
+    out.push(v);
+  }
+  return out;
+}
+function toggleAdhkarFavorite(key) {
+  const cur = readAdhkarFavorites();
+  if (!A2_ID_RE.test(key)) return cur;
+  const at = cur.indexOf(key);
+  const next = at === -1 ? cur.concat([key]) : cur.slice(0, at).concat(cur.slice(at + 1));
+  try { localStorage.setItem(ADHKAR_FAVORITES_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+
+// Usage: { '<catId>': timesOpened }. The single call site is the category-open handler, so the
+// count is literally "how many times this device opened this door" and is incremented nowhere
+// else -- not on render, not on search, not on scroll. It never leaves the device, and the home
+// screen shows the section only when the map already has a real entry, so a fresh install sees
+// no most-used strip rather than a fabricated one.
+function readAdhkarUsage() {
+  let raw = null;
+  try { raw = localStorage.getItem(ADHKAR_USAGE_KEY); } catch (e) { return {}; }
+  if (!raw) return {};
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return {}; }
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return {};
+  const out = {};
+  for (const k of Object.keys(o)) {
+    if (!/^[0-9]+$/.test(k)) continue;
+    const v = o[k];
+    if (!Number.isInteger(v) || v < 1) continue;
+    out[k] = v;
+  }
+  return out;
+}
+function bumpAdhkarUsage(catId) {
+  const cur = readAdhkarUsage();
+  const k = String(catId);
+  if (!/^[0-9]+$/.test(k)) return cur;
+  const next = Object.assign({}, cur);
+  next[k] = (next[k] || 0) + 1;
+  try { localStorage.setItem(ADHKAR_USAGE_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+// Most-used, resolved against the REAL category list: a stored id with no category is skipped,
+// and a category with no stored count never appears. Ties keep the store's own order because
+// Array#sort is stable, so the strip cannot reorder itself between two equal counts.
+function adhkarMostUsed(usage, cats, limit) {
+  if (!usage || !Array.isArray(cats) || cats.length === 0) return [];
+  const rows = [];
+  for (const c of cats) {
+    const n = usage[String(c.id)];
+    if (!Number.isInteger(n) || n < 1) continue;
+    rows.push({ cat: c, n: n });
+  }
+  rows.sort((a, b) => b.n - a.n);
+  return rows.slice(0, limit);
+}
+
+// NEW V2 CHROME STRINGS, and every one is written as \u{...} code-point escapes on purpose:
+// an escape sequence cannot be silently reflowed, reshaped, normalised or truncated by an
+// editor the way a bidirectional literal can, and it keeps every byte of this block ASCII.
+// None of these is devotional text. They are a card title, a section title, five control
+// labels and three status lines -- chrome, all of it, and none of it read from adhkar.json.
+// Glosses are on the right so the wording can be reviewed without decoding by hand.
+const A2_GOAL_TITLE  = '\u{0648}\u{0631}\u{062F}\u{0643} \u{0627}\u{0644}\u{064A}\u{0648}\u{0645}\u{064A}';                                  // "your daily wird"
+const A2_MOST_USED   = '\u{0627}\u{0644}\u{0623}\u{0643}\u{062B}\u{0631} \u{0627}\u{0633}\u{062A}\u{062E}\u{062F}\u{0627}\u{0645}\u{0627}\u{064B}'; // "the most used"
+const A2_FAV_ADD     = '\u{0623}\u{0636}\u{0641} \u{0625}\u{0644}\u{0649} \u{0627}\u{0644}\u{0645}\u{0641}\u{0636}\u{0644}\u{0629}';            // "add to favourites"
+const A2_FAV_DEL     = '\u{0623}\u{0632}\u{0644} \u{0645}\u{0646} \u{0627}\u{0644}\u{0645}\u{0641}\u{0636}\u{0644}\u{0629}';                  // "remove from favourites"
+const A2_FAV_LABEL   = '\u{0627}\u{0644}\u{0645}\u{0641}\u{0636}\u{0644}\u{0629}';                                                  // "favourites"
+const A2_SHARE       = '\u{0645}\u{0634}\u{0627}\u{0631}\u{0643}\u{0629}';                                                        // "share"
+const A2_SHARE_OK    = '\u{062A}\u{0645}\u{062A} \u{0627}\u{0644}\u{0645}\u{0634}\u{0627}\u{0631}\u{0643}\u{0629}';                         // "shared"
+const A2_COPY_OK     = '\u{062A}\u{0645} \u{0627}\u{0644}\u{0646}\u{0633}\u{062E}';                                                 // "copied"
+const A2_SHARE_FAIL  = '\u{062A}\u{0639}\u{0630}\u{0631}\u{062A} \u{0627}\u{0644}\u{0645}\u{0634}\u{0627}\u{0631}\u{0643}\u{0629}';             // "sharing failed"
+const A2_COUNT       = '\u{062A}\u{0643}\u{0631}\u{0627}\u{0631}';                                                              // "repetition"
+const A2_COUNT_ARIA  = '\u{0632}\u{064A}\u{0627}\u{062F}\u{0629} \u{0627}\u{0644}\u{0639}\u{062F}\u{062F}';                               // "increase the count"
+const A2_DONE        = '\u{062A}\u{0645}';                                                                                // "done"
+const A2_PREV        = '\u{0627}\u{0644}\u{0633}\u{0627}\u{0628}\u{0642}';                                                        // "previous"
+const A2_NEXT        = '\u{0627}\u{0644}\u{062A}\u{0627}\u{0644}\u{064A}';                                                        // "next"
+
+function AdhkarScreenV1({ onBack }) {
   const [cats, setCats] = useState(null);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null);
@@ -2606,6 +2891,325 @@ function AdhkarScreen({ onBack }) {
       </div>
     </div>
   );
+}
+
+// ============================================================
+// ADHKAR UI V2 -- the screens.
+// ------------------------------------------------------------
+// Two components and a dispatcher. AdhkarScreenV2 is the browse (home) screen; when a
+// category is opened it hands the WHOLE screen to AdhkarCategoryV2 rather than swapping a
+// body, so each screen owns one header and there is no half-state where a category title
+// sits under the browse chrome.
+//
+// The data path is unchanged in every particular: loadAdhkar() -> db.categories for the
+// list, db.byCat[id] for a category. No sort, no dedupe, no slice, no re-key, no mapping of
+// any field through anything. d.text is rendered as a text child exactly as V1 and DhikrCard
+// render it -- no markdown pass, no tashkeel pass, no age simplification, no truncation.
+// d.repeat is shown by the same a2Repeat() wording V1 uses and is never recomputed. The
+// audio element is built from d.audio and from nothing else.
+// ============================================================
+const A2_ICON_BEADS = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="5" r="1.5" fill="currentColor" /><circle cx="19" cy="12" r="1.5" fill="currentColor" /><circle cx="12" cy="19" r="1.5" fill="currentColor" /><circle cx="5" cy="12" r="1.5" fill="currentColor" /></svg>
+);
+// RTL: the page runs right to left, so "back" points RIGHT and "onward" points LEFT. These
+// two are written as the glyphs the direction calls for, not mirrored by the browser.
+const A2_ICON_BACK = (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+);
+const A2_ICON_ONWARD = (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+);
+const A2_ICON_SEARCH = (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.2-3.2" /></svg>
+);
+// The controls the second pass adds. All four are drawn in the SAME line-icon language as the
+// four above and as the app's <Icon> set -- one viewBox, currentColor, round caps -- so the
+// screen keeps one visual vocabulary. NO EMOJI anywhere in V2: an emoji is a font-dependent
+// picture that renders differently on every device, and none is used as a control here.
+const A2_ICON_HEART = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 5.9a5 5 0 0 0-7.1 0L12 7.6l-1.7-1.7a5 5 0 1 0-7.1 7.1l8.8 8.7 8.8-8.7a5 5 0 0 0 0-7.1z" /></svg>
+);
+// The filled heart is the SAME path with a fill -- the favourite state is a solid shape, not a
+// second drawing, so on/off cannot drift apart.
+const A2_ICON_HEART_ON = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 5.9a5 5 0 0 0-7.1 0L12 7.6l-1.7-1.7a5 5 0 1 0-7.1 7.1l8.8 8.7 8.8-8.7a5 5 0 0 0 0-7.1z" /></svg>
+);
+const A2_ICON_SHARE = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4" /></svg>
+);
+const A2_ICON_CHECK = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+);
+const A2_ICON_PLUS = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+);
+
+function AdhkarScreenV2({ onBack }) {
+  // The WHOLE store is kept now, not just db.categories: the daily card resolves each stored
+  // count against the real item it names, and byCat is where those items are. Still one
+  // loadAdhkar() call, still the store's own objects, still no reshaping of any of them.
+  const [db, setDb] = useState(null);
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [prog, setProg] = useState(readAdhkarProgress);
+  const [usage, setUsage] = useState(readAdhkarUsage);
+  useEffect(() => {
+    let alive = true;
+    loadAdhkar().then((d) => { if (alive) setDb(d || { categories: [], byCat: {} }); })
+      .catch(() => { if (alive) setDb({ categories: [], byCat: {} }); });
+    return () => { alive = false; };
+  }, []);
+  const cats = db ? (db.categories || []) : null;
+  // Same filter as V1: normalise both sides, substring, and an empty query keeps EVERY
+  // category in the store's own order. Nothing is ranked and nothing is hidden.
+  const q = adhkarNormAr(query).trim();
+  const list = (cats || []).filter((c) => !q || adhkarNormAr(c.title).includes(q));
+  // THE ONLY usage write in the app, and it is on the OPEN, not on the render, not on the
+  // search and not on the scroll: the count means "times this device opened this category".
+  const open = (c) => { setUsage(bumpAdhkarUsage(c.id)); setSelected(c); };
+  // Returning re-reads progress from storage rather than trusting a stale copy, so the card
+  // shows what the counter actually wrote -- including a day that rolled over mid-session.
+  const back = () => { setSelected(null); setProg(readAdhkarProgress()); };
+  if (selected) return <AdhkarCategoryV2 cat={selected} onBack={back} />;
+  // COMPLETED means target reached, counted over distinct items, and capped for DISPLAY at the
+  // goal -- min(done, 8) of 8. A ninth completion is real and is not shown as a ninth eighth.
+  const done = adhkarCompletedToday(prog, db && db.byCat);
+  const shown = Math.min(done, ADHKAR_DAILY_GOAL);
+  const pct = Math.round((shown / ADHKAR_DAILY_GOAL) * 100);
+  const most = adhkarMostUsed(usage, cats || [], 4);
+  return (
+    <div className="theme-dark" style={s.adhkar2Container}>
+      {/* S84-adhkar-v2 */}
+      <div style={s.adhkar2Header}>
+        <div style={s.adhkar2HeadRow}>
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.adhkar2BackBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <div style={s.adhkar2HeadText}>
+            <div style={s.adhkar2Brand}>{A2_BRAND}</div>
+            <div style={s.adhkar2Title}>{A2_TITLE}</div>
+          </div>
+          <div style={s.adhkar2Seal}>{A2_ICON_BEADS}</div>
+        </div>
+        <div style={s.adhkar2SearchWrap}>
+          <span style={s.adhkar2SearchIcon}>{A2_ICON_SEARCH}</span>
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={A2_SEARCH} style={s.adhkar2SearchInput} aria-label={A2_SEARCH} />
+        </div>
+      </div>
+      <div style={s.adhkar2Scroll}>
+        {/* The daily card. Device-local, today's date only, and every number in it is counted
+            from stored counts against real targets -- there is no place in this card where a
+            completion can be invented, and an empty store draws an empty bar. */}
+        <div style={s.adhkar2Goal}>
+          <div style={s.adhkar2GoalTop}>
+            <span style={s.adhkar2GoalTitle}>{A2_GOAL_TITLE}</span>
+            <span style={s.adhkar2GoalCount}>{toArabicDigits(shown)} / {toArabicDigits(ADHKAR_DAILY_GOAL)}</span>
+          </div>
+          <div style={s.adhkar2Bar} role="progressbar" aria-label={A2_GOAL_TITLE} aria-valuemin={0} aria-valuemax={ADHKAR_DAILY_GOAL} aria-valuenow={shown}>
+            <span style={{ ...s.adhkar2BarFill, width: pct + '%' }} />
+          </div>
+        </div>
+        {/* Most used, and ONLY when this device has really opened something. No usage, no
+            section -- never a placeholder, never a seeded suggestion. */}
+        {!q && most.length > 0 && (
+          <div style={s.adhkar2Section}>
+            <div style={s.adhkar2SectionTitle}>{A2_MOST_USED}</div>
+            <div style={s.adhkar2Chips}>
+              {most.map((r) => (
+                <button key={r.cat.id} type="button" className="adhkar2-focus" onClick={() => open(r.cat)} style={s.adhkar2Chip}>
+                  <span style={s.adhkar2ChipTitle}>{r.cat.title}</span>
+                  <span style={s.adhkar2ChipNum}>{toArabicDigits(r.n)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {cats === null ? (
+          <div style={s.adhkar2Empty}>...</div>
+        ) : list.length === 0 ? (
+          <div style={s.adhkar2Empty}>{A2_EMPTY}</div>
+        ) : (
+          // The grid replaces the row list. EVERY category the filter keeps gets a tile, in the
+          // store's own order, with the store's own count -- the layout changed, the set did not.
+          <div className="adhkar2-grid">
+            {list.map((c) => (
+              <button key={c.id} type="button" className="adhkar2-focus" onClick={() => open(c)} style={s.adhkar2Tile}>
+                <span style={s.adhkar2TileTop}>
+                  <span style={s.adhkar2TileIcon}>{A2_ICON_BEADS}</span>
+                  <span style={s.adhkar2Count}>{toArabicDigits(c.count)}</span>
+                </span>
+                <span style={s.adhkar2TileTitle}>{c.title}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// One category, full screen. The audio contract is DhikrCard's, kept identical on purpose:
+// one <Audio> at a time, a second tap on the playing item stops it, tapping another item
+// swaps to it, and ended/error both clear the playing state so a failed file cannot leave a
+// stop button that never stops. The element is also paused and dropped on unmount, so
+// leaving the screen mid-recitation leaves nothing playing behind it.
+function AdhkarCategoryV2({ cat, onBack }) {
+  const [items, setItems] = useState(null);
+  const [idx, setIdx] = useState(0);                       // the item being read, 0-based
+  const [prog, setProg] = useState(readAdhkarProgress);
+  const [favs, setFavs] = useState(readAdhkarFavorites);
+  const [note, setNote] = useState('');                    // share feedback, announced politely
+  const audioRef = useRef(null);
+  const [playingId, setPlayingId] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    loadAdhkar()
+      .then((db) => { if (alive) { setItems((db.byCat && db.byCat[parseInt(cat.id, 10)]) || []); setIdx(0); } })
+      .catch(() => { if (alive) { setItems([]); setIdx(0); } });
+    return () => { alive = false; };
+  }, [cat.id]);
+  useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
+  // UNCHANGED audio contract -- DhikrCard's, code point for code point: one Audio at a time, a
+  // second tap stops, ended/error clear the state, and the element is built from d.audio and
+  // from nothing else. The control is rendered only when d.audio exists, so there is never a
+  // button that pretends to a recitation the store does not have.
+  const toggle = (d) => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (playingId === d.id) { setPlayingId(null); return; }
+    if (!d.audio) return;
+    const a = new Audio(d.audio);
+    audioRef.current = a;
+    setPlayingId(d.id);
+    a.onended = () => setPlayingId(null);
+    a.onerror = () => setPlayingId(null);
+    a.play().catch(() => setPlayingId(null));
+  };
+  // Moving between items stops what is playing: the recitation belongs to the dhikr on screen.
+  const go = (n) => {
+    if (!items || items.length === 0) return;
+    const next = Math.min(items.length - 1, Math.max(0, n));
+    if (next === idx) return;
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setPlayingId(null);
+    setNote('');
+    setIdx(next);
+  };
+  // SHARING. Nothing is transmitted until this handler runs, and it runs only from the share
+  // control. The payload is read HERE, at the moment of the tap, off the item currently loaded
+  // in the store -- no cached copy, no accumulated buffer, no other item, and no progress,
+  // favourites or usage state, which never enter any payload anywhere in this file.
+  const onShare = () => {
+    const cur = (items && items[idx]) || null;
+    const text = (cur && typeof cur.text === 'string') ? cur.text : '';
+    if (!text) return;
+    const fail = (e) => { if (e && e.name === 'AbortError') { setNote(''); return; } setNote(A2_SHARE_FAIL); };
+    try {
+      if (navigator.share) { navigator.share({ text: text }).then(() => setNote(A2_SHARE_OK)).catch(fail); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(() => setNote(A2_COPY_OK)).catch(fail); return; }
+    } catch (e) { setNote(A2_SHARE_FAIL); return; }
+    setNote(A2_SHARE_FAIL);
+  };
+  const d = (items && items[idx]) || null;
+  const target = adhkarTarget(d);
+  // Clamped for DISPLAY as well as on write, so a stored count larger than a target that has
+  // since changed still reads as "target of target" and never as more than the target.
+  const count = Math.min(adhkarCountOf(prog, cat.id, idx), target);
+  const full = count >= target;
+  const fkey = adhkarItemKey(cat.id, idx);
+  const isFav = favs.indexOf(fkey) !== -1;
+  const catDone = items ? adhkarCatDone(prog, cat.id, items) : 0;
+  const catPct = (items && items.length) ? Math.round((catDone / items.length) * 100) : 0;
+  return (
+    <div className="theme-dark" style={s.adhkar2Container}>
+      <div style={s.adhkar2Header}>
+        <div style={s.adhkar2HeadRow}>
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.adhkar2BackBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <div style={s.adhkar2HeadText}>
+            <div style={s.adhkar2Brand}>{A2_BRAND}</div>
+            {/* The category title, from adhkar.json, verbatim. */}
+            <div style={s.adhkar2TitleSm}>{cat.title}</div>
+            <div style={s.adhkar2Sub}>{A2_SOURCE}</div>
+          </div>
+          <div style={s.adhkar2Seal}>{A2_ICON_BEADS}</div>
+        </div>
+      </div>
+      <div style={s.adhkar2Scroll}>
+        {items === null ? (
+          <div style={s.adhkar2Empty}>...</div>
+        ) : items.length === 0 || !d ? (
+          <div style={s.adhkar2Empty}>{A2_EMPTY}</div>
+        ) : (
+          <>
+            {/* Position in the category, and the slim bar underneath is the real count of items
+                whose own target has been reached out of the real length of the category. */}
+            <div style={s.adhkar2Pos}>
+              <span style={s.adhkar2PosText}>{toArabicDigits(idx + 1)} / {toArabicDigits(items.length)}</span>
+              <span style={s.adhkar2PosDone}>{toArabicDigits(catDone)} / {toArabicDigits(items.length)}</span>
+            </div>
+            <div style={s.adhkar2Slim} role="progressbar" aria-label={cat.title} aria-valuemin={0} aria-valuemax={items.length} aria-valuenow={catDone}>
+              <span style={{ ...s.adhkar2SlimFill, width: catPct + '%' }} />
+            </div>
+            {/* THE READING SURFACE. Ivory paper and dark ink are FIXED values, not tokens, for
+                the same reason the mushaf pins its own paper: this card must read the same in
+                the light theme and the dark one, and a token that flips would put pale ink on
+                pale paper. Everything around it is tokenised and follows the theme. */}
+            <div style={s.adhkar2Read}>
+              <span style={s.adhkar2CardEdge} />
+              <div style={s.adhkar2ReadTop}>
+                <span style={s.adhkar2ReadIndex}>{toArabicDigits(idx + 1)}</span>
+                <span style={s.adhkar2ReadRule} />
+                {d.repeat > 1 && <span style={s.adhkar2ReadRepeat}>{a2Repeat(d.repeat)}</span>}
+              </div>
+              <div style={s.adhkar2ReadText}>{d.text}</div>
+            </div>
+            {/* One press, one increment, and the press is refused at the target. */}
+            <button type="button" className="adhkar2-focus" onClick={() => { if (!full) setProg(bumpAdhkarCount(cat.id, idx, target)); }}
+              style={full ? { ...s.adhkar2Counter, ...s.adhkar2CounterDone } : s.adhkar2Counter}
+              aria-label={A2_COUNT_ARIA} aria-disabled={full ? 'true' : 'false'}>
+              <span style={s.adhkar2CounterNums}>{toArabicDigits(count)} / {toArabicDigits(target)}</span>
+              <span style={s.adhkar2CounterLabel}>{full ? A2_ICON_CHECK : A2_ICON_PLUS}<span>{full ? A2_DONE : A2_COUNT}</span></span>
+            </button>
+            <div style={s.adhkar2Actions}>
+              <button type="button" className="adhkar2-focus" onClick={() => setFavs(toggleAdhkarFavorite(fkey))}
+                style={isFav ? { ...s.adhkar2Act, ...s.adhkar2ActOn } : s.adhkar2Act}
+                aria-label={isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={isFav ? 'true' : 'false'}>
+                {isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}<span>{A2_FAV_LABEL}</span>
+              </button>
+              <button type="button" className="adhkar2-focus" onClick={onShare} style={s.adhkar2Act} aria-label={A2_SHARE}>
+                {A2_ICON_SHARE}<span>{A2_SHARE}</span>
+              </button>
+              {d.audio && (
+                <button type="button" className="adhkar2-focus" onClick={() => toggle(d)}
+                  style={playingId === d.id ? { ...s.adhkar2Act, ...s.adhkar2ActOn } : s.adhkar2Act}
+                  aria-label={playingId === d.id ? A2_STOP : A2_LISTEN}>
+                  {playingId === d.id ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
+                  <span>{playingId === d.id ? A2_STOP : A2_LISTEN}</span>
+                </button>
+              )}
+            </div>
+            {/* Live region: it is in the tree from the first render and only its text changes,
+                which is what makes a screen reader announce the share result at all. */}
+            <div style={s.adhkar2Note} role="status" aria-live="polite">{note}</div>
+            {/* RTL: previous sits on the right, onward on the left, and each end disables. */}
+            <div style={s.adhkar2Nav}>
+              <button type="button" className="adhkar2-focus" onClick={() => go(idx - 1)} disabled={idx <= 0}
+                style={idx <= 0 ? { ...s.adhkar2NavBtn, ...s.adhkar2NavBtnOff } : s.adhkar2NavBtn} aria-label={A2_PREV}>
+                {A2_ICON_BACK}<span>{A2_PREV}</span>
+              </button>
+              <button type="button" className="adhkar2-focus" onClick={() => go(idx + 1)} disabled={idx >= items.length - 1}
+                style={idx >= items.length - 1 ? { ...s.adhkar2NavBtn, ...s.adhkar2NavBtnOff } : s.adhkar2NavBtn} aria-label={A2_NEXT}>
+                <span>{A2_NEXT}</span>{A2_ICON_ONWARD}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// The one place the flag is spent. App still renders <AdhkarScreen onBack=... /> and knows
+// nothing about either version, so ?adhkarui=0 changes this line's answer and nothing else.
+function AdhkarScreen({ onBack }) {
+  return ADHKAR_UI_V2_ON ? <AdhkarScreenV2 onBack={onBack} /> : <AdhkarScreenV1 onBack={onBack} />;
 }
 
 function App() {
@@ -4297,6 +4901,12 @@ function App() {
       localStorage.removeItem(MUSHAF_LAST_PAGE_KEY);
       localStorage.removeItem(WIRD_TARGET_KEY);
       localStorage.removeItem(WIRD_DAY_KEY);
+      // Session 84 -- the three device-local adhkar keys, added to this list and to nothing
+      // else. "Delete all my data" has to mean today's counters, the favourite identifiers
+      // and the per-category open counts too. Three removals; no other reset behaviour moves.
+      localStorage.removeItem(ADHKAR_PROGRESS_KEY);
+      localStorage.removeItem(ADHKAR_FAVORITES_KEY);
+      localStorage.removeItem(ADHKAR_USAGE_KEY);
       setDirectConvoLocked(false);
       setProfile(null);
       voiceProfileRef.current = null;           // غ‑٣: حذفُ البيانات يُعيد الحاجزَ إلى المقفول
@@ -7682,6 +8292,113 @@ const s = {
   adhkarRowTitle: { flex: 1, fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   adhkarCount: { minWidth: 28, height: 24, padding: '0 8px', borderRadius: 999, background: 'var(--red-soft)', color: 'var(--red)', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   adhkarEmpty: { textAlign: 'center', color: 'var(--muted)', fontSize: 15, padding: '32px 0' },
+  // Session 84 - Adhkar UI V2 (ADHKAR_UI_V2_ON). ADDITIVE: every key below is new and not one
+  // key above it changed, so ?adhkarui=0 renders the S13.3-A screen out of its own untouched
+  // style keys. Colours are tokens, so V2 follows the palette rather than pinning hexes. The
+  // only literals are rgba(255,255,255,a) -- white at a fraction, sitting ON the accent band --
+  // and the shadow rgba(18,50,122,a), which is --red-deep at a fraction. Neither has a token,
+  // and both are written the same way by homeHero, the chat header and the drawer already.
+  adhkar2Container: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
+  // The royal-blue band. overflow hidden clips the lattice to the rounded bottom corners, so
+  // the pattern ends with the header instead of squaring it off.
+  // SAFE AREA: the band runs to the physical top of the screen, so its top padding carries the
+  // inset -- on a notched phone the brand line clears the cutout, and on a device that reports
+  // no inset env() falls back to 0 and the padding is the 16px it always was.
+  adhkar2Header: { flexShrink: 0, padding: 'calc(16px + env(safe-area-inset-top, 0px)) 16px 20px', color: 'var(--on-accent)', borderRadius: '0 0 26px 26px', overflow: 'hidden', backgroundColor: 'var(--accent-fill)', backgroundImage: ADHKAR2_PATTERN, boxShadow: '0 10px 26px rgba(18,50,122,0.22)' },
+  adhkar2HeadRow: { display: 'flex', alignItems: 'center', gap: 12 },
+  adhkar2HeadText: { flex: 1, minWidth: 0 },
+  // 44x44: the smallest control on either V2 screen, and the floor for all of them.
+  adhkar2BackBtn: { width: 44, height: 44, flexShrink: 0, borderRadius: '50%', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', color: 'var(--on-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 },
+  adhkar2Brand: { fontSize: 12.5, fontWeight: 700, letterSpacing: '0.5px', color: 'rgba(255,255,255,0.78)' },
+  adhkar2Title: { fontSize: 27, fontWeight: 800, lineHeight: 1.3, color: 'var(--on-accent)', marginTop: 1 },
+  // The category title is content and can run long, so it gets a smaller size and is allowed
+  // to wrap to a second line rather than being clipped or ellipsised. No title is truncated.
+  adhkar2TitleSm: { fontSize: 20, fontWeight: 800, lineHeight: 1.45, color: 'var(--on-accent)', marginTop: 1 },
+  adhkar2Sub: { fontSize: 12.5, fontWeight: 500, color: 'rgba(255,255,255,0.72)', marginTop: 3 },
+  adhkar2Seal: { width: 44, height: 44, flexShrink: 0, borderRadius: 14, background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.22)', color: 'var(--on-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2SearchWrap: { display: 'flex', alignItems: 'center', gap: 9, height: 46, marginTop: 16, padding: '0 15px', borderRadius: 999, background: 'var(--white)', boxShadow: '0 4px 14px rgba(18,50,122,0.14)' },
+  adhkar2SearchIcon: { display: 'flex', flexShrink: 0, color: 'var(--nav-off)' },
+  adhkar2SearchInput: { flex: 1, minWidth: 0, padding: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: "'Tajawal', sans-serif", fontSize: 15.5, color: 'var(--ink)', direction: 'rtl' },
+  // SAFE AREA at the other end: the last control -- the nav row, or the last tile -- clears the
+  // home indicator instead of sitting under it. Same env() fallback to 0.
+  adhkar2Scroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '16px 16px calc(28px + env(safe-area-inset-bottom, 0px))', boxSizing: 'border-box' },
+  adhkar2List: { display: 'flex', flexDirection: 'column', gap: 10 },
+  adhkar2Row: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '13px 14px', borderRadius: 18, background: 'var(--white)', border: '1px solid var(--line)', boxShadow: '0 2px 10px rgba(18,50,122,0.05)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  adhkar2RowIcon: { width: 42, height: 42, flexShrink: 0, borderRadius: 13, background: 'var(--red-soft)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2RowTitle: { flex: 1, minWidth: 0, fontSize: 16, fontWeight: 700, lineHeight: 1.55, color: 'var(--ink)' },
+  adhkar2Count: { minWidth: 30, height: 26, flexShrink: 0, padding: '0 9px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red-deep)', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2Chevron: { display: 'flex', flexShrink: 0, color: 'var(--nav-off)' },
+  adhkar2Empty: { textAlign: 'center', color: 'var(--muted)', fontSize: 15, padding: '32px 0' },
+  adhkar2Cards: { display: 'flex', flexDirection: 'column', gap: 12 },
+  adhkar2Card: { position: 'relative', overflow: 'hidden', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 3px 14px rgba(18,50,122,0.06)' },
+  // The accent rule down the START edge of the card. RTL, so the start edge is the right one,
+  // and `right` here is the physical side the reading eye meets first.
+  adhkar2CardEdge: { position: 'absolute', top: 14, bottom: 14, right: 0, width: 3, borderRadius: '3px 0 0 3px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-lift) 100%)' },
+  adhkar2CardTop: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 },
+  adhkar2Index: { width: 28, height: 28, flexShrink: 0, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2Rule: { flex: 1, height: 1, background: 'var(--line)' },
+  // Amiri, already loaded in <head> for the ayah text, at a reading size and a wide leading:
+  // the tashkeel in the stored text needs the room, and it is the difference between a UI
+  // string and a page one is meant to recite from. No new font, no new request.
+  adhkar2Text: { fontFamily: "'Amiri', serif", fontSize: 21, lineHeight: 2.05, color: 'var(--ink)' },
+  adhkar2CardBottom: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 },
+  adhkar2Repeat: { display: 'inline-flex', alignItems: 'center', padding: '6px 12px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red-deep)', fontSize: 12.5, fontWeight: 700 },
+  adhkar2PlayBtn: { display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 999, background: 'var(--accent-fill)', color: 'var(--on-accent)', border: 'none', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
+  adhkar2PlayBtnOn: { background: 'var(--red-deep)' },
+  // Session 84, second pass. Additive again: the keys above are untouched, and V1's are three
+  // screens away. Two rules run through everything below. (1) TOUCH SIZE -- every interactive
+  // key here is at least 44x44 CSS px, which is why the chips, the actions and the nav buttons
+  // all carry a minHeight/minWidth of 44 rather than padding that happens to add up. (2) THEME
+  // -- everything is a token except the reading page, which is pinned ivory-on-ink so it keeps
+  // its contrast under both themes; the containers carry .theme-dark so the tokens follow the
+  // stored theme instead of staying light behind a dark app.
+  adhkar2Goal: { background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 18, padding: '13px 15px', marginBottom: 14, boxShadow: '0 2px 10px rgba(18,50,122,0.05)' },
+  adhkar2GoalTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 9 },
+  adhkar2GoalTitle: { fontSize: 14.5, fontWeight: 800, color: 'var(--ink)' },
+  adhkar2GoalCount: { fontSize: 13.5, fontWeight: 800, color: 'var(--red)' },
+  // RTL flex: the fill is the first child, so it grows from the RIGHT edge -- the direction the
+  // reader's eye already runs. No transform, no absolute positioning to get it there.
+  adhkar2Bar: { display: 'flex', height: 8, borderRadius: 999, background: 'var(--tint)', overflow: 'hidden' },
+  adhkar2BarFill: { height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, var(--red-lift) 0%, var(--red) 100%)', transition: 'width 200ms ease' },
+  adhkar2Section: { marginBottom: 14 },
+  adhkar2SectionTitle: { fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 8 },
+  adhkar2Chips: { display: 'flex', flexWrap: 'wrap', gap: 8 },
+  adhkar2Chip: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, maxWidth: '100%', padding: '0 14px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 700, cursor: 'pointer', textAlign: 'right' },
+  adhkar2ChipTitle: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  adhkar2ChipNum: { minWidth: 22, height: 22, flexShrink: 0, padding: '0 7px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red-deep)', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  // The grid TILE. The grid itself is the .adhkar2-grid class in <style> (a media query cannot
+  // live in an inline style); the tile is the cell that class lays out.
+  adhkar2Tile: { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, minHeight: 116, padding: '13px 13px', borderRadius: 18, background: 'var(--white)', border: '1px solid var(--line)', boxShadow: '0 2px 10px rgba(18,50,122,0.05)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  adhkar2TileTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  adhkar2TileIcon: { width: 38, height: 38, flexShrink: 0, borderRadius: 12, background: 'var(--red-soft)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2TileTitle: { fontSize: 14.5, fontWeight: 700, lineHeight: 1.55, color: 'var(--ink)' },
+  adhkar2Pos: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 },
+  adhkar2PosText: { fontSize: 14, fontWeight: 800, color: 'var(--ink)' },
+  adhkar2PosDone: { fontSize: 12.5, fontWeight: 700, color: 'var(--muted)' },
+  adhkar2Slim: { display: 'flex', height: 5, borderRadius: 999, background: 'var(--tint)', overflow: 'hidden', marginBottom: 14 },
+  adhkar2SlimFill: { height: '100%', borderRadius: 999, background: 'var(--red)', transition: 'width 200ms ease' },
+  // THE READING PAGE. #FBF6EA paper and #171512 ink are deliberate FIXED values, exactly as the
+  // mushaf pins its own paper white: the contrast of the surface a reader recites from must not
+  // depend on which theme is stored. Everything on it is pinned with it for the same reason.
+  adhkar2Read: { position: 'relative', overflow: 'hidden', background: '#FBF6EA', border: '1px solid #E6DCC4', borderRadius: 20, padding: '16px 18px', boxShadow: '0 3px 16px rgba(18,50,122,0.10)' },
+  adhkar2ReadTop: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 },
+  adhkar2ReadIndex: { width: 28, height: 28, flexShrink: 0, borderRadius: 10, background: '#EFE4CC', color: '#12327A', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2ReadRule: { flex: 1, height: 1, background: '#E2D6BB' },
+  adhkar2ReadRepeat: { display: 'inline-flex', alignItems: 'center', flexShrink: 0, padding: '5px 11px', borderRadius: 999, background: '#EFE4CC', color: '#12327A', fontSize: 12.5, fontWeight: 700 },
+  adhkar2ReadText: { fontFamily: "'Amiri', serif", fontSize: 22, lineHeight: 2.1, color: '#171512' },
+  // The counter: full width, 68px tall, and the only thing at that size on the screen -- it is
+  // meant to be found by a thumb without looking, which is how a tally is actually kept.
+  adhkar2Counter: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: '100%', minHeight: 68, marginTop: 14, padding: '10px 16px', borderRadius: 22, background: 'var(--accent-fill)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  adhkar2CounterDone: { background: 'var(--red-deep)', cursor: 'default' },
+  adhkar2CounterNums: { fontSize: 24, fontWeight: 800 },
+  adhkar2CounterLabel: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: 'rgba(255,255,255,0.88)' },
+  adhkar2Actions: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 },
+  adhkar2Act: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 15px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  adhkar2ActOn: { background: 'var(--red-soft)', border: '1px solid var(--red)', color: 'var(--red)' },
+  adhkar2Note: { minHeight: 19, marginTop: 10, textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--red)' },
+  adhkar2Nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12 },
+  adhkar2NavBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 16px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13.5, fontWeight: 700, cursor: 'pointer' },
+  adhkar2NavBtnOff: { opacity: 0.42, cursor: 'default' },
   primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #1D4ED8 0%, #12327A 100%)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(18, 50, 122, 0.3)' },
   secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6E6E6E', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
 
