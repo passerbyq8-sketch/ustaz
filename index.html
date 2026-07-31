@@ -108,8 +108,38 @@
   @media (min-width:900px){.adhkar2-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
   /* Keyboard only: :focus-visible does not fire on touch, so the ring appears for a tabbing
      reader and never as a stuck outline after a tap. Drawn in a token, so it stays visible
-     on the royal-blue band, on the white cards and on the ivory reading page alike. */
+     on the white top row, on the white cards and on the reading surface alike. */
   .adhkar2-focus:focus-visible{outline:3px solid var(--red-lift);outline-offset:2px}
+  /* Session 85/86 -- the DUAL STYLE palette, and it is a SCOPED token set, not a global one:
+     every declaration below lives on .adhkar3 and .ezhome, classes carried only by the four
+     adhkar presentation components and the two home ones, so nothing outside them -- not the
+     mushaf paper, not the chat, not the call screen, not DhikrCard, not V1 -- can read one of
+     these values. Session 86 added the second selector and changed nothing else in the two
+     rules; every value in them is the value session 85 shipped. Light is pure white cards on
+     a very pale ice-blue page with royal blue, navy and a restrained cyan accent; there is no
+     ivory, cream, tan, gold, brown or green in either row. Dark keeps the SAME structure on
+     cool navy surfaces, so the reading surface stays usable without a warm paper anywhere. */
+  /* Session 86 -- .ezhome joins the SAME scoped token set, because the selector now governs
+     Home and Adhkar together and the two surfaces must not drift apart. It is a NEW class
+     carried only by the two home presentation components: the chat container, the call
+     screen, DhikrCard, the mushaf paper and V1 carry neither class, so not one of them can
+     read a value from here. Nothing global is declared; the two selectors below are the
+     whole of the addition. */
+  .adhkar3,.ezhome{--a3-page:#F4F9FF;--a3-surface:#FFFFFF;--a3-line:#E1EAF9;--a3-ice:#DCEAFB;
+    --a3-ink:#0B2455;--a3-muted:#5A6B8A;--a3-blue:#2454D7;--a3-navy:#0B2455;--a3-cyan:#20C7E8;
+    --a3-soft:#EEF4FE;--a3-shadow:0 2px 12px rgba(36,84,215,0.07);--a3-lift:0 8px 26px rgba(36,84,215,0.11)}
+  :root[data-theme="dark"] .adhkar3,:root[data-theme="dark"] .ezhome{--a3-page:#0A1020;--a3-surface:#121A2C;--a3-line:#263554;--a3-ice:#1C2A45;
+    --a3-ink:#E7EEFB;--a3-muted:#A2B2CE;--a3-blue:#6E9BFF;--a3-navy:#0A1020;--a3-cyan:#3FD6F5;
+    --a3-soft:#18233A;--a3-shadow:0 2px 12px rgba(0,0,0,0.34);--a3-lift:0 8px 26px rgba(0,0,0,0.42)}
+  /* The three things an inline style cannot express, all of them scoped to .ezhome-* class
+     names that exist nowhere else in this file. The journey path is two balanced columns on
+     a phone already (cards alternate around the route), so a wide display only needs the
+     reading column to stop being a phone-width ribbon; the quick row steps 2 -> 4. */
+  .ezhome-wrap{width:100%;max-width:640px;margin:0 auto}
+  @media (min-width:900px){.ezhome-wrap{max-width:900px}}
+  .ezhome-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  @media (min-width:600px){.ezhome-quick{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  .ezhome-focus:focus-visible{outline:3px solid var(--a3-cyan);outline-offset:2px}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -2438,6 +2468,61 @@ const SUGGESTIONS = [
 // ============================================================
 // التطبيق
 // ============================================================
+// ============================================================
+// APPLICATION UI STYLE -- device-local, and a PRESENTATION key only. It stores one of exactly
+// two words and nothing else: it names which of the two approved layouts this device draws for
+// the HOME screen and for the ADHKAR screens together. It is not progress, not a favourite, not
+// a count, and it is not a preference the server, the AI, an analytics call or any payload ever
+// sees -- no line in this file passes it to fetch(), to a body, to a header or to a beacon.
+//
+// SCOPE, stated once so it cannot drift: this key governs Home and Adhkar. THE CHAT SCREEN AND
+// THE CALL SCREEN IGNORE IT ENTIRELY. Neither of them calls useEzikUiStyle, neither carries a
+// journey or deck class, and DhikrCard -- which belongs to chat -- is untouched by it.
+//
+// The reader is TOTAL: a missing key, a corrupt value, a word some other build wrote, a value
+// of the wrong type or a storage that throws all answer 'journey'. Only the two accepted words
+// pass, and every localStorage touch has its own try/catch, so a locked or full storage can
+// change what is SAVED and never what is SHOWN.
+//
+// The write publishes a custom event on window before it returns, so the tab that made the
+// choice repaints on the spot -- the settings row, the home screen, the adhkar browse screen
+// and the adhkar reader all read the same hook. The 'storage' event covers the OTHER tabs,
+// which never fires in the writing one. Nothing here reloads the page or remounts the app.
+const EZIK_UI_STYLE_KEY = 'ezik_ui_style_v1';
+const EZIK_UI_STYLE_JOURNEY = 'journey';
+const EZIK_UI_STYLE_DECK = 'deck';
+const EZIK_UI_STYLE_DEFAULT = EZIK_UI_STYLE_JOURNEY;
+const EZIK_UI_STYLE_EVENT = 'ezik-ui-style';
+
+function readEzikUiStyle() {
+  let raw = null;
+  try { raw = localStorage.getItem(EZIK_UI_STYLE_KEY); } catch (e) { return EZIK_UI_STYLE_DEFAULT; }
+  if (raw === EZIK_UI_STYLE_JOURNEY || raw === EZIK_UI_STYLE_DECK) return raw;
+  return EZIK_UI_STYLE_DEFAULT;
+}
+function writeEzikUiStyle(v) {
+  const next = (v === EZIK_UI_STYLE_JOURNEY || v === EZIK_UI_STYLE_DECK) ? v : EZIK_UI_STYLE_DEFAULT;
+  try { localStorage.setItem(EZIK_UI_STYLE_KEY, next); } catch (e) {}
+  try { window.dispatchEvent(new CustomEvent(EZIK_UI_STYLE_EVENT, { detail: next })); } catch (e) {}
+  return next;
+}
+function useEzikUiStyle() {
+  const [style, setStyle] = useState(readEzikUiStyle);
+  useEffect(() => {
+    // Both listeners re-READ rather than trust what they were handed, so an event carrying a
+    // value this build does not accept still lands on 'journey' instead of on that value.
+    const onLocal = () => setStyle(readEzikUiStyle());
+    const onStorage = (e) => { if (!e || !e.key || e.key === EZIK_UI_STYLE_KEY) setStyle(readEzikUiStyle()); };
+    window.addEventListener(EZIK_UI_STYLE_EVENT, onLocal);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener(EZIK_UI_STYLE_EVENT, onLocal);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+  return style;
+}
+
 const HOME_GREETINGS_GENERAL = [
     "كيف أقدر أعينك اليوم؟",
     "على بركة الله، بماذا نبدأ؟",
@@ -2486,78 +2571,255 @@ const getHomeGreeting = () => {
   return { text: pick(HOME_GREETINGS_GENERAL), period: 'day', tappable: false };
 };
 
-function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings }) {
-  const g = getHomeGreeting();
+// ============================================================
+// SESSION 86 -- THE APPLICATION HOME, IN TWO STYLES.
+// ------------------------------------------------------------
+// Home itself stays the OWNER. It holds the profile, it builds the greeting, it keeps every
+// real navigation callback it was handed and it resolves the treasure entry to the same href;
+// it then hands ONE view object to whichever presentation component this device chose.
+// EzikJourneyHome and EzikDeckHome are presentation ONLY: neither reads or writes storage,
+// neither owns navigation state, neither routes, and both draw the SAME four modules, the SAME
+// daily verse card and the SAME bottom navigation from the SAME handlers. Switching style
+// therefore cannot make a module unreachable and cannot change what any tile does.
+//
+// CHROME STRINGS, written as escapes so this block stays ASCII and no editor can reflow a
+// bidirectional literal. Every one of them is a label the home screen ALREADY showed, code
+// point for code point; the single addition is EZH_QUICK, the heading over the deck's
+// quick-access row, and it is chrome. No devotional text is authored, moved or read here.
+const EZH_SALAM    = '\u{0627}\u{0644}\u{0633}\u{0644}\u{0627}\u{0645} \u{0639}\u{0644}\u{064A}\u{0643}\u{0645}';   // "peace be upon you"
+const EZH_HELLO    = '\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}\u{064B} \u{064A}\u{0627}';                            // "welcome, O"
+const EZH_ACCOUNT  = '\u{0627}\u{0644}\u{062D}\u{0633}\u{0627}\u{0628}';                                             // "the account"
+const EZH_NAV_HOME = '\u{0627}\u{0644}\u{0631}\u{0626}\u{064A}\u{0633}\u{064A}\u{0629}';                             // "home"
+const EZH_NAV_SET  = '\u{0627}\u{0644}\u{0625}\u{0639}\u{062F}\u{0627}\u{062F}\u{0627}\u{062A}';                     // "settings"
+const EZH_BRAND    = '\u{0639}\u{0632}\u{0643}';                                                                     // the app's own name
+const EZH_MEMORIZE = '\u{0627}\u{0644}\u{0645}\u{062D}\u{0641}\u{0651}\u{0638}';                                     // "the memorizer"
+const EZH_ADHKAR   = '\u{0627}\u{0644}\u{0623}\u{0630}\u{0643}\u{0627}\u{0631}';                                     // "the adhkar"
+const EZH_MUSHAF   = '\u{0627}\u{0644}\u{0645}\u{0635}\u{062D}\u{0641}';                                             // "the mushaf"
+const EZH_TREASURE = '\u{0631}\u{062D}\u{0644}\u{0629}\u{064F} \u{0627}\u{0644}\u{0643}\u{0646}\u{0648}\u{0632}';     // "the treasure journey"
+const EZH_QUICK    = '\u{0648}\u{0635}\u{0648}\u{0644} \u{0633}\u{0631}\u{064A}\u{0639}';                            // "quick access"
+
+// THE REAL MODULE ICONS. Every path below is the path the home screen already drew, moved here
+// unchanged and re-stroked in currentColor so it can sit on a soft chip instead of inside a
+// filled square. No new artwork, no image, no data URI, nothing fetched.
+const EZH_ICON_MEMORIZE = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+);
+const EZH_ICON_ADHKAR = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="5" r="1.5" fill="currentColor" /><circle cx="19" cy="12" r="1.5" fill="currentColor" /><circle cx="12" cy="19" r="1.5" fill="currentColor" /><circle cx="5" cy="12" r="1.5" fill="currentColor" /></svg>
+);
+const EZH_ICON_MUSHAF = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.5C10.5 5 8 4.5 5 5v13c3-.5 5.5 0 7 1.5 1.5-1.5 4-2 7-1.5V5c-3-.5-5.5 0-7 1.5z" /><path d="M12 6.5v13" /></svg>
+);
+const EZH_ICON_TREASURE = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14" /><path d="M15 6v14" /></svg>
+);
+// The callout, the profile entry and the three navigation icons -- the same paths as before,
+// drawn as LINE icons on white. There is no face and no avatar image in either style.
+const EZH_ICON_SUN = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>
+);
+const EZH_ICON_MOON = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+);
+const EZH_ICON_PROFILE = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+);
+const EZH_ICON_NAV_HOME = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
+);
+const EZH_ICON_NAV_CHAT = (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
+);
+const EZH_ICON_NAV_SET = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
+);
+
+// THE FOUR MODULES, in the order the home screen already listed them, built ONCE from the
+// owner's real callbacks and shared by both styles. Neither style may add an entry, drop one,
+// reorder one or substitute a handler: this list IS the home screen's module set, and both
+// components render all four of it. `meta` is a genuine local reading or it is null.
+function ezHomeModules(v) {
+  const wird = v.wird ? (toArabicDigits(v.wird.done) + ' / ' + toArabicDigits(v.wird.target)) : null;
+  return [
+    { key: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
+    { key: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
+    { key: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
+    { key: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
+  ];
+}
+
+// SHARED HOME PARTS. The greeting row, the callout and the bottom bar are ONE implementation
+// each, so the two styles cannot drift on the profile entry, on the chat action or on what the
+// callout opens. All three are used only by the two home components.
+function EzHomeGreet({ name, onOpenSettings }) {
   return (
-    <div style={s.homeContainer}>
-      {/* S13.2-home */}
-      <div style={s.homeScroll}>
-        <div style={s.homeGreetRow}>
-          <div>
-            <div style={s.homeSalam}>السلام عليكم</div>
-            <div style={s.homeWelcome}>مرحباً يا {profile?.name}</div>
-          </div>
-          <button onClick={onOpenSettings} style={s.homeAvatarBtn} aria-label="الحساب">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141414" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
-          </button>
-        </div>
-        <button onClick={g.tappable ? onOpenAdhkar : undefined} style={{ ...s.homeHero, ...(g.tappable ? {} : { cursor: 'default' }) }} aria-label={g.text}>
-          <div style={s.homeHeroIcon}>
-              {g.period === 'morning' ? (
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>
-              ) : g.period === 'evening' ? (
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
-              ) : (
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
-              )}
-            </div>
-          <div style={s.homeHeroText}>{g.text}</div>
-        </button>
-        <div style={s.homeCardRow}>
-          <button onClick={onOpenMemorize} style={s.homeCard}>
-            <div style={s.homeIconSquareBlack}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
-            </div>
-            <div style={s.homeCardLabel}>المحفّظ</div>
-          </button>
-          <button onClick={onOpenAdhkar} style={s.homeCard}>
-            <div style={s.homeIconSquareRed}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="5" r="1.5" fill="#FFFFFF" /><circle cx="19" cy="12" r="1.5" fill="#FFFFFF" /><circle cx="12" cy="19" r="1.5" fill="#FFFFFF" /><circle cx="5" cy="12" r="1.5" fill="#FFFFFF" /></svg>
-            </div>
-            <div style={s.homeCardLabel}>الأذكار</div>
-          </button>
-        </div>
-        <div style={s.homeCardRow}>
-          <button onClick={onOpenMushaf} style={s.homeCard}>
-            <div style={s.homeIconSquareDeep}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.5C10.5 5 8 4.5 5 5v13c3-.5 5.5 0 7 1.5 1.5-1.5 4-2 7-1.5V5c-3-.5-5.5 0-7 1.5z" /><path d="M12 6.5v13" /></svg>
-            </div>
-            <div style={s.homeCardLabel}>المصحف</div>
-          </button>
-          <button onClick={() => { window.location.href = '/quest.html'; }} style={s.homeCard}>
-            <div style={s.homeIconSquareBlack}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14" /><path d="M15 6v14" /></svg>
-            </div>
-            <div style={s.homeCardLabel}>{'\u0631\u062d\u0644\u0629\u064f \u0627\u0644\u0643\u0646\u0648\u0632'}</div>
-          </button>
-        </div>
-        <DailyVerseCard />
+    <div style={s.ezhGreetRow}>
+      <div style={s.ezhGreetText}>
+        <div style={s.ezhSalam}>{EZH_SALAM}</div>
+        <div style={s.ezhName}>{EZH_HELLO} {name}</div>
       </div>
-      <div style={s.homeNav}>
-        <button style={s.homeNavItemActive} aria-label="الرئيسية">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
-          <span style={s.homeNavLabel}>الرئيسية</span>
-        </button>
-        <button onClick={onOpenChat} style={s.homeFab} aria-label="عزك">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
-        </button>
-        <button onClick={onOpenSettings} style={s.homeNavItem} aria-label="الإعدادات">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
-          <span style={s.homeNavLabel}>الإعدادات</span>
-        </button>
-      </div>
+      <button type="button" className="ezhome-focus" onClick={onOpenSettings} style={s.ezhProfileBtn} aria-label={EZH_ACCOUNT}>
+        {EZH_ICON_PROFILE}
+      </button>
     </div>
   );
+}
+// The morning/evening callout, and it is a SHORT PURE-WHITE row: a line icon on a soft chip,
+// the one line of greeting the app already picked, and a small cyan dot while the row leads
+// somewhere. There is no filled blue banner in either style, at any width, in either theme.
+function EzHomeCallout({ g, onOpenAdhkar }) {
+  const tap = !!(g && g.tappable);
+  return (
+    <button type="button" className="ezhome-focus" onClick={tap ? onOpenAdhkar : undefined}
+      style={tap ? s.ezhCallout : { ...s.ezhCallout, cursor: 'default' }} aria-label={g.text}>
+      <span style={s.ezhCalloutIcon} aria-hidden="true">{g.period === 'morning' ? EZH_ICON_SUN : EZH_ICON_MOON}</span>
+      <span style={s.ezhCalloutText}>{g.text}</span>
+      {tap && <span style={s.ezhDotOn} aria-hidden="true" />}
+    </button>
+  );
+}
+// The bottom bar: pure white, the same three targets, the central chat action unchanged. The
+// first item carries no handler because it is the screen already on show -- exactly as before.
+function EzHomeNav({ onOpenChat, onOpenSettings }) {
+  return (
+    <div style={s.ezhNav}>
+      <button type="button" className="ezhome-focus" style={{ ...s.ezhNavItem, ...s.ezhNavItemOn }} aria-label={EZH_NAV_HOME}>
+        {EZH_ICON_NAV_HOME}
+        <span style={s.ezhNavLabel}>{EZH_NAV_HOME}</span>
+      </button>
+      <button type="button" className="ezhome-focus" onClick={onOpenChat} style={s.ezhFab} aria-label={EZH_BRAND}>
+        {EZH_ICON_NAV_CHAT}
+      </button>
+      <button type="button" className="ezhome-focus" onClick={onOpenSettings} style={s.ezhNavItem} aria-label={EZH_NAV_SET}>
+        {EZH_ICON_NAV_SET}
+        <span style={s.ezhNavLabel}>{EZH_NAV_SET}</span>
+      </button>
+    </div>
+  );
+}
+
+// ============================================================
+// STYLE 1 -- DAILY JOURNEY (the default). A calm daily route: a compact greeting row, a short
+// white callout, then the four real modules alternating around one thin ice-blue line, and the
+// daily verse card below them. THE MARKS ON THE ROUTE ARE NEUTRAL -- not one of them claims a
+// module was completed, because nothing on this screen knows that. The single cyan ring is a
+// VISUAL step marker: it sits on the module the callout leads to while the callout leads
+// anywhere, and on the first module otherwise. The one real reading drawn here is the mushaf's
+// own daily wird, resolved by the owner from the mushaf's own helpers and omitted entirely
+// when no target has actually been set.
+// ============================================================
+function EzikJourneyHome(v) {
+  const mods = ezHomeModules(v);
+  const now = (v.greeting && v.greeting.tappable) ? 1 : 0;
+  return (
+    <div className="theme-dark ezhome" style={s.ezhContainer}>
+      {/* S86-home-journey */}
+      <div style={s.ezhScroll}>
+        <div className="ezhome-wrap">
+          <EzHomeGreet name={v.name} onOpenSettings={v.onOpenSettings} />
+          <EzHomeCallout g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
+          <div style={s.ezhPath}>
+            <span style={s.ezhPathLine} aria-hidden="true" />
+            {mods.map((m, i) => (
+              <div key={m.key} style={s.ezhPathRow}>
+                <span style={i === now ? { ...s.ezhMark, ...s.ezhMarkNow } : s.ezhMark} aria-hidden="true" />
+                <button type="button" className="ezhome-focus" onClick={m.onClick}
+                  style={{ ...s.ezhNode, gridColumn: (i % 2 === 0) ? 1 : 3 }}>
+                  <span style={s.ezhIcon} aria-hidden="true">{m.icon}</span>
+                  <span style={s.ezhNodeTitle}>{m.label}</span>
+                  {m.meta && <span style={s.ezhNodeMeta}>{m.meta}</span>}
+                </button>
+              </div>
+            ))}
+          </div>
+          <div style={s.ezhVerseWrap}><DailyVerseCard /></div>
+        </div>
+      </div>
+      <EzHomeNav onOpenChat={v.onOpenChat} onOpenSettings={v.onOpenSettings} />
+    </div>
+  );
+}
+
+// ============================================================
+// STYLE 2 -- STACKED CARDS. The same four modules as a premium deck, and the geometry is the
+// guarantee: each card is offset EZH_DECK_OFF from the one in front of it, so every card in the
+// stack keeps a 56px strip that is its own button, and its icon and its label both sit inside
+// that strip. The stack is a look, never a lost target. Underneath it a compact four-item quick
+// row repeats all four modules, so no module ever needs the deck manipulated to be reached --
+// and the tab order visits every one of them twice, in list order, either way.
+// ============================================================
+const EZH_DECK_OFF = 56;
+const EZH_DECK_CARD = 132;
+function EzikDeckHome(v) {
+  const mods = ezHomeModules(v);
+  return (
+    <div className="theme-dark ezhome" style={s.ezhContainer}>
+      {/* S86-home-deck */}
+      <div style={s.ezhScroll}>
+        <div className="ezhome-wrap">
+          <EzHomeGreet name={v.name} onOpenSettings={v.onOpenSettings} />
+          <EzHomeCallout g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
+          <div style={{ ...s.ezhDeck, height: (mods.length - 1) * EZH_DECK_OFF + EZH_DECK_CARD }}>
+            {mods.map((m, i) => (
+              <button key={m.key} type="button" className="ezhome-focus" onClick={m.onClick}
+                style={{ ...s.ezhDeckCard, ...(i === 0 ? s.ezhDeckCardFront : null),
+                  height: EZH_DECK_CARD, top: (mods.length - 1 - i) * EZH_DECK_OFF,
+                  left: i * 10, right: i * 10, zIndex: mods.length - i }}>
+                <span style={s.ezhDeckHead}>
+                  <span style={s.ezhIcon} aria-hidden="true">{m.icon}</span>
+                  <span style={s.ezhDeckTitle}>{m.label}</span>
+                  {m.meta ? <span style={s.ezhPill}>{m.meta}</span>
+                          : <span style={i === 0 ? s.ezhDotOn : s.ezhDot} aria-hidden="true" />}
+                </span>
+                {i === 0 && <span style={s.ezhDeckAccent} aria-hidden="true" />}
+              </button>
+            ))}
+          </div>
+          <div style={s.ezhSection}>
+            <div style={s.ezhSectionTitle}>{EZH_QUICK}</div>
+            <div className="ezhome-quick">
+              {mods.map((m) => (
+                <button key={m.key} type="button" className="ezhome-focus" onClick={m.onClick} style={s.ezhQuickBtn}>
+                  <span style={s.ezhIcon} aria-hidden="true">{m.icon}</span>
+                  <span style={s.ezhQuickLabel}>{m.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={s.ezhVerseWrap}><DailyVerseCard /></div>
+        </div>
+      </div>
+      <EzHomeNav onOpenChat={v.onOpenChat} onOpenSettings={v.onOpenSettings} />
+    </div>
+  );
+}
+
+function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings }) {
+  // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
+  // to the same href it always did. There is no second router here and no duplicated navigation
+  // state -- the two components above receive these handlers and call them unchanged.
+  const style = useEzikUiStyle();
+  const g = getHomeGreeting();
+  // GENUINE local progress, or nothing at all. These are the MUSHAF'S OWN helpers reading the
+  // mushaf's own keys, so the numbers are ones the reader itself wrote; when no real daily
+  // target is stored the line is absent rather than invented, and no other module on this
+  // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
+  const wt = readWirdTarget();
+  const wd = readWirdDay();
+  const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
+  const view = {
+    name: profile?.name,
+    greeting: g,
+    wird: wird,
+    onOpenChat: onOpenChat,
+    onOpenMemorize: onOpenMemorize,
+    onOpenAdhkar: onOpenAdhkar,
+    onOpenMushaf: onOpenMushaf,
+    onOpenSettings: onOpenSettings,
+    onOpenTreasure: () => { window.location.href = '/quest.html'; },
+  };
+  // The whole of the style switch on this screen: which component receives the view above.
+  return style === EZIK_UI_STYLE_DECK ? <EzikDeckHome {...view} /> : <EzikJourneyHome {...view} />;
 }
 
 // ============================================================
@@ -2600,18 +2862,9 @@ const readAdhkarUiFlag = () => {
 };
 const ADHKAR_UI_V2_ON = readAdhkarUiFlag();
 
-// The header pattern, and it is CSS ONLY: four gradient layers in one backgroundImage, no
-// file, no data URI, no SVG element, nothing to fetch and nothing to cache. Top layer first.
-// The two repeating 45/-45 rules cross into a lattice of diamonds -- the geometry of a mashrabiya
-// screen reduced to hairlines -- at 5.5% white, which reads as texture on royal blue and
-// disappears entirely at a glance. The radial is the light falling on the top corner; the
-// linear underneath is the royal blue itself, accent -> deep, so the band is never flat.
-const ADHKAR2_PATTERN = [
-  'repeating-linear-gradient(45deg, rgba(255,255,255,0.055) 0 1.5px, rgba(255,255,255,0) 1.5px 16px)',
-  'repeating-linear-gradient(-45deg, rgba(255,255,255,0.055) 0 1.5px, rgba(255,255,255,0) 1.5px 16px)',
-  'radial-gradient(circle at 84% -12%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 48%)',
-  'linear-gradient(155deg, var(--accent-fill) 0%, var(--red-deep) 100%)',
-].join(', ');
+// Session 85 -- the royal-blue header pattern that used to live here is GONE with the band it
+// painted. Neither new design draws a large filled blue rectangle: both open with a compact
+// pure-white top row, so there is no gradient stack, no lattice and no band left to build.
 
 // Chrome strings. Every one of them is a string the app ALREADY shows on this journey
 // (V1 header/search/empty, DhikrCard label/meta/buttons); none is new devotional text.
@@ -2812,6 +3065,30 @@ function adhkarMostUsed(usage, cats, limit) {
   return rows.slice(0, limit);
 }
 
+// Session 86 -- THE ADHKAR-ONLY DESIGN KEY IS GONE. adhkar_design_v1 was never deployed, so
+// nothing on any device holds it and there is nothing to migrate; the choice it used to make is
+// now the APPLICATION UI STYLE declared next to Home (EZIK_UI_STYLE_KEY), and these four screens
+// read it through the same useEzikUiStyle hook the home screen and the settings row read. The
+// two accepted words are unchanged, 'journey' is still the default, and every property of the
+// old reader -- total, per-call try/catch, same-tab custom event, cross-tab storage event, no
+// reload -- is a property of the new one. See the block above HOME_GREETINGS_GENERAL.
+
+// A compact WINDOW of real positions around the current one. A category of four hundred items
+// does not become four hundred dots: the window is at most A3_WINDOW marks wide, it slides so
+// the current position stays inside it, and every number it yields is a real index into the
+// real item list -- it shortens the DRAWING, never the category.
+const A3_WINDOW = 7;
+function adhkarWindow(len, idx, size) {
+  const n = Math.max(0, parseInt(len, 10) || 0);
+  const w = Math.min(n, Math.max(1, parseInt(size, 10) || 1));
+  if (w <= 0) return [];
+  const at = Math.min(Math.max(0, parseInt(idx, 10) || 0), n - 1);
+  const start = Math.max(0, Math.min(at - Math.floor(w / 2), n - w));
+  const out = [];
+  for (let i = 0; i < w; i++) out.push(start + i);
+  return out;
+}
+
 // NEW V2 CHROME STRINGS, and every one is written as \u{...} code-point escapes on purpose:
 // an escape sequence cannot be silently reflowed, reshaped, normalised or truncated by an
 // editor the way a bidirectional literal can, and it keeps every byte of this block ASCII.
@@ -2832,6 +3109,16 @@ const A2_COUNT_ARIA  = '\u{0632}\u{064A}\u{0627}\u{062F}\u{0629} \u{0627}\u{0644
 const A2_DONE        = '\u{062A}\u{0645}';                                                                                // "done"
 const A2_PREV        = '\u{0627}\u{0644}\u{0633}\u{0627}\u{0628}\u{0642}';                                                        // "previous"
 const A2_NEXT        = '\u{0627}\u{0644}\u{062A}\u{0627}\u{0644}\u{064A}';                                                        // "next"
+// Session 85/86. Four CHROME strings for the style choice and one section heading -- escapes for
+// the same reason the block above uses them, and none of them is devotional text: two layout
+// names, the settings heading and the word that titles the remaining-categories grid.
+// Session 86 renamed the heading only: the selector no longer means "adhkar design", it means
+// the INTERFACE STYLE of the application, because it now governs Home and Adhkar together.
+// The two layout names below are unchanged.
+const A3_STYLE_TITLE  = '\u{0646}\u{0645}\u{0637} \u{0627}\u{0644}\u{0648}\u{0627}\u{062C}\u{0647}\u{0629}';                        // "interface style"
+const A3_JOURNEY_NAME = '\u{0631}\u{062D}\u{0644}\u{0629} \u{064A}\u{0648}\u{0645}\u{064A}\u{0629}';                              // "daily journey"
+const A3_DECK_NAME    = '\u{0628}\u{0637}\u{0627}\u{0642}\u{0627}\u{062A} \u{0645}\u{062A}\u{0631}\u{0627}\u{0643}\u{0645}\u{0629}'; // "stacked cards"
+const A3_ALL          = '\u{0627}\u{0644}\u{0623}\u{0642}\u{0633}\u{0627}\u{0645}';                                          // "the sections"
 
 function AdhkarScreenV1({ onBack }) {
   const [cats, setCats] = useState(null);
@@ -2945,14 +3232,25 @@ const A2_ICON_PLUS = (
 );
 
 function AdhkarScreenV2({ onBack }) {
+  // Session 85. THIS COMPONENT IS STILL THE ONLY OWNER OF BROWSE STATE. The store, the query,
+  // the selection, today's progress, the usage map and the favourite identifiers are loaded,
+  // read and written here exactly as before; the two home components below receive them as
+  // props and render them. There is no second loader, no second storage path and no copy of
+  // any of these values kept anywhere else -- switching design switches which component draws
+  // this state, and touches none of it. Session 86: the hook is the APPLICATION one, so the
+  // style this screen draws in is the style the home screen draws in -- one key, one event.
+  const style = useEzikUiStyle();
   // The WHOLE store is kept now, not just db.categories: the daily card resolves each stored
   // count against the real item it names, and byCat is where those items are. Still one
   // loadAdhkar() call, still the store's own objects, still no reshaping of any of them.
   const [db, setDb] = useState(null);
   const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [startAt, setStartAt] = useState(0);
   const [prog, setProg] = useState(readAdhkarProgress);
   const [usage, setUsage] = useState(readAdhkarUsage);
+  const [favs, setFavs] = useState(readAdhkarFavorites);
   useEffect(() => {
     let alive = true;
     loadAdhkar().then((d) => { if (alive) setDb(d || { categories: [], byCat: {} }); })
@@ -2964,83 +3262,270 @@ function AdhkarScreenV2({ onBack }) {
   // category in the store's own order. Nothing is ranked and nothing is hidden.
   const q = adhkarNormAr(query).trim();
   const list = (cats || []).filter((c) => !q || adhkarNormAr(c.title).includes(q));
-  // THE ONLY usage write in the app, and it is on the OPEN, not on the render, not on the
-  // search and not on the scroll: the count means "times this device opened this category".
-  const open = (c) => { setUsage(bumpAdhkarUsage(c.id)); setSelected(c); };
+  // THE ONLY usage write in the app, and it is still on the OPEN -- one increment per opened
+  // door, whichever design drew the door. The optional second argument is a real index inside
+  // the category the caller already resolved (the favourites list opens at the saved item);
+  // anything else opens at the first item, and nothing here can point past the category.
+  const open = (c, at) => {
+    setUsage(bumpAdhkarUsage(c.id));
+    const n = parseInt(at, 10);
+    setStartAt(Number.isFinite(n) && n > 0 ? n : 0);
+    setSelected(c);
+  };
   // Returning re-reads progress from storage rather than trusting a stale copy, so the card
   // shows what the counter actually wrote -- including a day that rolled over mid-session.
-  const back = () => { setSelected(null); setProg(readAdhkarProgress()); };
-  if (selected) return <AdhkarCategoryV2 cat={selected} onBack={back} />;
+  const back = () => {
+    setSelected(null);
+    setProg(readAdhkarProgress());
+    setFavs(readAdhkarFavorites());
+    setUsage(readAdhkarUsage());
+  };
+  if (selected) return <AdhkarCategoryV2 cat={selected} startAt={startAt} onBack={back} />;
   // COMPLETED means target reached, counted over distinct items, and capped for DISPLAY at the
   // goal -- min(done, 8) of 8. A ninth completion is real and is not shown as a ninth eighth.
   const done = adhkarCompletedToday(prog, db && db.byCat);
-  const shown = Math.min(done, ADHKAR_DAILY_GOAL);
-  const pct = Math.round((shown / ADHKAR_DAILY_GOAL) * 100);
-  const most = adhkarMostUsed(usage, cats || [], 4);
+  // ONE view object, handed to whichever home is drawn. Both receive the same store, the same
+  // filtered list, the same progress record and the same handlers -- there is nothing a home
+  // component can compute that the other cannot, and nothing either of them may write.
+  const view = {
+    onBack: onBack,
+    cats: cats,
+    list: list,
+    query: query,
+    setQuery: setQuery,
+    // The row is open while it is asked for OR while a query is live, so a filter can never be
+    // in force with no visible way to clear it; closing it clears the query and restores the
+    // full list. Both designs share this one handler, so a query survives a design switch.
+    searchOpen: searchOpen || query.length > 0,
+    onToggleSearch: () => {
+      const next = !(searchOpen || query.length > 0);
+      setSearchOpen(next);
+      if (!next) setQuery('');
+    },
+    onOpen: open,
+    prog: prog,
+    byCat: (db && db.byCat) || {},
+    usage: usage,
+    favs: favs,
+    done: done,
+  };
+  // The whole of the style switch on this screen: which component receives the state above.
+  return style === EZIK_UI_STYLE_DECK ? <AdhkarDeckHome {...view} /> : <AdhkarJourneyHome {...view} />;
+}
+
+// ============================================================
+// SHARED PRESENTATION PARTS. Both homes and both readers draw the same compact PURE WHITE top
+// row -- there is no large filled blue band anywhere in either design, and no bitmap: the bar
+// is a white surface, a hairline and line icons.
+// ============================================================
+function A3Bar({ children }) {
+  return <div style={s.a3Bar}>{children}</div>;
+}
+function A3BarBtn({ onClick, label, on, pressed, children }) {
   return (
-    <div className="theme-dark" style={s.adhkar2Container}>
-      {/* S84-adhkar-v2 */}
-      <div style={s.adhkar2Header}>
-        <div style={s.adhkar2HeadRow}>
-          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.adhkar2BackBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
-          <div style={s.adhkar2HeadText}>
-            <div style={s.adhkar2Brand}>{A2_BRAND}</div>
-            <div style={s.adhkar2Title}>{A2_TITLE}</div>
-          </div>
-          <div style={s.adhkar2Seal}>{A2_ICON_BEADS}</div>
-        </div>
-        <div style={s.adhkar2SearchWrap}>
-          <span style={s.adhkar2SearchIcon}>{A2_ICON_SEARCH}</span>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={A2_SEARCH} style={s.adhkar2SearchInput} aria-label={A2_SEARCH} />
-        </div>
-      </div>
-      <div style={s.adhkar2Scroll}>
-        {/* The daily card. Device-local, today's date only, and every number in it is counted
-            from stored counts against real targets -- there is no place in this card where a
-            completion can be invented, and an empty store draws an empty bar. */}
-        <div style={s.adhkar2Goal}>
-          <div style={s.adhkar2GoalTop}>
-            <span style={s.adhkar2GoalTitle}>{A2_GOAL_TITLE}</span>
-            <span style={s.adhkar2GoalCount}>{toArabicDigits(shown)} / {toArabicDigits(ADHKAR_DAILY_GOAL)}</span>
-          </div>
-          <div style={s.adhkar2Bar} role="progressbar" aria-label={A2_GOAL_TITLE} aria-valuemin={0} aria-valuemax={ADHKAR_DAILY_GOAL} aria-valuenow={shown}>
-            <span style={{ ...s.adhkar2BarFill, width: pct + '%' }} />
-          </div>
-        </div>
-        {/* Most used, and ONLY when this device has really opened something. No usage, no
-            section -- never a placeholder, never a seeded suggestion. */}
-        {!q && most.length > 0 && (
-          <div style={s.adhkar2Section}>
-            <div style={s.adhkar2SectionTitle}>{A2_MOST_USED}</div>
-            <div style={s.adhkar2Chips}>
-              {most.map((r) => (
-                <button key={r.cat.id} type="button" className="adhkar2-focus" onClick={() => open(r.cat)} style={s.adhkar2Chip}>
-                  <span style={s.adhkar2ChipTitle}>{r.cat.title}</span>
-                  <span style={s.adhkar2ChipNum}>{toArabicDigits(r.n)}</span>
-                </button>
-              ))}
+    <button type="button" className="adhkar2-focus" onClick={onClick} aria-label={label}
+      aria-pressed={pressed === undefined ? undefined : (pressed ? 'true' : 'false')}
+      style={on ? { ...s.a3BarBtn, ...s.a3BarBtnOn } : s.a3BarBtn}>{children}</button>
+  );
+}
+// The search row, shared by both homes: it is the SAME input, the same handler and the same
+// placeholder in either design, so a query typed under one layout filters exactly as it did.
+function A3Search({ query, setQuery }) {
+  return (
+    <div style={s.a3SearchRow}>
+      <span style={s.a3SearchIcon}>{A2_ICON_SEARCH}</span>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={A2_SEARCH}
+        style={s.a3SearchInput} aria-label={A2_SEARCH} />
+    </div>
+  );
+}
+// Real per-category standing, read off the SAME progress record the counter writes. A category
+// the store does not resolve reports zero of zero and is drawn as untouched -- never as begun.
+function a3CatStanding(prog, cat, byCat) {
+  const items = byCat ? byCat[parseInt(cat.id, 10)] : null;
+  const total = Array.isArray(items) ? items.length : 0;
+  const done = total ? adhkarCatDone(prog, cat.id, items) : 0;
+  return { total: total, done: done, full: total > 0 && done >= total, started: done > 0 };
+}
+
+// ============================================================
+// DESIGN 1 -- DAILY JOURNEY (the default). One continuous vertical path: the real daily ring,
+// then EVERY category the filter keeps, alternating around a thin ice-blue centre line. No
+// category is hidden behind a decorative card, nothing is collapsed and nothing is ranked --
+// the path is the store's own order, and each node is one direct door into one category.
+// ============================================================
+function AdhkarJourneyHome({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done }) {
+  const shown = Math.min(done, ADHKAR_DAILY_GOAL);
+  // The ring is one stroked circle: circumference minus the completed fraction. Both numbers
+  // are the real ones -- min(completions, goal) over ADHKAR_DAILY_GOAL -- so an empty store
+  // draws an empty ring and there is no place here where a completion can be invented.
+  const CIRC = 2 * Math.PI * 34;
+  const off = CIRC * (1 - (shown / ADHKAR_DAILY_GOAL));
+  return (
+    <div className="theme-dark adhkar3" style={s.a3Container}>
+      {/* S85-adhkar-journey */}
+      <A3Bar>
+        <A3BarBtn onClick={onBack} label={A2_BACK}>{A2_ICON_BACK}</A3BarBtn>
+        <div style={s.a3BarTitle}>{A2_TITLE}</div>
+        <A3BarBtn onClick={onToggleSearch} label={A2_SEARCH} on={searchOpen} pressed={searchOpen}>{A2_ICON_SEARCH}</A3BarBtn>
+      </A3Bar>
+      {searchOpen && <A3Search query={query} setQuery={setQuery} />}
+      <div style={s.a3Scroll}>
+        <div style={s.a3Wrap}>
+          <div style={s.a3RingCard}>
+            <div style={s.a3RingBox} role="progressbar" aria-label={A2_GOAL_TITLE}
+              aria-valuemin={0} aria-valuemax={ADHKAR_DAILY_GOAL} aria-valuenow={shown}>
+              <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
+                <circle cx="42" cy="42" r="34" fill="none" stroke="var(--a3-ice)" strokeWidth="7" />
+                <circle cx="42" cy="42" r="34" fill="none" stroke="var(--a3-blue)" strokeWidth="7" strokeLinecap="round"
+                  strokeDasharray={CIRC} strokeDashoffset={off} transform="rotate(-90 42 42)" />
+              </svg>
+              <span style={s.a3RingNums}>{toArabicDigits(shown)} / {toArabicDigits(ADHKAR_DAILY_GOAL)}</span>
+            </div>
+            <div style={s.a3RingSide}>
+              <div style={s.a3RingTitle}>{A2_GOAL_TITLE}</div>
+              <div style={s.a3RingHint}>{A2_SOURCE}</div>
             </div>
           </div>
-        )}
-        {cats === null ? (
-          <div style={s.adhkar2Empty}>...</div>
-        ) : list.length === 0 ? (
-          <div style={s.adhkar2Empty}>{A2_EMPTY}</div>
-        ) : (
-          // The grid replaces the row list. EVERY category the filter keeps gets a tile, in the
-          // store's own order, with the store's own count -- the layout changed, the set did not.
-          <div className="adhkar2-grid">
-            {list.map((c) => (
-              <button key={c.id} type="button" className="adhkar2-focus" onClick={() => open(c)} style={s.adhkar2Tile}>
-                <span style={s.adhkar2TileTop}>
-                  <span style={s.adhkar2TileIcon}>{A2_ICON_BEADS}</span>
-                  <span style={s.adhkar2Count}>{toArabicDigits(c.count)}</span>
-                </span>
-                <span style={s.adhkar2TileTitle}>{c.title}</span>
-              </button>
-            ))}
-          </div>
-        )}
+          {cats === null ? (
+            <div style={s.a3Empty}>...</div>
+          ) : list.length === 0 ? (
+            <div style={s.a3Empty}>{A2_EMPTY}</div>
+          ) : (
+            <div style={s.a3Path}>
+              <span style={s.a3PathLine} aria-hidden="true" />
+              {list.map((c, i) => {
+                const st = a3CatStanding(prog, c, byCat);
+                return (
+                  <div key={c.id} style={s.a3PathRow}>
+                    <span style={st.full ? { ...s.a3Mark, ...s.a3MarkDone } : (st.started ? { ...s.a3Mark, ...s.a3MarkNow } : s.a3Mark)} aria-hidden="true">
+                      {st.full ? A2_ICON_CHECK : null}
+                    </span>
+                    <button type="button" className="adhkar2-focus" onClick={() => onOpen(c)}
+                      style={{ ...s.a3Node, ...(st.full ? s.a3NodeDone : null), gridColumn: (i % 2 === 0) ? 1 : 3 }}>
+                      <span style={s.a3NodeTop}>
+                        <span style={s.a3NodeIcon}>{A2_ICON_BEADS}</span>
+                        <span style={s.a3Pill}>{toArabicDigits(c.count)}</span>
+                      </span>
+                      <span style={s.a3NodeTitle}>{c.title}</span>
+                      {st.total > 0 && st.done > 0 && (
+                        <span style={s.a3NodeMeta}>{toArabicDigits(st.done)} / {toArabicDigits(st.total)}</span>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// DESIGN 2 -- STACKED CARDS. The deck is the first three categories of the REAL filtered list,
+// most-opened first when this device has genuinely opened something and the store's own order
+// otherwise; every one of the three is its own button with at least a 44px visible strip, and
+// EVERY remaining category is in the grid underneath. Nothing is recommended, nothing is
+// generated and no category can fall out of reach of a finger or of the tab key.
+// ============================================================
+function AdhkarDeckHome({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, usage, favs }) {
+  const favRef = useRef(null);
+  const top = [];
+  for (const r of adhkarMostUsed(usage, list, 3)) if (top.indexOf(r.cat) === -1) top.push(r.cat);
+  for (const c of list) { if (top.length >= 3) break; if (top.indexOf(c) === -1) top.push(c); }
+  const rest = list.filter((c) => top.indexOf(c) === -1);
+  // FAVOURITES resolved against the real store: an identifier is kept only when it still names
+  // a real item inside a real category. Nothing but the category title and the position is
+  // drawn -- the stored value is two integers and the row shows exactly those two integers.
+  const favRows = [];
+  for (const k of (favs || [])) {
+    const parts = String(k).split(':');
+    const cid = parseInt(parts[0], 10);
+    const at = parseInt(parts[1], 10);
+    const items = byCat ? byCat[cid] : null;
+    if (!Array.isArray(items) || !items[at]) continue;
+    let cat = null;
+    for (const c of (cats || [])) if (parseInt(c.id, 10) === cid) { cat = c; break; }
+    if (!cat) continue;
+    favRows.push({ k: k, cat: cat, at: at });
+  }
+  const toFavs = () => { try { if (favRef.current) favRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} };
+  return (
+    <div className="theme-dark adhkar3" style={s.a3Container}>
+      {/* S85-adhkar-deck */}
+      <A3Bar>
+        <A3BarBtn onClick={onBack} label={A2_BACK}>{A2_ICON_BACK}</A3BarBtn>
+        <div style={s.a3BarTitle}>{A2_TITLE}</div>
+        {/* The favourites control exists only when a saved identifier really resolves. */}
+        {favRows.length > 0 && <A3BarBtn onClick={toFavs} label={A2_FAV_LABEL}>{A2_ICON_HEART}</A3BarBtn>}
+        <A3BarBtn onClick={onToggleSearch} label={A2_SEARCH} on={searchOpen} pressed={searchOpen}>{A2_ICON_SEARCH}</A3BarBtn>
+      </A3Bar>
+      {searchOpen && <A3Search query={query} setQuery={setQuery} />}
+      <div style={s.a3Scroll}>
+        <div style={s.a3Wrap}>
+          {cats === null ? (
+            <div style={s.a3Empty}>...</div>
+          ) : list.length === 0 ? (
+            <div style={s.a3Empty}>{A2_EMPTY}</div>
+          ) : (
+            <>
+              <div style={{ ...s.a3Deck, height: (top.length - 1) * 44 + 140 }}>
+                {top.map((c, i) => {
+                  const st = a3CatStanding(prog, c, byCat);
+                  const pct = st.total ? Math.round((st.done / st.total) * 100) : 0;
+                  return (
+                    <button key={c.id} type="button" className="adhkar2-focus" onClick={() => onOpen(c)}
+                      style={{ ...s.a3DeckCard, ...(i === 0 ? s.a3DeckCardFront : null), top: (top.length - 1 - i) * 44, left: i * 12, right: i * 12, zIndex: top.length - i }}>
+                      <span style={s.a3DeckHead}>
+                        <span style={s.a3NodeIcon}>{A2_ICON_BEADS}</span>
+                        <span style={i === 0 ? s.a3DeckTitle : s.a3DeckTitleSm}>{c.title}</span>
+                        <span style={s.a3Pill}>{toArabicDigits(c.count)}</span>
+                      </span>
+                      {i === 0 && (
+                        <span style={s.a3DeckBody}>
+                          <span style={s.a3Track}><span style={{ ...s.a3TrackFill, width: pct + '%' }} /></span>
+                          <span style={s.a3NodeMeta}>{toArabicDigits(st.done)} / {toArabicDigits(st.total)}</span>
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {rest.length > 0 && (
+                <div style={s.a3Section}>
+                  <div style={s.a3SectionTitle}>{A3_ALL}</div>
+                  <div className="adhkar2-grid">
+                    {rest.map((c) => (
+                      <button key={c.id} type="button" className="adhkar2-focus" onClick={() => onOpen(c)} style={s.a3Tile}>
+                        <span style={s.a3NodeTop}>
+                          <span style={s.a3NodeIcon}>{A2_ICON_BEADS}</span>
+                          <span style={s.a3Pill}>{toArabicDigits(c.count)}</span>
+                        </span>
+                        <span style={s.a3NodeTitle}>{c.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {favRows.length > 0 && (
+                <div style={s.a3Section} ref={favRef}>
+                  <div style={s.a3SectionTitle}>{A2_FAV_LABEL}</div>
+                  <div style={s.a3FavList}>
+                    {favRows.map((r) => (
+                      <button key={r.k} type="button" className="adhkar2-focus" onClick={() => onOpen(r.cat, r.at)} style={s.a3FavRow}>
+                        <span style={s.a3FavIcon}>{A2_ICON_HEART_ON}</span>
+                        <span style={s.a3FavTitle}>{r.cat.title}</span>
+                        <span style={s.a3Pill}>{toArabicDigits(r.at + 1)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -3051,7 +3536,13 @@ function AdhkarScreenV2({ onBack }) {
 // swaps to it, and ended/error both clear the playing state so a failed file cannot leave a
 // stop button that never stops. The element is also paused and dropped on unmount, so
 // leaving the screen mid-recitation leaves nothing playing behind it.
-function AdhkarCategoryV2({ cat, onBack }) {
+function AdhkarCategoryV2({ cat, startAt, onBack }) {
+  // Session 85. THE LOGIC BELOW IS UNCHANGED and stays here: one loader, one audio element,
+  // one counter writer, one favourite writer, one share handler. The two readers underneath
+  // are presentation only -- they are handed what this component has already resolved and
+  // they call back into these handlers; neither of them reads or writes storage itself.
+  // Session 86: the same APPLICATION style hook the browse screen and the home screen read.
+  const style = useEzikUiStyle();
   const [items, setItems] = useState(null);
   const [idx, setIdx] = useState(0);                       // the item being read, 0-based
   const [prog, setProg] = useState(readAdhkarProgress);
@@ -3061,8 +3552,16 @@ function AdhkarCategoryV2({ cat, onBack }) {
   const [playingId, setPlayingId] = useState(null);
   useEffect(() => {
     let alive = true;
+    // The opening position is CLAMPED to the real list: a saved favourite opens at its own
+    // item, and anything that does not name one of this category's positions opens at the
+    // first. No index outside the store's own list can be reached from here.
+    const at = (list) => {
+      const n = parseInt(startAt, 10);
+      if (!list.length || !Number.isFinite(n) || n < 1) return 0;
+      return Math.min(n, list.length - 1);
+    };
     loadAdhkar()
-      .then((db) => { if (alive) { setItems((db.byCat && db.byCat[parseInt(cat.id, 10)]) || []); setIdx(0); } })
+      .then((db) => { if (alive) { const list = (db.byCat && db.byCat[parseInt(cat.id, 10)]) || []; setItems(list); setIdx(at(list)); } })
       .catch(() => { if (alive) { setItems([]); setIdx(0); } });
     return () => { alive = false; };
   }, [cat.id]);
@@ -3116,91 +3615,224 @@ function AdhkarCategoryV2({ cat, onBack }) {
   const fkey = adhkarItemKey(cat.id, idx);
   const isFav = favs.indexOf(fkey) !== -1;
   const catDone = items ? adhkarCatDone(prog, cat.id, items) : 0;
-  const catPct = (items && items.length) ? Math.round((catDone / items.length) * 100) : 0;
+  // ONE view object again. Every value in it was resolved above out of the store or out of the
+  // progress record; every handler in it is one of this component's own. The two readers get
+  // the same object and differ only in how they draw it.
+  const view = {
+    cat: cat,
+    onBack: onBack,
+    items: items,
+    d: d,
+    idx: idx,
+    count: count,
+    target: target,
+    full: full,
+    isFav: isFav,
+    note: note,
+    prog: prog,
+    catDone: catDone,
+    playing: !!(d && playingId === d.id),
+    onPrev: () => go(idx - 1),
+    onNext: () => go(idx + 1),
+    // One press, one increment, and the press is refused at the target -- the cap lives here,
+    // in the single call site of bumpAdhkarCount, and no reader can raise it.
+    onCount: () => { if (!full) setProg(bumpAdhkarCount(cat.id, idx, target)); },
+    onFav: () => setFavs(toggleAdhkarFavorite(fkey)),
+    onShare: onShare,
+    onAudio: () => { if (d) toggle(d); },
+  };
+  return style === EZIK_UI_STYLE_DECK ? <AdhkarDeckReader {...view} /> : <AdhkarJourneyReader {...view} />;
+}
+
+// The audio control, shared by both readers so the contract cannot drift between them: it is
+// RENDERED ONLY when the loaded item genuinely carries d.audio, and it is the same toggle in
+// both designs. No item without a recitation ever shows a listen button.
+function A3AudioBtn({ d, playing, onAudio, style, styleOn }) {
+  if (!d || !d.audio) return null;
   return (
-    <div className="theme-dark" style={s.adhkar2Container}>
-      <div style={s.adhkar2Header}>
-        <div style={s.adhkar2HeadRow}>
-          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.adhkar2BackBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
-          <div style={s.adhkar2HeadText}>
-            <div style={s.adhkar2Brand}>{A2_BRAND}</div>
-            {/* The category title, from adhkar.json, verbatim. */}
-            <div style={s.adhkar2TitleSm}>{cat.title}</div>
-            <div style={s.adhkar2Sub}>{A2_SOURCE}</div>
-          </div>
-          <div style={s.adhkar2Seal}>{A2_ICON_BEADS}</div>
+    <button type="button" className="adhkar2-focus" onClick={onAudio}
+      style={playing ? { ...style, ...styleOn } : style}
+      aria-label={playing ? A2_STOP : A2_LISTEN}>
+      {playing ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
+    </button>
+  );
+}
+
+// ============================================================
+// DESIGN 1 -- JOURNEY READER. A pure-white reading surface, a compact white top row, a slim
+// rail on the RTL edge that shows the real position inside the real category, and one floating
+// white dock. The dock is a laid-out row rather than an overlay, so it cannot cover a word of
+// the text; the scroll area also carries its own bottom padding.
+// ============================================================
+function AdhkarJourneyReader(v) {
+  const items = v.items;
+  const d = v.d;
+  const len = items ? items.length : 0;
+  // At most A3_WINDOW marks whatever the length -- a nearby window, never hundreds of dots.
+  const win = adhkarWindow(len, v.idx, A3_WINDOW);
+  return (
+    <div className="theme-dark adhkar3" style={s.a3Container}>
+      {/* S85-adhkar-journey-reader */}
+      <A3Bar>
+        <A3BarBtn onClick={v.onBack} label={A2_BACK}>{A2_ICON_BACK}</A3BarBtn>
+        <div style={s.a3BarTitleWrap}>
+          {/* The category title, from adhkar.json, verbatim. */}
+          <div style={s.a3BarTitleSm}>{v.cat.title}</div>
+          <div style={s.a3BarSub}>{A2_SOURCE}</div>
         </div>
-      </div>
-      <div style={s.adhkar2Scroll}>
+        <A3BarBtn onClick={v.onFav} label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} on={v.isFav} pressed={v.isFav}>
+          {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}
+        </A3BarBtn>
+        <A3BarBtn onClick={v.onShare} label={A2_SHARE}>{A2_ICON_SHARE}</A3BarBtn>
+      </A3Bar>
+      <div style={s.a3ReadOuter}>
         {items === null ? (
-          <div style={s.adhkar2Empty}>...</div>
-        ) : items.length === 0 || !d ? (
-          <div style={s.adhkar2Empty}>{A2_EMPTY}</div>
+          <div style={s.a3Empty}>...</div>
+        ) : len === 0 || !d ? (
+          <div style={s.a3Empty}>{A2_EMPTY}</div>
         ) : (
           <>
-            {/* Position in the category, and the slim bar underneath is the real count of items
-                whose own target has been reached out of the real length of the category. */}
-            <div style={s.adhkar2Pos}>
-              <span style={s.adhkar2PosText}>{toArabicDigits(idx + 1)} / {toArabicDigits(items.length)}</span>
-              <span style={s.adhkar2PosDone}>{toArabicDigits(catDone)} / {toArabicDigits(items.length)}</span>
+            {/* The rail sits on the RTL edge -- the right one -- and reports the real position
+                out of the real length. Marks are drawn for the window only; the value it
+                announces is always the true index and the true category length. */}
+            <div style={s.a3Rail} role="progressbar" aria-label={v.cat.title}
+              aria-valuemin={1} aria-valuemax={len} aria-valuenow={v.idx + 1}>
+              {win.map((i) => {
+                const doneHere = adhkarCountOf(v.prog, v.cat.id, i) >= adhkarTarget(items[i]);
+                return <span key={i} style={i === v.idx ? { ...s.a3RailMark, ...s.a3RailMarkNow } : (doneHere ? { ...s.a3RailMark, ...s.a3RailMarkDone } : s.a3RailMark)} />;
+              })}
             </div>
-            <div style={s.adhkar2Slim} role="progressbar" aria-label={cat.title} aria-valuemin={0} aria-valuemax={items.length} aria-valuenow={catDone}>
-              <span style={{ ...s.adhkar2SlimFill, width: catPct + '%' }} />
-            </div>
-            {/* THE READING SURFACE. Ivory paper and dark ink are FIXED values, not tokens, for
-                the same reason the mushaf pins its own paper: this card must read the same in
-                the light theme and the dark one, and a token that flips would put pale ink on
-                pale paper. Everything around it is tokenised and follows the theme. */}
-            <div style={s.adhkar2Read}>
-              <span style={s.adhkar2CardEdge} />
-              <div style={s.adhkar2ReadTop}>
-                <span style={s.adhkar2ReadIndex}>{toArabicDigits(idx + 1)}</span>
-                <span style={s.adhkar2ReadRule} />
-                {d.repeat > 1 && <span style={s.adhkar2ReadRepeat}>{a2Repeat(d.repeat)}</span>}
+            <div style={s.a3ReadScroll}>
+              <div style={s.a3ReadWrap}>
+                <div style={s.a3ReadHead}>
+                  <span style={s.a3ReadPos}>{toArabicDigits(v.idx + 1)} / {toArabicDigits(len)}</span>
+                  <span style={s.a3ReadRule} />
+                  {d.repeat > 1 && <span style={s.a3ReadRepeat}>{a2Repeat(d.repeat)}</span>}
+                </div>
+                {/* The stored text, rendered as a text child. No pass of any kind over it. */}
+                <div style={s.a3ReadText}>{d.text}</div>
+                <div style={s.a3ReadSource}>{A2_SOURCE}</div>
+                {/* Live region: in the tree from the first render, only its text changes. */}
+                <div style={s.a3Note} role="status" aria-live="polite">{v.note}</div>
               </div>
-              <div style={s.adhkar2ReadText}>{d.text}</div>
-            </div>
-            {/* One press, one increment, and the press is refused at the target. */}
-            <button type="button" className="adhkar2-focus" onClick={() => { if (!full) setProg(bumpAdhkarCount(cat.id, idx, target)); }}
-              style={full ? { ...s.adhkar2Counter, ...s.adhkar2CounterDone } : s.adhkar2Counter}
-              aria-label={A2_COUNT_ARIA} aria-disabled={full ? 'true' : 'false'}>
-              <span style={s.adhkar2CounterNums}>{toArabicDigits(count)} / {toArabicDigits(target)}</span>
-              <span style={s.adhkar2CounterLabel}>{full ? A2_ICON_CHECK : A2_ICON_PLUS}<span>{full ? A2_DONE : A2_COUNT}</span></span>
-            </button>
-            <div style={s.adhkar2Actions}>
-              <button type="button" className="adhkar2-focus" onClick={() => setFavs(toggleAdhkarFavorite(fkey))}
-                style={isFav ? { ...s.adhkar2Act, ...s.adhkar2ActOn } : s.adhkar2Act}
-                aria-label={isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={isFav ? 'true' : 'false'}>
-                {isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}<span>{A2_FAV_LABEL}</span>
-              </button>
-              <button type="button" className="adhkar2-focus" onClick={onShare} style={s.adhkar2Act} aria-label={A2_SHARE}>
-                {A2_ICON_SHARE}<span>{A2_SHARE}</span>
-              </button>
-              {d.audio && (
-                <button type="button" className="adhkar2-focus" onClick={() => toggle(d)}
-                  style={playingId === d.id ? { ...s.adhkar2Act, ...s.adhkar2ActOn } : s.adhkar2Act}
-                  aria-label={playingId === d.id ? A2_STOP : A2_LISTEN}>
-                  {playingId === d.id ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
-                  <span>{playingId === d.id ? A2_STOP : A2_LISTEN}</span>
-                </button>
-              )}
-            </div>
-            {/* Live region: it is in the tree from the first render and only its text changes,
-                which is what makes a screen reader announce the share result at all. */}
-            <div style={s.adhkar2Note} role="status" aria-live="polite">{note}</div>
-            {/* RTL: previous sits on the right, onward on the left, and each end disables. */}
-            <div style={s.adhkar2Nav}>
-              <button type="button" className="adhkar2-focus" onClick={() => go(idx - 1)} disabled={idx <= 0}
-                style={idx <= 0 ? { ...s.adhkar2NavBtn, ...s.adhkar2NavBtnOff } : s.adhkar2NavBtn} aria-label={A2_PREV}>
-                {A2_ICON_BACK}<span>{A2_PREV}</span>
-              </button>
-              <button type="button" className="adhkar2-focus" onClick={() => go(idx + 1)} disabled={idx >= items.length - 1}
-                style={idx >= items.length - 1 ? { ...s.adhkar2NavBtn, ...s.adhkar2NavBtnOff } : s.adhkar2NavBtn} aria-label={A2_NEXT}>
-                <span>{A2_NEXT}</span>{A2_ICON_ONWARD}
-              </button>
             </div>
           </>
         )}
+      </div>
+      {/* THE DOCK. RTL: previous is on the right, onward on the left, the real counter is the
+          central control, and the audio button appears only for an item that has a recitation. */}
+      {items !== null && len > 0 && d && (
+        <div style={s.a3DockWrap}>
+          <div style={s.a3Dock}>
+            <button type="button" className="adhkar2-focus" onClick={v.onPrev} disabled={v.idx <= 0}
+              style={v.idx <= 0 ? { ...s.a3DockBtn, ...s.a3DockBtnOff } : s.a3DockBtn} aria-label={A2_PREV}>{A2_ICON_BACK}</button>
+            <A3AudioBtn d={d} playing={v.playing} onAudio={v.onAudio} style={s.a3DockBtn} styleOn={s.a3DockBtnOn} />
+            <button type="button" className="adhkar2-focus" onClick={v.onCount}
+              style={v.full ? { ...s.a3DockCount, ...s.a3DockCountDone } : s.a3DockCount}
+              aria-label={A2_COUNT_ARIA} aria-disabled={v.full ? 'true' : 'false'}>
+              <span style={s.a3DockCountNums}>{toArabicDigits(v.count)} / {toArabicDigits(v.target)}</span>
+              <span style={s.a3DockCountLabel}>{v.full ? A2_ICON_CHECK : A2_ICON_PLUS}<span>{v.full ? A2_DONE : A2_COUNT}</span></span>
+            </button>
+            <button type="button" className="adhkar2-focus" onClick={v.onShare} style={s.a3DockBtn} aria-label={A2_SHARE}>{A2_ICON_SHARE}</button>
+            <button type="button" className="adhkar2-focus" onClick={v.onFav}
+              style={v.isFav ? { ...s.a3DockBtn, ...s.a3DockBtnOn } : s.a3DockBtn}
+              aria-label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={v.isFav ? 'true' : 'false'}>
+              {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}
+            </button>
+            <button type="button" className="adhkar2-focus" onClick={v.onNext} disabled={v.idx >= len - 1}
+              style={v.idx >= len - 1 ? { ...s.a3DockBtn, ...s.a3DockBtnOff } : s.a3DockBtn} aria-label={A2_NEXT}>{A2_ICON_ONWARD}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// DESIGN 2 -- DECK READER. One large white elevated card on a pure-white screen. The card edge
+// behind it is DECORATIVE AND EMPTY: it is a bordered rectangle with no children, so no second
+// dhikr is exposed, previewed or duplicated anywhere on this screen.
+// ============================================================
+function AdhkarDeckReader(v) {
+  const items = v.items;
+  const d = v.d;
+  const len = items ? items.length : 0;
+  const win = adhkarWindow(len, v.idx, A3_WINDOW);
+  return (
+    <div className="theme-dark adhkar3" style={s.a3DeckReadContainer}>
+      {/* S85-adhkar-deck-reader */}
+      <A3Bar>
+        <A3BarBtn onClick={v.onBack} label={A2_BACK}>{A2_ICON_BACK}</A3BarBtn>
+        <div style={s.a3BarTitleWrap}>
+          <div style={s.a3BarTitleSm}>{v.cat.title}</div>
+          <div style={s.a3BarSub}>{A2_SOURCE}</div>
+        </div>
+        <A3BarBtn onClick={v.onFav} label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} on={v.isFav} pressed={v.isFav}>
+          {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}
+        </A3BarBtn>
+      </A3Bar>
+      <div style={s.a3Scroll}>
+        <div style={s.a3Wrap}>
+          {items === null ? (
+            <div style={s.a3Empty}>...</div>
+          ) : len === 0 || !d ? (
+            <div style={s.a3Empty}>{A2_EMPTY}</div>
+          ) : (
+            <>
+              <div style={s.a3Stage}>
+                <span style={s.a3StageGhost} aria-hidden="true" />
+                <div style={s.a3StageCard}>
+                  <div style={s.a3ReadHead}>
+                    <span style={s.a3ReadPos}>{toArabicDigits(v.idx + 1)} / {toArabicDigits(len)}</span>
+                    <span style={s.a3ReadRule} />
+                    {d.repeat > 1 && <span style={s.a3ReadRepeat}>{a2Repeat(d.repeat)}</span>}
+                  </div>
+                  <div style={s.a3ReadText}>{d.text}</div>
+                  <div style={s.a3ReadSource}>{A2_SOURCE}</div>
+                  {/* The counter: an outlined pill, the real count over the real target. */}
+                  <button type="button" className="adhkar2-focus" onClick={v.onCount}
+                    style={v.full ? { ...s.a3Pillar, ...s.a3PillarDone } : s.a3Pillar}
+                    aria-label={A2_COUNT_ARIA} aria-disabled={v.full ? 'true' : 'false'}>
+                    {v.full ? A2_ICON_CHECK : A2_ICON_PLUS}
+                    <span style={s.a3PillarNums}>{toArabicDigits(v.count)} / {toArabicDigits(v.target)}</span>
+                    <span style={s.a3PillarLabel}>{v.full ? A2_DONE : A2_COUNT}</span>
+                  </button>
+                  <div style={s.a3StageActs}>
+                    <A3AudioBtn d={d} playing={v.playing} onAudio={v.onAudio} style={s.a3Act} styleOn={s.a3ActOn} />
+                    <button type="button" className="adhkar2-focus" onClick={v.onShare} style={s.a3Act} aria-label={A2_SHARE}>
+                      {A2_ICON_SHARE}<span>{A2_SHARE}</span>
+                    </button>
+                    <button type="button" className="adhkar2-focus" onClick={v.onFav}
+                      style={v.isFav ? { ...s.a3Act, ...s.a3ActOn } : s.a3Act}
+                      aria-label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={v.isFav ? 'true' : 'false'}>
+                      {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}<span>{A2_FAV_LABEL}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div style={s.a3Note} role="status" aria-live="polite">{v.note}</div>
+              {/* Pagination: a WINDOW of marks, never one per item, plus the real numbers. */}
+              <div style={s.a3Dots} role="progressbar" aria-label={v.cat.title}
+                aria-valuemin={1} aria-valuemax={len} aria-valuenow={v.idx + 1}>
+                {win.map((i) => {
+                  const doneHere = adhkarCountOf(v.prog, v.cat.id, i) >= adhkarTarget(items[i]);
+                  return <span key={i} style={i === v.idx ? { ...s.a3Dot, ...s.a3DotNow } : (doneHere ? { ...s.a3Dot, ...s.a3DotDone } : s.a3Dot)} />;
+                })}
+              </div>
+              <div style={s.a3Nav}>
+                <button type="button" className="adhkar2-focus" onClick={v.onPrev} disabled={v.idx <= 0}
+                  style={v.idx <= 0 ? { ...s.a3NavBtn, ...s.a3NavBtnOff } : s.a3NavBtn} aria-label={A2_PREV}>
+                  {A2_ICON_BACK}<span>{A2_PREV}</span>
+                </button>
+                <span style={s.a3NavMeta}>{toArabicDigits(v.catDone)} / {toArabicDigits(len)}</span>
+                <button type="button" className="adhkar2-focus" onClick={v.onNext} disabled={v.idx >= len - 1}
+                  style={v.idx >= len - 1 ? { ...s.a3NavBtn, ...s.a3NavBtnOff } : s.a3NavBtn} aria-label={A2_NEXT}>
+                  <span>{A2_NEXT}</span>{A2_ICON_ONWARD}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -4907,6 +5539,13 @@ function App() {
       localStorage.removeItem(ADHKAR_PROGRESS_KEY);
       localStorage.removeItem(ADHKAR_FAVORITES_KEY);
       localStorage.removeItem(ADHKAR_USAGE_KEY);
+      // Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
+      // home screen and the adhkar screens together. Removing it is enough: the reader is total,
+      // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the
+      // adhkar browse, the adhkar reader and the settings row -- to re-read now rather than at
+      // the next mount. The chat screen does not listen for it and is unaffected either way.
+      try { localStorage.removeItem(EZIK_UI_STYLE_KEY); } catch (e) {}
+      try { window.dispatchEvent(new CustomEvent(EZIK_UI_STYLE_EVENT, { detail: EZIK_UI_STYLE_DEFAULT })); } catch (e) {}
       setDirectConvoLocked(false);
       setProfile(null);
       voiceProfileRef.current = null;           // غ‑٣: حذفُ البيانات يُعيد الحاجزَ إلى المقفول
@@ -6207,6 +6846,43 @@ function SettingsSheet({ theme, onTheme, onBack }) {
       <span>{label}</span>
     </button>
   );
+  // Session 85/86 -- the INTERFACE STYLE choice. ONE compact card, in the position it has held
+  // since it was added: immediately after the theme card. Not one other Settings control moved,
+  // changed or lost a style key. The value is device-local and presentational: it is written
+  // with writeEzikUiStyle and read with useEzikUiStyle, and it is never placed in a request, a
+  // payload or an analytics call. Session 86 widened only its MEANING -- one press now restyles
+  // the home screen and the adhkar screens together, because they read this same key.
+  const uiStyle = useEzikUiStyle();
+  // Two native radio semantics expressed on buttons: one radiogroup, aria-checked on each, and
+  // the choice applies on the press -- the hook repaints this row, the home screen, the browse
+  // screen and the reader from the same event, with no reload and no remount of the app.
+  const StyleOpt = ({ value, label, preview }) => (
+    <button type="button" role="radio" aria-checked={uiStyle === value ? 'true' : 'false'}
+      onClick={() => writeEzikUiStyle(value)}
+      style={uiStyle === value ? { ...s.designOpt, ...s.designOptOn } : s.designOpt}>
+      <span style={s.designPrev} aria-hidden="true">{preview}</span>
+      <span style={s.designOptLabel}>{label}</span>
+      <span style={uiStyle === value ? { ...s.designDot, ...s.designDotOn } : s.designDot} aria-hidden="true" />
+    </button>
+  );
+  // The two previews are CSS ONLY -- bordered and filled boxes, no image, no data URI, nothing
+  // to fetch. Left: a ring and a path of alternating nodes. Right: three stacked cards.
+  const PREV_JOURNEY = (
+    <span style={s.prevBox}>
+      <span style={s.prevRing} />
+      <span style={{ ...s.prevNode, top: 26, right: 8 }} />
+      <span style={{ ...s.prevNode, top: 40, left: 8 }} />
+      <span style={{ ...s.prevNode, top: 54, right: 8 }} />
+      <span style={s.prevLine} />
+    </span>
+  );
+  const PREV_DECK = (
+    <span style={s.prevBox}>
+      <span style={{ ...s.prevCard, top: 10, left: 16, right: 16 }} />
+      <span style={{ ...s.prevCard, top: 22, left: 10, right: 10 }} />
+      <span style={{ ...s.prevCard, top: 34, left: 4, right: 4, height: 26 }} />
+    </span>
+  );
   return (
     <div className="theme-dark" style={s.settingsContainer}>
       <div style={s.settingsHeader}>
@@ -6219,6 +6895,16 @@ function SettingsSheet({ theme, onTheme, onBack }) {
           <div style={s.themeRow}>
             <Opt value="light" label={'\u0641\u0627\u062a\u062d'} />
             <Opt value="dark" label={'\u062f\u0627\u0643\u0646'} />
+          </div>
+          <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
+        </div>
+        {/* Session 85/86 -- the interface style choice, in its own card under the theme card,
+            in the same position it already occupied. */}
+        <div className="adhkar3" style={{ ...s.settingsCard, marginTop: 12 }}>
+          <div style={s.settingsLabel}>{A3_STYLE_TITLE}</div>
+          <div style={s.designRow} role="radiogroup" aria-label={A3_STYLE_TITLE}>
+            <StyleOpt value={EZIK_UI_STYLE_JOURNEY} label={A3_JOURNEY_NAME} preview={PREV_JOURNEY} />
+            <StyleOpt value={EZIK_UI_STYLE_DECK} label={A3_DECK_NAME} preview={PREV_DECK} />
           </div>
           <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
         </div>
@@ -8261,26 +8947,72 @@ const s = {
   welcomeAgeBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
   welcomeAgeBtnActive: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red)', transform: 'scale(1.05)' },
   welcomeAgeBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
-  // Session 13.2 - Home screen (Boubyan). Launcher into existing screens; no new destinations.
-  homeContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
-  homeScroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '20px 18px 12px', boxSizing: 'border-box' },
-  homeGreetRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
-  homeSalam: { fontSize: 14, color: 'var(--muted)', fontWeight: 500, marginBottom: 2 },
-  homeWelcome: { fontSize: 22, color: 'var(--ink)', fontWeight: 800 },
-  homeAvatarBtn: { width: 44, height: 44, borderRadius: '50%', background: 'var(--white)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
-  homeHero: { width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '22px 20px', borderRadius: 'var(--radius-card)', background: 'var(--red)', border: 'none', cursor: 'pointer', marginBottom: 16, boxShadow: '0 10px 24px rgba(29,78,216,0.28)', textAlign: 'right' },
-  homeHeroIcon: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  homeHeroText: { fontSize: 20, fontWeight: 800, color: 'var(--on-accent)' },
-  homeCardRow: { display: 'flex', gap: 12, marginBottom: 16 },
-  homeCard: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '20px 12px', borderRadius: 'var(--radius-card)', background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer' },
-  homeIconSquareBlack: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'var(--black)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  homeIconSquareRed: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  homeCardLabel: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
-  homeNav: { display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 24px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
-  homeNavItem: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--nav-off)', padding: 8 },
-  homeNavItemActive: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', padding: 8 },
-  homeNavLabel: { fontSize: 11, fontWeight: 600 },
-  homeFab: { width: 60, height: 60, borderRadius: '50%', background: 'var(--red)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(29,78,216,0.35)', marginTop: -24 },
+  // ============================================================
+  // SESSION 86 -- THE APPLICATION HOME, BOTH STYLES. The twenty S13.2 home* keys that used to
+  // stand here are gone: the blue morning banner they drew (homeHero/homeHeroIcon/homeHeroText)
+  // does not exist in either style, and every other one of them was read by the old Home body
+  // and by nothing else in this file, so this refactor is the only thing that made them
+  // unreachable. Nothing else was removed -- V1, chat, mushaf and every unrelated key stand.
+  //
+  // Every key below reads its colour from the .ezhome token set declared in <style>, which is
+  // why not one of them names a hex: light is pure #FFFFFF cards and a pure #FFFFFF bottom bar
+  // on a very pale ice-blue page, with royal blue #2454D7, navy #0B2455 and a restrained cyan
+  // #20C7E8; dark is the same structure on cool navy surfaces. There is no beige, ivory, cream,
+  // tan, gold, brown or green in this block, and no large filled blue rectangle anywhere in it.
+  // Three rules run through all of it: every interactive key is at least 44x44 CSS px, the
+  // scroll and the bottom bar both carry the safe-area inset, and the shadows are the cool
+  // blue-tinted tokens rather than warm ones. .ezhome is carried only by the two home
+  // components, so nothing here can reach the chat screen, the call screen or DhikrCard.
+  // ============================================================
+  ezhContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  ezhScroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: 'calc(16px + env(safe-area-inset-top, 0px)) 14px 16px', boxSizing: 'border-box' },
+  // The compact greeting row. A line profile icon in a white 44px button -- no face, no avatar.
+  ezhGreetRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 },
+  ezhGreetText: { minWidth: 0 },
+  ezhSalam: { fontSize: 13, fontWeight: 700, color: 'var(--a3-muted)' },
+  ezhName: { fontSize: 21, fontWeight: 800, color: 'var(--a3-ink)', marginTop: 2 },
+  ezhProfileBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer' },
+  // THE CALLOUT that replaced the banner: a short white row, a line icon on a soft chip and a
+  // small cyan dot. It is a surface and a hairline; it is not a filled rectangle.
+  ezhCallout: { width: '100%', display: 'flex', alignItems: 'center', gap: 12, minHeight: 60, marginBottom: 16, padding: '12px 14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  ezhCalloutIcon: { width: 38, height: 38, flexShrink: 0, borderRadius: 12, background: 'var(--a3-soft)', color: 'var(--a3-blue)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  ezhCalloutText: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--a3-ink)' },
+  // The module chip, shared by the route nodes, the deck cards and the quick row.
+  ezhIcon: { width: 38, height: 38, flexShrink: 0, borderRadius: 12, background: 'var(--a3-soft)', color: 'var(--a3-blue)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  ezhDot: { width: 9, height: 9, flexShrink: 0, borderRadius: '50%', background: 'transparent', border: '1px solid var(--a3-line)' },
+  ezhDotOn: { width: 9, height: 9, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-cyan)', border: '1px solid var(--a3-cyan)' },
+  ezhPill: { minWidth: 26, height: 24, flexShrink: 0, padding: '0 9px', borderRadius: 999, background: 'var(--a3-soft)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  // THE ROUTE. One hairline down the middle; each row is a three-column grid whose middle
+  // column holds the mark, so the cards alternate around it without a transform -- and on a
+  // wide display the same alternation IS the balanced two-column journey.
+  ezhPath: { position: 'relative', paddingTop: 4 },
+  ezhPathLine: { position: 'absolute', top: 0, bottom: 0, left: '50%', marginLeft: -1, width: 2, borderRadius: 2, background: 'var(--a3-ice)' },
+  ezhPathRow: { display: 'grid', gridTemplateColumns: '1fr 36px 1fr', alignItems: 'center', marginBottom: 12 },
+  ezhMark: { gridColumn: 2, justifySelf: 'center', width: 20, height: 20, borderRadius: '50%', background: 'var(--a3-surface)', border: '2px solid var(--a3-line)', display: 'inline-flex' },
+  ezhMarkNow: { border: '2px solid var(--a3-cyan)' },
+  ezhNode: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8, minHeight: 92, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  ezhNodeTitle: { fontSize: 15, fontWeight: 800, lineHeight: 1.5, color: 'var(--a3-ink)' },
+  ezhNodeMeta: { fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
+  // THE DECK. Each card is offset EZH_DECK_OFF from the one in front of it, which is exactly
+  // why every card in the stack keeps a 56px tappable strip with its icon and its label in it.
+  ezhDeck: { position: 'relative', marginBottom: 16 },
+  ezhDeckCard: { position: 'absolute', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '9px 12px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  ezhDeckCardFront: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-lift)' },
+  ezhDeckHead: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 44 },
+  ezhDeckTitle: { flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  ezhDeckAccent: { width: 44, height: 3, flexShrink: 0, marginTop: 'auto', borderRadius: 999, background: 'var(--a3-cyan)' },
+  // The quick row underneath the deck: all four modules again, none of them behind anything.
+  ezhSection: { marginBottom: 16 },
+  ezhSectionTitle: { fontSize: 13, fontWeight: 800, color: 'var(--a3-muted)', marginBottom: 8 },
+  ezhQuickBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 88, padding: '12px 8px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  ezhQuickLabel: { fontSize: 13, fontWeight: 700, color: 'var(--a3-ink)', textAlign: 'center' },
+  ezhVerseWrap: { marginTop: 4 },
+  // THE BOTTOM BAR: pure white, 44px floors, and the safe-area inset so it clears a home bar.
+  ezhNav: { flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 20px calc(8px + env(safe-area-inset-bottom, 0px))', background: 'var(--a3-surface)', borderTop: '1px solid var(--a3-line)' },
+  ezhNavItem: { minWidth: 44, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: 8, background: 'none', border: 'none', color: 'var(--a3-muted)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  ezhNavItemOn: { color: 'var(--a3-blue)' },
+  ezhNavLabel: { fontSize: 11, fontWeight: 700 },
+  ezhFab: { width: 60, height: 60, flexShrink: 0, marginTop: -22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '50%', background: 'var(--a3-blue)', border: 'none', color: '#FFFFFF', boxShadow: 'var(--a3-lift)', cursor: 'pointer' },
   // Session 13.3-A - Adhkar browse screen (Boubyan). Reuses DhikrCard for content/audio.
   adhkarContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
   adhkarHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--white)', borderBottom: '1px solid var(--line)' },
@@ -8299,26 +9031,11 @@ const s = {
   // and the shadow rgba(18,50,122,a), which is --red-deep at a fraction. Neither has a token,
   // and both are written the same way by homeHero, the chat header and the drawer already.
   adhkar2Container: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
-  // The royal-blue band. overflow hidden clips the lattice to the rounded bottom corners, so
-  // the pattern ends with the header instead of squaring it off.
-  // SAFE AREA: the band runs to the physical top of the screen, so its top padding carries the
-  // inset -- on a notched phone the brand line clears the cutout, and on a device that reports
-  // no inset env() falls back to 0 and the padding is the 16px it always was.
-  adhkar2Header: { flexShrink: 0, padding: 'calc(16px + env(safe-area-inset-top, 0px)) 16px 20px', color: 'var(--on-accent)', borderRadius: '0 0 26px 26px', overflow: 'hidden', backgroundColor: 'var(--accent-fill)', backgroundImage: ADHKAR2_PATTERN, boxShadow: '0 10px 26px rgba(18,50,122,0.22)' },
-  adhkar2HeadRow: { display: 'flex', alignItems: 'center', gap: 12 },
-  adhkar2HeadText: { flex: 1, minWidth: 0 },
-  // 44x44: the smallest control on either V2 screen, and the floor for all of them.
-  adhkar2BackBtn: { width: 44, height: 44, flexShrink: 0, borderRadius: '50%', background: 'rgba(255,255,255,0.16)', border: '1px solid rgba(255,255,255,0.28)', color: 'var(--on-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 },
-  adhkar2Brand: { fontSize: 12.5, fontWeight: 700, letterSpacing: '0.5px', color: 'rgba(255,255,255,0.78)' },
-  adhkar2Title: { fontSize: 27, fontWeight: 800, lineHeight: 1.3, color: 'var(--on-accent)', marginTop: 1 },
-  // The category title is content and can run long, so it gets a smaller size and is allowed
-  // to wrap to a second line rather than being clipped or ellipsised. No title is truncated.
-  adhkar2TitleSm: { fontSize: 20, fontWeight: 800, lineHeight: 1.45, color: 'var(--on-accent)', marginTop: 1 },
-  adhkar2Sub: { fontSize: 12.5, fontWeight: 500, color: 'rgba(255,255,255,0.72)', marginTop: 3 },
-  adhkar2Seal: { width: 44, height: 44, flexShrink: 0, borderRadius: 14, background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.22)', color: 'var(--on-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  adhkar2SearchWrap: { display: 'flex', alignItems: 'center', gap: 9, height: 46, marginTop: 16, padding: '0 15px', borderRadius: 999, background: 'var(--white)', boxShadow: '0 4px 14px rgba(18,50,122,0.14)' },
-  adhkar2SearchIcon: { display: 'flex', flexShrink: 0, color: 'var(--nav-off)' },
-  adhkar2SearchInput: { flex: 1, minWidth: 0, padding: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: "'Tajawal', sans-serif", fontSize: 15.5, color: 'var(--ink)', direction: 'rtl' },
+  // Session 85. THE ROYAL-BLUE BAND AND ITS TWELVE KEYS ARE REMOVED -- header, head row, head
+  // text, round back button, brand, title, small title, subtitle, seal, search wrap, search
+  // icon and search input all existed only to dress a large filled blue rectangle that neither
+  // new design draws. Nothing else referenced one of them: V1 has its own keys three screens
+  // up, and the chat, the mushaf and the home screen never named one.
   // SAFE AREA at the other end: the last control -- the nav row, or the last tile -- clears the
   // home indicator instead of sitting under it. Same env() fallback to 0.
   adhkar2Scroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '16px 16px calc(28px + env(safe-area-inset-bottom, 0px))', boxSizing: 'border-box' },
@@ -8377,15 +9094,11 @@ const s = {
   adhkar2PosDone: { fontSize: 12.5, fontWeight: 700, color: 'var(--muted)' },
   adhkar2Slim: { display: 'flex', height: 5, borderRadius: 999, background: 'var(--tint)', overflow: 'hidden', marginBottom: 14 },
   adhkar2SlimFill: { height: '100%', borderRadius: 999, background: 'var(--red)', transition: 'width 200ms ease' },
-  // THE READING PAGE. #FBF6EA paper and #171512 ink are deliberate FIXED values, exactly as the
-  // mushaf pins its own paper white: the contrast of the surface a reader recites from must not
-  // depend on which theme is stored. Everything on it is pinned with it for the same reason.
-  adhkar2Read: { position: 'relative', overflow: 'hidden', background: '#FBF6EA', border: '1px solid #E6DCC4', borderRadius: 20, padding: '16px 18px', boxShadow: '0 3px 16px rgba(18,50,122,0.10)' },
-  adhkar2ReadTop: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 },
-  adhkar2ReadIndex: { width: 28, height: 28, flexShrink: 0, borderRadius: 10, background: '#EFE4CC', color: '#12327A', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
-  adhkar2ReadRule: { flex: 1, height: 1, background: '#E2D6BB' },
-  adhkar2ReadRepeat: { display: 'inline-flex', alignItems: 'center', flexShrink: 0, padding: '5px 11px', borderRadius: 999, background: '#EFE4CC', color: '#12327A', fontSize: 12.5, fontWeight: 700 },
-  adhkar2ReadText: { fontFamily: "'Amiri', serif", fontSize: 22, lineHeight: 2.1, color: '#171512' },
+  // Session 85. THE IVORY READING PAGE IS REMOVED. Its six keys pinned #FBF6EA paper, #EFE4CC
+  // chips, an #E2D6BB rule and #171512 ink -- the only warm values in the adhkar surface, and
+  // the last of them. Both new readers recite from pure white in the light theme and from a
+  // cool navy card in the dark one, so no beige, cream, tan, gold, brown or green is left
+  // anywhere in this UI. The MUSHAF still pins its own paper; that block is untouched.
   // The counter: full width, 68px tall, and the only thing at that size on the screen -- it is
   // meant to be found by a thumb without looking, which is how a tally is actually kept.
   adhkar2Counter: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: '100%', minHeight: 68, marginTop: 14, padding: '10px 16px', borderRadius: 22, background: 'var(--accent-fill)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
@@ -8399,6 +9112,143 @@ const s = {
   adhkar2Nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12 },
   adhkar2NavBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 16px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13.5, fontWeight: 700, cursor: 'pointer' },
   adhkar2NavBtnOff: { opacity: 0.42, cursor: 'default' },
+
+  // ============================================================
+  // SESSION 85 -- THE TWO ADHKAR DESIGNS. Every key below reads its colour from the .adhkar3
+  // token set declared in <style>, which is why not one of them names a hex: light is pure
+  // #FFFFFF cards on a very pale ice-blue page with royal blue #2454D7, navy #0B2455 and a
+  // restrained cyan #20C7E8, and dark is the same structure on cool navy surfaces. There is no
+  // warm value in this block and no large filled blue rectangle in it. Two rules run through
+  // all of it: every interactive key is at least 44x44 CSS px, and every scroll and every dock
+  // carries the safe-area inset so nothing lands under a notch or a home indicator.
+  // ============================================================
+  a3Container: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  // The deck reader is the one full-screen PURE WHITE surface: the card floats on the paper
+  // rather than on the page wash.
+  a3DeckReadContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-surface)' },
+  // The compact white top row, shared by all four screens. It is a surface, a hairline and
+  // line icons -- no band, no gradient, no pattern.
+  a3Bar: { flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, padding: 'calc(6px + env(safe-area-inset-top, 0px)) 10px 6px', background: 'var(--a3-surface)', borderBottom: '1px solid var(--a3-line)' },
+  a3BarBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
+  a3BarBtnOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
+  a3BarTitle: { flex: 1, minWidth: 0, textAlign: 'center', fontSize: 17, fontWeight: 800, color: 'var(--a3-ink)' },
+  a3BarTitleWrap: { flex: 1, minWidth: 0, textAlign: 'center' },
+  // The category title is content and may run long: it wraps rather than being truncated.
+  a3BarTitleSm: { fontSize: 15.5, fontWeight: 800, lineHeight: 1.4, color: 'var(--a3-ink)' },
+  a3BarSub: { fontSize: 11.5, fontWeight: 600, color: 'var(--a3-muted)', marginTop: 1 },
+  a3SearchRow: { flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, height: 46, margin: '10px 12px 0', padding: '0 14px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
+  a3SearchIcon: { display: 'flex', flexShrink: 0, color: 'var(--a3-muted)' },
+  a3SearchInput: { flex: 1, minWidth: 0, padding: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: "'Tajawal', sans-serif", fontSize: 15.5, color: 'var(--a3-ink)', direction: 'rtl' },
+  a3Scroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '14px 14px calc(24px + env(safe-area-inset-bottom, 0px))', boxSizing: 'border-box' },
+  // DESKTOP: the column stops widening, so a journey path and a deck keep a phone's reading
+  // measure on a large display instead of stretching across it.
+  a3Wrap: { width: '100%', maxWidth: 680, margin: '0 auto' },
+  a3Empty: { flex: 1, width: '100%', textAlign: 'center', color: 'var(--a3-muted)', fontSize: 15, padding: '32px 0' },
+  // The daily ring. One stroked circle over one track circle; the digits inside are the real
+  // completion count over ADHKAR_DAILY_GOAL.
+  a3RingCard: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, padding: '12px 14px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
+  a3RingBox: { position: 'relative', width: 84, height: 84, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  a3RingNums: { position: 'absolute', fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)' },
+  a3RingSide: { minWidth: 0 },
+  a3RingTitle: { fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)' },
+  a3RingHint: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', marginTop: 3 },
+  // THE PATH. The centre line is one hairline; each row is a three-column grid whose middle
+  // column holds the marker, so the summaries alternate around it without any transform.
+  a3Path: { position: 'relative', paddingTop: 4 },
+  a3PathLine: { position: 'absolute', top: 0, bottom: 0, left: '50%', marginLeft: -1, width: 2, borderRadius: 2, background: 'var(--a3-ice)' },
+  a3PathRow: { display: 'grid', gridTemplateColumns: '1fr 36px 1fr', alignItems: 'center', marginBottom: 12 },
+  a3Mark: { gridColumn: 2, justifySelf: 'center', position: 'relative', width: 22, height: 22, borderRadius: '50%', background: 'var(--a3-surface)', border: '2px solid var(--a3-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--a3-surface)' },
+  a3MarkNow: { border: '2px solid var(--a3-cyan)' },
+  a3MarkDone: { background: 'var(--a3-blue)', border: '2px solid var(--a3-blue)', color: '#FFFFFF' },
+  a3Node: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 88, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  a3NodeDone: { border: '1px solid var(--a3-blue)' },
+  a3NodeTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  a3NodeIcon: { width: 34, height: 34, flexShrink: 0, borderRadius: 12, background: 'var(--a3-soft)', color: 'var(--a3-blue)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  a3Pill: { minWidth: 26, height: 24, flexShrink: 0, padding: '0 8px', borderRadius: 999, background: 'var(--a3-soft)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  a3NodeTitle: { fontSize: 14.5, fontWeight: 700, lineHeight: 1.55, color: 'var(--a3-ink)' },
+  a3NodeMeta: { fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
+  // THE DECK. Each card is offset 44px from the one behind it, which is exactly why every card
+  // in the stack keeps a full 44px tappable strip -- the stack is a look, never a lost target.
+  a3Deck: { position: 'relative', marginBottom: 16 },
+  a3DeckCard: { position: 'absolute', boxSizing: 'border-box', height: 140, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '9px 12px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  a3DeckCardFront: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-lift)' },
+  a3DeckHead: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 34 },
+  a3DeckTitle: { flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 800, lineHeight: 1.5, color: 'var(--a3-ink)' },
+  a3DeckTitleSm: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  a3DeckBody: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 },
+  a3Track: { flex: 1, display: 'flex', height: 6, borderRadius: 999, background: 'var(--a3-ice)', overflow: 'hidden' },
+  a3TrackFill: { height: '100%', borderRadius: 999, background: 'var(--a3-blue)', transition: 'width 200ms ease' },
+  a3Section: { marginBottom: 16 },
+  a3SectionTitle: { fontSize: 13, fontWeight: 800, color: 'var(--a3-muted)', marginBottom: 8 },
+  a3Tile: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 108, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  a3FavList: { display: 'flex', flexDirection: 'column', gap: 8 },
+  a3FavRow: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', minHeight: 48, padding: '0 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  a3FavIcon: { display: 'inline-flex', flexShrink: 0, color: 'var(--a3-cyan)' },
+  a3FavTitle: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  // THE JOURNEY READER. The rail is absolutely positioned inside this box, on the RTL edge,
+  // and the scroll keeps a wider right padding so no word of the text runs under it.
+  a3ReadOuter: { flex: 1, minHeight: 0, position: 'relative', display: 'flex' },
+  a3Rail: { position: 'absolute', top: 16, bottom: 16, right: 6, width: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  a3RailMark: { width: 4, height: 10, flexShrink: 0, borderRadius: 999, background: 'var(--a3-ice)' },
+  a3RailMarkNow: { height: 22, background: 'var(--a3-blue)' },
+  a3RailMarkDone: { background: 'var(--a3-cyan)' },
+  a3ReadScroll: { flex: 1, minWidth: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '14px 24px 12px 14px', boxSizing: 'border-box' },
+  a3ReadWrap: { width: '100%', maxWidth: 680, margin: '0 auto', padding: '16px 18px', borderRadius: 22, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
+  a3ReadHead: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 },
+  a3ReadPos: { display: 'inline-flex', alignItems: 'center', flexShrink: 0, height: 26, padding: '0 10px', borderRadius: 999, background: 'var(--a3-soft)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800 },
+  a3ReadRule: { flex: 1, height: 1, background: 'var(--a3-line)' },
+  a3ReadRepeat: { display: 'inline-flex', alignItems: 'center', flexShrink: 0, padding: '5px 11px', borderRadius: 999, background: 'var(--a3-soft)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 700 },
+  // Amiri, already loaded in <head>, at a reading size and a wide leading -- the same treatment
+  // the text had before, on a white surface instead of an ivory one.
+  a3ReadText: { fontFamily: "'Amiri', serif", fontSize: 22, lineHeight: 2.1, color: 'var(--a3-ink)' },
+  a3ReadSource: { fontSize: 12, fontWeight: 600, color: 'var(--a3-muted)', marginTop: 12 },
+  a3Note: { minHeight: 19, marginTop: 10, textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--a3-blue)' },
+  // THE DOCK. It is a laid-out row, not an overlay: it occupies its own space at the foot of
+  // the screen, so it cannot cover the text it sits under however long the dhikr is.
+  a3DockWrap: { flexShrink: 0, padding: '0 12px calc(10px + env(safe-area-inset-bottom, 0px))' },
+  a3Dock: { display: 'flex', alignItems: 'center', gap: 8, maxWidth: 680, margin: '0 auto', padding: 8, borderRadius: 22, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-lift)' },
+  a3DockBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
+  a3DockBtnOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
+  a3DockBtnOff: { opacity: 0.42, cursor: 'default' },
+  a3DockCount: { flex: 1, minWidth: 0, minHeight: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '4px 10px', borderRadius: 16, background: 'var(--a3-blue)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  a3DockCountDone: { background: 'var(--a3-cyan)', color: 'var(--a3-navy)', cursor: 'default' },
+  a3DockCountNums: { fontSize: 18, fontWeight: 800 },
+  a3DockCountLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 700 },
+  // THE DECK READER STAGE. The ghost is a DECORATIVE EMPTY EDGE -- a bordered strip with no
+  // children at all -- so the deck reads as a deck without any second dhikr being shown.
+  a3Stage: { position: 'relative', paddingTop: 10, marginBottom: 6 },
+  a3StageGhost: { position: 'absolute', top: 0, left: 14, right: 14, height: 60, borderRadius: 22, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
+  a3StageCard: { position: 'relative', zIndex: 1, padding: '16px 18px', borderRadius: 24, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-lift)' },
+  a3Pillar: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', minHeight: 56, marginTop: 14, padding: '8px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '2px solid var(--a3-blue)', color: 'var(--a3-blue)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  a3PillarDone: { background: 'var(--a3-soft)', border: '2px solid var(--a3-cyan)', cursor: 'default' },
+  a3PillarNums: { fontSize: 20, fontWeight: 800 },
+  a3PillarLabel: { fontSize: 12.5, fontWeight: 700 },
+  a3StageActs: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 },
+  a3Act: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 15px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  a3ActOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
+  a3Dots: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, margin: '4px 0 12px' },
+  a3Dot: { width: 6, height: 6, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-ice)' },
+  a3DotNow: { width: 20, borderRadius: 999, background: 'var(--a3-blue)' },
+  a3DotDone: { background: 'var(--a3-cyan)' },
+  a3Nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  a3NavBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13.5, fontWeight: 700, cursor: 'pointer' },
+  a3NavBtnOff: { opacity: 0.42, cursor: 'default' },
+  a3NavMeta: { fontSize: 12.5, fontWeight: 700, color: 'var(--a3-muted)' },
+  // THE SETTINGS CHOICE. Two selection cards, 44px floor, pure white when unselected; the
+  // selected one takes a thin royal-blue outline and a small cyan indicator dot. The previews
+  // are CSS boxes -- no image, no data URI, nothing fetched.
+  designRow: { display: 'flex', gap: 10 },
+  designOpt: { flex: 1, minWidth: 0, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '10px 8px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  designOptOn: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-shadow)' },
+  designPrev: { display: 'block', width: '100%' },
+  designOptLabel: { fontSize: 13.5, fontWeight: 700, color: 'var(--a3-ink)', textAlign: 'center' },
+  designDot: { width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'transparent', border: '1px solid var(--a3-line)' },
+  designDotOn: { background: 'var(--a3-cyan)', border: '1px solid var(--a3-cyan)' },
+  prevBox: { position: 'relative', display: 'block', width: '100%', height: 68, borderRadius: 12, background: 'var(--a3-page)', border: '1px solid var(--a3-line)', overflow: 'hidden' },
+  prevRing: { position: 'absolute', top: 8, left: '50%', marginLeft: -9, width: 18, height: 18, borderRadius: '50%', border: '3px solid var(--a3-blue)' },
+  prevLine: { position: 'absolute', top: 30, bottom: 6, left: '50%', marginLeft: -1, width: 2, background: 'var(--a3-ice)' },
+  prevNode: { position: 'absolute', zIndex: 1, width: 26, height: 10, borderRadius: 4, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)' },
+  prevCard: { position: 'absolute', height: 20, borderRadius: 8, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)' },
   primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #1D4ED8 0%, #12327A 100%)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(18, 50, 122, 0.3)' },
   secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6E6E6E', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
 
@@ -8522,8 +9372,9 @@ const s = {
 
   // ===== Live call screen (Layer 1 — UI only) =====
   // ===== شاشة المحفّظ =====
-  /* 14.1 */
-  homeIconSquareDeep: { width: 52, height: 52, borderRadius: 'var(--radius-btn)', background: 'var(--red-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  /* 14.1 -- Session 86: homeIconSquareDeep stood here and drew the old home screen's filled
+     mushaf square. It was read by the old Home body and by nothing else, so it went with the
+     other home* keys. No mushaf key was touched. */
   mushafBody: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '14px 14px 24px', boxSizing: 'border-box' },
   mushafHint: { textAlign: 'center', color: 'var(--muted)', fontSize: 13, padding: '28px 0' },
   mushafList: { display: 'flex', flexDirection: 'column', gap: 8 },
