@@ -6066,11 +6066,17 @@ const MUSHAF_SVG_ON = readMushafSvgFlag();
 // Session 79 -- THE WHOLE MUSHAF: the real printed Madina page, as a page image, on
 // every printed page 1 to 604.
 // ---------------------------------------------------------------------------
-// OFF BY DEFAULT, and the only thing that turns it on is a person typing ?madinaimg=1.
-// The test is FOR '1' rather than against '0', so an absent key, a value we do not
-// recognise and a storage that throws all land on the reader that ships today. That is
-// the mirror image of MUSHAF_SVG_ON above, and deliberately so: that flag defaults on
-// because it is published, this one defaults off because it is not published yet.
+// 81 -- ON BY DEFAULT. All 604 printed pages passed the asset guard and the owner's
+// visual acceptance on a real phone, so the printed Madina page is now the Quran reader
+// the app opens with, and the parameter is a rollback switch rather than an opt-in:
+//
+//   no madinaimg parameter -> ON      (unless this device stored an explicit refusal)
+//   ?madinaimg=1           -> ON
+//   ?madinaimg=0           -> OFF     (immediate rollback, and it sticks on this device)
+//
+// The test is now against '0' rather than for '1', so an absent key, a value we do not
+// recognise and a storage that throws all land on the printed page. This is the same
+// shape as MUSHAF_SVG_ON above, and now for the same reason: both are shipped.
 //
 // The 604 files are OURS, served from our own origin as ordinary static assets. No page
 // image is fetched from any other host at runtime, and there is no image CDN here.
@@ -6082,16 +6088,26 @@ const MUSHAF_SVG_ON = readMushafSvgFlag();
 // holds a page, an Image or a blob for any page but the one being read and its two
 // neighbours -- see prefetchMushafSvg below, which is the only prefetch in the reader
 // and stays two deep whichever renderer is running.
-const MADINA_IMG_KEY = 'madina_img_v1';   // device key. '1' = on, anything else = off
+const MADINA_IMG_KEY = 'madina_img_v1';   // device key. '0' = off, anything else = on
 const MADINA_IMG_PAGES = 604;             // printed pages 1..604, and no other page
 // Root-absolute, like the icons and the manifest: the app is served from '/' and nothing
 // rewrites it, so this path is the file itself and never a route.
+//
+// 81 -- the parameter ANSWERS, it does not merely write. An explicit '1' or '0' returns
+// straight from the URL and never consults storage at all, so a stale key, a value some
+// other build wrote, a quota-full setItem or a storage that throws cannot make ?madinaimg=0
+// keep the image reader on or ?madinaimg=1 keep it off. The write is still attempted, in
+// its own try/catch, so the answer survives the next visit without the parameter -- but
+// the write failing changes nothing about THIS visit.
 const readMadinaImgFlag = () => {
-  try {
-    const p = new URLSearchParams(window.location.search).get('madinaimg');
-    if (p === '1' || p === '0') localStorage.setItem(MADINA_IMG_KEY, p);
-  } catch (e) {}
-  try { return localStorage.getItem(MADINA_IMG_KEY) === '1'; } catch (e) { return false; }
+  let p = null;
+  try { p = new URLSearchParams(window.location.search).get('madinaimg'); } catch (e) { p = null; }
+  if (p === '1' || p === '0') {
+    try { localStorage.setItem(MADINA_IMG_KEY, p); } catch (e) {}
+    return p === '1';
+  }
+  // No parameter: the default is ON, and only a stored, well-formed refusal turns it off.
+  try { return localStorage.getItem(MADINA_IMG_KEY) !== '0'; } catch (e) { return true; }
 };
 const MADINA_IMG_ON = readMadinaImgFlag();
 const madinaImgUrl = (n) => {
@@ -6132,8 +6148,60 @@ const MADINA_DESK = '#FDFDFD';
 // The box itself is the full reading viewport and does not move: the header and the pager
 // are absolutely positioned overlays (see contSt/headSt/barSt), so toggling the chrome
 // changes no box this image is measured against.
+//
+// 81 -- and the stretch is now scoped to the screen it was accepted for. The bands the
+// owner rejected are a PORTRAIT PHONE problem: there the reading box is far taller in
+// proportion than the sheet, so contain wastes the top and bottom of a small screen. Turn
+// the same phone sideways, or open the app on a desktop, and the box is WIDER than the
+// sheet -- fill would then stretch the page horizontally, which nobody accepted and which
+// looks broken at size. So:
+//
+//   portrait phone      -> object-fit FILL     (the approved rendering, unchanged)
+//   landscape / desktop -> object-fit CONTAIN  (printed aspect ratio kept, centred)
+//
+// Neither value crops: contain letterboxes and fill scales, and both keep every pixel of
+// the Quran text and the floral frame. The box is the full reading viewport in both cases,
+// and the overlays do not enter it.
 const MADINA_SHEET_ST = { flex: 1, minHeight: 0, width: '100%', display: 'flex', background: MADINA_DESK };
 const MADINA_IMG_ST = { width: '100%', height: '100%', objectFit: 'fill', display: 'block', pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none' };
+// The same box, the same element, one property different. The element still fills the
+// reading viewport; contain then letterboxes the page inside it and object-position defaults
+// to 50% 50%, so the sheet sits dead centre and the paper tone fills what is left. margin
+// auto is written anyway so the centring survives a box that is ever allowed to shrink.
+const MADINA_IMG_ST_FIT = { ...MADINA_IMG_ST, objectFit: 'contain', margin: 'auto' };
+// A portrait phone, and nothing else: portrait alone would catch a tall desktop window, and
+// a width alone would catch a landscape phone. 700px is above every phone and small foldable
+// in portrait and below every tablet and desktop window.
+const MADINA_FILL_Q = '(orientation: portrait) and (max-width: 700px)';
+const madinaFillNow = () => {
+  try { return window.matchMedia(MADINA_FILL_Q).matches; } catch (e) { return true; }
+};
+// Rotation must not need a reload: matchMedia fires `change` when the device turns and when
+// a desktop window crosses the boundary, and never otherwise -- no resize listener, no
+// polling, no re-render on every pixel of a drag. The subscription is per-sheet and torn
+// down with it, and the initial read is taken synchronously so the first paint is already
+// correct on whichever orientation the reader opened in.
+// The hook itself is called unconditionally by every sheet so that hook order is the same
+// on all three renderers, but only the image path subscribes: with madinaimg=0 the SVG and
+// text readers must re-render on exactly the occasions they did before this change, and a
+// rotation was not one of them.
+function useMadinaFill() {
+  const [fill, setFill] = useState(madinaFillNow);
+  useEffect(() => {
+    if (!MADINA_IMG_ON) return;
+    let mq = null;
+    try { mq = window.matchMedia(MADINA_FILL_Q); } catch (e) { return; }
+    const on = () => setFill(mq.matches);
+    on();                                  // the orientation may have turned before this ran
+    if (mq.addEventListener) mq.addEventListener('change', on);
+    else if (mq.addListener) mq.addListener(on);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', on);
+      else if (mq.removeListener) mq.removeListener(on);
+    };
+  }, []);
+  return fill;
+}
 // The reading box, inset by the REAL safe area. The app-wide viewport meta is not
 // viewport-fit=cover and must not be touched from here, so today these insets resolve to
 // 0px and the layout viewport is already inside the notch and the home indicator. The
@@ -6209,6 +6277,9 @@ function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }
   //   printed page image  --onError-->  official SVG page  --onError-->  verified text
   // Both useState calls run before every branch, so hook order is identical on all three.
   const [imgBroke, setImgBroke] = useState(false);
+  // 81 -- unconditional, and before every branch, exactly like the two latches above: the
+  // hook order is identical on all three renderers whichever one this sheet takes.
+  const fill = useMadinaFill();
   const madina = madinaImgUrl(page.n);
   if (madina && !imgBroke)
     return (
@@ -6219,7 +6290,7 @@ function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }
           decoding="async"
           loading="lazy"
           draggable="false"
-          style={MADINA_IMG_ST}
+          style={fill ? MADINA_IMG_ST : MADINA_IMG_ST_FIT}
           onLoad={() => { if (onSheetLoad) onSheetLoad(page.n); }}
           onError={() => setImgBroke(true)}
         />
