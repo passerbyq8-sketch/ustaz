@@ -6062,6 +6062,55 @@ const readMushafSvgFlag = () => {
 };
 const MUSHAF_SVG_ON = readMushafSvgFlag();
 
+/* 14.7 */
+// Session 78 -- PROTOTYPE, AND IT IS TWO PAGES: the real printed Madina page, as a page
+// image, on printed pages 1 and 77 and on no others.
+// ---------------------------------------------------------------------------
+// OFF BY DEFAULT, and the only thing that turns it on is a person typing ?madinaimg=1.
+// The test is FOR '1' rather than against '0', so an absent key, a value we do not
+// recognise and a storage that throws all land on the reader that ships today. That is
+// the mirror image of MUSHAF_SVG_ON above, and deliberately so: that flag defaults on
+// because it is published, this one defaults off because it is a two-page experiment.
+//
+// The two files are OURS, served from our own origin as ordinary static assets. No page
+// image is fetched from any other host at runtime, and there is no image CDN here.
+// Provenance, licence status, hashes and crop geometry: data/madina-hafs-prototype.json
+// and MUSHAF-MADINA-ASSET-NOTICE.md, both pinned by madina-hafs-guard.cjs.
+//
+// A page that is not in this table is not touched by any of this: madinaImgUrl returns
+// null, MushafSheet takes the SVG branch on its first render, and no image element for
+// this path is ever created. There is no probe, no 404 and no flash.
+const MADINA_IMG_KEY = 'madina_img_v1';   // device key. '1' = on, anything else = off
+// Root-absolute, like the icons and the manifest: the app is served from '/' and nothing
+// rewrites it, so these two paths are the files themselves and never a route.
+const MADINA_IMG_PAGES = { 1: '/assets/madina-hafs/page-001.webp', 77: '/assets/madina-hafs/page-077.webp' };
+const readMadinaImgFlag = () => {
+  try {
+    const p = new URLSearchParams(window.location.search).get('madinaimg');
+    if (p === '1' || p === '0') localStorage.setItem(MADINA_IMG_KEY, p);
+  } catch (e) {}
+  try { return localStorage.getItem(MADINA_IMG_KEY) === '1'; } catch (e) { return false; }
+};
+const MADINA_IMG_ON = readMadinaImgFlag();
+const madinaImgUrl = (n) => {
+  if (!MADINA_IMG_ON) return null;
+  return Object.prototype.hasOwnProperty.call(MADINA_IMG_PAGES, n) ? MADINA_IMG_PAGES[n] : null;
+};
+// The surface the printed page is centred on. The scanned page's own margin is #FDFDFD,
+// so the band left by the aspect fit reads as more paper rather than as a mount, and the
+// sheet appears to run to the edges of the screen.
+const MADINA_DESK = '#FDFDFD';
+// The printed page is the whole reading surface: no card, no rule, no shadow, no maxWidth
+// cap, no aspect-ratio box. object-fit contain does the shaping, which is why nothing here
+// needs to know either page's proportions -- and why neither page can be stretched.
+const MADINA_SHEET_ST = { flex: 1, minHeight: 0, width: '100%', display: 'flex', background: MADINA_DESK };
+const MADINA_IMG_ST = { width: '100%', height: '100%', objectFit: 'contain', display: 'block', pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none' };
+// The reading box, inset by the REAL safe area. The app-wide viewport meta is not
+// viewport-fit=cover and must not be touched from here, so today these insets resolve to
+// 0px and the layout viewport is already inside the notch and the home indicator. The
+// declaration is written anyway so the page stays clear of them the day that meta changes.
+const MADINA_SAFE_PAD = 'env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px)';
+
 // Latency, not bytes: transfer is 0.01-0.05s and time-to-first-byte is ~0.30s, so the win
 // is a warm connection and a page already in cache. Two Image objects, next and previous,
 // nothing more -- no cache API, no service worker, no waterfall. Fired ONLY from the current
@@ -6119,6 +6168,26 @@ function SheetCorners() {
 
 function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }) {
   const [broke, setBroke] = useState(false);
+  // 78 -- the prototype's own latch, and it is a SECOND one on purpose. The fallback chain
+  // is three deep and each step owns its own failure:
+  //   printed page image  --onError-->  official SVG page  --onError-->  verified text
+  // Both useState calls run before every branch, so hook order is identical on all three.
+  const [imgBroke, setImgBroke] = useState(false);
+  const madina = madinaImgUrl(page.n);
+  if (madina && !imgBroke)
+    return (
+      <div style={MADINA_SHEET_ST}>
+        <img
+          src={madina}
+          alt=""
+          decoding="async"
+          draggable="false"
+          style={MADINA_IMG_ST}
+          onLoad={() => { if (onSheetLoad) onSheetLoad(page.n); }}
+          onError={() => setImgBroke(true)}
+        />
+      </div>
+    );
   if (!MUSHAF_SVG_ON || broke)
     return <MushafPage page={page} headerSurah={headerSurah} needHeader={needHeader} needBasmala={needBasmala} />;
   // No interaction of any kind: pointerEvents none lets the strip keep the drag (the touch
@@ -6365,8 +6434,11 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // which is the defect this replaces. The epoch bump from a screen rotation or a font load
   // never touches `page` at all, so it cannot reach this either.
   const chromeAuto = useRef(false);
+  // 78 -- the image prototype is a page reader too, so it collapses the bars after the
+  // first turn exactly as the SVG reader does. With the prototype off the condition is
+  // character for character what it was.
   const readerTurnedPage = () => {
-    if (!MUSHAF_SVG_ON || chromeAuto.current) return;
+    if ((!MUSHAF_SVG_ON && !MADINA_IMG_ON) || chromeAuto.current) return;
     chromeAuto.current = true;
     setChromeOn(false);
   };
@@ -6498,6 +6570,13 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     const el = slotRef.current;
     const fr = el && el.firstElementChild;
     if (!el || !fr) return null;
+    // 78 -- the image path pays no frame band, and its slot padding is the safe area rather
+    // than a constant this code could subtract. So the window is MEASURED off the sheet,
+    // which fills the slot's content box exactly. Same clamp, same units, read not assumed.
+    if (MADINA_IMG_ON) {
+      const w = fr.offsetWidth, h = fr.offsetHeight;
+      return { sw: w, sh: h, fw: w, fh: h };
+    }
     return {
       sw: el.clientWidth - 2 * MUSHAF_FRAME_BAND,
       sh: el.clientHeight - 2 * MUSHAF_FRAME_BAND,
@@ -6544,7 +6623,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     // again. This is still a still page -- it toggles our own two bars and touches nothing in
     // the sheet: no ayah tap, no highlight, no selection.
     if (T.lock === 'z') return;                  // 75/E -- that was a pan, not a tap or a flip
-    if (T.lock === null) { setDrag(0); if (MUSHAF_SVG_ON) onTap(T.x, T.y); return; }
+    if (T.lock === null) { setDrag(0); if (MUSHAF_SVG_ON || MADINA_IMG_ON) onTap(T.x, T.y); return; }   /* 78 -- the tap gestures belong to the image path too */
     if (T.lock !== 'x') { setDrag(0); return; }
     if (drag > 55) commit(1);
     else if (drag < -55) commit(-1);
@@ -6560,11 +6639,39 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // the viewport: 348px of drawn width at a 360 viewport becomes 360px. pgSlot is SHARED with
   // the fallback MushafPage, so the padding is dropped here at the use site and the style object
   // is left alone -- the reader that ships today keeps its inset exactly.
-  const slotSt = MUSHAF_SVG_ON ? { ...s.pgSlot, padding: MUSHAF_FRAME_BAND } : s.pgSlot;
+  // 78 -- and with the image prototype on, the slot gives up the frame band as well: the
+  // printed page IS the surface, so its only inset is the real safe area. s.pgSlot is
+  // shared with both other readers, so this too is decided here and the object is untouched.
+  const slotSt = MADINA_IMG_ON
+    ? { ...s.pgSlot, padding: MADINA_SAFE_PAD }
+    : MUSHAF_SVG_ON ? { ...s.pgSlot, padding: MUSHAF_FRAME_BAND } : s.pgSlot;
   // 75/D -- the warm surface the page sits on. pgViewport is SHARED with the fallback reader, so
   // the tone is applied here at the use site and the style object is left alone. Behind the page,
   // never over it: this is the background of the box the page is centred in.
-  const vpSt = MUSHAF_SVG_ON ? { ...s.pgViewport, background: MUSHAF_DESK, ...(zoom ? { touchAction: 'none' } : {}) } : s.pgViewport;
+  const vpSt = MADINA_IMG_ON
+    ? { ...s.pgViewport, background: MADINA_DESK, ...(zoom ? { touchAction: 'none' } : {}) }
+    : MUSHAF_SVG_ON ? { ...s.pgViewport, background: MUSHAF_DESK, ...(zoom ? { touchAction: 'none' } : {}) } : s.pgViewport;
+  // 78 -- THE FULL-SCREEN CONTRACT, and all of it is these three objects.
+  // pgViewport is `flex:1` inside a `100dvh` column, so the reading box is whatever the two
+  // bars leave behind. Lift both bars out of the column -- absolute, pinned to the two edges
+  // -- and they leave behind ALL of it: the page owns the whole 100dvh and nothing else has
+  // any layout height. That is also why toggling the chrome cannot resize or move the page:
+  // an overlay appearing and disappearing changes no box the page is measured against.
+  // The bars carry the safe-area insets in their own padding so their buttons stay clear of
+  // the notch and the home indicator without pushing the page down.
+  const contSt = MADINA_IMG_ON ? { ...s.memContainer, position: 'relative' } : s.memContainer;
+  const headSt = MADINA_IMG_ON
+    ? { ...s.memHeader, position: 'absolute', top: 0, left: 0, right: 0, zIndex: 4,
+        paddingTop: 'calc(14px + env(safe-area-inset-top, 0px))',
+        paddingLeft: 'calc(18px + env(safe-area-inset-left, 0px))',
+        paddingRight: 'calc(18px + env(safe-area-inset-right, 0px))' }
+    : s.memHeader;
+  const barSt = MADINA_IMG_ON
+    ? { ...s.pgBar, position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4,
+        paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
+        paddingLeft: 'calc(14px + env(safe-area-inset-left, 0px))',
+        paddingRight: 'calc(14px + env(safe-area-inset-right, 0px))' }
+    : s.pgBar;
   // 75/E -- the whole of the zoom, and it lives on one element inside the page container. scale
   // is rightmost so it applies FIRST, which leaves the pan in unscaled pixels and keeps the
   // clamp arithmetic in a single unit. At fit this is null, so the style carries no transform
@@ -6582,9 +6689,9 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const nb = idx.current.needBasmala;
 
   return (
-    <div style={s.memContainer}>
+    <div style={contSt}>
       {chromeOn && (
-      <div style={s.memHeader}>
+      <div style={headSt}>
         <div style={s.memTitle}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button onClick={putMark} title={marked ? 'علامتك هنا' : 'ضع العلامة'} aria-label={marked ? 'علامتك هنا' : 'ضع العلامة'} style={{ ...s.memBackBtn, padding: '0 10px', display: 'inline-flex', alignItems: 'center', ...(marked ? { background: 'var(--white)', color: 'var(--red-deep)' } : {}) }}>
@@ -6605,7 +6712,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
         </div>
       </div>
       {chromeOn && (
-      <div style={s.pgBar}>
+      <div style={barSt}>
         <button onClick={() => commit(-1)} disabled={page <= 1} style={{ ...s.pgNavBtn, ...(page <= 1 ? s.pgNavOff : {}) }}>›</button>
         <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" style={{ ...s.pgMeta, ...s.pgJumpBtn }}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
         <button onClick={() => commit(1)} disabled={page >= 604} style={{ ...s.pgNavBtn, ...(page >= 604 ? s.pgNavOff : {}) }}>‹</button>
