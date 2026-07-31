@@ -26,7 +26,7 @@ const tools = [
   {
     name: 'search_islamic_sources',
     description:
-      'ابحث في المواقع الشرعية المعتمدة عن الأدلّة والفتاوى والتخريج لإجابة سؤالٍ فقهيٍّ أو حديثيٍّ أو تفسيريٍّ يحتاج نسبةً إلى مصدر. استدعِ هذه الأداة فقط حين يحتاج السؤالُ دليلًا منسوبًا؛ لا تستدعِها للتحيّة أو الأسئلة البسيطة أو أسئلة الأطفال العامّة.',
+      'ابحث في المواقع الشرعية المعتمدة عن الأدلّة والفتاوى والتخريج لإجابة سؤالٍ فقهيٍّ أو حديثيٍّ أو تفسيريٍّ يحتاج نسبةً إلى مصدر. استدعِ هذه الأداة فقط حين يحتاج السؤالُ دليلًا منسوبًا؛ لا تستدعِها للتحيّة أو الأسئلة البسيطة أو أسئلة الأطفال العامّة.\n\nعددُ الاستدعاءات يتبع بِنيةَ السؤال لا طولَه: السؤالُ البسيط الذي يكفيه حكمٌ واحدٌ أو مرجعٌ واحد يُستدعى له مرّةً واحدةً فقط. وإذا كان السؤال مركّبًا حقًّا — أي ينحلّ إلى مسألتين أو ثلاثِ مسائلَ متمايزةٍ لكلٍّ منها حكمُها أو مرجعُها المستقلّ (مثل: حكمُ الفعل، وتخريجُ الحديث المستدَلِّ به، وما يترتّب عليه) — فاستدعِ الأداةَ مرّةً لكلِّ مسألةٍ منها، بحدٍّ أقصى ثلاثُ استدعاءات، ولكلِّ استدعاءٍ استعلامٌ مستقلٌّ يخصُّ زاويتَه وحدَها. لا تُكرِّر الاستعلامَ نفسَه بصياغتين، ولا تُقسِّم مسألةً واحدةً إلى استدعاءين.',
     input_schema: {
       type: 'object',
       properties: {
@@ -111,12 +111,18 @@ function sendSynthesizedText(res, text) {
 // survived the hard band allow-list check on its FINAL post-redirect host
 // (lib/retrieve.js:298-304). That array is the ONLY thing allowed to become a card.
 //
-// A religious reply now ends with EXACTLY ONE card, and it is always the verified one:
+// A religious reply now ends with ONE TO THREE cards, and every one of them is verified:
 //   * every <source> the model typed in round 2 is stripped from the stream, no matter
 //     which host it names -- an allow-listed domain in model prose is still an unchecked
-//     URL, and the old URL-equality dedup let a different path on the same host through
-//     as a second card (and, when the paths matched, let the MODEL's card be the survivor);
-//   * the canonical card is then appended once, last;
+//     URL, so model prose can never contribute a card even when the URL it names is one
+//     we did in fact retrieve;
+//   * the verified cards are then appended once, last, in answer order;
+//   * HOW MANY is decided by the question, not by a quota: one card per retrieval angle
+//     that actually came back with a usable page, capped at MAX_SOURCES. A single-part
+//     question searches once and ends with exactly one card, as it always has. Duplicates
+//     are folded by canonicalKey() so www./trailing-slash/%xx variants of one page cannot
+//     occupy two slots -- but two DIFFERENT pages on the same host are kept, because they
+//     can support two different parts of the answer;
 //   * and if retrieval produced no usable structured source, round 2 never runs at all —
 //     the route answers with a plain "I could not verify a source" line instead of an
 //     unsourced ruling. Fail closed, no extra model or retrieval call.
@@ -143,7 +149,7 @@ const NO_VERIFIED_SOURCE_MESSAGE =
 //   index.html:1320-1321  site=["']([^"']+)["'] and url=["']([^"']+)["']  -> values hold no quote
 // Anything that will not fit that grammar is REJECTED rather than escaped into something
 // the parser would silently truncate.
-function buildSourceTag(src) {
+export function buildSourceTag(src) {
   if (!src || typeof src.url !== 'string') return null;
   const raw = src.url.trim();
   if (!raw) return null;
@@ -174,16 +180,54 @@ function buildSourceTag(src) {
   return { url, host, tag: `<source site="${host}" url="${url}">${title || host}</source>` };
 }
 
-// SELECTION RULE: the first structurally valid source in retrieval order. retrieve()
-// keeps at most ONE clean source per query (lib/retrieve.js:319-321) and Promise.all
-// preserves tool order, so this is the first angle's source, deterministically.
-// Invalid entries are skipped, not fatal; if none can be encoded, we emit nothing.
-function pickCanonicalSource(sources) {
-  for (const s of sources || []) {
-    const built = buildSourceTag(s);
-    if (built) return built;
+// Hard ceiling on cards in one reply. Three is the number of distinct rulings/references
+// a compound question is allowed to rest on; past that a reply stops citing and starts
+// listing. Also the cap on retrieval angles below, so the two can never disagree.
+const MAX_SOURCES = 3;
+
+// Dedup key for "is this the SAME page?". Folds exactly the differences that are not
+// differences: scheme+userinfo/port noise, a leading www., a trailing slash, a #fragment,
+// and lower-vs-upper percent escapes (Arabic slugs arrive both ways from different
+// referrers). Query string is KEPT — on these sites it selects content, so dropping it
+// would collapse two genuinely different pages into one.
+// NOT folded: the path itself. Two different pages on one host are two sources, because
+// they can support two different parts of the answer.
+export function canonicalKey(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase().replace(/^www\./, '');
+    const path = u.pathname.replace(/%[0-9a-fA-F]{2}/g, (m) => m.toUpperCase()).replace(/\/+$/, '');
+    return host + (path || '/') + u.search;
+  } catch {
+    return '';
   }
-  return null;
+}
+
+// SELECTION RULE: walk the structured sources in retrieval order and keep the first
+// MAX_SOURCES distinct, structurally valid pages.
+//
+// Retrieval order IS answer order: retrieve() keeps at most ONE clean source per query
+// (lib/retrieve.js), Promise.all preserves tool order, and the caller stores each angle's
+// result at its own index. So source N is the source for question-part N, and the cards
+// come out in the order the parts were asked. That is also why the count is not padded:
+// one successful angle yields one card, two yield two, three yield three. A simple
+// question searches once and gets exactly one card, at exactly today's cost.
+//
+// Invalid entries are skipped, not fatal; if none can be encoded, we emit nothing and the
+// caller refuses to answer.
+export function pickVerifiedSources(sources, limit = MAX_SOURCES) {
+  const out = [];
+  const seen = new Set();
+  for (const s of sources || []) {
+    if (out.length >= limit) break;
+    const built = buildSourceTag(s);
+    if (!built) continue;
+    const key = canonicalKey(built.url);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(built);
+  }
+  return out;
 }
 
 // Read ONE complete SSE frame exactly the way the live client reads it
@@ -455,8 +499,13 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // (b) tool_use — run retrieval for the first 2 tool_use blocks CONCURRENTLY, then round 2.
-    const toolUses = (round1.content || []).filter((b) => b.type === 'tool_use').slice(0, 2);
+    // (b) tool_use — run retrieval for the first MAX_SOURCES tool_use blocks CONCURRENTLY,
+    // then round 2. The model emits one block per distinct part of the question (see the
+    // tool description), so the angle count is the question's own structure, not a knob:
+    // a simple question still produces one block and costs one search, exactly as before.
+    // The slice is the hard ceiling on that, and it is the SAME constant that caps cards.
+    const toolUses = (round1.content || []).filter((b) => b.type === 'tool_use').slice(0, MAX_SOURCES);
+    console.log('[angles]', { requested: (round1.content || []).filter((b) => b.type === 'tool_use').length, used: toolUses.length });
 
     // Lazy import — only reached in the tool_use branch, so a greeting never loads
     // retrieve/linkedom. Imported ONCE here, shared by the concurrent branches below.
@@ -525,8 +574,8 @@ export default async function handler(req, res) {
     // two and can never come back as a confident answer with nothing behind it. This is
     // the whole guarantee: on the DEEN route the reader either gets a verified card or
     // gets told plainly that we could not verify one.
-    const canonical = pickCanonicalSource(retrievedSources.filter(Boolean).flat());
-    if (!canonical) {
+    const canonicalSources = pickVerifiedSources(retrievedSources.filter(Boolean).flat());
+    if (canonicalSources.length === 0) {
       console.warn('[source] no verified structured source — refusing to answer unsourced');
       clearKeepAlive();
       res.write(`data: ${JSON.stringify({
@@ -575,8 +624,8 @@ export default async function handler(req, res) {
     // and the answer is never buffered.
     //
     // On the upstream message_stop we flush the filter and emit ONE text_delta carrying
-    // the canonical card, then relay the stop frame. So the verified card is always the
-    // last thing in the reply, exactly once, and it is the only card that can appear.
+    // every verified card, then relay the stop frame. So the cards are always the last
+    // thing in the reply, emitted exactly once, and they are the only cards that can appear.
     clearKeepAlive();
     const filter = createSourceFilter();
     const reader = r2.body.getReader();
@@ -592,11 +641,18 @@ export default async function handler(req, res) {
         type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t },
       })}\n\n`);
     };
-    const emitCanonicalSource = () => {
+    // All cards, in answer order, as ONE trailing text delta. Nothing is written after
+    // this, so the cards are always the tail of the reply. The client's tag scanner is a
+    // global regex (index.html:1264-1267), so adjacent tags each become their own chip;
+    // the '\n' between them is trimmed to empty and never becomes a text segment.
+    const emitCanonicalSources = () => {
       if (emitted) return;
       emitted = true;
-      console.log('[source] appending verified card', { host: canonical.host });
-      writeText(canonical.tag);
+      console.log('[source] appending verified cards', {
+        count: canonicalSources.length,
+        hosts: canonicalSources.map((c) => c.host),
+      });
+      writeText(canonicalSources.map((c) => c.tag).join('\n'));
     };
 
     try {
@@ -617,7 +673,7 @@ export default async function handler(req, res) {
           } else {
             if (evt && evt.type === 'message_stop') {
               writeText(filter.end());
-              emitCanonicalSource();
+              emitCanonicalSources();
             }
             res.write(whole);                          // every other frame relayed verbatim
           }
