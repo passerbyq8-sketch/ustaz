@@ -557,15 +557,6 @@ export default async function handler(req, res) {
           // as a topical hadith query with no sign that a book's wording was ever wanted.
           const out = await retrieve(q, { band, depth: effectiveDepth, userText: lastUserText });
           webText = out.text;
-          // TEMP DIAGNOSTIC (remove me): emit the Shamela targeting outcome as an SSE
-          // COMMENT frame. It carries no `data:` line, so the client parser drops it
-          // (index.html handleEvent) and nothing is ever rendered. Counts, a routing
-          // label, URL paths and gate verdicts only -- no key, no question, no content.
-          if (out.diag) {
-            try {
-              res.write(`: shamela-diag ${angle} ${JSON.stringify(out.diag).slice(0, 600)}\n\n`);
-            } catch {}
-          }
           // PRESERVE (was: dropped). Allow-list trust is already established upstream.
           if (Array.isArray(out.sources) && out.sources.length) {
             retrievedSources[angle] = out.sources;
