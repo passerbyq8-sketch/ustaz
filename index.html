@@ -6063,27 +6063,29 @@ const readMushafSvgFlag = () => {
 const MUSHAF_SVG_ON = readMushafSvgFlag();
 
 /* 14.7 */
-// Session 78 -- PROTOTYPE, AND IT IS TWO PAGES: the real printed Madina page, as a page
-// image, on printed pages 1 and 77 and on no others.
+// Session 79 -- THE WHOLE MUSHAF: the real printed Madina page, as a page image, on
+// every printed page 1 to 604.
 // ---------------------------------------------------------------------------
 // OFF BY DEFAULT, and the only thing that turns it on is a person typing ?madinaimg=1.
 // The test is FOR '1' rather than against '0', so an absent key, a value we do not
 // recognise and a storage that throws all land on the reader that ships today. That is
 // the mirror image of MUSHAF_SVG_ON above, and deliberately so: that flag defaults on
-// because it is published, this one defaults off because it is a two-page experiment.
+// because it is published, this one defaults off because it is not published yet.
 //
-// The two files are OURS, served from our own origin as ordinary static assets. No page
+// The 604 files are OURS, served from our own origin as ordinary static assets. No page
 // image is fetched from any other host at runtime, and there is no image CDN here.
-// Provenance, licence status, hashes and crop geometry: data/madina-hafs-prototype.json
+// Provenance, licence status, hashes and crop geometry: data/madina-hafs-pages.json
 // and MUSHAF-MADINA-ASSET-NOTICE.md, both pinned by madina-hafs-guard.cjs.
 //
-// A page that is not in this table is not touched by any of this: madinaImgUrl returns
-// null, MushafSheet takes the SVG branch on its first render, and no image element for
-// this path is ever created. There is no probe, no 404 and no flash.
+// The URL is COMPUTED, never listed. 604 asset paths as a table would be 604 strings in
+// the bundle and a map to walk; as one line of arithmetic it is neither. Nothing here
+// holds a page, an Image or a blob for any page but the one being read and its two
+// neighbours -- see prefetchMushafSvg below, which is the only prefetch in the reader
+// and stays two deep whichever renderer is running.
 const MADINA_IMG_KEY = 'madina_img_v1';   // device key. '1' = on, anything else = off
+const MADINA_IMG_PAGES = 604;             // printed pages 1..604, and no other page
 // Root-absolute, like the icons and the manifest: the app is served from '/' and nothing
-// rewrites it, so these two paths are the files themselves and never a route.
-const MADINA_IMG_PAGES = { 1: '/assets/madina-hafs/page-001.webp', 77: '/assets/madina-hafs/page-077.webp' };
+// rewrites it, so this path is the file itself and never a route.
 const readMadinaImgFlag = () => {
   try {
     const p = new URLSearchParams(window.location.search).get('madinaimg');
@@ -6094,17 +6096,44 @@ const readMadinaImgFlag = () => {
 const MADINA_IMG_ON = readMadinaImgFlag();
 const madinaImgUrl = (n) => {
   if (!MADINA_IMG_ON) return null;
-  return Object.prototype.hasOwnProperty.call(MADINA_IMG_PAGES, n) ? MADINA_IMG_PAGES[n] : null;
+  // A page outside 1..604 is not touched by any of this: this returns null, MushafSheet
+  // takes the SVG branch on its first render, and no image element for this path is ever
+  // created. There is no probe, no 404 and no flash.
+  if (!(n >= 1 && n <= MADINA_IMG_PAGES)) return null;
+  return '/assets/madina-hafs/page-' + String(n).padStart(3, '0') + '.webp';
 };
-// The surface the printed page is centred on. The scanned page's own margin is #FDFDFD,
-// so the band left by the aspect fit reads as more paper rather than as a mount, and the
-// sheet appears to run to the edges of the screen.
+// The surface behind the printed page. The scanned page's own margin is #FDFDFD, so on any
+// device where the page does not paint to the very last subpixel the seam reads as more
+// paper rather than as a mount. In the full-height mode below there is no band left to fill,
+// so this is now a backstop rather than a mount.
 const MADINA_DESK = '#FDFDFD';
 // The printed page is the whole reading surface: no card, no rule, no shadow, no maxWidth
-// cap, no aspect-ratio box. object-fit contain does the shaping, which is why nothing here
-// needs to know either page's proportions -- and why neither page can be stretched.
+// cap, no aspect-ratio box.
+//
+// 80 -- FULL-HEIGHT MODE, and it is a deliberate, owner-approved departure.
+// object-fit contain filled the phone's width and then left large white bands above and
+// below the page, because the printed sheet is taller in proportion than the reading box.
+// The owner tested it on a real device and rejected the bands. The two ways to remove them
+// are to crop the sheet or to stretch it, and cropping is not available here: it would eat
+// the floral frame or the Quran text itself. So the page is stretched to the box.
+//
+//   width 100% + height 100% + object-fit FILL
+//
+// The source aspect ratio is NOT preserved on this path, on purpose. The vertical
+// lengthening this produces is the accepted cost -- it is uniform across the sheet, it
+// distorts no glyph relative to its neighbours, and the alternative was losing print.
+// Nothing is cropped in CSS: `fill` scales both axes to the box and discards no pixel.
+//
+// This is also why the asset build makes every printed page's crop rectangle the same
+// shape: the floral frame occupies the same percentage of every output image, so stretching
+// each of them into the same box lands the frame at the same size on every page. A page is
+// never smaller merely because the source sheet carried a side ornament.
+//
+// The box itself is the full reading viewport and does not move: the header and the pager
+// are absolutely positioned overlays (see contSt/headSt/barSt), so toggling the chrome
+// changes no box this image is measured against.
 const MADINA_SHEET_ST = { flex: 1, minHeight: 0, width: '100%', display: 'flex', background: MADINA_DESK };
-const MADINA_IMG_ST = { width: '100%', height: '100%', objectFit: 'contain', display: 'block', pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none' };
+const MADINA_IMG_ST = { width: '100%', height: '100%', objectFit: 'fill', display: 'block', pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none' };
 // The reading box, inset by the REAL safe area. The app-wide viewport meta is not
 // viewport-fit=cover and must not be touched from here, so today these insets resolve to
 // 0px and the layout viewport is already inside the notch and the home indicator. The
@@ -6116,17 +6145,24 @@ const MADINA_SAFE_PAD = 'env(safe-area-inset-top, 0px) env(safe-area-inset-right
 // nothing more -- no cache API, no service worker, no waterfall. Fired ONLY from the current
 // sheet's onLoad, and the `warm` latch means a page's neighbours are prefetched once, not on
 // every drag, resize or re-render.
+// 79 -- the same two-deep prefetch, now pointed at whichever renderer is actually on
+// screen: the printed image when madinaimg is on, the official SVG otherwise. Still two
+// Image objects, next and previous, and still nothing else -- no cache API, no service
+// worker, no waterfall, and never a third page. Neither branch holds a reference once
+// the request is in flight, so nothing accumulates across a reading session.
 let __mushafSvgWarm = 0;
 const prefetchMushafSvg = (n) => {
-  if (!MUSHAF_SVG_ON || n === __mushafSvgWarm) return;
+  if ((!MUSHAF_SVG_ON && !MADINA_IMG_ON) || n === __mushafSvgWarm) return;
   __mushafSvgWarm = n;
   try {
     for (const d of [1, -1]) {
       const t = n + d;
       if (t < 1 || t > 604) continue;
+      const url = madinaImgUrl(t) || (MUSHAF_SVG_ON ? mushafSvgUrl(t) : null);
+      if (!url) continue;
       const im = new Image();
       im.decoding = 'async';
-      im.src = mushafSvgUrl(t);
+      im.src = url;
     }
   } catch (e) {}
 };
@@ -6181,6 +6217,7 @@ function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }
           src={madina}
           alt=""
           decoding="async"
+          loading="lazy"
           draggable="false"
           style={MADINA_IMG_ST}
           onLoad={() => { if (onSheetLoad) onSheetLoad(page.n); }}
