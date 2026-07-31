@@ -3913,8 +3913,11 @@ function ezikBackTarget(cur, sheetOrigin) {
   // preserves that behaviour and invents no loop.
   if (cur === 'home') return 'chat';
   // A sheet returns to the screen that opened it, and to home when nothing valid was recorded.
+  // S90: الإعدادات is itself an opener now -- the التحكم row opens the PIN gate from inside it --
+  // so it joins the openers a sheet may be sent back to. A sheet is never sent back to itself.
   if (EZIK_SHEET_SCREENS.indexOf(cur) !== -1) {
-    return (sheetOrigin === 'chat' || sheetOrigin === 'home') ? sheetOrigin : 'home';
+    const known = (sheetOrigin === 'chat' || sheetOrigin === 'home' || sheetOrigin === 'settings');
+    return (known && sheetOrigin !== cur) ? sheetOrigin : 'home';
   }
   // Every feature section: home, never the chat.
   return 'home';
@@ -4203,7 +4206,14 @@ function App() {
   const histReplaceRef = useRef(false);  // this transition is a BACK: relabel the entry, never deepen the stack
   const screenRef = useRef(screen);               // مرآة متزامنة للشاشة الحالية (onPop مسجّل بـ[] فيغلق على قيمة بائتة)
   const selectedSurahRef = useRef(selectedSurah); // مرآة متزامنة لسورة المصحف المفتوحة، للسبب ذاته
-  const sheetOriginRef = useRef(null);            // which screen opened the settings/profile sheet
+  // S90: a STACK of openers, not one slot. A sheet may now open another sheet -- الإعدادات opens
+  // التحكم -- and a single slot was overwritten by the inner one, so the outer sheet forgot who
+  // opened it and fell back to home. Each open pushes its own opener; each back pops that one.
+  const sheetOriginRef = useRef([]);              // which screen opened each open settings/parental sheet
+  // S90: how many history entries THIS APP has pushed and not yet spent. It is the only thing
+  // that authorises the synthetic back below, so the app can never pop past its own first entry
+  // and the platform's exit at the root is exactly where it always was.
+  const histDepthRef = useRef(0);
   useEffect(() => { screenRef.current = screen; }, [screen]);
   useEffect(() => { selectedSurahRef.current = selectedSurah; }, [selectedSurah]);
 
@@ -4230,25 +4240,54 @@ function App() {
     if (!rooted && closeEzikNested()) {
       // A pop spent this section's single entry on closing a layer, so put one back -- the
       // section keeps exactly one entry, and the NEXT press is the one that leaves it.
-      if (viaPop) { try { window.history.pushState({ screen: cur }, ''); } catch (e) {} }
+      if (viaPop) { try { window.history.pushState({ screen: cur }, ''); histDepthRef.current++; } catch (e) {} }
       return true;
     }
     // 2. The screen itself leaves, to its own parent from the table -- never to the chat by default.
-    const dest = ezikBackTarget(cur, sheetOriginRef.current);
-    sheetOriginRef.current = null;
+    const dest = ezikBackDestination(cur);
     if (!dest || dest === cur) return false;
+    if (EZIK_SHEET_SCREENS.indexOf(cur) !== -1) sheetOriginRef.current.pop();   // spend this sheet's opener, not another's
     if (viaPop) backNavRef.current = true;   // the entry is gone: do not push a replacement
     else histReplaceRef.current = true;      // a visible press moves within the entry it stands on
     setScreen(dest);
     return true;
   };
-  const goEzikBack = () => resolveEzikBack(false);
+  // The destination this screen's back resolves to, read without spending anything -- both the
+  // resolver above and the visible-press path below ask it, so they cannot disagree.
+  const ezikBackDestination = (cur) => {
+    const origins = sheetOriginRef.current;
+    const isSheet = EZIK_SHEET_SCREENS.indexOf(cur) !== -1;
+    return ezikBackTarget(cur, isSheet ? origins[origins.length - 1] : null);
+  };
+  // ===== goEzikBack -- WHAT EVERY VISIBLE BACK CONTROL PRESSES =====
+  // S90: it produces the SAME one-step result as the hardware button because, for a screen-level
+  // back, it now asks the browser to go back and lets the popstate listener resolve it through
+  // the table above. That is what keeps the depth honest: the app pops exactly one entry per
+  // layer it leaves, where before a visible press RELABELLED its entry and left it on the stack,
+  // so entries only ever accumulated and the hardware button then answered a run of dead presses
+  // at the root before the app would close. A nested layer pushed no entry, so it still closes
+  // here directly and touches no history. With nothing of ours left on the stack the direct
+  // resolution is kept, so a back can never reach past the app's first entry.
+  const goEzikBack = () => {
+    const cur = screenRef.current;
+    if (EZIK_ROOT_SCREENS.indexOf(cur) === -1 && closeEzikNested()) return true;
+    const dest = ezikBackDestination(cur);
+    if (!dest || dest === cur) return false;
+    if (histDepthRef.current > 0) { try { window.history.back(); return true; } catch (e) {} }
+    return resolveEzikBack(false);
+  };
   // Sheets remember their opener so their back returns THERE: home when home opened them, the
-  // chat when the chat's own drawer did. Recorded on the way in, spent once on the way out.
-  const openEzikSheet = (target) => { sheetOriginRef.current = screen; setScreen(target); };
+  // chat when the chat's own drawer did, الإعدادات when its own التحكم row did. Recorded on the
+  // way in, spent once on the way out.
+  const openEzikSheet = (target) => { sheetOriginRef.current.push(screenRef.current); setScreen(target); };
+  // S90: the PIN gate and the parental screen behind it are ONE layer, not two -- passing the
+  // gate spends it and there is no back TO it. Relabelling the gate's entry instead of pushing a
+  // second one keeps one entry per layer, so the parental screen's back lands on الإعدادات and
+  // leaves no spent entry behind to swallow a later press.
+  const replaceEzikScreen = (target) => { histReplaceRef.current = true; setScreen(target); };
 
   useEffect(() => {
-    const onPop = () => { resolveEzikBack(true); };
+    const onPop = () => { if (histDepthRef.current > 0) histDepthRef.current--; resolveEzikBack(true); };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
@@ -4264,7 +4303,7 @@ function App() {
       if (!rooted) { try { window.history.replaceState({ screen }, ''); } catch (e) {} }
       return;
     }
-    if (!rooted) window.history.pushState({ screen }, '');
+    if (!rooted) { window.history.pushState({ screen }, ''); histDepthRef.current++; }
   }, [screen]);
 
   // Stop audio when leaving a screen. App never unmounts on a screen switch, so playing
@@ -5682,24 +5721,31 @@ function App() {
   // S87: the home's chat entry is the FAB in its own bottom bar and nothing else -- the chat is
   // opened by an explicit chat action, and no back path resolves to it. The profile entry records
   // home as its opener through openEzikSheet, so the gate's back comes back HERE.
-  if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => openEzikSheet('parentGate')} />;
+  if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => openEzikSheet('settings')} />;
   // S87: the three sheets resolve their back through goEzikBack, which returns them to the screen
   // recorded when they were opened (home or the chat drawer) and to home when nothing valid was.
   // The gate still clears its own PIN field first -- that is its state, not navigation.
-  if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); setScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); goEzikBack(); }} />;
+  if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); replaceEzikScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); goEzikBack(); }} />;
   if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={goEzikBack} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
-  // D88: the settings sheet. Reached from the drawer's gear only; the drawer's PROFILE entry
-  // keeps the ParentGate wiring it had, because no profile screen exists to send it to.
-  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} />;
+  // D88/S90: the settings sheet, and it is now the ONE door to the account area -- the home
+  // screen's الإعدادات item, the drawer's gear and the drawer's profile entry all open THIS,
+  // immediately and with no PIN. The parental screen it used to stand in front of has not moved
+  // an inch or lost its lock: it is reached from the التحكم row inside, which is the only thing
+  // in the app that still opens the gate.
+  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} onOpenControl={() => openEzikSheet('parentGate')} />;
   // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
-  if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice onBack={() => setScreen('chat')} />;
+  // S90: the three call-screen exits resolve through goEzikBack like every other back control.
+  // The DESTINATION is unchanged -- the table sends 'call' to the chat, which is its documented
+  // contract and genuinely the entry underneath it -- but the history entry the call pushed is
+  // now spent on the way out instead of being left behind to absorb a later press.
+  if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice onBack={goEzikBack} />;
   // CALL UNLOCK (directive 82). Sits at the SCREEN transition, immediately AFTER the child
   // barrier above, so a child profile always gets the notice and is never shown a PIN sheet.
   // This decides only what is DISPLAYED; the mic itself is held shut by the guards inside
   // startCallListening and the call useEffect, because that effect runs on [screen] whatever
   // this chain renders -- a screen that mounts unlocked would otherwise be a mic that opens.
-  if (screen === 'call' && !hasFounderToken()) return <UnlockSheet onUnlocked={() => setFounderUnlocked(true)} onBack={() => setScreen('chat')} />;
-  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={() => setScreen('chat')} />;
+  if (screen === 'call' && !hasFounderToken()) return <UnlockSheet onUnlocked={() => setFounderUnlocked(true)} onBack={goEzikBack} />;
+  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={goEzikBack} />;
   // المحفّظ — full screen (mirrors CallScreen). Quran playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
   // S87 -- THE THREE FEATURE SECTIONS. Each hands goEzikBack to its OWN section-level back
@@ -5981,7 +6027,7 @@ function App() {
               </button>
             </div>
             <div style={s.drawerPinned}>
-              <button onClick={() => { setDrawerOpen(false); openEzikSheet('parentGate'); }} style={s.drawerProfile}>
+              <button onClick={() => { setDrawerOpen(false); openEzikSheet('settings'); }} style={s.drawerProfile}>
                 <span style={s.drawerAvatar}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
                 </span>
@@ -6927,7 +6973,13 @@ function SpendGate({ onUnlock, onExit }) {
 // D88 -- the settings sheet. It carries .theme-dark itself so it is themed by the same scoped
 // palette the chat uses; reached from the drawer's gear. The choice is written through
 // applyTheme, the one code path that also runs at boot, and persisted immediately.
-function SettingsSheet({ theme, onTheme, onBack }) {
+function SettingsSheet({ theme, onTheme, onBack, onOpenControl }) {
+  // S90 -- التحكم. The single row that leads to the parental area, and the ONLY thing left in
+  // the app that opens the PIN gate. Everything above it -- the theme/dark choice and the
+  // interface style -- is reached without a PIN, which is the whole point of this screen: a
+  // parent's lock is not a lock on the appearance of the app. The label is built from escapes in
+  // a JS expression, never a quoted JSX attribute, so the file stays ASCII-safe either side.
+  const A_CONTROL = '\u0627\u0644\u062A\u062D\u0643\u0645';   // U+0627 U+0644 U+062A U+062D U+0643 U+0645
   // D89: this entry is rendered ONLY while a valid founder token is held. hasFounderToken() is
   // read here, at render, and never from a cached flag -- the rule every other gate in this file
   // follows. It is a VISIBILITY rule, not the lock: api/unlock.js refuses a set-pin call that
@@ -7033,6 +7085,14 @@ function SettingsSheet({ theme, onTheme, onBack }) {
           </div>
           <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
         </div>
+        {/* S90 -- التحكم. One row, and the PIN is asked only AFTER it is pressed. It carries no
+            new colour, radius or spacing of its own: the surface, the border and the padding are
+            the settings card's, read from the same variables, so the light and dark themes draw
+            it exactly as they draw everything above it. */}
+        <button type="button" onClick={onOpenControl} style={s.settingsNavBtn} aria-label={A_CONTROL}>
+          <span>{A_CONTROL}</span>
+          <span style={s.settingsNavChev} aria-hidden="true">{'\u2039'}</span>
+        </button>
         {/* D89 -- change the unlock PIN. Rendered ONLY with a founder token in hand. Two fields,
             new and confirm; both are type=password so nothing is ever shown on screen, and no
             stored PIN is read, displayed or defaulted into either box -- the client has no way
@@ -9416,6 +9476,11 @@ const s = {
   settingsCard: { background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-card)', padding: '14px 16px' },
   settingsLabel: { fontSize: 13, fontWeight: 700, color: 'var(--muted)', marginBottom: 10 },
   settingsHint: { fontSize: 12, color: 'var(--muted)', marginTop: 10 },
+  // S90 -- the التحكم row. Every value here is one the settings card above already uses: the same
+  // surface variable, the same border variable, the same radius token and the same padding. No
+  // colour, token or spacing is introduced, so both themes render it as they render that card.
+  settingsNavBtn: { width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12, background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-card)', padding: '14px 16px', color: 'var(--ink)', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, cursor: 'pointer', textAlign: 'right' },
+  settingsNavChev: { fontSize: 18, lineHeight: 1, color: 'var(--muted)' },
   themeRow: { display: 'flex', gap: 10 },
   themeOpt: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 10px', borderRadius: 14, border: '1px solid var(--line)', background: 'var(--tint)', color: 'var(--ink)', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' },
   themeOptActive: { border: '2px solid var(--red)', background: 'var(--red-soft)', color: 'var(--red)' },
