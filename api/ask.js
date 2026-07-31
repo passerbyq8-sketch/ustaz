@@ -530,16 +530,32 @@ export default async function handler(req, res) {
     // Structured sources, kept per-angle so the order matches toolUses 1:1 (Promise.all
     // preserves input order). This is the ONLY place a verified source can enter the
     // response: nothing here is ever reconstructed from model prose.
+    // The user's own last message, read ONCE for retrieval targeting. Same extraction
+    // shape lib/route-classify.js uses, so both read a message the same way.
+    const lastUserText = (() => {
+      const users = (body.messages || []).filter((m) => m && m.role === 'user');
+      const m = users[users.length - 1];
+      if (!m) return '';
+      if (typeof m.content === 'string') return m.content;
+      if (Array.isArray(m.content)) {
+        return m.content.map((b) => (b && typeof b.text === 'string' ? b.text : '')).join(' ');
+      }
+      return '';
+    })();
+
     const retrievedSources = [];
     const toolResults = await Promise.all(
       toolUses.map(async (block, angle) => {
         const q = (block.input && block.input.query) || '';
         let webText;
         try {
-          // `depth` is passed for RETRIEVAL TARGETING only (lib/source-intent.js reads it
-          // to tell a detailed question from an ordinary one). It does not reach the model,
-          // and effectiveDepth is already the server-decided value, not the client's claim.
-          const out = await retrieve(q, { band, depth: effectiveDepth });
+          // `depth` and `userText` are passed for RETRIEVAL TARGETING only
+          // (lib/source-intent.js reads them). Neither reaches the model: the round-2
+          // messages are built from body.messages and the tool results, untouched by this.
+          // userText matters because the model's search query is a REWRITE -- it keeps the
+          // subject and drops the framing, so "انقل لي نصاً من كتاب صحيح مسلم" arrives here
+          // as a topical hadith query with no sign that a book's wording was ever wanted.
+          const out = await retrieve(q, { band, depth: effectiveDepth, userText: lastUserText });
           webText = out.text;
           // PRESERVE (was: dropped). Allow-list trust is already established upstream.
           if (Array.isArray(out.sources) && out.sources.length) {
