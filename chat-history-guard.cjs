@@ -601,6 +601,33 @@ function partC() {
   ok('...it migrates it instead', html.indexOf('ezikMigrateLegacyThread(ezikProfileKey(p))') !== -1);
   ok('the explicit entry into the chat starts a new one',
     html.indexOf("onOpenChat={() => { newChat(); setScreen('chat'); }}") !== -1);
+
+  // S94: THE HOME BUTTON MUST NOT CLOSE OVER A DEAD ZONE. `newChat` is a `const`, so its binding
+  // only becomes usable when control actually reaches its line. `if (screen === 'home') return`
+  // leaves App long before the chat's own body runs, so a definition sitting BELOW that return
+  // was never initialised on the home path: the FAB's callback captured the binding in its
+  // temporal dead zone and the first tap threw «Cannot access 'newChat' before initialization»
+  // instead of opening the chat. The whole fix is position, so position is what is pinned.
+  //
+  // Whole-line comments are stripped first, and every offset below is measured in that same
+  // stripped view -- otherwise the paragraph you are reading, which spells out the very pattern
+  // being forbidden, would itself be found as the "first screen return" and the check would
+  // pass on its own prose.
+  const code = html.replace(/^[ \t]*\/\/.*$/gm, '');
+  const newChatAt = code.indexOf('const newChat = ');
+  const resetAt = code.indexOf('const resetThread = ');
+  const homeAt = code.indexOf("if (screen === 'home')");
+  const firstScreenAt = code.search(/if \(screen === /);
+  eq('«محادثة جديدة» is defined exactly once', countIn(code, 'const newChat = '), 1);
+  ok('newChat is defined BEFORE the home screen returns (else the home button is a TDZ throw)',
+    newChatAt !== -1 && homeAt !== -1 && newChatAt < homeAt,
+    'newChat at ' + newChatAt + ', `screen === \'home\'` return at ' + homeAt);
+  ok('...and before the FIRST screen return of any kind, so no screen can skip it',
+    newChatAt !== -1 && firstScreenAt !== -1 && newChatAt < firstScreenAt,
+    'newChat at ' + newChatAt + ', first screen return at ' + firstScreenAt);
+  ok('...and after resetThread, the only thing it calls',
+    resetAt !== -1 && newChatAt !== -1 && resetAt < newChatAt,
+    'resetThread at ' + resetAt + ', newChat at ' + newChatAt);
   ok('the autosave files on the QUESTION, not only after the reply',
     /setMessages\(updated\);[\s\S]{0,600}?saveMessages\(updated\);/.test(html));
   ok('persistence is on in production', /const PERSIST_CONVERSATION = true;/.test(html));

@@ -4881,6 +4881,21 @@ function App() {
     setPendingImage(null);
   };
 
+  // D85: "new chat" -- returns the thread to the empty state. It stops anything in flight
+  // (a streaming reply, playing audio) and clears the composer too, so nothing survives it.
+  // S92: it no longer OVERWRITES anything. The conversation being left was filed the moment it
+  // got its first question and stays in the menu; this only lets go of it. The empty thread it
+  // leaves behind is not filed, and closing the drawer is the caller's business now, because
+  // every drawer item has to spend the drawer's history entry on its way out (closeDrawerWith).
+  //
+  // S94: this MUST stay next to resetThread, above every `if (screen === ...) return`. It used to
+  // sit just before the chat's own `return (`, which the home screen never reaches -- so the
+  // home FAB closed over a binding still in its temporal dead zone and the first tap threw
+  // «Cannot access 'newChat' before initialization» instead of opening the chat. A `const` is
+  // only initialised when control actually runs its line; an early return skips it entirely.
+  // chat-history-guard.cjs pins this ordering.
+  const newChat = () => { resetThread(); };
+
   // Open a saved conversation: the same stop-everything as a new chat, then the stored messages
   // become the thread and the chat adopts that conversation's id, so the next turn rewrites it
   // rather than filing a second copy. The messages are restored VERBATIM, which is what brings
@@ -6316,14 +6331,6 @@ function App() {
       return 'fail';
     }
   };
-
-  // D85: "new chat" -- returns the thread to the empty state. It stops anything in flight
-  // (a streaming reply, playing audio) and clears the composer too, so nothing survives it.
-  // S92: it no longer OVERWRITES anything. The conversation being left was filed the moment it
-  // got its first question and stays in the menu; this only lets go of it. The empty thread it
-  // leaves behind is not filed, and closing the drawer is the caller's business now, because
-  // every drawer item has to spend the drawer's history entry on its way out (closeDrawerWith).
-  const newChat = () => { resetThread(); };
 
   return (
     <div className="theme-dark" style={s.chatContainer}>
