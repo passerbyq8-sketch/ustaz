@@ -487,7 +487,8 @@ head('14) GATE ROSTER (single source: gates.json)');
   // scripts. Adding or removing a gate requires deliberately updating this count,
   // exactly like REFERRAL_CASES_EXPECTED above -- a silent drift here means a guard
   // stopped being enforced and nobody noticed.
-  const GATES_EXPECTED = 11;
+  // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
+  const GATES_EXPECTED = 12;
   // Root *.cjs files that are deliberately NOT gates (build helpers / one-shot tools).
   // Every root .cjs must be classified as either a gate (in gates.json) or listed here.
   const NON_GATE_CJS = new Set([

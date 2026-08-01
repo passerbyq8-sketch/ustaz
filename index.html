@@ -3974,6 +3974,222 @@ function ezikBackTarget(cur, sheetOrigin) {
   return 'home';
 }
 
+// ============================================================
+// S92 — المحادثات المحفوظة (saved conversations)
+// ============================================================
+// The chat used to hold exactly ONE thread, in the 'messages' key: opening the app restored it
+// and «محادثة جديدة» overwrote it. This layer keeps a LIST instead, through the SAME storage the
+// rest of the app uses — localStorage, every touch inside its own try/catch — so a locked, full
+// or disabled store degrades to "no history" and can never break the chat itself.
+//
+// SHAPE. One small index under EZIK_CHATS_KEY — [{ id, pk, title, pinned, at }] — plus one blob
+// per conversation under EZIK_CHAT_PREFIX + id holding the messages ARRAY VERBATIM. The messages
+// are stored exactly as the thread holds them, which is what carries the source cards back: a
+// card is parsed out of the reply TEXT at render time (see SourceCard), and that text is what is
+// saved, so a restored reply renders the identical cards without storing anything about them.
+//
+// `pk` is the profile a conversation belongs to, and EVERY read filters on it — that is the whole
+// of the isolation: a second child on the same device never sees the first one's history.
+const EZIK_CHATS_KEY = 'ezik_chats_v1';
+const EZIK_CHAT_PREFIX = 'ezik_chat_v1_';
+const EZIK_CHAT_TITLE_MAX = 40;
+const EZIK_CHATS_MAX = 60;          // oldest UNPINNED conversations are dropped past this
+const EZIK_LEGACY_MSGS_KEY = 'messages';
+
+// A random, opaque identifier — used for both conversation ids and profile ids. crypto when the
+// platform has it, and a time+random fallback when it does not; either way it is only ever a
+// local key, never anything a request carries.
+function ezikMintId() {
+  try {
+    const b = new Uint8Array(8);
+    window.crypto.getRandomValues(b);
+    let out = '';
+    for (let i = 0; i < b.length; i++) out += (b[i] + 0x100).toString(16).slice(1);
+    return out;
+  } catch (e) {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+}
+
+// The profile identity a conversation is filed under. Minted ONCE and stored ON the profile
+// object, so it survives every boot and is never re-derived from a field the child can see or
+// change — two children who happen to share a name still get separate histories, and renaming
+// could not move anyone's history even if renaming existed. Profiles created before this session
+// are given one by the boot migration, beside the birthYear migration that already lives there.
+function ezikProfileKey(p) {
+  return (p && typeof p.pid === 'string' && p.pid) ? p.pid : 'anon';
+}
+
+function ezikReadChatIndex() {
+  let raw;
+  try { raw = localStorage.getItem(EZIK_CHATS_KEY); } catch (e) { return []; }
+  if (!raw) return [];
+  let list;
+  try { list = JSON.parse(raw); } catch (e) { return []; }
+  if (!Array.isArray(list)) return [];
+  return list.filter((r) => r && typeof r.id === 'string' && r.id);
+}
+function ezikWriteChatIndex(list) {
+  try { localStorage.setItem(EZIK_CHATS_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+// THE ORDER THE MENU SHOWS, and the only place it is decided: pinned first, then the most
+// recently written. Both keys are read from the index alone, so the menu never has to open a
+// single conversation blob to sort itself.
+function ezikSortChats(list) {
+  return list.slice().sort((a, b) =>
+    ((b && b.pinned) ? 1 : 0) - ((a && a.pinned) ? 1 : 0) || ((b && b.at) || 0) - ((a && a.at) || 0));
+}
+function ezikListChats(pk) {
+  return ezikSortChats(ezikReadChatIndex().filter((r) => r.pk === pk));
+}
+
+function ezikReadChatMessages(id) {
+  let raw;
+  try { raw = localStorage.getItem(EZIK_CHAT_PREFIX + id); } catch (e) { return []; }
+  if (!raw) return [];
+  try { const m = JSON.parse(raw); return Array.isArray(m) ? m : []; } catch (e) { return []; }
+}
+
+// The readable text of a message, whatever shape its content has. A plain turn is a string; an
+// attachment turn is an array of blocks and only its text block is words — so a photo sent with
+// «اشرح لي هذا» reads as that, and never as base64.
+function ezikMessageText(m) {
+  if (!m) return '';
+  if (typeof m.content === 'string') return m.content;
+  if (Array.isArray(m.content)) {
+    return m.content
+      .filter((b) => b && b.type === 'text' && typeof b.text === 'string')
+      .map((b) => b.text)
+      .join(' ');
+  }
+  return '';
+}
+
+// The title, and it is taken from the FIRST QUESTION the child asked — never from a reply, so a
+// conversation is named by what was wanted rather than by what was answered. Whitespace collapses
+// to single spaces, and a long question is cut on a word boundary when one falls near the limit
+// so a title never ends mid-word.
+function ezikChatTitle(msgs) {
+  let first = null;
+  for (let i = 0; i < (msgs || []).length; i++) {
+    if (msgs[i] && msgs[i].role === 'user') { first = msgs[i]; break; }
+  }
+  let t = ezikMessageText(first).replace(/\s+/g, ' ').trim();
+  if (!t) return 'محادثة';
+  if (t.length > EZIK_CHAT_TITLE_MAX) {
+    const cut = t.slice(0, EZIK_CHAT_TITLE_MAX);
+    const sp = cut.lastIndexOf(' ');
+    t = (sp > EZIK_CHAT_TITLE_MAX - 14 ? cut.slice(0, sp) : cut).trim() + '…';
+  }
+  return t;
+}
+
+// Past the cap, the oldest UNPINNED conversations are dropped — a pinned one is never dropped by
+// age, which is what pinning is for. Dropping removes the blob too, so the store cannot fill with
+// bodies whose index rows are gone.
+function ezikTrimChats(list) {
+  if (list.length <= EZIK_CHATS_MAX) return list;
+  const sorted = ezikSortChats(list);          // pinned first, so the head is never a pinned drop
+  const head = sorted.slice(0, EZIK_CHATS_MAX);
+  const tail = sorted.slice(EZIK_CHATS_MAX);
+  const keptTail = tail.filter((r) => r.pinned);
+  tail.filter((r) => !r.pinned).forEach((r) => {
+    try { localStorage.removeItem(EZIK_CHAT_PREFIX + r.id); } catch (e) {}
+  });
+  return head.concat(keptTail);
+}
+
+// Writing the body, and the one place a quota failure is handled. A thread carrying a photo or a
+// PDF is large, so a full store is a real outcome rather than a theoretical one: the CURRENT
+// conversation is the one that must survive, so on failure the oldest unpinned OTHER conversation
+// is evicted and the write retried. The pool only shrinks, so the loop always terminates, and a
+// store that refuses even an empty write simply returns false and the chat carries on unsaved.
+// `idx` is mutated in step with the eviction so the caller writes an index that matches the store.
+function ezikWriteChatBody(id, msgs, idx) {
+  const payload = JSON.stringify(msgs);
+  const pool = ezikSortChats(idx.filter((r) => r.id !== id && !r.pinned));
+  for (;;) {
+    try { localStorage.setItem(EZIK_CHAT_PREFIX + id, payload); return true; } catch (e) {}
+    const victim = pool.pop();                 // sorted newest-first, so pop() is the oldest
+    if (!victim) return false;
+    try { localStorage.removeItem(EZIK_CHAT_PREFIX + victim.id); } catch (e2) {}
+    const i = idx.indexOf(victim);
+    if (i !== -1) idx.splice(i, 1);
+  }
+}
+
+// THE AUTOSAVE. Called after every turn the chat commits, and it is a NO-OP until the thread
+// holds a real question: an empty thread — and a thread holding nothing but the boot greeting —
+// is never filed. That is exactly what "the empty chat is not saved" means, and it is enforced
+// here rather than at the call sites, so no path can file an empty one by forgetting to ask.
+// Returns the id the conversation was filed under, so a first save hands the chat its identity.
+function ezikSaveChat(id, msgs, pk) {
+  const list = (msgs || []).filter(Boolean);
+  let hasQuestion = false;
+  for (let i = 0; i < list.length; i++) { if (list[i].role === 'user') { hasQuestion = true; break; } }
+  if (!hasQuestion) return null;
+  const cid = id || ezikMintId();
+  const idx = ezikReadChatIndex();
+  let prev = null;
+  for (let i = 0; i < idx.length; i++) { if (idx[i].id === cid) { prev = idx[i]; break; } }
+  // The title is minted once, from the first question, and a later turn never renames it.
+  const rec = {
+    id: cid,
+    pk: pk,
+    title: (prev && prev.title) ? prev.title : ezikChatTitle(list),
+    pinned: !!(prev && prev.pinned),
+    at: Date.now(),
+  };
+  const rest = idx.filter((r) => r.id !== cid);
+  if (!ezikWriteChatBody(cid, list, rest)) return null;   // store refused: file nothing
+  ezikWriteChatIndex(ezikTrimChats([rec].concat(rest)));
+  return cid;
+}
+
+function ezikDeleteChat(id) {
+  try { localStorage.removeItem(EZIK_CHAT_PREFIX + id); } catch (e) {}
+  ezikWriteChatIndex(ezikReadChatIndex().filter((r) => r.id !== id));
+}
+function ezikToggleChatPin(id) {
+  ezikWriteChatIndex(ezikReadChatIndex().map((r) =>
+    (r.id === id ? { id: r.id, pk: r.pk, title: r.title, pinned: !r.pinned, at: r.at } : r)));
+}
+// "Delete all my data" has to mean the history too — every body and the index with them.
+function ezikClearAllChats() {
+  ezikReadChatIndex().forEach((r) => { try { localStorage.removeItem(EZIK_CHAT_PREFIX + r.id); } catch (e) {} });
+  try { localStorage.removeItem(EZIK_CHATS_KEY); } catch (e) {}
+  try { localStorage.removeItem(EZIK_LEGACY_MSGS_KEY); } catch (e) {}
+}
+
+// THE PARENTS' LOG. Before this session the thread on screen WAS the child's whole record, so the
+// parental dashboard could read it straight off `messages`. The chat now opens empty, which would
+// have left that dashboard showing «لا توجد محادثات بعد» to a parent whose child has a full
+// history -- a real loss of oversight, not a cosmetic one. So the log is assembled from the saved
+// conversations instead: all of the ACTIVE profile's, oldest first, as one transcript. That is
+// exactly what the dashboard displayed before, when a child could only ever have one thread, and
+// no other profile's messages can enter it because the rows are filtered by pk first.
+function ezikProfileTranscript(pk) {
+  const rows = ezikReadChatIndex().filter((r) => r.pk === pk).sort((a, b) => ((a && a.at) || 0) - ((b && b.at) || 0));
+  let out = [];
+  for (let i = 0; i < rows.length; i++) out = out.concat(ezikReadChatMessages(rows[i].id));
+  return out;
+}
+
+// ONE-SHOT migration of the single legacy thread. 'messages' held whatever the child was in the
+// middle of when this shipped; it is filed as that profile's first saved conversation and the key
+// is then removed, so nothing anyone had is lost and the migration cannot run a second time. A
+// legacy thread with no question in it (a greeting alone) files nothing and the key still goes.
+function ezikMigrateLegacyThread(pk) {
+  let raw;
+  try { raw = localStorage.getItem(EZIK_LEGACY_MSGS_KEY); } catch (e) { return; }
+  if (!raw) return;
+  let msgs = null;
+  try { msgs = JSON.parse(raw); } catch (e) { msgs = null; }
+  if (Array.isArray(msgs) && msgs.length) ezikSaveChat(null, msgs, pk);
+  try { localStorage.removeItem(EZIK_LEGACY_MSGS_KEY); } catch (e) {}
+}
+
 function App() {
   const [screen, setScreen] = useState('loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
@@ -3985,6 +4201,16 @@ function App() {
   const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);   // D85: the chat drawer (menu button)
+  // S92: the saved-conversation state. `chatId` is the conversation the thread on screen belongs
+  // to, and NULL means the thread has not been filed yet — a brand new, empty chat. `chatIdRef`
+  // is its synchronous mirror because the autosave runs after an await, inside a handler whose
+  // closure was built before the first save handed the chat its id. `chatList` is what the menu
+  // draws, always already ordered. `chatPendingDelete` is the row currently asking to be
+  // confirmed, and only ever one at a time.
+  const [chatId, setChatId] = useState(null);
+  const chatIdRef = useRef(null);
+  const [chatList, setChatList] = useState([]);
+  const [chatPendingDelete, setChatPendingDelete] = useState(null);
   // D88: seeded from the SAME reader the boot script used, so the first render already agrees
   // with the attribute already on <html>. No effect runs at mount, so nothing can repaint.
   const [theme, setTheme] = useState(readStoredTheme);
@@ -4292,11 +4518,26 @@ function App() {
           const derivedAge = new Date().getFullYear() - (parseInt(p.birthYear, 10) || 0);
           if (derivedAge >= 0 && derivedAge <= 120) p.age = derivedAge;
         }
+        // S92 -- one-shot migration, beside the birthYear one above: a profile created before
+        // saved conversations existed has no id to file its history under. Mint one and persist
+        // it now, so this profile's history is its own from the very first save.
+        if (p && !p.pid) {
+          p.pid = ezikMintId();
+          try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
+        }
         profileRef.current = p;
         voiceProfileRef.current = p;            // غ‑٣: مرآةُ حاجزِ الصوت — تُكتب مع profileRef دائماً
         setProfile(p);
-        const msgs = localStorage.getItem('messages');
-        if (msgs) setMessages(JSON.parse(msgs));
+        // S92: the app ALWAYS opens on a NEW, EMPTY thread. What the child wrote before is not
+        // poured back into the chat — it is one tap away in the side menu — so nobody resumes a
+        // conversation they did not choose to resume, and the empty thread it opens on is not
+        // filed anywhere until a first question is asked. The single legacy thread the old
+        // 'messages' key held is filed as this profile's first saved conversation on the way past.
+        ezikMigrateLegacyThread(ezikProfileKey(p));
+        chatIdRef.current = null;
+        setChatId(null);
+        setMessages([]);
+        setChatList(ezikListChats(ezikProfileKey(p)));
         setScreen('chat');   // D85: a returning profile also lands on the chat
       } else {
         setScreen('onboarding');
@@ -4343,9 +4584,13 @@ function App() {
   // the identity it captured at mount and still resolve against the live screen.
   const resolveEzikBack = (viaPop) => {
     const cur = screenRef.current;
-    const rooted = EZIK_ROOT_SCREENS.indexOf(cur) !== -1;
+    // S92: the layer registry is asked FIRST on EVERY screen, root or not -- the `!rooted` guard
+    // that used to stand here is gone. The chat is a root screen and it now owns a layer, the side
+    // menu, so that guard would have let a press pass straight through an open menu and out of the
+    // app. Nothing else changes route: no root screen registered a layer before this one, and the
+    // mushaf safety net inside closeEzikNested is gated on its own screen.
     // 1. The deepest open layer closes, and NOTHING else happens: the section is retained.
-    if (!rooted && closeEzikNested()) {
+    if (closeEzikNested()) {
       // S91: the entry the pop just spent BELONGED to the layer that has now closed, so there is
       // nothing to put back. The section's own entry was never touched and is still underneath,
       // which is exactly what a native wrapper reads when it asks whether it can go back.
@@ -4402,6 +4647,40 @@ function App() {
   const replaceEzikScreen = (target) => { histReplaceRef.current = true; setScreen(target); };
   // S91: publish this resolver so a nested layer's own back button presses the same one.
   useEffect(() => { ezikBackHandler = goEzikBack; });
+
+  // ===== S92 -- THE SIDE MENU IS A BACK LAYER =====
+  // The device back button has to CLOSE THE MENU FIRST, and the chat is a root screen: it owns no
+  // history entry of its own, so a press there would otherwise reach the platform and leave the
+  // app with the menu still on screen. Registering the menu here gives it one real entry for
+  // exactly as long as it is open, through the same hook the adhkar reader and the mushaf's open
+  // surah use -- one layer, one entry, spent once.
+  //
+  // The consequence is that EVERY visible way out of the menu has to spend that same entry, or a
+  // spent-but-unclaimed entry would answer a later press with nothing. So no menu item calls
+  // setDrawerOpen(false) itself: each hands its action to closeDrawerWith, which asks the
+  // application back to close the menu and runs the action inside the closer -- after the pop that
+  // spent the entry, so any screen the action then opens pushes its own entry cleanly on top.
+  const drawerNavRef = useRef(null);
+  useEzikBackLayer(drawerOpen, () => {
+    setDrawerOpen(false);
+    setChatPendingDelete(null);        // a half-asked delete never survives the menu closing
+    const run = drawerNavRef.current;
+    drawerNavRef.current = null;
+    if (run) run();
+  });
+  const closeDrawerWith = (fn) => {
+    drawerNavRef.current = (typeof fn === 'function') ? fn : null;
+    // ezikHistBack is false only when this app owns nothing on the stack -- the menu's entry could
+    // not be pushed at all. Then there is nothing to spend and the menu closes directly.
+    if (ezikHistBack()) return;
+    setDrawerOpen(false);
+    setChatPendingDelete(null);
+    const run = drawerNavRef.current;
+    drawerNavRef.current = null;
+    if (run) run();
+  };
+  // Opening it re-reads the list from the store, so the menu always shows what a reboot would.
+  const openDrawer = () => { refreshChatList(); setChatPendingDelete(null); setDrawerOpen(true); };
 
   useEffect(() => {
     const onPop = () => { ezikHistSpend(); resolveEzikBack(true); };
@@ -4561,9 +4840,69 @@ function App() {
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, streamingText]);
 
+  // S92: THE AUTOSAVE, and it is still the ONE write point the chat has -- every path that
+  // commits a turn (the greeting, a sent message, a call turn) already called this, so filing the
+  // conversation here means no path can forget to. The store decides whether there is anything
+  // worth filing: an empty thread files nothing and the chat keeps its null id, so an untouched
+  // chat leaves no row behind. The first real question is what mints the id, and from then on
+  // every turn rewrites the same conversation.
   const saveMessages = (msgs) => {
     if (!PERSIST_CONVERSATION) return; // مؤقت: لا تكتب المحادثة أثناء مرحلة التجارب.
-    try { localStorage.setItem('messages', JSON.stringify(msgs)); } catch (e) {}
+    const cid = ezikSaveChat(chatIdRef.current, msgs, ezikProfileKey(profileRef.current));
+    if (!cid) return;
+    if (cid !== chatIdRef.current) { chatIdRef.current = cid; setChatId(cid); }
+    refreshChatList();
+  };
+
+  // The menu's list, re-read from the store rather than patched in memory, so what the menu shows
+  // is always what a reboot would show. Filtered to the ACTIVE profile: that filter is the whole
+  // of the isolation, and it is applied on every single read.
+  const refreshChatList = () => setChatList(ezikListChats(ezikProfileKey(profileRef.current)));
+
+  // Put the thread back to the empty state: stop anything in flight, drop the conversation
+  // identity, clear the composer. Shared by «محادثة جديدة», by an explicit entry into the chat
+  // from the home screen, and by deleting the conversation that is currently open.
+  const resetThread = () => {
+    try { abortRef.current?.abort(); } catch (e) {}
+    abortRef.current = null;
+    cancelAudio();
+    chatIdRef.current = null;
+    setChatId(null);
+    setMessages([]);
+    setStreamingText(null);
+    setIsLoading(false);
+    setInput('');
+    setPendingImage(null);
+  };
+
+  // Open a saved conversation: the same stop-everything as a new chat, then the stored messages
+  // become the thread and the chat adopts that conversation's id, so the next turn rewrites it
+  // rather than filing a second copy. The messages are restored VERBATIM, which is what brings
+  // the source cards back -- they are rendered from the reply text that was saved.
+  const openSavedChat = (id) => {
+    try { abortRef.current?.abort(); } catch (e) {}
+    abortRef.current = null;
+    cancelAudio();
+    chatIdRef.current = id;
+    setChatId(id);
+    setMessages(ezikReadChatMessages(id));
+    setStreamingText(null);
+    setIsLoading(false);
+    setInput('');
+    setPendingImage(null);
+  };
+
+  const pinSavedChat = (id) => { ezikToggleChatPin(id); refreshChatList(); };
+
+  // Deleting is confirmed first (chatPendingDelete holds the row that asked). Deleting the
+  // conversation that is OPEN empties the thread too -- the chat cannot go on showing messages
+  // whose conversation no longer exists -- and that empty thread is not re-filed, because the
+  // autosave files nothing without a question in it.
+  const deleteSavedChat = (id) => {
+    ezikDeleteChat(id);
+    if (chatIdRef.current === id) resetThread();
+    setChatPendingDelete(null);
+    refreshChatList();
   };
 
   // ============================================================
@@ -5138,12 +5477,19 @@ function App() {
     // age stays on the object as a DERIVED value (approx, +/- 1y: month unknown) and is
     // recomputed from birthYear on every boot load, so accounts grow automatically.
     const birthYear = new Date().getFullYear() - (parseInt(age, 10) || 0);
-    const p = { name, age, gender, birthYear, createdAt: new Date().toISOString() };
+    // S92: pid is the identity this profile's saved conversations are filed under. It is minted
+    // here, once, so a NEW profile on a device that already carries one starts with an empty
+    // menu and can never be shown the previous child's history.
+    const p = { name, age, gender, birthYear, pid: ezikMintId(), createdAt: new Date().toISOString() };
     profileRef.current = p;
     voiceProfileRef.current = p;                // غ‑٣: مرآةُ حاجزِ الصوت — قبل أيّ نطقٍ أو تحيّة
     setProfile(p);
     // D85: after the age step the landing screen is the chat, and it opens EMPTY. The boot
     // greeting is NOT sent -- nothing sits in the thread until the child writes the first line.
+    chatIdRef.current = null;
+    setChatId(null);
+    setMessages([]);
+    setChatList([]);                           // S92: a new profile starts with an empty menu
     setScreen('chat');
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
   };
@@ -5462,6 +5808,12 @@ function App() {
     const userMsg = { role: 'user', content, timestamp: new Date().toISOString() };
     const updated = [...messages, userMsg];
     setMessages(updated);
+    // S92: the conversation is filed HERE, on the QUESTION -- not after the reply lands. "Saved
+    // automatically on the first message" has to survive a reply that never arrives: a dropped
+    // connection, an abort, the app being closed mid-stream. This is the write that mints the id
+    // and the title; the save after the reply then rewrites the SAME conversation, because
+    // chatIdRef already carries the id this call set.
+    saveMessages(updated);
     setInput('');
     setPendingImage(null);
     setIsLoading(true);
@@ -5821,7 +6173,9 @@ function App() {
   const resetAll = () => {
     if (confirm('هل أنت متأكد من حذف كل البيانات؟')) {
       localStorage.removeItem('child_profile');
-      localStorage.removeItem('messages');
+      // S92 -- "delete all my data" has to mean the SAVED CONVERSATIONS too: every stored body,
+      // the index that lists them, and the single legacy thread the old 'messages' key held.
+      ezikClearAllChats();
       localStorage.removeItem('directConvoLocked');
       localStorage.removeItem(MUSHAF_BOOKMARK_KEY);
       localStorage.removeItem('mushaf_pos_v1');   // Session 51 -- one-shot sweep of the pre-bookmark name
@@ -5847,6 +6201,9 @@ function App() {
       setProfile(null);
       voiceProfileRef.current = null;           // غ‑٣: حذفُ البيانات يُعيد الحاجزَ إلى المقفول
       setMessages([]);
+      chatIdRef.current = null;
+      setChatId(null);
+      setChatList([]);
       setScreen('onboarding');
     }
   };
@@ -5864,12 +6221,19 @@ function App() {
   // S87: the home's chat entry is the FAB in its own bottom bar and nothing else -- the chat is
   // opened by an explicit chat action, and no back path resolves to it. The profile entry records
   // home as its opener through openEzikSheet, so the gate's back comes back HERE.
-  if (screen === 'home') return <Home profile={profile} onOpenChat={() => setScreen('chat')} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => openEzikSheet('settings')} />;
+  // S92: the FAB is the explicit entry into the chat, so it opens a NEW, EMPTY thread -- the same
+  // rule the app's own boot follows. Nothing is lost by it: the thread being left was filed at its
+  // first question and is in the menu. The BACK path out of home also lands on the chat, and it
+  // does not come through here, so returning from home never wipes the thread underneath it.
+  if (screen === 'home') return <Home profile={profile} onOpenChat={() => { newChat(); setScreen('chat'); }} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => openEzikSheet('settings')} />;
   // S87: the three sheets resolve their back through goEzikBack, which returns them to the screen
   // recorded when they were opened (home or the chat drawer) and to home when nothing valid was.
   // The gate still clears its own PIN field first -- that is its state, not navigation.
   if (screen === 'parentGate') return <ParentGate pinInput={pinInput} setPinInput={setPinInput} pinError={pinError} setPinError={setPinError} onSuccess={() => { setPinInput(''); setPinError(false); replaceEzikScreen('parentDashboard'); }} onBack={() => { setPinInput(''); setPinError(false); goEzikBack(); }} />;
-  if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={messages} onBack={goEzikBack} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
+  // S92: the dashboard reads the SAVED conversations, not the thread that happens to be open --
+  // the chat opens empty now, so the open thread is no longer the child's record. Read here, at
+  // the moment the dashboard is drawn, so it costs nothing on any other screen.
+  if (screen === 'parentDashboard') return <ParentDashboard profile={profile} messages={ezikProfileTranscript(ezikProfileKey(profileRef.current))} onBack={goEzikBack} onReset={resetAll} directConvoLocked={directConvoLocked} onToggleDirectConvo={toggleDirectConvoLock} />;
   // D88/S90: the settings sheet, and it is now the ONE door to the account area -- the home
   // screen's الإعدادات item, the drawer's gear and the drawer's profile entry all open THIS,
   // immediately and with no PIN. The parental screen it used to stand in front of has not moved
@@ -5949,18 +6313,11 @@ function App() {
 
   // D85: "new chat" -- returns the thread to the empty state. It stops anything in flight
   // (a streaming reply, playing audio) and clears the composer too, so nothing survives it.
-  const newChat = () => {
-    try { abortRef.current?.abort(); } catch (e) {}
-    abortRef.current = null;
-    cancelAudio();
-    setMessages([]);
-    saveMessages([]);
-    setStreamingText(null);
-    setIsLoading(false);
-    setInput('');
-    setPendingImage(null);
-    setDrawerOpen(false);
-  };
+  // S92: it no longer OVERWRITES anything. The conversation being left was filed the moment it
+  // got its first question and stays in the menu; this only lets go of it. The empty thread it
+  // leaves behind is not filed, and closing the drawer is the caller's business now, because
+  // every drawer item has to spend the drawer's history entry on its way out (closeDrawerWith).
+  const newChat = () => { resetThread(); };
 
   return (
     <div className="theme-dark" style={s.chatContainer}>
@@ -5969,7 +6326,7 @@ function App() {
           reply, so the header speaker was redundant; the other three moved into the drawer
           (القائمة and the pinned profile/settings row). */}
       <div style={s.header}>
-        <button onClick={() => setDrawerOpen(true)} style={s.settingsBtn} aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}>
+        <button onClick={openDrawer} style={s.settingsBtn} aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="21" y2="12" />
@@ -6151,10 +6508,10 @@ function App() {
           The theme settings screen is phase C and is deliberately not built here. */}
       {drawerOpen && (
         <>
-          <div onClick={() => setDrawerOpen(false)} style={s.drawerOverlay} />
+          <div onClick={() => closeDrawerWith(null)} style={s.drawerOverlay} />
           <div style={s.drawerPanel} role="dialog" aria-modal="true">
             <div style={s.drawerTop}>
-              <button onClick={newChat} style={s.drawerItem}>
+              <button onClick={() => closeDrawerWith(newChat)} style={s.drawerItem}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" />
                   <line x1="12" y1="8" x2="12" y2="14" />
@@ -6162,7 +6519,7 @@ function App() {
                 </svg>
                 <span>{'\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629'}</span>
               </button>
-              <button onClick={() => { setDrawerOpen(false); setScreen('home'); }} style={s.drawerItem}>
+              <button onClick={() => closeDrawerWith(() => setScreen('home'))} style={s.drawerItem}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="6" x2="21" y2="6" />
                   <line x1="3" y1="12" x2="21" y2="12" />
@@ -6170,15 +6527,59 @@ function App() {
                 </svg>
                 <span>{'\u0627\u0644\u0642\u0627\u0626\u0645\u0629'}</span>
               </button>
+              {/* S92: THE HISTORY. \u00ab\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629\u00bb stays the one and only new-chat entry -- this
+                  section adds the saved conversations UNDER the existing items and duplicates
+                  none of them. The order is the store's: pinned first, then the most recent.
+                  The whole section is absent while there is nothing to show, so a first-time
+                  menu looks exactly as it did. */}
+              {chatList.length > 0 && (
+                <>
+                  <div style={s.drawerSectionLabel}>{'\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a'}</div>
+                  {chatList.map((c) => (
+                    <div key={c.id} style={{ ...s.drawerChatRow, background: (c.id === chatId ? 'var(--tint)' : 'transparent') }}>
+                      {chatPendingDelete === c.id ? (
+                        /* The confirmation, and it replaces the row it belongs to rather than
+                           covering the menu -- so what is about to be deleted stays readable. */
+                        <>
+                          <span style={s.drawerConfirmText}>{'\u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629\u061f'}</span>
+                          <button onClick={() => deleteSavedChat(c.id)} style={s.drawerConfirmYes}>{'\u062d\u0630\u0641'}</button>
+                          <button onClick={() => setChatPendingDelete(null)} style={s.drawerConfirmNo}>{'\u0625\u0644\u063a\u0627\u0621'}</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => closeDrawerWith(() => openSavedChat(c.id))} style={s.drawerChatOpen} title={c.title}>
+                            {c.pinned && (
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
+                              </svg>
+                            )}
+                            <span style={s.drawerChatTitle}>{c.title}</span>
+                          </button>
+                          <button onClick={() => pinSavedChat(c.id)} style={s.drawerChatIcon} aria-label={c.pinned ? '\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u062b\u0628\u064a\u062a' : '\u062a\u062b\u0628\u064a\u062a'}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.pinned ? 'var(--red)' : 'var(--muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
+                            </svg>
+                          </button>
+                          <button onClick={() => setChatPendingDelete(c.id)} style={s.drawerChatIcon} aria-label={'\u062d\u0630\u0641'}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 14h10l1-14" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
             <div style={s.drawerPinned}>
-              <button onClick={() => { setDrawerOpen(false); openEzikSheet('settings'); }} style={s.drawerProfile}>
+              <button onClick={() => closeDrawerWith(() => openEzikSheet('settings'))} style={s.drawerProfile}>
                 <span style={s.drawerAvatar}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
                 </span>
                 <span style={s.drawerProfileName}>{profile?.name}</span>
               </button>
-              <button onClick={() => { setDrawerOpen(false); openEzikSheet('settings'); }} style={s.drawerGear} aria-label={'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a'}>
+              <button onClick={() => closeDrawerWith(() => openEzikSheet('settings'))} style={s.drawerGear} aria-label={'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a'}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
               </button>
             </div>
@@ -9619,6 +10020,17 @@ const s = {
   drawerPanel: { position: 'fixed', top: 0, right: 0, bottom: 0, width: 278, maxWidth: '82vw', zIndex: 61, background: 'var(--white)', borderLeft: '1px solid var(--line)', boxShadow: '-8px 0 28px rgba(18, 50, 122, 0.16)', display: 'flex', flexDirection: 'column', padding: '14px 12px' },
   drawerTop: { display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minHeight: 0, overflowY: 'auto' },
   drawerItem: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '13px 12px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15.5, color: 'var(--ink)', textAlign: 'right' },
+  // S92: the saved-conversation rows. Every colour is an EXISTING variable -- --ink, --muted,
+  // --line, --tint, --red -- so both palettes already answer for them and no theme value is
+  // added, changed or overridden by any of this.
+  drawerSectionLabel: { padding: '14px 12px 6px', fontSize: 12, color: 'var(--muted)', borderTop: '1px solid var(--line)', marginTop: 6 },
+  drawerChatRow: { display: 'flex', alignItems: 'center', gap: 2, borderRadius: 12, minHeight: 44 },
+  drawerChatOpen: { display: 'flex', alignItems: 'center', gap: 7, flex: 1, minWidth: 0, padding: '11px 10px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, color: 'var(--ink)', textAlign: 'right' },
+  drawerChatTitle: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 },
+  drawerChatIcon: { width: 32, height: 32, flexShrink: 0, borderRadius: 10, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  drawerConfirmText: { flex: 1, minWidth: 0, padding: '0 8px', fontSize: 13, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  drawerConfirmYes: { flexShrink: 0, padding: '7px 11px', borderRadius: 10, background: 'var(--red)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, color: 'var(--on-accent)' },
+  drawerConfirmNo: { flexShrink: 0, padding: '7px 11px', borderRadius: 10, background: 'var(--tint)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, color: 'var(--ink)' },
   drawerPinned: { display: 'flex', alignItems: 'center', gap: 8, paddingTop: 10, borderTop: '1px solid var(--line)' },
   drawerProfile: { display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, padding: '10px 10px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, color: 'var(--ink)', textAlign: 'right' },
   drawerAvatar: { width: 32, height: 32, flexShrink: 0, borderRadius: '50%', background: 'var(--accent-fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' },

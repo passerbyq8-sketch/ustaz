@@ -59,3 +59,6 @@ api/unlock.js text eol=crlf
 # so a clone that injected CR into the GATE itself would shift nothing -- but a gate that
 # is not LF-pinned is the one file in the roster whose bytes nobody agrees on.
 call-mode-guard.cjs text eol=lf
+
+# Gate 12 (chat-history-guard). Same reason as every gate above.
+chat-history-guard.cjs text eol=lf
