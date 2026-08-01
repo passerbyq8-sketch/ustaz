@@ -77,3 +77,7 @@ quran-quest-guard.cjs text eol=lf
 # Gate 16 (prayer-quest-guard). Same reason as every gate above. Its golden also lives
 # under quest-data/, covered by the "quest-data/*.json -text" rule further up.
 prayer-quest-guard.cjs text eol=lf
+
+# Gate 17 (quest-bank-integrity-guard). Same reason as every gate above. Its golden also
+# lives under quest-data/, covered by the "quest-data/*.json -text" rule further up.
+quest-bank-integrity-guard.cjs text eol=lf

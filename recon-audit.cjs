@@ -489,9 +489,11 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 16;   // 14th: quest-reveal-guard  (phase 1 -- reveal-mode question integrity)
+  const GATES_EXPECTED = 17;   // 14th: quest-reveal-guard  (phase 1 -- reveal-mode question integrity)
                                // 15th: quran-quest-guard   (phase 2 -- Quran-category balance + verbatim text)
                                // 16th: prayer-quest-guard  (phase 3 -- prayer coverage, sourcing, attribution)
+                               // 17th: quest-bank-integrity-guard (phase 4 -- bank-wide structure; freezes the
+                               //       394 protected questions at commit 17bb52a)
   // Root *.cjs files that are deliberately NOT gates (build helpers / one-shot tools).
   // Every root .cjs must be classified as either a gate (in gates.json) or listed here.
   const NON_GATE_CJS = new Set([

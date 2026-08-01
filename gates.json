@@ -14,5 +14,6 @@
   { "name": "markdown",   "script": "markdown-guard.cjs",       "args": "index.html" },
   { "name": "reveal",     "script": "quest-reveal-guard.cjs",    "args": "--compare quest-data/reveal-golden.json" },
   { "name": "quranquest", "script": "quran-quest-guard.cjs",     "args": "--compare quest-data/quran-quest-golden.json" },
-  { "name": "prayerquest","script": "prayer-quest-guard.cjs",    "args": "--compare quest-data/prayer-quest-golden.json" }
+  { "name": "prayerquest","script": "prayer-quest-guard.cjs",    "args": "--compare quest-data/prayer-quest-golden.json" },
+  { "name": "bankintegrity","script": "quest-bank-integrity-guard.cjs", "args": "--compare quest-data/bank-integrity-golden.json" }
 ]
