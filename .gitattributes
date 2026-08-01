@@ -65,3 +65,7 @@ chat-history-guard.cjs text eol=lf
 
 # Gate 13 (markdown-guard). Same reason as every gate above.
 markdown-guard.cjs text eol=lf
+
+# Gate 14 (quest-reveal-guard). Same reason as every gate above. Its golden lives under
+# quest-data/, already covered by the "quest-data/*.json -text" rule further up.
+quest-reveal-guard.cjs text eol=lf
