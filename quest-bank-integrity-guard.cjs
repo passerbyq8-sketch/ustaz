@@ -35,7 +35,10 @@
  *                      marker, contains no deictic pointer at an unseen list, and does
  *                      not contain its own answer as a whole phrase.
  *   B8 sources      -- `src` is present, is not a "to be reviewed" or hearsay marker,
- *                      and is not a bare hostname.
+ *                      is not a bare hostname, and points INSIDE the work it names:
+ *                      a hadith number, an aya, the year of the events, a kitab/bab
+ *                      or tarjama after a dash, or a quoted entry title. Naming
+ *                      "al-Kamil fi al-Tarikh" (11 volumes) proves nothing on its own.
  *   B9 protected    -- sha256 of each of the 394 protected questions equals the hash
  *                      recorded from commit 17bb52a. This is the load-bearing check.
  *
@@ -121,6 +124,10 @@ const keyOf = q => { const o = optsOf(q); return o && typeof q.answer === 'numbe
 function fingerprint(q) {
   return crypto.createHash('sha256').update(JSON.stringify(q, Object.keys(q).sort())).digest('hex').slice(0, 16);
 }
+// A citation locates something if it carries a number (hadith no., aya, year),
+// or a sub-reference introduced by an em- or en-dash, or a \u00abquoted entry\u00bb.
+const LOCATOR = /[0-9\u0660-\u0669]|[\u2014\u2013]\s*\S|\u00ab[^\u00bb]+\u00bb/;
+
 function jaccard(a, b) {
   const A = new Set(a), B = new Set(b);
   let i = 0; for (const v of A) if (B.has(v)) i++;
@@ -304,8 +311,14 @@ function compare(goldenPath) {
     else if (norm(s) === norm(AR.MASHHUR)) { src++; no('B8', q.id + ' src is a hearsay marker, not a source'); }
     if (/^https?:\/\/[^\/]+\/?$/i.test(s)) { src++; no('B8', q.id + ' src is a bare hostname, not the page that proves the fact'); }
     if (s.length < 4) { src++; no('B8', q.id + ' src is too short to locate anything'); }
+    // A source must point INSIDE the work it names. Naming a fourteen-volume
+    // chronicle is the same defect as citing a homepage: it proves nothing and
+    // nobody can check it. A locator is a number (hadith no. / aya / year), a
+    // sub-reference after a dash (kitab, bab, tarjama, entry), or a \u00abquoted
+    // entry title\u00bb. All 1785 satisfied this when the rule was added.
+    if (!LOCATOR.test(s)) { src++; no('B8', q.id + ' src names a work but no place inside it'); }
   }
-  if (!src) ok('all ' + rest.length + ' non-protected questions carry a non-placeholder source');
+  if (!src) ok('all ' + rest.length + ' non-protected sources name a work AND a place inside it');
 
   // -- B9 the 394 protected questions --------------------------------------
   console.log('\n-- B9 protected questions (the load-bearing check) --');
