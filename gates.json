@@ -10,5 +10,6 @@
   { "name": "classifier", "script": "classifier-guard.cjs",      "args": "index.html" },
   { "name": "hafs",       "script": "hafs-map-guard.cjs",        "args": "" },
   { "name": "call",       "script": "call-mode-guard.cjs",       "args": "index.html" },
-  { "name": "history",    "script": "chat-history-guard.cjs",    "args": "index.html" }
+  { "name": "history",    "script": "chat-history-guard.cjs",    "args": "index.html" },
+  { "name": "markdown",   "script": "markdown-guard.cjs",       "args": "index.html" }
 ]

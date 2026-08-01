@@ -62,3 +62,6 @@ call-mode-guard.cjs text eol=lf
 
 # Gate 12 (chat-history-guard). Same reason as every gate above.
 chat-history-guard.cjs text eol=lf
+
+# Gate 13 (markdown-guard). Same reason as every gate above.
+markdown-guard.cjs text eol=lf

@@ -488,7 +488,8 @@ head('14) GATE ROSTER (single source: gates.json)');
   // exactly like REFERRAL_CASES_EXPECTED above -- a silent drift here means a guard
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
-  const GATES_EXPECTED = 12;
+  // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
+  const GATES_EXPECTED = 13;
   // Root *.cjs files that are deliberately NOT gates (build helpers / one-shot tools).
   // Every root .cjs must be classified as either a gate (in gates.json) or listed here.
   const NON_GATE_CJS = new Set([

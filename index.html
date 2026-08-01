@@ -1536,7 +1536,13 @@ const formatForStreamPreview = (text) => {
   t = t.replace(/<steps[^>]*>[\s\S]*?<\/steps>/g, ' ');
   t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' '); // hide the source chip (tag + inner title) while streaming
   t = t.replace(/<\/?[a-z][^>]*>/gi, ' '); // any remaining tag
-  return t.replace(/\s+/g, ' ').trim();
+  // S93: horizontal whitespace collapses, NEWLINES SURVIVE. They used to be flattened with
+  // everything else, which was harmless while the preview was one run of plain text — but the
+  // preview is laid out now, and a heading, a list item and a table row are all defined by the
+  // line they sit on. Blank runs are still capped at one, so nothing gapes mid-stream.
+  t = t.replace(/[^\S\n]+/g, ' ');   // every whitespace EXCEPT the newline
+  t = t.replace(/[ \t]*\n[ \t]*/g, '\n');
+  return t.replace(/\n{3,}/g, '\n\n').trim();
 };
 
 // ============================================================
@@ -6340,7 +6346,11 @@ function App() {
         {streamingText !== null && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             {formatForStreamPreview(streamingText)
-              ? <div style={s.bubbleText}>{formatForStreamPreview(streamingText)}</div>
+              /* S93: the live preview formats too, so a heading or a bold phrase does not appear
+                 as ## and ** for a second and then re-flow when the reply settles. The renderer
+                 only formats constructs whose closing side has arrived, so the half-written tail
+                 of the stream stays literal text instead of flickering. */
+              ? <div style={s.bubbleText}><EzikMarkdown text={formatForStreamPreview(streamingText)} /></div>
               : searchingSources
                 ? <div style={s.searchingHint}>
                     <span>يبحث في المصادر…</span>
@@ -6727,6 +6737,252 @@ const serializeReply = (segments, ctx) => {
   return out.join('\n\n');
 };
 
+// ============================================================
+// S93 — عارض Markdown للعرض فقط (display-only Markdown)
+// ============================================================
+// The model writes ordinary Markdown — **bold**, ## headings, - lists, ---, | tables — and the
+// bubble printed those characters at the child. This turns them into layout instead. It is a
+// DISPLAY layer and nothing else: the raw reply is still what is stored, what is sent back as
+// history, what the clipboard copies and what the voice reads. Only the JSX changed.
+//
+// IT NEVER PARSES HTML AND IT NEVER INJECTS ANY. There is no dangerouslySetInnerHTML in it, and
+// no path that turns a string into markup: every output is a React element or a string child, so
+// anything HTML-shaped in the reply — <script>, an <img onerror=…>, an <iframe> — arrives as a
+// TEXT node and is escaped by React exactly as it is today. Markdown's own raw-HTML passthrough
+// is deliberately NOT implemented; there is nowhere for model-authored HTML to become an element.
+//
+// IT RUNS AFTER THE CARDS ARE SEPARATED. parseRichMessage has already lifted every verse, hadith,
+// source, dhikr, board, steps and document out into its own card before this is reached, so it
+// only ever sees seg.type === 'text' prose and no card body can be reformatted by it.
+//
+// IT IS SAFE ON A HALF-WRITTEN LINE. While a reply streams, the tail is arbitrary: an unclosed
+// **, a table whose delimiter row has not arrived, a heading with no text yet. EVERY rule below
+// requires its closing side before it formats anything, so an unfinished construct renders as the
+// literal characters it is made of and never swallows the rest of the message.
+
+// The inline rules. Each needs its CLOSING delimiter present, which is what makes a streaming
+// tail safe. `pre` names a leading group that is context, not part of the match.
+const EZ_MD_INLINE = [
+  // EVERY delimiter must HUG its content: an opener is followed by a non-space and a closer is
+  // preceded by one. That single rule is what keeps «٥ * ٣ = ١٥ و٢ * ٤ = ٨» as arithmetic instead
+  // of turning the middle of it into italics — the asterisks there are surrounded by spaces, so
+  // neither one can open anything.
+  { re: /`([^`\n]+)`/, tag: 'code', literal: true },
+  { re: /\*\*(\S|\S[^\n]*?\S)\*\*/, tag: 'strong' },
+  { re: /__(\S|\S[^\n]*?\S)__/, tag: 'strong' },
+  { re: /~~(\S|\S[^\n]*?\S)~~/, tag: 'del' },
+  // A single * is italic only between word boundaries, so a stray asterisk stays a stray asterisk.
+  { re: /(^|[\s(\[«"'،؛:.!?؟])\*(\S|\S[^*\n]*?\S)\*(?=$|[\s)\]»"'،؛:.!?؟])/, tag: 'em', group: 2, pre: 1 },
+];
+
+// Inline pass: emit the EARLIEST match, recurse into its content, continue after it. Anything the
+// rules do not claim is returned as a plain string child, which React escapes.
+function ezMdInline(text, keyPrefix) {
+  const out = [];
+  let rest = String(text == null ? '' : text);
+  let k = 0;
+  let guard = 0;
+  while (rest && guard++ < 600) {
+    let best = null;
+    for (let i = 0; i < EZ_MD_INLINE.length; i++) {
+      const rule = EZ_MD_INLINE[i];
+      const mm = rule.re.exec(rest);
+      if (!mm) continue;
+      const at = mm.index + (rule.pre ? mm[rule.pre].length : 0);
+      if (!best || at < best.at) best = { at: at, mm: mm, rule: rule };
+    }
+    if (!best) break;
+    const head = rest.slice(0, best.at);
+    if (head) out.push(head);
+    const rule = best.rule;
+    const inner = best.mm[rule.group || 1];
+    const key = keyPrefix + 'i' + (k++);
+    const consumed = best.mm[0].length - (rule.pre ? best.mm[rule.pre].length : 0);
+    // Code spans are literal by definition — nothing inside them is a rule.
+    out.push(React.createElement(rule.tag, { key: key, style: rule.literal ? s.mdCode : undefined },
+      rule.literal ? inner : ezMdInline(inner, key)));
+    rest = rest.slice(best.at + consumed);
+  }
+  if (rest) out.push(rest);
+  return out;
+}
+
+// One paragraph line, and the <br/> that separates it from the next — a single newline inside a
+// paragraph is a line break here, because a reply written for a child means it as one.
+function ezMdLines(lines, keyPrefix) {
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (i) out.push(React.createElement('br', { key: keyPrefix + 'br' + i }));
+    const parts = ezMdInline(lines[i], keyPrefix + 'l' + i);
+    for (let j = 0; j < parts.length; j++) out.push(parts[j]);
+  }
+  return out;
+}
+
+const EZ_MD_HR = /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/;
+const EZ_MD_HEAD = /^\s*(#{1,6})\s+(.+?)\s*#*\s*$/;
+const EZ_MD_UL = /^(\s*)[-*+]\s+(.*)$/;
+const EZ_MD_OL = /^(\s*)(\d{1,9})[.)]\s+(.*)$/;
+const EZ_MD_QUOTE = /^\s*>\s?(.*)$/;
+const EZ_MD_FENCE = /^\s*```+\s*[A-Za-z0-9+#_-]*\s*$/;
+// The delimiter row is what PROMOTES a line of pipes into a table. Until it arrives the header
+// line is still an ordinary paragraph, which is exactly what a half-streamed table should be.
+const EZ_MD_TABLE_SEP = /^\s*\|?\s*:?-{1,}:?\s*(\|\s*:?-{1,}:?\s*)*\|?\s*$/;
+
+function ezMdIsBlockStart(line) {
+  return !line.trim() || EZ_MD_HR.test(line) || EZ_MD_HEAD.test(line) || EZ_MD_UL.test(line) ||
+         EZ_MD_OL.test(line) || EZ_MD_QUOTE.test(line) || EZ_MD_FENCE.test(line);
+}
+function ezMdSplitRow(row) {
+  let r = String(row).trim();
+  if (r.charAt(0) === '|') r = r.slice(1);
+  if (r.charAt(r.length - 1) === '|') r = r.slice(0, -1);
+  return r.split('|').map((c) => c.trim());
+}
+// LOGICAL alignment, not physical. The page is RTL, so a leading colon means "the edge the text
+// starts at" and a trailing one means "the edge it ends at"; start/end let the direction decide,
+// and an undecorated column simply starts where the language starts.
+function ezMdAlign(cell) {
+  const c = String(cell).trim();
+  const l = c.charAt(0) === ':';
+  const r = c.charAt(c.length - 1) === ':';
+  if (l && r) return 'center';
+  if (r) return 'end';
+  return 'start';
+}
+
+// A table only exists once the DELIMITER ROW has arrived AND declares the same number of columns
+// the header did. Both halves matter: the row is what promotes a line of pipes into a table, and
+// the column count is what stops a half-typed «| --» mid-stream from doing it early. Returns the
+// parsed header and alignments, or null — and the paragraph gatherer asks the very same question,
+// so the two can never disagree about where a table begins.
+function ezMdTableAt(lines, i) {
+  if (i + 1 >= lines.length) return null;
+  const head = lines[i];
+  const sep = lines[i + 1];
+  if (head.indexOf('|') === -1 || sep.indexOf('-') === -1 || !EZ_MD_TABLE_SEP.test(sep)) return null;
+  const cells = ezMdSplitRow(head);
+  const align = ezMdSplitRow(sep).map(ezMdAlign);
+  if (align.length !== cells.length) return null;
+  return { head: cells, align: align };
+}
+
+// The block pass. Returns an array of React elements — never a string of markup.
+function ezMdBlocks(text) {
+  const src = String(text == null ? '' : text).replace(/\r\n?/g, '\n');
+  const lines = src.split('\n');
+  const out = [];
+  let i = 0;
+  let key = 0;
+  const K = () => 'b' + (key++);
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+
+    // fenced code — the body is literal, and an unclosed fence still renders what has arrived
+    if (EZ_MD_FENCE.test(line)) {
+      const body = [];
+      i++;
+      while (i < lines.length && !EZ_MD_FENCE.test(lines[i])) { body.push(lines[i]); i++; }
+      if (i < lines.length) i++;
+      const k = K();
+      out.push(React.createElement('pre', { key: k, style: s.mdPre },
+        React.createElement('code', null, body.join('\n'))));
+      continue;
+    }
+
+    if (EZ_MD_HR.test(line)) { out.push(React.createElement('hr', { key: K(), style: s.mdHr })); i++; continue; }
+
+    const h = line.match(EZ_MD_HEAD);
+    if (h) {
+      const lvl = h[1].length;
+      const k = K();
+      out.push(React.createElement('div', { key: k, style: (lvl <= 1 ? s.mdH1 : lvl === 2 ? s.mdH2 : s.mdH3), role: 'heading', 'aria-level': lvl },
+        ezMdInline(h[2], k)));
+      i++;
+      continue;
+    }
+
+    // table — only once the delimiter row confirms it
+    const tbl = ezMdTableAt(lines, i);
+    if (tbl) {
+      const head = tbl.head;
+      const align = tbl.align;
+      i += 2;
+      const rows = [];
+      while (i < lines.length && lines[i].trim() && lines[i].indexOf('|') !== -1 && !EZ_MD_HR.test(lines[i])) {
+        rows.push(ezMdSplitRow(lines[i]));
+        i++;
+      }
+      const k = K();
+      out.push(React.createElement('div', { key: k, style: s.mdTableWrap },
+        React.createElement('table', { style: s.mdTable },
+          React.createElement('thead', null,
+            React.createElement('tr', null, head.map((c, j) =>
+              React.createElement('th', { key: j, style: Object.assign({}, s.mdTh, { textAlign: align[j] || 'right' }) },
+                ezMdInline(c, k + 'h' + j))))),
+          React.createElement('tbody', null, rows.map((r, ri) =>
+            React.createElement('tr', { key: ri }, head.map((_, j) =>
+              React.createElement('td', { key: j, style: Object.assign({}, s.mdTd, { textAlign: align[j] || 'right' }) },
+                ezMdInline(r[j] == null ? '' : r[j], k + 'r' + ri + 'c' + j)))))))));
+      continue;
+    }
+
+    // blockquote
+    if (EZ_MD_QUOTE.test(line)) {
+      const body = [];
+      while (i < lines.length && EZ_MD_QUOTE.test(lines[i])) { body.push(lines[i].match(EZ_MD_QUOTE)[1]); i++; }
+      const k = K();
+      out.push(React.createElement('div', { key: k, style: s.mdQuote }, ezMdLines(body, k)));
+      continue;
+    }
+
+    // lists — a following indented line continues the item it belongs to
+    if (EZ_MD_UL.test(line) || EZ_MD_OL.test(line)) {
+      // A line begins with either a digit or a bullet, never both, so the two cannot disagree.
+      const isOrdered = EZ_MD_OL.test(line);
+      const items = [];
+      const startAt = isOrdered ? parseInt(line.match(EZ_MD_OL)[2], 10) : 1;
+      while (i < lines.length) {
+        const cur = lines[i];
+        const mu = cur.match(EZ_MD_UL);
+        const mo = cur.match(EZ_MD_OL);
+        const sameKind = isOrdered ? (!!mo && !mu) : !!mu;
+        if (sameKind) { items.push([isOrdered ? mo[3] : mu[2]]); i++; continue; }
+        if (items.length && cur.trim() && /^\s{2,}/.test(cur) && !ezMdIsBlockStart(cur)) {
+          items[items.length - 1].push(cur.trim()); i++; continue;
+        }
+        break;
+      }
+      const k = K();
+      out.push(React.createElement(isOrdered ? 'ol' : 'ul',
+        { key: k, style: isOrdered ? s.mdOl : s.mdUl, start: isOrdered && startAt !== 1 ? startAt : undefined },
+        items.map((it, ii) => React.createElement('li', { key: ii, style: s.mdLi }, ezMdLines(it, k + 'i' + ii)))));
+      continue;
+    }
+
+    // paragraph — everything up to a blank line or the start of another block
+    const para = [line];
+    i++;
+    while (i < lines.length && lines[i].trim() && !ezMdIsBlockStart(lines[i]) && !ezMdTableAt(lines, i)) {
+      para.push(lines[i]); i++;
+    }
+    const k = K();
+    out.push(React.createElement('div', { key: k, style: s.mdP }, ezMdLines(para, k)));
+  }
+  return out;
+}
+
+// The component the bubble renders. Memoised on the string, because the whole thread re-renders
+// on every streaming delta and a settled reply must not be re-parsed for each one.
+const EzikMarkdown = React.memo(function EzikMarkdown({ text }) {
+  const t = String(text == null ? '' : text);
+  if (!t.trim()) return null;
+  const blocks = ezMdBlocks(t);
+  if (!blocks.length) return null;
+  return React.createElement(React.Fragment, null, blocks);
+});
+
 function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel }) {
   const isUser = message.role === 'user';
   if (isUser) {
@@ -6753,7 +7009,13 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
       <div style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {segments.map((seg, i) => {
           if (seg.type === 'text') {
-            return <div key={i} style={s.bubbleText}>{tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)}</div>;
+            // S93: PROSE ONLY, and the last thing that happens to it. The cards were separated
+            // above, the tashkeel toggle has already had its say (it removes diacritics and
+            // touches no Markdown character), and what remains is turned into layout for the eye.
+            // seg.content itself is untouched — the clipboard, the voice and the stored thread all
+            // still read the raw text, which is why an old saved conversation formats too: the
+            // formatting is computed here, at display, from text that was never rewritten.
+            return <div key={i} style={s.bubbleText}><EzikMarkdown text={tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)} /></div>;
           }
           if (seg.type === 'verse') {
             return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
@@ -10075,6 +10337,25 @@ const s = {
   userBubble: { alignSelf: 'flex-start', background: 'linear-gradient(135deg, var(--accent-fill) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', borderRadius: 18, borderBottomRightRadius: 6, boxShadow: '0 4px 12px rgba(29,78,216,0.22)', padding: '11px 15px', fontSize: 15 },
   assistantBubble: { background: 'var(--white)', color: 'var(--ink)', borderRadius: 18, borderBottomLeftRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid var(--line)', fontSize: 15 },
   bubbleText: { overflowWrap: 'anywhere', /* 13.4-b2 */ lineHeight: 1.85, fontSize: 15, color: 'var(--ink)' },
+  // S93: the Markdown blocks. Every colour is an EXISTING variable -- --ink, --muted, --line,
+  // --tint, --red -- so both palettes already answer for them and no theme value is added,
+  // changed or overridden. Sizes are relative to the bubble text they sit in.
+  mdP: { margin: 0 },
+  mdH1: { margin: '2px 0 2px', fontSize: 18, fontWeight: 700, lineHeight: 1.6, color: 'var(--ink)' },
+  mdH2: { margin: '2px 0 2px', fontSize: 16.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--ink)' },
+  mdH3: { margin: '2px 0 2px', fontSize: 15.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--ink)' },
+  mdHr: { border: 'none', borderTop: '1px solid var(--line)', margin: '10px 0' },
+  mdUl: { margin: '2px 0', paddingInlineStart: 22, listStyleType: 'disc' },
+  mdOl: { margin: '2px 0', paddingInlineStart: 22 },
+  mdLi: { margin: '2px 0' },
+  mdQuote: { margin: '2px 0', padding: '6px 12px', borderInlineStart: '3px solid var(--line)', color: 'var(--muted)' },
+  mdCode: { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: '0.92em', background: 'var(--tint)', borderRadius: 6, padding: '1px 5px', direction: 'ltr', unicodeBidi: 'embed', display: 'inline-block' },
+  mdPre: { margin: '4px 0', padding: '10px 12px', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 10, overflowX: 'auto', direction: 'ltr', textAlign: 'left', fontSize: 13.5, lineHeight: 1.6, whiteSpace: 'pre' },
+  // A wide table scrolls INSIDE its own box; the bubble itself must never scroll sideways.
+  mdTableWrap: { margin: '4px 0', overflowX: 'auto', maxWidth: '100%' },
+  mdTable: { borderCollapse: 'collapse', width: '100%', fontSize: 14.2 },
+  mdTh: { border: '1px solid var(--line)', background: 'var(--tint)', padding: '7px 10px', fontWeight: 700, whiteSpace: 'nowrap' },
+  mdTd: { border: '1px solid var(--line)', padding: '7px 10px', verticalAlign: 'top' },
   typingDots: { display: 'flex', gap: 4, padding: '4px 0' },
   searchingHint: { display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', fontSize: 14, color: 'var(--red)' },
   dot: { fontSize: 10, color: 'var(--red)', animation: 'typing 1.4s infinite' },
