@@ -1200,7 +1200,16 @@ function partE() {
   eq('...and both display sites call it', callers, 2);
   ok('...so no screen maps segments to cards on its own',
     !/segments\.map\(\(seg/.test(decoded) && !/\.map\(\(seg, i\) => \{[\s\S]{0,200}seg\.type === 'verse'/.test(decoded));
-  ok('the favourites screen renders through it', /FavoritesScreen[\s\S]{0,2600}?ezikRenderSegments\(/.test(decoded));
+  ok('the favourites card renders through it', /function FavoriteReplyBody[\s\S]{0,900}?ezikRenderSegments\(shown/.test(decoded));
+  ok('...and the favourites screen draws its replies with that card',
+    /function FavoritesScreen[\s\S]{0,2600}?<FavoriteReplyBody /.test(decoded));
+  // The fold reaches BOTH surfaces, through the same function and the same pair of labels — a
+  // long favourite that could not be folded pushed its own copy/remove/open buttons off-screen.
+  ok('the favourites card folds a long reply too',
+    /function FavoriteReplyBody[\s\S]{0,600}?ezikFoldSegments\(segments, EZIK_FOLD_MIN_CHARS, EZIK_FOLD_HEAD_CHARS\)/.test(decoded));
+  eq('the fold labels are declared once and shared', (decoded.match(/const EZIK_FOLD_SHOW = /g) || []).length, 1);
+  ok('...and both surfaces use them, not their own strings',
+    (decoded.match(/EZIK_FOLD_SHOW/g) || []).length >= 3 && (decoded.match(/EZIK_FOLD_HIDE/g) || []).length >= 3);
 
   // FAVOURITES: separate store, separate key, and it never touches the conversation schema.
   ok('the favourites key is its own versioned key', /const EZIK_FAVS_KEY = 'ezik_favorite_replies_v1';/.test(decoded));

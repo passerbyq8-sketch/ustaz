@@ -4442,6 +4442,12 @@ function ezikFavDate(at) {
   try { return new Date(at).toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric' }); }
   catch (e) { try { return new Date(at).toISOString().slice(0, 10); } catch (e2) { return ''; } }
 }
+// The compact form, for the dense search-results list where a spelled-out month wraps.
+function ezikShortDate(at) {
+  if (!at) return '';
+  try { return new Date(at).toLocaleDateString('ar-KW', { year: 'numeric', month: 'numeric', day: 'numeric' }); }
+  catch (e) { return ezikFavDate(at); }
+}
 
 // ============================================================
 // S98 — البحث المحلي (local search, in the menu and in the favourites)
@@ -7297,11 +7303,11 @@ function App() {
                   <div style={s.drawerSectionLabel}>{EZIK_SEARCH_RESULTS}</div>
                   {chatResults.length === 0 && <div style={s.drawerEmpty}>{EZIK_SEARCH_NONE}</div>}
                   {chatResults.map((r) => (
-                    <div key={r.id} style={{ ...s.drawerChatRow, background: (r.id === chatId ? 'var(--tint)' : 'transparent') }}>
-                      <button onClick={() => closeDrawerWith(() => openSavedChat(r.id))} style={{ ...s.drawerChatOpen, flexDirection: 'column', alignItems: 'stretch', gap: 2 }} title={r.title} className="ezik-focus">
-                        <span style={s.drawerChatTitle}>{r.title}</span>
+                    <div key={r.id} style={{ ...s.drawerResultRow, background: (r.id === chatId ? 'var(--tint)' : 'transparent') }}>
+                      <button onClick={() => closeDrawerWith(() => openSavedChat(r.id))} style={s.drawerResultBtn} title={r.title} className="ezik-focus">
+                        <span style={s.drawerResultTitle}>{r.title}</span>
                         {r.snippet && <span style={s.drawerSnippet}>{r.snippet}</span>}
-                        {r.at ? <span style={s.drawerSnippet}>{ezikFavDate(r.at)}</span> : null}
+                        {r.at ? <span style={s.drawerResultDate}>{ezikShortDate(r.at)}</span> : null}
                       </button>
                     </div>
                   ))}
@@ -7530,6 +7536,10 @@ const serializeReply = (segments, ctx) => {
 // decide by and still shorter than the screen it saves.
 const EZIK_FOLD_MIN_CHARS = 900;    // total prose length past which a completed reply folds
 const EZIK_FOLD_HEAD_CHARS = 320;   // prose shown while it is folded
+// One pair of labels for the two places a reply folds — the chat bubble and the favourites card —
+// so the two can never drift into saying different things about the same control.
+const EZIK_FOLD_SHOW = 'عرض بقية الرد';
+const EZIK_FOLD_HIDE = 'إخفاء التفاصيل';
 
 function ezikProseLength(segments) {
   let n = 0;
@@ -8012,11 +8022,11 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
             type="button"
             onClick={() => setFoldOpenKey(foldOpen ? null : message.content)}
             aria-expanded={foldOpen ? 'true' : 'false'}
-            aria-label={foldOpen ? 'إخفاء التفاصيل' : 'عرض بقية الرد'}
+            aria-label={foldOpen ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}
             className="ezik-focus"
             style={s.foldToggle}
           >
-            <span>{foldOpen ? 'إخفاء التفاصيل' : 'عرض بقية الرد'}</span>
+            <span>{foldOpen ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}</span>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: foldOpen ? 'rotate(180deg)' : 'none' }}>
               <polyline points="6 9 12 15 18 9" />
             </svg>
@@ -8080,6 +8090,35 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
 // A saved reply is drawn through ezikRenderSegments, the SAME renderer the chat bubble uses, so
 // its ayah, hadith and source card appear here exactly as they did in the conversation and no raw
 // tag can reach the reader by a second path.
+// One saved reply's body, and it folds exactly as the chat bubble does — through the same
+// ezikFoldSegments and the same toggle. Without it a single long favourite filled several screens
+// and pushed its own copy/remove/open buttons far below the fold, which made the list unusable at
+// the one length that most needs saving.
+function FavoriteReplyBody({ segments, age, tashkeel }) {
+  const [open, setOpen] = useState(false);
+  const folded = React.useMemo(
+    () => ezikFoldSegments(segments, EZIK_FOLD_MIN_CHARS, EZIK_FOLD_HEAD_CHARS),
+    [segments]);
+  const shown = (folded && !open) ? folded : segments;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {ezikRenderSegments(shown, { tashkeel, age })}
+      {folded && (
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open ? 'true' : 'false'}
+          aria-label={open ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}
+          className="ezik-focus"
+          style={{ ...s.foldToggle, alignSelf: 'flex-start' }}
+        >
+          <span>{open ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age, tashkeel, query, onQuery, searching, total }) {
   return (
     <div style={s.favScreen}>
@@ -8112,9 +8151,7 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
           return (
             <div key={f.id} style={s.favCard}>
               {when && <div style={s.favMeta}>{when}</div>}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {ezikRenderSegments(parsed.segments, { tashkeel, age })}
-              </div>
+              <FavoriteReplyBody segments={parsed.segments} age={age} tashkeel={tashkeel} />
               <div style={s.favRow}>
                 <CopyReplyButton
                   text={String(f.text || '').trim()}
@@ -11371,7 +11408,15 @@ const s = {
   drawerSearchWrap: { padding: '2px 2px 8px' },
   drawerSearch: { width: '100%', minHeight: 40, padding: '9px 12px', background: 'var(--white)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 12, fontSize: 14.5, fontFamily: 'inherit', textAlign: 'right', outline: 'none' },
   drawerEmpty: { padding: '10px 12px', fontSize: 13, color: 'var(--muted)' },
-  drawerSnippet: { display: 'block', fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' },
+  // A RESULT IS A BLOCK, not a one-line row. It carries a title, a snippet and a date, and the
+  // shared drawerChatRow (a centred flex line with a fixed 44px floor) let those three collide:
+  // the date of one result printed over the title of the next. Explicit line heights and a
+  // separator between rows are the fix; both were missing, not merely tight.
+  drawerResultRow: { borderBottom: '1px solid var(--line)' },
+  drawerResultBtn: { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 3, width: '100%', minWidth: 0, padding: '10px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, color: 'var(--ink)', textAlign: 'right' },
+  drawerResultTitle: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', fontWeight: 600, lineHeight: 1.5 },
+  drawerResultDate: { fontSize: 11.5, lineHeight: 1.5, color: 'var(--muted)' },
+  drawerSnippet: { display: 'block', fontSize: 12, lineHeight: 1.6, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' },
   drawerBadge: { minWidth: 22, padding: '1px 7px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red)', fontSize: 12, fontWeight: 700, textAlign: 'center' },
   favScreen: { height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', color: 'var(--ink)' },
   favBody: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 14px calc(16px + env(safe-area-inset-bottom, 0px))', display: 'flex', flexDirection: 'column', gap: 10 },
