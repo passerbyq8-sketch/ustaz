@@ -4329,11 +4329,11 @@ function ezikMigrateLegacyThread(pk) {
 // which is precisely why a favourite carries its OWN copy of the text.
 //
 // A record is the minimum that lets the favourites screen stand on its own:
-//   id      — a STABLE local id derived from the reply text itself, so "is this one saved?" is
-//             answerable after a reload without writing a single byte into the message. Nothing
-//             about a message object changes, ever.
-//   pk      — the profile it belongs to, the same isolation every chat read applies.
-//   chatId  — the conversation it came from, or null. Only ever used to OFFER to open it.
+//   id      — the identity of a saved reply. See ezikFavId: it is a POSITION, not a text.
+//   pk      — the profile it belongs to, the same isolation every chat read applies. REQUIRED.
+//   chatId  — the conversation it came from, or null for a thread not yet filed. Used to offer to
+//             open THAT conversation, and it is part of the identity.
+//   idx     — the reply's position in that conversation, and part of the identity.
 //   at      — when it was saved.
 //   snippet — a clean, tag-free line for the list.
 //   text    — the reply VERBATIM, which is what keeps it readable after its conversation is gone.
@@ -4341,9 +4341,7 @@ const EZIK_FAVS_KEY = 'ezik_favorite_replies_v1';
 const EZIK_FAVS_MAX = 200;
 const EZIK_FAV_SNIPPET_MAX = 140;
 
-// FNV-1a over the reply text, plus its length. Cheap, stable across reloads and devices, and it
-// needs no store of its own. A collision would only mean two identical-length replies shared a
-// star; at 200 records that is not a risk worth a heavier hash.
+// FNV-1a over a string. Cheap, stable across reloads and devices, and it needs no store of its own.
 function ezikHashText(t) {
   const str = String(t == null ? '' : t);
   let h = 0x811c9dc5;
@@ -4354,9 +4352,40 @@ function ezikHashText(t) {
   return 'r' + h.toString(16) + '-' + str.length.toString(36);
 }
 
+// THE IDENTITY OF A SAVED REPLY, and it is a POSITION rather than a text.
+//
+// It used to be the hash of the reply alone, and that was wrong in two ways that only show up on a
+// real device. Two conversations can hold the SAME answer — ask the same question twice and you
+// get it — and the two would have shared one star and one "open the original", so starring the
+// second silently re-pointed the first. Worse, two CHILDREN on one device could produce the same
+// answer, and with the id equal the second child's star would have removed the first child's
+// favourite: one profile reaching into another's data, which is the one thing this app's storage
+// discipline exists to prevent.
+//
+// So the identity is (profile, conversation, position in that conversation), and the reply's text
+// hash rides along as a VERIFICATION term: if the reply at that position is not the text that was
+// saved, the id does not match and no stale star is drawn. `idx` is sound as a position because a
+// thread is append-only — every path that commits a turn pushes onto the end, and the only thing
+// that ever removes messages is resetThread, which empties the whole thread and drops its chatId
+// with it. Nothing about a MESSAGE object changes: the index is read where the thread is already
+// being mapped, and no byte is written into the conversation store.
+//
+// chatId is null only for a thread that has not been filed yet — the boot greeting, before the
+// first question mints an id. Such a favourite is honest about having no conversation to return
+// to; the screen says so rather than offering a button that would do nothing.
+function ezikFavId(pk, chatId, idx, text) {
+  return String(pk || '') + '|' + String(chatId || '-') + '|' + String(idx) + '|' + ezikHashText(text);
+}
+
 // EVERY read is defensive, because this is a file on a device: it can be absent, it can be
-// truncated, it can be hand-edited, and an old build could have written a record missing a field.
-// None of those may reach the screen as an exception — the worst case is "no favourites".
+// truncated, it can be hand-edited, and a half-written record can be left behind. None of those
+// may reach the screen as an exception — the worst case is "no favourites".
+//
+// A record with no `pk`, or no `id`, is CORRUPT and is dropped. Neither can be recovered: the id
+// is a position and cannot be re-derived from the text, and a record with no owner would otherwise
+// have to be shown to every profile on the device — which is precisely the leak this file is
+// written to prevent. The feature has never shipped, so nothing real can be lost here and no
+// migration is owed to it.
 function ezikReadFavs() {
   let raw;
   try { raw = localStorage.getItem(EZIK_FAVS_KEY); } catch (e) { return []; }
@@ -4370,10 +4399,13 @@ function ezikReadFavs() {
     if (!r || typeof r !== 'object') continue;
     const text = typeof r.text === 'string' ? r.text : '';
     if (!text) continue;                                  // a record with no reply in it is not one
+    if (typeof r.pk !== 'string' || !r.pk) continue;      // no owner: corrupt, and never shown
+    if (typeof r.id !== 'string' || !r.id) continue;      // no identity: corrupt, cannot be rebuilt
     out.push({
-      id: (typeof r.id === 'string' && r.id) ? r.id : ezikHashText(text),
-      pk: (typeof r.pk === 'string' && r.pk) ? r.pk : null,
+      id: r.id,
+      pk: r.pk,
       chatId: (typeof r.chatId === 'string' && r.chatId) ? r.chatId : null,
+      idx: (typeof r.idx === 'number' && isFinite(r.idx)) ? r.idx : -1,
       at: (typeof r.at === 'number' && isFinite(r.at)) ? r.at : 0,
       snippet: (typeof r.snippet === 'string' && r.snippet) ? r.snippet : ezikFavSnippet(text),
       text: text,
@@ -4409,9 +4441,9 @@ function ezikFavSnippet(text) {
   return clean;
 }
 
-function ezikMakeFav(text, pk, chatId) {
+function ezikMakeFav(text, pk, chatId, idx) {
   const t = String(text == null ? '' : text);
-  return { id: ezikHashText(t), pk: pk || null, chatId: chatId || null, at: Date.now(), snippet: ezikFavSnippet(t), text: t };
+  return { id: ezikFavId(pk, chatId, idx, t), pk: pk || null, chatId: chatId || null, idx: idx, at: Date.now(), snippet: ezikFavSnippet(t), text: t };
 }
 
 // "Delete all my data" has to mean the favourites too.
@@ -4604,6 +4636,28 @@ function App() {
   // the same task both see the truth instead of the same stale array.
   const [favs, setFavs] = useState(ezikReadFavs);
   const favsRef = useRef(favs);
+  // S98: WHICH REPLIES ARRIVED LIVE IN THIS THREAD, by position. A long reply is watched in full
+  // while it streams, so folding it the instant it settles would shrink the very text that was
+  // being read — a jump, and the one thing the fold is not allowed to cause. A reply whose index
+  // is in here opens EXPANDED; everything else opens folded, which is what a conversation restored
+  // from the store gets. It holds numbers, it is never written to storage, and it is emptied by
+  // resetThread and by openSavedChat — so a new chat, or another conversation, starts with none.
+  // The membership is decided by the real streaming transition (the line that retires
+  // streamingText and pushes the finished reply), never by comparing text.
+  const [streamedOpen, setStreamedOpen] = useState(() => new Set());
+  // WHICH THREAD IS ON SCREEN, as a number that changes every time the thread is REPLACED — a
+  // conversation opened, or a new chat started. Nothing else changes it, because nothing else
+  // replaces the thread: every other path appends. A bubble carries it as the key of whatever the
+  // reader did to its fold, so opening a conversation invalidates every manual expand at once and
+  // a restored reply comes back folded, however identical its text is to the one just read.
+  const [threadEpoch, setThreadEpoch] = useState(0);
+  const newThreadEpoch = () => setThreadEpoch((n) => n + 1);
+  const markStreamedOpen = (idx) => setStreamedOpen((prev) => {
+    if (prev.has(idx)) return prev;
+    const next = new Set(prev);
+    next.add(idx);
+    return next;
+  });
   // D88: seeded from the SAME reader the boot script used, so the first render already agrees
   // with the attribute already on <html>. No effect runs at mount, so nothing can repaint.
   const [theme, setTheme] = useState(readStoredTheme);
@@ -5359,6 +5413,8 @@ function App() {
     chatIdRef.current = null;
     setChatId(null);
     setMessages([]);
+    setStreamedOpen(new Set());   // S98: a new thread inherits nobody's expanded replies
+    newThreadEpoch();             // ...and nobody's manual ones either
     setStreamingText(null);
     setIsLoading(false);
     setInput('');
@@ -5397,6 +5453,8 @@ function App() {
     skipFollowRef.current = 1;   // the one follow-effect run this open is about to cause
     setChatId(id);
     setMessages(ezikReadChatMessages(id));
+    setStreamedOpen(new Set());   // S98: a restored conversation opens with every long reply folded
+    newThreadEpoch();             // ...including one the reader had expanded a moment ago
     setStreamingText(null);
     setIsLoading(false);
     setInput('');
@@ -5412,11 +5470,12 @@ function App() {
   // reads the store, and no component holds its own copy — which is what stops a screen from
   // showing a record the disk refused, or a star that disagrees with the list behind it.
   const favPk = ezikProfileKey(profileRef.current || profile);
-  // This profile's favourites, newest first. A record written before pk existed (a hand-edited or
-  // half-written entry) is shown rather than hidden: losing sight of a saved reply is worse than
-  // showing one whose owner was never recorded.
+  // THIS PROFILE'S FAVOURITES, and only this profile's. The match is exact: a record whose owner
+  // is anything other than the active profile is not shown, not counted in the menu badge, and
+  // not reachable from any screen. A record with no owner at all never gets this far — the reader
+  // drops it — so there is no "belongs to everyone" case left for a second child to fall into.
   const myFavs = React.useMemo(
-    () => favs.filter((f) => f.pk === null || f.pk === favPk).sort((a, b) => (b.at || 0) - (a.at || 0)),
+    () => favs.filter((f) => f.pk === favPk).sort((a, b) => (b.at || 0) - (a.at || 0)),
     [favs, favPk]);
   // The lookup a bubble is asked for. A Set, rebuilt once per change — never a scan per bubble.
   const favIdSet = React.useMemo(() => {
@@ -5424,15 +5483,15 @@ function App() {
     for (let i = 0; i < myFavs.length; i++) set.add(myFavs[i].id);
     return set;
   }, [myFavs]);
-  // WHICH BUBBLE WEARS A FILLED STAR, decided ONCE per change of the thread or of the favourites —
-  // never per render. Hashing a reply is O(its length), so asking the question inside the map
-  // would have re-hashed every answer in a 120-turn conversation on every keystroke in the
-  // composer: exactly the class of defect S97 removed from the markdown parse. A user turn is not
-  // hashed at all.
+  // WHICH BUBBLE WEARS A FILLED STAR, decided ONCE per change of the thread, the conversation, the
+  // profile or the favourites — never per render. Hashing a reply is O(its length), so asking the
+  // question inside the map would have re-hashed every answer in a 120-turn conversation on every
+  // keystroke in the composer: exactly the class of defect S97 removed from the markdown parse. A
+  // user turn is not hashed at all. The index the map already has IS the position term of the id.
   const favFlags = React.useMemo(
-    () => messages.map((m) => !!(m && m.role === 'assistant' && typeof m.content === 'string' && m.content
-      && favIdSet.has(ezikHashText(m.content)))),
-    [messages, favIdSet]);
+    () => messages.map((m, i) => !!(m && m.role === 'assistant' && typeof m.content === 'string' && m.content
+      && favIdSet.has(ezikFavId(favPk, chatId, i, m.content)))),
+    [messages, favIdSet, favPk, chatId]);
   // The ONE writer. It reads the ref, not the state, so a fast double tap toggles twice rather
   // than adding the same reply twice; it adopts whatever the store actually accepted, so a full
   // or refused store never leaves the screen claiming something was saved when it was not.
@@ -5443,15 +5502,20 @@ function App() {
     setFavs(settled);
     return written !== null;
   };
-  const toggleFavoriteReply = (msg) => {
+  // The ONE writer's toggle. `idx` is the bubble's own position, handed down from the map that
+  // already had it — no message object is touched to obtain it. chatIdRef is read rather than the
+  // chatId state because it is the synchronous truth: the id is minted inside saveMessages during
+  // the same turn, and a tap landing before React has committed that state must still file the
+  // favourite under the conversation it really belongs to.
+  const toggleFavoriteReply = (msg, idx) => {
     const text = (msg && typeof msg.content === 'string') ? msg.content : '';
     if (!text.trim()) return;
-    const id = ezikHashText(text);
+    const id = ezikFavId(favPk, chatIdRef.current, idx, text);
     const cur = favsRef.current;
     const exists = cur.some((f) => f.id === id);
     applyFavs(exists
       ? cur.filter((f) => f.id !== id)
-      : [ezikMakeFav(text, favPk, chatIdRef.current)].concat(cur.filter((f) => f.id !== id)));
+      : [ezikMakeFav(text, favPk, chatIdRef.current, idx)].concat(cur.filter((f) => f.id !== id)));
   };
   const removeFavorite = (id) => applyFavs(favsRef.current.filter((f) => f.id !== id));
 
@@ -6302,6 +6366,7 @@ function App() {
     setStreamingText(null);
     const newMsgs = [{ role: 'assistant', content: reply, timestamp: new Date().toISOString() }];
     setMessages(newMsgs);
+    markStreamedOpen(0);   // S98: the greeting streams too, and settles by the same rule
     saveMessages(newMsgs);
     setIsLoading(false);
     if (voiceMode) speakReply(reply); // audio runs on the final full text only — as today
@@ -6471,6 +6536,12 @@ function App() {
     const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString() };
     const final = [...updated, aiMsg];
     setMessages(final);
+    // S98: THIS LINE IS THE STREAMING TRANSITION — setStreamingText(null) two lines up retires the
+    // live preview and this push puts the finished reply in its place. Recording the position here
+    // is what keeps a long answer at the length it was just read at, instead of collapsing under
+    // the reader the moment it finished arriving. Batched with the setMessages above, so the
+    // bubble's first commit already knows it is open and there is no intermediate folded frame.
+    markStreamedOpen(final.length - 1);
     saveMessages(final);
     setIsLoading(false);
     if (voiceMode) speakReply(reply); // audio runs on the final full text — not during the stream
@@ -6563,7 +6634,7 @@ function App() {
   const cbPlayMessage = React.useCallback((t) => bubbleFnRef.current.speak(t), []);
   const cbToggleTashkeel = React.useCallback(() => bubbleFnRef.current.toggleTashkeel(), []);
   const cbQuote = React.useCallback((t) => bubbleFnRef.current.quote(t), []);
-  const cbFavorite = React.useCallback((m) => bubbleFnRef.current.favorite(m), []);
+  const cbFavorite = React.useCallback((m, idx) => bubbleFnRef.current.favorite(m, idx), []);
   // The report needs the reply AND the question before it, which used to be closed over per bubble.
   // The index is a stable prop; the pair is looked up on the tap, off the current thread.
   const cbReport = React.useCallback((idx) => {
@@ -7049,7 +7120,7 @@ function App() {
       </div>
 
       <div ref={messagesAreaRef} onScroll={onMessagesScroll} style={s.messagesArea}>
-        {messages.map((m, i) => <MessageBubble key={i} index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} />)}
+        {messages.map((m, i) => <MessageBubble key={i} index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} />)}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
             inside MessageBubble — so an old conversation does not carry a strip beneath every one
             of its 60 answers, and a keystroke in the composer cannot re-render 60 of them. They
@@ -7953,7 +8024,7 @@ function ezikRenderSegments(segments, ctx) {
 // identity the thread preserves across a re-render) or a callback App pins to one identity — so a
 // keystroke in the composer re-renders the composer and NOT the thread. See the note beside the
 // pinned callbacks in App for the measurement that made this necessary.
-const MessageBubble = React.memo(function MessageBubble({ message, index, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite }) {
+const MessageBubble = React.memo(function MessageBubble({ message, index, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite, defaultOpen, foldEpoch }) {
   const isUser = message.role === 'user';
   // S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's
   // composer state lives on App -- so a single keystroke re-parsed the whole thread. On a 120-turn
@@ -7978,11 +8049,19 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
   // when a conversation is replaced, and a hook below the return would change the hook COUNT the
   // moment the role at that index flipped.
   //
-  // The open state is keyed by the reply's own TEXT rather than by a bare boolean, so an instance
-  // reused for a different message opens closed — no effect, no reset, nothing to get stale. The
-  // key is the string the message already holds, so nothing is copied to hold it. It is UI state
-  // and it is deliberately not stored: reopening the app folds every long reply again.
-  const [foldOpenKey, setFoldOpenKey] = React.useState(null);
+  // WHERE THE FOLD STARTS is App's to say (`defaultOpen`): a reply that just finished streaming in
+  // this thread opens EXPANDED, everything else opens folded. WHAT THE USER DID TO IT since is
+  // this component's to remember, and it overrides the default in either direction — so the button
+  // works on a streamed reply exactly as it does on a restored one.
+  //
+  // The override carries the THREAD EPOCH as its key. Bubbles are keyed by index, so React reuses
+  // the instance at index i whenever the thread is replaced; without a key, a reply the reader had
+  // expanded would hand that state to whatever reply later occupied the slot — and, since a
+  // reopened conversation holds the very same text at the very same index, a text key could not
+  // tell the two apart either. The epoch can: it changes on exactly the two events that replace a
+  // thread. Everything else appends, so an epoch that has not changed means the same thread. It is
+  // UI state and it is deliberately not stored: reopening the app folds every long reply again.
+  const [foldOverride, setFoldOverride] = React.useState(null);   // { epoch, open } | null
   const foldView = React.useMemo(
     () => (isUser ? null : ezikFoldSegments(segments, EZIK_FOLD_MIN_CHARS, EZIK_FOLD_HEAD_CHARS)),
     [isUser, segments]);
@@ -8008,7 +8087,8 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
   // every export path all read `segments` / message.content — the WHOLE reply — so a folded reply
   // is copied, spoken and exported in full.
   const canFold = !!foldView;
-  const foldOpen = canFold && foldOpenKey !== null && foldOpenKey === message.content;
+  const overrideActive = !!foldOverride && foldOverride.epoch === foldEpoch;
+  const foldOpen = canFold && (overrideActive ? foldOverride.open : !!defaultOpen);
   const shownSegments = (canFold && !foldOpen) ? foldView : segments;
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
@@ -8020,7 +8100,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
         {canFold && (
           <button
             type="button"
-            onClick={() => setFoldOpenKey(foldOpen ? null : message.content)}
+            onClick={() => setFoldOverride({ epoch: foldEpoch, open: !foldOpen })}
             aria-expanded={foldOpen ? 'true' : 'false'}
             aria-label={foldOpen ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}
             className="ezik-focus"
@@ -8049,7 +8129,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
         {onFavorite && (
           <button
             type="button"
-            onClick={() => onFavorite(message)}
+            onClick={() => onFavorite(message, index)}
             aria-pressed={isFavorite ? 'true' : 'false'}
             aria-label={isFavorite ? EZIK_FAV_DEL : EZIK_FAV_ADD}
             className="ezik-focus"

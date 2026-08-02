@@ -244,6 +244,12 @@ function buildContext(opts) {
       _depth: () => at,
     };
   } catch (e) { /* getter-only in this DOM */ }
+  // The SSE reader in callAI decodes with TextDecoder, and submitReport measures bytes with
+  // TextEncoder. Neither is a linkedom global and neither is inherited by a vm context, so the
+  // streaming path would throw before a single frame was read.
+  try { if (!window.TextDecoder) window.TextDecoder = TextDecoder; } catch (e) {}
+  try { if (!window.TextEncoder) window.TextEncoder = TextEncoder; } catch (e) {}
+  try { if (!window.AbortController) window.AbortController = AbortController; } catch (e) {}
   global.navigator = window.navigator;
   global.window = window;
   global.document = window.document;
@@ -696,8 +702,31 @@ function partDStore() {
   eq('an empty reply still hashes without throwing', typeof hash(''), 'string');
   eq('a null reply still hashes without throwing', typeof hash(null), 'string');
 
+  // ===== THE IDENTITY OF A SAVED REPLY IS A POSITION, NOT A TEXT =====
+  // This is the whole of the isolation, and it is checked here as arithmetic before it is checked
+  // through the UI below. The same answer can legitimately exist in two conversations, and on two
+  // children's profiles on one device; with the id equal, one star would have driven both and one
+  // child's tap would have removed the other child's favourite.
+  const favId = c.grab('ezikFavId');
+  if (!ok('the favourite identity function is on the page', typeof favId === 'function')) return;
+  const SAME = 'الجواب نفسه حرفًا بحرف';
+  eq('the same reply at the same place has one identity', favId('P1', 'C1', 3, SAME), favId('P1', 'C1', 3, SAME));
+  ok('THE SAME TEXT IN TWO CONVERSATIONS IS TWO DIFFERENT FAVOURITES',
+    favId('P1', 'C1', 3, SAME) !== favId('P1', 'C2', 3, SAME));
+  ok('THE SAME TEXT ON TWO PROFILES IS TWO DIFFERENT FAVOURITES',
+    favId('P1', 'C1', 3, SAME) !== favId('P2', 'C1', 3, SAME));
+  ok('the same text twice in ONE conversation is two different favourites',
+    favId('P1', 'C1', 3, SAME) !== favId('P1', 'C1', 9, SAME));
+  ok('...and a different reply at the same place is different again',
+    favId('P1', 'C1', 3, SAME) !== favId('P1', 'C1', 3, SAME + '!'));
+  ok('the id carries the profile, so it can never be matched across one',
+    favId('P1', 'C1', 3, SAME).indexOf('P1') === 0);
+  ok('an unfiled thread (no conversation id yet) still yields an id',
+    typeof favId('P1', null, 0, SAME) === 'string' && favId('P1', null, 0, SAME).length > 4);
+  ok('...that is not the id of any real conversation', favId('P1', null, 0, SAME) !== favId('P1', 'C1', 0, SAME));
+
   // saving and re-reading — the reload case
-  const rec = plain(make(longReply(), 'PID-A', CHAT_LONG));
+  const rec = plain(make(longReply(), 'PID-A', CHAT_LONG, 1));
   write([rec]);
   const back = plain(read());
   eq('a saved reply survives a reload', back.length, 1);
@@ -725,20 +754,27 @@ function partDStore() {
   c.store.setItem(KEY, '[1,2,"three",null,{"nope":true}]');
   eq('a list of junk entries reads as no favourites', plain(read()), []);
 
-  // a HALF-WRITTEN record: text present, everything else missing. It must survive, repaired.
-  c.store.setItem(KEY, JSON.stringify([{ text: 'a rescued reply' }]));
-  const rescued = plain(read());
-  eq('a record missing every field but its text is still readable', rescued.length, 1);
-  ok('...and is given an id', typeof rescued[0].id === 'string' && rescued[0].id.length > 1);
-  ok('...and a snippet', rescued[0].snippet.length > 0);
-  eq('...with no conversation to open', rescued[0].chatId, null);
-  eq('...and no date invented for it', rescued[0].at, 0);
-  c.store.setItem(KEY, JSON.stringify([{ id: 'x', at: 5 }]));
+  // A HALF-WRITTEN record. Two of its fields cannot be invented, and a record missing either is
+  // dropped rather than guessed at: the id is a POSITION and cannot be re-derived from the text,
+  // and a record with no owner would otherwise have to be shown to every profile on the device —
+  // which is exactly the leak this store exists to prevent.
+  c.store.setItem(KEY, JSON.stringify([{ text: 'an ownerless reply', id: 'x|y|0|z' }]));
+  eq('A RECORD WITH NO PROFILE IS IGNORED, never shown to everyone', plain(read()), []);
+  c.store.setItem(KEY, JSON.stringify([{ text: 'an id-less reply', pk: 'PID-A' }]));
+  eq('a record with no identity is ignored', plain(read()), []);
+  c.store.setItem(KEY, JSON.stringify([{ id: 'x', at: 5, pk: 'PID-A' }]));
   eq('a record with no text at all is dropped', plain(read()), []);
+  // what a record IS allowed to be missing
+  c.store.setItem(KEY, JSON.stringify([{ text: 'a partial but valid reply', id: 'PID-A|-|0|h', pk: 'PID-A' }]));
+  const partial = plain(read());
+  eq('a record with an owner, an identity and a reply is kept', partial.length, 1);
+  ok('...and is given a snippet', partial[0].snippet.length > 0);
+  eq('...with no conversation to open', partial[0].chatId, null);
+  eq('...and no date invented for it', partial[0].at, 0);
 
   // a FULL store: the write must not throw, and must not silently claim success
   const big = [];
-  for (let i = 0; i < 40; i++) big.push(plain(make('reply number ' + i + ' ' + 'z'.repeat(500), 'PID-A', null)));
+  for (let i = 0; i < 40; i++) big.push(plain(make('reply number ' + i + ' ' + 'z'.repeat(500), 'PID-A', 'CQ', i)));
   c.store.clear();
   c.store.quota = 6000;
   const written = write(big);
@@ -756,11 +792,11 @@ function partDStore() {
 
   // the cap
   const over = [];
-  for (let i = 0; i < MAX + 25; i++) over.push(plain(make('r' + i, 'PID-A', null)));
+  for (let i = 0; i < MAX + 25; i++) over.push(plain(make('r' + i, 'PID-A', 'CQ', i)));
   eq('the store is capped', write(over).length, MAX);
 
   // clearing
-  write([plain(make('x', 'PID-A', null))]);
+  write([plain(make('x', 'PID-A', 'CQ', 0))]);
   clearAll();
   eq('«delete all my data» clears the favourites', plain(read()), []);
 
@@ -909,6 +945,257 @@ async function partDOrphan() {
   await tick(60);
   eq('removing it from the favourites screen empties the store', JSON.parse(c.store.getItem(KEY) || '[]').length, 0);
   return c;
+}
+
+// ===========================================================================
+// PART D3 — ISOLATION: TWO CONVERSATIONS, TWO PROFILES, ONE ANSWER
+// ===========================================================================
+// The identity arithmetic is checked in part A. This drives the same thing through the real UI,
+// because that is where it went wrong: the same answer really does turn up in two conversations
+// (ask the same question twice) and on two children's profiles on one device.
+const TWIN_A = 'TW-A';
+const TWIN_B = 'TW-B';
+const PROFILE_B = { name: 'خالد', age: 30, gender: 'male', birthYear: 1996, pid: 'PID-B', createdAt: '2026-01-01T00:00:00.000Z' };
+function seedTwins(profile) {
+  const seed = { child_profile: JSON.stringify(profile), disclosureAck: '1' };
+  const body = [
+    { role: 'user', content: S.Q_USER },
+    { role: 'assistant', content: longReply() },      // BYTE-IDENTICAL in both conversations
+  ];
+  seed.ezik_chats_v1 = JSON.stringify([
+    { id: TWIN_A, pk: profile.pid, title: 'التوأم الأول', pinned: false, at: 2000 },
+    { id: TWIN_B, pk: profile.pid, title: 'التوأم الثاني', pinned: false, at: 1000 },
+  ]);
+  seed['ezik_chat_v1_' + TWIN_A] = JSON.stringify(body);
+  seed['ezik_chat_v1_' + TWIN_B] = JSON.stringify(body);
+  return seed;
+}
+
+async function partDIsolation() {
+  console.log('\n--- isolation: the same answer in two conversations ---');
+  const c = buildContext({ seed: seedTwins(PROFILE), mount: true });
+  await tick(400);
+  if (c.err()) { ok('the app mounts for the isolation checks', false, String(c.err())); return null; }
+  const d = driver(c.window);
+  const KEY = c.grab('EZIK_FAVS_KEY');
+  const favs = () => { try { return JSON.parse(c.store.getItem(KEY) || '[]'); } catch (e) { return []; } };
+  // The favourites screen has no menu button, so anything that navigates from it goes home first.
+  const backToChat = async () => {
+    if (d.byLabel(S.MENU_OPEN)) return;
+    await d.click(d.byText(S.BACK), 'back to the chat');
+    await tick(80);
+  };
+  const openChat = async (title) => {
+    await backToChat();
+    await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+    const row = d.all('button').filter((b) => String(b.textContent || '').trim() === title)[0];
+    if (!row) throw new Error('no row for ' + cps(title));
+    await d.click(row, title);
+    await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the reply on screen');
+  };
+
+  await openChat('التوأم الأول');
+  ok('the first conversation opens with an unsaved reply', !!d.byLabel(S.FAV_ADD));
+  await d.click(d.byLabel(S.FAV_ADD), 'star in the first');
+  await tick(60);
+  ok('starring in the first conversation fills its star', !!d.byLabel(S.FAV_DEL));
+  eq('...and writes one record', favs().length, 1);
+
+  await openChat('التوأم الثاني');
+  ok('THE SECOND CONVERSATION HOLDS THE SAME ANSWER, and its star is EMPTY',
+    !!d.byLabel(S.FAV_ADD), 'the identical reply in another conversation inherited the star');
+  await d.click(d.byLabel(S.FAV_ADD), 'star in the second');
+  await tick(60);
+  const two = favs();
+  eq('starring it saves a SECOND, independent record', two.length, 2);
+  ok('...with two different identities', two[0].id !== two[1].id, JSON.stringify(two.map((r) => r.id)));
+  eq('...pointing at the two different conversations',
+    two.map((r) => r.chatId).sort(), [TWIN_A, TWIN_B].sort());
+  ok('...though the saved text really is identical', two[0].text === two[1].text);
+
+  // removing one must not touch the other
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').indexOf(S.FAV) !== -1)[0], 'favourites');
+  await tick(100);
+  const removeBtns = d.all('button').filter((b) => b.getAttribute('aria-label') === S.FAV_DEL);
+  eq('both saved replies are listed', removeBtns.length, 2);
+  await d.click(removeBtns[0], 'remove one');
+  await tick(80);
+  const left = favs();
+  eq('REMOVING ONE LEAVES THE OTHER', left.length, 1);
+  ok('...and the survivor is the other conversation\'s', left[0].chatId === TWIN_A || left[0].chatId === TWIN_B);
+
+  // and the star in the surviving conversation is still filled, while the other is empty again
+  const survivor = left[0].chatId;
+  const gone = survivor === TWIN_A ? TWIN_B : TWIN_A;
+  await openChat(survivor === TWIN_A ? 'التوأم الأول' : 'التوأم الثاني');
+  ok('the surviving favourite\'s conversation still shows a filled star', !!d.byLabel(S.FAV_DEL));
+  await openChat(gone === TWIN_A ? 'التوأم الأول' : 'التوأم الثاني');
+  ok('...and the removed one\'s conversation shows an empty star', !!d.byLabel(S.FAV_ADD));
+
+  // opening each favourite reaches ITS OWN conversation
+  await d.click(d.byLabel(S.FAV_ADD), 'star it again');
+  await tick(60);
+  eq('both are saved again', favs().length, 2);
+  await backToChat();
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').indexOf(S.FAV) !== -1)[0], 'favourites');
+  await tick(100);
+  const openBtns = d.all('button').filter((b) => b.getAttribute('aria-label') === S.FAV_OPEN_CHAT);
+  eq('each saved reply offers to open its own conversation', openBtns.length, 2);
+  await d.click(openBtns[0], 'open the first original');
+  await tick(140);
+  ok('opening a favourite lands in the chat', d.text().indexOf(S.DISCLAIMER) !== -1);
+  ok('...showing a conversation that holds that reply', d.text().indexOf(S.W_HEAD) !== -1);
+  ok('...and the star there is filled, so it opened the RIGHT one of the twins',
+    !!d.byLabel(S.FAV_DEL), 'it opened a conversation whose reply is not the saved one');
+
+  return c.store._dump();
+}
+
+// The SECOND profile, on the SAME device, with the first profile's favourites already in the store.
+async function partDTwoProfiles(dumpFromA) {
+  console.log('\n--- isolation: two profiles on one device ---');
+  if (!dumpFromA) { ok('the first profile produced a store to carry over', false); return; }
+  const KEY = 'ezik_favorite_replies_v1';
+  const before = JSON.parse(dumpFromA[KEY] || '[]');
+  const seed = Object.assign(seedTwins(PROFILE_B), { [KEY]: dumpFromA[KEY] });
+  const c = buildContext({ seed: seed, mount: true });
+  await tick(400);
+  if (c.err()) { ok('a second profile mounts on the same device', false, String(c.err())); return; }
+  const d = driver(c.window);
+  const favs = () => { try { return JSON.parse(c.store.getItem(KEY) || '[]'); } catch (e) { return []; } };
+
+  ok('a second profile mounts on the same device', d.text().indexOf(S.DISCLAIMER) !== -1);
+  eq('the store still holds the first profile\'s favourites', favs().length, before.length);
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').indexOf(S.FAV) !== -1)[0], 'favourites');
+  await tick(100);
+  ok('THE SECOND PROFILE SEES NONE OF THE FIRST\'S SAVED REPLIES',
+    d.text().indexOf(S.FAV_EMPTY_HEAD) !== -1, cps(d.text().slice(0, 220)));
+  eq('...and no remove button is offered for them',
+    d.all('button').filter((b) => b.getAttribute('aria-label') === S.FAV_DEL).length, 0);
+
+  // the second profile stars the SAME answer
+  await d.click(d.byText(S.BACK), 'back');
+  await tick(80);
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').trim() === 'التوأم الأول')[0], 'first twin');
+  await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the reply');
+  ok('...and its own star on the same answer is EMPTY', !!d.byLabel(S.FAV_ADD));
+  await d.click(d.byLabel(S.FAV_ADD), 'star as the second profile');
+  await tick(60);
+  const after = favs();
+  eq('starring it ADDS a record rather than replacing one', after.length, before.length + 1);
+  const mine = after.filter((r) => r.pk === PROFILE_B.pid);
+  const theirs = after.filter((r) => r.pk === PROFILE.pid);
+  eq('...one owned by the second profile', mine.length, 1);
+  eq('THE FIRST PROFILE\'S RECORDS ARE UNTOUCHED', theirs.length, before.length);
+  ok('...byte for byte', JSON.stringify(theirs) === JSON.stringify(before), JSON.stringify(theirs.map((r) => r.id)));
+
+  // a record with no owner is shown to nobody
+  c.store.setItem(KEY, JSON.stringify([{ id: 'orphan|-|0|x', text: 'a reply with no owner', at: 1, snippet: 'x' }]));
+  const readBack = plain(c.grab('ezikReadFavs')());
+  eq('A RECORD WITH NO PROFILE IS SHOWN TO NOBODY', readBack, []);
+}
+
+// ===========================================================================
+// PART G — A REPLY MUST NOT SHRINK WHEN ITS STREAM ENDS
+// ===========================================================================
+// The fold used to apply the moment a reply settled, so a long answer the child had just watched
+// arrive collapsed under them. This drives the REAL streaming path — the shipped callAI, reading a
+// real SSE body frame by frame — and checks the two states either side of the transition.
+//
+// linkedom has no layout, so "the height did not change" is measured as the rendered TEXT of the
+// bubble: the tail of the reply is on screen during the stream and is STILL on screen after it
+// settles. That is the same claim in the only terms this DOM can express; the pixel claim belongs
+// to the device video.
+function sseStream(text, chunks) {
+  const parts = [];
+  const size = Math.ceil(text.length / chunks);
+  for (let i = 0; i < text.length; i += size) parts.push(text.slice(i, i + size));
+  const frames = parts.map((p) => 'data: ' + JSON.stringify({ type: 'content_block_delta', delta: { type: 'text_delta', text: p } }) + '\n\n');
+  frames.push('data: ' + JSON.stringify({ type: 'message_stop' }) + '\n\n');
+  let at = 0;
+  const gate = { hold: false };
+  const reader = {
+    read: () => new Promise((resolve) => {
+      const step = () => {
+        if (gate.hold && at >= frames.length - 1) { setTimeout(step, 10); return; }   // park before the last frame
+        if (at >= frames.length) { resolve({ done: true, value: undefined }); return; }
+        const f = frames[at++];
+        resolve({ done: false, value: Buffer.from(f, 'utf8') });
+      };
+      setTimeout(step, 5);
+    }),
+  };
+  return { gate, response: { ok: true, status: 200, headers: { get: () => null }, body: { getReader: () => reader }, text: () => Promise.resolve(''), json: () => Promise.resolve({}) } };
+}
+
+async function partGStreaming() {
+  console.log('\n=== G. A STREAMED REPLY DOES NOT SHRINK WHEN IT SETTLES ===');
+  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1' }, mount: true });
+  await tick(400);
+  if (c.err()) { ok('the app mounts on an empty thread', false, String(c.err())); return; }
+  const d = driver(c.window);
+  ok('the app mounts on an empty thread', d.text().indexOf(S.DISCLAIMER) !== -1);
+
+  // The stream the app will read: the SAME long reply the fold checks use, so it certainly folds.
+  const REPLY = longReply();
+  const built = sseStream(REPLY, 12);
+  built.gate.hold = true;                       // park the stream one frame from the end
+  c.window.fetch = function () { return Promise.resolve(built.response); };
+
+  const composer = () => d.all('textarea')[0];
+  await d.type(composer(), S.Q_USER);
+  const sendBtn = d.all('button').filter((b) => b.querySelector('polygon'))[0];
+  if (!ok('the send button is on the composer', !!sendBtn)) return;
+  await d.click(sendBtn, 'send');
+
+  // ---- DURING the stream ----
+  await waitFor(() => d.text().indexOf(S.W_TAIL) !== -1, 'the streamed reply to reach its tail', 200);
+  ok('the whole reply is on screen WHILE it streams', d.text().indexOf(S.W_TAIL) !== -1);
+  ok('...and no fold toggle is offered on a live stream',
+    !d.byLabel(S.FOLD_OPEN) && !d.byLabel(S.FOLD_CLOSE));
+  const duringLen = d.text().length;
+
+  // ---- the transition ----
+  built.gate.hold = false;
+  await waitFor(() => !!d.byLabel(S.FOLD_CLOSE) || !!d.byLabel(S.FOLD_OPEN), 'the reply to settle', 200);
+  const afterLen = d.text().length;
+
+  ok('THE TAIL IS STILL ON SCREEN AFTER THE STREAM ENDS — nothing collapsed',
+    d.text().indexOf(S.W_TAIL) !== -1, 'the reply folded itself the moment it finished arriving');
+  ok('...so the rendered reply did not shrink across the transition',
+    afterLen >= duringLen - 40, 'during=' + duringLen + ' after=' + afterLen);
+  ok('...and the toggle offers to HIDE, not to show', !!d.byLabel(S.FOLD_CLOSE) && !d.byLabel(S.FOLD_OPEN));
+  ok('...and its cards arrived with it', d.text().indexOf(S.HADITH_BODY) !== -1 && d.text().indexOf(S.SRC_SITE) !== -1);
+
+  // ---- the user still owns it ----
+  await d.click(d.byLabel(S.FOLD_CLOSE), 'fold it by hand');
+  ok('the reader can fold it', d.text().indexOf(S.W_TAIL) === -1 && !!d.byLabel(S.FOLD_OPEN));
+  await d.click(d.byLabel(S.FOLD_OPEN), 'unfold it again');
+  ok('...and open it again', d.text().indexOf(S.W_TAIL) !== -1 && !!d.byLabel(S.FOLD_CLOSE));
+
+  // ---- nothing about this is stored ----
+  const keys = c.store._keys().filter((k) => /stream|fold|open/i.test(k));
+  eq('the expanded state is never written to storage', keys, []);
+
+  // ---- reopening the SAME conversation folds it again ----
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  const row = d.all('button').filter((b) => String(b.textContent || '').trim() === S.Q_USER)[0];
+  if (!ok('the conversation it created is in the menu', !!row)) return;
+  await d.click(row, 'reopen it');
+  await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the reopened conversation');
+  ok('REOPENING THE SAME CONVERSATION SHOWS IT FOLDED AGAIN',
+    !!d.byLabel(S.FOLD_OPEN) && d.text().indexOf(S.W_TAIL) === -1, 'it reopened expanded');
+
+  // ---- and a NEW chat inherits nothing ----
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.byText(S.NEW_CHAT), 'new chat');
+  await tick(80);
+  ok('a new chat starts empty', d.text().indexOf(S.W_HEAD) === -1);
+  ok('...with no runtime error anywhere on this path', !c.err(), String(c.err()));
 }
 
 // ===========================================================================
@@ -1222,8 +1509,13 @@ function partE() {
     /const \[favs, setFavs\] = useState\(ezikReadFavs\);/.test(decoded));
   ok('...and the bubble is handed a boolean, never a store',
     /isFavorite=\{favFlags\[i\]\}/.test(decoded));
-  ok('...computed once per change of the thread or the favourites, not per keystroke',
-    /const favFlags = React\.useMemo\([\s\S]{0,400}?\[messages, favIdSet\]\);/.test(decoded));
+  // The dependency list must carry the profile and the conversation too, because both are now
+  // terms of the identity — a memo keyed on the thread alone would keep drawing the stars of the
+  // conversation the user just left.
+  ok('...computed once per change of the thread, conversation, profile or favourites',
+    /const favFlags = React\.useMemo\([\s\S]{0,500}?\[messages, favIdSet, favPk, chatId\]\);/.test(decoded));
+  ok('...and it asks the identity function, not the bare text hash',
+    /favIdSet\.has\(ezikFavId\(favPk, chatId, i, m\.content\)\)/.test(decoded));
   // ===== THE KEYSTROKE PATH =====
   // Measured, interleaved, 440 keystrokes a side: adding a quote button and a star to every reply
   // cost +0.39 ms per keystroke in a 120-turn thread (1.20 -> 1.60 ms, Welch t=14.4) because the
@@ -1294,6 +1586,27 @@ function partE() {
   ok('the quote handler writes to the composer', /quoteReply = \([\s\S]{0,600}?setInput\(/.test(decoded));
   ok('...and calls no send path at all', !/quoteReply = \([\s\S]{0,900}?sendMessage\(/.test(decoded));
 
+  // ===== THE STREAMED-REPLY RULE, read off the file =====
+  ok('the expanded set is state, not storage',
+    /const \[streamedOpen, setStreamedOpen\] = useState\(\(\) => new Set\(\)\);/.test(decoded));
+  ok('...and is never written to localStorage', !/localStorage\.setItem\([^)]*streamedOpen/.test(decoded));
+  ok('it is filled at the REAL streaming transition, beside the finished reply',
+    /setStreamingText\(null\);[\s\S]{0,700}?markStreamedOpen\(final\.length - 1\);/.test(decoded));
+  ok('...never from a text comparison',
+    !/markStreamedOpen\([^)]*content/.test(decoded) && !/markStreamedOpen\([^)]*text/.test(decoded));
+  ok('...and never from a timer', !/setTimeout\([^)]{0,80}markStreamedOpen/.test(decoded)
+    && !/markStreamedOpen[\s\S]{0,40}setTimeout/.test(decoded));
+  ok('opening a saved conversation empties it', /setMessages\(ezikReadChatMessages\(id\)\);\s*setStreamedOpen\(new Set\(\)\);/.test(decoded));
+  ok('...and so does starting a new thread', /const resetThread = \(\)[\s\S]{0,700}?setStreamedOpen\(new Set\(\)\);/.test(decoded));
+  ok('both also retire every manual expand, through the thread epoch',
+    (decoded.match(/newThreadEpoch\(\);/g) || []).length === 2);
+  ok('the bubble keys the reader\'s own toggle to that epoch',
+    /foldOverride\.epoch === foldEpoch/.test(decoded));
+  ok('...so a reopened conversation cannot inherit it', /setFoldOverride\(\{ epoch: foldEpoch, open: !foldOpen \}\)/.test(decoded));
+  ok('nothing here adds a listener or an observer per message',
+    !/messages\.map\([\s\S]{0,400}?addEventListener/.test(decoded)
+    && !/messages\.map\([\s\S]{0,400}?ResizeObserver/.test(decoded));
+
   // 15-17) the S97 scroll contract is still the one that shipped
   ok('opening a conversation still pins the container before paint (layout effect)',
     /React\.useLayoutEffect\(\(\) => \{\s*if \(!jumpToEndRef\.current\) return;/.test(decoded));
@@ -1338,6 +1651,9 @@ function partE() {
   partDDead();
   await partDScreen();
   await partDOrphan();
+  const dumpA = await partDIsolation();
+  await partDTwoProfiles(dumpA);
+  await partGStreaming();
   partFPure();
   await partFDrawer();
   await partFFavs();
