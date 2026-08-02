@@ -836,9 +836,16 @@ function partD() {
           // which this offline harness cannot produce. What makes that case safe is that the
           // follow effect consults the stickiness at all, and the container reports it; both are
           // asserted here so removing either one fails.
+          // S99 STRENGTHENED THIS. It used to pin the literal `behavior: 'smooth'`, and the
+          // reading preferences made that scroll conditional -- correctly, because reduced motion
+          // has to land the correction instantly instead of animating it. Pinning the literal
+          // would now have to be relaxed to pass; instead it is TIGHTENED: the guard still
+          // requires the stickiness check and the sentinel scroll, and additionally requires the
+          // behaviour to be the reduced-motion decision rather than any hardcoded value. Deleting
+          // the guard, the scroll, OR the reduced-motion path all fail here now.
           ok('D: ...because the follow-the-reply effect consults that position first',
             /if \(!stickToEndRef\.current\) return;/.test(html)
-            && /messagesEndRef\.current\?\.scrollIntoView\(\{ behavior: 'smooth' \}\)/.test(html),
+            && /messagesEndRef\.current\?\.scrollIntoView\(\{ behavior: ezikMotionReduced\([^)]*\) \? 'auto' : 'smooth' \}\)/.test(html),
             'nothing guards the auto-scroll, so an arriving reply would yank the reader back down');
           ok('D: ...and the container reports its position as the reader moves',
             /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\}/.test(html));

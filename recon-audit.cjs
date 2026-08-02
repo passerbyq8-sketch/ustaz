@@ -500,7 +500,9 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 20;   // 20th: chat-ux-guard        (S98 -- the reply controls: fold, quick
+  const GATES_EXPECTED = 21;   // 21st: a11y-guard           (S99 -- local reading preferences: text
+                               //       size, reading mode, reduced motion)
+                               // 20th: chat-ux-guard        (S98 -- the reply controls: fold, quick
                                //       actions, quote, local favourites, local search)
                                // 19th: theme-coverage-guard (S95 -- dark mode reaches every surface)
                                // 15th: quran-quest-guard   (phase 2 -- Quran-category balance + verbatim text)

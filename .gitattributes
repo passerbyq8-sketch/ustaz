@@ -93,3 +93,7 @@ theme-coverage-guard.cjs text eol=lf
 # Gate 20 (chat-ux-guard). Same reason as every gate above: it reads and re-runs the shipped
 # babel block, so its own line endings must not drift under core.autocrlf.
 chat-ux-guard.cjs text eol=lf
+
+# Gate 21 (a11y-guard). Same reason as every gate above: it re-runs the shipped babel block, so
+# its own line endings must not drift under core.autocrlf.
+a11y-guard.cjs text eol=lf

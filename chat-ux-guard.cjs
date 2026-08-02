@@ -1612,15 +1612,28 @@ function partE() {
     /React\.useLayoutEffect\(\(\) => \{\s*if \(!jumpToEndRef\.current\) return;/.test(decoded));
   ok('...and the follow effect still refuses to drag a reader back down',
     /if \(!stickToEndRef\.current\) return;/.test(decoded));
-  // The page owns exactly TWO smooth scrolls and this phase adds neither: the chat's follow
-  // effect, and the home screen's jump to the favourites strip. Naming them is the check — a bare
-  // count would pass a third one that replaced one of these.
-  const smooths = (decoded.match(/^.*behavior: 'smooth'.*$/gm) || []).map((l) => l.trim());
-  eq('there are still exactly two smooth scrolls on the page', smooths.length, 2);
-  ok('...one of them the chat follow effect, unchanged',
-    smooths.some((l) => l.indexOf('messagesEndRef.current?.scrollIntoView') === 0), smooths.join(' || '));
-  ok('...and this phase introduced neither of them',
-    smooths.every((l) => l.indexOf('messagesEndRef') !== -1 || l.indexOf('favRef') !== -1), smooths.join(' || '));
+  // The page owns exactly TWO animated scrolls and neither this phase nor S99 added one: the
+  // chat's follow effect, and the home screen's jump to the favourites strip.
+  //
+  // S99 STRENGTHENED THIS. It used to count the literal `behavior: 'smooth'`, and the reading
+  // preferences made the chat's scroll conditional -- correctly, because reduced motion must land
+  // the correction instantly. Rather than relax the count, the check now enumerates every
+  // scrollIntoView that carries a behaviour at all, requires there to be exactly two, requires the
+  // chat's to be the reduced-motion DECISION rather than any hardcoded value, and requires the
+  // other to be the home one. A third animated scroll, or a chat scroll that stopped honouring
+  // reduced motion, both fail here.
+  const scrolls = (decoded.match(/^.*scrollIntoView\(\{[^}]*behavior[^}]*\}.*$/gm) || [])
+    .map((l) => l.trim())
+    .filter((l) => l.indexOf('//') !== 0 && l.indexOf('*') !== 0);   // the S97 note quotes the old line
+  eq('there are still exactly two animated scrolls on the page', scrolls.length, 2);
+  ok('...one of them the chat follow effect',
+    scrolls.some((l) => l.indexOf('messagesEndRef.current?.scrollIntoView') === 0), scrolls.join(' || '));
+  ok('...and it honours reduced motion rather than hardcoding a behaviour',
+    scrolls.some((l) => /messagesEndRef[\s\S]*ezikMotionReduced\([^)]*\) \? 'auto' : 'smooth'/.test(l)), scrolls.join(' || '));
+  ok('...and so does the other one',
+    scrolls.every((l) => /ezikMotionReduced/.test(l)), 'an animated scroll ignores the setting: ' + scrolls.join(' || '));
+  ok('...and neither phase introduced a third',
+    scrolls.every((l) => l.indexOf('messagesEndRef') !== -1 || l.indexOf('favRef') !== -1), scrolls.join(' || '));
 
   // no new dependency, no new CDN, no new host of any kind
   const srcs = (html.match(/<script[^>]*src=["']([^"']+)["']/gi) || []).map((t) => (t.match(/src=["']([^"']+)["']/) || [])[1]);
