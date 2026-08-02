@@ -368,8 +368,13 @@ console.log('\n=== D. THE WIRING (index.html) ===');
   ok('...and to the live stream preview',
     /<EzikMarkdown text=\{formatForStreamPreview\(streamingText\)\} \/>/.test(html));
   eq('...and to NOTHING else — two display sites, no more', countIn(html, '<EzikMarkdown'), 2);
+  // S97: the split is now MEMOISED (a keystroke used to re-parse every bubble in the thread), so
+  // this pins the memoised form. It asserts strictly more than the bare call it replaced: the
+  // split is still parseRichMessage's, still on (message.content, age) -- and the dependency list
+  // is exactly those inputs, which is the condition that makes caching the descriptors sound. A
+  // dep quietly dropped here would freeze a card's content, and this check is what would catch it.
   ok('the cards are separated BEFORE it runs (parseRichMessage still owns the split)',
-    /const \{ segments, suggestions \} = parseRichMessage\(message\.content, age\);/.test(html));
+    /const \{ segments, suggestions \} = React\.useMemo\(\s*\(\) => \(isUser \? \{ segments: \[\], suggestions: \[\] \} : parseRichMessage\(message\.content, age\)\),\s*\[isUser, message\.content, age\]\);/.test(html));
   ['VerseCard', 'SurahCard', 'HadithCard', 'SourceCard', 'DhikrCard', 'WorshipCard', 'StepsCard', 'BoardCard', 'DocumentCard']
     .forEach((card) => ok('the ' + card + ' body is not passed through the renderer',
       !new RegExp('<' + card + '[^>]*EzikMarkdown').test(html)));

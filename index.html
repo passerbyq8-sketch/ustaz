@@ -7203,6 +7203,24 @@ const EzikMarkdown = React.memo(function EzikMarkdown({ text }) {
 
 function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel }) {
   const isUser = message.role === 'user';
+  // S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's
+  // composer state lives on App -- so a single keystroke re-parsed the whole thread. On a 120-turn
+  // conversation that was ~60 full re-parses per typed character, and nothing about them changed.
+  // parseRichMessage is a pure function of exactly the two inputs in the dependency list: it reads
+  // the text and the viewer's age band and returns segment DESCRIPTORS. It touches no store. The
+  // cards that DO read stores (dhikr, worship, verse) are separate components below and still
+  // re-render and re-read on every pass, exactly as before -- so the D91 note further down ("the
+  // stores the cards read are still filling while this runs") is untouched by caching descriptors.
+  // TWO things about the shape of this, both load-bearing:
+  //   - it sits ABOVE the isUser early return, because bubbles are keyed by INDEX: React reuses
+  //     the instance at index i across conversations, and if the role at that index flips
+  //     user<->assistant a hook below the return would change the hook COUNT and React would throw.
+  //   - it still must not RUN for a user bubble: a user turn carrying an attachment has an ARRAY
+  //     content, and parseRichMessage calls text.search() before its own typeof guard, so parsing
+  //     one would throw. The branch is inside the callback, so the hook stays unconditional.
+  const { segments, suggestions } = React.useMemo(
+    () => (isUser ? { segments: [], suggestions: [] } : parseRichMessage(message.content, age)),
+    [isUser, message.content, age]);
   if (isUser) {
     const c = message.content;
     if (Array.isArray(c)) {
@@ -7217,8 +7235,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
     }
     return <div style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{c}</div>;
   }
-  // رسالة الأستاذ: نحلّلها لاستخراج البطاقات
-  const { segments, suggestions } = parseRichMessage(message.content, age);
+  // رسالة الأستاذ: بطاقاتها مفصولةٌ أعلاه قبل أن يعمل عارضُ Markdown
   // D90: the clipboard carries EVERY rendered block, in display order. D91: it is built on the
   // TAP, not here, because the stores the cards read are still filling while this runs.
   const buildCopyText = () => serializeReply(segments, { tashkeel, band: deriveCaps(age).band });
