@@ -1215,6 +1215,33 @@ function partE() {
     /isFavorite=\{favFlags\[i\]\}/.test(decoded));
   ok('...computed once per change of the thread or the favourites, not per keystroke',
     /const favFlags = React\.useMemo\([\s\S]{0,400}?\[messages, favIdSet\]\);/.test(decoded));
+  // ===== THE KEYSTROKE PATH =====
+  // Measured, interleaved, 440 keystrokes a side: adding a quote button and a star to every reply
+  // cost +0.39 ms per keystroke in a 120-turn thread (1.20 -> 1.60 ms, Welch t=14.4) because the
+  // composer's state lives on App and every bubble was rebuilt. Pinning the props and memoising
+  // the bubble took it to 0.50 ms — BELOW the baseline. These checks are what keep it there.
+  ok('MessageBubble is memoised', /const MessageBubble = React\.memo\(function MessageBubble\(/.test(decoded));
+  const PINNED = ['cbSuggestion', 'cbPlayVerse', 'cbPlaySurah', 'cbStopAudio', 'cbPlayMessage',
+    'cbToggleTashkeel', 'cbQuote', 'cbFavorite', 'cbReport'];
+  PINNED.forEach((cb) => {
+    ok('...and ' + cb + ' is pinned to one identity',
+      new RegExp('const ' + cb + ' = React\\.useCallback\\([\\s\\S]{0,220}?\\}?\\, \\[\\]\\);').test(decoded)
+      || new RegExp('const ' + cb + ' = React\\.useCallback\\([^;]{0,240}, \\[\\]\\);').test(decoded),
+      cb + ' is not a useCallback with an empty dependency list');
+  });
+  const bubbleTag = (decoded.match(/<MessageBubble [^>]*\/>/) || [''])[0];
+  ok('the bubble is handed only pinned callbacks and primitives', !!bubbleTag && !/=\{\(/.test(bubbleTag),
+    'an inline arrow is still being passed to the bubble: ' + bubbleTag.slice(0, 240));
+  ok('...and the latest implementations reach it through a ref refreshed after each render',
+    /const bubbleFnRef = useRef\(\{\}\);\s*useEffect\(\(\) => \{/.test(decoded));
+  // The S94 trap, again: the effect above closes over openReport, and an effect runs after the
+  // component function returns — so on a screen App leaves early, a later `const` would still be
+  // in its temporal dead zone. This is the ordering that stops it throwing at the first commit.
+  const openReportAt = decoded.indexOf('const openReport = (aiMsg, prevMsg)');
+  const firstEarlyReturn = decoded.search(/\n  if \(screen === /);
+  ok('openReport is declared above every early return', openReportAt !== -1 && openReportAt < firstEarlyReturn,
+    'openReport at ' + openReportAt + ', first `if (screen === ` return at ' + firstEarlyReturn);
+
   // MessageBubble's own body, isolated: from its signature to the next top-level declaration.
   const mbStart = decoded.indexOf('function MessageBubble(');
   const mbEnd = decoded.indexOf('\n// =====', mbStart);

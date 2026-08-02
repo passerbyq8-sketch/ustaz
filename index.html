@@ -6499,6 +6499,72 @@ function App() {
     && !ezikIsErrorReply(lastMsg.content)
     && messages.some((m) => m && m.role === 'user');
 
+  // ============================================================
+  // S98 PERF — the bubble's props are PINNED
+  // ============================================================
+  // MEASURED, and this is what it is for. Adding a quote button and a star to every reply put two
+  // more buttons and an icon into each of a 120-turn thread's bubbles, and the composer's state
+  // lives on App — so a single keystroke rebuilt and reconciled all of them. Interleaved before/
+  // after over 440 keystrokes: 1.20 ms -> 1.60 ms, +33%, Welch t=14.4. Small in absolute terms and
+  // real beyond any doubt, which is exactly the kind of drift that accumulates until someone
+  // measures a 60 ms keystroke and cannot say which of ten sessions caused it.
+  //
+  // THE FIX IS TO STOP RE-RENDERING THE THREAD AT ALL, not to shave the new buttons. Every handler
+  // a bubble takes is pinned to one identity for the life of the app and reaches the CURRENT
+  // implementation through a ref that is refreshed after each render — the same latest-ref pattern
+  // useEzikBackLayer and the spend gate already use here. With the callbacks stable and the rest of
+  // the props primitives (or the message object itself, whose identity the thread preserves),
+  // React.memo on MessageBubble makes a keystroke re-render the composer and nothing else.
+  //
+  // It is safe for the cards precisely because none of them depends on a parent re-render: every
+  // async card — verse, surah, dhikr, worship — holds its own state and its own effect and
+  // re-renders itself when its store lands.
+  // MOVED UP from beside submitReport, and it must stay above every `if (screen === ...) return`.
+  // The effect below closes over it, and an effect callback runs AFTER the component function has
+  // returned — so on the loading screen, where App returns long before the old position was ever
+  // reached, the binding was still in its temporal dead zone and the first commit threw «Cannot
+  // access 'openReport' before initialization». The same trap S94 documents for newChat.
+  const openReport = (aiMsg, prevMsg) => {
+    const aiText = aiMsg && typeof aiMsg.content === 'string' ? aiMsg.content : '';
+    let userText = '';
+    if (prevMsg && prevMsg.role === 'user') {
+      const c = prevMsg.content;
+      if (typeof c === 'string') userText = c;
+      else if (Array.isArray(c)) { const t = c.find(b => b && b.type === 'text'); userText = t ? t.text : ''; }
+    }
+    setReportFor({ ai: aiText, user: userText });
+  };
+
+  const bubbleFnRef = useRef({});
+  useEffect(() => {
+    bubbleFnRef.current = {
+      send: sendMessage,
+      playVerse: playVerseManual,
+      playSurah: playSurahManual,
+      stopAudio: cancelAudio,
+      speak: speakReply,
+      toggleTashkeel: toggleTashkeel,
+      quote: quoteReply,
+      favorite: toggleFavoriteReply,
+      report: openReport,
+      messages: messages,
+    };
+  });
+  const cbSuggestion = React.useCallback((sg) => bubbleFnRef.current.send(sg), []);
+  const cbPlayVerse = React.useCallback((sNum, aNum) => bubbleFnRef.current.playVerse(sNum, aNum), []);
+  const cbPlaySurah = React.useCallback((sNum, from, to) => bubbleFnRef.current.playSurah(sNum, from, to), []);
+  const cbStopAudio = React.useCallback(() => bubbleFnRef.current.stopAudio(), []);
+  const cbPlayMessage = React.useCallback((t) => bubbleFnRef.current.speak(t), []);
+  const cbToggleTashkeel = React.useCallback(() => bubbleFnRef.current.toggleTashkeel(), []);
+  const cbQuote = React.useCallback((t) => bubbleFnRef.current.quote(t), []);
+  const cbFavorite = React.useCallback((m) => bubbleFnRef.current.favorite(m), []);
+  // The report needs the reply AND the question before it, which used to be closed over per bubble.
+  // The index is a stable prop; the pair is looked up on the tap, off the current thread.
+  const cbReport = React.useCallback((idx) => {
+    const ms = bubbleFnRef.current.messages || [];
+    bubbleFnRef.current.report(ms[idx], idx > 0 ? ms[idx - 1] : null);
+  }, []);
+
   // THE QUOTE. It writes to the composer and moves the caret there — no send, no store, and the
   // reply it was taken from is not altered in any way. Text already typed is KEPT: the quote is
   // appended below it after a blank line, so nothing a child was in the middle of writing is lost.
@@ -6932,16 +6998,6 @@ function App() {
 
   // Report button (step 2b). Opens the flag modal for a given assistant reply, capturing the
   // user question that preceded it (messages[i-1]) for context. Client only -- POSTs to api/report.
-  const openReport = (aiMsg, prevMsg) => {
-    const aiText = aiMsg && typeof aiMsg.content === 'string' ? aiMsg.content : '';
-    let userText = '';
-    if (prevMsg && prevMsg.role === 'user') {
-      const c = prevMsg.content;
-      if (typeof c === 'string') userText = c;
-      else if (Array.isArray(c)) { const t = c.find(b => b && b.type === 'text'); userText = t ? t.text : ''; }
-    }
-    setReportFor({ ai: aiText, user: userText });
-  };
   // The size guard MEASURES real UTF-8 bytes and halves ai then user until the body is under
   // 20000 bytes -- comfortably below the server 21812-byte cap -- so a 413 is structurally
   // impossible, not merely unlikely. It never assumes "1 char = 2 bytes". Returns ok|rate|fail;
@@ -6987,7 +7043,7 @@ function App() {
       </div>
 
       <div ref={messagesAreaRef} onScroll={onMessagesScroll} style={s.messagesArea}>
-        {messages.map((m, i) => <MessageBubble key={i} tashkeel={tashkeelOn} onToggleTashkeel={toggleTashkeel} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} onQuote={quoteReply} onFavorite={toggleFavoriteReply} isFavorite={favFlags[i]} />)}
+        {messages.map((m, i) => <MessageBubble key={i} index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} />)}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
             inside MessageBubble — so an old conversation does not carry a strip beneath every one
             of its 60 answers, and a keystroke in the composer cannot re-render 60 of them. They
@@ -7883,7 +7939,11 @@ function ezikRenderSegments(segments, ctx) {
   });
 }
 
-function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite }) {
+// S98 PERF: MEMOISED. Every prop below is either a primitive, the message object itself (whose
+// identity the thread preserves across a re-render) or a callback App pins to one identity — so a
+// keystroke in the composer re-renders the composer and NOT the thread. See the note beside the
+// pinned callbacks in App for the measurement that made this necessary.
+const MessageBubble = React.memo(function MessageBubble({ message, index, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite }) {
   const isUser = message.role === 'user';
   // S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's
   // composer state lives on App -- so a single keystroke re-parsed the whole thread. On a 120-turn
@@ -7991,7 +8051,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
           </button>
         )}
         <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>
-        <button type="button" onClick={onReport} aria-label="بلّغ عن هذا الردّ" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+        <button type="button" onClick={() => onReport && onReport(index)} aria-label="بلّغ عن هذا الردّ" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
           <span>بلّغ</span>
         </button>
@@ -8007,7 +8067,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
       )}
     </div>
   );
-}
+});
 
 // ============================================================
 // S98 — شاشة المفضلة (the favourites screen)
