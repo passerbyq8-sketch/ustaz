@@ -33,6 +33,22 @@
        --accent-fill solid accent UNDER white text           (was --red, which also means 'accent text')
        --verse-ink   the ayah text on the verse card         (was --red-deep, which is also a gradient END) */
     --on-accent:#FFFFFF; --accent-fill:#1D4ED8; --verse-ink:#12327A;
+    /* S95. A FOURTH split of the same kind, for the same reason. --red-deep was carrying three
+       jobs at once: accent TEXT on a page or card, a solid/gradient FILL under white text, and
+       a STROKE on the mushaf's hardcoded paper. Those three want opposite things the moment the
+       page goes dark -- text must get lighter, fill and stroke must stay dark. --accent-ink is
+       the text role, and its light value is byte-for-byte the #12327A those sites already
+       resolved to, so LIGHT DOES NOT MOVE. Only the dark block gives it a second value.
+       --mushaf-desk / --madina-desk: the surface the Quran sheet lies ON. The sheet itself is
+       never inverted -- the desk around it is. */
+    --accent-ink:#12327A; --mushaf-desk:#EDE7DB; --madina-desk:#FDFDFD;
+    /* the on-colour for the .adhkar3/.ezhome accent fill. In dark that fill becomes a LIGHT
+       blue, so white-on-it drops to 2.7:1 -- the ink has to darken instead. */
+    --a3-on-blue:#FFFFFF;
+    /* the warn banner (a failed reply, a blocked mic) and the wird pill that floats over the
+       mushaf desk. Both were literals; both light values below are those literals unchanged. */
+    --warn-bg:#FFF4E5; --warn-line:#F0C674; --warn-ink:#8B5A00;
+    --wird-pill:rgba(255,255,255,0.92);
     /* the pre-React boot paint. The loading screen is the only thing drawn before the chat. */
     --boot-bg:linear-gradient(135deg, #F1F6FD 0%, #E5EBF5 100%);
     color-scheme: light;
@@ -41,20 +57,41 @@
      stored dark theme is on screen before the first pixel and there is no light flash. */
   :root[data-theme="dark"] { --boot-bg:#0E1116; color-scheme: dark; }
   :root[data-theme="dark"] body { background:#0E1116; }
-  /* D88 DARK, SCOPED. The full palette is redefined ONLY under .theme-dark, which is carried
-     by the chat container and the settings sheet -- and therefore by the drawer, which is a
-     child of the chat container. Custom properties inherit, so every var() inside those two
-     subtrees flips and nothing outside them can. This is deliberate: the mushaf reader draws
-     its chrome in var(--red-deep) directly on a HARDCODED paper white (#FDFBF6), so a
-     document-wide flip would paint light ink on light paper. The reader is also out of scope
-     for this phase. Every surface left light is named in the phase report. */
-  :root[data-theme="dark"] .theme-dark {
+  /* S95 DARK, DOCUMENT-WIDE. This block used to be `:root[data-theme="dark"] .theme-dark`, and
+     that selector WAS the bug: only the chat container, the settings sheet, the home and the
+     adhkar ever carried .theme-dark, so onboarding, the parental dashboard, the mushaf chrome,
+     the memoriser, the call screen and every dialog kept the LIGHT palette while the user had
+     asked for dark. Dark mode was opt-in per subtree, and most subtrees never opted in.
+     It now sits on :root, so custom properties inherit into every screen and a surface has to
+     opt OUT rather than opt in. Exactly one thing opts out, and it is named below:
+       .mushaf-paper -- the Quran sheet. A page of the Quran is a page; the brief forbids
+                        inverting it, so the sheet keeps its light tokens and the DESK around it
+                        goes dark instead (--mushaf-desk / --madina-desk).
+     .theme-dark is left on the elements that carry it: it is now inert, and removing it would
+     touch markup this change has no reason to touch. */
+  :root[data-theme="dark"] {
     --red:#5B8DEF; --red-deep:#2B4FA8; --red-lift:#2AA6DE; --red-soft:#18243C;
     --black:#F2F4F8; --ink:#E6EAF2; --muted:#9AA4B5; --nav-off:#6B7689;
     --white:#171B24; --page:#0E1116; --line:#2A313D; --tint:#1E242F;
     --scholar:#8A6136;
     --on-accent:#FFFFFF; --accent-fill:#2E56C4; --verse-ink:#A8C6FF;
+    /* accent TEXT has to lighten as the page darkens; the FILL and the mushaf STROKE must not,
+       which is why they are no longer the same token. The desk darkens; the sheet does not. */
+    --accent-ink:#A8C6FF; --mushaf-desk:#15171C; --madina-desk:#15171C;
+    --a3-on-blue:#0A1020;
+    --warn-bg:#3A2A12; --warn-line:#7A5A1E; --warn-ink:#F5C97A;
+    --wird-pill:rgba(23,27,36,0.92);
     color-scheme: dark;
+  }
+  /* The Quran sheet opts out, and only the sheet. Everything it paints -- the paper, the rules,
+     the corner motifs, the page medal -- is measured against a light background, so the tokens
+     it reads are pinned back to their light values here. This is the SAME mechanism .adhkar3
+     already uses (a scoped re-declaration), not a second theme system. */
+  :root[data-theme="dark"] .mushaf-paper {
+    --red:#1D4ED8; --red-deep:#12327A; --red-lift:#2AA6DE; --red-soft:#E6EEFB;
+    --ink:#1A1A1A; --muted:#6E6E6E; --white:#FFFFFF; --line:#E5EBF5; --tint:#EDF1FA;
+    --accent-ink:#12327A; --on-accent:#FFFFFF; --accent-fill:#1D4ED8;
+    color-scheme: light;
   }
   /* Session 13.1 Welcome/Onboarding reskin - press state for the red primary CTA */
   .welcome-primary:active { background: var(--red-deep) !important; }
@@ -87,17 +124,19 @@
     0%, 100% { transform: scale(0.92); opacity: 0.55; }
     50% { transform: scale(1.08); opacity: 1; }
   }
-  .doc-rendered h1{font-size:18px;color:#12327A;margin:10px 0 6px}
-  .doc-rendered h2{font-size:16px;color:#12327A;margin:9px 0 5px}
-  .doc-rendered h3{font-size:14.5px;color:#12327A;margin:8px 0 4px}
-  .doc-rendered h4{font-size:13.5px;color:#12327A;margin:7px 0 4px}
+  /* S95: a rendered reply is drawn on --white, which is now dark in dark mode, so its headings
+     and its table cannot stay pinned to #12327A/#EDF1FA. Light values are unchanged. */
+  .doc-rendered h1{font-size:18px;color:var(--accent-ink);margin:10px 0 6px}
+  .doc-rendered h2{font-size:16px;color:var(--accent-ink);margin:9px 0 5px}
+  .doc-rendered h3{font-size:14.5px;color:var(--accent-ink);margin:8px 0 4px}
+  .doc-rendered h4{font-size:13.5px;color:var(--accent-ink);margin:7px 0 4px}
   .doc-rendered p{margin:6px 0}
   .doc-rendered ul,.doc-rendered ol{margin:6px 1.2em 6px 0;padding:0}
   .doc-rendered li{margin:3px 0}
   .doc-rendered strong{font-weight:700}
   .doc-rendered table{border-collapse:collapse;width:100%;margin:8px 0}
-  .doc-rendered th,.doc-rendered td{border:1px solid #E5EBF5;padding:5px 8px;text-align:right}
-  .doc-rendered th{background:#EDF1FA;color:#12327A}
+  .doc-rendered th,.doc-rendered td{border:1px solid var(--line);padding:5px 8px;text-align:right}
+  .doc-rendered th{background:var(--tint);color:var(--accent-ink)}
   /* Session 84 -- Adhkar UI V2. Exactly two things an inline style cannot express: a media
      query and :focus-visible. Both selectors are NEW class names used only by the two V2
      components, so ?adhkarui=0 (the S13.3-A screen, which carries neither class) renders
@@ -8323,7 +8362,10 @@ const MUSHAF_FRAME_INNER_AT = MUSHAF_FRAME_INSET + MUSHAF_FRAME_INNER;
 // throughout, and against it the page read as a screenshot pasted on grey. These are
 // near-white and warm, so the paper reads as paper.
 const MUSHAF_PAPER = '#FDFBF6';   // the sheet, and the band around it
-const MUSHAF_DESK = '#EDE7DB';    // the surface the page sits on, outside the frame
+// S95: the desk is the one part of the reader that DOES follow the theme. The sheet on it never
+// inverts (see .mushaf-paper), so in dark the page stays a page and the desk goes dark under it,
+// which is what a reading lamp looks like. Light value unchanged: #EDE7DB.
+const MUSHAF_DESK = 'var(--mushaf-desk)';    // the surface the page sits on, outside the frame
 // The corner motif's rendered size. Its widest reach from the corner point is 6/16 of this,
 // so at 10px it reaches 3.75px -- leaving it 2.50px clear of the crop window's edge.
 const MUSHAF_CORNER_PX = 10;
@@ -8427,7 +8469,7 @@ const madinaImgUrl = (n) => {
 // device where the page does not paint to the very last subpixel the seam reads as more
 // paper rather than as a mount. In the full-height mode below there is no band left to fill,
 // so this is now a backstop rather than a mount.
-const MADINA_DESK = '#FDFDFD';
+const MADINA_DESK = 'var(--madina-desk)';   // S95: theme-following desk; light value was #FDFDFD
 // The printed page is the whole reading surface: no card, no rule, no shadow, no maxWidth
 // cap, no aspect-ratio box.
 //
@@ -8611,7 +8653,7 @@ function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }
   // painted BEHIND the page image and can never sit over it. The corner motifs come last, and
   // they paint only outside the crop window.
   return (
-    <div style={s.svgFrame}>
+    <div className="mushaf-paper" style={s.svgFrame}>
       <div style={s.svgRuleOuter} />
       <div style={s.svgRuleInner} />
       <div style={s.svgSheet}>
@@ -9948,16 +9990,20 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 const s = {
   loadingScreen: { minHeight: '100vh', background: 'var(--boot-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   loadingSpinner: { fontSize: 48, animation: 'pulse 1.5s ease-in-out infinite' },
-  onboardingContainer: { height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'linear-gradient(135deg, #F1F6FD 0%, #E5EBF5 100%)' },
+  // S95. Onboarding was written entirely in literals, so it stayed light for a user who had
+  // already chosen dark -- and it is the FIRST screen they see. Every literal below is replaced
+  // by the token whose LIGHT value is that exact literal, so light renders byte-for-byte as it
+  // did. The container's gradient is literally --boot-bg, the same paint the pre-React boot uses.
+  onboardingContainer: { height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'var(--boot-bg)' },
   onboardingInner: { minHeight: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'safe center', alignItems: 'center', padding: 20 },
-  onboardingCard: { background: '#FFFFFF', borderRadius: 28, padding: 32, maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(18, 50, 122, 0.15)', textAlign: 'center', border: '1px solid #E5EBF5' },
+  onboardingCard: { background: 'var(--white)', borderRadius: 28, padding: 32, maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(18, 50, 122, 0.15)', textAlign: 'center', border: '1px solid var(--line)' },
   bigEmoji: { fontSize: 64, marginBottom: 16, animation: 'fadeIn 0.5s ease-out' },
-  onboardingTitle: { fontSize: 26, fontWeight: 800, color: '#12327A', marginBottom: 12 },
-  onboardingSubtitle: { fontSize: 16, color: '#6E6E6E', marginBottom: 24, lineHeight: 1.6 },
-  onboardingInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 16, border: '2px solid #E5EBF5', background: '#F1F6FD', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
+  onboardingTitle: { fontSize: 26, fontWeight: 800, color: 'var(--accent-ink)', marginBottom: 12 },
+  onboardingSubtitle: { fontSize: 16, color: 'var(--muted)', marginBottom: 24, lineHeight: 1.6 },
+  onboardingInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 16, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
   ageGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
-  ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid #E5EBF5', background: '#F1F6FD', color: '#12327A', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
-  ageBtnActive: { background: '#12327A', color: '#FFFFFF', borderColor: '#12327A', transform: 'scale(1.05)' },
+  ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--accent-ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  ageBtnActive: { background: 'var(--red-deep)', color: 'var(--on-accent)', borderColor: 'var(--red-deep)', transform: 'scale(1.05)' },
   ageBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
   // Session 13.1 - Welcome/Onboarding reskin (Boubyan black+red). Scoped to the first-run flow only.
   welcomeContainer: { minHeight: '100dvh', height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'var(--black)' },
@@ -10037,7 +10083,7 @@ const s = {
   ezhNavItem: { minWidth: 44, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: 8, background: 'none', border: 'none', color: 'var(--a3-muted)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
   ezhNavItemOn: { color: 'var(--a3-blue)' },
   ezhNavLabel: { fontSize: 11, fontWeight: 700 },
-  ezhFab: { width: 60, height: 60, flexShrink: 0, marginTop: -22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '50%', background: 'var(--a3-blue)', border: 'none', color: '#FFFFFF', boxShadow: 'var(--a3-lift)', cursor: 'pointer' },
+  ezhFab: { width: 60, height: 60, flexShrink: 0, marginTop: -22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '50%', background: 'var(--a3-blue)', border: 'none', color: 'var(--a3-on-blue)', boxShadow: 'var(--a3-lift)', cursor: 'pointer' },
   // Session 13.3-A - Adhkar browse screen (Boubyan). Reuses DhikrCard for content/audio.
   adhkarContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
   adhkarHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--white)', borderBottom: '1px solid var(--line)' },
@@ -10068,7 +10114,7 @@ const s = {
   adhkar2Row: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '13px 14px', borderRadius: 18, background: 'var(--white)', border: '1px solid var(--line)', boxShadow: '0 2px 10px rgba(18,50,122,0.05)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
   adhkar2RowIcon: { width: 42, height: 42, flexShrink: 0, borderRadius: 13, background: 'var(--red-soft)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   adhkar2RowTitle: { flex: 1, minWidth: 0, fontSize: 16, fontWeight: 700, lineHeight: 1.55, color: 'var(--ink)' },
-  adhkar2Count: { minWidth: 30, height: 26, flexShrink: 0, padding: '0 9px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red-deep)', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2Count: { minWidth: 30, height: 26, flexShrink: 0, padding: '0 9px', borderRadius: 999, background: 'var(--tint)', color: 'var(--accent-ink)', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
   adhkar2Chevron: { display: 'flex', flexShrink: 0, color: 'var(--nav-off)' },
   adhkar2Empty: { textAlign: 'center', color: 'var(--muted)', fontSize: 15, padding: '32px 0' },
   adhkar2Cards: { display: 'flex', flexDirection: 'column', gap: 12 },
@@ -10077,14 +10123,14 @@ const s = {
   // and `right` here is the physical side the reading eye meets first.
   adhkar2CardEdge: { position: 'absolute', top: 14, bottom: 14, right: 0, width: 3, borderRadius: '3px 0 0 3px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-lift) 100%)' },
   adhkar2CardTop: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 },
-  adhkar2Index: { width: 28, height: 28, flexShrink: 0, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2Index: { width: 28, height: 28, flexShrink: 0, borderRadius: 10, background: 'var(--tint)', color: 'var(--accent-ink)', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
   adhkar2Rule: { flex: 1, height: 1, background: 'var(--line)' },
   // Amiri, already loaded in <head> for the ayah text, at a reading size and a wide leading:
   // the tashkeel in the stored text needs the room, and it is the difference between a UI
   // string and a page one is meant to recite from. No new font, no new request.
   adhkar2Text: { fontFamily: "'Amiri', serif", fontSize: 21, lineHeight: 2.05, color: 'var(--ink)' },
   adhkar2CardBottom: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 },
-  adhkar2Repeat: { display: 'inline-flex', alignItems: 'center', padding: '6px 12px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red-deep)', fontSize: 12.5, fontWeight: 700 },
+  adhkar2Repeat: { display: 'inline-flex', alignItems: 'center', padding: '6px 12px', borderRadius: 999, background: 'var(--tint)', color: 'var(--accent-ink)', fontSize: 12.5, fontWeight: 700 },
   adhkar2PlayBtn: { display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 999, background: 'var(--accent-fill)', color: 'var(--on-accent)', border: 'none', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
   adhkar2PlayBtnOn: { background: 'var(--red-deep)' },
   // Session 84, second pass. Additive again: the keys above are untouched, and V1's are three
@@ -10107,7 +10153,7 @@ const s = {
   adhkar2Chips: { display: 'flex', flexWrap: 'wrap', gap: 8 },
   adhkar2Chip: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, maxWidth: '100%', padding: '0 14px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 700, cursor: 'pointer', textAlign: 'right' },
   adhkar2ChipTitle: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  adhkar2ChipNum: { minWidth: 22, height: 22, flexShrink: 0, padding: '0 7px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red-deep)', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  adhkar2ChipNum: { minWidth: 22, height: 22, flexShrink: 0, padding: '0 7px', borderRadius: 999, background: 'var(--tint)', color: 'var(--accent-ink)', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
   // The grid TILE. The grid itself is the .adhkar2-grid class in <style> (a media query cannot
   // live in an inline style); the tile is the cell that class lays out.
   adhkar2Tile: { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, minHeight: 116, padding: '13px 13px', borderRadius: 18, background: 'var(--white)', border: '1px solid var(--line)', boxShadow: '0 2px 10px rgba(18,50,122,0.05)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
@@ -10184,7 +10230,7 @@ const s = {
   a3PathRow: { display: 'grid', gridTemplateColumns: '1fr 36px 1fr', alignItems: 'center', marginBottom: 12 },
   a3Mark: { gridColumn: 2, justifySelf: 'center', position: 'relative', width: 22, height: 22, borderRadius: '50%', background: 'var(--a3-surface)', border: '2px solid var(--a3-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--a3-surface)' },
   a3MarkNow: { border: '2px solid var(--a3-cyan)' },
-  a3MarkDone: { background: 'var(--a3-blue)', border: '2px solid var(--a3-blue)', color: '#FFFFFF' },
+  a3MarkDone: { background: 'var(--a3-blue)', border: '2px solid var(--a3-blue)', color: 'var(--a3-on-blue)' },
   a3Node: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 88, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
   a3NodeDone: { border: '1px solid var(--a3-blue)' },
   a3NodeTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
@@ -10235,7 +10281,7 @@ const s = {
   a3DockBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
   a3DockBtnOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
   a3DockBtnOff: { opacity: 0.42, cursor: 'default' },
-  a3DockCount: { flex: 1, minWidth: 0, minHeight: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '4px 10px', borderRadius: 16, background: 'var(--a3-blue)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  a3DockCount: { flex: 1, minWidth: 0, minHeight: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '4px 10px', borderRadius: 16, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
   a3DockCountDone: { background: 'var(--a3-cyan)', color: 'var(--a3-navy)', cursor: 'default' },
   a3DockCountNums: { fontSize: 18, fontWeight: 800 },
   a3DockCountLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 700 },
@@ -10401,9 +10447,9 @@ const s = {
   suggestionChipSmall: { background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--red)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
 
   // ===== شريط الإدخال =====
-  errorBanner: { margin: '0 14px 8px 14px', padding: '12px 16px', background: '#FFF4E5', border: '1px solid #F0C674', borderRadius: 12, fontSize: 14, color: '#8B5A00', fontWeight: 500, textAlign: 'center' },
+  errorBanner: { margin: '0 14px 8px 14px', padding: '12px 16px', background: 'var(--warn-bg)', border: '1px solid var(--warn-line)', borderRadius: 12, fontSize: 14, color: 'var(--warn-ink)', fontWeight: 500, textAlign: 'center' },
   inputBar: { display: 'flex', gap: 10, padding: '12px 14px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
-  input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.5, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '12px 18px', fontSize: 15, borderRadius: 18, border: '1px solid var(--line)', background: 'var(--page)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', boxSizing: 'border-box' },
+  input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.5, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '12px 18px', fontSize: 15, borderRadius: 18, border: '1px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', boxSizing: 'border-box' },
   sendBtn: { width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, var(--accent-fill) 0%, var(--red-deep) 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.28)', flexShrink: 0 },
   micBtn: { width: 44, height: 44, borderRadius: 22, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.18)', flexShrink: 0 },
   // D87: the tool row beneath the composer. space-between + RTL puts the first group on the
@@ -10415,19 +10461,19 @@ const s = {
   toolBtn: { width: 44, height: 44, borderRadius: 22, background: 'var(--tint)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.18)', flexShrink: 0 },
 
   // ===== لوحة الأهل =====
-  dashboardContainer: { minHeight: '100vh', background: '#F1F6FD' },
-  dashboardHeader: { display: 'flex', alignItems: 'center', padding: '14px 18px', background: '#FFFFFF', borderBottom: '1px solid #E5EBF5', gap: 12 },
-  backBtn: { background: 'transparent', border: 'none', color: '#12327A', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
-  dashboardTitle: { fontSize: 18, fontWeight: 800, color: '#12327A' },
+  dashboardContainer: { minHeight: '100vh', background: 'var(--page)' },
+  dashboardHeader: { display: 'flex', alignItems: 'center', padding: '14px 18px', background: 'var(--white)', borderBottom: '1px solid var(--line)', gap: 12 },
+  backBtn: { background: 'transparent', border: 'none', color: 'var(--accent-ink)', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  dashboardTitle: { fontSize: 18, fontWeight: 800, color: 'var(--accent-ink)' },
   dashboardContent: { padding: 16, display: 'flex', flexDirection: 'column', gap: 12 },
-  dashboardCard: { background: '#FFFFFF', borderRadius: 16, padding: 18, border: '1px solid #E5EBF5' },
-  dashboardLabel: { fontSize: 13, color: '#6E6E6E', marginBottom: 6, fontWeight: 600 },
-  dashboardValue: { fontSize: 17, fontWeight: 700, color: '#12327A' },
+  dashboardCard: { background: 'var(--white)', borderRadius: 16, padding: 18, border: '1px solid var(--line)' },
+  dashboardLabel: { fontSize: 13, color: 'var(--muted)', marginBottom: 6, fontWeight: 600 },
+  dashboardValue: { fontSize: 17, fontWeight: 700, color: 'var(--accent-ink)' },
   conversationLog: { maxHeight: 400, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 },
   logEntry: { padding: 12, borderRadius: 12, fontSize: 14 },
-  logRole: { fontWeight: 700, color: '#12327A', fontSize: 13, marginBottom: 6 },
-  logContent: { color: '#1A1A1A', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
-  logTime: { fontSize: 11, color: '#6E6E6E', marginTop: 6 },
+  logRole: { fontWeight: 700, color: 'var(--accent-ink)', fontSize: 13, marginBottom: 6 },
+  logContent: { color: 'var(--ink)', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
+  logTime: { fontSize: 11, color: 'var(--muted)', marginTop: 6 },
   dangerBtn: { padding: 14, background: 'transparent', color: '#C44536', border: '1px solid #C44536', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
 
   // ===== Live call screen (Layer 1 — UI only) =====
@@ -10439,14 +10485,14 @@ const s = {
   mushafHint: { textAlign: 'center', color: 'var(--muted)', fontSize: 13, padding: '28px 0' },
   mushafList: { display: 'flex', flexDirection: 'column', gap: 8 },
   mushafRow: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '12px 14px', borderRadius: 'var(--radius-btn)', background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer', textAlign: 'right', fontFamily: 'inherit' },
-  mushafNum: { flexShrink: 0, width: 34, height: 34, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 },
+  mushafNum: { flexShrink: 0, width: 34, height: 34, borderRadius: 10, background: 'var(--tint)', color: 'var(--accent-ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 },
   mushafRowMain: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
   mushafName: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   mushafSub: { fontSize: 12, color: 'var(--muted)', fontWeight: 500 },
   mushafPage: { flexShrink: 0, minWidth: 56, textAlign: 'left', fontSize: 11.5, fontWeight: 600, color: 'var(--muted)' },
   mushafJuzRow: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '6px 14px', borderRadius: 'var(--radius-btn)', background: 'var(--tint)', border: 'none', cursor: 'pointer', textAlign: 'right', fontFamily: 'inherit' },
-  mushafJuzName: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--red-deep)' },
-  mushafJuzPage: { flexShrink: 0, minWidth: 56, textAlign: 'left', fontSize: 11.5, fontWeight: 600, color: 'var(--red-deep)', opacity: 0.75 },
+  mushafJuzName: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--accent-ink)' },
+  mushafJuzPage: { flexShrink: 0, minWidth: 56, textAlign: 'left', fontSize: 11.5, fontWeight: 600, color: 'var(--accent-ink)', opacity: 0.75 },
   // 14.2f1 — النافذة والشريط ltr قسراً: موضعةٌ مطلقة بإزاحاتٍ فيزيائيّة صريحة، لا
   // ترتيبَ flex ولا جهةَ فيض — فلا يقدر direction:rtl الوارث من memContainer أن يقلبها.
   // والعربيّ يستعيد rtl داخل الخانة والصفحة، حيث يخصّه وحده.
@@ -10508,13 +10554,13 @@ const s = {
   // fontSize و gap يُحقنان في الرسم — يُشتقّان من قياس أعرضِ سطرٍ في الصفحة.
   pgLine: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', width: '100%', direction: 'rtl', fontFamily: PG_FONT, lineHeight: PG_LINE_H, color: 'var(--ink)', whiteSpace: 'nowrap' },
   pgWord: { flexShrink: 0, whiteSpace: 'nowrap' },
-  pgHeader: { fontFamily: "'Amiri', serif", fontSize: 15, fontWeight: 700, color: 'var(--red-deep)', textAlign: 'center', background: 'linear-gradient(180deg, var(--red-soft), var(--white))', borderTop: '1px solid var(--red-lift)', borderBottom: '1px solid var(--red-lift)', borderRadius: 4, padding: '3px 0', margin: '2px 0' },
-  pgBasmala: { fontFamily: "'Amiri Quran', 'Amiri', serif", color: 'var(--red-deep)', direction: 'rtl', textAlign: 'center', whiteSpace: 'nowrap' },
+  pgHeader: { fontFamily: "'Amiri', serif", fontSize: 15, fontWeight: 700, color: 'var(--accent-ink)', textAlign: 'center', background: 'linear-gradient(180deg, var(--red-soft), var(--white))', borderTop: '1px solid var(--red-lift)', borderBottom: '1px solid var(--red-lift)', borderRadius: 4, padding: '3px 0', margin: '2px 0' },
+  pgBasmala: { fontFamily: "'Amiri Quran', 'Amiri', serif", color: 'var(--accent-ink)', direction: 'rtl', textAlign: 'center', whiteSpace: 'nowrap' },
   pgBlank: { minHeight: 4 },
   pgBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 14px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
   // direction:'ltr' — الحرفان › ‹ من المنعكسات ثنائيّة الاتّجاه (Bidi_Mirrored),
   // فيقلبهما المتصفّح داخل سياق rtl ويشير كلٌّ منهما إلى عكس وجهته. العزلُ يوقف القلب.
-  pgNavBtn: { width: 44, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 20, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1, direction: 'ltr' },
+  pgNavBtn: { width: 44, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--accent-ink)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 20, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1, direction: 'ltr' },
   pgNavOff: { opacity: 0.32, cursor: 'default' },
   pgMeta: { fontSize: 13, fontWeight: 600, color: 'var(--muted)' },
   // 14.4 — غلافُ القفز: ارتفاعُه ٣٦ = ارتفاعُ زرّي التصفّح، فلا يتغيّر علوُّ الشريط بين اللافتة والخانة.
@@ -10527,8 +10573,8 @@ const s = {
   // pointerEvents on the wrapper is 'none' so the strip's margins never eat a swipe; the
   // button itself takes them back, so only the pill is tappable.
   wirdWrap: { position: 'absolute', left: 0, right: 0, zIndex: 5, display: 'flex', justifyContent: 'center', pointerEvents: 'none', paddingTop: 6, paddingLeft: 'calc(14px + env(safe-area-inset-left, 0px))', paddingRight: 'calc(14px + env(safe-area-inset-right, 0px))', boxSizing: 'border-box' },
-  wirdBtn: { pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 8, maxWidth: '100%', minWidth: 0, background: 'rgba(255,255,255,0.92)', border: '1px solid var(--line)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 1px 6px rgba(0,0,0,0.10)' },
-  wirdText: { fontSize: 12.5, fontWeight: 700, color: 'var(--red-deep)', whiteSpace: 'nowrap' },
+  wirdBtn: { pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 8, maxWidth: '100%', minWidth: 0, background: 'var(--wird-pill)', border: '1px solid var(--line)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 1px 6px rgba(0,0,0,0.10)' },
+  wirdText: { fontSize: 12.5, fontWeight: 700, color: 'var(--accent-ink)', whiteSpace: 'nowrap' },
   wirdTrack: { width: 72, height: 4, borderRadius: 999, background: 'var(--tint)', overflow: 'hidden', flexShrink: 0, display: 'block' },
   wirdFill: { display: 'block', height: '100%', borderRadius: 999, background: 'var(--red)' },
   wirdBack: { position: 'fixed', inset: 0, zIndex: 9, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18, direction: 'rtl' },
@@ -10536,7 +10582,7 @@ const s = {
   wirdSheetHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   wirdSheetTitle: { fontSize: 16, fontWeight: 800, color: 'var(--ink)' },
   wirdChips: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  wirdChip: { minWidth: 46, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--red-deep)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', padding: '0 12px' },
+  wirdChip: { minWidth: 46, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--accent-ink)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', padding: '0 12px' },
   wirdChipOn: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red-deep)' },
   wirdFree: { display: 'flex', alignItems: 'center', gap: 8 },
   wirdNone: { height: 36, borderRadius: 10, background: 'none', color: 'var(--muted)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'inherit' },

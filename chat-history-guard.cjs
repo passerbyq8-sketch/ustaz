@@ -638,8 +638,23 @@ function partC() {
     /<ParentDashboard profile=\{profile\} messages=\{ezikProfileTranscript\(ezikProfileKey\(profileRef\.current\)\)\}/.test(html));
 
   // OUT OF BOUNDS — the things the brief said not to touch.
-  eq('no theme variable was added or removed (two palettes, twelve names each)',
-    (html.match(/--(?:red|ink|muted|line|tint|white|page|black|on-accent|accent-fill|red-deep|red-soft)\s*:/g) || []).length, 24);
+  // S95: this used to assert a FLAT count of 24 ("two palettes, twelve names each"). Dark mode is
+  // no longer two palettes: the dark one moved from `.theme-dark` to `:root` and the mushaf sheet
+  // opts back out through a scoped re-declaration, so a flat total now says nothing about whether
+  // a variable was added or dropped. Counting PER BLOCK is what the check always meant, and it is
+  // strictly stronger — it catches a name going missing from one palette while another gains one,
+  // which the total could never see.
+  const THEME_NAMES = /--(?:red|ink|muted|line|tint|white|page|black|on-accent|accent-fill|red-deep|red-soft)\s*:/g;
+  const styleCss = decoded.slice(decoded.indexOf('<style>'), decoded.indexOf('</style>')).replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const countIn2 = (re) => {
+    let total = null;
+    for (const m of styleCss.matchAll(re)) { total = Math.max(total == null ? 0 : total, (m[1].match(THEME_NAMES) || []).length); }
+    return total;
+  };
+  eq('the light palette still declares all twelve theme names', countIn2(/:root\s*\{([^}]*)\}/g), 12);
+  eq('...and so does the document-level dark palette', countIn2(/:root\[data-theme="dark"\]\s*\{([^}]*)\}/g), 12);
+  eq('...and the mushaf sheet opt-out re-declares its documented ten',
+    countIn2(/:root\[data-theme="dark"\]\s+\.mushaf-paper\s*\{([^}]*)\}/g), 10);
   ok('the saved rows use existing variables only — no literal colour',
     !/drawer(?:Chat|Confirm|Section)[A-Za-z]*: \{[^}]*#[0-9a-fA-F]{3}/.test(html));
 }

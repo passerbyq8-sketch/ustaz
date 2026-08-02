@@ -386,8 +386,19 @@ console.log('\n=== D. THE WIRING (index.html) ===');
     !/userBubble[\s\S]{0,200}?EzikMarkdown/.test(html));
 
   // THE THEME IS UNTOUCHED.
-  eq('no theme variable was added or removed',
-    (html.match(/--(?:red|ink|muted|line|tint|white|page|black|on-accent|accent-fill|red-deep|red-soft)\s*:/g) || []).length, 24);
+  // S95: counted per BLOCK rather than as a flat total of 24. The dark palette moved from
+  // `.theme-dark` to `:root` and the mushaf sheet now opts back out through a scoped
+  // re-declaration, so a single total no longer distinguishes "a variable was dropped" from
+  // "a block was added". Per-block is what this check always meant.
+  const THEME_NAMES = /--(?:red|ink|muted|line|tint|white|page|black|on-accent|accent-fill|red-deep|red-soft)\s*:/g;
+  const themeCss = html.slice(html.indexOf('<style>'), html.indexOf('</style>')).replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const blockMax = (re) => {
+    let n = null;
+    for (const m of themeCss.matchAll(re)) n = Math.max(n == null ? 0 : n, (m[1].match(THEME_NAMES) || []).length);
+    return n;
+  };
+  eq('the light palette still declares all twelve theme names', blockMax(/:root\s*\{([^}]*)\}/g), 12);
+  eq('...and so does the document-level dark palette', blockMax(/:root\[data-theme="dark"\]\s*\{([^}]*)\}/g), 12);
   ok('every Markdown style uses existing variables — no literal colour',
     !/\bmd[A-Z][A-Za-z0-9]*: \{[^}]*(?:#[0-9a-fA-F]{3}|rgb\()/.test(html));
 }

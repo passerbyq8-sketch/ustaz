@@ -11,6 +11,10 @@
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
 <title>عزك — رحلةُ الكنوز</title>
+<!-- S95. The SAME boot script index.html uses, reading the SAME key, so the choice made in the
+     app's settings is already on <html> before the first pixel of this page is painted and a
+     stored dark theme never flashes sand. Fails to light, exactly as the app does. -->
+<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}document.documentElement.setAttribute('data-theme',t);var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#171410':'#FAF4E9');}}catch(e){}})();</script>
 <!--
   رحلةُ الكنوز · صفحةٌ مستقلّةٌ تعملُ بلا إنترنت
   لا تمسُّ index.html ولا أيَّ ملفٍّ من التطبيق. حذفُها = حذفُ هذا الملفِّ ومجلّدِ quest-data.
@@ -45,6 +49,25 @@
   --r-lg:26px; --r:18px; --r-sm:12px;
   --display:"Sakkal Majalla","Traditional Arabic","Arabic Typesetting",serif;
   --body:"Tajawal","Segoe UI","Sakkal Majalla",Tahoma,system-ui,sans-serif;  /* Tajawal = خطُّ المربّي، بلا طلبِ شبكة: إن غابَ سقطَ للتالي */
+  color-scheme: light;
+}
+/* S95 DARK. This page had no dark mode at all: it read no theme key and had no dark tokens, so
+   a user who chose dark in the app walked from a dark app into a sand-bright quest.
+   The values below are NOT a new design -- they are the "night" skin (ليلُ الصحراء) the rewards
+   layer already ships, promoted from a level-4 unlockable to the base dark palette. The journey
+   keeps its warm identity in the dark instead of being repainted in the app's navy, which is
+   what "do not replace identity colours" asks for.
+   The reward skins still win over this, and that is correct: they are an explicit choice. They
+   are applied as inline properties on <html>, which outrank a stylesheet rule by construction. */
+:root[data-theme="dark"]{
+  --paper:#171410; --paper2:#211C15; --card:#221D16;
+  --ink:#F3E9D8; --ink2:#C3B39A; --ink3:#8D7F6C;
+  --honey:#E9BA55; --honey2:#D9A238; --honey-soft:#2E2619;
+  --palm:#3E9C7B; --palm-soft:#1C2A24;
+  --pom:#C4515F; --pom-soft:#2E1D1F;
+  --lapis:#4E8ABF; --lapis-soft:#1B2532;
+  --line:#3A3227; --shadow:24px 32px 60px -34px rgba(0,0,0,.75);
+  color-scheme: dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;min-width:0}
 html,body{
@@ -697,7 +720,11 @@ const Theme = {
     document.documentElement.removeAttribute("style");
     Object.keys((t && t.tokens) || {}).forEach(k => document.documentElement.style.setProperty(k, t.tokens[k]));
     const bar = document.querySelector('meta[name="theme-color"]');   /* شريطُ الحالةِ يتبعُ السِّمة */
-    if (bar) bar.setAttribute("content", ((t && t.tokens) || {})["--paper"] || "#FAF4E9");
+    /* S95: the default skin declares no --paper, so this used to hardcode the SAND paper into the
+       status bar even when the page itself was dark. The fallback now follows data-theme; a skin
+       that does declare --paper still wins, because an explicit choice outranks the base theme. */
+    const dark = document.documentElement.getAttribute("data-theme") === "dark";
+    if (bar) bar.setAttribute("content", ((t && t.tokens) || {})["--paper"] || (dark ? "#171410" : "#FAF4E9"));
     P.s.theme = t ? t.id : "sand"; P.save();
   }
 };

@@ -85,3 +85,7 @@ quest-bank-integrity-guard.cjs text eol=lf
 # Gate 18 (quest-content-review-guard). Same reason as every gate above. Its manifest also
 # lives under quest-data/, covered by the "quest-data/*.json -text" rule further up.
 quest-content-review-guard.cjs text eol=lf
+
+# Gate 19 (theme-coverage-guard). Same reason as every gate above: it is compared byte-for-byte
+# against what the app ships, so its own line endings must not drift under core.autocrlf.
+theme-coverage-guard.cjs text eol=lf
