@@ -4306,6 +4306,22 @@ function App() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState('');
   const messagesEndRef = useRef(null);
+  // S97: the scroll CONTAINER, which nothing used to hold a handle on -- the only scrolling the
+  // chat did was scrollIntoView on the sentinel above, and that cannot be made instant-before-paint.
+  const messagesAreaRef = useRef(null);
+  // true from the moment a STORED conversation is loaded until its height has settled. While it is
+  // true the container is pinned to its own end before every paint, so the last reply is the first
+  // thing on screen and there is no descent to watch.
+  const jumpToEndRef = useRef(false);
+  // false while the user has deliberately scrolled up to read something older. Nothing may drag
+  // them back down while it is false.
+  const stickToEndRef = useRef(true);
+  // How many upcoming runs of the follow-the-reply effect belong to an OPEN rather than to a new
+  // message. Opening sets it to 1. Without it the two mechanisms race: the pin releases as soon as
+  // the layout settles, and on a SHORT conversation that happens before the follow effect runs, so
+  // the follow effect saw an unarmed pin and animated an open it was never meant to touch.
+  // A counter is decided by the code path, not by which timer won.
+  const skipFollowRef = useRef(0);
   const recognitionRef = useRef(null);
   const transcriptRef = useRef('');
   const baseTextRef = useRef('');        // input snapshot when dictation (re)starts — new speech is appended after it
@@ -4903,7 +4919,81 @@ function App() {
     recognitionRef.current = recognition;
   }, []);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, streamingText]);
+  // ============================================================
+  // S97: WHERE A CONVERSATION OPENS.
+  // This used to be one line:
+  //     useEffect(() => { messagesEndRef.current?.scrollIntoView({behavior:'smooth'}); },
+  //              [messages, streamingText]);
+  // and it produced exactly what the device video showed. Two independent faults in it:
+  //   * useEffect is a PASSIVE effect. It runs after the browser is free to paint, so the first
+  //     frame the user saw of a stored conversation was its TOP.
+  //   * behavior:'smooth' then ANIMATED the correction, so the descent was watchable.
+  // Measured, not guessed: opening a 40-turn conversation produced 0 scroll operations during the
+  // commit and 1 smooth one after paint.
+  // The replacement splits the two jobs that line was doing.
+
+  // (1) OPENING. A layout effect runs inside the same commit that puts the messages in the DOM,
+  // before the browser paints, so writing scrollTop here means the end IS the first frame. It has
+  // no dependency list on purpose: while a conversation is still assembling (markdown, source
+  // cards) every re-render re-pins it, so the bottom is held instead of drifting.
+  React.useLayoutEffect(() => {
+    if (!jumpToEndRef.current) return;
+    const el = messagesAreaRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  });
+
+  // (2) HOLDING while the first layout settles. Some height changes never go through React -- an
+  // attached image decoding, a font swapping in -- so a re-render is not enough on its own. A
+  // ResizeObserver keeps the pin through those, and the pin is released the moment it is no longer
+  // needed: either the size stopped changing, or the user touched the scroll themselves. The
+  // timeout is only a backstop for a browser with no ResizeObserver, not the positioning mechanism.
+  useEffect(() => {
+    if (!jumpToEndRef.current) return undefined;
+    const el = messagesAreaRef.current;
+    if (!el) { jumpToEndRef.current = false; return undefined; }
+    el.scrollTop = el.scrollHeight;
+    let ro = null, timer = null, settled = 0, lastH = -1;
+    const release = () => {
+      jumpToEndRef.current = false;
+      if (ro) { try { ro.disconnect(); } catch (e) {} }
+      if (timer) clearTimeout(timer);
+      el.removeEventListener('wheel', release);
+      el.removeEventListener('touchstart', release);
+    };
+    try {
+      ro = new ResizeObserver(() => {
+        if (!jumpToEndRef.current) return;
+        const h = el.scrollHeight;
+        el.scrollTop = h;
+        // two consecutive observations at the same height means the layout has stopped moving
+        if (h === lastH) { if (++settled >= 2) release(); } else { settled = 0; lastH = h; }
+      });
+      ro.observe(el);
+      for (let i = 0; i < el.children.length; i++) ro.observe(el.children[i]);
+    } catch (e) { ro = null; }
+    // the user reaching for the scroll ends the pin immediately -- they own it from then on
+    el.addEventListener('wheel', release, { passive: true });
+    el.addEventListener('touchstart', release, { passive: true });
+    timer = setTimeout(release, ro ? 1200 : 300);
+    return release;
+  }, [chatId]);
+
+  // (3) FOLLOWING a live reply. Unchanged behaviour -- smooth, as before -- but only while the
+  // user is actually at the end. Someone who scrolled up to re-read an old answer is no longer
+  // yanked back down, and the opening pin above is never fought by an animation.
+  useEffect(() => {
+    if (skipFollowRef.current > 0) { skipFollowRef.current--; return; }  // this run IS an open
+    if (jumpToEndRef.current) return;          // the opening pin owns the position right now
+    if (!stickToEndRef.current) return;        // the user is reading further up
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, streamingText]);
+
+  // Who is in charge of the scroll: recomputed on every scroll event, cheap, no state churn.
+  const onMessagesScroll = () => {
+    const el = messagesAreaRef.current;
+    if (!el) return;
+    stickToEndRef.current = (el.scrollHeight - el.scrollTop - el.clientHeight) < 80;
+  };
 
   // S92: THE AUTOSAVE, and it is still the ONE write point the chat has -- every path that
   // commits a turn (the greeting, a sent message, a call turn) already called this, so filing the
@@ -4931,6 +5021,11 @@ function App() {
     try { abortRef.current?.abort(); } catch (e) {}
     abortRef.current = null;
     cancelAudio();
+    // S97: an empty thread has no end to land on, so the opening pin is disarmed rather than
+    // carried over from whatever conversation was open before. stickToEnd goes back to true
+    // because an empty thread IS at its end.
+    jumpToEndRef.current = false;
+    stickToEndRef.current = true;
     chatIdRef.current = null;
     setChatId(null);
     setMessages([]);
@@ -4964,6 +5059,12 @@ function App() {
     abortRef.current = null;
     cancelAudio();
     chatIdRef.current = id;
+    // S97: arm the pin BEFORE the messages are handed to React, so the layout effect that runs
+    // inside this very commit already knows to land at the end. Set after, it would be one paint
+    // too late -- which is the whole bug this replaces.
+    jumpToEndRef.current = true;
+    stickToEndRef.current = true;
+    skipFollowRef.current = 1;   // the one follow-effect run this open is about to cause
     setChatId(id);
     setMessages(ezikReadChatMessages(id));
     setStreamingText(null);
@@ -6407,7 +6508,7 @@ function App() {
         </button>
       </div>
 
-      <div style={s.messagesArea}>
+      <div ref={messagesAreaRef} onScroll={onMessagesScroll} style={s.messagesArea}>
         {messages.map((m, i) => <MessageBubble key={i} tashkeel={tashkeelOn} onToggleTashkeel={toggleTashkeel} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} />)}
         {streamingText !== null && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>

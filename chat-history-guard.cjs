@@ -659,8 +659,215 @@ function partC() {
     !/drawer(?:Chat|Confirm|Section)[A-Za-z]*: \{[^}]*#[0-9a-fA-F]{3}/.test(html));
 }
 
+// ---------------------------------------------------------------------------
+// D. WHERE A CONVERSATION OPENS (S97)
+//
+// The device video showed a stored conversation appearing at its TOP and then visibly sliding
+// down to the last reply. The cause was one line: a PASSIVE effect (useEffect) calling
+// scrollIntoView with behavior:'smooth' -- it ran after the browser was free to paint, and then
+// animated the correction in full view.
+//
+// These checks assert the BEHAVIOUR, not the presence of a word. linkedom has no layout, so the
+// container is given a geometry stub whose scrollHeight grows with its content; every scrollTop
+// write and every scrollIntoView is recorded with the task it happened in. A browser cannot paint
+// in the middle of a task, so "pinned in the same task the messages were inserted" is the
+// property that matters and it is the property measured.
+//
+// This section builds its OWN context, after part B has finished with hers -- the one-live-context
+// rule at the top of this file.
+// ---------------------------------------------------------------------------
+const Q_LONG = 'سؤالٌ في محادثةٍ طويلة';
+const A_LONG = 'جوابٌ في محادثةٍ طويلة';
+const Q_SHORT = 'سؤالٌ قصير';
+
+function seedConversations() {
+  const long = [];
+  for (let i = 1; i <= 40; i++) {
+    long.push({ role: 'user', content: Q_LONG + ' ' + i });
+    // markdown AND a source card, so the reply is assembled rather than plain text
+    long.push({ role: 'assistant', content: A_LONG + ' ' + i + '\n\n## عنوان\n- نقطة\n- نقطة\n\n[[SOURCES]]{"items":[{"title":"مصدر","url":"https://example.org/a"}]}[[/SOURCES]]' });
+  }
+  return {
+    child_profile: JSON.stringify({ name: 'سلمى', age: 9, gender: 'female', birthYear: 2017, pid: 'PID-S', createdAt: '2026-01-01T00:00:00.000Z' }),
+    disclosureAck: '1',
+    murabbi_theme_v1: 'light',
+    ezik_chats_v1: JSON.stringify([
+      { id: 'LONG', pk: 'PID-S', title: Q_LONG, pinned: false, at: 3000 },
+      { id: 'SHORT', pk: 'PID-S', title: Q_SHORT, pinned: false, at: 2000 },
+    ]),
+    ezik_chat_v1_LONG: JSON.stringify(long),
+    ezik_chat_v1_SHORT: JSON.stringify([{ role: 'user', content: Q_SHORT }, { role: 'assistant', content: 'جوابٌ قصير' }]),
+  };
+}
+
+function instrument(window) {
+  const rec = { ops: [], task: 0, inserted: 0, ticking: true };
+  const tick = () => { if (!rec.ticking) return; rec.task++; setTimeout(tick, 0); };
+  setTimeout(tick, 0);
+  const EP = window.Element.prototype;
+  const rawAppend = EP.appendChild, rawInsert = EP.insertBefore;
+  EP.appendChild = function (n) { rec.inserted++; return rawAppend.call(this, n); };
+  EP.insertBefore = function (n, r) { rec.inserted++; return rawInsert.call(this, n, r); };
+  EP.scrollIntoView = function (o) {
+    rec.ops.push({ task: rec.task, kind: 'scrollIntoView', behavior: (o && o.behavior) || 'auto', inserted: rec.inserted });
+  };
+  // scrollHeight grows with the subtree, which is what a message list does
+  Object.defineProperty(EP, 'scrollHeight', { configurable: true, get() { return (this.querySelectorAll ? this.querySelectorAll('*').length : 0) * 40; } });
+  Object.defineProperty(EP, 'clientHeight', { configurable: true, get() { return 600; } });
+  const tops = new WeakMap();
+  Object.defineProperty(EP, 'scrollTop', {
+    configurable: true,
+    get() { return tops.get(this) || 0; },
+    set(v) { tops.set(this, v); rec.el = this; rec.ops.push({ task: rec.task, kind: 'scrollTop', value: v, inserted: rec.inserted }); },
+  });
+  // rec.el is the element the app itself positioned -- identifying the scroll container by what
+  // the code touched beats guessing at it from the DOM shape.
+  return rec;
+}
+
+function partD() {
+  return new Promise((resolve) => {
+    console.log('\n=== D. WHERE A CONVERSATION OPENS (S97) ===');
+    const { window, api, err } = buildContext(seedConversations(), true);
+    const rec = instrument(window);
+    const root = () => window.document.getElementById('root');
+    const all = (sel) => Array.from(root().querySelectorAll(sel));
+    const txt = () => String(root().textContent || '');
+    const hit = (el) => el.dispatchEvent(new window.Event('click', { bubbles: true, cancelable: true }));
+    const openDrawer = () => {
+      const b = all('button').find((x) => /القائمة/.test(x.getAttribute('aria-label') || ''));
+      if (b) hit(b);
+    };
+    const rowFor = (title) => all('button').find((b) => {
+      const t = String(b.textContent || '');
+      return t.indexOf(title) !== -1 && t.indexOf('محادثة جديدة') === -1 && t.indexOf('القائمة') === -1;
+    });
+    const container = () => rec.el || null;
+    // Wait for a CONDITION, never for a duration. Fixed sleeps made this group fail once under
+    // load while passing on an idle machine -- the drawer closes through history.back(), whose
+    // popstate lands on a later task, so the only honest wait is "until the thing happened".
+    const waitFor = async (pred, label, budget) => {
+      const end = Date.now() + (budget || 3000);
+      while (Date.now() < end) { if (pred()) return true; await tick(20); }
+      ok('D: waiting for ' + label, false, 'still not true after ' + (budget || 3000) + 'ms');
+      return false;
+    };
+
+    (async () => {
+      const e = err();
+      if (e) { ok('D: the app mounts with two stored conversations', false, String(e && e.stack ? e.stack : e)); return resolve(); }
+      await waitFor(() => !!root() && root().childNodes.length > 0, 'the app to mount');
+      ok('D: the app mounts with two stored conversations', !!root() && root().childNodes.length > 0);
+      ok('D: ...and opens on an EMPTY thread, as it always did', txt().indexOf(Q_LONG) === -1);
+
+      /* ---- a LONG conversation opens at its END, with no animation ---- */
+      openDrawer(); await tick();
+      const rLong = rowFor(Q_LONG);
+      if (!ok('D: the long conversation is listed', !!rLong)) return resolve();
+      rec.ops.length = 0;
+      const before = rec.inserted;
+      hit(rLong);
+      await waitFor(() => txt().indexOf(Q_LONG + ' 40') !== -1, 'the long conversation to render');
+      await waitFor(() => rec.ops.some((o) => o.kind === 'scrollTop'), 'the container to be positioned');
+      await tick(120);   // let the settle-and-release finish before reading the final position
+
+      ok('D: opening it renders the whole conversation', txt().indexOf(Q_LONG + ' 40') !== -1);
+      const smooth = rec.ops.filter((o) => o.behavior === 'smooth');
+      // THE defect: the descent was animated, so it could be watched.
+      eq('D: opening a stored conversation animates NOTHING', smooth.length, 0);
+      const pins = rec.ops.filter((o) => o.kind === 'scrollTop');
+      ok('D: ...the container is positioned explicitly instead', pins.length > 0,
+        'no scrollTop was ever written -- scrollIntoView alone cannot be made instant');
+      const first = pins[0];
+      ok('D: ...in the same task the messages were inserted',
+        !!first && (first.inserted - before) > 0,
+        first ? 'first write saw ' + (first.inserted - before) + ' new insertions' : 'no write');
+      // linkedom never paints, so "before the paint" cannot be OBSERVED here -- it is guaranteed
+      // by React's contract that layout effects run inside the commit, before the browser paints.
+      // So the contract itself is asserted: the pin must be a LAYOUT effect. A passive effect
+      // would put the top on screen for one frame again, which is the entire defect.
+      ok('D: ...and the pin is a LAYOUT effect, which is what makes it pre-paint',
+        /React\.useLayoutEffect\(\(\) => \{\s*if \(!jumpToEndRef\.current\) return;[\s\S]{0,200}?scrollTop = el\.scrollHeight;/.test(html),
+        'the opening pin is not a useLayoutEffect -- a passive effect runs after the browser may paint');
+      // and it is positioned at the END, not at some remembered offset
+      const el = container();
+      ok('D: ...and it lands at the LAST reply, not the first',
+        !!el && el.scrollTop > 0 && el.scrollTop >= el.scrollHeight - 40,
+        el ? 'scrollTop ' + el.scrollTop + ' of scrollHeight ' + el.scrollHeight : 'no container');
+
+      /* ---- switching quickly to a SHORT one does the same ---- */
+      openDrawer(); await tick();
+      const rShort = rowFor(Q_SHORT);
+      if (ok('D: the short conversation is listed', !!rShort)) {
+        rec.ops.length = 0;
+        hit(rShort);
+        await waitFor(() => txt().indexOf(Q_SHORT) !== -1 && txt().indexOf(Q_LONG + ' 40') === -1, 'the short conversation to replace it');
+        await tick(80);
+        ok('D: a fast switch to another conversation also lands at its end',
+          rec.ops.filter((o) => o.kind === 'scrollTop').length > 0
+          && rec.ops.filter((o) => o.behavior === 'smooth').length === 0);
+        ok('D: ...and shows that conversation, not the previous one',
+          txt().indexOf(Q_SHORT) !== -1 && txt().indexOf(Q_LONG + ' 40') === -1);
+      }
+
+      /* ---- scrolling up must not be undone ---- */
+      openDrawer(); await tick();
+      const rLong2 = rowFor(Q_LONG);
+      if (ok('D: the long conversation can be reopened', !!rLong2)) {
+        hit(rLong2);
+        await waitFor(() => txt().indexOf(Q_LONG + ' 40') !== -1, 'the long conversation to reopen');
+        // The pin releases once the layout stops changing; observable as "no new scrollTop write
+        // for a couple of polls". Waiting for that beats guessing a duration.
+        let quiet = 0, seen = -1;
+        await waitFor(() => {
+          const n = rec.ops.filter((o) => o.kind === 'scrollTop').length;
+          if (n === seen) return ++quiet >= 3;
+          seen = n; quiet = 0; return false;
+        }, 'the opening pin to release');
+        const el2 = container();
+        if (ok('D: the container is reachable', !!el2)) {
+          // the reader deliberately goes up; the pin must already be released by now
+          el2.scrollTop = 0;
+          el2.dispatchEvent(new window.Event('scroll', { bubbles: false }));
+          await tick(160);
+          ok('D: scrolling up to read an older message is NOT undone',
+            el2.scrollTop === 0, 'the app pulled the reader back to ' + el2.scrollTop);
+          // The full case -- a reply ARRIVING while the reader is up there -- needs a live turn,
+          // which this offline harness cannot produce. What makes that case safe is that the
+          // follow effect consults the stickiness at all, and the container reports it; both are
+          // asserted here so removing either one fails.
+          ok('D: ...because the follow-the-reply effect consults that position first',
+            /if \(!stickToEndRef\.current\) return;/.test(html)
+            && /messagesEndRef\.current\?\.scrollIntoView\(\{ behavior: 'smooth' \}\)/.test(html),
+            'nothing guards the auto-scroll, so an arriving reply would yank the reader back down');
+          ok('D: ...and the container reports its position as the reader moves',
+            /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\}/.test(html));
+        }
+      }
+
+      /* ---- a new empty chat stays empty ---- */
+      const nc = all('button').find((b) => String(b.textContent || '').indexOf('محادثة جديدة') !== -1)
+        || (openDrawer(), await tick(), all('button').find((b) => String(b.textContent || '').indexOf('محادثة جديدة') !== -1));
+      if (ok('D: «محادثة جديدة» is reachable', !!nc)) {
+        hit(nc);
+        await waitFor(() => txt().indexOf(Q_LONG) === -1 && txt().indexOf(Q_SHORT) === -1, 'the new empty thread');
+        ok('D: a new conversation carries nothing over from the old one',
+          txt().indexOf(Q_LONG) === -1 && txt().indexOf(Q_SHORT) === -1);
+      }
+
+      /* ---- the store was not disturbed by any of this ---- */
+      eq('D: both conversations are still filed', api.list('PID-S').length, 2);
+      eq('D: ...and another profile still sees none of them', api.list('SOMEONE-ELSE').length, 0);
+      rec.ticking = false;
+      resolve();
+    })().catch((ex) => { ok('D: the open-position group ran', false, String(ex && ex.stack ? ex.stack : ex)); rec.ticking = false; resolve(); });
+  });
+}
+
 bootDone.then(() => {
   partC();
+  return partD();
+}).then(() => {
   console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
   process.exit(failures ? 1 : 0);
 });
