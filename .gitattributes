@@ -97,3 +97,7 @@ chat-ux-guard.cjs text eol=lf
 # Gate 21 (a11y-guard). Same reason as every gate above: it re-runs the shipped babel block, so
 # its own line endings must not drift under core.autocrlf.
 a11y-guard.cjs text eol=lf
+
+# Gate 22 (quest-ux-guard). It seals the question bank by hash and drives the shipped page in a
+# real browser, so its own line endings must not drift under core.autocrlf.
+quest-ux-guard.cjs text eol=lf

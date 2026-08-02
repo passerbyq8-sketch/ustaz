@@ -1420,9 +1420,41 @@ function partE() {
   if (changed === null) {
     ok('the changed-file set can be read from git', false, 'git unavailable — cannot prove the blast radius');
   } else {
-    const FORBIDDEN = /^(android|ios|capacitor|api|lib|quest-data)\/|^(manifest\.json|sw\.js|quest\.html|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json)$/;
+    // The PERMANENT blast radius: native wrappers, the API, the service worker, the manifest, and
+    // every file that carries scripture or the question bank. quest.html itself was on this list
+    // while S98 was the only phase in flight and the game page was out of scope; S100 changed that
+    // by instruction, so the page moved off the list and the thing that actually needed protecting
+    // — the CONTENT of the bank — is asserted directly below instead. That is strictly more than
+    // the path check said: a quest-data file could have been rewritten in place and still passed
+    // a name-only check if it had somehow been staged, whereas a hash cannot be talked around.
+    const FORBIDDEN = /^(android|ios|capacitor|api|lib|quest-data)\/|^(manifest\.json|sw\.js|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json|worship-display\.json)$/;
     const bad = changed.filter((f) => FORBIDDEN.test(f));
     eq('no API, manifest, service worker, platform or scripture file is modified', bad, []);
+    // The question bank and the scripture, by content rather than by filename.
+    const crypto = require('crypto');
+    const SEALED = {
+      'quest-data/trivia-golden.json': '4066160153f7648e7eeb145edae0ed43a2d24048d549ce076b37a6e144a425a9',
+      'quest-data/reveal-golden.json': 'b3a89a4997b9b9ab6c91bd26a020e2e85a8d697ffec19bbd29937885d3819743',
+      'quest-data/quran-quest-golden.json': 'd657ce9fcad754afd75ab96dbb3a8670d056cb3f103c37b689a4d51f31d9fefc',
+      'quest-data/prayer-quest-golden.json': 'fdff7d29711735f0ce72e62c025a7596b9c2d3c6d0f254e9f198854d812b5807',
+      'quest-data/bank-integrity-golden.json': '04877fb4faa2f21786a1b65f2be4f879bcccfd7af0f3621b4abefb31afef46ec',
+      'quest-data/content-review-manifest.json': 'ae79702252e711f11804e2c0cf36166d085649035b032106fe3e8658c08ced85',
+      'quest-data/rewards.json': '536caf3d048ca3e11361135b635a6284916ba286c4139ac5b8f8f176e6e84ba3',
+      'quest-data/world.json': '6da5033bef577784238e7ab98d356dc8cf345958215d3232bad221922feb751b',
+      'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
+      'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
+      'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
+      'manifest.json': '4b96523dac293c0c7a663888aee0ea749786e57613786a0f6287e12c75905f1a',
+      'sw.js': '4de761376cbffba7801c385b913bafd0bc5bd58afbc52e5b14771a87bab19759',
+    };
+    const moved = [];
+    Object.keys(SEALED).forEach((f) => {
+      const p = path.join(__dirname, f);
+      if (!fs.existsSync(p)) { moved.push(f + ' (absent)'); return; }
+      const h = crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+      if (h !== SEALED[f]) moved.push(f + ' -> ' + h.slice(0, 16));
+    });
+    eq('every scripture, adhkar and question-bank file is byte-for-byte unchanged', moved, []);
   }
 
   // 19) every style key this phase adds is a token, so light and dark both work by construction

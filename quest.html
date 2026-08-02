@@ -249,6 +249,22 @@ button:active{transform:scale(.97)}   /* اللمسةُ نفسُها التي ف
 .choice.bad{border-color:var(--pom);background:var(--pom-soft)}
 .choice.bad .k{background:var(--pom);color:#fff}
 .choice[disabled]{cursor:default}
+/* S100: the verdict on a choice, as a SYMBOL beside the colour. It sits at the far end of the
+   row and takes its colour from the class the row already carries, so it needs no palette of its
+   own and both themes draw it from the tokens that were already there. */
+.choice .mark{margin-inline-start:auto;font-size:20px;font-weight:800;line-height:1;flex-shrink:0}
+.choice.ok .mark{color:var(--palm)}
+.choice.bad .mark{color:var(--pom)}
+/* Visually hidden, still read aloud. This is what carries the verdict to a screen reader, which
+   sees neither the colour nor the glyph's meaning. */
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* S100: the tally on the result screen. Both counts read from the round's own numbers, and both
+   carry a symbol as well as a colour so neither depends on the other. It wraps rather than
+   scrolling, so two counts still fit at 320px. */
+.tally{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:14px}
+.tally span{padding:7px 14px;border-radius:999px;font-weight:700;font-size:14px;border:1px solid var(--line)}
+.tally .tally-ok{color:var(--palm);background:var(--palm-soft)}
+.tally .tally-bad{color:var(--pom);background:var(--pom-soft)}
 .tf{grid-template-columns:1fr 1fr}
 .tf .choice{justify-content:center;font-size:24px;font-family:var(--display)}
 
@@ -1019,15 +1035,36 @@ const RENDERERS = {
 
 function choiceBody(p, done, cls) {
   const g = el("div", cls);
+  g.setAttribute("role", "group");
+  g.setAttribute("aria-label", "اختر إجابةً");
   const keys = ["أ", "ب", "ج", "د", "هـ", "و"];
   p.opts.forEach((o, i) => {
     const b = el("button", "choice"); b.type = "button";
     if (cls.indexOf("tf") < 0) b.appendChild(el("span", "k", keys[i] || ar(i + 1)));
     b.appendChild(el("span", null, o.t));
     b.onclick = () => {
-      Array.from(g.children).forEach((c, j) => { c.disabled = true; if (p.opts[j].ok) c.classList.add("ok"); });
-      if (!o.ok) b.classList.add("bad");
-      done(!!o.ok);
+      /* S100: the result of an answer is carried by a SYMBOL and by WORDS, not by colour alone.
+         A child who cannot separate the green from the red — and a screen reader, which sees no
+         colour at all — now gets ✓ on the right answer and ✗ on the one that was picked, each
+         with a spoken label beside it. The colour classes are unchanged and still applied, so
+         nothing about the existing look moves; this is added beside them.
+         The buttons are also marked aria-disabled: they are already `disabled` (which is what
+         makes a second press impossible), and the attribute states that fact to assistive tech. */
+      Array.from(g.children).forEach((c, j) => {
+        c.disabled = true;
+        c.setAttribute("aria-disabled", "true");
+        if (p.opts[j].ok) {
+          c.classList.add("ok");
+          c.appendChild(el("span", "mark", "✓"));
+          c.appendChild(el("span", "sr", "الإجابة الصحيحة"));
+        }
+      });
+      if (!o.ok) {
+        b.classList.add("bad");
+        b.appendChild(el("span", "mark", "✗"));
+        b.appendChild(el("span", "sr", "اختيارك، وهو غير صحيح"));
+      }
+      done(!!o.ok, o.t);
     };
     g.appendChild(b);
   });
@@ -2025,7 +2062,7 @@ const Round = {
     if (P.s.answerMode === "reveal" && cfg.kind !== "speed" && (p.type === "mcq" || p.type === "tf" || p.type === "complete"))
       card.appendChild(revealBody(p, ok => this.judge(q, p, ok, card)));
     else
-      card.appendChild(Q.body(p, ok => this.judge(q, p, ok, card)));
+      card.appendChild(Q.body(p, (ok, chosen) => this.judge(q, p, ok, card, chosen)));
     if (!q.generated) card.appendChild(reportBtn(q));
     v.appendChild(card);
     mount(v, TAB);
@@ -2036,9 +2073,13 @@ const Round = {
     }
   },
 
-  judge(q, p, ok, card) {
+  judge(q, p, ok, card, chosen) {
     const st = this.st, ec = Data.rewards.economy;
-    st.answered.push({ q, ok });
+    /* S100: what the player ACTUALLY picked is recorded beside the verdict, so the review screen
+       can show it back to them. It is the option's own text, taken from the option that was
+       pressed — nothing is derived, nothing is guessed, and the question is not touched. It lives
+       in the round's state and nowhere else: the round ends and it is gone. */
+    st.answered.push({ q, ok, chosen: (typeof chosen === "string" ? chosen : null) });
     if (ok) {
       st.correct++; st.combo = Math.min((ec.comboMax || 2), st.combo + (ec.comboStep || .25));
       const xp = Math.round((ec.xpPerDiff[q.diff] || 10) * (1 + st.combo - (ec.comboStep || .25)));
@@ -2076,17 +2117,27 @@ const Round = {
     const th = Data.rewards.economy.starThresholds || [60, 80, 100];
     let stars = 0; th.forEach(t => { if (pct >= t) stars++; });
 
-    if (cfg.kind === "journey" && cfg.region != null) {
-      P.markStation(cfg.region, cfg.station, stars);
-      if (stars > 0) Rewards.openChest("station");
-      if (P.regionDone(cfg.region)) Rewards.openChest("region");
+    /* S100: SETTLING IS ONE-SHOT. The result screen is now reachable a second time — the review
+       screen returns to it — and every line in this block PAYS something: a station is marked, a
+       chest is opened, the daily is counted, a best score is raised. Re-entering the screen must
+       not re-award any of it, so the settlement runs once per round and the render below runs as
+       often as it likes. Not one rule, threshold or amount changed; only how many times they can
+       fire. `unlocks` is likewise shown once, on the first arrival. */
+    let unlocks = [];
+    if (!st.settled) {
+      st.settled = true;
+      if (cfg.kind === "journey" && cfg.region != null) {
+        P.markStation(cfg.region, cfg.station, stars);
+        if (stars > 0) Rewards.openChest("station");
+        if (P.regionDone(cfg.region)) Rewards.openChest("region");
+      }
+      if (cfg.kind === "daily") {
+        if (P.s.lastDaily !== dayKey()) { P.s.lastDaily = dayKey(); P.s.dailyDone++; Rewards.openChest("daily"); }
+      }
+      if (cfg.kind === "speed") { P.s.speedBest = Math.max(P.s.speedBest || 0, st.correct); }
+      P.save();
+      unlocks = Rewards.check();
     }
-    if (cfg.kind === "daily") {
-      if (P.s.lastDaily !== dayKey()) { P.s.lastDaily = dayKey(); P.s.dailyDone++; Rewards.openChest("daily"); }
-    }
-    if (cfg.kind === "speed") { P.s.speedBest = Math.max(P.s.speedBest || 0, st.correct); }
-    P.save();
-    const unlocks = Rewards.check();
 
     const v = document.createElement("div");
     const r = el("div", "res");
@@ -2103,24 +2154,95 @@ const Round = {
     v.appendChild(r);
 
     const wrong = st.answered.filter(a => !a.ok);
-    if (wrong.length) {
-      const box = el("div", "grid"); box.style.marginTop = "18px";
-      box.appendChild(el("h3", null, "راجِعْ هذه"));
-      wrong.forEach(a => {
-        const c = el("div", "card tight");
-        c.appendChild(h("div", null, "<b>" + (a.q.q || a.q.verse || "") + "</b>"));
-        c.appendChild(el("div", "tiny", "الجواب: " + Q.answerText(Q.present(a.q)) + (a.q.why ? " — " + a.q.why : "")));
-        box.appendChild(c);
-      });
-      v.appendChild(box);
+    /* S100: the tally in words as well as in a percentage. All three numbers are the round's own
+       counters — nothing is recomputed, nothing new is measured, and the percentage above is
+       unchanged. A player who wants to know how many they missed no longer has to subtract. */
+    if (cfg.kind !== "speed") {
+      const tally = el("div", "tally");
+      tally.appendChild(h("span", "tally-ok", "✓ صحيحة: " + ar(st.correct)));
+      tally.appendChild(h("span", "tally-bad", "✗ خاطئة: " + ar(wrong.length)));
+      v.appendChild(tally);
     }
     const row = el("div", "row center"); row.style.marginTop = "20px";
     const again = el("button", "btn primary", "مرّةً أخرى");
     again.onclick = () => Round.start(Object.assign({}, cfg, { list: shuffle(cfg.list) }));
+    /* S100: the wrong answers were listed here as a flat block that grew with the round. They now
+       open in their own screen, one at a time, where there is room to show what was picked
+       alongside what was right. The button appears only when there is something to review. */
+    if (wrong.length) {
+      const rev = el("button", "btn", "راجِعْ أخطاءك (" + ar(wrong.length) + ")");
+      rev.onclick = () => this.review(0);
+      row.appendChild(rev);
+    }
     const out = el("button", "btn quiet", "خروج"); out.onclick = () => cfg.onEnd && cfg.onEnd();
     row.appendChild(again); row.appendChild(out); v.appendChild(row);
     mount(v, TAB);
     showUnlocks(unlocks);
+  },
+
+  /* ==========================================================
+     S100 — مراجعةُ أخطاءِ الجولة
+     ==========================================================
+     THIS SCREEN INVENTS NOTHING. Every line on it is read back from the round that just finished:
+     the question exactly as the bank words it, the option the player pressed, the answer
+     Q.answerText derives (the same function the verdict card used a moment ago), the bank's own
+     `why` when it has one, and the category name from the loaded categories. No explanation is
+     written, no source is guessed, no answer is re-decided, and the bank is neither copied nor
+     touched. It reads `this.st`, which is memory only — the round ends and the review is gone. */
+  review(idx) {
+    const st = this.st;
+    if (!st) return;
+    const wrong = st.answered.filter(a => !a.ok);
+    if (!wrong.length) return this.finish();
+    const i = Math.max(0, Math.min(wrong.length - 1, idx | 0));
+    const a = wrong[i], p = Q.present(a.q);
+    const catName = ((Data.cats || {})[a.q.cat] || {}).name || "";
+
+    const v = document.createElement("div");
+    const top = el("div", "playtop");
+    const back = el("button", "btn quiet sm", "✕");
+    back.setAttribute("aria-label", "العودة إلى النتيجة");
+    back.onclick = () => this.finish();
+    top.appendChild(back);
+    top.appendChild(h("span", "pill", ar(i + 1) + " / " + ar(wrong.length)));
+    v.appendChild(top);
+    v.appendChild(el("div", "tiny", "مراجعةُ الأخطاء"));
+
+    const card = el("div", "card qcard"); card.style.marginTop = "10px";
+    if (catName) card.appendChild(el("div", "eyebrow", catName));
+    card.appendChild(Q.stem(p));
+
+    /* «إجابتُك» is shown ONLY when an option was actually pressed. In the self-reveal mode the
+       player marks their own answer and never picks one, so there is nothing to quote back — and
+       inventing a line there would be putting words in their mouth. */
+    if (a.chosen != null && a.chosen !== "") {
+      const mine = el("div", "verdict bad");
+      mine.appendChild(el("h4", null, "إجابتُك"));
+      mine.appendChild(el("div", null, a.chosen));
+      card.appendChild(mine);
+    }
+
+    const right = el("div", "verdict good");
+    right.appendChild(el("h4", null, "الإجابةُ الصحيحة"));
+    right.appendChild(el("div", null, Q.answerText(p)));
+    if (a.q.why) right.appendChild(el("div", "tiny", a.q.why));
+    if (a.q.src) right.appendChild(el("span", "src", "المصدر: " + a.q.src));
+    card.appendChild(right);
+    v.appendChild(card);
+
+    const row = el("div", "row center"); row.style.marginTop = "18px";
+    const prev = el("button", "btn quiet", "السابق");
+    prev.disabled = i === 0;
+    prev.onclick = () => this.review(i - 1);
+    const next = el("button", "btn quiet", "التالي");
+    next.disabled = i >= wrong.length - 1;
+    next.onclick = () => this.review(i + 1);
+    const done = el("button", "btn primary", "العودة إلى النتيجة");
+    done.onclick = () => this.finish();
+    row.appendChild(prev); row.appendChild(next); row.appendChild(done);
+    v.appendChild(row);
+    mount(v, TAB);
+    done.focus();
   }
 };
 
