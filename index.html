@@ -163,6 +163,20 @@
      reader and never as a stuck outline after a tap. Drawn in a token, so it stays visible
      on the white top row, on the white cards and on the reading surface alike. */
   .adhkar2-focus:focus-visible{outline:3px solid var(--red-lift);outline-offset:2px}
+  /* S98 -- the reply controls (fold, quote, quick actions, favourites, search). The same
+     keyboard-only ring the adhkar screens use, in the same token, so it stays visible on the
+     bubble surface and on the drawer alike. Touch never sees it; a tabbing reader always does. */
+  .ezik-focus:focus-visible{outline:3px solid var(--red-lift);outline-offset:2px}
+  /* S98 -- reduced motion. Everything this phase adds is motionless BY CONSTRUCTION: no
+     keyframes, no transition, no smooth scroll, and the fold chevron flips in one step. The rule
+     below is the belt to that braces -- it neutralises any animation or transition on an S98
+     surface should one ever be added -- and it is scoped to the two S98 class names ALONE. A
+     blanket `*{animation:none}` is deliberately NOT written: the mushaf's page turn resolves a
+     promise on animationend, and freezing it would hang that screen forever (see the S-note at
+     the flip-scheduler). Nothing outside these two classes is touched. */
+  @media (prefers-reduced-motion: reduce) {
+    .ezik-focus, .ezik-focus *, .ezik-panel, .ezik-panel * { animation: none !important; transition: none !important; }
+  }
   /* Session 85/86 -- the DUAL STYLE palette, and it is a SCOPED token set, not a global one:
      every declaration below lives on .adhkar3 and .ezhome, classes carried only by the four
      adhkar presentation components and the two home ones, so nothing outside them -- not the
@@ -6093,6 +6107,50 @@ function App() {
   };
 
   // ============================================================
+  // S98 — الإجراءات السريعة والاقتباس (quick actions + quote)
+  // ============================================================
+  // A quick action IS a message. It goes through sendMessage above and nothing else, so the model
+  // tier, the depth mode, the sourcing policy and the sliding history window are all whatever the
+  // composer would have used for the same sentence typed by hand.
+  //
+  // ONE PRESS, ONE SEND. `isLoading` alone could not promise that: it is state, and two clicks
+  // dispatched inside one task both read the value from before React committed the first. This
+  // ref flips SYNCHRONOUSLY on the first press, so the second finds it already taken. It is
+  // released when the turn ends, which is exactly when isLoading goes back to false.
+  const quickBusyRef = useRef(false);
+  useEffect(() => { if (!isLoading) quickBusyRef.current = false; }, [isLoading]);
+  const runQuickAction = (prompt) => {
+    if (quickBusyRef.current || isLoading || streamingText !== null) return;
+    quickBusyRef.current = true;
+    sendMessage(prompt);
+  };
+  // Where the quick actions may appear, and it is deliberately ONE place: under the newest reply,
+  // when that reply is finished, is the assistant's, is not one of the client's own error lines,
+  // and the conversation actually has a question in it (so the boot greeting never grows a «بسّط»).
+  const lastMsg = messages.length ? messages[messages.length - 1] : null;
+  const quickActionsVisible = !!lastMsg
+    && lastMsg.role === 'assistant'
+    && !isLoading
+    && streamingText === null
+    && !ezikIsErrorReply(lastMsg.content)
+    && messages.some((m) => m && m.role === 'user');
+
+  // THE QUOTE. It writes to the composer and moves the caret there — no send, no store, and the
+  // reply it was taken from is not altered in any way. Text already typed is KEPT: the quote is
+  // appended below it after a blank line, so nothing a child was in the middle of writing is lost.
+  const quoteReply = (clean) => {
+    const block = ezikBuildQuote(clean);
+    if (!block) return;
+    setInput((prev) => ezikComposeWithQuote(prev, block));
+    // After the value lands, not before — otherwise the caret is placed in the old text.
+    setTimeout(() => {
+      const el = inputElRef.current;
+      if (!el) return;
+      try { el.focus(); const n = String(el.value || '').length; el.setSelectionRange(n, n); } catch (e) {}
+    }, 0);
+  };
+
+  // ============================================================
   // Live voice-call mode (Layer 2) — ONE automatic turn
   // ============================================================
   // Reuses the existing brain (callAI + sliceHistoryForAPI + buildSystemPrompt) and audio-out
@@ -6560,7 +6618,28 @@ function App() {
       </div>
 
       <div ref={messagesAreaRef} onScroll={onMessagesScroll} style={s.messagesArea}>
-        {messages.map((m, i) => <MessageBubble key={i} tashkeel={tashkeelOn} onToggleTashkeel={toggleTashkeel} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} />)}
+        {messages.map((m, i) => <MessageBubble key={i} tashkeel={tashkeelOn} onToggleTashkeel={toggleTashkeel} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} onQuote={quoteReply} />)}
+        {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
+            inside MessageBubble — so an old conversation does not carry a strip beneath every one
+            of its 60 answers, and a keystroke in the composer cannot re-render 60 of them. They
+            are laid out IN the scroller, above the end sentinel, so they scroll with the thread
+            and can never cover the composer or the tool row. */}
+        {quickActionsVisible && (
+          <div style={s.quickRow} role="group" aria-label="إجراءات سريعة على آخر رد">
+            {EZIK_QUICK_ACTIONS.map((qa) => (
+              <button
+                key={qa.key}
+                type="button"
+                onClick={() => runQuickAction(qa.prompt)}
+                disabled={isLoading}
+                className="ezik-focus"
+                style={{ ...s.quickBtn, opacity: isLoading ? 0.5 : 1 }}
+              >
+                {qa.label}
+              </button>
+            ))}
+          </div>
+        )}
         {streamingText !== null && (
           <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
             {formatForStreamPreview(streamingText)
@@ -6956,6 +7035,143 @@ const serializeReply = (segments, ctx) => {
 };
 
 // ============================================================
+// S98 — طيُّ الردود الطويلة (long-reply folding)
+// ============================================================
+// A long reply is a wall the child has to scroll past to reach the next thing. This folds the
+// PROSE of one and nothing else. Three properties make it safe, and each is load-bearing:
+//
+//   1. IT IS A VIEW, NOT AN EDIT. It returns a SECOND segment array to draw. `segments` — the one
+//      the clipboard, the voice, the export and the stored thread all read — is never touched, so
+//      a folded reply copies, speaks and exports in full exactly as an unfolded one does.
+//   2. ONLY seg.type === 'text' FOLDS. parseRichMessage has already lifted every verse, hadith,
+//      source, dhikr, worship, steps, board and document out into its own segment; those are
+//      copied through untouched, so a source card, an ayah, a hadith, the steps, a warning board
+//      and the suggestions are all on screen WHILE it is folded. There is no line-clamp anywhere:
+//      clamping the bubble would have hidden precisely those cards.
+//   3. THE CUT IS ON A BOUNDARY. A markdown string cut mid-construct renders as debris, so the
+//      cut walks back to a blank line, then a line end, then a word end — and if it landed inside
+//      a fenced block it closes the fence, because an unclosed fence would swallow the ellipsis.
+//
+// THE THRESHOLD, and why it is 900 / 320. Measured off the shipped layout rather than picked: the
+// bubble draws at s.bubbleText — fontSize 15, lineHeight 1.85 (27.75px a line) — inside a bubble
+// whose content box is ~273px on a 360px phone (14px area padding either side, bubble maxWidth
+// 92%, 16px bubble padding either side). Arabic in Tajawal averages ~0.48em of advance, so a line
+// carries ~38 characters. The chat's visible area on a 640px-tall phone is ~380px ≈ 13 lines ≈
+// ~520 characters — ONE screenful. 900 is therefore "clearly longer than a screenful" (~24 lines)
+// and never folds a reply that already fitted; 320 (~8 lines, ~230px) is a preview long enough to
+// decide by and still shorter than the screen it saves.
+const EZIK_FOLD_MIN_CHARS = 900;    // total prose length past which a completed reply folds
+const EZIK_FOLD_HEAD_CHARS = 320;   // prose shown while it is folded
+
+function ezikProseLength(segments) {
+  let n = 0;
+  for (let i = 0; i < (segments || []).length; i++) {
+    if (segments[i] && segments[i].type === 'text') n += String(segments[i].content || '').length;
+  }
+  return n;
+}
+
+// Cut markdown at or before `budget`, on the safest boundary available. The 0.4 floors stop a
+// pathological single-paragraph reply (no blank line, no newline) from collapsing to almost
+// nothing just because the only boundary found sat near the start.
+function ezikFoldCut(src, budget) {
+  const t = String(src == null ? '' : src);
+  if (t.length <= budget) return t;
+  const window = t.slice(0, budget);
+  let at = window.lastIndexOf('\n\n');
+  if (at < budget * 0.4) { const nl = window.lastIndexOf('\n'); if (nl > at) at = nl; }
+  if (at < budget * 0.4) { const sp = window.lastIndexOf(' '); if (sp > at) at = sp; }
+  let cut = (at > 0 ? window.slice(0, at) : window).replace(/\s+$/, '');
+  if (!cut) cut = window;
+  // An odd number of fence lines means the cut fell INSIDE a code block: close it, or every
+  // following character in the bubble is drawn as code.
+  if (((cut.match(/^\s*```/gm) || []).length) % 2 === 1) cut += '\n```';
+  return cut + ' …';
+}
+
+// The folded view, or null when there is nothing worth folding. Null is the signal the bubble
+// reads to decide whether the toggle exists at all — a short reply never grows one.
+function ezikFoldSegments(segments, minChars, headChars) {
+  const list = segments || [];
+  if (ezikProseLength(list) <= minChars) return null;
+  let budget = headChars;
+  let changed = false;
+  const out = [];
+  for (let i = 0; i < list.length; i++) {
+    const sg = list[i];
+    if (!sg || sg.type !== 'text') { out.push(sg); continue; }   // every card is kept, always
+    const body = String(sg.content == null ? '' : sg.content);
+    // A hidden segment leaves a HOLE rather than closing the gap: the bubble keys its children by
+    // index, so dropping an entry would renumber every card after it and remount them — a verse
+    // card would refetch and a dhikr card would re-read its store on every toggle. A null draws
+    // nothing and keeps all the later indices exactly where the unfolded view has them.
+    if (budget <= 0) { changed = true; out.push(null); continue; }
+    if (body.length <= budget) { out.push(sg); budget -= body.length; continue; }
+    out.push({ type: 'text', content: ezikFoldCut(body, budget) });
+    budget = 0;
+    changed = true;
+  }
+  return changed ? out : null;
+}
+
+// ============================================================
+// S98 — الإجراءات السريعة (quick actions under the last completed reply)
+// ============================================================
+// Five follow-ups, and every one of them is an ORDINARY QUESTION: the label is pressed, the
+// sentence below is handed to the SAME sendMessage the composer calls, and from that point the
+// turn is indistinguishable from one the child typed. No endpoint, no flag, no depth change, no
+// second send path — which is why nothing about the model choice or the sourcing policy moves.
+const EZIK_QUICK_ACTIONS = [
+  { key: 'simplify', label: 'بسّط',    prompt: 'بسّط لي الإجابة السابقة بكلمات أسهل، مع الحفاظ على المعنى والمصدر الشرعي إن وُجد.' },
+  { key: 'example',  label: 'مثال',    prompt: 'أعطني مثالًا واضحًا ومختصرًا على الإجابة السابقة.' },
+  { key: 'quiz',     label: 'اختبرني', prompt: 'اختبرني بسؤال واحد عن الإجابة السابقة، ولا تعرض الحل حتى أجيب.' },
+  { key: 'shorten',  label: 'اختصر',   prompt: 'اختصر الإجابة السابقة في نقاط قصيرة، مع إبقاء المصدر الشرعي الموثق إن وُجد.' },
+  { key: 'continue', label: 'كمّل',    prompt: 'كمّل الشرح من آخر نقطة، من دون إعادة ما سبق.' },
+];
+
+// A reply the CLIENT wrote to report its own failure is not something to offer «بسّط» under.
+// FRIENDLY_ERRORS is the closed table those replies come from, so matching against it is exact
+// and needs no marker on the message — which matters, because a marker would change the shape of
+// what is stored. (A server-worded day-cap message arrives as an ordinary 200 reply and is by
+// design indistinguishable from an answer; the client cannot and does not guess at it.)
+const EZIK_ERROR_REPLIES = (function () {
+  const out = [];
+  Object.keys(FRIENDLY_ERRORS).forEach((k) => {
+    const b = FRIENDLY_ERRORS[k];
+    if (b && b.male) out.push(b.male);
+    if (b && b.female) out.push(b.female);
+  });
+  return out;
+})();
+const ezikIsErrorReply = (t) => typeof t === 'string' && EZIK_ERROR_REPLIES.indexOf(t.trim()) !== -1;
+
+// ============================================================
+// S98 — اقتباس الرد (quote a reply into the composer)
+// ============================================================
+// It puts text in the box and moves the caret there. It sends NOTHING, it stores nothing, and it
+// leaves whatever the child had already typed exactly where it was.
+const EZIK_QUOTE_MAX = 500;
+const EZIK_QUOTE_LABEL = 'اقتباس';
+const EZIK_QUOTE_ARIA = 'اقتباس الرد في خانة الكتابة';
+function ezikBuildQuote(clean) {
+  let t = String(clean == null ? '' : clean).replace(/\s+/g, ' ').trim();
+  if (!t) return '';
+  if (t.length > EZIK_QUOTE_MAX) {
+    t = t.slice(0, EZIK_QUOTE_MAX).replace(/\s+\S*$/, '').replace(/\s+$/, '') + ' …';
+  }
+  return '« ' + t + ' »';
+}
+// WHERE A QUOTE LANDS. Kept as a pure rule rather than a line buried inside the handler, because
+// the one thing it must never do — throw away what the child had already typed — is worth being
+// able to state and to test on its own. Existing text is kept and the quotation is appended under
+// it after a blank line; an empty box simply receives the quotation.
+function ezikComposeWithQuote(prev, block) {
+  const had = String(prev == null ? '' : prev);
+  if (!block) return had;
+  return had.trim() ? had.replace(/\s+$/, '') + '\n\n' + block + '\n' : block + '\n';
+}
+
+// ============================================================
 // S93 — عارض Markdown للعرض فقط (display-only Markdown)
 // ============================================================
 // The model writes ordinary Markdown — **bold**, ## headings, - lists, ---, | tables — and the
@@ -7201,7 +7417,7 @@ const EzikMarkdown = React.memo(function EzikMarkdown({ text }) {
   return React.createElement(React.Fragment, null, blocks);
 });
 
-function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel }) {
+function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote }) {
   const isUser = message.role === 'user';
   // S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's
   // composer state lives on App -- so a single keystroke re-parsed the whole thread. On a 120-turn
@@ -7221,6 +7437,19 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
   const { segments, suggestions } = React.useMemo(
     () => (isUser ? { segments: [], suggestions: [] } : parseRichMessage(message.content, age)),
     [isUser, message.content, age]);
+  // S98 THE FOLD. Two hooks, both unconditional and both ABOVE the isUser return, for the same
+  // reason the memo above is: bubbles are keyed by index, so React reuses the instance at index i
+  // when a conversation is replaced, and a hook below the return would change the hook COUNT the
+  // moment the role at that index flipped.
+  //
+  // The open state is keyed by the reply's own TEXT rather than by a bare boolean, so an instance
+  // reused for a different message opens closed — no effect, no reset, nothing to get stale. The
+  // key is the string the message already holds, so nothing is copied to hold it. It is UI state
+  // and it is deliberately not stored: reopening the app folds every long reply again.
+  const [foldOpenKey, setFoldOpenKey] = React.useState(null);
+  const foldView = React.useMemo(
+    () => (isUser ? null : ezikFoldSegments(segments, EZIK_FOLD_MIN_CHARS, EZIK_FOLD_HEAD_CHARS)),
+    [isUser, segments]);
   if (isUser) {
     const c = message.content;
     if (Array.isArray(c)) {
@@ -7239,10 +7468,17 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
   // D90: the clipboard carries EVERY rendered block, in display order. D91: it is built on the
   // TAP, not here, because the stores the cards read are still filling while this runs.
   const buildCopyText = () => serializeReply(segments, { tashkeel, band: deriveCaps(age).band });
+  // S98: the fold decides only what is DRAWN. buildCopyText above, the listen button below and
+  // every export path all read `segments` / message.content — the WHOLE reply — so a folded reply
+  // is copied, spoken and exported in full.
+  const canFold = !!foldView;
+  const foldOpen = canFold && foldOpenKey !== null && foldOpenKey === message.content;
+  const shownSegments = (canFold && !foldOpen) ? foldView : segments;
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
       <div style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {segments.map((seg, i) => {
+        {shownSegments.map((seg, i) => {
+          if (!seg) return null;   // S98: a folded-away prose segment, holding its index open
           if (seg.type === 'text') {
             // S93: PROSE ONLY, and the last thing that happens to it. The cards were separated
             // above, the tashkeel toggle has already had its say (it removes diacritics and
@@ -7281,12 +7517,36 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
           }
           return null;
         })}
+        {/* S98: the toggle lives INSIDE the bubble, under the prose it governs, so it reads as
+            part of the reply rather than as a fourth action button. It exists only when there is
+            something folded away — a short reply never grows one. */}
+        {canFold && (
+          <button
+            type="button"
+            onClick={() => setFoldOpenKey(foldOpen ? null : message.content)}
+            aria-expanded={foldOpen ? 'true' : 'false'}
+            aria-label={foldOpen ? 'إخفاء التفاصيل' : 'عرض بقية الرد'}
+            className="ezik-focus"
+            style={s.foldToggle}
+          >
+            <span>{foldOpen ? 'إخفاء التفاصيل' : 'عرض بقية الرد'}</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: foldOpen ? 'rotate(180deg)' : 'none' }}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+        )}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
         {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
             always exists, so the button can no longer vanish because a fetch had not landed. */}
         <CopyReplyButton text={String(message.content || '').trim()} getText={buildCopyText} />
+        {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
+            serialized, no tag ever reaches it), trimmed to a preview and dropped into the
+            composer. It sends nothing. */}
+        {onQuote && (
+          <button type="button" onClick={() => onQuote(buildCopyText())} aria-label={EZIK_QUOTE_ARIA} className="ezik-focus" style={miniBtnStyle}>{EZIK_QUOTE_LABEL}</button>
+        )}
         <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>
         <button type="button" onClick={onReport} aria-label="بلّغ عن هذا الردّ" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
@@ -10520,6 +10780,31 @@ const s = {
   headerTitle: { fontSize: 17, fontWeight: 800, color: 'var(--on-accent)', letterSpacing: '0.3px' },
   headerSubtitle: { fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
   settingsBtn: { width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  // ===== S98 — the reply controls, the favourites screen and the local search =====
+  // Every value below is a token. Nothing here carries a literal colour, so the whole set moves
+  // with data-theme=dark exactly as the surfaces they sit on do. Every tappable element is at
+  // least 40px on its short side (44 where it is a standalone row), which is the phone target
+  // size the rest of the chat already uses (drawerChatRow minHeight 44, a3DockBtn 44).
+  foldToggle: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 40, marginTop: 2, padding: '8px 12px', background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 999, fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
+  // The quick-action strip. It WRAPS rather than scrolling sideways, so five labels cannot push
+  // the page into a horizontal scroll at 320px.
+  quickRow: { display: 'flex', flexWrap: 'wrap', gap: 8, alignSelf: 'flex-end', maxWidth: '92%', padding: '2px 0 4px' },
+  quickBtn: { minHeight: 40, padding: '8px 14px', background: 'var(--white)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 999, fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' },
+  // The search box in the drawer, and the favourites screen. Both draw on --white over --page,
+  // the same pair every other sheet in the app uses.
+  drawerSearchWrap: { padding: '2px 2px 8px' },
+  drawerSearch: { width: '100%', minHeight: 40, padding: '9px 12px', background: 'var(--white)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 12, fontSize: 14.5, fontFamily: 'inherit', textAlign: 'right', outline: 'none' },
+  drawerEmpty: { padding: '10px 12px', fontSize: 13, color: 'var(--muted)' },
+  drawerSnippet: { display: 'block', fontSize: 12, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' },
+  drawerBadge: { minWidth: 22, padding: '1px 7px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red)', fontSize: 12, fontWeight: 700, textAlign: 'center' },
+  favScreen: { height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', color: 'var(--ink)' },
+  favBody: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 14px calc(16px + env(safe-area-inset-bottom, 0px))', display: 'flex', flexDirection: 'column', gap: 10 },
+  favCard: { padding: '12px 14px', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 8 },
+  favMeta: { fontSize: 12, color: 'var(--muted)' },
+  favText: { fontSize: 14.5, lineHeight: 1.85, color: 'var(--ink)', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' },
+  favRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
+  favBtn: { minHeight: 40, padding: '8px 12px', background: 'var(--white)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' },
+  favBtnOff: { color: 'var(--muted)', cursor: 'default', opacity: 0.5 },
   drawerOverlay: { position: 'fixed', inset: 0, background: 'rgba(20,20,20,0.38)', zIndex: 60 },
   drawerPanel: { position: 'fixed', top: 0, right: 0, bottom: 0, width: 278, maxWidth: '82vw', zIndex: 61, background: 'var(--white)', borderLeft: '1px solid var(--line)', boxShadow: '-8px 0 28px rgba(18, 50, 122, 0.16)', display: 'flex', flexDirection: 'column', padding: '14px 12px' },
   drawerTop: { display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minHeight: 0, overflowY: 'auto' },
