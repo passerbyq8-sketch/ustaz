@@ -60,6 +60,15 @@ const S = {
   QA_CONTINUE: 'كمّل',
   QA_GROUP:    'إجراءات سريعة على آخر رد',
   DISCLAIMER:  'عزك ذكاءٌ اصطناعيّ',
+  FAV:            'المفضلة',
+  FAV_TITLE:      'الردود المفضلة',
+  FAV_ADD:        'أضف إلى المفضلة',
+  FAV_DEL:        'إزالة من المفضلة',
+  FAV_OPEN_CHAT:  'افتح المحادثة الأصلية',
+  FAV_EMPTY_HEAD: 'لا توجد ردود محفوظة بعد',
+  FAV_GONE_HEAD:  'المحادثة الأصلية محذوفة',
+  BACK:           '← رجوع',
+  DEL:            'حذف',
   // ---- fixtures ----
   Q_USER:      'ما حكم الصلاة؟',   // ma hukm as-salah?
   A_SHORT:     'نعم، الصلاة واجبة.',
@@ -653,6 +662,252 @@ async function partQuote() {
 }
 
 // ===========================================================================
+// PART D — FAVOURITES: THE STORE, AND EVERY WAY IT CAN GO WRONG
+// ===========================================================================
+function partDStore() {
+  console.log('\n=== D. FAVOURITES — the store, run for real ===');
+  const c = buildContext({ seed: {} });
+  const read = c.grab('ezikReadFavs');
+  const write = c.grab('ezikWriteFavs');
+  const make = c.grab('ezikMakeFav');
+  const hash = c.grab('ezikHashText');
+  const snip = c.grab('ezikFavSnippet');
+  const clearAll = c.grab('ezikClearAllFavs');
+  const KEY = c.grab('EZIK_FAVS_KEY');
+  const MAX = c.grab('EZIK_FAVS_MAX');
+
+  if (!ok('the favourites store is on the page', typeof read === 'function' && typeof write === 'function')) return;
+  eq('it lives under its own versioned key', KEY, 'ezik_favorite_replies_v1');
+  ok('...which is not the conversations key', KEY !== c.grab('EZIK_CHATS_KEY'));
+  ok('...and shares no prefix with a conversation body', KEY.indexOf(c.grab('EZIK_CHAT_PREFIX')) !== 0);
+
+  // an empty store is not an error
+  eq('an absent key reads as no favourites', plain(read()), []);
+
+  // the id is stable, and derived from the text alone
+  const t1 = 'a reply', t2 = 'another reply';
+  eq('the id of a reply is stable across calls', hash(t1), hash(t1));
+  ok('...and differs between replies', hash(t1) !== hash(t2));
+  ok('...and is a plain string with no store behind it', typeof hash(t1) === 'string' && hash(t1).length > 2);
+  eq('an empty reply still hashes without throwing', typeof hash(''), 'string');
+  eq('a null reply still hashes without throwing', typeof hash(null), 'string');
+
+  // saving and re-reading — the reload case
+  const rec = plain(make(longReply(), 'PID-A', CHAT_LONG));
+  write([rec]);
+  const back = plain(read());
+  eq('a saved reply survives a reload', back.length, 1);
+  eq('...with the same id', back[0].id, rec.id);
+  eq('...the conversation it came from', back[0].chatId, CHAT_LONG);
+  eq('...and the profile it belongs to', back[0].pk, 'PID-A');
+  ok('...its full text, so the screen can stand without the conversation',
+    back[0].text.indexOf(S.W_TAIL) !== -1 && back[0].text.indexOf(S.HADITH_BODY) !== -1);
+  ok('...a saved-on date', typeof back[0].at === 'number' && back[0].at > 0);
+  ok('...and a clean snippet with no tag in it',
+    back[0].snippet.indexOf('<') === -1 && back[0].snippet.length > 0, cps(back[0].snippet.slice(0, 20)));
+  ok('the snippet is capped', snip('x'.repeat(4000)).length <= 160, snip('x'.repeat(4000)).length + '');
+
+  // removing
+  write([]);
+  eq('removing a favourite empties the store', plain(read()), []);
+
+  // 10) CORRUPT JSON must not break anything
+  c.store.setItem(KEY, '{ not json at all');
+  eq('corrupt JSON reads as no favourites instead of throwing', plain(read()), []);
+  c.store.setItem(KEY, 'null');
+  eq('a null payload reads as no favourites', plain(read()), []);
+  c.store.setItem(KEY, '{"a":1}');
+  eq('a non-array payload reads as no favourites', plain(read()), []);
+  c.store.setItem(KEY, '[1,2,"three",null,{"nope":true}]');
+  eq('a list of junk entries reads as no favourites', plain(read()), []);
+
+  // a HALF-WRITTEN record: text present, everything else missing. It must survive, repaired.
+  c.store.setItem(KEY, JSON.stringify([{ text: 'a rescued reply' }]));
+  const rescued = plain(read());
+  eq('a record missing every field but its text is still readable', rescued.length, 1);
+  ok('...and is given an id', typeof rescued[0].id === 'string' && rescued[0].id.length > 1);
+  ok('...and a snippet', rescued[0].snippet.length > 0);
+  eq('...with no conversation to open', rescued[0].chatId, null);
+  eq('...and no date invented for it', rescued[0].at, 0);
+  c.store.setItem(KEY, JSON.stringify([{ id: 'x', at: 5 }]));
+  eq('a record with no text at all is dropped', plain(read()), []);
+
+  // a FULL store: the write must not throw, and must not silently claim success
+  const big = [];
+  for (let i = 0; i < 40; i++) big.push(plain(make('reply number ' + i + ' ' + 'z'.repeat(500), 'PID-A', null)));
+  c.store.clear();
+  c.store.quota = 6000;
+  const written = write(big);
+  ok('a full store still writes what it can', Array.isArray(written), JSON.stringify(written));
+  ok('...dropping the OLDEST rather than failing outright', written.length > 0 && written.length < big.length,
+    'kept ' + (written && written.length) + ' of ' + big.length);
+  eq('...and what it reports written is what comes back', plain(read()).length, written.length);
+  c.store.quota = Infinity;
+
+  // a store that refuses everything
+  c.store.clear();
+  c.store.quota = 0;
+  eq('a store that refuses even an empty list reports the refusal', write([]), null);
+  c.store.quota = Infinity;
+
+  // the cap
+  const over = [];
+  for (let i = 0; i < MAX + 25; i++) over.push(plain(make('r' + i, 'PID-A', null)));
+  eq('the store is capped', write(over).length, MAX);
+
+  // clearing
+  write([plain(make('x', 'PID-A', null))]);
+  clearAll();
+  eq('«delete all my data» clears the favourites', plain(read()), []);
+
+  // 11) the conversation store is untouched by ANY of this
+  const chatKeys = c.store._keys().filter((k) => k.indexOf('ezik_chat') === 0);
+  eq('nothing above wrote a single conversation key', chatKeys, []);
+}
+
+// A store with NO localStorage at all: every access throws.
+function partDDead() {
+  console.log('\n--- favourites with storage switched off ---');
+  const c = buildContext({ store: makeDeadStore() });
+  const read = c.grab('ezikReadFavs');
+  const write = c.grab('ezikWriteFavs');
+  let threw = null;
+  let got;
+  try { got = plain(read()); } catch (e) { threw = e; }
+  ok('reading favourites from a dead store does not throw', !threw, String(threw && threw.message));
+  eq('...it reads as no favourites', got, []);
+  threw = null;
+  let w;
+  try { w = write([{ id: 'a', text: 'b' }]); } catch (e) { threw = e; }
+  ok('writing to a dead store does not throw', !threw, String(threw && threw.message));
+  eq('...and reports that nothing was written', w, null);
+}
+
+// The favourites, driven through the real UI.
+async function partDScreen() {
+  console.log('\n--- favourites, driven through the real UI ---');
+  const c = buildContext({ seed: seedChats(), mount: true });
+  await tick(400);
+  if (c.err()) { ok('the app mounts for the favourites checks', false, String(c.err())); return c; }
+  const d = driver(c.window);
+  const KEY = c.grab('EZIK_FAVS_KEY');
+
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  ok('the menu carries a «favourites» entry', !!d.byText(S.FAV) || d.text().indexOf(S.FAV) !== -1, cps(d.text().slice(0, 120)));
+  const favEntry = d.all('button').filter((b) => String(b.textContent || '').indexOf(S.FAV) !== -1)[0];
+  if (!ok('...that can be pressed', !!favEntry)) return c;
+  await d.click(favEntry, 'favourites');
+  await tick(80);
+  ok('it opens the favourites screen', d.text().indexOf(S.FAV_TITLE) !== -1, cps(d.text().slice(0, 120)));
+  ok('...saying it is empty', d.text().indexOf(S.FAV_EMPTY_HEAD) !== -1, cps(d.text().slice(0, 200)));
+  eq('...and it reached the network for none of it', c.net().filter((u) => /\/api\//.test(u)).length, 0);
+
+  // back to the chat, open the long conversation, and star its reply
+  await d.click(d.byText(S.BACK), 'back');
+  await tick(80);
+  ok('back returns to the chat that opened it', d.text().indexOf(S.DISCLAIMER) !== -1, cps(d.text().slice(0, 120)));
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  const rowLong = d.all('button').filter((b) => String(b.textContent || '').trim() === S.Q_USER)[0];
+  if (!ok('the conversation is still listed', !!rowLong)) return c;
+  await d.click(rowLong, 'long chat');
+  await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the reply on screen');
+
+  const star = () => d.byLabel(S.FAV_ADD) || d.byLabel(S.FAV_DEL);
+  if (!ok('a completed reply offers a star', !!star())) return c;
+  ok('...and it starts unfilled', !!d.byLabel(S.FAV_ADD));
+  await d.click(d.byLabel(S.FAV_ADD), 'star');
+  await tick(60);
+  ok('starring a reply fills the star', !!d.byLabel(S.FAV_DEL));
+  const stored = JSON.parse(c.store.getItem(KEY) || '[]');
+  eq('...and writes exactly one record', stored.length, 1);
+  ok('...carrying the whole reply', String(stored[0].text).indexOf(S.W_TAIL) !== -1);
+  ok('...and the conversation it came from', stored[0].chatId === CHAT_LONG);
+  ok('the message itself gained NOTHING — the stored conversation is unchanged',
+    JSON.parse(c.store.getItem('ezik_chat_v1_' + CHAT_LONG))
+      .every((m) => Object.keys(m).sort().join(',') === 'content,role'),
+    c.store.getItem('ezik_chat_v1_' + CHAT_LONG).slice(0, 200));
+
+  // rapid double press: a toggle, never a duplicate
+  await d.doublePress(d.byLabel(S.FAV_DEL));
+  await tick(60);
+  const afterDouble = JSON.parse(c.store.getItem(KEY) || '[]');
+  ok('a rapid double press leaves no duplicate behind', afterDouble.length <= 1, JSON.stringify(afterDouble.map((r) => r.id)));
+  // put it back, starred, for the reload check
+  if (!d.byLabel(S.FAV_DEL)) { await d.click(d.byLabel(S.FAV_ADD), 'star again'); await tick(60); }
+  ok('...and the star agrees with the store',
+    (!!d.byLabel(S.FAV_DEL)) === (JSON.parse(c.store.getItem(KEY) || '[]').length === 1));
+
+  // it shows on the favourites screen, with its cards
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').indexOf(S.FAV) !== -1)[0], 'favourites');
+  await tick(80);
+  ok('the saved reply is on the favourites screen', d.text().indexOf(S.W_HEAD) !== -1, cps(d.text().slice(0, 200)));
+  ok('...rendered through the same renderer, so its hadith is there too', d.text().indexOf(S.HADITH_BODY) !== -1);
+  ok('...and its source card', d.text().indexOf(S.SRC_SITE) !== -1);
+  ok('...with no raw tag anywhere on the screen',
+    d.text().indexOf('<hadith') === -1 && d.text().indexOf('<source') === -1 && d.text().indexOf('<verse') === -1);
+  ok('...offering to open the conversation it came from', !!d.byLabel(S.FAV_OPEN_CHAT));
+  ok('...and offering a full copy', !!d.byLabel(S.COPY));
+  await d.click(d.byLabel(S.COPY), 'copy from favourites');
+  await tick(60);
+  ok('copying from the favourites screen copies the WHOLE reply',
+    !!c.clip.last && c.clip.last.indexOf(S.W_HEAD) !== -1 && c.clip.last.indexOf(S.W_TAIL) !== -1,
+    c.clip.last ? ('len=' + c.clip.last.length) : 'nothing captured');
+
+  // opening the original conversation
+  await d.click(d.byLabel(S.FAV_OPEN_CHAT), 'open the original');
+  await tick(120);
+  ok('opening the original conversation lands back in the chat', d.text().indexOf(S.DISCLAIMER) !== -1, cps(d.text().slice(0, 120)));
+  ok('...showing that conversation', d.text().indexOf(S.W_HEAD) !== -1);
+  return c;
+}
+
+// 11) THE CONVERSATION IS DELETED — the saved reply must outlive it.
+async function partDOrphan() {
+  console.log('\n--- a favourite whose conversation was deleted ---');
+  const seed = seedChats();
+  const c = buildContext({ seed, mount: true });
+  await tick(400);
+  if (c.err()) { ok('the app mounts for the orphan checks', false, String(c.err())); return c; }
+  const d = driver(c.window);
+  const KEY = c.grab('EZIK_FAVS_KEY');
+
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').trim() === S.Q_USER)[0], 'long chat');
+  await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the reply on screen');
+  await d.click(d.byLabel(S.FAV_ADD), 'star');
+  await tick(60);
+  eq('the reply is saved', JSON.parse(c.store.getItem(KEY) || '[]').length, 1);
+
+  // delete the conversation through the shipped confirmation
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => b.getAttribute('aria-label') === S.DEL)[0], 'delete');
+  await d.click(d.byText(S.DEL), 'confirm delete');
+  await tick(80);
+  const favsAfter = JSON.parse(c.store.getItem(KEY) || '[]');
+  eq('deleting the conversation does NOT delete the saved reply', favsAfter.length, 1);
+  ok('...and the saved reply still carries its full text', String(favsAfter[0].text).indexOf(S.W_TAIL) !== -1);
+  eq('...while the conversation body really is gone', c.store.getItem('ezik_chat_v1_' + CHAT_LONG), null);
+
+  // the screen must not crash, and must not offer to open what is gone
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').indexOf(S.FAV) !== -1)[0], 'favourites');
+  await tick(100);
+  ok('the favourites screen still opens', d.text().indexOf(S.FAV_TITLE) !== -1, cps(d.text().slice(0, 150)));
+  ok('...with no runtime error', !c.err(), String(c.err()));
+  ok('...and the reply is still readable', d.text().indexOf(S.W_HEAD) !== -1);
+  ok('...and still copyable', !!d.byLabel(S.COPY));
+  ok('...but no longer offers to open the conversation', !d.byLabel(S.FAV_OPEN_CHAT));
+  ok('...saying plainly that it is gone', d.text().indexOf(S.FAV_GONE_HEAD) !== -1, cps(d.text().slice(0, 250)));
+
+  // and removing it from here works
+  await d.click(d.byLabel(S.FAV_DEL), 'remove');
+  await tick(60);
+  eq('removing it from the favourites screen empties the store', JSON.parse(c.store.getItem(KEY) || '[]').length, 0);
+  return c;
+}
+
+// ===========================================================================
 // PART E — THE WIRING, READ OFF THE FILE
 // ===========================================================================
 function partE() {
@@ -728,6 +983,40 @@ function partE() {
   ok('...nor under a user message', /quickActionsVisible[\s\S]{0,320}?lastMsg\.role === 'assistant'/.test(decoded));
   ok('...nor under one of the client\'s own error lines', /quickActionsVisible[\s\S]{0,400}?ezikIsErrorReply\(lastMsg\.content\)/.test(decoded));
 
+  // ONE RENDERER, and this is what keeps a raw tag off the favourites screen forever: the chat
+  // bubble and the favourites card must both go through ezikRenderSegments and neither may grow a
+  // map of its own. A second mapping is how the two would eventually drift.
+  eq('the segment renderer is defined exactly once', (decoded.split('function ezikRenderSegments').length - 1), 1);
+  const callers = (decoded.match(/ezikRenderSegments\(/g) || []).length - 1;   // minus the definition
+  eq('...and both display sites call it', callers, 2);
+  ok('...so no screen maps segments to cards on its own',
+    !/segments\.map\(\(seg/.test(decoded) && !/\.map\(\(seg, i\) => \{[\s\S]{0,200}seg\.type === 'verse'/.test(decoded));
+  ok('the favourites screen renders through it', /FavoritesScreen[\s\S]{0,2600}?ezikRenderSegments\(/.test(decoded));
+
+  // FAVOURITES: separate store, separate key, and it never touches the conversation schema.
+  ok('the favourites key is its own versioned key', /const EZIK_FAVS_KEY = 'ezik_favorite_replies_v1';/.test(decoded));
+  ok('the conversation autosave never reads or writes it',
+    !/ezikSaveChat[\s\S]{0,900}?EZIK_FAVS_KEY/.test(decoded));
+  ok('deleting a conversation never touches it',
+    !/function ezikDeleteChat[\s\S]{0,300}?EZIK_FAVS_KEY/.test(decoded));
+  ok('...and «delete all my data» does', /ezikClearAllChats\(\);[\s\S]{0,400}?ezikClearAllFavs\(\);/.test(decoded));
+  ok('the store is read ONCE into state, not on a render path',
+    /const \[favs, setFavs\] = useState\(ezikReadFavs\);/.test(decoded));
+  ok('...and the bubble is handed a boolean, never a store',
+    /isFavorite=\{favFlags\[i\]\}/.test(decoded));
+  ok('...computed once per change of the thread or the favourites, not per keystroke',
+    /const favFlags = React\.useMemo\([\s\S]{0,400}?\[messages, favIdSet\]\);/.test(decoded));
+  // MessageBubble's own body, isolated: from its signature to the next top-level declaration.
+  const mbStart = decoded.indexOf('function MessageBubble(');
+  const mbEnd = decoded.indexOf('\n// =====', mbStart);
+  const mbBody = (mbStart !== -1 && mbEnd > mbStart) ? decoded.slice(mbStart, mbEnd) : '';
+  ok('MessageBubble\'s body was located for inspection', mbBody.length > 500, 'len=' + mbBody.length);
+  ok('...and it touches no store at all', mbBody.indexOf('localStorage') === -1, 'localStorage inside MessageBubble');
+  ok('...and never reads the favourites list', mbBody.indexOf('ezikReadFavs') === -1 && mbBody.indexOf('EZIK_FAVS_KEY') === -1);
+  ok('...and never parses JSON', mbBody.indexOf('JSON.parse') === -1);
+  ok('the lookup a bubble is answered from is a Set built once',
+    /const favIdSet = React\.useMemo\(\(\) => \{[\s\S]{0,300}?new Set\(\)[\s\S]{0,300}?\}, \[myFavs\]\);/.test(decoded));
+
   // the quote writes to the composer only
   ok('the quote handler writes to the composer', /quoteReply = \([\s\S]{0,600}?setInput\(/.test(decoded));
   ok('...and calls no send path at all', !/quoteReply = \([\s\S]{0,900}?sendMessage\(/.test(decoded));
@@ -772,6 +1061,10 @@ function partE() {
   partA();
   await partBC();
   await partQuote();
+  partDStore();
+  partDDead();
+  await partDScreen();
+  await partDOrphan();
   partE();
   console.log('');
   if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed.');

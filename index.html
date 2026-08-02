@@ -4079,7 +4079,10 @@ function useEzikBackLayer(open, close) {
 // back button cannot disagree: both ask this. `null` means "this screen has no parent inside the
 // app" -- the roots -- and the caller then changes nothing at all.
 const EZIK_ROOT_SCREENS = ['loading', 'onboarding', 'chat'];
-const EZIK_SHEET_SCREENS = ['parentGate', 'parentDashboard', 'settings'];
+// S98: «المفضلة» joins the sheets. It is opened from the chat's own drawer through openEzikSheet,
+// so it records its opener on the way in and its back returns THERE — the same contract الإعدادات
+// has had since S90, and the device button and the visible back button therefore agree.
+const EZIK_SHEET_SCREENS = ['parentGate', 'parentDashboard', 'settings', 'favorites'];
 function ezikBackTarget(cur, sheetOrigin) {
   if (EZIK_ROOT_SCREENS.indexOf(cur) !== -1) return null;
   // The call keeps its own documented exit contract: ending a call returns to the chat, and the
@@ -4316,6 +4319,124 @@ function ezikMigrateLegacyThread(pk) {
   try { localStorage.removeItem(EZIK_LEGACY_MSGS_KEY); } catch (e) {}
 }
 
+// ============================================================
+// S98 — المفضلة المحلية (local favourite replies)
+// ============================================================
+// A SEPARATE STORE, and separate is the whole design. It lives under its own versioned key, it is
+// never written by the conversation autosave, and the conversation autosave never reads it — so
+// the shape of a saved conversation is byte-for-byte what S92 shipped and nothing here can migrate,
+// reshape or corrupt it. Deleting a conversation therefore cannot take a saved reply with it,
+// which is precisely why a favourite carries its OWN copy of the text.
+//
+// A record is the minimum that lets the favourites screen stand on its own:
+//   id      — a STABLE local id derived from the reply text itself, so "is this one saved?" is
+//             answerable after a reload without writing a single byte into the message. Nothing
+//             about a message object changes, ever.
+//   pk      — the profile it belongs to, the same isolation every chat read applies.
+//   chatId  — the conversation it came from, or null. Only ever used to OFFER to open it.
+//   at      — when it was saved.
+//   snippet — a clean, tag-free line for the list.
+//   text    — the reply VERBATIM, which is what keeps it readable after its conversation is gone.
+const EZIK_FAVS_KEY = 'ezik_favorite_replies_v1';
+const EZIK_FAVS_MAX = 200;
+const EZIK_FAV_SNIPPET_MAX = 140;
+
+// FNV-1a over the reply text, plus its length. Cheap, stable across reloads and devices, and it
+// needs no store of its own. A collision would only mean two identical-length replies shared a
+// star; at 200 records that is not a risk worth a heavier hash.
+function ezikHashText(t) {
+  const str = String(t == null ? '' : t);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return 'r' + h.toString(16) + '-' + str.length.toString(36);
+}
+
+// EVERY read is defensive, because this is a file on a device: it can be absent, it can be
+// truncated, it can be hand-edited, and an old build could have written a record missing a field.
+// None of those may reach the screen as an exception — the worst case is "no favourites".
+function ezikReadFavs() {
+  let raw;
+  try { raw = localStorage.getItem(EZIK_FAVS_KEY); } catch (e) { return []; }
+  if (!raw) return [];
+  let list;
+  try { list = JSON.parse(raw); } catch (e) { return []; }
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i];
+    if (!r || typeof r !== 'object') continue;
+    const text = typeof r.text === 'string' ? r.text : '';
+    if (!text) continue;                                  // a record with no reply in it is not one
+    out.push({
+      id: (typeof r.id === 'string' && r.id) ? r.id : ezikHashText(text),
+      pk: (typeof r.pk === 'string' && r.pk) ? r.pk : null,
+      chatId: (typeof r.chatId === 'string' && r.chatId) ? r.chatId : null,
+      at: (typeof r.at === 'number' && isFinite(r.at)) ? r.at : 0,
+      snippet: (typeof r.snippet === 'string' && r.snippet) ? r.snippet : ezikFavSnippet(text),
+      text: text,
+    });
+  }
+  return out;
+}
+
+// Writing, and the one place a full store is handled. The list is newest-first, so the oldest
+// favourite is the one dropped; the pool only shrinks, so the loop terminates. Returns the list
+// ACTUALLY written — which the caller adopts, so the screen never shows a record the disk refused.
+// null means the store would not take even an empty list (disabled/locked storage).
+function ezikWriteFavs(list) {
+  let l = (list || []).slice(0, EZIK_FAVS_MAX);
+  for (;;) {
+    try { localStorage.setItem(EZIK_FAVS_KEY, JSON.stringify(l)); return l; } catch (e) {}
+    if (!l.length) return null;
+    l = l.slice(0, l.length - 1);
+  }
+}
+
+// The list line. Built from the SAME serializer the clipboard uses, so no card tag can reach it.
+function ezikFavSnippet(text) {
+  let clean = '';
+  try {
+    const parsed = parseRichMessage(String(text == null ? '' : text), 30);
+    clean = serializeReply(parsed.segments, { tashkeel: true, band: 'adult' });
+  } catch (e) { clean = String(text == null ? '' : text); }
+  clean = clean.replace(/\s+/g, ' ').trim();
+  if (clean.length > EZIK_FAV_SNIPPET_MAX) {
+    clean = clean.slice(0, EZIK_FAV_SNIPPET_MAX).replace(/\s+\S*$/, '').replace(/\s+$/, '') + ' …';
+  }
+  return clean;
+}
+
+function ezikMakeFav(text, pk, chatId) {
+  const t = String(text == null ? '' : text);
+  return { id: ezikHashText(t), pk: pk || null, chatId: chatId || null, at: Date.now(), snippet: ezikFavSnippet(t), text: t };
+}
+
+// "Delete all my data" has to mean the favourites too.
+function ezikClearAllFavs() { try { localStorage.removeItem(EZIK_FAVS_KEY); } catch (e) {} }
+
+// The labels, in one block, referenced through JS expressions rather than written into quoted JSX
+// attributes — the convention SettingsSheet already follows for the same reason.
+const EZIK_FAV_TITLE = 'المفضلة';
+const EZIK_FAV_HEADING = 'الردود المفضلة';
+const EZIK_FAV_ADD = 'أضف إلى المفضلة';
+const EZIK_FAV_DEL = 'إزالة من المفضلة';
+const EZIK_FAV_REMOVE = 'إزالة';
+const EZIK_FAV_OPEN_CHAT = 'افتح المحادثة الأصلية';
+const EZIK_FAV_CHAT_GONE = 'المحادثة الأصلية محذوفة';
+const EZIK_FAV_EMPTY = 'لا توجد ردود محفوظة بعد. اضغط النجمة تحت أي رد لتحفظه هنا.';
+const EZIK_BACK = '← رجوع';
+
+// The saved date, rendered from the record's own timestamp. Arabic-Kuwait with a Gregorian
+// calendar, and a record whose `at` was lost simply shows no date rather than 1970.
+function ezikFavDate(at) {
+  if (!at) return '';
+  try { return new Date(at).toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric' }); }
+  catch (e) { try { return new Date(at).toISOString().slice(0, 10); } catch (e2) { return ''; } }
+}
+
 function App() {
   const [screen, setScreen] = useState('loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
@@ -4337,6 +4458,13 @@ function App() {
   const chatIdRef = useRef(null);
   const [chatList, setChatList] = useState([]);
   const [chatPendingDelete, setChatPendingDelete] = useState(null);
+  // S98: THE FAVOURITES, READ ONCE. This is the whole of the performance contract for the feature:
+  // localStorage is touched here, at mount, and then never again on a render path. No bubble reads
+  // the store, no bubble parses JSON, and the list of ids a bubble is asked about is a Set derived
+  // once per change. `favsRef` is the synchronous mirror the toggle reads, so two taps landing in
+  // the same task both see the truth instead of the same stale array.
+  const [favs, setFavs] = useState(ezikReadFavs);
+  const favsRef = useRef(favs);
   // D88: seeded from the SAME reader the boot script used, so the first render already agrees
   // with the attribute already on <html>. No effect runs at mount, so nothing can repaint.
   const [theme, setTheme] = useState(readStoredTheme);
@@ -5135,6 +5263,69 @@ function App() {
   };
 
   const pinSavedChat = (id) => { ezikToggleChatPin(id); refreshChatList(); };
+
+  // ============================================================
+  // S98 — المفضلة (favourites), managed centrally and in one place
+  // ============================================================
+  // Everything about favourites goes through the three things below. Nothing else in the tree
+  // reads the store, and no component holds its own copy — which is what stops a screen from
+  // showing a record the disk refused, or a star that disagrees with the list behind it.
+  const favPk = ezikProfileKey(profileRef.current || profile);
+  // This profile's favourites, newest first. A record written before pk existed (a hand-edited or
+  // half-written entry) is shown rather than hidden: losing sight of a saved reply is worse than
+  // showing one whose owner was never recorded.
+  const myFavs = React.useMemo(
+    () => favs.filter((f) => f.pk === null || f.pk === favPk).sort((a, b) => (b.at || 0) - (a.at || 0)),
+    [favs, favPk]);
+  // The lookup a bubble is asked for. A Set, rebuilt once per change — never a scan per bubble.
+  const favIdSet = React.useMemo(() => {
+    const set = new Set();
+    for (let i = 0; i < myFavs.length; i++) set.add(myFavs[i].id);
+    return set;
+  }, [myFavs]);
+  // WHICH BUBBLE WEARS A FILLED STAR, decided ONCE per change of the thread or of the favourites —
+  // never per render. Hashing a reply is O(its length), so asking the question inside the map
+  // would have re-hashed every answer in a 120-turn conversation on every keystroke in the
+  // composer: exactly the class of defect S97 removed from the markdown parse. A user turn is not
+  // hashed at all.
+  const favFlags = React.useMemo(
+    () => messages.map((m) => !!(m && m.role === 'assistant' && typeof m.content === 'string' && m.content
+      && favIdSet.has(ezikHashText(m.content)))),
+    [messages, favIdSet]);
+  // The ONE writer. It reads the ref, not the state, so a fast double tap toggles twice rather
+  // than adding the same reply twice; it adopts whatever the store actually accepted, so a full
+  // or refused store never leaves the screen claiming something was saved when it was not.
+  const applyFavs = (next) => {
+    const written = ezikWriteFavs(next);
+    const settled = written === null ? favsRef.current : written;   // store refused: change nothing
+    favsRef.current = settled;
+    setFavs(settled);
+    return written !== null;
+  };
+  const toggleFavoriteReply = (msg) => {
+    const text = (msg && typeof msg.content === 'string') ? msg.content : '';
+    if (!text.trim()) return;
+    const id = ezikHashText(text);
+    const cur = favsRef.current;
+    const exists = cur.some((f) => f.id === id);
+    applyFavs(exists
+      ? cur.filter((f) => f.id !== id)
+      : [ezikMakeFav(text, favPk, chatIdRef.current)].concat(cur.filter((f) => f.id !== id)));
+  };
+  const removeFavorite = (id) => applyFavs(favsRef.current.filter((f) => f.id !== id));
+  // Which saved conversations still exist, computed ONCE for the whole favourites screen rather
+  // than once per card — the screen asks it for every row.
+  const liveChatIds = React.useMemo(() => {
+    const set = new Set();
+    if (screen !== 'favorites') return set;               // only the screen that needs it pays for it
+    ezikReadChatIndex().forEach((r) => set.add(r.id));
+    return set;
+  }, [screen, chatList]);
+  const openFavoriteChat = (id) => {
+    if (!id || !liveChatIds.has(id)) return;
+    openSavedChat(id);
+    goEzikBack();                                          // spend the sheet's own history entry
+  };
 
   // Deleting is confirmed first (chatPendingDelete holds the row that asked). Deleting the
   // conversation that is OPEN empties the thread too -- the chat cannot go on showing messages
@@ -6466,6 +6657,9 @@ function App() {
       // S92 -- "delete all my data" has to mean the SAVED CONVERSATIONS too: every stored body,
       // the index that lists them, and the single legacy thread the old 'messages' key held.
       ezikClearAllChats();
+      // S98 -- and the saved replies, which live in their own key precisely BECAUSE they survive a
+      // deleted conversation. Nothing else clears them, so this line is the only way they go.
+      ezikClearAllFavs();
       localStorage.removeItem('directConvoLocked');
       localStorage.removeItem(MUSHAF_BOOKMARK_KEY);
       localStorage.removeItem('mushaf_pos_v1');   // Session 51 -- one-shot sweep of the pre-bookmark name
@@ -6530,6 +6724,8 @@ function App() {
   // an inch or lost its lock: it is reached from the التحكم row inside, which is the only thing
   // in the app that still opens the gate.
   if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} onOpenControl={() => openEzikSheet('parentGate')} />;
+  // S98: المفضلة. A sheet, opened from the chat's drawer, handed everything it draws.
+  if (screen === 'favorites') return <FavoritesScreen items={myFavs} liveChatIds={liveChatIds} onBack={goEzikBack} onOpenChat={openFavoriteChat} onRemove={removeFavorite} age={profile?.age} tashkeel={tashkeelOn} />;
   // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
   // S90: the three call-screen exits resolve through goEzikBack like every other back control.
   // The DESTINATION is unchanged -- the table sends 'call' to the chat, which is its documented
@@ -6618,7 +6814,7 @@ function App() {
       </div>
 
       <div ref={messagesAreaRef} onScroll={onMessagesScroll} style={s.messagesArea}>
-        {messages.map((m, i) => <MessageBubble key={i} tashkeel={tashkeelOn} onToggleTashkeel={toggleTashkeel} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} onQuote={quoteReply} />)}
+        {messages.map((m, i) => <MessageBubble key={i} tashkeel={tashkeelOn} onToggleTashkeel={toggleTashkeel} message={m} onSuggestionClick={(sg) => sendMessage(sg)} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} onPlayMessage={(t) => speakReply(t)} age={profile?.age} onReport={() => openReport(m, i > 0 ? messages[i - 1] : null)} onQuote={quoteReply} onFavorite={toggleFavoriteReply} isFavorite={favFlags[i]} />)}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
             inside MessageBubble — so an old conversation does not carry a strip beneath every one
             of its 60 answers, and a keystroke in the composer cannot re-render 60 of them. They
@@ -6833,6 +7029,15 @@ function App() {
                   <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
                 <span>{'\u0627\u0644\u0642\u0627\u0626\u0645\u0629'}</span>
+              </button>
+              {/* S98: \u00ab\u0627\u0644\u0645\u0641\u0636\u0644\u0629\u00bb. The count comes from state that was read once at mount, so
+                  opening the menu reads no store and parses no JSON. */}
+              <button onClick={() => closeDrawerWith(() => openEzikSheet('favorites'))} style={s.drawerItem} className="ezik-focus">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 17.3l-5.4 3 1-6-4.4-4.3 6-.9L12 3.5l2.8 5.6 6 .9-4.4 4.3 1 6z" />
+                </svg>
+                <span style={{ flex: 1, minWidth: 0 }}>{EZIK_FAV_TITLE}</span>
+                {myFavs.length > 0 && <span style={s.drawerBadge}>{myFavs.length}</span>}
               </button>
               {/* S92: THE HISTORY. \u00ab\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629\u00bb stays the one and only new-chat entry -- this
                   section adds the saved conversations UNDER the existing items and duplicates
@@ -7417,7 +7622,61 @@ const EzikMarkdown = React.memo(function EzikMarkdown({ text }) {
   return React.createElement(React.Fragment, null, blocks);
 });
 
-function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote }) {
+// THE ONE PLACE A SEGMENT BECOMES AN ELEMENT.
+// Lifted out of MessageBubble in S98 so the favourites screen can show a saved reply through the
+// EXACT renderer the chat uses. A second, parallel renderer there is what would eventually leak a
+// raw <verse …> at a reader — this makes that impossible by construction, because there is only
+// one mapping and both callers go through it. Behaviour is byte-identical to the map it replaces:
+// same components, same props, same index keys, same null for a folded-away prose segment.
+// The JSX below is byte-for-byte the map it replaces, down to the names `tashkeel`, `age`,
+// `onPlayVerse`, `onPlaySurah` and `onStopAudio` — which is deliberate. markdown-guard pins the
+// exact form of the prose site and counts the display sites of EzikMarkdown; keeping the shape
+// identical means this refactor moves the code without loosening a single thing that gate holds.
+function ezikRenderSegments(segments, ctx) {
+  const { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio } = (ctx || {});
+  return (segments || []).map((seg, i) => {
+    if (!seg) return null;   // S98: a folded-away prose segment, holding its index open
+    if (seg.type === 'text') {
+      // S93: PROSE ONLY, and the last thing that happens to it. The cards were separated above,
+      // the tashkeel toggle has already had its say (it removes diacritics and touches no Markdown
+      // character), and what remains is turned into layout for the eye. seg.content itself is
+      // untouched — the clipboard, the voice and the stored thread all still read the raw text,
+      // which is why an old saved conversation formats too: the formatting is computed here, at
+      // display, from text that was never rewritten.
+      return <div key={i} style={s.bubbleText}><EzikMarkdown text={tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)} /></div>;
+    }
+    if (seg.type === 'verse') {
+      return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
+    }
+    if (seg.type === 'surah') {
+      return <SurahCard key={i} num={seg.num} from={seg.from} to={seg.to} onPlaySurah={onPlaySurah} onStopAudio={onStopAudio} />;
+    }
+    if (seg.type === 'hadith') {
+      return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
+    }
+    if (seg.type === 'source') {
+      return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
+    }
+    if (seg.type === 'dhikr') {
+      return <DhikrCard key={i} catId={seg.catId} />;
+    }
+    if (seg.type === 'worship') {
+      return <WorshipCard key={i} id={seg.id} band={deriveCaps(age).band} />;
+    }
+    if (seg.type === 'steps') {
+      return <StepsCard key={i} items={seg.items} />;
+    }
+    if (seg.type === 'board') {
+      return <BoardCard key={i} content={seg.content} />;
+    }
+    if (seg.type === 'document') {
+      return <DocumentCard key={i} title={seg.title} content={seg.content} age={age} />;
+    }
+    return null;
+  });
+}
+
+function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite }) {
   const isUser = message.role === 'user';
   // S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's
   // composer state lives on App -- so a single keystroke re-parsed the whole thread. On a 120-turn
@@ -7477,46 +7736,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
       <div style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {shownSegments.map((seg, i) => {
-          if (!seg) return null;   // S98: a folded-away prose segment, holding its index open
-          if (seg.type === 'text') {
-            // S93: PROSE ONLY, and the last thing that happens to it. The cards were separated
-            // above, the tashkeel toggle has already had its say (it removes diacritics and
-            // touches no Markdown character), and what remains is turned into layout for the eye.
-            // seg.content itself is untouched — the clipboard, the voice and the stored thread all
-            // still read the raw text, which is why an old saved conversation formats too: the
-            // formatting is computed here, at display, from text that was never rewritten.
-            return <div key={i} style={s.bubbleText}><EzikMarkdown text={tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)} /></div>;
-          }
-          if (seg.type === 'verse') {
-            return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
-          }
-          if (seg.type === 'surah') {
-            return <SurahCard key={i} num={seg.num} from={seg.from} to={seg.to} onPlaySurah={onPlaySurah} onStopAudio={onStopAudio} />;
-          }
-          if (seg.type === 'hadith') {
-            return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
-          }
-          if (seg.type === 'source') {
-            return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
-          }
-          if (seg.type === 'dhikr') {
-            return <DhikrCard key={i} catId={seg.catId} />;
-          }
-          if (seg.type === 'worship') {
-            return <WorshipCard key={i} id={seg.id} band={deriveCaps(age).band} />;
-          }
-          if (seg.type === 'steps') {
-            return <StepsCard key={i} items={seg.items} />;
-          }
-          if (seg.type === 'board') {
-            return <BoardCard key={i} content={seg.content} />;
-          }
-          if (seg.type === 'document') {
-            return <DocumentCard key={i} title={seg.title} content={seg.content} age={age} />;
-          }
-          return null;
-        })}
+        {ezikRenderSegments(shownSegments, { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio })}
         {/* S98: the toggle lives INSIDE the bubble, under the prose it governs, so it reads as
             part of the reply rather than as a fourth action button. It exists only when there is
             something folded away — a short reply never grows one. */}
@@ -7547,6 +7767,22 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
         {onQuote && (
           <button type="button" onClick={() => onQuote(buildCopyText())} aria-label={EZIK_QUOTE_ARIA} className="ezik-focus" style={miniBtnStyle}>{EZIK_QUOTE_LABEL}</button>
         )}
+        {/* S98: the star. `isFavorite` is a boolean handed DOWN — this component never reads a
+            store, never parses JSON and never scans a list to draw it. */}
+        {onFavorite && (
+          <button
+            type="button"
+            onClick={() => onFavorite(message)}
+            aria-pressed={isFavorite ? 'true' : 'false'}
+            aria-label={isFavorite ? EZIK_FAV_DEL : EZIK_FAV_ADD}
+            className="ezik-focus"
+            style={{ ...miniBtnStyle, opacity: isFavorite ? 1 : 0.7, borderColor: isFavorite ? 'var(--red)' : 'var(--line)', color: isFavorite ? 'var(--red)' : 'inherit' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 17.3l-5.4 3 1-6-4.4-4.3 6-.9L12 3.5l2.8 5.6 6 .9-4.4 4.3 1 6z" />
+            </svg>
+          </button>
+        )}
         <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>
         <button type="button" onClick={onReport} aria-label="بلّغ عن هذا الردّ" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
@@ -7562,6 +7798,63 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================
+// S98 — شاشة المفضلة (the favourites screen)
+// ============================================================
+// It draws ONLY what it is handed: the records, and the set of conversation ids that still exist.
+// It reads no store, parses no JSON and owns no copy of anything — so it cannot disagree with the
+// menu badge, and a record whose conversation was deleted is a data question answered before this
+// component is reached rather than a crash inside it.
+//
+// A saved reply is drawn through ezikRenderSegments, the SAME renderer the chat bubble uses, so
+// its ayah, hadith and source card appear here exactly as they did in the conversation and no raw
+// tag can reach the reader by a second path.
+function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age, tashkeel }) {
+  return (
+    <div style={s.favScreen}>
+      <div style={s.dashboardHeader}>
+        <button onClick={onBack} style={s.backBtn} className="ezik-focus">{EZIK_BACK}</button>
+        <div style={s.dashboardTitle}>{EZIK_FAV_HEADING}</div>
+      </div>
+      <div style={s.favBody}>
+        {items.length === 0 && <div style={s.drawerEmpty}>{EZIK_FAV_EMPTY}</div>}
+        {items.map((f) => {
+          const parsed = parseRichMessage(f.text, age);
+          const alive = !!f.chatId && liveChatIds.has(f.chatId);
+          const when = ezikFavDate(f.at);
+          return (
+            <div key={f.id} style={s.favCard}>
+              {when && <div style={s.favMeta}>{when}</div>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {ezikRenderSegments(parsed.segments, { tashkeel, age })}
+              </div>
+              <div style={s.favRow}>
+                <CopyReplyButton
+                  text={String(f.text || '').trim()}
+                  getText={() => serializeReply(parsed.segments, { tashkeel, band: deriveCaps(age).band })}
+                />
+                <button type="button" onClick={() => onRemove(f.id)} aria-label={EZIK_FAV_DEL} className="ezik-focus" style={s.favBtn}>
+                  {EZIK_FAV_REMOVE}
+                </button>
+                {/* The original conversation. When it is gone the row SAYS so instead of
+                    offering a button that would do nothing — and nothing here can throw on a
+                    missing conversation, because the only thing consulted is a Set of ids. */}
+                {alive ? (
+                  <button type="button" onClick={() => onOpenChat(f.chatId)} aria-label={EZIK_FAV_OPEN_CHAT} className="ezik-focus" style={s.favBtn}>
+                    {EZIK_FAV_OPEN_CHAT}
+                  </button>
+                ) : (
+                  <span style={{ ...s.favBtn, ...s.favBtnOff }}>{EZIK_FAV_CHAT_GONE}</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
