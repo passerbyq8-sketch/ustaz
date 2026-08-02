@@ -221,9 +221,17 @@ const user = (t) => [{ role: 'user', content: t }];
         forced.length === 0 || forced[0].sourceId !== ID,
         JSON.stringify(forced.map((s) => s.title)));
 
-      // AN EXPLICIT "none of these" FROM THE RANKER IS A REFUSAL, not a cue to take second best.
+      // A RANKER MAY PROMOTE, NOT VETO. Its "none of these" is an absence of an opinion, and an
+      // absence of an opinion cannot suppress a page that passed every deterministic gate — that
+      // would make the model the guarantee, which is the one thing it must never be.
       const none = await B.retrieveIbnUthaymeen('فيمن أسقطت دون 80 يوم', { rank: async () => null });
-      eq('a ranker that finds no matching page ⇒ no source', none.length, 0);
+      const plainForNone = await B.retrieveIbnUthaymeen('فيمن أسقطت دون 80 يوم');
+      ok('a ranker that promotes nothing cannot veto the deterministic answer',
+        none.length === plainForNone.length
+        && (!none.length || none[0].sourceId === plainForNone[0].sourceId),
+        JSON.stringify([none.map((x) => x.title), plainForNone.map((x) => x.title)]));
+      ok('...and that answer is a real page of his', none.length === 1 && !!none[0].canonicalUrl,
+        JSON.stringify(none.map((x) => x.title)));
 
       // A RANKER OUTAGE falls back to the deterministic order, which refuses an ambiguous pair.
       const broke = await B.retrieveIbnUthaymeen('فيمن أسقطت دون 80 يوم', {
