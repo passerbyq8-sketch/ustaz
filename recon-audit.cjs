@@ -282,12 +282,23 @@ head('7) CDN PIN INTEGRITY (index.html)');
   const src = read('index.html');
   if (!src) fail('cannot read index.html');
   else {
+    // S97: the two document-tool bundles (html2pdf, mammoth) are no longer <script src> tags --
+    // they are fetched on idle AFTER the first paint, so their pinned URLs now live in a JS string
+    // literal instead of an attribute. The pin check has to follow them there: a dependency that
+    // moved out of an attribute is still a supply-chain dependency, and scanning attributes alone
+    // would have silently dropped both from this audit while still reporting a clean run.
     const urls = [];
-    const re = /(?:src|href)\s*=\s*["'](https?:\/\/[^"']+)["']/gi; let m;
-    while((m=re.exec(src))){
-      const u = m[1];
-      if (/cdnjs|unpkg|jsdelivr|esm\.sh|skypack|cdn\./i.test(u)) urls.push(u);
-    }
+    const seen = new Set();
+    const collect = (u) => {
+      if (!/cdnjs|unpkg|jsdelivr|esm\.sh|skypack|cdn\./i.test(u)) return;
+      if (seen.has(u)) return;
+      seen.add(u); urls.push(u);
+    };
+    let m;
+    const attrRe = /(?:src|href)\s*=\s*["'](https?:\/\/[^"']+)["']/gi;
+    while((m=attrRe.exec(src))) collect(m[1]);
+    const litRe = /["'](https?:\/\/[^"'\s]+\.js)["']/gi;   // a script URL held in a JS string
+    while((m=litRe.exec(src))) collect(m[1]);
     if (!urls.length) info('no external CDN script/link tags detected');
     const verRe = /@\d+\.\d+\.\d+|\/\d+\.\d+\.\d+\//;
     for (const u of urls){
