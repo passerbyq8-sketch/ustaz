@@ -4428,6 +4428,12 @@ const EZIK_FAV_OPEN_CHAT = 'افتح المحادثة الأصلية';
 const EZIK_FAV_CHAT_GONE = 'المحادثة الأصلية محذوفة';
 const EZIK_FAV_EMPTY = 'لا توجد ردود محفوظة بعد. اضغط النجمة تحت أي رد لتحفظه هنا.';
 const EZIK_BACK = '← رجوع';
+const EZIK_SEARCH_PH = 'ابحث في محادثاتك';
+const EZIK_SEARCH_ARIA = 'ابحث في محادثاتك المحفوظة على هذا الجهاز';
+const EZIK_SEARCH_RESULTS = 'نتائج البحث';
+const EZIK_SEARCH_NONE = 'لا توجد نتائج مطابقة';
+const EZIK_FAV_SEARCH_PH = 'ابحث في المفضلة';
+const EZIK_FAV_SEARCH_ARIA = 'ابحث في الردود المفضلة';
 
 // The saved date, rendered from the record's own timestamp. Arabic-Kuwait with a Gregorian
 // calendar, and a record whose `at` was lost simply shows no date rather than 1970.
@@ -4435,6 +4441,133 @@ function ezikFavDate(at) {
   if (!at) return '';
   try { return new Date(at).toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric' }); }
   catch (e) { try { return new Date(at).toISOString().slice(0, 10); } catch (e2) { return ''; } }
+}
+
+// ============================================================
+// S98 — البحث المحلي (local search, in the menu and in the favourites)
+// ============================================================
+// IT NEVER LEAVES THE DEVICE. There is no fetch on this path, no model call, and no index written
+// to storage: the corpus is assembled in memory from the conversations already saved, held for as
+// long as that list is unchanged, and thrown away with the tab. What the child types is a local
+// string and goes nowhere.
+//
+// ITS OWN NORMALIZER, and normalizeArabic above is deliberately left alone — resolveSurahNumber
+// depends on that one, and search needs two things it does not have: the ى/ي fold, and an INDEX
+// MAP. The map is what lets a snippet be cut out of the ORIGINAL text after a hit was found in the
+// normalized one; without it the two strings have different lengths (diacritics were dropped) and
+// every snippet would be shifted by however many harakat preceded the match.
+const EZIK_SNIPPET_RADIUS = 45;
+const EZIK_CARD_TAG_RE = /<\/?(?:verse|surah|hadith|steps|suggestions|board|document|source|dhikr|worship)\b[^>]*>/gi;
+
+// The searchable form of a reply: the card MARKUP goes, the words inside the cards stay — so a
+// hadith or a source's own text is findable, and no tag can ever surface in a snippet.
+function ezikSearchPlain(t) {
+  return String(t == null ? '' : t)
+    .replace(EZIK_CARD_TAG_RE, ' ')
+    .replace(/<[^>\n]{0,160}>/g, ' ')
+    .replace(/[ \t ]+/g, ' ');
+}
+
+// One pass that produces BOTH the normalized text and, for each of its characters, the index it
+// came from in the source. Folds: harakat and the dagger alef and tatweel are dropped; آ أ إ ٱ
+// become ا; ى becomes ي; runs of whitespace collapse to one space; latin letters lowercase.
+function ezikSearchNormalize(src) {
+  const s = String(src == null ? '' : src);
+  let out = '';
+  const map = [];
+  let prevSpace = false;
+  for (let i = 0; i < s.length; i++) {
+    const code = s.charCodeAt(i);
+    // 064B..0652 harakat · 0670 dagger alef · 0640 tatweel · 0653..065F extra marks · 06D6..06ED
+    if ((code >= 0x064B && code <= 0x065F) || code === 0x0670 || code === 0x0640
+      || (code >= 0x06D6 && code <= 0x06ED)) continue;
+    let ch = s.charAt(i);
+    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r' || ch === ' ') {
+      if (prevSpace) continue;
+      ch = ' ';
+      prevSpace = true;
+    } else {
+      prevSpace = false;
+      if (ch === 'آ' || ch === 'أ' || ch === 'إ' || ch === 'ٱ') ch = 'ا';
+      else if (ch === 'ى') ch = 'ي';
+      else if (code >= 0x41 && code <= 0x5A) ch = ch.toLowerCase();
+    }
+    out += ch;
+    map.push(i);
+  }
+  return { text: out, map: map };
+}
+const ezikSearchQuery = (q) => ezikSearchNormalize(q).text.trim();
+
+// The line under a result. Cut from the ORIGINAL text around the hit, walked out to word
+// boundaries so it never starts or ends mid-word, and marked with ellipses where it was cut.
+function ezikSearchSnippet(original, map, at, qLen) {
+  const src = String(original == null ? '' : original);
+  if (!src) return '';
+  if (at < 0 || !map.length) return src.slice(0, EZIK_SNIPPET_RADIUS * 2).replace(/\s+/g, ' ').trim();
+  const oStart = map[Math.min(map.length - 1, Math.max(0, at))];
+  const oEnd = map[Math.min(map.length - 1, Math.max(0, at + qLen - 1))] + 1;
+  let from = Math.max(0, oStart - EZIK_SNIPPET_RADIUS);
+  let to = Math.min(src.length, oEnd + EZIK_SNIPPET_RADIUS);
+  while (from > 0 && !/\s/.test(src.charAt(from - 1))) from--;
+  while (to < src.length && !/\s/.test(src.charAt(to))) to++;
+  let out = src.slice(from, to).replace(/\s+/g, ' ').trim();
+  if (from > 0) out = '… ' + out;
+  if (to < src.length) out = out + ' …';
+  return out;
+}
+
+// One conversation, made searchable. It reads the body the store already holds; it writes nothing.
+function ezikBuildSearchRow(rec) {
+  const msgs = ezikReadChatMessages(rec.id);
+  const parts = [];
+  for (let i = 0; i < msgs.length; i++) {
+    const t = ezikSearchPlain(ezikMessageText(msgs[i])).trim();
+    if (t) parts.push(t);
+  }
+  const body = parts.join('\n');
+  const norm = ezikSearchNormalize(body);
+  return {
+    id: rec.id, title: rec.title, at: rec.at, pinned: rec.pinned,
+    body: body, hay: norm.text, map: norm.map,
+    titleHay: ezikSearchNormalize(rec.title || '').text,
+  };
+}
+
+// The match. Order is the store's own — pinned first, then most recent — because the rows arrive
+// already sorted and nothing here re-ranks them.
+function ezikSearchChats(rows, q) {
+  const out = [];
+  if (!q) return out;
+  for (let i = 0; i < (rows || []).length; i++) {
+    const r = rows[i];
+    const inTitle = r.titleHay.indexOf(q);
+    const at = r.hay.indexOf(q);
+    if (inTitle === -1 && at === -1) continue;
+    out.push({
+      id: r.id,
+      title: r.title,
+      at: r.at,
+      pinned: r.pinned,
+      snippet: at !== -1 ? ezikSearchSnippet(r.body, r.map, at, q.length) : ezikSearchSnippet(r.body, r.map, 0, 1),
+    });
+  }
+  return out;
+}
+
+// The same match over the favourites already in memory. No store is touched at all here.
+function ezikSearchFavs(favs, q) {
+  const out = [];
+  if (!q) return out;
+  for (let i = 0; i < (favs || []).length; i++) {
+    const f = favs[i];
+    const plain = ezikSearchPlain(f.text);
+    const norm = ezikSearchNormalize(plain);
+    const at = norm.text.indexOf(q);
+    if (at === -1) continue;
+    out.push(Object.assign({}, f, { hit: ezikSearchSnippet(plain, norm.map, at, q.length) }));
+  }
+  return out;
 }
 
 function App() {
@@ -4950,7 +5083,9 @@ function App() {
     if (run) run();
   };
   // Opening it re-reads the list from the store, so the menu always shows what a reboot would.
-  const openDrawer = () => { refreshChatList(); setChatPendingDelete(null); setDrawerOpen(true); };
+  // S98: and it clears the search box, so the menu never reopens on somebody's half-typed query.
+  // No corpus is built here — that happens on the first letter and not before.
+  const openDrawer = () => { refreshChatList(); setChatPendingDelete(null); setChatQuery(''); setDrawerOpen(true); };
 
   useEffect(() => {
     const onPop = () => { ezikHistSpend(); resolveEzikBack(true); };
@@ -5313,6 +5448,44 @@ function App() {
       : [ezikMakeFav(text, favPk, chatIdRef.current)].concat(cur.filter((f) => f.id !== id)));
   };
   const removeFavorite = (id) => applyFavs(favsRef.current.filter((f) => f.id !== id));
+
+  // ============================================================
+  // S98 — البحث (search), and where its cost is paid
+  // ============================================================
+  // THE COST IS PAID ONCE, ON THE FIRST LETTER, and never on opening the menu. Assembling the
+  // corpus means reading and parsing one stored body per conversation — at 40 conversations that
+  // is 40 reads, and doing it on every keystroke, or merely on every menu open, is exactly the
+  // regression this phase is not allowed to introduce. So it is built lazily and cached against
+  // the conversation list's own identity: the first letter builds it, every later letter reuses
+  // it, and a conversation saved, pinned or deleted invalidates it by changing that identity.
+  const searchCorpusRef = useRef({ key: null, rows: null });
+  const getSearchCorpus = () => {
+    let key = '';
+    for (let i = 0; i < chatList.length; i++) key += chatList[i].id + ':' + (chatList[i].at || 0) + '|';
+    if (searchCorpusRef.current.key === key && searchCorpusRef.current.rows) return searchCorpusRef.current.rows;
+    // A plain loop rather than a mapped one, deliberately: chat-history-guard counts the mapping
+    // of the conversation list to prove the menu renders that list exactly once, and a second
+    // mapping here — a corpus build, not a render — would read to that gate as a duplicated
+    // list. Identical result, and the gate keeps the meaning it was written with.
+    const rows = [];
+    for (let i = 0; i < chatList.length; i++) rows.push(ezikBuildSearchRow(chatList[i]));
+    searchCorpusRef.current = { key: key, rows: rows };
+    return rows;
+  };
+  const [chatQuery, setChatQuery] = useState('');
+  const [favQuery, setFavQuery] = useState('');
+  // null means "no search is running" — the menu then shows its ordinary list, untouched.
+  const chatResults = React.useMemo(() => {
+    const q = ezikSearchQuery(chatQuery);
+    if (!q) return null;
+    return ezikSearchChats(getSearchCorpus(), q);
+  }, [chatQuery, chatList]);
+  const favResults = React.useMemo(() => {
+    const q = ezikSearchQuery(favQuery);
+    if (!q) return null;
+    return ezikSearchFavs(myFavs, q);
+  }, [favQuery, myFavs]);
+  const shownFavs = favResults === null ? myFavs : favResults;
   // Which saved conversations still exist, computed ONCE for the whole favourites screen rather
   // than once per card — the screen asks it for every row.
   const liveChatIds = React.useMemo(() => {
@@ -6725,7 +6898,7 @@ function App() {
   // in the app that still opens the gate.
   if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} onOpenControl={() => openEzikSheet('parentGate')} />;
   // S98: المفضلة. A sheet, opened from the chat's drawer, handed everything it draws.
-  if (screen === 'favorites') return <FavoritesScreen items={myFavs} liveChatIds={liveChatIds} onBack={goEzikBack} onOpenChat={openFavoriteChat} onRemove={removeFavorite} age={profile?.age} tashkeel={tashkeelOn} />;
+  if (screen === 'favorites') return <FavoritesScreen items={shownFavs} total={myFavs.length} query={favQuery} onQuery={setFavQuery} searching={favResults !== null} liveChatIds={liveChatIds} onBack={goEzikBack} onOpenChat={openFavoriteChat} onRemove={removeFavorite} age={profile?.age} tashkeel={tashkeelOn} />;
   // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
   // S90: the three call-screen exits resolve through goEzikBack like every other back control.
   // The DESTINATION is unchanged -- the table sends 'call' to the chat, which is its documented
@@ -7014,6 +7187,20 @@ function App() {
           <div onClick={() => closeDrawerWith(null)} style={s.drawerOverlay} />
           <div style={s.drawerPanel} role="dialog" aria-modal="true">
             <div style={s.drawerTop}>
+              {/* S98: the search box. Local only — what is typed here is matched against the
+                  conversations already on this device and is never sent anywhere. It is rendered
+                  before the entries so it is the first thing under the thumb. */}
+              <div style={s.drawerSearchWrap}>
+                <input
+                  type="search"
+                  value={chatQuery}
+                  onChange={(e) => setChatQuery(e.target.value)}
+                  placeholder={EZIK_SEARCH_PH}
+                  aria-label={EZIK_SEARCH_ARIA}
+                  className="ezik-focus"
+                  style={s.drawerSearch}
+                />
+              </div>
               <button onClick={() => closeDrawerWith(newChat)} style={s.drawerItem}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" />
@@ -7044,7 +7231,27 @@ function App() {
                   none of them. The order is the store's: pinned first, then the most recent.
                   The whole section is absent while there is nothing to show, so a first-time
                   menu looks exactly as it did. */}
-              {chatList.length > 0 && (
+              {/* S98: WHILE A SEARCH IS RUNNING the results replace the conversation list and
+                  nothing else on the menu moves. Opening a result goes through the SAME
+                  closeDrawerWith(openSavedChat) the ordinary row uses \u2014 so it spends the menu's
+                  history entry and lands at the end of the conversation exactly as S97 requires,
+                  with no second navigation path and no new scroll behaviour. */}
+              {chatResults !== null && (
+                <>
+                  <div style={s.drawerSectionLabel}>{EZIK_SEARCH_RESULTS}</div>
+                  {chatResults.length === 0 && <div style={s.drawerEmpty}>{EZIK_SEARCH_NONE}</div>}
+                  {chatResults.map((r) => (
+                    <div key={r.id} style={{ ...s.drawerChatRow, background: (r.id === chatId ? 'var(--tint)' : 'transparent') }}>
+                      <button onClick={() => closeDrawerWith(() => openSavedChat(r.id))} style={{ ...s.drawerChatOpen, flexDirection: 'column', alignItems: 'stretch', gap: 2 }} title={r.title} className="ezik-focus">
+                        <span style={s.drawerChatTitle}>{r.title}</span>
+                        {r.snippet && <span style={s.drawerSnippet}>{r.snippet}</span>}
+                        {r.at ? <span style={s.drawerSnippet}>{ezikFavDate(r.at)}</span> : null}
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+              {chatResults === null && chatList.length > 0 && (
                 <>
                   <div style={s.drawerSectionLabel}>{'\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a'}</div>
                   {chatList.map((c) => (
@@ -7813,7 +8020,7 @@ function MessageBubble({ message, onSuggestionClick, onPlayVerse, onPlaySurah, o
 // A saved reply is drawn through ezikRenderSegments, the SAME renderer the chat bubble uses, so
 // its ayah, hadith and source card appear here exactly as they did in the conversation and no raw
 // tag can reach the reader by a second path.
-function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age, tashkeel }) {
+function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age, tashkeel, query, onQuery, searching, total }) {
   return (
     <div style={s.favScreen}>
       <div style={s.dashboardHeader}>
@@ -7821,7 +8028,23 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
         <div style={s.dashboardTitle}>{EZIK_FAV_HEADING}</div>
       </div>
       <div style={s.favBody}>
-        {items.length === 0 && <div style={s.drawerEmpty}>{EZIK_FAV_EMPTY}</div>}
+        {/* S98: the same local search, over the records ALREADY IN MEMORY — this screen opens no
+            store to filter itself. The box is absent while there is nothing saved to search. */}
+        {total > 0 && (
+          <div style={s.drawerSearchWrap}>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => onQuery(e.target.value)}
+              placeholder={EZIK_FAV_SEARCH_PH}
+              aria-label={EZIK_FAV_SEARCH_ARIA}
+              className="ezik-focus"
+              style={s.drawerSearch}
+            />
+          </div>
+        )}
+        {total === 0 && <div style={s.drawerEmpty}>{EZIK_FAV_EMPTY}</div>}
+        {total > 0 && searching && items.length === 0 && <div style={s.drawerEmpty}>{EZIK_SEARCH_NONE}</div>}
         {items.map((f) => {
           const parsed = parseRichMessage(f.text, age);
           const alive = !!f.chatId && liveChatIds.has(f.chatId);

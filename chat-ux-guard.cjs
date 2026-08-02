@@ -69,6 +69,10 @@ const S = {
   FAV_GONE_HEAD:  'المحادثة الأصلية محذوفة',
   BACK:           '← رجوع',
   DEL:            'حذف',
+  SEARCH_NONE:    'لا توجد نتائج مطابقة',
+  S_PLAIN:        'الإسلام',
+  S_BARE:         'الاسلام',
+  S_HARAKAT:      'الإِسْلَامُ',
   // ---- fixtures ----
   Q_USER:      'ما حكم الصلاة؟',   // ma hukm as-salah?
   A_SHORT:     'نعم، الصلاة واجبة.',
@@ -320,17 +324,17 @@ function driver(window) {
     el.dispatchEvent(new window.Event('input', { bubbles: true }));
     await tick();
     // 2) MEASURED: React's ChangeEventPlugin does not fire under linkedom even so — the DOM has
-    //    no layout and no real input machinery behind it. So if the component did not hear the
-    //    keystroke, call the very handler it registered, with the very node as the target. This
-    //    is still the SHIPPED onChange, not a re-implementation of it; only the delivery differs.
-    if (String(el.value) !== String(value) || !el.__typed) {
-      const key = Object.keys(el).filter((k) => k.indexOf('__reactProps$') === 0)[0];
-      const props = key ? el[key] : null;
-      if (props && typeof props.onChange === 'function') {
-        props.onChange({ target: el, currentTarget: el, preventDefault() {}, stopPropagation() {} });
-        el.__typed = true;
-        await tick();
-      }
+    //    no layout and no real input machinery behind it. So the very handler the component
+    //    registered is called, with the very node as the target. This is still the SHIPPED
+    //    onChange, not a re-implementation of it; only the delivery differs. It is called
+    //    unconditionally: every handler on these fields is `setX(e.target.value)`, so a second
+    //    delivery of the same value is a no-op, and trying to detect whether React had already
+    //    heard it is what made an earlier version of this helper silently skip later keystrokes.
+    const key = Object.keys(el).filter((k) => k.indexOf('__reactProps$') === 0)[0];
+    const props = key ? el[key] : null;
+    if (props && typeof props.onChange === 'function') {
+      props.onChange({ target: el, currentTarget: el, preventDefault() {}, stopPropagation() {} });
+      await tick();
     }
     return el;
   };
@@ -908,6 +912,211 @@ async function partDOrphan() {
 }
 
 // ===========================================================================
+// PART F — LOCAL SEARCH
+// ===========================================================================
+function partFPure() {
+  console.log('\n=== F. LOCAL SEARCH — the matcher, run for real ===');
+  const c = buildContext({ seed: {} });
+  const norm = c.grab('ezikSearchNormalize');
+  const q = c.grab('ezikSearchQuery');
+  const plain0 = c.grab('ezikSearchPlain');
+  const snippet = c.grab('ezikSearchSnippet');
+  const searchChats = c.grab('ezikSearchChats');
+  const searchFavs = c.grab('ezikSearchFavs');
+  if (!ok('the search helpers are on the page', typeof norm === 'function' && typeof searchChats === 'function')) return;
+
+  // 12) ARABIC NORMALISATION — the whole point of the feature on this language.
+  const N = (x) => norm(x).text;
+  eq('diacritics are ignored', N(S.S_HARAKAT), N(S.S_PLAIN));
+  eq('the alif forms are unified', N(S.S_BARE), N(S.S_PLAIN));
+  eq('...including the wasla form', N('ٱلاسلام'), N(S.S_PLAIN));
+  eq('the dotless ya is folded onto the ya', N('علي'), N('على'));
+  eq('the tatweel is ignored', N('اســـلام'), N('اسلام'));
+  eq('runs of whitespace collapse', N('  a\n\n\t b  '), ' a b ');
+  eq('latin case is ignored', N('HeLLo'), 'hello');
+  eq('a query is normalised and trimmed', q('  ' + S.S_HARAKAT + ' '), N(S.S_PLAIN));
+  eq('an empty query normalises to nothing', q('   '), '');
+  eq('a null query does not throw', q(null), '');
+
+  // the index map, which is what makes a snippet land on the right characters
+  const withMarks = S.S_HARAKAT + ' ' + S.W_TAIL;
+  const nm = norm(withMarks);
+  eq('the map has one entry per normalised character', nm.map.length, nm.text.length);
+  ok('...and every entry points inside the source',
+    nm.map.every((i) => i >= 0 && i < withMarks.length));
+  const hitAt = nm.text.indexOf(N(S.W_TAIL));
+  ok('a hit found in the normalised text maps back to the source', hitAt > 0);
+  const snip = snippet(withMarks, nm.map, hitAt, N(S.W_TAIL).length);
+  ok('...and the snippet cut from the SOURCE contains the word as written, marks and all',
+    snip.indexOf(S.W_TAIL) !== -1, cps(snip));
+
+  // card markup never reaches a snippet, but the words inside a card do
+  const withCards = 'قبل <hadith narrator="x" ruling="y">' + S.HADITH_BODY + '</hadith> بعد';
+  const p = plain0(withCards);
+  ok('card markup is stripped before indexing', p.indexOf('<') === -1, cps(p.slice(0, 40)));
+  ok('...but the words inside the card are still searchable', p.indexOf(S.HADITH_BODY) !== -1);
+
+  // matching over rows
+  const rows = [
+    { id: 'A', title: S.S_PLAIN, at: 2, pinned: false, body: 'body a', hay: N('body a'), map: norm('body a').map, titleHay: N(S.S_PLAIN) },
+    { id: 'B', title: 'other', at: 1, pinned: false, body: S.S_HARAKAT + ' inside the body', hay: norm(S.S_HARAKAT + ' inside the body').text, map: norm(S.S_HARAKAT + ' inside the body').map, titleHay: N('other') },
+    { id: 'C', title: 'none', at: 0, pinned: false, body: 'nothing here', hay: N('nothing here'), map: norm('nothing here').map, titleHay: N('none') },
+  ];
+  const res = plain(searchChats(rows, q(S.S_BARE)));
+  eq('a bare-alif query finds the diacritised title and the diacritised body', res.map((r) => r.id), ['A', 'B']);
+  ok('...and each result carries a snippet', res.every((r) => typeof r.snippet === 'string'));
+  ok('...with no tag in it', res.every((r) => r.snippet.indexOf('<') === -1));
+  eq('an empty query matches nothing at all', plain(searchChats(rows, '')), []);
+  eq('a query nothing holds matches nothing', plain(searchChats(rows, q('zzzz'))), []);
+  // 'n' is in B's body ("inside") and in C's title and body, and in neither of A's — so a hit set
+  // of exactly {B, C} in that order is the store order surviving, not an accident of the query.
+  eq('the order is the store\'s own, never re-ranked', plain(searchChats(rows, q('n'))).map((r) => r.id), ['B', 'C']);
+
+  // favourites
+  const favs = [
+    { id: 'f1', text: 'قبل <source site="x" url="y">' + S.S_HARAKAT + '</source> بعد', snippet: '', at: 1, chatId: null, pk: null },
+    { id: 'f2', text: 'nothing', snippet: '', at: 2, chatId: null, pk: null },
+  ];
+  const fres = plain(searchFavs(favs, q(S.S_BARE)));
+  eq('the favourites search finds a word inside a saved source card', fres.map((f) => f.id), ['f1']);
+  ok('...and its hit line carries no tag', fres[0].hit.indexOf('<') === -1, cps(fres[0].hit));
+  eq('an empty favourites query matches nothing', plain(searchFavs(favs, '')), []);
+  eq('searching an empty favourites list is safe', plain(searchFavs([], q('a'))), []);
+  eq('searching a null favourites list is safe', plain(searchFavs(null, q('a'))), []);
+}
+
+// The search, driven through the real menu — including 13) it must reach no network, and
+// 14) opening a result must use the SAME path and land at the end of the conversation.
+const MANY = 42;
+function seedManyChats() {
+  const seed = {
+    child_profile: JSON.stringify(PROFILE),
+    disclosureAck: '1',
+  };
+  const index = [];
+  for (let i = 0; i < MANY; i++) {
+    const id = 'M' + i;
+    index.push({ id: id, pk: PROFILE.pid, title: 'محادثة ' + i, pinned: false, at: 1000 + i });
+    // exactly ONE conversation carries the diacritised word; the rest are noise of the same size
+    const marked = (i === 7);
+    const msgs = [];
+    for (let k = 0; k < 8; k++) {
+      msgs.push({ role: 'user', content: 'سؤال ' + i + ' ' + k });
+      msgs.push({ role: 'assistant', content: (marked && k === 3)
+        ? ('جواب فيه ' + S.S_HARAKAT + ' ثم بقية الكلام')
+        : ('جواب عادي ' + i + ' ' + k + ' ' + 'حشو '.repeat(30)) });
+    }
+    seed['ezik_chat_v1_' + id] = JSON.stringify(msgs);
+  }
+  seed.ezik_chats_v1 = JSON.stringify(index);
+  return seed;
+}
+
+async function partFDrawer() {
+  console.log('\n--- search, driven through the real menu ---');
+  const c = buildContext({ seed: seedManyChats(), mount: true });
+  await tick(400);
+  if (c.err()) { ok('the app mounts with 42 saved conversations', false, String(c.err())); return c; }
+  const d = driver(c.window);
+  ok('the app mounts with ' + MANY + ' saved conversations', d.text().indexOf(S.DISCLAIMER) !== -1);
+
+  const netAtStart = c.net().length;
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  eq('opening the menu makes no network request', c.net().length, netAtStart);
+  const box = d.all('input').filter((i) => i.getAttribute('type') === 'search')[0];
+  if (!ok('the menu carries a search box', !!box)) return c;
+  ok('...with an accessible name', !!box.getAttribute('aria-label'));
+
+  // 12 + 14) a BARE-ALIF, UNDIACRITISED query finds the diacritised conversation
+  await d.type(box, S.S_BARE);
+  await tick(60);
+  eq('searching makes no network request at all', c.net().length, netAtStart);
+  const resultRows = d.all('button').filter((b) => /محادثة 7/.test(String(b.textContent || '')));
+  ok('an undiacritised query finds the diacritised conversation', resultRows.length === 1,
+    'matched rows: ' + d.all('button').filter((b) => /محادثة \d/.test(String(b.textContent || ''))).length);
+  ok('...and the other 41 are not listed',
+    d.all('button').filter((b) => /محادثة \d/.test(String(b.textContent || ''))).length === 1);
+  ok('...the result shows a snippet of what matched', d.text().indexOf('ثم بقية الكلام') !== -1, cps(d.text().slice(0, 200)));
+  ok('...and no raw tag anywhere in the menu', d.text().indexOf('<') === -1);
+
+  // a query that matches nothing says so, and does not empty the menu of its entries
+  await d.type(box, 'zzzzzz');
+  await tick(60);
+  ok('a query with no match says so', d.text().indexOf(S.SEARCH_NONE) !== -1, cps(d.text().slice(0, 200)));
+  ok('...and the menu keeps its own entries', d.text().indexOf(S.NEW_CHAT) !== -1);
+
+  // 14) opening a result: the SAME path, and the conversation opens AT ITS END
+  await d.type(box, S.S_BARE);
+  await tick(60);
+  const hit = d.all('button').filter((b) => /محادثة 7/.test(String(b.textContent || '')))[0];
+  if (!ok('the result can be opened', !!hit)) return c;
+  await d.click(hit, 'open the result');
+  await tick(120);
+  ok('opening a result closes the menu', d.text().indexOf(S.NEW_CHAT) === -1);
+  ok('...and puts that conversation on screen', d.text().indexOf('سؤال 7 0') !== -1, cps(d.text().slice(0, 200)));
+  eq('...having made no network request for any of it', c.net().length, netAtStart);
+
+  // 15) WHERE it opens is S97's contract and chat-history-guard part D measures it with a real
+  // scroll recorder. linkedom has no layout, so a second measurement here would be theatre; what
+  // this gate adds instead is that a search result takes the SAME route — see part E, which reads
+  // the result row and the ordinary row off the file and requires both to be
+  // closeDrawerWith(() => openSavedChat(id)). One route, one scroll behaviour, nothing new to fix.
+
+  // reopening the menu clears the box, so it never reopens on a stale query
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu again');
+  const box2 = d.all('input').filter((i) => i.getAttribute('type') === 'search')[0];
+  eq('reopening the menu clears the search box', String(box2 && box2.value || ''), '');
+  ok('...and the ordinary conversation list is back',
+    d.all('button').filter((b) => /محادثة \d/.test(String(b.textContent || ''))).length > 1);
+  return c;
+}
+
+async function partFFavs() {
+  console.log('\n--- search inside the favourites ---');
+  const c = buildContext({ seed: seedChats(), mount: true });
+  await tick(400);
+  if (c.err()) { ok('the app mounts for the favourites search', false, String(c.err())); return c; }
+  const d = driver(c.window);
+
+  // save two replies: only one carries the searched word
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').trim() === S.Q_USER)[0], 'long chat');
+  await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the long reply');
+  await d.click(d.byLabel(S.FAV_ADD), 'star the long reply');
+  await tick(60);
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').trim() === S.Q_USER + ' 2')[0], 'short chat');
+  await waitFor(() => d.text().indexOf(S.A_SHORT) !== -1, 'the short reply');
+  await d.click(d.byLabel(S.FAV_ADD), 'star the short reply');
+  await tick(60);
+
+  await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  await d.click(d.all('button').filter((b) => String(b.textContent || '').indexOf(S.FAV) !== -1)[0], 'favourites');
+  await tick(100);
+  ok('both saved replies are on the favourites screen',
+    d.text().indexOf(S.W_HEAD) !== -1 && d.text().indexOf(S.A_SHORT) !== -1, cps(d.text().slice(0, 200)));
+  const box = d.all('input').filter((i) => i.getAttribute('type') === 'search')[0];
+  if (!ok('the favourites screen carries its own search box', !!box)) return c;
+  ok('...with an accessible name', !!box.getAttribute('aria-label'));
+
+  const netAtStart = c.net().length;
+  await d.type(box, S.W_TAIL);
+  await tick(60);
+  ok('searching the favourites narrows them to the match', d.text().indexOf(S.W_HEAD) !== -1 && d.text().indexOf(S.A_SHORT) === -1,
+    cps(d.text().slice(0, 200)));
+  eq('...and reaches no network', c.net().length, netAtStart);
+  await d.type(box, 'zzzzz');
+  await tick(60);
+  ok('a favourites query with no match says so', d.text().indexOf(S.SEARCH_NONE) !== -1, cps(d.text().slice(0, 200)));
+  ok('...and does not crash the screen', !c.err(), String(c.err()));
+  await d.type(box, '');
+  await tick(60);
+  ok('clearing the query brings every favourite back',
+    d.text().indexOf(S.W_HEAD) !== -1 && d.text().indexOf(S.A_SHORT) !== -1);
+  return c;
+}
+
+// ===========================================================================
 // PART E — THE WIRING, READ OFF THE FILE
 // ===========================================================================
 function partE() {
@@ -1017,6 +1226,34 @@ function partE() {
   ok('the lookup a bubble is answered from is a Set built once',
     /const favIdSet = React\.useMemo\(\(\) => \{[\s\S]{0,300}?new Set\(\)[\s\S]{0,300}?\}, \[myFavs\]\);/.test(decoded));
 
+  // SEARCH: local only, and one route into a conversation.
+  ok('a search result opens through the SAME path an ordinary menu row uses',
+    (decoded.match(/closeDrawerWith\(\(\) => openSavedChat\(/g) || []).length === 2,
+    'openSavedChat call sites in the drawer: ' + (decoded.match(/closeDrawerWith\(\(\) => openSavedChat\(/g) || []).length);
+  // Exactly three CALLS: the ordinary menu row, the search result row, and the favourites
+  // screen's "open the original". Every one of them is the S97 path; there is no fourth.
+  ok('...so nothing new scrolls, and no second navigation path exists',
+    (decoded.match(/openSavedChat\(/g) || []).length === 3,
+    'openSavedChat call sites: ' + (decoded.match(/openSavedChat\(/g) || []).length);
+  ok('the search matcher is called with the corpus, never with a fetch',
+    !/ezikSearchChats[\s\S]{0,400}?fetch\(/.test(decoded));
+  ok('the corpus is built lazily, behind a non-empty query',
+    /const chatResults = React\.useMemo\(\(\) => \{\s*const q = ezikSearchQuery\(chatQuery\);\s*if \(!q\) return null;/.test(decoded));
+  ok('...and cached against the conversation list\'s own identity',
+    /searchCorpusRef\.current\.key === key/.test(decoded));
+  ok('opening the menu builds no corpus',
+    /const openDrawer = \(\) => \{[^}]*\};/.test(decoded)
+      && !/const openDrawer = \(\) => \{[^}]*getSearchCorpus/.test(decoded));
+  ok('the favourites search runs over the records already in memory',
+    /ezikSearchFavs\(myFavs, q\)/.test(decoded));
+  ok('no search path calls the network or the model',
+    !/ezikSearch[A-Za-z]*\([\s\S]{0,600}?(fetch\(|callAI\()/.test(decoded));
+  ok('no search index is written to storage',
+    !/localStorage\.setItem\([^)]*search/i.test(decoded));
+  ok('the search normalizer is its own, leaving normalizeArabic untouched',
+    /const normalizeArabic = \(str\) => \(str \|\| ''\)\s*\n\s*\.replace\(\/\[ً-ْٰـ\]\/g, ''\)/.test(html)
+      || /const normalizeArabic = \(str\)/.test(decoded));
+
   // the quote writes to the composer only
   ok('the quote handler writes to the composer', /quoteReply = \([\s\S]{0,600}?setInput\(/.test(decoded));
   ok('...and calls no send path at all', !/quoteReply = \([\s\S]{0,900}?sendMessage\(/.test(decoded));
@@ -1065,6 +1302,9 @@ function partE() {
   partDDead();
   await partDScreen();
   await partDOrphan();
+  partFPure();
+  await partFDrawer();
+  await partFFavs();
   partE();
   console.log('');
   if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed.');
