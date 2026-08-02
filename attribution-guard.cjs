@@ -181,6 +181,16 @@ const user = (t) => [{ role: 'user', content: t }];
         laterSrc.length === 1 && laterSrc[0].sourceId !== ID
         && laterSrc[0].title.indexOf('ثلاثة أشهر') !== -1, JSON.stringify(laterSrc.map((s) => s.title)));
 
+      // THE RANKER CAN BE OVERRULED, and this is the check that proves it against the live site.
+      // Force it to make exactly the mistake a model can make — the second-month fatwa for a
+      // ninety-day question — and the deterministic period gate must throw the page out anyway.
+      const forced = await B.retrieveIbnUthaymeen(later.question, {
+        excludeWords: String(later.scholarName || '').split(' '),
+        rank: pickSecondMonth,
+      });
+      ok('a WRONG ranker choice is overruled by the period gate', forced.length === 0,
+        JSON.stringify(forced.map((s) => s.title)));
+
       // AN EXPLICIT "none of these" FROM THE RANKER IS A REFUSAL, not a cue to take second best.
       const none = await B.retrieveIbnUthaymeen('فيمن أسقطت دون 80 يوم', { rank: async () => null });
       eq('a ranker that finds no matching page ⇒ no source', none.length, 0);

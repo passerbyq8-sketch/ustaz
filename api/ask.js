@@ -19,6 +19,7 @@ import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
 import { detectAttribution, verifyAttributedReply, ATTRIBUTION_REFUSAL } from '../lib/attribution.js';
+import { detectSubjectInThread, sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verifyClaims, subjectSwallowsName, CLAIM_REFUSAL } from '../lib/claim-gate.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -425,6 +426,18 @@ export default async function handler(req, res) {
   // tools and no retrieval, and the model answered a fatwa from memory — inverted, and with no
   // card, because the GEN branch strips every source tag.
   const attribution = detectAttribution(body.messages);
+  // The SPECIFIC-CLAIM gate is decided from the same messages, and independently: a question can
+  // name a scholar, name an expression, both, or neither. The attributed branch runs first when
+  // both fire, because "who said it" is the stronger constraint.
+  const claimSubject = detectSubjectInThread(body.messages);
+  // A question can name a scholar AND name an expression. It cannot have the SAME words be
+  // both. «حكم قول يا معطي لا تبطي» captured «يا معطي لا تبطي» as a scholar under the ordinary
+  // «قول فلان» pattern; the expression the reader asked about is not the person who ruled on it.
+  if (attribution.attributed && subjectSwallowsName(claimSubject, attribution.scholarName)) {
+    console.warn('[attribution] captured name is the asked-about expression — not an attribution:', attribution.scholarName);
+    attribution.attributed = false;
+    attribution.scholar = null;
+  }
   console.log('[route]', { route, band, attributed: attribution.attributed, scholar: attribution.scholarName || null });
 
   const headers = {
@@ -778,6 +791,100 @@ export default async function handler(req, res) {
       { role: 'assistant', content: round1.content },
       { role: 'user', content: toolResults },
     ];
+
+    // ── SPECIFIC-CLAIM ROUTE: a verdict on THIS expression needs a page about THIS expression ──
+    //
+    // Runs only when the question turns on a named expression or a named incident — «حكم قول كذا»,
+    // a phrase in quotation marks, «هل هذه العبارة بدعة؟». A question about a RULE
+    // («هل يجوز أن أدعو الله بأسمائه الحسنى؟») is not this, takes the ordinary streamed path
+    // below, and is answered from the general source exactly as it always was.
+    //
+    // WHY IT BUFFERS, and why only here. Verification and streaming cannot both be true: bytes on
+    // the reader's screen cannot be recalled when the check fails. Buffering every religious
+    // answer would cost every reader the whole generation time in silence, so the trade is made
+    // where the danger is — these answers are short verdicts, and they are the ones that were
+    // wrong.
+    const retrievedPages = retrievedSources.filter(Boolean).flat();
+    if (claimSubject.specific) {
+      let supporting = claimSubject.subject
+        ? sourcesAddressingSubject(claimSubject.subject, retrievedPages)
+        : [];
+
+      // ONE extra search, and only when the model's own angles missed the expression. The query
+      // is the reader's WORDING, not a normalised form of it — the normalisation exists to widen
+      // what counts as a match, never to become the thing we searched for. The first dialect
+      // variant rides along so a page spelling it «تبطئ» is reachable from a reader who typed
+      // «تبطي».
+      if (!supporting.length && claimSubject.subject) {
+        const variants = phraseVariants(claimSubject.subject);
+        const probe = variants.length > 1 ? variants[0] + ' ' + variants[1] : claimSubject.subject;
+        try {
+          const extra = await retrieve(probe, { band, depth: effectiveDepth });
+          if (Array.isArray(extra.sources) && extra.sources.length) {
+            retrievedPages.push(...extra.sources);
+            supporting = sourcesAddressingSubject(claimSubject.subject, retrievedPages);
+          }
+        } catch (e) {
+          console.warn('[claim] phrase probe threw:', e.message);
+        }
+      }
+      console.log('[claim]', {
+        subject: claimSubject.subject || null,
+        source: claimSubject.source,
+        pages: retrievedPages.length,
+        supporting: supporting.length,
+      });
+
+      const rc = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          system,
+          messages: [
+            ...round2Messages,
+            { role: 'user', content: buildClaimInstruction(claimSubject, supporting) },
+          ],
+          stream: false,
+        }),
+      });
+      if (!rc.ok) {
+        const errText = await rc.text().catch(() => '');
+        console.error('[claim] upstream', rc.status, errText.slice(0, 200));
+        clearKeepAlive();
+        res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${rc.status}` } })}\n\n`);
+        return res.end();
+      }
+      const cPayload = await rc.json();
+      const cDrafted = (cPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+      // The model contributes no card here either, on any route.
+      const cDraft = cDrafted
+        .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .trim();
+
+      const cVerdict = verifyClaims(cDraft, claimSubject, retrievedPages);
+      clearKeepAlive();
+      if (!cVerdict.ok) {
+        console.warn('[claim] draft rejected:', cVerdict.problems.join(' | '));
+        res.write(`data: ${JSON.stringify({
+          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: CLAIM_REFUSAL },
+        })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+        return res.end();
+      }
+      // ONE card, and it is the page that actually addresses the expression when there is one.
+      // Otherwise it is the general source the reply was told to present AS a general principle.
+      const cardFrom = pickVerifiedSources(supporting.length ? supporting : retrievedPages, 1);
+      const cCard = cardFrom.length ? '\n' + cardFrom[0].tag : '';
+      console.log('[claim] verified', { supporting: supporting.length, card: cardFrom.length });
+      res.write(`data: ${JSON.stringify({
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: cDraft + cCard },
+      })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+      return res.end();
+    }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──
     const r2 = await fetch(ANTHROPIC_URL, {

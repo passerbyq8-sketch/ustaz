@@ -108,3 +108,11 @@ quest-ux-guard.cjs text eol=lf
 attribution-guard.cjs text eol=lf
 lib/attribution.js text eol=lf
 lib/binothaimeen.js text eol=lf
+
+# Gate 24 (claim-guard) and the two captured islamweb pages it measures against. Same reason as
+# every gate above: the fixtures are matched as text, so a CR injected by core.autocrlf would
+# change what the gate is comparing.
+claim-guard.cjs text eol=lf
+data/claim-fixtures.json text eol=lf
+lib/claim-gate.js text eol=lf
+lib/duration.js text eol=lf

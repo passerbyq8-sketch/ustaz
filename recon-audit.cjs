@@ -500,7 +500,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 23;   // 23rd: attribution-guard    (a named scholar's opinion may not be
+  const GATES_EXPECTED = 24;   // 23rd: attribution-guard    (a named scholar's opinion may not be
                                //       stated without a retrieved source BY HIM that answers it)
                                // 22nd: quest-ux-guard       (S100 -- accessible game feedback: the
                                //       bank sealed by hash, no early reveal, no second answer,
