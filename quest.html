@@ -11,10 +11,16 @@
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
 <title>عزك — رحلةُ الكنوز</title>
-<!-- S95. The SAME boot script index.html uses, reading the SAME key, so the choice made in the
+<!-- S95/S96. The SAME boot script index.html uses, reading the SAME key, so the choice made in the
      app's settings is already on <html> before the first pixel of this page is painted and a
-     stored dark theme never flashes sand. Fails to light, exactly as the app does. -->
-<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}document.documentElement.setAttribute('data-theme',t);var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#171410':'#FAF4E9');}}catch(e){}})();</script>
+     stored dark theme never flashes sand. Fails to light, exactly as the app does.
+     This page loads NO external stylesheet (local fonts only), so nothing delays this script the
+     way the Google Fonts link delayed the app's -- but colorScheme is still set here so the UA's
+     own canvas is dark from the first frame rather than white.
+     It deliberately does NOT paint an inline background on <html>: Theme.apply() below clears the
+     root's style attribute when a reward skin is applied, which would silently drop it. The
+     :root[data-theme] rule carries the paint on this page instead. -->
+<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#171410':'#FAF4E9');}}catch(e){}})();</script>
 <!--
   رحلةُ الكنوز · صفحةٌ مستقلّةٌ تعملُ بلا إنترنت
   لا تمسُّ index.html ولا أيَّ ملفٍّ من التطبيق. حذفُها = حذفُ هذا الملفِّ ومجلّدِ quest-data.
@@ -46,6 +52,13 @@
   --pom:#9C2F3E; --pom-soft:#F7E4E6;
   --lapis:#2B5C8A; --lapis-soft:#E4EDF5;
   --line:#E7D9BF; --shadow:24px 32px 60px -34px rgba(60,42,15,.45);
+  /* S96. The celebration/badge/result/report layer dims what is behind it. That scrim used to be
+     derived from --ink -- color-mix(in srgb,var(--ink) 46%,transparent) -- and --ink INVERTS with
+     the theme, so in dark it became 46% of #F3E9D8: a pale cream veil over the page instead of a
+     dim. A scrim always darkens, in every theme; it is not a text colour, so it gets its own
+     token. The light value below is the exact colour that expression already resolved to
+     (--ink was #2A2118), so the light sheet is unchanged. */
+  --scrim:color-mix(in srgb,#2A2118 46%,transparent);
   --r-lg:26px; --r:18px; --r-sm:12px;
   --display:"Sakkal Majalla","Traditional Arabic","Arabic Typesetting",serif;
   --body:"Tajawal","Segoe UI","Sakkal Majalla",Tahoma,system-ui,sans-serif;  /* Tajawal = خطُّ المربّي، بلا طلبِ شبكة: إن غابَ سقطَ للتالي */
@@ -67,6 +80,10 @@
   --pom:#C4515F; --pom-soft:#2E1D1F;
   --lapis:#4E8ABF; --lapis-soft:#1B2532;
   --line:#3A3227; --shadow:24px 32px 60px -34px rgba(0,0,0,.75);
+  /* a real dim, not a veil. Deeper than the light one because the page beneath is already dark,
+     so the card has to separate from it -- the card, its text and its buttons keep their own
+     tokens and stay readable on top. */
+  --scrim:rgba(0,0,0,.62);
   color-scheme: dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;min-width:0}
@@ -344,7 +361,7 @@ button:active{transform:scale(.97)}   /* اللمسةُ نفسُها التي ف
 }
 @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
 .sheet{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:18px;
-  background:color-mix(in srgb,var(--ink) 46%,transparent);backdrop-filter:blur(4px);animation:fade .2s both}
+  background:var(--scrim);backdrop-filter:blur(4px);animation:fade .2s both}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 .sheet .card{max-width:440px;width:100%;text-align:center;animation:rise .34s cubic-bezier(.2,.8,.3,1) both}
 .chestbig{font-size:70px;line-height:1;animation:shake .9s ease-in-out}
@@ -717,7 +734,12 @@ const Rewards = {
 const Theme = {
   apply(id) {
     const t = (Data.rewards.themes || []).find(x => x.id === id) || (Data.rewards.themes || [])[0];
+    /* S96: this wipe is how a skin stops leaking when you switch away from it, and it must stay.
+       But it also removes what the boot script put on the root -- colorScheme, which tells the UA
+       to paint its own canvas dark. Read it before the wipe, put it back after. */
+    const scheme = document.documentElement.style.colorScheme;
     document.documentElement.removeAttribute("style");
+    if (scheme) document.documentElement.style.colorScheme = scheme;
     Object.keys((t && t.tokens) || {}).forEach(k => document.documentElement.style.setProperty(k, t.tokens[k]));
     const bar = document.querySelector('meta[name="theme-color"]');   /* شريطُ الحالةِ يتبعُ السِّمة */
     /* S95: the default skin declares no --paper, so this used to hardcode the SAND paper into the

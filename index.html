@@ -5,6 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1D4ED8">
+<!-- S96: the UA reads this BEFORE any CSS parses, so it knows a dark rendering is supported and
+     paints its default canvas accordingly instead of assuming white. -->
+<meta name="color-scheme" content="light dark">
+<!-- S96 THEME BOOT. This MUST stay above every <link rel="stylesheet">.
+     It used to sit below the Google Fonts link, and that was the white-flash bug: per the HTML
+     spec a <script> does not execute until all PENDING STYLESHEETS have loaded, because it might
+     query computed style. So on a cold launch this script waited on fonts.googleapis.com over
+     mobile data -- and for that whole second the document had no data-theme, no parsed <style>,
+     and the UA painted its default WHITE canvas before the dark app appeared underneath it.
+     The old comment claimed it ran "BEFORE the stylesheet that reacts to it"; that was true of
+     the inline <style> below and missed the external one above.
+     Three things are set here, in order of when they matter:
+       colorScheme  -- the UA's own canvas/scrollbar/form default, honoured before CSS
+       background   -- an inline paint on <html>, so the very first frame is already the right
+                       colour even if the stylesheet has not arrived
+       data-theme   -- what the stylesheet keys off once it does arrive
+     Fails to light, exactly as before. -->
+<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;d.style.background=(t==='dark'?'#0E1116':'#F1F6FD');var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();</script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,10 +34,6 @@
      loaded as an <img> src, a no-CORS request, which will not reuse a CORS-mode socket. -->
 <link rel="preconnect" href="https://mushaf.almurabbi.app">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&display=swap" rel="stylesheet">
-<!-- D88. Blocking, in <head>, AFTER the theme-color meta it edits and BEFORE the stylesheet
-     that reacts to it. #root is empty until React mounts, so this attribute is on <html>
-     before anything is painted: a stored dark theme never flashes light. Fails to light. -->
-<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}document.documentElement.setAttribute('data-theme',t);var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();</script>
 <style>
   :root {
     --red:#1D4ED8; --red-deep:#12327A; --red-lift:#2AA6DE; --red-soft:#E6EEFB;
@@ -245,6 +259,12 @@ const readStoredTheme = () => { try { const t = localStorage.getItem(THEME_KEY);
 const applyTheme = (t) => {
   const v = (t === 'dark') ? 'dark' : 'light';                     // anything unrecognised falls to light
   try { document.documentElement.setAttribute('data-theme', v); } catch (e) {}
+  // S96: the boot script paints <html> INLINE to kill the cold-start white flash, and an inline
+  // style outranks the stylesheet. So a runtime switch has to move those two properties as well,
+  // or the root keeps the colour it booted with and shows through wherever body does not reach
+  // (overscroll, the area behind the system bars). Same two properties, same values, same order.
+  try { document.documentElement.style.colorScheme = v; } catch (e) {}
+  try { document.documentElement.style.background = (v === 'dark') ? '#0E1116' : '#F1F6FD'; } catch (e) {}
   try { const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', v === 'dark' ? '#0E1116' : '#1D4ED8'); } catch (e) {}
   try { localStorage.setItem(THEME_KEY, v); } catch (e) {}
   return v;

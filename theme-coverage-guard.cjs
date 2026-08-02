@@ -249,5 +249,122 @@ ok('the status bar follows data-theme rather than hardcoding the sand paper',
 ok('reward skins still override the base palette (inline properties on <html>)',
   /documentElement\.style\.setProperty\(k, t\.tokens\[k\]\)/.test(q.html));
 
+/* ================= F. THE THREE DEFECTS THE PHONE VIDEO PROVED ==============
+ * Each is asserted by what it actually depends on, not by looking for a string.
+ * ------------------------------------------------------------------------ */
+console.log('\n=== F. THE THREE DEFECTS FROM THE DEVICE VIDEO ===');
+
+/* --- F1. the cold-start white flash -------------------------------------
+ * Cause: per the HTML spec a <script> does not run until every PENDING STYLESHEET has
+ * loaded. The boot script sat BELOW the Google Fonts link, so on a cold launch it waited
+ * on the network and the UA painted white in the meantime. The invariant is positional,
+ * and it is a real one: boot script strictly before the first external stylesheet.
+ */
+function headOrder(src) {
+  // HTML comments are stripped FIRST. The comment above the boot script explains the rule by
+  // quoting <link rel="stylesheet">, and a tag scanner reads its own prose as a real tag -- this
+  // check failed on that exact self-reference before the strip was added. Both offsets are then
+  // measured in the SAME stripped string, so the comparison stays valid.
+  const head = src.slice(0, src.indexOf('</head>')).replace(/<!--[\s\S]*?-->/g, ' ');
+  const boot = head.indexOf("localStorage.getItem('murabbi_theme_v1')");
+  let firstSheet = -1;
+  for (const m of head.matchAll(/<link\b[^>]*>/gi)) {
+    if (/rel\s*=\s*["']?stylesheet/i.test(m[0])) { firstSheet = m.index; break; }
+  }
+  return { boot, firstSheet };
+}
+const ordIdx = headOrder(html);
+ok('F1: the theme boot script is inside <head>', ordIdx.boot !== -1);
+ok('F1: it runs BEFORE any external stylesheet can block it',
+  ordIdx.firstSheet === -1 || ordIdx.boot < ordIdx.firstSheet,
+  'boot at ' + ordIdx.boot + ' but a <link rel=stylesheet> appears at ' + ordIdx.firstSheet
+  + ' -- a script cannot execute until pending stylesheets load, so the app would paint white first');
+ok('F1: the UA is told both schemes are supported before CSS parses',
+  /<meta[^>]+name=["']color-scheme["'][^>]*>/i.test(html.slice(0, html.indexOf('</head>'))));
+
+// Behavioural: actually RUN the boot script for each stored value and read the root back.
+function runBoot(src, stored) {
+  const m2 = /<script>\(function\(\)\{try\{var t=localStorage\.getItem\('murabbi_theme_v1'\)[\s\S]*?<\/script>/.exec(src);
+  if (!m2) return null;
+  const body = m2[0].replace(/^<script>/, '').replace(/<\/script>$/, '');
+  const { window: w } = parseHTML('<!DOCTYPE html><html><head><meta name="theme-color" content="#1D4ED8"></head><body></body></html>');
+  w.localStorage = { getItem: () => stored, setItem() {}, removeItem() {}, clear() {}, key: () => null, length: 0 };
+  vm.runInContext(body, vm.createContext(w), { filename: 'boot.js' });
+  const d = w.document.documentElement;
+  return { theme: d.getAttribute('data-theme'), scheme: d.style.colorScheme, bg: d.style.background,
+    bar: w.document.querySelector('meta[name="theme-color"]').getAttribute('content') };
+}
+for (const stored of ['dark', 'light']) {
+  const r = runBoot(html, stored);
+  if (!ok('F1: the boot script is runnable for stored=' + stored, !!r)) continue;
+  eq('F1: ...it sets data-theme=' + stored, r.theme, stored);
+  eq('F1: ...it sets the UA colorScheme to ' + stored, r.scheme, stored);
+  // The inline paint is what covers the gap before the stylesheet arrives, so it must BE the
+  // page colour of that theme -- otherwise the first frame is the wrong dark/light shade.
+  const expectPage = (stored === 'dark' ? DARK : LIGHT)['--page'];
+  const got = parseColor(String(r.bg).trim());
+  ok('F1: ...and paints <html> with that theme\'s --page (' + expectPage + ')',
+    got && hex(got).toLowerCase() === String(expectPage).toLowerCase(), 'painted ' + r.bg);
+}
+ok('F1: an unrecognised stored value still boots light', (runBoot(html, 'purple') || {}).theme === 'light');
+
+/* --- F2. the Android system bars ----------------------------------------
+ * A PWA cannot set the navigation bar directly. What the web CAN do is declare the scheme
+ * and keep the root painted, and the runtime switch must move BOTH -- an inline style
+ * outranks the stylesheet, so a stale inline paint would survive a theme change.
+ */
+ok('F2: the runtime switcher moves the UA colorScheme too',
+  /applyTheme[\s\S]{0,700}?documentElement\.style\.colorScheme = v/.test(html));
+ok('F2: ...and repaints the root, so no stale inline colour survives a switch',
+  /applyTheme[\s\S]{0,900}?documentElement\.style\.background = \(v === 'dark'\)/.test(html));
+// Drift guard: the two literals the boot/runtime code paints MUST stay equal to the tokens.
+const bootDark = /d\.style\.background=\(t==='dark'\?'(#[0-9A-Fa-f]{6})':'(#[0-9A-Fa-f]{6})'\)/.exec(html);
+if (ok('F2: the boot paint literals are readable', !!bootDark)) {
+  eq('F2: boot dark paint == the dark --page token', bootDark[1].toUpperCase(), String(DARK['--page']).toUpperCase());
+  eq('F2: boot light paint == the light --page token', bootDark[2].toUpperCase(), String(LIGHT['--page']).toUpperCase());
+}
+
+/* --- F3. the quest celebration scrim -------------------------------------
+ * Cause: the backdrop was color-mix(in srgb, var(--ink) 46%, transparent), and --ink INVERTS
+ * with the theme, so in dark it dimmed with a light cream instead of darkening. Asserted by
+ * RESOLVING the scrim in both palettes and measuring it: a scrim darkens in every theme.
+ */
+const qL = { ...qLight }, qD = { ...qLight, ...qDark };
+const sheetRule = /\.sheet\s*\{([^}]*)\}/.exec(q.css);
+ok('F3: the celebration/badge/result layer (.sheet) exists', !!sheetRule);
+// pull the FIRST colour out of a value, understanding color-mix(in srgb, X p%, transparent)
+function scrimBase(value, pal) {
+  let v = String(value);
+  for (let i = 0; i < 8 && v.indexOf('var(') !== -1; i++) {
+    v = v.replace(/var\((--[a-z0-9-]+)(?:\s*,\s*([^()]*))?\)/gi, (_, n, fb) => (pal[n] != null ? pal[n] : (fb || '')));
+  }
+  const mix = /color-mix\(\s*in\s+srgb\s*,\s*(#[0-9a-f]{3,6}|rgba?\([^)]*\))/i.exec(v);
+  if (mix) return parseColor(mix[1]);
+  const f = /(#[0-9a-f]{3,6}\b|rgba?\([^)]*\))/i.exec(v);
+  if (!f) return null;
+  const rgba = /^rgba?\(([^)]+)\)$/i.exec(f[1]);
+  if (rgba) { const p = rgba[1].split(',').map(parseFloat); return [p[0], p[1], p[2]]; }
+  return parseColor(f[1]);
+}
+if (sheetRule) {
+  const bgDecl = (/background\s*:\s*([^;]+)/i.exec(sheetRule[1]) || [, ''])[1];
+  ok('F3: it dims through a dedicated token, not through a text colour',
+    /var\(--scrim\)/.test(bgDecl) && !/var\(--ink\)/.test(bgDecl),
+    'background: ' + bgDecl.trim());
+  const sL = scrimBase(bgDecl, qL), sD = scrimBase(bgDecl, qD);
+  ok('F3: the scrim resolves in LIGHT', !!sL);
+  ok('F3: the scrim resolves in DARK', !!sD);
+  // THE defect: in dark the base was #F3E9D8 (luminance ~0.82). A scrim must be dark in BOTH.
+  if (sL) ok('F3: the LIGHT scrim darkens what is behind it', lum(sL) < 0.25, 'base ' + hex(sL) + ' luminance ' + lum(sL).toFixed(3));
+  if (sD) ok('F3: the DARK scrim darkens too -- it is not a pale veil', lum(sD) < 0.25, 'base ' + hex(sD) + ' luminance ' + lum(sD).toFixed(3));
+  // light must not have moved: the token's light value is the colour --ink used to resolve to
+  eq('F3: the light scrim is the exact colour it always was', qLight['--scrim'], 'color-mix(in srgb,#2A2118 46%,transparent)');
+}
+ok('F3: every celebration window still goes through the one sheet() helper',
+  (q.html.match(/function sheet\(/g) || []).length === 1 && (q.css.match(/\.sheet\s*\{/g) || []).length === 1,
+  'more than one sheet implementation would mean a second, unchecked backdrop');
+ok('F3: a reward skin no longer wipes the UA colorScheme off the root',
+  /const scheme = document\.documentElement\.style\.colorScheme[\s\S]{0,300}?if \(scheme\)/.test(q.html));
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
