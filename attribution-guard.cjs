@@ -105,6 +105,8 @@ const user = (t) => [{ role: 'user', content: t }];
   console.log('\n=== B. THE OFFICIAL SOURCE ===');
   const ADAPTER = fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8');
   const ID = '443c0396-cc67-4fd6-b320-1b79bba567a9';
+  // The page that states the EIGHTY-DAY limit, which is the one an eighty-day question needs.
+  const ID80 = '80651235-18e9-4f06-833b-0f531d2d1af9';
   let lesson = null;
   if (OFFLINE) {
     skip('the official corpus is reachable', '--offline');
@@ -143,21 +145,48 @@ const user = (t) => [{ role: 'user', content: t }];
         const hit = cands.find((c) => c.title.indexOf('الشهر الثاني') !== -1);
         return hit ? hit.id : null;
       };
+      //
+      // AND THE PAGE EACH ONE MUST REACH IS NOT THE SAME PAGE. A phrasing that names the SECOND
+      // MONTH is answered by the second-month fatwa. A phrasing that names EIGHTY DAYS is not:
+      // «دون ثمانين يومًا» runs from day 0 to day 79 and the second month is days 31–60, so that
+      // page answers a third of her question and nothing about the rest. It has to reach a page
+      // that states the eighty-day limit itself. NO RANKER IS SUPPLIED to any of these — the
+      // whole point is that the deterministic path gets there alone.
       const PHRASINGS = [
-        'ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟',
-        'ماذا قال ابن عثيمين عن المرأة التي أسقطت في الشهر الثاني؟',
-        'هل أفتى الشيخ محمد بن صالح العثيمين بأن من أسقطت قبل ثمانين يوماً تترك الصلاة؟',
-        'فتوى العثيمين في إسقاط الجنين في الشهر الثاني والصلاة',
+        { q: 'ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟', needs: 'ثمانين' },
+        { q: 'ماذا قال ابن عثيمين عن المرأة التي أسقطت في الشهر الثاني؟', id: ID },
+        { q: 'هل أفتى الشيخ محمد بن صالح العثيمين بأن من أسقطت قبل ثمانين يوماً تترك الصلاة؟', needs: 'ثمانين' },
+        { q: 'فتوى العثيمين في إسقاط الجنين في الشهر الثاني والصلاة', id: ID },
       ];
-      for (const q of PHRASINGS) {
-        const det = A.detectAttribution(user(q));
+      for (const p of PHRASINGS) {
+        const det = A.detectAttribution(user(p.q));
         const found = await B.retrieveIbnUthaymeen(det.question, {
           excludeWords: String(det.scholarName || '').split(' '),
-          rank: pickSecondMonth,
         });
-        ok('the published fatwa is reached from: ' + q.slice(0, 34) + '…',
-          found.length === 1 && found[0].sourceId === ID, JSON.stringify(found.map((f) => f.title)));
+        const got = found[0];
+        if (p.id) {
+          ok('the second-month fatwa is reached from: ' + p.q.slice(0, 30) + '…',
+            found.length === 1 && got.sourceId === p.id, JSON.stringify(found.map((f) => f.title)));
+        } else {
+          ok('A PAGE STATING THE EIGHTY-DAY LIMIT is reached from: ' + p.q.slice(0, 30) + '…',
+            found.length === 1 && A.norm(got.title + ' ' + got.exactText).indexOf(p.needs) !== -1,
+            JSON.stringify(found.map((f) => f.title)));
+          ok('...and it carries the ruling that the blood is دم فساد',
+            found.length === 1 && A.norm(got.exactText).indexOf('دم فساد') !== -1,
+            found.length ? got.title : '(none)');
+          ok('...and it is NOT the second-month page, which covers only part of the question',
+            found.length === 1 && got.sourceId !== ID, found.length ? got.title : '(none)');
+        }
       }
+
+      // FORCING the second-month page for an eighty-day question must be overruled by code.
+      const detBefore80 = A.detectAttribution(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟'));
+      const forced80 = await B.retrieveIbnUthaymeen(detBefore80.question, {
+        excludeWords: String(detBefore80.scholarName || '').split(' '),
+        rank: pickSecondMonth,
+      });
+      ok('a ranker forced onto the second-month page for «دون 80» is overruled',
+        forced80.length === 0 || forced80[0].sourceId !== ID, JSON.stringify(forced80.map((f) => f.title)));
 
       // A question the corpus does not answer must come back EMPTY, not with a near miss.
       const miss = await B.retrieveIbnUthaymeen('ما حكم تعدين العملات الرقمية المشفرة والبلوكتشين');
@@ -177,9 +206,9 @@ const user = (t) => [{ role: 'user', content: t }];
       });
       ok('the 81–120 day band has its OWN page in the pool, not the second-month one',
         laterPool.some((t) => t.indexOf('ثلاثة أشهر') !== -1), JSON.stringify(laterPool.slice(0, 6)));
-      ok('...and that is the page a 90-day question resolves to',
-        laterSrc.length === 1 && laterSrc[0].sourceId !== ID
-        && laterSrc[0].title.indexOf('ثلاثة أشهر') !== -1, JSON.stringify(laterSrc.map((s) => s.title)));
+      ok('...and a 90-day question resolves to a page whose own period covers it',
+        laterSrc.length === 1 && laterSrc[0].sourceId !== ID && laterSrc[0].periodTier <= 1,
+        JSON.stringify(laterSrc.map((s) => s.title + ' /' + s.periodVerdict)));
 
       // THE RANKER CAN BE OVERRULED, and this is the check that proves it against the live site.
       // Force it to make exactly the mistake a model can make — the second-month fatwa for a
@@ -188,7 +217,8 @@ const user = (t) => [{ role: 'user', content: t }];
         excludeWords: String(later.scholarName || '').split(' '),
         rank: pickSecondMonth,
       });
-      ok('a WRONG ranker choice is overruled by the period gate', forced.length === 0,
+      ok('a WRONG ranker choice is overruled by the period gate',
+        forced.length === 0 || forced[0].sourceId !== ID,
         JSON.stringify(forced.map((s) => s.title)));
 
       // AN EXPLICIT "none of these" FROM THE RANKER IS A REFUSAL, not a cue to take second best.
@@ -199,7 +229,11 @@ const user = (t) => [{ role: 'user', content: t }];
       const broke = await B.retrieveIbnUthaymeen('فيمن أسقطت دون 80 يوم', {
         rank: async () => { throw new Error('ranker down'); },
       });
-      eq('a ranker that throws never invents a choice', broke.length, 0);
+      const plain = await B.retrieveIbnUthaymeen('فيمن أسقطت دون 80 يوم');
+      ok('a ranker that throws changes nothing — the deterministic path stands',
+        broke.length === plain.length
+        && (!broke.length || broke[0].sourceId === plain[0].sourceId),
+        JSON.stringify([broke.map((x) => x.title), plain.map((x) => x.title)]));
 
       // A LECTURE TRANSCRIPT IS NOT A FATWA. Measured: before this rule the top-scoring candidate
       // for the original question was a two-hour tape of كتاب النكاح, at overlap 1.00.
@@ -240,13 +274,15 @@ const user = (t) => [{ role: 'user', content: t }];
 
   // =========================================================================
   console.log('\n=== C. THE VERIFIER — every way a draft must be refused ===');
+  // THE PAGE AND THE QUESTION MUST BE THE SAME CASE, in a fixture as much as in production.
+  // Verbatim from the official site: the fatwa that states the eighty-day limit AND the ruling.
   const SRC = [{
     scholar: 'محمد بن صالح العثيمين',
     publisher: 'الموقع الرسمي للشيخ محمد بن صالح العثيمين',
-    title: 'حكم الصلاة والصيام لمن أسقطت الجنين في الشهر الثاني',
-    exactText: 'هذه المرأة تصوم وتصلي، ويأتيها زوجها؛ لأن هذا الدم ليس نفاساً ولا حيضاً، وإنما يسمى عند العلماء: دم فساد وذلك أن النفاس لا يثبت إلا بعد أن يتبين في الجنين خلق الإنسان، وأثناء الشهرين لا يمكن أن يتبين فيه خلق الإنسان. السائل: إلى كم شهر يتبين الخلق تقريباً؟ الشيخ: غالباً يتبين في ثلاثة أشهر.',
-    sourceId: ID,
-    canonicalUrl: 'https://binothaimeen.net/ar/voice_library/lessonDetails/%D8%A7%D9%84%D8%A8%D8%AD%D8%AB/x/' + ID,
+    title: 'الدم الخارج بسبب السقط قبل تخلق الجنين',
+    exactText: 'الجواب: إذا أسقطت المرأة الحامل لمدة شهر، أو شهرين، فإن هذا الدم دم فساد، لا يمنعها من صلاة، ولا صيام، ولا معاشرة زوج، ولها أن تجمع بين الصلاتين. والقاعدة عند أكثر العلماء: أن المرأة إذا أسقطت جنيناً، فإن كان قد تبين فيه خلق إنسان فالدم دم نفاس، وإلا فهو دم فساد، وأقل ما يمكن أن يتبين فيه خلق الإنسان ثمانون يوماً. إذا كانت قبل ثمانين يوماً، لا يمكن أن يكون الدم دم نفاس.',
+    sourceId: ID80,
+    canonicalUrl: 'https://binothaimeen.net/ar/voice_library/lessonDetails/%D8%A7%D9%84%D8%A8%D8%AD%D8%AB/x/' + ID80,
     retrievedAt: new Date().toISOString(),
   }];
   const DET = A.detectAttribution(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟'));
@@ -268,7 +304,9 @@ const user = (t) => [{ role: 'user', content: t }];
   const BAD_REAL = 'إذا أسقطت دون ثمانين يوماً ورأت دماً فهي نفساء وتترك الصلاة والصوم طالما هو دم نفاس.';
   const n3 = A.verifyAttributedReply(BAD_REAL, DET, SRC);
   ok('THE ORIGINAL WRONG ANSWER IS REFUSED', !n3.ok, JSON.stringify(n3.problems));
-  ok('...because it contradicts the source on nifās', n3.problems.some((p) => p.indexOf('contradicts:نفاس') === 0), JSON.stringify(n3.problems));
+  ok('...because it calls nifās what the source calls dam fasād',
+    n3.problems.some((p) => p.indexOf('contradicts:نفاس') === 0 || p.indexOf('excludes:دم فساد vs نفاس') === 0),
+    JSON.stringify(n3.problems));
 
   // 4. an invented duration
   const n4 = A.verifyAttributedReply('قال الشيخ إن النفاس يثبت بعد أربعين يوماً من الحمل.', DET, SRC);
@@ -300,7 +338,7 @@ const user = (t) => [{ role: 'user', content: t }];
   ok('...and in words', A.durations('بعد ثمانين يوماً').length === 1, JSON.stringify(A.durations('بعد ثمانين يوماً')));
   ok('...and the source\'s own "ثلاثة أشهر" is recognised', A.durations(SRC[0].exactText).length >= 1, JSON.stringify(A.durations(SRC[0].exactText)));
   // an answer that stays inside the source's own period is allowed
-  const okDur = A.verifyAttributedReply('قال الشيخ: غالباً يتبين الخلق في ثلاثة أشهر، وقبل ذلك الدم دم فساد فتصلي وتصوم.', DET, SRC);
+  const okDur = A.verifyAttributedReply('قال الشيخ: أقل ما يتبين فيه خلق الإنسان ثمانون يوماً، وقبل ذلك الدم دم فساد فتصلي وتصوم.', DET, SRC);
   ok('a duration the source DID give is allowed', okDur.ok, JSON.stringify(okDur.problems));
 
   // 10. A QUESTION THAT FIXES A TIME, ANSWERED FROM A TEXT THAT FIXES NONE.
@@ -311,7 +349,7 @@ const user = (t) => [{ role: 'user', content: t }];
     exactText: 'إذا أسقطت المرأة جنينها وقد نفخت فيه الروح فإنها تكون نفساء وتترك الصلاة والصوم حتى تطهر.' }];
   const n10 = A.verifyAttributedReply('قال الشيخ إنها تكون نفساء وتترك الصلاة والصوم.', DET, timeless);
   ok('a source that never mentions a period ⇒ refused for a question that names one',
-    !n10.ok && n10.problems.some((p) => p.indexOf('question-fixes-a-time') === 0), JSON.stringify(n10.problems));
+    !n10.ok && n10.problems.some((p) => p.indexOf('duration-unknown') === 0), JSON.stringify(n10.problems));
   ok('mentionsTime accepts a period stated in words', A.mentionsTime('وأثناء الشهرين لا يمكن أن يتبين'));
   ok('...and reports its absence', !A.mentionsTime('هذا الدم ليس نفاساً ولا حيضاً'));
 

@@ -211,35 +211,83 @@ function eq(name, actual, expected) {
     C.hadithProblems('الوضوء يبدأ بالنية ثم غسل الكفين ثلاثاً.', []).length, 0);
 
   // ─────────────────────────────────────────────────────────────────────────
-  console.log('\n=== F. PERIODS, AS RANGES OF DAYS ===');
-  const T2 = 'حكم الصلاة والصيام لمن أسقطت الجنين في الشهر الثاني';
-  const B2 = 'هذه المرأة تصوم وتصلي. وأثناء الشهرين لا يمكن أن يتبين. غالباً يتبين في ثلاثة أشهر.';
-  const T3 = 'أسقطت بعد ثلاثة أشهر من حملها فهل هي نفساء؟';
-  const T6 = 'حكم من أسقطت جنينها وقد نفخت فيه الروح';
-  const B6 = 'هذه والدتي حملت في الشهر السادس ثم سقط الجنين.';
-  const band = (q, t, b) => D.compareDurations(q, t, b).verdict;
+  console.log('\n=== F. PERIODS, AS COVERAGE — NOT AS OVERLAP ===');
+  // THE RULE THIS SECTION PINS. «دون ثمانين يومًا» is days 0–79. «الشهر الثاني» is days 31–60.
+  // They overlap, and overlapping is not answering: a page that speaks to a third of a question
+  // is not the source for the question. Containment, or refusal.
+  const PAGES = {
+    second: ['حكم الصلاة والصيام لمن أسقطت الجنين في الشهر الثاني',
+      'هذه المرأة تصوم وتصلي. وأثناء الشهرين لا يمكن أن يتبين. غالباً يتبين في ثلاثة أشهر.'],
+    limit80: ['الدم الخارج بسبب السقط قبل تخلق الجنين',
+      'إذا أسقطت المرأة الحامل لمدة شهر، أو شهرين، فإن هذا الدم دم فساد، لا يمنعها من صلاة ولا صيام. وأقل ما يمكن أن يتبين فيه خلق الإنسان ثمانون يوماً. إذا كانت قبل ثمانين يوماً، لا يمكن أن يكون الدم دم نفاس. وإذا بلغ تسعين يوماً فالغالب أنها تكون مخلقة.'],
+    rule80: ['ضابط السقط الذي تترك المرأة لأجله الصلاة',
+      'إن سقط ولم يخلق فالدم دم فساد، لا تترك من أجله الصلاة، وأدنى ما يمكن أن يخلق فيه (81) يوماً، ولا يمكن أن يخلق قبل الثمانين.'],
+    threeMonths: ['أسقطت بعد ثلاثة أشهر من حملها فهل هي نفساء؟', ''],
+    fromEighty: ['سقط الجنين قبل تمام أربعة أشهر فهل تعتبر المرأة نفساء؟',
+      'يتبين خلق الإنسان من ثمانين يوماً فما فوق، وما قبل ذلك الدم فهو دم فساد لا يمنع من صلاة ولا صيام ولا زوج.'],
+    incidental: ['حكم هجر المسلم لأخيه المسلم', 'ولو هجره ثمانين يوماً فإنه آثم، والهجر فوق ثلاث لا يجوز.'],
+  };
+  const PV = (q, p) => D.compareDurations(q, PAGES[p][0], PAGES[p][1]).verdict;
+  const A_OK = (q, p) => D.durationAcceptable(PV(q, p));
 
-  eq('«دون 80 يوم» matches the second-month page', band('ما رأي الشيخ فيمن أسقطت دون 80 يوم؟', T2, B2), 'compatible');
-  eq('«قبل ثمانين يوماً» does too, in words', band('هل أفتى بأن من أسقطت قبل ثمانين يوماً تترك الصلاة؟', T2, B2), 'compatible');
-  eq('«في الشهر الثاني» does too', band('ماذا قال عن المرأة التي أسقطت في الشهر الثاني؟', T2, B2), 'compatible');
-  eq('THE 81–120 BAND DOES NOT', band('ما رأي الشيخ فيمن أسقطت بعد 90 يوماً؟', T2, B2), 'incompatible');
-  eq('...and has its own page', band('ما رأي الشيخ فيمن أسقطت بعد 90 يوماً؟', T3, ''), 'compatible');
-  eq('BEYOND 120 DOES NOT MATCH THE SECOND MONTH EITHER', band('ما رأي الشيخ فيمن أسقطت بعد 130 يوماً؟', T2, B2), 'incompatible');
-  eq('...and matches the ensoulment page', band('ما رأي الشيخ فيمن أسقطت بعد 130 يوماً؟', T6, B6), 'compatible');
-  eq('Arabic-Indic digits read the same', band('ما رأي الشيخ فيمن أسقطت بعد ١٣٠ يوماً؟', T2, B2), 'incompatible');
-  eq('a source that fixes NO period is not a match for a question that does',
-    band('فيمن أسقطت دون 80 يوم', 'عنوان بلا وقت', 'نص بلا وقت'), 'unknown');
-  eq('a question that fixes no period is unaffected', band('ما حكم الصلاة في السفر؟', T2, B2), 'compatible');
-  // "mentions a time" is NOT the test any more — this is the exact hole the brief names.
-  ok('MERELY MENTIONING A TIME IS NO LONGER ENOUGH',
-    A.mentionsTime(T2) && band('ما رأي الشيخ فيمن أسقطت بعد 130 يوماً؟', T2, B2) === 'incompatible');
-  // and the verifier reports it
-  const durSrc = [{ scholar: 'محمد بن صالح العثيمين', title: T2, exactText: B2,
+  // THE ORIGINAL QUESTION
+  eq('«دون 80 يوم» is NOT covered by the second-month page', PV('فيمن أسقطت دون 80 يوم؟', 'second'), 'partial');
+  ok('...so that page is not acceptable for it', !A_OK('فيمن أسقطت دون 80 يوم؟', 'second'));
+  eq('...and the page that draws the eighty-day line IS, at the exact boundary',
+    PV('فيمن أسقطت دون 80 يوم؟', 'limit80'), 'exact-boundary');
+  eq('...as is the page stating the rule «قبل الثمانين»', PV('فيمن أسقطت دون 80 يوم؟', 'rule80'), 'exact-boundary');
+  eq('...and «قبل تمام أربعة أشهر» covers it too, one tier down',
+    PV('فيمن أسقطت دون 80 يوم؟', 'fromEighty'), 'covered');
+
+  // THE BOUNDARY LADDER
+  eq('50 days IS inside the second month', PV('فيمن أسقطت ولها 50 يوماً؟', 'second'), 'covered');
+  eq('70 days is NOT', PV('فيمن أسقطت ولها 70 يوماً؟', 'second'), 'unknown');
+  ok('...and is refused there', !A_OK('فيمن أسقطت ولها 70 يوماً؟', 'second'));
+  eq('day 80 exactly is refused by the page whose rule stops at 79',
+    PV('فيمن أسقطت ولها 80 يوماً؟', 'rule80'), 'unknown');
+  ok('...and refused by the second-month page', !A_OK('فيمن أسقطت ولها 80 يوماً؟', 'second'));
+  eq('...and accepted ONLY where the source settles it outright («من ثمانين فما فوق»)',
+    PV('فيمن أسقطت ولها 80 يوماً؟', 'fromEighty'), 'covered');
+  ok('...which is an acceptance, not a refusal', A_OK('فيمن أسقطت ولها 80 يوماً؟', 'fromEighty'));
+  eq('«بعد 90 يوماً» is not the second month', PV('فيمن أسقطت بعد 90 يوماً؟', 'second'), 'unknown');
+  eq('...and matches the page that names ninety', PV('فيمن أسقطت بعد 90 يوماً؟', 'limit80'), 'exact-boundary');
+  eq('...and the three-month page draws the same line', PV('فيمن أسقطت بعد 90 يوماً؟', 'threeMonths'), 'exact-boundary');
+  eq('«بعد 120 يوماً» is covered by «بعد ثلاثة أشهر»', PV('فيمن أسقطت بعد 120 يوماً؟', 'threeMonths'), 'covered');
+  ok('...and refused by the second-month page', !A_OK('فيمن أسقطت بعد 120 يوماً؟', 'second'));
+
+  // DIRECTION AT THE SAME NUMBER
+  eq('«بعد 80» does not match a source that says «قبل الثمانين»', PV('فيمن أسقطت بعد 80 يوماً؟', 'rule80'), 'partial');
+  ok('...and is refused', !A_OK('فيمن أسقطت بعد 80 يوماً؟', 'rule80'));
+  eq('«دون 80» does not match a source that says «بعد ثلاثة أشهر»', PV('فيمن أسقطت دون 80 يوم؟', 'threeMonths'), 'unknown');
+
+  // A NUMBER MENTIONED IN PASSING, IN ANOTHER MATTER
+  ok('a page mentioning eighty days in an unrelated ruling is not thereby a source',
+    !A_OK('فيمن أسقطت دون 80 يوم؟', 'incidental'), PV('فيمن أسقطت دون 80 يوم؟', 'incidental'));
+
+  // NUMERALS AND WORDS READ ALIKE
+  eq('Arabic-Indic digits read the same', PV('فيمن أسقطت دون ٨٠ يوماً؟', 'second'), 'partial');
+  eq('number words read the same', PV('من أسقطت قبل ثمانين يوماً تترك الصلاة؟', 'second'), 'partial');
+  eq('a question that fixes no period is unaffected', PV('ما حكم الصلاة في السفر؟', 'second'), 'no-question-period');
+  eq('a source that fixes no period is refused for a question that does',
+    D.compareDurations('فيمن أسقطت دون 80 يوم', 'عنوان بلا وقت', 'نص بلا وقت').verdict, 'unknown');
+
+  // THE SEARCH TERMS THE QUESTION'S OWN NUMBER IMPLIES
+  ok('«دون 80 يوم» implies a search for «قبل الثمانين»',
+    D.durationTerms('فيمن أسقطت دون 80 يوم؟').indexOf('قبل الثمانين') !== -1,
+    JSON.stringify(D.durationTerms('فيمن أسقطت دون 80 يوم؟')));
+  ok('a bare day count implies the month that contains it',
+    D.durationTerms('فيمن أسقطت ولها 50 يوماً؟').indexOf('الشهر الثاني') !== -1,
+    JSON.stringify(D.durationTerms('فيمن أسقطت ولها 50 يوماً؟')));
+  eq('a question with no period implies no period search', D.durationTerms('ما حكم الصلاة؟').length, 0);
+
+  // AND THE VERIFIER REPORTS IT
+  const durSrc = [{ scholar: 'محمد بن صالح العثيمين', title: PAGES.second[0], exactText: PAGES.second[1],
     canonicalUrl: 'https://binothaimeen.net/ar/voice_library/lessonDetails/a/b/c' }];
-  const durDet = A.detectAttribution([{ role: 'user', content: 'ما رأي الشيخ ابن عثيمين فيمن أسقطت بعد 90 يوماً؟' }]);
+  const durDet = A.detectAttribution([{ role: 'user', content: 'ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟' }]);
   const dv = A.verifyAttributedReply('قال الشيخ إنها تصوم وتصلي.', durDet, durSrc);
-  ok('the attribution verifier refuses a band mismatch',
-    !dv.ok && dv.problems.some((p) => p.indexOf('duration-mismatch') === 0), JSON.stringify(dv.problems));
+  ok('THE VERIFIER REFUSES A SOURCE THAT COVERS ONLY PART OF THE QUESTION',
+    !dv.ok && dv.problems.some((p) => p.indexOf('duration-partial') === 0), JSON.stringify(dv.problems));
+
 
   // ─────────────────────────────────────────────────────────────────────────
   console.log('\n=== G. THE WIRING (api/ask.js, lib/retrieve.js) ===');
