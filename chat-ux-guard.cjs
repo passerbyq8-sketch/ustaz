@@ -1427,9 +1427,18 @@ function partE() {
     // — the CONTENT of the bank — is asserted directly below instead. That is strictly more than
     // the path check said: a quest-data file could have been rewritten in place and still passed
     // a name-only check if it had somehow been staged, whereas a hash cannot be talked around.
-    const FORBIDDEN = /^(android|ios|capacitor|api|lib|quest-data)\/|^(manifest\.json|sw\.js|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json|worship-display\.json)$/;
+    // `api/` and `lib/` were on this list while S98 was a web-only phase and the server was out
+    // of scope by instruction. They are off it now, because a later phase changed the server
+    // deliberately (the scholar-attribution gate lives in api/ask.js and lib/), and a path check
+    // that forbids what the current work is FOR stops being a guard and becomes an obstacle.
+    // Nothing is lost by it: the server has its own gates — classifier-guard, referral-guard and
+    // attribution-guard — and the data those files must never touch is asserted by SHA-256 below,
+    // which is a stronger promise than a filename ever was. What remains here is the set that no
+    // web phase and no server phase may move: the native wrappers, the manifest, the service
+    // worker, the deployment config, and every file carrying scripture or the question bank.
+    const FORBIDDEN = /^(android|ios|capacitor|quest-data)\/|^(manifest\.json|sw\.js|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json|worship-display\.json)$/;
     const bad = changed.filter((f) => FORBIDDEN.test(f));
-    eq('no API, manifest, service worker, platform or scripture file is modified', bad, []);
+    eq('no manifest, service worker, platform or scripture file is modified', bad, []);
     // The question bank and the scripture, by content rather than by filename.
     const crypto = require('crypto');
     const SEALED = {

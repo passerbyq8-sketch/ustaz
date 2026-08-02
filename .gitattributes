@@ -101,3 +101,10 @@ a11y-guard.cjs text eol=lf
 # Gate 22 (quest-ux-guard). It seals the question bank by hash and drives the shipped page in a
 # real browser, so its own line endings must not drift under core.autocrlf.
 quest-ux-guard.cjs text eol=lf
+
+# Gate 23 (attribution-guard). Same reason as every gate above. Its two modules are pinned for
+# the same reason lib/daycap.js is: the gate reads them as text and asserts on their contents, so
+# a fresh clone with core.autocrlf=true must not shift a byte of them.
+attribution-guard.cjs text eol=lf
+lib/attribution.js text eol=lf
+lib/binothaimeen.js text eol=lf

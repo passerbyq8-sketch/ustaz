@@ -1,0 +1,389 @@
+// attribution-guard.cjs — the scholar-attribution gate.
+//
+// IT EXISTS BECAUSE OF A REAL, REPRODUCED FAILURE. The question
+//     «ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟»
+// was answered on production with a confident ruling attributed to the Shaykh, carrying NO source
+// card, and stating the OPPOSITE of his published fatwa: it said the blood is nifās and that she
+// leaves prayer and fasting. His actual words are that it is neither nifās nor ḥayḍ but dam fasād,
+// and that she prays and fasts. A woman following that answer would have abandoned obligatory
+// prayer on a fabrication.
+//
+// WHAT THIS GATE PROVES, and the order matters:
+//   A. DETECTION  — the shape of an attributing question is recognised, and ordinary questions
+//                   are not swept up with it.
+//   B. THE SOURCE — the official corpus is reachable, its text arrives clean, and a page that
+//                   does not answer the question is refused rather than accepted.
+//   C. THE GATE   — the verifier refuses a draft with no source, a source by someone else, a
+//                   contradiction of the source, an invented duration, an invented criterion, a
+//                   home-page link, and leaked markup.
+//   D. THE WIRING — read off api/ask.js: attribution overrides the route, the source is fetched
+//                   before the model is called, the answer is buffered, and refusal is the
+//                   default on every failure path.
+//
+// NETWORK. Part B talks to binothaimeen.net. It is skipped automatically when the host is
+// unreachable, and it never makes more than the two calls the adapter itself makes.
+//
+// Usage: node attribution-guard.cjs [--offline]
+'use strict';
+const fs = require('fs');
+const path = require('path');
+
+const OFFLINE = process.argv.includes('--offline');
+const REPO = __dirname;
+
+let failures = 0, checks = 0, skipped = 0;
+function ok(name, cond, detail) {
+  checks++;
+  if (cond) { console.log('  PASS  ' + name); return true; }
+  failures++;
+  console.log('  FAIL  ' + name + (detail ? '\n        ' + detail : ''));
+  return false;
+}
+function eq(name, actual, expected) {
+  const a = JSON.stringify(actual), e = JSON.stringify(expected);
+  return ok(name, a === e, 'expected ' + e + '\n        actual   ' + a);
+}
+function skip(name, why) { skipped++; console.log('  SKIP  ' + name + '  (' + why + ')'); }
+const cps = (x) => Array.prototype.map.call(String(x == null ? '' : x), (c) => c.charCodeAt(0).toString(16)).join(' ');
+const user = (t) => [{ role: 'user', content: t }];
+
+(async function main() {
+  console.log('=== attribution-guard — scholar attribution requires a matching source ===');
+
+  const A = await import('file://' + path.join(REPO, 'lib', 'attribution.js').replace(/\\/g, '/'));
+  const B = await import('file://' + path.join(REPO, 'lib', 'binothaimeen.js').replace(/\\/g, '/'));
+
+  // =========================================================================
+  console.log('\n=== A. DETECTION (the shape of the question, not a list of names) ===');
+  const FIRES = [
+    'ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟',
+    'أسقطت بعد 79 يوماً، ماذا قال ابن عثيمين؟',
+    'ما حكم الإسقاط في الشهر الثاني عند الشيخ ابن عثيمين؟',
+    'هل الدم قبل ثمانين يوماً نفاس عند ابن عثيمين؟',
+    'ما قول الشيخ الألباني في هذه المسألة؟',
+    'هل أفتى الشيخ ابن باز بجواز ذلك؟',
+    'فتوى الشيخ ابن عثيمين في صلاة المسافر',
+    'قال الشيخ ابن عثيمين إن النفاس لا يكون إلا بعد نفخ الروح، صحيح؟',
+    'ينسب إلى الشيخ ابن عثيمين القول بكذا',
+    'ما مذهب الإمام مالك في هذه المسألة؟',
+  ];
+  FIRES.forEach((q) => {
+    const d = A.detectAttribution(user(q));
+    ok('fires: ' + q.slice(0, 46), d.attributed, 'not detected');
+  });
+
+  // ...and does NOT fire on ordinary religious or general questions.
+  const QUIET = [
+    'ما حكم الصلاة في السفر؟',
+    'كيف أتوضأ؟',
+    'ما فضل الصلاة في الإسلام؟',
+    'ما هي أركان الإسلام؟',
+    'كم يساوي سبعة في ثمانية؟',
+    'أخي يضربني ماذا أفعل؟',
+    'الحمد لله رب العالمين',
+    'ما حكم الإسقاط قبل ثمانين يوماً؟',
+  ];
+  QUIET.forEach((q) => {
+    const d = A.detectAttribution(user(q));
+    ok('quiet: ' + q.slice(0, 46), !d.attributed, 'wrongly detected as attribution: ' + JSON.stringify(d.scholarName));
+  });
+
+  const known = A.detectAttribution(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟'));
+  ok('a registered scholar is resolved to his corpus', !!known.scholar && known.scholar.key === 'ibn-uthaymeen', JSON.stringify(known));
+  const unknown = A.detectAttribution(user('ما رأي الشيخ عبد الرحمن الفلاني في هذه المسألة؟'));
+  ok('an unregistered scholar still triggers the gate', unknown.attributed);
+  ok('...but resolves to no corpus, so the answer will be refused', !unknown.scholar);
+  // Only the LAST turn decides what THIS answer claims.
+  const twoTurns = A.detectAttribution([
+    { role: 'user', content: 'ما رأي الشيخ ابن عثيمين في كذا؟' },
+    { role: 'assistant', content: '...' },
+    { role: 'user', content: 'كم عدد أركان الإسلام؟' },
+  ]);
+  ok('an attribution two turns ago does not bind this answer', !twoTurns.attributed);
+
+  // =========================================================================
+  console.log('\n=== B. THE OFFICIAL SOURCE ===');
+  const ADAPTER = fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8');
+  const ID = '443c0396-cc67-4fd6-b320-1b79bba567a9';
+  let lesson = null;
+  if (OFFLINE) {
+    skip('the official corpus is reachable', '--offline');
+  } else {
+    try {
+      lesson = await B.fetchLesson(ID);
+    } catch (e) { lesson = null; }
+    if (!lesson) {
+      skip('the official corpus is reachable', 'binothaimeen.net did not answer');
+      skip('...and the adapter fails CLOSED when it does not', 'covered by C');
+    } else {
+      ok('the official corpus is reachable and the lesson parses', !!lesson.exactText);
+      eq('...it reports the scholar', lesson.scholar, 'محمد بن صالح العثيمين');
+      ok('...and the publisher', /الموقع الرسمي/.test(lesson.publisher));
+      eq('...the id it was asked for', lesson.sourceId, ID);
+      ok('...a title', lesson.title.indexOf('أسقطت') !== -1, cps(lesson.title.slice(0, 20)));
+      ok('...an ISO timestamp', /^\d{4}-\d{2}-\d{2}T/.test(lesson.retrievedAt));
+      ok('...and a canonical URL on the official host',
+        lesson.canonicalUrl.indexOf('https://binothaimeen.net/ar/voice_library/lessonDetails/') === 0
+        && lesson.canonicalUrl.indexOf(ID) !== -1, lesson.canonicalUrl.slice(0, 80));
+      // THE MEANING the brief requires
+      ok('THE PUBLISHED TEXT CARRIES THE RULING: not nifās, not ḥayḍ, but dam fasād',
+        /ليس نفاسا/.test(A.norm(lesson.exactText)) && /دم فساد/.test(A.norm(lesson.exactText)));
+      ok('...and that she prays and fasts', /تصوم وتصلي/.test(A.norm(lesson.exactText)));
+      ok('...and the criterion is that human form becomes distinguishable',
+        /يتبين/.test(A.norm(lesson.exactText)) && /خلق الانسان/.test(A.norm(lesson.exactText)));
+      ok('NO markup or entity survives into the text',
+        !/[<>]/.test(lesson.exactText) && !/&[a-z]+;/i.test(lesson.exactText) && !/highLigated/i.test(lesson.exactText),
+        lesson.exactText.slice(0, 80));
+
+      // THE FOUR PHRASINGS THE BRIEF NAMES. Each must reach the SAME published fatwa. The ranker
+      // is stood in for here by a fixed choice, because that half of the path is a model call and
+      // this gate must be deterministic; what is being proved is that the page is in the pool the
+      // ranker is offered, and that the programmatic gates then accept the real published text.
+      const pickSecondMonth = async (q, cands) => {
+        const hit = cands.find((c) => c.title.indexOf('الشهر الثاني') !== -1);
+        return hit ? hit.id : null;
+      };
+      const PHRASINGS = [
+        'ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟',
+        'ماذا قال ابن عثيمين عن المرأة التي أسقطت في الشهر الثاني؟',
+        'هل أفتى الشيخ محمد بن صالح العثيمين بأن من أسقطت قبل ثمانين يوماً تترك الصلاة؟',
+        'فتوى العثيمين في إسقاط الجنين في الشهر الثاني والصلاة',
+      ];
+      for (const q of PHRASINGS) {
+        const det = A.detectAttribution(user(q));
+        const found = await B.retrieveIbnUthaymeen(det.question, {
+          excludeWords: String(det.scholarName || '').split(' '),
+          rank: pickSecondMonth,
+        });
+        ok('the published fatwa is reached from: ' + q.slice(0, 34) + '…',
+          found.length === 1 && found[0].sourceId === ID, JSON.stringify(found.map((f) => f.title)));
+      }
+
+      // A question the corpus does not answer must come back EMPTY, not with a near miss.
+      const miss = await B.retrieveIbnUthaymeen('ما حكم تعدين العملات الرقمية المشفرة والبلوكتشين');
+      eq('a question the corpus does not answer yields NO source', miss.length, 0);
+
+      // 81–120 DAYS and BEYOND 120. Neither may be answered from the second-month fatwa: it is a
+      // different case, and the app has no business extending a ruling past what its source says.
+      const later = A.detectAttribution(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت بعد 90 يوماً؟'));
+      let laterPool = [];
+      const laterSrc = await B.retrieveIbnUthaymeen(later.question, {
+        excludeWords: String(later.scholarName || '').split(' '),
+        rank: async (q, cands) => {
+          laterPool = cands.map((c) => c.title);
+          const hit = cands.find((c) => c.title.indexOf('ثلاثة أشهر') !== -1);
+          return hit ? hit.id : null;
+        },
+      });
+      ok('the 81–120 day band has its OWN page in the pool, not the second-month one',
+        laterPool.some((t) => t.indexOf('ثلاثة أشهر') !== -1), JSON.stringify(laterPool.slice(0, 6)));
+      ok('...and that is the page a 90-day question resolves to',
+        laterSrc.length === 1 && laterSrc[0].sourceId !== ID
+        && laterSrc[0].title.indexOf('ثلاثة أشهر') !== -1, JSON.stringify(laterSrc.map((s) => s.title)));
+
+      // AN EXPLICIT "none of these" FROM THE RANKER IS A REFUSAL, not a cue to take second best.
+      const none = await B.retrieveIbnUthaymeen('فيمن أسقطت دون 80 يوم', { rank: async () => null });
+      eq('a ranker that finds no matching page ⇒ no source', none.length, 0);
+
+      // A RANKER OUTAGE falls back to the deterministic order, which refuses an ambiguous pair.
+      const broke = await B.retrieveIbnUthaymeen('فيمن أسقطت دون 80 يوم', {
+        rank: async () => { throw new Error('ranker down'); },
+      });
+      eq('a ranker that throws never invents a choice', broke.length, 0);
+
+      // A LECTURE TRANSCRIPT IS NOT A FATWA. Measured: before this rule the top-scoring candidate
+      // for the original question was a two-hour tape of كتاب النكاح, at overlap 1.00.
+      const tape = await B.fetchLesson('2a31bf00-7039-496b-9a42-27d74b796bb6');
+      if (!tape) skip('a lecture transcript is rejected as a source', 'lesson unavailable');
+      else ok('a lecture transcript is rejected as a source', !B.isTargetedFatwa(tape.title, tape.exactText),
+        cps(tape.title) + ' / ' + tape.exactText.length + ' chars');
+    }
+  }
+
+  // The sanitiser and the scorer are pure and are checked with or without the network.
+  ok('the sanitiser strips the search endpoint\'s highlight spans',
+    B.htmlToText('امرأة <span class="highLigatedText">أسقطت</span> جنيناً') === 'امرأة أسقطت جنيناً');
+  ok('...and decodes entities', B.htmlToText('&quot;نص&quot; &amp; &#1575;') === '"نص" & ا');
+  ok('...and turns block tags into line breaks', B.htmlToText('<p>سؤال</p><p>جواب</p>').split('\n').filter(Boolean).length === 2);
+  ok('the scorer rates an unrelated page below the floor',
+    B.scoreCandidate(['اسقطت', 'الجنين'], 'الوسوسة في الطهارة والصلاة والنفاس') < B.MIN_OVERLAP);
+  ok('...and scores a genuine match highly',
+    B.scoreCandidate(['اسقطت', 'النفاس'], 'حكم الصلاة لمن اسقطت الجنين والنفاس') >= B.MIN_OVERLAP);
+  // The floor alone is not the gate: something of substance has to have matched, or a shared
+  // function word on a two-word question would clear any fraction-based threshold.
+  ok('a page matching only a short function word is refused',
+    !B.acceptsCandidate(['فيمن', 'اسقطت'], 'كلام فيمن تصدق على أهله وليس فيه شيء آخر').ok);
+  ok('...while a page matching the substantive word is accepted',
+    B.acceptsCandidate(['فيمن', 'اسقطت'], 'حكم الصلاة والصيام لمن اسقطت الجنين').ok);
+  // A series entry is a tape, not a fatwa, whatever its text happens to contain.
+  ok('a series title is recognised as a lecture', B.isLectureTitle('كتاب النكاح (الشرح الثالث) - 17'));
+  ok('...and a fatwa title is not', !B.isLectureTitle('حكم الصلاة والصيام لمن أسقطت الجنين في الشهر الثاني'));
+  ok('...and a transcript body is refused even under a plain title',
+    !B.isTargetedFatwa('عنوان عادي', 'التفريغ النصي للشريط رقم (17) ' + 'ن'.repeat(200)));
+  // Search terms are contiguous slices of the reader's own wording.
+  const pts = B.phraseTerms('المرأة التي أسقطت في الشهر الثاني');
+  ok('phrase terms start and end on a content word',
+    pts.length > 0 && pts.every((t) => t.split(' ').length >= 2), JSON.stringify(pts.slice(0, 3)));
+  // The endpoint sorts by id, not by relevance, so the page has to be wide enough to hold the answer.
+  ok('the search asks for a page wide enough to contain the answer',
+    /const SEARCH_PAGE_SIZE = (\d+);/.test(ADAPTER) && Number(RegExp.$1) >= 50);
+
+  // =========================================================================
+  console.log('\n=== C. THE VERIFIER — every way a draft must be refused ===');
+  const SRC = [{
+    scholar: 'محمد بن صالح العثيمين',
+    publisher: 'الموقع الرسمي للشيخ محمد بن صالح العثيمين',
+    title: 'حكم الصلاة والصيام لمن أسقطت الجنين في الشهر الثاني',
+    exactText: 'هذه المرأة تصوم وتصلي، ويأتيها زوجها؛ لأن هذا الدم ليس نفاساً ولا حيضاً، وإنما يسمى عند العلماء: دم فساد وذلك أن النفاس لا يثبت إلا بعد أن يتبين في الجنين خلق الإنسان، وأثناء الشهرين لا يمكن أن يتبين فيه خلق الإنسان. السائل: إلى كم شهر يتبين الخلق تقريباً؟ الشيخ: غالباً يتبين في ثلاثة أشهر.',
+    sourceId: ID,
+    canonicalUrl: 'https://binothaimeen.net/ar/voice_library/lessonDetails/%D8%A7%D9%84%D8%A8%D8%AD%D8%AB/x/' + ID,
+    retrievedAt: new Date().toISOString(),
+  }];
+  const DET = A.detectAttribution(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟'));
+
+  const GOOD = 'يرى الشيخ ابن عثيمين أن هذا الدم ليس نفاساً ولا حيضاً، وإنما هو دم فساد، فتصوم المرأة وتصلي؛ لأن النفاس لا يثبت حتى يتبين في الجنين خلق الإنسان.';
+  const g = A.verifyAttributedReply(GOOD, DET, SRC);
+  ok('a faithful answer passes', g.ok, JSON.stringify(g.problems));
+
+  // 1. no source at all — the exact shape of the production defect
+  const n1 = A.verifyAttributedReply(GOOD, DET, []);
+  ok('NO SOURCE ⇒ refused', !n1.ok && n1.problems.indexOf('no-source') !== -1, JSON.stringify(n1.problems));
+
+  // 2. a source by somebody else
+  const other = [{ ...SRC[0], scholar: 'عبد العزيز بن باز' }];
+  const n2 = A.verifyAttributedReply(GOOD, DET, other);
+  ok('a source by ANOTHER scholar ⇒ refused', !n2.ok && n2.problems.indexOf('source-not-by-named-scholar') !== -1, JSON.stringify(n2.problems));
+
+  // 3. THE PRODUCTION ANSWER ITSELF, verbatim in substance: it must not survive
+  const BAD_REAL = 'إذا أسقطت دون ثمانين يوماً ورأت دماً فهي نفساء وتترك الصلاة والصوم طالما هو دم نفاس.';
+  const n3 = A.verifyAttributedReply(BAD_REAL, DET, SRC);
+  ok('THE ORIGINAL WRONG ANSWER IS REFUSED', !n3.ok, JSON.stringify(n3.problems));
+  ok('...because it contradicts the source on nifās', n3.problems.some((p) => p.indexOf('contradicts:نفاس') === 0), JSON.stringify(n3.problems));
+
+  // 4. an invented duration
+  const n4 = A.verifyAttributedReply('قال الشيخ إن النفاس يثبت بعد أربعين يوماً من الحمل.', DET, SRC);
+  ok('a duration the source never gave ⇒ refused', !n4.ok && n4.problems.some((p) => p.indexOf('unsourced-duration') === 0), JSON.stringify(n4.problems));
+
+  // 5. an invented criterion (the ensoulment drift the brief names explicitly)
+  const n5 = A.verifyAttributedReply('يرى الشيخ أن النفاس لا يكون إلا بعد نفخ الروح في الجنين.', DET, SRC);
+  ok('the ensoulment criterion the source never used ⇒ refused',
+    !n5.ok && n5.problems.some((p) => p.indexOf('unsourced-claim') === 0), JSON.stringify(n5.problems));
+
+  // 6. a home-page link
+  const n6 = A.verifyAttributedReply(GOOD, DET, [{ ...SRC[0], canonicalUrl: 'https://binothaimeen.net/' }]);
+  ok('a home-page link ⇒ refused', !n6.ok && n6.problems.indexOf('url-is-homepage') !== -1, JSON.stringify(n6.problems));
+
+  // 7. leaked markup
+  const n7 = A.verifyAttributedReply(GOOD + ' <span class="highLigatedText">x</span>', DET, SRC);
+  ok('leaked markup ⇒ refused', !n7.ok && n7.problems.indexOf('raw-html') !== -1, JSON.stringify(n7.problems));
+
+  // 8. the misleading claim in the brief must be CORRECTED, never agreed with
+  const n8 = A.verifyAttributedReply('نعم، هذا صحيح، قال الشيخ إن النفاس لا يكون إلا بعد نفخ الروح.', DET, SRC);
+  ok('agreeing with the false "only after ensoulment" claim ⇒ refused', !n8.ok, JSON.stringify(n8.problems));
+
+  // 9. polarity helper, both directions
+  eq('polarity reads a denial', A.polarity('هذا الدم ليس نفاساً', 'نفاس'), 'no');
+  eq('polarity reads an assertion', A.polarity('هي نفساء ودمها نفاس', 'نفاس'), 'yes');
+  eq('polarity reports absence', A.polarity('كلام آخر تماماً', 'نفاس'), null);
+  // durations, digits and words
+  ok('durations are read in digits', A.durations('بعد 80 يوماً').length === 1, JSON.stringify(A.durations('بعد 80 يوماً')));
+  ok('...and in words', A.durations('بعد ثمانين يوماً').length === 1, JSON.stringify(A.durations('بعد ثمانين يوماً')));
+  ok('...and the source\'s own "ثلاثة أشهر" is recognised', A.durations(SRC[0].exactText).length >= 1, JSON.stringify(A.durations(SRC[0].exactText)));
+  // an answer that stays inside the source's own period is allowed
+  const okDur = A.verifyAttributedReply('قال الشيخ: غالباً يتبين الخلق في ثلاثة أشهر، وقبل ذلك الدم دم فساد فتصلي وتصوم.', DET, SRC);
+  ok('a duration the source DID give is allowed', okDur.ok, JSON.stringify(okDur.problems));
+
+  // 10. A QUESTION THAT FIXES A TIME, ANSWERED FROM A TEXT THAT FIXES NONE.
+  //     The hardest near miss there is: a real, correctly-attributed fatwa of his — about a
+  //     different case. Every other check passes; only this one sees it.
+  const timeless = [{ ...SRC[0],
+    title: 'حكم من أسقطت جنينها وقد نفخت فيه الروح',
+    exactText: 'إذا أسقطت المرأة جنينها وقد نفخت فيه الروح فإنها تكون نفساء وتترك الصلاة والصوم حتى تطهر.' }];
+  const n10 = A.verifyAttributedReply('قال الشيخ إنها تكون نفساء وتترك الصلاة والصوم.', DET, timeless);
+  ok('a source that never mentions a period ⇒ refused for a question that names one',
+    !n10.ok && n10.problems.some((p) => p.indexOf('question-fixes-a-time') === 0), JSON.stringify(n10.problems));
+  ok('mentionsTime accepts a period stated in words', A.mentionsTime('وأثناء الشهرين لا يمكن أن يتبين'));
+  ok('...and reports its absence', !A.mentionsTime('هذا الدم ليس نفاساً ولا حيضاً'));
+
+  // 11. A HADITH THE SOURCE DOES NOT NARRATE. Phase 4: no verified source, no attributed text —
+  //     the rule is the same for a narration as for a ruling, and a guessed wording or grading is
+  //     the same failure in a more dangerous form.
+  const n11 = A.verifyAttributedReply(
+    'يرى الشيخ أنها تصوم وتصلي، وقال النبي صلى الله عليه وسلم: «دعي الصلاة أيام أقرائك»، رواه البخاري.',
+    DET, SRC);
+  ok('a hadith the source never narrates ⇒ refused',
+    !n11.ok && n11.problems.some((p) => p.indexOf('unsourced-hadith') === 0), JSON.stringify(n11.problems));
+  ok('...and a grading the source never gave is refused too',
+    !A.verifyAttributedReply(GOOD + ' وهذا حديث صحيح.', DET, SRC).ok);
+
+  // 12. THE FORBIDDEN PHRASES the brief lists for THIS question, each refused on its own.
+  const FORBIDDEN = [
+    'النفاس مرتبط بنفخ الروح، فإذا أسقطت قبل ذلك فلا نفاس.',
+    'إذا أسقطت قبل ثمانين يوماً من نفخ الروح فالدم ليس نفاساً.',
+    'دم الفساد يعرف بلونه وثخانته كما يعرف الحيض.',
+  ];
+  for (const bad of FORBIDDEN) {
+    ok('a forbidden formulation is refused: ' + bad.slice(0, 28) + '…',
+      !A.verifyAttributedReply(bad, DET, SRC).ok);
+  }
+
+  // =========================================================================
+  console.log('\n=== D. THE WIRING (api/ask.js) ===');
+  const ask = fs.readFileSync(path.join(REPO, 'api', 'ask.js'), 'utf8');
+  ok('the gate is imported', /import \{ detectAttribution, verifyAttributedReply, ATTRIBUTION_REFUSAL \} from '\.\.\/lib\/attribution\.js';/.test(ask));
+  // Measured against the HANDLER BODY, not the whole file: rankCandidates is a module-level helper
+  // that also calls the API, and it is declared above the handler. What must hold is that no call
+  // is reached inside a request before the question has been classified.
+  const body = ask.slice(ask.indexOf('export default async function handler'));
+  ok('attribution is detected before any upstream call in the request path',
+    body.indexOf('const attribution = detectAttribution(') > -1
+    && body.indexOf('const attribution = detectAttribution(') < body.indexOf('await fetch(ANTHROPIC_URL'));
+  ok('the attributed branch runs BEFORE the GEN route',
+    ask.indexOf('if (attribution.attributed)') < ask.indexOf("if (route === 'GEN')"),
+    'an attributed question could still take the unsourced GEN path');
+  ok('the source is fetched before the model is called',
+    /if \(attribution\.attributed\)[\s\S]{0,1200}?retrieveIbnUthaymeen\(attribution\.question,[\s\S]{0,900}?if \(!attributedSources\.length\)/.test(ask));
+  ok('the scholar\'s own name is stripped from the query',
+    /excludeWords: String\(attribution\.scholarName \|\| ''\)\.split\(' '\)/.test(ask),
+    'a fatwa page does not contain the name of the man who gave it');
+  ok('the ranker is given titles, never asked for a ruling',
+    /max_tokens: 16,[\s\S]{0,400}?لا تُفتِ/.test(ask) && /rank: \(q, cands\) => rankCandidates\(/.test(ask));
+  ok('the grounding forbids narrating a hadith the source does not carry',
+    /لا تنقلْ حديثًا/.test(ask));
+  ok('no source ⇒ the model is never called at all',
+    /if \(!attributedSources\.length\)[\s\S]{0,400}?ATTRIBUTION_REFUSAL[\s\S]{0,200}?return res\.end\(\);/.test(ask));
+  ok('the attributed answer is BUFFERED, not streamed',
+    /if \(attribution\.attributed\)[\s\S]{0,2600}?stream: false,/.test(ask),
+    'a streamed attributed answer cannot be withdrawn after verification fails');
+  ok('the draft is verified before anything is emitted',
+    ask.indexOf('verifyAttributedReply(draft, attribution, attributedSources)') !== -1);
+  ok('a failed verification emits the refusal and nothing of the draft',
+    /if \(!verdict\.ok\)[\s\S]{0,400}?ATTRIBUTION_REFUSAL/.test(ask));
+  ok('the model may not contribute a source card on this path',
+    /const draft = drafted[\s\S]{0,200}?replace\(\/<source/.test(ask));
+  ok('the card that IS emitted is built from the canonical URL',
+    /buildSourceTag\(\{ url: src\.canonicalUrl, title: src\.title \}\)/.test(ask));
+
+  // Nothing else about the app moved.
+  const changed = (() => {
+    try {
+      return require('child_process')
+        .execSync('git diff --name-only HEAD', { cwd: REPO, encoding: 'utf8' })
+        .split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+    } catch (e) { return null; }
+  })();
+  if (changed === null) skip('the client and its card systems are untouched', 'git unavailable');
+  else ok('the client and its card systems are untouched by this phase',
+    changed.indexOf('index.html') === -1 && changed.indexOf('quest.html') === -1, JSON.stringify(changed));
+  ok('no key or credential appears in the adapter',
+    !/api[_-]?key|authorizations*:|bearers|secret|password|process.env/i.test(fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8')));
+  ok('the adapter declares a timeout and exactly one retry',
+    /const RETRIES = 1;/.test(fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8')));
+  ok('...and an internal rate limit', /MIN_GAP_MS/.test(fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8')));
+  ok('...and a bounded cache', /MAX_ENTRIES/.test(fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8')));
+
+  console.log('');
+  if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed' + (skipped ? ('  (' + skipped + ' skipped)') : '') + '.');
+  else console.log('FAILED: ' + failures + ' of ' + checks + ' checks failed.');
+  process.exit(failures ? 1 : 0);
+})().catch((e) => { console.log('\nGUARD CRASHED: ' + String(e && e.stack ? e.stack : e)); process.exit(1); });

@@ -1,24 +1,117 @@
 [
-  { "name": "worship",    "script": "worship-guard.cjs",         "args": "--compare index.html worship-golden.json" },
-  { "name": "quran",      "script": "quran-guard.cjs",           "args": "--compare quran-uthmani.json quran-golden.json" },
-  { "name": "layout",     "script": "layout-guard.cjs",          "args": "" },
-  { "name": "babel",      "script": "babel-gate.cjs",            "args": "" },
-  { "name": "runtime",    "script": "runtime-gate.cjs",          "args": "" },
-  { "name": "recon",      "script": "recon-audit.cjs",           "args": "" },
-  { "name": "display",    "script": "build-worship-display.cjs", "args": "--verify" },
-  { "name": "referral",   "script": "referral-guard.cjs",        "args": "--compare index.html referral-golden.json" },
-  { "name": "classifier", "script": "classifier-guard.cjs",      "args": "index.html" },
-  { "name": "hafs",       "script": "hafs-map-guard.cjs",        "args": "" },
-  { "name": "call",       "script": "call-mode-guard.cjs",       "args": "index.html" },
-  { "name": "history",    "script": "chat-history-guard.cjs",    "args": "index.html" },
-  { "name": "markdown",   "script": "markdown-guard.cjs",       "args": "index.html" },
-  { "name": "reveal",     "script": "quest-reveal-guard.cjs",    "args": "--compare quest-data/reveal-golden.json" },
-  { "name": "quranquest", "script": "quran-quest-guard.cjs",     "args": "--compare quest-data/quran-quest-golden.json" },
-  { "name": "prayerquest","script": "prayer-quest-guard.cjs",    "args": "--compare quest-data/prayer-quest-golden.json" },
-  { "name": "bankintegrity","script": "quest-bank-integrity-guard.cjs", "args": "--compare quest-data/bank-integrity-golden.json" },
-  { "name": "contentreview","script": "quest-content-review-guard.cjs", "args": "--compare quest-data/content-review-manifest.json" },
-  { "name": "themecoverage","script": "theme-coverage-guard.cjs",       "args": "" },
-  { "name": "chatux",     "script": "chat-ux-guard.cjs",         "args": "index.html" },
-  { "name": "a11y",       "script": "a11y-guard.cjs",            "args": "index.html" },
-  { "name": "questux",    "script": "quest-ux-guard.cjs",        "args": "quest.html" }
+  {
+    "name": "worship",
+    "script": "worship-guard.cjs",
+    "args": "--compare index.html worship-golden.json"
+  },
+  {
+    "name": "quran",
+    "script": "quran-guard.cjs",
+    "args": "--compare quran-uthmani.json quran-golden.json"
+  },
+  {
+    "name": "layout",
+    "script": "layout-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "babel",
+    "script": "babel-gate.cjs",
+    "args": ""
+  },
+  {
+    "name": "runtime",
+    "script": "runtime-gate.cjs",
+    "args": ""
+  },
+  {
+    "name": "recon",
+    "script": "recon-audit.cjs",
+    "args": ""
+  },
+  {
+    "name": "display",
+    "script": "build-worship-display.cjs",
+    "args": "--verify"
+  },
+  {
+    "name": "referral",
+    "script": "referral-guard.cjs",
+    "args": "--compare index.html referral-golden.json"
+  },
+  {
+    "name": "classifier",
+    "script": "classifier-guard.cjs",
+    "args": "index.html"
+  },
+  {
+    "name": "hafs",
+    "script": "hafs-map-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "call",
+    "script": "call-mode-guard.cjs",
+    "args": "index.html"
+  },
+  {
+    "name": "history",
+    "script": "chat-history-guard.cjs",
+    "args": "index.html"
+  },
+  {
+    "name": "markdown",
+    "script": "markdown-guard.cjs",
+    "args": "index.html"
+  },
+  {
+    "name": "reveal",
+    "script": "quest-reveal-guard.cjs",
+    "args": "--compare quest-data/reveal-golden.json"
+  },
+  {
+    "name": "quranquest",
+    "script": "quran-quest-guard.cjs",
+    "args": "--compare quest-data/quran-quest-golden.json"
+  },
+  {
+    "name": "prayerquest",
+    "script": "prayer-quest-guard.cjs",
+    "args": "--compare quest-data/prayer-quest-golden.json"
+  },
+  {
+    "name": "bankintegrity",
+    "script": "quest-bank-integrity-guard.cjs",
+    "args": "--compare quest-data/bank-integrity-golden.json"
+  },
+  {
+    "name": "contentreview",
+    "script": "quest-content-review-guard.cjs",
+    "args": "--compare quest-data/content-review-manifest.json"
+  },
+  {
+    "name": "themecoverage",
+    "script": "theme-coverage-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "chatux",
+    "script": "chat-ux-guard.cjs",
+    "args": "index.html"
+  },
+  {
+    "name": "a11y",
+    "script": "a11y-guard.cjs",
+    "args": "index.html"
+  },
+  {
+    "name": "questux",
+    "script": "quest-ux-guard.cjs",
+    "args": "quest.html"
+  },
+  {
+    "name": "attribution",
+    "script": "attribution-guard.cjs",
+    "args": ""
+  }
 ]

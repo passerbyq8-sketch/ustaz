@@ -18,6 +18,7 @@ import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/rate
 import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
+import { detectAttribution, verifyAttributedReply, ATTRIBUTION_REFUSAL } from '../lib/attribution.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -105,6 +106,71 @@ function sendSynthesizedText(res, text) {
   res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
   res.end();
 }
+
+// ── ATTRIBUTED-SOURCE RANKING ────────────────────────────────────────────────
+// Chooses WHICH of the Shaykh's own pages a question is about. Nothing more.
+//
+// WHY A MODEL CALL IS HERE AT ALL, given that this whole feature exists because the model's
+// memory produced a false fatwa. Two different jobs are being kept apart:
+//   * WHAT HE RULED is decided by the retrieved text and by the programmatic gates in
+//     lib/binothaimeen.js and lib/attribution.js. The model may not contribute a word of it.
+//   * WHICH PAGE IS ABOUT THIS QUESTION is a relevance judgement over titles the site itself
+//     returned. MEASURED: the question "فيمن أسقطت دون 80 يوم" reduces to the search words
+//     "فيمن أسقطت", which six of his fatwas match equally — the discriminating fact is that
+//     eighty days falls inside the second month, and no string comparison knows that.
+// The ranker sees titles only, can only name an id the site already returned, and whatever it
+// names still has to clear every gate afterwards. If it fails, times out, or answers with
+// something that is not in the pool, the deterministic ordering stands — and that ordering
+// refuses outright when the top two candidates are indistinguishable.
+const RANK_TIMEOUT_MS = 8000;
+async function rankCandidates(question, candidates, model, headers) {
+  if (!Array.isArray(candidates) || candidates.length < 2) return undefined;
+  const list = candidates.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
+  const prompt = [
+    'السؤال:',
+    String(question || '').slice(0, 600),
+    '',
+    'وهذه عناوينُ فتاوى منشورةٍ للشيخ:',
+    list,
+    '',
+    'أيُّ عنوانٍ منها يُعالِج المسألةَ المسؤولَ عنها بعينِها؟',
+    'أجِبْ برقمِ العنوان وحدَه، أو بكلمة NONE إن لم يكن فيها ما يُعالِجُها.',
+    'لا تشرحْ، ولا تذكرْ حكمًا، ولا تختَرْ عنوانًا قريبَ الموضوعِ لكنّه في مسألةٍ أخرى.',
+  ].join('\n');
+
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), RANK_TIMEOUT_MS);
+  try {
+    const r = await fetch(ANTHROPIC_URL, {
+      method: 'POST',
+      headers,
+      signal: ctl.signal,
+      body: JSON.stringify({
+        model,
+        max_tokens: 16,
+        system: 'أنت مُصنِّفٌ يختارُ عنوانًا واحدًا من قائمة. لا تُفتِ ولا تشرح.',
+        messages: [{ role: 'user', content: prompt }],
+        stream: false,
+      }),
+    });
+    clearTimeout(timer);
+    if (!r.ok) { console.warn('[attribution] ranker HTTP', r.status); return undefined; }
+    const payload = await r.json();
+    const said = (payload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+    if (/NONE/i.test(said)) return null;            // an explicit "none of these" ⇒ refuse
+    const m = said.match(/\d+/);
+    if (!m) return undefined;                        // unparseable ⇒ deterministic order stands
+    const idx = parseInt(m[0], 10) - 1;
+    if (!(idx >= 0 && idx < candidates.length)) return undefined;
+    console.log('[attribution] ranker chose', idx + 1, candidates[idx].title);
+    return candidates[idx].id;
+  } catch (e) {
+    clearTimeout(timer);
+    console.warn('[attribution] ranker failed:', e && e.message);
+    return undefined;
+  }
+}
+
 
 // ── VERIFIED SOURCE ENFORCEMENT ──────────────────────────────────────────────
 // retrieve() returns a STRUCTURED sources array (lib/retrieve.js:332) whose every entry
@@ -351,7 +417,15 @@ export default async function handler(req, res) {
   // It changes neither the model, the system prompt, the effort, the token cap, the band,
   // nor the allow-list. Real doubt resolves to DEEN.
   const route = classifyRoute(body.messages);
-  console.log('[route]', { route, band });
+  // ATTRIBUTION GATE (lib/attribution.js). Decided here, on the server, from the question's own
+  // SHAPE — "ما رأي الشيخ فلان", "قال فلان", "هل أفتى فلان". It is computed BEFORE anything is
+  // sent upstream because it overrides the route: an attributed question can never take the GEN
+  // path, which is exactly how the reported defect happened. "ما رأي الشيخ ابن عثيمين فيمن
+  // أسقطت دون ٨٠ يوم؟" contains not one word of DEEN_WORDS, so it classified GEN, ran with no
+  // tools and no retrieval, and the model answered a fatwa from memory — inverted, and with no
+  // card, because the GEN branch strips every source tag.
+  const attribution = detectAttribution(body.messages);
+  console.log('[route]', { route, band, attributed: attribution.attributed, scholar: attribution.scholarName || null });
 
   const headers = {
     'Content-Type': 'application/json',
@@ -376,6 +450,116 @@ export default async function handler(req, res) {
   const clearKeepAlive = () => { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } };
 
   try {
+    // ── ATTRIBUTED ROUTE: no source by that scholar ⇒ no attributed ruling ──
+    //
+    // This branch owns every question that asks what a named scholar held. It runs BEFORE the
+    // GEN and DEEN routes and takes precedence over both.
+    //
+    // FOUR THINGS MAKE IT DIFFERENT FROM THE ORDINARY SOURCED PATH:
+    //   1. The source is fetched FIRST, from the scholar's own corpus, before a single token is
+    //      generated. If there is none, the model is never called at all — the refusal costs
+    //      nothing and cannot be talked out of by a fluent draft.
+    //   2. The published text is handed to the model as the ONLY permitted basis, with an
+    //      instruction that names refusal as the correct outcome when the text falls short.
+    //   3. The answer is BUFFERED, not streamed. Streaming and verification are incompatible:
+    //      bytes already on the reader's screen cannot be withdrawn when the check fails. An
+    //      attributed fatwa is the one place in this app where correctness outranks the
+    //      appearance of speed.
+    //   4. The answer is then verified against the source — polarity on the decisive fiqh terms,
+    //      every stated duration, and named criteria the source never used — and dropped whole if
+    //      it disagrees.
+    if (attribution.attributed) {
+      let attributedSources = [];
+      // The registry decides WHERE to look, never WHETHER the gate applies. A scholar with no
+      // official corpus wired up has no source, and therefore gets the refusal — which is the
+      // correct answer, not a gap.
+      if (attribution.scholar && attribution.scholar.key === 'ibn-uthaymeen') {
+        const { retrieveIbnUthaymeen } = await import('../lib/binothaimeen.js');
+        attributedSources = await retrieveIbnUthaymeen(attribution.question, {
+          excludeWords: String(attribution.scholarName || '').split(' '),
+          rank: (q, cands) => rankCandidates(q, cands, model, headers),
+        });
+      } else {
+        console.warn('[attribution] no official corpus wired for', attribution.scholarName);
+      }
+
+      if (!attributedSources.length) {
+        console.warn('[attribution] refusing — no verified source for', attribution.scholarName);
+        clearKeepAlive();
+        res.write(`data: ${JSON.stringify({
+          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: ATTRIBUTION_REFUSAL },
+        })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+        return res.end();
+      }
+
+      const src = attributedSources[0];
+      const grounding = [
+        'النصُّ المنشورُ التالي هو المصدرُ الوحيدُ المسموحُ بالاعتماد عليه في هذا الجواب.',
+        'العالِم: ' + src.scholar,
+        'الجهةُ الناشرة: ' + src.publisher,
+        'عنوانُ المادّة: ' + src.title,
+        '',
+        '«' + src.exactText + '»',
+        '',
+        'اكتبْ جوابًا قصيرًا يلتزم بما يلي حرفيًّا:',
+        '- انسبْ إلى الشيخ ما في النصِّ أعلاه وحدَه، ولا تُكمِلْ من عندك.',
+        '- لا تذكرْ مُدّةً ولا عددًا ولا معيارًا لم يَرِدْ في النصّ.',
+        '- لا تنقلْ حديثًا ولا لفظًا نبويًّا ولا تخريجًا ولا درجةً لحديثٍ لم يَرِدْ في النصِّ أعلاه.',
+        '- إن كان النصُّ لا يُجيب عن السؤال المطروح، فقلْ ذلك صراحةً ولا تنسبْ إليه شيئًا.',
+        '- إن كانت تفاصيلُ الحالة قد تُغيّرُ الحكم، فنبِّهْ على سؤال أهلِ العلم مباشرةً.',
+        '- لا تكتبْ وسمَ <source> ولا أيَّ رابط؛ التطبيقُ يُضيفُ بطاقةَ المصدر بنفسه.',
+      ].join('\n');
+
+      const ra = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          system,
+          messages: [...body.messages, { role: 'user', content: grounding }],
+          stream: false,
+        }),
+      });
+      if (!ra.ok) {
+        const errText = await ra.text().catch(() => '');
+        console.error('[attribution] upstream', ra.status, errText.slice(0, 200));
+        clearKeepAlive();
+        res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${ra.status}` } })}\n\n`);
+        return res.end();
+      }
+      const payload = await ra.json();
+      const drafted = (payload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+      // The model may never contribute a card here, exactly as on every other route.
+      const draft = drafted
+        .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .trim();
+
+      const verdict = verifyAttributedReply(draft, attribution, attributedSources);
+      clearKeepAlive();
+      if (!verdict.ok) {
+        // The draft is discarded in full. A partially-correct attributed fatwa is not a
+        // partially-correct answer; it is a wrong one with a citation attached.
+        console.warn('[attribution] draft rejected:', verdict.problems.join(' | '));
+        res.write(`data: ${JSON.stringify({
+          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: ATTRIBUTION_REFUSAL },
+        })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+        return res.end();
+      }
+
+      const card = buildSourceTag({ url: src.canonicalUrl, title: src.title });
+      console.log('[attribution] verified', { scholar: src.scholar, id: src.sourceId });
+      res.write(`data: ${JSON.stringify({
+        type: 'content_block_delta', index: 0,
+        delta: { type: 'text_delta', text: draft + (card ? '\n' + card.tag : '') },
+      })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+      return res.end();
+    }
+
     // ── GEN ROUTE: ONE streamed round, NO tools ────────────────────────────
     // Same model, same system prompt, same token cap, same effort the final round uses
     // today. The ONLY difference from the old path is that `tools` is absent — so there is
