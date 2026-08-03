@@ -10294,12 +10294,20 @@ function MushafSheet({ page, headerSurah, needHeader, needBasmala, onSheetLoad }
   if (madina && !imgBroke)
     return (
       <div style={MADINA_SHEET_ST}>
+        {/* S108 -- data-mushaf-page is a POSITIVE handle, and the only reason it exists. The
+            live page image has no class and no id, so no rule in the stylesheet can reach it --
+            which means its safety today rests on ABSENCE rather than on exclusion, and a guard
+            could only ever check that nothing NAMES it. This attribute lets the guard identify
+            every mounted page deterministically and freeze the measured geometry instead. It is
+            a data attribute and nothing else: no class, no selector, no layout, no paint. No CSS
+            in this file may target it, and the guard fails if any does. */}
         <img
           src={madina}
           alt=""
           decoding="async"
           loading="lazy"
           draggable="false"
+          data-mushaf-page={page.n}
           style={fill ? MADINA_IMG_ST : MADINA_IMG_ST_FIT}
           onLoad={() => { if (onSheetLoad) onSheetLoad(page.n); }}
           onError={() => setImgBroke(true)}

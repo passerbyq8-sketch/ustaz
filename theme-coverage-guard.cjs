@@ -1432,6 +1432,52 @@ ok('...with no transform, slice or ellipsis over it',
   !/getVerseText\([^)]*\)\s*\.(slice|substring|replace|normalize)/.test(memSrc));
 
 
+/* ---- L7. THE POSITIVE PAGE HOOK (S108) ---------------------------------
+ * The measured probe established that the LIVE Quran page -- the Madina WebP -- has no class
+ * and no id, so nothing in the stylesheet can reach it. Its safety therefore rested on ABSENCE,
+ * not on exclusion, and the only thing a guard could check was that no rule NAMED it. That is a
+ * guarantee about the guard, not about the page.
+ *
+ * data-mushaf-page={page.n} is the positive handle that replaces it. It exists so a guard can
+ * identify every mounted page deterministically and freeze the measured geometry. It must stay
+ * a data attribute and nothing more: the moment any CSS targets it, it has become a styling
+ * surface on the Quran page and this group fails.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== L7. THE POSITIVE PAGE HOOK ===');
+const madinaImg = html.slice(html.indexOf('if (madina && !imgBroke)'), html.indexOf('if (!MUSHAF_SVG_ON || broke)'));
+ok('the live Madina image branch was located', madinaImg.length > 200 && madinaImg.indexOf('<img') !== -1);
+ok('the page image carries the hook', /data-mushaf-page=\{page\.n\}/.test(madinaImg),
+  'without it the live page has no handle at all and can only be guarded by absence');
+eq('...exactly once', (madinaImg.match(/data-mushaf-page=/g) || []).length, 1);
+ok('...bound to page.n and nothing else',
+  !/data-mushaf-page=\{(?!page\.n\})/.test(madinaImg),
+  'a constant, an index or a derived value would make the guard measure the wrong page');
+// IT MUST NOT BECOME A STYLING SURFACE.
+ok('no CSS rule targets the hook', !/\[data-mushaf-page/.test(css),
+  'the hook is for identification; a rule on it would be a rule on the Quran page');
+ok('...and no CSS targets the live image through its branch either',
+  !/:root\[data-ezik-visual-theme\][^{]*img[^{]*\{/.test(css));
+// IT MUST NOT HAVE CHANGED WHAT THE ELEMENT IS.
+ok('the image still carries no class and no id', !/<img[^>]*data-mushaf-page[^>]*className/.test(madinaImg)
+  && !/<img[^>]*data-mushaf-page[^>]*\sid=/.test(madinaImg));
+ok('the src is still the shipped page url', /src=\{madina\}/.test(madinaImg));
+ok('the style is still the shipped fill/contain pair',
+  /style=\{fill \? MADINA_IMG_ST : MADINA_IMG_ST_FIT\}/.test(madinaImg));
+ok('...and the handlers are unchanged', /onLoad=\{\(\) => \{ if \(onSheetLoad\)/.test(madinaImg)
+  && /onError=\{\(\) => setImgBroke\(true\)\}/.test(madinaImg));
+// THE FROZEN GEOMETRY THE HOOK EXISTS TO PROTECT, asserted from the shipped style objects.
+ok('the fill variant is width/height 100% with object-fit fill',
+  /MADINA_IMG_ST = \{ width: '100%', height: '100%', objectFit: 'fill'/.test(html));
+ok('the contain variant differs only in object-fit and margin',
+  /MADINA_IMG_ST_FIT = \{ \.\.\.MADINA_IMG_ST, objectFit: 'contain', margin: 'auto' \}/.test(html));
+for (const p of ['transform', 'filter', 'opacity', 'mixBlendMode', 'border', 'background']) {
+  ok('the page image declares no ' + p, !new RegExp(p + ':').test(
+    (/const MADINA_IMG_ST = \{[^}]*\}/.exec(html) || [''])[0]));
+}
+ok('the desk still paints only through --madina-desk',
+  /MADINA_SHEET_ST = \{[^}]*background: MADINA_DESK/.test(html)
+  && /const MADINA_DESK = 'var\(--madina-desk\)'/.test(html));
+
 /* ---- L4. the background invariant reaches this screen too --------------- */
 const ezqRules = (css.match(/\.ezq-[^{]*\{[^}]*\}/g) || []);
 eq('no catalogue rule attaches an image, gradient or repeat',
