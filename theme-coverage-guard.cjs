@@ -1147,5 +1147,110 @@ ok('...and opens the region it names', /b\.onclick = \(\) => Screens\.region\(r\
 ok('the presentation writes no progress of its own',
   !/_regionCard[\s\S]{0,1600}?P\.(set|save|add|award)/.test(q.html));
 
+/* ============ K. THE REACHABLE-SCREEN INVENTORY (S105) ====================
+ * The identity was being applied screen by screen, and "which screens are left" was being
+ * answered from memory. It is answered here instead, from the shipped file: every screen the
+ * render switch can reach is enumerated by PARSING it, and compared against a declared table
+ * that records, for each one, whether it is inside an istana shell yet.
+ *
+ * The table is not documentation. A screen the file can reach and the table does not name is a
+ * FAILURE -- that is what stops a new screen being added without anyone deciding what design it
+ * is in, and it is what stops this inventory going stale the moment it is written. The reverse
+ * is a failure too: a table entry the file can no longer reach is a claim about a screen that
+ * does not exist.
+ *
+ * `shell` is the measured status, not an aspiration:
+ *   istana  -- draws inside a dedicated istana structure
+ *   legacy  -- still draws its pre-identity presentation, and is therefore outstanding work
+ *   sacred  -- the ONE approved opt-out: the Quran sheet itself. Its surrounding controls are
+ *              NOT covered by it and are listed separately.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== K. THE REACHABLE-SCREEN INVENTORY ===');
+
+const INDEX_SCREENS = {
+  loading:         { render: 'inline loadingScreen', shell: 'legacy' },
+  onboarding:      { render: 'Onboarding / Welcome', shell: 'legacy' },
+  home:            { render: 'Home -> EzikIstanaHome', shell: 'istana' },
+  chat:            { render: 'the chat body (App fall-through)', shell: 'legacy' },
+  parentGate:      { render: 'ParentGate', shell: 'legacy' },
+  parentDashboard: { render: 'ParentDashboard', shell: 'legacy' },
+  settings:        { render: 'SettingsSheet', shell: 'legacy' },
+  favorites:       { render: 'FavoritesScreen', shell: 'legacy' },
+  call:            { render: 'CallScreen', shell: 'legacy' },
+  memorize:        { render: 'MemorizeScreen', shell: 'legacy' },
+  mushaf:          { render: 'MushafScreen (shell) + .mushaf-paper (sacred)', shell: 'legacy' },
+  adhkar:          { render: 'AdhkarScreen -> IstanaAdhkarBrowse / IstanaAdhkarReader', shell: 'istana' },
+};
+// Screens the switch reaches WITHOUT a screen key of their own -- guards and gates in front of
+// another screen. They are reachable, so they are inventoried.
+const INDEX_INTERSTITIALS = {
+  SpendGate:        { shell: 'legacy', note: 'disabled by its own kill switch, still reachable code' },
+  ChildVoiceNotice: { shell: 'legacy', note: 'stands in front of the call screen' },
+  UnlockSheet:      { shell: 'legacy', note: 'stands in front of the call screen' },
+};
+
+// PARSED FROM THE SHIPPED FILE, not from the table above.
+const foundScreens = new Set();
+for (const m of html.matchAll(/if \(screen === '([a-zA-Z]+)'/g)) foundScreens.add(m[1]);
+for (const m of html.matchAll(/screen === '([a-zA-Z]+)' \|\| screen === '([a-zA-Z]+)'/g)) { foundScreens.add(m[1]); foundScreens.add(m[2]); }
+// the chat is the fall-through: no `if (screen === 'chat') return` guards it, it is what is left.
+ok('the chat is still the render fall-through', /screen === 'chat' \|\| screen === 'call'/.test(html));
+foundScreens.add('chat');
+
+const declared = new Set(Object.keys(INDEX_SCREENS));
+const missingFromTable = [...foundScreens].filter((k) => !declared.has(k)).sort();
+const staleInTable = [...declared].filter((k) => !foundScreens.has(k)).sort();
+eq('every reachable index.html screen is in the inventory', missingFromTable, []);
+eq('...and every inventoried screen is still reachable', staleInTable, []);
+eq('the inventory covers ' + declared.size + ' index.html screens', declared.size, foundScreens.size);
+for (const name of Object.keys(INDEX_INTERSTITIALS)) {
+  ok('the interstitial ' + name + ' is reachable and inventoried', html.indexOf('<' + name + ' ') !== -1);
+}
+
+// QUEST: every view on the Screens object, parsed from the object itself.
+const QUEST_SCREENS = {
+  map:        { shell: 'istana', note: 'S104 category map' },
+  _regionCard:{ shell: 'istana', note: 'the card builder the map uses' },
+  region:     { shell: 'legacy' }, startStation: { shell: 'legacy' },
+  challenges: { shell: 'legacy' }, _modeCard:   { shell: 'legacy' },
+  daily:      { shell: 'legacy' }, speed:       { shell: 'legacy' },
+  teamsSetup: { shell: 'legacy' }, teamsCats:   { shell: 'legacy' },
+  teamsTrack: { shell: 'legacy' }, teamsAsk:    { shell: 'legacy' },
+  teamsEnd:   { shell: 'legacy' }, book:        { shell: 'legacy' },
+  profile:    { shell: 'legacy' }, settings:    { shell: 'legacy' },
+  inspect:    { shell: 'legacy' },
+};
+// bounded to the Screens object itself: an unbounded slice ran to end of file and swept in
+// the play engine own methods (start, judge, render, finish...), which are not screens.
+const qScreensAt = q.html.indexOf('const Screens = {');
+const qScreensBody = q.html.slice(qScreensAt, q.html.indexOf('\n};', qScreensAt));
+const foundQuest = new Set();
+for (const m of qScreensBody.matchAll(/^  ([a-zA-Z_][a-zA-Z0-9_]*)\(/gm)) foundQuest.add(m[1]);
+const kQDeclared = new Set(Object.keys(QUEST_SCREENS));
+const kQMissing = [...foundQuest].filter((k) => !kQDeclared.has(k)).sort();
+const kQStale = [...kQDeclared].filter((k) => !foundQuest.has(k)).sort();
+eq('every reachable quest.html view is in the inventory', kQMissing, []);
+eq('...and every inventoried quest view still exists', kQStale, []);
+
+/* ---- K2. what the inventory MEASURES, reported rather than asserted ----- */
+const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'istana');
+const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
+const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
+const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
+console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
+  + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all legacy)');
+console.log('        istana now : ' + idxIstana.join(', '));
+console.log('        outstanding: ' + idxLegacy.join(', '));
+console.log('        quest.html : ' + qIstana.length + ' istana, ' + qLegacy.length + ' legacy');
+console.log('        outstanding: ' + qLegacy.join(', '));
+// The one approved sacred opt-out, and it covers the SHEET only -- never the controls round it.
+// An OPT-OUT re-pins the base literals; the .adhkar3/.ezhome rule is a MAPPING onto the
+// identity, which is the opposite thing. Distinguished by what the rule contains, not by name.
+const themedClassRules = (css.match(/:root\[data-ezik-visual-theme\][^{]*\{[^}]*\}/g) || []);
+const optOuts = themedClassRules.filter((r) => /--red:#1D4ED8|--ink:#1A1A1A/.test(r));
+eq('exactly one sacred opt-out exists', optOuts.length, 1);
+ok('...and it is the Quran sheet itself', optOuts.length === 1 && /\.mushaf-paper/.test(optOuts[0]),
+  'the opt-out covers the SHEET; the controls around it follow the identity like every other screen');
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
