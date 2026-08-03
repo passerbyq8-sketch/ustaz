@@ -360,12 +360,11 @@ head('9) RAG SOURCE LISTS & GATES (lib/retrieve.js)');
   else {
     const adult = domainsIn(extractArrayBody(src, 'SITES_ADULT'));
     const minor = domainsIn(extractArrayBody(src, 'SITES_MINOR'));
-    // 24 as of 2026-08-03: the 14 that were here, plus eftaa.awqaf.gov.kw promoted from the
-    // under-18 fallback tier to the adult list, plus 7 domains in the first batch and 2 in the
-    // second (tafsir.net, al-abbaad.com). The exact membership and the per-source scope are
-    // asserted by source-registry-guard.cjs; this stays a count lock so a silent addition here
-    // is visible in the audit too.
-    if (adult.length){ info('SITES_ADULT (' + adult.length + '): ' + adult.join(', ')); if (adult.length===24) pass('SITES_ADULT count = 24'); else warn('SITES_ADULT count = ' + adult.length + ' (expected 24 -- update deliberately)'); }
+    // 22 as of 2026-08-03: the 14 that were here, plus eftaa.awqaf.gov.kw promoted from the
+    // under-18 fallback tier to the adult list, plus 7 new domains. The exact membership and
+    // the per-source scope are asserted by source-registry-guard.cjs; this stays a count lock
+    // so a silent addition here is visible in the audit too.
+    if (adult.length){ info('SITES_ADULT (' + adult.length + '): ' + adult.join(', ')); if (adult.length===22) pass('SITES_ADULT count = 22'); else warn('SITES_ADULT count = ' + adult.length + ' (expected 22 -- update deliberately)'); }
     else warn('could not extract SITES_ADULT');
     if (minor.length){ info('SITES_MINOR (' + minor.length + '): ' + minor.join(', ')); if (minor.length===2) pass('SITES_MINOR count = 2 (matches handoff)'); else warn('SITES_MINOR count = ' + minor.length + ' (handoff says 2)'); }
     else warn('could not extract SITES_MINOR');

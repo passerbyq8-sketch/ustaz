@@ -64,19 +64,6 @@ const CASES = [
   ['salafcenter.org', 'READER submission', 'https://salafcenter.org/10881/', false],
   ['salafcenter.org', 'category listing', 'https://salafcenter.org/category/%d9%85%d9%82%d8%a7%d9%84%d8%a7%d8%aa-%d8%a7%d9%84%d9%85%d8%b4%d8%b1%d9%81/', false],
 
-  ['tafsir.net', 'tafsir article (named author)', 'https://tafsir.net/articles/24811', true],
-  ['tafsir.net', 'second article', 'https://tafsir.net/articles/24805', true],
-  ['tafsir.net', 'author profile page', 'https://tafsir.net/authors/24813', false],
-  ['tafsir.net', 'collection listing', 'https://tafsir.net/collection/656', false],
-  ['tafsir.net', 'PDF-stub research page', 'https://tafsir.net/researchs/24780', false],
-  ['tafsir.net', 'home page', 'https://tafsir.net/', false],
-
-  ['al-abbaad.com', 'single article', 'https://al-abbaad.com/articles/607420', true],
-  ['al-abbaad.com', 'second article', 'https://al-abbaad.com/articles/607419', true],
-  ['al-abbaad.com', 'lesson catalogue', 'https://al-abbaad.com/lecture/hadith', false],
-  ['al-abbaad.com', 'book shelf', 'https://al-abbaad.com/books/book-titles', false],
-  ['al-abbaad.com', 'home page', 'https://al-abbaad.com/', false],
-
   // The refused row, checked so that the day it comes back is noticed rather than assumed.
   ['shkhudheir.com', 'parked domain (must stay unusable)', 'https://shkhudheir.com/', false],
 ];
