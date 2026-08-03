@@ -216,8 +216,10 @@ button:active{transform:scale(.97)}   /* اللمسةُ نفسُها التي ف
 .btn:hover{transform:translateY(-2px);border-color:var(--honey)}
 .btn:active{transform:translateY(0) scale(.97)}
 .btn:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
-.btn.primary{background:linear-gradient(180deg,var(--honey),var(--honey2));color:#2A2118;border-color:var(--honey2);
-  box-shadow:0 3px 0 color-mix(in srgb,var(--honey2) 70%,#000)}
+/* S115: one flat accent surface. The gradient pill and its hard drop shadow are what made every
+   screen on this page look like a different app from the map. */
+.btn.primary{background:var(--palm);color:var(--paper);border-color:var(--palm);box-shadow:none}
+.btn.primary:hover{border-color:var(--palm)}
 .btn.quiet{background:transparent;box-shadow:none}
 .btn.sm{padding:10px 17px;font-size:15px;min-height:42px}
 .btn.wide{width:100%;justify-content:center;display:flex}
@@ -481,6 +483,44 @@ input:focus-visible,select:focus-visible{outline:3px solid var(--honey);outline-
 .nav button .ic svg{display:block}
 .nav button[aria-current="true"]{color:var(--honey2)}
 
+/* ==========================================================================
+   S115 -- THE ISTANA VIEWS.
+
+   The map was moved onto the identity in S104; everything else on this page kept the honey
+   idiom -- a bare h1 at the top of a scroll, a gradient pill for every primary action, and a
+   gradient progress bar during a round. This block finishes the page.
+
+   WHAT IT DOES NOT DO: it reads no data, renames no id, moves no destination and changes no
+   count. Every rule is a .ezq- class carried by a view's own root or by a piece the view
+   already built; none can match html, body or :root, none attaches an image, a gradient or a
+   repeat, none draws a ::before or ::after, and none states a colour of its own -- the tokens
+   are the ones this page already maps onto the identity at the top of the file.
+   ========================================================================== */
+.ezq{display:block}
+/* the head band: one bounded card carrying the view's OWN eyebrow, title and line. */
+.ezq-head{display:block;margin:6px 0 16px}
+.ezq-head-in{width:100%;box-sizing:border-box;display:flex;align-items:center;gap:14px;
+  padding:16px 18px;background:var(--card);border:1px solid var(--line);
+  border-radius:34px 34px var(--r) var(--r);box-shadow:var(--shadow)}
+.ezq-arch{width:22px;height:28px;flex:none;border:2px solid var(--lapis);
+  border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+.ezq-head-txt{flex:1;min-width:0}
+.ezq-head-txt h1{font-size:31px}
+.ezq-head-aside{flex:none;display:flex;align-items:center}
+/* the four mode cards: an arch holding the glyph each one already had. */
+.ezq-mode{text-align:start}
+.ezq-mode .ezq-ic{width:44px;height:54px;box-sizing:border-box;display:flex;align-items:center;
+  justify-content:center;margin-bottom:10px;border:2px solid var(--lapis);
+  border-bottom-color:var(--line);border-radius:60% 60% 14% 14%;background:var(--lapis-soft);
+  font-size:21px;line-height:1}
+/* the round: a flat bar, and a card that arches at its head like every other istana surface. */
+.ezq-play .progressbar i{background:var(--palm)}
+.ezq-play .qcard,.ezq-end .card{border-radius:30px 30px var(--r) var(--r)}
+/* the panels the remaining views are built from, bounded and never stretched. */
+.ezq .card{border-radius:26px 26px var(--r) var(--r)}
+.ezq .station{border-radius:20px 20px var(--r) var(--r)}
+.ezq .tcard,.ezq .trow,.ezq .pickcard,.ezq .tcardk,.ezq .badge,.ezq .stat{
+  border-radius:20px 20px var(--r) var(--r)}
 @media (max-width:640px){
   /* الجدولُ يصيرُ بطاقاتٍ — لا تمريرٌ أفقيٌّ ولا تقريب */
   .tbl{max-height:none;border:none;background:none}
@@ -1246,6 +1286,24 @@ const Nav = {
 };
 window.addEventListener("popstate", () => { Nav.back(); });
 
+/* S115 -- the istana view root, and the istana head band. Presentation only: `qv` creates the
+   very div each view already created and gives it a class; `qhead` lays out the eyebrow, title
+   and line the view ALREADY built, in the order it built them. Neither reads data, neither
+   invents a word, and neither touches an id, a count or a destination. */
+function qv(name) { const d = document.createElement("div"); d.className = "ezq ezq-" + name; return d; }
+function qhead(v, eyebrow, title, sub, aside) {
+  const head = el("div", "ezq-head");
+  const inn = el("div", "ezq-head-in");
+  inn.appendChild(el("span", "ezq-arch"));
+  const box = el("div", "ezq-head-txt");
+  if (eyebrow) box.appendChild(el("div", "eyebrow", eyebrow));
+  if (title) box.appendChild(el("h1", null, title));
+  if (sub) box.appendChild(el("div", "muted", sub));
+  inn.appendChild(box);
+  if (aside) { const a = el("div", "ezq-head-aside"); a.appendChild(aside); inn.appendChild(a); }
+  head.appendChild(inn); v.appendChild(head);
+  return head;
+}
 function mount(node, tab) {
   if (tab) TAB = tab;
   VIEW.innerHTML = ""; VIEW.appendChild(node);
@@ -1468,15 +1526,9 @@ const Screens = {
   region(rid) {
     Nav.push(() => Screens.region(rid));
     const r = Data.regions[rid], sts = Data.stations(rid);
-    const v = document.createElement("div");
+    const v = qv("region");
     const back = el("button", "btn quiet sm", "→ الخريطة"); back.onclick = Screens.map; v.appendChild(back);
-    const head = el("div", "worldhead"); head.style.marginTop = "10px";
-    const box = document.createElement("div");
-    box.appendChild(el("div", "eyebrow", "إقليم"));
-    box.appendChild(el("h1", null, r.name));
-    box.appendChild(el("div", "muted", "الكنز: " + (r.treasure || "—")));
-    head.appendChild(box); head.appendChild(medal(r, false));
-    v.appendChild(head);
+    qhead(v, "إقليم", r.name, "الكنز: " + (r.treasure || "—"), medal(r, false));
 
     const list = el("div", "stations");
     sts.forEach(s => {
@@ -1519,9 +1571,8 @@ const Screens = {
   /* ---------- 3.3 challenges hub ---------- */
   challenges() {
     Nav.push(() => Screens.challenges());
-    const v = document.createElement("div");
-    v.appendChild(el("div", "eyebrow", "أوضاعُ اللعب"));
-    v.appendChild(el("h1", null, "التحدّيات"));
+    const v = qv("challenges");
+    qhead(v, "أوضاعُ اللعب", "التحدّيات");
     const g = el("div", "grid g2"); g.style.marginTop = "16px";
 
     const todayDone = P.s.lastDaily === dayKey();
@@ -1533,8 +1584,8 @@ const Screens = {
     mount(v, "challenge");
   },
   _modeCard(icon, name, desc, fn) {
-    const b = el("button", "card"); b.type = "button"; b.style.textAlign = "start";
-    b.appendChild(h("div", null, "<span style='font-size:34px'>" + icon + "</span>"));
+    const b = el("button", "card ezq-mode"); b.type = "button";
+    b.appendChild(el("span", "ezq-ic", icon));
     b.appendChild(el("h3", null, name));
     b.appendChild(el("div", "tiny", desc));
     b.onclick = fn; return b;
@@ -1563,10 +1614,8 @@ const Screens = {
   teamsSetup() {
     Nav.push(() => Screens.teamsSetup());
     const T0 = Data.rewards.teams || {};
-    const v = document.createElement("div");
-    v.appendChild(el("div", "eyebrow", "وضعُ الفِرَق"));
-    v.appendChild(el("h1", null, "تحدّي العائلةِ والفِرَق"));
-    v.appendChild(el("div", "muted", "دربُ القافلة — كلُّ إجابةٍ تُقدّمُ قافلتَكم خطوات، وأوّلُ من يبلغُ الكنزَ يفوز."));
+    const v = qv("teamsSetup");
+    qhead(v, "وضعُ الفِرَق", "تحدّي العائلةِ والفِرَق", "دربُ القافلة — كلُّ إجابةٍ تُقدّمُ قافلتَكم خطوات، وأوّلُ من يبلغُ الكنزَ يفوز.");
 
     const c = el("div", "card"); c.style.marginTop = "14px";
     let n = 2, total = T0.defaultQuestions || 15;
@@ -1633,10 +1682,8 @@ const Screens = {
     const pool = Object.values(Data.regions).filter(r => !r.gen && Data.regionQuestions(r.id).length > 0);
     const chosen = new Set(Array.isArray(T.cats) ? T.cats.filter(id => pool.some(r => r.id === id)) : []);
 
-    const v = document.createElement("div");
-    v.appendChild(el("div", "eyebrow", "وضعُ الفِرَق"));
-    v.appendChild(el("h1", null, "اختاروا فئاتِ الجولة"));
-    v.appendChild(el("div", "muted", "من فئةٍ واحدةٍ إلى ستّ. تُطرَحُ أسئلةُ المختارِ وحدَه في هذه المباراة."));
+    const v = qv("teamsCats");
+    qhead(v, "وضعُ الفِرَق", "اختاروا فئاتِ الجولة", "من فئةٍ واحدةٍ إلى ستّ. تُطرَحُ أسئلةُ المختارِ وحدَه في هذه المباراة.");
 
     const counter = el("div", "tiny"); counter.style.margin = "14px 0 4px";
     const grid = el("div", "pickgrid");
@@ -1687,7 +1734,7 @@ const Screens = {
     const won = T.steps.findIndex(s => s >= T.target);
     if (won >= 0 || T.asked >= T.total) return Screens.teamsEnd(T);
 
-    const v = document.createElement("div");
+    const v = qv("teamsTrack");
     const top = el("div", "row"); top.style.alignItems = "center";
     top.appendChild(h("span", "pill", "السؤال " + ar(T.asked + 1) + " / " + ar(T.total)));
     top.appendChild(el("div", "grow"));
@@ -1744,7 +1791,7 @@ const Screens = {
     const stealSteps = Data.rewards.teams.stealSteps || 1;
     const p = Q.present(q);
 
-    const v = document.createElement("div");
+    const v = qv("teamsAsk"); v.classList.add("ezq-play");
     const top = el("div", "playtop");
     top.appendChild(h("div", "tiny", "<b>" + r.name + "</b> · الدورُ على " + T.names[T.turn]));
     top.appendChild(el("div", "grow"));
@@ -1812,7 +1859,7 @@ const Screens = {
     const max = Math.max.apply(null, T.steps);
     const win = T.names.filter((_, i) => T.steps[i] === max);
     const reached = max >= T.target;
-    const v = document.createElement("div");
+    const v = qv("teamsEnd"); v.classList.add("ezq-end");
     const r = el("div", "res");
     r.appendChild(el("div", "eyebrow", reached ? "بلغتِ القافلةُ الكنز" : "انتهتِ الأسئلة"));
     r.appendChild(el("div", "big", win.length > 1 ? "تعادُل" : win[0]));
@@ -1836,10 +1883,8 @@ const Screens = {
   /* ---------- 3.7 collection book ---------- */
   book() {
     Nav.push(() => Screens.book());
-    const v = document.createElement("div");
-    v.appendChild(el("div", "eyebrow", "كتابُ الكنوز"));
-    v.appendChild(el("h1", null, "ما تعلّمتَه"));
-    v.appendChild(el("div", "muted", "كلُّ إجابةٍ صحيحةٍ تُضيفُ بطاقةَ فائدةٍ هنا."));
+    const v = qv("book");
+    qhead(v, "كتابُ الكنوز", "ما تعلّمتَه", "كلُّ إجابةٍ صحيحةٍ تُضيفُ بطاقةَ فائدةٍ هنا.");
     const stats = el("div", "stats"); stats.style.marginTop = "16px";
     const add = (lab, val) => { const d = el("div", "stat"); d.appendChild(el("b", null, ar(val))); d.appendChild(el("span", "tiny", lab)); stats.appendChild(d); };
     add("بطاقة", P.s.collection.length);
@@ -1875,9 +1920,8 @@ const Screens = {
   /* ---------- 3.8 profile ---------- */
   profile() {
     Nav.push(() => Screens.profile());
-    const v = document.createElement("div");
-    v.appendChild(el("div", "eyebrow", "الملفّ"));
-    v.appendChild(el("h1", null, "أنا"));
+    const v = qv("profile");
+    qhead(v, "الملفّ", "أنا");
 
     const c = el("div", "card"); c.style.marginTop = "14px";
     const ring = el("div", "lvl-ring"); ring.style.setProperty("--p", P.levelPct());
@@ -1944,9 +1988,8 @@ const Screens = {
   /* ---------- 3.9 settings ---------- */
   settings() {
     Nav.push(() => Screens.settings());
-    const v = document.createElement("div");
-    v.appendChild(el("div", "eyebrow", "ضبط"));
-    v.appendChild(el("h1", null, "الإعدادات"));
+    const v = qv("settings");
+    qhead(v, "ضبط", "الإعدادات");
 
     const c = el("div", "card"); c.style.marginTop = "14px";
     c.appendChild(el("h3", null, "الفئةُ العمريّة"));
@@ -2040,9 +2083,9 @@ const Screens = {
   /* ---------- 3.10 bank inspector ---------- */
   inspect() {
     Nav.push(() => Screens.inspect());
-    const v = document.createElement("div");
+    const v = qv("inspect");
     const back = el("button", "btn quiet sm", "→ التحدّيات"); back.onclick = Screens.challenges; v.appendChild(back);
-    v.appendChild(el("h1", null, "تدقيقُ البنك"));
+    qhead(v, null, "تدقيقُ البنك");
     const qs = Data.bank.questions || [];
     const flagged = qs.filter(q => /يُراجَع/.test(String(q.src || "")));
     const drafts = qs.filter(q => q.status !== "approved");
@@ -2137,7 +2180,7 @@ const Round = {
     if (st.i >= cfg.list.length || st.done) return this.finish();
     const q = cfg.list[st.i], p = Q.present(q);
 
-    const v = document.createElement("div");
+    const v = qv("play");
     const top = el("div", "playtop");
     const quit = el("button", "btn quiet sm", "✕"); quit.onclick = () => { this.stopTimer(); cfg.onEnd && cfg.onEnd(); };
     top.appendChild(quit);
@@ -2232,7 +2275,7 @@ const Round = {
       unlocks = Rewards.check();
     }
 
-    const v = document.createElement("div");
+    const v = qv("end");
     const r = el("div", "res");
     r.appendChild(el("div", "eyebrow", cfg.title));
     if (cfg.kind === "speed") {

@@ -912,6 +912,86 @@
   .ezfav-empty-in{width:15px;height:20px;box-sizing:border-box;border:2px solid var(--a3-cyan);
     border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
   .ezfav-empty-text{max-width:420px;font-size:14.5px;line-height:1.9;color:var(--a3-muted)}
+  /* ========================================================================
+     S115 -- THE LAST FOUR SCREENS AND THE THREE BARRIERS.
+
+     What is left of the pre-identity app: the boot screen, the first-run welcome, the parents'
+     panel and its PIN gate, and the three barriers that stand in front of the chat and the call.
+     They shared one legacy idiom -- a white card with a gradient button on a washed page, and a
+     strip header borrowed from the dashboard -- and this block replaces it with three bounded
+     istana vocabularies. Nothing about what any of them DOES is here: not a handler, not a
+     condition, not a step, not a storage key, not a word.
+
+     FOUR VOCABULARIES, deliberately separate rather than one shared blob:
+       .ezload-  the boot mark
+       .ezonb-   the first-run welcome
+       .ezgate-  the card family: the two PIN gates, the three barriers, the two modals
+       .ezparent- the parents' panel
+     None of them can match html, body or :root, none attaches an image, a gradient or a repeat,
+     none draws a ::before or ::after, and none states a colour of its own except the two scrims,
+     which need an alpha no token carries. Colour comes from the a3 set, in scope because every
+     root below carries .ezhome.
+     ===================================================================== */
+  .ezload,.ezonb,.ezgate,.ezparent{--ezg-scrim:rgba(11,36,85,0.42)}
+  :root[data-theme="dark"] .ezload,:root[data-theme="dark"] .ezonb,
+  :root[data-theme="dark"] .ezgate,:root[data-theme="dark"] .ezparent{--ezg-scrim:rgba(2,8,14,0.66)}
+  /* 1. THE BOOT MARK. One bounded arch, centred. It keeps the SHIPPED animation on the SHIPPED
+     style key, so reduced motion behaves exactly as it did -- this changes what pulses, never
+     whether it pulses. */
+  .ezload-mark{width:58px;height:70px;box-sizing:border-box;display:flex;align-items:center;
+    justify-content:center;border:2px solid var(--a3-blue);border-bottom-color:var(--a3-line);
+    border-radius:60% 60% 14% 14%;background:var(--a3-ice)}
+  .ezload-mark-in{width:15px;height:20px;box-sizing:border-box;border:2px solid var(--a3-cyan);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  /* 2. THE FIRST-RUN WELCOME. Same steps, same order, same fields -- on a bounded card with an
+     arch instead of a red square. */
+  .ezonb-card{width:100%;max-width:400px;box-sizing:border-box;margin:0 auto;padding:28px 22px 24px;
+    background:var(--a3-surface);border:1px solid var(--a3-line);
+    border-radius:44px 44px 18px 18px;box-shadow:var(--a3-shadow);text-align:center}
+  .ezonb-crest{width:78px;height:92px;margin:0 auto 18px;box-sizing:border-box;display:flex;
+    align-items:center;justify-content:center;border:2px solid var(--a3-blue);
+    border-bottom-color:var(--a3-line);border-radius:60% 60% 16% 16%;background:var(--a3-ice)}
+  .ezonb-row{display:flex;gap:12px;margin-bottom:16px}
+  .ezonb-row>*{flex:1;min-width:0}
+  /* 3. THE CARD FAMILY. One bounded card, centred on the page, for every gate and every notice.
+     The glyph each of them shipped with is kept -- it is what tells a lock from a speaker from a
+     bulb -- and it is bounded INSIDE the arch rather than floating at 64px above the title. */
+  .ezgate-wrap{min-height:100%;box-sizing:border-box;display:flex;align-items:center;
+    justify-content:center;padding:24px}
+  .ezgate-scrim{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;
+    justify-content:center;padding:20px;background:var(--ezg-scrim)}
+  .ezgate-card{width:100%;max-width:420px;box-sizing:border-box;padding:26px 22px 20px;
+    background:var(--a3-surface);border:1px solid var(--a3-line);
+    border-radius:40px 40px 18px 18px;box-shadow:var(--a3-shadow);text-align:center}
+  .ezgate-card.is-modal{max-width:360px}
+  .ezgate-crest{width:62px;height:74px;margin:0 auto 12px;box-sizing:border-box;display:flex;
+    align-items:center;justify-content:center;border:2px solid var(--a3-blue);
+    border-bottom-color:var(--a3-line);border-radius:60% 60% 14% 14%;background:var(--a3-ice)}
+  .ezgate-err{margin:-6px 0 10px;font-size:14px;line-height:1.8;color:var(--a3-cyan)}
+  .ezgate-sum{margin:12px 0;font-size:30px;font-weight:800;letter-spacing:0.08em;
+    direction:ltr;color:var(--a3-ink)}
+  /* 4. THE PARENTS' PANEL. A bounded rail and a bounded column of cards, in place of the strip
+     header and the edge-to-edge stack. */
+  .ezparent-rail{flex-shrink:0;display:flex;justify-content:center;box-sizing:border-box;
+    padding:calc(8px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px))
+      8px calc(12px + env(safe-area-inset-left,0px))}
+  .ezparent-rail-inner{width:100%;max-width:900px;box-sizing:border-box;display:flex;
+    align-items:center;gap:10px;min-height:52px;padding:5px 8px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);border-radius:20px 20px 13px 13px;box-shadow:var(--a3-shadow)}
+  .ezparent-back{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+    min-height:44px;padding:0 12px;border-radius:12px;background:transparent;
+    border:1px solid transparent;color:var(--a3-ink);cursor:pointer;
+    font-family:var(--ez-ui-font);font-size:15px;font-weight:700;line-height:1}
+  .ezparent-back:hover{background:var(--a3-ice)}
+  .ezparent-back:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  .ezparent-brand{display:flex;align-items:center;gap:8px;flex:1;min-width:0;
+    font-family:var(--ez-ui-font);font-weight:800;font-size:16.5px;color:var(--a3-ink)}
+  .ezparent-arch{width:14px;height:18px;flex-shrink:0;border:2px solid var(--a3-blue);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezparent-wrap{width:100%;max-width:900px;margin:0 auto;box-sizing:border-box}
+  .ezparent-head{display:flex;align-items:center;gap:8px;padding:0 4px 8px}
+  .ezparent-mark{width:11px;height:14px;flex-shrink:0;border:2px solid var(--a3-cyan);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -7768,7 +7848,10 @@ function App() {
   // nobody is wiped or forced to re-onboard. Gated on `profile` so it lands at the END of onboarding
   // (right after the profile is created), before entering -- never over the onboarding form itself.
   if (profile && !disclosureAck) return <DisclosureGate onAck={ackDisclosure} />;
-  if (screen === 'loading') return <div style={s.loadingScreen}><div style={s.loadingSpinner}>✨</div></div>;
+  // S115: the boot mark is a bounded arch instead of a 48px emoji. The animation, its keyframe,
+  // its duration and the style key that carries it are the ones that shipped, so reduced motion
+  // behaves exactly as it did and no timer, wait or step was added to the boot.
+  if (screen === 'loading') return <div className="theme-dark ezhome ezload" style={s.loadingScreen}><div style={s.loadingSpinner} className="ezload-mark" aria-hidden="true"><span className="ezload-mark-in" /></div></div>;
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
   // قفل الإنفاق: المطالبة تظهر فقط أمام الشاشتين اللتين تُنفقان (المحادثة/المكالمة) وحين يكون القفل مفعّلاً وغير مفتوح.
   // القفل المُعطَّل (٦٤ صفراً) ⇒ spendGateOpenState=true دائماً ⇒ لا تظهر هذه السطر أبداً. أما 0b (المصحف/المحفّظ/الأذكار) فتبقى مفتوحة.
@@ -9623,16 +9706,16 @@ function AdultGate({ a, b, onPass, onCancel }) {
     else { setError(true); setTimeout(() => setError(false), 1500); }
   };
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: "rgba(30,30,30,0.6)" }}>
-      <div style={{ ...s.onboardingCard, maxWidth: 360 }}>
-        <div style={s.bigEmoji}>🔒</div>
+    <div className="theme-dark ezhome ezgate ezgate-scrim">
+      <div className="ezgate-card is-modal" style={s.onboardingCard}>
+        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>🔒</span></div>
         <div style={s.onboardingTitle}>تأكيد ولي الأمر</div>
         <div style={s.onboardingSubtitle}>هذا القسم مخصّص للكبار. للتأكيد أنّ وليًّا حاضر، احسب الناتج:</div>
-        <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: "0.08em", margin: "12px 0", color: "#12327A", direction: "ltr" }}>{a} × {b}</div>
-        <input type="text" inputMode="numeric" value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="الجواب" autoFocus style={{ ...s.onboardingInput, textAlign: "center", borderColor: error ? "#C44536" : "#E5EBF5" }} />
-        {error && <div style={{ color: "#C44536", fontSize: 14, marginTop: -4, marginBottom: 8 }}>جواب غير صحيح، حاول مرة أخرى</div>}
+        <div className="ezgate-sum">{a} × {b}</div>
+        <input type="text" inputMode="numeric" value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="الجواب" autoFocus style={{ ...s.onboardingInput, textAlign: "center", borderColor: error ? "var(--a3-cyan)" : "var(--a3-line)" }} />
+        {error && <div className="ezgate-err">جواب غير صحيح، حاول مرة أخرى</div>}
         <button onClick={submit} style={s.primaryBtn}>تأكيد</button>
-        <button onClick={onCancel} style={{ background: "none", border: "none", color: "#6E6E6E", fontSize: 14, marginTop: 10, cursor: "pointer" }}>رجوع</button>
+        <button onClick={onCancel} style={s.secondaryBtn}>رجوع</button>
       </div>
     </div>
   );
@@ -9643,9 +9726,9 @@ function AdultGate({ a, b, onPass, onCancel }) {
 // do not reword it. No hex: only existing style tokens + the shared backdrop rgba.
 function DisclosureGate({ onAck }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'rgba(30,30,30,0.6)' }}>
-      <div style={{ ...s.onboardingCard, maxWidth: 360 }}>
-        <div style={s.bigEmoji}>💡</div>
+    <div className="theme-dark ezhome ezgate ezgate-scrim">
+      <div className="ezgate-card is-modal" style={s.onboardingCard}>
+        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>💡</span></div>
         <div style={s.onboardingTitle}>قبل أن نبدأ</div>
         <div style={{ ...s.onboardingSubtitle, lineHeight: 1.9, marginBottom: 20 }}>عزك مساعدٌ يعمل بالذكاء الاصطناعيّ. ليس عالِمًا ولا شيخًا، وقد يُخطئ في المعلومة وفي الحكم الشرعيّ. اجعله مُعينًا لا مرجعًا — والمرجعُ أهلُ العلم.</div>
         <button onClick={onAck} style={s.primaryBtn}>فهمت</button>
@@ -9658,13 +9741,13 @@ function DisclosureGate({ onAck }) {
 // رموزُ التنسيق القائمة فقط، بلا أيّ لونٍ جديد. نصٌّ واحدٌ ثابت + زرُّ رجوعٍ ظاهر.
 function ChildVoiceNotice({ onBack }) {
   return (
-    <div style={s.onboardingContainer}>
-      <div style={s.onboardingCard}>
-        <div style={s.bigEmoji}>🔈</div>
+    <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
+      <div className="ezgate-wrap"><div className="ezgate-card" style={s.onboardingCard}>
+        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>🔈</span></div>
         <div style={s.onboardingTitle}>الصوتُ قيدَ التجهيز</div>
         <div style={{ ...s.onboardingSubtitle, lineHeight: 1.9, marginBottom: 20 }}>{CHILD_VOICE_NOTICE}</div>
         <button onClick={onBack} style={s.primaryBtn}>رجوع</button>
-      </div>
+      </div></div>
     </div>
   );
 }
@@ -9704,18 +9787,18 @@ function UnlockSheet({ onUnlocked, onBack }) {
     setPin(''); setBusy(false);
   };
   return (
-    <div style={s.onboardingContainer}>
-      <div style={s.onboardingCard}>
-        <div style={s.bigEmoji}>{'\uD83D\uDD10'}</div>
+    <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
+      <div className="ezgate-wrap"><div className="ezgate-card" style={s.onboardingCard}>
+        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>{'\uD83D\uDD10'}</span></div>
         <div style={s.onboardingTitle}>{'\u0627\u0644\u0631\u0645\u0632 \u0645\u0637\u0644\u0648\u0628'}</div>
         <div style={s.onboardingSubtitle}>{'\u0623\u062F\u062E\u0644 \u0631\u0645\u0632 \u0627\u0644\u0641\u062A\u062D \u0644\u0644\u0645\u062A\u0627\u0628\u0639\u0629.'}</div>
         <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="••••" autoFocus
-          style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: msg ? '#C44536' : '#E5EBF5' }} />
-        {msg && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8, lineHeight: 1.8 }}>{msg}</div>}
+          style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: msg ? 'var(--a3-cyan)' : 'var(--a3-line)' }} />
+        {msg && <div className="ezgate-err">{msg}</div>}
         <button onClick={submit} disabled={busy} style={{ ...s.primaryBtn, opacity: busy ? 0.5 : 1 }}>{'\u0641\u062A\u062D'}</button>
         <button onClick={onBack} style={s.secondaryBtn}>{'\u0631\u062C\u0648\u0639'}</button>
-      </div>
+      </div></div>
     </div>
   );
 }
@@ -9742,22 +9825,25 @@ function Onboarding({ onStart }) {
   };
   const submit = () => { if (canStart) requestStart(derivedAge); };
   return (
-    <div style={s.welcomeContainer}>
+    <div className="theme-dark ezhome ezonb" style={s.welcomeContainer}>
       <div style={s.welcomeInner}>
-        <div style={s.welcomeCard}>
-        {/* S13.1b-welcome-single */}
-        <div style={s.welcomeLogoSquare}>
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+        <div className="ezonb-card" style={s.welcomeCard}>
+        {/* S13.1b-welcome-single
+            S115: the 88px red square became a bounded arch holding the SAME mark. Every field,
+            every choice, their order, their validation and the single onStart call below are
+            byte-for-byte the ones that shipped. */}
+        <div className="ezonb-crest" style={s.welcomeLogoSquare}>
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--a3-blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
         </div>
         <div style={s.welcomeTitle}>عزك</div>
         <div style={s.welcomeGreeting}>أهلاً بك</div>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم" style={s.welcomeInput} autoFocus />
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-          <button onClick={() => setGender('male')} style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'male' ? 'var(--red)' : 'var(--white)', color: gender === 'male' ? '#FFF' : 'var(--ink)' }}>ذكر</button>
-          <button onClick={() => setGender('female')} style={{ ...s.welcomePrimaryBtn, flex: 1, background: gender === 'female' ? 'var(--red)' : 'var(--white)', color: gender === 'female' ? '#FFF' : 'var(--ink)' }}>أنثى</button>
+        <div className="ezonb-row">
+          <button onClick={() => setGender('male')} style={{ ...s.welcomePrimaryBtn, background: gender === 'male' ? 'var(--accent-fill)' : 'var(--a3-ice)', color: gender ==='male' ? 'var(--on-accent)' : 'var(--a3-ink)' }}>ذكر</button>
+          <button onClick={() => setGender('female')} style={{ ...s.welcomePrimaryBtn, background: gender === 'female' ? 'var(--accent-fill)' : 'var(--a3-ice)', color: gender ==='female' ? 'var(--on-accent)' : 'var(--a3-ink)' }}>أنثى</button>
         </div>
         <input value={birthYear} onChange={(e) => setBirthYear(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="سنة الميلاد — مثال ٢٠١٥" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
-        {birthYear.trim() && !ageValid && <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: -8, marginBottom: 12, textAlign: 'center' }}>اكتب سنةَ ميلادك بأربعة أرقام — مثل ٢٠١٥</div>}
+        {birthYear.trim() && !ageValid && <div className="ezgate-err">اكتب سنةَ ميلادك بأربعة أرقام — مثل ٢٠١٥</div>}
         <button onClick={submit} disabled={!canStart} className="welcome-primary" style={{ ...s.welcomePrimaryBtn, opacity: canStart ? 1 : 0.4 }}>ابدأ</button>
         </div>
       </div>
@@ -9790,17 +9876,17 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
   // ruling that no teen or adult profile faces a challenge at any point.
   if (!hasPin && !adultOk && PARENTAL_GATE_ENABLED && childProfileActive()) return <AdultGate a={challenge.a} b={challenge.b} onPass={() => setAdultOk(true)} onCancel={onBack} />;
   return (
-    <div style={s.onboardingContainer}>
-      <div style={s.onboardingCard}>
-        <div style={s.bigEmoji}>🔒</div>
+    <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
+      <div className="ezgate-wrap"><div className="ezgate-card" style={s.onboardingCard}>
+        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>🔒</span></div>
         <div style={s.onboardingTitle}>{hasPin ? 'لوحة الأهل' : 'إنشاء رمز لوحة الأهل'}</div>
         <div style={s.onboardingSubtitle}>{hasPin ? 'أدخل رمز الدخول' : 'اختر رمزاً من ٤ أرقام على الأقل — لن يُعرض، فاحفظه في مكان آمن'}</div>
-        <input type="password" inputMode="numeric" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && hasPin && verify()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? '#C44536' : '#E5EBF5' }} autoFocus />
-        {!hasPin && <input type="password" inputMode="numeric" value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && create()} placeholder="أعد الرمز" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? '#C44536' : '#E5EBF5' }} />}
-        {pinError && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>{errMsg}</div>}
+        <input type="password" inputMode="numeric" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && hasPin && verify()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? 'var(--a3-cyan)' : 'var(--a3-line)' }} autoFocus />
+        {!hasPin && <input type="password" inputMode="numeric" value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && create()} placeholder="أعد الرمز" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? 'var(--a3-cyan)' : 'var(--a3-line)' }} />}
+        {pinError && <div className="ezgate-err">{errMsg}</div>}
         <button onClick={hasPin ? verify : create} style={s.primaryBtn}>{hasPin ? 'دخول' : 'حفظ الرمز'}</button>
         <button onClick={onBack} style={s.secondaryBtn}>رجوع</button>
-      </div>
+      </div></div>
     </div>
   );
 }
@@ -9815,16 +9901,16 @@ function SpendGate({ onUnlock, onExit }) {
     setErr(true); setTimeout(() => setErr(false), 1800);
   };
   return (
-    <div style={s.onboardingContainer}>
-      <div style={s.onboardingCard}>
-        <div style={s.bigEmoji}>🔒</div>
+    <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
+      <div className="ezgate-wrap"><div className="ezgate-card" style={s.onboardingCard}>
+        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>🔒</span></div>
         <div style={s.onboardingTitle}>رمز الدخول</div>
         <div style={s.onboardingSubtitle}>أدخل رمز الدخول لتفعيل المحادثة</div>
-        <input type="password" inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: err ? '#C44536' : '#E5EBF5' }} autoFocus />
-        {err && <div style={{ color: '#C44536', fontSize: 14, marginTop: -8, marginBottom: 8 }}>رمز خاطئ</div>}
+        <input type="password" inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: err ? 'var(--a3-cyan)' : 'var(--a3-line)' }} autoFocus />
+        {err && <div className="ezgate-err">رمز خاطئ</div>}
         <button onClick={submit} style={s.primaryBtn}>دخول</button>
         <button onClick={onExit} style={s.secondaryBtn}>رجوع</button>
-      </div>
+      </div></div>
     </div>
   );
 }
@@ -10059,28 +10145,37 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
   // parent-gated for it), so the toggle is shown only for young. profile is already in scope.
   const isYoung = deriveCaps(profile?.age).band === 'young';
   return (
-    <div style={s.dashboardContainer}>
-      <div style={s.dashboardHeader}>
-        <button onClick={onBack} style={s.backBtn}>← رجوع</button>
-        <div style={s.dashboardTitle}>لوحة الأهل</div>
+    <div className="theme-dark ezhome ezparent" style={s.dashboardContainer}>
+      {/* S115: a bounded rail in place of the strip header. The back control is the shipped one,
+          text and all; every row below shows exactly what it always showed, read from exactly
+          where it always read it, and nothing that was hidden is now revealed. */}
+      <div className="ezparent-rail">
+        <div className="ezparent-rail-inner">
+          <button onClick={onBack} className="ezparent-back">← رجوع</button>
+          <span className="ezparent-brand">
+            <span className="ezparent-arch" aria-hidden="true" />
+            <span>لوحة الأهل</span>
+          </span>
+        </div>
       </div>
       <div style={s.dashboardContent}>
+       <div className="ezparent-wrap">
         <div style={s.dashboardCard}>
-          <div style={s.dashboardLabel}>الطفل</div>
+          <div className="ezparent-head"><span className="ezparent-mark" aria-hidden="true" /><div style={s.dashboardLabel}>الطفل</div></div>
           <div style={s.dashboardValue}>{profile?.name} — {profile?.age} سنة</div>
         </div>
         <div style={s.dashboardCard}>
-          <div style={s.dashboardLabel}>عدد الرسائل</div>
+          <div className="ezparent-head"><span className="ezparent-mark" aria-hidden="true" /><div style={s.dashboardLabel}>عدد الرسائل</div></div>
           <div style={s.dashboardValue}>{messages.length} رسالة</div>
         </div>
         {isYoung && (
         <div style={s.dashboardCard}>
-          <div style={s.dashboardLabel}>المحادثة المباشرة</div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div className="ezparent-head"><span className="ezparent-mark" aria-hidden="true" /><div style={s.dashboardLabel}>المحادثة المباشرة</div></div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div style={s.dashboardValue}>{directConvoLocked ? '🔒 مقفلة' : '🔓 مفتوحة'}</div>
             <button
               onClick={onToggleDirectConvo}
-              style={{ background: directConvoLocked ? '#C44536' : '#12327A', color: '#FFFFFF', border: 'none', borderRadius: 10, padding: '9px 16px', fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ background: directConvoLocked ? 'var(--red-lift)' : 'var(--accent-fill)', color: directConvoLocked ? 'var(--a3-navy)' : 'var(--on-accent)', border: 'none', borderRadius: 12, padding: '10px 16px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
             >
               {directConvoLocked ? 'فتح المحادثة المباشرة' : 'قفل المحادثة المباشرة'}
             </button>
@@ -10088,13 +10183,13 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
         </div>
         )}
         <div style={s.dashboardCard}>
-          <div style={s.dashboardLabel}>سجل المحادثات</div>
+          <div className="ezparent-head"><span className="ezparent-mark" aria-hidden="true" /><div style={s.dashboardLabel}>سجل المحادثات</div></div>
           <div style={s.conversationLog}>
             {messages.length === 0 ? (
-              <div style={{ color: '#6E6E6E', textAlign: 'center', padding: 20 }}>لا توجد محادثات بعد</div>
+              <div style={s.dashboardEmpty}>لا توجد محادثات بعد</div>
             ) : (
               messages.map((m, i) => (
-                <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? '#E5EBF5' : '#E6EEFB' }}>
+                <div key={i} style={{ ...s.logEntry, backgroundColor: m.role === 'user' ? 'var(--a3-ice)' : 'var(--a3-soft)' }}>
                   <div style={s.logRole}>{m.role === 'user' ? `👶 ${profile?.name}` : (profile?.gender === 'female' ? '👩‍🏫 عزك' : '👨‍🏫 عزك')}</div>
                   <div style={s.logContent}>{m.role === 'assistant' ? formatForLog(m.content) : contentToText(m.content)}</div>
                   <div style={s.logTime}>{new Date(m.timestamp).toLocaleString('ar-SA')}</div>
@@ -10104,9 +10199,10 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
           </div>
         </div>
         <button onClick={onReset} style={s.dangerBtn}>
-          <ResetIcon size={16} color="#C44536" />
+          <ResetIcon size={16} color="var(--red-lift)" />
           <span style={{ marginRight: 8 }}>حذف كل البيانات وإعادة البدء</span>
         </button>
+       </div>
       </div>
     </div>
   );
@@ -12197,19 +12293,28 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 // الأنماط
 // ============================================================
 const s = {
+  // S115: the boot mark keeps its key and its animation -- only the 48px emoji it used to size is
+  // gone, so reduced motion, the keyframe and the duration are all untouched.
   loadingScreen: { minHeight: '100vh', background: 'var(--boot-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  loadingSpinner: { fontSize: 48, animation: 'pulse 1.5s ease-in-out infinite' },
+  loadingSpinner: { animation: 'pulse 1.5s ease-in-out infinite' },
   // S95. Onboarding was written entirely in literals, so it stayed light for a user who had
   // already chosen dark -- and it is the FIRST screen they see. Every literal below is replaced
   // by the token whose LIGHT value is that exact literal, so light renders byte-for-byte as it
   // did. The container's gradient is literally --boot-bg, the same paint the pre-React boot uses.
   onboardingContainer: { height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'var(--boot-bg)' },
   onboardingInner: { minHeight: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'safe center', alignItems: 'center', padding: 20 },
-  onboardingCard: { background: 'var(--white)', borderRadius: 28, padding: 32, maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(18, 50, 122, 0.15)', textAlign: 'center', border: '1px solid var(--line)' },
-  bigEmoji: { fontSize: 64, marginBottom: 16, animation: 'fadeIn 0.5s ease-out' },
-  onboardingTitle: { fontSize: 26, fontWeight: 800, color: 'var(--accent-ink)', marginBottom: 12 },
-  onboardingSubtitle: { fontSize: 16, color: 'var(--muted)', marginBottom: 24, lineHeight: 1.6 },
-  onboardingInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 16, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
+  // S115: THE CARD FAMILY. The rounded white box with the 20px navy drop shadow and the 64px
+  // glyph above it is gone; .ezgate-card in <style> owns the surface, the arch and the bounds,
+  // and these keys are what is left -- the type inside it, every value a token. The glyph each
+  // gate shipped with is kept and bounded inside the arch, at a size that belongs to a card.
+  // No width and no max-width here ON PURPOSE: .ezgate-card bounds the card to 420px (360 for the
+  // two modals) and an inline width would beat that at every viewport -- which is exactly the
+  // defect the wide-screen pass caught before this line was written.
+  onboardingCard: { padding: 0, textAlign: 'center', background: 'transparent', border: 'none' },
+  bigEmoji: { fontSize: 26, lineHeight: 1, animation: 'fadeIn 0.5s ease-out' },
+  onboardingTitle: { fontSize: 24, fontWeight: 800, color: 'var(--a3-ink)', marginBottom: 10 },
+  onboardingSubtitle: { fontSize: 15.5, color: 'var(--a3-muted)', marginBottom: 20, lineHeight: 1.8 },
+  onboardingInput: { width: '100%', padding: '15px 18px', fontSize: 18, borderRadius: 16, border: '2px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
   ageGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
   ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--accent-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   ageBtnActive: { background: 'var(--red-deep)', color: 'var(--on-accent)', borderColor: 'var(--red-deep)', transform: 'scale(1.05)' },
@@ -12218,14 +12323,16 @@ const s = {
   welcomeContainer: { minHeight: '100dvh', height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'var(--welcome-bg)' },
   welcomeInner: { minHeight: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'safe center', alignItems: 'center', padding: 24 },
   welcomeCard: { width: '100%', maxWidth: 380, textAlign: 'center' },
-  welcomeLogoSquare: { width: 88, height: 88, borderRadius: 'var(--radius-card)', background: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px' },
-  welcomeTitle: { fontSize: 34, fontWeight: 800, color: 'var(--welcome-ink)', marginBottom: 18, letterSpacing: '-0.5px' },
+  // S115: the red square is an arch now, and .ezonb-crest in <style> owns its geometry -- the key
+  // stays because it is what the mark is spread from, and it declares no colour any more.
+  welcomeLogoSquare: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  welcomeTitle: { fontSize: 32, fontWeight: 800, color: 'var(--welcome-ink)', marginBottom: 14, letterSpacing: '-0.5px' },
   welcomeGreeting: { fontSize: 16, fontWeight: 500, color: 'var(--welcome-ink2)', marginBottom: 28 },
   welcomeEmoji: { fontSize: 56, marginBottom: 14, animation: 'fadeIn 0.5s ease-out' },
   welcomeStepTitle: { fontSize: 25, fontWeight: 800, color: 'var(--welcome-ink)', marginBottom: 12 },
   welcomeSubtitle: { fontSize: 15.5, color: 'var(--welcome-ink2)', marginBottom: 22, lineHeight: 1.6 },
-  welcomeInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 'var(--radius-btn)', border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
-  welcomePrimaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 'var(--radius-btn)', background: 'var(--red)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  welcomeInput: { width: '100%', padding: '15px 18px', fontSize: 18, borderRadius: 16, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
+  welcomePrimaryBtn: { width: '100%', padding: '15px', fontSize: 17, fontWeight: 700, borderRadius: '22px 22px 15px 15px', background: 'var(--accent-fill)', color: 'var(--on-accent)', border: '1px solid var(--a3-line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   welcomeAgeGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
   welcomeAgeBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   welcomeAgeBtnActive: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red)', transform: 'scale(1.05)' },
@@ -12563,8 +12670,10 @@ const s = {
   vtpQCard: { position: 'absolute', top: 20, left: 9, right: 9, bottom: 8, borderRadius: 10, background: 'var(--vtp-q-surface)', border: '1px solid var(--vtp-q-line)' },
   // the signature arch, shown rather than described.
   vtpICard: { position: 'absolute', top: 20, left: 9, right: 9, bottom: 8, borderRadius: '22px 22px 10px 10px', background: 'var(--vtp-i-surface)', border: '1px solid var(--vtp-i-line)' },
-  primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #1D4ED8 0%, #12327A 100%)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', boxShadow: '0 8px 24px rgba(18, 50, 122, 0.3)' },
-  secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6E6E6E', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', marginTop: 8 },
+  // S115: the gradient pill and its 24px navy glow are gone. One flat accent surface, an arch at
+  // its outer edge, and a quiet second action beneath it -- both tokens, both in every mode.
+  primaryBtn: { width: '100%', padding: '15px', fontSize: 17, fontWeight: 700, borderRadius: '22px 22px 15px 15px', background: 'var(--accent-fill)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  secondaryBtn: { width: '100%', padding: '13px', fontSize: 15.5, fontWeight: 700, borderRadius: 15, background: 'transparent', color: 'var(--a3-muted)', border: '1px solid var(--a3-line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', marginTop: 8 },
 
   // ===== شاشة الدردشة — S112 ISTANA =====
   // THE NAVY MASTHEAD IS GONE, KEYS AND ALL. `header`, `settingsBtn`, and the `headerContent` /
@@ -12778,20 +12887,24 @@ const s = {
   toolBtn: { width: 44, height: 44, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 
   // ===== لوحة الأهل =====
-  dashboardContainer: { minHeight: '100vh', background: 'var(--page)' },
-  dashboardHeader: { display: 'flex', alignItems: 'center', padding: '14px 18px', background: 'var(--white)', borderBottom: '1px solid var(--line)', gap: 12 },
-  backBtn: { background: 'transparent', border: 'none', color: 'var(--accent-ink)', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
-  dashboardTitle: { fontSize: 18, fontWeight: 800, color: 'var(--accent-ink)' },
-  dashboardContent: { padding: 16, display: 'flex', flexDirection: 'column', gap: 12 },
-  dashboardCard: { background: 'var(--white)', borderRadius: 16, padding: 18, border: '1px solid var(--line)' },
-  dashboardLabel: { fontSize: 13, color: 'var(--muted)', marginBottom: 6, fontWeight: 600 },
-  dashboardValue: { fontSize: 17, fontWeight: 700, color: 'var(--accent-ink)' },
+  // S115: the parents' panel. The strip header it shared with the favourites screen is gone --
+  // .ezparent-rail replaced it -- and every literal below became a token, so the panel has a real
+  // dark face for the first time. Not a row, not a value and not a reader moved.
+  dashboardContainer: { height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)' },
+  dashboardEmpty: { color: 'var(--a3-muted)', textAlign: 'center', padding: 20 },
+  // `dashboardHeader`, `backBtn` and `dashboardTitle` are GONE with the strip they drew. They were
+  // the last shared piece of the pre-identity chrome, borrowed by two screens; both have their own
+  // bounded rail now, and a strip nobody can spread cannot come back by accident.
+  dashboardContent: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 14px calc(18px + env(safe-area-inset-bottom, 0px))' },
+  dashboardCard: { background: 'var(--a3-surface)', borderRadius: '24px 24px 16px 16px', padding: 18, border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', marginBottom: 12 },
+  dashboardLabel: { fontSize: 13, color: 'var(--a3-muted)', fontWeight: 700 },
+  dashboardValue: { fontSize: 17, fontWeight: 700, color: 'var(--a3-ink)' },
   conversationLog: { maxHeight: 400, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 },
   logEntry: { padding: 12, borderRadius: 12, fontSize: 14 },
-  logRole: { fontWeight: 700, color: 'var(--accent-ink)', fontSize: 13, marginBottom: 6 },
-  logContent: { color: 'var(--ink)', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
-  logTime: { fontSize: 11, color: 'var(--muted)', marginTop: 6 },
-  dangerBtn: { padding: 14, background: 'transparent', color: '#C44536', border: '1px solid #C44536', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  logRole: { fontWeight: 700, color: 'var(--a3-ink)', fontSize: 13, marginBottom: 6 },
+  logContent: { color: 'var(--a3-ink)', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
+  logTime: { fontSize: 11, color: 'var(--a3-muted)', marginTop: 6 },
+  dangerBtn: { width: '100%', padding: 14, background: 'transparent', color: 'var(--red-lift)', border: '1px solid var(--red-lift)', borderRadius: '20px 20px 14px 14px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
 
   // ===== Live call screen (Layer 1 — UI only) =====
   // ===== شاشة المحفّظ =====

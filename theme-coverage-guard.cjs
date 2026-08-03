@@ -1210,15 +1210,17 @@ ok('the presentation writes no progress of its own',
 console.log('\n=== K. THE REACHABLE-SCREEN INVENTORY ===');
 
 const INDEX_SCREENS = {
-  loading:         { render: 'inline loadingScreen', shell: 'legacy' },
-  onboarding:      { render: 'Onboarding / Welcome', shell: 'legacy' },
+  // S115: the last four. Each is classified istana because the checks in group Q pass, not
+  // because someone edited these lines; Q1 asserts every one of those bindings directly.
+  loading:         { render: 'inline loadingScreen -> .ezload mark', shell: 'istana' },
+  onboarding:      { render: 'Onboarding / Welcome -> .ezonb card', shell: 'istana' },
   home:            { render: 'Home -> EzikIstanaHome', shell: 'istana' },
   // S112: the chat body moved onto its own istana structure -- .ezc-rail / .ezc-scroll /
   // .ezc-dock / .ezc-drawer. It is classified istana because the checks in group N pass, not
   // because someone edited this line; N1 asserts that binding directly.
   chat:            { render: 'the chat body (App fall-through) -> .ezc rail + transcript + dock + drawer', shell: 'istana' },
-  parentGate:      { render: 'ParentGate', shell: 'legacy' },
-  parentDashboard: { render: 'ParentDashboard', shell: 'legacy' },
+  parentGate:      { render: 'ParentGate -> .ezgate card', shell: 'istana' },
+  parentDashboard: { render: 'ParentDashboard -> .ezparent rail + cards', shell: 'istana' },
   settings:        { render: 'SettingsSheet -> EzShell', shell: 'istana' },
   // S114: the saved answers moved onto their own istana structure -- .ezfav-rail / .ezfav-masthead
   // / .ezfav-cat. Classified istana because the checks in group P pass, not because someone edited
@@ -1240,9 +1242,11 @@ const INDEX_SCREENS = {
 // Screens the switch reaches WITHOUT a screen key of their own -- guards and gates in front of
 // another screen. They are reachable, so they are inventoried.
 const INDEX_INTERSTITIALS = {
-  SpendGate:        { shell: 'legacy', note: 'disabled by its own kill switch, still reachable code' },
-  ChildVoiceNotice: { shell: 'legacy', note: 'stands in front of the call screen' },
-  UnlockSheet:      { shell: 'legacy', note: 'stands in front of the call screen' },
+  // S115: the three barriers move onto the card family with the two PIN gates. Their conditions,
+  // their order and their handlers are frozen in group Q; only the card they draw on is new.
+  SpendGate:        { shell: 'istana', note: 'disabled by its own kill switch, still reachable code' },
+  ChildVoiceNotice: { shell: 'istana', note: 'stands in front of the call screen' },
+  UnlockSheet:      { shell: 'istana', note: 'stands in front of the call screen' },
 };
 
 // PARSED FROM THE SHIPPED FILE, not from the table above.
@@ -1267,14 +1271,25 @@ for (const name of Object.keys(INDEX_INTERSTITIALS)) {
 const QUEST_SCREENS = {
   map:        { shell: 'istana', note: 'S104 category map' },
   _regionCard:{ shell: 'istana', note: 'the card builder the map uses' },
-  region:     { shell: 'legacy' }, startStation: { shell: 'legacy' },
-  challenges: { shell: 'legacy' }, _modeCard:   { shell: 'legacy' },
-  daily:      { shell: 'legacy' }, speed:       { shell: 'legacy' },
-  teamsSetup: { shell: 'legacy' }, teamsCats:   { shell: 'legacy' },
-  teamsTrack: { shell: 'legacy' }, teamsAsk:    { shell: 'legacy' },
-  teamsEnd:   { shell: 'legacy' }, book:        { shell: 'legacy' },
-  profile:    { shell: 'legacy' }, settings:    { shell: 'legacy' },
-  inspect:    { shell: 'legacy' },
+  // S115: the remaining fifteen. Eleven RENDER a view and carry .ezq on its root; three are
+  // LAUNCHERS whose presentation is the round itself (.ezq-play / .ezq-end), and one is the card
+  // builder the challenges hub uses (.ezq-mode). Every one is bound in group R, and the three
+  // launchers are bound through the surface they actually open.
+  region:     { shell: 'istana', root: 'ezq-region' },
+  startStation: { shell: 'istana', via: 'ezq-play' },
+  challenges: { shell: 'istana', root: 'ezq-challenges' },
+  _modeCard:  { shell: 'istana', root: 'ezq-mode' },
+  daily:      { shell: 'istana', via: 'ezq-play' },
+  speed:      { shell: 'istana', via: 'ezq-play' },
+  teamsSetup: { shell: 'istana', root: 'ezq-teamsSetup' },
+  teamsCats:  { shell: 'istana', root: 'ezq-teamsCats' },
+  teamsTrack: { shell: 'istana', root: 'ezq-teamsTrack' },
+  teamsAsk:   { shell: 'istana', root: 'ezq-teamsAsk' },
+  teamsEnd:   { shell: 'istana', root: 'ezq-teamsEnd' },
+  book:       { shell: 'istana', root: 'ezq-book' },
+  profile:    { shell: 'istana', root: 'ezq-profile' },
+  settings:   { shell: 'istana', root: 'ezq-settings' },
+  inspect:    { shell: 'istana', root: 'ezq-inspect' },
 };
 // bounded to the Screens object itself: an unbounded slice ran to end of file and swept in
 // the play engine own methods (start, judge, render, finish...), which are not screens.
@@ -1293,23 +1308,24 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('exactly 8 index screens are istana after this commit', idxIstana.length, 8);
-eq('...and 4 index screens remain legacy', idxLegacy.length, 4);
-eq('...with the other classifications unmoved',
-  idxIstana.slice().sort().join(','), 'adhkar,call,chat,favorites,home,memorize,mushaf,settings');
-eq('...and the four that are left are the ones that were left',
-  idxLegacy.slice().sort().join(','), 'loading,onboarding,parentDashboard,parentGate');
-eq('...and the three interstitials are unmoved', Object.keys(INDEX_INTERSTITIALS).length, 3);
-// S113: the call SCREEN moved; the three barriers standing in FRONT of it did not. An
-// interstitial is a separate render with its own presentation, and none of them was touched.
-eq('every interstitial is still legacy',
-  Object.keys(INDEX_INTERSTITIALS).filter((k) => INDEX_INTERSTITIALS[k].shell !== 'legacy'), []);
-ok('...and none of them carries the call identity',
+eq('every index screen is istana after this commit', idxIstana.length, 12);
+eq('...and NONE is left legacy', idxLegacy.length, 0);
+eq('...and the set is exactly the twelve', idxIstana.slice().sort().join(','),
+  'adhkar,call,chat,favorites,home,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
+eq('...and the three interstitials are still three', Object.keys(INDEX_INTERSTITIALS).length, 3);
+// S115: the barriers moved WITH this batch, so the check flipped from "still legacy" to "all
+// three, and by name". A fourth appearing here would fail the reachability check above first.
+eq('every interstitial is istana too',
+  Object.keys(INDEX_INTERSTITIALS).filter((k) => INDEX_INTERSTITIALS[k].shell !== 'istana'), []);
+eq('...and they are exactly the three that were always inventoried',
+  Object.keys(INDEX_INTERSTITIALS).slice().sort().join(','), 'ChildVoiceNotice,SpendGate,UnlockSheet');
+ok('...and each of them draws on the card family, which is why it counts',
   ['ChildVoiceNotice', 'UnlockSheet', 'SpendGate'].every((n) => {
     const a = html.indexOf('function ' + n + '(');
     if (a === -1) return false;
-    return !/ezcall/.test(html.slice(a, html.indexOf('\nfunction ', a + 10)));
-  }), 'a barrier was redesigned with the call screen -- this batch is the call screen only');
+    const src = html.slice(a, html.indexOf('\nfunction ', a + 10));
+    return /className="theme-dark ezhome ezgate"/.test(src) && /<div className="ezgate-card"/.test(src);
+  }), 'a barrier is classified istana without drawing on .ezgate-');
 // S107: no screen carries a sub-view caveat any more. The field still exists and is still
 // asserted, so the next partially-finished screen has to declare itself the same way.
 const partial = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].subviews);
@@ -1338,12 +1354,15 @@ ok('the mushaf caveat was earned by BOTH readers, not deleted',
 const READER_BAR_OBJECTS = ['memHeaderFb', 'pgBarFb', 'ezmrTitle', 'ezmrNav', 'ezmrJump'];
 eq('no object any reader bar is drawn from carries a gradient',
   READER_BAR_OBJECTS.filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))), []);
+// S115: quest is finished too. Both numbers are asserted rather than merely printed now, because
+// there is nothing left outstanding for a later batch to be measured against.
+eq('every quest view is istana after this commit', qIstana.length, 17);
+eq('...and NONE is left legacy', qLegacy.length, 0);
 console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
-  + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all legacy)');
+  + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all istana)');
 console.log('        istana now : ' + idxIstana.join(', '));
-console.log('        outstanding: ' + idxLegacy.join(', '));
 console.log('        quest.html : ' + qIstana.length + ' istana, ' + qLegacy.length + ' legacy');
-console.log('        outstanding: ' + qLegacy.join(', '));
+console.log('        outstanding: (none -- the identity is complete)');
 // The one approved sacred opt-out, and it covers the SHEET only -- never the controls round it.
 // An OPT-OUT re-pins the base literals; the .adhkar3/.ezhome rule is a MAPPING onto the
 // identity, which is the opposite thing. Distinguished by what the rule contains, not by name.
@@ -2151,8 +2170,8 @@ ok('N29: ...the scrim included', /<div onClick=\{\(\) => closeDrawerWith\(null\)
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
 // S113 moved this number by one, and the chat is still one of the seven -- which is the half of
 // it this group is responsible for. The whole count is asserted here and again in group O.
-eq('N30: the index inventory reads exactly 8 istana / 4 legacy / 3 interstitials',
-  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '8/4/3');
+eq('N30: the index inventory reads exactly 12 istana / 0 legacy / 3 interstitials',
+  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '12/0/3');
 eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
 {
   const callAt = html.indexOf('function CallScreen(');
@@ -2583,9 +2602,12 @@ ok('P1: no ezfav selector can match html, body or :root',
 /* ---- P2. the legacy strip header is gone from HERE, and only from here -- */
 ok('P2: the screen no longer borrows the parent dashboard\'s strip header',
   !/s\.dashboardHeader/.test(favView) && !/s\.dashboardTitle/.test(favView) && !/s\.backBtn/.test(favView));
-ok('P2: ...and those keys are untouched, because another screen still draws them',
-  !!s.dashboardHeader && !!s.dashboardTitle && !!s.backBtn
-  && /<div style=\{s\.dashboardHeader\}>[\s\S]{0,300}?<div style=\{s\.dashboardTitle\}>/.test(html));
+// S115: the parents' panel was the OTHER screen that drew that strip, and it has its own bounded
+// rail now. So the three keys are gone from the file entirely, and this check flipped from "they
+// still exist for the other tenant" to "no tenant is left, so they may not exist at all".
+ok('P2: ...and the strip they drew is gone from the whole file, its last tenant with it',
+  !('dashboardHeader' in s) && !('dashboardTitle' in s) && !('backBtn' in s)
+  && !/s\.dashboardHeader|s\.dashboardTitle|s\.backBtn/.test(html));
 ok('P2: no gradient is spread anywhere on this screen', !/gradient/.test(favCode));
 const FAV_STYLE_KEYS = ['favScreen', 'favBody', 'favCard', 'favMeta', 'favText', 'favRow', 'favBtn', 'favBtnOff'];
 eq('P2: ...nor by any object it draws from',
@@ -2775,6 +2797,286 @@ ok('P16: the chat and the call keep their own identities, not this one',
 ok('P17: no fixture, mock, harness or debug switch reached the shipped page',
   ![/__mode\b/, /127\.0\.0\.1:87\d\d/, /\bFIXTURE\b/i, /\bMOCK_[A-Z_]+\b/, /DEBUG_FAV/, /window\.__ezfav/]
     .some((re) => re.test(html)));
+
+/* ============ Q. THE LAST FOUR SCREENS AND THE THREE BARRIERS (S115) ======
+ * The boot screen, the first-run welcome, the parents' panel, its PIN gate, and the three
+ * barriers. Their PRESENTATION moved and nothing else did, so most of this group is a FREEZE:
+ * the first-run sequence, the PIN verification, the barrier conditions and their ORDER, every
+ * storage key and every accessible name are named here so that moving one fails.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== Q. THE LAST FOUR SCREENS AND THE THREE BARRIERS ===');
+
+const cut = (from, to) => { const a = html.indexOf(from); if (a === -1) return ''; const b = html.indexOf(to, a + from.length); return b === -1 ? '' : html.slice(a, b); };
+const onbSrc = cut('function Onboarding({ onStart })', '\nfunction ParentGate(');
+const pgSrc = cut('function ParentGate({', '\n// قفل الإنفاق');
+const sgSrc = cut('function SpendGate({', '\n// D88 -- the settings sheet');
+const cvSrc = cut('function ChildVoiceNotice({', '\n// ONE PIN sheet');
+const usSrc = cut('function UnlockSheet({', '\nfunction Onboarding(');
+const pdSrc = cut('function ParentDashboard({', '\n// ====');
+const qstrip = (x) => x.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+for (const [n, src] of [['onboarding', onbSrc], ['parent gate', pgSrc], ['spend gate', sgSrc],
+  ['child voice notice', cvSrc], ['unlock sheet', usSrc], ['parent dashboard', pdSrc]]) {
+  ok('the ' + n + ' was located and bounded', src.length > 400 && src.length < 12000, 'len=' + src.length);
+}
+const ezRules = (name) => (css.match(new RegExp('\\.' + name + '[a-z0-9-]*(?:[^{}]*)\\{[^}]*\\}', 'g')) || []);
+
+/* ---- Q1. every new classification is BOUND to a real mount ---------------- */
+// Each test is run against the screen's OWN source, not the whole file: four of these screens
+// share the card family, so a whole-file match would let one of them lose its mount while another
+// kept the pattern alive -- which is exactly what the mutation battery caught here.
+const MOUNTS = {
+  loading: [html, /if \(screen === 'loading'\) return <div className="theme-dark ezhome ezload" style=\{s\.loadingScreen\}>/],
+  onboarding: [onbSrc, /<div className="theme-dark ezhome ezonb" style=\{s\.welcomeContainer\}>[\s\S]{0,400}?<div className="ezonb-card"/],
+  parentGate: [pgSrc, /<div className="theme-dark ezhome ezgate" style=\{s\.onboardingContainer\}>[\s\S]{0,200}?<div className="ezgate-card"/],
+  parentDashboard: [pdSrc, /<div className="theme-dark ezhome ezparent" style=\{s\.dashboardContainer\}>[\s\S]{0,700}?<div className="ezparent-rail">/],
+};
+for (const k of Object.keys(MOUNTS)) {
+  const mounted = MOUNTS[k][1].test(MOUNTS[k][0]);
+  ok('Q1: ' + k + ' mounts on its own istana vocabulary', mounted);
+  eq('Q1: ...and THAT is why the inventory calls it istana', INDEX_SCREENS[k].shell, mounted ? 'istana' : 'legacy');
+}
+ok('Q1: the three barriers all draw on the card family',
+  /className="theme-dark ezhome ezgate"/.test(sgSrc) && /<div className="ezgate-card"/.test(sgSrc)
+  && /className="theme-dark ezhome ezgate"/.test(cvSrc) && /<div className="ezgate-card"/.test(cvSrc)
+  && /className="theme-dark ezhome ezgate"/.test(usSrc) && /<div className="ezgate-card"/.test(usSrc));
+for (const v of ['ezload', 'ezonb', 'ezgate', 'ezparent']) {
+  const rules = ezRules(v);
+  ok('Q1: .' + v + '- declares its own rule set', rules.length >= 2, 'found ' + rules.length);
+  ok('Q1: ...and no selector in it can match html, body or :root',
+    !rules.some((r) => /(^|[,\s])(html|body|:root)[\s,{]/.test(r.split('{')[0])));
+  eq('Q1: ...and not one of its rules attaches an image, a gradient or a repeat',
+    rules.filter((r) => /url\(|gradient|repeat|background-image\s*:\s*(?!none)/.test(r)), []);
+  ok('Q1: ...and none draws a pseudo-element over the content',
+    !new RegExp('\\.' + v + '[a-z0-9-]*[^{]*::(before|after)').test(css)
+    && !rules.some((r) => /[;{]\s*content\s*:/.test(r)));
+  const lit = rules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r) && !/--ezg-scrim/.test(r));
+  eq('Q1: ...and it states no colour of its own', lit, []);
+}
+
+/* ---- Q2. no legacy chrome and no literal colour is left on any of them ---- */
+{
+  const all = [onbSrc, pgSrc, sgSrc, cvSrc, usSrc, pdSrc].map(qstrip).join('\n');
+  eq('Q2: none of the seven states a colour of its own',
+    (all.match(/(#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\))/g) || []), []);
+  ok('Q2: ...and none of them paints a gradient', !/gradient/.test(all));
+  const KEYS = ['loadingScreen', 'loadingSpinner', 'onboardingContainer', 'onboardingCard', 'bigEmoji',
+    'onboardingTitle', 'onboardingSubtitle', 'onboardingInput', 'primaryBtn', 'secondaryBtn',
+    'welcomeContainer', 'welcomeInner', 'welcomeCard', 'welcomeLogoSquare', 'welcomeTitle',
+    'welcomeGreeting', 'welcomeInput', 'welcomePrimaryBtn', 'dashboardContainer', 'dashboardContent',
+    'dashboardCard', 'dashboardLabel', 'dashboardValue', 'dashboardEmpty', 'conversationLog',
+    'logEntry', 'logRole', 'logContent', 'logTime', 'dangerBtn'];
+  eq('Q2: every style key the seven draw from still exists', KEYS.filter((k) => !s[k]), []);
+  const litKeys = [];
+  for (const k of KEYS) for (const p of Object.keys(s[k] || {})) {
+    const v = String(s[k][p]);
+    if (/#[0-9a-fA-F]{3,8}\b/.test(v) || /\brgba?\(/.test(v) || /gradient/.test(v)) litKeys.push(k + '.' + p + '=' + v);
+  }
+  eq('Q2: ...and not one of them carries a literal colour or a gradient', litKeys, []);
+}
+
+/* ---- Q3. the boot, and that nothing was added to it ---------------------- */
+ok('Q3: the boot mark keeps the SHIPPED animation on the SHIPPED key',
+  /loadingSpinner: \{ animation: 'pulse 1\.5s ease-in-out infinite' \}/.test(html)
+  && /style=\{s\.loadingSpinner\} className="ezload-mark"/.test(html));
+ok('Q3: ...and the boot gained no timer, no wait and no step',
+  !/if \(screen === 'loading'\)[\s\S]{0,400}?(setTimeout|setInterval|await )/.test(html));
+ok('Q3: the boot page is still painted from the boot token',
+  /loadingScreen: \{ minHeight: '100vh', background: 'var\(--boot-bg\)'/.test(html));
+
+/* ---- Q4. the first run is the first run ---------------------------------- */
+// Measured on the MARKUP, in the order the reader meets it -- name, then the two choices, then
+// the year. Reading order and tab order are the same thing here, and this is what pins both.
+{
+  const iName = onbSrc.indexOf('placeholder="الاسم"');
+  const iMale = onbSrc.indexOf("setGender('male')");
+  const iFemale = onbSrc.indexOf("setGender('female')");
+  const iYear = onbSrc.indexOf('placeholder="سنة الميلاد');
+  const iGo = onbSrc.indexOf('onClick={submit} disabled={!canStart}');
+  ok('Q4: the welcome still asks the same three things, in the same order',
+    iName !== -1 && iMale > iName && iFemale > iMale && iYear > iFemale && iGo > iYear,
+    [iName, iMale, iFemale, iYear, iGo].join(' < '));
+}
+ok('Q4: ...validated the same way', /const ageValid = Number\.isInteger\(yearNum\) && derivedAge >= 4 && derivedAge <= 99;/.test(onbSrc)
+  && /const canStart = !!\(name\.trim\(\) && gender && ageValid\);/.test(onbSrc));
+ok('Q4: ...and it still hands the profile to the SAME single call',
+  /const requestStart = \(n\) => \{\s*\r?\n\s*onStart\(name, n, gender\);/.test(onbSrc)
+  && (qstrip(onbSrc).match(/onStart\(/g) || []).length === 1);
+ok('Q4: the routing that follows it is untouched',
+  html.indexOf("if (screen === 'onboarding') return <Onboarding onStart={startChat} />;") !== -1
+  && /const startChat = async \(name, age, gender\) => \{/.test(html)
+  && /localStorage\.setItem\('child_profile', JSON\.stringify\(p\)\);/.test(html));
+ok('Q4: ...and the welcome writes nothing itself',
+  !/localStorage|fetch\(/.test(qstrip(onbSrc)));
+
+/* ---- Q5. the PIN gate: verification, creation, errors, lock -------------- */
+ok('Q5: the PIN is still hashed and compared against the stored hash',
+  /const stored = localStorage\.getItem\(PIN_HASH_KEY\);\s*\r?\n\s*if \(stored && \(await hashPin\(pinInput\)\) === stored\) \{ onSuccess\(\); return; \}/.test(pgSrc));
+ok('Q5: ...created under the same rule and the same key',
+  /if \(!\/\^\[0-9\]\{4,\}\$\/\.test\(pinInput\)\) return fail\('اختر ٤ أرقام على الأقل'\);/.test(pgSrc)
+  && /if \(pinInput !== confirmPin\) return fail\('الرمزان غير متطابقان'\);/.test(pgSrc)
+  && /localStorage\.setItem\(PIN_HASH_KEY, await hashPin\(pinInput\)\)/.test(pgSrc));
+ok('Q5: ...and the adult challenge still stands in front of a child profile',
+  /if \(!hasPin && !adultOk && PARENTAL_GATE_ENABLED && childProfileActive\(\)\) return <AdultGate a=\{challenge\.a\} b=\{challenge\.b\} onPass=\{\(\) => setAdultOk\(true\)\} onCancel=\{onBack\} \/>;/.test(pgSrc));
+ok('Q5: the three error messages are the shipped ones',
+  /fail\('رمز خاطئ'\)/.test(pgSrc) && /fail\('تعذّر الحفظ'\)/.test(pgSrc));
+ok('Q5: the storage key itself is unchanged', /const PIN_HASH_KEY = 'parent_pin_hash';/.test(html));
+
+/* ---- Q6. the three barriers: conditions, order, handlers ----------------- */
+{
+  const spendAt = html.indexOf("if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate");
+  const childAt = html.indexOf("if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice");
+  const tokenAt = html.indexOf("if (screen === 'call' && !hasFounderToken()) return <UnlockSheet");
+  const callAt2 = html.indexOf("if (screen === 'call') return <CallScreen");
+  ok('Q6: the four gates are all still in the render chain',
+    spendAt !== -1 && childAt !== -1 && tokenAt !== -1 && callAt2 !== -1);
+  ok('Q6: ...in the shipped ORDER: spend, child voice, token, screen',
+    spendAt < childAt && childAt < tokenAt && tokenAt < callAt2);
+  ok('Q6: no barrier grew a way past itself',
+    !/onSkip|bypass|skipGate/i.test(sgSrc + cvSrc + usSrc));
+  ok('Q6: the spend gate still compares a hash and never stores the code',
+    /if \(\(await hashPin\(code\)\) === SPEND_GATE_SHA256\) \{ onUnlock\(\); return; \}/.test(sgSrc)
+    && !/localStorage/.test(qstrip(sgSrc)));
+  ok('Q6: ...and its kill switch is untouched',
+    /const SPEND_GATE_DISABLED = SPEND_GATE_SHA256 === '0'\.repeat\(64\);/.test(html));
+  ok('Q6: the unlock sheet still POSTs to the shipped endpoint, once, and keeps only the token',
+    /await fetch\('\/api\/unlock', \{/.test(usSrc)
+    && /body: JSON\.stringify\(\{ pin, deviceId: getDeviceId\(\) \}\),/.test(usSrc)
+    && /if \(r\.ok && d && d\.token\) \{ storeFounderToken\(d\.token\); setPin\(''\); onUnlocked\(\); return; \}/.test(usSrc));
+  ok('Q6: ...and the SERVER still owns the wording', /setMsg\(\(d && d\.message\) \|\| ''\);/.test(usSrc));
+  ok('Q6: the child-voice notice still shows the shipped text and the shipped way back',
+    /\{CHILD_VOICE_NOTICE\}/.test(cvSrc) && /onClick=\{onBack\}/.test(cvSrc)
+    && /const CHILD_VOICE_ENABLED = false;/.test(html));
+  ok('Q6: no barrier fetches anything it did not already fetch',
+    (qstrip(sgSrc + cvSrc + usSrc).match(/fetch\(/g) || []).length === 1);
+}
+
+/* ---- Q7. the parents' panel shows what it always showed ------------------ */
+ok('Q7: the panel still reads the SAVED history, handed down, and opens no store itself',
+  /<ParentDashboard profile=\{profile\} messages=\{ezikProfileTranscript\(ezikProfileKey\(profileRef\.current\)\)\}/.test(html)
+  && !/localStorage|fetch\(/.test(qstrip(pdSrc)));
+ok('Q7: ...and every row it shipped with is still drawn',
+  /الطفل/.test(pdSrc) && /عدد الرسائل/.test(pdSrc) && /سجل المحادثات/.test(pdSrc)
+  && /\{messages\.length\} رسالة/.test(pdSrc));
+ok('Q7: ...including the young-only lock, on the same condition and the same handler',
+  /const isYoung = deriveCaps\(profile\?\.age\)\.band === 'young';/.test(pdSrc)
+  && /\{isYoung && \(/.test(pdSrc) && /onClick=\{onToggleDirectConvo\}/.test(pdSrc));
+ok('Q7: ...and the reset is the same one control, on the same handler',
+  (qstrip(pdSrc).match(/onClick=\{onReset\}/g) || []).length === 1);
+ok('Q7: the log still shows exactly the messages it is handed, in order, unfiltered',
+  /messages\.map\(\(m, i\) => \(/.test(pdSrc)
+  && !/messages\.(sort|filter|slice|reverse)\(/.test(pdSrc));
+ok('Q7: the back control is the screen\'s own, and the panel navigates nowhere itself',
+  /<button onClick=\{onBack\} className="ezparent-back">← رجوع<\/button>/.test(pdSrc)
+  && !/setScreen\(/.test(qstrip(pdSrc)));
+ok('Q7: ...and its rail is bounded', /\.ezparent-rail-inner\{[^}]*max-width:900px/.test(css)
+  && /\.ezparent-wrap\{[^}]*max-width:900px/.test(css));
+ok('Q7: the card family is bounded too, and centred rather than stretched',
+  /\.ezgate-card\{[^}]*max-width:420px/.test(css) && /\.ezonb-card\{[^}]*max-width:400px/.test(css));
+ok('Q7: no vocabulary added here declares a viewport-wide box',
+  !/\.(ezload|ezonb|ezgate|ezparent)[a-z0-9-]*[^{]*\{[^}]*(width|min-width|max-width)\s*:\s*100vw/.test(css));
+
+/* ---- Q8. light is plain white, dark is real, for all of them ------------- */
+for (const [label, key] of [['boot', 'loadingScreen'], ['welcome', 'welcomeContainer'],
+  ['the card family', 'onboardingContainer'], ["the parents' panel", 'dashboardContainer']]) {
+  const raw = s[key].background;
+  const lit = resolve(raw, VT_PAL['istana_33:light']);
+  const drk = resolve(raw, VT_PAL['istana_33:dark']);
+  ok('Q8: ' + label + ' in istana light is plain #FFFFFF', !!lit && hex(lit) === '#ffffff', String(lit && hex(lit)));
+  ok('Q8: ...and its dark face is a real second page', !!drk && hex(drk) !== hex(lit) && lum(drk) < 0.1, String(drk && hex(drk)));
+}
+
+/* ============ R. THE ISTANA QUEST VIEWS (S115) ===========================
+ * The fifteen views that were left. Presentation only: this group binds each classification to
+ * a real root class, and freezes the tabs, the ids, the destinations, the counts and the data
+ * readers that the redesign was not allowed to touch.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== R. THE ISTANA QUEST VIEWS ===');
+
+const qCss = q.css;
+const qRules = (qCss.match(/\.ezq[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []);
+ok('R1: quest declares its own istana rule set', qRules.length >= 8, 'found ' + qRules.length);
+ok('R1: ...and no selector in it can match html, body or :root',
+  !qRules.some((r) => /(^|[,\s])(html|body|:root)[\s,{]/.test(r.split('{')[0])));
+eq('R1: ...and not one of its rules attaches an image, a gradient or a repeat',
+  qRules.filter((r) => /url\(|gradient|repeat|background-image\s*:\s*(?!none)/.test(r)), []);
+ok('R1: ...and none draws a pseudo-element over a question',
+  !/\.ezq[a-z0-9-]*[^{]*::(before|after)/.test(qCss) && !qRules.some((r) => /[;{]\s*content\s*:/.test(r)));
+eq('R1: ...and it states no colour of its own', qRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r)), []);
+ok('R1: no ezq rule declares a viewport-wide box',
+  !/\.ezq[a-z0-9-]*[^{]*\{[^}]*(width|min-width|max-width)\s*:\s*100vw/.test(qCss));
+// EVERY classification is bound to a root the file actually builds.
+{
+  // A view classified by its ROOT must actually call qv() with that name -- `_modeCard` is the one
+  // that tags a card rather than a view root, so it is checked by the class it puts on the card.
+  const missingRoot = Object.keys(QUEST_SCREENS)
+    .filter((k) => QUEST_SCREENS[k].root)
+    .filter((k) => {
+      const n = QUEST_SCREENS[k].root.replace('ezq-', '');
+      return q.html.indexOf('qv("' + n + '")') === -1 && q.html.indexOf('"card ' + QUEST_SCREENS[k].root + '"') === -1;
+    });
+  eq('R2: every view classified istana by its ROOT actually builds that root', missingRoot, []);
+  // A LAUNCHER opens the round, so its classification is bound to the round's own surface.
+  const viaMissing = Object.keys(QUEST_SCREENS)
+    .filter((k) => QUEST_SCREENS[k].via)
+    .filter((k) => q.html.indexOf('qv("' + QUEST_SCREENS[k].via.replace('ezq-', '') + '")') === -1);
+  eq('R2: ...and every launcher\'s surface exists too', viaMissing, []);
+  ok('R2: ...and the three launchers really do open that surface',
+    /startStation\(rid, s\) \{[\s\S]{0,400}?Round\.start\(/.test(q.html)
+    && /daily\(\) \{[\s\S]{0,400}?Round\.start\(/.test(q.html)
+    && /speed\(\) \{[\s\S]{0,300}?Round\.start\(/.test(q.html));
+  ok('R2: the root helper is what builds them, and it is presentation only',
+    /function qv\(name\) \{ const d = document\.createElement\("div"\); d\.className = "ezq ezq-" \+ name; return d; \}/.test(q.html));
+  ok('R2: ...and the head helper reads nothing and invents nothing',
+    /function qhead\(v, eyebrow, title, sub, aside\) \{/.test(q.html)
+    && !/Data\.|P\.s|Store\./.test(q.html.slice(q.html.indexOf('function qhead('), q.html.indexOf('function mount('))));
+  const qvCalls = (q.html.match(/= qv\("/g) || []).length;
+  eq('R2: thirteen view roots are built through it', qvCalls, 13);
+}
+ok('R3: the four tabs are unchanged -- same ids, same names, same destinations, same aria-current',
+  q.html.indexOf('[["map", NAV_ICON.map, "الخريطة", Screens.map], ["challenge", NAV_ICON.challenge, "التحدّيات", Screens.challenges],') !== -1
+  && q.html.indexOf('["book", NAV_ICON.book, "الكنوز", Screens.book], ["me", NAV_ICON.me, "أنا", Screens.profile]]') !== -1
+  && /b\.setAttribute\("aria-current", String\(TAB === id\)\);/.test(q.html));
+// EVERY one of the four is built by NAV_SVG. Counting the calls is what stops one of them being
+// swapped for a glyph while the other three keep the helper alive.
+ok('R3: ...and the nav glyphs are still stroked SVG, never emoji',
+  /const NAV_SVG = \(d\) =>/.test(q.html)
+  && (q.html.match(/: NAV_SVG\('/g) || []).length === 4
+  && !/NAV_ICON = \{[\s\S]{0,900}?\\u[dD][89abAB]/.test(q.html));
+ok('R4: the medallion is still the Iznik arch, and r.hue is still not a colour source',
+  /const ARCH = "M50 12c14 0 24 10 24 24v40a6 6 0 0 1-6 6H32a6 6 0 0 1-6-6V36c0-14 10-24 24-24z";/.test(q.html)
+  && !/r\.hue/.test(qstrip(q.html.slice(q.html.indexOf('function medal('), q.html.indexOf('function reportBtn(')))));
+// COUNTED per tab. A view moving to another tab, a view losing its mount, or a new one appearing
+// all change one of these five numbers -- which is what "same destinations" means in this file.
+{
+  const m = (t) => (q.html.match(new RegExp('mount\\(v, ' + t + '\\)', 'g')) || []).length;
+  eq('R5: every view still mounts through the shipped mount(), with its shipped tab',
+    [m('"map"'), m('"challenge"'), m('"book"'), m('"me"'), m('TAB')].join('/'), '2/7/1/2/3');
+}
+ok('R6: the region view still reads its stations and its stars from the shipped readers',
+  /const r = Data\.regions\[rid\], sts = Data\.stations\(rid\);/.test(q.html)
+  && /const got = P\.s\.stars\[rid \+ ":" \+ s\.index\] \|\| 0;/.test(q.html)
+  && /btn\.onclick = \(\) => Screens\.startStation\(rid, s\);/.test(q.html));
+ok('R6: ...and the four mode cards still point at the four shipped destinations',
+  /Screens\._modeCard\("🗝️", "تحدّي اليوم"[\s\S]{0,220}?Screens\.daily\)/.test(q.html)
+  && /Screens\.speed\)\);/.test(q.html) && /Screens\.teamsSetup\)\);/.test(q.html) && /Screens\.inspect\)\);/.test(q.html));
+ok('R7: the round still scores, stars and progresses the shipped way',
+  /P\.markStation\(cfg\.region, cfg\.station, stars\)/.test(q.html)
+  && /P\.addXP\(/.test(q.html) && /P\.addCoins\(/.test(q.html) && /Rewards\.check\(\)/.test(q.html));
+ok('R7: ...and the store key and its reader are untouched',
+  /save\(\) \{ Store\.set\(this\.KEY, this\.s\); \}/.test(q.html)
+  && /load\(\) \{ this\.s = Object\.assign\(this\.fresh\(\), Store\.get\(this\.KEY, \{\}\)\); \}/.test(q.html));
+// The game has exactly ONE live fetch and it is the asset loader that shipped -- the only other
+// occurrence in the file is inside a comment showing the reporting endpoint that was never wired.
+ok('R8: nothing in this batch added a fetch, an endpoint or a second store to the game',
+  (qstrip(q.html).match(/fetch\(/g) || []).length === 1
+  && /const r = await fetch\(url, \{ cache: "no-store" \}\)/.test(q.html)
+  && /send\(rec\) \{ \}/.test(q.html));
+ok('R9: the question text is still built by the shipped presenter, from the bank',
+  /present\(q\) \{/.test(q.html) && /stem\(p\) \{/.test(q.html)
+  && /setBank\(json\) \{ this\.bank = json; this\.index\(\); \}/.test(q.html));
+ok('R10: the primary action is flat now, and it is the only place that changed colour',
+  /\.btn\.primary\{background:var\(--palm\);color:var\(--paper\);border-color:var\(--palm\);box-shadow:none\}/.test(qCss)
+  && !/\.btn\.primary\{[^}]*linear-gradient/.test(qCss));
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
