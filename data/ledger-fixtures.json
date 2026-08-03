@@ -1,6 +1,7 @@
 {
   "schema": "ledger-fixtures-v1",
   "note": "WHAT THESE FIXTURES PIN, AND WHAT THEY DELIBERATELY DO NOT. They pin ROUTING (which intent, which capability, which authority), ELIGIBILITY (which sources may and may not be reached), EVIDENCE (that every claim resolves to a real span in one answer unit) and COVERAGE (which slots verified evidence filled). They pin NO fiqh answer: no expected ruling, no expected wording, no expected scholar's position. A fixture asserting a ruling would be asserting the model's memory, which is the defect this engine exists to remove. The Arabic questions are public test questions and carry no reader identity.",
+  "annotations_note": "`annotations` bind a SLOT to a specific piece of the fixture's own text. The extraction stub emits a claim for an annotation only when it can find a span whose text actually contains that piece — so a slot is filled by evidence, never by position. The first version distributed slots round-robin over whatever claims happened to exist (`wantedSlots[i % n]`), which could file a span about prayer under the fasting slot purely because of array order, and would have reported full coverage for a source that proved neither.",
   "ids_are_ascii": true,
   "fixtures": [
     {
@@ -72,8 +73,20 @@
         "requested_authority_id": "ibn-uthaymeen",
         "brave_calls": 0,
         "source_domains": ["binothaimeen.net"],
-        "source_cards": 1
+        "source_cards": 1,
+        "required_slots": ["attribution", "prayer_ruling", "fasting_ruling", "condition_context"]
       },
+      "direct_corpus": {
+        "canonical_url": "https://binothaimeen.net/content/12345",
+        "title": "ضابط السقط الذي تترك المرأة لأجله الصلاة",
+        "scholar": "محمد بن صالح العثيمين",
+        "text": "السؤال: امرأة أسقطت قبل ثمانين يوما فماذا يلزمها في عبادتها؟ الجواب: إذا أسقطت المرأة قبل ثمانين يوما فليس دمها دم نفاس، لأن الجنين لم يتبين فيه خلق إنسان في هذه المدة. وعلى هذا فإنها تصلي ولا تدع الصلاة لأجل هذا الدم. وكذلك تصوم ولا تفطر من أجله. وإنما هو دم فساد وعرق ينطبق عليه حكم الاستحاضة عند أهل العلم. فتتوضأ لكل صلاة وتتحفظ بما يمنع الدم ثم تصلي على حالها. وأما إذا كان السقط بعد تمام الأربعة الأشهر فحكمه حكم النفاس المعروف. والله أعلم."
+      },
+      "annotations": [
+        { "slot": "condition_context", "contains": "ثمانين يوما فليس دمها دم نفاس" },
+        { "slot": "prayer_ruling", "contains": "تصلي ولا تدع الصلاة" },
+        { "slot": "fasting_ruling", "contains": "تصوم ولا تفطر" }
+      ],
       "notes": "ONE issue, not two. «قبل ثمانين يومًا» is a CONDITION and «تصلي/تصوم» are rulings inside the same question -- splitting them into separate issues would manufacture a second issue whose only purpose is to justify a general source and a second card. His own corpus is read through the registered adapter, which is in no site: filter, so the provider is never called. FULL only if every required slot is filled; otherwise PARTIAL with the missing part refused -- never a general search and never a composite attribution."
     },
     {
@@ -97,6 +110,12 @@
         "requested_authority_id": "ibn-baz",
         "source_cards": 2
       },
+      "annotations": [
+        { "slot": "practical_steps", "contains": "قائما إن استطاع ويستقبل القبلة" },
+        { "slot": "prayer_ruling", "contains": "لا تسقط عنه الصلاة" },
+        { "slot": "practical_steps", "contains": "على حسب استطاعته قائما أو قاعدا" },
+        { "slot": "prayer_ruling", "contains": "تصح ولا تسقط عن المسافر" }
+      ],
       "notes": "GENUINELY two issues -- «كيف أصلي» and «ما رأي ابن باز» are two questions with two answers and two possible sources, which is why two cards are correct here and one is correct for F7. Each sentence must rest on the right view, and no hybrid ruling may be produced."
     }
   ]

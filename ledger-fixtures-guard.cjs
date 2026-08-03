@@ -75,13 +75,16 @@ const CORPUS = {
     'السؤال: ما حكم الجمع بين الصلاتين بسبب العمل؟',
     'الجواب: الحمد لله. لا يجوز الجمع بين الصلاتين لأجل العمل على الصحيح من أقوال أهل العلم.' + LONG,
   ]),
+  // The two pages behind F9 each carry a DISTINCT sentence for each slot the question declares,
+  // so slot coverage can be bound to evidence rather than to array position.
   'https://islamqa.info/ar/answers/7004/x': P([
     'السؤال: كيف يصلي المسافر في الطائرة؟',
-    'الجواب: الحمد لله. يصلي المسافر في الطائرة قائما إن استطاع ويستقبل القبلة عند التكبير.' + LONG,
+    'الجواب: الحمد لله. يصلي المسافر في الطائرة قائما إن استطاع ويستقبل القبلة عند التكبير. '
+    + 'ولا تسقط عنه الصلاة بحال من الأحوال.' + LONG,
   ]),
   'https://binbaz.org.sa/fatwas/8001/x': P([
     'السؤال: كيف الصلاة في الطائرة؟',
-    'الجواب: الصلاة في الطائرة تصح ويصلي حسب استطاعته.' + LONG,
+    'الجواب: الصلاة في الطائرة تصح ولا تسقط عن المسافر. ويصلي على حسب استطاعته قائما أو قاعدا.' + LONG,
   ]),
   // Deliberately present and deliberately NOT about the expression in F8.
   'https://islamqa.info/ar/answers/121485/x': P([
@@ -196,35 +199,80 @@ const RESULTS = {
       if (state.extractMode === 'empty') {
         return { content: [{ type: 'text', text: '{"claims":[]}' }], usage: {} };
       }
-      // NORMAL. One claim per answer unit, citing that unit's own first span. The claim text is
-      // a paraphrase of the span, which is all a real extractor could honestly produce.
+      // ── ANNOTATION-DRIVEN, NOT ROUND-ROBIN ──
       //
-      // SLOTS ARE READ OUT OF THE PROMPT, not hard-coded to 'ruling'. A stub that labels every
-      // claim `ruling` makes slot coverage trivially satisfied for a one-slot issue and
-      // permanently unsatisfiable for a two-slot one — so the coverage assertion would be
-      // measuring the stub instead of the engine.
+      // The first version read the slot NAMES out of the prompt and dealt them to whatever
+      // claims happened to exist: `wantedSlots[i % n]`. That proves nothing about entailment —
+      // a span about prayer could land in the fasting slot purely because of array order, and
+      // a source proving neither would still report full coverage.
+      //
+      // Now a slot is filled only when the fixture's annotation names a piece of text and a real
+      // span actually contains it. The claim cites THAT span, its components are cut from that
+      // span's own words, and everything then goes through the real Gate 1, Gate 2 and Gate 3.
       const slotLine = (user.match(/- الخاناتُ المطلوبة: (.+)/) || [])[1] || '';
       const wantedSlots = slotLine.split('،').map((s) => s.trim()).filter(Boolean);
+      const spans = Array.from(user.matchAll(/\[([^\]\s]+#u\d+s\d+)\]\s*([^\n]*)/g))
+        .map((m) => ({ id: m[1], text: m[2] || '' }));
       const claims = [];
-      const seenUnit = new Set();
-      for (const m of user.matchAll(/\[([^\]\s]+#u(\d+)s(\d+))\]\s*([^\n]*)/g)) {
-        const [, id, u] = m;
-        const src = id.split('#')[0];
-        const key = src + '#u' + u;
-        if (seenUnit.has(key)) continue;
-        seenUnit.add(key);
-        const text = (m[4] || '').slice(0, 120);
+      const usedSpans = new Set();
+
+      for (const a of (state.annotations || [])) {
+        if (!wantedSlots.includes(a.slot)) continue;
+        if (state.dropAnnotations && state.dropAnnotations.includes(a.slot)) continue;
+        const span = spans.find((s) => s.text.includes(a.contains));
+        if (!span) continue;                           // no evidence for it here: slot stays empty
+        usedSpans.add(span.id);
+        const n = claims.length + 1;
         claims.push({
-          claim_id: 'c' + (claims.length + 1),
-          text,
-          slot: wantedSlots.length ? wantedSlots[claims.length % wantedSlots.length] : 'ruling',
-          span_ids: [id],
+          claim_id: 'c' + n,
+          text: span.text.slice(0, 160),
+          slot: a.slot,
+          span_ids: [span.id],
           components: [
-            { component_id: 'k1', kind: 'subject', text: text.slice(0, 40) || 'الموضوع', span_ids: [id] },
-            { component_id: 'k2', kind: 'ruling', text: text.slice(0, 60) || 'الحكم', span_ids: [id] },
+            { component_id: 'c' + n + 'k1', kind: 'subject', text: a.contains, span_ids: [span.id] },
+            { component_id: 'c' + n + 'k2', kind: 'ruling', text: a.contains, span_ids: [span.id] },
           ],
         });
-        if (claims.length >= 3) break;
+      }
+
+      // Fixtures with no annotation for this page fall back to ONE claim per answer unit, taking
+      // the issue's FIRST declared slot. Deterministic, and it never rotates.
+      if (!claims.length) {
+        const seenUnit = new Set();
+        for (const s of spans) {
+          const unit = s.id.replace(/s\d+$/, '');
+          if (seenUnit.has(unit)) continue;
+          seenUnit.add(unit);
+          const text = s.text.slice(0, 120);
+          const n = claims.length + 1;
+          claims.push({
+            claim_id: 'c' + n,
+            text,
+            slot: wantedSlots[0] || '',
+            span_ids: [s.id],
+            components: [
+              { component_id: 'c' + n + 'k1', kind: 'subject', text: text.slice(0, 40) || 'الموضوع', span_ids: [s.id] },
+              { component_id: 'c' + n + 'k2', kind: 'ruling', text: text.slice(0, 60) || 'الحكم', span_ids: [s.id] },
+            ],
+          });
+          if (claims.length >= 3) break;
+        }
+      }
+
+      // MUTATION: weld two spans from DIFFERENT answer units into one claim. Gate 1 must refuse.
+      if (state.crossUnit && claims.length) {
+        const other = spans.find((s) => s.id.replace(/s\d+$/, '') !== claims[0].span_ids[0].replace(/s\d+$/, ''));
+        if (other) {
+          claims[0].span_ids = [claims[0].span_ids[0], other.id];
+          claims[0].components[1].span_ids = [other.id];
+        }
+      }
+      // MUTATION: the evidence proves prayer; the claim also asserts fasting. Gate 2 must fail it.
+      if (state.overreach && claims.length) {
+        claims[0].components.push({
+          component_id: 'c1k9', kind: 'ruling', text: 'وكذلك تصوم ولا تفطر من أجله',
+          span_ids: claims[0].span_ids.slice(0, 1),
+        });
       }
       return { content: [{ type: 'text', text: JSON.stringify({ claims }) }], usage: { output_tokens: 200 } };
     }
@@ -233,12 +281,35 @@ const RESULTS = {
       if (state.gate2 === 'TIMEOUT') { const e = new Error('t'); e.name = 'AbortError'; throw e; }
       if (state.gate2 === 'GARBAGE') return { content: [{ type: 'text', text: 'sorry' }], usage: {} };
       const ids = Array.from(user.matchAll(/### ادّعاء (\S+)/g)).map((m) => m[1]);
-      return {
-        content: [{ type: 'text', text: JSON.stringify({
-          verdicts: ids.map((id) => ({ claim_id: id, verdict: state.gate2 === 'FAIL' ? 'FAIL' : 'PASS', unsupported_components: state.gate2 === 'FAIL' ? ['k2'] : [] })),
-        }) }],
-        usage: { output_tokens: 60 },
-      };
+      if (state.gate2 === 'FAIL') {
+        return { content: [{ type: 'text', text: JSON.stringify({
+          verdicts: ids.map((id) => ({ claim_id: id, verdict: 'FAIL', unsupported_components: ['k2'] })),
+        }) }], usage: { output_tokens: 60 } };
+      }
+      // ── A REAL CHECK, NOT A RUBBER STAMP ──
+      // A verifier double that always answers PASS makes "Gate 2 rejects a claim that overreaches
+      // its evidence" untestable — the mutation would sail through and the gate would look green.
+      // So each block is parsed and every component's own words are required to appear in the
+      // evidence quoted beside it. Crude next to a model, and deterministic, which is the point.
+      const verdicts = [];
+      for (const block of user.split('### ادّعاء ').slice(1)) {
+        const id = (block.match(/^(\S+)/) || [])[1];
+        if (!id) continue;
+        const evidence = (block.split('<<<UNTRUSTED_SOURCE_TEXT>>>')[1] || '')
+          .split('<<<END_UNTRUSTED_SOURCE_TEXT>>>')[0] || '';
+        const unsupported = [];
+        for (const cm of block.matchAll(/^\s+- \((\S+)\) \[[^\]]+\] (.+)$/gm)) {
+          const [, compId, compText] = cm;
+          const words = compText.split(/\s+/).filter((w) => w.length >= 3);
+          if (words.length && !words.every((w) => evidence.includes(w))) unsupported.push(compId);
+        }
+        verdicts.push({
+          claim_id: id,
+          verdict: unsupported.length ? 'FAIL' : 'PASS',
+          unsupported_components: unsupported,
+        });
+      }
+      return { content: [{ type: 'text', text: JSON.stringify({ verdicts }) }], usage: { output_tokens: 60 } };
     }
 
     if (user.includes('اكتبِ الجوابَ جملةً جملة')) {
@@ -352,23 +423,39 @@ const RESULTS = {
     issue({ issue_id: 'iss_2', intent: 'scholar_opinion', requested_authority_id: 'ibn-baz', protected_entities: ['الصلاة في الطائرة'], core_terms: ['المسافر'] }),
   ]);
 
-  // The Ibn Uthaymeen adapter, stubbed at the CORPUS boundary — the engine's own gates still
-  // run on whatever it returns.
-  const directReader = async () => ([{
-    canonicalUrl: 'https://binothaimeen.net/content/12345',
-    title: 'حكم من أسقطت قبل ثمانين يوما',
-    scholar: 'محمد بن صالح العثيمين',
-    exactText: 'إذا أسقطت المرأة قبل ثمانين يوما فليس دمها دم نفاس. فتصلي وتصوم وتغتسل وتصلي كالطاهرة.' + LONG,
-  }]);
+  // The Ibn Uthaymeen adapter, stubbed at the CORPUS boundary — the engine's own gates still run
+  // on whatever it returns. The text is the fixture's own, so a mutation that removes a sentence
+  // removes real evidence rather than a label.
+  const F7 = FIX.fixtures.find((f) => f.id === 'F7_uthaymeen_miscarriage');
+  const directReaderFor = (fixture) => async () => {
+    const dc = fixture && fixture.direct_corpus;
+    if (!dc) return [];
+    let text = dc.text;
+    // MUTATION: delete the sentence that carries one slot's evidence. Everything downstream sees
+    // a page that genuinely does not contain it.
+    for (const drop of (state.dropSentences || [])) {
+      text = text.split('. ').filter((s) => !s.includes(drop)).join('. ');
+    }
+    // MUTATION: give the page a second ANSWER UNIT, so a claim can be welded across two of them.
+    // A blank line is the structural break lib/ledger/segment.js splits units on.
+    if (state.splitUnits) text = text.replace('وكذلك تصوم', '\n\nوكذلك تصوم');
+    return [{
+      canonicalUrl: dc.canonical_url, title: dc.title, scholar: dc.scholar, exactText: text,
+    }];
+  };
 
   const runFixture = async (f, over) => {
     state.modelCalls = []; state.pageFetches = [];
     state.gate2 = 'PASS'; state.gate3 = 'PASS';
     state.extractMode = 'normal'; state.draftMode = 'normal';
+    state.annotations = f.annotations || [];
+    state.dropAnnotations = null; state.dropSentences = null;
+    state.crossUnit = false; state.overreach = false;
     Object.assign(state, over || {});
     let t = 0;
     return EN.runEngine(f.question, {
-      band: 'adult', bandSites, search, fetchImpl, directReader,
+      band: 'adult', bandSites, search, fetchImpl,
+      directReader: directReaderFor(f),
       now: () => (t += 5),
       traceId: 'tr_' + f.id,
     });
@@ -399,6 +486,12 @@ const RESULTS = {
       issue_count: out.ledger.issues.length,
       requested_authority_id: out.ledger.issues.map((i) => i.requestedAuthorityId).filter(Boolean)[0] || null,
       brave_calls: snap.spent.braveCalls,
+      // TWO DIFFERENT NUMBERS, KEPT APART. `network_fetches` is what the request paid for in
+      // round-trips; `accepted_records` is how many documents were actually admitted for
+      // extraction. On the direct-adapter path they diverge sharply — one document can cost
+      // several searches — and collapsing them is how the adapter's real cost went unnoticed.
+      network_fetches: snap.spent.pagesFetched,
+      accepted_records: out.ledger.sources.size,
       pages_fetched: snap.spent.pagesFetched,
       model_calls: snap.spent.modelCalls,
       verified_cycles: snap.spent.verifiedCycles,
@@ -692,7 +785,7 @@ const RESULTS = {
     // A model that is entirely unavailable.
     let t = 0;
     const r = await EN.runEngine(F4.question, {
-      band: 'adult', bandSites, search, directReader, now: () => (t += 5),
+      band: 'adult', bandSites, search, now: () => (t += 5),
       fetchImpl: async (u) => {
         if (String(u).includes('api.anthropic.com')) { const e = new Error('x'); e.name = 'AbortError'; throw e; }
         return { ok: false, status: 500, headers: { get: () => 'text/html' }, body: null, text: async () => '' };
@@ -706,7 +799,7 @@ const RESULTS = {
     // The provider returning nothing at all.
     let t = 0;
     const r = await EN.runEngine(F4.question, {
-      band: 'adult', bandSites, search: async () => [], fetchImpl, directReader, now: () => (t += 5),
+      band: 'adult', bandSites, search: async () => [], fetchImpl, now: () => (t += 5),
     });
     eq('no search results => SAFE_REJECTION', r.outcome, 'SAFE_REJECTION');
     ok('...and the internal reason is «not found», not «does not exist»',
@@ -716,7 +809,7 @@ const RESULTS = {
     // Every page 404s.
     let t = 0;
     const r = await EN.runEngine(F4.question, {
-      band: 'adult', bandSites, search, directReader, now: () => (t += 5),
+      band: 'adult', bandSites, search, now: () => (t += 5),
       fetchImpl: async (u, init) => {
         if (String(u).includes('api.anthropic.com')) return jsonResponse(modelReply(JSON.parse(init.body)));
         return { ok: false, status: 404, headers: { get: () => 'text/html' }, body: null, text: async () => '' };
@@ -772,6 +865,99 @@ const RESULTS = {
   }
 
   // =========================================================================
+  console.log('\n=== B2. F7 SEMANTIC COVERAGE, AND FIVE MUTATIONS ===');
+  //
+  // The question asks four separable things. A single generic `ruling` slot let evidence about
+  // prayer alone report FULL, so each is now tracked on its own — and each is removed in turn to
+  // prove the tracking is real rather than decorative.
+  {
+    const base = results.F7_uthaymeen_miscarriage;
+    const slots = base.ledger.requiredSlots.map((r) => r.slot).sort();
+    eq('F7 declares four independent coverages', slots,
+      ['attribution', 'condition_context', 'fasting_ruling', 'prayer_ruling']);
+    eq('...and none of them is the generic «ruling»', slots.includes('ruling'), false);
+    for (const s of slots) {
+      eq('F7 baseline fills ' + s,
+        base.ledger.slotStatus.get('iss_1:' + s)?.status, 'filled');
+    }
+
+    // THE DETAILED MAPPING: slot -> claim -> components -> spans -> answer unit -> URL.
+    console.log('\n  F7 coverage map (slot -> claim -> components -> spans -> answer unit -> url):');
+    for (const r of base.ledger.requiredSlots) {
+      const st = base.ledger.slotStatus.get('iss_1:' + r.slot);
+      const cid = (st.claimIds || [])[0];
+      const claim = cid ? base.ledger.claim(cid) : null;
+      const comps = claim ? base.ledger.componentsOf(cid) : [];
+      const spanIds = claim ? (base.ledger.evidenceBundles.get(cid) || []) : [];
+      const spans = spanIds.map((id) => base.ledger.span(id)).filter(Boolean);
+      console.log('    ' + r.slot.padEnd(18)
+        + ' claim=' + (cid || '-')
+        + ' components=[' + comps.map((c) => c.componentId + ':' + c.kind).join(',') + ']'
+        + ' spans=[' + spans.map((s) => s.spanId).join(',') + ']'
+        + ' unit=' + (spans[0] ? spans[0].answerUnitId : '-')
+        + ' url=' + (spans[0] ? spans[0].canonicalUrl : '-'));
+      if (cid) {
+        eq('  ' + r.slot + ' rests on ONE answer unit',
+          new Set(spans.map((s) => s.sourceId + '#' + s.answerUnitId)).size, 1);
+        eq('  ' + r.slot + ' rests on ONE canonical url',
+          new Set(spans.map((s) => s.canonicalUrl)).size, 1);
+        ok('  ' + r.slot + ' rests on his own domain',
+          spans.every((s) => s.canonicalUrl.includes('binothaimeen.net')));
+      }
+    }
+
+    // ── the mutations ──
+    const MUTATIONS = [
+      ['the FASTING sentence is deleted from his page', { dropSentences: ['تصوم ولا تفطر'] }, 'fasting_ruling'],
+      ['the PRAYER sentence is deleted from his page', { dropSentences: ['تصلي ولا تدع الصلاة'] }, 'prayer_ruling'],
+      ['the CONDITION sentence is deleted from his page', { dropSentences: ['ثمانين يوما فليس دمها دم نفاس'] }, 'condition_context'],
+    ];
+    for (const [label, over, missing] of MUTATIONS) {
+      const r = await runFixture(F7, over);
+      ok('MUTATION — ' + label + ': not FULL', r.outcome !== 'FULL', r.outcome);
+      eq('  ...and ' + missing + ' is unfilled',
+        r.ledger.slotStatus.get('iss_1:' + missing)?.status, 'unfilled');
+      ok('  ...while the supported part survives',
+        r.outcome === 'PARTIAL' || r.ledger.verifiedClaims().length > 0
+          ? true : r.outcome === 'SAFE_REJECTION', r.outcome);
+      ok('  ...and no general source was called in to complete his fatwa',
+        r.budget.snapshot().spent.braveCalls === 0
+        && Array.from(r.ledger.sources.values()).every((s) => s.host === 'binothaimeen.net'),
+        JSON.stringify(Array.from(r.ledger.sources.values()).map((s) => s.host)));
+    }
+
+    // MUTATION 4 — a claim welded from two DIFFERENT answer units.
+    {
+      const r = await runFixture(F7, { splitUnits: true, crossUnit: true });
+      const g1 = r.ledger.gateResults.filter((g) => g.gate === 'gate1' && !g.pass);
+      ok('MUTATION — spans welded across two answer units: Gate 1 refuses',
+        g1.some((g) => /multiple-answer-units/.test(g.detail)), JSON.stringify(g1.slice(0, 2)));
+      ok('  ...so the welded claim is never verified',
+        !r.ledger.verifiedClaims().some((c) => (r.ledger.evidenceBundles.get(c.claimId) || []).length > 1));
+      // The malformed claim IS recorded as malformed when the whole ledger is inspected...
+      ok('  ...the weld is visible when every claim is inspected',
+        r.ledger.integrityProblems('all').some((p) => /answer units/.test(p)),
+        JSON.stringify(r.ledger.integrityProblems('all')));
+      // ...and does NOT taint what actually backs the reply, because the gate already dropped it.
+      eq('  ...but what backs the answer is sound', r.ledger.integrityProblems('answer'), []);
+      ok('  ...and the surviving slots still came from his page alone',
+        Array.from(r.ledger.sources.values()).every((s) => s.host === 'binothaimeen.net'));
+    }
+
+    // MUTATION 5 — the evidence proves prayer; the claim also asserts fasting.
+    {
+      const r = await runFixture(F7, { overreach: true });
+      const g2 = r.ledger.gateResults.filter((g) => g.gate === 'gate2' && !g.pass);
+      ok('MUTATION — a claim that adds fasting to prayer-only evidence: Gate 2 FAILS it',
+        g2.length >= 1, JSON.stringify(r.ledger.gateResults.filter((g) => !g.pass).slice(0, 3)));
+      ok('  ...naming the unsupported component',
+        g2.some((g) => /unsupported:/.test(g.detail)), JSON.stringify(g2.slice(0, 2)));
+      ok('  ...and the over-reaching claim is dropped whole, not trimmed',
+        !r.ledger.verifiedClaims().some((c) => c.unsupportedComponents && c.unsupportedComponents.length));
+    }
+  }
+
+  // =========================================================================
   console.log('\n=== C2. REPORT CONSISTENCY — the numbers cannot contradict the prose ===');
   //
   // The previous report claimed "a single-issue question gets one card" in its conformance
@@ -807,11 +993,21 @@ const RESULTS = {
       rows: table,
     }, null, 2) + '\n', 'utf8');
     ok('the generated results table is written for the report to quote', fs.existsSync(outFile));
-    console.log('\n  | fixture | outcome | issues | brave | fetch | model | cards | domains |');
-    console.log('  |---|---|---|---|---|---|---|---|');
+    // Printed as SHORT INDEPENDENT LINES as well as a table: a wide markdown row is exactly what
+    // a terminal truncates, and a truncated row is how an incomplete table reached a report.
+    console.log('\n  | fixture | outcome | issues | authority | brave | net | recs | model | cards | card domains |');
+    console.log('  |---|---|---|---|---|---|---|---|---|---|');
     for (const r of table) {
-      console.log('  | ' + [r.id, r.outcome, r.issue_count, r.brave_calls, r.pages_fetched,
-        r.model_calls, r.source_cards, r.source_domains.join(' ') || '-'].join(' | ') + ' |');
+      console.log('  | ' + [r.id, r.outcome, r.issue_count, r.requested_authority_id || '-',
+        r.brave_calls, r.network_fetches, r.accepted_records, r.model_calls, r.source_cards,
+        r.card_domains.join(' ') || '-'].join(' | ') + ' |');
+    }
+    console.log('\n  --- per-fixture slot coverage ---');
+    for (const r of table) {
+      console.log('  ' + r.id);
+      console.log('    required: ' + (r.required_slots.join(', ') || '(none)'));
+      console.log('    filled:   ' + (r.filled_slots.join(', ') || '(none)'));
+      console.log('    domains:  ' + (r.source_domains.join(', ') || '(none)'));
     }
   }
 

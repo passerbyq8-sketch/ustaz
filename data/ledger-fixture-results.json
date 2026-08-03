@@ -8,6 +8,8 @@
       "issue_count": 1,
       "requested_authority_id": null,
       "brave_calls": 1,
+      "network_fetches": 3,
+      "accepted_records": 2,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
@@ -42,6 +44,8 @@
       "issue_count": 1,
       "requested_authority_id": null,
       "brave_calls": 1,
+      "network_fetches": 3,
+      "accepted_records": 3,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
@@ -78,6 +82,8 @@
       "issue_count": 1,
       "requested_authority_id": null,
       "brave_calls": 1,
+      "network_fetches": 3,
+      "accepted_records": 3,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
@@ -110,6 +116,8 @@
       "issue_count": 1,
       "requested_authority_id": null,
       "brave_calls": 1,
+      "network_fetches": 3,
+      "accepted_records": 3,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
@@ -145,6 +153,8 @@
       "issue_count": 1,
       "requested_authority_id": null,
       "brave_calls": 1,
+      "network_fetches": 3,
+      "accepted_records": 3,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
@@ -180,6 +190,8 @@
       "issue_count": 1,
       "requested_authority_id": "al-abbaad",
       "brave_calls": 0,
+      "network_fetches": 0,
+      "accepted_records": 0,
       "pages_fetched": 0,
       "model_calls": 1,
       "verified_cycles": 0,
@@ -202,7 +214,9 @@
       "issue_count": 1,
       "requested_authority_id": "ibn-uthaymeen",
       "brave_calls": 0,
-      "pages_fetched": 1,
+      "network_fetches": 0,
+      "accepted_records": 1,
+      "pages_fetched": 0,
       "model_calls": 5,
       "verified_cycles": 1,
       "source_cards": 1,
@@ -219,12 +233,16 @@
         "https://binothaimeen.net/content/12345#u1"
       ],
       "required_slots": [
-        "iss_1:ruling",
-        "iss_1:attribution"
+        "iss_1:attribution",
+        "iss_1:prayer_ruling",
+        "iss_1:fasting_ruling",
+        "iss_1:condition_context"
       ],
       "filled_slots": [
-        "iss_1:ruling",
-        "iss_1:attribution"
+        "iss_1:attribution",
+        "iss_1:prayer_ruling",
+        "iss_1:fasting_ruling",
+        "iss_1:condition_context"
       ],
       "budget_breaches": 0,
       "duplicate_fetches": 0
@@ -235,6 +253,8 @@
       "issue_count": 1,
       "requested_authority_id": null,
       "brave_calls": 1,
+      "network_fetches": 3,
+      "accepted_records": 3,
       "pages_fetched": 3,
       "model_calls": 3,
       "verified_cycles": 1,
@@ -268,6 +288,8 @@
       "issue_count": 2,
       "requested_authority_id": "ibn-baz",
       "brave_calls": 2,
+      "network_fetches": 3,
+      "accepted_records": 3,
       "pages_fetched": 3,
       "model_calls": 7,
       "verified_cycles": 2,
@@ -291,18 +313,18 @@
         "https://islamqa.info/ar/answers/7004/x#u1"
       ],
       "required_slots": [
-        "iss_1:ruling",
         "iss_1:practical_steps",
-        "iss_2:ruling",
+        "iss_1:prayer_ruling",
         "iss_2:attribution",
-        "iss_2:practical_steps"
+        "iss_2:practical_steps",
+        "iss_2:prayer_ruling"
       ],
       "filled_slots": [
-        "iss_1:ruling",
         "iss_1:practical_steps",
-        "iss_2:ruling",
+        "iss_1:prayer_ruling",
         "iss_2:attribution",
-        "iss_2:practical_steps"
+        "iss_2:practical_steps",
+        "iss_2:prayer_ruling"
       ],
       "budget_breaches": 0,
       "duplicate_fetches": 0
