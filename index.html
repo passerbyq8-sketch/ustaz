@@ -316,7 +316,12 @@
        -soft  accent at chip strength, a surface and never a text colour
        accent2 is the gold: at #C48A27 it is decoration, so its TEXT role is a darker gold. */
     --vt-on-accent:#FFFFFF; --vt-accent-ink:#00544C; --vt-accent2-ink:#6E4B0E;
-    --vt-on-accent2:#0E2B27;
+    /* the ink ON the marker fill (the finished-dhikr chip). It darkened with the fill: at
+       #0E2B27 on #A6741C it was 3.68:1, and a chip that carries a number owes 4.5:1. */
+    --vt-on-accent2:#08110F;
+    /* the gold at INDICATOR strength: #C48A27 is 2.88:1 on the card surface, and a dot that
+       says "this one is selected" has to clear 3:1. Same hue, one step down. */
+    --vt-marker:#A6741C;
     --vt-deep:#03453F; --vt-soft:#E4EFEC;
     --vt-font:'Noto Kufi Arabic', Tahoma, sans-serif;
   }
@@ -331,6 +336,8 @@
     --vt-focus:#7BE0CE;
     --vt-on-accent:#062521; --vt-accent-ink:#7EDDCC; --vt-accent2-ink:#EFD199;
     --vt-on-accent2:#062521;
+    /* on a dark card the gold is already the light end; it needs no second value. */
+    --vt-marker:#E5BE73;
     /* the accent FILL, mid-tone in dark: it carries --vt-on-accent, which is dark here. */
     --vt-deep:#3FA898; --vt-soft:#16302B;
   }
@@ -345,6 +352,8 @@
     --vt-focus:#08486E;
     --vt-on-accent:#FFFFFF; --vt-accent-ink:#0A5480; --vt-accent2-ink:#9E2F2A;
     --vt-on-accent2:#FFFFFF;
+    /* istana's red already clears the floor at 5.12:1, so the marker IS the accent2. */
+    --vt-marker:#C43E38;
     --vt-deep:#083A57; --vt-soft:#E3EFF5;
     --vt-font:'Noto Naskh Arabic', Georgia, serif;
   }
@@ -357,6 +366,7 @@
     --vt-focus:#8CCDEE;
     --vt-on-accent:#04202F; --vt-accent-ink:#8CCDEE; --vt-accent2-ink:#F4B2AC;
     --vt-on-accent2:#04202F;
+    --vt-marker:#EE8A83;
     /* same reason as qibla_13 above: a fill under a dark on-colour has to lighten. */
     --vt-deep:#4A9CCB; --vt-soft:#142C3A;
   }
@@ -396,7 +406,10 @@
     --a3-ink:var(--vt-ink); --a3-muted:var(--vt-muted);
     /* --a3-navy is read in exactly one place, as the text ON the --a3-cyan chip, so it is
        the ON-COLOUR of the second accent and not a navy at all. */
-    --a3-blue:var(--vt-accent); --a3-navy:var(--vt-on-accent2); --a3-cyan:var(--vt-accent2);
+    /* --a3-cyan is the small-INDICATOR role in this scope -- the step marker, the rail marks,
+       the deck accent, the favourite icon and the selected dot -- so it reads the marker
+       strength of the identity, not its decorative one. */
+    --a3-blue:var(--vt-accent); --a3-navy:var(--vt-on-accent2); --a3-cyan:var(--vt-marker);
     --a3-shadow:var(--vt-shadow); --a3-lift:var(--vt-shadow);
   }
   /* THE QURAN SHEET OPTS OUT OF THE IDENTITY, exactly as it opts out of dark, and with the
@@ -9546,7 +9559,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         </div>
         {/* S100 -- the visual identity, its own card under the layout card. It does not move,
             replace or reset the two controls above it; all three compose. */}
-        <div style={{ ...s.settingsCard, marginTop: 12 }}>
+        <div className="adhkar3" style={{ ...s.settingsCard, marginTop: 12 }}>
           <div style={s.settingsLabel}>{EZ_VT_TITLE}</div>
           <div style={s.designRow} role="radiogroup" aria-label={EZ_VT_TITLE}>
             <VtOpt value={EZIK_VISUAL_THEME_QIBLA} label={EZ_VT_QIBLA} preview={PREV_QIBLA} />

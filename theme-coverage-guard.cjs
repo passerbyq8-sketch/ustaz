@@ -673,6 +673,80 @@ for (const [pfx, want] of [['q', 'qibla_13'], ['i', 'istana_33']]) {
   eq('the ' + want + ' preview line is the approved line', LIGHT['--vtp-' + pfx + '-line'], VT_APPROVED[want]['--vt-line']);
 }
 
+/* ---- G9c. the selector is mounted WHERE ITS TOKENS ARE ------------------
+ * Group G proved the radiogroup, both ids, the radio semantics and the writer, and every one of
+ * those passed while the control could not show which option was selected. Structure is not
+ * enough: these style keys read --a3-*, which is a SCOPED token set, so where the card is
+ * mounted decides whether the checked state has a colour at all. Asserted two ways -- the card
+ * carries the scope, and the same keys resolve to NOTHING without it, which is the defect.
+ * ---------------------------------------------------------------------- */
+function cardTagAround(labelExpr) {
+  const at = html.indexOf('<div style={s.settingsLabel}>{' + labelExpr + '}</div>');
+  if (at === -1) return null;
+  // from at-1: starting at `at` finds the label div itself, which is never the card.
+  const open = html.lastIndexOf('<div', at - 1);
+  return open === -1 ? null : html.slice(open, html.indexOf('>', open) + 1);
+}
+const vtCardTag = cardTagAround('EZ_VT_TITLE');
+const uiCardTag = cardTagAround('A3_STYLE_TITLE');
+ok('the identity card was located in Settings', !!vtCardTag);
+ok('the layout card was located in Settings', !!uiCardTag);
+// The token set these controls read is declared on .adhkar3,.ezhome and nowhere else.
+ok('the identity card carries the token scope its own controls read',
+  !!vtCardTag && /className="adhkar3"/.test(vtCardTag),
+  'mounted as: ' + String(vtCardTag) + '  -- designOpt/designOptOn/designDot/designOptLabel all read --a3-*, '
+  + 'which is declared only on .adhkar3,.ezhome; outside it the checked option has no border, no '
+  + 'shadow and an invisible dot');
+ok('...the same scope the layout card beside it uses',
+  !!vtCardTag && !!uiCardTag && /className="adhkar3"/.test(vtCardTag) === /className="adhkar3"/.test(uiCardTag));
+
+// The scope is load-bearing: without it these four resolve to nothing at all. This is the
+// measured defect written down, so the check above can never be quietly weakened into a no-op.
+function unscoped(id, mode) {
+  const dark = mode === 'dark';
+  return { ...palette((/:root\s*\{([^}]*)\}/.exec(css) || [, ''])[1]),
+    ...(dark ? DARK : {}), ...VT.light[id], ...(dark ? VT.dark[id] : {}), ...VT.map };
+}
+const VT_CTRL = ['designOpt', 'designOptOn', 'designOptLabel', 'designDot', 'designDotOn'];
+for (const k of VT_CTRL) ok('the identity control reuses the shipped key ' + k, !!s[k]);
+{
+  const u = unscoped('istana_33', 'light');
+  const dead = [['designOptOn.border', s.designOptOn.border], ['designOptOn.boxShadow', s.designOptOn.boxShadow],
+    ['designDotOn.background', s.designDotOn.background], ['designOptLabel.color', s.designOptLabel.color]]
+    .filter(([, v]) => resolve(v, u) !== null).map(([kk]) => kk);
+  eq('outside that scope every one of them resolves to nothing -- the defect, recorded', dead, []);
+}
+
+/* ---- G9d. and inside the scope, the checked option is actually VISIBLE -- */
+for (const id of VT_IDS) {
+  for (const mode of ['light', 'dark']) {
+    const pal = VT_PAL[id + ':' + mode];
+    const surface = resolve(s.designOpt.background, pal);
+    const onBorder = resolve(s.designOptOn.border, pal);
+    const offBorder = resolve(s.designOpt.border, pal);
+    const dot = resolve(s.designDotOn.background, pal);
+    const label = resolve(s.designOptLabel.color, pal);
+    const shadowRaw = String(resolveRaw(s.designOptOn.boxShadow, pal)).trim();
+    const tag = id + ' ' + mode + ': ';
+    ok(tag + 'the option surface resolves', !!surface, String(s.designOpt.background));
+    ok(tag + 'the CHECKED option has a real border colour', !!onBorder, String(s.designOptOn.border));
+    ok(tag + '...visible against the option surface (>=3:1)',
+      !!onBorder && !!surface && contrast(onBorder, surface) >= 3,
+      onBorder && surface ? hex(onBorder) + ' on ' + hex(surface) + ' = ' + contrast(onBorder, surface).toFixed(2) : 'unresolved');
+    ok(tag + '...and distinguishable from the UNCHECKED border',
+      !!onBorder && !!offBorder && hex(onBorder) !== hex(offBorder),
+      'checked ' + hex(onBorder) + ' vs unchecked ' + hex(offBorder));
+    ok(tag + 'the CHECKED option has a shadow, not none',
+      shadowRaw !== '' && shadowRaw !== 'none' && /#|rgba?\(/i.test(shadowRaw), shadowRaw || '(empty)');
+    ok(tag + 'the selected DOT has a visible background',
+      !!dot && !!surface && contrast(dot, surface) >= 3,
+      dot && surface ? hex(dot) + ' on ' + hex(surface) + ' = ' + contrast(dot, surface).toFixed(2) : 'unresolved');
+    const ink = resolve(pal['--vt-ink'], pal);
+    ok(tag + 'the option label is the theme ink', !!label && !!ink && hex(label) === hex(ink),
+      'label ' + hex(label) + ' vs --vt-ink ' + hex(ink));
+  }
+}
+
 /* ---- G10. every implemented screen inherits the identity --------------- */
 // Not asserted by looking for a class name: each screen is measured by RESOLVING the background
 // it actually paints, first with no identity and then with each one. A screen that did not
