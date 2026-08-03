@@ -284,6 +284,24 @@ const quotedDomains = (body) =>
     ['تدبر في سورة النصر', 'tafsir'],
     ['تخريج حديث إنما الأعمال بالنيات', 'hadith'],
     ['ما درجة الحديث الذي فيه ذكر الجمعة', 'hadith'],
+    // EXPLAINING a hadith is a hadith question too. The first version of the classifier
+    // inherited lib/source-intent.js's takhrij-only vocabulary, so every one of these came
+    // out `general` — the hadith sources were never ranked first and the scope-restricted
+    // general sources were never dropped.
+    ['اشرح حديث إنما الأعمال بالنيات', 'hadith'],
+    ['شرح حديث إنما الأعمال بالنيات', 'hadith'],
+    ['ما معنى حديث إنما الأعمال بالنيات', 'hadith'],
+    ['ما صحة حديث إنما الأعمال بالنيات', 'hadith'],
+    ['حديث من موقع الشيخ عبدالمحسن العباد', 'hadith'],
+    ['اذكر حديثًا عن النية', 'hadith'],
+    // ...but «حديث» is also the ordinary adjective for "modern", and a bare trigger would
+    // read a phone as a prophetic report. These must never leave `general`.
+    ['هذا جهاز حديث', 'general'],
+    ['حدثني عن التقنية الحديثة', 'general'],
+    ['ما أحدث أخبار المشروع', 'general'],
+    ['اشتريت هاتفًا حديثًا', 'general'],
+    ['المسجد الحديث في المدينة', 'general'],
+    ['التعليم الحديث في العالم العربي', 'general'],
     ['خطبة عن بر الوالدين', 'general'],
     ['خطبة الجمعة عن الصبر', 'general'],
     ['موعظة عن الموت', 'general'],

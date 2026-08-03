@@ -332,6 +332,60 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   }
 
   // =========================================================================
+  // The whole chain, on the REAL functions: question -> classifyPurpose -> the scope filter
+  // -> rankForPurpose -> the query plan. This is the path retrieve() takes, and it is where
+  // the hadith mis-classification actually hurt: a hadith question labelled `general` keeps
+  // every scope-restricted source in play and never ranks dorar.net first.
+  console.log('\n=== E2. CLASSIFY -> SCOPE -> RANK -> PLAN (end to end) ===');
+  {
+    const P = await esm('lib/source-purpose.js');
+    const A = await esm('lib/attribution.js');
+
+    const HADITH_Q = [
+      'اشرح حديث إنما الأعمال بالنيات',
+      'شرح حديث إنما الأعمال بالنيات',
+      'ما معنى حديث إنما الأعمال بالنيات',
+      'ما صحة حديث إنما الأعمال بالنيات',
+      'حديث من موقع الشيخ عبدالمحسن العباد',
+      'اذكر حديثًا عن النية',
+    ];
+    // Sources whose scope forbids hadith. None of them may survive the filter.
+    const NOT_FOR_HADITH = ['tafsir.net', 'khutabaa.com', 'salafcenter.org',
+      'almunajjid.com', 'saleh.af.org.sa', 'khaledalsabt.com'];
+
+    for (const q of HADITH_Q) {
+      const purpose = P.classifyPurpose(q);
+      eq('purpose(' + q.slice(0, 34) + '…) is hadith', purpose, 'hadith');
+      const kept = R.filterSitesForPurpose(ADULT, purpose);
+      eq('  ...and the non-hadith sources are dropped',
+        NOT_FOR_HADITH.filter((d) => kept.includes(d)), []);
+      const plan = B.planQueries(q, kept, { purpose });
+      ok('  ...every group is still within SAFE', plan.groups.every((g) => B.withinSafe(g.q)));
+      ok('  ...dorar.net leads the first group', plan.groups[0].sites.slice(0, 4).includes('dorar.net'),
+        JSON.stringify(plan.groups[0].sites.slice(0, 4)));
+      ok('  ...al-abbaad.com is still searchable for hadith',
+        plan.groups.some((g) => g.sites.includes('al-abbaad.com')));
+    }
+
+    // Naming a scholar's SITE is a request for material, not for his opinion.
+    {
+      const q = 'حديث من موقع الشيخ عبدالمحسن العباد';
+      const d = A.detectAttribution([{ role: 'user', content: q }]);
+      eq('«حديث من موقع الشيخ …» is NOT an attribution request', d.attributed, false);
+      ok('...while «ما رأي الشيخ عبدالمحسن العباد …» still IS',
+        A.detectAttribution([{ role: 'user', content: 'ما رأي الشيخ عبدالمحسن العباد في الطلاق في الغضب؟' }]).attributed);
+      ok('...and a bare honorific elsewhere still IS',
+        A.detectAttribution([{ role: 'user', content: 'الشيخ ابن عثيمين رحمه الله ماذا قال في هذا؟' }]).attributed);
+    }
+
+    // The "modern" sense must never reach the hadith path or the fatwa path.
+    for (const q of ['هذا جهاز حديث', 'حدثني عن التقنية الحديثة', 'ما أحدث أخبار المشروع',
+      'اشتريت هاتفًا حديثًا', 'المسجد الحديث في المدينة']) {
+      eq('«' + q + '» stays general', P.classifyPurpose(q), 'general');
+    }
+  }
+
+  // =========================================================================
   console.log('\n=== F. THE WIRING ===');
   ok('retrieve.js builds its queries through lib/brave-query.js',
     /from '\.\/brave-query\.js'/.test(retrieveSrc));
