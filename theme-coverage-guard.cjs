@@ -909,6 +909,19 @@ ok('every module card carries a title and a subtitle, not just an icon',
 for (const id of ['memorize', 'adhkar', 'mushaf', 'treasure']) ok('...and ' + id + ' has one', !!evalIn('EZIST_SUB["' + id + '"]'));
 const tall = ['ezistCard', 'ezistFeature', 'ezistAsk', 'ezistQuran'].filter((k) => typeof (s[k] || {}).height === 'number' || ((s[k] || {}).minHeight || 0) > 140);
 eq('no card is pinned to a height its content cannot fill', tall, []);
+// ...and the OTHER way a card goes empty, which the height check could not see and a 1440px
+// screenshot could: a card wide enough that its one cluster of content sits against a single
+// edge with a void beside it. Two things prevent it -- the content is spread to both ends, and
+// there is ALWAYS something at the far end, the real reading or the chevron.
+for (const k of ['ezistCard', 'ezistFeature', 'ezistAsk']) {
+  eq('a wide ' + k + ' spreads its content to both ends', (s[k] || {}).justifyContent, 'space-between');
+}
+ok('a module with no reading still ends in an affordance, never in blank card',
+  /\{m\.meta \? <span style=\{s\.ezistMeta\}>\{m\.meta\}<\/span>[\s\S]{0,80}?: <span style=\{s\.ezistGo\}/.test(html),
+  'the meta/affordance pair is what fills the trailing edge at every width');
+ok('...and no module column is wide enough to strand its content on a desktop',
+  /@media \(min-width:1000px\)\{[\s\S]{0,700}?\.ezist-mod,\.ezist-feature\{grid-column:span 2\}/.test(css),
+  'four modules at span 2 of six is 348px at the 1100px maximum; span 3 and span 4 measured empty');
 
 ok('the daily verse has its own bounded panel', /<EzistQuranPanel \/>/.test(IST) && /className="ezist-quran"/.test(IST));
 ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
