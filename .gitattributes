@@ -126,3 +126,8 @@ lib/source-purpose.js text eol=lf
 lib/source-page-gates.js text eol=lf
 lib/retrieve.js text eol=lf
 tools/source-live-smoke.cjs text eol=lf
+
+# Gate 26 (brave-query-guard) and the query builder it measures. Same reason as every gate
+# above: the guard reads these files as text and asserts on their contents.
+brave-query-guard.cjs text eol=lf
+lib/brave-query.js text eol=lf

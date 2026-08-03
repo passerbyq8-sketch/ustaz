@@ -375,8 +375,18 @@ head('9) RAG SOURCE LISTS & GATES (lib/retrieve.js)');
     if (minor.length) { if (minorOk) pass('SITES_MINOR == {islamqa.info, binbaz.org.sa} (khilaf policy)'); else warn('SITES_MINOR is not exactly islamqa+binbaz -- CHILD-SAFETY: verify'); }
 
     // gate functions & slugs
-    for (const g of ['isKhameesBlocked','isTafsirAppBookBlocked','siteFilterFor','retrieve']){
+    for (const g of ['isKhameesBlocked','isTafsirAppBookBlocked','retrieve']){
       if (src.indexOf(g) !== -1) pass('present: ' + g); else warn('NOT found: ' + g);
+    }
+    // The `site:` filter used to be assembled here as siteFilterFor(). It moved to
+    // lib/brave-query.js on 2026-08-03, so that assembly and MEASUREMENT live in one file --
+    // the adult-retrieval outage was a query built in one place and measured in none. What
+    // this line now checks is that retrieve.js gets its queries from that owner and does not
+    // grow a second formula of its own.
+    if (/from '\.\/brave-query\.js'/.test(src) && !/function siteFilterFor/.test(src)){
+      pass('query assembly delegated to lib/brave-query.js (no local site: filter)');
+    } else {
+      fail('retrieve.js must build queries via lib/brave-query.js and keep no site: filter of its own');
     }
     if (/\bkashaf\b/.test(src) && /\balrazi\b/.test(src)) pass('tafsir book-block slugs present: kashaf + alrazi');
     else warn('tafsir block slugs kashaf/alrazi not both found');
@@ -512,7 +522,10 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 25;   // 25th: source-registry-guard (one row per approved domain, no
+  const GATES_EXPECTED = 26;   // 26th: brave-query-guard    (no Brave query the app can build
+                               //       exceeds 400 chars / 50 words -- the ceiling that took
+                               //       adult retrieval down while 25 gates stayed green)
+                               // 25th: source-registry-guard (one row per approved domain, no
                                //       duplicate/www evasion, per-source SCOPE, and a page is
                                //       admitted on its own evidence rather than on its host)
                                // 23rd: attribution-guard    (a named scholar's opinion may not be

@@ -123,5 +123,10 @@
   "name": "sourceregistry",
   "script": "source-registry-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "bravequery",
+  "script": "brave-query-guard.cjs",
+  "args": ""
  }
 ]
