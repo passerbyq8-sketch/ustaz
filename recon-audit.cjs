@@ -522,7 +522,10 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 26;   // 26th: brave-query-guard    (no Brave query the app can build
+  const GATES_EXPECTED = 27;   // 27th: smart-retrieval-guard (a scholar's name starts a search,
+                               //       it does not end one; the canned refusal is no longer a
+                               //       global fallback)
+                               // 26th: brave-query-guard    (no Brave query the app can build
                                //       exceeds 400 chars / 50 words -- the ceiling that took
                                //       adult retrieval down while 25 gates stayed green)
                                // 25th: source-registry-guard (one row per approved domain, no

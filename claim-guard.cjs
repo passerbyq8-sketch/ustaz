@@ -293,9 +293,18 @@ function eq(name, actual, expected) {
   console.log('\n=== G. THE WIRING (api/ask.js, lib/retrieve.js) ===');
   const ask = fs.readFileSync(path.join(REPO, 'api', 'ask.js'), 'utf8');
   ok('the claim gate is imported', /from '\.\.\/lib\/claim-gate\.js';/.test(ask));
-  ok('the subject is resolved across the thread', /detectSubjectInThread\(body\.messages\)/.test(ask));
+  // Both of these moved into lib/ask-plan.js, which composes the classifiers into one
+  // description of the request; api/ask.js reads the result. The BEHAVIOUR asserted is
+  // unchanged — only its owner moved — so the assertions follow it rather than pinning a
+  // location it no longer occupies.
+  const plan = fs.readFileSync(path.join(REPO, 'lib', 'ask-plan.js'), 'utf8');
+  ok('the subject is resolved across the thread', /detectSubjectInThread\(messages\)/.test(plan));
+  ok('...and api/ask.js takes it from the plan rather than recomputing it',
+    /const claimSubject = plan\.claimSubject;/.test(ask));
   ok('a captured name that IS the asked-about expression is disarmed',
-    /subjectSwallowsName\(claimSubject, attribution\.scholarName\)/.test(ask));
+    /subjectSwallowsName\(claimSubject, attribution\.scholarName\)/.test(plan));
+  ok('...and disarming it means the question is NOT treated as an attribution',
+    /subjectSwallowsName\(claimSubject, attribution\.scholarName\)\)\s*\{\s*mode = 'none';/.test(plan));
   const body = ask.slice(ask.indexOf('export default async function handler'));
   ok('the claim branch runs BEFORE round 2',
     body.indexOf('if (claimSubject.specific)') > -1

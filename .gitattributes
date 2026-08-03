@@ -131,3 +131,8 @@ tools/source-live-smoke.cjs text eol=lf
 # above: the guard reads these files as text and asserts on their contents.
 brave-query-guard.cjs text eol=lf
 lib/brave-query.js text eol=lf
+
+# Gate 27 (smart-retrieval-guard) and the request planner it measures.
+smart-retrieval-guard.cjs text eol=lf
+lib/ask-plan.js text eol=lf
+api/ask.js text eol=lf

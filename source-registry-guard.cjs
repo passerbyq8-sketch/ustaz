@@ -714,9 +714,18 @@ const quotedDomains = (body) =>
   }
   ok('80-day: the INVERTED reply is still refused against the same page',
     !A.verifyAttributedReply('هي نفساء فتترك الصلاة والصوم.', d80, rightPage).ok);
-  ok('80-day: the attributed route is still served ONLY by the binothaimeen adapter',
-    /retrieveIbnUthaymeen/.test(askSrc)
-    && /attribution\.scholar\.key === 'ibn-uthaymeen'/.test(askSrc));
+  // The adapter is still what serves Ibn Uthaymeen, and it is still tried FIRST. The
+  // `key === 'ibn-uthaymeen'` test moved into lib/ask-plan.js as `hasDirectAdapter`, so the
+  // assertion follows it there rather than pinning a line api/ask.js no longer contains.
+  ok('80-day: the attributed route is still served by the binothaimeen adapter, tried first',
+    /retrieveIbnUthaymeen/.test(askSrc) && /if \(plan\.hasDirectAdapter\)/.test(askSrc));
+  ok('80-day: hasDirectAdapter is still decided by the scholar registry key',
+    /attribution\.scholar && attribution\.scholar\.key === 'ibn-uthaymeen'/
+      .test(read('lib/ask-plan.js')));
+  // And the guarantee that matters regardless of routing: an attributed answer may only rest
+  // on a source the verifier accepted as HIS.
+  ok('80-day: an attributed answer still requires a source by the named scholar',
+    /verifyAttributedReply\(draft, attribution, attributedSources\)/.test(askSrc));
   ok('80-day: no new domain was added to lib/attribution.js SCHOLARS',
     A.SCHOLARS.length === 1 && A.SCHOLARS[0].host === 'binothaimeen.net');
 

@@ -18,8 +18,9 @@ import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/rate
 import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
-import { detectAttribution, verifyAttributedReply, ATTRIBUTION_REFUSAL } from '../lib/attribution.js';
-import { detectSubjectInThread, sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verifyClaims, subjectSwallowsName, CLAIM_REFUSAL } from '../lib/claim-gate.js';
+import { verifyAttributedReply } from '../lib/attribution.js';
+import { planAsk, unattributedNote, REASON, NEEDS_SCHOLAR_NAME, NEEDS_MATERIAL } from '../lib/ask-plan.js';
+import { sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verifyClaims, CLAIM_REFUSAL } from '../lib/claim-gate.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -425,20 +426,24 @@ export default async function handler(req, res) {
   // أسقطت دون ٨٠ يوم؟" contains not one word of DEEN_WORDS, so it classified GEN, ran with no
   // tools and no retrieval, and the model answered a fatwa from memory — inverted, and with no
   // card, because the GEN branch strips every source tag.
-  const attribution = detectAttribution(body.messages);
-  // The SPECIFIC-CLAIM gate is decided from the same messages, and independently: a question can
-  // name a scholar, name an expression, both, or neither. The attributed branch runs first when
-  // both fire, because "who said it" is the stronger constraint.
-  const claimSubject = detectSubjectInThread(body.messages);
-  // A question can name a scholar AND name an expression. It cannot have the SAME words be
-  // both. «حكم قول يا معطي لا تبطي» captured «يا معطي لا تبطي» as a scholar under the ordinary
-  // «قول فلان» pattern; the expression the reader asked about is not the person who ruled on it.
-  if (attribution.attributed && subjectSwallowsName(claimSubject, attribution.scholarName)) {
-    console.warn('[attribution] captured name is the asked-about expression — not an attribution:', attribution.scholarName);
-    attribution.attributed = false;
-    attribution.scholar = null;
-  }
-  console.log('[route]', { route, band, attributed: attribution.attributed, scholar: attribution.scholarName || null });
+  // STAGE A — a DESCRIPTION of the request, not a decision about it (lib/ask-plan.js). It
+  // composes the classifiers this project already has: purpose, attribution shape, the
+  // specific-expression subject, and the scholar-to-domain mapping. Reading a name out of the
+  // question no longer ends the search; it starts a more specific one.
+  const plan = planAsk(body.messages);
+  const attribution = plan.attribution;
+  const claimSubject = plan.claimSubject;
+  // A NAME OVERRIDES THE ROUTE, BUT IT DOES NOT REPLACE THE SEARCH. «ما رأي الشيخ ابن عثيمين
+  // فيمن أسقطت دون ٨٠ يوم؟» contains not one DEEN word, so the lexical router calls it GEN —
+  // and GEN runs with no tools and no retrieval, which is how the original inverted fatwa was
+  // produced. Anything naming a scholar or a scholar's site is therefore forced onto the
+  // sourced route, whichever way it ends.
+  const effectiveRoute = plan.attributionMode === 'none' ? route : 'DEEN';
+  console.log('[route]', {
+    route: effectiveRoute, lexicalRoute: route, band,
+    purpose: plan.purpose, mode: plan.attributionMode,
+    entity: plan.namedEntity || null, officialDomain: plan.officialDomain || null,
+  });
 
   const headers = {
     'Content-Type': 'application/json',
@@ -481,31 +486,78 @@ export default async function handler(req, res) {
     //   4. The answer is then verified against the source — polarity on the decisive fiqh terms,
     //      every stated duration, and named criteria the source never used — and dropped whole if
     //      it disagrees.
-    if (attribution.attributed) {
+    // ── A CLAIM WITH NOBODY NAMED ──────────────────────────────────────────
+    // «قال الشيخ إن كذا» / «ما حكم ما قاله الشيخ في المقطع؟». Something is being credited to
+    // somebody, and there is no somebody. Guessing which scholar is meant, or searching for
+    // an arbitrary one, is the fabrication this whole area exists to prevent — so the honest
+    // move is to ask. Neither line makes a religious claim.
+    if (plan.needsClarification) {
+      const wantsMaterial = /مقطع|فيديو|الفيديو|تسجيل|المقال|مقال|رابط|كلام/u.test(plan.topic || '');
+      console.warn('[attribution]', REASON.CLARIFICATION_REQUIRED, wantsMaterial ? 'material' : 'name');
+      clearKeepAlive();
+      res.write(`data: ${JSON.stringify({
+        type: 'content_block_delta', index: 0,
+        delta: { type: 'text_delta', text: wantsMaterial ? NEEDS_MATERIAL : NEEDS_SCHOLAR_NAME },
+      })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+      return res.end();
+    }
+
+    // ── ASKED FOR A NAMED SCHOLAR'S OWN POSITION ───────────────────────────
+    //
+    // WHAT CHANGED, AND WHY. This used to be a barrier: a name was detected, one adapter was
+    // consulted, and anything else emitted a fixed sentence — no search, no ruling, nothing.
+    // A reader asking about Shaykh al-Abbaad's view got that sentence though the general
+    // ruling was documented and citable, and a transient failure of the Ibn Uthaymeen adapter
+    // produced it too.
+    //
+    // It is now a SEARCH, in two steps, and a failure at either step falls THROUGH to the
+    // ordinary sourced route rather than ending the request:
+    //   1. the scholar's own corpus — the purpose-built adapter where one exists, otherwise a
+    //      search restricted to the domain the registry says publishes him;
+    //   2. verification of the draft against that text (unchanged, and still absolute).
+    //
+    // The guarantee is exactly what it was: no position is attributed to a man without a page
+    // of his that says it. What is no longer true is that failing to find one costs the reader
+    // the answer to the question he actually asked.
+    let attributionNote = '';          // appended to the general answer, never emitted alone
+    if (plan.attributionMode === 'namedScholarOpinion') {
       let attributedSources = [];
-      // The registry decides WHERE to look, never WHETHER the gate applies. A scholar with no
-      // official corpus wired up has no source, and therefore gets the refusal — which is the
-      // correct answer, not a gap.
-      if (attribution.scholar && attribution.scholar.key === 'ibn-uthaymeen') {
+      if (plan.hasDirectAdapter) {
         const { retrieveIbnUthaymeen } = await import('../lib/binothaimeen.js');
         attributedSources = await retrieveIbnUthaymeen(attribution.question, {
           excludeWords: String(attribution.scholarName || '').split(' '),
           rank: (q, cands) => rankCandidates(q, cands, model, headers),
         });
+      } else if (plan.officialDomain) {
+        // No bespoke adapter, but the registry knows whose site this is. Search it, scoped to
+        // that one domain, through the ordinary retrieval path — so the page gates, the
+        // listing refusals and the role rules all apply to it unchanged. A title or a search
+        // snippet is not evidence here any more than anywhere else: only a fetched, gated page
+        // reaches this array.
+        try {
+          const { retrieve } = await import('../lib/retrieve.js');
+          const scoped = await retrieve(plan.topic || attribution.question, {
+            band, depth: effectiveDepth, onlySites: [plan.officialDomain],
+          });
+          attributedSources = (scoped.sources || []).map((s) => ({
+            scholar: plan.namedEntity,
+            publisher: (plan.officialDomain || ''),
+            title: s.title, exactText: s.passage, canonicalUrl: s.url, sourceId: s.url,
+          }));
+        } catch (e) {
+          console.warn('[attribution] scoped search threw:', e.message);
+        }
       } else {
-        console.warn('[attribution] no official corpus wired for', attribution.scholarName);
+        console.warn('[attribution] no approved domain is registered for', plan.namedEntity);
       }
 
       if (!attributedSources.length) {
-        console.warn('[attribution] refusing — no verified source for', attribution.scholarName);
-        clearKeepAlive();
-        res.write(`data: ${JSON.stringify({
-          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: ATTRIBUTION_REFUSAL },
-        })}\n\n`);
-        res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
-        return res.end();
-      }
-
+        // FALL THROUGH, do not refuse. The reader still gets the documented general ruling
+        // below, with one line saying it is not his.
+        console.warn('[attribution]', REASON.DIRECT_ATTRIBUTION_NOT_FOUND, plan.namedEntity);
+        attributionNote = unattributedNote(plan.namedEntity);
+      } else {
       const src = attributedSources[0];
       const grounding = [
         'النصُّ المنشورُ التالي هو المصدرُ الوحيدُ المسموحُ بالاعتماد عليه في هذا الجواب.',
@@ -551,26 +603,29 @@ export default async function handler(req, res) {
         .trim();
 
       const verdict = verifyAttributedReply(draft, attribution, attributedSources);
-      clearKeepAlive();
       if (!verdict.ok) {
-        // The draft is discarded in full. A partially-correct attributed fatwa is not a
-        // partially-correct answer; it is a wrong one with a citation attached.
-        console.warn('[attribution] draft rejected:', verdict.problems.join(' | '));
+        // THE DRAFT IS DISCARDED IN FULL — unchanged, and non-negotiable. A partially-correct
+        // attributed fatwa is not a partially-correct answer; it is a wrong one with a
+        // citation attached.
+        //
+        // What IS different: discarding the draft no longer ends the request. The reader asked
+        // a real question, and the general ruling for it is very often documented elsewhere on
+        // the approved list. So we fall through with a note, exactly as when no text of his was
+        // found at all. Nothing of the rejected draft survives; only the QUESTION does.
+        console.warn('[attribution]', REASON.PAGE_NOT_DIRECT_EVIDENCE, verdict.problems.join(' | '));
+        attributionNote = unattributedNote(plan.namedEntity);
+      } else {
+        const card = buildSourceTag({ url: src.canonicalUrl, title: src.title });
+        console.log('[attribution]', REASON.DIRECT_ATTRIBUTION_CONFIRMED, { scholar: src.scholar, id: src.sourceId });
+        clearKeepAlive();
         res.write(`data: ${JSON.stringify({
-          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: ATTRIBUTION_REFUSAL },
+          type: 'content_block_delta', index: 0,
+          delta: { type: 'text_delta', text: draft + (card ? '\n' + card.tag : '') },
         })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
         return res.end();
       }
-
-      const card = buildSourceTag({ url: src.canonicalUrl, title: src.title });
-      console.log('[attribution] verified', { scholar: src.scholar, id: src.sourceId });
-      res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta', index: 0,
-        delta: { type: 'text_delta', text: draft + (card ? '\n' + card.tag : '') },
-      })}\n\n`);
-      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
-      return res.end();
+      }
     }
 
     // ── GEN ROUTE: ONE streamed round, NO tools ────────────────────────────
@@ -580,7 +635,7 @@ export default async function handler(req, res) {
     // That last part is what makes streaming safe here: with no tools in the request the
     // model cannot switch to a search half-way, so no draft can ever be shown and then
     // replaced. Every text delta is forwarded as it arrives.
-    if (route === 'GEN') {
+    if (effectiveRoute === 'GEN') {
       const g = await fetch(ANTHROPIC_URL, {
         method: 'POST',
         headers,
@@ -786,6 +841,26 @@ export default async function handler(req, res) {
       return res.end();
     }
 
+    // ── THE GENERAL RULING, WHEN THE SCHOLAR'S OWN TEXT WAS NOT FOUND ──────
+    // attributionNote is set only when the reader asked for a named scholar's position and
+    // step 1 or step 2 above came up empty. The answer that follows is the ordinary sourced
+    // answer to the same question — and this instruction is what keeps it from quietly
+    // becoming his. The note itself is appended after the answer, not instead of it.
+    if (attributionNote) {
+      console.warn('[attribution]', REASON.GENERAL_RULING_SUBSTITUTED, plan.namedEntity);
+      toolResults.push({
+        type: 'text',
+        text: [
+          'تنبيهٌ داخليٌّ للصياغة (لا تنقلْه حرفيًّا):',
+          'سألَ القارئُ عن رأيِ الشيخ «' + plan.namedEntity + '» بعينِه، ولم يُعثَرْ على نصٍّ منشورٍ له في هذه المسألة.',
+          '- لا تنسبْ إليه شيئًا البتّةَ: لا قولًا ولا اختيارًا ولا ترجيحًا، ولو كنتَ تظنُّ أنّه يقول به.',
+          '- أجبْ عن المسألةِ نفسِها من المصادرِ المسترجَعةِ أعلاه وحدَها، إجابةً كاملةً مفيدةً كأيِّ سؤالٍ آخر.',
+          '- انسبِ الحكمَ إلى المصدرِ الذي ورد فيه، لا إلى الشيخِ المذكور.',
+          '- لا تعتذرْ ولا تجعلْ عدمَ وجودِ نصِّه هو الجواب؛ التطبيقُ يُضيفُ تنبيهًا مختصرًا بذلك بنفسه في آخر الجواب.',
+        ].join('\n'),
+      });
+    }
+
     const round2Messages = [
       ...body.messages,
       { role: 'assistant', content: round1.content },
@@ -879,8 +954,11 @@ export default async function handler(req, res) {
       const cardFrom = pickVerifiedSources(supporting.length ? supporting : retrievedPages, 1);
       const cCard = cardFrom.length ? '\n' + cardFrom[0].tag : '';
       console.log('[claim] verified', { supporting: supporting.length, card: cardFrom.length });
+      // Same rule as the streaming branch: the note follows a real sourced answer, never
+      // replaces one.
+      const cNote = attributionNote ? '\n\n' + attributionNote : '';
       res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: cDraft + cCard },
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: cDraft + cNote + cCard },
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
@@ -946,7 +1024,12 @@ export default async function handler(req, res) {
         count: canonicalSources.length,
         hosts: canonicalSources.map((c) => c.host),
       });
-      writeText(canonicalSources.map((c) => c.tag).join('\n'));
+      // The unattributed note rides ahead of the cards, so the reader reaches it having
+      // already read the ruling: "here is the ruling and its source — and it is not his".
+      // It is appended ONLY here, i.e. only on a reply that actually carried a verified
+      // source, which is what stops it from ever becoming the whole answer.
+      writeText((attributionNote ? '\n\n' + attributionNote + '\n' : '')
+        + canonicalSources.map((c) => c.tag).join('\n'));
     };
 
     try {

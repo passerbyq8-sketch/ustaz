@@ -386,19 +386,36 @@ const user = (t) => [{ role: 'user', content: t }];
   // =========================================================================
   console.log('\n=== D. THE WIRING (api/ask.js) ===');
   const ask = fs.readFileSync(path.join(REPO, 'api', 'ask.js'), 'utf8');
-  ok('the gate is imported', /import \{ detectAttribution, verifyAttributedReply, ATTRIBUTION_REFUSAL \} from '\.\.\/lib\/attribution\.js';/.test(ask));
+  ok('the verifier is imported', /import \{ verifyAttributedReply \} from '\.\.\/lib\/attribution\.js';/.test(ask));
+  ok('the request is DESCRIBED by lib/ask-plan.js before it is routed',
+    /import \{ planAsk,[\s\S]{0,120}\} from '\.\.\/lib\/ask-plan\.js';/.test(ask));
   // Measured against the HANDLER BODY, not the whole file: rankCandidates is a module-level helper
   // that also calls the API, and it is declared above the handler. What must hold is that no call
   // is reached inside a request before the question has been classified.
   const body = ask.slice(ask.indexOf('export default async function handler'));
-  ok('attribution is detected before any upstream call in the request path',
-    body.indexOf('const attribution = detectAttribution(') > -1
-    && body.indexOf('const attribution = detectAttribution(') < body.indexOf('await fetch(ANTHROPIC_URL'));
-  ok('the attributed branch runs BEFORE the GEN route',
-    ask.indexOf('if (attribution.attributed)') < ask.indexOf("if (route === 'GEN')"),
+  ok('the request is planned before any upstream call in the request path',
+    body.indexOf('const plan = planAsk(') > -1
+    && body.indexOf('const plan = planAsk(') < body.indexOf('await fetch(ANTHROPIC_URL'));
+  // A NAME OVERRIDES THE ROUTE. It no longer ENDS the request — that was the defect — but it
+  // must still keep an attributed question off the unsourced GEN path, which is how the
+  // original inverted fatwa was produced.
+  ok('naming a scholar forces the SOURCED route',
+    /const effectiveRoute = plan\.attributionMode === 'none' \? route : 'DEEN';/.test(ask),
     'an attributed question could still take the unsourced GEN path');
-  ok('the source is fetched before the model is called',
-    /if \(attribution\.attributed\)[\s\S]{0,1200}?retrieveIbnUthaymeen\(attribution\.question,[\s\S]{0,900}?if \(!attributedSources\.length\)/.test(ask));
+  ok('the attributed branch runs BEFORE the GEN route',
+    ask.indexOf("plan.attributionMode === 'namedScholarOpinion'") < ask.indexOf("if (effectiveRoute === 'GEN')"));
+  ok('the scholar\'s own corpus is searched before the model is called',
+    /namedScholarOpinion'\)[\s\S]{0,900}?retrieveIbnUthaymeen\(attribution\.question,[\s\S]{0,1400}?if \(!attributedSources\.length\)/.test(ask));
+  // THE DEFECT THIS REPLACES. A name used to mean "stop": one adapter was consulted and every
+  // other case emitted a fixed sentence with no search at all. These assert the new shape.
+  ok('a scholar with no adapter still gets a REAL search of his own site',
+    /else if \(plan\.officialDomain\)/.test(ask) && /onlySites: \[plan\.officialDomain\]/.test(ask),
+    'a named scholar without a bespoke adapter must not be a dead end');
+  ok('finding no text of his FALLS THROUGH instead of ending the request',
+    /if \(!attributedSources\.length\) \{[\s\S]{0,400}?attributionNote = unattributedNote\(/.test(ask)
+    && !/if \(!attributedSources\.length\)[\s\S]{0,400}?return res\.end\(\);/.test(ask));
+  ok('the unattributed note is appended to a sourced answer, never emitted alone',
+    /attributionNote \? '\\n\\n' \+ attributionNote/.test(ask));
   ok('the scholar\'s own name is stripped from the query',
     /excludeWords: String\(attribution\.scholarName \|\| ''\)\.split\(' '\)/.test(ask),
     'a fatwa page does not contain the name of the man who gave it');
@@ -406,15 +423,22 @@ const user = (t) => [{ role: 'user', content: t }];
     /max_tokens: 16,[\s\S]{0,400}?لا تُفتِ/.test(ask) && /rank: \(q, cands\) => rankCandidates\(/.test(ask));
   ok('the grounding forbids narrating a hadith the source does not carry',
     /لا تنقلْ حديثًا/.test(ask));
-  ok('no source ⇒ the model is never called at all',
-    /if \(!attributedSources\.length\)[\s\S]{0,400}?ATTRIBUTION_REFUSAL[\s\S]{0,200}?return res\.end\(\);/.test(ask));
+  ok('no text of his ⇒ the ATTRIBUTED model call never happens',
+    /if \(!attributedSources\.length\) \{[\s\S]{0,500}?\} else \{/.test(ask),
+    'the grounded, attributed generation must be inside the else, not before it');
   ok('the attributed answer is BUFFERED, not streamed',
-    /if \(attribution\.attributed\)[\s\S]{0,2600}?stream: false,/.test(ask),
+    /namedScholarOpinion'\)[\s\S]{0,3400}?stream: false,/.test(ask),
     'a streamed attributed answer cannot be withdrawn after verification fails');
   ok('the draft is verified before anything is emitted',
     ask.indexOf('verifyAttributedReply(draft, attribution, attributedSources)') !== -1);
-  ok('a failed verification emits the refusal and nothing of the draft',
-    /if \(!verdict\.ok\)[\s\S]{0,400}?ATTRIBUTION_REFUSAL/.test(ask));
+  // THE DRAFT IS STILL DISCARDED WHOLE. What changed is only what happens NEXT: the reader
+  // gets the general ruling with a note instead of a bare refusal. Nothing of the rejected
+  // draft may survive — asserted by requiring the fall-through to set the note and never to
+  // emit `draft`.
+  ok('a failed verification discards the draft entirely',
+    /if \(!verdict\.ok\) \{[\s\S]{0,1600}?attributionNote = unattributedNote\(plan\.namedEntity\);[\s\S]{0,40}?\} else \{/.test(ask));
+  ok('...and the rejected draft is never written to the reader',
+    !/if \(!verdict\.ok\)[\s\S]{0,600}?text: draft/.test(ask));
   ok('the model may not contribute a source card on this path',
     /const draft = drafted[\s\S]{0,200}?replace\(\/<source/.test(ask));
   ok('the card that IS emitted is built from the canonical URL',

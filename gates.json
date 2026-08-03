@@ -128,5 +128,10 @@
   "name": "bravequery",
   "script": "brave-query-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "smartretrieval",
+  "script": "smart-retrieval-guard.cjs",
+  "args": ""
  }
 ]
