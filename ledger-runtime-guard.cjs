@@ -34,9 +34,11 @@ const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/')
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 // Source with comments removed. A rule about what the CODE does must be checked against code:
 // scanning the raw file finds the word in the comment that documents the rule and "fails" it.
+// `[^\r\n]*` with no `$`: on a CRLF file `.` cannot match \r and `$` (no m flag) asserts the end
+// of the whole string, so `//.*$` strips nothing and every comment reads as live code.
 const code = (rel) => read(rel)
   .replace(/\/\*[\s\S]*?\*\//g, ' ')
-  .split('\n').map((l) => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
+  .split('\n').map((l) => l.replace(/(^|[^:])\/\/[^\r\n]*/, '$1')).join('\n');
 
 // An in-memory stand-in for Upstash: same three methods the module uses, plus a switch that
 // makes every call throw, which is how a store outage actually presents.
@@ -189,9 +191,18 @@ function fakeRedis() {
     /if \(ledgerPath\.path === 'ledger'\) \{[\s\S]*?return res\.end\(\);\r?\n    \}/.test(read('api/ask.js')));
   ok('no token value is ever logged by the flag module',
     !/console\.(log|warn|error)/.test(read('lib/ledger/flag.js')));
-  ok('...and the ledger log line carries no reader text',
-    /console\.log\('\[ledger\]', \{\s*\n?\s*trace: out\.ledger\.traceId/.test(read('api/ask.js'))
-    && !/console\.log\('\[ledger\]'[^)]*question/.test(read('api/ask.js')));
+  // The one log line the ledger branch writes: counts, an outcome code and a trace id. Asserted
+  // on the line's CONTENTS rather than its exact spelling, so it stays honest across a refactor
+  // instead of going stale and being "fixed" by relaxing it.
+  {
+    const line = (read('api/ask.js').match(/console\.log\('\[ledger\]',[\s\S]{0,400}?\}\);/) || [])[0] || '';
+    ok('the ledger branch logs a [ledger] line', !!line, 'no line found');
+    ok('...carrying only counts, an outcome and a trace id',
+      /outcome/.test(line) && /traceId/.test(line) && /spent\./.test(line), line.slice(0, 200));
+    for (const forbidden of ['question', 'messages', 'body.', 'text', 'answer', 'device', 'founder', 'ip']) {
+      ok('...and never «' + forbidden + '»', !line.includes(forbidden), line.slice(0, 200));
+    }
+  }
 
   // =========================================================================
   console.log('\n=== C. CACHE KEYS CARRY NO QUESTION ===');

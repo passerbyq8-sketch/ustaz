@@ -485,35 +485,40 @@ export default async function handler(req, res) {
     // mid-request either: a ledger request that cannot verify a source answers with its own
     // refusal rather than quietly re-asking an unguarded route, because a fallback that
     // answers is a fallback that defeats the gate it fell back from.
+    // THE CLOCK STARTS HERE, before the runtime flag is read. decidePath() talks to Upstash,
+    // and a budget constructed afterwards would leave that read outside the deadline it exists
+    // to enforce. lib/ledger/flag.js bounds the read itself; this makes it COUNTED as well.
+    const ledgerStartedAt = Date.now();
     const ledgerPath = await decidePath(req);
     if (ledgerPath.path === 'ledger') {
-      const { runEngine } = await import('../lib/ledger/engine.js');
+      // The seam is a module, not ten lines here, so this exact code path is what
+      // ledger-seam-guard.cjs drives with req/res doubles. A branch that only the handler can
+      // reach is a branch only a regex can check.
+      const { runLedgerTurn } = await import('../lib/ledger/seam.js');
       const { braveSearch } = await import('../lib/ledger/search.js');
       const { SITES_ADULT, SITES_MINOR } = await import('../lib/retrieve.js');
-      const question = plan.attribution.question || '';
-      const out = await runEngine(question, {
+      clearKeepAlive();
+      // THE READER'S OWN WORDS. Deliberately NOT plan.attribution.question: that is a field of
+      // the legacy attribution classifier — the one measured mis-reading the verb «ذهب» — and
+      // an engine fed from it inherits whatever that classifier starts doing to the text.
+      // runLedgerTurn() reads the last user turn itself, with type/length checks only.
+      const out = await runLedgerTurn(res, {
+        messages: body.messages,
         band,
         bandSites: band === 'adult' ? SITES_ADULT : SITES_MINOR,
+        buildSourceTag,
         search: (q, sites) => braveSearch(q, sites),
+        startedAt: ledgerStartedAt,
       });
+      // Counts and codes only. No question, no answer, no page text, no reader identity.
       console.log('[ledger]', {
-        trace: out.ledger.traceId, outcome: out.outcome,
+        trace: out.ledger ? out.ledger.traceId : null, outcome: out.outcome,
         model: out.budget.snapshot().spent.modelCalls,
         brave: out.budget.snapshot().spent.braveCalls,
         fetch: out.budget.snapshot().spent.pagesFetched,
+        ms: out.budget.snapshot().elapsedMs,
       });
-      // Same wire contract as every other branch: text deltas, then the cards, then stop.
-      // No ledger id, trace id or gate name ever reaches the reader.
-      const cards = (out.cards || [])
-        .map((c) => buildSourceTag({ url: c.url, title: c.title }))
-        .filter(Boolean);
-      clearKeepAlive();
-      res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta', index: 0,
-        delta: { type: 'text_delta', text: out.text + (cards.length ? '\n' + cards.map((c) => c.tag).join('\n') : '') },
-      })}\n\n`);
-      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
-      return res.end();
+      return;
     }
 
     // ── ATTRIBUTED ROUTE: no source by that scholar ⇒ no attributed ruling ──

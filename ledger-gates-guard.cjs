@@ -32,9 +32,11 @@ const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/')
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 // Source with comments removed. A rule about what the CODE does must be checked against code:
 // scanning the raw file finds the word in the comment that documents the rule and "fails" it.
+// `[^\r\n]*` with no `$`: on a CRLF file `.` cannot match \r and `$` (no m flag) asserts the end
+// of the whole string, so `//.*$` strips nothing and every comment reads as live code.
 const code = (rel) => read(rel)
   .replace(/\/\*[\s\S]*?\*\//g, ' ')
-  .split('\n').map((l) => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
+  .split('\n').map((l) => l.replace(/(^|[^:])\/\/[^\r\n]*/, '$1')).join('\n');
 
 const issue = (over) => Object.assign({
   issueId: 'iss_1', intent: 'fatwa', requestedAuthorityId: null,

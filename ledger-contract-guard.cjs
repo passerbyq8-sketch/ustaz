@@ -371,8 +371,12 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   ok('gates.json lists this guard', /ledger-contract-guard\.cjs/.test(read('gates.json')));
   ok('api/ask.js imports only the FLAG at module scope',
     /^import \{ decidePath \} from '\.\.\/lib\/ledger\/flag\.js';$/m.test(read('api/ask.js')));
-  ok('...and the engine is imported lazily, inside the branch',
-    /await import\('\.\.\/lib\/ledger\/engine\.js'\)/.test(read('api/ask.js')));
+  ok('...and the seam (and through it the engine) is imported lazily, inside the branch',
+    /await import\('\.\.\/lib\/ledger\/seam\.js'\)/.test(read('api/ask.js')));
+  ok('...so nothing from lib/ledger/ except the flag is loaded at module scope',
+    (read('api/ask.js').match(/^import .*lib\/ledger\/.*$/gm) || [])
+      .every((l) => l.includes('flag.js')),
+    JSON.stringify(read('api/ask.js').match(/^import .*lib\/ledger\/.*$/gm)));
 
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
