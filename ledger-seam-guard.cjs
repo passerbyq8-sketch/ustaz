@@ -393,6 +393,24 @@ const user = (t) => [{ role: 'user', content: t }];
     ok('...by a declared timeout constant', typeof FL.FLAG_READ_TIMEOUT_MS === 'number' && FL.FLAG_READ_TIMEOUT_MS <= 1500,
       String(FL.FLAG_READ_TIMEOUT_MS));
     redis.slow = 0;
+
+    // A LEGACY REQUEST PAYS NOTHING. With the env floor closed, decidePath must not touch the
+    // store at all — not a read, not a connection, not a timer. This is the case that runs for
+    // every real user today, so its cost is the one that actually matters.
+    let reads = 0;
+    STORE.__setRedisForTest({ async get(k) { reads++; return null; }, async set() { return 'OK'; } });
+    process.env.LEDGER_RAG = 'off';
+    FL.__resetFlagCacheForTest();
+    clock += 100000;
+    eq('with the env floor closed the decision is legacy', (await FL.decidePath(internalReq, clock)).path, 'legacy');
+    eq('...and the store was never read', reads, 0);
+    // An anonymous request with the floor OPEN must also not read the store: an unauthenticated
+    // caller cannot be allowed to make us do work, and must not learn the flag's state either.
+    process.env.LEDGER_RAG = 'on';
+    FL.__resetFlagCacheForTest();
+    clock += 100000;
+    eq('an anonymous caller decides legacy', (await FL.decidePath(anonReq, clock)).path, 'legacy');
+    eq('...without reading the store', reads, 0);
     STORE.__resetRedis();
   }
   ok('the handler calls decidePath BEFORE any engine import',
