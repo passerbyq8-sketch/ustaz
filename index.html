@@ -596,6 +596,9 @@
      background, no pseudo-element, no overlay inside these bounds. */
   .ezq-read{width:100%;max-width:720px;margin:0 auto}
   .ezq-drill-acts{width:100%;max-width:720px;margin:12px auto 0}
+  /* S109 -- the mushaf index. It reuses .ezq-cat (2 / 3 / 4 / 4) so the Quran catalogue and
+     the surah index are one grid vocabulary; only the juz separator is new, and it spans. */
+  .ezm-juz{grid-column:1/-1}
   .ezq-masthead{position:relative;overflow:hidden;box-sizing:border-box;
     border-radius:var(--ez-radius-sig);background:var(--a3-ice);border:1px solid var(--a3-line);
     padding:24px 18px 18px;margin-bottom:14px;text-align:center}
@@ -11181,15 +11184,17 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   if (selected) return <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
 
   return (
-    <div style={s.memContainer}>
-      <div style={s.memHeader}>
-        <div style={s.memTitle}>المصحف</div>
-        <button onClick={leaveScreen} style={s.memBackBtn}>رجوع</button>
-      </div>
-      <div style={s.mushafBody}>
+    // S109 -- the INDEX only. The reader below is untouched: pressing a surah still runs the
+    // same setOpenAt/setSelected pair and lands in the same PagedMushaf.
+    <EzShell title={'\u0627\u0644\u0645\u0635\u062d\u0641'} onBack={leaveScreen} backLabel={'\u0631\u062c\u0648\u0639'}>
+      <div>
         {/* 82 -- ABOVE the bookmark row and visibly not it: a curved history arrow, never a
             ribbon. Same door as every other row here -- setOpenAt + setSelected -- so the
             reader, the back button and the header all behave as they do from the index. */}
+        {/* the bounded masthead: only state this screen already holds -- the last page it
+            wrote and the bookmark it stored. Nothing is invented and nothing new is read. */}
+        {(lastPage || bookmark) && (
+        <section className="ezq-masthead">
         {lastPage && (
           <button onClick={openLastPage} style={{ ...s.mushafRow, marginBottom: 8 }}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--red-deep)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M3.5 12a8.5 8.5 0 1 0 2.7-6.2" /><path d="M3.1 4.4v4.3h4.3" /><path d="M12 7.5V12l3 1.8" /></svg>
@@ -11205,30 +11210,38 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
             <button onClick={clearBookmark} title="إزالة العلامة" style={{ ...s.pgNavBtn, height: 'auto' }}>×</button>
           </div>
         )}
+        </section>
+        )}
         {!ready && <div style={s.mushafHint}>جارٍ تحميل المصحف…</div>}
         {ready && (
-          <div style={s.mushafList}>
+          <div className="ezq-cat">
             {(nav || MUSHAF_NAV_FALLBACK).map((r) => (
               r.k === 'j' ? (
-                <button key={'j' + r.n} onClick={() => { setOpenAt({ p: r.p, s: r.s }); setSelected(r.s); }} style={s.mushafJuzRow}>
+                <button key={'j' + r.n} className="ezm-juz" onClick={() => { setOpenAt({ p: r.p, s: r.s }); setSelected(r.s); }} style={s.mushafJuzRow}>
                   <div style={s.mushafJuzName}>الجزء {toArabicDigits(r.n)}</div>
                   <div style={s.mushafJuzPage}>صفحة {toArabicDigits(r.p)}</div>
                 </button>
               ) : (
-                <button key={'s' + r.n} onClick={() => { setOpenAt(null); setSelected(r.n); }} style={s.mushafRow}>
-                  <div style={s.mushafNum}>{toArabicDigits(r.n)}</div>
-                  <div style={s.mushafRowMain}>
-                    <div style={s.mushafName}>{SURAH_NAMES[r.n]}</div>
-                    <div style={s.mushafSub}>{revelationLabel(r.n)} · {toArabicDigits(counts && counts[r.n] ? counts[r.n] : 0)} آية</div>
-                  </div>
-                  <div style={s.mushafPage}>{r.p ? 'صفحة ' + toArabicDigits(r.p) : ''}</div>
+                <button key={'s' + r.n} className="ezhome-focus ezq-card" data-ezm-surah={r.n}
+                  onClick={() => { setOpenAt(null); setSelected(r.n); }} style={s.ezmCard}>
+                  <span className="ezq-crest" aria-hidden="true" />
+                  <span style={s.ezmTop}>
+                    <span style={s.ezmNum}>{toArabicDigits(r.n)}</span>
+                    <span style={s.ezmReveal}>{revelationLabel(r.n)}</span>
+                  </span>
+                  <span style={s.ezmName}>{SURAH_NAMES[r.n]}</span>
+                  <span style={s.ezmFoot}>
+                    <span style={s.ezmCount}>{toArabicDigits(counts && counts[r.n] ? counts[r.n] : 0)} آية</span>
+                    <span style={s.ezmGo} aria-hidden="true">{EZH_ICON_GO}</span>
+                  </span>
+                  <span style={s.ezmPage}>{r.p ? 'صفحة ' + toArabicDigits(r.p) : ''}</span>
                 </button>
               )
             ))}
           </div>
         )}
       </div>
-    </div>
+    </EzShell>
   );
 }
 
@@ -11745,6 +11758,16 @@ const s = {
   ezqCount: { fontSize: 11.5, fontWeight: 600, color: 'var(--a3-muted)' },
   ezqStartBar: { position: 'sticky', bottom: 0, display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, padding: '10px 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-lift)' },
   ezqStartLabel: { flexShrink: 0, fontSize: 13, fontWeight: 700, color: 'var(--a3-ink)' },
+  // S109 -- the mushaf surah card. Tokens only; no colour varies by surah.
+  ezmCard: { display: 'flex', flexDirection: 'column', gap: 4, width: '100%', minHeight: 104, padding: '26px 10px 10px', borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
+  ezmTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 },
+  ezmNum: { minWidth: 26, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 12, fontWeight: 800 },
+  ezmReveal: { flexShrink: 0, fontSize: 10.5, fontWeight: 700, color: 'var(--a3-cyan)' },
+  ezmName: { minWidth: 0, fontSize: 14.5, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.5 },
+  ezmFoot: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 },
+  ezmCount: { fontSize: 11.5, fontWeight: 600, color: 'var(--a3-muted)' },
+  ezmGo: { flexShrink: 0, display: 'inline-flex', color: 'var(--a3-muted)' },
+  ezmPage: { fontSize: 11, fontWeight: 600, color: 'var(--a3-blue)' },
   // S107 -- the drill masthead. Layout only; it sits ABOVE the reading area and never over it.
   ezqDrillSurah: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)' },
   ezqDrillRow: { display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 10 },

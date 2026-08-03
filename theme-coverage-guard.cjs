@@ -1216,7 +1216,9 @@ const INDEX_SCREENS = {
   // S107: the drill moved too, so the caveat is gone -- and it is gone because the checks in
   // group L6 pass, not because someone deleted the field.
   memorize:        { render: 'MemorizeScreen picker + drill -> EzShell', shell: 'istana' },
-  mushaf:          { render: 'MushafScreen (shell) + .mushaf-paper (sacred)', shell: 'legacy' },
+  // S109: the INDEX is on the shell; the READER is not. The screen stays classified legacy
+  // until Step 3, and the note below is asserted so it cannot be dropped early.
+  mushaf:          { render: 'MushafScreen index -> EzShell; reader still legacy', shell: 'legacy', partial: 'index istana, reader legacy' },
   adhkar:          { render: 'AdhkarScreen -> IstanaAdhkarBrowse / IstanaAdhkarReader', shell: 'istana' },
 };
 // Screens the switch reaches WITHOUT a screen key of their own -- guards and gates in front of
@@ -1289,6 +1291,7 @@ ok('the memorize caveat was earned, not deleted',
   'the drill must render through the shell for memorize to count as finished');
 // mushaf has NOT moved and must still say so.
 eq('mushaf is still classified legacy', INDEX_SCREENS.mushaf.shell, 'legacy');
+eq('...and its index/reader split is declared', INDEX_SCREENS.mushaf.partial, 'index istana, reader legacy');
 console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
   + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all legacy)');
 console.log('        istana now : ' + idxIstana.join(', '));
@@ -1477,6 +1480,58 @@ for (const p of ['transform', 'filter', 'opacity', 'mixBlendMode', 'border', 'ba
 ok('the desk still paints only through --madina-desk',
   /MADINA_SHEET_ST = \{[^}]*background: MADINA_DESK/.test(html)
   && /const MADINA_DESK = 'var\(--madina-desk\)'/.test(html));
+
+/* ---- L8. THE ISTANA MUSHAF INDEX (S109) ---------------------------------
+ * The INDEX only. The reader below it is untouched and still classified legacy -- the
+ * inventory says so and this group fails if that note is removed.
+ * ---------------------------------------------------------------------- */
+const mushAt = html.indexOf('function MushafScreen(');
+const mushSrc = mushAt === -1 ? '' : html.slice(mushAt, html.indexOf('\nfunction MemorizeScreen(', mushAt));
+ok('the mushaf screen was located', mushSrc.length > 1000);
+const idxSrc = mushSrc.slice(mushSrc.lastIndexOf('  return ('));
+ok('the index renders through the shared shell',
+  /<EzShell title=\{[^}]*\} onBack=\{leaveScreen\}/.test(idxSrc));
+ok('...with the screen own back handler', /onBack={leaveScreen}/.test(idxSrc));
+ok('the legacy navy header is gone from the index',
+  !/s\.memHeader|s\.memTitle\b|s\.memContainer/.test(idxSrc));
+ok('the surah list is the bounded catalogue', /className="ezq-cat"/.test(idxSrc));
+ok('...2 cols mobile, 3 at 600, 4 at 1000 -- and never more',
+  /\.ezq-cat\{[^}]*grid-template-columns:repeat\(2,1fr\)/.test(css)
+  && /@media \(min-width:600px\)\{\.ezq-cat\{grid-template-columns:repeat\(3,1fr\)/.test(css)
+  && /@media \(min-width:1000px\)\{\.ezq-cat\{grid-template-columns:repeat\(4,1fr\)/.test(css)
+  && !/\.ezq-cat\{grid-template-columns:repeat\([5-9]/.test(css));
+ok('...inside the shell bounded column', /\.ezsh-wrap\{[^}]*max-width:1100px/.test(css));
+// ONE map, the owner order, the same handlers.
+eq('the index maps its row array exactly once',
+  idxSrc.split('(nav || MUSHAF_NAV_FALLBACK).map(').length - 1, 1);
+ok('...and nothing sorts, filters, slices or reverses it',
+  !/\.sort\(|\.filter\(|\.slice\(|\.reverse\(/.test(idxSrc));
+ok('each surah card carries its own number', idxSrc.indexOf('data-ezm-surah={r.n}') !== -1);
+ok('the open handler is unchanged',
+  idxSrc.indexOf('onClick={() => { setOpenAt(null); setSelected(r.n); }}') !== -1);
+ok('the juz handler is unchanged',
+  idxSrc.indexOf('onClick={() => { setOpenAt({ p: r.p, s: r.s }); setSelected(r.s); }}') !== -1);
+// metadata comes from the shipped sources only.
+ok('the name comes from SURAH_NAMES', idxSrc.indexOf('{SURAH_NAMES[r.n]}') !== -1);
+ok('the revelation label comes from revelationLabel', idxSrc.indexOf('{revelationLabel(r.n)}') !== -1);
+ok('the ayah count comes from the single-pass tally', idxSrc.indexOf('counts[r.n] ? counts[r.n] : 0') !== -1);
+ok('no surah metadata is hardcoded in the index',
+  !/\[\s*'\u0627\u0644\u0641\u0627\u062A\u062D\u0629'/.test(idxSrc));
+// THE READER IS UNTOUCHED.
+ok('the reader still opens through the same door',
+  /if \(selected\) return <PagedMushaf startSurah={selected}/.test(mushSrc));
+ok('the reader chrome is still the shipped one', html.indexOf('{chromeOn && (') !== -1);
+ok('the dwell constant is unchanged', /const WIRD_DWELL_MS = 8000;/.test(html));
+ok('the mushaf storage keys are unchanged',
+  /MUSHAF_BOOKMARK_KEY = 'mushaf_bookmark_v1'/.test(html)
+  && /MUSHAF_LAST_PAGE_KEY = 'mushaf_last_page_v1'/.test(html)
+  && /WIRD_TARGET_KEY = 'mushaf_wird_target_v1'/.test(html)
+  && /WIRD_DAY_KEY = 'mushaf_wird_day_v1'/.test(html));
+ok('the tap toggle is unchanged', html.indexOf('setChromeOn((v) => !v); }, MUSHAF_TAP_MS)') !== -1);
+// the index must not paint a page background.
+const ezmRules = (css.match(/\.ezm-[^{]*\{[^}]*\}/g) || []);
+eq('no index rule attaches an image, gradient or repeat',
+  ezmRules.filter((r) => /background-image|gradient|url\(|repeating/i.test(r)), []);
 
 /* ---- L4. the background invariant reaches this screen too --------------- */
 const ezqRules = (css.match(/\.ezq-[^{]*\{[^}]*\}/g) || []);
