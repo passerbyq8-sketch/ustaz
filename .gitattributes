@@ -136,3 +136,17 @@ lib/brave-query.js text eol=lf
 smart-retrieval-guard.cjs text eol=lf
 lib/ask-plan.js text eol=lf
 api/ask.js text eol=lf
+
+# Gates 28-32 (the ledger-RAG guards) and every module they read as text. Same reason as every
+# gate above, and one more that is specific to this path: lib/ledger/segment.js records UTF-8
+# BYTE offsets into page text, and lib/ledger/gates.js re-derives every span from them. A CR
+# injected by core.autocrlf on a fresh clone would shift those offsets and turn a correct
+# extraction into a failing Gate 1 on a machine that changed nothing.
+ledger-contract-guard.cjs text eol=lf
+ledger-retrieval-guard.cjs text eol=lf
+ledger-gates-guard.cjs text eol=lf
+ledger-runtime-guard.cjs text eol=lf
+ledger-fixtures-guard.cjs text eol=lf
+data/ledger-fixtures.json text eol=lf
+tools/ledger-live-eval.cjs text eol=lf
+lib/ledger/*.js text eol=lf
