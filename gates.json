@@ -118,5 +118,10 @@
   "name": "claim",
   "script": "claim-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "sourceregistry",
+  "script": "source-registry-guard.cjs",
+  "args": ""
  }
 ]
