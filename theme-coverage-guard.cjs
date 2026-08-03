@@ -1220,7 +1220,10 @@ const INDEX_SCREENS = {
   parentGate:      { render: 'ParentGate', shell: 'legacy' },
   parentDashboard: { render: 'ParentDashboard', shell: 'legacy' },
   settings:        { render: 'SettingsSheet -> EzShell', shell: 'istana' },
-  favorites:       { render: 'FavoritesScreen', shell: 'legacy' },
+  // S114: the saved answers moved onto their own istana structure -- .ezfav-rail / .ezfav-masthead
+  // / .ezfav-cat. Classified istana because the checks in group P pass, not because someone edited
+  // this line; P1 asserts that binding directly.
+  favorites:       { render: 'FavoritesScreen -> .ezfav rail + masthead + catalogue', shell: 'istana' },
   // S113: the voice room moved onto its own istana structure -- .ezcall-rail / .ezcall-stage /
   // .ezcall-dock. It is classified istana because the checks in group O pass, not because someone
   // edited this line; O1 asserts that binding directly. The three INTERSTITIALS standing in front
@@ -1290,12 +1293,12 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('exactly 7 index screens are istana after this commit', idxIstana.length, 7);
-eq('...and 5 index screens remain legacy', idxLegacy.length, 5);
+eq('exactly 8 index screens are istana after this commit', idxIstana.length, 8);
+eq('...and 4 index screens remain legacy', idxLegacy.length, 4);
 eq('...with the other classifications unmoved',
-  idxIstana.slice().sort().join(','), 'adhkar,call,chat,home,memorize,mushaf,settings');
-eq('...and the five that are left are the ones that were left',
-  idxLegacy.slice().sort().join(','), 'favorites,loading,onboarding,parentDashboard,parentGate');
+  idxIstana.slice().sort().join(','), 'adhkar,call,chat,favorites,home,memorize,mushaf,settings');
+eq('...and the four that are left are the ones that were left',
+  idxLegacy.slice().sort().join(','), 'loading,onboarding,parentDashboard,parentGate');
 eq('...and the three interstitials are unmoved', Object.keys(INDEX_INTERSTITIALS).length, 3);
 // S113: the call SCREEN moved; the three barriers standing in FRONT of it did not. An
 // interstitial is a separate render with its own presentation, and none of them was touched.
@@ -2148,8 +2151,8 @@ ok('N29: ...the scrim included', /<div onClick=\{\(\) => closeDrawerWith\(null\)
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
 // S113 moved this number by one, and the chat is still one of the seven -- which is the half of
 // it this group is responsible for. The whole count is asserted here and again in group O.
-eq('N30: the index inventory reads exactly 7 istana / 5 legacy / 3 interstitials',
-  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '7/5/3');
+eq('N30: the index inventory reads exactly 8 istana / 4 legacy / 3 interstitials',
+  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '8/4/3');
 eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
 {
   const callAt = html.indexOf('function CallScreen(');
@@ -2528,6 +2531,250 @@ ok('O20: the call entry inside the chat is untouched',
 ok('O20: ...and the chat still owns its own identity, not this one',
   html.indexOf('<div className="theme-dark ezhome ezc" style={s.chatContainer}>') !== -1
   && !/ezcall/.test(chatSrc));
+
+/* ============ P. THE ISTANA SAVED ANSWERS (S114) =========================
+ * The favourites screen. Its PRESENTATION moved and nothing else did, so most of this group is a
+ * FREEZE: the store key, the readers and the one writer, the ORDER the records arrive in, the
+ * renderer, every action and every accessible name are named here so that moving one fails.
+ *
+ * Cut to the screen. FavoritesScreen is sliced from its signature to the section comment that
+ * follows it, and its card body separately. index.html still contains a legacy strip header, a
+ * gradient and a full-width column -- on OTHER screens -- so any of these checks asserted against
+ * the whole file would be a check that can only fail, or be quietly weakened until it passes.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== P. THE ISTANA SAVED ANSWERS ===');
+
+const pAt = html.indexOf('function FavoritesScreen(');
+const pEnd = html.indexOf('\n// Flag-a-reply modal', pAt);
+const favView = (pAt !== -1 && pEnd > pAt) ? html.slice(pAt, pEnd) : '';
+const fbAt = html.indexOf('function FavoriteReplyBody(');
+const fbEnd = fbAt === -1 ? -1 : html.indexOf('\nfunction FavoritesScreen(', fbAt);
+const favBody = (fbAt !== -1 && fbEnd > fbAt) ? html.slice(fbAt, fbEnd) : '';
+ok('the favourites screen was located and bounded', favView.length > 2000 && favView.length < 9000,
+  'len=' + favView.length);
+ok('...and its card body with it', favBody.length > 400, 'len=' + favBody.length);
+// Its prose names the very things the checks forbid; a scan that counted those would be answered
+// by deleting the explanation rather than the defect.
+const favCode = favView.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+const ezfavRules = (css.match(/\.ezfav[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []);
+ok('the screen declares its own rule set', ezfavRules.length > 14, 'found ' + ezfavRules.length);
+
+/* ---- P1. the identity, and that the inventory line was EARNED ----------- */
+const FAV_ON_EZFAV =
+  /<div className="theme-dark ezhome ezfav" style=\{s\.favScreen\}>/.test(favView)
+  && /<div className="ezfav-rail">/.test(favView)
+  && /<div className="ezfav-wrap">/.test(favView)
+  && /<div className="ezfav-cat">/.test(favView)
+  && /<div key=\{f\.id\} className="ezfav-card" style=\{s\.favCard\}>/.test(favView);
+ok('P1: the saved answers mount on the ezfav identity, in all four of its pieces', FAV_ON_EZFAV);
+eq('P1: ...and THAT is why the inventory calls it istana', INDEX_SCREENS.favorites.shell,
+  FAV_ON_EZFAV ? 'istana' : 'legacy');
+ok('P1: no ezfav selector can match html, body or :root',
+  !ezfavRules.some((r) => /(^|[,\s])(html|body|:root)[\s,{]/.test(r.split('{')[0])));
+{
+  const htmlCode = html.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  const anywhere = (htmlCode.match(/className="ezfav[A-Za-z0-9 -]*/g) || []);
+  const here = (favCode.match(/className="ezfav[A-Za-z0-9 -]*/g) || []);
+  ok('P1: ...and .ezfav- belongs to this screen alone',
+    anywhere.length === here.length && here.length >= 9,
+    'uses in the file: ' + anywhere.length + ', uses in FavoritesScreen: ' + here.length);
+}
+
+/* ---- P2. the legacy strip header is gone from HERE, and only from here -- */
+ok('P2: the screen no longer borrows the parent dashboard\'s strip header',
+  !/s\.dashboardHeader/.test(favView) && !/s\.dashboardTitle/.test(favView) && !/s\.backBtn/.test(favView));
+ok('P2: ...and those keys are untouched, because another screen still draws them',
+  !!s.dashboardHeader && !!s.dashboardTitle && !!s.backBtn
+  && /<div style=\{s\.dashboardHeader\}>[\s\S]{0,300}?<div style=\{s\.dashboardTitle\}>/.test(html));
+ok('P2: no gradient is spread anywhere on this screen', !/gradient/.test(favCode));
+const FAV_STYLE_KEYS = ['favScreen', 'favBody', 'favCard', 'favMeta', 'favText', 'favRow', 'favBtn', 'favBtnOff'];
+eq('P2: ...nor by any object it draws from',
+  FAV_STYLE_KEYS.filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))), []);
+
+/* ---- P3..P5. the three bounded pieces --------------------------------- */
+const pMeasure = (/\.ezfav\{[^}]*--ezfav-measure:(\d+)px/.exec(css) || [])[1];
+eq('P3: the screen declares one measure, and it is the 1100px shell measure', pMeasure, '1100');
+ok('P3: the top rail is bounded by it and is not a strip across the page',
+  /\.ezfav-rail-inner\{[^}]*max-width:var\(--ezfav-measure\)/.test(css)
+  && /\.ezfav-rail\{[^}]*justify-content:center/.test(css)
+  && /\.ezfav-rail\{[^}]*env\(safe-area-inset-top/.test(css));
+ok('P3: it carries the screen\'s own title and the REAL back control, text and all',
+  /<button onClick=\{onBack\} className="ezfav-back ezik-focus">\{EZIK_BACK\}<\/button>/.test(favView)
+  && /<span className="ezfav-brand-text">\{EZIK_FAV_HEADING\}<\/span>/.test(favView));
+ok('P3: ...and it invented no control -- the back is the only button in the rail',
+  (favCode.slice(favCode.indexOf('ezfav-rail'), favCode.indexOf('ezfav-wrap')).match(/<button /g) || []).length === 1);
+ok('P4: the masthead is SMALL and it is USEFUL -- it holds the one control this screen has',
+  /\.ezfav-masthead\{[^}]*padding:12px 14px/.test(css)
+  && /<div className="ezfav-masthead">[\s\S]{0,400}?type="search"/.test(favView)
+  && !/\.ezfav-masthead\{[^}]*min-height:(1[5-9]\d|[2-9]\d\d)px/.test(css));
+ok('P4: ...and it is absent while there is nothing saved to search',
+  /\{total > 0 && \(\s*\r?\n\s*<div className="ezfav-masthead">/.test(favView));
+ok('P5: the catalogue is bounded by the same measure',
+  /\.ezfav-wrap\{[^}]*max-width:var\(--ezfav-measure\)/.test(css)
+  && /\.ezfav-wrap\{[^}]*margin:0 auto/.test(css));
+ok('P5: ...one column on a phone, two from a tablet, three from a desk',
+  !/^\.ezfav-cat\{[^}]*column-count/.test(css)
+  && /@media \(min-width:760px\)\{\.ezfav-cat\{column-count:2\}\}/.test(css)
+  && /@media \(min-width:1180px\)\{\.ezfav-cat\{column-count:3\}\}/.test(css));
+ok('P5: ...and a card is never split, stretched or padded out to a neighbour\'s height',
+  /\.ezfav-card\{[^}]*break-inside:avoid/.test(css)
+  && !/\.ezfav-cat\{[^}]*display:(grid|flex)/.test(css)
+  && !/\.ezfav-card\{[^}]*height:/.test(css));
+ok('P5: no ezfav rule declares a viewport-wide box or a sideways scroll',
+  !/\.ezfav[a-z0-9-]*[^{]*\{[^}]*(width|min-width|max-width)\s*:\s*100vw/.test(css)
+  && !/\.ezfav[a-z0-9-]*[^{]*\{[^}]*overflow-x\s*:\s*(auto|scroll)/.test(css));
+
+/* ---- P6/P7. light is plain white, dark is real, nothing is patterned ---- */
+{
+  const lit = resolve(s.favScreen.background, VT_PAL['istana_33:light']);
+  const drk = resolve(s.favScreen.background, VT_PAL['istana_33:dark']);
+  ok('P6: the page in istana light is plain #FFFFFF', !!lit && hex(lit) === '#ffffff', String(lit && hex(lit)));
+  ok('P6: the dark rendering is a real second page, not an inverted one',
+    !!drk && hex(drk) !== hex(lit) && lum(drk) < 0.1, String(drk && hex(drk)));
+  ok('P6: ...and nothing here inverts or filters to get there',
+    !/\.ezfav[a-z0-9-]*[^{]*\{[^}]*filter\s*:/.test(css));
+  const patterned = ezfavRules.filter((r) => /url\(|gradient|repeat|background-image\s*:\s*(?!none)/.test(r));
+  eq('P7: not one ezfav rule attaches an image, a gradient or a repeat', patterned, []);
+  ok('P7: ...and none draws a pseudo-element over a saved reply',
+    !/\.ezfav[a-z0-9-]*[^{]*::(before|after)/.test(css)
+    && !ezfavRules.some((r) => /[;{]\s*content\s*:/.test(r)));
+  const litRules = ezfavRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r));
+  eq('P7: ...and the screen states no colour of its own at all, in CSS', litRules, []);
+  eq('P7: ...nor in its markup', (favCode.match(/(#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\))/g) || []), []);
+  eq('P7: every style key it draws from still exists', FAV_STYLE_KEYS.filter((k) => !s[k]), []);
+  const litKeys = [];
+  for (const k of FAV_STYLE_KEYS) for (const p of Object.keys(s[k] || {})) {
+    const v = String(s[k][p]);
+    if (/#[0-9a-fA-F]{3,8}\b/.test(v) || /\brgba?\(/.test(v)) litKeys.push(k + '.' + p + '=' + v);
+  }
+  eq('P7: ...and not one of them carries a hardcoded colour', litKeys, []);
+}
+
+/* ---- P8. the store: one key, one reader, one writer -------------------- */
+ok('P8: the favourites key is the shipped, versioned one',
+  /const EZIK_FAVS_KEY = 'ezik_favorite_replies_v1';/.test(html));
+// FOUR mentions in the whole file and no more: the declaration, the read in ezikReadFavs, the
+// write in ezikWriteFavs, and the removal in ezikClearAllFavs. A fifth is a second door onto the
+// store, which is exactly what this counts.
+eq('P8: the key is named in exactly the four places that own it',
+  (html.match(/EZIK_FAVS_KEY/g) || []).length, 4);
+ok('P8: ...read and written through the shipped pair, and nowhere else',
+  /localStorage\.getItem\(EZIK_FAVS_KEY\)/.test(html)
+  && /localStorage\.setItem\(EZIK_FAVS_KEY, JSON\.stringify\(l\)\)/.test(html)
+  && /function ezikClearAllFavs\(\) \{ try \{ localStorage\.removeItem\(EZIK_FAVS_KEY\); \} catch \(e\) \{\} \}/.test(html));
+ok('P8: ...through the ONE writer, which adopts what the store actually took',
+  /const applyFavs = \(next\) => \{\s*\r?\n\s*const written = ezikWriteFavs\(next\);/.test(html)
+  && /const removeFavorite = \(id\) => applyFavs\(favsRef\.current\.filter\(\(f\) => f\.id !== id\)\);/.test(html));
+ok('P8: the record shape is unchanged -- id, pk, chatId, idx, at, snippet, text',
+  /return \{ id: ezikFavId\(pk, chatId, idx, t\), pk: pk \|\| null, chatId: chatId \|\| null, idx: idx, at: Date\.now\(\), snippet: ezikFavSnippet\(t\), text: t \};/.test(html));
+ok('P8: ...and the identity is still the POSITION, not the text',
+  /function ezikFavId\(pk, chatId, idx, text\) \{\s*\r?\n\s*return String\(pk \|\| ''\) \+ '\|' \+ String\(chatId \|\| '-'\) \+ '\|' \+ String\(idx\) \+ '\|' \+ ezikHashText\(text\);/.test(html));
+ok('P8: the screen itself touches no store at all',
+  favCode.indexOf('localStorage') === -1 && favCode.indexOf('ezikReadFavs') === -1
+  && favCode.indexOf('ezikWriteFavs') === -1 && favCode.indexOf('EZIK_FAVS_KEY') === -1
+  && favCode.indexOf('JSON.parse') === -1);
+ok('P8: no second favourites store and no migration was introduced',
+  !/ezik_fav[a-z_]*_v[2-9]|favorites_v[2-9]|migrateFav|ezikMigrateFav/i.test(html)
+  && !/localStorage\.(setItem|getItem|removeItem)\(\s*'[^']*fav[^']*'/i.test(html),
+  'a favourites key is being touched by a literal string somewhere');
+
+/* ---- P9. the ORDER, and that this screen does not decide it ------------- */
+ok('P9: the newest-first order is the owner\'s single sort, unchanged',
+  /const myFavs = React\.useMemo\(\s*\r?\n\s*\(\) => favs\.filter\(\(f\) => f\.pk === favPk\)\.sort\(\(a, b\) => \(b\.at \|\| 0\) - \(a\.at \|\| 0\)\),/.test(html));
+ok('P9: ...and the search keeps whatever order it was given',
+  /const shownFavs = favResults === null \? myFavs : favResults;/.test(html)
+  && /out\.push\(Object\.assign\(\{\}, f, \{ hit: ezikSearchSnippet/.test(html));
+eq('P9: the screen maps the records exactly once', (favCode.match(/items\.map\(/g) || []).length, 1);
+ok('P9: ...and re-orders, filters, slices or reverses nothing',
+  !/items\.(sort|filter|slice|reverse|concat)\(/.test(favCode)
+  && !/\.sort\(|\.reverse\(/.test(favCode));
+ok('P9: ...and every card is keyed by the record\'s OWN id',
+  /<div key=\{f\.id\} className="ezfav-card"/.test(favView)
+  && !/key=\{i\}|key=\{index\}/.test(favCode));
+
+/* ---- P10. one renderer, and a long reply is never cut ------------------- */
+ok('P10: the card still renders through the SAME segment renderer the chat bubble uses',
+  /function FavoriteReplyBody[\s\S]{0,900}?ezikRenderSegments\(shown/.test(html)
+  && (html.split('function ezikRenderSegments').length - 1) === 1
+  && ((html.match(/ezikRenderSegments\(/g) || []).length - 1) === 2);
+ok('P10: ...so the ayah, the hadith and the source card arrive by that one path',
+  /<FavoriteReplyBody segments=\{parsed\.segments\} age=\{age\} tashkeel=\{tashkeel\} \/>/.test(favView)
+  && /const parsed = parseRichMessage\(f\.text, age\);/.test(favView));
+ok('P10: ...and the fold is the shipped one, so nothing is truncated permanently',
+  /ezikFoldSegments\(segments, EZIK_FOLD_MIN_CHARS, EZIK_FOLD_HEAD_CHARS\)/.test(favBody)
+  && /const shown = \(folded && !open\) \? folded : segments;/.test(favBody));
+ok('P10: no rule on this screen clamps, truncates or ellipsises a saved reply',
+  !/\.ezfav-(read|card|cat)[^{]*\{[^}]*(text-overflow|line-clamp|max-height)/.test(css)
+  && !/textOverflow|WebkitLineClamp|maxHeight/.test(JSON.stringify([s.favCard, s.favText, s.favBody])));
+ok('P10: ...and the text handed to the renderer is the record\'s own, unaltered',
+  !/f\.text\.(slice|substr|substring|replace)\(/.test(favCode));
+
+/* ---- P11. the actions, all three of them -------------------------------- */
+ok('P11: copy is the shipped button, on the whole reply, serialised the shipped way',
+  /<CopyReplyButton\s*\r?\n\s*text=\{String\(f\.text \|\| ''\)\.trim\(\)\}\s*\r?\n\s*getText=\{\(\) => serializeReply\(parsed\.segments, \{ tashkeel, band: deriveCaps\(age\)\.band \}\)\}/.test(favView));
+ok('P11: remove calls the shipped handler with that record\'s id, and says so',
+  /<button type="button" onClick=\{\(\) => onRemove\(f\.id\)\} aria-label=\{EZIK_FAV_DEL\} className="ezik-focus" style=\{s\.favBtn\}>/.test(favView));
+ok('P11: ...and it removes ONE record, never the list',
+  !/onRemove\(\)/.test(favCode) && !/ezikClearAllFavs/.test(favCode)
+  && (favCode.match(/onRemove\(/g) || []).length === 1);
+ok('P11: opening the original is still offered only when the conversation exists',
+  /const alive = !!f\.chatId && liveChatIds\.has\(f\.chatId\);/.test(favView)
+  && /\{alive \? \(/.test(favView)
+  && /onClick=\{\(\) => onOpenChat\(f\.chatId\)\} aria-label=\{EZIK_FAV_OPEN_CHAT\}/.test(favView));
+ok('P11: ...and when it is gone the card SAYS so instead of offering a dead button',
+  /<span style=\{\{ \.\.\.s\.favBtn, \.\.\.s\.favBtnOff \}\}>\{EZIK_FAV_CHAT_GONE\}<\/span>/.test(favView));
+ok('P11: ...through the one route into a conversation, which still spends the sheet\'s entry',
+  /const openFavoriteChat = \(id\) => \{\s*\r?\n\s*if \(!id \|\| !liveChatIds\.has\(id\)\) return;\s*\r?\n\s*openSavedChat\(id\);\s*\r?\n\s*goEzikBack\(\);/.test(html));
+ok('P11: the date shown is the record\'s own timestamp, formatted by the shipped helper',
+  /const when = ezikFavDate\(f\.at\);/.test(favView) && /\{when && <div style=\{s\.favMeta\}>\{when\}<\/div>\}/.test(favView));
+
+/* ---- P12/P13/P14. empty, back, and the names --------------------------- */
+ok('P12: an empty screen is a composition, not a blank page',
+  /\{total === 0 && \(\s*\r?\n\s*<div className="ezfav-empty">/.test(favView)
+  && /<span className="ezfav-empty-crest" aria-hidden="true"><span className="ezfav-empty-in" \/><\/span>/.test(favView)
+  && /\{EZIK_FAV_EMPTY\}/.test(favView));
+ok('P12: ...and it still says exactly what it always said',
+  /const EZIK_FAV_EMPTY = 'لا توجد ردود محفوظة بعد\. اضغط النجمة تحت أي رد لتحفظه هنا\.';/
+    .test(html.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))));
+ok('P12: a search that matches nothing says so, separately from an empty store',
+  /\{total > 0 && searching && items\.length === 0 && <div style=\{s\.drawerEmpty\}>\{EZIK_SEARCH_NONE\}<\/div>\}/.test(favView));
+// Every string this screen draws comes from a named constant or from the record itself. A quoted
+// Arabic literal in the markup would be a sentence somebody wrote here, which is the thing the
+// review forbade -- and no seeded record may have come along with the redesign either.
+ok('P12: no invented text and no seeded record reached the screen',
+  !/lorem|sample|demo|dummy/i.test(favCode)
+  && !/['"][؀-ۿ]/.test(favCode)
+  && !/\{\s*id:\s*['"]/.test(favCode));
+ok('P13: the screen is still a SHEET, so its back returns to whatever opened it',
+  /const EZIK_SHEET_SCREENS = \['parentGate', 'parentDashboard', 'settings', 'favorites'\];/.test(html)
+  && /if \(screen === 'favorites'\) return <FavoritesScreen [^>]*onBack=\{goEzikBack\}/.test(html));
+ok('P13: ...and the component navigates nowhere itself',
+  !/setScreen\(/.test(favCode) && !/goEzikBack/.test(favCode) && !/history\.(back|go)\(/.test(favCode));
+{
+  // إزالة من المفضلة / افتح المحادثة الأصلية /
+  // ابحث في الردود المفضلة
+  const NAMES = ['EZIK_FAV_DEL', 'EZIK_FAV_OPEN_CHAT', 'EZIK_FAV_SEARCH_ARIA'];
+  eq('P14: every accessible name this screen shipped with is still on its control',
+    NAMES.filter((n) => favView.indexOf('aria-label={' + n + '}') === -1), []);
+  ok('P14: ...and the two decorative marks declare themselves decoration',
+    (favView.match(/aria-hidden="true"/g) || []).length >= 4);
+  ok('P14: ...and every control still carries the keyboard focus ring',
+    (favCode.match(/className="ezik-focus"/g) || []).length >= 3
+    || /ezfav-back ezik-focus/.test(favCode));
+}
+
+/* ---- P15..P17. the blast radius --------------------------------------- */
+ok('P15: the conversation store is untouched by this screen',
+  favCode.indexOf('EZIK_CHATS_KEY') === -1 && favCode.indexOf('EZIK_CHAT_PREFIX') === -1
+  && favCode.indexOf('ezikSaveChat') === -1 && favCode.indexOf('ezikDeleteChat') === -1);
+ok('P15: ...and so is every endpoint', !/fetch\(|\/api\//.test(favCode));
+ok('P16: the chat and the call keep their own identities, not this one',
+  !/ezfav/.test(chatSrc) && !/ezfav/.test(callView)
+  && html.indexOf('<div className="theme-dark ezhome ezc" style={s.chatContainer}>') !== -1
+  && html.indexOf('<div className="theme-dark ezhome ezcall" style={s.callContainer}>') !== -1);
+ok('P17: no fixture, mock, harness or debug switch reached the shipped page',
+  ![/__mode\b/, /127\.0\.0\.1:87\d\d/, /\bFIXTURE\b/i, /\bMOCK_[A-Z_]+\b/, /DEBUG_FAV/, /window\.__ezfav/]
+    .some((re) => re.test(html)));
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

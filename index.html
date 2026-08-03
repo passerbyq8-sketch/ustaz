@@ -839,6 +839,79 @@
     border:1px solid var(--a3-line);border-radius:13px 13px 20px 20px;box-shadow:var(--a3-lift)}
   .ezcall-btn:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
   .ezcall-alert{width:100%}
+  /* ========================================================================
+     S114 -- THE ISTANA SAVED ANSWERS.
+
+     The favourites screen was a legacy strip header over a single 14px-padded column: one card
+     under another, full width, on a 2048px desk as on a phone. It is a rail, a small masthead
+     and a CATALOGUE now, all three bounded to one measure.
+
+     WHY COLUMNS AND NOT A GRID. A saved reply is as tall as it is -- one is two lines, the next
+     is a folded essay with a source card under it. A grid row either stretches every card to the
+     tallest in that row or leaves a ragged band beneath the short ones, and the review named both
+     ("دون بطاقات فارغة أو ممدودة"). CSS columns pack by height instead: each card keeps its own
+     height, break-inside holds it whole, and the browser balances what is left. The column COUNT
+     is the only thing the viewport decides.
+
+     WHAT THIS BLOCK MAY NOT DO, and does not:
+       * no background-image, no gradient, no repeat and no url() anywhere;
+       * no selector can match html, body or :root -- every one is a .ezfav- class, and .ezfav-
+         exists nowhere else in the file;
+       * it draws no ::before / ::after and states no `content`;
+       * it declares NO colour of its own. The root carries .ezhome, so every value is an a3
+         token -- the idiom EzShell, the mushaf chrome, the chat and the call room already use.
+     Nothing here reads, writes, orders or filters a record: this is where the cards SIT.
+     ===================================================================== */
+  .ezfav{--ezfav-measure:1100px}
+  /* 1. THE TOP RAIL -- bounded, and it carries the screen's real back control, text and all. */
+  .ezfav-rail{flex-shrink:0;display:flex;justify-content:center;box-sizing:border-box;
+    padding:calc(8px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px))
+      8px calc(12px + env(safe-area-inset-left,0px))}
+  .ezfav-rail-inner{width:100%;max-width:var(--ezfav-measure);box-sizing:border-box;display:flex;
+    align-items:center;gap:10px;min-height:52px;padding:5px 8px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);border-radius:20px 20px 13px 13px;box-shadow:var(--a3-shadow)}
+  .ezfav-back{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+    min-height:44px;padding:0 12px;border-radius:12px;background:transparent;
+    border:1px solid transparent;color:var(--a3-ink);cursor:pointer;
+    font-family:var(--ez-ui-font);font-size:15px;font-weight:700;line-height:1}
+  .ezfav-back:hover{background:var(--a3-ice)}
+  .ezfav-back:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  .ezfav-brand{display:flex;align-items:center;gap:8px;flex:1;min-width:0;
+    font-family:var(--ez-ui-font);font-weight:800;font-size:16.5px;color:var(--a3-ink)}
+  .ezfav-brand-arch{width:14px;height:18px;flex-shrink:0;border:2px solid var(--a3-blue);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezfav-brand-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* 2. THE COLUMN, and the small masthead that holds the one control this screen has. */
+  .ezfav-wrap{width:100%;max-width:var(--ezfav-measure);margin:0 auto;box-sizing:border-box}
+  .ezfav-masthead{display:flex;align-items:center;gap:12px;box-sizing:border-box;
+    padding:12px 14px;margin:0 0 14px;background:var(--a3-ice);
+    border:1px solid var(--a3-line);border-radius:34px 34px 16px 16px}
+  .ezfav-crest{width:26px;height:32px;flex-shrink:0;box-sizing:border-box;
+    border:2px solid var(--a3-blue);border-radius:60% 60% 14% 14%;border-bottom-color:transparent}
+  .ezfav-mast-field{flex:1;min-width:0}
+  /* 3. THE CATALOGUE. One column on a phone, two from a tablet, three from a desk. */
+  .ezfav-cat{column-gap:14px}
+  @media (min-width:760px){.ezfav-cat{column-count:2}}
+  @media (min-width:1180px){.ezfav-cat{column-count:3}}
+  .ezfav-card{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
+    margin:0 0 14px;overflow:hidden}
+  /* the card is a HEAD, a reading body and a foot -- three bands with their own surfaces, not a
+     padded box with a date floating at the top of it. */
+  .ezfav-head{display:flex;align-items:center;gap:8px;padding:9px 14px;
+    background:var(--a3-ice);border-bottom:1px solid var(--a3-line)}
+  .ezfav-head-mark{width:11px;height:14px;flex-shrink:0;border:2px solid var(--a3-cyan);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezfav-read{padding:14px}
+  .ezfav-foot{padding:10px 14px;border-top:1px solid var(--a3-line)}
+  /* 4. THE EMPTY STATE -- a bounded composition, never a blank page. */
+  .ezfav-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:16px;min-height:52vh;padding:28px 16px;text-align:center}
+  .ezfav-empty-crest{width:58px;height:70px;box-sizing:border-box;display:flex;
+    align-items:center;justify-content:center;border:2px solid var(--a3-blue);
+    border-bottom-color:var(--a3-line);border-radius:60% 60% 14% 14%;background:var(--a3-ice)}
+  .ezfav-empty-in{width:15px;height:20px;box-sizing:border-box;border:2px solid var(--a3-cyan);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezfav-empty-text{max-width:420px;font-size:14.5px;line-height:1.9;color:var(--a3-muted)}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -8958,18 +9031,35 @@ function FavoriteReplyBody({ segments, age, tashkeel }) {
   );
 }
 
+// S114: the same component, on istana chrome. It is handed the SAME props, in the SAME order the
+// owner already computed them, and it still reads no store, parses no JSON and owns no copy of
+// anything. `items` is mapped once, exactly as it arrives -- there is no sort, no filter, no
+// slice and no reverse anywhere on this screen; the newest-first order is myFavs' and the search
+// order is ezikSearchFavs'. Nothing below writes a byte.
+//
+// THE RAIL's back control is the shipped one: same handler, same visible «← رجوع», so the name a
+// reader hears and the target a test clicks are both unchanged. The MASTHEAD is small and it is
+// useful -- it holds the one control this screen has. The CATALOGUE is .ezfav-cat in <style>: the
+// column count is the only thing the viewport decides, and every card keeps its own height.
 function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age, tashkeel, query, onQuery, searching, total }) {
   return (
-    <div style={s.favScreen}>
-      <div style={s.dashboardHeader}>
-        <button onClick={onBack} style={s.backBtn} className="ezik-focus">{EZIK_BACK}</button>
-        <div style={s.dashboardTitle}>{EZIK_FAV_HEADING}</div>
+    <div className="theme-dark ezhome ezfav" style={s.favScreen}>
+      <div className="ezfav-rail">
+        <div className="ezfav-rail-inner">
+          <button onClick={onBack} className="ezfav-back ezik-focus">{EZIK_BACK}</button>
+          <span className="ezfav-brand">
+            <span className="ezfav-brand-arch" aria-hidden="true" />
+            <span className="ezfav-brand-text">{EZIK_FAV_HEADING}</span>
+          </span>
+        </div>
       </div>
       <div style={s.favBody}>
-        {/* S98: the same local search, over the records ALREADY IN MEMORY — this screen opens no
-            store to filter itself. The box is absent while there is nothing saved to search. */}
+       <div className="ezfav-wrap">
+        {/* S98/S114: the same local search over the records ALREADY IN MEMORY, in the masthead. */}
         {total > 0 && (
-          <div style={s.drawerSearchWrap}>
+          <div className="ezfav-masthead">
+            <span className="ezfav-crest" aria-hidden="true" />
+            <div className="ezfav-mast-field">
             <input
               type="search"
               value={query}
@@ -8979,19 +9069,31 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
               className="ezik-focus"
               style={s.drawerSearch}
             />
+            </div>
           </div>
         )}
-        {total === 0 && <div style={s.drawerEmpty}>{EZIK_FAV_EMPTY}</div>}
+        {total === 0 && (
+          <div className="ezfav-empty">
+            <span className="ezfav-empty-crest" aria-hidden="true"><span className="ezfav-empty-in" /></span>
+            <div className="ezfav-empty-text">{EZIK_FAV_EMPTY}</div>
+          </div>
+        )}
         {total > 0 && searching && items.length === 0 && <div style={s.drawerEmpty}>{EZIK_SEARCH_NONE}</div>}
+        <div className="ezfav-cat">
         {items.map((f) => {
           const parsed = parseRichMessage(f.text, age);
           const alive = !!f.chatId && liveChatIds.has(f.chatId);
           const when = ezikFavDate(f.at);
           return (
-            <div key={f.id} style={s.favCard}>
-              {when && <div style={s.favMeta}>{when}</div>}
+            <div key={f.id} className="ezfav-card" style={s.favCard}>
+              <div className="ezfav-head">
+                <span className="ezfav-head-mark" aria-hidden="true" />
+                {when && <div style={s.favMeta}>{when}</div>}
+              </div>
+              <div className="ezfav-read">
               <FavoriteReplyBody segments={parsed.segments} age={age} tashkeel={tashkeel} />
-              <div style={s.favRow}>
+              </div>
+              <div className="ezfav-foot" style={s.favRow}>
                 <CopyReplyButton
                   text={String(f.text || '').trim()}
                   getText={() => serializeReply(parsed.segments, { tashkeel, band: deriveCaps(age).band })}
@@ -9013,6 +9115,8 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
             </div>
           );
         })}
+        </div>
+       </div>
       </div>
     </div>
   );
@@ -12497,14 +12601,22 @@ const s = {
   drawerResultDate: { fontSize: 11.5, lineHeight: 1.5, color: 'var(--muted)' },
   drawerSnippet: { display: 'block', fontSize: 12, lineHeight: 1.6, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' },
   drawerBadge: { minWidth: 22, padding: '1px 7px', borderRadius: 999, background: 'var(--tint)', color: 'var(--red)', fontSize: 12, fontWeight: 700, textAlign: 'center' },
-  favScreen: { height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', color: 'var(--ink)' },
-  favBody: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 14px calc(16px + env(safe-area-inset-bottom, 0px))', display: 'flex', flexDirection: 'column', gap: 10 },
-  favCard: { padding: '12px 14px', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 8 },
-  favMeta: { fontSize: 12, color: 'var(--muted)' },
-  favText: { fontSize: 14.5, lineHeight: 1.85, color: 'var(--ink)', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' },
+  // ===== شاشة المفضلة — S114 ISTANA =====
+  // The screen kept every one of its keys -- they are what the chat-ux gate measures -- and every
+  // one of them still reads a token. What changed is the SHAPE: the body no longer stacks one
+  // full-width card under another (the catalogue in <style> lays them in columns), and the card
+  // is no longer a padded box with a date floating at its top: it is a head band, a reading body
+  // and a foot, and those three bands are .ezfav-head / .ezfav-read / .ezfav-foot. So the values
+  // below are the SURFACES, and the structure that arranges them is CSS -- which is what lets a
+  // column count answer a media query at all.
+  favScreen: { height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', color: 'var(--a3-ink)' },
+  favBody: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 14px calc(18px + env(safe-area-inset-bottom, 0px))' },
+  favCard: { display: 'block', background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', borderRadius: '24px 24px 16px 16px', boxShadow: 'var(--a3-shadow)' },
+  favMeta: { flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
+  favText: { fontSize: 14.5, lineHeight: 1.85, color: 'var(--a3-ink)', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' },
   favRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  favBtn: { minHeight: 40, padding: '8px 12px', background: 'var(--white)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' },
-  favBtnOff: { color: 'var(--muted)', cursor: 'default', opacity: 0.5 },
+  favBtn: { minHeight: 40, padding: '8px 12px', background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)', borderRadius: 12, fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
+  favBtnOff: { color: 'var(--a3-muted)', cursor: 'default', opacity: 0.5 },
   // S112: the scrim and the panel are .ezc-drawer-ov / .ezc-drawer in <style>, because the panel
   // has to CHANGE SHAPE at a desk -- an inset, bounded card instead of an edge-to-edge sheet --
   // and an inline style cannot answer a media query. The two keys are gone rather than left
