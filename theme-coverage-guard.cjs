@@ -708,18 +708,54 @@ for (const [pfx, want] of [['q', 'qibla_13'], ['i', 'istana_33']]) {
   eq('the ' + want + ' swatch groundwork is still declared', LIGHT['--vtp-' + pfx + '-page'], '#FFFFFF');
 }
 
-/* ---- G9b. the active-design card is mounted where its tokens are -------- */
-function cardTagAround(labelExpr) {
-  const at = html.indexOf('<div style={s.settingsLabel}>{' + labelExpr + '}</div>');
-  if (at === -1) return null;
-  const open = html.lastIndexOf('<div', at - 1);
-  return open === -1 ? null : html.slice(open, html.indexOf('>', open) + 1);
-}
-const vtCardTag = cardTagAround('EZ_VT_TITLE');
-ok('the identity card was located in Settings', !!vtCardTag);
-ok('the identity card carries the token scope its own controls read',
-  !!vtCardTag && /className="adhkar3"/.test(vtCardTag),
-  'mounted as: ' + String(vtCardTag) + ' -- the vtActive*/vtSoon* keys read --a3-*, declared only on .adhkar3,.ezhome');
+/* ---- G9b. the scope now comes from the shared shell, once ---------------
+ * S105: Settings moved into EzShell/EzShellGroup, so the token scope is no longer a class on
+ * each card -- it is on the shell root and on the group, in one place, for every tenant. The
+ * S100 defect (a card mounted outside the scope, with an invisible checked state) is still the
+ * thing being prevented; it is now prevented for every screen that adopts the shell at once.
+ * ---------------------------------------------------------------------- */
+ok('the shell root puts the token set in scope', /<div className="theme-dark ezhome" style=\{s\.ezshContainer\}>/.test(html));
+ok('...and every group inside it is scoped too', /<div className="adhkar3" style=\{s\.ezshGroup\}>/.test(html));
+ok('Settings renders THROUGH the shell, not beside it',
+  /<EzShell title=\{A_SETTINGS\} onBack=\{onBack\} backLabel=\{A2_BACK\}>/.test(html));
+ok('...and no longer draws the legacy full-width settings container',
+  !/s\.settingsContainer/.test(html) && !/s\.settingsHeader/.test(html) && !/s\.settingsBody/.test(html));
+ok('the shell column is bounded and centred', /\.ezsh-wrap\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css)
+  && /\.ezsh-nav-inner\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css));
+ok('...one column, and two only where the content earns it',
+  /\.ezsh-grid\{[^}]*grid-template-columns:1fr/.test(css)
+  && /@media \(min-width:900px\)\{[\s\S]{0,300}?\.ezsh-grid\{grid-template-columns:repeat\(2,1fr\)/.test(css));
+ok('the shell owns no navigation state and invents no handler',
+  /function EzShell\(\{ title, onBack, backLabel, actions, children \}\)/.test(html)
+  && !/function EzShell[\s\S]{0,1200}?(useState|localStorage|setScreen|ezikGoBack)/.test(html));
+ok('Settings keeps its own back handler', /onBack=\{onBack\}/.test(html));
+// the shell is a page root too: nothing in its own rules may attach a pattern, and none of
+// its selectors may reach html, body or :root.
+const ezshRules = (css.match(/\.ezsh-[^{]*\{[^}]*\}/g) || []);
+ok('the shell declares its own rules', ezshRules.length > 6);
+eq('not one shell rule attaches an image, gradient or repeat',
+  ezshRules.filter((r) => /background-image|gradient|url\(|repeating/i.test(r)), []);
+ok('and no shell selector can match html, body or :root',
+  !/(^|[,}\s])(html|body|:root)[^{,]*\.ezsh-/.test(css));
+// every control the screen had, still here, with its own handler and accessible name.
+const SET_CTRL = [
+  ['light/dark', /<Opt value="light"/, /<Opt value="dark"/],
+  ['text size', /role="radiogroup" aria-label=\{EZIK_A11Y_FS_LABEL\}/, /onClick=\{\(\) => onA11y\(\{ fontSize: v \}\)\}/],
+  ['reading mode', /aria-checked=\{a11y\.reading/, /onClick=\{\(\) => onA11y\(\{ reading: !a11y\.reading \}\)\}/],
+  ['reduced motion', /aria-checked=\{a11y\.reduceMotion/, /onClick=\{\(\) => onA11y\(\{ reduceMotion: !a11y\.reduceMotion \}\)\}/],
+  ['a11y reset', /onClick=\{onA11yReset\}/, /\{EZIK_A11Y_RESET\}/],
+  ['parental control', /onClick=\{onOpenControl\}/, /aria-label=\{A_CONTROL\}/],
+  ['PIN change', /onClick=\{savePin\}/, /autoComplete="new-password"/],
+];
+for (const [name, a, b] of SET_CTRL) ok('Settings keeps its ' + name + ' control', a.test(html) && b.test(html));
+// four: the font-size radios share one className in a map, plus the two switches and reset.
+ok('...and the a11y controls are still keyboard-reachable buttons with the focus ring',
+  (html.match(/className="ez-a11y-opt"/g) || []).length === 4 && /\.ez-a11y-opt:focus-visible/.test(css));
+ok('the theme control still writes the SAME key with the SAME two values',
+  /localStorage\.setItem\(THEME_KEY, v\)/.test(html) && /t === 'dark' \|\| t === 'light'/.test(html));
+ok('the accessibility preferences are still profile-scoped',
+  /ezikReadA11y\(ezikProfileKey\(/.test(html) && /EZIK_A11Y_KEY/.test(html));
+
 const VT_CTRL = ['vtActiveRow', 'vtActiveMark', 'vtActiveName', 'vtActiveState', 'vtSoonRow', 'vtSoonName', 'vtSoonTag'];
 for (const k of VT_CTRL) ok('the active-design card uses the shipped key ' + k, !!s[k]);
 {
@@ -1174,7 +1210,7 @@ const INDEX_SCREENS = {
   chat:            { render: 'the chat body (App fall-through)', shell: 'legacy' },
   parentGate:      { render: 'ParentGate', shell: 'legacy' },
   parentDashboard: { render: 'ParentDashboard', shell: 'legacy' },
-  settings:        { render: 'SettingsSheet', shell: 'legacy' },
+  settings:        { render: 'SettingsSheet -> EzShell', shell: 'istana' },
   favorites:       { render: 'FavoritesScreen', shell: 'legacy' },
   call:            { render: 'CallScreen', shell: 'legacy' },
   memorize:        { render: 'MemorizeScreen', shell: 'legacy' },
@@ -1237,6 +1273,10 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
+eq('exactly 3 index screens are istana after this commit', idxIstana.length, 3);
+eq('...and 9 index screens remain legacy', idxLegacy.length, 9);
+eq('...with the other classifications unmoved',
+  idxIstana.slice().sort().join(','), 'adhkar,home,settings');
 console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
   + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all legacy)');
 console.log('        istana now : ' + idxIstana.join(', '));

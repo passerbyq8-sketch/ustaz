@@ -544,6 +544,40 @@
     padding:30px 18px 22px;text-align:center}
   .ezia-dock-inner{width:100%;max-width:760px;margin:0 auto;box-sizing:border-box;
     display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px}
+
+  /* ========================================================================
+     S105 -- THE SHARED ISTANA SHELL. One bounded top bar, one centred column, one set of
+     breakpoints, for every screen that adopts it. .ezsh- is used nowhere else and none of
+     these selectors can match html, body or :root, so the page stays plain while the arch
+     lives inside the bar and the groups.
+
+     Settings is its first tenant. EzikIstanaHome and the istana adhkar screens keep their own
+     structures for now and are NOT refactored onto it in this commit -- the shell exists to
+     be reused by the screens still to come, and rewriting two working screens to prove that
+     is risk with no reward.
+     ===================================================================== */
+  .ezsh-nav{position:sticky;top:0;z-index:5;flex-shrink:0;background:var(--a3-surface);
+    border-bottom:1px solid var(--a3-line);padding-top:env(safe-area-inset-top, 0px)}
+  .ezsh-nav-inner{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;display:flex;
+    align-items:center;justify-content:space-between;gap:10px;padding:6px 12px;min-height:56px}
+  .ezsh-nav-side{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+  .ezsh-nav-side.is-end{justify-content:flex-end}
+  .ezsh-brand{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;min-width:0;
+    font-family:var(--ez-ui-font);font-weight:800;font-size:17px;color:var(--a3-ink)}
+  .ezsh-brand-arch{width:15px;height:19px;flex-shrink:0;border:2px solid var(--a3-blue);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezsh-wrap{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;
+    padding:14px 12px calc(24px + env(safe-area-inset-bottom, 0px))}
+  /* the group grid: one column, two where the content earns it, never more -- a settings
+     group read across a 2048px viewport is a worse control, not a better one. */
+  .ezsh-grid{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+  .ezsh-grid>*{min-width:0}
+  @media (min-width:900px){
+    .ezsh-grid{grid-template-columns:repeat(2,1fr);gap:16px}
+    .ezsh-group.is-wide{grid-column:span 2}
+    .ezsh-wrap{padding:20px 20px calc(30px + env(safe-area-inset-bottom, 0px))}
+    .ezsh-nav-inner{padding:6px 20px}
+  }
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -9356,13 +9390,69 @@ function SpendGate({ onUnlock, onExit }) {
 // D88 -- the settings sheet. It carries .theme-dark itself so it is themed by the same scoped
 // palette the chat uses; reached from the drawer's gear. The choice is written through
 // applyTheme, the one code path that also runs at boot, and persisted immediately.
+
+// ---- S105 ISTANA SHELL START --------------------------------------------------------------
+// THE SHARED ISTANA SHELL. Presentation only, and deliberately empty of judgement: it owns no
+// navigation state, reads no storage, holds no screen logic and invents no handler. A screen
+// hands it a title, its OWN back handler and whatever action buttons it already had; the shell
+// decides only where those sit and how wide the column is.
+//
+// The root carries .ezhome, which is what puts the --a3-* token set in scope for everything
+// inside -- the same scope the home and the adhkar screens use, so a screen adopting the shell
+// gets the identity and the dark palette without declaring a colour of its own.
+function EzShell({ title, onBack, backLabel, actions, children }) {
+  return (
+    <div className="theme-dark ezhome" style={s.ezshContainer}>
+      <div className="ezsh-nav">
+        <div className="ezsh-nav-inner">
+          <div className="ezsh-nav-side">
+            {onBack ? (
+              <button type="button" className="ezhome-focus" onClick={onBack} style={s.ezshNavBtn}
+                aria-label={backLabel}>{A2_ICON_BACK}</button>
+            ) : null}
+          </div>
+          <span className="ezsh-brand">
+            <span className="ezsh-brand-arch" aria-hidden="true" />
+            <span>{title}</span>
+          </span>
+          <div className="ezsh-nav-side is-end">{actions || null}</div>
+        </div>
+      </div>
+      <div style={s.ezshScroll}>
+        <div className="ezsh-wrap">{children}</div>
+      </div>
+    </div>
+  );
+}
+// One group inside the shell: a heading, a bounded Iznik marker, the screen's own controls,
+// and the hint the screen already showed. `wide` is the only layout choice a tenant makes.
+function EzShellGroup({ title, hint, wide, children }) {
+  return (
+    <section className={wide ? 'ezsh-group is-wide' : 'ezsh-group'}>
+      <div className="adhkar3" style={s.ezshGroup}>
+        <div style={s.ezshGroupHead}>
+          <span style={s.ezshGroupMark} aria-hidden="true" />
+          <div style={s.settingsLabel}>{title}</div>
+        </div>
+        {children}
+        {hint ? <div style={s.settingsHint}>{hint}</div> : null}
+      </div>
+    </section>
+  );
+}
+// ---- S105 ISTANA SHELL END ----------------------------------------------------------------
+
 function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, onA11yReset }) {
   // S90 -- التحكم. The single row that leads to the parental area, and the ONLY thing left in
   // the app that opens the PIN gate. Everything above it -- the theme/dark choice and the
   // interface style -- is reached without a PIN, which is the whole point of this screen: a
   // parent's lock is not a lock on the appearance of the app. The label is built from escapes in
   // a JS expression, never a quoted JSX attribute, so the file stays ASCII-safe either side.
-  const A_CONTROL = '\u0627\u0644\u062A\u062D\u0643\u0645';   // U+0627 U+0644 U+062A U+062D U+0643 U+0645
+  const A_CONTROL = '\u0627\u0644\u062A\u062D\u0643\u0645';
+  // S105: the screen title and the appearance heading, lifted to constants so the shell and
+  // the guard name the same strings the screen already showed.
+  const A_SETTINGS = '\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a';
+  const A_APPEARANCE = '\u0627\u0644\u0645\u0638\u0647\u0631';   // U+0627 U+0644 U+062A U+062D U+0643 U+0645
   // D89: this entry is rendered ONLY while a valid founder token is held. hasFounderToken() is
   // read here, at render, and never from a cached flag -- the rule every other gate in this file
   // follows. It is a VISIBILITY rule, not the lock: api/unlock.js refuses a set-pin call that
@@ -9413,23 +9503,19 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // is no code path from this card that could write it. Journey and Deck appear nowhere.
   const visualTheme = useEzikVisualTheme();
   return (
-    <div className="theme-dark" style={s.settingsContainer}>
-      <div style={s.settingsHeader}>
-        <button onClick={onBack} style={s.backBtn}>{'\u2190 \u0631\u062c\u0648\u0639'}</button>
-        <div style={s.settingsTitle}>{'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a'}</div>
-      </div>
-      <div style={s.settingsBody}>
-        <div style={s.settingsCard}>
-          <div style={s.settingsLabel}>{'\u0627\u0644\u0645\u0638\u0647\u0631'}</div>
+    <EzShell title={A_SETTINGS} onBack={onBack} backLabel={A2_BACK}>
+      {/* S105 -- the SAME controls, the same handlers, the same keys and the same accessible
+          names as before; what changed is that they sit in bounded groups inside the shared
+          shell instead of five full-width slabs. Not one control was simplified away. */}
+      <div className="ezsh-grid">
+        <EzShellGroup title={A_APPEARANCE} hint={'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}>
           <div style={s.themeRow}>
             <Opt value="light" label={'\u0641\u0627\u062a\u062d'} />
             <Opt value="dark" label={'\u062f\u0627\u0643\u0646'} />
           </div>
-          <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
-        </div>
-        {/* S102 -- the active application design. One statement, one disabled preview line. */}
-        <div className="adhkar3" style={{ ...s.settingsCard, marginTop: 12 }}>
-          <div style={s.settingsLabel}>{EZ_VT_TITLE}</div>
+        </EzShellGroup>
+        {/* S102 -- the active application design. One statement, one disabled line. */}
+        <EzShellGroup title={EZ_VT_TITLE}>
           {visualTheme === EZIK_VISUAL_THEME_ISTANA && (
           <div style={s.vtActiveRow}>
             <span style={s.vtActiveMark} aria-hidden="true" />
@@ -9443,14 +9529,13 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             <span style={s.vtSoonName}>{EZ_VT_QIBLA}</span>
             <span style={s.vtSoonTag}>{EZ_VT_SOON}</span>
           </div>
-        </div>
-        {/* S99 -- سهولة الاستخدام. Three preferences in one card, in the same shape every card
-            above it uses: the settings card's own surface, border and padding, read from the same
-            tokens, so light and dark draw it exactly as they draw the theme card. Each control is
-            a real toggle with its state on the element (aria-checked / aria-pressed), reachable by
-            keyboard, and none of them touches the network. */}
-        <div style={{ ...s.settingsCard, marginTop: 12 }}>
-          <div style={s.settingsLabel}>{EZIK_A11Y_TITLE}</div>
+        </EzShellGroup>
+        {/* S99 -- the three accessibility preferences, byte-for-byte the controls that shipped:
+            same roles, same aria-checked, same handlers, same profile-scoped writes. */}
+        {/* NOT wide: measured at 1440 and 2048, spanning both columns stretched each switch
+            row to about 800px with the label at one edge and the toggle at the other. A settings
+            row read across a desk is a worse control, not a bigger one. */}
+        <EzShellGroup title={EZIK_A11Y_TITLE} hint={'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}>
           <div style={s.a11yGroupLabel}>{EZIK_A11Y_FS_LABEL}</div>
           <div style={s.themeRow} role="radiogroup" aria-label={EZIK_A11Y_FS_LABEL}>
             {[['normal', EZIK_A11Y_FS_NORMAL], ['large', EZIK_A11Y_FS_LARGE], ['xlarge', EZIK_A11Y_FS_XLARGE]].map(([v, label]) => (
@@ -9500,23 +9585,17 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             </span>
           </button>
           <button type="button" onClick={onA11yReset} className="ez-a11y-opt" style={s.a11yReset}>{EZIK_A11Y_RESET}</button>
-          <div style={s.settingsHint}>{'يُحفظ على هذا الجهاز'}</div>
-        </div>
-        {/* S90 -- التحكم. One row, and the PIN is asked only AFTER it is pressed. It carries no
-            new colour, radius or spacing of its own: the surface, the border and the padding are
-            the settings card's, read from the same variables, so the light and dark themes draw
-            it exactly as they draw everything above it. */}
-        <button type="button" onClick={onOpenControl} style={s.settingsNavBtn} aria-label={A_CONTROL}>
-          <span>{A_CONTROL}</span>
-          <span style={s.settingsNavChev} aria-hidden="true">{'\u2039'}</span>
-        </button>
-        {/* D89 -- change the unlock PIN. Rendered ONLY with a founder token in hand. Two fields,
-            new and confirm; both are type=password so nothing is ever shown on screen, and no
-            stored PIN is read, displayed or defaulted into either box -- the client has no way
-            to learn the current one and does not ask for it. */}
+        </EzShellGroup>
+        {/* S90 -- the one row that opens the PIN gate. Same handler, same accessible name. */}
+        <EzShellGroup title={A_CONTROL}>
+          <button type="button" onClick={onOpenControl} style={s.settingsNavBtn} aria-label={A_CONTROL}>
+            <span>{A_CONTROL}</span>
+            <span style={s.settingsNavChev} aria-hidden="true">{'\u2039'}</span>
+          </button>
+        </EzShellGroup>
+        {/* D89 -- change the unlock PIN. Rendered ONLY with a founder token in hand. */}
         {canSetPin && (
-        <div style={{ ...s.settingsCard, marginTop: 12 }}>
-          <div style={s.settingsLabel}>{'\u062A\u063A\u064A\u064A\u0631 \u0631\u0645\u0632 \u0627\u0644\u0641\u062A\u062D'}</div>
+        <EzShellGroup title={'\u062A\u063A\u064A\u064A\u0631 \u0631\u0645\u0632 \u0627\u0644\u0641\u062A\u062D'}>
           <input type="password" inputMode="numeric" autoComplete="new-password" value={pin1}
             onChange={(e) => setPin1(e.target.value)} placeholder={'\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u062C\u062F\u064A\u062F'} style={s.settingsInput} />
           <input type="password" inputMode="numeric" autoComplete="new-password" value={pin2}
@@ -9526,10 +9605,10 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           {pinMsg && <div style={s.settingsMsg}>{pinMsg}</div>}
           <button onClick={savePin} disabled={pinBusy || !pin1 || !pin2}
             style={{ ...s.settingsSaveBtn, opacity: (pinBusy || !pin1 || !pin2) ? 0.5 : 1 }}>{'\u062D\u0641\u0638'}</button>
-        </div>
+        </EzShellGroup>
         )}
       </div>
-    </div>
+    </EzShell>
   );
 }
 
@@ -11610,6 +11689,16 @@ const s = {
   // least 44px, and there is no animation or transition anywhere in this block.
   // ============================================================
   ezistContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  // S105 -- the shared shell. Every colour is an --a3-* token, so a tenant screen inherits the
+  // identity and the dark palette without declaring one; sizes are numbers so text scaling
+  // reaches them; nothing animates.
+  ezshContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  ezshScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
+  ezshNavBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },
+  ezshGroup: { display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 14px 16px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
+  ezshGroupHead: { display: 'flex', alignItems: 'center', gap: 9 },
+  ezshGroupMark: { width: 12, height: 15, flexShrink: 0, border: '2px solid var(--a3-blue)', borderRadius: '60% 60% 12% 12%', borderBottomColor: 'transparent' },
+
   // ============================================================
   // S103 -- THE ISTANA ADHKAR CATALOGUE AND READER. Every colour is an --a3-* token, which
   // under istana_33 resolves to the approved values and, in dark, to the accessible dark ones.
