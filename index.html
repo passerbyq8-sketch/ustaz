@@ -665,6 +665,107 @@
   .ezmr-fb-btn:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
   .ezmr-fb-btn:disabled{opacity:0.32;cursor:default}
   .ezmr-fb-btn.is-on{background:var(--a3-ice)}
+  /* ========================================================================
+     S112 -- THE ISTANA CHAT.
+
+     The conversation screen was the last full-height legacy surface in this file: a navy
+     gradient masthead laid across the whole viewport, a transcript that ran the full width
+     of a 2048px desk, and a composer bar pinned edge to edge beneath it. What replaces it
+     is STRUCTURE, not paint. Four bounded pieces -- rail, transcript, dock, drawer -- laid
+     on ONE measure, --ezc-measure, so nothing on this screen is wider than a readable
+     column however wide the display is.
+
+     WHAT THIS BLOCK MAY NOT DO, and does not:
+       * it declares no background-image, no gradient, no repeat and no url() anywhere, so
+         the page stays the solid --vt-page the identity declares;
+       * no selector below can match html, body or :root -- every one is a .ezc- class, and
+         .ezc- exists nowhere else in the file;
+       * it draws no ::before / ::after, so nothing can be painted over the transcript by a
+         rule the reader cannot see. The empty-state crest is two real elements.
+     The one ottoman note is a BORDER RADIUS on the two bounded bars -- an arch at the outer
+     edge, kept to a curve and never an ornament.
+
+     COLOUR. The chat root carries .ezhome, which is what puts the a3 token set in scope --
+     the same idiom EzShell and the mushaf reader chrome already use. So this block states
+     exactly ONE colour of its own: the modal scrim, which needs an alpha no token carries
+     and is declared per mode rather than inherited from a slab.
+     ===================================================================== */
+  .ezc{--ezc-measure:880px;--ezc-scrim:rgba(11,36,85,0.38)}
+  :root[data-theme="dark"] .ezc{--ezc-scrim:rgba(2,8,14,0.62)}
+  /* 1. THE TOP RAIL -- bounded and centred, ON the page rather than across it. */
+  .ezc-rail{flex-shrink:0;display:flex;justify-content:center;box-sizing:border-box;
+    padding:calc(8px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px))
+      8px calc(12px + env(safe-area-inset-left,0px))}
+  .ezc-rail-inner{width:100%;max-width:var(--ezc-measure);box-sizing:border-box;display:flex;
+    align-items:center;gap:10px;min-height:52px;padding:5px 8px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);border-radius:20px 20px 13px 13px;box-shadow:var(--a3-shadow)}
+  .ezc-brand{display:flex;align-items:center;gap:8px;flex:1;min-width:0;
+    font-family:var(--ez-ui-font);font-weight:800;font-size:16.5px;color:var(--a3-ink)}
+  .ezc-brand-arch{width:14px;height:18px;flex-shrink:0;border:2px solid var(--a3-blue);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezc-brand-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ezc-icon{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+    width:40px;height:40px;padding:0;border-radius:12px;background:transparent;
+    border:1px solid transparent;color:var(--a3-ink);cursor:pointer;font-family:inherit;line-height:1}
+  .ezc-icon:hover{background:var(--a3-ice)}
+  .ezc-icon:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  /* 2. THE TRANSCRIPT. The measure is applied as the SCROLLER'S OWN PADDING -- no wrapper
+     was inserted between the scroll container and the messages, so the S97 opening pin
+     still measures and positions exactly the element it always did, and the ResizeObserver
+     still observes the same children. */
+  .ezc-scroll{box-sizing:border-box;
+    padding:14px max(14px, calc((100% - var(--ezc-measure)) / 2)) 20px}
+  /* THE THREAD SITS ON THE COMPOSER, not under the rail. An auto margin on the first turn
+     absorbs the free space while the conversation is short, and resolves to nothing the moment
+     it is not -- which is why this and not justify-content:flex-end, whose overflow escapes
+     upward where no scroll can reach it. The S97 pin is untouched either way: when there is
+     free space to absorb there is nothing to scroll, and when there is not the margin is 0 and
+     scrollHeight is exactly what it was. */
+  .ezc-scroll>*:first-child{margin-block-start:auto}
+  .ezc-turn{display:flex;flex-direction:column;gap:8px;min-width:0;max-width:100%}
+  .ezc-turn.is-user{align-items:flex-start}
+  .ezc-turn.is-ai{align-items:stretch}
+  /* the reply's reading sheet and the small rail beneath it. Both are layout only: not one
+     colour, and nothing that could paint over the prose inside them. */
+  .ezc-ans{min-width:0}
+  .ezc-acts{min-width:0}
+  /* 3. THE EMPTY STATE. Centred in the space it already has rather than given a hero of
+     its own, so a new thread opens with the composer under the thumb and no dead band. */
+  .ezc-empty{margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:14px;
+    padding:24px 16px;text-align:center}
+  .ezc-crest{width:62px;height:74px;box-sizing:border-box;display:flex;align-items:center;
+    justify-content:center;border:2px solid var(--a3-blue);border-bottom-color:var(--a3-line);
+    border-radius:60% 60% 14% 14%;background:var(--a3-ice)}
+  .ezc-crest-in{width:16px;height:22px;box-sizing:border-box;border:2px solid var(--a3-cyan);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezc-empty-title{font-family:var(--ez-ui-font);font-weight:800;font-size:21px;color:var(--a3-ink)}
+  /* 4. THE COMPOSER DOCK -- bounded on the same measure as the transcript, in flow, so it
+     can never cover the last reply. */
+  .ezc-dock{flex-shrink:0;display:flex;justify-content:center;box-sizing:border-box;
+    padding:0 max(12px, calc((100% - var(--ezc-measure)) / 2))
+      calc(10px + env(safe-area-inset-bottom,0px))}
+  .ezc-dock-inner{width:100%;max-width:var(--ezc-measure);box-sizing:border-box;display:flex;
+    flex-direction:column;gap:8px;padding:8px 8px 4px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);border-radius:13px 13px 20px 20px;box-shadow:var(--a3-lift)}
+  .ezc-note{padding:0 6px 2px;text-align:center;font-size:11px;line-height:1.5;color:var(--a3-muted)}
+  /* 5. THE HISTORY DRAWER. A side drawer on a phone; from a desk upward an inset panel with
+     its own bounds -- never a full-screen slab over the conversation behind it. */
+  .ezc-drawer-ov{position:fixed;inset:0;z-index:60;background:var(--ezc-scrim)}
+  .ezc-drawer{position:fixed;top:0;right:0;bottom:0;z-index:61;box-sizing:border-box;display:flex;
+    flex-direction:column;width:320px;max-width:86vw;background:var(--a3-surface);
+    border-left:1px solid var(--a3-line);box-shadow:var(--a3-lift);
+    padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+  @media (min-width:900px){
+    .ezc-drawer{top:16px;right:16px;bottom:16px;width:344px;border:1px solid var(--a3-line);
+      border-radius:20px 20px 14px 14px}
+  }
+  .ezc-drawer-head{display:flex;align-items:center;gap:8px;flex-shrink:0;padding:2px 6px 10px;
+    font-family:var(--ez-ui-font);font-weight:800;font-size:16px;color:var(--a3-ink)}
+  .ezc-drawer-arch{width:13px;height:17px;flex-shrink:0;border:2px solid var(--a3-blue);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezc-row{position:relative;border-radius:12px}
+  .ezc-row.is-on{background:var(--a3-ice)}
+  .ezc-row.is-pinned{border-inline-start:3px solid var(--a3-cyan)}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -4922,6 +5023,9 @@ const EZIK_SEARCH_RESULTS = 'نتائج البحث';
 const EZIK_SEARCH_NONE = 'لا توجد نتائج مطابقة';
 const EZIK_FAV_SEARCH_PH = 'ابحث في المفضلة';
 const EZIK_FAV_SEARCH_ARIA = 'ابحث في الردود المفضلة';
+// S112: what the menu says when this profile has saved nothing yet. It is a STATEMENT about the
+// store, drawn where the list would be; it reads nothing, writes nothing and offers no action.
+const EZIK_CHATS_EMPTY = 'لا شيء محفوظٌ بعد — أول سؤالٍ تكتبه يُحفَظ هنا.';
 
 // The saved date, rendered from the record's own timestamp. Arabic-Kuwait with a Gregorian
 // calendar, and a record whose `at` was lost simply shows no date rather than 1970.
@@ -7578,6 +7682,13 @@ function App() {
   const caps = deriveCaps(profile?.age);
   const directConvoAllowed = caps.band === 'young' ? !directConvoLocked : true;
 
+  // S112: what the top rail says. It is the REAL title -- the one the store filed for the
+  // conversation that is open, read off the list the menu already holds -- and the app's own
+  // name while the thread is new and has no conversation yet. Nothing is invented here, nothing
+  // is written, and no store is opened: chatList is state that refreshChatList already fills.
+  const ezcOpenChat = chatId ? chatList.find((c) => c.id === chatId) : null;
+  const ezcTitle = (ezcOpenChat && ezcOpenChat.title) ? ezcOpenChat.title : A2_BRAND;
+
   // Report button (step 2b). Opens the flag modal for a given assistant reply, capturing the
   // user question that preceded it (messages[i-1]) for context. Client only -- POSTs to api/report.
   // The size guard MEASURES real UTF-8 bytes and halves ai then user until the body is under
@@ -7609,22 +7720,43 @@ function App() {
   };
 
   return (
-    <div className="theme-dark" style={s.chatContainer}>
+    <div className="theme-dark ezhome ezc" style={s.chatContainer}>
       {/* D85: the chat top bar carries exactly ONE control -- the drawer menu. The old home,
           call, speaker and lock buttons are gone. Per-reply audio already sits beneath every
           reply, so the header speaker was redundant; the other three moved into the drawer
           (القائمة and the pinned profile/settings row). */}
-      <div style={s.header}>
-        <button onClick={openDrawer} style={s.settingsBtn} aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
+      {/* S112: and it is a BOUNDED CARD on the page now, not the navy gradient slab that ran the
+          full width of the viewport. Not one control was added or removed by that move: the same
+          single button, the same openDrawer handler, the same accessible name. What it gained is
+          a title, and the title is the real one -- see ezcTitle above. */}
+      <div className="ezc-rail">
+        <div className="ezc-rail-inner">
+          <button onClick={openDrawer} className="ezc-icon" aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <span className="ezc-brand">
+            <span className="ezc-brand-arch" aria-hidden="true" />
+            <span className="ezc-brand-text">{ezcTitle}</span>
+          </span>
+        </div>
       </div>
 
-      <div ref={messagesAreaRef} onScroll={onMessagesScroll} style={s.messagesArea}>
+      <div ref={messagesAreaRef} onScroll={onMessagesScroll} className="ezc-scroll" style={s.messagesArea}>
+        {/* S112 -- THE EMPTY STATE. A NEW thread shows this and nothing else: no old messages, no
+            history list, no suggestion cards, and no devotional text of any kind. It is drawn
+            INSIDE the transcript and centred in the space that is already there, so the composer
+            does not move and the screen never turns back into a second home. It is gone the moment
+            there is anything to read, including the first token of a stream. */}
+        {messages.length === 0 && streamingText === null && (
+          <div className="ezc-empty">
+            <span className="ezc-crest" aria-hidden="true"><span className="ezc-crest-in" /></span>
+            <div className="ezc-empty-title">{A2_BRAND}</div>
+          </div>
+        )}
         {messages.map((m, i) => <MessageBubble key={i} index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} />)}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
             inside MessageBubble — so an old conversation does not carry a strip beneath every one
@@ -7648,7 +7780,8 @@ function App() {
           </div>
         )}
         {streamingText !== null && (
-          <div style={{ ...s.messageBubble, ...s.assistantBubble, alignSelf: 'flex-end' }}>
+          <div className="ezc-turn is-ai">
+          <div style={{ ...s.messageBubble, ...s.assistantBubble }}>
             {formatForStreamPreview(streamingText)
               /* S93: the live preview formats too, so a heading or a bold phrase does not appear
                  as ## and ** for a second and then re-flow when the reply settles. The renderer
@@ -7668,10 +7801,20 @@ function App() {
                     <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
                   </div>}
           </div>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
+      {/* S112 -- THE COMPOSER DOCK. One bounded card on the same measure as the transcript,
+          holding the pieces that were four separate full-width strips: the error banner, the
+          attachment chip, the composer row, the tool row and the standing disclaimer. It is IN
+          FLOW, exactly as those strips were, so it consumes its own height and can never cover
+          the last reply -- there is no fixed positioning and no floating control on this screen.
+          Nothing inside it was rewired: every handler, every disabled test and the Enter /
+          Shift+Enter contract are the ones that shipped. */}
+      <div className="ezc-dock">
+        <div className="ezc-dock-inner">
       {voiceError && <div style={s.errorBanner}>{voiceError}</div>}
 
       {pendingImage && (
@@ -7685,7 +7828,7 @@ function App() {
               <span style={{ color: 'var(--muted)', fontSize: 12 }}>{pendingImage.kind === 'pdf' ? 'PDF' : 'نصّ'}</span>
             </span>
           )}
-          <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: '#C44536', fontSize: 18, cursor: 'pointer' }} aria-label="إزالة الصورة">×</button>
+          <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: 'var(--red-lift)', fontSize: 18, cursor: 'pointer' }} aria-label="إزالة الصورة">×</button>
         </div>
       )}
       <div style={s.inputBar}>
@@ -7725,7 +7868,7 @@ function App() {
                 {/* backdrop: closes menu on outside click */}
                 <div onClick={() => setAttachMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
                 {/* menu: opens above the button (the tool row is at the bottom) */}
-                <div style={{ position: 'absolute', bottom: '120%', right: 0, zIndex: 41, background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 12, boxShadow: '0 6px 20px rgba(0,0,0,0.14)', padding: 6, minWidth: 168, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ position: 'absolute', bottom: '120%', right: 0, zIndex: 41, background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 12, boxShadow: 'var(--a3-lift)', padding: 6, minWidth: 168, display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <button
                     onClick={() => { setAttachMenuOpen(false); if (fileInputRef.current) fileInputRef.current.click(); }}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
@@ -7792,7 +7935,7 @@ function App() {
             className="ez-anim"
             style={{
               ...s.micBtn,
-              background: isListening ? 'linear-gradient(135deg, #C44536 0%, #A03828 100%)' : 'var(--tint)',
+              background: isListening ? 'var(--red-deep)' : 'var(--tint)',
               animation: isListening ? 'pulse 1.2s ease-in-out infinite' : 'none',
               opacity: isLoading ? 0.4 : 1,
             }}
@@ -7815,7 +7958,9 @@ function App() {
           )}
         </div>
       </div>
-      <div style={{ textAlign: 'center', padding: '0 16px 10px', fontSize: 11, lineHeight: 1.5, color: 'var(--muted)' }}>عزك ذكاءٌ اصطناعيّ وقد يُخطئ — راجِعْ ما يهمُّك مع والديك أو مع أهل العلم.</div>
+      <div className="ezc-note">عزك ذكاءٌ اصطناعيّ وقد يُخطئ — راجِعْ ما يهمُّك مع والديك أو مع أهل العلم.</div>
+        </div>
+      </div>
       {/* D85: the drawer. Order is fixed: new chat, القائمة (the existing home screen -- the
           mushaf, the adhkar, the memorizer and the quest are all reached from there), then the
           profile entry pinned at the bottom with settings beside it. Both pinned entries open the
@@ -7823,8 +7968,16 @@ function App() {
           The theme settings screen is phase C and is deliberately not built here. */}
       {drawerOpen && (
         <>
-          <div onClick={() => closeDrawerWith(null)} style={s.drawerOverlay} />
-          <div style={s.drawerPanel} role="dialog" aria-modal="true">
+          <div onClick={() => closeDrawerWith(null)} className="ezc-drawer-ov" />
+          {/* S112: the panel is a side drawer on a phone and an INSET, bounded panel from a desk
+              upward -- it never becomes a full-screen sheet over the conversation behind it. The
+              order of the entries, the handlers they call, the ids they carry and the store they
+              read are untouched; only the surface they sit on is new. */}
+          <div className="ezc-drawer" role="dialog" aria-modal="true">
+            <div className="ezc-drawer-head">
+              <span className="ezc-drawer-arch" aria-hidden="true" />
+              <span>{A2_BRAND}</span>
+            </div>
             <div style={s.drawerTop}>
               {/* S98: the search box. Local only — what is typed here is matched against the
                   conversations already on this device and is never sent anywhere. It is rendered
@@ -7868,8 +8021,11 @@ function App() {
               {/* S92: THE HISTORY. \u00ab\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629\u00bb stays the one and only new-chat entry -- this
                   section adds the saved conversations UNDER the existing items and duplicates
                   none of them. The order is the store's: pinned first, then the most recent.
-                  The whole section is absent while there is nothing to show, so a first-time
-                  menu looks exactly as it did. */}
+                  S112: it is still the store's order and still ONE mapping of it -- a pinned
+                  conversation is MARKED (.ezc-row.is-pinned) rather than moved into a second
+                  list, so nothing here re-sorts, filters or slices what the store returned.
+                  The section itself is absent while there is nothing to show; the empty line
+                  below takes its place. */}
               {/* S98: WHILE A SEARCH IS RUNNING the results replace the conversation list and
                   nothing else on the menu moves. Opening a result goes through the SAME
                   closeDrawerWith(openSavedChat) the ordinary row uses \u2014 so it spends the menu's
@@ -7880,7 +8036,7 @@ function App() {
                   <div style={s.drawerSectionLabel}>{EZIK_SEARCH_RESULTS}</div>
                   {chatResults.length === 0 && <div style={s.drawerEmpty}>{EZIK_SEARCH_NONE}</div>}
                   {chatResults.map((r) => (
-                    <div key={r.id} style={{ ...s.drawerResultRow, background: (r.id === chatId ? 'var(--tint)' : 'transparent') }}>
+                    <div key={r.id} className={r.id === chatId ? 'ezc-row is-on' : 'ezc-row'} style={s.drawerResultRow}>
                       <button onClick={() => closeDrawerWith(() => openSavedChat(r.id))} style={s.drawerResultBtn} title={r.title} className="ezik-focus">
                         <span style={s.drawerResultTitle}>{r.title}</span>
                         {r.snippet && <span style={s.drawerSnippet}>{r.snippet}</span>}
@@ -7894,7 +8050,7 @@ function App() {
                 <>
                   <div style={s.drawerSectionLabel}>{'\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a'}</div>
                   {chatList.map((c) => (
-                    <div key={c.id} style={{ ...s.drawerChatRow, background: (c.id === chatId ? 'var(--tint)' : 'transparent') }}>
+                    <div key={c.id} className={'ezc-row' + (c.id === chatId ? ' is-on' : '') + (c.pinned ? ' is-pinned' : '')} style={s.drawerChatRow}>
                       {chatPendingDelete === c.id ? (
                         /* The confirmation, and it replaces the row it belongs to rather than
                            covering the menu -- so what is about to be deleted stays readable. */
@@ -7928,6 +8084,12 @@ function App() {
                     </div>
                   ))}
                 </>
+              )}
+              {/* S112: and when there is nothing saved the menu SAYS so, instead of ending in a
+                  blank space that reads as a list that failed to load. It is one line of the
+                  store's own vocabulary; no row, no id and no write. */}
+              {chatResults === null && chatList.length === 0 && (
+                <div style={s.drawerEmpty}>{EZIK_CHATS_EMPTY}</div>
               )}
             </div>
             <div style={s.drawerPinned}>
@@ -8573,19 +8735,26 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
   const foldView = React.useMemo(
     () => (isUser ? null : ezikFoldSegments(segments, EZIK_FOLD_MIN_CHARS, EZIK_FOLD_HEAD_CHARS)),
     [isUser, segments]);
+  // S112: THE TWO TURNS ARE DIFFERENT STRUCTURES, not two colours of one. A user turn is a
+  // COMPACT card held to one side of the column and to a fraction of its width -- it is a thing
+  // said, and it is short. An assistant turn is a full-measure READING SHEET, stretched across
+  // the whole column with room for prose, cards and the sources beneath them. The two are told
+  // apart by shape at a glance, with the page reversed or the colours inverted.
   if (isUser) {
     const c = message.content;
     if (Array.isArray(c)) {
       const imgBlock = c.find(b => b && b.type === 'image');
       const txtBlock = c.find(b => b && b.type === 'text');
       return (
+        <div className="ezc-turn is-user">
         <div className="ez-anim" style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>
           {imgBlock && <img src={`data:${imgBlock.source.media_type};base64,${imgBlock.source.data}`} style={{ maxWidth: '100%', borderRadius: 10, marginBottom: txtBlock ? 8 : 0, display: 'block' }} />}
           {txtBlock && txtBlock.text}
         </div>
+        </div>
       );
     }
-    return <div className="ez-anim" style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{c}</div>;
+    return <div className="ezc-turn is-user"><div className="ez-anim" style={{ ...s.messageBubble, ...s.userBubble, animation: 'fadeIn 0.3s ease-out' }}>{c}</div></div>;
   }
   // رسالة الأستاذ: بطاقاتها مفصولةٌ أعلاه قبل أن يعمل عارضُ Markdown
   // D90: the clipboard carries EVERY rendered block, in display order. D91: it is built on the
@@ -8599,8 +8768,13 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
   const foldOpen = canFold && (overrideActive ? foldOverride.open : !!defaultOpen);
   const shownSegments = (canFold && !foldOpen) ? foldView : segments;
   return (
-    <div className="ez-anim" style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, maxWidth: '92%', alignSelf: 'flex-end' }}>
-      <div style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="ez-anim" style={{ animation: 'fadeIn 0.3s ease-out', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 8, maxWidth: '100%' }}>
+      {/* S112: the reading sheet. Every segment the reply produced is still drawn here, in the
+          order ezikRenderSegments returns them and by the SAME single renderer -- the prose, the
+          ayah, the hadith and the source chips beneath them. Nothing was reordered, moved out or
+          re-grouped; what changed is that the sheet is now the full width of a bounded column
+          instead of 92% of an unbounded viewport. */}
+      <div className="ezc-ans" style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {ezikRenderSegments(shownSegments, { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio })}
         {/* S98: the toggle lives INSIDE the bubble, under the prose it governs, so it reads as
             part of the reply rather than as a fourth action button. It exists only when there is
@@ -8621,7 +8795,11 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
           </button>
         )}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      {/* S112: the reply's own action rail -- a small row belonging to the sheet above it, at the
+          reading edge of the column. It is not a floating bar and it is not per-screen furniture:
+          the same buttons, the same handlers, the same aria-pressed, and not one action that was
+          not already here. */}
+      <div className="ezc-acts" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-start', padding: '0 2px' }}>
         <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
         {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
             always exists, so the button can no longer vanish because a fetch had not landed. */}
@@ -12172,14 +12350,14 @@ const s = {
   primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #1D4ED8 0%, #12327A 100%)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', boxShadow: '0 8px 24px rgba(18, 50, 122, 0.3)' },
   secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6E6E6E', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', marginTop: 8 },
 
-  // ===== شاشة الدردشة =====
+  // ===== شاشة الدردشة — S112 ISTANA =====
+  // THE NAVY MASTHEAD IS GONE, KEYS AND ALL. `header`, `settingsBtn`, and the `headerContent` /
+  // `avatar` / `headerTitle` / `headerSubtitle` set that hung off it were the only things in this
+  // file that painted a full-width gradient slab over the chat; the bounded rail that replaced
+  // them is .ezc-rail in <style> and declares no colour of its own. Deleting the keys rather than
+  // orphaning them is deliberate: a slab nobody can spread cannot come back by accident.
+  // Every value left below is a token. There is not one literal colour on this screen any more.
   chatContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)' },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--accent-fill) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
-  headerContent: { display: 'flex', alignItems: 'center', gap: 12 },
-  avatar: { width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: 800, color: 'var(--on-accent)', letterSpacing: '0.3px' },
-  headerSubtitle: { fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
-  settingsBtn: { width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   // ===== S98 — the reply controls, the favourites screen and the local search =====
   // Every value below is a token. Nothing here carries a literal colour, so the whole set moves
   // with data-theme=dark exactly as the surfaces they sit on do. Every tappable element is at
@@ -12188,8 +12366,10 @@ const s = {
   foldToggle: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 40, marginTop: 2, padding: '8px 12px', background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 999, fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
   // The quick-action strip. It WRAPS rather than scrolling sideways, so five labels cannot push
   // the page into a horizontal scroll at 320px.
-  quickRow: { display: 'flex', flexWrap: 'wrap', gap: 8, alignSelf: 'flex-end', maxWidth: '92%', padding: '2px 0 4px' },
-  quickBtn: { minHeight: 40, padding: '8px 14px', background: 'var(--white)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 999, fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' },
+  // S112: the strip stretches to the bounded column and starts at the reading edge, under the
+  // sheet it belongs to, instead of hanging off the far side of an unbounded viewport.
+  quickRow: { display: 'flex', flexWrap: 'wrap', gap: 8, alignSelf: 'stretch', padding: '2px 0 4px' },
+  quickBtn: { minHeight: 40, padding: '8px 14px', background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)', borderRadius: 999, fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' },
   // The search box in the drawer, and the favourites screen. Both draw on --white over --page,
   // the same pair every other sheet in the app uses.
   drawerSearchWrap: { padding: '2px 2px 8px' },
@@ -12213,10 +12393,12 @@ const s = {
   favRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
   favBtn: { minHeight: 40, padding: '8px 12px', background: 'var(--white)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 10, fontSize: 13, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' },
   favBtnOff: { color: 'var(--muted)', cursor: 'default', opacity: 0.5 },
-  drawerOverlay: { position: 'fixed', inset: 0, background: 'rgba(20,20,20,0.38)', zIndex: 60 },
-  drawerPanel: { position: 'fixed', top: 0, right: 0, bottom: 0, width: 278, maxWidth: '82vw', zIndex: 61, background: 'var(--white)', borderLeft: '1px solid var(--line)', boxShadow: '-8px 0 28px rgba(18, 50, 122, 0.16)', display: 'flex', flexDirection: 'column', padding: '14px 12px' },
+  // S112: the scrim and the panel are .ezc-drawer-ov / .ezc-drawer in <style>, because the panel
+  // has to CHANGE SHAPE at a desk -- an inset, bounded card instead of an edge-to-edge sheet --
+  // and an inline style cannot answer a media query. The two keys are gone rather than left
+  // behind: a panel nobody can spread cannot quietly become a full-screen slab again.
   drawerTop: { display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minHeight: 0, overflowY: 'auto' },
-  drawerItem: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '13px 12px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15.5, color: 'var(--ink)', textAlign: 'right' },
+  drawerItem: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 44, padding: '12px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15.5, color: 'var(--a3-ink)', textAlign: 'right' },
   // S92: the saved-conversation rows. Every colour is an EXISTING variable -- --ink, --muted,
   // --line, --tint, --red -- so both palettes already answer for them and no theme value is
   // added, changed or overridden by any of this.
@@ -12270,7 +12452,12 @@ const s = {
   settingsSaveBtn: { width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: 'var(--accent-fill)', color: 'var(--on-accent)', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, cursor: 'pointer' },
 
   // ===== منطقة الرسائل =====
-  messagesArea: { flex: 1, overflowY: 'auto', padding: '16px 14px 20px', display: 'flex', flexDirection: 'column', gap: 12 },
+  // S112: THE MEASURE IS THE SCROLLER'S OWN PADDING and it lives in .ezc-scroll, not here --
+  // a max-width would have needed a wrapper element between this container and the messages, and
+  // that container is the one the S97 opening pin measures and positions. Padding bounds the
+  // column without touching the box the pin reads. No horizontal padding is declared here, so
+  // there is nothing inline for the class to have to beat.
+  messagesArea: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 },
 
   // ===== بطاقة آية اليوم =====
   dailyCard: { background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius-card)', padding: '14px 16px', marginBottom: 4 },
@@ -12283,9 +12470,14 @@ const s = {
   topicChip: { background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--red)', borderRadius: 999, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'var(--ez-ui-font)' },
 
   // ===== فقاعات الرسائل =====
-  messageBubble: { maxWidth: '78%', padding: '12px 16px', borderRadius: 18, fontSize: 16, lineHeight: 1.7, wordWrap: 'break-word', whiteSpace: 'pre-wrap' },
-  userBubble: { alignSelf: 'flex-start', background: 'linear-gradient(135deg, var(--accent-fill) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', borderRadius: 18, borderBottomRightRadius: 6, boxShadow: '0 4px 12px rgba(29,78,216,0.22)', padding: '11px 15px', fontSize: 15 },
-  assistantBubble: { background: 'var(--white)', color: 'var(--ink)', borderRadius: 18, borderBottomLeftRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid var(--line)', fontSize: 15 },
+  // S112: TWO STRUCTURES, not two colours. The user card is held to a fraction of the column and
+  // sits on the reading edge with a marked side; the assistant sheet takes the whole measure and
+  // carries no tail at all. Neither is a gradient any more, and the alignment moved OUT of these
+  // objects onto .ezc-turn, so which side a turn stands on is a property of the turn and not
+  // something a spread can silently flip.
+  messageBubble: { maxWidth: '78%', padding: '12px 16px', borderRadius: 'var(--radius-card)', fontSize: 16, lineHeight: 1.7, wordWrap: 'break-word', whiteSpace: 'pre-wrap' },
+  userBubble: { background: 'var(--a3-ice)', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)', borderInlineStart: '3px solid var(--a3-blue)', borderRadius: 16, borderBottomRightRadius: 6, padding: '10px 14px', fontSize: 15 },
+  assistantBubble: { maxWidth: '100%', background: 'var(--a3-surface)', color: 'var(--a3-ink)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--a3-shadow)', border: '1px solid var(--a3-line)', fontSize: 15 },
   bubbleText: { overflowWrap: 'anywhere', /* 13.4-b2 */ lineHeight: 1.85, fontSize: 15, color: 'var(--ink)' },
   // S93: the Markdown blocks. Every colour is an EXISTING variable -- --ink, --muted, --line,
   // --tint, --red -- so both palettes already answer for them and no theme value is added,
@@ -12344,18 +12536,22 @@ const s = {
   suggestionChipSmall: { background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--red)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
 
   // ===== شريط الإدخال =====
-  errorBanner: { margin: '0 14px 8px 14px', padding: '12px 16px', background: 'var(--warn-bg)', border: '1px solid var(--warn-line)', borderRadius: 12, fontSize: 14, color: 'var(--warn-ink)', fontWeight: 500, textAlign: 'center' },
-  inputBar: { display: 'flex', gap: 10, padding: '12px 14px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
-  input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.5, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '12px 18px', fontSize: 15, borderRadius: 18, border: '1px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', boxSizing: 'border-box' },
-  sendBtn: { width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, var(--accent-fill) 0%, var(--red-deep) 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.28)', flexShrink: 0 },
-  micBtn: { width: 44, height: 44, borderRadius: 22, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.18)', flexShrink: 0 },
+  // S112: the dock owns the surface, the border and the safe area now (.ezc-dock-inner), so the
+  // rows inside it declare neither. maxHeight on the textarea is the SHIPPED 200px -- the growth
+  // bound did not move -- and the send/mic/tool controls keep their fixed square so the glyph
+  // inside them can never outgrow the box.
+  errorBanner: { margin: '0 0 2px', padding: '10px 14px', background: 'var(--warn-bg)', border: '1px solid var(--warn-line)', borderRadius: 12, fontSize: 14, color: 'var(--warn-ink)', fontWeight: 500, textAlign: 'center' },
+  inputBar: { display: 'flex', alignItems: 'flex-end', gap: 10 },
+  input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.55, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '11px 16px', fontSize: 15, borderRadius: 16, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', boxSizing: 'border-box' },
+  sendBtn: { width: 46, height: 46, borderRadius: '22px 22px 15px 15px', background: 'var(--a3-blue)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  micBtn: { width: 46, height: 46, borderRadius: '22px 22px 15px 15px', border: '1px solid var(--a3-line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   // D87: the tool row beneath the composer. space-between + RTL puts the first group on the
   // RIGHT and the second on the LEFT, which is the order the row is specified in.
-  toolBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '0 14px 12px', background: 'var(--white)' },
+  toolBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '0 2px' },
   toolGroup: { display: 'flex', alignItems: 'center', gap: 8 },
   // Same geometry as micBtn, tinted. The old [+] drew a var(--red) icon on the var(--red)
   // sendBtn gradient -- blue on blue, invisible. The tool row draws all three circles alike.
-  toolBtn: { width: 44, height: 44, borderRadius: 22, background: 'var(--tint)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.18)', flexShrink: 0 },
+  toolBtn: { width: 44, height: 44, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 
   // ===== لوحة الأهل =====
   dashboardContainer: { minHeight: '100vh', background: 'var(--page)' },

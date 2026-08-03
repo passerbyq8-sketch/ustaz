@@ -1207,7 +1207,10 @@ const INDEX_SCREENS = {
   loading:         { render: 'inline loadingScreen', shell: 'legacy' },
   onboarding:      { render: 'Onboarding / Welcome', shell: 'legacy' },
   home:            { render: 'Home -> EzikIstanaHome', shell: 'istana' },
-  chat:            { render: 'the chat body (App fall-through)', shell: 'legacy' },
+  // S112: the chat body moved onto its own istana structure -- .ezc-rail / .ezc-scroll /
+  // .ezc-dock / .ezc-drawer. It is classified istana because the checks in group N pass, not
+  // because someone edited this line; N1 asserts that binding directly.
+  chat:            { render: 'the chat body (App fall-through) -> .ezc rail + transcript + dock + drawer', shell: 'istana' },
   parentGate:      { render: 'ParentGate', shell: 'legacy' },
   parentDashboard: { render: 'ParentDashboard', shell: 'legacy' },
   settings:        { render: 'SettingsSheet -> EzShell', shell: 'istana' },
@@ -1277,11 +1280,17 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('exactly 5 index screens are istana after this commit', idxIstana.length, 5);
-eq('...and 7 index screens remain legacy', idxLegacy.length, 7);
+eq('exactly 6 index screens are istana after this commit', idxIstana.length, 6);
+eq('...and 6 index screens remain legacy', idxLegacy.length, 6);
 eq('...with the other classifications unmoved',
-  idxIstana.slice().sort().join(','), 'adhkar,home,memorize,mushaf,settings');
+  idxIstana.slice().sort().join(','), 'adhkar,chat,home,memorize,mushaf,settings');
 eq('...and the three interstitials are unmoved', Object.keys(INDEX_INTERSTITIALS).length, 3);
+// S112: the call screen is NOT carried along by the chat. Its entry moved onto the new dock, but
+// an entry is not a design -- the screen behind it still draws its own legacy presentation, and
+// so do the three interstitials standing in front of it.
+eq('the call screen is still legacy', INDEX_SCREENS.call.shell, 'legacy');
+eq('...and every interstitial with it',
+  Object.keys(INDEX_INTERSTITIALS).filter((k) => INDEX_INTERSTITIALS[k].shell !== 'legacy'), []);
 // S107: no screen carries a sub-view caveat any more. The field still exists and is still
 // asserted, so the next partially-finished screen has to declare itself the same way.
 const partial = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].subviews);
@@ -1866,6 +1875,336 @@ ok('the sacred opt-out still pins its four literals',
   /:root\[data-ezik-visual-theme\] \.mushaf-paper\{[\s\S]{0,240}--red:#1D4ED8[\s\S]{0,240}--ink:#1A1A1A[\s\S]{0,240}--white:#FFFFFF/.test(css));
 ok('...and the sheet still opts out of dark with color-scheme light',
   /:root\[data-theme="dark"\] \.mushaf-paper\s*\{[^}]*color-scheme:\s*light/.test(css));
+
+/* ============ N. THE ISTANA CHAT (S112) ==================================
+ * The conversation screen. It was the last full-height legacy surface in index.html and it is
+ * the one this group is about -- but only its PRESENTATION moved, so most of what follows is a
+ * FREEZE: the handlers, the endpoints, the payload, the storage keys and the accessible names
+ * are named here so that moving one fails, never so that this commit may move them.
+ *
+ * EVERY CHECK IS CUT TO THE CHAT. The chat's JSX is sliced from its root element to the line
+ * that follows its closing brace, and MessageBubble from its signature to the next top-level
+ * declaration. That matters: index.html still contains a navy gradient, a full-width bar and a
+ * floating control -- on OTHER screens -- so "the navy header is gone" asserted against the
+ * whole file would be a check that can only ever fail, or be quietly weakened until it passes.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== N. THE ISTANA CHAT ===');
+
+const chatRoot = '<div className="theme-dark ezhome ezc" style={s.chatContainer}>';
+const chatAt = html.indexOf(chatRoot);
+const chatEnd = html.indexOf('// Per-message listen button', chatAt);
+const chatSrc = (chatAt !== -1 && chatEnd > chatAt) ? html.slice(chatAt, chatEnd) : '';
+ok('the chat body was located and bounded', chatSrc.length > 8000 && chatSrc.length < 40000,
+  'len=' + chatSrc.length);
+const mbAt = html.indexOf('const MessageBubble = React.memo(function MessageBubble(');
+const mbEnd = mbAt === -1 ? -1 : html.indexOf('\n// ====', mbAt);
+const mbSrc = (mbAt !== -1 && mbEnd > mbAt) ? html.slice(mbAt, mbEnd) : '';
+ok('the message bubble was located and bounded', mbSrc.length > 4000, 'len=' + mbSrc.length);
+// The chat's own rules, isolated the same way group H isolates the istana home's.
+const ezcRules = (css.match(/\.ezc[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []);
+const drawerSrc = chatSrc.slice(chatSrc.indexOf('{drawerOpen && ('), chatSrc.indexOf('{reportFor &&'));
+// The chat's MARKUP, with its prose taken out. The notes in this region name the very things
+// the checks below forbid -- "the navy gradient slab that ran the full width" -- and a scan that
+// counted them would be answered by deleting the explanation rather than the defect.
+const chatCode = chatSrc.replace(/\/\*[\s\S]*?\*\//g, ' ');
+ok('the chat declares its own rule set', ezcRules.length > 20, 'found ' + ezcRules.length);
+ok('the drawer markup was located inside it', drawerSrc.length > 3000, 'len=' + drawerSrc.length);
+
+/* ---- N1. the identity, and that the inventory line was EARNED ----------- */
+// 1) the chat is on .ezc-, at the mount and in every one of its four pieces.
+const CHAT_ON_EZC =
+  html.indexOf(chatRoot) !== -1
+  && /<div className="ezc-rail">/.test(chatSrc)
+  && /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\} className="ezc-scroll"/.test(chatSrc)
+  && /<div className="ezc-dock">/.test(chatSrc)
+  && /<div className="ezc-drawer" role="dialog" aria-modal="true">/.test(chatSrc);
+ok('N1: the chat mounts on the ezc identity, in all four of its pieces', CHAT_ON_EZC);
+eq('N1: ...and THAT is why the inventory calls it istana', INDEX_SCREENS.chat.shell,
+  CHAT_ON_EZC ? 'istana' : 'legacy');
+ok('N1: the chat root also carries .ezhome, so the a3 tokens are in scope',
+  html.indexOf(chatRoot) !== -1);
+ok('N1: no ezc selector can match html, body or :root',
+  !ezcRules.some((r) => /(^|[,\s])(html|body|:root)[\s,{]/.test(r.split('{')[0])));
+
+/* ---- N2. the legacy navy header is GONE, keys and all ------------------- */
+ok('N2: the chat draws no navy masthead', !/s\.header\b/.test(chatSrc) && !/s\.settingsBtn\b/.test(chatSrc));
+ok('N2: ...and the keys that painted it no longer exist',
+  !('header' in s) && !('settingsBtn' in s) && !('headerTitle' in s) && !('avatar' in s));
+ok('N2: no gradient is spread anywhere in the chat body', !/gradient/.test(chatCode));
+ok('N2: ...nor by any object the chat draws from',
+  ['chatContainer', 'messagesArea', 'messageBubble', 'userBubble', 'assistantBubble', 'inputBar',
+    'input', 'sendBtn', 'micBtn', 'toolBtn', 'toolBar', 'quickRow', 'quickBtn', 'drawerTop',
+    'drawerItem', 'errorBanner'].filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))).length === 0);
+
+/* ---- N3..N6. the four bounded pieces, measured off the stylesheet ------- */
+const measure = (/\.ezc\{[^}]*--ezc-measure:(\d+)px/.exec(css) || [])[1];
+ok('N3: the chat declares ONE measure and it is a reading column', +measure >= 820 && +measure <= 900,
+  'measure=' + measure);
+ok('N3: the top rail is bounded by it, and is not a slab',
+  /\.ezc-rail-inner\{[^}]*max-width:var\(--ezc-measure\)/.test(css)
+  && /\.ezc-rail\{[^}]*justify-content:center/.test(css));
+ok('N3: ...and sits inside the top safe area', /\.ezc-rail\{[^}]*env\(safe-area-inset-top/.test(css));
+ok('N4: the transcript is bounded by the same measure, as the scroller\'s own padding',
+  /\.ezc-scroll\{[^}]*calc\(\(100% - var\(--ezc-measure\)\) \/ 2\)/.test(css));
+ok('N4: ...and nothing inline can beat that padding',
+  !/padding/.test(JSON.stringify(s.messagesArea || {})),
+  'messagesArea = ' + JSON.stringify(s.messagesArea));
+ok('N4: ...and no wrapper was inserted between the scroll container and the messages',
+  /className="ezc-scroll" style=\{s\.messagesArea\}>[\s\S]{0,900}?\{messages\.map\(\(m, i\) => <MessageBubble/.test(chatSrc));
+ok('N5: the composer dock is bounded by the same measure',
+  /\.ezc-dock-inner\{[^}]*max-width:var\(--ezc-measure\)/.test(css)
+  && /\.ezc-dock\{[^}]*justify-content:center/.test(css));
+ok('N5: ...and sits inside the bottom safe area',
+  /\.ezc-dock\{[^}]*env\(safe-area-inset-bottom/.test(css));
+ok('N6: the drawer is bounded on a phone', /\.ezc-drawer\{[^}]*width:320px[^}]*max-width:86vw/.test(css));
+const wideDrawer = (/@media \(min-width:900px\)\{\s*\.ezc-drawer\{[^}]*width:(\d+)px/.exec(css) || [])[1];
+ok('N6: ...and is an INSET panel on a desk, never a full-screen slab',
+  +wideDrawer > 0 && +wideDrawer <= 400 && /@media \(min-width:900px\)\{\s*\.ezc-drawer\{[^}]*top:16px[^}]*right:16px[^}]*bottom:16px/.test(css),
+  'desk width=' + wideDrawer);
+ok('N6: ...and no ezc rule anywhere declares a viewport-wide box',
+  !/\.ezc[a-z0-9-]*[^{]*\{[^}]*(width|min-width|max-width)\s*:\s*100vw/.test(css));
+
+/* ---- N7/N8. light is plain white, dark is a real second rendering ------- */
+{
+  const lightPal = VT_PAL['istana_33:light'];
+  const darkPal = VT_PAL['istana_33:dark'];
+  const lit = resolve(s.chatContainer.background, lightPal);
+  const drk = resolve(s.chatContainer.background, darkPal);
+  ok('N7: the chat page in istana light is plain #FFFFFF', !!lit && hex(lit) === '#ffffff', String(lit && hex(lit)));
+  ok('N7: ...and the page root attaches no image behind it',
+    /:root\[data-ezik-visual-theme\] body\{[^}]*background-image:none/.test(css));
+  ok('N8: the dark rendering is a different page, not an inverted one',
+    !!drk && hex(drk) !== hex(lit), String(drk && hex(drk)));
+  ok('N8: ...and the chat declares its own dark value for the one colour it owns',
+    /\.ezc\{[^}]*--ezc-scrim:/.test(css) && /:root\[data-theme="dark"\] \.ezc\{[^}]*--ezc-scrim:/.test(css));
+}
+
+/* ---- N9. no pattern, no gradient, no image, no drawn pseudo-element ----- */
+{
+  const patterned = ezcRules.filter((r) => /url\(|gradient|repeat|background-image\s*:\s*(?!none)/.test(r));
+  eq('N9: not one ezc rule attaches an image, a gradient or a repeat', patterned, []);
+  // `content:` only as a DECLARATION -- `justify-content:` is not one, and matching it would
+  // have made this check unfailable-by-construction rather than true.
+  ok('N9: ...and none draws a pseudo-element over the transcript',
+    !/\.ezc[a-z0-9-]*[^{]*::(before|after)/.test(css)
+    && !ezcRules.some((r) => /[;{]\s*content\s*:/.test(r)));
+  const litRules = ezcRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r) && !/--ezc-scrim/.test(r));
+  eq('N9: ...and the only colour it states of its own is the modal scrim', litRules, []);
+}
+
+/* ---- N10. a NEW chat is an EMPTY chat --------------------------------- */
+ok('N10: the reset is the shipped one, unchanged', html.indexOf('const newChat = () => { resetThread(); };') !== -1);
+ok('N10: the explicit entry from home still starts a new one',
+  html.indexOf("onOpenChat={() => { newChat(); setScreen('chat'); }}") !== -1);
+ok('N10: the boot lands on an EMPTY thread and opens no saved conversation',
+  /chatIdRef\.current = null;\s*\r?\n\s*setChatId\(null\);\s*\r?\n\s*setMessages\(\[\]\);\s*\r?\n\s*setChatList\(ezikListChats\(ezikProfileKey\(p\)\)\);\s*\r?\n\s*setScreen\('chat'\);/.test(html));
+ok('N10: the welcome is shown ONLY while there is nothing to read',
+  /\{messages\.length === 0 && streamingText === null && \(\s*\r?\n\s*<div className="ezc-empty">/.test(chatSrc));
+ok('N10: ...and the history is not drawn inside the thread',
+  chatSrc.indexOf('chatList.map(') > chatSrc.indexOf('{drawerOpen && ('),
+  'the conversation list must be inside the drawer, never in the transcript');
+ok('N10: the empty state offers no new devotional text, only the app\'s own name',
+  /<div className="ezc-empty-title">\{A2_BRAND\}<\/div>/.test(chatSrc));
+
+/* ---- N11..N13. the store: keys, pin, delete --------------------------- */
+ok('N11: the conversation keys are the shipped ones',
+  /const EZIK_CHATS_KEY = 'ezik_chats_v1';/.test(html)
+  && /const EZIK_CHAT_PREFIX = 'ezik_chat_v1_';/.test(html)
+  && /const EZIK_FAVS_KEY = 'ezik_favorite_replies_v1';/.test(html));
+ok('N11: ...read and written by the shipped readers and writers',
+  /localStorage\.getItem\(EZIK_CHATS_KEY\)/.test(html)
+  && /localStorage\.setItem\(EZIK_CHATS_KEY, JSON\.stringify\(list\)\)/.test(html)
+  && /localStorage\.getItem\(EZIK_CHAT_PREFIX \+ id\)/.test(html));
+ok('N12: a row still pins through the shipped handler',
+  drawerSrc.indexOf('onClick={() => pinSavedChat(c.id)}') !== -1
+  && html.indexOf('const pinSavedChat = (id) => { ezikToggleChatPin(id); refreshChatList(); };') !== -1);
+ok('N12: ...and pinning is a MARK on the store\'s own order, not a second list',
+  /className=\{'ezc-row' \+ \(c\.id === chatId \? ' is-on' : ''\) \+ \(c\.pinned \? ' is-pinned' : ''\)\}/.test(drawerSrc)
+  && (html.match(/chatList\.map\(/g) || []).length === 1
+  && !/chatList\.(sort|filter|slice|reverse)\(/.test(chatSrc));
+ok('N13: a row still asks before deleting, and deletes through the shipped handler',
+  drawerSrc.indexOf('onClick={() => setChatPendingDelete(c.id)}') !== -1
+  && drawerSrc.indexOf('onClick={() => deleteSavedChat(c.id)}') !== -1
+  && /const deleteSavedChat = \(id\) => \{\s*\r?\n\s*ezikDeleteChat\(id\);/.test(html));
+ok('N13: ...and deleting the OPEN conversation still empties the thread',
+  /if \(chatIdRef\.current === id\) resetThread\(\);/.test(html));
+
+/* ---- N14..N17. the turn: send, endpoint, payload, stream --------------- */
+ok('N14: the send button is in the dock and calls the shipped sender',
+  /<button onClick=\{\(\) => sendMessage\(input\)\} disabled=\{isLoading \|\| \(!input\.trim\(\) && !pendingImage\)\}/.test(chatSrc));
+ok('N14: ...and the autosave still files on the QUESTION',
+  /setMessages\(updated\);[\s\S]{0,600}?saveMessages\(updated\);/.test(html));
+ok('N15: the endpoints are the shipped pair',
+  /endpoint = \(mode === 'call' \? '\/api\/chat' : '\/api\/ask'\)/.test(html)
+  && /endpoint: '\/api\/chat',/.test(html));
+ok('N16: the request body is the shipped shape',
+  html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, system: __sysPrompt, messages: msgs, ...__extra });") !== -1);
+ok('N16: ...including the depth and band terms and the size fit',
+  /fitMessagesToBudget\(__mkBody, history\.map\(m => \(\{ role: m\.role, content: m\.content \}\)\)\)/.test(html)
+  && /depth: depthMode === 'scholar' \? 'scholar' : 'deep'/.test(html));
+ok('N17: the stream is still read delta by delta into the live preview',
+  /if \(evt\.type === 'content_block_delta' && evt\.delta && evt\.delta\.type === 'text_delta'\)/.test(html)
+  && /onDelta: \(partial\) => \{ if \(abortRef\.current === controller\) \{ clearSearchingHint\(\); setStreamingText\(partial\); \} \}/.test(html));
+ok('N17: ...and the live preview is still drawn, on the chat\'s own surface',
+  /\{streamingText !== null && \(\s*\r?\n\s*<div className="ezc-turn is-ai">\s*\r?\n\s*<div style=\{\{ \.\.\.s\.messageBubble, \.\.\.s\.assistantBubble \}\}>/.test(chatSrc));
+
+/* ---- N18. where a conversation opens ---------------------------------- */
+ok('N18: the opening pin is still the pre-paint layout effect',
+  /React\.useLayoutEffect\(\(\) => \{\s*if \(!jumpToEndRef\.current\) return;[\s\S]{0,200}?scrollTop = el\.scrollHeight;/.test(html));
+ok('N18: ...still armed before the messages are handed to React',
+  /jumpToEndRef\.current = true;\s*\r?\n\s*stickToEndRef\.current = true;\s*\r?\n\s*skipFollowRef\.current = 1;/.test(html));
+ok('N18: ...and the follow effect still refuses to drag a reader back down',
+  /if \(!stickToEndRef\.current\) return;/.test(html)
+  && /messagesEndRef\.current\?\.scrollIntoView\(\{ behavior: ezikMotionReduced\(a11yRef\.current\.reduceMotion\) \? 'auto' : 'smooth' \}\)/.test(html));
+ok('N18: ...over the SAME element, which still reports its own position',
+  /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\} className="ezc-scroll"/.test(chatSrc));
+
+/* ---- N19..N22. the reply's own controls -------------------------------- */
+ok('N19: copy still hands over the whole reply, built on the tap',
+  /<CopyReplyButton text=\{String\(message\.content \|\| ''\)\.trim\(\)\} getText=\{buildCopyText\} \/>/.test(mbSrc)
+  && /const buildCopyText = \(\) => serializeReply\(segments, \{ tashkeel, band: deriveCaps\(age\)\.band \}\);/.test(mbSrc));
+ok('N20: quote still hands the composer that same text, and sends nothing',
+  /onClick=\{\(\) => onQuote\(buildCopyText\(\)\)\}/.test(mbSrc)
+  && /quoteReply = \([\s\S]{0,600}?setInput\(/.test(html)
+  && !/quoteReply = \([\s\S]{0,900}?sendMessage\(/.test(html));
+ok('N21: the star still toggles through the shipped writer, and still says so',
+  /onClick=\{\(\) => onFavorite\(message, index\)\}/.test(mbSrc)
+  && /aria-pressed=\{isFavorite \? 'true' : 'false'\}/.test(mbSrc)
+  && /isFavorite=\{favFlags\[i\]\}/.test(chatSrc));
+ok('N22: the source card is still built from the segment\'s own site and url',
+  /<SourceCard key=\{i\} site=\{seg\.site\} url=\{seg\.url\} content=\{seg\.content\} \/>/.test(html));
+ok('N22: ...through the ONE renderer, called by the chat sheet and nothing new',
+  (html.split('function ezikRenderSegments').length - 1) === 1
+  && ((html.match(/ezikRenderSegments\(/g) || []).length - 1) === 2
+  && /<div className="ezc-ans" style=\{\{ \.\.\.s\.assistantBubble[\s\S]{0,220}?ezikRenderSegments\(shownSegments, \{ tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio \}\)/.test(mbSrc));
+ok('N22: ...so nothing in the chat re-orders, filters or counts the sources',
+  !/segments\.(sort|filter|slice|reverse)\(/.test(mbSrc) && !/seg\.type === 'source'/.test(mbSrc));
+
+/* ---- N23..N26. attachment, voice, call, model -------------------------- */
+ok('N23: the two file inputs keep their exact accept lists',
+  chatSrc.indexOf('<input ref={fileInputRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: \'none\' }} />') !== -1
+  && chatSrc.indexOf('accept=".pdf,application/pdf,.txt,text/plain,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={onPickImage}') !== -1);
+ok('N23: ...and the [+] is still gated on the band\'s own capability',
+  /\{caps\.upload && \(/.test(chatSrc));
+ok('N24: dictation is the same pair of handlers on the same button',
+  /onClick=\{isListening \? stopListening : startListening\}/.test(chatSrc));
+ok('N24: ...and speech still goes to the shipped endpoint',
+  /await fetch\('\/api\/tts'/.test(html));
+ok('N24: ...with the child voice barrier untouched',
+  /const CHILD_VOICE_ENABLED = false;/.test(html)
+  && /if \(screen === 'call' && childVoiceBlocked\(\)\) return <ChildVoiceNotice onBack=\{goEzikBack\} \/>;/.test(html));
+ok('N25: the call entry still only sets the screen, so the guard ORDER decides the rest',
+  /\{directConvoAllowed && \(\s*\r?\n\s*<button\s*\r?\n\s*onClick=\{\(\) => setScreen\('call'\)\}/.test(chatSrc)
+  && html.indexOf("if (screen === 'call' && childVoiceBlocked())") < html.indexOf("if (screen === 'call' && !hasFounderToken())"));
+ok('N26: the model chip cycles exactly the shipped three values',
+  /const next = depthMode === 'brief' \? 'detailed' : depthMode === 'detailed' \? \(SCHOLAR_ENABLED \? 'scholar' : 'brief'\) : 'brief';/.test(chatSrc));
+ok('N26: ...and a non-adult still cannot cycle at all',
+  /if \(caps\.band !== 'adult'\) return;/.test(chatSrc)
+  && /disabled=\{isLoading \|\| caps\.band !== 'adult'\}/.test(chatSrc));
+ok('N26: ...and the two deep tiers still need the token, via the SAME unlock sheet',
+  /if \(\(next === 'detailed' \|\| next === 'scholar'\) && !hasFounderToken\(\)\) \{ setUnlockAsk\(next\); return; \}/.test(chatSrc));
+
+/* ---- N27..N29. keyboard, names, and the way out of the drawer ---------- */
+ok('N27: Enter sends and Shift+Enter does not -- byte for byte',
+  chatSrc.indexOf("onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.style.height = 'auto'; sendMessage(input); } }}") !== -1);
+ok('N27: ...and the textarea still grows only within its shipped bound',
+  s.input && s.input.maxHeight === 200 && s.input.resize === 'none');
+{
+  // فتح القائمة الجانبية / إملاء صوتي /
+  // مكالمة صوتية مباشرة / إرفاق ملف أو صورة / حذف
+  const NAMES = ['فتح القائمة الجانبية',
+    'إملاء صوتي', 'مكالمة صوتية مباشرة',
+    'إرفاق ملف أو صورة'];
+  const decodedChat = chatSrc.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+  const missing = NAMES.filter((n) => decodedChat.indexOf("aria-label={'" + n + "'}") === -1);
+  eq('N28: every accessible name the chat shipped with is still on its control',
+    missing.map((n) => [...n].map((c) => 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')).join(' ')), []);
+  ok('N28: ...and the drawer still names its search box and its rows',
+    /aria-label=\{EZIK_SEARCH_ARIA\}/.test(drawerSrc) && /aria-label=\{c\.pinned \? /.test(drawerSrc));
+}
+ok('N29: the drawer is still a real back layer',
+  /useEzikBackLayer\(drawerOpen, \(\) => \{/.test(html)
+  && html.indexOf('const closeDrawerWith = (fn) =>') !== -1);
+eq('N29: ...and no control inside it closes behind the resolver\'s back',
+  (drawerSrc.match(/setDrawerOpen\(false\)/g) || []).length, 0);
+ok('N29: ...the scrim included', /<div onClick=\{\(\) => closeDrawerWith\(null\)\} className="ezc-drawer-ov" \/>/.test(drawerSrc));
+
+/* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
+eq('N30: the index inventory reads exactly 6 istana / 6 legacy / 3 interstitials',
+  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '6/6/3');
+{
+  const callAt = html.indexOf('function CallScreen(');
+  const callSrc = callAt === -1 ? '' : html.slice(callAt, html.indexOf('\nfunction ', callAt + 10));
+  ok('N31: the call screen was located', callSrc.length > 1000);
+  ok('N31: ...and it is untouched by this identity -- no ezc class reaches it',
+    !/ezc-/.test(callSrc) && !/className="theme-dark ezhome ezc"/.test(callSrc));
+}
+{
+  // The visual pass ran outside the repo, and this is what proves it: no harness, no seed, no
+  // switch that only a test would set may have followed the work back in.
+  const SMELLS = [/__mode\b/, /127\.0\.0\.1:87\d\d/, /localhost:87\d\d/, /\bFIXTURE\b/i,
+    /\bMOCK_[A-Z_]+\b/, /DEBUG_CHAT/, /window\.__ezc/, /\?ezcdebug/];
+  const hit = SMELLS.filter((re) => re.test(html)).map(String);
+  eq('N32: no fixture, mock, harness or debug switch reached the shipped page', hit, []);
+  const stray = fs.readdirSync(path.dirname(path.resolve(INDEX)))
+    .filter((f) => /^(mock|fixture|seed|visual|drive|cdp|serve)[-.].*\.(c?js|mjs|json)$/i.test(f));
+  eq('N32: ...and none was left in the repo either', stray, []);
+}
+
+/* ---- N33. and the things the review named that are not any of the above -- */
+{
+  // NO LITERAL COLOUR IN THE CHAT, anywhere: not in its markup, not in the objects it draws from.
+  const litInJsx = (chatCode.match(/(#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\))/g) || [])
+    .filter((x) => !/^#[0-9a-fA-F]{0,2}$/.test(x));
+  eq('N33: the chat body states no colour of its own', litInJsx, []);
+  const CHAT_KEYS = ['chatContainer', 'messagesArea', 'messageBubble', 'userBubble', 'assistantBubble',
+    'bubbleText', 'quickRow', 'quickBtn', 'foldToggle', 'inputBar', 'input', 'sendBtn', 'micBtn',
+    'toolBar', 'toolGroup', 'toolBtn', 'errorBanner', 'typingDots', 'searchingHint', 'dot',
+    'drawerTop', 'drawerItem', 'drawerSearchWrap', 'drawerSearch', 'drawerEmpty', 'drawerBadge',
+    'drawerSectionLabel', 'drawerChatRow', 'drawerChatOpen', 'drawerChatTitle', 'drawerChatIcon',
+    'drawerConfirmText', 'drawerConfirmYes', 'drawerConfirmNo', 'drawerPinned', 'drawerProfile',
+    'drawerAvatar', 'drawerProfileName', 'drawerGear', 'drawerResultRow', 'drawerResultBtn',
+    'drawerResultTitle', 'drawerResultDate', 'drawerSnippet'];
+  const missingKey = CHAT_KEYS.filter((k) => !s[k]);
+  eq('N33: every style key the chat draws from still exists', missingKey, []);
+  const litInKeys = [];
+  for (const k of CHAT_KEYS) for (const p of Object.keys(s[k] || {})) {
+    const v = String(s[k][p]);
+    if (/#[0-9a-fA-F]{3,8}\b/.test(v) || /\brgba?\(/.test(v)) litInKeys.push(k + '.' + p + '=' + v);
+  }
+  eq('N33: ...and not one of them carries a hardcoded colour', litInKeys, []);
+  // THE DOCK IS IN FLOW. That -- not a computed padding -- is what keeps the last reply visible:
+  // a dock that consumes its own height cannot be over anything.
+  ok('N33: the composer dock is in flow and floats over nothing',
+    !/\.ezc-dock\{[^}]*position\s*:/.test(css) && !/\.ezc-dock-inner\{[^}]*position\s*:/.test(css));
+  ok('N33: ...and it is a SIBLING of the transcript, not a child of it',
+    chatSrc.indexOf('<div className="ezc-dock">') > chatSrc.indexOf('<div ref={messagesEndRef} />'));
+  // NO LARGE FLOATING CONTROL came back with the redesign.
+  const oversize = ['sendBtn', 'micBtn', 'toolBtn'].filter((k) => (s[k] || {}).width > 56 || (s[k] || {}).height > 56);
+  eq('N33: no composer control grew into a floating circle', oversize, []);
+  ok('N33: the thread sits ON the composer without a second scroll container',
+    /\.ezc-scroll>\*:first-child\{margin-block-start:auto\}/.test(css)
+    && !/\.ezc-scroll\{[^}]*justify-content:flex-end/.test(css));
+  // The reply's own rail, and the reading sheet it belongs to.
+  ok('N33: the reply keeps its small action rail, in the chat\'s own vocabulary',
+    /<div className="ezc-acts"/.test(mbSrc) && /className="ezc-ans"/.test(mbSrc));
+  // The two turns are different STRUCTURES.
+  ok('N33: a user turn and an assistant turn are laid out differently, not merely tinted',
+    /<div className="ezc-turn is-user">/.test(mbSrc)
+    && /\.ezc-turn\.is-user\{align-items:flex-start\}/.test(css)
+    && /\.ezc-turn\.is-ai\{align-items:stretch\}/.test(css)
+    && s.messageBubble.maxWidth === '78%' && s.assistantBubble.maxWidth === '100%');
+  ok('N33: ...and the animated turns still carry the class reduced motion switches off',
+    (html.match(/className="ez-anim"/g) || []).length >= 4);
+  // The empty menu SAYS it is empty.
+  ok('N33: an empty history says so instead of ending in a blank space',
+    /\{chatResults === null && chatList\.length === 0 && \(\s*\r?\n\s*<div style=\{s\.drawerEmpty\}>\{EZIK_CHATS_EMPTY\}<\/div>/.test(drawerSrc));
+  // The rail says which conversation is open, and reads it rather than inventing it.
+  ok('N33: the rail title is the store\'s own, and the brand only when there is none',
+    /const ezcOpenChat = chatId \? chatList\.find\(\(c\) => c\.id === chatId\) : null;/.test(html)
+    && /const ezcTitle = \(ezcOpenChat && ezcOpenChat\.title\) \? ezcOpenChat\.title : A2_BRAND;/.test(html)
+    && /<span className="ezc-brand-text">\{ezcTitle\}<\/span>/.test(chatSrc));
+}
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
