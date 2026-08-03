@@ -1216,9 +1216,9 @@ const INDEX_SCREENS = {
   // S107: the drill moved too, so the caveat is gone -- and it is gone because the checks in
   // group L6 pass, not because someone deleted the field.
   memorize:        { render: 'MemorizeScreen picker + drill -> EzShell', shell: 'istana' },
-  // S109: the INDEX is on the shell; the READER is not. The screen stays classified legacy
-  // until Step 3, and the note below is asserted so it cannot be dropped early.
-  mushaf:          { render: 'MushafScreen index -> EzShell; reader still legacy', shell: 'legacy', partial: 'index istana, reader legacy' },
+  // S110: the reader's chrome moved too, so the caveat is gone -- and it is gone because the
+  // checks in group M pass, not because someone deleted the field.
+  mushaf:          { render: 'MushafScreen index -> EzShell; reader -> .ezmr rail + dock', shell: 'istana' },
   adhkar:          { render: 'AdhkarScreen -> IstanaAdhkarBrowse / IstanaAdhkarReader', shell: 'istana' },
 };
 // Screens the switch reaches WITHOUT a screen key of their own -- guards and gates in front of
@@ -1277,10 +1277,11 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('exactly 4 index screens are istana after this commit', idxIstana.length, 4);
-eq('...and 8 index screens remain legacy', idxLegacy.length, 8);
+eq('exactly 5 index screens are istana after this commit', idxIstana.length, 5);
+eq('...and 7 index screens remain legacy', idxLegacy.length, 7);
 eq('...with the other classifications unmoved',
-  idxIstana.slice().sort().join(','), 'adhkar,home,memorize,settings');
+  idxIstana.slice().sort().join(','), 'adhkar,home,memorize,mushaf,settings');
+eq('...and the three interstitials are unmoved', Object.keys(INDEX_INTERSTITIALS).length, 3);
 // S107: no screen carries a sub-view caveat any more. The field still exists and is still
 // asserted, so the next partially-finished screen has to declare itself the same way.
 const partial = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].subviews);
@@ -1289,9 +1290,13 @@ eq('no screen is left with an undeclared unfinished sub-view', partial, []);
 ok('the memorize caveat was earned, not deleted',
   !INDEX_SCREENS.memorize.subviews === /<EzShell title=\{MEM\.TITLE\} onBack=\{ezikGoBack\}/.test(html),
   'the drill must render through the shell for memorize to count as finished');
-// mushaf has NOT moved and must still say so.
-eq('mushaf is still classified legacy', INDEX_SCREENS.mushaf.shell, 'legacy');
-eq('...and its index/reader split is declared', INDEX_SCREENS.mushaf.partial, 'index istana, reader legacy');
+// S110: mushaf is finished, and the caveat may only be absent while the READER actually is on
+// the new chrome. Delete the rail or the dock and this fails, exactly as the memorize one does.
+eq('mushaf is classified istana', INDEX_SCREENS.mushaf.shell, 'istana');
+eq('...and carries no partial caveat any more', INDEX_SCREENS.mushaf.partial, undefined);
+ok('the mushaf caveat was earned, not deleted',
+  !INDEX_SCREENS.mushaf.partial === (/className="ezhome ezmr-rail"/.test(html) && /className="ezhome ezmr-dockwrap"/.test(html)),
+  'the reader must draw the istana rail and dock for mushaf to count as finished');
 console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
   + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all legacy)');
 console.log('        istana now : ' + idxIstana.join(', '));
@@ -1591,6 +1596,187 @@ ok('no identity selector targets the mushaf page image or the sheet',
   !/:root\[data-ezik-visual-theme\][^{]*(\.mushaf-page|\.madina|img)[^{]*\{/.test(css));
 ok('...and no filter, opacity or transform is applied to the sheet',
   !/\.mushaf-paper[^{]*\{[^}]*(filter|opacity|transform)\s*:/.test(css));
+
+/* ============ M. THE ISTANA MUSHAF READER (S110) =========================
+ * The CHROME around the page, and only the chrome. Everything this group asserts about the
+ * page itself is a FREEZE: the sheet, the image, the viewport and the strip are named here so
+ * that moving any of them fails, never so that this commit may move them.
+ *
+ * Scope, stated rather than implied: the new rail and dock are the chrome of the SHIPPED
+ * reader (MADINA_IMG_ON). The ?madinaimg=0 rollback reader keeps its in-flow bars byte for
+ * byte, because its page is a flex child of the same column -- replacing those bars would
+ * move the SVG paper, whose geometry is frozen in group M6. That branch is asserted to still
+ * exist, so it cannot be quietly deleted either.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== M. THE ISTANA MUSHAF READER ===');
+
+const rdAt = html.indexOf('function PagedMushaf(');
+const rdSrc = rdAt === -1 ? '' : html.slice(rdAt, html.indexOf('\nfunction MushafScreen(', rdAt));
+ok('the reader was located', rdSrc.length > 4000);
+// THE SHIPPED CHROME, and only it: the two istana branches, cut at the `) : (` that hands over
+// to the rollback bars. An unbounded slice from the first gate would have swallowed those bars
+// too, and then "the navy header is gone" would have been asserted against markup that still
+// contains it -- a check that can only ever fail, or worse, be quietly weakened until it passes.
+const cutBranch = (from) => {
+  const a = rdSrc.indexOf(from);
+  if (a === -1) return '';
+  const b = rdSrc.indexOf('      ) : (', a);
+  return b === -1 ? '' : rdSrc.slice(a, b);
+};
+const railSrc = cutBranch('<div className="ezhome ezmr-rail">');
+const dockSrc = cutBranch('<div ref={barRef} className="ezhome ezmr-dockwrap">');
+const shipped = railSrc + dockSrc;
+ok('the shipped rail branch was located', railSrc.length > 400);
+ok('the shipped dock branch was located', dockSrc.length > 400);
+
+/* ---- M1. the two new bounded overlays exist and are used ---------------- */
+ok('the top reader rail is rendered', /className="ezhome ezmr-rail"/.test(rdSrc));
+ok('the bottom reader dock is rendered', /className="ezhome ezmr-dockwrap"/.test(rdSrc));
+ok('...and the dock is what barH measures', /ref=\{barRef\} className="ezhome ezmr-dockwrap"/.test(rdSrc));
+ok('the rail is a real, bounded, absolute overlay',
+  /\.ezmr-rail,\.ezmr-dockwrap\{[^}]*position:absolute/.test(css)
+  && /\.ezmr-rail>\.ezmr-bar\{[^}]*max-width:600px/.test(css));
+ok('the dock is a real, bounded, absolute overlay',
+  /\.ezmr-dockwrap\{[^}]*bottom:0/.test(css)
+  && /\.ezmr-dockwrap>\.ezmr-bar\{[^}]*max-width:420px/.test(css));
+ok('...so neither can ever stretch into a full-width slab',
+  !/\.ezmr-[a-z-]*\{[^}]*width:100vw/.test(css));
+ok('both sit inside the safe area', /\.ezmr-rail\{[^}]*env\(safe-area-inset-top/.test(css)
+  && /\.ezmr-dockwrap\{[^}]*env\(safe-area-inset-bottom/.test(css));
+ok('the chrome takes its colour from tokens only, never a literal',
+  !/\.ezmr-[^{]*\{[^}]*(#[0-9a-fA-F]{3,8}|rgba?\()/.test(css));
+ok('...from the a3 scope it actually carries', /\.ezmr-bar\{[^}]*background:var\(--a3-surface\)/.test(css)
+  && /className="ezhome ezmr-/.test(rdSrc));
+ok('the chrome has a visible focus ring', /\.ezmr-btn:focus-visible\{[^}]*outline:3px solid var\(--ez-focus\)/.test(css));
+ok('...and every chrome font size is a number the reading preference can scale',
+  ['ezmrTitle', 'ezmrNav', 'ezmrJump'].every((k) => s[k] && typeof s[k].fontSize === 'number'));
+ok('the chrome animates nothing, so reduced motion has nothing to switch off',
+  !/\.ezmr-[^{]*\{[^}]*(animation|transition)\s*:/.test(css));
+ok('no chrome rule attaches an image, gradient or repeat',
+  !/\.ezmr-[^{]*\{[^}]*(background-image|gradient|url\(|repeating)/i.test(css));
+ok('no chrome rule draws a pseudo-element over anything',
+  !/\.ezmr-[^:]*::(before|after)/.test(css));
+
+/* ---- M2. the legacy reader chrome is gone from the shipped reader ------- */
+ok('the navy slab header is gone from the shipped rail', !/s\.memHeader|headSt/.test(railSrc));
+ok('...and so are its title and its slab button', !/s\.memTitle|s\.memBackBtn/.test(railSrc));
+ok('the full-width white pager is gone from the shipped dock', !/s\.pgBar\b|barSt/.test(dockSrc));
+ok('...and so are its slab nav buttons', !/s\.pgNavBtn|s\.pgNavOff/.test(dockSrc));
+ok('the navy gradient is reachable ONLY from the rollback branch',
+  (rdSrc.match(/style=\{headSt\}/g) || []).length === 1
+  && (rdSrc.match(/style=\{barSt\}/g) || []).length === 1);
+ok('the loading render no longer wears the navy slab either',
+  !/<div style=\{s\.memHeader\}>[\s\S]{0,200}تعذّر فتح المصحف/.test(rdSrc)
+  && /className="ezhome ezmr-rail is-static"/.test(rdSrc));
+// the rollback reader is DECLARED, not deleted.
+ok('the ?madinaimg=0 reader still keeps the bars it was measured with',
+  /\) : \(\s*\n\s*<div style=\{headSt\}>/.test(rdSrc) && /\) : \(\s*\n\s*<div ref=\{barRef\} style=\{barSt\}>/.test(rdSrc));
+
+/* ---- M3. every control survived, with its handler and its name ---------- */
+ok('back is still the same handler and the same text',
+  /className="ezmr-btn" style=\{s\.ezmrJump\}>السور<\/button>/.test(shipped)
+  && /onClick=\{onExit\} className="ezmr-btn"/.test(shipped));
+ok('the bookmark keeps its handler and BOTH its names',
+  /onClick=\{putMark\} title=\{marked \? 'علامتك هنا' : 'ضع العلامة'\} aria-label=\{marked \? 'علامتك هنا' : 'ضع العلامة'\}/.test(shipped));
+ok('previous keeps its handler, its glyph and its disabled bound',
+  /onClick=\{\(\) => commit\(-1\)\} disabled=\{page <= 1\} className="ezmr-btn" style=\{s\.ezmrNav\}>›<\/button>/.test(shipped));
+ok('next keeps its handler, its glyph and its disabled bound',
+  /onClick=\{\(\) => commit\(1\)\} disabled=\{page >= 604\} className="ezmr-btn" style=\{s\.ezmrNav\}>‹<\/button>/.test(shipped));
+ok('the page indicator still opens the jump, under the same name',
+  /onClick=\{\(\) => setJump\(String\(page\)\)\} aria-label="اذهب إلى صفحة"/.test(shipped));
+ok('...and the jump field keeps its name, its normaliser and its escapes',
+  /aria-label="رقم الصفحة"/.test(shipped) && /if \(e\.key === 'Enter'\) jumpGo\(\); else if \(e\.key === 'Escape'\) setJump\(null\);/.test(shipped));
+ok('the wird control keeps its handler and its name',
+  /onClick=\{\(\) => setPicker\(true\)\} aria-label="وردُ اليوم"/.test(rdSrc));
+ok('...and is still a bounded pill beside the dock, not inside it',
+  /\bwirdBtn: \{[^}]*borderRadius: 999/.test(html) && /<div style=\{wirdSt\}>/.test(rdSrc));
+// Counted in the SHIPPED branches, never in rdSrc: the rollback bars carry the same five
+// handlers, so counting the whole component would keep saying six while the istana rail stood
+// empty. The wird is the sixth and lives outside both branches by design, so it is named apart.
+eq('the shipped chrome still draws its five controls',
+  ['onClick={onExit}', 'onClick={putMark}', 'onClick={() => commit(-1)}', 'onClick={() => commit(1)}',
+   'onClick={() => setJump(String(page))}'].filter((h) => shipped.indexOf(h) !== -1).length, 5);
+ok('...and the wird is the sixth, beside them', rdSrc.indexOf('onClick={() => setPicker(true)}') !== -1);
+
+/* ---- M4. the chrome's BEHAVIOUR is frozen ------------------------------- */
+ok('the chrome still starts visible', /const \[chromeOn, setChromeOn\] = useState\(true\);/.test(rdSrc));
+eq('both overlays are gated on the same chromeOn as before, and only those two',
+  (rdSrc.match(/\{chromeOn && \(MADINA_IMG_ON \?/g) || []).length, 2);
+eq('...and no other chromeOn gate was invented', (rdSrc.match(/\{chromeOn && /g) || []).length, 2);
+ok('the one-shot collapse latch is unchanged',
+  /const chromeAuto = useRef\(false\);/.test(rdSrc)
+  && /if \(\(!MUSHAF_SVG_ON && !MADINA_IMG_ON\) \|\| chromeAuto\.current\) return;\s*\n\s*chromeAuto\.current = true;\s*\n\s*setChromeOn\(false\);/.test(rdSrc));
+eq('...and it is still fired from land() and jumpTo(), and from nowhere else',
+  (rdSrc.match(/readerTurnedPage\(\);/g) || []).length, 2);
+// THE TAP BLOCK, byte for byte.
+const TAP_BLOCK = `  const onTap = (x, y) => {
+    const R = tapRef.current;
+    const now = Date.now();
+    if (R.timer && now - R.t <= MUSHAF_TAP_MS &&
+        Math.abs(x - R.x) <= MUSHAF_TAP_SLOP && Math.abs(y - R.y) <= MUSHAF_TAP_SLOP) {
+      clearTimeout(R.timer); R.timer = null; R.t = 0;
+      setZoom((z) => (z ? null : { k: MUSHAF_ZOOM_K, tx: 0, ty: 0 }));
+      return;
+    }
+    R.t = now; R.x = x; R.y = y;
+    if (R.timer) clearTimeout(R.timer);
+    R.timer = setTimeout(() => { R.timer = null; setChromeOn((v) => !v); }, MUSHAF_TAP_MS);
+  };`.replace(/\n/g, '\r\n');
+ok('the tap-to-restore block is byte-identical', html.indexOf(TAP_BLOCK) !== -1);
+ok('...and its window is unchanged', /const MUSHAF_TAP_MS = 300;/.test(html));
+ok('the wird dwell is unchanged', /const WIRD_DWELL_MS = 8000;/.test(html));
+ok('the wird strip still outlives the chrome',
+  /const wirdBottomMost = !chromeOn \|\| !\(barH > 0\);/.test(rdSrc)
+  && !/\{chromeOn && MADINA_IMG_ON && \(\s*\n\s*<div style=\{wirdSt\}/.test(rdSrc));
+ok('back from the reader is still the index, never the chat',
+  /if \(selected\) return <PagedMushaf startSurah=\{selected\} startPage=\{[^}]*\} onExit=\{ezikGoBack\} \/>;/.test(html)
+  && /useEzikBackLayer\(selected != null, leaveSurah\);/.test(html));
+ok('the storage keys are untouched',
+  /MUSHAF_BOOKMARK_KEY = 'mushaf_bookmark_v1'/.test(html)
+  && /MUSHAF_LAST_PAGE_KEY = 'mushaf_last_page_v1'/.test(html)
+  && /WIRD_TARGET_KEY = 'mushaf_wird_target_v1'/.test(html)
+  && /WIRD_DAY_KEY = 'mushaf_wird_day_v1'/.test(html));
+
+/* ---- M5. the PAGE is frozen -- geometry, paint and the box round it ----- */
+ok('pgViewport is byte-identical',
+  html.indexOf("pgViewport: { flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', touchAction: 'pan-y', background: 'var(--tint)', direction: 'ltr' },") !== -1);
+ok('the page strip is byte-identical',
+  html.indexOf("pgStrip: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, willChange: 'transform', direction: 'ltr' },") !== -1);
+ok('the page cell is byte-identical',
+  html.indexOf("pgSlot: { position: 'absolute', top: 0, bottom: 0, width: '100%', boxSizing: 'border-box', padding: '0 6px', direction: 'rtl', display: 'flex', flexDirection: 'column', justifyContent: 'center' },") !== -1);
+ok('the sheet box is byte-identical',
+  html.indexOf("const MADINA_SHEET_ST = { flex: 1, minHeight: 0, width: '100%', display: 'flex', background: MADINA_DESK };") !== -1);
+ok('the viewport is still the direct parent of the strip -- no wrapper was inserted',
+  /<div style=\{vpSt\} onTouchStart=\{onStart\} onTouchMove=\{onMove\} onTouchEnd=\{onEnd\} onTouchCancel=\{onEnd\}>\s*\n\s*<div style=\{strip\} onTransitionEnd=\{onTransEnd\}>/.test(rdSrc));
+ok('the image keeps fill on a portrait phone', /objectFit: 'fill'/.test(html) && /MADINA_FILL_Q = '\(orientation: portrait\) and \(max-width: 700px\)'/.test(html));
+ok('...and contain everywhere else', /MADINA_IMG_ST_FIT = \{ \.\.\.MADINA_IMG_ST, objectFit: 'contain', margin: 'auto' \}/.test(html));
+const imgSt = (html.match(/const MADINA_IMG_ST = \{([^}]*)\}/) || [])[1] || '';
+for (const prop of ['transform', 'filter', 'opacity', 'mixBlendMode', 'border', 'background', 'objectPosition'])
+  ok('the page image declares no ' + prop + ' of its own', imgSt.indexOf(prop) === -1);
+ok('the page hook is still the positive handle, exactly once',
+  (html.match(/data-mushaf-page=\{page\.n\}/g) || []).length === 1);
+ok('...and STILL no CSS rule anywhere targets it', !/\[data-mushaf-page/.test(css));
+ok('no rule targets the viewport, the strip or the sheet box either',
+  !/\[style\*="pgViewport"|\.pg-viewport|\.pg-strip|\.pg-slot/.test(css));
+ok('the desk behind the page is a flat token, never a pattern',
+  /const vpSt = MADINA_IMG_ON\s*\r?\n\s*\? \{ \.\.\.s\.pgViewport, background: MADINA_DESK,/.test(rdSrc)
+  && /const MADINA_DESK = 'var\(--madina-desk\)';/.test(html));
+ok('...and the slot round it still adds only the safe area',
+  /const slotSt = MADINA_IMG_ON\s*\r?\n\s*\? \{ \.\.\.s\.pgSlot, padding: MADINA_SAFE_PAD \}/.test(rdSrc));
+ok('the neighbour prefetch is unchanged',
+  /for \(const d of \[1, -1\]\)/.test(html) && /onSheetLoad=\{prefetchMushafSvg\}/.test(rdSrc));
+ok('...and only the current sheet carries it',
+  (rdSrc.match(/onSheetLoad=\{prefetchMushafSvg\}/g) || []).length === 1);
+
+/* ---- M6. the SVG fallback and its opt-out are frozen -------------------- */
+ok('the WebP -> SVG -> text fallback chain is intact',
+  /if \(madina && !imgBroke\)/.test(html) && /onError=\{\(\) => setImgBroke\(true\)\}/.test(html)
+  && /if \(!MUSHAF_SVG_ON \|\| broke\)/.test(html) && /onError=\{\(\) => setBroke\(true\)\}/.test(html));
+ok('the SVG sheet still carries .mushaf-paper', /<div className="mushaf-paper" style=\{s\.svgFrame\}>/.test(html));
+ok('the sacred opt-out still pins its four literals',
+  /:root\[data-ezik-visual-theme\] \.mushaf-paper\{[\s\S]{0,240}--red:#1D4ED8[\s\S]{0,240}--ink:#1A1A1A[\s\S]{0,240}--white:#FFFFFF/.test(css));
+ok('...and the sheet still opts out of dark with color-scheme light',
+  /:root\[data-theme="dark"\] \.mushaf-paper\s*\{[^}]*color-scheme:\s*light/.test(css));
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

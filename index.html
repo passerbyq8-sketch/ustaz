@@ -620,6 +620,41 @@
   .ezq-masthead.is-strip{padding:8px;margin-bottom:14px;min-height:0;text-align:right;
     display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .ezq-masthead.is-strip>*{flex:1 1 220px;min-width:0;margin:0}
+  /* S110 -- THE READER CHROME. Two bounded overlays and nothing else, replacing the navy slab
+     header and the full-width white pager the shipped reader wore. They are absolutely
+     positioned SIBLINGS of the reading viewport, exactly as the two bars they replace were, so
+     they still consume zero layout height: the page is measured against the same box, and
+     showing or hiding them moves nothing. Each carries .ezhome for the a3 token scope -- the
+     same idiom EzShell uses -- and declares no colour of its own.
+     Nothing here can reach the page: no rule names the image, the viewport or the strip, and
+     no pseudo-element is drawn anywhere near them. */
+  .ezmr-rail,.ezmr-dockwrap{position:absolute;left:0;right:0;z-index:4;display:flex;
+    justify-content:center;box-sizing:border-box;pointer-events:none}
+  .ezmr-rail{top:0;padding:calc(8px + env(safe-area-inset-top,0px))
+    calc(10px + env(safe-area-inset-right,0px)) 0 calc(10px + env(safe-area-inset-left,0px))}
+  .ezmr-dockwrap{bottom:0;padding:0 calc(10px + env(safe-area-inset-right,0px))
+    calc(8px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px))}
+  /* the surfaces. A hairline, a soft lift, and a radius that arches at the outer edge -- the
+     ottoman note kept to a curve, never an ornament. No backdrop blur: over a full-screen page
+     image that is the one effect that costs a repaint every frame on a phone. */
+  .ezmr-bar{pointer-events:auto;display:flex;align-items:center;gap:6px;box-sizing:border-box;
+    width:100%;min-height:48px;padding:5px 6px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);box-shadow:var(--a3-shadow)}
+  .ezmr-rail>.ezmr-bar{max-width:600px;border-radius:22px 22px 14px 14px}
+  .ezmr-dockwrap>.ezmr-bar{max-width:420px;justify-content:space-between;
+    border-radius:14px 14px 22px 22px}
+  /* the loading/failed render has no page to overlay, so its rail is an ordinary flex child. */
+  .ezmr-rail.is-static{position:static;flex-shrink:0}
+  .ezmr-title{flex:1;min-width:0;text-align:center;font-weight:800;color:var(--a3-ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ezmr-btn{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+    min-width:42px;height:38px;padding:0 10px;border-radius:12px;background:transparent;
+    border:1px solid transparent;color:var(--a3-ink);cursor:pointer;font-family:inherit;
+    font-weight:700;line-height:1}
+  .ezmr-btn:hover{background:var(--a3-ice)}
+  .ezmr-btn:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  .ezmr-btn:disabled{opacity:0.32;cursor:default}
+  .ezmr-btn.is-on{background:var(--a3-ice);border-color:var(--a3-line)}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -10849,9 +10884,13 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   if (state !== 'ok') {
     return (
       <div style={s.memContainer}>
-        <div style={s.memHeader}>
-          <div style={s.memTitle}>المصحف</div>
-          <button onClick={onExit} style={s.memBackBtn}>السور</button>
+        {/* S110 -- the same rail as the reading render, in its static variant: there is no page
+            under it yet, so it is an ordinary flex child instead of an overlay. */}
+        <div className="ezhome ezmr-rail is-static">
+          <div className="ezmr-bar">
+            <div className="ezmr-title" style={s.ezmrTitle}>المصحف</div>
+            <button onClick={onExit} className="ezmr-btn" style={s.ezmrJump}>السور</button>
+          </div>
         </div>
         <div style={s.mushafHint}>{state === 'fail' ? 'تعذّر فتح المصحف' : 'جارٍ فتح المصحف…'}</div>
       </div>
@@ -11063,7 +11102,22 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
 
   return (
     <div style={contSt}>
-      {chromeOn && (
+      {/* S110 -- THE TOP READER RAIL. Same gate, same handlers, same accessible names: only the
+          furniture changed. The bookmark keeps its two titles and its two aria-labels, and the
+          way back is still the same text on the same onExit. The rollback reader (?madinaimg=0)
+          keeps the bars it was measured with -- its page is a FLEX CHILD of this column, so
+          replacing its in-flow header would move the paper, and the paper is frozen. */}
+      {chromeOn && (MADINA_IMG_ON ? (
+      <div className="ezhome ezmr-rail">
+        <div className="ezmr-bar">
+          <button onClick={putMark} title={marked ? 'علامتك هنا' : 'ضع العلامة'} aria-label={marked ? 'علامتك هنا' : 'ضع العلامة'} className={marked ? 'ezmr-btn is-on' : 'ezmr-btn'}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill={marked ? 'var(--red)' : 'none'} stroke={marked ? 'var(--red-deep)' : 'currentColor'} strokeWidth={marked ? 1.5 : 1.8} strokeLinejoin="round" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z" /></svg>
+          </button>
+          <div className="ezmr-title" style={s.ezmrTitle}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'} · صفحة {toArabicDigits(page)}</div>
+          <button onClick={onExit} className="ezmr-btn" style={s.ezmrJump}>السور</button>
+        </div>
+      </div>
+      ) : (
       <div style={headSt}>
         <div style={s.memTitle}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -11073,7 +11127,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
           <button onClick={onExit} style={s.memBackBtn}>السور</button>
         </div>
       </div>
-      )}
+      ))}
       <div style={vpSt} onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}>
         <div style={strip} onTransitionEnd={onTransEnd}>
           {/* Session 74 -- MushafSheet is MushafPage when the flag is off (and when the image
@@ -11084,13 +11138,27 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
           <div style={{ ...slotSt, left: '100%' }}>{prv && <MushafSheet key={prv.n + ':' + epoch} page={prv} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
         </div>
       </div>
-      {chromeOn && (
+      {/* S110 -- THE BOTTOM READER DOCK. Every control the pager carried is still here, with the
+          same handler and the same accessible name: `›` and `‹` keep their glyphs and stay
+          unlabelled exactly as they shipped, and the jump keeps «اذهب إلى صفحة» and «رقم
+          الصفحة». barRef stays on the OUTER element so barH still measures the full height the
+          dock occupies from the bottom edge -- the wird strip is positioned against it and its
+          arithmetic is untouched. */}
+      {chromeOn && (MADINA_IMG_ON ? (
+      <div ref={barRef} className="ezhome ezmr-dockwrap">
+        <div className="ezmr-bar">
+          <button onClick={() => commit(-1)} disabled={page <= 1} className="ezmr-btn" style={s.ezmrNav}>›</button>
+          <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" className="ezmr-btn" style={s.ezmrJump}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
+          <button onClick={() => commit(1)} disabled={page >= 604} className="ezmr-btn" style={s.ezmrNav}>‹</button>
+        </div>
+      </div>
+      ) : (
       <div ref={barRef} style={barSt}>
         <button onClick={() => commit(-1)} disabled={page <= 1} style={{ ...s.pgNavBtn, ...(page <= 1 ? s.pgNavOff : {}) }}>›</button>
         <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" style={{ ...s.pgMeta, ...s.pgJumpBtn }}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
         <button onClick={() => commit(1)} disabled={page >= 604} style={{ ...s.pgNavBtn, ...(page >= 604 ? s.pgNavOff : {}) }}>‹</button>
       </div>
-      )}
+      ))}
       {/* 82 -- the wird strip. Gated on MADINA_IMG_ON alone, so ?madinaimg=0 rolls it back
           with the reader it belongs to and the fallback renderers are byte for byte what
           they were. Gated on the flag and NOT on chromeOn: the strip outlives the chrome. */}
@@ -12375,6 +12443,12 @@ const s = {
   // فيقلبهما المتصفّح داخل سياق rtl ويشير كلٌّ منهما إلى عكس وجهته. العزلُ يوقف القلب.
   pgNavBtn: { width: 44, height: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--accent-ink)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 20, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1, direction: 'ltr' },
   pgNavOff: { opacity: 0.32, cursor: 'default' },
+  // S110 -- the reader chrome's type, and ONLY its type. Everything else about .ezmr-* lives in
+  // the stylesheet; these are numbers here so the reading-size preference scales them, which a
+  // px in a CSS rule cannot do.
+  ezmrTitle: { fontSize: 15 },
+  ezmrNav: { fontSize: 20 },
+  ezmrJump: { fontSize: 13 },
   pgMeta: { fontSize: 13, fontWeight: 600, color: 'var(--muted)' },
   // 14.4 — غلافُ القفز: ارتفاعُه ٣٦ = ارتفاعُ زرّي التصفّح، فلا يتغيّر علوُّ الشريط بين اللافتة والخانة.
   pgJumpWrap: { minWidth: 128, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' },
