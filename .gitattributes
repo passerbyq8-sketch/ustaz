@@ -116,13 +116,3 @@ claim-guard.cjs text eol=lf
 data/claim-fixtures.json text eol=lf
 lib/claim-gate.js text eol=lf
 lib/duration.js text eol=lf
-
-# Gate 25 (source-registry-guard) and the three modules it asserts on. Same reason as every
-# gate above: the guard reads these files as text and matches on their contents, so a CR
-# injected by core.autocrlf on a fresh clone must not shift a byte of them.
-source-registry-guard.cjs text eol=lf
-lib/source-registry.js text eol=lf
-lib/source-purpose.js text eol=lf
-lib/source-page-gates.js text eol=lf
-lib/retrieve.js text eol=lf
-tools/source-live-smoke.cjs text eol=lf

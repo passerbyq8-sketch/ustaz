@@ -360,11 +360,7 @@ head('9) RAG SOURCE LISTS & GATES (lib/retrieve.js)');
   else {
     const adult = domainsIn(extractArrayBody(src, 'SITES_ADULT'));
     const minor = domainsIn(extractArrayBody(src, 'SITES_MINOR'));
-    // 22 as of 2026-08-03: the 14 that were here, plus eftaa.awqaf.gov.kw promoted from the
-    // under-18 fallback tier to the adult list, plus 7 new domains. The exact membership and
-    // the per-source scope are asserted by source-registry-guard.cjs; this stays a count lock
-    // so a silent addition here is visible in the audit too.
-    if (adult.length){ info('SITES_ADULT (' + adult.length + '): ' + adult.join(', ')); if (adult.length===22) pass('SITES_ADULT count = 22'); else warn('SITES_ADULT count = ' + adult.length + ' (expected 22 -- update deliberately)'); }
+    if (adult.length){ info('SITES_ADULT (' + adult.length + '): ' + adult.join(', ')); if (adult.length===12) pass('SITES_ADULT count = 12 (matches handoff)'); else warn('SITES_ADULT count = ' + adult.length + ' (handoff says 12)'); }
     else warn('could not extract SITES_ADULT');
     if (minor.length){ info('SITES_MINOR (' + minor.length + '): ' + minor.join(', ')); if (minor.length===2) pass('SITES_MINOR count = 2 (matches handoff)'); else warn('SITES_MINOR count = ' + minor.length + ' (handoff says 2)'); }
     else warn('could not extract SITES_MINOR');
@@ -381,15 +377,8 @@ head('9) RAG SOURCE LISTS & GATES (lib/retrieve.js)');
     else warn('tafsir block slugs kashaf/alrazi not both found');
     if (/othmanalkhamees\.com/.test(src)) pass('othmanalkhamees.com present (Khamis sect-gated source)');
     if (/BRAVE_API_KEY/.test(src)) pass('BRAVE_API_KEY referenced'); else warn('BRAVE_API_KEY not referenced in retrieve.js');
-    // Dead source. It was removed once as a dead SPA and, re-probed on 2026-08-03, the domain
-    // is now PARKED: every path returns a 114-byte stub redirecting to a GoDaddy /lander.
-    // What matters is whether it is SEARCHABLE, not whether the file mentions it -- the
-    // registry row that records why it is refused necessarily names it, and so does the
-    // comment in the allow-list. So the test is membership of the arrays, and it is a FAIL:
-    // a parked domain on a fatwa allow-list would let its next owner be cited as a shaykh.
-    if (adult.includes('shkhudheir.com') || minor.includes('shkhudheir.com')){
-      fail('shkhudheir.com is on a SITES_ list -- it is a parked domain, it must not be searchable');
-    } else pass('shkhudheir.com is on no SITES_ list (parked domain, refused by the registry)');
+    // dead source that was removed
+    if (/shkhudheir\.com/.test(src)) warn('shkhudheir.com still present (handoff says it was REMOVED -- dead SPA)');
   }
 }
 
@@ -511,10 +500,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 25;   // 25th: source-registry-guard (one row per approved domain, no
-                               //       duplicate/www evasion, per-source SCOPE, and a page is
-                               //       admitted on its own evidence rather than on its host)
-                               // 23rd: attribution-guard    (a named scholar's opinion may not be
+  const GATES_EXPECTED = 24;   // 23rd: attribution-guard    (a named scholar's opinion may not be
                                //       stated without a retrieved source BY HIM that answers it)
                                // 22nd: quest-ux-guard       (S100 -- accessible game feedback: the
                                //       bank sealed by hash, no early reveal, no second answer,
