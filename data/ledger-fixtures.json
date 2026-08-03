@@ -63,12 +63,18 @@
     {
       "id": "F7_uthaymeen_miscarriage",
       "question": "ما رأي الشيخ ابن عثيمين فيمن أسقطت قبل ثمانين يومًا؟ وهل تصلي وتصوم؟",
-      "intents": ["scholar_opinion", "fatwa"],
+      "intents": ["scholar_opinion"],
       "authority": "ibn-uthaymeen",
       "expect_outcome": "FULL",
       "expect_min_cards": 1,
-      "expect_brave_calls_for_authority": 0,
-      "notes": "His own corpus is read through the registered adapter, which is not in any site: filter. Every condition and ruling must carry spans from ONE answer unit."
+      "contract": {
+        "issue_count": 1,
+        "requested_authority_id": "ibn-uthaymeen",
+        "brave_calls": 0,
+        "source_domains": ["binothaimeen.net"],
+        "source_cards": 1
+      },
+      "notes": "ONE issue, not two. «قبل ثمانين يومًا» is a CONDITION and «تصلي/تصوم» are rulings inside the same question -- splitting them into separate issues would manufacture a second issue whose only purpose is to justify a general source and a second card. His own corpus is read through the registered adapter, which is in no site: filter, so the provider is never called. FULL only if every required slot is filled; otherwise PARTIAL with the missing part refused -- never a general search and never a composite attribution."
     },
     {
       "id": "F8_ya_mu3ti",
@@ -86,7 +92,12 @@
       "authority": "ibn-baz",
       "expect_outcome": "FULL",
       "expect_min_cards": 2,
-      "notes": "Two issues in one question: a general ruling and a named man's position. Each sentence must rest on the right view, and no hybrid ruling may be produced."
+      "contract": {
+        "issue_count": 2,
+        "requested_authority_id": "ibn-baz",
+        "source_cards": 2
+      },
+      "notes": "GENUINELY two issues -- «كيف أصلي» and «ما رأي ابن باز» are two questions with two answers and two possible sources, which is why two cards are correct here and one is correct for F7. Each sentence must rest on the right view, and no hybrid ruling may be produced."
     }
   ]
 }

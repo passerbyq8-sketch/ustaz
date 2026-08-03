@@ -198,6 +198,13 @@ const RESULTS = {
       }
       // NORMAL. One claim per answer unit, citing that unit's own first span. The claim text is
       // a paraphrase of the span, which is all a real extractor could honestly produce.
+      //
+      // SLOTS ARE READ OUT OF THE PROMPT, not hard-coded to 'ruling'. A stub that labels every
+      // claim `ruling` makes slot coverage trivially satisfied for a one-slot issue and
+      // permanently unsatisfiable for a two-slot one — so the coverage assertion would be
+      // measuring the stub instead of the engine.
+      const slotLine = (user.match(/- الخاناتُ المطلوبة: (.+)/) || [])[1] || '';
+      const wantedSlots = slotLine.split('،').map((s) => s.trim()).filter(Boolean);
       const claims = [];
       const seenUnit = new Set();
       for (const m of user.matchAll(/\[([^\]\s]+#u(\d+)s(\d+))\]\s*([^\n]*)/g)) {
@@ -210,7 +217,7 @@ const RESULTS = {
         claims.push({
           claim_id: 'c' + (claims.length + 1),
           text,
-          slot: 'ruling',
+          slot: wantedSlots.length ? wantedSlots[claims.length % wantedSlots.length] : 'ruling',
           span_ids: [id],
           components: [
             { component_id: 'k1', kind: 'subject', text: text.slice(0, 40) || 'الموضوع', span_ids: [id] },
@@ -326,9 +333,16 @@ const RESULTS = {
     intent: 'scholar_opinion', requested_authority_id: 'al-abbaad',
     protected_entities: ['بيع الذهب'], core_terms: ['التقسيط'],
   })]);
+  // ONE ISSUE. «قبل ثمانين يومًا» is a CONDITION and «تصلي/تصوم» are rulings inside the same
+  // question. The previous version split this into two issues — a scholar_opinion and a general
+  // fatwa — which is precisely the manufactured decomposition that then justified a provider
+  // call and a second card on a question whose whole point is that it must be answered from one
+  // man's own corpus.
   state.plans[Q.F7_uthaymeen_miscarriage] = plan([
-    issue({ issue_id: 'iss_1', intent: 'scholar_opinion', requested_authority_id: 'ibn-uthaymeen', protected_entities: ['أسقطت'], core_terms: ['ثمانين يوما'] }),
-    issue({ issue_id: 'iss_2', intent: 'fatwa', protected_entities: ['أسقطت'], core_terms: ['تصلي', 'تصوم'] }),
+    issue({
+      issue_id: 'iss_1', intent: 'scholar_opinion', requested_authority_id: 'ibn-uthaymeen',
+      protected_entities: ['أسقطت'], core_terms: ['ثمانين يوما', 'تصلي', 'تصوم'],
+    }),
   ]);
   state.plans[Q.F8_ya_mu3ti] = plan([issue({
     intent: 'fatwa', exact_user_phrases: ['يا معطي لا تبطي'], core_terms: ['حكم قول'],
@@ -363,13 +377,47 @@ const RESULTS = {
   // =========================================================================
   console.log('\n=== A. THE NINE QUESTIONS ===');
   const results = {};
+  // THE TABLE IS GENERATED FROM THE RUN, NOT TYPED. The previous report's summary said "one
+  // card for a single-issue question" while its own F7 row said two — a contradiction that only
+  // survived because the prose and the numbers were written separately. Everything a report may
+  // quote about these nine questions is emitted here, from the objects the engine returned.
+  const table = [];
   for (const f of FIX.fixtures) {
     const out = await runFixture(f);
     results[f.id] = out;
     const snap = out.budget.snapshot();
+    const domains = Array.from(new Set(Array.from(out.ledger.sources.values()).map((s) => s.host))).sort();
+    const canonicalUrls = Array.from(out.ledger.sources.values()).map((s) => s.canonicalUrl).sort();
+    const answerUnitIds = Array.from(out.ledger.answerUnits.values()).map((u) => u.globalId).sort();
+    const slots = out.ledger.requiredSlots.map((r) => ({
+      slot: r.issueId + ':' + r.slot,
+      filled: out.ledger.slotStatus.get(r.issueId + ':' + r.slot)?.status === 'filled',
+    }));
+    const row = {
+      id: f.id,
+      outcome: out.outcome,
+      issue_count: out.ledger.issues.length,
+      requested_authority_id: out.ledger.issues.map((i) => i.requestedAuthorityId).filter(Boolean)[0] || null,
+      brave_calls: snap.spent.braveCalls,
+      pages_fetched: snap.spent.pagesFetched,
+      model_calls: snap.spent.modelCalls,
+      verified_cycles: snap.spent.verifiedCycles,
+      source_cards: out.cards.length,
+      card_domains: out.cards.map((c) => c.host),
+      source_domains: domains,
+      canonical_urls: canonicalUrls,
+      answer_unit_ids: answerUnitIds,
+      required_slots: slots.map((s) => s.slot),
+      filled_slots: slots.filter((s) => s.filled).map((s) => s.slot),
+      budget_breaches: snap.breaches.length,
+      duplicate_fetches: state.pageFetches.length - new Set(state.pageFetches).size,
+    };
+    table.push(row);
     console.log('  --- ' + f.id + ' -> ' + out.outcome
-      + '  (brave=' + snap.spent.braveCalls + ' fetch=' + snap.spent.pagesFetched
-      + ' model=' + snap.spent.modelCalls + ' cards=' + out.cards.length + ')');
+      + '  (issues=' + row.issue_count + ' brave=' + snap.spent.braveCalls
+      + ' fetch=' + snap.spent.pagesFetched
+      + ' model=' + snap.spent.modelCalls + ' cards=' + out.cards.length
+      + ' domains=' + JSON.stringify(domains) + ')');
 
     eq(f.id + ': outcome', out.outcome, f.expect_outcome);
     ok(f.id + ': at least ' + f.expect_min_cards + ' card(s)', out.cards.length >= f.expect_min_cards,
@@ -420,6 +468,38 @@ const RESULTS = {
     }
     if (typeof f.expect_brave_calls === 'number') {
       eq(f.id + ': provider calls', snap.spent.braveCalls, f.expect_brave_calls);
+    }
+
+    // ── THE PER-FIXTURE CONTRACT, ASSERTED EXACTLY ──
+    // Not "at least" and not "at most": the declared numbers, or a red failure. This is what
+    // stops a fixture quietly accepting two cards on a question whose contract says one.
+    if (f.contract) {
+      const c = f.contract;
+      if (typeof c.issue_count === 'number') {
+        eq(f.id + ' [contract] issue_count', row.issue_count, c.issue_count);
+      }
+      if ('requested_authority_id' in c) {
+        eq(f.id + ' [contract] requested_authority_id', row.requested_authority_id, c.requested_authority_id);
+      }
+      if (typeof c.brave_calls === 'number') {
+        eq(f.id + ' [contract] brave_calls', row.brave_calls, c.brave_calls);
+      }
+      if (Array.isArray(c.source_domains)) {
+        eq(f.id + ' [contract] source_domains', row.source_domains, c.source_domains.slice().sort());
+        eq(f.id + ' [contract] card domains stay inside them',
+          row.card_domains.filter((d) => !c.source_domains.includes(d)), []);
+      }
+      if (typeof c.source_cards === 'number') {
+        eq(f.id + ' [contract] source_cards', row.source_cards, c.source_cards);
+      }
+    }
+
+    // FULL MEANS EVERY REQUIRED SLOT WAS FILLED. A reply that answered the ruling and never
+    // reached «وهل تصلي؟» is PARTIAL, and saying FULL about it is the over-claim this whole
+    // engine exists to remove.
+    if (out.outcome === 'FULL') {
+      eq(f.id + ': FULL implies every required slot is filled',
+        row.required_slots.filter((s) => !row.filled_slots.includes(s)), []);
     }
 
     // EVERY SURVIVING CLAIM RESOLVES TO REAL SPANS IN ONE ANSWER UNIT.
@@ -688,6 +768,50 @@ const RESULTS = {
     ];
     for (const [label, positiveHeld] of pairs) {
       ok('the positive half of «' + label + '» still holds', positiveHeld);
+    }
+  }
+
+  // =========================================================================
+  console.log('\n=== C2. REPORT CONSISTENCY — the numbers cannot contradict the prose ===');
+  //
+  // The previous report claimed "a single-issue question gets one card" in its conformance
+  // table while its own F7 row printed two, and claimed "direct corpus: no provider call" while
+  // F7 printed brave=1. Both survived because the summary was typed and the rows were measured.
+  // These checks are the summary sentences, evaluated against the measured rows.
+  {
+    const single = table.filter((r) => r.issue_count === 1);
+    eq('every SINGLE-issue question produced at most one card',
+      single.filter((r) => r.source_cards > 1).map((r) => r.id + '=' + r.source_cards), []);
+    eq('every question with a direct-adapter authority made ZERO provider calls',
+      table.filter((r) => r.requested_authority_id === 'ibn-uthaymeen' && r.brave_calls !== 0)
+        .map((r) => r.id + '=' + r.brave_calls), []);
+    eq('no card comes from a domain outside the run\'s own source set',
+      table.filter((r) => r.card_domains.some((d) => !r.source_domains.includes(d))).map((r) => r.id), []);
+    eq('no FULL outcome has an unfilled required slot',
+      table.filter((r) => r.outcome === 'FULL'
+        && r.required_slots.some((s) => !r.filled_slots.includes(s))).map((r) => r.id), []);
+    eq('no run breached a budget', table.filter((r) => r.budget_breaches > 0).map((r) => r.id), []);
+    eq('no run fetched the same page twice', table.filter((r) => r.duplicate_fetches > 0).map((r) => r.id), []);
+    eq('every SAFE_REJECTION carries zero cards',
+      table.filter((r) => r.outcome === 'SAFE_REJECTION' && r.source_cards !== 0).map((r) => r.id), []);
+    eq('no run exceeded three cards', table.filter((r) => r.source_cards > 3).map((r) => r.id), []);
+    eq('the table covers every fixture', table.length, FIX.fixtures.length);
+  }
+
+  // The generated table, written where a report can quote it verbatim instead of retyping it.
+  {
+    const outFile = path.join(REPO, 'data', 'ledger-fixture-results.json');
+    fs.writeFileSync(outFile, JSON.stringify({
+      schema: 'ledger-fixture-results-v1',
+      note: 'GENERATED by ledger-fixtures-guard.cjs. Do not hand-edit: this file exists so a report quotes measured numbers instead of retyping them, which is how a summary and its own rows came to contradict each other.',
+      rows: table,
+    }, null, 2) + '\n', 'utf8');
+    ok('the generated results table is written for the report to quote', fs.existsSync(outFile));
+    console.log('\n  | fixture | outcome | issues | brave | fetch | model | cards | domains |');
+    console.log('  |---|---|---|---|---|---|---|---|');
+    for (const r of table) {
+      console.log('  | ' + [r.id, r.outcome, r.issue_count, r.brave_calls, r.pages_fetched,
+        r.model_calls, r.source_cards, r.source_domains.join(' ') || '-'].join(' | ') + ' |');
     }
   }
 

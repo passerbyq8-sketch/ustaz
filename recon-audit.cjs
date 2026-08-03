@@ -522,7 +522,14 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 32;   // 28th-32nd: the five ledger-RAG guards. They cover a PARALLEL
+  const GATES_EXPECTED = 33;   // 33rd: ledger-seam-guard — the JOIN between a request and the
+                               //       engine, driven with req/res doubles rather than matched
+                               //       with a regex. Three defects lived in that gap while five
+                               //       ledger gates stayed green: the engine's question came
+                               //       from the legacy attribution classifier, the extraction
+                               //       cache was read with an undefined adapter version, and the
+                               //       Upstash flag read sat outside the request deadline.
+                               // 28th-32nd: the five ledger-RAG guards. They cover a PARALLEL
                                //       answer path that is default-OFF (lib/ledger/**, reached
                                //       only via lib/ledger/flag.js), so they gate code the
                                //       shipped route never executes -- which is exactly why they

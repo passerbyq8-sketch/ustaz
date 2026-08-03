@@ -158,5 +158,10 @@
   "name": "ledgerfixtures",
   "script": "ledger-fixtures-guard.cjs",
   "args": "--compare data/ledger-fixtures.json"
+ },
+ {
+  "name": "ledgerseam",
+  "script": "ledger-seam-guard.cjs",
+  "args": ""
  }
 ]
