@@ -1213,7 +1213,9 @@ const INDEX_SCREENS = {
   settings:        { render: 'SettingsSheet -> EzShell', shell: 'istana' },
   favorites:       { render: 'FavoritesScreen', shell: 'legacy' },
   call:            { render: 'CallScreen', shell: 'legacy' },
-  memorize:        { render: 'MemorizeScreen', shell: 'legacy' },
+  // S106: the PICKER is on the shell; the drill sub-views of the same screen are not, and
+  // that is recorded here rather than allowed to pass as a finished screen.
+  memorize:        { render: 'MemorizeScreen picker -> EzShell', shell: 'istana', subviews: 'drill still legacy' },
   mushaf:          { render: 'MushafScreen (shell) + .mushaf-paper (sacred)', shell: 'legacy' },
   adhkar:          { render: 'AdhkarScreen -> IstanaAdhkarBrowse / IstanaAdhkarReader', shell: 'istana' },
 };
@@ -1273,10 +1275,13 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('exactly 3 index screens are istana after this commit', idxIstana.length, 3);
-eq('...and 9 index screens remain legacy', idxLegacy.length, 9);
+eq('exactly 4 index screens are istana after this commit', idxIstana.length, 4);
+eq('...and 8 index screens remain legacy', idxLegacy.length, 8);
 eq('...with the other classifications unmoved',
-  idxIstana.slice().sort().join(','), 'adhkar,home,settings');
+  idxIstana.slice().sort().join(','), 'adhkar,home,memorize,settings');
+// a screen with an unfinished sub-view says so, in the inventory, where it can be counted.
+const partial = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].subviews);
+eq('screens with sub-views still on the legacy design are declared', partial, ['memorize']);
 console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
   + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all legacy)');
 console.log('        istana now : ' + idxIstana.join(', '));
@@ -1291,6 +1296,86 @@ const optOuts = themedClassRules.filter((r) => /--red:#1D4ED8|--ink:#1A1A1A/.tes
 eq('exactly one sacred opt-out exists', optOuts.length, 1);
 ok('...and it is the Quran sheet itself', optOuts.length === 1 && /\.mushaf-paper/.test(optOuts[0]),
   'the opt-out covers the SHEET; the controls around it follow the identity like every other screen');
+
+/* ============ L. THE ISTANA QURAN CATALOGUE (S106) =======================
+ * The measured defect: at 2048x1024 the memorisation picker laid 114 surahs across the whole
+ * viewport behind a legacy navy header. The picker is on the shared shell now and the catalogue
+ * is bounded and four columns wide on a desk. The DRILL sub-views of this screen are NOT moved
+ * in this commit and are still legacy -- see the inventory note, which says so rather than
+ * letting the screen count as finished.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== L. THE ISTANA QURAN CATALOGUE ===');
+
+const memAt = html.indexOf('function MemorizeScreen(');
+const memSrc = memAt === -1 ? '' : html.slice(memAt, html.indexOf('function MushafScreen(', memAt));
+ok('the memorisation screen was located', memSrc.length > 1000);
+ok('its picker renders through the shared shell',
+  /<EzShell title=\{MEM\.TITLE\} onBack=\{onExit\} backLabel=\{MEM\.BACK_BTN\}>/.test(memSrc));
+ok('...with the screen\'s OWN exit handler, not a new one', /onBack=\{onExit\}/.test(memSrc));
+// THE LEGACY NAVY HEADER IS NOT REACHABLE FROM THE PICKER.
+const pickerSrc = memSrc.slice(memSrc.indexOf('<EzShell title={MEM.TITLE}'), memSrc.indexOf('// ---------- DRILL ----------'));
+ok('the picker draws no legacy header or container',
+  !/s\.memHeader/.test(pickerSrc) && !/s\.memContainer/.test(pickerSrc) && !/s\.memTitle/.test(pickerSrc),
+  'memHeader is the full-width navy strip the review rejected');
+
+/* ---- L1. the canonical 114, once, in order ------------------------------ */
+ok('the catalogue maps the canonical range exactly once',
+  (pickerSrc.match(/Array\.from\(\{ length: 114 \}, \(_, i\) => i \+ 1\)\.map\(/g) || []).length === 1);
+ok('...and nothing re-orders, filters or slices it',
+  !/\.sort\(|\.filter\(|\.slice\(|\.reverse\(/.test(pickerSrc));
+ok('...and each card carries its own surah number', /data-ezq-surah=\{n\}/.test(pickerSrc));
+// the metadata comes from the shipped sources, and none of it is written down here.
+ok('the name comes from SURAH_NAMES', /\{SURAH_NAMES\[n\]\}/.test(pickerSrc));
+ok('the ayah count comes from the single-pass tally', /counts\[n\] \? \(toArabicDigits\(counts\[n\]\)/.test(pickerSrc));
+ok('the Meccan/Medinan word comes from revelationLabel', /\{revelationLabel\(n\)\}/.test(pickerSrc));
+ok('no surah metadata is hardcoded in the catalogue',
+  !/\bMakkiy|\bMadaniy|\[\s*'\u0627\u0644\u0641\u0627\u062A\u062D\u0629'/.test(pickerSrc));
+
+/* ---- L2. the layout the review asked for -------------------------------- */
+ok('two columns on a phone', /\.ezq-cat\{[^}]*grid-template-columns:repeat\(2,1fr\)/.test(css));
+ok('...three from 600px', /@media \(min-width:600px\)\{\.ezq-cat\{grid-template-columns:repeat\(3,1fr\)/.test(css));
+ok('...and EXACTLY four from 1000px, never eight',
+  /@media \(min-width:1000px\)\{\.ezq-cat\{grid-template-columns:repeat\(4,1fr\)/.test(css)
+  && !/\.ezq-cat\{grid-template-columns:repeat\([5-9]|auto-fill/.test(css));
+ok('...inside the shell\'s bounded column', /\.ezsh-wrap\{[^}]*max-width:1100px/.test(css));
+ok('the card carries a bounded arch crest the card clips',
+  /\.ezq-crest\{[^}]*position:absolute/.test(css) && /\.ezq-card\{[^}]*overflow:hidden/.test(css));
+ok('...and a visible selected state', !!s.ezqCardOn && /aria-pressed=\{active/.test(pickerSrc));
+const ezqTall = ['ezqCard'].filter((k) => typeof (s[k] || {}).height === 'number' || ((s[k] || {}).minHeight || 0) > 160);
+eq('no surah card is a tall decorative panel', ezqTall, []);
+
+/* ---- L3. the memorisation actions are untouched ------------------------- */
+const MEM_ACTIONS = [
+  ['select a surah', /onClick=\{\(\) => \{ setSelectedSurah\(n\); setStartAyah\(1\); \}\}/],
+  ['choose the start ayah', /onChange=\{\(e\) => setStartAyah\(parseInt\(e\.target\.value, 10\) \|\| 1\)\}/],
+  ['start the drill', /onClick=\{startDrill\}/],
+];
+for (const [name, re] of MEM_ACTIONS) ok('the picker keeps its ' + name + ' action', re.test(pickerSrc));
+ok('the drill, recite and adnan flows are untouched by this commit',
+  /const \[drillMode, setDrillMode\]/.test(memSrc) && /reciteRecognitionRef/.test(memSrc)
+  && /useEzikBackLayer\(view === 'drill', leaveDrill\)/.test(memSrc),
+  'the back layer, the recogniser and the talqin loop are the screen\'s own and stay its own');
+
+/* ---- L4. the background invariant reaches this screen too --------------- */
+const ezqRules = (css.match(/\.ezq-[^{]*\{[^}]*\}/g) || []);
+eq('no catalogue rule attaches an image, gradient or repeat',
+  ezqRules.filter((r) => /background-image|gradient|url\(|repeating/i.test(r)), []);
+ok('and no catalogue selector can match html, body or :root',
+  !/(^|[,}\s])(html|body|:root)[^{,]*\.ezq-/.test(css));
+const ezqKeys = Object.keys(s).filter((k) => k.indexOf('ezq') === 0);
+const ezqLit = [];
+for (const k of ezqKeys) for (const p of Object.keys(s[k])) {
+  const v = String(s[k][p]);
+  if (/#[0-9a-fA-F]{3,8}\b/.test(v) || /\brgba?\(/.test(v)) ezqLit.push(k + '.' + p);
+}
+eq('no catalogue style key carries a hardcoded colour', ezqLit, []);
+
+/* ---- L5. the Quran itself is untouched ---------------------------------- */
+// The sheet remains the ONE sacred opt-out, and no identity selector may reach the page image.
+ok('no identity selector targets the mushaf page image or the sheet',
+  !/:root\[data-ezik-visual-theme\][^{]*(\.mushaf-page|\.madina|img)[^{]*\{/.test(css));
+ok('...and no filter, opacity or transform is applied to the sheet',
+  !/\.mushaf-paper[^{]*\{[^}]*(filter|opacity|transform)\s*:/.test(css));
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
