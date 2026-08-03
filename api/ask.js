@@ -19,7 +19,7 @@ import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
-import { planAsk, unattributedNote, REASON, NEEDS_SCHOLAR_NAME, NEEDS_MATERIAL } from '../lib/ask-plan.js';
+import { planAsk, unattributedNote, REASON, NEEDS_SCHOLAR_NAME, NEEDS_SCHOLAR_IDENTITY, NEEDS_MATERIAL } from '../lib/ask-plan.js';
 import { sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verifyClaims, CLAIM_REFUSAL } from '../lib/claim-gate.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
@@ -503,6 +503,25 @@ export default async function handler(req, res) {
       return res.end();
     }
 
+    // ── A NAME THAT DOES NOT IDENTIFY ANYBODY ──────────────────────────────
+    // «ما رأي الشيخ عبدالله في هذه المسألة؟» — a name was given and it fits a dozen scholars.
+    // «ما رأي الشيخ فلان الفلاني؟» — nobody registered answers to it. In neither case has any
+    // official corpus been searched, so:
+    //   * saying «لم أقف على نصٍّ له» would be a false claim about work never done, and
+    //   * running the general search anyway would quietly imply we had settled who he is.
+    // Ask instead. Nothing is searched, nothing is implied, and no scholar is chosen.
+    if (plan.needsScholarIdentity) {
+      console.warn('[attribution]', plan.scholarStatus === 'ambiguous'
+        ? REASON.SCHOLAR_IDENTITY_AMBIGUOUS : REASON.SCHOLAR_IDENTITY_UNRESOLVED,
+      { entity: plan.namedEntity, candidates: plan.scholarCandidates });
+      clearKeepAlive();
+      res.write(`data: ${JSON.stringify({
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: NEEDS_SCHOLAR_IDENTITY },
+      })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+      return res.end();
+    }
+
     // ── ASKED FOR A NAMED SCHOLAR'S OWN POSITION ───────────────────────────
     //
     // WHAT CHANGED, AND WHY. This used to be a barrier: a name was detected, one adapter was
@@ -555,7 +574,7 @@ export default async function handler(req, res) {
       if (!attributedSources.length) {
         // FALL THROUGH, do not refuse. The reader still gets the documented general ruling
         // below, with one line saying it is not his.
-        console.warn('[attribution]', REASON.DIRECT_ATTRIBUTION_NOT_FOUND, plan.namedEntity);
+        console.warn('[attribution]', REASON.DIRECT_CORPUS_SEARCHED_NO_EVIDENCE, plan.namedEntity, plan.officialDomain || 'adapter');
         attributionNote = unattributedNote(plan.namedEntity);
       } else {
       const src = attributedSources[0];

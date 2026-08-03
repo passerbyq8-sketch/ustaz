@@ -45,7 +45,7 @@ const user = (t) => [{ role: 'user', content: t }];
 (async function main() {
   console.log('=== smart-retrieval-guard — a name starts a search, it does not end one ===');
 
-  const { planAsk, REASON, unattributedNote, NEEDS_SCHOLAR_NAME, NEEDS_MATERIAL } = await esm('lib/ask-plan.js');
+  const { planAsk, REASON, unattributedNote, NEEDS_SCHOLAR_NAME, NEEDS_SCHOLAR_IDENTITY, NEEDS_MATERIAL } = await esm('lib/ask-plan.js');
   const A = await esm('lib/attribution.js');
   const R = await esm('lib/source-registry.js');
   const B = await esm('lib/brave-query.js');
@@ -60,9 +60,17 @@ const user = (t) => [{ role: 'user', content: t }];
       !/res\.write|content_block_delta/.test(src), 'a classifier must not write to the wire');
     eq('the four modes are the declared set', A.ATTRIBUTION_MODES.slice(),
       ['none', 'namedScholarOpinion', 'materialFromScholarSite', 'unnamedScholarClaim']);
-    // The canned sentence must not be reachable as a global fallback any more.
+    // THE CANNED SENTENCE IS DELETED, NOT MERELY UNUSED. A ready-made fallback string is an
+    // invitation: the next person to hit an awkward branch reaches for the one already there.
+    ok('the constant no longer exists in lib/attribution.js',
+      !/ATTRIBUTION_REFUSAL\s*=/.test(src) && !/export const ATTRIBUTION_REFUSAL/.test(src));
+    ok('...and the sentence itself is gone from that module',
+      !/لم أتمكن من توثيق هذا القول عن الشيخ من مصدره المعتمد/.test(src));
     ok('the old sentence is NOT a fallback anywhere in the request path',
       !/ATTRIBUTION_REFUSAL/.test(ask), 'it was the answer to every unmatched attribution');
+    ok('...and appears in NO shipped runtime module',
+      ['lib/attribution.js', 'lib/ask-plan.js', 'lib/retrieve.js', 'lib/claim-gate.js', 'api/ask.js']
+        .every((f) => !/لم أتمكن من توثيق هذا القول عن الشيخ/.test(read(f))));
     ok('...and the note that replaced it is only ever appended to a sourced answer',
       /attributionNote \? '\\n\\n' \+ attributionNote/.test(ask));
     ok('the note names the scholar and asserts no ruling',
@@ -118,6 +126,88 @@ const user = (t) => [{ role: 'user', content: t }];
   }
   ok('neither clarification line makes a religious claim',
     !/يجوز|لا يجوز|حرام|حلال|واجب|بدعة/.test(NEEDS_SCHOLAR_NAME + ' ' + NEEDS_MATERIAL));
+
+  // =========================================================================
+  console.log('\n=== B2. WHO IS THIS? — resolved / ambiguous / unresolved ===');
+  {
+    // Whole names and their known spellings reach the right domain.
+    const RESOLVES = [
+      ['ابن باز', 'binbaz.org.sa'], ['عبدالعزيز بن باز', 'binbaz.org.sa'],
+      ['عبدالمحسن العباد', 'al-abbaad.com'], ['عبد المحسن العباد', 'al-abbaad.com'],
+      ['العباد', 'al-abbaad.com'], ['فركوس', 'ferkous.com'],
+      ['محمد صالح المنجد', 'almunajjid.com'], ['مصطفى العدوي', 'mostafaaladwy.com'],
+    ];
+    for (const [n, d] of RESOLVES) {
+      const r = R.resolveScholar(n);
+      eq('resolves «' + n + '»', [r.status, r.domain || ''], ['resolved', d]);
+    }
+
+    // A PASSING FRAGMENT IS NOT AN IDENTIFICATION. The first version accepted
+    // `n.includes(f) || f.includes(n)` in either direction and returned the FIRST row that
+    // matched — so «عبدالله» silently became one specific scholar.
+    for (const n of ['عبدالله', 'عبد', 'محمد', 'صالح', 'الشيخ', 'ابن', 'خالد', 'عثمان']) {
+      eq('a bare fragment «' + n + '» resolves nobody', R.resolveScholar(n).status, 'unresolved');
+    }
+    // An unregistered scholar is never attached to an arbitrary domain.
+    for (const n of ['فلان الفلاني', 'أحمد بن محمد الأحمدي', 'سعيد بن سعيد']) {
+      eq('an unregistered name «' + n + '» resolves nobody', R.resolveScholar(n).status, 'unresolved');
+      eq('...and findScholarDomain returns null', R.findScholarDomain(n), null);
+    }
+    // Two matches must NOT collapse to the first one.
+    for (const n of ['خالد المصلح خالد السبت', 'عبدالرزاق البدر عثمان الخميس', 'ابن باز ابن جبرين']) {
+      const r = R.resolveScholar(n);
+      eq('«' + n + '» is ambiguous', r.status, 'ambiguous');
+      ok('...and reports every candidate rather than choosing', (r.candidates || []).length >= 2);
+      eq('...and findScholarDomain refuses to pick', R.findScholarDomain(n), null);
+    }
+    // Whole-word matching: an alias inside a longer word is not a match.
+    eq('«العبادات» is not «العباد»', R.resolveScholar('العبادات').status, 'unresolved');
+    eq('«السبتية» is not «السبت»', R.resolveScholar('السبتية').status, 'unresolved');
+    // Generated sweep: no single word from the table resolves unless it IS a whole alias.
+    {
+      let leaked = 0;
+      for (const w of ['عبد', 'بن', 'ال', 'محمد', 'الشيخ', 'الدين', 'أبو', 'سالم']) {
+        if (R.resolveScholar(w).status === 'resolved') leaked++;
+      }
+      eq('no common name-particle resolves a scholar', leaked, 0);
+    }
+  }
+
+  // =========================================================================
+  console.log('\n=== B3. TWO FAILURES THAT MUST NOT SOUND THE SAME ===');
+  {
+    // A — identified, corpus searched, nothing found: the general ruling may stand in.
+    const a = planAsk(user('ما رأي الشيخ عبدالمحسن العباد في الطلاق في الغضب؟'));
+    eq('A: identity resolved', a.scholarStatus, 'resolved');
+    eq('A: a real domain to search', a.officialDomain, 'al-abbaad.com');
+    eq('A: does NOT ask for identity', a.needsScholarIdentity, false);
+
+    // B — not identified: no search was run, so nothing may be claimed about one.
+    for (const q of ['ما رأي الشيخ عبدالله في هذه المسألة؟', 'ما رأي الشيخ فلان الفلاني في هذه المسألة؟']) {
+      const b = planAsk(user(q));
+      eq('B: «' + q.slice(0, 30) + '…» is not resolved', b.scholarStatus !== 'resolved', true);
+      eq('B: asks for identity', b.needsScholarIdentity, true);
+      eq('B: has no domain to search', b.officialDomain, '');
+    }
+    // The identity question must NOT claim a search happened.
+    ok('the identity prompt does not claim a search was performed',
+      /لم أبحثْ في مصدرٍ رسميٍّ له بعدُ/.test(NEEDS_SCHOLAR_IDENTITY)
+      && !/لم أقف على نصٍّ مباشرٍ/.test(NEEDS_SCHOLAR_IDENTITY));
+    // ...while the post-search note MUST say a search happened.
+    ok('the post-search note states that a direct search found nothing',
+      /لم أقف على نصٍّ مباشرٍ/.test(unattributedNote('فلان')));
+    ok('the two are different sentences', NEEDS_SCHOLAR_IDENTITY !== unattributedNote('فلان'));
+    ok('the identity prompt is wired to the identity case, not the search case',
+      /plan\.needsScholarIdentity/.test(ask) && /NEEDS_SCHOLAR_IDENTITY/.test(ask));
+    ok('an unidentified scholar starts NO general search',
+      /if \(plan\.needsScholarIdentity\) \{[\s\S]{0,700}?return res\.end\(\);/.test(ask));
+    ok('the five new reason codes exist and are logged only',
+      ['SCHOLAR_RESOLVED', 'SCHOLAR_IDENTITY_AMBIGUOUS', 'SCHOLAR_IDENTITY_UNRESOLVED',
+        'DIRECT_CORPUS_SEARCHED_NO_EVIDENCE', 'GENERAL_RULING_SUBSTITUTED']
+        .every((c) => !!REASON[c]));
+    ok('...and none of them is ever written to the reader',
+      !/text: REASON\.|text_delta[^}]*REASON\./.test(ask));
+  }
 
   // =========================================================================
   console.log('\n=== C. SCOPE AND ROLE STILL DECIDE WHAT MAY ANSWER ===');
@@ -200,7 +290,8 @@ const user = (t) => [{ role: 'user', content: t }];
   ok('an unnamed claim asks who is meant instead of guessing',
     /plan\.needsClarification/.test(ask) && /NEEDS_SCHOLAR_NAME/.test(ask) && /NEEDS_MATERIAL/.test(ask));
   ok('the reason codes are logged, never written to the reader',
-    /REASON\.DIRECT_ATTRIBUTION_NOT_FOUND/.test(ask)
+    /REASON\.DIRECT_CORPUS_SEARCHED_NO_EVIDENCE/.test(ask)
+    && /console\.warn\('\[attribution\]', REASON\./.test(ask)
     && !/text: REASON|delta.*REASON/.test(ask));
   ok('a verified attribution still emits its own card from the canonical URL',
     /REASON\.DIRECT_ATTRIBUTION_CONFIRMED/.test(ask) && /buildSourceTag\(\{ url: src\.canonicalUrl/.test(ask));
