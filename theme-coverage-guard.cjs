@@ -120,7 +120,12 @@ function resolve(value, pal) {
 const LIGHT_ON_PURPOSE = {
   svgRuleOuter: 'the mushaf paper band. A page of the Quran is never inverted; the DESK under it darkens instead.',
   svgSheet: 'the mushaf sheet itself, same rule as svgRuleOuter.',
-  callMuteBtn: 'a light pill sitting ON the call screen, which is dark in BOTH themes.',
+  // S113: callMuteBtn LEFT this list, and it left because its reason stopped being true. The
+  // entry read "a light pill sitting ON the call screen, which is dark in BOTH themes" -- the
+  // call screen is no longer dark in both themes. It is --page now: plain white in light and the
+  // identity's own dark in dark, so the pill reads --a3-ice like every other istana control and
+  // is measured by group C in both modes rather than excused from either. Group O asserts that
+  // directly, so this is not a deletion that quietly widened the gate.
 };
 // a3Mark hides its tick by painting it the same colour as its own surface -- the unchecked
 // marker. Equal foreground and background is the design there, in both themes.
@@ -790,6 +795,7 @@ const SCREENS = {
   'first-run welcome': 'welcomeContainer',
   'home': 'ezistContainer',
   'chat': 'chatContainer',
+  'voice call': 'callContainer',
   'adhkar (v1)': 'adhkarContainer',
   'adhkar (v2)': 'adhkar2Container',
   'adhkar browse / dhikr': 'eziaContainer',
@@ -1215,7 +1221,11 @@ const INDEX_SCREENS = {
   parentDashboard: { render: 'ParentDashboard', shell: 'legacy' },
   settings:        { render: 'SettingsSheet -> EzShell', shell: 'istana' },
   favorites:       { render: 'FavoritesScreen', shell: 'legacy' },
-  call:            { render: 'CallScreen', shell: 'legacy' },
+  // S113: the voice room moved onto its own istana structure -- .ezcall-rail / .ezcall-stage /
+  // .ezcall-dock. It is classified istana because the checks in group O pass, not because someone
+  // edited this line; O1 asserts that binding directly. The three INTERSTITIALS standing in front
+  // of this screen did NOT move and are still legacy below.
+  call:            { render: 'CallScreen -> .ezcall rail + stage + dock', shell: 'istana' },
   // S107: the drill moved too, so the caveat is gone -- and it is gone because the checks in
   // group L6 pass, not because someone deleted the field.
   memorize:        { render: 'MemorizeScreen picker + drill -> EzShell', shell: 'istana' },
@@ -1280,17 +1290,23 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('exactly 6 index screens are istana after this commit', idxIstana.length, 6);
-eq('...and 6 index screens remain legacy', idxLegacy.length, 6);
+eq('exactly 7 index screens are istana after this commit', idxIstana.length, 7);
+eq('...and 5 index screens remain legacy', idxLegacy.length, 5);
 eq('...with the other classifications unmoved',
-  idxIstana.slice().sort().join(','), 'adhkar,chat,home,memorize,mushaf,settings');
+  idxIstana.slice().sort().join(','), 'adhkar,call,chat,home,memorize,mushaf,settings');
+eq('...and the five that are left are the ones that were left',
+  idxLegacy.slice().sort().join(','), 'favorites,loading,onboarding,parentDashboard,parentGate');
 eq('...and the three interstitials are unmoved', Object.keys(INDEX_INTERSTITIALS).length, 3);
-// S112: the call screen is NOT carried along by the chat. Its entry moved onto the new dock, but
-// an entry is not a design -- the screen behind it still draws its own legacy presentation, and
-// so do the three interstitials standing in front of it.
-eq('the call screen is still legacy', INDEX_SCREENS.call.shell, 'legacy');
-eq('...and every interstitial with it',
+// S113: the call SCREEN moved; the three barriers standing in FRONT of it did not. An
+// interstitial is a separate render with its own presentation, and none of them was touched.
+eq('every interstitial is still legacy',
   Object.keys(INDEX_INTERSTITIALS).filter((k) => INDEX_INTERSTITIALS[k].shell !== 'legacy'), []);
+ok('...and none of them carries the call identity',
+  ['ChildVoiceNotice', 'UnlockSheet', 'SpendGate'].every((n) => {
+    const a = html.indexOf('function ' + n + '(');
+    if (a === -1) return false;
+    return !/ezcall/.test(html.slice(a, html.indexOf('\nfunction ', a + 10)));
+  }), 'a barrier was redesigned with the call screen -- this batch is the call screen only');
 // S107: no screen carries a sub-view caveat any more. The field still exists and is still
 // asserted, so the next partially-finished screen has to declare itself the same way.
 const partial = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].subviews);
@@ -2130,13 +2146,19 @@ eq('N29: ...and no control inside it closes behind the resolver\'s back',
 ok('N29: ...the scrim included', /<div onClick=\{\(\) => closeDrawerWith\(null\)\} className="ezc-drawer-ov" \/>/.test(drawerSrc));
 
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
-eq('N30: the index inventory reads exactly 6 istana / 6 legacy / 3 interstitials',
-  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '6/6/3');
+// S113 moved this number by one, and the chat is still one of the seven -- which is the half of
+// it this group is responsible for. The whole count is asserted here and again in group O.
+eq('N30: the index inventory reads exactly 7 istana / 5 legacy / 3 interstitials',
+  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '7/5/3');
+eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
 {
   const callAt = html.indexOf('function CallScreen(');
   const callSrc = callAt === -1 ? '' : html.slice(callAt, html.indexOf('\nfunction ', callAt + 10));
   ok('N31: the call screen was located', callSrc.length > 1000);
-  ok('N31: ...and it is untouched by this identity -- no ezc class reaches it',
+  // S113 note: the call screen has an identity of its own now (.ezcall-, group O). This check is
+  // unchanged and still means what it always meant -- the CHAT's vocabulary may not leak into it,
+  // so a shared class can never make two screens drift together by accident.
+  ok('N31: ...and the chat identity does not leak into it -- no ezc- class reaches it',
     !/ezc-/.test(callSrc) && !/className="theme-dark ezhome ezc"/.test(callSrc));
 }
 {
@@ -2205,6 +2227,307 @@ eq('N30: the index inventory reads exactly 6 istana / 6 legacy / 3 interstitials
     && /const ezcTitle = \(ezcOpenChat && ezcOpenChat\.title\) \? ezcOpenChat\.title : A2_BRAND;/.test(html)
     && /<span className="ezc-brand-text">\{ezcTitle\}<\/span>/.test(chatSrc));
 }
+
+/* ============ O. THE ISTANA VOICE ROOM (S113) ============================
+ * The call screen. Its PRESENTATION moved; nothing about the call did -- so this group is mostly
+ * a FREEZE. The recogniser, the endpoints, the payload, the two barriers and their ORDER, the
+ * cleanup and every handler are named here so that moving one fails, never so that this batch
+ * may move them.
+ *
+ * Cut to the screen. CallScreen's own source is sliced from its string table to the section
+ * comment that follows it, and the call MACHINERY (which lives on App, not in the component) is
+ * sliced separately. index.html still contains gradients, 76px round buttons and white-on-navy
+ * captions -- on OTHER screens -- so any of these checks asserted against the whole file would be
+ * a check that can only fail, or be quietly weakened until it passes.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== O. THE ISTANA VOICE ROOM ===');
+
+const oAt = html.indexOf('const CALL_TXT = {');
+const oEnd = html.indexOf('\n// ====', html.indexOf('function CallScreen('));
+const callView = (oAt !== -1 && oEnd > oAt) ? html.slice(oAt, oEnd) : '';
+ok('the call screen was located and bounded', callView.length > 2500 && callView.length < 14000,
+  'len=' + callView.length);
+// Its prose names the very things the checks below forbid ("the 160deg navy-to-black gradient"),
+// and a scan that counted those would be answered by deleting the explanation, not the defect.
+const callCode = callView.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+// THE MACHINERY: the listen/turn/mute/lifecycle block on App. Bounded at both ends.
+const fxAt = html.indexOf('const startCallListening = (armIdleClock = true) => {');
+const fxEnd = html.indexOf('}, [screen]);', fxAt);
+const callFx = (fxAt !== -1 && fxEnd > fxAt) ? html.slice(fxAt, fxEnd) : '';
+ok('the call machinery was located and bounded', callFx.length > 6000, 'len=' + callFx.length);
+const ezcallRules = (css.match(/\.ezcall[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []);
+ok('the call screen declares its own rule set', ezcallRules.length > 12, 'found ' + ezcallRules.length);
+
+/* ---- O1. the identity, and that the inventory line was EARNED ----------- */
+const CALL_ON_EZCALL =
+  /<div className="theme-dark ezhome ezcall" style=\{s\.callContainer\}>/.test(callView)
+  && /<div className="ezcall-rail">/.test(callView)
+  && /<div className="ezcall-body">/.test(callView)
+  && /<div className="ezcall-stage">/.test(callView)
+  && /<div className="ezcall-dock">/.test(callView);
+ok('O1: the call screen mounts on the ezcall identity, in all four of its pieces', CALL_ON_EZCALL);
+eq('O1: ...and THAT is why the inventory calls it istana', INDEX_SCREENS.call.shell,
+  CALL_ON_EZCALL ? 'istana' : 'legacy');
+ok('O1: no ezcall selector can match html, body or :root',
+  !ezcallRules.some((r) => /(^|[,\s])(html|body|:root)[\s,{]/.test(r.split('{')[0])));
+{
+  // Every JSX site in the whole file that puts an ezcall class on an element must be inside this
+  // component. Comments are stripped from both sides first -- the prose here NAMES these classes.
+  const htmlCode = html.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  const anywhere = (htmlCode.match(/className=(?:"|\{')ezcall[A-Za-z0-9 '-]*/g) || []);
+  const here = (callCode.match(/className=(?:"|\{')ezcall[A-Za-z0-9 '-]*/g) || []);
+  ok('O1: ...and .ezcall- belongs to this screen alone',
+    anywhere.length === here.length && here.length >= 8,
+    'uses in the file: ' + anywhere.length + ', uses in CallScreen: ' + here.length);
+}
+
+/* ---- O2. the dark room and its white-on-navy captions are GONE ---------- */
+ok('O2: the call screen paints no gradient anywhere', !/gradient/.test(callCode));
+const CALL_STYLE_KEYS = ['callContainer', 'callAvatarWrap', 'callRing', 'callAvatar', 'callStatusLabel',
+  'callSubLabel', 'callHint', 'callErrorBanner', 'callControls', 'callMuteBtn', 'callEndBtn', 'callBtnLabel'];
+eq('O2: ...nor does any object it draws from',
+  CALL_STYLE_KEYS.filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))), []);
+ok('O2: the caption and the free-floating centre column are gone, keys and all',
+  !('callTopLabel' in s) && !('callCenter' in s)
+  && !/s\.callTopLabel/.test(html) && !/s\.callCenter/.test(html));
+// The dark-mode gate no longer has to excuse this screen's pill, and it may not silently
+// re-acquire the excuse either.
+ok('O2: the mute pill is no longer excused from dark mode',
+  !('callMuteBtn' in LIGHT_ON_PURPOSE) && /var\(/.test(String(s.callMuteBtn.background)));
+
+/* ---- O3..O6. the three bounded pieces ---------------------------------- */
+const oMeasure = (/\.ezcall\{[^}]*--ezcall-measure:(\d+)px/.exec(css) || [])[1];
+const oStage = (/\.ezcall\{[^}]*--ezcall-stage:(\d+)px/.exec(css) || [])[1];
+ok('O3: the room declares one outer measure, at most 880px', +oMeasure > 0 && +oMeasure <= 880, 'measure=' + oMeasure);
+ok('O3: the top rail is bounded by it and is not a slab',
+  /\.ezcall-rail-inner\{[^}]*max-width:var\(--ezcall-measure\)/.test(css)
+  && /\.ezcall-rail\{[^}]*justify-content:center/.test(css));
+ok('O3: ...and sits inside the top safe area', /\.ezcall-rail\{[^}]*env\(safe-area-inset-top/.test(css));
+ok('O3: the rail carries the screen\'s own name and the REAL way out',
+  /<button onClick=\{onExit\} className="ezcall-icon" aria-label=\{CALL_TXT\.END\}>\{A2_ICON_BACK\}<\/button>/.test(callView)
+  && /<span className="ezcall-brand-text">\{CALL_TXT\.TITLE\}<\/span>/.test(callView));
+ok('O3: ...and it invented no control -- every button on this screen is one that shipped',
+  (callCode.match(/<button /g) || []).length === 3
+  && (callCode.match(/onClick=\{onExit\}/g) || []).length === 2
+  && (callCode.match(/onClick=\{onToggleMute\}/g) || []).length === 1
+  && (callCode.match(/onClick=\{canTalk \? onTalk : undefined\}/g) || []).length === 1,
+  'buttons=' + (callCode.match(/<button /g) || []).length);
+ok('O4: the voice stage is a bounded panel of about 720px',
+  +oStage >= 640 && +oStage <= 760 && /\.ezcall-stage\{[^}]*max-width:var\(--ezcall-stage\)/.test(css),
+  'stage=' + oStage);
+ok('O4: ...centred in the room rather than given a hero band of its own',
+  /\.ezcall-body\{[^}]*align-items:center/.test(css) && /\.ezcall-body\{[^}]*justify-content:center/.test(css));
+ok('O4: the hint line is DRAWN ONLY WHEN IT HAS SOMETHING TO SAY -- no dead band',
+  /const hint = callState === 'listening' && heard \? heard : \(isMuted \? CALL_TXT\.MUTED_HINT : ''\);/.test(callView)
+  && /\{hint \? <div style=\{s\.callHint\}>\{hint\}<\/div> : null\}/.test(callView));
+{
+  // The interim transcript is read in EXACTLY ONE place, and that place is the shipped condition.
+  // Take away the prop declaration and that one line, and the word must not occur again -- which
+  // is what makes "nothing hidden is now revealed" a measurement rather than a promise.
+  const rest = callCode
+    .replace(/const hint = callState === 'listening' && heard \? heard : \(isMuted \? CALL_TXT\.MUTED_HINT : ''\);/, ' ')
+    .replace(/function CallScreen\(\{[^}]*\}\)/, ' ');
+  ok('O4: ...and the condition that decides it is the SHIPPED one, so nothing hidden is revealed',
+    !/\bheard\b/.test(rest), 'the interim transcript is read somewhere else as well');
+}
+ok('O5: the state title is the REAL state, rendered from callState',
+  /const cs = STATES\[callState\] \|\| STATES\.idle;/.test(callView)
+  && /<div style=\{s\.callStatusLabel\}>\{cs\.label\}<\/div>/.test(callView));
+ok('O5: ...all four shipped labels are still there, and none is hardcoded into the markup',
+  /idle:\s*\{ label: 'اضغط للتحدّث'/.test(callView)
+  && /listening:\s*\{ label: 'أستمع إليك\.\.\.'/.test(callView)
+  && /thinking:\s*\{ label: 'لحظة\.\.\.'/.test(callView)
+  && /speaking:\s*\{ label: gender === 'female' \?/.test(callView));
+ok('O5: ...and the marker beside it is STRUCTURE, keyed to the same state',
+  /<span className=\{'ezcall-mark is-' \+ callState\} aria-hidden="true" \/>/.test(callView)
+  && /\.ezcall-mark\.is-listening\{width:64px/.test(css)
+  && !/\.ezcall-mark[^{]*\{[^}]*gradient/.test(css));
+ok('O6: the dock is bounded and in flow, so it floats over nothing',
+  /\.ezcall-dock-inner\{[^}]*max-width:var\(--ezcall-stage\)/.test(css)
+  && !/\.ezcall-dock\{[^}]*position\s*:/.test(css) && !/\.ezcall-dock-inner\{[^}]*position\s*:/.test(css));
+ok('O6: ...and its controls stay together instead of drifting to the edges of a 2048px desk',
+  /\.ezcall-dock-inner\{[^}]*justify-content:center/.test(css));
+{
+  const sized = ['callMuteBtn', 'callEndBtn'].map((k) => [k, (s[k] || {}).width, (s[k] || {}).height]);
+  const bad = sized.filter(([, w, h]) => !(w >= 44 && w <= 56 && h >= 44 && h <= 56))
+    .map(([k, w, h]) => k + '=' + w + 'x' + h);
+  eq('O6: every control on this screen is between 44px and 56px', bad, []);
+  ok('O6: ...and neither is a floating circle any more',
+    !/borderRadius: 38/.test(JSON.stringify(s.callMuteBtn)) && !/borderRadius: 38/.test(JSON.stringify(s.callEndBtn)));
+}
+ok('O6: no ezcall rule declares a viewport-wide box',
+  !/\.ezcall[a-z0-9-]*[^{]*\{[^}]*(width|min-width|max-width)\s*:\s*100vw/.test(css));
+
+/* ---- O7/O8. light is plain white, dark is real, nothing is patterned ---- */
+{
+  const lit = resolve(s.callContainer.background, VT_PAL['istana_33:light']);
+  const drk = resolve(s.callContainer.background, VT_PAL['istana_33:dark']);
+  ok('O7: the call page in istana light is plain #FFFFFF', !!lit && hex(lit) === '#ffffff', String(lit && hex(lit)));
+  ok('O7: the dark rendering is a real second page, not an inverted one',
+    !!drk && hex(drk) !== hex(lit) && lum(drk) < 0.1, String(drk && hex(drk)));
+  ok('O7: ...and nothing on this screen inverts or filters to get there',
+    !/filter\s*:/.test(JSON.stringify(s.callContainer)) && !/\.ezcall[a-z0-9-]*[^{]*\{[^}]*filter\s*:/.test(css));
+  const patterned = ezcallRules.filter((r) => /url\(|gradient|repeat|background-image\s*:\s*(?!none)/.test(r));
+  eq('O8: not one ezcall rule attaches an image, a gradient or a repeat', patterned, []);
+  ok('O8: ...and none draws a pseudo-element over the room',
+    !/\.ezcall[a-z0-9-]*[^{]*::(before|after)/.test(css)
+    && !ezcallRules.some((r) => /[;{]\s*content\s*:/.test(r)));
+  const litRules = ezcallRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r));
+  eq('O8: ...and the screen states no colour of its own at all, in CSS', litRules, []);
+  const litJsx = (callCode.match(/(#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\))/g) || []);
+  eq('O8: ...nor in its markup', litJsx, []);
+  eq('O8: every style key the call screen draws from still exists', CALL_STYLE_KEYS.filter((k) => !s[k]), []);
+  const litKeys = [];
+  for (const k of CALL_STYLE_KEYS) for (const p of Object.keys(s[k] || {})) {
+    const v = String(s[k][p]);
+    if (/#[0-9a-fA-F]{3,8}\b/.test(v) || /\brgba?\(/.test(v)) litKeys.push(k + '.' + p + '=' + v);
+  }
+  eq('O8: ...and not one of them carries a hardcoded colour', litKeys, []);
+}
+
+/* ---- O9/O10. the way in, and the two barriers in front of it ----------- */
+ok('O9: the screen is still entered by setting the screen, and by nothing else',
+  /onClick=\{\(\) => setScreen\('call'\)\}/.test(html)
+  && /if \(screen === 'call'\) return <CallScreen profileName=\{profile\?\.name\} gender=\{profile\?\.gender\} callState=\{callState\} heard=\{callHeard\} isMuted=\{isCallMuted\} error=\{voiceError\} onToggleMute=\{toggleCallMute\} onTalk=\{onCallTalk\} onExit=\{goEzikBack\} \/>;/.test(html));
+{
+  const spendAt = html.indexOf("if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate");
+  const childAt = html.indexOf("if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice");
+  const tokenAt = html.indexOf("if (screen === 'call' && !hasFounderToken()) return <UnlockSheet");
+  const renderAt = html.indexOf("if (screen === 'call') return <CallScreen");
+  ok('O10: all four call gates are present in the render chain',
+    spendAt !== -1 && childAt !== -1 && tokenAt !== -1 && renderAt !== -1);
+  ok('O10: ...and their ORDER is untouched: spend, then child voice, then the token, then the screen',
+    spendAt < childAt && childAt < tokenAt && tokenAt < renderAt,
+    [spendAt, childAt, tokenAt, renderAt].join(' < '));
+  ok('O10: none of them moved INSIDE the component, where it could be drawn around',
+    !/childVoiceBlocked|hasFounderToken|spendGateOpenState/.test(callView));
+  ok('O10: the mic itself is held shut by the same two guards, in the same order',
+    /if \(childVoiceBlocked\(\)\) return; \/\/ غ‑٣/.test(callFx)
+    && /if \(!hasFounderToken\(\)\) return; \/\/ directive 82/.test(callFx)
+    && callFx.indexOf('childVoiceBlocked()') < callFx.indexOf('hasFounderToken()'));
+  ok('O10: ...and the call session is never even BUILT without them',
+    /if \(childVoiceBlocked\(\)\) return; \/\/ غ‑٣[\s\S]{0,200}?if \(!hasFounderToken\(\)\) return; \/\/ directive 82[\s\S]{0,120}?callGenRef\.current\+\+;/.test(callFx));
+  ok('O10: the child-voice barrier is still shut at the flag', /const CHILD_VOICE_ENABLED = false;/.test(html));
+}
+
+/* ---- O11/O12. the endpoints ------------------------------------------- */
+ok('O11: the call still speaks to /api/chat and the text chat still speaks to /api/ask',
+  /endpoint = \(mode === 'call' \? '\/api\/chat' : '\/api\/ask'\)/.test(html));
+ok('O11: ...and the call turn still asks for mode:\'call\', which is what chooses it',
+  /reply = await callAI\(apiHistory, profile, \{\s*\r?\n\s*signal: controller\.signal, mode: 'call',/.test(html));
+ok('O11: ...on the shipped body, unchanged',
+  html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, system: __sysPrompt, messages: msgs, ...__extra });") !== -1);
+ok('O12: speech OUT still goes to the shipped endpoint', /await fetch\('\/api\/tts'/.test(html));
+ok('O12: ...and speech IN still goes to the shipped one',
+  /await fetch\('\/api\/stt', \{ method: 'POST', headers: \{ 'Content-Type': 'application\/json' \}, body: JSON\.stringify\(\{ audio: b64, mime: blob\.type, band \}\) \}\)/.test(html));
+ok('O12: ...with the cloud path still the live one', /const CALL_STT_CLOUD = true;/.test(html));
+
+/* ---- O13. SpeechRecognition, unchanged --------------------------------- */
+ok('O13: the recogniser is still built the shipped way, and only when an engine exists',
+  /const SR = window\.SpeechRecognition \|\| window\.webkitSpeechRecognition;/.test(callFx)
+  && /const rec = SR \? new SR\(\) : null;/.test(callFx));
+ok('O13: ...with the same language and the same continuous, interim configuration',
+  /rec\.lang = 'ar-SA';/.test(callFx) && /rec\.continuous = true;/.test(callFx)
+  && /rec\.interimResults = true;/.test(callFx));
+ok('O13: ...and the same three handlers, wired the same way',
+  /if \(rec\) \{ rec\.onresult = onRecResult; rec\.onend = onRecEnd; rec\.onerror = onRecError; \}/.test(callFx)
+  && /const onRecResult = \(event\) => \{/.test(callFx)
+  && /const onRecEnd = \(\) => \{/.test(callFx)
+  && /const onRecError = \(event\) => \{/.test(callFx));
+// COUNTED, not merely present. `rec.start()` is called from two places -- the fresh turn and the
+// restart-gap retry -- and the recogniser is stopped from three: the silent auto-end, the
+// end-of-turn, and mute. Deleting ONE of them leaves a call that is deaf, or a microphone that
+// keeps running, in exactly one of its paths; a bare presence check cannot see that.
+eq('O13: ...started by the shipped calls, in BOTH places that start it',
+  (callFx.match(/rec\.start\(\);/g) || []).length, 2);
+eq('O13: ...and stopped by the shipped call, in ALL THREE places a turn can end',
+  (html.match(/callRecognitionRef\.current\?\.stop\(\);/g) || []).length, 3);
+ok('O13: ...and the session token that invalidates a stale continuation is still there',
+  /callGenRef\.current\+\+;/.test(callFx) && /if \(callGenRef\.current !== genAtEnd\) return;/.test(callFx));
+ok('O13: a denied microphone still SAYS so, and a network failure says something else',
+  /const fatal = \['not-allowed', 'audio-capture', 'service-not-allowed'\];/.test(callFx)
+  && /else if \(event\.error === 'network'\) \{/.test(callFx)
+  && /const micErrorMessage = \(e\) => \{/.test(html) && /const sttErrorMessage = \(status\) => \{/.test(html));
+
+/* ---- O14. the voice text is never written down ------------------------- */
+ok('O14: no spoken text is ever put in storage',
+  !/localStorage\.(setItem|getItem)\([^)]*(callHeard|callTranscript|callBaseText)/.test(html));
+ok('O14: ...nor in the URL', !/(pushState|replaceState|location\.(hash|search|href))[^;\n]{0,120}(callHeard|callTranscript|callBaseText)/.test(html));
+ok('O14: ...nor in the console', !/console\.(log|warn|error|info)\([^)]*(callHeard|callTranscript|callBaseText|setCallHeard)/.test(html));
+ok('O14: ...and the interim result still goes ONLY to the feedback line',
+  /setCallHeard\(\(finalText \+ interim\)\.trim\(\)\); \/\/ feedback only — NEVER setInput/.test(callFx)
+  && !/setInput\(/.test(callFx));
+ok('O14: no transcript store was invented by this batch',
+  !/ezik_call|call_transcript|CALL_TRANSCRIPT_KEY/.test(html));
+
+/* ---- O15. leaving the room actually leaves it -------------------------- */
+{
+  const teardown = callFx.slice(callFx.lastIndexOf('return () => {'));
+  ok('O15: the teardown was located', teardown.length > 400, 'len=' + teardown.length);
+  const NEEDS = [
+    ['a new session token', /callGenRef\.current\+\+;/],
+    ['the turn flag', /callActiveRef\.current = false;/],
+    ['the silence timer', /clearTimeout\(silenceTimerRef\.current\)/],
+    ['the inactivity timer', /clearInactivityTimer\(\);/],
+    ['the error timer', /clearTimeout\(callErrorTimerRef\.current\)/],
+    ['the recogniser handlers and the recogniser', /rec\.onresult = null; rec\.onend = null; rec\.onerror = null; rec\.stop\(\);/],
+    ['the cloud recorder and the mic track', /stopCloudAll\(\);/],
+    ['the in-flight request', /abortRef\.current\.abort\(\)/],
+    ['the audio', /cancelAudio\(\);/],
+  ];
+  const missingTd = NEEDS.filter(([, re]) => !re.test(teardown)).map(([n]) => n);
+  eq('O15: leaving the call still releases everything it took', missingTd, []);
+  ok('O15: ...and the effect that owns it still runs on the screen change',
+    /\}, \[screen\]\);/.test(html) && fxEnd > fxAt);
+}
+
+/* ---- O16..O18. back, and the two things not to invent ------------------ */
+ok('O16: back is the screen\'s own exit, and it resolves through the registry',
+  /onExit=\{goEzikBack\} \/>;/.test(html) && /if \(cur === 'call'\) return 'chat';/.test(html));
+ok('O16: ...and the component itself navigates nowhere -- it only calls onExit',
+  !/setScreen\(/.test(callCode) && !/goEzikBack/.test(callCode) && !/history\.(back|go)\(/.test(callCode));
+ok('O17: no retry control was invented', !/retry|إعادة المحاولة/i.test(callCode));
+ok('O17: ...and no cancel control either',
+  !/إلغاء/.test(callCode));
+ok('O18: reduced motion is still decided in JS, from the platform query',
+  /const reduceMotion = \(typeof window !== 'undefined' && window\.matchMedia\)\s*\r?\n\s*\? window\.matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches : false;/.test(callView)
+  && /animation: reduceMotion \? 'none' : `callPulse \$\{cs\.speed\} ease-in-out infinite`,/.test(callView));
+ok('O18: ...and the ring is still the ONLY thing on this screen that moves',
+  (callCode.match(/animation:/g) || []).length === 1
+  && !/\.ezcall[a-z0-9-]*[^{]*\{[^}]*(animation|transition)\s*:/.test(css));
+ok('O18: ...and no ezcall selector was smuggled into the reduced-motion block',
+  !/@media \(prefers-reduced-motion: reduce\) \{[^}]*ezcall/.test(css));
+
+/* ---- O19/O20. the words, and the call entry that is not this screen ----- */
+{
+  // مكالمة مع عزك / كتم / مكتوم / إنهاء / الميكروفون مكتوم /
+  // تتحدّث إلى ذكاءٍ اصطناعيّ — لا إلى إنسان.
+  const WORDS = {
+    TITLE: 'مكالمة مع عزك',
+    DISCLAIMER: 'تتحدّث إلى ذكاءٍ اصطناعيّ — لا إلى إنسان.',
+    MUTED_HINT: 'الميكروفون مكتوم',
+    MUTE_ON: 'مكتوم',
+    MUTE_OFF: 'كتم',
+    END: 'إنهاء',
+  };
+  const decodedCall = callView.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+  const wrong = Object.keys(WORDS).filter((k) => decodedCall.indexOf(k + ':' + ' '.repeat(Math.max(1, 11 - k.length)) + "'" + WORDS[k] + "'") === -1
+    && decodedCall.indexOf(k + ': ' + "'" + WORDS[k] + "'") === -1
+    && decodedCall.indexOf("'" + WORDS[k] + "'") === -1);
+  eq('O19: every word this screen says is a word it already said', wrong, []);
+  ok('O19: ...and they are stated once, in one table, not scattered through the markup',
+    /const CALL_TXT = \{/.test(callView)
+    && (callCode.match(/CALL_TXT\./g) || []).length >= 6);
+  ok('O19: the accessible name on the way out is one of them',
+    /aria-label=\{CALL_TXT\.END\}/.test(callView));
+  ok('O19: ...and the emblem still declares itself decoration',
+    /aria-hidden="true"/.test(callView) && /role="alert"/.test(callView));
+}
+ok('O20: the call entry inside the chat is untouched',
+  /\{directConvoAllowed && \(\s*\r?\n\s*<button\s*\r?\n\s*onClick=\{\(\) => setScreen\('call'\)\}\s*\r?\n\s*disabled=\{isLoading \|\| isListening\}/.test(html));
+ok('O20: ...and the chat still owns its own identity, not this one',
+  html.indexOf('<div className="theme-dark ezhome ezc" style={s.chatContainer}>') !== -1
+  && !/ezcall/.test(chatSrc));
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

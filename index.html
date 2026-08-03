@@ -766,6 +766,79 @@
   .ezc-row{position:relative;border-radius:12px}
   .ezc-row.is-on{background:var(--a3-ice)}
   .ezc-row.is-pinned{border-inline-start:3px solid var(--a3-cyan)}
+  /* ========================================================================
+     S113 -- THE ISTANA VOICE ROOM.
+
+     The call screen was a navy-to-black gradient over the whole viewport with a 180px pulsing
+     circle floating in the middle of it and two 76px round buttons at the foot. Nothing about
+     the CALL moved: the recogniser, the endpoints, the payload, the barriers, the cleanup and
+     every handler are the ones that shipped. What moved is the room they happen in -- a bounded
+     rail, a bounded stage on its own measure, and a bounded dock.
+
+     WHAT THIS BLOCK MAY NOT DO, and does not:
+       * no background-image, no gradient, no repeat and no url() anywhere -- the page is the
+         solid --vt-page the identity declares, white in light and a deep navy-blue in dark;
+       * no selector below can match html, body or :root -- every one is a .ezcall- class, and
+         .ezcall- exists nowhere else in the file;
+       * it draws no ::before / ::after and states no `content`, so nothing can be painted over
+         the room by a rule the reader cannot see;
+       * it declares NO colour of its own at all. Every value is an a3 token, in scope because
+         the screen root carries .ezhome -- the idiom EzShell, the mushaf chrome and the chat
+         already use.
+
+     REDUCED MOTION IS NOT TOUCHED HERE. The ring's animation is decided in JS, by the shipped
+     `reduceMotion` read of the platform query, and it stays there: adding a .ezcall- selector to
+     the @media (prefers-reduced-motion) block would break the rule that every selector in it is
+     an S98 class, and would move a mechanism this phase has no business moving.
+     ===================================================================== */
+  .ezcall{--ezcall-measure:880px;--ezcall-stage:720px}
+  /* 1. THE TOP RAIL -- bounded and centred, ON the page rather than across it. */
+  .ezcall-rail{flex-shrink:0;display:flex;justify-content:center;box-sizing:border-box;
+    padding:calc(8px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px))
+      8px calc(12px + env(safe-area-inset-left,0px))}
+  .ezcall-rail-inner{width:100%;max-width:var(--ezcall-measure);box-sizing:border-box;display:flex;
+    align-items:center;gap:10px;min-height:52px;padding:5px 8px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);border-radius:20px 20px 13px 13px;box-shadow:var(--a3-shadow)}
+  .ezcall-brand{display:flex;align-items:center;gap:8px;flex:1;min-width:0;
+    font-family:var(--ez-ui-font);font-weight:800;font-size:16.5px;color:var(--a3-ink)}
+  .ezcall-brand-arch{width:14px;height:18px;flex-shrink:0;border:2px solid var(--a3-blue);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezcall-brand-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ezcall-icon{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+    width:44px;height:44px;padding:0;border-radius:12px;background:transparent;
+    border:1px solid transparent;color:var(--a3-ink);cursor:pointer;font-family:inherit;line-height:1}
+  .ezcall-icon:hover{background:var(--a3-ice)}
+  .ezcall-icon:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  /* 2. THE ROOM. The stage is centred in the space that is there rather than given a hero of
+     its own, so a phone and a 2048px desk both open on a composition instead of a white field
+     with something small in the middle of it. */
+  .ezcall-body{flex:1;min-height:0;overflow-y:auto;box-sizing:border-box;display:flex;
+    align-items:center;justify-content:center;
+    padding:10px max(14px, calc((100% - var(--ezcall-measure)) / 2)) 14px}
+  .ezcall-stage{width:100%;max-width:var(--ezcall-stage);box-sizing:border-box;display:flex;
+    flex-direction:column;align-items:center;gap:10px;padding:26px 18px 22px;text-align:center;
+    background:var(--a3-surface);border:1px solid var(--a3-line);
+    border-radius:40px 40px 18px 18px;box-shadow:var(--a3-shadow)}
+  /* on a desk the room breathes rather than leaving the panel a small card adrift in white --
+     the same bounds, more air inside them. */
+  @media (min-width:900px){.ezcall-stage{gap:14px;padding:40px 26px 34px}}
+  .ezcall-note{max-width:420px;font-size:12px;line-height:1.6;color:var(--a3-muted)}
+  /* the state marker. It is STRUCTURE -- the bar's width is what changes with the state, and
+     the colour follows it; there is no gradient and nothing animates. */
+  .ezcall-mark{width:34px;height:3px;border-radius:2px;background:var(--a3-line)}
+  .ezcall-mark.is-listening{width:64px;background:var(--a3-cyan)}
+  .ezcall-mark.is-thinking{width:20px;background:var(--a3-muted)}
+  .ezcall-mark.is-speaking{width:46px;background:var(--a3-blue)}
+  /* 3. THE DOCK -- in flow, bounded on the stage's own measure, so the two controls stay
+     together in the middle of a wide display instead of drifting to its two edges. */
+  .ezcall-dock{flex-shrink:0;display:flex;justify-content:center;box-sizing:border-box;
+    padding:0 max(12px, calc((100% - var(--ezcall-measure)) / 2))
+      calc(12px + env(safe-area-inset-bottom,0px))}
+  .ezcall-dock-inner{width:100%;max-width:var(--ezcall-stage);box-sizing:border-box;display:flex;
+    align-items:center;justify-content:center;gap:16px;padding:10px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);border-radius:13px 13px 20px 20px;box-shadow:var(--a3-lift)}
+  .ezcall-btn:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  .ezcall-alert{width:100%}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -9940,16 +10013,33 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
 // ============================================================
 // callState is owned by App and driven by real audio events (tap → listening → thinking →
 // speaking → idle). The avatar is tap-to-talk; Mute gates the mic. No audio logic lives here.
+//
+// S113 -- THE WORDS THIS SCREEN SAYS, gathered in one place so a redesign cannot quietly invent
+// one. Every string below is byte-for-byte a string this screen already shipped; not a word was
+// added, removed or reworded, and nothing devotional appears here at all.
+const CALL_TXT = {
+  TITLE:      'مكالمة مع عزك',
+  DISCLAIMER: 'تتحدّث إلى ذكاءٍ اصطناعيّ — لا إلى إنسان.',
+  MUTED_HINT: 'الميكروفون مكتوم',
+  MUTE_ON:    'مكتوم',
+  MUTE_OFF:   'كتم',
+  END:        'إنهاء',
+};
 function CallScreen({ profileName, gender, callState, heard, isMuted, error, onToggleMute, onTalk, onExit }) {
   // Accessibility: respect reduced-motion — fall back to a static (non-pulsing) ring.
   const reduceMotion = (typeof window !== 'undefined' && window.matchMedia)
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
 
+  // S113: the four labels are the ones that shipped. They were COMPUTED and never drawn -- `cs`
+  // was read for its ring and its speed only, so the screen never said what it was doing. The
+  // state title below is that shipped label, rendered; it is not a new string and it is never a
+  // fixed word: `callState` is App's, driven by real audio events. The ring colours moved from
+  // literals to tokens, which is what lets this room have a light face at all.
   const STATES = {
-    idle:      { label: 'اضغط للتحدّث',       ring: 'rgba(255, 255, 255, 0.35)', speed: '3.6s' },
-    listening: { label: 'أستمع إليك...',     ring: '#3FA66A',                 speed: '2.4s' },
-    thinking:  { label: 'لحظة...',            ring: 'rgba(42, 166, 222, 0.55)', speed: '3.2s' },
-    speaking:  { label: gender === 'female' ? 'عزك تتحدّث...' : 'عزك يتحدّث...',  ring: '#2AA6DE',                 speed: '1.2s' },
+    idle:      { label: 'اضغط للتحدّث',       ring: 'var(--a3-line)',  speed: '3.6s' },
+    listening: { label: 'أستمع إليك...',     ring: 'var(--a3-cyan)',  speed: '2.4s' },
+    thinking:  { label: 'لحظة...',            ring: 'var(--a3-muted)', speed: '3.2s' },
+    speaking:  { label: gender === 'female' ? 'عزك تتحدّث...' : 'عزك يتحدّث...',  ring: 'var(--a3-blue)',  speed: '1.2s' },
   };
   const cs = STATES[callState] || STATES.idle;
 
@@ -9962,33 +10052,55 @@ function CallScreen({ profileName, gender, callState, heard, isMuted, error, onT
   // Layer 3: the avatar stays tappable while the tutor is thinking/speaking — tapping there is the
   // manual interrupt ("my turn"). Disabled only when muted, or during 'listening' (no-op as before).
   const canTalk = !isMuted && (callState === 'idle' || callState === 'thinking' || callState === 'speaking');
+  // The one line under the emblem, and it is the SAME line that shipped: the interim transcript
+  // while actually listening, or the muted notice. It is rendered only when it has something to
+  // say, so an idle call shows the state instead of an empty band. Nothing that was hidden for
+  // privacy is revealed by it -- the condition is byte-for-byte the shipped one.
+  const hint = callState === 'listening' && heard ? heard : (isMuted ? CALL_TXT.MUTED_HINT : '');
 
   return (
-    <div style={s.callContainer}>
-      <div style={s.callTopLabel}>{gender === 'female' ? 'مكالمة مع عزك' : 'مكالمة مع عزك'}</div>
-      <div style={{ textAlign: 'center', maxWidth: 320, padding: '6px 16px 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255, 255, 255, 0.6)' }}>تتحدّث إلى ذكاءٍ اصطناعيّ — لا إلى إنسان.</div>
-      <div style={s.callCenter}>
-        <div style={{ ...s.callAvatarWrap, cursor: canTalk ? 'pointer' : 'default' }} onClick={canTalk ? onTalk : undefined}>
-          <div style={ringStyle} />
-          <div style={s.callAvatar}><MoonStarsIcon size={56} color="#2AA6DE" /></div>
+    <div className="theme-dark ezhome ezcall" style={s.callContainer}>
+      {/* S113 -- THE TOP RAIL. Bounded and centred, carrying the screen's own name and the REAL
+          way out: onExit, the same handler the «إنهاء» control below has always called, which
+          resolves through goEzikBack. No handler was invented and none was removed. */}
+      <div className="ezcall-rail">
+        <div className="ezcall-rail-inner">
+          <button onClick={onExit} className="ezcall-icon" aria-label={CALL_TXT.END}>{A2_ICON_BACK}</button>
+          <span className="ezcall-brand">
+            <span className="ezcall-brand-arch" aria-hidden="true" />
+            <span className="ezcall-brand-text">{CALL_TXT.TITLE}</span>
+          </span>
         </div>
-        {profileName && <div style={s.callSubLabel}>{profileName}</div>}
-        {/* Live feedback: what the mic is hearing (interim). Empty when not listening. */}
-        <div style={s.callHint}>{callState === 'listening' && heard ? heard : (isMuted ? 'الميكروفون مكتوم' : '')}</div>
-        {/* A failure that cannot be seen is a failure that reads as "the app just does nothing".
-            Rendered on the DARK call background, so it carries its own light-on-red styling
-            rather than reusing the chat banner. */}
-        {error ? <div style={s.callErrorBanner} role="alert">{error}</div> : null}
       </div>
-      <div style={s.callControls}>
-        <button onClick={onToggleMute} style={s.callMuteBtn}>
-          {isMuted ? <MicOffIcon size={24} color="#12327A" /> : <MicIcon size={24} color="#12327A" />}
-          <span style={s.callBtnLabel}>{isMuted ? 'مكتوم' : 'كتم'}</span>
-        </button>
-        <button onClick={onExit} style={s.callEndBtn}>
-          <PhoneOffIcon size={24} color="#FFFFFF" />
-          <span style={{ ...s.callBtnLabel, color: '#FFFFFF' }}>إنهاء</span>
-        </button>
+      <div className="ezcall-body">
+        <div className="ezcall-stage">
+          <div style={{ ...s.callAvatarWrap, cursor: canTalk ? 'pointer' : 'default' }} onClick={canTalk ? onTalk : undefined}>
+            <div style={ringStyle} />
+            <div style={s.callAvatar}><MoonStarsIcon size={56} color="var(--a3-blue)" /></div>
+          </div>
+          {/* THE REAL STATE, said out loud: جاهز / يستمع / يفكر / يتحدّث, straight off callState. */}
+          <div style={s.callStatusLabel}>{cs.label}</div>
+          <span className={'ezcall-mark is-' + callState} aria-hidden="true" />
+          {profileName && <div style={s.callSubLabel}>{profileName}</div>}
+          {/* Live feedback: what the mic is hearing (interim). Absent when there is none. */}
+          {hint ? <div style={s.callHint}>{hint}</div> : null}
+          <div className="ezcall-note">{CALL_TXT.DISCLAIMER}</div>
+          {/* A failure that cannot be seen is a failure that reads as "the app just does nothing".
+              It keeps its own bounded panel inside the stage, and says exactly what it always said. */}
+          {error ? <div style={s.callErrorBanner} className="ezcall-alert" role="alert">{error}</div> : null}
+        </div>
+      </div>
+      <div className="ezcall-dock">
+        <div className="ezcall-dock-inner" style={s.callControls}>
+          <button onClick={onToggleMute} className="ezcall-btn" style={s.callMuteBtn}>
+            {isMuted ? <MicOffIcon size={22} color="var(--a3-blue)" /> : <MicIcon size={22} color="var(--a3-blue)" />}
+            <span style={s.callBtnLabel}>{isMuted ? CALL_TXT.MUTE_ON : CALL_TXT.MUTE_OFF}</span>
+          </button>
+          <button onClick={onExit} className="ezcall-btn" style={s.callEndBtn}>
+            <PhoneOffIcon size={22} color="var(--a3-navy)" />
+            <span style={{ ...s.callBtnLabel, color: 'var(--a3-navy)' }}>{CALL_TXT.END}</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -12743,22 +12855,38 @@ const s = {
   memListenBtn: { height: 50, padding: '0 16px', borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 14, fontWeight: 600 },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
-  callContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(160deg, #12327A 0%, #141414 100%)', padding: '32px 24px', direction: 'rtl' },
-  callTopLabel: { color: 'rgba(255, 255, 255, 0.7)', fontSize: 15, fontWeight: 600, letterSpacing: '0.3px', marginTop: 8 },
-  callCenter: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  callAvatarWrap: { position: 'relative', width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
-  callRing: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: '50%', border: '3px solid #2AA6DE' },
-  callAvatar: { width: 120, height: 120, borderRadius: '50%', background: 'rgba(42, 166, 222, 0.16)', border: '1px solid rgba(42, 166, 222, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  callStatusLabel: { color: '#FFFFFF', fontSize: 22, fontWeight: 700, fontFamily: "'Amiri', 'Tajawal', serif", marginTop: 8 },
-  callSubLabel: { color: 'rgba(255, 255, 255, 0.6)', fontSize: 14 },
-  callHint: { color: 'rgba(255, 255, 255, 0.35)', fontSize: 12, marginTop: 4 },
-  // Call-screen failure banner. Its own colours because the call background is dark: the chat
-  // errorBanner (cream on tan) is unreadable there. Palette reuses the existing call end-button red.
-  callErrorBanner: { maxWidth: 320, margin: '14px 16px 0', padding: '10px 14px', background: 'rgba(196, 69, 54, 0.92)', border: '1px solid rgba(255, 255, 255, 0.28)', borderRadius: 12, color: '#FFFFFF', fontSize: 13, lineHeight: 1.6, fontWeight: 500, textAlign: 'center' },
-  callControls: { display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'center', paddingBottom: 16 },
-  callMuteBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: '#F1F6FD', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
-  callEndBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: 'linear-gradient(135deg, #C44536 0%, #A03828 100%)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
-  callBtnLabel: { fontSize: 12, fontWeight: 600, color: '#12327A' },
+  // ===== شاشة المكالمة — S113 ISTANA =====
+  // THE DARK ROOM IS GONE. This screen was the last place in the file that painted its own
+  // 160deg navy-to-black gradient across the whole viewport and then wrote white text on it --
+  // which is why every label here was a literal rgba(255,255,255,…) and why the mute pill had to
+  // be excused as "light on purpose" in the dark-mode gate. The page is --page now, plain white
+  // in light and the identity's deep navy in dark, and every value below is a token. Not one
+  // literal colour is left on this screen.
+  //
+  // The two controls came down from 76px to 56px: a 76px round button is a floating circle, and
+  // the room is a composition now rather than a target field. They keep their fixed square, so
+  // the text-size preference cannot grow a glyph out of a box that cannot grow with it.
+  callContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', direction: 'rtl' },
+  // `callTopLabel` and `callCenter` are GONE with the slab they belonged to: the first was the
+  // white caption written on the navy gradient, the second the free-floating centre column. The
+  // rail and the stage that replaced them are .ezcall-rail-inner and .ezcall-stage, and they
+  // declare no colour of their own. Deleting the keys rather than orphaning them is deliberate:
+  // a caption nobody can spread cannot come back on a background nobody can paint.
+  // the emblem is an ARCH now, not a circle -- the ottoman note kept to a curve on a bounded
+  // element, never an ornament laid over the room.
+  callAvatarWrap: { position: 'relative', width: 152, height: 172, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+  callRing: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: '60% 60% 14% 14%', border: '3px solid var(--a3-blue)' },
+  callAvatar: { width: 108, height: 122, borderRadius: '60% 60% 14% 14%', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  callStatusLabel: { color: 'var(--a3-ink)', fontSize: 22, fontWeight: 700, fontFamily: "'Amiri', 'Tajawal', serif", marginTop: 6 },
+  callSubLabel: { color: 'var(--a3-muted)', fontSize: 14 },
+  callHint: { color: 'var(--a3-muted)', fontSize: 12.5, lineHeight: 1.7, maxWidth: '100%', overflowWrap: 'anywhere' },
+  // Call-screen failure banner. It reads the SAME warning tokens the chat banner does now that
+  // the room is no longer a dark slab -- one warning surface, theme-aware, in both screens.
+  callErrorBanner: { width: '100%', maxWidth: 420, margin: '6px 0 0', padding: '10px 14px', background: 'var(--warn-bg)', border: '1px solid var(--warn-line)', borderRadius: 12, color: 'var(--warn-ink)', fontSize: 13, lineHeight: 1.6, fontWeight: 500, textAlign: 'center' },
+  callControls: { display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'center' },
+  callMuteBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: 56, height: 56, borderRadius: '18px 18px 14px 14px', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  callEndBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: 56, height: 56, borderRadius: '18px 18px 14px 14px', background: 'var(--red-lift)', border: '1px solid var(--red-lift)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  callBtnLabel: { fontSize: 11.5, fontWeight: 700, color: 'var(--a3-blue)' },
 };
 
 // ============================================================
