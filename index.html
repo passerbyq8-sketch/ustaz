@@ -435,6 +435,65 @@
   .vtp-motif-i::after{ content:""; position:absolute; left:50%; top:50%; width:2px; height:8px;
     margin:9px 0 0 -1px; background:var(--vtp-i-accent2); }
 
+
+  /* ========================================================================
+     S101 -- THE ISTANA_33 HOME. Structure, not a palette over the old one.
+     Every selector below begins with .ezist-, a prefix that exists nowhere else in this file,
+     and NOT ONE of them can match html, body or :root -- which is what keeps the page
+     background solid and ornament-free while the arch and the tulip live inside components.
+     The composition is a real grid with a bounded, centred maximum width: one column on a
+     phone, two from 600px, six from 1000px, and the module spans are declared per breakpoint
+     so the DOM order and the reading order stay the SAME order the module array is in. No
+     `order` property is used anywhere here, so tab order follows what is on screen.
+     ===================================================================== */
+  .ezist-nav{position:sticky;top:0;z-index:5;flex-shrink:0;background:var(--a3-surface);
+    border-bottom:1px solid var(--a3-line);padding-top:env(safe-area-inset-top, 0px)}
+  .ezist-nav-inner{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:6px 12px;min-height:56px}
+  .ezist-nav-side{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+  .ezist-nav-side.is-end{justify-content:flex-end}
+  /* the brand is the dominant thing in the bar, and it is centred at every width. */
+  .ezist-brand{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;
+    font-family:var(--ez-ui-font);font-weight:800;font-size:18px;color:var(--a3-ink);
+    letter-spacing:.2px}
+  .ezist-brand-arch{width:16px;height:20px;flex-shrink:0;border:2px solid var(--a3-blue);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezist-wrap{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;
+    padding:14px 12px calc(22px + env(safe-area-inset-bottom, 0px))}
+  /* THE MASTHEAD, and the arch IS the signature radius -- 120px 120px 18px 18px under
+     istana_33. overflow:hidden so nothing inside it can ever paint outside it. */
+  .ezist-masthead{position:relative;overflow:hidden;box-sizing:border-box;
+    border-radius:var(--ez-radius-sig);background:var(--a3-ice);border:1px solid var(--a3-line);
+    padding:30px 18px 20px;text-align:center;margin-bottom:14px}
+  /* the tulip: two pseudo-elements and a leaf, all inside the masthead box. */
+  .ezist-tulip{position:relative;display:block;width:34px;height:40px;margin:0 auto 8px}
+  .ezist-tulip::before{content:"";position:absolute;left:50%;top:0;width:22px;height:25px;
+    margin-left:-11px;border:2px solid var(--a3-blue);border-radius:60% 60% 14% 14%}
+  .ezist-tulip::after{content:"";position:absolute;left:50%;top:25px;width:2px;height:13px;
+    margin-left:-1px;background:var(--a3-blue)}
+  .ezist-tulip-mark{position:absolute;left:50%;top:9px;width:8px;height:8px;margin-left:-4px;
+    border-radius:50%;background:var(--a3-cyan)}
+  .ezist-rule{height:1px;background:var(--a3-line);margin:9px 0}
+  .ezist-rule-short{width:44px;height:2px;background:var(--a3-blue);border-radius:2px;
+    margin:10px auto 0}
+  .ezist-mosaic{display:grid;grid-template-columns:1fr;gap:12px}
+  .ezist-mosaic>*{min-width:0}
+  @media (min-width:600px){
+    .ezist-mosaic{grid-template-columns:repeat(2,1fr);gap:14px}
+    .ezist-ask,.ezist-quran,.ezist-feature,.ezist-mod-treasure{grid-column:span 2}
+  }
+  @media (min-width:1000px){
+    .ezist-mosaic{grid-template-columns:repeat(6,1fr);gap:16px}
+    .ezist-ask{grid-column:span 6}
+    .ezist-mod-memorize{grid-column:span 3}
+    .ezist-mod-adhkar{grid-column:span 3}
+    .ezist-feature{grid-column:span 4}
+    .ezist-mod-treasure{grid-column:span 2}
+    .ezist-quran{grid-column:span 6}
+    .ezist-masthead{padding:44px 26px 28px}
+    .ezist-nav-inner{padding:6px 20px}
+  }
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -3060,6 +3119,11 @@ const EZH_ICON_NAV_HOME = (
 const EZH_ICON_NAV_CHAT = (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
 );
+// S101: the same chat path as EZH_ICON_NAV_CHAT, stroked in currentColor instead of white,
+// because on the istana home it sits on a surface rather than inside a filled circle.
+const EZH_ICON_NAV_CHAT_LINE = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
+);
 const EZH_ICON_NAV_SET = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
 );
@@ -3221,11 +3285,183 @@ function EzikDeckHome(v) {
   );
 }
 
+
+// ---- S101 ISTANA HOME START --------------------------------------------------------------
+// THE ISTANA_33 HOME. A DEDICATED STRUCTURE, not the journey/deck layout in other colours.
+//
+// What this is NOT: it is not a third value of ezik_ui_style_v1. That key keeps its two words,
+// its default and every saved value byte for byte, and journey/deck still draw the home for
+// qibla_13 exactly as they did. What changed is that the IDENTITY now decides the structure:
+// under istana_33 the owner hands its one view object to this component instead. A device that
+// saved "deck" years ago still has "deck" in storage, still gets the deck under qibla_13, and
+// is not silently migrated -- it simply does not see a stacked deck while istana_33 is on.
+//
+// PRESENTATION ONLY, on the same terms as the two components above it: it reads no storage,
+// owns no navigation state, routes nothing, builds no module list and invents no progress. It
+// receives v.modules -- the owner's single array -- and maps it ONCE, in the array's own order,
+// so the reading order, the tab order and the data order are one order. Every handler is the
+// one it was handed: onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings and
+// onOpenTreasure are called, never re-derived, so no destination and no history behaviour moves.
+//
+// THE FOUR STRINGS BELOW are the only new chrome: one short descriptive line per module, so no
+// card is a large empty box with an icon in it. None of them is devotional text, none is read
+// from adhkar.json or the mushaf, and not one of them claims a number about the reader.
+const EZIST_SUB_MEMORIZE = '\u{0627}\u{062D}\u{0641}\u{0638} \u{0648}\u{0631}\u{0627}\u{062C}\u{0639}';                                   // "memorise and review"
+const EZIST_SUB_ADHKAR   = '\u{0623}\u{0630}\u{0643}\u{0627}\u{0631} \u{0627}\u{0644}\u{0635}\u{0628}\u{0627}\u{062D} \u{0648}\u{0627}\u{0644}\u{0645}\u{0633}\u{0627}\u{0621}'; // "morning and evening adhkar"
+const EZIST_SUB_MUSHAF   = '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}';   // "read, and follow your wird"
+const EZIST_SUB_TREASURE = '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}';                     // "learn through play"
+const EZIST_ASK_TITLE    = '\u{0627}\u{0633}\u{0623}\u{0644} \u{0639}\u{0632}\u{0643}';                                                   // "ask Ezik"
+const EZIST_ASK_SUB      = '\u{0645}\u{062D}\u{0627}\u{062F}\u{062B}\u{0629} \u{062C}\u{062F}\u{064A}\u{062F}\u{0629}';                   // "a new conversation"
+const EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
+
+// THE TOP NAVIGATION. A real bounded bar, not the bottom dock moved upward: it is sticky, it
+// carries the safe-area inset, its inner row is centred at a maximum width so it never runs
+// loose across a desktop viewport, and the brand sits in the middle of it at every width. The
+// four actions are the SAME four the bottom dock and the greeting row offered -- home (the
+// screen already on show, so it carries no handler, exactly as before), chat, settings and the
+// profile entry -- and each one calls the handler it was handed.
+function EzistTopNav({ onOpenChat, onOpenSettings }) {
+  return (
+    <div className="ezist-nav">
+      <div className="ezist-nav-inner">
+        <div className="ezist-nav-side">
+          <button type="button" className="ezhome-focus" style={s.ezistNavOn} aria-label={EZH_NAV_HOME} aria-current="page">
+            {EZH_ICON_NAV_HOME}
+          </button>
+          <button type="button" className="ezhome-focus" onClick={onOpenChat} style={s.ezistNavBtn} aria-label={EZH_BRAND}>
+            {EZH_ICON_NAV_CHAT_LINE}
+          </button>
+        </div>
+        <div className="ezist-brand">
+          <span className="ezist-brand-arch" aria-hidden="true" />
+          <span>{EZH_BRAND}</span>
+        </div>
+        <div className="ezist-nav-side is-end">
+          <button type="button" className="ezhome-focus" onClick={onOpenSettings} style={s.ezistNavBtn} aria-label={EZH_NAV_SET}>
+            {EZH_ICON_NAV_SET}
+          </button>
+          <button type="button" className="ezhome-focus" onClick={onOpenSettings} style={s.ezistNavBtn} aria-label={EZH_ACCOUNT}>
+            {EZH_ICON_PROFILE}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// THE MASTHEAD. The arch is the approved signature radius and nothing else; the tulip is three
+// bounded boxes inside a 34x40 span inside a clipped section, so it cannot become a page motif.
+// The greeting and the daily line are the ones the app already picked -- getHomeGreeting() ran
+// once in the owner, and this draws its text. When that line leads somewhere it stays a button
+// to the same place it always led; when it does not, it is not a button at all.
+function EzistMasthead({ name, g, onOpenAdhkar }) {
+  const tap = !!(g && g.tappable);
+  return (
+    <section className="ezist-masthead">
+      <span className="ezist-tulip" aria-hidden="true"><span className="ezist-tulip-mark" /></span>
+      <div style={s.ezistSalam}>{EZH_SALAM}</div>
+      <h1 style={s.ezistName}>{EZH_HELLO} {name}</h1>
+      <span className="ezist-rule-short" aria-hidden="true" />
+      {tap ? (
+        <button type="button" className="ezhome-focus" onClick={onOpenAdhkar} style={s.ezistPrompt} aria-label={g.text}>
+          <span style={s.ezistPromptIcon} aria-hidden="true">{g.period === 'morning' ? EZH_ICON_SUN : EZH_ICON_MOON}</span>
+          <span style={s.ezistPromptText}>{g.text}</span>
+        </button>
+      ) : (
+        <div style={s.ezistPromptFlat}>
+          <span style={s.ezistPromptIcon} aria-hidden="true">{g.period === 'morning' ? EZH_ICON_SUN : EZH_ICON_MOON}</span>
+          <span style={s.ezistPromptText}>{g.text}</span>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ONE MODULE, drawn four different ways. The variant is chosen by the descriptor's own stable
+// id, so it is the data that decides the treatment and not a second list: the mushaf is the
+// wide feature and the only card that can carry a real reading, the adhkar card takes the coral
+// highlight, the memorizer takes an Iznik rule and the treasure card sits on the tinted surface.
+// Every card carries an icon, a title AND a line of text, which is what stops any of them from
+// being a large empty box at a desktop width.
+function EzistModuleCard({ m }) {
+  const feature = m.id === 'mushaf';
+  return (
+    <button type="button" className={'ezhome-focus ezist-' + (feature ? 'feature' : 'mod ezist-mod-' + m.id)}
+      onClick={m.onClick} data-ezik-home-module={m.id}
+      style={feature ? s.ezistFeature : { ...s.ezistCard, ...(s['ezistCard_' + m.id] || null) }}>
+      <span style={feature ? s.ezistFeatureIcon : s.ezistCardIcon} aria-hidden="true">{m.icon}</span>
+      <span style={s.ezistCardBody}>
+        <span style={feature ? s.ezistFeatureTitle : s.ezistCardTitle}>{m.label}</span>
+        <span style={s.ezistCardSub}>{EZIST_SUB[m.id]}</span>
+      </span>
+      {m.meta ? <span style={s.ezistMeta}>{m.meta}</span> : null}
+    </button>
+  );
+}
+
+// THE CHAT ENTRY. The floating circle is gone from this home: the chat action is a full-width
+// panel at the head of the composition, with the brand, a line saying what pressing it does and
+// one bounded accent button. It is a surface with a hairline, not a solid blue rectangle, and
+// it calls v.onOpenChat -- the same callback, unchanged.
+function EzistAsk({ onOpenChat }) {
+  return (
+    <button type="button" className="ezhome-focus ezist-ask" onClick={onOpenChat} style={s.ezistAsk} aria-label={EZIST_ASK_TITLE}>
+      <span style={s.ezistAskBody}>
+        <span style={s.ezistAskTitle}>{EZIST_ASK_TITLE}</span>
+        <span style={s.ezistAskSub}>{EZIST_ASK_SUB}</span>
+      </span>
+      <span style={s.ezistAskGo} aria-hidden="true">{EZH_ICON_NAV_CHAT_LINE}</span>
+    </button>
+  );
+}
+
+// THE FEATURED QURAN PANEL. It reads getDailyVerse(), the same one source DailyVerseCard reads,
+// and renders {v.text} verbatim -- no transform, no tashkeel pass, no truncation, no ellipsis.
+// The two decorative marks are OUTSIDE the text block, above the rule and beside the label, so
+// nothing overlaps a letter of it. Nothing here touches mushaf page artwork.
+function EzistQuranPanel() {
+  const v = getDailyVerse();
+  const isHadith = v.surah === '\u062D\u062F\u064A\u062B';
+  return (
+    <section className="ezist-quran" style={s.ezistQuran}>
+      <div style={s.ezistQuranHead}>
+        <span style={s.ezistQuranDot} aria-hidden="true" />
+        <span style={s.ezistQuranLabel}>{isHadith ? '\u062D\u062F\u064A\u062B \u0627\u0644\u064A\u0648\u0645' : '\u0622\u064A\u0629 \u0627\u0644\u064A\u0648\u0645'}</span>
+      </div>
+      <div className="ezist-rule" aria-hidden="true" />
+      <div style={s.ezistQuranText}>{v.text}</div>
+      <div style={s.ezistQuranMeta}>{isHadith ? '\u0631\u0648\u0627\u0647 ' + v.ayah : '\u0633\u0648\u0631\u0629 ' + v.surah + '\u060C \u0622\u064A\u0629 ' + v.ayah}</div>
+    </section>
+  );
+}
+
+function EzikIstanaHome(v) {
+  const mods = v.modules || [];   // the owner's one array, mapped once, in its own order
+  return (
+    <div className="theme-dark ezhome" style={s.ezistContainer}>
+      {/* S101-home-istana */}
+      <EzistTopNav onOpenChat={v.onOpenChat} onOpenSettings={v.onOpenSettings} />
+      <div style={s.ezistScroll}>
+        <div className="ezist-wrap">
+          <EzistMasthead name={v.name} g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
+          <div className="ezist-mosaic">
+            <EzistAsk onOpenChat={v.onOpenChat} />
+            {mods.map((m) => <EzistModuleCard key={m.id} m={m} />)}
+            <EzistQuranPanel />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// ---- S101 ISTANA HOME END ----------------------------------------------------------------
+
 function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
   const style = useEzikUiStyle();
+  const visual = useEzikVisualTheme();
   const g = getHomeGreeting();
   // GENUINE local progress, or nothing at all. These are the MUSHAF'S OWN helpers reading the
   // mushaf's own keys, so the numbers are ones the reader itself wrote; when no real daily
@@ -3250,7 +3486,12 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // element per module, whichever style is on -- there is no second collection to fall out of
   // sync with this one, and no second callback bound to the same action.
   const home = { ...view, modules: ezHomeModules(view) };
-  // The whole of the style switch on this screen: which component receives the view above.
+  // S101 -- THE IDENTITY DECIDES THE STRUCTURE. istana_33 is a design, not a palette laid
+  // over the older one, so it gets its own component and neither legacy home is constructed
+  // for it. The layout key is still read above and still stored: a device that saved "deck"
+  // keeps "deck", is not migrated, and sees the deck again the moment it selects qibla_13.
+  // qibla_13 is untouched by this batch and still chooses between the two components below.
+  if (visual === EZIK_VISUAL_THEME_ISTANA) return <EzikIstanaHome {...home} />;
   return style === EZIK_UI_STYLE_DECK ? <EzikDeckHome {...home} /> : <EzikJourneyHome {...home} />;
 }
 
@@ -11725,6 +11966,51 @@ const s = {
   // components, so nothing here can reach the chat screen, the call screen or DhikrCard.
   // ============================================================
   ezhContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  // ============================================================
+  // S101 -- THE ISTANA_33 HOME. Every colour is an --a3-* token, which under this identity
+  // maps to the approved istana values (surface #FFFDFC, surface2 #EEF6F7, ink #10364E,
+  // muted #647780, accent #0B5F8E, accent2 #C43E38, line #C8DDE2) and, in dark, to the same
+  // structure on the accessible dark palette. Not one literal colour appears below. Every
+  // fontSize is a NUMBER so the text-size preference scales it, every tappable surface is at
+  // least 44px, and there is no animation or transition anywhere in this block.
+  // ============================================================
+  ezistContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  ezistScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
+  ezistNavBtn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },
+  ezistNavOn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', cursor: 'default' },
+  ezistSalam: { fontSize: 13, fontWeight: 700, color: 'var(--a3-muted)', letterSpacing: '.2px' },
+  ezistName: { fontSize: 26, fontWeight: 800, color: 'var(--a3-ink)', margin: '4px 0 0', lineHeight: 1.4 },
+  ezistPrompt: { display: 'inline-flex', alignItems: 'center', gap: 10, minHeight: 44, marginTop: 14, padding: '10px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', textAlign: 'right', maxWidth: '100%' },
+  ezistPromptFlat: { display: 'inline-flex', alignItems: 'center', gap: 10, minHeight: 44, marginTop: 14, padding: '10px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', maxWidth: '100%' },
+  ezistPromptIcon: { display: 'inline-flex', flexShrink: 0, color: 'var(--a3-blue)' },
+  ezistPromptText: { minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.6 },
+  // the chat entry: a surface panel with one bounded accent affordance, never a filled slab.
+  ezistAsk: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, width: '100%', minHeight: 76, padding: '14px 16px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
+  ezistAskBody: { display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 },
+  ezistAskTitle: { fontSize: 17, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezistAskSub: { fontSize: 13, fontWeight: 600, color: 'var(--a3-muted)' },
+  ezistAskGo: { width: 46, height: 46, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)' },
+  // the four module cards. One base, three id-specific accents, one wide feature.
+  ezistCard: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 84, padding: '14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
+  ezistCard_adhkar: { borderTop: '3px solid var(--a3-cyan)' },
+  ezistCard_memorize: { borderRight: '3px solid var(--a3-blue)' },
+  ezistCard_treasure: { background: 'var(--a3-ice)' },
+  ezistFeature: { display: 'flex', alignItems: 'center', gap: 14, width: '100%', minHeight: 104, padding: '16px 18px', borderRadius: '40px 40px 18px 18px', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
+  ezistCardIcon: { width: 42, height: 42, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: 'var(--a3-ice)', color: 'var(--a3-blue)' },
+  ezistFeatureIcon: { width: 50, height: 50, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)' },
+  ezistCardBody: { display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: 1 },
+  ezistCardTitle: { fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezistFeatureTitle: { fontSize: 18, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezistCardSub: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', lineHeight: 1.6 },
+  ezistMeta: { flexShrink: 0, padding: '5px 10px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800 },
+  // the featured Quran panel. The marks sit in the head row, never over the text.
+  ezistQuran: { padding: '16px 18px 18px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
+  ezistQuranHead: { display: 'flex', alignItems: 'center', gap: 8 },
+  ezistQuranDot: { width: 8, height: 8, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-cyan)' },
+  ezistQuranLabel: { fontSize: 12.5, fontWeight: 800, color: 'var(--a3-blue)', letterSpacing: '.2px' },
+  ezistQuranText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '8px 0 6px' },
+  ezistQuranMeta: { color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 600, textAlign: 'center' },
+
   ezhScroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: 'calc(16px + env(safe-area-inset-top, 0px)) 14px 16px', boxSizing: 'border-box' },
   // The compact greeting row. A line profile icon in a white 44px button -- no face, no avatar.
   ezhGreetRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 },

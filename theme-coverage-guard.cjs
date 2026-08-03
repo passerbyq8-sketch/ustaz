@@ -793,10 +793,14 @@ if (sheetRuleVT) {
 }
 
 /* ---- G11. still one element per home module ---------------------------- */
+// S101: THREE home renderers now -- journey, deck and istana -- and still exactly one module
+// element apiece. The number is the count of renderers, so adding a fourth without a matching
+// map, or drawing a module twice inside one of them, both land here.
 const modAttrs = (html.match(/data-ezik-home-module=/g) || []).length;
-eq('exactly two home renderers, one module element each -- no duplicated module', modAttrs, 2);
-ok('...and both come from the owner\'s single descriptor array',
-  (html.match(/mods\.map\(\(m, i\) =>/g) || []).length === 2);
+eq('three home renderers, one module element each -- no duplicated module', modAttrs, 3);
+ok('...and every one of them maps the owner\'s single descriptor array',
+  (html.match(/mods\.map\(\(m/g) || []).length === 3,
+  'found ' + (html.match(/mods\.map\(\(m/g) || []).length + ' maps of the module array');
 ok('no identity rule can add a second copy of a module',
   !/data-ezik-visual-theme[^{]*\{[^}]*content\s*:/i.test(css));
 
@@ -819,6 +823,145 @@ ok('...and drops the two radial washes it paints without a theme',
 // declares. If the body rule ever went back to --paper, a skin would repaint the page.
 ok('...so a reward skin cannot put a wash back behind the page',
   !!qBody && !/var\(--paper/.test(qBody[1]), String(qBody && qBody[1]).trim());
+
+/* ===================== H. THE ISTANA_33 HOME (S101) ======================
+ * The first pass made the identities palettes that composed over the legacy journey/deck home.
+ * They are not: an identity is a design. This group proves that under istana_33 the app builds
+ * a DIFFERENT COMPONENT with a different structure, that neither legacy home is constructed for
+ * it, that qibla_13 is untouched by that change, and that the new structure has the parts the
+ * design actually calls for -- because "it has a new component" is not the same claim as
+ * "it has a top nav, a masthead, a mosaic, a Quran panel and a chat entry".
+ * ---------------------------------------------------------------------- */
+console.log('\n=== H. THE ISTANA_33 HOME: a structure, not a reskin ===');
+
+const HSTART = '// ---- S101 ISTANA HOME START';
+const HEND = '// ---- S101 ISTANA HOME END';
+const hAt = html.indexOf(HSTART), hEndAt = html.indexOf(HEND);
+ok('the istana home is delimited so it can be read as one unit', hAt !== -1 && hEndAt > hAt);
+const IST = hAt === -1 ? '' : html.slice(hAt, hEndAt);
+
+/* ---- H1. the identity chooses the component ---------------------------- */
+ok('EzikIstanaHome exists', /function EzikIstanaHome\(/.test(IST));
+ok('the owner routes istana_33 to it',
+  /if \(visual === EZIK_VISUAL_THEME_ISTANA\) return <EzikIstanaHome \{\.\.\.home\} \/>;/.test(html));
+ok('...from the identity hook, not from the layout key',
+  /const visual = useEzikVisualTheme\(\);/.test(html));
+// The legacy homes must not be CONSTRUCTED for istana: the istana return has to come first.
+const routeIst = html.indexOf('if (visual === EZIK_VISUAL_THEME_ISTANA) return <EzikIstanaHome');
+const routeLegacy = html.indexOf('return style === EZIK_UI_STYLE_DECK ? <EzikDeckHome');
+ok('istana is answered BEFORE the legacy journey/deck switch is reached',
+  routeIst !== -1 && routeLegacy !== -1 && routeIst < routeLegacy);
+ok('neither legacy home is rendered inside the istana component',
+  !/<EzikDeckHome/.test(IST) && !/<EzikJourneyHome/.test(IST));
+// ...and qibla_13 still gets exactly what it had before this batch.
+ok('qibla_13 still chooses between the two legacy homes, unchanged',
+  /return style === EZIK_UI_STYLE_DECK \? <EzikDeckHome \{\.\.\.home\} \/> : <EzikJourneyHome \{\.\.\.home\} \/>;/.test(html));
+ok('...and the layout key keeps both of its words and its default',
+  evalIn('EZIK_UI_STYLE_JOURNEY') === 'journey' && evalIn('EZIK_UI_STYLE_DECK') === 'deck'
+  && evalIn('EZIK_UI_STYLE_DEFAULT') === 'journey');
+
+/* ---- H2. the parts the design calls for -------------------------------- */
+ok('it has a real TOP NAVIGATION bar', /<EzistTopNav /.test(IST) && /className="ezist-nav"/.test(IST));
+ok('...bounded and centred rather than loose across the viewport',
+  /\.ezist-nav-inner\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css));
+ok('...carrying the four existing actions, each with its own handler',
+  /aria-label=\{EZH_NAV_HOME\}/.test(IST) && /onClick=\{onOpenChat\}[\s\S]{0,120}aria-label=\{EZH_BRAND\}/.test(IST)
+  && /onClick=\{onOpenSettings\}[\s\S]{0,120}aria-label=\{EZH_NAV_SET\}/.test(IST)
+  && /onClick=\{onOpenSettings\}[\s\S]{0,120}aria-label=\{EZH_ACCOUNT\}/.test(IST));
+// THE OLD BOTTOM DOCK IS NOT ON THIS HOME. EzHomeNav is what draws it, and it is not used here.
+ok('the legacy bottom dock is NOT presented on the istana home',
+  !/<EzHomeNav/.test(IST) && !/s\.ezhNav\b/.test(IST) && !/s\.ezhFab\b/.test(IST),
+  'EzHomeNav / ezhNav / ezhFab must not appear inside the istana home');
+ok('...while the two legacy homes still have it', (html.match(/<EzHomeNav /g) || []).length === 2);
+
+ok('it has an OTTOMAN MASTHEAD', /<EzistMasthead /.test(IST) && /className="ezist-masthead"/.test(IST));
+ok('...whose arch IS the approved signature radius',
+  /\.ezist-masthead\{[^}]*border-radius:var\(--ez-radius-sig\)/.test(css));
+eq('...which under istana_33 is the approved 120px arch', VT.light.istana_33['--vt-radius-sig'], '120px 120px 18px 18px');
+ok('it carries a bounded tulip emblem', /className="ezist-tulip"/.test(IST) && /\.ezist-tulip\{/.test(css));
+// The emblem is bounded by construction: its own selector cannot match a page root, and the
+// section that contains it clips.
+ok('...the emblem selectors cannot reach a page root',
+  !/(^|[,}])\s*(html|body|:root)[^{]*\.ezist-tulip/.test(css) && /\.ezist-masthead\{[^}]*overflow:hidden/.test(css));
+ok('...and it uses the identity accent, not a literal', /\.ezist-tulip::before\{[^}]*var\(--a3-blue\)/.test(css));
+ok('the greeting and the daily line are the ones the app already picked',
+  /\{EZH_SALAM\}/.test(IST) && /\{EZH_HELLO\} \{name\}/.test(IST) && /\{g\.text\}/.test(IST));
+
+ok('the modules are a real MOSAIC, not a stack', /className="ezist-mosaic"/.test(IST) && /\.ezist-mosaic\{[^}]*display:grid/.test(css));
+ok('...one column on a phone', /\.ezist-mosaic\{[^}]*grid-template-columns:1fr/.test(css));
+ok('...two from 600px', /@media \(min-width:600px\)\{[\s\S]{0,400}?\.ezist-mosaic\{grid-template-columns:repeat\(2,1fr\)/.test(css));
+ok('...six from 1000px', /@media \(min-width:1000px\)\{[\s\S]{0,700}?\.ezist-mosaic\{grid-template-columns:repeat\(6,1fr\)/.test(css));
+ok('...inside a centred maximum width, so it is never loose on a desktop',
+  /\.ezist-wrap\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css));
+ok('...and no element is reordered away from its DOM position',
+  // the boundary matters: 'border' and 'box-sizing:border-box' both CONTAIN 'order', so the
+  // property has to be the first thing in the rule or follow a semicolon/space.
+  !/\.ezist-[a-z-]*\{(?:[^}]*[;\s])?order\s*:/.test(css),
+  'an order property would put the tab order out of step with the reading order');
+// FOUR MODULES, FOUR TREATMENTS -- not four identical rows.
+const treatments = ['ezistCard_adhkar', 'ezistCard_memorize', 'ezistCard_treasure', 'ezistFeature'];
+for (const t of treatments) ok('a distinct treatment exists: ' + t, !!s[t]);
+ok('the treatment is chosen by the descriptor\'s own id', /m\.id === \'mushaf\'/.test(IST) && /s\[\'ezistCard_\' \+ m\.id\]/.test(IST));
+// NO GIANT EMPTY CARD: every card renders an icon, a title AND a line of text, and none of them
+// is given a fixed height that could outrun its content.
+ok('every module card carries a title and a subtitle, not just an icon',
+  /\{m\.label\}/.test(IST) && /\{EZIST_SUB\[m\.id\]\}/.test(IST));
+for (const id of ['memorize', 'adhkar', 'mushaf', 'treasure']) ok('...and ' + id + ' has one', !!evalIn('EZIST_SUB["' + id + '"]'));
+const tall = ['ezistCard', 'ezistFeature', 'ezistAsk', 'ezistQuran'].filter((k) => typeof (s[k] || {}).height === 'number' || ((s[k] || {}).minHeight || 0) > 140);
+eq('no card is pinned to a height its content cannot fill', tall, []);
+
+ok('the daily verse has its own bounded panel', /<EzistQuranPanel \/>/.test(IST) && /className="ezist-quran"/.test(IST));
+ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
+ok('...and rendering the text verbatim', /<div style=\{s\.ezistQuranText\}>\{v\.text\}<\/div>/.test(IST),
+  'the Quran text must be printed as it is read -- no transform, no slice, no ellipsis');
+// no decorative mark may overlap the text: the marks live in the head row and the rule, both of
+// which are siblings of the text block, and nothing in this panel is absolutely positioned.
+ok('no mark is positioned over the Quran text',
+  !/ezistQuran(Text|Meta)[^}]*position: \'absolute\'/.test(html)
+  && /ezistQuranDot[^}]*background: \'var\(--a3-cyan\)\'/.test(html));
+
+ok('the chat entry is part of the composition', /<EzistAsk /.test(IST) && /className="ezhome-focus ezist-ask"/.test(IST));
+ok('...calling the existing callback unchanged', /onClick=\{onOpenChat\}/.test(IST));
+// not the legacy floating circle, and not a slab: a surface panel with one bounded accent box.
+ok('...as a surface panel, not a solid accent rectangle',
+  /var\(--a3-surface\)/.test(String(s.ezistAsk.background)) && (s.ezistAskGo || {}).width === 46,
+  'ezistAsk background is ' + String(s.ezistAsk.background));
+
+/* ---- H3. the identity still obeys the background invariant -------------- */
+// Group G already proves the page tokens; this proves the NEW rules cannot smuggle one in.
+const ezistRules = (css.match(/\.ezist-[^{]*\{[^}]*\}/g) || []);
+ok('the istana home declares its own rules', ezistRules.length > 8);
+const patterned = ezistRules.filter((r) => /background-image|gradient|url\(|repeating/i.test(r));
+eq('not one istana rule attaches an image, gradient or repeat', patterned, []);
+ok('and no istana selector can match html, body or :root',
+  !/(^|[,}\s])(html|body|:root)[^{,]*\.ezist-/.test(css) && !/\.ezist-[^{,]*\s+(html|body)\b/.test(css));
+// every colour in the new keys is a token, so the identity (and dark) reaches all of it.
+const ezistKeys = Object.keys(s).filter((k) => k.indexOf('ezist') === 0);
+ok('the istana home has its own style keys', ezistKeys.length >= 20, 'found ' + ezistKeys.length);
+const lit = [];
+for (const k of ezistKeys) for (const p of Object.keys(s[k])) {
+  const v = String(s[k][p]);
+  if (/#[0-9a-fA-F]{3,8}\b/.test(v) || /\brgba?\(/.test(v)) lit.push(k + '.' + p + '=' + v);
+}
+eq('no istana style key carries a hardcoded colour -- every one is a token', lit, []);
+// ...and therefore dark mode gets the SAME structure on the dark palette, which is measured by
+// group G8 over every key in `s`. Asserted here as the structural half of that claim:
+ok('the istana container paints itself from the page token, in both modes',
+  /var\(--a3-page\)/.test(String(s.ezistContainer.background)));
+for (const mode of ['light', 'dark']) {
+  const pal = VT_PAL['istana_33:' + mode];
+  const bg = resolve(s.ezistContainer.background, pal);
+  ok('istana home page in ' + mode + ' resolves', !!bg, String(s.ezistContainer.background));
+  if (mode === 'light') ok('...and light is exactly #FFFFFF', hex(bg) === '#ffffff', hex(bg));
+  else ok('...and dark stays dark', lum(bg) < 0.08, hex(bg));
+}
+// text-size and reduced motion: sizes are numbers (the scaler only rewrites numeric fontSize),
+// and this block introduces no animation or transition at all.
+const notNum = ezistKeys.filter((k) => s[k].fontSize != null && typeof s[k].fontSize !== 'number');
+eq('every istana font size is a number, so the text-size preference scales it', notNum, []);
+const moving = ezistKeys.filter((k) => s[k].animation || s[k].transition);
+eq('the istana home animates nothing, so reduced motion has nothing to switch off', moving, []);
+ok('...and its controls carry the shared focus ring class', (IST.match(/className="ezhome-focus/g) || []).length >= 5);
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
