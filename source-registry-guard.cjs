@@ -130,13 +130,31 @@ const quotedDomains = (body) =>
     && R.SOURCES.filter((s) => s.domain === 'islamstory.com').length === 1);
   ok('islamstory.com appears once in SITES_ADULT', adultArr.filter((d) => d === 'islamstory.com').length === 1);
 
-  // tafsir.net — AND THE FINDING THAT MATTERS MORE THAN THE RULE. The brief lists
-  // "#17 tafsir.net (مركز تفسير)" as already registered. It is NOT: what ships is
-  // tafsir.app, a different organisation on a different domain. Both statements are asserted
-  // so the discrepancy cannot quietly become an accidental double-add later.
-  ok('tafsir.app IS registered (the site that actually ships)', !!R.findSource('tafsir.app'));
-  ok('tafsir.net is NOT registered, and is NOT the same row as tafsir.app',
-    R.findSource('tafsir.net') === null && !adultArr.includes('tafsir.net'));
+  // tafsir.app AND tafsir.net ARE TWO SOURCES, NOT ONE.
+  //
+  // The first batch established that they are different: tafsir.app is «الباحث القرآني», an
+  // aggregator of ~50 classical tafsir books at /{book}/{surah}/{ayah}; tafsir.net is «مركز
+  // تفسير للدراسات القرآنية», a research centre publishing original studies by named authors.
+  // The second batch added the latter. These assertions are what stop the two from ever being
+  // "deduplicated" into one row by somebody who reads only the first six characters.
+  const tApp = R.findSource('tafsir.app');
+  const tNet = R.findSource('tafsir.net');
+  ok('tafsir.app IS registered', !!tApp);
+  ok('tafsir.net IS registered', !!tNet);
+  ok('they are two DIFFERENT rows', !!tApp && !!tNet && tApp !== tNet);
+  ok('...with different ids', tApp.id !== tNet.id);
+  ok('...different names', tApp.name !== tNet.name);
+  ok('...different domains, and neither is a sub-domain of the other',
+    tApp.domain !== tNet.domain
+    && !R.hostMatches(tApp.domain, tNet.domain) && !R.hostMatches(tNet.domain, tApp.domain));
+  ok('...and both appear, once each, in SITES_ADULT',
+    adultArr.filter((d) => d === 'tafsir.app').length === 1
+    && adultArr.filter((d) => d === 'tafsir.net').length === 1);
+  ok('a lookup of one never returns the other',
+    R.findSource('https://www.tafsir.net/articles/1') === tNet
+    && R.findSource('https://tafsir.app/tabari/2/3') === tApp);
+  ok('adding tafsir.net was not a duplicate: duplicateProblems() stays empty',
+    R.duplicateProblems().length === 0, JSON.stringify(R.duplicateProblems()));
 
   // The nine, each accounted for.
   const NINE = [
@@ -218,9 +236,28 @@ const quotedDomains = (body) =>
   ok('إدارة الإفتاء الكويتية: IS a source for a fatwa', R.sourceAllowsPurpose('eftaa.awqaf.gov.kw', 'fatwa'));
 
   // Filtering the ADULT list for a ruling drops exactly the restricted ones and nothing else.
+  ok('مركز تفسير: NOT a source for a fatwa', !R.sourceAllowsPurpose('tafsir.net', 'fatwa'));
+  ok('مركز تفسير: NOT a source for hadith grading', !R.sourceAllowsPurpose('tafsir.net', 'hadith'));
+  ok('مركز تفسير: IS a source for tafsir', R.sourceAllowsPurpose('tafsir.net', 'tafsir'));
+  ok('مركز تفسير: IS a source for general study', R.sourceAllowsPurpose('tafsir.net', 'general'));
+  ok('العباد: NOT a source for a personal fatwa', !R.sourceAllowsPurpose('al-abbaad.com', 'fatwa'));
+  ok('العباد: NOT a source for tafsir (withheld for now)', !R.sourceAllowsPurpose('al-abbaad.com', 'tafsir'));
+  ok('العباد: IS a source for hadith', R.sourceAllowsPurpose('al-abbaad.com', 'hadith'));
+  ok('العباد: IS a source for general explanation', R.sourceAllowsPurpose('al-abbaad.com', 'general'));
+  // tafsir.app is one of the fifteen and keeps ALL scopes — adding tafsir.net narrowed nothing.
+  ok('tafsir.app keeps every scope (the new neighbour narrowed nothing)',
+    R.PURPOSES.every((p) => R.sourceAllowsPurpose('tafsir.app', p)));
+
   const droppedForFatwa = adultArr.filter((d) => !R.filterSitesForPurpose(adultArr, 'fatwa').includes(d));
-  eq('a fatwa query drops exactly the five scope-restricted sources', sorted(droppedForFatwa),
-    sorted(['saleh.af.org.sa', 'khaledalsabt.com', 'almunajjid.com', 'khutabaa.com', 'salafcenter.org']));
+  eq('a fatwa query drops exactly the seven scope-restricted sources', sorted(droppedForFatwa),
+    sorted(['saleh.af.org.sa', 'khaledalsabt.com', 'almunajjid.com', 'khutabaa.com',
+      'salafcenter.org', 'tafsir.net', 'al-abbaad.com']));
+  eq('a tafsir query keeps مركز تفسير and drops العباد',
+    [R.filterSitesForPurpose(adultArr, 'tafsir').includes('tafsir.net'),
+      R.filterSitesForPurpose(adultArr, 'tafsir').includes('al-abbaad.com')], [true, false]);
+  eq('a hadith query keeps العباد and drops مركز تفسير',
+    [R.filterSitesForPurpose(adultArr, 'hadith').includes('al-abbaad.com'),
+      R.filterSitesForPurpose(adultArr, 'hadith').includes('tafsir.net')], [true, false]);
   eq('a general query drops nothing', R.filterSitesForPurpose(adultArr, 'general'), adultArr);
   ok('filtering preserves the shipped order', R.filterSitesForPurpose(adultArr, 'fatwa')
     .every((d, i, a) => i === 0 || adultArr.indexOf(a[i - 1]) < adultArr.indexOf(d)));
@@ -291,6 +328,26 @@ const quotedDomains = (body) =>
     ['https://almunajjid.com/speeches/lessons/790', false],
     ['https://islamqa.info/ar/answers/12345', false],                           // no rules => untouched
     ['https://islamweb.net/ar/fatwa/121485/x', false],
+
+    // ── batch 2 ──────────────────────────────────────────────────────────────
+    ['https://tafsir.net/', true],                                              // the home page
+    ['https://tafsir.net/articles', true],                                      // section index
+    ['https://tafsir.net/articles/24811', false],                               // the article
+    ['https://tafsir.net/researches', true],
+    ['https://tafsir.net/collection/656', true],                                // taxonomy
+    ['https://tafsir.net/category/396', true],
+    ['https://tafsir.net/authors/24813', true],                                 // author profile
+    ['https://tafsir.net/search?q=%D8%AA%D9%81%D8%B3%D9%8A%D8%B1', true],       // robots-disallowed
+    ['https://tafsir.net/user/login', true],
+    ['https://tafsir.net/articles/page/2', true],                               // real pagination
+
+    ['https://al-abbaad.com/', true],                                           // the home page
+    ['https://al-abbaad.com/articles', true],                                   // index
+    ['https://al-abbaad.com/articles/607420', false],                           // the article
+    ['https://al-abbaad.com/lecture/hadith', true],                             // lesson catalogue
+    ['https://al-abbaad.com/lecture/aqedah/kitab-attauhid', true],
+    ['https://al-abbaad.com/books/book-titles', true],
+    ['https://al-abbaad.com/sound/1234', true],                                 // audio, no transcript
   ];
   URLS.forEach(([u, refused]) => {
     const why = G.pathRefusal(u, '');
@@ -481,6 +538,117 @@ const quotedDomains = (body) =>
   g = gate(F.khaledIndexish, 'https://khaledalsabt.com/interpretations/9999/x', { usedReadability: false });
   ok('a link-heavy page that slipped past the path rules is refused by shape',
     !g.ok && /index-page-link-density/.test(g.note), JSON.stringify(g));
+
+  // ── batch 2: مركز تفسير and العباد ─────────────────────────────────────────
+  // The tafsir.net fixtures reproduce the two signals the live site declares: og:type on
+  // every node, and the «الكاتب:» label sitting beside the writer's own /authors/ link.
+  const TAFSIR_BODY = 'تتناول هذه المقالة المؤثرات الفكرية التي أسهمت في نشأة اتجاه الإعجاز العلمي '
+    + 'في القرآن الكريم وتطوّره، وتعرض أبرز المحطات التي كان لها أثر ظاهر فيه، مع بيان موقف المفسرين '
+    + 'المتقدمين من هذا الباب، ومناقشة ما استُدل به من الآيات، وتحرير محل النزاع في المسألة. ';
+  const tafsirPage = (ogType, byline, bodyRepeat) => `<html><head>
+    <title>المؤثرات الفكرية على الإعجاز العلمي | مركز تفسير للدراسات القرآنية</title>
+    <meta property="og:type" content="${ogType}" /></head><body>
+    <nav><a href="/articles">مقالات</a><a href="/researches">بحوث</a><a href="/collection/656">مقالات عامة</a></nav>
+    <div class="node-title h3"><p>المؤثرات الفكرية على الإعجاز العلمي (2-2)</p></div>
+    ${byline ? '<p class="text-secondary"><strong>الكاتب:</strong> <a href="/authors/24797"> ' + byline + ' </a></p>' : ''}
+    <div class="share"><a href="#">0</a><a href="#">تحميل</a><a href="#">مشاركة</a><a href="#">مسح رمز QR</a></div>
+    <article><p>${TAFSIR_BODY.repeat(bodyRepeat)}</p></article>
+    <aside><a href="/authors/24813">محمد السيد عليّ بلاسي</a><a href="/authors/24800">كاتب آخر</a></aside>
+    </body></html>`;
+  const TN = 'https://tafsir.net/articles/24811';
+
+  // (1) a real tafsir article is admitted, and the author comes back CLEAN.
+  g = gate(tafsirPage('article', 'جمال الدين عبد العزيز الشريف', 14), TN, { content: 'article' });
+  ok('مركز تفسير: a tafsir article is admitted', g.ok, g.note);
+  eq('مركز تفسير: the author is the labelled one, with no toolbar text welded on',
+    g.ok && g.author, 'جمال الدين عبد العزيز الشريف');
+  eq('مركز تفسير: attribution type', g.ok && g.attributionType, 'researcher');
+  ok('مركز تفسير: the sidebar authors of RELATED articles are not mistaken for the byline',
+    g.ok && !/بلاسي/.test(g.author));
+
+  // (2) a research paper with a named author is admitted.
+  g = gate(tafsirPage('research', 'عثمان بن عليّ بندو', 14), 'https://tafsir.net/researchs/24780', { content: 'article' });
+  ok('مركز تفسير: a research paper with an author is admitted', g.ok, g.note);
+  eq('مركز تفسير: its author is preserved', g.ok && g.author, 'عثمان بن عليّ بندو');
+
+  // (3)/(4) the home page, the indexes, the taxonomies and search are refused by URL alone.
+  ok('مركز تفسير: the home page is refused', !!G.pathRefusal('https://tafsir.net/', ''));
+  ok('مركز تفسير: a category listing is refused', !!G.pathRefusal('https://tafsir.net/category/396', ''));
+  ok('مركز تفسير: a collection listing is refused', !!G.pathRefusal('https://tafsir.net/collection/656', ''));
+  ok('مركز تفسير: the search page is refused (and the site disallows it in robots.txt)',
+    !!G.pathRefusal('https://tafsir.net/search?q=x', ''));
+
+  // (5) no author shown => no card. The brief's «أي صفحة لا يظهر فيها صاحب المادة».
+  g = gate(tafsirPage('article', '', 14), TN, { content: 'article' });
+  ok('مركز تفسير: an article with no named author is refused',
+    !g.ok && /attribution-indeterminate/.test(g.note), JSON.stringify(g));
+
+  // an author BIOGRAPHY page is not an article, whatever path it is reached by
+  g = gate(tafsirPage('author', 'محمد السيد عليّ بلاسي', 14), TN, { content: 'article' });
+  ok('مركز تفسير: an author profile page is refused even at an article URL',
+    !g.ok, JSON.stringify(g));
+  ok('مركز تفسير: ...and /authors/{id} is refused by URL too',
+    !!G.pathRefusal('https://tafsir.net/authors/24813', ''));
+
+  // a page whose real body is a PDF download: too little text to stand on
+  g = gate(tafsirPage('research', 'عثمان بن عليّ بندو', 1), 'https://tafsir.net/researchs/24780', { content: 'article' });
+  ok('مركز تفسير: a PDF-stub research page is refused for want of text',
+    !g.ok && /thin-page/.test(g.note), JSON.stringify(g));
+
+  // (8) a redirect off the domain: the row does not vouch for another host.
+  ok('مركز تفسير: a look-alike host resolves to no row',
+    R.findSource('tafsir.net.evil.com') === null && R.findSource('evil-tafsir.net') === null);
+  g = gate(tafsirPage('article', 'جمال الدين عبد العزيز الشريف', 14), 'https://evil.example/x', { content: 'article' });
+  ok('مركز تفسير: the same page served from another host gets no tafsir.net treatment',
+    g.ok && g.author === '' && g.attributionType === '');
+
+  // ── العباد ─────────────────────────────────────────────────────────────────
+  const ABBAAD_BODY = 'الحمد لله والصلاة والسلام على رسول الله، أما بعد: فإن من أعظم ما يعتني به طالب '
+    + 'العلم معرفة أحوال الرواة وطرق التحمل والأداء، وقد جاء في السنة ما يدل على فضل العناية بالحديث '
+    + 'وحفظه وتبليغه، وهذا مما ينبغي أن يُعتنى به في هذا الزمان. ';
+  const abbaadPage = (namePresent, bodyRepeat, sidebarOnly) => `<html><head>
+    <title>من ذكرياتي عن الشيخ أبي بكر الجزائري - الموقع الرسمي</title></head><body>
+    <nav><a href="/articles">المقالات</a><a href="/lecture/hadith">الدروس</a><a href="/books">الكتب</a></nav>
+    ${sidebarOnly ? '<aside>' + Array.from({ length: 40 }, (_, i) => `<a href="/lecture/x${i}">شرح سنن أبي داود الدرس ${i}</a>`).join(' ') + '</aside>' : ''}
+    <article><h1>من ذكرياتي عن الشيخ أبي بكر الجزائري رحمه الله</h1>
+    <p>${ABBAAD_BODY.repeat(bodyRepeat)}</p></article>
+    <footer>${namePresent ? 'جميع الحقوق محفوظة للموقع الرسمي عبد المحسن بن حمد العباد' : 'جميع الحقوق محفوظة'}</footer>
+    </body></html>`;
+  const AB = 'https://al-abbaad.com/articles/607420';
+
+  // (1)/(2) a single article is admitted and its body is what is carried.
+  g = gate(abbaadPage(true, 4, false), AB, { content: 'article' });
+  ok('العباد: a single article page is admitted', g.ok, g.note);
+  eq('العباد: attributed to the shaykh', g.ok && g.author, 'الشيخ عبد المحسن بن حمد العباد');
+  ok('العباد: the article body is carried, not the navigation',
+    g.ok && g.text.includes('طالب العلم') && !g.text.includes('شرح سنن أبي داود'), g.ok ? g.text.slice(0, 90) : '');
+
+  // (3)/(4)/(5) indexes, lesson catalogues and untranscribed audio are refused by URL.
+  ok('العباد: the articles index is refused', !!G.pathRefusal('https://al-abbaad.com/articles', ''));
+  ok('العباد: the lesson catalogue is refused', !!G.pathRefusal('https://al-abbaad.com/lecture/hadith', ''));
+  ok('العباد: audio with no transcript is refused', !!G.pathRefusal('https://al-abbaad.com/sound/12', ''));
+  ok('العباد: the book shelf is refused', !!G.pathRefusal('https://al-abbaad.com/books/book-titles', ''));
+  ok('العباد: the home page is refused', !!G.pathRefusal('https://al-abbaad.com/', ''));
+
+  // (6) a page with no body of its own
+  g = gate(abbaadPage(true, 0, false), AB, { content: 'article' });
+  ok('العباد: a page with no article body is refused', !g.ok && /thin-page/.test(g.note), JSON.stringify(g));
+
+  // ...and one whose only text is the sidebar, when Readability cannot isolate a body
+  g = gate(abbaadPage(true, 0, true), 'https://al-abbaad.com/articles/999999', { usedReadability: false });
+  ok('العباد: a page whose text cannot be separated from the sidebar is refused',
+    !g.ok, JSON.stringify(g));
+
+  // the page must establish it IS his official site
+  g = gate(abbaadPage(false, 4, false), AB, { content: 'article' });
+  ok('العباد: a page that does not establish the official site is refused',
+    !g.ok && /attribution-indeterminate/.test(g.note), JSON.stringify(g));
+
+  // (9) the site being down ends with no card and no claim
+  g = gate('<html><head><title>خطأ</title></head><body></body></html>', AB);
+  ok('العباد: an empty/broken response yields no card', !g.ok, JSON.stringify(g));
+  g = gate('<html><body><h1>503 Service Unavailable</h1></body></html>', TN, { usedReadability: false });
+  ok('مركز تفسير: a 503 body yields no card', !g.ok, JSON.stringify(g));
 
   // (9) an unregistered host is untouched by all of this — the fifteen keep their behaviour.
   g = gate(F.khaledTafsir, 'https://islamweb.net/ar/fatwa/121485/x');
