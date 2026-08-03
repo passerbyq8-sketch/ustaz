@@ -472,10 +472,14 @@ function partD() {
     && /if \(!stickToEndRef\.current\) return;/.test(decoded));
   ok('...and the opening pin is still a layout effect written before paint',
     /React\.useLayoutEffect\(\(\) => \{\s*if \(!jumpToEndRef\.current\) return;/.test(decoded));
-  // BOTH animated scrolls, not one. A setting that leaves half the motion moving is not a setting.
+  // EVERY animated scroll, not some. A setting that leaves half the motion moving is not a
+  // setting, and the count is how that is pinned -- but the count is a consequence, not the
+  // rule. S103 took it from two to one: the second belonged to the deleted deck browser's
+  // jump-to-favourites affordance, which went with the component rather than being turned off.
+  // The rule below is unchanged and is the one that matters.
   const scrolls = (decoded.match(/^.*scrollIntoView\(\{[^}]*behavior[^}]*\}.*$/gm) || [])
     .map((l) => l.trim()).filter((l) => l.indexOf('//') !== 0 && l.indexOf('*') !== 0);
-  eq('the app owns exactly two animated scrolls', scrolls.length, 2);
+  eq('the app owns exactly one animated scroll', scrolls.length, 1);
   ok('...and EVERY one of them asks the reduced-motion question',
     scrolls.every((l) => /ezikMotionReduced/.test(l)), scrolls.join(' || '));
 

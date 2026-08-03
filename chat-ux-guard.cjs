@@ -1666,7 +1666,9 @@ function partE() {
   const scrolls = (decoded.match(/^.*scrollIntoView\(\{[^}]*behavior[^}]*\}.*$/gm) || [])
     .map((l) => l.trim())
     .filter((l) => l.indexOf('//') !== 0 && l.indexOf('*') !== 0);   // the S97 note quotes the old line
-  eq('there are still exactly two animated scrolls on the page', scrolls.length, 2);
+  // S103: one, not two. The second was the deleted deck browser's jump-to-favourites; the
+  // invariant that every animated scroll honours reduced motion is asserted below, unchanged.
+  eq('there is still exactly one animated scroll on the page', scrolls.length, 1);
   ok('...one of them the chat follow effect',
     scrolls.some((l) => l.indexOf('messagesEndRef.current?.scrollIntoView') === 0), scrolls.join(' || '));
   ok('...and it honours reduced motion rather than hardcoding a behaviour',
