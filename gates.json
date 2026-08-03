@@ -133,5 +133,30 @@
   "name": "smartretrieval",
   "script": "smart-retrieval-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "ledgercontract",
+  "script": "ledger-contract-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "ledgerretrieval",
+  "script": "ledger-retrieval-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "ledgergates",
+  "script": "ledger-gates-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "ledgerruntime",
+  "script": "ledger-runtime-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "ledgerfixtures",
+  "script": "ledger-fixtures-guard.cjs",
+  "args": "--compare data/ledger-fixtures.json"
  }
 ]

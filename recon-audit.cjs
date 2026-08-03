@@ -522,7 +522,17 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 27;   // 27th: smart-retrieval-guard (a scholar's name starts a search,
+  const GATES_EXPECTED = 32;   // 28th-32nd: the five ledger-RAG guards. They cover a PARALLEL
+                               //       answer path that is default-OFF (lib/ledger/**, reached
+                               //       only via lib/ledger/flag.js), so they gate code the
+                               //       shipped route never executes -- which is exactly why they
+                               //       have to be gated: an unexercised path rots silently.
+                               //       ledger-contract   (capabilities, source policy, query IR)
+                               //       ledger-retrieval  (bounds matrix, ranking, SSRF, canonical)
+                               //       ledger-gates      (byte offsets, the three gates, mutations)
+                               //       ledger-runtime    (flag, kill switch, cache keys, telemetry)
+                               //       ledger-fixtures   (the nine questions, end to end)
+                               // 27th: smart-retrieval-guard (a scholar's name starts a search,
                                //       it does not end one; the canned refusal is no longer a
                                //       global fallback)
                                // 26th: brave-query-guard    (no Brave query the app can build

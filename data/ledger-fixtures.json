@@ -1,0 +1,92 @@
+{
+  "schema": "ledger-fixtures-v1",
+  "note": "WHAT THESE FIXTURES PIN, AND WHAT THEY DELIBERATELY DO NOT. They pin ROUTING (which intent, which capability, which authority), ELIGIBILITY (which sources may and may not be reached), EVIDENCE (that every claim resolves to a real span in one answer unit) and COVERAGE (which slots verified evidence filled). They pin NO fiqh answer: no expected ruling, no expected wording, no expected scholar's position. A fixture asserting a ruling would be asserting the model's memory, which is the defect this engine exists to remove. The Arabic questions are public test questions and carry no reader identity.",
+  "ids_are_ascii": true,
+  "fixtures": [
+    {
+      "id": "F1_tafsir_sahoon",
+      "question": "ما معنى قوله تعالى: فويل للمصلين الذين هم عن صلاتهم ساهون؟",
+      "intents": ["tafsir"],
+      "authority": null,
+      "expect_outcome": "FULL",
+      "expect_min_cards": 1,
+      "notes": "A tafsir question must reach an original tafsir page, never an index, and never a source whose declared scope excludes tafsir."
+    },
+    {
+      "id": "F2_hadith_niyyat_explain",
+      "question": "اشرح حديث: إنما الأعمال بالنيات",
+      "intents": ["hadith_explanation"],
+      "authority": null,
+      "expect_outcome": "FULL",
+      "expect_min_cards": 1,
+      "notes": "Explanation is not takhrij. A source eligible only for grading may not supply the explanation, and vice versa."
+    },
+    {
+      "id": "F3_fadl_salah",
+      "question": "ما فضل الصلاة؟",
+      "intents": ["general", "fatwa"],
+      "authority": null,
+      "expect_outcome": "FULL",
+      "expect_min_cards": 1,
+      "notes": "Every card must support a surviving sentence. No decorative card."
+    },
+    {
+      "id": "F4_gold_instalment",
+      "question": "ما حكم بيع الذهب بالتقسيط؟",
+      "intents": ["fatwa"],
+      "authority": null,
+      "expect_outcome": "FULL",
+      "expect_min_cards": 1,
+      "forbidden_domains": ["tafsir.net", "tafsir.app", "al-abbaad.com", "khutabaa.com", "salafcenter.org", "almunajjid.com", "saleh.af.org.sa", "khaledalsabt.com"],
+      "notes": "fatwa, never scholar_opinion. «الذهب» is a commodity."
+    },
+    {
+      "id": "F5_combine_prayers_work",
+      "question": "ما حكم الجمع بين الصلاتين بسبب العمل؟",
+      "intents": ["fatwa"],
+      "authority": null,
+      "expect_outcome": "FULL",
+      "expect_min_cards": 1,
+      "forbidden_domains": ["tafsir.net", "tafsir.app", "al-abbaad.com", "khutabaa.com", "salafcenter.org", "almunajjid.com", "saleh.af.org.sa", "khaledalsabt.com"],
+      "notes": "No condition may appear in the answer that the evidence does not carry."
+    },
+    {
+      "id": "F6_abbaad_opinion",
+      "question": "ما رأي الشيخ عبدالمحسن العباد في بيع الذهب بالتقسيط؟",
+      "intents": ["scholar_opinion"],
+      "authority": "al-abbaad",
+      "expect_outcome": "SAFE_REJECTION",
+      "expect_min_cards": 0,
+      "expect_brave_calls": 0,
+      "notes": "No registered primary-opinion adapter, so the attribution is refused BEFORE any provider call. His view is never inferred from a general article."
+    },
+    {
+      "id": "F7_uthaymeen_miscarriage",
+      "question": "ما رأي الشيخ ابن عثيمين فيمن أسقطت قبل ثمانين يومًا؟ وهل تصلي وتصوم؟",
+      "intents": ["scholar_opinion", "fatwa"],
+      "authority": "ibn-uthaymeen",
+      "expect_outcome": "FULL",
+      "expect_min_cards": 1,
+      "expect_brave_calls_for_authority": 0,
+      "notes": "His own corpus is read through the registered adapter, which is not in any site: filter. Every condition and ruling must carry spans from ONE answer unit."
+    },
+    {
+      "id": "F8_ya_mu3ti",
+      "question": "ما حكم قول: يا معطي لا تبطي؟",
+      "intents": ["fatwa"],
+      "authority": null,
+      "expect_outcome": "SAFE_REJECTION",
+      "expect_min_cards": 0,
+      "notes": "The scripted corpus carries no page addressing this expression, so the honest outcome is a refusal. No hadith, no scholar and no attribution may be invented to fill the gap."
+    },
+    {
+      "id": "F9_plane_prayer_binbaz",
+      "question": "أنا مسافر في الطائرة ودخل وقت الصلاة، فكيف أصلي؟ وما رأي الشيخ ابن باز في ذلك؟",
+      "intents": ["fatwa", "scholar_opinion"],
+      "authority": "ibn-baz",
+      "expect_outcome": "FULL",
+      "expect_min_cards": 2,
+      "notes": "Two issues in one question: a general ruling and a named man's position. Each sentence must rest on the right view, and no hybrid ruling may be produced."
+    }
+  ]
+}
