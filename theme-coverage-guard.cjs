@@ -446,18 +446,26 @@ const throwStore = { getItem() { throw new Error('denied'); }, setItem() { throw
   removeItem() { throw new Error('denied'); }, clear() {}, key: () => null, length: 0 };
 
 let KEYS = null;
-try { KEYS = { mode: evalIn('THEME_KEY'), layout: evalIn('EZIK_UI_STYLE_KEY'), visual: evalIn('EZIK_VISUAL_THEME_KEY') }; }
+try { KEYS = { mode: evalIn('THEME_KEY'), visual: evalIn('EZIK_VISUAL_THEME_KEY') }; }
 catch (err) { KEYS = null; }
-if (!ok('the three presentational keys are all declared', !!KEYS,
-  'one of THEME_KEY / EZIK_UI_STYLE_KEY / EZIK_VISUAL_THEME_KEY is missing from the shipped block')) {
-  KEYS = { mode: '', layout: '', visual: '' };
-}
+if (!ok('the two remaining presentational keys are declared', !!KEYS,
+  'THEME_KEY or EZIK_VISUAL_THEME_KEY is missing from the shipped block')) KEYS = { mode: '', visual: '' };
 eq('the colour MODE key is unchanged', KEYS.mode, 'murabbi_theme_v1');
-eq('the LAYOUT key is unchanged', KEYS.layout, 'ezik_ui_style_v1');
-eq('the VISUAL IDENTITY key is its own', KEYS.visual, 'ezik_visual_theme_v1');
-ok('...and no two of the three are the same key',
-  new Set([KEYS.mode, KEYS.layout, KEYS.visual]).size === 3);
-// Independence is not a naming convention: WRITE each setting and see which keys move.
+// S102: a PRE-RELEASE BUMP. v1 was never deployed, and the only devices holding it are the
+// ones this session's own visual tests wrote qibla_13 onto -- which is why the app opened
+// green. The new key is v2, and v1 is not read by anything.
+eq('the visual identity key is the pre-release v2 key', KEYS.visual, 'ezik_visual_theme_v2');
+ok('...and the two keys are different keys', KEYS.mode !== KEYS.visual);
+// THE REGRESSION THIS EXISTS TO STOP: nothing may READ v1 again.
+const v1Reads = (html.match(/getItem\(\s*['\"]ezik_visual_theme_v1['\"]\s*\)/g) || []).length
+  + (html.match(/getItem\(EZIK_VISUAL_THEME_KEY_V1\)/g) || []).length;
+eq('nothing reads the undeployed v1 key -- a stored qibla_13 cannot reach the app', v1Reads, 0);
+ok('...and v1 is still named, so erasing data can delete it',
+  /EZIK_VISUAL_THEME_KEY_V1 = 'ezik_visual_theme_v1'/.test(html)
+  && /removeItem\(EZIK_VISUAL_THEME_KEY_V1\)/.test(html));
+ok('...as is the obsolete layout key',
+  /EZIK_UI_STYLE_KEY_DEAD = 'ezik_ui_style_v1'/.test(html)
+  && /removeItem\(EZIK_UI_STYLE_KEY_DEAD\)/.test(html));
 function recordWrite(expr) {
   const touched = [];
   withStore({ getItem: () => null, setItem: (k, v) => touched.push(k + '=' + v),
@@ -466,16 +474,16 @@ function recordWrite(expr) {
   return touched;
 }
 eq('choosing an identity writes ONLY the identity key',
-  recordWrite('writeEzikVisualTheme("qibla_13")'), ['ezik_visual_theme_v1=qibla_13']);
-eq('choosing a layout still writes ONLY the layout key',
-  recordWrite('writeEzikUiStyle("deck")'), ['ezik_ui_style_v1=deck']);
+  recordWrite('writeEzikVisualTheme("istana_33")'), ['ezik_visual_theme_v2=istana_33']);
 
 /* ---- G2. the reader is total and the default is istana_33 --------------- */
 eq('istana_33 is the declared default identity', evalIn('EZIK_VISUAL_THEME_DEFAULT'), 'istana_33');
-eq('...and it is one of the two ids, not a third value', evalIn('EZIK_VISUAL_THEME_ISTANA'), 'istana_33');
-eq('qibla_13 is the other id', evalIn('EZIK_VISUAL_THEME_QIBLA'), 'qibla_13');
+eq('...and it is the id itself', evalIn('EZIK_VISUAL_THEME_ISTANA'), 'istana_33');
+// S102: qibla_13 keeps its TOKEN groundwork in the stylesheet for the next batch, and has no
+// constant, no accepted value and no control. It cannot be selected and cannot be stored.
+ok('qibla_13 is not a reachable value in the app code', !/EZIK_VISUAL_THEME_QIBLA/.test(html));
 function readVT(stored) { withStore(stubStore(stored)); return evalIn('readEzikVisualTheme()'); }
-eq('a saved qibla_13 is returned, never defaulted away', readVT('qibla_13'), 'qibla_13');
+eq('a stored qibla_13 -- including the one the visual tests wrote -- resolves to istana_33', readVT('qibla_13'), 'istana_33');
 eq('a saved istana_33 is returned', readVT('istana_33'), 'istana_33');
 eq('an ABSENT key is istana_33 -- the never-saved default', readVT(null), 'istana_33');
 eq('an unknown word fails safe to istana_33', readVT('ottoman'), 'istana_33');
@@ -485,49 +493,59 @@ eq('the wrong case is not the id', readVT('QIBLA_13'), 'istana_33');
 eq('a value of the wrong type fails safe', readVT(13), 'istana_33');
 withStore(throwStore);
 eq('a storage that THROWS still yields istana_33', evalIn('readEzikVisualTheme()'), 'istana_33');
-eq('...and the writer still returns a legal id when it cannot save', evalIn('writeEzikVisualTheme("qibla_13")'), 'qibla_13');
+eq('...and the writer still returns a legal id when it cannot save', evalIn('writeEzikVisualTheme("istana_33")'), 'istana_33');
 withStore(stubStore(null));
 eq('the writer normalises an illegal id to the default', evalIn('writeEzikVisualTheme("nope")'), 'istana_33');
-eq('the writer accepts qibla_13', evalIn('writeEzikVisualTheme("qibla_13")'), 'qibla_13');
-eq('...and puts it on <html> where the stylesheet can see it',
-  evalIn('document.documentElement.getAttribute("data-ezik-visual-theme")'), 'qibla_13');
+eq('the writer refuses qibla_13 and normalises it away', evalIn('writeEzikVisualTheme("qibla_13")'), 'istana_33');
+eq('...and what lands on <html> is istana_33',
+  evalIn('document.documentElement.getAttribute("data-ezik-visual-theme")'), 'istana_33');
 eq('the writer accepts istana_33', evalIn('writeEzikVisualTheme("istana_33")'), 'istana_33');
 eq('...and repaints the attribute',
   evalIn('document.documentElement.getAttribute("data-ezik-visual-theme")'), 'istana_33');
 
-/* ---- G3. the layout choice is untouched --------------------------------- */
-eq('journey is still a layout', evalIn('EZIK_UI_STYLE_JOURNEY'), 'journey');
-eq('deck is still a layout', evalIn('EZIK_UI_STYLE_DECK'), 'deck');
-eq('journey is still the layout default', evalIn('EZIK_UI_STYLE_DEFAULT'), 'journey');
-function readUI(stored) { withStore(stubStore(stored)); return evalIn('readEzikUiStyle()'); }
-eq('a saved journey survives this phase', readUI('journey'), 'journey');
-eq('a saved deck survives this phase', readUI('deck'), 'deck');
-eq('an absent layout key is still journey', readUI(null), 'journey');
-eq('an identity id is NOT accepted as a layout', readUI('istana_33'), 'journey');
-ok('both layouts are still rendered by the three switch points',
-  (html.match(/style === EZIK_UI_STYLE_DECK \?/g) || []).length === 3,
-  'the home, the adhkar browse and the adhkar reader each choose between journey and deck');
+/* ---- G3. the layout system is GONE, not hidden -------------------------- */
+// It was removed in the same commit that added these checks, after a reference sweep proved
+// every symbol dead. Asserted by absence from the shipped file, which is the only way to tell
+// 'removed' from 'still there behind a flag'.
+for (const sym of ['EZIK_UI_STYLE_KEY ', 'EZIK_UI_STYLE_JOURNEY', 'EZIK_UI_STYLE_DECK', 'EZIK_UI_STYLE_EVENT',
+  'readEzikUiStyle(', 'writeEzikUiStyle(', 'useEzikUiStyle(', 'EzikJourneyHome', 'EzikDeckHome',
+  'EzHomeNav', 'EzHomeGreet', 'EzHomeCallout', 'A3_JOURNEY_NAME', 'A3_DECK_NAME', 'A3_STYLE_TITLE']) {
+  ok('the legacy symbol ' + sym.trim() + ' is gone from the file', html.indexOf(sym) === -1);
+}
+// ...and so are the style keys only it read. Nothing may quietly keep drawing them.
+for (const k of ['ezhContainer', 'ezhNav', 'ezhFab', 'ezhDeckCard', 'ezhPath', 'designRow', 'designOpt', 'prevBox']) {
+  ok('the legacy style key ' + k + ' is gone', !s[k]);
+}
+ok('no journey/deck renderer is reachable from the home owner',
+  /return <EzikIstanaHome \{\.\.\.home\} \/>;/.test(html)
+  && !/EZIK_UI_STYLE_DECK \?/.test(html));
 
 /* ---- G4. the identity is on <html> before the first paint --------------- */
-function bootVT(src2, stored) {
+function bootVT(src2, stored, v1) {
   const m2 = /<script>\(function\(\)\{try\{var t=localStorage\.getItem\('murabbi_theme_v1'\)[\s\S]*?<\/script>/.exec(src2);
   if (!m2) return null;
   const body = m2[0].replace(/^<script>/, '').replace(/<\/script>$/, '');
   const { window: w } = parseHTML('<!DOCTYPE html><html><head><meta name="theme-color" content="#1D4ED8"></head><body></body></html>');
-  w.localStorage = stubStore(stored);
+  // the boot script must read v2 ONLY: a device carrying the undeployed v1=qibla_13 (which is
+  // exactly what the visual tests left behind) has to paint istana_33 anyway.
+  w.localStorage = { getItem: (k) => (k === 'ezik_visual_theme_v2' ? stored : (k === 'ezik_visual_theme_v1' ? (v1 || null) : null)),
+    setItem() {}, removeItem() {}, clear() {}, key: () => null, length: 0 };
   vm.runInContext(body, vm.createContext(w), { filename: 'boot.js' });
   return w.document.documentElement.getAttribute('data-ezik-visual-theme');
 }
-for (const [stored, want] of [['qibla_13', 'qibla_13'], ['istana_33', 'istana_33'], [null, 'istana_33'], ['journey', 'istana_33']]) {
-  eq('boot: stored=' + String(stored) + ' paints the identity before first paint', bootVT(html, stored), want);
+for (const [stored, want] of [['istana_33', 'istana_33'], [null, 'istana_33'], ['qibla_13', 'istana_33'], ['journey', 'istana_33']]) {
+  eq('boot: v2=' + String(stored) + ' paints istana_33 before first paint', bootVT(html, stored), want);
 }
+// THE DEFECT THAT MADE THE APP OPEN GREEN, asserted directly.
+eq('boot: a device carrying the undeployed v1=qibla_13 still opens istana_33', bootVT(html, null, 'qibla_13'), 'istana_33');
+eq('boot: ...even with v2 also holding a stale qibla_13', bootVT(html, 'qibla_13', 'qibla_13'), 'istana_33');
 // Both offsets have to be measured in the SAME comment-stripped head, for the reason
 // headOrder() documents: the prose above the boot script quotes <link rel="stylesheet">.
 const vtHead = html.slice(0, html.indexOf('</head>')).replace(/<!--[\s\S]*?-->/g, ' ');
 const vtSheet = (() => { for (const m of vtHead.matchAll(/<link\b[^>]*>/gi)) if (/rel\s*=\s*["']?stylesheet/i.test(m[0])) return m.index; return -1; })();
 ok('the boot reader runs before any external stylesheet, like the mode reader',
-  vtHead.indexOf('ezik_visual_theme_v1') !== -1 && (vtSheet === -1 || vtHead.indexOf('ezik_visual_theme_v1') < vtSheet),
-  'reader at ' + vtHead.indexOf('ezik_visual_theme_v1') + ', first stylesheet at ' + vtSheet);
+  vtHead.indexOf('ezik_visual_theme_v2') !== -1 && (vtSheet === -1 || vtHead.indexOf('ezik_visual_theme_v2') < vtSheet),
+  'reader at ' + vtHead.indexOf('ezik_visual_theme_v2') + ', first stylesheet at ' + vtSheet);
 
 /* ---- G5. THE BACKGROUND INVARIANT -------------------------------------- */
 // Every page root in light must be a plain, solid #FFFFFF: not near-white, not a gradient,
@@ -582,7 +600,8 @@ ok('the signature radius is a separate token from the card radius',
   /--vt-radius-sig\s*:/.test(css) && /--ez-radius-sig\s*:/.test(css));
 eq('istana_33 is the identity that actually arches', VT.light.istana_33['--vt-radius-sig'], '120px 120px 18px 18px');
 ok('...and one real component reads the signature radius',
-  /borderRadius: 'var\(--ez-radius-sig\)'/.test(html));
+  /\.ezist-masthead\{[^}]*border-radius:var\(--ez-radius-sig\)/.test(css),
+  'the istana masthead is the component that arches; the legacy callout that used to read it is gone');
 
 /* ---- G7. both identities have a dark face ------------------------------ */
 for (const id of VT_IDS) {
@@ -647,104 +666,83 @@ for (const id of VT_IDS) {
   }
 }
 
-/* ---- G9. Settings exposes the choice, beside the other two ------------- */
-const vtSetStart = html.indexOf('const uiStyle = useEzikUiStyle()');
-const settingsRegion = html.slice(vtSetStart, html.indexOf('{EZIK_A11Y_TITLE}', vtSetStart));
+/* ---- G9. Settings states the active design; it no longer offers a choice --
+ * S102: one reachable design, so the card is a STATEMENT. The failure this replaces is not
+ * hypothetical -- the app opened green because a chooser existed and a test used it.
+ * ---------------------------------------------------------------------- */
+const vtSetStart = html.indexOf('const visualTheme = useEzikVisualTheme();');
+const settingsRegion = vtSetStart === -1 ? '' : html.slice(vtSetStart, html.indexOf('{EZIK_A11Y_TITLE}', vtSetStart));
 ok('the Settings screen was located', vtSetStart !== -1 && settingsRegion.length > 500,
   'region length ' + settingsRegion.length);
 ok('Settings still offers both colour modes',
   /<Opt value="light"/.test(settingsRegion) && /<Opt value="dark"/.test(settingsRegion));
-ok('Settings still offers both layouts',
-  /<StyleOpt value=\{EZIK_UI_STYLE_JOURNEY\}/.test(settingsRegion) && /<StyleOpt value=\{EZIK_UI_STYLE_DECK\}/.test(settingsRegion));
-ok('Settings offers qibla_13', /<VtOpt value=\{EZIK_VISUAL_THEME_QIBLA\}/.test(settingsRegion));
-ok('Settings offers istana_33', /<VtOpt value=\{EZIK_VISUAL_THEME_ISTANA\}/.test(settingsRegion));
-ok('...as a labelled radiogroup of its own', /role="radiogroup" aria-label=\{EZ_VT_TITLE\}/.test(settingsRegion));
-ok('...whose options carry radio semantics and checked state',
-  /role="radio" aria-checked=\{visualTheme === value/.test(settingsRegion));
-ok('...and a press writes the identity, nothing else', /onClick=\{\(\) => writeEzikVisualTheme\(value\)\}/.test(settingsRegion));
-ok('the identity previews are CSS only -- no image, no data URI, nothing to fetch',
-  !/PREV_QIBLA[\s\S]{0,600}(<img|data:|url\()/.test(html) && !/PREV_ISTANA[\s\S]{0,600}(<img|data:|url\()/.test(html));
-// A preview has to show the theme it is NOT: both preview swatch sets are declared, both are
-// white-paged, and they do not follow data-theme (the choice is about the light face).
+// JOURNEY AND DECK APPEAR NOWHERE.
+ok('Settings shows no Journey control', !/Journey|JOURNEY|journey/.test(settingsRegion));
+ok('Settings shows no Deck control', !/Deck|DECK|deck/.test(settingsRegion));
+ok('...and the whole file offers no layout chooser', !/StyleOpt/.test(html));
+// THE ACTIVE DESIGN IS STATED.
+ok('Settings names the active application design', /\{EZ_VT_ISTANA\}/.test(settingsRegion));
+ok('...as a state, not an option', /\{EZ_VT_ACTIVE\}/.test(settingsRegion));
+// QIBLA IS NOT SELECTABLE. Not by pointer, not by keyboard, not by any code path.
+ok('qibla_13 appears only as a disabled upcoming line',
+  /\{EZ_VT_QIBLA\}/.test(settingsRegion) && /aria-disabled="true"/.test(settingsRegion));
+const qibIdx = settingsRegion.indexOf('{EZ_VT_QIBLA}');
+const qibRow = qibIdx === -1 ? '' : settingsRegion.slice(Math.max(0, qibIdx - 400), qibIdx + 200);
+ok('...with no radio role', !/role="radio"/.test(qibRow));
+ok('...with no checked state', !/aria-checked/.test(qibRow));
+ok('...with no click handler', !/onClick/.test(qibRow));
+ok('...and it is not a button, so it cannot be tabbed to', !/<button/.test(qibRow));
+// and nothing anywhere can write it, because the value does not exist in the code.
+// scoped to the APP BLOCK: the id is still a selector in <style>, which is the groundwork the
+// next batch needs. What must not exist is a value the code can read, write or compare.
+// comments are stripped first: a comment EXPLAINING that qibla_13 is unreachable is not a
+// code path, and a check that cannot tell those apart would force the explanation out.
+const appBlock = html.slice(html.indexOf('</style>'))
+  .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^[ \t]*\/\/.*$/gm, ' ');
+ok('no code path can produce qibla_13', !/qibla_13/.test(appBlock),
+  'the id may live on in the stylesheet as groundwork, but not in the app block');
+ok('the identity previews that fed the old chooser are gone with it',
+  !/PREV_QIBLA|PREV_ISTANA|VtOpt/.test(html));
+// the swatch tokens stay declared: the next batch needs them back.
 for (const [pfx, want] of [['q', 'qibla_13'], ['i', 'istana_33']]) {
-  eq('the ' + want + ' preview page is plain white', LIGHT['--vtp-' + pfx + '-page'], '#FFFFFF');
-  eq('the ' + want + ' preview surface is the approved surface', LIGHT['--vtp-' + pfx + '-surface'], VT_APPROVED[want]['--vt-surface']);
-  eq('the ' + want + ' preview accent is the approved accent', LIGHT['--vtp-' + pfx + '-accent'], VT_APPROVED[want]['--vt-accent']);
-  eq('the ' + want + ' preview line is the approved line', LIGHT['--vtp-' + pfx + '-line'], VT_APPROVED[want]['--vt-line']);
+  eq('the ' + want + ' swatch groundwork is still declared', LIGHT['--vtp-' + pfx + '-page'], '#FFFFFF');
 }
 
-/* ---- G9c. the selector is mounted WHERE ITS TOKENS ARE ------------------
- * Group G proved the radiogroup, both ids, the radio semantics and the writer, and every one of
- * those passed while the control could not show which option was selected. Structure is not
- * enough: these style keys read --a3-*, which is a SCOPED token set, so where the card is
- * mounted decides whether the checked state has a colour at all. Asserted two ways -- the card
- * carries the scope, and the same keys resolve to NOTHING without it, which is the defect.
- * ---------------------------------------------------------------------- */
+/* ---- G9b. the active-design card is mounted where its tokens are -------- */
 function cardTagAround(labelExpr) {
   const at = html.indexOf('<div style={s.settingsLabel}>{' + labelExpr + '}</div>');
   if (at === -1) return null;
-  // from at-1: starting at `at` finds the label div itself, which is never the card.
   const open = html.lastIndexOf('<div', at - 1);
   return open === -1 ? null : html.slice(open, html.indexOf('>', open) + 1);
 }
 const vtCardTag = cardTagAround('EZ_VT_TITLE');
-const uiCardTag = cardTagAround('A3_STYLE_TITLE');
 ok('the identity card was located in Settings', !!vtCardTag);
-ok('the layout card was located in Settings', !!uiCardTag);
-// The token set these controls read is declared on .adhkar3,.ezhome and nowhere else.
 ok('the identity card carries the token scope its own controls read',
   !!vtCardTag && /className="adhkar3"/.test(vtCardTag),
-  'mounted as: ' + String(vtCardTag) + '  -- designOpt/designOptOn/designDot/designOptLabel all read --a3-*, '
-  + 'which is declared only on .adhkar3,.ezhome; outside it the checked option has no border, no '
-  + 'shadow and an invisible dot');
-ok('...the same scope the layout card beside it uses',
-  !!vtCardTag && !!uiCardTag && /className="adhkar3"/.test(vtCardTag) === /className="adhkar3"/.test(uiCardTag));
-
-// The scope is load-bearing: without it these four resolve to nothing at all. This is the
-// measured defect written down, so the check above can never be quietly weakened into a no-op.
-function unscoped(id, mode) {
-  const dark = mode === 'dark';
-  return { ...palette((/:root\s*\{([^}]*)\}/.exec(css) || [, ''])[1]),
-    ...(dark ? DARK : {}), ...VT.light[id], ...(dark ? VT.dark[id] : {}), ...VT.map };
-}
-const VT_CTRL = ['designOpt', 'designOptOn', 'designOptLabel', 'designDot', 'designDotOn'];
-for (const k of VT_CTRL) ok('the identity control reuses the shipped key ' + k, !!s[k]);
+  'mounted as: ' + String(vtCardTag) + ' -- the vtActive*/vtSoon* keys read --a3-*, declared only on .adhkar3,.ezhome');
+const VT_CTRL = ['vtActiveRow', 'vtActiveMark', 'vtActiveName', 'vtActiveState', 'vtSoonRow', 'vtSoonName', 'vtSoonTag'];
+for (const k of VT_CTRL) ok('the active-design card uses the shipped key ' + k, !!s[k]);
 {
-  const u = unscoped('istana_33', 'light');
-  const dead = [['designOptOn.border', s.designOptOn.border], ['designOptOn.boxShadow', s.designOptOn.boxShadow],
-    ['designDotOn.background', s.designDotOn.background], ['designOptLabel.color', s.designOptLabel.color]]
+  const u = { ...palette((/:root\s*\{([^}]*)\}/.exec(css) || [, ''])[1]), ...VT.light.istana_33, ...VT.map };
+  const dead = [['vtActiveRow.background', s.vtActiveRow.background], ['vtActiveRow.border', s.vtActiveRow.border],
+    ['vtActiveMark.background', s.vtActiveMark.background], ['vtActiveName.color', s.vtActiveName.color]]
     .filter(([, v]) => resolve(v, u) !== null).map(([kk]) => kk);
-  eq('outside that scope every one of them resolves to nothing -- the defect, recorded', dead, []);
+  eq('outside that scope every one of them resolves to nothing -- the S100 defect, recorded', dead, []);
 }
-
-/* ---- G9d. and inside the scope, the checked option is actually VISIBLE -- */
-for (const id of VT_IDS) {
-  for (const mode of ['light', 'dark']) {
-    const pal = VT_PAL[id + ':' + mode];
-    const surface = resolve(s.designOpt.background, pal);
-    const onBorder = resolve(s.designOptOn.border, pal);
-    const offBorder = resolve(s.designOpt.border, pal);
-    const dot = resolve(s.designDotOn.background, pal);
-    const label = resolve(s.designOptLabel.color, pal);
-    const shadowRaw = String(resolveRaw(s.designOptOn.boxShadow, pal)).trim();
-    const tag = id + ' ' + mode + ': ';
-    ok(tag + 'the option surface resolves', !!surface, String(s.designOpt.background));
-    ok(tag + 'the CHECKED option has a real border colour', !!onBorder, String(s.designOptOn.border));
-    ok(tag + '...visible against the option surface (>=3:1)',
-      !!onBorder && !!surface && contrast(onBorder, surface) >= 3,
-      onBorder && surface ? hex(onBorder) + ' on ' + hex(surface) + ' = ' + contrast(onBorder, surface).toFixed(2) : 'unresolved');
-    ok(tag + '...and distinguishable from the UNCHECKED border',
-      !!onBorder && !!offBorder && hex(onBorder) !== hex(offBorder),
-      'checked ' + hex(onBorder) + ' vs unchecked ' + hex(offBorder));
-    ok(tag + 'the CHECKED option has a shadow, not none',
-      shadowRaw !== '' && shadowRaw !== 'none' && /#|rgba?\(/i.test(shadowRaw), shadowRaw || '(empty)');
-    ok(tag + 'the selected DOT has a visible background',
-      !!dot && !!surface && contrast(dot, surface) >= 3,
-      dot && surface ? hex(dot) + ' on ' + hex(surface) + ' = ' + contrast(dot, surface).toFixed(2) : 'unresolved');
-    const ink = resolve(pal['--vt-ink'], pal);
-    ok(tag + 'the option label is the theme ink', !!label && !!ink && hex(label) === hex(ink),
-      'label ' + hex(label) + ' vs --vt-ink ' + hex(ink));
-  }
+for (const mode of ['light', 'dark']) {
+  const pal = VT_PAL['istana_33:' + mode];
+  const surf = resolve(s.vtActiveRow.background, pal);
+  const mark = resolve(s.vtActiveMark.background, pal);
+  const name = resolve(s.vtActiveName.color, pal);
+  const state = resolve(s.vtActiveState.color, pal);
+  const tag = 'istana_33 ' + mode + ': ';
+  ok(tag + 'the active row resolves', !!surf, String(s.vtActiveRow.background));
+  ok(tag + 'the active mark is visible on it', !!mark && !!surf && contrast(mark, surf) >= 3,
+    mark && surf ? hex(mark) + ' on ' + hex(surf) + ' = ' + contrast(mark, surf).toFixed(2) : 'unresolved');
+  ok(tag + 'the design name clears 4.5:1', !!name && !!surf && contrast(name, surf) >= 4.5,
+    name && surf ? hex(name) + ' on ' + hex(surf) + ' = ' + contrast(name, surf).toFixed(2) : 'unresolved');
+  ok(tag + 'the state line clears 4.5:1', !!state && !!surf && contrast(state, surf) >= 4.5,
+    state && surf ? hex(state) + ' on ' + hex(surf) + ' = ' + contrast(state, surf).toFixed(2) : 'unresolved');
 }
 
 /* ---- G10. every implemented screen inherits the identity --------------- */
@@ -754,7 +752,7 @@ for (const id of VT_IDS) {
 const SCREENS = {
   'launch / loading': 'onboardingContainer',
   'first-run welcome': 'welcomeContainer',
-  'home': 'ezhContainer',
+  'home': 'ezistContainer',
   'chat': 'chatContainer',
   'adhkar (v1)': 'adhkarContainer',
   'adhkar (v2)': 'adhkar2Container',
@@ -797,9 +795,9 @@ if (sheetRuleVT) {
 // element apiece. The number is the count of renderers, so adding a fourth without a matching
 // map, or drawing a module twice inside one of them, both land here.
 const modAttrs = (html.match(/data-ezik-home-module=/g) || []).length;
-eq('three home renderers, one module element each -- no duplicated module', modAttrs, 3);
-ok('...and every one of them maps the owner\'s single descriptor array',
-  (html.match(/mods\.map\(\(m/g) || []).length === 3,
+eq('one home renderer, one module element each -- no duplicated module', modAttrs, 1);
+ok('...and it maps the owner\'s single descriptor array',
+  (html.match(/mods\.map\(\(m/g) || []).length === 1,
   'found ' + (html.match(/mods\.map\(\(m/g) || []).length + ' maps of the module array');
 ok('no identity rule can add a second copy of a module',
   !/data-ezik-visual-theme[^{]*\{[^}]*content\s*:/i.test(css));
@@ -842,23 +840,15 @@ const IST = hAt === -1 ? '' : html.slice(hAt, hEndAt);
 
 /* ---- H1. the identity chooses the component ---------------------------- */
 ok('EzikIstanaHome exists', /function EzikIstanaHome\(/.test(IST));
-ok('the owner routes istana_33 to it',
-  /if \(visual === EZIK_VISUAL_THEME_ISTANA\) return <EzikIstanaHome \{\.\.\.home\} \/>;/.test(html));
-ok('...from the identity hook, not from the layout key',
-  /const visual = useEzikVisualTheme\(\);/.test(html));
+ok('the owner renders it unconditionally', /return <EzikIstanaHome \{\.\.\.home\} \/>;/.test(html));
 // The legacy homes must not be CONSTRUCTED for istana: the istana return has to come first.
-const routeIst = html.indexOf('if (visual === EZIK_VISUAL_THEME_ISTANA) return <EzikIstanaHome');
-const routeLegacy = html.indexOf('return style === EZIK_UI_STYLE_DECK ? <EzikDeckHome');
-ok('istana is answered BEFORE the legacy journey/deck switch is reached',
-  routeIst !== -1 && routeLegacy !== -1 && routeIst < routeLegacy);
+ok('there is no legacy switch left to be reached', html.indexOf('EZIK_UI_STYLE_DECK ?') === -1);
 ok('neither legacy home is rendered inside the istana component',
   !/<EzikDeckHome/.test(IST) && !/<EzikJourneyHome/.test(IST));
 // ...and qibla_13 still gets exactly what it had before this batch.
-ok('qibla_13 still chooses between the two legacy homes, unchanged',
-  /return style === EZIK_UI_STYLE_DECK \? <EzikDeckHome \{\.\.\.home\} \/> : <EzikJourneyHome \{\.\.\.home\} \/>;/.test(html));
-ok('...and the layout key keeps both of its words and its default',
-  evalIn('EZIK_UI_STYLE_JOURNEY') === 'journey' && evalIn('EZIK_UI_STYLE_DECK') === 'deck'
-  && evalIn('EZIK_UI_STYLE_DEFAULT') === 'journey');
+// S102: there is no other home to route to. EzikIstanaHome is the whole of the answer.
+ok('EzikIstanaHome is the ONLY reachable home', /return <EzikIstanaHome \{\.\.\.home\} \/>;/.test(html)
+  && !/<EzikDeckHome|<EzikJourneyHome/.test(html));
 
 /* ---- H2. the parts the design calls for -------------------------------- */
 ok('it has a real TOP NAVIGATION bar', /<EzistTopNav /.test(IST) && /className="ezist-nav"/.test(IST));
@@ -872,7 +862,7 @@ ok('...carrying the four existing actions, each with its own handler',
 ok('the legacy bottom dock is NOT presented on the istana home',
   !/<EzHomeNav/.test(IST) && !/s\.ezhNav\b/.test(IST) && !/s\.ezhFab\b/.test(IST),
   'EzHomeNav / ezhNav / ezhFab must not appear inside the istana home');
-ok('...while the two legacy homes still have it', (html.match(/<EzHomeNav /g) || []).length === 2);
+ok('...and the component that drew it no longer exists at all', html.indexOf('function EzHomeNav') === -1);
 
 ok('it has an OTTOMAN MASTHEAD', /<EzistMasthead /.test(IST) && /className="ezist-masthead"/.test(IST));
 ok('...whose arch IS the approved signature radius',

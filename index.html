@@ -22,7 +22,7 @@
                        colour even if the stylesheet has not arrived
        data-theme   -- what the stylesheet keys off once it does arrive
      Fails to light, exactly as before. -->
-<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;d.style.background=(t==='dark'?'#0E1116':'#F1F6FD');var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();(function(){try{var v=localStorage.getItem('ezik_visual_theme_v1');if(v!=='qibla_13'&&v!=='istana_33'){v='istana_33';}document.documentElement.setAttribute('data-ezik-visual-theme',v);}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;d.style.background=(t==='dark'?'#0E1116':'#F1F6FD');var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();(function(){try{var v=localStorage.getItem('ezik_visual_theme_v2');if(v!=='istana_33'){v='istana_33';}document.documentElement.setAttribute('data-ezik-visual-theme',v);}catch(e){}})();</script>
 <!-- S99: the reading preferences, applied BEFORE the first paint for the same reason the theme is.
      Read here and the interface draws once at the chosen size; read after React mounts and the
      user watches it resize. It reads the active profile's id from the profile the app already
@@ -2890,61 +2890,6 @@ const SUGGESTIONS = [
 // التطبيق
 // ============================================================
 // ============================================================
-// APPLICATION UI STYLE -- device-local, and a PRESENTATION key only. It stores one of exactly
-// two words and nothing else: it names which of the two approved layouts this device draws for
-// the HOME screen and for the ADHKAR screens together. It is not progress, not a favourite, not
-// a count, and it is not a preference the server, the AI, an analytics call or any payload ever
-// sees -- no line in this file passes it to fetch(), to a body, to a header or to a beacon.
-//
-// SCOPE, stated once so it cannot drift: this key governs Home and Adhkar. THE CHAT SCREEN AND
-// THE CALL SCREEN IGNORE IT ENTIRELY. Neither of them calls useEzikUiStyle, neither carries a
-// journey or deck class, and DhikrCard -- which belongs to chat -- is untouched by it.
-//
-// The reader is TOTAL: a missing key, a corrupt value, a word some other build wrote, a value
-// of the wrong type or a storage that throws all answer 'journey'. Only the two accepted words
-// pass, and every localStorage touch has its own try/catch, so a locked or full storage can
-// change what is SAVED and never what is SHOWN.
-//
-// The write publishes a custom event on window before it returns, so the tab that made the
-// choice repaints on the spot -- the settings row, the home screen, the adhkar browse screen
-// and the adhkar reader all read the same hook. The 'storage' event covers the OTHER tabs,
-// which never fires in the writing one. Nothing here reloads the page or remounts the app.
-const EZIK_UI_STYLE_KEY = 'ezik_ui_style_v1';
-const EZIK_UI_STYLE_JOURNEY = 'journey';
-const EZIK_UI_STYLE_DECK = 'deck';
-const EZIK_UI_STYLE_DEFAULT = EZIK_UI_STYLE_JOURNEY;
-const EZIK_UI_STYLE_EVENT = 'ezik-ui-style';
-
-function readEzikUiStyle() {
-  let raw = null;
-  try { raw = localStorage.getItem(EZIK_UI_STYLE_KEY); } catch (e) { return EZIK_UI_STYLE_DEFAULT; }
-  if (raw === EZIK_UI_STYLE_JOURNEY || raw === EZIK_UI_STYLE_DECK) return raw;
-  return EZIK_UI_STYLE_DEFAULT;
-}
-function writeEzikUiStyle(v) {
-  const next = (v === EZIK_UI_STYLE_JOURNEY || v === EZIK_UI_STYLE_DECK) ? v : EZIK_UI_STYLE_DEFAULT;
-  try { localStorage.setItem(EZIK_UI_STYLE_KEY, next); } catch (e) {}
-  try { window.dispatchEvent(new CustomEvent(EZIK_UI_STYLE_EVENT, { detail: next })); } catch (e) {}
-  return next;
-}
-function useEzikUiStyle() {
-  const [style, setStyle] = useState(readEzikUiStyle);
-  useEffect(() => {
-    // Both listeners re-READ rather than trust what they were handed, so an event carrying a
-    // value this build does not accept still lands on 'journey' instead of on that value.
-    const onLocal = () => setStyle(readEzikUiStyle());
-    const onStorage = (e) => { if (!e || !e.key || e.key === EZIK_UI_STYLE_KEY) setStyle(readEzikUiStyle()); };
-    window.addEventListener(EZIK_UI_STYLE_EVENT, onLocal);
-    window.addEventListener('storage', onStorage);
-    return () => {
-      window.removeEventListener(EZIK_UI_STYLE_EVENT, onLocal);
-      window.removeEventListener('storage', onStorage);
-    };
-  }, []);
-  return style;
-}
-
-// ============================================================
 // S100 -- THE VISUAL IDENTITY. A THIRD KEY, INDEPENDENT OF THE OTHER TWO.
 //
 // The app now stores three presentational choices, and they do not know about each other:
@@ -2969,8 +2914,16 @@ function useEzikUiStyle() {
 // choice made in ANOTHER TAB arrive here -- the 'storage' event fires only in the other tab.
 // Applying it is idempotent, so the three paths cannot fight.
 // ============================================================
-const EZIK_VISUAL_THEME_KEY = 'ezik_visual_theme_v1';
-const EZIK_VISUAL_THEME_QIBLA = 'qibla_13';
+// S102 -- A PRE-RELEASE KEY BUMP, not a migration. ezik_visual_theme_v1 was never deployed:
+// the only devices carrying it are the ones this session's own visual tests wrote qibla_13
+// onto, which is exactly why the app opened green. v1 is therefore not read, not migrated
+// and not honoured -- it is only DELETED, alongside v2, when a user erases their data.
+const EZIK_VISUAL_THEME_KEY = 'ezik_visual_theme_v2';
+const EZIK_VISUAL_THEME_KEY_V1 = 'ezik_visual_theme_v1';   // read by nothing; removed on erase
+const EZIK_UI_STYLE_KEY_DEAD = 'ezik_ui_style_v1';          // read by nothing; removed on erase
+// qibla_13 keeps its token groundwork in the stylesheet for the next batch, but it is NOT a
+// reachable value here: the reader does not accept it, the writer normalises it away and
+// Settings offers no control that can produce it.
 const EZIK_VISUAL_THEME_ISTANA = 'istana_33';
 const EZIK_VISUAL_THEME_DEFAULT = EZIK_VISUAL_THEME_ISTANA;
 const EZIK_VISUAL_THEME_EVENT = 'ezik-visual-theme';
@@ -2979,11 +2932,11 @@ const EZIK_VISUAL_THEME_ATTR = 'data-ezik-visual-theme';
 function readEzikVisualTheme() {
   let raw = null;
   try { raw = localStorage.getItem(EZIK_VISUAL_THEME_KEY); } catch (e) { return EZIK_VISUAL_THEME_DEFAULT; }
-  if (raw === EZIK_VISUAL_THEME_QIBLA || raw === EZIK_VISUAL_THEME_ISTANA) return raw;
+  if (raw === EZIK_VISUAL_THEME_ISTANA) return raw;
   return EZIK_VISUAL_THEME_DEFAULT;
 }
 function applyEzikVisualTheme(v) {
-  const next = (v === EZIK_VISUAL_THEME_QIBLA || v === EZIK_VISUAL_THEME_ISTANA) ? v : EZIK_VISUAL_THEME_DEFAULT;
+  const next = (v === EZIK_VISUAL_THEME_ISTANA) ? v : EZIK_VISUAL_THEME_DEFAULT;
   try { document.documentElement.setAttribute(EZIK_VISUAL_THEME_ATTR, next); } catch (e) {}
   return next;
 }
@@ -3066,11 +3019,9 @@ const getHomeGreeting = () => {
 // ------------------------------------------------------------
 // Home itself stays the OWNER. It holds the profile, it builds the greeting, it keeps every
 // real navigation callback it was handed and it resolves the treasure entry to the same href;
-// it then hands ONE view object to whichever presentation component this device chose.
-// EzikJourneyHome and EzikDeckHome are presentation ONLY: neither reads or writes storage,
-// neither owns navigation state, neither routes, and both draw the SAME four modules, the SAME
-// daily verse card and the SAME bottom navigation from the SAME handlers. Switching style
-// therefore cannot make a module unreachable and cannot change what any tile does.
+// it then hands ONE view object to the one presentation component there now is. S102 removed
+// the two legacy home components entirely -- see the S101 block below, which is the whole of
+// what draws this screen; the owner is unchanged and still owns everything it owned.
 //
 // CHROME STRINGS, written as escapes so this block stays ASCII and no editor can reflow a
 // bidirectional literal. Every one of them is a label the home screen ALREADY showed, code
@@ -3116,11 +3067,6 @@ const EZH_ICON_PROFILE = (
 const EZH_ICON_NAV_HOME = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
 );
-const EZH_ICON_NAV_CHAT = (
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
-);
-// S101: the same chat path as EZH_ICON_NAV_CHAT, stroked in currentColor instead of white,
-// because on the istana home it sits on a surface rather than inside a filled circle.
 // S101: the card affordance. It is what stops a module card from being an icon and a title
 // pushed against one edge with the rest of the card empty -- there is now always something at
 // the far end: the real reading when the module has one, and this chevron when it does not.
@@ -3149,148 +3095,6 @@ function ezHomeModules(v) {
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
   ];
 }
-
-// SHARED HOME PARTS. The greeting row, the callout and the bottom bar are ONE implementation
-// each, so the two styles cannot drift on the profile entry, on the chat action or on what the
-// callout opens. All three are used only by the two home components.
-function EzHomeGreet({ name, onOpenSettings }) {
-  return (
-    <div style={s.ezhGreetRow}>
-      <div style={s.ezhGreetText}>
-        <div style={s.ezhSalam}>{EZH_SALAM}</div>
-        <div style={s.ezhName}>{EZH_HELLO} {name}</div>
-      </div>
-      <button type="button" className="ezhome-focus" onClick={onOpenSettings} style={s.ezhProfileBtn} aria-label={EZH_ACCOUNT}>
-        {EZH_ICON_PROFILE}
-      </button>
-    </div>
-  );
-}
-// The morning/evening callout, and it is a SHORT PURE-WHITE row: a line icon on a soft chip,
-// the one line of greeting the app already picked, and a small cyan dot while the row leads
-// somewhere. There is no filled blue banner in either style, at any width, in either theme.
-function EzHomeCallout({ g, onOpenAdhkar }) {
-  const tap = !!(g && g.tappable);
-  return (
-    <button type="button" className="ezhome-focus" onClick={tap ? onOpenAdhkar : undefined}
-      style={tap ? s.ezhCallout : { ...s.ezhCallout, cursor: 'default' }} aria-label={g.text}>
-      <span style={s.ezhCalloutIcon} aria-hidden="true">{g.period === 'morning' ? EZH_ICON_SUN : EZH_ICON_MOON}</span>
-      <span style={s.ezhCalloutText}>{g.text}</span>
-      {tap && <span style={s.ezhDotOn} aria-hidden="true" />}
-    </button>
-  );
-}
-// The bottom bar: pure white, the same three targets, the central chat action unchanged. The
-// first item carries no handler because it is the screen already on show -- exactly as before.
-function EzHomeNav({ onOpenChat, onOpenSettings }) {
-  return (
-    <div style={s.ezhNav}>
-      <button type="button" className="ezhome-focus" style={{ ...s.ezhNavItem, ...s.ezhNavItemOn }} aria-label={EZH_NAV_HOME}>
-        {EZH_ICON_NAV_HOME}
-        <span style={s.ezhNavLabel}>{EZH_NAV_HOME}</span>
-      </button>
-      <button type="button" className="ezhome-focus" onClick={onOpenChat} style={s.ezhFab} aria-label={EZH_BRAND}>
-        {EZH_ICON_NAV_CHAT}
-      </button>
-      <button type="button" className="ezhome-focus" onClick={onOpenSettings} style={s.ezhNavItem} aria-label={EZH_NAV_SET}>
-        {EZH_ICON_NAV_SET}
-        <span style={s.ezhNavLabel}>{EZH_NAV_SET}</span>
-      </button>
-    </div>
-  );
-}
-
-// ============================================================
-// STYLE 1 -- DAILY JOURNEY (the default). A calm daily route: a compact greeting row, a short
-// white callout, then the four real modules alternating around one thin ice-blue line, and the
-// daily verse card below them. THE MARKS ON THE ROUTE ARE NEUTRAL -- not one of them claims a
-// module was completed, because nothing on this screen knows that. The single cyan ring is a
-// VISUAL step marker: it sits on the module the callout leads to while the callout leads
-// anywhere, and on the first module otherwise. The one real reading drawn here is the mushaf's
-// own daily wird, resolved by the owner from the mushaf's own helpers and omitted entirely
-// when no target has actually been set.
-// ============================================================
-function EzikJourneyHome(v) {
-  const mods = v.modules || [];   // S87: the owner's one array, never a second build of it
-  const now = (v.greeting && v.greeting.tappable) ? 1 : 0;
-  return (
-    <div className="theme-dark ezhome" style={s.ezhContainer}>
-      {/* S86-home-journey */}
-      <div style={s.ezhScroll}>
-        <div className="ezhome-wrap">
-          <EzHomeGreet name={v.name} onOpenSettings={v.onOpenSettings} />
-          <EzHomeCallout g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
-          <div style={s.ezhPath}>
-            <span style={s.ezhPathLine} aria-hidden="true" />
-            {mods.map((m, i) => (
-              <div key={m.id} style={s.ezhPathRow}>
-                <span style={i === now ? { ...s.ezhMark, ...s.ezhMarkNow } : s.ezhMark} aria-hidden="true" />
-                <button type="button" className="ezhome-focus" onClick={m.onClick} data-ezik-home-module={m.id}
-                  style={{ ...s.ezhNode, gridColumn: (i % 2 === 0) ? 1 : 3 }}>
-                  <span style={s.ezhIcon} aria-hidden="true">{m.icon}</span>
-                  <span style={s.ezhNodeTitle}>{m.label}</span>
-                  {m.meta && <span style={s.ezhNodeMeta}>{m.meta}</span>}
-                </button>
-              </div>
-            ))}
-          </div>
-          <div style={s.ezhVerseWrap}><DailyVerseCard /></div>
-        </div>
-      </div>
-      <EzHomeNav onOpenChat={v.onOpenChat} onOpenSettings={v.onOpenSettings} />
-    </div>
-  );
-}
-
-// ============================================================
-// STYLE 2 -- STACKED CARDS. The same four modules as a premium deck, and the geometry is the
-// guarantee: each card is offset EZH_DECK_OFF from the one in front of it, so every card in the
-// stack keeps a 56px strip that is its own button, and its icon and its label both sit inside
-// that strip. The stack is a look, never a lost target -- the strip IS the touch target, at the
-// platform's own minimum and then some, and the tab order visits all four in list order.
-//
-// S87 -- THE DUPLICATE IS GONE. This screen used to repeat all four modules underneath the deck
-// as a "quick access" grid, so every module was drawn, labelled and tab-stopped TWICE and the
-// same handler hung off two elements. That row, its heading and its styles are removed rather
-// than hidden: the deck below is the only place a module is rendered, each card carries the
-// owner's descriptor id on data-ezik-home-module, and no decorative layer exists that could
-// carry a second copy of one. Four descriptors in, four module elements out.
-// ============================================================
-const EZH_DECK_OFF = 56;
-const EZH_DECK_CARD = 132;
-function EzikDeckHome(v) {
-  const mods = v.modules || [];   // S87: the owner's one array, never a second build of it
-  return (
-    <div className="theme-dark ezhome" style={s.ezhContainer}>
-      {/* S86-home-deck */}
-      <div style={s.ezhScroll}>
-        <div className="ezhome-wrap">
-          <EzHomeGreet name={v.name} onOpenSettings={v.onOpenSettings} />
-          <EzHomeCallout g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
-          <div style={{ ...s.ezhDeck, height: (mods.length - 1) * EZH_DECK_OFF + EZH_DECK_CARD }}>
-            {mods.map((m, i) => (
-              <button key={m.id} type="button" className="ezhome-focus" onClick={m.onClick} data-ezik-home-module={m.id}
-                style={{ ...s.ezhDeckCard, ...(i === 0 ? s.ezhDeckCardFront : null),
-                  height: EZH_DECK_CARD, top: (mods.length - 1 - i) * EZH_DECK_OFF,
-                  left: i * 10, right: i * 10, zIndex: mods.length - i }}>
-                <span style={s.ezhDeckHead}>
-                  <span style={s.ezhIcon} aria-hidden="true">{m.icon}</span>
-                  <span style={s.ezhDeckTitle}>{m.label}</span>
-                  {m.meta ? <span style={s.ezhPill}>{m.meta}</span>
-                          : <span style={i === 0 ? s.ezhDotOn : s.ezhDot} aria-hidden="true" />}
-                </span>
-                {i === 0 && <span style={s.ezhDeckAccent} aria-hidden="true" />}
-              </button>
-            ))}
-          </div>
-          <div style={s.ezhVerseWrap}><DailyVerseCard /></div>
-        </div>
-      </div>
-      <EzHomeNav onOpenChat={v.onOpenChat} onOpenSettings={v.onOpenSettings} />
-    </div>
-  );
-}
-
 
 // ---- S101 ISTANA HOME START --------------------------------------------------------------
 // THE ISTANA_33 HOME. A DEDICATED STRUCTURE, not the journey/deck layout in other colours.
@@ -3467,8 +3271,6 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
-  const style = useEzikUiStyle();
-  const visual = useEzikVisualTheme();
   const g = getHomeGreeting();
   // GENUINE local progress, or nothing at all. These are the MUSHAF'S OWN helpers reading the
   // mushaf's own keys, so the numbers are ones the reader itself wrote; when no real daily
@@ -3493,13 +3295,18 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // element per module, whichever style is on -- there is no second collection to fall out of
   // sync with this one, and no second callback bound to the same action.
   const home = { ...view, modules: ezHomeModules(view) };
+  // S102 -- ONE DESIGN. The journey/deck presentation system is gone from the file, not
+  // hidden behind a flag: its two home components, its three shared parts, its key, its
+  // reader, its writer, its hook, its event and its Settings control were all removed in the
+  // same commit as this line, and a reference sweep proved every one of them dead first. A
+  // stale ezik_ui_style_v1 value may still sit in a user's storage; nothing reads it, so it
+  // cannot make a legacy screen reachable. There is exactly one home now.
   // S101 -- THE IDENTITY DECIDES THE STRUCTURE. istana_33 is a design, not a palette laid
   // over the older one, so it gets its own component and neither legacy home is constructed
   // for it. The layout key is still read above and still stored: a device that saved "deck"
   // keeps "deck", is not migrated, and sees the deck again the moment it selects qibla_13.
   // qibla_13 is untouched by this batch and still chooses between the two components below.
-  if (visual === EZIK_VISUAL_THEME_ISTANA) return <EzikIstanaHome {...home} />;
-  return style === EZIK_UI_STYLE_DECK ? <EzikDeckHome {...home} /> : <EzikJourneyHome {...home} />;
+  return <EzikIstanaHome {...home} />;
 }
 
 // ============================================================
@@ -3795,15 +3602,15 @@ const A2_NEXT        = '\u{0627}\u{0644}\u{062A}\u{0627}\u{0644}\u{064A}';      
 // Session 86 renamed the heading only: the selector no longer means "adhkar design", it means
 // the INTERFACE STYLE of the application, because it now governs Home and Adhkar together.
 // The two layout names below are unchanged.
-const A3_STYLE_TITLE  = '\u{0646}\u{0645}\u{0637} \u{0627}\u{0644}\u{0648}\u{0627}\u{062C}\u{0647}\u{0629}';                        // "interface style"
-const A3_JOURNEY_NAME = '\u{0631}\u{062D}\u{0644}\u{0629} \u{064A}\u{0648}\u{0645}\u{064A}\u{0629}';                              // "daily journey"
-const A3_DECK_NAME    = '\u{0628}\u{0637}\u{0627}\u{0642}\u{0627}\u{062A} \u{0645}\u{062A}\u{0631}\u{0627}\u{0643}\u{0645}\u{0629}'; // "stacked cards"
 const A3_ALL          = '\u{0627}\u{0644}\u{0623}\u{0642}\u{0633}\u{0627}\u{0645}';
 // S100 -- three more chrome strings, escaped for the same reason every string above is: a
 // section heading and the two identity names. None of them is devotional text.
 const EZ_VT_TITLE  = '\u{0627}\u{0644}\u{0647}\u{0648}\u{064A}\u{0629} \u{0627}\u{0644}\u{0628}\u{0635}\u{0631}\u{064A}\u{0629}';   // "the visual identity"
 const EZ_VT_QIBLA  = '\u{0642}\u{0628}\u{0644}\u{0629} \u{0661}\u{0663}';                                     // "qibla 13"
-const EZ_VT_ISTANA = '\u{0625}\u{0633}\u{062A}\u{0627}\u{0646}\u{0629} \u{0663}\u{0663}';                     // "istana 33"                                          // "the sections"
+const EZ_VT_ISTANA = '\u{0625}\u{0633}\u{062A}\u{0627}\u{0646}\u{0629} \u{0663}\u{0663}';
+// S102 -- the state words for the active-design card. Chrome, and neither is a choice.
+const EZ_VT_ACTIVE = '\u{0627}\u{0644}\u{062A}\u{0635}\u{0645}\u{064A}\u{0645} \u{0627}\u{0644}\u{062D}\u{0627}\u{0644}\u{064A}';   // "the current design"
+const EZ_VT_SOON   = '\u{0642}\u{0631}\u{064A}\u{0628}\u{0627}\u{064B}';                                                       // "soon"                     // "istana 33"                                          // "the sections"
 
 function AdhkarScreenV1({ onBack }) {
   const [cats, setCats] = useState(null);
@@ -3930,7 +3737,6 @@ function AdhkarScreenV2({ onBack }) {
   // any of these values kept anywhere else -- switching design switches which component draws
   // this state, and touches none of it. Session 86: the hook is the APPLICATION one, so the
   // style this screen draws in is the style the home screen draws in -- one key, one event.
-  const style = useEzikUiStyle();
   // The WHOLE store is kept now, not just db.categories: the daily card resolves each stored
   // count against the real item it names, and byCat is where those items are. Still one
   // loadAdhkar() call, still the store's own objects, still no reshaping of any of them.
@@ -4011,7 +3817,8 @@ function AdhkarScreenV2({ onBack }) {
     done: done,
   };
   // The whole of the style switch on this screen: which component receives the state above.
-  return style === EZIK_UI_STYLE_DECK ? <AdhkarDeckHome {...view} /> : <AdhkarJourneyHome {...view} />;
+  // S102: no layout key, no branch. The istana browse replaces this in the next commit.
+  return <AdhkarJourneyHome {...view} />;
 }
 
 // ============================================================
@@ -4246,7 +4053,7 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   // are presentation only -- they are handed what this component has already resolved and
   // they call back into these handlers; neither of them reads or writes storage itself.
   // Session 86: the same APPLICATION style hook the browse screen and the home screen read.
-  const style = useEzikUiStyle();
+  // S102: the layout key is gone; there is nothing left to branch on here either.
   const [items, setItems] = useState(null);
   const [idx, setIdx] = useState(0);                       // the item being read, 0-based
   const [prog, setProg] = useState(readAdhkarProgress);
@@ -4345,7 +4152,8 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
     onShare: onShare,
     onAudio: () => { if (d) toggle(d); },
   };
-  return style === EZIK_UI_STYLE_DECK ? <AdhkarDeckReader {...view} /> : <AdhkarJourneyReader {...view} />;
+  // S102: same as the browse above -- one reader, until the istana reader shell lands.
+  return <AdhkarJourneyReader {...view} />;
 }
 
 // The audio control, shared by both readers so the contract cannot drift between them: it is
@@ -7679,12 +7487,14 @@ function App() {
       // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the
       // adhkar browse, the adhkar reader and the settings row -- to re-read now rather than at
       // the next mount. The chat screen does not listen for it and is unaffected either way.
-      try { localStorage.removeItem(EZIK_UI_STYLE_KEY); } catch (e) {}
-      try { window.dispatchEvent(new CustomEvent(EZIK_UI_STYLE_EVENT, { detail: EZIK_UI_STYLE_DEFAULT })); } catch (e) {}
+      // S102 -- the obsolete layout key goes with them. Nothing reads it any more, so this
+      // is housekeeping rather than behaviour: it stops a dead value outliving the feature.
+      try { localStorage.removeItem(EZIK_UI_STYLE_KEY_DEAD); } catch (e) {}
       // S100 -- and the VISUAL IDENTITY, on the same terms. Removing the key is enough: the
       // reader is total, so an absent key IS istana_33. The attribute is repainted here rather
       // than waiting for a mount, because the screen behind this dialog is still on screen.
       try { localStorage.removeItem(EZIK_VISUAL_THEME_KEY); } catch (e) {}
+      try { localStorage.removeItem(EZIK_VISUAL_THEME_KEY_V1); } catch (e) {}
       applyEzikVisualTheme(EZIK_VISUAL_THEME_DEFAULT);
       try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: EZIK_VISUAL_THEME_DEFAULT })); } catch (e) {}
       setDirectConvoLocked(false);
@@ -9712,74 +9522,12 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
       <span>{label}</span>
     </button>
   );
-  // Session 85/86 -- the INTERFACE STYLE choice. ONE compact card, in the position it has held
-  // since it was added: immediately after the theme card. Not one other Settings control moved,
-  // changed or lost a style key. The value is device-local and presentational: it is written
-  // with writeEzikUiStyle and read with useEzikUiStyle, and it is never placed in a request, a
-  // payload or an analytics call. Session 86 widened only its MEANING -- one press now restyles
-  // the home screen and the adhkar screens together, because they read this same key.
-  const uiStyle = useEzikUiStyle();
-  // Two native radio semantics expressed on buttons: one radiogroup, aria-checked on each, and
-  // the choice applies on the press -- the hook repaints this row, the home screen, the browse
-  // screen and the reader from the same event, with no reload and no remount of the app.
-  const StyleOpt = ({ value, label, preview }) => (
-    <button type="button" role="radio" aria-checked={uiStyle === value ? 'true' : 'false'}
-      onClick={() => writeEzikUiStyle(value)}
-      style={uiStyle === value ? { ...s.designOpt, ...s.designOptOn } : s.designOpt}>
-      <span style={s.designPrev} aria-hidden="true">{preview}</span>
-      <span style={s.designOptLabel}>{label}</span>
-      <span style={uiStyle === value ? { ...s.designDot, ...s.designDotOn } : s.designDot} aria-hidden="true" />
-    </button>
-  );
-  // The two previews are CSS ONLY -- bordered and filled boxes, no image, no data URI, nothing
-  // to fetch. Left: a ring and a path of alternating nodes. Right: three stacked cards.
-  const PREV_JOURNEY = (
-    <span style={s.prevBox}>
-      <span style={s.prevRing} />
-      <span style={{ ...s.prevNode, top: 26, right: 8 }} />
-      <span style={{ ...s.prevNode, top: 40, left: 8 }} />
-      <span style={{ ...s.prevNode, top: 54, right: 8 }} />
-      <span style={s.prevLine} />
-    </span>
-  );
-  // S100 -- the INDEPENDENT visual-identity control. Its own hook, its own writer, its own
-  // radiogroup; it shares only the presentation keys with the layout row above it, and it
-  // does not read, write or reset either the mode choice or the layout choice.
+  // S102 -- THE ACTIVE APPLICATION DESIGN. This is a STATEMENT, not a chooser: there is one
+  // reachable design in this correction stage, so there is no radiogroup, no aria-checked, no
+  // click handler and nothing focusable here. qibla_13 appears once, as a disabled line that
+  // says it is coming -- it is a <div>, it is aria-disabled, it cannot be tabbed to and there
+  // is no code path from this card that could write it. Journey and Deck appear nowhere.
   const visualTheme = useEzikVisualTheme();
-  const VtOpt = ({ value, label, preview }) => (
-    <button type="button" role="radio" aria-checked={visualTheme === value ? 'true' : 'false'}
-      onClick={() => writeEzikVisualTheme(value)}
-      style={visualTheme === value ? { ...s.designOpt, ...s.designOptOn } : s.designOpt}>
-      <span style={s.designPrev} aria-hidden="true">{preview}</span>
-      <span style={s.designOptLabel}>{label}</span>
-      <span style={visualTheme === value ? { ...s.designDot, ...s.designDotOn } : s.designDot} aria-hidden="true" />
-    </button>
-  );
-  // The two identity previews, and they show the LIGHT face of each theme on purpose: a plain
-  // white page, a header in the accent, one card on the page in the theme's surface and
-  // hairline, and the theme's own small geometry inside that card -- a compass cross for
-  // qibla_13, a tulip for istana_33. The istana card carries the signature arch radius, which
-  // is the one thing a user would otherwise only discover after switching. CSS only: no
-  // image, no data URI, nothing to fetch, and no animation of any kind.
-  const PREV_QIBLA = (
-    <span style={{ ...s.vtpBox, ...s.vtpQBox }}>
-      <span style={s.vtpQBar} />
-      <span style={s.vtpQCard}><span className="vtp-motif vtp-motif-q" /></span>
-    </span>
-  );
-  const PREV_ISTANA = (
-    <span style={{ ...s.vtpBox, ...s.vtpIBox }}>
-      <span style={s.vtpIBar} />
-      <span style={s.vtpICard}><span className="vtp-motif vtp-motif-i" /></span>
-    </span>
-  );
-  const PREV_DECK = (
-    <span style={s.prevBox}>
-      <span style={{ ...s.prevCard, top: 10, left: 16, right: 16 }} />
-      <span style={{ ...s.prevCard, top: 22, left: 10, right: 10 }} />
-      <span style={{ ...s.prevCard, top: 34, left: 4, right: 4, height: 26 }} />
-    </span>
-  );
   return (
     <div className="theme-dark" style={s.settingsContainer}>
       <div style={s.settingsHeader}>
@@ -9795,25 +9543,22 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           </div>
           <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
         </div>
-        {/* Session 85/86 -- the interface style choice, in its own card under the theme card,
-            in the same position it already occupied. */}
-        <div className="adhkar3" style={{ ...s.settingsCard, marginTop: 12 }}>
-          <div style={s.settingsLabel}>{A3_STYLE_TITLE}</div>
-          <div style={s.designRow} role="radiogroup" aria-label={A3_STYLE_TITLE}>
-            <StyleOpt value={EZIK_UI_STYLE_JOURNEY} label={A3_JOURNEY_NAME} preview={PREV_JOURNEY} />
-            <StyleOpt value={EZIK_UI_STYLE_DECK} label={A3_DECK_NAME} preview={PREV_DECK} />
-          </div>
-          <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
-        </div>
-        {/* S100 -- the visual identity, its own card under the layout card. It does not move,
-            replace or reset the two controls above it; all three compose. */}
+        {/* S102 -- the active application design. One statement, one disabled preview line. */}
         <div className="adhkar3" style={{ ...s.settingsCard, marginTop: 12 }}>
           <div style={s.settingsLabel}>{EZ_VT_TITLE}</div>
-          <div style={s.designRow} role="radiogroup" aria-label={EZ_VT_TITLE}>
-            <VtOpt value={EZIK_VISUAL_THEME_QIBLA} label={EZ_VT_QIBLA} preview={PREV_QIBLA} />
-            <VtOpt value={EZIK_VISUAL_THEME_ISTANA} label={EZ_VT_ISTANA} preview={PREV_ISTANA} />
+          {visualTheme === EZIK_VISUAL_THEME_ISTANA && (
+          <div style={s.vtActiveRow}>
+            <span style={s.vtActiveMark} aria-hidden="true" />
+            <span style={s.vtActiveBody}>
+              <span style={s.vtActiveName}>{EZ_VT_ISTANA}</span>
+              <span style={s.vtActiveState}>{EZ_VT_ACTIVE}</span>
+            </span>
           </div>
-          <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
+          )}
+          <div style={s.vtSoonRow} aria-disabled="true">
+            <span style={s.vtSoonName}>{EZ_VT_QIBLA}</span>
+            <span style={s.vtSoonTag}>{EZ_VT_SOON}</span>
+          </div>
         </div>
         {/* S99 -- سهولة الاستخدام. Three preferences in one card, in the same shape every card
             above it uses: the settings card's own surface, border and padding, read from the same
@@ -11972,7 +11717,6 @@ const s = {
   // blue-tinted tokens rather than warm ones. .ezhome is carried only by the two home
   // components, so nothing here can reach the chat screen, the call screen or DhikrCard.
   // ============================================================
-  ezhContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
   // ============================================================
   // S101 -- THE ISTANA_33 HOME. Every colour is an --a3-* token, which under this identity
   // maps to the approved istana values (surface #FFFDFC, surface2 #EEF6F7, ink #10364E,
@@ -12019,51 +11763,18 @@ const s = {
   ezistQuranText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '8px 0 6px' },
   ezistQuranMeta: { color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 600, textAlign: 'center' },
 
-  ezhScroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: 'calc(16px + env(safe-area-inset-top, 0px)) 14px 16px', boxSizing: 'border-box' },
   // The compact greeting row. A line profile icon in a white 44px button -- no face, no avatar.
-  ezhGreetRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 },
-  ezhGreetText: { minWidth: 0 },
-  ezhSalam: { fontSize: 13, fontWeight: 700, color: 'var(--a3-muted)' },
-  ezhName: { fontSize: 21, fontWeight: 800, color: 'var(--a3-ink)', marginTop: 2 },
-  ezhProfileBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer' },
   // THE CALLOUT that replaced the banner: a short white row, a line icon on a soft chip and a
   // small cyan dot. It is a surface and a hairline; it is not a filled rectangle.
-  ezhCallout: { width: '100%', display: 'flex', alignItems: 'center', gap: 12, minHeight: 60, marginBottom: 16, padding: '12px 14px', borderRadius: 'var(--ez-radius-sig)', background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  ezhCalloutIcon: { width: 38, height: 38, flexShrink: 0, borderRadius: 12, background: 'var(--a3-soft)', color: 'var(--a3-blue)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
-  ezhCalloutText: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--a3-ink)' },
   // The module chip, shared by the route nodes, the deck cards and the quick row.
-  ezhIcon: { width: 38, height: 38, flexShrink: 0, borderRadius: 12, background: 'var(--a3-soft)', color: 'var(--a3-blue)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
-  ezhDot: { width: 9, height: 9, flexShrink: 0, borderRadius: '50%', background: 'transparent', border: '1px solid var(--a3-line)' },
-  ezhDotOn: { width: 9, height: 9, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-cyan)', border: '1px solid var(--a3-cyan)' },
-  ezhPill: { minWidth: 26, height: 24, flexShrink: 0, padding: '0 9px', borderRadius: 999, background: 'var(--a3-soft)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
   // THE ROUTE. One hairline down the middle; each row is a three-column grid whose middle
   // column holds the mark, so the cards alternate around it without a transform -- and on a
   // wide display the same alternation IS the balanced two-column journey.
-  ezhPath: { position: 'relative', paddingTop: 4 },
-  ezhPathLine: { position: 'absolute', top: 0, bottom: 0, left: '50%', marginLeft: -1, width: 2, borderRadius: 2, background: 'var(--a3-ice)' },
-  ezhPathRow: { display: 'grid', gridTemplateColumns: '1fr 36px 1fr', alignItems: 'center', marginBottom: 12 },
-  ezhMark: { gridColumn: 2, justifySelf: 'center', width: 20, height: 20, borderRadius: '50%', background: 'var(--a3-surface)', border: '2px solid var(--a3-line)', display: 'inline-flex' },
-  ezhMarkNow: { border: '2px solid var(--a3-cyan)' },
-  ezhNode: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8, minHeight: 92, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  ezhNodeTitle: { fontSize: 15, fontWeight: 800, lineHeight: 1.5, color: 'var(--a3-ink)' },
-  ezhNodeMeta: { fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
   // THE DECK. Each card is offset EZH_DECK_OFF from the one in front of it, which is exactly
   // why every card in the stack keeps a 56px tappable strip with its icon and its label in it.
-  ezhDeck: { position: 'relative', marginBottom: 16 },
-  ezhDeckCard: { position: 'absolute', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '9px 12px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  ezhDeckCardFront: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-lift)' },
-  ezhDeckHead: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 44 },
-  ezhDeckTitle: { flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  ezhDeckAccent: { width: 44, height: 3, flexShrink: 0, marginTop: 'auto', borderRadius: 999, background: 'var(--a3-cyan)' },
   // S87: ezhSection / ezhSectionTitle / ezhQuickBtn / ezhQuickLabel are deleted with the
   // duplicated quick row they dressed. Nothing else in this file referenced them.
-  ezhVerseWrap: { marginTop: 4 },
   // THE BOTTOM BAR: pure white, 44px floors, and the safe-area inset so it clears a home bar.
-  ezhNav: { flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 20px calc(8px + env(safe-area-inset-bottom, 0px))', background: 'var(--a3-surface)', borderTop: '1px solid var(--a3-line)' },
-  ezhNavItem: { minWidth: 44, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: 8, background: 'none', border: 'none', color: 'var(--a3-muted)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
-  ezhNavItemOn: { color: 'var(--a3-blue)' },
-  ezhNavLabel: { fontSize: 11, fontWeight: 700 },
-  ezhFab: { width: 60, height: 60, flexShrink: 0, marginTop: -22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '50%', background: 'var(--a3-blue)', border: 'none', color: 'var(--a3-on-blue)', boxShadow: 'var(--a3-lift)', cursor: 'pointer' },
   // Session 13.3-A - Adhkar browse screen (Boubyan). Reuses DhikrCard for content/audio.
   adhkarContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
   adhkarHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--white)', borderBottom: '1px solid var(--line)' },
@@ -12288,13 +11999,17 @@ const s = {
   // THE SETTINGS CHOICE. Two selection cards, 44px floor, pure white when unselected; the
   // selected one takes a thin royal-blue outline and a small cyan indicator dot. The previews
   // are CSS boxes -- no image, no data URI, nothing fetched.
-  designRow: { display: 'flex', gap: 10 },
-  designOpt: { flex: 1, minWidth: 0, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '10px 8px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
-  designOptOn: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-shadow)' },
-  designPrev: { display: 'block', width: '100%' },
-  designOptLabel: { fontSize: 13.5, fontWeight: 700, color: 'var(--a3-ink)', textAlign: 'center' },
-  designDot: { width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'transparent', border: '1px solid var(--a3-line)' },
-  designDotOn: { background: 'var(--a3-cyan)', border: '1px solid var(--a3-cyan)' },
+  // S102 -- the ACTIVE-DESIGN card. A state row and a disabled preview line; no option, no
+  // dot, no chooser. The --vtp-* swatch tokens the old previews read are still declared in
+  // <style> and are still measured by the guard, because the next batch needs them back.
+  vtActiveRow: { display: 'flex', alignItems: 'center', gap: 12, minHeight: 56, padding: '10px 12px', borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-blue)' },
+  vtActiveMark: { width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-blue)' },
+  vtActiveBody: { display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 },
+  vtActiveName: { fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)' },
+  vtActiveState: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-blue)' },
+  vtSoonRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 48, marginTop: 8, padding: '10px 12px', borderRadius: 14, background: 'var(--a3-surface)', border: '1px dashed var(--a3-line)' },
+  vtSoonName: { fontSize: 14, fontWeight: 700, color: 'var(--a3-muted)' },
+  vtSoonTag: { fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
   // S100 -- the identity previews. Every colour is a --vtp-* token declared in <style>, not a
   // literal, and none of these keys carries a text colour: they are swatches, not text.
   vtpBox: { position: 'relative', display: 'block', width: '100%', height: 62, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)' },
@@ -12305,11 +12020,6 @@ const s = {
   vtpQCard: { position: 'absolute', top: 20, left: 9, right: 9, bottom: 8, borderRadius: 10, background: 'var(--vtp-q-surface)', border: '1px solid var(--vtp-q-line)' },
   // the signature arch, shown rather than described.
   vtpICard: { position: 'absolute', top: 20, left: 9, right: 9, bottom: 8, borderRadius: '22px 22px 10px 10px', background: 'var(--vtp-i-surface)', border: '1px solid var(--vtp-i-line)' },
-  prevBox: { position: 'relative', display: 'block', width: '100%', height: 68, borderRadius: 12, background: 'var(--a3-page)', border: '1px solid var(--a3-line)', overflow: 'hidden' },
-  prevRing: { position: 'absolute', top: 8, left: '50%', marginLeft: -9, width: 18, height: 18, borderRadius: '50%', border: '3px solid var(--a3-blue)' },
-  prevLine: { position: 'absolute', top: 30, bottom: 6, left: '50%', marginLeft: -1, width: 2, background: 'var(--a3-ice)' },
-  prevNode: { position: 'absolute', zIndex: 1, width: 26, height: 10, borderRadius: 4, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)' },
-  prevCard: { position: 'absolute', height: 20, borderRadius: 8, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)' },
   primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #1D4ED8 0%, #12327A 100%)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', boxShadow: '0 8px 24px rgba(18, 50, 122, 0.3)' },
   secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6E6E6E', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', marginTop: 8 },
 
