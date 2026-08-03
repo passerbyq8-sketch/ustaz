@@ -21,6 +21,11 @@ import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, NEEDS_SCHOLAR_NAME, NEEDS_SCHOLAR_IDENTITY, NEEDS_MATERIAL } from '../lib/ask-plan.js';
 import { sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verifyClaims, CLAIM_REFUSAL } from '../lib/claim-gate.js';
+// THE PARALLEL PATH'S SWITCH, AND ONLY THE SWITCH. lib/ledger/flag.js is a few env reads and,
+// when the env floor is open, one short-TTL Redis read; the ENGINE itself (and linkedom,
+// Readability, the planner) is imported lazily inside the branch below, so a request that takes
+// the shipped path loads none of it.
+import { decidePath } from '../lib/ledger/flag.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -468,6 +473,49 @@ export default async function handler(req, res) {
   const clearKeepAlive = () => { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } };
 
   try {
+    // ── LEDGER RAG — A PARALLEL PATH, DEFAULT OFF ──────────────────────────
+    //
+    // The narrowest possible seam: one call, taken before any of the routes below, and it
+    // returns 'legacy' unless THREE independent things are all true — the env floor is open,
+    // the request carries a valid internal credential, and the runtime kill switch in Upstash
+    // says on. Any failure to establish any of them, including the store being unreachable,
+    // returns 'legacy' and the shipped path runs byte-for-byte as it does today.
+    //
+    // Nothing below this branch is modified. The engine never falls back INTO the legacy path
+    // mid-request either: a ledger request that cannot verify a source answers with its own
+    // refusal rather than quietly re-asking an unguarded route, because a fallback that
+    // answers is a fallback that defeats the gate it fell back from.
+    const ledgerPath = await decidePath(req);
+    if (ledgerPath.path === 'ledger') {
+      const { runEngine } = await import('../lib/ledger/engine.js');
+      const { braveSearch } = await import('../lib/ledger/search.js');
+      const { SITES_ADULT, SITES_MINOR } = await import('../lib/retrieve.js');
+      const question = plan.attribution.question || '';
+      const out = await runEngine(question, {
+        band,
+        bandSites: band === 'adult' ? SITES_ADULT : SITES_MINOR,
+        search: (q, sites) => braveSearch(q, sites),
+      });
+      console.log('[ledger]', {
+        trace: out.ledger.traceId, outcome: out.outcome,
+        model: out.budget.snapshot().spent.modelCalls,
+        brave: out.budget.snapshot().spent.braveCalls,
+        fetch: out.budget.snapshot().spent.pagesFetched,
+      });
+      // Same wire contract as every other branch: text deltas, then the cards, then stop.
+      // No ledger id, trace id or gate name ever reaches the reader.
+      const cards = (out.cards || [])
+        .map((c) => buildSourceTag({ url: c.url, title: c.title }))
+        .filter(Boolean);
+      clearKeepAlive();
+      res.write(`data: ${JSON.stringify({
+        type: 'content_block_delta', index: 0,
+        delta: { type: 'text_delta', text: out.text + (cards.length ? '\n' + cards.map((c) => c.tag).join('\n') : '') },
+      })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+      return res.end();
+    }
+
     // ── ATTRIBUTED ROUTE: no source by that scholar ⇒ no attributed ruling ──
     //
     // This branch owns every question that asks what a named scholar held. It runs BEFORE the
