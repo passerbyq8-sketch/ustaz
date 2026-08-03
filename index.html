@@ -494,6 +494,56 @@
     .ezist-masthead{padding:44px 26px 28px}
     .ezist-nav-inner{padding:6px 20px}
   }
+
+  /* ========================================================================
+     S103 -- THE ISTANA ADHKAR CATALOGUE. Same language as the istana home: a bounded sticky
+     top bar with the title centred, an arched masthead, and a real responsive catalogue.
+     Every selector begins with .ezia-, a prefix used nowhere else, and none of them can
+     match html, body or :root -- the arches and emblems are inside cards, never behind them.
+     ===================================================================== */
+  .ezia-nav{position:sticky;top:0;z-index:5;flex-shrink:0;background:var(--a3-surface);
+    border-bottom:1px solid var(--a3-line);padding-top:env(safe-area-inset-top, 0px)}
+  .ezia-nav-inner{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;display:flex;
+    align-items:center;justify-content:space-between;gap:10px;padding:6px 12px;min-height:56px}
+  .ezia-brand{display:inline-flex;align-items:center;gap:8px;min-width:0;
+    font-family:var(--ez-ui-font);font-weight:800;font-size:16.5px;color:var(--a3-ink)}
+  .ezia-brand-arch{width:14px;height:18px;flex-shrink:0;border:2px solid var(--a3-blue);
+    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  .ezia-wrap{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;
+    padding:14px 12px calc(24px + env(safe-area-inset-bottom, 0px))}
+  .ezia-masthead{position:relative;overflow:hidden;box-sizing:border-box;display:flex;
+    align-items:center;gap:16px;border-radius:var(--ez-radius-sig);background:var(--a3-ice);
+    border:1px solid var(--a3-line);padding:26px 18px 20px;margin-bottom:14px}
+  .ezia-sec{display:flex;align-items:center;gap:10px;margin:18px 2px 10px}
+  .ezia-sec-rule{flex:1;height:1px;background:var(--a3-line)}
+  .ezia-featured{display:grid;grid-template-columns:1fr;gap:12px}
+  .ezia-catalogue{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .ezia-featured>*,.ezia-catalogue>*{min-width:0}
+  @media (min-width:600px){
+    .ezia-featured{grid-template-columns:repeat(3,1fr);gap:14px}
+    .ezia-catalogue{grid-template-columns:repeat(3,1fr);gap:14px}
+  }
+  @media (min-width:1000px){
+    .ezia-catalogue{grid-template-columns:repeat(4,1fr);gap:16px}
+    .ezia-masthead{padding:34px 26px 28px}
+    .ezia-nav-inner{padding:6px 20px}
+  }
+  /* the card crest: a bounded arch band across the top of a catalogue card. */
+  .ezia-crest{position:absolute;top:0;right:0;left:0;height:26px;
+    border-radius:16px 16px 40% 40%/16px 16px 100% 100%;background:var(--a3-ice)}
+  .ezia-crest-coral{background:transparent;border-bottom:2px solid var(--a3-cyan)}
+  /* the emblem: an eight-point Iznik star, two squares, inside a 22px box inside a card. */
+  .ezia-star{position:relative;display:block;width:20px;height:20px}
+  .ezia-star::before,.ezia-star::after{content:"";position:absolute;inset:2px;
+    border:1.6px solid currentColor;border-radius:3px}
+  .ezia-star::after{transform:rotate(45deg)}
+  /* the reader shell */
+  .ezia-read-wrap{width:100%;max-width:760px;margin:0 auto;box-sizing:border-box;padding:14px 12px 0}
+  .ezia-read-panel{position:relative;overflow:hidden;box-sizing:border-box;
+    border-radius:var(--ez-radius-sig);background:var(--a3-surface);border:1px solid var(--a3-line);
+    padding:30px 18px 22px;text-align:center}
+  .ezia-dock-inner{width:100%;max-width:760px;margin:0 auto;box-sizing:border-box;
+    display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -3540,17 +3590,6 @@ function bumpAdhkarUsage(catId) {
 // Most-used, resolved against the REAL category list: a stored id with no category is skipped,
 // and a category with no stored count never appears. Ties keep the store's own order because
 // Array#sort is stable, so the strip cannot reorder itself between two equal counts.
-function adhkarMostUsed(usage, cats, limit) {
-  if (!usage || !Array.isArray(cats) || cats.length === 0) return [];
-  const rows = [];
-  for (const c of cats) {
-    const n = usage[String(c.id)];
-    if (!Number.isInteger(n) || n < 1) continue;
-    rows.push({ cat: c, n: n });
-  }
-  rows.sort((a, b) => b.n - a.n);
-  return rows.slice(0, limit);
-}
 
 // Session 86 -- THE ADHKAR-ONLY DESIGN KEY IS GONE. adhkar_design_v1 was never deployed, so
 // nothing on any device holds it and there is nothing to migrate; the choice it used to make is
@@ -3817,8 +3856,9 @@ function AdhkarScreenV2({ onBack }) {
     done: done,
   };
   // The whole of the style switch on this screen: which component receives the state above.
-  // S102: no layout key, no branch. The istana browse replaces this in the next commit.
-  return <AdhkarJourneyHome {...view} />;
+  // S103: the istana catalogue is the whole of the answer. Both legacy browse designs were
+  // deleted in the same commit as this line; nothing else referenced either of them.
+  return <IstanaAdhkarBrowse {...view} />;
 }
 
 // ============================================================
@@ -3826,16 +3866,6 @@ function AdhkarScreenV2({ onBack }) {
 // row -- there is no large filled blue band anywhere in either design, and no bitmap: the bar
 // is a white surface, a hairline and line icons.
 // ============================================================
-function A3Bar({ children }) {
-  return <div style={s.a3Bar}>{children}</div>;
-}
-function A3BarBtn({ onClick, label, on, pressed, children }) {
-  return (
-    <button type="button" className="adhkar2-focus" onClick={onClick} aria-label={label}
-      aria-pressed={pressed === undefined ? undefined : (pressed ? 'true' : 'false')}
-      style={on ? { ...s.a3BarBtn, ...s.a3BarBtnOn } : s.a3BarBtn}>{children}</button>
-  );
-}
 // The search row, shared by both homes: it is the SAME input, the same handler and the same
 // placeholder in either design, so a query typed under one layout filters exactly as it did.
 function A3Search({ query, setQuery }) {
@@ -3856,184 +3886,138 @@ function a3CatStanding(prog, cat, byCat) {
   return { total: total, done: done, full: total > 0 && done >= total, started: done > 0 };
 }
 
-// ============================================================
-// DESIGN 1 -- DAILY JOURNEY (the default). One continuous vertical path: the real daily ring,
-// then EVERY category the filter keeps, alternating around a thin ice-blue centre line. No
-// category is hidden behind a decorative card, nothing is collapsed and nothing is ranked --
-// the path is the store's own order, and each node is one direct door into one category.
-// ============================================================
-function AdhkarJourneyHome({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done }) {
-  const shown = Math.min(done, ADHKAR_DAILY_GOAL);
-  // The ring is one stroked circle: circumference minus the completed fraction. Both numbers
-  // are the real ones -- min(completions, goal) over ADHKAR_DAILY_GOAL -- so an empty store
-  // draws an empty ring and there is no place here where a completion can be invented.
-  const CIRC = 2 * Math.PI * 34;
-  const off = CIRC * (1 - (shown / ADHKAR_DAILY_GOAL));
+
+// ---- S103 ISTANA ADHKAR START -------------------------------------------------------------
+// THE ISTANA ADHKAR CATALOGUE. It replaces both legacy browse designs, which are deleted in
+// this same commit: the overlapping stack and the grid of identical squares are gone.
+//
+// PRESENTATION ONLY, on exactly the terms the deleted ones had. AdhkarScreenV2 is still the
+// only owner of browse state: the store, the query, the progress record, the usage map and
+// the favourite identifiers are loaded, read and written there and handed here as props. This
+// component reads no storage, writes none, ranks nothing, hides nothing and invents nothing.
+//
+// EVERY CATEGORY EXACTLY ONCE, IN THE STORE'S OWN ORDER. `list` is the owner's filtered array;
+// it is split at a fixed position into a featured head and the catalogue tail, and the two are
+// concatenations of the same array -- featured.length + rest.length === list.length, always.
+// The split is POSITIONAL, not semantic: nothing here matches a title or hardcodes an id. In
+// adhkar.json's own order the first three happen to be the morning/evening, the sleep and the
+// waking groups, which is why featuring the head reads as featuring them -- but a data change
+// moves what is featured rather than breaking it, and a live query features the top of the
+// filtered result, which is the honest thing for a search to do.
+const EZIA_FEATURED = 3;
+
+// One catalogue card. The treatment varies with the category's own standing and position --
+// a completed category is crested and checked, every third card takes the coral rule, and the
+// rest are plain surface -- so the catalogue is coherent without being 129 identical squares.
+function IstanaAdhkarCard({ c, st, i, onOpen }) {
+  const coral = (i % 3) === 2;
   return (
-    <div className="theme-dark adhkar3" style={s.a3Container}>
-      {/* S85-adhkar-journey */}
-      <A3Bar>
-        <A3BarBtn onClick={onBack} label={A2_BACK}>{A2_ICON_BACK}</A3BarBtn>
-        <div style={s.a3BarTitle}>{A2_TITLE}</div>
-        <A3BarBtn onClick={onToggleSearch} label={A2_SEARCH} on={searchOpen} pressed={searchOpen}>{A2_ICON_SEARCH}</A3BarBtn>
-      </A3Bar>
-      {searchOpen && <A3Search query={query} setQuery={setQuery} />}
-      <div style={s.a3Scroll}>
-        <div style={s.a3Wrap}>
-          <div style={s.a3RingCard}>
-            <div style={s.a3RingBox} role="progressbar" aria-label={A2_GOAL_TITLE}
-              aria-valuemin={0} aria-valuemax={ADHKAR_DAILY_GOAL} aria-valuenow={shown}>
-              <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
-                <circle cx="42" cy="42" r="34" fill="none" stroke="var(--a3-ice)" strokeWidth="7" />
-                <circle cx="42" cy="42" r="34" fill="none" stroke="var(--a3-blue)" strokeWidth="7" strokeLinecap="round"
-                  strokeDasharray={CIRC} strokeDashoffset={off} transform="rotate(-90 42 42)" />
-              </svg>
-              <span style={s.a3RingNums}>{toArabicDigits(shown)} / {toArabicDigits(ADHKAR_DAILY_GOAL)}</span>
-            </div>
-            <div style={s.a3RingSide}>
-              <div style={s.a3RingTitle}>{A2_GOAL_TITLE}</div>
-              <div style={s.a3RingHint}>{A2_SOURCE}</div>
-            </div>
-          </div>
-          {cats === null ? (
-            <div style={s.a3Empty}>...</div>
-          ) : list.length === 0 ? (
-            <div style={s.a3Empty}>{A2_EMPTY}</div>
-          ) : (
-            <div style={s.a3Path}>
-              <span style={s.a3PathLine} aria-hidden="true" />
-              {list.map((c, i) => {
-                const st = a3CatStanding(prog, c, byCat);
-                return (
-                  <div key={c.id} style={s.a3PathRow}>
-                    <span style={st.full ? { ...s.a3Mark, ...s.a3MarkDone } : (st.started ? { ...s.a3Mark, ...s.a3MarkNow } : s.a3Mark)} aria-hidden="true">
-                      {st.full ? A2_ICON_CHECK : null}
-                    </span>
-                    <button type="button" className="adhkar2-focus" onClick={() => onOpen(c)}
-                      style={{ ...s.a3Node, ...(st.full ? s.a3NodeDone : null), gridColumn: (i % 2 === 0) ? 1 : 3 }}>
-                      <span style={s.a3NodeTop}>
-                        <span style={s.a3NodeIcon}>{A2_ICON_BEADS}</span>
-                        <span style={s.a3Pill}>{toArabicDigits(c.count)}</span>
-                      </span>
-                      <span style={s.a3NodeTitle}>{c.title}</span>
-                      {st.total > 0 && st.done > 0 && (
-                        <span style={s.a3NodeMeta}>{toArabicDigits(st.done)} / {toArabicDigits(st.total)}</span>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <button type="button" className="adhkar2-focus" onClick={() => onOpen(c)} data-ezia-cat={c.id}
+      style={{ ...s.eziaCard, ...(st.full ? s.eziaCardDone : null) }}>
+      <span className={coral ? 'ezia-crest ezia-crest-coral' : 'ezia-crest'} aria-hidden="true" />
+      <span style={s.eziaCardHead}>
+        <span style={st.full ? { ...s.eziaEmblem, ...s.eziaEmblemDone } : s.eziaEmblem} aria-hidden="true">
+          <span className="ezia-star" />
+        </span>
+        <span style={s.eziaCount}>{toArabicDigits(c.count)}</span>
+      </span>
+      <span style={s.eziaCardTitle}>{c.title}</span>
+      <span style={s.eziaCardFoot}>
+        <span style={s.eziaStanding}>
+          {st.total > 0 && st.done > 0 ? (toArabicDigits(st.done) + ' / ' + toArabicDigits(st.total)) : ''}
+        </span>
+        <span style={s.eziaGo} aria-hidden="true">{st.full ? A2_ICON_CHECK : EZH_ICON_GO}</span>
+      </span>
+    </button>
   );
 }
 
-// ============================================================
-// DESIGN 2 -- STACKED CARDS. The deck is the first three categories of the REAL filtered list,
-// most-opened first when this device has genuinely opened something and the store's own order
-// otherwise; every one of the three is its own button with at least a 44px visible strip, and
-// EVERY remaining category is in the grid underneath. Nothing is recommended, nothing is
-// generated and no category can fall out of reach of a finger or of the tab key.
-// ============================================================
-function AdhkarDeckHome({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, usage, favs }) {
-  const favRef = useRef(null);
-  const top = [];
-  for (const r of adhkarMostUsed(usage, list, 3)) if (top.indexOf(r.cat) === -1) top.push(r.cat);
-  for (const c of list) { if (top.length >= 3) break; if (top.indexOf(c) === -1) top.push(c); }
-  const rest = list.filter((c) => top.indexOf(c) === -1);
-  // FAVOURITES resolved against the real store: an identifier is kept only when it still names
-  // a real item inside a real category. Nothing but the category title and the position is
-  // drawn -- the stored value is two integers and the row shows exactly those two integers.
-  const favRows = [];
-  for (const k of (favs || [])) {
-    const parts = String(k).split(':');
-    const cid = parseInt(parts[0], 10);
-    const at = parseInt(parts[1], 10);
-    const items = byCat ? byCat[cid] : null;
-    if (!Array.isArray(items) || !items[at]) continue;
-    let cat = null;
-    for (const c of (cats || [])) if (parseInt(c.id, 10) === cid) { cat = c; break; }
-    if (!cat) continue;
-    favRows.push({ k: k, cat: cat, at: at });
-  }
-  // S99: the home screen's jump to the favourites strip honours reduced motion too — it is the
-  // only other animated scroll the app owns, and "reduce motion" that leaves one of two animated
-  // scrolls animating is not a setting, it is a half-kept promise.
-  const toFavs = () => { try { if (favRef.current) favRef.current.scrollIntoView({ behavior: ezikMotionReducedNow() ? 'auto' : 'smooth', block: 'start' }); } catch (e) {} };
+// A featured card: the same data, the same handler, the same id attribute -- a larger arch, a
+// bigger emblem and room for the standing line. It is not a second copy of anything.
+function IstanaAdhkarFeature({ c, st, onOpen }) {
   return (
-    <div className="theme-dark adhkar3" style={s.a3Container}>
-      {/* S85-adhkar-deck */}
-      <A3Bar>
-        <A3BarBtn onClick={onBack} label={A2_BACK}>{A2_ICON_BACK}</A3BarBtn>
-        <div style={s.a3BarTitle}>{A2_TITLE}</div>
-        {/* The favourites control exists only when a saved identifier really resolves. */}
-        {favRows.length > 0 && <A3BarBtn onClick={toFavs} label={A2_FAV_LABEL}>{A2_ICON_HEART}</A3BarBtn>}
-        <A3BarBtn onClick={onToggleSearch} label={A2_SEARCH} on={searchOpen} pressed={searchOpen}>{A2_ICON_SEARCH}</A3BarBtn>
-      </A3Bar>
+    <button type="button" className="adhkar2-focus" onClick={() => onOpen(c)} data-ezia-cat={c.id}
+      style={{ ...s.eziaFeature, ...(st.full ? s.eziaCardDone : null) }}>
+      <span style={s.eziaFeatureTop}>
+        <span style={st.full ? { ...s.eziaEmblemLg, ...s.eziaEmblemDone } : s.eziaEmblemLg} aria-hidden="true">
+          <span className="ezia-star" />
+        </span>
+        <span style={s.eziaCount}>{toArabicDigits(c.count)}</span>
+      </span>
+      <span style={s.eziaFeatureTitle}>{c.title}</span>
+      <span style={s.eziaCardFoot}>
+        <span style={s.eziaStanding}>
+          {st.total > 0 && st.done > 0 ? (toArabicDigits(st.done) + ' / ' + toArabicDigits(st.total)) : A2_SOURCE}
+        </span>
+        <span style={s.eziaGo} aria-hidden="true">{st.full ? A2_ICON_CHECK : EZH_ICON_GO}</span>
+      </span>
+    </button>
+  );
+}
+
+function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done }) {
+  const shown = Math.min(done, ADHKAR_DAILY_GOAL);
+  // the real ring, unchanged: min(completions, goal) over the goal, and nothing else.
+  const CIRC = 2 * Math.PI * 30;
+  const off = CIRC * (1 - (shown / ADHKAR_DAILY_GOAL));
+  const featured = list.slice(0, EZIA_FEATURED);
+  const rest = list.slice(EZIA_FEATURED);
+  return (
+    <div className="theme-dark adhkar3" style={s.eziaContainer}>
+      {/* S103-adhkar-istana */}
+      <div className="ezia-nav">
+        <div className="ezia-nav-inner">
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <span className="ezia-brand">
+            <span className="ezia-brand-arch" aria-hidden="true" />
+            <span>{A2_TITLE}</span>
+          </span>
+          <button type="button" className="adhkar2-focus" onClick={onToggleSearch} aria-label={A2_SEARCH}
+            aria-pressed={searchOpen ? 'true' : 'false'}
+            style={searchOpen ? { ...s.eziaNavBtn, ...s.eziaNavBtnOn } : s.eziaNavBtn}>{A2_ICON_SEARCH}</button>
+        </div>
+      </div>
+      {/* the SAME search row, the same input, the same handler as before. */}
       {searchOpen && <A3Search query={query} setQuery={setQuery} />}
-      <div style={s.a3Scroll}>
-        <div style={s.a3Wrap}>
+      <div style={s.eziaScroll}>
+        <div className="ezia-wrap">
+          <section className="ezia-masthead">
+            <span style={s.eziaRingBox} role="progressbar" aria-label={A2_GOAL_TITLE}
+              aria-valuemin={0} aria-valuemax={ADHKAR_DAILY_GOAL} aria-valuenow={shown}>
+              <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">
+                <circle cx="38" cy="38" r="30" fill="none" stroke="var(--a3-surface)" strokeWidth="7" />
+                <circle cx="38" cy="38" r="30" fill="none" stroke="var(--a3-blue)" strokeWidth="7" strokeLinecap="round"
+                  strokeDasharray={CIRC} strokeDashoffset={off} transform="rotate(-90 38 38)" />
+              </svg>
+              <span style={s.eziaRingNums}>{toArabicDigits(shown)} / {toArabicDigits(ADHKAR_DAILY_GOAL)}</span>
+            </span>
+            <span style={s.eziaMastText}>
+              <span style={s.eziaMastTitle}>{A2_GOAL_TITLE}</span>
+              <span style={s.eziaMastHint}>{A2_SOURCE}</span>
+            </span>
+          </section>
           {cats === null ? (
             <div style={s.a3Empty}>...</div>
           ) : list.length === 0 ? (
             <div style={s.a3Empty}>{A2_EMPTY}</div>
           ) : (
             <>
-              <div style={{ ...s.a3Deck, height: (top.length - 1) * 44 + 140 }}>
-                {top.map((c, i) => {
-                  const st = a3CatStanding(prog, c, byCat);
-                  const pct = st.total ? Math.round((st.done / st.total) * 100) : 0;
-                  return (
-                    <button key={c.id} type="button" className="adhkar2-focus" onClick={() => onOpen(c)}
-                      style={{ ...s.a3DeckCard, ...(i === 0 ? s.a3DeckCardFront : null), top: (top.length - 1 - i) * 44, left: i * 12, right: i * 12, zIndex: top.length - i }}>
-                      <span style={s.a3DeckHead}>
-                        <span style={s.a3NodeIcon}>{A2_ICON_BEADS}</span>
-                        <span style={i === 0 ? s.a3DeckTitle : s.a3DeckTitleSm}>{c.title}</span>
-                        <span style={s.a3Pill}>{toArabicDigits(c.count)}</span>
-                      </span>
-                      {i === 0 && (
-                        <span style={s.a3DeckBody}>
-                          <span style={s.a3Track}><span style={{ ...s.a3TrackFill, width: pct + '%' }} /></span>
-                          <span style={s.a3NodeMeta}>{toArabicDigits(st.done)} / {toArabicDigits(st.total)}</span>
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+              <div className="ezia-featured">
+                {featured.map((c) => (
+                  <IstanaAdhkarFeature key={c.id} c={c} st={a3CatStanding(prog, c, byCat)} onOpen={onOpen} />
+                ))}
               </div>
               {rest.length > 0 && (
-                <div style={s.a3Section}>
-                  <div style={s.a3SectionTitle}>{A3_ALL}</div>
-                  <div className="adhkar2-grid">
-                    {rest.map((c) => (
-                      <button key={c.id} type="button" className="adhkar2-focus" onClick={() => onOpen(c)} style={s.a3Tile}>
-                        <span style={s.a3NodeTop}>
-                          <span style={s.a3NodeIcon}>{A2_ICON_BEADS}</span>
-                          <span style={s.a3Pill}>{toArabicDigits(c.count)}</span>
-                        </span>
-                        <span style={s.a3NodeTitle}>{c.title}</span>
-                      </button>
-                    ))}
-                  </div>
+                <div className="ezia-sec">
+                  <span style={s.eziaSecTitle}>{A3_ALL}</span>
+                  <span className="ezia-sec-rule" aria-hidden="true" />
                 </div>
               )}
-              {favRows.length > 0 && (
-                <div style={s.a3Section} ref={favRef}>
-                  <div style={s.a3SectionTitle}>{A2_FAV_LABEL}</div>
-                  <div style={s.a3FavList}>
-                    {favRows.map((r) => (
-                      <button key={r.k} type="button" className="adhkar2-focus" onClick={() => onOpen(r.cat, r.at)} style={s.a3FavRow}>
-                        <span style={s.a3FavIcon}>{A2_ICON_HEART_ON}</span>
-                        <span style={s.a3FavTitle}>{r.cat.title}</span>
-                        <span style={s.a3Pill}>{toArabicDigits(r.at + 1)}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="ezia-catalogue">
+                {rest.map((c, i) => (
+                  <IstanaAdhkarCard key={c.id} c={c} i={i} st={a3CatStanding(prog, c, byCat)} onOpen={onOpen} />
+                ))}
+              </div>
             </>
           )}
         </div>
@@ -4041,6 +4025,86 @@ function AdhkarDeckHome({ onBack, cats, list, query, setQuery, searchOpen, onTog
     </div>
   );
 }
+
+// THE ISTANA READER SHELL. Every protected action of the deleted readers survives here with
+// the same handler and the same accessible name: back, favourite, share, previous, audio, the
+// counter, and onward. The dhikr text is still {d.text} -- a text child, no pass over it -- the
+// counts are still v.count/v.target, the position is still the real index over the real length,
+// and the live region is still in the tree from the first render.
+function IstanaAdhkarReader(v) {
+  const items = v.items;
+  const d = v.d;
+  const len = items ? items.length : 0;
+  const win = adhkarWindow(len, v.idx, A3_WINDOW);
+  return (
+    <div className="theme-dark adhkar3" style={s.eziaReadContainer}>
+      {/* S103-adhkar-istana-reader */}
+      <div className="ezia-nav">
+        <div className="ezia-nav-inner">
+          <button type="button" className="adhkar2-focus" onClick={v.onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <span className="ezia-brand">
+            <span className="ezia-brand-arch" aria-hidden="true" />
+            <span style={s.eziaReadTitle}>{v.cat.title}</span>
+          </span>
+          <button type="button" className="adhkar2-focus" onClick={v.onFav}
+            aria-label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={v.isFav ? 'true' : 'false'}
+            style={v.isFav ? { ...s.eziaNavBtn, ...s.eziaNavBtnOn } : s.eziaNavBtn}>
+            {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}
+          </button>
+        </div>
+      </div>
+      <div style={s.eziaReadOuter}>
+        {items === null ? (
+          <div style={s.a3Empty}>...</div>
+        ) : len === 0 || !d ? (
+          <div style={s.a3Empty}>{A2_EMPTY}</div>
+        ) : (
+          <div style={s.eziaReadScroll}>
+            <div className="ezia-read-wrap">
+              <div className="ezia-read-panel">
+                <span style={s.eziaReadHead}>
+                  <span style={s.eziaReadPos}>{toArabicDigits(v.idx + 1)} / {toArabicDigits(len)}</span>
+                  {d.repeat > 1 && <span style={s.eziaReadRepeat}>{a2Repeat(d.repeat)}</span>}
+                </span>
+                {/* the stored text, rendered as a text child. */}
+                <div style={s.eziaReadText}>{d.text}</div>
+                <div style={s.eziaReadSource}>{A2_SOURCE}</div>
+              </div>
+              {/* the position rail, a bounded row under the panel rather than a screen edge. */}
+              <div style={s.eziaRail} role="progressbar" aria-label={v.cat.title}
+                aria-valuemin={1} aria-valuemax={len} aria-valuenow={v.idx + 1}>
+                {win.map((i) => {
+                  const doneHere = adhkarCountOf(v.prog, v.cat.id, i) >= adhkarTarget(items[i]);
+                  return <span key={i} style={i === v.idx ? { ...s.eziaRailMark, ...s.eziaRailMarkNow } : (doneHere ? { ...s.eziaRailMark, ...s.eziaRailMarkDone } : s.eziaRailMark)} />;
+                })}
+              </div>
+              <div style={s.eziaNote} role="status" aria-live="polite">{v.note}</div>
+            </div>
+          </div>
+        )}
+      </div>
+      {items !== null && len > 0 && d && (
+        <div style={s.eziaDock}>
+          <div className="ezia-dock-inner">
+            <button type="button" className="adhkar2-focus" onClick={v.onPrev} disabled={v.idx <= 0}
+              style={v.idx <= 0 ? { ...s.eziaDockBtn, ...s.eziaDockBtnOff } : s.eziaDockBtn} aria-label={A2_PREV}>{A2_ICON_BACK}</button>
+            <A3AudioBtn d={d} playing={v.playing} onAudio={v.onAudio} style={s.eziaDockBtn} styleOn={s.eziaDockBtnOn} />
+            <button type="button" className="adhkar2-focus" onClick={v.onCount}
+              style={v.full ? { ...s.eziaCountBtn, ...s.eziaCountBtnDone } : s.eziaCountBtn}
+              aria-label={A2_COUNT_ARIA} aria-disabled={v.full ? 'true' : 'false'}>
+              <span style={s.eziaCountNums}>{toArabicDigits(v.count)} / {toArabicDigits(v.target)}</span>
+              <span style={s.eziaCountLabel}>{v.full ? A2_ICON_CHECK : A2_ICON_PLUS}<span>{v.full ? A2_DONE : A2_COUNT}</span></span>
+            </button>
+            <button type="button" className="adhkar2-focus" onClick={v.onShare} style={s.eziaDockBtn} aria-label={A2_SHARE}>{A2_ICON_SHARE}</button>
+            <button type="button" className="adhkar2-focus" onClick={v.onNext} disabled={v.idx >= len - 1}
+              style={v.idx >= len - 1 ? { ...s.eziaDockBtn, ...s.eziaDockBtnOff } : s.eziaDockBtn} aria-label={A2_NEXT}>{A2_ICON_ONWARD}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+// ---- S103 ISTANA ADHKAR END ---------------------------------------------------------------
 
 // One category, full screen. The audio contract is DhikrCard's, kept identical on purpose:
 // one <Audio> at a time, a second tap on the playing item stops it, tapping another item
@@ -4152,8 +4216,8 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
     onShare: onShare,
     onAudio: () => { if (d) toggle(d); },
   };
-  // S102: same as the browse above -- one reader, until the istana reader shell lands.
-  return <AdhkarJourneyReader {...view} />;
+  // S103: one reader shell, and every protected action of the deleted two survives in it.
+  return <IstanaAdhkarReader {...view} />;
 }
 
 // The audio control, shared by both readers so the contract cannot drift between them: it is
@@ -4167,186 +4231,6 @@ function A3AudioBtn({ d, playing, onAudio, style, styleOn }) {
       aria-label={playing ? A2_STOP : A2_LISTEN}>
       {playing ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
     </button>
-  );
-}
-
-// ============================================================
-// DESIGN 1 -- JOURNEY READER. A pure-white reading surface, a compact white top row, a slim
-// rail on the RTL edge that shows the real position inside the real category, and one floating
-// white dock. The dock is a laid-out row rather than an overlay, so it cannot cover a word of
-// the text; the scroll area also carries its own bottom padding.
-// ============================================================
-function AdhkarJourneyReader(v) {
-  const items = v.items;
-  const d = v.d;
-  const len = items ? items.length : 0;
-  // At most A3_WINDOW marks whatever the length -- a nearby window, never hundreds of dots.
-  const win = adhkarWindow(len, v.idx, A3_WINDOW);
-  return (
-    <div className="theme-dark adhkar3" style={s.a3Container}>
-      {/* S85-adhkar-journey-reader */}
-      <A3Bar>
-        <A3BarBtn onClick={v.onBack} label={A2_BACK}>{A2_ICON_BACK}</A3BarBtn>
-        <div style={s.a3BarTitleWrap}>
-          {/* The category title, from adhkar.json, verbatim. */}
-          <div style={s.a3BarTitleSm}>{v.cat.title}</div>
-          <div style={s.a3BarSub}>{A2_SOURCE}</div>
-        </div>
-        <A3BarBtn onClick={v.onFav} label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} on={v.isFav} pressed={v.isFav}>
-          {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}
-        </A3BarBtn>
-        <A3BarBtn onClick={v.onShare} label={A2_SHARE}>{A2_ICON_SHARE}</A3BarBtn>
-      </A3Bar>
-      <div style={s.a3ReadOuter}>
-        {items === null ? (
-          <div style={s.a3Empty}>...</div>
-        ) : len === 0 || !d ? (
-          <div style={s.a3Empty}>{A2_EMPTY}</div>
-        ) : (
-          <>
-            {/* The rail sits on the RTL edge -- the right one -- and reports the real position
-                out of the real length. Marks are drawn for the window only; the value it
-                announces is always the true index and the true category length. */}
-            <div style={s.a3Rail} role="progressbar" aria-label={v.cat.title}
-              aria-valuemin={1} aria-valuemax={len} aria-valuenow={v.idx + 1}>
-              {win.map((i) => {
-                const doneHere = adhkarCountOf(v.prog, v.cat.id, i) >= adhkarTarget(items[i]);
-                return <span key={i} style={i === v.idx ? { ...s.a3RailMark, ...s.a3RailMarkNow } : (doneHere ? { ...s.a3RailMark, ...s.a3RailMarkDone } : s.a3RailMark)} />;
-              })}
-            </div>
-            <div style={s.a3ReadScroll}>
-              <div style={s.a3ReadWrap}>
-                <div style={s.a3ReadHead}>
-                  <span style={s.a3ReadPos}>{toArabicDigits(v.idx + 1)} / {toArabicDigits(len)}</span>
-                  <span style={s.a3ReadRule} />
-                  {d.repeat > 1 && <span style={s.a3ReadRepeat}>{a2Repeat(d.repeat)}</span>}
-                </div>
-                {/* The stored text, rendered as a text child. No pass of any kind over it. */}
-                <div style={s.a3ReadText}>{d.text}</div>
-                <div style={s.a3ReadSource}>{A2_SOURCE}</div>
-                {/* Live region: in the tree from the first render, only its text changes. */}
-                <div style={s.a3Note} role="status" aria-live="polite">{v.note}</div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-      {/* THE DOCK. RTL: previous is on the right, onward on the left, the real counter is the
-          central control, and the audio button appears only for an item that has a recitation. */}
-      {items !== null && len > 0 && d && (
-        <div style={s.a3DockWrap}>
-          <div style={s.a3Dock}>
-            <button type="button" className="adhkar2-focus" onClick={v.onPrev} disabled={v.idx <= 0}
-              style={v.idx <= 0 ? { ...s.a3DockBtn, ...s.a3DockBtnOff } : s.a3DockBtn} aria-label={A2_PREV}>{A2_ICON_BACK}</button>
-            <A3AudioBtn d={d} playing={v.playing} onAudio={v.onAudio} style={s.a3DockBtn} styleOn={s.a3DockBtnOn} />
-            <button type="button" className="adhkar2-focus" onClick={v.onCount}
-              style={v.full ? { ...s.a3DockCount, ...s.a3DockCountDone } : s.a3DockCount}
-              aria-label={A2_COUNT_ARIA} aria-disabled={v.full ? 'true' : 'false'}>
-              <span style={s.a3DockCountNums}>{toArabicDigits(v.count)} / {toArabicDigits(v.target)}</span>
-              <span style={s.a3DockCountLabel}>{v.full ? A2_ICON_CHECK : A2_ICON_PLUS}<span>{v.full ? A2_DONE : A2_COUNT}</span></span>
-            </button>
-            <button type="button" className="adhkar2-focus" onClick={v.onShare} style={s.a3DockBtn} aria-label={A2_SHARE}>{A2_ICON_SHARE}</button>
-            <button type="button" className="adhkar2-focus" onClick={v.onFav}
-              style={v.isFav ? { ...s.a3DockBtn, ...s.a3DockBtnOn } : s.a3DockBtn}
-              aria-label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={v.isFav ? 'true' : 'false'}>
-              {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}
-            </button>
-            <button type="button" className="adhkar2-focus" onClick={v.onNext} disabled={v.idx >= len - 1}
-              style={v.idx >= len - 1 ? { ...s.a3DockBtn, ...s.a3DockBtnOff } : s.a3DockBtn} aria-label={A2_NEXT}>{A2_ICON_ONWARD}</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// DESIGN 2 -- DECK READER. One large white elevated card on a pure-white screen. The card edge
-// behind it is DECORATIVE AND EMPTY: it is a bordered rectangle with no children, so no second
-// dhikr is exposed, previewed or duplicated anywhere on this screen.
-// ============================================================
-function AdhkarDeckReader(v) {
-  const items = v.items;
-  const d = v.d;
-  const len = items ? items.length : 0;
-  const win = adhkarWindow(len, v.idx, A3_WINDOW);
-  return (
-    <div className="theme-dark adhkar3" style={s.a3DeckReadContainer}>
-      {/* S85-adhkar-deck-reader */}
-      <A3Bar>
-        <A3BarBtn onClick={v.onBack} label={A2_BACK}>{A2_ICON_BACK}</A3BarBtn>
-        <div style={s.a3BarTitleWrap}>
-          <div style={s.a3BarTitleSm}>{v.cat.title}</div>
-          <div style={s.a3BarSub}>{A2_SOURCE}</div>
-        </div>
-        <A3BarBtn onClick={v.onFav} label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} on={v.isFav} pressed={v.isFav}>
-          {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}
-        </A3BarBtn>
-      </A3Bar>
-      <div style={s.a3Scroll}>
-        <div style={s.a3Wrap}>
-          {items === null ? (
-            <div style={s.a3Empty}>...</div>
-          ) : len === 0 || !d ? (
-            <div style={s.a3Empty}>{A2_EMPTY}</div>
-          ) : (
-            <>
-              <div style={s.a3Stage}>
-                <span style={s.a3StageGhost} aria-hidden="true" />
-                <div style={s.a3StageCard}>
-                  <div style={s.a3ReadHead}>
-                    <span style={s.a3ReadPos}>{toArabicDigits(v.idx + 1)} / {toArabicDigits(len)}</span>
-                    <span style={s.a3ReadRule} />
-                    {d.repeat > 1 && <span style={s.a3ReadRepeat}>{a2Repeat(d.repeat)}</span>}
-                  </div>
-                  <div style={s.a3ReadText}>{d.text}</div>
-                  <div style={s.a3ReadSource}>{A2_SOURCE}</div>
-                  {/* The counter: an outlined pill, the real count over the real target. */}
-                  <button type="button" className="adhkar2-focus" onClick={v.onCount}
-                    style={v.full ? { ...s.a3Pillar, ...s.a3PillarDone } : s.a3Pillar}
-                    aria-label={A2_COUNT_ARIA} aria-disabled={v.full ? 'true' : 'false'}>
-                    {v.full ? A2_ICON_CHECK : A2_ICON_PLUS}
-                    <span style={s.a3PillarNums}>{toArabicDigits(v.count)} / {toArabicDigits(v.target)}</span>
-                    <span style={s.a3PillarLabel}>{v.full ? A2_DONE : A2_COUNT}</span>
-                  </button>
-                  <div style={s.a3StageActs}>
-                    <A3AudioBtn d={d} playing={v.playing} onAudio={v.onAudio} style={s.a3Act} styleOn={s.a3ActOn} />
-                    <button type="button" className="adhkar2-focus" onClick={v.onShare} style={s.a3Act} aria-label={A2_SHARE}>
-                      {A2_ICON_SHARE}<span>{A2_SHARE}</span>
-                    </button>
-                    <button type="button" className="adhkar2-focus" onClick={v.onFav}
-                      style={v.isFav ? { ...s.a3Act, ...s.a3ActOn } : s.a3Act}
-                      aria-label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={v.isFav ? 'true' : 'false'}>
-                      {v.isFav ? A2_ICON_HEART_ON : A2_ICON_HEART}<span>{A2_FAV_LABEL}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div style={s.a3Note} role="status" aria-live="polite">{v.note}</div>
-              {/* Pagination: a WINDOW of marks, never one per item, plus the real numbers. */}
-              <div style={s.a3Dots} role="progressbar" aria-label={v.cat.title}
-                aria-valuemin={1} aria-valuemax={len} aria-valuenow={v.idx + 1}>
-                {win.map((i) => {
-                  const doneHere = adhkarCountOf(v.prog, v.cat.id, i) >= adhkarTarget(items[i]);
-                  return <span key={i} style={i === v.idx ? { ...s.a3Dot, ...s.a3DotNow } : (doneHere ? { ...s.a3Dot, ...s.a3DotDone } : s.a3Dot)} />;
-                })}
-              </div>
-              <div style={s.a3Nav}>
-                <button type="button" className="adhkar2-focus" onClick={v.onPrev} disabled={v.idx <= 0}
-                  style={v.idx <= 0 ? { ...s.a3NavBtn, ...s.a3NavBtnOff } : s.a3NavBtn} aria-label={A2_PREV}>
-                  {A2_ICON_BACK}<span>{A2_PREV}</span>
-                </button>
-                <span style={s.a3NavMeta}>{toArabicDigits(v.catDone)} / {toArabicDigits(len)}</span>
-                <button type="button" className="adhkar2-focus" onClick={v.onNext} disabled={v.idx >= len - 1}
-                  style={v.idx >= len - 1 ? { ...s.a3NavBtn, ...s.a3NavBtnOff } : s.a3NavBtn} aria-label={A2_NEXT}>
-                  <span>{A2_NEXT}</span>{A2_ICON_ONWARD}
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -11726,6 +11610,63 @@ const s = {
   // least 44px, and there is no animation or transition anywhere in this block.
   // ============================================================
   ezistContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  // ============================================================
+  // S103 -- THE ISTANA ADHKAR CATALOGUE AND READER. Every colour is an --a3-* token, which
+  // under istana_33 resolves to the approved values and, in dark, to the accessible dark ones.
+  // No literal colour, every fontSize a number so the text-size preference scales it, every
+  // tappable surface at least 44px, and no animation or transition anywhere in this block.
+  // ============================================================
+  eziaContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  // the reader paints the same page; it is its own key so each screen has its own root.
+  eziaReadContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  eziaScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
+  eziaNavBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },
+  eziaNavBtnOn: { background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)' },
+  eziaRingBox: { position: 'relative', width: 76, height: 76, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  eziaRingNums: { position: 'absolute', fontSize: 14, fontWeight: 800, color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)' },
+  eziaMastText: { display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, textAlign: 'right' },
+  eziaMastTitle: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)' },
+  eziaMastHint: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)' },
+  eziaSecTitle: { flexShrink: 0, fontSize: 13, fontWeight: 800, color: 'var(--a3-blue)', fontFamily: 'var(--ez-ui-font)' },
+  // the catalogue card: a crest, an emblem row, the title, then the standing and the chevron.
+  eziaCard: { position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8, width: '100%', minHeight: 132, padding: '32px 12px 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
+  eziaCardDone: { background: 'var(--a3-ice)' },
+  eziaCardHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  eziaEmblem: { width: 34, height: 34, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, background: 'var(--a3-ice)', color: 'var(--a3-blue)' },
+  eziaEmblemLg: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)' },
+  eziaEmblemDone: { color: 'var(--a3-cyan)' },
+  eziaCount: { flexShrink: 0, padding: '3px 9px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 12, fontWeight: 800 },
+  eziaCardTitle: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, lineHeight: 1.65, color: 'var(--a3-ink)' },
+  eziaCardFoot: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  eziaStanding: { minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
+  eziaGo: { flexShrink: 0, display: 'inline-flex', color: 'var(--a3-muted)' },
+  // the featured card: the same parts, an arch crest and more room.
+  eziaFeature: { position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 10, width: '100%', minHeight: 148, padding: '16px 14px 14px', borderRadius: '44px 44px 16px 16px', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
+  eziaFeatureTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  eziaFeatureTitle: { flex: 1, minWidth: 0, fontSize: 16, fontWeight: 800, lineHeight: 1.6, color: 'var(--a3-ink)' },
+  // the reader shell
+  eziaReadOuter: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' },
+  eziaReadScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
+  eziaReadTitle: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)' },
+  eziaReadHead: { display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 6 },
+  eziaReadPos: { fontSize: 12.5, fontWeight: 800, color: 'var(--a3-blue)' },
+  eziaReadRepeat: { padding: '3px 9px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 12, fontWeight: 800 },
+  eziaReadText: { color: 'var(--a3-ink)', fontSize: 20, lineHeight: 2.15, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '10px 0 8px' },
+  eziaReadSource: { color: 'var(--a3-muted)', fontSize: 12, fontWeight: 600, textAlign: 'center' },
+  eziaRail: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 0 2px' },
+  eziaRailMark: { width: 7, height: 7, borderRadius: '50%', background: 'var(--a3-line)' },
+  eziaRailMarkNow: { background: 'var(--a3-blue)', width: 9, height: 9 },
+  eziaRailMarkDone: { background: 'var(--a3-cyan)' },
+  eziaNote: { minHeight: 20, textAlign: 'center', fontSize: 12.5, fontWeight: 600, color: 'var(--a3-blue)' },
+  eziaDock: { flexShrink: 0, background: 'var(--a3-surface)', borderTop: '1px solid var(--a3-line)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' },
+  eziaDockBtn: { width: 46, height: 46, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
+  eziaDockBtnOn: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: '1px solid var(--a3-blue)' },
+  eziaDockBtnOff: { color: 'var(--a3-muted)', cursor: 'default' },
+  eziaCountBtn: { flex: 1, minWidth: 0, maxWidth: 240, minHeight: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '4px 10px', borderRadius: 16, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  eziaCountBtnDone: { background: 'var(--a3-cyan)', color: 'var(--a3-navy)', cursor: 'default' },
+  eziaCountNums: { fontSize: 15, fontWeight: 800 },
+  eziaCountLabel: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 700 },
+
   ezistScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
   ezistNavBtn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },
   ezistNavOn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', cursor: 'default' },
@@ -11884,118 +11825,34 @@ const s = {
   // all of it: every interactive key is at least 44x44 CSS px, and every scroll and every dock
   // carries the safe-area inset so nothing lands under a notch or a home indicator.
   // ============================================================
-  a3Container: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
   // The deck reader is the one full-screen PURE WHITE surface: the card floats on the paper
   // rather than on the page wash.
-  a3DeckReadContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-surface)' },
   // The compact white top row, shared by all four screens. It is a surface, a hairline and
   // line icons -- no band, no gradient, no pattern.
   a3Bar: { flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, padding: 'calc(6px + env(safe-area-inset-top, 0px)) 10px 6px', background: 'var(--a3-surface)', borderBottom: '1px solid var(--a3-line)' },
   a3BarBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
   a3BarBtnOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
-  a3BarTitle: { flex: 1, minWidth: 0, textAlign: 'center', fontSize: 17, fontWeight: 800, color: 'var(--a3-ink)' },
-  a3BarTitleWrap: { flex: 1, minWidth: 0, textAlign: 'center' },
   // The category title is content and may run long: it wraps rather than being truncated.
-  a3BarTitleSm: { fontSize: 15.5, fontWeight: 800, lineHeight: 1.4, color: 'var(--a3-ink)' },
-  a3BarSub: { fontSize: 11.5, fontWeight: 600, color: 'var(--a3-muted)', marginTop: 1 },
   a3SearchRow: { flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, height: 46, margin: '10px 12px 0', padding: '0 14px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
   a3SearchIcon: { display: 'flex', flexShrink: 0, color: 'var(--a3-muted)' },
   a3SearchInput: { flex: 1, minWidth: 0, padding: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'var(--ez-ui-font)', fontSize: 15.5, color: 'var(--a3-ink)', direction: 'rtl' },
-  a3Scroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '14px 14px calc(24px + env(safe-area-inset-bottom, 0px))', boxSizing: 'border-box' },
   // DESKTOP: the column stops widening, so a journey path and a deck keep a phone's reading
   // measure on a large display instead of stretching across it.
-  a3Wrap: { width: '100%', maxWidth: 680, margin: '0 auto' },
   a3Empty: { flex: 1, width: '100%', textAlign: 'center', color: 'var(--a3-muted)', fontSize: 15, padding: '32px 0' },
   // The daily ring. One stroked circle over one track circle; the digits inside are the real
   // completion count over ADHKAR_DAILY_GOAL.
-  a3RingCard: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, padding: '12px 14px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
-  a3RingBox: { position: 'relative', width: 84, height: 84, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  a3RingNums: { position: 'absolute', fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)' },
-  a3RingSide: { minWidth: 0 },
-  a3RingTitle: { fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)' },
-  a3RingHint: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', marginTop: 3 },
   // THE PATH. The centre line is one hairline; each row is a three-column grid whose middle
   // column holds the marker, so the summaries alternate around it without any transform.
-  a3Path: { position: 'relative', paddingTop: 4 },
-  a3PathLine: { position: 'absolute', top: 0, bottom: 0, left: '50%', marginLeft: -1, width: 2, borderRadius: 2, background: 'var(--a3-ice)' },
-  a3PathRow: { display: 'grid', gridTemplateColumns: '1fr 36px 1fr', alignItems: 'center', marginBottom: 12 },
-  a3Mark: { gridColumn: 2, justifySelf: 'center', position: 'relative', width: 22, height: 22, borderRadius: '50%', background: 'var(--a3-surface)', border: '2px solid var(--a3-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--a3-surface)' },
-  a3MarkNow: { border: '2px solid var(--a3-cyan)' },
-  a3MarkDone: { background: 'var(--a3-blue)', border: '2px solid var(--a3-blue)', color: 'var(--a3-on-blue)' },
-  a3Node: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 88, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  a3NodeDone: { border: '1px solid var(--a3-blue)' },
-  a3NodeTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  a3NodeIcon: { width: 34, height: 34, flexShrink: 0, borderRadius: 12, background: 'var(--a3-soft)', color: 'var(--a3-blue)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
-  a3Pill: { minWidth: 26, height: 24, flexShrink: 0, padding: '0 8px', borderRadius: 999, background: 'var(--a3-soft)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
-  a3NodeTitle: { fontSize: 14.5, fontWeight: 700, lineHeight: 1.55, color: 'var(--a3-ink)' },
-  a3NodeMeta: { fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
   // THE DECK. Each card is offset 44px from the one behind it, which is exactly why every card
   // in the stack keeps a full 44px tappable strip -- the stack is a look, never a lost target.
-  a3Deck: { position: 'relative', marginBottom: 16 },
-  a3DeckCard: { position: 'absolute', boxSizing: 'border-box', height: 140, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '9px 12px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  a3DeckCardFront: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-lift)' },
-  a3DeckHead: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 34 },
-  a3DeckTitle: { flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 800, lineHeight: 1.5, color: 'var(--a3-ink)' },
-  a3DeckTitleSm: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  a3DeckBody: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 },
-  a3Track: { flex: 1, display: 'flex', height: 6, borderRadius: 999, background: 'var(--a3-ice)', overflow: 'hidden' },
-  a3TrackFill: { height: '100%', borderRadius: 999, background: 'var(--a3-blue)', transition: 'width 200ms ease' },
-  a3Section: { marginBottom: 16 },
-  a3SectionTitle: { fontSize: 13, fontWeight: 800, color: 'var(--a3-muted)', marginBottom: 8 },
-  a3Tile: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 108, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  a3FavList: { display: 'flex', flexDirection: 'column', gap: 8 },
-  a3FavRow: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', minHeight: 48, padding: '0 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  a3FavIcon: { display: 'inline-flex', flexShrink: 0, color: 'var(--a3-cyan)' },
-  a3FavTitle: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   // THE JOURNEY READER. The rail is absolutely positioned inside this box, on the RTL edge,
   // and the scroll keeps a wider right padding so no word of the text runs under it.
-  a3ReadOuter: { flex: 1, minHeight: 0, position: 'relative', display: 'flex' },
-  a3Rail: { position: 'absolute', top: 16, bottom: 16, right: 6, width: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  a3RailMark: { width: 4, height: 10, flexShrink: 0, borderRadius: 999, background: 'var(--a3-ice)' },
-  a3RailMarkNow: { height: 22, background: 'var(--a3-blue)' },
-  a3RailMarkDone: { background: 'var(--a3-cyan)' },
-  a3ReadScroll: { flex: 1, minWidth: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '14px 24px 12px 14px', boxSizing: 'border-box' },
-  a3ReadWrap: { width: '100%', maxWidth: 680, margin: '0 auto', padding: '16px 18px', borderRadius: 22, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
-  a3ReadHead: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 },
-  a3ReadPos: { display: 'inline-flex', alignItems: 'center', flexShrink: 0, height: 26, padding: '0 10px', borderRadius: 999, background: 'var(--a3-soft)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800 },
-  a3ReadRule: { flex: 1, height: 1, background: 'var(--a3-line)' },
-  a3ReadRepeat: { display: 'inline-flex', alignItems: 'center', flexShrink: 0, padding: '5px 11px', borderRadius: 999, background: 'var(--a3-soft)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 700 },
   // Amiri, already loaded in <head>, at a reading size and a wide leading -- the same treatment
   // the text had before, on a white surface instead of an ivory one.
-  a3ReadText: { fontFamily: "'Amiri', serif", fontSize: 22, lineHeight: 2.1, color: 'var(--a3-ink)' },
-  a3ReadSource: { fontSize: 12, fontWeight: 600, color: 'var(--a3-muted)', marginTop: 12 },
-  a3Note: { minHeight: 19, marginTop: 10, textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--a3-blue)' },
   // THE DOCK. It is a laid-out row, not an overlay: it occupies its own space at the foot of
   // the screen, so it cannot cover the text it sits under however long the dhikr is.
-  a3DockWrap: { flexShrink: 0, padding: '0 12px calc(10px + env(safe-area-inset-bottom, 0px))' },
-  a3Dock: { display: 'flex', alignItems: 'center', gap: 8, maxWidth: 680, margin: '0 auto', padding: 8, borderRadius: 22, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-lift)' },
-  a3DockBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
-  a3DockBtnOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
-  a3DockBtnOff: { opacity: 0.42, cursor: 'default' },
-  a3DockCount: { flex: 1, minWidth: 0, minHeight: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '4px 10px', borderRadius: 16, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
-  a3DockCountDone: { background: 'var(--a3-cyan)', color: 'var(--a3-navy)', cursor: 'default' },
-  a3DockCountNums: { fontSize: 18, fontWeight: 800 },
-  a3DockCountLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 700 },
   // THE DECK READER STAGE. The ghost is a DECORATIVE EMPTY EDGE -- a bordered strip with no
   // children at all -- so the deck reads as a deck without any second dhikr being shown.
-  a3Stage: { position: 'relative', paddingTop: 10, marginBottom: 6 },
-  a3StageGhost: { position: 'absolute', top: 0, left: 14, right: 14, height: 60, borderRadius: 22, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
-  a3StageCard: { position: 'relative', zIndex: 1, padding: '16px 18px', borderRadius: 24, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-lift)' },
-  a3Pillar: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', minHeight: 56, marginTop: 14, padding: '8px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '2px solid var(--a3-blue)', color: 'var(--a3-blue)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
-  a3PillarDone: { background: 'var(--a3-soft)', border: '2px solid var(--a3-cyan)', cursor: 'default' },
-  a3PillarNums: { fontSize: 20, fontWeight: 800 },
-  a3PillarLabel: { fontSize: 12.5, fontWeight: 700 },
-  a3StageActs: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 },
-  a3Act: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 15px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
-  a3ActOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
-  a3Dots: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, margin: '4px 0 12px' },
-  a3Dot: { width: 6, height: 6, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-ice)' },
-  a3DotNow: { width: 20, borderRadius: 999, background: 'var(--a3-blue)' },
-  a3DotDone: { background: 'var(--a3-cyan)' },
-  a3Nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  a3NavBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' },
-  a3NavBtnOff: { opacity: 0.42, cursor: 'default' },
-  a3NavMeta: { fontSize: 12.5, fontWeight: 700, color: 'var(--a3-muted)' },
   // THE SETTINGS CHOICE. Two selection cards, 44px floor, pure white when unselected; the
   // selected one takes a thin royal-blue outline and a small cyan indicator dot. The previews
   // are CSS boxes -- no image, no data URI, nothing fetched.

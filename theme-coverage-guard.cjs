@@ -756,8 +756,8 @@ const SCREENS = {
   'chat': 'chatContainer',
   'adhkar (v1)': 'adhkarContainer',
   'adhkar (v2)': 'adhkar2Container',
-  'adhkar browse / dhikr': 'a3Container',
-  'adhkar reader (deck)': 'a3DeckReadContainer',
+  'adhkar browse / dhikr': 'eziaContainer',
+  'adhkar reader': 'eziaReadContainer',
   'quran index / mushaf shell': 'pgViewport',
   'memorisation': 'memContainer',
   'ezik memory (saved answers)': 'favScreen',
@@ -965,6 +965,121 @@ eq('every istana font size is a number, so the text-size preference scales it', 
 const moving = ezistKeys.filter((k) => s[k].animation || s[k].transition);
 eq('the istana home animates nothing, so reduced motion has nothing to switch off', moving, []);
 ok('...and its controls carry the shared focus ring class', (IST.match(/className="ezhome-focus/g) || []).length >= 5);
+
+/* ================== I. THE ISTANA ADHKAR CATALOGUE (S103) =================
+ * The rejected screen was an overlapping stack followed by a grid of identical squares. Both
+ * legacy browse designs and both legacy readers are DELETED in the commit that added this
+ * group, so "reachable" is proved by absence, not by a flag. What replaces them has to be a
+ * catalogue with real hierarchy -- and it has to render every category the owner hands it,
+ * exactly once, in the owner's own order, with the owner's own handler.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== I. THE ISTANA ADHKAR CATALOGUE ===');
+
+const IA_START = '// ---- S103 ISTANA ADHKAR START';
+const IA_END = '// ---- S103 ISTANA ADHKAR END';
+const iaAt = html.indexOf(IA_START), iaEndAt = html.indexOf(IA_END);
+ok('the istana adhkar block is delimited', iaAt !== -1 && iaEndAt > iaAt);
+const IA = iaAt === -1 ? '' : html.slice(iaAt, iaEndAt);
+
+/* ---- I1. the legacy presentation is gone -------------------------------- */
+for (const sym of ['AdhkarJourneyHome', 'AdhkarDeckHome', 'AdhkarJourneyReader', 'AdhkarDeckReader',
+  'adhkarMostUsed', 'function A3Bar', 'a3Container', 'a3DeckCard', 'a3Path', 'a3Stage']) {
+  ok('the legacy adhkar symbol ' + sym + ' is gone', html.indexOf(sym) === -1);
+}
+ok('the browse owner renders the istana catalogue', /return <IstanaAdhkarBrowse \{\.\.\.view\} \/>;/.test(html));
+ok('the reader owner renders the istana shell', /return <IstanaAdhkarReader \{\.\.\.view\} \/>;/.test(html));
+ok('...and neither owner branches: the return is unconditional',
+  !/return [a-zA-Z]+ === [A-Z_]+ ? <(Istana|Adhkar)/.test(html));
+
+/* ---- I2. every category, exactly once, from the owner's one array -------- */
+// The split is positional and total: featured is the head, rest is the tail, and the two are
+// slices of the SAME array at the same index. There is no filter, no dedupe and no second
+// source, so featured.length + rest.length === list.length by construction.
+ok('the featured head and the catalogue tail are slices of the one array',
+  /const featured = list\.slice\(0, EZIA_FEATURED\);/.test(IA) && /const rest = list\.slice\(EZIA_FEATURED\);/.test(IA));
+ok('...and nothing re-orders, ranks or filters them here',
+  !/\.sort\(|\.filter\(|adhkarMostUsed/.test(IA));
+ok('each category is rendered by exactly one map over each slice',
+  (IA.match(/featured\.map\(/g) || []).length === 1 && (IA.match(/rest\.map\(/g) || []).length === 1);
+ok('...and every rendered category carries its own store id',
+  (IA.match(/data-ezia-cat=\{c\.id\}/g) || []).length === 2,
+  'one on the featured card, one on the catalogue card -- counting these elements counts categories');
+ok('...opened through the owner\'s handler, never a local one',
+  (IA.match(/onClick=\{\(\) => onOpen\(c\)\}/g) || []).length === 2 && !/setSelected|bumpAdhkarUsage/.test(IA));
+ok('the standing comes from the shipped helper, not a recount',
+  (IA.match(/a3CatStanding\(prog, c, byCat\)/g) || []).length === 2 && !/adhkarCatDone\(/.test(IA));
+
+/* ---- I3. the structure the design calls for ----------------------------- */
+ok('it has the istana top header', /className="ezia-nav"/.test(IA) && /\.ezia-nav-inner\{[^}]*max-width:1100px/.test(css));
+ok('...with the same brand-arch language as the home', /className="ezia-brand-arch"/.test(IA));
+ok('it has a bounded arched masthead', /className="ezia-masthead"/.test(IA)
+  && /\.ezia-masthead\{[^}]*border-radius:var\(--ez-radius-sig\)/.test(css)
+  && /\.ezia-masthead\{[^}]*overflow:hidden/.test(css));
+ok('...carrying the REAL daily ring, not a decorative one',
+  /role="progressbar"[\s\S]{0,200}?aria-valuenow=\{shown\}/.test(IA) && /Math\.min\(done, ADHKAR_DAILY_GOAL\)/.test(IA));
+ok('featured groups are their own presentation', /<IstanaAdhkarFeature /.test(IA) && !!s.eziaFeature);
+ok('...and the rest are a responsive catalogue',
+  /className="ezia-catalogue"/.test(IA) && /\.ezia-catalogue\{[^}]*display:grid/.test(css));
+ok('...two columns on a phone', /\.ezia-catalogue\{[^}]*grid-template-columns:repeat\(2,1fr\)/.test(css));
+ok('...three from 600px', /@media \(min-width:600px\)\{[\s\S]{0,300}?\.ezia-catalogue\{grid-template-columns:repeat\(3,1fr\)/.test(css));
+ok('...four from 1000px', /@media \(min-width:1000px\)\{[\s\S]{0,300}?\.ezia-catalogue\{grid-template-columns:repeat\(4,1fr\)/.test(css));
+ok('...inside a centred maximum width', /\.ezia-wrap\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css));
+// varied but coherent: a crest, a coral variant, an emblem, a completed state.
+for (const k of ['eziaCard', 'eziaCardDone', 'eziaFeature', 'eziaEmblem', 'eziaEmblemDone', 'eziaCount', 'eziaGo']) {
+  ok('the catalogue treatment ' + k + ' exists', !!s[k]);
+}
+ok('the crest is a bounded card band', /\.ezia-crest\{[^}]*position:absolute/.test(css));
+ok('...with a restrained coral variant', /\.ezia-crest-coral\{[^}]*var\(--a3-cyan\)/.test(css));
+ok('the emblem is a bounded geometric star', /\.ezia-star\{[^}]*width:20px/.test(css));
+// no giant empty card: every card carries a title, a count and a trailing affordance, and the
+// content is spread rather than clustered at one edge.
+ok('every card shows its title and its real count', /\{c\.title\}/.test(IA) && /toArabicDigits\(c\.count\)/.test(IA));
+eq('the card foot spreads its content', (s.eziaCardFoot || {}).justifyContent, 'space-between');
+eq('...as does the card head', (s.eziaCardHead || {}).justifyContent, 'space-between');
+const iaTall = ['eziaCard', 'eziaFeature'].filter((k) => typeof (s[k] || {}).height === 'number' || ((s[k] || {}).minHeight || 0) > 200);
+eq('no catalogue card is pinned taller than its content', iaTall, []);
+
+/* ---- I4. the reader keeps every protected action ------------------------ */
+const IA_ACTIONS = [
+  ['back', /onClick=\{v\.onBack\}/], ['favourite', /onClick=\{v\.onFav\}/], ['share', /onClick=\{v\.onShare\}/],
+  ['previous', /onClick=\{v\.onPrev\}/], ['onward', /onClick=\{v\.onNext\}/], ['count', /onClick=\{v\.onCount\}/],
+  ['audio', /<A3AudioBtn d=\{d\} playing=\{v\.playing\} onAudio=\{v\.onAudio\}/],
+];
+for (const [name, re] of IA_ACTIONS) ok('the reader keeps its ' + name + ' action', re.test(IA));
+ok('the dhikr text is still a text child of the panel', /<div style=\{s\.eziaReadText\}>\{d\.text\}<\/div>/.test(IA),
+  'no transform, no slice, no pass of any kind over the stored text');
+ok('the counter still reports the real count over the real target',
+  /toArabicDigits\(v\.count\)\} \/ \{toArabicDigits\(v\.target\)/.test(IA));
+ok('the position still reports the real index over the real length',
+  /toArabicDigits\(v\.idx \+ 1\)\} \/ \{toArabicDigits\(len\)/.test(IA));
+ok('the live region is in the tree from the first render', /role="status" aria-live="polite"/.test(IA));
+ok('the favourite still announces its pressed state', /aria-pressed=\{v\.isFav/.test(IA));
+ok('the search row is the shipped one, with the shipped handler', /<A3Search query=\{query\} setQuery=\{setQuery\} \/>/.test(IA));
+ok('back is the owner\'s back', /onClick=\{onBack\}/.test(IA));
+
+/* ---- I5. the background invariant reaches this screen too --------------- */
+const eziaRules = (css.match(/\.ezia-[^{]*\{[^}]*\}/g) || []);
+ok('the adhkar catalogue declares its own rules', eziaRules.length > 8);
+eq('not one of them attaches an image, gradient or repeat',
+  eziaRules.filter((r) => /background-image|gradient|url\(|repeating/i.test(r)), []);
+ok('and no adhkar selector can match html, body or :root',
+  !/(^|[,}\s])(html|body|:root)[^{,]*\.ezia-/.test(css) && !/\.ezia-[^{,]*\s+(html|body)\b/.test(css));
+const eziaKeys = Object.keys(s).filter((k) => k.indexOf('ezia') === 0);
+ok('the adhkar screens have their own style keys', eziaKeys.length >= 25, 'found ' + eziaKeys.length);
+const iaLit = [];
+for (const k of eziaKeys) for (const p of Object.keys(s[k])) {
+  const v = String(s[k][p]);
+  if (/#[0-9a-fA-F]{3,8}\b/.test(v) || /\brgba?\(/.test(v)) iaLit.push(k + '.' + p + '=' + v);
+}
+eq('no adhkar style key carries a hardcoded colour', iaLit, []);
+const iaNotNum = eziaKeys.filter((k) => s[k].fontSize != null && typeof s[k].fontSize !== 'number');
+eq('every adhkar font size is a number, so text scaling reaches it', iaNotNum, []);
+eq('the adhkar screens animate nothing', eziaKeys.filter((k) => s[k].animation || s[k].transition), []);
+for (const mode of ['light', 'dark']) {
+  const bg = resolve(s.eziaContainer.background, VT_PAL['istana_33:' + mode]);
+  if (mode === 'light') ok('the adhkar page is exactly #FFFFFF in light', bg && hex(bg) === '#ffffff', hex(bg));
+  else ok('...and stays dark in dark', bg && lum(bg) < 0.08, hex(bg));
+}
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
