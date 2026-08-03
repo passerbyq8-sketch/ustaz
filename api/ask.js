@@ -497,7 +497,12 @@ export default async function handler(req, res) {
       const { runLedgerTurn } = await import('../lib/ledger/seam.js');
       const { braveSearch } = await import('../lib/ledger/search.js');
       const { SITES_ADULT, SITES_MINOR } = await import('../lib/retrieve.js');
-      clearKeepAlive();
+      // THE KEEPALIVE STAYS UP FOR THE WHOLE OF THE ENGINE'S WORK. The ledger path is
+      // byte-silent for up to its full 25-second budget — the same reason round 1 of the shipped
+      // path is — and mobile carriers reset an idle socket at about thirty seconds. Clearing it
+      // here, as the first version did, removed the protection for exactly the interval it
+      // exists to cover. The seam fires `beforeFirstOutput` immediately before its first byte,
+      // so there is one owner, one timer, and no keepalive can interleave with a content frame.
       // THE READER'S OWN WORDS. Deliberately NOT plan.attribution.question: that is a field of
       // the legacy attribution classifier — the one measured mis-reading the verb «ذهب» — and
       // an engine fed from it inherits whatever that classifier starts doing to the text.
@@ -509,6 +514,7 @@ export default async function handler(req, res) {
         buildSourceTag,
         search: (q, sites) => braveSearch(q, sites),
         startedAt: ledgerStartedAt,
+        beforeFirstOutput: clearKeepAlive,
       });
       // Counts and codes only. No question, no answer, no page text, no reader identity.
       console.log('[ledger]', {

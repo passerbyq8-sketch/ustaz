@@ -95,6 +95,7 @@ const user = (t) => [{ role: 'user', content: t }];
   const FL = await esm('lib/ledger/flag.js');
   const DC = await esm('lib/daycap.js');
   const EN = await esm('lib/ledger/engine.js');
+  const { MAX_ACCEPTED_RECORDS: DIRECT_MAX_RECORDS } = await esm('lib/ledger/direct-corpus.js');
   const ask = read('api/ask.js');
   const askCode = code('api/ask.js');
 
@@ -350,6 +351,101 @@ const user = (t) => [{ role: 'user', content: t }];
   }
 
   // =========================================================================
+  console.log('\n=== C2. THE KEEPALIVE COVERS THE SILENCE IT EXISTS TO COVER ===');
+  //
+  // api/ask.js opens an SSE keepalive because the answer path is byte-silent for tens of seconds
+  // and mobile carriers reset an idle socket at about thirty. The ledger path is silent for the
+  // same reason and for as long — up to its full 25-second budget. The first version of this seam
+  // had the handler stop the keepalive BEFORE calling it, removing the protection for exactly the
+  // interval it exists to cover.
+  {
+    // A real interval and a real (short) delay, so the ordering being tested is the ordering that
+    // actually happens rather than one a fake timer was told to produce.
+    const res = fakeRes();
+    let ticks = 0;
+    const timer = setInterval(() => { ticks++; res.write(': keepalive\n\n'); }, 10);
+    const clearKeepAlive = () => clearInterval(timer);
+    let t = 0;
+    const out = await SEAM.runLedgerTurn(res, {
+      messages: user('ما حكم بيع الذهب بالتقسيط؟'),
+      band: 'adult', bandSites: SP.searchableDomains(),
+      buildSourceTag: askMod.buildSourceTag,
+      now: () => (t += 5), startedAt: 0,
+      fetchImpl,
+      // A search that takes a while, standing in for the engine's real byte-silent phase.
+      search: async () => { await new Promise((r) => setTimeout(r, 120)); return RESULTS.slice(); },
+      beforeFirstOutput: clearKeepAlive,
+    });
+    clearInterval(timer);
+    ok('keepalive frames were emitted DURING the engine\'s silent phase', ticks >= 3, 'ticks=' + ticks);
+
+    const body = res.body;
+    const firstContent = body.indexOf('content_block_delta');
+    const lastKeepalive = body.lastIndexOf(': keepalive');
+    ok('...and every one of them precedes the first content event',
+      lastKeepalive !== -1 && lastKeepalive < firstContent,
+      'lastKeepalive=' + lastKeepalive + ' firstContent=' + firstContent);
+    const stopAt = body.indexOf('message_stop');
+    ok('...none after message_stop', lastKeepalive < stopAt);
+    eq('...the stream ends exactly once', res.ended, 1);
+    eq('...and nothing is written after end()', res.endedAfterWrite, false);
+    eq('...the outcome is a real answer', out.outcome, 'FULL');
+
+    // THE EXACT CLOSING ORDER the client parses.
+    const frames = res.frames();
+    const kinds = frames.map((f) => f.type);
+    eq('the last two events are a text delta then message_stop',
+      kinds.slice(-2), ['content_block_delta', 'message_stop']);
+    const text = frames.filter((f) => f.delta).map((f) => f.delta.text).join('');
+    ok('the source card is the tail of the answer text', /<\/source>\s*$/.test(text.trim()));
+  }
+  {
+    // A SAFE REJECTION KEEPS THE SAME LIFECYCLE, including stopping the keepalive.
+    const res = fakeRes();
+    let ticks = 0;
+    const timer = setInterval(() => { ticks++; res.write(': keepalive\n\n'); }, 10);
+    let t = 0;
+    const out = await SEAM.runLedgerTurn(res, {
+      messages: user('ما حكم بيع الذهب بالتقسيط؟'),
+      band: 'adult', bandSites: SP.searchableDomains(),
+      buildSourceTag: askMod.buildSourceTag,
+      now: () => (t += 5), startedAt: 0, fetchImpl,
+      search: async () => { await new Promise((r) => setTimeout(r, 60)); return []; },
+      beforeFirstOutput: () => clearInterval(timer),
+    });
+    clearInterval(timer);
+    eq('a refusal is still a safe rejection', out.outcome, 'SAFE_REJECTION');
+    ok('...with keepalive during the wait', ticks >= 2, 'ticks=' + ticks);
+    ok('...and none after the first content event',
+      res.body.lastIndexOf(': keepalive') < res.body.indexOf('content_block_delta'));
+    eq('...ended exactly once', res.ended, 1);
+  }
+  {
+    // A hook that throws must not cost the reader the answer.
+    const res = fakeRes();
+    let t = 0;
+    const out = await SEAM.runLedgerTurn(res, {
+      messages: user('ما حكم بيع الذهب بالتقسيط؟'),
+      band: 'adult', bandSites: SP.searchableDomains(),
+      buildSourceTag: askMod.buildSourceTag,
+      now: () => (t += 5), startedAt: 0, search, fetchImpl,
+      beforeFirstOutput: () => { throw new Error('hook exploded'); },
+    });
+    eq('a throwing beforeFirstOutput hook does not lose the answer', out.outcome, 'FULL');
+    eq('...and the stream still ends once', res.ended, 1);
+  }
+  ok('the handler passes clearKeepAlive as the hook rather than calling it early',
+    /beforeFirstOutput: clearKeepAlive/.test(askCode));
+  ok('...and no longer clears it before the engine runs',
+    (() => {
+      const b = (askCode.match(/if \(ledgerPath\.path === 'ledger'\)[\s\S]*?\n    \}/) || [''])[0];
+      const bare = b.indexOf('clearKeepAlive();');
+      return bare === -1;
+    })(), 'clearKeepAlive() is still called directly inside the branch');
+  ok('the legacy routes still clear it themselves, unchanged',
+    (askCode.match(/clearKeepAlive\(\);/g) || []).length >= 5);
+
+  // =========================================================================
   console.log('\n=== D. ONE ARRANGEMENT ENTERS THE LEDGER; EVERY OTHER RUNS LEGACY ===');
   {
     const redis = { down: false, slow: 0, _m: new Map(),
@@ -533,45 +629,165 @@ const user = (t) => [{ role: 'user', content: t }];
   }
 
   // =========================================================================
-  console.log('\n=== G. A DIRECT ADAPTER READ IS A FETCH AND IS BUDGETED ===');
-  {
-    const DIRECT = 'https://binothaimeen.net/content/';
-    const many = (n) => Array.from({ length: n }, (_, i) => ({
-      canonicalUrl: DIRECT + (1000 + i),
-      title: 'فتوى ' + i,
-      scholar: 'محمد بن صالح العثيمين',
-      exactText: 'إذا أسقطت المرأة قبل ثمانين يوما فليس دمها دم نفاس فتصلي وتصوم.' + LONG,
-    }));
-    let asked = 0;
-    const reader = async () => { asked++; return many(9); };
-    let t = 0;
+  console.log('\n=== G. THE DIRECT ADAPTER\'S REAL I/O IS RESERVED BEFORE IT HAPPENS ===');
+  //
+  // MEASURED in lib/binothaimeen.js: retrieveIbnUthaymeen is NOT one request returning a set. It
+  // makes up to MAX_SEARCHES (6) search POSTs plus up to MAX_FETCHES (3) lesson GETs — nine
+  // logical calls, each with one retry — through the single choke point httpJson(). So counting
+  // the DOCUMENTS IT RETURNED proves nothing: nine round-trips can return one document, and a
+  // tally taken after the reader returns cannot stop a request the reader already made.
+  const DIRECT_ISSUE = {
+    issues: [{
+      issue_id: 'iss_1', intent: 'scholar_opinion', requested_authority_id: 'ibn-uthaymeen',
+      protected_entities: ['أسقطت'], core_terms: ['ثمانين يوما'], context_vars: [],
+      exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+    }],
+    missing_qualifiers: [], confidence: 'high',
+  };
+  const DIRECT_Q = 'ما رأي الشيخ ابن عثيمين فيمن أسقطت قبل ثمانين يومًا؟';
+  const doc = (i) => ({
+    canonicalUrl: 'https://binothaimeen.net/content/' + (1000 + i),
+    title: 'فتوى ' + i, scholar: 'محمد بن صالح العثيمين',
+    exactText: 'إذا أسقطت المرأة قبل ثمانين يوما فليس دمها دم نفاس فتصلي وتصوم.' + LONG,
+  });
+  const runDirect = async (reader, over = {}) => {
     const res = fakeRes();
-    const out = await SEAM.runLedgerTurn(res, {
-      messages: user('ما رأي الشيخ ابن عثيمين فيمن أسقطت قبل ثمانين يومًا؟'),
+    let t = 0;
+    const out = await SEAM.runLedgerTurn(res, Object.assign({
+      messages: user(DIRECT_Q),
       band: 'adult', bandSites: SP.searchableDomains(),
       buildSourceTag: askMod.buildSourceTag,
       now: () => (t += 5), startedAt: 0,
       search: async () => [], fetchImpl,
       directReader: reader,
-      // A planner double that asks for HIS opinion, one issue.
-      plannerOverride: {
-        issues: [{
-          issue_id: 'iss_1', intent: 'scholar_opinion', requested_authority_id: 'ibn-uthaymeen',
-          protected_entities: ['أسقطت'], core_terms: ['ثمانين يوما'], context_vars: [],
-          exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
-        }],
-        missing_qualifiers: [], confidence: 'high',
-      },
-    });
-    const snap = out.budget.snapshot();
-    eq('a direct corpus read costs NO provider call', snap.spent.braveCalls, 0);
-    ok('...but every document read IS charged as a fetch', snap.spent.pagesFetched >= 1,
-      String(snap.spent.pagesFetched));
-    ok('...and never exceeds MAX_PAGES_FETCHED', snap.spent.pagesFetched <= BG.MAX_PAGES_FETCHED,
-      snap.spent.pagesFetched + ' > ' + BG.MAX_PAGES_FETCHED);
+      plannerOverride: DIRECT_ISSUE,
+    }, over));
+    return { res, out, snap: out.budget.snapshot() };
+  };
+
+  {
+    // 1. A PER-REQUEST reader. `networkCalls` is incremented when a request STARTS, and each
+    //    start must be permitted by the gate first. The sixth must never begin.
+    let started = 0;
+    let refused = 0;
+    const reader = async (q, issue, io) => {
+      const out = [];
+      for (let i = 0; i < 9; i++) {
+        if (!io.allow()) { refused++; break; }      // the gate, consulted BEFORE the request
+        started++;                                   // the request "starts" here
+        out.push(doc(i));
+      }
+      return out;
+    };
+    const { out, snap } = await runDirect(reader);
+    eq('a direct read costs NO provider call', snap.spent.braveCalls, 0);
+    ok('requests actually started', started >= 1, String(started));
+    eq('...and never more than MAX_PAGES_FETCHED', started, BG.MAX_PAGES_FETCHED);
+    ok('...the sixth was refused BEFORE it started', refused >= 1, 'refused=' + refused);
+    eq('...every started request was charged', snap.spent.pagesFetched, started);
     eq('...with no budget breach', snap.breaches.length, 0);
-    ok('...so a nine-document corpus is truncated at the ceiling, not consumed whole',
-      out.ledger.sources.size <= BG.MAX_PAGES_FETCHED, String(out.ledger.sources.size));
+    ok('...and the records admitted for extraction are separately capped',
+      out.ledger.sources.size <= DIRECT_MAX_RECORDS,
+      out.ledger.sources.size + ' > ' + DIRECT_MAX_RECORDS);
+  }
+  {
+    // 2. ONE request returning twenty records. The network cost is one; the ACCEPTED records are
+    //    bounded separately, because twenty segmented documents would blow the token budget.
+    let requests = 0;
+    const reader = async (q, issue, io) => {
+      if (!io.allow()) return [];
+      requests++;
+      return Array.from({ length: 20 }, (_, i) => doc(i));
+    };
+    const { out, snap } = await runDirect(reader);
+    eq('one bulk response costs exactly one network call', requests, 1);
+    eq('...charged once', snap.spent.pagesFetched, 1);
+    ok('...and the accepted records are capped',
+      out.ledger.sources.size <= DIRECT_MAX_RECORDS,
+      'accepted=' + out.ledger.sources.size);
+    ok('...far below the twenty offered', out.ledger.sources.size < 20);
+  }
+  {
+    // 3. A reader that NEVER settles. The engine must exit on its deadline, not wait it out.
+    //    The fake clock jumps past the budget so the test finishes immediately.
+    const res = fakeRes();
+    const started = Date.now();
+    // A REAL but tiny deadline. The reader never settles, so the only thing that can end this is
+    // the deadline itself — and it must do so in tens of milliseconds, not twenty-five seconds.
+    const budget = new BG.Budget({ timeoutMs: 60 });
+    const out = await SEAM.runLedgerTurn(res, {
+      messages: user(DIRECT_Q),
+      band: 'adult', bandSites: SP.searchableDomains(),
+      buildSourceTag: askMod.buildSourceTag,
+      startedAt: 0,
+      search: async () => [], fetchImpl,
+      directReader: () => new Promise(() => {}),
+      plannerOverride: DIRECT_ISSUE,
+      budget,
+    });
+    const elapsed = Date.now() - started;
+    eq('a never-resolving reader still produces a safe rejection', out.outcome, 'SAFE_REJECTION');
+    ok('...within a bounded wall-clock time', elapsed < 5000, elapsed + 'ms');
+    eq('...ending the stream exactly once', res.ended, 1);
+    ok('...and it never fell back to a general search',
+      out.budget.snapshot().spent.braveCalls === 0);
+    ok('...recording the timeout honestly',
+      out.ledger.rejections.some((r) => /timeout|budget|deadline/.test(r.code + r.detail)),
+      JSON.stringify(out.ledger.rejections));
+  }
+  {
+    // 4. A reader that THROWS. No Brave fallback, no general source, no attributed claim.
+    const { out, snap } = await runDirect(async () => { throw new Error('adapter exploded'); });
+    eq('a throwing adapter produces a safe rejection', out.outcome, 'SAFE_REJECTION');
+    eq('...with ZERO provider calls', snap.spent.braveCalls, 0);
+    eq('...and no source at all', out.ledger.sources.size, 0);
+    eq('...and no verified claim', out.ledger.verifiedClaims().length, 0);
+    ok('...and nothing attributed to him', !/ابن عثيمين/.test(out.text), out.text);
+  }
+  {
+    // 5. The budget is SHARED. Pages already spent by an earlier issue leave the direct read
+    //    only the remainder, and it stops there.
+    let started = 0;
+    const reader = async (q, issue, io) => {
+      const out = [];
+      for (let i = 0; i < 9; i++) { if (!io.allow()) break; started++; out.push(doc(i)); }
+      return out;
+    };
+    const res = fakeRes();
+    let t = 0;
+    const budget = new BG.Budget({ now: () => (t += 5), startedAt: 0 });
+    budget.spend('pagesFetched', 3, 'earlier-issue');    // an earlier issue already read three
+    const out = await SEAM.runLedgerTurn(res, {
+      messages: user(DIRECT_Q),
+      band: 'adult', bandSites: SP.searchableDomains(),
+      buildSourceTag: askMod.buildSourceTag,
+      now: () => t, startedAt: 0, search: async () => [], fetchImpl,
+      directReader: reader, plannerOverride: DIRECT_ISSUE, budget,
+    });
+    eq('the direct read uses only the REMAINING budget', started, BG.MAX_PAGES_FETCHED - 3);
+    eq('...and the total never exceeds the ceiling',
+      out.budget.snapshot().spent.pagesFetched, BG.MAX_PAGES_FETCHED);
+    eq('...with no breach', out.budget.snapshot().breaches.length, 0);
+  }
+  // The gate lives INSIDE the adapter's request path, which is the only place it can stop a
+  // request rather than count one.
+  {
+    const bt = code('lib/binothaimeen.js');
+    ok('httpJson consults the gate before each attempt', /if \(io && typeof io\.allow === 'function' && !io\.allow\(\)\)/.test(bt));
+    ok('...and it is inside the retry loop, so a retry is charged too',
+      bt.indexOf('for (let attempt') < bt.indexOf('io.allow()'));
+    ok('...and an abort signal is honoured', /io\.signal/.test(bt));
+    ok('both the search POST and the lesson GET pass it through',
+      /SEARCH_TIMEOUT_MS, io\)/.test(bt) && /SHOW_TIMEOUT_MS, io\)/.test(bt));
+    // The shipped attributed route must pass NO gate, so the adapter behaves there exactly as it
+    // always has. Checked as an object KEY (`io:`) rather than a substring — "attribution"
+    // contains the letters "io", and the first version of this assertion matched that.
+    ok('the SHIPPED attributed route passes no gate, so legacy is unchanged',
+      !/\bio\s*:/.test(code('api/ask.js')));
+    ok('...while the ledger path does pass one',
+      /\{ io \}/.test(code('lib/ledger/direct-corpus.js')));
+    ok('...and the adapter defaults to no gate when none is given',
+      /const io = o\.io \|\| null;/.test(bt));
   }
 
   SF.__resetResolver();
