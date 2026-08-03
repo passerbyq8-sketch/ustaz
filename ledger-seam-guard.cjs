@@ -769,6 +769,276 @@ const user = (t) => [{ role: 'user', content: t }];
       out.budget.snapshot().spent.pagesFetched, BG.MAX_PAGES_FETCHED);
     eq('...with no breach', out.budget.snapshot().breaches.length, 0);
   }
+  {
+    // 6. THE DEADLINE IS CHECKED BEFORE THE READER IS CALLED AT ALL.
+    // With the deadline already expired, the previous version took an `await call` branch with no
+    // timeout guarding it — a never-settling reader hung the request indefinitely, which is the
+    // exact opposite of what a deadline is for.
+    const DC = await esm('lib/ledger/direct-corpus.js');
+    const issue = {
+      issueId: 'iss_1', intent: 'scholar_opinion', requestedAuthorityId: 'ibn-uthaymeen',
+      protectedEntities: ['أسقطت'], coreTerms: [], contextVars: [], exactUserPhrases: [],
+      requiredSlots: [], dependencies: [], temporalScope: 'unknown',
+    };
+    let t = 0;
+    const budget = new BG.Budget({ now: () => t, startedAt: 0 });
+    t = BG.GLOBAL_TIMEOUT_MS + 5000;                       // already long gone
+    eq('the budget really is expired', budget.remainingMs(), 0);
+
+    let readerCalled = 0;
+    const started = Date.now();
+    const r = await Promise.race([
+      DC.readDirectCorpus('ibn-uthaymeen', issue, {
+        budget, reader: async () => { readerCalled++; return new Promise(() => {}); },
+      }),
+      new Promise((res) => setTimeout(() => res('HUNG'), 1500)),
+    ]);
+    ok('an expired deadline does not hang the request', r !== 'HUNG', 'it hung');
+    eq('...the reader is never called', readerCalled, 0);
+    eq('...and the module reports it', r === 'HUNG' ? null : r.readerCalled, 0);
+    eq('...as a timeout', r === 'HUNG' ? null : r.timedOut, true);
+    eq('...with no pages', r === 'HUNG' ? null : r.pages.length, 0);
+    ok('...and it returns promptly', Date.now() - started < 1000, (Date.now() - started) + 'ms');
+  }
+  {
+    // 7. A SUCCESSFUL reader leaves no timer running and triggers no late abort.
+    const DC = await esm('lib/ledger/direct-corpus.js');
+    const issue = {
+      issueId: 'iss_1', intent: 'scholar_opinion', requestedAuthorityId: 'ibn-uthaymeen',
+      protectedEntities: ['أسقطت'], coreTerms: [], contextVars: [], exactUserPhrases: [],
+      requiredSlots: [], dependencies: [], temporalScope: 'unknown',
+    };
+    const budget = new BG.Budget({ timeoutMs: 300 });
+    let abortedLate = false;
+    const r = await DC.readDirectCorpus('ibn-uthaymeen', issue, {
+      budget,
+      reader: async (q, iss, io) => {
+        io.signal.addEventListener('abort', () => { abortedLate = true; });
+        io.allow();
+        return [doc(1)];
+      },
+    });
+    eq('a successful read returns its page', r.pages.length, 1);
+    eq('...and reports the reader was called', r.readerCalled, 1);
+    eq('...and did not time out', r.timedOut, false);
+    // If the timer were left running it would fire after the budget elapsed and abort.
+    await new Promise((res) => setTimeout(res, 400));
+    eq('...no late abort fires after success', abortedLate, false);
+  }
+
+  // =========================================================================
+  console.log('\n=== G2. httpJson GUARDS THE BODY, NOT ONLY THE HEADERS ===');
+  //
+  // `fetch()` resolving means the HEADERS arrived. The previous version cleared the timeout and
+  // detached the abort listener there, leaving `await r.text()` unguarded — so a server that sent
+  // headers and then stalled the body ran past this module's timeout AND past the request's
+  // global deadline.
+  {
+    const BT = await esm('lib/binothaimeen.js');
+    const SEARCH_HOST = 'shekhcp.binothaimeen.net';
+    const okJson = (obj) => ({
+      ok: true, status: 200,
+      headers: { get: () => 'application/json' },
+      text: async () => JSON.stringify(obj),
+    });
+
+    // (a) headers arrive, body never resolves -> the attempt aborts instead of hanging.
+    {
+      BT.__clearCacheForTest();
+      let bodyReads = 0;
+      // A REQUEST DEADLINE, as the ledger path always supplies. Without it the adapter is
+      // entitled to spend its own per-request timeout on every term — which is the shipped
+      // behaviour and is why the deadline exists.
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 150);
+      const started = Date.now();
+      const io = {
+        allow: () => true,
+        signal: controller.signal,
+        fetchImpl: async (url, init) => ({
+          ok: true, status: 200,
+          headers: { get: () => 'application/json' },
+          text: () => new Promise((resolve, reject) => {
+            bodyReads++;
+            // Only an abort can end this — which is the whole point: the body is still guarded.
+            init.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+          }),
+        }),
+      };
+      const out = await BT.retrieveIbnUthaymeen('أسقطت قبل ثمانين يوما', { io });
+      const elapsed = Date.now() - started;
+      eq('a stalled BODY yields no source rather than hanging', out.length, 0);
+      ok('...the body read was actually attempted', bodyReads >= 1, String(bodyReads));
+      ok('...and the deadline ended it promptly', elapsed < 3000, elapsed + 'ms');
+      ok('...proving the abort listener still covers the body',
+        elapsed < 7000, 'a per-attempt timeout alone would have taken 7s+');
+    }
+
+    // (b) a body that completes inside the timeout succeeds.
+    {
+      BT.__clearCacheForTest();
+      let calls = 0;
+      const io = {
+        allow: () => true,
+        fetchImpl: async (url) => {
+          calls++;
+          if (String(url).includes(SEARCH_HOST)) {
+            return okJson({ data: [{ id: 'L1', title: { ar: 'ضابط السقط الذي تترك المرأة لأجله الصلاة' }, content: { ar: '' }, relevance: 1 }] });
+          }
+          return okJson({ data: null });
+        },
+      };
+      await BT.retrieveIbnUthaymeen('أسقطت قبل ثمانين يوما', { io });
+      ok('a completing body is read normally', calls >= 1, String(calls));
+    }
+
+    // (c) the CALLER's signal aborts during the body -> no retry.
+    {
+      BT.__clearCacheForTest();
+      const controller = new AbortController();
+      let attempts = 0;
+      const io = {
+        allow: () => true,
+        signal: controller.signal,
+        fetchImpl: async (url, init) => {
+          attempts++;
+          return {
+            ok: true, status: 200,
+            headers: { get: () => 'application/json' },
+            text: () => new Promise((resolve, reject) => {
+              setTimeout(() => controller.abort(), 5);
+              init.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+            }),
+          };
+        },
+      };
+      const out = await BT.retrieveIbnUthaymeen('أسقطت قبل ثمانين يوما', { io });
+      eq('a caller-side abort during the body yields nothing', out.length, 0);
+      // One search term is attempted; the abort must not double it into a retry.
+      ok('...and is NOT retried', attempts <= 1, 'attempts=' + attempts);
+    }
+
+    // (d) every retry is reserved before it starts.
+    {
+      BT.__clearCacheForTest();
+      let allowed = 0;
+      let attempts = 0;
+      const io = {
+        allow: () => { allowed++; return allowed <= 2; },
+        fetchImpl: async () => { attempts++; throw Object.assign(new Error('boom'), { name: 'TypeError' }); },
+      };
+      await BT.retrieveIbnUthaymeen('أسقطت قبل ثمانين يوما', { io });
+      ok('every attempt asked permission first', allowed >= attempts, allowed + ' asks vs ' + attempts + ' attempts');
+      ok('...and none started without it', attempts <= 2, 'attempts=' + attempts);
+      ok('...so a refused permission really does stop the request', allowed > attempts,
+        'the gate refused after 2 and no third attempt ran');
+    }
+    ok('the timer and listener are torn down in a finally block',
+      /\} finally \{\s*clearTimeout\(timer\);/.test(code('lib/binothaimeen.js')));
+    ok('...and the body is read while still under the timer',
+      (() => {
+        const b = code('lib/binothaimeen.js');
+        const seg = b.slice(b.indexOf('async function httpJson'), b.indexOf('async function searchOnce'));
+        return seg.indexOf('await r.text()') < seg.indexOf('clearTimeout(timer)');
+      })());
+  }
+
+  // =========================================================================
+  console.log('\n=== G3. THE REAL ADAPTER, END TO END, INSIDE THE CEILING ===');
+  //
+  // Every direct test above injects a `directReader` and therefore proves nothing about
+  // retrieveIbnUthaymeen -> searchOnce -> fetchLesson -> httpJson. This drives that real chain
+  // with a mock transport and requires it to SUCCEED inside the five-request ceiling.
+  {
+    const BT = await esm('lib/binothaimeen.js');
+    const FATWA = 'السؤال: امرأة أسقطت قبل ثمانين يوما فماذا يلزمها؟ الجواب: إذا أسقطت المرأة قبل '
+      + 'ثمانين يوما فليس دمها دم نفاس، لأن الجنين لم يتبين فيه خلق إنسان. وعلى هذا فإنها تصلي ولا '
+      + 'تدع الصلاة لأجل هذا الدم. وكذلك تصوم ولا تفطر من أجله. وإنما هو دم فساد ينطبق عليه حكم '
+      + 'الاستحاضة. فتتوضأ لكل صلاة ثم تصلي على حالها. والله أعلم.';
+    const makeTransport = (opts = {}) => {
+      const seen = { search: 0, lesson: 0, urls: [] };
+      const impl = async (url) => {
+        const u = String(url);
+        seen.urls.push(u);
+        if (u.includes('shekhcp.binothaimeen.net')) {
+          seen.search++;
+          return {
+            ok: true, status: 200, headers: { get: () => 'application/json' },
+            text: async () => JSON.stringify({ data: [
+              { id: 'L1', title: { ar: 'ضابط السقط الذي تترك المرأة لأجله الصلاة' }, content: { ar: 'حكم دم السقط' }, relevance: 9 },
+            ] }),
+          };
+        }
+        seen.lesson++;
+        if (opts.lessonShouldNotHappen) throw new Error('lesson request must never start');
+        return {
+          ok: true, status: 200, headers: { get: () => 'application/json' },
+          text: async () => JSON.stringify({ data: {
+            title: { ar: 'ضابط السقط الذي تترك المرأة لأجله الصلاة' },
+            objective: { content: { ar: FATWA } },
+          } }),
+        };
+      };
+      return { impl, seen };
+    };
+
+    // Success inside the ceiling.
+    {
+      BT.__clearCacheForTest();
+      const { impl, seen } = makeTransport();
+      const res = fakeRes();
+      let t = 0;
+      const out = await SEAM.runLedgerTurn(res, {
+        messages: user('ما رأي الشيخ ابن عثيمين فيمن أسقطت قبل ثمانين يومًا؟ وهل تصلي وتصوم؟'),
+        band: 'adult', bandSites: SP.searchableDomains(),
+        buildSourceTag: askMod.buildSourceTag,
+        now: () => (t += 5), startedAt: 0,
+        search: async () => [], fetchImpl,
+        adapterFetchImpl: impl,               // the REAL adapter, a mock transport
+        plannerOverride: DIRECT_ISSUE,
+      });
+      const snap = out.budget.snapshot();
+      ok('the REAL adapter path was used', seen.search >= 1, JSON.stringify(seen));
+      ok('...and the lesson page was actually fetched', seen.lesson >= 1, JSON.stringify(seen));
+      ok('...network calls are within the ceiling',
+        snap.spent.pagesFetched > 0 && snap.spent.pagesFetched <= BG.MAX_PAGES_FETCHED,
+        String(snap.spent.pagesFetched));
+      eq('...every call was reserved before it started', snap.spent.pagesFetched, seen.search + seen.lesson);
+      eq('...with zero provider calls', snap.spent.braveCalls, 0);
+      eq('...and no budget breach', snap.breaches.length, 0);
+      eq('...exactly one accepted source', out.ledger.sources.size, 1);
+      ok('...on his own domain',
+        Array.from(out.ledger.sources.values()).every((s) => s.host === 'binothaimeen.net'),
+        JSON.stringify(Array.from(out.ledger.sources.values()).map((s) => s.host)));
+      eq('...and exactly one card', out.cards.length, 1);
+      eq('...from his domain', out.cards[0].host, 'binothaimeen.net');
+    }
+
+    // The budget runs out after the searches and BEFORE the lesson GET.
+    {
+      BT.__clearCacheForTest();
+      const { impl, seen } = makeTransport({ lessonShouldNotHappen: true });
+      const res = fakeRes();
+      let t = 0;
+      const budget = new BG.Budget({ now: () => (t += 5), startedAt: 0 });
+      budget.spend('pagesFetched', BG.MAX_PAGES_FETCHED - 1, 'earlier-issue');   // one unit left
+      const out = await SEAM.runLedgerTurn(res, {
+        messages: user('ما رأي الشيخ ابن عثيمين فيمن أسقطت قبل ثمانين يومًا؟'),
+        band: 'adult', bandSites: SP.searchableDomains(),
+        buildSourceTag: askMod.buildSourceTag,
+        startedAt: 0, search: async () => [], fetchImpl,
+        adapterFetchImpl: impl, plannerOverride: DIRECT_ISSUE, budget,
+      });
+      eq('the one remaining unit went to the search', seen.search, 1);
+      eq('...and the lesson request NEVER started', seen.lesson, 0);
+      eq('...the outcome is a safe rejection', out.outcome, 'SAFE_REJECTION');
+      eq('...with no provider fallback', out.budget.snapshot().spent.braveCalls, 0);
+      eq('...no source', out.ledger.sources.size, 0);
+      eq('...and no breach', out.budget.snapshot().breaches.length, 0);
+      ok('...and nothing attributed to him', !/ابن عثيمين/.test(out.text), out.text);
+    }
+  }
+
   // The gate lives INSIDE the adapter's request path, which is the only place it can stop a
   // request rather than count one.
   {
