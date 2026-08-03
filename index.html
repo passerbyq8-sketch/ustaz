@@ -591,6 +591,11 @@
   .ezq-card{position:relative;overflow:hidden}
   .ezq-crest{position:absolute;top:0;right:0;left:0;height:20px;
     border-radius:14px 14px 40% 40%/14px 14px 100% 100%;background:var(--a3-ice)}
+  /* S107 -- the drill reading column. Narrower than the shell so a line of the Quran keeps a
+     legible measure on a desk; it is a WIDTH, and nothing here paints over the text: no
+     background, no pseudo-element, no overlay inside these bounds. */
+  .ezq-read{width:100%;max-width:720px;margin:0 auto}
+  .ezq-drill-acts{width:100%;max-width:720px;margin:12px auto 0}
   .ezq-masthead{position:relative;overflow:hidden;box-sizing:border-box;
     border-radius:var(--ez-radius-sig);background:var(--a3-ice);border:1px solid var(--a3-line);
     padding:24px 18px 18px;margin-bottom:14px;text-align:center}
@@ -11548,24 +11553,20 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const praiseLine = isFemale ? MEM.PRAISE_F : MEM.PRAISE_M;
   const finishLine = isFemale ? MEM.FINISH_F : MEM.FINISH_M;
   return (
-    <div style={s.memContainer}>
-      <div style={s.memHeader}>
-        <div style={s.memTitle}>{MEM.TITLE}</div>
-        {/* S87: the drill's back closes the inner activity and lands on the picker -- the
-            memorizer's parent screen -- instead of leaving the memorizer in one press. Same
-            label, same control, same place; the level it returns to is the one above it. */}
-        {/* S91: routed through the application back, so the drill's entry is spent by the same
-            pop the device button makes; the registry still runs leaveDrill, which stops عدنان
-            and the recognizer before showing the picker. */}
-        <button onClick={ezikGoBack} style={s.memBackBtn}>{MEM.BACK_BTN}</button>
-      </div>
-      <div style={s.memSubBar}>
-        <span style={s.memSurahTitle}>{SURAH_NAMES[selectedSurah]}</span>
-        <span style={s.memRangeBadge}>{`${MEM.GRAN_AYAH} ${toArabicDigits(startAyah)}`}</span>
-        {/* S91: this also leaves the drill for the picker, so it leaves by the same door -- it
-            must not abandon the drill's history entry on the stack. */}
-        <button onClick={ezikGoBack} style={s.memChangeBtn}>{MEM.CHANGE_SURAH}</button>
-      </div>
+    // S107 -- the drill is on the SAME shell as the picker, and its back is the SAME back:
+    // ezikGoBack, which spends the drill's own history entry and runs leaveDrill through the
+    // registry, so عدنان and the recogniser are stopped before the picker is shown. The three
+    // mode blocks below this masthead are untouched by this commit.
+    <EzShell title={MEM.TITLE} onBack={ezikGoBack} backLabel={MEM.BACK_BTN}>
+      {/* the bounded masthead: the SAME surah, the SAME ayah badge and the SAME change-surah
+          control, which still leaves by the same door so the drill's history entry is spent. */}
+      <section className="ezq-masthead">
+        <div style={s.ezqDrillSurah}>{SURAH_NAMES[selectedSurah]}</div>
+        <div style={s.ezqDrillRow}>
+          <span style={s.ezqDrillBadge}>{`${MEM.GRAN_AYAH} ${toArabicDigits(startAyah)}`}</span>
+          <button onClick={ezikGoBack} style={s.ezqDrillChange}>{MEM.CHANGE_SURAH}</button>
+        </div>
+      </section>
       {/* Drill mode switch: manual reveal · عدنان listen-and-repeat (Layer C) · سمِّعني recite (Layer B). */}
       <div style={s.memToggleRow}>
         <button onClick={() => setMode('manual')} style={{ ...s.memGranBtn, ...(drillMode === 'manual' ? s.memGranBtnActive : {}) }}>{MEM.MODE_MANUAL}</button>
@@ -11580,7 +11581,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       </div>
       )}
       {drillMode === 'manual' && (
-      <div style={s.memDrillArea}>
+      <div className="ezq-read" style={s.memDrillArea}>
         <div style={s.memDrillText}>
           {units.map((u, i) => {
             const revealed = i < revealedCount;
@@ -11601,7 +11602,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       </div>
       )}
       {drillMode === 'manual' && (
-      <div style={s.memControls}>
+      <div className="ezq-drill-acts" style={s.memControls}>
         <button onClick={() => onPlayVerse && onPlayVerse(selectedSurah, focusAyah)} style={s.memListenBtn}>{MEM.LISTEN_BTN}</button>
         <button onClick={() => setRevealedCount((c) => Math.min(c + 1, units.length))} style={{ ...s.memRevealBtn, opacity: allRevealed ? 0.5 : 1 }} disabled={allRevealed}>{MEM.REVEAL_BTN}</button>
         {/* Re-hide/reset the same range. */}
@@ -11609,7 +11610,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       </div>
       )}
       {drillMode === 'adnan' && (
-      <div style={s.memDrillArea}>
+      <div className="ezq-read" style={s.memDrillArea}>
         <div style={s.memSurahTitle}>{`${SURAH_NAMES[selectedSurah]} · ${MEM.ADNAN_AYAH_LABEL} ${toArabicDigits(adnanAyah || startAyah)}`}</div>
         <div style={s.memDrillText}>
           <span style={s.memWord}>{getVerseText(selectedSurah, adnanAyah || startAyah) || ''}</span>
@@ -11617,13 +11618,13 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       </div>
       )}
       {drillMode === 'adnan' && (
-      <div style={s.memControls}>
+      <div className="ezq-drill-acts" style={s.memControls}>
         <button onClick={() => (adnanRunning ? stopAdnan() : startAdnan())} style={s.memRevealBtn}>{adnanRunning ? MEM.ADNAN_STOP : MEM.ADNAN_START}</button>
         <button onClick={repeatAyah} style={s.memListenBtn}>{MEM.ADNAN_REPEAT}</button>
       </div>
       )}
       {drillMode === 'recite' && (
-      <div style={s.memDrillArea}>
+      <div className="ezq-read" style={s.memDrillArea}>
         <div style={s.memReciteHint}>{MEM.RECITE_HINT}</div>
         <div style={s.memSurahTitle}>{`${SURAH_NAMES[selectedSurah]} · ${MEM.ADNAN_AYAH_LABEL} ${toArabicDigits(reciteAyah || startAyah)}`}</div>
         <div style={s.memDrillText}>
@@ -11646,12 +11647,12 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       </div>
       )}
       {drillMode === 'recite' && (
-      <div style={s.memControls}>
+      <div className="ezq-drill-acts" style={s.memControls}>
         <button onClick={() => (reciteListening ? stopRecite() : startRecite())} style={s.memRevealBtn}>{reciteListening ? MEM.RECITE_STOP : MEM.RECITE_START}</button>
         <button onClick={advanceReciteManual} style={s.memListenBtn}>{MEM.RECITE_NEXT}</button>
       </div>
       )}
-    </div>
+    </EzShell>
   );
 }
 
@@ -11736,6 +11737,11 @@ const s = {
   ezqCount: { fontSize: 11.5, fontWeight: 600, color: 'var(--a3-muted)' },
   ezqStartBar: { position: 'sticky', bottom: 0, display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, padding: '10px 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-lift)' },
   ezqStartLabel: { flexShrink: 0, fontSize: 13, fontWeight: 700, color: 'var(--a3-ink)' },
+  // S107 -- the drill masthead. Layout only; it sits ABOVE the reading area and never over it.
+  ezqDrillSurah: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezqDrillRow: { display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 10 },
+  ezqDrillBadge: { padding: '4px 10px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800 },
+  ezqDrillChange: { minHeight: 36, padding: '0 12px', borderRadius: 12, background: 'transparent', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 12.5, fontWeight: 700 },
 
   ezshScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
   ezshNavBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },

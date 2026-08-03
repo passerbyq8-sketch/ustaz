@@ -1213,9 +1213,9 @@ const INDEX_SCREENS = {
   settings:        { render: 'SettingsSheet -> EzShell', shell: 'istana' },
   favorites:       { render: 'FavoritesScreen', shell: 'legacy' },
   call:            { render: 'CallScreen', shell: 'legacy' },
-  // S106: the PICKER is on the shell; the drill sub-views of the same screen are not, and
-  // that is recorded here rather than allowed to pass as a finished screen.
-  memorize:        { render: 'MemorizeScreen picker -> EzShell', shell: 'istana', subviews: 'drill still legacy' },
+  // S107: the drill moved too, so the caveat is gone -- and it is gone because the checks in
+  // group L6 pass, not because someone deleted the field.
+  memorize:        { render: 'MemorizeScreen picker + drill -> EzShell', shell: 'istana' },
   mushaf:          { render: 'MushafScreen (shell) + .mushaf-paper (sacred)', shell: 'legacy' },
   adhkar:          { render: 'AdhkarScreen -> IstanaAdhkarBrowse / IstanaAdhkarReader', shell: 'istana' },
 };
@@ -1279,9 +1279,16 @@ eq('exactly 4 index screens are istana after this commit', idxIstana.length, 4);
 eq('...and 8 index screens remain legacy', idxLegacy.length, 8);
 eq('...with the other classifications unmoved',
   idxIstana.slice().sort().join(','), 'adhkar,home,memorize,settings');
-// a screen with an unfinished sub-view says so, in the inventory, where it can be counted.
+// S107: no screen carries a sub-view caveat any more. The field still exists and is still
+// asserted, so the next partially-finished screen has to declare itself the same way.
 const partial = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].subviews);
-eq('screens with sub-views still on the legacy design are declared', partial, ['memorize']);
+eq('no screen is left with an undeclared unfinished sub-view', partial, []);
+// and the caveat may only be absent while the drill actually IS on the shell.
+ok('the memorize caveat was earned, not deleted',
+  !INDEX_SCREENS.memorize.subviews === /<EzShell title=\{MEM\.TITLE\} onBack=\{ezikGoBack\}/.test(html),
+  'the drill must render through the shell for memorize to count as finished');
+// mushaf has NOT moved and must still say so.
+eq('mushaf is still classified legacy', INDEX_SCREENS.mushaf.shell, 'legacy');
 console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
   + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all legacy)');
 console.log('        istana now : ' + idxIstana.join(', '));
@@ -1307,7 +1314,10 @@ ok('...and it is the Quran sheet itself', optOuts.length === 1 && /\.mushaf-pape
 console.log('\n=== L. THE ISTANA QURAN CATALOGUE ===');
 
 const memAt = html.indexOf('function MemorizeScreen(');
-const memSrc = memAt === -1 ? '' : html.slice(memAt, html.indexOf('function MushafScreen(', memAt));
+// bounded to the component: the next top-level `function ` after it. MushafScreen is ABOVE
+// MemorizeScreen in the file, so the old end marker was never found and this slice ran to EOF.
+const memEnd = memAt === -1 ? -1 : html.indexOf('\nfunction ', memAt + 10);
+const memSrc = memAt === -1 ? '' : html.slice(memAt, memEnd === -1 ? html.length : memEnd);
 ok('the memorisation screen was located', memSrc.length > 1000);
 ok('its picker renders through the shared shell',
   /<EzShell title=\{MEM\.TITLE\} onBack=\{onExit\} backLabel=\{MEM\.BACK_BTN\}>/.test(memSrc));
@@ -1355,6 +1365,72 @@ ok('the drill, recite and adnan flows are untouched by this commit',
   /const \[drillMode, setDrillMode\]/.test(memSrc) && /reciteRecognitionRef/.test(memSrc)
   && /useEzikBackLayer\(view === 'drill', leaveDrill\)/.test(memSrc),
   'the back layer, the recogniser and the talqin loop are the screen\'s own and stay its own');
+
+
+/* ---- L6. THE THREE DRILL MODES (S107) -----------------------------------
+ * The picker moved first and the drill was left legacy, which the inventory recorded. The drill
+ * is on the shell now: ONE wrapper, ONE header and ONE sub-bar changed, and the three mode
+ * blocks inside were not touched at all -- which is the point, because those blocks are the
+ * talqin loop, the recogniser and the reveal sequence.
+ * ---------------------------------------------------------------------- */
+const drillSrc = memSrc.slice(memSrc.indexOf('// ---------- DRILL ----------'));
+ok('the drill section was located', drillSrc.length > 2000);
+ok('the drill renders through the shared shell',
+  /<EzShell title=\{MEM\.TITLE\} onBack=\{ezikGoBack\} backLabel=\{MEM\.BACK_BTN\}>/.test(drillSrc));
+ok('...and closes it', /<\/EzShell>/.test(drillSrc));
+// NO LEGACY STRUCTURE ANYWHERE IN THE MEMORISATION SCREEN.
+ok('no memContainer/memHeader/memTitle/memSubBar remains in memorize',
+  !/s\.memContainer|s\.memHeader|s\.memTitle\b|s\.memSubBar/.test(memSrc),
+  'these are the full-width navy presentation the review rejected');
+ok('...while the mushaf screen still has its own, untouched', /s\.memContainer/.test(html));
+// BACK GOES TO THE IMMEDIATE PARENT, NOT TO CHAT.
+ok('the drill back is the application back, which lands on the picker',
+  /onBack=\{ezikGoBack\}/.test(drillSrc) && /useEzikBackLayer\(view === 'drill', leaveDrill\)/.test(memSrc));
+ok('...and no back path in memorize routes to the chat',
+  !/onBack=\{[^}]*setScreen\(.chat.\)/.test(memSrc) && !/backLabel[\s\S]{0,80}setScreen\(.chat.\)/.test(memSrc));
+ok('the change-surah control still leaves by the same door', /onClick=\{ezikGoBack\} style=\{s\.ezqDrillChange\}/.test(drillSrc));
+
+// EVERY MODE, AND EVERY ANCHOR INSIDE IT.
+for (const m of ['manual', 'adnan', 'recite']) {
+  ok('the ' + m + ' mode still renders', new RegExp("drillMode === '" + m + "'").test(drillSrc));
+  ok('...and is still selectable', new RegExp("setMode\\('" + m + "'\\)").test(drillSrc));
+}
+const DRILL_ANCHORS = [
+  ['manual: the reveal control', /onClick=\{\(\) => setRevealedCount\(\(c\) => Math\.min\(c \+ 1, units\.length\)\)\}/],
+  ['manual: the granularity choice', /setGran\('ayah'\)/],
+  ['manual: the stage that shows the words', /s\.memDrillArea/],
+  ['manual: the revealed word vs the placeholder', /s\.memWord/],
+  ['talqin: the loop state', /const \[adnanRunning, setAdnanRunning\] = useState\(/],
+  ['talqin: the start/stop binding', /onClick=\{\(\) => \(adnanRunning \? stopAdnan\(\) : startAdnan\(\)\)\}/],
+  ['talqin: the current ayah state', /const \[adnanAyah, setAdnanAyah\] = useState\(/],
+  ['talqin: the audio call', /onPlayVerse && onPlayVerse\(selectedSurah, focusAyah\)/],
+  ['recite: the microphone control', /reciteListening \? stopRecite\(\) : startRecite\(\)/],
+  ['recite: the per-word result state', /const \[reciteStates, setReciteStates\] = useState\(/],
+  ['recite: the progression binding', /onClick=\{advanceReciteManual\}/],
+  ['recite: the graceful error line', /reciteErr/],
+];
+for (const [name, re] of DRILL_ANCHORS) ok('preserved -- ' + name, re.test(memSrc));
+// the safety and audio-focus guards are the screen's own and are not this commit's business.
+ok('the child-voice restriction still stands in front of the call screen',
+  /screen === 'call' && childVoiceBlocked\(\)/.test(html));
+ok('the recogniser still cannot be reopened by a stale onend',
+  /const reciteRunIdRef = useRef\(/.test(memSrc));
+ok('the transcript is still never rendered or stored',
+  /const reciteHeardRef = useRef\(/.test(memSrc) && !/\{reciteHeardRef\.current\}/.test(memSrc));
+ok('the talqin loop still has its own cancel token', /const runIdRef = useRef\(/.test(memSrc));
+
+// THE QURAN TEXT IS SURROUNDED, NEVER TOUCHED.
+ok('the reading column is a WIDTH and paints nothing',
+  /\.ezq-read\{width:100%;max-width:720px;margin:0 auto\}/.test(css));
+ok('the drill text sits inside that bounded column',
+  /<div className="ezq-read" style=\{s\.memDrillArea\}>/.test(html));
+ok('...and no ezq rule draws a pseudo-element into the reading bounds',
+  !/\.ezq-read[^{]*::(before|after)/.test(css));
+ok('the verse text is still read straight from the store',
+  /getVerseText\(selectedSurah, adnanAyah \|\| startAyah\)/.test(memSrc));
+ok('...with no transform, slice or ellipsis over it',
+  !/getVerseText\([^)]*\)\s*\.(slice|substring|replace|normalize)/.test(memSrc));
+
 
 /* ---- L4. the background invariant reaches this screen too --------------- */
 const ezqRules = (css.match(/\.ezq-[^{]*\{[^}]*\}/g) || []);
