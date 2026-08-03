@@ -596,12 +596,30 @@
      background, no pseudo-element, no overlay inside these bounds. */
   .ezq-read{width:100%;max-width:720px;margin:0 auto}
   .ezq-drill-acts{width:100%;max-width:720px;margin:12px auto 0}
-  /* S109 -- the mushaf index. It reuses .ezq-cat (2 / 3 / 4 / 4) so the Quran catalogue and
-     the surah index are one grid vocabulary; only the juz separator is new, and it spans. */
-  .ezm-juz{grid-column:1/-1}
+  /* S109 -- the mushaf index. The SURAH list, and only the surah list, reuses .ezq-cat
+     (2 / 3 / 4 / 4) so the Quran catalogue and the surah index are one grid vocabulary.
+     S110 -- the juz used to sit INSIDE that grid at grid-column:1/-1. Every span forced a row
+     break, so the surah cards standing before it were stranded beside a column of empty space.
+     They are compact CONTROLS now, in a denser grid of their own that no surah card enters:
+     3 on a phone, 5 on a tablet, 6 from a desk upward. Thirty of them cost eight rows at 390px
+     and five at a desk, and nothing here spans. */
+  .ezm-juzgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 18px}
+  .ezm-juzgrid>*{min-width:0}
+  @media (min-width:600px){.ezm-juzgrid{grid-template-columns:repeat(5,1fr);gap:10px}}
+  @media (min-width:1000px){.ezm-juzgrid{grid-template-columns:repeat(6,1fr);gap:12px}}
+  /* the two section headings. Bounded type on the page's own ink -- no band, no background,
+     nothing that could be mistaken for the masthead. */
+  .ezm-sec{margin:0 0 10px;font-size:14px;font-weight:800;letter-spacing:0;color:var(--ink)}
   .ezq-masthead{position:relative;overflow:hidden;box-sizing:border-box;
     border-radius:var(--ez-radius-sig);background:var(--a3-ice);border:1px solid var(--a3-line);
     padding:24px 18px 18px;margin-bottom:14px;text-align:center}
+  /* S110 -- THE STRIP. The masthead on the mushaf index carries two device-local rows, not a
+     welcome; at hero height it pushed the whole index below the fold. This branch drops the
+     hero padding and the centring outright and lays the rows out as ONE bounded flex row.
+     Only rows that exist are rendered, so a missing bookmark leaves no gap to collapse. */
+  .ezq-masthead.is-strip{padding:8px;margin-bottom:14px;min-height:0;text-align:right;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ezq-masthead.is-strip>*{flex:1 1 220px;min-width:0;margin:0}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -11183,6 +11201,15 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // the registry then runs leaveSurah, so the recitation is silenced exactly as before.
   if (selected) return <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
 
+  // S110 -- ONE array, split once, right here. buildMushafNav still owns the data and the order;
+  // this only asks each row which of the two lists it belongs to, so the surah grid holds surah
+  // cards alone. Nothing is sorted, added or dropped -- 30 + 114 out, 144 in. The fallback carries
+  // no juz at all, so before the layout lands juzRows is simply empty and the surahs draw as they
+  // always did. The split is OUTSIDE the returned tree on purpose: the index itself still maps.
+  const navRows = nav || MUSHAF_NAV_FALLBACK;
+  const juzRows = navRows.filter((r) => r.k === 'j');
+  const surahRows = navRows.filter((r) => r.k === 's');
+
   return (
     // S109 -- the INDEX only. The reader below is untouched: pressing a surah still runs the
     // same setOpenAt/setSelected pair and lands in the same PagedMushaf.
@@ -11194,15 +11221,15 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
         {/* the bounded masthead: only state this screen already holds -- the last page it
             wrote and the bookmark it stored. Nothing is invented and nothing new is read. */}
         {(lastPage || bookmark) && (
-        <section className="ezq-masthead">
+        <section className="ezq-masthead is-strip">
         {lastPage && (
-          <button onClick={openLastPage} style={{ ...s.mushafRow, marginBottom: 8 }}>
+          <button onClick={openLastPage} style={s.mushafRow}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--red-deep)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M3.5 12a8.5 8.5 0 1 0 2.7-6.2" /><path d="M3.1 4.4v4.3h4.3" /><path d="M12 7.5V12l3 1.8" /></svg>
             <div style={s.mushafName}>تابِع القراءة · صفحة {toArabicDigits(lastPage.p)}</div>
           </button>
         )}
         {bookmark && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={openBookmark} style={{ ...s.mushafRow, flex: 1 }}>
               <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--red)" stroke="var(--red-deep)" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z" /></svg>
               <div style={s.mushafName}>علامتك · صفحة {toArabicDigits(bookmark.p)}</div>
@@ -11213,30 +11240,39 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
         </section>
         )}
         {!ready && <div style={s.mushafHint}>جارٍ تحميل المصحف…</div>}
-        {ready && (
-          <div className="ezq-cat">
-            {(nav || MUSHAF_NAV_FALLBACK).map((r) => (
-              r.k === 'j' ? (
-                <button key={'j' + r.n} className="ezm-juz" onClick={() => { setOpenAt({ p: r.p, s: r.s }); setSelected(r.s); }} style={s.mushafJuzRow}>
+        {/* S110 -- the juz, in a DENSER grid of their own above the surahs: .ezm-juzgrid is not
+            .ezq-cat and shares none of its columns. Same rows, same opener, same style keys. */}
+        {ready && juzRows.length > 0 && (
+          <React.Fragment>
+            <h2 className="ezm-sec">الانتقال إلى جزء</h2>
+            <div className="ezm-juzgrid">
+              {juzRows.map((r) => (
+                <button key={'j' + r.n} onClick={() => { setOpenAt({ p: r.p, s: r.s }); setSelected(r.s); }} style={s.mushafJuzRow}>
                   <div style={s.mushafJuzName}>الجزء {toArabicDigits(r.n)}</div>
                   <div style={s.mushafJuzPage}>صفحة {toArabicDigits(r.p)}</div>
                 </button>
-              ) : (
-                <button key={'s' + r.n} className="ezhome-focus ezq-card" data-ezm-surah={r.n}
-                  onClick={() => { setOpenAt(null); setSelected(r.n); }} style={s.ezmCard}>
-                  <span className="ezq-crest" aria-hidden="true" />
-                  <span style={s.ezmTop}>
-                    <span style={s.ezmNum}>{toArabicDigits(r.n)}</span>
-                    <span style={s.ezmReveal}>{revelationLabel(r.n)}</span>
-                  </span>
-                  <span style={s.ezmName}>{SURAH_NAMES[r.n]}</span>
-                  <span style={s.ezmFoot}>
-                    <span style={s.ezmCount}>{toArabicDigits(counts && counts[r.n] ? counts[r.n] : 0)} آية</span>
-                    <span style={s.ezmGo} aria-hidden="true">{EZH_ICON_GO}</span>
-                  </span>
-                  <span style={s.ezmPage}>{r.p ? 'صفحة ' + toArabicDigits(r.p) : ''}</span>
-                </button>
-              )
+              ))}
+            </div>
+          </React.Fragment>
+        )}
+        {ready && <h2 className="ezm-sec">السور</h2>}
+        {ready && (
+          <div className="ezq-cat">
+            {surahRows.map((r) => (
+              <button key={'s' + r.n} className="ezhome-focus ezq-card" data-ezm-surah={r.n}
+                onClick={() => { setOpenAt(null); setSelected(r.n); }} style={s.ezmCard}>
+                <span className="ezq-crest" aria-hidden="true" />
+                <span style={s.ezmTop}>
+                  <span style={s.ezmNum}>{toArabicDigits(r.n)}</span>
+                  <span style={s.ezmReveal}>{revelationLabel(r.n)}</span>
+                </span>
+                <span style={s.ezmName}>{SURAH_NAMES[r.n]}</span>
+                <span style={s.ezmFoot}>
+                  <span style={s.ezmCount}>{toArabicDigits(counts && counts[r.n] ? counts[r.n] : 0)} آية</span>
+                  <span style={s.ezmGo} aria-hidden="true">{EZH_ICON_GO}</span>
+                </span>
+                <span style={s.ezmPage}>{r.p ? 'صفحة ' + toArabicDigits(r.p) : ''}</span>
+              </button>
             ))}
           </div>
         )}
@@ -12265,9 +12301,11 @@ const s = {
   mushafName: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   mushafSub: { fontSize: 12, color: 'var(--muted)', fontWeight: 500 },
   mushafPage: { flexShrink: 0, minWidth: 56, textAlign: 'left', fontSize: 11.5, fontWeight: 600, color: 'var(--muted)' },
-  mushafJuzRow: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '6px 14px', borderRadius: 'var(--radius-btn)', background: 'var(--tint)', border: 'none', cursor: 'pointer', textAlign: 'right', fontFamily: 'inherit' },
-  mushafJuzName: { flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--accent-ink)' },
-  mushafJuzPage: { flexShrink: 0, minWidth: 56, textAlign: 'left', fontSize: 11.5, fontWeight: 600, color: 'var(--accent-ink)', opacity: 0.75 },
+  // S110 -- a juz is a CONTROL in a dense grid, no longer a full-width bar: the label sits over
+  // its page number instead of beside it, so the cell reads at a third of a phone's width.
+  mushafJuzRow: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, width: '100%', padding: '8px 4px', borderRadius: 'var(--radius-btn)', background: 'var(--tint)', border: 'none', cursor: 'pointer', textAlign: 'center', fontFamily: 'inherit' },
+  mushafJuzName: { minWidth: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--accent-ink)', whiteSpace: 'nowrap' },
+  mushafJuzPage: { minWidth: 0, fontSize: 11, fontWeight: 600, color: 'var(--accent-ink)', opacity: 0.75, whiteSpace: 'nowrap' },
   // 14.2f1 — النافذة والشريط ltr قسراً: موضعةٌ مطلقة بإزاحاتٍ فيزيائيّة صريحة، لا
   // ترتيبَ flex ولا جهةَ فيض — فلا يقدر direction:rtl الوارث من memContainer أن يقلبها.
   // والعربيّ يستعيد rtl داخل الخانة والصفحة، حيث يخصّه وحده.

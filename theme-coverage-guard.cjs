@@ -1501,11 +1501,49 @@ ok('...2 cols mobile, 3 at 600, 4 at 1000 -- and never more',
   && /@media \(min-width:1000px\)\{\.ezq-cat\{grid-template-columns:repeat\(4,1fr\)/.test(css)
   && !/\.ezq-cat\{grid-template-columns:repeat\([5-9]/.test(css));
 ok('...inside the shell bounded column', /\.ezsh-wrap\{[^}]*max-width:1100px/.test(css));
-// ONE map, the owner order, the same handlers.
-eq('the index maps its row array exactly once',
-  idxSrc.split('(nav || MUSHAF_NAV_FALLBACK).map(').length - 1, 1);
+// ONE map PER LIST, the owner order, the same handlers. S110 split the single mixed map in two
+// -- the juz no longer span the surah grid -- so this counts each list once instead of counting
+// the mixed map once. The intent is unchanged: no duplicate map, no dead map, no second source.
+eq('the index maps the surah rows exactly once',
+  idxSrc.split('surahRows.map(').length - 1, 1);
+eq('...and the juz rows exactly once',
+  idxSrc.split('juzRows.map(').length - 1, 1);
+ok('...both lists come from the one owner array', /const navRows = nav \|\| MUSHAF_NAV_FALLBACK;/.test(mushSrc));
 ok('...and nothing sorts, filters, slices or reverses it',
   !/\.sort\(|\.filter\(|\.slice\(|\.reverse\(/.test(idxSrc));
+// S110 -- THE SEPARATION ITSELF. Everything below fails the moment the juz are put back inside
+// the surah grid, given the surah grid's columns, or allowed to span it.
+ok('the juz live in their OWN grid class, not the catalogue',
+  /className="ezm-juzgrid"/.test(idxSrc));
+ok('...and the juz section never carries .ezq-cat',
+  !/className="ezq-cat ezm-juz|className="ezm-juz(grid)? ezq-cat|className="ezq-cat[^"]*ezm-/.test(idxSrc));
+ok('.ezm-juzgrid is a real, independent grid',
+  /\.ezm-juzgrid\{[^}]*display:grid/.test(css));
+ok('...3 cols on a phone, 5 from 600, 6 from 1000 -- its own scale, not the catalogue\'s',
+  /\.ezm-juzgrid\{[^}]*grid-template-columns:repeat\(3,1fr\)/.test(css)
+  && /@media \(min-width:600px\)\{\.ezm-juzgrid\{grid-template-columns:repeat\(5,1fr\)/.test(css)
+  && /@media \(min-width:1000px\)\{\.ezm-juzgrid\{grid-template-columns:repeat\(6,1fr\)/.test(css));
+ok('NOTHING in the index spans a grid track', !/grid-column/.test(css.match(/\.ezm-[^{]*\{[^}]*\}/g)?.join('') || ''));
+ok('...and no juz rule spans 1/-1 anywhere', !/\.ezm-juz[^{]*\{[^}]*grid-column:1\/-1/.test(css));
+// the two sections are named on the page.
+ok('the juz section is titled', idxSrc.indexOf('>الانتقال إلى جزء<') !== -1);
+ok('the surah section is titled', idxSrc.indexOf('>السور<') !== -1);
+// the masthead is a strip on THIS screen, never a hero.
+ok('the index masthead is the strip variant', /className="ezq-masthead is-strip"/.test(idxSrc));
+ok('...and the strip branch is really defined', /\.ezq-masthead\.is-strip\{/.test(css));
+const strip = (css.match(/\.ezq-masthead\.is-strip\{([^}]*)\}/) || [])[1] || '';
+ok('...it lays its rows out in one flex row', /display:flex/.test(strip));
+ok('...it drops the hero padding', /padding:8px/.test(strip) && !/padding:2[0-9]px/.test(strip));
+ok('...and claims no hero height', /min-height:0/.test(strip));
+// the owner array is still whole and still in the owner's order.
+const navSrc = html.slice(html.indexOf('const buildMushafNav'), html.indexOf('const MUSHAF_NAV_FALLBACK'));
+ok('the owner still builds all 114 surahs', /for \(let sn = 1; sn <= 114; sn\+\+\)/.test(navSrc));
+ok('...and all 30 juz', /for \(let jz = 1; jz <= 30; jz\+\+\)/.test(navSrc));
+ok('...and refuses anything that is not 144 rows', /rows\.length !== 144/.test(navSrc));
+ok('the split takes every row and drops none',
+  /const juzRows = navRows\.filter\(\(r\) => r\.k === 'j'\);/.test(mushSrc)
+  && /const surahRows = navRows\.filter\(\(r\) => r\.k === 's'\);/.test(mushSrc));
+eq('the owner array is split exactly once', mushSrc.split('navRows.filter(').length - 1, 2);
 ok('each surah card carries its own number', idxSrc.indexOf('data-ezm-surah={r.n}') !== -1);
 ok('the open handler is unchanged',
   idxSrc.indexOf('onClick={() => { setOpenAt(null); setSelected(r.n); }}') !== -1);
