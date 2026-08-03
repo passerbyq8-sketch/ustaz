@@ -256,7 +256,18 @@ button:active{transform:scale(.97)}   /* اللمسةُ نفسُها التي ف
   transition:width .6s cubic-bezier(.2,.8,.3,1)}
 .region .flag{position:absolute;inset-inline-start:12px;top:12px;font-size:11px;background:var(--pom-soft);
   color:var(--pom);border-radius:99px;padding:2px 9px;font-weight:700}
-.region .chest{position:absolute;inset-inline-end:10px;top:10px;font-size:20px}
+/* S104 -- the completed mark: a stroke on a soft chip, not a trophy sticker. */
+.region .chest-done{position:absolute;inset-inline-end:10px;top:32px;width:22px;height:22px;
+  display:inline-flex;align-items:center;justify-content:center;border-radius:50%;
+  background:var(--palm-soft);color:var(--palm);font-size:13px;font-weight:800}
+/* the card crest: bounded to the card, and the card clips it. */
+.region{position:relative;overflow:hidden}
+.region .crest{position:absolute;top:0;right:0;left:0;height:26px;
+  border-radius:var(--r) var(--r) 40% 40%/var(--r) var(--r) 100% 100%;background:var(--lapis-soft)}
+.region h3,.region .medal{position:relative}
+/* the catalogue stays contained and centred at every width. */
+.map{max-width:1100px;margin-inline:auto}
+@media (min-width:1000px){.map{grid-template-columns:repeat(4,1fr)}}
 
 /* ---------- station list ---------- */
 .stations{display:grid;gap:12px}
@@ -466,7 +477,8 @@ input:focus-visible,select:focus-visible{outline:3px solid var(--honey);outline-
   padding-bottom:env(safe-area-inset-bottom)}
 .nav-in{max-width:980px;margin:0 auto;display:flex}
 .nav button{flex:1;padding:10px 4px 12px;font-size:12.5px;font-weight:700;color:var(--ink3);display:grid;gap:2px;justify-items:center}
-.nav button .ic{font-size:20px;line-height:1}
+.nav button .ic{display:inline-flex;line-height:0}
+.nav button .ic svg{display:block}
 .nav button[aria-current="true"]{color:var(--honey2)}
 
 @media (max-width:640px){
@@ -1306,11 +1318,22 @@ function drawHUD() {
   wrap.appendChild(gear);
   HUD.appendChild(wrap);
 }
+// S104 -- the four navigation glyphs, stroked in currentColor so the tab colour carries them.
+// No emoji, no image, nothing fetched, and nothing about the tabs themselves changes: same
+// ids, same names, same Screens.* destinations, same aria-current.
+const NAV_SVG = (d) => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+  + 'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+const NAV_ICON = {
+  map: NAV_SVG('<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14"/><path d="M15 6v14"/>'),
+  challenge: NAV_SVG('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>'),
+  book: NAV_SVG('<path d="M12 6.5C10.5 5 8 4.5 5 5v13c3-.5 5.5 0 7 1.5 1.5-1.5 4-2 7-1.5V5c-3-.5-5.5 0-7 1.5z"/><path d="M12 6.5v13"/>'),
+  me: NAV_SVG('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'),
+};
 function drawNav() {
   NAV.innerHTML = "";
   const inn = el("div", "nav-in");
-  [["map", "🗺️", "الخريطة", Screens.map], ["challenge", "🎯", "التحدّيات", Screens.challenges],
-  ["book", "📖", "الكنوز", Screens.book], ["me", "🏅", "أنا", Screens.profile]].forEach(([id, ic, nm, fn]) => {
+  [["map", NAV_ICON.map, "الخريطة", Screens.map], ["challenge", NAV_ICON.challenge, "التحدّيات", Screens.challenges],
+  ["book", NAV_ICON.book, "الكنوز", Screens.book], ["me", NAV_ICON.me, "أنا", Screens.profile]].forEach(([id, ic, nm, fn]) => {
     const b = el("button"); b.type = "button";
     b.appendChild(h("span", "ic", ic)); b.appendChild(el("span", null, nm));
     b.setAttribute("aria-current", String(TAB === id));
@@ -1321,17 +1344,22 @@ function drawNav() {
 
 /* ---------- medallion ---------- */
 function medal(r, locked) {
-  const hue = r.hue == null ? 38 : r.hue;
+  // S104 -- AN IZNIK MEDALLION, NOT A RAINBOW ROSETTE. This used to build its fill and its
+  // stroke from r.hue, a per-region hue, which is what made the map a row of different
+  // coloured flowers. r.hue is STILL IN THE DATA and still read by everything that reads it;
+  // it is simply not a colour source here any more. The shape is an arch over a rotated
+  // square, drawn in the identity tokens, bounded to its own 100x100 viewBox inside a card.
   const box = document.createElement("div");
+  const ARCH = "M50 12c14 0 24 10 24 24v40a6 6 0 0 1-6 6H32a6 6 0 0 1-6-6V36c0-14 10-24 24-24z";
   box.innerHTML =
     '<svg class="medal" viewBox="0 0 100 100" aria-hidden="true">' +
-    '<g fill="hsl(' + hue + ' 62% 52% / .16)"><rect x="15" y="15" width="70" height="70" rx="15"/>' +
-    '<rect x="15" y="15" width="70" height="70" rx="15" transform="rotate(45 50 50)"/></g>' +
-    '<g fill="none" stroke="hsl(' + hue + ' 52% 42%)" stroke-width="2.2"><rect x="15" y="15" width="70" height="70" rx="15"/>' +
-    '<rect x="15" y="15" width="70" height="70" rx="15" transform="rotate(45 50 50)"/></g>' +
-    '<text x="50" y="50" text-anchor="middle" dominant-baseline="central" ' +
-    'font-family="' + (locked ? "sans-serif" : "Sakkal Majalla, Traditional Arabic, serif") + '" font-size="' + (locked ? 30 : 40) + '" ' +
-    'fill="hsl(' + hue + ' 52% 38%)">' + (locked ? "🔒" : (r.letter || "۞")) + '</text></svg>';
+    '<path d="' + ARCH + '" fill="var(--lapis-soft)"/>' +
+    '<g fill="none" stroke="var(--lapis)" stroke-width="2.4">' +
+    '<path d="' + ARCH + '"/>' +
+    '<rect x="38" y="38" width="24" height="24" rx="4" transform="rotate(45 50 50)"/>' +
+    '</g>' +
+    (locked ? '' : '<circle cx="50" cy="50" r="4.5" fill="var(--pom)"/>') +
+    '</svg>';
   return box.firstChild;
 }
 
@@ -1414,8 +1442,11 @@ const Screens = {
     const sts = Data.stations(r.id);
     const empty = sts.length === 0;
     const b = el("button", "region" + (open && !empty ? "" : " locked")); b.type = "button";
+    b.setAttribute("data-region", r.id);
+    // S104: a bounded arch crest across the top of the card -- a card band, not a page motif.
+    b.appendChild(el("span", "crest"));
     if (empty) b.appendChild(el("span", "flag", "قريبًا"));
-    else if (P.regionDone(r.id)) b.appendChild(h("span", "chest", "🏆"));
+    else if (P.regionDone(r.id)) b.appendChild(el("span", "chest-done", "✓"));
     b.appendChild(medal(r, !open));
     b.appendChild(el("h3", null, r.name));
     b.appendChild(el("div", "sub", empty ? "لا أسئلةَ بعد" :

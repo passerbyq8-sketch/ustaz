@@ -1081,5 +1081,65 @@ for (const mode of ['light', 'dark']) {
   else ok('...and stays dark in dark', bg && lum(bg) < 0.08, hex(bg));
 }
 
+/* =============== J. THE ISTANA QUEST CATEGORY MAP (S104) =================
+ * The rejected screen had rainbow rosette category badges and an emoji tab bar. Neither is a
+ * data question, and neither may come back. The bank itself is sealed by quest-ux-guard, which
+ * byte-compares every quest-data file; this group proves the PRESENTATION changed and that it
+ * changed without touching an id, a count, a destination or a handler.
+ * ---------------------------------------------------------------------- */
+console.log('\n=== J. THE ISTANA QUEST CATEGORY MAP ===');
+
+// the rosette was hue-driven. That is the thing that must be gone.
+// comments stripped first: the comment recording WHY the hue is no longer read is not a read.
+const qCode = q.html.replace(/^[ \t]*\/\/.*$/gm, ' ');
+ok('the category medallion no longer colours itself from r.hue',
+  !/r\.hue/.test(qCode) && !/hsl\(/.test(qCode),
+  'a per-region hue is what made the map a row of differently coloured flowers');
+ok('...and draws in the identity tokens instead',
+  /medal\(r, locked\)[\s\S]{0,1400}?var\(--lapis\)/.test(q.html));
+ok('...as a bounded arch medallion inside its own viewBox',
+  /medal\(r, locked\)[\s\S]{0,1400}?viewBox="0 0 100 100"/.test(q.html));
+ok('the region card carries a bounded arch crest',
+  /el\("span", "crest"\)/.test(q.html) && /\.region \.crest\{[^}]*position:absolute/.test(q.css)
+  && /\.region\{[^}]*overflow:hidden/.test(q.css));
+ok('...and the completed mark is a stroke on a chip, not a trophy sticker',
+  /chest-done/.test(q.html) && !/\uD83C\uDFC6/.test(q.html.slice(q.html.indexOf('_regionCard'), q.html.indexOf('_regionCard') + 1400)));
+
+// the tab bar: same four tabs, same destinations, no emoji.
+ok('the navigation glyphs are stroked line icons', /const NAV_ICON = \{/.test(q.html) && /NAV_SVG\(/.test(q.html));
+const navBlock = q.html.slice(q.html.indexOf('function drawNav()'), q.html.indexOf('function drawNav()') + 1200);
+ok('...and the old emoji tab glyphs are gone from it',
+  !/[\u{1F300}-\u{1FAFF}]/u.test(navBlock), 'an emoji remains in the tab bar');
+for (const [id, dest] of [['map', 'Screens.map'], ['challenge', 'Screens.challenges'], ['book', 'Screens.book'], ['me', 'Screens.profile']]) {
+  ok('the ' + id + ' tab still goes to ' + dest, navBlock.indexOf('"' + id + '"') !== -1 && navBlock.indexOf(dest) !== -1);
+}
+ok('...and the tab still reports which one is current', /aria-current", String\(TAB === id\)/.test(navBlock));
+
+// the catalogue stays contained, and nothing is painted behind the page.
+ok('the map catalogue is centred and bounded', /\.map\{[^}]*max-width:1100px/.test(q.css));
+ok('...and lays out in four columns on a desktop', /@media \(min-width:1000px\)\{\.map\{grid-template-columns:repeat\(4,1fr\)/.test(q.css));
+const regionRules = (q.css.match(/\.region[^{]*\{[^}]*\}/g) || []);
+eq('no region rule attaches an image, gradient or repeat',
+  regionRules.filter((r) => /background-image|url\(|repeating/i.test(r)), []);
+
+// THE DATA. Ids, counts and destinations are read, never written, by the presentation.
+ok('the card still reads the region id it was handed', /data-region", r\.id/.test(q.html));
+ok('the card still reports the real station count', /ar\(sts\.length\) \+ " \u0645\u062D\u0637\u0651\u0627\u062A/.test(q.html));
+// scoped to the card itself: the same call appears on the region screen, so an unscoped
+// test would keep passing while the CARD stopped reporting the real number.
+const cardSrc = q.html.slice(q.html.indexOf('_regionCard(r) {'), q.html.indexOf('_regionCard(r) {') + 1600);
+ok('...and the real question count', /Data\.regionQuestions\(r\.id\)\.length/.test(cardSrc));
+// EVERY region the world hands over gets a card: no slice, no filter, no take-n between the
+// data and the map. A dropped region is a category the child can never reach.
+ok('every region in the world data gets exactly one card',
+  /\(w\.regions \|\| \[\]\)\.forEach\(r => g\.appendChild\(Screens\._regionCard\(r\)\)\);/.test(q.html),
+  'the map must map the world own array, unsliced and unfiltered');
+ok('...and the card builder is called from exactly one place',
+  (q.html.match(/Screens\._regionCard\(/g) || []).length === 1);
+ok('...and the real star standing', /P\.regionStars\(r\.id\)/.test(q.html) && /P\.regionPct\(r\.id\)/.test(q.html));
+ok('...and opens the region it names', /b\.onclick = \(\) => Screens\.region\(r\.id\)/.test(q.html));
+ok('the presentation writes no progress of its own',
+  !/_regionCard[\s\S]{0,1600}?P\.(set|save|add|award)/.test(q.html));
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
