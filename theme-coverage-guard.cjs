@@ -804,8 +804,14 @@ ok('no identity rule can add a second copy of a module',
 
 /* ---- G12. knowledge treasures follows the identity too ----------------- */
 const qVT = vtBlocks(q.css);
-ok('quest.html reads the identity key before its first paint',
-  q.html.indexOf('ezik_visual_theme_v1') !== -1 && q.html.indexOf('ezik_visual_theme_v1') < q.html.indexOf('<style>'));
+// S104: quest.html was still reading v1 after the app moved to v2, so a device carrying the
+// undeployed qibla_13 opened the journey green while the app opened istana. It reads v2 now,
+// and the SAME way the app does: one accepted value, everything else istana_33.
+ok('quest.html reads the pre-release v2 key before its first paint',
+  q.html.indexOf('ezik_visual_theme_v2') !== -1 && q.html.indexOf('ezik_visual_theme_v2') < q.html.indexOf('<style>'));
+eq('...and nothing on that page reads v1', (q.html.match(/ezik_visual_theme_v1/g) || []).length, 0);
+ok('...and qibla_13 is not an accepted value there either',
+  !/getItem\('ezik_visual_theme_v2'\)[^;]*qibla_13/.test(q.html));
 for (const id of VT_IDS) {
   ok('quest.html declares ' + id + ' (light)', Object.keys(qVT.light[id] || {}).length > 0);
   ok('quest.html declares ' + id + ' (dark)', Object.keys(qVT.dark[id] || {}).length > 0);
