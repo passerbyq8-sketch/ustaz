@@ -22,7 +22,7 @@
                        colour even if the stylesheet has not arrived
        data-theme   -- what the stylesheet keys off once it does arrive
      Fails to light, exactly as before. -->
-<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;d.style.background=(t==='dark'?'#0E1116':'#F1F6FD');var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;d.style.background=(t==='dark'?'#0E1116':'#F1F6FD');var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();(function(){try{var v=localStorage.getItem('ezik_visual_theme_v1');if(v!=='qibla_13'&&v!=='istana_33'){v='istana_33';}document.documentElement.setAttribute('data-ezik-visual-theme',v);}catch(e){}})();</script>
 <!-- S99: the reading preferences, applied BEFORE the first paint for the same reason the theme is.
      Read here and the interface draws once at the chosen size; read after React mounts and the
      user watches it resize. It reads the active profile's id from the profile the app already
@@ -38,7 +38,7 @@
      hint, it fetches nothing. Bare form (not crossorigin) on purpose -- the page SVG is
      loaded as an <img> src, a no-CORS request, which will not reuse a CORS-mode socket. -->
 <link rel="preconnect" href="https://mushaf.almurabbi.app">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&family=Noto+Kufi+Arabic:wght@400;500;700&family=Noto+Naskh+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --red:#1D4ED8; --red-deep:#12327A; --red-lift:#2AA6DE; --red-soft:#E6EEFB;
@@ -70,6 +70,32 @@
     --wird-pill:rgba(255,255,255,0.92);
     /* the pre-React boot paint. The loading screen is the only thing drawn before the chat. */
     --boot-bg:linear-gradient(135deg, #F1F6FD 0%, #E5EBF5 100%);
+    /* S100. Four more role splits of exactly the kind D88 and S95 made, and for the same
+       reason: a visual theme has to be able to move ONE of these jobs without dragging the
+       others with it. Every light value below is byte-for-byte what those sites already
+       resolved to, so with no theme attribute the page renders as it did before this phase.
+         --ez-ui-font    the interface face. Was the literal 'Tajawal', sans-serif, repeated
+                         in 47 inline styles and in body{}. Amiri and Amiri Quran are NOT in
+                         here: the Quran's own face is not a themeable choice.
+         --ez-focus      the keyboard focus ring. Was --red-lift on three rules and --a3-cyan
+                         on a fourth, so a theme could not repaint the ring without also
+                         repainting a gradient end and a decorative dot. Now it cannot.
+         --ez-radius-sig the SIGNATURE radius of the one hero component. Was the literal 18.
+         --welcome-*     the first-run welcome surface. Its background was --black and its
+                         text was --on-accent/--nav-off, which is why the two could never
+                         move together; in dark --black even resolved LIGHT under white text. */
+    --ez-ui-font:'Tajawal', sans-serif;
+    --ez-focus:#2AA6DE; --ez-radius-sig:18px;
+    --welcome-bg:#141414; --welcome-ink:#FFFFFF; --welcome-ink2:#93A0B8;
+    /* The settings PREVIEWS. Two swatch sets, one per visual theme, so a preview can show the
+       identity a user has NOT selected. They are literals on purpose -- a preview that read
+       the live tokens would draw the same two cards twice -- and they are declared here rather
+       than inline so no style key carries a hardcoded colour. They do not follow data-theme:
+       the preview shows the LIGHT face of each theme, which is what the choice is about. */
+    --vtp-q-page:#FFFFFF; --vtp-q-surface:#F8FBFA; --vtp-q-line:#D6E3DF;
+    --vtp-q-accent:#006B61; --vtp-q-accent2:#C48A27; --vtp-q-ink:#123C37;
+    --vtp-i-page:#FFFFFF; --vtp-i-surface:#FFFDFC; --vtp-i-line:#C8DDE2;
+    --vtp-i-accent:#0B5F8E; --vtp-i-accent2:#C43E38; --vtp-i-ink:#10364E;
     color-scheme: light;
   }
   /* D88 DARK. Document level: only the boot paint and the browser's own UI colours, so a
@@ -100,6 +126,10 @@
     --a3-on-blue:#0A1020;
     --warn-bg:#3A2A12; --warn-line:#7A5A1E; --warn-ink:#F5C97A;
     --wird-pill:rgba(23,27,36,0.92);
+    /* S100. The welcome surface, which had no dark value at all: it painted var(--black),
+       and --black INVERTS, so choosing dark turned the first-run screen #F2F4F8 while its
+       title stayed --on-accent white. White on near-white. It has its own tokens now. */
+    --welcome-bg:#0E1116; --welcome-ink:#F2F4F8; --welcome-ink2:#9AA4B5;
     color-scheme: dark;
   }
   /* The Quran sheet opts out, and only the sheet. Everything it paints -- the paper, the rules,
@@ -117,7 +147,7 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
   body {
-    font-family: 'Tajawal', sans-serif;
+    font-family: var(--ez-ui-font);
     background: var(--page);
     direction: rtl;
     -webkit-font-smoothing: antialiased;
@@ -167,11 +197,11 @@
   /* Keyboard only: :focus-visible does not fire on touch, so the ring appears for a tabbing
      reader and never as a stuck outline after a tap. Drawn in a token, so it stays visible
      on the white top row, on the white cards and on the reading surface alike. */
-  .adhkar2-focus:focus-visible{outline:3px solid var(--red-lift);outline-offset:2px}
+  .adhkar2-focus:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
   /* S98 -- the reply controls (fold, quote, quick actions, favourites, search). The same
      keyboard-only ring the adhkar screens use, in the same token, so it stays visible on the
      bubble surface and on the drawer alike. Touch never sees it; a tabbing reader always does. */
-  .ezik-focus:focus-visible{outline:3px solid var(--red-lift);outline-offset:2px}
+  .ezik-focus:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
   /* S98 -- reduced motion. Everything this phase adds is motionless BY CONSTRUCTION: no
      keyframes, no transition, no smooth scroll, and the fold chevron flips in one step. The rule
      below is the belt to that braces -- it neutralises any animation or transition on an S98
@@ -210,7 +240,7 @@
   :root[data-ez-motion="reduce"] .ezik-panel * { animation: none !important; transition: none !important; }
   /* S99 -- the keyboard focus ring, on every control this phase touches. Same token, same shape
      as the ring the adhkar screens and the S98 controls already use. */
-  .ez-a11y-opt:focus-visible { outline: 3px solid var(--red-lift); outline-offset: 2px; }
+  .ez-a11y-opt:focus-visible { outline: 3px solid var(--ez-focus); outline-offset: 2px; }
   /* Session 85/86 -- the DUAL STYLE palette, and it is a SCOPED token set, not a global one:
      every declaration below lives on .adhkar3 and .ezhome, classes carried only by the four
      adhkar presentation components and the two home ones, so nothing outside them -- not the
@@ -239,7 +269,159 @@
      the duplicated row it laid out -- every module is drawn once, by the deck itself. */
   .ezhome-wrap{width:100%;max-width:640px;margin:0 auto}
   @media (min-width:900px){.ezhome-wrap{max-width:900px}}
-  .ezhome-focus:focus-visible{outline:3px solid var(--a3-cyan);outline-offset:2px}
+  .ezhome-focus:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  /* ========================================================================
+     S100 -- THE VISUAL THEMES. A THIRD SETTING, INDEPENDENT OF THE OTHER TWO.
+
+     There are now three orthogonal choices and they compose in every combination:
+       murabbi_theme_v1      light | dark              -- the COLOUR MODE
+       ezik_ui_style_v1      journey | deck            -- the home/adhkar LAYOUT
+       ezik_visual_theme_v1  qibla_13 | istana_33      -- the VISUAL IDENTITY (this block)
+     Nothing below reads or writes either of the first two keys, and neither of them reads
+     this one. 2 x 2 x 2 = eight renderings, and all eight are real.
+
+     THE SHAPE OF IT. Each identity declares its own --vt-* namespace and NOTHING ELSE
+     declares one; a second block then MAPS the app's existing role tokens onto that
+     namespace. That is why no screen had to be repainted by hand and why a screen added
+     later inherits the identity for free: it reads --page, --white, --ink like every other
+     screen, and --page is already var(--vt-page) by the time it mounts. The mapping block
+     sits AFTER :root[data-theme="dark"] and carries the same specificity, so it wins on
+     order; the .adhkar3/.ezhome mapping sits after the dark .adhkar3 rule for the same
+     reason. Both facts are load-bearing -- do not move these rules up the file.
+
+     THE BACKGROUND INVARIANT. In light, --vt-page is #FFFFFF in BOTH identities, and it is
+     a solid colour: there is no background-image, no gradient, no repeating anything, no
+     ::before ornament and no watermark on any page root in this block. --boot-bg, which is
+     a gradient in the base palette, is flattened to that same solid page. Theme geometry is
+     allowed only INSIDE bounded components, which is what --vt-radius-sig is for: in
+     istana_33 it turns the one hero component into an Ottoman arch, and it is a border
+     radius on that component, not a pattern behind the app.
+
+     THE QURAN OPTS OUT, in light as well as in dark. .mushaf-paper already pinned itself
+     back to the base light tokens under data-theme=dark; it now does the same under a visual
+     theme, so the sheet, its rules, its corner motifs and its medal are the same pixels in
+     all eight renderings. The DESK the sheet lies on is chrome and does follow the identity.
+     ===================================================================== */
+  :root[data-ezik-visual-theme="qibla_13"]{
+    --vt-page:#FFFFFF; --vt-surface:#F8FBFA; --vt-surface2:#EDF3F1;
+    --vt-ink:#123C37; --vt-muted:#5E716D;
+    --vt-accent:#006B61; --vt-accent2:#C48A27;
+    --vt-line:#D6E3DF;
+    --vt-radius:18px; --vt-radius-sig:18px;
+    --vt-shadow:0 16px 48px rgba(0,84,76,.10);
+    --vt-focus:#00544C;
+    /* derived roles, each one a job the identity tokens above cannot do on their own:
+       -ink   accent as TEXT on a light surface, which has to clear 4.5:1
+       -deep  accent as the far end of a fill under white text
+       -soft  accent at chip strength, a surface and never a text colour
+       accent2 is the gold: at #C48A27 it is decoration, so its TEXT role is a darker gold. */
+    --vt-on-accent:#FFFFFF; --vt-accent-ink:#00544C; --vt-accent2-ink:#6E4B0E;
+    --vt-on-accent2:#0E2B27;
+    --vt-deep:#03453F; --vt-soft:#E4EFEC;
+    --vt-font:'Noto Kufi Arabic', Tahoma, sans-serif;
+  }
+  /* Dark stays dark: the page is a deep pine, not an inverted white. Specificity (0,3,0)
+     against the light block's (0,2,0), so the mode wins wherever the two disagree. */
+  :root[data-theme="dark"][data-ezik-visual-theme="qibla_13"]{
+    --vt-page:#0B1513; --vt-surface:#122220; --vt-surface2:#1A302B;
+    --vt-ink:#E4F1ED; --vt-muted:#A9BEB9;
+    --vt-accent:#5CCBBA; --vt-accent2:#E5BE73;
+    --vt-line:#28453F;
+    --vt-shadow:0 16px 48px rgba(0,0,0,.45);
+    --vt-focus:#7BE0CE;
+    --vt-on-accent:#062521; --vt-accent-ink:#7EDDCC; --vt-accent2-ink:#EFD199;
+    --vt-on-accent2:#062521;
+    /* the accent FILL, mid-tone in dark: it carries --vt-on-accent, which is dark here. */
+    --vt-deep:#3FA898; --vt-soft:#16302B;
+  }
+  :root[data-ezik-visual-theme="istana_33"]{
+    --vt-page:#FFFFFF; --vt-surface:#FFFDFC; --vt-surface2:#EEF6F7;
+    --vt-ink:#10364E; --vt-muted:#647780;
+    --vt-accent:#0B5F8E; --vt-accent2:#C43E38;
+    --vt-line:#C8DDE2;
+    /* the signature: a normal 18px card everywhere, and ONE hero component that arches. */
+    --vt-radius:18px; --vt-radius-sig:120px 120px 18px 18px;
+    --vt-shadow:0 18px 45px rgba(12,78,105,.12);
+    --vt-focus:#08486E;
+    --vt-on-accent:#FFFFFF; --vt-accent-ink:#0A5480; --vt-accent2-ink:#9E2F2A;
+    --vt-on-accent2:#FFFFFF;
+    --vt-deep:#083A57; --vt-soft:#E3EFF5;
+    --vt-font:'Noto Naskh Arabic', Georgia, serif;
+  }
+  :root[data-theme="dark"][data-ezik-visual-theme="istana_33"]{
+    --vt-page:#0A141B; --vt-surface:#101F29; --vt-surface2:#182D39;
+    --vt-ink:#E6F1F7; --vt-muted:#A8BBC5;
+    --vt-accent:#63B6E4; --vt-accent2:#EE8A83;
+    --vt-line:#25404E;
+    --vt-shadow:0 18px 45px rgba(0,0,0,.50);
+    --vt-focus:#8CCDEE;
+    --vt-on-accent:#04202F; --vt-accent-ink:#8CCDEE; --vt-accent2-ink:#F4B2AC;
+    --vt-on-accent2:#04202F;
+    /* same reason as qibla_13 above: a fill under a dark on-colour has to lighten. */
+    --vt-deep:#4A9CCB; --vt-soft:#142C3A;
+  }
+  /* THE MAPPING. One rule, both identities, both modes -- every value on the right is a
+     --vt-* token, so this block states the app's role vocabulary once and never a colour. */
+  :root[data-ezik-visual-theme]{
+    --page:var(--vt-page); --white:var(--vt-surface); --tint:var(--vt-surface2);
+    --ink:var(--vt-ink); --black:var(--vt-ink); --muted:var(--vt-muted);
+    --line:var(--vt-line); --nav-off:var(--vt-muted);
+    --red:var(--vt-accent); --red-deep:var(--vt-deep); --red-lift:var(--vt-accent2);
+    --red-soft:var(--vt-soft); --accent-fill:var(--vt-accent);
+    --accent-ink:var(--vt-accent-ink); --verse-ink:var(--vt-accent-ink);
+    --on-accent:var(--vt-on-accent); --scholar:var(--vt-accent2-ink);
+    --a3-on-blue:var(--vt-on-accent);
+    /* the desk under the Quran sheet is chrome and follows the identity; the SHEET does not,
+       and pins itself back at the bottom of this block. */
+    --mushaf-desk:var(--vt-surface2); --madina-desk:var(--vt-surface2);
+    /* the launch paint stops being a gradient: the page background is solid in both. */
+    --boot-bg:var(--vt-page);
+    --welcome-bg:var(--vt-page); --welcome-ink:var(--vt-ink); --welcome-ink2:var(--vt-muted);
+    --wird-pill:var(--vt-surface);
+    --ez-ui-font:var(--vt-font); --ez-focus:var(--vt-focus);
+    --radius-card:var(--vt-radius); --radius-btn:var(--vt-radius);
+    --ez-radius-sig:var(--vt-radius-sig);
+  }
+  /* and the page root itself, said in the one place a background can be attached at all:
+     a solid colour, and background-image explicitly none so nothing can be layered behind
+     the app later without deleting this line. */
+  :root[data-ezik-visual-theme] body{ background:var(--vt-page); background-image:none; }
+  /* The scoped home/adhkar token set, mapped onto the same namespace. This rule has to sit
+     after :root[data-theme="dark"] .adhkar3 -- equal specificity, later wins. --a3-cyan is
+     now decoration ONLY: the focus ring it used to double as reads --ez-focus. */
+  :root[data-ezik-visual-theme] .adhkar3,
+  :root[data-ezik-visual-theme] .ezhome{
+    --a3-page:var(--vt-page); --a3-surface:var(--vt-surface); --a3-line:var(--vt-line);
+    --a3-ice:var(--vt-surface2); --a3-soft:var(--vt-surface2);
+    --a3-ink:var(--vt-ink); --a3-muted:var(--vt-muted);
+    /* --a3-navy is read in exactly one place, as the text ON the --a3-cyan chip, so it is
+       the ON-COLOUR of the second accent and not a navy at all. */
+    --a3-blue:var(--vt-accent); --a3-navy:var(--vt-on-accent2); --a3-cyan:var(--vt-accent2);
+    --a3-shadow:var(--vt-shadow); --a3-lift:var(--vt-shadow);
+  }
+  /* THE QURAN SHEET OPTS OUT OF THE IDENTITY, exactly as it opts out of dark, and with the
+     same literals it is pinned to there. Placed last so it outranks the mapping above in
+     every combination of the three settings. */
+  :root[data-ezik-visual-theme] .mushaf-paper{
+    --red:#1D4ED8; --red-deep:#12327A; --red-lift:#2AA6DE; --red-soft:#E6EEFB;
+    --ink:#1A1A1A; --muted:#6E6E6E; --white:#FFFFFF; --line:#E5EBF5; --tint:#EDF1FA;
+    --accent-ink:#12327A; --on-accent:#FFFFFF; --accent-fill:#1D4ED8;
+    --ez-ui-font:'Tajawal', sans-serif;
+  }
+  /* The two settings previews. Bounded component geometry, and the only place in this file
+     where a theme motif is drawn: a compass rose for qibla_13, an Iznik tulip for istana_33.
+     Both are inside a 44px box inside a card -- neither is, or can become, a page background,
+     because neither selector can match <body> or :root. Reduced motion is respected by there
+     being no animation here at all. */
+  .vtp-motif{ position:absolute; inset:0; pointer-events:none; }
+  .vtp-motif-q::before,.vtp-motif-q::after{ content:""; position:absolute; left:50%; top:50%;
+    width:22px; height:2px; margin:-1px 0 0 -11px; background:var(--vtp-q-accent2); }
+  .vtp-motif-q::after{ transform:rotate(90deg); }
+  .vtp-motif-i::before{ content:""; position:absolute; left:50%; top:50%; width:14px; height:18px;
+    margin:-9px 0 0 -7px; border:2px solid var(--vtp-i-accent2); border-radius:60% 60% 12% 12%; }
+  .vtp-motif-i::after{ content:""; position:absolute; left:50%; top:50%; width:2px; height:8px;
+    margin:9px 0 0 -1px; background:var(--vtp-i-accent2); }
+
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -2690,6 +2872,75 @@ function useEzikUiStyle() {
   return style;
 }
 
+// ============================================================
+// S100 -- THE VISUAL IDENTITY. A THIRD KEY, INDEPENDENT OF THE OTHER TWO.
+//
+// The app now stores three presentational choices, and they do not know about each other:
+//   murabbi_theme_v1      light | dark          -- the colour MODE          (readStoredTheme)
+//   ezik_ui_style_v1      journey | deck        -- the home/adhkar LAYOUT   (readEzikUiStyle)
+//   ezik_visual_theme_v1  qibla_13 | istana_33  -- the visual IDENTITY      (below)
+// Not one line in this block reads or writes either of the other two keys, and neither of
+// them reads this one, so all eight combinations are reachable and none of them is a special
+// case. A user who saved 'deck' last year still gets deck; a user who saved 'light' still
+// gets light; both of them now also get an identity, and it is istana_33 until they say
+// otherwise. Choosing an identity does not disturb either older choice.
+//
+// The reader is TOTAL in the same sense readEzikUiStyle is: an absent key, an unknown word, a
+// value of the wrong type and a storage that throws all answer istana_33. Every localStorage
+// touch has its own try/catch, so a locked or full storage can change what is SAVED and never
+// what is SHOWN. There is no migration and nothing to migrate: this key has never existed.
+//
+// WHERE IT LANDS. The identity is one attribute on <html>, and the stylesheet does the rest
+// (see the S100 block in <style>). It is set THREE times, deliberately: by the boot script
+// before the first paint so there is no flash of the other identity; by the writer, before it
+// saves, so the press repaints on the spot; and by the hook's effect, which is what makes a
+// choice made in ANOTHER TAB arrive here -- the 'storage' event fires only in the other tab.
+// Applying it is idempotent, so the three paths cannot fight.
+// ============================================================
+const EZIK_VISUAL_THEME_KEY = 'ezik_visual_theme_v1';
+const EZIK_VISUAL_THEME_QIBLA = 'qibla_13';
+const EZIK_VISUAL_THEME_ISTANA = 'istana_33';
+const EZIK_VISUAL_THEME_DEFAULT = EZIK_VISUAL_THEME_ISTANA;
+const EZIK_VISUAL_THEME_EVENT = 'ezik-visual-theme';
+const EZIK_VISUAL_THEME_ATTR = 'data-ezik-visual-theme';
+
+function readEzikVisualTheme() {
+  let raw = null;
+  try { raw = localStorage.getItem(EZIK_VISUAL_THEME_KEY); } catch (e) { return EZIK_VISUAL_THEME_DEFAULT; }
+  if (raw === EZIK_VISUAL_THEME_QIBLA || raw === EZIK_VISUAL_THEME_ISTANA) return raw;
+  return EZIK_VISUAL_THEME_DEFAULT;
+}
+function applyEzikVisualTheme(v) {
+  const next = (v === EZIK_VISUAL_THEME_QIBLA || v === EZIK_VISUAL_THEME_ISTANA) ? v : EZIK_VISUAL_THEME_DEFAULT;
+  try { document.documentElement.setAttribute(EZIK_VISUAL_THEME_ATTR, next); } catch (e) {}
+  return next;
+}
+function writeEzikVisualTheme(v) {
+  // paint first, save second: the attribute is what the user sees, and a storage that refuses
+  // the write must not also refuse the repaint.
+  const next = applyEzikVisualTheme(v);
+  try { localStorage.setItem(EZIK_VISUAL_THEME_KEY, next); } catch (e) {}
+  try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: next })); } catch (e) {}
+  return next;
+}
+function useEzikVisualTheme() {
+  const [vtheme, setVtheme] = useState(readEzikVisualTheme);
+  useEffect(() => {
+    // Both listeners re-READ rather than trust what they were handed, so an event carrying a
+    // value this build does not accept still lands on istana_33 instead of on that value.
+    const onLocal = () => setVtheme(readEzikVisualTheme());
+    const onStorage = (e) => { if (!e || !e.key || e.key === EZIK_VISUAL_THEME_KEY) setVtheme(readEzikVisualTheme()); };
+    window.addEventListener(EZIK_VISUAL_THEME_EVENT, onLocal);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener(EZIK_VISUAL_THEME_EVENT, onLocal);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+  useEffect(() => { applyEzikVisualTheme(vtheme); }, [vtheme]);
+  return vtheme;
+}
+
 const HOME_GREETINGS_GENERAL = [
     "كيف أقدر أعينك اليوم؟",
     "على بركة الله، بماذا نبدأ؟",
@@ -3286,7 +3537,12 @@ const A2_NEXT        = '\u{0627}\u{0644}\u{062A}\u{0627}\u{0644}\u{064A}';      
 const A3_STYLE_TITLE  = '\u{0646}\u{0645}\u{0637} \u{0627}\u{0644}\u{0648}\u{0627}\u{062C}\u{0647}\u{0629}';                        // "interface style"
 const A3_JOURNEY_NAME = '\u{0631}\u{062D}\u{0644}\u{0629} \u{064A}\u{0648}\u{0645}\u{064A}\u{0629}';                              // "daily journey"
 const A3_DECK_NAME    = '\u{0628}\u{0637}\u{0627}\u{0642}\u{0627}\u{062A} \u{0645}\u{062A}\u{0631}\u{0627}\u{0643}\u{0645}\u{0629}'; // "stacked cards"
-const A3_ALL          = '\u{0627}\u{0644}\u{0623}\u{0642}\u{0633}\u{0627}\u{0645}';                                          // "the sections"
+const A3_ALL          = '\u{0627}\u{0644}\u{0623}\u{0642}\u{0633}\u{0627}\u{0645}';
+// S100 -- three more chrome strings, escaped for the same reason every string above is: a
+// section heading and the two identity names. None of them is devotional text.
+const EZ_VT_TITLE  = '\u{0627}\u{0644}\u{0647}\u{0648}\u{064A}\u{0629} \u{0627}\u{0644}\u{0628}\u{0635}\u{0631}\u{064A}\u{0629}';   // "the visual identity"
+const EZ_VT_QIBLA  = '\u{0642}\u{0628}\u{0644}\u{0629} \u{0661}\u{0663}';                                     // "qibla 13"
+const EZ_VT_ISTANA = '\u{0625}\u{0633}\u{062A}\u{0627}\u{0646}\u{0629} \u{0663}\u{0663}';                     // "istana 33"                                          // "the sections"
 
 function AdhkarScreenV1({ onBack }) {
   const [cats, setCats] = useState(null);
@@ -4735,6 +4991,10 @@ function ezikSearchFavs(favs, q) {
 }
 
 function App() {
+  // S100: mounted here and not only in Settings, because the 'storage' event fires in the
+  // tabs that did NOT make the change -- a tab sitting on the chat has to repaint too. The
+  // hook owns no screen state and renders nothing; it keeps <html> honest.
+  useEzikVisualTheme();
   const [screen, setScreen] = useState('loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
   const [profile, setProfile] = useState(null);
@@ -7160,6 +7420,12 @@ function App() {
       // the next mount. The chat screen does not listen for it and is unaffected either way.
       try { localStorage.removeItem(EZIK_UI_STYLE_KEY); } catch (e) {}
       try { window.dispatchEvent(new CustomEvent(EZIK_UI_STYLE_EVENT, { detail: EZIK_UI_STYLE_DEFAULT })); } catch (e) {}
+      // S100 -- and the VISUAL IDENTITY, on the same terms. Removing the key is enough: the
+      // reader is total, so an absent key IS istana_33. The attribute is repainted here rather
+      // than waiting for a mount, because the screen behind this dialog is still on screen.
+      try { localStorage.removeItem(EZIK_VISUAL_THEME_KEY); } catch (e) {}
+      applyEzikVisualTheme(EZIK_VISUAL_THEME_DEFAULT);
+      try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: EZIK_VISUAL_THEME_DEFAULT })); } catch (e) {}
       setDirectConvoLocked(false);
       setProfile(null);
       voiceProfileRef.current = null;           // غ‑٣: حذفُ البيانات يُعيد الحاجزَ إلى المقفول
@@ -9215,6 +9481,37 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
       <span style={s.prevLine} />
     </span>
   );
+  // S100 -- the INDEPENDENT visual-identity control. Its own hook, its own writer, its own
+  // radiogroup; it shares only the presentation keys with the layout row above it, and it
+  // does not read, write or reset either the mode choice or the layout choice.
+  const visualTheme = useEzikVisualTheme();
+  const VtOpt = ({ value, label, preview }) => (
+    <button type="button" role="radio" aria-checked={visualTheme === value ? 'true' : 'false'}
+      onClick={() => writeEzikVisualTheme(value)}
+      style={visualTheme === value ? { ...s.designOpt, ...s.designOptOn } : s.designOpt}>
+      <span style={s.designPrev} aria-hidden="true">{preview}</span>
+      <span style={s.designOptLabel}>{label}</span>
+      <span style={visualTheme === value ? { ...s.designDot, ...s.designDotOn } : s.designDot} aria-hidden="true" />
+    </button>
+  );
+  // The two identity previews, and they show the LIGHT face of each theme on purpose: a plain
+  // white page, a header in the accent, one card on the page in the theme's surface and
+  // hairline, and the theme's own small geometry inside that card -- a compass cross for
+  // qibla_13, a tulip for istana_33. The istana card carries the signature arch radius, which
+  // is the one thing a user would otherwise only discover after switching. CSS only: no
+  // image, no data URI, nothing to fetch, and no animation of any kind.
+  const PREV_QIBLA = (
+    <span style={{ ...s.vtpBox, ...s.vtpQBox }}>
+      <span style={s.vtpQBar} />
+      <span style={s.vtpQCard}><span className="vtp-motif vtp-motif-q" /></span>
+    </span>
+  );
+  const PREV_ISTANA = (
+    <span style={{ ...s.vtpBox, ...s.vtpIBox }}>
+      <span style={s.vtpIBar} />
+      <span style={s.vtpICard}><span className="vtp-motif vtp-motif-i" /></span>
+    </span>
+  );
   const PREV_DECK = (
     <span style={s.prevBox}>
       <span style={{ ...s.prevCard, top: 10, left: 16, right: 16 }} />
@@ -9244,6 +9541,16 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           <div style={s.designRow} role="radiogroup" aria-label={A3_STYLE_TITLE}>
             <StyleOpt value={EZIK_UI_STYLE_JOURNEY} label={A3_JOURNEY_NAME} preview={PREV_JOURNEY} />
             <StyleOpt value={EZIK_UI_STYLE_DECK} label={A3_DECK_NAME} preview={PREV_DECK} />
+          </div>
+          <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
+        </div>
+        {/* S100 -- the visual identity, its own card under the layout card. It does not move,
+            replace or reset the two controls above it; all three compose. */}
+        <div style={{ ...s.settingsCard, marginTop: 12 }}>
+          <div style={s.settingsLabel}>{EZ_VT_TITLE}</div>
+          <div style={s.designRow} role="radiogroup" aria-label={EZ_VT_TITLE}>
+            <VtOpt value={EZIK_VISUAL_THEME_QIBLA} label={EZ_VT_QIBLA} preview={PREV_QIBLA} />
+            <VtOpt value={EZIK_VISUAL_THEME_ISTANA} label={EZ_VT_ISTANA} preview={PREV_ISTANA} />
           </div>
           <div style={s.settingsHint}>{'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}</div>
         </div>
@@ -11366,25 +11673,25 @@ const s = {
   bigEmoji: { fontSize: 64, marginBottom: 16, animation: 'fadeIn 0.5s ease-out' },
   onboardingTitle: { fontSize: 26, fontWeight: 800, color: 'var(--accent-ink)', marginBottom: 12 },
   onboardingSubtitle: { fontSize: 16, color: 'var(--muted)', marginBottom: 24, lineHeight: 1.6 },
-  onboardingInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 16, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
+  onboardingInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 16, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
   ageGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
-  ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--accent-ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--accent-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   ageBtnActive: { background: 'var(--red-deep)', color: 'var(--on-accent)', borderColor: 'var(--red-deep)', transform: 'scale(1.05)' },
   ageBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
   // Session 13.1 - Welcome/Onboarding reskin (Boubyan black+red). Scoped to the first-run flow only.
-  welcomeContainer: { minHeight: '100dvh', height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'var(--black)' },
+  welcomeContainer: { minHeight: '100dvh', height: '100dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', boxSizing: 'border-box', background: 'var(--welcome-bg)' },
   welcomeInner: { minHeight: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'safe center', alignItems: 'center', padding: 24 },
   welcomeCard: { width: '100%', maxWidth: 380, textAlign: 'center' },
   welcomeLogoSquare: { width: 88, height: 88, borderRadius: 'var(--radius-card)', background: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px' },
-  welcomeTitle: { fontSize: 34, fontWeight: 800, color: 'var(--on-accent)', marginBottom: 18, letterSpacing: '-0.5px' },
-  welcomeGreeting: { fontSize: 16, fontWeight: 500, color: 'var(--nav-off)', marginBottom: 28 },
+  welcomeTitle: { fontSize: 34, fontWeight: 800, color: 'var(--welcome-ink)', marginBottom: 18, letterSpacing: '-0.5px' },
+  welcomeGreeting: { fontSize: 16, fontWeight: 500, color: 'var(--welcome-ink2)', marginBottom: 28 },
   welcomeEmoji: { fontSize: 56, marginBottom: 14, animation: 'fadeIn 0.5s ease-out' },
-  welcomeStepTitle: { fontSize: 25, fontWeight: 800, color: 'var(--on-accent)', marginBottom: 12 },
-  welcomeSubtitle: { fontSize: 15.5, color: 'var(--nav-off)', marginBottom: 22, lineHeight: 1.6 },
-  welcomeInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 'var(--radius-btn)', border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
-  welcomePrimaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 'var(--radius-btn)', background: 'var(--red)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  welcomeStepTitle: { fontSize: 25, fontWeight: 800, color: 'var(--welcome-ink)', marginBottom: 12 },
+  welcomeSubtitle: { fontSize: 15.5, color: 'var(--welcome-ink2)', marginBottom: 22, lineHeight: 1.6 },
+  welcomeInput: { width: '100%', padding: '16px 20px', fontSize: 18, borderRadius: 'var(--radius-btn)', border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
+  welcomePrimaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 'var(--radius-btn)', background: 'var(--red)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   welcomeAgeGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
-  welcomeAgeBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  welcomeAgeBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   welcomeAgeBtnActive: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red)', transform: 'scale(1.05)' },
   welcomeAgeBtnWide: { gridColumn: '1 / -1', fontSize: 17 },
   // ============================================================
@@ -11414,7 +11721,7 @@ const s = {
   ezhProfileBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer' },
   // THE CALLOUT that replaced the banner: a short white row, a line icon on a soft chip and a
   // small cyan dot. It is a surface and a hairline; it is not a filled rectangle.
-  ezhCallout: { width: '100%', display: 'flex', alignItems: 'center', gap: 12, minHeight: 60, marginBottom: 16, padding: '12px 14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  ezhCallout: { width: '100%', display: 'flex', alignItems: 'center', gap: 12, minHeight: 60, marginBottom: 16, padding: '12px 14px', borderRadius: 'var(--ez-radius-sig)', background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezhCalloutIcon: { width: 38, height: 38, flexShrink: 0, borderRadius: 12, background: 'var(--a3-soft)', color: 'var(--a3-blue)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
   ezhCalloutText: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--a3-ink)' },
   // The module chip, shared by the route nodes, the deck cards and the quick row.
@@ -11430,13 +11737,13 @@ const s = {
   ezhPathRow: { display: 'grid', gridTemplateColumns: '1fr 36px 1fr', alignItems: 'center', marginBottom: 12 },
   ezhMark: { gridColumn: 2, justifySelf: 'center', width: 20, height: 20, borderRadius: '50%', background: 'var(--a3-surface)', border: '2px solid var(--a3-line)', display: 'inline-flex' },
   ezhMarkNow: { border: '2px solid var(--a3-cyan)' },
-  ezhNode: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8, minHeight: 92, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  ezhNode: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8, minHeight: 92, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezhNodeTitle: { fontSize: 15, fontWeight: 800, lineHeight: 1.5, color: 'var(--a3-ink)' },
   ezhNodeMeta: { fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
   // THE DECK. Each card is offset EZH_DECK_OFF from the one in front of it, which is exactly
   // why every card in the stack keeps a 56px tappable strip with its icon and its label in it.
   ezhDeck: { position: 'relative', marginBottom: 16 },
-  ezhDeckCard: { position: 'absolute', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '9px 12px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  ezhDeckCard: { position: 'absolute', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '9px 12px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezhDeckCardFront: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-lift)' },
   ezhDeckHead: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 44 },
   ezhDeckTitle: { flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
@@ -11446,18 +11753,18 @@ const s = {
   ezhVerseWrap: { marginTop: 4 },
   // THE BOTTOM BAR: pure white, 44px floors, and the safe-area inset so it clears a home bar.
   ezhNav: { flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '8px 20px calc(8px + env(safe-area-inset-bottom, 0px))', background: 'var(--a3-surface)', borderTop: '1px solid var(--a3-line)' },
-  ezhNavItem: { minWidth: 44, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: 8, background: 'none', border: 'none', color: 'var(--a3-muted)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  ezhNavItem: { minWidth: 44, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: 8, background: 'none', border: 'none', color: 'var(--a3-muted)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   ezhNavItemOn: { color: 'var(--a3-blue)' },
   ezhNavLabel: { fontSize: 11, fontWeight: 700 },
   ezhFab: { width: 60, height: 60, flexShrink: 0, marginTop: -22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '50%', background: 'var(--a3-blue)', border: 'none', color: 'var(--a3-on-blue)', boxShadow: 'var(--a3-lift)', cursor: 'pointer' },
   // Session 13.3-A - Adhkar browse screen (Boubyan). Reuses DhikrCard for content/audio.
   adhkarContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
   adhkarHeader: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--white)', borderBottom: '1px solid var(--line)' },
-  adhkarBackBtn: { height: 36, padding: '0 14px', borderRadius: 'var(--radius-btn)', background: 'var(--white)', color: 'var(--ink)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: "'Tajawal', sans-serif", flexShrink: 0 },
+  adhkarBackBtn: { height: 36, padding: '0 14px', borderRadius: 'var(--radius-btn)', background: 'var(--white)', color: 'var(--ink)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'var(--ez-ui-font)', flexShrink: 0 },
   adhkarTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: 800, color: 'var(--ink)' },
   adhkarScroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '16px 16px 24px', boxSizing: 'border-box' },
   adhkarList: { display: 'flex', flexDirection: 'column', gap: 10 },
-  adhkarRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 'var(--radius-card)', background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer', width: '100%', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  adhkarRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 'var(--radius-card)', background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer', width: '100%', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   adhkarRowTitle: { flex: 1, fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   adhkarCount: { minWidth: 28, height: 24, padding: '0 8px', borderRadius: 999, background: 'var(--red-soft)', color: 'var(--red)', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   adhkarEmpty: { textAlign: 'center', color: 'var(--muted)', fontSize: 15, padding: '32px 0' },
@@ -11477,7 +11784,7 @@ const s = {
   // home indicator instead of sitting under it. Same env() fallback to 0.
   adhkar2Scroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '16px 16px calc(28px + env(safe-area-inset-bottom, 0px))', boxSizing: 'border-box' },
   adhkar2List: { display: 'flex', flexDirection: 'column', gap: 10 },
-  adhkar2Row: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '13px 14px', borderRadius: 18, background: 'var(--white)', border: '1px solid var(--line)', boxShadow: '0 2px 10px rgba(18,50,122,0.05)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  adhkar2Row: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '13px 14px', borderRadius: 18, background: 'var(--white)', border: '1px solid var(--line)', boxShadow: '0 2px 10px rgba(18,50,122,0.05)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   adhkar2RowIcon: { width: 42, height: 42, flexShrink: 0, borderRadius: 13, background: 'var(--red-soft)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   adhkar2RowTitle: { flex: 1, minWidth: 0, fontSize: 16, fontWeight: 700, lineHeight: 1.55, color: 'var(--ink)' },
   adhkar2Count: { minWidth: 30, height: 26, flexShrink: 0, padding: '0 9px', borderRadius: 999, background: 'var(--tint)', color: 'var(--accent-ink)', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
@@ -11517,12 +11824,12 @@ const s = {
   adhkar2Section: { marginBottom: 14 },
   adhkar2SectionTitle: { fontSize: 13, fontWeight: 800, color: 'var(--muted)', marginBottom: 8 },
   adhkar2Chips: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  adhkar2Chip: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, maxWidth: '100%', padding: '0 14px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 700, cursor: 'pointer', textAlign: 'right' },
+  adhkar2Chip: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, maxWidth: '100%', padding: '0 14px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 14, fontWeight: 700, cursor: 'pointer', textAlign: 'right' },
   adhkar2ChipTitle: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   adhkar2ChipNum: { minWidth: 22, height: 22, flexShrink: 0, padding: '0 7px', borderRadius: 999, background: 'var(--tint)', color: 'var(--accent-ink)', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
   // The grid TILE. The grid itself is the .adhkar2-grid class in <style> (a media query cannot
   // live in an inline style); the tile is the cell that class lays out.
-  adhkar2Tile: { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, minHeight: 116, padding: '13px 13px', borderRadius: 18, background: 'var(--white)', border: '1px solid var(--line)', boxShadow: '0 2px 10px rgba(18,50,122,0.05)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  adhkar2Tile: { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 10, minHeight: 116, padding: '13px 13px', borderRadius: 18, background: 'var(--white)', border: '1px solid var(--line)', boxShadow: '0 2px 10px rgba(18,50,122,0.05)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   adhkar2TileTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   adhkar2TileIcon: { width: 38, height: 38, flexShrink: 0, borderRadius: 12, background: 'var(--red-soft)', color: 'var(--red)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   adhkar2TileTitle: { fontSize: 14.5, fontWeight: 700, lineHeight: 1.55, color: 'var(--ink)' },
@@ -11538,16 +11845,16 @@ const s = {
   // anywhere in this UI. The MUSHAF still pins its own paper; that block is untouched.
   // The counter: full width, 68px tall, and the only thing at that size on the screen -- it is
   // meant to be found by a thumb without looking, which is how a tally is actually kept.
-  adhkar2Counter: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: '100%', minHeight: 68, marginTop: 14, padding: '10px 16px', borderRadius: 22, background: 'var(--accent-fill)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  adhkar2Counter: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: '100%', minHeight: 68, marginTop: 14, padding: '10px 16px', borderRadius: 22, background: 'var(--accent-fill)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   adhkar2CounterDone: { background: 'var(--red-deep)', cursor: 'default' },
   adhkar2CounterNums: { fontSize: 24, fontWeight: 800 },
   adhkar2CounterLabel: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: 'rgba(255,255,255,0.88)' },
   adhkar2Actions: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 },
-  adhkar2Act: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 15px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  adhkar2Act: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 15px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   adhkar2ActOn: { background: 'var(--red-soft)', border: '1px solid var(--red)', color: 'var(--red)' },
   adhkar2Note: { minHeight: 19, marginTop: 10, textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--red)' },
   adhkar2Nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12 },
-  adhkar2NavBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 16px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13.5, fontWeight: 700, cursor: 'pointer' },
+  adhkar2NavBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 16px', borderRadius: 999, background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' },
   adhkar2NavBtnOff: { opacity: 0.42, cursor: 'default' },
 
   // ============================================================
@@ -11575,7 +11882,7 @@ const s = {
   a3BarSub: { fontSize: 11.5, fontWeight: 600, color: 'var(--a3-muted)', marginTop: 1 },
   a3SearchRow: { flexShrink: 0, display: 'flex', alignItems: 'center', gap: 9, height: 46, margin: '10px 12px 0', padding: '0 14px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
   a3SearchIcon: { display: 'flex', flexShrink: 0, color: 'var(--a3-muted)' },
-  a3SearchInput: { flex: 1, minWidth: 0, padding: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: "'Tajawal', sans-serif", fontSize: 15.5, color: 'var(--a3-ink)', direction: 'rtl' },
+  a3SearchInput: { flex: 1, minWidth: 0, padding: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'var(--ez-ui-font)', fontSize: 15.5, color: 'var(--a3-ink)', direction: 'rtl' },
   a3Scroll: { flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '14px 14px calc(24px + env(safe-area-inset-bottom, 0px))', boxSizing: 'border-box' },
   // DESKTOP: the column stops widening, so a journey path and a deck keep a phone's reading
   // measure on a large display instead of stretching across it.
@@ -11597,7 +11904,7 @@ const s = {
   a3Mark: { gridColumn: 2, justifySelf: 'center', position: 'relative', width: 22, height: 22, borderRadius: '50%', background: 'var(--a3-surface)', border: '2px solid var(--a3-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--a3-surface)' },
   a3MarkNow: { border: '2px solid var(--a3-cyan)' },
   a3MarkDone: { background: 'var(--a3-blue)', border: '2px solid var(--a3-blue)', color: 'var(--a3-on-blue)' },
-  a3Node: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 88, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  a3Node: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 88, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   a3NodeDone: { border: '1px solid var(--a3-blue)' },
   a3NodeTop: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   a3NodeIcon: { width: 34, height: 34, flexShrink: 0, borderRadius: 12, background: 'var(--a3-soft)', color: 'var(--a3-blue)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
@@ -11607,7 +11914,7 @@ const s = {
   // THE DECK. Each card is offset 44px from the one behind it, which is exactly why every card
   // in the stack keeps a full 44px tappable strip -- the stack is a look, never a lost target.
   a3Deck: { position: 'relative', marginBottom: 16 },
-  a3DeckCard: { position: 'absolute', boxSizing: 'border-box', height: 140, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '9px 12px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  a3DeckCard: { position: 'absolute', boxSizing: 'border-box', height: 140, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '9px 12px', borderRadius: 20, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   a3DeckCardFront: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-lift)' },
   a3DeckHead: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 34 },
   a3DeckTitle: { flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 800, lineHeight: 1.5, color: 'var(--a3-ink)' },
@@ -11617,9 +11924,9 @@ const s = {
   a3TrackFill: { height: '100%', borderRadius: 999, background: 'var(--a3-blue)', transition: 'width 200ms ease' },
   a3Section: { marginBottom: 16 },
   a3SectionTitle: { fontSize: 13, fontWeight: 800, color: 'var(--a3-muted)', marginBottom: 8 },
-  a3Tile: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 108, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  a3Tile: { display: 'flex', flexDirection: 'column', gap: 8, minHeight: 108, padding: '12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   a3FavList: { display: 'flex', flexDirection: 'column', gap: 8 },
-  a3FavRow: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', minHeight: 48, padding: '0 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: "'Tajawal', sans-serif" },
+  a3FavRow: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', minHeight: 48, padding: '0 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   a3FavIcon: { display: 'inline-flex', flexShrink: 0, color: 'var(--a3-cyan)' },
   a3FavTitle: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   // THE JOURNEY READER. The rail is absolutely positioned inside this box, on the RTL edge,
@@ -11647,7 +11954,7 @@ const s = {
   a3DockBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
   a3DockBtnOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
   a3DockBtnOff: { opacity: 0.42, cursor: 'default' },
-  a3DockCount: { flex: 1, minWidth: 0, minHeight: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '4px 10px', borderRadius: 16, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  a3DockCount: { flex: 1, minWidth: 0, minHeight: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '4px 10px', borderRadius: 16, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   a3DockCountDone: { background: 'var(--a3-cyan)', color: 'var(--a3-navy)', cursor: 'default' },
   a3DockCountNums: { fontSize: 18, fontWeight: 800 },
   a3DockCountLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 700 },
@@ -11656,38 +11963,48 @@ const s = {
   a3Stage: { position: 'relative', paddingTop: 10, marginBottom: 6 },
   a3StageGhost: { position: 'absolute', top: 0, left: 14, right: 14, height: 60, borderRadius: 22, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
   a3StageCard: { position: 'relative', zIndex: 1, padding: '16px 18px', borderRadius: 24, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-lift)' },
-  a3Pillar: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', minHeight: 56, marginTop: 14, padding: '8px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '2px solid var(--a3-blue)', color: 'var(--a3-blue)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  a3Pillar: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', minHeight: 56, marginTop: 14, padding: '8px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '2px solid var(--a3-blue)', color: 'var(--a3-blue)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   a3PillarDone: { background: 'var(--a3-soft)', border: '2px solid var(--a3-cyan)', cursor: 'default' },
   a3PillarNums: { fontSize: 20, fontWeight: 800 },
   a3PillarLabel: { fontSize: 12.5, fontWeight: 700 },
   a3StageActs: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 },
-  a3Act: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 15px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  a3Act: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 15px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   a3ActOn: { background: 'var(--a3-soft)', border: '1px solid var(--a3-blue)', color: 'var(--a3-blue)' },
   a3Dots: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, margin: '4px 0 12px' },
   a3Dot: { width: 6, height: 6, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-ice)' },
   a3DotNow: { width: 20, borderRadius: 999, background: 'var(--a3-blue)' },
   a3DotDone: { background: 'var(--a3-cyan)' },
   a3Nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  a3NavBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 13.5, fontWeight: 700, cursor: 'pointer' },
+  a3NavBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, minWidth: 44, padding: '0 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' },
   a3NavBtnOff: { opacity: 0.42, cursor: 'default' },
   a3NavMeta: { fontSize: 12.5, fontWeight: 700, color: 'var(--a3-muted)' },
   // THE SETTINGS CHOICE. Two selection cards, 44px floor, pure white when unselected; the
   // selected one takes a thin royal-blue outline and a small cyan indicator dot. The previews
   // are CSS boxes -- no image, no data URI, nothing fetched.
   designRow: { display: 'flex', gap: 10 },
-  designOpt: { flex: 1, minWidth: 0, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '10px 8px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  designOpt: { flex: 1, minWidth: 0, minHeight: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '10px 8px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   designOptOn: { border: '1px solid var(--a3-blue)', boxShadow: 'var(--a3-shadow)' },
   designPrev: { display: 'block', width: '100%' },
   designOptLabel: { fontSize: 13.5, fontWeight: 700, color: 'var(--a3-ink)', textAlign: 'center' },
   designDot: { width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'transparent', border: '1px solid var(--a3-line)' },
   designDotOn: { background: 'var(--a3-cyan)', border: '1px solid var(--a3-cyan)' },
+  // S100 -- the identity previews. Every colour is a --vtp-* token declared in <style>, not a
+  // literal, and none of these keys carries a text colour: they are swatches, not text.
+  vtpBox: { position: 'relative', display: 'block', width: '100%', height: 62, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--line)' },
+  vtpQBox: { background: 'var(--vtp-q-page)' },
+  vtpIBox: { background: 'var(--vtp-i-page)' },
+  vtpQBar: { position: 'absolute', top: 7, left: 9, right: 9, height: 7, borderRadius: 4, background: 'var(--vtp-q-accent)' },
+  vtpIBar: { position: 'absolute', top: 7, left: 9, right: 9, height: 7, borderRadius: 4, background: 'var(--vtp-i-accent)' },
+  vtpQCard: { position: 'absolute', top: 20, left: 9, right: 9, bottom: 8, borderRadius: 10, background: 'var(--vtp-q-surface)', border: '1px solid var(--vtp-q-line)' },
+  // the signature arch, shown rather than described.
+  vtpICard: { position: 'absolute', top: 20, left: 9, right: 9, bottom: 8, borderRadius: '22px 22px 10px 10px', background: 'var(--vtp-i-surface)', border: '1px solid var(--vtp-i-line)' },
   prevBox: { position: 'relative', display: 'block', width: '100%', height: 68, borderRadius: 12, background: 'var(--a3-page)', border: '1px solid var(--a3-line)', overflow: 'hidden' },
   prevRing: { position: 'absolute', top: 8, left: '50%', marginLeft: -9, width: 18, height: 18, borderRadius: '50%', border: '3px solid var(--a3-blue)' },
   prevLine: { position: 'absolute', top: 30, bottom: 6, left: '50%', marginLeft: -1, width: 2, background: 'var(--a3-ice)' },
   prevNode: { position: 'absolute', zIndex: 1, width: 26, height: 10, borderRadius: 4, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)' },
   prevCard: { position: 'absolute', height: 20, borderRadius: 8, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)' },
-  primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #1D4ED8 0%, #12327A 100%)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 8px 24px rgba(18, 50, 122, 0.3)' },
-  secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6E6E6E', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", marginTop: 8 },
+  primaryBtn: { width: '100%', padding: '16px', fontSize: 18, fontWeight: 700, borderRadius: 16, background: 'linear-gradient(135deg, #1D4ED8 0%, #12327A 100%)', color: '#FFFFFF', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', boxShadow: '0 8px 24px rgba(18, 50, 122, 0.3)' },
+  secondaryBtn: { width: '100%', padding: '14px', fontSize: 16, fontWeight: 600, borderRadius: 16, background: 'transparent', color: '#6E6E6E', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', marginTop: 8 },
 
   // ===== شاشة الدردشة =====
   chatContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)' },
@@ -11797,7 +12114,7 @@ const s = {
 
   // ===== رقائق المواضيع =====
   topicsRow: { display: 'flex', flexWrap: 'wrap', gap: 8, padding: '4px 0 8px', justifyContent: 'center' },
-  topicChip: { background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--red)', borderRadius: 999, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Tajawal', sans-serif" },
+  topicChip: { background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--red)', borderRadius: 999, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'var(--ez-ui-font)' },
 
   // ===== فقاعات الرسائل =====
   messageBubble: { maxWidth: '78%', padding: '12px 16px', borderRadius: 18, fontSize: 16, lineHeight: 1.7, wordWrap: 'break-word', whiteSpace: 'pre-wrap' },
@@ -11844,7 +12161,7 @@ const s = {
   hadithMeta: { fontSize: 12, color: 'var(--muted)', marginTop: 4, fontWeight: 500 },
 
   // ===== بطاقة المصدر (شريحة عزوٍ قابلة للنقر) =====
-  sourceChip: { display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', maxWidth: '100%', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", textDecoration: 'none', boxSizing: 'border-box' },
+  sourceChip: { display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', maxWidth: '100%', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', textDecoration: 'none', boxSizing: 'border-box' },
   sourceChipLink: { cursor: 'pointer' },
   sourceChipSite: { display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontWeight: 600, flexShrink: 0 },
   sourceChipText: { minWidth: 0, /* 13.4-b2 */ color: 'var(--ink)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
@@ -11858,12 +12175,12 @@ const s = {
 
   // ===== اقتراحات بعد رد الأستاذ =====
   suggestionsInline: { display: 'flex', flexWrap: 'wrap', gap: 6, paddingRight: 4 },
-  suggestionChipSmall: { background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--red)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  suggestionChipSmall: { background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--red)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
 
   // ===== شريط الإدخال =====
   errorBanner: { margin: '0 14px 8px 14px', padding: '12px 16px', background: 'var(--warn-bg)', border: '1px solid var(--warn-line)', borderRadius: 12, fontSize: 14, color: 'var(--warn-ink)', fontWeight: 500, textAlign: 'center' },
   inputBar: { display: 'flex', gap: 10, padding: '12px 14px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
-  input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.5, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '12px 18px', fontSize: 15, borderRadius: 18, border: '1px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", direction: 'rtl', boxSizing: 'border-box' },
+  input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.5, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '12px 18px', fontSize: 15, borderRadius: 18, border: '1px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', boxSizing: 'border-box' },
   sendBtn: { width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, var(--accent-fill) 0%, var(--red-deep) 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.28)', flexShrink: 0 },
   micBtn: { width: 44, height: 44, borderRadius: 22, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(29,78,216,0.18)', flexShrink: 0 },
   // D87: the tool row beneath the composer. space-between + RTL puts the first group on the
@@ -11877,7 +12194,7 @@ const s = {
   // ===== لوحة الأهل =====
   dashboardContainer: { minHeight: '100vh', background: 'var(--page)' },
   dashboardHeader: { display: 'flex', alignItems: 'center', padding: '14px 18px', background: 'var(--white)', borderBottom: '1px solid var(--line)', gap: 12 },
-  backBtn: { background: 'transparent', border: 'none', color: 'var(--accent-ink)', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  backBtn: { background: 'transparent', border: 'none', color: 'var(--accent-ink)', fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   dashboardTitle: { fontSize: 18, fontWeight: 800, color: 'var(--accent-ink)' },
   dashboardContent: { padding: 16, display: 'flex', flexDirection: 'column', gap: 12 },
   dashboardCard: { background: 'var(--white)', borderRadius: 16, padding: 18, border: '1px solid var(--line)' },
@@ -11888,7 +12205,7 @@ const s = {
   logRole: { fontWeight: 700, color: 'var(--accent-ink)', fontSize: 13, marginBottom: 6 },
   logContent: { color: 'var(--ink)', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
   logTime: { fontSize: 11, color: 'var(--muted)', marginTop: 6 },
-  dangerBtn: { padding: 14, background: 'transparent', color: '#C44536', border: '1px solid #C44536', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  dangerBtn: { padding: 14, background: 'transparent', color: '#C44536', border: '1px solid #C44536', borderRadius: 14, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
 
   // ===== Live call screen (Layer 1 — UI only) =====
   // ===== شاشة المحفّظ =====
@@ -12003,11 +12320,11 @@ const s = {
   memContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', direction: 'rtl' },
   memHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
   memTitle: { fontSize: 18, fontWeight: 800, color: 'var(--on-accent)', letterSpacing: '0.3px' },
-  memBackBtn: { height: 36, padding: '0 16px', borderRadius: 12, background: 'rgba(255,255,255,0.12)', color: 'var(--on-accent)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
+  memBackBtn: { height: 36, padding: '0 16px', borderRadius: 12, background: 'rgba(255,255,255,0.12)', color: 'var(--on-accent)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 14, fontWeight: 600 },
   memHeading: { fontSize: 16, fontWeight: 700, color: 'var(--ink)', textAlign: 'center', padding: '14px 16px 6px' },
   memLoading: { fontSize: 14, color: 'var(--muted)', textAlign: 'center', padding: 8 },
   memList: { flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8, padding: '8px 14px 16px', alignContent: 'start' },
-  memRow: { display: 'flex', alignItems: 'center', gap: 8, minHeight: 52, padding: '8px 10px', borderRadius: 14, background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", textAlign: 'right' },
+  memRow: { display: 'flex', alignItems: 'center', gap: 8, minHeight: 52, padding: '8px 10px', borderRadius: 14, background: 'var(--white)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', textAlign: 'right' },
   memRowActive: { background: 'var(--red)', borderColor: 'var(--red)' },
   memRowNum: { flexShrink: 0, minWidth: 32, height: 32, borderRadius: 10, background: 'var(--red-soft)', color: 'var(--red)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   memRowNameWrap: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden' },
@@ -12016,30 +12333,30 @@ const s = {
   memRowReveal: { flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--red)', background: 'var(--red-soft)', borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' },
   memStartBar: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'var(--white)', borderTop: '1px solid var(--line)' },
   memStartLabel: { fontSize: 14, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap' },
-  memAyahSelect: { flex: 1, height: 40, borderRadius: 12, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: "'Tajawal', sans-serif", fontSize: 15, padding: '0 10px' },
-  memStartBtn: { height: 40, padding: '0 22px', borderRadius: 12, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 15, fontWeight: 700 },
+  memAyahSelect: { flex: 1, height: 40, borderRadius: 12, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 15, padding: '0 10px' },
+  memStartBtn: { height: 40, padding: '0 22px', borderRadius: 12, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 15, fontWeight: 700 },
   memSubBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 16px', background: 'var(--red-soft)', borderBottom: '1px solid var(--line)' },
   memSurahTitle: { fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   memRangeBadge: { fontSize: 12, fontWeight: 600, color: 'var(--red)', background: 'var(--white)', borderRadius: 8, padding: '3px 10px' },
-  memChangeBtn: { height: 34, padding: '0 14px', borderRadius: 10, background: 'transparent', color: 'var(--red)', border: '1px solid rgba(29,78,216,0.35)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 13, fontWeight: 600 },
+  memChangeBtn: { height: 34, padding: '0 14px', borderRadius: 10, background: 'transparent', color: 'var(--red)', border: '1px solid rgba(29,78,216,0.35)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 600 },
   memToggleRow: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px' },
   memToggleLabel: { fontSize: 14, fontWeight: 600, color: 'var(--muted)' },
-  memGranBtn: { height: 34, padding: '0 18px', borderRadius: 10, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
+  memGranBtn: { height: 34, padding: '0 18px', borderRadius: 10, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 14, fontWeight: 600 },
   memGranBtnActive: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red)' },
   memDrillArea: { flex: 1, overflowY: 'auto', padding: '12px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14 },
   memDrillText: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'center', direction: 'rtl', lineHeight: 2.2 },
   memUnit: { display: 'inline-flex', alignItems: 'center', gap: 6 },
-  memAyahBadge: { minWidth: 26, height: 26, borderRadius: 8, background: 'var(--red-soft)', color: 'var(--red)', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Tajawal', sans-serif" },
+  memAyahBadge: { minWidth: 26, height: 26, borderRadius: 8, background: 'var(--red-soft)', color: 'var(--red)', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--ez-ui-font)' },
   memWord: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 26, color: 'var(--ink)', lineHeight: 2 },
   // Layer B — سمِّعني word states: wrong (red), not-yet-reached (dim), and the soft-framing hint.
   memWordWrong: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 26, color: '#C0392B', fontWeight: 600, lineHeight: 2 },
   memWordPending: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 26, color: 'var(--nav-off)', lineHeight: 2 },
   memReciteHint: { fontSize: 13, color: 'var(--muted)', textAlign: 'center', padding: '0 8px 6px', lineHeight: 1.7 },
-  memPlaceholder: { fontFamily: "'Tajawal', sans-serif", fontSize: 18, color: 'var(--nav-off)', background: 'var(--tint)', borderRadius: 8, padding: '2px 14px', letterSpacing: '2px' },
+  memPlaceholder: { fontFamily: 'var(--ez-ui-font)', fontSize: 18, color: 'var(--nav-off)', background: 'var(--tint)', borderRadius: 8, padding: '2px 14px', letterSpacing: '2px' },
   memMsg: { fontSize: 15, fontWeight: 700, color: 'var(--red)', textAlign: 'center' },
   memControls: { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderTop: '1px solid var(--line)', background: 'var(--white)' },
-  memRevealBtn: { flex: 1, height: 50, borderRadius: 14, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 17, fontWeight: 700 },
-  memListenBtn: { height: 50, padding: '0 16px', borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif", fontSize: 14, fontWeight: 600 },
+  memRevealBtn: { flex: 1, height: 50, borderRadius: 14, background: 'linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%)', color: 'var(--on-accent)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 17, fontWeight: 700 },
+  memListenBtn: { height: 50, padding: '0 16px', borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 14, fontWeight: 600 },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
   callContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(160deg, #12327A 0%, #141414 100%)', padding: '32px 24px', direction: 'rtl' },
@@ -12055,8 +12372,8 @@ const s = {
   // errorBanner (cream on tan) is unreadable there. Palette reuses the existing call end-button red.
   callErrorBanner: { maxWidth: 320, margin: '14px 16px 0', padding: '10px 14px', background: 'rgba(196, 69, 54, 0.92)', border: '1px solid rgba(255, 255, 255, 0.28)', borderRadius: 12, color: '#FFFFFF', fontSize: 13, lineHeight: 1.6, fontWeight: 500, textAlign: 'center' },
   callControls: { display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'center', paddingBottom: 16 },
-  callMuteBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: '#F1F6FD', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
-  callEndBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: 'linear-gradient(135deg, #C44536 0%, #A03828 100%)', border: 'none', cursor: 'pointer', fontFamily: "'Tajawal', sans-serif" },
+  callMuteBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: '#F1F6FD', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  callEndBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, width: 76, height: 76, borderRadius: 38, background: 'linear-gradient(135deg, #C44536 0%, #A03828 100%)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
   callBtnLabel: { fontSize: 12, fontWeight: 600, color: '#12327A' },
 };
 

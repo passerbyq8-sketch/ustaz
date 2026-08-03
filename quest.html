@@ -20,7 +20,7 @@
      It deliberately does NOT paint an inline background on <html>: Theme.apply() below clears the
      root's style attribute when a reward skin is applied, which would silently drop it. The
      :root[data-theme] rule carries the paint on this page instead. -->
-<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#171410':'#FAF4E9');}}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#171410':'#FAF4E9');}}catch(e){}})();(function(){try{var v=localStorage.getItem('ezik_visual_theme_v1');if(v!=='qibla_13'&&v!=='istana_33'){v='istana_33';}document.documentElement.setAttribute('data-ezik-visual-theme',v);}catch(e){}})();</script>
 <!--
   رحلةُ الكنوز · صفحةٌ مستقلّةٌ تعملُ بلا إنترنت
   لا تمسُّ index.html ولا أيَّ ملفٍّ من التطبيق. حذفُها = حذفُ هذا الملفِّ ومجلّدِ quest-data.
@@ -86,6 +86,68 @@
   --scrim:rgba(0,0,0,.62);
   color-scheme: dark;
 }
+
+/* ==========================================================================
+   S100 -- THE VISUAL IDENTITY REACHES THE JOURNEY TOO.
+   This page has always had its own token vocabulary (--paper/--card/--honey/--palm...) and
+   its own reward skins, and neither is being taken away. What is added is the same --vt-*
+   namespace the app declares, read from the same key by the same pre-paint script, plus one
+   mapping from this page's vocabulary onto it. The warm base identity is what a user gets
+   when no visual theme is stored -- which cannot happen in the app, but this file opens
+   standalone and offline, so the untouched palette above stays the fallback.
+
+   THE BACKGROUND INVARIANT REACHES HERE TOO, and it is the one thing that is not merely a
+   remapping: body carried two radial-gradient washes, and a visual theme turns them off and
+   paints one solid colour. It is written as its own rule against `body` rather than as a
+   token, because a reward skin sets tokens INLINE on <html> and inline wins -- a skin can
+   still recolour every card and every accent on this page, and it cannot put a wash back
+   behind them, because --vt-page is not a token any skin declares.
+   ========================================================================== */
+:root[data-ezik-visual-theme="qibla_13"]{
+  --vt-page:#FFFFFF; --vt-surface:#F8FBFA; --vt-surface2:#EDF3F1;
+  --vt-ink:#123C37; --vt-muted:#5E716D;
+  --vt-accent:#006B61; --vt-accent2:#C48A27; --vt-line:#D6E3DF;
+  --vt-radius:18px; --vt-shadow:0 16px 48px rgba(0,84,76,.10);
+  --vt-accent-ink:#00544C; --vt-accent2-ink:#6E4B0E; --vt-soft:#E4EFEC;
+  --vt-font:'Noto Kufi Arabic',Tahoma,sans-serif;
+}
+:root[data-theme="dark"][data-ezik-visual-theme="qibla_13"]{
+  --vt-page:#0B1513; --vt-surface:#122220; --vt-surface2:#1A302B;
+  --vt-ink:#E4F1ED; --vt-muted:#A9BEB9;
+  --vt-accent:#5CCBBA; --vt-accent2:#E5BE73; --vt-line:#28453F;
+  --vt-shadow:0 16px 48px rgba(0,0,0,.45);
+  --vt-accent-ink:#7EDDCC; --vt-accent2-ink:#EFD199; --vt-soft:#16302B;
+}
+:root[data-ezik-visual-theme="istana_33"]{
+  --vt-page:#FFFFFF; --vt-surface:#FFFDFC; --vt-surface2:#EEF6F7;
+  --vt-ink:#10364E; --vt-muted:#647780;
+  --vt-accent:#0B5F8E; --vt-accent2:#C43E38; --vt-line:#C8DDE2;
+  --vt-radius:18px; --vt-shadow:0 18px 45px rgba(12,78,105,.12);
+  --vt-accent-ink:#0A5480; --vt-accent2-ink:#9E2F2A; --vt-soft:#E3EFF5;
+  --vt-font:'Noto Naskh Arabic',Georgia,serif;
+}
+:root[data-theme="dark"][data-ezik-visual-theme="istana_33"]{
+  --vt-page:#0A141B; --vt-surface:#101F29; --vt-surface2:#182D39;
+  --vt-ink:#E6F1F7; --vt-muted:#A8BBC5;
+  --vt-accent:#63B6E4; --vt-accent2:#EE8A83; --vt-line:#25404E;
+  --vt-shadow:0 18px 45px rgba(0,0,0,.50);
+  --vt-accent-ink:#8CCDEE; --vt-accent2-ink:#F4B2AC; --vt-soft:#142C3A;
+}
+:root[data-ezik-visual-theme]{
+  --paper:var(--vt-page); --paper2:var(--vt-surface2); --card:var(--vt-surface);
+  --ink:var(--vt-ink); --ink2:var(--vt-muted); --ink3:var(--vt-muted);
+  --honey:var(--vt-accent2); --honey2:var(--vt-accent2-ink); --honey-soft:var(--vt-surface2);
+  --palm:var(--vt-accent); --palm-soft:var(--vt-soft);
+  --pom:var(--vt-accent2-ink); --pom-soft:var(--vt-surface2);
+  --lapis:var(--vt-accent-ink); --lapis-soft:var(--vt-soft);
+  --line:var(--vt-line); --shadow:var(--vt-shadow);
+  /* a scrim darkens in every theme and every mode; that is the whole of its job. */
+  --scrim:rgba(0,0,0,.55);
+  --r-lg:var(--vt-radius); --r:var(--vt-radius);
+  --body:var(--vt-font);
+}
+/* the page background, and the only place on this page one is attached. */
+:root[data-ezik-visual-theme] body{ background:var(--vt-page); background-image:none; }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;min-width:0}
 html,body{
   margin:0;padding:0;height:100%;height:100dvh;height:var(--vh,100dvh);overflow:hidden;   /* قشرةُ تطبيق — dvh كما في #root عندك */
