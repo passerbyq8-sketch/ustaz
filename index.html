@@ -655,6 +655,16 @@
   .ezmr-btn:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
   .ezmr-btn:disabled{opacity:0.32;cursor:default}
   .ezmr-btn.is-on{background:var(--a3-ice);border-color:var(--a3-line)}
+  /* S111 -- the rollback reader's bounded inner row. It is the ONLY thing added inside those two
+     in-flow bars, and it is deliberately weightless: no padding, no margin, no border, no
+     min-height. The bar's own height is still its padding plus its 36px controls, so the box the
+     SVG paper is measured against is the box it was measured against before. */
+  .ezmr-fb-inner{width:100%;max-width:1100px;margin:0 auto;min-width:0;
+    display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .ezmr-fb-btn:hover{background:var(--a3-ice)}
+  .ezmr-fb-btn:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  .ezmr-fb-btn:disabled{opacity:0.32;cursor:default}
+  .ezmr-fb-btn.is-on{background:var(--a3-ice)}
   #print-area{display:none}
   #print-area h1{font-size:20pt;color:#12327A;margin:0 0 10pt}
   #print-area h2{font-size:15pt;color:#12327A;margin:12pt 0 5pt}
@@ -11043,18 +11053,22 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // The bars carry the safe-area insets in their own padding so their buttons stay clear of
   // the notch and the home indicator without pushing the page down.
   const contSt = MADINA_IMG_ON ? { ...s.memContainer, position: 'relative' } : s.memContainer;
+  // S111 -- the rollback branch reads memHeaderFb, whose BOX is memHeader's box property for
+  // property and whose paint is istana. The image branch is untouched: it is not drawn from
+  // either object any more (S110 gave it .ezmr-rail), and this const survives only because the
+  // rollback bar is still an in-flow flex child and must stay one.
   const headSt = MADINA_IMG_ON
     ? { ...s.memHeader, position: 'absolute', top: 0, left: 0, right: 0, zIndex: 4,
         paddingTop: 'calc(14px + env(safe-area-inset-top, 0px))',
         paddingLeft: 'calc(18px + env(safe-area-inset-left, 0px))',
         paddingRight: 'calc(18px + env(safe-area-inset-right, 0px))' }
-    : s.memHeader;
+    : s.memHeaderFb;
   const barSt = MADINA_IMG_ON
     ? { ...s.pgBar, position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4,
         paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'calc(14px + env(safe-area-inset-left, 0px))',
         paddingRight: 'calc(14px + env(safe-area-inset-right, 0px))' }
-    : s.pgBar;
+    : s.pgBarFb;
   // 82 -- THE PROGRESS STRIP, and it obeys the same contract as the other two overlays.
   // Absolute, a sibling of the header, the viewport and the pager, and NEVER a flex child of
   // the column: it therefore consumes zero layout height and the page is measured against
@@ -11118,13 +11132,15 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
         </div>
       </div>
       ) : (
-      <div style={headSt}>
-        <div style={s.memTitle}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={putMark} title={marked ? 'علامتك هنا' : 'ضع العلامة'} aria-label={marked ? 'علامتك هنا' : 'ضع العلامة'} style={{ ...s.memBackBtn, padding: '0 10px', display: 'inline-flex', alignItems: 'center', ...(marked ? { background: 'var(--white)', color: 'var(--red-deep)' } : {}) }}>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill={marked ? 'var(--red)' : 'none'} stroke={marked ? 'var(--red-deep)' : 'currentColor'} strokeWidth={marked ? 1.5 : 1.8} strokeLinejoin="round" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z" /></svg>
-          </button>
-          <button onClick={onExit} style={s.memBackBtn}>السور</button>
+      <div className="ezhome" style={headSt}>
+        <div className="ezmr-fb-inner">
+          <div style={s.memTitleFb}>{curSurah ? SURAH_NAMES[curSurah] : 'المصحف'}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={putMark} title={marked ? 'علامتك هنا' : 'ضع العلامة'} aria-label={marked ? 'علامتك هنا' : 'ضع العلامة'} className={marked ? 'ezmr-fb-btn is-on' : 'ezmr-fb-btn'} style={{ ...s.memBtnFb, padding: '0 10px', display: 'inline-flex', alignItems: 'center' }}>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill={marked ? 'var(--red)' : 'none'} stroke={marked ? 'var(--red-deep)' : 'currentColor'} strokeWidth={marked ? 1.5 : 1.8} strokeLinejoin="round" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z" /></svg>
+            </button>
+            <button onClick={onExit} className="ezmr-fb-btn" style={s.memBtnFb}>السور</button>
+          </div>
         </div>
       </div>
       ))}
@@ -11153,10 +11169,12 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
         </div>
       </div>
       ) : (
-      <div ref={barRef} style={barSt}>
-        <button onClick={() => commit(-1)} disabled={page <= 1} style={{ ...s.pgNavBtn, ...(page <= 1 ? s.pgNavOff : {}) }}>›</button>
-        <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" style={{ ...s.pgMeta, ...s.pgJumpBtn }}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
-        <button onClick={() => commit(1)} disabled={page >= 604} style={{ ...s.pgNavBtn, ...(page >= 604 ? s.pgNavOff : {}) }}>‹</button>
+      <div ref={barRef} className="ezhome" style={barSt}>
+        <div className="ezmr-fb-inner">
+          <button onClick={() => commit(-1)} disabled={page <= 1} className="ezmr-fb-btn" style={s.pgNavBtnFb}>›</button>
+          <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" className="ezmr-fb-btn" style={{ ...s.pgMetaFb, ...s.pgJumpBtn }}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
+          <button onClick={() => commit(1)} disabled={page >= 604} className="ezmr-fb-btn" style={s.pgNavBtnFb}>‹</button>
+        </div>
       </div>
       ))}
       {/* 82 -- the wird strip. Gated on MADINA_IMG_ON alone, so ?madinaimg=0 rolls it back
@@ -12449,6 +12467,20 @@ const s = {
   ezmrTitle: { fontSize: 15 },
   ezmrNav: { fontSize: 20 },
   ezmrJump: { fontSize: 13 },
+  // S111 -- THE ROLLBACK READER'S CHROME, repainted and not remeasured. ?madinaimg=0 draws its
+  // page as a FLEX CHILD of the same column, so these two bars' heights are inside the box the
+  // SVG paper is fitted to: 14+36+14+1 = 65 for the rail and 8+36+8+1 = 53 for the dock, and
+  // both were measured before this existed. Every geometric property below is the one the key it
+  // replaces carried -- display, padding, gap, border WIDTH, the 36px control height. What
+  // changed is paint: the navy gradient and the two base literals became istana tokens, read
+  // from the .ezhome scope the elements now carry. No !important anywhere; the legacy keys are
+  // simply not the ones the reader hands to its bars.
+  memHeaderFb: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'var(--a3-surface)', borderBottom: '1px solid var(--a3-line)' },
+  memTitleFb: { fontSize: 18, fontWeight: 800, color: 'var(--a3-ink)', letterSpacing: '0.3px' },
+  memBtnFb: { height: 36, padding: '0 16px', borderRadius: 12, background: 'transparent', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 14, fontWeight: 600 },
+  pgBarFb: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 14px', background: 'var(--a3-surface)', borderTop: '1px solid var(--a3-line)' },
+  pgNavBtnFb: { width: 44, height: 36, borderRadius: 10, background: 'transparent', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)', cursor: 'pointer', fontSize: 20, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1, direction: 'ltr' },
+  pgMetaFb: { fontSize: 13, fontWeight: 600, color: 'var(--a3-muted)' },
   pgMeta: { fontSize: 13, fontWeight: 600, color: 'var(--muted)' },
   // 14.4 — غلافُ القفز: ارتفاعُه ٣٦ = ارتفاعُ زرّي التصفّح، فلا يتغيّر علوُّ الشريط بين اللافتة والخانة.
   pgJumpWrap: { minWidth: 128, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' },

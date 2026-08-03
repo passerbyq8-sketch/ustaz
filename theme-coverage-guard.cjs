@@ -1294,9 +1294,22 @@ ok('the memorize caveat was earned, not deleted',
 // the new chrome. Delete the rail or the dock and this fails, exactly as the memorize one does.
 eq('mushaf is classified istana', INDEX_SCREENS.mushaf.shell, 'istana');
 eq('...and carries no partial caveat any more', INDEX_SCREENS.mushaf.partial, undefined);
-ok('the mushaf caveat was earned, not deleted',
-  !INDEX_SCREENS.mushaf.partial === (/className="ezhome ezmr-rail"/.test(html) && /className="ezhome ezmr-dockwrap"/.test(html)),
-  'the reader must draw the istana rail and dock for mushaf to count as finished');
+// S111 -- the caveat may only be absent while BOTH reachable readers are on istana chrome, and
+// the loading render with them. Before this, the WebP reader alone could carry the claim while
+// ?madinaimg=0 still drew a navy slab -- a classification the shipped file did not support.
+const READERS_ISTANA =
+  /className="ezhome ezmr-rail"/.test(html)          // WebP reader, top
+  && /className="ezhome ezmr-dockwrap"/.test(html)   // WebP reader, bottom
+  && /className="ezhome ezmr-rail is-static"/.test(html)  // the loading/failed render
+  && /: s\.memHeaderFb;/.test(html) && /: s\.pgBarFb;/.test(html)   // the rollback reader
+  && !/gradient/.test(JSON.stringify(s.memHeaderFb));
+ok('the mushaf caveat was earned by BOTH readers, not deleted',
+  !INDEX_SCREENS.mushaf.partial === READERS_ISTANA,
+  'the WebP reader, the rollback reader and the loading render must all be on istana chrome');
+// and said the plain way: not one object the reader hands to a bar carries a gradient.
+const READER_BAR_OBJECTS = ['memHeaderFb', 'pgBarFb', 'ezmrTitle', 'ezmrNav', 'ezmrJump'];
+eq('no object any reader bar is drawn from carries a gradient',
+  READER_BAR_OBJECTS.filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))), []);
 console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
   + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all legacy)');
 console.log('        istana now : ' + idxIstana.join(', '));
@@ -1623,6 +1636,13 @@ const cutBranch = (from) => {
   const b = rdSrc.indexOf('      ) : (', a);
   return b === -1 ? '' : rdSrc.slice(a, b);
 };
+// the SECOND arm of each ternary runs to the `))}` that closes the gate, not to a `) : (`.
+const cutBranch2 = (from) => {
+  const a = rdSrc.indexOf(from);
+  if (a === -1) return '';
+  const b = rdSrc.indexOf('      ))}', a);
+  return b === -1 ? '' : rdSrc.slice(a, b);
+};
 const railSrc = cutBranch('<div className="ezhome ezmr-rail">');
 const dockSrc = cutBranch('<div ref={barRef} className="ezhome ezmr-dockwrap">');
 const shipped = railSrc + dockSrc;
@@ -1662,15 +1682,84 @@ ok('the navy slab header is gone from the shipped rail', !/s\.memHeader|headSt/.
 ok('...and so are its title and its slab button', !/s\.memTitle|s\.memBackBtn/.test(railSrc));
 ok('the full-width white pager is gone from the shipped dock', !/s\.pgBar\b|barSt/.test(dockSrc));
 ok('...and so are its slab nav buttons', !/s\.pgNavBtn|s\.pgNavOff/.test(dockSrc));
-ok('the navy gradient is reachable ONLY from the rollback branch',
-  (rdSrc.match(/style=\{headSt\}/g) || []).length === 1
-  && (rdSrc.match(/style=\{barSt\}/g) || []).length === 1);
+eq('the reader hands each in-flow bar exactly one style',
+  (rdSrc.match(/style=\{headSt\}/g) || []).length + (rdSrc.match(/style=\{barSt\}/g) || []).length, 2);
 ok('the loading render no longer wears the navy slab either',
   !/<div style=\{s\.memHeader\}>[\s\S]{0,200}تعذّر فتح المصحف/.test(rdSrc)
   && /className="ezhome ezmr-rail is-static"/.test(rdSrc));
-// the rollback reader is DECLARED, not deleted.
-ok('the ?madinaimg=0 reader still keeps the bars it was measured with',
-  /\) : \(\s*\n\s*<div style=\{headSt\}>/.test(rdSrc) && /\) : \(\s*\n\s*<div ref=\{barRef\} style=\{barSt\}>/.test(rdSrc));
+/* ---- M2b. THE ROLLBACK READER IS ISTANA TOO, AND STILL IN FLOW (S111) ----
+ * ?madinaimg=0 is reachable, so it counts. Its page is a flex child of the same column, which
+ * means the two bars' HEIGHTS are inside the box the SVG paper is fitted to -- 65 and 53,
+ * measured before the repaint. Everything below freezes the box and frees only the paint. */
+const fbRail = cutBranch2('<div className="ezhome" style={headSt}>');
+const fbDock = cutBranch2('<div ref={barRef} className="ezhome" style={barSt}>');
+ok('the rollback rail was located', fbRail.length > 300);
+ok('the rollback dock was located', fbDock.length > 300);
+// Read off the PARSED objects. Testing the JS source form against JSON.stringify output could
+// never match -- the property was invisible to this check until a mutation proved it.
+eq('the rollback rail declares no position, so it stays in flow', s.memHeaderFb.position, undefined);
+eq('...and neither does the rollback dock', s.pgBarFb.position, undefined);
+eq('...nor a top/left/right/bottom that would lift either out of the column',
+  ['top', 'left', 'right', 'bottom', 'zIndex']
+    .filter((p) => s.memHeaderFb[p] !== undefined || s.pgBarFb[p] !== undefined), []);
+ok('...and are still the column\'s own children', /<div className="ezhome" style=\{headSt\}>/.test(rdSrc)
+  && /<div ref=\{barRef\} className="ezhome" style=\{barSt\}>/.test(rdSrc));
+ok('the rollback reader draws NO navy anywhere',
+  !/s\.memHeader\b|s\.memTitle\b|s\.memBackBtn\b/.test(fbRail) && !/s\.memHeader\b/.test(fbDock));
+ok('...and no legacy pager presentation either',
+  !/s\.pgBar\b|s\.pgNavBtn\b|s\.pgNavOff\b|s\.pgMeta\b/.test(fbDock));
+ok('the rollback branch reads the istana objects', /: s\.memHeaderFb;/.test(rdSrc) && /: s\.pgBarFb;/.test(rdSrc));
+ok('...which carry no gradient and no literal colour',
+  !/gradient/.test(JSON.stringify(s.memHeaderFb) + JSON.stringify(s.pgBarFb))
+  && !/#[0-9a-fA-F]{3,8}|rgba?\(/.test(JSON.stringify([s.memHeaderFb, s.pgBarFb, s.memTitleFb, s.memBtnFb, s.pgNavBtnFb, s.pgMetaFb])));
+ok('...and take their surface from the a3 scope the elements carry',
+  s.memHeaderFb.background === 'var(--a3-surface)' && s.pgBarFb.background === 'var(--a3-surface)'
+  && (rdSrc.match(/className="ezhome" style=\{(headSt|barSt)\}/g) || []).length === 2);
+// THE BOX, property for property against the object each one replaces.
+for (const p of ['display', 'alignItems', 'justifyContent', 'padding'])
+  eq('the rollback rail keeps memHeader\'s ' + p, s.memHeaderFb[p], s.memHeader[p]);
+for (const p of ['display', 'alignItems', 'justifyContent', 'gap', 'padding'])
+  eq('the rollback dock keeps pgBar\'s ' + p, s.pgBarFb[p], s.pgBar[p]);
+eq('the rail\'s hairline is still exactly 1px', String(s.memHeaderFb.borderBottom).split(' ')[0], '1px');
+eq('the dock\'s hairline is still exactly 1px', String(s.pgBarFb.borderTop).split(' ')[0], '1px');
+// The two heights, composed from the parts rather than trusted: padding + tallest control +
+// hairline. 65 and 53 were MEASURED in the browser before the repaint and are what the SVG
+// paper is fitted against, so they are arithmetic here and not a comment.
+const padY = (v) => 2 * parseFloat(String(v).split(' ')[0]);
+const hairline = (v) => parseFloat(String(v).split(' ')[0]);
+eq('the rollback rail still composes to 65', padY(s.memHeaderFb.padding) + s.memBtnFb.height + hairline(s.memHeaderFb.borderBottom), 65);
+eq('the rollback dock still composes to 53', padY(s.pgBarFb.padding) + s.pgNavBtnFb.height + hairline(s.pgBarFb.borderTop), 53);
+eq('...and the controls are the same height they always were', s.memBtnFb.height, s.memBackBtn.height);
+eq('...on both bars', s.pgNavBtnFb.height, s.pgNavBtn.height);
+eq('the dock\'s nav control keeps its width too', s.pgNavBtnFb.width, s.pgNavBtn.width);
+eq('the jump well is untouched, so the dock\'s content row is still 36',
+  JSON.stringify(s.pgJumpWrap), JSON.stringify({ minWidth: 128, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }));
+eq('the rail title keeps its metrics', s.memTitleFb.fontSize, s.memTitle.fontSize);
+// the bounded inner row is WEIGHTLESS -- it may centre, it may not add height.
+const fbInner = (css.match(/\.ezmr-fb-inner\{([^}]*)\}/) || [])[1] || '';
+ok('the bounded inner row exists and is used', fbInner.length > 20
+  && (rdSrc.match(/className="ezmr-fb-inner"/g) || []).length === 2);
+ok('...and it is centred and bounded', /max-width:1100px/.test(fbInner) && /margin:0 auto/.test(fbInner));
+ok('...and adds no padding, margin, border or height of its own',
+  !/padding|border|min-height|height/.test(fbInner) && /margin:0 auto/.test(fbInner));
+ok('nothing in the rollback chrome shouts over inline paint with !important',
+  !/\.ezmr-fb[^{]*\{[^}]*!important/.test(css));
+ok('the rollback chrome has a visible focus ring',
+  /\.ezmr-fb-btn:focus-visible\{[^}]*outline:3px solid var\(--ez-focus\)/.test(css));
+ok('the rollback chrome animates nothing and paints no image',
+  !/\.ezmr-fb[^{]*\{[^}]*(animation|transition|background-image|gradient|url\(|backdrop-filter)/.test(css));
+// EVERY control survived the repaint, with its handler and its name.
+ok('rollback back is the same handler and text', /onClick=\{onExit\} className="ezmr-fb-btn" style=\{s\.memBtnFb\}>السور<\/button>/.test(fbRail));
+ok('rollback bookmark keeps its handler and both its names',
+  /onClick=\{putMark\} title=\{marked \? 'علامتك هنا' : 'ضع العلامة'\} aria-label=\{marked \? 'علامتك هنا' : 'ضع العلامة'\}/.test(fbRail));
+ok('rollback previous keeps its handler, glyph and bound',
+  /onClick=\{\(\) => commit\(-1\)\} disabled=\{page <= 1\} className="ezmr-fb-btn" style=\{s\.pgNavBtnFb\}>›<\/button>/.test(fbDock));
+ok('rollback next keeps its handler, glyph and bound',
+  /onClick=\{\(\) => commit\(1\)\} disabled=\{page >= 604\} className="ezmr-fb-btn" style=\{s\.pgNavBtnFb\}>‹<\/button>/.test(fbDock));
+ok('rollback jump keeps both its names', /aria-label="اذهب إلى صفحة"/.test(fbDock) && /aria-label="رقم الصفحة"/.test(fbDock));
+eq('the rollback chrome draws the same five controls',
+  ['onClick={onExit}', 'onClick={putMark}', 'onClick={() => commit(-1)}', 'onClick={() => commit(1)}',
+   'onClick={() => setJump(String(page))}'].filter((h) => (fbRail + fbDock).indexOf(h) !== -1).length, 5);
 
 /* ---- M3. every control survived, with its handler and its name ---------- */
 ok('back is still the same handler and the same text',
