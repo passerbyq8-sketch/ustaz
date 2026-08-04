@@ -378,6 +378,61 @@ async function partC() {
 }
 
 /* ===================== D. THE CONTROLS =================================== */
+/* D0. THE FIRST INTERACTIVE FRAME.
+   This app does NOT open on the home screen. A device with a profile lands on the CHAT, which is
+   where it has always landed, and the home is a place you navigate TO. A language control that
+   only exists on the home is therefore a control most users never see. This part opens the app
+   the way a returning user opens it and looks for the button before touching anything at all:
+   no drawer, no navigation, no second render pass. */
+async function partD0() {
+  console.log('\n=== D0. THE FIRST SCREEN, BEFORE ANYTHING IS TOUCHED ===');
+  const seed = {
+    child_profile: JSON.stringify({ name: 'ن', age: 30, gender: 'male', birthYear: 1996, pid: 'I18N-D0', createdAt: '2026-01-01T00:00:00.000Z' }),
+    disclosureAck: '1',
+  };
+  const c = buildContext({ seed, mount: true });
+  await tick(150);
+  const w = c.window, d = driver(w);
+
+  // The screen really is the chat, or this part is measuring the wrong thing.
+  ok('the app opens on the chat, not on the home', d.all('.ezc-dock').length === 1 && d.all('.ezist-mosaic').length === 0);
+  ok('...and the side menu is shut', d.all('.ezc-drawer').length === 0);
+
+  const t = d.all('button[data-ez-lang-toggle]')[0];
+  if (!ok('the language button is on that first screen, with nothing opened to reach it', !!t)) return;
+  ok('...inside the rail the screen already had', !!(t.closest && t.closest('.ezc-rail')));
+  eq('...as an explicit type="button", so it cannot submit the composer', t.getAttribute('type'), 'button');
+  ok('...with an accessible name', !!(t.getAttribute('aria-label') || '').trim());
+  eq('...and it reads the language in use', String(t.textContent || '').trim(), S.AR);
+  ok('...and it covers none of the composer: it is a sibling of the transcript, not over it',
+    d.all('.ezc-rail button[data-ez-lang-toggle]').length === 1 && d.all('.ezc-dock button[data-ez-lang-toggle]').length === 0);
+
+  // Pressing it must move the language and nothing else.
+  const before = {
+    screen: d.all('.ezc-dock').length,
+    msgs: d.all('.ezc-turn').length,
+    stored: JSON.stringify(c.store._dump()),
+    net: c.net().length,
+  };
+  await d.click(t);
+  await tick(60);
+  eq('pressing it opens its own menu', t.getAttribute('aria-expanded'), 'true');
+  eq('...and does not leave the chat', d.all('.ezc-dock').length, before.screen);
+  eq('...and sends no message', d.all('.ezc-turn').length, before.msgs);
+  eq('...and makes no request', c.net().length, before.net);
+  eq('...and writes nothing at all', JSON.stringify(c.store._dump()), before.stored);
+
+  const en = d.all('.ezlang-menu button')[1];
+  await d.click(en);
+  await tick(80);
+  eq('choosing English applies it immediately', c.grab('ezLangGet()'), 'en');
+  eq('...and persists it', c.store.getItem(S.LANG_KEY), 'en');
+  eq('...and turns the document round', w.document.documentElement.getAttribute('dir'), 'ltr');
+  eq('...still on the chat, with no message sent', [d.all('.ezc-dock').length, d.all('.ezc-turn').length], [before.screen, before.msgs]);
+  eq('...and the button now reads English', String(d.all('button[data-ez-lang-toggle]')[0].textContent || '').trim(), S.EN);
+  eq('...and the conversation store was never opened', c.store.getItem('ezik_chats_v1'), null);
+}
+
 async function partD() {
   console.log('\n=== D. THE CONTROLS, DRIVEN BY REAL CLICKS ===');
   // The home control.
@@ -650,6 +705,7 @@ function partF() {
   await partA();
   partB();
   await partC();
+  await partD0();
   await partD();
   await partE();
   partF();

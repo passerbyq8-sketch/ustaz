@@ -1283,6 +1283,9 @@ function buildMemory(questions, n) {
     'quest.tallyRight': '✓ صحيحة: {n}',
     'quest.tallyWrong': '✗ خاطئة: {n}',
     'quest.correctAnswer': 'الإجابةُ الصحيحة',
+    'quest.brand': 'رحلةُ الكنوز',
+    'quest.mapTitle': 'خريطةُ العالم',
+    'quest.mapLead': 'افتحِ الأقاليمَ نجمةً بعدَ نجمة، واجمعِ الكنوز.',
     },
     en: {
     'quest.result': 'Result',
@@ -1295,6 +1298,9 @@ function buildMemory(questions, n) {
     'quest.tallyRight': '✓ Correct: {n}',
     'quest.tallyWrong': '✗ Wrong: {n}',
     'quest.correctAnswer': 'The correct answer',
+    'quest.brand': 'The treasure journey',
+    'quest.mapTitle': 'The world map',
+    'quest.mapLead': 'Open the regions one star at a time, and gather the treasures.',
     }
   };
   var QUEST_LANG = (function () {
@@ -1535,9 +1541,9 @@ const Screens = {
     const v = document.createElement("div");
     const head = el("div", "worldhead");
     const l = document.createElement("div");
-    l.appendChild(el("div", "eyebrow", "رحلةُ الكنوز"));
-    l.appendChild(el("h1", null, "خريطةُ العالم"));
-    l.appendChild(el("div", "muted", "افتحِ الأقاليمَ نجمةً بعدَ نجمة، واجمعِ الكنوز."));
+    l.appendChild(el("div", "eyebrow", qT("quest.brand")));
+    l.appendChild(el("h1", null, qT("quest.mapTitle")));
+    l.appendChild(el("div", "muted", qT("quest.mapLead")));
     head.appendChild(l);
     v.appendChild(head);
 

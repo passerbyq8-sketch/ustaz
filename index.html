@@ -1051,7 +1051,12 @@
      app shipped Arabic-only. In English it has to follow the document instead. Scoped to the
      English document and to that one element; nothing else in the file is reached. */
   :root[data-ez-lang="en"] .ezc-dock textarea{direction:ltr}
-  @media (max-width:360px){.ezlang-menu{min-width:136px}}
+  /* S116 -- the rail variant. Geometry only: it borrows every colour from the base rule, and
+     the rail is 40px tall, so the pill is tightened to sit inside it rather than stretch it. */
+  .ezlang-btn.is-rail{min-height:34px;padding:5px 10px;gap:5px;font-size:12.5px;flex-shrink:0;
+    max-width:44vw;overflow:hidden;white-space:nowrap}
+  .ezlang-menu.is-end{inset-inline-start:auto;inset-inline-end:0}
+  @media (max-width:360px){.ezlang-menu{min-width:136px}.ezlang-btn.is-rail{padding:5px 8px;max-width:40vw}}
 </style>
 </head>
 <body>
@@ -1242,6 +1247,19 @@ function ezLangRelabel() {
     for (let i = 0; i < EZIK_QUICK_ACTIONS.length; i++) {
       EZIK_QUICK_ACTIONS[i] = { ...EZIK_QUICK_ACTIONS[i], label: ezT('chat.qa.' + EZIK_QUICK_ACTIONS[i].key) };
     }
+    EZIK_A11Y_TITLE = ezT("a11y.title");
+    EZIK_A11Y_FS_LABEL = ezT("a11y.fontSize");
+    EZIK_A11Y_FS_NORMAL = ezT("a11y.fontNormal");
+    EZIK_A11Y_FS_LARGE = ezT("a11y.fontLarge");
+    EZIK_A11Y_FS_XLARGE = ezT("a11y.fontXLarge");
+    EZIK_A11Y_READ = ezT("a11y.reading");
+    EZIK_A11Y_READ_HINT = ezT("a11y.readingHint");
+    EZIK_A11Y_MOTION = ezT("a11y.motion");
+    EZIK_A11Y_MOTION_HINT = ezT("a11y.motionHint");
+    EZIK_A11Y_RESET = ezT("a11y.reset");
+    EZ_VT_TITLE = ezT("visualTheme.title");
+    EZ_VT_ACTIVE = ezT("visualTheme.active");
+    EZ_VT_SOON = ezT("visualTheme.soon");
   } catch (e) {}
 }
 
@@ -1300,7 +1318,7 @@ const EZ_I18N = {
     'chat.stopAudio': 'إيقاف الصوت',
     'chat.report': 'بلّغ عن هذا الردّ',
     'chat.noConversations': 'لا شيء محفوظٌ بعد — أول سؤالٍ تكتبه يُحفَظ هنا.',
-    'favorites.empty': 'لا توجد مفضلة',
+    'favorites.empty': 'لا توجد ردود محفوظة بعد. اضغط النجمة تحت أي رد لتحفظه هنا.',
     'errors.network': 'تعذّر الاتصال',
     'errors.timeout': 'انتهت المهلة',
     'errors.generic': 'حدث خطأ، حاول مرة أخرى',
@@ -1339,6 +1357,77 @@ const EZ_I18N = {
     'chat.qa.shorten': 'اختصر',
     'chat.qa.continue': 'كمّل',
     'navigation.menu': '\u0627\u0644\u0642\u0627\u0626\u0645\u0629',
+    'navigation.openMenu': '\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629',
+    'settings.control': '\u0627\u0644\u062A\u062D\u0643\u0645',
+    'settings.title': '\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a',
+    'settings.appearance': '\u0627\u0644\u0645\u0638\u0647\u0631',
+    'pin.mismatch': '\u0627\u0644\u0631\u0645\u0632\u0627\u0646 \u063A\u064A\u0631 \u0645\u062A\u0637\u0627\u0628\u0642\u064A\u0646.',
+    'pin.changed': '\u062A\u0645 \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0631\u0645\u0632.',
+    'settings.themeLight': '\u0641\u0627\u062a\u062d',
+    'settings.themeDark': '\u062f\u0627\u0643\u0646',
+    'pin.groupTitle': '\u062A\u063A\u064A\u064A\u0631 \u0631\u0645\u0632 \u0627\u0644\u0641\u062A\u062D',
+    'pin.new': '\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u062C\u062F\u064A\u062F',
+    'pin.confirm': '\u062A\u0623\u0643\u064A\u062F \u0627\u0644\u0631\u0645\u0632',
+    'a11y.title': 'سهولة الاستخدام',
+    'a11y.fontSize': 'حجم الخط',
+    'a11y.fontNormal': 'عادي',
+    'a11y.fontLarge': 'كبير',
+    'a11y.fontXLarge': 'كبير جدًّا',
+    'a11y.reading': 'وضع القراءة',
+    'a11y.readingHint': 'تباعد أوسع بين السطور وراحة أكبر في النصوص الطويلة.',
+    'a11y.motion': 'تقليل الحركة',
+    'a11y.motionHint': 'إيقاف الحركات الزخرفية والتمرير المتحرّك.',
+    'a11y.reset': 'إعادة الإعدادات الافتراضية',
+    'visualTheme.title': '\u{0627}\u{0644}\u{0647}\u{0648}\u{064A}\u{0629} \u{0627}\u{0644}\u{0628}\u{0635}\u{0631}\u{064A}\u{0629}',
+    'visualTheme.active': '\u{0627}\u{0644}\u{062A}\u{0635}\u{0645}\u{064A}\u{0645} \u{0627}\u{0644}\u{062D}\u{0627}\u{0644}\u{064A}',
+    'visualTheme.soon': '\u{0642}\u{0631}\u{064A}\u{0628}\u{0627}\u{064B}',
+    'chat.attach': '\u0625\u0631\u0641\u0627\u0642 \u0645\u0644\u0641 \u0623\u0648 \u0635\u0648\u0631\u0629',
+    'chat.dictate': '\u0625\u0645\u0644\u0627\u0621 \u0635\u0648\u062a\u064a',
+    'chat.call': '\u0645\u0643\u0627\u0644\u0645\u0629 \u0635\u0648\u062a\u064a\u0629 \u0645\u0628\u0627\u0634\u0631\u0629',
+    'chat.attachImage': '\u0635\u0648\u0631\u0629',
+    'chat.attachFile': '\u0645\u0644\u0641',
+    'chat.depthHint': '\u0627\u0636\u063a\u0637 \u0644\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0639\u0645\u0642 \u0627\u0644\u0645\u0639\u0631\u0641\u064a',
+    'chat.depthBrief': '\u0645\u0648\u062c\u0632',
+    'chat.depthDetailed': '\u0645\u0641\u0635\u0651\u0644',
+    'chat.depthScholar': '\u0637\u0627\u0644\u0628 \u0627\u0644\u0639\u0644\u0645',
+    'chat.standingNotice': 'عزك ذكاءٌ اصطناعيّ وقد يُخطئ — راجِعْ ما يهمُّك مع والديك أو مع أهل العلم.',
+    'navigation.settings2': '\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a',
+    'home.hadithOfDay': 'حديث اليوم',
+    'home.verseOfDay': 'آية اليوم',
+    'home.hadithOfDay2': '\u062D\u062F\u064A\u062B \u0627\u0644\u064A\u0648\u0645',
+    'home.verseOfDay2': '\u0622\u064A\u0629 \u0627\u0644\u064A\u0648\u0645',
+    'home.greet.day.1': 'كيف أقدر أعينك اليوم؟',
+    'home.greet.day.2': 'على بركة الله، بماذا نبدأ؟',
+    'home.greet.day.3': 'اسألني عمّا يهمّك في دينك ودنياك.',
+    'home.greet.day.4': 'هل قرأتَ وردك اليوم؟',
+    'home.greet.day.5': 'أنا هنا متى احتجتَني.',
+    'home.greet.day.6': 'سلامٌ عليك، بماذا تحبّ أن نبدأ؟',
+    'home.greet.day.7': 'ما الذي تودّ أن تتعلّمه اليوم؟',
+    'home.greet.day.8': 'سؤالك الأول اليوم… بماذا يكون؟',
+    'home.greet.day.9': 'ماذا يشغل بالك اليوم؟',
+    'home.greet.day.10': 'هل من آيةٍ تودّ أن نتدبّرها؟',
+    'home.greet.day.11': 'أنا معك لنتعلّم سويًّا.',
+    'home.greet.day.12': 'ابدأ يومك بنيّةٍ طيّبة.',
+    'home.greet.day.13': 'سلْ، وسأجيبك بما ينفعك.',
+    'home.greet.day.14': 'علّمْ نفسك اليوم شيئًا جديدًا.',
+    'home.greet.day.15': 'كلُّ يومٍ فرصةٌ لتتعلّم.',
+    'home.greet.day.16': 'بماذا نبدأ رحلة اليوم؟',
+    'home.greet.morning.1': 'صباحك طاعة — هل قرأتَ أذكار الصباح؟',
+    'home.greet.morning.2': 'بكّر بذكر الله، أذكار الصباح بانتظارك.',
+    'home.greet.morning.3': 'افتتحْ يومك بأذكار الصباح.',
+    'home.greet.morning.4': 'صباح الخير، هل بدأتَ بأذكار الصباح؟',
+    'home.greet.morning.5': 'استقبلِ الصباح بذكر الله.',
+    'home.greet.morning.6': 'أذكار الصباح تُعينك على يومك.',
+    'home.greet.morning.7': 'طابَ صباحك — أذكار الصباح بانتظارك.',
+    'home.greet.morning.8': 'ابدأ نهارك بحصنٍ من الأذكار.',
+    'home.greet.evening.1': 'مساؤك ذكرٌ — هل قرأتَ أذكار المساء؟',
+    'home.greet.evening.2': 'اختم نهارك بأذكار المساء.',
+    'home.greet.evening.3': 'قبل أن يهدأ اليوم، أذكار المساء.',
+    'home.greet.evening.4': 'مساء الخير، هل قرأتَ أذكار المساء؟',
+    'home.greet.evening.5': 'استقبلِ المساء بذكر الله.',
+    'home.greet.evening.6': 'أذكار المساء تحفظك في ليلتك.',
+    'home.greet.evening.7': 'طابَ مساؤك — أذكار المساء بانتظارك.',
+    'home.greet.evening.8': 'اختم يومك بحصنٍ من الأذكار.',
   },
   en: {
     'common.close': 'Close',
@@ -1378,7 +1467,7 @@ const EZ_I18N = {
     'chat.stopAudio': 'Stop the audio',
     'chat.report': 'Report this reply',
     'chat.noConversations': 'Nothing is saved yet — the first question you write is kept here.',
-    'favorites.empty': 'No favourites',
+    'favorites.empty': 'Nothing is saved yet. Press the star under any reply to keep it here.',
     'errors.network': 'Could not connect',
     'errors.timeout': 'The request timed out',
     'errors.generic': 'Something went wrong, please try again',
@@ -1417,6 +1506,77 @@ const EZ_I18N = {
     'chat.qa.shorten': 'Shorten',
     'chat.qa.continue': 'Continue',
     'navigation.menu': 'Menu',
+    'navigation.openMenu': 'Open the side menu',
+    'settings.control': 'Parental controls',
+    'settings.title': 'Settings',
+    'settings.appearance': 'Appearance',
+    'pin.mismatch': 'The two codes do not match.',
+    'pin.changed': 'The code was changed.',
+    'settings.themeLight': 'Light',
+    'settings.themeDark': 'Dark',
+    'pin.groupTitle': 'Change the unlock code',
+    'pin.new': 'The new code',
+    'pin.confirm': 'Confirm the code',
+    'a11y.title': 'Ease of use',
+    'a11y.fontSize': 'Text size',
+    'a11y.fontNormal': 'Normal',
+    'a11y.fontLarge': 'Large',
+    'a11y.fontXLarge': 'Very large',
+    'a11y.reading': 'Reading mode',
+    'a11y.readingHint': 'Wider line spacing, and an easier read on long passages.',
+    'a11y.motion': 'Reduce motion',
+    'a11y.motionHint': 'Turns off decorative animation and animated scrolling.',
+    'a11y.reset': 'Restore the default settings',
+    'visualTheme.title': 'Visual identity',
+    'visualTheme.active': 'The current design',
+    'visualTheme.soon': 'Coming soon',
+    'chat.attach': 'Attach a file or an image',
+    'chat.dictate': 'Voice dictation',
+    'chat.call': 'Live voice call',
+    'chat.attachImage': 'Image',
+    'chat.attachFile': 'File',
+    'chat.depthHint': 'Press to change the depth of the answer',
+    'chat.depthBrief': 'Brief',
+    'chat.depthDetailed': 'Detailed',
+    'chat.depthScholar': 'Student of knowledge',
+    'chat.standingNotice': 'Ezik is an artificial intelligence and can be wrong — check what matters to you with your parents or with people of knowledge.',
+    'navigation.settings2': 'Settings',
+    'home.hadithOfDay': 'Hadith of the day',
+    'home.verseOfDay': 'Verse of the day',
+    'home.hadithOfDay2': 'Hadith of the day',
+    'home.verseOfDay2': 'Verse of the day',
+    'home.greet.day.1': 'How can I help you today?',
+    'home.greet.day.2': 'In the name of God — where shall we begin?',
+    'home.greet.day.3': 'Ask me about anything that matters to you, in faith or in life.',
+    'home.greet.day.4': 'Have you read your wird today?',
+    'home.greet.day.5': 'I am here whenever you need me.',
+    'home.greet.day.6': 'Peace be upon you — what shall we start with?',
+    'home.greet.day.7': 'What would you like to learn today?',
+    'home.greet.day.8': 'Your first question today… what will it be?',
+    'home.greet.day.9': 'What is on your mind today?',
+    'home.greet.day.10': 'Is there a verse you would like us to reflect on?',
+    'home.greet.day.11': 'I am with you, so we can learn together.',
+    'home.greet.day.12': 'Begin your day with a good intention.',
+    'home.greet.day.13': 'Ask, and I will answer with what benefits you.',
+    'home.greet.day.14': 'Teach yourself something new today.',
+    'home.greet.day.15': 'Every day is a chance to learn.',
+    'home.greet.day.16': 'Where shall we begin today’s journey?',
+    'home.greet.morning.1': 'A morning of worship — have you read the morning adhkar?',
+    'home.greet.morning.2': 'Start early with the remembrance of God; the morning adhkar are waiting.',
+    'home.greet.morning.3': 'Open your day with the morning adhkar.',
+    'home.greet.morning.4': 'Good morning — have you begun with the morning adhkar?',
+    'home.greet.morning.5': 'Meet the morning with the remembrance of God.',
+    'home.greet.morning.6': 'The morning adhkar will carry you through your day.',
+    'home.greet.morning.7': 'A good morning to you — the morning adhkar are waiting.',
+    'home.greet.morning.8': 'Begin your day with a fortress of adhkar.',
+    'home.greet.evening.1': 'An evening of remembrance — have you read the evening adhkar?',
+    'home.greet.evening.2': 'Close your day with the evening adhkar.',
+    'home.greet.evening.3': 'Before the day settles, the evening adhkar.',
+    'home.greet.evening.4': 'Good evening — have you read the evening adhkar?',
+    'home.greet.evening.5': 'Meet the evening with the remembrance of God.',
+    'home.greet.evening.6': 'The evening adhkar will keep you through your night.',
+    'home.greet.evening.7': 'A good evening to you — the evening adhkar are waiting.',
+    'home.greet.evening.8': 'Seal your day with a fortress of adhkar.',
   },
 };
 
@@ -1453,7 +1613,7 @@ const EZ_LANG_GLOBE = (
 // traps nothing: Tab keeps walking the page, Escape closes, a press outside closes, and both
 // items are real buttons so Enter and Space already work. type="button" is load-bearing: this
 // control is rendered on a screen that also holds a composer, and a default submit would post it.
-function EzLangControl() {
+function EzLangControl({ variant }) {
   const lang = useEzLang();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -1487,7 +1647,7 @@ function EzLangControl() {
       <button
         type="button"
         ref={btnRef}
-        className="ezlang-btn"
+        className={variant === 'rail' ? 'ezlang-btn is-rail' : 'ezlang-btn'}
         data-ez-lang-toggle="1"
         aria-haspopup="listbox"
         aria-expanded={open ? 'true' : 'false'}
@@ -1498,7 +1658,7 @@ function EzLangControl() {
         <span>{ezT('language.' + lang)}</span>
       </button>
       {open && (
-        <div className="ezlang-menu" role="listbox" aria-label={ezT('language.label')}>
+        <div className={variant === 'rail' ? 'ezlang-menu is-end' : 'ezlang-menu'} role="listbox" aria-label={ezT('language.label')}>
           {EZ_LANGS.map((v) => (
             <button
               key={v}
@@ -3914,51 +4074,51 @@ function useEzikVisualTheme() {
 }
 
 const HOME_GREETINGS_GENERAL = [
-    "كيف أقدر أعينك اليوم؟",
-    "على بركة الله، بماذا نبدأ؟",
-    "اسألني عمّا يهمّك في دينك ودنياك.",
-    "هل قرأتَ وردك اليوم؟",
-    "أنا هنا متى احتجتَني.",
-    "سلامٌ عليك، بماذا تحبّ أن نبدأ؟",
-    "ما الذي تودّ أن تتعلّمه اليوم؟",
-    "سؤالك الأول اليوم… بماذا يكون؟",
-    "ماذا يشغل بالك اليوم؟",
-    "هل من آيةٍ تودّ أن نتدبّرها؟",
-    "أنا معك لنتعلّم سويًّا.",
-    "ابدأ يومك بنيّةٍ طيّبة.",
-    "سلْ، وسأجيبك بما ينفعك.",
-    "علّمْ نفسك اليوم شيئًا جديدًا.",
-    "كلُّ يومٍ فرصةٌ لتتعلّم.",
-    "بماذا نبدأ رحلة اليوم؟"
+    'home.greet.day.1',
+    'home.greet.day.2',
+    'home.greet.day.3',
+    'home.greet.day.4',
+    'home.greet.day.5',
+    'home.greet.day.6',
+    'home.greet.day.7',
+    'home.greet.day.8',
+    'home.greet.day.9',
+    'home.greet.day.10',
+    'home.greet.day.11',
+    'home.greet.day.12',
+    'home.greet.day.13',
+    'home.greet.day.14',
+    'home.greet.day.15',
+    'home.greet.day.16',
   ];
 const HOME_GREETINGS_MORNING = [
-    "صباحك طاعة — هل قرأتَ أذكار الصباح؟",
-    "بكّر بذكر الله، أذكار الصباح بانتظارك.",
-    "افتتحْ يومك بأذكار الصباح.",
-    "صباح الخير، هل بدأتَ بأذكار الصباح؟",
-    "استقبلِ الصباح بذكر الله.",
-    "أذكار الصباح تُعينك على يومك.",
-    "طابَ صباحك — أذكار الصباح بانتظارك.",
-    "ابدأ نهارك بحصنٍ من الأذكار."
+    'home.greet.morning.1',
+    'home.greet.morning.2',
+    'home.greet.morning.3',
+    'home.greet.morning.4',
+    'home.greet.morning.5',
+    'home.greet.morning.6',
+    'home.greet.morning.7',
+    'home.greet.morning.8',
   ];
 const HOME_GREETINGS_EVENING = [
-    "مساؤك ذكرٌ — هل قرأتَ أذكار المساء؟",
-    "اختم نهارك بأذكار المساء.",
-    "قبل أن يهدأ اليوم، أذكار المساء.",
-    "مساء الخير، هل قرأتَ أذكار المساء؟",
-    "استقبلِ المساء بذكر الله.",
-    "أذكار المساء تحفظك في ليلتك.",
-    "طابَ مساؤك — أذكار المساء بانتظارك.",
-    "اختم يومك بحصنٍ من الأذكار."
+    'home.greet.evening.1',
+    'home.greet.evening.2',
+    'home.greet.evening.3',
+    'home.greet.evening.4',
+    'home.greet.evening.5',
+    'home.greet.evening.6',
+    'home.greet.evening.7',
+    'home.greet.evening.8',
   ];
 const getHomeGreeting = () => {
   const now = new Date();
   const day = Math.floor((Date.now() - new Date(now.getFullYear(), 0, 0)) / 86400000);
   const h = now.getHours();
   const pick = (arr) => arr[(day * 5) % arr.length];
-  if (h >= 5 && h < 11) return { text: pick(HOME_GREETINGS_MORNING), period: 'morning', tappable: true };
-  if (h >= 16 && h < 19) return { text: pick(HOME_GREETINGS_EVENING), period: 'evening', tappable: true };
-  return { text: pick(HOME_GREETINGS_GENERAL), period: 'day', tappable: false };
+  if (h >= 5 && h < 11) return { text: ezT(pick(HOME_GREETINGS_MORNING)), period: 'morning', tappable: true };
+  if (h >= 16 && h < 19) return { text: ezT(pick(HOME_GREETINGS_EVENING)), period: 'evening', tappable: true };
+  return { text: ezT(pick(HOME_GREETINGS_GENERAL)), period: 'day', tappable: false };
 };
 
 // ============================================================
@@ -4184,7 +4344,7 @@ function EzistQuranPanel() {
     <section className="ezist-quran" style={s.ezistQuran}>
       <div style={s.ezistQuranHead}>
         <span style={s.ezistQuranDot} aria-hidden="true" />
-        <span style={s.ezistQuranLabel}>{isHadith ? '\u062D\u062F\u064A\u062B \u0627\u0644\u064A\u0648\u0645' : '\u0622\u064A\u0629 \u0627\u0644\u064A\u0648\u0645'}</span>
+        <span style={s.ezistQuranLabel}>{isHadith ? ezT('home.hadithOfDay2') : ezT('home.verseOfDay2')}</span>
       </div>
       <div className="ezist-rule" aria-hidden="true" />
       <div style={s.ezistQuranText}>{v.text}</div>
@@ -4544,12 +4704,12 @@ const A2_NEXT        = '\u{0627}\u{0644}\u{062A}\u{0627}\u{0644}\u{064A}';      
 const A3_ALL          = '\u{0627}\u{0644}\u{0623}\u{0642}\u{0633}\u{0627}\u{0645}';
 // S100 -- three more chrome strings, escaped for the same reason every string above is: a
 // section heading and the two identity names. None of them is devotional text.
-const EZ_VT_TITLE  = '\u{0627}\u{0644}\u{0647}\u{0648}\u{064A}\u{0629} \u{0627}\u{0644}\u{0628}\u{0635}\u{0631}\u{064A}\u{0629}';   // "the visual identity"
+let EZ_VT_TITLE = ezT("visualTheme.title");   // "the visual identity"
 const EZ_VT_QIBLA  = '\u{0642}\u{0628}\u{0644}\u{0629} \u{0661}\u{0663}';                                     // "qibla 13"
 const EZ_VT_ISTANA = '\u{0625}\u{0633}\u{062A}\u{0627}\u{0646}\u{0629} \u{0663}\u{0663}';
 // S102 -- the state words for the active-design card. Chrome, and neither is a choice.
-const EZ_VT_ACTIVE = '\u{0627}\u{0644}\u{062A}\u{0635}\u{0645}\u{064A}\u{0645} \u{0627}\u{0644}\u{062D}\u{0627}\u{0644}\u{064A}';   // "the current design"
-const EZ_VT_SOON   = '\u{0642}\u{0631}\u{064A}\u{0628}\u{0627}\u{064B}';                                                       // "soon"                     // "istana 33"                                          // "the sections"
+let EZ_VT_ACTIVE = ezT("visualTheme.active");   // "the current design"
+let EZ_VT_SOON = ezT("visualTheme.soon");                                                       // "soon"                     // "istana 33"                                          // "the sections"
 
 function AdhkarScreenV1({ onBack }) {
   const [cats, setCats] = useState(null);
@@ -5543,16 +5703,16 @@ function ezikMotionReducedNow() {
   return ezikMotionReduced(false);
 }
 
-const EZIK_A11Y_TITLE = 'سهولة الاستخدام';
-const EZIK_A11Y_FS_LABEL = 'حجم الخط';
-const EZIK_A11Y_FS_NORMAL = 'عادي';
-const EZIK_A11Y_FS_LARGE = 'كبير';
-const EZIK_A11Y_FS_XLARGE = 'كبير جدًّا';
-const EZIK_A11Y_READ = 'وضع القراءة';
-const EZIK_A11Y_READ_HINT = 'تباعد أوسع بين السطور وراحة أكبر في النصوص الطويلة.';
-const EZIK_A11Y_MOTION = 'تقليل الحركة';
-const EZIK_A11Y_MOTION_HINT = 'إيقاف الحركات الزخرفية والتمرير المتحرّك.';
-const EZIK_A11Y_RESET = 'إعادة الإعدادات الافتراضية';
+let EZIK_A11Y_TITLE = ezT("a11y.title");
+let EZIK_A11Y_FS_LABEL = ezT("a11y.fontSize");
+let EZIK_A11Y_FS_NORMAL = ezT("a11y.fontNormal");
+let EZIK_A11Y_FS_LARGE = ezT("a11y.fontLarge");
+let EZIK_A11Y_FS_XLARGE = ezT("a11y.fontXLarge");
+let EZIK_A11Y_READ = ezT("a11y.reading");
+let EZIK_A11Y_READ_HINT = ezT("a11y.readingHint");
+let EZIK_A11Y_MOTION = ezT("a11y.motion");
+let EZIK_A11Y_MOTION_HINT = ezT("a11y.motionHint");
+let EZIK_A11Y_RESET = ezT("a11y.reset");
 
 // ============================================================
 // S98 — المفضلة المحلية (local favourite replies)
@@ -5852,7 +6012,7 @@ function App() {
   // hook owns no screen state and renders nothing; it keeps <html> honest.
   // S116: the interface language, subscribed at the root. App owns every screen, so a switch
   // made anywhere redraws all of them at once -- no reload, no route change, no lost thread.
-  useEzLang();
+  const uiLang = useEzLang();
   useEzikVisualTheme();
   const [screen, setScreen] = useState('loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
@@ -8415,7 +8575,8 @@ function App() {
           a title, and the title is the real one -- see ezcTitle above. */}
       <div className="ezc-rail">
         <div className="ezc-rail-inner">
-          <button onClick={openDrawer} className="ezc-icon" aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}>
+          <button onClick={openDrawer} className="ezc-icon" aria-label={'\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629'}
+            {...(uiLang === 'ar' ? null : { 'aria-label': ezT('navigation.openMenu') })}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
@@ -8426,6 +8587,10 @@ function App() {
             <span className="ezc-brand-arch" aria-hidden="true" />
             <span className="ezc-brand-text">{ezcTitle}</span>
           </span>
+          {/* S116 -- the language control, on the FIRST screen the app opens. It is a flex
+              sibling of the brand, so it takes its own width and overlaps nothing; the brand
+              already ellipsises, which is what absorbs it at 320px. */}
+          <EzLangControl variant="rail" />
         </div>
       </div>
 
@@ -8557,13 +8722,13 @@ function App() {
                     onClick={() => { setAttachMenuOpen(false); if (fileInputRef.current) fileInputRef.current.click(); }}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
                   >
-                    <span style={{ fontSize: 18 }}>{'\uD83D\uDDBC\uFE0F'}</span><span>{'\u0635\u0648\u0631\u0629'}</span>
+                    <span style={{ fontSize: 18 }}>{'\uD83D\uDDBC\uFE0F'}</span><span>{ezT('chat.attachImage')}</span>
                   </button>
                   <button
                     onClick={() => { setAttachMenuOpen(false); if (docInputRef.current) docInputRef.current.click(); }}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
                   >
-                    <span style={{ fontSize: 18 }}>{'\uD83D\uDCC4'}</span><span>{'\u0645\u0644\u0641'}</span>
+                    <span style={{ fontSize: 18 }}>{'\uD83D\uDCC4'}</span><span>{ezT('chat.attachFile')}</span>
                   </button>
                 </div>
               </>
@@ -8573,6 +8738,7 @@ function App() {
               disabled={isLoading || isListening}
               style={{ ...s.toolBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }}
               aria-label={'\u0625\u0631\u0641\u0627\u0642 \u0645\u0644\u0641 \u0623\u0648 \u0635\u0648\u0631\u0629'}
+              {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.attach') })}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
@@ -8593,8 +8759,8 @@ function App() {
               setDepthMode(next);
             }}
             disabled={isLoading || caps.band !== 'adult'}
-            title={caps.band === 'adult' ? '\u0627\u0636\u063a\u0637 \u0644\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0639\u0645\u0642 \u0627\u0644\u0645\u0639\u0631\u0641\u064a' : undefined}
-            aria-label={depthMode === 'brief' ? '\u0645\u0648\u062c\u0632' : depthMode === 'detailed' ? '\u0645\u0641\u0635\u0651\u0644' : '\u0637\u0627\u0644\u0628 \u0627\u0644\u0639\u0644\u0645'}
+            title={caps.band === 'adult' ? ezT('chat.depthHint') : undefined}
+            aria-label={depthMode === 'brief' ? ezT('chat.depthBrief') : depthMode === 'detailed' ? ezT('chat.depthDetailed') : ezT('chat.depthScholar')}
             style={{
               ...s.sendBtn,
               background: depthMode === 'brief' ? 'var(--tint)' : depthMode === 'detailed' ? 'var(--red)' : 'var(--scholar)',
@@ -8608,7 +8774,7 @@ function App() {
               paddingInline: 10,
             }}
           >
-            {depthMode === 'brief' ? '\u0645\u0648\u062c\u0632' : depthMode === 'detailed' ? '\u0645\u0641\u0635\u0651\u0644' : '\u0637\u0627\u0644\u0628 \u0627\u0644\u0639\u0644\u0645'}
+            {depthMode === 'brief' ? ezT('chat.depthBrief') : depthMode === 'detailed' ? ezT('chat.depthDetailed') : ezT('chat.depthScholar')}
           </button>
         </div>
         <div style={s.toolGroup}>
@@ -8616,6 +8782,7 @@ function App() {
             onClick={isListening ? stopListening : startListening}
             disabled={isLoading}
             aria-label={'\u0625\u0645\u0644\u0627\u0621 \u0635\u0648\u062a\u064a'}
+            {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.dictate') })}
             className="ez-anim"
             style={{
               ...s.micBtn,
@@ -8635,6 +8802,7 @@ function App() {
             onClick={() => setScreen('call')}
             disabled={isLoading || isListening}
             aria-label={'\u0645\u0643\u0627\u0644\u0645\u0629 \u0635\u0648\u062a\u064a\u0629 \u0645\u0628\u0627\u0634\u0631\u0629'}
+            {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.call') })}
             style={{ ...s.toolBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }}
           >
             <PhoneCallIcon size={20} color="var(--red)" />
@@ -8642,7 +8810,7 @@ function App() {
           )}
         </div>
       </div>
-      <div className="ezc-note">عزك ذكاءٌ اصطناعيّ وقد يُخطئ — راجِعْ ما يهمُّك مع والديك أو مع أهل العلم.</div>
+      <div className="ezc-note">{ezT('chat.standingNotice')}</div>
         </div>
       </div>
       {/* D85: the drawer. Order is fixed: new chat, القائمة (the existing home screen -- the
@@ -8783,7 +8951,7 @@ function App() {
                 </span>
                 <span style={s.drawerProfileName}>{profile?.name}</span>
               </button>
-              <button onClick={() => closeDrawerWith(() => openEzikSheet('settings'))} style={s.drawerGear} aria-label={'\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a'}>
+              <button onClick={() => closeDrawerWith(() => openEzikSheet('settings'))} style={s.drawerGear} aria-label={ezT('navigation.settings2')}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
               </button>
             </div>
@@ -9613,7 +9781,9 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
         {total === 0 && (
           <div className="ezfav-empty">
             <span className="ezfav-empty-crest" aria-hidden="true"><span className="ezfav-empty-in" /></span>
-            <div className="ezfav-empty-text">{EZIK_FAV_EMPTY}</div>
+            {ezLangGet() === 'ar'
+              ? <div className="ezfav-empty-text">{EZIK_FAV_EMPTY}</div>
+              : <div className="ezfav-empty-text">{ezT('favorites.empty')}</div>}
           </div>
         )}
         {total > 0 && searching && items.length === 0 && <div style={s.drawerEmpty}>{EZIK_SEARCH_NONE}</div>}
@@ -10116,7 +10286,7 @@ function DailyVerseCard() {
   return (
     <div style={s.dailyCard}>
       <div style={s.dailyLabel}>
-        <span>{v.surah === 'حديث' ? 'حديث اليوم' : 'آية اليوم'}</span>
+        <span>{v.surah === 'حديث' ? ezT('home.hadithOfDay') : ezT('home.verseOfDay')}</span>
       </div>
       <div style={s.dailyVerse}>{v.text}</div>
       <div style={s.dailyMeta}>
@@ -10431,11 +10601,11 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // interface style -- is reached without a PIN, which is the whole point of this screen: a
   // parent's lock is not a lock on the appearance of the app. The label is built from escapes in
   // a JS expression, never a quoted JSX attribute, so the file stays ASCII-safe either side.
-  const A_CONTROL = '\u0627\u0644\u062A\u062D\u0643\u0645';
+  const A_CONTROL = ezT('settings.control');
   // S105: the screen title and the appearance heading, lifted to constants so the shell and
   // the guard name the same strings the screen already showed.
-  const A_SETTINGS = '\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a';
-  const A_APPEARANCE = '\u0627\u0644\u0645\u0638\u0647\u0631';   // U+0627 U+0644 U+062A U+062D U+0643 U+0645
+  const A_SETTINGS = ezT('settings.title');
+  const A_APPEARANCE = ezT('settings.appearance');   // U+0627 U+0644 U+062A U+062D U+0643 U+0645
   // D89: this entry is rendered ONLY while a valid founder token is held. hasFounderToken() is
   // read here, at render, and never from a cached flag -- the rule every other gate in this file
   // follows. It is a VISIBILITY rule, not the lock: api/unlock.js refuses a set-pin call that
@@ -10449,7 +10619,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
     if (pinBusy) return;
     // The ONLY check made here, because the server is sent one value and never sees the second
     // field. Length, shape and authorisation are the server's to judge and the server's to word.
-    if (pin1 !== pin2) { setPinMsg('\u0627\u0644\u0631\u0645\u0632\u0627\u0646 \u063A\u064A\u0631 \u0645\u062A\u0637\u0627\u0628\u0642\u064A\u0646.'); return; }
+    if (pin1 !== pin2) { setPinMsg(ezT('pin.mismatch')); return; }
     setPinBusy(true); setPinMsg('');
     try {
       const r = await fetch('/api/unlock', {
@@ -10462,7 +10632,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
       const good = r.ok && d && d.ok === true;
       // The SERVER owns every refusal's wording: a missing token, a short code and an
       // unreachable store are three different truths and only it knows which.
-      setPinMsg(good ? '\u062A\u0645 \u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0631\u0645\u0632.' : ((d && d.message) || ''));
+      setPinMsg(good ? ezT('pin.changed') : ((d && d.message) || ''));
       if (good) { setPin1(''); setPin2(''); }
     } catch (e) {
       setPinMsg('');   // a network failure carries no server message; do not invent one
@@ -10492,10 +10662,10 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           names as before; what changed is that they sit in bounded groups inside the shared
           shell instead of five full-width slabs. Not one control was simplified away. */}
       <div className="ezsh-grid">
-        <EzShellGroup title={A_APPEARANCE} hint={'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}>
+        <EzShellGroup title={A_APPEARANCE} hint={ezT('settings.savedOnDevice')}>
           <div style={s.themeRow}>
-            <Opt value="light" label={'\u0641\u0627\u062a\u062d'} />
-            <Opt value="dark" label={'\u062f\u0627\u0643\u0646'} />
+            <Opt value="light" label={ezT('settings.themeLight')} />
+            <Opt value="dark" label={ezT('settings.themeDark')} />
           </div>
         </EzShellGroup>
         {/* S116 -- the interface language. The SAME group shell, the SAME row and the SAME
@@ -10540,7 +10710,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         {/* NOT wide: measured at 1440 and 2048, spanning both columns stretched each switch
             row to about 800px with the label at one edge and the toggle at the other. A settings
             row read across a desk is a worse control, not a bigger one. */}
-        <EzShellGroup title={EZIK_A11Y_TITLE} hint={'\u064a\u064f\u062d\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632'}>
+        <EzShellGroup title={EZIK_A11Y_TITLE} hint={ezT('settings.savedOnDevice')}>
           <div style={s.a11yGroupLabel}>{EZIK_A11Y_FS_LABEL}</div>
           <div style={s.themeRow} role="radiogroup" aria-label={EZIK_A11Y_FS_LABEL}>
             {[['normal', EZIK_A11Y_FS_NORMAL], ['large', EZIK_A11Y_FS_LARGE], ['xlarge', EZIK_A11Y_FS_XLARGE]].map(([v, label]) => (
@@ -10600,16 +10770,16 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         </EzShellGroup>
         {/* D89 -- change the unlock PIN. Rendered ONLY with a founder token in hand. */}
         {canSetPin && (
-        <EzShellGroup title={'\u062A\u063A\u064A\u064A\u0631 \u0631\u0645\u0632 \u0627\u0644\u0641\u062A\u062D'}>
+        <EzShellGroup title={ezT('pin.groupTitle')}>
           <input type="password" inputMode="numeric" autoComplete="new-password" value={pin1}
-            onChange={(e) => setPin1(e.target.value)} placeholder={'\u0627\u0644\u0631\u0645\u0632 \u0627\u0644\u062C\u062F\u064A\u062F'} style={s.settingsInput} />
+            onChange={(e) => setPin1(e.target.value)} placeholder={ezT('pin.new')} style={s.settingsInput} />
           <input type="password" inputMode="numeric" autoComplete="new-password" value={pin2}
             onChange={(e) => setPin2(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') savePin(); }}
-            placeholder={'\u062A\u0623\u0643\u064A\u062F \u0627\u0644\u0631\u0645\u0632'} style={s.settingsInput} />
+            placeholder={ezT('pin.confirm')} style={s.settingsInput} />
           {pinMsg && <div style={s.settingsMsg}>{pinMsg}</div>}
           <button onClick={savePin} disabled={pinBusy || !pin1 || !pin2}
-            style={{ ...s.settingsSaveBtn, opacity: (pinBusy || !pin1 || !pin2) ? 0.5 : 1 }}>{'\u062D\u0641\u0638'}</button>
+            style={{ ...s.settingsSaveBtn, opacity: (pinBusy || !pin1 || !pin2) ? 0.5 : 1 }}>{ezT('common.save')}</button>
         </EzShellGroup>
         )}
       </div>
