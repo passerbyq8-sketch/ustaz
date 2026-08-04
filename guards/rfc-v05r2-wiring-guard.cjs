@@ -377,6 +377,14 @@ const BRAVE_RESULTS = [
     const claims = out.out.ledger.claims;
     ok('...and the CLAIMS carry it too', claims.length > 0 && claims.every((c) => c.targetType === 'madhhab'),
       JSON.stringify(claims.map((c) => ({ id: c.claimId, t: c.targetType }))));
+    // EVERY POLICY FIELD IS ON THE CLAIM, not only on the plan. Gate 3 reads them off the claim,
+    // so a claim missing one is a sentence judged against nothing — and the mutation that deletes
+    // the stamp has to turn this gate red, which is the whole point of asserting it here.
+    for (const field of ['claimRelation', 'targetType', 'era', 'provenanceCap', 'provenanceGrade']) {
+      ok('...every claim carries ' + field,
+        claims.length > 0 && claims.every((c) => c[field] !== undefined && c[field] !== null),
+        JSON.stringify(claims.map((c) => c[field])));
+    }
   }
 
   {
