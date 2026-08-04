@@ -1027,13 +1027,27 @@
      every value below is a token the theme already publishes, so light and dark both work
      by construction and theme 33 is not touched. Logical properties only, so the same rule
      serves rtl and ltr without a second block. --------------------------------------- */
-  .ezlang-bar{display:flex;justify-content:flex-start;padding:2px 0 8px}
+  /* S116 -- THE LAYOUT DIRECTION. body{direction:rtl} is declared above, and a CSS
+     declaration beats the dir ATTRIBUTE the boot script writes on <html> -- so before this
+     rule the English interface was English words inside an RTL layout: every logical margin,
+     padding and inset in the app still resolved right-to-left. Measured, not assumed: the
+     first-run control computed direction:rtl with document.dir already "ltr".
+     One namespaced override, keyed off the same attribute the boot script sets, so Arabic is
+     byte-for-byte what it was and only the English document turns. */
+  :root[data-ez-lang="en"] body{direction:ltr}
   .ezlang-wrap{position:relative;display:inline-block}
+  /* The first-run placement. It was pinned OUT OF FLOW in the card's top corner first, and
+     that was measured and rejected: the crest is centred and starts immediately under the
+     card's 28px of padding, so an absolutely-placed control shares a horizontal band with it
+     and at 320px in English the two boxes met. It is a flow row instead -- pulled up into the
+     padding it sits in, so the card grows by about a line and by nothing else, and the crest,
+     the greeting and every field keep the order and the spacing they shipped with. */
+  .ezlang-wrap.is-onb{position:relative;display:block;text-align:end;margin:-10px 0 6px}
   .ezlang-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 13px;
     border-radius:999px;border:1px solid var(--line);background:var(--tint);color:var(--ink);
     font-family:var(--ez-ui-font);font-size:13px;font-weight:600;line-height:1.2;cursor:pointer}
   .ezlang-btn:focus-visible{outline:2px solid var(--ez-focus);outline-offset:2px}
-  .ezlang-menu{position:absolute;inset-inline-start:0;top:calc(100% + 6px);z-index:40;
+  .ezlang-menu{position:absolute;inset-inline-end:0;top:calc(100% + 6px);z-index:40;
     min-width:154px;padding:6px;border-radius:14px;border:1px solid var(--line);
     background:var(--white);box-shadow:0 10px 26px rgba(0,0,0,0.16)}
   .ezlang-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
@@ -1053,10 +1067,18 @@
   :root[data-ez-lang="en"] .ezc-dock textarea{direction:ltr}
   /* S116 -- the rail variant. Geometry only: it borrows every colour from the base rule, and
      the rail is 40px tall, so the pill is tightened to sit inside it rather than stretch it. */
-  .ezlang-btn.is-rail{min-height:34px;padding:5px 10px;gap:5px;font-size:12.5px;flex-shrink:0;
-    max-width:44vw;overflow:hidden;white-space:nowrap}
-  .ezlang-menu.is-end{inset-inline-start:auto;inset-inline-end:0}
-  @media (max-width:360px){.ezlang-menu{min-width:136px}.ezlang-btn.is-rail{padding:5px 8px;max-width:40vw}}
+  .ezlang-btn.is-onb{min-height:30px;padding:4px 9px;gap:5px;font-size:12px;white-space:nowrap}
+  /* The settings row: the group heading is the label, so the control only has to carry the
+     value and its caret. */
+  .ezlang-row{display:flex;justify-content:flex-end;align-items:center;min-height:36px}
+  .ezlang-btn.is-row{min-height:36px;padding:6px 12px;gap:8px;font-size:14px;white-space:nowrap}
+  .ezlang-caret{font-size:11px;line-height:1;opacity:0.75}
+  .ezlang-code{flex:none;min-width:22px;font-size:11px;font-weight:800;letter-spacing:0.02em;
+    text-align:center;opacity:0.72}
+  .ezlang-name{flex:1;min-width:0;text-align:start}
+  /* The first-run card is 400px at most and the menu opens inside it; at the narrowest phone the
+     menu is pinned to the same corner so it can never reach past the card's edge. */
+  @media (max-width:360px){.ezlang-menu{min-width:132px}}
 </style>
 </head>
 <body>
@@ -1129,9 +1151,20 @@ const { useState, useEffect, useRef } = React;
 // its tag to EZ_LANGS -- nothing else in this block is language-specific.
 // ============================================================
 const EZ_LANG_KEY = 'ezik_ui_lang_v1';
-const EZ_LANGS = ['ar', 'en'];
+// THE LANGUAGES THIS INTERFACE OFFERS. A list, not a pair of hardcoded buttons: a third
+// language is one more row here plus one more dictionary, and nothing else in this file has to
+// change. nativeName is what a speaker of that language calls it, so it does NOT get translated
+// -- a language's own name is the same sentence in every interface. shortLabel is the two- or
+// one-character badge the menu shows beside it. No flag anywhere: Arabic is not one country's
+// language and neither is English.
+const EZ_LANGUAGES = [
+  { code: 'ar', nativeName: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629', shortLabel: '\u0639', dir: 'rtl' },
+  { code: 'en', nativeName: 'English', shortLabel: 'EN', dir: 'ltr' },
+];
+const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
+function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
 const EZ_LANG_FALLBACK = 'ar';   // used only when the environment reports no language at all
-const EZ_LANG_DIR = { ar: 'rtl', en: 'ltr' };
+const EZ_LANG_DIR = EZ_LANGUAGES.reduce((m, l) => { m[l.code] = l.dir; return m; }, {});
 
 function ezLangValid(v) { return EZ_LANGS.indexOf(v) !== -1; }
 
@@ -1300,8 +1333,6 @@ const EZ_I18N = {
     'navigation.settings': '\u{0627}\u{0644}\u{0625}\u{0639}\u{062F}\u{0627}\u{062F}\u{0627}\u{062A}',
     'navigation.account': '\u{0627}\u{0644}\u{062D}\u{0633}\u{0627}\u{0628}',
     'language.label': 'اللغة',
-    'language.ar': 'العربية',
-    'language.en': 'English',
     'language.change': 'تغيير لغة الواجهة',
     'language.current': 'اللغة الحالية: {lang}',
     'language.chooseHint': 'يُحفظ على هذا الجهاز',
@@ -1428,6 +1459,13 @@ const EZ_I18N = {
     'home.greet.evening.6': 'أذكار المساء تحفظك في ليلتك.',
     'home.greet.evening.7': 'طابَ مساؤك — أذكار المساء بانتظارك.',
     'home.greet.evening.8': 'اختم يومك بحصنٍ من الأذكار.',
+    'onboarding.welcome': 'أهلاً بك',
+    'onboarding.male': 'ذكر',
+    'onboarding.female': 'أنثى',
+    'onboarding.start': 'ابدأ',
+    'onboarding.yearError': 'اكتب سنةَ ميلادك بأربعة أرقام — مثل ٢٠١٥',
+    'onboarding.name': 'الاسم',
+    'onboarding.birthYear': 'سنة الميلاد — مثال ٢٠١٥',
   },
   en: {
     'common.close': 'Close',
@@ -1449,8 +1487,6 @@ const EZ_I18N = {
     'navigation.settings': 'Settings',
     'navigation.account': 'Account',
     'language.label': 'Language',
-    'language.ar': 'العربية',
-    'language.en': 'English',
     'language.change': 'Change the interface language',
     'language.current': 'Current language: {lang}',
     'language.chooseHint': 'Saved on this device',
@@ -1577,6 +1613,13 @@ const EZ_I18N = {
     'home.greet.evening.6': 'The evening adhkar will keep you through your night.',
     'home.greet.evening.7': 'A good evening to you — the evening adhkar are waiting.',
     'home.greet.evening.8': 'Seal your day with a fortress of adhkar.',
+    'onboarding.welcome': 'Welcome',
+    'onboarding.male': 'Boy',
+    'onboarding.female': 'Girl',
+    'onboarding.start': 'Start',
+    'onboarding.yearError': 'Write your birth year as four digits — for example 2015',
+    'onboarding.name': 'Name',
+    'onboarding.birthYear': 'Year of birth — for example 2015',
   },
 };
 
@@ -1609,10 +1652,16 @@ const EZ_LANG_GLOBE = (
   </svg>
 );
 
-// THE LANGUAGE CONTROL. A button and a two-item menu -- not a modal, not a dialog, and it
-// traps nothing: Tab keeps walking the page, Escape closes, a press outside closes, and both
-// items are real buttons so Enter and Space already work. type="button" is load-bearing: this
-// control is rendered on a screen that also holds a composer, and a default submit would post it.
+// THE LANGUAGE CONTROL. It lives in exactly two places, and the guard fails if a third
+// appears: the FIRST-RUN card, where a reader who has not made a profile yet can choose before
+// they type anything, and Settings, which is the permanent home of the choice afterwards. It is
+// deliberately NOT on the chat, the home, the drawer or any rail -- a returning reader is not
+// asked to pick a language every time they open the app.
+//
+// A button and a menu built from EZ_LANGUAGES -- not a modal, not a dialog, and it traps nothing:
+// Tab keeps walking the page, Escape closes and returns focus, a press outside closes, and every
+// item is a real button so Enter and Space already work. type="button" is load-bearing on the
+// first-run card, because that card submits.
 function EzLangControl({ variant }) {
   const lang = useEzLang();
   const [open, setOpen] = useState(false);
@@ -1641,35 +1690,39 @@ function EzLangControl({ variant }) {
       } catch (err) {}
     };
   }, [open]);
-  const pick = (v) => { ezLangSet(v); setOpen(false); };
+  const pick = (code) => { ezLangSet(code); setOpen(false); };
+  const here = ezLangEntry(lang);
+  const onb = variant === 'onboarding';
   return (
-    <div className="ezlang-wrap" ref={wrapRef}>
+    <div className={onb ? 'ezlang-wrap is-onb' : 'ezlang-wrap'} ref={wrapRef}>
       <button
         type="button"
         ref={btnRef}
-        className={variant === 'rail' ? 'ezlang-btn is-rail' : 'ezlang-btn'}
+        className={onb ? 'ezlang-btn is-onb' : 'ezlang-btn is-row'}
         data-ez-lang-toggle="1"
         aria-haspopup="listbox"
         aria-expanded={open ? 'true' : 'false'}
         aria-label={ezT('language.change')}
         onClick={() => setOpen((o) => !o)}
       >
-        {EZ_LANG_GLOBE}
-        <span>{ezT('language.' + lang)}</span>
+        {onb ? EZ_LANG_GLOBE : null}
+        <span>{here.nativeName}</span>
+        {onb ? null : <span className="ezlang-caret" aria-hidden="true">{'\u25BE'}</span>}
       </button>
       {open && (
-        <div className={variant === 'rail' ? 'ezlang-menu is-end' : 'ezlang-menu'} role="listbox" aria-label={ezT('language.label')}>
-          {EZ_LANGS.map((v) => (
+        <div className="ezlang-menu" role="listbox" aria-label={ezT('language.label')}>
+          {EZ_LANGUAGES.map((l) => (
             <button
-              key={v}
+              key={l.code}
               type="button"
               role="option"
-              aria-selected={lang === v ? 'true' : 'false'}
+              aria-selected={lang === l.code ? 'true' : 'false'}
               className="ezlang-item"
-              onClick={() => pick(v)}
+              onClick={() => pick(l.code)}
             >
-              <span>{ezT('language.' + v)}</span>
-              <span className="ezlang-tick" aria-hidden="true">{lang === v ? '✓' : ''}</span>
+              <span className="ezlang-code" aria-hidden="true">{l.shortLabel}</span>
+              <span className="ezlang-name">{l.nativeName}</span>
+              <span className="ezlang-tick" aria-hidden="true">{lang === l.code ? '\u2713' : ''}</span>
             </button>
           ))}
         </div>
@@ -4361,9 +4414,6 @@ function EzikIstanaHome(v) {
       <EzistTopNav onOpenChat={v.onOpenChat} onOpenSettings={v.onOpenSettings} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
-          {/* S116 -- the language control. Its own row, so it overlaps nothing and the
-              masthead, the nav and every module card keep the position they shipped with. */}
-          <div className="ezlang-bar"><EzLangControl /></div>
           <EzistMasthead name={v.name} g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
           <div className="ezist-mosaic">
             <EzistAsk onOpenChat={v.onOpenChat} />
@@ -8587,10 +8637,6 @@ function App() {
             <span className="ezc-brand-arch" aria-hidden="true" />
             <span className="ezc-brand-text">{ezcTitle}</span>
           </span>
-          {/* S116 -- the language control, on the FIRST screen the app opens. It is a flex
-              sibling of the brand, so it takes its own width and overlaps nothing; the brand
-              already ellipsises, which is what absorbs it at 320px. */}
-          <EzLangControl variant="rail" />
         </div>
       </div>
 
@@ -10429,6 +10475,7 @@ function UnlockSheet({ onUnlocked, onBack }) {
 }
 
 function Onboarding({ onStart }) {
+  const uiLang = useEzLang();
   const [name, setName] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [gender, setGender] = useState(null);
@@ -10457,19 +10504,24 @@ function Onboarding({ onStart }) {
             S115: the 88px red square became a bounded arch holding the SAME mark. Every field,
             every choice, their order, their validation and the single onStart call below are
             byte-for-byte the ones that shipped. */}
+        {/* S116 -- the language choice, and this is the ONLY screen outside Settings that
+            offers it. A reader who has not made a profile yet can switch before typing a
+            thing; once the profile exists this card is never shown again, and Settings is
+            where the choice lives from then on. */}
+        <EzLangControl variant="onboarding" />
         <div className="ezonb-crest" style={s.welcomeLogoSquare}>
           <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--a3-blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
         </div>
         <div style={s.welcomeTitle}>عزك</div>
-        <div style={s.welcomeGreeting}>أهلاً بك</div>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم" style={s.welcomeInput} autoFocus />
+        <div style={s.welcomeGreeting}>{ezT('onboarding.welcome')}</div>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم" {...(uiLang === 'ar' ? null : { placeholder: ezT('onboarding.name') })} style={s.welcomeInput} autoFocus />
         <div className="ezonb-row">
-          <button onClick={() => setGender('male')} style={{ ...s.welcomePrimaryBtn, background: gender === 'male' ? 'var(--accent-fill)' : 'var(--a3-ice)', color: gender ==='male' ? 'var(--on-accent)' : 'var(--a3-ink)' }}>ذكر</button>
-          <button onClick={() => setGender('female')} style={{ ...s.welcomePrimaryBtn, background: gender === 'female' ? 'var(--accent-fill)' : 'var(--a3-ice)', color: gender ==='female' ? 'var(--on-accent)' : 'var(--a3-ink)' }}>أنثى</button>
+          <button onClick={() => setGender('male')} style={{ ...s.welcomePrimaryBtn, background: gender === 'male' ? 'var(--accent-fill)' : 'var(--a3-ice)', color: gender ==='male' ? 'var(--on-accent)' : 'var(--a3-ink)' }}>{ezT('onboarding.male')}</button>
+          <button onClick={() => setGender('female')} style={{ ...s.welcomePrimaryBtn, background: gender === 'female' ? 'var(--accent-fill)' : 'var(--a3-ice)', color: gender ==='female' ? 'var(--on-accent)' : 'var(--a3-ink)' }}>{ezT('onboarding.female')}</button>
         </div>
-        <input value={birthYear} onChange={(e) => setBirthYear(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="سنة الميلاد — مثال ٢٠١٥" type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
-        {birthYear.trim() && !ageValid && <div className="ezgate-err">اكتب سنةَ ميلادك بأربعة أرقام — مثل ٢٠١٥</div>}
-        <button onClick={submit} disabled={!canStart} className="welcome-primary" style={{ ...s.welcomePrimaryBtn, opacity: canStart ? 1 : 0.4 }}>ابدأ</button>
+        <input value={birthYear} onChange={(e) => setBirthYear(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="سنة الميلاد — مثال ٢٠١٥" {...(uiLang === 'ar' ? null : { placeholder: ezT('onboarding.birthYear') })} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
+        {birthYear.trim() && !ageValid && <div className="ezgate-err">{ezT('onboarding.yearError')}</div>}
+        <button onClick={submit} disabled={!canStart} className="welcome-primary" style={{ ...s.welcomePrimaryBtn, opacity: canStart ? 1 : 0.4 }}>{ezT('onboarding.start')}</button>
         </div>
       </div>
     </div>
@@ -10654,7 +10706,6 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // click handler and nothing focusable here. qibla_13 appears once, as a disabled line that
   // says it is coming -- it is a <div>, it is aria-disabled, it cannot be tabbed to and there
   // is no code path from this card that could write it. Journey and Deck appear nowhere.
-  const uiLang = useEzLang();
   const visualTheme = useEzikVisualTheme();
   return (
     <EzShell title={A_SETTINGS} onBack={onBack} backLabel={A2_BACK}>
@@ -10668,26 +10719,12 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             <Opt value="dark" label={ezT('settings.themeDark')} />
           </div>
         </EzShellGroup>
-        {/* S116 -- the interface language. The SAME group shell, the SAME row and the SAME
-            two-option control the appearance choice already uses; no new design here, and the
-            theme, the three reading preferences and the control row are not touched at all. */}
-        <EzShellGroup title={ezT('settings.language')} hint={ezT('settings.savedOnDevice')}>
-          <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.language')}>
-            {EZ_LANGS.map((v) => (
-              <button
-                key={v}
-                type="button"
-                role="radio"
-                aria-checked={uiLang === v ? 'true' : 'false'}
-                data-ez-lang-opt={v}
-                onClick={() => ezLangSet(v)}
-                className="ezlang-opt"
-                style={{ ...s.themeOpt, ...(uiLang === v ? s.themeOptActive : {}) }}
-              >
-                {ezT('language.' + v)}
-              </button>
-            ))}
-          </div>
+        {/* S116 -- the interface language. ONE compact row inside the shell every other
+            setting uses: the group's own heading is the label, and the control sits at the
+            inline end showing the current choice. No second design, no pair of full-width
+            buttons, and the theme, the reading preferences and the control row are untouched. */}
+        <EzShellGroup title={ezT('settings.language')}>
+          <div className="ezlang-row"><EzLangControl variant="settings" /></div>
         </EzShellGroup>
         {/* S102 -- the active application design. One statement, one disabled line. */}
         <EzShellGroup title={EZ_VT_TITLE}>

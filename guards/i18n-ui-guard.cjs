@@ -368,9 +368,18 @@ async function partC() {
 
   // Logical properties only: a direction-specific rule would need a second block to serve ltr.
   const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
-  const langCss = css.slice(css.indexOf('.ezlang-bar'));
-  ok('the language CSS uses logical inset, not a physical left/right',
-    /inset-inline-start/.test(langCss) && !/^\s*(left|right)\s*:/m.test(langCss));
+  const langCss = css.slice(css.indexOf('.ezlang-wrap{'));
+  ok('the language CSS positions with logical inset, not a physical left/right',
+    /inset-inline-(start|end)/.test(langCss) && !/(^|[;{])\s*(left|right)\s*:/m.test(langCss));
+  // THE LAYOUT DIRECTION. body{direction:rtl} is declared in the shipped stylesheet, and a CSS
+  // declaration beats the dir ATTRIBUTE the boot script writes on <html> — so without an explicit
+  // override the English interface is English words inside a right-to-left layout, and every
+  // logical margin, padding and inset in the app still resolves the Arabic way. This was measured
+  // on a real browser (the first-run control computed direction:rtl with document.dir "ltr"), and
+  // it is pinned here so it cannot come back.
+  ok('body still declares the Arabic direction, so Arabic is unchanged', /body\s*\{[^}]*direction:\s*rtl/.test(css));
+  ok('...and the English document turns the layout with it',
+    /:root\[data-ez-lang="en"\]\s*body\s*\{[^}]*direction:\s*ltr/.test(css));
   ok('...and declares no colour of its own — every value is an existing token',
     !/#[0-9a-fA-F]{3,8}\b/.test(langCss.replace(/rgba\(0,0,0,[0-9.]+\)/g, '')));
   ok('...and names no bare element or universal selector',
@@ -378,147 +387,205 @@ async function partC() {
 }
 
 /* ===================== D. THE CONTROLS =================================== */
-/* D0. THE FIRST INTERACTIVE FRAME.
-   This app does NOT open on the home screen. A device with a profile lands on the CHAT, which is
-   where it has always landed, and the home is a place you navigate TO. A language control that
-   only exists on the home is therefore a control most users never see. This part opens the app
-   the way a returning user opens it and looks for the button before touching anything at all:
-   no drawer, no navigation, no second render pass. */
+/* D0. THE FIRST RUN.
+   The language choice belongs to two places and no others: the card a reader meets BEFORE they
+   have a profile, and Settings afterwards. It is deliberately not on the chat, the home, the
+   drawer or any rail — a returning reader is not asked to pick a language every time they open
+   the app. This part proves the first half of that rule by driving the real first-run card. */
 async function partD0() {
-  console.log('\n=== D0. THE FIRST SCREEN, BEFORE ANYTHING IS TOUCHED ===');
-  const seed = {
-    child_profile: JSON.stringify({ name: 'ن', age: 30, gender: 'male', birthYear: 1996, pid: 'I18N-D0', createdAt: '2026-01-01T00:00:00.000Z' }),
-    disclosureAck: '1',
-  };
-  const c = buildContext({ seed, mount: true });
+  console.log('\n=== D0. THE FIRST RUN OFFERS THE CHOICE ===');
+  // No profile at all: this is a device that has never been set up.
+  const c = buildContext({ seed: {}, mount: true });
   await tick(150);
   const w = c.window, d = driver(w);
 
-  // The screen really is the chat, or this part is measuring the wrong thing.
-  ok('the app opens on the chat, not on the home', d.all('.ezc-dock').length === 1 && d.all('.ezist-mosaic').length === 0);
-  ok('...and the side menu is shut', d.all('.ezc-drawer').length === 0);
-
+  ok('a device with no profile lands on the first-run card', d.all('.ezonb-card').length === 1);
   const t = d.all('button[data-ez-lang-toggle]')[0];
-  if (!ok('the language button is on that first screen, with nothing opened to reach it', !!t)) return;
-  ok('...inside the rail the screen already had', !!(t.closest && t.closest('.ezc-rail')));
-  eq('...as an explicit type="button", so it cannot submit the composer', t.getAttribute('type'), 'button');
+  if (!ok('...and that card carries the language control', !!t)) return;
+  ok('...INSIDE the card, not floating somewhere over the screen',
+    !!(t.closest && t.closest('.ezonb-card')));
+  eq('...as an explicit type="button", so it cannot submit the card', t.getAttribute('type'), 'button');
   ok('...with an accessible name', !!(t.getAttribute('aria-label') || '').trim());
-  eq('...and it reads the language in use', String(t.textContent || '').trim(), S.AR);
-  ok('...and it covers none of the composer: it is a sibling of the transcript, not over it',
-    d.all('.ezc-rail button[data-ez-lang-toggle]').length === 1 && d.all('.ezc-dock button[data-ez-lang-toggle]').length === 0);
+  eq('...declaring its menu closed', t.getAttribute('aria-expanded'), 'false');
+  eq('...and reading the language in use', String(t.textContent || '').trim(), S.AR);
 
-  // Pressing it must move the language and nothing else.
-  const before = {
-    screen: d.all('.ezc-dock').length,
-    msgs: d.all('.ezc-turn').length,
-    stored: JSON.stringify(c.store._dump()),
-    net: c.net().length,
+  // Type into the card first: a language switch may not cost the reader what they typed.
+  const inputs = d.all('input');
+  eq('the card asks for a name and a year', inputs.length, 2);
+  const nameEl = inputs[0], yearEl = inputs[1];
+  // TYPING, THE WAY REACT CAN SEE IT — the same delivery chat-ux-guard documents and uses.
+  // The DOM value is moved through the PROTOTYPE setter so React's value tracker is not advanced
+  // (assigning el.value advances it, and React then drops the event as a keystroke it already
+  // knows about); and because React's ChangeEventPlugin does not fire under linkedom at all, the
+  // component's OWN registered onChange is then called with the node as its target. That is the
+  // shipped handler, not a re-implementation — only the delivery differs.
+  const type = async (el, v) => {
+    if (!el) throw new Error('nothing to type into');
+    let wrote = false;
+    try {
+      const desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value');
+      if (desc && typeof desc.set === 'function') { desc.set.call(el, v); wrote = true; }
+    } catch (e) {}
+    if (!wrote) el.value = v;
+    el.dispatchEvent(new w.Event('input', { bubbles: true }));
+    await tick(30);
+    const key = Object.keys(el).filter((k) => k.indexOf('__reactProps$') === 0)[0];
+    const props = key ? el[key] : null;
+    if (props && typeof props.onChange === 'function') {
+      props.onChange({ target: el, currentTarget: el, preventDefault() {}, stopPropagation() {} });
+      await tick(30);
+    }
   };
-  await d.click(t);
-  await tick(60);
-  eq('pressing it opens its own menu', t.getAttribute('aria-expanded'), 'true');
-  eq('...and does not leave the chat', d.all('.ezc-dock').length, before.screen);
-  eq('...and sends no message', d.all('.ezc-turn').length, before.msgs);
-  eq('...and makes no request', c.net().length, before.net);
-  eq('...and writes nothing at all', JSON.stringify(c.store._dump()), before.stored);
+  await type(nameEl, 'Sami');
+  await type(yearEl, '2015');
+  // Proving the typing landed BEFORE the switch, so "the values survived" cannot pass vacuously
+  // on a harness that never delivered them.
+  eq('the name reached the card', d.all('input')[0].value, 'Sami');
+  eq('the year reached the card', d.all('input')[1].value, '2015');
+  const male = d.all('.ezonb-row button')[0];
+  await d.click(male);
+  await tick(40);
 
-  const en = d.all('.ezlang-menu button')[1];
-  await d.click(en);
-  await tick(80);
-  eq('choosing English applies it immediately', c.grab('ezLangGet()'), 'en');
-  eq('...and persists it', c.store.getItem(S.LANG_KEY), 'en');
+  const beforeStore = JSON.stringify(c.store._dump());
+  const beforeNet = c.net().length;
+
+  await d.click(t);
+  eq('pressing the control opens its own menu', t.getAttribute('aria-expanded'), 'true');
+  const items = d.all('.ezlang-menu button');
+  eq('...offering one row per declared language', items.length, plain(c.grab('EZ_LANGUAGES') || []).length);
+  eq('...each a real button', items.filter((b) => b.tagName !== 'BUTTON').length, 0);
+  eq('...none of them a submit', items.filter((b) => b.getAttribute('type') !== 'button').length, 0);
+  eq('...each declaring option semantics', items.filter((b) => b.getAttribute('role') !== 'option').length, 0);
+  eq('...with the current one marked selected', items.map((b) => b.getAttribute('aria-selected')), ['true', 'false']);
+  eq('...and no profile was created by opening it', c.store.getItem('child_profile'), null);
+
+  // ar -> en
+  await d.click(d.all('.ezlang-menu button')[1]);
+  await tick(90);
+  eq('choosing English applies it at once', c.grab('ezLangGet()'), 'en');
   eq('...and turns the document round', w.document.documentElement.getAttribute('dir'), 'ltr');
-  eq('...still on the chat, with no message sent', [d.all('.ezc-dock').length, d.all('.ezc-turn').length], [before.screen, before.msgs]);
-  eq('...and the button now reads English', String(d.all('button[data-ez-lang-toggle]')[0].textContent || '').trim(), S.EN);
-  eq('...and the conversation store was never opened', c.store.getItem('ezik_chats_v1'), null);
+  ok('...and the CARD is in English now', d.text().indexOf('Welcome') !== -1, d.text().slice(0, 60));
+  ok('...including its start button', d.all('button').some((b) => String(b.textContent || '').trim() === 'Start'));
+  eq('...the name survived the switch', d.all('input')[0].value, 'Sami');
+  eq('...the year survived the switch', d.all('input')[1].value, '2015');
+  ok('...and the gender choice survived it',
+    d.all('.ezonb-row button').some((b) => /var\(--accent-fill\)/.test(b.getAttribute('style') || '')));
+  eq('...no profile was created', c.store.getItem('child_profile'), null);
+  eq('...the screen did not move', d.all('.ezonb-card').length, 1);
+  eq('...and not one network request was made', c.net().length, beforeNet);
+  eq('...the only thing written is the language itself',
+    Object.keys(JSON.parse(beforeStore)).concat([S.LANG_KEY]).sort().filter((k, i, a) => a.indexOf(k) === i),
+    Object.keys(c.store._dump()).sort());
+
+  // en -> ar
+  await d.click(d.all('button[data-ez-lang-toggle]')[0]);
+  await d.click(d.all('.ezlang-menu button')[0]);
+  await tick(90);
+  eq('and back to Arabic, immediately', c.grab('ezLangGet()'), 'ar');
+  eq('...rtl again', w.document.documentElement.getAttribute('dir'), 'rtl');
+  eq('...with the typed values still there', [d.all('input')[0].value, d.all('input')[1].value], ['Sami', '2015']);
 }
 
+/* D1. AFTER THE PROFILE EXISTS.
+   The other half of the rule, and the one that regressed once: a returning reader must not meet
+   the control on any ordinary screen. Every screen below is reached through the app's own
+   controls, and each is checked for the toggle by attribute, not by counting. */
 async function partD() {
-  console.log('\n=== D. THE CONTROLS, DRIVEN BY REAL CLICKS ===');
-  // The home control.
+  console.log('\n=== D1. A RETURNING READER MEETS IT ONLY IN SETTINGS ===');
   const c = buildContext({
-    seed: { child_profile: JSON.stringify({ name: 'ن', age: 30, gender: 'male', birthYear: 1996, pid: 'I18N-A', createdAt: '2026-01-01T00:00:00.000Z' }), disclosureAck: '1' },
-    nav: { languages: ['ar-KW'], language: 'ar-KW' },
+    seed: {
+      child_profile: JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: 'I18N-D1', createdAt: '2026-01-01T00:00:00.000Z' }),
+      disclosureAck: '1',
+    },
     mount: true,
   });
-  await tick(120);
+  await tick(150);
   const w = c.window, d = driver(w);
-  // A returning profile lands on the CHAT, which is where the app has always opened. The home is
-  // reached the way a user reaches it: open the side menu from the rail, then press its home
-  // entry. Both are the shipped controls -- this guard adds no route of its own.
+  const toggles = () => d.all('[data-ez-lang-toggle]').length;
+
+  ok('the app opens on the chat, as it always has', d.all('.ezc-dock').length === 1);
+  eq('the chat carries NO language control', toggles(), 0);
+  eq('...and the first-run card is nowhere on screen', d.all('.ezonb-card').length, 0);
+
   await d.click(d.all('.ezc-rail button.ezc-icon')[0]);
-  const homeEntry = d.all('button').filter((b) => String(b.textContent || '').trim() === 'القائمة')[0];
-  if (!ok('the side menu offers its home entry', !!homeEntry)) return;
-  await d.click(homeEntry);
-  await tick(120);
-  const toggle = d.all('button[data-ez-lang-toggle]')[0];
-  if (!ok('the home screen carries a language button', !!toggle)) return;
-  eq('...and it is type="button", so it can never submit the composer', toggle.getAttribute('type'), 'button');
-  ok('...and it carries an accessible name', !!(toggle.getAttribute('aria-label') || '').trim());
-  eq('...and it declares its menu closed', toggle.getAttribute('aria-expanded'), 'false');
-  eq('...and declares that it opens one', toggle.getAttribute('aria-haspopup'), 'listbox');
-  eq('...and it shows the CURRENT language', String(toggle.textContent || '').trim(), S.AR);
-
-  await d.click(toggle);
-  eq('pressing it opens the menu', toggle.getAttribute('aria-expanded'), 'true');
-  const items = d.all('.ezlang-menu button');
-  eq('...offering exactly two languages', items.length, 2);
-  eq('...both real buttons, so Enter and Space already work', items.filter((b) => b.tagName !== 'BUTTON').length, 0);
-  eq('...neither of them a submit', items.filter((b) => b.getAttribute('type') !== 'button').length, 0);
-  eq('...each declaring option semantics', items.filter((b) => b.getAttribute('role') !== 'option').length, 0);
-  eq('...with the current one marked selected',
-    items.map((b) => b.getAttribute('aria-selected')), ['true', 'false']);
-  eq('...and the menu names itself', d.all('.ezlang-menu[role="listbox"]').length, 1);
-
-  // Escape closes it, and does not change the language.
-  const before = c.grab('ezLangGet()');
-  w.document.dispatchEvent(new w.Event('keydown', { bubbles: true }));   // a keydown with no key
-  await tick();
-  const ev = new w.Event('keydown', { bubbles: true });
-  ev.key = 'Escape';
-  w.document.dispatchEvent(ev);
-  await tick(60);
-  eq('Escape closes the menu', toggle.getAttribute('aria-expanded'), 'false');
-  eq('...and changes no language', c.grab('ezLangGet()'), before);
-
-  // Choosing English.
-  await d.click(d.all('button[data-ez-lang-toggle]')[0]);
-  const en = d.all('.ezlang-menu button')[1];
-  await d.click(en);
   await tick(80);
-  eq('choosing English applies it', c.grab('ezLangGet()'), 'en');
-  eq('...persists it', c.store.getItem(S.LANG_KEY), 'en');
-  eq('...closes the menu', d.all('.ezlang-menu').length, 0);
-  eq('...and moves the document with it', w.document.documentElement.getAttribute('dir'), 'ltr');
-  eq('...and the button now reads English', String(d.all('button[data-ez-lang-toggle]')[0].textContent || '').trim(), S.EN);
+  eq('the side menu carries none either', toggles(), 0);
 
-  // NO RAW KEY may reach the screen, in either language.
-  const dictKeys = Object.keys(plain(c.grab('EZ_I18N.ar') || {}));
-  for (const lang of ['en', 'ar']) {
-    c.grab("ezLangSet('" + lang + "')");
-    await tick(80);
-    const text = d.text();
-    const leaked = dictKeys.filter((k) => text.indexOf(k) !== -1);
-    eq('no raw translation key is rendered in ' + lang, leaked, []);
+  const homeEntry = d.all('button').filter((b) => String(b.textContent || '').trim() === 'القائمة')[0];
+  if (ok('the side menu offers its home entry', !!homeEntry)) {
+    await d.click(homeEntry);
+    await tick(140);
+    ok('...and the home screen was reached', d.all('.ezist-mosaic').length === 1);
+    eq('the home carries none', toggles(), 0);
   }
-  ok('...and the home screen is not blank in either language', d.text().trim().length > 20);
 
-  // The settings row.
-  console.log('\n=== D2. THE SETTINGS ROW ===');
-  const opts = d.all('button[data-ez-lang-opt]');
+  // Settings, through the app's own route.
+  await d.click(d.all('.ezist-nav button')[3] || d.all('.ezist-nav button')[2]);
+  await tick(160);
+  ok('settings was reached', d.all('.ezsh-group').length > 0, d.text().slice(0, 80));
+  eq('...and THIS is where the control lives — exactly one', toggles(), 1);
+  const st = d.all('button[data-ez-lang-toggle]')[0];
+  ok('...inside a settings group, not floating', !!(st.closest && st.closest('.ezsh-group')));
+  eq('...as a type="button"', st.getAttribute('type'), 'button');
+  eq('...showing the current choice', String(st.textContent || '').trim().replace(/[\u25BE\s]+$/, ''), S.AR);
+
+  // It is ONE compact row, not a pair of full-width buttons.
   const set = html.slice(html.indexOf('function SettingsSheet'), html.indexOf('function ParentDashboard'));
-  ok('Settings declares a language group', /<EzShellGroup title=\{ezT\('settings\.language'\)\}/.test(set));
-  ok('...built from the SHIPPED group shell and the SHIPPED row geometry',
-    /style=\{s\.themeRow\}/.test(set) && /s\.themeOpt/.test(set) && /s\.themeOptActive/.test(set));
-  ok('...as a radiogroup with an accessible name', /role="radiogroup" aria-label=\{ezT\('settings\.language'\)\}/.test(set));
-  ok('...whose options are radios that declare their state', /role="radio"/.test(set) && /aria-checked=\{uiLang === v/.test(set));
-  ok('...each an explicit type="button"', /data-ez-lang-opt=\{v\}/.test(set) && /type="button"/.test(set));
-  ok('...and it does not borrow the class the reading-preference controls are counted by',
-    set.indexOf('data-ez-lang-opt') !== -1 && !/data-ez-lang-opt[\s\S]{0,200}?className="ez-a11y-opt"/.test(set));
-  ok('the four reading-preference controls are still exactly four',
-    (html.match(/className="ez-a11y-opt"/g) || []).length === 4);
-  ok('...and the theme control is untouched', /<Opt value="light"/.test(set) && /<Opt value="dark"/.test(set));
+  ok('the settings entry is one compact row', /<div className="ezlang-row"><EzLangControl variant="settings" \/><\/div>/.test(set));
+  ok('...inside the shell every other setting uses', /<EzShellGroup title=\{ezT\('settings\.language'\)\}>/.test(set));
+  ok('...and it is no longer a radiogroup of full-width buttons', !/data-ez-lang-opt/.test(set));
+  eq('...so the group draws exactly one control', d.all('.ezlang-row button').length, 1);
+
+  await d.click(st);
+  await tick(60);
+  eq('it opens its menu in place', d.all('.ezlang-menu').length, 1);
+  await d.click(d.all('.ezlang-menu button')[1]);
+  await tick(90);
+  eq('choosing English from Settings applies it', c.grab('ezLangGet()'), 'en');
+  eq('...and persists it', c.store.getItem(S.LANG_KEY), 'en');
+  eq('...and still exactly one control on screen', toggles(), 1);
+
+  console.log('\n=== D2. THE PLACEMENT, READ OFF THE SOURCE ===');
+  // Not a count: WHERE. The toggle attribute is written once, inside the control, and the
+  // control is rendered from exactly two components — the first-run card and Settings.
+  const block = rawCode;
+  eq('data-ez-lang-toggle is written exactly once, inside the control',
+    (block.match(/data-ez-lang-toggle/g) || []).length, 1);
+  const renders = [...block.matchAll(/<EzLangControl\b[^/>]*\/>/g)];
+  eq('...and the control is rendered in exactly two places', renders.length, 2);
+  const owner = (idx) => {
+    const before = block.slice(0, idx);
+    const m = [...before.matchAll(/^function ([A-Za-z0-9_]+)\s*\(/gm)].pop();
+    return m ? m[1] : '(top level)';
+  };
+  eq('...and those two are the first-run card and the settings sheet',
+    renders.map((m) => owner(m.index)).sort(), ['Onboarding', 'SettingsSheet']);
+  for (const comp of ['App', 'Home', 'EzikIstanaHome', 'EzistTopNav', 'EzistMasthead', 'FavoritesScreen',
+    'AdhkarScreen', 'MushafScreen', 'MemorizeScreen', 'CallScreen', 'ParentDashboard']) {
+    const at = block.indexOf('function ' + comp + '(');
+    if (at < 0) continue;
+    const nxt = block.indexOf('\nfunction ', at + 1);
+    const body = block.slice(at, nxt === -1 ? block.length : nxt);
+    ok(comp + ' renders no language control', body.indexOf('EzLangControl') === -1);
+  }
+  ok('...and nothing hides one with CSS instead of not rendering it',
+    !/\.ezlang-[a-z-]*\{[^}]*display\s*:\s*none/.test(html) && !/\.ezlang-[a-z-]*\{[^}]*visibility\s*:\s*hidden/.test(html));
+
+  console.log('\n=== D3. THE LIST IS EXTENSIBLE ===');
+  const list = plain(c.grab('EZ_LANGUAGES') || []);
+  eq('the offer is a data list', list.map((l) => l.code), ['ar', 'en']);
+  eq('...every entry carries a native name', list.filter((l) => !String(l.nativeName || '').trim()), []);
+  eq('...a short label', list.filter((l) => !String(l.shortLabel || '').trim()), []);
+  eq('...and a direction', list.filter((l) => ['rtl', 'ltr'].indexOf(l.dir) === -1), []);
+  eq('...and EZ_LANGS is derived from it, not written twice',
+    plain(c.grab('EZ_LANGS')), list.map((l) => l.code));
+  eq('...as is the direction map', plain(c.grab('EZ_LANG_DIR')),
+    list.reduce((m, l) => { m[l.code] = l.dir; return m; }, {}));
+  ok('...and the menu is built by mapping the list, not by two hardcoded rows',
+    /EZ_LANGUAGES\.map\(/.test(block));
+  ok('no flag stands in for a language', !/\uD83C[\uDDE6-\uDDFF]/.test(block));
 }
+
 
 /* ===================== E. THE BLAST RADIUS =============================== */
 async function partE() {
