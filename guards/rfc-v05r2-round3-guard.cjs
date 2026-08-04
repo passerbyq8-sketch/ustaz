@@ -457,6 +457,29 @@ const CORPUS = {
         evidenceText: 'الأصل في العبادات التوقيف حتى يقوم الدليل عند أهل العلم.',
       }), false);
     }
+
+    // ── THE CAP IS ENFORCED WHEN THE CLAIM IS STAMPED, not only when it is judged ──
+    //
+    // classifyProvenance decides a grade from the evidence; the CAP is a separate fact about the
+    // entity, and today the two happen never to disagree. "Happens never to" is not a guarantee:
+    // a cap is a field, a future policy change can narrow it, and a claim carrying a grade its own
+    // cap forbids would then reach the drafter. So the enforcement is asserted directly against
+    // the real Ledger.addClaim, with a cap deliberately narrower than the evidence earns.
+    const l = new SCHEMA.Ledger('t_cap');
+    const policy = {
+      claimRelation: 'BY_ENTITY', targetType: 'person', era: 'historical',
+      requestedAuthorityId: 'ibn-taymiyyah',
+      provenanceCap: 'B',            // narrower than the C this evidence earns
+    };
+    l.issues = [{ issueId: 'i1', requiredSlots: [], policy }];
+    l.policy = policy;
+    l.sources.set('src1', { sourceId: 'src1', canonicalUrl: 'https://islamqa.info/x', host: 'islamqa.info', ownerId: null, attributionType: 'article' });
+    l.spans.set('sp1', { globalId: 'sp1', sourceId: 'src1', exactText: 'ذكر بعض أهل العلم أن ابن تيمية كان يقرر هذا الأصل.' });
+    const claim = { claimId: 'c1', issueId: 'i1', sourceId: 'src1', spanIds: ['sp1'], components: [] };
+    l.addClaim(claim);
+    eq('a grade the cap forbids is stamped NONE, not carried', claim.provenanceGrade, 'NONE');
+    ok('...and the reason it was classified is still recorded',
+      !!claim.provenanceReason, JSON.stringify(claim));
   }
 
   // =========================================================================
