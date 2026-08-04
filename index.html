@@ -1178,6 +1178,14 @@ function ezLangApply(v) {
 // boot script did run, every attribute below is already the value being written.
 ezLangApply(EZ_LANG);
 
+// FIRST RUN IS WRITTEN DOWN. Reading the device is step 2 of the policy and it happens ONCE: the
+// moment it produces an answer, that answer becomes the stored choice, so a device that later
+// changes its locale does not move an interface the reader has been using. It is also what lets
+// the treasure journey agree with the app -- quest.html is proved in a real browser and therefore
+// may not read the device itself, so it reads what was decided here.
+// A user's explicit choice is never overwritten: this runs only when nothing was stored.
+if (!ezLangStored()) { try { localStorage.setItem(EZ_LANG_KEY, EZ_LANG); } catch (e) {} }
+
 // The one writer. It persists, repaints <html>, and tells every subscriber -- in that order,
 // so a listener that reads the document sees the new direction and not the old one.
 function ezLangSet(v) {

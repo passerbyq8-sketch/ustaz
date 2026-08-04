@@ -21,6 +21,13 @@
      root's style attribute when a reward skin is applied, which would silently drop it. The
      :root[data-theme] rule carries the paint on this page instead. -->
 <script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#171410':'#FAF4E9');}}catch(e){}})();(function(){try{var v=localStorage.getItem('ezik_visual_theme_v2');if(v!=='istana_33'){v='istana_33';}document.documentElement.setAttribute('data-ezik-visual-theme',v);}catch(e){}})();</script>
+<!-- S116 UI LANGUAGE. This page follows the choice the app STORED; it does not read the device.
+     That is not an omission. quest.html is proved in a real headless browser, which reports a
+     real navigator.language, so a page that detected the device would render in the tester's
+     locale and stop being the page anybody agreed to ship. The app is where a first run is
+     decided, and it persists that decision -- this page reads it. With nothing stored, the
+     journey renders exactly as it always has. -->
+<script>(function(){try{var v=localStorage.getItem('ezik_ui_lang_v1');if(v!=='ar'&&v!=='en'){v='ar';}var d=document.documentElement;d.setAttribute('lang',v);d.setAttribute('dir',v==='ar'?'rtl':'ltr');d.setAttribute('data-ez-lang',v);window.__ezUiLang=v;}catch(e){}})();</script>
 <!--
   رحلةُ الكنوز · صفحةٌ مستقلّةٌ تعملُ بلا إنترنت
   لا تمسُّ index.html ولا أيَّ ملفٍّ من التطبيق. حذفُها = حذفُ هذا الملفِّ ومجلّدِ quest-data.
@@ -1257,6 +1264,56 @@ function buildMemory(questions, n) {
 
 </script>
 <script>
+
+  /* ==========================================================
+     S116 — لغةُ الواجهة (ar/en)
+     Interface words only. Not one question, option, answer, category, point, reward rule or
+     source line is in here, and this page writes nothing: the choice is made and stored by the
+     app, and read here. No dependency, no fetch, no bundle.
+     ========================================================== */
+  var QUEST_I18N = {
+    ar: {
+    'quest.result': 'النتيجة',
+    'quest.next': 'التالي',
+    'quest.again': 'مرّةً أخرى',
+    'quest.review': 'راجِعْ أخطاءك ({n})',
+    'quest.exit': 'خروج',
+    'quest.prev': 'السابق',
+    'quest.backToResult': 'العودة إلى النتيجة',
+    'quest.tallyRight': '✓ صحيحة: {n}',
+    'quest.tallyWrong': '✗ خاطئة: {n}',
+    'quest.correctAnswer': 'الإجابةُ الصحيحة',
+    },
+    en: {
+    'quest.result': 'Result',
+    'quest.next': 'Next',
+    'quest.again': 'Play again',
+    'quest.review': 'Review your mistakes ({n})',
+    'quest.exit': 'Exit',
+    'quest.prev': 'Previous',
+    'quest.backToResult': 'Back to the result',
+    'quest.tallyRight': '✓ Correct: {n}',
+    'quest.tallyWrong': '✗ Wrong: {n}',
+    'quest.correctAnswer': 'The correct answer',
+    }
+  };
+  var QUEST_LANG = (function () {
+    try { var v = localStorage.getItem('ezik_ui_lang_v1'); return (v === 'ar' || v === 'en') ? v : 'ar'; }
+    catch (e) { return 'ar'; }
+  })();
+  /* Same contract as the app's ezT(): {name} is filled from vars, an unsupplied placeholder is
+     left as authored rather than printed as "undefined", a key missing from the active language
+     falls back to Arabic, and a key missing from both returns empty — never the raw key. */
+  function qT(k, vars) {
+    var d = QUEST_I18N[QUEST_LANG] || QUEST_I18N.ar;
+    var out = Object.prototype.hasOwnProperty.call(d, k) ? d[k] : null;
+    if (out == null) { var f = QUEST_I18N.ar; out = Object.prototype.hasOwnProperty.call(f, k) ? f[k] : null; }
+    if (typeof out !== 'string') return '';
+    if (!vars) return out;
+    return out.replace(/\{([A-Za-z0-9_]+)\}/g, function (m, n) {
+      return (Object.prototype.hasOwnProperty.call(vars, n) && vars[n] != null) ? String(vars[n]) : m;
+    });
+  }
 /* ==========================================================
    MODULE 3 — SCREENS & FLOW
    الشاشاتُ لا تعرفُ شيئًا عن محتوى الأسئلة — تسألُ Data وتعرضُ
@@ -2239,7 +2296,7 @@ const Round = {
     if (q.src) vd.appendChild(el("span", "src", "المصدر: " + q.src));
     if (ok) vd.appendChild(h("div", "gain", "<span>+" + ar(Math.round((Data.rewards.economy.xpPerDiff[q.diff] || 10))) + " خبرة</span><span>🪙 +" + ar(Math.round((Data.rewards.economy.coinPerDiff[q.diff] || 3))) + "</span>"));
     card.appendChild(vd);
-    const nx = el("button", "btn primary wide", st.i + 1 >= st.cfg.list.length ? "النتيجة" : "التالي");
+    const nx = el("button", "btn primary wide", st.i + 1 >= st.cfg.list.length ? qT("quest.result") : qT("quest.next"));
     nx.style.marginTop = "16px";
     nx.onclick = () => { st.i++; this.render(); };
     card.appendChild(nx); nx.focus();
@@ -2295,22 +2352,22 @@ const Round = {
        unchanged. A player who wants to know how many they missed no longer has to subtract. */
     if (cfg.kind !== "speed") {
       const tally = el("div", "tally");
-      tally.appendChild(h("span", "tally-ok", "✓ صحيحة: " + ar(st.correct)));
-      tally.appendChild(h("span", "tally-bad", "✗ خاطئة: " + ar(wrong.length)));
+      tally.appendChild(h("span", "tally-ok", qT("quest.tallyRight", { n: ar(st.correct) })));
+      tally.appendChild(h("span", "tally-bad", qT("quest.tallyWrong", { n: ar(wrong.length) })));
       v.appendChild(tally);
     }
     const row = el("div", "row center"); row.style.marginTop = "20px";
-    const again = el("button", "btn primary", "مرّةً أخرى");
+    const again = el("button", "btn primary", qT("quest.again"));
     again.onclick = () => Round.start(Object.assign({}, cfg, { list: shuffle(cfg.list) }));
     /* S100: the wrong answers were listed here as a flat block that grew with the round. They now
        open in their own screen, one at a time, where there is room to show what was picked
        alongside what was right. The button appears only when there is something to review. */
     if (wrong.length) {
-      const rev = el("button", "btn", "راجِعْ أخطاءك (" + ar(wrong.length) + ")");
+      const rev = el("button", "btn", qT("quest.review", { n: ar(wrong.length) }));
       rev.onclick = () => this.review(0);
       row.appendChild(rev);
     }
-    const out = el("button", "btn quiet", "خروج"); out.onclick = () => cfg.onEnd && cfg.onEnd();
+    const out = el("button", "btn quiet", qT("quest.exit")); out.onclick = () => cfg.onEnd && cfg.onEnd();
     row.appendChild(again); row.appendChild(out); v.appendChild(row);
     mount(v, TAB);
     showUnlocks(unlocks);
@@ -2337,7 +2394,7 @@ const Round = {
     const v = document.createElement("div");
     const top = el("div", "playtop");
     const back = el("button", "btn quiet sm", "✕");
-    back.setAttribute("aria-label", "العودة إلى النتيجة");
+    back.setAttribute("aria-label", qT("quest.backToResult"));
     back.onclick = () => this.finish();
     top.appendChild(back);
     top.appendChild(h("span", "pill", ar(i + 1) + " / " + ar(wrong.length)));
@@ -2359,7 +2416,7 @@ const Round = {
     }
 
     const right = el("div", "verdict good");
-    right.appendChild(el("h4", null, "الإجابةُ الصحيحة"));
+    right.appendChild(el("h4", null, qT("quest.correctAnswer")));
     right.appendChild(el("div", null, Q.answerText(p)));
     if (a.q.why) right.appendChild(el("div", "tiny", a.q.why));
     if (a.q.src) right.appendChild(el("span", "src", "المصدر: " + a.q.src));
@@ -2367,13 +2424,13 @@ const Round = {
     v.appendChild(card);
 
     const row = el("div", "row center"); row.style.marginTop = "18px";
-    const prev = el("button", "btn quiet", "السابق");
+    const prev = el("button", "btn quiet", qT("quest.prev"));
     prev.disabled = i === 0;
     prev.onclick = () => this.review(i - 1);
-    const next = el("button", "btn quiet", "التالي");
+    const next = el("button", "btn quiet", qT("quest.next"));
     next.disabled = i >= wrong.length - 1;
     next.onclick = () => this.review(i + 1);
-    const done = el("button", "btn primary", "العودة إلى النتيجة");
+    const done = el("button", "btn primary", qT("quest.backToResult"));
     done.onclick = () => this.finish();
     row.appendChild(prev); row.appendChild(next); row.appendChild(done);
     v.appendChild(row);

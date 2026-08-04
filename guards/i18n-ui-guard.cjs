@@ -302,10 +302,23 @@ function partB() {
   for (const t of ['en', 'en-GB', 'fr-FR', 'ur-PK', 'fa-IR', 'de', 'arabic', 'arb']) eq('tag ' + JSON.stringify(t) + ' is not Arabic', tag(t), 'en');
   for (const t of ['', '   ', null, undefined, 42, {}]) eq('tag ' + JSON.stringify(t) + ' is NO SIGNAL, not a language', tag(t), null);
 
-  for (const [stored, want] of [['ar', 'ar'], ['en', 'en'], ['', null], ['zz', null], ['AR', null], ['{"lang":"en"}', null], ['null', null]]) {
+  // A valid stored choice is honoured and left exactly as written.
+  for (const stored of ['ar', 'en']) {
     const cc = buildContext({ seed: { [S.LANG_KEY]: stored } });
-    eq('a stored ' + JSON.stringify(stored) + ' reads back as ' + JSON.stringify(want), cc.grab('ezLangStored()'), want);
+    eq('a stored ' + JSON.stringify(stored) + ' is honoured', cc.grab('ezLangStored()'), stored);
+    eq('...and is not rewritten by the boot', cc.store.getItem(S.LANG_KEY), stored);
   }
+  // Anything that is not one of the two is not a choice. The module resolves without it and then
+  // REPAIRS the slot, so a value corrupted once does not have to be re-judged on every launch.
+  for (const stored of ['', '   ', 'zz', 'AR', '{"lang":"en"}', 'null', 'undefined', '["ar"]']) {
+    const cc = buildContext({ seed: { [S.LANG_KEY]: stored } });
+    eq('a stored ' + JSON.stringify(stored) + ' is discarded and the slot repaired',
+      cc.store.getItem(S.LANG_KEY), 'ar');
+    eq('...and the app runs in that language', cc.grab('ezLangGet()'), 'ar');
+  }
+  const cFirst = buildContext({ seed: {} });
+  eq('a first run writes the language it resolved, so the journey can agree with the app',
+    cFirst.store.getItem(S.LANG_KEY), 'ar');
   const cDead = buildContext({ store: makeDeadStore() });
   eq('a storage that throws is not a stored choice', cDead.grab('ezLangStored()'), null);
   eq('...and the resolver still returns a usable language', cDead.grab('ezLangResolve()'), 'ar');
@@ -476,7 +489,9 @@ async function partE() {
   const afterStore = c.store._dump();
   const changed = Object.keys(Object.assign({}, beforeStore, afterStore))
     .filter((k) => beforeStore[k] !== afterStore[k]);
-  eq('switching the language four times writes exactly ONE key, its own', changed, [S.LANG_KEY]);
+  eq('switching the language four times touches no key but its own',
+    changed.filter((k) => k !== S.LANG_KEY), []);
+  eq('...and its own key holds the language actually in use', afterStore[S.LANG_KEY], c.grab('ezLangGet()'));
   for (const k of Object.keys(seed)) {
     eq('...' + k + ' is byte-for-byte what it was', afterStore[k], seed[k]);
   }
@@ -568,6 +583,67 @@ async function partE() {
     !/(sk-[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{20,}|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY)/.test(added));
 }
 
+/* ===================== F. THE TREASURE JOURNEY =========================== */
+// quest.html is a standalone vanilla page with its own tiny layer. It is checked by reading and
+// by RUNNING that layer in isolation — the page itself is driven by quest-ux-guard, in a real
+// browser, and this guard does not duplicate that.
+function partF() {
+  console.log('\n=== F. THE TREASURE JOURNEY (quest.html) ===');
+  const q = fs.readFileSync(path.join(REPO, 'quest.html'), 'utf8');
+
+  ok('the journey reads the language the app stored', /localStorage\.getItem\('ezik_ui_lang_v1'\)/.test(q));
+  // Measured with the prose stripped: the comment above the boot script EXPLAINS this rule by
+  // naming navigator.language, and a scanner reads its own explanation as a use of it.
+  const qCode = q.replace(/<!--[\s\S]*?-->/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+  ok('...and does NOT read the device — it is proved in a real browser, which reports a real locale',
+    !/navigator\s*\.\s*languages?/.test(qCode));
+  ok('...and writes nothing: the choice belongs to the app',
+    !/localStorage\.setItem\('ezik_ui_lang_v1'/.test(q));
+  ok('the boot script sets lang, dir and the data attribute before the first paint',
+    /d\.setAttribute\('lang',v\);d\.setAttribute\('dir',v==='ar'\?'rtl':'ltr'\);d\.setAttribute\('data-ez-lang',v\);/.test(q));
+  ok('...inside <head>', q.indexOf("localStorage.getItem('ezik_ui_lang_v1')") < q.indexOf('</head>'));
+  ok('...and the THEME boot still runs before it',
+    q.indexOf("localStorage.getItem('murabbi_theme_v1')") < q.indexOf("localStorage.getItem('ezik_ui_lang_v1')"));
+  ok('an unrecognised stored value falls back to ar rather than breaking the page',
+    /if\(v!=='ar'&&v!=='en'\)\{v='ar';\}/.test(q));
+
+  // The layer, run on its own. It declares no DOM dependency, so it needs no browser.
+  const core = q.slice(q.indexOf('var QUEST_I18N = {'), q.indexOf('\r\n  }\r\n', q.indexOf('function qT(')) + 6);
+  const sandbox = { localStorage: { getItem: () => 'en' }, Object, String, RegExp, JSON };
+  vm.runInContext(core, vm.createContext(sandbox), { filename: 'quest-i18n.js' });
+  const D = sandbox.QUEST_I18N || {};
+  eq('the journey declares exactly ar and en', Object.keys(D).sort(), ['ar', 'en']);
+  const qa = Object.keys(D.ar || {}), qe = Object.keys(D.en || {});
+  ok('...with keys', qa.length > 0);
+  eq('...and the two halves hold the same keys', qa.filter((k) => qe.indexOf(k) === -1).concat(qe.filter((k) => qa.indexOf(k) === -1)), []);
+  eq('...no empty value on either side',
+    qa.filter((k) => !String(D.ar[k]).trim() || !String(D.en[k]).trim()), []);
+  const ph = (v) => (String(v).match(/\{[A-Za-z0-9_]+\}/g) || []).slice().sort();
+  eq('...and every {placeholder} appears on both sides', qa.filter((k) => JSON.stringify(ph(D.ar[k])) !== JSON.stringify(ph(D.en[k]))), []);
+  // Counted per HALF. Both halves declare the same keys by design, so counting across the whole
+  // block would report every key as its own duplicate.
+  const dup = (s) => { const l = (s.match(/^    '([^']+)':/gm) || []); return l.filter((x, i) => l.indexOf(x) !== i); };
+  const qEnAt = core.indexOf('    en: {');
+  eq('...and no key is declared twice in the ar half', dup(core.slice(0, qEnAt)), []);
+  eq('...nor in the en half', dup(core.slice(qEnAt)), []);
+
+  eq('the lookup substitutes a placeholder', sandbox.qT('quest.review', { n: '3' }).indexOf('3') !== -1, true);
+  eq('...leaves an unsupplied one as authored', sandbox.qT('quest.review').indexOf('undefined'), -1);
+  eq('...and never returns a raw key', sandbox.qT('no.such.key'), '');
+  eq('...and is running in the language that was stored', sandbox.QUEST_LANG, 'en');
+
+  // The bank, and everything else the journey must not have touched.
+  ok('every control the round guard drives is routed through the lookup',
+    ['quest.next', 'quest.result', 'quest.again', 'quest.review', 'quest.exit',
+      'quest.prev', 'quest.backToResult'].every((k) => qa.indexOf(k) !== -1));
+  ok('...and not one question, option, answer or reward rule is in the dictionary',
+    qa.every((k) => k.indexOf('quest.') === 0) && qa.length < 30);
+  ok('the bank is still loaded from the shipped <script id="bank"> block',
+    /<script id="bank" type="application\/json">/.test(q));
+  ok('...and the journey added no dependency and no new script tag',
+    (q.match(/<script[^>]*src=/gi) || []).length === 0);
+}
+
 /* ===================== main ============================================== */
 (async function main() {
   console.log('=== i18n-ui-guard (S116) — ' + htmlFile + ' ===');
@@ -576,6 +652,7 @@ async function partE() {
   await partC();
   await partD();
   await partE();
+  partF();
   console.log('');
   if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed' + (skipped ? ('  (' + skipped + ' skipped)') : '') + '.');
   else console.log('FAILED: ' + failures + ' of ' + checks + ' checks failed.');
