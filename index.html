@@ -1178,10 +1178,58 @@ function ezLangSet(v) {
   EZ_LANG = v;
   try { localStorage.setItem(EZ_LANG_KEY, v); } catch (e) {}
   ezLangApply(v);
+  ezLangRelabel();
   EZ_LANG_SUBS.forEach((f) => { try { f(v); } catch (e) {} });
 }
 
 function ezLangGet() { return EZ_LANG; }
+
+// S116 -- THE RE-BINDER. A handful of labels are read by the screens as bare identifiers,
+// because guards pin them at their JSX sites in exactly that form. Those identifiers are
+// therefore `let`, and this rebinds every one of them the moment the language changes --
+// before React is told, so the re-render that follows already reads the new words. Nothing
+// here touches a prompt, a store, a key, a handler or a screen.
+function ezLangRelabel() {
+  try {
+    EZH_SALAM = ezT("home.salam");
+    EZH_HELLO = ezT("home.hello");
+    EZH_ACCOUNT = ezT("navigation.account");
+    EZH_NAV_HOME = ezT("navigation.home");
+    EZH_NAV_SET = ezT("navigation.settings");
+    EZH_MEMORIZE = ezT("module.memorize");
+    EZH_ADHKAR = ezT("module.adhkar");
+    EZH_MUSHAF = ezT("module.mushaf");
+    EZH_TREASURE = ezT("module.treasure");
+    EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
+    EZIST_SUB_ADHKAR = ezT("module.adhkar.sub");
+    EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");
+    EZIST_SUB_TREASURE = ezT("module.treasure.sub");
+    EZIST_ASK_TITLE = ezT("home.askTitle");
+    EZIST_ASK_SUB = ezT("home.askSub");
+    EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
+    A2_BACK = ezT("common.back");
+    EZIK_FAV_TITLE = ezT("favorites.title");
+    EZIK_FAV_HEADING = ezT("favorites.heading");
+    EZIK_FAV_ADD = ezT("favorites.add");
+    EZIK_FAV_DEL = ezT("favorites.remove");
+    EZIK_FAV_REMOVE = ezT("common.remove");
+    EZIK_FAV_OPEN_CHAT = ezT("favorites.openChat");
+    EZIK_FAV_CHAT_GONE = ezT("favorites.chatGone");
+    EZIK_BACK = ezT("common.backArrow");
+    EZIK_SEARCH_PH = ezT("chat.searchPlaceholder");
+    EZIK_SEARCH_ARIA = ezT("chat.searchAria");
+    EZIK_SEARCH_RESULTS = ezT("chat.searchResults");
+    EZIK_SEARCH_NONE = ezT("common.noMatches");
+    EZIK_FAV_SEARCH_PH = ezT("favorites.searchPlaceholder");
+    EZIK_FAV_SEARCH_ARIA = ezT("favorites.searchAria");
+    EZIK_CHATS_EMPTY = ezT("chat.noConversations");
+    EZIK_QUOTE_ARIA = ezT("chat.quoteAria");
+    for (let i = 0; i < EZIK_QUICK_ACTIONS.length; i++) {
+      EZIK_QUICK_ACTIONS[i] = { ...EZIK_QUICK_ACTIONS[i], label: ezT('chat.qa.' + EZIK_QUICK_ACTIONS[i].key) };
+    }
+  } catch (e) {}
+}
+
 
 // Subscribing in App() is what makes the switch instant: App owns the whole tree, so one
 // state change there redraws every screen without a reload and without a route change.
@@ -1215,10 +1263,9 @@ const EZ_I18N = {
     'common.copied': 'تم النسخ',
     'common.copyFailed': 'تعذّر النسخ',
     'common.of': '{a} من {b}',
-    'navigation.home': 'الرئيسية',
-    'navigation.settings': 'الإعدادات',
-    'navigation.account': 'الحساب',
-    'navigation.openMenu': 'فتح القائمة الجانبية',
+    'navigation.home': '\u{0627}\u{0644}\u{0631}\u{0626}\u{064A}\u{0633}\u{064A}\u{0629}',
+    'navigation.settings': '\u{0627}\u{0644}\u{0625}\u{0639}\u{062F}\u{0627}\u{062F}\u{0627}\u{062A}',
+    'navigation.account': '\u{0627}\u{0644}\u{062D}\u{0633}\u{0627}\u{0628}',
     'language.label': 'اللغة',
     'language.ar': 'العربية',
     'language.en': 'English',
@@ -1227,7 +1274,7 @@ const EZ_I18N = {
     'language.chooseHint': 'يُحفظ على هذا الجهاز',
     'settings.language': 'اللغة',
     'settings.savedOnDevice': 'يُحفظ على هذا الجهاز',
-    'chat.newConversation': 'محادثة جديدة',
+    'chat.newConversation': '\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629',
     'chat.send': 'إرسال',
     'chat.stop': 'إيقاف',
     'chat.placeholder': 'اكتب سؤالك…',
@@ -1237,12 +1284,46 @@ const EZ_I18N = {
     'chat.listen': 'استمع للرد',
     'chat.stopAudio': 'إيقاف الصوت',
     'chat.report': 'بلّغ عن هذا الردّ',
-    'chat.noConversations': 'لا توجد محادثات',
+    'chat.noConversations': 'لا شيء محفوظٌ بعد — أول سؤالٍ تكتبه يُحفَظ هنا.',
     'favorites.empty': 'لا توجد مفضلة',
     'errors.network': 'تعذّر الاتصال',
     'errors.timeout': 'انتهت المهلة',
     'errors.generic': 'حدث خطأ، حاول مرة أخرى',
     'errors.saveFailed': 'تعذّر حفظ الإعداد',
+    'home.salam': '\u{0627}\u{0644}\u{0633}\u{0644}\u{0627}\u{0645} \u{0639}\u{0644}\u{064A}\u{0643}\u{0645}',
+    'home.hello': '\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}\u{064B} \u{064A}\u{0627}',
+    'module.memorize': '\u{0627}\u{0644}\u{0645}\u{062D}\u{0641}\u{0651}\u{0638}',
+    'module.adhkar': '\u{0627}\u{0644}\u{0623}\u{0630}\u{0643}\u{0627}\u{0631}',
+    'module.mushaf': '\u{0627}\u{0644}\u{0645}\u{0635}\u{062D}\u{0641}',
+    'module.treasure': '\u{0631}\u{062D}\u{0644}\u{0629}\u{064F} \u{0627}\u{0644}\u{0643}\u{0646}\u{0648}\u{0632}',
+    'module.memorize.sub': '\u{0627}\u{062D}\u{0641}\u{0638} \u{0648}\u{0631}\u{0627}\u{062C}\u{0639}',
+    'module.adhkar.sub': '\u{0623}\u{0630}\u{0643}\u{0627}\u{0631} \u{0627}\u{0644}\u{0635}\u{0628}\u{0627}\u{062D} \u{0648}\u{0627}\u{0644}\u{0645}\u{0633}\u{0627}\u{0621}',
+    'module.mushaf.sub': '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}',
+    'module.treasure.sub': '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}',
+    'home.askTitle': '\u{0627}\u{0633}\u{0623}\u{0644} \u{0639}\u{0632}\u{0643}',
+    'home.askSub': '\u{0645}\u{062D}\u{0627}\u{062F}\u{062B}\u{0629} \u{062C}\u{062F}\u{064A}\u{062F}\u{0629}',
+    'favorites.title': 'المفضلة',
+    'favorites.heading': 'الردود المفضلة',
+    'favorites.add': 'أضف إلى المفضلة',
+    'favorites.remove': 'إزالة من المفضلة',
+    'common.remove': 'إزالة',
+    'favorites.openChat': 'افتح المحادثة الأصلية',
+    'favorites.chatGone': 'المحادثة الأصلية محذوفة',
+    'chat.searchPlaceholder': 'ابحث في محادثاتك',
+    'chat.searchAria': 'ابحث في محادثاتك المحفوظة على هذا الجهاز',
+    'chat.searchResults': 'نتائج البحث',
+    'common.noMatches': 'لا توجد نتائج مطابقة',
+    'favorites.searchPlaceholder': 'ابحث في المفضلة',
+    'favorites.searchAria': 'ابحث في الردود المفضلة',
+    'chat.quoteAria': 'اقتباس الرد في خانة الكتابة',
+    'chat.foldShow': 'عرض بقية الرد',
+    'chat.foldHide': 'إخفاء التفاصيل',
+    'chat.qa.simplify': 'بسّط',
+    'chat.qa.example': 'مثال',
+    'chat.qa.quiz': 'اختبرني',
+    'chat.qa.shorten': 'اختصر',
+    'chat.qa.continue': 'كمّل',
+    'navigation.menu': '\u0627\u0644\u0642\u0627\u0626\u0645\u0629',
   },
   en: {
     'common.close': 'Close',
@@ -1250,7 +1331,7 @@ const EZ_I18N = {
     'common.confirm': 'Confirm',
     'common.save': 'Save',
     'common.back': 'Back',
-    'common.backArrow': '← Back',
+    'common.backArrow': 'Back',
     'common.search': 'Search',
     'common.noResults': 'No results',
     'common.loading': 'Loading…',
@@ -1263,7 +1344,6 @@ const EZ_I18N = {
     'navigation.home': 'Home',
     'navigation.settings': 'Settings',
     'navigation.account': 'Account',
-    'navigation.openMenu': 'Open the side menu',
     'language.label': 'Language',
     'language.ar': 'العربية',
     'language.en': 'English',
@@ -1282,12 +1362,46 @@ const EZ_I18N = {
     'chat.listen': 'Listen to the reply',
     'chat.stopAudio': 'Stop the audio',
     'chat.report': 'Report this reply',
-    'chat.noConversations': 'No conversations',
+    'chat.noConversations': 'Nothing is saved yet — the first question you write is kept here.',
     'favorites.empty': 'No favourites',
     'errors.network': 'Could not connect',
     'errors.timeout': 'The request timed out',
     'errors.generic': 'Something went wrong, please try again',
     'errors.saveFailed': 'Could not save the setting',
+    'home.salam': 'Peace be upon you',
+    'home.hello': 'Welcome,',
+    'module.memorize': 'Memoriser',
+    'module.adhkar': 'Adhkar',
+    'module.mushaf': 'Mushaf',
+    'module.treasure': 'Treasure journey',
+    'module.memorize.sub': 'Memorise and review',
+    'module.adhkar.sub': 'Morning and evening adhkar',
+    'module.mushaf.sub': 'Read, and keep your wird',
+    'module.treasure.sub': 'Learn through play',
+    'home.askTitle': 'Ask Ezik',
+    'home.askSub': 'A new conversation',
+    'favorites.title': 'Favourites',
+    'favorites.heading': 'Saved replies',
+    'favorites.add': 'Add to favourites',
+    'favorites.remove': 'Remove from favourites',
+    'common.remove': 'Remove',
+    'favorites.openChat': 'Open the original conversation',
+    'favorites.chatGone': 'The original conversation was deleted',
+    'chat.searchPlaceholder': 'Search your conversations',
+    'chat.searchAria': 'Search the conversations saved on this device',
+    'chat.searchResults': 'Search results',
+    'common.noMatches': 'No matching results',
+    'favorites.searchPlaceholder': 'Search the favourites',
+    'favorites.searchAria': 'Search the saved replies',
+    'chat.quoteAria': 'Quote the reply in the composer',
+    'chat.foldShow': 'Show the rest of the reply',
+    'chat.foldHide': 'Hide the details',
+    'chat.qa.simplify': 'Simplify',
+    'chat.qa.example': 'Example',
+    'chat.qa.quiz': 'Quiz me',
+    'chat.qa.shorten': 'Shorten',
+    'chat.qa.continue': 'Continue',
+    'navigation.menu': 'Menu',
   },
 };
 
@@ -3845,16 +3959,16 @@ const getHomeGreeting = () => {
 // bidirectional literal. Every one of them is a label the home screen ALREADY showed, code
 // point for code point. No devotional text is authored, moved or read here. (S87 removed
 // EZH_QUICK with the duplicated quick-access row it titled -- it has no other reader.)
-const EZH_SALAM    = '\u{0627}\u{0644}\u{0633}\u{0644}\u{0627}\u{0645} \u{0639}\u{0644}\u{064A}\u{0643}\u{0645}';   // "peace be upon you"
-const EZH_HELLO    = '\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}\u{064B} \u{064A}\u{0627}';                            // "welcome, O"
-const EZH_ACCOUNT  = '\u{0627}\u{0644}\u{062D}\u{0633}\u{0627}\u{0628}';                                             // "the account"
-const EZH_NAV_HOME = '\u{0627}\u{0644}\u{0631}\u{0626}\u{064A}\u{0633}\u{064A}\u{0629}';                             // "home"
-const EZH_NAV_SET  = '\u{0627}\u{0644}\u{0625}\u{0639}\u{062F}\u{0627}\u{062F}\u{0627}\u{062A}';                     // "settings"
+let EZH_SALAM = ezT("home.salam");   // "peace be upon you"
+let EZH_HELLO = ezT("home.hello");                            // "welcome, O"
+let EZH_ACCOUNT = ezT("navigation.account");                                             // "the account"
+let EZH_NAV_HOME = ezT("navigation.home");                             // "home"
+let EZH_NAV_SET = ezT("navigation.settings");                     // "settings"
 const EZH_BRAND    = '\u{0639}\u{0632}\u{0643}';                                                                     // the app's own name
-const EZH_MEMORIZE = '\u{0627}\u{0644}\u{0645}\u{062D}\u{0641}\u{0651}\u{0638}';                                     // "the memorizer"
-const EZH_ADHKAR   = '\u{0627}\u{0644}\u{0623}\u{0630}\u{0643}\u{0627}\u{0631}';                                     // "the adhkar"
-const EZH_MUSHAF   = '\u{0627}\u{0644}\u{0645}\u{0635}\u{062D}\u{0641}';                                             // "the mushaf"
-const EZH_TREASURE = '\u{0631}\u{062D}\u{0644}\u{0629}\u{064F} \u{0627}\u{0644}\u{0643}\u{0646}\u{0648}\u{0632}';     // "the treasure journey"
+let EZH_MEMORIZE = ezT("module.memorize");                                     // "the memorizer"
+let EZH_ADHKAR = ezT("module.adhkar");                                     // "the adhkar"
+let EZH_MUSHAF = ezT("module.mushaf");                                             // "the mushaf"
+let EZH_TREASURE = ezT("module.treasure");     // "the treasure journey"
 
 // THE REAL MODULE ICONS. Every path below is the path the home screen already drew, moved here
 // unchanged and re-stroked in currentColor so it can sit on a soft chip instead of inside a
@@ -3934,13 +4048,13 @@ function ezHomeModules(v) {
 // THE FOUR STRINGS BELOW are the only new chrome: one short descriptive line per module, so no
 // card is a large empty box with an icon in it. None of them is devotional text, none is read
 // from adhkar.json or the mushaf, and not one of them claims a number about the reader.
-const EZIST_SUB_MEMORIZE = '\u{0627}\u{062D}\u{0641}\u{0638} \u{0648}\u{0631}\u{0627}\u{062C}\u{0639}';                                   // "memorise and review"
-const EZIST_SUB_ADHKAR   = '\u{0623}\u{0630}\u{0643}\u{0627}\u{0631} \u{0627}\u{0644}\u{0635}\u{0628}\u{0627}\u{062D} \u{0648}\u{0627}\u{0644}\u{0645}\u{0633}\u{0627}\u{0621}'; // "morning and evening adhkar"
-const EZIST_SUB_MUSHAF   = '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}';   // "read, and follow your wird"
-const EZIST_SUB_TREASURE = '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}';                     // "learn through play"
-const EZIST_ASK_TITLE    = '\u{0627}\u{0633}\u{0623}\u{0644} \u{0639}\u{0632}\u{0643}';                                                   // "ask Ezik"
-const EZIST_ASK_SUB      = '\u{0645}\u{062D}\u{0627}\u{062F}\u{062B}\u{0629} \u{062C}\u{062F}\u{064A}\u{062F}\u{0629}';                   // "a new conversation"
-const EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
+let EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");                                   // "memorise and review"
+let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
+let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
+let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
+let EZIST_ASK_TITLE = ezT("home.askTitle");                                                   // "ask Ezik"
+let EZIST_ASK_SUB = ezT("home.askSub");                   // "a new conversation"
+let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
 
 // THE TOP NAVIGATION. A real bounded bar, not the bottom dock moved upward: it is sticky, it
 // carries the safe-area inset, its inner row is centred at a maximum width so it never runs
@@ -4180,7 +4294,7 @@ const ADHKAR_UI_V2_ON = readAdhkarUiFlag();
 // content: the V2 header names the screen for the du'a it opens onto.
 const A2_BRAND  = 'عزك';
 const A2_TITLE  = 'الأدعية';
-const A2_BACK   = 'رجوع';
+let A2_BACK = ezT("common.back");
 const A2_SEARCH = 'ابحث عن ذكر';
 const A2_EMPTY  = 'لا نتائج';
 const A2_SOURCE = 'حصن المسلم';
@@ -5557,24 +5671,24 @@ function ezikClearAllFavs() { try { localStorage.removeItem(EZIK_FAVS_KEY); } ca
 
 // The labels, in one block, referenced through JS expressions rather than written into quoted JSX
 // attributes — the convention SettingsSheet already follows for the same reason.
-const EZIK_FAV_TITLE = 'المفضلة';
-const EZIK_FAV_HEADING = 'الردود المفضلة';
-const EZIK_FAV_ADD = 'أضف إلى المفضلة';
-const EZIK_FAV_DEL = 'إزالة من المفضلة';
-const EZIK_FAV_REMOVE = 'إزالة';
-const EZIK_FAV_OPEN_CHAT = 'افتح المحادثة الأصلية';
-const EZIK_FAV_CHAT_GONE = 'المحادثة الأصلية محذوفة';
+let EZIK_FAV_TITLE = ezT("favorites.title");
+let EZIK_FAV_HEADING = ezT("favorites.heading");
+let EZIK_FAV_ADD = ezT("favorites.add");
+let EZIK_FAV_DEL = ezT("favorites.remove");
+let EZIK_FAV_REMOVE = ezT("common.remove");
+let EZIK_FAV_OPEN_CHAT = ezT("favorites.openChat");
+let EZIK_FAV_CHAT_GONE = ezT("favorites.chatGone");
 const EZIK_FAV_EMPTY = 'لا توجد ردود محفوظة بعد. اضغط النجمة تحت أي رد لتحفظه هنا.';
-const EZIK_BACK = '← رجوع';
-const EZIK_SEARCH_PH = 'ابحث في محادثاتك';
-const EZIK_SEARCH_ARIA = 'ابحث في محادثاتك المحفوظة على هذا الجهاز';
-const EZIK_SEARCH_RESULTS = 'نتائج البحث';
-const EZIK_SEARCH_NONE = 'لا توجد نتائج مطابقة';
-const EZIK_FAV_SEARCH_PH = 'ابحث في المفضلة';
-const EZIK_FAV_SEARCH_ARIA = 'ابحث في الردود المفضلة';
+let EZIK_BACK = ezT("common.backArrow");
+let EZIK_SEARCH_PH = ezT("chat.searchPlaceholder");
+let EZIK_SEARCH_ARIA = ezT("chat.searchAria");
+let EZIK_SEARCH_RESULTS = ezT("chat.searchResults");
+let EZIK_SEARCH_NONE = ezT("common.noMatches");
+let EZIK_FAV_SEARCH_PH = ezT("favorites.searchPlaceholder");
+let EZIK_FAV_SEARCH_ARIA = ezT("favorites.searchAria");
 // S112: what the menu says when this profile has saved nothing yet. It is a STATEMENT about the
 // store, drawn where the list would be; it reads nothing, writes nothing and offers no action.
-const EZIK_CHATS_EMPTY = 'لا شيء محفوظٌ بعد — أول سؤالٍ تكتبه يُحفَظ هنا.';
+let EZIK_CHATS_EMPTY = ezT("chat.noConversations");
 
 // The saved date, rendered from the record's own timestamp. Arabic-Kuwait with a Gregorian
 // calendar, and a record whose `at` was lost simply shows no date rather than 1970.
@@ -8319,7 +8433,7 @@ function App() {
             are laid out IN the scroller, above the end sentinel, so they scroll with the thread
             and can never cover the composer or the tool row. */}
         {quickActionsVisible && (
-          <div style={s.quickRow} role="group" aria-label="إجراءات سريعة على آخر رد">
+          <div style={s.quickRow} role="group" aria-label={ezT("chat.quickActions")}>
             {EZIK_QUICK_ACTIONS.map((qa) => (
               <button
                 key={qa.key}
@@ -8383,7 +8497,7 @@ function App() {
               <span style={{ color: 'var(--muted)', fontSize: 12 }}>{pendingImage.kind === 'pdf' ? 'PDF' : 'نصّ'}</span>
             </span>
           )}
-          <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: 'var(--red-lift)', fontSize: 18, cursor: 'pointer' }} aria-label="إزالة الصورة">×</button>
+          <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: 'var(--red-lift)', fontSize: 18, cursor: 'pointer' }} aria-label={ezT("chat.removeImage")}>×</button>
         </div>
       )}
       <div style={s.inputBar}>
@@ -8554,7 +8668,7 @@ function App() {
                   <line x1="12" y1="8" x2="12" y2="14" />
                   <line x1="9" y1="11" x2="15" y2="11" />
                 </svg>
-                <span>{'\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629'}</span>
+                <span>{ezT('chat.newConversation') || '\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629'}</span>
               </button>
               <button onClick={() => closeDrawerWith(() => setScreen('home'))} style={s.drawerItem}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -8562,7 +8676,7 @@ function App() {
                   <line x1="3" y1="12" x2="21" y2="12" />
                   <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
-                <span>{'\u0627\u0644\u0642\u0627\u0626\u0645\u0629'}</span>
+                <span>{ezT('navigation.menu') || '\u0627\u0644\u0642\u0627\u0626\u0645\u0629'}</span>
               </button>
               {/* S98: \u00ab\u0627\u0644\u0645\u0641\u0636\u0644\u0629\u00bb. The count comes from state that was read once at mount, so
                   opening the menu reads no store and parses no JSON. */}
@@ -8832,8 +8946,8 @@ const EZIK_FOLD_MIN_CHARS = 900;    // total prose length past which a completed
 const EZIK_FOLD_HEAD_CHARS = 320;   // prose shown while it is folded
 // One pair of labels for the two places a reply folds — the chat bubble and the favourites card —
 // so the two can never drift into saying different things about the same control.
-const EZIK_FOLD_SHOW = 'عرض بقية الرد';
-const EZIK_FOLD_HIDE = 'إخفاء التفاصيل';
+const EZIK_FOLD_SHOW = 'chat.foldShow';   // a translation KEY now, read through ezT()
+const EZIK_FOLD_HIDE = 'chat.foldHide';   // a translation KEY now, read through ezT()
 
 function ezikProseLength(segments) {
   let n = 0;
@@ -8893,12 +9007,12 @@ function ezikFoldSegments(segments, minChars, headChars) {
 // sentence below is handed to the SAME sendMessage the composer calls, and from that point the
 // turn is indistinguishable from one the child typed. No endpoint, no flag, no depth change, no
 // second send path — which is why nothing about the model choice or the sourcing policy moves.
-const EZIK_QUICK_ACTIONS = [
-  { key: 'simplify', label: 'بسّط',    prompt: 'بسّط لي الإجابة السابقة بكلمات أسهل، مع الحفاظ على المعنى والمصدر الشرعي إن وُجد.' },
-  { key: 'example',  label: 'مثال',    prompt: 'أعطني مثالًا واضحًا ومختصرًا على الإجابة السابقة.' },
-  { key: 'quiz',     label: 'اختبرني', prompt: 'اختبرني بسؤال واحد عن الإجابة السابقة، ولا تعرض الحل حتى أجيب.' },
-  { key: 'shorten',  label: 'اختصر',   prompt: 'اختصر الإجابة السابقة في نقاط قصيرة، مع إبقاء المصدر الشرعي الموثق إن وُجد.' },
-  { key: 'continue', label: 'كمّل',    prompt: 'كمّل الشرح من آخر نقطة، من دون إعادة ما سبق.' },
+let EZIK_QUICK_ACTIONS = [
+  { key: 'simplify', label: ezT('chat.qa.simplify'),    prompt: 'بسّط لي الإجابة السابقة بكلمات أسهل، مع الحفاظ على المعنى والمصدر الشرعي إن وُجد.' },
+  { key: 'example', label: ezT('chat.qa.example'),    prompt: 'أعطني مثالًا واضحًا ومختصرًا على الإجابة السابقة.' },
+  { key: 'quiz', label: ezT('chat.qa.quiz'), prompt: 'اختبرني بسؤال واحد عن الإجابة السابقة، ولا تعرض الحل حتى أجيب.' },
+  { key: 'shorten', label: ezT('chat.qa.shorten'),   prompt: 'اختصر الإجابة السابقة في نقاط قصيرة، مع إبقاء المصدر الشرعي الموثق إن وُجد.' },
+  { key: 'continue', label: ezT('chat.qa.continue'),    prompt: 'كمّل الشرح من آخر نقطة، من دون إعادة ما سبق.' },
 ];
 
 // A reply the CLIENT wrote to report its own failure is not something to offer «بسّط» under.
@@ -8924,7 +9038,7 @@ const ezikIsErrorReply = (t) => typeof t === 'string' && EZIK_ERROR_REPLIES.inde
 // leaves whatever the child had already typed exactly where it was.
 const EZIK_QUOTE_MAX = 500;
 const EZIK_QUOTE_LABEL = 'اقتباس';
-const EZIK_QUOTE_ARIA = 'اقتباس الرد في خانة الكتابة';
+let EZIK_QUOTE_ARIA = ezT("chat.quoteAria");
 function ezikBuildQuote(clean) {
   let t = String(clean == null ? '' : clean).replace(/\s+/g, ' ').trim();
   if (!t) return '';
@@ -9339,11 +9453,11 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
             type="button"
             onClick={() => setFoldOverride({ epoch: foldEpoch, open: !foldOpen })}
             aria-expanded={foldOpen ? 'true' : 'false'}
-            aria-label={foldOpen ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}
+            aria-label={ezT(foldOpen ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW)}
             className="ezik-focus"
             style={s.foldToggle}
           >
-            <span>{foldOpen ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}</span>
+            <span>{ezT(foldOpen ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW)}</span>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: foldOpen ? 'rotate(180deg)' : 'none' }}>
               <polyline points="6 9 12 15 18 9" />
             </svg>
@@ -9382,7 +9496,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
           </button>
         )}
         <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>
-        <button type="button" onClick={() => onReport && onReport(index)} aria-label="بلّغ عن هذا الردّ" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+        <button type="button" onClick={() => onReport && onReport(index)} aria-label={ezT("chat.report")} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
           <span>بلّغ</span>
         </button>
@@ -9429,11 +9543,11 @@ function FavoriteReplyBody({ segments, age, tashkeel }) {
           type="button"
           onClick={() => setOpen(!open)}
           aria-expanded={open ? 'true' : 'false'}
-          aria-label={open ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}
+          aria-label={ezT(open ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW)}
           className="ezik-focus"
           style={{ ...s.foldToggle, alignSelf: 'flex-start' }}
         >
-          <span>{open ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW}</span>
+          <span>{ezT(open ? EZIK_FOLD_HIDE : EZIK_FOLD_SHOW)}</span>
         </button>
       )}
     </div>
