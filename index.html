@@ -28,6 +28,17 @@
      user watches it resize. It reads the active profile's id from the profile the app already
      stores, touches nothing else, and every failure path leaves the defaults in place. -->
 <script>(function(){try{var p=null;try{p=JSON.parse(localStorage.getItem('child_profile')||'null');}catch(e){}var pk=(p&&typeof p.pid==='string'&&p.pid)?p.pid:'anon';var m=null;try{m=JSON.parse(localStorage.getItem('ezik_reading_prefs_v1')||'null');}catch(e){}var r=(m&&typeof m==='object'&&!Array.isArray(m))?m[pk]:null;if(!r||typeof r!=='object'){return;}var S={normal:1,large:1.14,xlarge:1.28};var f=(typeof r.fontSize==='string'&&S[r.fontSize])?r.fontSize:'normal';var d=document.documentElement;d.style.setProperty('--ez-fs',String(S[f]));d.setAttribute('data-ez-fs',f);if(r.reading===true){d.setAttribute('data-ez-read','1');}if(r.reduceMotion===true){d.setAttribute('data-ez-motion','reduce');}}catch(e){}})();</script>
+<!-- S116 UI LANGUAGE BOOT. Interface language only -- it never reaches the model, the answer,
+     the sources or any devotional text. Read before the first paint for the same reason the
+     theme is: <html lang/dir> decided after React mounts is a visible re-layout.
+     Resolution order, and it is the whole policy:
+       1. the user's own stored choice          -- once chosen, the device is never consulted again
+       2. the device/browser language, FIRST RUN -- ar / ar-* => ar, any OTHER reported tag => en
+       3. no tag reported at all                 -- ar, which is what this app has always rendered
+     Step 3 is not step 2's "other": a headless or degraded environment reports NO language,
+     which is not the same fact as a user whose device is French. Every real browser reports a
+     tag, so every real first run is decided by step 2 exactly as written. -->
+<script>(function(){try{var K='ezik_ui_lang_v1';var v=null;try{v=localStorage.getItem(K);}catch(e){}if(v!=='ar'&&v!=='en'){v=null;}if(!v){var n='';try{var g=(typeof navigator!=='undefined')?navigator:null;if(g){var L=g.languages;var tag=(L&&L.length)?L[0]:g.language;if(typeof tag==='string'){n=tag;}}}catch(e){}n=n.replace(/^\s+|\s+$/g,'');v=n?(/^ar([-_]|$)/i.test(n)?'ar':'en'):'ar';}var d=document.documentElement;d.setAttribute('lang',v);d.setAttribute('dir',v==='ar'?'rtl':'ltr');d.setAttribute('data-ez-lang',v);window.__ezUiLang=v;}catch(e){}})();</script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1012,6 +1023,35 @@
     #print-area tr,#print-area td,#print-area th{page-break-inside:avoid}
     #print-area{height:auto !important;overflow:visible !important}
   }
+  /* ---- S116 UI LANGUAGE. Additive, namespaced, and it declares no colour of its own:
+     every value below is a token the theme already publishes, so light and dark both work
+     by construction and theme 33 is not touched. Logical properties only, so the same rule
+     serves rtl and ltr without a second block. --------------------------------------- */
+  .ezlang-bar{display:flex;justify-content:flex-start;padding:2px 0 8px}
+  .ezlang-wrap{position:relative;display:inline-block}
+  .ezlang-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 13px;
+    border-radius:999px;border:1px solid var(--line);background:var(--tint);color:var(--ink);
+    font-family:var(--ez-ui-font);font-size:13px;font-weight:600;line-height:1.2;cursor:pointer}
+  .ezlang-btn:focus-visible{outline:2px solid var(--ez-focus);outline-offset:2px}
+  .ezlang-menu{position:absolute;inset-inline-start:0;top:calc(100% + 6px);z-index:40;
+    min-width:154px;padding:6px;border-radius:14px;border:1px solid var(--line);
+    background:var(--white);box-shadow:0 10px 26px rgba(0,0,0,0.16)}
+  .ezlang-item{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+    min-height:40px;padding:9px 12px;border-radius:10px;border:1px solid transparent;
+    background:transparent;color:var(--ink);font-family:var(--ez-ui-font);font-size:14px;
+    font-weight:600;text-align:start;cursor:pointer}
+  .ezlang-item[aria-selected="true"]{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+  .ezlang-item:focus-visible{outline:2px solid var(--ez-focus);outline-offset:-2px}
+  .ezlang-tick{font-size:13px;line-height:1}
+  /* The settings row. It borrows the shipped .themeOpt geometry through the style object, so
+     only the focus ring is declared here -- deliberately NOT .ez-a11y-opt, because that class
+     names the four reading-preference controls and a guard counts them. */
+  .ezlang-opt:focus-visible{outline:2px solid var(--ez-focus);outline-offset:2px}
+  /* The composer is the one control that pins its own writing direction inline, because the
+     app shipped Arabic-only. In English it has to follow the document instead. Scoped to the
+     English document and to that one element; nothing else in the file is reached. */
+  :root[data-ez-lang="en"] .ezc-dock textarea{direction:ltr}
+  @media (max-width:360px){.ezlang-menu{min-width:136px}}
 </style>
 </head>
 <body>
@@ -1069,6 +1109,286 @@ window.__ezikVendor = (function () {
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef } = React;
+
+// ============================================================
+// S116 -- THE INTERFACE LANGUAGE (ar / en). READ THIS BEFORE ADDING A KEY.
+//
+// This is an INTERFACE translation layer and nothing else. It does not reach the model, the
+// prompt, /api/ask, the retrieval path, the ledger, the sources, the voice tier, the Quran,
+// the adhkar, the question bank, or one stored byte of a user's own conversations. Ezik still
+// answers in the language it always answered in; that binding is a separate decision and is
+// deliberately NOT made here.
+//
+// No dependency, no fetch, no bundle. Two dictionaries, one lookup, one persisted choice.
+// A third language is added by declaring a third dictionary with the same keys and adding
+// its tag to EZ_LANGS -- nothing else in this block is language-specific.
+// ============================================================
+const EZ_LANG_KEY = 'ezik_ui_lang_v1';
+const EZ_LANGS = ['ar', 'en'];
+const EZ_LANG_FALLBACK = 'ar';   // used only when the environment reports no language at all
+const EZ_LANG_DIR = { ar: 'rtl', en: 'ltr' };
+
+function ezLangValid(v) { return EZ_LANGS.indexOf(v) !== -1; }
+
+// A BCP-47 tag to one of ours. Arabic is ar and every ar-* region; anything else that is a
+// real tag is English. An empty or non-string tag is NOT an answer -- it returns null so the
+// caller can tell "no signal" apart from "a language that is not Arabic".
+function ezLangFromTag(tag) {
+  const t = (typeof tag === 'string') ? tag.replace(/^\s+|\s+$/g, '') : '';
+  if (!t) return null;
+  return /^ar([-_]|$)/i.test(t) ? 'ar' : 'en';
+}
+
+function ezLangDevice() {
+  try {
+    const g = (typeof navigator !== 'undefined') ? navigator : null;
+    if (!g) return null;
+    const L = g.languages;
+    return ezLangFromTag((L && L.length) ? L[0] : g.language);
+  } catch (e) { return null; }
+}
+
+// The stored choice. Anything that is not exactly 'ar' or 'en' -- a truncated write, a value
+// from a future build, an object, a quota failure -- is not a choice and is ignored.
+function ezLangStored() {
+  try {
+    const v = localStorage.getItem(EZ_LANG_KEY);
+    return ezLangValid(v) ? v : null;
+  } catch (e) { return null; }
+}
+
+function ezLangResolve() { return ezLangStored() || ezLangDevice() || EZ_LANG_FALLBACK; }
+
+let EZ_LANG = ezLangResolve();
+const EZ_LANG_SUBS = new Set();
+
+function ezLangApply(v) {
+  try {
+    const d = document.documentElement;
+    d.setAttribute('lang', v);
+    d.setAttribute('dir', EZ_LANG_DIR[v] || 'ltr');
+    d.setAttribute('data-ez-lang', v);
+  } catch (e) {}
+}
+
+// The one writer. It persists, repaints <html>, and tells every subscriber -- in that order,
+// so a listener that reads the document sees the new direction and not the old one.
+function ezLangSet(v) {
+  if (!ezLangValid(v) || v === EZ_LANG) return;
+  EZ_LANG = v;
+  try { localStorage.setItem(EZ_LANG_KEY, v); } catch (e) {}
+  ezLangApply(v);
+  EZ_LANG_SUBS.forEach((f) => { try { f(v); } catch (e) {} });
+}
+
+function ezLangGet() { return EZ_LANG; }
+
+// Subscribing in App() is what makes the switch instant: App owns the whole tree, so one
+// state change there redraws every screen without a reload and without a route change.
+function useEzLang() {
+  const [v, setV] = useState(EZ_LANG);
+  useEffect(() => {
+    const f = (n) => setV(n);
+    EZ_LANG_SUBS.add(f);
+    if (EZ_LANG !== v) setV(EZ_LANG);
+    return () => { EZ_LANG_SUBS.delete(f); };
+  }, []);
+  return v;
+}
+
+// ---- THE DICTIONARIES. Same keys, same order, in both. Plain text only: no markup lives in
+// here and no translated string is ever handed to innerHTML. ---------------------------
+const EZ_I18N = {
+  ar: {
+    'common.close': 'إغلاق',
+    'common.cancel': 'إلغاء',
+    'common.confirm': 'تأكيد',
+    'common.save': 'حفظ',
+    'common.back': 'رجوع',
+    'common.backArrow': '← رجوع',
+    'common.search': 'بحث',
+    'common.noResults': 'لا توجد نتائج',
+    'common.loading': 'جارٍ التحميل…',
+    'common.retry': 'إعادة المحاولة',
+    'common.delete': 'حذف',
+    'common.copy': 'نسخ',
+    'common.copied': 'تم النسخ',
+    'common.copyFailed': 'تعذّر النسخ',
+    'common.of': '{a} من {b}',
+    'navigation.home': 'الرئيسية',
+    'navigation.settings': 'الإعدادات',
+    'navigation.account': 'الحساب',
+    'navigation.openMenu': 'فتح القائمة الجانبية',
+    'language.label': 'اللغة',
+    'language.ar': 'العربية',
+    'language.en': 'English',
+    'language.change': 'تغيير لغة الواجهة',
+    'language.current': 'اللغة الحالية: {lang}',
+    'language.chooseHint': 'يُحفظ على هذا الجهاز',
+    'settings.language': 'اللغة',
+    'settings.savedOnDevice': 'يُحفظ على هذا الجهاز',
+    'chat.newConversation': 'محادثة جديدة',
+    'chat.send': 'إرسال',
+    'chat.stop': 'إيقاف',
+    'chat.placeholder': 'اكتب سؤالك…',
+    'chat.searchingSources': 'يبحث في المصادر…',
+    'chat.quickActions': 'إجراءات سريعة على آخر رد',
+    'chat.removeImage': 'إزالة الصورة',
+    'chat.listen': 'استمع للرد',
+    'chat.stopAudio': 'إيقاف الصوت',
+    'chat.report': 'بلّغ عن هذا الردّ',
+    'chat.noConversations': 'لا توجد محادثات',
+    'favorites.empty': 'لا توجد مفضلة',
+    'errors.network': 'تعذّر الاتصال',
+    'errors.timeout': 'انتهت المهلة',
+    'errors.generic': 'حدث خطأ، حاول مرة أخرى',
+    'errors.saveFailed': 'تعذّر حفظ الإعداد',
+  },
+  en: {
+    'common.close': 'Close',
+    'common.cancel': 'Cancel',
+    'common.confirm': 'Confirm',
+    'common.save': 'Save',
+    'common.back': 'Back',
+    'common.backArrow': '← Back',
+    'common.search': 'Search',
+    'common.noResults': 'No results',
+    'common.loading': 'Loading…',
+    'common.retry': 'Try again',
+    'common.delete': 'Delete',
+    'common.copy': 'Copy',
+    'common.copied': 'Copied',
+    'common.copyFailed': 'Could not copy',
+    'common.of': '{a} of {b}',
+    'navigation.home': 'Home',
+    'navigation.settings': 'Settings',
+    'navigation.account': 'Account',
+    'navigation.openMenu': 'Open the side menu',
+    'language.label': 'Language',
+    'language.ar': 'العربية',
+    'language.en': 'English',
+    'language.change': 'Change the interface language',
+    'language.current': 'Current language: {lang}',
+    'language.chooseHint': 'Saved on this device',
+    'settings.language': 'Language',
+    'settings.savedOnDevice': 'Saved on this device',
+    'chat.newConversation': 'New conversation',
+    'chat.send': 'Send',
+    'chat.stop': 'Stop',
+    'chat.placeholder': 'Type your question…',
+    'chat.searchingSources': 'Searching the sources…',
+    'chat.quickActions': 'Quick actions on the latest reply',
+    'chat.removeImage': 'Remove the image',
+    'chat.listen': 'Listen to the reply',
+    'chat.stopAudio': 'Stop the audio',
+    'chat.report': 'Report this reply',
+    'chat.noConversations': 'No conversations',
+    'favorites.empty': 'No favourites',
+    'errors.network': 'Could not connect',
+    'errors.timeout': 'The request timed out',
+    'errors.generic': 'Something went wrong, please try again',
+    'errors.saveFailed': 'Could not save the setting',
+  },
+};
+
+// THE LOOKUP. {name} placeholders are substituted from the vars argument; one with no matching
+// variable is left exactly as authored rather than becoming the string "undefined". A key that
+// is missing from the active dictionary falls back to Arabic, and a key missing from BOTH
+// returns empty -- a raw key is a developer's problem and must never reach a reader's screen.
+function ezT(key, vars) {
+  const k = String(key);
+  const active = EZ_I18N[EZ_LANG];
+  let out = (active && Object.prototype.hasOwnProperty.call(active, k)) ? active[k] : null;
+  if (out == null) {
+    const base = EZ_I18N[EZ_LANG_FALLBACK];
+    out = (base && Object.prototype.hasOwnProperty.call(base, k)) ? base[k] : null;
+  }
+  if (typeof out !== 'string') return '';
+  if (!vars) return out;
+  return out.replace(/\{([A-Za-z0-9_]+)\}/g, (m, name) =>
+    (Object.prototype.hasOwnProperty.call(vars, name) && vars[name] != null) ? String(vars[name]) : m);
+}
+
+// The globe. One bounded glyph, no text inside it, and it is decorative -- the button carries
+// the accessible name.
+const EZ_LANG_GLOBE = (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18" />
+    <path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z" />
+  </svg>
+);
+
+// THE LANGUAGE CONTROL. A button and a two-item menu -- not a modal, not a dialog, and it
+// traps nothing: Tab keeps walking the page, Escape closes, a press outside closes, and both
+// items are real buttons so Enter and Space already work. type="button" is load-bearing: this
+// control is rendered on a screen that also holds a composer, and a default submit would post it.
+function EzLangControl() {
+  const lang = useEzLang();
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const btnRef = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        try { if (btnRef.current) btnRef.current.focus(); } catch (err) {}
+      }
+    };
+    const onDown = (e) => {
+      const w = wrapRef.current;
+      if (w && e.target && typeof w.contains === 'function' && !w.contains(e.target)) setOpen(false);
+    };
+    try {
+      document.addEventListener('keydown', onKey);
+      document.addEventListener('mousedown', onDown);
+    } catch (err) {}
+    return () => {
+      try {
+        document.removeEventListener('keydown', onKey);
+        document.removeEventListener('mousedown', onDown);
+      } catch (err) {}
+    };
+  }, [open]);
+  const pick = (v) => { ezLangSet(v); setOpen(false); };
+  return (
+    <div className="ezlang-wrap" ref={wrapRef}>
+      <button
+        type="button"
+        ref={btnRef}
+        className="ezlang-btn"
+        data-ez-lang-toggle="1"
+        aria-haspopup="listbox"
+        aria-expanded={open ? 'true' : 'false'}
+        aria-label={ezT('language.change')}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {EZ_LANG_GLOBE}
+        <span>{ezT('language.' + lang)}</span>
+      </button>
+      {open && (
+        <div className="ezlang-menu" role="listbox" aria-label={ezT('language.label')}>
+          {EZ_LANGS.map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="option"
+              aria-selected={lang === v ? 'true' : 'false'}
+              className="ezlang-item"
+              onClick={() => pick(v)}
+            >
+              <span>{ezT('language.' + v)}</span>
+              <span className="ezlang-tick" aria-hidden="true">{lang === v ? '✓' : ''}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 // ============================================================
 // رمز لوحة الأهل — يضعه الأهل أول مرة، ويُخزَّن مُجزّأً (SHA-256) في localStorage. لا رمز افتراضي، ولا يُعرَض أبداً.
@@ -3752,6 +4072,9 @@ function EzikIstanaHome(v) {
       <EzistTopNav onOpenChat={v.onOpenChat} onOpenSettings={v.onOpenSettings} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
+          {/* S116 -- the language control. Its own row, so it overlaps nothing and the
+              masthead, the nav and every module card keep the position they shipped with. */}
+          <div className="ezlang-bar"><EzLangControl /></div>
           <EzistMasthead name={v.name} g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
           <div className="ezist-mosaic">
             <EzistAsk onOpenChat={v.onOpenChat} />
@@ -5398,6 +5721,9 @@ function App() {
   // S100: mounted here and not only in Settings, because the 'storage' event fires in the
   // tabs that did NOT make the change -- a tab sitting on the chat has to repaint too. The
   // hook owns no screen state and renders nothing; it keeps <html> honest.
+  // S116: the interface language, subscribed at the root. App owns every screen, so a switch
+  // made anywhere redraws all of them at once -- no reload, no route change, no lost thread.
+  useEzLang();
   useEzikVisualTheme();
   const [screen, setScreen] = useState('loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
@@ -10029,6 +10355,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // click handler and nothing focusable here. qibla_13 appears once, as a disabled line that
   // says it is coming -- it is a <div>, it is aria-disabled, it cannot be tabbed to and there
   // is no code path from this card that could write it. Journey and Deck appear nowhere.
+  const uiLang = useEzLang();
   const visualTheme = useEzikVisualTheme();
   return (
     <EzShell title={A_SETTINGS} onBack={onBack} backLabel={A2_BACK}>
@@ -10040,6 +10367,27 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           <div style={s.themeRow}>
             <Opt value="light" label={'\u0641\u0627\u062a\u062d'} />
             <Opt value="dark" label={'\u062f\u0627\u0643\u0646'} />
+          </div>
+        </EzShellGroup>
+        {/* S116 -- the interface language. The SAME group shell, the SAME row and the SAME
+            two-option control the appearance choice already uses; no new design here, and the
+            theme, the three reading preferences and the control row are not touched at all. */}
+        <EzShellGroup title={ezT('settings.language')} hint={ezT('settings.savedOnDevice')}>
+          <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.language')}>
+            {EZ_LANGS.map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                aria-checked={uiLang === v ? 'true' : 'false'}
+                data-ez-lang-opt={v}
+                onClick={() => ezLangSet(v)}
+                className="ezlang-opt"
+                style={{ ...s.themeOpt, ...(uiLang === v ? s.themeOptActive : {}) }}
+              >
+                {ezT('language.' + v)}
+              </button>
+            ))}
           </div>
         </EzShellGroup>
         {/* S102 -- the active application design. One statement, one disabled line. */}
