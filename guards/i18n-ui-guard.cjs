@@ -524,24 +524,43 @@ async function partD() {
     ok('...and the home screen was reached', d.all('.ezist-mosaic').length === 1);
     eq('the home carries none', toggles(), 0);
 
-    // THE CHAT CARD ON THE HOME. It used to say two things — "ask Ezik" and, under it, "a new
-    // conversation" — which is the same invitation twice. One line now. Measured on the card
-    // itself, not on the page: the words «محادثة جديدة» are still needed, and still present, on
-    // the side menu's new-chat entry, so a whole-page search for them would be the wrong test.
-    const card = d.all('.ezist-ask')[0];
-    if (ok('the home carries the chat card', !!card)) {
-      const spans = Array.prototype.slice.call(card.querySelectorAll('span'))
-        .filter((e) => e.children.length === 0 && String(e.textContent || '').trim());
-      eq('...and it draws exactly one line of text', spans.map((e) => String(e.textContent || '').trim()),
-        ['اسأل عزك']);
-      eq('...which is not the side menu\'s invitation repeated',
-        String(card.textContent || '').indexOf('محادثة جديدة'), -1);
-      ok('...and the card is otherwise the one that shipped: same class, same handler, same icon',
-        /className="ezhome-focus ezist-ask" onClick=\{onOpenChat\} style=\{s\.ezistAsk\}/.test(rawCode)
-        && /<span style=\{s\.ezistAskGo\} aria-hidden="true">\{EZH_ICON_NAV_CHAT_LINE\}<\/span>/.test(rawCode));
-      ok('...and nothing hid the second line with CSS instead of deleting it',
-        rawCode.indexOf('s.ezistAskSub') === -1 && rawCode.indexOf('EZIST_ASK_SUB') === -1);
+    // ONE WAY INTO THE CHAT. The home used to offer two — the small icon in the top nav, and a
+    // large "ask Ezik" panel at the head of the mosaic — both calling the same onOpenChat. The
+    // panel is gone. Measured on the live DOM, not on the source, because "deleted" and "hidden"
+    // look identical in a file and different on a screen.
+    eq('the home draws no chat panel at all', d.all('.ezist-ask').length, 0);
+    eq('...and nothing is hiding where it was', d.all('[class*="ezist-ask"]').length, 0);
+    const mosaic = d.all('.ezist-mosaic')[0];
+    if (ok('the home still draws its mosaic', !!mosaic)) {
+      const kids = Array.prototype.slice.call(mosaic.children);
+      eq('...with no empty cell left behind',
+        kids.filter((e) => !String(e.textContent || '').trim() && !e.querySelector('svg')).length, 0);
+      ok('...and the four modules and the daily verse are all still in it',
+        ['memorize', 'adhkar', 'mushaf', 'treasure']
+          .every((id) => !!mosaic.querySelector('[data-ezik-home-module="' + id + '"]'))
+        && !!mosaic.querySelector('.ezist-quran'), String(kids.length) + ' children');
     }
+    // The one entry that remains, driven for real.
+    const navChat = d.all('.ezist-nav button').filter((b) => (b.getAttribute('aria-label') || '') === 'عزك')[0];
+    if (ok('the top nav still carries the chat icon', !!navChat)) {
+      eq('...as a type="button"', navChat.getAttribute('type'), 'button');
+      ok('...drawn as an icon, with no text of its own', !String(navChat.textContent || '').trim() && !!navChat.querySelector('svg'));
+      const before = { chats: c.store.getItem('ezik_chats_v1'), net: c.net().length };
+      await d.click(navChat);
+      await tick(180);
+      ok('...and pressing it opens the chat', d.all('.ezc-dock').length === 1);
+      eq('...without sending a message', d.all('.ezc-turn').length, 0);
+      eq('...without filing a conversation', c.store.getItem('ezik_chats_v1'), before.chats);
+      eq('...and without a request', c.net().length, before.net);
+      // back to the home for the rest of this part
+      await d.click(d.all('.ezc-rail button.ezc-icon')[0]);
+      await tick(120);
+      const h = d.all('button').filter((b) => String(b.textContent || '').trim() === 'القائمة')[0];
+      if (h) { await d.click(h); await tick(160); }
+    }
+    ok('...and the panel is gone from the source too, not merely unmounted',
+      rawCode.indexOf('EzistAsk') === -1 && rawCode.indexOf('ezist-ask') === -1
+      && rawCode.indexOf('EZIST_ASK_TITLE') === -1);
     // ...and the words themselves are still where they are needed. The menu writes them as
     // \\uXXXX escapes, so the source is read decoded — a raw search would find nothing and call
     // that a pass.
@@ -685,8 +704,36 @@ async function partE() {
   if (diff === null) { skip('the blocked files are untouched', 'git unavailable'); return; }
   console.log('  ..  files changed since ' + BASE.slice(0, 7) + ': ' + JSON.stringify(diff));
 
-  const ALLOWED = ['index.html', 'quest.html', 'guards/i18n-ui-guard.cjs'];
+  // theme-coverage-guard.cjs is on this list by an EXPLICIT, NARROW authorisation and nothing
+  // else: it carried an assertion that required the duplicate chat panel to exist, so the panel
+  // could not be removed while it stood. The permission was to change THAT assertion and no
+  // other, and the next block proves the diff kept to it.
+  const ALLOWED = ['index.html', 'quest.html', 'guards/i18n-ui-guard.cjs', 'theme-coverage-guard.cjs'];
   eq('nothing outside the allow-list was modified', diff.filter((f) => ALLOWED.indexOf(f) === -1), []);
+
+  if (diff.indexOf('theme-coverage-guard.cjs') !== -1) {
+    const was = (() => { try { return cp.execSync('git show ' + BASE + ':theme-coverage-guard.cjs', { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28 }); } catch (e) { return null; } })();
+    const now = fs.readFileSync(path.join(REPO, 'theme-coverage-guard.cjs'), 'utf8');
+    if (ok('the shipped guard the phase was allowed to touch is readable at both ends', !!was)) {
+      const L = (s) => s.replace(/\r\n/g, '\n').split('\n');
+      const before = L(was), after = L(now);
+      const gone = before.filter((l) => after.indexOf(l) === -1);
+      // EXACTLY ONE line left that file, and it is the assertion that pinned the removed panel.
+      eq('exactly one line was removed from it', gone.length, 1);
+      ok('...and it is the assertion that required the panel to exist',
+        gone[0] === "ok('the chat entry is part of the composition', /<EzistAsk /.test(IST) && /className=\"ezhome-focus ezist-ask\"/.test(IST));",
+        JSON.stringify(gone[0]));
+      // Nothing was softened: no check downgraded to a warning, no blanket skip, and the file
+      // still runs strictly more assertions than it did.
+      const count = (s) => (s.match(/^\s*(ok|eq)\(/gm) || []).length;
+      ok('...no assertion was turned into a warning or a skip',
+        count(now) > count(was) && !/\bwarn\(/.test(now)
+        && (now.match(/\bskip\(/g) || []).length === (was.match(/\bskip\(/g) || []).length,
+        count(was) + ' -> ' + count(now));
+      eq('...and no other ok()/eq() line was dropped',
+        before.filter((l) => /^\s*(ok|eq)\(/.test(l) && after.indexOf(l) === -1).length, 1);
+    }
+  }
 
   const FORBIDDEN = [
     [/^api\//, 'api/**'],
@@ -694,7 +741,9 @@ async function partE() {
     [/^lib\/(binothaimeen|attribution|ask-plan|retrieve|brave-query|source-registry|source-purpose|claim-gate|duration)\.js$/, 'the search and sourcing modules'],
     [/^data\/ledger-/, 'data/ledger-*'],
     [/^tools\//, 'tools/**'],
-    [/^[^/]*guard\.cjs$/, 'the shipped guards'],   // rooted on purpose: THIS file lives in guards/
+    // Rooted on purpose (THIS file lives in guards/), and theme-coverage-guard.cjs is excluded
+    // because the block above proves what happened to it, line by line, instead of forbidding it.
+    [/^(?!theme-coverage-guard\.cjs$)[^/]*guard\.cjs$/, 'the shipped guards'],
     [/^gates\.json$/, 'gates.json'],
     [/^recon-audit\.cjs$/, 'recon-audit.cjs'],
     [/^quest-data\//, 'quest-data/**'],
@@ -709,8 +758,9 @@ async function partE() {
     eq(label + ' is untouched', diff.filter((f) => re.test(f)), []);
   }
   // This file is a guard by name; it is the one exception, and it ships nothing to a user.
-  eq('...and the only guard in the diff is this one',
-    diff.filter((f) => /guard\.cjs$/.test(f) && f !== 'guards/i18n-ui-guard.cjs'), []);
+  eq('...and the only guards in the diff are this one and the authorised one',
+    diff.filter((f) => /guard\.cjs$/.test(f)
+      && f !== 'guards/i18n-ui-guard.cjs' && f !== 'theme-coverage-guard.cjs'), []);
 
   // --- E3. the things measured by content, not by name ---
   const at = (f) => { try { return cp.execSync('git show ' + BASE + ':' + f, { cwd: REPO, encoding: 'buffer', maxBuffer: 1 << 28 }); } catch (e) { return null; } };

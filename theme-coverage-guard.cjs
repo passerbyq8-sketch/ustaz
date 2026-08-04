@@ -971,7 +971,23 @@ ok('no mark is positioned over the Quran text',
   !/ezistQuran(Text|Meta)[^}]*position: \'absolute\'/.test(html)
   && /ezistQuranDot[^}]*background: \'var\(--a3-cyan\)\'/.test(html));
 
-ok('the chat entry is part of the composition', /<EzistAsk /.test(IST) && /className="ezhome-focus ezist-ask"/.test(IST));
+// S117: this used to read `/<EzistAsk /.test(IST) && /className="ezhome-focus ezist-ask"/`, and
+// that pinned ONE element rather than the thing the check is named for. The home offered two ways
+// into the chat -- the small icon in the top nav and a large "ask Ezik" panel at the head of the
+// mosaic, both calling the same onOpenChat -- and the panel was removed. What this gate protects
+// has not changed: the composition must offer a way into the chat. It is now asserted as what it
+// means, so a future rearrangement is judged on the invariant and not on a class name.
+{
+  const opens = (IST.match(/onClick=\{(?:v\.)?onOpenChat\}/g) || []);
+  eq('the chat entry is part of the composition, exactly once', opens.length, 1);
+  ok('...and it is the icon in the top nav',
+    /function EzistTopNav\(\{ onOpenChat/.test(IST)
+    && /className="ezist-nav"[\s\S]*?onClick=\{onOpenChat\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
+  // ...and the panel is GONE, not hidden and not faked: no element, no class, no CSS rule, and
+  // no comment left behind carrying the strings this check used to look for.
+  ok('...and the removed panel survives nowhere',
+    !/EzistAsk/.test(html) && !/ezist-ask/.test(html) && !/ezist-ask/.test(css));
+}
 ok('...calling the existing callback unchanged', /onClick=\{onOpenChat\}/.test(IST));
 // not the legacy floating circle, and not a slab: a surface panel with one bounded accent box.
 ok('...as a surface panel, not a solid accent rectangle',

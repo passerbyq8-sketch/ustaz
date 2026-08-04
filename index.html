@@ -492,12 +492,11 @@
   .ezist-mosaic>*{min-width:0}
   @media (min-width:600px){
     .ezist-mosaic{grid-template-columns:repeat(2,1fr);gap:14px}
-    /* two exact rows of modules between the ask panel and the Quran panel. */
-    .ezist-ask,.ezist-quran{grid-column:span 2}
+    /* two exact rows of modules above the Quran panel. */
+    .ezist-quran{grid-column:span 2}
   }
   @media (min-width:1000px){
     .ezist-mosaic{grid-template-columns:repeat(6,1fr);gap:16px}
-    .ezist-ask{grid-column:span 6}
     /* every module the same two columns: three across, then the fourth beside the Quran
        panel, so both rows fill exactly and no card is left wider than it has to say. */
     .ezist-mod,.ezist-feature{grid-column:span 2}
@@ -1240,7 +1239,6 @@ function ezLangRelabel() {
     EZIST_SUB_ADHKAR = ezT("module.adhkar.sub");
     EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
-    EZIST_ASK_TITLE = ezT("home.askTitle");
     EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
@@ -1346,7 +1344,6 @@ const EZ_I18N = {
     'module.adhkar.sub': '\u{0623}\u{0630}\u{0643}\u{0627}\u{0631} \u{0627}\u{0644}\u{0635}\u{0628}\u{0627}\u{062D} \u{0648}\u{0627}\u{0644}\u{0645}\u{0633}\u{0627}\u{0621}',
     'module.mushaf.sub': '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}',
     'module.treasure.sub': '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}',
-    'home.askTitle': '\u{0627}\u{0633}\u{0623}\u{0644} \u{0639}\u{0632}\u{0643}',
     'favorites.title': 'المفضلة',
     'favorites.heading': 'الردود المفضلة',
     'favorites.add': 'أضف إلى المفضلة',
@@ -1499,7 +1496,6 @@ const EZ_I18N = {
     'module.adhkar.sub': 'Morning and evening adhkar',
     'module.mushaf.sub': 'Read, and keep your wird',
     'module.treasure.sub': 'Learn through play',
-    'home.askTitle': 'Ask Ezik',
     'favorites.title': 'Favourites',
     'favorites.heading': 'Saved replies',
     'favorites.add': 'Add to favourites',
@@ -4260,7 +4256,6 @@ let EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");                            
 let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
 let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
-let EZIST_ASK_TITLE = ezT("home.askTitle");                                                   // "ask Ezik"
 let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
 
 // THE TOP NAVIGATION. A real bounded bar, not the bottom dock moved upward: it is sticky, it
@@ -4349,20 +4344,11 @@ function EzistModuleCard({ m }) {
   );
 }
 
-// THE CHAT ENTRY. The floating circle is gone from this home: the chat action is a full-width
-// panel at the head of the composition, with the brand, a line saying what pressing it does and
-// one bounded accent button. It is a surface with a hairline, not a solid blue rectangle, and
-// it calls v.onOpenChat -- the same callback, unchanged.
-function EzistAsk({ onOpenChat }) {
-  return (
-    <button type="button" className="ezhome-focus ezist-ask" onClick={onOpenChat} style={s.ezistAsk} aria-label={EZIST_ASK_TITLE}>
-      <span style={s.ezistAskBody}>
-        <span style={s.ezistAskTitle}>{EZIST_ASK_TITLE}</span>
-      </span>
-      <span style={s.ezistAskGo} aria-hidden="true">{EZH_ICON_NAV_CHAT_LINE}</span>
-    </button>
-  );
-}
+// THE CHAT ENTRY. There is ONE, and it is the small icon in the top nav (EzistTopNav, above):
+// it calls the same v.onOpenChat it always called. The large "ask Ezik" panel that used to sit at
+// the head of the mosaic is gone -- two controls on one screen doing the identical thing is a
+// choice the reader should not have to make, and the icon is the one that is also on every other
+// screen. Nothing replaced it in the grid; the module cards flow up into the track it held.
 
 // THE FEATURED QURAN PANEL. It reads getDailyVerse(), the same one source DailyVerseCard reads,
 // and renders {v.text} verbatim -- no transform, no tashkeel pass, no truncation, no ellipsis.
@@ -4394,7 +4380,6 @@ function EzikIstanaHome(v) {
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
           <div className="ezist-mosaic">
-            <EzistAsk onOpenChat={v.onOpenChat} />
             {mods.map((m) => <EzistModuleCard key={m.id} m={m} />)}
             <EzistQuranPanel />
           </div>
@@ -13133,8 +13118,6 @@ const s = {
   ezistPromptText: { minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.6 },
   // the chat entry: a surface panel with one bounded accent affordance, never a filled slab.
   ezistAsk: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, width: '100%', minHeight: 76, padding: '14px 16px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  ezistAskBody: { display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 },
-  ezistAskTitle: { fontSize: 17, fontWeight: 800, color: 'var(--a3-ink)' },
   ezistAskGo: { width: 46, height: 46, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)' },
   // the four module cards. One base, three id-specific accents, one wide feature.
   ezistCard: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', minHeight: 84, padding: '14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
