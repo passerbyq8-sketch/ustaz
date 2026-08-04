@@ -568,78 +568,51 @@ export default async function handler(req, res) {
     //
     // A grave hazard is redirected for EVERY band. An adult asking how to make chlorine gas in a
     // kitchen has not asked a different question by being an adult.
+    // ── WHICH PATH, DECIDED FIRST ──────────────────────────────────────────
+    //
+    // decidePath is read BEFORE the safety triage now, and that ordering is the P0-1 fix: the
+    // triage has to know whether this request is going to the ledger, because the ledger's own
+    // safety cannot depend on an unrelated legacy flag being switched on as well.
+    //
+    // THE CLOCK STARTS HERE, before the runtime flag is read. decidePath() talks to Upstash, and a
+    // budget constructed afterwards would leave that read outside the deadline it exists to
+    // enforce. lib/ledger/flag.js bounds the read itself; this makes it COUNTED as well.
+    const ledgerStartedAt = Date.now();
+    const ledgerPath = await decidePath(req);
+    const toLedger = ledgerPath.path === 'ledger';
+
+    // ── THE POLICY ROUTER GOVERNS BOTH PATHS ───────────────────────────────
+    //
+    // `legacyPolicy.enabled` is a ROLLOUT decision about the shipped path — it exists so the
+    // repairs reach internal testers before the public. It was never meant to be the thing that
+    // decides whether a child is protected, and using it that way left a hole: with the ledger on
+    // and the legacy flag off, a request had NO hazard triage at all.
+    //
+    // So the router is active whenever EITHER the legacy repairs are rolled out to this reader OR
+    // the request is taking the ledger. The ledger is a new path; nothing about it is "the shipped
+    // behaviour we must not disturb", so its policy is unconditional.
+    const policyActive = legacyPolicy.enabled || toLedger;
+
     const questionText = lastUserText(body.messages);
-    const hazard = legacyPolicy.enabled ? graveHazard(questionText) : '';
+    const hazard = policyActive ? graveHazard(questionText) : '';
     if (hazard) {
-      console.warn('[policy] SAFETY_REDIRECT', { topic: hazard, band: audienceBand, policyVersion: POLICY_VERSION });
+      console.warn('[policy] SAFETY_REDIRECT', {
+        topic: hazard, band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION,
+      });
       return emitOnce(WARM_TEMPLATES.SAFETY_REDIRECT);
     }
 
-    // ── LEDGER RAG — A PARALLEL PATH, DEFAULT OFF ──────────────────────────
+    // ── AGE_ACCESS_POLICY, AFTER IR_BUILD AND BEFORE THE ROUTE ─────────────
     //
-    // The narrowest possible seam: one call, taken before any of the routes below, and it
-    // returns 'legacy' unless THREE independent things are all true — the env floor is open,
-    // the request carries a valid internal credential, and the runtime kill switch in Upstash
-    // says on. Any failure to establish any of them, including the store being unreachable,
-    // returns 'legacy' and the shipped path runs byte-for-byte as it does today.
-    //
-    // Nothing below this branch is modified. The engine never falls back INTO the legacy path
-    // mid-request either: a ledger request that cannot verify a source answers with its own
-    // refusal rather than quietly re-asking an unguarded route, because a fallback that
-    // answers is a fallback that defeats the gate it fell back from.
-    // THE CLOCK STARTS HERE, before the runtime flag is read. decidePath() talks to Upstash,
-    // and a budget constructed afterwards would leave that read outside the deadline it exists
-    // to enforce. lib/ledger/flag.js bounds the read itself; this makes it COUNTED as well.
-    const ledgerStartedAt = Date.now();
-    const ledgerPath = await decidePath(req);
-    if (ledgerPath.path === 'ledger') {
-      // The seam is a module, not ten lines here, so this exact code path is what
-      // ledger-seam-guard.cjs drives with req/res doubles. A branch that only the handler can
-      // reach is a branch only a regex can check.
-      const { runLedgerTurn } = await import('../lib/ledger/seam.js');
-      const { braveSearch } = await import('../lib/ledger/search.js');
-      const { SITES_ADULT, SITES_MINOR } = await import('../lib/retrieve.js');
-      // THE KEEPALIVE STAYS UP FOR THE WHOLE OF THE ENGINE'S WORK. The ledger path is
-      // byte-silent for up to its full 25-second budget — the same reason round 1 of the shipped
-      // path is — and mobile carriers reset an idle socket at about thirty seconds. Clearing it
-      // here, as the first version did, removed the protection for exactly the interval it
-      // exists to cover. The seam fires `beforeFirstOutput` immediately before its first byte,
-      // so there is one owner, one timer, and no keepalive can interleave with a content frame.
-      // THE READER'S OWN WORDS. Deliberately NOT plan.attribution.question: that is a field of
-      // the legacy attribution classifier — the one measured mis-reading the verb «ذهب» — and
-      // an engine fed from it inherits whatever that classifier starts doing to the text.
-      // runLedgerTurn() reads the last user turn itself, with type/length checks only.
-      const out = await runLedgerTurn(res, {
-        messages: body.messages,
-        band,
-        bandSites: band === 'adult' ? SITES_ADULT : SITES_MINOR,
-        buildSourceTag,
-        search: (q, sites) => braveSearch(q, sites),
-        startedAt: ledgerStartedAt,
-        beforeFirstOutput: clearKeepAlive,
-      });
-      // Counts and codes only. No question, no answer, no page text, no reader identity.
-      console.log('[ledger]', {
-        trace: out.ledger ? out.ledger.traceId : null, outcome: out.outcome,
-        model: out.budget.snapshot().spent.modelCalls,
-        brave: out.budget.snapshot().spent.braveCalls,
-        fetch: out.budget.snapshot().spent.pagesFetched,
-        ms: out.budget.snapshot().elapsedMs,
-      });
-      return;
-    }
-
-    // ── AGE_ACCESS_POLICY (RFC v0.5-R2 §4/§5) ──────────────────────────────
-    //
-    // AFTER IR_BUILD, NEVER BEFORE IT. planAsk() has already run above, so by the time this line
-    // is reached the question's entities, its relation and its purpose are known — which is what
-    // lets «ما حكم قتل النمل؟» be classified as a ruling a child may have, rather than blocked on
-    // a word. lib/policy/age.js's ORDER constant pins this ordering and the gate asserts it.
+    // planAsk() ran above, so the question is understood by the time this decides anything —
+    // which is what lets «ما حكم قتل النمل؟» be classified as a ruling a child may have rather
+    // than blocked on a word. It used to sit AFTER the ledger branch, so the engine swallowed a
+    // child's benign or health question before any age policy saw it.
     const topicClass = classifyTopic(questionText, plan);
     const ageAccess = access({ topicClass, audienceBand });
     console.log('[policy]', {
       topicClass, audienceBand, audienceSource, outcome: ageAccess.outcome,
-      sourcePolicy: ageAccess.sourcePolicy, relation: plan.claimRelation,
+      sourcePolicy: ageAccess.sourcePolicy, relation: plan.claimRelation, path: ledgerPath.path,
       policyVersion: POLICY_VERSION, policyEnabled: legacyPolicy.enabled, flag: legacyPolicy.reason,
     });
 
@@ -647,7 +620,7 @@ export default async function handler(req, res) {
     // Until this app has a health ledger of its own, a dose, a diagnosis and a child's symptoms
     // are not answered from a model. The referral is WARM and explains itself: a wall teaches a
     // child nothing and sends them to a worse source, which is the opposite of safety.
-    if (legacyPolicy.enabled && ageAccess.outcome === 'REFER_ADULT') {
+    if (policyActive && ageAccess.outcome === 'REFER_ADULT') {
       console.warn('[policy] GENERAL_HEALTH_INTERIM referral', { topicClass, band: audienceBand });
       return emitOnce(warmTemplateFor('GENERAL_HEALTH_INTERIM'));
     }
@@ -659,14 +632,18 @@ export default async function handler(req, res) {
     // floor. The reply is BUFFERED for exactly the reason the attributed route is: bytes already
     // on a child's screen cannot be withdrawn when the floor refuses them.
     //
+    // It runs BEFORE the ledger branch. A seven-year-old asking how to make a lip balm has not
+    // asked a question the retrieval engine can answer, and letting the engine take it spends
+    // provider calls to arrive at «لم أعثر».
+    //
     // A floor failure does not automatically cost the child the answer. A draft that is merely
     // INCOMPLETE — it forgot the patch test, it forgot to bring a parent in — is completed
     // deterministically from fixed sentences this server owns. A draft that told them to rub
     // lemon on their lips is discarded whole, because a warning bolted onto the end of a harmful
     // instruction is still the harmful instruction.
-    if (legacyPolicy.enabled && effectiveRoute === 'GEN'
-      && ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
-      && (audienceBand === 'young' || audienceBand === 'teen')) {
+    if (policyActive && ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
+      && (audienceBand === 'young' || audienceBand === 'teen')
+      && (toLedger || effectiveRoute === 'GEN')) {
       const gc = await fetch(ANTHROPIC_URL, {
         method: 'POST',
         headers,
@@ -701,6 +678,66 @@ export default async function handler(req, res) {
       // answers a question this child did not ask and reads to them as an accusation.
       return emitOnce(rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN'));
     }
+
+    // ── LEDGER RAG — A PARALLEL PATH, DEFAULT OFF ──────────────────────────
+    //
+    // The narrowest possible seam: one call, taken before any of the routes below, and it
+    // returns 'legacy' unless THREE independent things are all true — the env floor is open,
+    // the request carries a valid internal credential, and the runtime kill switch in Upstash
+    // says on. Any failure to establish any of them, including the store being unreachable,
+    // returns 'legacy' and the shipped path runs byte-for-byte as it does today.
+    //
+    // Nothing below this branch is modified. The engine never falls back INTO the legacy path
+    // mid-request either: a ledger request that cannot verify a source answers with its own
+    // refusal rather than quietly re-asking an unguarded route, because a fallback that
+    // answers is a fallback that defeats the gate it fell back from.
+    //
+    // The path and the clock were decided at the top of this handler, so the policy router above
+    // could see which one this request is taking. The condition is spelled out rather than using
+    // the `toLedger` alias: ledger-seam-guard locates this branch by it in order to prove the
+    // engine's question does not come from the legacy classifier, and a branch a gate cannot find
+    // is a branch nothing checks.
+    if (ledgerPath.path === 'ledger') {
+      // The seam is a module, not ten lines here, so this exact code path is what
+      // ledger-seam-guard.cjs drives with req/res doubles. A branch that only the handler can
+      // reach is a branch only a regex can check.
+      const { runLedgerTurn } = await import('../lib/ledger/seam.js');
+      const { braveSearch } = await import('../lib/ledger/search.js');
+      const { SITES_ADULT, SITES_MINOR } = await import('../lib/retrieve.js');
+      // THE KEEPALIVE STAYS UP FOR THE WHOLE OF THE ENGINE'S WORK. The ledger path is
+      // byte-silent for up to its full 25-second budget — the same reason round 1 of the shipped
+      // path is — and mobile carriers reset an idle socket at about thirty seconds. Clearing it
+      // here, as the first version did, removed the protection for exactly the interval it
+      // exists to cover. The seam fires `beforeFirstOutput` immediately before its first byte,
+      // so there is one owner, one timer, and no keepalive can interleave with a content frame.
+      // THE READER'S OWN WORDS. Deliberately NOT plan.attribution.question: that is a field of
+      // the legacy attribution classifier — the one measured mis-reading the verb «ذهب» — and
+      // an engine fed from it inherits whatever that classifier starts doing to the text.
+      // runLedgerTurn() reads the last user turn itself, with type/length checks only.
+      const out = await runLedgerTurn(res, {
+        messages: body.messages,
+        band,
+        // The POLICY band, resolved by the shared core. `band` above still picks the source
+        // allow-list; this is what the engine's age access and floor read.
+        audienceBand,
+        audienceSource,
+        bandSites: band === 'adult' ? SITES_ADULT : SITES_MINOR,
+        buildSourceTag,
+        search: (q, sites) => braveSearch(q, sites),
+        startedAt: ledgerStartedAt,
+        beforeFirstOutput: clearKeepAlive,
+      });
+      // Counts and codes only. No question, no answer, no page text, no reader identity.
+      console.log('[ledger]', {
+        trace: out.ledger ? out.ledger.traceId : null, outcome: out.outcome,
+        model: out.budget.snapshot().spent.modelCalls,
+        brave: out.budget.snapshot().spent.braveCalls,
+        fetch: out.budget.snapshot().spent.pagesFetched,
+        ms: out.budget.snapshot().elapsedMs,
+      });
+      return;
+    }
+
 
     // ── ATTRIBUTED ROUTE: no source by that scholar ⇒ no attributed ruling ──
     //

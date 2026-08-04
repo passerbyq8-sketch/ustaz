@@ -224,9 +224,16 @@ const CORPUS = {
     installRedis(flags.ledger === false ? undefined : 'on', flags.legacyPolicy ? 'on' : undefined);
     installFetch(script || { plan: null, annotations: [], sentences: [] });
     modelCalls = []; braveCalls = 0;
+    // Capture the handler's own telemetry line rather than asking production to expose a hook.
+    let ageFloorLog = null;
+    const realLog = console.log;
+    console.log = (...a) => {
+      if (a[0] === '[policy] AGE_FLOOR' && a[1]) ageFloorLog = a[1];
+      realLog.apply(console, a);
+    };
     const res = makeRes();
-    await handlerRef(makeReq(question, band), res);
-    return { res, text: readerText(res), modelCalls: modelCalls.slice(), braveCalls };
+    try { await handlerRef(makeReq(question, band), res); } finally { console.log = realLog; }
+    return { res, text: readerText(res), modelCalls: modelCalls.slice(), braveCalls, ageFloorLog };
   };
   const handlerRef = ASK.default;
 
@@ -250,8 +257,11 @@ const CORPUS = {
     eq('...with zero provider calls', out.braveCalls, 0);
     ok('...one model call, not the engine\'s seven', out.modelCalls.length <= 1, String(out.modelCalls.length));
     ok('...and it is not a cold brush-off', out.text.length > 40, out.text);
-    const stamp = globalThis.__EZIK_LAST_AGE_FLOOR__;
-    ok('...carrying an AGE_FLOOR stamp', !!stamp && !!stamp.outcome, JSON.stringify(stamp));
+    // THE STAMP IS READ FROM WHAT PRODUCTION ACTUALLY EMITS. The handler logs `[policy] AGE_FLOOR`
+    // with the outcome on every benign child reply; asserting that is measuring the real thing,
+    // whereas having production publish a global for a test's benefit would be measuring the test.
+    ok('...carrying an AGE_FLOOR stamp', !!out.ageFloorLog && !!out.ageFloorLog.ageFloorOutcome,
+      JSON.stringify(out.ageFloorLog));
   }
   {
     const out = await driveHandler('كم حبة بنادول أعطي أخوي الصغير؟', 'young', null, { ledger: true, legacyPolicy: false });

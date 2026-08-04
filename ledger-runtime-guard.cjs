@@ -214,8 +214,21 @@ function fakeRedis() {
     const anon = await FL.decidePath(anonReq, t + 10 ** 6);
     eq('an unauthenticated caller learns nothing about the flag', anon.reason, 'not_internal');
   }
-  ok('the engine is never reached without decidePath saying so',
-    /const ledgerPath = await decidePath\(req\);[\s\S]{0,200}if \(ledgerPath\.path === 'ledger'\)/.test(read('api/ask.js')));
+  // ORDERING, NOT PROXIMITY. This used to require the branch within 200 characters of the
+  // decidePath call. The policy router now sits between them — the safety triage and the age
+  // access have to know which path the request is taking before either can decide anything — so
+  // the assertion says what it always meant: decidePath runs FIRST, the branch tests its result,
+  // and nothing else in the handler can make that branch true.
+  {
+    const ask = read('api/ask.js');
+    const decideAt = ask.indexOf('const ledgerPath = await decidePath(req);');
+    const branchAt = ask.indexOf("if (ledgerPath.path === 'ledger') {");
+    ok('the engine is never reached without decidePath saying so',
+      decideAt > -1 && branchAt > decideAt);
+    ok('...and only decidePath can set the value the branch tests',
+      (ask.match(/ledgerPath\s*=/g) || []).length === 1,
+      'a second assignment to ledgerPath would be a second way into the engine');
+  }
   ok('...and the shipped routes are still below it, unmodified',
     /ATTRIBUTED ROUTE: no source by that scholar/.test(read('api/ask.js'))
     && /GEN ROUTE: ONE streamed round, NO tools/.test(read('api/ask.js'))

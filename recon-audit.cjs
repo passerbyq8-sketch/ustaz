@@ -530,7 +530,10 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       found that the policy core was asserted to be IMPORTED rather than driven, so this one
   //       calls api/ask.js's own default export and replaces only globalThis.fetch. It is the
   //       gate that fails if the wiring is removed while every module test still passes.
-  const GATES_EXPECTED = 36;   // 33rd: ledger-seam-guard — the JOIN between a request and the
+  // S-RFC-v0.5-R2-ROUND3: 36 -> 37. 37th rfc-v05r2-round3-guard — the policy router over BOTH
+  //       paths, a policy block per ISSUE rather than per question, provenance A/B/C classified
+  //       from the evidence, and a Gate 3 that judges every claim a sentence rests on.
+  const GATES_EXPECTED = 37;   // 33rd: ledger-seam-guard — the JOIN between a request and the
                                //       engine, driven with req/res doubles rather than matched
                                //       with a regex. Three defects lived in that gap while five
                                //       ledger gates stayed green: the engine's question came
