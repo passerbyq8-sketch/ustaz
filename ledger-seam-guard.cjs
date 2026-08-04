@@ -266,6 +266,7 @@ const user = (t) => [{ role: 'user', content: t }];
     seen.questions = []; seen.modelCalls = 0;
     let t = 0;
     const out = await SEAM.runLedgerTurn(res, Object.assign({
+      dailyBudgetMode: 'fixture',
       messages: user(question),
       band: 'adult',
       bandSites: SP.searchableDomains(),
@@ -367,6 +368,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const clearKeepAlive = () => clearInterval(timer);
     let t = 0;
     const out = await SEAM.runLedgerTurn(res, {
+      dailyBudgetMode: 'fixture',
       messages: user('ما حكم بيع الذهب بالتقسيط؟'),
       band: 'adult', bandSites: SP.searchableDomains(),
       buildSourceTag: askMod.buildSourceTag,
@@ -406,6 +408,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const timer = setInterval(() => { ticks++; res.write(': keepalive\n\n'); }, 10);
     let t = 0;
     const out = await SEAM.runLedgerTurn(res, {
+      dailyBudgetMode: 'fixture',
       messages: user('ما حكم بيع الذهب بالتقسيط؟'),
       band: 'adult', bandSites: SP.searchableDomains(),
       buildSourceTag: askMod.buildSourceTag,
@@ -425,6 +428,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const res = fakeRes();
     let t = 0;
     const out = await SEAM.runLedgerTurn(res, {
+      dailyBudgetMode: 'fixture',
       messages: user('ما حكم بيع الذهب بالتقسيط؟'),
       band: 'adult', bandSites: SP.searchableDomains(),
       buildSourceTag: askMod.buildSourceTag,
@@ -454,6 +458,10 @@ const user = (t) => [{ role: 'user', content: t }];
     STORE.__setRedisForTest(redis);
     let clock = 0;
     const decide = async (env, req, flagValue) => {
+      // A FOURTH PRECONDITION (RFC v0.5-R2 review, P0-2): decidePath refuses the ledger with no
+      // configured daily ceiling. These cases are about the other three, so a ceiling is present;
+      // the ceiling's own behaviour is asserted in ledger-runtime-guard.
+      process.env.DAILY_SEARCH_BUDGET = '500';
       process.env.LEDGER_RAG = env;
       redis._m.clear();
       if (flagValue !== null) redis._m.set(FL.RUNTIME_KEY, flagValue);
@@ -549,6 +557,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const never = () => new Promise(() => {});
     const res = fakeRes();
     const out = await SEAM.runLedgerTurn(res, {
+      dailyBudgetMode: 'fixture',
       messages: user('ما حكم بيع الذهب بالتقسيط؟'),
       band: 'adult', bandSites: SP.searchableDomains(),
       buildSourceTag: askMod.buildSourceTag,
@@ -654,6 +663,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const res = fakeRes();
     let t = 0;
     const out = await SEAM.runLedgerTurn(res, Object.assign({
+      dailyBudgetMode: 'fixture',
       messages: user(DIRECT_Q),
       band: 'adult', bandSites: SP.searchableDomains(),
       buildSourceTag: askMod.buildSourceTag,
@@ -716,6 +726,7 @@ const user = (t) => [{ role: 'user', content: t }];
     // the deadline itself — and it must do so in tens of milliseconds, not twenty-five seconds.
     const budget = new BG.Budget({ timeoutMs: 60 });
     const out = await SEAM.runLedgerTurn(res, {
+      dailyBudgetMode: 'fixture',
       messages: user(DIRECT_Q),
       band: 'adult', bandSites: SP.searchableDomains(),
       buildSourceTag: askMod.buildSourceTag,
@@ -758,6 +769,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const budget = new BG.Budget({ now: () => (t += 5), startedAt: 0 });
     budget.spend('pagesFetched', 3, 'earlier-issue');    // an earlier issue already read three
     const out = await SEAM.runLedgerTurn(res, {
+      dailyBudgetMode: 'fixture',
       messages: user(DIRECT_Q),
       band: 'adult', bandSites: SP.searchableDomains(),
       buildSourceTag: askMod.buildSourceTag,
@@ -989,6 +1001,7 @@ const user = (t) => [{ role: 'user', content: t }];
       const res = fakeRes();
       let t = 0;
       const out = await SEAM.runLedgerTurn(res, {
+      dailyBudgetMode: 'fixture',
         messages: user('ما رأي الشيخ ابن عثيمين فيمن أسقطت قبل ثمانين يومًا؟ وهل تصلي وتصوم؟'),
         band: 'adult', bandSites: SP.searchableDomains(),
         buildSourceTag: askMod.buildSourceTag,
@@ -1023,6 +1036,7 @@ const user = (t) => [{ role: 'user', content: t }];
       const budget = new BG.Budget({ now: () => (t += 5), startedAt: 0 });
       budget.spend('pagesFetched', BG.MAX_PAGES_FETCHED - 1, 'earlier-issue');   // one unit left
       const out = await SEAM.runLedgerTurn(res, {
+      dailyBudgetMode: 'fixture',
         messages: user('ما رأي الشيخ ابن عثيمين فيمن أسقطت قبل ثمانين يومًا؟'),
         band: 'adult', bandSites: SP.searchableDomains(),
         buildSourceTag: askMod.buildSourceTag,

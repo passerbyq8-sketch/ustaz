@@ -65,7 +65,14 @@ function fakeRedis() {
     LEDGER_RAG: process.env.LEDGER_RAG,
     FOUNDER_SECRET: process.env.FOUNDER_SECRET,
     LEDGER_CACHE_SECRET: process.env.LEDGER_CACHE_SECRET,
+    DAILY_SEARCH_BUDGET: process.env.DAILY_SEARCH_BUDGET,
   };
+  // A FOURTH PRECONDITION EXISTS NOW (RFC v0.5-R2 review, P0-2): decidePath() refuses the ledger
+  // unless a daily search ceiling is configured, because "not activatable without a budget" was
+  // written in the spec and then not enforced anywhere. Every decidePath assertion below is about
+  // the OTHER three conditions, so the ceiling is set here and its own behaviour is asserted
+  // separately at the end of this block.
+  process.env.DAILY_SEARCH_BUDGET = '500';
   const restoreEnv = () => {
     for (const [k, v] of Object.entries(ORIGINAL_ENV)) {
       if (v === undefined) delete process.env[k]; else process.env[k] = v;
@@ -92,6 +99,32 @@ function fakeRedis() {
     }
     process.env.LEDGER_RAG = 'on';
     eq('only «on» opens it', FL.envAllows(), true);
+  }
+
+  // ── THE FOURTH PRECONDITION: A DAILY CEILING MUST EXIST ────────────────────
+  // RFC v0.5-R2 §9 says the ledger is not activatable without a configured daily search budget.
+  // That was stated and not enforced — the engine took the ceiling as an optional argument, so a
+  // caller could simply omit it. It is now a precondition of the PATH, which is the only place
+  // the promise can be kept: after decidePath returns 'ledger', a ceiling exists by construction.
+  {
+    // The credential is checked BEFORE the ceiling in decidePath, so the request has to be a
+    // genuine internal one or the reason would read `not_internal` and prove nothing about budgets.
+    process.env.FOUNDER_SECRET = 'test-secret-for-the-gate';
+    const dev = 'abcdefgh12345678';
+    const req = { headers: { 'x-murabbi-device': dev, 'x-murabbi-founder': DC.founderTokenFor(dev) } };
+    const saved = process.env.DAILY_SEARCH_BUDGET;
+    delete process.env.DAILY_SEARCH_BUDGET;
+    FL.__resetFlagCacheForTest();
+    const off = await FL.decidePath(req);
+    eq('no configured ceiling => legacy, whatever the flag says', off.path, 'legacy');
+    eq('...and the reason names the budget', off.reason, 'daily_budget_unconfigured');
+    for (const bad of ['', 'lots', '-1', '2.5']) {
+      process.env.DAILY_SEARCH_BUDGET = bad;
+      FL.__resetFlagCacheForTest();
+      eq('a garbled ceiling «' + bad + '» is not a ceiling', (await FL.decidePath(req)).path, 'legacy');
+    }
+    process.env.DAILY_SEARCH_BUDGET = saved === undefined ? '500' : saved;
+    FL.__resetFlagCacheForTest();
   }
 
   // =========================================================================

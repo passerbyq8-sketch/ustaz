@@ -405,16 +405,23 @@ const user = (t) => [{ role: 'user', content: t }];
   // the shipped expression is lifted out of the source and EVALUATED against real plans.
   {
     const { planAsk } = await import('file://' + path.join(REPO, 'lib', 'ask-plan.js').replace(/\\/g, '/'));
-    const expr = ask.match(/const effectiveRoute =([\s\S]*?);\n/);
-    ok('the routing decision is readable from the handler', !!expr);
-    const routeOf = expr ? new Function('plan', 'route', 'return (' + expr[1] + ');') : null;
-    ok('naming a scholar forces the SOURCED route, even when the lexical route says GEN',
-      !!routeOf && routeOf(planAsk(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون ٨٠ يوم؟')), 'GEN') === 'DEEN',
+    // MEASURED AT THE PLANNER, AND THE ROUTING ITSELF IS MEASURED BY DRIVING THE HANDLER.
+    //
+    // An earlier version of this block lifted the `effectiveRoute` expression out of the source
+    // with `new Function` and evaluated it. That broke the moment the expression referenced a
+    // variable that did not exist in the synthetic scope — and, worse, it was never a real test:
+    // an expression evaluated outside its function is not the branch a reader takes. The routing
+    // guarantee is now driven end to end through api/ask.js in guards/rfc-v05r2-wiring-guard.cjs.
+    //
+    // What is asserted HERE is the input that guarantee rests on: the planner still recognises an
+    // attributed question as attributed, which is what keeps it off the unsourced path.
+    eq('an attributed question is still classified as attributed',
+      planAsk(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون ٨٠ يوم؟')).attributionMode, 'namedScholarOpinion');
+    eq('...and an ordinary question is not',
+      planAsk(user('كيف أرتب يومي؟')).attributionMode, 'none');
+    ok('the handler routes anything attributed to DEEN',
+      /plan\.attributionMode !== 'none'[\s\S]{0,200}\? 'DEEN'/.test(ask),
       'an attributed question could still take the unsourced GEN path');
-    ok('...and so does a question ABOUT a scholar',
-      !!routeOf && routeOf(planAsk(user('هل خالف ابن تيمية أهل السنة والجماعة؟')), 'GEN') === 'DEEN');
-    ok('...while an ordinary question keeps whatever the lexical router decided',
-      !!routeOf && routeOf(planAsk(user('كيف أرتب يومي؟')), 'GEN') === 'GEN');
   }
   ok('the attributed branch runs BEFORE the GEN route',
     ask.indexOf("plan.attributionMode === 'namedScholarOpinion'") < ask.indexOf("if (effectiveRoute === 'GEN')"));

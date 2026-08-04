@@ -454,6 +454,7 @@ const RESULTS = {
     Object.assign(state, over || {});
     let t = 0;
     return EN.runEngine(f.question, {
+      dailyBudgetMode: 'fixture',
       band: 'adult', bandSites, search, fetchImpl,
       directReader: directReaderFor(f),
       now: () => (t += 5),
@@ -829,6 +830,7 @@ const RESULTS = {
     // A model that is entirely unavailable.
     let t = 0;
     const r = await EN.runEngine(F4.question, {
+      dailyBudgetMode: 'fixture',
       band: 'adult', bandSites, search, now: () => (t += 5),
       fetchImpl: async (u) => {
         if (String(u).includes('api.anthropic.com')) { const e = new Error('x'); e.name = 'AbortError'; throw e; }
@@ -843,6 +845,7 @@ const RESULTS = {
     // The provider returning nothing at all.
     let t = 0;
     const r = await EN.runEngine(F4.question, {
+      dailyBudgetMode: 'fixture',
       band: 'adult', bandSites, search: async () => [], fetchImpl, now: () => (t += 5),
     });
     eq('no search results => SAFE_REJECTION', r.outcome, 'SAFE_REJECTION');
@@ -853,6 +856,7 @@ const RESULTS = {
     // Every page 404s.
     let t = 0;
     const r = await EN.runEngine(F4.question, {
+      dailyBudgetMode: 'fixture',
       band: 'adult', bandSites, search, now: () => (t += 5),
       fetchImpl: async (u, init) => {
         if (String(u).includes('api.anthropic.com')) return jsonResponse(modelReply(JSON.parse(init.body)));

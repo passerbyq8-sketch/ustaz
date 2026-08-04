@@ -341,7 +341,12 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       // lib/policy/entities.js now vetoes the lexical capture because «المسجد» is not a
       // registered entity. The defence below is UNCHANGED and still asserted: the ledger path
       // never consulted the shape detector, so it could not have been hurt either way.
-      const mis = planAsk(user('ذهب إلى المسجد فهل يصح؟'));
+      // BOTH SIDES OF THE ROLLOUT FLAG. The repair is behind lib/legacy-policy-flag.js, so the
+      // shipped behaviour for an ordinary reader is still the OLD mis-read — recorded here rather
+      // than hidden, because a fix nobody has switched on is not a fix that is live.
+      const misOff = planAsk(user('ذهب إلى المسجد فهل يصح؟'));
+      eq('with the policy flag OFF the shipped mis-read is unchanged', misOff.attributionMode, 'namedScholarOpinion');
+      const mis = planAsk(user('ذهب إلى المسجد فهل يصح؟'), { policyEnabled: true });
       eq('the VERB «ذهب» no longer mis-reads as a scholar', mis.attributionMode, 'none');
       eq('...and the sentence attributes nothing at all', mis.claimRelation, 'NONE');
       eq('...the fragment still resolves to NO registered authority',

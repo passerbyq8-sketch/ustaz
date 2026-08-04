@@ -45,16 +45,23 @@ const PAGE_ABOUT_IBN_TAYMIYYAH = `<html><head><title>موقف ابن تيمية 
 <p>وقد قرر أهل العلم أن الخلاف معه في مسائل معدودة لا يخرجه عن أهل السنة، وأن مصنفاته شاهدة بتقرير مذهب السلف.</p>
 </article></body></html>`;
 
+// LONG ENOUGH TO BE ADMITTED. The real page gate refuses a body under `minAnswerChars` (300 by
+// default), and that gate runs here unmodified — an earlier draft of this fixture used two-line
+// pages and every one of them was correctly refused as too thin to be evidence.
 const PAGE_GENERAL_RULING = `<html><head><title>حكم المسألة</title></head><body><article>
 <p>الحكم في هذه المسألة أن الأصل الجواز عند جمهور أهل العلم، ما لم يقترن به محظور شرعي ظاهر.</p>
-<p>وقد نص أهل العلم على أن الاحتياط في هذا الباب مستحب، وأن الأمر واسع في الفروع.</p>
+<p>وقد نص أهل العلم على أن الاحتياط في هذا الباب مستحب، وأن الأمر واسع في الفروع، وأن من احتاط لدينه فقد استبرأ لعرضه.</p>
+<p>وتفصيل ذلك أن المسألة تدور على أصلين: أصل الإباحة في المعاملات حتى يقوم الدليل على المنع، وأصل سد الذريعة إذا غلب على الظن إفضاء الفعل إلى محرم بيّن.</p>
+<p>وقد بسط أهل العلم القول في هذا الباب في مصنفاتهم، وذكروا له فروعا كثيرة يرجع بعضها إلى بعض، ومن أراد الاستقصاء فليراجع كتب الفروع المطولة.</p>
 </article></body></html>`;
 
 // A page carrying a detail that is sound for an adult and NOT for a seven-year-old. The floor,
 // not the model, is what must keep the second sentence off the wire.
 const PAGE_ADULT_DETAIL = `<html><head><title>أحكام الطهارة</title></head><body><article>
-<p>الطهارة شرط لصحة الصلاة، ومن أحدث لزمه الوضوء قبل أن يصلي على الصفة المعروفة.</p>
+<p>الطهارة شرط لصحة الصلاة، ومن أحدث لزمه الوضوء قبل أن يصلي على الصفة المعروفة عند أهل العلم.</p>
 <p>وأما الجماع فإنه يوجب الغسل، ووصف ذلك تفصيلا في كتب الفقه بما لا يليق ذكره للصغار.</p>
+<p>وقد ذكر أهل العلم أن الطهارة قسمان: طهارة حدث وطهارة خبث، وأن الأولى تكون بالماء أو بالتراب عند العجز عن الماء.</p>
+<p>ومن لم يجد الماء أو خاف الضرر باستعماله فإنه يتيمم، وصفة التيمم معروفة مقررة في مواضعها من كتب الفقه.</p>
 </article></body></html>`;
 
 const CORPUS = {
@@ -169,13 +176,25 @@ const BRAVE_RESULTS = [
     }
 
     if (user.includes('تحقَّقْ من كلِّ ادّعاءٍ')) {
-      const ids = Array.from(user.matchAll(/"?claim_id"?\s*[:=]?\s*"?(c\d+)/g)).map((m) => m[1]);
-      const uniq = Array.from(new Set(ids.length ? ids : ['c1']));
-      return jr({ verdicts: uniq.map((id) => ({ claim_id: id, verdict: 'PASS', unsupported_components: [] })) });
+      // THE REAL IDS ARE NAMESPACED. lib/ledger/schema.js mints `c1_<trace>_<n>`, not `c1`, and a
+      // stub matching /c\d+/ returned an empty verdict list — so every claim was recorded
+      // `no-verdict-returned` and the whole answer collapsed to a refusal. The ids are read back
+      // out of the prompt the engine actually built.
+      const ids = Array.from(new Set(Array.from(user.matchAll(/\b(c\d+_[a-z0-9]+_\d+)\b/g)).map((m) => m[1])));
+      return jr({ verdicts: ids.map((id) => ({ claim_id: id, verdict: 'PASS', unsupported_components: [] })) });
     }
 
     if (user.includes('اكتبِ الجوابَ جملةً جملة')) {
-      return jr({ sentences: script.sentences });
+      // A DRAFTER CITES THE CLAIMS IT WAS GIVEN. The scripted sentences carry placeholder ids
+      // (`c1`, `c2`); the engine's real ids are namespaced, so a sentence citing a placeholder
+      // resolves to no claim and is discarded before it can be judged — which silently turned
+      // this fixture into a refusal and hid what Gate 3 was doing. The scripted sentences are
+      // bound, in order, to the claims actually present in the prompt.
+      const real = Array.from(new Set(Array.from(user.matchAll(/\b(c\d+_[a-z0-9]+_\d+)\b/g)).map((m) => m[1])));
+      const sentences = (script.sentences || []).map((s, i) => ({
+        ...s, claim_ids: real[i] ? [real[i]] : (real[0] ? [real[0]] : []),
+      })).filter((s) => s.claim_ids.length);
+      return jr({ sentences });
     }
 
     if (user.includes('افحصْ كلَّ جملةٍ على حِدَة')) {
@@ -232,6 +251,30 @@ const BRAVE_RESULTS = [
   // The handler is imported ONCE; every drive below is the real default export.
   const handler = (await esm('api/ask.js')).default;
 
+  // DRIVE THE REAL SEAM. runLedgerTurn() is the module api/ask.js calls; driving it directly is
+  // the same production code path and, unlike the handler, it RETURNS the engine result — so the
+  // IR, the claims and the age-floor stamp can be inspected without production publishing them
+  // to a global for a test's benefit.
+  const SEAM = await esm('lib/ledger/seam.js');
+  const ASK = await esm('api/ask.js');
+  const driveSeam = async (question, script, opts = {}) => {
+    installRedis('on');
+    installFetch(script);
+    resetCounters();
+    const res = makeRes();
+    const out = await SEAM.runLedgerTurn(res, {
+      messages: [{ role: 'user', content: question }],
+      band: opts.band === 'young' ? 'young' : 'adult',
+      audienceBand: opts.band,
+      bandSites: ['islamqa.info'],
+      buildSourceTag: ASK.buildSourceTag,
+      search: async () => (script.braveResults || BRAVE_RESULTS)
+        .map((r) => ({ url: r.url, title: r.title, snippet: '' })),
+      dailyBudget: new DB.DailySearchBudget({ limit: 1000, now: () => 1770000000000 }),
+    });
+    return { out, res, text: readerText(res), modelCalls: modelCalls.slice() };
+  };
+
   const driveLedger = async (question, band, script, envOverrides = {}) => {
     process.env.LEDGER_RAG = 'on';
     process.env.DAILY_SEARCH_BUDGET = envOverrides.DAILY_SEARCH_BUDGET === undefined
@@ -264,14 +307,15 @@ const BRAVE_RESULTS = [
       // The drafter ATTEMPTS the forbidden shape. Gate 3 must be what stops it.
       sentences: [{ sentence_id: 's1', text: 'قال ابن تيمية إنه من أهل السنة والجماعة.', claim_ids: ['c1'] }],
     };
-    const out = await driveLedger('هل خالف ابن تيمية أهل السنة والجماعة؟', 'adult', script);
+    const out = await driveSeam('هل خالف ابن تيمية أهل السنة والجماعة؟', script);
+    const outH = await driveLedger('هل خالف ابن تيمية أهل السنة والجماعة؟', 'adult', script);
 
-    ok('the ledger path actually ran (the engine reached the provider)', out.braveCalls >= 1,
-      'model calls seen: ' + JSON.stringify(out.modelCalls));
+    ok('the ledger path actually ran through the handler', outH.braveCalls >= 1,
+      'model calls seen: ' + JSON.stringify(outH.modelCalls));
     ok('...and there was NO pre-search rejection on the name',
-      out.braveCalls >= 1, 'a refusal before search would have spent zero provider calls');
+      outH.braveCalls >= 1, 'a refusal before search would have spent zero provider calls');
 
-    const ir = globalThis.__EZIK_LAST_LEDGER_IR__;
+    const ir = out.out ? out.out.policy : null;
     ok('the ledger exposes the IR it actually used', !!ir, 'nothing was published for inspection');
     eq('...claim_relation is ABOUT_ENTITY', ir && ir.claimRelation, 'ABOUT_ENTITY');
     eq('...requested_authority is null', ir && ir.requestedAuthorityId, null);
@@ -301,8 +345,8 @@ const BRAVE_RESULTS = [
       annotations: [{ slot: 'ruling', contains: 'الأصل الجواز' }],
       sentences: [{ sentence_id: 's1', text: 'ذكر المصدر أن الأصل الجواز.', claim_ids: ['c1'] }],
     };
-    await driveLedger('ما رأي ابن باز في ابن تيمية؟', 'adult', script);
-    const ir = globalThis.__EZIK_LAST_LEDGER_IR__;
+    const out = await driveSeam('ما رأي ابن باز في ابن تيمية؟', script);
+    const ir = out.out ? out.out.policy : null;
     ok('the ledger IR carries BOTH entities', ir && ir.entities && ir.entities.length >= 2,
       JSON.stringify(ir && ir.entities));
     const baz = ir && (ir.entities || []).find((e) => e.canonicalId === 'ibn-baz');
@@ -326,11 +370,11 @@ const BRAVE_RESULTS = [
       annotations: [{ slot: 'ruling', contains: 'الأصل الجواز' }],
       sentences: [{ sentence_id: 's1', text: 'ذكر المصدر أن المذهب على الجواز.', claim_ids: ['c1'] }],
     };
-    await driveLedger('ما حكم المسألة عند الحنابلة؟', 'adult', script);
-    const ir = globalThis.__EZIK_LAST_LEDGER_IR__;
+    const out = await driveSeam('ما حكم المسألة عند الحنابلة؟', script);
+    const ir = out.out ? out.out.policy : null;
     eq('target_type=madhhab reaches the ledger IR', ir && ir.targetType, 'madhhab');
     eq('...and the relation is BY_MADHHAB', ir && ir.claimRelation, 'BY_MADHHAB');
-    const claims = globalThis.__EZIK_LAST_LEDGER_CLAIMS__ || [];
+    const claims = out.out.ledger.claims;
     ok('...and the CLAIMS carry it too', claims.length > 0 && claims.every((c) => c.targetType === 'madhhab'),
       JSON.stringify(claims.map((c) => ({ id: c.claimId, t: c.targetType }))));
   }
@@ -357,12 +401,12 @@ const BRAVE_RESULTS = [
       ],
       braveResults: [{ url: 'https://islamqa.info/ar/answers/9003/x', title: 'أحكام الطهارة', description: '' }],
     };
-    const out = await driveLedger('ما حكم الطهارة للصلاة؟', 'young', script);
+    const out = await driveSeam('ما حكم الطهارة للصلاة؟', script, { band: 'young' });
     ok('the young reader still gets the sound part of the answer',
       /الطهارة شرط لصحة الصلاة/.test(out.text), out.text.slice(0, 200));
     ok('...and the age-inappropriate detail NEVER reaches the wire',
       !/الجماع/.test(out.text), out.text.slice(0, 300));
-    const floor = globalThis.__EZIK_LAST_LEDGER_AGE_FLOOR__;
+    const floor = out.out.ageFloor;
     ok('the ledger records that AGE_FLOOR ran', !!floor, 'no floor stamp published by the ledger');
     eq('...for the young band', floor && floor.audienceBand, 'young');
     ok('...and names what it withheld', floor && Array.isArray(floor.withheld) && floor.withheld.length >= 1,
@@ -376,8 +420,11 @@ const BRAVE_RESULTS = [
     const script = { plan: { issues: [], missing_qualifiers: [], confidence: 'high' }, annotations: [], sentences: [] };
     const out = await driveLedger('ما حكم المسألة؟', 'adult', script, { DAILY_SEARCH_BUDGET: null });
     eq('an unconfigured daily budget spends ZERO provider calls', out.braveCalls, 0);
-    ok('...and the engine never planned anything either', out.modelCalls.length === 0,
-      JSON.stringify(out.modelCalls));
+    // The LEDGER planner specifically. The request still falls through to the legacy route, which
+    // legitimately calls a model — asserting zero model calls of any kind would be asserting that
+    // the reader gets nothing, which is not the contract.
+    ok('...and the ledger planner never ran',
+      !out.modelCalls.some((c) => c.includes('صِفْه')), JSON.stringify(out.modelCalls));
 
     process.env.LEDGER_RAG = 'on';
     installRedis('on');

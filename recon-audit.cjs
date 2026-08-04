@@ -526,7 +526,11 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       35th rfc-v05r2-runtime-guard (cache, daily budget, query bounds, mutations, SSE). Both
   //       live under guards/ rather than the repo root, which is why item 14 below had to learn
   //       that a gate script may carry a directory.
-  const GATES_EXPECTED = 35;   // 33rd: ledger-seam-guard — the JOIN between a request and the
+  // S-RFC-v0.5-R2-REVIEW: 35 -> 36. 36th rfc-v05r2-wiring-guard — the review of the first round
+  //       found that the policy core was asserted to be IMPORTED rather than driven, so this one
+  //       calls api/ask.js's own default export and replaces only globalThis.fetch. It is the
+  //       gate that fails if the wiring is removed while every module test still passes.
+  const GATES_EXPECTED = 36;   // 33rd: ledger-seam-guard — the JOIN between a request and the
                                //       engine, driven with req/res doubles rather than matched
                                //       with a regex. Three defects lived in that gap while five
                                //       ledger gates stayed green: the engine's question came

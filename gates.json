@@ -173,5 +173,10 @@
   "name": "rfcruntime",
   "script": "guards/rfc-v05r2-runtime-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "rfcwiring",
+  "script": "guards/rfc-v05r2-wiring-guard.cjs",
+  "args": ""
  }
 ]

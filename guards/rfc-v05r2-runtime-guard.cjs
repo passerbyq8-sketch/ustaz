@@ -191,8 +191,11 @@ function mk(nWords, nChars) {
     eq('...and the outcome is SERVICE_LIMITED', DB.SERVICE_LIMITED, 'SERVICE_LIMITED');
     ok('...never NOT_FOUND', !/NOT_FOUND/.test(DB.SERVICE_LIMITED) && !/not_found/i.test(DB.SERVICE_LIMITED_TEXT));
     ok('the reader-facing line says the limit, not an absence of evidence',
-      /حدّ البحث المتاح/.test(DB.SERVICE_LIMITED_TEXT)
+      /الحدود التشغيلية/.test(DB.SERVICE_LIMITED_TEXT)
       && !/لم نقف|لم نجد|لا يوجد/.test(DB.SERVICE_LIMITED_TEXT), DB.SERVICE_LIMITED_TEXT);
+    ok('the PARTIAL variant says the rest was not SEARCHED, not that nothing was found',
+      /لم أبحث فيها بعدُ/.test(DB.PARTIAL_SERVICE_LIMITED_TEXT)
+      && !/لم نقف|لم نجد/.test(DB.PARTIAL_SERVICE_LIMITED_TEXT), DB.PARTIAL_SERVICE_LIMITED_TEXT);
     ok('...and says the locally-held material still works',
       /القرآن|الأذكار/.test(DB.SERVICE_LIMITED_TEXT));
 
@@ -281,10 +284,26 @@ function mk(nWords, nChars) {
   console.log('\n=== S. THE SSE CONTRACT, driven through the real handler ===');
   {
     const DAY = await esm('lib/daycap.js');
+    const REDIS = await esm('lib/ledger/redis.js');
+    const LP = await esm('lib/legacy-policy-flag.js');
     process.env.FOUNDER_SECRET = 'runtime-guard-secret';
     process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
     const deviceId = 'guard-device-0001';
     const founder = DAY.founderTokenFor(deviceId);
+
+    // THE CHILD POLICY IS BEHIND ITS ROLLOUT FLAG NOW (review P0-6), so this section turns it on
+    // for an internal identity — that is the configuration whose SSE contract is being measured.
+    // The flag-OFF contract is measured in guards/rfc-v05r2-wiring-guard.cjs.
+    process.env.RFC_V05_LEGACY_POLICY = 'on';
+    const flagMem = new Map([[LP.RUNTIME_KEY, 'on']]);
+    REDIS.__setRedisForTest({
+      async get(k) { return flagMem.has(k) ? flagMem.get(k) : null; },
+      async set() { return 'OK'; },
+      async incr() { return 1; },
+      async expire() { return 1; },
+      async eval() { return [1, 1]; },
+    });
+    LP.__resetLegacyFlagCacheForTest();
 
     const makeRes = () => {
       const r = {
@@ -386,6 +405,8 @@ function mk(nWords, nChars) {
     }
 
     globalThis.fetch = realFetch;
+    delete process.env.RFC_V05_LEGACY_POLICY;
+    REDIS.__resetRedis();
   }
 
   console.log('\n' + (failures === 0

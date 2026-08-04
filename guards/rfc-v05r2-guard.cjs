@@ -323,27 +323,32 @@ const user = (t) => [{ role: 'user', content: t }];
 
   // =========================================================================
   console.log('\n=== F. LEGACY: the four questions no longer misroute ===');
+  // THE REPAIRS ARE BEHIND lib/legacy-policy-flag.js. These assert what an INTERNAL TESTER gets
+  // with the flag on. The flag-OFF path — which must still be the shipped contract, byte for byte
+  // — is asserted by driving the real handler in guards/rfc-v05r2-wiring-guard.cjs, and
+  // ledger-contract-guard records that the old «ذهب» mis-read is still what ships today.
+  const POLICY_ON = { policyEnabled: true };
   {
     // These drive the REAL planAsk the handler calls.
-    const p1 = planAsk(user('هل خالف شيخ الإسلام ابن تيمية أهل السنة والجماعة؟'));
+    const p1 = planAsk(user('هل خالف شيخ الإسلام ابن تيمية أهل السنة والجماعة؟'), POLICY_ON);
     ok('F1 ibn taymiyyah is no longer an unresolved "scholar opinion"',
       p1.needsScholarIdentity === false, 'needsScholarIdentity was the pre-search refusal');
     eq('F1 the relation is ABOUT_ENTITY', p1.claimRelation, 'ABOUT_ENTITY');
     ok('F1 ...so it reaches the general sourced route', p1.attributionMode !== 'namedScholarOpinion');
 
-    const p2 = planAsk(user('ذهب إلى المسجد فهل يصح؟'));
+    const p2 = planAsk(user('ذهب إلى المسجد فهل يصح؟'), POLICY_ON);
     eq('F2 walking to the mosque attributes nothing', p2.attributionMode, 'none');
     ok('F2 ...and asks nobody to identify a shaykh', p2.needsScholarIdentity === false);
 
-    const p3 = planAsk(user('ما حكم المسألة عند الحنابلة؟'));
+    const p3 = planAsk(user('ما حكم المسألة عند الحنابلة؟'), POLICY_ON);
     ok('F3 a madhhab is not an unidentified person', p3.needsScholarIdentity === false);
     eq('F3 the target type is madhhab', p3.targetType, 'madhhab');
 
-    const p4 = planAsk(user('ما حكم بيع الذهب بالتقسيط؟'));
+    const p4 = planAsk(user('ما حكم بيع الذهب بالتقسيط؟'), POLICY_ON);
     eq('F4 gold is still not an attribution', p4.attributionMode, 'none');
 
     // AND THE GUARANTEE THAT DID NOT MOVE: an undocumented BY_ENTITY stays fail-closed.
-    const p5 = planAsk(user('ما رأي الشيخ عبدالمحسن العباد في الطلاق في الغضب؟'));
+    const p5 = planAsk(user('ما رأي الشيخ عبدالمحسن العباد في الطلاق في الغضب؟'), POLICY_ON);
     eq('F5 a real opinion request is still an opinion request', p5.attributionMode, 'namedScholarOpinion');
     eq('F5 ...and is still BY_ENTITY', p5.claimRelation, 'BY_ENTITY');
   }
