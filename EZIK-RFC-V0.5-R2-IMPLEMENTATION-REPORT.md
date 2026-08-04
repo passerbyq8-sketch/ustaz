@@ -364,9 +364,14 @@ whose tests had not passed.
 
 ```
 END_BRANCH        guarded/rfc-v0.5-r2
-END_HEAD          c86fe8f2010018c84eade93276727df40b314282
+END_HEAD          the branch tip — read with `git rev-parse guarded/rfc-v0.5-r2`
+                  It is NOT written here: the tip is the commit that adds this file, and a
+                  hash printed inside the object it names is a hash that is wrong the moment
+                  it is committed. The seven commits before it are listed with their real
+                  hashes in §L; §L's last row plus this document's own two commits are the
+                  branch. RFC v0.5-R2 §16: no final SHA is written before it exists.
 END_ORIGIN        2046114a98f5d248672bc209914ec4baeff8a3d6   (unmoved)
-END_AHEAD_BEHIND  7/0
+END_AHEAD_BEHIND  9/0  (7 in §L + the docs commit + this correction)
 END_DIRTY         0
 PUSHED            = NO
 PREVIEW           = NO
