@@ -505,7 +505,7 @@ async function partE() {
     [/^lib\/(binothaimeen|attribution|ask-plan|retrieve|brave-query|source-registry|source-purpose|claim-gate|duration)\.js$/, 'the search and sourcing modules'],
     [/^data\/ledger-/, 'data/ledger-*'],
     [/^tools\//, 'tools/**'],
-    [/guard\.cjs$/, 'the shipped guards'],
+    [/^[^/]*guard\.cjs$/, 'the shipped guards'],   // rooted on purpose: THIS file lives in guards/
     [/^gates\.json$/, 'gates.json'],
     [/^recon-audit\.cjs$/, 'recon-audit.cjs'],
     [/^quest-data\//, 'quest-data/**'],
