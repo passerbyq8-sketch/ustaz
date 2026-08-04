@@ -186,25 +186,39 @@
     },
     {
       "id": "F6_abbaad_opinion",
-      "outcome": "SAFE_REJECTION",
+      "outcome": "PARTIAL",
       "issue_count": 1,
       "requested_authority_id": "al-abbaad",
-      "brave_calls": 0,
-      "network_fetches": 0,
-      "accepted_records": 0,
-      "pages_fetched": 0,
-      "model_calls": 1,
-      "verified_cycles": 0,
-      "source_cards": 0,
-      "card_domains": [],
-      "source_domains": [],
-      "canonical_urls": [],
-      "answer_unit_ids": [],
+      "brave_calls": 1,
+      "network_fetches": 3,
+      "accepted_records": 3,
+      "pages_fetched": 3,
+      "model_calls": 5,
+      "verified_cycles": 1,
+      "source_cards": 1,
+      "card_domains": [
+        "islamqa.info"
+      ],
+      "source_domains": [
+        "islamqa.info"
+      ],
+      "canonical_urls": [
+        "https://islamqa.info/ar/answers/7001/x",
+        "https://islamqa.info/ar/answers/7002/x",
+        "https://islamqa.info/ar/answers/7003/x"
+      ],
+      "answer_unit_ids": [
+        "https://islamqa.info/ar/answers/7001/x#u1",
+        "https://islamqa.info/ar/answers/7002/x#u1",
+        "https://islamqa.info/ar/answers/7003/x#u1"
+      ],
       "required_slots": [
         "iss_1:ruling",
         "iss_1:attribution"
       ],
-      "filled_slots": [],
+      "filled_slots": [
+        "iss_1:ruling"
+      ],
       "budget_breaches": 0,
       "duplicate_fetches": 0
     },
