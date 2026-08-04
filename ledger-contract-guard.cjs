@@ -330,10 +330,15 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     // be a REGISTERED owner id, and a captured fragment of a sentence is not one. So the
     // mis-capture cannot become an attribution however it arrives.
     {
+      // FIXED, and this assertion is inverted to say so. The note above predicted the repair
+      // would land in its own change with the entity IR; RFC v0.5-R2 is that change, and
+      // lib/policy/entities.js now vetoes the lexical capture because «المسجد» is not a
+      // registered entity. The defence below is UNCHANGED and still asserted: the ledger path
+      // never consulted the shape detector, so it could not have been hurt either way.
       const mis = planAsk(user('ذهب إلى المسجد فهل يصح؟'));
-      ok('MEASURED: the shipped detector still mis-reads the VERB «ذهب» (recorded, not fixed here)',
-        mis.attributionMode === 'namedScholarOpinion', 'if this now passes, the shipped bug was fixed elsewhere');
-      eq('...but the captured fragment resolves to NO registered authority',
+      eq('the VERB «ذهب» no longer mis-reads as a scholar', mis.attributionMode, 'none');
+      eq('...and the sentence attributes nothing at all', mis.claimRelation, 'NONE');
+      eq('...the fragment still resolves to NO registered authority',
         SP.authorityIdForScholarName(mis.namedEntity), null);
       eq('...and has no primary-opinion adapter either',
         SP.primaryOpinionAdapter(mis.namedEntity), null);
