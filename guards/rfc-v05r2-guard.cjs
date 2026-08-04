@@ -109,8 +109,15 @@ const user = (t) => [{ role: 'user', content: t }];
     ok('A5 both candidates are named', hajar && hajar.candidates.length >= 2,
       JSON.stringify(hajar && hajar.candidates));
     eq('A5 the outcome is CLARIFY_OR_SCOPE', E.ambiguityOutcome(a5), 'CLARIFY_OR_SCOPE');
-    ok('A5 no probabilistic attribution is offered',
-      !/probab|احتمال|الأرجح|غالبا/.test(read('lib/policy/entities.js')));
+    // NOT a text search of the module — that check false-positived on the module's own prose
+    // explaining why it does not guess. This measures the BEHAVIOUR: an ambiguous name never
+    // becomes an authority id, and both candidates survive rather than one being chosen.
+    ok('A5 an ambiguous name never becomes an authority id', a5.requestedAuthorityId === null,
+      'chose ' + a5.requestedAuthorityId);
+    ok('A5 neither candidate is dropped', hajar && hajar.candidates.length === 2);
+    ok('A5 the pre-search outcome names the ambiguity rather than a scholar',
+      (E.preSearchRejection(a5) || {}).code === 'AMBIGUOUS_ENTITY',
+      JSON.stringify(E.preSearchRejection(a5)));
 
     // A6 — A MADHHAB IS NOT A PERSON.
     const a6 = E.readEntities('ما حكم المسألة عند الحنابلة؟');
@@ -135,7 +142,10 @@ const user = (t) => [{ role: 'user', content: t }];
   {
     eq('a contemporary with no primary adapter caps at NONE',
       GR.provenanceCap({ era: 'contemporary', hasPrimaryAdapter: false }), 'NONE');
-    eq('...and WITH one he is readable', GR.provenanceCap({ era: 'contemporary', hasPrimaryAdapter: true }), 'A');
+    // WITH a registered corpus he is readable at A or B — never at C. The cap names the WEAKEST
+    // grade admissible, so 'B' here means "a summary is still refused for a contemporary".
+    eq('...and WITH one he is readable down to B', GR.provenanceCap({ era: 'contemporary', hasPrimaryAdapter: true }), 'B');
+    ok('...and grade A is of course allowed there', GR.gradeAllowed('A', { era: 'contemporary', hasPrimaryAdapter: true }));
     eq('a historical scholar may reach C', GR.provenanceCap({ era: 'historical', hasPrimaryAdapter: false }), 'C');
     ok('grade C is refused for contemporaries in every direction',
       GR.gradeAllowed('C', { era: 'contemporary', hasPrimaryAdapter: false }) === false
