@@ -276,8 +276,23 @@ const user = (t) => [{ role: 'user', content: t }];
   // =========================================================================
   console.log('\n=== E. THE WIRING (api/ask.js) ===');
   ok('the request is planned, not merely flagged', /const plan = planAsk\(body\.messages\);/.test(ask));
-  ok('a name forces the SOURCED route, never the unsourced one',
-    /const effectiveRoute = plan\.attributionMode === 'none' \? route : 'DEEN';/.test(ask));
+  // EVALUATED, NOT MATCHED. The shipped routing expression is lifted out of api/ask.js and run
+  // against real plans, so this asserts the GUARANTEE (an attributed question never reaches the
+  // unsourced path) rather than one spelling of it. A rewrite that kept the wording and broke the
+  // guarantee used to pass this check; it no longer can.
+  {
+    const expr = ask.match(/const effectiveRoute =([\s\S]*?);\n/);
+    ok('the routing decision is readable from the handler', !!expr);
+    const routeOf = expr ? new Function('plan', 'route', 'return (' + expr[1] + ');') : null;
+    ok('a name forces the SOURCED route, never the unsourced one',
+      !!routeOf && routeOf(planAsk(user('ما رأي الشيخ عبدالمحسن العباد في الطلاق في الغضب؟')), 'GEN') === 'DEEN');
+    ok('...a question ABOUT a scholar is sourced too',
+      !!routeOf && routeOf(planAsk(user('هل خالف ابن تيمية أهل السنة والجماعة؟')), 'GEN') === 'DEEN');
+    ok('...a madhhab question is sourced too',
+      !!routeOf && routeOf(planAsk(user('ما حكم المسألة عند الحنابلة؟')), 'GEN') === 'DEEN');
+    ok('...and an ordinary question is left alone',
+      !!routeOf && routeOf(planAsk(user('احك لي نكتة')), 'GEN') === 'GEN');
+  }
   ok('the adapter is tried FIRST for the scholar who has one', /if \(plan\.hasDirectAdapter\)/.test(ask));
   ok('a scholar without an adapter still gets his own site searched',
     /else if \(plan\.officialDomain\)/.test(ask) && /onlySites: \[plan\.officialDomain\]/.test(ask));

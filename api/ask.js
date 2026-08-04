@@ -26,6 +26,14 @@ import { sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verify
 // Readability, the planner) is imported lazily inside the branch below, so a request that takes
 // the shipped path loads none of it.
 import { decidePath } from '../lib/ledger/flag.js';
+// THE SHARED POLICY CORE (RFC v0.5-R2 §3). The SAME tables the ledger path reads — not a copy,
+// and not a second opinion. What lives here is data and pure evaluators: the topic x audience
+// matrix, the deterministic child floor, and the sentence shapes an attribution grade may take.
+// guards/rfc-v05r2-guard.cjs asserts both paths consume one policy_version.
+import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION } from '../lib/policy/core.js';
+import { access, effectiveBand, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
+import { violatesTemplate } from '../lib/policy/attribution-grades.js';
+import { lastUserText } from '../lib/attribution.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -77,6 +85,25 @@ function buildDepthInstruction(depth) {
   }
   return '';
 }
+
+// THE BOUNDED EDUCATIONAL BLOCK FOR A BENIGN CHILD QUESTION (RFC v0.5-R2 §10).
+//
+// IT IS NOT THE SAFETY GUARANTEE, and that separation is the point. This asks for the answer we
+// want; lib/policy/age.js's deterministic floor decides whether we got it. A prompt cannot be the
+// guarantee, because the thing being asked to obey it is the thing being bounded by it — and the
+// measured failure was in the other direction anyway: a seven-year-old asking how to make a lip
+// balm was met with «اسألي والدتك» and nothing else, which is not safety, it is abandonment.
+const CHILD_BENIGN_INSTRUCTION = [
+  'هذا سؤالٌ يوميٌّ بسيطٌ من طفل، وليس سؤالًا شرعيًّا. أجِبْ عنه إجابةً نافعةً دافئةً قصيرةً بلغةٍ سهلة.',
+  '- أجِبْ فعلًا عن السؤال. لا تكتفِ بإحالته إلى أهله، ولا تردّه ردًّا باردًا.',
+  '- جملتان إلى أربع جُمَل، بكلماتٍ يفهمها طفل.',
+  '- اقتصِرْ على موادَّ لطيفةٍ ومتوفّرةٍ في البيت وآمنةٍ على جلد الطفل.',
+  '- ممنوعٌ منعًا باتًّا: الليمون، القرفة، الخلّ، الزيوت العطريّة، بيكربونات الصوديوم، الكحول، وأيُّ فركٍ قاسٍ أو موادَّ خشنة.',
+  '- ممنوعٌ ذكرُ أيِّ دواءٍ أو جرعةٍ أو مقدارٍ علاجيٍّ أو عددِ مرّاتٍ في اليوم.',
+  '- نبِّهْ على تجربة أيِّ شيءٍ جديدٍ على جزءٍ صغيرٍ من الجلد أوّلًا خشيةَ الحساسيّة.',
+  '- واذكرْ إشراكَ أحدِ الوالدين قبل أيِّ مادّةٍ جديدة — إشراكًا داعمًا لا صدًّا.',
+  '- لا تُصدِرْ حكمًا شرعيًّا، ولا تُعطِ تشخيصًا، ولا تكتبْ وسمَ <source> ولا أيَّ رابط.',
+].join('\n');
 
 // Append the depth instruction as a SEPARATE text block WITHOUT cache_control,
 // so it varies per-request and never busts the cached static system prefix.
@@ -424,6 +451,19 @@ export default async function handler(req, res) {
   // It changes neither the model, the system prompt, the effort, the token cap, the band,
   // nor the allow-list. Real doubt resolves to DEEN.
   const route = classifyRoute(body.messages);
+  // ── THE AGE BAND THAT GOVERNS POLICY, WHICH IS NOT THE ONE THAT GOVERNS SOURCES ──
+  //
+  // `band` above still does exactly what it did: it picks the retrieval allow-list, and an absent
+  // or garbled value still fails CLOSED to the minor list. That is deliberately NOT touched here,
+  // because widening a minor's sources is the one regression this whole RFC must not cause.
+  //
+  // `audienceBand` is a SEPARATE value used only by the policy core, and it moves the other way:
+  // an unidentified reader is treated as an ADULT (RFC v0.5-R2 §4). Treating everybody unknown as
+  // a child is not caution — it silently hands a grown man a children's answer because he never
+  // filled in a profile. A younger band is honoured only from the account profile, and never
+  // inferred from anything the reader typed.
+  const audienceSource = band ? 'account_profile' : 'unknown';
+  const audienceBand = effectiveBand(band || 'unknown', audienceSource);
   // ATTRIBUTION GATE (lib/attribution.js). Decided here, on the server, from the question's own
   // SHAPE — "ما رأي الشيخ فلان", "قال فلان", "هل أفتى فلان". It is computed BEFORE anything is
   // sent upstream because it overrides the route: an attributed question can never take the GEN
@@ -443,7 +483,13 @@ export default async function handler(req, res) {
   // and GEN runs with no tools and no retrieval, which is how the original inverted fatwa was
   // produced. Anything naming a scholar or a scholar's site is therefore forced onto the
   // sourced route, whichever way it ends.
-  const effectiveRoute = plan.attributionMode === 'none' ? route : 'DEEN';
+  // A QUESTION ABOUT A SCHOLAR IS A SOURCED QUESTION TOO. «هل خالف ابن تيمية أهل السنة؟» asks
+  // something the app must answer from a page, not from the model's recollection of a polemic —
+  // so ABOUT_ENTITY joins the named-opinion shapes in forcing the sourced route, even though it
+  // attributes nothing to anybody and takes none of the attribution branches below.
+  const effectiveRoute = (plan.attributionMode !== 'none'
+    || plan.claimRelation === 'ABOUT_ENTITY' || plan.claimRelation === 'BY_MADHHAB')
+    ? 'DEEN' : route;
   console.log('[route]', {
     route: effectiveRoute, lexicalRoute: route, band,
     purpose: plan.purpose, mode: plan.attributionMode,
@@ -472,7 +518,37 @@ export default async function handler(req, res) {
   let keepAlive = setInterval(() => { try { res.write(': keepalive\n\n'); } catch {} }, 10000);
   const clearKeepAlive = () => { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } };
 
+  // ONE WAY OUT, USED BY EVERY DETERMINISTIC BRANCH BELOW. The headers are already committed at
+  // this point, so this is not sendSynthesizedText(): it writes one text delta, one message_stop
+  // and closes ONCE. Every early return in this handler goes through it, which is what keeps the
+  // SSE contract identical no matter how many new branches exist.
+  const emitOnce = (text) => {
+    clearKeepAlive();
+    res.write(`data: ${JSON.stringify({
+      type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text },
+    })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
+    return res.end();
+  };
+
   try {
+    // ── NARROW_SAFETY_TRIAGE (RFC v0.5-R2 §4) ──────────────────────────────
+    //
+    // THE ONLY THING ALLOWED TO DECIDE ANYTHING BEFORE THE QUESTION IS UNDERSTOOD, and it is kept
+    // narrow enough to earn that: it fires only on a CONJUNCTION — an action and a hazardous
+    // material, or an explicit self-harm phrase. It cannot fire on «ما حكم قتل النمل؟», because a
+    // single alarming word satisfies no conjunction. That is the whole difference between this
+    // and a keyword blocklist, and it is why «قتل» no longer costs a seven-year-old a fiqh answer.
+    //
+    // A grave hazard is redirected for EVERY band. An adult asking how to make chlorine gas in a
+    // kitchen has not asked a different question by being an adult.
+    const questionText = lastUserText(body.messages);
+    const hazard = graveHazard(questionText);
+    if (hazard) {
+      console.warn('[policy] SAFETY_REDIRECT', { topic: hazard, band: audienceBand, policyVersion: POLICY_VERSION });
+      return emitOnce(WARM_TEMPLATES.SAFETY_REDIRECT);
+    }
+
     // ── LEDGER RAG — A PARALLEL PATH, DEFAULT OFF ──────────────────────────
     //
     // The narrowest possible seam: one call, taken before any of the routes below, and it
@@ -525,6 +601,75 @@ export default async function handler(req, res) {
         ms: out.budget.snapshot().elapsedMs,
       });
       return;
+    }
+
+    // ── AGE_ACCESS_POLICY (RFC v0.5-R2 §4/§5) ──────────────────────────────
+    //
+    // AFTER IR_BUILD, NEVER BEFORE IT. planAsk() has already run above, so by the time this line
+    // is reached the question's entities, its relation and its purpose are known — which is what
+    // lets «ما حكم قتل النمل؟» be classified as a ruling a child may have, rather than blocked on
+    // a word. lib/policy/age.js's ORDER constant pins this ordering and the gate asserts it.
+    const topicClass = classifyTopic(questionText, plan);
+    const ageAccess = access({ topicClass, audienceBand });
+    console.log('[policy]', {
+      topicClass, audienceBand, outcome: ageAccess.outcome,
+      sourcePolicy: ageAccess.sourcePolicy, relation: plan.claimRelation, policyVersion: POLICY_VERSION,
+    });
+
+    // ── GENERAL_HEALTH_INTERIM ─────────────────────────────────────────────
+    // Until this app has a health ledger of its own, a dose, a diagnosis and a child's symptoms
+    // are not answered from a model. The referral is WARM and explains itself: a wall teaches a
+    // child nothing and sends them to a worse source, which is the opposite of safety.
+    if (ageAccess.outcome === 'REFER_ADULT') {
+      console.warn('[policy] GENERAL_HEALTH_INTERIM referral', { topicClass, band: audienceBand });
+      return emitOnce(warmTemplateFor('GENERAL_HEALTH_INTERIM'));
+    }
+
+    // ── GENERAL_CHILD_BENIGN (RFC v0.5-R2 §10) ─────────────────────────────
+    //
+    // A small, reviewed list of low-risk everyday topics, answered in ONE model call — the same
+    // one the GEN route already spends, not an extra one — and then put through the deterministic
+    // floor. The reply is BUFFERED for exactly the reason the attributed route is: bytes already
+    // on a child's screen cannot be withdrawn when the floor refuses them.
+    //
+    // A floor failure does not automatically cost the child the answer. A draft that is merely
+    // INCOMPLETE — it forgot the patch test, it forgot to bring a parent in — is completed
+    // deterministically from fixed sentences this server owns. A draft that told them to rub
+    // lemon on their lips is discarded whole, because a warning bolted onto the end of a harmful
+    // instruction is still the harmful instruction.
+    if (effectiveRoute === 'GEN' && ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
+      && (audienceBand === 'young' || audienceBand === 'teen')) {
+      const gc = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          system: appendDepthBlock(system, CHILD_BENIGN_INSTRUCTION),
+          messages: body.messages,
+          stream: false,
+        }),
+      });
+      if (!gc.ok) {
+        const errText = await gc.text().catch(() => '');
+        console.error('[policy] child upstream', gc.status, errText.slice(0, 200));
+        clearKeepAlive();
+        res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${gc.status}` } })}\n\n`);
+        return res.end();
+      }
+      const gcPayload = await gc.json();
+      const gcDraft = (gcPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
+        .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .trim();
+      const rep = ageRepair(gcDraft, { topicClass, audienceBand });
+      // THE FLOOR STAMP. A benign child reply that cannot show the floor ran is indistinguishable
+      // from one that skipped it, so the outcome is recorded on every single one.
+      console.log('[policy] AGE_FLOOR', {
+        topicClass, band: audienceBand, ageFloorOutcome: rep.outcome,
+        repaired: rep.repaired, problems: rep.problems,
+      });
+      return emitOnce(rep.text || warmTemplateFor('SAFETY_REDIRECT'));
     }
 
     // ── ATTRIBUTED ROUTE: no source by that scholar ⇒ no attributed ruling ──
@@ -1040,6 +1185,59 @@ export default async function handler(req, res) {
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
+    }
+
+    // ── ABOUT_ENTITY: a page ABOUT a man never becomes a page BY him ────────
+    //
+    // WHY THIS BRANCH EXISTS AT ALL. Routing «هل خالف ابن تيمية أهل السنة؟» to the ordinary
+    // sourced answer is the fix — the shipped path refused it outright, unsearched. But the
+    // ordinary sourced answer STREAMS, and a streamed reply cannot be checked before the reader
+    // sees it. So the one class of question where the failure mode is specifically "the model
+    // writes «قال ابن تيمية» about a page that merely discusses him" is buffered instead, and
+    // lib/policy/attribution-grades.js decides deterministically whether the draft crossed that
+    // line. Same single model call round 2 would have cost; `stream: false` is the only change.
+    //
+    // FAIL-CLOSED, AND NOT SILENTLY. A draft that attributes speech is dropped whole rather than
+    // edited down, and the reader is told plainly that we can report what sources SAY ABOUT him
+    // and will not put words in his mouth.
+    if (plan.claimRelation === 'ABOUT_ENTITY') {
+      const aboutInstruction = [
+        'تنبيهٌ داخليٌّ للصياغة (لا تنقلْه حرفيًّا):',
+        'السؤالُ هنا عن العالِمِ نفسِه — عن حالِه أو موقفِه أو ما قيل فيه — وليس طلبًا لفتواه.',
+        '- انقلْ ما تقولُه المصادرُ المسترجَعةُ عنه، منسوبًا إلى المصدرِ الذي قاله.',
+        '- لا تكتبْ «قال الشيخ» ولا «يرى الشيخ» ولا أيَّ صيغةٍ تجعلُ كلامَ المصدرِ كلامًا له.',
+        '- لا تُصدرْ حكمًا على شخصٍ حيٍّ بتكفيرٍ أو تبديعٍ أو تفسيقٍ ولا تتحدّثْ عن نيّته.',
+        '- إن اختلفتِ المصادر، فاذكرِ الاختلافَ منسوبًا لأصحابه دون ترجيح.',
+      ].join('\n');
+      const ra2 = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          system,
+          messages: [...round2Messages, { role: 'user', content: aboutInstruction }],
+          stream: false,
+        }),
+      });
+      if (!ra2.ok) {
+        const errText = await ra2.text().catch(() => '');
+        console.error('[about] upstream', ra2.status, errText.slice(0, 200));
+        clearKeepAlive();
+        res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${ra2.status}` } })}\n\n`);
+        return res.end();
+      }
+      const aPayload = await ra2.json();
+      const aDraft = (aPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
+        .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .trim();
+      const crossed = violatesTemplate(aDraft, { relation: 'ABOUT_ENTITY', grade: 'C' });
+      console.log('[about]', { entity: plan.requestedAuthorityId || (plan.entities[0] || {}).canonicalId || '', crossed });
+      if (crossed || !aDraft) {
+        return emitOnce('أستطيع أن أنقل لك ما ذكرته المصادر المعتمدة عن هذه المسألة، لكنّي لا أنسب إلى العالِم قولًا لم أقف عليه في نصٍّ له. أعِدْ صياغة سؤالك عمّا تريد معرفته بالتحديد وأنقل لك ما في المصادر بمصدره.');
+      }
+      return emitOnce(aDraft + '\n' + canonicalSources.map((c) => c.tag).join('\n'));
     }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──

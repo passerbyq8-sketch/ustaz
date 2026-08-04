@@ -399,9 +399,23 @@ const user = (t) => [{ role: 'user', content: t }];
   // A NAME OVERRIDES THE ROUTE. It no longer ENDS the request — that was the defect — but it
   // must still keep an attributed question off the unsourced GEN path, which is how the
   // original inverted fatwa was produced.
-  ok('naming a scholar forces the SOURCED route',
-    /const effectiveRoute = plan\.attributionMode === 'none' \? route : 'DEEN';/.test(ask),
-    'an attributed question could still take the unsourced GEN path');
+  // MEASURED, NOT PINNED TO ONE LINE OF TEXT. This used to match the routing expression as a
+  // literal string, which meant any change to it failed the gate even when the guarantee held —
+  // and, worse, a change that BROKE the guarantee while keeping the shape would have passed. So
+  // the shipped expression is lifted out of the source and EVALUATED against real plans.
+  {
+    const { planAsk } = await import('file://' + path.join(REPO, 'lib', 'ask-plan.js').replace(/\\/g, '/'));
+    const expr = ask.match(/const effectiveRoute =([\s\S]*?);\n/);
+    ok('the routing decision is readable from the handler', !!expr);
+    const routeOf = expr ? new Function('plan', 'route', 'return (' + expr[1] + ');') : null;
+    ok('naming a scholar forces the SOURCED route, even when the lexical route says GEN',
+      !!routeOf && routeOf(planAsk(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون ٨٠ يوم؟')), 'GEN') === 'DEEN',
+      'an attributed question could still take the unsourced GEN path');
+    ok('...and so does a question ABOUT a scholar',
+      !!routeOf && routeOf(planAsk(user('هل خالف ابن تيمية أهل السنة والجماعة؟')), 'GEN') === 'DEEN');
+    ok('...while an ordinary question keeps whatever the lexical router decided',
+      !!routeOf && routeOf(planAsk(user('كيف أرتب يومي؟')), 'GEN') === 'GEN');
+  }
   ok('the attributed branch runs BEFORE the GEN route',
     ask.indexOf("plan.attributionMode === 'namedScholarOpinion'") < ask.indexOf("if (effectiveRoute === 'GEN')"));
   ok('the scholar\'s own corpus is searched before the model is called',
