@@ -31,9 +31,12 @@ import { decidePath } from '../lib/ledger/flag.js';
 // matrix, the deterministic child floor, and the sentence shapes an attribution grade may take.
 // guards/rfc-v05r2-guard.cjs asserts both paths consume one policy_version.
 import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION } from '../lib/policy/core.js';
-import { access, effectiveBand, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
+import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
 import { violatesTemplate } from '../lib/policy/attribution-grades.js';
 import { lastUserText } from '../lib/attribution.js';
+// THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
+// it reads nothing from the store for a reader who is not an internal tester.
+import { decideLegacyPolicy } from '../lib/legacy-policy-flag.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -457,13 +460,22 @@ export default async function handler(req, res) {
   // or garbled value still fails CLOSED to the minor list. That is deliberately NOT touched here,
   // because widening a minor's sources is the one regression this whole RFC must not cause.
   //
-  // `audienceBand` is a SEPARATE value used only by the policy core, and it moves the other way:
-  // an unidentified reader is treated as an ADULT (RFC v0.5-R2 §4). Treating everybody unknown as
-  // a child is not caution — it silently hands a grown man a children's answer because he never
-  // filled in a profile. A younger band is honoured only from the account profile, and never
-  // inferred from anything the reader typed.
-  const audienceSource = band ? 'account_profile' : 'unknown';
-  const audienceBand = effectiveBand(band || 'unknown', audienceSource);
+  // `audienceBand` is a SEPARATE value used only by the policy core.
+  //
+  // AND IT IS A CLIENT CLAIM, WHICH IS WHAT IT IS NOW CALLED. This line used to read
+  // `band ? 'account_profile' : 'unknown'`, which asserted a verification that never happened:
+  // `band` is `deriveCaps(p.age).band` computed in the browser from `localStorage.child_profile`
+  // and posted in the request body, so anyone with devtools can set it. This app has NO
+  // server-authenticated age — the only server-verified identity is the founder HMAC, and it
+  // carries no age at all.
+  //
+  // So the claim RESTRICTS and never RELEASES. A claimed `young`/`teen` is honoured, because
+  // being wrong that way costs a misidentified adult a simpler answer while ignoring it costs a
+  // real child their protection. A claimed `adult` gets exactly what `unknown` gets, so an
+  // unverified claim can never be the reason anything opened. Nothing is inferred from the text.
+  const audience = resolveAudience({ serverBand: null, clientBand: band });
+  const audienceBand = audience.band;
+  const audienceSource = audience.audienceSource;
   // ATTRIBUTION GATE (lib/attribution.js). Decided here, on the server, from the question's own
   // SHAPE — "ما رأي الشيخ فلان", "قال فلان", "هل أفتى فلان". It is computed BEFORE anything is
   // sent upstream because it overrides the route: an attributed question can never take the GEN
@@ -475,7 +487,18 @@ export default async function handler(req, res) {
   // composes the classifiers this project already has: purpose, attribution shape, the
   // specific-expression subject, and the scholar-to-domain mapping. Reading a name out of the
   // question no longer ends the search; it starts a more specific one.
-  const plan = planAsk(body.messages);
+  // ── THE ROLLOUT SWITCH FOR THE LEGACY POLICY REPAIRS (RFC v0.5-R2 review, P0-6) ──
+  //
+  // The ledger has always been behind its own flag; these repairs were not, so pushing the branch
+  // would have put a new child policy, a new safety triage and a new ABOUT_ENTITY branch in front
+  // of every reader at once — skipping preview, shadow, canary and approval for changes that
+  // alter what a child is told.
+  //
+  // Same shape as lib/ledger/flag.js: env floor, server-verified founder credential, runtime value
+  // in the store, short TTL, bounded read, and every failure reads as OFF. For an ordinary reader
+  // it returns before touching the store, so it costs the public path nothing.
+  const legacyPolicy = await decideLegacyPolicy(req);
+  const plan = planAsk(body.messages, { policyEnabled: legacyPolicy.enabled });
   const attribution = plan.attribution;
   const claimSubject = plan.claimSubject;
   // A NAME OVERRIDES THE ROUTE, BUT IT DOES NOT REPLACE THE SEARCH. «ما رأي الشيخ ابن عثيمين
@@ -487,8 +510,11 @@ export default async function handler(req, res) {
   // something the app must answer from a page, not from the model's recollection of a polemic —
   // so ABOUT_ENTITY joins the named-opinion shapes in forcing the sourced route, even though it
   // attributes nothing to anybody and takes none of the attribution branches below.
+  // With the policy flag OFF this is byte-for-byte the shipped expression; the two new relations
+  // only widen it when an internal tester has the flag on.
   const effectiveRoute = (plan.attributionMode !== 'none'
-    || plan.claimRelation === 'ABOUT_ENTITY' || plan.claimRelation === 'BY_MADHHAB')
+    || (legacyPolicy.enabled
+      && (plan.claimRelation === 'ABOUT_ENTITY' || plan.claimRelation === 'BY_MADHHAB')))
     ? 'DEEN' : route;
   console.log('[route]', {
     route: effectiveRoute, lexicalRoute: route, band,
@@ -543,7 +569,7 @@ export default async function handler(req, res) {
     // A grave hazard is redirected for EVERY band. An adult asking how to make chlorine gas in a
     // kitchen has not asked a different question by being an adult.
     const questionText = lastUserText(body.messages);
-    const hazard = graveHazard(questionText);
+    const hazard = legacyPolicy.enabled ? graveHazard(questionText) : '';
     if (hazard) {
       console.warn('[policy] SAFETY_REDIRECT', { topic: hazard, band: audienceBand, policyVersion: POLICY_VERSION });
       return emitOnce(WARM_TEMPLATES.SAFETY_REDIRECT);
@@ -612,15 +638,16 @@ export default async function handler(req, res) {
     const topicClass = classifyTopic(questionText, plan);
     const ageAccess = access({ topicClass, audienceBand });
     console.log('[policy]', {
-      topicClass, audienceBand, outcome: ageAccess.outcome,
-      sourcePolicy: ageAccess.sourcePolicy, relation: plan.claimRelation, policyVersion: POLICY_VERSION,
+      topicClass, audienceBand, audienceSource, outcome: ageAccess.outcome,
+      sourcePolicy: ageAccess.sourcePolicy, relation: plan.claimRelation,
+      policyVersion: POLICY_VERSION, policyEnabled: legacyPolicy.enabled, flag: legacyPolicy.reason,
     });
 
     // ── GENERAL_HEALTH_INTERIM ─────────────────────────────────────────────
     // Until this app has a health ledger of its own, a dose, a diagnosis and a child's symptoms
     // are not answered from a model. The referral is WARM and explains itself: a wall teaches a
     // child nothing and sends them to a worse source, which is the opposite of safety.
-    if (ageAccess.outcome === 'REFER_ADULT') {
+    if (legacyPolicy.enabled && ageAccess.outcome === 'REFER_ADULT') {
       console.warn('[policy] GENERAL_HEALTH_INTERIM referral', { topicClass, band: audienceBand });
       return emitOnce(warmTemplateFor('GENERAL_HEALTH_INTERIM'));
     }
@@ -637,7 +664,8 @@ export default async function handler(req, res) {
     // deterministically from fixed sentences this server owns. A draft that told them to rub
     // lemon on their lips is discarded whole, because a warning bolted onto the end of a harmful
     // instruction is still the harmful instruction.
-    if (effectiveRoute === 'GEN' && ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
+    if (legacyPolicy.enabled && effectiveRoute === 'GEN'
+      && ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
       && (audienceBand === 'young' || audienceBand === 'teen')) {
       const gc = await fetch(ANTHROPIC_URL, {
         method: 'POST',
@@ -1202,7 +1230,7 @@ export default async function handler(req, res) {
     // FAIL-CLOSED, AND NOT SILENTLY. A draft that attributes speech is dropped whole rather than
     // edited down, and the reader is told plainly that we can report what sources SAY ABOUT him
     // and will not put words in his mouth.
-    if (plan.claimRelation === 'ABOUT_ENTITY') {
+    if (legacyPolicy.enabled && plan.claimRelation === 'ABOUT_ENTITY') {
       const aboutInstruction = [
         'تنبيهٌ داخليٌّ للصياغة (لا تنقلْه حرفيًّا):',
         'السؤالُ هنا عن العالِمِ نفسِه — عن حالِه أو موقفِه أو ما قيل فيه — وليس طلبًا لفتواه.',
