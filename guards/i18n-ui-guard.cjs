@@ -11,12 +11,14 @@
 // Parts:
 //   A. THE DICTIONARIES — two languages, identical keys, no empty value, no duplicate, no
 //                         orphaned {placeholder}, and no translation fetched from anywhere.
-//   B. THE DECISION     — the boot script, run for real, for a stored choice, an Arabic device,
-//                         an English device, a French device, no device signal, and a corrupt value.
+//   B. THE DECISION     — the boot script, run for real, against a dozen devices that all report
+//                         a language and none of which may move the answer: the first run is
+//                         Arabic, and only a stored 'ar'/'en' is honoured.
 //   C. THE DOCUMENT     — lang and dir, in both languages, from the boot script and from a switch.
-//   D. THE CONTROLS     — the home button and the settings row, driven by real clicks in a
-//                         mounted app: they exist, they are not submits, they carry ARIA, Escape
-//                         closes the menu, the choice is applied and persisted.
+//   D. THE CONTROLS     — the first-run card and the settings row, driven by real clicks in a
+//                         mounted app: they exist THERE and nowhere else, they are not submits,
+//                         they carry ARIA, Escape closes the menu, the typed profile fields
+//                         survive a switch, and the choice is applied and persisted.
 //   E. THE BLAST RADIUS — every store this phase must not touch, compared before and after a
 //                         switch; and every file this phase must not touch, compared with the
 //                         commit the branch started from.
@@ -239,12 +241,11 @@ async function partA() {
 /* ===================== B. THE DECISION =================================== */
 // The <head> boot script, run for real. This is where a first run is actually decided.
 //
-// It runs in a PLAIN sandbox rather than in a linkedom window, and that is not a shortcut: a
-// linkedom window exposes `navigator` through a hard getter that rebuilds the object on every
-// read, so it cannot be replaced, shadowed or assigned to. No device language can be simulated
-// inside one. (That is also WHY the app treats "no tag reported" as ar rather than en: it is the
-// state every guard in this repo mounts the app in, and it is not the same fact as a user whose
-// device is French.) The boot script touches exactly four globals, and all four are provided here.
+// It runs in a PLAIN sandbox rather than in a linkedom window, because a linkedom window exposes
+// navigator through a hard getter that rebuilds the object on every read — it cannot be replaced,
+// shadowed or assigned to, so no device language can be simulated inside one. Here the sandbox is
+// built by hand, which means a navigator CAN be handed in — and the point of most of the cases
+// below is that handing one in changes nothing.
 function runBoot(stored, navLanguages) {
   const m = /<script>\(function\(\)\{try\{var K='ezik_ui_lang_v1'[\s\S]*?<\/script>/.exec(html);
   if (!m) return null;
@@ -266,67 +267,72 @@ function runBoot(stored, navLanguages) {
 }
 
 function partB() {
-  console.log('\n=== B. THE FIRST-RUN DECISION (the shipped boot script, run for real) ===');
+  console.log('\n=== B. THE FIRST RUN IS ARABIC, WHATEVER THE DEVICE SAYS ===');
+  // Every row here hands the boot script a REAL navigator. None of them may move the answer.
   const cases = [
-    ['a brand-new Arabic device', undefined, ['ar-KW'], 'ar'],
-    ['...and a bare ar tag', undefined, ['ar'], 'ar'],
-    ['a brand-new English device', undefined, ['en-GB'], 'en'],
-    ['a brand-new French device', undefined, ['fr-FR'], 'en'],
-    ['a brand-new Urdu device (not Arabic, though it is written in Arabic script)', undefined, ['ur-PK'], 'en'],
-    ['an environment that reports NO language at all', undefined, undefined, 'ar'],
-    ['an environment that reports an empty tag', undefined, [''], 'ar'],
-    ['a stored en beats an Arabic device', 'en', ['ar-KW'], 'en'],
-    ['a stored ar beats an English device', 'ar', ['en-US'], 'ar'],
-    ['a corrupt stored value falls back to the device', 'zz-not-a-language', ['fr-FR'], 'en'],
-    ['a stored empty string falls back to the device', '', ['ar-EG'], 'ar'],
-    ['a stored JSON blob falls back to the device', '{"lang":"en"}', ['ar-EG'], 'ar'],
+    ['a brand-new device reporting ar-KW', undefined, ['ar-KW'], 'ar'],
+    ['a brand-new device reporting en-US', undefined, ['en-US'], 'ar'],
+    ['a brand-new device reporting en-GB', undefined, ['en-GB'], 'ar'],
+    ['a brand-new device reporting fr-FR', undefined, ['fr-FR'], 'ar'],
+    ['a brand-new device reporting ur-PK', undefined, ['ur-PK'], 'ar'],
+    ['a device reporting a whole English list', undefined, ['en-US', 'en', 'fr'], 'ar'],
+    ['an environment reporting NO language at all', undefined, undefined, 'ar'],
+    ['an environment reporting an empty tag', undefined, [''], 'ar'],
+    ['a corrupt stored value on an English device', 'zz-not-a-language', ['en-US'], 'ar'],
+    ['a stored empty string on a French device', '', ['fr-FR'], 'ar'],
+    ['a stored JSON blob on an English device', '{"lang":"en"}', ['en-US'], 'ar'],
+    ['a stored AR in the wrong case', 'AR', ['en-US'], 'ar'],
+    // ...and the two that MUST still be honoured.
+    ['a stored en on an Arabic device', 'en', ['ar-KW'], 'en'],
+    ['a stored ar on an English device', 'ar', ['en-US'], 'ar'],
   ];
   for (const [name, stored, navs, want] of cases) {
     const r = runBoot(stored, navs);
     if (!r) { ok('the boot script is runnable', false); return; }
     eq(name + ' => ' + want, r.lang, want);
-    eq('...and its direction is ' + (want === 'ar' ? 'rtl' : 'ltr'), r.dir, want === 'ar' ? 'rtl' : 'ltr');
+    eq('...direction ' + (want === 'ar' ? 'rtl' : 'ltr'), r.dir, want === 'ar' ? 'rtl' : 'ltr');
   }
-  const dead = runBoot('__DEAD__', ['fr-FR']);
-  ok('a storage that throws on every read does not break the boot', !!dead && dead.lang === 'en',
-    JSON.stringify(dead));
+  const dead = runBoot('__DEAD__', ['en-US']);
+  ok('a storage that throws on every read still boots Arabic', !!dead && dead.lang === 'ar', JSON.stringify(dead));
 
-  // ...and the module-level resolver states the SAME policy. Its device half cannot be driven
-  // from a mounted app (see runBoot's note), so it is proved where the decision actually lives:
-  // ezLangFromTag is the whole tag rule, ezLangStored is the whole stored-choice rule, and
-  // ezLangResolve is the composition of the two with the fallback.
-  console.log('\n=== B2. THE MODULE RESOLVER STATES THE SAME POLICY ===');
-  const c = buildContext({ seed: {} });
-  const tag = (t) => c.grab('ezLangFromTag(' + JSON.stringify(t) + ')');
-  for (const t of ['ar', 'ar-KW', 'ar-EG', 'AR', 'ar_SA', 'ar-Arab-EG']) eq('tag ' + JSON.stringify(t) + ' is Arabic', tag(t), 'ar');
-  for (const t of ['en', 'en-GB', 'fr-FR', 'ur-PK', 'fa-IR', 'de', 'arabic', 'arb']) eq('tag ' + JSON.stringify(t) + ' is not Arabic', tag(t), 'en');
-  for (const t of ['', '   ', null, undefined, 42, {}]) eq('tag ' + JSON.stringify(t) + ' is NO SIGNAL, not a language', tag(t), null);
+  // The strongest form of the rule: the layer cannot consult the device, because it never names it.
+  console.log('\n=== B2. THE DEVICE IS NOT AN INPUT ===');
+  const bootScript = (/<script>\(function\(\)\{try\{var K='ezik_ui_lang_v1'[\s\S]*?<\/script>/.exec(html) || [''])[0];
+  eq('the boot script names navigator nowhere', (bootScript.match(/navigator/g) || []).length, 0);
+  eq('...and names no language tag pattern either', (bootScript.match(/languages?\b/g) || []).length, 0);
+  const layer = rawCode.slice(rawCode.indexOf('const EZ_LANG_KEY'), rawCode.indexOf('function EzLangControl'));
+  eq('the language module names navigator nowhere', (layer.match(/navigator/g) || []).length, 0);
+  eq('...and the device readers are gone, not dormant',
+    [/function ezLangDevice/, /function ezLangFromTag/].filter((re) => re.test(rawCode)).length, 0);
+  ok('...so the resolver is a stored choice, or Arabic, and nothing else',
+    /function ezLangResolve\(\) \{ return ezLangStored\(\) \|\| EZ_LANG_FALLBACK; \}/.test(rawCode));
+  eq('and the journey does not read the device either',
+    (fs.readFileSync(path.join(REPO, 'quest.html'), 'utf8')
+      .replace(/<!--[\s\S]*?-->/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .match(/navigator\s*\.\s*languages?/g) || []).length, 0);
 
-  // A valid stored choice is honoured and left exactly as written.
+  // The module-level readers, driven directly.
+  console.log('\n=== B3. THE STORED CHOICE, READ BACK ===');
   for (const stored of ['ar', 'en']) {
     const cc = buildContext({ seed: { [S.LANG_KEY]: stored } });
     eq('a stored ' + JSON.stringify(stored) + ' is honoured', cc.grab('ezLangStored()'), stored);
     eq('...and is not rewritten by the boot', cc.store.getItem(S.LANG_KEY), stored);
+    eq('...and the app runs in it', cc.grab('ezLangGet()'), stored);
   }
-  // Anything that is not one of the two is not a choice. The module resolves without it and then
-  // REPAIRS the slot, so a value corrupted once does not have to be re-judged on every launch.
   for (const stored of ['', '   ', 'zz', 'AR', '{"lang":"en"}', 'null', 'undefined', '["ar"]']) {
     const cc = buildContext({ seed: { [S.LANG_KEY]: stored } });
     eq('a stored ' + JSON.stringify(stored) + ' is discarded and the slot repaired',
       cc.store.getItem(S.LANG_KEY), 'ar');
-    eq('...and the app runs in that language', cc.grab('ezLangGet()'), 'ar');
+    eq('...and the app runs in Arabic', cc.grab('ezLangGet()'), 'ar');
   }
-  const cFirst = buildContext({ seed: {} });
-  eq('a first run writes the language it resolved, so the journey can agree with the app',
-    cFirst.store.getItem(S.LANG_KEY), 'ar');
   const cDead = buildContext({ store: makeDeadStore() });
   eq('a storage that throws is not a stored choice', cDead.grab('ezLangStored()'), null);
-  eq('...and the resolver still returns a usable language', cDead.grab('ezLangResolve()'), 'ar');
-  const cStored = buildContext({ seed: { [S.LANG_KEY]: 'en' } });
-  eq('a stored choice wins the composition', cStored.grab('ezLangResolve()'), 'en');
-  const cNone = buildContext({ seed: {} });
-  eq('no stored choice and no device tag falls back to ar', cNone.grab('ezLangResolve()'), 'ar');
+  eq('...and the resolver still returns Arabic', cDead.grab('ezLangResolve()'), 'ar');
+  const cFirst = buildContext({ seed: {} });
+  eq('a first run writes ar down, so the journey can agree with the app',
+    cFirst.store.getItem(S.LANG_KEY), 'ar');
 }
+
 
 /* ===================== C. THE DOCUMENT =================================== */
 async function partC() {
@@ -517,6 +523,52 @@ async function partD() {
     await tick(140);
     ok('...and the home screen was reached', d.all('.ezist-mosaic').length === 1);
     eq('the home carries none', toggles(), 0);
+
+    // THE CHAT CARD ON THE HOME. It used to say two things — "ask Ezik" and, under it, "a new
+    // conversation" — which is the same invitation twice. One line now. Measured on the card
+    // itself, not on the page: the words «محادثة جديدة» are still needed, and still present, on
+    // the side menu's new-chat entry, so a whole-page search for them would be the wrong test.
+    const card = d.all('.ezist-ask')[0];
+    if (ok('the home carries the chat card', !!card)) {
+      const spans = Array.prototype.slice.call(card.querySelectorAll('span'))
+        .filter((e) => e.children.length === 0 && String(e.textContent || '').trim());
+      eq('...and it draws exactly one line of text', spans.map((e) => String(e.textContent || '').trim()),
+        ['اسأل عزك']);
+      eq('...which is not the side menu\'s invitation repeated',
+        String(card.textContent || '').indexOf('محادثة جديدة'), -1);
+      ok('...and the card is otherwise the one that shipped: same class, same handler, same icon',
+        /className="ezhome-focus ezist-ask" onClick=\{onOpenChat\} style=\{s\.ezistAsk\}/.test(rawCode)
+        && /<span style=\{s\.ezistAskGo\} aria-hidden="true">\{EZH_ICON_NAV_CHAT_LINE\}<\/span>/.test(rawCode));
+      ok('...and nothing hid the second line with CSS instead of deleting it',
+        rawCode.indexOf('s.ezistAskSub') === -1 && rawCode.indexOf('EZIST_ASK_SUB') === -1);
+    }
+    // ...and the words themselves are still where they are needed. The menu writes them as
+    // \\uXXXX escapes, so the source is read decoded — a raw search would find nothing and call
+    // that a pass.
+    const decoded = rawCode.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+    const drawerSrc = decoded.slice(decoded.indexOf('{drawerOpen && ('), decoded.indexOf('{reportFor &&'));
+    ok('the side menu still offers «a new conversation», on the same handler',
+      /onClick=\{\(\) => closeDrawerWith\(newChat\)\}/.test(drawerSrc)
+      && drawerSrc.indexOf('محادثة جديدة') !== -1);
+    // Reached the way a reader reaches it: home -> chat -> the menu button on the chat's rail.
+    await d.click(d.all('.ezist-nav button')[1]);
+    await tick(160);
+    if (ok('...the chat is reachable from the home', d.all('.ezc-rail').length === 1)) {
+      await d.click(d.all('.ezc-rail button.ezc-icon')[0]);
+      await tick(140);
+      const newChat = d.all('button').filter((b) => /محادثة جديدة|New conversation/.test(String(b.textContent || '')))[0];
+      if (ok('...and the entry is really on the screen', !!newChat, d.text().slice(0, 60))) {
+        await d.click(newChat);
+        await tick(160);
+        ok('...and pressing it lands on a chat', d.all('.ezc-dock').length === 1);
+      }
+    }
+    // ...and back to the home, because the settings step below is reached from its top nav.
+    await d.click(d.all('.ezc-rail button.ezc-icon')[0]);
+    await tick(120);
+    const back = d.all('button').filter((b) => String(b.textContent || '').trim() === 'القائمة')[0];
+    if (back) { await d.click(back); await tick(160); }
+    ok('the home is reachable again', d.all('.ezist-nav').length === 1);
   }
 
   // Settings, through the app's own route.

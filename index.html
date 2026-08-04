@@ -31,14 +31,14 @@
 <!-- S116 UI LANGUAGE BOOT. Interface language only -- it never reaches the model, the answer,
      the sources or any devotional text. Read before the first paint for the same reason the
      theme is: <html lang/dir> decided after React mounts is a visible re-layout.
-     Resolution order, and it is the whole policy:
-       1. the user's own stored choice          -- once chosen, the device is never consulted again
-       2. the device/browser language, FIRST RUN -- ar / ar-* => ar, any OTHER reported tag => en
-       3. no tag reported at all                 -- ar, which is what this app has always rendered
-     Step 3 is not step 2's "other": a headless or degraded environment reports NO language,
-     which is not the same fact as a user whose device is French. Every real browser reports a
-     tag, so every real first run is decided by step 2 exactly as written. -->
-<script>(function(){try{var K='ezik_ui_lang_v1';var v=null;try{v=localStorage.getItem(K);}catch(e){}if(v!=='ar'&&v!=='en'){v=null;}if(!v){var n='';try{var g=(typeof navigator!=='undefined')?navigator:null;if(g){var L=g.languages;var tag=(L&&L.length)?L[0]:g.language;if(typeof tag==='string'){n=tag;}}}catch(e){}n=n.replace(/^\s+|\s+$/g,'');v=n?(/^ar([-_]|$)/i.test(n)?'ar':'en'):'ar';}var d=document.documentElement;d.setAttribute('lang',v);d.setAttribute('dir',v==='ar'?'rtl':'ltr');d.setAttribute('data-ez-lang',v);window.__ezUiLang=v;}catch(e){}})();</script>
+     The whole policy, and it is two lines:
+       1. a stored choice of exactly 'ar' or 'en' is honoured
+       2. anything else -- nothing stored, a corrupted value, a value from a future build -- is ar
+     THE DEVICE IS NOT CONSULTED. This app is Arabic first: a reader on an English handset is
+     shown the Arabic interface until they say otherwise, and they say otherwise on the first-run
+     card or in Settings. navigator.language is read nowhere in the language layer, which the
+     guard asserts rather than assumes. -->
+<script>(function(){try{var K='ezik_ui_lang_v1';var v=null;try{v=localStorage.getItem(K);}catch(e){}if(v!=='ar'&&v!=='en'){v='ar';}var d=document.documentElement;d.setAttribute('lang',v);d.setAttribute('dir',v==='ar'?'rtl':'ltr');d.setAttribute('data-ez-lang',v);window.__ezUiLang=v;}catch(e){}})();</script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1163,28 +1163,10 @@ const EZ_LANGUAGES = [
 ];
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
-const EZ_LANG_FALLBACK = 'ar';   // used only when the environment reports no language at all
+const EZ_LANG_FALLBACK = 'ar';   // the first-run language, and the dictionary's fallback half
 const EZ_LANG_DIR = EZ_LANGUAGES.reduce((m, l) => { m[l.code] = l.dir; return m; }, {});
 
 function ezLangValid(v) { return EZ_LANGS.indexOf(v) !== -1; }
-
-// A BCP-47 tag to one of ours. Arabic is ar and every ar-* region; anything else that is a
-// real tag is English. An empty or non-string tag is NOT an answer -- it returns null so the
-// caller can tell "no signal" apart from "a language that is not Arabic".
-function ezLangFromTag(tag) {
-  const t = (typeof tag === 'string') ? tag.replace(/^\s+|\s+$/g, '') : '';
-  if (!t) return null;
-  return /^ar([-_]|$)/i.test(t) ? 'ar' : 'en';
-}
-
-function ezLangDevice() {
-  try {
-    const g = (typeof navigator !== 'undefined') ? navigator : null;
-    if (!g) return null;
-    const L = g.languages;
-    return ezLangFromTag((L && L.length) ? L[0] : g.language);
-  } catch (e) { return null; }
-}
 
 // The stored choice. Anything that is not exactly 'ar' or 'en' -- a truncated write, a value
 // from a future build, an object, a quota failure -- is not a choice and is ignored.
@@ -1195,7 +1177,9 @@ function ezLangStored() {
   } catch (e) { return null; }
 }
 
-function ezLangResolve() { return ezLangStored() || ezLangDevice() || EZ_LANG_FALLBACK; }
+// THE WHOLE DECISION. A stored choice, or Arabic. The device is not an input: this app is
+// Arabic first, and a reader who wants otherwise says so on the first-run card or in Settings.
+function ezLangResolve() { return ezLangStored() || EZ_LANG_FALLBACK; }
 
 let EZ_LANG = ezLangResolve();
 const EZ_LANG_SUBS = new Set();
@@ -1216,12 +1200,11 @@ function ezLangApply(v) {
 // boot script did run, every attribute below is already the value being written.
 ezLangApply(EZ_LANG);
 
-// FIRST RUN IS WRITTEN DOWN. Reading the device is step 2 of the policy and it happens ONCE: the
-// moment it produces an answer, that answer becomes the stored choice, so a device that later
-// changes its locale does not move an interface the reader has been using. It is also what lets
-// the treasure journey agree with the app -- quest.html is proved in a real browser and therefore
-// may not read the device itself, so it reads what was decided here.
-// A user's explicit choice is never overwritten: this runs only when nothing was stored.
+// FIRST RUN IS WRITTEN DOWN, so the slot always holds one of the two languages the app offers.
+// That is what lets the treasure journey agree with the app -- quest.html reads this same key and
+// never decides anything itself -- and it repairs a corrupted value once instead of re-judging it
+// on every launch. A reader's explicit choice is never overwritten: this runs only when nothing
+// valid was stored.
 if (!ezLangStored()) { try { localStorage.setItem(EZ_LANG_KEY, EZ_LANG); } catch (e) {} }
 
 // The one writer. It persists, repaints <html>, and tells every subscriber -- in that order,
@@ -1258,7 +1241,6 @@ function ezLangRelabel() {
     EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
     EZIST_ASK_TITLE = ezT("home.askTitle");
-    EZIST_ASK_SUB = ezT("home.askSub");
     EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
@@ -1365,7 +1347,6 @@ const EZ_I18N = {
     'module.mushaf.sub': '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}',
     'module.treasure.sub': '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}',
     'home.askTitle': '\u{0627}\u{0633}\u{0623}\u{0644} \u{0639}\u{0632}\u{0643}',
-    'home.askSub': '\u{0645}\u{062D}\u{0627}\u{062F}\u{062B}\u{0629} \u{062C}\u{062F}\u{064A}\u{062F}\u{0629}',
     'favorites.title': 'المفضلة',
     'favorites.heading': 'الردود المفضلة',
     'favorites.add': 'أضف إلى المفضلة',
@@ -1519,7 +1500,6 @@ const EZ_I18N = {
     'module.mushaf.sub': 'Read, and keep your wird',
     'module.treasure.sub': 'Learn through play',
     'home.askTitle': 'Ask Ezik',
-    'home.askSub': 'A new conversation',
     'favorites.title': 'Favourites',
     'favorites.heading': 'Saved replies',
     'favorites.add': 'Add to favourites',
@@ -4281,7 +4261,6 @@ let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
 let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
 let EZIST_ASK_TITLE = ezT("home.askTitle");                                                   // "ask Ezik"
-let EZIST_ASK_SUB = ezT("home.askSub");                   // "a new conversation"
 let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
 
 // THE TOP NAVIGATION. A real bounded bar, not the bottom dock moved upward: it is sticky, it
@@ -4379,7 +4358,6 @@ function EzistAsk({ onOpenChat }) {
     <button type="button" className="ezhome-focus ezist-ask" onClick={onOpenChat} style={s.ezistAsk} aria-label={EZIST_ASK_TITLE}>
       <span style={s.ezistAskBody}>
         <span style={s.ezistAskTitle}>{EZIST_ASK_TITLE}</span>
-        <span style={s.ezistAskSub}>{EZIST_ASK_SUB}</span>
       </span>
       <span style={s.ezistAskGo} aria-hidden="true">{EZH_ICON_NAV_CHAT_LINE}</span>
     </button>
@@ -13157,7 +13135,6 @@ const s = {
   ezistAsk: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, width: '100%', minHeight: 76, padding: '14px 16px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezistAskBody: { display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 },
   ezistAskTitle: { fontSize: 17, fontWeight: 800, color: 'var(--a3-ink)' },
-  ezistAskSub: { fontSize: 13, fontWeight: 600, color: 'var(--a3-muted)' },
   ezistAskGo: { width: 46, height: 46, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)' },
   // the four module cards. One base, three id-specific accents, one wide feature.
   ezistCard: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', minHeight: 84, padding: '14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
