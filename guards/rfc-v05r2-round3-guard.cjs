@@ -483,6 +483,150 @@ const CORPUS = {
   }
 
   // =========================================================================
+  console.log('\n=== A. GRADE B IS NOT ASSEMBLED FROM SCATTERED SPANS ===');
+  {
+    const hist = { era: 'historical', requestedAuthorityId: 'ibn-taymiyyah' };
+
+    // THE DEFECT: three spans, each carrying one third of what B requires. Joining their text
+    // produces a string that looks like a citation and is not one — nobody wrote those three
+    // things together, and the "locator" may belong to a different quotation entirely.
+    const scattered = GR.classifyProvenance({
+      source: { ownerId: null, adapterId: 'readability', attributionType: 'article' },
+      evidenceSpans: [
+        '«الأصل في العبادات التوقيف حتى يقوم الدليل».',
+        'وقد أكثر أهل العلم النقل من مجموع الفتاوى في هذا الباب.',
+        'انظر (٢٢/٤١) وما بعدها من المواضع المتصلة بهذا الأصل.',
+      ],
+      policy: hist,
+    });
+    ok('a quote, a book and a locator in THREE different spans is not B',
+      scattered.grade !== 'B', JSON.stringify(scattered));
+    eq('...it falls to C', scattered.grade, 'C');
+
+    // The same three elements INSIDE ONE span is the real shape B exists for.
+    const together = GR.classifyProvenance({
+      source: { ownerId: null, adapterId: 'readability', attributionType: 'article' },
+      evidenceSpans: [
+        'قال شيخ الإسلام ابن تيمية في مجموع الفتاوى (٢٢/٤١): «الأصل في العبادات التوقيف حتى يقوم الدليل».',
+        'وهذا الأصل معروف عند المحققين من أهل العلم في باب العبادات.',
+      ],
+      policy: hist,
+    });
+    eq('the three elements inside ONE span is B', together.grade, 'B');
+    ok('...and the locator it reports comes from that span', /٢٢\/٤١/.test(together.locator), together.locator);
+
+    // TWO SPANS, EACH INDIVIDUALLY COMPLETE, still only ever yields B from one of them — never a
+    // composite. Asserted so a future "merge the best of each" refactor is caught.
+    const twoComplete = GR.classifyProvenance({
+      source: { ownerId: null, adapterId: 'readability', attributionType: 'article' },
+      evidenceSpans: [
+        'ذكر أهل العلم هذا الأصل في مواضع كثيرة من كتبهم المطولة والمختصرة عندهم.',
+        'قال ابن تيمية في مجموع الفتاوى (٢٢/٤١): «الأصل في العبادات التوقيف».',
+      ],
+      policy: hist,
+    });
+    eq('one complete span among several still earns B', twoComplete.grade, 'B');
+
+    // AND THE LEDGER MUST PASS SPANS, NOT A JOINED STRING. Driven through the real addClaim.
+    const l = new SCHEMA.Ledger('t_spans');
+    const policy = {
+      claimRelation: 'BY_ENTITY', targetType: 'person', era: 'historical',
+      requestedAuthorityId: 'ibn-taymiyyah', provenanceCap: 'C',
+    };
+    l.issues = [{ issueId: 'i1', requiredSlots: [], policy }];
+    l.policy = policy;
+    l.sources.set('s1', { sourceId: 's1', canonicalUrl: 'https://islamqa.info/x', host: 'islamqa.info', ownerId: null, attributionType: 'article' });
+    l.spans.set('a1', { globalId: 'a1', sourceId: 's1', answerUnitId: 'u1', exactText: '«الأصل في العبادات التوقيف حتى يقوم الدليل».' });
+    l.spans.set('a2', { globalId: 'a2', sourceId: 's1', answerUnitId: 'u1', exactText: 'وقد نقل ذلك أهل العلم من مجموع الفتاوى في مواضع.' });
+    l.spans.set('a3', { globalId: 'a3', sourceId: 's1', answerUnitId: 'u1', exactText: 'انظر (٢٢/٤١) وما بعدها من هذا الباب عندهم.' });
+    const c = { claimId: 'c1', issueId: 'i1', sourceId: 's1', spanIds: ['a1', 'a2', 'a3'], components: [] };
+    l.addClaim(c);
+    ok('the ledger does not manufacture B by joining spans of one page',
+      c.provenanceGrade !== 'B', 'grade=' + c.provenanceGrade + ' reason=' + c.provenanceReason);
+    eq('...it records C', c.provenanceGrade, 'C');
+
+    // Gate 1 already refuses a claim whose spans cross answer units, so a "same text, different
+    // unit" composite cannot even reach the classifier. Asserted here so the two defences are
+    // known to be independent rather than assumed.
+    const l2 = new SCHEMA.Ledger('t_units');
+    l2.issues = [{ issueId: 'i1', requiredSlots: [], policy }];
+    l2.policy = policy;
+    l2.sources.set('s1', { sourceId: 's1', canonicalUrl: 'https://islamqa.info/x', host: 'islamqa.info', ownerId: null, attributionType: 'article' });
+    const full = 'قال ابن تيمية في مجموع الفتاوى (٢٢/٤١): «الأصل في العبادات التوقيف».';
+    l2.spans.set('b1', { globalId: 'b1', sourceId: 's1', answerUnitId: 'u1', exactText: full });
+    l2.spans.set('b2', { globalId: 'b2', sourceId: 's1', answerUnitId: 'u2', exactText: full });
+    const c2 = { claimId: 'c2', issueId: 'i1', sourceId: 's1', spanIds: ['b1', 'b2'], components: [] };
+    l2.addClaim(c2);
+    const units = new Set(['b1', 'b2'].map((id) => l2.span(id).answerUnitId));
+    ok('spans across two answer units are a Gate 1 refusal, independently of the grade',
+      units.size > 1, 'the fixture must actually span two units');
+  }
+
+  // =========================================================================
+  console.log('\n=== B. QUOTE_VERIFICATION IS PER-ISSUE ===');
+  {
+    const mk = (id, intent, auth, prot, core) => ({
+      issue_id: id, intent, requested_authority_id: auth,
+      protected_entities: prot, core_terms: core, context_vars: [],
+      exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+    });
+    const Q = 'هل قال ابن تيمية: "النص المزعوم"؟ وما حكم صلاة المسافر في الطائرة؟';
+    const v = IR.validateQueryPlan({
+      issues: [
+        mk('iss_1', 'scholar_opinion', 'ibn-taymiyyah', ['ابن تيمية'], ['قال']),
+        mk('iss_2', 'fatwa', null, ['صلاة المسافر'], ['الطائرة']),
+      ],
+      missing_qualifiers: [], confidence: 'high',
+    }, Q);
+    ok('the compound quote plan validates', v.ok, JSON.stringify(v.problems));
+    const p1 = v.plan && v.plan.issues[0].policy;
+    const p2 = v.plan && v.plan.issues[1].policy;
+    eq('issue 1 is QUOTE_VERIFICATION', p1 && p1.claimRelation, 'QUOTE_VERIFICATION');
+    eq('issue 1 requires the verbatim wording', p1 && p1.verbatimRequired, true);
+    eq('issue 1 names ibn-taymiyyah', p1 && p1.requestedAuthorityId, 'ibn-taymiyyah');
+    eq('issue 2 is NOT a quote verification', p2 && p2.claimRelation, 'NONE');
+    eq('issue 2 does not require a verbatim wording', p2 && p2.verbatimRequired, false);
+    eq('issue 2 attributes to nobody', p2 && p2.requestedAuthorityId, null);
+    eq('issue 2 inherits no era', p2 && p2.era, 'unknown');
+    eq('issue 2 inherits no cap', p2 && p2.provenanceCap, 'NONE');
+
+    // THE ORDER OF THE PARTS MUST NOT MATTER.
+    const Qr = 'ما حكم صلاة المسافر في الطائرة؟ وهل قال ابن تيمية: "النص المزعوم"؟';
+    const vr = IR.validateQueryPlan({
+      issues: [
+        mk('iss_1', 'fatwa', null, ['صلاة المسافر'], ['الطائرة']),
+        mk('iss_2', 'scholar_opinion', 'ibn-taymiyyah', ['ابن تيمية'], ['قال']),
+      ],
+      missing_qualifiers: [], confidence: 'high',
+    }, Qr);
+    const r1 = vr.plan && vr.plan.issues[0].policy;
+    const r2 = vr.plan && vr.plan.issues[1].policy;
+    eq('reversed: the ruling issue is still not a quote', r1 && r1.claimRelation, 'NONE');
+    eq('reversed: ...and requires no wording', r1 && r1.verbatimRequired, false);
+    eq('reversed: the quote issue is still QUOTE_VERIFICATION', r2 && r2.claimRelation, 'QUOTE_VERIFICATION');
+    eq('reversed: ...and does require one', r2 && r2.verbatimRequired, true);
+
+    // A SECOND SCHOLAR IN THE OTHER HALF MUST NOT CATCH THE QUOTE. This is the case a global
+    // `verbatimRequired` gets wrong most visibly: the quote belongs to Ibn Taymiyyah, and Ibn
+    // Baz's ordinary opinion question would become a wording verification he never asked for.
+    const Q2 = 'هل قال ابن تيمية: "النص المزعوم"؟ وما رأي ابن باز في الطلاق؟';
+    const v2 = IR.validateQueryPlan({
+      issues: [
+        mk('iss_1', 'scholar_opinion', 'ibn-taymiyyah', ['ابن تيمية'], ['قال']),
+        mk('iss_2', 'scholar_opinion', 'ibn-baz', ['ابن باز'], ['الطلاق']),
+      ],
+      missing_qualifiers: [], confidence: 'high',
+    }, Q2);
+    const b1 = v2.plan && v2.plan.issues[0].policy;
+    const b2 = v2.plan && v2.plan.issues[1].policy;
+    eq('the quoted scholar keeps QUOTE_VERIFICATION', b1 && b1.claimRelation, 'QUOTE_VERIFICATION');
+    eq('the OTHER scholar is an ordinary opinion request', b2 && b2.claimRelation, 'BY_ENTITY');
+    eq('...and inherits no verbatim requirement', b2 && b2.verbatimRequired, false);
+    eq('...and keeps his own cap', b2 && b2.provenanceCap, 'B');
+    eq('...and his own era', b2 && b2.era, 'contemporary');
+  }
+
+  // =========================================================================
   console.log('\n=== P0-4. GATE 3 JUDGES EVERY CLAIM, IN ANY ORDER ===');
   {
     ok('the deterministic half is exported for driving', typeof GATES.gate3Deterministic === 'function');
