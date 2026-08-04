@@ -56,10 +56,11 @@
       "question": "ما رأي الشيخ عبدالمحسن العباد في بيع الذهب بالتقسيط؟",
       "intents": ["scholar_opinion"],
       "authority": "al-abbaad",
-      "expect_outcome": "SAFE_REJECTION",
-      "expect_min_cards": 0,
-      "expect_brave_calls": 0,
-      "notes": "No registered primary-opinion adapter, so the attribution is refused BEFORE any provider call. His view is never inferred from a general article."
+      "expect_outcome": "PARTIAL",
+      "expect_min_cards": 1,
+      "expect_attributed_claims": 0,
+      "expect_slot_unfilled": ["attribution"],
+      "notes": "REWRITTEN AT RFC v0.5-R2 (SEARCH FIRST). This fixture used to pin SAFE_REJECTION with brave_calls=0: the scholar's name alone refused the whole issue before a provider call. That was wrong twice over -- the reader lost the general ruling on selling gold by instalments, which IS documented and citable, and the refusal sentence claimed a search that had never happened. Now the search runs, the general ruling is answered and carded to ITS OWN source, ZERO claims are attributed to the shaykh (provenance_cap=NONE, because he has no registered primary-opinion corpus), the attribution slot stays unfilled, and the reply is PARTIAL carrying a slot-level proof that says what was looked for and why none of it can be his word. The guarantee that did not move: he is still never quoted from a third-party page."
     },
     {
       "id": "F7_uthaymeen_miscarriage",

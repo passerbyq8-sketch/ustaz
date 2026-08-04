@@ -536,10 +536,18 @@ const RESULTS = {
     }
 
     // NO INELIGIBLE SOURCE WAS SEARCHED OR CITED.
+    //
+    // A CAPPED ISSUE IS MEASURED AGAINST THE CAPABILITY IT ACTUALLY SEARCHED FOR. When a named
+    // authority has no registered primary corpus, RFC v0.5-R2 §6 says the search proceeds for the
+    // UNDERLYING ruling and nothing is attributed to him — so demanding that its domains be
+    // eligible for `scholar_opinion_primary` would be asserting a search this engine deliberately
+    // no longer performs. The rule that matters is unchanged and is asserted below: no claim is
+    // credited to him, and no card is cited for a capability its domain cannot carry.
+    const cappedIssue = (iss) => !!iss.requestedAuthorityId && !SP.primaryOpinionAdapter(iss.requestedAuthorityId);
     for (const a of out.ledger.searchAttempts) {
       const iss = out.ledger.issues.find((i) => i.issueId === a.issueId);
       if (!iss || !a.sites.length) continue;
-      const cap = CAP.capabilityForIntent(iss.intent);
+      const cap = cappedIssue(iss) ? 'fatwa' : CAP.capabilityForIntent(iss.intent);
       ok(f.id + ': every searched domain is eligible for ' + cap,
         a.sites.every((d) => !d || SP.capabilityEligible(d, cap)), JSON.stringify(a.sites));
     }
@@ -548,8 +556,11 @@ const RESULTS = {
       ok(f.id + ': card ' + c.host + ' supports a verified claim', !!claim);
       if (claim) {
         const iss = out.ledger.issues.find((i) => i.issueId === claim.issueId);
+        // Same correction as above: a capped issue's card backs the general RULING it was
+        // searched for, not a primary opinion nobody could have supplied.
+        const cardCap = cappedIssue(iss) ? 'fatwa' : CAP.capabilityForIntent(iss.intent);
         ok(f.id + ': card ' + c.host + ' is eligible for the capability it answers',
-          SP.capabilityEligible(c.url, CAP.capabilityForIntent(iss.intent)));
+          SP.capabilityEligible(c.url, cardCap));
       }
     }
     if (f.forbidden_domains) {
@@ -650,18 +661,51 @@ const RESULTS = {
       r.cards.every((c) => SP.capabilityEligible(c.url, 'fatwa')));
   }
   {
+    // ── F6, REWRITTEN AT RFC v0.5-R2: SEARCH FIRST ─────────────────────────
+    //
+    // This block used to assert the opposite of almost everything below: SAFE_REJECTION, zero
+    // provider calls, zero cards. The scholar's NAME refused the whole issue before anything was
+    // looked at. Two things were wrong with that, and they are independent. The reader asked a
+    // real question — what is the ruling on selling gold by instalments — and the ruling IS
+    // documented and citable, and they lost it. And the sentence they got instead, «لم أعثر ضمن
+    // المصادر المتاحة على نصٍّ مباشر يثبت هذه النسبة», reported a search that had not happened.
+    //
+    // What is asserted now is BOTH halves of the owner's decision: the question gets answered,
+    // AND nothing whatsoever is credited to the shaykh.
     const r = results.F6_abbaad_opinion;
-    eq('F6: the attribution is refused', r.outcome, 'SAFE_REJECTION');
-    eq('F6: BEFORE any provider call', r.budget.snapshot().spent.braveCalls, 0);
-    eq('F6: and before any page fetch', r.budget.snapshot().spent.pagesFetched, 0);
-    ok('F6: with the honest internal reason',
+    eq('F6: the question is answered, partially', r.outcome, 'PARTIAL');
+    ok('F6: the search actually ran', r.budget.snapshot().spent.braveCalls >= 1,
+      'a negative sentence may not rest on work that was never done');
+    ok('F6: the general ruling reached the reader with its own card', r.cards.length >= 1);
+    ok('F6: ...and that card is NOT his site', r.cards.every((c) => c.ownerId !== 'al-abbaad'));
+
+    // THE GUARANTEE THAT DID NOT MOVE.
+    ok('F6: ZERO claims are attributed to him',
+      r.ledger.verifiedClaims().every((c) => {
+        const s = r.ledger.source(c.sourceId);
+        return !s || s.ownerId !== 'al-abbaad';
+      }));
+    const f6Iss = r.ledger.issues[0];
+    const attrSlot = r.ledger.slotsFor(f6Iss.issueId).find((s) => s.slot === 'attribution');
+    ok('F6: the attribution slot exists and is UNFILLED', !!attrSlot && attrSlot.status !== 'filled',
+      JSON.stringify(attrSlot));
+    ok('F6: the internal reason is still recorded',
       r.ledger.rejections.some((x) => x.code === SCHEMA.REJECTION.NO_REGISTERED_PRIMARY_ADAPTER),
       JSON.stringify(r.ledger.rejections));
-    ok('F6: the reader is told nothing was found, not that it is forbidden',
-      /لم أعثر/.test(r.text) && !/يجوز|لا يجوز|حرام|حلال/.test(r.text), r.text);
-    eq('F6: no card', r.cards.length, 0);
-    ok('F6: no general article was read as his view',
-      r.ledger.verifiedClaims().length === 0);
+    ok('F6: no sentence puts words in his mouth',
+      !/قال الشيخ|يرى الشيخ|قال العلامة/.test(r.text), r.text);
+
+    // THE SLOT PROOF, which is what makes the negative half of the reply honest.
+    const proofs = r.ledger.slotProofsFor(f6Iss.issueId);
+    const attrProof = proofs.find((p) => p.slot_id === 'attribution');
+    ok('F6: the attribution slot carries its own proof record', !!attrProof, JSON.stringify(proofs));
+    ok('F6: ...saying a search WAS attempted for it', attrProof && attrProof.search_attempted === true);
+    ok('F6: ...and that no page was eligible to carry his word', attrProof && attrProof.eligible_pages === 0);
+    eq('F6: ...so the reason is RESULTS_INELIGIBLE', attrProof && attrProof.outcome, 'RESULTS_INELIGIBLE');
+    ok('F6: the reply says what was found and what was not, in scoped wording',
+      /وجدنا صفحاتٍ متصلةً بالموضوع/.test(r.text), r.text);
+    ok('F6: and never claims he has no position',
+      !/لا يوجد قول|لم يقل|ليس له قول/.test(r.text), r.text);
   }
   {
     const r = results.F7_uthaymeen_miscarriage;

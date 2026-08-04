@@ -278,15 +278,21 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     ok('an invented authority id is refused', v.authorityRefusals.length === 1 || v.ok === false);
   }
   {
+    // SEARCH FIRST (RFC v0.5-R2 §6/§7). This block used to assert the OPPOSITE: that the issue
+    // was skipped entirely before a single provider call. That behaviour cost the reader the
+    // documented general ruling AND produced a sentence claiming a search that never ran, so the
+    // owner's decision replaced it. What is asserted now is the part that never changed — he is
+    // still never attributed anything — plus the part that did: the question still gets answered.
     const eng = read('lib/ledger/engine.js');
-    ok('the engine records the refusal and skips the issue',
-      /for \(const r of planned\.authorityRefusals\)[\s\S]{0,400}refusedIssues\.add/.test(eng));
-    // The refusal must happen before the first CALL to the batch planner, not merely before its
-    // import — so the comparison is against the call site.
-    ok('...before any search is planned, so it costs zero requests',
-      eng.indexOf('planned.authorityRefusals') < eng.indexOf('planIssueBatches(issue'));
-    ok('...and the batch loop skips refused issues outright',
-      /if \(refusedIssues\.has\(issue\.issueId\)\) continue;/.test(eng));
+    ok('the engine CAPS the attribution rather than skipping the issue',
+      /for \(const r of planned\.authorityRefusals\)[\s\S]{0,400}attributionCapped\.set/.test(eng));
+    ok('...and the refusal reason is still recorded in the ledger',
+      /ledger\.reject\(REJECTION\.NO_REGISTERED_PRIMARY_ADAPTER/.test(eng));
+    ok('...the capped issue drops the domain restriction so the general ruling is reachable',
+      /onlySites: \(!capped && issue\.requestedAuthorityId\)/.test(eng));
+    ok('...and its attribution slot can never be filled, by any route',
+      /if \(capped && c\.slot === 'attribution'\) continue;/.test(eng)
+      && /if \(!capped && issue\.requestedAuthorityId && issue\.requiredSlots\.includes\('attribution'\)/.test(eng));
   }
 
   // =========================================================================
