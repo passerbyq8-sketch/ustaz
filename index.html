@@ -1171,6 +1171,13 @@ function ezLangApply(v) {
   } catch (e) {}
 }
 
+// The <head> boot script normally settles <html> before the first paint. This repeats it once at
+// module load, because that script is a best-effort optimisation and this is the guarantee: a
+// build that ever lost it, or an environment that refused to run it, must still get a document
+// whose direction matches the language the app is about to draw in. It is idempotent -- when the
+// boot script did run, every attribute below is already the value being written.
+ezLangApply(EZ_LANG);
+
 // The one writer. It persists, repaints <html>, and tells every subscriber -- in that order,
 // so a listener that reads the document sees the new direction and not the old one.
 function ezLangSet(v) {
