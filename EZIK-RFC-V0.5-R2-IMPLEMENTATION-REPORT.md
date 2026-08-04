@@ -383,32 +383,70 @@ LEDGER_ENABLED    = NO
 
 ---
 
+## N-pre. Review round — what the first pass got wrong
+
+An owner review of the first round found six P0 wiring gaps and one P1. All are closed; the
+detail is in the commits. The four corrections worth stating plainly here, because they change
+what earlier sections of this report claimed:
+
+1. **The policy core was imported, not consumed, by the ledger.** §C's diagram was accurate about
+   intent and wrong about fact: the engine imported `POLICY_VERSION` and nothing else. The IR now
+   derives `claim_relation`, `target_type`, `era`, roles and `provenance_cap` inside
+   `lib/ledger/query-ir.js`, claims are stamped with them, and Gate 3 enforces them.
+2. **The daily ceiling was optional.** §I said the ledger is not activatable without a configured
+   budget. That was true of the intent and false of the code — `opts.dailyBudget || null` let any
+   caller omit it. It is now a precondition of `decidePath`.
+3. **`SERVICE_LIMITED` was a side field**, not an outcome. It is an outcome now, with
+   `PARTIAL_SERVICE_LIMITED` for the case where part of the answer survived.
+4. **The age source was mislabelled.** §H and the handler called a client-supplied `band` an
+   `account_profile`. It is a `client_claim`; see limitation 2 below.
+
+Three of my own bugs were found by the new gate and are recorded where they occurred: an aliasing
+bug that emptied the claim array it was about to read, and two harness defects (namespaced claim
+ids, and corpus pages below the 300-character evidence floor).
+
 ## N. Known limitations
 
 1. **`DAILY_SEARCH_BUDGET` has no production value.** Deliberately not guessed. Until it is set
-   from the cost dashboard, `configuredLimit()` returns `null`, every reservation is refused, and
-   the ledger path is not activatable. **This must be set before any canary.**
-2. **Legacy has no Gate 3.** `ABOUT_ENTITY` on the legacy path is protected by a *buffered*
+   from the cost dashboard, `configuredLimit()` returns `null`, `decidePath()` returns `legacy`
+   with reason `daily_budget_unconfigured`, and the ledger path is genuinely unreachable.
+   **This must be set before any canary.**
+
+2. **There is no server-authenticated age, and the code no longer pretends otherwise.** `band`
+   reaches the server as `deriveCaps(p.age).band`, computed in the browser from
+   `localStorage.child_profile` and posted in the request body. Anyone with devtools can change
+   it. The only server-verified identity in this app is the founder HMAC, which carries no age.
+   The claim is therefore honoured **downward only** — a claimed `young`/`teen` restricts, a
+   claimed `adult` gets exactly what `unknown` gets. A real verified band would win outright if
+   one existed; none does. Building one is out of this RFC's scope and is the single change that
+   would most strengthen the child policy.
+
+3. **The legacy repairs are behind `RFC_V05_LEGACY_POLICY` and are OFF.** Nothing in §H reaches an
+   ordinary reader today. With the flag off the handler's routing expression is byte-for-byte the
+   shipped one and every new branch is unreachable; `ledger-contract-guard` records that the old
+   «ذهب» mis-read is still what ships. Turning it on is a separate, deliberate act, and no value
+   was changed in this work.
+4. **Legacy has no Gate 3.** `ABOUT_ENTITY` on the legacy path is protected by a *buffered*
    deterministic check (`violatesTemplate`) rather than by the ledger's entailment gate. That is
    strictly better than the streamed alternative and strictly weaker than Gate 3. The narrower
    guarantee — no direct-speech attribution from a page merely about the man — is enforced in code;
    the broader one (every sentence entailed by a span) is not available on that path.
-3. **The legacy path applies no provenance grading.** Grades A/B/C are enforced on the ledger path
+5. **The legacy path applies no provenance grading.** Grades A/B/C are enforced on the ledger path
    and in the shared evaluators. Legacy `BY_ENTITY` remains fail-closed exactly as before (adapter
    or official-domain page, then `verifyAttributedReply`), which is the pre-existing guarantee; the
    new grade system was **not** retrofitted to it, per the RFC's own instruction not to move
    historical attribution policy into a path lacking the gates for it.
-4. **F6 is `PARTIAL`, permanently and by design.** Its `attribution` slot can never fill while
+6. **F6 is `PARTIAL`, permanently and by design.** Its `attribution` slot can never fill while
    `al-abbaad` has no registered primary corpus. That is the correct outcome, not an unfinished one.
-5. **All live measurements remain VOID:** Live Preview Ledger path, live LLM eval, live Brave
+7. **All live measurements remain VOID:** Live Preview Ledger path, live LLM eval, live Brave
    contract, P50/P95 live latency, live token/cost metrics. Nothing in this report is derived from
    a live run.
-6. **The topic classifier is lexical over a reviewed vocabulary.** It is conjunction-based for
+8. **The topic classifier is lexical over a reviewed vocabulary.** It is conjunction-based for
    hazards and IR-driven for scholar questions, which is what the RFC requires, but it is not a
    semantic model. Dialect coverage beyond the tested Gulf forms is unmeasured.
-7. **`wird-guard.cjs`** — not present in this repository and not in `gates.json`; nothing was done
+9. **`wird-guard.cjs`** — not present in this repository and not in `gates.json`; nothing was done
    about it, correctly out of scope.
-8. **The child-path answers were produced with a stubbed model.** The deterministic floor, the
+10. **The child-path answers were produced with a stubbed model.** The deterministic floor, the
    repair and the routing are real and measured; the *quality* of an unstubbed model's draft is
    not, and is a live-eval question.
 

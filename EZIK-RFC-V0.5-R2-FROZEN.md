@@ -245,9 +245,25 @@ codes and short TTLs — no text.
 
 ---
 
+## 11b. Rollout (added by the owner review)
+
+Two independent switches, both **default OFF**, both failing OFF on every error:
+
+| Switch | Governs | Env floor | Identity | Runtime |
+|---|---|---|---|---|
+| `lib/ledger/flag.js` | the ledger engine | `LEDGER_RAG` | founder HMAC | Upstash, 5s TTL |
+| `lib/legacy-policy-flag.js` | the legacy repairs (safety triage, child-benign, health referral, ABOUT_ENTITY branch, classifier veto) | `RFC_V05_LEGACY_POLICY` | founder HMAC | Upstash, 5s TTL |
+
+The ledger switch has a **fourth** precondition: `DAILY_SEARCH_BUDGET` must be configured, or
+`decidePath()` returns `legacy` with reason `daily_budget_unconfigured`. With the legacy switch
+off, the handler's routing expression is byte-for-byte the shipped one and no new branch is
+reachable. Neither switch reads the store for a reader who is not an internal tester. No value was
+changed by this work.
+
 ## 12. What is explicitly still off
 
 * Ledger remains **DEFAULT OFF** and is not activatable without a `DAILY_SEARCH_BUDGET` value.
+* The legacy policy repairs remain **DEFAULT OFF** behind `RFC_V05_LEGACY_POLICY`.
 * No shadow, no canary, no preview, no deploy, no environment or Upstash change.
 * Live Preview Ledger path, live LLM eval, live Brave contract, P50/P95 live latency, and live
   token/cost metrics all remain **VOID**.
