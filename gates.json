@@ -163,5 +163,15 @@
   "name": "ledgerseam",
   "script": "ledger-seam-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "rfcpolicy",
+  "script": "guards/rfc-v05r2-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "rfcruntime",
+  "script": "guards/rfc-v05r2-runtime-guard.cjs",
+  "args": ""
  }
 ]

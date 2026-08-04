@@ -152,3 +152,11 @@ data/ledger-fixtures.json text eol=lf
 data/ledger-fixture-results.json text eol=lf
 tools/ledger-live-eval.cjs text eol=lf
 lib/ledger/*.js text eol=lf
+
+# Gates 34-35 (the RFC v0.5-R2 policy guards) and the shared policy core they measure. Same
+# reason as every gate above, and one specific to this batch: lib/policy/entities.js and
+# lib/policy/age.js match Arabic on WHOLE-WORD boundaries, and a CR injected by core.autocrlf on a
+# fresh clone would sit inside a word run and change what those boundaries see.
+guards/rfc-v05r2-guard.cjs text eol=lf
+guards/rfc-v05r2-runtime-guard.cjs text eol=lf
+lib/policy/*.js text eol=lf

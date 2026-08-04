@@ -669,7 +669,9 @@ export default async function handler(req, res) {
         topicClass, band: audienceBand, ageFloorOutcome: rep.outcome,
         repaired: rep.repaired, problems: rep.problems,
       });
-      return emitOnce(rep.text || warmTemplateFor('SAFETY_REDIRECT'));
+      // A DISCARDED DRAFT FALLS BACK TO THE CHILD LINE, not to the hazard redirect. The redirect
+      // answers a question this child did not ask and reads to them as an accusation.
+      return emitOnce(rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN'));
     }
 
     // ── ATTRIBUTED ROUTE: no source by that scholar ⇒ no attributed ruling ──

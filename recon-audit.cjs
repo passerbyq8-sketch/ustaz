@@ -522,7 +522,11 @@ head('14) GATE ROSTER (single source: gates.json)');
   // stopped being enforced and nobody noticed.
   // S92: 11 -> 12, chat-history-guard.cjs (the saved-conversations gate).
   // S93: 12 -> 13, markdown-guard.cjs (the display-only Markdown gate).
-  const GATES_EXPECTED = 33;   // 33rd: ledger-seam-guard — the JOIN between a request and the
+  // S-RFC-v0.5-R2: 33 -> 35. 34th rfc-v05r2-guard (entities, eras, age policy, slot proof) and
+  //       35th rfc-v05r2-runtime-guard (cache, daily budget, query bounds, mutations, SSE). Both
+  //       live under guards/ rather than the repo root, which is why item 14 below had to learn
+  //       that a gate script may carry a directory.
+  const GATES_EXPECTED = 35;   // 33rd: ledger-seam-guard — the JOIN between a request and the
                                //       engine, driven with req/res doubles rather than matched
                                //       with a regex. Three defects lived in that gap while five
                                //       ledger gates stayed green: the engine's question came
