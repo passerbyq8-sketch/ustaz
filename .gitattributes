@@ -161,5 +161,6 @@ guards/rfc-v05r2-guard.cjs text eol=lf
 guards/rfc-v05r2-runtime-guard.cjs text eol=lf
 guards/rfc-v05r2-wiring-guard.cjs text eol=lf
 guards/rfc-v05r2-round3-guard.cjs text eol=lf
+guards/rfc-v05r2-mode-guard.cjs text eol=lf
 lib/policy/*.js text eol=lf
 lib/legacy-policy-flag.js text eol=lf

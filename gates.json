@@ -183,5 +183,10 @@
   "name": "rfcround3",
   "script": "guards/rfc-v05r2-round3-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "rfcmode",
+  "script": "guards/rfc-v05r2-mode-guard.cjs",
+  "args": ""
  }
 ]
