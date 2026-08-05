@@ -164,18 +164,41 @@ function mk(nWords, nChars) {
   // =========================================================================
   console.log('\n=== F. DAILY SEARCH BUDGET — reserved before the request, atomic, honest ===');
   {
-    // NO NUMBER IS GUESSED. With nothing configured the module reports so and refuses.
+    // THERE IS A DEFAULT NOW, AND IT IS STILL A CAP. Until the public go-live an unset budget
+    // meant `null`, and `null` switched the whole ledger path off at decidePath — a sound design
+    // for an internal rollout and a trap for a public one, because it would have made the
+    // go-live a deploy that silently changed nothing.
+    //
+    // What must remain true is the part that protects the account: a ceiling always EXISTS, it is
+    // a real finite integer, and no absent or malformed value can ever be read as "unlimited".
     const savedEnv = process.env.DAILY_SEARCH_BUDGET;
     delete process.env.DAILY_SEARCH_BUDGET;
-    ok('an unset budget is NOT a default', DB.configuredLimit({}) === null && DB.isConfigured({}) === false);
+    ok('an unset budget yields the declared default, not null',
+      DB.configuredLimit({}) === DB.DEFAULT_DAILY_SEARCH_BUDGET && DB.isConfigured({}) === true,
+      String(DB.configuredLimit({})));
+    ok('...and that default is a real finite positive integer',
+      Number.isInteger(DB.DEFAULT_DAILY_SEARCH_BUDGET) && DB.DEFAULT_DAILY_SEARCH_BUDGET > 0
+      && Number.isFinite(DB.DEFAULT_DAILY_SEARCH_BUDGET), String(DB.DEFAULT_DAILY_SEARCH_BUDGET));
     const unset = new DB.DailySearchBudget({ limit: DB.configuredLimit({}), store: DB.fakeStore() });
-    eq('...and every reservation is refused', (await unset.reserve()).reason, 'not_configured');
-    ok('...which is not the same as "unlimited"', unset.configured === false);
-    ok('a garbled value is treated as unset, never coerced',
-      DB.configuredLimit({ DAILY_SEARCH_BUDGET: 'lots' }) === null
-      && DB.configuredLimit({ DAILY_SEARCH_BUDGET: '-5' }) === null
-      && DB.configuredLimit({ DAILY_SEARCH_BUDGET: '3.5' }) === null);
+    ok('...so a budget built from it is configured, never "unlimited"', unset.configured === true);
+    ok('...and it still refuses once its ceiling is spent', (await (async () => {
+      const spent = new DB.DailySearchBudget({ limit: 1, store: DB.fakeStore(), now: () => 1770000000000 });
+      await spent.reserve();
+      return spent.reserve();
+    })()).ok === false);
+    // AN EXPLICITLY-BUILT UNCONFIGURED BUDGET STILL REFUSES EVERYTHING. The class contract is
+    // unchanged; only where the number comes from moved.
+    const nulled = new DB.DailySearchBudget({ limit: null, store: DB.fakeStore() });
+    eq('a budget constructed with no limit refuses every reservation',
+      (await nulled.reserve()).reason, 'not_configured');
+    ok('a garbled value is the DEFAULT, never coerced and never unlimited',
+      DB.configuredLimit({ DAILY_SEARCH_BUDGET: 'lots' }) === DB.DEFAULT_DAILY_SEARCH_BUDGET
+      && DB.configuredLimit({ DAILY_SEARCH_BUDGET: '-5' }) === DB.DEFAULT_DAILY_SEARCH_BUDGET
+      && DB.configuredLimit({ DAILY_SEARCH_BUDGET: '3.5' }) === DB.DEFAULT_DAILY_SEARCH_BUDGET
+      && DB.configuredLimit({ DAILY_SEARCH_BUDGET: 'Infinity' }) === DB.DEFAULT_DAILY_SEARCH_BUDGET);
     eq('...and a real value is read exactly', DB.configuredLimit({ DAILY_SEARCH_BUDGET: '250' }), 250);
+    eq('...and an explicit zero is a hard stop, not the default',
+      DB.configuredLimit({ DAILY_SEARCH_BUDGET: '0' }), 0);
     if (savedEnv !== undefined) process.env.DAILY_SEARCH_BUDGET = savedEnv;
 
     // BEFORE THE LIMIT: the search works.

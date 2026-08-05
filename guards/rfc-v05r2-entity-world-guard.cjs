@@ -235,7 +235,11 @@ const GOOD_DRAFT = 'خالد عبدالرحمن فنّانٌ معروف وليس
     process.env.RFC_V05_MODE = 'internal';
     process.env.ANTHROPIC_API_KEY = 'test-key';
     process.env.BRAVE_API_KEY = 'test-brave';
-    delete process.env.DAILY_SEARCH_BUDGET;
+    // This section drives the LEGACY path, so the ledger is switched off by its documented
+    // floor rather than by starving it of a spend cap. Deleting DAILY_SEARCH_BUDGET used to do
+    // it as a side effect; the public go-live gave that budget a default, so the side effect is
+    // gone. See the same note in guards/rfc-v05r2-consistency-guard.cjs.
+    process.env.LEDGER_RAG = 'off';
     STORE.__setRedisForTest(null);
 
     const PAGE_URL = 'https://islamqa.info/ar/answers/38209/';

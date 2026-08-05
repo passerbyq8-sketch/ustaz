@@ -12,7 +12,10 @@
 //   off       nobody
 //   internal  a server-verified internal tester, and nobody else
 //   public    every reader
-//   unset     the shipped model, unchanged — credential + store value + ceiling
+//   unset     PUBLIC, since the go-live of 2026-08-05 (lib/ledger/flag.js PUBLIC_GO_LIVE). It used
+//             to mean the credential+store rollout; that arm still exists in the source and is
+//             what flipping the constant back restores, which section I asserts structurally
+//             because a constant no runtime can change cannot be asserted any other way.
 //   garbage   off, because a typo must never be an activation
 //
 // AND THE FLOOR STILL GOVERNS. A mode alone activates nothing; without its env floor every mode
@@ -55,6 +58,7 @@ function fakeRedis() {
   console.log('=== rfc-v05r2-mode-guard — off / internal / public ===');
 
   const FL = await esm('lib/ledger/flag.js');
+  const DB = await esm('lib/ledger/daily-budget.js');
   const LP = await esm('lib/legacy-policy-flag.js');
   const STORE = await esm('lib/ledger/redis.js');
   const DC = await esm('lib/daycap.js');
@@ -95,7 +99,10 @@ function fakeRedis() {
   console.log('\n=== A. THE MODE VALUE ITSELF ===');
   {
     setEnv({});
-    eq('an unset mode is «unset», not «public»', FL.envMode(), 'unset');
+    // SINCE THE PUBLIC GO-LIVE an unset mode reads as «public» rather than «unset». The three
+    // written values are untouched, and an unrecognised one is still «off» — a typo must never be
+    // an activation, and that property is what the loop below still proves.
+    eq('an unset mode follows PUBLIC_GO_LIVE', FL.envMode(), FL.PUBLIC_GO_LIVE ? 'public' : 'unset');
     for (const [v, want] of [['off', 'off'], ['internal', 'internal'], ['public', 'public'],
       ['OFF', 'off'], ['Internal', 'internal'], ['  public  ', 'public']]) {
       process.env.RFC_V05_MODE = v;
@@ -164,11 +171,21 @@ function fakeRedis() {
   console.log('\n=== E. THE FLOOR STILL GOVERNS — A MODE ALONE ACTIVATES NOTHING ===');
   {
     redis._map.clear();
-    setEnv({ RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '20' });
+    // THE FLOOR IS NOW WRITTEN, NOT ABSENT. Before the go-live an unset LEDGER_RAG was itself the
+    // closed floor, so «no floor» and «floor off» were the same test. They are different now: an
+    // unset floor is OPEN, and only an explicit `off` closes it. That explicit `off` is the brake
+    // the go-live promised to keep, so it is what this section asserts.
+    setEnv({ LEDGER_RAG: 'off', RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '20' });
     let t = fresh();
-    eq('public with NO ledger floor => legacy', (await FL.decidePath(anonReq, t)).path, 'legacy');
+    eq('public with the ledger floor CLOSED => legacy', (await FL.decidePath(anonReq, t)).path, 'legacy');
     t = fresh();
     eq('...and the reason is the floor', (await FL.decidePath(anonReq, t)).reason, 'env_floor_off');
+    t = fresh();
+    eq('...and it closes for an internal tester just the same',
+      (await FL.decidePath(internalReq, t)).path, 'legacy');
+    // The POLICY floor is a separate env var and is unchanged by the go-live: it is still off
+    // unless RFC_V05_LEGACY_POLICY says otherwise.
+    setEnv({ RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '20' });
     t = fresh();
     eq('public with NO policy floor => repairs off', (await LP.decideLegacyPolicy(anonReq, t)).enabled, false);
   }
@@ -176,17 +193,32 @@ function fakeRedis() {
   // =========================================================================
   console.log('\n=== F. THE DAY CEILING IS STILL A PRECONDITION OF THE LEDGER ===');
   {
+    // RFC v0.5-R2 §9's promise — the path never runs without a ceiling — is UNCHANGED, and it is
+    // still enforced at decidePath. What the go-live changed is where the ceiling comes from when
+    // nobody wrote one: it used to come from nowhere, which made an unconfigured budget the thing
+    // that switched the whole feature off. For a public path that is a trap, not a safeguard, so
+    // there is a code default and the promise is kept by construction instead.
+    //
+    // So the assertions invert: rather than "no ceiling => legacy", the claim is now "there is
+    // always a ceiling, it is a real finite number, a typo can never remove it, and a written
+    // value still governs".
     redis._map.clear();
     setEnv({ LEDGER_RAG: 'on', RFC_V05_LEGACY_POLICY: 'on', RFC_V05_MODE: 'public' });
+    ok('an unwritten ceiling is a real finite number, never null and never unlimited',
+      Number.isInteger(DB.configuredLimit()) && DB.configuredLimit() > 0
+        && Number.isFinite(DB.configuredLimit()), String(DB.configuredLimit()));
+    eq('...so the path is configured by construction', DB.isConfigured(), true);
     let t = fresh();
-    eq('public with no ceiling => legacy', (await FL.decidePath(anonReq, t)).path, 'legacy');
-    t = fresh();
-    eq('...and the reason names the budget', (await FL.decidePath(anonReq, t)).reason, 'daily_budget_unconfigured');
-    for (const bad of ['', 'lots', '-1', '2.5']) {
+    eq('public with the default ceiling => ledger', (await FL.decidePath(anonReq, t)).path, 'ledger');
+    for (const bad of ['', 'lots', '-1', '2.5', 'Infinity']) {
       setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: bad });
-      t = fresh();
-      eq('a garbled ceiling «' + bad + '» is not a ceiling', (await FL.decidePath(anonReq, t)).path, 'legacy');
+      eq('a garbled ceiling «' + bad + '» falls back to the default, never to "no cap"',
+        DB.configuredLimit(), DB.DEFAULT_DAILY_SEARCH_BUDGET);
     }
+    setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '20' });
+    eq('a written ceiling still governs', DB.configuredLimit(), 20);
+    setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '0' });
+    eq('an explicit zero is honoured, not overwritten by the default', DB.configuredLimit(), 0);
   }
 
   // =========================================================================
@@ -291,24 +323,41 @@ function fakeRedis() {
   }
 
   // =========================================================================
-  console.log('\n=== I. WITH NO MODE SET, THE SHIPPED MODEL IS UNCHANGED ===');
+  console.log('\n=== I. WITH NO MODE SET, THE PATH IS PUBLIC — AND THE ROLLBACK IS INTACT ===');
   {
-    // This is the arm production runs on today, and the one that keeps every earlier gate honest:
-    // credential AND a store value AND a ceiling, with every failure reading as legacy.
-    setEnv({ ...FLOORS });
+    // WHAT AN UNCONFIGURED DEPLOYMENT DOES. This is the state a fresh production environment is
+    // in: no mode, no floor, no ceiling, nothing in the store. Before the go-live it meant OFF;
+    // it now means the engine, for everybody, which is the whole point of the change.
+    setEnv({});
     redis._map.clear();
     let t = fresh();
-    eq('unset + anonymous => legacy', (await FL.decidePath(anonReq, t)).path, 'legacy');
+    eq('nothing set at all + anonymous => ledger', (await FL.decidePath(anonReq, t)).path, 'ledger');
     t = fresh();
-    eq('unset + internal + NO store value => legacy', (await FL.decidePath(internalReq, t)).path, 'legacy');
-    redis._map.set(FL.RUNTIME_KEY, true);
+    eq('...and the reason names the mode', (await FL.decidePath(anonReq, t)).reason, 'mode_public');
     t = fresh();
-    eq('unset + internal + store value on => ledger', (await FL.decidePath(internalReq, t)).path, 'ledger');
+    eq('nothing set at all + internal => ledger', (await FL.decidePath(internalReq, t)).path, 'ledger');
+    // ...and an unreachable store does not take it down, because the store only ever brakes now.
     redis.down = true;
     t = fresh();
-    eq('unset + internal + store DOWN => legacy (the shipped fail-off)',
-      (await FL.decidePath(internalReq, t)).path, 'legacy');
+    eq('...and a store that is DOWN leaves the environment in charge',
+      (await FL.decidePath(anonReq, t)).path, 'ledger');
     redis.down = false;
+
+    // THE ROLLBACK IS ONE CONSTANT, AND IT IS STILL WIRED. `mode === 'unset'` is unreachable
+    // while PUBLIC_GO_LIVE is true, so it cannot be driven here — but it is the arm that comes
+    // back if the constant is flipped, and an arm nobody checks is an arm that quietly rots. So
+    // it is asserted on the SOURCE: the credential test, the ceiling test and the store-value
+    // test are all still there, in that order, under a branch guarded by an unset mode.
+    const flagSrc = read('lib/ledger/flag.js');
+    ok('the shipped rollout arm still exists for `unset`',
+      /if \(mode !== 'unset'\)[\s\S]*?if \(!isInternalTester\(req\)\) return \{ path: 'legacy', reason: 'not_internal' \}/.test(flagSrc));
+    ok('...and it still requires a ceiling before reading the store',
+      /reason: 'not_internal' \}[\s\S]{0,900}?isConfigured\(\)[\s\S]{0,600}?readRuntimeFlag\(now\)/.test(flagSrc));
+    ok('...and flipping PUBLIC_GO_LIVE back to false is what restores it',
+      /if \(v === ''\) return PUBLIC_GO_LIVE;/.test(flagSrc)
+      && /if \(raw === ''\) return PUBLIC_GO_LIVE \? 'public' : 'unset';/.test(flagSrc));
+    ok('...and the constant is a single declared boolean, not a computed expression',
+      /export const PUBLIC_GO_LIVE = (true|false);/.test(flagSrc));
   }
 
   // =========================================================================

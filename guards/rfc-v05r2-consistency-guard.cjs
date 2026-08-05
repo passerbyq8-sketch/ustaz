@@ -244,7 +244,18 @@ const GOOD_DRAFT = [
     process.env.RFC_V05_LEGACY_POLICY = 'on';
     process.env.RFC_V05_MODE = 'internal';
     process.env.ANTHROPIC_API_KEY = 'test-key';
-    delete process.env.DAILY_SEARCH_BUDGET;   // ledger stays off; this exercises the LEGACY path
+    // THIS SECTION EXERCISES THE LEGACY PATH, so the ledger is switched off — explicitly.
+    //
+    // It used to be switched off by DELETING the daily search budget, which worked only as a
+    // side effect: an unconfigured spend cap made decidePath() refuse the ledger. The public
+    // go-live (lib/ledger/flag.js PUBLIC_GO_LIVE, 2026-08-05) gave the budget a default, so
+    // that lever silently stopped working and every drive below took the ledger instead — which
+    // is how a harness detail turns into four failing assertions about somebody's prose.
+    //
+    // `LEDGER_RAG=off` is the documented floor and says what it means. RFC_V05_MODE stays
+    // 'internal' on purpose: the `: rfc-path=` indicator is only emitted in that mode, and one
+    // of the assertions below is that it reads `legacy` when the ledger did not run.
+    process.env.LEDGER_RAG = 'off';
     STORE.__setRedisForTest(null);
 
     const makeRes = () => ({

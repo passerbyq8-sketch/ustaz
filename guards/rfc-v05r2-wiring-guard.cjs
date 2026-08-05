@@ -80,6 +80,7 @@ const BRAVE_RESULTS = [
   console.log('=== rfc-v05r2-wiring-guard — the policy runs, not merely imports ===');
 
   const FLAG = await esm('lib/ledger/flag.js');
+  const BUDGET = await esm('lib/ledger/daily-budget.js');
   const REDIS = await esm('lib/ledger/redis.js');
   const DAY = await esm('lib/daycap.js');
   const DB = await esm('lib/ledger/daily-budget.js');
@@ -276,7 +277,9 @@ const BRAVE_RESULTS = [
   };
 
   const driveLedger = async (question, band, script, envOverrides = {}) => {
-    process.env.LEDGER_RAG = 'on';
+    // LEDGER_RAG is overridable now: since the go-live the env FLOOR is the lever that switches
+    // this path off, where an absent DAILY_SEARCH_BUDGET used to do it as a side effect.
+    process.env.LEDGER_RAG = envOverrides.LEDGER_RAG === undefined ? 'on' : envOverrides.LEDGER_RAG;
     process.env.DAILY_SEARCH_BUDGET = envOverrides.DAILY_SEARCH_BUDGET === undefined
       ? '100' : envOverrides.DAILY_SEARCH_BUDGET;
     if (envOverrides.DAILY_SEARCH_BUDGET === null) delete process.env.DAILY_SEARCH_BUDGET;
@@ -424,27 +427,33 @@ const BRAVE_RESULTS = [
   // =========================================================================
   console.log('\n=== P0-2. DAILY BUDGET IS WIRED AND NOT OPTIONAL ===');
   {
-    // (1) Ledger conditions all true, but no budget configured => the engine must not start.
-    const script = { plan: { issues: [], missing_qualifiers: [], confidence: 'high' }, annotations: [], sentences: [] };
-    const out = await driveLedger('ما حكم المسألة؟', 'adult', script, { DAILY_SEARCH_BUDGET: null });
-    eq('an unconfigured daily budget spends ZERO provider calls', out.braveCalls, 0);
-    // The LEDGER planner specifically. The request still falls through to the legacy route, which
-    // legitimately calls a model — asserting zero model calls of any kind would be asserting that
-    // the reader gets nothing, which is not the contract.
-    ok('...and the ledger planner never ran',
-      !out.modelCalls.some((c) => c.includes('صِفْه')), JSON.stringify(out.modelCalls));
-
+    // (1) THE PROMISE IS UNCHANGED — the engine never searches without a ceiling — but since the
+    // public go-live the ceiling can no longer be MISSING: lib/ledger/daily-budget.js supplies a
+    // declared default when nobody wrote one. So the assertion moves from "an absent budget stops
+    // the path" to "there is always a budget, it is a real cap, and an env value still governs".
     process.env.LEDGER_RAG = 'on';
     installRedis('on');
     FLAG.__resetFlagCacheForTest();
     delete process.env.DAILY_SEARCH_BUDGET;
     const d = await FLAG.decidePath(makeReq('س', 'adult'));
-    eq('decidePath refuses the ledger without a configured ceiling', d.path, 'legacy');
-    ok('...naming the budget as the reason', /budget/.test(d.reason), d.reason);
+    eq('decidePath admits the ledger on the default ceiling', d.path, 'ledger');
+    ok('...and the ceiling it will run under is a real finite cap',
+      Number.isInteger(BUDGET.configuredLimit()) && BUDGET.configuredLimit() > 0
+      && Number.isFinite(BUDGET.configuredLimit()), String(BUDGET.configuredLimit()));
     process.env.DAILY_SEARCH_BUDGET = '100';
     FLAG.__resetFlagCacheForTest();
     const d2 = await FLAG.decidePath(makeReq('س', 'adult'));
-    eq('...and admits it once a ceiling exists', d2.path, 'ledger');
+    eq('...and a written ceiling is honoured just the same', d2.path, 'ledger');
+    eq('...with the env value governing the number', BUDGET.configuredLimit(), 100);
+    // THE FLOOR IS STILL THE THING THAT STOPS IT, and it stops it before a provider is touched.
+    const script = { plan: { issues: [], missing_qualifiers: [], confidence: 'high' }, annotations: [], sentences: [] };
+    const out = await driveLedger('ما حكم المسألة؟', 'adult', script, { LEDGER_RAG: 'off' });
+    eq('the closed env floor spends ZERO provider calls', out.braveCalls, 0);
+    // The LEDGER planner specifically. The request still falls through to the legacy route, which
+    // legitimately calls a model — asserting zero model calls of any kind would be asserting that
+    // the reader gets nothing, which is not the contract.
+    ok('...and the ledger planner never ran',
+      !out.modelCalls.some((c) => c.includes('صِفْه')), JSON.stringify(out.modelCalls));
   }
   {
     // (2) The engine may not be called in runtime mode WITHOUT a budget: fail closed.
@@ -545,15 +554,33 @@ const BRAVE_RESULTS = [
   {
     ok('a legacy policy flag module exists', !LEGACY_FLAG.__missing, LEGACY_FLAG.__missing);
     if (!LEGACY_FLAG.__missing) {
+      // THE POLICY REPAIRS HAVE THEIR OWN FLOOR, AND IT IS STILL SHUT BY DEFAULT. This is the
+      // half the go-live did not touch: RFC_V05_LEGACY_POLICY is a separate env var, and with it
+      // unwritten the repairs are off for everybody however the ledger is configured.
       eq('it is DEFAULT OFF', LEGACY_FLAG.DEFAULT_ENABLED, false);
       delete process.env.RFC_V05_LEGACY_POLICY;
       eq('...with no env floor, it is off', LEGACY_FLAG.envAllows(), false);
+      const savedMode = process.env.RFC_V05_MODE;
+      // What the go-live DID change here: this switch shares ONE definition of the mode with the
+      // ledger (asserted in rfc-v05r2-mode-guard), so an unset mode now reads as `public` and the
+      // floor alone is enough. That is intended — the repairs are the child-safety triage, the
+      // ABOUT_ENTITY branch and the consistency gate, and they go public with the engine.
       process.env.RFC_V05_LEGACY_POLICY = 'on';
-      eq('...and the env floor alone cannot turn it on for a stranger',
+      delete process.env.RFC_V05_MODE;
+      if (LEGACY_FLAG.__resetLegacyFlagCacheForTest) LEGACY_FLAG.__resetLegacyFlagCacheForTest();
+      eq('...with the floor open and the mode public, a stranger gets the repairs',
+        (await LEGACY_FLAG.decideLegacyPolicy({ headers: {} })).enabled, true);
+      // ...and an internal-only rollout still excludes a stranger, exactly as before.
+      process.env.RFC_V05_MODE = 'internal';
+      if (LEGACY_FLAG.__resetLegacyFlagCacheForTest) LEGACY_FLAG.__resetLegacyFlagCacheForTest();
+      eq('...while mode=internal still refuses one',
         (await LEGACY_FLAG.decideLegacyPolicy({ headers: {} })).enabled, false);
+      // A URL TOKEN IS STILL NOT A CREDENTIAL, and never becomes one in any mode.
       ok('...a query-string token activates nothing',
         (await LEGACY_FLAG.decideLegacyPolicy({ headers: {}, url: '/api/ask?rfc_v05=on' })).enabled === false);
+      if (savedMode === undefined) delete process.env.RFC_V05_MODE; else process.env.RFC_V05_MODE = savedMode;
       delete process.env.RFC_V05_LEGACY_POLICY;
+      if (LEGACY_FLAG.__resetLegacyFlagCacheForTest) LEGACY_FLAG.__resetLegacyFlagCacheForTest();
     }
 
     // FLAG OFF: the legacy contract is exactly what it was.

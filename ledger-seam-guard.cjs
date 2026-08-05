@@ -450,41 +450,57 @@ const user = (t) => [{ role: 'user', content: t }];
     (askCode.match(/clearKeepAlive\(\);/g) || []).length >= 5);
 
   // =========================================================================
-  console.log('\n=== D. ONE ARRANGEMENT ENTERS THE LEDGER; EVERY OTHER RUNS LEGACY ===');
+  console.log('\n=== D. THE PUBLIC PATH, AND THE BRAKES THAT SURVIVED IT ===');
   {
     const redis = { down: false, slow: 0, _m: new Map(),
       async get(k) { if (this.down) throw new Error('ECONNREFUSED'); if (this.slow) await new Promise((r) => setTimeout(r, this.slow)); return this._m.has(k) ? this._m.get(k) : null; },
       async set(k, v) { if (this.down) throw new Error('x'); this._m.set(k, v); return 'OK'; } };
     STORE.__setRedisForTest(redis);
     let clock = 0;
-    const decide = async (env, req, flagValue) => {
-      // A FOURTH PRECONDITION (RFC v0.5-R2 review, P0-2): decidePath refuses the ledger with no
-      // configured daily ceiling. These cases are about the other three, so a ceiling is present;
-      // the ceiling's own behaviour is asserted in ledger-runtime-guard.
+    // THE MODE IS WRITTEN IN EVERY CASE. Since the public go-live an UNSET RFC_V05_MODE reads as
+    // 'public', so a case that left it alone would be testing the public arm while claiming to
+    // test another — which is exactly how this section started failing when the default flipped.
+    const decide = async (env, mode, req, flagValue) => {
+      // A ceiling is present in all of these: they are about the floor, the mode, the credential
+      // and the kill switch. The ceiling's own behaviour is asserted in ledger-runtime-guard.
       process.env.DAILY_SEARCH_BUDGET = '500';
       process.env.LEDGER_RAG = env;
+      process.env.RFC_V05_MODE = mode;
       redis._m.clear();
       if (flagValue !== null) redis._m.set(FL.RUNTIME_KEY, flagValue);
       FL.__resetFlagCacheForTest();
       clock += 100000;
       return (await FL.decidePath(req, clock)).path;
     };
-    eq('env off + internal + flag on => legacy', await decide('off', internalReq, true), 'legacy');
-    eq('env on + anonymous + flag on => legacy', await decide('on', anonReq, true), 'legacy');
-    eq('env on + internal + flag absent => legacy', await decide('on', internalReq, null), 'legacy');
-    eq('env on + internal + flag off => legacy', await decide('on', internalReq, false), 'legacy');
-    eq('ONLY env on + internal + flag on => ledger', await decide('on', internalReq, true), 'ledger');
+    // The go-live: a reader with no credential at all takes the engine.
+    eq('PUBLIC + anonymous => ledger', await decide('on', 'public', anonReq, null), 'ledger');
+    eq('PUBLIC + internal => ledger', await decide('on', 'public', internalReq, null), 'ledger');
+    // ...and every brake still stops it.
+    eq('the env floor closed beats a public mode', await decide('off', 'public', internalReq, true), 'legacy');
+    eq('...and beats a public anonymous read too', await decide('off', 'public', anonReq, true), 'legacy');
+    eq('mode off beats an open floor', await decide('on', 'off', internalReq, true), 'legacy');
+    eq('mode internal still refuses a stranger', await decide('on', 'internal', anonReq, true), 'legacy');
+    eq('mode internal still admits a tester', await decide('on', 'internal', internalReq, true), 'ledger');
+    eq('a stored «off» is the kill switch, and it stops the public path',
+      await decide('on', 'public', anonReq, false), 'legacy');
     // THE ENV FLOOR ALONE CANNOT BE OVERRIDDEN BY REDIS, and Redis alone cannot open the floor.
-    eq('Redis cannot open a closed env floor', await decide('off', internalReq, true), 'legacy');
+    eq('Redis cannot open a closed env floor', await decide('off', 'public', internalReq, true), 'legacy');
 
+    // A STORE THAT CANNOT BE READ NO LONGER TAKES THE PATH DOWN, and the inversion is deliberate.
+    // The store used to have to AFFIRM the flag, so failing to read it meant legacy. Since the
+    // go-live the environment affirms and the store only ever brakes — so an outage in the
+    // braking component must not cut every reader off. `LEDGER_RAG=off` is the brake that needs
+    // no store at all, and it is asserted above.
+    process.env.LEDGER_RAG = 'on';
+    process.env.RFC_V05_MODE = 'public';
     redis.down = true;
     FL.__resetFlagCacheForTest();
-    process.env.LEDGER_RAG = 'on';
     clock += 100000;
-    eq('an ERRORING store reads as legacy', (await FL.decidePath(internalReq, clock)).path, 'legacy');
+    eq('an ERRORING store leaves the environment in charge', (await FL.decidePath(internalReq, clock)).path, 'ledger');
     redis.down = false;
 
-    // A SLOW STORE MUST NOT HANG THE REQUEST. The read is bounded and fails closed.
+    // A SLOW STORE MUST NOT HANG THE REQUEST. The read is still bounded — that property is
+    // untouched by the go-live and is the reason the timeout constant exists.
     redis.slow = 5000;
     redis._m.set(FL.RUNTIME_KEY, true);
     FL.__resetFlagCacheForTest();
@@ -492,8 +508,8 @@ const user = (t) => [{ role: 'user', content: t }];
     const t0 = Date.now();
     const slowPath = (await FL.decidePath(internalReq, clock)).path;
     const elapsed = Date.now() - t0;
-    eq('a SLOW store reads as legacy', slowPath, 'legacy');
-    ok('...and the read is bounded well under a second', elapsed < 2000, elapsed + 'ms');
+    eq('a SLOW store does not stop the path either', slowPath, 'ledger');
+    ok('...and the read is STILL bounded well under a second', elapsed < 2000, elapsed + 'ms');
     ok('...by a declared timeout constant', typeof FL.FLAG_READ_TIMEOUT_MS === 'number' && FL.FLAG_READ_TIMEOUT_MS <= 1500,
       String(FL.FLAG_READ_TIMEOUT_MS));
     redis.slow = 0;
@@ -508,13 +524,19 @@ const user = (t) => [{ role: 'user', content: t }];
     clock += 100000;
     eq('with the env floor closed the decision is legacy', (await FL.decidePath(internalReq, clock)).path, 'legacy');
     eq('...and the store was never read', reads, 0);
-    // An anonymous request with the floor OPEN must also not read the store: an unauthenticated
-    // caller cannot be allowed to make us do work, and must not learn the flag's state either.
+    // An anonymous request with the floor OPEN now takes the public path, and it reads the store
+    // EXACTLY ONCE — the kill-switch check — rather than not at all. That one bounded read is the
+    // price of keeping an instant stop button after the go-live, and it is cached for FLAG_TTL_MS,
+    // so a warm instance does not pay it per request.
     process.env.LEDGER_RAG = 'on';
+    process.env.RFC_V05_MODE = 'public';
     FL.__resetFlagCacheForTest();
+    reads = 0;
     clock += 100000;
-    eq('an anonymous caller decides legacy', (await FL.decidePath(anonReq, clock)).path, 'legacy');
-    eq('...without reading the store', reads, 0);
+    eq('an anonymous caller now decides ledger', (await FL.decidePath(anonReq, clock)).path, 'ledger');
+    eq('...having read the store once, for the kill switch only', reads, 1);
+    eq('...and a second decision inside the TTL reads nothing more',
+      (await FL.decidePath(anonReq, clock + 1)).path && reads, 1);
     STORE.__resetRedis();
   }
   ok('the handler calls decidePath BEFORE any engine import',

@@ -48,6 +48,11 @@ import { lastUserText } from '../lib/attribution.js';
 // THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
 // it reads nothing from the store for a reader who is not an internal tester.
 import { decideLegacyPolicy } from '../lib/legacy-policy-flag.js';
+// LIVE WORLD RETRIEVAL — the news/current-affairs classifier. Pure and lexical, like
+// lib/route-classify.js: it decides whether a question the router already called GENERAL is
+// one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
+// one on its own account if it ever did.
+import { classifyWorldIntent } from '../lib/world-intent.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -118,6 +123,46 @@ const CHILD_BENIGN_INSTRUCTION = [
   '- واذكرْ إشراكَ أحدِ الوالدين قبل أيِّ مادّةٍ جديدة — إشراكًا داعمًا لا صدًّا.',
   '- لا تُصدِرْ حكمًا شرعيًّا، ولا تُعطِ تشخيصًا، ولا تكتبْ وسمَ <source> ولا أيَّ رابط.',
 ].join('\n');
+
+// ── THE WORLD-SEARCH DRAFTING NOTE (P0, live world retrieval) ────────────────
+//
+// WHAT IT REPLACES. Nothing was ever instructed to apologise for a training cut-off — no such
+// sentence exists anywhere in this repository, and the shipped system prompt says nothing
+// about dates, the internet or the model's own limits. The apology was the model's own
+// default, reached because the general route runs with NO tools and there was therefore
+// nothing else to say. The fix is not a deletion, then; it is this: the material is fetched
+// first, and the model is told plainly that it is holding it.
+//
+// THE SECOND HALF IS THE IMPORTANT ONE. These pages are news and encyclopedia pages, and the
+// single thing that must never happen is a religious ruling being derived from one. That is
+// forbidden here in as many words — and it is not the only line of defence: every one of these
+// domains carries `scopes: []` in lib/source-registry.js, so it is refused for every religious
+// purpose the retrieval layer knows, and the religious lists are never searched on this branch.
+// This instruction is the third layer, and the only one the reader's eye ever meets.
+//
+// Injected per-request into the messages array, NOT into the cached system prefix, for the same
+// reason the depth instruction is: it varies per request and would otherwise bust the cache.
+function buildWorldSearchInstruction(material, band) {
+  const childNote = (band === 'young' || band === 'teen')
+    ? ['- المخاطَبُ صغيرٌ أو يافع: انقلِ الخبرَ بلغةٍ بسيطةٍ هادئة، ولا تصفْ مشاهدَ عنفٍ أو دماءٍ أو تفاصيلَ مروّعة، واقتصِرْ على أصلِ الخبر.']
+    : [];
+  return [
+    'تنبيهٌ داخليٌّ للصياغة (لا تنقلْه حرفيًّا):',
+    'أنت الآن تُجيب من مصادرَ إخباريّةٍ وعامّةٍ مُعتمَدةٍ استُرجِعت للتوّ، لا من ذاكرتك. وهذه هي المادّةُ المسترجَعة:',
+    '',
+    material,
+    '',
+    'اكتبْ جوابًا يلتزم بما يلي حرفيًّا:',
+    '- ⛔ يُمنع منعًا باتًّا استنباطُ أو إصدارُ أيِّ حكمٍ شرعيٍّ أو دينيٍّ أو فتوى من هذه المصادر العامّة. فإنِ انجرَّ السؤالُ إلى حكمٍ شرعيّ، فقلْ إنّ ذلك سؤالٌ مستقلٌّ يُبحَثُ في المصادرِ الشرعيّةِ المعتمدة، وادعُ السائلَ إلى طرحِه وحدَه.',
+    '- ⛔ ولا تنسبْ إلى عالمٍ ولا إلى هيئةٍ شرعيّةٍ قولًا أو فتوى من هذه المصادر البتّة.',
+    '- أجِبْ في حدودِ المعلومةِ المجلوبةِ أعلاه وحدَها، ولا تُكمِلْ من معرفتِك السابقة، ولا تُضِفْ رقمًا ولا تاريخًا ولا اسمًا لم يَرِدْ فيها.',
+    '- انسبِ الخبرَ إلى المصدرِ الذي ورد فيه باسمِه («بحسب الجزيرة نت…»)، واذكرْ تاريخَه إن ورد.',
+    '- لا تعتذرْ بأنّ معرفتَك تتوقّفُ عند تاريخٍ معيّن، ولا تقلْ إنّك لا تستطيعُ الوصولَ إلى الإنترنت أو تصفُّحَ الأخبار؛ فالمادّةُ بين يديك الآن. ولا تصفْ عمليّةَ بحثِك.',
+    '- إن كانتِ المادّةُ لا تُجيبُ عن السؤال، فقلْ ذلك صراحةً ولا تخترعْ خبرًا.',
+    ...childNote,
+    '- لا تكتبْ وسمَ <source> ولا أيَّ رابط؛ التطبيقُ يُضيفُ بطاقةَ المصدر بنفسه.',
+  ].join('\n');
+}
 
 // Append the depth instruction as a SEPARATE text block WITHOUT cache_control,
 // so it varies per-request and never busts the cached static system prefix.
@@ -755,18 +800,123 @@ export default async function handler(req, res) {
       return emitOnce(rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN'));
     }
 
-    // ── LEDGER RAG — A PARALLEL PATH, DEFAULT OFF ──────────────────────────
+    // ── LIVE WORLD RETRIEVAL: a general question may still need TODAY'S facts ──
     //
-    // The narrowest possible seam: one call, taken before any of the routes below, and it
-    // returns 'legacy' unless THREE independent things are all true — the env floor is open,
-    // the request carries a valid internal credential, and the runtime kill switch in Upstash
-    // says on. Any failure to establish any of them, including the store being unreachable,
-    // returns 'legacy' and the shipped path runs byte-for-byte as it does today.
+    // THE HOLE THIS CLOSES. The general route runs with NO tools, deliberately — that is what
+    // makes it safe to stream. But "no tools" also meant "no facts newer than the model", so
+    // «ما آخر أخبار غزة اليوم؟» was met with an apology about a training cut-off and an
+    // inability to browse. Nothing was refusing the question; nothing was answering it either.
     //
-    // Nothing below this branch is modified. The engine never falls back INTO the legacy path
-    // mid-request either: a ledger request that cannot verify a source answers with its own
-    // refusal rather than quietly re-asking an unguarded route, because a fallback that
-    // answers is a fallback that defeats the gate it fell back from.
+    // WHY IT SITS ABOVE THE LEDGER BRANCH, AND NOT WHERE IT WAS WRITTEN. It used to sit just
+    // before the streamed GEN route, which was correct while the ledger was an internal rollout
+    // reaching almost nobody. The public go-live inverted that: the ledger branch RETURNS, so
+    // once every reader takes it, every line below it — this one included — becomes unreachable.
+    // A news question would have gone to an engine whose entire corpus is the approved Islamic
+    // sources, and got «لم أعثر» from sites that never carried the answer. So the world check
+    // runs FIRST, and the ledger keeps everything it does not claim.
+    //
+    // IT STILL CLAIMS ALMOST NOTHING. Everything above has already had its say — the hazard
+    // triage, the age access policy and the child-benign branch — and the condition below is
+    // narrow twice over: the lexical router must have said GENERAL, and the world classifier
+    // must have found a news/recency frame. Anything religious went to DEEN long ago; anything
+    // naming a scholar was forced there too. Every other request falls straight through to the
+    // ledger exactly as if this block were not here.
+    //
+    // THE RELIGIOUS PERIMETER IS UNCHANGED, AND THAT IS CHECKABLE RATHER THAN PROMISED:
+    //   1. it runs ONLY on the GEN route, so no religious turn can reach it;
+    //   2. classifyWorldIntent() refuses on its own account anything isReligiousText() names;
+    //   3. retrieveWorld() searches lib/retrieve.js's SITES_GENERAL and nothing else — it takes
+    //      no band, no purpose and no onlySites, and it refuses outright if that list ever
+    //      overlaps a religious one;
+    //   4. every world domain carries `scopes: []` in the registry, so it is refused for
+    //      fatwa, tafsir, hadith and general alike;
+    //   5. the drafting note forbids deriving any ruling from what comes back.
+    //
+    // FAILURE IS A FALL-THROUGH, NEVER A REFUSAL. No key, no results, a blocked host, a throw —
+    // any of them leaves worldPass null and the request takes the ordinary GEN branch below,
+    // byte-for-byte as it does today. Live retrieval can only ever ADD to this route.
+    const worldIntent = effectiveRoute === 'GEN'
+      ? classifyWorldIntent(questionText)
+      : { world: false, reason: 'NOT_GEN', matched: '' };
+    let worldPass = null;
+    if (worldIntent.world) {
+      try {
+        const { retrieveWorld } = await import('../lib/retrieve.js');
+        // No band, no depth, no purpose: none of them means anything on this list, and passing
+        // one would suggest it did.
+        const w = await retrieveWorld(questionText);
+        if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+      } catch (e) {
+        console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
+      }
+    }
+    console.log('[world-search]', {
+      route: effectiveRoute, intent: worldIntent.world, reason: worldIntent.reason,
+      matched: worldIntent.matched, sources: worldPass ? worldPass.sources.length : 0,
+      hosts: worldPass ? worldPass.sources.map((s) => { try { return new URL(s.url).hostname; } catch { return '?'; } }) : [],
+    });
+
+    if (worldPass) {
+      // BUFFERED, not streamed — the same trade the attributed and claim routes make. The cards
+      // are appended by the server after the model has finished, and a card cannot be appended
+      // to bytes that already left. It costs the same ONE model call the GEN branch costs.
+      const worldCards = pickVerifiedSources(worldPass.sources);
+      if (!worldCards.length) {
+        // Every retrieved page failed buildSourceTag (non-https, unencodable). Rather than
+        // present live material with nothing to check it against, drop back to the plain route.
+        console.warn('[world-search] no encodable card — falling through');
+      } else {
+        const wr = await fetch(ANTHROPIC_URL, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model,
+            max_tokens: maxTokens,
+            system,
+            messages: [
+              ...body.messages,
+              { role: 'user', content: buildWorldSearchInstruction(worldPass.text, band) },
+            ],
+            stream: false,
+          }),
+        });
+        if (!wr.ok) {
+          const errText = await wr.text().catch(() => '');
+          console.error('[world-search] upstream', wr.status, errText.slice(0, 200));
+          clearKeepAlive();
+          res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${wr.status}` } })}\n\n`);
+          return res.end();
+        }
+        const wPayload = await wr.json();
+        // The model contributes no card here either, on any route.
+        const wDraft = (wPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
+          .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+          .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+          .trim();
+        if (wDraft) {
+          console.log('[world-search] answered', { cards: worldCards.length, hosts: worldCards.map((c) => c.host) });
+          return emitOnce(wDraft + '\n' + worldCards.map((c) => c.tag).join('\n'));
+        }
+        console.warn('[world-search] empty draft — falling through');
+      }
+    }
+
+    // ── LEDGER RAG — NOW THE PATH EVERY READER TAKES ───────────────────────
+    //
+    // PUBLIC AS OF 2026-08-05 (owner decision, lib/ledger/flag.js PUBLIC_GO_LIVE). It was a
+    // parallel path behind three independent conditions — an env floor, a server-verified
+    // internal credential, and a runtime value in Upstash. The credential requirement is gone
+    // and the defaults are open, so this is the ordinary path, not the exception.
+    //
+    // WHAT SURVIVED THE GO-LIVE, because a go-live that removed the brakes would be a one-way
+    // door: `LEDGER_RAG=off` still closes the floor for everybody, `RFC_V05_MODE=off|internal`
+    // still stops or narrows it, the Upstash kill switch still stops it in seconds without a
+    // build, and the day's search ceiling is still a precondition of ever reaching here.
+    //
+    // The engine still never falls back INTO the legacy path mid-request: a ledger request that
+    // cannot verify a source answers with its own refusal rather than quietly re-asking an
+    // unguarded route, because a fallback that answers is a fallback that defeats the gate it
+    // fell back from.
     //
     // The path and the clock were decided at the top of this handler, so the policy router above
     // could see which one this request is taking. The condition is spelled out rather than using

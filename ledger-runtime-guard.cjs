@@ -60,6 +60,7 @@ function fakeRedis() {
   const CH = await esm('lib/ledger/cache.js');
   const TL = await esm('lib/ledger/telemetry.js');
   const DC = await esm('lib/daycap.js');
+  const DB = await esm('lib/ledger/daily-budget.js');
 
   const ORIGINAL_ENV = {
     LEDGER_RAG: process.env.LEDGER_RAG,
@@ -80,8 +81,12 @@ function fakeRedis() {
   };
 
   // =========================================================================
-  console.log('\n=== A. THE DEFAULT IS OFF, AND IT IS A VALUE ===');
-  eq('DEFAULT_ENABLED is false', FL.DEFAULT_ENABLED, false);
+  // THE DEFAULT WAS OFF UNTIL THE PUBLIC GO-LIVE (owner decision, 2026-08-05). It is now ON, and
+  // this section asserts the new default AND — the half that matters — that every brake the old
+  // default made unnecessary still works: the env floor, the mode, and the Upstash kill switch.
+  console.log('\n=== A. THE DEFAULT IS PUBLIC, AND IT IS A VALUE ===');
+  eq('PUBLIC_GO_LIVE is the single constant that decides it', FL.PUBLIC_GO_LIVE, true);
+  eq('DEFAULT_ENABLED follows it', FL.DEFAULT_ENABLED, FL.PUBLIC_GO_LIVE);
   ok('the flag key is namespaced away from every existing prefix',
     FL.RUNTIME_KEY.startsWith('lg:'), FL.RUNTIME_KEY);
   for (const collide of ['ask:', 'chat:', 'aud:', 'report:']) {
@@ -92,37 +97,63 @@ function fakeRedis() {
       ? true : STORE.key('x', 'y').startsWith('lg:'));
   {
     delete process.env.LEDGER_RAG;
-    eq('an unset LEDGER_RAG closes the env floor', FL.envAllows(), false);
-    for (const v of ['off', 'false', '0', '', 'yes', 'ON ', 'enabled']) {
+    eq('an unset LEDGER_RAG now opens the floor (the go-live default)', FL.envAllows(), true);
+    // AN EXPLICIT VALUE STILL BEATS THE DEFAULT, IN BOTH DIRECTIONS. This is the brake, and it is
+    // the whole reason the go-live is a constant rather than a deletion.
+    for (const v of ['off', 'false', '0', 'yes', 'enabled']) {
       process.env.LEDGER_RAG = v;
-      eq('LEDGER_RAG=«' + v + '» keeps the floor closed', FL.envAllows(), v.trim().toLowerCase() === 'on');
+      eq('LEDGER_RAG=«' + v + '» still closes the floor', FL.envAllows(), false);
     }
+    for (const v of ['on', 'true', '1', 'ON ']) {
+      process.env.LEDGER_RAG = v;
+      eq('LEDGER_RAG=«' + v + '» opens it explicitly', FL.envAllows(), true);
+    }
+    // An EMPTY string is "nothing was written", not "somebody wrote off", so it takes the default.
+    process.env.LEDGER_RAG = '';
+    eq('LEDGER_RAG=«» is unset, so it follows the default', FL.envAllows(), FL.PUBLIC_GO_LIVE);
     process.env.LEDGER_RAG = 'on';
-    eq('only «on» opens it', FL.envAllows(), true);
+    eq('«on» opens it', FL.envAllows(), true);
   }
 
   // ── THE FOURTH PRECONDITION: A DAILY CEILING MUST EXIST ────────────────────
   // RFC v0.5-R2 §9 says the ledger is not activatable without a configured daily search budget.
-  // That was stated and not enforced — the engine took the ceiling as an optional argument, so a
-  // caller could simply omit it. It is now a precondition of the PATH, which is the only place
-  // the promise can be kept: after decidePath returns 'ledger', a ceiling exists by construction.
+  // That promise is UNCHANGED by the go-live and is still enforced at the PATH, which is the only
+  // place it can be kept: after decidePath returns 'ledger', a ceiling exists by construction.
+  //
+  // WHAT THE GO-LIVE CHANGED is where the ceiling comes from when nobody set one. It used to be
+  // "nowhere, so the path does not run" — correct for an internal rollout, and silently wrong for
+  // a public one, because it would have turned the go-live into a deploy that changed nothing.
+  // There is now a code default (lib/ledger/daily-budget.js DEFAULT_DAILY_SEARCH_BUDGET), so the
+  // ceiling always exists; what this section proves is that it is a REAL number, that the env var
+  // still overrides it, and that a garbled value never becomes "no cap".
   {
-    // The credential is checked BEFORE the ceiling in decidePath, so the request has to be a
-    // genuine internal one or the reason would read `not_internal` and prove nothing about budgets.
     process.env.FOUNDER_SECRET = 'test-secret-for-the-gate';
     const dev = 'abcdefgh12345678';
     const req = { headers: { 'x-murabbi-device': dev, 'x-murabbi-founder': DC.founderTokenFor(dev) } };
     const saved = process.env.DAILY_SEARCH_BUDGET;
+
     delete process.env.DAILY_SEARCH_BUDGET;
     FL.__resetFlagCacheForTest();
-    const off = await FL.decidePath(req);
-    eq('no configured ceiling => legacy, whatever the flag says', off.path, 'legacy');
-    eq('...and the reason names the budget', off.reason, 'daily_budget_unconfigured');
-    for (const bad of ['', 'lots', '-1', '2.5']) {
+    ok('an unset ceiling is a real finite number, never null and never Infinity',
+      Number.isInteger(DB.configuredLimit()) && DB.configuredLimit() > 0
+        && Number.isFinite(DB.configuredLimit()), String(DB.configuredLimit()));
+    eq('...so the path is configured by construction', DB.isConfigured(), true);
+    const on = await FL.decidePath(req);
+    eq('an unset ceiling no longer blocks the public path', on.path, 'ledger');
+
+    // A GARBLED VALUE IS THE DEFAULT, NEVER A COERCION AND NEVER "UNLIMITED". A typo must not be
+    // able to raise, remove, or zero a spend cap.
+    for (const bad of ['', 'lots', '-1', '2.5', 'Infinity', 'NaN']) {
       process.env.DAILY_SEARCH_BUDGET = bad;
-      FL.__resetFlagCacheForTest();
-      eq('a garbled ceiling «' + bad + '» is not a ceiling', (await FL.decidePath(req)).path, 'legacy');
+      eq('a garbled ceiling «' + bad + '» falls back to the default',
+        DB.configuredLimit(), DB.DEFAULT_DAILY_SEARCH_BUDGET);
     }
+    // ...and a written value still governs, including a deliberate zero.
+    process.env.DAILY_SEARCH_BUDGET = '7';
+    eq('an explicit ceiling is read exactly', DB.configuredLimit(), 7);
+    process.env.DAILY_SEARCH_BUDGET = '0';
+    eq('an explicit zero is honoured (a hard stop, not the default)', DB.configuredLimit(), 0);
+
     process.env.DAILY_SEARCH_BUDGET = saved === undefined ? '500' : saved;
     FL.__resetFlagCacheForTest();
   }
@@ -144,17 +175,38 @@ function fakeRedis() {
     const redis = fakeRedis();
     STORE.__setRedisForTest(redis);
 
-    const cases = [
-      ['env off + internal + flag on', 'off', internalReq, true, 'legacy'],
-      ['env on + anonymous + flag on', 'on', anonReq, true, 'legacy'],
-      ['env on + forged token + flag on', 'on', forgedReq, true, 'legacy'],
-      ['env on + internal + flag ABSENT', 'on', internalReq, null, 'legacy'],
-      ['env on + internal + flag off', 'on', internalReq, false, 'legacy'],
-      ['env on + internal + flag on', 'on', internalReq, true, 'ledger'],
-    ];
+    // THE MATRIX AFTER THE PUBLIC GO-LIVE.
+    //
+    // Two rows changed on purpose and they ARE the go-live: an anonymous reader and a forged
+    // token now reach the ledger, because there is no longer a credential to forge — the path is
+    // public. Everything else in this table is a brake, and every brake still works.
+    //
+    // `mode` is written explicitly in each row rather than left unset. With PUBLIC_GO_LIVE true
+    // an unset mode reads as 'public', so a row that said nothing would silently be testing the
+    // public arm while claiming to test another.
     let clock = 0;
-    for (const [label, env, req, flagValue, want] of cases) {
+    const cases = [
+      // label                                    LEDGER_RAG  RFC_V05_MODE  request      store      want
+      ['floor off beats everything',              'off',      'public',     internalReq, true,      'legacy'],
+      ['floor off beats a public anonymous read',  'off',      'public',     anonReq,     true,      'legacy'],
+      ['mode off beats an open floor',            'on',       'off',        internalReq, true,      'legacy'],
+      ['mode internal still refuses a stranger',  'on',       'internal',   anonReq,     true,      'legacy'],
+      ['mode internal still refuses a forgery',   'on',       'internal',   forgedReq,   true,      'legacy'],
+      ['mode internal admits a real tester',      'on',       'internal',   internalReq, true,      'ledger'],
+      // ── the go-live rows ──
+      ['PUBLIC admits an anonymous reader',       'on',       'public',     anonReq,     true,      'ledger'],
+      ['PUBLIC admits a forged token too',        'on',       'public',     forgedReq,   true,      'ledger'],
+      ['PUBLIC admits an internal tester',        'on',       'public',     internalReq, true,      'ledger'],
+      // ── the kill switch, which the go-live deliberately kept ──
+      ['a stored «off» stops the public path',    'on',       'public',     anonReq,     false,     'legacy'],
+      // A store that is ABSENT or UNREACHABLE does NOT stop it, and that asymmetry is the
+      // documented design of killSwitchEngaged(): a brake that fails to engage must never be the
+      // thing that also grants permission, so an unreadable store leaves the environment in charge.
+      ['an ABSENT stored value leaves it running', 'on',      'public',     anonReq,     null,      'ledger'],
+    ];
+    for (const [label, env, mode, req, flagValue, want] of cases) {
       process.env.LEDGER_RAG = env;
+      process.env.RFC_V05_MODE = mode;
       redis._map.clear();
       if (flagValue !== null) redis._map.set(FL.RUNTIME_KEY, flagValue);
       FL.__resetFlagCacheForTest();
@@ -162,6 +214,16 @@ function fakeRedis() {
       const d = await FL.decidePath(req, clock);
       eq(label + ' => ' + want, d.path, want);
     }
+    // AND THE DEFAULTS, WITH NOTHING WRITTEN AT ALL — the state a fresh deployment is in.
+    delete process.env.LEDGER_RAG;
+    delete process.env.RFC_V05_MODE;
+    redis._map.clear();
+    FL.__resetFlagCacheForTest();
+    clock += 100000;
+    eq('nothing configured at all => the public ledger', (await FL.decidePath(anonReq, clock)).path, 'ledger');
+    eq('...and the reason names the mode', (await FL.decidePath(anonReq, clock)).reason, 'mode_public');
+    process.env.RFC_V05_MODE = 'public';
+    process.env.LEDGER_RAG = 'on';
 
     // A MALFORMED value is not truthy. This is the case a "if (v)" implementation gets wrong.
     process.env.LEDGER_RAG = 'on';
@@ -183,19 +245,30 @@ function fakeRedis() {
         (await FL.decidePath(internalReq, clock)).path, 'ledger');
     }
 
-    // THE STORE BEING DOWN IS THE CASE THAT MATTERS MOST.
+    // THE STORE BEING DOWN IS THE CASE THAT MATTERS MOST — and the go-live INVERTED its answer,
+    // deliberately. It used to read as legacy because the store had to affirm the flag. It is now
+    // the environment that affirms, and the store only ever brakes, so a store nobody can read
+    // brakes nothing: the reader is served instead of being cut off by an outage in a component
+    // that exists only to stop things. `LEDGER_RAG=off` remains the brake that needs no store.
     redis._map.set(FL.RUNTIME_KEY, true);
     redis.down = true;
     FL.__resetFlagCacheForTest();
     clock += 100000;
-    eq('an UNREACHABLE store reads as legacy', (await FL.decidePath(internalReq, clock)).path, 'legacy');
+    eq('an UNREACHABLE store no longer takes the path down', (await FL.decidePath(internalReq, clock)).path, 'ledger');
+    ok('...and the env floor still stops it with no store at all', await (async () => {
+      process.env.LEDGER_RAG = 'off';
+      FL.__resetFlagCacheForTest();
+      const d = await FL.decidePath(internalReq, clock + 1);
+      process.env.LEDGER_RAG = 'on';
+      return d.path === 'legacy' && d.reason === 'env_floor_off';
+    })());
     redis.down = false;
 
-    // No store at all.
+    // No store at all — same reading, for the same reason.
     STORE.__setRedisForTest(null);
     FL.__resetFlagCacheForTest();
     clock += 100000;
-    eq('NO store at all reads as legacy', (await FL.decidePath(internalReq, clock)).path, 'legacy');
+    eq('NO store at all leaves the environment in charge', (await FL.decidePath(internalReq, clock)).path, 'ledger');
     STORE.__setRedisForTest(redis);
 
     // The short TTL: a flipped switch takes effect within seconds, and a warm instance does
@@ -208,11 +281,23 @@ function fakeRedis() {
     eq('...while one past the TTL re-reads', (await FL.readRuntimeFlag(t + FL.FLAG_TTL_MS + 1)).source, 'store');
     ok('the TTL is a few seconds, not minutes', FL.FLAG_TTL_MS <= 15000, String(FL.FLAG_TTL_MS));
 
-    // The reason code never says whether the flag is on, to a caller who is not internal.
+    // The reason code is still a telemetry code and still never carries a secret. It no longer
+    // needs to hide WHETHER the path is on — the path is public, so there is nothing to conceal
+    // and nothing to forge — but it must still never carry a credential, a device id or a question.
     process.env.LEDGER_RAG = 'on';
+    process.env.RFC_V05_MODE = 'public';
     FL.__resetFlagCacheForTest();
     const anon = await FL.decidePath(anonReq, t + 10 ** 6);
-    eq('an unauthenticated caller learns nothing about the flag', anon.reason, 'not_internal');
+    eq('an anonymous caller now takes the public path', anon.path, 'ledger');
+    eq('...with the mode as the reason', anon.reason, 'mode_public');
+    ok('...and the reason carries no credential, device or question',
+      /^[a-z_]+$/.test(anon.reason) && !/founder|token|device|secret/i.test(anon.reason), anon.reason);
+    // ...while an internal-only rollout still hides exactly what it always hid.
+    process.env.RFC_V05_MODE = 'internal';
+    FL.__resetFlagCacheForTest();
+    eq('under mode=internal an unauthenticated caller still learns nothing',
+      (await FL.decidePath(anonReq, t + 2 * 10 ** 6)).reason, 'not_internal');
+    process.env.RFC_V05_MODE = 'public';
   }
   // ORDERING, NOT PROXIMITY. This used to require the branch within 200 characters of the
   // decidePath call. The policy router now sits between them — the safety triage and the age
