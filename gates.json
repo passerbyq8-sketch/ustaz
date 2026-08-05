@@ -198,5 +198,10 @@
   "name": "rfcconsistency",
   "script": "guards/rfc-v05r2-consistency-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "rfcworld",
+  "script": "guards/rfc-v05r2-entity-world-guard.cjs",
+  "args": ""
  }
 ]

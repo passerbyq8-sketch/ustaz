@@ -40,6 +40,10 @@ import { violatesTemplate } from '../lib/policy/attribution-grades.js';
 // The registry's Arabic publisher name, so the transmission can be checked for naming the source
 // it transmits from rather than gesturing at "some websites".
 import { findSource } from '../lib/source-registry.js';
+import {
+  nameNeedingWorldCheck, worldCheckPrompt, parseWorldVerdict, isActionableNonScholar,
+  stripEntityFromQuery, nonScholarDraftingNote,
+} from '../lib/policy/entity-knowledge.js';
 import { lastUserText } from '../lib/attribution.js';
 // THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
 // it reads nothing from the store for a reader who is not an internal tester.
@@ -800,6 +804,48 @@ export default async function handler(req, res) {
       return res.end();
     }
 
+    // ── WHO IS THIS, IN THE WORLD? ─────────────────────────────────────────
+    //
+    // Reached only when the deterministic side has already run and run out: a name was captured,
+    // and NO registry knows it — not the contemporary corpus registry, not the entity roster. So
+    // «ابن باز» and «ابن تيمية» never get here, pay nothing, and risk nothing.
+    //
+    // WHY A MODEL AT ALL. «ما رأي خالد عبدالرحمن في قصر الصلاة؟» is the shape of a fatwa request
+    // and the name of a singer. A registry answers "is this one of ours"; it cannot answer "is this
+    // a scholar at all", because the people who are not scholars are everybody else. This is the
+    // one question in the pipeline where open world knowledge is the right instrument.
+    //
+    // AND IT RUNS AFTER THE PLAN, NEVER BEFORE. The question is classified deterministically first
+    // and the model is asked only about the IDENTITY OF A NAME — never the ruling, never the route,
+    // never the sources. Any failure reads as `unknown`, which leaves the shipped behaviour intact.
+    let nonScholar = null;
+    if (nameNeedingWorldCheck(plan)) {
+      const who = nameNeedingWorldCheck(plan);
+      try {
+        const wr = await fetch(ANTHROPIC_URL, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model,
+            max_tokens: 200,
+            system: 'أجب بكائن JSON واحد فقط.',
+            messages: [{ role: 'user', content: worldCheckPrompt(who) }],
+            stream: false,
+          }),
+        });
+        if (wr.ok) {
+          const wp = await wr.json();
+          const verdict = parseWorldVerdict(
+            (wp.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(''),
+          );
+          console.log('[world]', { type: verdict.type, confidence: verdict.confidence });
+          if (isActionableNonScholar(verdict)) nonScholar = { name: who, identity: verdict.identityAr };
+        }
+      } catch (e) {
+        console.warn('[world] check failed, leaving the shipped path:', e.message);
+      }
+    }
+
     // ── A NAME THAT DOES NOT IDENTIFY ANYBODY ──────────────────────────────
     // «ما رأي الشيخ عبدالله في هذه المسألة؟» — a name was given and it fits a dozen scholars.
     // «ما رأي الشيخ فلان الفلاني؟» — nobody registered answers to it. In neither case has any
@@ -807,7 +853,12 @@ export default async function handler(req, res) {
     //   * saying «لم أقف على نصٍّ له» would be a false claim about work never done, and
     //   * running the general search anyway would quietly imply we had settled who he is.
     // Ask instead. Nothing is searched, nothing is implied, and no scholar is chosen.
+    // Once world knowledge says he is no shaykh at all, asking WHICH shaykh is meant is the sterile
+    // answer this change exists to remove — so the block below is nested inside the shipped
+    // condition rather than folded into it. smart-retrieval-guard pins that condition AND its
+    // distance to the return, and the pin is worth more to us than the flatter shape.
     if (plan.needsScholarIdentity) {
+      if (!nonScholar) {
       console.warn('[attribution]', plan.scholarStatus === 'ambiguous'
         ? REASON.SCHOLAR_IDENTITY_AMBIGUOUS : REASON.SCHOLAR_IDENTITY_UNRESOLVED,
       { entity: plan.namedEntity, candidates: plan.scholarCandidates });
@@ -817,6 +868,7 @@ export default async function handler(req, res) {
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
+      }
     }
 
     // ── ASKED FOR A NAMED SCHOLAR'S OWN POSITION ───────────────────────────
@@ -852,7 +904,11 @@ export default async function handler(req, res) {
     // `if (!attributedSources.length) {` and what follows it, and the pin is worth the terseness.
     let attributionSearched = false;
     let attributionUnverified = false;
-    if (plan.attributionMode === 'namedScholarOpinion') {
+    // A SINGER HAS NO CORPUS TO SEARCH AND NO FATWA TO WITHHOLD. Hunting for one, then reporting
+    // that none was found, is the "artificial stupidity" this removes: the whole attributed block
+    // is skipped, and the reader gets his actual question answered instead.
+    const attributionActive = (plan.attributionMode === 'namedScholarOpinion') && !nonScholar;
+    if (attributionActive) {
       let attributedSources = [];
       if (plan.hasDirectAdapter) {
         attributionSearched = true;
@@ -1255,7 +1311,14 @@ export default async function handler(req, res) {
     const retrievedSources = [];
     const toolResults = await Promise.all(
       toolUses.map(async (block, angle) => {
-        const q = (block.input && block.input.query) || '';
+        const rawQ = (block.input && block.input.query) || '';
+        // A NON-SCHOLAR'S NAME IS REMOVED FROM THE QUERY, DETERMINISTICALLY. The drafting note
+        // tells the model who the man is; it does not stop the model putting his name in a search
+        // for a fatwa nobody published. «ما رأي خالد عبدالرحمن في قصر الصلاة» has to reach the
+        // provider as «قصر الصلاة», or the search cannot match and the empty result gets read as
+        // an absence of evidence about the ruling itself.
+        const q = nonScholar ? stripEntityFromQuery(rawQ, nonScholar.name) : rawQ;
+        if (nonScholar && q !== rawQ) console.log('[world] query stripped of the entity name');
         let webText;
         try {
           // `depth` is passed for RETRIEVAL TARGETING only (lib/source-intent.js reads it).
@@ -1316,6 +1379,15 @@ export default async function handler(req, res) {
     // step 1 or step 2 above came up empty. The answer that follows is the ordinary sourced
     // answer to the same question — and this instruction is what keeps it from quietly
     // becoming his. The note itself is appended after the answer, not instead of it.
+    // ── TELL HIM WHO THE MAN IS, THEN ANSWER HIS QUESTION ──────────────────
+    // Both halves matter. Answering the fiqh silently leaves the reader thinking a singer has a
+    // fatwa; saying only "he is not a scholar" answers nothing. One kind sentence, then the ruling
+    // from the sources — and no verdict on the man himself, in either direction.
+    if (nonScholar) {
+      console.log('[world] non-scholar entity, answering the underlying question', { entity: nonScholar.name });
+      toolResults.push({ type: 'text', text: nonScholarDraftingNote(nonScholar.name, nonScholar.identity) });
+    }
+
     if (attributionUnverified) {
       console.warn('[attribution]', REASON.GENERAL_RULING_SUBSTITUTED, plan.namedEntity);
       toolResults.push({
