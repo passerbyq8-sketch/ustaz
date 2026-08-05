@@ -638,7 +638,53 @@ export default async function handler(req, res) {
     // which is what lets «ما حكم قتل النمل؟» be classified as a ruling a child may have rather
     // than blocked on a word. It used to sit AFTER the ledger branch, so the engine swallowed a
     // child's benign or health question before any age policy saw it.
-    const topicClass = classifyTopic(questionText, plan);
+    // ── WHO IS THIS, IN THE WORLD? ─────────────────────────────────────────
+    //
+    // Reached only when the deterministic side has already run and run out: a name was captured,
+    // and NO registry knows it — not the contemporary corpus registry, not the entity roster. So
+    // «ابن باز» and «ابن تيمية» never get here, pay nothing, and risk nothing.
+    //
+    // WHY A MODEL AT ALL. «ما رأي خالد عبدالرحمن في قصر الصلاة؟» is the shape of a fatwa request
+    // and the name of a singer. A registry answers "is this one of ours"; it cannot answer "is this
+    // a scholar at all", because the people who are not scholars are everybody else. This is the
+    // one question in the pipeline where open world knowledge is the right instrument.
+    //
+    // AND IT RUNS AFTER THE PLAN, NEVER BEFORE. The question is classified deterministically first
+    // and the model is asked only about the IDENTITY OF A NAME — never the ruling, never the route,
+    // never the sources. Any failure reads as `unknown`, which leaves the shipped behaviour intact.
+    let nonScholar = null;
+    const worldSubject = nameNeedingWorldCheck(plan, questionText);
+    if (worldSubject) {
+      const who = worldSubject;
+      try {
+        const wr = await fetch(ANTHROPIC_URL, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model,
+            max_tokens: 200,
+            system: 'أجب بكائن JSON واحد فقط.',
+            messages: [{ role: 'user', content: worldCheckPrompt(who) }],
+            stream: false,
+          }),
+        });
+        if (wr.ok) {
+          const wp = await wr.json();
+          const verdict = parseWorldVerdict(
+            (wp.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(''),
+          );
+          console.log('[world]', { type: verdict.type, confidence: verdict.confidence });
+          if (isActionableNonScholar(verdict)) nonScholar = { name: who, identity: verdict.identityAr };
+        }
+      } catch (e) {
+        console.warn('[world] check failed, leaving the shipped path:', e.message);
+      }
+    }
+
+    // The verdict feeds the classifier: a worldly figure's biography is not a religious question.
+    const topicClass = classifyTopic(questionText, plan, {
+      entityWorldType: nonScholar ? 'non_scholar' : 'unknown',
+    });
     const ageAccess = access({ topicClass, audienceBand });
     console.log('[policy]', {
       topicClass, audienceBand, audienceSource, outcome: ageAccess.outcome,
@@ -802,48 +848,6 @@ export default async function handler(req, res) {
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
-    }
-
-    // ── WHO IS THIS, IN THE WORLD? ─────────────────────────────────────────
-    //
-    // Reached only when the deterministic side has already run and run out: a name was captured,
-    // and NO registry knows it — not the contemporary corpus registry, not the entity roster. So
-    // «ابن باز» and «ابن تيمية» never get here, pay nothing, and risk nothing.
-    //
-    // WHY A MODEL AT ALL. «ما رأي خالد عبدالرحمن في قصر الصلاة؟» is the shape of a fatwa request
-    // and the name of a singer. A registry answers "is this one of ours"; it cannot answer "is this
-    // a scholar at all", because the people who are not scholars are everybody else. This is the
-    // one question in the pipeline where open world knowledge is the right instrument.
-    //
-    // AND IT RUNS AFTER THE PLAN, NEVER BEFORE. The question is classified deterministically first
-    // and the model is asked only about the IDENTITY OF A NAME — never the ruling, never the route,
-    // never the sources. Any failure reads as `unknown`, which leaves the shipped behaviour intact.
-    let nonScholar = null;
-    if (nameNeedingWorldCheck(plan)) {
-      const who = nameNeedingWorldCheck(plan);
-      try {
-        const wr = await fetch(ANTHROPIC_URL, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            model,
-            max_tokens: 200,
-            system: 'أجب بكائن JSON واحد فقط.',
-            messages: [{ role: 'user', content: worldCheckPrompt(who) }],
-            stream: false,
-          }),
-        });
-        if (wr.ok) {
-          const wp = await wr.json();
-          const verdict = parseWorldVerdict(
-            (wp.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(''),
-          );
-          console.log('[world]', { type: verdict.type, confidence: verdict.confidence });
-          if (isActionableNonScholar(verdict)) nonScholar = { name: who, identity: verdict.identityAr };
-        }
-      } catch (e) {
-        console.warn('[world] check failed, leaving the shipped path:', e.message);
-      }
     }
 
     // ── A NAME THAT DOES NOT IDENTIFY ANYBODY ──────────────────────────────

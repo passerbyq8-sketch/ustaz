@@ -75,6 +75,70 @@ const GOOD_DRAFT = 'خالد عبدالرحمن فنّانٌ معروف وليس
   }
 
   // =========================================================================
+  console.log('\n=== A2. «من هو …؟» IS NOT A RELIGIOUS QUESTION BY ITSELF ===');
+  {
+    const CORE = await esm('lib/policy/core.js');
+    const AGE = await esm('lib/policy/age.js');
+    // THE ARCHITECTURAL DEFECT. `biography` is a RELIGIOUS row in the access matrix, and it was
+    // reached by the PHRASE «من هو» alone — so asking who a footballer is put the reader on the
+    // closed sharia source policy, decided by two words before anyone asked who the man was.
+    const q = 'من هو ' + 'لاعب كرة مشهور' + '؟';
+    eq('the shipped classifier still types a bare identity question as biography',
+      CORE.classifyTopic(q), 'biography');
+    eq('...which is a RELIGIOUS source policy',
+      AGE.access({ topicClass: 'biography', audienceBand: 'young' }).sourcePolicy, 'SHARIA_CLOSED_RAG');
+    eq('a confident non_scholar verdict re-types it as general knowledge',
+      CORE.classifyTopic(q, null, { entityWorldType: 'non_scholar' }), 'general_knowledge');
+    eq('...and that carries the benign policy, not the sharia one',
+      AGE.access({ topicClass: 'general_knowledge', audienceBand: 'young' }).sourcePolicy,
+      'GENERAL_CHILD_BENIGN');
+
+    // IT MAY NEVER DOWNGRADE A GENUINELY RELIGIOUS QUESTION. Every religious vocabulary test still
+    // runs, so a verdict cannot launder a ruling into general knowledge.
+    for (const [label, rq, want] of [
+      ['a ruling', 'ما حكم زكاة الفطر؟', 'sharia_ruling'],
+      ['a ruling that also names him', 'ما حكم من ترك زكاة الفطر؟', 'sharia_ruling'],
+      ['a polemic', 'من هو المبتدع في هذه المسألة؟', 'polemic'],
+      ['tafsir', 'ما معنى قوله تعالى في هذه الآية؟', 'tafsir'],
+      ['hadith', 'ما صحة هذا الحديث؟', 'hadith'],
+    ]) {
+      eq(label + ' is NOT downgraded by any verdict',
+        CORE.classifyTopic(rq, null, { entityWorldType: 'non_scholar' }), want);
+    }
+    eq('an unknown verdict changes nothing', CORE.classifyTopic(q, null, { entityWorldType: 'unknown' }), 'biography');
+    eq('...and neither does a scholar verdict',
+      CORE.classifyTopic(q, null, { entityWorldType: 'scholar' }), 'biography');
+
+    // The identity subject is read from the SHAPE of the sentence, with no names anywhere.
+    eq('the subject of «من هو X؟» is extracted structurally',
+      EK.identityQuestionSubject('من هو فلان الفلاني؟'), 'فلان الفلاني');
+    eq('...and an honorific is not part of the name', EK.identityQuestionSubject('من هو الشيخ فلان؟'), 'فلان');
+    eq('a question that is not an identity question yields nothing',
+      EK.identityQuestionSubject('ما حكم زكاة الفطر؟'), '');
+    // Checked against CODE with comments removed: the comments quote the measured questions on
+    // purpose — that is the evidence for why this exists — while the LOGIC must know no names.
+    const code = (rel) => read(rel)
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .split('\n').map((l) => l.replace(/(^|[^:])\/\/[^\r\n]*/, '$1')).join('\n');
+    ok('no personal name is hard-coded in the LOGIC of the policy modules',
+      !/طارق|خالد عبدالرحمن|محمد صلاح|عمرو دياب|ابن تيمية|ابن باز/.test(
+        code('lib/policy/entity-knowledge.js') + code('lib/policy/core.js')),
+      'the logic must rest on world knowledge and the registries, never on a list of people');
+
+    // A registered scholar is settled without spending a model call on him.
+    eq('«من هو [a registered scholar]؟» needs no world check',
+      EK.nameNeedingWorldCheck(plan('من هو ابن باز؟', true), 'من هو ابن باز؟'), '');
+    eq('...and neither does a registered historical figure',
+      EK.nameNeedingWorldCheck(plan('من هو ابن تيمية؟', true), 'من هو ابن تيمية؟'), '');
+    ok('...while an unregistered name does need one',
+      EK.nameNeedingWorldCheck(plan('من هو فلان الفلاني؟', true), 'من هو فلان الفلاني؟') !== '');
+    // The prompt must forbid calling a figure of the religion a worldly public figure.
+    ok('the prompt protects prophets, companions and the divine name from `non_scholar`',
+      /الأنبياءُ والرسلُ والصحابةُ/.test(EK.worldCheckPrompt('س'))
+      && /فجوابُه "scholar"/.test(EK.worldCheckPrompt('س')));
+  }
+
+  // =========================================================================
   console.log('\n=== B. THE VERDICT IS FAIL-SAFE — doubt is «unknown» ===');
   {
     const act = (raw) => EK.isActionableNonScholar(EK.parseWorldVerdict(raw));
@@ -137,9 +201,14 @@ const GOOD_DRAFT = 'خالد عبدالرحمن فنّانٌ معروف وليس
     ok('the plan is still computed before the world check',
       body.indexOf('const plan = planAsk(') < body.indexOf('nameNeedingWorldCheck('),
       'the model may not be consulted before the question is classified');
-    ok('the world check reads the PLAN, never the raw question',
-      /if \(nameNeedingWorldCheck\(plan\)\)/.test(s),
+    ok('the world check reads the PLAN, never re-deriving the mode from the text',
+      /const worldSubject = nameNeedingWorldCheck\(plan, questionText\);/.test(s),
       're-deriving the mode from the text gave a different answer from the one the handler acts on');
+    ok('...and its verdict reaches the TOPIC classifier, not just the attribution branch',
+      /classifyTopic\(questionText, plan, \{[\s\S]{0,120}entityWorldType/.test(s),
+      'a worldly figure\'s biography must stop being typed as a religious question');
+    ok('the check runs BEFORE the topic is decided',
+      s.indexOf('nameNeedingWorldCheck(plan, questionText)') < s.indexOf('const topicClass = classifyTopic('));
     ok('a non-scholar suppresses the identity template',
       /if \(plan\.needsScholarIdentity\) \{[\s\S]{0,400}?if \(!nonScholar\) \{/.test(s),
       'the sterile «which shaykh do you mean» must not be reached once we know he is not one');
