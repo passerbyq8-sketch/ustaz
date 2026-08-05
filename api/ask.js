@@ -37,6 +37,9 @@ import { envMode } from '../lib/ledger/flag.js';
 import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION } from '../lib/policy/core.js';
 import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
 import { violatesTemplate } from '../lib/policy/attribution-grades.js';
+// The registry's Arabic publisher name, so the transmission can be checked for naming the source
+// it transmits from rather than gesturing at "some websites".
+import { findSource } from '../lib/source-registry.js';
 import { lastUserText } from '../lib/attribution.js';
 // THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
 // it reads nothing from the store for a reader who is not an internal tester.
@@ -971,6 +974,10 @@ export default async function handler(req, res) {
     // this state is forced onto a buffered path above.
     //
     // Returns the problems, or null when there is nothing to enforce.
+    //
+    // Declared before the encyclopedic branch below and read after it, so the publishers that
+    // branch actually fetched are in hand by the time any exit calls this.
+    let encyclopedicPublishers = [];
     const attributionProblems = (draft) => {
       if (!(legacyPolicy.enabled && attributionUnverified)) return null;
       const problems = consistencyProblems(draft, {
@@ -978,6 +985,11 @@ export default async function handler(req, res) {
         notDirectlyVerified: true,
         searchProven: attributionSearched,
         allowSourcedPosition: true,
+        // ONCE WE KNOW WHICH PUBLISHERS WE ACTUALLY FETCHED, every later exit must hold a
+        // transmission to naming one of them. Without this the encyclopedic branch refused
+        // «ذكرت بعض المواقع أنّ ابن تيمية يرى…» and the fall-through then served it, which made the
+        // stricter check decorative.
+        transmissionPublishers: encyclopedicPublishers,
       });
       if (!problems.length) return null;
       console.warn('[consistency] draft dropped', {
@@ -985,6 +997,102 @@ export default async function handler(req, res) {
       });
       return problems;
     };
+
+    // ── ENCYCLOPEDIC TRANSMISSION: SEARCH BEFORE APOLOGISING ───────────────
+    //
+    // THE COMPLAINT THIS ANSWERS. «ما رأي ابن تيمية فيمن ترك الصلاة تكاسلًا؟» was met with an
+    // apology for finding no direct text of his — while the ruling is written out on الإسلام سؤال
+    // وجواب, which is on our own approved list. The apology was not caused by an absence of
+    // material; it was caused by never looking. The attributed block above only knows two ways to
+    // look for a man — a purpose-built adapter, or his own official domain — and a scholar dead
+    // seven centuries has neither, so it fell straight through to "unverified" without a search.
+    //
+    // WHAT RUNS HERE. The band's ordinary approved list, through the ordinary retrieval path, with
+    // the scholar's NAME bound into the query so the pages that come back are the ones that discuss
+    // his position rather than the topic in general. Every page gate, role rule and age rule that
+    // governs any other search governs this one; nothing new is admitted.
+    //
+    // WHAT IT MAY THEN SAY. A TRANSMISSION, not a quotation: «بحسب ما وثّقه موقع الإسلام سؤال
+    // وجواب، فإنّ رأي ابن تيمية…». The intermediate source carries the claim and is named, so the
+    // reader can check it. «قال ابن تيمية» stays forbidden — we are reading a page ABOUT his
+    // position, not a page BY him — and so does any quotation of him. That is exactly grade C.
+    if (legacyPolicy.enabled && attributionUnverified && plan.authorityEra === 'historical'
+      && plan.namedEntity) {
+      try {
+        const { retrieve } = await import('../lib/retrieve.js');
+        // The name is BOUND INTO the query, not merely hoped for: `topic` has had the name frame
+        // stripped out of it by planAsk, so searching `topic` alone would look for the ruling and
+        // not for HIS ruling.
+        // THE READER'S OWN SENTENCE IS THE QUERY, because it already carries the name the way he
+        // wrote it. `topic` has had the name frame stripped, and stripping is not always clean —
+        // «ابن تيمية» left «تيمية» behind — so prepending the FOLDED surface to it produced
+        // «ابن تيميه تيمية فيمن ترك…», a worse query than either half. The name is bound either
+        // way; this way it is also spelled the way the sources spell it.
+        const asked = lastUserText(body.messages) || attribution.question || '';
+        const encQuery = (asked.trim() || `${plan.namedEntity} ${plan.topic || ''}`).trim();
+        const enc = await retrieve(encQuery, { band, depth: effectiveDepth });
+        const encSources = (enc.sources || []).slice(0, MAX_SOURCES);
+        // WE LOOKED. Whatever happens next, the negation below is now an earned one.
+        attributionSearched = true;
+        console.log('[encyclopedic]', { entity: plan.requestedAuthorityId || '', found: encSources.length });
+        if (encSources.length) {
+          const cards = encSources.map((s) => buildSourceTag({ url: s.url, title: s.title })).filter(Boolean);
+          encyclopedicPublishers = [...new Set(cards.flatMap((c) => {
+            const reg = findSource(c.host);
+            return [c.host, reg && reg.name].filter(Boolean);
+          }))];
+          const grounding = [
+            'تنبيهٌ داخليٌّ للصياغة (لا تنقلْه حرفيًّا):',
+            'بحثنا عن رأي «' + plan.namedEntity + '» في موسوعاتِ فتاوى معتمدةٍ لدينا، وهذه هي المادّةُ التي وردت:',
+            '',
+            enc.text,
+            '',
+            'اكتبْ جوابًا يلتزم بما يلي حرفيًّا:',
+            '- صُغْه بأسلوبِ النقلِ الموثَّق: «بحسب ما نقله ووثَّقه موقعُ (اسمُ الموقع) المعتمد، فإنّ رأيَ '
+              + plan.namedEntity + ' هو…»، وسمِّ الموقعَ باسمِه صراحةً.',
+            '- ممنوعٌ «قال ' + plan.namedEntity + '» أو «صرّح» أو أيُّ صيغةٍ تجعلُ كلامَ الموقعِ كلامًا له؛ '
+              + 'نحن ننقلُ من مصدرٍ وسيطٍ لا من نصٍّ له.',
+            '- ممنوعٌ إيرادُ اقتباسٍ حرفيٍّ منسوبٍ إليه بين قوسين.',
+            '- لا تُضفْ ترجيحًا ولا تضعيفًا لقولِه ولا «الأحوط» ولا نصيحةً بالقضاء إلّا إن وردت بدليلِها في المادّةِ أعلاه.',
+            '- إن لم تُجبِ المادّةُ عن السؤال، فقلْ ذلك صراحةً ولا تنسبْ إليه شيئًا.',
+            '- لا تكتبْ وسمَ <source> ولا أيَّ رابط؛ التطبيقُ يُضيفُ بطاقةَ المصدر بنفسه.',
+          ].join('\n');
+          const re = await fetch(ANTHROPIC_URL, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              model, max_tokens: maxTokens, system,
+              messages: [...body.messages, { role: 'user', content: grounding }],
+              stream: false,
+            }),
+          });
+          if (re.ok) {
+            const ePayload = await re.json();
+            const eDraft = (ePayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
+              .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+              .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+              .trim();
+            // THE SAME GATE, WITH TRANSMISSION ALLOWED. A position credited to him passes only when
+            // the sentence transmits it AND names one of the publishers we actually fetched.
+            const eProblems = eDraft ? consistencyProblems(eDraft, {
+              entity: plan.namedEntity,
+              notDirectlyVerified: true,
+              searchProven: true,
+              allowSourcedPosition: true,
+              transmissionPublishers: encyclopedicPublishers,
+            }) : ['EMPTY_DRAFT'];
+            console.log('[encyclopedic] gate', { problems: eProblems, publishers: encyclopedicPublishers.length });
+            if (!eProblems.length) {
+              return emitOnce(eDraft + '\n' + cards.map((c) => c.tag).join('\n'));
+            }
+          } else {
+            console.error('[encyclopedic] upstream', re.status);
+          }
+        }
+      } catch (e) {
+        console.warn('[encyclopedic] fallback threw:', e.message);
+      }
+    }
 
     // ── GEN ROUTE: ONE streamed round, NO tools ────────────────────────────
     // Same model, same system prompt, same token cap, same effort the final round uses

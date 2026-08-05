@@ -167,8 +167,57 @@ const GOOD_DRAFT = [
       guardedExits === 3, 'found ' + guardedExits + ' call sites');
     ok('the disclaimer is only set when a search actually ran',
       /if \(attributionSearched\) attributionNote = unattributedNote/.test(s));
-    ok('searching his own corpus is what sets that flag',
-      (s.match(/attributionSearched = true/g) || []).length === 2);
+    // THREE PLACES SEARCH, AND ONLY THEY MAY SET THE FLAG: the purpose-built adapter, the
+    // scholar's own official domain, and the encyclopedic pass over the band's approved list that
+    // a historical scholar reaches because he has neither of the first two. A fourth assignment
+    // would mean something claimed to have searched without searching.
+    const searchSites = (s.match(/attributionSearched = true/g) || []).length;
+    ok('exactly the three searching branches set the searched flag',
+      searchSites === 3, 'found ' + searchSites + ' assignments');
+  }
+
+  // =========================================================================
+  console.log('\n=== D2. SEARCH BEFORE APOLOGISING — the encyclopedic transmission ===');
+  {
+    const s = read('api/ask.js');
+    ok('a historical scholar with no adapter and no domain still gets a real search',
+      /plan\.authorityEra === 'historical'[\s\S]{0,1400}?await retrieve\(/.test(s),
+      'the encyclopedic fallback must call retrieve, not fall straight through to a refusal');
+    ok('...over the band\'s ordinary approved list, not a new one',
+      /retrieve\(encQuery, \{ band, depth: effectiveDepth \}\)/.test(s),
+      'no onlySites: narrowing to a domain a historical scholar does not have is the original bug');
+    ok('...with the reader\'s own sentence as the query, so the NAME is bound into it',
+      /const asked = lastUserText\(body\.messages\)/.test(s));
+    ok('the draft it produces is checked by the SAME gate',
+      /transmissionPublishers: encyclopedicPublishers/.test(s));
+    ok('...and the publishers come from the pages actually fetched',
+      /encyclopedicPublishers = \[\.\.\.new Set\(cards\.flatMap/.test(s));
+    ok('the branch is behind the rollout flag like everything else',
+      /if \(legacyPolicy\.enabled && attributionUnverified && plan\.authorityEra === 'historical'/.test(s));
+    ok('the instruction forbids direct speech and demands the source be named',
+      /صُغْه بأسلوبِ النقلِ الموثَّق/.test(s) && /ممنوعٌ إيرادُ اقتباسٍ حرفيٍّ/.test(s));
+
+    // The gate's own behaviour for this state, asserted directly.
+    const pubs = ['islamqa.info', 'الإسلام سؤال وجواب'];
+    const ctx = {
+      entity: 'ابن تيميه', notDirectlyVerified: true, searchProven: true,
+      allowSourcedPosition: true, transmissionPublishers: pubs,
+    };
+    eq('GREEN: a transmission that NAMES the publisher passes',
+      CG.consistencyProblems(
+        'بحسب ما نقله ووثَّقه موقع الإسلام سؤال وجواب المعتمد، فإنّ رأي ابن تيمية هو عدم مشروعية القضاء.', ctx), []);
+    ok('RED: a transmission frame with NO publisher named is refused',
+      CG.consistencyProblems('ذكرت بعض المواقع أنّ ابن تيمية يرى عدم القضاء.', ctx)
+        .includes(CG.PROBLEM.POSITION_WITHOUT_EVIDENCE),
+      'a frame with nobody in it cites nothing the reader can check');
+    ok('RED: speech is still refused even with the publisher named',
+      CG.consistencyProblems(
+        'ذكر موقع الإسلام سؤال وجواب أنّ ابن تيمية قال بعدم القضاء.', ctx)
+        .includes(CG.PROBLEM.SPEECH_WITHOUT_EVIDENCE));
+    ok('RED: a quotation of him is still refused even with the publisher named',
+      CG.consistencyProblems(
+        'نقل موقع الإسلام سؤال وجواب عن ابن تيمية «ومن ترك الصلاة عمدًا فلا يشرع له قضاؤها».', ctx)
+        .includes(CG.PROBLEM.QUOTE_WITHOUT_EVIDENCE));
   }
 
   // =========================================================================
