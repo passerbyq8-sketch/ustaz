@@ -533,7 +533,16 @@ head('14) GATE ROSTER (single source: gates.json)');
   // S-RFC-v0.5-R2-ROUND3: 36 -> 37. 37th rfc-v05r2-round3-guard — the policy router over BOTH
   //       paths, a policy block per ISSUE rather than per question, provenance A/B/C classified
   //       from the evidence, and a Gate 3 that judges every claim a sentence rests on.
-  const GATES_EXPECTED = 39;   // 39th: rfc-v05r2-historical-guard — a historical scholar is not
+  const GATES_EXPECTED = 40;   // 40th: rfc-v05r2-consistency-guard — one answer unit may not both
+                               //       credit a man and disclaim having found him. The served
+                               //       reply stated his position, quoted مجموع الفتاوى, called his
+                               //       view weak and advised القضاء, then said «لم أقف على نصٍّ
+                               //       مباشرٍ له». The handler already INSTRUCTED the model not to
+                               //       attribute; an instruction is a request, so the check is now
+                               //       deterministic and guards every buffered exit — including
+                               //       round 1 answering with no tool_use, which is the one the
+                               //       defect escaped through.
+                               // 39th: rfc-v05r2-historical-guard — a historical scholar is not
                                //       asked for a website. «ما رأي ابن تيمية فيمن ترك الصلاة؟»
                                //       was answered with «اذكر رابط موقعه الرسمي» because the
                                //       legacy plan decided identity from the CONTEMPORARY registry

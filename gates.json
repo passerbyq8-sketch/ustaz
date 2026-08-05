@@ -193,5 +193,10 @@
   "name": "rfchistorical",
   "script": "guards/rfc-v05r2-historical-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "rfcconsistency",
+  "script": "guards/rfc-v05r2-consistency-guard.cjs",
+  "args": ""
  }
 ]

@@ -20,12 +20,16 @@ import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, NEEDS_SCHOLAR_NAME, NEEDS_SCHOLAR_IDENTITY, NEEDS_MATERIAL } from '../lib/ask-plan.js';
+import { consistencyProblems, NO_ATTRIBUTION_AVAILABLE } from '../lib/policy/consistency-gate.js';
 import { sourcesAddressingSubject, phraseVariants, buildClaimInstruction, verifyClaims, CLAIM_REFUSAL } from '../lib/claim-gate.js';
 // THE PARALLEL PATH'S SWITCH, AND ONLY THE SWITCH. lib/ledger/flag.js is a few env reads and,
 // when the env floor is open, one short-TTL Redis read; the ENGINE itself (and linkedom,
 // Readability, the planner) is imported lazily inside the branch below, so a request that takes
 // the shipped path loads none of it.
 import { decidePath } from '../lib/ledger/flag.js';
+// Deliberately a SECOND import from the same module rather than widening the line above:
+// ledger-contract-guard.cjs pins that import verbatim, and the pin is worth more than the tidiness.
+import { envMode } from '../lib/ledger/flag.js';
 // THE SHARED POLICY CORE (RFC v0.5-R2 §3). The SAME tables the ledger path reads — not a copy,
 // and not a second opinion. What lives here is data and pure evaluators: the topic x audience
 // matrix, the deterministic child floor, and the sentence shapes an attribution grade may take.
@@ -581,6 +585,25 @@ export default async function handler(req, res) {
     const ledgerPath = await decidePath(req);
     const toLedger = ledgerPath.path === 'ledger';
 
+    // ── THE PATH INDICATOR, FOR AN INTERNAL TESTER ─────────────────────────
+    //
+    // A tester could not tell which engine answered. The source card does not say — both paths
+    // emit one — so a routing failure and an identity failure looked identical, and the wrong one
+    // got debugged. This states the engine outright.
+    //
+    // It is an SSE COMMENT, which is the same channel the keepalive uses: the client parser
+    // ignores any block with no `data:` line (index.html handleEvent), so no reader ever sees it
+    // and no client behaviour changes. `curl` shows it immediately.
+    //
+    // NOTHING SECRET CROSSES IT. Two constant words — `legacy` or `ledger` — and never the
+    // question, the credential, the flag value, or the reason code, because telling an
+    // unauthenticated prober WHY a request stayed on the shipped path is telling them what to
+    // forge. It is emitted only while the rollout mode is `internal`, so the public build has no
+    // such line at all.
+    if (envMode() === 'internal') {
+      try { res.write(`: rfc-path=${toLedger ? 'ledger' : 'legacy'}\n\n`); } catch {}
+    }
+
     // ── THE POLICY ROUTER GOVERNS BOTH PATHS ───────────────────────────────
     //
     // `legacyPolicy.enabled` is a ROLLOUT decision about the shipped path — it exists so the
@@ -811,9 +834,25 @@ export default async function handler(req, res) {
     // of his that says it. What is no longer true is that failing to find one costs the reader
     // the answer to the question he actually asked.
     let attributionNote = '';          // appended to the general answer, never emitted alone
+    // ── DID A SEARCH FOR HIS OWN TEXT ACTUALLY RUN? ────────────────────────
+    //
+    // «لم أقف على نصٍّ له» is a statement about work that was done, and a historical scholar has
+    // neither an adapter nor an official domain — so for him the block below searches NOTHING and
+    // then said it anyway. «I did not find» and «I did not look» are different claims, and only
+    // the first may be made after actually looking. This flag tells them apart, and
+    // lib/policy/consistency-gate.js refuses the negation without it. It is set at each of the two
+    // places that actually search, and read where the note is composed.
+    //
+    // `attributionUnverified` is SEPARATE from the note: the note may not always be sayable, while
+    // the fact that no text of his was verified always governs what the reply may claim. Both are
+    // assigned tersely below on purpose — attribution-guard.cjs pins the distance between
+    // `if (!attributedSources.length) {` and what follows it, and the pin is worth the terseness.
+    let attributionSearched = false;
+    let attributionUnverified = false;
     if (plan.attributionMode === 'namedScholarOpinion') {
       let attributedSources = [];
       if (plan.hasDirectAdapter) {
+        attributionSearched = true;
         const { retrieveIbnUthaymeen } = await import('../lib/binothaimeen.js');
         attributedSources = await retrieveIbnUthaymeen(attribution.question, {
           excludeWords: String(attribution.scholarName || '').split(' '),
@@ -826,6 +865,7 @@ export default async function handler(req, res) {
         // snippet is not evidence here any more than anywhere else: only a fetched, gated page
         // reaches this array.
         try {
+          attributionSearched = true;
           const { retrieve } = await import('../lib/retrieve.js');
           const scoped = await retrieve(plan.topic || attribution.question, {
             band, depth: effectiveDepth, onlySites: [plan.officialDomain],
@@ -846,7 +886,8 @@ export default async function handler(req, res) {
         // FALL THROUGH, do not refuse. The reader still gets the documented general ruling
         // below, with one line saying it is not his.
         console.warn('[attribution]', REASON.DIRECT_CORPUS_SEARCHED_NO_EVIDENCE, plan.namedEntity, plan.officialDomain || 'adapter');
-        attributionNote = unattributedNote(plan.namedEntity);
+        attributionUnverified = true;
+        if (attributionSearched) attributionNote = unattributedNote(plan.namedEntity);
       } else {
       const src = attributedSources[0];
       const grounding = [
@@ -903,6 +944,8 @@ export default async function handler(req, res) {
         // the approved list. So we fall through with a note, exactly as when no text of his was
         // found at all. Nothing of the rejected draft survives; only the QUESTION does.
         console.warn('[attribution]', REASON.PAGE_NOT_DIRECT_EVIDENCE, verdict.problems.join(' | '));
+        attributionUnverified = true;
+        // A page of his WAS fetched and read here, so the negation is earned.
         attributionNote = unattributedNote(plan.namedEntity);
       } else {
         const card = buildSourceTag({ url: src.canonicalUrl, title: src.title });
@@ -917,6 +960,31 @@ export default async function handler(req, res) {
       }
       }
     }
+
+    // ── CONSISTENCY_GATE, AS ONE FUNCTION GUARDING EVERY BUFFERED EXIT ─────
+    //
+    // The handler has several places a finished reply can leave from, and the defect escaped
+    // through the one nobody was watching: round 1 answered without calling the search tool, so
+    // the draft went straight out and never met the check that sits before round 2. A gate with
+    // one entrance and four exits is not a gate. This is called at every exit that has a complete
+    // draft in hand; the streaming exit cannot be one of them, which is exactly why a request in
+    // this state is forced onto a buffered path above.
+    //
+    // Returns the problems, or null when there is nothing to enforce.
+    const attributionProblems = (draft) => {
+      if (!(legacyPolicy.enabled && attributionUnverified)) return null;
+      const problems = consistencyProblems(draft, {
+        entity: plan.namedEntity,
+        notDirectlyVerified: true,
+        searchProven: attributionSearched,
+        allowSourcedPosition: true,
+      });
+      if (!problems.length) return null;
+      console.warn('[consistency] draft dropped', {
+        entity: plan.requestedAuthorityId || '', searched: attributionSearched, problems,
+      });
+      return problems;
+    };
 
     // ── GEN ROUTE: ONE streamed round, NO tools ────────────────────────────
     // Same model, same system prompt, same token cap, same effort the final round uses
@@ -1035,6 +1103,10 @@ export default async function handler(req, res) {
       const clean = text
         .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
         .replace(/<source\b[^>]*>?[\s\S]*$/i, '');
+      // THE EXIT THE DEFECT ESCAPED THROUGH. No tool was called here, so nothing of his was
+      // searched and nothing was retrieved — which makes any position credited to him in this
+      // draft the app's own invention rather than a transmission from anywhere.
+      if (attributionProblems(clean)) return emitOnce(NO_ATTRIBUTION_AVAILABLE);
       clearKeepAlive();
       res.write(`data: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: clean } })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
@@ -1136,13 +1208,16 @@ export default async function handler(req, res) {
     // step 1 or step 2 above came up empty. The answer that follows is the ordinary sourced
     // answer to the same question — and this instruction is what keeps it from quietly
     // becoming his. The note itself is appended after the answer, not instead of it.
-    if (attributionNote) {
+    if (attributionUnverified) {
       console.warn('[attribution]', REASON.GENERAL_RULING_SUBSTITUTED, plan.namedEntity);
       toolResults.push({
         type: 'text',
         text: [
           'تنبيهٌ داخليٌّ للصياغة (لا تنقلْه حرفيًّا):',
           'سألَ القارئُ عن رأيِ الشيخ «' + plan.namedEntity + '» بعينِه، ولم يُعثَرْ على نصٍّ منشورٍ له في هذه المسألة.',
+          '- لا تقلْ «قال» ولا «صرّح» ولا تنقلْ عنه لفظًا بين قوسين البتّة؛ لم يُتحقَّقْ من نصٍّ له.',
+          '- إن ذكرتِ المصادرُ المسترجَعةُ رأيَه، فانسبِ النقلَ إلى المصدرِ نفسِه بصيغةِ «ذكر موقعُ كذا أنّ رأيَه…»، لا إليه مباشرةً.',
+          '- ولا تُضفْ ترجيحًا ولا تضعيفًا لقولِه ولا «الأحوط» ولا نصيحةً بالقضاء إلّا إن ورد ذلك بدليلِه في المصادرِ أعلاه.',
           '- لا تنسبْ إليه شيئًا البتّةَ: لا قولًا ولا اختيارًا ولا ترجيحًا، ولو كنتَ تظنُّ أنّه يقول به.',
           '- أجبْ عن المسألةِ نفسِها من المصادرِ المسترجَعةِ أعلاه وحدَها، إجابةً كاملةً مفيدةً كأيِّ سؤالٍ آخر.',
           '- انسبِ الحكمَ إلى المصدرِ الذي ورد فيه، لا إلى الشيخِ المذكور.',
@@ -1247,6 +1322,7 @@ export default async function handler(req, res) {
       // Same rule as the streaming branch: the note follows a real sourced answer, never
       // replaces one.
       const cNote = attributionNote ? '\n\n' + attributionNote : '';
+      if (attributionProblems(cDraft + cNote)) return emitOnce(NO_ATTRIBUTION_AVAILABLE);
       res.write(`data: ${JSON.stringify({
         type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: cDraft + cNote + cCard },
       })}\n\n`);
@@ -1305,6 +1381,51 @@ export default async function handler(req, res) {
         return emitOnce('أستطيع أن أنقل لك ما ذكرته المصادر المعتمدة عن هذه المسألة، لكنّي لا أنسب إلى العالِم قولًا لم أقف عليه في نصٍّ له. أعِدْ صياغة سؤالك عمّا تريد معرفته بالتحديد وأنقل لك ما في المصادر بمصدره.');
       }
       return emitOnce(aDraft + '\n' + canonicalSources.map((c) => c.tag).join('\n'));
+    }
+
+    // ── CONSISTENCY_GATE: credited AND disclaimed cannot both be true ───────
+    //
+    // THE MEASURED FAILURE. «ما رأي ابن تيمية فيمن ترك الصلاة تكاسلًا؟» came back with his position
+    // stated as fact, a quotation attributed to مجموع الفتاوى, the majority view, his view called
+    // weak and a recommendation to make up the prayer — and then «لم أقف على نصٍّ مباشرٍ للشيخ ابن
+    // تيميه» in the same reply. Both halves cannot be true, and the authoritative-sounding half was
+    // the unsupported one.
+    //
+    // The handler already INSTRUCTS the model not to attribute anything here. It attributed anyway.
+    // An instruction is a request; this is a gate — and like the ABOUT_ENTITY branch above it
+    // buffers, because a streamed reply cannot be checked before the reader has already read it.
+    //
+    // WHAT SURVIVES: a grade-C transmission that credits the SOURCE — «ذكر موقع إسلام ويب أن ابن
+    // تيمية يرى…». What does not: his speech, a quotation of him, a bare «يرى ابن تيمية», and any
+    // «لم أقف» in a branch where nothing of his was ever searched.
+    if (legacyPolicy.enabled && attributionUnverified) {
+      const r2b = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model, max_tokens: maxTokens, system, messages: round2Messages, stream: false,
+        }),
+      });
+      if (!r2b.ok) {
+        const errText = await r2b.text().catch(() => '');
+        console.error('[consistency] upstream', r2b.status, errText.slice(0, 200));
+        clearKeepAlive();
+        res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${r2b.status}` } })}\n\n`);
+        return res.end();
+      }
+      const bPayload = await r2b.json();
+      const bDraft = (bPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
+        .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .trim();
+      if (attributionProblems(bDraft) || !bDraft) {
+        // DROPPED WHOLE, not edited down. A reply that credits him with a position we never
+        // verified is not partly right; trimming it would leave the same claim in a shorter form.
+        return emitOnce(NO_ATTRIBUTION_AVAILABLE);
+      }
+      const bNote = attributionNote ? '\n\n' + attributionNote : '';
+      const bCards = canonicalSources.length ? '\n' + canonicalSources.map((c) => c.tag).join('\n') : '';
+      return emitOnce(bDraft + bNote + bCards);
     }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──

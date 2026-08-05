@@ -250,6 +250,44 @@ function fakeRedis() {
     t = fresh();
     eq('NO store configured at all => mode still governs', (await FL.decidePath(anonReq, t)).path, 'ledger');
     STORE.__setRedisForTest(redis);
+
+    // ── THE CACHE MUST NOT INVENT A KILL ───────────────────────────────────
+    // A cache hit reports source 'cache', which says only that the value was read recently and
+    // NOTHING about whether the store ever answered. Deciding the brake on `source` meant an
+    // unreachable store ran on its first read and stopped on every read for the next few seconds:
+    // a brake that grabs on its own, which is worse than no brake because it looks like one. The
+    // decision is made on `origin`, and these read WITHIN the TTL on purpose.
+    STORE.__setRedisForTest(null);
+    FL.__resetFlagCacheForTest();
+    const t0 = 5_000_000;
+    eq('an unreachable store reads as unavailable', (await FL.readRuntimeFlag(t0)).source, 'unavailable');
+    eq('...and a read inside the TTL is a cache hit', (await FL.readRuntimeFlag(t0 + 100)).source, 'cache');
+    eq('...whose ORIGIN still says unavailable', (await FL.readRuntimeFlag(t0 + 200)).origin, 'unavailable');
+    eq('...so the brake stays off on the fresh read', await FL.killSwitchEngaged(t0 + 300), false);
+    eq('...and stays off on the cached read', await FL.killSwitchEngaged(t0 + 400), false);
+    eq('...and the path is still the ledger', (await FL.decidePath(anonReq, t0 + 500)).path, 'ledger');
+
+    // The same for an ABSENT key, which is the actual production state.
+    STORE.__setRedisForTest(redis);
+    redis._map.clear();
+    FL.__resetFlagCacheForTest();
+    const t1 = 6_000_000;
+    eq('an absent key reads as absent', (await FL.readRuntimeFlag(t1)).source, 'absent');
+    eq('...its cached read keeps origin absent', (await FL.readRuntimeFlag(t1 + 100)).origin, 'absent');
+    eq('...and repeated decisions inside the TTL all reach the ledger',
+      [(await FL.decidePath(anonReq, t1 + 200)).path, (await FL.decidePath(anonReq, t1 + 300)).path,
+        (await FL.decidePath(anonReq, t1 + 400)).path].join(','), 'ledger,ledger,ledger');
+    eq('...and the policy repairs stay on across cached reads',
+      [(await LP.decideLegacyPolicy(anonReq, t1 + 500)).enabled,
+        (await LP.decideLegacyPolicy(anonReq, t1 + 600)).enabled].join(','), 'true,true');
+
+    // And an EXPLICIT off must still kill through the cache.
+    redis._map.set(FL.RUNTIME_KEY, 'off');
+    FL.__resetFlagCacheForTest();
+    const t2 = 7_000_000;
+    eq('an explicit off kills on the fresh read', (await FL.decidePath(anonReq, t2)).reason, 'kill_switch');
+    eq('...and stays killed on the cached read', (await FL.decidePath(anonReq, t2 + 100)).reason, 'kill_switch');
+    redis._map.clear();
   }
 
   // =========================================================================
