@@ -77,8 +77,15 @@ const GOOD_DRAFT = [
     const ledgerDir = fs.readdirSync(path.join(REPO, 'lib', 'ledger'));
     ok('...and in no ledger module at all',
       ledgerDir.every((f) => !/unattributedNote|لم أقف على/.test(read('lib/ledger/' + f))));
+    // WINDOWED TO THE BRANCH, NOT TO A BYTE COUNT. A fixed 2600-character slice made this pin a
+    // hostage to how much PROSE the branch carries: documenting why a child's fourth domain must
+    // be passed pushed the `return;` out of the window and turned a green invariant red without
+    // anything about the invariant changing. The window now ends where the branch does.
     const branchAt = askSrc.indexOf("if (ledgerPath.path === 'ledger') {");
-    const tail = askSrc.slice(branchAt, branchAt + 2600);
+    const branchEnd = askSrc.indexOf('\n    }\n', branchAt);
+    // +6 so the slice includes the branch's own closing line: the `return;` sits on the last line
+    // before it, and cutting exactly at the brace leaves the match without its trailing newline.
+    const tail = askSrc.slice(branchAt, branchEnd > branchAt ? branchEnd + 6 : branchAt + 4000);
     ok('the ledger branch returns unconditionally — there is no fallback to legacy',
       /\n      return;\n/.test(tail) && !/catch[\s\S]{0,400}legacy/i.test(tail));
   }
@@ -146,11 +153,34 @@ const GOOD_DRAFT = [
   console.log('\n=== D. THE HANDLER IS WIRED TO THE GATE, NOT TO AN INSTRUCTION ===');
   {
     const s = read('api/ask.js');
-    ok('the gate is imported', /import \{ consistencyProblems, NO_ATTRIBUTION_AVAILABLE \}/.test(s));
+    ok('the gate is imported', /import \{ consistencyProblems, screenDraft, NO_ATTRIBUTION_AVAILABLE \}/.test(s));
+    // RE-PINNED ON THE STRONGER CONDITION. The buffering used to be conditional on the rollout
+    // flag as well; with the flag default-OFF, fresh production streamed this state unchecked —
+    // which is the exact failure the gate exists to prevent, shipped behind a switch. Buffering is
+    // now armed by the state alone. The assertion is kept and tightened, never dropped.
     ok('it runs on a BUFFERED draft — a streamed reply cannot be checked',
-      /if \(legacyPolicy\.enabled && attributionUnverified\) \{[\s\S]{0,900}stream: false/.test(s));
-    ok('a failing draft is dropped WHOLE, not edited down',
-      /if \(attributionProblems\(bDraft\) \|\| !bDraft\) \{[\s\S]{0,300}return emitOnce\(NO_ATTRIBUTION_AVAILABLE\)/.test(s));
+      /if \(attributionUnverified\) \{[\s\S]{0,900}stream: false/.test(s));
+    ok('...and no rollout flag can leave that state streaming',
+      !/if \(legacyPolicy\.enabled && attributionUnverified\) \{/.test(s));
+    // RE-PINNED, AND THE RULE IS NOW SHARPER RATHER THAN LOOSER. «Dropped whole» was the right
+    // answer to the failure it was written for — the reader asked what Ibn Taymiyyah held, and a
+    // reply that credits him unverified has nothing left once the credit is gone. It was the wrong
+    // answer to one invented clause inside an otherwise sourced ruling, where it cost the reader
+    // the answer he came for. So: dropped whole when the attribution IS the substance, trimmed
+    // when it is an aside — and `screenDraft` decides which by whether the offending sentence
+    // names the man the reader actually asked about.
+    ok('a draft whose offence is the SUBSTANCE is still dropped whole',
+      /if \(!bDraft \|\| \(bScreened && bScreened\.dropWhole\)\) \{[\s\S]{0,400}return emitOnce\(NO_ATTRIBUTION_AVAILABLE\)/.test(s));
+    ok('...and every buffered exit honours the same verdict',
+      (s.match(/\.dropWhole\) return emitOnce\(NO_ATTRIBUTION_AVAILABLE\)|dropWhole\)\) \{/g) || []).length >= 3,
+      'a screened exit that ignores dropWhole is an exit with no gate');
+    {
+      const CGm = require('path').join(REPO, 'lib/policy/consistency-gate.js');
+      const src = fs.readFileSync(CGm, 'utf8');
+      ok('the trim is sentence-level, not a substring edit of the claim',
+        /const SENTENCE_SPLIT =/.test(src) && /kept\.join\(' '\)/.test(src),
+        'editing inside a sentence leaves the same claim in a shorter form');
+    }
     ok('the gate sits BEFORE the streaming round 2',
       s.indexOf('const attributionProblems =') < s.indexOf('// ── ROUND 2: streamed, WITHOUT tools'));
     // ONE GATE, EVERY BUFFERED EXIT. The defect escaped through the exit nobody was watching —
@@ -180,9 +210,14 @@ const GOOD_DRAFT = [
   console.log('\n=== D2. SEARCH BEFORE APOLOGISING — the encyclopedic transmission ===');
   {
     const s = read('api/ask.js');
-    ok('a historical scholar with no adapter and no domain still gets a real search',
-      /plan\.authorityEra === 'historical'[\s\S]{0,1400}?await retrieve\(/.test(s),
-      'the encyclopedic fallback must call retrieve, not fall straight through to a refusal');
+    // STRONGER AGAIN. «Historical» was only ever a description of the state that matters — no
+    // adapter, no official domain, nothing searched — and an unregistered contemporary name lands
+    // in exactly the same state. It used to be sent away with the identity template instead.
+    ok('ANY named entity whose own corpus was never searched still gets a real search',
+      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !nonScholar\)[\s\S]{0,1800}?await retrieve\(/.test(s),
+      'the fallback must call retrieve, not fall straight through to a refusal');
+    ok('...and a historical scholar is inside that set, not a special case for it',
+      !/plan\.authorityEra === 'historical'\s*\n?\s*&& plan\.namedEntity\) \{/.test(s));
     ok('...over the band\'s ordinary approved list, not a new one',
       /retrieve\(encQuery, \{ band, depth: effectiveDepth \}\)/.test(s),
       'no onlySites: narrowing to a domain a historical scholar does not have is the original bug');
@@ -192,8 +227,24 @@ const GOOD_DRAFT = [
       /transmissionPublishers: encyclopedicPublishers/.test(s));
     ok('...and the publishers come from the pages actually fetched',
       /encyclopedicPublishers = \[\.\.\.new Set\(cards\.flatMap/.test(s));
-    ok('the branch is behind the rollout flag like everything else',
-      /if \(legacyPolicy\.enabled && attributionUnverified && plan\.authorityEra === 'historical'/.test(s));
+    // RE-PINNED ON THE STRONGER CONDITION. «search before apologising» was itself behind the
+    // rollout flag, so fresh production went on apologising unsearched — the defect this branch
+    // was written to fix, still being served. Searching before refusing is not a staged feature.
+    ok('the branch runs on the STATE alone, with no rollout flag in front of it',
+      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !nonScholar\)/.test(s));
+    ok('...and no flag can send it back to apologising unsearched',
+      !/legacyPolicy\.enabled && attributionUnverified/.test(s));
+    // A SEARCH THAT RAN IS ALSO A NOTE THAT MAY BE WRITTEN. The note is composed here rather than
+    // before the search, where it would have been a claim about work not yet done.
+    ok('...and the earned note is set by the branch that earned it',
+      /attributionSearched = true;\s*\n\s*attributionNote = unattributedNote\(plan\.namedEntity\);/.test(s));
+    // THE SEARCH IS NOT A LICENCE TO TRANSMIT. A name no registry recognises returns pages about
+    // the TOPIC, and drafting «بحسب موقع كذا فإنّ رأيه هو…» over them credits an unidentified man
+    // with a position no source ascribed to him — which the gate cannot catch, because it can
+    // check that a publisher was named and not that the publisher mentioned him.
+    ok('...but only a RECOGNISED entity may have a position transmitted to him',
+      /const mayTransmitPosition = !!plan\.requestedAuthorityId \|\| plan\.authorityEra === 'historical';/.test(s)
+      && /if \(encSources\.length && mayTransmitPosition\)/.test(s));
     ok('the instruction forbids direct speech and demands the source be named',
       /صُغْه بأسلوبِ النقلِ الموثَّق/.test(s) && /ممنوعٌ إيرادُ اقتباسٍ حرفيٍّ/.test(s));
 

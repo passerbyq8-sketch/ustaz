@@ -45,7 +45,8 @@ const user = (t) => [{ role: 'user', content: t }];
 (async function main() {
   console.log('=== smart-retrieval-guard — a name starts a search, it does not end one ===');
 
-  const { planAsk, REASON, unattributedNote, NEEDS_SCHOLAR_NAME, NEEDS_SCHOLAR_IDENTITY, NEEDS_MATERIAL } = await esm('lib/ask-plan.js');
+  const AP = await esm('lib/ask-plan.js');
+  const { planAsk, REASON, unattributedNote, NEEDS_MATERIAL } = AP;
   const A = await esm('lib/attribution.js');
   const R = await esm('lib/source-registry.js');
   const B = await esm('lib/brave-query.js');
@@ -81,8 +82,12 @@ const user = (t) => [{ role: 'user', content: t }];
   // =========================================================================
   console.log('\n=== B. THE EIGHT CASES, PLANNED ON THE REAL PATH ===');
   const CASES = [
+    // `domain` WAS '' HERE, and that was the drift: the one scholar with a purpose-built adapter
+    // was the one scholar the registry could not name. binothaimeen.net is his corpus; it is still
+    // on no band's search list (guards/scholar-registry-drift-guard.cjs asserts that separately),
+    // and `adapter: true` below is still what decides how it is read.
     { n: 1, q: 'ما رأي الشيخ ابن عثيمين فيمن أسقطت دون 80 يوم؟',
-      purpose: 'fatwa', mode: 'namedScholarOpinion', entity: 'ابن عثيمين', adapter: true, domain: '' },
+      purpose: 'fatwa', mode: 'namedScholarOpinion', entity: 'ابن عثيمين', adapter: true, domain: 'binothaimeen.net' },
     { n: 2, q: 'ما رأي الشيخ عبدالمحسن العباد في الطلاق في الغضب؟',
       purpose: 'fatwa', mode: 'namedScholarOpinion', entity: 'عبدالمحسن العباد', adapter: false, domain: 'al-abbaad.com' },
     { n: 3, q: 'حديث من موقع الشيخ عبدالمحسن العباد',
@@ -124,8 +129,8 @@ const user = (t) => [{ role: 'user', content: t }];
     ok('case ' + c.n + ' asks for clarification instead of guessing a scholar', p.needsClarification);
     eq('case ' + c.n + ' names nobody', p.namedEntity, '');
   }
-  ok('neither clarification line makes a religious claim',
-    !/يجوز|لا يجوز|حرام|حلال|واجب|بدعة/.test(NEEDS_SCHOLAR_NAME + ' ' + NEEDS_MATERIAL));
+  ok('neither surviving clarification line makes a religious claim',
+    !/يجوز|لا يجوز|حرام|حلال|واجب|بدعة/.test(AP.AMBIGUOUS_SCHOLAR + ' ' + NEEDS_MATERIAL));
 
   // =========================================================================
   console.log('\n=== B2. WHO IS THIS? — resolved / ambiguous / unresolved ===');
@@ -189,18 +194,38 @@ const user = (t) => [{ role: 'user', content: t }];
       eq('B: asks for identity', b.needsScholarIdentity, true);
       eq('B: has no domain to search', b.officialDomain, '');
     }
-    // The identity question must NOT claim a search happened.
-    ok('the identity prompt does not claim a search was performed',
-      /لم أبحثْ في مصدرٍ رسميٍّ له بعدُ/.test(NEEDS_SCHOLAR_IDENTITY)
-      && !/لم أقف على نصٍّ مباشرٍ/.test(NEEDS_SCHOLAR_IDENTITY));
-    // ...while the post-search note MUST say a search happened.
+    // ── RE-PINNED: THE ORDER CHANGED, THE DISTINCTION DID NOT ──────────────
+    //
+    // These three checks used to guarantee that an unidentified name produced a template which
+    // carefully did NOT claim a search, and that it started no search either. Both halves were
+    // faithfully implemented and together they were the defect: the reader was told «لم أبحثْ في
+    // مصدرٍ رسميٍّ له بعدُ» and then nothing was ever searched, so the request ended with the
+    // ruling unanswered and a request for the man's website. Honest about doing nothing is still
+    // doing nothing.
+    //
+    // The invariant that MATTERS survives unchanged and is asserted harder below: a sentence
+    // claiming we looked may only be written after we looked. What is inverted is the order — the
+    // search now runs first, so the sentence becomes sayable instead of being avoided.
     ok('the post-search note states that a direct search found nothing',
       /لم أقف على نصٍّ مباشرٍ/.test(unattributedNote('فلان')));
-    ok('the two are different sentences', NEEDS_SCHOLAR_IDENTITY !== unattributedNote('فلان'));
-    ok('the identity prompt is wired to the identity case, not the search case',
-      /plan\.needsScholarIdentity/.test(ask) && /NEEDS_SCHOLAR_IDENTITY/.test(ask));
-    ok('an unidentified scholar starts NO general search',
-      /if \(plan\.needsScholarIdentity\) \{[\s\S]{0,700}?return res\.end\(\);/.test(ask));
+    ok('an unidentified scholar now STARTS a search rather than ending the request',
+      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !nonScholar\)[\s\S]{0,1800}?await retrieve\(/.test(ask));
+    ok('...and the note claiming a search is written only where the search happened',
+      /attributionSearched = true;\s*\n\s*attributionNote = unattributedNote\(plan\.namedEntity\);/.test(ask));
+    ok('no identity template can end a request any more',
+      !/NEEDS_SCHOLAR_IDENTITY/.test(ask) && !/NEEDS_SCHOLAR_NAME/.test(ask));
+    // THE ONE CLARIFICATION THAT SURVIVES, and the reason it is honest: we can name the choices.
+    ok('genuine ambiguity between REGISTERED men still asks, and names them',
+      /plan\.scholarStatus === 'ambiguous'/.test(ask)
+      && /ambiguousScholarPrompt\(plan\.scholarCandidates\)/.test(ask));
+    {
+      const amb = planAsk(user('ما رأي خالد المصلح خالد السبت في الطلاق؟'));
+      eq('...and such a question really is ambiguous', amb.scholarStatus, 'ambiguous');
+      const prompt = AP.ambiguousScholarPrompt(amb.scholarCandidates);
+      ok('...and the prompt lists the candidates rather than demanding a website',
+        /خالد المصلح/.test(prompt) && /خالد السبت/.test(prompt) && !/رابطَ موقعِه/.test(prompt), prompt);
+      ok('...and it claims no search', !/لم أقف|لم أبحث/.test(prompt), prompt);
+    }
     ok('the five new reason codes exist and are logged only',
       ['SCHOLAR_RESOLVED', 'SCHOLAR_IDENTITY_AMBIGUOUS', 'SCHOLAR_IDENTITY_UNRESOLVED',
         'DIRECT_CORPUS_SEARCHED_NO_EVIDENCE', 'GENERAL_RULING_SUBSTITUTED']
@@ -276,10 +301,15 @@ const user = (t) => [{ role: 'user', content: t }];
   // =========================================================================
   console.log('\n=== E. THE WIRING (api/ask.js) ===');
   ok('the request is planned, not merely flagged', /const plan = planAsk\(body\.messages/.test(ask));
-  // The plan now carries the rollout flag for the RFC v0.5-R2 legacy repairs, so an internal
-  // tester and an ordinary reader can be answered differently while the SAME planner runs for both.
-  ok('...and the planner is told whether the new policy is live',
-    /planAsk\(body\.messages, \{ policyEnabled: legacyPolicy\.enabled \}\)/.test(ask));
+  // RE-PINNED ON THE STRONGER CONDITION. This used to assert that the planner was told whether the
+  // rollout flag was live — which, with the flag default-OFF and off on every failure to read it,
+  // meant fresh production planned every request with the entity veto inert: a mosque was asked
+  // which shaykh it meant. The veto is a REPAIR, and a repair does not get staged. So the check is
+  // not weakened and not dropped — it is tightened to the thing that must now be true.
+  ok('...and the planner is told the policy is live UNCONDITIONALLY',
+    /planAsk\(body\.messages, \{ policyEnabled: true \}\)/.test(ask));
+  ok('...so no rollout flag can make the entity veto inert',
+    !/planAsk\(body\.messages, \{ policyEnabled: legacyPolicy\.enabled \}\)/.test(ask));
   // EVALUATED, NOT MATCHED. The shipped routing expression is lifted out of api/ask.js and run
   // against real plans, so this asserts the GUARANTEE (an attributed question never reaches the
   // unsourced path) rather than one spelling of it. A rewrite that kept the wording and broke the
@@ -305,8 +335,14 @@ const user = (t) => [{ role: 'user', content: t }];
     /لا تنسبْ إليه شيئًا البتّةَ/.test(ask));
   ok('...and not to make the absence of his text the answer',
     /لا تجعلْ عدمَ وجودِ نصِّه هو الجواب/.test(ask));
-  ok('an unnamed claim asks who is meant instead of guessing',
-    /plan\.needsClarification/.test(ask) && /NEEDS_SCHOLAR_NAME/.test(ask) && /NEEDS_MATERIAL/.test(ask));
+  // RE-PINNED. Material we were never given is still a dead end — nothing can be fetched from a
+  // description of a clip. A missing NAME is not: «قال لي صاحبي إن الصلاة على وقتها» is a question
+  // about the ruling wearing a frame, and ending the request to ask whose opinion was meant
+  // refused the question the reader actually asked.
+  ok('a claim about material we were never given still asks for it',
+    /plan\.needsClarification/.test(ask) && /NEEDS_MATERIAL/.test(ask));
+  ok('...but a nameless claim is answered from the sources instead of interrogated',
+    /answering the question instead/.test(ask) && !/NEEDS_SCHOLAR_NAME/.test(ask));
   ok('the reason codes are logged, never written to the reader',
     /REASON\.DIRECT_CORPUS_SEARCHED_NO_EVIDENCE/.test(ask)
     && /console\.warn\('\[attribution\]', REASON\./.test(ask)

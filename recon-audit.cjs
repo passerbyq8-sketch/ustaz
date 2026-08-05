@@ -533,7 +533,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   // S-RFC-v0.5-R2-ROUND3: 36 -> 37. 37th rfc-v05r2-round3-guard — the policy router over BOTH
   //       paths, a policy block per ISSUE rather than per question, provenance A/B/C classified
   //       from the evidence, and a Gate 3 that judges every claim a sentence rests on.
-  const GATES_EXPECTED = 41;   // 41st: rfc-v05r2-entity-world-guard — a singer is not a mufti.
+  const GATES_EXPECTED = 43;   // 43rd: shipped-reality-guard — the two states production actually has.
                                //       «ما رأي خالد عبدالرحمن في قصر الصلاة؟» was treated as a
                                //       request for a scholar's fatwa, so the app hunted for one,
                                //       found nothing, and asked the reader for the shaykh's

@@ -203,5 +203,15 @@
   "name": "rfcworld",
   "script": "guards/rfc-v05r2-entity-world-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "scholardrift",
+  "script": "guards/scholar-registry-drift-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "shippedreality",
+  "script": "guards/shipped-reality-guard.cjs",
+  "args": ""
  }
 ]

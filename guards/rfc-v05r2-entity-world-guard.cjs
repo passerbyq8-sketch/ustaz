@@ -209,15 +209,48 @@ const GOOD_DRAFT = 'خالد عبدالرحمن فنّانٌ معروف وليس
       'a worldly figure\'s biography must stop being typed as a religious question');
     ok('the check runs BEFORE the topic is decided',
       s.indexOf('nameNeedingWorldCheck(plan, questionText)') < s.indexOf('const topicClass = classifyTopic('));
-    ok('a non-scholar suppresses the identity template',
-      /if \(plan\.needsScholarIdentity\) \{[\s\S]{0,400}?if \(!nonScholar\) \{/.test(s),
-      'the sterile «which shaykh do you mean» must not be reached once we know he is not one');
+    // RE-PINNED, AND THE CLAIM IS NOW STRONGER. This used to assert that a `non_scholar` verdict
+    // was nested INSIDE the identity template so the sterile «which shaykh do you mean» was
+    // skipped for a singer. The template no longer exists for anybody — an unresolved name starts
+    // a search instead of ending the request — so the singer is protected by the general rule
+    // rather than by a special case, and the only clarification left cannot be reached by him: it
+    // requires ambiguity between REGISTERED scholars, and a singer matches none.
+    ok('no identity template exists for a non-scholar to be excused from',
+      !/NEEDS_SCHOLAR_IDENTITY/.test(s));
+    ok('...and the one surviving clarification is unreachable without registered candidates',
+      /plan\.needsScholarIdentity && !nonScholar && plan\.scholarStatus === 'ambiguous'/.test(s),
+      'a singer resolves to nobody, so «ambiguous» can never be his status');
     ok('...and the whole attributed hunt',
       /const attributionActive = \(plan\.attributionMode === 'namedScholarOpinion'\) && !nonScholar/.test(s));
     ok('...and the query is stripped deterministically, not by asking the model nicely',
       /const q = nonScholar \? stripEntityFromQuery\(rawQ, nonScholar\.name\) : rawQ/.test(s));
     ok('the drafting note is pushed for the reader',
       /toolResults\.push\(\{ type: 'text', text: nonScholarDraftingNote\(/.test(s));
+    // ── THE NOTE MAY NOT SPEAK AN IDENTITY IT CANNOT SOURCE ────────────────
+    //
+    // It used to interpolate `identityAr` — a biography the MODEL had just produced from open
+    // world knowledge — and instruct the reply to open by stating «هُويّتَه الحقيقيّة». Measured
+    // output: «الشيخ مطلق الجاسر — رحمه الله — إعلامي سعودي محترم». He is alive and is not a
+    // broadcaster. A model's recollection of a RULING is not evidence here; its recollection of a
+    // PERSON is not evidence either, and it reaches the reader in the app's own voice with no card.
+    {
+      const EK = await esm('lib/policy/entity-knowledge.js');
+      const note = EK.nonScholarDraftingNote('مطلق الجاسر', 'إعلامي سعودي');
+      ok('the note does NOT put the model\'s guess about who he is into the prompt',
+        !/إعلامي|سعودي/.test(note), note.slice(0, 200));
+      ok('...and does not ask the reply to state his real identity',
+        !/هُويّتَه الحقيقيّة|هويته الحقيقية/.test(note));
+      ok('...and forbids a profession, a nationality, an age and a country outright',
+        /لا مهنةَ ولا جنسيّةَ/.test(note) && /ولا سنَّ ولا بلدَ/.test(note), note);
+      ok('...and forbids «رحمه الله» over a man whose death nobody reported to us',
+        /رحمه الله/.test(note) && /ولا أيَّ إشارةٍ إلى وفاتِه أو حياتِه/.test(note));
+      ok('...while still saying the one thing that IS true and sourced — he is not in our sources',
+        /ليس ممّن تُؤخَذ عنهم الفتوى في مصادرنا/.test(note));
+      const src = read('lib/policy/entity-knowledge.js');
+      ok('...and the identity argument reaches no template at all',
+        !/\+ identityAr \+/.test(src) && !/\$\{identityAr\}/.test(src),
+        'a parameter that is interpolated anywhere is a parameter that can reach a reader');
+    }
     ok('the note forbids ruling on the man himself',
       /لا تحكمْ عليه هو بشيء/.test(read('lib/policy/entity-knowledge.js')));
     ok('...and forbids attributing any position to him',

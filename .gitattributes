@@ -167,3 +167,5 @@ guards/rfc-v05r2-consistency-guard.cjs text eol=lf
 lib/policy/*.js text eol=lf
 lib/legacy-policy-flag.js text eol=lf
 guards/rfc-v05r2-entity-world-guard.cjs text eol=lf
+guards/scholar-registry-drift-guard.cjs text eol=lf
+guards/shipped-reality-guard.cjs text eol=lf
