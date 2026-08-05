@@ -9,25 +9,22 @@
       "requested_authority_id": null,
       "brave_calls": 1,
       "network_fetches": 3,
-      "accepted_records": 2,
+      "accepted_records": 1,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
       "source_cards": 1,
       "card_domains": [
-        "tafsir.app"
+        "tafsir.net"
       ],
       "source_domains": [
-        "islamqa.info",
-        "tafsir.app"
+        "tafsir.net"
       ],
       "canonical_urls": [
-        "https://islamqa.info/ar/answers/7001/x",
-        "https://tafsir.app/saadi/107/4"
+        "https://tafsir.net/articles/9002"
       ],
       "answer_unit_ids": [
-        "https://islamqa.info/ar/answers/7001/x#u1",
-        "https://tafsir.app/saadi/107/4#u1"
+        "https://tafsir.net/articles/9002#u1"
       ],
       "required_slots": [
         "iss_1:meaning"
@@ -45,27 +42,22 @@
       "requested_authority_id": null,
       "brave_calls": 1,
       "network_fetches": 3,
-      "accepted_records": 3,
+      "accepted_records": 1,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
       "source_cards": 1,
       "card_domains": [
-        "dorar.net"
+        "al-badr.net"
       ],
       "source_domains": [
-        "dorar.net",
-        "islamqa.info"
+        "al-badr.net"
       ],
       "canonical_urls": [
-        "https://dorar.net/hadith/sharh/5001",
-        "https://islamqa.info/ar/answers/7001/x",
-        "https://islamqa.info/ar/answers/7002/x"
+        "https://al-badr.net/articles/5001"
       ],
       "answer_unit_ids": [
-        "https://dorar.net/hadith/sharh/5001#u1",
-        "https://islamqa.info/ar/answers/7001/x#u1",
-        "https://islamqa.info/ar/answers/7002/x#u1"
+        "https://al-badr.net/articles/5001#u1"
       ],
       "required_slots": [
         "iss_1:meaning"
@@ -117,7 +109,7 @@
       "requested_authority_id": null,
       "brave_calls": 1,
       "network_fetches": 3,
-      "accepted_records": 3,
+      "accepted_records": 2,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
@@ -129,12 +121,10 @@
         "islamqa.info"
       ],
       "canonical_urls": [
-        "https://islamqa.info/ar/answers/7001/x",
         "https://islamqa.info/ar/answers/7002/x",
         "https://islamqa.info/ar/answers/7003/x"
       ],
       "answer_unit_ids": [
-        "https://islamqa.info/ar/answers/7001/x#u1",
         "https://islamqa.info/ar/answers/7002/x#u1",
         "https://islamqa.info/ar/answers/7003/x#u1"
       ],
@@ -154,7 +144,7 @@
       "requested_authority_id": null,
       "brave_calls": 1,
       "network_fetches": 3,
-      "accepted_records": 3,
+      "accepted_records": 2,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
@@ -166,12 +156,10 @@
         "islamqa.info"
       ],
       "canonical_urls": [
-        "https://islamqa.info/ar/answers/7001/x",
         "https://islamqa.info/ar/answers/7002/x",
         "https://islamqa.info/ar/answers/7003/x"
       ],
       "answer_unit_ids": [
-        "https://islamqa.info/ar/answers/7001/x#u1",
         "https://islamqa.info/ar/answers/7002/x#u1",
         "https://islamqa.info/ar/answers/7003/x#u1"
       ],
@@ -191,7 +179,7 @@
       "requested_authority_id": "al-abbaad",
       "brave_calls": 1,
       "network_fetches": 3,
-      "accepted_records": 3,
+      "accepted_records": 1,
       "pages_fetched": 3,
       "model_calls": 5,
       "verified_cycles": 1,
@@ -203,14 +191,10 @@
         "islamqa.info"
       ],
       "canonical_urls": [
-        "https://islamqa.info/ar/answers/7001/x",
-        "https://islamqa.info/ar/answers/7002/x",
-        "https://islamqa.info/ar/answers/7003/x"
+        "https://islamqa.info/ar/answers/7002/x"
       ],
       "answer_unit_ids": [
-        "https://islamqa.info/ar/answers/7001/x#u1",
-        "https://islamqa.info/ar/answers/7002/x#u1",
-        "https://islamqa.info/ar/answers/7003/x#u1"
+        "https://islamqa.info/ar/answers/7002/x#u1"
       ],
       "required_slots": [
         "iss_1:ruling",
@@ -268,7 +252,7 @@
       "requested_authority_id": null,
       "brave_calls": 1,
       "network_fetches": 3,
-      "accepted_records": 3,
+      "accepted_records": 2,
       "pages_fetched": 3,
       "model_calls": 3,
       "verified_cycles": 1,
@@ -278,12 +262,10 @@
         "islamqa.info"
       ],
       "canonical_urls": [
-        "https://islamqa.info/ar/answers/7001/x",
         "https://islamqa.info/ar/answers/7002/x",
         "https://islamqa.info/ar/answers/7003/x"
       ],
       "answer_unit_ids": [
-        "https://islamqa.info/ar/answers/7001/x#u1",
         "https://islamqa.info/ar/answers/7002/x#u1",
         "https://islamqa.info/ar/answers/7003/x#u1"
       ],

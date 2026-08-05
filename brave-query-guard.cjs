@@ -92,7 +92,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 
   const plans = {};
   const CASES = [
-    ['3 domains (the child list)', MINOR, Q_TYPICAL, 'general'],
+    ['the child list', MINOR, Q_TYPICAL, 'general'],
     ['14 domains (the pre-regression list)', FOURTEEN, Q_TYPICAL, 'general'],
     ['24 domains — fatwa', ADULT, 'ما حكم بيع الذهب بالتقسيط', 'fatwa'],
     ['24 domains — tafsir', ADULT, Q_TYPICAL, 'tafsir'],
@@ -118,7 +118,11 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   }
 
   // (1) and (2): the short lists stay ONE request. This is the child non-regression.
-  eq('3 domains -> exactly one request', plans['3 domains (the child list)'].groups.length, 1);
+  // THE CHILD NON-REGRESSION, and it is why the count is not hard-coded here. SITES_MINOR went
+  // from three domains to eight on 2026-08-05 (owner decision, step 10 of batch 2). MEASURED after
+  // the widening: 217 characters and 25 words — still comfortably one request, so a child's
+  // question costs exactly what it always did.
+  eq('the child list -> exactly one request', plans['the child list'].groups.length, 1);
   eq('14 domains -> exactly one request', plans['14 domains (the pre-regression list)'].groups.length, 1);
   // (3) 24 domains must split.
   ok('24 domains -> two or more groups', plans['24 domains — fatwa'].groups.length >= 2,
@@ -139,10 +143,22 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     const ranked = R.rankForPurpose(ADULT, 'tafsir');
     eq('rankForPurpose returns a permutation (same members)', ranked.slice().sort(), ADULT.slice().sort());
     const g1 = B.planQueries(Q_TYPICAL, ADULT, { purpose: 'tafsir' }).groups[0].sites;
+    // tafsir.app was named here until 2026-08-05, when it was DEFERRED for liveness (200, ~150 KB,
+    // empty body, zero extractable characters). The claim being tested is unchanged — a tafsir
+    // question must meet the tafsir sources first — and it is now tested on the tafsir sources that
+    // can actually answer.
     ok('a tafsir question meets the tafsir sources in group 1',
-      g1.includes('tafsir.app') && g1.includes('tafsir.net'), JSON.stringify(g1));
+      g1.includes('tafsir.net') && g1.includes('khaledalsabt.com'), JSON.stringify(g1));
+    ok('...and the deferred tafsir.app is in NO group at all',
+      !B.planQueries(Q_TYPICAL, ADULT, { purpose: 'tafsir' }).groups.some((g) => g.sites.includes('tafsir.app')));
     const h1 = B.planQueries('تخريج حديث', ADULT, { purpose: 'hadith' }).groups[0].sites;
-    ok('a hadith question meets dorar.net in group 1', h1.includes('dorar.net'), JSON.stringify(h1));
+    // dorar.net led this group until 2026-08-05, when it was DEFERRED (HTTP 403 for every
+    // server-side client, including its own published API). It was the only grading encyclopedia on
+    // the list; what leads a hadith question now is al-abbaad.com, whose scope is hadith + general.
+    ok('a hadith question meets the hadith sources in group 1',
+      h1.includes('al-abbaad.com'), JSON.stringify(h1));
+    ok('...and the deferred dorar.net is in NO group at all',
+      !B.planQueries('تخريج حديث', ADULT, { purpose: 'hadith' }).groups.some((g) => g.sites.includes('dorar.net')));
     const f1 = B.planQueries('ما حكم كذا', ADULT, { purpose: 'fatwa' }).groups[0].sites;
     ok('a fatwa question meets the fatwa portals in group 1',
       f1.includes('islamqa.info') && f1.includes('islamweb.net'), JSON.stringify(f1));
@@ -265,11 +281,23 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       resetBreakers();
     };
     const GOOD = 'هذا نص علمي كافٍ عن المسألة المسؤول عنها وفيه بيان الحكم بالدليل والتفصيل. ';
+    // A STAND-IN PAGE THAT IS ACTUALLY ABOUT THE QUESTION IT IS PAIRED WITH.
+    //
+    // lib/page-match.js refuses a page carrying nothing of what was asked, which is precisely the
+    // defect it was added for: islamweb /fatwa/239878 answered a question about «جهلًا» and was
+    // cited for one about «تكاسلًا». A fixture standing in for "a usable source" therefore has to
+    // read like one, or it is asserting that the app accepts a page about nothing.
+    //
+    // NO ASSERTION BELOW IS CHANGED, and none is removed. Every check in this block measures
+    // QUERY PLUMBING — group fallback, duplicate suppression, request counts, the child band's
+    // single request — and each still measures exactly that. Only the placeholder body is now on
+    // topic, which is the stronger condition, not a looser one.
+    const PAGE = (topic) => topic + '. ' + GOOD.repeat(4) + ' وهذا كلّه في ' + topic + '.';
 
     // (17) every query the real path sends is within both limits.
     reset();
     scenario.results[1] = [{ title: 'x', url: 'https://islamweb.net/ar/fatwa/1/x', description: '' }];
-    scenario.pages['https://islamweb.net/ar/fatwa/1/x'] = GOOD;
+    scenario.pages['https://islamweb.net/ar/fatwa/1/x'] = PAGE('حكم صيام يوم عرفة');
     let out = await retrieve('ما حكم صيام عرفة', { band: 'adult' });
     ok('a verified source is returned', out.sources.length === 1, JSON.stringify(out.sources.map((s) => s.url)));
     ok('every Brave query sent is within the HARD limit', scenario.braveQueries.every((q) => B.withinHard(q)));
@@ -283,8 +311,8 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     scenario.results[1] = [];
     // a host with no per-page attribution rule, so this test measures the GROUP FALLBACK
     // and not khutabaa's (correct) refusal to cite an anonymous khutbah.
-    scenario.results[2] = [{ title: 'y', url: 'https://ferkous.com/ar/fatawa/1', description: '' }];
-    scenario.pages['https://ferkous.com/ar/fatawa/1'] = GOOD;
+    scenario.results[2] = [{ title: 'y', url: 'https://ferkous.app/ar/fatawa/1', description: '' }];
+    scenario.pages['https://ferkous.app/ar/fatawa/1'] = PAGE('خطبة عن بر الوالدين');
     out = await retrieve('خطبة عن بر الوالدين', { band: 'adult' });
     ok('group 1 empty -> a second Brave request is made', scenario.braveQueries.length >= 2,
       String(scenario.braveQueries.length));
@@ -293,8 +321,8 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     // (15) an INDEX page in group 1 does not stop group 2 being tried.
     reset();
     scenario.results[1] = [{ title: 'i', url: 'https://mostafaaladwy.com/fatwa-category/x/', description: '' }];
-    scenario.results[2] = [{ title: 'y', url: 'https://ferkous.com/ar/fatawa/2', description: '' }];
-    scenario.pages['https://ferkous.com/ar/fatawa/2'] = GOOD;
+    scenario.results[2] = [{ title: 'y', url: 'https://ferkous.app/ar/fatawa/2', description: '' }];
+    scenario.pages['https://ferkous.app/ar/fatawa/2'] = PAGE('خطبة عن الصبر');
     out = await retrieve('خطبة عن الصبر', { band: 'adult' });
     ok('an index page in group 1 does not end the search', scenario.braveQueries.length >= 2);
     ok('...and the listing was never fetched', !scenario.pageFetches.some((u) => u.includes('fatwa-category')));
@@ -313,7 +341,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     // (18) the child list is still ONE request.
     reset();
     scenario.results[1] = [{ title: 'c', url: 'https://binbaz.org.sa/fatwas/1/x', description: '' }];
-    scenario.pages['https://binbaz.org.sa/fatwas/1/x'] = GOOD;
+    scenario.pages['https://binbaz.org.sa/fatwas/1/x'] = PAGE('حكم صيام يوم عرفة');
     out = await retrieve('ما حكم صيام عرفة', { band: 'young' });
     eq('the child band still costs exactly one Brave request', scenario.braveQueries.length, 1);
     ok('...and still returns its source', out.sources.length === 1);
@@ -361,7 +389,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
         NOT_FOR_HADITH.filter((d) => kept.includes(d)), []);
       const plan = B.planQueries(q, kept, { purpose });
       ok('  ...every group is still within SAFE', plan.groups.every((g) => B.withinSafe(g.q)));
-      ok('  ...dorar.net leads the first group', plan.groups[0].sites.slice(0, 4).includes('dorar.net'),
+      ok('  ...a hadith source leads the first group', plan.groups[0].sites.slice(0, 4).includes('al-abbaad.com'),
         JSON.stringify(plan.groups[0].sites.slice(0, 4)));
       ok('  ...al-abbaad.com is still searchable for hadith',
         plan.groups.some((g) => g.sites.includes('al-abbaad.com')));

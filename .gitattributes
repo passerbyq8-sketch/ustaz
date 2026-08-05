@@ -169,3 +169,19 @@ lib/legacy-policy-flag.js text eol=lf
 guards/rfc-v05r2-entity-world-guard.cjs text eol=lf
 guards/scholar-registry-drift-guard.cjs text eol=lf
 guards/shipped-reality-guard.cjs text eol=lf
+
+# Batch 2. Same reason as every gate above, and one specific to this module: lib/page-match.js
+# matches Arabic ḥāl markers as substrings of a word run, and a CR injected by core.autocrlf on a
+# fresh clone would sit inside one and change what those runs see.
+guards/page-match-guard.cjs text eol=lf
+lib/page-match.js text eol=lf
+guards/takhrij-lock-guard.cjs text eol=lf
+lib/takhrij-lock.js text eol=lf
+lib/frozen-text.js text eol=lf
+guards/quoted-phrase-guard.cjs text eol=lf
+guards/adapted-corpus-guard.cjs text eol=lf
+guards/dead-domains-guard.cjs text eol=lf
+guards/floors-and-filters-guard.cjs text eol=lf
+guards/source-liveness-guard.cjs text eol=lf
+tools/source-liveness.cjs text eol=lf
+data/source-liveness.json text eol=lf

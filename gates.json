@@ -213,5 +213,40 @@
   "name": "shippedreality",
   "script": "guards/shipped-reality-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "pagematch",
+  "script": "guards/page-match-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "takhrij",
+  "script": "guards/takhrij-lock-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "quotedphrase",
+  "script": "guards/quoted-phrase-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "adaptedcorpus",
+  "script": "guards/adapted-corpus-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "deaddomains",
+  "script": "guards/dead-domains-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "floorsfilters",
+  "script": "guards/floors-and-filters-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "liveness",
+  "script": "guards/source-liveness-guard.cjs",
+  "args": ""
  }
 ]

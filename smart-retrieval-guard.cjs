@@ -139,7 +139,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const RESOLVES = [
       ['ابن باز', 'binbaz.org.sa'], ['عبدالعزيز بن باز', 'binbaz.org.sa'],
       ['عبدالمحسن العباد', 'al-abbaad.com'], ['عبد المحسن العباد', 'al-abbaad.com'],
-      ['العباد', 'al-abbaad.com'], ['فركوس', 'ferkous.com'],
+      ['العباد', 'al-abbaad.com'], ['فركوس', 'ferkous.app'],
       ['محمد صالح المنجد', 'almunajjid.com'], ['مصطفى العدوي', 'mostafaaladwy.com'],
     ];
     for (const [n, d] of RESOLVES) {

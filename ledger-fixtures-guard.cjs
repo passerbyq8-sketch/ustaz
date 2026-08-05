@@ -50,16 +50,40 @@ const P = (paras) => '<html><head><title>صفحة</title></head><body><article>'
   + paras.map((p) => '<p>' + p + '</p>').join('\n') + '</article></body></html>';
 
 const LONG = ' وهذا مبسوط في كتب أهل العلم مع بيان الأدلة والتفصيل الوافي في المسألة.'.repeat(6);
+// tafsir.net DECLARES minText: 2500 in lib/source-page-gates.js — it publishes long research
+// articles, and a short page on that host is a stub rather than a study. A fixture standing in for
+// one of its articles has to clear the floor the site itself declares, or the fixture is asserting
+// that the app accepts something the site never publishes.
+const LONGER = ' وهذا مبسوط في كتب أهل العلم مع بيان الأدلة والتفصيل الوافي في المسألة.'.repeat(20);
+// A tafsir.net ARTICLE, shaped the way a real one is. The site's gate in lib/source-page-gates.js
+// refuses an anonymous page outright — «anonymous content is not citable here» — and reads the
+// author from og:type + meta[name=author]. A fixture without those is not a tafsir.net article; it
+// is a page the site would never publish, so giving it the metadata is modelling the source
+// faithfully rather than getting round the gate.
+const PT = (paras) => '<html><head><title>صفحة</title>'
+  + '<meta property="og:type" content="article">'
+  + '<meta name="author" content="فريق موقع تفسير">'
+  + '</head><body><article>'
+  + paras.map((x) => '<p>' + x + '</p>').join('\n') + '</article></body></html>';
 
 const CORPUS = {
-  'https://tafsir.app/saadi/107/4': P([
-    'قوله تعالى فويل للمصلين الذين هم عن صلاتهم ساهون. معنى السهو هنا الغفلة عن الصلاة حتى يخرج وقتها.' + LONG,
-    'وليس المراد السهو العارض في الصلاة الذي يقع لكل مصل.' + LONG,
+  // Was tafsir.app until 2026-08-05. That host is DEFERRED (client-rendered, zero extractable
+  // characters), so the fixture moved to the live tafsir source. The TEXT and every assertion are
+  // unchanged — what F1 proves is that a tafsir question reaches a tafsir-eligible page.
+  'https://tafsir.net/articles/9002': PT([
+    'قوله تعالى فويل للمصلين الذين هم عن صلاتهم ساهون. معنى السهو هنا الغفلة عن الصلاة حتى يخرج وقتها.' + LONGER,
+    'وليس المراد السهو العارض في الصلاة الذي يقع لكل مصل.' + LONGER,
   ]),
   'https://tafsir.net/articles/9001': P([
     'دراسة في معنى قوله تعالى فويل للمصلين. المراد بالساهين المتهاونون بالصلاة.' + LONG,
   ]),
-  'https://dorar.net/hadith/sharh/5001': P([
+  // Was dorar.net until 2026-08-05. That host is DEFERRED (HTTP 403 for every server-side client,
+  // including its own published API). al-abbaad.com is the live source with the highest declared
+  // hadith_explanation priority among hosts that publish readable text (60) AND — the contrast F2
+  // exists to test — it is eligible for hadith EXPLANATION while being ineligible for hadith
+  // GRADING, exactly as dorar.net was the reverse case. (al-abbaad.com scores higher still but
+  // declares requiresTranscript, so a text fixture on it would be refused for the wrong reason.)
+  'https://al-badr.net/articles/5001': P([
     'شرح حديث إنما الأعمال بالنيات. معنى الحديث أن العمل يصح بالنية ويفسد بفقدها.' + LONG,
     'وهذا الحديث أصل عظيم من أصول الدين.' + LONG,
   ]),
@@ -100,11 +124,11 @@ const CORPUS = {
 const RESULTS = {
   tafsir: [
     { url: 'https://islamqa.info/ar/category/prayer', title: 'قائمة', snippet: '' },
-    { url: 'https://tafsir.app/saadi/107/4', title: 'تفسير سورة الماعون', snippet: '' },
+    { url: 'https://tafsir.net/articles/9002', title: 'تفسير سورة الماعون', snippet: '' },
     { url: 'https://tafsir.net/articles/9001', title: 'دراسة قرآنية', snippet: '' },
   ],
   hadith_explanation: [
-    { url: 'https://dorar.net/hadith/sharh/5001', title: 'شرح حديث إنما الأعمال بالنيات', snippet: '' },
+    { url: 'https://al-badr.net/articles/5001', title: 'شرح حديث إنما الأعمال بالنيات', snippet: '' },
   ],
   general_article: [
     { url: 'https://islamqa.info/ar/answers/7001/x', title: 'فضل الصلاة', snippet: '' },

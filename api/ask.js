@@ -53,6 +53,8 @@ import { decideLegacyPolicy } from '../lib/legacy-policy-flag.js';
 // one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
 // one on its own account if it ever did.
 import { classifyWorldIntent } from '../lib/world-intent.js';
+// A takhrij nobody published is never emitted. See lib/takhrij-lock.js for the measured incident.
+import { lockTakhrij } from '../lib/takhrij-lock.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -611,10 +613,39 @@ export default async function handler(req, res) {
   // this point, so this is not sendSynthesizedText(): it writes one text delta, one message_stop
   // and closes ONCE. Every early return in this handler goes through it, which is what keeps the
   // SSE contract identical no matter how many new branches exist.
+  // ── EVERY PAGE THIS REQUEST ACTUALLY FETCHED, IN ONE PLACE ────────────────
+  // The takhrij lock turns on one question — is this attribution ON a page we read? — and that
+  // question has nowhere to be asked unless the pages are reachable from the emission point.
+  // Every retrieval below hands its result to `remember()`, which returns it unchanged.
+  const fetchedPages = [];
+  const remember = (r) => {
+    if (r && Array.isArray(r.sources)) fetchedPages.push(...r.sources);
+    return r;
+  };
+
+  // ── THE SEAL ON EVERY BUFFERED REPLY ──────────────────────────────────────
+  // A hadith left this app marked «رواه البخاري ومسلم» over pages that never said so. Nothing
+  // between the draft and the wire asked whether the attribution was published anywhere, so it is
+  // asked here, on the finished text, deterministically and at no cost. It strips the unsupported
+  // credit and keeps the matn; the frozen texts are exempt inside lib/takhrij-lock.js.
+  //
+  // A template, a refusal or a card carries no takhrij, so for those this returns its input
+  // byte-for-byte — which is why it is safe to put on the one path they all share.
+  const seal = (text) => {
+    const locked = lockTakhrij(String(text == null ? '' : text), fetchedPages);
+    if (locked.removed.length || locked.droppedSentences.length) {
+      console.warn('[takhrij] unsupported takhrij removed:', {
+        removed: locked.removed.map((r) => r.kind).join(','),
+        dropped: locked.droppedSentences.length,
+      });
+    }
+    return locked.text;
+  };
+
   const emitOnce = (text) => {
     clearKeepAlive();
     res.write(`data: ${JSON.stringify({
-      type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text },
+      type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(text) },
     })}\n\n`);
     res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
     return res.end();
@@ -855,7 +886,7 @@ export default async function handler(req, res) {
         const { retrieveWorld } = await import('../lib/retrieve.js');
         // No band, no depth, no purpose: none of them means anything on this list, and passing
         // one would suggest it did.
-        const w = await retrieveWorld(questionText);
+        const w = remember(await retrieveWorld(questionText));
         if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
       } catch (e) {
         console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
@@ -1221,7 +1252,7 @@ export default async function handler(req, res) {
         clearKeepAlive();
         res.write(`data: ${JSON.stringify({
           type: 'content_block_delta', index: 0,
-          delta: { type: 'text_delta', text: draft + (card ? '\n' + card.tag : '') },
+          delta: { type: 'text_delta', text: seal(draft) + (card ? '\n' + card.tag : '') },
         })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
         return res.end();
@@ -1330,7 +1361,7 @@ export default async function handler(req, res) {
         // way; this way it is also spelled the way the sources spell it.
         const asked = lastUserText(body.messages) || attribution.question || '';
         const encQuery = (asked.trim() || `${plan.namedEntity} ${plan.topic || ''}`).trim();
-        const enc = await retrieve(encQuery, { band, depth: effectiveDepth });
+        const enc = remember(await retrieve(encQuery, { band, depth: effectiveDepth }));
         const encSources = (enc.sources || []).slice(0, MAX_SOURCES);
         // WE LOOKED. Whatever happens next, the negation below is now an earned one — and the
         // note that says so is composed here, because the earlier assignment ran before this
@@ -1539,7 +1570,7 @@ export default async function handler(req, res) {
       if (screened && screened.dropWhole) return emitOnce(NO_ATTRIBUTION_AVAILABLE);
       const cleanOut = screened ? screened.text : clean;
       clearKeepAlive();
-      res.write(`data: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: cleanOut } })}\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cleanOut) } })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
     }
@@ -1591,7 +1622,7 @@ export default async function handler(req, res) {
           // `depth` is passed for RETRIEVAL TARGETING only (lib/source-intent.js reads it).
           // It does not reach the model, and effectiveDepth is already the server-decided
           // value, not the client's claim.
-          const out = await retrieve(q, { band, depth: effectiveDepth });
+          const out = remember(await retrieve(q, { band, depth: effectiveDepth }));
           webText = out.text;
           // PRESERVE (was: dropped). Allow-list trust is already established upstream.
           if (Array.isArray(out.sources) && out.sources.length) {
@@ -1706,7 +1737,7 @@ export default async function handler(req, res) {
         const variants = phraseVariants(claimSubject.subject);
         const probe = variants.length > 1 ? variants[0] + ' ' + variants[1] : claimSubject.subject;
         try {
-          const extra = await retrieve(probe, { band, depth: effectiveDepth });
+          const extra = remember(await retrieve(probe, { band, depth: effectiveDepth }));
           if (Array.isArray(extra.sources) && extra.sources.length) {
             retrievedPages.push(...extra.sources);
             supporting = sourcesAddressingSubject(claimSubject.subject, retrievedPages);
@@ -1773,7 +1804,7 @@ export default async function handler(req, res) {
       if (cScreened && cScreened.dropWhole) return emitOnce(NO_ATTRIBUTION_AVAILABLE);
       const cBody = cScreened ? cScreened.text : (cDraft + cNote);
       res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: cBody + cCard },
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cBody) + cCard },
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();

@@ -67,8 +67,16 @@ const INSTITUTIONS = Object.freeze(['eftaa-committee-kw', 'iifa', 'dorar', 'tafs
   const personOwners = [...byOwner.keys()].filter((o) => !INSTITUTIONS.includes(o));
 
   ok('there are active owners to check at all', personOwners.length >= 10, String(personOwners.length));
+  // THE EXCLUSION IS CHECKED AGAINST EVERY ROW, NOT ONLY THE ENABLED ONES. What this assertion is
+  // for is dead weight: an exclusion naming an owner the policy no longer knows at all. A DEFERRED
+  // row still knows its owner — dorar.net was deferred on 2026-08-05 (HTTP 403 for every
+  // server-side client) and its row, its owner and its evidence all survive precisely so the
+  // decision can be reversed in one word. Scoping this to `active` would have deleted the
+  // exclusion for an institution that is still in the table, and re-admitting the site later would
+  // then have silently made it scholar-resolvable.
+  const ownersAnywhere = new Set(SP.POLICY_ROWS.filter((r) => r.ownerId).map((r) => r.ownerId));
   for (const inst of INSTITUTIONS) {
-    ok('excluded by design, and still present in the policy: ' + inst, byOwner.has(inst),
+    ok('excluded by design, and still present in the policy: ' + inst, ownersAnywhere.has(inst),
       'an exclusion for an owner that no longer exists is dead weight — remove it from the list');
   }
 
@@ -119,7 +127,10 @@ const INSTITUTIONS = Object.freeze(['eftaa-committee-kw', 'iifa', 'dorar', 'tafs
     eq('...and it is still not a SOURCES row', REG.findSource('binothaimeen.net') || null, null);
     ok('...and the resolution says so, so no caller can mistake it for a searchable domain',
       REG.resolveScholar('ابن عثيمين').viaAdapter === true);
-    eq('the searchable surface is unchanged', SP.searchableDomains().length, 24);
+    // 24 until 2026-08-05; 22 since the three deferrals and the one ferkous.app admission. The
+    // point of this assertion is that RECOGNISING A SCHOLAR never widens the searchable surface —
+    // which it still does not; the number moved for a different and recorded reason.
+    eq('the searchable surface is unchanged by scholar recognition', SP.searchableDomains().length, 22);
     // A blocked owner must STILL be unresolvable — the allowance is for adapters, not for dead sites.
     const disabled = SP.POLICY_ROWS.filter((r) => r.health !== 'enabled').map((r) => r.domain);
     const leaked = disabled.filter((d) => REG.SCHOLAR_SITES.some((s) => s.domain === d

@@ -707,7 +707,7 @@ const BRAVE_RESULTS = [
         SPOL.POLICY_ROWS.some((r) => r.ownerId === owner), owner);
     }
     ok('adding an entity did NOT activate a source',
-      SPOL.searchableDomains().length === 24, String(SPOL.searchableDomains().length));
+      SPOL.searchableDomains().length === 22, String(SPOL.searchableDomains().length));
   }
 
   globalThis.fetch = realFetch;

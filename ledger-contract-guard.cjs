@@ -79,7 +79,10 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   {
     const registryActive = R.activeSources().map((s) => s.domain).sort();
     eq('the searchable set IS the registry\'s active set', SP.searchableDomains().slice().sort(), registryActive);
-    ok('...and that is 24 domains', registryActive.length === 24, String(registryActive.length));
+    // 24 until 2026-08-05; 22 since dorar.net, tafsir.app and ferkous.com were DEFERRED and
+    // ferkous.app admitted in their place (net -2). The number is pinned DELIBERATELY so that a
+    // domain appearing or vanishing is a failing gate rather than a quiet drift.
+    ok('...and that is 22 domains', registryActive.length === 22, String(registryActive.length));
   }
   // The one adapter-only host: declared, and deliberately unsearchable.
   {
@@ -112,9 +115,15 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   // =========================================================================
   console.log('\n=== C. THE RESTRICTIONS THE BRIEF NAMES, EACH ONE ASSERTED ===');
   const CASES = [
-    ['dorar.net', { hadith_grading: true, hadith_text: true, tafsir: false, scholar_opinion_primary: false }],
+    // DEFERRED 2026-08-05 (HTTP 403 for every server-side client, including its own published API).
+    // The restriction the brief named — a hadith source, never a tafsir source, never a primary
+    // opinion — is still asserted, and now the deferral is asserted on top of it: a non-enabled row
+    // grants NOTHING, so the two former grants must have gone too.
+    ['dorar.net', { hadith_grading: false, hadith_text: false, tafsir: false, scholar_opinion_primary: false }],
     ['tafsir.net', { tafsir: true, fatwa: false, hadith_grading: false, scholar_opinion_primary: false }],
-    ['tafsir.app', { tafsir: true, fatwa: false, hadith_grading: false }],
+    // DEFERRED 2026-08-05 (client-rendered, zero extractable characters). Same shape as dorar.net:
+    // the original refusals stand, and the former grant is gone with the deferral.
+    ['tafsir.app', { tafsir: false, fatwa: false, hadith_grading: false }],
     ['al-abbaad.com', { hadith_text: true, hadith_explanation: true, fatwa: false, tafsir: false, scholar_opinion_primary: false }],
     ['saleh.af.org.sa', { general_article: true, fatwa: false, tafsir: false, hadith_text: false }],
     ['khaledalsabt.com', { tafsir: true, general_article: true, fatwa: false, hadith_grading: false }],
@@ -145,13 +154,24 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     ok('every capability list is non-empty', C.CAPABILITIES.every((c) => SP.domainsForCapability(c).length > 0),
       C.CAPABILITIES.map((c) => c + '=' + SP.domainsForCapability(c).length).join(' '));
   }
-  // eligibleSites RETURNS EMPTY rather than falling back — the opposite of the shipped scope
-  // filter, because here an empty list means "refuse", not "search everything".
+  // eligibleSites RETURNS EMPTY rather than falling back: here an empty list means "refuse", not
+  // "search everything".
+  //
+  // THE TWO FILTERS NOW AGREE, AND THAT IS THE FIX, NOT A LOST ASSERTION. This block used to
+  // record a DIVERGENCE — the ledger refused, the shipped scope filter fell back to the unfiltered
+  // list — and the divergence was the defect. MEASURED: filterSitesForPurpose(SITES_GENERAL,
+  // 'fatwa') handed back all four news domains, every one of which carries `scopes: []` precisely
+  // so that a news page can never back a ruling. The fallback returned exactly what the rule had
+  // refused. It is gone, and the assertion below is now that both halves of the app refuse the
+  // same thing rather than that one of them does.
   {
     const none = SP.eligibleSites(['khutabaa.com', 'salafcenter.org'], 'fatwa');
     eq('an all-ineligible list narrows to nothing (no fallback)', none, []);
-    ok('...while the shipped filter still falls back to the full list',
-      R.filterSitesForPurpose(['khutabaa.com'], 'fatwa').length === 1);
+    eq('...and the shipped filter now refuses it too, instead of falling back',
+      R.filterSitesForPurpose(['khutabaa.com', 'salafcenter.org'], 'fatwa'), []);
+    // The narrowing is still a NARROWING, not a wipe: an eligible member survives.
+    eq('...while a list with an eligible member keeps exactly that member',
+      R.filterSitesForPurpose(['khutabaa.com', 'islamqa.info'], 'fatwa'), ['islamqa.info']);
   }
 
   // =========================================================================

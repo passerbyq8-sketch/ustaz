@@ -115,6 +115,35 @@ const quotedDomains = (body) =>
   eq('registry minor set == SITES_MINOR', sorted(R.domainsForBand('minor')), sorted(minorArr));
   eq('registry minor-fallback set == SITES_MINOR_FALLBACK', sorted(R.domainsForBand('minor-fallback')), sorted(fallbackArr));
 
+  // ── THE CHILD'S ROSTER, PINNED BY NAME (batch 2, step 10) ─────────────────
+  // Widened on 2026-08-05 by an explicit decision of the project's owner, from two domains to
+  // eight. Pinned as a literal list rather than a count, because WHICH sources a child's search
+  // may draw from is a decision somebody made — a domain quietly appearing here should be a
+  // failing gate, not a diff nobody reads.
+  //
+  // dorar.net is named in that decision and is CONDITIONALLY ABSENT: it was to be included «إن
+  // أُحيي», and it was not. Measured the same day, it answers HTTP 403 to every server-side
+  // request including its own published API. The condition is asserted below so that reviving the
+  // domain and forgetting the child's list cannot both happen quietly.
+  eq('the child roster is exactly the eight the owner named', sorted(minorArr), sorted([
+    'islamqa.info', 'binbaz.org.sa', 'islamweb.net', 'alukah.net',
+    'iifa-aifi.org', 'islamstory.com', 'ibn-jebreen.com', 'almosleh.com',
+  ]));
+  ok('dorar.net is on the child list ONLY if it was revived',
+    minorArr.includes('dorar.net') === ((R.findSource('dorar.net') || {}).status === 'active'),
+    'status=' + (R.findSource('dorar.net') || {}).status + ' onList=' + minorArr.includes('dorar.net'));
+  // The Kuwaiti fallback stays a FALLBACK — not folded into the primary list, which is what keeps
+  // a child's ordinary question costing one search rather than two.
+  eq('the Kuwaiti fallback is still a separate tier', sorted(fallbackArr), ['eftaa.awqaf.gov.kw']);
+  ok('...and is not duplicated into the primary child list', !minorArr.includes('eftaa.awqaf.gov.kw'));
+  // Every child-list domain must be one the liveness measurement says can produce a citation.
+  {
+    const live = JSON.parse(fs.readFileSync(path.join(REPO, 'data', 'source-liveness.json'), 'utf8'));
+    const byDomain = new Map(live.domains.map((r) => [r.domain, r]));
+    const notLive = minorArr.filter((d) => (byDomain.get(d) || {}).status !== 'live-cites');
+    eq('every domain on the child list was MEASURED able to produce a citation', notLive, []);
+  }
+
   // No domain may appear twice inside one shipped array either.
   eq('SITES_ADULT has no repeated domain', adultArr.length, new Set(adultArr).size);
   ok('every SITES_ADULT entry is already normalised (no www., no scheme, no slash)',
@@ -147,9 +176,17 @@ const quotedDomains = (body) =>
   ok('...different domains, and neither is a sub-domain of the other',
     tApp.domain !== tNet.domain
     && !R.hostMatches(tApp.domain, tNet.domain) && !R.hostMatches(tNet.domain, tApp.domain));
-  ok('...and both appear, once each, in SITES_ADULT',
-    adultArr.filter((d) => d === 'tafsir.app').length === 1
-    && adultArr.filter((d) => d === 'tafsir.net').length === 1);
+  // tafsir.net is on SITES_ADULT exactly once. tafsir.app was too until 2026-08-05, when it was
+  // deferred for LIVENESS — 200, ~150 KB, empty <body>, zero extractable characters. The
+  // distinction matters and is asserted rather than assumed: it did NOT lose its place because a
+  // neighbour with a similar name arrived, which is exactly the confusion these checks exist to
+  // prevent. Its row still stands, still says why, and re-admitting it is a one-word change.
+  ok('tafsir.net appears exactly once in SITES_ADULT',
+    adultArr.filter((d) => d === 'tafsir.net').length === 1);
+  ok('tafsir.app is absent from SITES_ADULT because it is DEFERRED, not displaced',
+    !adultArr.includes('tafsir.app') && tApp.status === 'deferred'
+    && /مؤجَّل|2026-08-05/.test(String(tApp.note || '')),
+    'status=' + tApp.status + ' note=' + String(tApp.note || '').slice(0, 60));
   ok('a lookup of one never returns the other',
     R.findSource('https://www.tafsir.net/articles/1') === tNet
     && R.findSource('https://tafsir.app/tabari/2/3') === tApp);
@@ -202,21 +239,42 @@ const quotedDomains = (body) =>
   // =========================================================================
   console.log('\n=== C. SCOPE (a khutbah archive may not issue a fatwa) ===');
 
-  // THE NON-REGRESSION INVARIANT, and the most important assertion in this file: the fifteen
-  // sources that predate the registry are narrowed by NOTHING, for ANY purpose. Scope
-  // filtering can only ever remove a source that was admitted on condition of a scope.
-  const LEGACY = ['islamweb.net', 'binbaz.org.sa', 'alukah.net', 'islamqa.info', 'sh-albarrak.com',
+  // THE NON-REGRESSION INVARIANT, and the most important assertion in this file: a source that
+  // predates the registry is narrowed by NOTHING, for ANY purpose. Scope filtering can only ever
+  // remove a source that was admitted on condition of a scope.
+  //
+  // ── WHY THE LIST IS NOW IN TWO HALVES (2026-08-05) ──
+  // Three of the original fifteen were DEFERRED for LIVENESS, which is a different fact from
+  // scope and must not be allowed to look like one:
+  //   ferkous.com  — the site moved to ferkous.app (302 on every path; the redirect lands on HTTP,
+  //                  which canonical.js refuses). The material is still reachable, under the new
+  //                  name, which is on the list below.
+  //   tafsir.app   — 200 and ~150 KB with an empty <body>; zero extractable characters.
+  //   dorar.net    — HTTP 403 for every server-side client, including its own published API.
+  //
+  // The assertion is NOT weakened by splitting it; it is made in both directions. Every still-live
+  // legacy source must STILL be unnarrowed by every purpose (the original claim, unchanged), and
+  // every deferred one must be refused for every purpose — because a domain that cannot answer
+  // must not sit in a candidate list looking like coverage.
+  const LEGACY_LIVE = ['islamweb.net', 'binbaz.org.sa', 'alukah.net', 'islamqa.info', 'sh-albarrak.com',
     'almosleh.com', 'islamstory.com', 'al-badr.net', 'othmanalkhamees.com', 'iifa-aifi.org',
-    'ferkous.com', 'tafsir.app', 'dorar.net', 'dr-mutlaq.com', 'eftaa.awqaf.gov.kw'];
-  eq('the fifteen pre-existing sources are all registered', LEGACY.filter((d) => !R.findSource(d)), []);
+    'ferkous.app', 'dr-mutlaq.com', 'eftaa.awqaf.gov.kw'];
+  const LEGACY_DEFERRED = ['ferkous.com', 'tafsir.app', 'dorar.net'];
+  const LEGACY = LEGACY_LIVE.concat(LEGACY_DEFERRED);
+  eq('the fifteen pre-existing sources are all still registered', LEGACY.filter((d) => !R.findSource(d)), []);
+  eq('...and none of them was deleted rather than deferred',
+    LEGACY_DEFERRED.filter((d) => (R.findSource(d) || {}).status !== 'deferred'), []);
   for (const p of R.PURPOSES) {
-    ok('purpose "' + p + '": not one of the fifteen is dropped',
-      LEGACY.every((d) => R.sourceAllowsPurpose(d, p)),
-      LEGACY.filter((d) => !R.sourceAllowsPurpose(d, p)).join(', '));
+    ok('purpose "' + p + '": not one of the LIVE legacy sources is dropped',
+      LEGACY_LIVE.every((d) => R.sourceAllowsPurpose(d, p)),
+      LEGACY_LIVE.filter((d) => !R.sourceAllowsPurpose(d, p)).join(', '));
+    ok('purpose "' + p + '": every DEFERRED legacy source is refused',
+      LEGACY_DEFERRED.every((d) => !R.sourceAllowsPurpose(d, p)),
+      LEGACY_DEFERRED.filter((d) => R.sourceAllowsPurpose(d, p)).join(', '));
   }
   for (const p of R.PURPOSES) {
-    const kept = R.filterSitesForPurpose(LEGACY, p);
-    eq('filterSitesForPurpose(fifteen, "' + p + '") is the identity', kept, LEGACY);
+    const kept = R.filterSitesForPurpose(LEGACY_LIVE, p);
+    eq('filterSitesForPurpose(live legacy, "' + p + '") is the identity', kept, LEGACY_LIVE);
   }
 
   // The five restrictions the brief spells out, each asserted as a refusal.
@@ -244,9 +302,15 @@ const quotedDomains = (body) =>
   ok('العباد: NOT a source for tafsir (withheld for now)', !R.sourceAllowsPurpose('al-abbaad.com', 'tafsir'));
   ok('العباد: IS a source for hadith', R.sourceAllowsPurpose('al-abbaad.com', 'hadith'));
   ok('العباد: IS a source for general explanation', R.sourceAllowsPurpose('al-abbaad.com', 'general'));
-  // tafsir.app is one of the fifteen and keeps ALL scopes — adding tafsir.net narrowed nothing.
-  ok('tafsir.app keeps every scope (the new neighbour narrowed nothing)',
-    R.PURPOSES.every((p) => R.sourceAllowsPurpose('tafsir.app', p)));
+  // ADDING tafsir.net NARROWED NOTHING, and that is still the claim being tested — it is now
+  // tested on the source that is still live. tafsir.app serves no purpose today because it is
+  // DEFERRED for liveness (see above), and its scopes were emptied by that deferral rather than by
+  // the arrival of a neighbour; the assertion below pins the reason, not just the outcome.
+  ok('tafsir.net keeps every scope it was admitted with (the neighbour narrowed nothing)',
+    R.sourceAllowsPurpose('tafsir.net', 'tafsir') && R.sourceAllowsPurpose('tafsir.net', 'general'));
+  ok('tafsir.app serves no purpose, and the reason recorded is DEFERRAL',
+    R.PURPOSES.every((p) => !R.sourceAllowsPurpose('tafsir.app', p))
+    && R.findSource('tafsir.app').status === 'deferred');
 
   const droppedForFatwa = adultArr.filter((d) => !R.filterSitesForPurpose(adultArr, 'fatwa').includes(d));
   eq('a fatwa query drops exactly the seven scope-restricted sources', sorted(droppedForFatwa),
@@ -801,7 +865,19 @@ const quotedDomains = (body) =>
   ok('candidates are path-refused BEFORE the fetch', /const why = pathRefusal\(r\.link, ''\)/.test(retrieveSrc));
   ok('the FINAL post-redirect host is still enforced against the band list',
     /if \(!hostAllowed\(finalHost, allowSites\)\)/.test(retrieveSrc));
-  ok('a page under 200 chars is still refused', /if \(text\.length < 200\)/.test(retrieveSrc));
+  // A THIN PAGE IS STILL REFUSED — the claim is unchanged; what changed is which number counts.
+  // The flat 200 was overriding floors that lib/source-page-gates.js declares per host, and the
+  // measured casualty was mostafaaladwy.com: it declares `minText: 20`, its /fatwa/49996 extracts
+  // to 110 characters of real question-and-answer, and the flat comparison threw it away after it
+  // had cleared its own host's gate. The floor is now the declared one where there is one, and 200
+  // where there is not — and it is asserted in BOTH directions below.
+  ok('a page under the EFFECTIVE floor is still refused',
+    /if \(text\.length < floor\)/.test(retrieveSrc));
+  ok('...the generic default is still 200 for a host that declares nothing',
+    /GENERIC_MIN_TEXT = 200/.test(retrieveSrc));
+  ok('...and a host\'s own declaration is what governs when it made one',
+    /const declared = declaredMinText\(/.test(retrieveSrc)
+    && /declared === null \? GENERIC_MIN_TEXT : declared/.test(retrieveSrc));
   ok('retrieval still degrades to NO_SOURCE_TEXT with an empty sources array',
     /return \{ text: NO_SOURCE_TEXT, sources: \[\] \};/.test(retrieveSrc));
   ok('the source object carries author + attributionType', /attributionType: k\.attributionType/.test(retrieveSrc));
