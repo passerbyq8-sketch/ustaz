@@ -7923,6 +7923,12 @@ function App() {
         ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' && hasFounderToken() ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
         // band: so the server restricts RAG sources by age (khilaf-policy §6: under-18 => islamqa+binbaz).
         ...(mode === 'chat' && endpoint === '/api/ask' ? { band: deriveCaps(p.age).band } : {}),
+        // AND THE VOICE ROUTE TOO. api/chat.js now runs the same age policy and the same floor the
+        // typed route runs, and it had nothing to run them ON: the band was sent only to /api/ask,
+        // so every voice turn resolved to the unknown-reader default and a child got an adult's
+        // answer. The server DELETES this field before forwarding — /v1/messages 400s on an
+        // unknown top-level field — so it never reaches the vendor.
+        ...(endpoint === '/api/chat' ? { band: deriveCaps(p.age).band } : {}),
       };
       const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, system: __sysPrompt, messages: msgs, ...__extra });
       // Item 1 / defect 44: drop OLDEST turns until the body fits CLIENT_BUDGET, measured the SERVER's

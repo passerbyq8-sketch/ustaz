@@ -224,6 +224,68 @@ const UNRELATED_TEXT = 'عروض التجارة هي كل ما أعد للبيع
       'policyFor() returned ' + JSON.stringify(row && row.health));
   }
 
+  // ── 7b. AN EMPTY MEASURE IS NOT A PASS ─────────────────────────────────────
+  //
+  // MEASURED: the scholar's name is stripped out of the query before the search, deliberately —
+  // «ما رأي فلان في الصيام؟» goes to the provider as «الصيام». When the stripping leaves NO
+  // pivot term at all, matchPage used to answer `match / no-pivot-terms-in-question`, i.e. it
+  // accepted EVERY page it was shown. A check that cannot measure anything must not certify
+  // anything. Nor may it refuse: the weakness here is on the side of acceptance, and the
+  // correction is to stop calling it certain — not to turn it into a rejection.
+  {
+    const empty = PM.matchPage({
+      question: 'ما رأيك يا شيخ؟',
+      title: 'أي صفحة كانت',
+      text: 'نصٌّ لا علاقة له بشيء مما سأل عنه القارئ، وهو مع ذلك صفحة نظيفة من موقع موثوق.',
+    });
+    ok('a question with NO pivot term of its own yields no measurable terms',
+      Array.isArray(empty.terms) && empty.terms.length === 0, JSON.stringify(empty.terms));
+    ok('...and the verdict is UNSURE, never a certified match',
+      empty.verdict === 'unsure', 'verdict=' + empty.verdict + ' reason=' + empty.reason);
+    ok('...and it is NOT a rejection either', empty.verdict !== 'reject');
+    ok('...and the reason names the cause',
+      /no-pivot-terms-in-question/.test(String(empty.reason)), String(empty.reason));
+    ok('...and it carries no false confidence in its coverage',
+      empty.coverage === 0, String(empty.coverage));
+    ok('...so a CONFIRMED page can be preferred over it and it survives as a fallback',
+      PM.needsModelCheck(empty) === true);
+  }
+
+  // ── 7c. THE MEASURE IS TAKEN ON THE QUERY THAT WAS ACTUALLY SENT ───────────
+  //
+  // The planner SHORTENS a question that will not fit the provider's ceiling (lib/brave-query.js
+  // planQueries -> `question`/`shortened`). Scoring a returned page against words that were never
+  // in the search punishes it for not answering something nobody asked the provider. So coverage
+  // is measured on the SENT terms — while the ḥāl rule keeps reading the reader's own words,
+  // because a page about the ignorant is the wrong page for the lazy whether or not the shortener
+  // happened to keep «تكاسلًا».
+  {
+    const sent = PM.pivotTerms('حكم ترك الصلاة').terms;
+    const scored = PM.matchPage({
+      question: Q_LAZINESS,                 // the reader's words — the ḥāl rule reads these
+      terms: sent,                          // the sent query — the coverage is measured on these
+      title: LAZINESS_TITLE, text: LAZINESS_TEXT,
+    });
+    ok('coverage is measured on the SENT terms, not the raw question',
+      JSON.stringify(scored.terms) === JSON.stringify(sent),
+      'terms=' + JSON.stringify(scored.terms) + ' sent=' + JSON.stringify(sent));
+    const conflict = PM.matchPage({
+      question: Q_LAZINESS, terms: sent, title: IGNORANCE_TITLE, text: IGNORANCE_TEXT,
+    });
+    ok('...and the ḥāl rule still refuses the wrong state, read from the reader\'s own words',
+      conflict.verdict === 'reject' && /qualifier-conflict/.test(String(conflict.reason)),
+      'verdict=' + conflict.verdict + ' reason=' + conflict.reason);
+  }
+  {
+    // And the wiring: lib/retrieve.js must hand matchPage the terms of the query it sent.
+    ok('lib/retrieve.js derives the match terms from the query it actually sent',
+      /pivotTerms\(\s*plan\.question\s*\)/.test(retrieveSrc),
+      'the terms must come from plan.question, not from the caller\'s raw string');
+    ok('...and passes them to matchPage as `terms`',
+      /matchPage\(\{[^}]*\bterms:\s*sentTerms\b/.test(retrieveSrc),
+      'matchPage must be given the sent terms');
+  }
+
   // ── 8. THE BUDGETS ARE NOT RAISED TO PAY FOR THIS ──────────────────────────
   const B = await esm('lib/ledger/budgets.js');
   ok('MAX_MODEL_CALLS is still 7', B.MAX_MODEL_CALLS === 7, 'got ' + B.MAX_MODEL_CALLS);

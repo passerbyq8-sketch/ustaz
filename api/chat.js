@@ -2,6 +2,26 @@
 import { checkChatLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
 import { guardDayCap, dayCapMessage, sendCapMessageSse } from '../lib/daycap.js';
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
+// THE SAME POLICY CORE THE TEXT PATH READS, not a second copy of it. A hazard list that lives in
+// two files is two lists, and the one that goes stale is always the one nobody is looking at.
+import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION } from '../lib/policy/core.js';
+import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
+
+// The reader's own words for THIS turn. Same shape api/ask.js reads: the content may be a plain
+// string or the block array the voice client sends.
+function lastUserText(messages) {
+  const list = Array.isArray(messages) ? messages : [];
+  for (let i = list.length - 1; i >= 0; i--) {
+    const m = list[i];
+    if (!m || m.role !== 'user') continue;
+    if (typeof m.content === 'string') return m.content;
+    if (Array.isArray(m.content)) {
+      return m.content.filter((c) => c && c.type === 'text' && typeof c.text === 'string')
+        .map((c) => c.text).join(' ');
+    }
+  }
+  return '';
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -59,6 +79,7 @@ export default async function handler(req, res) {
   // adds prompt caching. Degrades gracefully to the original body if anything goes wrong,
   // so a parse/shape surprise can never crash the relay.
   let outgoingBody = req.body;
+  let voiceBand;
   try {
     // req.body is an object on Vercel Node functions, but tolerate a raw string too.
     const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : { ...req.body };
@@ -111,6 +132,12 @@ export default async function handler(req, res) {
       }
     }
 
+    // (C) THE AGE BAND IS OURS TO READ AND NOT ANTHROPIC'S TO RECEIVE. `band` is a field this app
+    //     adds so the policy below has something to govern by; /v1/messages rejects the whole
+    //     request on an unknown top-level field, exactly as `output_config` above does.
+    voiceBand = typeof parsed.band === 'string' ? parsed.band : undefined;
+    if (parsed.band !== undefined) delete parsed.band;
+
     outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.
   } catch (e) {
     // We do NOT pass the raw client body through any more. The old "graceful
@@ -120,6 +147,51 @@ export default async function handler(req, res) {
     console.warn('[chat] body transform failed:', e && e.message ? e.message : e);
     return res.status(400).json({ error: 'bad body' });
   }
+
+  // ── TRIAGE, ON THE VOICE TURN, BEFORE ANY MODEL CALL ──────────────────────
+  //
+  // THE HOLE THIS CLOSES, MEASURED. This relay had no hazard triage, no age policy and no source:
+  // it throttled, capped and forwarded. So a child asking BY VOICE how to mix cleaning chemicals
+  // reached the vendor and came back answered — while the identical question TYPED was refused,
+  // because `graveHazard` is unconditional in api/ask.js AND NOWHERE ELSE. Two doors into the
+  // same building and one of them unguarded.
+  //
+  // IT RUNS BEFORE THE DAY CAP AS WELL AS BEFORE THE FETCH. A refusal costs nothing, and it must
+  // not cost the reader one of their questions for the day either.
+  //
+  // WHAT THIS IS NOT: the voice path is still NOT routed through api/ask.js. That is a larger
+  // batch — it needs retrieval, source cards and the consistency screen on a streamed reply — and
+  // doing half of it here would be worse than either end of it.
+  const voiceText = lastUserText(outgoingBody && outgoingBody.messages);
+  const voiceAudience = resolveAudience({ serverBand: null, clientBand: voiceBand });
+  const voiceHazard = graveHazard(voiceText);
+  if (voiceHazard) {
+    // The SAME redirect the text path emits, from the same constant. Band-independent, exactly as
+    // it is in api/ask.js: this is refused for everybody, not only for a reader who declared a age.
+    console.warn('[policy] SAFETY_REDIRECT', {
+      topic: voiceHazard, band: voiceAudience.band, path: 'voice', policyVersion: POLICY_VERSION,
+    });
+    return sendCapMessageSse(res, WARM_TEMPLATES.SAFETY_REDIRECT);
+  }
+
+  const voiceTopic = classifyTopic(voiceText, null);
+  const voiceAccess = access({ topicClass: voiceTopic, audienceBand: voiceAudience.band });
+  console.log('[policy] voice', {
+    topicClass: voiceTopic, band: voiceAudience.band, audienceSource: voiceAudience.audienceSource,
+    outcome: voiceAccess.outcome, sourcePolicy: voiceAccess.sourcePolicy, policyVersion: POLICY_VERSION,
+  });
+  // An access decision that is not "answer it" is answered by the warm template the policy names,
+  // and never by the model. Same rule, same templates, same wording as the typed path.
+  if (voiceAccess.outcome && voiceAccess.outcome !== 'ALLOW') {
+    const tpl = warmTemplateFor(voiceAccess.sourcePolicy);
+    if (tpl) return sendCapMessageSse(res, tpl);
+  }
+  // THE FLOOR. A benign question from a child gets a reply that is checked before it is spoken:
+  // the patch test, the parent loop, the refusal of a harmful instruction. It costs the SAME one
+  // upstream call — the reply is taken whole instead of streamed — and it applies only to the
+  // bands it is written for, so an adult's voice turn is the byte relay it always was.
+  const floorThisTurn = (voiceAudience.band === 'young' || voiceAudience.band === 'teen')
+    && voiceAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN';
 
   try {
     // DAILY QUESTION CAP (directive 78). One guard call, after body parse, before the
@@ -148,7 +220,9 @@ export default async function handler(req, res) {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify(outgoingBody),
+      // The floor needs a whole draft to judge, so that one case asks for the reply in one piece.
+      // Everything else streams exactly as it did.
+      body: JSON.stringify(floorThisTurn ? { ...outgoingBody, stream: false } : outgoingBody),
     });
 
     // Upstream error (429 / credit exhausted / 5xx): forward body + status as-is so the
@@ -159,6 +233,26 @@ export default async function handler(req, res) {
       res.status(upstream.status);
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       return res.end(errText || JSON.stringify({ error: { message: `upstream ${upstream.status}` } }));
+    }
+
+    // ── THE AGE FLOOR, ON THE VOICE TURN, EXACTLY AS ON THE TYPED ONE ───────
+    // A draft that is merely INCOMPLETE — it forgot the patch test, it forgot to bring a parent in
+    // — is completed deterministically from sentences this server owns. A draft that told a child
+    // to rub lemon on their lips is discarded whole, because a warning bolted onto the end of a
+    // harmful instruction is still the harmful instruction. Emitted in the one frame shape the
+    // live client already consumes, so no client change is needed.
+    if (floorThisTurn) {
+      const payload = await upstream.json().catch(() => null);
+      const draft = ((payload && payload.content) || [])
+        .filter((b) => b && b.type === 'text').map((b) => b.text).join('').trim();
+      const rep = ageRepair(draft, { topicClass: voiceTopic, audienceBand: voiceAudience.band });
+      console.log('[policy] AGE_FLOOR voice', {
+        topicClass: voiceTopic, band: voiceAudience.band,
+        ageFloorOutcome: rep.outcome, repaired: rep.repaired, problems: rep.problems,
+      });
+      // A DISCARDED DRAFT FALLS BACK TO THE CHILD LINE, not to the hazard redirect — the redirect
+      // answers a question this child did not ask and reads to them as an accusation.
+      return sendCapMessageSse(res, rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN'));
     }
 
     // Thin streaming relay: forward the SSE bytes unmodified; the client parses the events.

@@ -327,6 +327,66 @@ function eq(name, actual, expected) {
   ok('the refusal makes no religious claim of its own',
     !/يجوز|حرام|مستحب|بدعة/.test(C.CLAIM_REFUSAL), C.CLAIM_REFUSAL);
 
+  // =========================================================================
+  // H. AN ARITHMETICALLY FALSE COMPARISON NEEDS NO SOURCE TO REFUTE
+  //
+  // MEASURED, batch 5: «المسافة ١٥٠ كيلومترًا وهي لا تبلغ ٨٠ كيلومترًا». Both halves are in one
+  // sentence and one of them is simply false — 150 does reach 80. No page has to be fetched to
+  // know that, and no evidence rule in the building looks at it: every screen we have asks where
+  // a claim CAME FROM, and this one is refuted by reading it.
+  console.log('\n=== H. NUMERIC SELF-CONTRADICTION ===');
+  {
+    const CG = await import('file://' + path.join(REPO, 'lib', 'policy', 'consistency-gate.js').replace(/\\/g, '/'));
+    ok('the problem code is declared', !!CG.PROBLEM.NUMERIC_CONTRADICTION);
+    // The tools are the ones that already exist. A second number parser beside lib/duration.js is
+    // two parsers that can disagree about what «ثمانين» is.
+    ok('lib/duration.js exposes the cardinals rather than hiding them',
+      CG.PROBLEM.NUMERIC_CONTRADICTION && D.CARDINALS && typeof D.CARDINALS === 'object');
+    ok('the screen reads them from lib/duration.js and parses no digits of its own',
+      /from '\.\.\/duration\.js'/.test(fs.readFileSync(path.join(REPO, 'lib', 'policy', 'consistency-gate.js'), 'utf8')));
+
+    const p = (t) => CG.consistencyProblems(t, {});
+    const has = (t) => p(t).includes(CG.PROBLEM.NUMERIC_CONTRADICTION);
+
+    // ── RED: the measured sentence, in digits, in Arabic-Indic digits, and in words ──
+    ok('«١٥٠ كيلومترًا وهي لا تبلغ ٨٠ كيلومترًا» is refuted',
+      has('المسافة ١٥٠ كيلومترًا وهي لا تبلغ ٨٠ كيلومترًا.'), JSON.stringify(p('المسافة ١٥٠ كيلومترًا وهي لا تبلغ ٨٠ كيلومترًا.')));
+    ok('...in western digits too',
+      has('المسافة 150 كيلومترا وهي لا تبلغ 80 كيلومترا.'));
+    ok('...and when the second number drops its unit',
+      has('المسافة 150 كيلومترا وهي لا تبلغ 80.'));
+    ok('a false "more than" is refuted as well',
+      has('المسافة 50 كيلومترا وهي أكثر من 80 كيلومترا.'));
+    ok('...and a false "less than"',
+      has('مدة السفر 30 يوما وهي أقل من 10 أيام.'));
+
+    // ── GREEN: everything true, and everything not a comparison, is untouched ──
+    for (const t of [
+      'المسافة 150 كيلومترا وهي تزيد على 80 كيلومترا.',      // true
+      'المسافة 50 كيلومترا وهي لا تبلغ 80 كيلومترا.',         // true
+      'المسافة 80 كيلومترا وهي لا تزيد على 80 كيلومترا.',     // true at the boundary
+      'صلى أربع ركعات ثم سافر أكثر من 80 كيلومترا.',          // two numbers, DIFFERENT units
+      'المسافة 150 كيلومترا.',                                 // one number
+      'قصر الصلاة في السفر مشروع بالكتاب والسنة.',            // no number at all
+      'المسافة 150 كيلومترا، ومدة الإقامة أقل من 4 أيام.',    // two comparisons, both true
+    ]) ok('untouched: «' + t.slice(0, 40) + '…»', !has(t), JSON.stringify(p(t)));
+
+    // A verse that counts is not a contradiction, and is outside this check regardless.
+    ok('a frozen text is outside the check',
+      !has('فَصِيَامُ ثَلَاثَةِ أَيَّامٍ فِي الْحَجِّ وَسَبْعَةٍ إِذَا رَجَعْتُمْ تِلْكَ عَشَرَةٌ كَامِلَةٌ'));
+
+    // ── THE SENTENCE GOES, THE ANSWER STAYS ──
+    {
+      const v = CG.screenDraft(
+        'قصر الصلاة في السفر مشروع بالكتاب والسنة. المسافة 150 كيلومترا وهي لا تبلغ 80 كيلومترا.', {});
+      ok('the contradicting sentence is dropped',
+        v.droppedSentences.length === 1 && /لا تبلغ/.test(v.droppedSentences[0]),
+        JSON.stringify(v.droppedSentences));
+      ok('...and the rest of the answer survives',
+        /مشروع بالكتاب والسنة/.test(v.text) && v.dropWhole === false, JSON.stringify(v));
+    }
+  }
+
   console.log('');
   if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed.');
   else console.log('FAILED: ' + failures + ' of ' + checks + ' checks failed.');

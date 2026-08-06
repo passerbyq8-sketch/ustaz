@@ -324,26 +324,40 @@ const NO_VERIFIED_SOURCE_MESSAGE =
 //   index.html:1320-1321  site=["']([^"']+)["'] and url=["']([^"']+)["']  -> values hold no quote
 // Anything that will not fit that grammar is REJECTED rather than escaped into something
 // the parser would silently truncate.
+// A refusal that says why, and about which page. MEASURED, batch 4: an answer came back
+// with zero cards and the log held nothing at all, so "the provider returned nothing" and
+// "we fetched three good pages and could not encode any of them" looked identical from the
+// outside. They are opposite bugs. The return value is unchanged — a refused card is still
+// exactly `null`, which is the contract source-registry-guard.cjs depends on; the only thing
+// added is the line.
+function dropCard(reason, raw) {
+  const where = raw == null ? '(no url)' : String(raw).slice(0, 200);
+  console.warn(`[card] drop ${reason} — ${where}`);
+  return null;
+}
+
 export function buildSourceTag(src) {
-  if (!src || typeof src.url !== 'string') return null;
+  if (!src || typeof src.url !== 'string') return dropCard('no-url', src && src.url);
   const raw = src.url.trim();
-  if (!raw) return null;
+  if (!raw) return dropCard('empty-url', src.url);
 
   let u;
-  try { u = new URL(raw); } catch { return null; }
+  try { u = new URL(raw); } catch { return dropCard('unparseable-url', raw); }
   // https ONLY. This is also what rejects javascript:, data:, file: and bare http:.
-  if (u.protocol !== 'https:') return null;
+  if (u.protocol !== 'https:') return dropCard('not-https', raw);
 
   const host = (u.hostname || '').toLowerCase().replace(/^www\./, '');
   // Plain dotted hostname. No userinfo, no IP-literal brackets, no stray punctuation.
-  if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(host)) return null;
-  if (u.username || u.password) return null;
+  if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(host)) {
+    return dropCard('bad-host', raw);
+  }
+  if (u.username || u.password) return dropCard('userinfo-in-url', raw);
 
   // WHATWG href already percent-encodes " < > and whitespace; the apostrophe is not
   // encoded but WOULD close the attribute early under the client's [^"']+ class, so
   // encode it explicitly, then refuse anything still hostile to the grammar.
   const url = u.href.replace(/'/g, '%27');
-  if (/["'<>\s]/.test(url)) return null;
+  if (/["'<>\s]/.test(url)) return dropCard('hostile-char-in-url', raw);
 
   const title = String(src.title == null ? '' : src.title)
     .replace(/[<>]/g, ' ')       // never let the card's own text open or close a tag
@@ -393,14 +407,25 @@ export function canonicalKey(url) {
 export function pickVerifiedSources(sources, limit = MAX_SOURCES) {
   const out = [];
   const seen = new Set();
-  for (const s of sources || []) {
+  const input = sources || [];
+  let considered = 0;
+  for (const s of input) {
     if (out.length >= limit) break;
-    const built = buildSourceTag(s);
+    considered++;
+    const built = buildSourceTag(s);   // says its own reason if it refuses
     if (!built) continue;
     const key = canonicalKey(built.url);
-    if (!key || seen.has(key)) continue;
+    if (!key) { console.warn(`[card] drop uncanonicalisable — ${built.url}`); continue; }
+    if (seen.has(key)) { console.warn(`[card] drop duplicate — ${built.url}`); continue; }
     seen.add(key);
     out.push(built);
+  }
+  // THE LINE THAT TELLS THE TWO ZEROES APART. Zero cards from zero pages is a search that
+  // found nothing — normal, and already logged upstream by lib/retrieve.js. Zero cards from
+  // N pages is OUR encoder throwing away material a working search paid for, and before this
+  // line it left no trace anywhere.
+  if (considered > 0 && out.length === 0) {
+    console.warn(`[card] none — ${considered} retrieved page(s) reached card-build and NOT ONE could be encoded`);
   }
   return out;
 }
@@ -1243,7 +1268,13 @@ export default async function handler(req, res) {
     // band's ordinary approved list below; only after that search may anything be refused, and
     // lib/policy/consistency-gate.js will not let a «لم أقف» be written without it. Nothing here
     // credits him with anything — that still requires a page, and the grade caps are untouched.
-    if (plan.needsScholarIdentity && plan.scholarStatus === 'ambiguous') {
+    // AMBIGUITY ALONE, and no second condition on top of it. `needsScholarIdentity` used to be
+    // required here as well, and it is a question about whether we hold a CORPUS for the man —
+    // which has nothing to do with whether we know which man he is. MEASURED: «ابن حجر» came
+    // through with both facts true, so the branch was reachable; the reason it was not reached is
+    // recorded in lib/ask-plan.js, where a narrower resolver was overwriting the ambiguity. Two
+    // conditions guarding one honest question is one more than it can carry.
+    if (plan.scholarStatus === 'ambiguous') {
       console.warn('[attribution]', REASON.SCHOLAR_IDENTITY_AMBIGUOUS,
         { entity: plan.namedEntity, candidates: plan.scholarCandidates });
       clearKeepAlive();
@@ -1520,6 +1551,18 @@ export default async function handler(req, res) {
       return verdict;
     };
 
+    // WHICH REFUSAL FITS WHICH FAILURE. Two different things go wrong at these exits and they
+    // are not interchangeable sentences:
+    //
+    //   * a draft that credits a MAN we could not verify -> NO_ATTRIBUTION_AVAILABLE, which is
+    //     about the attribution and offers to bring the ruling from its own sources instead;
+    //   * a draft whose every RULING sits on no page we fetched -> NO_VERIFIED_SOURCE_MESSAGE,
+    //     which is the one that says, in as many words, that no ruling is given without a
+    //     source. There is no person in this failure, and answering it with a sentence about
+    //     attribution would tell the reader we declined to name somebody he never asked about.
+    const refusalFor = (verdict) =>
+      (verdict && verdict.rulingUnsourced) ? NO_VERIFIED_SOURCE_MESSAGE : NO_ATTRIBUTION_AVAILABLE;
+
     // ── ENCYCLOPEDIC TRANSMISSION: SEARCH BEFORE APOLOGISING ───────────────
     //
     // THE COMPLAINT THIS ANSWERS. «ما رأي ابن تيمية فيمن ترك الصلاة تكاسلًا؟» was met with an
@@ -1774,8 +1817,11 @@ export default async function handler(req, res) {
       // THE EXIT THE DEFECT ESCAPED THROUGH. No tool was called here, so nothing of his was
       // searched and nothing was retrieved — which makes any position credited to him in this
       // draft the app's own invention rather than a transmission from anywhere.
+      // NOTHING WAS RETRIEVED ON THIS PATH, so `pageTexts` is the empty array — which is the
+      // armed state, not the unwired one. A ruling drafted here rests on nothing at all, and
+      // `rulingUnsourced` is what turns that into the «no verified source» reply.
       const screened = attributionProblems(clean);
-      if (screened && screened.dropWhole) return emitOnce(withPresence(NO_ATTRIBUTION_AVAILABLE));
+      if (screened && screened.dropWhole) return emitOnce(withPresence(refusalFor(screened)));
       const cleanOut = screened ? screened.text : clean;
       clearKeepAlive();
       res.write(`data: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cleanOut) } })}\n\n`);
@@ -2016,7 +2062,7 @@ export default async function handler(req, res) {
       // replaces one.
       const cNote = attributionNote ? '\n\n' + attributionNote : '';
       const cScreened = attributionProblems(cDraft + cNote);
-      if (cScreened && cScreened.dropWhole) return emitOnce(withPresence(NO_ATTRIBUTION_AVAILABLE));
+      if (cScreened && cScreened.dropWhole) return emitOnce(withPresence(refusalFor(cScreened)));
       const cBody = cScreened ? cScreened.text : (cDraft + cNote);
       res.write(`data: ${JSON.stringify({
         type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cBody) + referralBlockFor(cBody) + cCard },
@@ -2120,7 +2166,7 @@ export default async function handler(req, res) {
         // DROPPED WHOLE when the credit IS the answer. A reply that credits him with a position we
         // never verified is not partly right; trimming it would leave the same claim in a shorter
         // form, and what remained would answer a question the reader did not ask.
-        return emitOnce(withPresence(NO_ATTRIBUTION_AVAILABLE));
+        return emitOnce(withPresence(refusalFor(bScreened)));
       }
       // TRIMMED when the offence was an aside. The reader asked about the ruling and the ruling is
       // sourced; losing the whole answer over one invented clause costs him the thing he came for.

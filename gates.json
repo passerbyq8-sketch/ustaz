@@ -268,5 +268,30 @@
   "name": "namepresence",
   "script": "guards/name-presence-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "voicesafety",
+  "script": "guards/voice-safety-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "wird",
+  "script": "tools/wird-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "worldparity",
+  "script": "guards/world-parity-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "rulingsource",
+  "script": "guards/ruling-source-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "retrievalobs",
+  "script": "guards/retrieval-observability-guard.cjs",
+  "args": ""
  }
 ]

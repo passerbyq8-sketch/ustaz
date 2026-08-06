@@ -154,6 +154,75 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   ok('...and a sentence that was ONLY an unsourced takhrij is dropped, not blanked',
     /unsourced_takhrij_sentence_dropped/.test(engSrc));
 
+  // =========================================================================
+  // AN ĀYAH IS NOT INTRODUCED BY A HADITH PHRASE, AND NOT THE OTHER WAY EITHER
+  //
+  // MEASURED, batch 5: in the gold answer the reply wrote «قال النبي ﷺ:» and then set out
+  // ﴾وَأَحَلَّ اللَّهُ الْبَيْعَ وَحَرَّمَ الرِّبَا﴿ — al-Baqara 275. The Book was published as the
+  // Prophet's speech.
+  //
+  // WHY THE LOCK ABOVE COULD NOT SEE IT, and this is the whole diagnosis: the takhrij lock's
+  // FROZEN EXEMPTION is doing exactly its job. A span overlapping an āyah is exempt, because an
+  // āyah is not a takhrij and holding it to «رواه فلان» would refuse the Book. So the span was
+  // skipped — correctly — and nothing anywhere then asked whether the words INTRODUCING it called
+  // it something it is not. The tag and the text are checked by two different rules and the join
+  // between them was checked by neither.
+  console.log('\n=== F. THE TAG MUST MATCH THE TEXT IT INTRODUCES ===');
+  {
+    const CG = await esm('lib/policy/consistency-gate.js');
+    ok('the problem code is declared', !!CG.PROBLEM.FROZEN_TAG_MISMATCH);
+    const has = (t) => CG.consistencyProblems(t, {}).includes(CG.PROBLEM.FROZEN_TAG_MISMATCH);
+
+    // RED — the measured sentence, and its siblings.
+    ok('«قال النبي ﷺ:» over an āyah is refused',
+      has('قال النبي ﷺ: وأحل الله البيع وحرم الربا.'),
+      JSON.stringify(CG.consistencyProblems('قال النبي ﷺ: وأحل الله البيع وحرم الربا.', {})));
+    ok('...and «قال رسول الله» over an āyah too',
+      has('قال رسول الله صلى الله عليه وسلم: وأحل الله البيع وحرم الربا.'));
+    ok('...and «عن النبي» over an āyah',
+      has('عن النبي صلى الله عليه وسلم: وأحل الله البيع وحرم الربا.'));
+
+    // GREEN — the correct tag, and the correct tag AFTER a hadith tag, which is the ordinary
+    // shape of «he said … and recited». The NEAREST tag before the text is the one that names it.
+    ok('«قال تعالى» over the same āyah is untouched',
+      !has('قال تعالى: وأحل الله البيع وحرم الربا.'));
+    ok('«قال الله تعالى» over the same āyah is untouched',
+      !has('قال الله تعالى: وأحل الله البيع وحرم الربا.'));
+    ok('a hadith tag EARLIER in the sentence does not condemn a properly tagged āyah',
+      !has('قال النبي ﷺ ما قال، ثم تلا قوله تعالى: وأحل الله البيع وحرم الربا.'));
+    ok('a sentence with no frozen text in it is not judged',
+      !has('قال النبي صلى الله عليه وسلم إن الأعمال بالنيات وإنما لكل امرئ ما نوى.'));
+    ok('an āyah with no tag at all is not judged',
+      !has('وأحل الله البيع وحرم الربا، وهذا أصل في الباب.'));
+
+    // AND THE CONVERSE, which the brief names explicitly: a dhikr is not the Book.
+    const F = await esm('lib/frozen-text.js');
+    const ADHKAR = JSON.parse(read('adhkar.json'));
+    const items = Array.isArray(ADHKAR) ? ADHKAR : (ADHKAR.items || ADHKAR.adhkar || []);
+    // Selected with the SAME detector the rule uses. Many adhkār are built out of āyāt — āyat
+    // al-Kursī is dhikr #75 and is also 2:255 — and for those «قال الله تعالى» is the correct
+    // tag, so probing the converse with one of them would invent a failure.
+    const dhikr = (items.map((i) => String((i && (i.text || i.body || i.dhikr)) || ''))
+      .find((t) => { const r = F.containsFrozenRun(t); return r && r.kind === 'dhikr'; })) || '';
+    if (dhikr) {
+      ok('a dhikr introduced as the Book is refused', has('قال الله تعالى: ' + dhikr), dhikr.slice(0, 60));
+      ok('...and the same dhikr with no Qur\'an tag is untouched', !has(dhikr), dhikr.slice(0, 60));
+    } else {
+      ok('(no pure-dhikr entry available to probe the converse)', true);
+    }
+
+    // THE SENTENCE GOES, THE REST OF THE ANSWER STAYS.
+    {
+      const v = CG.screenDraft(
+        'الربا محرم بالكتاب والسنة. قال النبي ﷺ: وأحل الله البيع وحرم الربا.', {});
+      ok('the mis-tagged sentence is dropped',
+        v.droppedSentences.length === 1 && /قال النبي/.test(v.droppedSentences[0]),
+        JSON.stringify(v.droppedSentences));
+      ok('...and the rest of the answer survives',
+        /محرم بالكتاب والسنة/.test(v.text) && v.dropWhole === false, JSON.stringify(v));
+    }
+  }
+
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

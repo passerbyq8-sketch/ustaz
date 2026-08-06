@@ -176,10 +176,17 @@ const DEVICE = 'abcdefgh12345678';
         .includes(CG.PROBLEM.TARJIH_WITHOUT_EVIDENCE));
     ok('a caller not yet wired to the rule is unaffected',
       !CG.consistencyProblems(M, base).includes(CG.PROBLEM.TARJIH_WITHOUT_EVIDENCE));
+    // RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT. The claim here is that the ترجيح rule
+    // is SENTENCE-level: the app's own preference goes and the transmitted ruling stays. That is
+    // unchanged and still asserted. What the fixture had to gain is a page that actually carries
+    // the surviving ruling — batch 5 holds every ruling to the pages in hand, so a page reading
+    // «لا ترجيح هنا» now fails to source the sentence the assertion wants kept, and the draft
+    // would be refused for a reason that has nothing to do with ترجيح. The page still contains no
+    // preference word, which is what arms the rule under test.
     ok('the screen drops the ترجيح sentence and keeps the ruling',
       (() => {
         const d = CG.screenDraft('حكم المسألة وجوب القضاء كما في المصدر المذكور. ' + M,
-          { ...base, pageTexts: ['لا ترجيح هنا'] });
+          { ...base, pageTexts: ['حكم هذه المسألة وجوب القضاء كما ذكره أهل العلم في المصدر المذكور.'] });
         return !/الراجح/.test(d.text) && /وجوب القضاء/.test(d.text) && !d.dropWhole;
       })());
     ok('the handler supplies the pages the rule is armed by',
@@ -392,9 +399,16 @@ const DEVICE = 'abcdefgh12345678';
         /لا أعرف هذا الاسم/.test(dropped.text), dropped.text.slice(0, 300));
       ok('...and the credited draft itself never reaches him',
         !/يرى الشيخ فلان|قال في ذلك/.test(dropped.text), dropped.text.slice(0, 300));
+      // RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT. What this pins is that the «لا أعرف
+      // هذا الاسم» line travels with EVERY drop-whole refusal and never gets emitted bare — that
+      // is `withPresence`, and it is untouched. What changed underneath is only WHICH refusal
+      // withPresence wraps: batch 5 added a second one for a draft whose every ruling rests on no
+      // page, and both now come from one decision. Pinning the wrapper rather than the constant
+      // is the stronger form of the same invariant, and it holds for the next refusal too.
       ok('...and every drop-whole exit is routed through the line, not just one',
-        (read('api/ask.js').match(/emitOnce\(withPresence\(NO_ATTRIBUTION_AVAILABLE\)\)/g) || []).length === 3
-        && !/emitOnce\(NO_ATTRIBUTION_AVAILABLE\)/.test(read('api/ask.js')));
+        (read('api/ask.js').match(/emitOnce\(withPresence\(refusalFor\([a-zA-Z]+\)\)\)/g) || []).length === 3
+        && !/emitOnce\(NO_ATTRIBUTION_AVAILABLE\)/.test(read('api/ask.js'))
+        && !/emitOnce\(NO_VERIFIED_SOURCE_MESSAGE\)/.test(read('api/ask.js')));
 
       // ── TEST 3: the worldly identity question ──────────────────────────────
       const who = await drive('من هو محمد صلاح؟',

@@ -462,7 +462,20 @@ ok('strip falls back to bottom 0', /const wirdBottomMost = !chromeOn \|\| !\(bar
 ok('measurement failure leaves the strip bottom-most', /if \(state !== 'ok' \|\| !chromeOn\) return;/.test(SRC));
 ok('pager height is measured, not assumed', /const el = barRef\.current; h = \(el && el\.offsetHeight\) \|\| 0;/.test(SRC));
 ok('pager height failure falls back to 0', /catch \(e\) \{ h = 0; \}/.test(SRC));
-ok('pager measurement ref is on the pager use site', /<div ref=\{barRef\} style=\{barSt\}>/.test(SRC));
+// RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT. S110 gave the pager TWO shapes -- the
+// Madina-image dock and the fallback bar -- so a literal `<div ref={barRef} style={barSt}>` matched
+// neither and this check had been red ever since, asserting nothing. What it is actually for is
+// that barRef measures the OUTER element the dock occupies from the bottom edge, because the wird
+// strip is positioned against that height. Pinned on that, for EVERY shape, so a third renderer
+// cannot quietly move the ref onto an inner control.
+{
+  const refs = SRC.match(/<div ref=\{barRef\}[^>]*>/g) || [];
+  ok('pager measurement ref is on the pager use site', refs.length >= 1, 'no ref={barRef} element');
+  ok('...on every renderer shape the pager has',
+    refs.length >= 2, 'found ' + refs.length + ' -- the image dock and the fallback bar');
+  ok('...and always on the OUTER chrome element, never an inner control',
+    refs.every((t) => /class(?:Name)?="ezhome\b/.test(t)), refs.join(' | '));
+}
 ok('barSt geometry untouched', /const barSt = MADINA_IMG_ON\s*\? \{ \.\.\.s\.pgBar, position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4,/.test(SRC));
 ok('strip respects the bottom safe area when bottom-most', /paddingBottom: wirdBottomMost \? 'calc\(6px \+ env\(safe-area-inset-bottom, 0px\)\)' : 6,/.test(SRC));
 ok('strip respects the left safe area', /wirdWrap: \{[^}]*paddingLeft: 'calc\(14px \+ env\(safe-area-inset-left, 0px\)\)'/.test(SRC));
@@ -474,12 +487,20 @@ ok('madina sheet keeps flex 1', /const MADINA_SHEET_ST = \{ flex: 1, minHeight: 
 ok('container is still the relative overlay host', /const contSt = MADINA_IMG_ON \? \{ \.\.\.s\.memContainer, position: 'relative' \} : s\.memContainer;/.test(SRC));
 
 // the strip is a SIBLING of header, viewport and pager, and outlives the chrome
-const iHead = SRC.indexOf('<div style={headSt}>');
+// RE-PINNED for the same reason: the header carries a className now. The check is about the
+// ORDER of the siblings, not about which attributes each one lists, so it matches the element
+// by the style that identifies it and tolerates anything else on the tag.
+const iHead = SRC.search(/<div [^>]*style=\{headSt\}>/);
 const iView = SRC.indexOf('<div style={vpSt}');
-const iBar = SRC.indexOf('<div ref={barRef} style={barSt}>');
+// RE-PINNED for the same reason as the ref above: the pager now renders in two shapes, so its
+// position is the LAST of them -- the strip must follow every pager shape, not merely the first.
+const iBar = SRC.indexOf('<div ref={barRef}');
+const iBarLast = SRC.lastIndexOf('<div ref={barRef}');
 const iStrip = SRC.indexOf('<div style={wirdSt}>');
 ok('strip is rendered', iStrip > 0);
-ok('strip is a sibling after header, viewport and pager', iHead > 0 && iView > iHead && iBar > iView && iStrip > iBar);
+ok('strip is a sibling after header, viewport and pager',
+  iHead > 0 && iView > iHead && iBar > iView && iStrip > iBarLast,
+  JSON.stringify({ iHead, iView, iBar, iBarLast, iStrip }));
 ok('strip is gated by MADINA_IMG_ON', /\{MADINA_IMG_ON && \(\s*<div style=\{wirdSt\}>/.test(SRC));
 ok('strip is NOT gated by chromeOn', !/\{chromeOn && \(\s*<div style=\{wirdSt\}>/.test(SRC));
 ok('strip render gate mentions no chromeOn', region('{MADINA_IMG_ON && (\n      <div style={wirdSt}>', 40).indexOf('chromeOn') === -1);
@@ -570,7 +591,13 @@ const msBody = SRC.slice(ms, msEnd > ms ? msEnd : ms + 6000);
 ok('nothing auto-selects on mount', !/useEffect\(\(\) => \{[^}]*setSelected\(/.test(msBody));
 ok('resume only fires from a tap', (msBody.match(/setSelected\(lastPage\.s\)/g) || []).length === 1);
 ok('openAt is still only set by a tap', msBody.indexOf('const [openAt, setOpenAt] = useState(null);') !== -1);
-ok('reader still opens from selected only', /if \(selected\) return <PagedMushaf startSurah=\{selected\} startPage=\{openAt && openAt\.s === selected \? openAt\.p : null\} onExit=\{leaveSurah\} \/>;/.test(SRC));
+// RE-PINNED, ASSERTION KEPT. The exit handler was renamed leaveSurah -> ezikGoBack, which is not
+// what this check is about and which had left it red and silent. What it guards is the OPENING
+// rule: the reader opens from `selected` alone, and the resumed page is carried only when
+// `openAt` belongs to the very surah being opened -- that is the bookmark rule, and it is pinned
+// exactly. The handler is pinned as "there is one", by name-shape rather than by name.
+ok('reader still opens from selected only',
+  /if \(selected\) return <PagedMushaf startSurah=\{selected\} startPage=\{openAt && openAt\.s === selected \? openAt\.p : null\} onExit=\{\w+\} \/>;/.test(SRC));
 
 // ---------------------------------------------------------------------------
 // H. RESET AND PRIVACY

@@ -165,7 +165,13 @@ const CORPUS = {
     const user = body.messages[0].content;
     modelCalls.push(user.slice(0, 30));
     const jr = (o) => ({ content: [{ type: 'text', text: JSON.stringify(o) }], usage: { output_tokens: 40 } });
-    if (user.includes('صِفْه بهذا الشكلِ حرفيًّا')) return jr(script.plan);
+    // RE-PINNED ON THE STRONGER KEY, ASSERTION KEPT. This stub used to recognise the planner call by
+    // one sentence of its prose. Batch 5 step 7 rewrote that prose -- the printed template was itself
+    // an INVALID plan, so every live request died at PLAN_INVALID after one model call and never
+    // searched -- and the stub stopped recognising the call it exists to answer. `"issue_id"` is the
+    // field the planner asks for and no other prompt in the engine mentions, so it identifies the
+    // call by what the call IS rather than by how it happens to be worded.
+    if (user.includes('"issue_id"')) return jr(script.plan);
     if (user.includes('استخرِجِ الادّعاءاتِ الذرّيّة')) {
       const slotLine = (user.match(/- الخاناتُ المطلوبة: (.+)/) || [])[1] || '';
       const wanted = slotLine.split('،').map((s) => s.trim()).filter(Boolean);

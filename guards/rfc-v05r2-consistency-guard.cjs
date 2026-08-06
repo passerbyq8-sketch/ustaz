@@ -185,14 +185,27 @@ const GOOD_DRAFT = [
     // the premise that there was somebody to attribute to. The verdict being pinned is unchanged:
     // a draft whose offence is the substance is dropped WHOLE and replaced. Nothing of the draft
     // survives either way, which the next assertion states directly.
+    // RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT. The replacement is no longer a single
+    // constant: batch 5 added a second failure — a draft whose every RULING rests on no page we
+    // fetched — and that one is answered by NO_VERIFIED_SOURCE_MESSAGE, which says no ruling is
+    // given without a source, rather than by a sentence about an attribution nobody asked for.
+    // The invariant being pinned is UNCHANGED and now stated where it actually lives: every
+    // buffered exit refuses whole on `dropWhole`, and every one of them takes its wording from
+    // the ONE decision that chooses between the two refusals. An exit that hard-codes either
+    // constant is an exit that will not pick up the next one.
+    ok('the choice of refusal is made in one place, and reads the ruling verdict',
+      /const refusalFor = \(verdict\) =>[\s\S]{0,200}rulingUnsourced\)\s*\?\s*NO_VERIFIED_SOURCE_MESSAGE\s*:\s*NO_ATTRIBUTION_AVAILABLE/.test(s));
     ok('a draft whose offence is the SUBSTANCE is still dropped whole',
-      /if \(!bDraft \|\| \(bScreened && bScreened\.dropWhole\)\) \{[\s\S]{0,400}return emitOnce\(withPresence\(NO_ATTRIBUTION_AVAILABLE\)\)/.test(s));
+      /if \(!bDraft \|\| \(bScreened && bScreened\.dropWhole\)\) \{[\s\S]{0,400}return emitOnce\(withPresence\(refusalFor\(bScreened\)\)\)/.test(s));
     ok('...and every buffered exit honours the same verdict',
-      (s.match(/\.dropWhole\) return emitOnce\(withPresence\(NO_ATTRIBUTION_AVAILABLE\)\)|dropWhole\)\) \{/g) || []).length >= 3,
+      (s.match(/\.dropWhole\) return emitOnce\(withPresence\(refusalFor\(|dropWhole\)\) \{/g) || []).length >= 3,
       'a screened exit that ignores dropWhole is an exit with no gate');
     ok('...and the replacement is never emitted bare — every exit carries the name verdict with it',
       !/emitOnce\(NO_ATTRIBUTION_AVAILABLE\)/.test(s)
-      && (s.match(/emitOnce\(withPresence\(NO_ATTRIBUTION_AVAILABLE\)\)/g) || []).length === 3);
+      && !/emitOnce\(NO_VERIFIED_SOURCE_MESSAGE\)/.test(s)
+      && (s.match(/emitOnce\(withPresence\(refusalFor\([a-zA-Z]+\)\)\)/g) || []).length === 3);
+    ok('...and no buffered exit still hard-codes a refusal past the one decision',
+      (s.match(/dropWhole\)[\s\S]{0,80}?withPresence\(NO_(?:ATTRIBUTION_AVAILABLE|VERIFIED_SOURCE_MESSAGE)\)/g) || []).length === 0);
     {
       const CGm = require('path').join(REPO, 'lib/policy/consistency-gate.js');
       const src = fs.readFileSync(CGm, 'utf8');

@@ -37,6 +37,19 @@ function eq(name, actual, expected) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+// The planner's example is the first BALANCED JSON object in the prompt. Taken by brace depth
+// rather than by the prose that follows it, so adding a paragraph between the example and the
+// filling rules cannot silently change what this gate measures.
+const templateOf = (p) => {
+  const a = String(p || '').indexOf('{');
+  if (a === -1) return '';
+  let d = 0;
+  for (let i = a; i < p.length; i++) {
+    if (p[i] === '{') d++;
+    else if (p[i] === '}') { d--; if (d === 0) return p.slice(a, i + 1); }
+  }
+  return '';
+};
 
 (async function main() {
   console.log('=== ledger-contract-guard — capabilities, source policy, and the query IR ===');
@@ -203,6 +216,123 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       shown.every((id) => SP.POLICY_ROWS.some((r) => r.ownerId === id && r.health === 'enabled')));
     ok('...and shows no domain, url or site name',
       shown.every((id) => !/[./:]/.test(id)), JSON.stringify(shown.filter((id) => /[./:]/.test(id))));
+  }
+
+  // =========================================================================
+  // THE PROMPT MUST ASK FOR SOMETHING THE VALIDATOR ACCEPTS
+  //
+  // MEASURED, batch 5: every ledger request came back PLAN_INVALID -> SAFE_REJECTION with
+  // `model: 1, brave: 0, fetch: 0` — one planner call, then a refusal, without ever searching.
+  //
+  // DIAGNOSED HERE. The prompt prints a JSON TEMPLATE and says «صِفْه بهذا الشكلِ حرفيًّا», and
+  // that template is itself invalid three ways over:
+  //
+  //   1. it prints the ALTERNATIONS AS VALUES — "intent": "fatwa|tafsir|…" and "temporal_scope":
+  //      "unknown|dated_fact|…" — so a model reproducing the shape literally, as instructed,
+  //      sends a pipe-joined string that validateIssue() refuses on both fields;
+  //   2. every array is printed EMPTY, and an issue with no core term, protected entity or exact
+  //      phrase is refused — while `core_terms` is the one field the filling rules never mention;
+  //   3. any extra top-level key is a hard refusal, and the only instruction against one says «no
+  //      TEXT outside the object», which a model obeys while adding a field INSIDE it.
+  //
+  // The validator is right in all three cases and is not relaxed. The example it was given is
+  // what has to change. These assertions pin the two sides into agreement.
+  console.log('\n=== D2. THE PLANNER ASKS FOR WHAT THE VALIDATOR ACCEPTS ===');
+  {
+    const prompt = PLAN.buildPlannerPrompt('ما حكم صيام يوم عرفة لغير الحاج؟');
+    const tpl = templateOf(prompt);
+
+    // 1. No alternation may appear as a VALUE in the template.
+    const alternations = (tpl.match(/"[a-z_]+"\s*:\s*"[^"]*\|[^"]*"/g) || []);
+    ok('the template shows no pipe-alternation as a field value',
+      alternations.length === 0, JSON.stringify(alternations));
+
+    // 2. The template, taken literally, must PARSE and VALIDATE. A shape a model is told to
+    //    reproduce «حرفيًّا» and that cannot pass is a prompt that guarantees its own refusal.
+    let parsed = null;
+    try { parsed = JSON.parse(tpl.trim()); } catch (e) { /* reported below */ }
+    ok('the template the prompt prints is itself parseable JSON', !!parsed,
+      'a model told to reproduce it literally cannot produce valid JSON from it');
+    if (parsed) {
+      const v = IR.validateQueryPlan(parsed, 'ما حكم صيام يوم عرفة لغير الحاج؟');
+      ok('...and it is itself a VALID plan', v.ok, JSON.stringify(v.problems));
+    } else { checks++; failures++; console.log('  FAIL  ...and it is itself a VALID plan'); }
+
+    // 3. The one field whose emptiness is fatal must be named in the filling rules.
+    ok('the filling rules tell the model core_terms may not be empty',
+      /core_terms/.test(prompt) && /core_terms[\s\S]{0,200}/.test(prompt)
+      && prompt.indexOf('core_terms') !== prompt.lastIndexOf('core_terms'),
+      'core_terms appears only in the template, never in the rules');
+
+    // 4. The refusal on unknown fields is a real security rule («the next invented field might be
+    //    `sites`»), so it is NOT relaxed — it is STATED, where the model can obey it.
+    ok('the prompt forbids inventing a field, not merely prose outside the object',
+      /حقل|حقول/.test(prompt) && /لا تُضِفْ|لا تزد|ولا تزيد|بلا حقول/.test(prompt),
+      'the validator refuses unknown keys and nothing tells the model so');
+    const IRSRC = read('lib/ledger/query-ir.js');
+    ok('...and the validator still refuses them',
+      /unknown top-level field: /.test(IRSRC), 'the strictness must not be traded away');
+  }
+
+  // =========================================================================
+  // AND THE REFUSAL MUST SAY WHICH FIELD BROKE
+  console.log('\n=== D3. PLAN_INVALID NAMES THE FIELD ===');
+  {
+    const ENGSRC = read('lib/ledger/engine.js');
+    // `planned.reason` is the constant string 'schema' whenever validation failed, so
+    // `planned.reason || problems` discarded the problems every single time. The ledger recorded
+    // «PLAN_INVALID / schema» and never once said which field — which is exactly why this cost
+    // hours to find. Same lesson as batch 5 step 1, in the engine instead of the retriever.
+    ok('the PLAN_INVALID rejection carries the validator problems, not just the word "schema"',
+      !/REJECTION\.PLAN_INVALID, planned\.reason \|\| \(planned\.problems/.test(ENGSRC),
+      'planned.reason is always truthy on failure, so the problems were never recorded');
+    ok('...and the problems are actually in the reason it records',
+      /REJECTION\.PLAN_INVALID,[\s\S]{0,240}planned\.problems/.test(ENGSRC));
+  }
+
+  // =========================================================================
+  // DRIVEN, NOT GREPPED — the engine, locally, with a stubbed model. RFC_V05_MODE is not read
+  // here and is not touched: runEngine() is called directly, exactly as the other guards do.
+  console.log('\n=== D4. THE ENGINE, DRIVEN, ON A REPLY SHAPED LIKE THE TEMPLATE ===');
+  {
+    const ENG = await esm('lib/ledger/engine.js');
+    const DB = await esm('lib/ledger/daily-budget.js').catch(() => null);
+    const Q = 'ما حكم صيام يوم عرفة لغير الحاج؟';
+    const prompt = PLAN.buildPlannerPrompt(Q);
+    const tpl = templateOf(prompt);
+
+    // A model that returns EXACTLY the shape it was shown. This is the reply the live service was
+    // getting, and the whole point of the fix is that it must no longer be self-refuting.
+    const stubFetch = async () => ({
+      ok: true, status: 200,
+      json: async () => ({ content: [{ type: 'text', text: tpl }] }),
+      text: async () => JSON.stringify({ content: [{ type: 'text', text: tpl }] }),
+    });
+    // callModel() refuses with `no-key` before it ever reaches fetchImpl, so the key is set for
+    // the duration of the drive and removed after. Nothing leaves the machine: every HTTP call in
+    // this block is the stub above, and RFC_V05_MODE is neither read nor written — runEngine() is
+    // called directly, exactly as the other engine guards call it.
+    const hadKey = Object.prototype.hasOwnProperty.call(process.env, 'ANTHROPIC_API_KEY');
+    const prevKey = process.env.ANTHROPIC_API_KEY;
+    process.env.ANTHROPIC_API_KEY = 'test-key-not-a-credential';
+    let searched = 0;
+    let out;
+    try {
+      out = await ENG.runEngine(Q, {
+        band: 'adult', audienceBand: 'adult', bandSites: ['islamqa.info'],
+        fetchImpl: stubFetch,
+        search: async () => { searched++; return []; },
+        ...(DB ? { dailyBudget: new DB.DailySearchBudget({ limit: 100, now: () => 1770000000000, store: DB.fakeStore() }) } : {}),
+      });
+    } finally {
+      if (hadKey) process.env.ANTHROPIC_API_KEY = prevKey;
+      else delete process.env.ANTHROPIC_API_KEY;
+    }
+    ok('a reply in the prompt\'s own shape no longer dies at the planner',
+      JSON.stringify(out).indexOf('PLAN_INVALID') === -1,
+      'outcome=' + out.outcome + ' — the example the model is shown must not refute itself');
+    ok('...and the engine got as far as trying to search',
+      searched > 0, 'searches=' + searched + ' — a plan that validates must reach the search stage');
   }
 
   // =========================================================================

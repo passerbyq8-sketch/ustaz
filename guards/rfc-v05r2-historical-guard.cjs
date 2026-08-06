@@ -156,6 +156,51 @@ const Q_HONORIFIC = 'ما رأي شيخ الإسلام ابن تيمية فيم�
     ok('...and the AMBIGUOUS one still asks which man is meant',
       plan('ما رأي ابن حجر فيمن ترك الصلاة؟').needsScholarIdentity === true);
 
+    // ── THE AMBIGUITY MUST REACH THE CLARIFICATION, AND NAME THE TWO MEN ─────
+    //
+    // MEASURED, batch 5: «ما رأي ابن حجر في هذه المسألة؟» was answered. A position was credited
+    // to him «في الفتح» and the reply was then footnoted «لم أقف على نصٍّ مباشر» — instead of
+    // asking which Ibn Hajar was meant and naming the two.
+    //
+    // DIAGNOSED: the entity layer catches it perfectly — resolutionStatus 'ambiguous', both
+    // candidates listed, preSearchRejection AMBIGUOUS_ENTITY. It is then thrown away by a
+    // SECOND, narrower resolver. `plan.scholarStatus` is computed from resolveScholar(), the
+    // CONTEMPORARY registry keyed by official domain, and a man dead six centuries has no
+    // domain — so he came out 'unresolved' there, and 'unresolved' falls through to the search.
+    // Two notions of ambiguity in one plan, and the handler read the one that cannot see it.
+    for (const q of ['ما رأي ابن حجر في هذه المسألة؟', 'ما رأي ابن حجر فيمن ترك الصلاة؟',
+      'ماذا يقول ابن حجر عن صيام يوم الشك؟']) {
+      const p = plan(q);
+      ok('«' + q.slice(0, 28) + '…» is reported AMBIGUOUS, not unresolved',
+        p.scholarStatus === 'ambiguous', 'scholarStatus=' + p.scholarStatus);
+      ok('...and both registered men are carried as candidates',
+        Array.isArray(p.scholarCandidates) && p.scholarCandidates.length === 2,
+        JSON.stringify(p.scholarCandidates));
+      const prompt = AP.ambiguousScholarPrompt(p.scholarCandidates);
+      ok('...and the clarification NAMES them both',
+        /العسقلاني/.test(prompt) && /الهيتمي/.test(prompt), prompt);
+      ok('...and it shows no raw identifier to the reader',
+        !/ibn-hajar|[a-z]{3,}-[a-z]{3,}/.test(prompt), prompt);
+      ok('...and it claims no search and issues no ruling',
+        !/لم أقف|لم أبحث|يجب|لا يجوز/.test(prompt), prompt);
+    }
+    // The policy flag may not decide whether a reader is asked which man he means.
+    ok('the ambiguity is reported with the policy flag OFF as well',
+      plan('ما رأي ابن حجر في هذه المسألة؟', false).scholarStatus === 'ambiguous');
+    // AND THE HANDLER MUST ACT ON IT UNCONDITIONALLY. Gating the clarification on a second
+    // condition is how it was reachable-in-principle and unreached-in-fact.
+    {
+      const ask = fs.readFileSync(require('path').join(REPO, 'api/ask.js'), 'utf8');
+      ok('the clarification branch turns on the ambiguity ALONE',
+        /if \(plan\.scholarStatus === 'ambiguous'\) \{/.test(ask),
+        'ambiguity between two registered men must always reach the clarification');
+    }
+    // An UNAMBIGUOUS Ibn Hajar is not ambiguous. Naming the man settles it, and must.
+    for (const q of ['ما رأي ابن حجر العسقلاني في هذه المسألة؟', 'ما رأي ابن حجر الهيتمي في هذه المسألة؟']) {
+      ok('«' + q.slice(0, 30) + '…» is NOT ambiguous — the reader already chose',
+        plan(q).scholarStatus !== 'ambiguous', 'scholarStatus=' + plan(q).scholarStatus);
+    }
+
     const schools = EN.ROSTER.filter((e) => e.targetType === 'madhhab');
     let badSchools = [];
     for (const e of schools) {

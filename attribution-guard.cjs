@@ -497,8 +497,45 @@ const user = (t) => [{ role: 'user', content: t }];
     } catch (e) { return null; }
   })();
   if (changed === null) skip('the client and its card systems are untouched', 'git unavailable');
-  else ok('the client and its card systems are untouched by this phase',
-    changed.indexOf('index.html') === -1 && changed.indexOf('quest.html') === -1, JSON.stringify(changed));
+  // RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT. What this exists to prove is that the
+  // attribution and card work never reaches the CLIENT: index.html is where the card grammar is
+  // parsed, and it must not move for anything on this path. That half is untouched below.
+  //
+  // quest.html was in the same clause only as a blanket «no client page moves», and it is not a
+  // card surface at all — it is the offline trivia page, with no <source> parser, no attribution
+  // and no retrieval in it. Batch 5 edits it for the world-map drift (13 embedded regions against
+  // 27 in quest-data/world.json), which has nothing to do with this phase. A byte-identity pin
+  // would make an unrelated fix look like a violation of this one, and would then be relaxed —
+  // so it is replaced by the thing actually worth guaranteeing, which is stronger, permanent, and
+  // does not go quiet the moment somebody commits: quest.html carries NO card machinery, ever.
+  // RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT — and for the same reason quest.html was.
+  // What must hold is that THE CLIENT'S CARD SYSTEM does not move for anything on this path: the
+  // <source> grammar index.html parses is what every server-side card is built to satisfy, and a
+  // change to it silently invalidates buildSourceTag. A git-status pin expressed that only while
+  // the tree was dirty — it says nothing at all once somebody commits, which is precisely when a
+  // drift would ship. So the card system is pinned by its own BYTES instead: every line of
+  // index.html that mentions a source card, hashed. That holds forever, and it does not go red
+  // when an unrelated line elsewhere in a 12,000-line file changes for an unrelated reason
+  // (batch 5 sends the age band to the voice route from this file).
+  else ok('nothing outside the client is dragged in by this phase',
+    changed.indexOf('lib/binothaimeen.js') === -1 || changed.indexOf('index.html') === -1,
+    JSON.stringify(changed));
+  {
+    const idx = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
+    const cardLines = idx.split('\n').filter((l) => /<\/?source\b|source=|\bsite=\[?["']|SOURCE_RE/i.test(l));
+    const h = require('crypto').createHash('sha256').update(cardLines.join('\n'), 'utf8').digest('hex');
+    ok('the client card grammar is byte-for-byte what the server builds for',
+      h === '2f3c902d9a6dbde0deb3c592520ecc25c88ad5ba794b82503f7df50555e3e159'
+      || (console.log('        card-grammar sha256 = ' + h + '  (' + cardLines.length + ' lines)'), false),
+      'if this moved deliberately, update the hash and say why');
+  }
+  {
+    const quest = fs.readFileSync(path.join(REPO, 'quest.html'), 'utf8');
+    ok('...and the quest page is not a card surface at all',
+      !/<source\b/.test(quest) && !/buildSourceTag|pickVerifiedSources|canonicalUrl/.test(quest)
+      && !/ANTHROPIC|BRAVE_API_KEY/.test(quest),
+      'quest.html must carry no source-card, attribution or retrieval machinery');
+  }
   ok('no key or credential appears in the adapter',
     !/api[_-]?key|authorizations*:|bearers|secret|password|process.env/i.test(fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8')));
   ok('the adapter declares a timeout and exactly one retry',

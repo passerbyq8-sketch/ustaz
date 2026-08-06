@@ -209,7 +209,13 @@ const user = (t) => [{ role: 'user', content: t }];
   function modelReply(body) {
     const u = body.messages[0].content;
     seen.modelCalls++;
-    if (u.includes('صِفْه بهذا الشكلِ حرفيًّا')) {
+    // RE-PINNED ON THE STRONGER KEY, ASSERTION KEPT. This stub used to recognise the planner call by
+    // one sentence of its prose. Batch 5 step 7 rewrote that prose -- the printed template was itself
+    // an INVALID plan, so every live request died at PLAN_INVALID after one model call and never
+    // searched -- and the stub stopped recognising the call it exists to answer. `"issue_id"` is the
+    // field the planner asks for and no other prompt in the engine mentions, so it identifies the
+    // call by what the call IS rather than by how it happens to be worded.
+    if (u.includes('"issue_id"')) {
       const q = u.split('\n')[1];
       seen.questions.push(q);
       const authority = /ابن باز/.test(q) ? 'ibn-baz' : null;

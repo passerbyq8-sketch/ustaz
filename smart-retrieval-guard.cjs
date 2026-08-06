@@ -432,6 +432,46 @@ const user = (t) => [{ role: 'user', content: t }];
       'not a url at all',
     ]) eq('an opaque path is not classified: ' + String(u).slice(0, 40), G.pageKindFromPath(u), '');
 
+    // ── THE TITLE IS READ AS THE PATH IS READ ───────────────────────────────
+    //
+    // MEASURED, batch 5: the «حادثة العدة» page sits at «/sharia/0/NNNN/» — opaque, so the path
+    // lever above earns it nothing and it keeps its full weight in a RULING question. And its own
+    // TITLE says «(خطبة)» out loud. The one fact that would have queued it behind the rulings was
+    // printed on the candidate, in the search result, before a byte was fetched, and nothing read
+    // it. The path is the site's own structure and stays authoritative; the title is what decides
+    // when the path says nothing.
+    for (const [t, want] of [
+      ['أحكام العدة للمرأة (خطبة)', 'khutbah'],
+      ['خطبة الجمعة: بر الوالدين', 'khutbah'],
+      ['محاضرة في أحكام الصيام', 'khutbah'],
+      ['الدروس الرمضانية - الدرس الأول', 'khutbah'],
+      ['درس في التوحيد', 'khutbah'],
+      ['فتوى في حكم قصر الصلاة', 'fatwa'],
+      ['الفتاوى الكبرى', 'fatwa'],
+      ['حكم صيام يوم عرفة لغير الحاج', ''],
+      ['أحكام العدة للمرأة', ''],
+      ['', ''],
+    ]) eq('a title reads as what it says it is: «' + t.slice(0, 30) + '»', G.pageKindFromTitle(t), want);
+
+    // AND IT MUST NOT FIRE ON A WORD THAT MERELY CONTAINS ONE. «مدرسة» is not «درس».
+    for (const t of ['المدرسة النظامية وأثرها', 'تدريس الفقه للمبتدئين', 'مدروس ومحرر']) {
+      eq('a longer word containing the marker is not a lesson: «' + t.slice(0, 24) + '»',
+        G.pageKindFromTitle(t), '');
+    }
+
+    // THE COMBINED READING. The path speaks first because it is the site's own structure; the
+    // title is consulted exactly when the path is silent.
+    eq('an opaque path with a sermon title reads as a sermon',
+      G.pageKind('https://www.alukah.net/sharia/0/1234/', 'أحكام العدة للمرأة (خطبة)'), 'khutbah');
+    eq('an opaque path with a fatwa title reads as a fatwa',
+      G.pageKind('https://www.alukah.net/sharia/0/1234/', 'فتوى في أحكام العدة'), 'fatwa');
+    eq('a path that speaks is not overruled by the title',
+      G.pageKind('https://islamqa.info/ar/answers/8360/', 'خطبة الجمعة'), 'fatwa');
+    eq('...in the other direction too',
+      G.pageKind('https://www.alukah.net/khutbah/0/9/', 'فتوى'), 'khutbah');
+    eq('silence on both is still silence',
+      G.pageKind('https://www.alukah.net/sharia/0/1234/', 'أحكام العدة للمرأة'), '');
+
     // ── THE ORDERING ────────────────────────────────────────────────────────
     const R2 = await esm('lib/retrieve.js');
     const cands = [
@@ -454,6 +494,27 @@ const user = (t) => [{ role: 'user', content: t }];
         { link: 'https://islamqa.info/ar/answers/2/' }, { link: 'https://islamqa.info/ar/answers/1/' },
       ]).map((r) => r.link.endsWith('/2/')), [true, false]);
     eq('an empty list is an empty list', R2.orderRulingCandidates([]), []);
+
+    // THE MEASURED CASE, END TO END. Two candidates on the SAME opaque path shape, told apart by
+    // nothing but their titles — and the sermon must queue behind the ruling. Nothing is excluded:
+    // both are still in the pool, in the other order.
+    {
+      const opaque = R2.orderRulingCandidates([
+        { link: 'https://www.alukah.net/sharia/0/1111/', title: 'أحكام العدة للمرأة (خطبة)' },
+        { link: 'https://www.alukah.net/sharia/0/2222/', title: 'فتوى في أحكام العدة' },
+      ]);
+      eq('a sermon TITLE queues behind a fatwa TITLE on identical paths',
+        opaque.map((r) => r.link.slice(-6)), ['/2222/', '/1111/']);
+      eq('...and nothing is excluded', opaque.length, 2);
+      // A page whose title says nothing keeps its ordinary weight, between the two.
+      const three = R2.orderRulingCandidates([
+        { link: 'https://www.alukah.net/sharia/0/1111/', title: 'أحكام العدة للمرأة (خطبة)' },
+        { link: 'https://www.alukah.net/sharia/0/3333/', title: 'أحكام العدة للمرأة' },
+        { link: 'https://www.alukah.net/sharia/0/2222/', title: 'فتوى في أحكام العدة' },
+      ]);
+      eq('an untitled-kind page sits between the ruling and the sermon',
+        three.map((r) => r.link.slice(-6)), ['/2222/', '/3333/', '/1111/']);
+    }
 
     // ── AND IT IS A RULING-QUESTION LEVER, NOT A GLOBAL ONE ─────────────────
     const rsrc = read('lib/retrieve.js');

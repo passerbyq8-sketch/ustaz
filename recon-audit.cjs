@@ -543,7 +543,30 @@ head('14) GATE ROSTER (single source: gates.json)');
   // S-RFC-v0.5-R2-ROUND3: 36 -> 37. 37th rfc-v05r2-round3-guard — the policy router over BOTH
   //       paths, a policy block per ISSUE rather than per question, provenance A/B/C classified
   //       from the evidence, and a Gate 3 that judges every claim a sentence rests on.
-  const GATES_EXPECTED = 54;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
+  // S-BATCH5-STEP1: 54 -> 55. 55th retrieval-observability — NO PAGE IS DROPPED IN SILENCE.
+  //       buildSourceTag returned a bare `null` from seven places and pickVerifiedSources
+  //       swallowed it with `continue`, so "the provider found nothing" and "we fetched good
+  //       pages and could not encode one of them" produced the SAME empty log. Every drop now
+  //       names its reason and its url, and the second case has a line of its own.
+  // S-BATCH5-STEP3: 55 -> 56. 56th ruling-source — A RULING COMES FROM A PAGE, OR IT DOES NOT GO
+  //       OUT. «ذهب إلى المسجد فهل يصح؟» was answered «يجب الطهور قبل دخول المسجد» over a card
+  //       about الحائض. A whole class with no guard: no name to police, no hadith to grade, no
+  //       qawl preferred — every check we had asks about the SOURCE or about a NAME, and none
+  //       asked whether the page in hand says this. Held inside the EXISTING screen, never a
+  //       second one beside it; the frozen texts are outside it wholly.
+  // S-BATCH5-STEP6B: 56 -> 57. 57th world-parity — the embedded map in quest.html had drifted to
+  //       13 regions against quest-data/world.json's 27, and loadJSON() fell back to it in
+  //       silence. Fourteen regions existed in the data and could not be reached from the copy.
+  // S-BATCH5-STEP6C: 57 -> 58. 58th wird -- tools/wird-guard.cjs held 307 real assertions over a
+  //       shipped feature and nothing ran it, so three of them had been red and silent since the
+  //       S110 dock gave the pager a second renderer shape and renamed the reader exit handler.
+  //       A guard nobody runs is a guard that asserts nothing; it is fixed and listed.
+  // S-BATCH5-STEP9: 58 -> 59. 59th voice-safety -- api/chat.js was a byte pipe: no hazard triage,
+  //       no age policy, no source. A child asking BY VOICE how to mix cleaning chemicals reached
+  //       the vendor and came back answered, while the same question TYPED was refused. graveHazard
+  //       and the age policy now run on the voice turn BEFORE any model call; guardAIConsent is
+  //       untouched and its precedence is asserted.
+  const GATES_EXPECTED = 59;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >
