@@ -435,8 +435,26 @@ const quotedDomains = (body) =>
     const why = G.pathRefusal(u, '');
     ok((refused ? 'refuses ' : 'admits  ') + u.slice(0, 78), refused ? !!why : !why, 'got ' + JSON.stringify(why));
   });
-  ok('pathRefusal leaves an unregistered host completely alone',
-    G.pathRefusal('https://example.com/category/anything', '') === null);
+  // ── RE-PINNED ON THE STRONGER CONDITION, AND THE ASSERTION IS KEPT ──────────
+  //
+  // This used to read «pathRefusal leaves an unregistered host completely alone», and that was
+  // the defect: a reply cited «Home — موقع د. مطلق الجاسر», the site ROOT of dr-mutlaq.com, because
+  // dr-mutlaq.com has no per-host rules and the root refusal sat behind the per-host lookup. So did
+  // binbaz.org.sa's root, and every other allow-listed host without a rules entry.
+  //
+  // WHAT THE ASSERTION WAS ACTUALLY PROTECTING is that one site's rules may not leak onto another
+  // — al-abbaad's `blocked` prefixes must not refuse a path on a host that never declared them.
+  // That is pinned below, unchanged in force. What is no longer claimed is that a host with no
+  // rules is exempt from the two refusals that were never about the host: its front page, and the
+  // generic taxonomy shapes every CMS emits.
+  ok('a host with no rules is still refused its SITE ROOT',
+    G.pathRefusal('https://example.com/', '') === 'site-root'
+    && G.pathRefusal('https://dr-mutlaq.com/', '') === 'site-root');
+  ok('...and the generic index shapes, which are facts about the web and not about the host',
+    /^generic-listing-path/.test(String(G.pathRefusal('https://example.com/category/anything', ''))));
+  ok('...but NO per-host rule leaks onto it: its ordinary article path is admitted',
+    G.pathRefusal('https://example.com/some/article-slug', '') === null
+    && G.pathRefusal('https://example.com/sound/1234', '') === null);
   ok('pathRefusal reads the FINAL url when there is one',
     !!G.pathRefusal('https://example.com/x', 'https://khutabaa.com/ar/forums/1'));
 

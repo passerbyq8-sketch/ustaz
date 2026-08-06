@@ -543,7 +543,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   // S-RFC-v0.5-R2-ROUND3: 36 -> 37. 37th rfc-v05r2-round3-guard — the policy router over BOTH
   //       paths, a policy block per ISSUE rather than per question, provenance A/B/C classified
   //       from the evidence, and a Gate 3 that judges every claim a sentence rests on.
-  const GATES_EXPECTED = 53;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
+  const GATES_EXPECTED = 54;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >

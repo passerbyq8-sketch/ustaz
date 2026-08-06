@@ -263,5 +263,10 @@
   "name": "referraltail",
   "script": "guards/referral-tail-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "namepresence",
+  "script": "guards/name-presence-guard.cjs",
+  "args": ""
  }
 ]

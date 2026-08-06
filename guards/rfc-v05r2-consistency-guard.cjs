@@ -134,9 +134,19 @@ const GOOD_DRAFT = [
         .includes(CG.PROBLEM.NEGATION_WITHOUT_SEARCH));
     ok('the operational-limit wording exists and does not claim an absence',
       /تعذّر استكمالُ البحث/.test(CG.SEARCH_NOT_COMPLETED) && !/لم أقف|لم أجد/.test(CG.SEARCH_NOT_COMPLETED));
+    // RE-PINNED ON THE STRONGER CONDITION, AND THE OLD ASSERTION IS KEPT INSIDE IT. The text used
+    // to be pinned as «لا أنسبُ إلى هذا العالِم قولًا», which is the defect: that sentence was
+    // served for a singer and for a comic actor, granting each of them the standing it was
+    // declining to act on. The pin still requires the refusal-to-attribute clause — it simply
+    // requires it to name NOBODY, which the old form could not satisfy.
     ok('the replacement reply makes no religious claim and no false negation',
       !/لم أجد|لم أقف|لم أعثر/.test(CG.NO_ATTRIBUTION_AVAILABLE)
-      && /لا أنسبُ إلى هذا العالِم قولًا/.test(CG.NO_ATTRIBUTION_AVAILABLE));
+      && /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(CG.NO_ATTRIBUTION_AVAILABLE));
+    ok('RED→GREEN: the replacement confers no scholarly standing on anybody',
+      !/هذا العالِم|هذا العالم|هذا الشيخ|الشيخ المذكور/.test(CG.NO_ATTRIBUTION_AVAILABLE));
+    ok('...and neither does the ABOUT_ENTITY refusal in the handler',
+      !/لا أنسب إلى العالِم قولًا/.test(read('api/ask.js'))
+      && /لا أنسب إلى أحدٍ قولًا لم أقف عليه في نصٍّ له/.test(read('api/ask.js')));
     // A replacement that breaks the rule it enforces is not a replacement. This is the gate
     // turned on its own output, in the strictest state it can be asked about.
     eq('the replacement itself passes the gate it exists to satisfy',
@@ -386,7 +396,7 @@ const GOOD_DRAFT = [
       ok('...and the contradiction is impossible: no «لم أقف» beside a credit',
         !(/لم أقف/.test(bad.text) && /ابن تيمية (?:يرى|قال)/.test(bad.text)), bad.text.slice(0, 220));
       ok('...the reader gets the constrained reply instead',
-        /لا أنسبُ إلى هذا العالِم قولًا/.test(bad.text), bad.text.slice(0, 220));
+        /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(bad.text), bad.text.slice(0, 220));
       eq('...and the stream closes exactly once', bad.res.ended, 1);
 
       // ── THE GREEN FIXTURE, RE-PINNED ON THE STRONGER CONDITION ─────────────
@@ -404,7 +414,7 @@ const GOOD_DRAFT = [
       // production is in whenever this branch actually has pages to draft over.
       const good = await drive(Q_QADA, GOOD_DRAFT);
       ok('GREEN: with NO page retrieved, even a well-formed transmission is refused',
-        /لا أنسبُ إلى هذا العالِم قولًا/.test(good.text), good.text.slice(0, 220));
+        /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(good.text), good.text.slice(0, 220));
       ok('...and it is not replaced by a quotation of him', !/«[^»]{12,}»/.test(good.text), good.text.slice(0, 220));
       ok('...and the same draft passes the gate once a page licenses him',
         CG.consistencyProblems(GOOD_DRAFT, {
@@ -420,7 +430,7 @@ const GOOD_DRAFT = [
       ];
       const badAfter = await drive(Q_QADA, BAD_DRAFT, prior);
       ok('RED holds inside a running thread too',
-        !/مجموع الفتاوى/.test(badAfter.text) && /لا أنسبُ إلى هذا العالِم قولًا/.test(badAfter.text),
+        !/مجموع الفتاوى/.test(badAfter.text) && /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(badAfter.text),
         badAfter.text.slice(0, 200));
 
       // ── THE PATH INDICATOR, AGAINST THE ENGINE THAT ACTUALLY RAN ───────────

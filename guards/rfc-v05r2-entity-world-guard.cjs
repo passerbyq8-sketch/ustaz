@@ -313,9 +313,27 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
         !/لم أتبيّنْ أيَّ شيخٍ تقصد/.test(singer.text), singer.text.slice(0, 200));
       ok('NO «لم أقف على نصٍّ» apology either',
         !/لم أقف على نصٍّ/.test(singer.text), singer.text.slice(0, 200));
-      ok('the search that ran carried NO unregistered name',
-        singer.state.braveQueries.length > 0
-        && singer.state.braveQueries.every((q) => !/خالد|عبدالرحمن/.test(q)),
+      // ── RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT ────────────────
+      //
+      // The invariant was: no Brave query may carry an unregistered name. Its REASON was always
+      // narrower than its wording — a name nobody publishes a fatwa for cannot match on the
+      // religious list, and the empty result then reads as an absence of evidence about the RULING.
+      // That reason is untouched and is pinned below, now stated in the terms that carry it.
+      //
+      // What changed is that there is a second list. The bounded world look-up searches the name on
+      // SITES_GENERAL alone, to establish one thing a page can answer: does this name exist at all.
+      // It cannot produce the failure this assertion exists to prevent — nothing on that list is a
+      // fatwa source, and its result may never become a ruling — so the pin distinguishes the two
+      // queries by the list each one names rather than forbidding the name outright.
+      const WORLD_ONLY = (q) => /site:/.test(q)
+        && q.split('site:').slice(1).every((s) => /^(?:ar\.wikipedia\.org|aljazeera\.net|bbc\.com|skynewsarabia\.com)\b/.test(s.trim()));
+      const religiousQueries = singer.state.braveQueries.filter((q) => !WORLD_ONLY(q));
+      ok('the search of the RELIGIOUS list carried NO unregistered name',
+        religiousQueries.length > 0 && religiousQueries.every((q) => !/خالد|عبدالرحمن/.test(q)),
+        JSON.stringify(religiousQueries));
+      ok('...and the only query that may carry the name is the world look-up, bounded to ONE',
+        singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).length <= 1
+        && singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).every(WORLD_ONLY),
         JSON.stringify(singer.state.braveQueries));
       ok('...and it still carried the actual fiqh topic',
         singer.state.braveQueries.some((q) => /قصر|الصلاة/.test(q)),

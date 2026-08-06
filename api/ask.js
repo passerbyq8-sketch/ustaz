@@ -18,7 +18,7 @@ import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/rate
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
-import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
+import { classifyRoute, createSourceFilter, isReligiousText } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
 import { consistencyProblems, screenDraft, NO_ATTRIBUTION_AVAILABLE } from '../lib/policy/consistency-gate.js';
@@ -46,11 +46,18 @@ import { attributionLicence } from '../lib/policy/source-attribution.js';
 // for it, and an instruction is a request — it was omitted most reliably on the answers that read
 // most confidently. It is appended here instead, rotated so successive answers do not end
 // identically, and NEVER on the frozen acts of worship.
-import { referralTail } from '../lib/policy/referral-tail.js';
+import { referralTail, referralOnce } from '../lib/policy/referral-tail.js';
 // The registry's Arabic publisher name, so the transmission can be checked for naming the source
 // it transmits from rather than gesturing at "some websites".
 import { findSource } from '../lib/source-registry.js';
 import { unregisteredNameInQuestion, stripEntityFromQuery } from '../lib/policy/entity-knowledge.js';
+// DOES THIS NAME EXIST AT ALL? A replacement BY EVIDENCE for the deleted model-verdict identity
+// check: one bounded look-up on the app's own world list, read as a page with a card and never as
+// a verdict. It grants nothing — no attribution, no grade, no list membership. See the module head
+// for the exhaustive list of the two things a found page is allowed to change.
+import {
+  probeShape, firstPageBearing, presenceLine, buildIdentityInstruction, PRESENCE,
+} from '../lib/policy/name-presence.js';
 import { lastUserText } from '../lib/attribution.js';
 // THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
 // it reads nothing from the store for a reader who is not an internal tester.
@@ -591,8 +598,26 @@ export default async function handler(req, res) {
   // consumes them is not: with the flag off «هل خالف ابن تيمية أهل السنة؟» took the GEN route and
   // returned from it long before reaching the buffered ABOUT_ENTITY handler below, which made that
   // handler unreachable code dressed up as a safeguard. Routing and handling are one repair.
+  // ── A RELIGIOUS QUESTION DOES NOT TRAVEL A PATH WITH NO SOURCE ────────────
+  //
+  // MEASURED: explicit religious questions — «ما معنى الإحسان؟», «اشرح لي معنى التوكل» — were
+  // classified GEN, and the GEN branch runs ONE streamed model call with no tools and strips every
+  // <source> tag on the way out. So the reader got a religious answer from the model's memory, with
+  // no retrieval and no card, on exactly the subjects this app exists to transmit rather than
+  // compose.
+  //
+  // THE SAME PREDICATE lib/world-intent.js ALREADY TRUSTS. There, isReligiousText() is rule 1 and
+  // it OVERRIDES every news trigger: a message that names a religious subject is not a world
+  // question whatever else it says. Here it does the mirror job — a message that names a religious
+  // subject is not a sourceless question whatever the lexical router made of the sentence. One
+  // predicate, both directions, so the two cannot drift into disagreeing about the same message.
+  //
+  // It reads the LAST USER MESSAGE, which is what world-intent.js is handed too. classifyRoute()
+  // above additionally inherits context across turns and is unchanged; this only ever ADDS to what
+  // it decided, and can never turn a DEEN turn into a GEN one.
   const effectiveRoute = (plan.attributionMode !== 'none'
-    || plan.claimRelation === 'ABOUT_ENTITY' || plan.claimRelation === 'BY_MADHHAB')
+    || plan.claimRelation === 'ABOUT_ENTITY' || plan.claimRelation === 'BY_MADHHAB'
+    || isReligiousText(lastUserText(body.messages)))
     ? 'DEEN' : route;
   console.log('[route]', {
     route: effectiveRoute, lexicalRoute: route, band,
@@ -777,7 +802,13 @@ export default async function handler(req, res) {
     // walks into. Deterministic, no store, no model call.
     const answersSoFar = (body.messages || []).filter((m) => m && m.role === 'assistant').length;
     const referral = referralTail(questionText, topicClass, answersSoFar);
-    const referralBlock = referral ? '\n\n' + referral : '';
+    // ── APPENDED ONCE, HOWEVER MANY EXITS THERE ARE ───────────────────────
+    // MEASURED: «ما حكم بيع الذهب بالتقسيط؟» ended with the referral TWICE — the system prompt
+    // still asks the model for one, and the server appended its own on top of it. So the block is
+    // no longer a fixed string that every exit concatenates blindly; it is a function OF THE DRAFT,
+    // and it returns '' when that draft already sends the reader to ahl al-'ilm. Every exit below
+    // calls it, which is what makes "once" a property of the reply rather than of the branch.
+    const referralBlockFor = (draft) => referralOnce(draft, referral);
     if (referral) console.log('[referral] appending the server\'s tail', { topicClass, turn: answersSoFar });
 
     // ── GENERAL_HEALTH_INTERIM ─────────────────────────────────────────────
@@ -842,6 +873,124 @@ export default async function handler(req, res) {
       // answers a question this child did not ask and reads to them as an accusation.
       return emitOnce(rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN'));
     }
+
+    // ── DOES THIS NAME EXIST AT ALL? ONE BOUNDED LOOK-UP, READ AS A PAGE ───
+    //
+    // THE MEASURED DEFECT. A name nobody knows — including one invented on the spot — was treated
+    // as a shaykh: «ما رأي الشيخ فلان الفلاني في كذا؟» came back «لم أقف على قولٍ للشيخ…», which
+    // concedes the title in the sentence that withholds the fatwa. And the shared refusal said «لا
+    // أنسبُ إلى هذا العالِم قولًا…» about a singer and about a comic actor.
+    //
+    // AND THE CONSTRAINT IT IS BUILT UNDER. The old identity check was DELETED because it asked a
+    // model «is this name a scholar?» with nothing behind the answer, and the measured failure was
+    // a confident wrong «yes» that nothing doubted. This is not that check returning. There is no
+    // model call: the app's own world list is searched ONCE for the name, and the result is read
+    // as a page — does a page carry this name, yes or no.
+    //
+    // WHAT A FOUND PAGE BUYS, AND IT IS THE WHOLE LIST: «من هو فلان؟» may be answered from that
+    // page with its card instead of being pushed at a religious corpus that never held him; and a
+    // refusal may say «ليس ممّن تُؤخَذ عنه الفتوى في مصادرنا» rather than «هذا العالِم». It opens no
+    // attribution, raises no provenance grade and adds no domain to any list — the rule of the
+    // third batch stands exactly where it stood.
+    //
+    // WHERE IT SITS, AND WHY. After the hazard triage, the age access policy and the child-benign
+    // floor have all had their say, so a child's benign question never pays for it and no age rule
+    // is bypassed; before the ledger and DEEN branches, because both of them RETURN.
+    //
+    // COST. It fires only on a name NO registry knows, in a question shaped as an attribution or
+    // as «من هو». One search, one wave. A registered name (ابن باز) never reaches it at all.
+    //
+    // AND A SEARCH THAT NEVER RAN MAY NOT BECOME AN ABSENCE. Without a provider key, retrieval
+    // returns an empty result set that is indistinguishable from a real empty search — and saying
+    // «لا أعرف هذا الاسم» on that would be the negation-without-search this codebase refuses
+    // everywhere else. So the probe is skipped outright and no line is emitted either way.
+    const nameShape = probeShape(questionText, unregisteredName);
+    let namePresence = { probed: false, name: '', kind: PRESENCE.NOT_PROBED, found: false, page: null };
+    if (nameShape.probe && process.env.BRAVE_API_KEY) {
+      let page = null;
+      let ran = true;
+      try {
+        const { retrieveWorld } = await import('../lib/retrieve.js');
+        // ONE wave, three candidates. The bound IS the feature: this look-up may never grow into a
+        // second retrieval budget beside the one the answer itself spends.
+        //
+        // AND DELIBERATELY NOT `remember()`ed. `fetchedPages` is the pool of RELIGIOUS evidence the
+        // takhrij lock and the ترجيح screen read; a news or encyclopedia page is «دليلٌ لا حكم» and
+        // must never end up in it, or a preference printed on Wikipedia could license one in a
+        // fatwa. This page reaches exactly one place — the identity answer below — and no further.
+        const w = await retrieveWorld(nameShape.name, { maxWaves: 1, maxResults: 3 });
+        page = firstPageBearing(nameShape.name, (w && w.sources) || []);
+      } catch (e) {
+        console.warn('[name-presence] probe threw:', e.message);
+        ran = false;
+      }
+      if (ran) {
+        namePresence = {
+          probed: true, name: nameShape.name, kind: nameShape.kind, found: !!page, page,
+        };
+      }
+    }
+    console.log('[name-presence]', {
+      probed: namePresence.probed, kind: namePresence.kind,
+      found: namePresence.found, band: audienceBand,
+      host: namePresence.page ? (() => { try { return new URL(namePresence.page.url).hostname; } catch { return '?'; } })() : '',
+    });
+
+    // ── «من هو فلان؟» ANSWERED FROM THE PAGE THAT CARRIES HIM ──────────────
+    //
+    // THE MEASURED DEFECT THIS CLOSES. «من هو محمد صلاح؟» was answered correctly and then had «النقطة
+    // الشرعية» about players' salaries bolted onto the end of it, carrying an islamqa card. A
+    // worldly identity question was never a request for a ruling, and a ruling nobody asked for is
+    // not a bonus — it is an unasked-for fatwa with a citation under it.
+    //
+    // BUFFERED, like every other checked exit, and carrying NO referral tail: the referral belongs
+    // under a religious answer, and this is not one.
+    if (namePresence.probed && namePresence.kind === PRESENCE.IDENTITY_SHAPE && namePresence.found) {
+      const idCards = pickVerifiedSources([namePresence.page], 1);
+      if (!idCards.length) {
+        console.warn('[name-presence] identity page carries no encodable card — falling through');
+      } else {
+        const ir = await fetch(ANTHROPIC_URL, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model,
+            max_tokens: maxTokens,
+            system,
+            messages: [
+              ...body.messages,
+              { role: 'user', content: buildIdentityInstruction(namePresence.page.passage, namePresence.name) },
+            ],
+            stream: false,
+          }),
+        });
+        if (!ir.ok) {
+          const errText = await ir.text().catch(() => '');
+          console.error('[name-presence] upstream', ir.status, errText.slice(0, 200));
+          clearKeepAlive();
+          res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${ir.status}` } })}\n\n`);
+          return res.end();
+        }
+        const iPayload = await ir.json();
+        // The model contributes no card on this route either.
+        const iDraft = (iPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
+          .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
+          .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+          .trim();
+        if (iDraft) {
+          console.log('[name-presence] identity answered', { hosts: idCards.map((c) => c.host) });
+          return emitOnce(iDraft + '\n' + idCards.map((c) => c.tag).join('\n'));
+        }
+        console.warn('[name-presence] empty identity draft — falling through');
+      }
+    }
+
+    // THE ONE SENTENCE THE SERVER OWNS ABOUT AN UNREGISTERED NAME. Emitted only on the attribution
+    // shape — the identity shape has already been answered above or falls through unchanged — and
+    // it makes no religious claim, so it is safe on every exit that carries one.
+    const presenceLead = namePresence.probed && namePresence.kind === PRESENCE.ATTRIBUTION_SHAPE
+      ? presenceLine(namePresence)
+      : '';
 
     // ── LIVE WORLD RETRIEVAL: a general question may still need TODAY'S facts ──
     //
@@ -1276,7 +1425,7 @@ export default async function handler(req, res) {
         clearKeepAlive();
         res.write(`data: ${JSON.stringify({
           type: 'content_block_delta', index: 0,
-          delta: { type: 'text_delta', text: seal(draft) + referralBlock + (card ? '\n' + card.tag : '') },
+          delta: { type: 'text_delta', text: seal(draft) + referralBlockFor(draft) + (card ? '\n' + card.tag : '') },
         })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
         return res.end();
@@ -1344,6 +1493,11 @@ export default async function handler(req, res) {
         // pages actually in hand licenses naming him. Read at call time, not at declaration time,
         // so every exit gets the licence for the pages THAT exit was drafted over.
         sourceLicence,
+        // THE ترجيح RULE'S EVIDENCE. `fetchedPages` is every RELIGIOUS page this request actually
+        // read — the world look-up is deliberately kept out of it — so «الراجح …» survives only
+        // when one of those pages says it and the draft credits somebody with it. Read at call
+        // time for the same reason `sourceLicence` is: an exit is judged on its own pages.
+        pageTexts: fetchedPages.map((p) => (p && p.passage) || ''),
       });
       if (!verdict.problems.length) return null;
       console.warn('[consistency] draft screened', {
@@ -1479,7 +1633,7 @@ export default async function handler(req, res) {
             }) : ['EMPTY_DRAFT'];
             console.log('[encyclopedic] gate', { problems: eProblems, publishers: encyclopedicPublishers.length });
             if (!eProblems.length) {
-              return emitOnce(eDraft + referralBlock + '\n' + cards.map((c) => c.tag).join('\n'));
+              return emitOnce(eDraft + referralBlockFor(eDraft) + '\n' + cards.map((c) => c.tag).join('\n'));
             }
           } else {
             console.error('[encyclopedic] upstream', re.status);
@@ -1715,7 +1869,10 @@ export default async function handler(req, res) {
       clearKeepAlive();
       res.write(`data: ${JSON.stringify({
         type: 'content_block_delta', index: 0,
-        delta: { type: 'text_delta', text: NO_VERIFIED_SOURCE_MESSAGE },
+        // The unknown-name line rides AHEAD of the refusal, because the two say different things:
+        // one is about this name, the other about this search. Emitting only the second let the
+        // reader keep the assumption the first one exists to remove.
+        delta: { type: 'text_delta', text: (presenceLead ? presenceLead + '\n\n' : '') + NO_VERIFIED_SOURCE_MESSAGE },
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
@@ -1852,7 +2009,7 @@ export default async function handler(req, res) {
       if (cScreened && cScreened.dropWhole) return emitOnce(NO_ATTRIBUTION_AVAILABLE);
       const cBody = cScreened ? cScreened.text : (cDraft + cNote);
       res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cBody) + referralBlock + cCard },
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cBody) + referralBlockFor(cBody) + cCard },
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
@@ -1906,7 +2063,9 @@ export default async function handler(req, res) {
       const crossed = violatesTemplate(aDraft, { relation: 'ABOUT_ENTITY', grade: 'C' });
       console.log('[about]', { entity: plan.requestedAuthorityId || (plan.entities[0] || {}).canonicalId || '', crossed });
       if (crossed || !aDraft) {
-        return emitOnce('أستطيع أن أنقل لك ما ذكرته المصادر المعتمدة عن هذه المسألة، لكنّي لا أنسب إلى العالِم قولًا لم أقف عليه في نصٍّ له. أعِدْ صياغة سؤالك عمّا تريد معرفته بالتحديد وأنقل لك ما في المصادر بمصدره.');
+        // «إلى أحدٍ», not «إلى العالِم»: this sentence must not confer the standing it is in the
+        // middle of declining to act on. Same correction as NO_ATTRIBUTION_AVAILABLE, same reason.
+        return emitOnce('أستطيع أن أنقل لك ما ذكرته المصادر المعتمدة عن هذه المسألة، لكنّي لا أنسب إلى أحدٍ قولًا لم أقف عليه في نصٍّ له. أعِدْ صياغة سؤالك عمّا تريد معرفته بالتحديد وأنقل لك ما في المصادر بمصدره.');
       }
       return emitOnce(aDraft + '\n' + canonicalSources.map((c) => c.tag).join('\n'));
     }
@@ -1958,7 +2117,10 @@ export default async function handler(req, res) {
       const bBody = bScreened ? bScreened.text : bDraft;
       const bNote = attributionNote ? '\n\n' + attributionNote : '';
       const bCards = canonicalSources.length ? '\n' + canonicalSources.map((c) => c.tag).join('\n') : '';
-      return emitOnce(bBody + bNote + referralBlock + bCards);
+      // FIRST, not last. «لا أعرف هذا الاسم» is the correction of a premise the reader is holding
+      // while he reads the answer; placed at the end it arrives after he has already read the
+      // ruling as though it were somebody's.
+      return emitOnce((presenceLead ? presenceLead + '\n\n' : '') + bBody + bNote + referralBlockFor(bBody + bNote) + bCards);
     }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──
@@ -2004,12 +2166,25 @@ export default async function handler(req, res) {
     let pending = Buffer.alloc(0);
     let emitted = false;
 
+    // EVERY BYTE THE READER GETS, KEPT. The streamed route cannot look at a finished draft before
+    // deciding what to append to it — there is no finished draft until the stream is over — so the
+    // prose is accumulated as it goes and the referral decision is taken at the end, against what
+    // was actually said. Bounded, because an unbounded accumulator on a streaming path is a leak:
+    // the tail-detection phrases are short, and the last few kilobytes are where a closing sentence
+    // lives.
+    const SEEN_TAIL_MAX = 8192;
+    let seenText = '';
     const writeText = (t) => {
       if (!t) return;
+      seenText = (seenText + t).slice(-SEEN_TAIL_MAX);
       res.write(`data: ${JSON.stringify({
         type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t },
       })}\n\n`);
     };
+    // THE UNREGISTERED-NAME LINE GOES OUT BEFORE THE FIRST TOKEN OF THE ANSWER. On the streamed
+    // route there is no "prepend" available after the fact, and appending it would put the
+    // correction after the reader has already read the ruling as somebody's opinion.
+    if (presenceLead) writeText(presenceLead + '\n\n');
     // All cards, in answer order, as ONE trailing text delta. Nothing is written after
     // this, so the cards are always the tail of the reply. The client's tag scanner is a
     // global regex (index.html:1264-1267), so adjacent tags each become their own chip;
@@ -2028,8 +2203,12 @@ export default async function handler(req, res) {
       // The referral rides between the note and the cards, so the reader reaches it having read
       // the ruling and before the sources — and the cards stay the last thing in the reply, which
       // the client's tag scanner depends on.
+      // ...and it is appended ONCE. `seenText` is what the reader has actually been sent, so a
+      // draft that already ended at ahl al-'ilm gets nothing further — the measured double tail on
+      // «حكم بيع الذهب بالتقسيط» was the model's sentence and the server's arriving together.
+      const rTail = referralBlockFor(seenText);
       writeText((attributionNote ? '\n\n' + attributionNote + '\n' : '')
-        + (referralBlock ? referralBlock + '\n' : '')
+        + (rTail ? rTail + '\n' : '')
         + canonicalSources.map((c) => c.tag).join('\n'));
     };
 
