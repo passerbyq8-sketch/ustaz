@@ -253,5 +253,15 @@
   "name": "aiconsent",
   "script": "tools/ai-consent-probe.cjs",
   "args": ""
+ },
+ {
+  "name": "srcattr",
+  "script": "guards/source-attribution-guard.cjs",
+  "args": ""
+ },
+ {
+  "name": "referraltail",
+  "script": "guards/referral-tail-guard.cjs",
+  "args": ""
  }
 ]

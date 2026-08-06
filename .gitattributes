@@ -183,6 +183,8 @@ guards/adapted-corpus-guard.cjs text eol=lf
 guards/dead-domains-guard.cjs text eol=lf
 guards/floors-and-filters-guard.cjs text eol=lf
 guards/source-liveness-guard.cjs text eol=lf
+guards/source-attribution-guard.cjs text eol=lf
+guards/referral-tail-guard.cjs text eol=lf
 tools/source-liveness.cjs text eol=lf
 data/source-liveness.json text eol=lf
 

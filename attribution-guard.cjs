@@ -425,13 +425,36 @@ const user = (t) => [{ role: 'user', content: t }];
   }
   ok('the attributed branch runs BEFORE the GEN route',
     ask.indexOf("plan.attributionMode === 'namedScholarOpinion'") < ask.indexOf("if (effectiveRoute === 'GEN')"));
+  // ── WINDOWED TO THE BRANCH, NOT TO A BYTE COUNT ────────────────────────────
+  //
+  // These two used to be fixed character windows ({0,900}, {0,3400}) from the mode literal. That
+  // makes the pin a hostage to how much PROSE the branch carries: documenting why the scholar's
+  // domain became a preference rather than a cage pushed the code out of the window and turned two
+  // green invariants red without anything about the invariants changing. The same lesson is
+  // recorded in guards/rfc-v05r2-consistency-guard.cjs. The window is now the branch itself.
+  const attrAt = ask.indexOf('if (attributionActive) {');
+  const attrEnd = ask.indexOf('// ── CONSISTENCY_GATE, AS ONE FUNCTION GUARDING EVERY BUFFERED EXIT', attrAt);
+  const attrBranch = ask.slice(attrAt, attrEnd > attrAt ? attrEnd : attrAt + 6000);
+  const emptyAt = attrBranch.indexOf('if (!attributedSources.length)');
   ok('the scholar\'s own corpus is searched before the model is called',
-    /namedScholarOpinion'\)[\s\S]{0,900}?retrieveIbnUthaymeen\(attribution\.question,[\s\S]{0,1400}?if \(!attributedSources\.length\)/.test(ask));
+    attrAt !== -1 && emptyAt !== -1
+    && attrBranch.indexOf('retrieveIbnUthaymeen(attribution.question,') !== -1
+    && attrBranch.indexOf('retrieveIbnUthaymeen(attribution.question,') < emptyAt);
   // THE DEFECT THIS REPLACES. A name used to mean "stop": one adapter was consulted and every
   // other case emitted a fixed sentence with no search at all. These assert the new shape.
-  ok('a scholar with no adapter still gets a REAL search of his own site',
-    /else if \(plan\.officialDomain\)/.test(ask) && /onlySites: \[plan\.officialDomain\]/.test(ask),
+  //
+  // RE-PINNED ON THE STRONGER CONDITION (batch 3, step 3). It used to require `onlySites` — a
+  // search CAGED to his own site, which returned silence whenever his site had nothing on the
+  // issue, so the reader lost the ruling because of whose name he put in front of it. His domain
+  // is now PREFERRED: asked about first and alone, then the band's ordinary list. Checked against
+  // code with comments stripped, because the comment on that branch quotes what it replaced.
+  const askCode = ask.replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .split('\n').map((l) => l.replace(/(^|[^:])\/\/[^\r\n]*/, '$1')).join('\n');
+  ok('a scholar with no adapter still gets a REAL search, led by his own site',
+    /else if \(plan\.officialDomain\)/.test(askCode) && /preferDomain: plan\.officialDomain/.test(askCode),
     'a named scholar without a bespoke adapter must not be a dead end');
+  ok('...and it is a preference, so an empty result there does not end the search',
+    !/onlySites: \[plan\.officialDomain\]/.test(askCode));
   ok('finding no text of his FALLS THROUGH instead of ending the request',
     /if \(!attributedSources\.length\) \{[\s\S]{0,400}?attributionNote = unattributedNote\(/.test(ask)
     && !/if \(!attributedSources\.length\)[\s\S]{0,400}?return res\.end\(\);/.test(ask));
@@ -448,7 +471,7 @@ const user = (t) => [{ role: 'user', content: t }];
     /if \(!attributedSources\.length\) \{[\s\S]{0,500}?\} else \{/.test(ask),
     'the grounded, attributed generation must be inside the else, not before it');
   ok('the attributed answer is BUFFERED, not streamed',
-    /namedScholarOpinion'\)[\s\S]{0,3400}?stream: false,/.test(ask),
+    /stream: false,/.test(attrBranch) && !/stream: true/.test(attrBranch),
     'a streamed attributed answer cannot be withdrawn after verification fails');
   ok('the draft is verified before anything is emitted',
     ask.indexOf('verifyAttributedReply(draft, attribution, attributedSources)') !== -1);

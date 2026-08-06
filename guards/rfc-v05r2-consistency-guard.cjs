@@ -214,7 +214,7 @@ const GOOD_DRAFT = [
     // adapter, no official domain, nothing searched — and an unregistered contemporary name lands
     // in exactly the same state. It used to be sent away with the identity template instead.
     ok('ANY named entity whose own corpus was never searched still gets a real search',
-      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !nonScholar\)[\s\S]{0,1800}?await retrieve\(/.test(s),
+      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !unregisteredName\)[\s\S]{0,1800}?await retrieve\(/.test(s),
       'the fallback must call retrieve, not fall straight through to a refusal');
     ok('...and a historical scholar is inside that set, not a special case for it',
       !/plan\.authorityEra === 'historical'\s*\n?\s*&& plan\.namedEntity\) \{/.test(s));
@@ -231,7 +231,7 @@ const GOOD_DRAFT = [
     // rollout flag, so fresh production went on apologising unsearched — the defect this branch
     // was written to fix, still being served. Searching before refusing is not a staged feature.
     ok('the branch runs on the STATE alone, with no rollout flag in front of it',
-      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !nonScholar\)/.test(s));
+      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !unregisteredName\)/.test(s));
     ok('...and no flag can send it back to apologising unsearched',
       !/legacyPolicy\.enabled && attributionUnverified/.test(s));
     // A SEARCH THAT RAN IS ALSO A NOTE THAT MAY BE WRITTEN. The note is composed here rather than
@@ -389,11 +389,28 @@ const GOOD_DRAFT = [
         /لا أنسبُ إلى هذا العالِم قولًا/.test(bad.text), bad.text.slice(0, 220));
       eq('...and the stream closes exactly once', bad.res.ended, 1);
 
-      // ── THE GREEN FIXTURE ──────────────────────────────────────────────────
+      // ── THE GREEN FIXTURE, RE-PINNED ON THE STRONGER CONDITION ─────────────
+      //
+      // This drive used to assert that GOOD_DRAFT reaches the reader, and it passed for a reason
+      // the fixture never intended: the harness returns NO Brave results and NO pages, so the
+      // reply naming «رأي ابن تيمية» was serving a transmission from a result set that was empty.
+      // The batch-3 source-class rule (lib/policy/source-attribution.js) refuses exactly that —
+      // a man may be named only when a page in hand names him — so with nothing retrieved the
+      // correct outcome here is the constrained reply, not the transmission.
+      //
+      // THE ASSERTION IS NOT DELETED, IT IS MOVED TO WHERE IT IS TRUE. That a well-formed grade-C
+      // transmission passes the gate is still pinned, twice: once in section D against
+      // `consistencyProblems` directly, and once below with a licence in hand — which is the state
+      // production is in whenever this branch actually has pages to draft over.
       const good = await drive(Q_QADA, GOOD_DRAFT);
-      ok('GREEN: a sourced grade-C transmission reaches the reader',
-        /ذكر موقع إسلام ويب/.test(good.text), good.text.slice(0, 220));
-      ok('...with no quotation of him', !/«[^»]{12,}»/.test(good.text), good.text.slice(0, 220));
+      ok('GREEN: with NO page retrieved, even a well-formed transmission is refused',
+        /لا أنسبُ إلى هذا العالِم قولًا/.test(good.text), good.text.slice(0, 220));
+      ok('...and it is not replaced by a quotation of him', !/«[^»]{12,}»/.test(good.text), good.text.slice(0, 220));
+      ok('...and the same draft passes the gate once a page licenses him',
+        CG.consistencyProblems(GOOD_DRAFT, {
+          entity: 'ابن تيميه', notDirectlyVerified: true, searchProven: true,
+          allowSourcedPosition: true, sourceLicence: ['ibn-taymiyyah'],
+        }).length === 0);
       eq('...and the stream closes exactly once', good.res.ended, 1);
 
       // ── THE SAME, AFTER A PRIOR TURN (no conversation contamination) ────────

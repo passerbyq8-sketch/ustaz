@@ -209,9 +209,19 @@ const user = (t) => [{ role: 'user', content: t }];
     ok('the post-search note states that a direct search found nothing',
       /لم أقف على نصٍّ مباشرٍ/.test(unattributedNote('فلان')));
     ok('an unidentified scholar now STARTS a search rather than ending the request',
-      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !nonScholar\)[\s\S]{0,1800}?await retrieve\(/.test(ask));
+      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !unregisteredName\)[\s\S]{0,1800}?await retrieve\(/.test(ask));
     ok('...and the note claiming a search is written only where the search happened',
       /attributionSearched = true;\s*\n\s*attributionNote = unattributedNote\(plan\.namedEntity\);/.test(ask));
+    // RE-PINNED WHEN THE WORLD CHECK WENT. That branch used to be guarded by `!nonScholar` — a
+    // model's verdict on who the man was — and is now guarded by `!unregisteredName`, which is the
+    // registry and nothing else. The guarantee the old pin bought must not quietly narrow with it:
+    // a name no registry knows still gets a real search, it just gets the ORDINARY one with his
+    // name taken out of the query, because binding an unknown name into it can only fail.
+    ok('...and a name no registry knows is searched too, with the name stripped out',
+      /const q = unregisteredName \? stripEntityFromQuery\(rawQ, unregisteredName\) : rawQ/.test(ask),
+      'the reader must still get the ruling; only the name may not travel');
+    ok('...and nothing decides "unregistered" by asking a model',
+      !/worldCheckPrompt|isActionableNonScholar|nameNeedingWorldCheck/.test(ask));
     ok('no identity template can end a request any more',
       !/NEEDS_SCHOLAR_IDENTITY/.test(ask) && !/NEEDS_SCHOLAR_NAME/.test(ask));
     // THE ONE CLARIFICATION THAT SURVIVES, and the reason it is honest: we can name the choices.
@@ -295,7 +305,166 @@ const user = (t) => [{ role: 'user', content: t }];
     ok('a scoped query is trivially inside the limits',
       B.withinSafe(B.buildQuery('الطلاق في الغضب', ['al-abbaad.com'])));
 
+    // ── A NAMED SCHOLAR'S DOMAIN IS A PREFERENCE, NOT A CAGE ────────────────
+    //
+    // Batch 3 step 3: a question naming a scholar has no special path any more. It is a question
+    // about the ISSUE, searched over the band's ordinary list, with his registered domain (or his
+    // direct adapter) preferred at the FRONT of it — and the answer attributed to whichever page
+    // it actually came from, by lib/policy/source-attribution.js.
+    //
+    // The difference from `onlySites` is what happens when his own site has nothing: a cage
+    // returns silence and the reader loses the ruling, a preference carries on down the list and
+    // the reader gets the ruling attributed to somebody else's page, credited to nobody.
+    //
+    // ASSERTED ON THE REQUESTS THIS MAKES, NOT ON THE SOURCES IT RETURNS. The page stub above is
+    // generic filler, so lib/page-match.js rejects it for every query — which is correct of it and
+    // makes `sources.length` useless as evidence here. What a search DID is the thing under test:
+    // which domains it asked the provider about, in which order.
+    {
+      const saved = globalThis.fetch;
+      const queries = [];
+      const braveWith = (results) => async (url) => {
+        const u = String(url);
+        if (u.includes('api.search.brave.com')) {
+          queries.push(decodeURIComponent((u.split('q=')[1] || '').split('&')[0]).replace(/\+/g, ' '));
+          return at(new Response(JSON.stringify({ web: { results } }),
+            { status: 200, headers: { 'content-type': 'application/json' } }), u);
+        }
+        return saved(url);
+      };
+
+      // The preferred domain is asked about FIRST, alone.
+      queries.length = 0;
+      globalThis.fetch = braveWith([]);
+      await retrieve('الطلاق في الغضب', { band: 'adult', preferDomain: 'binbaz.org.sa' });
+      ok('the preferred domain is asked about first, on its own',
+        queries.length > 0 && /site:binbaz\.org\.sa/.test(queries[0])
+        && !/site:islamweb\.net/.test(queries[0]), JSON.stringify(queries[0] || ''));
+      // AND IT IS NOT A CAGE. Empty there, the search carries on over the band's whole list.
+      ok('...and an empty result there falls through to the ordinary list, not to silence',
+        queries.length >= 2 && /site:islamweb\.net/.test(queries.slice(1).join(' ')),
+        JSON.stringify(queries));
+
+      // A PREFERENCE MAY NOT OUTRANK THE PURPOSE FILTER. al-abbaad.com is deliberately not a
+      // fatwa source (lib/ledger/source-policy.js: «لا فتوى ولا تفسير ولا رأي مباشر»), so naming
+      // its owner in a ruling question must not reach it — a preference reorders the sources a
+      // question may already use, and admits none.
+      queries.length = 0;
+      globalThis.fetch = braveWith([]);
+      await retrieve('الطلاق في الغضب', { band: 'adult', preferDomain: 'al-abbaad.com' });
+      ok('a domain the PURPOSE filter excludes is not reached by preferring it',
+        queries.every((q) => !/site:al-abbaad\.com/.test(q)), JSON.stringify(queries));
+
+      // A preference can never WIDEN. A domain off the band's list is skipped and the ordinary
+      // search runs unchanged — it is not an error and it is not an escape hatch.
+      queries.length = 0;
+      globalThis.fetch = braveWith([]);
+      await retrieve('الطلاق في الغضب', { band: 'adult', preferDomain: 'not-on-any-list.example' });
+      ok('a preferred domain off the band list is never asked about',
+        queries.every((q) => !/not-on-any-list/.test(q)), JSON.stringify(queries));
+      ok('...and the ordinary search still ran', queries.length >= 1);
+
+      globalThis.fetch = saved;
+    }
+
     globalThis.fetch = realFetch;
+  }
+
+  // =========================================================================
+  console.log('\n=== D2. THE NAMED-SCHOLAR QUESTION HAS NO SPECIAL PATH LEFT ===');
+  {
+    // Comments stripped: the comment on that branch quotes the expression it replaced, on purpose.
+    const askCode = ask.replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .split('\n').map((l) => l.replace(/(^|[^:])\/\/[^\r\n]*/, '$1')).join('\n');
+    ok('his own domain is PREFERRED in the search, not locked to',
+      /preferDomain: plan\.officialDomain/.test(askCode) && !/onlySites: \[plan\.officialDomain\]/.test(askCode),
+      'a cage returns silence when his site has nothing; a preference carries on down the list');
+    ok('the direct adapter is still consulted when its owner is named',
+      /plan\.hasDirectAdapter[\s\S]{0,400}retrieveIbnUthaymeen\(/.test(ask),
+      'it stays — as a domain preference for a corpus no search can reach, not a parallel path');
+    // THE CEILINGS ARE UNTOUCHED. Preferring a domain changes which pages are found; it may not
+    // change what may be claimed from them.
+    eq('a contemporary with no registered primary adapter still caps at NONE',
+      planAsk(user('ما رأي ابن باز في التصوير؟')).provenanceCap, 'NONE');
+    eq('...the one with an adapter still caps at B',
+      planAsk(user('ما رأي الشيخ ابن عثيمين في التصوير؟')).provenanceCap, 'B');
+    eq('...and a historical scholar still caps at C',
+      planAsk(user('ما رأي ابن تيمية في التصوير؟')).provenanceCap, 'C');
+    // AND A PAGE THAT IS NOT HIS MAY NOT BE DRAFTED AS HIS. This is what makes a preference safe:
+    // the cage used to be the only thing guaranteeing the page belonged to him.
+    ok('a page the source-class rule does not credit to him cannot be drafted as his',
+      /const ownedByHim = [\s\S]{0,200}attrLicence\.includes\(plan\.requestedAuthorityId\)/.test(ask)
+      && /ownedByHim\s*\n?\s*\? verifyAttributedReply/.test(ask));
+  }
+
+  // =========================================================================
+  console.log('\n=== D3. A KHUTBAH IS NOT A FATWA — page-level, path-decided ===');
+  {
+    // MEASURED. «ما رأي طارق العلي في أحكام العدة؟» was answered over a card titled «أحكام العدة
+    // للمرأة (خطبة)». A sermon is a fine source for an exhortation and is not the evidence behind
+    // a ruling on waiting periods — but the DOMAIN carrying it is perfectly legitimate, so the
+    // existing domain filter has nothing to say about it. The lever therefore sits on the PAGE.
+    const G = await esm('lib/source-page-gates.js');
+
+    for (const u of [
+      'https://islamqa.info/ar/answers/8360/',
+      'https://www.islamweb.net/ar/fatwa/1001/x',
+      'https://saleh.af.org.sa/ar/ftawa/123',
+      'https://mostafaaladwy.com/fatwa/49996',
+      'https://ibn-jebreen.com/fatwa/9',
+    ]) eq('a fatwa path reads as a fatwa: ' + u.slice(8, 46), G.pageKindFromPath(u), 'fatwa');
+
+    for (const u of [
+      'https://saleh.af.org.sa/ar/khotab/12',
+      'https://al-abbaad.com/lecture/45',
+      'https://example.com/ar/mohadrat/7',
+      'https://example.com/droos/3',
+      'https://www.alukah.net/khutbah/0/9/',
+    ]) eq('a sermon or lesson path reads as one: ' + u.slice(8, 46), G.pageKindFromPath(u), 'khutbah');
+
+    // AN OPAQUE PATH EARNS NOTHING AND LOSES NOTHING. This is the accepted graceful degradation:
+    // «?p=123» and «/sharia/0/1234/» say nothing about what the page is, so they keep their
+    // ordinary weight rather than being guessed at in either direction.
+    for (const u of [
+      'https://example.com/?p=123',
+      'https://www.alukah.net/sharia/0/1234/',
+      'https://example.com/',
+      'not a url at all',
+    ]) eq('an opaque path is not classified: ' + String(u).slice(0, 40), G.pageKindFromPath(u), '');
+
+    // ── THE ORDERING ────────────────────────────────────────────────────────
+    const R2 = await esm('lib/retrieve.js');
+    const cands = [
+      { link: 'https://www.alukah.net/khutbah/0/9/', title: 'خطبة العدة' },
+      { link: 'https://www.alukah.net/sharia/0/1234/', title: 'مقال' },
+      { link: 'https://islamqa.info/ar/answers/8360/', title: 'فتوى' },
+      { link: 'https://al-abbaad.com/lecture/45', title: 'محاضرة' },
+      { link: 'https://www.islamweb.net/ar/fatwa/1001/x', title: 'فتوى ٢' },
+    ];
+    const ordered = R2.orderRulingCandidates(cands);
+    eq('a ruling question puts the fatwa pages first, then the opaque, then the sermons',
+      ordered.map((r) => r.link.split('/').slice(2).join('/').slice(0, 28)),
+      ['islamqa.info/ar/answers/8360', 'www.islamweb.net/ar/fatwa/10',
+        'www.alukah.net/sharia/0/1234', 'www.alukah.net/khutbah/0/9/', 'al-abbaad.com/lecture/45']);
+    eq('NOTHING is dropped — a sermon stays in the candidate pool', ordered.length, cands.length);
+    // Stability matters: two pages of the same kind keep the provider's own ranking, which is the
+    // only evidence available about which is the better answer.
+    eq('...and equal kinds keep the provider\'s order',
+      R2.orderRulingCandidates([
+        { link: 'https://islamqa.info/ar/answers/2/' }, { link: 'https://islamqa.info/ar/answers/1/' },
+      ]).map((r) => r.link.endsWith('/2/')), [true, false]);
+    eq('an empty list is an empty list', R2.orderRulingCandidates([]), []);
+
+    // ── AND IT IS A RULING-QUESTION LEVER, NOT A GLOBAL ONE ─────────────────
+    const rsrc = read('lib/retrieve.js');
+    ok('the reordering runs only for a ruling purpose',
+      /purpose === 'fatwa'[\s\S]{0,200}orderRulingCandidates\(|orderRulingCandidates\([^)]*\)[\s\S]{0,80}: results/.test(rsrc)
+      || /const ranked = purpose === 'fatwa' \? orderRulingCandidates\(results\) : results;/.test(rsrc));
+    ok('...and it reorders BEFORE the candidates are sliced, or it changes nothing',
+      rsrc.indexOf('orderRulingCandidates(results)') < rsrc.indexOf('.slice(0, FETCH_PER_CALL)'),
+      'a sermon in the top three keeps its fetch slot unless the ordering happens first');
+    ok('the domain filtering is untouched — the lever is on the page',
+      /filterSitesForPurpose\(t, purpose\)/.test(rsrc));
   }
 
   // =========================================================================

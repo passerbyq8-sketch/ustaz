@@ -38,13 +38,19 @@ import { envMode } from '../lib/ledger/flag.js';
 import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION } from '../lib/policy/core.js';
 import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
 import { violatesTemplate } from '../lib/policy/attribution-grades.js';
+// WHO THE PAGES IN HAND LICENSE NAMING. Four ordered tiers — extracted byline, domain owner, the
+// name in the text, nobody — and no model call anywhere in it. The ledger's Gate 3 reads the same
+// module, so the two paths cannot disagree about the same result set.
+import { attributionLicence } from '../lib/policy/source-attribution.js';
+// THE REFERRAL TO AHL AL-'ILM, OWNED BY THE SERVER. The system prompt has always ASKED the model
+// for it, and an instruction is a request — it was omitted most reliably on the answers that read
+// most confidently. It is appended here instead, rotated so successive answers do not end
+// identically, and NEVER on the frozen acts of worship.
+import { referralTail } from '../lib/policy/referral-tail.js';
 // The registry's Arabic publisher name, so the transmission can be checked for naming the source
 // it transmits from rather than gesturing at "some websites".
 import { findSource } from '../lib/source-registry.js';
-import {
-  nameNeedingWorldCheck, worldCheckPrompt, parseWorldVerdict, isActionableNonScholar,
-  stripEntityFromQuery, nonScholarDraftingNote,
-} from '../lib/policy/entity-knowledge.js';
+import { unregisteredNameInQuestion, stripEntityFromQuery } from '../lib/policy/entity-knowledge.js';
 import { lastUserText } from '../lib/attribution.js';
 // THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
 // it reads nothing from the store for a reader who is not an internal tester.
@@ -732,59 +738,47 @@ export default async function handler(req, res) {
     // which is what lets «ما حكم قتل النمل؟» be classified as a ruling a child may have rather
     // than blocked on a word. It used to sit AFTER the ledger branch, so the engine swallowed a
     // child's benign or health question before any age policy saw it.
-    // ── WHO IS THIS, IN THE WORLD? ─────────────────────────────────────────
+    // ── IS THE NAME IN THIS QUESTION ONE THE REGISTRY KNOWS? ───────────────
     //
-    // Reached only when the deterministic side has already run and run out: a name was captured,
-    // and NO registry knows it — not the contemporary corpus registry, not the entity roster. So
-    // «ابن باز» and «ابن تيمية» never get here, pay nothing, and risk nothing.
+    // WHAT USED TO BE HERE. One model call asking open world knowledge «is this name a scholar?»,
+    // whose confident «no» removed the attribution path and told the reader who the man really was.
     //
-    // WHY A MODEL AT ALL. «ما رأي خالد عبدالرحمن في قصر الصلاة؟» is the shape of a fatwa request
-    // and the name of a singer. A registry answers "is this one of ours"; it cannot answer "is this
-    // a scholar at all", because the people who are not scholars are everybody else. This is the
-    // one question in the pipeline where open world knowledge is the right instrument.
+    // WHY IT IS GONE. Only the «not a scholar» branch was ever hardened. When the call said,
+    // wrongly, «yes, he is a scholar», nothing doubted it — and that is the direction it was
+    // measured failing in: «ما رأي طارق العلي في أحكام العدة؟» came back «داعية وخطيب كويتي معروف
+    // من أهل العلم … يتبنّى المذهب الحنفي», over a khutbah page that does not contain his name. He
+    // is a comic actor. A yes/no oracle checked on one of its two answers is not a safety
+    // mechanism, and its safety has moved somewhere that reads pages instead of recollections:
+    // lib/policy/source-attribution.js, wired into every buffered exit above.
     //
-    // AND IT RUNS AFTER THE PLAN, NEVER BEFORE. The question is classified deterministically first
-    // and the model is asked only about the IDENTITY OF A NAME — never the ruling, never the route,
-    // never the sources. Any failure reads as `unknown`, which leaves the shipped behaviour intact.
-    let nonScholar = null;
-    const worldSubject = nameNeedingWorldCheck(plan, questionText);
-    if (worldSubject) {
-      const who = worldSubject;
-      try {
-        const wr = await fetch(ANTHROPIC_URL, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            model,
-            max_tokens: 200,
-            system: 'أجب بكائن JSON واحد فقط.',
-            messages: [{ role: 'user', content: worldCheckPrompt(who) }],
-            stream: false,
-          }),
-        });
-        if (wr.ok) {
-          const wp = await wr.json();
-          const verdict = parseWorldVerdict(
-            (wp.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(''),
-          );
-          console.log('[world]', { type: verdict.type, confidence: verdict.confidence });
-          if (isActionableNonScholar(verdict)) nonScholar = { name: who, identity: verdict.identityAr };
-        }
-      } catch (e) {
-        console.warn('[world] check failed, leaving the shipped path:', e.message);
-      }
-    }
+    // WHAT IS LEFT IS DETERMINISTIC AND COSTS NOTHING. A name no registry and no roster knows is
+    // stripped out of the search query, because the sources hold the ruling and nobody publishes
+    // what an unregistered name thinks of it.
+    const unregisteredName = unregisteredNameInQuestion(plan);
+    if (unregisteredName) console.log('[entity] unregistered name — it will not travel in the query');
 
-    // The verdict feeds the classifier: a worldly figure's biography is not a religious question.
-    const topicClass = classifyTopic(questionText, plan, {
-      entityWorldType: nonScholar ? 'non_scholar' : 'unknown',
-    });
+    const topicClass = classifyTopic(questionText, plan);
     const ageAccess = access({ topicClass, audienceBand });
     console.log('[policy]', {
       topicClass, audienceBand, audienceSource, outcome: ageAccess.outcome,
       sourcePolicy: ageAccess.sourcePolicy, relation: plan.claimRelation, path: ledgerPath.path,
       policyVersion: POLICY_VERSION, policyEnabled: legacyPolicy.enabled, flag: legacyPolicy.reason,
     });
+
+    // ── THE REFERRAL THE SERVER OWNS ───────────────────────────────────────
+    //
+    // Computed once, here, because it depends only on the question and the class the server has
+    // just decided — never on what the model produced. It is appended at the exits that carry a
+    // real sourced answer, ahead of the source cards; a template, a refusal and a safety redirect
+    // get nothing, because there is no ruling under them to refer.
+    //
+    // ROTATED ON THE CONVERSATION'S OWN TURN COUNT. Two answers in a row must not end with the
+    // same sentence, or the sentence stops being read — which is the whole failure a fixed footer
+    // walks into. Deterministic, no store, no model call.
+    const answersSoFar = (body.messages || []).filter((m) => m && m.role === 'assistant').length;
+    const referral = referralTail(questionText, topicClass, answersSoFar);
+    const referralBlock = referral ? '\n\n' + referral : '';
+    if (referral) console.log('[referral] appending the server\'s tail', { topicClass, turn: answersSoFar });
 
     // ── GENERAL_HEALTH_INTERIM ─────────────────────────────────────────────
     // Until this app has a health ledger of its own, a dose, a diagnosis and a child's symptoms
@@ -1090,7 +1084,7 @@ export default async function handler(req, res) {
     // band's ordinary approved list below; only after that search may anything be refused, and
     // lib/policy/consistency-gate.js will not let a «لم أقف» be written without it. Nothing here
     // credits him with anything — that still requires a page, and the grade caps are untouched.
-    if (plan.needsScholarIdentity && !nonScholar && plan.scholarStatus === 'ambiguous') {
+    if (plan.needsScholarIdentity && plan.scholarStatus === 'ambiguous') {
       console.warn('[attribution]', REASON.SCHOLAR_IDENTITY_AMBIGUOUS,
         { entity: plan.namedEntity, candidates: plan.scholarCandidates });
       clearKeepAlive();
@@ -1101,7 +1095,7 @@ export default async function handler(req, res) {
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
     }
-    if (plan.needsScholarIdentity && !nonScholar) {
+    if (plan.needsScholarIdentity) {
       console.warn('[attribution]', REASON.SCHOLAR_IDENTITY_UNRESOLVED,
         { entity: plan.namedEntity, action: 'searching before refusing' });
     }
@@ -1139,22 +1133,19 @@ export default async function handler(req, res) {
     // `if (!attributedSources.length) {` and what follows it, and the pin is worth the terseness.
     let attributionSearched = false;
     let attributionUnverified = false;
-    // A SINGER HAS NO CORPUS TO SEARCH AND NO FATWA TO WITHHOLD. Hunting for one, then reporting
-    // that none was found, is the "artificial stupidity" this removes: the whole attributed block
-    // is skipped, and the reader gets his actual question answered instead.
-    // ── SKIPPING THE HUNT IS NOT PERMISSION TO SPEAK FOR HIM ───────────────
+    // ── NO CORPUS TO SEARCH IS NOT PERMISSION TO SPEAK FOR HIM ─────────────
     //
-    // «he is not a scholar» was being read as «so there is nothing to check», and the flag that
-    // arms every downstream check was left false. That is how «الشيخ مطلق الجاسر — رحمه الله —
-    // إعلامي سعودي محترم» reached a reader: the verdict that was supposed to protect him from a
-    // fabricated fatwa disarmed the check that would have caught a fabricated obituary.
+    // This used to be armed by the world check: «he is not a scholar» was read as «so there is
+    // nothing to check», and the flag that arms every downstream gate was left false. That is how
+    // «الشيخ مطلق الجاسر — رحمه الله — إعلامي سعودي محترم» reached a reader — the verdict meant to
+    // protect him from a fabricated fatwa disarmed the check that would have caught a fabricated
+    // obituary.
     //
-    // Nothing of his was verified — that is the ONE thing the verdict actually established — so
-    // the flag says so. It stops the hunt and it does not stop the gate. Placed ABOVE the line
-    // below deliberately: attribution-guard.cjs measures the distance from `namedScholarOpinion')`
-    // to the corpus search, and that distance is an invariant worth more than the reading order.
-    if (nonScholar) attributionUnverified = true;
-    const attributionActive = (plan.attributionMode === 'namedScholarOpinion') && !nonScholar;
+    // With the verdict gone, nothing here decides who anybody is. An UNREGISTERED name simply has
+    // no corpus to search: the hunt below cannot reach one for him, and nothing of his is verified
+    // — which is what the flag records. The gates stay armed either way.
+    if (unregisteredName) attributionUnverified = true;
+    const attributionActive = (plan.attributionMode === 'namedScholarOpinion') && !unregisteredName;
     if (attributionActive) {
       let attributedSources = [];
       if (plan.hasDirectAdapter) {
@@ -1165,16 +1156,28 @@ export default async function handler(req, res) {
           rank: (q, cands) => rankCandidates(q, cands, model, headers),
         });
       } else if (plan.officialDomain) {
-        // No bespoke adapter, but the registry knows whose site this is. Search it, scoped to
-        // that one domain, through the ordinary retrieval path — so the page gates, the
-        // listing refusals and the role rules all apply to it unchanged. A title or a search
-        // snippet is not evidence here any more than anywhere else: only a fetched, gated page
-        // reaches this array.
+        // ── HIS DOMAIN AT THE FRONT OF THE SEARCH, NOT A CAGE AROUND IT ────
+        //
+        // This used to be `onlySites: [plan.officialDomain]` — a search LOCKED to his own site,
+        // which returned silence whenever his site had nothing on the issue. The reader then lost
+        // the ruling because of whose name he had put in front of it, and «ما رأي فلان في كذا» is
+        // a question about the ISSUE with a preference attached.
+        //
+        // So it is a preference: his domain is asked about first and alone, and an empty answer
+        // there carries on down the band's ordinary list instead of ending the search. Every page
+        // gate, listing refusal and role rule applies unchanged either way, and only a fetched,
+        // gated page reaches this array — a title or a snippet is not evidence here any more than
+        // anywhere else.
+        //
+        // WHAT MAKES THAT SAFE is one branch below: the lock used to be the only guarantee that a
+        // page belonged to the man it was about to be drafted for, and that guarantee now comes
+        // from the page's own source class. A page on his own domain reproducing the Standing
+        // Committee's fatwa was never his either, and the lock could not tell.
         try {
           attributionSearched = true;
           const { retrieve } = await import('../lib/retrieve.js');
           const scoped = await retrieve(plan.topic || attribution.question, {
-            band, depth: effectiveDepth, onlySites: [plan.officialDomain],
+            band, depth: effectiveDepth, preferDomain: plan.officialDomain,
           });
           attributedSources = (scoped.sources || []).map((s) => ({
             scholar: plan.namedEntity,
@@ -1182,7 +1185,7 @@ export default async function handler(req, res) {
             title: s.title, exactText: s.passage, canonicalUrl: s.url, sourceId: s.url,
           }));
         } catch (e) {
-          console.warn('[attribution] scoped search threw:', e.message);
+          console.warn('[attribution] preferred search threw:', e.message);
         }
       } else {
         console.warn('[attribution] no approved domain is registered for', plan.namedEntity);
@@ -1239,7 +1242,21 @@ export default async function handler(req, res) {
         .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
         .trim();
 
-      const verdict = verifyAttributedReply(draft, attribution, attributedSources);
+      // ── AND THE PAGE MUST LICENSE NAMING HIM, NOT MERELY BE ON HIS DOMAIN ──
+      //
+      // MEASURED as a rule, not as an incident: a scholar's own archive republishes other people
+      // constantly. A Standing Committee fatwa reproduced on binbaz.org.sa passes every check
+      // below — it is his domain, the text is real, the wording is faithful — and the reply that
+      // comes out of it credits Ibn Baz with a decision that is not his. The domain says whose
+      // SITE this is; the source-class rule is what says whose WORDS these are, and when the page
+      // is transmitting somebody else it drops the attribution to the site.
+      const attrLicence = attributionLicence(attributedSources.map((s) => ({
+        url: s.canonicalUrl, author: '', text: s.exactText,
+      }))).personIds;
+      const ownedByHim = !plan.requestedAuthorityId || attrLicence.includes(plan.requestedAuthorityId);
+      const verdict = ownedByHim
+        ? verifyAttributedReply(draft, attribution, attributedSources)
+        : { ok: false, problems: ['source-class:' + REASON.PAGE_NOT_DIRECT_EVIDENCE + ':transmits-another'] };
       if (!verdict.ok) {
         // THE DRAFT IS DISCARDED IN FULL — unchanged, and non-negotiable. A partially-correct
         // attributed fatwa is not a partially-correct answer; it is a wrong one with a
@@ -1259,7 +1276,7 @@ export default async function handler(req, res) {
         clearKeepAlive();
         res.write(`data: ${JSON.stringify({
           type: 'content_block_delta', index: 0,
-          delta: { type: 'text_delta', text: seal(draft) + (card ? '\n' + card.tag : '') },
+          delta: { type: 'text_delta', text: seal(draft) + referralBlock + (card ? '\n' + card.tag : '') },
         })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
         return res.end();
@@ -1281,6 +1298,14 @@ export default async function handler(req, res) {
     // Declared before the encyclopedic branch below and read after it, so the publishers that
     // branch actually fetched are in hand by the time any exit calls this.
     let encyclopedicPublishers = [];
+    // ── WHO THE PAGES LICENSE NAMING ───────────────────────────────────────
+    //
+    // NULL UNTIL PAGES EXIST, AND THAT DISTINCTION IS LOAD-BEARING. `null` means no result set has
+    // been gathered yet, and the source-class rule stays off; `[]` means pages were gathered and
+    // they license nobody — the Tariq al-Ali case, where every sentence naming him must go. A
+    // screen that read the two the same way would either refuse every early draft or refuse
+    // nothing at the one exit that mattered. Assigned at each place that finishes retrieving.
+    let sourceLicence = null;
     // ── ARMED BY THE DRAFT, NOT BY THE PLAN ────────────────────────────────
     //
     // `if (!attributionUnverified) return null` used to stand here, and it meant the gate ran only
@@ -1315,6 +1340,10 @@ export default async function handler(req, res) {
         // «ذكرت بعض المواقع أنّ ابن تيمية يرى…» and the fall-through then served it, which made the
         // stricter check decorative.
         transmissionPublishers: encyclopedicPublishers,
+        // THE SOURCE-CLASS RULE. A صفة or a موقف may be credited to a man only when one of the
+        // pages actually in hand licenses naming him. Read at call time, not at declaration time,
+        // so every exit gets the licence for the pages THAT exit was drafted over.
+        sourceLicence,
       });
       if (!verdict.problems.length) return null;
       console.warn('[consistency] draft screened', {
@@ -1352,10 +1381,11 @@ export default async function handler(req, res) {
     // with the identity template; now it gets the same real search, and the same refusal only if
     // the search comes back empty. `!attributionSearched` is what keeps this from re-searching for
     // a scholar whose own site was already read and found wanting.
-    // `!nonScholar` because a man world knowledge has told us is a singer has no corpus to search,
-    // and running the search anyway would be the same artificial stupidity the attributed block
-    // above already declines — now merely one branch later.
-    if (attributionUnverified && plan.namedEntity && !attributionSearched && !nonScholar) {
+    // `!unregisteredName` because a name no registry knows has no corpus to search: binding it into
+    // the query would spend a search on a phrase that cannot match, and the empty result would then
+    // be read as an absence of evidence about the ruling itself. The reader still gets the ruling
+    // from the ordinary sourced route below — with nothing at all attributed to him.
+    if (attributionUnverified && plan.namedEntity && !attributionSearched && !unregisteredName) {
       try {
         const { retrieve } = await import('../lib/retrieve.js');
         // The name is BOUND INTO the query, not merely hoped for: `topic` has had the name frame
@@ -1370,6 +1400,10 @@ export default async function handler(req, res) {
         const encQuery = (asked.trim() || `${plan.namedEntity} ${plan.topic || ''}`).trim();
         const enc = remember(await retrieve(encQuery, { band, depth: effectiveDepth }));
         const encSources = (enc.sources || []).slice(0, MAX_SOURCES);
+        // Pages exist now, so the source-class rule is armed for every exit below — including the
+        // fall-through, which used to be the looser of the two and is the one that actually served
+        // «طارق العلي داعية وخطيب كويتي … من أهل العلم» over a khutbah page that never named him.
+        sourceLicence = attributionLicence(encSources).personIds;
         // WE LOOKED. Whatever happens next, the negation below is now an earned one — and the
         // note that says so is composed here, because the earlier assignment ran before this
         // search and correctly declined to claim a search that had not happened yet.
@@ -1439,10 +1473,13 @@ export default async function handler(req, res) {
               searchProven: true,
               allowSourcedPosition: true,
               transmissionPublishers: encyclopedicPublishers,
+              // The transmission may name the SITE. Whether it may name the MAN is the
+              // source-class question, and these are the pages it is answered from.
+              sourceLicence,
             }) : ['EMPTY_DRAFT'];
             console.log('[encyclopedic] gate', { problems: eProblems, publishers: encyclopedicPublishers.length });
             if (!eProblems.length) {
-              return emitOnce(eDraft + '\n' + cards.map((c) => c.tag).join('\n'));
+              return emitOnce(eDraft + referralBlock + '\n' + cards.map((c) => c.tag).join('\n'));
             }
           } else {
             console.error('[encyclopedic] upstream', re.status);
@@ -1617,13 +1654,13 @@ export default async function handler(req, res) {
     const toolResults = await Promise.all(
       toolUses.map(async (block, angle) => {
         const rawQ = (block.input && block.input.query) || '';
-        // A NON-SCHOLAR'S NAME IS REMOVED FROM THE QUERY, DETERMINISTICALLY. The drafting note
-        // tells the model who the man is; it does not stop the model putting his name in a search
-        // for a fatwa nobody published. «ما رأي خالد عبدالرحمن في قصر الصلاة» has to reach the
-        // provider as «قصر الصلاة», or the search cannot match and the empty result gets read as
-        // an absence of evidence about the ruling itself.
-        const q = nonScholar ? stripEntityFromQuery(rawQ, nonScholar.name) : rawQ;
-        if (nonScholar && q !== rawQ) console.log('[world] query stripped of the entity name');
+        // AN UNREGISTERED NAME IS REMOVED FROM THE QUERY, DETERMINISTICALLY. The model writes its
+        // own search query and will happily put a name in it, hunting a fatwa nobody published.
+        // «ما رأي خالد عبدالرحمن في قصر الصلاة» has to reach the provider as «قصر الصلاة», or the
+        // search cannot match and the empty result gets read as an absence of evidence about the
+        // ruling itself. The test is the registry — no model call, and no opinion about the man.
+        const q = unregisteredName ? stripEntityFromQuery(rawQ, unregisteredName) : rawQ;
+        if (unregisteredName && q !== rawQ) console.log('[entity] query stripped of the unregistered name');
         let webText;
         try {
           // `depth` is passed for RETRIEVAL TARGETING only (lib/source-intent.js reads it).
@@ -1668,6 +1705,11 @@ export default async function handler(req, res) {
     // the whole guarantee: on the DEEN route the reader either gets a verified card or
     // gets told plainly that we could not verify one.
     const canonicalSources = pickVerifiedSources(retrievedSources.filter(Boolean).flat());
+    // THE PAGES THIS REPLY WILL BE DRAFTED OVER decide who it may name. Computed from the gated
+    // pages themselves — their extracted byline, their host, their extracted text — and never from
+    // the question, the plan, or anything the model said.
+    sourceLicence = attributionLicence(retrievedSources.filter(Boolean).flat()).personIds;
+    console.log('[licence]', { pages: retrievedSources.filter(Boolean).flat().length, persons: sourceLicence });
     if (canonicalSources.length === 0) {
       console.warn('[source] no verified structured source — refusing to answer unsourced');
       clearKeepAlive();
@@ -1684,15 +1726,12 @@ export default async function handler(req, res) {
     // step 1 or step 2 above came up empty. The answer that follows is the ordinary sourced
     // answer to the same question — and this instruction is what keeps it from quietly
     // becoming his. The note itself is appended after the answer, not instead of it.
-    // ── TELL HIM WHO THE MAN IS, THEN ANSWER HIS QUESTION ──────────────────
-    // Both halves matter. Answering the fiqh silently leaves the reader thinking a singer has a
-    // fatwa; saying only "he is not a scholar" answers nothing. One kind sentence, then the ruling
-    // from the sources — and no verdict on the man himself, in either direction.
-    if (nonScholar) {
-      console.log('[world] non-scholar entity, answering the underlying question', { entity: nonScholar.name });
-      toolResults.push({ type: 'text', text: nonScholarDraftingNote(nonScholar.name, nonScholar.identity) });
-    }
-
+    // ── AND THE NOTE THAT USED TO SAY WHO HE IS IS GONE WITH THE CHECK ─────
+    //
+    // It opened the reply with a sentence about the man — «هذا الاسم ليس ممّن تُؤخَذ عنهم الفتوى»
+    // — on the strength of a model call, and the model call was wrong in the direction nobody was
+    // watching. Nothing sourced it, so nothing says it. The reader gets the ruling he asked for,
+    // and the instruction below is what keeps it from quietly becoming his.
     if (attributionUnverified) {
       console.warn('[attribution]', REASON.GENERAL_RULING_SUBSTITUTED, plan.namedEntity);
       toolResults.push({
@@ -1748,6 +1787,8 @@ export default async function handler(req, res) {
           if (Array.isArray(extra.sources) && extra.sources.length) {
             retrievedPages.push(...extra.sources);
             supporting = sourcesAddressingSubject(claimSubject.subject, retrievedPages);
+            // The probe added pages, so it may have added a licence with them.
+            sourceLicence = attributionLicence(retrievedPages).personIds;
           }
         } catch (e) {
           console.warn('[claim] phrase probe threw:', e.message);
@@ -1811,7 +1852,7 @@ export default async function handler(req, res) {
       if (cScreened && cScreened.dropWhole) return emitOnce(NO_ATTRIBUTION_AVAILABLE);
       const cBody = cScreened ? cScreened.text : (cDraft + cNote);
       res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cBody) + cCard },
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cBody) + referralBlock + cCard },
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();
@@ -1917,7 +1958,7 @@ export default async function handler(req, res) {
       const bBody = bScreened ? bScreened.text : bDraft;
       const bNote = attributionNote ? '\n\n' + attributionNote : '';
       const bCards = canonicalSources.length ? '\n' + canonicalSources.map((c) => c.tag).join('\n') : '';
-      return emitOnce(bBody + bNote + bCards);
+      return emitOnce(bBody + bNote + referralBlock + bCards);
     }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──
@@ -1984,7 +2025,11 @@ export default async function handler(req, res) {
       // already read the ruling: "here is the ruling and its source — and it is not his".
       // It is appended ONLY here, i.e. only on a reply that actually carried a verified
       // source, which is what stops it from ever becoming the whole answer.
+      // The referral rides between the note and the cards, so the reader reaches it having read
+      // the ruling and before the sources — and the cards stay the last thing in the reply, which
+      // the client's tag scanner depends on.
       writeText((attributionNote ? '\n\n' + attributionNote + '\n' : '')
+        + (referralBlock ? referralBlock + '\n' : '')
         + canonicalSources.map((c) => c.tag).join('\n'));
     };
 
