@@ -179,11 +179,20 @@ const GOOD_DRAFT = [
     // the answer he came for. So: dropped whole when the attribution IS the substance, trimmed
     // when it is an aside — and `screenDraft` decides which by whether the offending sentence
     // names the man the reader actually asked about.
+    // RE-PINNED ON THE STRONGER CONDITION. The constrained reply is now wrapped in withPresence(),
+    // which prepends «لا أعرف هذا الاسم» when the question hung on a name no registry knows and no
+    // page carries — measured on the live service, where the bare refusal left the reader holding
+    // the premise that there was somebody to attribute to. The verdict being pinned is unchanged:
+    // a draft whose offence is the substance is dropped WHOLE and replaced. Nothing of the draft
+    // survives either way, which the next assertion states directly.
     ok('a draft whose offence is the SUBSTANCE is still dropped whole',
-      /if \(!bDraft \|\| \(bScreened && bScreened\.dropWhole\)\) \{[\s\S]{0,400}return emitOnce\(NO_ATTRIBUTION_AVAILABLE\)/.test(s));
+      /if \(!bDraft \|\| \(bScreened && bScreened\.dropWhole\)\) \{[\s\S]{0,400}return emitOnce\(withPresence\(NO_ATTRIBUTION_AVAILABLE\)\)/.test(s));
     ok('...and every buffered exit honours the same verdict',
-      (s.match(/\.dropWhole\) return emitOnce\(NO_ATTRIBUTION_AVAILABLE\)|dropWhole\)\) \{/g) || []).length >= 3,
+      (s.match(/\.dropWhole\) return emitOnce\(withPresence\(NO_ATTRIBUTION_AVAILABLE\)\)|dropWhole\)\) \{/g) || []).length >= 3,
       'a screened exit that ignores dropWhole is an exit with no gate');
+    ok('...and the replacement is never emitted bare — every exit carries the name verdict with it',
+      !/emitOnce\(NO_ATTRIBUTION_AVAILABLE\)/.test(s)
+      && (s.match(/emitOnce\(withPresence\(NO_ATTRIBUTION_AVAILABLE\)\)/g) || []).length === 3);
     {
       const CGm = require('path').join(REPO, 'lib/policy/consistency-gate.js');
       const src = fs.readFileSync(CGm, 'utf8');

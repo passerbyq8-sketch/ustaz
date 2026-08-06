@@ -992,6 +992,16 @@ export default async function handler(req, res) {
       ? presenceLine(namePresence)
       : '';
 
+    // ── AND IT RIDES ON THE REFUSALS TOO, WHICH IS WHERE IT MATTERS MOST ────
+    //
+    // MEASURED ON THE LIVE SERVICE after this batch's first deploy: «ما رأي خالد عبدالرحمن في قصر
+    // الصلاة؟» returned NO_ATTRIBUTION_AVAILABLE alone. The reworded refusal did its job — it
+    // called him nothing — but the reader was still left holding the premise he arrived with,
+    // because a sentence that declines to attribute says nothing about whether there is anybody to
+    // attribute TO. The drop-whole exits are precisely the ones where the reader most needs to be
+    // told «لا أعرف هذا الاسم», and they were the ones not carrying it.
+    const withPresence = (text) => (presenceLead ? presenceLead + '\n\n' + text : text);
+
     // ── LIVE WORLD RETRIEVAL: a general question may still need TODAY'S facts ──
     //
     // THE HOLE THIS CLOSES. The general route runs with NO tools, deliberately — that is what
@@ -1765,7 +1775,7 @@ export default async function handler(req, res) {
       // searched and nothing was retrieved — which makes any position credited to him in this
       // draft the app's own invention rather than a transmission from anywhere.
       const screened = attributionProblems(clean);
-      if (screened && screened.dropWhole) return emitOnce(NO_ATTRIBUTION_AVAILABLE);
+      if (screened && screened.dropWhole) return emitOnce(withPresence(NO_ATTRIBUTION_AVAILABLE));
       const cleanOut = screened ? screened.text : clean;
       clearKeepAlive();
       res.write(`data: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cleanOut) } })}\n\n`);
@@ -2006,7 +2016,7 @@ export default async function handler(req, res) {
       // replaces one.
       const cNote = attributionNote ? '\n\n' + attributionNote : '';
       const cScreened = attributionProblems(cDraft + cNote);
-      if (cScreened && cScreened.dropWhole) return emitOnce(NO_ATTRIBUTION_AVAILABLE);
+      if (cScreened && cScreened.dropWhole) return emitOnce(withPresence(NO_ATTRIBUTION_AVAILABLE));
       const cBody = cScreened ? cScreened.text : (cDraft + cNote);
       res.write(`data: ${JSON.stringify({
         type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: seal(cBody) + referralBlockFor(cBody) + cCard },
@@ -2110,7 +2120,7 @@ export default async function handler(req, res) {
         // DROPPED WHOLE when the credit IS the answer. A reply that credits him with a position we
         // never verified is not partly right; trimming it would leave the same claim in a shorter
         // form, and what remained would answer a question the reader did not ask.
-        return emitOnce(NO_ATTRIBUTION_AVAILABLE);
+        return emitOnce(withPresence(NO_ATTRIBUTION_AVAILABLE));
       }
       // TRIMMED when the offence was an aside. The reader asked about the ruling and the ruling is
       // sourced; losing the whole answer over one invented clause costs him the thing he came for.

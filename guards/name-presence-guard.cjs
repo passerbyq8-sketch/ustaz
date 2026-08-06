@@ -381,6 +381,21 @@ const DEVICE = 'abcdefgh12345678';
         /قصر|ركعتين|ركعتان/.test(invented.text), invented.text.slice(0, 300));
       ok('...and the stream closes exactly once', invented.res.ended === 1);
 
+      // ── TEST 2b: THE DROP-WHOLE EXIT CARRIES THE LINE TOO ──────────────────
+      //
+      // MEASURED ON THE LIVE SERVICE, and the reason this check exists: when the model's draft
+      // credits the man and the screen drops it whole, the reader used to get the bare refusal —
+      // correct about not attributing, and silent about the one fact that removes his premise.
+      const dropped = await drive('ما رأي فلان الفلاني في قصر الصلاة؟',
+        'يرى الشيخ فلان الفلاني أنّ قصر الصلاة واجب، وقال في ذلك كلامًا مشهورًا.', { worldHit: false });
+      ok('a DROPPED draft still tells the reader the name is unknown',
+        /لا أعرف هذا الاسم/.test(dropped.text), dropped.text.slice(0, 300));
+      ok('...and the credited draft itself never reaches him',
+        !/يرى الشيخ فلان|قال في ذلك/.test(dropped.text), dropped.text.slice(0, 300));
+      ok('...and every drop-whole exit is routed through the line, not just one',
+        (read('api/ask.js').match(/emitOnce\(withPresence\(NO_ATTRIBUTION_AVAILABLE\)\)/g) || []).length === 3
+        && !/emitOnce\(NO_ATTRIBUTION_AVAILABLE\)/.test(read('api/ask.js')));
+
       // ── TEST 3: the worldly identity question ──────────────────────────────
       const who = await drive('من هو محمد صلاح؟',
         'محمد صلاح لاعب كرة قدم مصري يلعب مع نادي ليفربول ومنتخب مصر، بحسب المصدر المذكور.');
