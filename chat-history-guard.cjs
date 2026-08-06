@@ -29,6 +29,14 @@ const vm = require('vm');
 const babel = require('@babel/core');
 const { parseHTML } = require('linkedom');
 
+// A CONSENTED reader, seeded the way the app itself stores the choice. Since the AI-consent
+// screen (Apple 5.1.1(i)) sits between the profile and the chat, a harness that wants to reach
+// the chat has to answer it first -- exactly as a real reader does. The refusal path is proved
+// separately in tools/ai-consent-probe.cjs. Note that the old 'disclosureAck' key is kept in
+// these seeds and is NOT what opens the app: it is not consent and is no longer read.
+const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06-1', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+
+
 const htmlFile = process.argv[2] || 'index.html';
 const html = fs.readFileSync(htmlFile, 'utf8');
 
@@ -427,7 +435,7 @@ const bootDone = new Promise((resolve) => {
   const profile = { name: 'سلمى', age: 9, gender: 'female', birthYear: 2017, pid: 'PID-SALMA', createdAt: '2026-01-01T00:00:00.000Z' };
   const seed = {
     child_profile: JSON.stringify(profile),
-    disclosureAck: '1',
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
     ezik_chats_v1: JSON.stringify([{ id: 'C1', pk: 'PID-SALMA', title: savedQuestion, pinned: false, at: 1000 }]),
     ezik_chat_v1_C1: JSON.stringify([{ role: 'user', content: savedQuestion }, { role: 'assistant', content: 'جوابٌ محفوظ' }]),
     messages: JSON.stringify([{ role: 'user', content: legacyQuestion }, { role: 'assistant', content: 'جوابٌ قديم' }]),
@@ -689,7 +697,7 @@ function seedConversations() {
   }
   return {
     child_profile: JSON.stringify({ name: 'سلمى', age: 9, gender: 'female', birthYear: 2017, pid: 'PID-S', createdAt: '2026-01-01T00:00:00.000Z' }),
-    disclosureAck: '1',
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
     murabbi_theme_v1: 'light',
     ezik_chats_v1: JSON.stringify([
       { id: 'LONG', pk: 'PID-S', title: Q_LONG, pinned: false, at: 3000 },

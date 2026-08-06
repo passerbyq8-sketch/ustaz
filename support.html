@@ -48,6 +48,13 @@
      itself readable inside an RTL page -- an email is never mirrored. */
   .mail{display:inline-block;margin-top:6px;background:var(--royal);color:#fff;text-decoration:none;font-weight:700;padding:12px 26px;border-radius:10px;direction:ltr}
   .mail:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+  /* The English half, same shape as privacy.html and delete.html: one block, laid out LTR,
+     saying the same things in the same order. */
+  .en{direction:ltr;text-align:left;margin-top:60px}
+  .en h2,.en h1,.en p,.en li{text-align:left}
+  .en ul,.en ol{padding-inline-start:22px}
+  .jump{display:inline-block;margin-top:16px;color:var(--blue);font-size:14px;font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
+  .divider{margin:56px 0 0;border:0;border-top:3px solid var(--blue);width:54px;border-radius:2px}
   footer{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
   @media (max-width:520px){
     body{font-size:16px}
@@ -66,6 +73,7 @@
   <div class="rule"></div>
   <h1>دعم تطبيق عزك</h1>
   <p class="meta">للاستفسار والإبلاغ عن المشكلات</p>
+  <a class="jump" href="#english">English version ↓</a>
 </header>
 
 <p class="lead">أهلًا بك. إن واجهتك مشكلةٌ في التطبيق، أو كان لديك سؤالٌ أو اقتراح، فنحن نقرأ كلَّ رسالةٍ تصلنا ويسعدنا أن نساعدك.</p>
@@ -88,10 +96,53 @@
 <h2>متى نردّ</h2>
 <p>نردّ على الرسائل بالترتيب الذي تصل به، وقد يستغرق الردُّ <strong>عدّة أيام عمل</strong>. فإن تأخّر جوابُنا فالرسالةُ لم تضِع — هي في الدور.</p>
 
-<h2>الخصوصية</h2>
+<h2>الخصوصية وموافقة مشاركة البيانات مع الذكاء الاصطناعيّ</h2>
 <p>لمعرفة ما يعالجه التطبيق من بيانات، ومَن يستقبلها، وكيف تطلب حذفها، اطّلع على <a href="/privacy.html">سياسة خصوصية تطبيق عزك</a>.</p>
+<ul>
+  <li><strong>يمكنك سحب موافقة مشاركة البيانات مع خدمات الذكاء الاصطناعيّ من:</strong> الإعدادات ← الخصوصية والذكاء الاصطناعي.</li>
+  <li><strong>السحبُ يوقف الإرسالَ المستقبليّ</strong> إلى Anthropic وElevenLabs وBrave Search، ولا يسترجع تلقائيًّا ما سبق أن عالجه المزوّد وفق سياساته.</li>
+  <li><strong>يمكنك طلبُ حذف البيانات التي يستطيع عزك الوصول إليها</strong> عبر البريد: <a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a>.</li>
+  <li><strong>أمّا البياناتُ المحلّيّةُ على جهازك</strong> فتُحذَف من <a href="/delete.html">صفحة حذف البيانات</a> أو بمسح بيانات التطبيق.</li>
+  <li>وعند الرفض أو السحب يظلّ التطبيقُ يعمل: المصحفُ والأذكارُ وكنوزُ المعرفة والميزاتُ المحلّيّة تبقى متاحة.</li>
+</ul>
 
-<footer>عزك — Ezik &nbsp;·&nbsp; <a href="/">ezik.app</a> &nbsp;·&nbsp; <a href="/privacy.html">سياسة الخصوصية</a> &nbsp;·&nbsp; <a href="/delete.html">حذف البيانات</a></footer>
+<hr class="divider">
+
+<div class="en" id="english">
+  <h2>Support — Ezik</h2>
+  <p class="meta">For questions and problem reports</p>
+  <p class="lead">Welcome. If you hit a problem in the app, or have a question or a suggestion, we read every message that reaches us and are glad to help.</p>
+
+  <h2>Contact us</h2>
+  <p><a class="mail" href="mailto:passerbyq8@gmail.com?subject=Ezik%20app%20support">passerbyq8@gmail.com</a></p>
+
+  <h2>What to include in a report</h2>
+  <p>So we can reach the problem quickly, please state in your message:</p>
+  <ul>
+    <li><strong>Device type</strong> — for example: iPhone 14, or Samsung Galaxy S23.</li>
+    <li><strong>OS version</strong> — for example: <code>iOS 18.2</code> or <code>Android 15</code>.</li>
+    <li><strong>A description of the problem</strong> — what you were doing when it happened, what you expected, and what actually happened. A screenshot if possible.</li>
+  </ul>
+
+  <div class="note">
+    <p><strong>Do not send passwords, card numbers, or any personal or sensitive data.</strong> We never ask for them and never need them to solve a problem. Describing what happened, without copying private content, is enough.</p>
+  </div>
+
+  <h2>When we reply</h2>
+  <p>We answer messages in the order they arrive, and a reply may take <strong>several working days</strong>. If ours is slow, the message is not lost — it is in the queue.</p>
+
+  <h2>Privacy and AI data-sharing consent</h2>
+  <p>To learn what data the app processes, who receives it, and how to request its deletion, see the <a href="/privacy.html">Ezik privacy policy</a>.</p>
+  <ul>
+    <li><strong>You can withdraw consent to share data with the AI services from:</strong> Settings → Privacy and AI.</li>
+    <li><strong>Withdrawal stops future sending</strong> to Anthropic, ElevenLabs and Brave Search. It does not automatically retrieve what a provider already processed under its own policies.</li>
+    <li><strong>You can request deletion of the data Ezik is able to access</strong> by email: <a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a>.</li>
+    <li><strong>Local data on your device</strong> is erased from the <a href="/delete.html">data deletion page</a> or by clearing the app's data.</li>
+    <li>If you decline or withdraw, the app keeps working: the Mushaf, the adhkar, the knowledge treasures and the local features remain available.</li>
+  </ul>
+</div>
+
+<footer>عزك — Ezik &nbsp;·&nbsp; <a href="/">ezik.app</a> &nbsp;·&nbsp; <a href="/privacy.html">سياسة الخصوصية / Privacy policy</a> &nbsp;·&nbsp; <a href="/delete.html">حذف البيانات / Delete data</a></footer>
 
 </div>
 </div>

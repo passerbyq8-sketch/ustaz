@@ -19,11 +19,12 @@
 
 /* 15 */
 import { checkChatLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
+import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + AI_CONSENT_ALLOW_HEADERS);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -32,6 +33,11 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
+
+  // Apple 5.1.1(i). SIBLING CONTRACT with api/chat.js: the same guard, in the same place, before
+  // the throttle. The classifier turn carries the reader's own words, so it is a send like any
+  // other and is refused without consent.
+  if (!guardAIConsent(req, res)) return;
 
   // Throttle. SIBLING CONTRACT: mirrors api/chat.js exactly. This relay was bare too --
   // and it is hit on EVERY voice turn, because the classifier lives here.

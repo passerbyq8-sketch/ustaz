@@ -318,7 +318,7 @@ const GOOD_DRAFT = [
     const founder = DC.founderTokenFor(DEVICE);
     const makeReq = (text, prior = []) => ({
       method: 'POST',
-      headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder },
+      headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' }, /* consented client (lib/ai-consent.js); the refusal is proved in tools/ai-consent-probe.cjs */
       body: {
         system: 'أنت عزك', band: 'adult',
         messages: [...prior, { role: 'user', content: text }],

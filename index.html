@@ -2466,6 +2466,174 @@ const capHeaders = () => {
 const hasFounderToken = () => { try { return !!localStorage.getItem(FOUNDER_TOKEN_KEY); } catch (e) { return false; } };
 const storeFounderToken = (t) => { try { localStorage.setItem(FOUNDER_TOKEN_KEY, t); } catch (e) {} };
 
+// ============================================================
+// AI-CONSENT — الموافقةُ الصريحةُ على مشاركةِ البيانات مع خدماتِ الذكاءِ الاصطناعيّ
+// ============================================================
+// Apple 5.1.1(i) / 5.1.2(i): NOTHING may be sent to Anthropic, ElevenLabs or Brave before the
+// reader has been told what travels and to whom, and has chosen. This module is the ONE place
+// that answers "may we send?" -- every send path calls hasValidAIConsent() and no path keeps a
+// cached copy, so a withdrawal in Settings is obeyed by an already-running screen.
+//
+// FAIL-CLOSED, everywhere: absent record, unreadable storage, corrupt JSON, a version that is
+// not the current one, or any thrown exception all resolve to NO CONSENT. There is no default
+// value and the OLD `disclosureAck` key is NOT consent -- it acknowledged that the tutor can be
+// wrong, which is a different statement about a different thing.
+const EZ_AI_CONSENT_KEY = 'ezik_ai_consent_v1';
+const EZ_AI_CONSENT_VERSION = '2026-08-06-1';
+// The header every AI route re-checks server-side (lib/ai-consent.js). Hiding a button is not a
+// gate; the server refuses 403 without this, so a hand-made POST reaches no vendor either.
+const EZ_AI_CONSENT_HEADER = 'x-ezik-ai-consent';
+const EZ_AI_CONSENT_GRANTED = 'granted';
+const EZ_AI_CONSENT_DECLINED = 'declined';
+
+// The stored record, or null. Never throws.
+const readAIConsent = () => {
+  try {
+    const raw = localStorage.getItem(EZ_AI_CONSENT_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    if (!v || typeof v !== 'object') return null;
+    if (v.status !== EZ_AI_CONSENT_GRANTED && v.status !== EZ_AI_CONSENT_DECLINED) return null;
+    if (typeof v.version !== 'string' || !v.version) return null;
+    return v;
+  } catch (e) { return null; }
+};
+
+// THE ONE PREDICATE. Read at the moment of sending, never from a flag captured earlier.
+const hasValidAIConsent = () => {
+  const c = readAIConsent();
+  return !!c && c.status === EZ_AI_CONSENT_GRANTED && c.version === EZ_AI_CONSENT_VERSION;
+};
+
+// "Has this reader answered THIS version of the question?" A recorded refusal counts as an
+// answer -- it is a real choice, not a postponement -- so the screen is not shown again. A record
+// carrying an older version does not count: a changed disclosure has to be re-consented.
+const aiConsentAnswered = () => {
+  const c = readAIConsent();
+  return !!c && c.version === EZ_AI_CONSENT_VERSION;
+};
+
+const aiConsentStatus = () => {
+  const c = readAIConsent();
+  return (c && c.version === EZ_AI_CONSENT_VERSION) ? c.status : null;
+};
+const aiConsentGrantedBy = () => {
+  const c = readAIConsent();
+  return (c && c.version === EZ_AI_CONSENT_VERSION) ? (c.grantedBy || null) : null;
+};
+
+// The only writer. `by` is 'user' (13+) or 'guardian' (under 13, after the adult barrier).
+const writeAIConsent = (status, by) => {
+  const rec = {
+    status: status === EZ_AI_CONSENT_GRANTED ? EZ_AI_CONSENT_GRANTED : EZ_AI_CONSENT_DECLINED,
+    version: EZ_AI_CONSENT_VERSION,
+    grantedBy: by === 'guardian' ? 'guardian' : 'user',
+    at: new Date().toISOString(),
+  };
+  try { localStorage.setItem(EZ_AI_CONSENT_KEY, JSON.stringify(rec)); } catch (e) {}
+  return rec;
+};
+
+// Headers carried by an AI request. Empty when there is no consent -- and aiFetch never gets
+// that far, so an un-headed AI POST cannot be produced by this client at all.
+const aiConsentHeaders = () => (hasValidAIConsent() ? { [EZ_AI_CONSENT_HEADER]: EZ_AI_CONSENT_VERSION } : {});
+
+// Which POSTs are AI sends. /api/unlock and /api/report are NOT: no vendor sees them.
+const EZ_AI_ENDPOINTS = ['/api/ask', '/api/chat', '/api/chat-fast', '/api/tashkeel', '/api/tts', '/api/stt'];
+
+// THE CHOKE POINT. Every send to an AI route goes through here and nothing else calls fetch()
+// for those routes. No consent => fetch() is never invoked, so no name, age, gender, question,
+// image, file or recording leaves the device; the caller sees a rejection it already handles as
+// "no answer / no audio", exactly like a network failure.
+class EzAIConsentError extends Error {
+  constructor() { super('ai-consent-missing'); this.name = 'EzAIConsentError'; this.aiConsentMissing = true; }
+}
+const aiFetch = (url, opts) => {
+  if (!hasValidAIConsent()) return Promise.reject(new EzAIConsentError());
+  const o = opts || {};
+  return fetch(url, { ...o, headers: { ...(o.headers || {}), ...aiConsentHeaders() } });
+};
+
+// ============================================================
+// THE SPEECH-RECOGNITION GATE — Web Speech is a THIRD-PARTY SEND
+// ============================================================
+// aiFetch above covers everything that leaves through OUR server. Web Speech does not: calling
+// recognition.start() in Chrome ships the microphone audio to Google's servers, and in Safari to
+// Apple's, without a single fetch() appearing anywhere in this file. It is the same act as
+// POSTing to /api/stt -- a recording of the reader's voice reaching a company that is not us --
+// so it is refused on exactly the same terms, and this is the choke point that refuses it.
+//
+// THREE recognizers exist in this app and every one goes through here: the chat dictation
+// engine, the call engine, and the memorizer's «سمِّعني». There is no fourth, and the source
+// census in tools/ai-consent-probe.cjs fails the build if one appears that does not.
+//
+// TWO checkpoints, not one, because they answer different questions at different moments:
+//   * ezNewRecognition()   -- may this object EXIST? Refusing here means no engine is ever
+//                             constructed, so no microphone permission is requested for it.
+//   * ezStartRecognition() -- may it listen RIGHT NOW? Re-read at every start, including every
+//                             onend auto-restart, so a consent withdrawn one second ago is
+//                             obeyed by a loop that was armed before it.
+// Both read the store directly. Neither trusts a React state value, which is by definition a
+// snapshot of what was true when the component last rendered.
+const EZ_LIVE_RECOGNIZERS = new Set();
+
+const ezSpeechEngine = () => {
+  try { return window.SpeechRecognition || window.webkitSpeechRecognition || null; } catch (e) { return null; }
+};
+// "Does this browser have an engine at all?" -- a capability question, asked so the UI can show
+// the honest "your browser cannot do this" message. It constructs nothing and sends nothing.
+const ezSpeechAvailable = () => !!ezSpeechEngine();
+
+// Detach every handler and stop the engine. Called on withdrawal and whenever a start is refused,
+// so a recognizer can never be left holding a live onend that would re-arm it.
+const ezKillRecognizer = (rec) => {
+  if (!rec) return;
+  try { rec.onresult = null; } catch (e) {}
+  try { rec.onend = null; } catch (e) {}      // FIRST: an abort() fires onend, and a live onend restarts
+  try { rec.onerror = null; } catch (e) {}
+  try { rec.onstart = null; } catch (e) {}
+  try { if (typeof rec.abort === 'function') rec.abort(); } catch (e) {}
+  try { if (typeof rec.stop === 'function') rec.stop(); } catch (e) {}
+  try { EZ_LIVE_RECOGNIZERS.delete(rec); } catch (e) {}
+};
+
+// THE ONLY CONSTRUCTOR. Returns null without consent -- and a null recognizer is exactly what
+// every caller already handles as "this browser has no engine", so the refusal needs no new
+// failure path anywhere.
+const ezNewRecognition = () => {
+  if (!hasValidAIConsent()) return null;
+  const SR = ezSpeechEngine();
+  if (!SR) return null;
+  let rec = null;
+  try { rec = new SR(); } catch (e) { return null; }
+  try { EZ_LIVE_RECOGNIZERS.add(rec); } catch (e) {}
+  return rec;
+};
+
+// THE ONLY START. Every call site -- first start and every auto-restart -- goes through it.
+// Returns true only if the engine actually began listening.
+const ezStartRecognition = (rec) => {
+  if (!rec) return false;
+  if (!hasValidAIConsent()) { ezKillRecognizer(rec); return false; }
+  try { rec.start(); return true; } catch (e) { return false; }
+};
+
+// Withdrawal, applied to speech. Every live engine is torn down handlers-first so nothing can
+// re-arm, and the registry is emptied. Safe to call when nothing is running.
+const ezStopAllRecognition = () => {
+  let n = 0;
+  try {
+    for (const rec of Array.from(EZ_LIVE_RECOGNIZERS)) { ezKillRecognizer(rec); n++; }
+    EZ_LIVE_RECOGNIZERS.clear();
+  } catch (e) {}
+  return n;
+};
+
+// The one line the memorizer shows instead of listening, when the voice has not been consented.
+// «سمِّعني» is the only local-looking feature that is not local: it is a microphone feeding a
+// third party, so it stops -- while the memorizing, the manual reveal and the mushaf do not.
+const EZ_SPEECH_NO_CONSENT = 'التسميع الصوتي غير مفعّل لأن مشاركة الصوت مع خدمات التعرف على الكلام لم تتم الموافقة عليها.';
+
 const getFriendlyError = (type, gender) => {
   const bucket = FRIENDLY_ERRORS[type] || FRIENDLY_ERRORS.general;
   return bucket[gender === 'female' ? 'female' : 'male'];
@@ -6107,10 +6275,39 @@ function App() {
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
   const [reportFor, setReportFor] = useState(null); // {ai,user} of the reply being flagged, or null
-  // First-run disclosure acknowledgement. Independent of profile: an existing profiled user who
-  // has never acknowledged still sees it. Never wiped with the profile; never forces re-onboarding.
-  const [disclosureAck, setDisclosureAck] = useState(() => { try { return localStorage.getItem('disclosureAck') === '1'; } catch (e) { return false; } });
-  const ackDisclosure = () => { try { localStorage.setItem('disclosureAck', '1'); } catch (e) {} setDisclosureAck(true); };
+  // THE AI-CONSENT STATE (Apple 5.1.1(i) / 5.1.2(i)). Seeded from the store, and it is the state
+  // that DRAWS -- every send path reads hasValidAIConsent() from the store itself instead, so a
+  // stale render can never authorise a send. Independent of profile: an existing profiled reader
+  // who has never answered this version still sees the screen, and is neither wiped nor
+  // re-onboarded. The old `disclosureAck` key is deliberately NOT read: it is not consent.
+  const [aiConsent, setAiConsent] = useState(() => aiConsentStatus());
+  const [aiConsentReview, setAiConsentReview] = useState(false);   // "review the choice" reopens the screen
+  // Granting is the ONLY writer of 'granted'. `by` is decided by the screen: 'user' at 13+,
+  // 'guardian' only after the in-app adult barrier has been passed.
+  const grantAIConsent = (by) => { writeAIConsent(EZ_AI_CONSENT_GRANTED, by); setAiConsent(aiConsentStatus()); setAiConsentReview(false); };
+  // Declining, and withdrawing, are the SAME write -- there is one refused state, not two. The
+  // stop-everything below is what makes a withdrawal take effect on a screen that is already
+  // running: the in-flight stream is aborted, the audio is cancelled, the microphone is released.
+  // Saved conversations are NOT deleted: withdrawing consent to SEND is not a request to erase.
+  const declineAIConsent = () => {
+    writeAIConsent(EZ_AI_CONSENT_DECLINED, 'user');
+    try { if (abortRef.current) abortRef.current.abort(); } catch (e) {}
+    try { cancelAudio(); } catch (e) {}
+    try { stopCloudAll(); } catch (e) {}
+    try { stopDictAll(); } catch (e) {}
+    // EVERY live Web Speech engine, wherever it was built -- the chat's, the call's, and the
+    // memorizer's, which lives in a different component App has no handle on. The registry is why
+    // this is one line instead of three refs App would have to be given. Handlers are detached
+    // before the abort, so no onend survives to restart anything.
+    try { ezStopAllRecognition(); } catch (e) {}
+    try { shouldListenRef.current = false; } catch (e) {}
+    try { callActiveRef.current = false; callGenRef.current++; } catch (e) {}
+    setIsListening(false);
+    setIsLoading(false);
+    setCallState('idle');
+    setAiConsent(aiConsentStatus());
+    setAiConsentReview(false);
+  };
   // قفل الإنفاق: مفتوحٌ دائماً حين يكون القفل مُعطَّلاً (٦٤ صفراً) فلا يتغيّر سلوك اليوم إطلاقاً.
   // spendGateRef مرآةٌ متزامنة يقرؤها callAI/fetchSpeechAudio دون إغلاقٍ على قيمةٍ بائتة.
   const [spendGateOpenState, setSpendGateOpenState] = useState(spendGateOpen());
@@ -6243,6 +6440,9 @@ function App() {
     vadAnalyserRef.current = null;
   };
   const startCloudListening = async () => {
+    // آخرُ حاجزٍ قبل getUserMedia نفسِه: بلا موافقةٍ سارية لا يُفتح الميكروفون. سحبُ الموافقةِ
+    // أثناءَ مكالمةٍ جاريةٍ يمنع الدَّورَ التالي حتى لو نجا مؤقّتٌ من دورةِ الإنهاء.
+    if (!hasValidAIConsent()) { stopCloudAll(); setCallState('idle'); return; }
     const myGen = callGenRef.current;
     try {
       if (!cloudStreamRef.current) cloudStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -6314,7 +6514,7 @@ function App() {
     let sttError = '';
     try {
       const band = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
-      const r = await fetch('/api/stt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: b64, mime: blob.type, band }) });
+      const r = await aiFetch('/api/stt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: b64, mime: blob.type, band }) });
       if (r.ok) { const d = await r.json(); text = String(d.text || '').trim(); }
       else {
         const body = await r.text().catch(() => '');
@@ -6358,6 +6558,10 @@ function App() {
   // The Android recognizer is DEAF between sessions, so SR events cannot measure user silence.
   // This loop reads microphone energy directly and is the SOLE turn-ender while it lives.
   const ensureVad = async () => {
+    // A microphone is a microphone even when nothing is transcribed from it: this loop opens one
+    // to measure silence. CALL_VAD is false today so the path is dormant, but a dormant path is
+    // exactly the one that gets switched on later without anybody re-reading the consent rules.
+    if (!hasValidAIConsent()) { stopVad(); return; }
     if (vadCtxRef.current) { vadGenRef.current = callGenRef.current; vadLastVoiceRef.current = Date.now(); return; }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -6677,10 +6881,14 @@ function App() {
   }, []);
 
   // إعداد التعرف على الصوت
+  // The dependency is `aiConsent`, not []. Without consent ezNewRecognition() returns null and
+  // NO engine is built at all -- so no microphone permission is ever requested for dictation.
+  // When consent is granted the effect re-runs and the engine appears; when it is withdrawn the
+  // effect re-runs, the cleanup below kills the old engine, and the rebuild refuses. That is the
+  // whole lifecycle in one place, instead of a mount-time singleton that outlives the choice.
   useEffect(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return;
-    const recognition = new SR();
+    const recognition = ezNewRecognition();
+    if (!recognition) { recognitionRef.current = null; return; }
     recognition.lang = 'ar-SA';
     recognition.continuous = true;       // keep listening across pauses until the user taps the mic off
     recognition.interimResults = true;
@@ -6711,21 +6919,26 @@ function App() {
         setIsListening(false);
         return;
       }
+      // THE AUTO-RESTART IS THE DANGEROUS ONE. This loop was armed while consent was held; if it
+      // has been withdrawn since, restarting here would re-open the microphone to Google or Apple
+      // moments after the reader said no. Re-read the store, never a captured flag.
+      if (!hasValidAIConsent()) {
+        shouldListenRef.current = false;
+        setIsListening(false);
+        ezKillRecognizer(recognition);
+        return;
+      }
       // Browsers end recognition periodically even in continuous mode. If the user still
       // wants to dictate, fold finalized speech into the base and restart so dictation
       // continues until the mic is tapped off. The mic NEVER sends.
       if (shouldListenRef.current) {
         baseTextRef.current = joinSpeech(baseTextRef.current, transcriptRef.current);
         transcriptRef.current = '';
-        try {
-          recognition.start();
-          return;
-        } catch (e) {
-          // Restart failed (mic dropped or rapid toggling) — stop cleanly, do not loop.
-          shouldListenRef.current = false;
-          setIsListening(false);
-          return;
-        }
+        if (ezStartRecognition(recognition)) return;
+        // Restart failed (mic dropped, rapid toggling, or consent gone) — stop cleanly, no loop.
+        shouldListenRef.current = false;
+        setIsListening(false);
+        return;
       }
       shouldListenRef.current = false;
       setIsListening(false);
@@ -6749,7 +6962,14 @@ function App() {
       }
     };
     recognitionRef.current = recognition;
-  }, []);
+    // Teardown on rebuild AND on unmount. Handlers first, then abort: an abort() fires onend, and
+    // a live onend is precisely what would restart the engine we are trying to end.
+    return () => {
+      shouldListenRef.current = false;
+      recognitionRef.current = null;
+      ezKillRecognizer(recognition);
+    };
+  }, [aiConsent]);
 
   // ============================================================
   // S97: WHERE A CONVERSATION OPENS.
@@ -7068,6 +7288,7 @@ function App() {
   const SPEAK_EMOJI_RE = /[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu;
   const fetchSpeechAudio = async (rawText, myId) => {
     if (!spendGateRef.current) return null;                      // قفل الإنفاق مغلق ⇐ لا نداءَ tashkeel/tts
+    if (!hasValidAIConsent()) return null;                       // لا موافقة ⇐ لا نصَّ يُرسَل لـ Anthropic ولا لـ ElevenLabs
     if (childVoiceBlocked()) {                                   // غ‑٣: لا إرسالَ نصٍّ لأيّ خدمةِ نطقٍ من ملفّ طفل
       showChildVoiceNotice(setVoiceError);                       // فشلٌ آمنٌ بلا صوت — ولا زرٌّ أخرس
       return null;
@@ -7091,7 +7312,7 @@ function App() {
       // التشكيل ناقص — نَستدعي Haiku للضبط
       console.log(`[المربّي] تشكيل ناقص (${Math.round(diacriticRatio * 100)}٪) — نَستدعي Haiku للضبط`);
       try {
-        const tashkeelResponse = await fetch('/api/tashkeel', {
+        const tashkeelResponse = await aiFetch('/api/tashkeel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: cleanText, gender: profileRef.current?.gender, band: bandForVoice }),
@@ -7114,7 +7335,7 @@ function App() {
 
     // ElevenLabs TTS — نُحضّر الـ blob فقط، ولا نُشغّل ولا نسحب التركيز هنا
     try {
-      const response = await fetch('/api/tts', {
+      const response = await aiFetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: spokenText, gender: profileRef.current?.gender, band: bandForVoice }),
@@ -7518,6 +7739,9 @@ function App() {
     dictStreamRef.current = null;
   };
   const startCloudDictation = async () => {
+    // The cloud dictation recorder, on the same terms as everything else: no consent, no
+    // getUserMedia. startListening already refuses above this, so this is the second barrier.
+    if (!hasValidAIConsent()) { setIsListening(false); setVoiceError(EZ_SPEECH_NO_CONSENT); setTimeout(() => setVoiceError(''), 6000); return; }
     try {
       dictStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       dictChunksRef.current = [];
@@ -7547,7 +7771,7 @@ function App() {
     let text = '';
     try {
       const band = (() => { try { return deriveCaps(profileRef.current?.age).band; } catch (e) { return 'young'; } })();
-      const r = await fetch('/api/stt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: b64, mime: blob.type, band }) });
+      const r = await aiFetch('/api/stt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio: b64, mime: blob.type, band }) });
       if (r.ok) { const d = await r.json(); text = String(d.text || '').trim(); } else { setVoiceError('DBG C http=' + r.status); setTimeout(() => setVoiceError(''), 8000); return; }
     } catch (e) { setVoiceError('DBG E ' + String(e && e.message).slice(0, 40)); setTimeout(() => setVoiceError(''), 8000); return; }
     if (!text) {
@@ -7561,6 +7785,9 @@ function App() {
       showChildVoiceNotice(setVoiceError);
       return;
     }
+    // بلا موافقة: لا يُفتح الميكروفونُ إطلاقاً — لا تسجيلٌ يُرسَل إلى ElevenLabs ولا جلسةُ
+    // تعرُّفٍ يفتحها المتصفّح. فشلٌ آمنٌ صامتٌ إلى الوضعِ المحلّيّ.
+    if (!hasValidAIConsent()) { setAiConsent(aiConsentStatus()); return; }
     if (DICTATE_CLOUD) {
       if (isSpeaking) stopSpeaking();
       baseTextRef.current = input && !/\s$/.test(input) ? input + ' ' : input;
@@ -7568,7 +7795,12 @@ function App() {
       await startCloudDictation();
       return;
     }    if (!recognitionRef.current) {
-      setVoiceError('🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.');
+      // Two different truths, and they must not be told as one. No engine in the browser is the
+      // browser's limit; no engine because consent was refused is OUR gate, and saying "your
+      // browser is not supported" there would be a lie that sends the reader to change browsers.
+      setVoiceError(hasValidAIConsent()
+        ? '🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.'
+        : EZ_SPEECH_NO_CONSENT);
       setTimeout(() => setVoiceError(''), 6000);
       return;
     }
@@ -7590,7 +7822,10 @@ function App() {
     shouldListenRef.current = true;
     setVoiceError('');
     setIsListening(true);
-    try { recognitionRef.current.start(); } catch (e) { shouldListenRef.current = false; setIsListening(false); }
+    // Re-read at the instant of starting: the getUserMedia permission prompt above can sit open
+    // for as long as the reader likes, and consent may have been withdrawn in another tab while
+    // it did. ezStartRecognition refuses and tears the engine down if so.
+    if (!ezStartRecognition(recognitionRef.current)) { shouldListenRef.current = false; setIsListening(false); }
   };
 
   const stopListening = () => {
@@ -7624,6 +7859,9 @@ function App() {
 
   const callAI = async (history, p, { onDelta, signal, mode = 'chat', endpoint = (mode === 'call' ? '/api/chat' : '/api/ask') } = {}) => {
     if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
+    // بلا موافقةٍ صريحةٍ سارية: لا سؤال، ولا تصنيف، ولا تحيّةَ إقلاع. يُقرأ المخزنُ هنا لا رايةٌ
+    // محفوظةٌ سلفاً، فسحبُ الموافقةِ أثناءَ فتحِ الشاشةِ يُطاع فوراً.
+    if (!hasValidAIConsent()) return '';
     const FAST_CHANNEL_ENABLED = true;
     const __classifyFast = async () => {
       try {
@@ -7634,7 +7872,7 @@ function App() {
         const __prev = __n >= 2 ? history[__n - 2] : null;
         const __prevText = (__prev && __prev.role === 'assistant') ? __ex(__prev).trim() : '';
         const __userContent = __prevText ? ('السياق السابق: ' + __prevText + ' | الرسالة الحاليّة: ' + __curText) : __curText;
-        const __resp = await fetch('/api/chat-fast', {
+        const __resp = await aiFetch('/api/chat-fast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal,
@@ -7690,7 +7928,7 @@ function App() {
       // Item 1 / defect 44: drop OLDEST turns until the body fits CLIENT_BUDGET, measured the SERVER's
       // way -- never shipping a body the server would 413. Keeps the system prompt + the newest turn.
       const __apiMessages = fitMessagesToBudget(__mkBody, history.map(m => ({ role: m.role, content: m.content })));
-      const response = await fetch(endpoint, {
+      const response = await aiFetch(endpoint, {
         method: 'POST',
         // capHeaders() carries the device id (and a founder token when one exists) for the
         // daily question cap. credentials:'same-origin' is what lets the server's httpOnly
@@ -7827,6 +8065,9 @@ function App() {
   const onPickImage = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
+    // الصورةُ أو الملفُّ لا يُقرآن أصلاً بلا موافقة — فالقراءةُ هنا هي الخطوةُ الأولى في طريقِ
+    // الرفعِ إلى Anthropic. نُفرِّغ حقلَ الملفّ ونعود إلى الوضعِ المحلّيّ.
+    if (!hasValidAIConsent()) { e.target.value = ''; setAiConsent(aiConsentStatus()); return; }
     const rawName = (file.name || '').trim();
     const lowerName = rawName.toLowerCase();
     const ext = (lowerName.match(/\.([a-z0-9]+)\s*$/) || [,''])[1]; // extension without dot, or ''
@@ -7918,6 +8159,9 @@ function App() {
 
   const sendMessage = async (text) => {
     if ((!text.trim() && !pendingImage) || isLoading) return;
+    // بلا موافقةٍ سارية لا تُكتب الرسالةُ في السجلّ ولا تُرسَل: الشاشةُ نفسُها مستبدَلةٌ بوضعِ
+    // «بلا ذكاء اصطناعيّ»، وهذا حاجزٌ ثانٍ كي لا يفتح مسارٌ آخرُ هذا البابَ لاحقاً.
+    if (!hasValidAIConsent()) { setAiConsent(aiConsentStatus()); return; }
     // New message mid audio sequence -> cancel current audio so the new reply starts clean.
     cancelAudio();
     // Abort any in-flight stream cleanly (ties into the cancellation discipline).
@@ -8151,6 +8395,7 @@ function App() {
   const startCallListening = (armIdleClock = true) => {
     if (callMutedRef.current) return; // muted = do not listen
     if (childVoiceBlocked()) return; // غ‑٣: مقفول ⇒ لا فتحَ ميكروفونٍ (صامت — التنبيهُ يظهر بدل الشاشة)
+    if (!hasValidAIConsent()) return; // بلا موافقة: لا ميكروفون. شاشةُ المكالمةِ نفسُها مستبدَلةٌ بوضعِ المحلّيّ
     if (!hasFounderToken()) return; // directive 82: no unlock token => the mic never opens
     if (CALL_STT_CLOUD) {
       callTranscriptRef.current = '';
@@ -8169,11 +8414,12 @@ function App() {
     setCallHeard('');
     callActiveRef.current = true;
     setCallState('listening');
-    try {
-      rec.start();
+    // Re-read here too: startCallListening is re-entered on every turn of a call that may have
+    // been running for minutes, and the check at the top of this function ran on the first one.
+    if (ezStartRecognition(rec)) {
       if (CALL_VAD) { vadLastVoiceRef.current = Date.now(); ensureVad(); }
       if (armIdleClock) armInactivityTimer();
-    } catch (e) { callActiveRef.current = false; setCallState('idle'); }
+    } else { callActiveRef.current = false; setCallState('idle'); }
   };
 
   // End the active listen turn and route it to the brain. Guarded so the silence timer and
@@ -8276,9 +8522,13 @@ function App() {
   useEffect(() => {
     if (screen !== 'call') return;
     if (childVoiceBlocked()) return; // غ‑٣: لا يُبنى معرِّفُ كلامٍ أصلاً — الرسمُ يعرض التنبيهَ بدل الشاشة
+    // No consent, no call session: neither the Web Speech engine nor the cloud recorder is built,
+    // so no microphone permission is requested. The screen itself is already the local-mode
+    // notice by this point; this is the second, independent barrier behind it.
+    if (!hasValidAIConsent()) return;
     if (!hasFounderToken()) return; // directive 82: no token => the call session is never built
     callGenRef.current++; // ENTER: open a new call session (invalidates any stale continuation)
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SR = ezSpeechEngine();
     // CLOUD STT DOES NOT USE SpeechRecognition AT ALL. It records with MediaRecorder and
     // transcribes in api/stt.js, so demanding SR here refused the ENTIRE call screen over a
     // dependency the live path never touches -- every engine without Web Speech (Android
@@ -8302,7 +8552,7 @@ function App() {
     // `rec` is NULL when the engine has no Web Speech and the cloud path is carrying the call.
     // The three handlers below are still DEFINED either way (they are the fallback's behaviour,
     // unchanged), but they are only WIRED when there is an engine to fire them.
-    const rec = SR ? new SR() : null;
+    const rec = ezNewRecognition();
     if (rec) {
       rec.lang = 'ar-SA';
       rec.continuous = true;     // interim events keep resetting the silence timer (smoother end-of-turn)
@@ -8364,10 +8614,13 @@ function App() {
       const genAtEnd = callGenRef.current;
       const tryStart = (attempt) => {
         if (childVoiceBlocked()) return;                 // غ‑٣: الحجبُ يقطع محاولاتِ إعادةِ التشغيل الخمس
+        // A withdrawal mid-call must also break the FIVE-ATTEMPT BACKOFF, not just the first try:
+        // each retry is a fresh setTimeout that would otherwise keep reaching for the microphone
+        // for three quarters of a second after the reader revoked consent.
+        if (!hasValidAIConsent()) { ezKillRecognizer(rec); callActiveRef.current = false; setCallState('idle'); return; }
         if (callGenRef.current !== genAtEnd) return;       // call ended/changed
         if (!callActiveRef.current) return;                // turn ended during the gap
-        try { rec.start(); }
-        catch (e) { if (attempt < 5) setTimeout(() => tryStart(attempt + 1), 150); }  // never leave the mic dead
+        if (!ezStartRecognition(rec) && attempt < 5) setTimeout(() => tryStart(attempt + 1), 150);  // never leave the mic dead
       };
       setTimeout(() => tryStart(0), 120);
     };
@@ -8399,7 +8652,7 @@ function App() {
       // call-mode error on the chat screen with nothing left running to ever take it down.
       if (callErrorTimerRef.current) { clearTimeout(callErrorTimerRef.current); callErrorTimerRef.current = null; }
       setVoiceError('');
-      if (rec) { try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) {} }
+      ezKillRecognizer(rec);   // handlers first, then abort+stop, and drop it from the live registry
       stopCloudAll();   // EXIT must release the recorder + the mic track, SR path or not
       callRecognitionRef.current = null;
       if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
@@ -8471,11 +8724,25 @@ function App() {
     }
   };
 
-  // First-run disclosure (step 4a). Shown once to anyone who has NOT acknowledged yet -- keyed on
-  // the independent `disclosureAck`, NOT on profile age, so existing profiled users see it too and
-  // nobody is wiped or forced to re-onboard. Gated on `profile` so it lands at the END of onboarding
-  // (right after the profile is created), before entering -- never over the onboarding form itself.
-  if (profile && !disclosureAck) return <DisclosureGate onAck={ackDisclosure} />;
+  // THE CONSENT SCREEN (Apple 5.1.1(i) / 5.1.2(i)). Shown to anyone who has not answered THIS
+  // version of the disclosure, and again on demand from Settings ("review the choice"). Keyed on
+  // the independent consent record, NOT on profile age, so an existing profiled reader sees it too
+  // and nobody is wiped or forced to re-onboard. Gated on `profile` so it lands at the END of
+  // onboarding, never over the onboarding form itself.
+  //
+  // Showing this screen sends NOTHING. It is drawn from strings in this file; no request of any
+  // kind is issued by rendering it, and the boot greeting is already refused by callAI's own
+  // consent check until a grant is recorded.
+  const aiConsentDecided = aiConsent === EZ_AI_CONSENT_GRANTED || aiConsent === EZ_AI_CONSENT_DECLINED;
+  if (profile && (!aiConsentDecided || aiConsentReview)) return (
+    <AIConsentGate
+      age={profile.age}
+      current={aiConsent}
+      onGrant={grantAIConsent}
+      onDecline={declineAIConsent}
+      onBack={aiConsentDecided ? () => setAiConsentReview(false) : null}
+    />
+  );
   // S115: the boot mark is a bounded arch instead of a 48px emoji. The animation, its keyframe,
   // its duration and the style key that carries it are the ones that shipped, so reduced motion
   // behaves exactly as it did and no timer, wait or step was added to the boot.
@@ -8484,6 +8751,19 @@ function App() {
   // قفل الإنفاق: المطالبة تظهر فقط أمام الشاشتين اللتين تُنفقان (المحادثة/المكالمة) وحين يكون القفل مفعّلاً وغير مفتوح.
   // القفل المُعطَّل (٦٤ صفراً) ⇒ spendGateOpenState=true دائماً ⇒ لا تظهر هذه السطر أبداً. أما 0b (المصحف/المحفّظ/الأذكار) فتبقى مفتوحة.
   if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate onUnlock={unlockSpendGate} onExit={() => setScreen('home')} />;
+  // REFUSED, or a disclosure the reader has not answered: the two screens that SEND are replaced
+  // by a named local-mode notice -- never a blank page and never a chat box that silently does
+  // nothing. Everything that does not send (المصحف، الأذكار، كنوز المعرفة، الإعدادات) is BELOW
+  // this line and is untouched, which is the point: refusing is a real choice, not a dead app.
+  if ((screen === 'chat' || screen === 'call') && aiConsent !== EZ_AI_CONSENT_GRANTED) return (
+    <AILocalModeNotice
+      onReview={() => openEzikSheet('settings')}
+      onMushaf={() => setScreen('mushaf')}
+      onAdhkar={() => setScreen('adhkar')}
+      onTreasure={() => { window.location.href = '/quest.html'; }}
+      onBack={() => setScreen('home')}
+    />
+  );
   // S87: the home's chat entry is the FAB in its own bottom bar and nothing else -- the chat is
   // opened by an explicit chat action, and no back path resolves to it. The profile entry records
   // home as its opener through openEzikSheet, so the gate's back comes back HERE.
@@ -8505,7 +8785,7 @@ function App() {
   // immediately and with no PIN. The parental screen it used to stand in front of has not moved
   // an inch or lost its lock: it is reached from the التحكم row inside, which is the only thing
   // in the app that still opens the gate.
-  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} onOpenControl={() => openEzikSheet('parentGate')} a11y={a11y} onA11y={setA11y} onA11yReset={resetA11y} />;
+  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} onOpenControl={() => openEzikSheet('parentGate')} a11y={a11y} onA11y={setA11y} onA11yReset={resetA11y} aiConsent={aiConsent} aiConsentBy={aiConsentGrantedBy()} onWithdrawAI={declineAIConsent} onReviewAI={() => setAiConsentReview(true)} />;
   // S98: المفضلة. A sheet, opened from the chat's drawer, handed everything it draws.
   if (screen === 'favorites') return <FavoritesScreen items={shownFavs} total={myFavs.length} query={favQuery} onQuery={setFavQuery} searching={favResults !== null} liveChatIds={liveChatIds} onBack={goEzikBack} onOpenChat={openFavoriteChat} onRemove={removeFavorite} age={profile?.age} tashkeel={tashkeelOn} />;
   // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
@@ -10355,18 +10635,150 @@ function AdultGate({ a, b, onPass, onCancel }) {
   );
 }
 
-// First-run disclosure gate (step 4a). One-time, acknowledge-to-dismiss; the ack persists in
-// localStorage ('disclosureAck'). Copies AdultGate's overlay+card shape. The body text is fixed --
-// do not reword it. No hex: only existing style tokens + the shared backdrop rgba.
-function DisclosureGate({ onAck }) {
+// ============================================================
+// THE AI-CONSENT SCREEN  (Apple 5.1.1(i) / 5.1.2(i))
+// ============================================================
+// This replaces the old one-button "قبل أن نبدأ" acknowledgement, which said the tutor can be
+// wrong -- a true statement, but not a disclosure of what travels and not a request for consent.
+// Apple refused the build for exactly that gap, so this screen states the three things a consent
+// screen has to state before anything is sent: WHAT data, to WHOM, and for WHAT.
+//
+// THE RULES THIS SCREEN OBEYS, and which the probe re-checks:
+//   * Rendering it sends NOTHING. It is strings from this file and no request of any kind.
+//   * TWO real buttons, neither preselected, both legible. There is no "فهمت" here: an
+//     acknowledgement is not a consent, and a single button is not a choice.
+//   * Refusing is a genuine, recorded answer -- the reader keeps the mushaf, the adhkar, the
+//     treasures and everything else local, and the screen does not come back to nag.
+//   * UNDER 13, the agree button alone cannot enable anything: it opens the app's own adult
+//     barrier first, and only passing it records grantedBy:'guardian'. Cancelling leaves the app
+//     in local mode with nothing sent.
+// The links are our OWN pages and are NOT parent-gated: a policy Apple requires to be reachable
+// must be reachable.
+const EZ_AIC_TITLE = 'مشاركة البيانات مع خدمات الذكاء الاصطناعي';
+const EZ_AIC_LEAD = 'عند تشغيل المحادثة الذكية أو الصوت أو رفع الملفات، قد تُرسَل البيانات التالية إلى الجهات المذكورة أدناه لتنفيذ طلبك:';
+const EZ_AIC_DATA = [
+  'الاسم والعمر والجنس المسجَّلة في الملف.',
+  'نصّ السؤال ورسائل المحادثة السابقة.',
+  'الصور أو الملفات التي تختار رفعها.',
+  'التسجيل الصوتيّ والنصّ الناتج منه عند تشغيل الصوت أو التسميع.',
+  'عبارات بحث مشتقّة من السؤال للوصول إلى المصادر.',
+];
+const EZ_AIC_PROVIDERS_TITLE = 'الجهات التي تستقبل هذه البيانات، ووظيفة كلٍّ منها:';
+const EZ_AIC_PROVIDERS = [
+  ['Anthropic (Claude)', 'توليد الإجابات ومعالجة النصوص والصور والملفات.'],
+  ['ElevenLabs', 'تحويل النصّ إلى صوت، وتحويل التسجيل الصوتيّ إلى نصّ عند استخدام المسار السحابيّ.'],
+  ['Brave Search', 'إرسال عبارات بحث مشتقّة من السؤال للوصول إلى مصادر الويب.'],
+];
+// The first line was «لا تُستخدم هذه البيانات للإعلانات ولا لتتبُّعك» -- an absolute passive that
+// reads as a promise about what EVERY provider does with the data after it leaves us. We cannot
+// audit Anthropic's, ElevenLabs' or Brave's internals, so we do not get to promise it. The
+// replacement states exactly what is ours to state: what Ezik does, and why it sends at all.
+const EZ_AIC_ASSURANCES = [
+  'لا يستخدم عزك هذه البيانات للإعلانات أو لتتبعك، ولا يرسلها إلى مزودي الخدمة إلا لتشغيل الميزات التي تختار استخدامها.',
+  'يمكنك استخدام المصحف والأذكار وكنوز المعرفة والميزات المحلّيّة دون تشغيل الذكاء الاصطناعيّ.',
+  'يمكنك سحب الموافقة لاحقاً من: الإعدادات ← الخصوصية والذكاء الاصطناعي.',
+];
+const EZ_AIC_GUARDIAN_LINE = 'يجب على ولي الأمر مراجعة هذه المعلومات والموافقة قبل تشغيل ميزات الذكاء الاصطناعي للطفل.';
+const EZ_AIC_AGREE = 'أوافق وأفعّل ميزات الذكاء الاصطناعي';
+const EZ_AIC_DECLINE = 'استخدام عزك دون الذكاء الاصطناعي';
+const EZ_AIC_LINK_PRIVACY = 'سياسة الخصوصية';
+const EZ_AIC_LINK_DELETE = 'حذف البيانات';
+const EZ_AIC_LINK_SUPPORT = 'الدعم';
+// MEASURED IN A REAL BROWSER, not assumed: rendered as one plain string inside this RTL card,
+// "2026-08-06-1" came out as "1-06-08-2026". The hyphens are bidi-NEUTRAL, so the digit groups
+// get reordered around them and the reader is shown a version number that is not the version
+// number. It is the identifier the whole consent record is keyed on, so it is isolated LTR --
+// the same treatment EZ_AIC_PROVIDERS already gives the Latin vendor names.
+const EZ_AIC_VERSION_LABEL = 'نسخة الموافقة:';
+const EZ_AIC_VERSION_LINE = EZ_AIC_VERSION_LABEL + ' ' + EZ_AI_CONSENT_VERSION;
+function AIConsentVersion({ style }) {
   return (
-    <div className="theme-dark ezhome ezgate ezgate-scrim">
-      <div className="ezgate-card is-modal" style={s.onboardingCard}>
-        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>💡</span></div>
-        <div style={s.onboardingTitle}>قبل أن نبدأ</div>
-        <div style={{ ...s.onboardingSubtitle, lineHeight: 1.9, marginBottom: 20 }}>عزك مساعدٌ يعمل بالذكاء الاصطناعيّ. ليس عالِمًا ولا شيخًا، وقد يُخطئ في المعلومة وفي الحكم الشرعيّ. اجعله مُعينًا لا مرجعًا — والمرجعُ أهلُ العلم.</div>
-        <button onClick={onAck} style={s.primaryBtn}>فهمت</button>
-      </div>
+    <div style={style}>
+      {EZ_AIC_VERSION_LABEL + ' '}
+      <span style={s.aicVersionNum}>{EZ_AI_CONSENT_VERSION}</span>
+    </div>
+  );
+}
+
+// The three policy links, drawn identically wherever they appear.
+function AIConsentLinks() {
+  return (
+    <div style={s.aicLinks}>
+      <a href="/privacy.html" target="_blank" rel="noopener noreferrer" style={s.aicLink}>{EZ_AIC_LINK_PRIVACY}</a>
+      <a href="/delete.html" target="_blank" rel="noopener noreferrer" style={s.aicLink}>{EZ_AIC_LINK_DELETE}</a>
+      <a href="/support.html" target="_blank" rel="noopener noreferrer" style={s.aicLink}>{EZ_AIC_LINK_SUPPORT}</a>
+    </div>
+  );
+}
+
+function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
+  // FAIL-CLOSED on the age: a missing or unreadable age parses to 0, which is under 13, which
+  // means the guardian barrier. An unknown age is never treated as an adult.
+  const isUnder13 = (parseInt(age, 10) || 0) < 13;
+  const [guard, setGuard] = useState(null);   // the arithmetic challenge, or null
+  const agree = () => {
+    if (!isUnder13) { onGrant('user'); return; }
+    setGuard({ a: 2 + Math.floor(Math.random() * 8), b: 2 + Math.floor(Math.random() * 8) });
+  };
+  if (guard) {
+    return <AdultGate a={guard.a} b={guard.b}
+      onPass={() => { setGuard(null); onGrant('guardian'); }}
+      onCancel={() => setGuard(null)} />;
+  }
+  return (
+    <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
+      <div className="ezgate-wrap"><div className="ezgate-card" style={s.onboardingCard}>
+        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>🔐</span></div>
+        <div style={s.onboardingTitle}>{EZ_AIC_TITLE}</div>
+        <div style={s.aicBody}>
+          <div style={s.aicLead}>{EZ_AIC_LEAD}</div>
+          <ul style={s.aicList}>
+            {EZ_AIC_DATA.map((t) => <li key={t} style={s.aicItem}>{t}</li>)}
+          </ul>
+          <div style={s.aicSubhead}>{EZ_AIC_PROVIDERS_TITLE}</div>
+          <ul style={s.aicList}>
+            {EZ_AIC_PROVIDERS.map(([n, d]) => (
+              <li key={n} style={s.aicItem}><span style={s.aicProvider}>{n}</span>{': ' + d}</li>
+            ))}
+          </ul>
+          <ul style={s.aicList}>
+            {EZ_AIC_ASSURANCES.map((t) => <li key={t} style={s.aicItem}>{t}</li>)}
+          </ul>
+          {isUnder13 && <div style={s.aicGuardian}>{EZ_AIC_GUARDIAN_LINE}</div>}
+          <AIConsentLinks />
+          <AIConsentVersion style={s.aicVersion} />
+        </div>
+        {/* Neither button is preselected, neither is dimmed, and the refusal is the same width
+            and the same reading size as the agreement. */}
+        <button type="button" onClick={agree} style={s.primaryBtn}>{EZ_AIC_AGREE}</button>
+        <button type="button" onClick={onDecline} style={s.secondaryBtn}>{EZ_AIC_DECLINE}</button>
+        {onBack && <button type="button" onClick={onBack} style={s.secondaryBtn}>{A2_BACK}</button>}
+      </div></div>
+    </div>
+  );
+}
+
+// The two screens that SEND, when consent has not been granted. Never a blank page: it names the
+// reason, offers the way back to the choice, and offers the three modules that need no AI at all.
+const EZ_AILM_TITLE = 'الوضع المحلّيّ';
+const EZ_AILM_BODY = 'ميزات الذكاء الاصطناعي غير مفعّلة لأن مشاركة البيانات لم تتم الموافقة عليها.';
+const EZ_AILM_REVIEW = 'مراجعة إعدادات الخصوصية';
+const EZ_AILM_MUSHAF = 'فتح المصحف';
+const EZ_AILM_ADHKAR = 'فتح الأذكار';
+const EZ_AILM_TREASURE = 'فتح كنوز المعرفة';
+function AILocalModeNotice({ onReview, onMushaf, onAdhkar, onTreasure, onBack }) {
+  return (
+    <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
+      <div className="ezgate-wrap"><div className="ezgate-card" style={s.onboardingCard}>
+        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>🔒</span></div>
+        <div style={s.onboardingTitle}>{EZ_AILM_TITLE}</div>
+        <div style={{ ...s.onboardingSubtitle, lineHeight: 1.9, marginBottom: 20 }}>{EZ_AILM_BODY}</div>
+        <button type="button" onClick={onReview} style={s.primaryBtn}>{EZ_AILM_REVIEW}</button>
+        <button type="button" onClick={onMushaf} style={s.secondaryBtn}>{EZ_AILM_MUSHAF}</button>
+        <button type="button" onClick={onAdhkar} style={s.secondaryBtn}>{EZ_AILM_ADHKAR}</button>
+        <button type="button" onClick={onTreasure} style={s.secondaryBtn}>{EZ_AILM_TREASURE}</button>
+        <button type="button" onClick={onBack} style={s.secondaryBtn}>{A2_BACK}</button>
+      </div></div>
     </div>
   );
 }
@@ -10610,7 +11022,28 @@ function EzShellGroup({ title, hint, wide, children }) {
 }
 // ---- S105 ISTANA SHELL END ----------------------------------------------------------------
 
-function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, onA11yReset }) {
+// ============================================================
+// SETTINGS -- الخصوصية والذكاء الاصطناعي
+// ============================================================
+// The permanent home of the consent decision, so a reader who agreed on day one can find, read
+// and undo it on day two. Apple 5.1.1(i) requires the withdrawal to be as reachable as the grant.
+const EZ_AIS_TITLE = 'الخصوصية والذكاء الاصطناعي';
+const EZ_AIS_ON = 'الحالة: مُفعَّلة — تمت الموافقة على مشاركة البيانات مع خدمات الذكاء الاصطناعي.';
+const EZ_AIS_OFF = 'الحالة: غير مفعَّلة — لم تتم الموافقة، ولا تُرسَل أيّ بيانات إلى خدمات الذكاء الاصطناعي.';
+const EZ_AIS_BY_GUARDIAN = 'المُوافِق: ولي الأمر.';
+const EZ_AIS_BY_USER = 'المُوافِق: المستخدم.';
+// Same bidi lesson as the version line, seen in the same screenshot: a long Latin run inside an
+// RTL sentence pushes the Arabic full stop to the paragraph's logical end, so the last line read
+// ".Search". The vendor names are one LTR run and are isolated as one; the sentence keeps its
+// Arabic label and drops the trailing stop, which had nowhere correct to sit.
+const EZ_AIS_PROVIDERS_LABEL = 'الجهات:';
+const EZ_AIS_PROVIDERS_NAMES = 'Anthropic (Claude) — ElevenLabs — Brave Search';
+const EZ_AIS_PROVIDERS = EZ_AIS_PROVIDERS_LABEL + ' ' + EZ_AIS_PROVIDERS_NAMES;
+const EZ_AIS_WITHDRAW = 'سحب الموافقة وإيقاف ميزات الذكاء الاصطناعي';
+const EZ_AIS_REVIEW = 'مراجعة الموافقة وتشغيل ميزات الذكاء الاصطناعي';
+const EZ_AIS_KEEP = 'سحب الموافقة يوقف الإرسال المستقبليّ فوراً، ولا يحذف محادثاتك المحفوظة على هذا الجهاز.';
+
+function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, onA11yReset, aiConsent, aiConsentBy, onWithdrawAI, onReviewAI }) {
   // S90 -- التحكم. The single row that leads to the parental area, and the ONLY thing left in
   // the app that opens the PIN gate. Everything above it -- the theme/dark choice and the
   // interface style -- is reached without a PIN, which is the whole point of this screen: a
@@ -10760,6 +11193,24 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             </span>
           </button>
           <button type="button" onClick={onA11yReset} className="ez-a11y-opt" style={s.a11yReset}>{EZIK_A11Y_RESET}</button>
+        </EzShellGroup>
+        {/* الخصوصية والذكاء الاصطناعي -- the consent decision, stated and reversible. It is NOT
+            behind the PIN gate: a reader must be able to withdraw without an adult's code, and
+            Apple requires the withdrawal to be as reachable as the grant. */}
+        <EzShellGroup title={EZ_AIS_TITLE}>
+          <div style={s.aicStatusRow}>{aiConsent === EZ_AI_CONSENT_GRANTED ? EZ_AIS_ON : EZ_AIS_OFF}</div>
+          {aiConsent === EZ_AI_CONSENT_GRANTED && (
+            <div style={s.aicNote}>{aiConsentBy === 'guardian' ? EZ_AIS_BY_GUARDIAN : EZ_AIS_BY_USER}</div>
+          )}
+          <div style={s.aicNote}>{EZ_AIS_PROVIDERS_LABEL + ' '}<span style={s.aicProvider}>{EZ_AIS_PROVIDERS_NAMES}</span></div>
+          <AIConsentVersion style={s.aicNote} />
+          <AIConsentLinks />
+          {aiConsent === EZ_AI_CONSENT_GRANTED
+            ? (<>
+                <button type="button" onClick={onWithdrawAI} style={s.aicWithdrawBtn}>{EZ_AIS_WITHDRAW}</button>
+                <div style={s.aicNote}>{EZ_AIS_KEEP}</div>
+              </>)
+            : <button type="button" onClick={onReviewAI} style={s.aicWithdrawBtn}>{EZ_AIS_REVIEW}</button>}
         </EzShellGroup>
         {/* S90 -- the one row that opens the PIN gate. Same handler, same accessible name. */}
         <EzShellGroup title={A_CONTROL}>
@@ -12561,7 +13012,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     if (adnanTimeoutRef.current) clearTimeout(adnanTimeoutRef.current);
     // Layer B: stop the recite recognizer on unmount (the App [screen] cleanup doesn't know it).
     reciteRunIdRef.current++;
-    try { reciteRecognitionRef.current?.stop(); } catch (e) {}
+    ezKillRecognizer(reciteRecognitionRef.current);
+    reciteRecognitionRef.current = null;
   }, []);
 
   const surahCount = (counts && selectedSurah) ? (counts[selectedSurah] || 0) : 0; // last ayah of range
@@ -12641,15 +13093,19 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const stopRecite = () => {
     reciteRunIdRef.current++;            // invalidate: a stale onend can't restart the mic
     setReciteListening(false);
-    const rec = reciteRecognitionRef.current;
-    if (rec) { try { rec.onresult = null; rec.onend = null; rec.onerror = null; rec.stop(); } catch (e) {} }
+    ezKillRecognizer(reciteRecognitionRef.current);
+    reciteRecognitionRef.current = null;
     // leave reciteStates as-is so the last result stays visible after stop
   };
 
   const startRecite = () => {
     if (childVoiceBlocked()) { setReciteErr(CHILD_VOICE_NOTICE); return; } // غ‑٣: لا ميكروفونَ لسمِّعني
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { setReciteErr(RECITE_NO_SR); return; } // graceful fail, same message as chat/call
+    // «سمِّعني» LOOKS local and is not: Web Speech ships the recitation audio to Google on Chrome
+    // and to Apple on Safari. That is a third-party voice send, so it needs the same consent as
+    // ElevenLabs -- and refusing it must not touch the rest of the memorizer, which really is
+    // local. Checked BEFORE the engine is constructed, so no microphone permission is requested.
+    if (!hasValidAIConsent()) { setReciteErr(EZ_SPEECH_NO_CONSENT); return; }
+    if (!ezSpeechAvailable()) { setReciteErr(RECITE_NO_SR); return; } // graceful fail, same message as chat/call
     setReciteErr('');
     setReciteFinished(false);
     setReciteAyah(startAyah);
@@ -12670,7 +13126,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       }
       return { tokens, curOffset, curLen };
     };
-    const rec = new SR();
+    const rec = ezNewRecognition();
+    if (!rec) { setReciteErr(hasValidAIConsent() ? RECITE_NO_SR : EZ_SPEECH_NO_CONSENT); return; }
     rec.lang = 'ar-SA';
     rec.continuous = true;
     rec.interimResults = true;
@@ -12720,7 +13177,17 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         setReciteListening(false);
         return;
       }
-      if (reciteRunIdRef.current === myRun) { try { rec.start(); } catch (e) {} }
+      // Withdrawal mid-recitation ends the loop here as well as at the registry: this callback
+      // was armed while consent was held, and it is the one thing that would otherwise re-open
+      // the microphone by itself, forever, on a screen the reader thinks is offline.
+      if (!hasValidAIConsent()) {
+        reciteRunIdRef.current++;
+        setReciteListening(false);
+        setReciteErr(EZ_SPEECH_NO_CONSENT);
+        ezKillRecognizer(rec);
+        return;
+      }
+      if (reciteRunIdRef.current === myRun) { ezStartRecognition(rec); }
     };
     rec.onerror = (e) => {
       const fatal = ['not-allowed', 'audio-capture', 'service-not-allowed'];
@@ -12728,7 +13195,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     };
     reciteRecognitionRef.current = rec;
     setReciteListening(true);
-    try { rec.start(); } catch (e) {}
+    if (!ezStartRecognition(rec)) { reciteRunIdRef.current++; setReciteListening(false); }
   };
 
   // Manual advance — freeze-proof fallback so a missed/substituted last word can't lock progress.
@@ -12961,6 +13428,27 @@ const s = {
   bigEmoji: { fontSize: 26, lineHeight: 1, animation: 'fadeIn 0.5s ease-out' },
   onboardingTitle: { fontSize: 24, fontWeight: 800, color: 'var(--a3-ink)', marginBottom: 10 },
   onboardingSubtitle: { fontSize: 15.5, color: 'var(--a3-muted)', marginBottom: 20, lineHeight: 1.8 },
+  // AI-CONSENT SCREEN. Reading text, not chrome: it is read start-aligned rather than centred,
+  // because a five-item list of what leaves the device is read, not glanced at. Every colour is
+  // an existing token -- no new colour enters the app and the theme is untouched.
+  aicBody: { textAlign: 'start', marginBottom: 18 },
+  aicLead: { fontSize: 15, color: 'var(--a3-ink)', lineHeight: 1.9, marginBottom: 10 },
+  aicSubhead: { fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.9, margin: '14px 0 6px' },
+  aicList: { margin: '0 0 6px', padding: 0, paddingInlineStart: 20, listStyle: 'disc' },
+  aicItem: { fontSize: 14.5, color: 'var(--a3-muted)', lineHeight: 1.9, marginBottom: 4 },
+  aicProvider: { fontWeight: 800, color: 'var(--a3-ink)', direction: 'ltr', unicodeBidi: 'isolate' },
+  aicGuardian: { fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.9, border: '1px solid var(--a3-line)', borderRadius: 12, padding: '10px 12px', margin: '14px 0 4px' },
+  aicLinks: { display: 'flex', flexWrap: 'wrap', gap: 14, margin: '14px 0 6px' },
+  aicLink: { fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', textDecoration: 'underline' },
+  aicVersion: { fontSize: 13, color: 'var(--a3-muted)', lineHeight: 1.8, direction: 'rtl' },
+  // The version identifier itself, isolated LTR. Without this the neutral hyphens let the digit
+  // groups reorder inside the RTL paragraph and "2026-08-06-1" is displayed as "1-06-08-2026".
+  aicVersionNum: { direction: 'ltr', unicodeBidi: 'isolate', fontWeight: 700 },
+  // The Settings privacy group: the current answer, stated as a sentence, above the one control
+  // that changes it.
+  aicStatusRow: { fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.9, marginBottom: 4, textAlign: 'start' },
+  aicNote: { fontSize: 13.5, color: 'var(--a3-muted)', lineHeight: 1.9, textAlign: 'start' },
+  aicWithdrawBtn: { width: '100%', boxSizing: 'border-box', marginTop: 12, padding: '12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, cursor: 'pointer' },
   onboardingInput: { width: '100%', padding: '15px 18px', fontSize: 18, borderRadius: 16, border: '2px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', marginBottom: 16, boxSizing: 'border-box' },
   ageGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 },
   ageBtn: { padding: '14px', fontSize: 20, fontWeight: 700, borderRadius: 14, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--accent-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
@@ -13824,7 +14312,11 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 </script>
 <div id="print-area"></div>
-<script defer src="/_vercel/insights/script.js"></script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
+<!-- Vercel Web Analytics and Speed Insights were loaded here. They are REMOVED for this
+     release: both began measuring on page load, i.e. before the reader had answered the
+     AI-consent screen, and a measurement taken before a choice is a measurement taken without
+     one. Nothing replaces them -- no second analytics tool was substituted. The hosting itself
+     is unchanged, and privacy.html states plainly that these two are not running in this
+     release. -->
 </body>
 </html>

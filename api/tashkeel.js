@@ -13,6 +13,7 @@
 // ============================================================
 
 import { checkAudioLimit } from '../lib/ratelimit.js';
+import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 
 // Hard input cap: skip diacritization for oversized text so we never spend Haiku
 // credits on abuse/bugs. Returns the original text (status 200) unchanged so the
@@ -24,12 +25,15 @@ const MAX_TASHKEEL_CHARS = 5000;
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + AI_CONSENT_ALLOW_HEADERS);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
+
+  // Apple 5.1.1(i): this route sends the reader's text to Anthropic. No consent, no send.
+  if (!guardAIConsent(req, res)) return;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {

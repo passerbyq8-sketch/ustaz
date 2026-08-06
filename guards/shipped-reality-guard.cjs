@@ -178,7 +178,7 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
     const res = makeRes();
     const req = {
       method: 'POST',
-      headers: { 'x-murabbi-device': 'shipped-reality-guard-0001' },
+      headers: { 'x-murabbi-device': 'shipped-reality-guard-0001', 'x-ezik-ai-consent': '2026-08-06-1' }, /* consented client (lib/ai-consent.js); the refusal is proved in tools/ai-consent-probe.cjs */
       body: { system: 'أنت عزك', messages: [{ role: 'user', content: question }], ...(band ? { band } : {}) },
     };
     let crashed = null;

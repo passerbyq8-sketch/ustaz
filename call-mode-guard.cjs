@@ -143,6 +143,10 @@ async function checkRelays() {
       'x-real-ip': '127.0.0.1',
       'x-murabbi-device': DEVICE,
       'x-murabbi-founder': founder,
+      // A CONSENTED client. The AI-consent gate (lib/ai-consent.js) refuses every relay 403
+      // without this, so a probe of the relay's BEHAVIOUR has to present what a real, consented
+      // client presents. The refusal itself is proved separately, in tools/ai-consent-probe.cjs.
+      'x-ezik-ai-consent': '2026-08-06-1',
     },
     // A client that ASKS for the unsupported field: the relay must strip it, not forward it.
     body: Object.assign({
@@ -268,8 +272,16 @@ function checkStructure(html) {
   // path is live. This is the check that was killing the whole feature on Android WebView.
   if (/if \(!SR && !CALL_STT_CLOUD\) \{/.test(html)) pass('C2 the SR bail-out is conditioned on !CALL_STT_CLOUD');
   else fail('C2 the call effect still bails on a missing SpeechRecognition regardless of CALL_STT_CLOUD');
-  if (/const rec = SR \? new SR\(\) : null;/.test(html)) pass('C2 the recognizer is constructed only when an engine exists');
-  else fail('C2 `new SR()` is not guarded -- the call effect throws on engines without Web Speech');
+  // The same invariant, through the shared factory: ezNewRecognition() returns NULL rather than
+  // throwing when the browser has no engine -- and also when AI consent is absent, which is the
+  // Apple 5.1.1(i) barrier. `rec` being null is the case the call effect already handles, so the
+  // no-engine path and the no-consent path land on the one branch that was always correct.
+  if (/const rec = ezNewRecognition\(\);/.test(html)) pass('C2 the recognizer is constructed only when an engine exists');
+  else fail('C2 the recognizer is not built through ezNewRecognition -- the call effect can throw on engines without Web Speech');
+  if (/const ezNewRecognition = \(\) => \{[\s\S]{0,400}?const SR = ezSpeechEngine\(\);\s*\r?\n\s*if \(!SR\) return null;/.test(html)) pass('C2 ...and that factory returns null instead of throwing when there is no engine');
+  else fail('C2 the factory does not fail soft on a missing engine');
+  if (/const ezNewRecognition = \(\) => \{\s*\r?\n\s*if \(!hasValidAIConsent\(\)\) return null;/.test(html)) pass('C2 ...and returns null before constructing anything when consent is absent');
+  else fail('C2 the factory can construct a recognizer without AI consent');
 
   // C3: a getUserMedia rejection must SPEAK. The old body was `catch (e) { ...setCallState('idle'); }`.
   const startAt = html.indexOf('const startCloudListening = async () => {');

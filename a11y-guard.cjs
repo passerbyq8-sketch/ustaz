@@ -25,6 +25,14 @@ const vm = require('vm');
 const babel = require('@babel/core');
 const { parseHTML } = require('linkedom');
 
+// A CONSENTED reader, seeded the way the app itself stores the choice. Since the AI-consent
+// screen (Apple 5.1.1(i)) sits between the profile and the chat, a harness that wants to reach
+// the chat has to answer it first -- exactly as a real reader does. The refusal path is proved
+// separately in tools/ai-consent-probe.cjs. Note that the old 'disclosureAck' key is kept in
+// these seeds and is NOT what opens the app: it is not consent and is no longer read.
+const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06-1', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+
+
 const htmlFile = process.argv[2] || 'index.html';
 const html = fs.readFileSync(htmlFile, 'utf8');
 
@@ -359,7 +367,7 @@ function partB() {
 // ===========================================================================
 async function partC() {
   console.log('\n=== C. THE SCREEN (the settings card, driven by real clicks) ===');
-  const seed = { child_profile: JSON.stringify(PROFILE_A), disclosureAck: '1' };
+  const seed = { child_profile: JSON.stringify(PROFILE_A), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED };
   const c = buildContext({ seed: seed, mount: true });
   await tick(400);
   if (c.err()) { ok('the app mounts', false, String(c.err())); return; }
@@ -434,7 +442,7 @@ async function partCTwoProfiles() {
   console.log('\n--- two profiles on one device ---');
   const prefs = {}; prefs[PROFILE_A.pid] = { fontSize: 'xlarge', reading: true, reduceMotion: true };
   const seed = {
-    child_profile: JSON.stringify(PROFILE_B), disclosureAck: '1',
+    child_profile: JSON.stringify(PROFILE_B), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
     ezik_reading_prefs_v1: JSON.stringify(prefs),
   };
   const c = buildContext({ seed: seed, mount: true });
@@ -528,7 +536,11 @@ function partD() {
 
   // no new dependency, no new host
   const srcs = (html.match(/<script[^>]*src=["']([^"']+)["']/gi) || []);
-  eq('the page still loads exactly five scripts', srcs.length, 5);
+  // THREE now: the two Vercel analytics scripts were removed for this release (they measured
+  // before the AI-consent screen was answered) and nothing replaced them.
+  eq('the page still loads exactly three scripts', srcs.length, 3);
+  ok('...and no analytics script is among them',
+    !srcs.some((t) => /_vercel\/(insights|speed-insights)/.test(String(t))), srcs.join(' || '));
   const hosts = [];
   (html.match(/(?:src|href)=["']https?:\/\/([^\/"']+)/gi) || []).forEach((t) => {
     const m = t.match(/https?:\/\/([^\/"']+)/); if (m && hosts.indexOf(m[1]) === -1) hosts.push(m[1]);

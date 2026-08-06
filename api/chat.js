@@ -1,11 +1,12 @@
 /* 15 */
 import { checkChatLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
 import { guardDayCap, dayCapMessage, sendCapMessageSse } from '../lib/daycap.js';
+import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder, ' + AI_CONSENT_ALLOW_HEADERS);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -14,6 +15,11 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
+
+  // Apple 5.1.1(i): the voice route carries the reader's name, age, gender and every previous
+  // turn to Anthropic. It runs BEFORE the throttle, so an un-consented request touches neither
+  // Redis nor the vendor.
+  if (!guardAIConsent(req, res)) return;
 
   // Throttle. This relay was bare -- eight unthrottled POSTs to production proved it.
   // Runs before ANY work, so a throttled request costs nothing. callAI already handles

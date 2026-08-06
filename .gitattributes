@@ -185,3 +185,11 @@ guards/floors-and-filters-guard.cjs text eol=lf
 guards/source-liveness-guard.cjs text eol=lf
 tools/source-liveness.cjs text eol=lf
 data/source-liveness.json text eol=lf
+
+# The AI-consent gate (Apple 5.1.1(i) / 5.1.2(i)). Pinned for the same reason every module above
+# is: tools/ai-consent-probe.cjs READS lib/ai-consent.js as text and asserts that the version
+# string in it equals the one in index.html. That mirror check is the only thing standing between
+# a client and a server that disagree about which disclosure was accepted, and a stray CR is
+# exactly the kind of invisible difference that would break it in a fresh clone and nowhere else.
+lib/ai-consent.js text eol=lf
+tools/ai-consent-probe.cjs text eol=lf

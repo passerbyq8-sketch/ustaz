@@ -18,6 +18,7 @@
 // اختيار الصوت حسب جنس الطفل
 // ============================================================
 import { checkAudioLimit } from '../lib/ratelimit.js';
+import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 
 const FEMALE_VOICE_ID = 'qi4PkV9c01kb869Vh7Su';  // صوت بناتي للبنات
 const MALE_VOICE_ID   = 'G1HOkzin3NMwRHSq60UI';  // صوت رجالي للأولاد
@@ -44,12 +45,16 @@ const MAX_TTS_CHARS = 8000;
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + AI_CONSENT_ALLOW_HEADERS);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
+
+  // Apple 5.1.1(i): no consent header, no ElevenLabs. Before the key is read, before the text is
+  // even parsed out of the body -- so an un-consented request costs nothing and reaches no vendor.
+  if (!guardAIConsent(req, res)) return;
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {

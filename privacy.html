@@ -34,6 +34,7 @@
   .jump{display:inline-block;margin-top:16px;color:var(--blue);font-size:14px;font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
   h2{font-size:18px;font-weight:700;color:var(--blue);margin:34px 0 10px;padding-top:22px;border-top:1px solid var(--line)}
   h2:first-of-type{border-top:0;padding-top:0;margin-top:0}
+  h3{font-size:16px;font-weight:700;margin:22px 0 8px}
   p{margin:0 0 14px}
   ul{margin:0 0 14px;padding-inline-start:20px}
   li{margin-bottom:9px}
@@ -46,7 +47,7 @@
   th,td{border:1px solid var(--line);padding:10px 12px;text-align:start;vertical-align:top}
   th{background:var(--wash);font-weight:700}
   .en{direction:ltr;text-align:left;margin-top:60px;padding-top:0}
-  .en h2,.en h1,.en p,.en li,.en td,.en th{text-align:left}
+  .en h2,.en h3,.en h1,.en p,.en li,.en td,.en th{text-align:left}
   .en ul{padding-inline-start:22px}
   .divider{margin:56px 0 0;border:0;border-top:3px solid var(--blue);width:54px;border-radius:2px}
   footer{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
@@ -67,7 +68,7 @@
   <p class="mark">عزك</p>
   <div class="rule"></div>
   <h1>سياسة الخصوصية</h1>
-  <p class="meta">آخر تحديث: ٢ أغسطس ٢٠٢٦<br>المسؤول عن البيانات: مساعد الراجحي — الكويت<br>البريد: <a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a></p>
+  <p class="meta">آخر تحديث: ٦ أغسطس ٢٠٢٦<br>المسؤول عن البيانات: مساعد الراجحي — الكويت<br>البريد: <a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a></p>
   <a class="jump" href="#english">English version ↓</a>
 </header>
 
@@ -87,33 +88,82 @@
   <li>سنة الميلاد والجنس</li>
   <li>المحادثات السابقة</li>
   <li>رمزُ قفل الوالدين</li>
-  <li>إقرارُك بتنبيه الذكاء الاصطناعيّ</li>
+  <li><strong>قرارُك في شاشة الموافقة على مشاركة البيانات مع خدمات الذكاء الاصطناعيّ</strong> — موافقةٌ أو رفض، ومعه رقمُ النسخة <code>2026-08-06-1</code> وتاريخُه ومَن وافق (المستخدم أو وليّ الأمر). انظر القسم ٤.</li>
   <li>موضعُك في <strong>المصحف</strong>، وما قرأتَه من <strong>الأذكار</strong>، وتقدّمُك في الحفظ</li>
   <li>بعضُ <strong>الإعدادات</strong> — كاختيار المظهر</li>
 </ul>
 <p>هذا ما دامت الميزةُ تعمل بهذه الطريقة؛ وما يحتاج خادمًا لينفَّذ مذكورٌ في القسم التالي.</p>
 <p><strong>لا نرى هذه البيانات ولا نستطيع الوصول إليها.</strong> وحذفُ التطبيق أو مسحُ بيانات الموقع يمحوها نهائيًّا. انظر <a href="/delete.html">صفحة حذف البيانات</a>.</p>
 
-<h2>٤ · ما يُرسَل إلى الخوادم عند كلّ سؤال</h2>
+<h2>٤ · الموافقة على مشاركة البيانات مع خدمات الذكاء الاصطناعيّ</h2>
+<p><strong>رقم نسخة الموافقة: <code>2026-08-06-1</code></strong></p>
+<p><strong>لا يُرسَل شيءٌ إلى أيّ خدمةِ ذكاءٍ اصطناعيّ قبل موافقتك الصريحة.</strong> عند أوّل تشغيل — وقبل أن تُرسَل أيُّ بيانات — تُعرَض عليك شاشةٌ تشرح ماذا يُرسَل وإلى مَن ولماذا، وفيها خياران واضحان لا ثالثَ لهما، ولا خيارَ محدَّدٌ مسبقًا:</p>
+<ul>
+  <li><strong>«أوافق وأفعّل ميزات الذكاء الاصطناعي»</strong></li>
+  <li><strong>«استخدام عزك دون الذكاء الاصطناعي»</strong></li>
+</ul>
+<p><strong>مجرّدُ عرض هذه الشاشة لا يُرسِل شيئًا</strong> — ولا يُنفَّذ أيُّ طلبٍ إلى Anthropic أو ElevenLabs أو Brave Search حتى تُسجَّل موافقتُك.</p>
+
+<h3>ما يُرسَل عند الموافقة، ومن أين يُجمَع، ولماذا</h3>
+<table>
+  <tr><th>البيان</th><th>كيف يُجمَع</th><th>لماذا يُستعمَل</th></tr>
+  <tr><td><strong>الاسم والعمر والجنس</strong></td><td>أنت من أدخلها في ملفّ التعريف داخل التطبيق.</td><td>ليخاطبك عزك باسمك ويناسب جوابَه لعمرك.</td></tr>
+  <tr><td><strong>نصُّ السؤال ورسائل المحادثة السابقة</strong></td><td>ممّا تكتبه في المحادثة.</td><td>لتوليد الجواب مع فهم سياق ما سبق.</td></tr>
+  <tr><td><strong>الصور والملفات</strong></td><td>ملفٌّ تختاره أنت بنفسك من جهازك أو تلتقطه بالكاميرا.</td><td>ليقرأ عزك ما فيه ويجيب عنه.</td></tr>
+  <tr><td><strong>التسجيل الصوتيّ والنصُّ الناتج منه</strong></td><td>يُسجَّل من الميكروفون مؤقّتًا خلال الدور، بعد إذنك، وحين تضغط زرَّ المكالمة أو الاستماع أو التسميع.</td><td>لتحويل كلامك إلى نصّ، ولقراءة الجواب بصوتٍ مسموع.</td></tr>
+  <tr><td><strong>عباراتُ بحثٍ مشتقّةٌ من سؤالك</strong></td><td>تُشتقّ من نصّ سؤالك على خادمنا.</td><td>للوصول إلى مصادر الويب الموثوقة وإسناد الجواب إليها.</td></tr>
+</table>
+<p>والجهاتُ التي تستقبل هذه البيانات مذكورةٌ بأسمائها ووظائفها في <strong>القسم ٥</strong> أدناه.</p>
+<p><strong>لا يستخدم عزك هذه البيانات للإعلانات أو لتتبعك، ولا يرسلها إلى مزودي الخدمة إلا لتشغيل الميزات التي تختار استخدامها.</strong> ونقولها بهذه الصيغة عن قصد: هذا التزامٌ عن فعلِنا نحن وعن سببِ الإرسال، لا وعدٌ نيابةً عن كلّ مزوّدٍ بكلّ ما يفعله بعد ذلك — وما نُلزم به المزوّدين مذكورٌ في فقرة الحماية المكافئة في القسم ٥.</p>
+<p><strong>والصوتُ خاصّةً:</strong> «سمِّعني» في المحفّظ يبدو ميزةً محلّيّة وليس كذلك — فهو يُرسِل التسجيلَ إلى خدمة التعرّف على الكلام في متصفّحك أو نظام تشغيلك. ولذلك يخضع لهذه الموافقة كغيره: <strong>عند الرفض لا يعمل التسميعُ الصوتيّ ولا يُطلَب إذنُ الميكروفون له</strong>، ويبقى الحفظُ والكشفُ اليدويّ والقراءةُ والمصحفُ كما هي.</p>
+
+<h3>إن رفضت</h3>
+<p><strong>الرفضُ خيارٌ حقيقيّ، ولا يُعطِّل التطبيق.</strong> عند الرفض تبقى متاحةً وتعمل كاملةً: <strong>المصحف</strong>، و<strong>الأذكار والأدعية</strong>، و<strong>كنوز المعرفة</strong>، والمحتوى المحلّيّ، والإعدادات، وصفحاتُ الخصوصية والدعم والحذف. وتتوقّف وحدَها الميزاتُ التي لا تعمل إلّا بالإرسال: المحادثةُ النصّيّة، والمكالمةُ الصوتيّة، ورفعُ الصور والملفات، والنطقُ والتفريغُ السحابيّان، والتسميعُ الصوتيّ عبر خدمة التعرّف على الكلام في المتصفّح أو نظام التشغيل، والبحثُ في المصادر المنطلقُ من سؤالك. وتُعرَض في شاشة المحادثة رسالةٌ صريحةٌ تُبيّن السبب وتَعرِض عليك مراجعةَ الاختيار، لا صفحةٌ فارغة.</p>
+
+<h3>سحبُ الموافقة</h3>
+<p>يمكنك سحبُ الموافقة في أيّ وقتٍ من: <strong>الإعدادات ← الخصوصية والذكاء الاصطناعي ← «سحب الموافقة وإيقاف ميزات الذكاء الاصطناعي»</strong>. ويأخذ السحبُ مفعولَه فورًا: يتوقّف كلُّ إرسالٍ جديد، ويُقطَع ما كان جاريًا من طلبٍ أو مكالمةٍ أو تسجيلٍ متى أمكن ذلك بأمان، ويعود التطبيقُ إلى الوضع المحلّيّ. <strong>ولا تُحذَف محادثاتُك المحفوظةُ على جهازك تلقائيًّا</strong> — سحبُ الإذن بالإرسال ليس طلبَ محو.</p>
+<p><strong>ونقولها بصراحةٍ لئلّا نَعِد بما لا نملك:</strong> سحبُ الموافقة يمنع الإرسالَ <strong>المستقبليّ</strong>، ولا يسترجع تلقائيًّا بياناتٍ سبق أن عالجها المزوّدُ وفق سياساته.</p>
+
+<h3>إن تغيّرت هذه النسخة</h3>
+<p>الموافقةُ مرتبطةٌ برقم النسخة أعلاه. فإن غيّرنا ما يُرسَل أو إلى مَن يُرسَل، رفعنا رقمَ النسخة، و<strong>عُرِضت عليك الشاشةُ من جديدٍ لتختار</strong> — ولا تُنقَل الموافقةُ القديمةُ إلى الإفصاح الجديد. وكذلك: <strong>إقرارُك القديمُ بتنبيه الذكاء الاصطناعيّ ليس موافقةً</strong> على مشاركة البيانات، ولا يُحسَب واحدةً.</p>
+
+<h3>الأطفالُ ومن هم دون ١٣ سنة</h3>
+<p>يقرأ التطبيقُ العمرَ المسجَّل في الملفّ. <strong>فإن كان دون ١٣ سنة، لا يكفي ضغطُ زرِّ الموافقة وحدَه لتشغيل ميزات الذكاء الاصطناعيّ:</strong> تُعرَض بوّابةُ وليّ الأمر داخل التطبيق أوّلًا، ولا تُسجَّل الموافقةُ إلّا بعد اجتيازها، وتُحفَظ عندئذٍ بوصفها موافقةَ <strong>وليّ أمر</strong>. وتقول الشاشةُ ذلك صراحةً: <em>«يجب على ولي الأمر مراجعة هذه المعلومات والموافقة قبل تشغيل ميزات الذكاء الاصطناعي للطفل.»</em> فإن لم يوافق وليُّ الأمر، بقي التطبيقُ في الوضع المحلّيّ، <strong>ولم يُرسَل اسمُ الطفل ولا عمرُه ولا جنسُه ولا سؤالُه ولا صوتُه ولا صورُه إلى أيّ مزوّد.</strong> وعند ١٣ سنة فأكثر تُحفَظ الموافقةُ بوصفها موافقةَ <strong>المستخدم</strong>.</p>
+<div class="note">
+  <p><strong>ولا ندّعي أكثرَ من الحقيقة:</strong> بوّابةُ وليّ الأمر هذه حاجزٌ داخل التطبيق وموافقةُ وليّ أمر، <strong>وليست وحدَها استيفاءً لكلّ متطلّبات قوانين حماية الأطفال في كلّ الولايات القضائيّة.</strong> ونطلب — كما في القسم ٩ — أن يكون استعمالُ من هم دون ١٨ بإشراف وليّ.</p>
+</div>
+
+<h3>الاحتفاظ والحذف</h3>
+<p>قرارُك (موافقةٌ أو رفض) ورقمُ نسختِه وتاريخُه <strong>محفوظةٌ على جهازك وحده</strong> ولا تُرسَل إلينا. ويُمحى بمسح بيانات التطبيق أو من <a href="/delete.html">صفحة حذف البيانات</a>. أمّا ما عالجه المزوّدُ قبل السحب فيخضع لسياساته، ولطلب حذف ما نملك نحن الوصولَ إليه راسِلنا (القسم ١٠).</p>
+
+<h2>٥ · ما يُرسَل إلى الخوادم عند كلّ سؤال</h2>
 <p>لنجيبك، تُرسَل بياناتٌ إلى مزوّدي خدمةٍ يعملون نيابةً عنّا. <strong>لا نبيع بياناتك لأحد ولا نُشاركها لأغراض إعلانيّة.</strong></p>
 <table>
   <tr><th>الجهة</th><th>ماذا يُرسَل إليها</th></tr>
   <tr><td><strong>Anthropic (Claude)</strong></td><td>سؤالك ومحادثتك، ومعها <strong>اسمُ الطفل وعمرُه وجنسُه</strong> — لأنّ عزك يخاطبه باسمه ويناسب جوابَه لعمره. وأيُّ ملفٍّ أو صورةٍ ترفعها.</td></tr>
   <tr><td><strong>ElevenLabs</strong></td><td>وظيفتان: <strong>النصُّ الذي تختار سماعَه</strong> بصوتٍ مسموع، و<strong>تسجيلُك الصوتيُّ</strong> يُستقبَل مؤقّتًا ليُحوَّل إلى نصّ <strong>عند استعمال مسار التفريغ السحابيّ</strong>.</td></tr>
   <tr><td><strong>Brave Search</strong></td><td>عباراتُ بحثٍ للوصول إلى مصادر شرعيّة موثوقة.</td></tr>
-  <tr><td><strong>خدماتُ التعرّف على الكلام في المتصفّح أو نظام التشغيل، وElevenLabs عند استعمال مسار التفريغ السحابيّ</strong></td><td><strong>تسجيلُ صوتك</strong> — <strong>فقط</strong> حين تستعمل المحادثة الصوتيّة أو ميزة التسميع. يُسجَّل الصوتُ مؤقّتًا خلال الدور ويُرسَل ليُحوَّل إلى نصّ. <strong>ونحن لا نحتفظ به على خوادمنا</strong>، أمّا احتفاظُ المزوّد به فيخضع لسياساته وشروطه. ويختلف المزوّدُ باختلاف جهازك ومتصفّحك والميزة المستعمَلة، <strong>فلا نستطيع أن نُسمّي جهةً واحدةً تصلح لكلّ الحالات.</strong></td></tr>
-  <tr><td><strong>Vercel</strong></td><td>الاستضافة. سجلّاتُ خادمٍ قياسيّة.</td></tr>
+  <tr><td><strong>خدماتُ التعرّف على الكلام في المتصفّح أو نظام التشغيل</strong></td><td><strong>تسجيلُ صوتك</strong> — <strong>فقط</strong> حين تستعمل ميزةَ التسميع أو مسارَ التفريغ داخل المتصفّح (أمّا المسارُ السحابيّ فيمرّ بـElevenLabs في السطر أعلاه). يُسجَّل الصوتُ مؤقّتًا خلال الدور ويُرسَل ليُحوَّل إلى نصّ. <strong>ونحن لا نحتفظ به على خوادمنا</strong>، أمّا احتفاظُ المزوّد به فيخضع لسياساته وشروطه. ويختلف المزوّدُ باختلاف جهازك ومتصفّحك، <strong>فلا نستطيع أن نُسمّي جهةً واحدةً تصلح لكلّ الحالات.</strong></td></tr>
+  <tr><td><strong>Vercel</strong> (الاستضافة)</td><td>الاستضافة. سجلّاتُ خادمٍ قياسيّة — تشمل <strong>عنوانَ IP ونوعَ المتصفّح</strong> بحكم عمل أيّ خادمٍ على الويب.</td></tr>
   <tr><td><strong>Upstash</strong></td><td><strong>عنوانُ IP</strong> — يُستعمل مفتاحًا لتحديد عدد الطلبات فقط، ويُمحى تلقائيًّا خلال ٢٤ ساعة. لا يُربَط باسمٍ ولا بملفّ.</td></tr>
-  <tr><td><strong>everyayah.com</strong></td><td>تلاوةُ القرآن — يُجلَب الصوتُ فقط ولا تُرسَل بياناتٌ إليه.</td></tr>
+  <tr><td><strong>Google Fonts</strong> (fonts.googleapis.com، fonts.gstatic.com)</td><td>مَوردٌ تقنيّ: تُجلَب منه ملفّاتُ الخطوط. لا نُرسِل إليه سؤالك ولا ملفَّك، لكنّ جلبَ أيّ ملفٍّ من الويب يُطلِع الجهةَ المستضيفةَ على <strong>عنوان IP ومعرِّف المتصفّح (User-Agent)</strong>.</td></tr>
+  <tr><td><strong>unpkg / Cloudflare</strong> (unpkg.com)</td><td>مَوردٌ تقنيّ: مكتباتُ الواجهة التي تُشغّل التطبيق. لا بياناتِ محتوًى تُرسَل إليه — و<strong>عنوانُ IP وUser-Agent</strong> كما في السطر السابق.</td></tr>
+  <tr><td><strong>cdnjs / Cloudflare</strong> (cdnjs.cloudflare.com)</td><td>مَوردٌ تقنيّ: مكتبتان تُحمَّلان عند الحاجة (تصديرُ PDF وقراءةُ ملفّات Word). لا بياناتِ محتوًى تُرسَل إليه — و<strong>عنوانُ IP وUser-Agent</strong>.</td></tr>
+  <tr><td><strong>everyayah.com</strong></td><td>تلاوةُ القرآن — يُجلَب الصوتُ فقط ولا تُرسَل بياناتُ محتوًى إليه؛ <strong>وعنوانُ IP وUser-Agent</strong> يصلانه بحكم الجلب.</td></tr>
+  <tr><td><strong>mushaf.almurabbi.app</strong></td><td>صفحاتُ مصحف المدينة تُجلَب صورًا متّجهة. لا تُرسَل بياناتُ محتوًى إليه؛ <strong>وعنوانُ IP وUser-Agent</strong> يصلانه بحكم الجلب.</td></tr>
 </table>
 <p>كلُّ اتّصالٍ مشفَّرٌ عبر HTTPS.</p>
+<div class="note">
+  <p><strong>حمايةٌ مكافئةٌ لدى مزوّدي الخدمة:</strong> نُلزم أي مزوّد خدمة يتلقى بيانات المستخدم من عزك بأن يوفر لها الحماية نفسها أو حماية مكافئة لما هو موضح في هذه السياسة وما تتطلبه إرشادات Apple والقوانين المطبقة، وأن يعالجها فقط للأغراض المحددة هنا.</p>
+  <p>وهذا التزامٌ نأخذه على أنفسنا في اختيار المزوّدين والتعاقد معهم. <strong>ويبقى صحيحًا في الوقت نفسِه</strong> أنّ مدّةَ احتفاظ كلّ مزوّدٍ ببياناته وسجلّاته تخضع لسياساته وشروطه هو، لا لنا — فنحن نُلزمه بمستوى الحماية والغرض، ولا نتحكّم بأنظمته الداخليّة، <strong>ولا نَعِدُك بما لا نملكه.</strong></p>
+</div>
 <p>وبإيجاز، ما قد يُعالَج عند الطلب: <strong>نصُّ سؤالك ومحادثتك</strong>، و<strong>الصورُ التي تختار رفعَها</strong>، و<strong>التسجيلُ الصوتيُّ والنصُّ الناتجُ عنه</strong> حين تستعمل المحادثة الصوتيّة أو التسميع.</p>
 <p>ونستعمل كذلك <strong>معرِّفاتِ جهازٍ أو متصفّحٍ وبياناتِ تفاعلٍ محدودة</strong> — كعنوان IP وعددِ الطلبات ووقتِها — <strong>لغرضين لا ثالثَ لهما:</strong> تطبيقُ حدود الاستخدام، وتشغيلُ الخدمة وحمايتُها من الإساءة والتعطيل. <strong>لا تُستعمل هذه المعرِّفات للإعلانات ولا لتتبُّعك عبر تطبيقاتٍ ومواقعَ أخرى.</strong></p>
 <div class="note">
   <p><strong>من جهتك:</strong> لا ترسل في سؤالك بياناتٍ شخصيّةً أو حسّاسةً لا يحتاجها السؤال — كالعناوين وأرقام الهواتف وأرقام البطاقات وكلمات المرور والتفاصيل الصحّيّة. عزك لا يطلبها، وأكثرُ الأسئلة تُجاب دونها.</p>
 </div>
 
-<h2>٥ · البلاغات التي نخزّنها على خوادمنا</h2>
+<h2>٦ · البلاغات التي نخزّنها على خوادمنا</h2>
 <p>هذه هي البياناتُ التي نحفظها نحن على خوادمنا. وهي غيرُ ما يُرسَل إلى مزوّدي الخدمة لتنفيذ طلبك — فأولئك <strong>قد يعالجون الطلباتِ أو يحتفظون بها وفق سياساتهم وشروطهم</strong>، وذلك خارجٌ عن أيدينا.</p>
 <p>حين تضغط <strong>«بلّغ»</strong> عن ردٍّ، نحفظ:</p>
 <ul>
@@ -127,7 +177,7 @@
 </div>
 <p>الغرض: <strong>سلامةُ الأطفال وتحسينُ الترشيح</strong> — وهو ما تُلزم به سياسةُ المحتوى المولَّد بالذكاء الاصطناعيّ في Google Play. نحتفظ بآخر ٥٠٠٠ بلاغ، ويُسقَط الأقدمُ تلقائيًّا. ولحذف بلاغك، راسِلنا.</p>
 
-<h2>٦ · ما لا نفعله — أبدًا</h2>
+<h2>٧ · ما لا نفعله — أبدًا</h2>
 <ul>
   <li><strong>لا إعلانات</strong>، ولا أيّ مكتبةِ إعلانات</li>
   <li><strong>لا SDK إعلانات ولا تتبُّعَ أفرادٍ عبرَ التطبيقات</strong> — لا Google Analytics ولا Firebase</li>
@@ -138,19 +188,19 @@
 </ul>
 
 <div class="note">
-  <p><strong>استثناءٌ واحدٌ يجب أن يُقال بصراحة:</strong> يستخدم التطبيق <strong>Vercel Web Analytics</strong> و<strong>Speed Insights</strong> لقياس الاستخدام التجميعيّ والأداء — تجمعان مشاهداتِ الصفحات ونوعَ الجهاز والموقعَ التقريبيَّ ومقاييسَ الأداء، <strong>بلا كوكيز وبلا معرِّفاتٍ إعلانيّة</strong>، ولا تُعرِّفان مستخدمًا بعينه.</p>
+  <p><strong>وقد كان في التطبيق استثناءٌ واحدٌ، فأُزيل:</strong> كان يُحمَّل <strong>Vercel Web Analytics</strong> و<strong>Speed Insights</strong> لقياس الاستخدام التجميعيّ والأداء. <strong>وقد أُزيلا في هذا الإصدار ولا يعملان فيه</strong> — لأنّهما كانا يبدآن القياسَ عند فتح الصفحة، أي قبل أن يُجيب المستخدمُ على شاشة الموافقة، والقياسُ قبل الاختيار قياسٌ بلا اختيار. <strong>ولم نستبدل بهما أداةَ تحليلٍ أخرى.</strong> أمّا الاستضافةُ على Vercel فباقيةٌ كما هي، وسجلّاتُ الخادم القياسيّة اللازمةُ لتشغيل الخدمة وحمايتها مذكورةٌ في القسم ٥.</p>
 </div>
 
-<h2>٧ · الأذونات — الميكروفون والكاميرا والصور</h2>
+<h2>٨ · الأذونات — الميكروفون والكاميرا والصور</h2>
 <p><strong>أنت من يمنح كلَّ إذنٍ منها، ولا يُؤخَذ شيءٌ منها ضمنًا.</strong> يطلبها التطبيقُ عند أوّل استعمالٍ للميزة التي تحتاجها، لا قبل ذلك:</p>
 <ul>
-  <li><strong>الميكروفون</strong> — <strong>فقط</strong> حين تضغط زرَّ المكالمة أو التسميع. ونقولها بوضوحٍ لأنّ الأمر يُلبَس كثيرًا: <strong>يُسجَّل صوتُك مؤقّتًا خلال الدور، ثمّ يُرسَل إلى خدمة التعرّف على الكلام المستعمَلة — في المتصفّح أو نظام التشغيل، أو ElevenLabs عند استعمال مسار التفريغ السحابيّ — لتحوّله إلى نصّ.</strong> لا يُستعمل هذا الصوتُ للإعلانات ولا للتتبُّع، و<strong>لا نحتفظ به على خوادمنا</strong>. أمّا مدّةُ احتفاظ المزوّد به وبسجلّاته فتخضع <strong>لسياساته وشروطه هو</strong>، لا لنا — ولا نَعِدُك بما لا نملكه.</li>
+  <li><strong>الميكروفون</strong> — <strong>فقط</strong> حين تضغط زرَّ المكالمة أو التسميع. ونقولها بوضوحٍ لأنّ الأمر يُلبَس كثيرًا: <strong>يُسجَّل صوتُك مؤقّتًا خلال الدور، ثمّ يُرسَل إلى خدمة التعرّف على الكلام المستعمَلة — في المتصفّح أو نظام التشغيل، أو ElevenLabs عند استعمال مسار التفريغ السحابيّ — لتحوّله إلى نصّ.</strong> <strong>لا يستخدم عزك هذا الصوتَ للإعلانات أو لتتبعك، ولا يرسله إلى مزودي الخدمة إلا لتشغيل الميزة التي تختار استخدامها</strong>، و<strong>لا نحتفظ به على خوادمنا</strong>. أمّا مدّةُ احتفاظ المزوّد به وبسجلّاته فتخضع <strong>لسياساته وشروطه هو</strong>، لا لنا — ولا نَعِدُك بما لا نملكه.</li>
   <li><strong>الكاميرا</strong> — <strong>فقط</strong> إن اخترتَ التقاطَ صورةٍ لترفعها مع سؤالك.</li>
   <li><strong>الصور</strong> — <strong>فقط</strong> للصورة التي تختارها بنفسك من جهازك. لا نتصفّح ألبومَك ولا نقرأ منه شيئًا آخر.</li>
 </ul>
 <p><strong>ولك أن ترفضها كلَّها</strong> — أو أن تسحبها بعد منحها متى شئت من <strong>إعدادات جهازك أو متصفّحك</strong>. ويظلّ التطبيقُ يعمل، وتتوقّف الميزةُ التي تحتاج الإذنَ وحدَها.</p>
 
-<h2>٨ · الأطفال والأولياء</h2>
+<h2>٩ · الأطفال والأولياء</h2>
 <p>عزك مصمَّمٌ للأطفال والبالغين. <strong>ونطلب أن يكون استعمالُ من هم دون ١٨ بإشراف وليّ.</strong></p>
 <ul>
   <li>نلتزم بـ<strong>سياسات العائلات في Google Play</strong>.</li>
@@ -161,24 +211,24 @@
 </ul>
 <p>وليٌّ يريد حذفَ بيانات طفله: <a href="/delete.html">صفحة حذف البيانات</a> — أو راسِلنا.</p>
 
-<h2>٩ · حقوقك</h2>
+<h2>١٠ · حقوقك</h2>
 <ul>
   <li><strong>الحذف:</strong> بياناتُك على جهازك. امسحها متى شئت — انظر <a href="/delete.html">صفحة الحذف</a>.</li>
   <li><strong>الاطّلاع:</strong> راسِلنا على <a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a> ونجيبك خلال ٣٠ يومًا.</li>
-  <li><strong>الاستفسار أو الحذف من طرفنا:</strong> راسِلنا على البريد نفسِه لتسأل عن بياناتك أو تطلب حذفَها. ونقولها بصراحةٍ لئلّا نَعِد بما لا نملك: هذا يشمل <strong>ما نملك القدرة على الوصول إليه فعلًا</strong> — وهو البلاغاتُ المذكورةُ في القسم ٥. أمّا ما على جهازك فلا نصل إليه أصلًا، ومحوُه بيدك وحدك.</li>
+  <li><strong>الاستفسار أو الحذف من طرفنا:</strong> راسِلنا على البريد نفسِه لتسأل عن بياناتك أو تطلب حذفَها. ونقولها بصراحةٍ لئلّا نَعِد بما لا نملك: هذا يشمل <strong>ما نملك القدرة على الوصول إليه فعلًا</strong> — وهو البلاغاتُ المذكورةُ في القسم ٦. أمّا ما على جهازك فلا نصل إليه أصلًا، ومحوُه بيدك وحدك.</li>
 </ul>
 
-<h2>١٠ · التغييرات</h2>
+<h2>١١ · التغييرات</h2>
 <p><strong>قد تتغيّر هذه السياسة.</strong> ومتى تغيّرت حدّثنا <strong>تاريخَ آخر تحديثٍ أعلى الصفحة</strong> — فهو الموضعُ الذي تعرف منه أنّ شيئًا تبدّل — وأعلمناك داخل التطبيق إن كان التغييرُ جوهريًّا.</p>
 
-<h2>١١ · التواصل</h2>
+<h2>١٢ · التواصل</h2>
 <p><a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a> — وللمساعدة والإبلاغ عن مشكلة: <a href="/support.html">صفحة الدعم</a>.</p>
 
 <hr class="divider">
 
 <div class="en" id="english">
   <h2>Privacy Policy — Ezik</h2>
-  <p class="meta"><strong>Last updated:</strong> 2 August 2026 &nbsp;·&nbsp; <strong>Data controller:</strong> Musaed Alrajhi, Kuwait &nbsp;·&nbsp; <strong>Contact:</strong> <a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a></p>
+  <p class="meta"><strong>Last updated:</strong> 6 August 2026 &nbsp;·&nbsp; <strong>Data controller:</strong> Musaed Alrajhi, Kuwait &nbsp;·&nbsp; <strong>Contact:</strong> <a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a></p>
 
   <h2>1 · In short</h2>
   <p><strong>Ezik has no accounts, no sign-in, no ads, and sells no data.</strong> Your child's profile and conversations are stored <strong>on the device only</strong>. We do not see them and do not store them on our servers.</p>
@@ -193,33 +243,82 @@
     <li>Birth year and gender</li>
     <li>Past conversations</li>
     <li>The parental lock PIN</li>
-    <li>Your acknowledgement of the AI notice</li>
+    <li><strong>Your decision on the AI data-sharing consent screen</strong> — agree or decline, together with the version number <code>2026-08-06-1</code>, its timestamp, and who consented (the user or a guardian). See section 4.</li>
     <li>Your place in the <strong>Mushaf</strong>, the <strong>adhkar</strong> you have read, and your memorisation progress</li>
     <li>Some <strong>settings</strong>, such as the chosen theme</li>
   </ul>
   <p>This holds wherever the feature works that way; anything that needs a server to run is covered in the next section.</p>
   <p>We cannot see or access any of it. Uninstalling the app or clearing site data erases it permanently. See the <a href="/delete.html">data deletion page</a>.</p>
 
-  <h2>4 · Sent to servers with each question</h2>
+  <h2>4 · Consent to share data with AI services</h2>
+  <p><strong>Consent version: <code>2026-08-06-1</code></strong></p>
+  <p><strong>Nothing is sent to any AI service before your explicit consent.</strong> On first run — and before any data is sent — you are shown a screen explaining what is sent, to whom, and why. It offers two clear choices and no third, and neither is preselected:</p>
+  <ul>
+    <li><strong>“I agree and enable the AI features”</strong></li>
+    <li><strong>“Use Ezik without AI”</strong></li>
+  </ul>
+  <p><strong>Merely displaying that screen sends nothing</strong> — no request is made to Anthropic, ElevenLabs or Brave Search until your consent has been recorded.</p>
+
+  <h3>What is sent once you agree, how it is collected, and why</h3>
+  <table>
+    <tr><th>Data</th><th>How it is collected</th><th>Why it is used</th></tr>
+    <tr><td><strong>Name, age and gender</strong></td><td>You enter them yourself in the in-app profile.</td><td>So the tutor addresses you by name and adapts its answer to your age.</td></tr>
+    <tr><td><strong>The text of your question and previous conversation messages</strong></td><td>From what you type in the chat.</td><td>To generate the answer with an understanding of what came before.</td></tr>
+    <tr><td><strong>Images and files</strong></td><td>A file you pick yourself from your device, or take with the camera.</td><td>So the tutor can read it and answer about it.</td></tr>
+    <tr><td><strong>Voice recordings and the text produced from them</strong></td><td>Recorded from the microphone temporarily for the duration of the turn, after your permission, and only when you tap the call, listen or recitation button.</td><td>To convert your speech to text, and to read the answer aloud.</td></tr>
+    <tr><td><strong>Search phrases derived from your question</strong></td><td>Derived from the text of your question on our server.</td><td>To reach trusted web sources and attribute the answer to them.</td></tr>
+  </table>
+  <p>The parties that receive this data are named, with their functions, in <strong>section 5</strong> below.</p>
+  <p><strong>Ezik does not use this data for advertising or tracking and sends it to service providers only to operate the features you choose to use.</strong> The wording is deliberate: this is a commitment about what we do and why we send, not a promise made on behalf of every provider about everything they do afterwards — what we require of providers is in the equal-protection paragraph in section 5.</p>
+  <p><strong>Voice in particular:</strong> the memorizer's recitation check looks like a local feature and is not — it sends the recording to the speech-recognition service in your browser or operating system. It is therefore covered by this consent like everything else: <strong>if you decline, voice recitation does not run and no microphone permission is requested for it</strong>, while memorizing, manual reveal, reading and the Mushaf are unaffected.</p>
+
+  <h3>If you decline</h3>
+  <p><strong>Declining is a real choice and does not disable the app.</strong> If you decline, the following remain available and fully functional: the <strong>Mushaf</strong>, the <strong>adhkar and supplications</strong>, the <strong>knowledge treasures</strong>, local content, settings, and the privacy, support and deletion pages. Only the features that cannot work without sending stop: text chat, the voice call, uploading images and files, cloud text-to-speech and speech-to-text, voice recitation through the browser's or the operating system's speech-recognition service, and the source search that starts from your question. The chat screen then shows an explicit message stating the reason and offering to review the choice — not a blank page.</p>
+
+  <h3>Withdrawing consent</h3>
+  <p>You can withdraw consent at any time from <strong>Settings → Privacy and AI → “Withdraw consent and turn off the AI features”</strong>. Withdrawal takes effect immediately: all new sending stops, any request, call or recording already in progress is cut off where that can be done safely, and the app returns to local mode. <strong>Conversations saved on your device are not deleted automatically</strong> — withdrawing permission to send is not a request to erase.</p>
+  <p><strong>Stated plainly, so we promise nothing we cannot keep:</strong> withdrawal prevents <strong>future</strong> sending. It does not automatically retrieve data a provider has already processed under its own policies.</p>
+
+  <h3>If this version changes</h3>
+  <p>Consent is tied to the version number above. If we change what is sent or who it is sent to, we raise the version number and <strong>the screen is shown to you again so you can choose</strong> — an old consent is never carried over to a new disclosure. Likewise: <strong>your earlier acknowledgement of the AI notice is not consent</strong> to share data, and is not counted as one.</p>
+
+  <h3>Children and users under 13</h3>
+  <p>The app reads the age recorded in the profile. <strong>If it is under 13, pressing the agree button alone is not enough to enable the AI features:</strong> the in-app guardian gate is shown first, consent is recorded only after it has been passed, and it is then stored as a <strong>guardian</strong> consent. The screen says so explicitly: <em>“A guardian must review this information and agree before the AI features are enabled for the child.”</em> If the guardian does not agree, the app stays in local mode and <strong>the child's name, age, gender, question, voice and images are sent to no provider.</strong> At 13 and above, consent is stored as a <strong>user</strong> consent.</p>
+  <div class="note">
+    <p><strong>We claim no more than the truth:</strong> this guardian gate is an in-app barrier and a guardian's consent. <strong>It is not, on its own, compliance with every child-protection law in every jurisdiction.</strong> As in section 9, we require that users under 18 use the app under guardian supervision.</p>
+  </div>
+
+  <h3>Retention and deletion</h3>
+  <p>Your decision (agree or decline), its version number and its timestamp are <strong>stored on your device only</strong> and are never sent to us. They are erased by clearing app data or from the <a href="/delete.html">data deletion page</a>. What a provider processed before withdrawal is governed by that provider's policies; to request deletion of what we ourselves can access, email us (section 10).</p>
+
+  <h2>5 · Sent to servers with each question</h2>
   <p>To answer you, data is sent to service providers acting on our behalf. <strong>We never sell your data or share it for advertising.</strong></p>
   <table>
     <tr><th>Provider</th><th>What is sent</th></tr>
     <tr><td><strong>Anthropic (Claude)</strong></td><td>Your question and conversation, including the <strong>child's name, age and gender</strong> (the tutor addresses the child by name and adapts to their age), plus any file or image you upload.</td></tr>
     <tr><td><strong>ElevenLabs</strong></td><td>Two functions: <strong>text you choose to have read aloud</strong>, and <strong>your voice recording</strong>, received temporarily to be converted to text <strong>when the cloud transcription path is used</strong>.</td></tr>
     <tr><td><strong>Brave Search</strong></td><td>Search terms used to reach trusted Islamic reference sources.</td></tr>
-    <tr><td><strong>Browser or operating-system speech-recognition services, and ElevenLabs when cloud transcription is used</strong></td><td><strong>A recording of your voice</strong> — <strong>only</strong> when you use the voice conversation or the recitation feature. Audio is recorded temporarily for the duration of the turn and sent to be converted to text. <strong>We do not retain it on our servers</strong>; the provider's own retention is governed by its policies and terms. Which provider handles it depends on your device, your browser and the feature in use, <strong>so we cannot name a single one that holds for every case.</strong></td></tr>
-    <tr><td><strong>Vercel</strong></td><td>Hosting. Standard server logs.</td></tr>
+    <tr><td><strong>Browser or operating-system speech-recognition services</strong></td><td><strong>A recording of your voice</strong> — <strong>only</strong> when you use the recitation feature or the in-browser transcription path (the cloud path goes through ElevenLabs, in the row above). Audio is recorded temporarily for the duration of the turn and sent to be converted to text. <strong>We do not retain it on our servers</strong>; the provider's own retention is governed by its policies and terms. Which provider handles it depends on your device and your browser, <strong>so we cannot name a single one that holds for every case.</strong></td></tr>
+    <tr><td><strong>Vercel</strong> (hosting)</td><td>Hosting. Standard server logs — including <strong>IP address and browser type</strong>, as with any web server.</td></tr>
     <tr><td><strong>Upstash</strong></td><td><strong>IP address</strong> — used solely as a rate-limiting key, automatically deleted within 24 hours. Never linked to a name or profile.</td></tr>
-    <tr><td><strong>everyayah.com</strong></td><td>Quran recitation audio — files are fetched only; no data is sent.</td></tr>
+    <tr><td><strong>Google Fonts</strong> (fonts.googleapis.com, fonts.gstatic.com)</td><td>A technical resource: font files are fetched from it. We send it no question and no file of yours, but fetching any file from the web exposes your <strong>IP address and User-Agent</strong> to the host serving it.</td></tr>
+    <tr><td><strong>unpkg / Cloudflare</strong> (unpkg.com)</td><td>A technical resource: the interface libraries the app runs on. No content data is sent to it — and <strong>IP address and User-Agent</strong> as in the row above.</td></tr>
+    <tr><td><strong>cdnjs / Cloudflare</strong> (cdnjs.cloudflare.com)</td><td>A technical resource: two libraries loaded on demand (PDF export and reading Word files). No content data is sent to it — and <strong>IP address and User-Agent</strong>.</td></tr>
+    <tr><td><strong>everyayah.com</strong></td><td>Quran recitation audio — files are fetched only; no content data is sent, though <strong>IP address and User-Agent</strong> reach it by virtue of the fetch.</td></tr>
+    <tr><td><strong>mushaf.almurabbi.app</strong></td><td>Madinah Mushaf pages, fetched as vector images. No content data is sent; <strong>IP address and User-Agent</strong> reach it by virtue of the fetch.</td></tr>
   </table>
   <p>All traffic is encrypted over HTTPS.</p>
+  <div class="note">
+    <p><strong>Equal protection by service providers:</strong> We require every service provider that receives user data from Ezik to provide the same or equivalent protection described in this policy and required by Apple's guidelines and applicable law, and to process that data only for the purposes stated here.</p>
+    <p>That is a commitment we take on in how we choose and contract with providers. <strong>It remains equally true</strong> that how long each provider keeps its data and logs is governed by its own policies and terms, not ours — we bind them to a level of protection and a purpose; we do not control their internal systems, <strong>and we will not promise what is not ours to promise.</strong></p>
+  </div>
   <p>In short, what may be processed to serve a request: <strong>the text of your questions and conversations</strong>, <strong>images you choose to upload</strong>, and <strong>voice recordings and the text produced from them</strong> when you use the voice conversation or the recitation feature.</p>
   <p>We also use <strong>device or browser identifiers and limited interaction data</strong> — such as IP address, request counts and timestamps — <strong>for two purposes and no others:</strong> enforcing usage limits, and operating and protecting the service against abuse and disruption. <strong>These identifiers are never used for advertising or to track you across other apps and sites.</strong></p>
   <div class="note">
     <p><strong>Your part:</strong> please do not include personal or sensitive data your question does not need — addresses, phone numbers, card numbers, passwords, health details. Ezik never asks for them, and most questions are answered without them.</p>
   </div>
 
-  <h2>5 · Reports stored on our servers</h2>
+  <h2>6 · Reports stored on our servers</h2>
   <p>This is the data we ourselves keep on our servers. It is separate from what is sent to service providers to carry out your request — those providers <strong>may process or retain requests under their own policies and terms</strong>, which is outside our control.</p>
   <p>When a user taps <strong>Report</strong> on a reply, we store: the reason, the note, the AI reply, the preceding question, the age band, the mode, and the timestamp.</p>
   <div class="note">
@@ -228,7 +327,7 @@
   </div>
   <p>Purpose: <strong>child safety and improving content filtering</strong> — as required by Google Play's AI-Generated Content policy. We keep the last 5,000 reports; older ones are dropped automatically. To have a report deleted, email us.</p>
 
-  <h2>6 · What we never do</h2>
+  <h2>7 · What we never do</h2>
   <ul>
     <li><strong>No ads</strong> and no ad SDKs</li>
     <li><strong>No advertising or cross-app tracking SDKs</strong> — no Google Analytics, no Firebase</li>
@@ -239,19 +338,19 @@
   </ul>
 
   <div class="note">
-    <p>This app uses <strong>Vercel Web Analytics</strong> and <strong>Speed Insights</strong> to measure aggregate usage and performance — page views, device type, approximate location, and performance metrics — <strong>with no cookies and no advertising identifiers</strong>, and without identifying any individual user.</p>
+    <p><strong>There was one exception, and it has been removed:</strong> the app used to load <strong>Vercel Web Analytics</strong> and <strong>Speed Insights</strong> to measure aggregate usage and performance. <strong>Both are removed and do not run in this release</strong> — they began measuring on page load, that is, before the user had answered the consent screen, and a measurement taken before a choice is a measurement taken without one. <strong>No other analytics tool replaced them.</strong> Hosting on Vercel is unchanged, and the standard server logs needed to operate and protect the service are described in section 5.</p>
   </div>
 
-  <h2>7 · Permissions — microphone, camera, photos</h2>
+  <h2>8 · Permissions — microphone, camera, photos</h2>
   <p><strong>You grant each of these yourself; none is taken implicitly.</strong> The app asks the first time you use the feature that needs it, and not before:</p>
   <ul>
-    <li><strong>Microphone</strong> — <strong>only</strong> when you tap the call or recitation button. Stated plainly, because this is widely misunderstood: <strong>your voice is recorded temporarily for the duration of the turn, then sent to the speech-recognition service in use — in the browser or the operating system, or ElevenLabs when the cloud transcription path is used — to be converted to text.</strong> That audio is never used for advertising or tracking, and <strong>we do not retain it on our servers</strong>. How long the provider keeps the audio or its logs is governed by <strong>its own policies and terms</strong>, not ours — we will not promise what is not ours to promise.</li>
+    <li><strong>Microphone</strong> — <strong>only</strong> when you tap the call or recitation button. Stated plainly, because this is widely misunderstood: <strong>your voice is recorded temporarily for the duration of the turn, then sent to the speech-recognition service in use — in the browser or the operating system, or ElevenLabs when the cloud transcription path is used — to be converted to text.</strong> <strong>Ezik does not use that audio for advertising or tracking and sends it to service providers only to operate the feature you choose to use</strong>, and <strong>we do not retain it on our servers</strong>. How long the provider keeps the audio or its logs is governed by <strong>its own policies and terms</strong>, not ours — we will not promise what is not ours to promise.</li>
     <li><strong>Camera</strong> — <strong>only</strong> if you choose to take a photo to send with your question.</li>
     <li><strong>Photos</strong> — <strong>only</strong> for the image you pick yourself. We do not browse your library or read anything else from it.</li>
   </ul>
   <p><strong>You may refuse all of them</strong>, or withdraw them later at any time from <strong>your device or browser settings</strong>. The app keeps working; only the feature that needs the permission stops.</p>
 
-  <h2>8 · Children and guardians</h2>
+  <h2>9 · Children and guardians</h2>
   <p>Ezik is designed for children and adults. <strong>We require that users under 18 use it under guardian supervision.</strong></p>
   <ul>
     <li>We comply with <strong>Google Play's Families policies</strong>.</li>
@@ -262,17 +361,17 @@
   </ul>
   <p>A guardian who wants a child's data deleted: see the <a href="/delete.html">data deletion page</a>, or email us.</p>
 
-  <h2>9 · Your rights</h2>
+  <h2>10 · Your rights</h2>
   <ul>
     <li><strong>Deletion:</strong> your data lives on your device. Erase it any time — see the <a href="/delete.html">deletion page</a>.</li>
     <li><strong>Access:</strong> email <a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a> and we will respond within 30 days.</li>
-    <li><strong>Enquiry or deletion on our side:</strong> write to the same address to ask about your data or request its deletion. Stated plainly, so we promise nothing we cannot keep: this covers <strong>the data we are actually able to access</strong> — the reports described in section 5. What sits on your device we cannot reach at all; erasing it is yours alone.</li>
+    <li><strong>Enquiry or deletion on our side:</strong> write to the same address to ask about your data or request its deletion. Stated plainly, so we promise nothing we cannot keep: this covers <strong>the data we are actually able to access</strong> — the reports described in section 6. What sits on your device we cannot reach at all; erasing it is yours alone.</li>
   </ul>
 
-  <h2>10 · Changes</h2>
+  <h2>11 · Changes</h2>
   <p><strong>This policy may change.</strong> Whenever it does we update the <strong>last-updated date at the top of the page</strong> — that is where you can tell something moved — and notify users in the app if the change is material.</p>
 
-  <h2>11 · Contact</h2>
+  <h2>12 · Contact</h2>
   <p><a href="mailto:passerbyq8@gmail.com">passerbyq8@gmail.com</a> — for help or to report a problem, see the <a href="/support.html">support page</a>.</p>
 </div>
 

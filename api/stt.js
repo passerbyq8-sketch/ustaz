@@ -8,6 +8,7 @@
 // transcribing here removes BOTH -- and the API key never reaches the device.
 // ============================================================
 import { checkAudioLimit } from '../lib/ratelimit.js';
+import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 
 const MODEL_IDS = ['scribe_v2', 'scribe_v1']; // second is a fallback if the first is rejected
 const LANGUAGE_CODE = 'ara';                  // ISO 639-3, Arabic
@@ -16,10 +17,14 @@ const MAX_AUDIO_BYTES = 3 * 1024 * 1024;      // one turn of opus is tens of KB;
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + AI_CONSENT_ALLOW_HEADERS);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
+
+  // Apple 5.1.1(i): a recording of a reader's voice is the most sensitive thing this app can
+  // forward, so the consent check runs before the base64 is even decoded.
+  if (!guardAIConsent(req, res)) return;
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'ELEVENLABS_API_KEY missing on Vercel' });

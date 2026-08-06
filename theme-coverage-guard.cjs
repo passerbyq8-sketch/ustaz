@@ -2142,8 +2142,11 @@ ok('N23: ...and the [+] is still gated on the band\'s own capability',
   /\{caps\.upload && \(/.test(chatSrc));
 ok('N24: dictation is the same pair of handlers on the same button',
   /onClick=\{isListening \? stopListening : startListening\}/.test(chatSrc));
+// The endpoint is the shipped one; what changed under it is the transport. Every AI send now
+// goes through aiFetch, the one choke point that refuses without consent and attaches the
+// consent header (Apple 5.1.1(i)) -- so this pins the endpoint AND the gate it passes through.
 ok('N24: ...and speech still goes to the shipped endpoint',
-  /await fetch\('\/api\/tts'/.test(html));
+  /await aiFetch\('\/api\/tts'/.test(html));
 ok('N24: ...with the child voice barrier untouched',
   /const CHILD_VOICE_ENABLED = false;/.test(html)
   && /if \(screen === 'call' && childVoiceBlocked\(\)\) return <ChildVoiceNotice onBack=\{goEzikBack\} \/>;/.test(html));
@@ -2443,8 +2446,11 @@ ok('O9: the screen is still entered by setting the screen, and by nothing else',
     /if \(childVoiceBlocked\(\)\) return; \/\/ غ‑٣/.test(callFx)
     && /if \(!hasFounderToken\(\)\) return; \/\/ directive 82/.test(callFx)
     && callFx.indexOf('childVoiceBlocked()') < callFx.indexOf('hasFounderToken()'));
+  // STRENGTHENED, not relaxed: the same two barriers in the same order, plus the AI-consent
+  // barrier that Apple 5.1.1(i) requires between them. A call session must not be built -- no
+  // engine, no recorder, no microphone -- for a reader who has not consented to voice sharing.
   ok('O10: ...and the call session is never even BUILT without them',
-    /if \(childVoiceBlocked\(\)\) return; \/\/ غ‑٣[\s\S]{0,200}?if \(!hasFounderToken\(\)\) return; \/\/ directive 82[\s\S]{0,120}?callGenRef\.current\+\+;/.test(callFx));
+    /if \(childVoiceBlocked\(\)\) return; \/\/ غ‑٣[\s\S]{0,400}?if \(!hasValidAIConsent\(\)\) return;[\s\S]{0,200}?if \(!hasFounderToken\(\)\) return; \/\/ directive 82[\s\S]{0,120}?callGenRef\.current\+\+;/.test(callFx));
   ok('O10: the child-voice barrier is still shut at the flag', /const CHILD_VOICE_ENABLED = false;/.test(html));
 }
 
@@ -2455,15 +2461,26 @@ ok('O11: ...and the call turn still asks for mode:\'call\', which is what choose
   /reply = await callAI\(apiHistory, profile, \{\s*\r?\n\s*signal: controller\.signal, mode: 'call',/.test(html));
 ok('O11: ...on the shipped body, unchanged',
   html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, system: __sysPrompt, messages: msgs, ...__extra });") !== -1);
-ok('O12: speech OUT still goes to the shipped endpoint', /await fetch\('\/api\/tts'/.test(html));
+// Same endpoints, now reached only through the AI-consent choke point (see N24 above).
+ok('O12: speech OUT still goes to the shipped endpoint', /await aiFetch\('\/api\/tts'/.test(html));
 ok('O12: ...and speech IN still goes to the shipped one',
-  /await fetch\('\/api\/stt', \{ method: 'POST', headers: \{ 'Content-Type': 'application\/json' \}, body: JSON\.stringify\(\{ audio: b64, mime: blob\.type, band \}\) \}\)/.test(html));
+  /await aiFetch\('\/api\/stt', \{ method: 'POST', headers: \{ 'Content-Type': 'application\/json' \}, body: JSON\.stringify\(\{ audio: b64, mime: blob\.type, band \}\) \}\)/.test(html));
 ok('O12: ...with the cloud path still the live one', /const CALL_STT_CLOUD = true;/.test(html));
+// STRICTLY ADDED, not a rename: the two lines above pin WHERE the voice goes; these pin that
+// there is no OTHER way to get there. A bare fetch to either endpoint would bypass the
+// AI-consent gate entirely, which is the defect Apple 5.1.1(i) was raised about.
+ok('O12: ...and no bare fetch reaches the speech endpoints', !/[^i]fetch\('\/api\/(tts|stt)'/.test(html));
+ok('O12: ...and the choke point itself is fail-closed',
+  /const aiFetch = \(url, opts\) => \{\s*\r?\n\s*if \(!hasValidAIConsent\(\)\) return Promise\.reject/.test(html));
 
 /* ---- O13. SpeechRecognition, unchanged --------------------------------- */
+// STRENGTHENED: the recogniser is still built only when an engine exists, and now ALSO only when
+// consent is held. Both facts are pinned -- ezSpeechEngine() is the capability question and
+// ezNewRecognition() is the consent-checked factory that is the file's ONLY constructor.
 ok('O13: the recogniser is still built the shipped way, and only when an engine exists',
-  /const SR = window\.SpeechRecognition \|\| window\.webkitSpeechRecognition;/.test(callFx)
-  && /const rec = SR \? new SR\(\) : null;/.test(callFx));
+  /const SR = ezSpeechEngine\(\);/.test(callFx)
+  && /const rec = ezNewRecognition\(\);/.test(callFx)
+  && /const ezNewRecognition = \(\) => \{[\s\S]{0,120}?if \(!hasValidAIConsent\(\)\) return null;[\s\S]{0,200}?const SR = ezSpeechEngine\(\);/.test(html));
 ok('O13: ...with the same language and the same continuous, interim configuration',
   /rec\.lang = 'ar-SA';/.test(callFx) && /rec\.continuous = true;/.test(callFx)
   && /rec\.interimResults = true;/.test(callFx));
@@ -2476,8 +2493,12 @@ ok('O13: ...and the same three handlers, wired the same way',
 // restart-gap retry -- and the recogniser is stopped from three: the silent auto-end, the
 // end-of-turn, and mute. Deleting ONE of them leaves a call that is deaf, or a microphone that
 // keeps running, in exactly one of its paths; a bare presence check cannot see that.
+// STRENGTHENED: still BOTH places, and both now go through the one starter that re-reads consent
+// at the instant of starting -- which is what stops an auto-restart from outliving a withdrawal.
 eq('O13: ...started by the shipped calls, in BOTH places that start it',
-  (callFx.match(/rec\.start\(\);/g) || []).length, 2);
+  (callFx.match(/ezStartRecognition\(rec\)/g) || []).length, 2);
+ok('O13: ...and that starter refuses and tears down when consent has gone',
+  /const ezStartRecognition = \(rec\) => \{[\s\S]{0,200}?if \(!hasValidAIConsent\(\)\) \{ ezKillRecognizer\(rec\); return false; \}/.test(html));
 eq('O13: ...and stopped by the shipped call, in ALL THREE places a turn can end',
   (html.match(/callRecognitionRef\.current\?\.stop\(\);/g) || []).length, 3);
 ok('O13: ...and the session token that invalidates a stale continuation is still there',
@@ -2508,13 +2529,23 @@ ok('O14: no transcript store was invented by this batch',
     ['the silence timer', /clearTimeout\(silenceTimerRef\.current\)/],
     ['the inactivity timer', /clearInactivityTimer\(\);/],
     ['the error timer', /clearTimeout\(callErrorTimerRef\.current\)/],
-    ['the recogniser handlers and the recogniser', /rec\.onresult = null; rec\.onend = null; rec\.onerror = null; rec\.stop\(\);/],
+    // Same teardown, now through the shared killer -- which does strictly more than the four
+    // statements it replaced: it detaches onstart too, calls abort() as well as stop(), and drops
+    // the engine from the live registry so a withdrawal cannot find it still listening.
+    ['the recogniser handlers and the recogniser', /ezKillRecognizer\(rec\);/],
     ['the cloud recorder and the mic track', /stopCloudAll\(\);/],
     ['the in-flight request', /abortRef\.current\.abort\(\)/],
     ['the audio', /cancelAudio\(\);/],
   ];
   const missingTd = NEEDS.filter(([, re]) => !re.test(teardown)).map(([n]) => n);
   eq('O15: leaving the call still releases everything it took', missingTd, []);
+  // ADDED: what the shared killer must actually do, since O15 now names it rather than the four
+  // inline statements. Detaching onend BEFORE aborting is load-bearing -- abort() fires onend,
+  // and a live onend is exactly what would restart the engine being torn down.
+  ok('O15: ...and the shared killer detaches onend BEFORE it aborts',
+    /rec\.onend = null;[\s\S]{0,300}?rec\.abort\(\)/.test(html));
+  ok('O15: ...and drops the engine from the live registry',
+    /EZ_LIVE_RECOGNIZERS\.delete\(rec\)/.test(html));
   ok('O15: ...and the effect that owns it still runs on the screen change',
     /\}, \[screen\]\);/.test(html) && fxEnd > fxAt);
 }
@@ -3093,6 +3124,18 @@ ok('R9: the question text is still built by the shipped presenter, from the bank
 ok('R10: the primary action is flat now, and it is the only place that changed colour',
   /\.btn\.primary\{background:var\(--palm\);color:var\(--paper\);border-color:var\(--palm\);box-shadow:none\}/.test(qCss)
   && !/\.btn\.primary\{[^}]*linear-gradient/.test(qCss));
+
+/* ---- S1. the analytics that were removed for the AI-consent release ------ */
+// Apple 5.1.1(i): both Vercel scripts began measuring on page LOAD -- that is, before the reader
+// had answered the consent screen -- so both were removed and nothing replaced them. These four
+// checks are what stops either one, or a substitute, from returning unnoticed.
+ok('S1: no Vercel Web Analytics script is loaded', !/<script[^>]*_vercel\/insights/.test(html));
+ok('S1: no Speed Insights script is loaded', !/<script[^>]*_vercel\/speed-insights/.test(html));
+ok('S1: and no substitute analytics tool took their place',
+  !/googletagmanager|google-analytics|gtag\(|plausible|posthog|mixpanel|segment\.com|amplitude|plausible\.io|plausible\.js/i.test(html));
+// EXACTLY three, never "three or fewer": a <= would let a fourth script arrive the day two others
+// are dropped, which is precisely the drift this count exists to catch.
+eq('S1: the page loads exactly three scripts', (html.match(/<script[^>]*src=["'][^"']+["']/gi) || []).length, 3);
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

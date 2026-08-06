@@ -248,5 +248,10 @@
   "name": "liveness",
   "script": "guards/source-liveness-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "aiconsent",
+  "script": "tools/ai-consent-probe.cjs",
+  "args": ""
  }
 ]

@@ -15,6 +15,7 @@
 // function at invocation.
 
 import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS } from '../lib/ratelimit.js';
+import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { classifyRoute, createSourceFilter } from '../lib/route-classify.js';
@@ -409,7 +410,7 @@ function readSseFrame(buf) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder, ' + AI_CONSENT_ALLOW_HEADERS);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -417,6 +418,12 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
+
+  // Apple 5.1.1(i). THIS is the route that reaches the most vendors: Anthropic for the answer,
+  // and Brave for the search phrases derived from the reader's question. The guard runs before
+  // the throttle, before the key is read, and before any planner or retrieval module is even
+  // imported -- so an un-consented request produces no outbound call of any kind.
+  if (!guardAIConsent(req, res)) return;
 
   // Per-IP ask throttle (fail-open). Runs before any work — body parse, retrieval,
   // or upstream call — so a throttled request costs nothing. On limit hit we emit the

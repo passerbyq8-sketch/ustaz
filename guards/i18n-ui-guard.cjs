@@ -35,6 +35,14 @@ const cp = require('child_process');
 const babel = require('@babel/core');
 const { parseHTML } = require('linkedom');
 
+// A CONSENTED reader, seeded the way the app itself stores the choice. Since the AI-consent
+// screen (Apple 5.1.1(i)) sits between the profile and the chat, a harness that wants to reach
+// the chat has to answer it first -- exactly as a real reader does. The refusal path is proved
+// separately in tools/ai-consent-probe.cjs. Note that the old 'disclosureAck' key is kept in
+// these seeds and is NOT what opens the app: it is not consent and is no longer read.
+const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06-1', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+
+
 // This guard lives in guards/ rather than in the repo root on purpose: recon-audit requires
 // every ROOT .cjs to be classified either inside gates.json or inside recon-audit's own
 // non-gate list, and this phase is allowed to edit neither. A directory of its own keeps that
@@ -225,7 +233,13 @@ async function partA() {
   // NO TRANSLATION IS FETCHED. Two independent facts: the page loads no new script, and the
   // i18n block contains no network call of any kind.
   const srcs = (html.match(/<script[^>]*src=["']([^"']+)["']/gi) || []);
-  eq('the page still loads exactly the five scripts it always loaded', srcs.length, 5);
+  // THREE, not the five that shipped before: /_vercel/insights and /_vercel/speed-insights were
+  // removed for the AI-consent release (both measured on page load, before the reader had
+  // answered the consent screen). The exact count stays exact so "we dropped two" cannot become
+  // "we dropped two and added one", and the companion check below names what must not come back.
+  eq('the page still loads exactly the three scripts it loads now', srcs.length, 3);
+  ok('...and no analytics script is among them',
+    !srcs.some((t) => /_vercel\/(insights|speed-insights)/.test(String(t))), srcs.join(' || '));
   const i18nBlock = rawCode.slice(rawCode.indexOf('const EZ_LANG_KEY'), rawCode.indexOf('function EzLangControl'));
   ok('the language layer makes no network call',
     !/\bfetch\s*\(|XMLHttpRequest|import\s*\(|EventSource|navigator\.sendBeacon/.test(i18nBlock));
@@ -501,7 +515,7 @@ async function partD() {
   const c = buildContext({
     seed: {
       child_profile: JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: 'I18N-D1', createdAt: '2026-01-01T00:00:00.000Z' }),
-      disclosureAck: '1',
+      disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
     },
     mount: true,
   });
@@ -672,7 +686,7 @@ async function partE() {
     tashkeel_v1: '1',
     mushaf_wird_target_v1: '5',
     child_profile: JSON.stringify({ name: 'ن', age: 30, gender: 'male', birthYear: 1996, pid: 'I18N-A', createdAt: '2026-01-01T00:00:00.000Z' }),
-    disclosureAck: '1',
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
   };
   const c = buildContext({ seed, nav: { languages: ['ar-KW'], language: 'ar-KW' }, mount: true });
   await tick(120);
@@ -718,11 +732,64 @@ async function partE() {
       const L = (s) => s.replace(/\r\n/g, '\n').split('\n');
       const before = L(was), after = L(now);
       const gone = before.filter((l) => after.indexOf(l) === -1);
-      // EXACTLY ONE line left that file, and it is the assertion that pinned the removed panel.
-      eq('exactly one line was removed from it', gone.length, 1);
-      ok('...and it is the assertion that required the panel to exist',
-        gone[0] === "ok('the chat entry is part of the composition', /<EzistAsk /.test(IST) && /className=\"ezhome-focus ezist-ask\"/.test(IST));",
-        JSON.stringify(gone[0]));
+      // ---------------------------------------------------------------------------------
+      // TWO authorisations, each literal, each closed. A file on the allow-list is NOT a file
+      // that may be edited freely: what is permitted is a named list of exact lines, and any
+      // other difference is still a FAIL.
+      //
+      // (1) S116, the interface-language phase: ONE line, the assertion that pinned the
+      //     duplicate chat panel and therefore stopped the panel being removed.
+      // (2) THE APPLE-PRIVACY PHASE (5.1.1(i) / 5.1.2(i)): eight further lines, all of them
+      //     assertions that described code this phase had to change --
+      //       * two that pinned a BARE fetch() to /api/tts and /api/stt, which now must go
+      //         through aiFetch, the consent choke point;
+      //       * one that pinned the call barrier order without the consent barrier in it;
+      //       * three that pinned the OLD recogniser shape (window.SpeechRecognition, new SR(),
+      //         rec.start()), which now go through the consent-checked factory and starter;
+      //       * one that pinned the inline four-statement recogniser teardown, now ezKillRecognizer.
+      //     Each is paired below with the successor line that MUST be present, so a removal
+      //     cannot be authorised without its replacement actually landing.
+      const S116_REMOVED = "ok('the chat entry is part of the composition', /<EzistAsk /.test(IST) && /className=\"ezhome-focus ezist-ask\"/.test(IST));";
+      const AP_REMOVED = [
+        "  /await fetch\\('\\/api\\/tts'/.test(html));",
+        "    /if \\(childVoiceBlocked\\(\\)\\) return; \\/\\/ غ‑٣[\\s\\S]{0,200}?if \\(!hasFounderToken\\(\\)\\) return; \\/\\/ directive 82[\\s\\S]{0,120}?callGenRef\\.current\\+\\+;/.test(callFx));",
+        "ok('O12: speech OUT still goes to the shipped endpoint', /await fetch\\('\\/api\\/tts'/.test(html));",
+        "  /await fetch\\('\\/api\\/stt', \\{ method: 'POST', headers: \\{ 'Content-Type': 'application\\/json' \\}, body: JSON\\.stringify\\(\\{ audio: b64, mime: blob\\.type, band \\}\\) \\}\\)/.test(html));",
+        "  /const SR = window\\.SpeechRecognition \\|\\| window\\.webkitSpeechRecognition;/.test(callFx)",
+        "  && /const rec = SR \\? new SR\\(\\) : null;/.test(callFx));",
+        "  (callFx.match(/rec\\.start\\(\\);/g) || []).length, 2);",
+        "    ['the recogniser handlers and the recogniser', /rec\\.onresult = null; rec\\.onend = null; rec\\.onerror = null; rec\\.stop\\(\\);/],",
+      ];
+      // The successors, and the four analytics assertions this phase added: no Vercel Web
+      // Analytics, no Speed Insights, no substitute tool, and a script count that is EXACTLY
+      // three rather than "three or fewer".
+      const AP_REQUIRED_NEW = [
+        "ok('O12: speech OUT still goes to the shipped endpoint', /await aiFetch\\('\\/api\\/tts'/.test(html));",
+        "  /await aiFetch\\('\\/api\\/tts'/.test(html));",
+        "  /await aiFetch\\('\\/api\\/stt', \\{ method: 'POST', headers: \\{ 'Content-Type': 'application\\/json' \\}, body: JSON\\.stringify\\(\\{ audio: b64, mime: blob\\.type, band \\}\\) \\}\\)/.test(html));",
+        "    /if \\(childVoiceBlocked\\(\\)\\) return; \\/\\/ غ‑٣[\\s\\S]{0,400}?if \\(!hasValidAIConsent\\(\\)\\) return;[\\s\\S]{0,200}?if \\(!hasFounderToken\\(\\)\\) return; \\/\\/ directive 82[\\s\\S]{0,120}?callGenRef\\.current\\+\\+;/.test(callFx));",
+        "  /const SR = ezSpeechEngine\\(\\);/.test(callFx)",
+        "  && /const rec = ezNewRecognition\\(\\);/.test(callFx)",
+        "  (callFx.match(/ezStartRecognition\\(rec\\)/g) || []).length, 2);",
+        "    ['the recogniser handlers and the recogniser', /ezKillRecognizer\\(rec\\);/],",
+        "ok('S1: no Vercel Web Analytics script is loaded', !/<script[^>]*_vercel\\/insights/.test(html));",
+        "ok('S1: no Speed Insights script is loaded', !/<script[^>]*_vercel\\/speed-insights/.test(html));",
+        "ok('S1: and no substitute analytics tool took their place',",
+        "eq('S1: the page loads exactly three scripts', (html.match(/<script[^>]*src=[\"'][^\"']+[\"']/gi) || []).length, 3);",
+      ];
+      const AUTHORISED = [S116_REMOVED].concat(AP_REMOVED);
+
+      // Exact set equality, both directions. An unlisted removal fails; a listed removal that
+      // did not happen fails too, so this block cannot rot into a blanket permission.
+      eq('exactly the authorised lines were removed from it', gone.length, AUTHORISED.length);
+      eq('...and every removed line is on the authorised list',
+        gone.filter((l) => AUTHORISED.indexOf(l) === -1), []);
+      eq('...and every authorised removal actually happened',
+        AUTHORISED.filter((l) => gone.indexOf(l) === -1), []);
+      ok('...and the S116 removal is still the assertion that required the panel to exist',
+        gone.indexOf(S116_REMOVED) !== -1, JSON.stringify(gone[0]));
+      eq('...and every authorised removal landed its named replacement',
+        AP_REQUIRED_NEW.filter((l) => after.indexOf(l) === -1), []);
       // Nothing was softened: no check downgraded to a warning, no blanket skip, and the file
       // still runs strictly more assertions than it did.
       const count = (s) => (s.match(/^\s*(ok|eq)\(/gm) || []).length;
@@ -730,8 +797,10 @@ async function partE() {
         count(now) > count(was) && !/\bwarn\(/.test(now)
         && (now.match(/\bskip\(/g) || []).length === (was.match(/\bskip\(/g) || []).length,
         count(was) + ' -> ' + count(now));
+      // ...and the ok()/eq() OPENING lines that went are exactly the two authorised ones.
       eq('...and no other ok()/eq() line was dropped',
-        before.filter((l) => /^\s*(ok|eq)\(/.test(l) && after.indexOf(l) === -1).length, 1);
+        before.filter((l) => /^\s*(ok|eq)\(/.test(l) && after.indexOf(l) === -1)
+              .filter((l) => AUTHORISED.indexOf(l) === -1), []);
     }
   }
 

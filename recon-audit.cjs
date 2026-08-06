@@ -543,7 +543,9 @@ head('14) GATE ROSTER (single source: gates.json)');
   // S-RFC-v0.5-R2-ROUND3: 36 -> 37. 37th rfc-v05r2-round3-guard — the policy router over BOTH
   //       paths, a policy block per ISSUE rather than per question, provenance A/B/C classified
   //       from the evidence, and a Gate 3 that judges every claim a sentence rests on.
-  const GATES_EXPECTED = 50;   // 46th: quoted-phrase-guard — ask the mushaf before calling a phrase unknown.
+  const GATES_EXPECTED = 51;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
+                               //       or a browser speech engine before an explicit, versioned consent
+                               //       (Apple 5.1.1(i) / 5.1.2(i)). NOT optional: it is a full gate.
                                //       «ما رأي خالد عبدالرحمن في قصر الصلاة؟» was treated as a
                                //       request for a scholar's fatwa, so the app hunted for one,
                                //       found nothing, and asked the reader for the shaykh's

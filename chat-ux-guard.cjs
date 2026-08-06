@@ -39,6 +39,14 @@ const vm = require('vm');
 const babel = require('@babel/core');
 const { parseHTML } = require('linkedom');
 
+// A CONSENTED reader, seeded the way the app itself stores the choice. Since the AI-consent
+// screen (Apple 5.1.1(i)) sits between the profile and the chat, a harness that wants to reach
+// the chat has to answer it first -- exactly as a real reader does. The refusal path is proved
+// separately in tools/ai-consent-probe.cjs. Note that the old 'disclosureAck' key is kept in
+// these seeds and is NOT what opens the app: it is not consent and is no longer read.
+const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06-1', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+
+
 const htmlFile = process.argv[2] || 'index.html';
 const html = fs.readFileSync(htmlFile, 'utf8');
 
@@ -367,7 +375,7 @@ const PROFILE = { name: 'سلمى', age: 30, gender: 'female', birthYear: 1996, 
 // ===========================================================================
 function partA() {
   console.log('\n=== A. THE FOLD, AS ARITHMETIC (the shipped pure functions) ===');
-  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1' } });
+  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED } });
   const foldSegments = c.grab('ezikFoldSegments');
   const foldCut = c.grab('ezikFoldCut');
   const proseLen = c.grab('ezikProseLength');
@@ -495,7 +503,7 @@ const CHAT_SHORT = 'C-SHORT';
 function seedChats() {
   return {
     child_profile: JSON.stringify(PROFILE),
-    disclosureAck: '1',
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
     tashkeel_v1: '1',
     ezik_chats_v1: JSON.stringify([
       { id: CHAT_LONG, pk: PROFILE.pid, title: S.Q_USER, pinned: false, at: 2000 },
@@ -957,7 +965,7 @@ const TWIN_A = 'TW-A';
 const TWIN_B = 'TW-B';
 const PROFILE_B = { name: 'خالد', age: 30, gender: 'male', birthYear: 1996, pid: 'PID-B', createdAt: '2026-01-01T00:00:00.000Z' };
 function seedTwins(profile) {
-  const seed = { child_profile: JSON.stringify(profile), disclosureAck: '1' };
+  const seed = { child_profile: JSON.stringify(profile), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED };
   const body = [
     { role: 'user', content: S.Q_USER },
     { role: 'assistant', content: longReply() },      // BYTE-IDENTICAL in both conversations
@@ -1134,7 +1142,7 @@ function sseStream(text, chunks) {
 
 async function partGStreaming() {
   console.log('\n=== G. A STREAMED REPLY DOES NOT SHRINK WHEN IT SETTLES ===');
-  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1' }, mount: true });
+  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED }, mount: true });
   await tick(400);
   if (c.err()) { ok('the app mounts on an empty thread', false, String(c.err())); return; }
   const d = driver(c.window);
@@ -1278,7 +1286,7 @@ const MANY = 42;
 function seedManyChats() {
   const seed = {
     child_profile: JSON.stringify(PROFILE),
-    disclosureAck: '1',
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
   };
   const index = [];
   for (let i = 0; i < MANY; i++) {
@@ -1680,7 +1688,13 @@ function partE() {
 
   // no new dependency, no new CDN, no new host of any kind
   const srcs = (html.match(/<script[^>]*src=["']([^"']+)["']/gi) || []).map((t) => (t.match(/src=["']([^"']+)["']/) || [])[1]);
-  eq('the page loads exactly the five scripts it always loaded', srcs.length, 5);
+  // THREE, not the five that shipped before: /_vercel/insights and /_vercel/speed-insights were
+  // REMOVED for this release, because both began measuring on page load -- before the reader had
+  // answered the AI-consent screen. Nothing replaced them. This stays an exact count so that
+  // "we dropped two" cannot quietly become "we dropped two and added one".
+  eq('the page loads exactly the three scripts it still loads', srcs.length, 3);
+  ok('...and neither analytics script is among them',
+    !srcs.some((u) => /_vercel\/(insights|speed-insights)/.test(String(u))), srcs.join(' || '));
   const EXPECTED_HOSTS = ['unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'mushaf.almurabbi.app'];
   const hosts = [];
   (html.match(/(?:src|href)=["']https?:\/\/([^\/"']+)/gi) || []).forEach((t) => {
