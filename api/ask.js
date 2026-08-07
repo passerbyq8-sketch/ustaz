@@ -493,7 +493,7 @@ export default async function handler(req, res) {
 
   // Body-size cap (bug 6): the client controls system+messages verbatim, so an
   // oversized body is pure upstream cost. Reject before the SSE commit + the
-  // Anthropic call. MAX_CHAT_BODY_BYTES is the same measured 256 KB ceiling chat.js uses.
+  // Anthropic call. MAX_CHAT_BODY_BYTES is the same measured 2MiB ceiling chat.js uses.
   const bodyBytes = typeof req.body === 'string'
     ? Buffer.byteLength(req.body, 'utf8')
     : Buffer.byteLength(JSON.stringify(body), 'utf8');
