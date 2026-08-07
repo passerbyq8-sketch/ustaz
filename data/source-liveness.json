@@ -26,13 +26,15 @@
       "domain": "al-badr.net",
       "url": "https://al-badr.net/muqolat/5051",
       "finalUrl": "https://al-badr.net/muqolat/5051",
-      "status": "live-cites",
-      "note": "clean",
+      "status": "probe-stale",
+      "note": "SOFT 404 — the host answered HTTP 200 and served its own «404» page. The 1085 extracted chars are the site-wide hadith band every al-badr.net page carries, not an article, which is how a page with nothing to cite cleared the 200-char generic floor and was recorded live-cites. The DOMAIN is up; this probe URL is gone. Fix the URL in tools/source-liveness.cjs, not the domain.",
       "textLen": 1085,
       "floor": 200,
-      "rawLen": 30020,
+      "rawLen": 30021,
       "title": "404",
-      "registryStatus": "active"
+      "registryStatus": "active",
+      "remeasuredAt": "2026-08-07",
+      "remeasuredBy": "lib/ledger/safe-fetch.js safeFetch() — ONE request, EzikBot/1.0 User-Agent, manual redirect checking, no browser impersonation and no attempt to defeat a block. Result: HTTP 200, zero redirect hops, no challenge page, 33030 bytes / 30021 raw chars, document title \"404\", Readability text 1085 chars. NOTE for D21: tools/source-liveness.cjs measures through lib/retrieve.js fetchAndClean, which sends a desktop-Chrome User-Agent, and its classifier reads the HTTP status only — so a --write re-run will overwrite this row back to live-cites until the probe URL is replaced."
     },
     {
       "domain": "alarabiya.net",
