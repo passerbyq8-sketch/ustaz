@@ -308,5 +308,10 @@
   "name": "adhkartwins",
   "script": "guards/adhkar-twins-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "systemprompt",
+  "script": "guards/system-prompt-parity-guard.cjs",
+  "args": ""
  }
 ]

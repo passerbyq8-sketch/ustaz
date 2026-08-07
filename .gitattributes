@@ -225,3 +225,10 @@ guards/i18n-ui-guard.cjs text eol=lf
 # BYTES, so a CR introduced on one side by core.autocrlf and not the other IS the failure it
 # reports. Both copies are already pinned eol=lf above, and so is the guard itself.
 guards/adhkar-twins-guard.cjs text eol=lf
+
+# D02ب: the system prompt module and the gate that pins it. lib/system-prompt.js carries ~79KB
+# of vocalised Arabic whose bytes are fingerprinted by that gate -- a CR injected by
+# core.autocrlf would change every pinned SHA on a fresh clone and fail the gate for a reason
+# that has nothing to do with the prompt.
+lib/system-prompt.js text eol=lf
+guards/system-prompt-parity-guard.cjs text eol=lf

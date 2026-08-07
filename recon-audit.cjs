@@ -593,7 +593,14 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       this exact duplication as the thing that taught it "two copies of one number is one
   //       number waiting to drift". It COMPARES ONLY: no copy is edited, deleted or
   //       regenerated, and on a mismatch a human decides which one is right.
-  const GATES_EXPECTED = 62;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
+  // D02ب/م٢: 62 -> 63. 63rd systemprompt -- guards/system-prompt-parity-guard.cjs. The system
+  //       prompt moved to lib/system-prompt.js, where the SERVER owns it. It was built by
+  //       index.html and shipped in the body, so the text governing what the model may say to
+  //       a child was supplied by the client being governed. Moving a 900-line Arabic prompt
+  //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
+  //       same to a reviewer and differently to the model -- so the port was GENERATED from
+  //       index.html, not retyped, and this gate pins the output fingerprints.
+  const GATES_EXPECTED = 63;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >
