@@ -21,6 +21,39 @@ const fs = require('fs');
 const path = require('path');
 
 const REPO = path.join(__dirname, '..');
+
+// ── THE SEAL: NOTHING IN THIS PROCESS MAY REACH A NETWORK ────────────────────
+//
+// THE MEASURED PROBLEM. This gate replaces `globalThis.fetch` inside the drives, and the stub
+// answers Anthropic, Brave and the page hosts. But the replacement had WINDOWS: before the first
+// `installFetch()`, between a restore and the next install, and inside anything that ran after
+// the teardown on line ~719. In those windows `fetch` was the real one, so a module reaching for
+// a host — lib/binothaimeen.js consults binothaimeen.net through its own endpoints — would have
+// gone to the wire, and the gate's verdict would have depended on what the wire said at that
+// moment. A gate whose colour is a function of the network is not a gate.
+//
+// THE SEAL IS INSTALLED FIRST, BEFORE ANY MODULE IS IMPORTED OR ANY DRIVE RUNS, and it is what
+// every restore below restores TO. The real fetch is captured once and never handed back, so
+// there is no window left to fall through. Anything the scripted stub does not recognise lands
+// here, is COUNTED, and gets the shape of a host that is simply not there — never a socket.
+//
+// The count is asserted at the end. Zero is the contract; a non-zero count fails this gate and
+// names the URL, which is the only way an escape route added later announces itself instead of
+// quietly making the suite depend on the weather.
+const REAL_FETCH = globalThis.fetch;
+const liveEscapes = [];
+const SEALED_FETCH = async (url) => {
+  liveEscapes.push(String(url));
+  return {
+    ok: false, status: 404, url: String(url),
+    headers: { get: () => 'text/plain' },
+    json: async () => ({}),
+    text: async () => '',
+  };
+};
+globalThis.fetch = SEALED_FETCH;
+void REAL_FETCH;
+
 let failures = 0, checks = 0;
 function ok(name, cond, detail) {
   checks++;
@@ -75,6 +108,19 @@ const BRAVE_RESULTS = [
   { url: 'https://islamqa.info/ar/answers/9002/x', title: 'حكم المسألة', description: '' },
   { url: 'https://islamqa.info/ar/answers/9003/x', title: 'أحكام الطهارة', description: '' },
 ];
+
+// THE HOSTS THIS GATE HAS A SCRIPT FOR. A request to any other host is a request the scripted
+// world does not model — which is exactly the shape of an escape route, whether or not a socket
+// happened to open. A MISSING PAGE on a scripted host is not one of these: the 404 branch below
+// is deliberate and several checks depend on it, so the test is on the HOST, not on the URL.
+const SCRIPTED_HOSTS = new Set(['api.anthropic.com', 'api.search.brave.com']);
+for (const u of Object.keys(CORPUS)) { try { SCRIPTED_HOSTS.add(new URL(u).hostname); } catch { /* not a URL */ } }
+for (const r of BRAVE_RESULTS) { try { SCRIPTED_HOSTS.add(new URL(r.url).hostname); } catch { /* not a URL */ } }
+const offScript = (u) => {
+  let h = '';
+  try { h = new URL(String(u)).hostname; } catch { return false; }   // relative: never a network call
+  return !!h && !SCRIPTED_HOSTS.has(h);
+};
 
 (async function main() {
   console.log('=== rfc-v05r2-wiring-guard — the policy runs, not merely imports ===');
@@ -255,7 +301,8 @@ const BRAVE_RESULTS = [
     arrayBuffer: async () => Buffer.from(body, 'utf8'),
   });
 
-  const realFetch = globalThis.fetch;
+  // Restores go back to the SEAL, never to the real transport — see the header.
+  const realFetch = SEALED_FETCH;
   const installFetch = (script) => {
     globalThis.fetch = async (url, init) => {
       const u = String(url);
@@ -267,6 +314,9 @@ const BRAVE_RESULTS = [
         return jsonResponse({ web: { results: script.braveResults || BRAVE_RESULTS } });
       }
       pageFetches.push(u);
+      // Counted even though the stub answers it: the seal's claim is about every host reached
+      // during this gate, not only the ones reached while no stub was installed.
+      if (offScript(u)) liveEscapes.push(u);
       const body = CORPUS[u.split('#')[0]];
       if (body === undefined) {
         return { ok: false, status: 404, url: u, headers: { get: () => 'text/html' }, text: async () => '' };
@@ -637,6 +687,7 @@ const BRAVE_RESULTS = [
         systems.push(JSON.stringify(b.system || ''));
         return jsonResponse({ content: [{ type: 'text', text: 'جواب عادي.' }], stop_reason: 'end_turn' });
       }
+      if (offScript(u)) liveEscapes.push(String(u));
       return { ok: false, status: 404, headers: { get: () => 'text/html' }, text: async () => '' };
     };
     const sawChildInstruction = () => systems.some((s) => s.includes('هذا سؤالٌ يوميٌّ بسيطٌ من طفل'));
@@ -718,6 +769,16 @@ const BRAVE_RESULTS = [
 
   globalThis.fetch = realFetch;
   REDIS.__resetRedis();
+
+  // ── AND THE SEAL HELD ──────────────────────────────────────────────────────
+  // Asserted last, because it is a statement about the whole run: every drive above reached the
+  // scripted world and nothing reached a host. If this ever fails, the named URL is the escape
+  // route, and this gate's colour was about to start depending on whether that host was up.
+  console.log('\n=== SEAL. ZERO LIVE NETWORK CALLS ===');
+  ok('nothing in this gate reached a network',
+    liveEscapes.length === 0,
+    liveEscapes.length + ' call(s) escaped the scripted world:\n        '
+      + [...new Set(liveEscapes)].slice(0, 8).join('\n        '));
 
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
