@@ -28,6 +28,11 @@ golden-set-worship.md
 # THE TRIGGER, NAMED: session 11 -- the live board. When the worship strip ships there, the line below goes.
 worship-golden.json
 
+# retired code kept only so the next reader can see what was tried and why it
+# went. Nothing here is imported by anything -- that is the entry condition for
+# moving a file in. It must never ship.
+_superseded/
+
 # source docs (public on GitHub, not served as pages), experiments, and the
 # redundant data copy (the root adhkar.json is the one that ships)
 docs/
