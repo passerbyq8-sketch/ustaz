@@ -249,12 +249,13 @@ const stripComments = (s) => String(s)
     && DB.fetchTimeoutFor('https://islamweb.net/ar/fatwa/2523/', DEFAULT_BUDGET) === 3000);
   ok('C2: ...and EVERY other host keeps the shared budget, unchanged',
     ['https://islamqa.info/ar/answers/1', 'https://binbaz.org.sa/fatwas/1',
-      'https://ar.wikipedia.org/wiki/x', 'https://islamstory.com/ar/artical/1']
+      'https://ar.wikipedia.org/wiki/x']
       .every((u) => DB.fetchTimeoutFor(u, DEFAULT_BUDGET) === DEFAULT_BUDGET));
   ok('C2: ...including a URL that will not parse',
     DB.fetchTimeoutFor('not a url', DEFAULT_BUDGET) === DEFAULT_BUDGET);
-  ok('C3: exactly ONE host has a measured exception',
-    Object.keys(DB.DOMAIN_FETCH_TIMEOUT_MS).length === 1,
+  ok('C3: exactly TWO hosts have a measured exception, and they are the two that were measured',
+    Object.keys(DB.DOMAIN_FETCH_TIMEOUT_MS).length === 2
+    && Object.keys(DB.DOMAIN_FETCH_TIMEOUT_MS).sort().join(',') === 'islamstory.com,islamweb.net',
     Object.keys(DB.DOMAIN_FETCH_TIMEOUT_MS).join(','));
   ok('C4: the live path consults it rather than the bare default',
     /fetchAndClean\(r\.link, fetchTimeoutFor\(r\.link, perFetchTimeoutMs\)\)/.test(read('lib/retrieve.js')));
@@ -277,6 +278,33 @@ const stripComments = (s) => String(s)
       !/isDegraded|DEGRADED/.test(read('lib/retrieve.js')) && !/isDegraded|DEGRADED/.test(read('api/ask.js')),
       'a label that quietly changed behaviour would be a deletion wearing a different word');
   }
+
+  // ── C6: the degraded host was ACTED ON, and the action is a timeout, not a deletion ────
+  ok('C6: islamstory fails fast, on the measured number',
+    DB.DOMAIN_FETCH_TIMEOUT_MS['islamstory.com'] === DB.ISLAMSTORY_FETCH_TIMEOUT_MS
+    && DB.ISLAMSTORY_FETCH_TIMEOUT_MS === 5000, String(DB.ISLAMSTORY_FETCH_TIMEOUT_MS));
+  {
+    // THE NUMBER FOLLOWS FROM THE SAMPLES, and this is the arithmetic said out loud. It must sit
+    // ABOVE the only sample that ever arrived inside the budget, and BELOW the budget it is
+    // cutting short — otherwise it is either a deletion in disguise or no change at all.
+    const s = DB.DEGRADED['islamstory.com'].samples;
+    const insideBudget = s.filter((x) => x < DEFAULT_BUDGET);
+    ok('C6: ...above the ONLY sample that ever arrived inside the budget',
+      insideBudget.length === 1 && DB.ISLAMSTORY_FETCH_TIMEOUT_MS > Math.max(...insideBudget),
+      'samples inside ' + DEFAULT_BUDGET + 'ms: ' + JSON.stringify(insideBudget));
+    ok('C6: ...and below the shared budget it is cutting short',
+      DB.ISLAMSTORY_FETCH_TIMEOUT_MS < DEFAULT_BUDGET,
+      'a timeout at or above the default would change nothing at all');
+    ok('C6: ...and the window it gives up is measured EMPTY — no sample ever landed in it',
+      s.every((x) => x < DB.ISLAMSTORY_FETCH_TIMEOUT_MS || x >= DEFAULT_BUDGET),
+      'a sample between the new timeout and the default would be an answer this change throws away');
+  }
+  ok('C6: ...and it is on every list it was on before — a timeout is not a removal',
+    (await esm('lib/retrieve.js')).SITES_MINOR.includes('islamstory.com')
+    && (await esm('lib/retrieve.js')).SITES_ADULT.includes('islamstory.com'));
+  ok('C6: ...and it goes through the SAME lookup every other host does',
+    DB.fetchTimeoutFor('https://islamstory.com/ar/artical/1', DEFAULT_BUDGET) === 5000
+    && DB.fetchTimeoutFor('https://www.islamstory.com/ar/artical/1', DEFAULT_BUDGET) === 5000);
 
   // ══════════════════════════════════════════════════════════════════════════
   console.log('\n=== D. D8 — the takhrij limit is declared, not left invisible ===');
@@ -340,6 +368,119 @@ const stripComments = (s) => String(s)
   ok('D6: the takhrij LOCK is untouched — nothing unsourced was ever emitted, and still is not',
     /lockTakhrij/.test(read('lib/ledger/engine.js')) && exists('lib/takhrij-lock.js'),
     'this sentence describes provenance; it does not relax what may be said');
+
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== E. س٦ — the living world, and the wall between it and the religion ===');
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // NOTHING DROVE classifyWorldIntent() BEFORE THIS. It has decided since 2026-08-05 whether a
+  // question goes to a live search, and no gate in the suite called it once — `worldparity`,
+  // which the brief names as its proof, guards the QUEST GAME's region map and has never
+  // imported this module. So the expansion below is checked here, and so is the wall it must
+  // not move: the file's rule 1.
+
+  const WI = await esm('lib/world-intent.js');
+
+  // ── E1: the seven that were MEASURED falling through on 2026-08-07 ─────────
+  // Recorded before the change, by running the classifier itself. Each row is the owner's own
+  // sample question and the reason it now travels on.
+  const NOW_WORLD = [
+    ['كم درجة الحرارة اليوم في الكويت؟', 'WEATHER'],
+    ['شنو الطقس اليوم؟', 'WEATHER'],
+    ['هل تمطر بكرة؟', 'WEATHER'],
+    ['كم سعر صرف الدولار مقابل الدينار؟', 'MARKET_PRICE'],
+    ['كم سعر الدولار اليوم؟', 'MARKET_PRICE'],
+    ['كم سعر برميل النفط؟', 'MARKET_PRICE'],
+    ['ما نتائج مباريات أمس؟', 'NEWS_TERM'],
+  ];
+  for (const [q, reason] of NOW_WORLD) {
+    const r = WI.classifyWorldIntent(q);
+    ok('E1: measured NONE before, now ' + reason + ' — «' + q.slice(0, 30) + '…»',
+      r.world === true && r.reason === reason, JSON.stringify(r));
+  }
+
+  // ── E2: what already worked still works, unchanged ────────────────────────
+  for (const [q, reason] of [
+    ['كم سعر الذهب اليوم؟', 'NEWS_PHRASE'],
+    ['من فاز في مباراة الأمس؟', 'NEWS_TERM'],
+    ['ما آخر أخبار الاقتصاد؟', 'NEWS_TERM'],
+    ['ابحث لي عن نتائج القمة', 'EXPLICIT_SEARCH'],
+    ['ماذا حدث في 2026؟', 'RECENT_YEAR'],
+  ]) {
+    const r = WI.classifyWorldIntent(q);
+    ok('E2: the existing trigger is untouched (' + reason + ') — «' + q.slice(0, 28) + '…»',
+      r.world === true && r.reason === reason, JSON.stringify(r));
+  }
+
+  // ── E3: RULE 1 IS THE WHOLE GUARANTEE, AND IT STILL HOLDS ─────────────────
+  // The negative test the brief demands: nothing religious may reach the world path. These are
+  // the two proofs the measurement already had, plus the ones the NEW vocabulary could have
+  // broken — a price question about the ʿaḍḥiya, the value of zakāt al-fiṭr, and the sale of
+  // gold all now contain a PRICE_HEAD and a TRADED_THING, and every one of them must still be
+  // refused by rule 1 before the conjunction is ever consulted.
+  for (const q of [
+    'ما حكم صلاة الوتر؟',
+    'ما آخر أخبار المسجد الأقصى؟',
+    'كم سعر الأضحية هذي السنة؟',
+    'كم قيمة زكاة الفطر؟',
+    'ما حكم بيع الذهب بالتقسيط؟',
+    'ما نصاب زكاة الفضة؟',
+    'كيف أتوضأ؟',
+    'كم عدد ركعات صلاة الفجر؟',
+  ]) {
+    const r = WI.classifyWorldIntent(q);
+    ok('E3: religious, and refused on its own account — «' + q.slice(0, 30) + '…»',
+      r.world === false && r.reason === 'REFUSED_RELIGIOUS', JSON.stringify(r));
+  }
+  {
+    const RC = await esm('lib/route-classify.js');
+    ok('E3: ...and rule 1 is the router\'s OWN predicate, not a second copy of it',
+      /import \{ normalizeArabic, stripFormulas, isReligiousText \} from '\.\/route-classify\.js';/
+        .test(read('lib/world-intent.js'))
+      && typeof RC.isReligiousText === 'function',
+      'a guarantee re-implemented locally is a guarantee that drifts');
+    ok('E3: ...and it is tested BEFORE every trigger in the file',
+      /if \(isReligiousText\(raw\)\) \{[\s\S]{0,140}REFUSED_RELIGIOUS[\s\S]*?hitPhrase\(padded, EXPLICIT_SEARCH\)/
+        .test(read('lib/world-intent.js')),
+      'rule 1 overrides everything below it — that ordering is the wall');
+  }
+
+  // ── E4: THE BIAS IS STILL "DO NOT SEARCH" ─────────────────────────────────
+  // The file's stated doctrine is that doubt resolves towards NOT searching, and the new rules
+  // are the first ones triggered by a SUBJECT rather than a news word. These are the questions
+  // that would fall to the widest plausible reading of them and must not.
+  //
+  // The first two are the measured collision worth naming: lib/policy/core.js classifies
+  // «حرارة» as a health symptom, and a weather rule that fired on a child's fever would take the
+  // one topic with its own referral policy onto a news search.
+  for (const q of [
+    'عندي حرارة وما أدري وش أسوي',
+    'ابني درجة حرارته ٣٩ وش أسوي؟',
+    'ما عاصمة الكويت؟',
+    'بكم اشتريت سيارتك؟',
+    'كم سعر البيتزا عندكم؟',
+    'ليش الجو يتغير بين الفصول؟',
+  ]) {
+    const r = WI.classifyWorldIntent(q);
+    ok('E4: not a live-world question, and not searched — «' + q.slice(0, 30) + '…»',
+      r.world === false, JSON.stringify(r));
+  }
+  {
+    // A CONJUNCTION, PROVEN AS ONE. Either half alone must decide nothing — that is the whole
+    // difference between this rule and a keyword blocklist, and it is checkable rather than
+    // claimed.
+    const headOnly = WI.classifyWorldIntent('كم سعر الحجز في الفندق؟');
+    const thingOnly = WI.classifyWorldIntent('صرفت الدينار على أشياء كثيرة');
+    ok('E5: a price head with nothing traded decides nothing',
+      headOnly.world === false, JSON.stringify(headOnly));
+    ok('E5: ...and a traded thing with no price head decides nothing either',
+      thingOnly.world === false, JSON.stringify(thingOnly));
+    ok('E5: ...but the two together do',
+      WI.classifyWorldIntent('كم سعر الدينار مقابل الدولار؟').reason === 'MARKET_PRICE');
+  }
+  ok('E6: every reason the classifier can return is declared in WORLD_REASONS',
+    ['WEATHER', 'MARKET_PRICE'].every((k) => WI.WORLD_REASONS[k] === k),
+    JSON.stringify(Object.keys(WI.WORLD_REASONS)));
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
   process.exit(failures ? 1 : 0);
