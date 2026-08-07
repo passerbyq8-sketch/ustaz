@@ -1,10 +1,19 @@
 // guards/rfc-v05r2-mode-guard.cjs — the three-mode rollout switch: off / internal / public.
 //
 // WHY THIS GATE EXISTS. The switch these two paths shipped behind needed a value written into
-// Upstash. MEASURED, not assumed: every secret in this project reads back empty because they are
-// stored write-only, so that value cannot be written at all — the internal rollout the switch was
-// designed for is unreachable rather than merely unset. The owner's decision is that the
-// ENVIRONMENT carries the activation authority and the store becomes an optional brake.
+// Upstash, and that value has never been written.
+//
+// A CLAIM STAMPED «MEASURED» STOOD HERE AND WAS FALSE (corrected 2026-08-07). It read: «every
+// secret in this project reads back empty because they are stored write-only, so that value
+// cannot be written at all». It was copied from lib/ledger/flag.js, which had not measured it
+// either. Measured on 2026-08-07 against the live store: PING -> PONG, DBSIZE -> 66, and
+// `lg:flag:ledger_rag_enabled` -> null alongside live `lg:t:*` / `lg:dsb:*` records. Reads work.
+// The runtime value is ABSENT, not unreadable, and whether this project can WRITE it was never
+// attempted and remains unmeasured. See lib/ledger/flag.js for the full correction.
+//
+// THE ENUMERATION BELOW IS UNAFFECTED, and so is the owner's decision that the ENVIRONMENT
+// carries the activation authority while the store is an optional brake — that was a decision of
+// 2026-08-05, not an inference from the false sentence.
 //
 // That is a change to the thing that decides who sees a different answer, so it is asserted here
 // by ENUMERATION rather than by reading the code and agreeing with it:

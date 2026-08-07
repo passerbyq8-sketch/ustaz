@@ -638,10 +638,13 @@ head('14) GATE ROSTER (single source: gates.json)');
                                //       the whole historical roster, both honorific forms, thread
                                //       contamination, and a real source mutation.
                                // 38th: rfc-v05r2-mode-guard — the three-mode rollout switch.
-                               //       The store value the old switch needed cannot be written
-                               //       in this project (every secret reads back empty, they are
-                               //       stored write-only), so activation authority moved to the
-                               //       environment and the store became an optional brake. That
+                               //       The store value the old switch needed has never been
+                               //       written, so activation authority moved to the
+                               //       environment and the store became an optional brake.
+                               //       (The reason recorded here until 2026-08-07 — «every
+                               //       secret reads back empty, they are stored write-only» —
+                               //       was stamped MEASURED and was false: reads work; only
+                               //       the WRITE was never attempted. lib/ledger/flag.js.) That
                                //       is a change to what decides who sees a different answer,
                                //       so off/internal/public/unset/garbage are enumerated.
                                // 33rd: ledger-seam-guard — the JOIN between a request and the
