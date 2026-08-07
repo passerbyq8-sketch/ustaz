@@ -681,8 +681,14 @@ export default async function handler(req, res) {
   // question has nowhere to be asked unless the pages are reachable from the emission point.
   // Every retrieval below hands its result to `remember()`, which returns it unchanged.
   const fetchedPages = [];
+  // COUNTED, NEVER ACTED ON — the shipped path's answer to the ledger's `injection_markers_seen`
+  // (lib/ledger/schema.js). lib/retrieve.js fences every retrieved page in wrapUntrusted and
+  // reports which marker shapes it saw; this is where the request as a whole adds them up, so a
+  // page that tried to talk to the model leaves a number in the log instead of only a fence.
+  const injectionMarkersSeen = [];
   const remember = (r) => {
     if (r && Array.isArray(r.sources)) fetchedPages.push(...r.sources);
+    if (r && Array.isArray(r.injectionMarkers)) injectionMarkersSeen.push(...r.injectionMarkers);
     return r;
   };
 
@@ -1920,6 +1926,15 @@ export default async function handler(req, res) {
         return { type: 'tool_result', tool_use_id: block.id, content };
       })
     );
+
+    // THE STAMP. Every tool_result above carries page text that is now fenced by wrapUntrusted
+    // inside lib/retrieve.js. This says how many marker shapes those pages used — a page talking
+    // to the model rather than to a reader is a thing an operator must be able to SEE, and a
+    // silent fence looks exactly like a page that never tried.
+    console.log('[retrieve] injection_markers_seen', {
+      count: injectionMarkersSeen.length,
+      markers: [...new Set(injectionMarkersSeen)],
+    });
 
     // ── FAIL CLOSED: no verified source => no ruling ───────────────────────
     // Decided BEFORE round 2, so an unsourceable question costs one model call instead of
