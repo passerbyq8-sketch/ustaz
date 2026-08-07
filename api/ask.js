@@ -167,13 +167,32 @@ const CHILD_BENIGN_INSTRUCTION = [
 //
 // Injected per-request into the messages array, NOT into the cached system prefix, for the same
 // reason the depth instruction is: it varies per request and would otherwise bust the cache.
-function buildWorldSearchInstruction(material, band) {
+// ── ONE INSTRUCTION, TWO KINDS OF MATERIAL (س٦٫٣) ────────────────────────────
+//
+// `open` says the material is a list of OPEN-WEB SEARCH RESULTS — provider titles, descriptions
+// and URLs from hosts nobody vetted — rather than cleaned page text from the four approved
+// general sources. Two clauses change and the rest is deliberately shared: a second copy of this
+// wording is a second copy that drifts, which is the defect lib/policy/referral-tail.js records
+// about composing the same sentence at five call sites.
+function buildWorldSearchInstruction(material, band, { open = false } = {}) {
   const childNote = (band === 'young' || band === 'teen')
     ? ['- المخاطَبُ صغيرٌ أو يافع: انقلِ الخبرَ بلغةٍ بسيطةٍ هادئة، ولا تصفْ مشاهدَ عنفٍ أو دماءٍ أو تفاصيلَ مروّعة، واقتصِرْ على أصلِ الخبر.']
     : [];
+  // THE BINDING IS TIGHTER WHEN THE MATERIAL IS SHORTER, not looser. A snippet is a fragment, and
+  // a fragment is exactly what a model completes from memory without noticing it has. So the open
+  // path states the failure mode by name: if the number is not IN the results, say so.
+  const openNote = open
+    ? [
+      '- هذه نتائجُ بحثٍ مفتوحٍ من الإنترنت (عنوانٌ ووصفٌ ورابطٌ لكلِّ نتيجة)، لا صفحاتٌ كاملةٌ من مصادرَ مُعتمَدة. فلا تَبْنِ عليها إلا بقدرِ ما صرّحت به.',
+      '- الرقمُ والتاريخُ والنتيجةُ تُنقَلُ من نصِّ النتائجِ أعلاه حرفيًّا. فإن لم يكن الرقمُ المطلوبُ مذكورًا فيها، فقلْ صراحةً إنّ نتائجَ البحثِ لم تذكرْه، ولا تُقدِّرْه ولا تستحضرْه من معرفتك.',
+      '- واذكرِ الموقعَ الذي أخذتَ منه («بحسب ما ظهر في نتيجةٍ من …») مع تاريخِ المعلومةِ إن ورد، فقد تكونُ النتيجةُ قديمةً وإن كان السؤالُ عن اليوم.',
+    ]
+    : [];
   return [
     'تنبيهٌ داخليٌّ للصياغة (لا تنقلْه حرفيًّا):',
-    'أنت الآن تُجيب من مصادرَ إخباريّةٍ وعامّةٍ مُعتمَدةٍ استُرجِعت للتوّ، لا من ذاكرتك. وهذه هي المادّةُ المسترجَعة:',
+    open
+      ? 'أنت الآن تُجيب من نتائجِ بحثٍ حيٍّ استُرجِعت للتوّ من الإنترنت، لا من ذاكرتك. وهذه هي النتائجُ المسترجَعة:'
+      : 'أنت الآن تُجيب من مصادرَ إخباريّةٍ وعامّةٍ مُعتمَدةٍ استُرجِعت للتوّ، لا من ذاكرتك. وهذه هي المادّةُ المسترجَعة:',
     '',
     material,
     '',
@@ -184,6 +203,7 @@ function buildWorldSearchInstruction(material, band) {
     '- انسبِ الخبرَ إلى المصدرِ الذي ورد فيه باسمِه («بحسب الجزيرة نت…»)، واذكرْ تاريخَه إن ورد.',
     '- لا تعتذرْ بأنّ معرفتَك تتوقّفُ عند تاريخٍ معيّن، ولا تقلْ إنّك لا تستطيعُ الوصولَ إلى الإنترنت أو تصفُّحَ الأخبار؛ فالمادّةُ بين يديك الآن. ولا تصفْ عمليّةَ بحثِك.',
     '- إن كانتِ المادّةُ لا تُجيبُ عن السؤال، فقلْ ذلك صراحةً ولا تخترعْ خبرًا.',
+    ...openNote,
     ...childNote,
     '- لا تكتبْ وسمَ <source> ولا أيَّ رابط؛ التطبيقُ يُضيفُ بطاقةَ المصدر بنفسه.',
   ].join('\n');
@@ -1161,21 +1181,65 @@ export default async function handler(req, res) {
     const worldIntent = effectiveRoute === 'GEN'
       ? classifyWorldIntent(questionText)
       : { world: false, reason: 'NOT_GEN', matched: '' };
+    // ── WHICH OF THE TWO WORLD SEARCHES, AND WHY THERE ARE TWO (س٦٫٢) ──────
+    //
+    // A LIVE QUANTITY IS NOT NEWS, AND THE VETTED FOUR DO NOT CARRY IT. SITES_GENERAL is
+    // Wikipedia, al-Jazeera, the BBC and Sky News Arabia — the right instrument for «ما آخر
+    // أخبار غزة؟» and the wrong one for «كم سعر صرف الدولار مقابل الدينار؟», because not one of
+    // them publishes a live rate on a page a search will surface. Sending that question there
+    // returns NO_WORLD_SOURCE_TEXT: a correct answer to a question nobody asked.
+    //
+    // SO THE SPLIT IS BY WHAT THE CLASSIFIER ACTUALLY FOUND, and it is conservative in the one
+    // direction that matters — NOTHING THAT WORKS TODAY IS DEGRADED:
+    //   * WEATHER and MARKET_PRICE are the two reasons that exist only because a live quantity
+    //     was asked for. They go straight to the open search; the vetted four have nothing to
+    //     offer them and a doomed pass first would cost a reader a search's latency for it.
+    //   * every other reason keeps the vetted, full-page, host-allow-listed retrieval it has
+    //     today, unchanged, and reaches the open search ONLY IF that came back empty. A match
+    //     result the four did not carry is then still answerable, and «آخر أخبار غزة» still
+    //     comes from al-Jazeera rather than from whatever a snippet says.
+    const LIVE_QUANTITY = worldIntent.reason === 'WEATHER' || worldIntent.reason === 'MARKET_PRICE';
     let worldPass = null;
+    let worldOpen = false;
     if (worldIntent.world) {
       try {
-        const { retrieveWorld } = await import('../lib/retrieve.js');
-        // No band, no depth, no purpose: none of them means anything on this list, and passing
-        // one would suggest it did.
-        const w = remember(await retrieveWorld(questionText));
-        if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+        const { retrieveWorld, retrieveOpenWorld } = await import('../lib/retrieve.js');
+        if (!LIVE_QUANTITY) {
+          // No band, no depth, no purpose: none of them means anything on this list, and passing
+          // one would suggest it did.
+          const w = remember(await retrieveWorld(questionText));
+          if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+        }
+        if (!worldPass) {
+          // THE OPEN SEARCH. `band` — the RAW claim — and deliberately NOT `audienceBand`.
+          //
+          // THIS IS THE ONE PLACE IN THE HANDLER WHERE THAT DISTINCTION CHANGES AN OUTCOME, so it
+          // is spelled out. resolveAudience() collapses "claimed adult" and "claimed nothing"
+          // into the same `adult`, on purpose: an unverified claim must never be the reason
+          // anything OPENED. But the owner's rule for safesearch is «strict لغير البالغ (band
+          // young/teen أو غائب)» — the absent case goes to the STRICT side, and audienceBand
+          // cannot express that because it has already thrown the distinction away.
+          // narrowestBand() returns `undefined` when nothing was claimed, so the raw value can.
+          // Both readings agree that a claimed adult gets the ordinary filter; they disagree only
+          // about the unidentified reader, and the owner resolved that one explicitly.
+          const { DailySearchBudget } = await import('../lib/ledger/daily-budget.js');
+          const o = remember(await retrieveOpenWorld(questionText, {
+            band,
+            // THE EXISTING CEILING, NOT A SECOND ONE — same module, same global day key, same
+            // limit. Constructed here rather than threaded from the ledger branch because that
+            // branch is below this one and never runs when this one answers.
+            dailyBudget: new DailySearchBudget(),
+          }));
+          if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; }
+        }
       } catch (e) {
         console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
       }
     }
     console.log('[world-search]', {
       route: effectiveRoute, intent: worldIntent.world, reason: worldIntent.reason,
-      matched: worldIntent.matched, sources: worldPass ? worldPass.sources.length : 0,
+      matched: worldIntent.matched, open: worldOpen, band: audienceBand,
+      sources: worldPass ? worldPass.sources.length : 0,
       hosts: worldPass ? worldPass.sources.map((s) => { try { return new URL(s.url).hostname; } catch { return '?'; } }) : [],
     });
 
@@ -1198,7 +1262,10 @@ export default async function handler(req, res) {
             system,
             messages: [
               ...body.messages,
-              { role: 'user', content: buildWorldSearchInstruction(worldPass.text, band) },
+              // `band` unchanged from what this call has always passed. The two readings agree
+              // wherever the child note is reachable — a claimed young/teen is young/teen under
+              // both — so switching it here would be a change with no effect and some risk.
+              { role: 'user', content: buildWorldSearchInstruction(worldPass.text, band, { open: worldOpen }) },
             ],
             stream: false,
           }),
