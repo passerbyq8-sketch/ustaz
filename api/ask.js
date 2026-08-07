@@ -948,7 +948,132 @@ export default async function handler(req, res) {
     // is about: this is a child, and the policy called the topic benign. Nothing else. The rest of
     // the condition is untouched, and this branch still runs BEFORE the ledger branch and before
     // the streamed GEN branch, so neither can shadow it.
+    // ══════════════════════════════════════════════════════════════════════
+    // THE LIVE WORLD IS DECIDED BEFORE THE CHILD BRANCH, AND HERE IS WHY
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // MEASURED, AND IT IS A DEFECT THAT PREDATES س٦. The branch immediately below RETURNS, and
+    // its condition is `sourcePolicy === 'GENERAL_CHILD_BENIGN' && band is young|teen`. Run
+    // «كم درجة الحرارة اليوم في الكويت؟» through classifyTopic() and access(): the topic is
+    // `general_knowledge`, and general_knowledge x young is ALLOW/GENERAL_CHILD_BENIGN. So it
+    // matched, and it returned — and the world block, which sat two hundred lines below, was
+    // NEVER REACHED BY ANY CHILD. The same is true of «شنو الطقس اليوم؟», «كم سعر الدولار
+    // اليوم؟», «ما آخر أخبار الاقتصاد؟» and «من فاز في مباراة الأمس؟», for young and teen alike.
+    //
+    // Since the world path went live on 2026-08-05, then, every child asking about today's world
+    // has been answered from the model's memory — the exact hole the world path exists to close —
+    // and the owner's س٦٫٢ rule «safesearch=strict لغير البالغ (band young/teen أو غائب)» would
+    // have been unreachable code the day it was written. A rule that cannot fire is not a rule.
+    //
+    // ── WHAT MOVED, AND WHAT DELIBERATELY DID NOT ─────────────────────────
+    // ONLY THE RETRIEVAL moved up here. The ANSWER is still composed in its old place, below the
+    // name look-up and above the ledger, and the child branch below is otherwise untouched — it
+    // has not been reordered against the name look-up, the attribution gate or the claim gate,
+    // because its own comment is right that a branch which can be shadowed is a branch that stops
+    // protecting anybody.
+    //
+    // AND THE GATE IS `!worldPass`, NOT `!worldIntent.world`. That difference is the whole safety
+    // of this change. Gating on the INTENT would hand a child's weather question to the general
+    // route whenever the search failed — no key, no store, no results — and the general route
+    // carries no age floor, so a failed search would have silently cost a child their protection.
+    // Gating on the MATERIAL means the child branch is skipped only when live facts are actually
+    // in hand to answer from. Every other outcome falls into the branch below exactly as before,
+    // byte for byte.
+    const worldIntent = effectiveRoute === 'GEN'
+      ? classifyWorldIntent(questionText)
+      : { world: false, reason: 'NOT_GEN', matched: '' };
+
+    // ── THE SHARIA FILTER ON THE LIVE-WORLD PATH (س٦٫٤) ────────────────────
+    //
+    // ABOVE THE CHILD BRANCH FOR THE SAME MEASURED REASON. «ابغى أغنية حلوة» classifies as
+    // `general_knowledge` too, so a child asking for a song was swallowed by the branch below and
+    // answered by the model — and «لكل الأعمار» in the owner's spec would have meant every band
+    // except the two it was most written for.
+    //
+    // GEN ONLY, AND THAT IS THE WHOLE SEPARATION. MEASURED through classifyRoute() itself:
+    // «ابغى أغنية حلوة» and «رشح لي فلم» are GEN, while «ما حكم الأغاني؟» and «ما حكم مشاهدة
+    // الأفلام؟» are DEEN. A question about the RULING therefore never reaches this line and keeps
+    // the sourced answer it is entitled to — which is the difference between a sharia filter and
+    // a word blocklist, and it is decided by the router rather than promised by this comment.
+    //
+    // It is checked BEFORE the search, not after: a request that will be refused must not spend a
+    // unit of the day's allowance finding material for a refusal.
+    const impermissible = effectiveRoute === 'GEN'
+      ? classifyImpermissibleRequest(questionText)
+      : { blocked: false, kind: '', matched: '' };
+    if (impermissible.blocked) {
+      // The KIND and the band, and nothing else. Never the question.
+      console.warn('[policy] IMPERMISSIBLE_REQUEST', {
+        kind: impermissible.kind, band: audienceBand, path: ledgerPath.path,
+        policyVersion: POLICY_VERSION,
+      });
+      return emitOnce(impermissibleCounsel(audienceBand));
+    }
+
+    // ── WHICH OF THE TWO WORLD SEARCHES, AND WHY THERE ARE TWO (س٦٫٢) ──────
+    //
+    // A LIVE QUANTITY IS NOT NEWS, AND THE VETTED FOUR DO NOT CARRY IT. SITES_GENERAL is
+    // Wikipedia, al-Jazeera, the BBC and Sky News Arabia — the right instrument for «ما آخر
+    // أخبار غزة؟» and the wrong one for «كم سعر صرف الدولار مقابل الدينار؟», because not one of
+    // them publishes a live rate on a page a search will surface. Sending that question there
+    // returns NO_WORLD_SOURCE_TEXT: a correct answer to a question nobody asked.
+    //
+    // SO THE SPLIT IS BY WHAT THE CLASSIFIER ACTUALLY FOUND, and it is conservative in the one
+    // direction that matters — nothing that works today is reduced to snippets:
+    //   * WEATHER and MARKET_PRICE are the two reasons that exist only because a live quantity
+    //     was asked for. They go straight to the open search; the vetted four have nothing to
+    //     offer them and a doomed pass first would cost a reader a search's latency for it.
+    //   * every other reason keeps the vetted, full-page, host-allow-listed retrieval it has
+    //     today, unchanged, and reaches the open search ONLY IF that came back empty. A match
+    //     result the four did not carry is then still answerable, and «آخر أخبار غزة» still
+    //     comes from al-Jazeera rather than from whatever a snippet says.
+    const LIVE_QUANTITY = worldIntent.reason === 'WEATHER' || worldIntent.reason === 'MARKET_PRICE';
+    let worldPass = null;
+    let worldOpen = false;
+    if (worldIntent.world) {
+      try {
+        const { retrieveWorld, retrieveOpenWorld } = await import('../lib/retrieve.js');
+        if (!LIVE_QUANTITY) {
+          // No band, no depth, no purpose: none of them means anything on this list, and passing
+          // one would suggest it did.
+          const w = remember(await retrieveWorld(questionText));
+          if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+        }
+        if (!worldPass) {
+          // THE OPEN SEARCH. `band` — the RAW claim — and deliberately NOT `audienceBand`.
+          //
+          // THIS IS THE ONE PLACE IN THE HANDLER WHERE THAT DISTINCTION CHANGES AN OUTCOME, so it
+          // is spelled out. resolveAudience() collapses "claimed adult" and "claimed nothing"
+          // into the same `adult`, on purpose: an unverified claim must never be the reason
+          // anything OPENED. But the owner's rule for safesearch is «strict لغير البالغ (band
+          // young/teen أو غائب)» — the absent case goes to the STRICT side, and audienceBand
+          // cannot express that because it has already thrown the distinction away.
+          // narrowestBand() returns `undefined` when nothing was claimed, so the raw value can.
+          // Both readings agree that a claimed adult gets the ordinary filter; they disagree only
+          // about the unidentified reader, and the owner resolved that one explicitly.
+          const { DailySearchBudget } = await import('../lib/ledger/daily-budget.js');
+          const o = remember(await retrieveOpenWorld(questionText, {
+            band,
+            // THE EXISTING CEILING, NOT A SECOND ONE — same module, same global day key, same
+            // limit. Constructed here rather than threaded from the ledger branch because that
+            // branch is below this one and never runs when this one answers.
+            dailyBudget: new DailySearchBudget(),
+          }));
+          if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; }
+        }
+      } catch (e) {
+        console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
+      }
+    }
+    console.log('[world-search]', {
+      route: effectiveRoute, intent: worldIntent.world, reason: worldIntent.reason,
+      matched: worldIntent.matched, open: worldOpen, band: audienceBand,
+      sources: worldPass ? worldPass.sources.length : 0,
+      hosts: worldPass ? worldPass.sources.map((s) => { try { return new URL(s.url).hostname; } catch { return '?'; } }) : [],
+    });
+
     if (ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
+      && !worldPass
       && (audienceBand === 'young' || audienceBand === 'teen')) {
       const gc = await fetch(ANTHROPIC_URL, {
         method: 'POST',
@@ -1113,36 +1238,6 @@ export default async function handler(req, res) {
     // told «لا أعرف هذا الاسم», and they were the ones not carrying it.
     const withPresence = (text) => (presenceLead ? presenceLead + '\n\n' + text : text);
 
-    // ── THE SHARIA FILTER ON THE LIVE-WORLD PATH (س٦٫٤) ────────────────────
-    //
-    // The owner's spec for this path is two sentences long: it answers the world from an open
-    // search, and its ONLY restraint is this. So the restraint is applied HERE — immediately
-    // above the world branch, above the ledger, and on the same GEN condition — rather than
-    // inside the retrieval, because a request for a song must be stopped whether or not the
-    // world classifier would have searched for it. «ابغى أغنية حلوة» is NONE to that classifier;
-    // it must still be answered with counsel rather than handed to the model.
-    //
-    // GEN ONLY, AND THAT IS THE WHOLE SEPARATION. MEASURED through classifyRoute() itself:
-    // «ابغى أغنية حلوة» and «رشح لي فلم» are GEN, while «ما حكم الأغاني؟» and «ما حكم مشاهدة
-    // الأفلام؟» are DEEN. A question about the RULING therefore never reaches this line and keeps
-    // the sourced answer it is entitled to — which is the difference between a sharia filter and
-    // a word blocklist, and it is decided by the router rather than promised by this comment.
-    //
-    // EVERY BAND. «لكل الأعمار», and for the reason core.js already gives about the grave hazards:
-    // an adult has not asked a different question by being an adult. Only the ALTERNATIVE offered
-    // at the end varies, because ending an adult at «ماما أو بابا» would be talking down to him.
-    const impermissible = effectiveRoute === 'GEN'
-      ? classifyImpermissibleRequest(questionText)
-      : { blocked: false, kind: '', matched: '' };
-    if (impermissible.blocked) {
-      // The KIND and the band, and nothing else. Never the question.
-      console.warn('[policy] IMPERMISSIBLE_REQUEST', {
-        kind: impermissible.kind, band: audienceBand, path: ledgerPath.path,
-        policyVersion: POLICY_VERSION,
-      });
-      return emitOnce(impermissibleCounsel(audienceBand));
-    }
-
     // ── LIVE WORLD RETRIEVAL: a general question may still need TODAY'S facts ──
     //
     // THE HOLE THIS CLOSES. The general route runs with NO tools, deliberately — that is what
@@ -1178,71 +1273,8 @@ export default async function handler(req, res) {
     // FAILURE IS A FALL-THROUGH, NEVER A REFUSAL. No key, no results, a blocked host, a throw —
     // any of them leaves worldPass null and the request takes the ordinary GEN branch below,
     // byte-for-byte as it does today. Live retrieval can only ever ADD to this route.
-    const worldIntent = effectiveRoute === 'GEN'
-      ? classifyWorldIntent(questionText)
-      : { world: false, reason: 'NOT_GEN', matched: '' };
-    // ── WHICH OF THE TWO WORLD SEARCHES, AND WHY THERE ARE TWO (س٦٫٢) ──────
-    //
-    // A LIVE QUANTITY IS NOT NEWS, AND THE VETTED FOUR DO NOT CARRY IT. SITES_GENERAL is
-    // Wikipedia, al-Jazeera, the BBC and Sky News Arabia — the right instrument for «ما آخر
-    // أخبار غزة؟» and the wrong one for «كم سعر صرف الدولار مقابل الدينار؟», because not one of
-    // them publishes a live rate on a page a search will surface. Sending that question there
-    // returns NO_WORLD_SOURCE_TEXT: a correct answer to a question nobody asked.
-    //
-    // SO THE SPLIT IS BY WHAT THE CLASSIFIER ACTUALLY FOUND, and it is conservative in the one
-    // direction that matters — NOTHING THAT WORKS TODAY IS DEGRADED:
-    //   * WEATHER and MARKET_PRICE are the two reasons that exist only because a live quantity
-    //     was asked for. They go straight to the open search; the vetted four have nothing to
-    //     offer them and a doomed pass first would cost a reader a search's latency for it.
-    //   * every other reason keeps the vetted, full-page, host-allow-listed retrieval it has
-    //     today, unchanged, and reaches the open search ONLY IF that came back empty. A match
-    //     result the four did not carry is then still answerable, and «آخر أخبار غزة» still
-    //     comes from al-Jazeera rather than from whatever a snippet says.
-    const LIVE_QUANTITY = worldIntent.reason === 'WEATHER' || worldIntent.reason === 'MARKET_PRICE';
-    let worldPass = null;
-    let worldOpen = false;
-    if (worldIntent.world) {
-      try {
-        const { retrieveWorld, retrieveOpenWorld } = await import('../lib/retrieve.js');
-        if (!LIVE_QUANTITY) {
-          // No band, no depth, no purpose: none of them means anything on this list, and passing
-          // one would suggest it did.
-          const w = remember(await retrieveWorld(questionText));
-          if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
-        }
-        if (!worldPass) {
-          // THE OPEN SEARCH. `band` — the RAW claim — and deliberately NOT `audienceBand`.
-          //
-          // THIS IS THE ONE PLACE IN THE HANDLER WHERE THAT DISTINCTION CHANGES AN OUTCOME, so it
-          // is spelled out. resolveAudience() collapses "claimed adult" and "claimed nothing"
-          // into the same `adult`, on purpose: an unverified claim must never be the reason
-          // anything OPENED. But the owner's rule for safesearch is «strict لغير البالغ (band
-          // young/teen أو غائب)» — the absent case goes to the STRICT side, and audienceBand
-          // cannot express that because it has already thrown the distinction away.
-          // narrowestBand() returns `undefined` when nothing was claimed, so the raw value can.
-          // Both readings agree that a claimed adult gets the ordinary filter; they disagree only
-          // about the unidentified reader, and the owner resolved that one explicitly.
-          const { DailySearchBudget } = await import('../lib/ledger/daily-budget.js');
-          const o = remember(await retrieveOpenWorld(questionText, {
-            band,
-            // THE EXISTING CEILING, NOT A SECOND ONE — same module, same global day key, same
-            // limit. Constructed here rather than threaded from the ledger branch because that
-            // branch is below this one and never runs when this one answers.
-            dailyBudget: new DailySearchBudget(),
-          }));
-          if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; }
-        }
-      } catch (e) {
-        console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
-      }
-    }
-    console.log('[world-search]', {
-      route: effectiveRoute, intent: worldIntent.world, reason: worldIntent.reason,
-      matched: worldIntent.matched, open: worldOpen, band: audienceBand,
-      sources: worldPass ? worldPass.sources.length : 0,
-      hosts: worldPass ? worldPass.sources.map((s) => { try { return new URL(s.url).hostname; } catch { return '?'; } }) : [],
-    });
-
+    // THE RETRIEVAL ITSELF NOW HAPPENS EARLIER — see «THE LIVE WORLD IS DECIDED BEFORE THE CHILD
+    // BRANCH» above the age floor. Only the ANSWER is composed here, where it always was.
     if (worldPass) {
       // BUFFERED, not streamed — the same trade the attributed and claim routes make. The cards
       // are appended by the server after the model has finished, and a card cannot be appended
@@ -1284,8 +1316,35 @@ export default async function handler(req, res) {
           .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
           .trim();
         if (wDraft) {
-          console.log('[world-search] answered', { cards: worldCards.length, hosts: worldCards.map((c) => c.host) });
-          return emitOnce(wDraft + '\n' + worldCards.map((c) => c.tag).join('\n'));
+          // ── THE CHILD'S FLOOR FOLLOWS THE CHILD ONTO THIS PATH ────────────
+          //
+          // The benign branch above is skipped when live material is in hand, and that branch was
+          // where a child's answer met ageRepair(). Letting a child through to here WITHOUT it
+          // would have traded a hole (answering the weather from memory) for a worse one (a live
+          // answer with no floor under it). So the floor is applied to this draft too, from the
+          // same module, with the same topic class and the same band.
+          //
+          // The CARDS are appended after the repair, never before: the rubric's `forbiddenMarkup`
+          // refuses a `<source>` tag in a child's benign answer, and it is right to — a card the
+          // MODEL wrote is unbacked. These cards are the server's, built from pages that were
+          // actually retrieved, and they are added once the draft has passed.
+          let wOut = wDraft;
+          if (audienceBand === 'young' || audienceBand === 'teen') {
+            const wRep = ageRepair(wDraft, { topicClass, audienceBand });
+            console.log('[policy] AGE_FLOOR', {
+              topicClass, band: audienceBand, ageFloorOutcome: wRep.outcome,
+              repaired: wRep.repaired, problems: wRep.problems, path: 'world',
+            });
+            // A DISCARDED DRAFT FALLS BACK TO THE CHILD LINE, exactly as it does in the benign
+            // branch — and it takes NO cards with it, because there is no longer an answer for
+            // them to be evidence for.
+            if (!wRep.text) return emitOnce(warmTemplateFor('GENERAL_CHILD_BENIGN'));
+            wOut = wRep.text;
+          }
+          console.log('[world-search] answered', {
+            cards: worldCards.length, hosts: worldCards.map((c) => c.host), band: audienceBand,
+          });
+          return emitOnce(wOut + '\n' + worldCards.map((c) => c.tag).join('\n'));
         }
         console.warn('[world-search] empty draft — falling through');
       }

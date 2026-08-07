@@ -594,14 +594,25 @@ const stripComments = (s) => String(s)
       /const impermissible = effectiveRoute === 'GEN'\s*\?\s*classifyImpermissibleRequest\(questionText\)/.test(ASK));
     ok('E11: ...and answers with the counsel rather than the model',
       /if \(impermissible\.blocked\) \{[\s\S]{0,400}return emitOnce\(impermissibleCounsel\(audienceBand\)\);/.test(ASK));
-    // THE ORDERING THAT MAKES IT REACHABLE AT ALL. The ledger branch RETURNS, so anything below
-    // it is dead code for every reader — the same trap the world block was moved out of.
+    // ── THE ORDERING, AND EVERY BRANCH THAT RETURNS BEFORE IT WOULD BE FATAL ──
+    //
+    // Three branches below RETURN, and a check that sits under any of them is a check that never
+    // runs for the readers it swallows. This is the trap the world block was already moved out of
+    // once (below the ledger), and the one the child-benign branch had it in all along.
     const atFilter = ASK.indexOf('const impermissible = effectiveRoute');
-    const atWorld = ASK.indexOf('const worldIntent = effectiveRoute');
+    const atSearch = ASK.indexOf('const LIVE_QUANTITY = worldIntent.reason');
+    const atChild = ASK.indexOf("if (ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'");
     const atLedger = ASK.indexOf("if (ledgerPath.path === 'ledger') {");
-    ok('E11: ...and it sits ABOVE the world branch, which sits ABOVE the ledger',
-      atFilter > 0 && atFilter < atWorld && atWorld < atLedger,
-      'filter=' + atFilter + ' world=' + atWorld + ' ledger=' + atLedger);
+    ok('E11: ...and it sits above the SEARCH — a refusal must not spend a unit of the day first',
+      atFilter > 0 && atSearch > 0 && atFilter < atSearch,
+      'filter=' + atFilter + ' search=' + atSearch);
+    ok('E11: ...above the CHILD-BENIGN branch, which returns and would swallow it for young/teen',
+      atChild > 0 && atFilter < atChild, 'filter=' + atFilter + ' child=' + atChild);
+    ok('E11: ...and above the LEDGER branch, which returns for every reader',
+      atLedger > 0 && atFilter < atLedger && atSearch < atLedger,
+      'filter=' + atFilter + ' search=' + atSearch + ' ledger=' + atLedger);
+    ok('E11: ...and the world SEARCH is above the child branch too, for the same reason',
+      atSearch < atChild, 'search=' + atSearch + ' child=' + atChild);
     ok('E11: ...and it logs the KIND and the band, never the question',
       /IMPERMISSIBLE_REQUEST', \{\s*kind: impermissible\.kind, band: audienceBand/.test(ASK));
   }
@@ -757,6 +768,178 @@ const stripComments = (s) => String(s)
     ok('F5: ...and the card is still the server\'s, never the model\'s',
       /لا تكتبْ وسمَ <source> ولا أيَّ رابط/.test(ASK)
       && /worldCards = pickVerifiedSources\(worldPass\.sources\)/.test(ASK));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== G. THE WHOLE س٦ PATH, THROUGH THE REAL HANDLER ===');
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ── THE DEFECT THIS SECTION EXISTS FOR, AND IT PREDATES س٦ ────────────────
+  // The child-benign branch RETURNS, and its condition is `GENERAL_CHILD_BENIGN && young|teen`.
+  // «كم درجة الحرارة اليوم في الكويت؟» classifies as `general_knowledge`, and general_knowledge x
+  // young is exactly that cell — so it matched, it returned, and the world block two hundred
+  // lines below WAS NEVER REACHED BY ANY CHILD. Since the world path went live on 2026-08-05,
+  // every child asking about today's world has been answered from the model's memory, which is
+  // the hole that path exists to close; and س٦٫٢'s «safesearch=strict لغير البالغ» would have
+  // been unreachable code on the day it was written.
+  //
+  // Every check below drives api/ask.js's real default export with the network stubbed. Cases B
+  // and C are the ones that matter most: they prove the fix did not buy a child's live answer
+  // with a child's floor.
+  {
+    const DC = await esm('lib/daycap.js');
+    const STORE = await esm('lib/ledger/redis.js');
+    const DEVICE = 'abcdefgh12345678';
+    const saved = {
+      fetch: globalThis.fetch,
+      env: { ...process.env },
+    };
+    process.env.FOUNDER_SECRET = 'test-secret-for-the-source-honesty-gate';
+    process.env.RFC_V05_LEGACY_POLICY = 'on';
+    process.env.RFC_V05_MODE = 'internal';
+    process.env.ANTHROPIC_API_KEY = 'test-key';
+    process.env.BRAVE_API_KEY = 'test-brave';
+    // The legacy path, switched off the ledger by its documented floor — the same note
+    // guards/rfc-v05r2-consistency-guard.cjs carries.
+    process.env.LEDGER_RAG = 'off';
+    // A COUNTER THAT ANSWERS. The open search reserves a unit before it searches, and a store
+    // that never answers would fail the reservation closed — which would make every case below
+    // pass for the wrong reason, by never searching at all.
+    let counter = 0;
+    STORE.__setRedisForTest({ eval: async () => { counter += 1; return [counter, counter <= 50 ? 1 : 0]; } });
+
+    const RESULTS = [
+      { title: 'الطقس في مدينة الكويت', url: 'https://www.accuweather.com/ar/kw/kuwait-city/1', description: 'درجة الحرارة اليوم 44 مئوية' },
+      { title: 'Kuwait City weather', url: 'https://timeanddate.com/weather/kuwait', description: '44C now' },
+    ];
+    const founder = DC.founderTokenFor(DEVICE);
+    const makeRes = () => ({
+      writes: [], ended: 0,
+      status() { return this; }, setHeader() { return this; }, flushHeaders() {},
+      write(s) { this.writes.push(String(s)); return true; }, end() { this.ended += 1; return this; },
+      json(o) { this.jsonBody = o; this.ended += 1; return this; },
+    });
+    const readerText = (res) => res.writes.join('')
+      .split('data: ').filter(Boolean)
+      .map((s) => { try { return JSON.parse(s.trim()); } catch { return null; } })
+      .filter((p) => p && p.type === 'content_block_delta')
+      .map((p) => p.delta.text).join('');
+
+    const drive = async (question, band, opts = {}) => {
+      const braveReturns = opts.braveReturns || RESULTS;
+      const draft = opts.draft || 'درجة الحرارة اليوم في الكويت 44 مئوية بحسب ما ظهر في النتائج.';
+      const state = { brave: [], anthropic: 0, prompts: [], logs: [] };
+      globalThis.fetch = async (url, init) => {
+        const u = String(url);
+        if (u.includes('api.search.brave.com')) {
+          state.brave.push(u);
+          return { ok: true, status: 200, json: async () => ({ web: { results: braveReturns } }) };
+        }
+        if (u.includes('api.anthropic.com')) {
+          state.anthropic += 1;
+          const b = JSON.parse(init.body);
+          const last = b.messages[b.messages.length - 1];
+          state.prompts.push(typeof last.content === 'string' ? last.content : '');
+          return {
+            ok: true, status: 200,
+            headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
+            json: async () => ({ content: [{ type: 'text', text: draft }], stop_reason: 'end_turn' }),
+            text: async () => '',
+          };
+        }
+        return { ok: false, status: 404, url: u, headers: { get: () => 'text/html' }, text: async () => '' };
+      };
+      const res = makeRes();
+      // The handler's own stamps are the evidence for what it DID, so they are captured rather
+      // than the source re-read. `[policy] AGE_FLOOR … path: 'world'` is emitted only by the
+      // world branch's floor, and nothing else in the file writes it.
+      const realLog = console.log;
+      console.log = (...a) => {
+        try { state.logs.push(a.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' ')); }
+        catch { /* a value that will not serialise is not evidence we need */ }
+      };
+      try {
+        await (await esm('api/ask.js')).default({
+          method: 'POST',
+          headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' },
+          body: { band, messages: [{ role: 'user', content: question }] },
+        }, res);
+      } finally { console.log = realLog; }
+      return { text: readerText(res), state };
+    };
+
+    try {
+      // ── A: THE CASE THAT WAS BROKEN ────────────────────────────────────────
+      const a = await drive('كم درجة الحرارة اليوم في الكويت؟', 'young');
+      ok('G1: a YOUNG reader\'s weather question now reaches the open search at all',
+        a.state.brave.length === 1, 'brave calls: ' + a.state.brave.length);
+      ok('G1: ...with safesearch=strict actually on the wire for a child',
+        /[?&]safesearch=strict(?:&|$)/.test(a.state.brave[0] || ''), (a.state.brave[0] || '').slice(0, 140));
+      ok('G1: ...and no `site:` filter', !/site%3A/i.test(a.state.brave[0] || ''));
+      ok('G1: ...the model is told it is holding open results',
+        a.state.prompts.some((p) => /نتائجُ بحثٍ مفتوحٍ من الإنترنت/.test(p)));
+      ok('G1: ...the child gets the simple-language clause too',
+        a.state.prompts.some((p) => /المخاطَبُ صغيرٌ أو يافع/.test(p)));
+      ok('G1: ...and the answer carries the server\'s source card',
+        /<source site="accuweather\.com"/.test(a.text), a.text.slice(0, 160));
+      // THE FLOOR FOLLOWED THE CHILD. The benign branch is skipped when material is in hand, and
+      // that branch was where ageRepair() lived, so this is the check that the fix did not trade
+      // one hole for a worse one.
+      const floorStamp = (r) => r.state.logs.filter((l) => l.includes('AGE_FLOOR'));
+      ok('G1: ...and the CHILD FLOOR actually RAN on the world draft',
+        floorStamp(a).some((l) => /"path":"world"/.test(l) && /"ageFloorOutcome"/.test(l)),
+        JSON.stringify(floorStamp(a)));
+
+      // ── B: THE NO-REGRESSION CASE THE GATE `!worldPass` EXISTS FOR ─────────
+      const b = await drive('كم درجة الحرارة اليوم في الكويت؟', 'young', { braveReturns: [] });
+      ok('G2: when the search yields NOTHING, the child falls back to the benign branch',
+        b.state.anthropic === 1 && !/<source /.test(b.text)
+        && !b.state.prompts.some((p) => /نتائجُ بحثٍ مفتوحٍ من الإنترنت/.test(p)),
+        JSON.stringify({ anthropic: b.state.anthropic, card: /<source /.test(b.text) }));
+      ok('G2: ...and its floor still ran, from the benign branch rather than the world one',
+        floorStamp(b).length === 1 && !/"path":"world"/.test(floorStamp(b)[0]),
+        JSON.stringify(floorStamp(b)));
+      ok('G2: ...which is why the gate is `!worldPass` and NOT `!worldIntent.world`',
+        /if \(ageAccess\.sourcePolicy === 'GENERAL_CHILD_BENIGN'\s*\n\s*&& !worldPass/.test(read('api/ask.js')),
+        'gating on the INTENT would drop a child onto the unfloored general route on every failed search');
+
+      // ── C: THE ORDINARY CHILD QUESTION IS UNTOUCHED ────────────────────────
+      const c = await drive('كيف أرتب غرفتي؟', 'young', { draft: 'رتب غرفتك مع ماما خطوة خطوة.' });
+      ok('G3: an ordinary benign child question searches nothing and keeps its own branch',
+        c.state.brave.length === 0 && c.state.anthropic === 1,
+        JSON.stringify({ brave: c.state.brave.length, anthropic: c.state.anthropic }));
+
+      // ── D: THE SHARIA FILTER, FOR THE BAND IT COULD NOT REACH BEFORE ───────
+      const d = await drive('ابغى أغنية حلوة', 'young');
+      ok('G4: a YOUNG reader asking for a song gets the counsel',
+        /ناقلٌ لا مفتٍ/.test(d.text) && /أقدر أدلّك/.test(d.text), d.text.slice(0, 120));
+      ok('G4: ...and it is the CHILD ending, with a person in it',
+        /ماما أو بابا/.test(d.text));
+      ok('G4: ...costing NO search and NO model call — a refusal must not spend the day\'s budget',
+        d.state.brave.length === 0 && d.state.anthropic === 0,
+        JSON.stringify({ brave: d.state.brave.length, anthropic: d.state.anthropic }));
+
+      // ── E/F: the adult, both ways ──────────────────────────────────────────
+      const e = await drive('كم سعر الدولار اليوم؟', 'adult');
+      ok('G5: an ADULT price question searches, with the ordinary filter',
+        e.state.brave.length === 1 && /[?&]safesearch=moderate(?:&|$)/.test(e.state.brave[0]),
+        (e.state.brave[0] || '').slice(0, 140));
+      ok('G5: ...and gets a card', /<source site="/.test(e.text));
+      ok('G5: ...and NOT the child\'s simple-language clause',
+        !e.state.prompts.some((p) => /المخاطَبُ صغيرٌ أو يافع/.test(p)));
+      const f = await drive('رشح لي فلم', 'adult');
+      ok('G6: an ADULT asking for a film gets the counsel, with the adult ending',
+        /ناقلٌ لا مفتٍ/.test(f.text) && !/ماما أو بابا/.test(f.text), f.text.slice(0, 120));
+      ok('G6: ...and spends nothing either',
+        f.state.brave.length === 0 && f.state.anthropic === 0);
+    } finally {
+      globalThis.fetch = saved.fetch;
+      STORE.__resetRedis();
+      for (const k of ['FOUNDER_SECRET', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE',
+        'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LEDGER_RAG']) {
+        if (saved.env[k] === undefined) delete process.env[k]; else process.env[k] = saved.env[k];
+      }
+    }
   }
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
