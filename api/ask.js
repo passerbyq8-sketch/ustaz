@@ -31,10 +31,6 @@ import { decidePath } from '../lib/ledger/flag.js';
 // Deliberately a SECOND import from the same module rather than widening the line above:
 // ledger-contract-guard.cjs pins that import verbatim, and the pin is worth more than the tidiness.
 import { envMode } from '../lib/ledger/flag.js';
-// A THIRD separate line, for the same reason as the second. This one answers the ONE question
-// lib/ledger/telemetry.js refuses to answer for itself — «is this an internal tester?» — because
-// that module never inspects a request and says so. The seam has no `req`; this handler does.
-import { isInternalTester } from '../lib/ledger/flag.js';
 // THE SHARED POLICY CORE (RFC v0.5-R2 §3). The SAME tables the ledger path reads — not a copy,
 // and not a second opinion. What lives here is data and pure evaluators: the topic x audience
 // matrix, the deterministic child floor, and the sentence shapes an attribution grade may take.
@@ -1417,17 +1413,14 @@ export default async function handler(req, res) {
         search: (q, sites) => braveSearch(q, sites),
         startedAt: ledgerStartedAt,
         beforeFirstOutput: clearKeepAlive,
-        // ── THE TWO FACTS ONLY THIS HANDLER KNOWS ──────────────────────────
+        // THE ONE FACT ONLY THIS HANDLER KNOWS. `flagState` is decidePath()'s OWN reason code —
+        // 'mode_public', 'enabled', and so on — passed through rather than recomputed, so
+        // telemetry cannot disagree with the routing it is describing.
         //
-        // `flagState` is decidePath()'s OWN reason code — 'mode_public', 'enabled', and so on —
-        // passed through rather than recomputed, so telemetry cannot disagree with the routing it
-        // is describing.
-        //
-        // `internalTester` is the gate lib/ledger/telemetry.js will not open for itself: that
-        // module never looks at a request, by design, so the decision has to arrive from the one
-        // place holding a `req`. It governs the WRITE only — the record is built either way.
+        // There is no `internalTester` beside it any more: telemetry is written for every request
+        // as of 2026-08-07 (owner decision), because a request nobody can observe is a request the
+        // group test cannot count. See lib/ledger/telemetry.js record().
         flagState: ledgerPath.reason,
-        internalTester: isInternalTester(req),
       });
       // Counts and codes only. No question, no answer, no page text, no reader identity.
       console.log('[ledger]', {

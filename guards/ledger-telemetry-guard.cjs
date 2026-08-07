@@ -1,11 +1,16 @@
 // guards/ledger-telemetry-guard.cjs — lib/ledger/telemetry.js, and the engine that is supposed
 // to be feeding it.
 //
-// WHY THIS GATE EXISTS. telemetry.js shipped complete, careful and UNREACHED: six exports, a
-// hand-written allow-list, a 48-hour TTL, and not one import anywhere in the repo. Every one of
-// its own protections was therefore vacuously true — an allow-list that no caller uses refuses
-// nothing, because nothing is offered to it. A module can be perfect and still be dead code, and
-// nothing in the suite could tell the two apart.
+// WHY THIS GATE EXISTS. telemetry.js shipped complete, careful and UNREACHED BY ANY REQUEST: six
+// exports, a hand-written allow-list, a 48-hour TTL, and no importer in lib/ or api/ at all.
+// ledger-runtime-guard.cjs did unit-test it against synthetic shapes — so the allow-list was not
+// literally untried — but nothing in the SHIPPED path ever handed it a real request, so the one
+// promise that mattered, «every ledger request leaves a trace», was false and no gate could say so.
+// A module can be well tested and still be dead, and the suite could not tell the two apart.
+//
+// SINCE 2026-08-07 IT IS WRITTEN FOR EVERY REQUEST, not only an internal tester's (owner
+// decision): the group test cannot count a request nobody can observe. Section D asserts that
+// removal as a removal, and section I covers the collision the opening exposed.
 //
 // SO THE CENTRAL CHECK HERE IS A NEGATIVE ONE. Section C runs the engine and demands a trace come
 // back. Delete the wiring from lib/ledger/engine.js and section C fails; that is the whole point,
@@ -214,31 +219,50 @@ function recordingRedis() {
   }
 
   // =========================================================================
-  console.log('\n=== D. record() — WHAT IT WRITES, AND THE THREE THINGS IT REFUSES ===');
+  console.log('\n=== D. record() — WHAT IT WRITES, AND THE TWO THINGS IT REFUSES ===');
   {
-    // NOT INTERNAL. The module never inspects a request and says so in its header; the caller
-    // decides. A missing decision is a refusal, not a default-open.
-    const notInternal = await T.record(engineRecord, {});
-    eq('a caller that does not claim internal writes nothing',
-      notInternal, { written: false, reason: 'not-internal' });
+    // ── THE GATE THAT WAS REMOVED, ASSERTED AS REMOVED ────────────────────
+    //
+    // record() used to refuse unless the caller passed `internal: true`. As of 2026-08-07 it
+    // writes for every request (owner decision): the group test cannot count a request nobody can
+    // observe. The check is kept — inverted — rather than deleted, because "this used to refuse
+    // and must now not" is exactly the kind of reversal that gets silently reinstated later.
+    const fake0 = recordingRedis();
+    STORE.__setRedisForTest(fake0);
+    const noClaim = await T.record(engineRecord);
+    ok('a caller claiming nothing at all still writes', noClaim.written === true, JSON.stringify(noClaim));
+    const legacyArg = await T.record(engineRecord, { internal: false });
+    ok('...and an explicit internal:false is not a refusal either — the argument is dead',
+      legacyArg.written === true, JSON.stringify(legacyArg));
+    ok('no code path can answer "not-internal" any more',
+      noClaim.reason !== 'not-internal' && legacyArg.reason !== 'not-internal'
+        && !/not-internal/.test(read('lib/ledger/telemetry.js')));
+    STORE.__resetRedis();
+
+    // WHAT SURVIVED THE OPENING. The allow-list is now the ONLY thing keeping a reader's words out
+    // of this store, so it is re-asserted HERE, against the record an opened write actually
+    // carries, and not only against the synthetic shapes of section B.
+    ok('the record an opened write carries still holds no question and no page text',
+      !/[؀-ۿ]/.test(JSON.stringify(engineRecord)),
+      JSON.stringify(engineRecord).slice(0, 200));
 
     // BAD TRACE ID. The key is built from it, so an unvalidated one is a key injection.
     for (const bad of [undefined, '', 'ab', 'x'.repeat(49), 'has space', 'lg:colon']) {
-      const r = await T.record({ ...engineRecord, trace_id: bad }, { internal: true });
+      const r = await T.record({ ...engineRecord, trace_id: bad });
       ok('refuses trace id ' + JSON.stringify(bad), r.written === false && r.reason === 'bad-trace-id');
     }
 
     // STORE UNREACHABLE. An outage is an answer, not an exception.
     STORE.__setRedisForTest(null);
-    const down = await T.record(engineRecord, { internal: true });
+    const down = await T.record(engineRecord);
     eq('an unreachable store is reported, not thrown',
       down, { written: false, reason: 'store-unavailable' });
 
     // THE WRITE ITSELF.
     const fake = recordingRedis();
     STORE.__setRedisForTest(fake);
-    const up = await T.record(engineRecord, { internal: true });
-    ok('an internal caller with a good trace id writes', up.written === true, JSON.stringify(up));
+    const up = await T.record(engineRecord);
+    ok('a good trace id writes', up.written === true, JSON.stringify(up));
     eq('exactly one write', fake.writes.length, 1);
     const w = fake.writes[0];
     ok('the key is namespaced lg: like every other key this engine writes',
@@ -271,13 +295,13 @@ function recordingRedis() {
       const frames = [];
       return { frames, write(s) { frames.push(s); }, end() { frames.push('<<END>>'); } };
     };
-    const drive = async (internal) => {
+    const drive = async () => {
       const res = fakeRes();
       const out = await SEAM.runLedgerTurn(res, {
         messages: [{ role: 'user', content: Q }],
         band: 'adult', audienceBand: 'adult', bandSites: ['islamqa.info'],
         fetchImpl: stubFetch, search: async () => [],
-        flagState: 'mode_public', internalTester: internal,
+        flagState: 'mode_public',
         traceId: 'tr_fixed01',
         dailyBudget: new DB.DailySearchBudget({ limit: 100, now: () => 1770000000000, store: DB.fakeStore() }),
       });
@@ -291,9 +315,9 @@ function recordingRedis() {
     try {
       fake = recordingRedis();
       STORE.__setRedisForTest(fake);
-      withStore = await drive(true);
+      withStore = await drive();
       STORE.__setRedisForTest(null);
-      withoutStore = await drive(true);
+      withoutStore = await drive();
     } finally {
       STORE.__resetRedis();
       if (hadKey) process.env.ANTHROPIC_API_KEY = prevKey;
@@ -348,7 +372,7 @@ function recordingRedis() {
         messages: [{ role: 'user', content: Q }],
         band: 'adult', audienceBand: 'adult', bandSites: ['islamqa.info'],
         fetchImpl: stubFetch, search: async () => [],
-        flagState: 'mode_public', internalTester: true, traceId: 'tr_order1',
+        flagState: 'mode_public', traceId: 'tr_order1',
         dailyBudget: new DB.DailySearchBudget({ limit: 100, now: () => 1770000000000, store: DB.fakeStore() }),
       });
     } finally {
@@ -375,7 +399,7 @@ function recordingRedis() {
     const spy1 = recordingRedis();
     STORE.__setRedisForTest(spy1);
     const noQ = await SEAM.runLedgerTurn(fakeRes(), {
-      messages: [], internalTester: true, traceId: 'tr_noq001', flagState: 'mode_public',
+      messages: [], traceId: 'tr_noq001', flagState: 'mode_public',
       dailyBudgetMode: 'fixture',
     });
     ok('a turn with no readable question still leaves a trace',
@@ -389,7 +413,7 @@ function recordingRedis() {
     STORE.__setRedisForTest(spy2);
     await SEAM.runLedgerTurn(fakeRes(), {
       messages: [{ role: 'user', content: 'س' }],
-      internalTester: true, traceId: 'tr_throw1', flagState: 'mode_public',
+      traceId: 'tr_throw1', flagState: 'mode_public',
       dailyBudgetMode: 'fixture',
       // No `search` — the engine calls opts.search() and throws, which is the case being traced.
       search: null,
@@ -426,6 +450,50 @@ function recordingRedis() {
   }
 
   // =========================================================================
+  // =========================================================================
+  // THE COLLISION THE OPENING EXPOSED. The record is keyed `lg:t:<trace_id>`, and the trace id was
+  // a module-level counter — so it restarted at zero in every serverless instance and EVERY
+  // instance's first request was `tr_000001`. That was survivable while only internal testers
+  // wrote; at full volume each instance's first request silently overwrites every other's, and the
+  // group test counts keys rather than requests. An overwrite looks exactly like a request that
+  // never arrived, which is why this needs a gate and not a comment.
+  console.log('\n=== I. TRACE IDS ARE UNIQUE ACROSS INSTANCES, NOT JUST WITHIN ONE ===');
+  {
+    // Two module instances, which is what two cold serverless starts are.
+    const A = await esm('lib/ledger/schema.js');
+    const B = await esm('lib/ledger/schema.js?instance=2');
+    const a = [A.newTraceId(), A.newTraceId(), A.newTraceId()];
+    const b = [B.newTraceId(), B.newTraceId(), B.newTraceId()];
+    ok('two fresh instances do not produce the same first id',
+      a[0] !== b[0], 'A=' + a[0] + ' B=' + b[0]);
+    ok('...nor the same sequence at all',
+      a.every((x) => !b.includes(x)), 'A=' + JSON.stringify(a) + ' B=' + JSON.stringify(b));
+    ok('ids are still unique WITHIN an instance', new Set(a).size === a.length);
+
+    // The id is the key, so it must survive record()'s validator and store.key() untouched.
+    for (const id of a) {
+      ok('the generated id passes record()\'s own validator: ' + id,
+        /^[A-Za-z0-9_-]{3,48}$/.test(id));
+    }
+    const fake = recordingRedis();
+    STORE.__setRedisForTest(fake);
+    await T.record({ trace_id: a[0], outcome: 'FULL' });
+    eq('...and reaches the store as its own key', fake.writes[0].key, 'lg:t:' + a[0]);
+    STORE.__resetRedis();
+
+    // STILL NOT A CLOCK AND STILL NOT A HASH. The original contract on this id is that it carries
+    // nothing about the reader or the question; entropy must not have quietly become a timestamp.
+    const src = read('lib/ledger/schema.js').split('export function newTraceId')[1].split('\n}')[0];
+    ok('newTraceId derives nothing from the question or a hash',
+      !/hash|sha|question/i.test(src), src.slice(0, 160));
+    ok('...and is not a clock', !/Date\.now|getTime|new Date/.test(src), src.slice(0, 160));
+
+    // The seeded form is what fixtures and guards pin, and it must stay byte-stable.
+    eq('a seeded id is still fully deterministic', A.newTraceId(42), 'tr_000042');
+    eq('...and identical across instances', B.newTraceId(42), A.newTraceId(42));
+  }
+
+  // =========================================================================
   console.log('\n=== I. WIRING ===');
   {
     ok('gates.json lists this guard', /ledger-telemetry-guard\.cjs/.test(read('gates.json')));
@@ -434,8 +502,16 @@ function recordingRedis() {
     // The engine may BUILD but must never WRITE — that is what keeps the store off the answer path.
     ok('the engine never calls record() — building is pure, writing is the seam\'s job',
       !/telemetry\.record\(|\brecord\(rec/.test(read('lib/ledger/engine.js')));
-    ok('api/ask.js hands the seam the internal-tester decision telemetry.js will not make for itself',
-      /internalTester: isInternalTester\(req\)/.test(read('api/ask.js')));
+    // THE REMOVED THREADING, ASSERTED GONE FROM EVERY LAYER. Leaving a dead `internalTester` opt
+    // in the handler would read, to the next person, as a gate that still governs something.
+    // CODE, not mentions — `internalTester:` as a property or `.internalTester` as a read. Matching
+    // the bare word would fail on the COMMENTS that explain the removal, which is the same trap
+    // that caught the earlier «telemetry.js is never imported by a handler» check: a gate that
+    // punishes documenting the thing it guards is a gate that gets the documentation deleted.
+    ok('no layer still threads an internal-tester decision through to telemetry',
+      !/internalTester\s*[:.]/.test(read('api/ask.js'))
+      && !/internalTester\s*[:.]/.test(read('lib/ledger/seam.js'))
+      && !/\breturn\s*\{\s*written:\s*false,\s*reason:\s*'not-internal'/.test(read('lib/ledger/telemetry.js')));
     ok('...and the rollout arm, from decidePath\'s own reason code rather than a second derivation',
       /flagState: ledgerPath\.reason/.test(read('api/ask.js')));
   }

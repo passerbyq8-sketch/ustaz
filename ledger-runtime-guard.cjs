@@ -478,15 +478,20 @@ function fakeRedis() {
     ok('...and is not longer', TL.TELEMETRY_TTL_SECONDS <= 48 * 60 * 60);
     const redis = fakeRedis();
     STORE.__setRedisForTest(redis);
-    eq('a non-internal caller writes nothing',
-      (await TL.record({ trace_id: 'tr_1' }, { internal: false })).written, false);
-    ok('an internal caller writes', (await TL.record({ trace_id: 'tr_000003' }, { internal: true })).written);
+    // EVERY REQUEST IS WRITTEN, NOT ONLY A TESTER'S (owner decision, 2026-08-07). This used to
+    // assert the opposite — «a non-internal caller writes nothing» — and the inversion is kept
+    // rather than deleted so the reversal cannot be quietly reinstated. What makes it safe is the
+    // allow-list, asserted directly above and in guards/ledger-telemetry-guard.cjs section B; the
+    // `internal` flag limited VOLUME, never contents.
+    eq('a caller claiming nothing still writes — telemetry is no longer tester-only',
+      (await TL.record({ trace_id: 'tr_1' })).written, true);
+    ok('a plain caller writes', (await TL.record({ trace_id: 'tr_000003' })).written);
     ok('...under the lg: namespace', Array.from(redis._map.keys()).every((k) => k.startsWith('lg:')));
     eq('a malformed trace id writes nothing',
-      (await TL.record({ trace_id: 'ما حكم' }, { internal: true })).written, false);
+      (await TL.record({ trace_id: 'ما حكم' })).written, false);
   }
   ok('a trace id is not derived from the question',
-    !/hash|sha|question/i.test(read('lib/ledger/schema.js').split('export function newTraceId')[1].split('}')[0]));
+    !/hash|sha|question/i.test(read('lib/ledger/schema.js').split('export function newTraceId')[1].split('\n}')[0]));
 
   // =========================================================================
   console.log('\n=== E. THE INTERNAL CREDENTIAL IS THE EXISTING ONE ===');
