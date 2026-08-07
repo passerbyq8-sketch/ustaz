@@ -233,3 +233,9 @@ guards/adhkar-twins-guard.cjs text eol=lf
 lib/system-prompt.js text eol=lf
 lib/reader-fields.js text eol=lf
 guards/system-prompt-parity-guard.cjs text eol=lf
+
+# D13/D12/D06: the lock package gate. It drives api/unlock.js, api/parent-code.js and the
+# founder verifier against a store double and compares digests it computes itself, so a CR
+# introduced by core.autocrlf on one side of a comparison and not the other is a failure with
+# nothing to do with the locks.
+guards/lock-package-guard.cjs text eol=lf

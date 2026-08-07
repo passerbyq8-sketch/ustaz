@@ -313,5 +313,10 @@
   "name": "systemprompt",
   "script": "guards/system-prompt-parity-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "lockpackage",
+  "script": "guards/lock-package-guard.cjs",
+  "args": ""
  }
 ]

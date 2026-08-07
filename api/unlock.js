@@ -7,7 +7,24 @@
 // secret that lifts the daily cap also unlocks the deep tiers, with exactly one verifier for
 // both and no second implementation to drift.
 //
-// NO IP, here as everywhere: the attempt limit is keyed by deviceId alone.
+// D13 -- THIS FILE IS THE ONE EXCEPTION TO THE NO-IP RULE, and it is deliberate. The attempt
+// limit used to be keyed by deviceId alone, which an attacker defeats for free: a device id is
+// a string the caller invents, so minting a fresh one per try buys five more attempts every
+// time, and the only thing that ever really stood in the way was the global 50. That global is
+// a blunt instrument -- once it trips, NOBODY unlocks for the rest of the Kuwait day, the owner
+// included. A per-IP dimension is what makes the grinder pay for its own attempts instead of
+// spending the whole app's allowance.
+//
+// lib/daycap.js still reads no IP and MUST NOT START. The two questions are not the same one:
+// the day cap asks "how much has this child used?", where a household or school NAT would
+// collapse many children onto one bucket and cut off children who did nothing. An unlock
+// attempt asks "is someone grinding the secret?", where sharing an exit address is exactly the
+// signal wanted. Same word, opposite consequence.
+//
+// What is stored is a SHA-256 PREFIX of the address, never the address itself: the counter only
+// ever has to answer "the same caller as a moment ago?", which a digest answers, and a stolen
+// store dump then holds no readable address. The raw value is never logged, never echoed and
+// never interpolated into a key.
 //
 // Every Arabic character below is a \uXXXX escape and this file holds ZERO raw Arabic code
 // points -- the same rule directive 80 fixed lib/daycap.js under, for the same reason: a raw
@@ -19,9 +36,13 @@ import { Redis } from '@upstash/redis';
 import { safeId, founderTokenFor, hasValidFounderToken, kuwaitDayStamp, DAY_CAP_TTL_SECONDS } from '../lib/daycap.js';
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 
-// Attempts per device per Kuwait day, and across all devices per Kuwait day. The global one
-// exists because a per-device limit cannot stop an attacker who mints a new device id per try.
+// Attempts per device, per IP, and across everybody -- each per Kuwait day. The device limit is
+// the courteous one (a real owner mistyping their own PIN). The IP limit is the one that costs
+// an attacker something, because it is the only dimension they cannot mint more of for free.
+// The global one stays LAST RESORT: it stops a distributed attempt but it also stops the owner,
+// so the two narrower dimensions exist to keep it from ever being the thing that trips.
 const PER_DEVICE_ATTEMPTS = 5;
+const PER_IP_ATTEMPTS = 10;
 const GLOBAL_ATTEMPTS = 50;
 
 // Defined once. Never printed to a console, and never told apart by the caller: a wrong PIN, an
@@ -95,33 +116,64 @@ async function storePinHash(saltHex, hashHex) {
   }
 }
 
+// D13. The caller's address, reduced to a counter label and nothing else. Vercel puts the real
+// client address first in x-forwarded-for at the edge; x-real-ip is the fallback for a runtime
+// that sets only that. Returns null when neither is present, and then this dimension is simply
+// ABSENT -- the device and global dimensions still apply, so a missing header buys a caller a
+// looser limit but never an unlimited one. Refusing outright instead would take the app down on
+// any platform that stops setting the header.
+export function ipDigest(req) {
+  const h = (req && req.headers) || {};
+  const fwd = typeof h['x-forwarded-for'] === 'string' ? h['x-forwarded-for'].split(',')[0] : '';
+  const real = typeof h['x-real-ip'] === 'string' ? h['x-real-ip'] : '';
+  const raw = (fwd || real || '').trim();
+  if (!raw) return null;
+  // Truncated to 128 bits. That is far past any collision that matters for a per-day counter,
+  // and it keeps the key short. The digest is one-way: the store never holds the address.
+  return crypto.createHash('sha256').update(raw, 'utf8').digest('hex').slice(0, 32);
+}
+
 // Counts this attempt and reports whether the caller is locked out. FAIL-CLOSED: if the store
 // cannot be read the answer is "unavailable", which the handler turns into a refusal. An
 // attempt limiter that fails open is not a limiter -- it is an invitation to brute force.
-async function noteAttempt(deviceId) {
+//
+// EVERY dimension is judged BEFORE ANY of them is incremented. That ordering is the whole
+// substance of D13's promise that an exhausted IP "leaves the global untouched": if the check
+// and the increment were interleaved, a locked-out grinder would still be burning the app-wide
+// allowance on every refused try, and would take the owner down with it in a few thousand
+// requests -- which is precisely the attack the IP dimension was added to stop.
+async function noteAttempt(deviceId, ipHash) {
   const day = kuwaitDayStamp();
   const deviceKey = `ul:v1:d:${deviceId}:${day}`;
   const globalKey = `ul:v1:all:${day}`;
+  const ipKey = ipHash ? `ul:v1:ip:${ipHash}:${day}` : null;
   try {
     const r = client();
-    const current = await r.mget(deviceKey, globalKey);
+    const keys = ipKey ? [deviceKey, ipKey, globalKey] : [deviceKey, globalKey];
+    const current = await r.mget(...keys);
     const num = (v) => {
       if (v === null || v === undefined || v === '') return 0;
       const n = typeof v === 'number' ? v : Number.parseInt(String(v), 10);
       return Number.isFinite(n) ? n : NaN;
     };
     const used = num(current[0]);
-    const usedAll = num(current[1]);
+    const usedIp = ipKey ? num(current[1]) : 0;
+    const usedAll = num(current[ipKey ? 2 : 1]);
     // A counter we cannot read is not a zero. Refuse rather than hand out free attempts.
-    if (!Number.isFinite(used) || !Number.isFinite(usedAll)) return { unavailable: true };
-    if (used >= PER_DEVICE_ATTEMPTS || usedAll >= GLOBAL_ATTEMPTS) return { locked: true };
+    if (!Number.isFinite(used) || !Number.isFinite(usedIp) || !Number.isFinite(usedAll)) {
+      return { unavailable: true };
+    }
+    if (used >= PER_DEVICE_ATTEMPTS || usedIp >= PER_IP_ATTEMPTS || usedAll >= GLOBAL_ATTEMPTS) {
+      return { locked: true };
+    }
     const p = r.pipeline();
     p.incr(deviceKey); p.expire(deviceKey, DAY_CAP_TTL_SECONDS);
+    if (ipKey) { p.incr(ipKey); p.expire(ipKey, DAY_CAP_TTL_SECONDS); }
     p.incr(globalKey); p.expire(globalKey, DAY_CAP_TTL_SECONDS);
     await p.exec();
     return {};
   } catch (e) {
-    // No device id and no PIN in this line -- only the transport failure.
+    // No device id, no address and no PIN in this line -- only the transport failure.
     console.warn('[unlock] attempt store unreachable, fail-CLOSED:', e && e.message ? e.message : e);
     return { unavailable: true };
   }
@@ -148,7 +200,7 @@ export default async function handler(req, res) {
   // Attempt accounting runs BEFORE the comparison, so a wrong PIN is always counted and a
   // locked-out device never reaches the compare at all -- a correct PIN after lockout stays
   // refused for the rest of the Kuwait day.
-  const gate = await noteAttempt(deviceId);
+  const gate = await noteAttempt(deviceId, ipDigest(req));
   if (gate.unavailable) {
     return res.status(429).json({ error: 'unlock-unavailable', message: UNLOCK_MESSAGES['unlock-unavailable'] });
   }
