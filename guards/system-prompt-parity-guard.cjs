@@ -49,12 +49,17 @@ const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\
 // The measured fingerprints. Generated, not typed: they came from the D02ب port proof, where
 // the module and index.html's then-live copy were shown identical over 40 samples. Changing
 // the prompt is allowed -- changing it WITHOUT re-measuring these is not.
+// RE-MEASURED 2026-08-08 (تكليفُ «شكلِ الجواب»، البند ٣). What moved: the salam-reply golden rule
+// became a no-greeting rule, the «ابدأ بنص ترحيبي» tag rule became «ابدأ بمضمون الجواب», and the
+// fiqh example lost its «سُؤَالٌ جَمِيلٌ يَا هند!» opener. Every prompt grew by the same 424–430
+// bytes of prohibition, which is the arithmetic a reviewer should see: one edited region, five
+// samples moving together. A single sample moving alone would be the drift this pin exists to catch.
 const PINNED = [
-  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 53590, sha: '4b34983184c904896c21b837b9a05599c94d2d91a44745ff7a227773ca2ba42f' },
-  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 52079, sha: '4940f7cca468eb17a6a9d29e8bdf2b0f5b0101d4bd43cc83260f48b469e17f33' },
-  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 51859, sha: '8560d0133437301e0c053332994f3fc869c9a531dffa8300fd8b6d1894045ed0' },
-  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 66673, sha: 'd79f60840bac6cf9846838f1ac0f08b86bbd1e4276a2205baae5f4767fbf4487' },
-  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 64979, sha: 'd9a088d5dabd9d781e8c013aab2027a6b4bbbbcf5a411d8eac9de2bc0ca9efc6' },
+  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 54014, sha: 'd1e034c5ee6a678d95975efb67232231f73944acafb579020f417c616ffcb1d9' },
+  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 52509, sha: '3bd8a01b36768e6d5996220743f1d4713abfde3d3417d0e0c88f985f10ceff82' },
+  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 52283, sha: '1576bbbe585cb286cc0067b1df0fdcfb0b3e0444a44b2bab989e78c7e5df7096' },
+  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 67097, sha: 'd29d85d1f1f31ce26a2002343d6c224aed95423f093ec425f9e4c0caeaf09354' },
+  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 65409, sha: '56683803cbc50576f5414f0ed362e6d8e1032003fc4feb873b6ae8667116d93d' },
 ];
 
 (async function main() {

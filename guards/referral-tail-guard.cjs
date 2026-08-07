@@ -3,9 +3,20 @@
 //
 // ── WHY THE SERVER OWNS IT ───────────────────────────────────────────────────
 // «عزك ناقلٌ لا مفتٍ»: he transmits a ruling from a page and points the reader at the people who
-// actually issue rulings. That pointer must be there on a fatwa whether or not the model chose to
-// write one — an instruction is a request, and the model omits it exactly when the answer sounded
-// most confident. So the server appends it, deterministically, from wordings it owns.
+// actually issue rulings. When that pointer is owed, it must be there whether or not the model
+// chose to write one — an instruction is a request, and the model omits it exactly when the answer
+// sounded most confident. So the server appends it, deterministically, from wordings it owns.
+//
+// ── AND WHEN IS IT OWED? A MEASURED REFERRAL, NEVER A SUBJECT ────────────────
+// (تكليفُ «شكلِ الجواب» — ٨ أغسطس ٢٠٢٦، البند ٣)
+//
+// It used to be owed to a topic class, which meant every ordinary fiqh answer ended with a fixed
+// footer. The owner ruled that shape out: «لا يذكر شي غير الاجابات، والمصادر اصلا مذيله في كل
+// مره». So the trigger is now the server's own measured referral outcome, and this gate asserts
+// the inversion in BOTH directions — a fatwa gets nothing, a measured referral still does.
+//
+// The transmitter-not-mufti rule did not move. It is a measured behaviour — a ruling comes from a
+// fetched page carrying its own source card — not a sentence about itself.
 //
 // ── AND WHY IT VARIES ────────────────────────────────────────────────────────
 // One sentence repeated at the bottom of every answer is a sentence nobody reads. The set is
@@ -71,33 +82,77 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   }
 
   // =========================================================================
-  console.log('\n=== B. WHERE IT IS APPENDED ===');
+  console.log('\n=== B. A SUBJECT IS NOT A REFERRAL — THE FATWA FOOTER IS GONE ===');
   {
-    const APPEND = [
+    // THE WHOLE OF البند ٣. Every one of these used to end with one of the five wordings, on the
+    // strength of its topic class alone. That is the fixed footer the owner removed, and the
+    // measurement is here rather than in a live probe because a class is a pure function.
+    const RULINGS = [
       ['a fatwa', 'ما حكم بيع الذهب بالتقسيط؟', 'sharia_ruling'],
       ['a financial transaction', 'ما حكم التعامل بالعملات الرقمية؟', 'sharia_ruling'],
       ['a family matter', 'ما حكم الطلاق في الغضب؟', 'sharia_ruling'],
       ['a contemporary nazila', 'ما حكم التأمين الصحي الإلزامي؟', 'sharia_ruling'],
       ['a creed question', 'ما معنى توحيد الأسماء والصفات؟', 'sharia_ruling'],
       ['a named scholar\'s position', 'ما رأي ابن باز في التصوير؟', 'scholar_position'],
+      ['a ruling about prayer', 'هل تجب صلاة الجماعة على المسافر؟', 'sharia_ruling'],
+      ['a ruling about abandoning prayer', 'ما حكم من ترك الصلاة تكاسلًا؟', 'sharia_ruling'],
     ];
-    for (const [label, q, cls] of APPEND) {
-      ok(label + ' gets a referral', RT.referralTail(q, cls, 0) !== '', q);
-      ok('...and it is one of the server\'s own wordings',
-        RT.REFERRAL_TAILS.includes(RT.referralTail(q, cls, 0)));
+    for (const [label, q, cls] of RULINGS) {
+      // Asserted across the rotation: a footer that returned on turn 3 would be just as fixed.
+      let leaked = '';
+      for (let turn = 0; turn < 6; turn++) {
+        const t = RT.referralTail(q, cls, turn);
+        if (t) { leaked = 'turn ' + turn + ' → ' + t; break; }
+      }
+      eq(label + ' gets NO tail from its subject', leaked, '');
     }
+    // ...AND NOT BECAUSE THE ARGUMENT IS MISSING. An omitted 4th argument and an outcome that is
+    // simply not a referral must both be silent, or the gate would pass on a caller that forgot.
+    for (const bogus of ['', 'ALLOW', 'ALLOW_LIMITED', 'SAFETY_REDIRECT', 'nonsense', null, undefined]) {
+      eq('a non-referral outcome ' + JSON.stringify(bogus) + ' is silent',
+        RT.referralTail('ما حكم بيع الذهب بالتقسيط؟', 'sharia_ruling', 0, bogus), '');
+    }
+  }
+
+  // =========================================================================
+  console.log('\n=== B2. AND A MEASURED REFERRAL STILL GETS ONE ===');
+  {
+    // The mechanism is scoped, not deleted. If this section ever goes quiet, the tail has become
+    // dead code and the next reader should be told so rather than left to guess.
+    ok('the measured outcomes are declared as data',
+      Array.isArray(RT.MEASURED_REFERRAL_OUTCOMES) && RT.MEASURED_REFERRAL_OUTCOMES.length >= 1,
+      JSON.stringify(RT.MEASURED_REFERRAL_OUTCOMES));
+    ok('...and frozen', Object.isFrozen(RT.MEASURED_REFERRAL_OUTCOMES));
+    ok('the condition is exported under an explicit name',
+      typeof RT.isMeasuredReferralCase === 'function');
+    for (const o of RT.MEASURED_REFERRAL_OUTCOMES) {
+      ok('«' + o + '» is recognised as a measured referral', RT.isMeasuredReferralCase(o));
+      const t = RT.referralTail('ما حكم بيع الذهب بالتقسيط؟', 'sharia_ruling', 0, o);
+      ok('...and a ruling under it still gets the server\'s sentence', t !== '', o);
+      ok('...and it is one of the server\'s own wordings', RT.REFERRAL_TAILS.includes(t));
+    }
+    ok('a subject the server did not measure is not a referral',
+      !RT.isMeasuredReferralCase('sharia_ruling') && !RT.isMeasuredReferralCase(''));
+    // THE CONDITION IS NAMED IN THE CODE AND POINTS AT THE ASSIGNMENT (البند ٣ asks for exactly
+    // this, so that the next reader finds the reason and not just the behaviour).
+    const src = read('lib/policy/referral-tail.js');
+    ok('the module names the condition and records why it changed',
+      /MEASURED_REFERRAL_OUTCOMES/.test(src) && /شكلِ الجواب/.test(src), 'missing the named condition or its note');
   }
 
   // =========================================================================
   console.log('\n=== C. WHERE IT IS NOT ===');
   {
+    // MEASURED UNDER A REAL REFERRAL OUTCOME, or this section would pass on the outcome gate alone
+    // and stop saying anything about the class exclusions it was written for.
+    const REFERRED = RT.MEASURED_REFERRAL_OUTCOMES[0];
     for (const [label, q, cls] of [
       ['tafsir', 'ما معنى قوله تعالى في هذه الآية؟', 'tafsir'],
       ['hadith', 'ما صحة حديث إنما الأعمال بالنيات؟', 'hadith'],
       ['sira / biography', 'من هو الإمام البخاري؟', 'biography'],
       ['a quote check', 'هل قال ابن تيمية هذه العبارة؟', 'quote_verification'],
       ['an ordinary question', 'كيف أرتب يومي؟', 'general_knowledge'],
-    ]) eq(label + ' gets no referral', RT.referralTail(q, cls, 0), '');
+    ]) eq(label + ' gets no referral', RT.referralTail(q, cls, 0, REFERRED), '');
   }
 
   // =========================================================================
@@ -115,13 +170,17 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       'علمني أذكار النوم',
       'كم عدد ركعات صلاة الظهر وكيف أؤديها؟',
     ];
+    // ASSERTED UNDER A REAL REFERRAL OUTCOME. Under a non-referral outcome every one of these is
+    // silent for the outcome's sake, which would prove nothing about the worship exclusion — and
+    // the worship exclusion is the one line in this file that is a constitutional guarantee.
+    const REFERRED = RT.MEASURED_REFERRAL_OUTCOMES[0];
     for (const q of WORSHIP) {
       ok('no tail on «' + q + '»', RT.isFrozenWorshipQuestion(q), 'it must be recognised as frozen');
       // ASSERTED UNDER EVERY CLASS AND EVERY ROTATION, because the class is the thing most likely
       // to be wrong here: «كيف أتوضأ؟» is a `sharia_ruling` to the classifier.
       for (const cls of ['sharia_ruling', 'scholar_position', 'tafsir', 'hadith']) {
         for (let turn = 0; turn < 6; turn++) {
-          if (RT.referralTail(q, cls, turn) !== '') {
+          if (RT.referralTail(q, cls, turn, REFERRED) !== '') {
             ok('...and none under ' + cls + ' turn ' + turn, false, q);
             turn = 6; break;
           }
@@ -129,27 +188,23 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       }
     }
     ok('every worship question above is silent under every class and rotation', true);
-    // A RULING **ABOUT** PRAYER IS NOT THE STEPS OF PRAYER. «هل تجب صلاة الجماعة؟» is a fatwa and
-    // is entitled to the referral; «كيف أصلي؟» is a template to be recited whole.
-    for (const q of ['هل تجب صلاة الجماعة على المسافر؟', 'ما حكم من ترك الصلاة تكاسلًا؟']) {
-      ok('a RULING about prayer still gets one: «' + q + '»',
-        RT.referralTail(q, 'sharia_ruling', 0) !== '');
-    }
   }
 
   // =========================================================================
   console.log('\n=== E. IT VARIES ACROSS SUCCESSIVE ANSWERS ===');
   {
+    // Under a measured referral — the only place a tail exists at all now.
+    const R = RT.MEASURED_REFERRAL_OUTCOMES[0];
     const q = 'ما حكم بيع الذهب بالتقسيط؟';
-    const seq = [0, 1, 2, 3].map((t) => RT.referralTail(q, 'sharia_ruling', t));
+    const seq = [0, 1, 2, 3].map((t) => RT.referralTail(q, 'sharia_ruling', t, R));
     eq('four successive answers give four different wordings', new Set(seq).size, 4);
     ok('...and every one of them is from the server\'s set',
       seq.every((s) => RT.REFERRAL_TAILS.includes(s)));
     eq('the rotation is deterministic — the same turn gives the same wording',
-      RT.referralTail(q, 'sharia_ruling', 2), seq[2]);
+      RT.referralTail(q, 'sharia_ruling', 2, R), seq[2]);
     ok('a negative or absurd turn index still returns a wording, not a crash',
-      RT.REFERRAL_TAILS.includes(RT.referralTail(q, 'sharia_ruling', -7))
-      && RT.REFERRAL_TAILS.includes(RT.referralTail(q, 'sharia_ruling', 1e9)));
+      RT.REFERRAL_TAILS.includes(RT.referralTail(q, 'sharia_ruling', -7, R))
+      && RT.REFERRAL_TAILS.includes(RT.referralTail(q, 'sharia_ruling', 1e9, R)));
   }
 
   // =========================================================================
@@ -162,6 +217,12 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       /referralTail\(questionText, topicClass,/.test(ask));
     ok('...and rotates it on the conversation\'s own turn count',
       /referralTail\(questionText, topicClass, [A-Za-z]/.test(ask));
+    // ...AND PASSES THE MEASURED OUTCOME. Without the 4th argument the tail is silent everywhere,
+    // which LOOKS like compliance with البند ٣ while actually being a caller that forgot — and the
+    // day a measured referral surface needs the sentence, nobody would find out why it never came.
+    ok('...and passes the outcome the server measured, not the subject alone',
+      /referralTail\(questionText, topicClass, [A-Za-z]\w*, [A-Za-z][\w.]*\)/.test(ask),
+      'api/ask.js must call referralTail(question, class, turn, ageAccess.outcome)');
     // THE MODEL IS NEVER ASKED FOR IT. A prompt instruction is a request; this is an append.
     const code = ask.replace(/\/\*[\s\S]*?\*\//g, ' ')
       .split('\n').map((l) => l.replace(/(^|[^:])\/\/[^\r\n]*/, '$1')).join('\n');

@@ -163,8 +163,15 @@ const DEVICE = 'abcdefgh12345678';
       && PG.pathRefusal('https://dr-mutlaq.com/12345/some-article', '') === null);
 
     // ج — the tail appeared twice.
-    const tail = RT.referralTail('ما حكم بيع الذهب بالتقسيط؟', 'sharia_ruling', 5);
-    ok('a ruling question still earns a tail', !!tail);
+    // The tail is now owed to a MEASURED referral, never to the subject (تكليف «شكلِ الجواب»
+    // ٨ أغسطس ٢٠٢٦, البند ٣ — asserted in full by guards/referral-tail-guard.cjs). This section is
+    // about the once-per-reply rule, so it needs a real tail to deduplicate: it takes one the
+    // legitimate way rather than by the subject, and checks that the subject alone earns nothing.
+    const tail = RT.referralTail('ما حكم بيع الذهب بالتقسيط؟', 'sharia_ruling', 5,
+      RT.MEASURED_REFERRAL_OUTCOMES[0]);
+    ok('a measured referral still earns a tail', !!tail);
+    ok('...and a ruling question on its own earns none',
+      RT.referralTail('ما حكم بيع الذهب بالتقسيط؟', 'sharia_ruling', 5) === '');
     ok('RED→GREEN: a draft that already referred gets no second tail',
       RT.referralOnce('الجواب كذا. وَلِلاطْمِئْنَانِ فِي مَسْأَلَتِك، اعْرِضْهَا عَلَى مُفْتٍ أَوْ طَالِبِ عِلْمٍ ثِقَة.', tail) === '');
     ok('...even fully vocalised', RT.referralOnce('كذا، فَاسْأَلْ أَهْلَ الْعِلْمِ عِنْدَك.', tail) === '');
