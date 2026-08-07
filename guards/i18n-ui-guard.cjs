@@ -20,8 +20,10 @@
 //                         they carry ARIA, Escape closes the menu, the typed profile fields
 //                         survive a switch, and the choice is applied and persisted.
 //   E. THE BLAST RADIUS — every store this phase must not touch, compared before and after a
-//                         switch; and every file this phase must not touch, compared with the
-//                         commit the branch started from.
+//                         switch; the interface language proved to stay INSIDE the client, by
+//                         scanning the server for it rather than by forbidding edits to it; and
+//                         the two pages whose behaviour was just measured proved to be the two
+//                         pages that are actually committed.
 //
 // The Arabic this file looks for is collected in S below; every DIAGNOSTIC prints codepoints,
 // because a failure message carrying raw Arabic reorders under bidi and then lies about which
@@ -51,9 +53,10 @@ const REPO = path.resolve(__dirname, '..');
 const htmlFile = process.argv[2] || 'index.html';
 const html = fs.readFileSync(path.join(REPO, htmlFile), 'utf8');
 
-// The commit this branch started from. Every "unchanged" assertion in part E is measured
-// against it, so the guard states a fact about the branch rather than about the last save.
-const BASE = process.env.I18N_GUARD_BASE || '27112875ed6cac2cb15ea5c162832ed9eada737a';
+// There was a BASE commit id pinned here, and part E measured every "unchanged" assertion
+// against it. It is gone, with its reasoning recorded at part E2: a fixed commit cannot anchor
+// a permanent claim, and this one had drifted 52 commits behind HEAD and past its own
+// description. Nothing in this file names a commit any more.
 
 const S = {
   LANG_KEY: 'ezik_ui_lang_v1',
@@ -73,7 +76,9 @@ function eq(name, actual, expected) {
   const a = JSON.stringify(actual), e = JSON.stringify(expected);
   return ok(name, a === e, 'expected ' + e + '\n        actual   ' + a);
 }
-function skip(name, why) { checks++; skipped++; console.log('  SKIP  ' + name + '  (' + why + ')'); }
+// A skipped check is NOT a check. It used to increment `checks`, which is how the last line came
+// to read "OK: 232/232 checks passed" on a machine where a whole section had not run.
+function skip(name, why) { skipped++; console.log('  SKIP  ' + name + '  (' + why + ')'); }
 const plain = (v) => JSON.parse(JSON.stringify(v));
 const cps = (x) => Array.prototype.map.call(String(x == null ? '' : x),
   (c) => 'U+' + c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')).join(' ');
@@ -674,7 +679,7 @@ async function partD() {
 
 /* ===================== E. THE BLAST RADIUS =============================== */
 async function partE() {
-  console.log('\n=== E. WHAT THIS PHASE MUST NOT HAVE TOUCHED ===');
+  console.log('\n=== E. THE BLAST RADIUS ===');
 
   // --- E1. the stores, across a real switch ---
   const seed = {
@@ -708,172 +713,132 @@ async function partE() {
   eq('...and every request the app did make is same-origin and local',
     c.net().filter((u) => !/^\//.test(u)), []);
 
-  // --- E2. the files, against the commit this branch started from ---
-  const diff = (() => {
-    try {
-      return cp.execSync('git diff --name-only ' + BASE, { cwd: REPO, encoding: 'utf8' })
-        .split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
-    } catch (e) { return null; }
-  })();
-  if (diff === null) { skip('the blocked files are untouched', 'git unavailable'); return; }
-  console.log('  ..  files changed since ' + BASE.slice(0, 7) + ': ' + JSON.stringify(diff));
-
-  // theme-coverage-guard.cjs is on this list by an EXPLICIT, NARROW authorisation and nothing
-  // else: it carried an assertion that required the duplicate chat panel to exist, so the panel
-  // could not be removed while it stood. The permission was to change THAT assertion and no
-  // other, and the next block proves the diff kept to it.
-  const ALLOWED = ['index.html', 'quest.html', 'guards/i18n-ui-guard.cjs', 'theme-coverage-guard.cjs'];
-  eq('nothing outside the allow-list was modified', diff.filter((f) => ALLOWED.indexOf(f) === -1), []);
-
-  if (diff.indexOf('theme-coverage-guard.cjs') !== -1) {
-    const was = (() => { try { return cp.execSync('git show ' + BASE + ':theme-coverage-guard.cjs', { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28 }); } catch (e) { return null; } })();
-    const now = fs.readFileSync(path.join(REPO, 'theme-coverage-guard.cjs'), 'utf8');
-    if (ok('the shipped guard the phase was allowed to touch is readable at both ends', !!was)) {
-      const L = (s) => s.replace(/\r\n/g, '\n').split('\n');
-      const before = L(was), after = L(now);
-      const gone = before.filter((l) => after.indexOf(l) === -1);
-      // ---------------------------------------------------------------------------------
-      // TWO authorisations, each literal, each closed. A file on the allow-list is NOT a file
-      // that may be edited freely: what is permitted is a named list of exact lines, and any
-      // other difference is still a FAIL.
-      //
-      // (1) S116, the interface-language phase: ONE line, the assertion that pinned the
-      //     duplicate chat panel and therefore stopped the panel being removed.
-      // (2) THE APPLE-PRIVACY PHASE (5.1.1(i) / 5.1.2(i)): eight further lines, all of them
-      //     assertions that described code this phase had to change --
-      //       * two that pinned a BARE fetch() to /api/tts and /api/stt, which now must go
-      //         through aiFetch, the consent choke point;
-      //       * one that pinned the call barrier order without the consent barrier in it;
-      //       * three that pinned the OLD recogniser shape (window.SpeechRecognition, new SR(),
-      //         rec.start()), which now go through the consent-checked factory and starter;
-      //       * one that pinned the inline four-statement recogniser teardown, now ezKillRecognizer.
-      //     Each is paired below with the successor line that MUST be present, so a removal
-      //     cannot be authorised without its replacement actually landing.
-      const S116_REMOVED = "ok('the chat entry is part of the composition', /<EzistAsk /.test(IST) && /className=\"ezhome-focus ezist-ask\"/.test(IST));";
-      const AP_REMOVED = [
-        "  /await fetch\\('\\/api\\/tts'/.test(html));",
-        "    /if \\(childVoiceBlocked\\(\\)\\) return; \\/\\/ غ‑٣[\\s\\S]{0,200}?if \\(!hasFounderToken\\(\\)\\) return; \\/\\/ directive 82[\\s\\S]{0,120}?callGenRef\\.current\\+\\+;/.test(callFx));",
-        "ok('O12: speech OUT still goes to the shipped endpoint', /await fetch\\('\\/api\\/tts'/.test(html));",
-        "  /await fetch\\('\\/api\\/stt', \\{ method: 'POST', headers: \\{ 'Content-Type': 'application\\/json' \\}, body: JSON\\.stringify\\(\\{ audio: b64, mime: blob\\.type, band \\}\\) \\}\\)/.test(html));",
-        "  /const SR = window\\.SpeechRecognition \\|\\| window\\.webkitSpeechRecognition;/.test(callFx)",
-        "  && /const rec = SR \\? new SR\\(\\) : null;/.test(callFx));",
-        "  (callFx.match(/rec\\.start\\(\\);/g) || []).length, 2);",
-        "    ['the recogniser handlers and the recogniser', /rec\\.onresult = null; rec\\.onend = null; rec\\.onerror = null; rec\\.stop\\(\\);/],",
-      ];
-      // The successors, and the four analytics assertions this phase added: no Vercel Web
-      // Analytics, no Speed Insights, no substitute tool, and a script count that is EXACTLY
-      // three rather than "three or fewer".
-      const AP_REQUIRED_NEW = [
-        "ok('O12: speech OUT still goes to the shipped endpoint', /await aiFetch\\('\\/api\\/tts'/.test(html));",
-        "  /await aiFetch\\('\\/api\\/tts'/.test(html));",
-        "  /await aiFetch\\('\\/api\\/stt', \\{ method: 'POST', headers: \\{ 'Content-Type': 'application\\/json' \\}, body: JSON\\.stringify\\(\\{ audio: b64, mime: blob\\.type, band \\}\\) \\}\\)/.test(html));",
-        "    /if \\(childVoiceBlocked\\(\\)\\) return; \\/\\/ غ‑٣[\\s\\S]{0,400}?if \\(!hasValidAIConsent\\(\\)\\) return;[\\s\\S]{0,200}?if \\(!hasFounderToken\\(\\)\\) return; \\/\\/ directive 82[\\s\\S]{0,120}?callGenRef\\.current\\+\\+;/.test(callFx));",
-        "  /const SR = ezSpeechEngine\\(\\);/.test(callFx)",
-        "  && /const rec = ezNewRecognition\\(\\);/.test(callFx)",
-        "  (callFx.match(/ezStartRecognition\\(rec\\)/g) || []).length, 2);",
-        "    ['the recogniser handlers and the recogniser', /ezKillRecognizer\\(rec\\);/],",
-        "ok('S1: no Vercel Web Analytics script is loaded', !/<script[^>]*_vercel\\/insights/.test(html));",
-        "ok('S1: no Speed Insights script is loaded', !/<script[^>]*_vercel\\/speed-insights/.test(html));",
-        "ok('S1: and no substitute analytics tool took their place',",
-        "eq('S1: the page loads exactly three scripts', (html.match(/<script[^>]*src=[\"'][^\"']+[\"']/gi) || []).length, 3);",
-      ];
-      const AUTHORISED = [S116_REMOVED].concat(AP_REMOVED);
-
-      // Exact set equality, both directions. An unlisted removal fails; a listed removal that
-      // did not happen fails too, so this block cannot rot into a blanket permission.
-      eq('exactly the authorised lines were removed from it', gone.length, AUTHORISED.length);
-      eq('...and every removed line is on the authorised list',
-        gone.filter((l) => AUTHORISED.indexOf(l) === -1), []);
-      eq('...and every authorised removal actually happened',
-        AUTHORISED.filter((l) => gone.indexOf(l) === -1), []);
-      ok('...and the S116 removal is still the assertion that required the panel to exist',
-        gone.indexOf(S116_REMOVED) !== -1, JSON.stringify(gone[0]));
-      eq('...and every authorised removal landed its named replacement',
-        AP_REQUIRED_NEW.filter((l) => after.indexOf(l) === -1), []);
-      // Nothing was softened: no check downgraded to a warning, no blanket skip, and the file
-      // still runs strictly more assertions than it did.
-      const count = (s) => (s.match(/^\s*(ok|eq)\(/gm) || []).length;
-      ok('...no assertion was turned into a warning or a skip',
-        count(now) > count(was) && !/\bwarn\(/.test(now)
-        && (now.match(/\bskip\(/g) || []).length === (was.match(/\bskip\(/g) || []).length,
-        count(was) + ' -> ' + count(now));
-      // ...and the ok()/eq() OPENING lines that went are exactly the two authorised ones.
-      eq('...and no other ok()/eq() line was dropped',
-        before.filter((l) => /^\s*(ok|eq)\(/.test(l) && after.indexOf(l) === -1)
-              .filter((l) => AUTHORISED.indexOf(l) === -1), []);
+  // --- E2. the language never leaves the client ---
+  //
+  // WHAT STOOD HERE, AND WHY IT DOES NOT ANY MORE.
+  //
+  // This section used to run `git diff --name-only <BASE>` against a commit id written into the
+  // source of this file, and assert that api/**, lib/ledger/**, tools/**, gates.json,
+  // recon-audit.cjs, the package manifests, the scripture data and the shipped guards were all
+  // "untouched". Those are statements about ONE PHASE's diff. They can only be true for the
+  // length of that phase; from the next commit onward they are false BY CONSTRUCTION -- not
+  // because anything regressed, but because time passed.
+  //
+  // Measured, not assumed. The pin was 27112875 (2026-08-04). Fifty-two commits later it failed
+  // ELEVEN of its own assertions, and every one of the eleven named work that had been authored,
+  // gated and merged on purpose: api/** by D01/D02a/D05, lib/ledger/** and the sourcing modules
+  // by the ledger batches, tools/** by the Apple-privacy phase, gates.json and recon-audit.cjs by
+  // D14 -- fourteen commits between them. Not one was a regression.
+  //
+  // The pin had also stopped being what its own comment called it. "The commit this branch
+  // started from" is `git merge-base main HEAD`, and main has since absorbed 27112875 entirely;
+  // the real merge-base is a different commit. Re-anchoring there fixes nothing -- thirty-six of
+  // the same files sit in that diff too. The defect was never which commit was named. It was the
+  // QUESTION: a guard whose answer has to become "no" is not measuring a regression, it is
+  // measuring the calendar. And because the whole block hung on git, a machine without git
+  // turned all of it into a single SKIP and the last line still read "OK: n/n checks passed".
+  //
+  // So each expired scope seal is replaced by the permanent property it was standing in for --
+  // true at every HEAD, false only on a real defect.
+  //
+  // The fear behind "the server is untouched" was that the interface language would leak out of
+  // the client and start being decided, stored or translated on the server. Said that way, it is
+  // checkable forever, and it needs no git at all.
+  const SCAN_EXT = /\.(js|cjs|mjs|html)$/;
+  const walk = (rel, out) => {
+    let entries;
+    try { entries = fs.readdirSync(path.join(REPO, rel), { withFileTypes: true }); } catch (e) { return out; }
+    for (const e of entries) {
+      const r = rel ? rel + '/' + e.name : e.name;
+      if (e.isDirectory()) { if (e.name !== 'node_modules') walk(r, out); }
+      else if (SCAN_EXT.test(e.name)) out.push(r);
     }
-  }
-
-  const FORBIDDEN = [
-    [/^api\//, 'api/**'],
-    [/^lib\/ledger\//, 'lib/ledger/**'],
-    [/^lib\/(binothaimeen|attribution|ask-plan|retrieve|brave-query|source-registry|source-purpose|claim-gate|duration)\.js$/, 'the search and sourcing modules'],
-    [/^data\/ledger-/, 'data/ledger-*'],
-    [/^tools\//, 'tools/**'],
-    // Rooted on purpose (THIS file lives in guards/), and theme-coverage-guard.cjs is excluded
-    // because the block above proves what happened to it, line by line, instead of forbidding it.
-    [/^(?!theme-coverage-guard\.cjs$)[^/]*guard\.cjs$/, 'the shipped guards'],
-    [/^gates\.json$/, 'gates.json'],
-    [/^recon-audit\.cjs$/, 'recon-audit.cjs'],
-    [/^quest-data\//, 'quest-data/**'],
-    [/^(quran-uthmani|quran-golden|adhkar|mushaf-layout|worship-golden|worship-display|referral-golden)\.json$/, 'scripture, adhkar and worship data'],
-    [/^(manifest\.json|sw\.js)$/, 'the manifest and the service worker'],
-    [/^(package\.json|package-lock\.json)$/, 'the package manifests'],
-    [/^vercel\.json$/, 'the deployment config'],
-    [/^(android|ios)\//, 'the native projects'],
-    [/capacitor/i, 'the Capacitor config'],
-  ];
-  for (const [re, label] of FORBIDDEN) {
-    eq(label + ' is untouched', diff.filter((f) => re.test(f)), []);
-  }
-  // This file is a guard by name; it is the one exception, and it ships nothing to a user.
-  eq('...and the only guards in the diff are this one and the authorised one',
-    diff.filter((f) => /guard\.cjs$/.test(f)
-      && f !== 'guards/i18n-ui-guard.cjs' && f !== 'theme-coverage-guard.cjs'), []);
-
-  // --- E3. the things measured by content, not by name ---
-  const at = (f) => { try { return cp.execSync('git show ' + BASE + ':' + f, { cwd: REPO, encoding: 'buffer', maxBuffer: 1 << 28 }); } catch (e) { return null; } };
-  const now = (f) => { try { return fs.readFileSync(path.join(REPO, f)); } catch (e) { return null; } };
-  // Compared with line endings normalised, deliberately. `git show` hands back the stored blob,
-  // and .gitattributes pins several of these files to a DIFFERENT ending in the working tree, so
-  // a raw byte compare would report a change nobody made. What is being asserted is content.
-  const norm = (b) => (b == null ? null : b.toString('utf8').replace(/\r\n/g, '\n'));
-  const same = (f) => { const a = norm(at(f)), b = norm(now(f)); return a !== null && b !== null && a === b; };
-  for (const f of ['quran-uthmani.json', 'adhkar.json', 'mushaf-layout.json', 'worship-golden.json',
-    'quest-data/rewards.json', 'quest-data/world.json', 'quest-data/bank-integrity-golden.json',
-    'manifest.json', 'sw.js', 'package.json', 'package-lock.json', 'vercel.json']) {
-    ok(f + ' is, content-for-content, the file the branch started from', same(f));
-  }
-
-  // Theme 33: the token blocks, not a screenshot. CSS comments are stripped first -- the prose
-  // in this stylesheet NAMES tokens while explaining them, and a scanner reads its own
-  // explanation as a declaration.
-  const baseHtml = norm(at('index.html')) || '';
-  const nowHtml = norm(now('index.html')) || '';
-  const tokenBlock = (s) => s.slice(s.indexOf(':root {'), s.indexOf('</style>')).replace(/\/\*[\s\S]*?\*\//g, ' ');
-  const varsOf = (s) => {
-    const out = {};
-    for (const m of s.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;}]+)[;}]/g)) if (!(m[1] in out)) out[m[1]] = m[2].trim();
     return out;
   };
-  const vBase = varsOf(tokenBlock(baseHtml)), vNow = varsOf(tokenBlock(nowHtml));
-  ok('the theme declares a real token set to compare', Object.keys(vBase).length > 40, Object.keys(vBase).length + ' tokens');
-  eq('no theme token was removed', Object.keys(vBase).filter((k) => !(k in vNow)), []);
-  eq('no theme token changed its value', Object.keys(vBase).filter((k) => vBase[k] !== vNow[k]), []);
-  eq('...and this phase declared no new token', Object.keys(vNow).filter((k) => !(k in vBase)), []);
+  const slurp = (f) => { try { return fs.readFileSync(path.join(REPO, f), 'utf8'); } catch (e) { return ''; } };
+
+  const serverTree = ['api', 'lib'].reduce((acc, d) => walk(d, acc), []);
+  const scanned = ['api', 'lib', 'tools', 'guards'].reduce((acc, d) => walk(d, acc), [])
+    .concat(fs.readdirSync(REPO).filter((f) => SCAN_EXT.test(f)));
+  ok('the leak scan reached a real corpus', scanned.length > 50 && serverTree.length > 20,
+    scanned.length + ' files scanned, ' + serverTree.length + ' of them server-side');
+
+  // Exact set equality, both directions -- the same discipline the authorisation block used, kept.
+  // A new file naming the key fails; and if one of the three stops naming it, that fails too,
+  // so this cannot rot into a check that passes because it stopped finding anything.
+  eq('the interface-language key is named by exactly the two pages and this guard',
+    scanned.filter((f) => slurp(f).indexOf(S.LANG_KEY) !== -1).sort(),
+    ['guards/i18n-ui-guard.cjs', 'index.html', 'quest.html']);
+  eq('...and no server module reads the device language',
+    serverTree.filter((f) => /navigator\s*\.\s*languages?/.test(slurp(f))), []);
+  eq('...and no server module carries an interface dictionary',
+    serverTree.filter((f) => /\bUI_STRINGS\b|\bQUEST_I18N\b/.test(slurp(f))), []);
+
+  // The theme, as a property of the page rather than as a diff against a dead commit. What the
+  // old seal wanted was "this phase changed no colour"; what is true forever is that the token
+  // set is complete -- every token the stylesheet USES is one the stylesheet DECLARES. A removed
+  // or renamed token is exactly what that catches, and it catches it at any HEAD.
+  const nowHtml = html.replace(/\r\n/g, '\n');
+  const tokenBlock = nowHtml.slice(nowHtml.indexOf(':root {'), nowHtml.indexOf('</style>')).replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const declaredTokens = {};
+  for (const m of tokenBlock.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;}]+)[;}]/g)) {
+    if (!(m[1] in declaredTokens)) declaredTokens[m[1]] = m[2].trim();
+  }
+  const usedTokens = [...new Set([...tokenBlock.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]))];
+  ok('the theme declares a real token set', Object.keys(declaredTokens).length > 40,
+    Object.keys(declaredTokens).length + ' tokens declared, ' + usedTokens.length + ' used');
+  eq('every theme token the stylesheet uses is one it declares',
+    usedTokens.filter((t) => !(t in declaredTokens)), []);
+
+  // The theme GATE, not the theme. theme-coverage-guard.cjs sat on the old allow-list under a
+  // narrow, literal authorisation: a named list of exact lines could leave it and nothing else.
+  // That authorisation is spent -- the lines went, the phase closed, main absorbed it, and the
+  // block that policed it could only ever fire against the dead pin. What it was really guarding
+  // is that the gate did not get SOFTENED while the permission was open, and THAT survives as a
+  // property of the file itself: no warning, no skip, and a full board still standing.
+  const tcg = slurp('theme-coverage-guard.cjs');
+  const tcgAssertions = (tcg.match(/^\s*(ok|eq)\(/gm) || []).length;
+  ok('the theme gate still runs a full board of assertions', tcgAssertions >= 780, tcgAssertions + ' assertions');
+  ok('...and none of them was downgraded to a warning', tcg !== '' && !/\bwarn\(/.test(tcg));
+  ok('...and none of them was downgraded to a skip', tcg !== '' && !/\bskip\(/.test(tcg));
+
+  // --- E3. what was proved is what is committed ---
+  // The behaviour asserted above was measured by RUNNING these pages off the disk. If they carry
+  // uncommitted edits then the proof is about a working copy while the repository holds something
+  // else, and the run is worth less than it looks. This is the same discipline attribution-guard
+  // already applies to the same two files, and it is ALL that part E still needs git for.
+  //
+  // These are the git-dependent checks. When git is absent they are SKIPPED BY NAME and counted,
+  // and the last line of this guard reports that count instead of folding it into the total.
+  const GIT_DEPENDENT = [
+    [htmlFile, 'the page whose behaviour was just measured has no uncommitted edit'],
+    ['quest.html', '...and neither has the journey page'],
+  ];
+  const pending = (() => {
+    try {
+      return cp.execSync('git status --porcelain', { cwd: REPO, encoding: 'utf8' })
+        .split(/\r?\n/).map((l) => l.slice(3).trim()).filter(Boolean)
+        .map((p) => p.replace(/^"|"$/g, '').split(' -> ').pop());
+    } catch (e) { return null; }
+  })();
+  for (const [file, name] of GIT_DEPENDENT) {
+    if (pending === null) { skip(name, 'git unavailable'); continue; }
+    ok(name, pending.indexOf(file) === -1, 'uncommitted: ' + JSON.stringify(pending.filter((f) => f === file)));
+  }
 
   // --- E4. the ledger is still off by default ---
-  const flag = fs.readFileSync(path.join(REPO, 'lib', 'ledger', 'flag.js'), 'utf8');
+  const flag = slurp('lib/ledger/flag.js');
   ok('the ledger env floor is still closed unless LEDGER_RAG is exactly "on"',
     /=== 'on'/.test(flag));
-  ok('...and lib/ledger is not in the diff', diff.filter((f) => /^lib\/ledger\//.test(f)).length === 0);
 
   // --- E5. no secret was introduced ---
-  const added = ['index.html', 'quest.html', 'guards/i18n-ui-guard.cjs']
-    .filter((f) => diff.indexOf(f) !== -1)
-    .map((f) => String(now(f) || '')).join('\n');
-  ok('no key, token or secret appears in anything this phase wrote',
-    !/(sk-[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{20,}|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY)/.test(added));
+  // Unconditional now. This used to scan only the files git reported as changed, so on a machine
+  // without git -- and on any run where the diff came back empty -- it scanned nothing at all and
+  // still passed.
+  const surface = ['index.html', 'quest.html', 'guards/i18n-ui-guard.cjs'].map(slurp).join('\n');
+  ok('the secret scan actually has something to read', surface.length > 10000, surface.length + ' chars');
+  ok('no key, token or secret appears in the pages this phase owns',
+    !/(sk-[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{20,}|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY)/.test(surface));
 }
 
 /* ===================== F. THE TREASURE JOURNEY =========================== */
@@ -948,7 +913,13 @@ function partF() {
   await partE();
   partF();
   console.log('');
-  if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed' + (skipped ? ('  (' + skipped + ' skipped)') : '') + '.');
-  else console.log('FAILED: ' + failures + ' of ' + checks + ' checks failed.');
+  // The skipped count is stated on its own and never folded into the total. A run that could not
+  // reach git covered fewer things than a run that could, and the last line has to say so: the
+  // old line reported "OK: n/n checks passed" while a whole section had been skipped wholesale.
+  const tail = skipped
+    ? '  —  ' + skipped + ' check(s) SKIPPED and therefore NOT covered by this run.'
+    : '';
+  if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed.' + tail);
+  else console.log('FAILED: ' + failures + ' of ' + checks + ' checks failed.' + tail);
   process.exit(failures === 0 ? 0 : 1);
 })().catch((e) => { console.log('GUARD ERROR:\n' + String(e && e.stack ? e.stack : e)); process.exit(1); });
