@@ -7,7 +7,7 @@
 // and every engine session plays Google's start/stop tone. Recording locally and
 // transcribing here removes BOTH -- and the API key never reaches the device.
 // ============================================================
-import { checkAudioLimit } from '../lib/ratelimit.js';
+import { checkAudioLimit, applyCorsOrigin } from '../lib/ratelimit.js';
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 
 const MODEL_IDS = ['scribe_v2', 'scribe_v1']; // second is a fallback if the first is rejected
@@ -15,7 +15,7 @@ const LANGUAGE_CODE = 'ara';                  // ISO 639-3, Arabic
 const MAX_AUDIO_BYTES = 3 * 1024 * 1024;      // one turn of opus is tens of KB; bigger is abuse or a bug
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + AI_CONSENT_ALLOW_HEADERS);
 

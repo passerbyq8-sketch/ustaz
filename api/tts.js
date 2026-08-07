@@ -17,7 +17,7 @@
 // ============================================================
 // اختيار الصوت حسب جنس الطفل
 // ============================================================
-import { checkAudioLimit } from '../lib/ratelimit.js';
+import { checkAudioLimit, applyCorsOrigin } from '../lib/ratelimit.js';
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 
 const FEMALE_VOICE_ID = 'qi4PkV9c01kb869Vh7Su';  // صوت بناتي للبنات
@@ -43,7 +43,7 @@ const LANGUAGE_CODE = 'ar';
 const MAX_TTS_CHARS = 8000;
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + AI_CONSENT_ALLOW_HEADERS);
 

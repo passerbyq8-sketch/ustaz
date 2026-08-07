@@ -17,6 +17,7 @@
 import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
 import { safeId, founderTokenFor, hasValidFounderToken, kuwaitDayStamp, DAY_CAP_TTL_SECONDS } from '../lib/daycap.js';
+import { applyCorsOrigin } from '../lib/ratelimit.js';
 
 // Attempts per device per Kuwait day, and across all devices per Kuwait day. The global one
 // exists because a per-device limit cannot stop an attacker who mints a new device id per try.
@@ -127,7 +128,7 @@ async function noteAttempt(deviceId) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder');
 

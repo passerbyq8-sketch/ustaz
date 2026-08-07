@@ -14,7 +14,7 @@
 // the KV_REST_API_* vars Vercel injects. The throttle lives in lib/ratelimit.js.
 
 import { Redis } from '@upstash/redis';
-import { checkReportLimit } from '../lib/ratelimit.js';
+import { checkReportLimit, applyCorsOrigin } from '../lib/ratelimit.js';
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -49,7 +49,7 @@ function cut(v, n) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 

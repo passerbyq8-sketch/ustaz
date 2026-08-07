@@ -12,7 +12,7 @@
 // التأخير المُضاف: ~0.5-1 ثانية فقط (Haiku سريع جداً)
 // ============================================================
 
-import { checkAudioLimit } from '../lib/ratelimit.js';
+import { checkAudioLimit, applyCorsOrigin } from '../lib/ratelimit.js';
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 
 // Hard input cap: skip diacritization for oversized text so we never spend Haiku
@@ -23,7 +23,7 @@ import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 const MAX_TASHKEEL_CHARS = 5000;
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + AI_CONSENT_ALLOW_HEADERS);
 
