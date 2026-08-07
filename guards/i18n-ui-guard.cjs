@@ -253,10 +253,13 @@ async function partA() {
     !/\bfetch\s*\(|XMLHttpRequest|import\s*\(|EventSource|navigator\.sendBeacon/.test(i18nBlock));
   ok('...and no dictionary is loaded from a URL',
     !/https?:\/\//.test(i18nBlock));
+  // Five devDependencies, not four: @babel/parser was declared (D35) because classifier-guard.cjs
+  // requires it directly and had been resolving on @babel/core's transitive copy. The count stays
+  // exact, so a sanctioned declaration cannot become cover for an unsanctioned addition.
   ok('...and no dependency was added',
     (() => {
       const pkg = JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8'));
-      return Object.keys(pkg.dependencies || {}).length === 5 && Object.keys(pkg.devDependencies || {}).length === 4;
+      return Object.keys(pkg.dependencies || {}).length === 5 && Object.keys(pkg.devDependencies || {}).length === 5;
     })());
 }
 

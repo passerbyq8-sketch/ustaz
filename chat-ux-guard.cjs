@@ -1681,11 +1681,15 @@ function partE() {
     if (h && hosts.indexOf(h) === -1) hosts.push(h);
   });
   eq('...and reaches no host it did not already reach', hosts.filter((h) => EXPECTED_HOSTS.indexOf(h) === -1), []);
+  // FIVE devDependencies, not the four that stood before: @babel/parser was DECLARED (D35),
+  // because classifier-guard.cjs requires it directly and had been resolving on @babel/core's
+  // transitive copy. Declaring what we require is the whole change -- the count stays exact so
+  // that "we declared one we already used" cannot quietly become "we declared one and added one".
   ok('no dependency was added to package.json',
     (() => {
       try {
         const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-        return Object.keys(pkg.dependencies || {}).length === 5 && Object.keys(pkg.devDependencies || {}).length === 4;
+        return Object.keys(pkg.dependencies || {}).length === 5 && Object.keys(pkg.devDependencies || {}).length === 5;
       } catch (e) { return false; }
     })());
 }
