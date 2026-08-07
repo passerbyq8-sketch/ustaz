@@ -244,6 +244,11 @@ guards/lock-package-guard.cjs text eol=lf
 # fetcher to read the header actually sent, so a CR introduced by core.autocrlf on one side of
 # a comparison and not the other is a failure with nothing to do with honesty.
 guards/source-honesty-guard.cjs text eol=lf
+# The telemetry gate compares a record it BUILT against a record it read back out of a store
+# double, and asserts byte-identical socket frames across two runs. Both comparisons are exact, so
+# a CR introduced by core.autocrlf on one side and not the other would be a failure with nothing
+# to do with telemetry.
+guards/ledger-telemetry-guard.cjs text eol=lf
 tools/soft-404.cjs text eol=lf
 lib/domain-budget.js text eol=lf
 lib/policy/takhrij-disclosure.js text eol=lf
