@@ -571,7 +571,15 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       same defect as wird (58th) in the same place: a real guard over a shipped feature,
   //       sitting outside the roster, asserting nothing. It passed 99/0 unchanged on the day
   //       it was listed, so listing it cost no edit to the guard itself.
-  const GATES_EXPECTED = 60;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
+  // D15: 60 -> 61. 61st i18nui -- guards/i18n-ui-guard.cjs, 245 assertions over the two
+  //       interface languages, and nothing ran it. Same defect as wird (58th) and madinahafs
+  //       (60th) in the same place. It differs from those two in one way worth recording: it
+  //       could NOT be listed unchanged. Its part E was anchored to a commit id pinned in its
+  //       own source, so it failed 11 of its own assertions on any tree that had moved past
+  //       that commit -- and converted the whole section to a single SKIP when git was absent
+  //       while still printing "232/232 checks passed". D07 re-anchored it first; the eleven
+  //       were adjudicated one by one and every one was a stale scope seal, not a regression.
+  const GATES_EXPECTED = 61;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >

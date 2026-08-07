@@ -216,3 +216,6 @@ guards/voice-safety-guard.cjs text eol=lf
 # pinned here. The file itself is not touched by that item -- only checked out as LF
 # from here on, like every other gate.
 tools/madina-hafs-guard.cjs text eol=lf
+
+# D15: i18n-ui-guard joins the roster, same mechanical requirement as D14 above.
+guards/i18n-ui-guard.cjs text eol=lf

@@ -298,5 +298,10 @@
   "name": "madinahafs",
   "script": "tools/madina-hafs-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "i18nui",
+  "script": "guards/i18n-ui-guard.cjs",
+  "args": ""
  }
 ]
