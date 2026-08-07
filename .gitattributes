@@ -254,6 +254,12 @@ guards/ledger-telemetry-guard.cjs text eol=lf
 # by core.autocrlf on one side and not the other would be a failure with nothing to do with the
 # disclosure.
 guards/live-search-disclosure-guard.cjs text eol=lf
+
+# «شكلُ الجواب» (٨ أغسطس ٢٠٢٦) — the gate runs the prompt generator and matches Arabic sentences
+# against its output, so a CRLF working tree on one machine would break the line-oriented preamble
+# detector for reasons that have nothing to do with the answer's shape.
+guards/answer-shape-guard.cjs text eol=lf
+
 tools/soft-404.cjs text eol=lf
 lib/domain-budget.js text eol=lf
 lib/policy/takhrij-disclosure.js text eol=lf

@@ -123,7 +123,9 @@ function wrapSystem(system) {
 
 // Depth-based instruction. Returns '' for brief (no injection), or the Arabic
 // instruction text for 'deep' (مفصّل) / 'scholar' (طالب العلم). Approved verbatim.
-function buildDepthInstruction(depth) {
+// EXPORTED so guards/answer-shape-guard.cjs can RUN it rather than read the file for its text —
+// this is the depth mode's real composition surface, and البند ٤ measures what it imports.
+export function buildDepthInstruction(depth) {
   if (depth === 'deep') {
     // ── لا قالبَ عناوينَ ولا تمهيد (تكليف «شكلُ الجواب» ٨ أغسطس ٢٠٢٦) ──────────
     // The four mandated headings opened every مفصّل answer with a section literally called

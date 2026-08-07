@@ -333,5 +333,10 @@
     "name": "livesearch",
     "script": "guards/live-search-disclosure-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "answershape",
+    "script": "guards/answer-shape-guard.cjs",
+    "args": ""
   }
 ]
