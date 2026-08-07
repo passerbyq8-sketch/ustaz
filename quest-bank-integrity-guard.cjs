@@ -41,6 +41,9 @@
  *                      "al-Kamil fi al-Tarikh" (11 volumes) proves nothing on its own.
  *   B9 protected    -- sha256 of each of the 394 protected questions equals the hash
  *                      recorded from commit 17bb52a. This is the load-bearing check.
+ *   B10 sealed 13   -- sha256 of the eight quest-data files, the three scripture /
+ *                      adhkar / layout files, the manifest and the service worker.
+ *                      Unconditional: no git, no branch, no skip.
  *
  * USAGE
  *   node quest-bank-integrity-guard.cjs --emit    > quest-data/bank-integrity-golden.json
@@ -48,10 +51,42 @@
  */
 'use strict';
 const fs = require('fs');
+const path = require('path');
 const crypto = require('crypto');
 
 const BANK = 'quest-data/trivia-golden.json';
 const PROTECTED_CATS = ['quran', 'juz-amma', 'juz-tabarak', 'prayer'];
+
+// ---------------------------------------------------------------------------
+// THE SEALED THIRTEEN. Every file here carries scripture, adhkar, the mushaf
+// layout, the question bank, or the two files that decide what a phone installs
+// and caches. None of them may move without the seal being re-cut deliberately.
+//
+// This list used to live in chat-ux-guard.cjs, inside the ELSE arm of a
+// `git diff --name-only HEAD` probe. When git was absent -- a fresh export, a
+// container, any CI image without .git -- the probe threw, the guard reported
+// one honest failure about the blast radius, and the seal below it NEVER RAN.
+// A reader saw a single red line about git and read it as harmless plumbing;
+// the thirteen went unchecked. The most valuable guarantee in the repository
+// cannot be a passenger on a `git` lookup, and it does not belong inside a
+// user-experience guard at all. It runs here, unconditionally, and a mismatch
+// prints the file, the expected digest and the actual one.
+// ---------------------------------------------------------------------------
+const SEALED = {
+  'quest-data/trivia-golden.json': '4066160153f7648e7eeb145edae0ed43a2d24048d549ce076b37a6e144a425a9',
+  'quest-data/reveal-golden.json': 'b3a89a4997b9b9ab6c91bd26a020e2e85a8d697ffec19bbd29937885d3819743',
+  'quest-data/quran-quest-golden.json': 'd657ce9fcad754afd75ab96dbb3a8670d056cb3f103c37b689a4d51f31d9fefc',
+  'quest-data/prayer-quest-golden.json': 'fdff7d29711735f0ce72e62c025a7596b9c2d3c6d0f254e9f198854d812b5807',
+  'quest-data/bank-integrity-golden.json': '04877fb4faa2f21786a1b65f2be4f879bcccfd7af0f3621b4abefb31afef46ec',
+  'quest-data/content-review-manifest.json': 'ae79702252e711f11804e2c0cf36166d085649035b032106fe3e8658c08ced85',
+  'quest-data/rewards.json': '536caf3d048ca3e11361135b635a6284916ba286c4139ac5b8f8f176e6e84ba3',
+  'quest-data/world.json': '6da5033bef577784238e7ab98d356dc8cf345958215d3232bad221922feb751b',
+  'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
+  'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
+  'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
+  'manifest.json': '4b96523dac293c0c7a663888aee0ea749786e57613786a0f6287e12c75905f1a',
+  'sw.js': '4de761376cbffba7801c385b913bafd0bc5bd58afbc52e5b14771a87bab19759',
+};
 
 // ---------------------------------------------------------------------------
 // Arabic, as escapes only.
@@ -335,6 +370,32 @@ function compare(goldenPath) {
     if (!d.questions.some(q => q.id === id)) { touched++; no('B9', id + ' disappeared from the bank'); }
   }
   if (!touched) ok('all ' + g.protectedCount + ' protected questions are byte-for-byte unchanged');
+
+  // -- B10 the sealed thirteen ---------------------------------------------
+  // No `if git`, no `try`. Every file is opened and hashed on every run, and the
+  // count of what was actually hashed is printed so a silent skip is impossible
+  // to mistake for a pass.
+  console.log('\n-- B10 sealed files (unconditional: no git, no skip) --');
+  const sealNames = Object.keys(SEALED);
+  let sealed = 0, sealBad = 0;
+  for (const f of sealNames) {
+    const p = path.join(__dirname, f);
+    if (!fs.existsSync(p)) {
+      sealBad++; no('B10', f + ' is ABSENT -- sealed as ' + SEALED[f]);
+      continue;
+    }
+    const h = crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+    sealed++;
+    if (h !== SEALED[f]) {
+      sealBad++;
+      no('B10', f + ' MOVED');
+      console.log('         sealed ' + SEALED[f]);
+      console.log('         actual ' + h);
+    }
+  }
+  console.log('  sealed files hashed: ' + sealed + '/' + sealNames.length);
+  if (sealed !== sealNames.length) no('B10', 'only ' + sealed + ' of ' + sealNames.length + ' sealed files were readable');
+  if (!sealBad) ok('all ' + sealNames.length + ' sealed files are byte-for-byte unchanged');
 
   console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  ' + pass + ' checks passed, ' + fail + ' failed.');
   process.exit(fail ? 1 : 0);

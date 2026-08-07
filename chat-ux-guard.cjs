@@ -1440,38 +1440,17 @@ function partE() {
     // deliberately (the scholar-attribution gate lives in api/ask.js and lib/), and a path check
     // that forbids what the current work is FOR stops being a guard and becomes an obstacle.
     // Nothing is lost by it: the server has its own gates — classifier-guard, referral-guard and
-    // attribution-guard — and the data those files must never touch is asserted by SHA-256 below,
-    // which is a stronger promise than a filename ever was. What remains here is the set that no
-    // web phase and no server phase may move: the native wrappers, the manifest, the service
-    // worker, the deployment config, and every file carrying scripture or the question bank.
+    // attribution-guard. What remains here is the set that no web phase and no server phase may
+    // move: the native wrappers, the manifest, the service worker, the deployment config, and
+    // every file carrying scripture or the question bank.
     const FORBIDDEN = /^(android|ios|capacitor|quest-data)\/|^(manifest\.json|sw\.js|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json|worship-display\.json)$/;
     const bad = changed.filter((f) => FORBIDDEN.test(f));
     eq('no manifest, service worker, platform or scripture file is modified', bad, []);
-    // The question bank and the scripture, by content rather than by filename.
-    const crypto = require('crypto');
-    const SEALED = {
-      'quest-data/trivia-golden.json': '4066160153f7648e7eeb145edae0ed43a2d24048d549ce076b37a6e144a425a9',
-      'quest-data/reveal-golden.json': 'b3a89a4997b9b9ab6c91bd26a020e2e85a8d697ffec19bbd29937885d3819743',
-      'quest-data/quran-quest-golden.json': 'd657ce9fcad754afd75ab96dbb3a8670d056cb3f103c37b689a4d51f31d9fefc',
-      'quest-data/prayer-quest-golden.json': 'fdff7d29711735f0ce72e62c025a7596b9c2d3c6d0f254e9f198854d812b5807',
-      'quest-data/bank-integrity-golden.json': '04877fb4faa2f21786a1b65f2be4f879bcccfd7af0f3621b4abefb31afef46ec',
-      'quest-data/content-review-manifest.json': 'ae79702252e711f11804e2c0cf36166d085649035b032106fe3e8658c08ced85',
-      'quest-data/rewards.json': '536caf3d048ca3e11361135b635a6284916ba286c4139ac5b8f8f176e6e84ba3',
-      'quest-data/world.json': '6da5033bef577784238e7ab98d356dc8cf345958215d3232bad221922feb751b',
-      'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
-      'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
-      'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
-      'manifest.json': '4b96523dac293c0c7a663888aee0ea749786e57613786a0f6287e12c75905f1a',
-      'sw.js': '4de761376cbffba7801c385b913bafd0bc5bd58afbc52e5b14771a87bab19759',
-    };
-    const moved = [];
-    Object.keys(SEALED).forEach((f) => {
-      const p = path.join(__dirname, f);
-      if (!fs.existsSync(p)) { moved.push(f + ' (absent)'); return; }
-      const h = crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
-      if (h !== SEALED[f]) moved.push(f + ' -> ' + h.slice(0, 16));
-    });
-    eq('every scripture, adhkar and question-bank file is byte-for-byte unchanged', moved, []);
+    // The SHA-256 seal on those same thirteen files used to sit right here, inside this `else`.
+    // That made the strongest promise in the repository conditional on `git` being installed:
+    // where git was absent the seal did not fail, it did not run. It now lives in
+    // quest-bank-integrity-guard.cjs (gate `bankintegrity`, check B10), where it runs on every
+    // tree with no condition attached. One source, not two — do not re-add a copy here.
   }
 
   // 19) every style key this phase adds is a token, so light and dark both work by construction
