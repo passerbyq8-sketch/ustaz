@@ -32,3 +32,6 @@ worship-golden.json
 docs/
 spike/
 lib/data/adhkar.json
+.env*
+babel-block.jsx
+vendor/
