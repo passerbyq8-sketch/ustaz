@@ -74,6 +74,26 @@ const DEVICE = 'abcdefgh12345678';
     }
     ok('«عبدالرحمن» is not excluded by containing «الرحمن» — whole words only',
       NP.worldLookupAllowed('خالد عبدالرحمن') === true);
+
+    // ── «مَن» IS TWO WORDS, AND ONLY ONE OF THEM ASKS WHO ──────────────────
+    // MEASURED: the interrogative and the relative/conditional «مَن» shared one frame, so the
+    // subject of an ordinary fiqh question was captured as a name and the reader was told «لا
+    // أعرف هذا الاسم: أفطر ناسيًا». Nine of ten questions of this shape were read that way.
+    for (const q of ['من أفطر ناسيًا؟', 'من نسي الوضوء؟', 'من ترك الصلاة عمدًا؟',
+      'من قرأ سورة الكهف؟', 'من مات ولم يحج؟', 'من اغتاب أخاه؟', 'من حلف كاذبًا؟']) {
+      ok('a VERBAL sentence is not a name: «' + q + '»', NP.probeShape(q, '').probe === false);
+    }
+    // The dialectal words are never relative pronouns, so they need no copula — the clause test
+    // is what stops them, and it must.
+    for (const q of ['مين أفطر ناسيًا؟', 'منو صام رمضان؟', 'شكون قرأ سورة الكهف؟']) {
+      ok('...in the dialectal frame too: «' + q + '»', NP.probeShape(q, '').probe === false);
+    }
+    // AND THE CAPABILITY IS NOT TRADED AWAY. A real identity question still probes.
+    for (const q of ['من هو محمد صلاح؟', 'من هي أنجلينا جولي؟', 'مين محمد صلاح؟',
+      'منو خالد عبدالرحمن؟', 'من هو فلان الفلاني؟']) {
+      ok('a real identity question still probes: «' + q + '»',
+        NP.probeShape(q, '').kind === NP.PRESENCE.IDENTITY_SHAPE);
+    }
   }
 
   // =========================================================================
