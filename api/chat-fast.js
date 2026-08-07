@@ -21,8 +21,13 @@
 // mirror it here (and vice-versa) or the two relays will drift.
 //
 // This relay is LIVE: index.html (callAI, FAST_CHANNEL_ENABLED=true) POSTs GEN-
-// classified CALL turns here. It still carries NO prompt of its own (see SAFETY NOTE);
-// the client sends the GEN system prompt + messages, and this relay swaps in Haiku.
+// classified CALL turns here, and this relay swaps in Haiku.
+//
+// D02ب CORRECTS THE LINE THAT STOOD HERE. It used to say this relay "carries NO prompt of its
+// own — the client sends the GEN system prompt". That is no longer true and was never safe: it
+// meant the text telling this route to refuse every religious subject was supplied by the
+// caller, who could simply not send it. Both prompts on this route now come from
+// lib/system-prompt.js and the body's `system` is discarded unread.
 
 /* 15 */
 import { checkChatLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS, applyCorsOrigin } from '../lib/ratelimit.js';
@@ -35,6 +40,11 @@ import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '.
 // api/chat.js keeps a private copy of this; api/ask.js imports the shared one. This relay takes
 // the shared one, so the third door does not become a third definition.
 import { lastUserText } from '../lib/attribution.js';
+// D02ب: this relay carries its two prompts now instead of taking them from the body. Which of
+// the two it builds is decided by max_tokens -- the SAME discriminator this file already uses
+// for isClassifierTurn below, so no new field was invented to carry the distinction.
+import { CLASSIFIER_SYSTEM_PROMPT, buildFastGenPrompt } from '../lib/system-prompt.js';
+import { readerFromBody, narrowestBand } from '../lib/reader-fields.js';
 
 // THE CLASSIFIER TURN, IDENTIFIED. This relay carries TWO different things: the route classifier
 // (index.html:7879 — `max_tokens: 8`, one word of output, never spoken to the child) and the GEN
@@ -132,29 +142,37 @@ export default async function handler(req, res) {
     // Ephemeral caching on the system prompt, identical to api/chat.js. For the thin
     // call-mode prompt this is effectively a no-op (below the cache minimum) but it is
     // harmless, degrades gracefully, and keeps this relay byte-faithful to its sibling.
-    if (typeof parsed.system === 'string' && parsed.system.trim()) {
-      parsed.system = [{ type: 'text', text: parsed.system, cache_control: { type: 'ephemeral' } }];
-    } else if (Array.isArray(parsed.system)) {
-      for (let i = parsed.system.length - 1; i >= 0; i--) {
-        if (parsed.system[i] && parsed.system[i].type === 'text') {
-          if (!parsed.system[i].cache_control) parsed.system[i].cache_control = { type: 'ephemeral' };
-          break;
-        }
-      }
-    }
+    // D02ب: BOTH prompts on this route are ours. Whatever `system` arrived is discarded unread.
+    //
+    // This relay serves two different turns and they need different text: the classifier, whose
+    // one word nobody hears, and the thin GEN answer, which a child does hear. They are told
+    // apart by max_tokens -- already clamped on the line above, and already this file's own test
+    // for isClassifierTurn further down. Using the existing discriminator keeps the two decisions
+    // (which prompt, and which policy) reading the same signal; a second field could disagree
+    // with itself.
+    const reader = readerFromBody(parsed);
+    const classifierTurnForPrompt = Number(parsed.max_tokens) <= CLASSIFIER_MAX_TOKENS;
+    delete parsed.system;
+    parsed.system = [{
+      type: 'text',
+      text: classifierTurnForPrompt ? CLASSIFIER_SYSTEM_PROMPT : buildFastGenPrompt(reader.age),
+      cache_control: { type: 'ephemeral' },
+    }];
+    for (const k of ['name', 'age', 'gender', 'mode']) if (parsed[k] !== undefined) delete parsed[k];
 
     // SIBLING CONTRACT (api/chat.js C): `band` is a field this app adds so the policy below has
     // something to govern by, and /v1/messages 400s on an unknown top-level field. Read it, then
     // strip it, exactly as the sibling does.
     //
-    // 🩸 MEASURED, AND IT IS A HOLE THIS FILE CANNOT CLOSE ALONE: index.html:7931 sends `band`
-    //    ONLY when `endpoint === '/api/chat'`. Neither the classifier body (index.html:7879) nor
-    //    the GEN answer body (index.html:7933) carries it, so in production this reads `undefined`
-    //    and resolveAudience returns the unknown-reader default — band 'adult'
-    //    (lib/policy/age.js:133). The band-INDEPENDENT hazard refusal below therefore protects
-    //    every reader; the band-DEPENDENT floor does not fire until the client is taught to send
-    //    `band` here too. That is a one-line index.html change, and it is NOT in this batch.
-    voiceBand = typeof parsed.band === 'string' ? parsed.band : undefined;
+    //    THE HOLE NAMED HERE IS CLOSED (D02ب/م٥). It used to read: index.html sent `band` ONLY
+    //    when `endpoint === '/api/chat'`, so neither body on THIS route carried it, this read
+    //    `undefined`, and resolveAudience returned the unknown-reader default — 'adult'
+    //    (lib/policy/age.js). The band-INDEPENDENT hazard refusal protected every reader, but
+    //    the band-DEPENDENT floor below never fired for anyone. The client now sends `band` to
+    //    all three routes, and `age` with it, so the floor has something real to govern by.
+    //
+    //    Two claims, one reader, and the NARROWER wins — same rule as the two siblings.
+    voiceBand = narrowestBand(parsed.band, reader.age);
     if (parsed.band !== undefined) delete parsed.band;
 
     outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.

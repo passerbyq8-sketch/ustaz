@@ -6,6 +6,10 @@ import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 // two files is two lists, and the one that goes stale is always the one nobody is looking at.
 import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION } from '../lib/policy/core.js';
 import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
+// D02ب: this relay builds the voice prompt itself now. It used to forward whatever `system` the
+// client posted -- see lib/system-prompt.js for why that was the defect and not the design.
+import { buildSystemPrompt } from '../lib/system-prompt.js';
+import { readerFromBody, narrowestBand } from '../lib/reader-fields.js';
 
 // The reader's own words for THIS turn. Same shape api/ask.js reads: the content may be a plain
 // string or the block array the voice client sends.
@@ -121,21 +125,30 @@ export default async function handler(req, res) {
     //     already an array (future-proof), just ensure the LAST text block carries
     //     cache_control without double-adding. Prompt caching is GA on anthropic-version
     //     2023-06-01 — no beta header required.
-    if (typeof parsed.system === 'string' && parsed.system.trim()) {
-      parsed.system = [{ type: 'text', text: parsed.system, cache_control: { type: 'ephemeral' } }];
-    } else if (Array.isArray(parsed.system)) {
-      for (let i = parsed.system.length - 1; i >= 0; i--) {
-        if (parsed.system[i] && parsed.system[i].type === 'text') {
-          if (!parsed.system[i].cache_control) parsed.system[i].cache_control = { type: 'ephemeral' };
-          break;
-        }
-      }
-    }
+    //     D02ب: THE TEXT IS OURS, NOT THE BODY'S. Whatever `system` arrived is discarded
+    //     unread and the prompt is built here from the four sanitised reader fields. The
+    //     caching below is unchanged -- one cached text block, exactly as before -- because
+    //     what changed is where the string comes from, not how it is sent.
+    const reader = readerFromBody(parsed);
+    delete parsed.system;
+    parsed.system = [{
+      type: 'text',
+      text: buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode),
+      cache_control: { type: 'ephemeral' },
+    }];
+    // The four fields are OURS to read and not Anthropic's to receive -- /v1/messages 400s on
+    // an unknown top-level field, exactly as it does for `band` in (C) below.
+    for (const k of ['name', 'age', 'gender', 'mode']) if (parsed[k] !== undefined) delete parsed[k];
 
     // (C) THE AGE BAND IS OURS TO READ AND NOT ANTHROPIC'S TO RECEIVE. `band` is a field this app
     //     adds so the policy below has something to govern by; /v1/messages rejects the whole
     //     request on an unknown top-level field, exactly as `output_config` above does.
-    voiceBand = typeof parsed.band === 'string' ? parsed.band : undefined;
+    //     D02ب: `age` now arrives alongside `band`, so there are two claims about one reader.
+    //     Neither becomes a server fact -- both came from the same untrusted body -- but the
+    //     NARROWER of the two wins, so a body claiming 'adult' while declaring age 7 is read
+    //     as young. `reader.age` is used rather than parsed.age because the delete above has
+    //     already run, and because it is the sanitised value the prompt itself was built from.
+    voiceBand = narrowestBand(parsed.band, reader.age);
     if (parsed.band !== undefined) delete parsed.band;
 
     outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.

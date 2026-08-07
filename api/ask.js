@@ -62,6 +62,10 @@ import { lastUserText } from '../lib/attribution.js';
 // THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
 // it reads nothing from the store for a reader who is not an internal tester.
 import { decideLegacyPolicy } from '../lib/legacy-policy-flag.js';
+// D02ب: the system prompt is built HERE now, from four sanitised fields, and `body.system` is
+// read by nothing. See lib/system-prompt.js for why the client stopped owning it.
+import { buildSystemPrompt } from '../lib/system-prompt.js';
+import { readerFromBody, narrowestBand } from '../lib/reader-fields.js';
 // LIVE WORLD RETRIEVAL — the news/current-affairs classifier. Pure and lexical, like
 // lib/route-classify.js: it decides whether a question the router already called GENERAL is
 // one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
@@ -487,9 +491,18 @@ export default async function handler(req, res) {
   if (!body || typeof body !== 'object' || !Array.isArray(body.messages) || body.messages.length === 0) {
     return res.status(400).json({ error: 'messages array required' });
   }
-  if (typeof body.system !== 'string' && !Array.isArray(body.system)) {
-    return res.status(400).json({ error: 'system string required' });
-  }
+  // D02ب: `system` IS NO LONGER A FIELD OF THIS API. It used to be REQUIRED here -- the client
+  // built the whole ~50KB prompt and posted it, and this route forwarded it to the vendor. So the
+  // text governing what the model may say to a child arrived from the client being governed, and
+  // every rule inside it was advisory: a hand-rolled POST replaced all of them at once.
+  //
+  // It is now DROPPED, before anything reads the body, so there is no path by which a supplied
+  // value could reach a prompt build. The contract that replaces the old 400 is the four reader
+  // fields below, and their rule is the opposite of a rejection: an absent or unusable field
+  // never widens scope, it resolves to the narrowest reading (lib/reader-fields.js). Rejecting
+  // instead would have broken every caller at once while making nobody safer.
+  if (body.system !== undefined) delete body.system;
+  const reader = readerFromBody(body);
 
   // Body-size cap (bug 6): the client controls system+messages verbatim, so an
   // oversized body is pure upstream cost. Reject before the SSE commit + the
@@ -534,7 +547,15 @@ export default async function handler(req, res) {
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (effectiveDepth === 'deep' || effectiveDepth === 'scholar') ? 'high' : 'medium';
   // Age band for RAG source-gating (khilaf-policy §6). Optional; absent/garbled => undefined => retrieve() fails CLOSED to the minor list (NOT adult).
-  const band = (body.band === 'young' || body.band === 'teen' || body.band === 'adult') ? body.band : undefined;
+  //
+  // D02ب: `age` now arrives too, so there are TWO claims about the same reader. NEITHER is
+  // promoted to a server fact -- both come from the same untrusted body, and this app still has
+  // no server-verified age (the only verified identity is the founder HMAC, which carries none).
+  // But two claims can check each other, and the NARROWER wins: a body claiming band 'adult'
+  // while declaring age 7 is read as young. That is the same rule lib/policy/age.js applies
+  // between a server band and a client claim -- a claim may RESTRICT and may not RELEASE -- and
+  // it means the prompt's own persona fork and this band can never disagree about who is reading.
+  const band = narrowestBand(body.band, body.age);
   // BAND GATE (khilaf-policy §1/§2/§3). The depth instruction is ADULT-ONLY. 'scholar' orders the model
   // to present up to FOUR differing scholarly opinions with evidence; injecting that into a child's
   // system prompt is a direct policy breach. Mirrors usePremium (next line) and scholarMode (round 2),
@@ -545,7 +566,9 @@ export default async function handler(req, res) {
     ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-4-8')
     : (process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5');
   console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, usePremium, model });
-  const system = appendDepthBlock(wrapSystem(body.system), depthInstruction);
+  // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
+  // deleted at parse time, so there is not even a value in scope to fall back to.
+  const system = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
 
   // DETERMINISTIC ROUTE (lib/route-classify.js). Decided HERE, on the server, from the
   // messages themselves -- never from a client-supplied field, because the whole point is
