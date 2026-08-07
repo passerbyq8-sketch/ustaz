@@ -219,3 +219,9 @@ tools/madina-hafs-guard.cjs text eol=lf
 
 # D15: i18n-ui-guard joins the roster, same mechanical requirement as D14 above.
 guards/i18n-ui-guard.cjs text eol=lf
+
+# D41: adhkar-twins-guard joins the roster, same mechanical requirement as D14/D15 above.
+# It matters more here than for most: this gate compares the two adhkar.json copies by RAW
+# BYTES, so a CR introduced on one side by core.autocrlf and not the other IS the failure it
+# reports. Both copies are already pinned eol=lf above, and so is the guard itself.
+guards/adhkar-twins-guard.cjs text eol=lf

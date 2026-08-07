@@ -585,7 +585,15 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       that commit -- and converted the whole section to a single SKIP when git was absent
   //       while still printing "232/232 checks passed". D07 re-anchored it first; the eleven
   //       were adjudicated one by one and every one was a stale scope seal, not a regression.
-  const GATES_EXPECTED = 61;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
+  // D41: 61 -> 62. 62nd adhkartwins -- guards/adhkar-twins-guard.cjs, a SHA-256 comparison of
+  //       the two adhkar.json copies: the root one that SHIPS to the browser and lib/data/ the
+  //       server reads. This one differs from D14/D15 above: those listed a real guard that
+  //       already existed and was simply outside the roster. This gate is NEW, because nothing
+  //       in the tree was checking the twins at all -- while lib/ratelimit.js already names
+  //       this exact duplication as the thing that taught it "two copies of one number is one
+  //       number waiting to drift". It COMPARES ONLY: no copy is edited, deleted or
+  //       regenerated, and on a mismatch a human decides which one is right.
+  const GATES_EXPECTED = 62;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >

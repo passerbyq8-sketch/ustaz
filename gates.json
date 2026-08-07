@@ -303,5 +303,10 @@
   "name": "i18nui",
   "script": "guards/i18n-ui-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "adhkartwins",
+  "script": "guards/adhkar-twins-guard.cjs",
+  "args": ""
  }
 ]
