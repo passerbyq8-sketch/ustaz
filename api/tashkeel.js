@@ -22,6 +22,12 @@ import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 // answer is ever skipped.
 const MAX_TASHKEEL_CHARS = 5000;
 
+// ONE SENTENCE, ALWAYS THE SAME ONE. Whatever the provider failed with, the client is told the
+// same thing: the diacritization did not happen and the original text is being returned. The
+// client reads `.text` and nothing else, so this is a diagnostic field for a developer reading a
+// response — which is exactly why it must not carry the provider's own error string.
+const TASHKEEL_FAILED_MESSAGE = 'تعذّر التشكيل — أُعيد النص كما هو.';
+
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -42,7 +48,17 @@ export default async function handler(req, res) {
     });
   }
 
-  const { text, gender, band } = req.body;
+  // THE BODY IS CHECKED BEFORE IT IS USED. Measured: a POST with no body at all destructured
+  // `undefined` and threw HERE — outside the try below — so the reader's audio call died as an
+  // unexplained 500 rather than a plain 400. api/stt.js:32 already writes `req.body || {}`; this
+  // is the same guard, plus the string case, because a body may arrive unparsed.
+  let body = req.body;
+  if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = null; } }
+  if (!body || typeof body !== 'object') {
+    return res.status(400).json({ error: 'النص مطلوب' });
+  }
+
+  const { text, gender, band } = body;
   // Second layer -- NOT a lock. band is client-asserted, so this only raises the cost of a
   // casual bypass; real enforcement needs server-side identity, which this product has none
   // of by design (no accounts). Mirrors CHILD_VOICE_ENABLED=false at index.html:133 -- if
@@ -129,11 +145,17 @@ export default async function handler(req, res) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
+      const errorText = await response.text().catch(() => '');
+      // THE PROVIDER'S WORDS STAY ON THE SERVER. They were being handed to the client verbatim
+      // (150 chars of them), and a provider's 4xx body is where a key, an org id or an account
+      // detail turns up. The diagnosis is kept where a diagnosis belongs — the server log — and
+      // the client gets a code and a fixed sentence.
+      console.error('[tashkeel] upstream ' + response.status + ': ' + errorText.slice(0, 200));
       // عند الفشل، نُرجع النص الأصلي كاحتياط لكي لا ينقطع الصوت
       return res.status(200).json({
         text: text,
-        warning: `Tashkeel API failed: ${errorText.slice(0, 150)}`
+        code: 'TASHKEEL_UPSTREAM_FAILED',
+        warning: TASHKEEL_FAILED_MESSAGE
       });
     }
 
@@ -149,10 +171,12 @@ export default async function handler(req, res) {
       text: diacritized || text
     });
   } catch (error) {
+    console.error('[tashkeel] transport failed: ' + (error && error.message ? String(error.message).slice(0, 200) : 'unknown'));
     // أي خطأ → نرجع النص الأصلي حتى يستمر الصوت
     return res.status(200).json({
       text: text,
-      warning: `Tashkeel error: ${error.message}`
+      code: 'TASHKEEL_UPSTREAM_FAILED',
+      warning: TASHKEEL_FAILED_MESSAGE
     });
   }
 }
