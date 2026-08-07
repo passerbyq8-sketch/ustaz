@@ -100,7 +100,11 @@ const EXPECT = [
   { rel:'referral-golden.json',        mustTrack:true  },
   { rel:'package.json',                mustTrack:true  },
   { rel:'.gitignore',                  mustTrack:true  },
-  { rel:'khilaf-policy.md',            mustTrack:false },
+  // THE LIVE DOCUMENT, NOT A PATH IT NEVER OCCUPIED. This pointed at the repo root, where no
+  // khilaf-policy.md has ever been, so the check reported «absent (optional)» on every run and
+  // never once read the policy it names. It lives in docs/, it is tracked, and it is now
+  // measured like everything else here.
+  { rel:'docs/khilaf-policy.md',       mustTrack:true  },
   { rel:'vercel.json',                 mustTrack:false },
   { rel:'package-lock.json',           mustTrack:false },
 ];
