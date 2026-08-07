@@ -1709,9 +1709,33 @@ function EzLangControl({ variant }) {
 
 
 // ============================================================
-// رمز لوحة الأهل — يضعه الأهل أول مرة، ويُخزَّن مُجزّأً (SHA-256) في localStorage. لا رمز افتراضي، ولا يُعرَض أبداً.
+// رمز لوحة الأهل — الحكمُ في الخادم (D12). لا يبقى في المتصفّح سرٌّ قابلٌ للمقارنة.
 // ============================================================
-const PIN_HASH_KEY = 'parent_pin_hash';
+// قبلَ D12 كان الرمزُ يُتحقَّقُ هنا: بصمةُ SHA-256 في localStorage تُقارَنُ ببصمةِ المُدخَل.
+// ورمزٌ من أربعةِ أرقامٍ له عشرةُ آلافِ احتمالٍ فحسب، فبصمتُه جدولُ بحثٍ لا تعمية — ومن فتحَ
+// devtools قرأها، بل ومن بدّلَ القيمةَ بدّلَ الرمز. الحكمُ الآنَ في api/parent-code.js وحدَه:
+// scrypt بملحٍ عشوائيّ + timingSafeEqual، وبُعدا محاولاتٍ (جهاز + عنوان) لا يملكُ العميلُ تصفيرَهما.
+// المعنى لم يتغيّر: الرمزُ لجهازٍ واحدٍ كما كان يومَ كان في localStorage ذلك الجهاز — تغيّرَ
+// مكانُ الحكمِ لا معناه.
+//
+// المفتاحُ القديم لا يُكتَبُ بعدَ اليوم أبدًا: يُقرَأُ مرّةً واحدةً بذرةً لهجرةٍ صامتةٍ يحكمُ
+// عليها الخادم، ثمّ يُمحى. لا سطرَ في هذا الملفِّ يقارنُه بشيء.
+const LEGACY_PIN_HASH_KEY = 'parent_pin_hash';
+const readLegacyParentHash = () => {
+  try { const v = localStorage.getItem(LEGACY_PIN_HASH_KEY); return /^[0-9a-f]{64}$/.test(v || '') ? v : null; }
+  catch (e) { return null; }
+};
+const clearLegacyParentHash = () => { try { localStorage.removeItem(LEGACY_PIN_HASH_KEY); } catch (e) {} };
+// نداءٌ واحدٌ للخادم، ومعرّفُ الجهازِ يُضافُ هنا لا في كلِّ موضعِ نداء.
+const parentCodeCall = (payload) => fetch('/api/parent-code', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'same-origin',
+  body: JSON.stringify(Object.assign({}, payload, { deviceId: getDeviceId() })),
+});
+
+// يبقى لقفلِ الإنفاقِ وحدَه (SPEND_GATE_SHA256) — قرارُ مالكٍ منفصلٌ ومعطَّلٌ بمفتاحِه الموثَّق.
+// لا يمسُّ رمزَ لوحةِ الأهلِ في شيء.
 async function hashPin(pin) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(pin)));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -9977,29 +10001,69 @@ function Onboarding({ onStart }) {
 }
 
 function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, onBack }) {
-  const hasPin = (() => { try { return !!localStorage.getItem(PIN_HASH_KEY); } catch (e) { return false; } })();
+  // 'probing' يُعرَضُ كوضعِ تحقُّق: فشلٌ آمنٌ للإغلاق. تعذُّرُ سؤالِ الخادمِ لا يفتحُ بابَ الإنشاءِ أبدًا،
+  // وإلا لكان قطعُ الشبكةِ طريقًا إلى وضعِ رمزٍ جديدٍ فوقَ لوحةِ أهلٍ قائمة.
+  const [mode, setMode] = useState('probing');            // 'probing' | 'verify' | 'create'
   const [adultOk, setAdultOk] = useState(false);
   const [challenge] = useState(() => ({ a: 2 + Math.floor(Math.random() * 8), b: 2 + Math.floor(Math.random() * 8) })); // single digit, same as the welcome gate
   const [confirmPin, setConfirmPin] = useState('');
+  const [busy, setBusy] = useState(false);
   const [errMsg, setErrMsg] = useState('رمز خاطئ');
   const fail = (msg) => { setErrMsg(msg); setPinError(true); setTimeout(() => setPinError(false), 1800); };
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      let serverHas = null;                               // null = لم نعرف ⇐ نُعامِلُه معاملةَ «عنده رمز»
+      try {
+        const r = await parentCodeCall({ action: 'status' });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d && typeof d.hasCode === 'boolean') serverHas = d.hasCode;
+      } catch (e) {}
+      // سجلٌّ في الخادمِ ⇐ البصمةُ القديمةُ لا معنى لها بعدَ اليوم، فتُمحى هنا لا بعدَ نجاحٍ فقط.
+      if (serverHas === true) clearLegacyParentHash();
+      // جهازٌ يحملُ بصمةً قديمةً ولا سجلَّ له ⇐ وضعُ تحقُّقٍ لتجريَ الهجرةُ الصامتة، لا وضعُ
+      // إنشاءٍ يطلبُ رمزًا جديدًا من أهلٍ يحفظونَ رمزَهم.
+      const needVerify = serverHas !== false || !!readLegacyParentHash();
+      if (alive) setMode(needVerify ? 'verify' : 'create');
+    })();
+    return () => { alive = false; };
+  }, []);
   const verify = async () => {
+    if (busy || mode === 'probing') return;
+    setBusy(true);
     try {
-      const stored = localStorage.getItem(PIN_HASH_KEY);
-      if (stored && (await hashPin(pinInput)) === stored) { onSuccess(); return; }
-    } catch (e) {}
-    fail('رمز خاطئ');
+      const legacyHash = readLegacyParentHash();
+      const r = await parentCodeCall(Object.assign({ action: 'verify', pin: pinInput }, legacyHash ? { legacyHash } : {}));
+      const d = await r.json().catch(() => ({}));
+      setBusy(false);
+      if (r.ok && d && d.ok) { clearLegacyParentHash(); setPinInput(''); onSuccess(); return; }
+      // الخادمُ يملكُ الصياغة: رمزٌ خاطئ، وقفلُ محاولاتِ اليوم، وتعذُّرُ التحقُّقِ ثلاثُ حقائقَ
+      // مختلفة، وهو وحدَه يعرفُ أيَّها وقع — فتُعرَضُ رسالتُه كما هي.
+      fail((d && d.message) || 'رمز خاطئ');
+    } catch (e) {
+      setBusy(false);
+      // انقطاعُ الشبكةِ لا يحملُ رسالةَ خادم، ولومُ الأهلِ بـ«رمزٍ خاطئ» كذبٌ عليهم.
+      fail('تعذّر التحقّق الآن. جرّب بعد قليل.');
+    }
   };
   const create = async () => {
+    if (busy) return;
     if (!/^[0-9]{4,}$/.test(pinInput)) return fail('اختر ٤ أرقام على الأقل');
     if (pinInput !== confirmPin) return fail('الرمزان غير متطابقان');
-    try { localStorage.setItem(PIN_HASH_KEY, await hashPin(pinInput)); } catch (e) { return fail('تعذّر الحفظ'); }
-    setConfirmPin(''); onSuccess();
+    setBusy(true);
+    try {
+      const r = await parentCodeCall({ action: 'set', pin: pinInput });
+      const d = await r.json().catch(() => ({}));
+      setBusy(false);
+      if (r.ok && d && d.ok) { clearLegacyParentHash(); setConfirmPin(''); onSuccess(); return; }
+      fail((d && d.message) || 'تعذّر الحفظ');
+    } catch (e) { setBusy(false); fail('تعذّر الحفظ'); }
   };
+  const hasPin = mode !== 'create';
   // D92: unchanged for a child profile -- this is a real boundary (the parents-only panel) and the
   // gate belongs here. An adult or teen profile setting its own PIN meets no arithmetic, per the
   // ruling that no teen or adult profile faces a challenge at any point.
-  if (!hasPin && !adultOk && PARENTAL_GATE_ENABLED && childProfileActive()) return <AdultGate a={challenge.a} b={challenge.b} onPass={() => setAdultOk(true)} onCancel={onBack} />;
+  if (mode === 'create' && !adultOk && PARENTAL_GATE_ENABLED && childProfileActive()) return <AdultGate a={challenge.a} b={challenge.b} onPass={() => setAdultOk(true)} onCancel={onBack} />;
   return (
     <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
       <div className="ezgate-wrap"><div className="ezgate-card" style={s.onboardingCard}>
@@ -10009,7 +10073,9 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
         <input type="password" inputMode="numeric" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && hasPin && verify()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? 'var(--a3-cyan)' : 'var(--a3-line)' }} autoFocus />
         {!hasPin && <input type="password" inputMode="numeric" value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && create()} placeholder="أعد الرمز" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? 'var(--a3-cyan)' : 'var(--a3-line)' }} />}
         {pinError && <div className="ezgate-err">{errMsg}</div>}
-        <button onClick={hasPin ? verify : create} style={s.primaryBtn}>{hasPin ? 'دخول' : 'حفظ الرمز'}</button>
+        {/* مُعطَّلٌ ريثما نعرفُ من الخادمِ أيَّ وضعٍ نحن فيه، وريثما يعودُ نداءٌ جارٍ: ضغطةٌ
+            مزدوجةٌ على «دخول» محاولتان تُحسَبان على الجهازِ والعنوانِ معًا. */}
+        <button onClick={hasPin ? verify : create} disabled={busy || mode === 'probing'} style={{ ...s.primaryBtn, opacity: (busy || mode === 'probing') ? 0.5 : 1 }}>{hasPin ? 'دخول' : 'حفظ الرمز'}</button>
         <button onClick={onBack} style={s.secondaryBtn}>رجوع</button>
       </div></div>
     </div>

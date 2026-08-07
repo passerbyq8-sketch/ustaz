@@ -2956,17 +2956,39 @@ ok('Q4: ...and the welcome writes nothing itself',
   !/localStorage|fetch\(/.test(qstrip(onbSrc)));
 
 /* ---- Q5. the PIN gate: verification, creation, errors, lock -------------- */
-ok('Q5: the PIN is still hashed and compared against the stored hash',
-  /const stored = localStorage\.getItem\(PIN_HASH_KEY\);\s*\r?\n\s*if \(stored && \(await hashPin\(pinInput\)\) === stored\) \{ onSuccess\(\); return; \}/.test(pgSrc));
-ok('Q5: ...created under the same rule and the same key',
+// D12 MOVED THE JUDGE, NOT THE GATE. Until then these lines pinned a browser-side compare:
+// SHA-256(code) in localStorage, re-hashed and string-compared right here. That compare is gone
+// -- the verifier now lives in api/parent-code.js and the browser holds nothing it could check
+// an answer against. So what Q5 pins changed shape, and deliberately: it now asserts the
+// ABSENCE of a client-side verifier and the presence of the server call, which is the property
+// that actually matters. The behaviour under test (four digits, matching confirmation, the
+// adult challenge, the shipped wording) is asserted unchanged, because none of it moved.
+// The mechanism itself is driven end to end by gate `lockpackage`; this stays a source pin.
+ok('Q5: the browser holds NO verifier for the parent code any more',
+  !/hashPin/.test(pgSrc) && !/=== stored/.test(pgSrc),
+  'a client-side compare means the secret and the judge are both in the reader’s hands');
+ok('Q5: ...it asks the server instead, for all three questions',
+  /parentCodeCall\(\{ action: 'status' \}\)/.test(pgSrc)
+  && /action: 'verify', pin: pinInput/.test(pgSrc)
+  && /parentCodeCall\(\{ action: 'set', pin: pinInput \}\)/.test(pgSrc));
+ok('Q5: ...and an unknown answer falls CLOSED to the verify form',
+  /const needVerify = serverHas !== false \|\| !!readLegacyParentHash\(\);/.test(pgSrc),
+  'an unreachable server must never be a route into create mode');
+ok('Q5: ...created under the same rule as before',
   /if \(!\/\^\[0-9\]\{4,\}\$\/\.test\(pinInput\)\) return fail\('اختر ٤ أرقام على الأقل'\);/.test(pgSrc)
-  && /if \(pinInput !== confirmPin\) return fail\('الرمزان غير متطابقان'\);/.test(pgSrc)
-  && /localStorage\.setItem\(PIN_HASH_KEY, await hashPin\(pinInput\)\)/.test(pgSrc));
+  && /if \(pinInput !== confirmPin\) return fail\('الرمزان غير متطابقان'\);/.test(pgSrc));
 ok('Q5: ...and the adult challenge still stands in front of a child profile',
-  /if \(!hasPin && !adultOk && PARENTAL_GATE_ENABLED && childProfileActive\(\)\) return <AdultGate a=\{challenge\.a\} b=\{challenge\.b\} onPass=\{\(\) => setAdultOk\(true\)\} onCancel=\{onBack\} \/>;/.test(pgSrc));
-ok('Q5: the three error messages are the shipped ones',
-  /fail\('رمز خاطئ'\)/.test(pgSrc) && /fail\('تعذّر الحفظ'\)/.test(pgSrc));
-ok('Q5: the storage key itself is unchanged', /const PIN_HASH_KEY = 'parent_pin_hash';/.test(html));
+  /if \(mode === 'create' && !adultOk && PARENTAL_GATE_ENABLED && childProfileActive\(\)\) return <AdultGate a=\{challenge\.a\} b=\{challenge\.b\} onPass=\{\(\) => setAdultOk\(true\)\} onCancel=\{onBack\} \/>;/.test(pgSrc));
+// The wording, not the call shape: D12 made these FALLBACKS behind the server's own message
+// (`fail((d && d.message) || '…')`), because a wrong code, a day lockout and an unreachable
+// store are three different truths and only the server knows which one happened.
+ok('Q5: the shipped error wording has not drifted',
+  /'رمز خاطئ'/.test(pgSrc) && /'تعذّر الحفظ'/.test(pgSrc)
+  && /fail\(\(d && d\.message\) \|\| 'رمز خاطئ'\)/.test(pgSrc));
+ok('Q5: the old key is read as a migration seed and never written again',
+  /const LEGACY_PIN_HASH_KEY = 'parent_pin_hash';/.test(html)
+  && /localStorage\.removeItem\(LEGACY_PIN_HASH_KEY\)/.test(html)
+  && !/setItem\(LEGACY_PIN_HASH_KEY|setItem\('parent_pin_hash'/.test(html));
 
 /* ---- Q6. the three barriers: conditions, order, handlers ----------------- */
 {

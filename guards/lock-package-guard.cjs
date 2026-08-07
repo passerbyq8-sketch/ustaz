@@ -116,9 +116,12 @@ function envSandbox(vars) {
   const kIp = (ip) => `ul:v1:ip:${dig(ip)}:${DAY}`;
   const kAll = `ul:v1:all:${DAY}`;
 
+  // GENERATED, never written down. A plausible-looking string here is a string the repository's
+  // own secret scanner has to decide about, and it decides against -- rightly, because it cannot
+  // tell a test fixture from the real thing. Drawing it at run time removes the question.
   const restoreEnv = envSandbox({
     UNLOCK_PIN: PIN,
-    FOUNDER_SECRET: 'lock-guard-local-secret-not-a-credential',
+    FOUNDER_SECRET: crypto.randomBytes(16).toString('hex'),
   });
 
   try {
@@ -245,7 +248,193 @@ function envSandbox(vars) {
       !/x-forwarded-for|x-real-ip|ipDigest/.test(read('lib/daycap.js')),
       'the day cap must never bucket children by a shared exit address');
 
+    ok('A11: the limiter is imported, not re-implemented, by both endpoints',
+      /from '\.\.\/lib\/attempts\.js'/.test(read('api/unlock.js'))
+      && /from '\.\.\/lib\/attempts\.js'/.test(read('api/parent-code.js')));
+
+    // ══════════════════════════════════════════════════════════════════════════
+    console.log('\n=== B. D12 — the parent code is judged on the SERVER ===');
+    // ══════════════════════════════════════════════════════════════════════════
+
+    const PC = await esm('api/parent-code.js');
+    const parent = PC.default;
+    const PDEV = 'lockguard-parent-device';
+    const CODE = '4821';
+    const sha256hex = (s) => crypto.createHash('sha256').update(String(s), 'utf8').digest('hex');
+    const pcRec = (d) => `pc:v1:rec:${d}`;
+    const pcDev = (d) => `pc:v1:d:${d}:${DAY}`;
+    const pcIp = (ip) => `pc:v1:ip:${dig(ip)}:${DAY}`;
+
+    // One POST, its own store double, and the store handed back so counters and records can both
+    // be read. Note BOTH seams are stubbed -- the endpoint's client and, through it, the limiter's,
+    // because lib/attempts.js is passed the caller's client rather than building its own.
+    const pcPost = async (opts) => {
+      const o = opts || {};
+      const store = fakeRedis(o.seed);
+      if (o.boom) store.boom = true;
+      PC.__setRedisForTest(store);
+      const headers = {};
+      if (o.ip !== null) headers['x-forwarded-for'] = o.ip || IP_A;
+      const req = { method: 'POST', headers, body: Object.assign({ deviceId: PDEV }, o.body || {}) };
+      const res = fakeRes();
+      await parent(req, res);
+      return { res, store };
+    };
+
+    {
+      const { res } = await pcPost({ body: { action: 'status' } });
+      ok('B1: a device with no record reports hasCode:false',
+        res.code === 200 && res.body && res.body.hasCode === false, JSON.stringify(res.body));
+    }
+    {
+      // The probe runs every time the gate screen opens. If it cost an attempt, opening the
+      // screen five times would lock a parent out of their own panel with nothing typed.
+      const { store } = await pcPost({ body: { action: 'status' } });
+      ok('B1: ...and asking costs NO attempt on either dimension',
+        store.map.get(pcDev(PDEV)) === undefined && store.map.get(pcIp(IP_A)) === undefined,
+        'dev=' + store.map.get(pcDev(PDEV)) + ' ip=' + store.map.get(pcIp(IP_A)));
+    }
+
+    let liveRecord = null;
+    {
+      const { res, store } = await pcPost({ body: { action: 'set', pin: CODE } });
+      ok('B2: a first code is accepted for a device that has none',
+        res.code === 200 && res.body && res.body.ok === true, JSON.stringify(res.body));
+      liveRecord = store.map.get(pcRec(PDEV));
+      const parsed = liveRecord ? JSON.parse(liveRecord) : null;
+      ok('B2: ...stored as scrypt over a RANDOM salt, never as the code and never as its sha256',
+        !!parsed && parsed.alg === 'scrypt'
+        && /^[0-9a-f]{32}$/.test(parsed.salt) && /^[0-9a-f]{64}$/.test(parsed.hash)
+        && parsed.hash !== sha256hex(CODE)
+        && String(liveRecord).indexOf(CODE) === -1,
+        String(liveRecord));
+    }
+    {
+      // Two devices, same code, must not produce the same digest -- that is what the salt buys,
+      // and it is the difference between a stolen dump being a lookup table and being useless.
+      const { store } = await pcPost({ body: { action: 'set', pin: CODE, deviceId: 'lockguard-parent-two' } });
+      const other = JSON.parse(store.map.get(pcRec('lockguard-parent-two')));
+      ok('B2: ...and the SAME code on another device yields a different digest',
+        other.hash !== JSON.parse(liveRecord).hash && other.salt !== JSON.parse(liveRecord).salt);
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const { res } = await pcPost({ seed, body: { action: 'verify', pin: CODE } });
+      ok('B3: the RIGHT code opens the panel', res.code === 200 && res.body && res.body.ok === true,
+        JSON.stringify(res.body));
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const { res } = await pcPost({ seed, body: { action: 'verify', pin: '9999' } });
+      ok('B3: ...and a WRONG code is refused',
+        res.code === 401 && res.body && res.body.error === 'parent-refused', 'code=' + res.code);
+    }
+    {
+      // Sending the digest the browser used to hold does NOT open a device that has a record.
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const { res } = await pcPost({ seed, body: { action: 'verify', pin: '9999', legacyHash: sha256hex('9999') } });
+      ok('B3: ...and a self-supplied legacy digest cannot override an EXISTING record',
+        res.code === 401 && res.body && res.body.error === 'parent-refused', 'code=' + res.code);
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const { res, store } = await pcPost({ seed, body: { action: 'set', pin: '1234' } });
+      ok('B4: SET never overwrites an existing code',
+        res.code === 401 && res.body && res.body.error === 'parent-refused'
+        && store.map.get(pcRec(PDEV)) === liveRecord, 'code=' + res.code);
+    }
+    {
+      const { res } = await pcPost({ body: { action: 'set', pin: '12' } });
+      ok('B4: ...and the four-digit floor is re-checked on the server',
+        res.code === 400 && res.body && res.body.error === 'parent-weak', 'code=' + res.code);
+    }
+    {
+      // THE MIGRATION. A device with no record, holding the digest the old client stored.
+      const { res, store } = await pcPost({
+        body: { action: 'verify', pin: CODE, legacyHash: sha256hex(CODE), deviceId: 'lockguard-legacy-device' },
+      });
+      ok('B5: a legacy holder is enrolled SILENTLY by typing the code they already had',
+        res.code === 200 && res.body && res.body.ok === true && res.body.migrated === true,
+        JSON.stringify(res.body));
+      const rec = store.map.get(pcRec('lockguard-legacy-device'));
+      const parsed = rec ? JSON.parse(rec) : null;
+      ok('B5: ...and what lands in the store is scrypt, NOT the sha256 that was sent',
+        !!parsed && parsed.alg === 'scrypt' && parsed.hash !== sha256hex(CODE),
+        String(rec));
+    }
+    {
+      const { res, store } = await pcPost({
+        body: { action: 'verify', pin: '7777', legacyHash: sha256hex(CODE), deviceId: 'lockguard-legacy-two' },
+      });
+      ok('B5: ...but a code that does NOT match the held digest enrols nothing',
+        res.code === 401 && res.body && res.body.error === 'parent-refused'
+        && store.map.get(pcRec('lockguard-legacy-two')) === undefined, 'code=' + res.code);
+    }
+    {
+      const { res } = await pcPost({ body: { action: 'verify', pin: CODE, deviceId: 'lockguard-no-record' } });
+      ok('B5: ...and a device with neither a record nor a digest is refused, never admitted',
+        res.code === 401 && res.body && res.body.error === 'parent-refused', 'code=' + res.code);
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord; seed[pcIp(IP_A)] = 10;
+      const { res } = await pcPost({ seed, body: { action: 'verify', pin: CODE } });
+      ok('B6: the verify path is subject to the ADDRESS dimension',
+        res.code === 429 && res.body && res.body.error === 'parent-locked', 'code=' + res.code);
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord; seed[pcDev(PDEV)] = 5;
+      const { res } = await pcPost({ seed, body: { action: 'verify', pin: CODE } });
+      ok('B6: ...and to the DEVICE dimension',
+        res.code === 429 && res.body && res.body.error === 'parent-locked', 'code=' + res.code);
+    }
+    {
+      // No app-wide ceiling on this secret, deliberately: it is per-device, so a global one
+      // would let a single grinder lock every parent in the app out of their own panel.
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord; seed['pc:v1:all:' + DAY] = 9999;
+      const { res } = await pcPost({ seed, body: { action: 'verify', pin: CODE } });
+      ok('B6: ...but NOT to any app-wide ceiling',
+        res.code === 200 && res.body && res.body.ok === true, 'code=' + res.code);
+    }
+    {
+      const { res } = await pcPost({ boom: true, body: { action: 'verify', pin: CODE } });
+      ok('B7: an unreachable store fails CLOSED on verify',
+        res.code === 429 && res.body && res.body.error === 'parent-unavailable', 'code=' + res.code);
+    }
+    {
+      const { res } = await pcPost({ boom: true, body: { action: 'status' } });
+      ok('B7: ...and on status, so the browser never falls into CREATE mode on an outage',
+        res.code === 429 && res.body && res.body.error === 'parent-unavailable', 'code=' + res.code);
+    }
+    {
+      const { res } = await pcPost({ body: { action: 'verify', pin: CODE, deviceId: 'no' } });
+      ok('B7: ...and an unusable device id gets the ordinary refusal',
+        res.code === 401 && res.body && res.body.error === 'parent-refused', 'code=' + res.code);
+    }
+
+    // ── the browser half ──────────────────────────────────────────────────────
+    const html = read('index.html');
+    // The end marker also appears ABOVE ParentGate (the spend gate's own comment block), so the
+    // search for it must start from the component, not from the top of the file.
+    const pgAt = html.indexOf('function ParentGate({');
+    const pg = html.slice(pgAt, html.indexOf('\n// قفل الإنفاق', pgAt));
+    ok('B8: the browser no longer compares anything for the parent code',
+      !/hashPin/.test(pg) && !/localStorage\.setItem\(\s*LEGACY_PIN_HASH_KEY/.test(html),
+      'ParentGate must hold no verifier and write no digest');
+    ok('B8: ...and the old key is READ once as a migration seed, then removed',
+      /const LEGACY_PIN_HASH_KEY = 'parent_pin_hash';/.test(html)
+      && /localStorage\.removeItem\(LEGACY_PIN_HASH_KEY\)/.test(html)
+      && !/localStorage\.setItem\('parent_pin_hash'|setItem\(LEGACY_PIN_HASH_KEY/.test(html));
+    ok('B8: ...ParentGate reaches the server for status, verify and set',
+      /action: 'status'/.test(pg) && /action: 'verify'/.test(pg) && /action: 'set'/.test(pg)
+      && /parentCodeCall/.test(pg));
+    ok('B8: ...and an unknown status falls CLOSED to the verify form',
+      /serverHas !== false/.test(pg),
+      'anything other than a clear "no code here" must not offer the create form');
+    ok('B8: the spend gate still owns hashPin, untouched',
+      /if \(\(await hashPin\(code\)\) === SPEND_GATE_SHA256\) \{ onUnlock\(\); return; \}/.test(html));
+
   } finally {
+    try { (await esm('api/parent-code.js')).__setRedisForTest(null); } catch (e) {}
     UNLOCK.__setRedisForTest(null);
     restoreEnv();
   }

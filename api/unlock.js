@@ -33,7 +33,8 @@
 
 import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
-import { safeId, founderTokenFor, hasValidFounderToken, kuwaitDayStamp, DAY_CAP_TTL_SECONDS } from '../lib/daycap.js';
+import { safeId, founderTokenFor, hasValidFounderToken } from '../lib/daycap.js';
+import { ATTEMPT_MESSAGES, ipDigest, noteAttempt as countAttempt } from '../lib/attempts.js';
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 
 // Attempts per device, per IP, and across everybody -- each per Kuwait day. The device limit is
@@ -50,8 +51,12 @@ const GLOBAL_ATTEMPTS = 50;
 // learn which part it got wrong.
 export const UNLOCK_MESSAGES = {
   'unlock-refused': '\u0627\u0644\u0631\u0645\u0632 \u063A\u064A\u0631 \u0635\u062D\u064A\u062D.',
-  'unlock-locked': '\u0623\u0648\u0642\u0641\u0646\u0627 \u0645\u062D\u0627\u0648\u0644\u0627\u062A \u0627\u0644\u0641\u062A\u062D \u0627\u0644\u064A\u0648\u0645. \u062C\u0631\u0651\u0628 \u0628\u0639\u062F \u0645\u0646\u062A\u0635\u0641 \u0627\u0644\u0644\u064A\u0644 \u0628\u062A\u0648\u0642\u064A\u062A \u0627\u0644\u0643\u0648\u064A\u062A.',
-  'unlock-unavailable': '\u062A\u0639\u0630\u0651\u0631 \u0627\u0644\u062A\u062D\u0642\u0651\u0642 \u0645\u0646 \u0627\u0644\u0631\u0645\u0632 \u0639\u0646\u062F\u0646\u0627\u060C \u0641\u0623\u0648\u0642\u0641\u0646\u0627 \u0627\u0644\u0641\u062A\u062D \u0645\u0624\u0642\u062A\u064B\u0627. \u062C\u0631\u0651\u0628 \u0628\u0639\u062F \u0642\u0644\u064A\u0644.',
+  // D12: these two are the LIMITER's refusals, not this endpoint's, and api/parent-code.js shows
+  // the same two words for the same two situations. They are imported from the module that owns
+  // the mechanism rather than restated here, so the two doors cannot start describing one
+  // lockout in two ways. The wording is byte-identical to what shipped before the move.
+  'unlock-locked': ATTEMPT_MESSAGES.locked,
+  'unlock-unavailable': ATTEMPT_MESSAGES.unavailable,
   // D89. The ONE refusal on this endpoint that is deliberately distinguishable, because it is
   // about the caller's OWN new code and gives away nothing about the secret. The count is
   // spelled as a word, never as a numeral: no digit is shown to any user anywhere.
@@ -116,68 +121,22 @@ async function storePinHash(saltHex, hashHex) {
   }
 }
 
-// D13. The caller's address, reduced to a counter label and nothing else. Vercel puts the real
-// client address first in x-forwarded-for at the edge; x-real-ip is the fallback for a runtime
-// that sets only that. Returns null when neither is present, and then this dimension is simply
-// ABSENT -- the device and global dimensions still apply, so a missing header buys a caller a
-// looser limit but never an unlimited one. Refusing outright instead would take the app down on
-// any platform that stops setting the header.
-export function ipDigest(req) {
-  const h = (req && req.headers) || {};
-  const fwd = typeof h['x-forwarded-for'] === 'string' ? h['x-forwarded-for'].split(',')[0] : '';
-  const real = typeof h['x-real-ip'] === 'string' ? h['x-real-ip'] : '';
-  const raw = (fwd || real || '').trim();
-  if (!raw) return null;
-  // Truncated to 128 bits. That is far past any collision that matters for a per-day counter,
-  // and it keeps the key short. The digest is one-way: the store never holds the address.
-  return crypto.createHash('sha256').update(raw, 'utf8').digest('hex').slice(0, 32);
-}
-
-// Counts this attempt and reports whether the caller is locked out. FAIL-CLOSED: if the store
-// cannot be read the answer is "unavailable", which the handler turns into a refusal. An
-// attempt limiter that fails open is not a limiter -- it is an invitation to brute force.
+// D12. The limiter itself now lives in lib/attempts.js, because api/parent-code.js needs the
+// same three-dimension accounting for a DIFFERENT secret. It is imported, never re-implemented:
+// two copies of a limiter is one limiter waiting to drift, and that drift is invisible -- one
+// door simply becomes softer than the other and nobody notices until it is ground open.
 //
-// EVERY dimension is judged BEFORE ANY of them is incremented. That ordering is the whole
-// substance of D13's promise that an exhausted IP "leaves the global untouched": if the check
-// and the increment were interleaved, a locked-out grinder would still be burning the app-wide
-// allowance on every refused try, and would take the owner down with it in a few thousand
-// requests -- which is precisely the attack the IP dimension was added to stop.
-async function noteAttempt(deviceId, ipHash) {
-  const day = kuwaitDayStamp();
-  const deviceKey = `ul:v1:d:${deviceId}:${day}`;
-  const globalKey = `ul:v1:all:${day}`;
-  const ipKey = ipHash ? `ul:v1:ip:${ipHash}:${day}` : null;
-  try {
-    const r = client();
-    const keys = ipKey ? [deviceKey, ipKey, globalKey] : [deviceKey, globalKey];
-    const current = await r.mget(...keys);
-    const num = (v) => {
-      if (v === null || v === undefined || v === '') return 0;
-      const n = typeof v === 'number' ? v : Number.parseInt(String(v), 10);
-      return Number.isFinite(n) ? n : NaN;
-    };
-    const used = num(current[0]);
-    const usedIp = ipKey ? num(current[1]) : 0;
-    const usedAll = num(current[ipKey ? 2 : 1]);
-    // A counter we cannot read is not a zero. Refuse rather than hand out free attempts.
-    if (!Number.isFinite(used) || !Number.isFinite(usedIp) || !Number.isFinite(usedAll)) {
-      return { unavailable: true };
-    }
-    if (used >= PER_DEVICE_ATTEMPTS || usedIp >= PER_IP_ATTEMPTS || usedAll >= GLOBAL_ATTEMPTS) {
-      return { locked: true };
-    }
-    const p = r.pipeline();
-    p.incr(deviceKey); p.expire(deviceKey, DAY_CAP_TTL_SECONDS);
-    if (ipKey) { p.incr(ipKey); p.expire(ipKey, DAY_CAP_TTL_SECONDS); }
-    p.incr(globalKey); p.expire(globalKey, DAY_CAP_TTL_SECONDS);
-    await p.exec();
-    return {};
-  } catch (e) {
-    // No device id, no address and no PIN in this line -- only the transport failure.
-    console.warn('[unlock] attempt store unreachable, fail-CLOSED:', e && e.message ? e.message : e);
-    return { unavailable: true };
-  }
-}
+// The key prefix is UNCHANGED ('ul:v1'), so the counters this endpoint already wrote in
+// production keep counting the same attempts against the same callers across the deploy.
+const ATTEMPT_NS = 'ul:v1';
+const noteAttempt = (deviceId, ipHash) => countAttempt(client(), {
+  ns: ATTEMPT_NS,
+  deviceId,
+  ipHash,
+  perDevice: PER_DEVICE_ATTEMPTS,
+  perIp: PER_IP_ATTEMPTS,
+  perGlobal: GLOBAL_ATTEMPTS,
+});
 
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
