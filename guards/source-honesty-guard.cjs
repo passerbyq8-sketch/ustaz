@@ -31,6 +31,7 @@ function ok(name, cond, detail) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+const exists = (rel) => fs.existsSync(path.join(REPO, rel));
 
 // Anything that claims to be a browser. `Mozilla/` is the token an operator's filter greps for,
 // which is why the old "honest" string in safe-fetch.js — Mozilla/5.0 (compatible; EzikBot…) —
@@ -276,6 +277,69 @@ const stripComments = (s) => String(s)
       !/isDegraded|DEGRADED/.test(read('lib/retrieve.js')) && !/isDegraded|DEGRADED/.test(read('api/ask.js')),
       'a label that quietly changed behaviour would be a deletion wearing a different word');
   }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== D. D8 — the takhrij limit is declared, not left invisible ===');
+  // ══════════════════════════════════════════════════════════════════════════
+
+  const TD = await esm('lib/policy/takhrij-disclosure.js');
+
+  ok('D1: there is still NO primary takhrij corpus, which is why the sentence exists',
+    TD.PRIMARY_TAKHRIJ_DOMAINS.length === 0,
+    'dorar.net was the only one and it is deferred (403 on every path)');
+  ok('D1: ...and the sentence is one fixed string the server owns',
+    typeof TD.TAKHRIJ_DISCLOSURE === 'string' && TD.TAKHRIJ_DISCLOSURE.length > 40
+    && /دواوين التخريج/.test(TD.TAKHRIJ_DISCLOSURE));
+  ok('D1: ...that does not withdraw or apologise for the answer above it',
+    !/عذر|لا أستطيع|لا استطيع|آسف|اسف|قد يكون خطأ/.test(TD.TAKHRIJ_DISCLOSURE),
+    'the referral-tail rule: a tail that undermines the answer is worse than no tail');
+
+  for (const q of [
+    'ما درجة حديث «من صام رمضان إيمانًا واحتسابًا»؟',
+    'هل يصح حديث الأعمال بالنيات؟',
+    'ما صحة حديث نضر الله امرأً سمع مقالتي؟',
+    'من خرّج هذا الحديث؟',
+    'ما حكم الحديث سندًا؟',
+  ]) {
+    ok('D2: a GRADING question is disclosed — «' + q.slice(0, 34) + '…»',
+      TD.takhrijDisclosureFor({ question: q }) === TD.TAKHRIJ_DISCLOSURE);
+  }
+  for (const q of [
+    'اشرح حديث إنما الأعمال بالنيات',
+    'ما معنى حديث الحياء من الإيمان؟',
+    'ما حكم صلاة الوتر؟',
+    'كم عدد ركعات صلاة الفجر؟',
+    'ما موضوع الدرس اليوم؟',
+    'اشتريت جهاز حديث، ما حكم بيعه؟',
+  ]) {
+    ok('D3: a NON-grading question gets nothing — «' + q.slice(0, 34) + '…»',
+      TD.takhrijDisclosureFor({ question: q }) === '',
+      JSON.stringify(TD.takhrijDisclosureFor({ question: q })));
+  }
+
+  ok('D4: appended once — a draft already carrying it gets no second copy',
+    TD.takhrijDisclosureOnce('نص الجواب. ' + TD.TAKHRIJ_DISCLOSURE, TD.TAKHRIJ_DISCLOSURE) === '');
+  ok('D4: ...and a draft that already sent the reader to the takhrij books gets none either',
+    TD.takhrijDisclosureOnce('راجع كتب التخريج في ذلك.', TD.TAKHRIJ_DISCLOSURE) === '');
+  ok('D4: ...but an ordinary draft receives it',
+    TD.takhrijDisclosureOnce('نص الجواب.', TD.TAKHRIJ_DISCLOSURE) === TD.TAKHRIJ_DISCLOSURE);
+
+  {
+    const ASK = read('api/ask.js');
+    ok('D5: the live path composes it into the ONE block every exit appends',
+      /const referralBlockFor = \(draft\) => \{[\s\S]{0,260}takhrijDisclosureOnce/.test(ASK),
+      'five exits append that block; adding it at five call sites is how "once" rots');
+    // The pairing that must not rot: an empty corpus list is the ONLY thing that makes passing
+    // [] honest. If a domain is ever added, this fails until the real domains are threaded in.
+    ok('D5: ...and sourceDomains:[] is paired with an EMPTY corpus list',
+      TD.PRIMARY_TAKHRIJ_DOMAINS.length === 0
+        ? /takhrijDisclosureFor\(\{ question: questionText, sourceDomains: \[\] \}\)/.test(ASK)
+        : !/sourceDomains: \[\]/.test(ASK),
+      'a primary corpus was admitted but api/ask.js still passes no domains — thread the retrieved domains through');
+  }
+  ok('D6: the takhrij LOCK is untouched — nothing unsourced was ever emitted, and still is not',
+    /lockTakhrij/.test(read('lib/ledger/engine.js')) && exists('lib/takhrij-lock.js'),
+    'this sentence describes provenance; it does not relax what may be said');
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
   process.exit(failures ? 1 : 0);

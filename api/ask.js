@@ -47,6 +47,8 @@ import { attributionLicence } from '../lib/policy/source-attribution.js';
 // most confidently. It is appended here instead, rotated so successive answers do not end
 // identically, and NEVER on the frozen acts of worship.
 import { referralTail, referralOnce } from '../lib/policy/referral-tail.js';
+// D8: when a grading is answered without a takhrij corpus, the reply says so. See the module.
+import { takhrijDisclosureFor, takhrijDisclosureOnce } from '../lib/policy/takhrij-disclosure.js';
 // The registry's Arabic publisher name, so the transmission can be checked for naming the source
 // it transmits from rather than gesturing at "some websites".
 import { findSource } from '../lib/source-registry.js';
@@ -865,7 +867,24 @@ export default async function handler(req, res) {
     // no longer a fixed string that every exit concatenates blindly; it is a function OF THE DRAFT,
     // and it returns '' when that draft already sends the reader to ahl al-'ilm. Every exit below
     // calls it, which is what makes "once" a property of the reply rather than of the branch.
-    const referralBlockFor = (draft) => referralOnce(draft, referral);
+    // ── D8: THE TAKHRIJ LIMIT, DECLARED ───────────────────────────────────
+    // dorar.net was the only hadith-grading source this app ever had and it is deferred (403 on
+    // every path), so a grading question is answered from whatever general source mentioned the
+    // grading — never from a takhrij corpus. That is invisible to the reader, and this says it.
+    //
+    // sourceDomains is [] and that is CORRECT TODAY, not a stub: PRIMARY_TAKHRIJ_DOMAINS is
+    // empty, so no set of fetched domains could contain one and the answer cannot depend on the
+    // argument. The day a primary adapter is admitted, this must pass the domains actually
+    // retrieved — and the gate asserts exactly that pairing, so the two cannot part company.
+    const takhrijNote = takhrijDisclosureFor({ question: questionText, sourceDomains: [] });
+    if (takhrijNote) console.log('[takhrij] declaring the limit: no primary takhrij corpus', { topicClass });
+    // Composed into the ONE block every exit already appends, rather than added at five call
+    // sites — "once" stays a property of the reply instead of something each branch remembers.
+    const referralBlockFor = (draft) => {
+      const r = referralOnce(draft, referral);
+      const t = takhrijDisclosureOnce(draft + r, takhrijNote);
+      return r + (t ? '\n\n' + t : '');
+    };
     if (referral) console.log('[referral] appending the server\'s tail', { topicClass, turn: answersSoFar });
 
     // ── GENERAL_HEALTH_INTERIM ─────────────────────────────────────────────

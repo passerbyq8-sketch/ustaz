@@ -246,3 +246,4 @@ guards/lock-package-guard.cjs text eol=lf
 guards/source-honesty-guard.cjs text eol=lf
 tools/soft-404.cjs text eol=lf
 lib/domain-budget.js text eol=lf
+lib/policy/takhrij-disclosure.js text eol=lf
