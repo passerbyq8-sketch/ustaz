@@ -25,6 +25,7 @@ golden-set-worship.md
 # worship-golden.json: safe to exclude NOW -- the client fetches worship-display.json.
 # defect 38: once the worship-strip (part two / defect 5b) lands, the client will
 # need this at runtime. REMOVE the next line then, or the worship columns die.
+# THE TRIGGER, NAMED: session 11 -- the live board. When the worship strip ships there, the line below goes.
 worship-golden.json
 
 # source docs (public on GitHub, not served as pages), experiments, and the
