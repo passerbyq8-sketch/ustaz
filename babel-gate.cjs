@@ -1,5 +1,14 @@
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const babel = require('@babel/core');
+
+// The extracted block is a 900KB scratch artifact, not a deliverable. It used to land in the
+// repo root, so every run of this gate dirtied the working tree -- which is the one thing the
+// tree-clean checks are supposed to be able to trust. Nothing reads it back: the eight other
+// mentions of the name across the tree are all babel/vm `filename:` labels.
+const OUT_DIR = path.join(os.tmpdir(), 'ezik-gates');
+const OUT_FILE = path.join(OUT_DIR, 'babel-block.jsx');
 
 const html = fs.readFileSync('index.html', 'utf8');
 
@@ -15,7 +24,9 @@ const code = html.slice(startBody, closeIdx);
 // Line number where the babel block body starts in the HTML file
 const lineOffset = html.slice(0, startBody).split('\n').length - 1;
 
-fs.writeFileSync('babel-block.jsx', code);
+fs.mkdirSync(OUT_DIR, { recursive: true });
+fs.writeFileSync(OUT_FILE, code);
+console.log('block written to: ' + OUT_FILE);
 
 try {
   babel.transformSync(code, {
