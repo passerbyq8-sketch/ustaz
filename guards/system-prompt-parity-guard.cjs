@@ -136,52 +136,34 @@ const PINNED = [
     ok('...and forbids religious content on the thin route', /لا تخُض في أيّ موضوعٍ دينيّ/.test(f7));
   }
 
-  // ── E. PARITY with the copy index.html still carries ─────────────────────
+  // ── E. THERE IS NO SECOND COPY ───────────────────────────────────────────
   //
-  // STAGE NOTE, so the next reader is not misled: at this commit (م٢ of D02ب) index.html STILL
-  // builds and ships the prompt. The move is not done, and this section is the proof that the
-  // extraction was verbatim -- the two copies are compared by OUTPUT over the whole measured
-  // range, not by eye. When م٤ takes the builder out of the client, this section is replaced
-  // in that same commit by its mirror image: "there is no second copy any more". One of the
-  // two must always be asserted; a gate that silently checks neither is how a stale copy
-  // survives a migration.
+  // This section was, at م٢, the parity proof: the module and the copy index.html still carried
+  // were compared by OUTPUT over 40 samples and shown identical. م٤ then removed the client copy,
+  // and this is its mirror image. It is the same guarantee stated from the other side -- one
+  // builder, and the client does not own it -- and one of the two forms has been asserted at
+  // every commit in between. The pinned fingerprints in (B) are what carry the prompt's identity
+  // forward now that there is nothing left to compare against.
   {
-    const lines = read('index.html').split(/\r?\n/);
-    const s = lines.findIndex((l) => l.startsWith('const buildSystemPrompt = '));
-    let e = -1;
-    for (let i = s + 1; i < lines.length; i++) if (lines[i] === '};') { e = i; break; }
-    if (!ok('index.html still carries the client copy (expected at this stage)', s !== -1 && e !== -1)) {
-      console.log('        if the client copy was just REMOVED, this section is the one to replace -- see the stage note above');
-    } else {
-      const clientSrc = lines.slice(s, e + 1).join('\n');
-      let cb = null, err = '';
-      try {
-        const ctx = vm.createContext({});
-        cb = vm.runInContext('(function(){ ' + clientSrc + '\nreturn buildSystemPrompt; })()', ctx);
-      } catch (ex) { err = ex.message; }
-      if (ok('...and it too is pure enough to evaluate standalone', cb !== null, err)) {
-        let n = 0, bad = 0;
-        for (const age of [4, 7, 12, 13, 15, 17, 18, 30, 65, 90])
-          for (const gender of ['male', 'female'])
-            for (const mode of ['chat', 'call']) {
-              const name = gender === 'female' ? 'هند' : 'خالد';
-              n++;
-              if (cb(name, age, gender, mode) !== MOD.buildSystemPrompt(name, age, gender, mode)) bad++;
-            }
-        ok('client copy and lib module are IDENTICAL over ' + n + ' samples', bad === 0, bad + ' mismatched');
-      }
-      // the two chat-fast literals, still inline in the client
-      const clsLine = lines.find((l) => l.indexOf('أنت مصنِّفُ مساراتٍ فقط') !== -1) || '';
-      const co = clsLine.indexOf("system: '") + "system: '".length;
-      ok('the classifier literal matches the module',
-        clsLine.slice(co, clsLine.indexOf("', messages:", co)) === MOD.CLASSIFIER_SYSTEM_PROMPT);
-      const fastLine = lines.find((l) => l.indexOf('__sysPrompt = `') !== -1) || '';
-      const fo = fastLine.indexOf('__sysPrompt = `') + '__sysPrompt = `'.length;
-      const tpl = fastLine.slice(fo, fastLine.lastIndexOf('`'));
-      let fbad = 0;
-      for (const age of [4, 7, 12, 15, 30]) if (tpl.split('${p.age}').join(String(age)) !== MOD.buildFastGenPrompt(age)) fbad++;
-      ok('the fast-GEN literal matches the module', fbad === 0);
-    }
+    const html = read('index.html');
+    ok('index.html declares no buildSystemPrompt of its own',
+      html.indexOf('const buildSystemPrompt = ') === -1,
+      'a second copy of the builder is back in the client -- that is the drift this gate exists for');
+    ok('...and builds no prompt variable to ship', html.indexOf('__sysPrompt') === -1);
+    ok('...and posts no `system` field on any route',
+      html.indexOf('system: __sysPrompt') === -1 && !/\bsystem:\s*'أنت مصنِّف/.test(html),
+      'the client is shipping a system prompt again');
+    // the four fields REPLACED it -- absence of `system` is only half the contract
+    ok('the client posts the four reader fields instead',
+      /name: p\.name, age: p\.age, gender: p\.gender, mode/.test(html));
+    // and `band` reaches all three routes, not two of them (م٥)
+    ok('band is sent unconditionally, not gated on an endpoint',
+      html.indexOf("...(endpoint === '/api/chat' ? { band:") === -1
+      && html.indexOf("...(mode === 'chat' && endpoint === '/api/ask' ? { band:") === -1
+      && /^\s*band: deriveCaps\(p\.age\)\.band,$/m.test(html),
+      'a route-conditional band is back -- that is the hole api/chat-fast.js could not close alone');
+    ok('...and the classifier turn carries it too',
+      /max_tokens: 8[^\n]*band: deriveCaps\(p\.age\)\.band/.test(html));
   }
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' -- FAIL ===' : ' -- PASS ==='));

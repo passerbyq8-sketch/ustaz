@@ -2092,7 +2092,7 @@ ok('N15: the endpoints are the shipped pair',
   /endpoint = \(mode === 'call' \? '\/api\/chat' : '\/api\/ask'\)/.test(html)
   && /endpoint: '\/api\/chat',/.test(html));
 ok('N16: the request body is the shipped shape',
-  html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, system: __sysPrompt, messages: msgs, ...__extra });") !== -1);
+  html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, name: p.name, age: p.age, gender: p.gender, mode, messages: msgs, ...__extra });") !== -1);
 ok('N16: ...including the depth and band terms and the size fit',
   /fitMessagesToBudget\(__mkBody, history\.map\(m => \(\{ role: m\.role, content: m\.content \}\)\)\)/.test(html)
   && /depth: depthMode === 'scholar' \? 'scholar' : 'deep'/.test(html));
@@ -2460,7 +2460,7 @@ ok('O11: the call still speaks to /api/chat and the text chat still speaks to /a
 ok('O11: ...and the call turn still asks for mode:\'call\', which is what chooses it',
   /reply = await callAI\(apiHistory, profile, \{\s*\r?\n\s*signal: controller\.signal, mode: 'call',/.test(html));
 ok('O11: ...on the shipped body, unchanged',
-  html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, system: __sysPrompt, messages: msgs, ...__extra });") !== -1);
+  html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, name: p.name, age: p.age, gender: p.gender, mode, messages: msgs, ...__extra });") !== -1);
 // Same endpoints, now reached only through the AI-consent choke point (see N24 above).
 ok('O12: speech OUT still goes to the shipped endpoint', /await aiFetch\('\/api\/tts'/.test(html));
 ok('O12: ...and speech IN still goes to the shipped one',

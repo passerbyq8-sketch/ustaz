@@ -201,9 +201,29 @@ const AR = [
   ['C4 gen-defers-religious',       'تركه لعزك'],
   ['C4 gen-defers-safety',          'شخصا كبيرا'],
 ];
+// D02ب: THESE NEEDLES MOVED, AND THE GATE FOLLOWED THEM. Every phrase above is part of a
+// PROMPT, not part of the classifier's control flow -- 'تركه لعزك' is what the thin route is
+// told to say about a religious question, and 'مشاعر الطفل' is what the classifier is told to
+// treat as unsafe. Those prompts left index.html for lib/system-prompt.js when the server took
+// ownership of them. The invariant is unchanged and so are the needles: each must live in a
+// real string literal and not decay into a comment. Only the file it is asserted against moved.
+//
+// Both trees are searched, so the check does not care WHICH of the two files a phrase sits in
+// -- it cares that it is live somewhere the model actually receives.
+const promptFile = (process.argv[3] && !process.argv[3].startsWith('-')) ? process.argv[3] : 'lib/system-prompt.js';
+let promptAst = null, promptSrc = '';
+try {
+  promptSrc = fs.readFileSync(promptFile, 'utf8');
+  promptAst = parser.parse(promptSrc, { sourceType: 'module', ranges: true, attachComment: true });
+} catch (e) {
+  console.error('ABORT: cannot read/parse ' + promptFile + ': ' + e.message);
+  process.exit(2);
+}
 const strRaws = [], comRaws = [];
 walk(ast.program, (n) => { if (n.type === 'StringLiteral' || n.type === 'TemplateElement') strRaws.push(block.slice(n.start, n.end)); });
 for (const c of (ast.comments || [])) comRaws.push(block.slice(c.start, c.end));
+walk(promptAst.program, (n) => { if (n.type === 'StringLiteral' || n.type === 'TemplateElement') strRaws.push(promptSrc.slice(n.start, n.end)); });
+for (const c of (promptAst.comments || [])) comRaws.push(promptSrc.slice(c.start, c.end));
 const strBlob = strRaws.map(strip).join('');
 const comBlob = comRaws.map(strip).join('');
 for (const [id, needle] of AR) {

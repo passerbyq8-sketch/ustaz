@@ -231,4 +231,5 @@ guards/adhkar-twins-guard.cjs text eol=lf
 # core.autocrlf would change every pinned SHA on a fresh clone and fail the gate for a reason
 # that has nothing to do with the prompt.
 lib/system-prompt.js text eol=lf
+lib/reader-fields.js text eol=lf
 guards/system-prompt-parity-guard.cjs text eol=lf

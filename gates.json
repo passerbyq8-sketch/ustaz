@@ -2,7 +2,7 @@
  {
   "name": "worship",
   "script": "worship-guard.cjs",
-  "args": "--compare index.html worship-golden.json"
+  "args": "--compare lib/system-prompt.js worship-golden.json"
  },
  {
   "name": "quran",
@@ -37,7 +37,7 @@
  {
   "name": "referral",
   "script": "referral-guard.cjs",
-  "args": "--compare index.html referral-golden.json"
+  "args": "--compare lib/system-prompt.js referral-golden.json"
  },
  {
   "name": "classifier",

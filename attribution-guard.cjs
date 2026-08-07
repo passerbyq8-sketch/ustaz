@@ -524,8 +524,18 @@ const user = (t) => [{ role: 'user', content: t }];
     const idx = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
     const cardLines = idx.split('\n').filter((l) => /<\/?source\b|source=|\bsite=\[?["']|SOURCE_RE/i.test(l));
     const h = require('crypto').createHash('sha256').update(cardLines.join('\n'), 'utf8').digest('hex');
+    // RE-PINNED, D02ب, AND HERE IS THE WHY THIS ASSERTION ASKS FOR.
+    // 9 lines -> 5. The four that left were all PROMPT TEXT, not card machinery: three told the
+    // model how to emit <source site=... url=...> and one forbade the tag on a voice turn. They
+    // moved with the rest of the system prompt to lib/system-prompt.js when the server took
+    // ownership of it. MEASURED at the move: 4 lines removed, 0 added, and the 5 lines that
+    // remain -- the client's own <source> PARSING -- are byte-identical to what they were.
+    // buildSourceTag / pickVerifiedSources / SOURCE_RE / canonicalUrl were never in this file
+    // at all; they are server-side in lib/attribution.js, and were absent from index.html at the
+    // previous pin too. So the grammar the client parses did not move. Only the instructions
+    // telling the model to produce it changed address.
     ok('the client card grammar is byte-for-byte what the server builds for',
-      h === '2f3c902d9a6dbde0deb3c592520ecc25c88ad5ba794b82503f7df50555e3e159'
+      h === 'd1a6898bc054a480832aac8f8097eb2c50df822d4215e5f6ad1b33d9f9a07fc4'
       || (console.log('        card-grammar sha256 = ' + h + '  (' + cardLines.length + ' lines)'), false),
       'if this moved deliberately, update the hash and say why');
   }
