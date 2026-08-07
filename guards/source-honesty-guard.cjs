@@ -230,6 +230,53 @@ const stripComments = (s) => String(s)
       doc.domains.filter((r) => r.url && !Number.isFinite(r.ms)).map((r) => r.domain).join(','));
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== C. D7 — a per-host budget, and only where it was measured ===');
+  // ══════════════════════════════════════════════════════════════════════════
+
+  const DB = await esm('lib/domain-budget.js');
+  const DEFAULT_BUDGET = 8000;
+
+  ok('C1: islamweb has its own timeout, and it is the measured constant',
+    DB.DOMAIN_FETCH_TIMEOUT_MS['islamweb.net'] === DB.ISLAMWEB_FETCH_TIMEOUT_MS
+    && DB.ISLAMWEB_FETCH_TIMEOUT_MS === 3000, String(DB.ISLAMWEB_FETCH_TIMEOUT_MS));
+  ok('C1: ...comfortably above the worst sample and comfortably below the shared budget',
+    DB.ISLAMWEB_FETCH_TIMEOUT_MS > 1125 * 2 && DB.ISLAMWEB_FETCH_TIMEOUT_MS < DEFAULT_BUDGET,
+    'worst observed 1125ms, shared budget ' + DEFAULT_BUDGET + 'ms');
+  ok('C2: it applies to that host, www or apex',
+    DB.fetchTimeoutFor('https://www.islamweb.net/ar/fatwa/2523/', DEFAULT_BUDGET) === 3000
+    && DB.fetchTimeoutFor('https://islamweb.net/ar/fatwa/2523/', DEFAULT_BUDGET) === 3000);
+  ok('C2: ...and EVERY other host keeps the shared budget, unchanged',
+    ['https://islamqa.info/ar/answers/1', 'https://binbaz.org.sa/fatwas/1',
+      'https://ar.wikipedia.org/wiki/x', 'https://islamstory.com/ar/artical/1']
+      .every((u) => DB.fetchTimeoutFor(u, DEFAULT_BUDGET) === DEFAULT_BUDGET));
+  ok('C2: ...including a URL that will not parse',
+    DB.fetchTimeoutFor('not a url', DEFAULT_BUDGET) === DEFAULT_BUDGET);
+  ok('C3: exactly ONE host has a measured exception',
+    Object.keys(DB.DOMAIN_FETCH_TIMEOUT_MS).length === 1,
+    Object.keys(DB.DOMAIN_FETCH_TIMEOUT_MS).join(','));
+  ok('C4: the live path consults it rather than the bare default',
+    /fetchAndClean\(r\.link, fetchTimeoutFor\(r\.link, perFetchTimeoutMs\)\)/.test(read('lib/retrieve.js')));
+
+  // The degraded label: recorded, and PROVABLY inert.
+  ok('C5: islamstory is labelled degraded, with its samples and its budget',
+    DB.isDegraded('islamstory.com')
+    && DB.DEGRADED['islamstory.com'].budgetMs === DEFAULT_BUDGET
+    && DB.DEGRADED['islamstory.com'].samples.some((s) => s > DEFAULT_BUDGET));
+  ok('C5: ...and the label records what was NOT established',
+    /NOT ESTABLISHED/.test(DB.DEGRADED['islamstory.com'].caveat || ''),
+    'a throttled host and a slow host look identical from outside');
+  {
+    // "وسم degraded فقط — لا حذف من أي قائمة". Proven, not promised.
+    const RT2 = await esm('lib/retrieve.js');
+    ok('C5: ...and it is REMOVED FROM NO LIST',
+      RT2.SITES_MINOR.includes('islamstory.com') && RT2.SITES_ADULT.includes('islamstory.com'),
+      'degraded is a label for the owner to decide against, never a filter');
+    ok('C5: ...and no request path reads it',
+      !/isDegraded|DEGRADED/.test(read('lib/retrieve.js')) && !/isDegraded|DEGRADED/.test(read('api/ask.js')),
+      'a label that quietly changed behaviour would be a deletion wearing a different word');
+  }
+
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -245,3 +245,4 @@ guards/lock-package-guard.cjs text eol=lf
 # a comparison and not the other is a failure with nothing to do with honesty.
 guards/source-honesty-guard.cjs text eol=lf
 tools/soft-404.cjs text eol=lf
+lib/domain-budget.js text eol=lf
