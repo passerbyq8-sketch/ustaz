@@ -7,7 +7,10 @@
 // file controls -- so "did a request go out?" is a fact recorded by the probe, not an inference
 // from reading the source. The six server routes are imported for real and handed a req/res pair.
 //
-// It is NOT in gates.json and it does not modify it. Run it alongside the 50:
+// It IS a gate: gates.json registers it as `aiconsent`, so `npm run gates` runs it with the rest.
+// The roster is gates.json and the count is however many entries that file holds -- no number is
+// repeated here, because a number written into a comment goes stale the next time a gate lands.
+// To run this one alone:
 //     node tools/ai-consent-probe.cjs
 //
 // PARTS -- one per lettered requirement:

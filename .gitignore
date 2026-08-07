@@ -1,7 +1,5 @@
 node_modules/
 babel-block.jsx
-babel-gate.cjs
-runtime-gate.cjs
 live*.html
 
 # spike secrets â€” never commit
@@ -23,7 +21,9 @@ payload-*.txt
 probe-*.cjs
 spike/.env.example
 
-# bug 43: track local guard scripts (explicit un-ignore; general rules above kept)
-!babel-gate.cjs
-!runtime-gate.cjs
+# bug 43: recon-audit.cjs is a gate (gates.json: `recon`), so the recon-*.cjs rule above must
+# not swallow it. babel-gate.cjs and runtime-gate.cjs are gates too (`babel`, `runtime`); they
+# were listed as ignored above AND un-ignored here, which cancelled out to nothing and told any
+# fresh clone they were generated scratch. Both pairs of lines are gone; nothing else matches
+# them, so all three files stay tracked exactly as before.
 !recon-audit.cjs

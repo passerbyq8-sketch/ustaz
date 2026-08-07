@@ -6,7 +6,9 @@
 // this file controls. The <head> boot script is run separately, in its own window, because that
 // is where the very first language decision is actually made.
 //
-// It is NOT in gates.json and it does not modify it. Run it alongside the 33.
+// It IS a gate: gates.json registers it as `i18nui`, so `npm run gates` runs it with the rest.
+// The roster is gates.json and the count is however many entries that file holds -- no number is
+// repeated here, because a number written into a comment goes stale the next time a gate lands.
 //
 // Parts:
 //   A. THE DICTIONARIES — two languages, identical keys, no empty value, no duplicate, no
@@ -47,8 +49,9 @@ const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06
 
 // This guard lives in guards/ rather than in the repo root on purpose: recon-audit requires
 // every ROOT .cjs to be classified either inside gates.json or inside recon-audit's own
-// non-gate list, and this phase is allowed to edit neither. A directory of its own keeps that
-// rule intact without weakening it, and keeps this guard out of the 33.
+// non-gate list, and the phase that first wrote this file was allowed to edit neither. A
+// directory of its own kept that rule intact without weakening it. The registration came
+// later, and it is where every gate's registration belongs: gates.json.
 const REPO = path.resolve(__dirname, '..');
 const htmlFile = process.argv[2] || 'index.html';
 const html = fs.readFileSync(path.join(REPO, htmlFile), 'utf8');

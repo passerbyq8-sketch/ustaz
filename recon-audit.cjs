@@ -3,7 +3,9 @@
  * recon-audit.cjs  --  READ-ONLY structural audit for Al-Murabbi (repo: ustaz)
  * -------------------------------------------------------------------------
  * SAFE: reads files + git metadata ONLY. Writes NOTHING. Commits NOTHING.
- * Auto-ignored by the existing .gitignore (recon-*.cjs pattern).
+ * TRACKED in git on purpose (bug 43): the recon-*.cjs pattern in .gitignore is cancelled for
+ * this one file by an explicit "!recon-audit.cjs", because it is a gate -- gates.json registers
+ * it as `recon`. "git check-ignore recon-audit.cjs" matches nothing.
  * Run from the repo root:  node recon-audit.cjs
  *
  * WARN / "not found" on a marker usually just means the token name differs
