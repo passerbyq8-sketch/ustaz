@@ -7906,7 +7906,11 @@ function App() {
       const __extra = {
         // depth: adult-only, non-'brief' -> server reads body.depth==='deep'/'scholar' for round-2 effort.
         ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' && hasFounderToken() ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
-        // band: so the server restricts RAG sources by age (khilaf-policy §6: under-18 => islamqa+binbaz).
+        // band: so the server restricts RAG sources by age (khilaf-policy §6: under-18 is served
+        // from the two tiers SITES_MINOR + SITES_MINOR_FALLBACK in lib/retrieve.js -- primary first,
+        // fallback only when the primary comes back empty). Those two constants ARE the list; this
+        // comment names them instead of a count, because the count written here went on naming just
+        // the first two domains long after the primary tier had grown past them.
         ...(mode === 'chat' && endpoint === '/api/ask' ? { band: deriveCaps(p.age).band } : {}),
         // AND THE VOICE ROUTE TOO. api/chat.js now runs the same age policy and the same floor the
         // typed route runs, and it had nothing to run them ON: the band was sent only to /api/ask,
