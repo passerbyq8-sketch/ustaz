@@ -40,6 +40,7 @@ const path = require('path');
 const REPO = path.join(__dirname, '..');
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const OUT = path.join(REPO, 'data', 'source-liveness.json');
+const { detectSoftNotFound } = require('./soft-404.cjs');
 
 const WRITE = process.argv.includes('--write');
 const JSON_OUT = process.argv.includes('--json');
@@ -62,7 +63,17 @@ const PROBE = {
   'sh-albarrak.com': 'https://sh-albarrak.com/article/10029',
   'almosleh.com': 'https://almosleh.com/ar/8285',
   'islamstory.com': 'https://islamstory.com/ar/artical/3408793/',
-  'al-badr.net': 'https://al-badr.net/muqolat/5051',
+  // REPLACED 2026-08-07. The old URL (/muqolat/5051) answers HTTP 200 with the site's own «404»
+  // document — the soft 404 that made this whole tool untrustworthy. This one is a real lesson
+  // page, reached by walking the host's own home page, and its title proves it: «فضل يوم عاشوراء».
+  //
+  // IT DOES NOT MAKE THE DOMAIN CITABLE, and the replacement is not a fix for that. Measured the
+  // same day across six live articles AND the dead URL: all seven extract BYTE-IDENTICAL text,
+  // 1085 chars, sha256 5149d37a3b53 — the site-wide hadith band. The article body never survives
+  // Readability on this host, so al-badr.net is honestly `live-no-citation`, and it was only ever
+  // recorded `live-cites` because that band clears the 200-char generic floor. Fixing the URL
+  // fixes the URL; the adapter is a separate piece of work.
+  'al-badr.net': 'https://al-badr.net/detail/3Tshr80AJpHG',
   'othmanalkhamees.com': 'https://othmanalkhamees.com/lesson/100',
   'iifa-aifi.org': 'https://iifa-aifi.org/ar/115.html',
   'ferkous.app': 'https://ferkous.app/home/?q=fatwa-660',
@@ -93,6 +104,26 @@ const PROBE = {
   'ferkous.com': 'https://ferkous.com/home/?q=fatwa-660',
   'shkhudheir.com': 'https://shkhudheir.com/',
   'alarabiya.net': 'https://www.alarabiya.net/',
+};
+
+// ── A SECOND ARTICLE, FOR HOSTS WHERE ONE PAGE CANNOT TELL THE TRUTH ─────────
+// MEASURED 2026-08-07 on al-badr.net: six live articles and the dead URL all extract the SAME
+// 1085 characters, byte for byte (sha256 5149d37a3b53). It is the site-wide hadith band, and
+// the article body never survives Readability on that host. One probe therefore reports
+// `live-cites` — 1085 clears the 200-char generic floor — and the report is FALSE: nothing
+// citable was reached, on that page or on any other.
+//
+// So for a listed domain a SECOND, different article is fetched and the two extractions are
+// compared. Identical text from two different articles means the extractor is returning page
+// furniture rather than content, whatever its length, and the domain is `live-no-citation`.
+//
+// OPT-IN, one entry at a time, for two reasons. It doubles the requests to that host, and these
+// are other people's servers. And a recorded fingerprint would have been cheaper but can go
+// stale in silence — the site redesigns its band, the signature stops matching, and the domain
+// quietly reverts to a false `live-cites`. Comparing two live pages re-establishes the fact on
+// every run and cannot rot.
+const PROBE_ALT = {
+  'al-badr.net': 'https://al-badr.net/detail/5JWRETfbj8',   // «شرح متن عظيم جامع في الاعتقاد»
 };
 
 (async function main() {
@@ -139,9 +170,38 @@ const PROBE = {
     // drives a gate. It gets its own state so that somebody fixes the URL instead of the domain.
     const m = note.match(/^fetch-failed HTTP (\d+)/);
     const httpStatus = m ? Number(m[1]) : 0;
+    // D6أ: AND THE SOFT ONES. A 404 that arrives as an honest 404 is caught by the status; the
+    // dangerous kind arrives as HTTP 200 carrying the site's own error document, and reading
+    // the status alone recorded al-badr.net as `live-cites` — coverage that does not exist, in
+    // a file that drives a gate. The detector is a separate module so this tool and the gate
+    // that proves it cannot hold two different ideas of what a soft 404 looks like.
+    const soft = httpStatus ? { soft: false } : detectSoftNotFound({
+      requestedUrl: url, finalUrl: res.finalUrl || url, title: res.title, text,
+    });
+    // The second article, for the hosts that need one. Only reached when the first page looked
+    // fine — there is nothing to learn from a second fetch after a refusal, and no reason to
+    // spend one.
+    let boilerplate = null;
+    const altUrl = PROBE_ALT[domain];
+    if (altUrl && !httpStatus && !soft.soft && text.length > 0) {
+      await sleep(GAP_MS);
+      RT.resetBreakers();
+      try {
+        const alt = await RT.fetchAndClean(altUrl, TIMEOUT_MS);
+        const altText = String(alt.text || '');
+        if (altText.length > 0 && altText === text) {
+          boilerplate = { altUrl, chars: altText.length };
+        }
+      } catch (e) { /* a failed second probe proves nothing; the first verdict stands */ }
+    }
+
     let status;
     if (httpStatus === 404 || httpStatus === 410) {
       status = 'probe-stale';
+    } else if (soft.soft) {
+      status = 'probe-stale';                // the URL is gone; the DOMAIN said nothing wrong
+    } else if (boilerplate) {
+      status = 'live-no-citation';           // two different articles, one identical extraction
     } else if (/^fetch-failed/.test(note) || /^BLOCKED \(cloudflare/.test(note)) {
       status = 'dead';                       // the host refused us, or challenged us
     } else if (/^BLOCKED/.test(note) || text.length < floor) {
@@ -151,7 +211,12 @@ const PROBE = {
     }
 
     rows.push({
-      domain, url, finalUrl: res.finalUrl || url, status, note,
+      domain, url, finalUrl: res.finalUrl || url, status,
+      note: soft.soft
+        ? `SOFT 404 (${soft.signal}): ${soft.detail} — the host answered 2xx and served something that is not the requested document. Fix the URL in tools/source-liveness.cjs, not the domain.`
+        : boilerplate
+          ? `PAGE-INVARIANT BOILERPLATE: this article and ${boilerplate.altUrl} extract byte-identical text (${boilerplate.chars} chars), so the extractor is returning site furniture and no article body survives on this host. The domain is UP; nothing citable is reachable through the current adapter.`
+          : note,
       textLen: text.length, floor, rawLen: res.rawLen || 0,
       title: String(res.title || '').slice(0, 90),
       registryStatus: (R.findSource(domain) || {}).status || '?',

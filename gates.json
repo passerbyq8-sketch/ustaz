@@ -318,5 +318,10 @@
   "name": "lockpackage",
   "script": "guards/lock-package-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "sourcehonesty",
+  "script": "guards/source-honesty-guard.cjs",
+  "args": ""
  }
 ]

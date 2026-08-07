@@ -239,3 +239,9 @@ guards/system-prompt-parity-guard.cjs text eol=lf
 # introduced by core.autocrlf on one side of a comparison and not the other is a failure with
 # nothing to do with the locks.
 guards/lock-package-guard.cjs text eol=lf
+
+# D6أ: the source-honesty gate. It compares user-agent strings byte for byte and drives the
+# fetcher to read the header actually sent, so a CR introduced by core.autocrlf on one side of
+# a comparison and not the other is a failure with nothing to do with honesty.
+guards/source-honesty-guard.cjs text eol=lf
+tools/soft-404.cjs text eol=lf

@@ -19,9 +19,12 @@ const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/')
 const JSON_OUT = process.argv.includes('--json');
 const ONLY = (() => { const i = process.argv.indexOf('--only'); return i === -1 ? '' : (process.argv[i + 1] || ''); })();
 
-// The production header set, so what we measure is what the server sends the app.
+// The production header set, so what we measure is what the server sends the app. D6أ: the
+// User-Agent is read from lib/user-agent.js at run time rather than retyped here — a
+// measurement tool that sends a DIFFERENT name from production is measuring a different app,
+// and this one used to send desktop Chrome while claiming in its own comment to be production.
 const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+  'User-Agent': 'EzikBot/1.0 (+https://ezik.app)',   // overwritten from the module in main()
   Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
   'Accept-Language': 'ar,en;q=0.9',
   'Accept-Encoding': 'gzip, deflate, br',
@@ -86,6 +89,9 @@ const CASES = [
   const { Readability } = await import('@mozilla/readability');
   const G = await esm('lib/source-page-gates.js');
   const R = await esm('lib/source-registry.js');
+  // Read, not retyped: this tool exists to measure what production meets, so it must not be
+  // possible for its name and production's name to drift apart.
+  HEADERS['User-Agent'] = (await esm('lib/user-agent.js')).EZIK_USER_AGENT;
 
   const rows = [];
   let mismatches = 0, errors = 0;
