@@ -482,6 +482,123 @@ const stripComments = (s) => String(s)
     ['WEATHER', 'MARKET_PRICE'].every((k) => WI.WORLD_REASONS[k] === k),
     JSON.stringify(Object.keys(WI.WORLD_REASONS)));
 
+  // ── E7-E10: س٦٫٤ — THE SHARIA FILTER, AND THE RULING IT MAY NOT PRONOUNCE ─
+  const IR = await esm('lib/policy/impermissible-request.js');
+  const RC2 = await esm('lib/route-classify.js');
+
+  // E7: the owner's own two samples, which were MEASURED coming back NONE — no refusal, no
+  // counsel, straight to the model. This part is a new build, not a widened behaviour.
+  for (const [q, kind] of [
+    ['ابغى أغنية حلوة', 'music'],
+    ['رشح لي فلم', 'film'],
+    ['عطني رابط أغاني', 'music'],
+    ['ودي أسمع موسيقى', 'music'],
+    ['رشح لي مسلسل', 'film'],
+    ['ابغى أشوف أفلام إباحية', 'pornography'],
+  ]) {
+    const r = IR.classifyImpermissibleRequest(q);
+    ok('E7: a request for the forbidden is stopped (' + kind + ') — «' + q.slice(0, 26) + '…»',
+      r.blocked === true && r.kind === kind, JSON.stringify(r));
+  }
+
+  // E8: THE RULING QUESTION KEEPS ITS SOURCED ANSWER. core.js's one rule about regexes, applied:
+  // a single keyword may never block a topic. Both halves are checked — the router sends the
+  // ruling question to DEEN so it never reaches the filter, AND the filter would decline it
+  // anyway. Either alone would be a guarantee resting on the other file not changing.
+  const M = (q) => [{ role: 'user', content: q }];
+  for (const q of ['ما حكم الأغاني؟', 'ما حكم مشاهدة الأفلام؟', 'ما حكم سماع الموسيقى؟']) {
+    ok('E8: the RULING question is DEEN and never reaches the filter — «' + q.slice(0, 26) + '…»',
+      RC2.classifyRoute(M(q)) === 'DEEN');
+    ok('E8: ...and the filter declines it on its own account too',
+      IR.classifyImpermissibleRequest(q).blocked === false,
+      JSON.stringify(IR.classifyImpermissibleRequest(q)));
+  }
+  for (const q of ['ابغى أغنية حلوة', 'رشح لي فلم']) {
+    ok('E8: ...while the REQUEST is GEN, which is what puts it in front of the filter',
+      RC2.classifyRoute(M(q)) === 'GEN');
+  }
+
+  // E9: A CONJUNCTION, AND THE MEASURED COLLISION IT HAD TO SURVIVE.
+  // «فلم» is the Kuwaiti spelling of "film" AND the classical «ف» + «لم». The exclusion that
+  // separates them was measured INERT on its first cut: it was written with `\b`, which in
+  // JavaScript is defined on ASCII word characters and can never match before an Arabic letter,
+  // so «أبغى كتابًا فلم أجده في المكتبة» was classified as a request for a film.
+  for (const q of ['رشح لي فلم وثائقي', 'ابغى فلم حلو']) {
+    ok('E9: «فلم» as a film is caught — «' + q + '»',
+      IR.classifyImpermissibleRequest(q).kind === 'film');
+  }
+  for (const q of [
+    'أبغى كتابًا فلم أجده في المكتبة',
+    'قرأت الكتاب فلم أجد فيه جواباً',
+    'ابغى أروح فلم يتيسر لي',
+  ]) {
+    ok('E9: ...and «فلم» as negation is not — «' + q.slice(0, 30) + '…»',
+      IR.classifyImpermissibleRequest(q).blocked === false,
+      JSON.stringify(IR.classifyImpermissibleRequest(q)));
+  }
+  for (const q of ['رشح لي كتاب', 'ابغى ألعب لعبة', 'رشح لي برنامج علمي', 'ابغى أعرف الطقس']) {
+    ok('E9: ...and an ordinary request is untouched — «' + q + '»',
+      IR.classifyImpermissibleRequest(q).blocked === false);
+  }
+  {
+    // Either half alone decides nothing — the same proof E5 makes for the price rule.
+    const shapeOnly = IR.classifyImpermissibleRequest('رشح لي مطعم زين');
+    const objectOnly = IR.classifyImpermissibleRequest('الأفلام منتشرة في هذي الأيام');
+    ok('E9: a request shape with nothing forbidden decides nothing',
+      shapeOnly.blocked === false, JSON.stringify(shapeOnly));
+    ok('E9: ...and the bare word with no request decides nothing either',
+      objectOnly.blocked === false, JSON.stringify(objectOnly));
+  }
+
+  // ── E10: THE COUNSEL — the owner's tone spec, checked rather than admired ──
+  ok('E10: the module is internally conformant to its own doctrine',
+    IR.counselProblems().length === 0, JSON.stringify(IR.counselProblems()));
+  {
+    const RULINGS = ['حرام', 'محرّم', 'لا يجوز', 'يحرم', 'إثم', 'معصية'];
+    for (const b of ['young', 'teen', 'adult', 'unknown']) {
+      const text = IR.impermissibleCounsel(b);
+      // THE LINE THIS MAY NEVER CROSS. A verdict from a regex is a fatwa with no source behind
+      // it, which is the one thing this repository is built to prevent.
+      ok('E10: it pronounces NO ruling for band ' + b,
+        !RULINGS.some((v) => text.includes(v)),
+        RULINGS.filter((v) => text.includes(v)).join(','));
+      // ...and it is not a wall. age.js treats a bare referral as a DEFECT, not as safety.
+      ok('E10: ...and it is not a bare refusal — it offers something instead (' + b + ')',
+        /أقدر أدلّك/.test(text) && text.length > 200, String(text.length));
+      // It hands the ruling question back as an answerable one, which is the same move
+      // buildWorldSearchInstruction() makes when a world answer drifts towards a ruling.
+      ok('E10: ...and it returns the ruling to the people who issue it (' + b + ')',
+        /ناقلٌ لا مفتٍ/.test(text) && /أهل العلم/.test(text) && /سؤالٌ مستقلٌّ/.test(text));
+    }
+    ok('E10: a child is left with a person; an adult is not handed a child\'s ending',
+      /ماما أو بابا/.test(IR.impermissibleCounsel('young'))
+      && /ماما أو بابا/.test(IR.impermissibleCounsel('teen'))
+      && !/ماما أو بابا/.test(IR.impermissibleCounsel('adult'))
+      && !/ماما أو بابا/.test(IR.impermissibleCounsel('unknown')));
+    ok('E10: ...and the tone is built on the template the owner approved, not a new one',
+      /WARM_SAFETY_REDIRECT/.test(read('lib/policy/impermissible-request.js')),
+      'the brief: «ابنِ على قوالب lib/policy ولا تخترع نبرة جديدة»');
+  }
+
+  // ── E11: IT IS WIRED, AND WIRED ABOVE THE LEDGER ──────────────────────────
+  {
+    const ASK = read('api/ask.js');
+    ok('E11: the live path consults the filter on the GEN route',
+      /const impermissible = effectiveRoute === 'GEN'\s*\?\s*classifyImpermissibleRequest\(questionText\)/.test(ASK));
+    ok('E11: ...and answers with the counsel rather than the model',
+      /if \(impermissible\.blocked\) \{[\s\S]{0,400}return emitOnce\(impermissibleCounsel\(audienceBand\)\);/.test(ASK));
+    // THE ORDERING THAT MAKES IT REACHABLE AT ALL. The ledger branch RETURNS, so anything below
+    // it is dead code for every reader — the same trap the world block was moved out of.
+    const atFilter = ASK.indexOf('const impermissible = effectiveRoute');
+    const atWorld = ASK.indexOf('const worldIntent = effectiveRoute');
+    const atLedger = ASK.indexOf("if (ledgerPath.path === 'ledger') {");
+    ok('E11: ...and it sits ABOVE the world branch, which sits ABOVE the ledger',
+      atFilter > 0 && atFilter < atWorld && atWorld < atLedger,
+      'filter=' + atFilter + ' world=' + atWorld + ' ledger=' + atLedger);
+    ok('E11: ...and it logs the KIND and the band, never the question',
+      /IMPERMISSIBLE_REQUEST', \{\s*kind: impermissible\.kind, band: audienceBand/.test(ASK));
+  }
+
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

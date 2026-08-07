@@ -73,6 +73,9 @@ import { readerFromBody, narrowestBand } from '../lib/reader-fields.js';
 // one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
 // one on its own account if it ever did.
 import { classifyWorldIntent } from '../lib/world-intent.js';
+// The sharia filter on that same path (س٦٫٤). It stops a REQUEST for the forbidden and counsels;
+// it never pronounces a ruling, because «عزك ناقلٌ لا مفتٍ» and a regex has no source behind it.
+import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/policy/impermissible-request.js';
 // A takhrij nobody published is never emitted. See lib/takhrij-lock.js for the measured incident.
 import { lockTakhrij } from '../lib/takhrij-lock.js';
 
@@ -1089,6 +1092,36 @@ export default async function handler(req, res) {
     // attribute TO. The drop-whole exits are precisely the ones where the reader most needs to be
     // told «لا أعرف هذا الاسم», and they were the ones not carrying it.
     const withPresence = (text) => (presenceLead ? presenceLead + '\n\n' + text : text);
+
+    // ── THE SHARIA FILTER ON THE LIVE-WORLD PATH (س٦٫٤) ────────────────────
+    //
+    // The owner's spec for this path is two sentences long: it answers the world from an open
+    // search, and its ONLY restraint is this. So the restraint is applied HERE — immediately
+    // above the world branch, above the ledger, and on the same GEN condition — rather than
+    // inside the retrieval, because a request for a song must be stopped whether or not the
+    // world classifier would have searched for it. «ابغى أغنية حلوة» is NONE to that classifier;
+    // it must still be answered with counsel rather than handed to the model.
+    //
+    // GEN ONLY, AND THAT IS THE WHOLE SEPARATION. MEASURED through classifyRoute() itself:
+    // «ابغى أغنية حلوة» and «رشح لي فلم» are GEN, while «ما حكم الأغاني؟» and «ما حكم مشاهدة
+    // الأفلام؟» are DEEN. A question about the RULING therefore never reaches this line and keeps
+    // the sourced answer it is entitled to — which is the difference between a sharia filter and
+    // a word blocklist, and it is decided by the router rather than promised by this comment.
+    //
+    // EVERY BAND. «لكل الأعمار», and for the reason core.js already gives about the grave hazards:
+    // an adult has not asked a different question by being an adult. Only the ALTERNATIVE offered
+    // at the end varies, because ending an adult at «ماما أو بابا» would be talking down to him.
+    const impermissible = effectiveRoute === 'GEN'
+      ? classifyImpermissibleRequest(questionText)
+      : { blocked: false, kind: '', matched: '' };
+    if (impermissible.blocked) {
+      // The KIND and the band, and nothing else. Never the question.
+      console.warn('[policy] IMPERMISSIBLE_REQUEST', {
+        kind: impermissible.kind, band: audienceBand, path: ledgerPath.path,
+        policyVersion: POLICY_VERSION,
+      });
+      return emitOnce(impermissibleCounsel(audienceBand));
+    }
 
     // ── LIVE WORLD RETRIEVAL: a general question may still need TODAY'S facts ──
     //
