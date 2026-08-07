@@ -147,18 +147,40 @@ const PROBE_ALT = {
     await sleep(GAP_MS);
     RT.resetBreakers();               // each domain judged on its own, not on a neighbour's failure
 
+    // D7 needs a NUMBER, not an impression: whether a host fits the 8000ms per-fetch budget the
+    // live path actually gives it (lib/retrieve.js perFetchTimeoutMs / lib/ledger/budgets.js
+    // FETCH_TIMEOUT_MS) is a question about milliseconds, and nobody had ever recorded any. This
+    // is wall time for fetch + Readability together, which is what the budget is spent on.
+    const t0 = Date.now();
     let res;
     try {
       res = await RT.fetchAndClean(url, TIMEOUT_MS);
     } catch (e) {
-      rows.push({
-        domain, url, status: 'dead', note: 'transport: ' + (e && e.name) + ' ' + String(e && e.message).slice(0, 80),
-        textLen: 0, registryStatus: (R.findSource(domain) || {}).status || '?',
-      });
-      if (!JSON_OUT) console.log(`dead              ${domain.padEnd(22)}      0 chars              transport: ${e && e.name}`);
-      continue;
+      // ONE RETRY, AND ONLY ON A TRANSPORT FAILURE. Measured 2026-08-07: ferkous.app was recorded
+      // `dead` on a TypeError that arrived in SIX MILLISECONDS, and the same URL answered HTTP 200
+      // on the very next request — the socket never got out. Writing a living source into the
+      // evidence file as dead is exactly as untruthful as the reverse, and this file drives a
+      // gate. A STATUS is an answer and is never retried; a connection that did not happen is not
+      // an answer, and asking twice before condemning a source is the least this can do.
+      //
+      // Deliberately once, not thrice: a host that is genuinely down should still be recorded
+      // down, promptly, and this is not a availability poller.
+      await sleep(GAP_MS);
+      try {
+        res = await RT.fetchAndClean(url, TIMEOUT_MS);
+        if (!JSON_OUT) console.log(`(retried after transport failure: ${domain})`);
+      } catch (e2) {
+        rows.push({
+          domain, url, status: 'dead',
+          note: 'transport (twice): ' + (e2 && e2.name) + ' ' + String(e2 && e2.message).slice(0, 80),
+          textLen: 0, ms: Date.now() - t0, registryStatus: (R.findSource(domain) || {}).status || '?',
+        });
+        if (!JSON_OUT) console.log(`dead              ${domain.padEnd(22)}      0 chars              transport twice: ${e2 && e2.name}`);
+        continue;
+      }
     }
 
+    const ms = Date.now() - t0;              // BEFORE the optional second probe, which is not the budget
     const text = String(res.text || '');
     const note = String(res.note || '');
     const declared = PG.declaredMinText(res.finalUrl || url);
@@ -176,7 +198,7 @@ const PROBE_ALT = {
     // a file that drives a gate. The detector is a separate module so this tool and the gate
     // that proves it cannot hold two different ideas of what a soft 404 looks like.
     const soft = httpStatus ? { soft: false } : detectSoftNotFound({
-      requestedUrl: url, finalUrl: res.finalUrl || url, title: res.title, text,
+      requestedUrl: url, finalUrl: res.finalUrl || url, title: res.title, text, rawLen: res.rawLen,
     });
     // The second article, for the hosts that need one. Only reached when the first page looked
     // fine — there is nothing to learn from a second fetch after a refusal, and no reason to
@@ -217,7 +239,7 @@ const PROBE_ALT = {
         : boilerplate
           ? `PAGE-INVARIANT BOILERPLATE: this article and ${boilerplate.altUrl} extract byte-identical text (${boilerplate.chars} chars), so the extractor is returning site furniture and no article body survives on this host. The domain is UP; nothing citable is reachable through the current adapter.`
           : note,
-      textLen: text.length, floor, rawLen: res.rawLen || 0,
+      textLen: text.length, ms, floor, rawLen: res.rawLen || 0,
       title: String(res.title || '').slice(0, 90),
       registryStatus: (R.findSource(domain) || {}).status || '?',
     });

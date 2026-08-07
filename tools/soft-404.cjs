@@ -26,10 +26,19 @@
 //                      nobody's article lives at «/».
 //   not-found-title    the document names itself as an error. This is the one that catches the
 //                      al-badr case, and the only one that could have.
-//   empty-body         HTTP 200 with almost no extractable text at all. Deliberately a HARD
-//                      floor far below any per-host minimum: this is not "the page is thin",
-//                      which is a different verdict (live-no-citation) reached elsewhere. It is
-//                      "there is no document here".
+//   empty-body         HTTP 200 with almost no extractable text AND almost no bytes. Deliberately
+//                      a HARD floor far below any per-host minimum: this is not "the page is
+//                      thin", which is a different verdict (live-no-citation) reached elsewhere.
+//                      It is "there is no document here".
+//
+// THE SECOND HALF OF THAT LAST CONDITION WAS LEARNED THE HARD WAY, on the first full re-run.
+// Judging emptiness by the EXTRACTED text alone moved two domains to `probe-stale`, and one of
+// them was a lie: tafsir.app returns **150,461 raw characters** and extracts **0**, because it
+// is a client-rendered app whose body arrives by script. The page is there; our extractor
+// cannot read it. That is `live-no-citation` — a fact about the adapter — and calling it a
+// stale URL would have sent somebody hunting for a replacement link that does not exist.
+// shkhudheir.com's probe, by contrast, returns **114 raw characters**: there really is no
+// document. Those two measurements are the calibration for RAW_SHELL_CHARS below.
 //
 // FALSE POSITIVES ARE THE COST TO WATCH, and the titles are checked rather than the body for
 // exactly that reason: a real article ABOUT http status codes would trip a body scan, while a
@@ -60,6 +69,9 @@ const NOT_FOUND_BODY = [
 
 // A document at all, or nothing? Far below any declared per-host floor on purpose — see above.
 const EMPTY_BODY_CHARS = 120;
+// ...and the server must not have sent a page-worth of bytes either. Between shkhudheir.com's
+// 114 raw chars and tafsir.app's 150,461 there is no near call to make; this sits far from both.
+const RAW_SHELL_CHARS = 20000;
 // The body scan's ceiling. Above this a page is long enough that an incidental phrase is more
 // likely than an error page.
 const BODY_SCAN_MAX_CHARS = 400;
@@ -94,9 +106,16 @@ function detectSoftNotFound(page) {
     }
   }
 
-  // (3) HTTP 200 and no document.
-  if (text.length < EMPTY_BODY_CHARS) {
-    return { soft: true, signal: 'empty-body', detail: text.length + ' chars extracted' };
+  // (3) HTTP 200 and no document — bytes as well as text. A big body that extracts to nothing
+  // is a page we cannot READ, not a page that is not THERE, and the two need different fixes.
+  const rawLen = Number(p.rawLen);
+  const rawKnown = Number.isFinite(rawLen);
+  if (text.length < EMPTY_BODY_CHARS && (!rawKnown || rawLen < RAW_SHELL_CHARS)) {
+    return {
+      soft: true,
+      signal: 'empty-body',
+      detail: text.length + ' chars extracted from ' + (rawKnown ? rawLen : '?') + ' raw',
+    };
   }
   if (text.length <= BODY_SCAN_MAX_CHARS) {
     for (const re of NOT_FOUND_BODY) {
@@ -112,5 +131,6 @@ function detectSoftNotFound(page) {
 module.exports = {
   detectSoftNotFound,
   EMPTY_BODY_CHARS,
+  RAW_SHELL_CHARS,
   BODY_SCAN_MAX_CHARS,
 };

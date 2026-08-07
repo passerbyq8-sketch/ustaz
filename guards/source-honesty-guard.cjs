@@ -155,12 +155,25 @@ const stripComments = (s) => String(s)
       r.soft === true && r.signal === 'redirect-to-root', JSON.stringify(r));
   }
   {
+    // shkhudheir.com's MEASURED probe: 0 extracted from 114 raw. There is no document.
     const r = detectSoftNotFound({
-      requestedUrl: 'https://example.org/a/b', finalUrl: 'https://example.org/a/b',
-      title: 'شيء ما', text: 'قليل',
+      requestedUrl: 'https://shkhudheir.com/', finalUrl: 'https://shkhudheir.com/',
+      title: '', text: '', rawLen: 114,
     });
-    ok('B3: HTTP 200 with no document at all is caught',
+    ok('B3: HTTP 200 with no document at all is caught (measured: 0 chars from 114 raw)',
       r.soft === true && r.signal === 'empty-body', JSON.stringify(r));
+  }
+  {
+    // tafsir.app's MEASURED probe: 0 extracted from 150,461 raw — a client-rendered app. THE
+    // PAGE IS THERE and our extractor cannot read it, which is a fact about the adapter, not
+    // about the URL. Calling this `probe-stale` (as the first cut of this detector did) sends
+    // somebody hunting for a replacement link that does not exist.
+    const r = detectSoftNotFound({
+      requestedUrl: 'https://tafsir.app/tabari/94/5', finalUrl: 'https://tafsir.app/tabari/94/5',
+      title: '', text: '', rawLen: 150461,
+    });
+    ok('B3: ...but a client-rendered SHELL is NOT a missing page',
+      r.soft === false, JSON.stringify(r));
   }
   {
     const r = detectSoftNotFound({
@@ -195,6 +208,27 @@ const stripComments = (s) => String(s)
     /const PROBE_ALT = \{/.test(TOOL) && /altText === text/.test(TOOL)
     && /status = 'live-no-citation';\s*\/\/ two different articles/.test(TOOL),
     'one probe reported al-badr live-cites on 1085 chars of site furniture');
+  ok('B8: a single transport failure does not condemn a source',
+    /transport \(twice\)/.test(TOOL) && /res = await RT\.fetchAndClean\(url, TIMEOUT_MS\);[\s\S]{0,200}retried after transport failure/.test(TOOL),
+    'ferkous.app was recorded dead on a TypeError that arrived in 6ms and answered 200 on the next request');
+  ok('B8: ...and every row now records how long the host took',
+    /const ms = Date\.now\(\) - t0;/.test(TOOL) && /textLen: text\.length, ms,/.test(TOOL),
+    'D7 needs a number, and nobody had ever recorded one');
+
+  // ── the written evidence agrees with what was measured ────────────────────
+  {
+    const doc = JSON.parse(read('data/source-liveness.json'));
+    const row = (d) => doc.domains.find((r) => r.domain === d) || {};
+    ok('B9: al-badr.net is recorded as what it actually is',
+      row('al-badr.net').status === 'live-no-citation', JSON.stringify(row('al-badr.net').status));
+    ok('B9: ...tafsir.app is recorded as unreadable, not as missing',
+      row('tafsir.app').status === 'live-no-citation', JSON.stringify(row('tafsir.app').status));
+    ok('B9: ...ferkous.app is not recorded dead on a blink',
+      row('ferkous.app').status === 'live-cites', JSON.stringify(row('ferkous.app').status));
+    ok('B9: ...and every probed row carries a response time',
+      doc.domains.filter((r) => r.url).every((r) => Number.isFinite(r.ms)),
+      doc.domains.filter((r) => r.url && !Number.isFinite(r.ms)).map((r) => r.domain).join(','));
+  }
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
   process.exit(failures ? 1 : 0);
