@@ -534,6 +534,29 @@ const templateOf = (p) => {
       ok('...and the intent is one the band can actually serve',
         SP.eligibleSites(['islamqa.info', 'islamweb.net'], C.capabilityForIntent(ir.issues[0].intent)).length > 0,
         ir.issues[0].intent);
+
+      // ── THE BAND CHECK, ON A CASE WHERE IT ACTUALLY HAS TO FIRE ────────────
+      //
+      // The row above passes whether or not the fallback exists, because `fatwa` is servable by
+      // that band anyway — a vacuous check, and a mutant that deleted the band lookup survived
+      // it. This is the case that discriminates: MEASURED, `eftaa.awqaf.gov.kw` is eligible for
+      // `fatwa` and for NOTHING else, so a tafsir question against a band of only that domain
+      // classifies to an intent nothing there can answer. Without the fallback the engine plans
+      // a search of zero domains and refuses without a request — the failure this round closes,
+      // arriving through the last door left open.
+      const TAFSIR_Q = 'ما تفسير قوله تعالى إن مع العسر يسرا؟';
+      const NARROW = ['eftaa.awqaf.gov.kw'];
+      eq('the discriminating band really is fatwa-only', [
+        SP.eligibleSites(NARROW, 'fatwa').length, SP.eligibleSites(NARROW, 'tafsir').length,
+      ], [1, 0]);
+      eq('...and the question really does classify as tafsir on a band that can serve it',
+        PLAN.deterministicPlanIR(TAFSIR_Q, { bandSites: ['tafsir.net', 'islamqa.info'] }).issues[0].intent,
+        'tafsir');
+      const narrowed = PLAN.deterministicPlanIR(TAFSIR_Q, { bandSites: NARROW });
+      eq('...so against the fatwa-only band the floor plans something servable instead',
+        narrowed.issues[0].intent, 'fatwa');
+      ok('...which is the point: the plan can still reach a provider',
+        SP.eligibleSites(NARROW, C.capabilityForIntent(narrowed.issues[0].intent)).length > 0);
       // It must not re-open the door it exists to close: neither of the two fields that turn an
       // answer into a clarifying question may be set by a plan nobody described.
       eq('...it claims no missing qualifier', ir.missing_qualifiers, []);
