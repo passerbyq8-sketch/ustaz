@@ -339,7 +339,12 @@ head('8) MARKERS & FROZEN-SURFACE PRESENCE (index.html)');
 
   const markerChecks = [
     ['tts-num-words injection', /tts-num-words/],
-    ['buildSystemPrompt',       /buildSystemPrompt/],
+    // D02ب: buildSystemPrompt is DELIBERATELY NOT in this list any more. It is not in index.html
+    // to be found -- the prompt moved to lib/system-prompt.js so the server owns it, and the
+    // client now posts {name, age, gender, mode} instead. Leaving it here produced a standing
+    // WARN that read like a broken token when it was in fact the whole point of the change, and
+    // a warning nobody can act on is one nobody reads. Gate `systemprompt` asserts the real
+    // invariant: the module is the only builder, and no second copy has come back here.
     ['deriveCaps',              /deriveCaps/],
     ['formatForTTS',            /formatForTTS/],
     ['parseSegments',           /parseSegments/],
