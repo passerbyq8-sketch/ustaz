@@ -1392,7 +1392,14 @@ export default async function handler(req, res) {
       // the legacy attribution classifier — the one measured mis-reading the verb «ذهب» — and
       // an engine fed from it inherits whatever that classifier starts doing to the text.
       // runLedgerTurn() reads the last user turn itself, with type/length checks only.
-      const out = await runLedgerTurn(res, {
+      //
+      // THE RETURN VALUE IS DELIBERATELY UNUSED. It used to be bound to `out` for one reason: the
+      // `[ledger]` counts line was logged from here, on the line after this await. That line is
+      // gone — see logCounts() in lib/ledger/seam.js. Logging it here meant logging it AFTER
+      // wire.close() had already called res.end(), and a serverless invocation may be frozen at
+      // response completion, so the counts were written and never shipped. They now print in
+      // front of the close, inside the seam, at all three of its exits.
+      await runLedgerTurn(res, {
         messages: body.messages,
         band,
         // The POLICY band, resolved by the shared core. `band` above still picks the source
@@ -1424,14 +1431,6 @@ export default async function handler(req, res) {
         // as of 2026-08-07 (owner decision), because a request nobody can observe is a request the
         // group test cannot count. See lib/ledger/telemetry.js record().
         flagState: ledgerPath.reason,
-      });
-      // Counts and codes only. No question, no answer, no page text, no reader identity.
-      console.log('[ledger]', {
-        trace: out.ledger ? out.ledger.traceId : null, outcome: out.outcome,
-        model: out.budget.snapshot().spent.modelCalls,
-        brave: out.budget.snapshot().spent.braveCalls,
-        fetch: out.budget.snapshot().spent.pagesFetched,
-        ms: out.budget.snapshot().elapsedMs,
       });
       return;
     }

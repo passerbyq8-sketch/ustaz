@@ -325,14 +325,31 @@ function fakeRedis() {
   // The one log line the ledger branch writes: counts, an outcome code and a trace id. Asserted
   // on the line's CONTENTS rather than its exact spelling, so it stays honest across a refactor
   // instead of going stale and being "fixed" by relaxing it.
+  //
+  // IT MOVED TO THE SEAM ON 2026-08-07, and this check followed it rather than being relaxed. It
+  // used to be read out of api/ask.js, where it sat on the line after `await runLedgerTurn(...)`
+  // — which is after wire.close() has already called res.end(). A serverless invocation may be
+  // frozen at response completion, so the line was written and never shipped: the first live probe
+  // on the opened engine logged a policy line, a refusal, and no counts at all. It now prints from
+  // lib/ledger/seam.js in front of the close. WHAT IS ASSERTED IS UNCHANGED — the contents, and
+  // the eight things the line may never carry.
+  //
+  // A NOTE ON WHY THE FIRST CHECK MATTERS MORE THAN IT LOOKS. `line` falls back to '' when the
+  // regex misses, and '' contains none of the forbidden words — so every «never X» check below
+  // passes VACUOUSLY on a miss. The existence check is what stops eight green lines from meaning
+  // nothing, which is exactly what they meant while this pointed at the wrong file.
   {
-    const line = (read('api/ask.js').match(/console\.log\('\[ledger\]',[\s\S]{0,400}?\}\);/) || [])[0] || '';
+    const line = (read('lib/ledger/seam.js').match(/console\.log\('\[ledger\]',[\s\S]{0,400}?\}\);/) || [])[0] || '';
     ok('the ledger branch logs a [ledger] line', !!line, 'no line found');
     ok('...carrying only counts, an outcome and a trace id',
       /outcome/.test(line) && /traceId/.test(line) && /spent\./.test(line), line.slice(0, 200));
     for (const forbidden of ['question', 'messages', 'body.', 'text', 'answer', 'device', 'founder', 'ip']) {
       ok('...and never «' + forbidden + '»', !line.includes(forbidden), line.slice(0, 200));
     }
+    // AND NOT FROM THE HANDLER ANY MORE. If it comes back to api/ask.js it comes back to the far
+    // side of res.end(), where it is unreadable — so its absence there is part of the contract.
+    ok('...and the handler does not log it any more, where it would run after res.end()',
+      !/console\.log\('\[ledger\]'/.test(read('api/ask.js')));
   }
 
   // =========================================================================

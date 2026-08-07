@@ -22,6 +22,15 @@
 // Section E proves the answer is byte-identical with the store reachable and unreachable, and
 // section F proves the write happens after the socket is closed rather than before the first byte.
 //
+// SECTION F NOW PINS TWO ORDERINGS, IN OPPOSITE DIRECTIONS (2026-08-07). The telemetry STORE write
+// stays after res.end(); the `[ledger]` COUNTS line moved in front of it. The line used to be
+// logged from api/ask.js on the line after `await runLedgerTurn(...)` — after res.end() — and a
+// serverless invocation may be frozen at response completion, so it was written and never shipped.
+// The first live probe on the opened engine returned a refusal with no counts line anywhere in the
+// log, which is a missing instrument reading exactly like a healthy one. Section G proves the two
+// FAILING exits kept their line through the move, and section I proves it did not stay behind in
+// the handler.
+//
 // Offline and deterministic. No network, no model, no key, no live Redis.
 //
 // Usage: node guards/ledger-telemetry-guard.cjs
@@ -340,7 +349,24 @@ function recordingRedis() {
   // =========================================================================
   // A WRITE IN FRONT OF THE FIRST BYTE IS A LATENCY CHANGE, which is a behaviour change the owner
   // ruled out. The ordering is asserted rather than trusted to the reading of the source.
-  console.log('\n=== F. THE WRITE HAPPENS AFTER THE READER HAS BEEN SERVED ===');
+  //
+  // ── AND THE OTHER HALF, SINCE 2026-08-07: THE COUNTS LINE GOES THE OTHER WAY ──
+  //
+  // The `[ledger]` stdout line and the telemetry STORE write are pinned to OPPOSITE sides of
+  // res.end(), and both sides are load-bearing:
+  //
+  //   store write  — AFTER close. It is a network round trip; in front of the reader's bytes it
+  //                  is a latency change.
+  //   counts line  — BEFORE close. It used to be logged from api/ask.js after the await, i.e.
+  //                  after res.end(); the platform may freeze the invocation at response
+  //                  completion, so the line was written and never shipped. The first live probe
+  //                  on the opened engine produced a refusal and NO counts line at all, which is
+  //                  how a missing instrument was mistaken for a working one.
+  //
+  // Both are DRIVEN onto one timeline — console.log is patched, not grepped — because a source
+  // reading proves only which line was typed first, and the failure being fixed was a line that
+  // was typed in the right order and still never arrived.
+  console.log('\n=== F. THE WRITE HAPPENS AFTER THE READER, THE COUNTS LINE BEFORE THE CLOSE ===');
   {
     const SEAM = await esm('lib/ledger/seam.js');
     const DB = await esm('lib/ledger/daily-budget.js');
@@ -363,6 +389,19 @@ function recordingRedis() {
     const origSet = spy.set.bind(spy);
     spy.set = async (k, v, o) => { timeline.push('store:write'); return origSet(k, v, o); };
 
+    // THE STDOUT LINE IS AN EVENT ON THE SAME TIMELINE. Captured by patching console.log, so
+    // "before the close" is a fact about when it ran and not about where it appears in a file.
+    const counts = [];
+    const origLog = console.log;
+    console.log = function (...a) {
+      if (a[0] === '[ledger]' && a[1] && typeof a[1] === 'object') {
+        timeline.push('stdout:counts');
+        counts.push(a[1]);
+        return; // swallowed, so the guard's own PASS/FAIL output stays readable
+      }
+      return origLog.apply(console, a);
+    };
+
     const hadKey = Object.prototype.hasOwnProperty.call(process.env, 'ANTHROPIC_API_KEY');
     const prevKey = process.env.ANTHROPIC_API_KEY;
     process.env.ANTHROPIC_API_KEY = 'test-key-not-a-credential';
@@ -376,52 +415,149 @@ function recordingRedis() {
         dailyBudget: new DB.DailySearchBudget({ limit: 100, now: () => 1770000000000, store: DB.fakeStore() }),
       });
     } finally {
+      console.log = origLog;
       STORE.__resetRedis();
       if (hadKey) process.env.ANTHROPIC_API_KEY = prevKey;
       else delete process.env.ANTHROPIC_API_KEY;
     }
     const firstStore = timeline.indexOf('store:write');
     const socketEnd = timeline.indexOf('socket:end');
+    const countsAt = timeline.indexOf('stdout:counts');
     ok('the store was written at all', firstStore !== -1, JSON.stringify(timeline));
     ok('the socket was closed at all', socketEnd !== -1, JSON.stringify(timeline));
     ok('NO store write happens before the socket is closed',
       firstStore > socketEnd, JSON.stringify(timeline));
+
+    // ── THE COUNTS LINE, PINNED TO THE OTHER SIDE ─────────────────────────────
+    ok('the counts line was printed at all', countsAt !== -1, JSON.stringify(timeline));
+    ok('...exactly once, so no exit double-logs a request',
+      counts.length === 1, 'counts=' + counts.length + ' ' + JSON.stringify(timeline));
+    ok('the counts line prints BEFORE the socket is closed — logged after res.end() it is '
+      + 'written and never shipped, which is the defect this ordering exists to prevent',
+      countsAt !== -1 && countsAt < socketEnd, JSON.stringify(timeline));
+    ok('...and therefore before the store write as well, which stays behind the close',
+      countsAt !== -1 && countsAt < firstStore, JSON.stringify(timeline));
+    // NOT TAUTOLOGICAL. If every event landed at the same index the three checks above would all
+    // hold vacuously; the timeline must actually contain the close and the write after the line.
+    ok('...and the timeline really does continue past it — close and store write both follow',
+      socketEnd > countsAt && firstStore > countsAt && socketEnd !== firstStore,
+      JSON.stringify(timeline));
+
+    // WHAT THE LINE CARRIES. The reason this instrument exists is to answer "was Brave called",
+    // so a line that prints on time and carries undefined counters is no better than no line.
+    const c = counts[0] || {};
+    eq('the counts line carries exactly the six fields, in order',
+      Object.keys(c), ['trace', 'outcome', 'model', 'brave', 'fetch', 'ms']);
+    ok('...with real numbers in the three spend counters and the clock, not undefined',
+      [c.model, c.brave, c.fetch, c.ms].every((n) => typeof n === 'number'), JSON.stringify(c));
+    ok('...and the trace id this request actually ran under', c.trace === 'tr_order1', JSON.stringify(c));
+    ok('...and the outcome the reader got', typeof c.outcome === 'string' && c.outcome.length > 0,
+      JSON.stringify(c));
+    // COUNTS AND CODES ONLY — the same promise the telemetry record makes, made again here,
+    // because stdout is a second place a question could leak into.
+    ok('...and no question, no answer and no Arabic of any kind',
+      !/[؀-ۿ]/.test(JSON.stringify(c)), JSON.stringify(c));
   }
 
   // =========================================================================
   // THE THREE EXITS. A metrics store that only hears about the requests that WORKED is a store
   // that will report a healthy engine on the day it breaks.
-  console.log('\n=== G. THE FAILING EXITS ARE TRACED TOO ===');
+  //
+  // AND THEY ARE COUNTED TOO. The counts line used to be logged from api/ask.js after the await,
+  // which covered all three exits as a side effect of where it sat. Moving it into the seam made
+  // that coverage a CHOICE, and the wrong choice — logging only the successful exit — would have
+  // silently dropped the counts for exactly the requests a counts line gets read for. So each
+  // failing exit is driven and its line is caught off stdout, on the same timeline as its close.
+  console.log('\n=== G. THE FAILING EXITS ARE TRACED, AND COUNTED, TOO ===');
   {
     const SEAM = await esm('lib/ledger/seam.js');
-    const fakeRes = () => ({ write() {}, end() {} });
+    // One timeline per drive: the close is an event on it, so "the line came before the close"
+    // is checkable at the failing exits and not only at the successful one.
+    let timeline = [];
+    const fakeRes = () => ({ write() {}, end() { timeline.push('socket:end'); } });
+
+    const counts = [];
+    const origLog = console.log;
+    const patch = () => {
+      console.log = function (...a) {
+        if (a[0] === '[ledger]' && a[1] && typeof a[1] === 'object') {
+          timeline.push('stdout:counts');
+          counts.push(a[1]);
+          return;
+        }
+        return origLog.apply(console, a);
+      };
+    };
 
     const spy1 = recordingRedis();
     STORE.__setRedisForTest(spy1);
-    const noQ = await SEAM.runLedgerTurn(fakeRes(), {
-      messages: [], traceId: 'tr_noq001', flagState: 'mode_public',
-      dailyBudgetMode: 'fixture',
-    });
+    let noQ, noQTimeline;
+    patch();
+    try {
+      noQ = await SEAM.runLedgerTurn(fakeRes(), {
+        messages: [], traceId: 'tr_noq001', flagState: 'mode_public',
+        dailyBudgetMode: 'fixture',
+      });
+    } finally { console.log = origLog; noQTimeline = timeline; timeline = []; }
     ok('a turn with no readable question still leaves a trace',
       spy1.writes.length === 1, 'writes=' + spy1.writes.length);
     ok('...naming what happened', spy1.writes.length === 1 && spy1.writes[0].value.outcome === 'NO_QUESTION',
       JSON.stringify(spy1.writes[0] && spy1.writes[0].value));
     ok('...and NOT carrying the reason string, which the allow-list has no field for',
       noQ.reason === 'no-user-turn' && !('reason' in (spy1.writes[0] || {}).value));
+    eq('...and it is COUNTED on stdout as well, before its close',
+      noQTimeline, ['stdout:counts', 'socket:end']);
+    ok('...with a null trace, because this exit never reached the engine and has no ledger',
+      counts.length === 1 && counts[0].trace === null && counts[0].outcome === 'SAFE_REJECTION',
+      JSON.stringify(counts[0]));
 
     const spy2 = recordingRedis();
     STORE.__setRedisForTest(spy2);
-    await SEAM.runLedgerTurn(fakeRes(), {
-      messages: [{ role: 'user', content: 'س' }],
-      traceId: 'tr_throw1', flagState: 'mode_public',
-      dailyBudgetMode: 'fixture',
-      // No `search` — the engine calls opts.search() and throws, which is the case being traced.
-      search: null,
-      plannerOverride: { issues: 'not-an-array' },
-      fetchImpl: () => { throw new Error('should not be reached'); },
-    });
+    let threwTimeline;
+    patch();
+    try {
+      await SEAM.runLedgerTurn(fakeRes(), {
+        messages: [{ role: 'user', content: 'س' }],
+        traceId: 'tr_throw1', flagState: 'mode_public',
+        dailyBudgetMode: 'fixture',
+        // No `search` — the engine calls opts.search() and throws, which is the case being traced.
+        search: null,
+        plannerOverride: { issues: 'not-an-array' },
+        fetchImpl: () => { throw new Error('should not be reached'); },
+      });
+    } finally { console.log = origLog; threwTimeline = timeline; timeline = []; }
     ok('an engine that throws, or refuses, still leaves a trace',
       spy2.writes.length === 1, 'writes=' + spy2.writes.length);
+    eq('...and it is COUNTED on stdout as well, before its close',
+      threwTimeline, ['stdout:counts', 'socket:end']);
+
+    // ── THE SEAM'S catch, DRIVEN RATHER THAN ASSUMED ──────────────────────────
+    //
+    // The drive above does NOT reach it. Measured, not guessed: a malformed planner override makes
+    // the engine REFUSE and return normally, and even a `search` that throws is caught inside the
+    // engine and billed as a spent Brave call. Its assertion has always said "throws, OR refuses"
+    // for that reason. So the third exit needs a fault the engine cannot absorb: an override whose
+    // very first property read throws. Offline, deterministic, no network and no key.
+    const spy3 = recordingRedis();
+    STORE.__setRedisForTest(spy3);
+    let catchTimeline;
+    patch();
+    let threwOut;
+    try {
+      threwOut = await SEAM.runLedgerTurn(fakeRes(), {
+        messages: [{ role: 'user', content: 'س' }],
+        traceId: 'tr_throw2', flagState: 'mode_public', dailyBudgetMode: 'fixture',
+        plannerOverride: new Proxy({}, { get() { throw new Error('forced engine throw'); } }),
+      });
+    } finally { console.log = origLog; catchTimeline = timeline; timeline = []; }
+    ok('the seam\'s catch was REALLY entered, so this exit is exercised and not merely described',
+      threwOut.threw === true, JSON.stringify({ threw: threwOut.threw, outcome: threwOut.outcome }));
+    eq('...and that exit is COUNTED on stdout too, before its close',
+      catchTimeline, ['stdout:counts', 'socket:end']);
+    ok('...with a null trace and zero spend, because nothing was ever called',
+      counts[2] && counts[2].trace === null && counts[2].model === 0
+        && counts[2].brave === 0 && counts[2].fetch === 0, JSON.stringify(counts[2]));
+    eq('every exit logs exactly one counts line — three here, one in section F', counts.length, 3);
     STORE.__resetRedis();
   }
 
@@ -514,6 +650,25 @@ function recordingRedis() {
       && !/\breturn\s*\{\s*written:\s*false,\s*reason:\s*'not-internal'/.test(read('lib/ledger/telemetry.js')));
     ok('...and the rollout arm, from decidePath\'s own reason code rather than a second derivation',
       /flagState: ledgerPath\.reason/.test(read('api/ask.js')));
+
+    // ── THE COUNTS LINE IS NOT IN THE HANDLER ANY MORE ────────────────────────
+    //
+    // A SOURCE CHECK, deliberately, and the one place one is the right instrument: the defect was
+    // not that the line misbehaved but that it was in a file where everything after the await runs
+    // after res.end(). Driving api/ask.js is not possible offline — it needs a key, a limiter, a
+    // day cap and a live socket — so the position is pinned by absence instead. If it comes back,
+    // this fails, and section F's timeline would not notice because the seam's own line still
+    // prints on time.
+    ok('the counts line is GONE from api/ask.js, where everything after the await runs post-res.end()',
+      !/console\.log\(\s*'\[ledger\]'/.test(read('api/ask.js')));
+    ok('...and the handler no longer reaches into the return value for a budget snapshot either',
+      !/out\.budget\.snapshot\(\)/.test(read('api/ask.js')));
+    ok('...it is the seam that prints it now', /console\.log\(\s*'\[ledger\]'/.test(read('lib/ledger/seam.js')));
+    // ONE STATEMENT, THREE CALL SITES. Two copies of this line drifting apart is how the failing
+    // exits end up reporting a different shape from the successful one.
+    ok('...from exactly one console.log, through one helper called at each exit',
+      (read('lib/ledger/seam.js').match(/console\.log\(\s*'\[ledger\]'/g) || []).length === 1
+      && (read('lib/ledger/seam.js').match(/\blogCounts\(/g) || []).length === 4);
   }
 
   console.log('\n' + (failures === 0
