@@ -249,6 +249,11 @@ guards/source-honesty-guard.cjs text eol=lf
 # a CR introduced by core.autocrlf on one side and not the other would be a failure with nothing
 # to do with telemetry.
 guards/ledger-telemetry-guard.cjs text eol=lf
+# The live-search gate compares the reader's stream against a fixed Arabic sentence and asserts it
+# appears exactly once and at the very start. Both are exact string comparisons, so a CR introduced
+# by core.autocrlf on one side and not the other would be a failure with nothing to do with the
+# disclosure.
+guards/live-search-disclosure-guard.cjs text eol=lf
 tools/soft-404.cjs text eol=lf
 lib/domain-budget.js text eol=lf
 lib/policy/takhrij-disclosure.js text eol=lf

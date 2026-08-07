@@ -328,5 +328,10 @@
     "name": "ledgertelemetry",
     "script": "guards/ledger-telemetry-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "livesearch",
+    "script": "guards/live-search-disclosure-guard.cjs",
+    "args": ""
   }
 ]

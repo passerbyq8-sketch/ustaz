@@ -49,6 +49,9 @@ import { attributionLicence } from '../lib/policy/source-attribution.js';
 import { referralTail, referralOnce } from '../lib/policy/referral-tail.js';
 // D8: when a grading is answered without a takhrij corpus, the reply says so. See the module.
 import { takhrijDisclosureFor, takhrijDisclosureOnce } from '../lib/policy/takhrij-disclosure.js';
+// When the reader asked about the live world and the search came back with nothing usable, the
+// answer OPENS by saying so — before the model's first byte. See the module.
+import { liveSearchNotice } from '../lib/policy/live-search-disclosure.js';
 // The registry's Arabic publisher name, so the transmission can be checked for naming the source
 // it transmits from rather than gesturing at "some websites".
 import { findSource } from '../lib/source-registry.js';
@@ -1971,6 +1974,24 @@ export default async function handler(req, res) {
           type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t },
         })}\n\n`);
       };
+
+      // ── THE LIVE-SEARCH DISCLOSURE, BEFORE THE MODEL'S FIRST BYTE ─────────
+      //
+      // Reaching this line with `worldIntent.world` true means one thing and only one thing: the
+      // reader asked about the live world, and NO usable live material was obtained. Every path
+      // that DID answer from live results returned above via emitOnce() — so this needs no second
+      // condition, and adding one would be a second thing to keep in step with the first.
+      //
+      // It covers every fall-through cause equally, because to a reader they are the same fact:
+      // no key, no results, a blocked host, a page with no encodable card, an empty draft, a throw.
+      //
+      // WRITTEN ONCE, AND STRUCTURALLY SO. It is a single write before the read loop, not a
+      // per-chunk test, so there is no path on which it can repeat. It deliberately bypasses
+      // `filter` — that strips <source> cards out of MODEL text, and this is server text with none.
+      const liveNotice = liveSearchNotice({
+        worldWanted: worldIntent.world, answeredFromLive: false,
+      });
+      if (liveNotice) writeText(liveNotice + '\n\n');
 
       try {
         while (true) {
