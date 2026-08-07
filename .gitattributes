@@ -20,6 +20,16 @@ privacy.html             text eol=lf
 sw.js                    text eol=lf
 .gitattributes           text eol=lf
 
+# D09, MEASURED: sw.js and manifest.json are BOTH SHA-256 sealed now, by gate
+# `bankintegrity` (check B10), and the seal is cut on LF bytes -- so the note above
+# ("not measured by any guard") no longer holds for either of them. manifest.json
+# carried no pin at all, so a clone with core.autocrlf=true checked it out with 16 CR
+# (533 -> 549 bytes) and the seal broke on a machine that had changed nothing. sw.js
+# was pinned on line 20 already but had drifted to CRLF in the working tree (4944 ->
+# 5044) and the seal had been cut on those CRLF bytes, which is the same defect from
+# the other end: it held on this machine and nowhere else.
+manifest.json            text eol=lf
+
 # Zero-newline by design (gate 5 depends on it). Git must never rewrap these.
 quran-uthmani.json       -text
 mushaf-layout.json       -text

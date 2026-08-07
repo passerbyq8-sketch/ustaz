@@ -84,8 +84,13 @@ const SEALED = {
   'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
   'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
   'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
-  'manifest.json': '4b96523dac293c0c7a663888aee0ea749786e57613786a0f6287e12c75905f1a',
-  'sw.js': '4de761376cbffba7801c385b913bafd0bc5bd58afbc52e5b14771a87bab19759',
+  // D09: these two are sealed on LF BYTES. They were sealed on this machine's CRLF
+  // working copy (manifest 549 b / sw 5044 b) while git stored LF (533 b / 4944 b), so
+  // the seal held here and broke in every fresh clone and every CI run on Linux. Both
+  // now carry `text eol=lf` in .gitattributes, so what is checked out is what is sealed.
+  // Re-cut these only from a tree measured at CR = 0.
+  'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
+  'sw.js': '4b8c58f68da7a8c04c52a42819fb2d5d2eea83d483eeb5fea495b0e7758af7a3',
 };
 
 // ---------------------------------------------------------------------------
