@@ -288,7 +288,7 @@ const UNRELATED_TEXT = 'عروض التجارة هي كل ما أعد للبيع
 
   // ── 8. THE BUDGETS ARE NOT RAISED TO PAY FOR THIS ──────────────────────────
   const B = await esm('lib/ledger/budgets.js');
-  ok('MAX_MODEL_CALLS is still 7', B.MAX_MODEL_CALLS === 7, 'got ' + B.MAX_MODEL_CALLS);
+  ok('MAX_MODEL_CALLS is still 8 — 7 + the query-IR repair call', B.MAX_MODEL_CALLS === 8, 'got ' + B.MAX_MODEL_CALLS);
   ok('MAX_PAGES_FETCHED is still 5', B.MAX_PAGES_FETCHED === 5, 'got ' + B.MAX_PAGES_FETCHED);
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');

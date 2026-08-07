@@ -61,7 +61,7 @@ const issue = (over) => Object.assign({
     BG.INTERNAL_MAX_QUERY_CHARS < BG.PROVIDER_MAX_QUERY_CHARS
     && BG.INTERNAL_MAX_QUERY_WORDS < BG.PROVIDER_MAX_QUERY_WORDS);
   eq('the network budgets', [BG.MAX_BRAVE_CALLS, BG.MAX_PAGES_FETCHED, BG.MAX_FETCH_CONCURRENCY], [4, 5, 3]);
-  eq('the cycle and model budgets', [BG.MAX_VERIFIED_CYCLES, BG.MAX_MODEL_CALLS], [2, 7]);
+  eq('the cycle and model budgets', [BG.MAX_VERIFIED_CYCLES, BG.MAX_MODEL_CALLS], [2, 8]);
   eq('the token and time budgets',
     [BG.MAX_MODEL_INPUT_TOKENS, BG.MAX_MODEL_OUTPUT_TOKENS, BG.GLOBAL_TIMEOUT_MS], [15000, 3000, 25000]);
   // The seven is ITEMISED, so it cannot quietly become eight.

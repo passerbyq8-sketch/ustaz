@@ -313,7 +313,12 @@ const templateOf = (p) => {
       await PLAN.planQuestion('ما حكم بيع الذهب بالتقسيط؟', {
         budget: new BG.Budget({ now: () => 1770000000000 }), fetchImpl: stubFetch, tier: 'standard',
       });
-      eq('both plan calls went out on MODEL_PREMIUM', sent, ['test-premium-channel', 'test-premium-channel']);
+      // The stub replies `{}`, which fails validation, so each call is followed by its REPAIR
+      // call — and the repair must be on the strongest channel too, for exactly the same reason.
+      // Asserted over every call rather than a fixed count, so adding an arm cannot silently
+      // introduce one that quietly runs cheap.
+      ok('every plan call went out on MODEL_PREMIUM — the repair call included',
+        sent.length >= 2 && sent.every((m) => m === 'test-premium-channel'), JSON.stringify(sent));
       eq('...and the standard channel is a DIFFERENT string, so the check is not vacuous',
         MODEL.modelFor('standard'), 'test-standard-channel');
     } finally {
@@ -391,6 +396,153 @@ const templateOf = (p) => {
       'outcome=' + out.outcome + ' — the example the model is shown must not refute itself');
     ok('...and the engine got as far as trying to search',
       searched > 0, 'searches=' + searched + ' — a plan that validates must reach the search stage');
+  }
+
+  // =========================================================================
+  // D5. A REFUSAL THAT NEVER SEARCHED IS STRUCTURALLY IMPOSSIBLE
+  //
+  // THE FAILURE THIS SECTION REPRODUCES, FROM THE RECORDED SIGNATURES. Batch 5 and the live
+  // probe of 2026-08-07 measured the same shape twice: the planner answers, the reply fails the
+  // schema, and lib/ledger/engine.js jumps from ANALYZE_QUERY_IR straight to the assembly —
+  // `model_calls: 1, brave_calls: 0`, and a reader told «لم أعثر ضمن المصادر المتاحة» about a
+  // search that never ran. This section builds that exact reply out of the three signatures
+  // recorded in lib/ledger/planner.js's own header and drives the engine on it.
+  //
+  // DRIVEN THREE WAYS, because the arms fail differently: a model that answers badly twice, a
+  // model that returns prose, and a model that cannot be reached at all.
+  console.log('\n=== D5. THE ENGINE SEARCHES EVEN WHEN THE PLANNER NEVER PRODUCES A PLAN ===');
+  {
+    const ENG = await esm('lib/ledger/engine.js');
+    const DB = await esm('lib/ledger/daily-budget.js');
+    const SCHEMA = await esm('lib/ledger/schema.js');
+    const Q = 'ما رأي الشيخ عبدالمحسن العباد في بيع الذهب بالتقسيط؟';
+
+    // THE BATCH-5 REPLY, BUILT FROM THE THREE SIGNATURES, NOT COPIED FROM A FIXTURE:
+    //   1. the alternations printed as values, on all three enums;
+    //   2. every array empty, so the issue carries no substantive term;
+    //   3. an invented top-level key.
+    const BATCH5 = JSON.stringify({
+      issues: [{
+        issue_id: 'iss_1',
+        intent: C.INTENTS.join('|'),
+        requested_authority_id: null,
+        protected_entities: [], core_terms: [], context_vars: [], exact_user_phrases: [],
+        required_slots: [], dependencies: [],
+        temporal_scope: IR.TEMPORAL_SCOPES.join('|'),
+      }],
+      missing_qualifiers: [],
+      confidence: IR.CONFIDENCE.join('|'),
+      reasoning: 'لأنّ السؤال عن حكم بيع الذهب بالتقسيط',
+    });
+    // The reply IS the failure — asserted, so a fixture that stopped reproducing the defect
+    // could not quietly turn this whole section green.
+    eq('the reproduced reply really is refused by the validator',
+      IR.validateQueryPlan(JSON.parse(BATCH5), Q).ok, false);
+
+    const drive = async (label, texts, { withKey = true } = {}) => {
+      let searched = 0;
+      let call = 0;
+      const stubFetch = async () => {
+        const t = texts[Math.min(call++, texts.length - 1)];
+        return {
+          ok: true, status: 200,
+          json: async () => ({ content: [{ type: 'text', text: t }] }),
+          text: async () => JSON.stringify({ content: [{ type: 'text', text: t }] }),
+        };
+      };
+      const hadKey = Object.prototype.hasOwnProperty.call(process.env, 'ANTHROPIC_API_KEY');
+      const prevKey = process.env.ANTHROPIC_API_KEY;
+      if (withKey) process.env.ANTHROPIC_API_KEY = 'test-key-not-a-credential';
+      else delete process.env.ANTHROPIC_API_KEY;
+      let out;
+      try {
+        out = await ENG.runEngine(Q, {
+          band: 'adult', audienceBand: 'adult',
+          bandSites: ['islamqa.info', 'islamweb.net', 'binbaz.org.sa'],
+          fetchImpl: stubFetch,
+          search: async () => { searched++; return []; },
+          dailyBudget: new DB.DailySearchBudget({ limit: 100, now: () => 1770000000000, store: DB.fakeStore() }),
+        });
+      } finally {
+        if (hadKey) process.env.ANTHROPIC_API_KEY = prevKey;
+        else delete process.env.ANTHROPIC_API_KEY;
+      }
+      const codes = out.ledger.rejections.map((r) => r.code);
+      ok(label + ': the engine reached the provider', searched > 0,
+        'searches=' + searched + ' outcome=' + out.outcome + ' codes=' + JSON.stringify(codes));
+      ok('...' + label + ': and walked the stage that searches',
+        out.ledger.transitions.includes('ORCHESTRATE_BATCHES'),
+        JSON.stringify(out.ledger.transitions));
+      ok('...' + label + ': and never recorded PLAN_INVALID',
+        !codes.includes(SCHEMA.REJECTION.PLAN_INVALID), JSON.stringify(codes));
+      return { out, codes, calls: call };
+    };
+
+    // 1. The model answers, badly, every time. Both arms fail; the floor catches it.
+    const a = await drive('two bad replies', [BATCH5]);
+    ok('...and the record names the arm that produced the plan',
+      a.out.telemetry.record.rejection_codes.includes('query_plan_degraded:deterministic_floor'),
+      JSON.stringify(a.out.telemetry.record.rejection_codes));
+    eq('...having spent exactly two model calls on planning, not more',
+      a.out.budget.snapshot().byPurpose['modelCalls:query_ir'], 2);
+
+    // 2. The model corrects itself when shown its violations. The repair arm is what runs.
+    const GOOD = JSON.stringify({
+      issues: [{
+        issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
+        protected_entities: ['بيع الذهب'], core_terms: ['التقسيط'], context_vars: [],
+        exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+      }],
+      missing_qualifiers: [], confidence: 'high',
+    });
+    const b = await drive('bad then repaired', [BATCH5, GOOD]);
+    ok('...and the record says it was the REPAIR arm, not the floor',
+      b.out.telemetry.record.rejection_codes.includes('query_plan_degraded:repair_call'),
+      JSON.stringify(b.out.telemetry.record.rejection_codes));
+
+    // 3. Prose instead of JSON — nothing to validate at all.
+    await drive('a reply that is not JSON', ['عفوًا، لا أستطيع تحليل هذا السؤال.']);
+
+    // 4. NO MODEL AT ALL. The floor needs no network, no key and no budget, which is what makes
+    //    the guarantee structural rather than a matter of the model behaving.
+    const d = await drive('no API key — no model call is even possible', [BATCH5], { withKey: false });
+    eq('...and it planned without spending a single model call',
+      d.out.budget.snapshot().spent.modelCalls, 0);
+
+    // 5. THE REPAIR PROMPT NAMES THE VIOLATIONS BY THEIR TEXT, and carries the three recorded
+    //    signatures. A repair call that did not say what was wrong would be a retry.
+    {
+      const v = IR.validateQueryPlan(JSON.parse(BATCH5), Q);
+      const prompt = PLAN.buildRepairPrompt(Q, BATCH5, v.problems);
+      ok('the repair prompt quotes the validator\'s own sentences',
+        v.problems.slice(0, 3).every((p) => prompt.indexOf(p.slice(0, 60)) !== -1));
+      ok('...and shows the model the reply it actually sent', prompt.indexOf('"iss_1"') !== -1);
+      ok('...and restates signature 1 — an alternation is not a value', /\|/.test(prompt) && /اخترْ واحدةً/.test(prompt));
+      ok('...and signature 2 — the arrays may not all be empty', /core_terms/.test(prompt) && /فارغةً/.test(prompt));
+      ok('...and signature 3 — no invented field', /reasoning/.test(prompt) && /لا تُضِفْ حقلًا/.test(prompt));
+      ok('...and asks for the object alone', /بلا شرحٍ/.test(prompt));
+    }
+
+    // 6. THE FLOOR ITSELF: no model, no invention. Its terms are the reader's own words and its
+    //    intent comes from the deterministic classifier, checked against the band.
+    {
+      const ir = PLAN.deterministicPlanIR(Q, { bandSites: ['islamqa.info', 'islamweb.net'] });
+      const terms = ir.issues[0].core_terms;
+      ok('every term in the deterministic plan appears in the reader\'s own question',
+        terms.length > 0 && terms.every((t) => Q.indexOf(t) !== -1), JSON.stringify(terms));
+      ok('...with no punctuation welded on', terms.every((t) => !/[؟،؛.!?]/.test(t)), JSON.stringify(terms));
+      ok('...and the intent is one the band can actually serve',
+        SP.eligibleSites(['islamqa.info', 'islamweb.net'], C.capabilityForIntent(ir.issues[0].intent)).length > 0,
+        ir.issues[0].intent);
+      // It must not re-open the door it exists to close: neither of the two fields that turn an
+      // answer into a clarifying question may be set by a plan nobody described.
+      eq('...it claims no missing qualifier', ir.missing_qualifiers, []);
+      ok('...and does not declare low confidence', ir.confidence !== 'low', ir.confidence);
+      eq('...and it validates', IR.validateQueryPlan(ir, Q).ok, true);
+      // The only remaining reason it cannot plan: there is no question.
+      eq('an EMPTY question is still refused — there is nothing to search for',
+        IR.validateQueryPlan(PLAN.deterministicPlanIR('', {}), '').ok, false);
+    }
   }
 
   // =========================================================================

@@ -556,7 +556,7 @@ const RESULTS = {
 
     // BUDGETS ARE NEVER BREACHED, on any of the nine.
     eq(f.id + ': no budget breach', snap.breaches.length, 0);
-    ok(f.id + ': model calls <= 7', snap.spent.modelCalls <= BG.MAX_MODEL_CALLS, String(snap.spent.modelCalls));
+    ok(f.id + ': model calls <= ' + BG.MAX_MODEL_CALLS, snap.spent.modelCalls <= BG.MAX_MODEL_CALLS, String(snap.spent.modelCalls));
     ok(f.id + ': brave calls <= 4', snap.spent.braveCalls <= BG.MAX_BRAVE_CALLS, String(snap.spent.braveCalls));
     ok(f.id + ': fetches <= 5', snap.spent.pagesFetched <= BG.MAX_PAGES_FETCHED, String(snap.spent.pagesFetched));
     ok(f.id + ': verified cycles <= 2', snap.spent.verifiedCycles <= BG.MAX_VERIFIED_CYCLES,

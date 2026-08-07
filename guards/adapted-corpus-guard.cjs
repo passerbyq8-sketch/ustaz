@@ -219,7 +219,7 @@ const LESSON_TEXT = 'السفر إلى بلاد الكفار للسياحة لا
   const B = await esm('lib/ledger/budgets.js');
   ok('MAX_PAGES_FETCHED is still 5', B.MAX_PAGES_FETCHED === 5, String(B.MAX_PAGES_FETCHED));
   ok('MAX_BRAVE_CALLS is still 4', B.MAX_BRAVE_CALLS === 4, String(B.MAX_BRAVE_CALLS));
-  ok('MAX_MODEL_CALLS is still 7', B.MAX_MODEL_CALLS === 7, String(B.MAX_MODEL_CALLS));
+  ok('MAX_MODEL_CALLS is still 8 — 7 + the query-IR repair call', B.MAX_MODEL_CALLS === 8, String(B.MAX_MODEL_CALLS));
   ok('no run breached a budget', (r.budget.snapshot().breaches || []).length === 0,
     JSON.stringify(r.budget.snapshot().breaches));
 

@@ -332,11 +332,15 @@ const issue = (over) => Object.assign({
     ok('...safely, without throwing', true);
 
     L = mkLedger(); L.addClaim(goodClaim());
+    // SPEND THE CEILING, whatever it currently is — the number moved from 7 to 8 on 2026-08-07
+    // when the query-IR repair call was itemised, and a hard-coded 7 here would have stopped
+    // testing exhaustion and started testing «is there one slot left».
     const spent = new BG.Budget({ now: () => 0 });
-    spent.spend('modelCalls', 7);
+    spent.spend('modelCalls', BG.MAX_MODEL_CALLS);
     out = await GA.runGate2(L, [L.claim('c1')], { budget: spent, fetchImpl: stub('{}') });
     eq('an exhausted budget voids the batch rather than overspending', out.voided, true);
-    eq('...and the model was never called an 8th time', spent.snapshot().spent.modelCalls, 7);
+    eq('...and the model was never called past the ceiling',
+      spent.snapshot().spent.modelCalls, BG.MAX_MODEL_CALLS);
   }
 
   // =========================================================================
