@@ -415,35 +415,101 @@ const templateOf = (p) => {
       JSON.stringify(v.plan.issues[0].requiredSlots));
     ok('...and never loses the slot the model asked for', v.plan.issues[0].requiredSlots.includes('ruling'));
   }
+  // ── FATAL VS REPAIRED — the split this contract gained on 2026-08-07 ───────
+  //
+  // WHAT THIS TABLE USED TO BE. One list, every row asserting `ok: false`. That was an accurate
+  // statement of the contract, and the contract was the defect: measured on the opened engine,
+  // EVERY ledger request came back PLAN_INVALID with `brave: 0` because one invented key or one
+  // mistyped enum destroyed the reader's whole question before a search was ever planned.
+  //
+  // THE ROWS DID NOT MOVE BECAUSE THE CHECKS WERE INCONVENIENT. Each one below that moved to
+  // REPAIRS moved because the value it carries CANNOT STEER ANYTHING once refused — an unknown
+  // top-level key is read by nothing, an unknown slot can never be filled, a dangling dependency
+  // changes only ordering — so refusing the plan over it protected nobody and cost the reader
+  // everything. What stays FATAL is what has no safe substitute.
+  //
+  // AND THE REPAIRS TABLE IS STRICTER THAN THE OLD ROW WAS, not weaker: it asserts the plan
+  // validates, AND that the bad value did not survive into it, AND that the substitution was
+  // named. A silent repair would fail here.
   const REJECTS = [
-    ['unknown intent', wrap([Object.assign(goodIssue(), { intent: 'ruling' })])],
-    ['unknown temporal_scope', wrap([Object.assign(goodIssue(), { temporal_scope: 'soon' })])],
-    ['unknown confidence', wrap([goodIssue()], { confidence: 'certain' })],
-    ['unknown top-level field', wrap([goodIssue()], { sites: ['islamqa.info'] })],
-    ['a search string smuggled in', wrap([goodIssue()], { query: 'x (site:a.com)' })],
-    ['unknown slot', wrap([Object.assign(goodIssue(), { required_slots: ['verdict'] })])],
-    ['bad issue_id shape', wrap([Object.assign(goodIssue(), { issue_id: 'Iss 1!' })])],
-    ['no issues at all', wrap([])],
-    ['too many issues', wrap([goodIssue(), goodIssue(), goodIssue(), goodIssue()])],
-    ['duplicate issue ids', wrap([goodIssue(), goodIssue()])],
-    ['a dependency on an issue that does not exist',
-      wrap([Object.assign(goodIssue(), { dependencies: ['iss_9'] })])],
-    ['a self-dependency', wrap([Object.assign(goodIssue(), { dependencies: ['iss_1'] })])],
+    ['unknown intent', wrap([Object.assign(goodIssue(), { intent: 'ruling' })]), 'intent'],
+    ['bad issue_id shape', wrap([Object.assign(goodIssue(), { issue_id: 'Iss 1!' })]), 'issue_id'],
+    ['no issues at all', wrap([]), 'issues'],
+    ['too many issues', wrap([goodIssue(), goodIssue(), goodIssue(), goodIssue()]), 'issues'],
+    ['duplicate issue ids', wrap([goodIssue(), goodIssue()]), 'issue_id'],
     ['a claim with no substantive term',
-      wrap([Object.assign(goodIssue(), { protected_entities: [], core_terms: [], exact_user_phrases: [] })])],
-    ['an over-long term list',
-      wrap([Object.assign(goodIssue(), { core_terms: Array.from({ length: 20 }, (_, i) => 't' + i) })])],
-    ['a non-object plan', []],
+      wrap([Object.assign(goodIssue(), { protected_entities: [], core_terms: [], exact_user_phrases: [] })]),
+      'core_terms'],
+    ['a non-object plan', [], 'plan'],
   ];
-  for (const [label, payload] of REJECTS) {
+  for (const [label, payload, field] of REJECTS) {
     const v = IR.validateQueryPlan(payload, 'س');
     eq('REJECTS: ' + label, v.ok, false);
+    ok('...and names ' + field, (v.problemFields || []).includes(field), JSON.stringify(v.problemFields));
   }
   {
-    // A two-issue cycle.
+    // A two-issue cycle. No correct order exists to fall back to, so it stays fatal.
     const a = Object.assign(goodIssue(), { issue_id: 'iss_1', dependencies: ['iss_2'] });
     const b = Object.assign(goodIssue(), { issue_id: 'iss_2', dependencies: ['iss_1'] });
     eq('REJECTS: a dependency cycle', IR.validateQueryPlan(wrap([a, b]), 'س').ok, false);
+  }
+
+  // ── REPAIRS: the plan lives, the bad value does not, and the swap is named ──
+  console.log('\n=== E2. A BAD FIELD IS MENDED, NOT PAID FOR BY THE WHOLE QUESTION ===');
+  const REPAIRS = [
+    // label, payload, field token, a probe that must be TRUE of the repaired plan
+    ['an invented top-level field', wrap([goodIssue()], { reasoning: 'because' }), 'unknown_field',
+      (p) => JSON.stringify(p).indexOf('because') === -1],
+    ['a search string smuggled in', wrap([goodIssue()], { sites: ['islamqa.info'], query: 'x (site:a.com)' }),
+      'unknown_field', (p) => JSON.stringify(p).indexOf('site:') === -1],
+    ['unknown confidence', wrap([goodIssue()], { confidence: 'certain' }), 'confidence',
+      (p) => p.confidence === IR.IR_DEFAULTS.confidence],
+    ['unknown temporal_scope', wrap([Object.assign(goodIssue(), { temporal_scope: 'soon' })]), 'temporal_scope',
+      (p) => p.issues[0].temporalScope === IR.IR_DEFAULTS.temporal_scope],
+    ['unknown slot', wrap([Object.assign(goodIssue(), { required_slots: ['verdict'] })]), 'required_slots',
+      (p) => !p.issues[0].requiredSlots.includes('verdict')],
+    ['an authority id that is not an identifier',
+      wrap([Object.assign(goodIssue(), { requested_authority_id: 'Ibn Baz!' })]), 'requested_authority_id',
+      (p) => p.issues[0].requestedAuthorityId === null],
+    ['an over-long term list',
+      wrap([Object.assign(goodIssue(), { core_terms: Array.from({ length: 20 }, (_, i) => 't' + i) })]),
+      'core_terms',
+      (p) => p.issues[0].coreTerms.length === IR.MAX_TERMS_PER_FIELD],
+    ['a dependency on an issue that does not exist',
+      wrap([Object.assign(goodIssue(), { dependencies: ['iss_9'] })]), 'dependencies',
+      (p) => p.issues[0].dependencies.length === 0],
+    ['a self-dependency', wrap([Object.assign(goodIssue(), { dependencies: ['iss_1'] })]), 'dependencies',
+      (p) => p.issues[0].dependencies.length === 0],
+  ];
+  for (const [label, payload, field, probe] of REPAIRS) {
+    const v = IR.validateQueryPlan(payload, 'س');
+    ok('REPAIRS: ' + label + ' — the plan survives', v.ok, JSON.stringify(v.problems));
+    ok('...and the swap is NAMED, not silent', (v.repairs || []).includes(field), JSON.stringify(v.repairs));
+    ok('...and the value the model sent did not survive into the plan', !!v.plan && probe(v.plan));
+  }
+  {
+    // THE CENTRAL ONE. A compound question with one bad half must lose the half, not the whole —
+    // which is the exact argument this file already made for authorityRefusals.
+    const bad = Object.assign(goodIssue(), { issue_id: 'iss_1', intent: 'ruling' });
+    const fine = Object.assign(goodIssue(), { issue_id: 'iss_2' });
+    const v = IR.validateQueryPlan(wrap([bad, fine]), 'س');
+    ok('one refused issue no longer kills its compound question', v.ok, JSON.stringify(v.problems));
+    eq('...the good half survives, alone', v.plan.issues.map((i) => i.issueId), ['iss_2']);
+    ok('...and the refused half is still named in the record',
+      (v.problemFields || []).includes('intent'), JSON.stringify(v.problemFields));
+    // And the negative control: when the bad issue is the ONLY issue, nothing is left to run.
+    eq('...but a plan whose ONLY issue is refused is still fatal',
+      IR.validateQueryPlan(wrap([bad]), 'س').ok, false);
+  }
+  {
+    // rule-9, ASSERTED AS NOT TAKEN. `intent` decides which vetted sources may answer and which
+    // slots a complete answer must fill, so any default would change religious meaning. The
+    // directive sends that decision to the owner; this pins that no default was quietly added.
+    const v = IR.validateQueryPlan(wrap([Object.assign(goodIssue(), { intent: 'ruling' })]), 'س');
+    ok('no default intent was invented — the issue is refused, not relabelled',
+      !v.ok && !(v.repairs || []).includes('intent'), JSON.stringify(v.repairs));
+    ok('...and IR_DEFAULTS carries no entry for it',
+      !Object.prototype.hasOwnProperty.call(IR.IR_DEFAULTS, 'intent'), JSON.stringify(IR.IR_DEFAULTS));
   }
   {
     // A legitimate DAG is accepted and ordered.
@@ -569,7 +635,18 @@ const templateOf = (p) => {
       const v = IR.validateQueryPlan(wrap([
         Object.assign(goodIssue(), { intent: 'scholar_opinion', requested_authority_id: 'ذهب' }),
       ]), 'ذهب إلى المسجد فهل يصح؟');
-      eq('...and a non-identifier authority is rejected by the IR validator outright', v.ok, false);
+      // THE DEFENCE IS UNCHANGED; ONLY ITS COST IS. Until 2026-08-07 this row asserted the whole
+      // PLAN was refused. It is now the issue's `requested_authority_id` that is refused —
+      // dropped to null and recorded — and the question is still searched. That is the same
+      // protection at the only place it ever mattered: a captured fragment of a sentence can
+      // never become an attribution, because it never survives into the plan at all.
+      ok('...and a non-identifier authority never reaches the plan',
+        v.ok && v.plan.issues[0].requestedAuthorityId === null,
+        JSON.stringify(v.plan && v.plan.issues[0].requestedAuthorityId));
+      ok('...nor its policy block, which decides who may be credited',
+        v.plan.issues[0].policy.requestedAuthorityId === null && v.plan.issues[0].policy.claimRelation !== 'BY_ENTITY');
+      ok('...and the drop is recorded rather than silent',
+        (v.repairs || []).includes('requested_authority_id'), JSON.stringify(v.repairs));
       eq('...while a registered-but-unreadable one is refused as an issue, not as a plan',
         IR.validateQueryPlan(wrap([iss]), 'س').authorityRefusals.length, 1);
     }

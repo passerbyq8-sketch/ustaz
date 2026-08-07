@@ -284,17 +284,24 @@ function recordingRedis() {
       // «no text outside it».
       reasoning: 'لأنّ السؤال عن حكم بيع الذهب بالتقسيط',
     }, 'ما حكم بيع الذهب بالتقسيط؟');
-    eq('an invented key is reported as a CLASS, not as the key', v.problemFields, ['unknown_field']);
+    // Since 2026-08-07 an invented key is STRIPPED rather than fatal, so it surfaces as a repair
+    // — but the privacy rule is the same one and is asserted on the same channel: the class is
+    // published, the model-authored key is not.
+    eq('an invented key is reported as a CLASS, not as the key', v.repairs, ['unknown_field']);
     ok('...and neither the key nor its value appears in any token',
-      !v.problemFields.some((f) => /reasoning|لأنّ/.test(f)));
+      ![...v.repairs, ...v.problemFields].some((f) => /reasoning|لأنّ/.test(f)));
+    ok('...and the plan carries no trace of either', v.ok
+      && JSON.stringify(v.plan).indexOf('reasoning') === -1
+      && JSON.stringify(v.plan).indexOf('لأنّ') === -1);
 
     // 5. THE LENGTH INVARIANT, ASSERTED RATHER THAN HOPED FOR. sanitizeValue() drops a string
     //    over 64 chars SILENTLY — a code:field pair that outgrew the bound would vanish from the
     //    record and look exactly like a request that never failed.
     const longest = IR.IR_FIELDS.reduce((a, b) => (b.length > a.length ? b : a));
-    ok('every code:field this ledger can emit fits inside the allow-list value bound',
-      (SCHEMA.REJECTION.PLAN_INVALID + ':' + longest).length <= 64,
-      SCHEMA.REJECTION.PLAN_INVALID + ':' + longest);
+    for (const code of [SCHEMA.REJECTION.PLAN_INVALID, SCHEMA.REJECTION.PLAN_FIELD_REPAIRED]) {
+      ok('every code:field this ledger can emit fits inside the allow-list value bound: ' + code,
+        (code + ':' + longest).length <= 64, code + ':' + longest);
+    }
   }
 
   // =========================================================================
