@@ -566,7 +566,12 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       the vendor and came back answered, while the same question TYPED was refused. graveHazard
   //       and the age policy now run on the voice turn BEFORE any model call; guardAIConsent is
   //       untouched and its precedence is asserted.
-  const GATES_EXPECTED = 59;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
+  // D14: 59 -> 60. 60th madinahafs -- tools/madina-hafs-guard.cjs, 99 assertions over the 604
+  //       mushaf page assets, their register and the licence notice, and nothing ran it. The
+  //       same defect as wird (58th) in the same place: a real guard over a shipped feature,
+  //       sitting outside the roster, asserting nothing. It passed 99/0 unchanged on the day
+  //       it was listed, so listing it cost no edit to the guard itself.
+  const GATES_EXPECTED = 60;   // 51st: ai-consent-probe — nothing reaches Anthropic, ElevenLabs, Brave
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >

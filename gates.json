@@ -293,5 +293,10 @@
   "name": "retrievalobs",
   "script": "guards/retrieval-observability-guard.cjs",
   "args": ""
+ },
+ {
+  "name": "madinahafs",
+  "script": "tools/madina-hafs-guard.cjs",
+  "args": ""
  }
 ]

@@ -211,3 +211,8 @@ guards/ruling-source-guard.cjs text eol=lf
 guards/world-parity-guard.cjs text eol=lf
 tools/wird-guard.cjs text eol=lf
 guards/voice-safety-guard.cjs text eol=lf
+
+# D14: madina-hafs-guard joins the roster, and recon requires every gate script to be
+# pinned here. The file itself is not touched by that item -- only checked out as LF
+# from here on, like every other gate.
+tools/madina-hafs-guard.cjs text eol=lf
