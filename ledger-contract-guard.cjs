@@ -275,6 +275,64 @@ const templateOf = (p) => {
   }
 
   // =========================================================================
+  // THE STRICTEST TASK DOES NOT RUN ON THE WEAKEST MODEL
+  //
+  // MEASURED, 2026-08-07: lib/ledger/seam.js never passed `tier`, so every request through the
+  // seam reached callModel() with `tier === undefined`, which defaults to 'standard', which
+  // production sets to Haiku. The one call that decides whether the request searches at all ran
+  // on the cheapest channel for everybody — including a reader entitled to more.
+  //
+  // DRIVEN, NOT GREPPED. The stub reads the model out of the request body the planner actually
+  // built, so deleting the pin fails this section rather than a regex.
+  console.log('\n=== D2b. THE PLAN CALL PINS THE STRONGEST CHANNEL ===');
+  {
+    const MODEL = await esm('lib/ledger/model.js');
+    const BG = await esm('lib/ledger/budgets.js');
+    const env = ['MODEL_PREMIUM', 'MODEL_STANDARD', 'MODEL', 'ANTHROPIC_API_KEY'];
+    const saved = env.map((k) => [k, Object.prototype.hasOwnProperty.call(process.env, k), process.env[k]]);
+    process.env.MODEL_PREMIUM = 'test-premium-channel';
+    process.env.MODEL_STANDARD = 'test-standard-channel';
+    delete process.env.MODEL;
+    process.env.ANTHROPIC_API_KEY = 'test-key-not-a-credential';
+    const sent = [];
+    const stubFetch = async (_url, init) => {
+      sent.push(JSON.parse(init.body).model);
+      return {
+        ok: true, status: 200,
+        json: async () => ({ content: [{ type: 'text', text: '{}' }] }),
+        text: async () => '{}',
+      };
+    };
+    try {
+      eq('the tier constant names the strongest configured channel', PLAN.PLANNER_TIER, 'premium');
+      // The seam's own shape: no `tier` anywhere. This is the case that was broken.
+      await PLAN.planQuestion('ما حكم بيع الذهب بالتقسيط؟', {
+        budget: new BG.Budget({ now: () => 1770000000000 }), fetchImpl: stubFetch,
+      });
+      // And a caller that hands in the reader's ordinary tier must not drag it back down.
+      await PLAN.planQuestion('ما حكم بيع الذهب بالتقسيط؟', {
+        budget: new BG.Budget({ now: () => 1770000000000 }), fetchImpl: stubFetch, tier: 'standard',
+      });
+      eq('both plan calls went out on MODEL_PREMIUM', sent, ['test-premium-channel', 'test-premium-channel']);
+      eq('...and the standard channel is a DIFFERENT string, so the check is not vacuous',
+        MODEL.modelFor('standard'), 'test-standard-channel');
+    } finally {
+      for (const [k, had, v] of saved) { if (had) process.env[k] = v; else delete process.env[k]; }
+    }
+    // THE ANSWER'S TIER IS UNTOUCHED. Pinning the plan call is not «the engine upgrades a tier»:
+    // every call whose output the reader receives still runs on whatever the caller passed.
+    const ENGSRC = read('lib/ledger/engine.js');
+    for (const site of ['runExtraction', 'runGate2', 'runGate3', 'runDraft']) {
+      const i = ENGSRC.indexOf(site + '(');
+      ok(site + ' still runs on the CALLER\'s tier', i !== -1
+        && /tier: opts\.tier/.test(ENGSRC.slice(i, i + 400)), 'no `tier: opts.tier` near ' + site);
+    }
+    ok('...and the plan call no longer takes one at all',
+      /planQuestion\(question, \{[^}]*\}\)/.test(ENGSRC)
+      && !/planQuestion\(question, \{[^}]*tier/.test(ENGSRC));
+  }
+
+  // =========================================================================
   // AND THE REFUSAL MUST SAY WHICH FIELD BROKE
   console.log('\n=== D3. PLAN_INVALID NAMES THE FIELD ===');
   {
