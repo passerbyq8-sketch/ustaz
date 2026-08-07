@@ -16,7 +16,7 @@
 
 import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS, applyCorsOrigin } from '../lib/ratelimit.js';
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
-import { guardDayCap, dayCapMessage, hasValidFounderToken } from '../lib/daycap.js';
+import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { classifyRoute, createSourceFilter, isReligiousText } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
@@ -542,7 +542,10 @@ export default async function handler(req, res) {
   // Deliberately silent: no error and no "you were downgraded" field, because telling a prober
   // which requests would have been expensive is telling them what to forge. The downgrade is
   // recorded server-side in the [tier] line below instead.
-  const founderUnlocked = hasValidFounderToken(req);
+  // D06: the FULL check, not the cheap one. The deep tiers are a privilege paid for in model
+  // spend, so a revoked token must lose them the moment the owner revokes it -- not in up to
+  // ninety days when its expiry catches up.
+  const founderUnlocked = await hasUnrevokedFounderToken(req);
   const effectiveDepth = founderUnlocked ? body.depth : undefined;
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (effectiveDepth === 'deep' || effectiveDepth === 'scholar') ? 'high' : 'medium';

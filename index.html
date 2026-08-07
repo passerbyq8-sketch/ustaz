@@ -2481,7 +2481,9 @@ const capHeaders = () => {
   const h = {};
   const id = getDeviceId();
   if (id) h['x-murabbi-device'] = id;
-  try { const t = localStorage.getItem(FOUNDER_TOKEN_KEY); if (t) h['x-murabbi-founder'] = t; } catch (e) {}
+  // D06: رمزٌ ميّتٌ (منتهٍ أو من الإصدارِ الأوّل) لا يُرسَل. إرسالُه غيرُ ضارٍّ — الخادمُ يرفضُه —
+  // لكنّ الامتناعَ يبقي ما يقولُه العميلُ عن نفسِه مطابقًا لما يعرضُه: نفسُ المحكِّ في الموضعين.
+  try { const t = localStorage.getItem(FOUNDER_TOKEN_KEY); if (founderTokenAlive(t)) h['x-murabbi-founder'] = t; } catch (e) {}
   return h;
 };
 
@@ -2491,7 +2493,18 @@ const capHeaders = () => {
 // stored, logged or put in a URL; only this token is, and it is useless without the server's
 // FOUNDER_SECRET. Every gate calls hasFounderToken() directly rather than reading a cached
 // flag, so no guard can ever act on a stale value.
-const hasFounderToken = () => { try { return !!localStorage.getItem(FOUNDER_TOKEN_KEY); } catch (e) { return false; } };
+// D06: صار للرمزِ عمرٌ واسم. المتصفّحُ لا يملكُ FOUNDER_SECRET فلا يتحقّقُ من التوقيعِ ولا يدّعي
+// ذلك — لكنّ الشكلَ والانتهاءَ يُقرآنِ بلا سرّ. وقراءتُهما هنا تعني أنّ حاملَ رمزٍ منتهٍ أو رمزٍ
+// من الإصدارِ الأوّلِ (بلا نقاط) يرى شاشةَ الفتحِ فيُعيدُ إدخالَ الرقمِ السرّيّ مرّةً، بدلاً من أن
+// يُساقَ في مسارٍ يرفضُه الخادمُ صامتًا فيظنُّ العطبَ في التطبيق. الحكمُ النهائيُّ للخادمِ وحدَه.
+const founderTokenAlive = (t) => {
+  if (typeof t !== 'string') return false;
+  const p = t.split('.');
+  if (p.length !== 4 || p[0] !== 'v2') return false;
+  const exp = Number.parseInt(p[1], 10);
+  return Number.isFinite(exp) && exp * 1000 > Date.now();
+};
+const hasFounderToken = () => { try { return founderTokenAlive(localStorage.getItem(FOUNDER_TOKEN_KEY)); } catch (e) { return false; } };
 const storeFounderToken = (t) => { try { localStorage.setItem(FOUNDER_TOKEN_KEY, t); } catch (e) {} };
 
 // ============================================================

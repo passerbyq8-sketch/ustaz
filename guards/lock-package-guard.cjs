@@ -433,6 +433,127 @@ function envSandbox(vars) {
     ok('B8: the spend gate still owns hashPin, untouched',
       /if \(\(await hashPin\(code\)\) === SPEND_GATE_SHA256\) \{ onUnlock\(\); return; \}/.test(html));
 
+    // ══════════════════════════════════════════════════════════════════════════
+    console.log('\n=== C. D06 — the founder token has an age and a name ===');
+    // ══════════════════════════════════════════════════════════════════════════
+
+    const FDEV = 'lockguard-founder-device';
+    const NOW = Date.now();
+    const sound = DC.founderTokenFor(FDEV);
+
+    ok('C1: a freshly issued token carries a version, an expiry and a nonce',
+      typeof sound === 'string' && sound.split('.').length === 4 && sound.split('.')[0] === 'v2',
+      String(sound));
+    {
+      const exp = Number(sound.split('.')[1]) * 1000;
+      const days = Math.round((exp - NOW) / 86400000);
+      ok('C1: ...and the expiry is ninety days out, from the module constant',
+        days === 90 && DC.FOUNDER_TOKEN_TTL_SECONDS === 90 * 24 * 60 * 60, 'days=' + days);
+    }
+    ok('C1: ...and two tokens for the SAME device differ, so each is separately revocable',
+      DC.founderTokenFor(FDEV) !== DC.founderTokenFor(FDEV));
+    ok('C2: a sound token verifies', DC.verifyFounder(FDEV, sound));
+    ok('C2: ...for that device ONLY',
+      !DC.verifyFounder('lockguard-other-founder-dev', sound));
+
+    {
+      const expired = DC.founderTokenFor(FDEV, { ttlSeconds: -60 });
+      ok('C3: an EXPIRED token is refused', !DC.verifyFounder(FDEV, expired), String(expired));
+      // ...and it was sound a moment before it expired, so C3 is measuring the expiry and not
+      // some unrelated malformation.
+      ok('C3: ...though the identical token verified before its expiry',
+        DC.verifyFounder(FDEV, expired, Date.now() - 120000));
+    }
+    {
+      // The three fields are all under the MAC: editing any one of them breaks it.
+      const [, exp, nonce, mac] = sound.split('.');
+      const pushedOut = ['v2', String(Number(exp) + 86400000), nonce, mac].join('.');
+      const swappedNonce = ['v2', exp, 'AAAAAAAAAAAAAAAA', mac].join('.');
+      ok('C4: an expiry pushed out by the holder breaks the MAC',
+        !DC.verifyFounder(FDEV, pushedOut));
+      ok('C4: ...and so does swapping in a different nonce',
+        !DC.verifyFounder(FDEV, swappedNonce));
+    }
+    {
+      // THE MIGRATION COST, ASSERTED. A v1 token is the bare HMAC over the device id, which is
+      // exactly what shipped before D06. It must now be refused -- it has no expiry to honour
+      // and no name to revoke, which is the whole defect being closed.
+      const v1 = crypto.createHmac('sha256', process.env.FOUNDER_SECRET).update(FDEV).digest('base64url');
+      ok('C5: a V1 token (bare HMAC, no expiry, no nonce) is refused after this deploy',
+        !DC.verifyFounder(FDEV, v1), v1);
+      ok('C5: ...and api/unlock.js issues the v2 shape, so re-entering the PIN is the whole remedy',
+        /founderTokenFor\(deviceId\)/.test(read('api/unlock.js')));
+    }
+
+    // ── revocation ────────────────────────────────────────────────────────────
+    {
+      const store = fakeRedis({});
+      DC.__setRedisForTest(store);
+      try {
+        const nonce = DC.founderTokenNonce(sound);
+        ok('C6: the token names itself, readably, without the secret',
+          nonce === sound.split('.')[2] && /^[A-Za-z0-9_-]{1,64}$/.test(nonce), String(nonce));
+
+        const req = { headers: { [DC.DEVICE_HEADER]: FDEV, [DC.FOUNDER_HEADER]: sound } };
+        ok('C6: an unrevoked token passes the full check',
+          (await DC.hasUnrevokedFounderToken(req)) === true);
+
+        // THE OWNER'S ENTIRE PROCEDURE: one member added to one set.
+        await store.sadd(DC.FOUNDER_REVOKED_KEY, nonce);
+        ok('C7: adding the nonce to the revocation set refuses THAT token',
+          (await DC.hasUnrevokedFounderToken(req)) === false);
+        ok('C7: ...without rotating the secret -- a DIFFERENT token still passes',
+          (await DC.hasUnrevokedFounderToken({
+            headers: { [DC.DEVICE_HEADER]: FDEV, [DC.FOUNDER_HEADER]: DC.founderTokenFor(FDEV) },
+          })) === true);
+        ok('C7: ...and the day-cap bypass honours the revocation too',
+          (await DC.checkDayCap({ deviceId: FDEV, founderToken: sound })).reason !== 'founder');
+
+        // A configured store we cannot READ is not an empty list.
+        store.boom = true;
+        ok('C8: a CONFIGURED but unreachable revocation list fails CLOSED',
+          (await DC.hasUnrevokedFounderToken({
+            headers: { [DC.DEVICE_HEADER]: FDEV, [DC.FOUNDER_HEADER]: DC.founderTokenFor(FDEV) },
+          })) === false);
+      } finally {
+        DC.__setRedisForTest(null);
+      }
+    }
+    {
+      // No store credentials at all: there is no list, there never was, and nothing is on it.
+      // Answering "revoked" here would silently strip the bypass in every environment without
+      // KV for a reason that has nothing to do with any token.
+      const restoreKv = envSandbox({ KV_REST_API_URL: undefined, KV_REST_API_TOKEN: undefined });
+      try {
+        ok('C8: ...but an UNCONFIGURED store means nothing was ever revoked',
+          (await DC.hasUnrevokedFounderToken({
+            headers: { [DC.DEVICE_HEADER]: FDEV, [DC.FOUNDER_HEADER]: DC.founderTokenFor(FDEV) },
+          })) === true);
+      } finally { restoreKv(); }
+    }
+
+    // ── where the two checks are wired ───────────────────────────────────────
+    ok('C9: the three PRIVILEGE sites take the full check',
+      /await hasUnrevokedFounderToken\(req\)/.test(read('api/ask.js'))
+      && /await hasUnrevokedFounderToken\(req\)/.test(read('api/unlock.js'))
+      && /!\(await isFounderTokenRevoked\(founderToken\)\)/.test(read('lib/daycap.js')),
+      'the tier lock, the PIN change and the day-cap bypass');
+    ok('C9: ...and the two ROUTING sites stay synchronous, keeping the expiry',
+      /return hasValidFounderToken\(req\);/.test(read('lib/ledger/flag.js'))
+      && /return hasValidFounderToken\(req\);/.test(read('lib/legacy-policy-flag.js')),
+      'isInternalTester decides which engine runs; it grants nothing, so it takes the sync check');
+    {
+      // The browser half: it cannot verify a signature without the secret, and does not pretend
+      // to -- but a dead token must send the reader to the PIN screen rather than down a path
+      // the server refuses in silence.
+      const alive = html.slice(html.indexOf('const founderTokenAlive'), html.indexOf('const storeFounderToken'));
+      ok('C10: the browser treats a V1 or EXPIRED token as no token',
+        /p\.length !== 4 \|\| p\[0\] !== 'v2'/.test(alive) && /exp \* 1000 > Date\.now\(\)/.test(alive));
+      ok('C10: ...and both the gate and the outgoing header use that SAME test',
+        /return founderTokenAlive\(localStorage\.getItem\(FOUNDER_TOKEN_KEY\)\)/.test(html)
+        && /if \(founderTokenAlive\(t\)\) h\['x-murabbi-founder'\] = t;/.test(html));
+    }
+
   } finally {
     try { (await esm('api/parent-code.js')).__setRedisForTest(null); } catch (e) {}
     UNLOCK.__setRedisForTest(null);

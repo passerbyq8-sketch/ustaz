@@ -33,7 +33,7 @@
 
 import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
-import { safeId, founderTokenFor, hasValidFounderToken } from '../lib/daycap.js';
+import { safeId, founderTokenFor, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ATTEMPT_MESSAGES, ipDigest, noteAttempt as countAttempt } from '../lib/attempts.js';
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 
@@ -173,7 +173,10 @@ export default async function handler(req, res) {
   // counted this call, so this path cannot be used to grind the store either.
   // ============================================================
   if (body && body.action === 'set-pin') {
-    const authorised = hasValidFounderToken(req);          // the ONE verifier, imported not re-written
+    // D06: the FULL check. Changing the PIN is the most privileged thing this app can do -- it
+    // is the act that decides who unlocks tomorrow -- so a revoked token must not be able to do
+    // it. Imported, never re-written: one verifier for the cap bypass, the tier lock and this.
+    const authorised = await hasUnrevokedFounderToken(req);
     const next = typeof body.pin === 'string' ? body.pin : '';
     const shapeOk = PIN_SHAPE.test(next);
     // CONSTANT WORK: the salt is drawn and the scrypt is run whatever the answers are, so an
