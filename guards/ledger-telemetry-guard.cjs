@@ -228,6 +228,76 @@ function recordingRedis() {
   }
 
   // =========================================================================
+  // C2. THE REFUSAL NAMES THE FIELD, AND THE NAME SURVIVES THE ALLOW-LIST
+  //
+  // WHY THIS SECTION EXISTS. On 2026-08-07 every ledger request on the opened engine came back
+  // PLAN_INVALID with `model:1, brave:0` — and the stored record said
+  // `rejection_codes: ["query_plan_failed_schema_validation"]` and NOTHING else. The engine was
+  // building the broken field's name at lib/ledger/engine.js and handing it to reject(), and
+  // telemetryShape() published `rejections.map(r => r.code)` — so the name was built and dropped
+  // one layer later. The detail is prose and the allow-list refuses prose, correctly; the fix is
+  // a BARE-IDENTIFIER channel beside the code, and this section is what stops it rotting back.
+  console.log('\n=== C2. rejection_codes NAMES THE FIELD, IN TOKENS A STORE MAY KEEP ===');
+  {
+    const IR = await esm('lib/ledger/query-ir.js');
+    ok('query-ir publishes a CLOSED set of field tokens', Object.isFrozen(IR.IR_FIELDS)
+      && IR.IR_FIELDS.includes('intent') && IR.IR_FIELDS.includes('unknown_field'));
+
+    // 1. THE HAPPY CASE: a code plus a field, in one keepable token.
+    const led = new SCHEMA.Ledger('tr_000c02');
+    led.reject(SCHEMA.REJECTION.PLAN_INVALID, 'schema; issue[0] intent is not one of fatwa|…',
+      null, ['intent', 'temporal_scope']);
+    const shape = led.telemetryShape();
+    eq('the ledger publishes code:field, one entry per field', shape.rejection_codes,
+      ['query_plan_failed_schema_validation:intent',
+        'query_plan_failed_schema_validation:temporal_scope']);
+    const built = T.buildRecord({ rejection_codes: shape.rejection_codes });
+    eq('...and the allow-list keeps them verbatim — no widening was needed to carry a field name',
+      built.record.rejection_codes, shape.rejection_codes);
+    eq('...and dropped nothing', built.dropped, []);
+
+    // 2. THE PROSE THE DETAIL CARRIES IS STILL NEVER PUBLISHED. `detail` holds the reader-free
+    //    sentence for a log; if it ever leaked into the codes, the store would hold free text.
+    ok('the prose detail reaches no published field',
+      JSON.stringify(shape).indexOf('issue[0] intent is not one of') === -1);
+
+    // 3. THE CHANNEL IS CONSTRAINED AT THE LEDGER, NOT BY CALLER DISCIPLINE. This is the field a
+    //    future caller would widen with one String(e.message), so it refuses anything that is
+    //    not a short bare identifier — including the reader's own words.
+    const dirty = new SCHEMA.Ledger('tr_000c03');
+    dirty.reject(SCHEMA.REJECTION.PLAN_INVALID, '', null,
+      ['ما حكم صيام يوم عرفة لغير الحاج؟', 'has a space', 'UPPER', 'x'.repeat(64), 'intent']);
+    eq('reject() keeps ONLY bare identifiers — Arabic, spaces, capitals and over-long are dropped',
+      dirty.telemetryShape().rejection_codes, ['query_plan_failed_schema_validation:intent']);
+
+    // 4. AND AN INVENTED KEY REPORTS ITS CLASS, NEVER ITSELF. The key is a string the model
+    //    wrote; publishing it would put model-authored text in the store through the one door
+    //    that was opened to close a diagnosis gap.
+    const v = IR.validateQueryPlan({
+      issues: [{
+        issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
+        protected_entities: ['بيع الذهب'], core_terms: ['التقسيط'], context_vars: [],
+        exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+      }],
+      missing_qualifiers: [], confidence: 'high',
+      // Batch 5, cause 3, verbatim: the key a model adds INSIDE the object while obeying
+      // «no text outside it».
+      reasoning: 'لأنّ السؤال عن حكم بيع الذهب بالتقسيط',
+    }, 'ما حكم بيع الذهب بالتقسيط؟');
+    eq('an invented key is reported as a CLASS, not as the key', v.problemFields, ['unknown_field']);
+    ok('...and neither the key nor its value appears in any token',
+      !v.problemFields.some((f) => /reasoning|لأنّ/.test(f)));
+
+    // 5. THE LENGTH INVARIANT, ASSERTED RATHER THAN HOPED FOR. sanitizeValue() drops a string
+    //    over 64 chars SILENTLY — a code:field pair that outgrew the bound would vanish from the
+    //    record and look exactly like a request that never failed.
+    const longest = IR.IR_FIELDS.reduce((a, b) => (b.length > a.length ? b : a));
+    ok('every code:field this ledger can emit fits inside the allow-list value bound',
+      (SCHEMA.REJECTION.PLAN_INVALID + ':' + longest).length <= 64,
+      SCHEMA.REJECTION.PLAN_INVALID + ':' + longest);
+  }
+
+  // =========================================================================
   console.log('\n=== D. record() — WHAT IT WRITES, AND THE TWO THINGS IT REFUSES ===');
   {
     // ── THE GATE THAT WAS REMOVED, ASSERTED AS REMOVED ────────────────────
