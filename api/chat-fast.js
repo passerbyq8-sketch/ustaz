@@ -5,10 +5,17 @@
 // ephemeral system-prompt caching, upstream-error passthrough, and the thin SSE relay —
 // is intentionally identical to api/chat.js so the client parser needs ZERO changes.
 //
-// SAFETY NOTE: this is a PURE RELAY. It carries NO prompt and NO worship text; it
-// faithfully forwards whatever `system` / `messages` the client sends. The guarantee
-// that religious / worship / Quran questions never reach this thin path lives ENTIRELY
-// in the client-side classifier (index.html callAI), NOT here. Do NOT add routing here.
+// SAFETY NOTE — REWRITTEN, BECAUSE THE OLD ONE WAS THE DEFECT. It used to read: "the guarantee
+// that religious / worship / Quran questions never reach this thin path lives ENTIRELY in the
+// client-side classifier (index.html callAI), NOT here." A guarantee enforced by the thing being
+// classified is not a guarantee — the classifier is a Haiku call over the child's own words, and
+// when it says GEN the answer turn came straight here with nothing in the way.
+//
+// So this relay is no longer a PURE RELAY. It now runs the SAME hazard triage, the SAME age
+// policy and the SAME day cap as api/chat.js, from the SAME modules (lib/policy/*, lib/daycap.js)
+// — see the triage block below. It still carries no prompt and no worship text of its own, and it
+// still does no ROUTING: it refuses, or it forwards. The client classifier remains a routing
+// optimisation, not a safety boundary.
 //
 // SIBLING CONTRACT: if you ever change the caching or SSE-relay logic in api/chat.js,
 // mirror it here (and vice-versa) or the two relays will drift.
@@ -20,6 +27,33 @@
 /* 15 */
 import { checkChatLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS, applyCorsOrigin } from '../lib/ratelimit.js';
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
+// THE SAME MODULES api/chat.js READS, imported — not transcribed. A hazard list that lives in
+// three files is three lists, and the one that goes stale is always the one nobody is looking at.
+import { guardDayCap, dayCapMessage, sendCapMessageSse } from '../lib/daycap.js';
+import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION } from '../lib/policy/core.js';
+import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
+// api/chat.js keeps a private copy of this; api/ask.js imports the shared one. This relay takes
+// the shared one, so the third door does not become a third definition.
+import { lastUserText } from '../lib/attribution.js';
+
+// THE CLASSIFIER TURN, IDENTIFIED. This relay carries TWO different things: the route classifier
+// (index.html:7879 — `max_tokens: 8`, one word of output, never spoken to the child) and the GEN
+// answer (index.html:7933 — `max_tokens: 4096`, read aloud). They are not the same kind of event
+// and two of the guards below must tell them apart:
+//
+//   * THE DAY CAP counts ANSWER turns only. api/chat.js:197-202 states the rule and the reason:
+//     one voice question fires 2+N requests, so counting each would make DAY_CAP=10 mean ~3 voice
+//     questions but 10 typed ones. That is why this relay was left uncapped entirely. Capping the
+//     answer turn honours BOTH the rule and the cap.
+//   * THE AGE FLOOR judges a draft that a child will HEAR. The classifier's one word is never
+//     heard, so repairing it would be repairing nothing.
+//
+// The hazard refusal and the age policy are NOT scoped this way — they run on every turn, the
+// classifier included, because a refusal is free and must never cost a question.
+//
+// A caller who sets max_tokens:8 by hand to dodge the day cap buys themselves eight tokens of
+// output. The throttle, the global kill-switch and the input cap are untouched by the trick.
+const CLASSIFIER_MAX_TOKENS = 8;
 
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
@@ -75,6 +109,7 @@ export default async function handler(req, res) {
   // documented Haiku string, so the fast path stays fast even if MODEL_FAST is unset —
   // it never silently falls back to the slower Sonnet/Opus model.
   let outgoingBody = req.body;
+  let voiceBand;
   try {
     const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : { ...req.body };
 
@@ -108,6 +143,20 @@ export default async function handler(req, res) {
       }
     }
 
+    // SIBLING CONTRACT (api/chat.js C): `band` is a field this app adds so the policy below has
+    // something to govern by, and /v1/messages 400s on an unknown top-level field. Read it, then
+    // strip it, exactly as the sibling does.
+    //
+    // 🩸 MEASURED, AND IT IS A HOLE THIS FILE CANNOT CLOSE ALONE: index.html:7931 sends `band`
+    //    ONLY when `endpoint === '/api/chat'`. Neither the classifier body (index.html:7879) nor
+    //    the GEN answer body (index.html:7933) carries it, so in production this reads `undefined`
+    //    and resolveAudience returns the unknown-reader default — band 'adult'
+    //    (lib/policy/age.js:133). The band-INDEPENDENT hazard refusal below therefore protects
+    //    every reader; the band-DEPENDENT floor does not fire until the client is taught to send
+    //    `band` here too. That is a one-line index.html change, and it is NOT in this batch.
+    voiceBand = typeof parsed.band === 'string' ? parsed.band : undefined;
+    if (parsed.band !== undefined) delete parsed.band;
+
     outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.
   } catch (e) {
     // No raw passthrough. Same reason as api/chat.js: the old fallback handed the client
@@ -116,7 +165,70 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'bad body' });
   }
 
+  // ── TRIAGE, ON THE FAST TURN, BEFORE ANY MODEL CALL ───────────────────────
+  //
+  // THE HOLE THIS CLOSES, MEASURED. api/chat.js runs the hazard triage, the age policy and the
+  // day cap; this relay ran none of them. It is not a lesser door for it: the client sends a GEN-
+  // classified CALL turn straight here, so a child whose dangerous question the classifier called
+  // "neutral knowledge" reached Haiku with NOTHING in the way. Three doors into the same building
+  // and this one was unguarded. The SAFETY NOTE at the top of this file said the guarantee lived
+  // "ENTIRELY in the client-side classifier" — a guarantee held by the thing being classified is
+  // not a guarantee, and that is what this block replaces.
+  //
+  // IT RUNS BEFORE THE DAY CAP AS WELL AS BEFORE THE FETCH — the same order as the sibling. A
+  // refusal costs nothing, and it must not cost the reader one of their questions for the day.
+  const isClassifierTurn = Number(outgoingBody && outgoingBody.max_tokens) <= CLASSIFIER_MAX_TOKENS;
+  const voiceText = lastUserText(outgoingBody && outgoingBody.messages);
+  const voiceAudience = resolveAudience({ serverBand: null, clientBand: voiceBand });
+  const voiceHazard = graveHazard(voiceText);
+  if (voiceHazard) {
+    // Band-independent, exactly as in api/ask.js and api/chat.js: refused for everybody, not only
+    // for a reader who declared an age. On the classifier turn the client reads this back, fails
+    // to see 'GEN', and returns DEEN — which sends the turn to the FULL prompt on api/chat.js,
+    // where the same refusal is emitted to the child. It fails toward the guarded route.
+    console.warn('[policy] SAFETY_REDIRECT', {
+      topic: voiceHazard, band: voiceAudience.band, path: 'voice-fast',
+      turn: isClassifierTurn ? 'classifier' : 'answer', policyVersion: POLICY_VERSION,
+    });
+    return sendCapMessageSse(res, WARM_TEMPLATES.SAFETY_REDIRECT);
+  }
+
+  const voiceTopic = classifyTopic(voiceText, null);
+  const voiceAccess = access({ topicClass: voiceTopic, audienceBand: voiceAudience.band });
+  console.log('[policy] voice-fast', {
+    topicClass: voiceTopic, band: voiceAudience.band, audienceSource: voiceAudience.audienceSource,
+    outcome: voiceAccess.outcome, sourcePolicy: voiceAccess.sourcePolicy,
+    turn: isClassifierTurn ? 'classifier' : 'answer', policyVersion: POLICY_VERSION,
+  });
+  if (voiceAccess.outcome && voiceAccess.outcome !== 'ALLOW') {
+    const tpl = warmTemplateFor(voiceAccess.sourcePolicy);
+    if (tpl) return sendCapMessageSse(res, tpl);
+  }
+  // THE FLOOR, on the turn the child actually HEARS. Same rule as the sibling: it costs the SAME
+  // one upstream call (the reply is taken whole instead of streamed) and it applies only to the
+  // bands it is written for. The classifier's one word is excluded because nobody hears it.
+  const floorThisTurn = !isClassifierTurn
+    && (voiceAudience.band === 'young' || voiceAudience.band === 'teen')
+    && voiceAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN';
+
   try {
+    // DAILY QUESTION CAP. Above the fetch or a capped request still costs money; below the
+    // refusals above or a refusal would cost the reader a question. ANSWER TURNS ONLY — see
+    // CLASSIFIER_MAX_TOKENS at the top of this file for why, and api/chat.js:197-202 for the
+    // rule it preserves. guardDayCap never throws, so the surrounding try is not a bypass.
+    if (!isClassifierTurn) {
+      const cap = await guardDayCap(req, res);
+      if (!cap.allowed) {
+        // Same ruling as api/chat.js: the daily limit is a normal in-conversation message, not an
+        // error, and it is emitted in the ONE frame shape index.html already consumes.
+        if (cap.reason === 'day-cap-reached') {
+          return sendCapMessageSse(res, dayCapMessage(cap.reason));
+        }
+        // cap-unavailable KEEPS its 429, for the same reason as api/chat.js.
+        return res.status(429).json({ error: cap.reason, message: dayCapMessage(cap.reason) });
+      }
+    }
+
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -124,7 +236,9 @@ export default async function handler(req, res) {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify(outgoingBody),
+      // The floor needs a whole draft to judge, so that one case asks for the reply in one piece.
+      // Everything else streams exactly as it did.
+      body: JSON.stringify(floorThisTurn ? { ...outgoingBody, stream: false } : outgoingBody),
     });
 
     // Forward upstream errors (400 bad-model / 401 quota / 429 / 5xx) verbatim so a wrong
@@ -134,6 +248,25 @@ export default async function handler(req, res) {
       res.status(upstream.status);
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       return res.end(errText || JSON.stringify({ error: { message: `upstream ${upstream.status}` } }));
+    }
+
+    // ── THE AGE FLOOR, ON THE FAST TURN, EXACTLY AS ON THE OTHER TWO ────────
+    // A draft that is merely INCOMPLETE — it forgot the patch test, it forgot to bring a parent in
+    // — is completed deterministically from sentences this server owns. A draft that told a child
+    // to rub lemon on their lips is discarded whole, because a warning bolted onto the end of a
+    // harmful instruction is still the harmful instruction.
+    if (floorThisTurn) {
+      const payload = await upstream.json().catch(() => null);
+      const draft = ((payload && payload.content) || [])
+        .filter((b) => b && b.type === 'text').map((b) => b.text).join('').trim();
+      const rep = ageRepair(draft, { topicClass: voiceTopic, audienceBand: voiceAudience.band });
+      console.log('[policy] AGE_FLOOR voice-fast', {
+        topicClass: voiceTopic, band: voiceAudience.band,
+        ageFloorOutcome: rep.outcome, repaired: rep.repaired, problems: rep.problems,
+      });
+      // A DISCARDED DRAFT FALLS BACK TO THE CHILD LINE, not to the hazard redirect — the redirect
+      // answers a question this child did not ask and reads to them as an accusation.
+      return sendCapMessageSse(res, rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN'));
     }
 
     // Thin streaming relay: forward the SSE bytes unmodified; the client parses the events.
