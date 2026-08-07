@@ -861,9 +861,21 @@ export default async function handler(req, res) {
     // deterministically from fixed sentences this server owns. A draft that told them to rub
     // lemon on their lips is discarded whole, because a warning bolted onto the end of a harmful
     // instruction is still the harmful instruction.
+    // 🩸 THE THIRD CLAUSE IS GONE, AND IT WAS THE DEFECT. It read
+    // `&& (toLedger || effectiveRoute === 'GEN')`, and `toLedger` (line ~739) is decidePath() —
+    // an env flag AND an Upstash read. So the floor a child gets was a function of which engine
+    // the request happened to be routed to and whether a store answered. A seven-year-old asking
+    // «كيف أرتب غرفتي وأنا في رمضان؟» classifies GENERAL_CHILD_BENIGN, but the word رمضان routes
+    // it DEEN — so with the ledger off, the third clause was false and the child fell through to
+    // the adult path with NO floor at all. Two children, same question, different protection,
+    // decided by a flag neither of them can see.
+    //
+    // A safety floor may not be conditional on infrastructure. It now depends on exactly what it
+    // is about: this is a child, and the policy called the topic benign. Nothing else. The rest of
+    // the condition is untouched, and this branch still runs BEFORE the ledger branch and before
+    // the streamed GEN branch, so neither can shadow it.
     if (ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
-      && (audienceBand === 'young' || audienceBand === 'teen')
-      && (toLedger || effectiveRoute === 'GEN')) {
+      && (audienceBand === 'young' || audienceBand === 'teen')) {
       const gc = await fetch(ANTHROPIC_URL, {
         method: 'POST',
         headers,
