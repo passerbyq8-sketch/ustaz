@@ -3948,7 +3948,7 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
 // where the snapshot lives. Search asks for the complete official record and never calls a model.
 const EZIK_FATWA_API_BASE = String(
   (typeof window !== 'undefined' && window.EZIK_FATWA_API_BASE) ||
-  'https://ezik-fatwas-r3mml45n9-musaed-s-projects1.vercel.app'
+  'https://ezik-fatwas.vercel.app'
 ).replace(/\/+$/, '');
 
 async function ezikFatwaFetch(path, signal) {
