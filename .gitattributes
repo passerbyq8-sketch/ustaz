@@ -272,3 +272,12 @@ lib/identity/index.js text eol=lf
 lib/identity/whitelist.js text eol=lf
 lib/identity/wikipedia.js text eol=lf
 lib/identity/cache.js text eol=lf
+
+# Gate 70 (transfer-mode-guard) and the four modules it drives. Same reason as every gate above:
+# the guard reads them as text and asserts on their contents, and the flip-token list is matched
+# on NORMALISED Arabic — a CR inside a token would split it and silence the veto.
+guards/transfer-mode-guard.cjs text eol=lf
+lib/transfer/index.js text eol=lf
+lib/transfer/match.js text eol=lf
+lib/transfer/extract.js text eol=lf
+lib/transfer/trim.js text eol=lf

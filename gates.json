@@ -343,5 +343,10 @@
     "name": "identity",
     "script": "guards/identity-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "transfermode",
+    "script": "guards/transfer-mode-guard.cjs",
+    "args": ""
   }
 ]
