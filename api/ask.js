@@ -70,7 +70,7 @@ import { decideLegacyPolicy } from '../lib/legacy-policy-flag.js';
 // D02ب: the system prompt is built HERE now, from four sanitised fields, and `body.system` is
 // read by nothing. See lib/system-prompt.js for why the client stopped owning it.
 import { buildSystemPrompt } from '../lib/system-prompt.js';
-import { readerFromBody, narrowestBand } from '../lib/reader-fields.js';
+import { readerFromBody, narrowestBand, dropClientSystem } from '../lib/reader-fields.js';
 // LIVE WORLD RETRIEVAL — the news/current-affairs classifier. Pure and lexical, like
 // lib/route-classify.js: it decides whether a question the router already called GENERAL is
 // one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
@@ -536,7 +536,7 @@ export default async function handler(req, res) {
   // fields below, and their rule is the opposite of a rejection: an absent or unusable field
   // never widens scope, it resolves to the narrowest reading (lib/reader-fields.js). Rejecting
   // instead would have broken every caller at once while making nobody safer.
-  if (body.system !== undefined) delete body.system;
+  dropClientSystem(body, 'ask');
   const reader = readerFromBody(body);
 
   // Body-size cap (bug 6): the client controls system+messages verbatim, so an

@@ -197,6 +197,7 @@ const PINNED = [
   // this is a claim about behaviour, and only one of the two survives a refactor.
   {
     const realFetch = globalThis.fetch;
+    const realWarn = console.warn;
     const saved = {};
     for (const k of ['ANTHROPIC_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
       saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
@@ -254,8 +255,26 @@ const PINNED = [
       ];
       for (const [label, rel, body, expect] of CASES) {
         captured = null;
+        // قرار ٦ is "log, not 400", so the drop has an observable half and it is asserted here
+        // for the same reason the rest of F is driven: a route that silently stopped dropping
+        // and one that drops quietly are the same absence of evidence.
+        const logged = [];
+        console.warn = (...a) => {
+          logged.push(a.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' '));
+        };
         const handler = (await esm(rel)).default;
         try { await handler(mkReq(body), mkRes()); } catch (e) { /* a refusal is not a leak */ }
+        console.warn = realWarn;
+        ok('...the ignored `system` was LOGGED: ' + label,
+          logged.some((l) => l.indexOf('[system-ignored]') !== -1),
+          'the field is dropped without a trace -- قرار ٦ asks for a record, not silence');
+        // The other half of that decision, and the one with teeth: the SHAPE is logged and the
+        // CONTENT never is. A forged prompt is attacker-controlled up to the 2MiB body cap, so a
+        // route that echoed it would turn every request into a log-flooding lever and would copy
+        // an injection payload into an operational log.
+        ok('...and the forged CONTENT never reached the log: ' + label,
+          !logged.some((l) => l.indexOf(CANARY) !== -1),
+          'the client-supplied system text is being written to the log verbatim');
         if (!ok('reached upstream: ' + label, captured !== null,
           'no vendor call was made, so this case proved nothing -- fix the harness, do not delete the case')) continue;
         const sys = captured.system;
@@ -269,6 +288,7 @@ const PINNED = [
       }
     } finally {
       globalThis.fetch = realFetch;
+      console.warn = realWarn;
       for (const k of Object.keys(saved)) {
         if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
       }

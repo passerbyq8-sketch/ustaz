@@ -9,7 +9,7 @@ import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '.
 // D02ب: this relay builds the voice prompt itself now. It used to forward whatever `system` the
 // client posted -- see lib/system-prompt.js for why that was the defect and not the design.
 import { buildSystemPrompt } from '../lib/system-prompt.js';
-import { readerFromBody, narrowestBand } from '../lib/reader-fields.js';
+import { readerFromBody, narrowestBand, dropClientSystem } from '../lib/reader-fields.js';
 
 // The reader's own words for THIS turn. Same shape api/ask.js reads: the content may be a plain
 // string or the block array the voice client sends.
@@ -130,7 +130,7 @@ export default async function handler(req, res) {
     //     caching below is unchanged -- one cached text block, exactly as before -- because
     //     what changed is where the string comes from, not how it is sent.
     const reader = readerFromBody(parsed);
-    delete parsed.system;
+    dropClientSystem(parsed, 'chat');
     parsed.system = [{
       type: 'text',
       text: buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode),

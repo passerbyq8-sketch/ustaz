@@ -44,7 +44,7 @@ import { lastUserText } from '../lib/attribution.js';
 // the two it builds is decided by max_tokens -- the SAME discriminator this file already uses
 // for isClassifierTurn below, so no new field was invented to carry the distinction.
 import { CLASSIFIER_SYSTEM_PROMPT, buildFastGenPrompt } from '../lib/system-prompt.js';
-import { readerFromBody, narrowestBand } from '../lib/reader-fields.js';
+import { readerFromBody, narrowestBand, dropClientSystem } from '../lib/reader-fields.js';
 
 // THE CLASSIFIER TURN, IDENTIFIED. This relay carries TWO different things: the route classifier
 // (index.html:7879 — `max_tokens: 8`, one word of output, never spoken to the child) and the GEN
@@ -152,7 +152,7 @@ export default async function handler(req, res) {
     // with itself.
     const reader = readerFromBody(parsed);
     const classifierTurnForPrompt = Number(parsed.max_tokens) <= CLASSIFIER_MAX_TOKENS;
-    delete parsed.system;
+    dropClientSystem(parsed, 'chat-fast');
     parsed.system = [{
       type: 'text',
       text: classifierTurnForPrompt ? CLASSIFIER_SYSTEM_PROMPT : buildFastGenPrompt(reader.age),
