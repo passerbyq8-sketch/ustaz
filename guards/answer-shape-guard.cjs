@@ -407,6 +407,33 @@ function answerShapeViolations(reply) {
       eq('a مخرِّج whose name merely contains a ruling word survives',
         CL.resolveHadithAttribution('الحسن البصري', 'صحيح'),
         { narrator: 'الحسن البصري', ruling: 'صحيح' });
+      // ── قرار ١١: the card prints «رَوَى {المخرِّج}», so a narrator that already carries
+      // the verb printed it twice — «رَوَى رواه البخاري». The name alone is what belongs there.
+      eq('«رواه البخاري» → the verb is stripped and the name kept',
+        CL.resolveHadithAttribution('رواه البخاري', 'صحيح'),
+        { narrator: 'البخاري', ruling: 'صحيح' });
+      eq('«أخرجه مسلم» → the same, on the other verb',
+        CL.resolveHadithAttribution('أخرجه مسلم', ''),
+        { narrator: 'مسلم', ruling: '' });
+      // Vocalised and shadda'd spellings are ONE case, because the model writes vocalised Arabic.
+      eq('«رَوَاهُ البخاريُّ» → decided on the normalised form, cut from the raw one',
+        CL.resolveHadithAttribution('رَوَاهُ البخاريُّ', ''),
+        { narrator: 'البخاريُّ', ruling: '' });
+      eq('«خرّجه الترمذي» → shadda is not a second verb',
+        CL.resolveHadithAttribution('خرّجه الترمذي', ''),
+        { narrator: 'الترمذي', ruling: '' });
+      // THE ORDERING REGRESSION. «رواه الشيخان» is a RULING phrase already on the registered list;
+      // stripping the prefix before testing for one would turn it into a narrator «الشيخان» and
+      // silently retire a rule that predates this decision.
+      eq('«رواه الشيخان» is still read as a ruling, not stripped into a name',
+        CL.resolveHadithAttribution('رواه الشيخان', ''),
+        { narrator: '', ruling: 'رواه الشيخان' });
+      // A one-word narrator is never verb+name, and must not be emptied.
+      eq('a bare «البخاري» is untouched', CL.resolveHadithAttribution('البخاري', ''),
+        { narrator: 'البخاري', ruling: '' });
+      // ...and a name that merely BEGINS like the verb is not a verb.
+      eq('«رواد السنة» is not a narration verb', CL.resolveHadithAttribution('رواد السنة', ''),
+        { narrator: 'رواد السنة', ruling: '' });
     }
     // ── every printer routes through the shared decision, none re-implements it ──
     // FOUR surfaces render a reply: the visible card, the voice, the parents' log, the clipboard.

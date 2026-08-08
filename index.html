@@ -2812,6 +2812,23 @@ const isRulingPhrase = (s) => {
   if (!n) return false;
   return RULING_PHRASES.has(n) || RULING_VERB_RE.test(n);
 };
+// ── «رَوَى رواه البخاري» (قرار ١١) ─────────────────────────────────────────
+// البطاقةُ تطبعُ «رَوَى {المخرِّج}»، والنموذجُ يملأُ الخانةَ أحيانًا بالجملةِ كاملةً —
+// «رواه البخاري» — فيخرجُ الفعلُ مرّتين. المطلوبُ الاسمُ وحدَه، فتُنزَعُ البادئةُ ويبقى.
+//
+// مُطبَّعةً لا حرفيّة: النموذجُ يكتبُ عربيّةً مشكولةً، فـ«رَوَاهُ» و«رواه» و«خرّجه» و«خرجه»
+// و«أخرجه» و«اخرجه» حالةٌ واحدةٌ بعد التطبيع — وثلاثةُ مدخلاتٍ تكفي للستّة.
+const NARRATION_VERBS = new Set(['رواه', 'أخرجه', 'خرّجه'].map(normalizeAttribution));
+// القرارُ يُتَّخَذُ على الصورةِ المطبَّعةِ والقصُّ يقعُ على الأصل، فيحتفظُ الاسمُ برسمِه
+// وتشكيلِه كما ورد: «رواه البخاريُّ» ⟹ «البخاريُّ» لا «البخاري».
+const stripNarrationVerb = (s) => {
+  const raw = String(s || '').trim();
+  const sp = raw.search(/\s/);
+  // كلمةٌ واحدةٌ لا تكونُ فعلًا واسمًا، فلا يُنزَعُ منها شيءٌ — وإلّا أفرغنا الخانةَ كلَّها.
+  if (sp === -1) return raw;
+  if (!NARRATION_VERBS.has(normalizeAttribution(raw.slice(0, sp)))) return raw;
+  return raw.slice(sp + 1).trim();
+};
 /**
  * تُرجِعُ ما يُطبَعُ فعلًا لبطاقةِ حديث: مخرِّجٌ (أو لا شيء) ودرجةٌ (أو لا شيء).
  * @param {string} narrator قيمةُ narrator كما وردت من النموذج
@@ -2822,7 +2839,12 @@ const resolveHadithAttribution = (narrator, ruling) => {
   let n = String(narrator || '').trim();
   let r = String(ruling || '').trim();
   if (n && isRulingPhrase(n)) { if (!r) r = n; n = ''; }
-  else if (n && r && normalizeAttribution(n) === normalizeAttribution(r)) { n = ''; }
+  else {
+    // النزعُ بعدَ فحصِ الدرجةِ لا قبلَه، والترتيبُ مقصود: «رواه الشيخان» لفظُ درجةٍ مسجَّلٌ
+    // في RULING_PHRASES، ونزعُ بادئتِه أوّلًا كان يُحيلُه اسمًا «الشيخان» ويُبطِلُ قاعدةً قائمة.
+    n = stripNarrationVerb(n);
+    if (n && r && normalizeAttribution(n) === normalizeAttribution(r)) { n = ''; }
+  }
   return { narrator: n, ruling: r };
 };
 
