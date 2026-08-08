@@ -352,6 +352,124 @@ function answerShapeViolations(reply) {
       /referralBlockFor/.test(ask));
   }
 
+  // =========================================================================
+  console.log('\n=== H. AND THE CARDS CARRY NO FIXED SENTENCE EITHER (جولةُ الوسوم) ===');
+  // Sections A–G police the PROSE of a reply. A card is the other half of the surface, and it
+  // had the same defect in a place no prose detector could see: above every <steps> list the
+  // client printed one unchanging heading, «خُطُوَاتٌ تُسَاعِدُك». The owner met it above a list
+  // of أعذار شرعيّة — a heading that described nothing under it — and ruled: «ماله داعي الجمله
+  // هذي اصلا، لازم تكون كلمه بديله حسب الصياغ وتتماشى معاه، وليست جمله تظهر في كل مره».
+  //
+  // Measured the same way as the rest of this gate: the client's own decision functions are
+  // SPLICED OUT OF index.html AND RUN. A gate that grepped for the sentence would pass the day
+  // someone re-introduced it under a different spelling.
+  {
+    const html = read('index.html').replace(/\r\n/g, '\n');
+    const cut = (from, to) => {
+      const a = html.indexOf(from);
+      if (a < 0) return null;
+      const b = html.indexOf(to, a);
+      return b < 0 ? null : html.slice(a, b + to.length);
+    };
+    const helpers = cut('const readStepsTitle =', 'return { narrator: n, ruling: r };\n};');
+    let CL = null;
+    if (ok('index.html still defines the shared card-attribution helpers', helpers !== null)) {
+      const vm2 = require('vm');
+      const box = {};
+      vm2.createContext(box);
+      try {
+        vm2.runInContext(helpers + '\nthis.readStepsTitle = readStepsTitle;'
+          + '\nthis.resolveHadithAttribution = resolveHadithAttribution;', box);
+        CL = box;
+      } catch (e) { ok('...and they evaluate', false, e.message); }
+    }
+    if (CL) {
+      // ── البند ١: the heading comes from the answer, or there is none ──────
+      eq('a <steps> tag with no title yields NO heading', CL.readStepsTitle(''), '');
+      eq('a <steps title> yields exactly that title',
+        CL.readStepsTitle(' title="أَعْذَارٌ شَرْعِيَّة"'), 'أَعْذَارٌ شَرْعِيَّة');
+      // ── البند ٢: «رَوَى {a ruling}» is extinct ────────────────────────────
+      // NEGATIVE witness — the exact input the owner's sample produced.
+      eq('NEGATIVE: narrator="متفق عليه" ruling="متفق عليه" → the رَوَى line is dropped',
+        CL.resolveHadithAttribution('متفق عليه', 'متفق عليه'),
+        { narrator: '', ruling: 'متفق عليه' });
+      // POSITIVE witness — a real مخرِّج is untouched, which is what stops an over-eager fix.
+      eq('POSITIVE: narrator="البخاري" ruling="صحيح" → the usual shape survives',
+        CL.resolveHadithAttribution('البخاري', 'صحيح'),
+        { narrator: 'البخاري', ruling: 'صحيح' });
+      eq('a ruling alone in narrator is PROMOTED, never lost',
+        CL.resolveHadithAttribution('صحيح', ''), { narrator: '', ruling: 'صحيح' });
+      eq('a مخرِّج whose name merely contains a ruling word survives',
+        CL.resolveHadithAttribution('الحسن البصري', 'صحيح'),
+        { narrator: 'الحسن البصري', ruling: 'صحيح' });
+    }
+    // ── every printer routes through the shared decision, none re-implements it ──
+    // FOUR surfaces render a reply: the visible card, the voice, the parents' log, the clipboard.
+    // Before this round each carried its OWN copy of the fixed heading — which is exactly why
+    // removing it from the card alone would have left three of them still printing it.
+    //
+    // The two families reach the shared rule differently, and the difference is real:
+    //   • hadith — all four printers call resolveHadithAttribution directly.
+    //   • steps  — three surfaces parse the raw tag (parser / voice / log) and so call
+    //     readStepsTitle; the card and the clipboard consume the title the PARSER already put on
+    //     the segment. So the count is 3, and the last two are checked by their wiring instead.
+    const HADITH_PRINTERS = (html.match(/resolveHadithAttribution\(/g) || []).length;
+    ok('all four hadith printers route through the shared attribution rule',
+      HADITH_PRINTERS === 4, 'found ' + HADITH_PRINTERS + ' call sites, expected 4');
+    const STEPS_PARSERS = (html.match(/readStepsTitle\(/g) || []).length;
+    ok('all three tag-reading surfaces take the steps title from the tag',
+      STEPS_PARSERS === 3, 'found ' + STEPS_PARSERS + ' call sites, expected 3');
+    ok('...the parser puts the title on the segment',
+      /segments\.push\(\{ type: 'steps', items, title: readStepsTitle\(attrsStr\) \}\)/.test(html));
+    ok('...the card is handed it rather than inventing one',
+      /<StepsCard key=\{i\} items=\{seg\.items\} title=\{seg\.title\} \/>/.test(html));
+    ok('...and the clipboard reads it too', /sg\.title \|\| ''\)\.trim\(\)/.test(html));
+    // ── and the fixed sentences are gone as PRINTED text, in both spellings the file uses ──
+    // index.html writes Arabic literally in most places and as \uXXXX escapes in the clipboard
+    // serializers. A check that knew only one form would be blind to the other half of the file.
+    const escapeOf = (s) => Array.from(s).map((c) => (c.codePointAt(0) < 128 ? c
+      : String.fromCharCode(92) + 'u' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0'))).join('');
+    for (const phrase of ['خُطُوَاتٌ تُسَاعِدُك', 'خُطُوَاتٌ تُسَاعِدُكِ']) {
+      for (const form of [phrase, escapeOf(phrase)]) {
+        const live = html.split('\n')
+          .map((l, i) => [i + 1, l])
+          .filter(([, l]) => l.includes(form) && !/^\s*(\/\/|\*|<!--)/.test(l));
+        ok('no live print site for «' + phrase.slice(0, 12) + '…» ('
+          + (form === phrase ? 'literal' : '\\u-escaped') + ')',
+          live.length === 0, live.map(([n, l]) => n + ': ' + l.trim().slice(0, 120)).join('\n        '));
+      }
+    }
+  }
+
+  // =========================================================================
+  console.log('\n=== I. AND THE GENERATOR IS TAUGHT ALL THREE, POSITIVELY ===');
+  // Absence-only checks pass when the whole rule is deleted. These fail then.
+  {
+    const p = PROMPTS.get('adult / fiqh reader') || '';
+    ok('the prompt teaches <steps title=…>', /<steps title="[^"]+">/u.test(p));
+    ok('...and says an absent title means NO heading, not a fallback',
+      /فاترك الخاصّيّةَ كلَّها/u.test(p));
+    ok('...and forbids one recurring wording for it',
+      /ولا صيغةً واحدةً تتكرّرُ في كلِّ ردّ/u.test(p));
+    ok('the prompt forbids template headings by name («النصيحة الذهبية» and its kind)',
+      /لا عناوينَ قالبيّةً ثابتة/u.test(p));
+    ok('the prompt keeps narrator and ruling in separate boxes',
+      /الخانتانِ لا تتبادلان/u.test(p));
+    ok('...and names the broken output that rule prevents',
+      /«رَوَى متفق عليه»/u.test(p));
+    // البند ٣: the buttons stay, the BLIND mandate goes.
+    ok('suggestions are conditional, not mandatory on every reply',
+      /الاقتراحاتُ بحسبِ المقام لا بحكمِ العادة/u.test(p));
+    ok('...and leaving them out is named as CORRECT, not as a shortfall',
+      /ترْكُها حينئذٍ هو الصواب، لا نقصٌ في الرد/u.test(p));
+    ok('...and the old blind checklist question is gone',
+      !/هَلْ أَنْهَيْتُ رَدِّي بِاقْتِرَاحَاتٍ لِلْمُتَابَعَة؟ → يَجِبُ/u.test(p));
+    // The BUTTONS themselves are untouched — the owner kept them.
+    const html2 = read('index.html');
+    ok('the <suggestions> printer is untouched — the buttons stay',
+      /suggestions = items;/.test(html2) && /onSuggestionClick/.test(html2));
+  }
+
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
