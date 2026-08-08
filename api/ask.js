@@ -1260,6 +1260,49 @@ export default async function handler(req, res) {
     // told «لا أعرف هذا الاسم», and they were the ones not carrying it.
     const withPresence = (text) => (presenceLead ? presenceLead + '\n\n' + text : text);
 
+    // ── WHO IS THE PERSON IN THE QUESTION? (قرار ٣) ─────────────────────────
+    //
+    // THE DEFECT THE PROBE ABOVE COULD NOT REACH. namePresence answers one question — does ANY
+    // page carry this name — and that is the question «does he exist», not «who is he». So
+    // «ماقول عبدالله الرويشد في أحكام العقيقه» found pages, concluded «he exists but is not one
+    // of our fatwa sources», and left the model free to draft about «الشيخ عبدالله الرويشد». He
+    // is a Kuwaiti singer. Existence was established; identity never was.
+    //
+    // THE CASCADE PAYS FOR ALMOST NOTHING HERE. Stage 1 is the whitelist and is free, so every
+    // registered scholar — the common case by far — costs one Map lookup. Stage 2 is one
+    // ar.wikipedia.org fetch through the safe path. Stage 3 does NOT open a second search
+    // budget: it is fed the pages the probe above ALREADY paid for, so the expensive stage
+    // spends nothing new. A cached name costs nothing at all.
+    let identityFact = '';
+    if (nameShape.probe) {
+      try {
+        const { identityFor, identityFactBlock } = await import('../lib/identity/index.js');
+        const { makeWikipediaFetcher } = await import('../lib/identity/wikipedia.js');
+        const { identityCache } = await import('../lib/identity/cache.js');
+        const identity = await identityFor(nameShape.name, {
+          fetchPage: makeWikipediaFetcher(),
+          cache: identityCache(),
+          // Stage 3 REUSES the world probe's pages instead of searching again. `allowLiveSearch`
+          // is true only when that probe actually ran, so a turn that never searched cannot
+          // present its own silence as a finding — the same rule the probe applies to itself.
+          allowLiveSearch: namePresence.probed,
+          search: async () => ((namePresence.page ? [namePresence.page] : []).map((p) => ({
+            description: p.passage || '', url: p.url || '',
+          }))),
+        });
+        identityFact = identityFactBlock(identity, { question: questionText });
+        console.log('[identity]', {
+          kind: identity.kind, source: identity.source,
+          // The NAME is not logged: it is the reader's own words, and the shape is what diagnoses.
+          hasDescriptor: !!identity.descriptor, candidates: (identity.candidates || []).length,
+        });
+      } catch (e) {
+        // A failure here must not cost the reader an answer. Without the block the reply is
+        // exactly what it was before this batch, which is worse and is not broken.
+        console.warn('[identity] cascade threw — drafting without the fact block:', e && e.message);
+      }
+    }
+
     // ── LIVE WORLD RETRIEVAL: a general question may still need TODAY'S facts ──
     //
     // THE HOLE THIS CLOSES. The general route runs with NO tools, deliberately — that is what
@@ -2259,6 +2302,13 @@ export default async function handler(req, res) {
       ...body.messages,
       { role: 'assistant', content: round1.content },
       { role: 'user', content: toolResults },
+      // قرار ٣: the identity fact, INJECTED BEFORE GENERATION rather than checked afterwards.
+      // This is the one place every drafting exit passes through — the claim route, the
+      // attributed route, the buffered branch and the streamed relay all build from
+      // round2Messages — so the block cannot be added to three of them and forgotten on the
+      // fourth. It goes LAST, after the retrieved material, because it is an instruction about
+      // how to read what precedes it.
+      ...(identityFact ? [{ role: 'user', content: identityFact }] : []),
     ];
 
     // ── SPECIFIC-CLAIM ROUTE: a verdict on THIS expression needs a page about THIS expression ──

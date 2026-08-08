@@ -245,6 +245,196 @@ const PAGES = {
     ok('NOTHING in this gate reached the network', reachedNetwork === 0, String(reachedNetwork) + ' attempt(s)');
 
     // =========================================================================
+    console.log('\n=== H. THE ADAPTER, AND THE WIRING THAT MAKES ANY OF THIS REACH A READER ===');
+    // Sections A–F prove the cascade decides correctly. This one proves it is CALLED — the whole
+    // of it is dead code until api/ask.js asks it something, and a module with a green gate and
+    // no caller is the most convincing kind of nothing.
+    {
+      const W = await esm('lib/identity/wikipedia.js');
+
+      // ── the adapter ────────────────────────────────────────────────────────
+      const ARTICLE = '<html><body><div class="mw-parser-output">'
+        + '<table class="infobox"><tr><td>صندوق المعلومات</td></tr></table>'
+        + '<p></p><p>عبد الله الرويشد مطرب وملحن كويتي من مواليد 1961.</p>'
+        + '<p>بدأ مسيرته الفنية في الثمانينيات.</p></div></body></html>';
+      const lead = W.extractLead(ARTICLE);
+      ok('the lead paragraph is extracted', /مطرب وملحن كويتي/.test(lead), lead);
+      ok('...and the infobox is NOT part of it', !/صندوق المعلومات/.test(lead),
+        'a description taken from the sidebar is a page nobody read');
+      ok('...and an empty <p> does not become the lead', lead.length > 20);
+      ok('a صفحة توضيح stub survives extraction',
+        /قد يقصد به/.test(W.extractLead('<html><body><div class="mw-parser-output">'
+          + '<p>الهاشمي قد يقصد به عدة أشخاص.</p></div></body></html>')));
+
+      // IT GOES THROUGH THE SAFE PATH. قرار ٤ put ar.wikipedia.org on the admissibility list OF
+      // THE EXISTING SAFE PATH — a plain fetch here would undo the sentence «دفاعُ SSRF كما هو»
+      // while leaving every other assertion in this gate green.
+      const wsrc = read('lib/identity/wikipedia.js');
+      ok('the adapter imports safeFetch', /import \{ safeFetch \} from '\.\.\/ledger\/safe-fetch\.js'/.test(wsrc));
+      ok('...and never calls globalThis.fetch itself',
+        !/globalThis\.fetch/.test(wsrc) && !/(?<![.\w])fetch\(/.test(wsrc.replace(/safeFetch\(/g, '')),
+        'the SSRF defence is inherited by USING the safe path, not by being near it');
+      // ...and it is a value-returning refusal, not a throw.
+      const failing = W.makeWikipediaFetcher({ safeFetch: async () => ({ ok: false, reason: 'preflight:x' }) });
+      eq('a refused fetch degrades to null rather than throwing',
+        await failing('https://ar.wikipedia.org/wiki/x'), null);
+
+      // ── the cache ──────────────────────────────────────────────────────────
+      const C = await esm('lib/identity/cache.js');
+      ok('a placed identity is remembered for days', C.FOUND_TTL_SECONDS >= 7 * 86400);
+      ok('...and a miss for a SHORTER time', C.MISS_TTL_SECONDS < C.FOUND_TTL_SECONDS);
+      ok('...but is still remembered, because a miss is the costliest outcome', C.MISS_TTL_SECONDS > 0);
+      // NO SECRET, NO KEY — never a plaintext one. Same rule as lib/ledger/cache.js.
+      const hadSecret = Object.prototype.hasOwnProperty.call(process.env, 'LEDGER_CACHE_SECRET');
+      const prevSecret = process.env.LEDGER_CACHE_SECRET;
+      const hadFounder = Object.prototype.hasOwnProperty.call(process.env, 'FOUNDER_SECRET');
+      const prevFounder = process.env.FOUNDER_SECRET;
+      delete process.env.LEDGER_CACHE_SECRET; delete process.env.FOUNDER_SECRET;
+      eq('with no secret there is no key at all', C.cacheKeyFor('عبدالله الرويشد'), '');
+      ok('...and the cache reports itself disabled', C.identityCacheEnabled() === false);
+      process.env.LEDGER_CACHE_SECRET = 'identity-guard-local-secret';
+      const k = C.cacheKeyFor('عبدالله الرويشد');
+      ok('with a secret there is a key', !!k);
+      ok('...and it leaks no fragment of the name',
+        !k.includes('الرويشد') && !k.includes('عبدالله'), k);
+      eq('...and two spellings of one name share it', C.cacheKeyFor('عبد الله الرُّويْشِد'), k);
+      if (hadSecret) process.env.LEDGER_CACHE_SECRET = prevSecret; else delete process.env.LEDGER_CACHE_SECRET;
+      if (hadFounder) process.env.FOUNDER_SECRET = prevFounder; else delete process.env.FOUNDER_SECRET;
+
+      // ── THE WIRING ─────────────────────────────────────────────────────────
+      const ask = read('api/ask.js');
+      ok('api/ask.js calls the cascade', /identityFor\(nameShape\.name, \{/.test(ask));
+      ok('...through the safe-path fetcher', /fetchPage: makeWikipediaFetcher\(\)/.test(ask));
+      ok('...with the cache attached', /cache: identityCache\(\)/.test(ask));
+      ok('...and builds the fact block from the result', /identityFact = identityFactBlock\(identity/.test(ask));
+      // THE INJECTION POINT IS THE SHARED ONE. round2Messages feeds the claim route, the
+      // attributed route, the buffered branch and the streamed relay; injecting anywhere else
+      // would arm three exits and silently miss the fourth.
+      {
+        // Sliced rather than matched at a distance: the array carries a comment block, and a
+        // regex with a character budget would fail the day somebody adds a line to it — which
+        // reads as a broken injection when nothing is broken.
+        const start = ask.indexOf('const round2Messages = [');
+        const end = start === -1 ? -1 : ask.indexOf('];', start);
+        const arr = start === -1 || end === -1 ? '' : ask.slice(start, end);
+        ok('the fact block is injected into round2Messages, which every drafting exit builds from',
+          arr.includes("role: 'user', content: identityFact"), arr.slice(0, 200));
+        // ...and it is CONDITIONAL, so a turn with no name adds no empty message.
+        ok('...and only when there is one', /identityFact \?/.test(arr));
+        // ...and it sits AFTER the retrieved material, being an instruction about how to read it.
+        ok('...after the tool results, not before them',
+          arr.indexOf('toolResults') < arr.indexOf('identityFact'));
+      }
+      // ...and it does NOT open a second search budget.
+      ok('stage 3 reuses the pages the world probe already paid for',
+        /allowLiveSearch: namePresence\.probed/.test(ask)
+        && /search: async \(\) => \(\(namePresence\.page/.test(ask),
+        'a second retrieval budget beside the answer\'s own is the one thing this look-up may not become');
+      // A THROW HERE MAY NOT COST THE READER AN ANSWER.
+      ok('a failure in the cascade degrades to drafting without the block',
+        /drafting without the fact block/.test(ask));
+      // The reader's own words are not written to the log.
+      ok('the identity log line records the SHAPE, not the name',
+        /hasDescriptor: !!identity\.descriptor/.test(ask) && !/console\.log\('\[identity\]', \{[^}]*name:/.test(ask));
+    }
+
+    // =========================================================================
+    console.log('\n=== I. DRIVEN: THE BLOCK ACTUALLY REACHES THE MODEL ===');
+    // Section H proves the call site exists in the source. This proves the sentence arrives.
+    // «api/ask.js contains identityFactBlock» is a claim about text; «the vendor received a
+    // block saying he is not a scholar» is a claim about behaviour, and only one of the two
+    // survives somebody restructuring the handler.
+    //
+    // THE FIXTURE IS THE MEASURED QUESTION: «ماقول عبدالله الرويشد في أحكام العقيقه» — a joined
+    // «ماقول» (P1-D made it visible), an unregistered name, and a real ruling question under it.
+    {
+      const saved = {};
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
+        saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-identity-guard-fake';
+      process.env.BRAVE_API_KEY = 'brave-identity-guard-fake';
+      process.env.RFC_V05_MODE = 'off';
+      process.env.LEDGER_RAG = 'off';
+      process.env.FOUNDER_SECRET = 'identity-guard-driven-secret';
+      const throwingFetch = globalThis.fetch;
+      try {
+        const DC = await esm('lib/daycap.js');
+        const CONSENT = await esm('lib/ai-consent.js');
+        const DEVICE = 'identity-guard-device';
+        const FOUNDER = DC.founderTokenFor(DEVICE);
+
+        const WIKI = '<html><body><div class="mw-parser-output">'
+          + '<p>عبد الله الرويشد مطرب وملحن كويتي من مواليد 1961.</p></div></body></html>';
+        const FATWA = '<html><body><article><p>'
+          + 'العقيقة سنة مؤكدة عن المولود، وهي شاة عن الأنثى وشاتان عن الذكر، تذبح في اليوم السابع '
+          + 'بإجماع أهل العلم على استحبابها والتفصيل في ذلك مبسوط في كتب الفقه. '.repeat(8)
+          + '</p></article></body></html>';
+
+        const sent = [];
+        globalThis.fetch = async (url, opts) => {
+          const u = String(url);
+          if (u.includes('api.anthropic.com')) {
+            sent.push(JSON.parse(opts.body));
+            // Round 1 asks for a search; round 2 drafts. Without the tool_use the handler
+            // refuses unsourced and never builds round2Messages — so the case would prove
+            // nothing rather than fail, which is the trap this comment exists to name.
+            return {
+              ok: true, status: 200,
+              json: async () => (sent.length === 1
+                ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't1', name: 'search_islamic_sources', input: { query: 'حكم العقيقة' } }] }
+                : { content: [{ type: 'text', text: 'مسوّدة الجواب.' }] }),
+              body: { getReader: () => ({ read: async () => ({ done: true }) }) }, text: async () => '',
+            };
+          }
+          if (u.includes('api.search.brave.com')) {
+            return { ok: true, status: 200, text: async () => '', json: async () => ({ web: { results: [
+              { title: 'العقيقة', url: 'https://islamweb.net/ar/fatwa/1001/x', description: '' },
+            ] } }) };
+          }
+          const html = u.includes('ar.wikipedia.org') ? WIKI : FATWA;
+          return { ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => html, url: u };
+        };
+
+        const mkRes = () => {
+          const r = { writes: [], statusCode: 0, headers: {} };
+          r.status = (c) => { r.statusCode = c; return r; };
+          r.setHeader = (k, v) => { r.headers[k] = v; return r; };
+          r.getHeader = (k) => r.headers[k];
+          r.flushHeaders = () => {}; r.json = () => r;
+          r.write = () => true; r.end = () => r;
+          r.on = () => r; r.once = () => r; r.emit = () => r;
+          return r;
+        };
+        const req = {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-ezik-ai-consent': CONSENT.AI_CONSENT_VERSION,
+            'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER },
+          body: { name: 'خالد', age: 30, gender: 'male', mode: 'chat', band: 'adult',
+            messages: [{ role: 'user', content: 'ماقول عبدالله الرويشد في أحكام العقيقه' }] },
+          socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
+        };
+
+        const handler = (await esm('api/ask.js')).default;
+        try { await handler(req, mkRes()); } catch (e) { /* a refusal is not a silence */ }
+
+        const all = JSON.stringify(sent);
+        if (ok('the handler reached a drafting round', sent.length >= 2,
+          'only ' + sent.length + ' vendor call(s) — fix the harness, do not delete the case')) {
+          ok('the identity fact block reached the model', all.includes('هويّةُ الاسمِ المذكور'));
+          ok('...saying he is NOT one of the people of knowledge', all.includes('ليس من أهلِ العلمِ'));
+          ok('...forbidding the title outright', all.includes('فلا تصفْه بشيخٍ'));
+          ok('...ordering the question answered anyway', all.includes('أجِبْ عن المسألةِ نفسِها'));
+          ok('...and carrying the descriptor the SOURCE gave', all.includes('مطرب'));
+        }
+      } finally {
+        globalThis.fetch = throwingFetch;
+        for (const k of Object.keys(saved)) {
+          if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
+        }
+      }
+    }
+
+    // =========================================================================
     console.log('\n=== G. THE ROSTER ===');
     {
       const gates = JSON.parse(read('gates.json'));

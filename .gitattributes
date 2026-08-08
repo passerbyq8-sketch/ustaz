@@ -270,3 +270,5 @@ lib/policy/takhrij-disclosure.js text eol=lf
 guards/identity-guard.cjs text eol=lf
 lib/identity/index.js text eol=lf
 lib/identity/whitelist.js text eol=lf
+lib/identity/wikipedia.js text eol=lf
+lib/identity/cache.js text eol=lf
