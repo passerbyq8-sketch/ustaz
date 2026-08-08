@@ -148,6 +148,54 @@ const DEVICE = 'abcdefgh12345678';
   }
 
   // =========================================================================
+  console.log('\n=== A2. A CLAUSE IS NOT A NAME, AND A JOINED «ما» IS STILL A QUESTION ===');
+  // Two measured failures of the SAME detector, in opposite directions.
+  {
+    const AT = await esm('lib/attribution.js');
+    const capture = (q) => AT.detectAttribution([{ role: 'user', content: q }]).scholarName;
+    const probed = (q) => { const p = NP.probeShape(q, capture(q)); return p.probe ? p.name : ''; };
+    // This guard carries only `ok`, and a bare boolean here would report "FAIL" without ever
+    // saying what was captured instead — which is the whole diagnostic on a detector.
+    const eq = (name, actual, expected) =>
+      ok(name, actual === expected, 'expected ' + JSON.stringify(expected) + '\n        actual   ' + JSON.stringify(actual));
+
+    // ── THE FALSE POSITIVE (حادثة ١٣) ───────────────────────────────────────
+    // «حسب» is an attribution trigger, «حسب علمي» is the idiom "as far as I know". The reader
+    // was disclaiming, and was answered «لا أعرف هذا الاسم: علمي فهناك علماء اجازوا» — the app
+    // naming a clause as a person.
+    const IDIOM = 'على حسب علمي فهناك علماء اجازوا هذا الأمر';
+    eq('RED→GREEN: «حسب علمي …» captures no name at all', capture(IDIOM), '');
+    eq('...so no probe runs and no «لا أعرف هذا الاسم» line is owed', probed(IDIOM), '');
+    // FIXED TWICE, ON PURPOSE: at the capture (NAME_STOP) and at the shape. The next idiom will
+    // arrive through a trigger nobody has listed, so the shape test is asserted on its own.
+    ok('...and the shape test refuses it independently of the capture',
+      NP.looksLikeName('علمي فهناك علماء اجازوا') === false);
+    ok('...as it refuses any plural past verb', NP.looksLikeName('قالوا كذا') === false);
+
+    // ── THE FALSE NEGATIVE («الرويشد») ──────────────────────────────────────
+    // «ماقول» — «ما» typed joined to the word after it, as it is written in the Gulf. The word
+    // boundary the pattern demanded does not exist inside it, so the whole shape was invisible
+    // and the name was never captured. NOT a normalisation failure: the same question spaced
+    // «ما قول» always worked.
+    eq('RED→GREEN: «ماقول عبدالله الرويشد …» captures the name',
+      capture('ماقول عبدالله الرويشد في أحكام العقيقه'), 'عبدالله الرويشد');
+    eq('...and fully vocalised, which is how the model writes it',
+      capture('ماقول عبدالله الرُّويْشِد في أحكام العقيقه'), 'عبدالله الرويشد');
+    eq('...the spaced form is unchanged',
+      capture('ما قول عبدالله الرويشد في أحكام العقيقه'), 'عبدالله الرويشد');
+    // ...and the joined form does not over-fire: «ماقولك» addresses the reader and names nobody.
+    eq('«ماقولك في كذا» still names nobody', capture('ماقولك في هذا الأمر'), '');
+
+    // ── AND THE ORDINARY NAMES STILL PASS ───────────────────────────────────
+    // A shape test that refused real names would close the probe for everybody silently.
+    for (const n of ['عبدالله الرويشد', 'ابن باز', 'فركوس', 'محمد بن صالح العثيمين', 'طارق العلي'])
+      ok('«' + n + '» is still name-shaped', NP.looksLikeName(n) === true);
+    // «علي» normalises «على» to the same string, so a curated list is used rather than the
+    // clause-word list — otherwise every man called Ali would lose his probe.
+    ok('a man called علي is not mistaken for the preposition',
+      NP.looksLikeName('علي الطنطاوي') === true);
+  }
+
   console.log('\n=== D. THE FOUR OTHER MEASURED DEFECTS ===');
   {
     // ب — a site root produced a citation.
