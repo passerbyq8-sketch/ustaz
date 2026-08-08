@@ -1231,6 +1231,7 @@ const INDEX_SCREENS = {
   loading:         { render: 'inline loadingScreen -> .ezload mark', shell: 'istana' },
   onboarding:      { render: 'Onboarding / Welcome -> .ezonb card', shell: 'istana' },
   home:            { render: 'Home -> EzikIstanaHome', shell: 'istana' },
+  fatwa:           { render: 'FatwaScreen -> .ezf shell + official result cards', shell: 'istana' },
   // S112: the chat body moved onto its own istana structure -- .ezc-rail / .ezc-scroll /
   // .ezc-dock / .ezc-drawer. It is classified istana because the checks in group N pass, not
   // because someone edited this line; N1 asserts that binding directly.
@@ -1324,10 +1325,10 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('every index screen is istana after this commit', idxIstana.length, 12);
+eq('every index screen is istana after this commit', idxIstana.length, 13);
 eq('...and NONE is left legacy', idxLegacy.length, 0);
-eq('...and the set is exactly the twelve', idxIstana.slice().sort().join(','),
-  'adhkar,call,chat,favorites,home,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
+eq('...and the set is exactly the thirteen', idxIstana.slice().sort().join(','),
+  'adhkar,call,chat,fatwa,favorites,home,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
 eq('...and the three interstitials are still three', Object.keys(INDEX_INTERSTITIALS).length, 3);
 // S115: the barriers moved WITH this batch, so the check flipped from "still legacy" to "all
 // three, and by name". A fourth appearing here would fail the reachability check above first.
@@ -1370,6 +1371,70 @@ ok('the mushaf caveat was earned by BOTH readers, not deleted',
 const READER_BAR_OBJECTS = ['memHeaderFb', 'pgBarFb', 'ezmrTitle', 'ezmrNav', 'ezmrJump'];
 eq('no object any reader bar is drawn from carries a gradient',
   READER_BAR_OBJECTS.filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))), []);
+
+/* ---- K3. the fatwa classification is earned by its shipped screen ------- */
+const fatwaAt = html.indexOf('const EZIK_FATWA_API_BASE =');
+const fatwaEnd = fatwaAt === -1 ? -1 : html.indexOf('\n// EZIK ADHKAR UI V2', fatwaAt);
+const fatwaSrc = (fatwaAt !== -1 && fatwaEnd > fatwaAt) ? html.slice(fatwaAt, fatwaEnd) : '';
+const fatwaFormAt = fatwaSrc.indexOf('<main className="ezf-wrap">');
+const fatwaFormEnd = fatwaSrc.indexOf('{status ?', fatwaFormAt);
+const fatwaFormSrc = (fatwaFormAt !== -1 && fatwaFormEnd > fatwaFormAt)
+  ? fatwaSrc.slice(fatwaFormAt, fatwaFormEnd) : '';
+const ezfRules = (css.match(/\.ezf[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []);
+ok('K3: the fatwa feature was located and bounded', fatwaSrc.length > 7000 && fatwaSrc.length < 16000,
+  'len=' + fatwaSrc.length);
+const FATWA_ON_EZF =
+  /<div className="theme-dark ezhome ezf" style=\{s\.ezfContainer\}>/.test(fatwaSrc)
+  && /<div className="ezsh-nav">/.test(fatwaSrc)
+  && /<main className="ezf-wrap">/.test(fatwaSrc);
+ok('K3: the fatwa screen mounts on its own identity inside the shared shell', FATWA_ON_EZF);
+eq('K3: ...and THAT is why the inventory calls it istana', INDEX_SCREENS.fatwa.shell,
+  FATWA_ON_EZF ? 'istana' : 'legacy');
+ok('K3: the fatwa identity declares its own bounded rule set', ezfRules.length > 20,
+  'found ' + ezfRules.length);
+ok('K3: ...and no selector in it can match html, body or :root',
+  !ezfRules.some((r) => /(^|[,\s])(html|body|:root)[\s,{]/.test(r.split('{')[0])));
+eq('K3: not one fatwa rule attaches an image, a gradient or a repeat',
+  ezfRules.filter((r) => /url\(|gradient|background-repeat\s*:|background-image\s*:\s*(?!none)/.test(r)), []);
+ok('K3: ...and none draws a pseudo-element over the content',
+  !/\.ezf[a-z0-9-]*[^{]*::(before|after)/.test(css)
+  && !ezfRules.some((r) => /[;{]\s*content\s*:/.test(r)));
+eq('K3: ...and every fatwa colour comes from the identity tokens',
+  ezfRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r)), []);
+ok('K3: the page root is token-painted and accessibility-scalable',
+  s.ezfContainer && s.ezfContainer.background === 'var(--a3-page)'
+  && typeof s.ezfContainer.fontSize === 'number');
+eq('K3: the fatwa rules introduce no motion',
+  ezfRules.filter((r) => /animation|transition/.test(r)), []);
+
+/* The empty state stays deliberately spare: navigation, selector and search. Result-only
+ * furniture is below the status boundary and therefore cannot appear before the first search. */
+ok('K3: the initial fatwa form was located and bounded', fatwaFormSrc.length > 700 && fatwaFormSrc.length < 2600,
+  'len=' + fatwaFormSrc.length);
+ok('K3: the empty screen contains the scholar selector and search control',
+  /<select id="ezf-scholar"/.test(fatwaFormSrc)
+  && /<input className="ezhome-focus ezf-input" type="search"/.test(fatwaFormSrc)
+  && /<button type="submit" className="ezhome-focus ezf-submit"/.test(fatwaFormSrc));
+ok('K3: ...without a title, helper copy or suggestions',
+  !/<h[1-6]\b/.test(fatwaFormSrc) && !/suggest/i.test(fatwaFormSrc));
+ok('K3: scholar choices show a name only, never a record count',
+  /<option key=\{item\.id\} value=\{item\.id\}>\{item\.shortName \|\| ezT\('fatwa\.defaultScholar'\)\}<\/option>/.test(fatwaFormSrc));
+
+/* This surface is retrieval-only. It asks the dedicated server for complete records, then
+ * renders the official question, answer, recording and canonical source. */
+ok('K3: fatwa retrieval is GET-only and asks for the complete official record',
+  /method:\s*'GET'/.test(fatwaSrc) && /view:\s*'full'/.test(fatwaSrc)
+  && /\/api\/v1\/fatwas\/search\?/.test(fatwaSrc));
+ok('K3: ...and no model or write endpoint is reachable from the fatwa feature',
+  !/\/api\/(?:ask|chat)\b/.test(fatwaSrc) && !/method:\s*'POST'/.test(fatwaSrc));
+ok('K3: every result keeps its official evidence attached',
+  /<p className="ezf-copy">\{question\}<\/p>/.test(fatwaSrc)
+  && /<p className="ezf-copy">\{answer\}<\/p>/.test(fatwaSrc)
+  && /<audio className="ezf-audio" controls/.test(fatwaSrc)
+  && /href=\{sourceUrl\}/.test(fatwaSrc));
+ok('K3: the four future learning actions remain visibly disabled',
+  /EZIK_FATWA_ACTIONS\.map/.test(fatwaSrc)
+  && /className="ezf-action" disabled\s*\r?\n\s*aria-disabled="true"/.test(fatwaSrc));
 // S115: quest is finished too. Both numbers are asserted rather than merely printed now, because
 // there is nothing left outstanding for a later batch to be measured against.
 eq('every quest view is istana after this commit', qIstana.length, 17);
@@ -2187,10 +2252,10 @@ eq('N29: ...and no control inside it closes behind the resolver\'s back',
 ok('N29: ...the scrim included', /<div onClick=\{\(\) => closeDrawerWith\(null\)\} className="ezc-drawer-ov" \/>/.test(drawerSrc));
 
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
-// S113 moved this number by one, and the chat is still one of the seven -- which is the half of
-// it this group is responsible for. The whole count is asserted here and again in group O.
-eq('N30: the index inventory reads exactly 12 istana / 0 legacy / 3 interstitials',
-  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '12/0/3');
+// The fatwa search moves the whole-screen count by one; chat remains one of the thirteen. This
+// later assertion deliberately repeats K2 so a stale downstream assumption fails visibly too.
+eq('N30: the index inventory reads exactly 13 istana / 0 legacy / 3 interstitials',
+  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '13/0/3');
 eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
 {
   const callAt = html.indexOf('function CallScreen(');

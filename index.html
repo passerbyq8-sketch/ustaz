@@ -492,15 +492,16 @@
   .ezist-mosaic>*{min-width:0}
   @media (min-width:600px){
     .ezist-mosaic{grid-template-columns:repeat(2,1fr);gap:14px}
-    /* two exact rows of modules above the Quran panel. */
+    /* the new search section earns a full row at this width; the Quran remains full width. */
+    .ezist-mod-fatwa{grid-column:span 2}
     .ezist-quran{grid-column:span 2}
   }
   @media (min-width:1000px){
     .ezist-mosaic{grid-template-columns:repeat(6,1fr);gap:16px}
-    /* every module the same two columns: three across, then the fourth beside the Quran
-       panel, so both rows fill exactly and no card is left wider than it has to say. */
+    /* three modules across, then treasure beside the wider fatwa search entry. */
     .ezist-mod,.ezist-feature{grid-column:span 2}
-    .ezist-quran{grid-column:span 4}
+    .ezist-mod-fatwa{grid-column:span 4}
+    .ezist-quran{grid-column:span 6}
     .ezist-masthead{padding:44px 26px 28px}
     .ezist-nav-inner{padding:6px 20px}
   }
@@ -587,6 +588,70 @@
     .ezsh-group.is-wide{grid-column:span 2}
     .ezsh-wrap{padding:20px 20px calc(30px + env(safe-area-inset-bottom, 0px))}
     .ezsh-nav-inner{padding:6px 20px}
+  }
+
+  /* ========================================================================
+     THE READ-ONLY FATWA SEARCH. The empty screen contains only its scholar selector and
+     search control; result furniture is mounted only after a search. All colour comes from
+     the same istana tokens as the rest of Ezik, and every selector is confined to .ezf-.
+     ===================================================================== */
+  .ezf-wrap{width:100%;max-width:900px;margin:0 auto;box-sizing:border-box;
+    padding:16px 12px calc(28px + env(safe-area-inset-bottom, 0px))}
+  .ezf-controls{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:18px;
+    background:var(--a3-surface);border:1px solid var(--a3-line);box-shadow:var(--a3-shadow)}
+  .ezf-field{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;max-width:260px;
+    margin-left:auto;font-family:var(--ez-ui-font);text-align:right}
+  .ezf-label{font-size:.8667em;font-weight:800;color:var(--a3-ink)}
+  .ezf-select,.ezf-input{box-sizing:border-box;min-height:48px;border-radius:14px;
+    background:var(--a3-page);border:1px solid var(--a3-line);color:var(--a3-ink);
+    font-family:var(--ez-ui-font);font-size:1em;font-weight:700}
+  .ezf-select{width:100%;padding:0 12px;text-align:right;direction:rtl}
+  .ezf-search{display:flex;align-items:stretch;gap:8px;width:100%}
+  .ezf-input{flex:1;min-width:0;padding:0 14px;text-align:right}
+  .ezf-input::placeholder{color:var(--a3-muted);opacity:1}
+  .ezf-submit{min-width:82px;min-height:48px;padding:0 16px;border-radius:14px;
+    background:var(--a3-blue);border:1px solid var(--a3-blue);color:var(--a3-on-blue);
+    font-family:var(--ez-ui-font);font-size:.9333em;font-weight:800;cursor:pointer}
+  .ezf-submit:disabled{opacity:.58;cursor:wait}
+  .ezf-status{margin:14px 2px 10px;color:var(--a3-muted);font-family:var(--ez-ui-font);
+    font-size:.8667em;font-weight:700;line-height:1.7;text-align:right}
+  .ezf-status.is-error{color:var(--a3-cyan)}
+  .ezf-results{display:flex;flex-direction:column;gap:12px}
+  .ezf-card{box-sizing:border-box;padding:16px;border-radius:18px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);box-shadow:var(--a3-shadow);font-family:var(--ez-ui-font)}
+  .ezf-card-head{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:14px}
+  .ezf-title{margin:0;color:var(--a3-ink);font-size:1.2em;font-weight:800;
+    line-height:1.65;text-align:right}
+  .ezf-meta{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:var(--a3-muted);
+    font-size:.8em;font-weight:700}
+  .ezf-tag{display:inline-flex;align-items:center;min-height:28px;padding:2px 9px;border-radius:999px;
+    background:var(--a3-ice);border:1px solid var(--a3-line);color:var(--a3-blue)}
+  .ezf-section-title{margin:14px 0 5px;color:var(--a3-blue);
+    font-size:.8667em;font-weight:800}
+  .ezf-copy{margin:0;color:var(--a3-ink);font-size:1em;
+    font-weight:500;line-height:2;white-space:pre-wrap;text-align:right}
+  .ezf-audio{display:block;width:100%;margin-top:14px;accent-color:var(--a3-blue)}
+  .ezf-source{display:inline-flex;align-items:center;justify-content:center;min-height:44px;
+    margin-top:14px;padding:0 14px;border-radius:13px;background:var(--a3-ice);
+    border:1px solid var(--a3-line);color:var(--a3-blue);font-size:.8667em;
+    font-weight:800;text-decoration:none}
+  .ezf-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+    margin-top:14px;padding-top:14px;border-top:1px solid var(--a3-line)}
+  .ezf-action{min-height:44px;padding:7px 10px;border-radius:13px;background:var(--a3-page);
+    border:1px solid var(--a3-line);color:var(--a3-muted);font-family:var(--ez-ui-font);
+    font-size:.8667em;font-weight:800}
+  .ezf-action:disabled{opacity:.68;cursor:not-allowed}
+  .ezf-pager{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px}
+  .ezf-page-btn{min-height:44px;padding:0 14px;border-radius:13px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);color:var(--a3-blue);font-family:var(--ez-ui-font);
+    font-size:.8667em;font-weight:800;cursor:pointer}
+  .ezf-page-btn:disabled{opacity:.45;cursor:not-allowed}
+  .ezf-page-text{min-width:72px;color:var(--a3-muted);font-family:var(--ez-ui-font);
+    font-size:.8667em;font-weight:800;text-align:center}
+  @media (min-width:700px){
+    .ezf-wrap{padding:20px 20px calc(32px + env(safe-area-inset-bottom, 0px))}
+    .ezf-controls{padding:16px}
+    .ezf-actions{grid-template-columns:repeat(4,minmax(0,1fr))}
   }
 
   /* S106 -- THE QURAN CATALOGUE. Four contained columns on a desk, never eight tiny cards:
@@ -1235,11 +1300,13 @@ function ezLangRelabel() {
     EZH_ADHKAR = ezT("module.adhkar");
     EZH_MUSHAF = ezT("module.mushaf");
     EZH_TREASURE = ezT("module.treasure");
+    EZH_FATWA = ezT("module.fatwa");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
     EZIST_SUB_ADHKAR = ezT("module.adhkar.sub");
     EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
-    EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
+    EZIST_SUB_FATWA = ezT("module.fatwa.sub");
+    EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -1340,10 +1407,36 @@ const EZ_I18N = {
     'module.adhkar': '\u{0627}\u{0644}\u{0623}\u{0630}\u{0643}\u{0627}\u{0631}',
     'module.mushaf': '\u{0627}\u{0644}\u{0645}\u{0635}\u{062D}\u{0641}',
     'module.treasure': '\u{0631}\u{062D}\u{0644}\u{0629}\u{064F} \u{0627}\u{0644}\u{0643}\u{0646}\u{0648}\u{0632}',
+    'module.fatwa': 'فتاوى',
     'module.memorize.sub': '\u{0627}\u{062D}\u{0641}\u{0638} \u{0648}\u{0631}\u{0627}\u{062C}\u{0639}',
     'module.adhkar.sub': '\u{0623}\u{0630}\u{0643}\u{0627}\u{0631} \u{0627}\u{0644}\u{0635}\u{0628}\u{0627}\u{062D} \u{0648}\u{0627}\u{0644}\u{0645}\u{0633}\u{0627}\u{0621}',
     'module.mushaf.sub': '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}',
     'module.treasure.sub': '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}',
+    'module.fatwa.sub': 'بحث موثّق بالسؤال والجواب',
+    'fatwa.scholarLabel': 'اسم الشيخ',
+    'fatwa.defaultScholar': 'ابن باز',
+    'fatwa.searchPlaceholder': 'ابحث في الفتاوى',
+    'fatwa.searchAria': 'ابحث في نصوص الفتاوى الرسمية',
+    'fatwa.searchButton': 'بحث',
+    'fatwa.loading': 'جارٍ البحث في النصوص الرسمية…',
+    'fatwa.error': 'تعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى.',
+    'fatwa.none': 'لم نجد نتيجة في النسخة الرسمية الحالية.',
+    'fatwa.summary': 'وجدنا {total} نتيجة — الصفحة {page} من {pages}.',
+    'fatwa.question': 'السؤال',
+    'fatwa.answer': 'الجواب',
+    'fatwa.officialText': 'النص المنشور في موقع الشيخ',
+    'fatwa.audioAvailable': 'يتوفر صوت رسمي',
+    'fatwa.textOnly': 'نص رسمي بلا صوت',
+    'fatwa.audioAria': 'التسجيل الرسمي للفتوى',
+    'fatwa.source': 'فتح المصدر الرسمي',
+    'fatwa.previous': 'السابق',
+    'fatwa.next': 'التالي',
+    'fatwa.page': '{page} / {pages}',
+    'fatwa.action.simplify': 'بسّط',
+    'fatwa.action.example': 'مثال',
+    'fatwa.action.explain': 'اشرح لي',
+    'fatwa.action.quiz': 'اختبرني',
+    'fatwa.action.disabled': 'يتاح بعد تفعيل الشرح المحكوم بالنص الأصلي.',
     'favorites.title': 'المفضلة',
     'favorites.heading': 'الردود المفضلة',
     'favorites.add': 'أضف إلى المفضلة',
@@ -1492,10 +1585,36 @@ const EZ_I18N = {
     'module.adhkar': 'Adhkar',
     'module.mushaf': 'Mushaf',
     'module.treasure': 'Treasure journey',
+    'module.fatwa': 'Fatwas',
     'module.memorize.sub': 'Memorise and review',
     'module.adhkar.sub': 'Morning and evening adhkar',
     'module.mushaf.sub': 'Read, and keep your wird',
     'module.treasure.sub': 'Learn through play',
+    'module.fatwa.sub': 'Verified questions and answers',
+    'fatwa.scholarLabel': 'Scholar',
+    'fatwa.defaultScholar': 'Ibn Baz',
+    'fatwa.searchPlaceholder': 'Search fatwas',
+    'fatwa.searchAria': 'Search the official fatwa texts',
+    'fatwa.searchButton': 'Search',
+    'fatwa.loading': 'Searching the official texts…',
+    'fatwa.error': 'Could not reach the fatwa service. Please try again.',
+    'fatwa.none': 'No result was found in the current official snapshot.',
+    'fatwa.summary': 'Found {total} results — page {page} of {pages}.',
+    'fatwa.question': 'Question',
+    'fatwa.answer': 'Answer',
+    'fatwa.officialText': 'Text published on the scholar’s website',
+    'fatwa.audioAvailable': 'Official audio available',
+    'fatwa.textOnly': 'Official text without audio',
+    'fatwa.audioAria': 'Official fatwa recording',
+    'fatwa.source': 'Open the official source',
+    'fatwa.previous': 'Previous',
+    'fatwa.next': 'Next',
+    'fatwa.page': '{page} / {pages}',
+    'fatwa.action.simplify': 'Simplify',
+    'fatwa.action.example': 'Example',
+    'fatwa.action.explain': 'Explain',
+    'fatwa.action.quiz': 'Quiz me',
+    'fatwa.action.disabled': 'Available after the source-bound explanation layer is enabled.',
     'favorites.title': 'Favourites',
     'favorites.heading': 'Saved replies',
     'favorites.add': 'Add to favourites',
@@ -3553,6 +3672,7 @@ let EZH_MEMORIZE = ezT("module.memorize");                                     /
 let EZH_ADHKAR = ezT("module.adhkar");                                     // "the adhkar"
 let EZH_MUSHAF = ezT("module.mushaf");                                             // "the mushaf"
 let EZH_TREASURE = ezT("module.treasure");     // "the treasure journey"
+let EZH_FATWA = ezT("module.fatwa");
 
 // THE REAL MODULE ICONS. Every path below is the path the home screen already drew, moved here
 // unchanged and re-stroked in currentColor so it can sit on a soft chip instead of inside a
@@ -3568,6 +3688,9 @@ const EZH_ICON_MUSHAF = (
 );
 const EZH_ICON_TREASURE = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14" /><path d="M15 6v14" /></svg>
+);
+const EZH_ICON_FATWA = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 3h10l4 4v14H5z" /><path d="M15 3v5h4" /><circle cx="10" cy="13" r="3" /><path d="M12.2 15.2L15 18" /></svg>
 );
 // The callout, the profile entry and the three navigation icons -- the same paths as before,
 // drawn as LINE icons on white. There is no face and no avatar image in either style.
@@ -3596,7 +3719,8 @@ const EZH_ICON_NAV_SET = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
 );
 
-// THE FOUR MODULES, in the order the home screen already listed them. S87: this builder is now
+// THE FIVE MODULES, preserving the existing order and appending the official fatwa search. S87:
+// this builder is now
 // called in EXACTLY ONE PLACE -- the Home owner below -- and the resulting array is handed to
 // whichever style draws it as `v.modules`. A presentation component may not build, extend,
 // reorder or re-render this list; it maps it once. Each descriptor carries the stable `id` that
@@ -3609,6 +3733,7 @@ function ezHomeModules(v) {
     { id: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
     { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
+    { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
   ];
 }
 
@@ -3626,17 +3751,19 @@ function ezHomeModules(v) {
 // owns no navigation state, routes nothing, builds no module list and invents no progress. It
 // receives v.modules -- the owner's single array -- and maps it ONCE, in the array's own order,
 // so the reading order, the tab order and the data order are one order. Every handler is the
-// one it was handed: onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings and
-// onOpenTreasure are called, never re-derived, so no destination and no history behaviour moves.
+// one it was handed: onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings,
+// onOpenTreasure and onOpenFatwa are called, never re-derived, so no destination and no history
+// behaviour moves.
 //
-// THE FOUR STRINGS BELOW are the only new chrome: one short descriptive line per module, so no
+// THE FIVE STRINGS BELOW are the only module chrome: one short descriptive line per module, so no
 // card is a large empty box with an icon in it. None of them is devotional text, none is read
 // from adhkar.json or the mushaf, and not one of them claims a number about the reader.
 let EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");                                   // "memorise and review"
 let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
 let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
-let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE };
+let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
+let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA };
 
 // THE TOP NAVIGATION. A real bounded bar, not the bottom dock moved upward: it is sticky, it
 // carries the safe-area inset, its inner row is centred at a maximum width so it never runs
@@ -3701,8 +3828,8 @@ function EzistMasthead({ name, g, onOpenAdhkar }) {
   );
 }
 
-// ONE MODULE, drawn four different ways. The variant is chosen by the descriptor's own stable
-// id, so it is the data that decides the treatment and not a second list: the mushaf is the
+// ONE MODULE, drawn from the descriptor's own stable id, so the data decides the treatment and
+// not a second list: the mushaf keeps its wide feature treatment and remains the
 // wide feature and the only card that can carry a real reading, the adhkar card takes the coral
 // highlight, the memorizer takes an Iznik rule and the treasure card sits on the tinted surface.
 // Every card carries an icon, a title AND a line of text, which is what stops any of them from
@@ -3770,7 +3897,7 @@ function EzikIstanaHome(v) {
 }
 // ---- S101 ISTANA HOME END ----------------------------------------------------------------
 
-function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings }) {
+function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenSettings }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -3790,6 +3917,7 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenMemorize: onOpenMemorize,
     onOpenAdhkar: onOpenAdhkar,
     onOpenMushaf: onOpenMushaf,
+    onOpenFatwa: onOpenFatwa,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
   };
@@ -3810,6 +3938,253 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // keeps "deck", is not migrated, and sees the deck again the moment it selects qibla_13.
   // qibla_13 is untouched by this batch and still chooses between the two components below.
   return <EzikIstanaHome {...home} />;
+}
+
+// ============================================================
+// OFFICIAL FATWA SEARCH -- READ ONLY
+// ============================================================
+// This URL is the owner's public PREVIEW deployment. The production cutover changes this one
+// value (or defines window.EZIK_FATWA_API_BASE before this script); nothing else in Ezik knows
+// where the snapshot lives. Search asks for the complete official record and never calls a model.
+const EZIK_FATWA_API_BASE = String(
+  (typeof window !== 'undefined' && window.EZIK_FATWA_API_BASE) ||
+  'https://ezik-fatwas-r3mml45n9-musaed-s-projects1.vercel.app'
+).replace(/\/+$/, '');
+
+async function ezikFatwaFetch(path, signal) {
+  const response = await fetch(EZIK_FATWA_API_BASE + path, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    signal,
+  });
+  let payload = null;
+  try { payload = await response.json(); } catch (e) {}
+  if (!response.ok || !payload || payload.ok !== true) {
+    const code = payload && payload.error && payload.error.code;
+    throw new Error(code || ('fatwa_http_' + response.status));
+  }
+  return payload;
+}
+
+const EZIK_FATWA_ACTIONS = [
+  ['simplify', 'fatwa.action.simplify'],
+  ['example', 'fatwa.action.example'],
+  ['explain', 'fatwa.action.explain'],
+  ['quiz', 'fatwa.action.quiz'],
+];
+
+function ezikFatwaNumber(value) {
+  try { return Number(value).toLocaleString(ezLangGet() === 'ar' ? 'ar' : 'en'); }
+  catch (e) { return String(value); }
+}
+
+function ezikFatwaPublicUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    return (url.protocol === 'https:' || url.protocol === 'http:') ? url.href : '';
+  } catch (e) { return ''; }
+}
+
+function EzikFatwaResult({ fatwa }) {
+  const content = (fatwa && fatwa.content) || {};
+  const question = content.question || '';
+  const answer = content.answer || content.answerExcerpt || '';
+  const audio = (fatwa && fatwa.audio) || {};
+  const scholar = (fatwa && fatwa.scholar) || {};
+  const source = (fatwa && fatwa.source) || {};
+  const sourceUrl = ezikFatwaPublicUrl(source.canonicalUrl || source.url);
+  const audioUrl = ezikFatwaPublicUrl(audio.url);
+  return (
+    <article className="ezf-card">
+      <header className="ezf-card-head">
+        <h2 className="ezf-title">{fatwa.title}</h2>
+        <div className="ezf-meta">
+          <span className="ezf-tag">{scholar.shortName || scholar.name || ezT('fatwa.defaultScholar')}</span>
+          <span>{audio.available ? ezT('fatwa.audioAvailable') : ezT('fatwa.textOnly')}</span>
+        </div>
+      </header>
+      {question ? (
+        <React.Fragment>
+          <h3 className="ezf-section-title">{ezT('fatwa.question')}</h3>
+          <p className="ezf-copy">{question}</p>
+          <h3 className="ezf-section-title">{ezT('fatwa.answer')}</h3>
+        </React.Fragment>
+      ) : (
+        <h3 className="ezf-section-title">{ezT('fatwa.officialText')}</h3>
+      )}
+      <p className="ezf-copy">{answer}</p>
+      {audio.available && audioUrl ? (
+        <audio className="ezf-audio" controls preload="none" src={audioUrl}
+          aria-label={ezT('fatwa.audioAria')} />
+      ) : null}
+      {sourceUrl ? (
+        <a className="ezhome-focus ezf-source" href={sourceUrl} target="_blank"
+          rel="noopener noreferrer">{ezT('fatwa.source')}</a>
+      ) : null}
+      <div className="ezf-actions">
+        {EZIK_FATWA_ACTIONS.map(([id, key]) => (
+          <button key={id} type="button" className="ezf-action" disabled
+            aria-disabled="true" title={ezT('fatwa.action.disabled')}>{ezT(key)}</button>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function FatwaScreen({ onBack }) {
+  const [scholars, setScholars] = useState([{ id: 'binbaz', shortName: '' }]);
+  const [scholar, setScholar] = useState('binbaz');
+  const [query, setQuery] = useState('');
+  const [lastQuery, setLastQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [searched, setSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const searchRequest = useRef(null);
+
+  // The selector is fed by the registry so Ibn Uthaymeen can be added server-side later. Until
+  // that first response arrives, Ibn Baz is already selectable; a registry failure adds no
+  // warning panel to the deliberately spare empty screen.
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 45000);
+    ezikFatwaFetch('/api/v1/scholars', controller.signal).then((payload) => {
+      const list = Array.isArray(payload.scholars)
+        ? payload.scholars.filter((item) => item && item.id && (item.shortName || item.name))
+        : [];
+      if (!list.length) return;
+      setScholars(list.map((item) => ({ id: String(item.id), shortName: String(item.shortName || item.name) })));
+      setScholar((current) => list.some((item) => String(item.id) === current) ? current : String(list[0].id));
+    }).catch(() => {}).finally(() => clearTimeout(timer));
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, []);
+
+  useEffect(() => () => {
+    if (searchRequest.current) searchRequest.current.abort();
+  }, []);
+
+  const runSearch = async (page, fixedQuery) => {
+    const term = String(fixedQuery == null ? query : fixedQuery).trim();
+    if (!term || loading) return;
+    if (searchRequest.current) searchRequest.current.abort();
+    const controller = new AbortController();
+    searchRequest.current = controller;
+    const timer = setTimeout(() => controller.abort(), 60000);
+    setLastQuery(term);
+    setSearched(true);
+    setLoading(true);
+    setFailed(false);
+    setResults([]);
+    setPagination(null);
+    const params = new URLSearchParams({
+      q: term,
+      scholar,
+      page: String(page || 1),
+      limit: '10',
+      view: 'full',
+    });
+    try {
+      const payload = await ezikFatwaFetch('/api/v1/fatwas/search?' + params.toString(), controller.signal);
+      if (searchRequest.current !== controller) return;
+      setResults(Array.isArray(payload.results) ? payload.results : []);
+      setPagination(payload.pagination || { page: 1, total: 0, totalPages: 0, hasPrevious: false, hasNext: false });
+    } catch (error) {
+      if (searchRequest.current !== controller) return;
+      setFailed(true);
+    } finally {
+      clearTimeout(timer);
+      if (searchRequest.current === controller) {
+        searchRequest.current = null;
+        setLoading(false);
+      }
+    }
+  };
+
+  const selectScholar = (event) => {
+    setScholar(event.target.value);
+    setResults([]);
+    setPagination(null);
+    setSearched(false);
+    setFailed(false);
+  };
+
+  let status = null;
+  if (loading) status = ezT('fatwa.loading');
+  else if (failed) status = ezT('fatwa.error');
+  else if (searched && pagination && pagination.total === 0) status = ezT('fatwa.none');
+  else if (searched && pagination && pagination.total > 0) {
+    status = ezT('fatwa.summary', {
+      total: ezikFatwaNumber(pagination.total),
+      page: ezikFatwaNumber(pagination.page),
+      pages: ezikFatwaNumber(pagination.totalPages),
+    });
+  }
+
+  return (
+    <div className="theme-dark ezhome ezf" style={s.ezfContainer}>
+      <div className="ezsh-nav">
+        <div className="ezsh-nav-inner">
+          <div className="ezsh-nav-side">
+            <button type="button" className="ezhome-focus" onClick={onBack}
+              style={s.ezshNavBtn} aria-label={ezT('common.back')}>{A2_ICON_BACK}</button>
+          </div>
+          <span aria-hidden="true" />
+          <div className="ezsh-nav-side is-end" />
+        </div>
+      </div>
+      <div style={s.ezshScroll}>
+        <main className="ezf-wrap">
+          <form className="ezf-controls" role="search" onSubmit={(event) => {
+            event.preventDefault();
+            runSearch(1);
+          }}>
+            <label className="ezf-field" htmlFor="ezf-scholar">
+              <span className="ezf-label">{ezT('fatwa.scholarLabel')}</span>
+              <select id="ezf-scholar" className="ezhome-focus ezf-select"
+                value={scholar} onChange={selectScholar}>
+                {scholars.map((item) => (
+                  <option key={item.id} value={item.id}>{item.shortName || ezT('fatwa.defaultScholar')}</option>
+                ))}
+              </select>
+            </label>
+            <div className="ezf-search">
+              <input className="ezhome-focus ezf-input" type="search" dir="auto" required maxLength="180"
+                value={query} onChange={(event) => setQuery(event.target.value)}
+                placeholder={ezT('fatwa.searchPlaceholder')} aria-label={ezT('fatwa.searchAria')} />
+              <button type="submit" className="ezhome-focus ezf-submit"
+                disabled={loading}>{ezT('fatwa.searchButton')}</button>
+            </div>
+          </form>
+
+          {status ? <div className={'ezf-status' + (failed ? ' is-error' : '')}
+            role={failed ? 'alert' : 'status'} aria-live="polite">{status}</div> : null}
+
+          {results.length ? (
+            <section className="ezf-results" aria-label={ezT('fatwa.searchAria')}>
+              {results.map((fatwa) => <EzikFatwaResult key={fatwa.uid} fatwa={fatwa} />)}
+            </section>
+          ) : null}
+
+          {pagination && pagination.totalPages > 1 ? (
+            <nav className="ezf-pager" aria-label={ezT('fatwa.page', {
+              page: ezikFatwaNumber(pagination.page), pages: ezikFatwaNumber(pagination.totalPages)
+            })}>
+              <button type="button" className="ezhome-focus ezf-page-btn"
+                disabled={loading || !pagination.hasPrevious}
+                onClick={() => runSearch(pagination.page - 1, lastQuery)}>{ezT('fatwa.previous')}</button>
+              <span className="ezf-page-text">{ezT('fatwa.page', {
+                page: ezikFatwaNumber(pagination.page), pages: ezikFatwaNumber(pagination.totalPages)
+              })}</span>
+              <button type="button" className="ezhome-focus ezf-page-btn"
+                disabled={loading || !pagination.hasNext}
+                onClick={() => runSearch(pagination.page + 1, lastQuery)}>{ezT('fatwa.next')}</button>
+            </nav>
+          ) : null}
+        </main>
+      </div>
+    </div>
+  );
 }
 
 // ============================================================
@@ -8005,7 +8380,7 @@ function App() {
   // rule the app's own boot follows. Nothing is lost by it: the thread being left was filed at its
   // first question and is in the menu. The BACK path out of home also lands on the chat, and it
   // does not come through here, so returning from home never wipes the thread underneath it.
-  if (screen === 'home') return <Home profile={profile} onOpenChat={() => { newChat(); setScreen('chat'); }} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenSettings={() => openEzikSheet('settings')} />;
+  if (screen === 'home') return <Home profile={profile} onOpenChat={() => { newChat(); setScreen('chat'); }} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenSettings={() => openEzikSheet('settings')} />;
   // S87: the three sheets resolve their back through goEzikBack, which returns them to the screen
   // recorded when they were opened (home or the chat drawer) and to home when nothing valid was.
   // The gate still clears its own PIN field first -- that is its state, not navigation.
@@ -8039,13 +8414,14 @@ function App() {
   if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} error={voiceError} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={goEzikBack} />;
   // المحفّظ — full screen (mirrors CallScreen). Quran playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
-  // S87 -- THE THREE FEATURE SECTIONS. Each hands goEzikBack to its OWN section-level back
+  // S87 -- THE FEATURE SECTIONS. Each hands goEzikBack to its OWN section-level back
   // control, so the visible button and the hardware button resolve through the same table: a
   // nested layer (drill / open surah / opened adhkar category) closes first and the section is
   // retained, and only a back taken from the section's own top level goes home.
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={goEzikBack} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
+  if (screen === 'fatwa') return <FatwaScreen onBack={goEzikBack} />;
 
   // Single-source capability flags for the chat UI. `directConvoAllowed` layers the parental lock
   // on top of the band: young is allowed unless the parent explicitly locked it; teen/adult always
@@ -12762,6 +13138,9 @@ const s = {
   // identity and the dark palette without declaring one; sizes are numbers so text scaling
   // reaches them; nothing animates.
   ezshContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)' },
+  // The fatwa search is a shell tenant with its own reachable-screen key. One numeric base size
+  // lets the existing accessibility scaler resize every em-based label inside it as one unit.
+  ezfContainer: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--a3-page)', fontSize: 15 },
   // S106 -- the Quran catalogue. --a3-* tokens only, numeric font sizes, no animation.
   ezqMastTitle: { fontSize: 17, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.6 },
   ezqMastPick: { marginTop: 6, fontSize: 14, fontWeight: 700, color: 'var(--a3-blue)' },
@@ -12867,11 +13246,12 @@ const s = {
   // the chat entry: a surface panel with one bounded accent affordance, never a filled slab.
   ezistAsk: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, width: '100%', minHeight: 76, padding: '14px 16px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezistAskGo: { width: 46, height: 46, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)' },
-  // the four module cards. One base, three id-specific accents, one wide feature.
+  // the five module cards. One base, four id-specific accents, one wide feature.
   ezistCard: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', minHeight: 84, padding: '14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezistCard_adhkar: { borderTop: '3px solid var(--a3-cyan)' },
   ezistCard_memorize: { borderRight: '3px solid var(--a3-blue)' },
   ezistCard_treasure: { background: 'var(--a3-ice)' },
+  ezistCard_fatwa: { borderLeft: '3px solid var(--a3-cyan)' },
   ezistFeature: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, width: '100%', minHeight: 104, padding: '16px 18px', borderRadius: '40px 40px 18px 18px', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezistCardIcon: { width: 42, height: 42, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: 'var(--a3-ice)', color: 'var(--a3-blue)' },
   ezistFeatureIcon: { width: 50, height: 50, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)' },
