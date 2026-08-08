@@ -61,7 +61,7 @@ import { unregisteredNameInQuestion, stripEntityFromQuery } from '../lib/policy/
 // a verdict. It grants nothing — no attribution, no grade, no list membership. See the module head
 // for the exhaustive list of the two things a found page is allowed to change.
 import {
-  probeShape, firstPageBearing, presenceLine, buildIdentityInstruction, PRESENCE,
+  probeShape, firstPageBearing, presenceLine, notAFatwaSourceLine, buildIdentityInstruction, PRESENCE,
 } from '../lib/policy/name-presence.js';
 import { lastUserText } from '../lib/attribution.js';
 // THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
@@ -1252,22 +1252,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // THE ONE SENTENCE THE SERVER OWNS ABOUT AN UNREGISTERED NAME. Emitted only on the attribution
-    // shape — the identity shape has already been answered above or falls through unchanged — and
-    // it makes no religious claim, so it is safe on every exit that carries one.
-    const presenceLead = namePresence.probed && namePresence.kind === PRESENCE.ATTRIBUTION_SHAPE
-      ? presenceLine(namePresence)
-      : '';
-
-    // ── AND IT RIDES ON THE REFUSALS TOO, WHICH IS WHERE IT MATTERS MOST ────
-    //
-    // MEASURED ON THE LIVE SERVICE after this batch's first deploy: «ما رأي خالد عبدالرحمن في قصر
-    // الصلاة؟» returned NO_ATTRIBUTION_AVAILABLE alone. The reworded refusal did its job — it
-    // called him nothing — but the reader was still left holding the premise he arrived with,
-    // because a sentence that declines to attribute says nothing about whether there is anybody to
-    // attribute TO. The drop-whole exits are precisely the ones where the reader most needs to be
-    // told «لا أعرف هذا الاسم», and they were the ones not carrying it.
-    const withPresence = (text) => (presenceLead ? presenceLead + '\n\n' + text : text);
+    // (The one sentence the server owns about an unregistered name is built BELOW, after the
+    // identity cascade — it may not be decided before the thing it depends on. See ج١.)
 
     // ── WHO IS THE PERSON IN THE QUESTION? (قرار ٣) ─────────────────────────
     //
@@ -1283,9 +1269,15 @@ export default async function handler(req, res) {
     // budget: it is fed the pages the probe above ALREADY paid for, so the expensive stage
     // spends nothing new. A cached name costs nothing at all.
     let identityFact = '';
+    // The cascade's FINAL verdict, hoisted out of the try so the sentences below can consult it.
+    // null means «the cascade never produced one» — no probe ran, or it threw.
+    let identityVerdict = null;
+    let identityIsPublicFigure = false;
+    let identityIsPlaced = false;
+    let identityUrl = '';
     if (nameShape.probe) {
       try {
-        const { identityFor, identityFactBlock } = await import('../lib/identity/index.js');
+        const { identityFor, identityFactBlock, IDENTITY } = await import('../lib/identity/index.js');
         const { makeWikipediaFetcher } = await import('../lib/identity/wikipedia.js');
         const { identityCache } = await import('../lib/identity/cache.js');
         const identity = await identityFor(nameShape.name, {
@@ -1300,6 +1292,15 @@ export default async function handler(req, res) {
           }))),
         });
         identityFact = identityFactBlock(identity, { question: questionText });
+        // Compared HERE, where IDENTITY is in scope, so the verdict travels as two plain booleans
+        // rather than as a string the code below would have to re-spell. lib/identity/index.js
+        // stays dynamically imported — it is not paid for on a turn that names nobody.
+        identityIsPublicFigure = identity.kind === IDENTITY.PUBLIC_FIGURE;
+        identityIsPlaced = identity.kind === IDENTITY.SCHOLAR || identity.kind === IDENTITY.AMBIGUOUS;
+        identityVerdict = identity.kind || null;
+        // The page the verdict was READ FROM, when it was read from one at all. Empty for a
+        // whitelist hit, which is a table lookup and has no page behind it (ج٤).
+        identityUrl = identity.source === 'whitelist' ? '' : String(identity.url || '');
         console.log('[identity]', {
           kind: identity.kind, source: identity.source,
           // The NAME is not logged: it is the reader's own words, and the shape is what diagnoses.
@@ -1311,6 +1312,44 @@ export default async function handler(req, res) {
         console.warn('[identity] cascade threw — drafting without the fact block:', e && e.message);
       }
     }
+
+    // ── THE SERVER'S OWN SENTENCE ABOUT THE NAME — AND IT ASKS THE CASCADE FIRST (ج١) ──
+    //
+    // THE MEASURED CONTRADICTION. «ماقول عبدالله الرويشد في حكم الغناء» produced, in one reply:
+    //     «لا أعرف هذا الاسم: «عبدالله الرويشد» لا يَرِد في المصادر التي أرجع إليها…»
+    // and, in the very next breath, a correct description of him as a Kuwaiti singer. Driven and
+    // measured: `[identity] { kind: 'public_figure', source: 'wikipedia', hasDescriptor: true }` —
+    // the app HAD placed him, had told the model he is not a scholar, and had handed it the word
+    // «مطرب» — while the sentence above it said it had never heard of him.
+    //
+    // THE CAUSE WAS ORDER, NOT WORDING. This sentence used to be built ~30 lines ABOVE the
+    // cascade, out of `namePresence` alone. And namePresence answers «does any RETRIEVED PAGE
+    // carry this name», which is a question about our search results — not «who is he». So the
+    // ignorance opening fired on a silent search while the identity was known.
+    //
+    // IT IS THEREFORE BUILT HERE, AFTER THE VERDICT EXISTS, and reads it:
+    //   UNKNOWN, or no verdict at all  → the ignorance opening, exactly as before.
+    //   PUBLIC_FIGURE                  → the CORRECTION instead: he is not someone we take fatwa
+    //                                    from. True, and it never claims we do not know him.
+    //   SCHOLAR / AMBIGUOUS            → no server sentence at all. Calling a scholar «not a fatwa
+    //                                    source» would be false, and for an ambiguous name one of
+    //                                    the candidates may be a scholar — the fact block owns it.
+    const presenceLead = (() => {
+      if (!(namePresence.probed && namePresence.kind === PRESENCE.ATTRIBUTION_SHAPE)) return '';
+      if (identityIsPublicFigure) return notAFatwaSourceLine(namePresence.name);
+      if (identityIsPlaced) return '';
+      return presenceLine(namePresence);
+    })();
+
+    // ── AND IT RIDES ON THE REFUSALS TOO, WHICH IS WHERE IT MATTERS MOST ────
+    //
+    // MEASURED ON THE LIVE SERVICE after an earlier deploy: «ما رأي خالد عبدالرحمن في قصر
+    // الصلاة؟» returned NO_ATTRIBUTION_AVAILABLE alone. The reworded refusal did its job — it
+    // called him nothing — but the reader was still left holding the premise he arrived with,
+    // because a sentence that declines to attribute says nothing about whether there is anybody to
+    // attribute TO. The drop-whole exits are precisely the ones where the reader most needs the
+    // server's sentence, and they were the ones not carrying it.
+    const withPresence = (text) => (presenceLead ? presenceLead + '\n\n' + text : text);
 
     // ── ONE INJECTION MECHANISM, NOT ONE INJECTION SITE (شاهد W2) ───────────
     //

@@ -585,6 +585,155 @@ const PAGES = {
     }
 
     // =========================================================================
+    console.log('\n=== K. DRIVEN: THE IGNORANCE OPENING ASKS THE CASCADE FIRST (ج١) ===');
+    //
+    // ── THE MEASURED CONTRADICTION ────────────────────────────────────────────
+    // «ماقول عبدالله الرويشد في حكم الغناء» produced, in ONE reply:
+    //     «لا أعرف هذا الاسم: «عبدالله الرويشد» لا يَرِد في المصادر التي أرجع إليها…»
+    // and then a correct description of him as a Kuwaiti singer. Driven and measured before the
+    // fix: [identity] said public_figure/wikipedia, the model was handed «مطرب» and told he is not
+    // one of the people of knowledge — while the sentence above it said we had never heard of him.
+    //
+    // The cause was ORDER: the sentence was built from `namePresence` alone, ~30 lines ABOVE the
+    // cascade. namePresence answers «does a RETRIEVED PAGE carry this name», which is a fact about
+    // our search, not about who he is.
+    //
+    // BOTH DIRECTIONS ARE PINNED HERE, and that pairing is the point: a gate that only proved the
+    // opening disappears would pass with the opening deleted outright, and deleting it would cost
+    // the reader the one honest sentence for a name nobody can place.
+    {
+      const saved = {};
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
+        saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-identity-guard-fake';
+      process.env.BRAVE_API_KEY = 'brave-identity-guard-fake';
+      process.env.RFC_V05_MODE = 'off';
+      process.env.LEDGER_RAG = 'off';
+      // The day-cap store is unreachable here and fails CLOSED by design, so without a founder
+      // token the handler refuses before the router and every assertion below would be vacuous.
+      process.env.FOUNDER_SECRET = 'identity-guard-driven-secret';
+      const throwingFetch = globalThis.fetch;
+      const realLog = console.log;
+      try {
+        const DC = await esm('lib/daycap.js');
+        const CONSENT = await esm('lib/ai-consent.js');
+
+        const WIKI = '<html><body><div class="mw-parser-output">'
+          + '<p>عبد الله الرويشد مطرب وملحن كويتي من مواليد 1961.</p></div></body></html>';
+        const FATWA = '<html><body><article><p>'
+          + 'الغناء المصحوب بالمعازف محرم عند جمهور أهل العلم، والتفصيل في ذلك مبسوط في كتب الفقه. '.repeat(6)
+          + '</p></article></body></html>';
+        const DRAFT = 'الغناء المصحوب بالمعازف محرم عند جمهور أهل العلم، والتفصيل في كتب الفقه.';
+
+        // wikiHtml === null drives a REAL 404 — a page whose body says "not found" is still a page,
+        // and the cascade would read its text as a description. (Measured: it reached
+        // PUBLIC_FIGURE off the words «Not found», which would have made this case vacuous.)
+        const run = async (question, wikiHtml) => {
+          const emitted = [];
+          const idLines = [];
+          globalThis.fetch = async (url, opts) => {
+            const u = String(url);
+            if (u.includes('api.anthropic.com')) {
+              const b = JSON.parse(opts.body);
+              const wantsTool = Array.isArray(b.tools) && b.tools.length;
+              return {
+                ok: true, status: 200,
+                json: async () => (wantsTool
+                  ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't1', name: 'search_islamic_sources', input: { query: 'حكم الغناء' } }] }
+                  : { content: [{ type: 'text', text: DRAFT }] }),
+                body: { getReader: () => ({ read: async () => ({ done: true }) }) }, text: async () => '',
+              };
+            }
+            if (u.includes('api.search.brave.com')) {
+              return { ok: true, status: 200, text: async () => '', json: async () => ({ web: { results: [
+                { title: 'حكم الغناء', url: 'https://islamweb.net/ar/fatwa/1001/x', description: '' },
+              ] } }) };
+            }
+            if (u.includes('ar.wikipedia.org')) {
+              if (wikiHtml === null) return { ok: false, status: 404, headers: { get: () => 'text/html' }, text: async () => '', url: u };
+              return { ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => wikiHtml, url: u };
+            }
+            return { ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => FATWA, url: u };
+          };
+          const r = { statusCode: 0, headers: {} };
+          r.status = (c) => { r.statusCode = c; return r; };
+          r.setHeader = (k, v) => { r.headers[k] = v; return r; };
+          r.getHeader = (k) => r.headers[k];
+          r.flushHeaders = () => {}; r.json = () => r;
+          r.write = (c) => {
+            for (const part of String(c).split('\n\n')) {
+              const line = part.split('\n').find((l) => l.startsWith('data: '));
+              if (!line) continue;
+              try {
+                const e = JSON.parse(line.slice(6));
+                if (e.type === 'content_block_delta' && e.delta && e.delta.type === 'text_delta') emitted.push(e.delta.text);
+              } catch { /* not ours */ }
+            }
+            return true;
+          };
+          r.end = () => r; r.on = () => r; r.once = () => r; r.emit = () => r;
+          const DEVICE = 'identity-guard-k-' + question.length;
+          const req = {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'x-ezik-ai-consent': CONSENT.AI_CONSENT_VERSION,
+              'x-murabbi-device': DEVICE, 'x-murabbi-founder': DC.founderTokenFor(DEVICE) },
+            body: { name: 'خالد', age: 30, gender: 'male', mode: 'chat', band: 'adult',
+              messages: [{ role: 'user', content: question }] },
+            socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
+          };
+          console.log = (...a) => { if (a[0] === '[identity]') { try { idLines.push(JSON.stringify(a[1])); } catch { /* ignore */ } } };
+          const handler = (await esm('api/ask.js')).default;
+          try { await handler(req, r); } catch (e) { /* a refusal is not a silence */ }
+          console.log = realLog;
+          return { text: emitted.join(''), identity: idLines.join(' ') };
+        };
+
+        const OPENING = 'لا أعرف هذا الاسم';
+        const CORRECTION = 'ليس ممّن تُؤخَذ عنه الفتوى في مصادرنا';
+
+        // ── (1) IDENTITY DECIDED: the opening must be ABSENT ──────────────────
+        const decided = await run('ماقول عبدالله الرويشد في حكم الغناء', WIKI);
+        if (ok('the cascade placed him as a public figure', /"kind":"public_figure"/.test(decided.identity),
+          decided.identity || 'no [identity] line — the probe never ran, so this case proves nothing')) {
+          ok('DECIDED: the ignorance opening is ABSENT from what the reader gets',
+            !decided.text.includes(OPENING), decided.text.slice(0, 160));
+          // ...and it is REPLACED, not merely deleted: the reader still gets a true sentence.
+          ok('...and the correction stands in its place', decided.text.includes(CORRECTION),
+            decided.text.slice(0, 160));
+          // ...and the ruling the reader actually asked about survived both.
+          ok('...and the sourced answer still reaches him', /الغناء/.test(decided.text));
+          ok('...carrying its card', /<source/.test(decided.text));
+        }
+
+        // ── (2) IDENTITY UNKNOWN: the opening must be PRESENT ─────────────────
+        const unknown = await run('ماقول سالم المري العتيبي في حكم الغناء', null);
+        if (ok('the cascade reached UNKNOWN for a name nothing carries', /"kind":"unknown"/.test(unknown.identity),
+          unknown.identity || 'no [identity] line')) {
+          ok('UNKNOWN: the ignorance opening IS printed — it is the honest sentence here',
+            unknown.text.includes(OPENING), unknown.text.slice(0, 160));
+          ok('...and the correction is NOT, because nothing was placed',
+            !unknown.text.includes(CORRECTION), unknown.text.slice(0, 160));
+          ok('...and the ruling still reaches him too', /الغناء/.test(unknown.text));
+        }
+
+        // ── (3) THE ORDER THAT CAUSED IT, PINNED STRUCTURALLY ─────────────────
+        // The sentence may not be built before the verdict it consults exists.
+        const ask = read('api/ask.js');
+        ok('presenceLead is built AFTER the identity cascade assigns its verdict',
+          ask.indexOf('identityVerdict = identity.kind') < ask.indexOf('const presenceLead ='),
+          'building it first is the defect, whatever the wording says');
+        ok('...and it reads the verdict rather than the search result alone',
+          /identityIsPublicFigure/.test(ask) && /identityIsPlaced/.test(ask));
+      } finally {
+        console.log = realLog;
+        globalThis.fetch = throwingFetch;
+        for (const k of Object.keys(saved)) {
+          if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
+        }
+      }
+    }
+
+    // =========================================================================
     console.log('\n=== G. THE ROSTER ===');
     {
       const gates = JSON.parse(read('gates.json'));
