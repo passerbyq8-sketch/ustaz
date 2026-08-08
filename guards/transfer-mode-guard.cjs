@@ -80,16 +80,43 @@ const labelPage = (q, a) => '<html><body><article>'
     }
 
     // =========================================================================
-    console.log('\n=== B. THE EIGHTH DOMAIN IS THE ONE THAT IS ABSENT ===');
+    console.log('\n=== B. THE CAPABILITY TABLE SAYS ONLY WHAT WAS MEASURED ===');
     {
-      const doms = X.transferableDomains();
-      console.log('        readable: ' + doms.join(' '));
-      ok('mostafaaladwy.com has NO extractor', !doms.includes('mostafaaladwy.com'),
+      const rows = X.transferableDomains();
+      const readable = X.readableDomains();
+      const incapable = X.declaredIncapableDomains();
+      console.log('        rows      (' + rows.length + '): ' + rows.join(' '));
+      console.log('        readable  (' + readable.length + '): ' + readable.join(' '));
+      console.log('        incapable (' + incapable.length + '): ' + incapable.join(' '));
+
+      // ── the eighth domain, unchanged ──────────────────────────────────────
+      ok('mostafaaladwy.com has NO row at all', !rows.includes('mostafaaladwy.com'),
         'قرار ١٠ says its answer is a video — there is no published text to transfer');
       // ...and enforced at the entry point too, not only by omission from the table.
       eq('a video-answer page is unreadable even if asked directly',
         X.extractPair('https://mostafaaladwy.com/fatwa/1', labelPage('س', BODY.repeat(3))), null);
-      ok('the readable domains are all on the registry', doms.length >= 6, String(doms.length));
+
+      // ── AND «HAS A ROW» IS NOT «CAN BE READ» ──────────────────────────────
+      // The conflation is what W4 cost. Four hosts sat in this table claiming a generic label
+      // reader that had never been run against one of their pages, and three of the four could
+      // not be read by it at all. The two lists are now separate and BOTH are asserted, so a
+      // host cannot quietly rejoin the capability list by being added to the table.
+      ok('the two lists partition the table',
+        readable.length + incapable.length === rows.length
+        && readable.every((d) => !incapable.includes(d)),
+        JSON.stringify({ rows: rows.length, readable: readable.length, incapable: incapable.length }));
+      ok('a declared incapacity is DECLARED, not inferred from a null',
+        incapable.every((d) => X.EXTRACTORS[d].declaredIncapable === true),
+        'an undeclared absence is exactly what let four hosts claim a reader they did not have');
+      // The three measured on 2026-08-08 against frozen real pages, each named.
+      for (const d of ['ferkous.app', 'alukah.net', 'islamqa.info']) {
+        ok('«' + d + '» declares it cannot be read', incapable.includes(d),
+          'measured 2026-08-08: the label on its pages is «الجواب», never «الإجابة»');
+      }
+      // ...and the ones that CAN, likewise named, so a silent removal is a failure too.
+      for (const d of ['islamweb.net', 'binbaz.org.sa', 'sh-albarrak.com', 'almosleh.com']) {
+        ok('«' + d + '» is readable', readable.includes(d));
+      }
     }
 
     // =========================================================================
@@ -259,7 +286,17 @@ const labelPage = (q, a) => '<html><body><article>'
         url: 'https://example.org/x', html: labelPage(Q, BODY.repeat(3)),
       });
       ok('a host with no extractor does not transfer', off.transfer === false, off.reason);
-      // alukah OUTSIDE its Q&A tree.
+      // ── alukah, AND THE ASSERTION THAT USED TO PROVE THE WRONG THING ──────
+      //
+      // This pair used to read «outside /fatawa_counsels/ it does not transfer» / «...and inside
+      // it does» — and the second half PASSED against `labelPage()`, a page written by the author
+      // of the extractor, printing «الإجابة». Measured 2026-08-08 on three real
+      // /fatawa_counsels/ pages: alukah prints «الجواب» and never «الإجابة», so the reader
+      // returned null on all three. The gate was proving a capability the host did not have,
+      // which is W4 in one line of code.
+      //
+      // The host now DECLARES incapacity, so BOTH paths refuse — and the second one is asserted
+      // against the real reason rather than a helpful fixture.
       const alukahArticle = await I.considerTransfer(Q, {
         url: 'https://alukah.net/sharia/0/1234/', html: labelPage(Q, BODY.repeat(3)),
       });
@@ -267,7 +304,11 @@ const labelPage = (q, a) => '<html><body><article>'
       const alukahFatwa = await I.considerTransfer(Q, {
         url: 'https://alukah.net/fatawa_counsels/0/1234/', html: labelPage(Q, BODY.repeat(3)),
       });
-      ok('...and inside it does', alukahFatwa.transfer === true, alukahFatwa.reason);
+      ok('...and inside it does not transfer EITHER, because the host declares it cannot be read',
+        alukahFatwa.transfer === false, alukahFatwa.reason);
+      ok('...and an authored «الإجابة» page cannot talk it back into transferring',
+        X.extractPair('https://alukah.net/fatawa_counsels/0/1234/', labelPage(Q, BODY.repeat(3))) === null,
+        'a declared incapacity that a fixture can override is not a declaration');
     }
 
     // =========================================================================
