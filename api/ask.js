@@ -1890,6 +1890,20 @@ export default async function handler(req, res) {
         // The man the READER asked about. An offence in a sentence naming him is the substance of
         // the answer, and what is left after trimming it answers a different question.
         subjectEntity: plan.namedEntity,
+        // ── ...UNLESS THE SERVER HAS ALREADY SAID SO IN ITS OWN VOICE (ج٢) ──
+        //
+        // MEASURED: «ما رأي الشيخ سالم المري العتيبي في صلاة الوتر» — the strict declaration was
+        // printed, a witr page was retrieved clean, GENERAL_RULING_SUBSTITUTED fired and told the
+        // model to answer the ruling fully — and the reader still got no ruling. The draft named
+        // the man, so the subject rule above dropped the WHOLE thing, and the replacement offered
+        // the reader a choice instead of an answer.
+        //
+        // The rule above is right when the attribution IS the answer. It is wrong once
+        // presenceLead has already told the reader, in the server's own words, that this name
+        // cannot be attributed to — because then the ruling is the only question left standing,
+        // and dropping it answers nothing at all. Trimming the offending sentence is still done;
+        // only the escalation to «drop everything» is withheld.
+        attributionDisclaimed: !!presenceLead,
         // ONCE WE KNOW WHICH PUBLISHERS WE ACTUALLY FETCHED, every later exit must hold a
         // transmission to naming one of them. Without this the encyclopedic branch refused
         // «ذكرت بعض المواقع أنّ ابن تيمية يرى…» and the fall-through then served it, which made the

@@ -271,8 +271,19 @@ const TARIQ_DRAFT = [
       /from '\.\.\/lib\/policy\/source-attribution\.js'/.test(ask));
     ok('...and computes it from the pages it actually retrieved',
       /sourceLicence = attributionLicence\(/.test(ask));
-    ok('...and passes it into the draft screen itself',
-      /screenDraft\([\s\S]{0,2400}?sourceLicence/.test(ask));
+    // SLICED, NOT MATCHED AT A DISTANCE. This was `/screenDraft\([\s\S]{0,2400}?sourceLicence/`,
+    // and a character budget across a call that carries explanatory comments fails the day
+    // somebody adds a paragraph to it — which reads as "the licence is no longer wired" when
+    // nothing is wired differently. (Measured: ج٢ added 14 comment lines inside this very call and
+    // pushed `sourceLicence` past 2400 characters. Same lesson as identity-guard section H.)
+    // The call is taken whole and asked whether the key is in IT.
+    {
+      const start = ask.indexOf('screenDraft(');
+      const end = start === -1 ? -1 : ask.indexOf('});', start);
+      const call = start === -1 || end === -1 ? '' : ask.slice(start, end);
+      ok('...and passes it into the draft screen itself',
+        call.includes('sourceLicence'), call.slice(0, 200));
+    }
 
     const g = read('lib/ledger/gates.js');
     ok('the ledger path imports the same rule, not a copy',

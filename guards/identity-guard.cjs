@@ -734,6 +734,80 @@ const PAGES = {
     }
 
     // =========================================================================
+    console.log('\n=== L. DRIVEN: AFTER THE DECLARATION, THE RULING IS STILL ANSWERED (ج٢) ===');
+    //
+    // ── THE MEASURED FAILURE ──────────────────────────────────────────────────
+    // «ما رأي الشيخ سالم المري العتيبي في صلاة الوتر». The strict declaration printed, a witr page
+    // came back clean, GENERAL_RULING_SUBSTITUTED fired and told the model to answer the ruling
+    // «إجابةً كاملةً مفيدةً كأيِّ سؤالٍ آخر» — and the reader got no ruling at all. Two causes,
+    // both measured:
+    //   1. screenDraft escalates to dropWhole the moment an offending sentence names the subject.
+    //      Right when the attribution IS the answer; wrong once the server has already said, in
+    //      its own voice, that nothing will be credited to this name — then the ruling is the only
+    //      question still standing and dropping it answers nothing.
+    //   2. the replacement then OFFERED A CHOICE («…فاختر ما تريد»), one option of which was the
+    //      answer he had already asked for. That is the retired clarifying question in a new coat.
+    {
+      const CG = await esm('lib/policy/consistency-gate.js');
+
+      // ── the sentence itself ────────────────────────────────────────────────
+      ok('the replacement no longer offers the reader a menu',
+        !/فاختر ما تريد/.test(CG.NO_ATTRIBUTION_AVAILABLE), CG.NO_ATTRIBUTION_AVAILABLE);
+      ok('...nor offers to do what it could simply do',
+        !/وأستطيع أن أعرض/.test(CG.NO_ATTRIBUTION_AVAILABLE));
+      ok('...and still states the limit it exists to state',
+        /لا أنسبُ قولًا/.test(CG.NO_ATTRIBUTION_AVAILABLE));
+      // ...and it still says nothing about the man, which is the older rule it must not lose.
+      ok('...while calling nobody «هذا العالِم»', !/هذا العالِم/.test(CG.NO_ATTRIBUTION_AVAILABLE));
+
+      // ── the escalation, both ways ──────────────────────────────────────────
+      // THE HANDLER'S OWN CONTEXT, not a friendlier one. `allowSourcedPosition` with a real
+      // publisher list is what makes «فيرى أن الوتر واجب» an offence: a position credited to a man
+      // must name the publisher that carries it. Measured — without these two the draft does not
+      // offend at all and every assertion below would be vacuous.
+      const CTX = {
+        entity: 'سالم المري العتيبي', subjectEntity: 'سالم المري العتيبي',
+        notDirectlyVerified: true, searchProven: true, identityVerified: false,
+        allowSourcedPosition: true, transmissionPublishers: ['islamweb.net'],
+        // ARMED BY BEING SUPPLIED, NOT BY ITS CONTENTS. An EMPTY licence is the measured live
+        // case — `[licence] { pages: 1, persons: [] }` — and it means: none of the pages in hand
+        // licenses naming any man. Omitting the key instead would disarm the rule entirely and
+        // the fixture would stop offending.
+        sourceLicence: [],
+      };
+      const DRAFT = 'يرى الشيخ سالم المري العتيبي أن الوتر واجب. '
+        + 'وصلاة الوتر سنة مؤكدة عن النبي صلى الله عليه وسلم. '
+        + 'وأقلها ركعة وأكثرها إحدى عشرة ركعة، ووقتها بعد العشاء إلى الفجر.';
+      const undisclaimed = CG.screenDraft(DRAFT, CTX);
+      const disclaimed = CG.screenDraft(DRAFT, { ...CTX, attributionDisclaimed: true });
+      // The fixture must actually offend, or both halves below are vacuous.
+      if (ok('the fixture draft really does offend on the sentence naming him',
+        undisclaimed.droppedSentences.length > 0, JSON.stringify(undisclaimed.droppedSentences))) {
+        ok('UNDISCLAIMED: naming the subject still drops the whole draft',
+          undisclaimed.dropWhole === true,
+          'this is the older rule and it must survive — the attribution IS the answer there');
+        ok('DISCLAIMED: the whole draft is NOT dropped', disclaimed.dropWhole === false);
+        ok('...the offending sentence is still trimmed',
+          !/الوتر واجب/.test(disclaimed.text), disclaimed.text);
+        ok('...and the ruling survives to reach the reader',
+          /سنة مؤكدة/.test(disclaimed.text) && /أقلها ركعة/.test(disclaimed.text), disclaimed.text);
+      }
+      // AND AN EMPTY REMAINDER IS STILL REFUSED. The disclaimer relaxes ONE escalation, not the
+      // floor: a draft that is nothing but the attribution has no ruling left to save.
+      const onlyAttribution = CG.screenDraft('يرى الشيخ سالم المري العتيبي أن الوتر واجب.',
+        { ...CTX, attributionDisclaimed: true });
+      ok('...but a draft with nothing left after trimming is STILL dropped whole',
+        onlyAttribution.dropWhole === true,
+        'relaxing this into "send the remainder" would ship an empty answer');
+
+      // ── and the handler passes the flag from the sentence it actually printed ──
+      const ask = read('api/ask.js');
+      ok('api/ask.js derives the disclaimer from presenceLead, not from the plan',
+        /attributionDisclaimed: !!presenceLead/.test(ask),
+        'deriving it from the plan would disclaim on turns where nothing was said to the reader');
+    }
+
+    // =========================================================================
     console.log('\n=== G. THE ROSTER ===');
     {
       const gates = JSON.parse(read('gates.json'));
