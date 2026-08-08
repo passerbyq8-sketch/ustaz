@@ -82,6 +82,11 @@ import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/polic
 // A takhrij nobody published is never emitted. See lib/takhrij-lock.js for the measured incident.
 import { lockTakhrij } from '../lib/takhrij-lock.js';
 import { guardEmptyAnswer } from '../lib/empty-answer.js';
+// قرار ١ب: OFF by default. The import is unconditional and the BEHAVIOUR is flagged — a
+// conditional import would make the flag decide what the module graph is, which is a second
+// thing that can differ between environments.
+import { anchorModeEnabled } from '../lib/anchor/flag.js';
+import { parseUnits, verifyUnits, composeUnits, honestTakhrijInDraft, UNIT_INSTRUCTION } from '../lib/anchor/units.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // قرار ٢: the transfer judge answers نعم or لا and nothing else, so it runs on the FAST tier.
@@ -2578,6 +2583,57 @@ export default async function handler(req, res) {
       // while he reads the answer; placed at the end it arrives after he has already read the
       // ruling as though it were somebody's.
       return emitOnce((presenceLead ? presenceLead + '\n\n' : '') + bBody + bNote + referralBlockFor(bBody + bNote) + bCards);
+    }
+
+    // ── ANCHOR MODE: EVERY CLAIM ON A SPAN THAT IS REALLY ON THE PAGE (قرار ١ب) ──
+    //
+    // BEHIND A FLAG, DEFAULT OFF (lib/anchor/flag.js). Everything below this block is the shipped
+    // composition and is untouched — when ANCHOR_MODE is not exactly 'on', this branch does not
+    // exist as far as a reader is concerned. Turning it on is the owner's separate decision after
+    // a mini battery, which is what قرار ١ب asks for.
+    //
+    // IT BUFFERS, like every other checked exit here, and for the same reason the claim route
+    // does: units cannot be verified after the reader has already read them.
+    if (anchorModeEnabled()) {
+      const ar = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model, max_tokens: maxTokens, system, stream: false,
+          messages: [...round2Messages, { role: 'user', content: UNIT_INSTRUCTION }],
+        }),
+      });
+      if (!ar.ok) {
+        const errText = await ar.text().catch(() => '');
+        console.error('[anchor] upstream', ar.status, errText.slice(0, 200));
+        clearKeepAlive();
+        res.write(`data: ${JSON.stringify({ type: 'error', error: { message: `upstream ${ar.status}` } })}\n\n`);
+        return res.end();
+      }
+      const aPayload = await ar.json();
+      const aDraft = ((aPayload && aPayload.content) || [])
+        .filter((b) => b && b.type === 'text').map((b) => b.text).join('').trim();
+      const units = parseUnits(aDraft);
+      const { kept, dropped } = verifyUnits(units, retrievedFlat);
+      console.log('[anchor]', {
+        emitted: units.length, kept: kept.length,
+        dropped: dropped.map((d) => d.why),
+      });
+      // ZERO SURVIVING UNITS IS THE HONEST REFUSAL THE APP ALREADY HAS. It is not a failure to
+      // route around: it is the mechanism reporting that nothing the model wrote was on a page.
+      if (!kept.length) {
+        return emitOnce((presenceLead ? presenceLead + '\n\n' : '') + NO_VERIFIED_SOURCE_MESSAGE);
+      }
+      // THE SERVER COMPOSES. The model never saw two units together, so there is no linking
+      // sentence to inherit — and anything it wrote outside a <unit> tag was discarded at parse.
+      const byUrl = new Map(canonicalSources.map((c) => [c.url, c.tag]));
+      const composed = composeUnits(kept, { cardFor: (u) => byUrl.get(u) || '' });
+      // قرار ٥, on the SAME matching: a narrator or a grade no cited page carries is emptied, and
+      // the hadith prints with no takhrij line rather than with a guessed one. These fields never
+      // pass through prose, so lib/takhrij-lock.js — which reads finished prose — never sees them.
+      const honest = honestTakhrijInDraft(composed, retrievedFlat);
+      if (honest.dropped.length) console.warn('[anchor] takhrij dropped', honest.dropped);
+      return emitOnce(withPresence(honest.text));
     }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──

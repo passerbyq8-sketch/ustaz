@@ -281,3 +281,10 @@ lib/transfer/index.js text eol=lf
 lib/transfer/match.js text eol=lf
 lib/transfer/extract.js text eol=lf
 lib/transfer/trim.js text eol=lf
+
+# Gate 71 (anchor-mode-guard) and the two modules it drives. Same reason as every gate above:
+# the guard reads them as text, and the span test matches NORMALISED Arabic — a CR inside a span
+# would break the containment check that decides whether a claim may be printed at all.
+guards/anchor-mode-guard.cjs text eol=lf
+lib/anchor/flag.js text eol=lf
+lib/anchor/units.js text eol=lf

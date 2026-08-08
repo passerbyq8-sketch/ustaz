@@ -348,5 +348,10 @@
     "name": "transfermode",
     "script": "guards/transfer-mode-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "anchormode",
+    "script": "guards/anchor-mode-guard.cjs",
+    "args": ""
   }
 ]
