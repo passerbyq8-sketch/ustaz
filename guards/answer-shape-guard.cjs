@@ -144,13 +144,14 @@ function answerShapeViolations(reply) {
 (async function main() {
   console.log('=== answer-shape-guard — the answer starts at the content and ends at the content ===');
 
-  let SP = null, RT = null, ASK = null, CORE = null, IMP = null, TAKH = null;
+  let SP = null, RT = null, ASK = null, CORE = null, IMP = null, TAKH = null, EA = null;
   try {
     SP = await esm('lib/system-prompt.js');
     RT = await esm('lib/policy/referral-tail.js');
     CORE = await esm('lib/policy/core.js');
     IMP = await esm('lib/policy/impermissible-request.js');
     TAKH = await esm('lib/policy/takhrij-disclosure.js');
+    EA = await esm('lib/empty-answer.js');
     ASK = await esm('api/ask.js');
   } catch (e) {
     ok('the real modules load', false, e.message);
@@ -265,6 +266,10 @@ function answerShapeViolations(reply) {
       ['WARM_ADULT_GUIDANCE', CORE.WARM_ADULT_GUIDANCE],
       ['WARM_PARENT_FOR_NEW_SUBSTANCE', CORE.WARM_PARENT_FOR_NEW_SUBSTANCE],
       ['TAKHRIJ_DISCLOSURE', TAKH.TAKHRIJ_DISCLOSURE],
+      // قرار ٩. The reply sent when the model streamed a clean 200 and said nothing. It is class
+      // (ب) for the same reason as the rest of this list — the system declaring a limit rather
+      // than answering — so the detector must stay silent on it too.
+      ['EMPTY_ANSWER_APOLOGY', EA.EMPTY_ANSWER_APOLOGY],
     ];
     for (const [label, text] of CLASS_B) {
       if (!ok(label + ' is present to be measured', typeof text === 'string' && text.length > 20)) continue;
@@ -468,6 +473,92 @@ function answerShapeViolations(reply) {
     const html2 = read('index.html');
     ok('the <suggestions> printer is untouched — the buttons stay',
       /suggestions = items;/.test(html2) && /onSuggestionClick/.test(html2));
+  }
+
+  // =========================================================================
+  console.log('\n=== J. AN ANSWER OF ZERO BYTES IS THE LAST SHAPE VIOLATION (قرار ٩) ===');
+  // The shape rules above all police what surrounds the content. This one polices whether there
+  // is any content at all: the model ends a stream having emitted no text, the request succeeds
+  // at every layer, and the reader is shown an empty bubble.
+  //
+  // DRIVEN, NOT GREPPED. The guard is a response wrapper, so the witness is a response: a real
+  // SSE stream is played into it and what comes out the other side is read back.
+  {
+    const mkRes = () => {
+      const r = { writes: [], statusCode: 0, headers: {}, ended: 0 };
+      r.status = (c) => { r.statusCode = c; return r; };
+      r.setHeader = (k, v) => { r.headers[k] = v; return r; };
+      r.flushHeaders = () => {};
+      r.write = (s) => {
+        r.writes.push(typeof s === 'string' ? s
+          : Buffer.from(s.buffer || s, s.byteOffset || 0, s.byteLength || s.length).toString('utf8'));
+        return true;
+      };
+      r.end = (s) => { if (s) r.writes.push(String(s)); r.ended += 1; return r; };
+      return r;
+    };
+    const openSse = (r) => { r.status(200); r.setHeader('Content-Type', 'text/event-stream; charset=utf-8'); };
+    const delta = (t) => 'data: ' + JSON.stringify({
+      type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t },
+    }) + '\n\n';
+    const STOP = 'data: ' + JSON.stringify({ type: 'message_stop' }) + '\n\n';
+    const body = (r) => r.writes.join('');
+    const apologised = (r) => body(r).indexOf(EA.EMPTY_ANSWER_APOLOGY) !== -1;
+
+    // THE WITNESS THE DECISION ASKS FOR: a stream that ends with zero text.
+    {
+      const r = EA.guardEmptyAnswer(mkRes(), 'witness');
+      openSse(r); r.write(STOP); r.end();
+      ok('an empty 200 stream is answered with the apology, not with silence', apologised(r));
+      // ...and it arrives in the ONE frame shape the live client parses (index.html handleEvent),
+      // which is what makes it visible rather than merely present.
+      const frames = body(r).split('\n').filter((l) => l.startsWith('data:'))
+        .map((l) => { try { return JSON.parse(l.slice(5)); } catch { return null; } }).filter(Boolean);
+      ok('...as a content_block_delta/text_delta the client renders',
+        frames.some((f) => f.type === 'content_block_delta' && f.delta
+          && f.delta.type === 'text_delta' && f.delta.text === EA.EMPTY_ANSWER_APOLOGY));
+    }
+    // THE NEGATIVE. A gate that only proves the apology can appear would pass while it appeared
+    // on every reply in the app.
+    {
+      const r = EA.guardEmptyAnswer(mkRes(), 'witness');
+      openSse(r); r.write(delta('الوترُ سنّةٌ مؤكّدة.')); r.write(STOP); r.end();
+      ok('a stream that DID say something is left exactly as it was', !apologised(r));
+    }
+    // An error stream already said something and has its own client handling.
+    {
+      const r = EA.guardEmptyAnswer(mkRes(), 'witness');
+      openSse(r);
+      r.write('data: ' + JSON.stringify({ type: 'error', error: { message: 'upstream 429' } }) + '\n\n');
+      r.end();
+      ok('an error stream is not overwritten with a generic apology', !apologised(r));
+    }
+    // A JSON refusal (429 day cap, 400 bad body) is not an event-stream and carries no delta.
+    {
+      const r = EA.guardEmptyAnswer(mkRes(), 'witness');
+      r.status(429); r.setHeader('Content-Type', 'application/json; charset=utf-8');
+      r.end(JSON.stringify({ error: 'day-cap-reached' }));
+      ok('a non-SSE response is untouched', !apologised(r));
+    }
+    // Whitespace is not an answer.
+    {
+      const r = EA.guardEmptyAnswer(mkRes(), 'witness');
+      openSse(r); r.write(delta('\n   \n')); r.write(STOP); r.end();
+      ok('a stream carrying only whitespace counts as empty', apologised(r));
+    }
+
+    // ── AND ALL THREE ROUTES ACTUALLY INSTALL IT ──────────────────────────
+    // The wrapper is only worth anything on a response that was wrapped.
+    for (const rel of ['api/ask.js', 'api/chat.js', 'api/chat-fast.js']) {
+      const s = read(rel);
+      ok(rel + ' installs the empty-answer guard',
+        /import \{ guardEmptyAnswer \} from '\.\.\/lib\/empty-answer\.js';/.test(s)
+        && /guardEmptyAnswer\(res, '/.test(s));
+    }
+    // ...and the classifier turn is exempted DELIBERATELY, not by accident: its one word is a
+    // routing token the client compares against 'GEN', never a sentence anybody reads.
+    ok('api/chat-fast.js exempts the classifier turn from the apology',
+      /if \(!classifierTurnForPrompt\) guardEmptyAnswer\(res, 'chat-fast'\);/.test(read('api/chat-fast.js')));
   }
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));

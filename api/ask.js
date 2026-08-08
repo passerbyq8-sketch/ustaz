@@ -81,6 +81,7 @@ import { classifyWorldIntent } from '../lib/world-intent.js';
 import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/policy/impermissible-request.js';
 // A takhrij nobody published is never emitted. See lib/takhrij-lock.js for the measured incident.
 import { lockTakhrij } from '../lib/takhrij-lock.js';
+import { guardEmptyAnswer } from '../lib/empty-answer.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -501,6 +502,12 @@ export default async function handler(req, res) {
   // the throttle, before the key is read, and before any planner or retrieval module is even
   // imported -- so an un-consented request produces no outbound call of any kind.
   if (!guardAIConsent(req, res)) return;
+
+  // قرار ٩: from here on, every exit this handler has — and every exit added to it later — is
+  // covered by the one rule that a 200 event-stream may not end having said nothing. Installed
+  // ABOVE the twenty-six emission sites rather than inside them, because the invariant belongs to
+  // the response and not to any one branch.
+  guardEmptyAnswer(res, 'ask');
 
   // Per-IP ask throttle (fail-open). Runs before any work — body parse, retrieval,
   // or upstream call — so a throttled request costs nothing. On limit hit we emit the

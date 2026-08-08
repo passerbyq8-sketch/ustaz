@@ -45,6 +45,7 @@ import { lastUserText } from '../lib/attribution.js';
 // for isClassifierTurn below, so no new field was invented to carry the distinction.
 import { CLASSIFIER_SYSTEM_PROMPT, buildFastGenPrompt } from '../lib/system-prompt.js';
 import { readerFromBody, narrowestBand, dropClientSystem } from '../lib/reader-fields.js';
+import { guardEmptyAnswer } from '../lib/empty-answer.js';
 
 // THE CLASSIFIER TURN, IDENTIFIED. This relay carries TWO different things: the route classifier
 // (index.html:7879 — `max_tokens: 8`, one word of output, never spoken to the child) and the GEN
@@ -176,6 +177,14 @@ export default async function handler(req, res) {
     if (parsed.band !== undefined) delete parsed.band;
 
     outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.
+
+    // قرار ٩, sibling of api/chat.js -- but NOT on the classifier turn, and the exemption is
+    // explicit rather than assumed. That turn's reply is one word nobody ever sees; the client
+    // reads it as a routing token and treats anything that is not exactly 'GEN' as 'DEEN'
+    // (index.html). So an Arabic apology posted into that channel would be dead text at best,
+    // and it is installed here, after max_tokens has told us which turn this is, rather than at
+    // the top of the handler where that is not yet known.
+    if (!classifierTurnForPrompt) guardEmptyAnswer(res, 'chat-fast');
   } catch (e) {
     // No raw passthrough. Same reason as api/chat.js: the old fallback handed the client
     // back control of the model and the token cap on any transform error. SIBLING CONTRACT.

@@ -10,6 +10,7 @@ import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '.
 // client posted -- see lib/system-prompt.js for why that was the defect and not the design.
 import { buildSystemPrompt } from '../lib/system-prompt.js';
 import { readerFromBody, narrowestBand, dropClientSystem } from '../lib/reader-fields.js';
+import { guardEmptyAnswer } from '../lib/empty-answer.js';
 
 // The reader's own words for THIS turn. Same shape api/ask.js reads: the content may be a plain
 // string or the block array the voice client sends.
@@ -44,6 +45,11 @@ export default async function handler(req, res) {
   // turn to Anthropic. It runs BEFORE the throttle, so an un-consented request touches neither
   // Redis nor the vendor.
   if (!guardAIConsent(req, res)) return;
+
+  // قرار ٩. This route is a THIN BYTE RELAY -- it forwards the upstream SSE unread, so an upstream
+  // that streams a well-formed body with no text_delta in it produces a well-formed empty bubble
+  // here and nothing in the loop is in a position to notice. The wrapper reads what goes past.
+  guardEmptyAnswer(res, 'chat');
 
   // Throttle. This relay was bare -- eight unthrottled POSTs to production proved it.
   // Runs before ANY work, so a throttled request costs nothing. callAI already handles

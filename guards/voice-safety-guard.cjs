@@ -34,6 +34,13 @@ function ok(name, cond, detail) {
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 
+function decodeWrite(s) {
+  if (typeof s === 'string') return s;
+  if (Buffer.isBuffer(s)) return s.toString('utf8');
+  if (ArrayBuffer.isView(s)) return Buffer.from(s.buffer, s.byteOffset, s.byteLength).toString('utf8');
+  return String(s);
+}
+
 // A response double that records what the handler wrote, in the shape the live client parses.
 function fakeRes() {
   return {
@@ -41,8 +48,11 @@ function fakeRes() {
     status(c) { this.code = c; return this; },
     setHeader(k, v) { this.headers[k] = v; return this; },
     flushHeaders() {},
-    write(s) { this.writes.push(String(s)); return true; },
-    end(s) { if (s) this.writes.push(String(s)); this.ended += 1; return this; },
+    // The relay forwards the upstream reader's Uint8Array views verbatim (api/chat.js), and
+    // String(Uint8Array) is a list of decimal byte values — so a double that did not decode
+    // would read every relayed reply as gibberish and every assertion about one as vacuous.
+    write(s) { this.writes.push(decodeWrite(s)); return true; },
+    end(s) { if (s) this.writes.push(decodeWrite(s)); this.ended += 1; return this; },
     json(o) { this.writes.push(JSON.stringify(o)); this.ended += 1; return this; },
   };
 }
@@ -156,6 +166,39 @@ const BENIGN = 'شنو معنى الإحسان؟';
       await handler(mkReq(BENIGN), res);
       ok('an ordinary voice turn still reaches the model', upstreamCalls === 1, 'upstream calls: ' + upstreamCalls);
       ok('...and is still relayed as a stream', res.code === 200);
+      // قرار ٩, END TO END ON THE REAL RELAY. The stub above hands back a reader that is done
+      // immediately -- a clean 200 whose body carries no text_delta at all, which is exactly the
+      // upstream behaviour the decision is about. This route forwards bytes without reading them,
+      // so nothing in its loop could notice; the reader would have been shown an empty bubble.
+      const EA = await esm('lib/empty-answer.js');
+      ok('...and an upstream that streamed NOTHING reaches the reader as the apology, not silence',
+        readerText(res) === EA.EMPTY_ANSWER_APOLOGY,
+        JSON.stringify(readerText(res)).slice(0, 200));
+    }
+    {
+      // THE NEGATIVE, on the same relay: an upstream that DID stream text is passed through
+      // untouched and gains no apology.
+      const SPOKEN = 'الإحسانُ أن تعبدَ اللهَ كأنّك تراه.';
+      const frame = 'data: ' + JSON.stringify({
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: SPOKEN },
+      }) + '\n\n' + 'data: ' + JSON.stringify({ type: 'message_stop' }) + '\n\n';
+      const prev = globalThis.fetch;
+      globalThis.fetch = async (url) => {
+        if (String(url).indexOf('api.anthropic.com') === -1) return { ok: false, status: 500, text: async () => '' };
+        let sent = false;
+        return {
+          ok: true, status: 200, json: async () => ({ content: [] }), text: async () => '',
+          body: { getReader: () => ({ read: async () => (sent ? { done: true }
+            : (sent = true, { done: false, value: new Uint8Array(Buffer.from(frame, 'utf8')) })) }) },
+        };
+      };
+      const res = fakeRes();
+      await handler(mkReq(BENIGN), res);
+      globalThis.fetch = prev;
+      const EA = await esm('lib/empty-answer.js');
+      const out = readerText(res);
+      ok('a voice turn that DID stream text is relayed unchanged', out === SPOKEN, JSON.stringify(out).slice(0, 200));
+      ok('...and gains no apology', out.indexOf(EA.EMPTY_ANSWER_APOLOGY) === -1);
     }
     {
       // THE BAND MAY NOT TRAVEL UPSTREAM. Anthropic 400s on an unknown top-level field, so the
