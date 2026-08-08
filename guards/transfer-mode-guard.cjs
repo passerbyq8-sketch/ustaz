@@ -288,6 +288,107 @@ const labelPage = (q, a) => '<html><body><article>'
     }
 
     // =========================================================================
+    console.log('\n=== K. DRIVEN: THE TRANSFER ACTUALLY REACHES THE READER ===');
+    // Sections A–I prove the decision is correct. This proves it is CALLED, and that a transfer
+    // REPLACES the generated answer rather than sitting beside it — which is the only way it
+    // saves anything. Measured on the vendor-call count, because "the reply looks published" and
+    // "no answer was generated" are different claims and only the second one is the feature.
+    {
+      const saved = {};
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
+        saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-transfer-guard-fake';
+      process.env.BRAVE_API_KEY = 'brave-transfer-guard-fake';
+      process.env.RFC_V05_MODE = 'off';
+      process.env.LEDGER_RAG = 'off';
+      process.env.FOUNDER_SECRET = 'transfer-guard-driven-secret';
+      const throwingFetch = globalThis.fetch;
+      try {
+        const DC = await esm('lib/daycap.js');
+        const CONSENT = await esm('lib/ai-consent.js');
+        const DEVICE = 'transfer-guard-device';
+        const FOUNDER = DC.founderTokenFor(DEVICE);
+        const PUBLISHED_Q = 'ما حكم العقيقة عن المولود';
+        const PAGE = labelPage(PUBLISHED_Q, HAMDALA + ' ' + BODY.repeat(4));
+
+        let vendor = 0;
+        const install = () => {
+          vendor = 0;
+          globalThis.fetch = async (url, opts) => {
+            const u = String(url);
+            if (u.includes('api.anthropic.com')) {
+              vendor++;
+              const b = JSON.parse(opts.body);
+              return {
+                ok: true, status: 200,
+                json: async () => (vendor === 1
+                  ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't1', name: 'search_islamic_sources', input: { query: 'حكم العقيقة' } }] }
+                  : { content: [{ type: 'text', text: (b.max_tokens === 8 ? 'لا' : 'مسوّدة مولَّدة.') }] }),
+                body: { getReader: () => ({ read: async () => ({ done: true }) }) }, text: async () => '',
+              };
+            }
+            if (u.includes('api.search.brave.com')) {
+              return { ok: true, status: 200, text: async () => '', json: async () => ({ web: { results: [
+                { title: 'العقيقة', url: 'https://islamweb.net/ar/fatwa/1001/x', description: '' },
+              ] } }) };
+            }
+            return { ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => PAGE, url: u };
+          };
+        };
+        const mkRes = () => {
+          const r = { writes: [], statusCode: 0, headers: {} };
+          r.status = (c) => { r.statusCode = c; return r; };
+          r.setHeader = (k, v) => { r.headers[k] = v; return r; };
+          r.getHeader = (k) => r.headers[k];
+          r.flushHeaders = () => {}; r.json = () => r;
+          r.write = (s) => { r.writes.push(typeof s === 'string' ? s
+            : Buffer.from(s.buffer || s, s.byteOffset || 0, s.byteLength || s.length).toString('utf8')); return true; };
+          r.end = (s) => { if (s) r.writes.push(String(s)); return r; };
+          r.on = () => r; r.once = () => r; r.emit = () => r;
+          return r;
+        };
+        const mkReq = (q) => ({
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-ezik-ai-consent': CONSENT.AI_CONSENT_VERSION,
+            'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER },
+          body: { name: 'خالد', age: 30, gender: 'male', mode: 'chat', band: 'adult',
+            messages: [{ role: 'user', content: q }] },
+          socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
+        });
+        const readerText = (r) => r.writes.join('').split('\n').filter((l) => l.startsWith('data:'))
+          .map((l) => { try { return JSON.parse(l.slice(5)); } catch { return null; } })
+          .filter((f) => f && f.delta && typeof f.delta.text === 'string').map((f) => f.delta.text).join('');
+
+        const handler = (await esm('api/ask.js')).default;
+
+        // ── the reader types the published question verbatim ──────────────
+        install();
+        const res = mkRes();
+        try { await handler(mkReq(PUBLISHED_Q), res); } catch (e) { /* a refusal is not a silence */ }
+        const t = readerText(res);
+        ok('the reader is given the PUBLISHED text', /العقيقة سنة مؤكدة/.test(t), JSON.stringify(t).slice(0, 200));
+        // THE FEATURE IS THE CALL THAT DID NOT HAPPEN. Round 1 decides to search; a transfer
+        // means round 2 never runs, so exactly ONE vendor call is the whole saving.
+        eq('...and NO answer was generated (round 2 never ran)', vendor, 1);
+        ok('...with the ḥamdala stripped', !/الحمد لله/.test(t));
+        ok('...carrying its OWN page as the card', /islamweb\.net/.test(t));
+
+        // ── the same question with a flip word ────────────────────────────
+        install();
+        const res2 = mkRes();
+        try { await handler(mkReq('ما حكم العقيقة عن المولود المتوفى'), res2); } catch (e) { /* ditto */ }
+        const t2 = readerText(res2);
+        ok('a flipped question does NOT get the published text', !/العقيقة سنة مؤكدة/.test(t2));
+        ok('...and is generated instead', vendor >= 2, String(vendor));
+      } finally {
+        globalThis.fetch = throwingFetch;
+        for (const k of Object.keys(saved)) {
+          if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
+        }
+      }
+    }
+
+    // =========================================================================
     console.log('\n=== J. THE ROSTER ===');
     {
       const gates = JSON.parse(read('gates.json'));

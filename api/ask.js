@@ -84,6 +84,10 @@ import { lockTakhrij } from '../lib/takhrij-lock.js';
 import { guardEmptyAnswer } from '../lib/empty-answer.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+// قرار ٢: the transfer judge answers نعم or لا and nothing else, so it runs on the FAST tier.
+// Same env var and same fallback as api/chat-fast.js — one tier, named in one way. Paying the
+// answering model for a single token would make the check cost more than the answer it protects.
+const FAST_MODEL = process.env.MODEL_FAST || 'claude-haiku-4-5-20251001';
 
 // Server-declared tool. The client never sends this.
 const tools = [
@@ -2296,6 +2300,61 @@ export default async function handler(req, res) {
           '- لا تعتذرْ ولا تجعلْ عدمَ وجودِ نصِّه هو الجواب؛ التطبيقُ يُضيفُ تنبيهًا مختصرًا بذلك بنفسه في آخر الجواب.',
         ].join('\n'),
       });
+    }
+
+    // ── TRANSFER MODE: THE PUBLISHED ANSWER, NOT A PARAPHRASE OF IT (قرار ١) ──
+    //
+    // Runs AFTER the cards are built (the card is the page itself) and BEFORE any drafting, which
+    // is the only order that works: a transfer that fired after generation would have paid for the
+    // answer it then discarded, and one that fired before the cards would have nothing to cite.
+    //
+    // IT CAN ONLY EVER REFUSE. Every branch inside lib/transfer/ resolves to "no", so the worst
+    // case is that this block does nothing and the ordinary sourced answer runs exactly as it did
+    // before — which is what makes it safe to add to a working path.
+    {
+      const pages = retrievedFlat.filter((p) => p && p.published);
+      if (pages.length) {
+        const { considerTransferPair } = await import('../lib/transfer/index.js');
+        // THE JUDGE IS A LIVE CALL AND IS COUNTED. It runs at most once per request — only on the
+        // FIRST page that lands in the judge band — because a per-page judge would turn one
+        // question into three model calls to save one.
+        let judgeSpent = false;
+        const judge = async (prompt) => {
+          if (judgeSpent) throw new Error('judge already spent this request');
+          judgeSpent = true;
+          console.log('[transfer] judge call', { model: FAST_MODEL });
+          const jr = await fetch(ANTHROPIC_URL, {
+            method: 'POST', headers,
+            body: JSON.stringify({
+              model: FAST_MODEL, max_tokens: 8, stream: false,
+              messages: [{ role: 'user', content: prompt }],
+            }),
+          });
+          if (!jr.ok) throw new Error('judge upstream ' + jr.status);
+          const jp = await jr.json();
+          return ((jp && jp.content) || []).filter((b) => b && b.type === 'text').map((b) => b.text).join('');
+        };
+        for (const p of pages) {
+          let t = null;
+          try {
+            t = await considerTransferPair(questionText, { url: p.url, published: p.published }, { judge });
+          } catch (e) {
+            console.warn('[transfer] threw — generating instead:', e && e.message);
+            break;
+          }
+          console.log('[transfer]', {
+            host: (() => { try { return new URL(p.url).hostname; } catch { return '?'; } })(),
+            transfer: t.transfer, score: Number(t.score || 0).toFixed(3),
+            judged: !!t.judged, flips: (t.flips || []).length, reason: t.reason,
+          });
+          if (!t.transfer) continue;
+          // THE CARD IS THE PAGE ITSELF, and only that page — a transferred answer may not carry
+          // citations to pages it did not come from.
+          const own = canonicalSources.filter((c) => c.url === p.url);
+          const tag = own.length ? '\n' + own.map((c) => c.tag).join('\n') : '';
+          return emitOnce(withPresence(t.text) + tag);
+        }
+      }
     }
 
     const round2Messages = [
