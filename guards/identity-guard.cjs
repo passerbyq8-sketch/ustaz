@@ -339,6 +339,27 @@ const PAGES = {
           'GEN is the route شاهد W2 found empty; a raw body.messages here is that defect returning');
         ok('round2Messages is built through the builder',
           /const round2Messages = withIdentityFact\(\[/.test(ask));
+
+        // ── AND THE COUNT IS THE CHECK, NOT THE NAMED TWO (ج٣) ────────────────
+        //
+        // W2 was closed by naming the exits that were known to be empty. That is the same shape of
+        // reasoning that caused it: the round2Messages comment named four exits and was blind to a
+        // fifth. Two more were then MEASURED empty and recorded rather than fixed — the live-world
+        // answer and the encyclopedic fallback, both drafting from `[...body.messages, grounding]`
+        // AFTER identityFact exists and neither carrying it.
+        //
+        // So this counts instead of naming. Every `grounding` exit in the handler must go through
+        // the builder; a new one added tomorrow fails here on the day it is written.
+        {
+          const grounded = ask.match(/messages: (?:withIdentityFact\()?\[\.\.\.body\.messages, \{ role: 'user', content: grounding \}\]/g) || [];
+          const wired = grounded.filter((m) => m.includes('withIdentityFact'));
+          ok('EVERY grounding exit drafts through the builder',
+            grounded.length > 0 && wired.length === grounded.length,
+            wired.length + ' of ' + grounded.length + ' — an unwired grounding exit is W2 returning');
+          // ...and there are at least the two ج٣ closed, so the check cannot pass by finding none.
+          ok('...and there are at least two of them, so the count is not vacuous',
+            grounded.length >= 2, String(grounded.length));
+        }
         // round2 still has retrieved material for the block to follow — the ordering the old
         // assertion checked textually, kept as a check that the material is still IN the array.
         const start = ask.indexOf('const round2Messages = withIdentityFact([');
@@ -805,6 +826,30 @@ const PAGES = {
       ok('api/ask.js derives the disclaimer from presenceLead, not from the plan',
         /attributionDisclaimed: !!presenceLead/.test(ask),
         'deriving it from the plan would disclaim on turns where nothing was said to the reader');
+    }
+
+    // =========================================================================
+    console.log('\n=== M. THE IDENTITY PAGE EARNS A CARD, AND ONLY A REAL ONE (ج٤) ===');
+    //
+    // MEASURED: «من هو خالد عبدالرحمن» answered correctly — a Saudi singer, no shaykh's biography
+    // — and shipped with ZERO cards, while the spec for this case reads «فنان ببطاقة». The answer
+    // was built from a page the app fetched and read, and the reader had no way to see it.
+    {
+      const ask = read('api/ask.js');
+      ok('the GEN branch writes a card for the identity page',
+        /buildSourceTag\(\{ url: identityUrl/.test(ask));
+      // AFTER the filter closes, or it would be stripped as model text on the way out.
+      ok('...after filter.end(), because the GEN filter strips <source> from MODEL text',
+        ask.indexOf('writeText(filter.end());        // stream ended') < ask.indexOf('if (identityUrl) {'),
+        'written before the filter closes, this card would be deleted by the very filter that '
+        + 'exists to delete cards the model invented');
+      // ...and it is the RECORD's `.tag`, not the record — measured: `'\n' + idCard` shipped
+      // «[object Object]» to the reader.
+      ok('...and it writes the card\'s .tag, not the record', /idCard && idCard\.tag/.test(ask));
+      // ── AND A WHITELIST HIT GETS NO CARD, BECAUSE THERE IS NO PAGE ──────────
+      ok('a whitelist verdict carries no URL, so no card can be invented for it',
+        /identity\.source === 'whitelist' \? '' :/.test(ask),
+        'a card for a table lookup is a citation to nothing');
     }
 
     // =========================================================================

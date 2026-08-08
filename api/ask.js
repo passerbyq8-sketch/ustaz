@@ -54,7 +54,10 @@ import { takhrijDisclosureFor, takhrijDisclosureOnce } from '../lib/policy/takhr
 import { liveSearchNotice } from '../lib/policy/live-search-disclosure.js';
 // The registry's Arabic publisher name, so the transmission can be checked for naming the source
 // it transmits from rather than gesturing at "some websites".
-import { findSource } from '../lib/source-registry.js';
+// ...and `hostMatches`, the registry's OWN host comparison — subdomains and the www. prefix
+// included. ج٣ needs to ask «is this page on the shaykh's official domain?» and asking it with
+// string equality would answer «no» for www.binbaz.org.sa.
+import { findSource, hostMatches } from '../lib/source-registry.js';
 import { unregisteredNameInQuestion, stripEntityFromQuery } from '../lib/policy/entity-knowledge.js';
 // DOES THIS NAME EXIST AT ALL? A replacement BY EVIDENCE for the deleted model-verdict identity
 // check: one bounded look-up on the app's own world list, read as a page with a card and never as
@@ -1275,6 +1278,7 @@ export default async function handler(req, res) {
     let identityIsPublicFigure = false;
     let identityIsPlaced = false;
     let identityUrl = '';
+    let identityTitle = '';
     if (nameShape.probe) {
       try {
         const { identityFor, identityFactBlock, IDENTITY } = await import('../lib/identity/index.js');
@@ -1301,6 +1305,7 @@ export default async function handler(req, res) {
         // The page the verdict was READ FROM, when it was read from one at all. Empty for a
         // whitelist hit, which is a table lookup and has no page behind it (ج٤).
         identityUrl = identity.source === 'whitelist' ? '' : String(identity.url || '');
+        identityTitle = String(identity.display || '') || nameShape.name;
         console.log('[identity]', {
           kind: identity.kind, source: identity.source,
           // The NAME is not logged: it is the reader's own words, and the shape is what diagnoses.
@@ -1778,7 +1783,7 @@ export default async function handler(req, res) {
           model,
           max_tokens: maxTokens,
           system,
-          messages: [...body.messages, { role: 'user', content: grounding }],
+          messages: withIdentityFact([...body.messages, { role: 'user', content: grounding }]),
           stream: false,
         }),
       });
@@ -2041,7 +2046,7 @@ export default async function handler(req, res) {
             headers,
             body: JSON.stringify({
               model, max_tokens: maxTokens, system,
-              messages: [...body.messages, { role: 'user', content: grounding }],
+              messages: withIdentityFact([...body.messages, { role: 'user', content: grounding }]),
               stream: false,
             }),
           });
@@ -2164,6 +2169,29 @@ export default async function handler(req, res) {
         }
         writeText(filter.end());        // stream ended without a completion frame
         if (pending.length) res.write(pending);
+        // ── THE IDENTITY PAGE EARNS ITS CARD (ج٤) ──────────────────────────
+        //
+        // MEASURED: «من هو خالد عبدالرحمن» answered correctly — a Saudi singer, no shaykh's
+        // biography — and shipped with ZERO cards, while the handoff's spec for this case reads
+        // «فنان ببطاقة». The reply was built from a page the app actually fetched and read
+        // (ar.wikipedia.org through safeFetch), so the reader was given a sourced answer and no
+        // way to see the source.
+        //
+        // IT GOES OUT HERE, AFTER filter.end(), FOR ONE REASON. `createSourceFilter()` strips
+        // every <source> tag out of MODEL text on this branch, because GEN retrieves nothing and
+        // any card the model invents is unbacked. This card is not model text — it is the server
+        // citing a page it fetched itself — so it is written after the filter has closed, exactly
+        // as the live-search notice is written before it opens.
+        //
+        // AND ONLY FOR A PAGE. `identityUrl` is empty for a whitelist hit, which is a table
+        // lookup with no page behind it: a card there would be a citation to nothing. The
+        // directive's rule, enforced by the source of the verdict rather than by a guess.
+        if (identityUrl) {
+          // buildSourceTag returns the CARD RECORD, not the string — `.tag` is the wire form, and
+          // it returns null for any URL that cannot be encoded safely. Both are honoured here.
+          const idCard = buildSourceTag({ url: identityUrl, title: identityTitle || nameShape.name });
+          if (idCard && idCard.tag) writeText('\n' + idCard.tag);
+        }
       } finally {
         res.end();
       }
@@ -2327,6 +2355,35 @@ export default async function handler(req, res) {
     // THE PAGES THIS REPLY WILL BE DRAFTED OVER decide who it may name. Computed from the gated
     // pages themselves — their extracted byline, their host, their extracted text — and never from
     // the question, the plan, or anything the model said.
+    // ── «لم أقف» IS A CLAIM ABOUT OUR WORK, AND IT MUST STILL BE TRUE HERE (ج٣) ──
+    //
+    // THE MEASURED FALSEHOOD. «ما قول الشيخ ابن باز في حكم صلاة الجماعة» came back carrying a
+    // binbaz.org.sa card FOR THAT VERY QUESTION, and under it: «لم أقف على نصٍّ مباشرٍ للشيخ… فما
+    // تقدَّم هو الحكم العام من مصدره المذكور، لا قولًا منسوبًا إليه».
+    //
+    // The note is set far above, when the ATTRIBUTED search comes up empty. What happens after it
+    // is set is that the ORDINARY retrieval runs and — for a registered scholar — often lands on
+    // his own official domain anyway. A fatwa page on the shaykh's own site IS his sourced word;
+    // that is what «official domain» means in lib/source-registry.js. So the note went out beside
+    // the very evidence that contradicts it.
+    //
+    // NARROW, AND DELIBERATELY SO. It suppresses the SENTENCE when it is false — nothing else. It
+    // does not license naming him (attributionLicence below still decides that from the pages), it
+    // does not relax the sourced-statement rule, and it does not touch the case the note exists
+    // for: if the retrieved pages really do NOT include his own domain, the note is true and
+    // stands exactly as before.
+    if (attributionNote && plan.officialDomain) {
+      const own = retrievedSources.filter(Boolean).flat().filter((p) => {
+        try { return hostMatches(new URL(p.url).hostname, plan.officialDomain); } catch { return false; }
+      });
+      if (own.length) {
+        console.warn('[attribution] note suppressed — his own domain is among the cited pages', {
+          entity: plan.namedEntity, domain: plan.officialDomain, pages: own.length,
+        });
+        attributionNote = '';
+      }
+    }
+
     sourceLicence = attributionLicence(retrievedSources.filter(Boolean).flat()).personIds;
     console.log('[licence]', { pages: retrievedSources.filter(Boolean).flat().length, persons: sourceLicence });
     // قرار ١٠: a card from a VIDEO-answer domain is a POINTER, never evidence. Its page carries
