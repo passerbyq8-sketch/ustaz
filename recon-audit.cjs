@@ -491,7 +491,20 @@ head('11) SERVERLESS HANDLER SANITY');
 head('12) LINE ENDINGS & BOM');
 {
   const textExt = /\.(js|cjs|mjs|html|json|md)$/i;
-  const targets = isRepo ? TRACKED.filter(t=>textExt.test(t)) : ['index.html'];
+  // FROZEN VENDOR PAGES ARE NOT OUR TEXT, AND SCANNING THEM BREAKS THIS CHECK.
+  //
+  // data/transfer-fixtures/*.html are the bytes eight hosts served on 2026-08-08, kept so the
+  // transfer extractors are tested against real markup instead of pages their own author wrote.
+  // Their manifest publishes a SHA8 of each, and .gitattributes marks them `-text` for exactly
+  // that reason: normalising an ending in either direction breaks the attestation.
+  //
+  // So their endings are whatever each host sent, and seven of them are mixed. Scanning them
+  // does not merely add seven warnings — the PASS below is `!mixed`, a SINGLE verdict over ALL
+  // files, so those seven made it unreachable forever. This check exists to catch a stray CR in
+  // OUR files (the anchor-matching hazard, defect 40); with the fixtures in scope it could never
+  // report on our files again. Excluding them is what keeps the check alive.
+  const isFrozenFixture = (t) => t.startsWith('data/transfer-fixtures/');
+  const targets = isRepo ? TRACKED.filter(t=>textExt.test(t) && !isFrozenFixture(t)) : ['index.html'];
   let mixed=0, bom=0;
   for (const rel of targets){
     const buf = readBuf(rel); if (!buf) continue;
