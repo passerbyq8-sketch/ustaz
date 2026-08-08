@@ -605,7 +605,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 68;   // 68th: answershape — the answer starts at the content and ends at the content
+  const GATES_EXPECTED = 69;   // 69th: identity — a name is unknown until a source says otherwise
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >

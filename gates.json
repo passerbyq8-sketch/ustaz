@@ -338,5 +338,10 @@
     "name": "answershape",
     "script": "guards/answer-shape-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "identity",
+    "script": "guards/identity-guard.cjs",
+    "args": ""
   }
 ]

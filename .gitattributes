@@ -263,3 +263,10 @@ guards/answer-shape-guard.cjs text eol=lf
 tools/soft-404.cjs text eol=lf
 lib/domain-budget.js text eol=lf
 lib/policy/takhrij-disclosure.js text eol=lf
+
+# Gate 69 (identity-guard) and the two modules it drives. Same reason as every gate above: the
+# guard reads them as text and asserts on their contents, and the whitelist is keyed on
+# NORMALISED Arabic — a CR injected by core.autocrlf would sit inside a key and split it.
+guards/identity-guard.cjs text eol=lf
+lib/identity/index.js text eol=lf
+lib/identity/whitelist.js text eol=lf
