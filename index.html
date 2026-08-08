@@ -2767,6 +2767,65 @@ const stripIncompleteTags = (text) => {
   return t;
 };
 
+// ============================================================
+// عنوانُ الخطوات — من الجواب، لا من قالبٍ ثابت
+// ============================================================
+// كان فوق كلِّ قائمةِ خطواتٍ عنوانٌ واحدٌ لا يتغيّر: «خُطُوَاتٌ تُسَاعِدُك». فحين كانت القائمةُ
+// أعذارًا شرعيّةً لهجرِ الفراش، قرأ صاحبُ السؤال عنوانًا لا علاقةَ له بما تحته. قرارُ المالك:
+// «ماله داعي الجمله هذي اصلا، لازم تكون كلمه بديله حسب الصياغ وتتماشى معاه، وليست جمله تظهر
+// في كل مره». فالعنوانُ صار خاصّيّةً يزوِّدها النموذجُ من صلبِ الموضوع — وإن غابت فلا عنوانَ
+// أصلًا. لا سقوطَ إلى عبارةٍ ثابتة: عبارةٌ ثابتةٌ خاطئةٌ أسوأُ من لا عبارة.
+// أربعةُ مطابعَ تقرأ هذه الدالّةَ نفسَها: البطاقةُ المرئيّة (StepsCard)، والصوتُ (formatForTTS)،
+// وسجلُّ الأهل (formatForLog)، والنسخُ إلى الحافظة (REPLY_SERIALIZERS.steps).
+const readStepsTitle = (attrsStr) => {
+  const m = String(attrsStr || '').match(/title=["']([^"']*)["']/);
+  return m ? m[1].trim() : '';
+};
+
+// ============================================================
+// «رَوَى {المخرِّج}» — والمخرِّجُ مخرِّجٌ لا درجة
+// ============================================================
+// العطبُ المقيس: نموذجٌ ملأ narrator بالدرجةِ نفسِها، فطُبع «رَوَى متفق عليه» ثمّ «متفق عليه»
+// درجةً تحته — الدرجةُ مرّتين، وإحداهما بصيغةٍ مكسورةٍ لا تُقرأ عربيّةً.
+// هنا نصلحُ الطباعةَ فقط: إن كان narrator لفظَ درجةٍ لا اسمَ مخرِّج، أو ساوى ruling بعد
+// التطبيع، فلا يُطبَعُ سطرُ «رَوَى …»، وتُطبَعُ الدرجةُ مرّةً واحدة (ونرفعُ اللفظَ إلى خانةِ
+// الدرجةِ إن كانت خاليةً، كيلا تضيعَ الدرجةُ أصلًا). أمّا صدقُ التخريجِ نفسِه — نموذجٌ يضع
+// «متفق عليه» على ما ليس في الصحيحين — فعطبُ توليدٍ خارجَ نطاقِ هذا المطبع.
+const normalizeAttribution = (s) => String(s || '')
+  .replace(/[ً-ْٰـ]/g, '')   // تشكيل وتطويل
+  .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+  .replace(/[^ء-ي\s]/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+// ألفاظُ الدرجاتِ التي شوهدت — أو تُشبِهُ ما شوهد — في خانةِ المخرِّج. مطابقةٌ تامّةٌ بعد
+// التطبيع لا احتواء: «الحسن البصريّ» مخرِّجٌ لا درجة، و«حسن» وحدَها درجة.
+const RULING_PHRASES = new Set([
+  'متفق عليه', 'متفق علي صحته', 'رواه الشيخان', 'اخرجه الشيخان',
+  'صحيح', 'حسن', 'ضعيف', 'حسن صحيح', 'صحيح لغيره', 'حسن لغيره',
+  'ضعيف جدا', 'موضوع', 'منكر', 'مرسل', 'متواتر', 'شاذ',
+  'اسناده صحيح', 'اسناده حسن', 'اسناده ضعيف',
+].map(normalizeAttribution));
+// «حسّنه الألباني» / «صحّحه ابن باز» / «ضعّفه الألباني» — درجةٌ منسوبةٌ لا مخرِّج.
+const RULING_VERB_RE = /^(حسنه|صححه|ضعفه|حسن|صحح|ضعف)\s/;
+const isRulingPhrase = (s) => {
+  const n = normalizeAttribution(s);
+  if (!n) return false;
+  return RULING_PHRASES.has(n) || RULING_VERB_RE.test(n);
+};
+/**
+ * تُرجِعُ ما يُطبَعُ فعلًا لبطاقةِ حديث: مخرِّجٌ (أو لا شيء) ودرجةٌ (أو لا شيء).
+ * @param {string} narrator قيمةُ narrator كما وردت من النموذج
+ * @param {string} ruling قيمةُ ruling كما وردت من النموذج
+ * @returns {{narrator: string, ruling: string}}
+ */
+const resolveHadithAttribution = (narrator, ruling) => {
+  let n = String(narrator || '').trim();
+  let r = String(ruling || '').trim();
+  if (n && isRulingPhrase(n)) { if (!r) r = n; n = ''; }
+  else if (n && r && normalizeAttribution(n) === normalizeAttribution(r)) { n = ''; }
+  return { narrator: n, ruling: r };
+};
+
 // مفتاح تجريبي (A/B) — صحّحه إلى true لمقارنة النطق بلا تشكيل في المتصفح:
 // عند true نُرسِل لـ ElevenLabs نصّاً مُجرَّداً من كل تشكيل (نطق MSA نثريّ فقط —
 // القرآن يُتلى من القارئ لا من الذكاء الاصطناعي، فالتجريد آمن هنا). النصّ المعروض
@@ -3078,7 +3137,7 @@ const parseRichMessage = (text, viewerAge) => {
         .filter(l => l)
         .map(l => l.replace(/^[-•*]\s*/, '').trim())
         .filter(l => l);
-      segments.push({ type: 'steps', items });
+      segments.push({ type: 'steps', items, title: readStepsTitle(attrsStr) });
     } else if (tagName === 'suggestions') {
       const items = content.split('\n')
         .map(l => l.trim())
@@ -3139,16 +3198,20 @@ const formatForTTS = (text) => {
   t = t.replace(/<hadith([^>]*)>([\s\S]*?)<\/hadith>/g, (_, attrs, content) => {
     const nm = attrs.match(/narrator=["']([^"']+)["']/);
     const rm = attrs.match(/ruling=["']([^"']+)["']/);
+    // الدرجةُ لا تُنطَقُ مرّتين، ولا يُنطَقُ «رَوَى متفق عليه».
+    const att = resolveHadithAttribution(nm ? nm[1] : '', rm ? rm[1] : '');
     const body = content.trim();
-    let out = nm ? ` رَوَى ${nm[1]}: ${body}.` : ` ${body}.`;
-    if (rm) out += ` ${rm[1]}.`;
+    let out = att.narrator ? ` رَوَى ${att.narrator}: ${body}.` : ` ${body}.`;
+    if (att.ruling) out += ` ${att.ruling}.`;
     return out + ' ';
   });
   // تحويل الخطوات إلى نص طبيعي للنطق — كذلك قبل تجريد الأقواس. نسمح بخصائص اختياريّة على الوسم المفتوح.
-  t = t.replace(/<steps[^>]*>([\s\S]*?)<\/steps>/g, (_, content) => {
+  t = t.replace(/<steps([^>]*)>([\s\S]*?)<\/steps>/g, (_, attrs, content) => {
     const items = content.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(l => l);
     if (!items.length) return '';
-    return ' خُطُوَاتٌ تُسَاعِدُكِ: ' + items.join(' ثُمَّ ') + '. ';
+    // العنوانُ من الجواب إن وُجد، وإلّا فالخطواتُ تُنطَقُ بلا عنوانٍ أصلًا.
+    const title = readStepsTitle(attrs);
+    return (title ? ' ' + title + ': ' : ' ') + items.join(' ثُمَّ ') + '. ';
   });
   // <worship> is resolved to the frozen cell text up-front (resolveWorshipTags).
   // Any tag surviving to here -> a single space (silence): never the raw tag, never model text.
@@ -3250,12 +3313,24 @@ const formatForLog = (text) => {
     return name ? ` [تلاوة سورة ${name}${rangePart}] ` : ' ';
   });
   // الحديث والخطوات: نفس تحويل الصوت كي يبقى السجلّ مقروءاً
-  t = t.replace(/<hadith[^>]*narrator=["']([^"']+)["'][^>]*ruling=["']([^"']+)["'][^>]*>([\s\S]*?)<\/hadith>/g,
-    (_, narrator, ruling, content) => ` رَوَى ${narrator}: ${content.trim()}. ${ruling}. `
-  );
-  t = t.replace(/<steps>([\s\S]*?)<\/steps>/g, (_, content) => {
+  // متسامحٌ مع ترتيبِ الخصائصِ وغيابِها كنظيرِه الصوتيّ: كان يشترطُ narrator ثمّ ruling بهذا
+  // الترتيبِ حصرًا، فحديثٌ بلا درجةٍ كان يتسرّبُ إلى سجلِّ الأهل وسمًا خامًا.
+  t = t.replace(/<hadith([^>]*)>([\s\S]*?)<\/hadith>/g, (_, attrs, content) => {
+    const nm = attrs.match(/narrator=["']([^"']+)["']/);
+    const rm = attrs.match(/ruling=["']([^"']+)["']/);
+    const att = resolveHadithAttribution(nm ? nm[1] : '', rm ? rm[1] : '');
+    const body = content.trim();
+    let out = att.narrator ? ` رَوَى ${att.narrator}: ${body}.` : ` ${body}.`;
+    if (att.ruling) out += ` ${att.ruling}.`;
+    return out + ' ';
+  });
+  // كان يطابقُ `<steps>` عاريةً فقط — فأيُّ خاصّيّةٍ عليها (وعنوانُ الخطواتِ خاصّيّةٌ الآن)
+  // كانت تُفلِتُ الوسمَ خامًا إلى سجلِّ الأهل.
+  t = t.replace(/<steps([^>]*)>([\s\S]*?)<\/steps>/g, (_, attrs, content) => {
     const items = content.split('\n').map(l => l.trim()).filter(l => l).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(l => l);
-    return items.length ? ' خُطُوَات: ' + items.join(' ثُمَّ ') + '. ' : '';
+    if (!items.length) return '';
+    const title = readStepsTitle(attrs);
+    return (title ? ' ' + title + ': ' : ' ') + items.join(' ثُمَّ ') + '. ';
   });
   t = t.replace(/\s+/g, ' ').trim();
   return t;
@@ -8477,7 +8552,10 @@ const REPLY_SERIALIZERS = {
     if (!meta && surahName) meta = '\u0633\u0648\u0631\u0629 ' + surahName;
     return REPLY_LINE([head, body, meta]);
   },
-  hadith: (sg) => REPLY_LINE([sg.narrator ? '\u0631\u064E\u0648\u064E\u0649 ' + sg.narrator : '\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064A\u0629', sg.content, sg.ruling]),
+  hadith: (sg) => {
+    const att = resolveHadithAttribution(sg.narrator, sg.ruling);
+    return REPLY_LINE([att.narrator ? '\u0631\u064E\u0648\u064E\u0649 ' + att.narrator : '\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064A\u0629', sg.content, att.ruling]);
+  },
   dhikr: (sg) => {
     const db = (typeof __adhkarData !== 'undefined') ? __adhkarData : null;
     const list = (db && db.byCat && db.byCat[parseInt(sg.catId, 10)]) || [];
@@ -8502,7 +8580,9 @@ const REPLY_SERIALIZERS = {
     // and the chip's own href is the only place it exists on screen.
     return REPLY_LINE([text ? label + ' \u2014 ' + text : label, sg.url || '']);
   },
-  steps: (sg) => REPLY_LINE(['\u062E\u064F\u0637\u064F\u0648\u064E\u0627\u062A\u064C \u062A\u064F\u0633\u064E\u0627\u0639\u0650\u062F\u064F\u0643'].concat(
+  // The heading comes from the ANSWER (the tag's title), or there is no heading at all. It used
+  // to be one fixed sentence printed above every list -- see readStepsTitle for what that cost.
+  steps: (sg) => REPLY_LINE(((sg.title || '').trim() ? [(sg.title || '').trim()] : []).concat(
     (sg.items || []).map((it, i) => (i + 1) + '. ' + it))),   // matches the card's <ol> decimal marks
   board: (sg) => sg.content,
   document: (sg) => REPLY_LINE([sg.title || '\u0645\u0633\u062A\u0646\u062F', toPlainText(sg.content)]),
@@ -8956,7 +9036,7 @@ function ezikRenderSegments(segments, ctx) {
       return <WorshipCard key={i} id={seg.id} band={deriveCaps(age).band} />;
     }
     if (seg.type === 'steps') {
-      return <StepsCard key={i} items={seg.items} />;
+      return <StepsCard key={i} items={seg.items} title={seg.title} />;
     }
     if (seg.type === 'board') {
       return <BoardCard key={i} content={seg.content} />;
@@ -9508,13 +9588,15 @@ function SurahCard({ num, from, to, onPlaySurah, onStopAudio }) {
 }
 
 function HadithCard({ content, narrator, ruling }) {
+  // خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
+  const att = resolveHadithAttribution(narrator, ruling);
   return (
     <div style={s.hadithCard}>
       <div style={s.hadithCardLabel}>
-        <span>{narrator ? `رَوَى ${narrator}` : 'من السنة النبوية'}</span>
+        <span>{att.narrator ? `رَوَى ${att.narrator}` : 'من السنة النبوية'}</span>
       </div>
       <div style={s.hadithText}>{content}</div>
-      {ruling && <div style={s.hadithMeta}>{ruling}</div>}
+      {att.ruling && <div style={s.hadithMeta}>{att.ruling}</div>}
     </div>
   );
 }
@@ -9656,12 +9738,16 @@ function WorshipCard({ id, band }) {
   );
 }
 
-function StepsCard({ items }) {
+// العنوانُ يأتي من الجوابِ نفسِه (خاصّيّةُ title على الوسم) — وإن غابَ فلا عنوانَ أصلًا،
+// ولا سقوطَ إلى عبارةٍ ثابتة. الأيقونةُ وحدَها تكفي علامةً على أنّ ما تحتَها قائمةُ خطوات،
+// كما تفعلُ بطاقةُ العبادةِ أعلاه بالضبط.
+function StepsCard({ items, title }) {
+  const heading = (title || '').trim();
   return (
     <div style={s.stepsCard}>
       <div style={s.stepsCardLabel}>
         <ListCheckIcon size={12} color="var(--red)" />
-        <span>خُطُوَاتٌ تُسَاعِدُك</span>
+        {heading ? <span>{heading}</span> : null}
       </div>
       <ol style={s.stepsList}>
         {items.map((item, i) => (
