@@ -307,23 +307,45 @@ const PAGES = {
       ok('...through the safe-path fetcher', /fetchPage: makeWikipediaFetcher\(\)/.test(ask));
       ok('...with the cache attached', /cache: identityCache\(\)/.test(ask));
       ok('...and builds the fact block from the result', /identityFact = identityFactBlock\(identity/.test(ask));
-      // THE INJECTION POINT IS THE SHARED ONE. round2Messages feeds the claim route, the
-      // attributed route, the buffered branch and the streamed relay; injecting anywhere else
-      // would arm three exits and silently miss the fourth.
+      // THE INJECTED MESSAGE IS BUILT IN ONE PLACE, AND CALLED FROM EVERY DRAFTING PATH.
+      //
+      // شاهد W2 measured what the older shape cost. The block was a literal inside round2Messages,
+      // and the comment above it called that «the one place every drafting exit passes through».
+      // It was true of four exits and blind to a fifth: the GEN branch sends body.messages raw and
+      // RETURNS before round2Messages is ever built. So a reader who named an unregistered person
+      // in a general question paid for the whole cascade and the model was told nothing.
+      //
+      // Copying the literal onto the fifth exit would have rebuilt exactly that trap for the
+      // sixth. So what is pinned here is the MECHANISM: one builder, N call sites.
       {
-        // Sliced rather than matched at a distance: the array carries a comment block, and a
-        // regex with a character budget would fail the day somebody adds a line to it — which
-        // reads as a broken injection when nothing is broken.
-        const start = ask.indexOf('const round2Messages = [');
-        const end = start === -1 ? -1 : ask.indexOf('];', start);
-        const arr = start === -1 || end === -1 ? '' : ask.slice(start, end);
-        ok('the fact block is injected into round2Messages, which every drafting exit builds from',
-          arr.includes("role: 'user', content: identityFact"), arr.slice(0, 200));
+        const hStart = ask.indexOf('const withIdentityFact = (');
+        const helper = hStart === -1 ? '' : ask.slice(hStart, hStart + 220);
+        ok('there is a single named builder for the injected message', hStart !== -1);
+        // ONE occurrence in the whole file. A second literal anywhere is the defect returning,
+        // and it is the only form of this bug a text check can see before it ships.
+        ok('...and the message is constructed in exactly ONE place in the handler',
+          (ask.match(/role: 'user', content: identityFact/g) || []).length === 1,
+          String((ask.match(/role: 'user', content: identityFact/g) || []).length) + ' occurrence(s)');
+        // IT APPENDS. The block is an instruction about how to read what precedes it, so «last»
+        // is a property of the builder rather than a rule each call site has to remember.
+        ok('...and it APPENDS, so the block is last on every path that uses it',
+          /\[\.\.\.msgs, \{ role: 'user', content: identityFact \}\]/.test(helper), helper.slice(0, 200));
         // ...and it is CONDITIONAL, so a turn with no name adds no empty message.
-        ok('...and only when there is one', /identityFact \?/.test(arr));
-        // ...and it sits AFTER the retrieved material, being an instruction about how to read it.
-        ok('...after the tool results, not before them',
-          arr.indexOf('toolResults') < arr.indexOf('identityFact'));
+        ok('...and only when there is a fact at all', /identityFact\s*\?/.test(helper));
+
+        // ── AND BOTH DRAFTING ROUTES GO THROUGH IT ──────────────────────────
+        ok('the GEN branch injects through the builder',
+          /messages: withIdentityFact\(body\.messages\)/.test(ask),
+          'GEN is the route شاهد W2 found empty; a raw body.messages here is that defect returning');
+        ok('round2Messages is built through the builder',
+          /const round2Messages = withIdentityFact\(\[/.test(ask));
+        // round2 still has retrieved material for the block to follow — the ordering the old
+        // assertion checked textually, kept as a check that the material is still IN the array.
+        const start = ask.indexOf('const round2Messages = withIdentityFact([');
+        const end = start === -1 ? -1 : ask.indexOf(']);', start);
+        const arr = start === -1 || end === -1 ? '' : ask.slice(start, end);
+        ok('...with the tool results inside it, so the appended block still follows them',
+          arr.includes('toolResults'), arr.slice(0, 200));
       }
       // ...and it does NOT open a second search budget.
       ok('stage 3 reuses the pages the world probe already paid for',
@@ -427,6 +449,134 @@ const PAGES = {
           ok('...and carrying the descriptor the SOURCE gave', all.includes('مطرب'));
         }
       } finally {
+        globalThis.fetch = throwingFetch;
+        for (const k of Object.keys(saved)) {
+          if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
+        }
+      }
+    }
+
+    // =========================================================================
+    console.log('\n=== J. DRIVEN: THE GEN ROUTE CARRIES IT TOO (شاهد W2) ===');
+    // Section I drives the DEEN route and proves round2Messages arrives armed. This one drives the
+    // OTHER route, and it exists because that gap is precisely what nobody was asked about: the
+    // gate proved the path it covered, and the path it did not cover was silently empty.
+    //
+    // THE FIXTURE IS «من هو عبدالله الرويشد؟» — an identity question about the same measured
+    // singer, on a route with no retrieval. Three facts make it land on GEN and each is asserted
+    // rather than assumed: the router says GEN, the presence probe finds no page carrying the name
+    // (so the «من هو» exit above falls through), and the wikipedia stage still places him.
+    {
+      const saved = {};
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
+        saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
+      process.env.ANTHROPIC_API_KEY = 'sk-ant-identity-guard-fake';
+      process.env.BRAVE_API_KEY = 'brave-identity-guard-fake';
+      process.env.RFC_V05_MODE = 'off';
+      process.env.LEDGER_RAG = 'off';
+      process.env.FOUNDER_SECRET = 'identity-guard-driven-secret';
+      const throwingFetch = globalThis.fetch;
+      const realLog = console.log;
+      const routeLines = [];
+      try {
+        const DC = await esm('lib/daycap.js');
+        const CONSENT = await esm('lib/ai-consent.js');
+        const DEVICE = 'identity-guard-device-gen';
+        const FOUNDER = DC.founderTokenFor(DEVICE);
+
+        const WIKI = '<html><body><div class="mw-parser-output">'
+          + '<p>عبد الله الرويشد مطرب وملحن كويتي من مواليد 1961.</p></div></body></html>';
+        // A page that does NOT carry the name. That is deliberate: it drives namePresence.found
+        // to false, so the «من هو فلان؟» exit falls through and the turn reaches GEN. A page that
+        // DID carry it would answer above and this section would prove nothing about GEN.
+        const BLANK = '<html><body><article><p>'
+          + 'صفحة عامة لا تحمل الاسم المطلوب. '.repeat(20) + '</p></article></body></html>';
+
+        // GEN streams, so the stub must be a reader — a json-only stub makes the branch throw
+        // before it has sent anything, and an empty `sent` reads as «no injection» when the real
+        // fault is the harness.
+        const sseFrames = [
+          'data: ' + JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'جوابٌ عام.' } }) + '\n\n',
+          'data: ' + JSON.stringify({ type: 'message_stop' }) + '\n\n',
+        ];
+
+        const sent = [];
+        globalThis.fetch = async (url, opts) => {
+          const u = String(url);
+          if (u.includes('api.anthropic.com')) {
+            sent.push(JSON.parse(opts.body));
+            let i = 0;
+            return {
+              ok: true, status: 200,
+              json: async () => ({ content: [{ type: 'text', text: 'مسوّدة.' }] }),
+              body: { getReader: () => ({ read: async () => (i < sseFrames.length
+                ? { done: false, value: new TextEncoder().encode(sseFrames[i++]) }
+                : { done: true }) }) },
+              text: async () => '',
+            };
+          }
+          if (u.includes('api.search.brave.com')) {
+            return { ok: true, status: 200, text: async () => '', json: async () => ({ web: { results: [
+              { title: 'خبر', url: 'https://www.aljazeera.net/news/1', description: '' },
+            ] } }) };
+          }
+          const html = u.includes('ar.wikipedia.org') ? WIKI : BLANK;
+          return { ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => html, url: u };
+        };
+
+        const mkRes = () => {
+          const r = { writes: [], statusCode: 0, headers: {} };
+          r.status = (c) => { r.statusCode = c; return r; };
+          r.setHeader = (k, v) => { r.headers[k] = v; return r; };
+          r.getHeader = (k) => r.headers[k];
+          r.flushHeaders = () => {}; r.json = () => r;
+          r.write = () => true; r.end = () => r;
+          r.on = () => r; r.once = () => r; r.emit = () => r;
+          return r;
+        };
+        const req = {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-ezik-ai-consent': CONSENT.AI_CONSENT_VERSION,
+            'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER },
+          body: { name: 'خالد', age: 30, gender: 'male', mode: 'chat', band: 'adult',
+            messages: [{ role: 'user', content: 'من هو عبدالله الرويشد؟' }] },
+          socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
+        };
+
+        // The handler's own [route] line is the only honest witness to which branch ran.
+        console.log = (...a) => {
+          try { if (a[0] === '[route]') routeLines.push(JSON.stringify(a[1])); } catch { /* not ours */ }
+        };
+        const handler = (await esm('api/ask.js')).default;
+        try { await handler(req, mkRes()); } catch (e) { /* a refusal is not a silence */ }
+        console.log = realLog;
+
+        const all = JSON.stringify(sent);
+        ok('the handler routed this turn to GEN',
+          routeLines.length === 1 && /"route":"GEN"/.test(routeLines[0]),
+          routeLines.join(' | ') || 'no [route] line — the turn never reached the router');
+        // GEN is ONE streamed call with no tools. Two or more means the turn fell into the DEEN
+        // round instead, and every assertion below would be measuring the path section I covers.
+        if (ok('...and spent exactly one vendor call, as the tool-less branch does', sent.length === 1,
+          String(sent.length) + ' call(s) — a second call means this landed on DEEN, not GEN')) {
+          ok('the identity fact block reached the model on GEN', all.includes('هويّةُ الاسمِ المذكور'));
+          ok('...saying he is NOT one of the people of knowledge', all.includes('ليس من أهلِ العلمِ'));
+          ok('...forbidding the title outright', all.includes('فلا تصفْه بشيخٍ'));
+          ok('...ordering the question answered anyway', all.includes('أجِبْ عن المسألةِ نفسِها'));
+          // The descriptor can only have come from the wikipedia fixture. Without it the cascade
+          // reached UNKNOWN and the four assertions above would be passing on the wrong branch.
+          ok('...and carrying the descriptor the SOURCE gave', all.includes('مطرب'));
+          // ...and it is the LAST message, being an instruction about how to read what precedes it.
+          const msgs = (sent[0] && sent[0].messages) || [];
+          ok('...as the last message in the request', msgs.length >= 2
+            && /هويّةُ الاسمِ المذكور/.test(String(msgs[msgs.length - 1].content)),
+            JSON.stringify(msgs.map((m) => String(m.content).slice(0, 24))));
+          // ...and the reader's own question is still there, unaltered.
+          ok('...without displacing the reader\'s own message',
+            msgs.some((m) => String(m.content).includes('من هو عبدالله الرويشد')));
+        }
+      } finally {
+        console.log = realLog;
         globalThis.fetch = throwingFetch;
         for (const k of Object.keys(saved)) {
           if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];

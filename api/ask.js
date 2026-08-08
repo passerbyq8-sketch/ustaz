@@ -1312,6 +1312,29 @@ export default async function handler(req, res) {
       }
     }
 
+    // ── ONE INJECTION MECHANISM, NOT ONE INJECTION SITE (شاهد W2) ───────────
+    //
+    // THE MEASURED DEFECT. The cascade above runs for BOTH routes — it sits above the GEN/DEEN
+    // fork and is paid for before either branch is chosen — and the fact it produced was injected
+    // in exactly one literal, inside round2Messages, which is built at the BOTTOM of the DEEN
+    // round. The GEN branch sends `body.messages` raw and RETURNS before that array exists. So
+    // «من هو عبدالله الرويشد؟» ran the whole look-up — whitelist, wikipedia, cache — logged
+    // `[identity] { kind: 'public_figure' }`, and told the model nothing. Measured: route GEN,
+    // one vendor call, zero occurrences of «هويّةُ الاسمِ المذكور» in the body sent.
+    //
+    // AND WHY A HELPER RATHER THAN A SECOND LITERAL. The comment on round2Messages said it was
+    // «the one place every drafting exit passes through» and it was true of four exits and blind
+    // to a fifth. Copying the literal onto the fifth reproduces exactly that: the sixth exit
+    // inherits a rule kept in two places. This is the one place the injected message is BUILT;
+    // call sites choose only what it is appended to.
+    //
+    // IT APPENDS, ALWAYS. The block is an instruction about how to read what precedes it, so it
+    // must be last — after the reader's messages on GEN, after the retrieved material on round 2.
+    // An empty fact adds no message at all, so a turn with no name is byte-identical to before.
+    const withIdentityFact = (msgs) => (identityFact
+      ? [...msgs, { role: 'user', content: identityFact }]
+      : msgs);
+
     // ── LIVE WORLD RETRIEVAL: a general question may still need TODAY'S facts ──
     //
     // THE HOLE THIS CLOSES. The general route runs with NO tools, deliberately — that is what
@@ -2016,7 +2039,10 @@ export default async function handler(req, res) {
           max_tokens: maxTokens,
           ...(usePremium ? { output_config: { effort: round2Effort } } : {}),
           system,
-          messages: body.messages,
+          // شاهد W2: the identity fact reaches THIS branch too. GEN retrieves nothing, so the
+          // reader's own messages are the whole conversation and the block goes straight after
+          // them — there is no retrieved material for it to sit behind here.
+          messages: withIdentityFact(body.messages),
           stream: true,
         }),
       });
@@ -2362,18 +2388,18 @@ export default async function handler(req, res) {
       }
     }
 
-    const round2Messages = [
+    // قرار ٣: the identity fact, INJECTED BEFORE GENERATION rather than checked afterwards.
+    // round2Messages is what the four DEEN drafting exits build from — the claim route, the
+    // attributed route, the buffered branch and the streamed relay — so injecting here arms all
+    // four at once. It is NOT every exit in the handler, which is the correction شاهد W2 forced:
+    // the fifth is GEN, it returns above, and it now calls the same helper.
+    // The block lands last, after the retrieved material, being an instruction about how to
+    // read it — withIdentityFact() appends, so that ordering is a property of the mechanism.
+    const round2Messages = withIdentityFact([
       ...body.messages,
       { role: 'assistant', content: round1.content },
       { role: 'user', content: toolResults },
-      // قرار ٣: the identity fact, INJECTED BEFORE GENERATION rather than checked afterwards.
-      // This is the one place every drafting exit passes through — the claim route, the
-      // attributed route, the buffered branch and the streamed relay all build from
-      // round2Messages — so the block cannot be added to three of them and forgotten on the
-      // fourth. It goes LAST, after the retrieved material, because it is an instruction about
-      // how to read what precedes it.
-      ...(identityFact ? [{ role: 'user', content: identityFact }] : []),
-    ];
+    ]);
 
     // ── SPECIFIC-CLAIM ROUTE: a verdict on THIS expression needs a page about THIS expression ──
     //
