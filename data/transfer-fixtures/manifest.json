@@ -1,0 +1,84 @@
+{
+  "fetchedAt": "2026-08-08",
+  "userAgent": "EzikBot/1.0 (+https://ezik.app)",
+  "method": "GET",
+  "pages": {
+    "binbaz-3577.html": {
+      "url": "https://binbaz.org.sa/fatwas/3577/حكم-طهارة-الماء-دون-القلتين-اذا-خالطته-نجاسة",
+      "fetchedAt": "2026-08-08",
+      "sha8": "47f47781",
+      "bytes": 98274,
+      "why": "binbaz: a published question that really is a question, and a multi-paragraph answer."
+    },
+    "binbaz-15222.html": {
+      "url": "https://binbaz.org.sa/fatwas/15222/حكم-من-فعل-محظورات-من-جنس-واحد",
+      "fetchedAt": "2026-08-08",
+      "sha8": "7a1d4d68",
+      "bytes": 91593,
+      "why": "binbaz: a SHORT answer whose body is one <strong>-led text node plus a <section class=footnotes> citation."
+    },
+    "binbaz-21305.html": {
+      "url": "https://binbaz.org.sa/fatwas/21305/هل-يجوز-الحلق-والتقصير-قبل-الذبح",
+      "fetchedAt": "2026-08-08",
+      "sha8": "8098e1b7",
+      "bytes": 95038,
+      "why": "binbaz: the answer lives in a BARE TEXT NODE beside <p><b>الجواب:</b></p> — the shape that made a p/li sweep read 7 characters."
+    },
+    "binbaz-5235.html": {
+      "url": "https://binbaz.org.sa/fatwas/5235/حكم-من-لبس-المخيط-قبل-رمي-الجمرة",
+      "fetchedAt": "2026-08-08",
+      "sha8": "e5d37467",
+      "bytes": 113479,
+      "why": "binbaz: the published «question» is a LISTENER MESSAGE. Kept as the case that must NOT transfer."
+    },
+    "islamweb-411118.html": {
+      "url": "https://www.islamweb.net/ar/fatwa/411118/",
+      "fetchedAt": "2026-08-08",
+      "sha8": "ca2d30fe",
+      "bytes": 122470,
+      "why": "islamweb: the host the label reader really does work on, and the one whose answer runs into the footer."
+    },
+    "islamqa-508244.html": {
+      "url": "https://islamqa.info/ar/answers/508244",
+      "fetchedAt": "2026-08-08",
+      "sha8": "5444241f",
+      "bytes": 190154,
+      "why": "islamqa: THE ADVERSARIAL PAGE. byLabels returns a non-null pair whose answer is the sidebar."
+    },
+    "alukah-183761.html": {
+      "url": "https://www.alukah.net/fatawa_counsels/4/183761/",
+      "fetchedAt": "2026-08-08",
+      "sha8": "60c8bd27",
+      "bytes": 103052,
+      "why": "alukah: a real /fatawa_counsels/ page printing «الجواب», never «الإجابة»."
+    },
+    "ferkous-1438.html": {
+      "url": "https://ferkous.app/home/index.php?q=fatwa-1438",
+      "fetchedAt": "2026-08-08",
+      "sha8": "a8261cf6",
+      "bytes": 51602,
+      "why": "ferkous: a real fatwa page printing «الجواب», never «الإجابة»."
+    },
+    "sh-albarrak-29332.html": {
+      "url": "https://sh-albarrak.com/fatwas/29332",
+      "fetchedAt": "2026-08-08",
+      "sha8": "cd68ed8c",
+      "bytes": 45239,
+      "why": "sh-albarrak: the Next.js host whose answer exists only inside __NEXT_DATA__."
+    },
+    "almosleh-28352.html": {
+      "url": "https://www.almosleh.com/ar/28352",
+      "fetchedAt": "2026-08-08",
+      "sha8": "f583c023",
+      "bytes": 77192,
+      "why": "almosleh: the host with the submission form near the top, where the LAST question label is the right one."
+    },
+    "mostafaaladwy-106715.html": {
+      "url": "https://mostafaaladwy.com/fatwa/106715/",
+      "fetchedAt": "2026-08-08",
+      "sha8": "fd7a780f",
+      "bytes": 96996,
+      "why": "mostafaaladwy: the eighth domain, whose answer is a video. Kept to prove the exclusion holds on a real page."
+    }
+  }
+}

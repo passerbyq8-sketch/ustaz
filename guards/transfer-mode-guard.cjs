@@ -312,6 +312,183 @@ const labelPage = (q, a) => '<html><body><article>'
     }
 
     // =========================================================================
+    console.log('\n=== L. THE FROZEN REAL PAGES (ح٣ — شاهد W4) ===');
+    //
+    // ── WHY THIS SECTION EXISTS ────────────────────────────────────────────────
+    // Sections C · D · F · G are all marked FIXTURE, and every one of their pages is built by
+    // labelPage() — a page written by the author of the extractor, printing the exact label the
+    // extractor looks for. They test the MATCHER and the TRIMMER honestly, and they tested the
+    // EXTRACTOR against its own assumptions. That is how binbaz passed here for weeks while
+    // returning null on every real page it was ever shown.
+    //
+    // These pages are not written by anybody here. They are the bytes eleven hosts served on
+    // 2026-08-08, frozen under data/transfer-fixtures/ with a SHA8 of each in its manifest, and
+    // marked binary in .gitattributes so no checkout can rewrite an ending and break the seal.
+    //
+    // WHAT A FROZEN PAGE CAN AND CANNOT PROVE. It proves the reader reads what the host really
+    // published on the day it was frozen. It does NOT prove the host still serves that markup
+    // today — a site can rewrite its templates overnight, and this gate would not notice. That
+    // is the live witness (W5), it is a separate thing, and it is not claimed here.
+    {
+      const FIXDIR = 'data/transfer-fixtures';
+      const manifest = JSON.parse(read(FIXDIR + '/manifest.json'));
+      const crypto = require('crypto');
+      const names = Object.keys(manifest.pages).sort();
+      const page = (n) => fs.readFileSync(path.join(REPO, FIXDIR, n));
+
+      // ── the seal ────────────────────────────────────────────────────────────
+      ok('the manifest records how the pages were obtained',
+        manifest.method === 'GET' && /EzikBot/.test(String(manifest.userAgent || '')),
+        JSON.stringify({ method: manifest.method, ua: manifest.userAgent }));
+      ok('every fixture carries a source URL, a fetch date and a SHA8',
+        names.every((n) => {
+          const p = manifest.pages[n];
+          return p && /^https:\/\//.test(p.url) && /^\d{4}-\d{2}-\d{2}$/.test(p.fetchedAt) && /^[0-9a-f]{8}$/.test(p.sha8);
+        }));
+      // AND THE SHA8 IS RECOMPUTED, not trusted. A header nobody checks is a header that drifts.
+      let sealed = 0;
+      for (const n of names) {
+        const actual = crypto.createHash('sha256').update(page(n)).digest('hex').slice(0, 8);
+        if (actual === manifest.pages[n].sha8) sealed++;
+        else ok('SHA8 of ' + n, false, 'manifest ' + manifest.pages[n].sha8 + ' · actual ' + actual);
+      }
+      ok('every frozen page still hashes to the SHA8 its manifest publishes',
+        sealed === names.length, sealed + '/' + names.length);
+      ok('...and there are pages from at least seven distinct hosts',
+        new Set(names.map((n) => { try { return new URL(manifest.pages[n].url).hostname.replace(/^www\./, ''); } catch { return n; } })).size >= 7);
+
+      const pairOf = (n) => X.extractPair(manifest.pages[n].url, page(n).toString('utf8'));
+
+      // ── binbaz: the host this batch built a reader for ──────────────────────
+      {
+        const clean = pairOf('binbaz-3577.html');
+        ok('binbaz: a real page yields a pair at all', !!clean,
+          'byLabels returned null here on 5 of 5 real pages — «الجواب» is the label, not «الإجابة»');
+        if (clean) {
+          eq('...and the published question is the question, with its label removed',
+            clean.question, 'الماء إذا نقص عن قلتين وخالطته النجاسة من بول أو عذرة، هل تذهب طهوريته بذلك؟');
+          ok('...and the answer is the شيخ\'s answer', /قد اختلف العلماء في ذلك/.test(clean.answer));
+          ok('...with its own «الجواب:» lead removed too', !/^الجواب/.test(clean.answer));
+          // THE MENU IS THE POINT. This page carries a 1587-character topic tree; a reader that
+          // took running text would have carried it into a child's answer.
+          ok('...and NOT ONE WORD of the navigation tree came with it',
+            !/العبادات الطهارة المياه الآنية/.test(clean.answer) && !/صوتيات/.test(clean.answer),
+            clean.answer.slice(0, 160));
+          // ...and the paragraph boundaries trim.js cuts by survived.
+          ok('...and the block boundaries survived, because trim.js cuts by them',
+            clean.answer.includes('\n\n'));
+        }
+        // The bare-text-node shape: a p/li sweep read SEVEN characters of this answer.
+        const bare = pairOf('binbaz-21305.html');
+        ok('binbaz: an answer living in a bare text node is read whole', !!bare && bare.answer.length > 400,
+          bare ? String(bare.answer.length) : 'null');
+        // The short-answer-plus-footnote shape.
+        const foot = pairOf('binbaz-15222.html');
+        ok('binbaz: a short answer beside a <section class=footnotes> is read', !!foot,
+          'the footnote citation is a <p> and the answer is not — reading only <p> found the citation alone');
+        if (foot) ok('...and it is the ANSWER, not the citation', /نعم إذا كانت المحظورات من جنس واحد/.test(foot.answer));
+      }
+
+      // ── THE ADVERSARIAL WITNESS: A PAGE WHERE THE GENERIC READER LIES ───────
+      //
+      // This is the one the directive asks for, and it is not hypothetical — it is the reader
+      // this file shipped, on a page islamqa really served. The generic label reader returns a
+      // NON-NULL pair here whose «answer» is the related-topics sidebar, because the only
+      // «الإجابة» on the page is the feedback widget UNDER the answer.
+      {
+        const html = page('islamqa-508244.html').toString('utf8');
+        const url = manifest.pages['islamqa-508244.html'].url;
+        // What the page really answers with — present in the bytes, so the test is not vacuous.
+        ok('the frozen islamqa page really does contain its answer',
+          /فالمسلمون نواب عن النبي/.test(html));
+        // The label the generic reader keys on is on the page — as FEEDBACK, not as a heading.
+        // Measured wording: «هل انتفعت بهذه الإجابة؟», inside the evaluation form BELOW the answer.
+        ok('...and the only «الإجابة» on it is the evaluation widget under the answer',
+          /هل انتفعت بهذه الإجابة/.test(html));
+        // AND THE HOST NOW REFUSES, so the lie cannot reach a reader.
+        eq('the host declares it cannot be read, so nothing is extracted', pairOf('islamqa-508244.html'), null);
+        // ...and the refusal is the DECLARED one, not an accident of this page.
+        ok('...by declaration, not by this page happening to fail',
+          X.EXTRACTORS['islamqa.info'].declaredIncapable === true);
+        // THE MUTATION IS RUN HERE, IN THE GATE. Point the generic reader at this real page and
+        // watch what it hands back — this is the assertion that would have caught W4 on the day
+        // it shipped, and it needs no mutation of the source to make its point.
+        const generic = X.EXTRACTORS['islamweb.net'](require('linkedom').parseHTML(html).document, url);
+        if (ok('the GENERIC label reader still returns a pair on this page', !!generic,
+          'if this ever goes null the witness is vacuous — rebuild it, do not delete it')) {
+          ok('...and that pair is a LIE: its «answer» is not the answer',
+            !/فالمسلمون نواب عن النبي/.test(generic.answer),
+            generic.answer.slice(0, 120));
+          ok('...it is the sidebar', /موضوعات ذات صلة|قائمة جديدة/.test(generic.answer),
+            generic.answer.slice(0, 120));
+        }
+      }
+
+      // ── the two other declared incapacities, on real pages ──────────────────
+      for (const [n, host] of [['alukah-183761.html', 'alukah.net'], ['ferkous-1438.html', 'ferkous.app']]) {
+        const html = page(n).toString('utf8');
+        ok(host + ': the real page prints «الجواب»', /الجواب/.test(html));
+        ok('...and never «الإجابة»', !/الإجابة|الاجابة/.test(html),
+          'this is the whole reason byLabels returned null on it');
+        eq('...and the host declares it cannot be read', pairOf(n), null);
+      }
+
+      // ── the hosts that DO work, proven on real pages rather than on our own ──
+      {
+        const iw = pairOf('islamweb-411118.html');
+        ok('islamweb: the label reader really does work on a real page', !!iw);
+        if (iw) {
+          ok('...and the answer is the fatwa', /آسية: هي اسم امرأة فرعون/.test(iw.answer));
+          // ── A DEFECT, PINNED WHERE IT CANNOT BE FORGOTTEN ────────────────────
+          //
+          // The answer runs past the fatwa into the site footer, because byLabels() takes
+          // everything after the label and nothing closes it.
+          ok('...and it DOES run into the site footer',
+            /الرئيسية|موسوعات/.test(iw.answer.slice(-400)),
+            'if this ever stops being true the extractor was fixed — update extract.js with it');
+
+          // AND THE TRIM DOES NOT SAVE IT. This was assumed when the row was written — «the cut
+          // at 2400 characters removes the footer long before a reader could see it» — and the
+          // assumption is FALSE, measured here on the frozen page. prepareTransfer() elides the
+          // MIDDLE and keeps the last paragraph, and on this page the last paragraph is the
+          // language menu. So the transferred text ends:
+          //     «… [… تفصيلُ الأدلةِ في المصدر …]  Indonesia  التتمةُ في المصدر»
+          //
+          // It is worse than cosmetic. The elision keeps first-and-last, so the footer does not
+          // merely tag along — it TAKES THE PLACE of the fatwa's own conclusion, and 4754
+          // characters of answer arrive as 329.
+          //
+          // NOT FIXED HERE. Bounding islamweb at its article container is a change to the
+          // busiest working transfer host in the registry, and it belongs with the live witness
+          // (W5) rather than inside a fixtures batch. These two assertions are the before-state
+          // that fix will be measured against, and they FAIL the day it lands — which is the
+          // intended way to find out that it did.
+          const trimmed = T.prepareTransfer(iw.answer, { maxChars: 2400 });
+          const trimmedText = typeof trimmed === 'string' ? trimmed : (trimmed && trimmed.text) || '';
+          ok('...and the 2400-char cut does NOT remove it — the assumption was false',
+            /Indonesia|Español|الرئيسية/.test(trimmedText),
+            'DEFECT PINNED: if this now passes cleanly, islamweb was bounded — delete this pin');
+          ok('...and the footer DISPLACES the fatwa: 4754 chars of answer arrive as a few hundred',
+            trimmedText.length < 800 && iw.answer.length > 4000,
+            'answer ' + iw.answer.length + ' -> transferred ' + trimmedText.length);
+        }
+        const bar = pairOf('sh-albarrak-29332.html');
+        ok('sh-albarrak: the __NEXT_DATA__ reader works on a real page', !!bar);
+        // MEASURED AND RECORDED: the JSON fields carry raw markup. Not fixed here — it is a
+        // change to a working host, and it belongs with its own live witness.
+        if (bar) ok('...and its fields carry raw HTML — measured, not fixed', /<p |<strong>/.test(bar.question),
+          'recorded so that a later fix has a before-state to point at');
+        const alm = pairOf('almosleh-28352.html');
+        ok('almosleh: the LAST-label reader works on a real page', !!alm);
+        if (alm) ok('...and it did NOT harvest the submission form', !/حل المعادلة|1 \+ 1/.test(alm.question), alm.question.slice(0, 80));
+      }
+
+      // ── and the eighth domain, on a real page of its own ────────────────────
+      eq('mostafaaladwy: a REAL video-answer page is still unreadable',
+        pairOf('mostafaaladwy-106715.html'), null);
+    }
+
+    // =========================================================================
     console.log('\n=== I. THE MODEL IS OFF THE TRANSFER PATH ===');
     {
       const src = read('lib/transfer/trim.js') + read('lib/transfer/extract.js') + read('lib/transfer/match.js');

@@ -288,3 +288,13 @@ lib/transfer/trim.js text eol=lf
 guards/anchor-mode-guard.cjs text eol=lf
 lib/anchor/flag.js text eol=lf
 lib/anchor/units.js text eol=lf
+
+# ح٣: the frozen transfer fixtures. THESE ARE NOT OUR TEXT — they are the bytes eleven hosts
+# actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a SHA8 of
+# each one. Any end-of-line normalisation, in either direction, on any machine, changes those
+# bytes and breaks the attestation — which is precisely defect 40 at the head of this file,
+# arriving a second time by a different door. So they are marked BINARY, not pinned to an
+# ending: there is no correct ending for somebody else's page, only the one it was served with.
+data/transfer-fixtures/*.html -text
+# ...and the manifest itself IS ours, and is read as text.
+data/transfer-fixtures/manifest.json text eol=lf
