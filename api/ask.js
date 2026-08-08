@@ -2198,15 +2198,29 @@ export default async function handler(req, res) {
     // the question, the plan, or anything the model said.
     sourceLicence = attributionLicence(retrievedSources.filter(Boolean).flat()).personIds;
     console.log('[licence]', { pages: retrievedSources.filter(Boolean).flat().length, persons: sourceLicence });
-    if (canonicalSources.length === 0) {
-      console.warn('[source] no verified structured source — refusing to answer unsourced');
+    // قرار ١٠: a card from a VIDEO-answer domain is a POINTER, never evidence. Its page carries
+    // no written answer at all (lib/source-registry.js `answer_format`), so a reply resting on
+    // one would be an unsourced ruling wearing a citation — precisely what the check below
+    // exists to prevent. When the pointers are ALL that survived, this takes the same refusal
+    // path as an empty search and appends them: the reader is told no written source was found,
+    // AND shown where the shaykh actually answered.
+    const retrievedFlat = retrievedSources.filter(Boolean).flat();
+    const pointersOnly = retrievedFlat.length > 0
+      && retrievedFlat.every((s) => s && s.answerFormat === 'video');
+    if (canonicalSources.length === 0 || pointersOnly) {
+      console.warn('[source] no verified structured source — refusing to answer unsourced',
+        pointersOnly ? { pointerCards: canonicalSources.length, reason: 'video-answer-only' } : {});
       clearKeepAlive();
+      // The pointer rides BEHIND the refusal, the way every other card does — the reply must read
+      // "we found no written ruling, and here is where he answered", never the reverse.
+      const pointerTail = pointersOnly && canonicalSources.length
+        ? '\n' + canonicalSources.map((c) => c.tag).join('\n') : '';
       res.write(`data: ${JSON.stringify({
         type: 'content_block_delta', index: 0,
         // The unknown-name line rides AHEAD of the refusal, because the two say different things:
         // one is about this name, the other about this search. Emitting only the second let the
         // reader keep the assumption the first one exists to remove.
-        delta: { type: 'text_delta', text: (presenceLead ? presenceLead + '\n\n' : '') + NO_VERIFIED_SOURCE_MESSAGE },
+        delta: { type: 'text_delta', text: (presenceLead ? presenceLead + '\n\n' : '') + NO_VERIFIED_SOURCE_MESSAGE + pointerTail },
       })}\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       return res.end();

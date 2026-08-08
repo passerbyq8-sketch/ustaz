@@ -367,6 +367,56 @@ const user = (t) => [{ role: 'user', content: t }];
       globalThis.fetch = saved;
     }
 
+    // ── قرار ١٠: A VIDEO-ANSWER DOMAIN IS A POINTER, NEVER EVIDENCE ─────────
+    //
+    // MEASURED 2026-08-08: mostafaaladwy.com prints «السؤال» and «الإجابة» headings, but the
+    // answer under the second is a YouTube iframe with an EMPTY text div. A naive extractor
+    // therefore returns the site FOOTER — «شارك الفتوى / عن الموقع / روابط سريعة» — and that
+    // is what would have become the shaykh's ruling. The fixture below is that exact page shape.
+    //
+    // NO NETWORK: the provider and the page are both stubbed, as everywhere else in section D.
+    {
+      const saved = globalThis.fetch;
+      const FOOTER = 'شارك الفتوى عن الموقع روابط سريعة جميع الحقوق محفوظة ';
+      const VIDEO_PAGE = '<html><head><title>حكم صلاة الوتر</title></head><body>'
+        + '<h2>السؤال</h2><p>ما حكم صلاة الوتر؟</p>'
+        + '<h2>الإجابة</h2><div class="video"><iframe src="https://www.youtube.com/embed/x"></iframe></div>'
+        + '<footer>' + FOOTER.repeat(6) + '</footer></body></html>';
+      globalThis.fetch = async (url) => {
+        const u = String(url);
+        if (u.includes('api.search.brave.com')) {
+          return at(new Response(JSON.stringify({ web: { results: [
+            { title: 'حكم صلاة الوتر', url: 'https://mostafaaladwy.com/fatwa/49996', description: '' },
+          ] } }), { status: 200, headers: { 'content-type': 'application/json' } }), u);
+        }
+        return at(new Response(VIDEO_PAGE, { status: 200, headers: { 'content-type': 'text/html' } }), u);
+      };
+      const vid = await retrieve('ما حكم صلاة الوتر', { band: 'adult', onlySites: ['mostafaaladwy.com'] });
+      globalThis.fetch = saved;
+
+      // THE WITNESS THE DECISION ASKS FOR: its page does not enter the text evidence.
+      ok('a video-answer page contributes NO evidence text',
+        vid.text.indexOf('شارك الفتوى') === -1 && vid.text.indexOf('روابط سريعة') === -1,
+        JSON.stringify(vid.text).slice(0, 300));
+      ok('...and does not smuggle itself in as a bare source header either',
+        vid.text.indexOf('mostafaaladwy.com') === -1 && vid.text.indexOf('المصدر ١') === -1,
+        JSON.stringify(vid.text).slice(0, 300));
+      // ...while the POINTER survives, which is the other half of «بطاقةً فقط».
+      eq('...but the card survives', vid.sources.length, 1);
+      eq('...carrying an empty passage', (vid.sources[0] || {}).passage, '');
+      eq('...and declaring WHY it is empty', (vid.sources[0] || {}).answerFormat, 'video');
+      ok('...pointing at the fatwa itself',
+        /mostafaaladwy\.com\/fatwa\/49996/.test((vid.sources[0] || {}).url || ''),
+        String((vid.sources[0] || {}).url));
+
+      // THE NEGATIVE. A text domain is untouched by any of this — otherwise the rule above would
+      // be silently emptying the evidence for every source in the app.
+      const txt = await retrieve('الطلاق في الغضب', { band: 'adult', onlySites: ['islamweb.net'] });
+      ok('a TEXT domain still carries its passage into the evidence',
+        txt.sources.length === 0 || (txt.sources[0].passage && txt.sources[0].answerFormat === 'text'),
+        JSON.stringify((txt.sources[0] || {}).answerFormat));
+    }
+
     globalThis.fetch = realFetch;
   }
 
