@@ -4075,7 +4075,12 @@ const EZIK_FATWA_PAGE_SIZE = '10';
 
 function FatwaScreen({ onBack }) {
   const [scholars, setScholars] = useState([{ id: 'binbaz', shortName: '' }]);
-  const [scholar, setScholar] = useState('binbaz');
+  // THE SCREEN OPENS ON EVERYTHING. "All fatwas" is the opening selection, so the first thing
+  // a reader sees is page one of the whole alphabet rather than one scholar's shelf; narrowing
+  // to a single scholar is one choice away in the same selector. It is not a scholar, so it
+  // needs no registry entry and survives a registry that never answers -- and Ibn Baz stays
+  // first among the named scholars, exactly where he was.
+  const [scholar, setScholar] = useState(EZIK_FATWA_ALL);
   const [query, setQuery] = useState('');
   const [lastQuery, setLastQuery] = useState('');
   const [results, setResults] = useState([]);
