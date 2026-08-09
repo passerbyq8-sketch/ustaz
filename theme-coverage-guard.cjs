@@ -1381,7 +1381,13 @@ const fatwaFormEnd = fatwaSrc.indexOf('{status ?', fatwaFormAt);
 const fatwaFormSrc = (fatwaFormAt !== -1 && fatwaFormEnd > fatwaFormAt)
   ? fatwaSrc.slice(fatwaFormAt, fatwaFormEnd) : '';
 const ezfRules = (css.match(/\.ezf[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []);
-ok('K3: the fatwa feature was located and bounded', fatwaSrc.length > 7000 && fatwaSrc.length < 16000,
+// The window is a LOCATOR check -- it proves the slice above really caught the fatwa feature
+// and not the whole file or nothing at all. It is not a budget, and it has to follow the
+// feature: the alphabetical browse of 2026-08-09 (the "all fatwas" option, the ten-to-a-page
+// shelf and its pager) added ~4.3k characters, so the ceiling moved with it. Every assertion
+// below it -- the identity, the tokens, no gradient, no motion, GET-only, no model endpoint --
+// is what actually bounds this feature, and none of them moved.
+ok('K3: the fatwa feature was located and bounded', fatwaSrc.length > 7000 && fatwaSrc.length < 22000,
   'len=' + fatwaSrc.length);
 const FATWA_ON_EZF =
   /<div className="theme-dark ezhome ezf" style=\{s\.ezfContainer\}>/.test(fatwaSrc)
