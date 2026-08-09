@@ -648,6 +648,21 @@
   .ezf-page-btn:disabled{opacity:.45;cursor:not-allowed}
   .ezf-page-text{min-width:72px;color:var(--a3-muted);font-family:var(--ez-ui-font);
     font-size:.8667em;font-weight:800;text-align:center}
+  /* THE ALPHABETICAL SHELF. A browse row is a title and nothing else until it is
+     opened; the opened fatwa is the very same .ezf-card the search already
+     renders, so a fatwa never has two appearances in this app. */
+  .ezf-list{display:flex;flex-direction:column;gap:8px}
+  .ezf-row{box-sizing:border-box;width:100%;display:flex;align-items:center;gap:10px;
+    min-height:52px;padding:11px 14px;border-radius:15px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);color:var(--a3-ink);font-family:var(--ez-ui-font);
+    font-size:.9333em;font-weight:700;line-height:1.7;text-align:right;cursor:pointer}
+  .ezf-row.is-open{border-color:var(--a3-blue);background:var(--a3-ice)}
+  .ezf-row-title{flex:1;min-width:0;text-align:right}
+  .ezf-row-mark{flex:none;color:var(--a3-blue);font-size:.8em;font-weight:800}
+  .ezf-open{margin:8px 0 4px}
+  .ezf-back{min-height:44px;margin-bottom:12px;padding:0 14px;border-radius:13px;
+    background:var(--a3-ice);border:1px solid var(--a3-line);color:var(--a3-blue);
+    font-family:var(--ez-ui-font);font-size:.8667em;font-weight:800;cursor:pointer}
   @media (min-width:700px){
     .ezf-wrap{padding:20px 20px calc(32px + env(safe-area-inset-bottom, 0px))}
     .ezf-controls{padding:16px}
@@ -1415,6 +1430,14 @@ const EZ_I18N = {
     'module.fatwa.sub': 'بحث موثّق بالسؤال والجواب',
     'fatwa.scholarLabel': 'اسم الشيخ',
     'fatwa.defaultScholar': 'ابن باز',
+    'fatwa.allScholars': 'كل الفتاوى',
+    'fatwa.browseLoading': 'جارٍ فتح قائمة الفتاوى…',
+    'fatwa.browseSummary': 'الفتاوى مرتبة أبجديًّا — {total} فتوى، الصفحة {page} من {pages}.',
+    'fatwa.browseEmpty': 'لا توجد فتاوى في هذه الصفحة.',
+    'fatwa.browseAria': 'قائمة الفتاوى مرتبة أبجديًّا',
+    'fatwa.openFatwa': 'افتح الفتوى كاملة',
+    'fatwa.closeFatwa': 'أغلق الفتوى',
+    'fatwa.backToBrowse': 'العودة إلى تصفح الفتاوى',
     'fatwa.searchPlaceholder': 'ابحث في الفتاوى',
     'fatwa.searchAria': 'ابحث في نصوص الفتاوى الرسمية',
     'fatwa.searchButton': 'بحث',
@@ -1593,6 +1616,14 @@ const EZ_I18N = {
     'module.fatwa.sub': 'Verified questions and answers',
     'fatwa.scholarLabel': 'Scholar',
     'fatwa.defaultScholar': 'Ibn Baz',
+    'fatwa.allScholars': 'All fatwas',
+    'fatwa.browseLoading': 'Opening the list of fatwas…',
+    'fatwa.browseSummary': 'Fatwas in alphabetical order — {total} of them, page {page} of {pages}.',
+    'fatwa.browseEmpty': 'There are no fatwas on this page.',
+    'fatwa.browseAria': 'The list of fatwas in alphabetical order',
+    'fatwa.openFatwa': 'Open the whole fatwa',
+    'fatwa.closeFatwa': 'Close the fatwa',
+    'fatwa.backToBrowse': 'Back to browsing the fatwas',
     'fatwa.searchPlaceholder': 'Search fatwas',
     'fatwa.searchAria': 'Search the official fatwa texts',
     'fatwa.searchButton': 'Search',
@@ -4031,6 +4062,17 @@ function EzikFatwaResult({ fatwa }) {
   );
 }
 
+// THE WHOLE SHELF, NOT ONLY WHAT WAS SEARCHED FOR. Picking a scholar -- or "all fatwas",
+// which is the selector's own first entry and not a scholar -- lists every fatwa there is,
+// alphabetically, ten to a page. The search box never leaves: it stays above the list and
+// works the same in either mode, and leaving a search puts the reader back on the page of
+// the shelf they were standing on, because the browse state is never thrown away.
+//
+// Not one character of this list is authored here. Ordering, paging and totals are the
+// service's answer; this screen renders it and calls no model, exactly as search does.
+const EZIK_FATWA_ALL = 'all';
+const EZIK_FATWA_PAGE_SIZE = '10';
+
 function FatwaScreen({ onBack }) {
   const [scholars, setScholars] = useState([{ id: 'binbaz', shortName: '' }]);
   const [scholar, setScholar] = useState('binbaz');
@@ -4042,6 +4084,12 @@ function FatwaScreen({ onBack }) {
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const searchRequest = useRef(null);
+  const [browsing, setBrowsing] = useState([]);
+  const [browsePages, setBrowsePages] = useState(null);
+  const [browseLoading, setBrowseLoading] = useState(false);
+  const [browseFailed, setBrowseFailed] = useState(false);
+  const [openUid, setOpenUid] = useState('');
+  const browseRequest = useRef(null);
 
   // The selector is fed by the registry so Ibn Uthaymeen can be added server-side later. Until
   // that first response arrives, Ibn Baz is already selectable; a registry failure adds no
@@ -4055,14 +4103,54 @@ function FatwaScreen({ onBack }) {
         : [];
       if (!list.length) return;
       setScholars(list.map((item) => ({ id: String(item.id), shortName: String(item.shortName || item.name) })));
-      setScholar((current) => list.some((item) => String(item.id) === current) ? current : String(list[0].id));
+      setScholar((current) => (current === EZIK_FATWA_ALL || list.some((item) => String(item.id) === current))
+        ? current : String(list[0].id));
     }).catch(() => {}).finally(() => clearTimeout(timer));
     return () => { clearTimeout(timer); controller.abort(); };
   }, []);
 
   useEffect(() => () => {
     if (searchRequest.current) searchRequest.current.abort();
+    if (browseRequest.current) browseRequest.current.abort();
   }, []);
+
+  // The shelf is fetched for whatever is selected, including the moment the screen opens, so
+  // a reader who has typed nothing still has something to read. A failure here leaves the
+  // search box exactly as usable as it was.
+  const runBrowse = async (page) => {
+    if (browseRequest.current) browseRequest.current.abort();
+    const controller = new AbortController();
+    browseRequest.current = controller;
+    const timer = setTimeout(() => controller.abort(), 60000);
+    setBrowseLoading(true);
+    setBrowseFailed(false);
+    setOpenUid('');
+    const params = new URLSearchParams({
+      scholar,
+      page: String(page || 1),
+      limit: EZIK_FATWA_PAGE_SIZE,
+      view: 'full',
+    });
+    try {
+      const payload = await ezikFatwaFetch('/api/v1/fatwas/browse?' + params.toString(), controller.signal);
+      if (browseRequest.current !== controller) return;
+      setBrowsing(Array.isArray(payload.results) ? payload.results : []);
+      setBrowsePages(payload.pagination || { page: 1, total: 0, totalPages: 0, hasPrevious: false, hasNext: false });
+    } catch (error) {
+      if (browseRequest.current !== controller) return;
+      setBrowsing([]);
+      setBrowsePages(null);
+      setBrowseFailed(true);
+    } finally {
+      clearTimeout(timer);
+      if (browseRequest.current === controller) {
+        browseRequest.current = null;
+        setBrowseLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => { runBrowse(1); }, [scholar]);
 
   const runSearch = async (page, fixedQuery) => {
     const term = String(fixedQuery == null ? query : fixedQuery).trim();
@@ -4109,15 +4197,39 @@ function FatwaScreen({ onBack }) {
     setFailed(false);
   };
 
+  // Leaving a search restores the shelf rather than reloading it: the page the reader was on
+  // is still in state, so the way back is instant and lands exactly where they left.
+  const backToBrowse = () => {
+    if (searchRequest.current) searchRequest.current.abort();
+    searchRequest.current = null;
+    setResults([]);
+    setPagination(null);
+    setSearched(false);
+    setFailed(false);
+    setLoading(false);
+  };
+
   let status = null;
-  if (loading) status = ezT('fatwa.loading');
-  else if (failed) status = ezT('fatwa.error');
-  else if (searched && pagination && pagination.total === 0) status = ezT('fatwa.none');
-  else if (searched && pagination && pagination.total > 0) {
-    status = ezT('fatwa.summary', {
-      total: ezikFatwaNumber(pagination.total),
-      page: ezikFatwaNumber(pagination.page),
-      pages: ezikFatwaNumber(pagination.totalPages),
+  let statusFailed = false;
+  if (searched) {
+    if (loading) status = ezT('fatwa.loading');
+    else if (failed) { status = ezT('fatwa.error'); statusFailed = true; }
+    else if (pagination && pagination.total === 0) status = ezT('fatwa.none');
+    else if (pagination && pagination.total > 0) {
+      status = ezT('fatwa.summary', {
+        total: ezikFatwaNumber(pagination.total),
+        page: ezikFatwaNumber(pagination.page),
+        pages: ezikFatwaNumber(pagination.totalPages),
+      });
+    }
+  } else if (browseLoading) status = ezT('fatwa.browseLoading');
+  else if (browseFailed) { status = ezT('fatwa.error'); statusFailed = true; }
+  else if (browsePages && browsePages.total === 0) status = ezT('fatwa.browseEmpty');
+  else if (browsePages) {
+    status = ezT('fatwa.browseSummary', {
+      total: ezikFatwaNumber(browsePages.total),
+      page: ezikFatwaNumber(browsePages.page),
+      pages: ezikFatwaNumber(browsePages.totalPages),
     });
   }
 
@@ -4143,6 +4255,7 @@ function FatwaScreen({ onBack }) {
               <span className="ezf-label">{ezT('fatwa.scholarLabel')}</span>
               <select id="ezf-scholar" className="ezhome-focus ezf-select"
                 value={scholar} onChange={selectScholar}>
+                <option value={EZIK_FATWA_ALL}>{ezT('fatwa.allScholars')}</option>
                 {scholars.map((item) => (
                   <option key={item.id} value={item.id}>{item.shortName || ezT('fatwa.defaultScholar')}</option>
                 ))}
@@ -4157,16 +4270,42 @@ function FatwaScreen({ onBack }) {
             </div>
           </form>
 
-          {status ? <div className={'ezf-status' + (failed ? ' is-error' : '')}
-            role={failed ? 'alert' : 'status'} aria-live="polite">{status}</div> : null}
+          {status ? <div className={'ezf-status' + (statusFailed ? ' is-error' : '')}
+            role={statusFailed ? 'alert' : 'status'} aria-live="polite">{status}</div> : null}
 
-          {results.length ? (
-            <section className="ezf-results" aria-label={ezT('fatwa.searchAria')}>
-              {results.map((fatwa) => <EzikFatwaResult key={fatwa.uid} fatwa={fatwa} />)}
+          {searched ? (
+            <React.Fragment>
+              <button type="button" className="ezhome-focus ezf-back"
+                onClick={backToBrowse}>{ezT('fatwa.backToBrowse')}</button>
+              {results.length ? (
+                <section className="ezf-results" aria-label={ezT('fatwa.searchAria')}>
+                  {results.map((fatwa) => <EzikFatwaResult key={fatwa.uid} fatwa={fatwa} />)}
+                </section>
+              ) : null}
+            </React.Fragment>
+          ) : browsing.length ? (
+            <section className="ezf-list" aria-label={ezT('fatwa.browseAria')}>
+              {browsing.map((fatwa) => {
+                const isOpen = openUid === fatwa.uid;
+                const named = (fatwa.scholar && (fatwa.scholar.shortName || fatwa.scholar.name)) || '';
+                return (
+                  <React.Fragment key={fatwa.uid}>
+                    <button type="button" aria-expanded={isOpen}
+                      className={'ezhome-focus ezf-row' + (isOpen ? ' is-open' : '')}
+                      title={isOpen ? ezT('fatwa.closeFatwa') : ezT('fatwa.openFatwa')}
+                      onClick={() => setOpenUid(isOpen ? '' : fatwa.uid)}>
+                      <span className="ezf-row-title">{fatwa.title}</span>
+                      {scholar === EZIK_FATWA_ALL && named
+                        ? <span className="ezf-row-mark">{named}</span> : null}
+                    </button>
+                    {isOpen ? <div className="ezf-open"><EzikFatwaResult fatwa={fatwa} /></div> : null}
+                  </React.Fragment>
+                );
+              })}
             </section>
           ) : null}
 
-          {pagination && pagination.totalPages > 1 ? (
+          {searched && pagination && pagination.totalPages > 1 ? (
             <nav className="ezf-pager" aria-label={ezT('fatwa.page', {
               page: ezikFatwaNumber(pagination.page), pages: ezikFatwaNumber(pagination.totalPages)
             })}>
@@ -4179,6 +4318,22 @@ function FatwaScreen({ onBack }) {
               <button type="button" className="ezhome-focus ezf-page-btn"
                 disabled={loading || !pagination.hasNext}
                 onClick={() => runSearch(pagination.page + 1, lastQuery)}>{ezT('fatwa.next')}</button>
+            </nav>
+          ) : null}
+
+          {!searched && browsePages && browsePages.totalPages > 1 ? (
+            <nav className="ezf-pager" aria-label={ezT('fatwa.page', {
+              page: ezikFatwaNumber(browsePages.page), pages: ezikFatwaNumber(browsePages.totalPages)
+            })}>
+              <button type="button" className="ezhome-focus ezf-page-btn"
+                disabled={browseLoading || !browsePages.hasPrevious}
+                onClick={() => runBrowse(browsePages.page - 1)}>{ezT('fatwa.previous')}</button>
+              <span className="ezf-page-text">{ezT('fatwa.page', {
+                page: ezikFatwaNumber(browsePages.page), pages: ezikFatwaNumber(browsePages.totalPages)
+              })}</span>
+              <button type="button" className="ezhome-focus ezf-page-btn"
+                disabled={browseLoading || !browsePages.hasNext}
+                onClick={() => runBrowse(browsePages.page + 1)}>{ezT('fatwa.next')}</button>
             </nav>
           ) : null}
         </main>
