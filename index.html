@@ -630,6 +630,9 @@
     font-size:.8667em;font-weight:800}
   .ezf-copy{margin:0;color:var(--a3-ink);font-size:1em;
     font-weight:500;line-height:2;white-space:pre-wrap;text-align:right}
+  .ezf-notice{margin:0 0 4px;padding:9px 11px;border-radius:13px;background:var(--a3-ice);
+    border:1px solid var(--a3-line);color:var(--a3-ink);font-family:var(--ez-ui-font);
+    font-size:.8667em;line-height:1.7}
   .ezf-audio{display:block;width:100%;margin-top:14px;accent-color:var(--a3-blue)}
   .ezf-source{display:inline-flex;align-items:center;justify-content:center;min-height:44px;
     margin-top:14px;padding:0 14px;border-radius:13px;background:var(--a3-ice);
@@ -1451,6 +1454,10 @@ const EZ_I18N = {
     'fatwa.audioAvailable': 'يتوفر صوت رسمي',
     'fatwa.textOnly': 'نص رسمي بلا صوت',
     'fatwa.audioAria': 'التسجيل الرسمي للفتوى',
+    'fatwa.transcriptTag': 'تفريغ آلي من مقطع رسمي',
+    'fatwa.transcriptNotice': 'هذا تفريغٌ آليٌّ من الصوت أو الفيديو الرسميِّ لقناة الشيخ، وليس نصًّا مكتوبًا راجعه الشيخ. والأصلُ هو المقطعُ المرئيُّ.',
+    'fatwa.transcriptBody': 'نص التفريغ',
+    'fatwa.watchVideo': 'فتح المقطع الرسمي',
     'fatwa.source': 'فتح المصدر الرسمي',
     'fatwa.previous': 'السابق',
     'fatwa.next': 'التالي',
@@ -1637,6 +1644,10 @@ const EZ_I18N = {
     'fatwa.audioAvailable': 'Official audio available',
     'fatwa.textOnly': 'Official text without audio',
     'fatwa.audioAria': 'Official fatwa recording',
+    'fatwa.transcriptTag': 'Automatic transcript of an official clip',
+    'fatwa.transcriptNotice': 'This is an automatic transcript of the official audio or video on the scholar’s channel. It is not text the scholar wrote or reviewed. The clip itself is the original.',
+    'fatwa.transcriptBody': 'Transcript',
+    'fatwa.watchVideo': 'Open the official clip',
     'fatwa.source': 'Open the official source',
     'fatwa.previous': 'Previous',
     'fatwa.next': 'Next',
@@ -4025,16 +4036,27 @@ function EzikFatwaResult({ fatwa }) {
   const source = (fatwa && fatwa.source) || {};
   const sourceUrl = ezikFatwaPublicUrl(source.canonicalUrl || source.url);
   const audioUrl = ezikFatwaPublicUrl(audio.url);
+  // A machine transcript of the scholar's own clip is neither a written fatwa nor
+  // a published text, so it is never shown as one: it is labelled, its notice is
+  // printed above the words, and the clip it came from is offered as the original.
+  const isTranscript = content.type === 'auto_transcript_official_video';
   return (
     <article className="ezf-card">
       <header className="ezf-card-head">
         <h2 className="ezf-title">{fatwa.title}</h2>
         <div className="ezf-meta">
           <span className="ezf-tag">{scholar.shortName || scholar.name || ezT('fatwa.defaultScholar')}</span>
-          <span>{audio.available ? ezT('fatwa.audioAvailable') : ezT('fatwa.textOnly')}</span>
+          <span>{isTranscript
+            ? ezT('fatwa.transcriptTag')
+            : (audio.available ? ezT('fatwa.audioAvailable') : ezT('fatwa.textOnly'))}</span>
         </div>
       </header>
-      {question ? (
+      {isTranscript ? (
+        <p className="ezf-notice">{ezT('fatwa.transcriptNotice')}</p>
+      ) : null}
+      {isTranscript ? (
+        <h3 className="ezf-section-title">{ezT('fatwa.transcriptBody')}</h3>
+      ) : question ? (
         <React.Fragment>
           <h3 className="ezf-section-title">{ezT('fatwa.question')}</h3>
           <p className="ezf-copy">{question}</p>
@@ -4050,7 +4072,8 @@ function EzikFatwaResult({ fatwa }) {
       ) : null}
       {sourceUrl ? (
         <a className="ezhome-focus ezf-source" href={sourceUrl} target="_blank"
-          rel="noopener noreferrer">{ezT('fatwa.source')}</a>
+          rel="noopener noreferrer">
+          {isTranscript ? ezT('fatwa.watchVideo') : ezT('fatwa.source')}</a>
       ) : null}
       <div className="ezf-actions">
         {EZIK_FATWA_ACTIONS.map(([id, key]) => (
