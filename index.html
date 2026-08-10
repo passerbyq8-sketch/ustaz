@@ -4096,8 +4096,39 @@ function EzikFatwaResult({ fatwa }) {
 const EZIK_FATWA_ALL = 'all';
 const EZIK_FATWA_PAGE_SIZE = '10';
 
+// THE SELECTOR REMEMBERS WHO IT LISTED LAST TIME. The registry answer is one network
+// round trip away -- measured at ~1.2s warm and ~2.9s on a cold function -- and until it
+// lands the selector can only offer its seed. So the last good list is kept the way the
+// mushaf keeps its position, and drawn immediately on the next open while the live
+// request revalidates behind it. Same refusal to guess as readMushafLastPage: no key,
+// damaged JSON, a non-array, an empty array or a malformed entry all return null, and the
+// screen falls back to the seed exactly as it did before this cache existed.
+const EZIK_FATWA_SCHOLARS_KEY = 'ezik_fatwa_scholars_v1';
+
+function readCachedScholars() {
+  let raw = null;
+  try { raw = localStorage.getItem(EZIK_FATWA_SCHOLARS_KEY); } catch (e) { return null; }
+  if (!raw) return null;
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return null; }
+  if (!Array.isArray(o) || !o.length) return null;
+  const list = [];
+  for (const item of o) {
+    if (!item || typeof item !== 'object') return null;
+    if (typeof item.id !== 'string' || !item.id) return null;
+    if (typeof item.shortName !== 'string' || !item.shortName) return null;
+    list.push({ id: item.id, shortName: item.shortName });
+  }
+  return list;
+}
+
+function writeCachedScholars(list) {
+  try { localStorage.setItem(EZIK_FATWA_SCHOLARS_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
 function FatwaScreen({ onBack }) {
-  const [scholars, setScholars] = useState([{ id: 'binbaz', shortName: '' }]);
+  const [scholars, setScholars] = useState(
+    () => readCachedScholars() || [{ id: 'binbaz', shortName: '' }]);
   // THE SCREEN OPENS ON EVERYTHING. "All fatwas" is the opening selection, so the first thing
   // a reader sees is page one of the whole alphabet rather than one scholar's shelf; narrowing
   // to a single scholar is one choice away in the same selector. It is not a scholar, so it
@@ -4130,7 +4161,9 @@ function FatwaScreen({ onBack }) {
         ? payload.scholars.filter((item) => item && item.id && (item.shortName || item.name))
         : [];
       if (!list.length) return;
-      setScholars(list.map((item) => ({ id: String(item.id), shortName: String(item.shortName || item.name) })));
+      const next = list.map((item) => ({ id: String(item.id), shortName: String(item.shortName || item.name) }));
+      setScholars(next);
+      writeCachedScholars(next);
       setScholar((current) => (current === EZIK_FATWA_ALL || list.some((item) => String(item.id) === current))
         ? current : String(list[0].id));
     }).catch(() => {}).finally(() => clearTimeout(timer));
