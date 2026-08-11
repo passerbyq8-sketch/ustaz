@@ -54,6 +54,7 @@ const Q_HONORIFIC = 'ما رأي شيخ الإسلام ابن تيمية فيم�
   const AP = await esm('lib/ask-plan.js');
   const EN = await esm('lib/policy/entities.js');
   const GR = await esm('lib/policy/attribution-grades.js');
+  const EK = await esm('lib/policy/entity-knowledge.js');
 
   const plan = (q, on = true, prior = []) =>
     AP.planAsk([...prior, { role: 'user', content: q }], { policyEnabled: on });
@@ -187,14 +188,23 @@ const Q_HONORIFIC = 'ما رأي شيخ الإسلام ابن تيمية فيم�
     // The policy flag may not decide whether a reader is asked which man he means.
     ok('the ambiguity is reported with the policy flag OFF as well',
       plan('ما رأي ابن حجر في هذه المسألة؟', false).scholarStatus === 'ambiguous');
-    // AND THE HANDLER MUST ACT ON IT UNCONDITIONALLY. Gating the clarification on a second
-    // condition is how it was reachable-in-principle and unreached-in-fact.
-    {
-      const ask = fs.readFileSync(require('path').join(REPO, 'api/ask.js'), 'utf8');
-      ok('the clarification branch turns on the ambiguity ALONE',
-        /if \(plan\.scholarStatus === 'ambiguous'\) \{/.test(ask),
-        'ambiguity between two registered men must always reach the clarification');
-    }
+    // The final typed target—not a stale lexical status—licenses the clarification.
+    const typedAmbiguous = plan('ما رأي ابن حجر في هذه المسألة؟');
+    ok('the clarification is licensed by the matching typed ambiguous authority',
+      EK.typedAmbiguityInQuestion(typedAmbiguous) === true);
+    ok('a stale raw ambiguity cannot survive a final typed veto',
+      EK.typedAmbiguityInQuestion({ ...typedAmbiguous, attributionMode: 'none' }) === false);
+    const sacredStale = {
+      ...plan('قال رسول الله ﷺ إنما الأعمال بالنيات'),
+      scholarStatus: 'ambiguous', scholarCandidates: typedAmbiguous.scholarCandidates,
+    };
+    ok('a sacred capture cannot borrow an ambiguity status',
+      EK.typedAmbiguityInQuestion(sacredStale) === false);
+    const material = plan('أريد حديثًا من موقع الشيخ فلان');
+    ok('material-from-site never enters the opinion ambiguity branch',
+      EK.typedAmbiguityInQuestion({
+        ...material, scholarStatus: 'ambiguous', scholarCandidates: typedAmbiguous.scholarCandidates,
+      }) === false);
     // An UNAMBIGUOUS Ibn Hajar is not ambiguous. Naming the man settles it, and must.
     for (const q of ['ما رأي ابن حجر العسقلاني في هذه المسألة؟', 'ما رأي ابن حجر الهيتمي في هذه المسألة؟']) {
       ok('«' + q.slice(0, 30) + '…» is NOT ambiguous — the reader already chose',

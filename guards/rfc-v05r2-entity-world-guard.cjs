@@ -29,6 +29,7 @@
 // Usage: node guards/rfc-v05r2-entity-world-guard.cjs
 'use strict';
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const REPO = path.join(__dirname, '..');
@@ -62,6 +63,7 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
 
   const EK = await esm('lib/policy/entity-knowledge.js');
   const AP = await esm('lib/ask-plan.js');
+  const ENT = await esm('lib/policy/entities.js');
   const CG = await esm('lib/policy/consistency-gate.js');
   const DC = await esm('lib/daycap.js');
   const STORE = await esm('lib/ledger/redis.js');
@@ -116,9 +118,30 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
     // THE SURVIVING HALF. An unregistered name is stripped out of the search query — because the
     // sources hold the ruling and nobody has published what an unregistered name thinks of it —
     // and the test for "unregistered" is now the registry and the roster, nothing else.
-    eq('an unregistered name is reported for stripping, on the public path',
-      EK.unregisteredNameInQuestion(plan(Q_SINGER, false)), 'خالد عبدالرحمن');
-    eq('...and with an honorific, on the internal path too',
+    eq('a raw lexical capture vetoed by the typed IR is not treated as an identity span',
+      EK.unregisteredNameInQuestion(plan(Q_SINGER, true)), '');
+    ok('F-004 exposes a query-only entity channel distinct from the trusted reader entity',
+      typeof EK.rawQueryEntityInQuestion === 'function');
+    eq('F-004 raw query entity may shape retrieval after the typed reader veto',
+      typeof EK.rawQueryEntityInQuestion === 'function'
+        ? EK.rawQueryEntityInQuestion(plan(Q_SINGER, true)) : 'MISSING', 'خالد عبدالرحمن');
+    eq('F-004 plain raw capture is not a trusted reader entity',
+      EK.trustedReaderEntityInQuestion(plan(Q_SINGER, true)), '');
+    eq('F-004 a typed unresolved authority remains a trusted reader entity',
+      EK.trustedReaderEntityInQuestion(plan(Q_SINGER_TITLED, true)), 'خالد عبدالرحمن');
+    const typedVetoPlan = plan(Q_SINGER, true);
+    typedVetoPlan.attributionMode = 'none';
+    typedVetoPlan.entities = [{
+      targetType: 'person', role: 'authority', resolutionStatus: 'unresolved', surface: 'خالد عبدالرحمن',
+    }];
+    eq('F-081 causal RED: a stale raw attribution cannot revive a typed-vetoed reader entity',
+      EK.trustedReaderEntityInQuestion(typedVetoPlan), '');
+    eq('F-081 query-only control: the same raw surface remains available only for query shaping',
+      EK.rawQueryEntityInQuestion(typedVetoPlan), 'خالد عبدالرحمن');
+    ok('F-081 V3 RED: reader ambiguity requires a final typed authority bound to the same surface',
+      typeof EK.typedAmbiguityInQuestion === 'function'
+        && EK.typedAmbiguityInQuestion(typedVetoPlan) === false);
+    eq('an unregistered typed person is reported for stripping',
       EK.unregisteredNameInQuestion(plan(Q_SINGER_TITLED, true)), 'خالد عبدالرحمن');
     eq('a REGISTERED contemporary is never stripped',
       EK.unregisteredNameInQuestion(plan(Q_BAZ, true)), '');
@@ -133,13 +156,76 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
 
     eq('the frame and the name both go',
       EK.stripEntityFromQuery('ما رأي خالد عبدالرحمن في قصر الصلاة', 'خالد عبدالرحمن'), 'قصر الصلاة');
-    eq('...including an honorific and a trailing qualifier',
+    eq('F-006 an ambiguous run without a governed boundary is left byte-identical',
       EK.stripEntityFromQuery('رأي الشيخ خالد عبدالرحمن قصر الصلاة للمسافر', 'خالد عبدالرحمن'),
+      'رأي الشيخ خالد عبدالرحمن قصر الصلاة للمسافر');
+    eq('...while the governed honorific span with a topic preposition is removed',
+      EK.stripEntityFromQuery('رأي الشيخ خالد عبدالرحمن في قصر الصلاة للمسافر', 'خالد عبدالرحمن'),
       'قصر الصلاة للمسافر');
     eq('a query that never named him is untouched',
       EK.stripEntityFromQuery('حكم قصر الصلاة في السفر', 'خالد عبدالرحمن'), 'حكم قصر الصلاة في السفر');
     ok('the topic survives — stripping must not empty the query',
       EK.stripEntityFromQuery('ما رأي خالد عبدالرحمن في قصر الصلاة', 'خالد عبدالرحمن').length > 4);
+
+    eq('F-006 removes the independent attribution name, never its occurrence inside «المصالح»',
+      EK.stripEntityFromQuery('ما حكم المصالح عند الشيخ صالح؟', 'صالح'), 'ما حكم المصالح');
+    eq('F-006 leaves «الصالحين» untouched',
+      EK.stripEntityFromQuery('ما حكم الصالحين عند الشيخ صالح؟', 'صالح'), 'ما حكم الصالحين');
+    eq('F-006 leaves «مصالح» untouched',
+      EK.stripEntityFromQuery('ما حكم مصالح الناس عند الشيخ صالح؟', 'صالح'), 'ما حكم مصالح الناس');
+    eq('F-006 removes a governed whole-token name at the beginning',
+      EK.stripEntityFromQuery('قال صالح: ما حكم القصر؟', 'صالح'), 'ما حكم القصر؟');
+    eq('F-006 causal RED: a unique but ungoverned token is not an attribution span',
+      EK.stripEntityFromQuery('زرنا صالح في الرياض', 'صالح'), 'زرنا صالح في الرياض');
+    eq('F-006 removes a whole-token name in the middle attribution frame',
+      EK.stripEntityFromQuery('ما رأي صالح في القصر؟', 'صالح'), 'القصر؟');
+    eq('F-006 removes a whole-token name at the end',
+      EK.stripEntityFromQuery('ما حكم القصر عند صالح؟', 'صالح'), 'ما حكم القصر');
+    eq('F-006 accepts Arabic punctuation as a boundary',
+      EK.stripEntityFromQuery('ما رأي «صالح»، في القصر؟', 'صالح'), 'القصر؟');
+    eq('F-006 skips an embedded occurrence and removes the later independent token',
+      EK.stripEntityFromQuery('ما حكم المصالح عند الشيخ صالح؟', 'صالح'), 'ما حكم المصالح');
+    eq('F-006 causal RED: unrelated empty quotes are not cleaned outside the selected name span',
+      EK.stripEntityFromQuery('ما حكم الصلاة مع "" عند الشيخ صالح؟', 'صالح'), 'ما حكم الصلاة مع ""');
+    eq('F-006 causal RED: an unrelated later honorific remains byte-exact',
+      EK.stripEntityFromQuery('ما رأي الشيخ صالح في كلام الشيخ ابن باز؟', 'صالح'), 'كلام الشيخ ابن باز؟');
+    eq('F-006 removes only the attribution occurrence when the same name appears twice',
+      EK.stripEntityFromQuery('قابلت صالح أمس، ما رأي الشيخ صالح في القصر؟', 'صالح'),
+      'قابلت صالح أمس، القصر؟');
+    eq('F-006 causal RED: the explicit later target wins over an earlier reported occurrence',
+      EK.stripEntityFromQuery('ذكر صالح قولًا، فما رأي الشيخ صالح؟', 'صالح'),
+      'ذكر صالح قولًا');
+    eq('F-006 causal RED: an ordinary earlier mention survives when the governed target is later',
+      EK.stripEntityFromQuery('قابلت صالح أمس، فما رأي الشيخ صالح؟', 'صالح'),
+      'قابلت صالح أمس');
+    eq('F-006 causal RED: whitespace outside the local deletion seam remains byte-identical',
+      EK.stripEntityFromQuery('مقدمة  بعيدة، فما رأي الشيخ صالح في القصر؟', 'صالح'),
+      'مقدمة  بعيدة، القصر؟');
+    eq('F-006 causal RED: a safely ungoverned query is returned byte-for-byte, including outer whitespace',
+      EK.stripEntityFromQuery('  زرنا صالح  في الرياض  ', 'صالح'),
+      '  زرنا صالح  في الرياض  ');
+    eq('F-006 causal RED: Arabic combining marks remain matchable in the governed surface',
+      EK.stripEntityFromQuery('ما رأي الشَّيخ صَالِح في القصر؟', 'صالح'), 'القصر؟');
+    eq('F-006 invariant: distant quotes, double spaces, and a later honorific remain exact',
+      EK.stripEntityFromQuery('«نص»  بعيد، فما رأي الشيخ صالح في كلام الشيخ ابن باز؟', 'صالح'),
+      '«نص»  بعيد، كلام الشيخ ابن باز؟');
+    eq('F-006 unrelated Arabic quote punctuation survives outside the chosen span',
+      EK.stripEntityFromQuery('«» ما رأي الشيخ صالح في القصر؟', 'صالح'), '«» القصر؟');
+    eq('F-006 removes the contiguous two-token span «عبد الله»',
+      EK.stripEntityFromQuery('ما رأي عبد الله في القصر؟', 'عبد الله'), 'القصر؟');
+    eq('F-006 removes the contiguous two-token span «عبد الرحمن»',
+      EK.stripEntityFromQuery('ما رأي عبد الرحمن في القصر؟', 'عبد الرحمن'), 'القصر؟');
+    eq('F-006 never removes «رسول» from a sacred question',
+      EK.stripEntityFromQuery('ما صحة ما قال رسول الله ﷺ؟', 'رسول'), 'ما صحة ما قال رسول الله ﷺ؟');
+    eq('F-006 never removes «الله» from a sacred question',
+      EK.stripEntityFromQuery('قال الله تعالى: إن مع العسر يسرا.', 'الله'), 'قال الله تعالى: إن مع العسر يسرا.');
+    const masalihIr = ENT.readEntities('ما حكم المصالح عند الشيخ صالح؟');
+    const governedSaleh = masalihIr.entities.find((entity) => entity.surface === 'صالح');
+    ok('F-006 causal RED: typed IR binds صالح to the honorific span, not inside «المصالح»',
+      masalihIr.claimRelation === 'BY_ENTITY' && governedSaleh && governedSaleh.role === 'authority',
+      JSON.stringify(masalihIr));
+    eq('F-006 causal RED: planner topic removal cannot delete صالح inside «المصلحة»',
+      plan('ما رأي المصلح في المصلحة المرسلة؟', true).topic, 'المصلحة المرسلة؟');
   }
 
   // =========================================================================
@@ -307,7 +393,7 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
 
     try {
       // ── THE FIXTURE: the reported question ─────────────────────────────────
-      const singer = await drive(Q_SINGER, GOOD_DRAFT);
+      const singer = await drive(Q_SINGER_TITLED, GOOD_DRAFT);
       eq('NO model call was spent identifying anybody', singer.state.identityCalls, 0);
       ok('NO «لم أتبيّن أي شيخ» template reaches the reader',
         !/لم أتبيّنْ أيَّ شيخٍ تقصد/.test(singer.text), singer.text.slice(0, 200));
@@ -357,6 +443,80 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
       STORE.__resetRedis();
       for (const k of ['RFC_V05_MODE', 'LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'ANTHROPIC_API_KEY',
         'BRAVE_API_KEY', 'FOUNDER_SECRET']) delete process.env[k];
+    }
+  }
+
+  // =========================================================================
+  console.log('\n=== H. A2 MUTANTS — typed trust, governed spans, and failed searches are load-bearing ===');
+  {
+    const policyDir = path.join(REPO, 'lib', 'policy');
+    const absoluteImports = (source) => source.replace(/from '([^']+)'/g, (_match, rel) => {
+      if (!rel.startsWith('.')) return _match;
+      return "from 'file:///" + path.resolve(policyDir, rel).replace(/\\/g, '/') + "'";
+    });
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a2-entity-mut-'));
+    try {
+      const entitySource = fs.readFileSync(path.join(policyDir, 'entity-knowledge.js'), 'utf8');
+      const rawTrustPattern = /export function trustedReaderEntityInQuestion\(plan\) \{[\s\S]*?\n\}\n\n\/\*\* A reader clarification/;
+      const rawTrustMutant = entitySource.replace(rawTrustPattern,
+        "export function trustedReaderEntityInQuestion(plan) {\n  return rawQueryEntityInQuestion(plan);\n}\n\n/** A reader clarification");
+      ok('mutation precondition: raw and trusted identity channels are separate',
+        rawTrustMutant !== entitySource);
+      const rawTrustFile = path.join(dir, 'raw-becomes-trusted.mjs');
+      fs.writeFileSync(rawTrustFile, absoluteImports(rawTrustMutant), 'utf8');
+      const RawTrust = await import('file:///' + rawTrustFile.replace(/\\/g, '/'));
+      const stale = {
+        attributionMode: 'none', namedEntity: '', entities: [], scholarStatus: 'n/a',
+        attribution: {
+          mode: 'namedScholarOpinion', scholarName: 'خالد عبدالرحمن',
+          question: 'ما رأي خالد عبدالرحمن في قصر الصلاة؟',
+        },
+      };
+      ok('MUTANT KILLED: reviving raw attribution crosses the reader-trust boundary',
+        RawTrust.trustedReaderEntityInQuestion(stale) === 'خالد عبدالرحمن');
+
+      const stripPattern = /export function stripEntityFromQuery\(query, name, governedSpan = null\) \{[\s\S]*?\n\}\s*$/;
+      const naiveStrip = entitySource.replace(stripPattern, `export function stripEntityFromQuery(query, name) {
+  const q = String(query || '');
+  const at = q.indexOf(String(name || ''));
+  return at < 0 ? q : q.slice(0, at) + q.slice(at + String(name || '').length);
+}\n`);
+      ok('mutation precondition: the governed-span remover can be replaced', naiveStrip !== entitySource);
+      const stripFile = path.join(dir, 'substring-indexof.mjs');
+      fs.writeFileSync(stripFile, absoluteImports(naiveStrip), 'utf8');
+      const NaiveStrip = await import('file:///' + stripFile.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: indexOf corrupts a larger Arabic word before the governed name',
+        NaiveStrip.stripEntityFromQuery('ما حكم المصالح عند الشيخ صالح؟', 'صالح')
+          !== EK.stripEntityFromQuery('ما حكم المصالح عند الشيخ صالح؟', 'صالح'));
+
+      const presenceSource = fs.readFileSync(path.join(policyDir, 'name-presence.js'), 'utf8');
+      const trustNeedle = '    && trustedSurface === needle);';
+      ok('mutation precondition: single-token trust is bound to the same surface',
+        presenceSource.includes(trustNeedle));
+      const anyResolved = presenceSource.replace(trustNeedle, ');');
+      const anyResolvedFile = path.join(dir, 'any-resolved-trust.mjs');
+      fs.writeFileSync(anyResolvedFile, absoluteImports(anyResolved), 'utf8');
+      const AnyResolved = await import('file:///' + anyResolvedFile.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: trust for person A licenses one-token person B again',
+        AnyResolved.identityLookupAllowed('خالد', {
+          resolutionStatus: 'resolved', source: 'registry', surface: 'فركوس',
+        }) === true);
+
+      const absenceNeedle = 'presence.outcome === PRESENCE.ABSENT && presence.found === false';
+      ok('mutation precondition: only a completed ABSENT outcome licenses the line',
+        presenceSource.includes(absenceNeedle));
+      const failedAsAbsent = presenceSource.replace(absenceNeedle,
+        'presence.outcome !== PRESENCE.FOUND && presence.found === false');
+      const failedFile = path.join(dir, 'failed-as-absent.mjs');
+      fs.writeFileSync(failedFile, absoluteImports(failedAsAbsent), 'utf8');
+      const FailedAsAbsent = await import('file:///' + failedFile.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: SEARCH_FAILED becomes a reader-facing absence again',
+        !!FailedAsAbsent.presenceLine({
+          probed: true, searchCompleted: true, outcome: FailedAsAbsent.PRESENCE.SEARCH_FAILED,
+          found: false, name: 'فلان الفلاني',
+        }));
+    } finally {
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
 

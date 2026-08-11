@@ -185,6 +185,27 @@ const PAGES = {
       ok('SCHOLAR: the existing path is explicitly left alone',
         /ولا تُغيِّرْ شيئًا من أجلِ هذا التنبيه/.test(shaykh));
       ok('...and no correction is ordered', !/صحِّحِ المقدّمة/.test(shaykh));
+
+      for (const [name, question] of [
+        ['رسول', 'ما صحة ما قال رسول الله ﷺ؟'],
+        ['النبي', 'هل ثبت ما قال النبي ﷺ؟'],
+        ['رسول الله', 'ما صحة ما قال رسول الله ﷺ؟'],
+        ['الله', 'قال الله تعالى: إن مع العسر يسرا.'],
+      ]) {
+        eq('F-007 direct sacred UNKNOWN veto: «' + name + '» injects no identity instruction',
+          ID.identityFactBlock({ kind: ID.IDENTITY.UNKNOWN, display: name }, { question }), '');
+      }
+      for (const name of ['الإمام فلان', 'المفتي فلان', 'الحافظ فلان', 'شيخ الإسلام فلان']) {
+        ok('F-007 direct human-title UNKNOWN remains bounded: «' + name + '»',
+          ID.identityFactBlock({ kind: ID.IDENTITY.UNKNOWN, display: name },
+            { question: 'ما رأي ' + name + '؟' }).includes(ID.NO_IDENTITY_OPENING));
+      }
+      ok('F-007 direct green: a genuinely unknown human keeps the bounded UNKNOWN instruction',
+        ID.identityFactBlock({ kind: ID.IDENTITY.UNKNOWN, display: 'فلان الفلاني' },
+          { question: 'ما رأي الشيخ فلان الفلاني؟' }).includes(ID.NO_IDENTITY_OPENING));
+      ok('F-007 ordinary-scholar green: a sacred honorific does not suppress a resolved identity',
+        ID.identityFactBlock({ kind: ID.IDENTITY.SCHOLAR, display: 'الإمام مالك', descriptor: 'من أهل العلم' },
+          { question: 'ما قول الإمام مالك؟' }).includes('هويّةُ الاسمِ المذكور'));
     }
 
     // =========================================================================
@@ -370,7 +391,7 @@ const PAGES = {
       }
       // ...and it does NOT open a second search budget.
       ok('stage 3 reuses the pages the world probe already paid for',
-        /allowLiveSearch: namePresence\.probed/.test(ask)
+        /allowLiveSearch: namePresence\.searchCompleted === true[\s\S]{0,120}namePresence\.outcome === PRESENCE\.FOUND/.test(ask)
         && /search: async \(\) => \(\(namePresence\.page/.test(ask),
         'a second retrieval budget beside the answer\'s own is the one thing this look-up may not become');
       // A THROW HERE MAY NOT COST THE READER AN ANSWER.
@@ -388,8 +409,8 @@ const PAGES = {
     // block saying he is not a scholar» is a claim about behaviour, and only one of the two
     // survives somebody restructuring the handler.
     //
-    // THE FIXTURE IS THE MEASURED QUESTION: «ماقول عبدالله الرويشد في أحكام العقيقه» — a joined
-    // «ماقول» (P1-D made it visible), an unregistered name, and a real ruling question under it.
+    // The honorific makes this a typed unresolved authority in the IR.  A raw lexical capture is
+    // deliberately not enough: F-081 requires the typed veto to remain authoritative.
     {
       const saved = {};
       for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
@@ -453,7 +474,7 @@ const PAGES = {
           headers: { 'content-type': 'application/json', 'x-ezik-ai-consent': CONSENT.AI_CONSENT_VERSION,
             'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER },
           body: { name: 'خالد', age: 30, gender: 'male', mode: 'chat', band: 'adult',
-            messages: [{ role: 'user', content: 'ماقول عبدالله الرويشد في أحكام العقيقه' }] },
+            messages: [{ role: 'user', content: 'ماقول الشيخ عبدالله الرويشد في أحكام العقيقه' }] },
           socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
         };
 
@@ -609,7 +630,7 @@ const PAGES = {
     console.log('\n=== K. DRIVEN: THE IGNORANCE OPENING ASKS THE CASCADE FIRST (ج١) ===');
     //
     // ── THE MEASURED CONTRADICTION ────────────────────────────────────────────
-    // «ماقول عبدالله الرويشد في حكم الغناء» produced, in ONE reply:
+    // «ماقول الشيخ عبدالله الرويشد في حكم الغناء» produced, in ONE reply:
     //     «لا أعرف هذا الاسم: «عبدالله الرويشد» لا يَرِد في المصادر التي أرجع إليها…»
     // and then a correct description of him as a Kuwaiti singer. Driven and measured before the
     // fix: [identity] said public_figure/wikipedia, the model was handed «مطرب» and told he is not
@@ -709,11 +730,11 @@ const PAGES = {
           return { text: emitted.join(''), identity: idLines.join(' ') };
         };
 
-        const OPENING = 'لا أعرف هذا الاسم';
+        const OPENING = 'لم أتحقق من هذا الاسم ضمن النتائج التي فُحصت';
         const CORRECTION = 'ليس ممّن تُؤخَذ عنه الفتوى في مصادرنا';
 
         // ── (1) IDENTITY DECIDED: the opening must be ABSENT ──────────────────
-        const decided = await run('ماقول عبدالله الرويشد في حكم الغناء', WIKI);
+        const decided = await run('ماقول الشيخ عبدالله الرويشد في حكم الغناء', WIKI);
         if (ok('the cascade placed him as a public figure', /"kind":"public_figure"/.test(decided.identity),
           decided.identity || 'no [identity] line — the probe never ran, so this case proves nothing')) {
           ok('DECIDED: the ignorance opening is ABSENT from what the reader gets',
@@ -727,7 +748,7 @@ const PAGES = {
         }
 
         // ── (2) IDENTITY UNKNOWN: the opening must be PRESENT ─────────────────
-        const unknown = await run('ماقول سالم المري العتيبي في حكم الغناء', null);
+        const unknown = await run('ماقول الشيخ سالم المري العتيبي في حكم الغناء', null);
         if (ok('the cascade reached UNKNOWN for a name nothing carries', /"kind":"unknown"/.test(unknown.identity),
           unknown.identity || 'no [identity] line')) {
           ok('UNKNOWN: the ignorance opening IS printed — it is the honest sentence here',
@@ -838,11 +859,9 @@ const PAGES = {
       const ask = read('api/ask.js');
       ok('the GEN branch writes a card for the identity page',
         /buildSourceTag\(\{ url: identityUrl/.test(ask));
-      // AFTER the filter closes, or it would be stripped as model text on the way out.
-      ok('...after filter.end(), because the GEN filter strips <source> from MODEL text',
-        ask.indexOf('writeText(filter.end());        // stream ended') < ask.indexOf('if (identityUrl) {'),
-        'written before the filter closes, this card would be deleted by the very filter that '
-        + 'exists to delete cards the model invented');
+      ok('...as a structured server-owned card, separate from filtered model text',
+        /registerOwnedCards\(idCard \? \[idCard\] : \[\]\);[\s\S]{0,160}?finalizerContext\.readerCards = \[idCard\]/.test(ask),
+        'the identity card must enter the finalizer as structured server data');
       // ...and it is the RECORD's `.tag`, not the record — measured: `'\n' + idCard` shipped
       // «[object Object]» to the reader.
       ok('...and it writes the card\'s .tag, not the record', /idCard && idCard\.tag/.test(ask));

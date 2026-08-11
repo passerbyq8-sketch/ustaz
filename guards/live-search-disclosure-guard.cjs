@@ -252,9 +252,11 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     ok('api/ask.js imports the module', /from '\.\.\/lib\/policy\/live-search-disclosure\.js'/.test(ASK));
     ok('the notice is decided by worldIntent.world, not by a second copy of the classifier',
       /liveSearchNotice\(\{[\s\S]{0,80}worldWanted: worldIntent\.world/.test(ASK));
-    // A per-chunk write is how "once" becomes "once per delta". The call must sit outside the loop.
-    ok('the notice is written ONCE, before the read loop — not inside it',
-      (ASK.match(/if \(liveNotice\) writeText\(/g) || []).length === 1);
+    const prefixAt = ASK.indexOf("finalizerContext.readerPrefix = [presenceLead, liveNotice].filter(Boolean).join('\\n\\n')");
+    const readLoopAt = ASK.indexOf('while (true) {', prefixAt);
+    ok('the notice is server-owned finalizer context before upstream replay',
+      prefixAt >= 0 && readLoopAt > prefixAt,
+      'the notice must be composed by the finalizer, never written as an early delta');
     ok('the sentence itself lives in the policy module, not inlined in the handler',
       !ASK.includes(D.NO_LIVE_RESULTS_DISCLOSURE));
   }

@@ -23,6 +23,7 @@
 // Usage: node guards/takhrij-lock-guard.cjs
 'use strict';
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const REPO = path.join(__dirname, '..');
@@ -355,16 +356,78 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok('...and final text is emitted only at end', visible(target) === '# Heading\n\n- one\n- two');
     ok('...with exactly one message_stop and one end', (target.writes.join('').match(/message_stop/g) || []).length === 1 && target.ended === 1);
   }
+  {
+    const target = makeTarget();
+    const card = { tag: '<source url="https://owned.example">owned</source>' };
+    const writer = SW.createFinalizedSseResponse(target, {
+      context: { readerPrefix: 'server prefix', readerCards: [card], readerCardPrefix: '\n', sourceCards: [card] },
+      finalize: (x) => ({ text: x.text, ok: true }),
+    });
+    const full = event({ type: 'message_start', message: { role: 'assistant' } })
+      + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } })
+      + delta('body')
+      + event({ type: 'content_block_stop', index: 0 }) + stop;
+    writer.write(full); writer.end();
+    ok('SSE causal RED: a server-owned prefix composes before a full-lifecycle body and owned card',
+      validClientSequence(parseEvents(target)) && visible(target) === 'server prefix\n\nbody\n' + card.tag);
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    const full = event({ type: 'message_start', message: { role: 'assistant' } })
+      + event({ type: 'ping' })
+      + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } })
+      + delta('body')
+      + event({ type: 'content_block_stop', index: 0 })
+      + event({ type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 1 } })
+      + stop;
+    writer.write(full); writer.end();
+    ok('SSE causal RED: real Anthropic ping/message_delta lifecycle is accepted without exposing protocol as text',
+      visible(target) === 'body' && parseEvents(target).filter((item) => item.type === 'message_stop').length === 1);
+  }
   for (const [name, payload] of [
-    ['delta before block start', event({ type: 'message_start', message: {} }) + delta('raw') + stop],
+    ['delta before block start', event({ type: 'message_start', message: { role: 'assistant' } }) + delta('raw') + stop],
     ['block stop with another index', event({ type: 'message_start', message: {} }) + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + event({ type: 'content_block_stop', index: 1 }) + stop],
     ['duplicate message start', event({ type: 'message_start', message: {} }) + event({ type: 'message_start', message: {} }) + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + event({ type: 'content_block_stop', index: 0 }) + stop],
     ['duplicate block stop', event({ type: 'message_start', message: {} }) + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + event({ type: 'content_block_stop', index: 0 }) + event({ type: 'content_block_stop', index: 0 }) + stop],
+    ['overlapping text blocks', event({ type: 'message_start', message: { role: 'assistant' } }) + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + event({ type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } }) + event({ type: 'content_block_stop', index: 0 }) + event({ type: 'content_block_stop', index: 1 }) + stop],
   ]) {
     const target = makeTarget();
     const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
     writer.write(payload); writer.end();
     ok('SSE causal RED: ' + name + ' fails closed', visible(target) === 'server output rejected');
+  }
+  {
+    const source = read('lib/finalized-sse-writer.js');
+    const deltaGate = `      if (!messageStarted || messageDeltaSeen || !open.has(event.index) || !event.delta
+        || event.delta.type !== 'text_delta' || typeof event.delta.text !== 'string') return { valid: false, complete: true };`;
+    ok('mutation precondition: text deltas require both message and block start', source.includes(deltaGate));
+    const mutant = source.replace(deltaGate, `      if (messageDeltaSeen || !event.delta
+        || event.delta.type !== 'text_delta' || typeof event.delta.text !== 'string') return { valid: false, complete: true };`);
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a2-sse-mut-'));
+    try {
+      const file = path.join(dir, 'delta-before-start.mjs');
+      fs.writeFileSync(file, mutant, 'utf8');
+      const MutantWriter = await import('file:///' + file.replace(/\\/g, '/'));
+      const invalid = delta('raw')
+        + event({ type: 'message_start', message: { role: 'assistant' } })
+        + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } })
+        + event({ type: 'content_block_stop', index: 0 }) + stop;
+      const productionTarget = makeTarget();
+      const productionWriter = SW.createFinalizedSseResponse(productionTarget, {
+        finalize: (input) => ({ text: input.text, ok: true }),
+      });
+      productionWriter.write(invalid); productionWriter.end();
+      const mutantTarget = makeTarget();
+      const mutantWriter = MutantWriter.createFinalizedSseResponse(mutantTarget, {
+        finalize: (input) => ({ text: input.text, ok: true }),
+      });
+      mutantWriter.write(invalid); mutantWriter.end();
+      ok('MUTANT KILLED: allowing delta-before-start revives the invalid raw prefix',
+        visible(productionTarget) === 'server output rejected' && visible(mutantTarget) === 'raw');
+    } finally {
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
   }
   {
     const target = makeTarget();
@@ -409,8 +472,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   {
     const target = makeTarget();
     const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
-    writer.write(delta('raw')); target.emit('close'); writer.end();
-    ok('a real response close fails closed without raw fallback', validClientSequence(parseEvents(target)) && !visible(target).includes('raw'));
+    let callbackError = null;
+    writer.write(delta('raw')); target.emit('close'); writer.end(stop, (error) => { callbackError = error; });
+    ok('a real response close is terminal: no replacement write or target.end follows it',
+      target.writes.length === 0 && target.ended === 0 && callbackError instanceof Error);
   }
   {
     const target = makeTarget();
@@ -441,8 +506,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const ac = new AbortController();
     const target = makeTarget();
     const writer = SW.createFinalizedSseResponse(target, { signal: ac.signal, finalize: (x) => ({ text: x.text, ok: true }) });
-    writer.write(delta('raw')); ac.abort(); writer.end();
-    ok('abort fails closed and ends exactly once', /server output rejected/.test(target.writes.join('')) && target.ended === 1);
+    let callbackError = null;
+    writer.write(delta('raw')); ac.abort(); writer.end(stop, (error) => { callbackError = error; });
+    ok('abort before replay is terminal with one callback and no target write/end',
+      target.writes.length === 0 && target.ended === 0 && callbackError instanceof Error);
   }
   {
     const target = makeTarget();
@@ -469,6 +536,16 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok(mode + ' immediately cancels a drain wait without post-close write or target.end', target.writes.length === before && target.ended === 0 && callbackError instanceof Error);
   }
   {
+    const target = makeTarget();
+    target.write = () => { throw new Error('closed-socket'); };
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    let callbackCount = 0, callbackError = null, escaped = null;
+    writer.write(delta('held') + stop);
+    try { writer.end((error) => { callbackCount++; callbackError = error; }); } catch (error) { escaped = error; }
+    ok('SSE causal RED: a synchronous target.write failure settles once and cleans up',
+      !escaped && callbackCount === 1 && callbackError instanceof Error && target.ended === 0);
+  }
+  {
     const warm = '\u062e\u0644\u0651\u064a\u0646\u0627 \u0646\u0633\u0648\u064a\u0647\u0627 \u0635\u062d \u0645\u0639 \u0645\u0627\u0645\u0627 \u0623\u0648 \u0628\u0627\u0628\u0627.';
     const once = run({ text: warm });
     const twice = run({ text: once.text });
@@ -481,6 +558,27 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const answer = 'answer\n' + cards[0].tag + '\n' + cards[1].tag;
     writer.write(delta(answer) + stop); writer.end();
     ok('multiple server-owned cards retain byte order after prose finalization', visible(target) === answer);
+  }
+  {
+    const target = makeTarget();
+    const card = { tag: '<source url="https://owned.example">owned</source>' };
+    const writer = SW.createFinalizedSseResponse(target, {
+      context: { sourceCards: [card], readerCards: [card] },
+      finalize: () => ({ text: '', ok: true }),
+    });
+    writer.write(delta('text removed by finalizer') + stop); writer.end();
+    ok('SSE causal RED: a finalizer-empty answer never leaves an orphan source card', visible(target) === '');
+  }
+  {
+    const target = makeTarget();
+    const card = { tag: '<source url="https://owned.example">owned</source>' };
+    const writer = SW.createFinalizedSseResponse(target, {
+      context: { readerPrefix: 'LEAD', sourceCards: [card], readerCards: [card] },
+      finalize,
+    });
+    writer.write(delta('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.') + stop); writer.end();
+    ok('SSE causal RED: server prefix cannot make a stripped body eligible for an orphan card',
+      visible(target) === 'LEAD' && !visible(target).includes('<source'));
   }
   {
     const target = makeTarget();
@@ -527,14 +625,14 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     process.env.FOUNDER_SECRET = 'a1-local-secret'; process.env.RFC_V05_MODE = 'internal'; process.env.LEDGER_RAG = 'off';
     STORE.__setRedisForTest(null);
     const cap = new Map();
-    DAY.__setRedisForTest({ async mget(...ks) { return ks.map((k) => cap.get(k) || null); }, pipeline() { const q = []; return {
+    DAY.__setRedisForTest({ async mget(...ks) { return ks.map((k) => cap.get(k) || null); }, async sismember() { return 0; }, pipeline() { const q = []; return {
       incr(k) { q.push(() => { const n = (Number(cap.get(k)) || 0) + 1; cap.set(k, n); return n; }); }, expire() { q.push(() => 1); }, async exec() { return q.map((f) => f()); },
     }; } });
     class Response extends EventEmitter {
       constructor() { super(); this.writes = []; this.ended = 0; this.textWritesBeforeFinalizer = 0; this.endsBeforeFinalizer = 0; }
       status(n) { this.statusCode = n; return this; } setHeader() { return this; } flushHeaders() {}
       write(v, e, cb) { const raw = String(v); if (raw.trim() && !raw.trimStart().startsWith(':') && !this[SW.FINALIZATION_COMPLETE]) this.textWritesBeforeFinalizer++; this.writes.push(raw); if (typeof e === 'function') e(); if (typeof cb === 'function') cb(); return true; }
-      end(v, e, cb) { if (!this[SW.FINALIZATION_COMPLETE]) this.endsBeforeFinalizer++; if (v != null) { const raw = String(v); if (raw.trim() && !this[SW.FINALIZATION_COMPLETE]) this.textWritesBeforeFinalizer++; this.writes.push(raw); } this.ended++; if (typeof e === 'function') e(); if (typeof cb === 'function') cb(); return this; }
+      end(v, e, cb) { if (typeof v === 'function') { cb = v; v = undefined; e = undefined; } else if (typeof e === 'function') { cb = e; e = undefined; } if (!this[SW.FINALIZATION_COMPLETE]) this.endsBeforeFinalizer++; if (v != null) { const raw = String(v); if (raw.trim() && !this[SW.FINALIZATION_COMPLETE]) this.textWritesBeforeFinalizer++; this.writes.push(raw); } this.ended++; if (typeof cb === 'function') cb(); return this; }
       json(v) { this.jsonBody = v; this.ended++; return this; }
     }
     const jr = (v) => ({ ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => v, text: async () => JSON.stringify(v) });
@@ -549,13 +647,50 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       if (buffer.trim()) handleEvent(buffer);
       return full;
     `);
-    const drive = async ({ question, draft, evidence, route = 'DEEN' }) => {
+    const drive = async ({ question, draft, evidence, route = 'DEEN', wireMode = 'frames', disconnectMode = '' }) => {
       let planned = false;
+      let activeResponse = null, pendingRead = null, disconnected = false;
+      let upstreamCancelCalls = 0, upstreamSignalAborted = false, writesAtDisconnect = -1, endsAtDisconnect = -1;
+      const requestAbort = new AbortController();
       globalThis.fetch = async (url, init = {}) => {
         const u = String(url);
         if (u.includes('api.anthropic.com')) {
           const b = JSON.parse(init.body || '{}');
-          if (b.stream) { const frames = [delta(draft), stop]; let i = 0; return { ok: true, status: 200, headers: { get: () => 'text/event-stream' }, body: { getReader: () => ({ read: async () => i < frames.length ? { done: false, value: new TextEncoder().encode(frames[i++]) } : { done: true }, releaseLock() {}, cancel: async () => {} }) } }; }
+          if (b.stream) { const frames = [
+            event({ type: 'message_start', message: { id: 'msg_a1', type: 'message', role: 'assistant', content: [] } }),
+            event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }),
+            delta(draft),
+            event({ type: 'content_block_stop', index: 0 }),
+            stop,
+          ]; const raw = wireMode === 'crlf-partial' ? frames.join('').replace(/\n/g, '\r\n') : '';
+            const bytes = wireMode === 'crlf-partial' ? Buffer.from(raw, 'utf8') : null;
+            const chunks = wireMode === 'crlf-partial'
+              ? [bytes.subarray(0, 7), bytes.subarray(7, 43), bytes.subarray(43, 121), bytes.subarray(121)]
+              : frames.map((frame) => Buffer.from(frame, 'utf8'));
+            let i = 0; return { ok: true, status: 200, headers: { get: () => 'text/event-stream' }, body: { getReader: () => ({
+              read: async () => {
+                if (disconnectMode && i === 1 && !disconnected) {
+                  disconnected = true;
+                  return new Promise((resolve) => {
+                    pendingRead = resolve;
+                    queueMicrotask(() => {
+                      writesAtDisconnect = activeResponse.writes.length;
+                      endsAtDisconnect = activeResponse.ended;
+                      if (disconnectMode === 'close') activeResponse.emit('close');
+                      else requestAbort.abort();
+                    });
+                  });
+                }
+                return i < chunks.length ? { done: false, value: chunks[i++] } : { done: true };
+              },
+              releaseLock() {},
+              cancel: async () => {
+                upstreamCancelCalls++;
+                upstreamSignalAborted = !!init.signal?.aborted;
+                const settle = pendingRead; pendingRead = null;
+                settle?.({ done: true });
+              },
+            }) } }; }
           if (b.tools && !planned) { planned = true; return jr({ content: [{ type: 'tool_use', id: 'a1', name: 'search_sources', input: { query: question } }], stop_reason: 'tool_use' }); }
           if (planned) return jr({ content: [{ type: 'text', text: draft }], stop_reason: 'end_turn' });
           return jr({ content: [{ type: 'text', text: route }], stop_reason: 'end_turn' });
@@ -564,10 +699,23 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         if (u.startsWith(sourceUrl)) { const paddedEvidence = evidence + ' ' + ('\u0647\u0630\u0627 \u0646\u0635 \u0645\u062d\u0644\u064a \u0645\u0648\u062b\u0642 \u0644\u0627\u062e\u062a\u0628\u0627\u0631 \u0645\u0633\u0627\u0631 \u0627\u0644\u062f\u0644\u064a\u0644 \u062f\u0648\u0646 \u0623\u064a \u0637\u0644\u0628 \u0634\u0628\u0643\u0629. ').repeat(8); const h = '<html><head><title>A1 evidence</title></head><body><article><p>' + paddedEvidence + '</p></article></body></html>'; return { ok: true, status: 200, url: sourceUrl, headers: { get: (n) => String(n).toLowerCase() === 'content-type' ? 'text/html; charset=utf-8' : null }, text: async () => h, arrayBuffer: async () => Buffer.from(h) }; }
         throw new Error('unexpected offline URL: ' + u);
       };
-      const req = new EventEmitter(); req.method = 'POST'; req.headers = { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' }; req.body = { band: 'adult', messages: [{ role: 'user', content: question }] };
-      const res = new Response(); await (await esm('api/ask.js')).default(req, res);
+      const req = new EventEmitter(); req.method = 'POST'; req.signal = requestAbort.signal; req.headers = { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' }; req.body = { band: 'adult', messages: [{ role: 'user', content: question }] };
+      const res = new Response();
+      activeResponse = res;
+      const finalizerProblems = [];
+      const originalWarn = console.warn;
+      console.warn = (...args) => {
+        if (args[0] === '[finalizer] reader text replaced' && args[1] && Array.isArray(args[1].problems)) {
+          finalizerProblems.push(...args[1].problems);
+        }
+        originalWarn(...args);
+      };
+      try { await (await esm('api/ask.js')).default(req, res); } finally { console.warn = originalWarn; }
       const text = clientVisibleFromRaw(res.writes.join(''));
-      return { text, res };
+      return {
+        text, res, finalizerProblems,
+        upstreamCancelCalls, upstreamSignalAborted, writesAtDisconnect, endsAtDisconnect,
+      };
     };
     try {
       ok('A1 endpoint assertions execute the handleEvent parser shipped in index.html', typeof clientVisibleFromRaw === 'function');
@@ -603,6 +751,17 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const genBody = '\u0637\u0648\u0643\u064a\u0648 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646.';
       const genSafe = await drive({ question: '\u0645\u0627 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646\u061f', draft: genBody, evidence: genBody, route: 'GEN' });
       ok('F-010 GEN green: visible text is byte-identical and lifecycle is closed', rawContract(genSafe) && genSafe.text === genBody, genSafe.text);
+      for (const disconnectMode of ['close', 'abort']) {
+        const disconnected = await drive({
+          question: '\u0645\u0627 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646\u061f',
+          draft: genBody, evidence: genBody, route: 'GEN', disconnectMode,
+        });
+        ok('SSE handler causal regression: real ' + disconnectMode + ' cancels upstream and emits nothing later',
+          disconnected.upstreamCancelCalls === 1 && disconnected.upstreamSignalAborted
+            && disconnected.writesAtDisconnect === disconnected.res.writes.length
+            && disconnected.endsAtDisconnect === disconnected.res.ended
+            && disconnected.res.ended === 0);
+      }
 
       const deenQuestion = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629\u061f';
       const deenUnsafe = await drive({ question: deenQuestion, draft: badTakhrij, evidence: '\u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 \u0645\u0634\u0631\u0648\u0639.' });
@@ -611,20 +770,45 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const deenSafe = await drive({ question: deenQuestion, draft: deenBody, evidence: '\u062d\u0643\u0645 ' + deenBody });
       const expectedDeenCard = '<source site="islamqa.info" url="https://islamqa.info/ar/answers/999999/a1-local">A1 evidence</source>';
       ok('F-010 DEEN green: body and server-owned card are byte-identical and ordered', rawContract(deenSafe) && deenSafe.text === deenBody + expectedDeenCard, deenSafe.text);
+      for (const disconnectMode of ['close', 'abort']) {
+        const disconnected = await drive({
+          question: deenQuestion, draft: deenBody, evidence: '\u062d\u0643\u0645 ' + deenBody,
+          disconnectMode,
+        });
+        ok('SSE DEEN handler: real ' + disconnectMode + ' cancels upstream without a late card/write/end',
+          disconnected.upstreamCancelCalls === 1 && disconnected.upstreamSignalAborted
+            && disconnected.writesAtDisconnect === disconnected.res.writes.length
+            && disconnected.endsAtDisconnect === disconnected.res.ended
+            && disconnected.res.ended === 0 && disconnected.text === '');
+      }
+      const deenCrlf = await drive({ question: deenQuestion, draft: deenBody, evidence: '\u062d\u0643\u0645 ' + deenBody, wireMode: 'crlf-partial' });
+      ok('SSE causal RED: DEEN partial CRLF lifecycle keeps exact body and structured card',
+        rawContract(deenCrlf) && deenCrlf.text === deenBody + expectedDeenCard, deenCrlf.text);
       const supportedTakhrij = '\u0647\u0630\u0627 \u062d\u062f\u064a\u062b \u0639\u0638\u064a\u0645 \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.';
       const deenTakhrijGreen = await drive({ question: deenQuestion, draft: supportedTakhrij, evidence: '\u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629. ' + supportedTakhrij });
       ok('F-010 DEEN takhrij green: evidenced wording and card remain byte-for-byte', rawContract(deenTakhrijGreen) && deenTakhrijGreen.text === supportedTakhrij + expectedDeenCard, deenTakhrijGreen.text);
 
-      const presenceQuestion = '\u0645\u0627 \u0631\u0623\u064a \u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646 \u0641\u064a \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629\u061f';
-      const contradiction = '\u064a\u0631\u0649 \u0627\u0644\u0634\u064a\u062e \u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646 \u0648\u062c\u0648\u0628 \u0627\u0644\u0642\u0635\u0631.';
-      const presenceBad = await drive({ question: presenceQuestion, draft: contradiction, evidence: '\u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631.' });
-      ok('F-008 endpoint negative: consistency removes the composed contradiction before first text write/end', rawContract(presenceBad) && presenceBad.res.textWritesBeforeFinalizer === 0 && presenceBad.res.endsBeforeFinalizer === 0 && !presenceBad.res.writes.join('').includes(contradiction) && presenceBad.text.startsWith('\u0644\u0627 \u0623\u0639\u0631\u0641 \u0647\u0630\u0627 \u0627\u0644\u0627\u0633\u0645'), presenceBad.text);
-      const presenceBody = '\u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 \u0645\u0634\u0631\u0648\u0639.';
+      // A typed identity question is the live structured route where namedEntity is empty while a
+      // real, completed name-presence probe can still own a lead.  The old raw-attribution fixture
+      // would now violate F-081 by reviving a lexical capture vetoed by the entity IR.
+      const presenceQuestion = '\u0645\u0646 \u0647\u0648 \u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646\u061f';
+      const contradiction = '\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646 \u0645\u0637\u0631\u0628 \u0643\u0648\u064a\u062a\u064a \u0645\u0639\u0631\u0648\u0641.';
+      const presenceBad = await drive({ question: presenceQuestion, draft: contradiction, evidence: '' });
+      ok('F-008 endpoint negative: consistency removes the composed contradiction before first text write/end',
+        rawContract(presenceBad)
+          && presenceBad.res.textWritesBeforeFinalizer === 0
+          && presenceBad.res.endsBeforeFinalizer === 0
+          && !presenceBad.res.writes.join('').includes(contradiction)
+          && JSON.stringify(presenceBad.finalizerProblems)
+            === JSON.stringify(['IDENTITY_WITHOUT_EVIDENCE', 'CONSISTENCY_DROP_WHOLE']),
+        JSON.stringify({ text: presenceBad.text, problems: presenceBad.finalizerProblems }));
+      const presenceBody = '\u0647\u0630\u0627 \u0647\u0648 \u0627\u0644\u062d\u062f \u0627\u0644\u0645\u062a\u0627\u062d \u0645\u0646 \u0627\u0644\u062a\u062d\u0642\u0642.';
       const presencePlan = (await esm('lib/ask-plan.js')).planAsk(presenceQuestion);
-      const presenceGood = await drive({ question: presenceQuestion, draft: presenceBody, evidence: '\u062d\u0643\u0645 ' + presenceBody });
-      const expectedPresenceLead = '\u0644\u0627 \u0623\u0639\u0631\u0641 \u0647\u0630\u0627 \u0627\u0644\u0627\u0633\u0645: \u00ab\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646\u00bb \u0644\u0627 \u064a\u064e\u0631\u0650\u062f \u0641\u064a \u0627\u0644\u0645\u0635\u0627\u062f\u0631 \u0627\u0644\u062a\u064a \u0623\u0631\u062c\u0639 \u0625\u0644\u064a\u0647\u0627\u060c \u0641\u0644\u0627 \u0623\u0635\u0641\u0647 \u0628\u0634\u064a\u0621 \u0648\u0644\u0627 \u0623\u0646\u0642\u0644 \u0639\u0646\u0647 \u0634\u064a\u0626\u064b\u0627.';
+      const presenceGood = await drive({ question: presenceQuestion, draft: presenceBody, evidence: '' });
+      const expectedPresenceLead = (await esm('lib/policy/name-presence.js'))
+        .nameUnknownLine('\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646');
       ok('F-008 endpoint fixture has namedEntity empty and a real structured presence lead', presencePlan.namedEntity === '' && presenceGood.text.startsWith(expectedPresenceLead + '\n\n'), JSON.stringify({ namedEntity: presencePlan.namedEntity, text: presenceGood.text }));
-      ok('F-008 endpoint green: composed text is finalized before first target write/end', rawContract(presenceGood) && presenceGood.res.textWritesBeforeFinalizer === 0 && presenceGood.res.endsBeforeFinalizer === 0 && presenceGood.text.startsWith(expectedPresenceLead + '\n\n' + presenceBody + '\n<source'), presenceGood.text);
+      ok('F-008 endpoint green: composed text is finalized before first target write/end', rawContract(presenceGood) && presenceGood.res.textWritesBeforeFinalizer === 0 && presenceGood.res.endsBeforeFinalizer === 0 && presenceGood.finalizerProblems.length === 0 && presenceGood.text === expectedPresenceLead + '\n\n' + presenceBody, presenceGood.text);
     } finally { globalThis.fetch = originalFetch; }
   }
 

@@ -208,8 +208,8 @@ const user = (t) => [{ role: 'user', content: t }];
     // search now runs first, so the sentence becomes sayable instead of being avoided.
     ok('the post-search note states that a direct search found nothing',
       /لم أقف على نصٍّ مباشرٍ/.test(unattributedNote('فلان')));
-    ok('an unidentified scholar now STARTS a search rather than ending the request',
-      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !unregisteredName\)[\s\S]{0,1800}?await retrieve\(/.test(ask));
+    ok('a typed reader entity now STARTS a search rather than ending the request',
+      /if \(attributionUnverified && trustedReaderEntity && !attributionSearched && !unregisteredName\)[\s\S]{0,1800}?await retrieve\(/.test(ask));
     ok('...and the note claiming a search is written only where the search happened',
       /attributionSearched = true;\s*\n\s*attributionNote = unattributedNote\(plan\.namedEntity\);/.test(ask));
     // RE-PINNED WHEN THE WORLD CHECK WENT. That branch used to be guarded by `!nonScholar` — a
@@ -217,16 +217,16 @@ const user = (t) => [{ role: 'user', content: t }];
     // registry and nothing else. The guarantee the old pin bought must not quietly narrow with it:
     // a name no registry knows still gets a real search, it just gets the ORDINARY one with his
     // name taken out of the query, because binding an unknown name into it can only fail.
-    ok('...and a name no registry knows is searched too, with the name stripped out',
-      /const q = unregisteredName \? stripEntityFromQuery\(rawQ, unregisteredName\) : rawQ/.test(ask),
-      'the reader must still get the ruling; only the name may not travel');
+    ok('...and the raw query channel removes only its governed attribution span',
+      /const q = rawQueryEntity[\s\S]{0,120}?stripEntityFromQuery\(rawQ, rawQueryEntity, plan\.attribution && plan\.attribution\.attributionSpan\)[\s\S]{0,40}?: rawQ/.test(ask),
+      'query shaping must use the raw channel plus its server-owned span');
     ok('...and nothing decides "unregistered" by asking a model',
       !/worldCheckPrompt|isActionableNonScholar|nameNeedingWorldCheck/.test(ask));
     ok('no identity template can end a request any more',
       !/NEEDS_SCHOLAR_IDENTITY/.test(ask) && !/NEEDS_SCHOLAR_NAME/.test(ask));
     // THE ONE CLARIFICATION THAT SURVIVES, and the reason it is honest: we can name the choices.
-    ok('genuine ambiguity between REGISTERED men still asks, and names them',
-      /plan\.scholarStatus === 'ambiguous'/.test(ask)
+    ok('genuine typed ambiguity between REGISTERED men still asks, and names them',
+      /if \(typedAmbiguityInQuestion\(plan\)\)/.test(ask)
       && /ambiguousScholarPrompt\(plan\.scholarCandidates\)/.test(ask));
     {
       const amb = planAsk(user('ما رأي خالد المصلح خالد السبت في الطلاق؟'));

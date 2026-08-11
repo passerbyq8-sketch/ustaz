@@ -26,6 +26,7 @@
 // Usage: node attribution-guard.cjs [--offline]
 'use strict';
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const OFFLINE = process.argv.includes('--offline');
@@ -52,6 +53,7 @@ const user = (t) => [{ role: 'user', content: t }];
 
   const A = await import('file://' + path.join(REPO, 'lib', 'attribution.js').replace(/\\/g, '/'));
   const B = await import('file://' + path.join(REPO, 'lib', 'binothaimeen.js').replace(/\\/g, '/'));
+  const S = await import('file://' + path.join(REPO, 'lib', 'policy', 'sacred-attribution.js').replace(/\\/g, '/'));
 
   // =========================================================================
   console.log('\n=== A. DETECTION (the shape of the question, not a list of names) ===');
@@ -93,6 +95,49 @@ const user = (t) => [{ role: 'user', content: t }];
   const unknown = A.detectAttribution(user('ما رأي الشيخ عبد الرحمن الفلاني في هذه المسألة؟'));
   ok('an unregistered scholar still triggers the gate', unknown.attributed);
   ok('...but resolves to no corpus, so the answer will be refused', !unknown.scholar);
+  const sacredThenScholar = A.detectAttribution(user('قال رسول الله ﷺ إنما الأعمال بالنيات، وقال ابن باز إن قصر الصلاة سنة'));
+  ok('F-001 causal RED: a sacred first capture does not mask the later real scholar',
+    sacredThenScholar.attributed && sacredThenScholar.scholarName === 'ابن باز',
+    JSON.stringify(sacredThenScholar));
+  const scholarThenSacred = A.detectAttribution(user('قال ابن باز إن القصر سنة، وقال رسول الله ﷺ إنما الأعمال بالنيات'));
+  ok('F-001 green control: an earlier real scholar still wins before a later sacred frame',
+    scholarThenSacred.attributed && scholarThenSacred.scholarName === 'ابن باز',
+    JSON.stringify(scholarThenSacred));
+  const directAfterReport = A.detectAttribution(user('قال ابن باز إن القصر سنة، فما رأي فلان الفلاني في ذلك؟'));
+  ok('F-001 causal RED: a direct opinion target outranks an earlier reported attribution',
+    directAfterReport.attributed && directAfterReport.scholarName === 'فلان الفلاني',
+    JSON.stringify(directAfterReport));
+  const directBeforeReport = A.detectAttribution(user('ما رأي فلان الفلاني؟ وقد ذكر ابن باز قولًا آخر'));
+  ok('F-001 direct control: a later reported attribution cannot steal the explicit question target',
+    directBeforeReport.attributed && directBeforeReport.scholarName === 'فلان الفلاني',
+    JSON.stringify(directBeforeReport));
+  const unpunctuatedMixed = A.detectAttribution(user('قال رسول الله إنما الأعمال بالنيات وقال ابن باز إن قصر الصلاة سنة'));
+  ok('F-001 causal RED: a sacred capture cannot consume a later unpunctuated attribution head',
+    unpunctuatedMixed.attributed && unpunctuatedMixed.scholarName === 'ابن باز',
+    JSON.stringify(unpunctuatedMixed));
+  const siteBeforeDirect = A.detectAttribution(user('أريد المادة من موقع الشيخ فلان، فما رأي ابن باز؟'));
+  ok('F-001 causal RED: a material-site mention cannot steal a later direct opinion target',
+    siteBeforeDirect.attributed && siteBeforeDirect.scholarName === 'ابن باز',
+    JSON.stringify(siteBeforeDirect));
+  const sacredOnly = A.detectAttribution(user('قال رسول الله ﷺ إنما الأعمال بالنيات'));
+  ok('F-001 sacred-only control: no scholar candidate is invented',
+    sacredOnly.mode === 'none' && !sacredOnly.scholarName, JSON.stringify(sacredOnly));
+  ok('F-002 causal RED: «تعالى» alone is not a globally sacred subject',
+    S.containsSacredSubject('تعالى') === false);
+  ok('F-002 causal RED: an ordinary lexical use of «تعالى» is not a prophetic/divine subject',
+    S.containsPropheticOrDivineSubject('تعالى صوت خالد في المجلس، فما رأيه؟') === false);
+  ok('F-002 contextual control: the divine attribution frame remains sacred',
+    S.isSacredAttributionCapture('تعالى', 'تعالى', { question: 'قال تعالى: إن مع العسر يسرا' }) === true);
+  ok('F-002 causal control: a stale standalone «تعالى» capture is not sacred without its frame',
+    S.isSacredAttributionCapture('تعالى', 'تعالى') === false);
+  ok('F-002 causal control: mundane context cannot make the stale capture sacred',
+    S.isSacredAttributionCapture('تعالى', 'تعالى', {
+      question: 'تعالى صوت خالد في المجلس، فما رأيه؟',
+    }) === false);
+  const unnamedBareTitle = A.detectAttribution(user('قال الشيخ إن بيع الذهب بالتقسيط جائز'));
+  ok('bare human title remains an unnamed attribution rather than becoming a person name',
+    unnamedBareTitle.mode === 'unnamedScholarClaim' && !unnamedBareTitle.scholarName,
+    JSON.stringify(unnamedBareTitle));
   // Only the LAST turn decides what THIS answer claims.
   const twoTurns = A.detectAttribution([
     { role: 'user', content: 'ما رأي الشيخ ابن عثيمين في كذا؟' },
@@ -552,6 +597,51 @@ const user = (t) => [{ role: 'user', content: t }];
     /const RETRIES = 1;/.test(fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8')));
   ok('...and an internal rate limit', /MIN_GAP_MS/.test(fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8')));
   ok('...and a bounded cache', /MAX_ENTRIES/.test(fs.readFileSync(path.join(REPO, 'lib', 'binothaimeen.js'), 'utf8')));
+
+  // Real source mutants: these import executable copies of the production detector. A mutant is
+  // considered killed only when it reproduces the old defect while the production assertion is
+  // green; labels alone are not mutation coverage.
+  console.log('\n=== F. A2 MUTANTS — sacred veto and intent priority are load-bearing ===');
+  {
+    const src = fs.readFileSync(path.join(REPO, 'lib', 'attribution.js'), 'utf8');
+    const libUrl = 'file:///' + path.join(REPO, 'lib').replace(/\\/g, '/') + '/';
+    const rewriteImports = (text) => text.replace(/from '\.\/([^']+)'/g,
+      (_match, rel) => "from '" + libUrl + rel + "'");
+    const sacredRule = `    if (isSacredAttributionCapture(capture.raw, name, {
+      frameText: capture.frameText,
+      question: n,
+    })) continue;`;
+    const intentRule = `  captures.sort((a, b) => INTENT_RANK[a.intent] - INTENT_RANK[b.intent]
+    || a.index - b.index || a.priority - b.priority);`;
+    ok('mutation precondition: the capture-scoped sacred veto exists', src.includes(sacredRule));
+    ok('mutation precondition: reader intent outranks textual position', src.includes(intentRule));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a2-attribution-mut-'));
+    try {
+      const sacredFile = path.join(dir, 'sacred-veto-removed.mjs');
+      fs.writeFileSync(sacredFile, rewriteImports(src.replace(sacredRule, '')), 'utf8');
+      const SacredMutant = await import('file:///' + sacredFile.replace(/\\/g, '/'));
+      const sacredResult = SacredMutant.detectAttribution([
+        { role: 'user', content: 'قال رسول الله ﷺ إنما الأعمال بالنيات' },
+      ]);
+      ok('MUTANT KILLED: removing the sacred veto revives a scholar candidate',
+        sacredResult.mode === 'namedScholarOpinion' && !!sacredResult.scholarName,
+        JSON.stringify(sacredResult));
+
+      const orderFile = path.join(dir, 'text-order-wins.mjs');
+      const orderMutant = src.replace(intentRule,
+        '  captures.sort((a, b) => a.index - b.index || a.priority - b.priority);');
+      fs.writeFileSync(orderFile, rewriteImports(orderMutant), 'utf8');
+      const OrderMutant = await import('file:///' + orderFile.replace(/\\/g, '/'));
+      const ordered = OrderMutant.detectAttribution([{
+        role: 'user',
+        content: 'قال ابن باز إن القصر سنة، فما رأي فلان الفلاني في ذلك؟',
+      }]);
+      ok('MUTANT KILLED: restoring text-first selection loses the explicit direct target',
+        ordered.scholarName === 'ابن باز', JSON.stringify(ordered));
+    } finally {
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
 
   console.log('');
   if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed' + (skipped ? ('  (' + skipped + ' skipped)') : '') + '.');

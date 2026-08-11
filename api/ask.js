@@ -18,7 +18,7 @@ import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS, applyCorsOrigin } 
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
-import { classifyRoute, createSourceFilter, isReligiousText } from '../lib/route-classify.js';
+import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
 import { consistencyProblems, screenDraft, NO_ATTRIBUTION_AVAILABLE } from '../lib/policy/consistency-gate.js';
@@ -57,15 +57,23 @@ import { liveSearchNotice } from '../lib/policy/live-search-disclosure.js';
 // ...and `hostMatches`, the registry's OWN host comparison — subdomains and the www. prefix
 // included. ج٣ needs to ask «is this page on the shaykh's official domain?» and asking it with
 // string equality would answer «no» for www.binbaz.org.sa.
-import { findSource, hostMatches } from '../lib/source-registry.js';
-import { unregisteredNameInQuestion, stripEntityFromQuery } from '../lib/policy/entity-knowledge.js';
+import { findSource, hostMatches, resolveScholar } from '../lib/source-registry.js';
+import {
+  rawQueryEntityInQuestion,
+  stripEntityFromQuery,
+  trustedReaderEntityInQuestion,
+  typedAmbiguityInQuestion,
+  unregisteredNameInQuestion,
+} from '../lib/policy/entity-knowledge.js';
 // DOES THIS NAME EXIST AT ALL? A replacement BY EVIDENCE for the deleted model-verdict identity
 // check: one bounded look-up on the app's own world list, read as a page with a card and never as
 // a verdict. It grants nothing — no attribution, no grade, no list membership. See the module head
 // for the exhaustive list of the two things a found page is allowed to change.
 import {
-  probeShape, firstPageBearing, presenceLine, notAFatwaSourceLine, buildIdentityInstruction, PRESENCE,
+  probeShape, firstPageBearing, identityLookupAllowed, identitySubject, presenceLine, notAFatwaSourceLine,
+  buildIdentityInstruction, PRESENCE,
 } from '../lib/policy/name-presence.js';
+import { containsPropheticOrDivineSubject } from '../lib/policy/sacred-attribution.js';
 import { lastUserText } from '../lib/attribution.js';
 // THE ROLLOUT SWITCH FOR THE LEGACY REPAIRS. Default OFF, same shape as the ledger switch, and
 // it reads nothing from the store for a reader who is not an internal tester.
@@ -488,19 +496,31 @@ export function pickVerifiedSources(sources, limit = MAX_SOURCES, builder = buil
   return out;
 }
 
-// Read ONE complete SSE frame exactly the way the live client reads it
-// (index.html:5198-5206): concatenate every `data:` line, JSON.parse, ignore the rest.
-// Returns null for keepalive comments and anything unparseable.
-function readSseFrame(buf) {
-  const s = buf.toString('utf8');
-  if (s.indexOf('data:') === -1) return null;
-  let dataStr = '';
-  for (const line of s.split('\n')) {
-    const l = line.trim();
-    if (l.startsWith('data:')) dataStr += l.slice(5).trim();
-  }
-  if (!dataStr) return null;
-  try { return JSON.parse(dataStr); } catch { return null; }
+// Bind an upstream stream to the real response lifecycle. IncomingMessage does not reliably
+// expose `req.signal`, while ServerResponse always reports a disconnected reader through `close`.
+// The finalized writer owns downstream bytes; this helper owns only cancellation of the upstream
+// fetch/reader so a closed client cannot leave a model stream running in the background.
+function bindUpstreamToClient(res, requestSignal) {
+  const controller = new AbortController();
+  let reader = null;
+  let cleaned = false;
+  const abort = () => {
+    if (!controller.signal.aborted) controller.abort();
+    try { Promise.resolve(reader?.cancel?.()).catch(() => {}); } catch {}
+  };
+  res.once?.('close', abort);
+  requestSignal?.addEventListener?.('abort', abort, { once: true });
+  if (requestSignal?.aborted) abort();
+  return {
+    signal: controller.signal,
+    setReader(value) { reader = value; if (controller.signal.aborted) abort(); },
+    cleanup() {
+      if (cleaned) return;
+      cleaned = true;
+      res.removeListener?.('close', abort);
+      requestSignal?.removeEventListener?.('abort', abort);
+    },
+  };
 }
 
 export default async function handler(req, res) {
@@ -696,6 +716,11 @@ export default async function handler(req, res) {
   const plan = planAsk(body.messages, { policyEnabled: true });
   const attribution = plan.attribution;
   const claimSubject = plan.claimSubject;
+  // Two deliberately separate channels. A raw lexical capture may only remove its own exact
+  // surface from a retrieval query; only a typed authority may influence anything a reader sees.
+  const rawQueryEntity = rawQueryEntityInQuestion(plan);
+  const trustedReaderEntity = trustedReaderEntityInQuestion(plan);
+  const unregisteredName = unregisteredNameInQuestion(plan);
   // A NAME OVERRIDES THE ROUTE, BUT IT DOES NOT REPLACE THE SEARCH. «ما رأي الشيخ ابن عثيمين
   // فيمن أسقطت دون ٨٠ يوم؟» contains not one DEEN word, so the lexical router calls it GEN —
   // and GEN runs with no tools and no retrieval, which is how the original inverted fatwa was
@@ -726,10 +751,10 @@ export default async function handler(req, res) {
   // It reads the LAST USER MESSAGE, which is what world-intent.js is handed too. classifyRoute()
   // above additionally inherits context across turns and is unchanged; this only ever ADDS to what
   // it decided, and can never turn a DEEN turn into a GEN one.
-  const effectiveRoute = (plan.attributionMode !== 'none'
-    || plan.claimRelation === 'ABOUT_ENTITY' || plan.claimRelation === 'BY_MADHHAB'
-    || isReligiousText(lastUserText(body.messages)))
-    ? 'DEEN' : route;
+  const religiousRelation = plan.claimRelation === 'ABOUT_ENTITY' || plan.claimRelation === 'BY_MADHHAB';
+  const effectiveRoute = (plan.attributionMode !== 'none' || religiousRelation
+    || isReligiousText(lastUserText(body.messages))
+    || containsPropheticOrDivineSubject(lastUserText(body.messages))) ? 'DEEN' : route;
   console.log('[route]', {
     route: effectiveRoute, lexicalRoute: route, band,
     purpose: plan.purpose, mode: plan.attributionMode,
@@ -807,9 +832,14 @@ export default async function handler(req, res) {
   const finalizerContext = {
     fallbackText: FINALIZER_REFUSAL,
     sourceCards: [],
-    consistencyContext: plan.namedEntity ? {
-      entity: plan.namedEntity,
-      subjectEntity: plan.namedEntity,
+    readerPrefix: '',
+    readerSuffix: '',
+    readerCards: [],
+    readerCardPrefix: '',
+    allowWireOwnedCards: true,
+    consistencyContext: trustedReaderEntity ? {
+      entity: trustedReaderEntity,
+      subjectEntity: trustedReaderEntity,
       notDirectlyVerified: true,
       searchProven: false,
       identityVerified: false,
@@ -821,14 +851,31 @@ export default async function handler(req, res) {
       if (!result.ok) console.warn('[finalizer] reader text replaced', { problems: result.problems });
       return result;
     },
-    context: () => ({
-      ...finalizerContext,
-      sources: [...fetchedPages, ...ledgerFinalizerSources],
-      consistencyContext: finalizerContext.consistencyContext ? {
-        ...finalizerContext.consistencyContext,
-        pageTexts: fetchedPages.map((p) => (p && p.passage) || ''),
-      } : null,
-    }),
+    context: ({ wireText, events }) => {
+      // Defense in depth for streamed model markup. The central SSE writer remains the sole
+      // byte parser; this existing cross-delta filter only inspects its already validated text
+      // events. GEN/DEEN own no wire cards, so any change means the model attempted a source tag
+      // and the stream fails closed. Ledger-owned wire cards follow their separate structured path.
+      if (finalizerContext.allowWireOwnedCards === false) {
+        const filter = createSourceFilter();
+        let filtered = '';
+        for (const evt of events) {
+          if (evt && evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+            filtered += filter.push(evt.delta.text);
+          }
+        }
+        filtered += filter.end();
+        if (filtered !== wireText) throw new Error('model-source-markup');
+      }
+      return {
+        ...finalizerContext,
+        sources: [...fetchedPages, ...ledgerFinalizerSources],
+        consistencyContext: finalizerContext.consistencyContext ? {
+          ...finalizerContext.consistencyContext,
+          pageTexts: fetchedPages.map((p) => (p && p.passage) || ''),
+        } : null,
+      };
+    },
     signal: req.signal,
     failureText: FINALIZER_REFUSAL,
   });
@@ -947,7 +994,6 @@ export default async function handler(req, res) {
     // WHAT IS LEFT IS DETERMINISTIC AND COSTS NOTHING. A name no registry and no roster knows is
     // stripped out of the search query, because the sources hold the ruling and nobody publishes
     // what an unregistered name thinks of it.
-    const unregisteredName = unregisteredNameInQuestion(plan);
     if (unregisteredName) console.log('[entity] unregistered name — it will not travel in the query');
 
     const topicClass = classifyTopic(questionText, plan);
@@ -1231,13 +1277,31 @@ export default async function handler(req, res) {
     // returns an empty result set that is indistinguishable from a real empty search — and saying
     // «لا أعرف هذا الاسم» on that would be the negation-without-search this codebase refuses
     // everywhere else. So the probe is skipped outright and no line is emitted either way.
-    const nameShape = probeShape(questionText, unregisteredName);
-    let namePresence = { probed: false, name: '', kind: PRESENCE.NOT_PROBED, found: false, page: null };
+    const identityCandidate = unregisteredName || identitySubject(questionText);
+    const nameIdentityKey = normalizeArabic(identityCandidate || '');
+    const resolvedNameIdentity = (plan.entities || []).find((entity) => entity
+      && entity.targetType === 'person' && entity.resolutionStatus === 'resolved'
+      && normalizeArabic(entity.surface || '') === nameIdentityKey);
+    const registryNameIdentity = identityCandidate ? resolveScholar(identityCandidate) : { status: 'unresolved' };
+    const nameIdentityTrust = {
+      resolutionStatus: resolvedNameIdentity || registryNameIdentity.status === 'resolved'
+        ? 'resolved' : 'unresolved',
+      source: resolvedNameIdentity ? 'ir' : (registryNameIdentity.status === 'resolved' ? 'registry' : 'ir'),
+      surface: resolvedNameIdentity ? resolvedNameIdentity.surface
+        : (registryNameIdentity.status === 'resolved' ? identityCandidate : ''),
+      canonicalId: resolvedNameIdentity ? (resolvedNameIdentity.canonicalId || '')
+        : (registryNameIdentity.status === 'resolved' ? registryNameIdentity.domain : ''),
+    };
+    const nameShape = probeShape(questionText, unregisteredName, nameIdentityTrust);
+    let namePresence = {
+      probed: false, searchCompleted: false, outcome: PRESENCE.NOT_PROBED,
+      retrievalOutcome: 'INCONCLUSIVE',
+      name: '', kind: PRESENCE.NOT_PROBED, found: false, page: null,
+    };
     if (nameShape.probe && process.env.BRAVE_API_KEY) {
       let page = null;
-      let ran = true;
       try {
-        const { retrieveWorld } = await import('../lib/retrieve.js');
+        const { retrieveWorld, WORLD_RETRIEVAL_OUTCOME } = await import('../lib/retrieve.js');
         // ONE wave, three candidates. The bound IS the feature: this look-up may never grow into a
         // second retrieval budget beside the one the answer itself spends.
         //
@@ -1246,19 +1310,34 @@ export default async function handler(req, res) {
         // must never end up in it, or a preference printed on Wikipedia could license one in a
         // fatwa. This page reaches exactly one place — the identity answer below — and no further.
         const w = await retrieveWorld(nameShape.name, { maxWaves: 1, maxResults: 3 });
-        page = firstPageBearing(nameShape.name, (w && w.sources) || []);
+        const retrievalOutcome = w && w.diagnostics && w.diagnostics.outcome;
+        page = firstPageBearing(nameShape.name, (w && w.sources) || [], nameIdentityTrust);
+        const searchCompleted = retrievalOutcome === WORLD_RETRIEVAL_OUTCOME.FOUND
+          || retrievalOutcome === WORLD_RETRIEVAL_OUTCOME.COMPLETED_EMPTY;
+        namePresence = {
+          probed: true,
+          searchCompleted: searchCompleted || !!page,
+          name: nameShape.name,
+          kind: nameShape.kind,
+          found: !!page,
+          page,
+          retrievalOutcome: retrievalOutcome || WORLD_RETRIEVAL_OUTCOME.INCONCLUSIVE,
+          outcome: page ? PRESENCE.FOUND
+            : (searchCompleted ? PRESENCE.ABSENT : PRESENCE.SEARCH_FAILED),
+        };
       } catch (e) {
         console.warn('[name-presence] probe threw:', e.message);
-        ran = false;
-      }
-      if (ran) {
         namePresence = {
-          probed: true, name: nameShape.name, kind: nameShape.kind, found: !!page, page,
+          probed: true, searchCompleted: false, outcome: PRESENCE.SEARCH_FAILED,
+          retrievalOutcome: 'SEARCH_FAILED',
+          name: nameShape.name, kind: nameShape.kind, found: false, page: null,
         };
       }
     }
     console.log('[name-presence]', {
       probed: namePresence.probed, kind: namePresence.kind,
+      searchCompleted: namePresence.searchCompleted, outcome: namePresence.outcome,
+      retrievalOutcome: namePresence.retrievalOutcome,
       found: namePresence.found, band: audienceBand,
       host: namePresence.page ? (() => { try { return new URL(namePresence.page.url).hostname; } catch { return '?'; } })() : '',
     });
@@ -1336,7 +1415,8 @@ export default async function handler(req, res) {
     let identityIsPlaced = false;
     let identityUrl = '';
     let identityTitle = '';
-    if (nameShape.probe) {
+    let identitySource = '';
+    if (nameShape.probe && identityLookupAllowed(nameShape.name, nameIdentityTrust)) {
       try {
         const { identityFor, identityFactBlock, IDENTITY } = await import('../lib/identity/index.js');
         const { makeWikipediaFetcher } = await import('../lib/identity/wikipedia.js');
@@ -1347,22 +1427,29 @@ export default async function handler(req, res) {
           // Stage 3 REUSES the world probe's pages instead of searching again. `allowLiveSearch`
           // is true only when that probe actually ran, so a turn that never searched cannot
           // present its own silence as a finding — the same rule the probe applies to itself.
-          allowLiveSearch: namePresence.probed,
+          allowLiveSearch: namePresence.searchCompleted === true
+            && namePresence.outcome === PRESENCE.FOUND,
           search: async () => ((namePresence.page ? [namePresence.page] : []).map((p) => ({
             description: p.passage || '', url: p.url || '',
           }))),
         });
+        const absenceProven = namePresence.searchCompleted === true
+          && namePresence.outcome === PRESENCE.ABSENT;
         identityFact = identityFactBlock(identity, { question: questionText });
+        if (identity.kind === IDENTITY.UNKNOWN && !absenceProven) identityFact = '';
         // Compared HERE, where IDENTITY is in scope, so the verdict travels as two plain booleans
         // rather than as a string the code below would have to re-spell. lib/identity/index.js
         // stays dynamically imported — it is not paid for on a turn that names nobody.
         identityIsPublicFigure = identity.kind === IDENTITY.PUBLIC_FIGURE;
         identityIsPlaced = identity.kind === IDENTITY.SCHOLAR || identity.kind === IDENTITY.AMBIGUOUS;
-        identityVerdict = identity.kind || null;
+        identityVerdict = identity.kind === IDENTITY.UNKNOWN && !absenceProven
+          ? null
+          : (identity.kind || null);
         // The page the verdict was READ FROM, when it was read from one at all. Empty for a
         // whitelist hit, which is a table lookup and has no page behind it (ج٤).
         identityUrl = identity.source === 'whitelist' ? '' : String(identity.url || '');
         identityTitle = String(identity.display || '') || nameShape.name;
+        identitySource = String(identity.source || '');
         console.log('[identity]', {
           kind: identity.kind, source: identity.source,
           // The NAME is not logged: it is the reader's own words, and the shape is what diagnoses.
@@ -1397,19 +1484,32 @@ export default async function handler(req, res) {
     //                                    source» would be false, and for an ambiguous name one of
     //                                    the candidates may be a scholar — the fact block owns it.
     const presenceLead = (() => {
-      if (!(namePresence.probed && namePresence.kind === PRESENCE.ATTRIBUTION_SHAPE)) return '';
-      if (identityIsPublicFigure) return notAFatwaSourceLine(namePresence.name);
+      if (!namePresence.probed) return '';
+      // A typed identity question has no plan.namedEntity by design.  When its bounded world
+      // lookup really ran and found nothing, carry that structured result through the same final
+      // consistency check; never recover a person by re-reading a vetoed lexical attribution.
+      if (namePresence.kind === PRESENCE.IDENTITY_SHAPE) {
+        return namePresence.found ? '' : presenceLine(namePresence);
+      }
+      if (namePresence.kind !== PRESENCE.ATTRIBUTION_SHAPE) return '';
+      if (identityIsPublicFigure) return notAFatwaSourceLine(namePresence.name, {
+        status: 'not_fatwa_source', verified: true, source: identitySource, url: identityUrl,
+      });
       if (identityIsPlaced) return '';
       return presenceLine(namePresence);
     })();
-    if (presenceLead && !finalizerContext.consistencyContext) {
+    if (presenceLead) {
       finalizerContext.consistencyContext = {
+        ...(finalizerContext.consistencyContext || {}),
         entity: namePresence.name,
         subjectEntity: namePresence.name,
         notDirectlyVerified: true,
-        searchProven: !!namePresence.probed,
+        searchProven: namePresence.searchCompleted === true
+          && (namePresence.outcome === PRESENCE.FOUND || namePresence.outcome === PRESENCE.ABSENT),
         identityVerified: !!identityIsPlaced,
+        identityStatus: identityVerdict,
       };
+      finalizerContext.fallbackText = presenceLead + '\n\n' + FINALIZER_REFUSAL;
     }
     if (finalizerContext.consistencyContext) {
       finalizerContext.consistencyContext.attributionDisclaimed = !!presenceLead;
@@ -1561,6 +1661,14 @@ export default async function handler(req, res) {
       }
     }
 
+    // Ambiguity belongs to the typed request, not to an engine. Resolve it before the path split
+    // so Legacy and Ledger ask the same bounded question and neither engine can guess a person.
+    if (typedAmbiguityInQuestion(plan)) {
+      console.warn('[attribution]', REASON.SCHOLAR_IDENTITY_AMBIGUOUS,
+        { entity: plan.namedEntity, candidates: plan.scholarCandidates });
+      return emitOnce(ambiguousScholarPrompt(plan.scholarCandidates));
+    }
+
     // ── LEDGER RAG — NOW THE PATH EVERY READER TAKES ───────────────────────
     //
     // PUBLIC AS OF 2026-08-05 (owner decision, lib/ledger/flag.js PUBLIC_GO_LIVE). It was a
@@ -1628,6 +1736,11 @@ export default async function handler(req, res) {
         // concern; what must match across the two paths is WHICH domains a child may reach.
         bandSites: band === 'adult' ? SITES_ADULT : [...SITES_MINOR, ...SITES_MINOR_FALLBACK],
         buildSourceTag: ownedSourceTag,
+        // Ledger owns the assembly point immediately before its only reader-text write. Carry
+        // the bounded, already-derived presence line there as data so it is composed before the
+        // A1 finalizer sees the answer; writing it here would split the final text across two
+        // emissions and recreate the pre-finalizer bypass that A1 closed.
+        readerPrefix: presenceLead,
         registerFinalizerSources: (pages) => {
           ledgerFinalizerSources.length = 0;
           if (Array.isArray(pages)) ledgerFinalizerSources.push(...pages);
@@ -1718,18 +1831,7 @@ export default async function handler(req, res) {
     // through with both facts true, so the branch was reachable; the reason it was not reached is
     // recorded in lib/ask-plan.js, where a narrower resolver was overwriting the ambiguity. Two
     // conditions guarding one honest question is one more than it can carry.
-    if (plan.scholarStatus === 'ambiguous') {
-      console.warn('[attribution]', REASON.SCHOLAR_IDENTITY_AMBIGUOUS,
-        { entity: plan.namedEntity, candidates: plan.scholarCandidates });
-      clearKeepAlive();
-      res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta', index: 0,
-        delta: { type: 'text_delta', text: ambiguousScholarPrompt(plan.scholarCandidates) },
-      })}\n\n`);
-      res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
-      return res.end();
-    }
-    if (plan.needsScholarIdentity) {
+    if (trustedReaderEntity && plan.needsScholarIdentity) {
       console.warn('[attribution]', REASON.SCHOLAR_IDENTITY_UNRESOLVED,
         { entity: plan.namedEntity, action: 'searching before refusing' });
     }
@@ -1779,7 +1881,8 @@ export default async function handler(req, res) {
     // no corpus to search: the hunt below cannot reach one for him, and nothing of his is verified
     // — which is what the flag records. The gates stay armed either way.
     if (unregisteredName) attributionUnverified = true;
-    const attributionActive = (plan.attributionMode === 'namedScholarOpinion') && !unregisteredName;
+    const attributionActive = !!trustedReaderEntity
+      && (plan.attributionMode === 'namedScholarOpinion') && !unregisteredName;
     if (attributionActive) {
       let attributedSources = [];
       if (plan.hasDirectAdapter) {
@@ -1957,7 +2060,7 @@ export default async function handler(req, res) {
     // draft is screened, whatever the plan thought the question was.
     const attributionProblems = (draft) => {
       const verdict = screenDraft(draft, {
-        entity: plan.namedEntity,
+        entity: trustedReaderEntity,
         // No text of his was verified on any path that still reaches here: the attributed route
         // returns directly when it verifies one.
         notDirectlyVerified: true,
@@ -1969,7 +2072,7 @@ export default async function handler(req, res) {
         identityVerified: false,
         // The man the READER asked about. An offence in a sentence naming him is the substance of
         // the answer, and what is left after trimming it answers a different question.
-        subjectEntity: plan.namedEntity,
+        subjectEntity: trustedReaderEntity,
         // ── ...UNLESS THE SERVER HAS ALREADY SAID SO IN ITS OWN VOICE (ج٢) ──
         //
         // MEASURED: «ما رأي الشيخ سالم المري العتيبي في صلاة الوتر» — the strict declaration was
@@ -2051,7 +2154,7 @@ export default async function handler(req, res) {
     // the query would spend a search on a phrase that cannot match, and the empty result would then
     // be read as an absence of evidence about the ruling itself. The reader still gets the ruling
     // from the ordinary sourced route below — with nothing at all attributed to him.
-    if (attributionUnverified && plan.namedEntity && !attributionSearched && !unregisteredName) {
+    if (attributionUnverified && trustedReaderEntity && !attributionSearched && !unregisteredName) {
       try {
         const { retrieve } = await import('../lib/retrieve.js');
         // The name is BOUND INTO the query, not merely hoped for: `topic` has had the name frame
@@ -2152,8 +2255,8 @@ export default async function handler(req, res) {
             console.error('[encyclopedic] upstream', re.status);
           }
         }
-      } catch (e) {
-        console.warn('[encyclopedic] fallback threw:', e.message);
+        } catch (e) {
+          console.warn('[encyclopedic] fallback threw:', e.message);
       }
     }
 
@@ -2165,23 +2268,31 @@ export default async function handler(req, res) {
     // model cannot switch to a search half-way, so no draft can ever be shown and then
     // replaced. Every text delta is forwarded as it arrives.
     if (effectiveRoute === 'GEN') {
-      const g = await fetch(ANTHROPIC_URL, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          model,
-          max_tokens: maxTokens,
-          ...(usePremium ? { output_config: { effort: round2Effort } } : {}),
-          system,
-          // شاهد W2: the identity fact reaches THIS branch too. GEN retrieves nothing, so the
-          // reader's own messages are the whole conversation and the block goes straight after
-          // them — there is no retrieved material for it to sit behind here.
-          messages: withIdentityFact(body.messages),
-          stream: true,
-        }),
-      });
+      const genRequest = {
+        model,
+        max_tokens: maxTokens,
+        ...(usePremium ? { output_config: { effort: round2Effort } } : {}),
+        system,
+        // شاهد W2: GEN retrieves nothing, so the identity fact follows the reader messages.
+        messages: withIdentityFact(body.messages),
+        stream: true,
+      };
+      const upstream = bindUpstreamToClient(res, req.signal);
+      let g;
+      try {
+        g = await fetch(ANTHROPIC_URL, {
+          method: 'POST',
+          headers,
+          signal: upstream.signal,
+          body: JSON.stringify(genRequest),
+        });
+      } catch (error) {
+        upstream.cleanup();
+        throw error;
+      }
 
       if (!g.ok) {
+        upstream.cleanup();
         const errText = await g.text().catch(() => '');
         console.error('[ask] gen upstream', g.status, errText.slice(0, 300));
         clearKeepAlive();
@@ -2189,21 +2300,12 @@ export default async function handler(req, res) {
         return res.end();
       }
 
-      // GEN never retrieves, so ANY <source> card here is unbacked. createSourceFilter()
-      // removes them across chunk and frame boundaries while holding back only a few
-      // bytes — byte-identical to the branch-(a) regex, never buffering the answer.
+      // GEN never retrieves, so ANY <source> card in upstream text is unbacked. The finalized
+      // writer receives the original lifecycle and rejects model-owned source markup; only a
+      // separately registered server-owned identity card may be appended after finalization.
       clearKeepAlive();
-      const filter = createSourceFilter();
       const reader = g.body.getReader();
-      const SEP = Buffer.from('\n\n');
-      const MAX_PENDING = 1 << 20;
-      let pending = Buffer.alloc(0);
-      const writeText = (t) => {
-        if (!t) return;
-        res.write(`data: ${JSON.stringify({
-          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t },
-        })}\n\n`);
-      };
+      upstream.setReader(reader);
 
       // ── THE LIVE-SEARCH DISCLOSURE, BEFORE THE MODEL'S FIRST BYTE ─────────
       //
@@ -2215,36 +2317,26 @@ export default async function handler(req, res) {
       // It covers every fall-through cause equally, because to a reader they are the same fact:
       // no key, no results, a blocked host, a page with no encodable card, an empty draft, a throw.
       //
-      // WRITTEN ONCE, AND STRUCTURALLY SO. It is a single write before the read loop, not a
-      // per-chunk test, so there is no path on which it can repeat. It deliberately bypasses
-      // `filter` — that strips <source> cards out of MODEL text, and this is server text with none.
+      // OWNED ONCE, AND STRUCTURALLY SO. It is finalizer context established before the read loop,
+      // not a per-chunk write, so there is no path on which it can repeat or precede validation.
       const liveNotice = liveSearchNotice({
         worldWanted: worldIntent.world, answeredFromLive: false,
       });
-      if (liveNotice) writeText(liveNotice + '\n\n');
+      // Server text is finalizer context, not an early delta. This keeps a real upstream
+      // message_start/content_block_start first and composes the complete reader text before the
+      // underlying response receives its first visible byte.
+      finalizerContext.readerPrefix = [presenceLead, liveNotice].filter(Boolean).join('\n\n');
+      finalizerContext.allowWireOwnedCards = false;
 
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           const chunk = Buffer.from(value.buffer, value.byteOffset, value.byteLength);
-          pending = pending.length ? Buffer.concat([pending, chunk]) : chunk;
-          let idx;
-          while ((idx = pending.indexOf(SEP)) !== -1) {
-            const whole = pending.subarray(0, idx + SEP.length);
-            const evt = readSseFrame(pending.subarray(0, idx));
-            pending = pending.subarray(idx + SEP.length);
-            if (evt && evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
-              writeText(filter.push(evt.delta.text));   // filtered text replaces this frame
-            } else {
-              if (evt && evt.type === 'message_stop') writeText(filter.end());
-              res.write(whole);                          // every other frame relayed verbatim
-            }
-          }
-          if (pending.length > MAX_PENDING) { res.write(pending); pending = Buffer.alloc(0); }
+          // The central writer is the sole byte-safe SSE parser. Passing the original chunks keeps
+          // CRLF/LF, partial frames, multi-frame chunks and UTF-8 boundaries on one state machine.
+          res.write(chunk);
         }
-        writeText(filter.end());        // stream ended without a completion frame
-        if (pending.length) res.write(pending);
         // ── THE IDENTITY PAGE EARNS ITS CARD (ج٤) ──────────────────────────
         //
         // MEASURED: «من هو خالد عبدالرحمن» answered correctly — a Saudi singer, no shaykh's
@@ -2253,11 +2345,9 @@ export default async function handler(req, res) {
         // (ar.wikipedia.org through safeFetch), so the reader was given a sourced answer and no
         // way to see the source.
         //
-        // IT GOES OUT HERE, AFTER filter.end(), FOR ONE REASON. `createSourceFilter()` strips
-        // every <source> tag out of MODEL text on this branch, because GEN retrieves nothing and
-        // any card the model invents is unbacked. This card is not model text — it is the server
-        // citing a page it fetched itself — so it is written after the filter has closed, exactly
-        // as the live-search notice is written before it opens.
+        // IT IS REGISTERED HERE AS STRUCTURED SERVER DATA. `createSourceFilter()` strips every
+        // <source> tag out of MODEL text on this branch, while the central finalizer appends only
+        // this owned record after validating the complete prose.
         //
         // AND ONLY FOR A PAGE. `identityUrl` is empty for a whitelist hit, which is a table
         // lookup with no page behind it: a card there would be a citation to nothing. The
@@ -2267,9 +2357,14 @@ export default async function handler(req, res) {
           // it returns null for any URL that cannot be encoded safely. Both are honoured here.
           const idCard = buildSourceTag({ url: identityUrl, title: identityTitle || nameShape.name });
           registerOwnedCards(idCard ? [idCard] : []);
-          if (idCard && idCard.tag) writeText('\n' + idCard.tag);
+          if (idCard && idCard.tag) {
+            finalizerContext.readerCards = [idCard];
+            finalizerContext.readerCardPrefix = '\n';
+          }
         }
       } finally {
+        upstream.cleanup();
+        try { reader.releaseLock?.(); } catch {}
         res.end();
       }
       return;
@@ -2373,9 +2468,12 @@ export default async function handler(req, res) {
         // own search query and will happily put a name in it, hunting a fatwa nobody published.
         // «ما رأي خالد عبدالرحمن في قصر الصلاة» has to reach the provider as «قصر الصلاة», or the
         // search cannot match and the empty result gets read as an absence of evidence about the
-        // ruling itself. The test is the registry — no model call, and no opinion about the man.
-        const q = unregisteredName ? stripEntityFromQuery(rawQ, unregisteredName) : rawQ;
-        if (unregisteredName && q !== rawQ) console.log('[entity] query stripped of the unregistered name');
+        // ruling itself. This raw channel shapes only the query; the typed channel alone may
+        // influence identity or reader-facing text.
+        const q = rawQueryEntity
+          ? stripEntityFromQuery(rawQ, rawQueryEntity, plan.attribution && plan.attribution.attributionSpan)
+          : rawQ;
+        if (rawQueryEntity && q !== rawQ) console.log('[entity] query stripped of the raw query entity');
         let webText;
         try {
           // `depth` is passed for RETRIEVAL TARGETING only (lib/source-intent.js reads it).
@@ -2852,20 +2950,29 @@ export default async function handler(req, res) {
     }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──
-    const r2 = await fetch(ANTHROPIC_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        ...(usePremium ? { output_config: { effort: round2Effort } } : {}),
-        system,
-        messages: round2Messages,
-        stream: true,
-      }),
-    });
+    const upstream = bindUpstreamToClient(res, req.signal);
+    let r2;
+    try {
+      r2 = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers,
+        signal: upstream.signal,
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          ...(usePremium ? { output_config: { effort: round2Effort } } : {}),
+          system,
+          messages: round2Messages,
+          stream: true,
+        }),
+      });
+    } catch (error) {
+      upstream.cleanup();
+      throw error;
+    }
 
     if (!r2.ok) {
+      upstream.cleanup();
       const errText = await r2.text().catch(() => '');
       console.error('[ask] round2 upstream', r2.status, errText.slice(0, 300));
       clearKeepAlive();
@@ -2873,52 +2980,21 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // Streaming relay, FRAMED, with the source layer owned entirely by the server.
-    //
-    // Frames are split on the same '\n\n' the client parser uses (index.html:5221), which
-    // costs no visible latency — a partial frame is not actionable by the client either.
-    // Text frames are re-emitted through createSourceFilter(), which deletes every
-    // model-written <source>…</source> across chunk and frame boundaries while holding
-    // back only a few bytes. Everything that is not a source tag survives byte for byte,
-    // and the answer is never buffered.
-    //
-    // On the upstream message_stop we flush the filter and emit ONE text_delta carrying
-    // every verified card, then relay the stop frame. So the cards are always the last
-    // thing in the reply, emitted exactly once, and they are the only cards that can appear.
+    // Streaming relay with the source layer owned entirely by the server. Raw upstream chunks go
+    // only to the central byte-safe parser; suffixes and cards remain structured finalizer data.
     clearKeepAlive();
-    const filter = createSourceFilter();
     const reader = r2.body.getReader();
-    const SEP = Buffer.from('\n\n');
-    // Pathological-framing backstop: if a separator never arrives, flush rather than grow.
-    const MAX_PENDING = 1 << 20;
-    let pending = Buffer.alloc(0);
+    upstream.setReader(reader);
     let emitted = false;
 
-    // EVERY BYTE THE READER GETS, KEPT. The streamed route cannot look at a finished draft before
-    // deciding what to append to it — there is no finished draft until the stream is over — so the
-    // prose is accumulated as it goes and the referral decision is taken at the end, against what
-    // was actually said. Bounded, because an unbounded accumulator on a streaming path is a leak:
-    // the tail-detection phrases are short, and the last few kilobytes are where a closing sentence
-    // lives.
-    const SEEN_TAIL_MAX = 8192;
-    let seenText = '';
-    const writeText = (t) => {
-      if (!t) return;
-      seenText = (seenText + t).slice(-SEEN_TAIL_MAX);
-      res.write(`data: ${JSON.stringify({
-        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t },
-      })}\n\n`);
-    };
-    // THE UNREGISTERED-NAME LINE GOES OUT BEFORE THE FIRST TOKEN OF THE ANSWER. On the streamed
-    // route there is no "prepend" available after the fact, and appending it would put the
-    // correction after the reader has already read the ruling as somebody's opinion.
-    if (presenceLead) writeText(presenceLead + '\n\n');
+    finalizerContext.readerPrefix = presenceLead;
+    finalizerContext.allowWireOwnedCards = false;
     // All cards, in answer order, as ONE trailing text delta. Nothing is written after
     // this, so the cards are always the tail of the reply. The client's tag scanner is a
     // global regex (index.html:1264-1267), so adjacent tags each become their own chip;
     // the '\n' between them is trimmed to empty and never becomes a text segment.
-    const emitCanonicalSources = () => {
-      if (emitted) return;
+    finalizerContext.readerSuffixFor = (prose) => {
+      if (emitted) return '';
       emitted = true;
       console.log('[source] appending verified cards', {
         count: canonicalSources.length,
@@ -2934,43 +3010,24 @@ export default async function handler(req, res) {
       // ...and it is appended ONCE. `seenText` is what the reader has actually been sent, so a
       // draft that already ended at ahl al-'ilm gets nothing further — the measured double tail on
       // «حكم بيع الذهب بالتقسيط» was the model's sentence and the server's arriving together.
-      const rTail = referralBlockFor(seenText);
-      writeText((attributionNote ? '\n\n' + attributionNote + '\n' : '')
-        + (rTail ? rTail + '\n' : '')
-        + canonicalSources.map((c) => c.tag).join('\n'));
+      if (!String(prose || '').trim()) return '';
+      const rTail = referralBlockFor(String(prose).slice(-8192));
+      return (attributionNote ? '\n\n' + attributionNote + '\n' : '')
+        + (rTail ? rTail + '\n' : '');
     };
+    finalizerContext.readerCards = canonicalSources;
+    finalizerContext.readerCardPrefix = '';
 
     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = Buffer.from(value.buffer, value.byteOffset, value.byteLength);
-        pending = pending.length ? Buffer.concat([pending, chunk]) : chunk;
-        let idx;
-        // '\n' (0x0A) can never occur inside a UTF-8 multi-byte sequence, so splitting on
-        // the raw bytes can never cut a character in half.
-        while ((idx = pending.indexOf(SEP)) !== -1) {
-          const whole = pending.subarray(0, idx + SEP.length);   // frame + its separator
-          const evt = readSseFrame(pending.subarray(0, idx));
-          pending = pending.subarray(idx + SEP.length);
-          if (evt && evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
-            writeText(filter.push(evt.delta.text));   // model <source> tags never survive this
-          } else {
-            if (evt && evt.type === 'message_stop') {
-              writeText(filter.end());
-              emitCanonicalSources();
-            }
-            res.write(whole);                          // every other frame relayed verbatim
-          }
-        }
-        if (pending.length > MAX_PENDING) { res.write(pending); pending = Buffer.alloc(0); }
+        res.write(chunk);
       }
-      // Unexpected end (no completion frame). Flush the prose the filter still holds, but
-      // do NOT append a card: a source under a possibly truncated answer would read as a
-      // completed, attributed ruling that we cannot stand behind.
-      writeText(filter.end());
-      if (pending.length) res.write(pending);
     } finally {
+      upstream.cleanup();
+      try { reader.releaseLock?.(); } catch {}
       res.end();
     }
   } catch (error) {

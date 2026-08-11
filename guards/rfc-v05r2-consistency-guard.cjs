@@ -246,7 +246,7 @@ const GOOD_DRAFT = [
     // adapter, no official domain, nothing searched — and an unregistered contemporary name lands
     // in exactly the same state. It used to be sent away with the identity template instead.
     ok('ANY named entity whose own corpus was never searched still gets a real search',
-      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !unregisteredName\)[\s\S]{0,1800}?await retrieve\(/.test(s),
+      /if \(attributionUnverified && trustedReaderEntity && !attributionSearched && !unregisteredName\)[\s\S]{0,1800}?await retrieve\(/.test(s),
       'the fallback must call retrieve, not fall straight through to a refusal');
     ok('...and a historical scholar is inside that set, not a special case for it',
       !/plan\.authorityEra === 'historical'\s*\n?\s*&& plan\.namedEntity\) \{/.test(s));
@@ -263,7 +263,7 @@ const GOOD_DRAFT = [
     // rollout flag, so fresh production went on apologising unsearched — the defect this branch
     // was written to fix, still being served. Searching before refusing is not a staged feature.
     ok('the branch runs on the STATE alone, with no rollout flag in front of it',
-      /if \(attributionUnverified && plan\.namedEntity && !attributionSearched && !unregisteredName\)/.test(s));
+      /if \(attributionUnverified && trustedReaderEntity && !attributionSearched && !unregisteredName\)/.test(s));
     ok('...and no flag can send it back to apologising unsearched',
       !/legacyPolicy\.enabled && attributionUnverified/.test(s));
     // A SEARCH THAT RAN IS ALSO A NOTE THAT MAY BE WRITTEN. The note is composed here rather than
