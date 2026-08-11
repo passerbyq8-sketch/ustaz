@@ -535,10 +535,24 @@ function partD() {
     !/PG_BASE_FS[^\n]{0,120}--ez-fs/.test(decoded) && !/--ez-fs[^\n]{0,120}PG_BASE_FS/.test(decoded));
 
   // no new dependency, no new host
-  const srcs = (html.match(/<script[^>]*src=["']([^"']+)["']/gi) || []);
-  // THREE now: the two Vercel analytics scripts were removed for this release (they measured
-  // before the AI-consent screen was answered) and nothing replaced them.
-  eq('the page still loads exactly three scripts', srcs.length, 3);
+  const srcs = (html.match(/<script[^>]*src=["']([^"']+)["']/gi) || [])
+    .map((tag) => (tag.match(/src=["']([^"']+)["']/i) || [])[1]);
+  const requiredScripts = [
+    ['react', /\/react@[^/]+\/umd\/react\.production\.min\.js(?:\?|$)/],
+    ['react-dom', /\/react-dom@[^/]+\/umd\/react-dom\.production\.min\.js(?:\?|$)/],
+    ['@babel/standalone', /\/@babel\/standalone@[^/]+\/babel\.min\.js(?:\?|$)/],
+  ];
+  const scriptSourceProblems = (sources) => {
+    const missing = requiredScripts.filter(([, re]) => !sources.some((source) => re.test(source)))
+      .map(([name]) => 'missing:' + name);
+    const unexpected = sources.filter((source) => !requiredScripts.some(([, re]) => re.test(source)))
+      .map((source) => 'unexpected:' + source);
+    return missing.concat(unexpected).sort();
+  };
+  eq('the page still loads the required script sources and no undeclared source',
+    scriptSourceProblems(srcs), []);
+  ok('counter-mutation: deleting a required script source is rejected',
+    scriptSourceProblems(srcs.filter((source) => !/\/react@/.test(source))).includes('missing:react'));
   ok('...and no analytics script is among them',
     !srcs.some((t) => /_vercel\/(insights|speed-insights)/.test(String(t))), srcs.join(' || '));
   const hosts = [];

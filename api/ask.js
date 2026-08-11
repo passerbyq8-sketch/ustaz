@@ -81,7 +81,7 @@ import { decideLegacyPolicy } from '../lib/legacy-policy-flag.js';
 // D02ب: the system prompt is built HERE now, from four sanitised fields, and `body.system` is
 // read by nothing. See lib/system-prompt.js for why the client stopped owning it.
 import { buildSystemPrompt } from '../lib/system-prompt.js';
-import { readerFromBody, narrowestBand, dropClientSystem } from '../lib/reader-fields.js';
+import { readerFromBody, dropClientSystem } from '../lib/reader-fields.js';
 // LIVE WORLD RETRIEVAL — the news/current-affairs classifier. Pure and lexical, like
 // lib/route-classify.js: it decides whether a question the router already called GENERAL is
 // one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
@@ -629,7 +629,8 @@ export default async function handler(req, res) {
   const effectiveDepth = founderUnlocked ? body.depth : undefined;
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (effectiveDepth === 'deep' || effectiveDepth === 'scholar') ? 'high' : 'medium';
-  // Age band for RAG source-gating (khilaf-policy §6). Optional; absent/garbled => undefined => retrieve() fails CLOSED to the minor list (NOT adult).
+  // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
+  // garbled age to young, so retrieve() fails CLOSED to the minor list (NOT adult).
   //
   // D02ب: `age` now arrives too, so there are TWO claims about the same reader. NEITHER is
   // promoted to a server fact -- both come from the same untrusted body, and this app still has
@@ -638,7 +639,7 @@ export default async function handler(req, res) {
   // while declaring age 7 is read as young. That is the same rule lib/policy/age.js applies
   // between a server band and a client claim -- a claim may RESTRICT and may not RELEASE -- and
   // it means the prompt's own persona fork and this band can never disagree about who is reading.
-  const band = narrowestBand(body.band, body.age);
+  const band = reader.band;
   // BAND GATE (khilaf-policy §1/§2/§3). The depth instruction is ADULT-ONLY. 'scholar' orders the model
   // to present up to FOUR differing scholarly opinions with evidence; injecting that into a child's
   // system prompt is a direct policy breach. Mirrors usePremium (next line) and scholarMode (round 2),
@@ -1177,7 +1178,8 @@ export default async function handler(req, res) {
           if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
         }
         if (!worldPass) {
-          // THE OPEN SEARCH. `band` — the RAW claim — and deliberately NOT `audienceBand`.
+          // THE OPEN SEARCH. `band` — the reader-fields effective band — and deliberately NOT
+          // `audienceBand`.
           //
           // THIS IS THE ONE PLACE IN THE HANDLER WHERE THAT DISTINCTION CHANGES AN OUTCOME, so it
           // is spelled out. resolveAudience() collapses "claimed adult" and "claimed nothing"
@@ -1185,9 +1187,9 @@ export default async function handler(req, res) {
           // anything OPENED. But the owner's rule for safesearch is «strict لغير البالغ (band
           // young/teen أو غائب)» — the absent case goes to the STRICT side, and audienceBand
           // cannot express that because it has already thrown the distinction away.
-          // narrowestBand() returns `undefined` when nothing was claimed, so the raw value can.
-          // Both readings agree that a claimed adult gets the ordinary filter; they disagree only
-          // about the unidentified reader, and the owner resolved that one explicitly.
+          // readerFromBody() resolves absence to young, so the unidentified reader remains on the
+          // strict side without a second fallback rule here. A consistent adult age+band gets the
+          // ordinary filter; neither a lone adult band nor an absent age can open it.
           const { DailySearchBudget } = await import('../lib/ledger/daily-budget.js');
           const o = remember(await retrieveOpenWorld(questionText, {
             band,

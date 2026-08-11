@@ -9,7 +9,7 @@ import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '.
 // D02ب: this relay builds the voice prompt itself now. It used to forward whatever `system` the
 // client posted -- see lib/system-prompt.js for why that was the defect and not the design.
 import { buildSystemPrompt } from '../lib/system-prompt.js';
-import { readerFromBody, narrowestBand, dropClientSystem } from '../lib/reader-fields.js';
+import { readerFromBody, dropClientSystem } from '../lib/reader-fields.js';
 import { guardEmptyAnswer } from '../lib/empty-answer.js';
 
 // The reader's own words for THIS turn. Same shape api/ask.js reads: the content may be a plain
@@ -151,10 +151,10 @@ export default async function handler(req, res) {
     //     request on an unknown top-level field, exactly as `output_config` above does.
     //     D02ب: `age` now arrives alongside `band`, so there are two claims about one reader.
     //     Neither becomes a server fact -- both came from the same untrusted body -- but the
-    //     NARROWER of the two wins, so a body claiming 'adult' while declaring age 7 is read
-    //     as young. `reader.age` is used rather than parsed.age because the delete above has
-    //     already run, and because it is the sanitised value the prompt itself was built from.
-    voiceBand = narrowestBand(parsed.band, reader.age);
+    //     NARROWER of the two wins, so a body claiming 'adult' without a usable age is read as
+    //     young. reader-fields owns that effective band and the age fed to the prompt, so persona
+    //     and policy cannot take different branches.
+    voiceBand = reader.band;
     if (parsed.band !== undefined) delete parsed.band;
 
     outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.

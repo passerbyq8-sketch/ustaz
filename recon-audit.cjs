@@ -6,7 +6,7 @@
  * TRACKED in git on purpose (bug 43): the recon-*.cjs pattern in .gitignore is cancelled for
  * this one file by an explicit "!recon-audit.cjs", because it is a gate -- gates.json registers
  * it as `recon`. "git check-ignore recon-audit.cjs" matches nothing.
- * Run from the repo root:  node recon-audit.cjs
+ * Run from the repo root:  node recon-audit.cjs [--expected-head <sha>]
  *
  * WARN / "not found" on a marker usually just means the token name differs
  * or the documented state changed -- it is a signal to eyeball, not proof of a bug.
@@ -36,6 +36,18 @@ function git(args){
   catch(e){ return null; }
 }
 function kb(n){ return (n/1024).toFixed(1) + ' KB'; }
+function optionValue(name, argv = process.argv.slice(2)){
+  const inline = argv.find((arg) => arg.startsWith(name + '='));
+  if (inline) return inline.slice(name.length + 1).trim() || null;
+  const index = argv.indexOf(name);
+  return index >= 0 && argv[index + 1] && !argv[index + 1].startsWith('--')
+    ? argv[index + 1].trim() : null;
+}
+function baselineVerdict(actual, expected){
+  const a = String(actual || '').trim(), e = String(expected || '').trim();
+  if (!e) return 'absent';
+  return a && (a === e || a.startsWith(e)) ? 'match' : 'mismatch';
+}
 
 // line-numbered search
 function grepLines(src, re){
@@ -46,9 +58,29 @@ function grepLines(src, re){
 }
 function extractArrayBody(src, name){
   const i = src.indexOf(name); if (i<0) return null;
-  const b = src.indexOf('[', i); if (b<0) return null;
-  const e = src.indexOf(']', b); if (e<0) return null;
-  return src.slice(b+1, e);
+  const assignment = src.indexOf('=', i + name.length); if (assignment<0) return null;
+  const b = src.indexOf('[', assignment); if (b<0) return null;
+  let depth=0, quote='', escaped=false, lineComment=false, blockComment=false;
+  for (let k=b;k<src.length;k++){
+    const c=src[k], next=src[k+1];
+    if (lineComment){ if (c==='\n' || c==='\r') lineComment=false; continue; }
+    if (blockComment){ if (c==='*' && next==='/'){ blockComment=false; k++; } continue; }
+    if (quote){
+      if (escaped){ escaped=false; continue; }
+      if (c==='\\'){ escaped=true; continue; }
+      if (c===quote) quote='';
+      continue;
+    }
+    if (c==='/' && next==='/'){ lineComment=true; k++; continue; }
+    if (c==='/' && next==='*'){ blockComment=true; k++; continue; }
+    if (c==="'" || c==='"' || c==='`'){ quote=c; continue; }
+    if (c==='[') depth++;
+    else if (c===']'){
+      depth--;
+      if (depth===0) return src.slice(b+1, k);
+    }
+  }
+  return null;
 }
 function domainsIn(body){
   if (!body) return [];
@@ -62,6 +94,27 @@ console.log(' Al-Murabbi  ::  recon-audit  (read-only, writes nothing)');
 console.log(' root: ' + ROOT);
 console.log(' time: ' + new Date().toISOString());
 console.log('==================================================================');
+
+head('0) SOURCE ARRAY EXTRACTOR');
+{
+  const fixture = `const TARGET = ['literal ]', ['nested', "still ]"], /* ] */ ['tail']];\nconst AFTER = ['outside'];`;
+  const body = extractArrayBody(fixture, 'TARGET');
+  if (body && body.includes("'literal ]'") && body.includes("['nested', \"still ]\"]")
+    && body.includes("['tail']") && !body.includes('outside')) {
+    pass('array extraction balances nested arrays and ignores brackets in strings/comments');
+  } else {
+    fail('array extraction stopped before the matching outer ]: ' + JSON.stringify(body));
+  }
+}
+
+if (baselineVerdict('abcdef', null) === 'absent'
+  && baselineVerdict('abcdef', 'abcdef') === 'match'
+  && baselineVerdict('abcdef', 'abc') === 'match'
+  && baselineVerdict('abcdef', 'fedcba') === 'mismatch') {
+  pass('optional HEAD baseline distinguishes absent, match, and mismatch');
+} else {
+  fail('optional HEAD baseline verdicts are inconsistent');
+}
 
 const isRepo = !!git('rev-parse --is-inside-work-tree');
 if (!isRepo) warn('not a git repo here (git checks will be skipped -- run from C:\\Users\\passe\\projects\\ustaz)');
@@ -128,9 +181,13 @@ for (const f of EXPECT){
  * ---------------------------------------------------------------- */
 head('2) GIT INTEGRITY & TRACKING');
 if (isRepo){
-  const shortHead = (git('rev-parse --short HEAD') || '').trim();
-  info('HEAD = ' + shortHead + '   (handoff documents b3bd4b1)');
-  if (shortHead && shortHead.indexOf('b3bd4b1') !== 0) warn('HEAD differs from documented b3bd4b1 -- fine if you committed since.');
+  const currentHead = (git('rev-parse HEAD') || '').trim();
+  const expectedHead = optionValue('--expected-head');
+  const headVerdict = baselineVerdict(currentHead, expectedHead);
+  info('HEAD = ' + currentHead);
+  if (headVerdict === 'absent') info('no expected HEAD supplied; baseline comparison skipped');
+  else if (headVerdict === 'match') pass('HEAD matches explicit expected baseline ' + expectedHead);
+  else warn('HEAD differs from explicit expected baseline ' + expectedHead);
   const porcelain = (git('status --porcelain') || '').trim();
   if (!porcelain) pass('working tree clean');
   else { info('working tree has uncommitted changes:'); porcelain.split(NL).forEach(l=>info('    ' + l)); }
@@ -514,7 +571,7 @@ head('12) LINE ENDINGS & BOM');
     const loneLf = (s.match(/(?<!\r)\n/g)||[]).length;
     if (crlf>0 && loneLf>0){ mixed++; warn('MIXED line endings in ' + rel + ' (CRLF=' + crlf + ', lone LF=' + loneLf + ') -- anchor-matching hazard'); }
   }
-  if (isRepo && !mixed) pass('no mixed line endings in tracked text files');
+  if (!mixed) pass('no mixed line endings in ' + (isRepo ? 'tracked' : 'checked') + ' text files');
   if (!bom) pass('no UTF-8 BOM in checked files');
 }
 

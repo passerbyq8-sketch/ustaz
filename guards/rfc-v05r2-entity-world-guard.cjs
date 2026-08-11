@@ -31,6 +31,10 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
+
+const ENV_KEYS = ['FOUNDER_SECRET', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE',
+  'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LEDGER_RAG'];
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
@@ -58,7 +62,7 @@ const Q_TAYMIYYAH = 'ما رأي ابن تيمية في قصر الصلاة؟';
 const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ المسافر يقصر الرباعية إلى ركعتين، '
   + 'وأنّ القصر سنّة مؤكّدة عند عامّة أهل العلم.';
 
-(async function main() {
+async function main() {
   console.log('=== rfc-v05r2-entity-world-guard — nobody\'s identity is decided by a model call ===');
 
   const EK = await esm('lib/policy/entity-knowledge.js');
@@ -67,6 +71,11 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
   const CG = await esm('lib/policy/consistency-gate.js');
   const DC = await esm('lib/daycap.js');
   const STORE = await esm('lib/ledger/redis.js');
+  const RET = await esm('lib/retrieve.js');
+  const REG = await esm('lib/source-registry.js');
+
+  eq('SITES_GENERAL is the registry-owned world set',
+    RET.SITES_GENERAL.slice().sort(), REG.domainsForWorld().slice().sort());
 
   const plan = (q, on = false) => AP.planAsk([{ role: 'user', content: q }], { policyEnabled: on });
 
@@ -411,8 +420,18 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
       // It cannot produce the failure this assertion exists to prevent — nothing on that list is a
       // fatwa source, and its result may never become a ruling — so the pin distinguishes the two
       // queries by the list each one names rather than forbidding the name outright.
-      const WORLD_ONLY = (q) => /site:/.test(q)
-        && q.split('site:').slice(1).every((s) => /^(?:ar\.wikipedia\.org|aljazeera\.net|bbc\.com|skynewsarabia\.com)\b/.test(s.trim()));
+      const querySites = (q) => Array.from(new Set(Array.from(
+        String(q || '').matchAll(/\bsite:([a-z0-9.-]+)/gi), (match) => match[1].toLowerCase()))).sort();
+      const worldSites = RET.SITES_GENERAL.slice().map((domain) => domain.toLowerCase()).sort();
+      const WORLD_ONLY = (q) => {
+        const sites = querySites(q);
+        return sites.length > 0 && JSON.stringify(sites) === JSON.stringify(worldSites);
+      };
+      ok('world-query recognition reads SITES_GENERAL rather than a second domain list',
+        WORLD_ONLY('identity (' + RET.SITES_GENERAL.map((domain) => 'site:' + domain).join(' OR ') + ')'));
+      ok('counter-mutation: a one-sided world-domain change is rejected',
+        !WORLD_ONLY('identity (' + RET.SITES_GENERAL.map((domain) => 'site:' + domain).join(' OR ')
+          + ' OR site:unregistered.example)'));
       const religiousQueries = singer.state.braveQueries.filter((q) => !WORLD_ONLY(q));
       ok('the search of the RELIGIOUS list carried NO unregistered name',
         religiousQueries.length > 0 && religiousQueries.every((q) => !/خالد|عبدالرحمن/.test(q)),
@@ -521,5 +540,9 @@ const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ ا
   }
 
   console.log('\n' + (failures ? 'FAIL ' : 'PASS ') + (checks - failures) + '/' + checks);
-  process.exit(failures ? 1 : 0);
-})().catch((e) => { console.error(e); process.exit(1); });
+  return failures ? 1 : 0;
+}
+
+withRestoredProcessEnv(ENV_KEYS, main).then((code) => {
+  process.exitCode = code;
+}).catch((e) => { console.error(e); process.exitCode = 1; });

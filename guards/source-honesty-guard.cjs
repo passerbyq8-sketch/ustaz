@@ -118,7 +118,52 @@ const stripComments = (s) => String(s)
   console.log('\n=== B. D6أ — a soft 404 is seen by its CONTENT, not its status ===');
   // ══════════════════════════════════════════════════════════════════════════
 
-  const { detectSoftNotFound } = require(path.join(REPO, 'tools', 'soft-404.cjs'));
+  const {
+    detectSoftNotFound,
+    EMPTY_BODY_CHARS,
+    RAW_SHELL_CHARS,
+    BODY_SCAN_MAX_CHARS,
+  } = require(path.join(REPO, 'tools', 'soft-404.cjs'));
+
+  // Boundary fixtures come from the detector's owner. These are semantic inequalities, not a
+  // second copy of its three numeric thresholds, so changing an owner constant automatically
+  // moves the guard's boundary with it.
+  {
+    const base = {
+      requestedUrl: 'https://example.org/article',
+      finalUrl: 'https://example.org/article',
+      title: '',
+    };
+    const belowBoth = detectSoftNotFound({
+      ...base,
+      text: 'x'.repeat(EMPTY_BODY_CHARS - 1),
+      rawLen: RAW_SHELL_CHARS - 1,
+    });
+    const atTextFloor = detectSoftNotFound({
+      ...base,
+      text: 'x'.repeat(EMPTY_BODY_CHARS),
+      rawLen: RAW_SHELL_CHARS - 1,
+    });
+    const atRawFloor = detectSoftNotFound({ ...base, text: '', rawLen: RAW_SHELL_CHARS });
+    ok('B0: the empty-document boundary follows the owner constants',
+      belowBoth.signal === 'empty-body' && atTextFloor.soft === false && atRawFloor.soft === false,
+      JSON.stringify({ belowBoth, atTextFloor, atRawFloor }));
+
+    const missing = 'الصفحة غير موجودة';
+    const atScanCeiling = detectSoftNotFound({
+      ...base,
+      text: missing.padEnd(BODY_SCAN_MAX_CHARS, 'x'),
+      rawLen: RAW_SHELL_CHARS,
+    });
+    const aboveScanCeiling = detectSoftNotFound({
+      ...base,
+      text: missing.padEnd(BODY_SCAN_MAX_CHARS + 1, 'x'),
+      rawLen: RAW_SHELL_CHARS,
+    });
+    ok('B0: the short-body scan boundary follows its owner constant',
+      atScanCeiling.signal === 'not-found-body' && aboveScanCeiling.soft === false,
+      JSON.stringify({ atScanCeiling, aboveScanCeiling }));
+  }
 
   // THE MEASURED PAIR. Both pages are HTTP 200 from al-badr.net, and both extract the SAME 1085
   // characters byte for byte — the site-wide hadith band. Length cannot separate them, and any
@@ -236,7 +281,8 @@ const stripComments = (s) => String(s)
   // ══════════════════════════════════════════════════════════════════════════
 
   const DB = await esm('lib/domain-budget.js');
-  const DEFAULT_BUDGET = 8000;
+  const RUNTIME = await esm('lib/retrieve.js');
+  const DEFAULT_BUDGET = RUNTIME.DEFAULT_FETCH_TIMEOUT_MS;
 
   ok('C1: islamweb has its own timeout, and it is the measured constant',
     DB.DOMAIN_FETCH_TIMEOUT_MS['islamweb.net'] === DB.ISLAMWEB_FETCH_TIMEOUT_MS
@@ -638,14 +684,14 @@ const stripComments = (s) => String(s)
     RTO.safesearchFor(undefined) === RTO.safesearchFor('young'),
     'lib/policy/age.js resolves unknown to ADULT; the owner resolved this one the other way');
   {
-    // The handler must pass the RAW band, not audienceBand — resolveAudience() collapses
-    // "claimed nothing" into `adult`, so passing it would silently give an unidentified reader
-    // the ordinary filter. This is the one place in the handler where that distinction bites.
-    const AGE = await esm('lib/policy/age.js');
-    ok('F1: ...and that distinction is real: resolveAudience() maps an absent claim to adult',
-      AGE.resolveAudience({ serverBand: null, clientBand: undefined }).band === 'adult',
-      'which is exactly why the raw band is what the handler passes');
-    ok('F1: ...so the handler passes the raw `band` to the open search',
+    // The handler passes reader-fields' effective band, not a second policy fallback. An absent
+    // body therefore reaches both source gating and safesearch as young, while the age-policy
+    // resolver retains its own generic unknown-reader contract for callers outside this handler.
+    const READER = await esm('lib/reader-fields.js');
+    ok('F1: ...and reader-fields maps an absent body to the young side',
+      READER.readerFromBody({}).band === 'young',
+      'absence widened before safesearch was selected');
+    ok('F1: ...so the handler passes the effective `band` to the open search',
       /retrieveOpenWorld\(questionText, \{\s*\n\s*band,/.test(read('api/ask.js')),
       'passing audienceBand here would give an unidentified reader safesearch=moderate');
   }
@@ -862,7 +908,14 @@ const stripComments = (s) => String(s)
         await (await esm('api/ask.js')).default({
           method: 'POST',
           headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' },
-          body: { band, messages: [{ role: 'user', content: question }] },
+          // The shipped client sends the age and its derived band together. Keep these world-path
+          // fixtures on that real contract; absent/mismatched bodies are covered by the dedicated
+          // reader-fields cases in the wiring guard.
+          body: {
+            band,
+            age: band === 'adult' ? 25 : band === 'teen' ? 15 : 7,
+            messages: [{ role: 'user', content: question }],
+          },
         }, res);
       } finally { console.log = realLog; }
       return { text: readerText(res), state };

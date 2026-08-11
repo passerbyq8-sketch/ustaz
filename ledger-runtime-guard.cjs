@@ -15,6 +15,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { withRestoredProcessEnv } = require('./tools/guard-env.cjs');
+
+const ENV_KEYS = ['LEDGER_RAG', 'RFC_V05_MODE', 'FOUNDER_SECRET', 'LEDGER_CACHE_SECRET',
+  'DAILY_SEARCH_BUDGET'];
 const crypto = require('crypto');
 
 const REPO = __dirname;
@@ -52,7 +56,7 @@ function fakeRedis() {
   };
 }
 
-(async function main() {
+async function main() {
   console.log('=== ledger-runtime-guard — flag, kill switch, caches, telemetry ===');
 
   const STORE = await esm('lib/ledger/redis.js');
@@ -74,6 +78,7 @@ function fakeRedis() {
   // the OTHER three conditions, so the ceiling is set here and its own behaviour is asserted
   // separately at the end of this block.
   process.env.DAILY_SEARCH_BUDGET = '500';
+  process.env.RFC_V05_MODE = 'public';
   const restoreEnv = () => {
     for (const [k, v] of Object.entries(ORIGINAL_ENV)) {
       if (v === undefined) delete process.env[k]; else process.env[k] = v;
@@ -223,7 +228,6 @@ function fakeRedis() {
     eq('nothing configured at all => the public ledger', (await FL.decidePath(anonReq, clock)).path, 'ledger');
     eq('...and the reason names the mode', (await FL.decidePath(anonReq, clock)).reason, 'mode_public');
     process.env.RFC_V05_MODE = 'public';
-    process.env.LEDGER_RAG = 'on';
 
     // A MALFORMED value is not truthy. This is the case a "if (v)" implementation gets wrong.
     process.env.LEDGER_RAG = 'on';
@@ -536,13 +540,52 @@ function fakeRedis() {
     /KV_REST_API_URL/.test(read('lib/ledger/redis.js')) && /KV_REST_API_TOKEN/.test(read('lib/ledger/redis.js')));
   ok('...and no other client library is introduced',
     !/ioredis|node-redis|require\('redis'\)/.test(read('lib/ledger/redis.js')));
-  eq('package.json gained no dependency', JSON.parse(read('package.json')).dependencies, {
-    '@mozilla/readability': '^0.6.0',
-    '@upstash/ratelimit': '^2.0.8',
-    '@upstash/redis': '^1.38.0',
-    linkedom: '^0.18.12',
-    minisearch: '^7.2.0',
+  const REQUIRED_RUNTIME_DEPENDENCIES = Object.freeze({
+    '@mozilla/readability': 0,
+    '@upstash/redis': 1,
+    linkedom: 0,
   });
+  const dependencyProblems = (pkg, lock) => {
+    const problems = [];
+    const declared = pkg.dependencies || {};
+    const lockedRoot = lock.packages?.['']?.dependencies || {};
+    for (const [name, requiredMajor] of Object.entries(REQUIRED_RUNTIME_DEPENDENCIES)) {
+      const installed = lock.packages?.['node_modules/' + name]?.version;
+      if (!declared[name]) problems.push(name + ':missing-package');
+      if (!lockedRoot[name]) problems.push(name + ':missing-lock-root');
+      if (!installed) problems.push(name + ':missing-lock-package');
+      const declaredMajor = Number((String(declared[name] || '').match(/\d+/) || [NaN])[0]);
+      const installedMajor = Number((String(installed || '').match(/^\d+/) || [NaN])[0]);
+      if (declared[name] && declaredMajor !== requiredMajor) problems.push(name + ':declared-major');
+      if (installed && installedMajor !== requiredMajor) problems.push(name + ':locked-major');
+    }
+    return problems;
+  };
+  const pkg = JSON.parse(read('package.json'));
+  const lock = JSON.parse(read('package-lock.json'));
+  eq('the required runtime dependencies satisfy their major-version contracts',
+    dependencyProblems(pkg, lock), []);
+
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const missing = { pkg: clone(pkg), lock: clone(lock) };
+  delete missing.pkg.dependencies['@upstash/redis'];
+  delete missing.lock.packages[''].dependencies['@upstash/redis'];
+  delete missing.lock.packages['node_modules/@upstash/redis'];
+  ok('counter-mutation: deleting a required dependency is rejected',
+    dependencyProblems(missing.pkg, missing.lock).some((p) => p.startsWith('@upstash/redis:missing-')));
+  const incompatible = { pkg: clone(pkg), lock: clone(lock) };
+  incompatible.pkg.dependencies['@upstash/redis'] = '^2.0.0';
+  incompatible.lock.packages[''].dependencies['@upstash/redis'] = '^2.0.0';
+  incompatible.lock.packages['node_modules/@upstash/redis'].version = '2.0.0';
+  ok('counter-mutation: an incompatible required major is rejected',
+    dependencyProblems(incompatible.pkg, incompatible.lock)
+      .filter((p) => p.startsWith('@upstash/redis:')).length === 2);
+  const unrelatedPatch = { pkg: clone(pkg), lock: clone(lock) };
+  unrelatedPatch.pkg.dependencies.minisearch = '^7.2.1';
+  unrelatedPatch.lock.packages[''].dependencies.minisearch = '^7.2.1';
+  unrelatedPatch.lock.packages['node_modules/minisearch'].version = '7.2.1';
+  eq('an unrelated patch upgrade does not change the Ledger dependency contract',
+    dependencyProblems(unrelatedPatch.pkg, unrelatedPatch.lock), []);
   ok('the shipped rate-limit prefixes are untouched',
     /prefix: 'ask:min'/.test(read('lib/ratelimit.js')) && /prefix: 'ask:all:day'/.test(read('lib/ratelimit.js')));
 
@@ -551,8 +594,12 @@ function fakeRedis() {
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
-  process.exit(failures === 0 ? 0 : 1);
-})().catch((e) => {
+  return failures === 0 ? 0 : 1;
+}
+
+withRestoredProcessEnv(ENV_KEYS, main).then((code) => {
+  process.exitCode = code;
+}).catch((e) => {
   console.error('ledger-runtime-guard CRASHED:', (e && e.stack) || e);
-  process.exit(1);
+  process.exitCode = 1;
 });

@@ -28,6 +28,8 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const vm = require('vm');
+const babelParser = require('@babel/parser');
 
 const OFFLINE = process.argv.includes('--offline');
 const REPO = __dirname;
@@ -533,56 +535,61 @@ const user = (t) => [{ role: 'user', content: t }];
   ok('the card that IS emitted is built from the canonical URL',
     /buildSourceTag\(\{ url: src\.canonicalUrl, title: src\.title \}\)/.test(ask));
 
-  // Nothing else about the app moved.
-  const changed = (() => {
-    try {
-      return require('child_process')
-        .execSync('git diff --name-only HEAD', { cwd: REPO, encoding: 'utf8' })
-        .split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
-    } catch (e) { return null; }
-  })();
-  if (changed === null) skip('the client and its card systems are untouched', 'git unavailable');
-  // RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT. What this exists to prove is that the
-  // attribution and card work never reaches the CLIENT: index.html is where the card grammar is
-  // parsed, and it must not move for anything on this path. That half is untouched below.
-  //
-  // quest.html was in the same clause only as a blanket «no client page moves», and it is not a
-  // card surface at all — it is the offline trivia page, with no <source> parser, no attribution
-  // and no retrieval in it. Batch 5 edits it for the world-map drift (13 embedded regions against
-  // 27 in quest-data/world.json), which has nothing to do with this phase. A byte-identity pin
-  // would make an unrelated fix look like a violation of this one, and would then be relaxed —
-  // so it is replaced by the thing actually worth guaranteeing, which is stronger, permanent, and
-  // does not go quiet the moment somebody commits: quest.html carries NO card machinery, ever.
-  // RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT — and for the same reason quest.html was.
-  // What must hold is that THE CLIENT'S CARD SYSTEM does not move for anything on this path: the
-  // <source> grammar index.html parses is what every server-side card is built to satisfy, and a
-  // change to it silently invalidates buildSourceTag. A git-status pin expressed that only while
-  // the tree was dirty — it says nothing at all once somebody commits, which is precisely when a
-  // drift would ship. So the card system is pinned by its own BYTES instead: every line of
-  // index.html that mentions a source card, hashed. That holds forever, and it does not go red
-  // when an unrelated line elsewhere in a 12,000-line file changes for an unrelated reason
-  // (batch 5 sends the age band to the voice route from this file).
-  else ok('nothing outside the client is dragged in by this phase',
-    changed.indexOf('lib/binothaimeen.js') === -1 || changed.indexOf('index.html') === -1,
-    JSON.stringify(changed));
+  // The client/server card contract is behavioural. Extract the shipped client functions by AST,
+  // feed them a tag made by the shipped server builder, and assert the four distinct consumers.
+  // An unrelated comment or refactor may move bytes; only a changed card property is a failure.
   {
-    const idx = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
-    const cardLines = idx.split('\n').filter((l) => /<\/?source\b|source=|\bsite=\[?["']|SOURCE_RE/i.test(l));
-    const h = require('crypto').createHash('sha256').update(cardLines.join('\n'), 'utf8').digest('hex');
-    // RE-PINNED, D02ب, AND HERE IS THE WHY THIS ASSERTION ASKS FOR.
-    // 9 lines -> 5. The four that left were all PROMPT TEXT, not card machinery: three told the
-    // model how to emit <source site=... url=...> and one forbade the tag on a voice turn. They
-    // moved with the rest of the system prompt to lib/system-prompt.js when the server took
-    // ownership of it. MEASURED at the move: 4 lines removed, 0 added, and the 5 lines that
-    // remain -- the client's own <source> PARSING -- are byte-identical to what they were.
-    // buildSourceTag / pickVerifiedSources / SOURCE_RE / canonicalUrl were never in this file
-    // at all; they are server-side in lib/attribution.js, and were absent from index.html at the
-    // previous pin too. So the grammar the client parses did not move. Only the instructions
-    // telling the model to produce it changed address.
-    ok('the client card grammar is byte-for-byte what the server builds for',
-      h === 'd1a6898bc054a480832aac8f8097eb2c50df822d4215e5f6ad1b33d9f9a07fc4'
-      || (console.log('        card-grammar sha256 = ' + h + '  (' + cardLines.length + ' lines)'), false),
-      'if this moved deliberately, update the hash and say why');
+    const idx = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8');
+    const open = /<script[^>]*type=["']text\/babel["'][^>]*>/i.exec(idx);
+    const raw = open ? idx.slice(open.index + open[0].length,
+      idx.indexOf('</script>', open.index + open[0].length)) : '';
+    const ast = raw ? babelParser.parse(raw, { sourceType: 'script', plugins: ['jsx'] }) : null;
+    const initializer = (name) => {
+      for (const statement of ast?.program?.body || []) {
+        if (statement.type !== 'VariableDeclaration') continue;
+        const declaration = statement.declarations.find((item) =>
+          item.id?.type === 'Identifier' && item.id.name === name && item.init);
+        if (declaration) return raw.slice(declaration.init.start, declaration.init.end);
+      }
+      return '';
+    };
+    const sandbox = {
+      stripIncompleteTags: (value) => String(value == null ? '' : value),
+      deriveCaps: () => ({ export: true }),
+      toPlainText: (value) => String(value == null ? '' : value),
+      readStepsTitle: () => '',
+      resolveHadithAttribution: (narrator, ruling) => ({ narrator, ruling }),
+      resolveSurahNumber: () => null,
+      SURAH_NAMES: [],
+      getVerseText: () => null,
+    };
+    const clientFunction = (name) => {
+      const source = initializer(name);
+      ok('the client exposes ' + name + ' as a structural unit', !!source);
+      return source ? vm.runInNewContext('(' + source + ')', sandbox) : () => '';
+    };
+    const parseRichMessage = clientFunction('parseRichMessage');
+    const formatForTTS = clientFunction('formatForTTS');
+    const formatForLog = clientFunction('formatForLog');
+    const formatForStreamPreview = clientFunction('formatForStreamPreview');
+    const askModule = await import('file://' + path.join(REPO, 'api', 'ask.js').replace(/\\/g, '/'));
+    const built = askModule.buildSourceTag({
+      url: 'https://islamqa.info/ar/answers/123?ref=card',
+      title: 'عنوان موثوق',
+    });
+    ok('the shipped server builder produces a card for the semantic fixture', !!built && !!built.tag);
+    const parsed = parseRichMessage('قبل ' + built.tag + ' بعد', 25);
+    const sourceSegment = parsed.segments.find((segment) => segment.type === 'source');
+    eq('the client parser preserves the server card site, URL and title', sourceSegment, {
+      type: 'source', content: 'عنوان موثوق', site: 'islamqa.info', url: built.url,
+    });
+    eq('TTS removes the whole visual source card',
+      formatForTTS('قبل ' + built.tag + ' بعد'), 'قبل بعد');
+    const logged = formatForLog('قبل ' + built.tag + ' بعد');
+    ok('the parent log keeps the title but never the raw tag or URL',
+      logged.includes('[المصدر: عنوان موثوق]') && !logged.includes('<source') && !logged.includes(built.url), logged);
+    eq('the live stream preview hides the whole source card',
+      formatForStreamPreview('قبل ' + built.tag + ' بعد'), 'قبل بعد');
   }
   {
     const quest = fs.readFileSync(path.join(REPO, 'quest.html'), 'utf8');

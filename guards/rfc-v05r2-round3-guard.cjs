@@ -30,6 +30,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
+
+const ENV_KEYS = ['FOUNDER_SECRET', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY',
+  'DAILY_SEARCH_BUDGET', 'LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE'];
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
@@ -83,7 +87,7 @@ const CORPUS = {
   'https://binbaz.org.sa/articles/9202/x': P('مقال القسم العلمي', BODY_OTHER_AUTHOR),
 };
 
-(async function main() {
+async function main() {
   console.log('=== rfc-v05r2-round3-guard — router, per-issue policy, A/B/C, whole Gate 3 ===');
 
   const FLAG = await esm('lib/ledger/flag.js');
@@ -103,6 +107,7 @@ const CORPUS = {
   process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
   process.env.BRAVE_API_KEY = 'test-brave-not-real';
   process.env.DAILY_SEARCH_BUDGET = '500';
+  process.env.RFC_V05_MODE = 'public';
   const FOUNDER = DAY.founderTokenFor(DEVICE);
 
   const mem = new Map();
@@ -673,8 +678,12 @@ const CORPUS = {
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
-  process.exit(failures === 0 ? 0 : 1);
-})().catch((e) => {
+  return failures === 0 ? 0 : 1;
+}
+
+withRestoredProcessEnv(ENV_KEYS, main).then((code) => {
+  process.exitCode = code;
+}).catch((e) => {
   console.error('rfc-v05r2-round3-guard CRASHED:', (e && e.stack) || e);
-  process.exit(1);
+  process.exitCode = 1;
 });

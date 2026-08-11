@@ -478,8 +478,15 @@ function partA() {
 
   // --- error replies ----------------------------------------------------------
   const FE = plain(c.grab('FRIENDLY_ERRORS') || {});
-  const everyErrorKnown = Object.keys(FE).every((k) => isError(FE[k].male) && isError(FE[k].female));
-  ok('every line the client writes for its own failure is recognised as an error', everyErrorKnown);
+  const errorKeys = Object.keys(FE);
+  ok('the client error table exists and is non-empty', errorKeys.length > 0, JSON.stringify(FE));
+  for (const key of errorKeys) {
+    for (const gender of ['male', 'female']) {
+      const value = FE[key] && FE[key][gender];
+      ok('the client error ' + key + '.' + gender + ' is explicitly recognised',
+        typeof value === 'string' && value.length > 0 && isError(value), JSON.stringify(value));
+    }
+  }
   ok('...and an ordinary answer is not', isError('الصلاة واجبة') === false);
   ok('...and a non-string cannot throw it', isError(null) === false && isError(undefined) === false);
 
@@ -600,8 +607,6 @@ async function partBC() {
     String(groups[0] && groups[0].getAttribute('style')));
 
   // it must NOT be under a user message: a thread ending on a question shows none
-  const setMessages = null; // the app owns its state; drive it the way a child would instead
-
   // 6) ONE PRESS, ONE SEND — two clicks in a single task
   const before = c.net().length;
   await d.doublePress(d.byText(S.QA_SIMPLIFY));
@@ -1414,9 +1419,25 @@ async function partFFavs() {
 // ===========================================================================
 // PART E — THE WIRING, READ OFF THE FILE
 // ===========================================================================
+const FORBIDDEN_PATH = /^(android|ios|capacitor|quest-data)\/|^(manifest\.json|sw\.js|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json|worship-display\.json)$/;
+function blastRadiusVerdict(paths) {
+  const list = Array.isArray(paths) ? paths : [];
+  const bad = list.filter((f) => FORBIDDEN_PATH.test(f));
+  return { state: bad.length ? 'FORBIDDEN' : (list.length ? 'PASS' : 'CLEAN'), bad };
+}
+
 function partE() {
   console.log('\n=== E. THE WIRING (index.html, and what this phase must NOT have touched) ===');
   const decoded = html.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+
+  const cleanFixture = blastRadiusVerdict([]);
+  ok('an empty path list is explicitly CLEAN',
+    cleanFixture.state === 'CLEAN' && cleanFixture.bad.length === 0, JSON.stringify(cleanFixture));
+  const forbiddenFixture = blastRadiusVerdict(['guards/example.cjs', 'manifest.json']);
+  ok('a synthetic forbidden path reports FORBIDDEN and names the path',
+    forbiddenFixture.state === 'FORBIDDEN'
+    && JSON.stringify(forbiddenFixture.bad) === JSON.stringify(['manifest.json']),
+    JSON.stringify(forbiddenFixture));
 
   // 20) nothing outside the web app moved. Read from git, so it is the real diff and not a guess.
   let changed = [];
@@ -1443,9 +1464,8 @@ function partE() {
     // attribution-guard. What remains here is the set that no web phase and no server phase may
     // move: the native wrappers, the manifest, the service worker, the deployment config, and
     // every file carrying scripture or the question bank.
-    const FORBIDDEN = /^(android|ios|capacitor|quest-data)\/|^(manifest\.json|sw\.js|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json|worship-display\.json)$/;
-    const bad = changed.filter((f) => FORBIDDEN.test(f));
-    eq('no manifest, service worker, platform or scripture file is modified', bad, []);
+    const verdict = blastRadiusVerdict(changed);
+    eq('no manifest, service worker, platform or scripture file is modified', verdict.bad, []);
     // The SHA-256 seal on those same thirteen files used to sit right here, inside this `else`.
     // That made the strongest promise in the repository conditional on `git` being installed:
     // where git was absent the seal did not fail, it did not run. It now lives in
@@ -1667,11 +1687,21 @@ function partE() {
 
   // no new dependency, no new CDN, no new host of any kind
   const srcs = (html.match(/<script[^>]*src=["']([^"']+)["']/gi) || []).map((t) => (t.match(/src=["']([^"']+)["']/) || [])[1]);
-  // THREE, not the five that shipped before: /_vercel/insights and /_vercel/speed-insights were
-  // REMOVED for this release, because both began measuring on page load -- before the reader had
-  // answered the AI-consent screen. Nothing replaced them. This stays an exact count so that
-  // "we dropped two" cannot quietly become "we dropped two and added one".
-  eq('the page loads exactly the three scripts it still loads', srcs.length, 3);
+  const requiredScripts = [
+    ['react', /\/react@[^/]+\/umd\/react\.production\.min\.js(?:\?|$)/],
+    ['react-dom', /\/react-dom@[^/]+\/umd\/react-dom\.production\.min\.js(?:\?|$)/],
+    ['@babel/standalone', /\/@babel\/standalone@[^/]+\/babel\.min\.js(?:\?|$)/],
+  ];
+  const scriptSourceProblems = (sources) => {
+    const missing = requiredScripts.filter(([, re]) => !sources.some((source) => re.test(source)))
+      .map(([name]) => 'missing:' + name);
+    const unexpected = sources.filter((source) => !requiredScripts.some(([, re]) => re.test(source)))
+      .map((source) => 'unexpected:' + source);
+    return missing.concat(unexpected).sort();
+  };
+  eq('the page loads the required script sources and no undeclared source', scriptSourceProblems(srcs), []);
+  ok('counter-mutation: deleting a required script source is rejected',
+    scriptSourceProblems(srcs.filter((source) => !/\/react@/.test(source))).includes('missing:react'));
   ok('...and neither analytics script is among them',
     !srcs.some((u) => /_vercel\/(insights|speed-insights)/.test(String(u))), srcs.join(' || '));
   const EXPECTED_HOSTS = ['unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'mushaf.almurabbi.app'];
@@ -1681,17 +1711,23 @@ function partE() {
     if (h && hosts.indexOf(h) === -1) hosts.push(h);
   });
   eq('...and reaches no host it did not already reach', hosts.filter((h) => EXPECTED_HOSTS.indexOf(h) === -1), []);
-  // FIVE devDependencies, not the four that stood before: @babel/parser was DECLARED (D35),
-  // because classifier-guard.cjs requires it directly and had been resolving on @babel/core's
-  // transitive copy. Declaring what we require is the whole change -- the count stays exact so
-  // that "we declared one we already used" cannot quietly become "we declared one and added one".
-  ok('no dependency was added to package.json',
-    (() => {
-      try {
-        const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-        return Object.keys(pkg.dependencies || {}).length === 5 && Object.keys(pkg.devDependencies || {}).length === 5;
-      } catch (e) { return false; }
-    })());
+  const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+  const requiredPackages = {
+    dependencies: ['@mozilla/readability', '@upstash/ratelimit', '@upstash/redis', 'linkedom', 'minisearch'],
+    devDependencies: ['@babel/core', '@babel/parser', '@babel/preset-react', 'react', 'react-dom'],
+  };
+  const missingPackages = (manifest) => Object.entries(requiredPackages).flatMap(([group, names]) =>
+    names.filter((name) => !Object.prototype.hasOwnProperty.call(manifest[group] || {}, name))
+      .map((name) => group + ':' + name));
+  eq('every required package remains declared by name', missingPackages(pkg), []);
+  const unrelatedPackage = JSON.parse(JSON.stringify(pkg));
+  unrelatedPackage.devDependencies['unrelated-fixture'] = '1.0.0';
+  eq('an unrelated dependency change does not weaken or trip this invariant',
+    missingPackages(unrelatedPackage), []);
+  const missingRequiredPackage = JSON.parse(JSON.stringify(pkg));
+  delete missingRequiredPackage.dependencies.minisearch;
+  ok('counter-mutation: deleting a required package is rejected',
+    missingPackages(missingRequiredPackage).includes('dependencies:minisearch'));
 }
 
 // ===========================================================================

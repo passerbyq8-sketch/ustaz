@@ -40,10 +40,15 @@ const git = (args) => {
 };
 const headOf = () => { const h = git('rev-parse HEAD'); return h === null ? null : h.trim(); };
 const dirtyOf = () => {
-  const s = git('status --porcelain');
+  const s = git('status --porcelain --untracked-files=all');
   if (s === null) return null;
   const lines = s.split('\n').filter((l) => l.trim() !== '');
   return { count: lines.length, lines };
+};
+const introducedDirtiness = (before, after) => {
+  if (before === null || after === null) return [];
+  const existing = new Set(before.lines);
+  return after.lines.filter((line) => !existing.has(line));
 };
 
 const rosterPath = path.join(REPO, 'gates.json');
@@ -113,6 +118,8 @@ for (const entry of gates) {
 const failed = results.filter((r) => r.exit !== 0);
 const headAfter = headOf();
 const dirtyAfter = dirtyOf();
+const dirtyIntroduced = introducedDirtiness(dirtyBefore, dirtyAfter);
+const treeDirtiedByRun = dirtyIntroduced.length > 0;
 
 // The recon summary line, lifted out of recon's own log rather than retyped. Reports have
 // quoted "recon FAIL=0" for a long time; this makes the number the one recon actually printed.
@@ -127,6 +134,10 @@ console.log('');
 console.log('=== SUITE: ' + (results.length - failed.length) + '/' + results.length + ' EXIT=0 ===');
 if (reconSummary) console.log('recon:    ' + reconSummary);
 console.log('tree after: ' + (dirtyAfter === null ? '(no git)' : dirtyAfter.count + ' dirty path(s)'));
+if (treeDirtiedByRun) {
+  console.log('TREE DIRTYING (' + dirtyIntroduced.length + '): the gate run introduced new worktree state');
+  dirtyIntroduced.forEach((line) => console.log('  ' + line));
+}
 if (failed.length) {
   console.log('FAILING (' + failed.length + '): ' + failed.map((f) => f.name + '=' + (f.exit === null ? 'ERR' : f.exit)).join(', '));
   for (const f of failed) {
@@ -147,6 +158,8 @@ fs.writeFileSync(path.join(runDir, 'summary.json'), JSON.stringify({
   dirty_before: dirtyBefore === null ? null : dirtyBefore.count,
   dirty_after: dirtyAfter === null ? null : dirtyAfter.count,
   dirty_paths_after: dirtyAfter === null ? null : dirtyAfter.lines,
+  tree_dirtied_by_run: treeDirtiedByRun,
+  dirty_paths_introduced: dirtyIntroduced,
   roster: 'gates.json',
   total: results.length,
   passed: results.length - failed.length,
@@ -155,4 +168,4 @@ fs.writeFileSync(path.join(runDir, 'summary.json'), JSON.stringify({
   gates: results,
 }, null, 2) + '\n', 'utf8');
 
-process.exit(failed.length ? 1 : 0);
+process.exit(failed.length || treeDirtiedByRun ? 1 : 0);

@@ -19,6 +19,11 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
+
+const ENV_KEYS = ['LEDGER_CACHE_SECRET', 'FOUNDER_SECRET', 'DAILY_SEARCH_BUDGET',
+  'ANTHROPIC_API_KEY', 'RFC_V05_LEGACY_POLICY', 'KV_REST_API_URL',
+  'KV_REST_API_TOKEN'];
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
@@ -44,7 +49,7 @@ function mk(nWords, nChars) {
   return parts.join(' ');
 }
 
-(async function main() {
+async function main() {
   console.log('=== rfc-v05r2-runtime-guard — cache, budget, bounds, mutations, SSE ===');
 
   const BG = await esm('lib/ledger/budgets.js');
@@ -245,9 +250,38 @@ function mk(nWords, nChars) {
       DB.secondsUntilUtcMidnight(1770000000000) <= 24 * 3600 + 120
       && DB.secondsUntilUtcMidnight(1770000000000) > 0);
 
-    // NOTHING LIVE WAS TOUCHED.
-    ok('no live Upstash client was ever constructed by this section',
-      !process.env.KV_REST_API_URL || true);
+    // CONSTRUCTION IS CREDENTIAL-GATED AND CONSTRUCTION ALONE DOES NO I/O. Exercise both sides
+    // with local fake values; no request is allowed to escape this block.
+    {
+      const realFetch = globalThis.fetch;
+      let fetchCalls = 0;
+      globalThis.fetch = async () => { fetchCalls++; throw new Error('network forbidden in runtime guard'); };
+      try {
+        delete process.env.KV_REST_API_URL;
+        delete process.env.KV_REST_API_TOKEN;
+        REDIS.__resetRedis();
+        eq('absent Upstash credentials construct no client', await REDIS.available(), false);
+
+        process.env.KV_REST_API_URL = 'https://fake.invalid';
+        REDIS.__resetRedis();
+        eq('a URL without its token still constructs no client', await REDIS.available(), false);
+
+        delete process.env.KV_REST_API_URL;
+        process.env.KV_REST_API_TOKEN = 'fake-token';
+        REDIS.__resetRedis();
+        eq('a token without its URL still constructs no client', await REDIS.available(), false);
+
+        process.env.KV_REST_API_URL = 'https://fake.invalid';
+        REDIS.__resetRedis();
+        eq('injected fake credentials construct the local client', await REDIS.available(), true);
+        eq('checking either credential state performs no network I/O', fetchCalls, 0);
+      } finally {
+        REDIS.__resetRedis();
+        delete process.env.KV_REST_API_URL;
+        delete process.env.KV_REST_API_TOKEN;
+        globalThis.fetch = realFetch;
+      }
+    }
     ok('the engine reserves BEFORE it spends a provider call', (() => {
       const eng = read('lib/ledger/engine.js');
       const reserveAt = eng.indexOf('dailyBudget.reserve()');
@@ -435,8 +469,12 @@ function mk(nWords, nChars) {
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
-  process.exit(failures === 0 ? 0 : 1);
-})().catch((e) => {
+  return failures === 0 ? 0 : 1;
+}
+
+withRestoredProcessEnv(ENV_KEYS, main).then((code) => {
+  process.exitCode = code;
+}).catch((e) => {
   console.error('rfc-v05r2-runtime-guard CRASHED:', (e && e.stack) || e);
-  process.exit(1);
+  process.exitCode = 1;
 });

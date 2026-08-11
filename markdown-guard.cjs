@@ -43,6 +43,16 @@ function eq(name, actual, expected) {
   return ok(name, a === e, 'expected ' + e + '\n        actual   ' + a);
 }
 
+function markdownModuleSlice(source) {
+  const start = source.indexOf('function ezMdInline(');
+  const end = source.indexOf('function ezikRenderSegments(', start);
+  return {
+    start,
+    end,
+    code: start !== -1 && end > start ? source.slice(start, end) : '',
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Extract + transform, exactly as runtime-gate does (same pinned-major rule).
 // ---------------------------------------------------------------------------
@@ -325,12 +335,25 @@ console.log('\n=== D. THE WIRING (index.html) ===');
 
   // THE NEW RENDERER PUTS NO HTML ON THE PAGE. Asserted against the module itself, so the claim
   // is about the code that was written rather than about the file as a whole.
-  const modStart = html.indexOf('// S93 — عارض Markdown للعرض فقط') !== -1
-    ? html.indexOf('// S93 — عارض Markdown للعرض فقط')
-    : html.indexOf('S93');
-  const modEnd = html.indexOf('function MessageBubble(', modStart);
-  ok('the Markdown module is where it was', modStart !== -1 && modEnd > modStart);
-  const mod = html.slice(modStart, modEnd);
+  const markdownUnit = markdownModuleSlice(html);
+  ok('the Markdown module is bounded by its stable declarations',
+    markdownUnit.start !== -1 && markdownUnit.end > markdownUnit.start);
+  const mod = markdownUnit.code;
+  const fixtureBody = [
+    'function ezMdInline(text) { return React.createElement("span", null, text); }',
+    'const EzikMarkdown = React.memo(function EzikMarkdown({ text }) { return ezMdInline(text); });',
+  ].join('\n');
+  const fixtureBefore = '/* S93 old unrelated marker */\nconst outside = { innerHTML: "not the module" };\n';
+  const fixtureAfter = '\nfunction ezikRenderSegments() {}\ndocument.write("outside");';
+  const renamedCommentFixture = fixtureBefore.replace('S93 old unrelated marker', 'renamed comment')
+    + fixtureBody + fixtureAfter;
+  const oldCommentFixture = fixtureBefore + fixtureBody + fixtureAfter;
+  eq('renaming the nearby comment does not change the structural Markdown unit',
+    markdownModuleSlice(renamedCommentFixture).code,
+    markdownModuleSlice(oldCommentFixture).code);
+  eq('the structural unit excludes code before and after its declarations',
+    markdownModuleSlice(renamedCommentFixture).code,
+    fixtureBody + '\n');
   // Counted as USES, not as mentions: the module documents in prose that it does none of this,
   // and a bare substring count would have found its own comment and called it a violation.
   const uses = (hay, re) => (hay.match(re) || []).length;

@@ -64,7 +64,7 @@ const issue = (over) => Object.assign({
   eq('the cycle and model budgets', [BG.MAX_VERIFIED_CYCLES, BG.MAX_MODEL_CALLS], [2, 8]);
   eq('the token and time budgets',
     [BG.MAX_MODEL_INPUT_TOKENS, BG.MAX_MODEL_OUTPUT_TOKENS, BG.GLOBAL_TIMEOUT_MS], [15000, 3000, 25000]);
-  // The seven is ITEMISED, so it cannot quietly become eight.
+  // MAX_MODEL_CALLS is ITEMISED, so the declared ceiling cannot drift from its line items.
   {
     const b = BG.MODEL_CALL_BUDGET;
     const total = b.query_ir + b.claim_extraction + b.claim_verification + b.drafting + b.sentence_verification;
@@ -102,13 +102,19 @@ const issue = (over) => Object.assign({
   ok('...and anything over OUR ceiling too', !QB.isSendable('x'.repeat(381)));
 
   // =========================================================================
-  console.log('\n=== C. PACKING — 3, 14 AND 24 DOMAINS, NOTHING DROPPED ===');
+  console.log(`\n=== C. PACKING — 3, 14 AND ${ALL.length} DOMAINS, NOTHING DROPPED ===`);
+  const CHILD_SITES = ['islamqa.info', 'binbaz.org.sa', 'islamweb.net'];
+  const FULL_LABEL = ALL.length + ' domains';
   const LISTS = [
-    ['3 domains (the child list)', ['islamqa.info', 'binbaz.org.sa', 'dorar.net']],
+    ['3 domains (the child list)', CHILD_SITES],
     ['14 domains', ALL.slice(0, 14)],
-    ['24 domains', ALL],
+    [FULL_LABEL, ALL],
   ];
   for (const [label, sites] of LISTS) {
+    if (sites === ALL) {
+      eq('the full-list label is derived from the measured source set',
+        Number((label.match(/^\d+/) || [])[0]), sites.length);
+    }
     for (const intent of ['fatwa', 'tafsir', 'hadith_grading', 'general']) {
       const iss = issue({ intent, coreTerms: ['الصلاة'], protectedEntities: ['الجمع'] });
       const p = QB.planIssueBatches(iss, sites, {});
@@ -123,6 +129,10 @@ const issue = (over) => Object.assign({
       const cap = (await esm('lib/ledger/capability.js')).capabilityForIntent(intent);
       const eligible = SP.eligibleSites(sites, cap).slice().sort();
       const covered = p.batches.flatMap((b) => b.sites).concat(p.uncoveredSites).slice().sort();
+      if (sites === CHILD_SITES && intent === 'fatwa') {
+        eq('the child fatwa fixture exercises its intended three-source branch',
+          eligible, CHILD_SITES.slice().sort());
+      }
       eq(label + '/' + intent + ': union == eligible list', covered, eligible);
       eq(label + '/' + intent + ': no domain in two batches',
         p.batches.flatMap((b) => b.sites).length,

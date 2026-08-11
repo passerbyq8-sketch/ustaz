@@ -297,8 +297,8 @@ const HUMAN_DIVINE_NAME_CASES = [
     const src = read('lib/policy/name-presence.js');
     ok('the module makes NO model call and NO network call of its own',
       !/fetch\(|anthropic|retrieve\(/i.test(src));
-    ok('...and imports nothing that could make one',
-      /^import \{ normalizeArabic, stripFormulas \} from '\.\.\/route-classify\.js';$/m.test(src));
+    ok('...and imports only the normalizer it actually uses',
+      /^import \{ normalizeArabic \} from '\.\.\/route-classify\.js';$/m.test(src));
 
     const ask = read('api/ask.js');
     ok('the probe is bounded to ONE wave and a handful of candidates',
@@ -736,7 +736,7 @@ const HUMAN_DIVINE_NAME_CASES = [
     const makeReq = (text) => ({
       method: 'POST',
       headers: { 'x-murabbi-device': DEVICE, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' },
-      body: { system: 'أنت عزك', band: 'adult', messages: [{ role: 'user', content: text }] },
+      body: { system: 'أنت عزك', age: 25, band: 'adult', messages: [{ role: 'user', content: text }] },
     });
     // Execute the parser shipped to the browser, not a more permissive test-only interpretation.
     const clientHandlerBody = (read('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];

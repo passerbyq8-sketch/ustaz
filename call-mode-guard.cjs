@@ -31,7 +31,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 
 const indexFile = process.argv[2] || 'index.html';
 

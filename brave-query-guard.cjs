@@ -91,16 +91,22 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   console.log('\n=== B. PLANNING (split, cover, order — never drop) ===');
 
   const plans = {};
+  const ADULT_LABEL = ADULT.length + ' domains';
+  const ADULT_FATWA_LABEL = ADULT_LABEL + ' — fatwa';
   const CASES = [
     ['the child list', MINOR, Q_TYPICAL, 'general'],
     ['14 domains (the pre-regression list)', FOURTEEN, Q_TYPICAL, 'general'],
-    ['24 domains — fatwa', ADULT, 'ما حكم بيع الذهب بالتقسيط', 'fatwa'],
-    ['24 domains — tafsir', ADULT, Q_TYPICAL, 'tafsir'],
-    ['24 domains — hadith', ADULT, 'تخريج حديث إنما الأعمال بالنيات', 'hadith'],
-    ['24 domains — general', ADULT, 'خطبة عن بر الوالدين', 'general'],
-    ['24 domains — short question', ADULT, Q_SHORT, 'fatwa'],
+    [ADULT_FATWA_LABEL, ADULT, 'ما حكم بيع الذهب بالتقسيط', 'fatwa'],
+    [ADULT_LABEL + ' — tafsir', ADULT, Q_TYPICAL, 'tafsir'],
+    [ADULT_LABEL + ' — hadith', ADULT, 'تخريج حديث إنما الأعمال بالنيات', 'hadith'],
+    [ADULT_LABEL + ' — general', ADULT, 'خطبة عن بر الوالدين', 'general'],
+    [ADULT_LABEL + ' — short question', ADULT, Q_SHORT, 'fatwa'],
   ];
   for (const [label, sites, q, purpose] of CASES) {
+    if (sites === ADULT) {
+      eq(label + ': label count is derived from the source set',
+        Number((label.match(/^\d+/) || [])[0]), sites.length);
+    }
     const plan = B.planQueries(q, sites, { purpose });
     plans[label] = plan;
     const worst = plan.groups.reduce((a, g) => Math.max(a, g.chars), 0);
@@ -124,13 +130,13 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   // question costs exactly what it always did.
   eq('the child list -> exactly one request', plans['the child list'].groups.length, 1);
   eq('14 domains -> exactly one request', plans['14 domains (the pre-regression list)'].groups.length, 1);
-  // (3) 24 domains must split.
-  ok('24 domains -> two or more groups', plans['24 domains — fatwa'].groups.length >= 2,
-    String(plans['24 domains — fatwa'].groups.length));
-  ok('24 domains -> not an absurd number of groups (budget is preserved)',
-    plans['24 domains — fatwa'].groups.length <= 3);
+  // (3) The full adult list must split.
+  ok(ADULT_LABEL + ' -> two or more groups', plans[ADULT_FATWA_LABEL].groups.length >= 2,
+    String(plans[ADULT_FATWA_LABEL].groups.length));
+  ok(ADULT_LABEL + ' -> not an absurd number of groups (budget is preserved)',
+    plans[ADULT_FATWA_LABEL].groups.length <= 3);
 
-  // (16) every one of the 24 appears in at least one group, for EVERY purpose.
+  // (16) every member of the canonical adult set appears in at least one group, for EVERY purpose.
   for (const p of R.PURPOSES) {
     const plan = B.planQueries(Q_TYPICAL, ADULT, { purpose: p });
     const seen = new Set(plan.groups.flatMap((g) => g.sites));

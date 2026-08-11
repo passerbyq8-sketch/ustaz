@@ -122,7 +122,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       'x-murabbi-founder': founder,
       'x-ezik-ai-consent': '2026-08-06-1',
     },
-    body: { system: 'أنت عزك', band: 'adult', messages: [{ role: 'user', content: text }] },
+    body: { system: 'أنت عزك', age: 25, band: 'adult', messages: [{ role: 'user', content: text }] },
   });
   // SPLIT ON THE FRAME SEPARATOR, NOT ON «data: ». Splitting on the prefix leaves the NEXT frame's
   // `event:` line glued to the end of the previous frame's JSON, so JSON.parse throws and the

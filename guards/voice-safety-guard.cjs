@@ -143,7 +143,7 @@ const BENIGN = 'شنو معنى الإحسان؟';
     {
       upstreamCalls = 0;
       const res = fakeRes();
-      await handler(mkReq(HAZARD, { band: 'young' }), res);
+      await handler(mkReq(HAZARD, { age: 7, band: 'young' }), res);
       const out = readerText(res);
       ok('a grave hazard asked BY VOICE is redirected',
         out === CORE.WARM_TEMPLATES.SAFETY_REDIRECT, JSON.stringify(out).slice(0, 200));
@@ -154,7 +154,7 @@ const BENIGN = 'شنو معنى الإحسان؟';
       // AND THE BAND DOES NOT MATTER. The text path refuses this for everybody; so does this one.
       upstreamCalls = 0;
       const res = fakeRes();
-      await handler(mkReq(HAZARD), res);
+      await handler(mkReq(HAZARD, { age: 25, band: 'adult' }), res);
       ok('an adult asking the same thing by voice is redirected too',
         readerText(res) === CORE.WARM_TEMPLATES.SAFETY_REDIRECT);
       ok('...still without a model call', upstreamCalls === 0, 'upstream calls: ' + upstreamCalls);
@@ -163,7 +163,7 @@ const BENIGN = 'شنو معنى الإحسان؟';
       // AN ORDINARY VOICE TURN IS UNCHANGED. This is the regression that would matter most.
       upstreamCalls = 0;
       const res = fakeRes();
-      await handler(mkReq(BENIGN), res);
+      await handler(mkReq(BENIGN, { age: 25, band: 'adult' }), res);
       ok('an ordinary voice turn still reaches the model', upstreamCalls === 1, 'upstream calls: ' + upstreamCalls);
       ok('...and is still relayed as a stream', res.code === 200);
       // قرار ٩, END TO END ON THE REAL RELAY. The stub above hands back a reader that is done
@@ -193,7 +193,7 @@ const BENIGN = 'شنو معنى الإحسان؟';
         };
       };
       const res = fakeRes();
-      await handler(mkReq(BENIGN), res);
+      await handler(mkReq(BENIGN, { age: 25, band: 'adult' }), res);
       globalThis.fetch = prev;
       const EA = await esm('lib/empty-answer.js');
       const out = readerText(res);
@@ -212,7 +212,7 @@ const BENIGN = 'شنو معنى الإحسان؟';
         };
       };
       upstreamCalls = 0;
-      await handler(mkReq(BENIGN, { band: 'young' }), fakeRes());
+      await handler(mkReq(BENIGN, { age: 7, band: 'young' }), fakeRes());
       ok('the age band is stripped from the body sent upstream',
         !!sentBody && sentBody.band === undefined, JSON.stringify(sentBody && Object.keys(sentBody)));
     }

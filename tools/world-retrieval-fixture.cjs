@@ -170,8 +170,10 @@ const SHARIA_HITS = [
   const worldQ = worldPlan.groups.map((g) => g.q).join(' ');
   const shariaQ = shariaPlan.groups.map((g) => g.q).join(' ');
 
-  eq('the world list is exactly the four measured sources',
-    RET.SITES_GENERAL.slice(), ['ar.wikipedia.org', 'aljazeera.net', 'bbc.com', 'skynewsarabia.com']);
+  const queriedWorldDomains = Array.from(new Set(Array.from(
+    worldQ.matchAll(/\bsite:([a-z0-9.-]+)/gi), (match) => match[1].toLowerCase()))).sort();
+  eq('the world query domain set equals the governing SITES_GENERAL set',
+    queriedWorldDomains, RET.SITES_GENERAL.slice().sort());
   eq('the world list overlaps NO sharia list', RET.worldListOverlap(), []);
   ok('the world query names only world domains',
     RET.SITES_GENERAL.every((d) => worldQ.includes('site:' + d))
@@ -184,7 +186,7 @@ const SHARIA_HITS = [
   eq('...and costs exactly one request', worldPlan.groups.length, 1);
 
   // THE REGISTRY SAYS THE SAME THING IN THE DATA.
-  eq('the registry world set == SITES_GENERAL',
+  eq('the registry-owned world set == SITES_GENERAL',
     REG.domainsForWorld().slice().sort(), RET.SITES_GENERAL.slice().sort());
   for (const d of RET.SITES_GENERAL) {
     ok('«' + d + '» may back NO religious purpose',

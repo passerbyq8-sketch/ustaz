@@ -19,6 +19,9 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { withRestoredProcessEnv } = require('./tools/guard-env.cjs');
+
+const ENV_KEYS = ['ANTHROPIC_API_KEY', 'LEDGER_CACHE_SECRET', 'FOUNDER_SECRET'];
 
 const REPO = __dirname;
 // Where this guard's generated output goes. NOT the tree: a guard that dirties the working tree
@@ -72,6 +75,8 @@ const PT = (paras) => '<html><head><title>صفحة</title>'
   + '</head><body><article>'
   + paras.map((x) => '<p>' + x + '</p>').join('\n') + '</article></body></html>';
 
+const HADITH_EXPLANATION_FIXTURE_URL = 'https://al-badr.net/articles/5001';
+
 const CORPUS = {
   // Was tafsir.app until 2026-08-05. That host is DEFERRED (client-rendered, zero extractable
   // characters), so the fixture moved to the live tafsir source. The TEXT and every assertion are
@@ -84,12 +89,12 @@ const CORPUS = {
     'دراسة في معنى قوله تعالى فويل للمصلين. المراد بالساهين المتهاونون بالصلاة.' + LONG,
   ]),
   // Was dorar.net until 2026-08-05. That host is DEFERRED (HTTP 403 for every server-side client,
-  // including its own published API). al-abbaad.com is the live source with the highest declared
+  // including its own published API). al-badr.net is the live source with the highest declared
   // hadith_explanation priority among hosts that publish readable text (60) AND — the contrast F2
   // exists to test — it is eligible for hadith EXPLANATION while being ineligible for hadith
   // GRADING, exactly as dorar.net was the reverse case. (al-abbaad.com scores higher still but
   // declares requiresTranscript, so a text fixture on it would be refused for the wrong reason.)
-  'https://al-badr.net/articles/5001': P([
+  [HADITH_EXPLANATION_FIXTURE_URL]: P([
     'شرح حديث إنما الأعمال بالنيات. معنى الحديث أن العمل يصح بالنية ويفسد بفقدها.' + LONG,
     'وهذا الحديث أصل عظيم من أصول الدين.' + LONG,
   ]),
@@ -134,7 +139,7 @@ const RESULTS = {
     { url: 'https://tafsir.net/articles/9001', title: 'دراسة قرآنية', snippet: '' },
   ],
   hadith_explanation: [
-    { url: 'https://al-badr.net/articles/5001', title: 'شرح حديث إنما الأعمال بالنيات', snippet: '' },
+    { url: HADITH_EXPLANATION_FIXTURE_URL, title: 'شرح حديث إنما الأعمال بالنيات', snippet: '' },
   ],
   general_article: [
     { url: 'https://islamqa.info/ar/answers/7001/x', title: 'فضل الصلاة', snippet: '' },
@@ -151,7 +156,7 @@ const RESULTS = {
   ],
 };
 
-(async function main() {
+async function main() {
   console.log('=== ledger-fixtures-guard — the nine questions, and the negative matrix ===');
 
   const SF = await esm('lib/ledger/safe-fetch.js');
@@ -161,6 +166,16 @@ const RESULTS = {
   const BG = await esm('lib/ledger/budgets.js');
   const SG = await esm('lib/ledger/segment.js');
   const SCHEMA = await esm('lib/ledger/schema.js');
+
+  const plainTextHadithHosts = SP.eligibleSites(SP.searchableDomains(), 'hadith_explanation')
+    .filter((domain) => !SP.policyFor(domain).pagePolicy.requiresTranscript);
+  const hadithFixtureHost = new URL(HADITH_EXPLANATION_FIXTURE_URL).hostname.replace(/^www\./, '');
+  eq('F2 fixture uses the highest-priority text-capable hadith explanation host',
+    hadithFixtureHost, plainTextHadithHosts[0]);
+  eq('F2 provider result and corpus key share the governing fixture URL',
+    RESULTS.hadith_explanation[0].url,
+    Object.prototype.hasOwnProperty.call(CORPUS, HADITH_EXPLANATION_FIXTURE_URL)
+      ? HADITH_EXPLANATION_FIXTURE_URL : null);
 
   const FIX = JSON.parse(read(FIXTURE_FILE));
   eq('the fixture file declares its schema', FIX.schema, 'ledger-fixtures-v1');
@@ -173,7 +188,6 @@ const RESULTS = {
   // ── the stubs ───────────────────────────────────────────────────────────────
   process.env.ANTHROPIC_API_KEY = 'stub-for-gate';
   delete process.env.LEDGER_CACHE_SECRET;                 // cache disabled: no store needed
-  const savedFounder = process.env.FOUNDER_SECRET;
   delete process.env.FOUNDER_SECRET;
   SF.__setResolverForTest(async () => [{ address: '8.8.8.8', family: 4 }]);
 
@@ -392,18 +406,25 @@ const RESULTS = {
   };
 
   const search = async (q, sites) => {
-    // The stub honours the site filter, so an ineligible domain cannot arrive by accident.
-    const cap = Object.keys(RESULTS).find((c) => {
-      const r = RESULTS[c];
-      return r.some((x) => sites.some((d) => x.url.includes('//' + d) || x.url.includes('//www.' + d)));
-    });
+    // Derive the capability from the same canonical policy set the planner used. Looking for the
+    // first result whose host happens to overlap the filter is ambiguous (islamqa.info occurs in
+    // several capabilities) and used to leave `cap` unread while pooling every result family.
+    const candidates = Object.keys(RESULTS)
+      .map((candidate) => ({ candidate, sites: SP.eligibleSites(bandSites, candidate) }))
+      .filter((entry) => sites.every((site) => entry.sites.includes(site)))
+      .sort((a, b) => a.sites.length - b.sites.length);
+    // Query packing may split a capability's canonical list across batches. The smallest
+    // canonical superset is the most specific owner (notably the one-site Ibn Baz adapter).
+    const cap = candidates.length ? candidates[0].candidate : null;
+    ok('the provider fixture resolves one capability from its canonical site set', !!cap,
+      JSON.stringify(sites));
     const pool = [];
-    for (const list of Object.values(RESULTS)) {
-      for (const r of list) {
-        const host = new URL(r.url).hostname.replace(/^www\./, '');
-        if (sites.includes(host)) pool.push(r);
-      }
+    for (const r of (cap ? RESULTS[cap] : [])) {
+      const host = new URL(r.url).hostname.replace(/^www\./, '');
+      if (sites.includes(host)) pool.push(r);
     }
+    ok('the provider fixture returns only results owned by the computed capability',
+      pool.every((r) => cap && RESULTS[cap].includes(r)));
     return pool;
   };
 
@@ -1108,12 +1129,15 @@ const RESULTS = {
     /VOID/.test(read('tools/ledger-live-eval.cjs')));
 
   SF.__resetResolver();
-  if (savedFounder !== undefined) process.env.FOUNDER_SECRET = savedFounder;
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
-  process.exit(failures === 0 ? 0 : 1);
-})().catch((e) => {
+  return failures === 0 ? 0 : 1;
+}
+
+withRestoredProcessEnv(ENV_KEYS, main).then((code) => {
+  process.exitCode = code;
+}).catch((e) => {
   console.error('ledger-fixtures-guard CRASHED:', (e && e.stack) || e);
-  process.exit(1);
+  process.exitCode = 1;
 });

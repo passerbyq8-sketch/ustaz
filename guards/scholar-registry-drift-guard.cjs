@@ -127,10 +127,11 @@ const INSTITUTIONS = Object.freeze(['eftaa-committee-kw', 'iifa', 'dorar', 'tafs
     eq('...and it is still not a SOURCES row', REG.findSource('binothaimeen.net') || null, null);
     ok('...and the resolution says so, so no caller can mistake it for a searchable domain',
       REG.resolveScholar('ابن عثيمين').viaAdapter === true);
-    // 24 until 2026-08-05; 22 since the three deferrals and the one ferkous.app admission. The
-    // point of this assertion is that RECOGNISING A SCHOLAR never widens the searchable surface —
-    // which it still does not; the number moved for a different and recorded reason.
-    eq('the searchable surface is unchanged by scholar recognition', SP.searchableDomains().length, 22);
+    // Recognition must not widen or narrow the canonical source set. Compare keys, not a count:
+    // a coordinated registry change is legitimate, while a one-sided consumer change is drift.
+    eq('the searchable surface is unchanged by scholar recognition',
+      SP.searchableDomains().slice().sort(),
+      REG.activeSources().map((source) => source.domain).sort());
     // A blocked owner must STILL be unresolvable — the allowance is for adapters, not for dead sites.
     const disabled = SP.POLICY_ROWS.filter((r) => r.health !== 'enabled').map((r) => r.domain);
     const leaked = disabled.filter((d) => REG.SCHOLAR_SITES.some((s) => s.domain === d

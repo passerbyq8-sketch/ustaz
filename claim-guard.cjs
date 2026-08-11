@@ -89,13 +89,11 @@ function eq(name, actual, expected) {
   ok('...and an unresolvable one stays specific with NO subject', unresolved.specific && !unresolved.subject,
     JSON.stringify(unresolved));
 
-  // THE EXPRESSION IS NOT THE PERSON. A live false positive in the attribution gate: «قول فلان»
-  // is also how a scholar's opinion is introduced, so «حكم قول يا معطي لا تبطي» was read as a
-  // question about the views of a scholar by that name.
+  // THE EXPRESSION IS NOT THE PERSON. «قول فلان» can introduce a scholar's opinion, but the
+  // vocative words in «حكم قول يا معطي لا تبطي» are the subject being judged, not a byline.
   const att = A.detectAttribution([{ role: 'user', content: 'حكم قول يا معطي لا تبطي' }]);
-  ok('the attribution gate does capture the expression as a name (the defect)', att.attributed);
-  ok('...and the claim gate is what disarms it',
-    C.subjectSwallowsName(C.detectSubject('حكم قول يا معطي لا تبطي'), att.scholarName));
+  ok('the expression creates no person attribution',
+    !att.attributed && att.mode === 'none' && att.scholarName === '', JSON.stringify(att));
   const realAtt = A.detectAttribution([{ role: 'user', content: 'ما رأي الشيخ ابن عثيمين في حكم قول آمين' }]);
   ok('...without disarming a real attribution in the same sentence',
     realAtt.attributed && !C.subjectSwallowsName(C.detectSubject('ما رأي الشيخ ابن عثيمين في حكم قول آمين'), realAtt.scholarName),
@@ -107,8 +105,17 @@ function eq(name, actual, expected) {
   ok('«تبطي» reaches the standard spelling «تبطئ»', V.some((v) => v.indexOf('تبطئ') !== -1), JSON.stringify(V));
   ok('...and the vocative may be absent', V.some((v) => v.indexOf('يا ') !== 0));
   ok('...and it NEVER becomes «تبطلي»', !V.some((v) => v.indexOf('تبطل') !== -1), JSON.stringify(V));
+  const baseVariantWords = 'يا معطي لا تبطي'.split(' ');
+  const illegalVariants = V.filter((variant) => {
+    const words = variant.split(' ');
+    const originals = words[0] === 'يا' ? baseVariantWords : baseVariantWords.slice(1);
+    return words.length !== originals.length || words.some((word, i) => {
+      const original = originals[i];
+      return word !== original && !(original.endsWith('ي') && word === original.slice(0, -1) + 'ئ');
+    });
+  });
   ok('...and no variant inserts a letter mid-word',
-    V.every((v) => v.split(' ').every((w) => w.length <= 'تبطي'.length + 1 || true)));
+    illegalVariants.length === 0, JSON.stringify(illegalVariants));
   ok('the variant set stays small', V.length <= 8, String(V.length));
 
   // ─────────────────────────────────────────────────────────────────────────

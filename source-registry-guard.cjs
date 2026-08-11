@@ -503,7 +503,7 @@ const quotedDomains = (body) =>
     تسليماً كثيراً. أما بعد: فاتقوا الله عباد الله، واعلموا أن حر الصيف يذكّر بحر النار، وأن في سقيا الماء أجراً
     عظيماً، فقد جاء في السنة الحث على سقي الماء والإحسان إلى الخلق، فأكثروا من الصدقة في هذه الأيام، وتذكروا
     يوماً تدنو فيه الشمس من الرؤوس، ولا ظل إلا ظله سبحانه.</p></div></body></html>`;
-  F.khutbahNamed = khutbah('');
+  F.khutbahNamed = khutbah('صلاح بن محمد البدير');
   F.khutbahAnonymous = khutbah('');
 
   const salaf = (categoryText, author) => `<html><head><title>مقال - مركز سلف للبحوث والدراسات</title>
@@ -542,7 +542,7 @@ const quotedDomains = (body) =>
   // bar as if it were the article is testing a situation retrieval does not produce. It is
   // exactly what made the almunajjid case look broken when it was not — his site links to
   // islamqa.info from every page's chrome, and the reprint test reads the ARTICLE.
-  function gate(html, url, { usedReadability = true, byline = '', text = null, title = null, content = null } = {}) {
+  function gate(html, url, { usedReadability = true, byline = null, text = null, title = null, content = null } = {}) {
     const { document: doc } = parseHTML(html);
     const collapse = (s) => String(s || '').replace(/\s+/g, ' ').trim();
     let body = doc.body ? doc.body.cloneNode(true) : null;
@@ -552,11 +552,14 @@ const quotedDomains = (body) =>
       const el = doc.querySelector(content);
       extracted = collapse(el ? el.textContent : '');
     }
+    const bylineNode = doc.querySelector('span.by');
+    const extractedByline = byline === null
+      ? collapse(bylineNode ? bylineNode.textContent : '') : byline;
     return G.gateSourcePage({
       url, finalUrl: url, doc,
       title: title === null ? collapse(doc.title) : title,
       text: text === null ? extracted : text,
-      usedReadability, byline,
+      usedReadability, byline: extractedByline,
     });
   }
   const AL = 'https://mostafaaladwy.com/fatwa/178087/x/';
@@ -600,14 +603,17 @@ const quotedDomains = (body) =>
   eq('الكويت: and is labelled as such', g.ok && g.attributionType, 'department publication');
 
   // (5) khutabaa — author required, forums refused.
-  g = gate(F.khutbahNamed, KH, { byline: 'صلاح بن محمد البدير' });
+  ok('الخطباء: the named fixture executes its <span class="by"> branch',
+    F.khutbahNamed.includes('<span class="by">صلاح بن محمد البدير</span>')
+    && !F.khutbahAnonymous.includes('<span class="by">'));
+  g = gate(F.khutbahNamed, KH);
   ok('الخطباء: a khutbah with a named khatib is admitted', g.ok, g.note);
   eq('الخطباء: the khatib is preserved', g.ok && g.author, 'صلاح بن محمد البدير');
   eq('الخطباء: attribution type', g.ok && g.attributionType, 'khatib');
-  g = gate(F.khutbahAnonymous, KH, { byline: '' });
+  g = gate(F.khutbahAnonymous, KH);
   ok('الخطباء: an anonymous khutbah is refused', !g.ok && /attribution-indeterminate/.test(g.note), JSON.stringify(g));
-  g = gate(F.khutbahNamed.replace('<div id="body" class="subject-content">',
-    '<div id="body" class="subject-content">الفريق العلمي '), KH, { byline: '' });
+  g = gate(F.khutbahAnonymous.replace('<div id="body" class="subject-content">',
+    '<div id="body" class="subject-content">الفريق العلمي '), KH);
   ok('الخطباء: the site\'s own scientific team counts as an author', g.ok, g.note);
 
   // (6) salafcenter — reader submissions refused by the site's own badge.
@@ -815,8 +821,10 @@ const quotedDomains = (body) =>
   const qm = 'ما حكم قول يا معطي لا تبطي؟';
   const subj = C.detectSubjectInThread(user(qm));
   ok('يا معطي: the specific expression is still detected', subj.specific && /معطي/.test(subj.subject));
+  const qmAttribution = A.detectAttribution(user(qm));
   ok('يا معطي: it is still not mistaken for a scholar\'s name',
-    C.subjectSwallowsName(subj, A.detectAttribution(user(qm)).scholarName));
+    !qmAttribution.attributed && qmAttribution.mode === 'none' && qmAttribution.scholarName === '',
+    JSON.stringify(qmAttribution));
   const general = [{ title: 'الدعاء بأسماء الله الحسنى', url: 'https://islamweb.net/ar/fatwa/121485/x',
     passage: 'يجوز الدعاء بأسماء الله الحسنى، وهو من أفضل الدعاء، ولا حرج في ذلك.' }];
   const v = C.verifyClaims('هذه العبارة مستحبة ومن أفضل الدعاء.', subj, general);

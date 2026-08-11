@@ -274,8 +274,17 @@ const user = (t) => [{ role: 'user', content: t }];
 
   const runSeam = async (question, over = {}) => {
     const target = fakeRes();
+    target.preFinalizerWrites = 0;
     target.preFinalizerEnds = 0;
+    const rawWrite = target.write.bind(target);
     const rawEnd = target.end.bind(target);
+    target.write = (...args) => {
+      const raw = String(args[0] == null ? '' : args[0]);
+      if (raw.trim() && !raw.trimStart().startsWith(':') && !target[A1SSE.FINALIZATION_COMPLETE]) {
+        target.preFinalizerWrites++;
+      }
+      return rawWrite(...args);
+    };
     target.end = (...args) => {
       if (!target[A1SSE.FINALIZATION_COMPLETE]) target.preFinalizerEnds++;
       return rawEnd(...args);
@@ -370,7 +379,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const negativeFrames = negative.res.frames();
     const negativeText = negativeFrames.filter((frame) => frame.delta).map((frame) => frame.delta.text).join('');
     ok('F-010 Ledger negative uses runLedgerTurn behind the finalized response', negative.out.outcome === 'FULL' && negativeText.startsWith('\u062c\u0648\u0627\u0628 \u0622\u0645\u0646.') && !negative.res.body.includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'), negativeText);
-    ok('F-010 Ledger negative registers real card-backing evidence before finalization', negative.registeredSources.length === 1 && negative.res.finalizerInput.sources === negative.registeredSources && negative.res.preFinalizerEnds === 0);
+    ok('F-010 Ledger negative registers real card-backing evidence before finalization', negative.registeredSources.length === 1 && negative.res.finalizerInput && negative.res.finalizerInput.sources === negative.registeredSources && negative.res.preFinalizerWrites === 0 && negative.res.preFinalizerEnds === 0);
     ok('F-010 Ledger negative has one terminal message_stop', negativeFrames.filter((frame) => frame.type === 'message_stop').length === 1 && negativeFrames.at(-1).type === 'message_stop');
 
     const supported = unsafe;
@@ -381,7 +390,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const greenText = greenFrames.filter((frame) => frame.delta).map((frame) => frame.delta.text).join('');
     const expectedCardSuffix = green.ownedCards.map((card) => card.tag).join('\n');
     ok('F-010 Ledger green preserves supported text and owned cards byte-for-byte in order', greenText === supported + '\n' + expectedCardSuffix, JSON.stringify({ greenText, input: green.res.finalizerInput }));
-    ok('F-010 Ledger green context comes only from the seam callback before target.end', green.registeredSources.length === 1 && green.registeredSources[0].passage.includes(supported) && green.res.preFinalizerEnds === 0);
+    ok('F-010 Ledger green context comes only from the seam callback before target.end', green.registeredSources.length === 1 && green.registeredSources[0].passage.includes(supported) && green.res.preFinalizerWrites === 0 && green.res.preFinalizerEnds === 0);
     ok('F-010 Ledger green has one terminal message_stop', greenFrames.filter((frame) => frame.type === 'message_stop').length === 1 && greenFrames.at(-1).type === 'message_stop');
     a1SentenceText = null;
     a1EvidenceText = null;
@@ -434,9 +443,18 @@ const user = (t) => [{ role: 'user', content: t }];
     const handlerResponse = () => {
       const target = fakeRes();
       target.headersSent = false;
+      target.preFinalizerWrites = 0;
       target.preFinalizerEnds = 0;
       target.json = function json(value) { this.jsonBody = value; this.ended++; return this; };
+      const rawWrite = target.write.bind(target);
       const rawEnd = target.end.bind(target);
+      target.write = function write(...args) {
+        const raw = String(args[0] == null ? '' : args[0]);
+        if (raw.trim() && !raw.trimStart().startsWith(':') && !this[A1SSE.FINALIZATION_COMPLETE]) {
+          this.preFinalizerWrites++;
+        }
+        return rawWrite(...args);
+      };
       target.end = function end(...args) { if (!this[A1SSE.FINALIZATION_COMPLETE]) this.preFinalizerEnds++; return rawEnd(...args); };
       return target;
     };
@@ -448,7 +466,7 @@ const user = (t) => [{ role: 'user', content: t }];
       const negativeText = negativeRes.frames().filter((frame) => frame.delta).map((frame) => frame.delta.text).join('');
       const negativeContext = negativeRes[A1SSE.FINALIZATION_CONTEXT];
       ok('F-010 handler Ledger negative removes only unsupported takhrij', negativeText.startsWith('\u062c\u0648\u0627\u0628 \u0622\u0645\u0646.') && !negativeRes.body.includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'));
-      ok('F-010 handler Ledger negative receives seam evidence before target.end', negativeContext && negativeContext.sources.length === 1 && negativeRes.preFinalizerEnds === 0);
+      ok('F-010 handler Ledger negative receives seam evidence before target.end', negativeContext && negativeContext.sources.length === 1 && negativeRes.preFinalizerWrites === 0 && negativeRes.preFinalizerEnds === 0);
 
       a1SentenceText = unsafe; a1EvidenceText = unsafe;
       const greenRes = handlerResponse();
@@ -458,7 +476,7 @@ const user = (t) => [{ role: 'user', content: t }];
       const greenContext = greenRes[A1SSE.FINALIZATION_CONTEXT];
       const card = askMod.buildSourceTag({ url: RESULTS[0].url + '?a1=handler-green', title: '\u0635' }).tag;
       ok('F-010 handler Ledger green preserves evidence-backed text and card byte-for-byte', greenText === unsafe + '\n' + card);
-      ok('F-010 handler Ledger green callback fills context before first end', greenContext && greenContext.sources.length === 1 && greenContext.sources[0].passage.includes(unsafe) && greenRes.preFinalizerEnds === 0 && greenFrames.filter((frame) => frame.type === 'message_stop').length === 1);
+      ok('F-010 handler Ledger green callback fills context before first end', greenContext && greenContext.sources.length === 1 && greenContext.sources[0].passage.includes(unsafe) && greenRes.preFinalizerWrites === 0 && greenRes.preFinalizerEnds === 0 && greenFrames.filter((frame) => frame.type === 'message_stop').length === 1);
     } finally {
       globalThis.fetch = originalFetch;
       a1SentenceText = null; a1EvidenceText = null;

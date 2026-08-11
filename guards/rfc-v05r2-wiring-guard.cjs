@@ -19,6 +19,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
+
+const ENV_KEYS = ['FOUNDER_SECRET', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LEDGER_RAG',
+  'DAILY_SEARCH_BUDGET', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE'];
 
 const REPO = path.join(__dirname, '..');
 
@@ -122,7 +126,7 @@ const offScript = (u) => {
   return !!h && !SCRIPTED_HOSTS.has(h);
 };
 
-(async function main() {
+async function main() {
   console.log('=== rfc-v05r2-wiring-guard — the policy runs, not merely imports ===');
 
   const FLAG = await esm('lib/ledger/flag.js');
@@ -133,12 +137,17 @@ const offScript = (u) => {
   const LEGACY_FLAG = await soft('lib/legacy-policy-flag.js');
   const ENT = await esm('lib/policy/entities.js');
   const SPOL = await esm('lib/ledger/source-policy.js');
+  const SOURCE_REGISTRY = await esm('lib/source-registry.js');
+  const READER = await esm('lib/reader-fields.js');
+  const SYSTEM_PROMPT = await esm('lib/system-prompt.js');
 
   // ── the harness ────────────────────────────────────────────────────────────
   const DEVICE = 'wiring-guard-device-01';
   process.env.FOUNDER_SECRET = 'wiring-guard-secret';
   process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
   process.env.BRAVE_API_KEY = 'test-brave-not-real';
+  process.env.RFC_V05_MODE = 'public';
+  delete process.env.RFC_V05_LEGACY_POLICY;
   const FOUNDER = DAY.founderTokenFor(DEVICE);
 
   // A fake Redis that also carries the ledger runtime flag. No network, no real Upstash.
@@ -215,11 +224,13 @@ const offScript = (u) => {
   // Every ledger model call goes through lib/ledger/model.js to api.anthropic.com. The purpose
   // is recognised by the prompt marker each builder emits, exactly as ledger-fixtures-guard does.
   const modelCalls = [];
+  const modelBodies = [];
   let braveCalls = 0;
   const pageFetches = [];
 
   function modelReply(body, script) {
     const user = body.messages[0].content;
+    modelBodies.push(body);
     modelCalls.push(user.slice(0, 32));
     const jr = (o) => ({ content: [{ type: 'text', text: JSON.stringify(o) }], usage: { output_tokens: 50 } });
 
@@ -325,7 +336,12 @@ const offScript = (u) => {
     };
   };
 
-  const resetCounters = () => { modelCalls.length = 0; braveCalls = 0; pageFetches.length = 0; };
+  const resetCounters = () => {
+    modelCalls.length = 0;
+    modelBodies.length = 0;
+    braveCalls = 0;
+    pageFetches.length = 0;
+  };
 
   // The handler is imported ONCE; every drive below is the real default export.
   const handler = (await esm('api/ask.js')).default;
@@ -599,7 +615,7 @@ const offScript = (u) => {
   }
 
   // =========================================================================
-  console.log('\n=== P0-4. THE AGE CLAIM IS NOT CALLED TRUSTED ===');
+  console.log('\n=== P0-4. ONE EFFECTIVE READER BAND GOVERNS PROMPT AND POLICY ===');
   {
     const AGE = await esm('lib/policy/age.js');
     ok('there is a resolver that takes BOTH a server band and a client claim',
@@ -616,8 +632,97 @@ const offScript = (u) => {
       eq('...and it does restrict', AGE.resolveAudience({ clientBand: 'young' }).band, 'young');
       eq('no server band + client adult = adult, still a client claim',
         AGE.resolveAudience({ clientBand: 'adult' }).band, 'adult');
-      eq('nothing at all = unknown treated as adult', AGE.resolveAudience({}).band, 'adult');
-      eq('...and the source says unknown', AGE.resolveAudience({}).audienceSource, 'unknown');
+    }
+    const YOUNG_MARK = 'أنت الآن مع صغيرٍ';
+    const ADULT_MARK = 'أنت الآن مع راشدٍ';
+    const cases = [
+      ['empty body', {}, 'young'],
+      ['adult band without a usable age', { band: 'adult' }, 'young'],
+      ['adult age restricted by a young band', { age: 25, band: 'young' }, 'young'],
+      ['matching adult age and band', { age: 25, band: 'adult' }, 'adult'],
+    ];
+    for (const [label, body, expected] of cases) {
+      const reader = READER.readerFromBody(body);
+      eq(label + ': reader-fields owns the effective band', reader.band, expected);
+      eq(label + ': the prompt input derives the same band', READER.bandForAge(reader.age), expected);
+      const prompt = SYSTEM_PROMPT.buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode);
+      ok(label + ': the matching persona is emitted',
+        expected === 'adult'
+          ? prompt.includes(ADULT_MARK) && !prompt.includes(YOUNG_MARK)
+          : prompt.includes(YOUNG_MARK) && !prompt.includes(ADULT_MARK));
+      eq(label + ': policy receives that same effective band',
+        AGE.resolveAudience({ serverBand: null, clientBand: reader.band }).band, expected);
+    }
+
+    // Drive locally-crafted bodies through the real Legacy handler too. The structured tier and
+    // policy records show which band the handler used, while the captured vendor request shows
+    // which persona it actually built. A pure helper test alone would miss a route recomputing
+    // one side from the raw body.
+    process.env.LEDGER_RAG = 'off';
+    installRedis(undefined);
+    FLAG.__resetFlagCacheForTest();
+    for (const [label, body, expected] of cases) {
+      installFetch({ plan: null, annotations: [], sentences: [] });
+      resetCounters();
+      const events = [];
+      const realLog = console.log;
+      console.log = (...args) => { events.push(args); };
+      try {
+        const res = makeRes();
+        await handler(makeReq('ما حكم المسألة؟', undefined, {
+          body: { name: 'خالد', gender: 'male', mode: 'chat', ...body },
+        }), res);
+      } finally {
+        console.log = realLog;
+      }
+      const tier = events.find((args) => args[0] === '[tier]');
+      const policy = events.find((args) => args[0] === '[policy]');
+      eq(label + ': Legacy handler tier uses the effective band', tier && tier[1] && tier[1].band, expected);
+      eq(label + ': Legacy handler policy uses the effective band',
+        policy && policy[1] && policy[1].audienceBand, expected);
+      const sent = modelBodies.find((b) => b && b.system);
+      const sentSystem = sent
+        ? (Array.isArray(sent.system) ? sent.system.map((block) => block && block.text || '').join('') : String(sent.system))
+        : '';
+      ok(label + ': Legacy handler sends the matching persona',
+        expected === 'adult'
+          ? sentSystem.includes(ADULT_MARK) && !sentSystem.includes(YOUNG_MARK)
+          : sentSystem.includes(YOUNG_MARK) && !sentSystem.includes(ADULT_MARK),
+        sent ? 'captured a mismatched system prompt' : 'no vendor request was captured');
+    }
+
+    // Ledger reads the same body-derived band even though it owns its own model prompts. Drive
+    // the real handler with all three restricting bodies and require the path record to carry
+    // young; this catches a seam that falls back to the raw `body.band`. The consistent adult
+    // case is already driven through Legacy above and does not need to open Ledger's adult-only
+    // source adapters merely to repeat the same identity assertion.
+    process.env.LEDGER_RAG = 'on';
+    process.env.DAILY_SEARCH_BUDGET = '100';
+    for (const [label, body, expected] of cases.filter((entry) => entry[2] === 'young')) {
+      installRedis('on');
+      FLAG.__resetFlagCacheForTest();
+      installFetch({
+        plan: { issues: [], missing_qualifiers: [], confidence: 'high' },
+        annotations: [], sentences: [],
+      });
+      resetCounters();
+      const events = [];
+      const realLog = console.log;
+      console.log = (...args) => { events.push(args); };
+      try {
+        const res = makeRes();
+        await handler(makeReq('ما جرعة الباراسيتامول؟', undefined, {
+          body: { name: 'خالد', gender: 'male', mode: 'chat', ...body },
+        }), res);
+      } finally {
+        console.log = realLog;
+      }
+      const tier = events.find((args) => args[0] === '[tier]');
+      const policy = events.find((args) => args[0] === '[policy]');
+      eq(label + ': Ledger handler tier uses the effective band', tier && tier[1] && tier[1].band, expected);
+      ok(label + ': the crafted body reached Ledger with that policy band',
+        policy && policy[1] && policy[1].path === 'ledger' && policy[1].audienceBand === expected,
+        policy && policy[1] ? JSON.stringify(policy[1]) : 'no policy record');
     }
     const src = read('api/ask.js');
     ok('the handler no longer calls a request body an account profile',
@@ -763,8 +868,9 @@ const offScript = (u) => {
       ok('...and the registry knows the same owner id',
         SPOL.POLICY_ROWS.some((r) => r.ownerId === owner), owner);
     }
-    ok('adding an entity did NOT activate a source',
-      SPOL.searchableDomains().length === 22, String(SPOL.searchableDomains().length));
+    eq('adding an entity did NOT change the registry-owned searchable set',
+      SPOL.searchableDomains().slice().sort(),
+      SOURCE_REGISTRY.activeSources().map((source) => source.domain).sort());
   }
 
   globalThis.fetch = realFetch;
@@ -783,8 +889,12 @@ const offScript = (u) => {
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
-  process.exit(failures === 0 ? 0 : 1);
-})().catch((e) => {
+  return failures === 0 ? 0 : 1;
+}
+
+withRestoredProcessEnv(ENV_KEYS, main).then((code) => {
+  process.exitCode = code;
+}).catch((e) => {
   console.error('rfc-v05r2-wiring-guard CRASHED:', (e && e.stack) || e);
-  process.exit(1);
+  process.exitCode = 1;
 });

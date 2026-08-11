@@ -21,6 +21,11 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const parser = require('@babel/parser');
+const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
+
+const ENV_KEYS = ['FOUNDER_SECRET', 'LEDGER_RAG', 'RFC_V05_LEGACY_POLICY',
+  'RFC_V05_MODE', 'ANTHROPIC_API_KEY'];
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
@@ -37,6 +42,28 @@ function eq(name, actual, expected) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+
+function ledgerBranchBody(src) {
+  const ast = parser.parse(src, { sourceType: 'module' });
+  const stack = [ast.program];
+  while (stack.length) {
+    const node = stack.pop();
+    if (!node || typeof node !== 'object') continue;
+    if (node.type === 'IfStatement'
+      && src.slice(node.test.start, node.test.end).replace(/\s+/g, ' ').trim()
+        === "ledgerPath.path === 'ledger'") {
+      return src.slice(node.consequent.start, node.consequent.end);
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) {
+        for (let i = value.length - 1; i >= 0; i--) stack.push(value[i]);
+      } else if (value && typeof value === 'object' && typeof value.type === 'string') {
+        stack.push(value);
+      }
+    }
+  }
+  return null;
+}
 
 const DEVICE = 'abcdefgh12345678';
 
@@ -61,7 +88,7 @@ const GOOD_DRAFT = [
   'وأنّ عامّة أهل العلم على وجوب القضاء، كما هو مبيَّن في المصدر المذكور.',
 ].join(' ');
 
-(async function main() {
+async function main() {
   console.log('=== rfc-v05r2-consistency-guard — credited and disclaimed cannot both be true ===');
 
   const CG = await esm('lib/policy/consistency-gate.js');
@@ -77,17 +104,29 @@ const GOOD_DRAFT = [
     const ledgerDir = fs.readdirSync(path.join(REPO, 'lib', 'ledger'));
     ok('...and in no ledger module at all',
       ledgerDir.every((f) => !/unattributedNote|لم أقف على/.test(read('lib/ledger/' + f))));
-    // WINDOWED TO THE BRANCH, NOT TO A BYTE COUNT. A fixed 2600-character slice made this pin a
-    // hostage to how much PROSE the branch carries: documenting why a child's fourth domain must
-    // be passed pushed the `return;` out of the window and turned a green invariant red without
-    // anything about the invariant changing. The window now ends where the branch does.
-    const branchAt = askSrc.indexOf("if (ledgerPath.path === 'ledger') {");
-    const branchEnd = askSrc.indexOf('\n    }\n', branchAt);
-    // +6 so the slice includes the branch's own closing line: the `return;` sits on the last line
-    // before it, and cutting exactly at the brace leaves the match without its trailing newline.
-    const tail = askSrc.slice(branchAt, branchEnd > branchAt ? branchEnd + 6 : branchAt + 4000);
+    // BOUNDED BY THE IF NODE, NOT BY AN INDENTATION GUESS OR A BYTE WINDOW. A nested block may
+    // close thousands of characters before this branch does, so Babel's brace-balanced range is
+    // the stable unit the assertion is about.
+    const tail = ledgerBranchBody(askSrc);
     ok('the ledger branch returns unconditionally — there is no fallback to legacy',
-      /\n      return;\n/.test(tail) && !/catch[\s\S]{0,400}legacy/i.test(tail));
+      typeof tail === 'string' && /\n      return;\n/.test(tail)
+      && !/catch[\s\S]{0,400}legacy/i.test(tail));
+
+    const longFixture = `async function fixture() {
+      if (ledgerPath.path === 'ledger') {
+        if (nested) {
+          nestedWork();
+        }
+        /* ${'padding '.repeat(650)} */
+        return;
+      }
+      legacyFallback();
+    }`;
+    const longTail = ledgerBranchBody(longFixture);
+    ok('a ledger branch longer than 4000 characters is still decided by its own braces',
+      typeof longTail === 'string' && longTail.length > 4000
+      && /return;/.test(longTail) && !/legacyFallback/.test(longTail),
+      longTail === null ? 'branch not found' : 'length=' + longTail.length);
   }
 
   // =========================================================================
@@ -495,5 +534,9 @@ const GOOD_DRAFT = [
   }
 
   console.log('\n' + (failures ? 'FAIL ' : 'PASS ') + (checks - failures) + '/' + checks);
-  process.exit(failures ? 1 : 0);
-})().catch((e) => { console.error(e); process.exit(1); });
+  return failures ? 1 : 0;
+}
+
+withRestoredProcessEnv(ENV_KEYS, main).then((code) => {
+  process.exitCode = code;
+}).catch((e) => { console.error(e); process.exitCode = 1; });

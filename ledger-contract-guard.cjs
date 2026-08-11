@@ -91,11 +91,15 @@ const templateOf = (p) => {
   eq('no conformance problems', SP.conformanceProblems(), []);
   {
     const registryActive = R.activeSources().map((s) => s.domain).sort();
-    eq('the searchable set IS the registry\'s active set', SP.searchableDomains().slice().sort(), registryActive);
-    // 24 until 2026-08-05; 22 since dorar.net, tafsir.app and ferkous.com were DEFERRED and
-    // ferkous.app admitted in their place (net -2). The number is pinned DELIBERATELY so that a
-    // domain appearing or vanishing is a failing gate rather than a quiet drift.
-    ok('...and that is 22 domains', registryActive.length === 22, String(registryActive.length));
+    const policyActive = SP.searchableDomains().slice().sort();
+    eq('the searchable set IS the registry\'s active set', policyActive, registryActive);
+    const sameSet = (a, b) => a.length === b.length && a.every((value) => b.includes(value));
+    ok('counter-mutation: adding a domain on the policy side only is rejected',
+      !sameSet([...policyActive, 'one-sided.example'], registryActive));
+    ok('counter-mutation: deleting a domain on the registry side only is rejected',
+      !sameSet(policyActive, registryActive.slice(1)));
+    ok('a coordinated canonical-set change needs no second numeric pin',
+      sameSet([...policyActive, 'coordinated.example'], [...registryActive, 'coordinated.example']));
   }
   // The one adapter-only host: declared, and deliberately unsearchable.
   {

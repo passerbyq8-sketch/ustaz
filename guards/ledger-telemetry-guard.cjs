@@ -28,7 +28,7 @@
 // serverless invocation may be frozen at response completion, so it was written and never shipped.
 // The first live probe on the opened engine returned a refusal with no counts line anywhere in the
 // log, which is a missing instrument reading exactly like a healthy one. Section G proves the two
-// FAILING exits kept their line through the move, and section I proves it did not stay behind in
+// FAILING exits kept their line through the move, and section J proves it did not stay behind in
 // the handler.
 //
 // Offline and deterministic. No network, no model, no key, no live Redis.
@@ -37,6 +37,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const babelParser = require('@babel/parser');
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
@@ -53,6 +54,64 @@ function eq(name, actual, expected) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+
+function sectionIds(source) {
+  return Array.from(source.matchAll(/console\.log\(\s*['"]\\n===\s+([A-Z][A-Z0-9]*)\./g), (match) => match[1]);
+}
+
+function duplicateSectionIds(ids) {
+  return Array.from(new Set(ids.filter((id, index) => ids.indexOf(id) !== index))).sort();
+}
+
+function telemetryExitProblems(source, functionName) {
+  const ast = babelParser.parse(source, { sourceType: 'module' });
+  const fn = ast.program.body.find((node) =>
+    node.type === 'ExportNamedDeclaration'
+      && node.declaration?.type === 'FunctionDeclaration'
+      && node.declaration.id?.name === functionName)?.declaration
+    || ast.program.body.find((node) =>
+      node.type === 'FunctionDeclaration' && node.id?.name === functionName);
+  if (!fn) return ['missing-function:' + functionName];
+  const problems = [];
+  let closes = 0;
+  const directCall = (statement, object, property) => {
+    const call = statement?.type === 'ExpressionStatement' && statement.expression?.type === 'CallExpression'
+      ? statement.expression : null;
+    if (!call) return false;
+    if (object === null) return call.callee?.type === 'Identifier' && call.callee.name === property;
+    return call.callee?.type === 'MemberExpression'
+      && call.callee.object?.type === 'Identifier' && call.callee.object.name === object
+      && call.callee.property?.type === 'Identifier' && call.callee.property.name === property;
+  };
+  const awaitedTelemetry = (statement) => statement?.type === 'VariableDeclaration'
+    && statement.declarations.some((declaration) =>
+      declaration.init?.type === 'AwaitExpression'
+        && declaration.init.argument?.type === 'CallExpression'
+        && declaration.init.argument.callee?.type === 'Identifier'
+        && declaration.init.argument.callee.name === 'emitTelemetry');
+  const inspectBlock = (block) => {
+    const statements = block.body || [];
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
+      if (directCall(statement, 'wire', 'close')) {
+        closes++;
+        const line = statement.loc?.start?.line || '?';
+        if (!directCall(statements[i - 1], null, 'logCounts')) problems.push('line-' + line + ':missing-log-before-close');
+        if (!awaitedTelemetry(statements[i + 1])) problems.push('line-' + line + ':missing-telemetry-after-close');
+        const returned = statements.slice(i + 2).find((candidate) => candidate.type === 'ReturnStatement');
+        const returnedSource = returned ? source.slice(returned.start, returned.end) : '';
+        if (!/telemetryWritten\s*:?/.test(returnedSource)) problems.push('line-' + line + ':missing-return-metadata');
+      }
+      for (const value of Object.values(statement)) {
+        if (value?.type === 'BlockStatement') inspectBlock(value);
+        else if (Array.isArray(value)) value.filter((item) => item?.type === 'BlockStatement').forEach(inspectBlock);
+      }
+    }
+  };
+  inspectBlock(fn.body);
+  if (closes === 0) problems.push('no-reader-close-sites');
+  return problems;
+}
 
 // The planner's example, taken by brace depth rather than by the prose around it — the same
 // method ledger-contract-guard.cjs uses, for the same reason.
@@ -83,6 +142,12 @@ function recordingRedis() {
 
 (async function main() {
   console.log('=== ledger-telemetry-guard — the metrics record, and the engine that feeds it ===');
+
+  const ownSections = sectionIds(read('guards/ledger-telemetry-guard.cjs'));
+  eq('section identifiers are unique and unambiguous', duplicateSectionIds(ownSections), []);
+  eq('counter-mutation: a repeated section identifier is rejected',
+    duplicateSectionIds(sectionIds("console.log('\\n=== I. FIRST ==='); console.log('\\n=== I. SECOND ===');")),
+    ['I']);
 
   const T = await esm('lib/ledger/telemetry.js');
   const STORE = await esm('lib/ledger/redis.js');
@@ -707,7 +772,7 @@ function recordingRedis() {
   }
 
   // =========================================================================
-  console.log('\n=== I. WIRING ===');
+  console.log('\n=== J. WIRING ===');
   {
     ok('gates.json lists this guard', /ledger-telemetry-guard\.cjs/.test(read('gates.json')));
     ok('the engine imports telemetry', /from '\.\/telemetry\.js'/.test(read('lib/ledger/engine.js')));
@@ -741,11 +806,32 @@ function recordingRedis() {
     ok('...and the handler no longer reaches into the return value for a budget snapshot either',
       !/out\.budget\.snapshot\(\)/.test(read('api/ask.js')));
     ok('...it is the seam that prints it now', /console\.log\(\s*'\[ledger\]'/.test(read('lib/ledger/seam.js')));
-    // ONE STATEMENT, THREE CALL SITES. Two copies of this line drifting apart is how the failing
-    // exits end up reporting a different shape from the successful one.
-    ok('...from exactly one console.log, through one helper called at each exit',
-      (read('lib/ledger/seam.js').match(/console\.log\(\s*'\[ledger\]'/g) || []).length === 1
-      && (read('lib/ledger/seam.js').match(/\blogCounts\(/g) || []).length === 4);
+    const seamSource = read('lib/ledger/seam.js');
+    eq('...with every reader close carrying the same log/telemetry/return contract',
+      telemetryExitProblems(seamSource, 'runLedgerTurn'), []);
+    const compliantFixture = `
+      export async function runLedgerTurn(flag) {
+        if (flag) {
+          logCounts('SAFE_REJECTION', null, budget);
+          wire.close();
+          const wrote = await emitTelemetry(record);
+          return { telemetryWritten: wrote };
+        }
+        logCounts(outcome, ledger, budget);
+        wire.close();
+        const wrote = await emitTelemetry(record);
+        return { telemetryWritten: wrote };
+      }`;
+    eq('adding a compliant exit does not require updating a call-site count',
+      telemetryExitProblems(compliantFixture, 'runLedgerTurn'), []);
+    const unwrappedFixture = `
+      export async function runLedgerTurn() {
+        wire.close();
+        return {};
+      }`;
+    ok('counter-mutation: an unwrapped exit is rejected',
+      telemetryExitProblems(unwrappedFixture, 'runLedgerTurn').length === 3,
+      JSON.stringify(telemetryExitProblems(unwrappedFixture, 'runLedgerTurn')));
   }
 
   console.log('\n' + (failures === 0

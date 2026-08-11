@@ -36,6 +36,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
+
+const ENV_KEYS = ['LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE',
+  'DAILY_SEARCH_BUDGET', 'FOUNDER_SECRET'];
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
@@ -63,7 +67,7 @@ function fakeRedis() {
   };
 }
 
-(async function main() {
+async function main() {
   console.log('=== rfc-v05r2-mode-guard — off / internal / public ===');
 
   const FL = await esm('lib/ledger/flag.js');
@@ -389,5 +393,9 @@ function fakeRedis() {
   restore();
   STORE.__resetRedis();
   console.log('\n' + (failures ? 'FAIL ' : 'PASS ') + (checks - failures) + '/' + checks);
-  process.exit(failures ? 1 : 0);
-})().catch((e) => { console.error(e); process.exit(1); });
+  return failures ? 1 : 0;
+}
+
+withRestoredProcessEnv(ENV_KEYS, main).then((code) => {
+  process.exitCode = code;
+}).catch((e) => { console.error(e); process.exitCode = 1; });

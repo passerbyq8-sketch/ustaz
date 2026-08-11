@@ -699,7 +699,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         if (u.startsWith(sourceUrl)) { const paddedEvidence = evidence + ' ' + ('\u0647\u0630\u0627 \u0646\u0635 \u0645\u062d\u0644\u064a \u0645\u0648\u062b\u0642 \u0644\u0627\u062e\u062a\u0628\u0627\u0631 \u0645\u0633\u0627\u0631 \u0627\u0644\u062f\u0644\u064a\u0644 \u062f\u0648\u0646 \u0623\u064a \u0637\u0644\u0628 \u0634\u0628\u0643\u0629. ').repeat(8); const h = '<html><head><title>A1 evidence</title></head><body><article><p>' + paddedEvidence + '</p></article></body></html>'; return { ok: true, status: 200, url: sourceUrl, headers: { get: (n) => String(n).toLowerCase() === 'content-type' ? 'text/html; charset=utf-8' : null }, text: async () => h, arrayBuffer: async () => Buffer.from(h) }; }
         throw new Error('unexpected offline URL: ' + u);
       };
-      const req = new EventEmitter(); req.method = 'POST'; req.signal = requestAbort.signal; req.headers = { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' }; req.body = { band: 'adult', messages: [{ role: 'user', content: question }] };
+      const req = new EventEmitter(); req.method = 'POST'; req.signal = requestAbort.signal; req.headers = { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' }; req.body = { age: 25, band: 'adult', messages: [{ role: 'user', content: question }] };
       const res = new Response();
       activeResponse = res;
       const finalizerProblems = [];
@@ -741,7 +741,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
             .map((line) => line.slice(5).trimStart()).join('');
           try { return JSON.parse(data); } catch { return null; }
         });
-        return events.every(Boolean) && validClientSequence(events)
+        return res.textWritesBeforeFinalizer === 0 && res.endsBeforeFinalizer === 0
+          && events.every(Boolean) && validClientSequence(events)
           && events.filter((event) => event.type === 'message_stop').length === 1
           && events.at(-1).type === 'message_stop';
       };

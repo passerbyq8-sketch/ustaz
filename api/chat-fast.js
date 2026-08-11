@@ -44,7 +44,7 @@ import { lastUserText } from '../lib/attribution.js';
 // the two it builds is decided by max_tokens -- the SAME discriminator this file already uses
 // for isClassifierTurn below, so no new field was invented to carry the distinction.
 import { CLASSIFIER_SYSTEM_PROMPT, buildFastGenPrompt } from '../lib/system-prompt.js';
-import { readerFromBody, narrowestBand, dropClientSystem } from '../lib/reader-fields.js';
+import { readerFromBody, dropClientSystem } from '../lib/reader-fields.js';
 import { guardEmptyAnswer } from '../lib/empty-answer.js';
 
 // THE CLASSIFIER TURN, IDENTIFIED. This relay carries TWO different things: the route classifier
@@ -172,8 +172,9 @@ export default async function handler(req, res) {
     //    the band-DEPENDENT floor below never fired for anyone. The client now sends `band` to
     //    all three routes, and `age` with it, so the floor has something real to govern by.
     //
-    //    Two claims, one reader, and the NARROWER wins — same rule as the two siblings.
-    voiceBand = narrowestBand(parsed.band, reader.age);
+    //    Two claims, one reader, and the NARROWER wins — same reader-fields result as the two
+    //    siblings, shared by both the prompt input and this policy branch.
+    voiceBand = reader.band;
     if (parsed.band !== undefined) delete parsed.band;
 
     outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.

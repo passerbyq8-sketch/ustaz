@@ -311,9 +311,11 @@ const user = (t) => [{ role: 'user', content: t }];
       P.matrix('this_topic_does_not_exist', 'young').outcome !== 'ALLOW');
     // Drift guard: neither path may hold a private copy of the matrix.
     const legacy = read('api/ask.js');
-    ok('the legacy path imports the shared core', /lib\/policy\/core\.js|from '\.\.\/lib\/policy\//.test(legacy));
-    ok('the ledger path imports the same core',
-      /lib\/policy\/|from '\.\.\/policy\//.test(read('lib/ledger/engine.js') + read('lib/ledger/seam.js')));
+    const ledger = read('lib/ledger/engine.js');
+    ok('the legacy path imports the shared core',
+      /^\s*import\s+[^;]+\s+from\s+['"]\.\.\/lib\/policy\/core\.js['"]\s*;/m.test(legacy));
+    ok('the ledger engine independently imports the same core',
+      /^\s*import\s+[^;]+\s+from\s+['"]\.\.\/policy\/core\.js['"]\s*;/m.test(ledger));
     ok('no second policy version is declared anywhere',
       P.POLICY_VERSION === V.POLICY_VERSION);
     ok('the drift check is executable, not a comment',
