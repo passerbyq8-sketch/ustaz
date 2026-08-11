@@ -2654,7 +2654,7 @@ export default async function handler(req, res) {
         for (const p of pages) {
           let t = null;
           try {
-            t = await considerTransferPair(questionText, { url: p.url, published: p.published }, { judge });
+            t = await considerTransferPair(questionText, { url: p.url, published: p.published }, { judge, band });
           } catch (e) {
             console.warn('[transfer] threw — generating instead:', e && e.message);
             break;
@@ -2669,7 +2669,11 @@ export default async function handler(req, res) {
           // citations to pages it did not come from.
           const own = canonicalSources.filter((c) => c.url === p.url);
           const tag = own.length ? '\n' + own.map((c) => c.tag).join('\n') : '';
-          return emitOnce(withPresence(t.text) + tag);
+          // The same closed server-owned suffix contract as every other sourced body: applicable
+          // referral/takhrij disclosure follows the safe prose, and the page card stays last.
+          // emitOnce still owns takhrij locking and the central finalized SSE boundary.
+          const transferBody = withPresence(t.text);
+          return emitOnce(transferBody + referralBlockFor(transferBody) + tag);
         }
       }
     }

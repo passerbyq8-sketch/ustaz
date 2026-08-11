@@ -23,7 +23,7 @@ const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
 function ok(name, cond, detail) {
   checks++;
-  if (cond) { console.log('  PASS  ' + name); return true; }
+  if (cond === true) { console.log('  PASS  ' + name); return true; }
   failures++;
   console.log('  FAIL  ' + name + (detail ? '\n        ' + detail : ''));
   return false;
@@ -37,9 +37,11 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 const HAMDALA = 'الحمد لله والصلاة والسلام على رسول الله وعلى آله وصحبه، أما بعد:';
 const BODY = 'العقيقة سنة مؤكدة عن المولود، وهي شاة عن الأنثى وشاتان عن الذكر، تُذبح في اليوم السابع. ';
 const labelPage = (q, a) => '<html><body><article>'
-  + '<p>السؤال: ' + q + '</p>'
-  + '<p>الإجابــة: ' + a + '</p>'      // tatweel ON PURPOSE: islamweb prints it this way
-  + '</article></body></html>';
+  + '<div class="mainitem quest-fatwa"><h3>السؤال</h3><div><p>' + q + '</p></div></div>'
+  + '<div class="mainitem quest-fatwa" itemprop="acceptedAnswer">'
+  + '<h3>الإجابــة</h3><div itemprop="text"><p>' + a + '</p></div></div>'
+  + '</article></body></html>';       // the bounded shape islamweb actually publishes
+const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
 
 (async function main() {
   console.log('=== transfer-mode-guard — the published answer moves, or nothing does ===');
@@ -53,6 +55,34 @@ const labelPage = (q, a) => '<html><body><article>'
     const X = await esm('lib/transfer/extract.js');
     const T = await esm('lib/transfer/trim.js');
     const I = await esm('lib/transfer/index.js');
+
+    // =========================================================================
+    console.log('\n=== A0. A3 MUTATION: AN ASSERTION PASSES ONLY ON BOOLEAN TRUE ===');
+    {
+      const cases = [
+        { value: true, expected: true },
+        { value: false, expected: false },
+        { value: { pass: false }, expected: false },
+        { value: 'false', expected: false },
+        { value: 1, expected: false },
+        { value: new Boolean(true), expected: false }, // eslint-disable-line no-new-wrappers
+      ];
+      const mutationReds = (predicate) => cases
+        .filter((test) => predicate(test.value) !== test.expected).length;
+      const truthyMutant = (value) => !!value;
+      const strictCandidate = (value) => value === true;
+      const mutantRedCount = mutationReds(truthyMutant);
+      const productRedCount = mutationReds(strictCandidate);
+      console.log('        MUTANT_RESULT=' + (mutantRedCount ? 'RED' : 'GREEN')
+        + ' mismatches=' + mutantRedCount);
+      console.log('        STRICT_RESULT=' + (productRedCount ? 'RED' : 'GREEN')
+        + ' mismatches=' + productRedCount);
+      ok('the actual truthy mutant records RED on non-Boolean assertion results', mutantRedCount > 0,
+        String(mutantRedCount));
+      eq('the strict Boolean predicate records GREEN', productRedCount, 0);
+      ok('the guard product uses strict Boolean true in ok(), not truthiness',
+        /function ok\(name, cond, detail\) \{[\s\S]{0,100}if \(cond === true\)/.test(read('guards/transfer-mode-guard.cjs')));
+    }
 
     // =========================================================================
     console.log('\n=== A. THE NAMED CONSTANTS ARE WHAT THE DECISION SAYS ===');
@@ -125,7 +155,7 @@ const labelPage = (q, a) => '<html><body><article>'
       const Q = 'ما حكم العقيقة عن المولود';
       const r = await I.considerTransfer(Q, {
         url: 'https://islamweb.net/ar/fatwa/1001/x', html: labelPage(Q, HAMDALA + ' ' + BODY.repeat(3)),
-      });
+      }, { band: 'adult' });
       ok('a verbatim question transfers', r.transfer === true, r.reason);
       ok('...at or above TRANSFER_MATCH', r.score >= M.TRANSFER_MATCH, String(r.score));
       ok('...carrying the PUBLISHED text', /العقيقة سنة مؤكدة/.test(r.text || ''));
@@ -143,7 +173,7 @@ const labelPage = (q, a) => '<html><body><article>'
       const PAGE = 'ما حكم قصر الصلاة للمقيم في السفر الطويل عند أهل العلم';
       const r = await I.considerTransfer(READER, {
         url: 'https://islamweb.net/ar/fatwa/1002/x', html: labelPage(PAGE, BODY.repeat(3)),
-      }, { judge: async () => 'لا' });   // even a PERMISSIVE judge must not rescue it
+      }, { judge: async () => 'لا', band: 'adult' });   // even a PERMISSIVE judge must not rescue it
       ok('the مسافر/مقيم pair does NOT transfer', r.transfer === false, r.reason);
       ok('...and the reason names the flip', /flip-token/.test(r.reason), r.reason);
       ok('...having scored high enough that similarity alone would have allowed it',
@@ -170,36 +200,94 @@ const labelPage = (q, a) => '<html><body><article>'
         cmp.score >= M.TRANSFER_MATCH, String(cmp.score));
       ok('...and the flip veto downgrades it anyway', cmp.verdict !== 'transfer', JSON.stringify(cmp.verdict));
       ok('...naming the qualifier that did it', cmp.flips.includes('للمسافر'), JSON.stringify(cmp.flips));
+
+      // A3 / F-085: the same named qualifier is a deterministic veto in BOTH directions. A judge
+      // asked only whether the reader added a constraint cannot safely clear a page-only one.
+      const f = A3_CASES.stage2;
+      const published = (question) => ({
+        url: 'https://islamweb.net/ar/fatwa/a3-travel',
+        published: { question, answer: f.answer.repeat(2), domain: 'islamweb.net' },
+      });
+      let qualifierJudgeCalls = 0;
+      const permissiveJudge = async () => { qualifierJudgeCalls++; return 'لا'; };
+      const readerOnly = await I.considerTransferPair(f.baseQuestion + ' ' + f.qualifier,
+        published(f.baseQuestion), { judge: permissiveJudge, band: 'adult' });
+      ok('«للمسافر» in the reader only refuses transfer', readerOnly.transfer === false,
+        readerOnly.reason);
+      const pageOnly = await I.considerTransferPair(f.baseQuestion,
+        published(f.baseQuestion + ' ' + f.qualifier), { judge: permissiveJudge, band: 'adult' });
+      ok('«للمسافر» on the page only refuses transfer', pageOnly.transfer === false,
+        pageOnly.reason);
+      const both = await I.considerTransferPair(f.baseQuestion + ' ' + f.qualifier,
+        published(f.baseQuestion + ' ' + f.qualifier), { judge: permissiveJudge, band: 'adult' });
+      ok('matching «للمسافر» permits the transfer path', both.transfer === true, both.reason);
+      eq('known symmetric qualifiers cost no judge/model call', qualifierJudgeCalls,
+        f.expected.judgeCallsForKnownQualifier);
+      ok('the remaining judge question is itself symmetric',
+        M.JUDGE_QUESTION.includes('أحد السؤالين') && !M.JUDGE_QUESTION.includes('الأوّلِ'),
+        M.JUDGE_QUESTION);
     }
 
     // =========================================================================
     console.log('\n=== E. THE JUDGE IS DECISIVE, AND EVERY DOUBT REFUSES ===');
     {
-      const A = 'ما حكم العقيقة عن المولود الذكر في اليوم السابع من ولادته';
       const B = 'ما حكم العقيقة عن المولود في اليوم السابع من ولادته';
+      const A = B + ' في البيت';
       const page = { url: 'https://islamweb.net/ar/fatwa/1003/x', html: labelPage(B, BODY.repeat(3)) };
       const cmp = M.compareQuestions(A, B);
       ok('the pair really is inside the judge band',
         cmp.score >= M.JUDGE_BAND[0] && cmp.score < M.JUDGE_BAND[1], String(cmp.score));
 
-      const yes = await I.considerTransfer(A, page, { judge: async () => 'نعم' });
+      const yes = await I.considerTransfer(A, page, { judge: async () => 'نعم', band: 'adult' });
       ok('«نعم» refuses', yes.transfer === false && yes.reason === 'judge-refused');
-      const no = await I.considerTransfer(A, page, { judge: async () => 'لا' });
+      const no = await I.considerTransfer(A, page, { judge: async () => 'لا', band: 'adult' });
       ok('«لا» allows', no.transfer === true && no.reason === 'judge-allowed');
       // AMBIGUITY IS A REFUSAL. None of these is an unambiguous «لا».
-      for (const reply of ['لا، لأن الأول مقيد بالذكر', 'ربما', 'no', '', 'نعم في الجملة']) {
-        const r = await I.considerTransfer(A, page, { judge: async () => reply });
+      for (const reply of ['لا، لأن أحدهما مقيد بالمكان', 'ربما', 'no', '', 'نعم في الجملة']) {
+        const r = await I.considerTransfer(A, page, { judge: async () => reply, band: 'adult' });
         ok('an ambiguous reply refuses: ' + JSON.stringify(reply), r.transfer === false, r.reason);
       }
       // A JUDGE THAT THREW HAS NOT SAID NO.
-      const threw = await I.considerTransfer(A, page, { judge: async () => { throw new Error('upstream 500'); } });
+      const threw = await I.considerTransfer(A, page,
+        { judge: async () => { throw new Error('upstream 500'); }, band: 'adult' });
       ok('a judge that threw refuses', threw.transfer === false && threw.reason === 'judge-unavailable');
       // NO JUDGE AT ALL — a caller without one has not established anything.
-      const none = await I.considerTransfer(A, page);
+      const none = await I.considerTransfer(A, page, { band: 'adult' });
       ok('no judge means no transfer', none.transfer === false && none.reason === 'judge-band-with-no-judge');
       // ...and the judge asks the SPECIFIC question, not «are these the same?»
       ok('the judge is asked about a fiqh qualifier, not about similarity',
         M.JUDGE_QUESTION.includes('قيدٌ فقهيٌّ'), M.JUDGE_QUESTION);
+    }
+
+    // =========================================================================
+    console.log('\n=== E2. A3: TRANSFER ELIGIBILITY FOLLOWS THE ACTUAL AUDIENCE ===');
+    {
+      const f = A3_CASES.stage3;
+      const pair = (x) => ({
+        url: x.url,
+        published: { question: x.question, answer: x.answer, domain: new URL(x.url).hostname.replace(/^www\./, '') },
+      });
+      const adult = await I.considerTransferPair(f.samePage.question, pair(f.samePage), { band: 'adult' });
+      ok('the frozen page remains eligible for an adult', adult.transfer === true, adult.reason);
+      // These are the real values emitted by deriveCaps(), not a synthetic "minor" alias. Testing
+      // both kills the asymmetric mutant that rejects only an invented alias while allowing a real
+      // child or teen band through to verbatim transfer.
+      for (const minorBand of ['young', 'teen']) {
+        const minor = await I.considerTransferPair(f.samePage.question,
+          pair(f.samePage), { band: minorBand });
+        ok('the same page is not automatically eligible for a ' + minorBand + ' reader',
+          minor.transfer === false, minor.reason);
+        const alukahMinor = await I.considerTransferPair(f.alukahMinor.question,
+          pair(f.alukahMinor), { band: minorBand });
+        ok('alukah /fatawa_counsels/ is not transferable to a ' + minorBand
+          + ' reader merely because its path is a fatwa',
+        alukahMinor.transfer === false, alukahMinor.reason);
+      }
+      const R = await esm('lib/retrieve.js');
+      ok('alukah remains available to minor retrieval; only verbatim transfer is refused',
+        R.SITES_MINOR.includes('alukah.net'));
+      ok('api/ask passes the narrowed real band into the transfer decision',
+        /considerTransferPair\(questionText,[\s\S]{0,180}\{ judge, band \}\)/.test(read('api/ask.js')));
     }
 
     // =========================================================================
@@ -220,7 +308,7 @@ const labelPage = (q, a) => '<html><body><article>'
     }
 
     // =========================================================================
-    console.log('\n=== G. FIXTURE: A QUOTATION AT THE TRIM BOUNDARY ENTERS WHOLE ===');
+    console.log('\n=== G. A3: LENGTH IS HARD AND STRUCTURE STAYS COHERENT ===');
     {
       // An āyah cut in half is a misquotation. A hadith cut in half can invert its meaning.
       //
@@ -239,25 +327,49 @@ const labelPage = (q, a) => '<html><body><article>'
       const head = 'قال تعالى: ' + AYAH.slice(0, at);
       const tail = AYAH.slice(at + 1) + ' وهذا يدل على وجوب الصلاة.';
       const spanning = [head, tail, 'وسط. '.repeat(80), 'والله أعلم.'].join('\n\n');
-      const t = T.trimToLength(spanning, 150);
-      ok('an answer whose quotation spans the cut is carried WHOLE',
-        t.truncated === false, JSON.stringify(t).slice(0, 200));
-      // Derived from the fixture, never typed: the mushaf writes «ٱلرَّٰكِعِينَ», and a
-      // hand-typed «الرَّاكِعِينَ» is a different string — the same trap as the fixture itself.
-      ok('...so both halves of the āyah survive intact',
-        t.text.includes(head) && t.text.includes(tail));
+      const t = T.trimToLength(spanning, 120);
+      ok('a quotation that cannot fit whole is rejected instead of exceeding maxChars',
+        t.rejected === true && t.text === '', JSON.stringify(t).slice(0, 200));
 
-      // ...while an answer with no quotation at the boundary IS trimmed.
-      const plain = ['الفقرة الأولى فيها الجواب.', 'وسط طويل. '.repeat(60), 'وبهذا يتبين الحكم.'].join('\n\n');
-      const p = T.trimToLength(plain, 300);
-      ok('an ordinary long answer IS trimmed', p.truncated === true);
-      ok('...keeping the first and the last paragraph', p.keptParagraphs === 2 && p.totalParagraphs === 3);
-      ok('...with the elision mark between them', p.text.includes(T.ELISION_MARK));
-      // ...and the reader is TOLD.
-      const prep = T.prepareTransfer(plain, { maxChars: 300 });
-      ok('a trimmed transfer is tailed with «التتمة في المصدر»', prep.text.endsWith(T.TRUNCATION_TAIL));
-      const short = T.prepareTransfer('جواب قصير جدا لا يحتاج قصا.', { maxChars: 300 });
-      ok('...and an untrimmed one is not', !short.text.includes(T.TRUNCATION_TAIL));
+      const f = A3_CASES.stage4;
+      const limit = f.maxChars;
+      const atLimit = T.prepareTransfer(f.boundaryChar.repeat(limit), { maxChars: limit });
+      const overLimit = T.prepareTransfer(f.boundaryChar.repeat(limit + 1), { maxChars: limit });
+      const one = T.prepareTransfer(f.oneShort, { maxChars: limit });
+      const two = T.prepareTransfer(f.twoParagraphs.join('\n\n'), { maxChars: limit });
+      const three = T.prepareTransfer(f.threeParagraphs.join('\n\n'), { maxChars: limit });
+
+      eq('one paragraph exactly at maxChars is preserved', atLimit.text.length, limit);
+      ok('one indivisible paragraph over maxChars is rejected',
+        overLimit.rejected === true && overLimit.text === '');
+      ok('an ordinary short one-paragraph answer is unchanged',
+        one.text === f.oneShort && one.truncated === false);
+      ok('two paragraphs trim only at a forward boundary and report the truth',
+        two.truncated === true && two.text.includes(f.twoParagraphs[0])
+          && !two.text.includes(f.twoParagraphs[1]) && two.text.endsWith(T.TRUNCATION_TAIL),
+        JSON.stringify(two));
+      ok('three paragraphs never splice the first to the last across a missing middle',
+        !(three.text.includes(f.threeParagraphs[0]) && !three.text.includes(f.threeParagraphs[1])
+          && three.text.includes(f.threeParagraphs[2])), JSON.stringify(three));
+      ok('the three-paragraph result is a truthful forward truncation',
+        three.truncated === true && three.text.includes(f.threeParagraphs[0])
+          && !three.text.includes(f.threeParagraphs[2]) && three.text.endsWith(T.TRUNCATION_TAIL),
+        JSON.stringify(three));
+      const successful = [atLimit, one, two, three].filter((x) => x && x.text);
+      ok('every successful 1/2/3-paragraph result obeys maxChars',
+        successful.every((x) => x.text.length <= limit),
+        successful.map((x) => x.text.length).join(','));
+
+      const tooLongPair = await I.considerTransferPair('ما حكم المسألة', {
+        url: 'https://islamweb.net/ar/fatwa/a3-too-long',
+        published: {
+          question: 'ما حكم المسألة',
+          answer: f.boundaryChar.repeat(limit + 1),
+          domain: 'islamweb.net',
+        },
+      }, { band: 'adult', maxChars: limit });
+      ok('an indivisible answer that cannot fit falls back to generation',
+        tooLongPair.transfer === false, tooLongPair.reason);
     }
 
     // =========================================================================
@@ -268,23 +380,23 @@ const labelPage = (q, a) => '<html><body><article>'
       // A different question entirely.
       const other = await I.considerTransfer('ما حكم صلاة الاستخارة', {
         url: 'https://islamweb.net/ar/fatwa/1004/x', html: labelPage(Q, BODY.repeat(3)),
-      }, { judge: async () => 'لا' });
+      }, { judge: async () => 'لا', band: 'adult' });
       ok('an unrelated question does not transfer', other.transfer === false, other.reason);
       // A page that is not a Q&A page at all.
       const article = await I.considerTransfer(Q, {
         url: 'https://islamweb.net/ar/article/1/x',
         html: '<html><body><article><p>' + BODY.repeat(3) + '</p></article></body></html>',
-      });
+      }, { band: 'adult' });
       ok('a page with no published question does not transfer', article.transfer === false, article.reason);
       // A page whose "answer" is a stub.
       const stub = await I.considerTransfer(Q, {
         url: 'https://islamweb.net/ar/fatwa/1005/x', html: labelPage(Q, 'قريبا.'),
-      });
+      }, { band: 'adult' });
       ok('a page with a stub answer does not transfer', stub.transfer === false, stub.reason);
       // A host with no extractor.
       const off = await I.considerTransfer(Q, {
         url: 'https://example.org/x', html: labelPage(Q, BODY.repeat(3)),
-      });
+      }, { band: 'adult' });
       ok('a host with no extractor does not transfer', off.transfer === false, off.reason);
       // ── alukah, AND THE ASSERTION THAT USED TO PROVE THE WRONG THING ──────
       //
@@ -299,11 +411,11 @@ const labelPage = (q, a) => '<html><body><article>'
       // against the real reason rather than a helpful fixture.
       const alukahArticle = await I.considerTransfer(Q, {
         url: 'https://alukah.net/sharia/0/1234/', html: labelPage(Q, BODY.repeat(3)),
-      });
+      }, { band: 'adult' });
       ok('alukah outside /fatawa_counsels/ does not transfer', alukahArticle.transfer === false, alukahArticle.reason);
       const alukahFatwa = await I.considerTransfer(Q, {
         url: 'https://alukah.net/fatawa_counsels/0/1234/', html: labelPage(Q, BODY.repeat(3)),
-      });
+      }, { band: 'adult' });
       ok('...and inside it does not transfer EITHER, because the host declares it cannot be read',
         alukahFatwa.transfer === false, alukahFatwa.reason);
       ok('...and an authored «الإجابة» page cannot talk it back into transferring',
@@ -332,6 +444,7 @@ const labelPage = (q, a) => '<html><body><article>'
     {
       const FIXDIR = 'data/transfer-fixtures';
       const manifest = JSON.parse(read(FIXDIR + '/manifest.json'));
+      const a3 = A3_CASES;
       const crypto = require('crypto');
       const names = Object.keys(manifest.pages).sort();
       const page = (n) => fs.readFileSync(path.join(REPO, FIXDIR, n));
@@ -387,6 +500,63 @@ const labelPage = (q, a) => '<html><body><article>'
         ok('binbaz: a short answer beside a <section class=footnotes> is read', !!foot,
           'the footnote citation is a <p> and the answer is not — reading only <p> found the citation alone');
         if (foot) ok('...and it is the ANSWER, not the citation', /نعم إذا كانت المحظورات من جنس واحد/.test(foot.answer));
+
+        const multiCase = a3.stage4.binBaz;
+        const multi = pairOf(multiCase.file);
+        ok('binbaz: the frozen multi-speaker page yields its complete published pair', !!multi);
+        if (multi) {
+          const prepared = T.prepareTransfer(multi.answer, { maxChars: multiCase.transferMaxChars });
+          ok('...and its successful transfer obeys maxChars',
+            !!prepared.text && prepared.text.length <= multiCase.transferMaxChars,
+            String(prepared.text && prepared.text.length));
+          const hasQuestionLead = prepared.text.includes(multiCase.questionLead);
+          const hasAnswerLead = prepared.text.includes(multiCase.answerLead);
+          ok('...and the ordinary boundary carries both speaker labels or neither',
+            hasQuestionLead === hasAnswerLead, prepared.text.slice(-240));
+
+          // Derive one genuine speaker round directly from the frozen Bin Baz bytes. A following
+          // paragraph forces a length trim while the exact limit leaves room for the WHOLE round.
+          // This makes the assertion non-vacuous: both labels must survive once, in order.
+          const multiParas = multi.answer.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+          const questionAt = multiParas.findIndex((p) => p.startsWith(multiCase.questionLead));
+          ok('...and the frozen page contains an adjacent presenter/scholar round',
+            questionAt >= 0 && multiParas[questionAt + 1]
+              && multiParas[questionAt + 1].startsWith(multiCase.answerLead));
+          if (questionAt >= 0 && multiParas[questionAt + 1]) {
+            const realRoundParas = multiParas.slice(questionAt, questionAt + 2);
+            const realRound = realRoundParas.join('\n\n');
+            const suffixChars = 2 + T.TRUNCATION_TAIL.length;
+            const roundLimit = realRound.length + suffixChars;
+            const forcedTrim = realRound + '\n\n' + a3.stage4.boundaryChar.repeat(200);
+            const paired = T.prepareTransfer(forcedTrim, { maxChars: roundLimit });
+            const pairedParas = paired.text.split(/\n\s*\n/);
+            const qLabels = pairedParas.filter((p) => p.startsWith(multiCase.questionLead)).length;
+            const aLabels = pairedParas.filter((p) => p.startsWith(multiCase.answerLead)).length;
+            ok('...and a successful boundary keeps exactly one complete ordered speaker pair',
+              paired.truncated === true && paired.text.length <= roundLimit
+                && qLabels === 1 && aLabels === 1
+                && paired.text.indexOf(multiCase.questionLead) < paired.text.indexOf(multiCase.answerLead)
+                && paired.text.includes(realRoundParas[0]) && paired.text.includes(realRoundParas[1]),
+            JSON.stringify({ length: paired.text.length, roundLimit, qLabels, aLabels }));
+
+            // A paragraph-only mutant would keep the short presenter prompt here and strand it.
+            // The product must reject the transfer because the paired scholar answer cannot fit.
+            const orphanLimit = realRoundParas[0].length + suffixChars;
+            const orphanDecision = await I.considerTransferPair(multi.question, {
+              url: manifest.pages[multiCase.file].url,
+              published: { ...multi, answer: realRound },
+            }, { band: 'adult', maxChars: orphanLimit });
+            ok('...and a boundary that fits only the presenter prompt rejects the transfer',
+              orphanDecision.transfer === false
+                && orphanDecision.reason === 'cannot-fit-coherent-transfer',
+            orphanDecision.reason);
+          }
+          const tooTight = await I.considerTransferPair(multi.question, {
+            url: manifest.pages[multiCase.file].url, published: multi,
+          }, { band: 'adult', maxChars: multiCase.rejectMaxChars });
+          ok('...and a limit that cannot hold a complete answer unit rejects transfer',
+            tooTight.transfer === false, tooTight.reason);
+        }
       }
 
       // ── THE ADVERSARIAL WITNESS: A PAGE WHERE THE GENERIC READER LIES ───────
@@ -410,18 +580,10 @@ const labelPage = (q, a) => '<html><body><article>'
         // ...and the refusal is the DECLARED one, not an accident of this page.
         ok('...by declaration, not by this page happening to fail',
           X.EXTRACTORS['islamqa.info'].declaredIncapable === true);
-        // THE MUTATION IS RUN HERE, IN THE GATE. Point the generic reader at this real page and
-        // watch what it hands back — this is the assertion that would have caught W4 on the day
-        // it shipped, and it needs no mutation of the source to make its point.
-        const generic = X.EXTRACTORS['islamweb.net'](require('linkedom').parseHTML(html).document, url);
-        if (ok('the GENERIC label reader still returns a pair on this page', !!generic,
-          'if this ever goes null the witness is vacuous — rebuild it, do not delete it')) {
-          ok('...and that pair is a LIE: its «answer» is not the answer',
-            !/فالمسلمون نواب عن النبي/.test(generic.answer),
-            generic.answer.slice(0, 120));
-          ok('...it is the sidebar', /موضوعات ذات صلة|قائمة جديدة/.test(generic.answer),
-            generic.answer.slice(0, 120));
-        }
+        // A host-bounded reader must not fall back to labels on a foreign page. This frozen page
+        // is the adversarial witness: its only «الإجابة» is the feedback widget below the answer.
+        eq('the islamweb container reader refuses the adversarial foreign page',
+          X.EXTRACTORS['islamweb.net'](require('linkedom').parseHTML(html).document, url), null);
       }
 
       // ── the two other declared incapacities, on real pages ──────────────────
@@ -435,52 +597,58 @@ const labelPage = (q, a) => '<html><body><article>'
 
       // ── the hosts that DO work, proven on real pages rather than on our own ──
       {
-        const iw = pairOf('islamweb-411118.html');
+        const iwCase = a3.stage1.islamwebFooter;
+        const iw = pairOf(iwCase.file);
         ok('islamweb: the label reader really does work on a real page', !!iw);
         if (iw) {
-          ok('...and the answer is the fatwa', /آسية: هي اسم امرأة فرعون/.test(iw.answer));
-          // ── A DEFECT, PINNED WHERE IT CANNOT BE FORGOTTEN ────────────────────
-          //
-          // The answer runs past the fatwa into the site footer, because byLabels() takes
-          // everything after the label and nothing closes it.
-          ok('...and it DOES run into the site footer',
-            /الرئيسية|موسوعات/.test(iw.answer.slice(-400)),
-            'if this ever stops being true the extractor was fixed — update extract.js with it');
-
-          // AND THE TRIM DOES NOT SAVE IT. This was assumed when the row was written — «the cut
-          // at 2400 characters removes the footer long before a reader could see it» — and the
-          // assumption is FALSE, measured here on the frozen page. prepareTransfer() elides the
-          // MIDDLE and keeps the last paragraph, and on this page the last paragraph is the
-          // language menu. So the transferred text ends:
-          //     «… [… تفصيلُ الأدلةِ في المصدر …]  Indonesia  التتمةُ في المصدر»
-          //
-          // It is worse than cosmetic. The elision keeps first-and-last, so the footer does not
-          // merely tag along — it TAKES THE PLACE of the fatwa's own conclusion, and 4754
-          // characters of answer arrive as 329.
-          //
-          // NOT FIXED HERE. Bounding islamweb at its article container is a change to the
-          // busiest working transfer host in the registry, and it belongs with the live witness
-          // (W5) rather than inside a fixtures batch. These two assertions are the before-state
-          // that fix will be measured against, and they FAIL the day it lands — which is the
-          // intended way to find out that it did.
+          ok('...and the answer is the fatwa', /آسية\s*: هي اسم امرأة فرعون/.test(iw.answer));
+          eq('...and its valid 615-character question is preserved without a silent cut',
+            iw.question.length, iwCase.questionChars);
+          ok('...and the answer ends at the published fatwa', iw.answer.endsWith(iwCase.answerEndsWith),
+            iw.answer.slice(-160));
+          ok('...and footer, navigation and language chrome are absent',
+            iwCase.forbidden.every((token) => !iw.answer.includes(token)), iw.answer.slice(-300));
           const trimmed = T.prepareTransfer(iw.answer, { maxChars: 2400 });
           const trimmedText = typeof trimmed === 'string' ? trimmed : (trimmed && trimmed.text) || '';
-          ok('...and the 2400-char cut does NOT remove it — the assumption was false',
-            /Indonesia|Español|الرئيسية/.test(trimmedText),
-            'DEFECT PINNED: if this now passes cleanly, islamweb was bounded — delete this pin');
-          ok('...and the footer DISPLACES the fatwa: 4754 chars of answer arrive as a few hundred',
-            trimmedText.length < 800 && iw.answer.length > 4000,
-            'answer ' + iw.answer.length + ' -> transferred ' + trimmedText.length);
+          ok('...and no forbidden chrome can reappear after transfer preparation',
+            iwCase.forbidden.every((token) => !trimmedText.includes(token)), trimmedText.slice(-300));
         }
-        const bar = pairOf('sh-albarrak-29332.html');
+        const barCase = a3.stage1.shAlbarrakHtml;
+        const bar = pairOf(barCase.file);
         ok('sh-albarrak: the __NEXT_DATA__ reader works on a real page', !!bar);
-        // MEASURED AND RECORDED: the JSON fields carry raw markup. Not fixed here — it is a
-        // change to a working host, and it belongs with its own live witness.
-        if (bar) ok('...and its fields carry raw HTML — measured, not fixed', /<p |<strong>/.test(bar.question),
-          'recorded so that a later fix has a before-state to point at');
-        const alm = pairOf('almosleh-28352.html');
+        if (bar) {
+          ok('...and HTML artifacts are removed from both published fields',
+            barCase.forbidden.every((token) => !bar.question.includes(token) && !bar.answer.includes(token)),
+            JSON.stringify({ question: bar.question.slice(0, 120), answer: bar.answer.slice(0, 120) }));
+          const reachable = await I.considerTransferPair(bar.question,
+            { url: manifest.pages[barCase.file].url, published: bar }, { band: 'adult' });
+          ok('...so the cleaned pair remains reachable by transfer', reachable.transfer === true,
+            reachable.reason);
+        }
+        const almCase = a3.stage1.almoslehArtifact;
+        const alm = pairOf(almCase.file);
         ok('almosleh: the LAST-label reader works on a real page', !!alm);
-        if (alm) ok('...and it did NOT harvest the submission form', !/حل المعادلة|1 \+ 1/.test(alm.question), alm.question.slice(0, 80));
+        if (alm) {
+          ok('...and it did NOT harvest the submission form', !/حل المعادلة|1 \+ 1/.test(alm.question), alm.question.slice(0, 80));
+          ok('...and the vocalised label residue is absent from question and answer',
+            !alm.question.startsWith(almCase.forbiddenPrefix) && !alm.answer.startsWith(almCase.forbiddenPrefix),
+            JSON.stringify({ question: alm.question.slice(0, 20), answer: alm.answer.slice(0, 20) }));
+        }
+
+        const longCase = a3.stage1.question615;
+        const longHtml = page(longCase.file).toString('utf8');
+        const longUrl = manifest.pages[longCase.file].url;
+        const longPair = X.extractPair(longUrl, longHtml);
+        ok('a valid 615-character question is preserved whole or the transfer pair is refused',
+          longPair === null || longPair.question.length === longCase.expectedChars,
+          longPair ? String(longPair.question.length) : 'refused');
+        if (longPair) {
+          const longDecision = await I.considerTransferPair(longPair.question,
+            { url: longUrl, published: longPair }, { band: 'adult' });
+          ok('...and an accepted 615-character pair transfers only with the complete question',
+            longDecision.transfer === true && longDecision.question.length === longCase.expectedChars,
+            JSON.stringify({ transfer: longDecision.transfer, chars: longDecision.question && longDecision.question.length }));
+        }
       }
 
       // ── and the eighth domain, on a real page of its own ────────────────────
@@ -513,7 +681,7 @@ const labelPage = (q, a) => '<html><body><article>'
     // "no answer was generated" are different claims and only the second one is the feature.
     {
       const saved = {};
-      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG', 'DAILY_SEARCH_BUDGET'])
         saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
       process.env.ANTHROPIC_API_KEY = 'sk-ant-transfer-guard-fake';
       process.env.BRAVE_API_KEY = 'brave-transfer-guard-fake';
@@ -554,15 +722,32 @@ const labelPage = (q, a) => '<html><body><article>'
           };
         };
         const mkRes = () => {
-          const r = { writes: [], statusCode: 0, headers: {} };
+          const r = {
+            writes: [], statusCode: 0, headers: {}, ended: false,
+            endCount: 0, writesAfterEnd: 0,
+          };
           r.status = (c) => { r.statusCode = c; return r; };
           r.setHeader = (k, v) => { r.headers[k] = v; return r; };
           r.getHeader = (k) => r.headers[k];
           r.flushHeaders = () => {}; r.json = () => r;
-          r.write = (s) => { r.writes.push(typeof s === 'string' ? s
-            : Buffer.from(s.buffer || s, s.byteOffset || 0, s.byteLength || s.length).toString('utf8')); return true; };
-          r.end = (s) => { if (s) r.writes.push(String(s)); return r; };
-          r.on = () => r; r.once = () => r; r.emit = () => r;
+          r.write = (s, encoding, callback) => {
+            if (typeof encoding === 'function') callback = encoding;
+            if (r.ended) r.writesAfterEnd++;
+            r.writes.push(typeof s === 'string' ? s
+              : Buffer.from(s.buffer || s, s.byteOffset || 0, s.byteLength || s.length).toString('utf8'));
+            if (typeof callback === 'function') callback();
+            return true;
+          };
+          r.end = (s, encoding, callback) => {
+            if (typeof s === 'function') { callback = s; s = undefined; }
+            else if (typeof encoding === 'function') callback = encoding;
+            r.endCount++;
+            if (s) r.write(s);
+            r.ended = true;
+            if (typeof callback === 'function') callback();
+            return r;
+          };
+          r.on = () => r; r.once = () => r; r.removeListener = () => r; r.emit = () => r;
           return r;
         };
         const mkReq = (q) => ({
@@ -573,9 +758,25 @@ const labelPage = (q, a) => '<html><body><article>'
             messages: [{ role: 'user', content: q }] },
           socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
         });
-        const readerText = (r) => r.writes.join('').split('\n').filter((l) => l.startsWith('data:'))
-          .map((l) => { try { return JSON.parse(l.slice(5)); } catch { return null; } })
-          .filter((f) => f && f.delta && typeof f.delta.text === 'string').map((f) => f.delta.text).join('');
+        // Execute the exact handleEvent body shipped in index.html, not a test-only SSE parser.
+        const clientHandlerBody = (read('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
+        const clientVisibleFromRaw = clientHandlerBody && new Function('raw', `
+          let full = '', streamError = null, onDelta = null;
+          const handleEvent = (block) => {${clientHandlerBody}\n};
+          let buffer = String(raw).replace(/\\r\\n/g, '\\n'), idx;
+          while ((idx = buffer.indexOf('\\n\\n')) !== -1) { handleEvent(buffer.slice(0, idx)); buffer = buffer.slice(idx + 2); }
+          if (buffer.trim()) handleEvent(buffer);
+          return full;
+        `);
+        ok('endpoint assertions execute the handleEvent parser shipped in index.html',
+          typeof clientVisibleFromRaw === 'function');
+        const readerText = (r) => clientVisibleFromRaw(r.writes.join(''));
+        const protocolEvents = (r) => r.writes.join('').replace(/\r\n/g, '\n').split('\n\n')
+          .map((block) => block.split('\n').filter((line) => line.trim().startsWith('data:'))
+            .map((line) => line.trim().slice(5).trim()).join(''))
+          .filter(Boolean)
+          .map((raw) => { try { return JSON.parse(raw); } catch { return null; } })
+          .filter(Boolean);
 
         const handler = (await esm('api/ask.js')).default;
 
@@ -598,6 +799,151 @@ const labelPage = (q, a) => '<html><body><article>'
         const t2 = readerText(res2);
         ok('a flipped question does NOT get the published text', !/العقيقة سنة مؤكدة/.test(t2));
         ok('...and is generated instead', vendor >= 2, String(vendor));
+
+        // ── A3 / F-203: real endpoint, local pages, shipped client parser ───────
+        const f5 = A3_CASES.stage5;
+        const TD = await esm('lib/policy/takhrij-disclosure.js');
+        const nextPage = (fixture) => {
+          const data = JSON.stringify({ props: { pageProps: { postContent: {
+            question: '<p><strong>' + fixture.question + '</strong></p>',
+            content: '<p>' + fixture.answer + '</p>',
+          } } } }).replace(/</g, '\\u003c');
+          return '<html><head><title>' + fixture.title + '</title></head><body>'
+            + '<article><h1>' + fixture.title + '</h1><p>' + fixture.visibleEvidence + '</p></article>'
+            + '<script id="__NEXT_DATA__" type="application/json">' + data + '</script>'
+            + '</body></html>';
+        };
+        const installA3 = (fixture, { ledgerFailure = false } = {}) => {
+          const counts = { model: 0, search: 0, page: 0, other: 0 };
+          globalThis.fetch = async (url, opts = {}) => {
+            const u = String(url);
+            if (u.includes('api.anthropic.com')) {
+              counts.model++;
+              if (ledgerFailure) throw new Error('ledger fixture model unavailable');
+              return {
+                ok: true, status: 200, headers: { get: () => 'application/json' },
+                json: async () => (counts.model === 1
+                  ? { stop_reason: 'tool_use', content: [{
+                    type: 'tool_use', id: 'a3-t1', name: 'search_islamic_sources',
+                    input: { query: fixture.question },
+                  }] }
+                  : { content: [{ type: 'text', text: 'مسوّدة مولَّدة آمنة من fixture.' }] }),
+                text: async () => '',
+                body: { getReader: () => ({ read: async () => ({ done: true }) }) },
+              };
+            }
+            if (u.includes('api.search.brave.com')) {
+              counts.search++;
+              return {
+                ok: true, status: 200, text: async () => '',
+                json: async () => ({ web: { results: [{
+                  title: fixture.title, url: fixture.url, description: fixture.visibleEvidence.slice(0, 120),
+                }] } }),
+              };
+            }
+            if (u === fixture.url) {
+              counts.page++;
+              return {
+                ok: true, status: 200, url: u,
+                headers: { get: () => 'text/html; charset=utf-8' },
+                text: async () => nextPage(fixture),
+              };
+            }
+            counts.other++;
+            return {
+              ok: false, status: 503, headers: { get: () => 'application/json' },
+              text: async () => '', json: async () => ({}),
+            };
+          };
+          return counts;
+        };
+        const sourceCards = (text) => Array.from(String(text).matchAll(
+          /<source site="([^"]+)" url="([^"]+)">[\s\S]*?<\/source>/g),
+        ).map((m) => ({ site: m[1], url: m[2], tag: m[0], at: m.index }));
+        const assertLifecycle = (name, response) => {
+          const events = protocolEvents(response);
+          const stops = events.filter((event) => event.type === 'message_stop');
+          const stopAt = events.findIndex((event) => event.type === 'message_stop');
+          ok(name + ': exactly one message_stop ends the protocol',
+            stops.length === 1 && stopAt === events.length - 1,
+            events.map((event) => event.type).join(','));
+          ok(name + ': response ends once with no write after end',
+            response.endCount === 1 && response.writesAfterEnd === 0,
+            JSON.stringify({ endCount: response.endCount, writesAfterEnd: response.writesAfterEnd }));
+          return events;
+        };
+
+        process.env.LEDGER_RAG = 'off';
+        process.env.RFC_V05_MODE = 'off';
+        const unsupportedCounts = installA3(f5.unsupportedTakhrij);
+        const unsupportedRes = mkRes();
+        await handler(mkReq(f5.unsupportedTakhrij.question), unsupportedRes);
+        const unsupportedText = readerText(unsupportedRes);
+        const unsupportedEvents = assertLifecycle('unsupported-takhrij transfer', unsupportedRes);
+        const unsupportedCards = sourceCards(unsupportedText);
+        ok('unsupported takhrij is removed while the safe transferred body remains',
+          unsupportedText.includes(f5.unsupportedTakhrij.bodyNeedle)
+            && !unsupportedText.includes(f5.unsupportedTakhrij.unsupportedPhrase),
+          unsupportedText.slice(0, 400));
+        ok('lock/finalizer runs before the first reader text byte',
+          unsupportedEvents.filter((event) => event.type === 'content_block_delta')
+            .every((event) => !String(event.delta && event.delta.text).includes(f5.unsupportedTakhrij.unsupportedPhrase))
+            && !unsupportedRes.writes.join('').includes(f5.unsupportedTakhrij.unsupportedPhrase));
+        const bodyAt = unsupportedText.indexOf(f5.unsupportedTakhrij.bodyNeedle);
+        const disclosureAt = unsupportedText.indexOf(TD.TAKHRIJ_DISCLOSURE);
+        const cardAt = unsupportedText.indexOf('<source ');
+        ok('server disclosure/referral block follows the body and precedes the source card',
+          bodyAt !== -1 && disclosureAt > bodyAt && cardAt > disclosureAt,
+          JSON.stringify({ bodyAt, disclosureAt, cardAt }));
+        ok('the source card is server-owned, unique, and backed by the transfer page',
+          unsupportedCards.length === 1
+            && unsupportedCards[0].url === f5.unsupportedTakhrij.url
+            && unsupportedCards[0].site === 'sh-albarrak.com',
+          JSON.stringify(unsupportedCards));
+        ok('the transfer never emits an orphan card',
+          unsupportedCards.length === 1
+            && unsupportedText.slice(0, unsupportedCards[0].at).replace(TD.TAKHRIJ_DISCLOSURE, '').trim().length > 0);
+        ok('the legacy transfer costs only its fixture round, search and page fetch',
+          unsupportedCounts.model === 1 && unsupportedCounts.search === 1 && unsupportedCounts.page === 1,
+          JSON.stringify(unsupportedCounts));
+
+        const supportedCounts = installA3(f5.supportedTransfer);
+        const supportedRes = mkRes();
+        await handler(mkReq(f5.supportedTransfer.question), supportedRes);
+        const supportedText = readerText(supportedRes);
+        assertLifecycle('supported transfer', supportedRes);
+        const supportedCards = sourceCards(supportedText);
+        ok('a supported transfer reaches the shipped client with its visible body',
+          supportedText.includes(f5.supportedTransfer.bodyNeedle), supportedText.slice(0, 300));
+        ok('...and carries exactly its own correct server card after the body',
+          supportedCards.length === 1
+            && supportedCards[0].site === f5.supportedTransfer.expectCardHost
+            && supportedCards[0].url === f5.supportedTransfer.url
+            && supportedCards[0].at > supportedText.indexOf(f5.supportedTransfer.bodyNeedle),
+          JSON.stringify(supportedCards));
+        ok('...without an extra model or retrieval call',
+          supportedCounts.model === 1 && supportedCounts.search === 1 && supportedCounts.page === 1,
+          JSON.stringify(supportedCounts));
+
+        // The ledger owns its failure and closes safely; it must never re-enter the legacy
+        // transfer block with the candidate page after a ledger model failure.
+        process.env.LEDGER_RAG = 'on';
+        process.env.RFC_V05_MODE = 'public';
+        process.env.DAILY_SEARCH_BUDGET = '20';
+        const LF = await esm('lib/ledger/flag.js');
+        LF.__resetFlagCacheForTest();
+        const ledgerCounts = installA3(f5.supportedTransfer, { ledgerFailure: true });
+        const ledgerRes = mkRes();
+        await handler(mkReq(f5.supportedTransfer.question), ledgerRes);
+        const ledgerText = readerText(ledgerRes);
+        assertLifecycle('ledger safe failure', ledgerRes);
+        ok('LEDGER_RAG=true never falls through to the unsafe transfer candidate',
+          !!ledgerText.trim() && !ledgerText.includes(f5.supportedTransfer.bodyNeedle)
+            && sourceCards(ledgerText).length === 0,
+          ledgerText.slice(0, 300));
+        ok('...and performs no legacy search or page fetch after the ledger failure',
+          ledgerCounts.search === 0 && ledgerCounts.page === 0 && ledgerCounts.model <= 1,
+          JSON.stringify(ledgerCounts));
       } finally {
         globalThis.fetch = throwingFetch;
         for (const k of Object.keys(saved)) {

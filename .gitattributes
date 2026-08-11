@@ -298,3 +298,4 @@ lib/anchor/units.js text eol=lf
 data/transfer-fixtures/*.html -text
 # ...and the manifest itself IS ours, and is read as text.
 data/transfer-fixtures/manifest.json text eol=lf
+data/transfer-fixtures/a3-cases.json text eol=lf
