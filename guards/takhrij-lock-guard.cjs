@@ -223,6 +223,411 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     }
   }
 
+  // A1 output-safety acceptance tests live in this existing gate so the roster remains 71.
+  console.log('\n=== 9. A1 FINAL READER TEXT ===');
+  const finalizerPath = 'lib/finalize-reader-text.js';
+  let A1 = null;
+  if (exists(finalizerPath)) A1 = await esm(finalizerPath);
+  const finalize = A1 && A1.finalizeReaderText;
+  const run = (input) => typeof finalize === 'function'
+    ? finalize(input)
+    : { ok: true, text: String((input && input.text) || ''), problems: ['finalizer-missing'] };
+  const evidence = [{ passage: '\u0642\u0627\u0644 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647 \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645: \u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629. \u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645.' }];
+
+  const f008 = run({ text: '\u0644\u0627 \u0623\u0639\u0631\u0641 \u0647\u0630\u0627 \u0627\u0644\u0627\u0633\u0645.\\n\\n\u064a\u0631\u0649 \u0627\u0644\u0634\u064a\u062e \u0641\u0644\u0627\u0646 \u0648\u062c\u0648\u0628 \u0630\u0644\u0643.', consistencyContext: { entity: '\u0641\u0644\u0627\u0646', subjectEntity: '\u0641\u0644\u0627\u0646', notDirectlyVerified: true, sourceLicence: [] }, fallbackText: 'SAFE' });
+  ok('F-008: the fully composed presence lead plus body is screened', f008.text === 'SAFE' || !f008.text.includes('\u064a\u0631\u0649 \u0627\u0644\u0634\u064a\u062e'));
+
+  const f010 = run({ text: '\u0647\u0630\u0627 \u062d\u062f\u064a\u062b \u0639\u0638\u064a\u0645 \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.', sources: [], fallbackText: 'SAFE' });
+  ok('F-010: the final lock runs before any output path', !f010.text.includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'));
+
+  /* SPLIT BATCH: F-011/F-021/F-047/F-053/F-063 remain open. Their former
+     experimental assertions are intentionally disabled with their production enforcement.
+  const f021 = run({ text: '\u0642\u0627\u0644 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645: \u0646\u0635 \u0645\u0644\u0641\u0642 \u0644\u0627 \u062a\u062d\u0645\u0644\u0647 \u0623\u064a \u0635\u0641\u062d\u0629 \u0645\u0646 \u0627\u0644\u0645\u0635\u0627\u062f\u0631.', sources: evidence, claimSubject: { specific: false }, fallbackText: 'SAFE' });
+  ok('F-021: hadithProblems runs when claimSubject.specific is false', f021.text === 'SAFE');
+
+  const f011 = run({ text: '\u0642\u0627\u0644 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647 \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645: \u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629. \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a.', sources: evidence, fallbackText: 'SAFE' });
+  ok('F-011: unsupported hadith collector or grade cannot leave', !f011.text.includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'));
+  const supportedHadith = '\u0642\u0627\u0644 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647 \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645: \u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629. \u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645.';
+  ok('F-011 green: supported wording and collector remain byte-identical', run({ text: supportedHadith, sources: evidence }).text === supportedHadith);
+
+  const f047 = run({ text: '\u0644\u0627 \u064a\u0648\u062c\u062f \u0642\u0648\u0644 \u0644\u0644\u0634\u064a\u062e \u0641\u064a \u0647\u0630\u0627.', fallbackText: 'SAFE' });
+  ok('F-047: absolute negation always fails closed', f047.text === 'SAFE');
+  const scopedNegation = '\u0644\u0645 \u0646\u0642\u0641 \u0641\u064a \u0627\u0644\u0645\u0635\u0627\u062f\u0631 \u0627\u0644\u0645\u062a\u0627\u062d\u0629 \u0639\u0644\u0649 \u0646\u0635 \u0644\u0647.';
+  ok('F-047: scoped negation without its slot proof fails', run({ text: scopedNegation, fallbackText: 'SAFE' }).text === 'SAFE');
+  ok('F-047 green: scoped negation passes with its own search proof', run({ text: scopedNegation, slotProofs: [{ text: scopedNegation, entityId: 'subject', slotId: 'position', proof: { slotId: 'position', searchAttempted: true } }] }).text === scopedNegation);
+
+  const f053 = run({ text: '\u0642\u0627\u0644 \u0627\u0644\u0634\u064a\u062e: \u00ab\u0646\u0635 \u0645\u0644\u0641\u0642 \u0644\u0627 \u0648\u062c\u0648\u062f \u0644\u0647\u00bb.', verifyQuotes: true, quoteChecks: [{ actualGrade: 'B', entityId: 'scholar', sourceId: 's1', quotedText: '\u0646\u0635 \u0645\u0644\u0641\u0642 \u0644\u0627 \u0648\u062c\u0648\u062f \u0644\u0647', exactEvidenceText: '\u0627\u0644\u0623\u0635\u0644 \u0641\u064a \u0627\u0644\u0639\u0628\u0627\u062f\u0627\u062a \u0627\u0644\u062a\u0648\u0642\u064a\u0641' }], fallbackText: 'SAFE' });
+  ok('F-053: grade A/B is insufficient when the exact quote is absent', f053.text === 'SAFE');
+  const matchingQuote = '\u0642\u0627\u0644 \u0627\u0644\u0634\u064a\u062e: \u00ab\u0627\u0644\u0623\u0635\u0644 \u0641\u064a \u0627\u0644\u0639\u0628\u0627\u062f\u0627\u062a \u0627\u0644\u062a\u0648\u0642\u064a\u0641\u00bb.';
+  ok('F-053 green: an exact quote in its evidence passes', run({ text: matchingQuote, verifyQuotes: true, quoteChecks: [{ actualGrade: 'B', entityId: 'scholar', sourceId: 's1', quotedText: '\u0627\u0644\u0623\u0635\u0644 \u0641\u064a \u0627\u0644\u0639\u0628\u0627\u062f\u0627\u062a \u0627\u0644\u062a\u0648\u0642\u064a\u0641', exactEvidenceText: matchingQuote }] }).text === matchingQuote);
+
+  const f063 = run({ text: '\u0641\u0644\u0627\u0646 \u0645\u0628\u062a\u062f\u0639 \u0648\u0646\u064a\u062a\u0647 \u0627\u0644\u0634\u0631.', personStatus: 'living', fallbackText: 'SAFE' });
+  ok('F-063: a sensitive personal verdict on a living person fails closed', f063.text === 'SAFE');
+  ok('F-063: unknown status fails closed on the same personal verdict', run({ text: f063.text === 'SAFE' ? '\u0641\u0644\u0627\u0646 \u0645\u0628\u062a\u062f\u0639.' : f063.text, personStatus: 'unknown', fallbackText: 'SAFE' }).text === 'SAFE');
+  ok('F-063 green: the living-person rule does not rewrite a dead-person statement', run({ text: '\u0641\u0644\u0627\u0646 \u0645\u0628\u062a\u062f\u0639.', persons: [{ entityId: 'dead-1', status: 'dead', deathVerified: true }], sensitiveClaims: [{ entityId: 'dead-1' }] }).text === '\u0641\u0644\u0627\u0646 \u0645\u0628\u062a\u062f\u0639.');
+  const neutralTransfer = '\u0630\u0643\u0631 \u0627\u0644\u0645\u0635\u062f\u0631 \u0623\u0646 \u0641\u0644\u0627\u0646\u0627 \u062a\u062d\u062f\u062b \u0639\u0646 \u0627\u0644\u0645\u0633\u0623\u0644\u0629.';
+  ok('F-063 green: verified neutral transmission about a living person remains', run({ text: neutralTransfer, personStatus: 'living' }).text === neutralTransfer);
+
+  console.log('\n=== 9B. A1 CORRECTION REGRESSIONS ===');
+  const shortOne = '\u00ab\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a\u00bb';
+  const shortTwo = '\u00ab\u0645\u0646 \u063a\u0634\u0646\u0627 \u0641\u0644\u064a\u0633 \u0645\u0646\u0627\u00bb';
+  ok('F-021 correction: a short unmarked hadith is checked', run({ text: shortOne, religious: true, verifyQuotes: true, fallbackText: 'SAFE' }).text === 'SAFE');
+  ok('F-021 correction: a second short unmarked hadith is checked', run({ text: shortTwo, religious: true, verifyQuotes: true, fallbackText: 'SAFE' }).text === 'SAFE');
+  ok('F-011 correction: an invented unmarked matn fails closed', run({ text: '\u00ab\u0645\u0646 \u0646\u0627\u0645 \u0628\u0639\u062f \u0627\u0644\u0639\u0635\u0631 \u0641\u0642\u062f \u062d\u0631\u0645 \u0639\u0644\u0649 \u0646\u0641\u0633\u0647 \u0627\u0644\u0639\u0627\u0641\u064a\u0629\u00bb', religious: true, verifyQuotes: true, fallbackText: 'SAFE' }).text === 'SAFE');
+  const boundQuote = { quotedText: '\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a', entityId: 'prophet', sourceId: 's1', actualGrade: 'A', exactEvidenceText: '\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a' };
+  ok('F-011 correction green: specific=false with matching evidence passes', run({ text: shortOne, religious: true, verifyQuotes: true, quoteChecks: [boundQuote], claimSubject: { specific: false }, sources: [{ passage: boundQuote.exactEvidenceText }] }).text === shortOne);
+  const scopedA = '\u0644\u0645 \u0646\u062c\u062f \u0641\u064a \u0645\u0635\u0627\u062f\u0631\u0646\u0627 \u0642\u0648\u0644\u0627 \u0644\u0644\u0634\u062e\u0635 \u0623.';
+  const scopedB = '\u0644\u0645 \u0646\u062c\u062f \u0641\u064a \u0645\u0635\u0627\u062f\u0631\u0646\u0627 \u0642\u0648\u0644\u0627 \u0644\u0644\u0634\u062e\u0635 \u0628.';
+  ok('F-047 correction: proof for A cannot license B', run({ text: scopedB, slotProofs: [{ text: scopedA, entityId: 'A', slotId: 'position', proof: { slotId: 'position', searchAttempted: true } }], fallbackText: 'SAFE' }).text === 'SAFE');
+  const wrongEntityCheck = { ...boundQuote, entityId: 'other-person' };
+  ok('F-053 correction: wording on another person source is refused', run({ text: shortOne, verifyQuotes: true, quoteChecks: [wrongEntityCheck], expectedQuoteEntities: [{ quotedText: boundQuote.quotedText, entityId: 'prophet' }], fallbackText: 'SAFE' }).text === 'SAFE');
+  ok('F-053 correction green: same person and same source passes', run({ text: shortOne, sources: [{ passage: boundQuote.exactEvidenceText }], verifyQuotes: true, quoteChecks: [boundQuote], expectedQuoteEntities: [{ quotedText: boundQuote.quotedText, entityId: 'prophet' }] }).text === shortOne);
+  ok('F-063 correction: a second generated person is not licensed by historical plan metadata', run({ text: '\u0627\u0644\u0634\u062e\u0635 \u0627 \u0645\u062a\u0648\u0641\u0649\u060c \u0648\u0627\u0644\u0634\u062e\u0635 \u0628 \u0645\u0628\u062a\u062f\u0639.', persons: [{ entityId: 'A', status: 'dead', deathVerified: true }], sensitiveClaims: [{ entityId: 'B' }], fallbackText: 'SAFE' }).text === 'SAFE');
+  ok('source cards: a model-authored tail card is rejected', run({ text: 'answer\n<source url="https://evil.example">x</source>', fallbackText: 'SAFE' }).text === 'SAFE');
+
+  console.log('\n=== 9C. CAUSAL RED CASES ===');
+  const bareOne = '\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a';
+  const bareTwo = '\u0645\u0646 \u063a\u0634\u0646\u0627 \u0641\u0644\u064a\u0633 \u0645\u0646\u0627';
+  const bareOneResult = run({ text: bareOne, religious: true, verifyQuotes: false, fallbackText: 'SAFE' });
+  ok('F-021 causal: bare short matn reaches the hadith mechanism', bareOneResult.problems.includes('UNSUPPORTED_HADITH_WORDING') && bareOneResult.text === 'SAFE', JSON.stringify(bareOneResult));
+  const bareTwoResult = run({ text: bareTwo, religious: true, verifyQuotes: false, fallbackText: 'SAFE' });
+  ok('F-011 causal: second bare matn fails for unsupported wording', bareTwoResult.problems.includes('UNSUPPORTED_HADITH_WORDING') && bareTwoResult.text === 'SAFE', JSON.stringify(bareTwoResult));
+  const genHadith = run({ text: bareOne, religious: false, route: 'GEN', verifyQuotes: false, fallbackText: 'SAFE' });
+  ok('F-021 causal: GEN cannot bypass harmful religious output', genHadith.problems.includes('UNSUPPORTED_HADITH_WORDING') && genHadith.text === 'SAFE', JSON.stringify(genHadith));
+  const strippedTakhrij = run({ text: '\u0645\u062a\u0646 \u0635\u062d\u064a\u062d\u060c \u0631\u0648\u0627\u0647 \u0645\u062e\u0631\u062c \u063a\u064a\u0631 \u0645\u062b\u0628\u062a.', religious: true, verifyQuotes: false, fallbackText: 'SAFE' });
+  ok('F-011 causal: unsupported takhrij refuses the whole answer', strippedTakhrij.problems.includes('UNSUPPORTED_TAKHRIJ') && strippedTakhrij.text === 'SAFE', JSON.stringify(strippedTakhrij));
+  const bothNegations = scopedA + ' ' + scopedB;
+  const proofA = { text: scopedA, entityId: 'A', slotId: 'position', proof: { slotId: 'position', entityId: 'A', searchAttempted: true } };
+  const proofB = { text: scopedB, entityId: 'B', slotId: 'position', proof: { slotId: 'position', entityId: 'B', searchAttempted: true } };
+  ok('F-047 causal: A proof does not license B in the same answer', run({ text: bothNegations, slotProofs: [proofA], fallbackText: 'SAFE' }).problems.includes('UNBOUND_SLOT_PROOF'));
+  ok('F-047 green: independent A and B proofs license their own spans', run({ text: bothNegations, slotProofs: [proofA, proofB], fallbackText: 'SAFE' }).text === bothNegations);
+  const notice = '\u0644\u0645 \u0646\u062a\u0645\u0643\u0646 \u0645\u0646 \u0627\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u0646\u062a\u0627\u0626\u062c \u062d\u064a\u0629.';
+  ok('F-047 causal: live notice cannot license another negation', run({ text: notice + '\n' + scopedB, slotProofs: [{ text: notice, entityId: 'live-world', slotId: 'live', kind: 'operational-disclosure', proof: { outcome: 'NOT_SEARCHED_BUDGET', searchAttempted: false } }], fallbackText: 'SAFE' }).problems.includes('UNBOUND_SLOT_PROOF'));
+  const ibnTaymiyyah = { entityId: 'ibn-taymiyyah', names: ['\u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629'], status: 'dead', deathVerified: true };
+  ok('F-063 causal: a dead speaker cannot license his verdict on an unresolved target', run({ text: '\u0642\u0627\u0644 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0625\u0646 \u0641\u0644\u0627\u0646\u0627 \u0645\u0628\u062a\u062f\u0639.', persons: [ibnTaymiyyah], fallbackText: 'SAFE' }).problems.includes('UNVERIFIED_PERSON_VERDICT'));
+  ok('F-063 green: a sensitive verdict directly targeting the verified dead passes', run({ text: '\u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0645\u0628\u062a\u062f\u0639.', persons: [ibnTaymiyyah] }).text === '\u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0645\u0628\u062a\u062f\u0639.');
+  ok('F-063 causal: a living target fails closed', run({ text: '\u0641\u0644\u0627\u0646 \u0645\u0628\u062a\u062f\u0639.', persons: [{ entityId: 'living', names: ['\u0641\u0644\u0627\u0646'], status: 'living', deathVerified: false }], fallbackText: 'SAFE' }).problems.includes('UNVERIFIED_PERSON_VERDICT'));
+  */
+
+  console.log('\n=== 10. A1 SSE WRITER CONTRACT ===');
+  const SW = await esm('lib/finalized-sse-writer.js');
+  const makeTarget = () => {
+    const writes = [];
+    const listeners = new Map();
+    return {
+      writes, ended: 0, headersSent: true,
+      status() { return this; }, setHeader() { return this; }, flushHeaders() {},
+      write(chunk, encoding, callback) { writes.push(Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk)); if (typeof encoding === 'function') encoding(); else callback?.(); return true; },
+      end(callback) { this.ended++; callback?.(); },
+      on(name, fn) { listeners.set(name, fn); }, once(name, fn) { listeners.set(name, fn); },
+      removeListener(name, fn) { if (listeners.get(name) === fn) listeners.delete(name); },
+      emit(name) { listeners.get(name)?.(); },
+    };
+  };
+  const delta = (text) => `data: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } })}\n\n`;
+  const stop = 'data: {"type":"message_stop"}\n\n';
+  const event = (value) => `data: ${JSON.stringify(value)}\n\n`;
+  const parseEvents = (target) => target.writes.join('').split(/\r?\n/)
+    .filter((line) => line.startsWith('data:')).map((line) => JSON.parse(line.slice(5)));
+  const validClientSequence = (events) => {
+    if (!events.length || events[0].type !== 'message_start' || events.at(-1).type !== 'message_stop') return false;
+    const open = new Set();
+    for (const e of events) {
+      if (e.type === 'content_block_start') open.add(e.index);
+      if (e.type === 'content_block_delta' && !open.has(e.index)) return false;
+      if (e.type === 'content_block_stop') { if (!open.has(e.index)) return false; open.delete(e.index); }
+    }
+    return open.size === 0 && events.filter((e) => e.type === 'message_stop').length === 1;
+  };
+  const visible = (target) => target.writes.join('').split(/\r?\n/)
+    .filter((line) => line.startsWith('data:')).map((line) => { try { return JSON.parse(line.slice(5)); } catch { return null; } })
+    .filter(Boolean).filter((e) => e.type === 'content_block_delta').map((e) => e.delta.text).join('');
+
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    const payload = delta('# Heading\n\n- one\n- two') + stop;
+    writer.write(payload.slice(0, 7));
+    writer.write(payload.slice(7, 29));
+    writer.write(payload.slice(29));
+    ok('partial and multi-frame writes are byte-safe and preserve Markdown', target.writes.length === 0);
+    writer.end();
+    ok('...and final text is emitted only at end', visible(target) === '# Heading\n\n- one\n- two');
+    ok('...with exactly one message_stop and one end', (target.writes.join('').match(/message_stop/g) || []).length === 1 && target.ended === 1);
+  }
+  for (const [name, payload] of [
+    ['delta before block start', event({ type: 'message_start', message: {} }) + delta('raw') + stop],
+    ['block stop with another index', event({ type: 'message_start', message: {} }) + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + event({ type: 'content_block_stop', index: 1 }) + stop],
+    ['duplicate message start', event({ type: 'message_start', message: {} }) + event({ type: 'message_start', message: {} }) + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + event({ type: 'content_block_stop', index: 0 }) + stop],
+    ['duplicate block stop', event({ type: 'message_start', message: {} }) + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + event({ type: 'content_block_stop', index: 0 }) + event({ type: 'content_block_stop', index: 0 }) + stop],
+  ]) {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(payload); writer.end();
+    ok('SSE causal RED: ' + name + ' fails closed', visible(target) === 'server output rejected');
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(delta('x') + stop + stop); writer.end();
+    ok('duplicate stop fails closed with a client-valid replacement sequence', validClientSequence(parseEvents(target)) && visible(target) === 'server output rejected');
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(delta('x') + stop + delta('late')); writer.end();
+    ok('event after stop fails closed', validClientSequence(parseEvents(target)) && visible(target) === 'server output rejected');
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    const full = event({ type: 'message_start', message: { role: 'assistant' } })
+      + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } })
+      + event({ type: 'content_block_stop', index: 0 }) + stop;
+    writer.write(full); writer.end();
+    ok('a no-text answer retains a valid complete lifecycle', validClientSequence(parseEvents(target)) && visible(target) === '');
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    const full = event({ type: 'message_start', message: { role: 'assistant' } })
+      + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }) + delta('a')
+      + event({ type: 'content_block_stop', index: 0 })
+      + event({ type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } })
+      + event({ type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'b' } })
+      + event({ type: 'content_block_stop', index: 1 }) + stop;
+    writer.write(full); writer.end();
+    const events = parseEvents(target);
+    ok('multiple content blocks replay in order through the client parser', validClientSequence(events) && visible(target) === 'ab' && events.filter((e) => e.type === 'content_block_start').length === 2);
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: () => ({ text: 7, ok: true }) });
+    writer.write(delta('raw') + stop); writer.end();
+    ok('invalid finalizer result schema fails closed', validClientSequence(parseEvents(target)) && visible(target) === 'server output rejected');
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(delta('raw')); target.emit('close'); writer.end();
+    ok('a real response close fails closed without raw fallback', validClientSequence(parseEvents(target)) && !visible(target).includes('raw'));
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(delta('raw without stop'));
+    writer.end();
+    ok('missing stop fails closed without raw text', !visible(target).includes('raw without stop') && /server output rejected/.test(target.writes.join('')));
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write('data: {broken}\r\n\r\n'); writer.end();
+    ok('malformed JSON fails closed for CRLF frames', /server output rejected/.test(target.writes.join('')));
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { limits: { totalBytes: 24 }, finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(delta('overflow') + stop); writer.end();
+    ok('byte overflow fails closed', /server output rejected/.test(target.writes.join('')) && !visible(target).includes('overflow'));
+  }
+  {
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { finalize: () => { throw new Error('boom'); } });
+    writer.write(delta('raw') + stop); writer.end();
+    ok('finalizer exception fails closed', /server output rejected/.test(target.writes.join('')) && !visible(target).includes('raw'));
+  }
+  {
+    const ac = new AbortController();
+    const target = makeTarget();
+    const writer = SW.createFinalizedSseResponse(target, { signal: ac.signal, finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(delta('raw')); ac.abort(); writer.end();
+    ok('abort fails closed and ends exactly once', /server output rejected/.test(target.writes.join('')) && target.ended === 1);
+  }
+  {
+    const target = makeTarget();
+    const originalWrite = target.write.bind(target);
+    let first = true;
+    target.write = (...args) => { const accepted = originalWrite(...args); if (first) { first = false; return false; } return accepted; };
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(delta('held') + stop); writer.end();
+    ok('backpressure pauses replay before end', target.ended === 0 && target.writes.length === 1);
+    target.emit('drain');
+    ok('drain resumes the same byte sequence and ends once', target.ended === 1 && validClientSequence(parseEvents(target)) && visible(target) === 'held');
+  }
+  for (const mode of ['close', 'abort']) {
+    const ac = new AbortController();
+    const target = makeTarget();
+    const originalWrite = target.write.bind(target);
+    let first = true, callbackError = null;
+    target.write = (...args) => { originalWrite(...args); if (first) { first = false; return false; } return true; };
+    const writer = SW.createFinalizedSseResponse(target, { signal: ac.signal, finalize: (x) => ({ text: x.text, ok: true }) });
+    writer.write(delta('cancelled') + stop);
+    writer.end((error) => { callbackError = error; });
+    const before = target.writes.length;
+    if (mode === 'close') target.emit('close'); else ac.abort();
+    ok(mode + ' immediately cancels a drain wait without post-close write or target.end', target.writes.length === before && target.ended === 0 && callbackError instanceof Error);
+  }
+  {
+    const warm = '\u062e\u0644\u0651\u064a\u0646\u0627 \u0646\u0633\u0648\u064a\u0647\u0627 \u0635\u062d \u0645\u0639 \u0645\u0627\u0645\u0627 \u0623\u0648 \u0628\u0627\u0628\u0627.';
+    const once = run({ text: warm });
+    const twice = run({ text: once.text });
+    ok('warm/general text is byte-identical and finalization is idempotent', once.text === warm && twice.text === once.text);
+  }
+  {
+    const target = makeTarget();
+    const cards = [{ tag: '<source url="https://one.example">one</source>' }, { tag: '<source url="https://two.example">two</source>' }];
+    const writer = SW.createFinalizedSseResponse(target, { context: { sourceCards: cards }, finalize: (x) => ({ text: x.text, ok: true }) });
+    const answer = 'answer\n' + cards[0].tag + '\n' + cards[1].tag;
+    writer.write(delta(answer) + stop); writer.end();
+    ok('multiple server-owned cards retain byte order after prose finalization', visible(target) === answer);
+  }
+  {
+    const target = makeTarget();
+    const owned = { tag: '<source url="https://owned.example">owned</source>' };
+    const forged = '<source url="https://forged.example">forged</source>';
+    const writer = SW.createFinalizedSseResponse(target, { context: { sourceCards: [owned] }, finalize });
+    writer.write(delta('answer\n' + owned.tag + '\n' + forged) + stop); writer.end();
+    ok('an owned card does not license an extra model-authored source tag', !visible(target).includes('<source') && visible(target).includes('\u0644\u0627 \u0623\u0633\u062a\u0637\u064a\u0639'));
+  }
+  {
+    const parser = require('@babel/parser');
+    const ast = parser.parse(read('api/ask.js'), { sourceType: 'module', plugins: ['optionalChaining'] });
+    const writes = [], wrappers = [];
+    const walk = (node, fn = '') => {
+      if (!node || typeof node !== 'object') return;
+      let scope = fn;
+      if ((node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') && node.id) scope = node.id.name;
+      if (node.type === 'CallExpression' && node.callee && node.callee.type === 'MemberExpression'
+        && node.callee.object.type === 'Identifier' && node.callee.object.name === 'res'
+        && node.callee.property.type === 'Identifier' && node.callee.property.name === 'write') writes.push({ line: node.loc.start.line, scope });
+      if (node.type === 'CallExpression' && node.callee && node.callee.type === 'Identifier'
+        && node.callee.name === 'createFinalizedSseResponse') wrappers.push({ line: node.loc.start.line, scope });
+      for (const value of Object.values(node)) {
+        if (Array.isArray(value)) value.forEach((item) => walk(item, scope));
+        else if (value && typeof value === 'object' && value.type) walk(value, scope);
+      }
+    };
+    walk(ast);
+    const handlerWrapper = wrappers.find((item) => item.scope === 'handler');
+    const synthWrapper = wrappers.find((item) => item.scope === 'sendSynthesizedText');
+    const bypasses = writes.filter((item) => item.scope === 'handler' && item.line < handlerWrapper.line)
+      .filter((item) => !read('api/ask.js').split(/\r?\n/)[item.line - 1].includes(': keepalive'));
+    ok('AST structural gate: every reader-text write is dominated by a finalized writer', !!handlerWrapper && !!synthWrapper && bypasses.length === 0, JSON.stringify(bypasses));
+    ok('the ledger receives the reassigned response facade in the real handler AST', !!handlerWrapper && writes.some((item) => item.scope === 'handler' && item.line > handlerWrapper.line));
+  }
+
+  // Real entrypoint smoke: dependencies are mocked locally and an unknown URL throws.
+  console.log('\n=== 11. REAL /api/ask HANDLER, OFFLINE DEPENDENCIES ===');
+  {
+    const { EventEmitter } = require('events');
+    const DAY = await esm('lib/daycap.js');
+    const STORE = await esm('lib/ledger/redis.js');
+    process.env.ANTHROPIC_API_KEY = 'a1-local'; process.env.BRAVE_API_KEY = 'a1-local';
+    process.env.FOUNDER_SECRET = 'a1-local-secret'; process.env.RFC_V05_MODE = 'internal'; process.env.LEDGER_RAG = 'off';
+    STORE.__setRedisForTest(null);
+    const cap = new Map();
+    DAY.__setRedisForTest({ async mget(...ks) { return ks.map((k) => cap.get(k) || null); }, pipeline() { const q = []; return {
+      incr(k) { q.push(() => { const n = (Number(cap.get(k)) || 0) + 1; cap.set(k, n); return n; }); }, expire() { q.push(() => 1); }, async exec() { return q.map((f) => f()); },
+    }; } });
+    class Response extends EventEmitter {
+      constructor() { super(); this.writes = []; this.ended = 0; this.textWritesBeforeFinalizer = 0; this.endsBeforeFinalizer = 0; }
+      status(n) { this.statusCode = n; return this; } setHeader() { return this; } flushHeaders() {}
+      write(v, e, cb) { const raw = String(v); if (raw.trim() && !raw.trimStart().startsWith(':') && !this[SW.FINALIZATION_COMPLETE]) this.textWritesBeforeFinalizer++; this.writes.push(raw); if (typeof e === 'function') e(); if (typeof cb === 'function') cb(); return true; }
+      end(v, e, cb) { if (!this[SW.FINALIZATION_COMPLETE]) this.endsBeforeFinalizer++; if (v != null) { const raw = String(v); if (raw.trim() && !this[SW.FINALIZATION_COMPLETE]) this.textWritesBeforeFinalizer++; this.writes.push(raw); } this.ended++; if (typeof e === 'function') e(); if (typeof cb === 'function') cb(); return this; }
+      json(v) { this.jsonBody = v; this.ended++; return this; }
+    }
+    const jr = (v) => ({ ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => v, text: async () => JSON.stringify(v) });
+    const sourceUrl = 'https://islamqa.info/ar/answers/999999/a1-local';
+    const originalFetch = globalThis.fetch, device = 'a1endpoint1234567', founder = DAY.founderTokenFor(device);
+    const clientHandlerBody = (read('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
+    const clientVisibleFromRaw = clientHandlerBody && new Function('raw', `
+      let full = '', streamError = null, onDelta = null;
+      const handleEvent = (block) => {${clientHandlerBody}\n};
+      let buffer = String(raw).replace(/\\r\\n/g, '\\n'), idx;
+      while ((idx = buffer.indexOf('\\n\\n')) !== -1) { handleEvent(buffer.slice(0, idx)); buffer = buffer.slice(idx + 2); }
+      if (buffer.trim()) handleEvent(buffer);
+      return full;
+    `);
+    const drive = async ({ question, draft, evidence, route = 'DEEN' }) => {
+      let planned = false;
+      globalThis.fetch = async (url, init = {}) => {
+        const u = String(url);
+        if (u.includes('api.anthropic.com')) {
+          const b = JSON.parse(init.body || '{}');
+          if (b.stream) { const frames = [delta(draft), stop]; let i = 0; return { ok: true, status: 200, headers: { get: () => 'text/event-stream' }, body: { getReader: () => ({ read: async () => i < frames.length ? { done: false, value: new TextEncoder().encode(frames[i++]) } : { done: true }, releaseLock() {}, cancel: async () => {} }) } }; }
+          if (b.tools && !planned) { planned = true; return jr({ content: [{ type: 'tool_use', id: 'a1', name: 'search_sources', input: { query: question } }], stop_reason: 'tool_use' }); }
+          if (planned) return jr({ content: [{ type: 'text', text: draft }], stop_reason: 'end_turn' });
+          return jr({ content: [{ type: 'text', text: route }], stop_reason: 'end_turn' });
+        }
+        if (u.includes('api.search.brave.com')) return jr({ web: { results: [{ title: 'A1 evidence', url: sourceUrl, description: evidence }] } });
+        if (u.startsWith(sourceUrl)) { const paddedEvidence = evidence + ' ' + ('\u0647\u0630\u0627 \u0646\u0635 \u0645\u062d\u0644\u064a \u0645\u0648\u062b\u0642 \u0644\u0627\u062e\u062a\u0628\u0627\u0631 \u0645\u0633\u0627\u0631 \u0627\u0644\u062f\u0644\u064a\u0644 \u062f\u0648\u0646 \u0623\u064a \u0637\u0644\u0628 \u0634\u0628\u0643\u0629. ').repeat(8); const h = '<html><head><title>A1 evidence</title></head><body><article><p>' + paddedEvidence + '</p></article></body></html>'; return { ok: true, status: 200, url: sourceUrl, headers: { get: (n) => String(n).toLowerCase() === 'content-type' ? 'text/html; charset=utf-8' : null }, text: async () => h, arrayBuffer: async () => Buffer.from(h) }; }
+        throw new Error('unexpected offline URL: ' + u);
+      };
+      const req = new EventEmitter(); req.method = 'POST'; req.headers = { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' }; req.body = { band: 'adult', messages: [{ role: 'user', content: question }] };
+      const res = new Response(); await (await esm('api/ask.js')).default(req, res);
+      const text = clientVisibleFromRaw(res.writes.join(''));
+      return { text, res };
+    };
+    try {
+      ok('A1 endpoint assertions execute the handleEvent parser shipped in index.html', typeof clientVisibleFromRaw === 'function');
+      /* Split out of A1: bare-hadith claim detection remains open.
+      const h1 = '\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a';
+      const bad = await drive({ question: '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0646\u064a\u0629\u061f', draft: h1, evidence: '\u0627\u0644\u0646\u064a\u0629 \u0634\u0631\u0637 \u0641\u064a \u0627\u0644\u0639\u0628\u0627\u062f\u0627\u062a' });
+      ok('F-011 endpoint negative: unsupported bare matn is absent from reader text', !bad.text.includes(h1), bad.text);
+      const good = await drive({ question: '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0646\u064a\u0629\u061f', draft: h1, evidence: '\u062d\u0643\u0645 \u0627\u0644\u0646\u064a\u0629 \u0641\u064a \u0627\u0644\u0639\u0628\u0627\u062f\u0627\u062a: ' + h1 });
+      ok('F-011 endpoint green: exact fetched matn passes', good.text.includes(h1), good.text);
+      const h2 = '\u0645\u0646 \u063a\u0634\u0646\u0627 \u0641\u0644\u064a\u0633 \u0645\u0646\u0627';
+      const genBad = await drive({ question: '\u0645\u0627 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646\u061f', draft: h2, evidence: '\u0637\u0648\u0643\u064a\u0648 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646', route: 'GEN' });
+      ok('F-021 endpoint negative: GEN cannot bypass bare-hadith validation', !genBad.text.includes(h2), genBad.text);
+      const genText = '\u0637\u0648\u0643\u064a\u0648 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646.';
+      const genGood = await drive({ question: '\u0645\u0627 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646\u061f', draft: genText, evidence: genText, route: 'GEN' });
+      ok('F-021 endpoint green: ordinary GEN prose is preserved', genGood.text.includes(genText), genGood.text);
+      */
+      const rawContract = ({ res }) => {
+        const raw = res.writes.join('');
+        const protocol = raw.split(/\r?\n\r?\n/u).filter(Boolean)
+          .filter((frame) => !frame.trimStart().startsWith(':'));
+        const events = protocol.map((frame) => {
+          const data = frame.split(/\r?\n/u).filter((line) => line.startsWith('data:'))
+            .map((line) => line.slice(5).trimStart()).join('');
+          try { return JSON.parse(data); } catch { return null; }
+        });
+        return events.every(Boolean) && validClientSequence(events)
+          && events.filter((event) => event.type === 'message_stop').length === 1
+          && events.at(-1).type === 'message_stop';
+      };
+      const badTakhrij = '\u062c\u0648\u0627\u0628 \u0645\u0641\u064a\u062f. \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.';
+      const genUnsafe = await drive({ question: '\u0645\u0627 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646\u061f', draft: badTakhrij, evidence: '\u0637\u0648\u0643\u064a\u0648', route: 'GEN' });
+      ok('F-010 GEN negative: only the unverified takhrij is removed', rawContract(genUnsafe) && genUnsafe.text === '\u062c\u0648\u0627\u0628 \u0645\u0641\u064a\u062f.' && !genUnsafe.res.writes.join('').includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'), genUnsafe.res.writes.join(''));
+      const genBody = '\u0637\u0648\u0643\u064a\u0648 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646.';
+      const genSafe = await drive({ question: '\u0645\u0627 \u0639\u0627\u0635\u0645\u0629 \u0627\u0644\u064a\u0627\u0628\u0627\u0646\u061f', draft: genBody, evidence: genBody, route: 'GEN' });
+      ok('F-010 GEN green: visible text is byte-identical and lifecycle is closed', rawContract(genSafe) && genSafe.text === genBody, genSafe.text);
+
+      const deenQuestion = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629\u061f';
+      const deenUnsafe = await drive({ question: deenQuestion, draft: badTakhrij, evidence: '\u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 \u0645\u0634\u0631\u0648\u0639.' });
+      ok('F-010 DEEN negative: safe body remains after removing unverified takhrij', rawContract(deenUnsafe) && deenUnsafe.text.startsWith('\u062c\u0648\u0627\u0628 \u0645\u0641\u064a\u062f.') && !deenUnsafe.res.writes.join('').includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'), deenUnsafe.res.writes.join(''));
+      const deenBody = '\u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 \u0645\u0634\u0631\u0648\u0639.';
+      const deenSafe = await drive({ question: deenQuestion, draft: deenBody, evidence: '\u062d\u0643\u0645 ' + deenBody });
+      const expectedDeenCard = '<source site="islamqa.info" url="https://islamqa.info/ar/answers/999999/a1-local">A1 evidence</source>';
+      ok('F-010 DEEN green: body and server-owned card are byte-identical and ordered', rawContract(deenSafe) && deenSafe.text === deenBody + expectedDeenCard, deenSafe.text);
+      const supportedTakhrij = '\u0647\u0630\u0627 \u062d\u062f\u064a\u062b \u0639\u0638\u064a\u0645 \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.';
+      const deenTakhrijGreen = await drive({ question: deenQuestion, draft: supportedTakhrij, evidence: '\u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629. ' + supportedTakhrij });
+      ok('F-010 DEEN takhrij green: evidenced wording and card remain byte-for-byte', rawContract(deenTakhrijGreen) && deenTakhrijGreen.text === supportedTakhrij + expectedDeenCard, deenTakhrijGreen.text);
+
+      const presenceQuestion = '\u0645\u0627 \u0631\u0623\u064a \u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646 \u0641\u064a \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629\u061f';
+      const contradiction = '\u064a\u0631\u0649 \u0627\u0644\u0634\u064a\u062e \u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646 \u0648\u062c\u0648\u0628 \u0627\u0644\u0642\u0635\u0631.';
+      const presenceBad = await drive({ question: presenceQuestion, draft: contradiction, evidence: '\u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631.' });
+      ok('F-008 endpoint negative: consistency removes the composed contradiction before first text write/end', rawContract(presenceBad) && presenceBad.res.textWritesBeforeFinalizer === 0 && presenceBad.res.endsBeforeFinalizer === 0 && !presenceBad.res.writes.join('').includes(contradiction) && presenceBad.text.startsWith('\u0644\u0627 \u0623\u0639\u0631\u0641 \u0647\u0630\u0627 \u0627\u0644\u0627\u0633\u0645'), presenceBad.text);
+      const presenceBody = '\u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 \u0645\u0634\u0631\u0648\u0639.';
+      const presencePlan = (await esm('lib/ask-plan.js')).planAsk(presenceQuestion);
+      const presenceGood = await drive({ question: presenceQuestion, draft: presenceBody, evidence: '\u062d\u0643\u0645 ' + presenceBody });
+      const expectedPresenceLead = '\u0644\u0627 \u0623\u0639\u0631\u0641 \u0647\u0630\u0627 \u0627\u0644\u0627\u0633\u0645: \u00ab\u062e\u0627\u0644\u062f \u0639\u0628\u062f\u0627\u0644\u0631\u062d\u0645\u0646\u00bb \u0644\u0627 \u064a\u064e\u0631\u0650\u062f \u0641\u064a \u0627\u0644\u0645\u0635\u0627\u062f\u0631 \u0627\u0644\u062a\u064a \u0623\u0631\u062c\u0639 \u0625\u0644\u064a\u0647\u0627\u060c \u0641\u0644\u0627 \u0623\u0635\u0641\u0647 \u0628\u0634\u064a\u0621 \u0648\u0644\u0627 \u0623\u0646\u0642\u0644 \u0639\u0646\u0647 \u0634\u064a\u0626\u064b\u0627.';
+      ok('F-008 endpoint fixture has namedEntity empty and a real structured presence lead', presencePlan.namedEntity === '' && presenceGood.text.startsWith(expectedPresenceLead + '\n\n'), JSON.stringify({ namedEntity: presencePlan.namedEntity, text: presenceGood.text }));
+      ok('F-008 endpoint green: composed text is finalized before first target write/end', rawContract(presenceGood) && presenceGood.res.textWritesBeforeFinalizer === 0 && presenceGood.res.endsBeforeFinalizer === 0 && presenceGood.text.startsWith(expectedPresenceLead + '\n\n' + presenceBody + '\n<source'), presenceGood.text);
+    } finally { globalThis.fetch = originalFetch; }
+  }
+
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

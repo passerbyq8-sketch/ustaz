@@ -84,6 +84,8 @@ import { classifyWorldIntent } from '../lib/world-intent.js';
 import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/policy/impermissible-request.js';
 // A takhrij nobody published is never emitted. See lib/takhrij-lock.js for the measured incident.
 import { lockTakhrij } from '../lib/takhrij-lock.js';
+import { finalizeReaderText, FINALIZER_REFUSAL } from '../lib/finalize-reader-text.js';
+import { createFinalizedSseResponse } from '../lib/finalized-sse-writer.js';
 import { guardEmptyAnswer } from '../lib/empty-answer.js';
 // قرار ١ب: OFF by default. The import is unconditional and the BEHAVIOUR is flagged — a
 // conditional import would make the flag decide what the module graph is, which is a second
@@ -253,6 +255,10 @@ function appendDepthBlock(systemBlocks, instruction) {
 // Emit the client-parser-accepted SSE shape: `data: {json}\n\n`, only
 // content_block_delta/text_delta events (see index.html handleEvent).
 function sendSynthesizedText(res, text) {
+  res = createFinalizedSseResponse(res, {
+    finalize: (input) => finalizeReaderText(input),
+    failureText: FINALIZER_REFUSAL,
+  });
   res.status(200);
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -456,7 +462,7 @@ export function canonicalKey(url) {
 //
 // Invalid entries are skipped, not fatal; if none can be encoded, we emit nothing and the
 // caller refuses to answer.
-export function pickVerifiedSources(sources, limit = MAX_SOURCES) {
+export function pickVerifiedSources(sources, limit = MAX_SOURCES, builder = buildSourceTag) {
   const out = [];
   const seen = new Set();
   const input = sources || [];
@@ -464,7 +470,7 @@ export function pickVerifiedSources(sources, limit = MAX_SOURCES) {
   for (const s of input) {
     if (out.length >= limit) break;
     considered++;
-    const built = buildSourceTag(s);   // says its own reason if it refuses
+    const built = builder(s);   // says its own reason if it refuses
     if (!built) continue;
     const key = canonicalKey(built.url);
     if (!key) { console.warn(`[card] drop uncanonicalisable — ${built.url}`); continue; }
@@ -761,6 +767,10 @@ export default async function handler(req, res) {
   // question has nowhere to be asked unless the pages are reachable from the emission point.
   // Every retrieval below hands its result to `remember()`, which returns it unchanged.
   const fetchedPages = [];
+  // Ledger owns a separate evidence lifecycle inside runLedgerTurn. Its accepted, card-backing
+  // pages are registered through the seam before that branch writes or closes; they are not
+  // mixed into legacy retrieval decisions or source-selection state.
+  const ledgerFinalizerSources = [];
   // COUNTED, NEVER ACTED ON — the shipped path's answer to the ledger's `injection_markers_seen`
   // (lib/ledger/schema.js). lib/retrieve.js fences every retrieved page in wrapUntrusted and
   // reports which marker shapes it saw; this is where the request as a whole adds them up, so a
@@ -789,6 +799,53 @@ export default async function handler(req, res) {
       });
     }
     return locked.text;
+  };
+
+  // A1: one text boundary for every post-commit exit, including the ledger facade. The facade is
+  // deliberately narrow (not a Proxy): keepalive comments may pass immediately, while every data
+  // frame is parsed and held until the complete reader-visible text has passed the finalizer.
+  const finalizerContext = {
+    fallbackText: FINALIZER_REFUSAL,
+    sourceCards: [],
+    consistencyContext: plan.namedEntity ? {
+      entity: plan.namedEntity,
+      subjectEntity: plan.namedEntity,
+      notDirectlyVerified: true,
+      searchProven: false,
+      identityVerified: false,
+    } : null,
+  };
+  res = createFinalizedSseResponse(res, {
+    finalize: (input) => {
+      const result = finalizeReaderText(input);
+      if (!result.ok) console.warn('[finalizer] reader text replaced', { problems: result.problems });
+      return result;
+    },
+    context: () => ({
+      ...finalizerContext,
+      sources: [...fetchedPages, ...ledgerFinalizerSources],
+      consistencyContext: finalizerContext.consistencyContext ? {
+        ...finalizerContext.consistencyContext,
+        pageTexts: fetchedPages.map((p) => (p && p.passage) || ''),
+      } : null,
+    }),
+    signal: req.signal,
+    failureText: FINALIZER_REFUSAL,
+  });
+  const ownedSourceTag = (source) => {
+    const card = buildSourceTag(source);
+    if (card && card.tag && !finalizerContext.sourceCards.some((item) => item.tag === card.tag)) {
+      finalizerContext.sourceCards.push(card);
+    }
+    return card;
+  };
+  const registerOwnedCards = (cards) => {
+    for (const card of Array.isArray(cards) ? cards : []) {
+      if (card && card.tag && !finalizerContext.sourceCards.some((item) => item.tag === card.tag)) {
+        finalizerContext.sourceCards.push(card);
+      }
+    }
+    return cards;
   };
 
   const emitOnce = (text) => {
@@ -1216,7 +1273,7 @@ export default async function handler(req, res) {
     // BUFFERED, like every other checked exit, and carrying NO referral tail: the referral belongs
     // under a religious answer, and this is not one.
     if (namePresence.probed && namePresence.kind === PRESENCE.IDENTITY_SHAPE && namePresence.found) {
-      const idCards = pickVerifiedSources([namePresence.page], 1);
+      const idCards = registerOwnedCards(pickVerifiedSources([namePresence.page], 1));
       if (!idCards.length) {
         console.warn('[name-presence] identity page carries no encodable card — falling through');
       } else {
@@ -1345,6 +1402,18 @@ export default async function handler(req, res) {
       if (identityIsPlaced) return '';
       return presenceLine(namePresence);
     })();
+    if (presenceLead && !finalizerContext.consistencyContext) {
+      finalizerContext.consistencyContext = {
+        entity: namePresence.name,
+        subjectEntity: namePresence.name,
+        notDirectlyVerified: true,
+        searchProven: !!namePresence.probed,
+        identityVerified: !!identityIsPlaced,
+      };
+    }
+    if (finalizerContext.consistencyContext) {
+      finalizerContext.consistencyContext.attributionDisclaimed = !!presenceLead;
+    }
 
     // ── AND IT RIDES ON THE REFUSALS TOO, WHICH IS WHERE IT MATTERS MOST ────
     //
@@ -1421,6 +1490,7 @@ export default async function handler(req, res) {
       // are appended by the server after the model has finished, and a card cannot be appended
       // to bytes that already left. It costs the same ONE model call the GEN branch costs.
       const worldCards = pickVerifiedSources(worldPass.sources);
+      registerOwnedCards(worldCards);
       if (!worldCards.length) {
         // Every retrieved page failed buildSourceTag (non-https, unencodable). Rather than
         // present live material with nothing to check it against, drop back to the plain route.
@@ -1557,7 +1627,11 @@ export default async function handler(req, res) {
         // (lib/ledger/query-build.js), not a tier ladder. Tiering is retrieve()'s own ordering
         // concern; what must match across the two paths is WHICH domains a child may reach.
         bandSites: band === 'adult' ? SITES_ADULT : [...SITES_MINOR, ...SITES_MINOR_FALLBACK],
-        buildSourceTag,
+        buildSourceTag: ownedSourceTag,
+        registerFinalizerSources: (pages) => {
+          ledgerFinalizerSources.length = 0;
+          if (Array.isArray(pages)) ledgerFinalizerSources.push(...pages);
+        },
         search: (q, sites) => braveSearch(q, sites),
         startedAt: ledgerStartedAt,
         beforeFirstOutput: clearKeepAlive,
@@ -1832,6 +1906,7 @@ export default async function handler(req, res) {
         attributionNote = unattributedNote(plan.namedEntity);
       } else {
         const card = buildSourceTag({ url: src.canonicalUrl, title: src.title });
+        registerOwnedCards(card ? [card] : []);
         console.log('[attribution]', REASON.DIRECT_ATTRIBUTION_CONFIRMED, { scholar: src.scholar, id: src.sourceId });
         clearKeepAlive();
         res.write(`data: ${JSON.stringify({
@@ -1995,6 +2070,7 @@ export default async function handler(req, res) {
         // fall-through, which used to be the looser of the two and is the one that actually served
         // «طارق العلي داعية وخطيب كويتي … من أهل العلم» over a khutbah page that never named him.
         sourceLicence = attributionLicence(encSources).personIds;
+        if (finalizerContext.consistencyContext) finalizerContext.consistencyContext.sourceLicence = sourceLicence;
         // WE LOOKED. Whatever happens next, the negation below is now an earned one — and the
         // note that says so is composed here, because the earlier assignment ran before this
         // search and correctly declined to claim a search that had not happened yet.
@@ -2020,7 +2096,7 @@ export default async function handler(req, res) {
           entity: plan.requestedAuthorityId || '', found: encSources.length, mayTransmitPosition,
         });
         if (encSources.length && mayTransmitPosition) {
-          const cards = encSources.map((s) => buildSourceTag({ url: s.url, title: s.title })).filter(Boolean);
+          const cards = registerOwnedCards(encSources.map((s) => buildSourceTag({ url: s.url, title: s.title })).filter(Boolean));
           encyclopedicPublishers = [...new Set(cards.flatMap((c) => {
             const reg = findSource(c.host);
             return [c.host, reg && reg.name].filter(Boolean);
@@ -2190,6 +2266,7 @@ export default async function handler(req, res) {
           // buildSourceTag returns the CARD RECORD, not the string — `.tag` is the wire form, and
           // it returns null for any URL that cannot be encoded safely. Both are honoured here.
           const idCard = buildSourceTag({ url: identityUrl, title: identityTitle || nameShape.name });
+          registerOwnedCards(idCard ? [idCard] : []);
           if (idCard && idCard.tag) writeText('\n' + idCard.tag);
         }
       } finally {
@@ -2351,7 +2428,7 @@ export default async function handler(req, res) {
     // two and can never come back as a confident answer with nothing behind it. This is
     // the whole guarantee: on the DEEN route the reader either gets a verified card or
     // gets told plainly that we could not verify one.
-    const canonicalSources = pickVerifiedSources(retrievedSources.filter(Boolean).flat());
+    const canonicalSources = registerOwnedCards(pickVerifiedSources(retrievedSources.filter(Boolean).flat()));
     // THE PAGES THIS REPLY WILL BE DRAFTED OVER decide who it may name. Computed from the gated
     // pages themselves — their extracted byline, their host, their extracted text — and never from
     // the question, the plan, or anything the model said.
@@ -2385,6 +2462,7 @@ export default async function handler(req, res) {
     }
 
     sourceLicence = attributionLicence(retrievedSources.filter(Boolean).flat()).personIds;
+    if (finalizerContext.consistencyContext) finalizerContext.consistencyContext.sourceLicence = sourceLicence;
     console.log('[licence]', { pages: retrievedSources.filter(Boolean).flat().length, persons: sourceLicence });
     // قرار ١٠: a card from a VIDEO-answer domain is a POINTER, never evidence. Its page carries
     // no written answer at all (lib/source-registry.js `answer_format`), so a reply resting on
@@ -2544,6 +2622,7 @@ export default async function handler(req, res) {
             supporting = sourcesAddressingSubject(claimSubject.subject, retrievedPages);
             // The probe added pages, so it may have added a licence with them.
             sourceLicence = attributionLicence(retrievedPages).personIds;
+            if (finalizerContext.consistencyContext) finalizerContext.consistencyContext.sourceLicence = sourceLicence;
           }
         } catch (e) {
           console.warn('[claim] phrase probe threw:', e.message);
@@ -2597,7 +2676,7 @@ export default async function handler(req, res) {
       }
       // ONE card, and it is the page that actually addresses the expression when there is one.
       // Otherwise it is the general source the reply was told to present AS a general principle.
-      const cardFrom = pickVerifiedSources(supporting.length ? supporting : retrievedPages, 1);
+      const cardFrom = registerOwnedCards(pickVerifiedSources(supporting.length ? supporting : retrievedPages, 1));
       const cCard = cardFrom.length ? '\n' + cardFrom[0].tag : '';
       console.log('[claim] verified', { supporting: supporting.length, card: cardFrom.length });
       // Same rule as the streaming branch: the note follows a real sourced answer, never

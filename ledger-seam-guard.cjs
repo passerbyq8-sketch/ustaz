@@ -206,6 +206,8 @@ const user = (t) => [{ role: 'user', content: t }];
   // The planner double reads the question it was ACTUALLY given, so a mutilated question shows
   // up as a wrong plan rather than as a silently different search.
   const seen = { questions: [], modelCalls: 0, engineCalls: 0 };
+  let a1SentenceText = null;
+  let a1EvidenceText = null;
   function modelReply(body) {
     const u = body.messages[0].content;
     seen.modelCalls++;
@@ -246,7 +248,7 @@ const user = (t) => [{ role: 'user', content: t }];
     }
     if (u.includes('اكتبِ الجوابَ جملةً جملة')) {
       const ids = Array.from(u.matchAll(/^- \((\S+)\)/gm)).map((x) => x[1]);
-      return { content: [{ type: 'text', text: JSON.stringify({ sentences: ids.map((id, i) => ({ sentence_id: 's' + (i + 1), text: 'جملة موثقة.', claim_ids: [id] })) }) }], usage: {} };
+      return { content: [{ type: 'text', text: JSON.stringify({ sentences: ids.map((id, i) => ({ sentence_id: 's' + (i + 1), text: a1SentenceText || '\u062c\u0645\u0644\u0629 \u0645\u0648\u062b\u0642\u0629.', claim_ids: [id] })) }) }], usage: {} };
     }
     if (u.includes('افحصْ كلَّ جملةٍ على حِدَة')) {
       const ids = Array.from(u.matchAll(/### جملة (\S+)/g)).map((x) => x[1]);
@@ -259,16 +261,36 @@ const user = (t) => [{ role: 'user', content: t }];
     if (u.includes('api.anthropic.com')) {
       return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => modelReply(JSON.parse(init.body)) };
     }
-    const body = PAGES[u];
+    const body = PAGES[u.split('?')[0]];
     if (body === undefined) return { ok: false, status: 404, headers: { get: () => 'text/html' }, body: null, text: async () => '' };
-    return { ok: true, status: 200, headers: { get: (k) => (k.toLowerCase() === 'content-type' ? 'text/html; charset=utf-8' : null) }, body: null, text: async () => body };
+    const pageBody = a1EvidenceText ? body.replace('</article>', '<p>' + a1EvidenceText + '</p></article>') : body;
+    return { ok: true, status: 200, headers: { get: (k) => (k.toLowerCase() === 'content-type' ? 'text/html; charset=utf-8' : null) }, body: null, text: async () => pageBody };
   };
-  const search = async () => RESULTS.slice();
+  const search = async () => RESULTS.map((result) => a1EvidenceText ? { ...result, url: result.url + '?a1=green' } : { ...result });
   // The REAL card builder from api/ask.js, so the wire grammar under test is the shipped one.
   const askMod = await esm('api/ask.js');
+  const A1FINAL = await esm('lib/finalize-reader-text.js');
+  const A1SSE = await esm('lib/finalized-sse-writer.js');
 
   const runSeam = async (question, over = {}) => {
-    const res = fakeRes();
+    const target = fakeRes();
+    target.preFinalizerEnds = 0;
+    const rawEnd = target.end.bind(target);
+    target.end = (...args) => {
+      if (!target[A1SSE.FINALIZATION_COMPLETE]) target.preFinalizerEnds++;
+      return rawEnd(...args);
+    };
+    const ownedCards = [];
+    const registeredSources = [];
+    const buildOwnedCard = (input) => {
+      const card = askMod.buildSourceTag(input);
+      if (card) ownedCards.push(card);
+      return card;
+    };
+    const res = over.finalized ? A1SSE.createFinalizedSseResponse(target, {
+      context: () => ({ sources: registeredSources, sourceCards: ownedCards }),
+      finalize: (input) => { target.finalizerInput = input; return A1FINAL.finalizeReaderText(input); },
+    }) : target;
     seen.questions = []; seen.modelCalls = 0;
     let t = 0;
     const out = await SEAM.runLedgerTurn(res, Object.assign({
@@ -276,12 +298,13 @@ const user = (t) => [{ role: 'user', content: t }];
       messages: user(question),
       band: 'adult',
       bandSites: SP.searchableDomains(),
-      buildSourceTag: askMod.buildSourceTag,
+      buildSourceTag: buildOwnedCard,
+      registerFinalizerSources: (pages) => registeredSources.push(...pages),
       search, fetchImpl,
       now: () => (t += 5),
       startedAt: 0,
     }, over));
-    return { res, out };
+    return { res: target, out, ownedCards, registeredSources };
   };
 
   {
@@ -339,6 +362,111 @@ const user = (t) => [{ role: 'user', content: t }];
     const text = res.frames().filter((f) => f.delta).map((f) => f.delta.text).join('');
     ok('...carrying no card', !/<source/.test(text));
     ok('...and no ruling', !/يجوز|لا يجوز|حرام|حلال/.test(text), text);
+  }
+  {
+    const unsafe = '\u062c\u0648\u0627\u0628 \u0622\u0645\u0646. \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.';
+    a1SentenceText = unsafe;
+    const negative = await runSeam('\u0645\u0627 \u062d\u0643\u0645 \u0628\u064a\u0639 \u0627\u0644\u0630\u0647\u0628 \u0628\u0627\u0644\u062a\u0642\u0633\u064a\u0637\u061f', { finalized: true });
+    const negativeFrames = negative.res.frames();
+    const negativeText = negativeFrames.filter((frame) => frame.delta).map((frame) => frame.delta.text).join('');
+    ok('F-010 Ledger negative uses runLedgerTurn behind the finalized response', negative.out.outcome === 'FULL' && negativeText.startsWith('\u062c\u0648\u0627\u0628 \u0622\u0645\u0646.') && !negative.res.body.includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'), negativeText);
+    ok('F-010 Ledger negative registers real card-backing evidence before finalization', negative.registeredSources.length === 1 && negative.res.finalizerInput.sources === negative.registeredSources && negative.res.preFinalizerEnds === 0);
+    ok('F-010 Ledger negative has one terminal message_stop', negativeFrames.filter((frame) => frame.type === 'message_stop').length === 1 && negativeFrames.at(-1).type === 'message_stop');
+
+    const supported = unsafe;
+    a1SentenceText = supported;
+    a1EvidenceText = supported;
+    const green = await runSeam('\u0645\u0627 \u062d\u0643\u0645 \u0628\u064a\u0639 \u0627\u0644\u0630\u0647\u0628 \u0628\u0627\u0644\u062a\u0642\u0633\u064a\u0637\u061f', { finalized: true });
+    const greenFrames = green.res.frames();
+    const greenText = greenFrames.filter((frame) => frame.delta).map((frame) => frame.delta.text).join('');
+    const expectedCardSuffix = green.ownedCards.map((card) => card.tag).join('\n');
+    ok('F-010 Ledger green preserves supported text and owned cards byte-for-byte in order', greenText === supported + '\n' + expectedCardSuffix, JSON.stringify({ greenText, input: green.res.finalizerInput }));
+    ok('F-010 Ledger green context comes only from the seam callback before target.end', green.registeredSources.length === 1 && green.registeredSources[0].passage.includes(supported) && green.res.preFinalizerEnds === 0);
+    ok('F-010 Ledger green has one terminal message_stop', greenFrames.filter((frame) => frame.type === 'message_stop').length === 1 && greenFrames.at(-1).type === 'message_stop');
+    a1SentenceText = null;
+    a1EvidenceText = null;
+  }
+  {
+    // The actual /api/ask handler takes the Ledger path. All provider/store dependencies are
+    // local doubles; the finalizer context can only be populated by runLedgerTurn's callback.
+    const handlerEnv = Object.fromEntries(['LEDGER_RAG', 'RFC_V05_MODE', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET']
+      .map((key) => [key, process.env[key]]));
+    process.env.LEDGER_RAG = 'true';
+    process.env.RFC_V05_MODE = 'public';
+    process.env.ANTHROPIC_API_KEY = 'a1-ledger-handler';
+    process.env.BRAVE_API_KEY = 'a1-ledger-handler';
+    process.env.FOUNDER_SECRET = 'a1-ledger-handler-secret';
+    const storeClient = {
+      async get() { return null; }, async set() { return 'OK'; }, async setex() { return 'OK'; },
+      async eval() { return [1, 1]; }, async incr() { return 1; }, async expire() { return 1; },
+    };
+    STORE.__setRedisForTest(storeClient);
+    FL.__resetFlagCacheForTest();
+    const capCounts = new Map();
+    DC.__setRedisForTest({
+      async sismember() { return 0; },
+      async mget(...keys) { return keys.map((key) => capCounts.get(key) || null); },
+      pipeline() { const ops = []; return {
+        incr(key) { ops.push(() => { const n = (Number(capCounts.get(key)) || 0) + 1; capCounts.set(key, n); return n; }); },
+        expire() { ops.push(() => 1); }, async exec() { return ops.map((op) => op()); },
+      }; },
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (url, init = {}) => {
+      const u = String(url);
+      if (u.includes('api.anthropic.com')) {
+        const payload = modelReply(JSON.parse(init.body || '{}'));
+        return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => payload, text: async () => JSON.stringify(payload) };
+      }
+      if (u.includes('api.search.brave.com')) {
+        const results = RESULTS.map((result) => a1EvidenceText ? { ...result, url: result.url + '?a1=handler-green' } : { ...result });
+        return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => ({ web: { results: results.map((result) => ({ ...result, description: result.snippet })) } }) };
+      }
+      return fetchImpl(u, init);
+    };
+    const device = 'a1ledgerhandler01';
+    const founder = DC.founderTokenFor(device);
+    const handlerRequest = () => ({
+      method: 'POST',
+      headers: { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' },
+      body: { band: 'adult', messages: user('\u0645\u0627 \u062d\u0643\u0645 \u0628\u064a\u0639 \u0627\u0644\u0630\u0647\u0628 \u0628\u0627\u0644\u062a\u0642\u0633\u064a\u0637\u061f') },
+    });
+    const handlerResponse = () => {
+      const target = fakeRes();
+      target.headersSent = false;
+      target.preFinalizerEnds = 0;
+      target.json = function json(value) { this.jsonBody = value; this.ended++; return this; };
+      const rawEnd = target.end.bind(target);
+      target.end = function end(...args) { if (!this[A1SSE.FINALIZATION_COMPLETE]) this.preFinalizerEnds++; return rawEnd(...args); };
+      return target;
+    };
+    try {
+      const unsafe = '\u062c\u0648\u0627\u0628 \u0622\u0645\u0646. \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.';
+      a1SentenceText = unsafe; a1EvidenceText = null;
+      const negativeRes = handlerResponse();
+      await askMod.default(handlerRequest(), negativeRes);
+      const negativeText = negativeRes.frames().filter((frame) => frame.delta).map((frame) => frame.delta.text).join('');
+      const negativeContext = negativeRes[A1SSE.FINALIZATION_CONTEXT];
+      ok('F-010 handler Ledger negative removes only unsupported takhrij', negativeText.startsWith('\u062c\u0648\u0627\u0628 \u0622\u0645\u0646.') && !negativeRes.body.includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'));
+      ok('F-010 handler Ledger negative receives seam evidence before target.end', negativeContext && negativeContext.sources.length === 1 && negativeRes.preFinalizerEnds === 0);
+
+      a1SentenceText = unsafe; a1EvidenceText = unsafe;
+      const greenRes = handlerResponse();
+      await askMod.default(handlerRequest(), greenRes);
+      const greenFrames = greenRes.frames();
+      const greenText = greenFrames.filter((frame) => frame.delta).map((frame) => frame.delta.text).join('');
+      const greenContext = greenRes[A1SSE.FINALIZATION_CONTEXT];
+      const card = askMod.buildSourceTag({ url: RESULTS[0].url + '?a1=handler-green', title: '\u0635' }).tag;
+      ok('F-010 handler Ledger green preserves evidence-backed text and card byte-for-byte', greenText === unsafe + '\n' + card);
+      ok('F-010 handler Ledger green callback fills context before first end', greenContext && greenContext.sources.length === 1 && greenContext.sources[0].passage.includes(unsafe) && greenRes.preFinalizerEnds === 0 && greenFrames.filter((frame) => frame.type === 'message_stop').length === 1);
+    } finally {
+      globalThis.fetch = originalFetch;
+      a1SentenceText = null; a1EvidenceText = null;
+      for (const [key, value] of Object.entries(handlerEnv)) {
+        if (value === undefined) delete process.env[key]; else process.env[key] = value;
+      }
+      FL.__resetFlagCacheForTest();
+    }
   }
   {
     // AN ENGINE THAT THROWS MUST NOT FALL THROUGH INTO THE LEGACY PATH MID-REQUEST, and must
