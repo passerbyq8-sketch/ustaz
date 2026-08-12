@@ -647,7 +647,7 @@ export default async function handler(req, res) {
   const depthInstruction = band === 'adult' ? buildDepthInstruction(effectiveDepth) : '';
   const usePremium = band === 'adult' && (effectiveDepth === 'deep' || effectiveDepth === 'scholar');
   const model = usePremium
-    ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-4-8')
+    ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-5')
     : (process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5');
   console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, usePremium, model });
   // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
@@ -1719,6 +1719,8 @@ export default async function handler(req, res) {
       await runLedgerTurn(res, {
         messages: body.messages,
         band,
+        // Server-authoritative entitlement only: body.depth/body.tier never reach Ledger directly.
+        tier: usePremium ? 'premium' : 'standard',
         // The POLICY band, resolved by the shared core. `band` above still picks the source
         // allow-list; this is what the engine's age access and floor read.
         audienceBand,

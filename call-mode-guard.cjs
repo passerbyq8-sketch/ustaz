@@ -98,8 +98,12 @@ async function checkRelays() {
   process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
   process.env.FOUNDER_SECRET = 'call-mode-guard-secret';
   process.env.CALL_EFFORT = 'high';   // the exact setting that broke production
-  process.env.MODEL_STANDARD = 'claude-sonnet-5';
-  process.env.MODEL_FAST = 'claude-haiku-4-5-20251001';
+  // Exercise the shipped defaults. Setting the expected ids in the harness would let a stale
+  // hardcoded fallback pass forever and would make the model-switch mutations below invisible.
+  delete process.env.MODEL;
+  delete process.env.MODEL_STANDARD;
+  delete process.env.MODEL_FAST;
+  delete process.env.TASHKEEL_MODEL;
   delete process.env.CALL_THINKING;
 
   const DEVICE = 'callmodeguarddevice01';
@@ -111,6 +115,11 @@ async function checkRelays() {
     const u = String(url);
     if (u.indexOf('api.anthropic.com') !== -1) {
       sent = JSON.parse((opts && opts.body) || '{}');
+      if (sent.stream === undefined) {
+        return new Response(JSON.stringify({
+          content: [{ type: 'text', text: 'نَصّ' }],
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
       return new Response(
         'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"ok"}}\n\n',
         { status: 200, headers: { 'Content-Type': 'text/event-stream' } }
@@ -182,11 +191,34 @@ async function checkRelays() {
       // Standing invariants that share this transform -- if one breaks, the same edit broke it.
       if (name === 'api/chat.js' && sent.model === 'claude-sonnet-5') pass('A4 api/chat.js still forces the STANDARD model server-side');
       else if (name === 'api/chat.js') fail('A4 api/chat.js model = ' + sent.model + ' (client sent claude-opus-5; the server must overrule it)');
-      if (name === 'api/chat-fast.js' && sent.model === 'claude-haiku-4-5-20251001') pass('A4 api/chat-fast.js still forces the FAST model server-side');
-      else if (name === 'api/chat-fast.js') fail('A4 api/chat-fast.js model = ' + sent.model);
+      if (name === 'api/chat-fast.js' && sent.model === 'claude-sonnet-5') pass('A4 api/chat-fast.js sends the user-visible FAST answer on Sonnet 5');
+      else if (name === 'api/chat-fast.js') fail('A4 api/chat-fast.js user-visible answer model = ' + sent.model);
       if (Array.isArray(sent.system) && sent.system[0] && sent.system[0].cache_control) pass('A5 ' + name + ' still wraps the system prompt in an ephemeral cache block');
       else fail('A5 ' + name + ' lost the ephemeral system-prompt cache block');
     }
+
+    // The same route carries a second, semantically different turn. Its eight-token result is
+    // routing data and is never spoken, so it must stay on the unchanged Haiku fast channel.
+    sent = null;
+    const fastHandler = (await import(pathToUrl('api/chat-fast.js'))).default;
+    const classifierRes = mkRes();
+    await fastHandler(mkReq({ max_tokens: 8 }), classifierRes);
+    if (sent && sent.model === 'claude-haiku-4-5-20251001') {
+      pass('A6 api/chat-fast.js keeps the classifier/router on the unchanged Haiku id');
+    } else fail('A6 api/chat-fast.js classifier model = ' + (sent && sent.model));
+
+    // Tashkeel is an internal pronunciation transform, not an authored user answer. Capture the
+    // request body built by the real handler and pin its existing, deliberately separate Haiku id.
+    sent = null;
+    const tashkeel = (await import(pathToUrl('api/tashkeel.js'))).default;
+    const tashkeelRes = mkRes();
+    await tashkeel({
+      method: 'POST', headers: mkReq().headers,
+      body: { text: 'نص', gender: 'male', band: 'adult' },
+    }, tashkeelRes);
+    if (sent && sent.model === 'claude-haiku-4-5') {
+      pass('A7 api/tashkeel.js keeps its unchanged Haiku id');
+    } else fail('A7 api/tashkeel.js model = ' + (sent && sent.model));
   } finally {
     global.fetch = realFetch;
   }
@@ -194,6 +226,320 @@ async function checkRelays() {
 
 function pathToUrl(rel) {
   return require('url').pathToFileURL(path.resolve(process.cwd(), rel)).href;
+}
+
+// ===========================================================================
+// CHECK D -- the complete model map, EXECUTED at the provider boundary
+// ===========================================================================
+async function checkModelRouting() {
+  const SONNET = 'claude-sonnet-5';
+  const OPUS = 'claude-opus-5';
+  const HAIKU = 'claude-haiku-4-5-20251001';
+  const envKeys = [
+    'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET',
+    'MODEL', 'MODEL_STANDARD', 'MODEL_PREMIUM', 'MODEL_FAST', 'TASHKEEL_MODEL',
+    'LEDGER_RAG', 'RFC_V05_MODE', 'DAILY_SEARCH_BUDGET',
+    'KV_REST_API_URL', 'KV_REST_API_TOKEN',
+  ];
+  const saved = envKeys.map((k) => [k, Object.prototype.hasOwnProperty.call(process.env, k), process.env[k]]);
+  const realFetch = global.fetch;
+
+  const DAY = await import(pathToUrl('lib/daycap.js'));
+  const CONSENT = await import(pathToUrl('lib/ai-consent.js'));
+  const LEDGER_REDIS = await import(pathToUrl('lib/ledger/redis.js'));
+  const FLAG = await import(pathToUrl('lib/ledger/flag.js'));
+
+  for (const k of ['MODEL', 'MODEL_STANDARD', 'MODEL_PREMIUM', 'MODEL_FAST', 'TASHKEEL_MODEL',
+    'KV_REST_API_URL', 'KV_REST_API_TOKEN']) delete process.env[k];
+  process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
+  process.env.BRAVE_API_KEY = 'test-brave-not-real';
+  process.env.FOUNDER_SECRET = 'model-routing-guard-secret';
+  process.env.DAILY_SEARCH_BUDGET = '1000';
+
+  const DEVICE = 'modelroutingguarddevice01';
+  const capCounts = new Map();
+  DAY.__setRedisForTest({
+    async sismember() { return 0; },
+    async mget(...keys) { return keys.map((k) => (capCounts.has(k) ? capCounts.get(k) : null)); },
+    pipeline() {
+      const ops = [];
+      return {
+        incr(k) { ops.push(() => { const n = (Number(capCounts.get(k)) || 0) + 1; capCounts.set(k, n); return n; }); return this; },
+        expire() { ops.push(() => 1); return this; },
+        async exec() { return ops.map((f) => f()); },
+      };
+    },
+  });
+
+  const ledgerStore = new Map();
+  ledgerStore.set(FLAG.RUNTIME_KEY, 'on');
+  LEDGER_REDIS.__setRedisForTest({
+    async get(k) { return ledgerStore.has(k) ? ledgerStore.get(k) : null; },
+    async set(k, v, o) { ledgerStore.set(k, v); if (o && o.ex) ledgerStore.set(k + ':ex', o.ex); return 'OK'; },
+    async incr(k) { const n = (Number(ledgerStore.get(k)) || 0) + 1; ledgerStore.set(k, n); return n; },
+    async expire(k, s) { ledgerStore.set(k + ':ex', s); return 1; },
+    async eval(_script, keys, args) {
+      const k = keys[0];
+      const used = (Number(ledgerStore.get(k)) || 0) + 1;
+      ledgerStore.set(k, used);
+      if (used === 1) ledgerStore.set(k + ':ex', Number(args[1]));
+      return [used, used <= Number(args[0]) ? 1 : 0];
+    },
+  });
+
+  const modelBodies = [];
+  let transportMode = 'legacy-gen';
+  const PLAN = {
+    issues: [{
+      issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
+      protected_entities: ['قتل النمل'], core_terms: ['حكم'], context_vars: [],
+      exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+    }],
+    missing_qualifiers: [], confidence: 'high',
+  };
+  const PAGE_URL = 'https://islamqa.info/ar/answers/9101/x';
+  const PAGE_HTML = '<html lang="ar"><head><title>حكم قتل النمل</title></head><body><article>'
+    + '<h1>حكم قتل النمل</h1>'
+    + '<p>الحكم في هذه المسألة أن الأصل عدم قتل النمل من غير حاجة، ويدفع ضرره بالوسيلة الأخف.</p>'
+    + '<p>وإن حصل منه ضرر ظاهر ولم يمكن دفعه بغير القتل جاز دفع الضرر بقدره من غير تعد.</p>'
+    + '<p>وهذا التفصيل يجمع بين الرفق بالحيوان ودفع الضرر، ولا يتجاوز الحاجة التي وقعت.</p>'
+    + '<p>وينبغي ابتداء استعمال الوسائل التي تمنع دخولها وترفع الطعام عنها قبل الانتقال إلى غير ذلك.</p>'
+    + '</article></body></html>';
+
+  const jsonResponse = (payload) => ({
+    ok: true, status: 200,
+    headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
+    json: async () => payload, text: async () => JSON.stringify(payload),
+  });
+  const streamResponse = (answer = 'ok') => {
+    const wire = 'data: ' + JSON.stringify({
+      type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: answer },
+    }) + '\n\ndata: ' + JSON.stringify({ type: 'message_stop' }) + '\n\n';
+    let sent = false;
+    return {
+      ok: true, status: 200, headers: { get: () => 'text/event-stream' }, text: async () => '',
+      body: { getReader: () => ({
+        read: async () => (sent ? { done: true, value: undefined }
+          : (sent = true, { done: false, value: new Uint8Array(Buffer.from(wire, 'utf8')) })),
+        releaseLock() {}, cancel: async () => {},
+      }) },
+    };
+  };
+  const htmlResponse = (url) => ({
+    ok: true, status: 200, url,
+    headers: { get: (h) => {
+      const k = String(h).toLowerCase();
+      if (k === 'content-type') return 'text/html; charset=utf-8';
+      if (k === 'content-length') return String(Buffer.byteLength(PAGE_HTML, 'utf8'));
+      return null;
+    } },
+    text: async () => PAGE_HTML, arrayBuffer: async () => Buffer.from(PAGE_HTML, 'utf8'),
+  });
+
+  global.fetch = async (url, opts) => {
+    const u = String(url);
+    if (u.includes('api.anthropic.com')) {
+      const body = JSON.parse((opts && opts.body) || '{}');
+      modelBodies.push(body);
+      if (transportMode === 'legacy-tool' && Array.isArray(body.tools)) {
+        return jsonResponse({
+          content: [{ type: 'tool_use', id: 'tool_guard_1', name: 'search_islamic_sources', input: { query: 'الوضوء' } }],
+          stop_reason: 'tool_use', usage: { output_tokens: 10 },
+        });
+      }
+      if (transportMode === 'ledger') {
+        const user = String((((body.messages || [])[0] || {}).content) || '');
+        const reply = user.includes('"issue_id"') ? PLAN : { claims: [] };
+        return jsonResponse({ content: [{ type: 'text', text: JSON.stringify(reply) }], usage: { output_tokens: 20 } });
+      }
+      return body.stream ? streamResponse() : jsonResponse({ content: [{ type: 'text', text: 'ok' }] });
+    }
+    if (u.includes('api.search.brave.com')) {
+      return jsonResponse({ web: { results: transportMode === 'ledger'
+        ? [{ url: PAGE_URL, title: 'حكم قتل النمل', description: '' }] : [] } });
+    }
+    if (u.split('#')[0] === PAGE_URL) return htmlResponse(u);
+    // The rate-limit clients are intentionally offline. Their production contract is fail-open;
+    // no other unexpected host is allowed to masquerade as a provider fixture.
+    throw new Error('offline model-routing fixture: ' + u.slice(0, 80));
+  };
+
+  const mkRes = () => {
+    const r = {
+      statusCode: 200, headers: {}, chunks: [], ended: false,
+      status(c) { r.statusCode = c; return r; },
+      setHeader(k, v) { r.headers[String(k).toLowerCase()] = v; return r; },
+      getHeader(k) { return r.headers[String(k).toLowerCase()]; },
+      get headersSent() { return r.chunks.length > 0 || r.ended; },
+      flushHeaders() {},
+      write(c) { r.chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c)); return true; },
+      end(c) { if (c) r.chunks.push(Buffer.from(c)); r.ended = true; return r; },
+      json(o) { r.chunks.push(Buffer.from(JSON.stringify(o))); r.ended = true; return r; },
+      on() { return r; }, once() { return r; }, removeListener() { return r; },
+    };
+    return r;
+  };
+  let requestNo = 0;
+  const mkReq = ({ question, age = 25, band = 'adult', extra = {}, authorized = false }) => {
+    requestNo++;
+    const headers = {
+      'content-type': 'application/json', 'x-real-ip': '127.0.0.1',
+      [CONSENT.AI_CONSENT_HEADER]: CONSENT.AI_CONSENT_VERSION,
+      [DAY.DEVICE_HEADER]: DEVICE + String(requestNo).padStart(2, '0'),
+    };
+    // A founder token is bound to its device id. Mint after the per-request suffix is known.
+    if (authorized) headers[DAY.FOUNDER_HEADER] = DAY.founderTokenFor(headers[DAY.DEVICE_HEADER]);
+    return {
+      method: 'POST', headers,
+      body: Object.assign({
+        max_tokens: 256, stream: true, name: 'guard', age, gender: 'male', mode: 'chat', band,
+        messages: [{ role: 'user', content: question }],
+      }, extra),
+      socket: { remoteAddress: '127.0.0.1' }, on() {},
+    };
+  };
+  const systemText = (body) => Array.isArray(body && body.system)
+    ? body.system.map((b) => (b && b.text) || '').join('') : String((body && body.system) || '');
+  const firstModel = (bodies) => bodies[0] && bodies[0].model;
+  const isPlanner = (body) => String(((((body || {}).messages || [])[0] || {}).content) || '').includes('"issue_id"');
+
+  try {
+    const ASK = await import(pathToUrl('api/ask.js'));
+    const handler = ASK.default;
+    const drive = async (request, mode) => {
+      transportMode = mode;
+      modelBodies.length = 0;
+      if (mode === 'ledger') {
+        process.env.LEDGER_RAG = 'on';
+        process.env.RFC_V05_MODE = 'public';
+        ledgerStore.set(FLAG.RUNTIME_KEY, 'on');
+      } else {
+        process.env.LEDGER_RAG = 'off';
+        process.env.RFC_V05_MODE = 'off';
+      }
+      FLAG.__resetFlagCacheForTest();
+      const res = mkRes();
+      await handler(request, res);
+      return { bodies: modelBodies.slice(), res };
+    };
+
+    const ordinary = await drive(mkReq({
+      question: 'كم يساوي اثنان زائد اثنان؟', extra: { depth: 'brief' },
+    }), 'legacy-gen');
+    if (firstModel(ordinary.bodies) === SONNET) pass('D1 ordinary/default/brief answer sends Sonnet 5');
+    else fail('D1 ordinary/default/brief model = ' + firstModel(ordinary.bodies));
+
+    const deep = await drive(mkReq({
+      question: 'كم يساوي اثنان زائد اثنان؟', extra: { depth: 'deep' }, authorized: true,
+    }), 'legacy-gen');
+    if (firstModel(deep.bodies) === OPUS) pass('D2 authorized founder deep sends Opus 5');
+    else fail('D2 authorized founder deep model = ' + firstModel(deep.bodies));
+
+    const forged = [
+      ['deep', { depth: 'deep' }],
+      ['scholar', { depth: 'scholar' }],
+      ['premium', { tier: 'premium' }],
+    ];
+    for (const [label, extra] of forged) {
+      const out = await drive(mkReq({
+        question: 'كم يساوي اثنان زائد اثنان؟', extra,
+      }), 'legacy-gen');
+      if (firstModel(out.bodies) === SONNET) pass('D3 forged ' + label + ' stays standard Sonnet');
+      else fail('D3 forged ' + label + ' model = ' + firstModel(out.bodies));
+      if (!systemText(out.bodies[0]).includes(ASK.buildDepthInstruction('scholar'))) {
+        pass('D3 forged ' + label + ' gets no scholar capability');
+      } else fail('D3 forged ' + label + ' reached the scholar instruction');
+    }
+
+    // Observe the real lazy encyclopedia read. A founder token alone is insufficient: the
+    // current age policy must also resolve the request to adult before that module is touched.
+    const moduleBuiltin = require('module');
+    const realReadFileSync = fs.readFileSync;
+    let encyclopediaReads = 0;
+    fs.readFileSync = function guardedRead(file, ...args) {
+      if (/fiqh-search\.json\.gz$/i.test(String(file))) encyclopediaReads++;
+      return realReadFileSync.call(fs, file, ...args);
+    };
+    moduleBuiltin.syncBuiltinESMExports();
+    try {
+      const youngScholar = await drive(mkReq({
+        question: 'ما حكم الوضوء؟', age: 12, band: 'adult',
+        extra: { depth: 'scholar' }, authorized: true,
+      }), 'legacy-tool');
+      if (firstModel(youngScholar.bodies) === SONNET) pass('D4 under-age scholar request stays standard Sonnet');
+      else fail('D4 under-age scholar model = ' + firstModel(youngScholar.bodies));
+      if (!systemText(youngScholar.bodies[0]).includes(ASK.buildDepthInstruction('scholar')) && encyclopediaReads === 0) {
+        pass('D4 under-age scholar request opens neither scholar prompt nor encyclopedia');
+      } else fail('D4 under-age scholar capability opened (encyclopedia reads=' + encyclopediaReads + ')');
+
+      const adultScholar = await drive(mkReq({
+        question: 'ما حكم الوضوء؟', age: 25, band: 'adult',
+        extra: { depth: 'scholar' }, authorized: true,
+      }), 'legacy-tool');
+      if (firstModel(adultScholar.bodies) === OPUS) pass('D5 authorized adult scholar sends Opus 5');
+      else fail('D5 authorized adult scholar model = ' + firstModel(adultScholar.bodies));
+      if (systemText(adultScholar.bodies[0]).includes(ASK.buildDepthInstruction('scholar')) && encyclopediaReads > 0) {
+        pass('D5 authorized adult scholar keeps the scholar prompt and encyclopedia capability');
+      } else fail('D5 adult scholar capability missing (encyclopedia reads=' + encyclopediaReads + ')');
+    } finally {
+      fs.readFileSync = realReadFileSync;
+      moduleBuiltin.syncBuiltinESMExports();
+    }
+
+    // Drive the public Ledger path through api/ask.js. The planner is always premium; every later
+    // model request must inherit only the server-authorized answer tier, never body.tier/depth.
+    const driveLedger = async (extra, authorized) => drive(mkReq({
+      question: 'ما حكم قتل النمل؟', age: 25, band: 'adult', extra, authorized,
+    }), 'ledger');
+    const ledgerStandard = await driveLedger({ depth: 'scholar', tier: 'premium' }, false);
+    const standardPlans = ledgerStandard.bodies.filter(isPlanner);
+    const standardStages = ledgerStandard.bodies.filter((b) => !isPlanner(b));
+    if (standardPlans.length && standardPlans.every((b) => b.model === OPUS)) pass('D6 Ledger planner uses Opus 5');
+    else fail('D6 Ledger planner models = ' + JSON.stringify(standardPlans.map((b) => b.model)));
+    if (standardStages.length && standardStages.every((b) => b.model === SONNET)) {
+      pass('D6 forged Ledger premium/depth stays on standard Sonnet stages');
+    } else fail('D6 forged Ledger downstream models = ' + JSON.stringify(standardStages.map((b) => b.model)));
+
+    for (const depth of ['deep', 'scholar']) {
+      const premium = await driveLedger({ depth }, true);
+      const plans = premium.bodies.filter(isPlanner);
+      const stages = premium.bodies.filter((b) => !isPlanner(b));
+      if (plans.length && plans.every((b) => b.model === OPUS)) pass('D7 Ledger ' + depth + ' planner uses Opus 5');
+      else fail('D7 Ledger ' + depth + ' planner models = ' + JSON.stringify(plans.map((b) => b.model)));
+      if (stages.length && stages.every((b) => b.model === OPUS)) pass('D7 authorized Ledger ' + depth + ' stages use Opus 5');
+      else fail('D7 authorized Ledger ' + depth + ' downstream models = ' + JSON.stringify(stages.map((b) => b.model)));
+    }
+
+    // Pin the resolver itself through the same callModel function every Ledger stage invokes.
+    // This is not a string inspection: fetchImpl records the body immediately before the request.
+    const MODEL = await import(pathToUrl('lib/ledger/model.js'));
+    const BUDGET = await import(pathToUrl('lib/ledger/budgets.js'));
+    const direct = [];
+    const directFetch = async (_url, init) => {
+      direct.push(JSON.parse(init.body));
+      return jsonResponse({ content: [{ type: 'text', text: '{}' }], usage: { output_tokens: 1 } });
+    };
+    let tick = 1770000000000;
+    await MODEL.callModel({
+      system: 's', user: 'u', purpose: 'guard-standard', tier: 'standard', fetchImpl: directFetch,
+      budget: new BUDGET.Budget({ now: () => ++tick }),
+    });
+    await MODEL.callModel({
+      system: 's', user: 'u', purpose: 'guard-premium', tier: 'premium', fetchImpl: directFetch,
+      budget: new BUDGET.Budget({ now: () => ++tick }),
+    });
+    if (direct[0] && direct[0].model === SONNET) pass('D8 Ledger standard resolver sends Sonnet 5');
+    else fail('D8 Ledger standard resolver model = ' + (direct[0] && direct[0].model));
+    if (direct[1] && direct[1].model === OPUS) pass('D8 Ledger premium resolver sends Opus 5');
+    else fail('D8 Ledger premium resolver model = ' + (direct[1] && direct[1].model));
+    if (HAIKU === 'claude-haiku-4-5-20251001') pass('D9 fast-model control id stayed byte-exact');
+  } finally {
+    global.fetch = realFetch;
+    DAY.__setRedisForTest(null);
+    LEDGER_REDIS.__resetRedis();
+    FLAG.__resetFlagCacheForTest();
+    for (const [k, had, v] of saved) { if (had) process.env[k] = v; else delete process.env[k]; }
+  }
 }
 
 // ===========================================================================
@@ -361,6 +707,8 @@ function checkStructure(html) {
   checkMessages(html);
   console.log('  -- CHECK C: call-path structure --');
   checkStructure(html);
+  console.log('  -- CHECK D: complete model routing (executed) --');
+  await checkModelRouting();
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {

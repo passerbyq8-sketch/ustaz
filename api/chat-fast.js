@@ -1,7 +1,7 @@
 // api/chat-fast.js
 // FAST GENERAL CHANNEL relay — CALL mode only.
-// Byte-faithful sibling of api/chat.js with ONE behavioural change: it resolves the
-// FAST model (Haiku) instead of the STANDARD model (Sonnet). Everything else — CORS,
+// Byte-faithful sibling of api/chat.js with one routing distinction: its unheard classifier
+// resolves FAST (Haiku), while its user-visible answer resolves STANDARD (Sonnet). Everything else — CORS,
 // ephemeral system-prompt caching, upstream-error passthrough, and the thin SSE relay —
 // is intentionally identical to api/chat.js so the client parser needs ZERO changes.
 //
@@ -20,8 +20,8 @@
 // SIBLING CONTRACT: if you ever change the caching or SSE-relay logic in api/chat.js,
 // mirror it here (and vice-versa) or the two relays will drift.
 //
-// This relay is LIVE: index.html (callAI, FAST_CHANNEL_ENABLED=true) POSTs GEN-
-// classified CALL turns here, and this relay swaps in Haiku.
+// This relay is LIVE: index.html (callAI, FAST_CHANNEL_ENABLED=true) POSTs both the unheard
+// classifier turn and GEN-classified user-visible CALL answers here.
 //
 // D02ب CORRECTS THE LINE THAT STOOD HERE. It used to say this relay "carries NO prompt of its
 // own — the client sends the GEN system prompt". That is no longer true and was never safe: it
@@ -68,6 +68,13 @@ import { liveSearchNotice } from '../lib/policy/live-search-disclosure.js';
 // A caller who sets max_tokens:8 by hand to dodge the day cap buys themselves eight tokens of
 // output. The throttle, the global kill-switch and the input cap are untouched by the trick.
 const CLASSIFIER_MAX_TOKENS = 8;
+
+function modelForVoiceTurn(isClassifierTurn) {
+  if (isClassifierTurn) {
+    return process.env.MODEL_FAST || 'claude-haiku-4-5-20251001';
+  }
+  return process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5';
+}
 
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
@@ -118,21 +125,22 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY غير مضبوط' });
   }
 
-  // Server-authoritative model override. Unlike api/chat.js (which resolves the STANDARD
-  // tier), this relay ALWAYS resolves the FAST tier. The hardcoded fallback is the
-  // documented Haiku string, so the fast path stays fast even if MODEL_FAST is unset —
-  // it never silently falls back to the slower Sonnet/Opus model.
+  // Server-authoritative model override. The same endpoint carries two semantic roles:
+  // only its unheard classifier resolves FAST; every user-visible answer resolves STANDARD.
   let outgoingBody = req.body;
   let voiceBand;
   try {
     const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : { ...req.body };
 
-    parsed.model = process.env.MODEL_FAST || 'claude-haiku-4-5-20251001';
-    console.log('[tier] voice-fast', { model: parsed.model });
-
     // Output cap decided HERE, not by the client. The classifier asks for 8 and the GEN
     // answer for 4096 -- both pass through untouched. An attacker asking for 64000 does not.
     parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
+    const classifierTurnForPrompt = Number(parsed.max_tokens) <= CLASSIFIER_MAX_TOKENS;
+    parsed.model = modelForVoiceTurn(classifierTurnForPrompt);
+    console.log('[tier] voice-fast', {
+      role: classifierTurnForPrompt ? 'classifier' : 'answer',
+      model: parsed.model,
+    });
 
     // SIBLING CONTRACT (api/chat.js A3): `output_config` is NOT accepted by /v1/messages -- its
     // mere presence 400s the whole request. This relay never added it, but it must not FORWARD
@@ -155,7 +163,6 @@ export default async function handler(req, res) {
     // (which prompt, and which policy) reading the same signal; a second field could disagree
     // with itself.
     const reader = readerFromBody(parsed);
-    const classifierTurnForPrompt = Number(parsed.max_tokens) <= CLASSIFIER_MAX_TOKENS;
     dropClientSystem(parsed, 'chat-fast');
     parsed.system = [{
       type: 'text',
