@@ -550,6 +550,20 @@ function partA() {
     eq('an incomplete ' + tag + ' tag is stripped by the same registry',
       stripIncomplete('قبل <' + tag + '>مقطوع'), 'قبل ');
   }
+  const bareHadithText = 'مَتْنٌ مَوْثُوقٌ بِلَا بَيَانَاتِ تَخْرِيجٍ';
+  const bareHadith = plain(parse('<hadith>' + bareHadithText + '</hadith>', 30));
+  const bareHadithSegments = bareHadith.segments.filter((segment) => segment.type === 'hadith');
+  eq('F-034: the real parser preserves a bare hadith as one card segment',
+    bareHadithSegments.length, 1);
+  eq('F-034: a bare hadith keeps its matn and invents neither narrator nor ruling',
+    bareHadithSegments[0],
+    { type: 'hadith', content: bareHadithText, narrator: '', ruling: '' });
+  const bareHadithSpeech = formatForTTS('<hadith>' + bareHadithText + '</hadith>');
+  ok('F-034: the real speech formatter keeps bare matn without leaking a tag or inventing attribution',
+    bareHadithSpeech.includes(bareHadithText)
+      && !bareHadithSpeech.includes('<hadith')
+      && !bareHadithSpeech.includes('رَوَى'),
+    bareHadithSpeech);
   const unknownTag = plain(parse('<invented>text</invented>', 30));
   ok('an unknown tag never becomes a parser segment',
     unknownTag.segments.every((segment) => segment.type !== 'invented'));

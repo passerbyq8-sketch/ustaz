@@ -79,12 +79,18 @@ const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\
 // RE-MEASURED 2026-08-12 (A7 F-064). A broad permission/list for naming scholars was replaced by
 // the server contract: neutral mention remains allowed, but a position needs evidence and a
 // same-person source licence delivered in this request. Every sample grew by EXACTLY 57 bytes.
+//
+// RE-MEASURED 2026-08-12 (A8 F-034/F-062). Hadith cards keep their existing tag but narrator and
+// ruling are now optional and limited to delivered evidence for that same hadith; voice uses the
+// same evidence condition without a visual tag. Unconditional confidence became calibrated,
+// specific disclosure. Chat samples grew by EXACTLY 982 bytes; call samples grew by EXACTLY 1124
+// bytes because they also carry the voice-specific form of the same contract.
 const PINNED = [
-  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 56095, sha: '433b30b14fbb62b04557bbf9063ff29b193505a40a610ff0bc82185f92606e38' },
-  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 54590, sha: '154eb0a6b8626d8b6f969fc87bbefc2e7210f115c6b0c2a8b470a88f28f1eaf9' },
-  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 54364, sha: 'e2834b138c5a009494372b33ee5f652910cd7ec5b4d3b88513af93aa2564f3a5' },
-  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 69178, sha: 'b49c1d87f1608736deb2ecf937043ec88dba68b3e37e90a3edb778ea49a4f8c5' },
-  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 67490, sha: '4d3b7b9f4618270532ecdb82f37748845939494988b95a33bfdb8ec9ec634c70' },
+  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 57077, sha: '2d76fc37b604a8765031d37510816d09d733300c6424c1cfa06011f1eeeede4e' },
+  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 55572, sha: '9775bd419ea281353c1e3a693355b168196af4a950eebd8bf7fc24ee6bf13bd8' },
+  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 55346, sha: '76bbc92a2605c39d8aa5ddbc115dff19ee6fb843370d584488fcfd792baced50' },
+  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 70302, sha: 'f4424d530d50af7eb9736fe64d1476764098eb29a623fb1cabb206a1d8f537ff' },
+  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 68614, sha: 'ce44aef0c2a8608ef77cf3b61410b3a5e3a9b0c46361cc54b3bcd7fef851baaa' },
 ];
 
 (async function main() {
@@ -103,6 +109,177 @@ const PINNED = [
   ok('...and exports buildSystemPrompt', typeof MOD.buildSystemPrompt === 'function');
   ok('...and exports CLASSIFIER_SYSTEM_PROMPT', typeof MOD.CLASSIFIER_SYSTEM_PROMPT === 'string' && MOD.CLASSIFIER_SYSTEM_PROMPT.length > 200);
   ok('...and exports buildFastGenPrompt', typeof MOD.buildFastGenPrompt === 'function');
+
+  // F-034 / F-062. These are assertions on buildSystemPrompt OUTPUT, not source-text greps.
+  // The builder owns one shared epistemic floor; /api/ask only appends a depth block, while
+  // /api/chat selects the call branch inside this same builder. Exercise every age band, every
+  // text depth and the voice branch so a fix cannot be fitted to one sampled profile.
+  {
+    const ASK = await esm('api/ask.js');
+    const profiles = [
+      { band: 'young', name: 'خالد', age: 7, gender: 'male' },
+      { band: 'teen', name: 'هند', age: 15, gender: 'female' },
+      { band: 'adult', name: 'خالد', age: 30, gender: 'male' },
+    ];
+    const textCases = profiles.flatMap((profile) => ['normal', 'deep', 'scholar'].map((depth) => {
+      const base = MOD.buildSystemPrompt(profile.name, profile.age, profile.gender, 'chat');
+      const depthBlock = ASK.buildDepthInstruction(depth);
+      return { ...profile, mode: 'chat', depth, text: base + (depthBlock ? '\n' + depthBlock : '') };
+    }));
+    const callCases = profiles.map((profile) => ({
+      ...profile,
+      mode: 'call', depth: 'voice',
+      text: MOD.buildSystemPrompt(profile.name, profile.age, profile.gender, 'call'),
+    }));
+    const allCases = [...textCases, ...callCases];
+    const detail = (cases) => cases.map((c) => c.band + '/' + c.mode + '/' + c.depth).join(', ');
+
+    const hadithContract = (prompt) => ({
+      keepsCard: prompt.includes('<hadith>نَصُّ الحَدِيثِ المُشَكَّل</hadith>'),
+      showsEvidenceForm: prompt.includes('<hadith narrator="المُخَرِّجُ الوَارِدُ فِي المَادَّة" ruling="الدَّرَجَةُ الوَارِدَةُ فِي المَادَّة">'),
+      fieldsOptional: prompt.includes('خاصّيتا narrator وruling اختياريّتان'),
+      sameItemBound: prompt.includes('المادّةِ الموثوقةِ التي سلَّمها الخادمُ لهذا الحديثِ نفسِه'),
+      memoryForbidden: prompt.includes('لا تجعلْ ذاكرتَك مصدرًا لمُخرِّجٍ أو درجةٍ أو تخريج'),
+      absenceDisclosed: prompt.includes('لم يَرِدْ تخريجُ هذا الحديثِ في المادّةِ المتاحة'),
+      storySourceBound: prompt.includes('ولا تنسبْها إلى كتابٍ من ذاكرتك'),
+    });
+    const safeHadithContract = (prompt) => Object.values(hadithContract(prompt)).every(Boolean);
+
+    // Two evidence states asserted directly against the actual builder output. This is a prompt-
+    // contract test, not a pretend runtime binding or answer generator: production still has no
+    // typed same-item evidence binding, so F-011/F-019/F-020/F-021/F-022 remain open. No runtime
+    // regex, dictionary or heuristic is introduced here.
+    const evidenceScenarios = [
+      {
+        name: 'same-item narrator/ruling evidence',
+        required: [
+          '<hadith narrator="المُخَرِّجُ الوَارِدُ فِي المَادَّة" ruling="الدَّرَجَةُ الوَارِدَةُ فِي المَادَّة">',
+          'إذا صرّحتِ المادّةُ الموثوقةُ لهذا الحديثِ نفسِه بالمُخرِّجِ أو الدرجة، فأضِفْ ما ثبتَ منها فقط',
+          'وإن أثبتتِ المادّةُ إحداهما دونَ الأخرى فأضِفِ المثبتةَ وحدَها',
+        ],
+        forbidden: ['اذكر الراوي بوضوح'],
+      },
+      {
+        name: 'hadith without takhrij evidence',
+        required: [
+          '<hadith>نَصُّ الحَدِيثِ المُشَكَّل</hadith>',
+          'خاصّيتا narrator وruling اختياريّتان، وليستا حقلينِ مطلوبين',
+          'فاستخدمِ الوسمَ العاريَ <hadith>…</hadith>',
+          'لم يَرِدْ تخريجُ هذا الحديثِ في المادّةِ المتاحة',
+        ],
+        forbidden: [
+          'يَجِبُ أَنْ يَكُونَ دَاخِلَ `<hadith narrator="..." ruling="...">',
+          'خاصّيتا narrator وruling إلزاميّتان',
+        ],
+      },
+    ];
+    for (const scenario of evidenceScenarios) {
+      const unsafe = textCases.filter((c) => !safeHadithContract(c.text)
+        || scenario.required.some((clause) => !c.text.includes(clause))
+        || scenario.forbidden.some((clause) => c.text.includes(clause)));
+      ok('F-034: generated text prompt contract handles ' + scenario.name + ' in every band/depth',
+        unsafe.length === 0, 'unsafe cases: ' + detail(unsafe));
+    }
+    ok('F-034: generated prompts never make narrator/ruling mandatory or memory-backed',
+      allCases.every((c) => !c.text.includes('يَجِبُ أَنْ يَكُونَ دَاخِلَ `<hadith narrator="..." ruling="...">')
+        && !c.text.includes('الحديثُ يُنسَبُ منطوقاً في كلامك ولا يُحذَفُ أبداً')
+        && !c.text.includes('اذكر الراوي بوضوح')),
+      detail(allCases.filter((c) => c.text.includes('يَجِبُ أَنْ يَكُونَ دَاخِلَ `<hadith narrator="..." ruling="...">')
+        || c.text.includes('الحديثُ يُنسَبُ منطوقاً في كلامك ولا يُحذَفُ أبداً')
+        || c.text.includes('اذكر الراوي بوضوح'))));
+    ok('F-034: call prompts preserve spoken hadith while binding spoken takhrij to same-item evidence',
+      callCases.every((c) => c.text.includes('انطِقْ متنَ الحديثِ كلامًا طبيعيًّا')
+        && c.text.includes('لا تنطِقِ المُخرِّجَ أو الدرجةَ إلا إذا صرّحتْ بهما المادّةُ الموثوقةُ لهذا الحديثِ نفسِه')
+        && c.text.includes('لم يَرِدْ تخريجُ هذا الحديثِ في المادّةِ المتاحة')
+        && c.text.includes('لا يُحذَفُ لمجرّدِ غيابِ بياناتِ التخريج')
+        && !c.text.includes('وكان نصُّه في مادّةٍ موثوقةٍ سلَّمها الخادم')
+        && !c.text.includes('الحديثُ الذي وردَ نصُّه في المادّةِ الموثوقةِ')),
+      detail(callCases.filter((c) => !c.text.includes('لا تنطِقِ المُخرِّجَ أو الدرجةَ إلا إذا صرّحتْ بهما المادّةُ الموثوقةُ لهذا الحديثِ نفسِه'))));
+
+    const calibratedConfidence = (prompt) => prompt.includes('ثقةٌ معايرةٌ بالدليل')
+      && prompt.includes('اجزمْ حين يكونُ الدليلُ حاضرًا وصريحًا')
+      && prompt.includes('صرّحْ تحديدًا بما لم يثبتْ أو بما نقصَ من المصدر')
+      && prompt.includes('لا تجعلْ هذا الإفصاحَ اعتذارًا مطوّلًا ولا عبارةً مائعة')
+      && prompt.includes('لا تحوِّلْ نقصَ الدليلِ إلى رفضٍ دائم');
+    ok('F-062: every generated age/mode/depth prompt calibrates confidence to evidence',
+      allCases.every((c) => calibratedConfidence(c.text)),
+      'uncalibrated cases: ' + detail(allCases.filter((c) => !calibratedConfidence(c.text))));
+    ok('F-062: no generated prompt suppresses an appropriate uncertainty disclosure',
+      allCases.every((c) => !c.text.includes('أجب بثقة المعلم العارف')
+        && !c.text.includes('لا تتردّدْ ولا تعتذرْ')
+        && !c.text.includes('لا تبرر تردُّدك')),
+      detail(allCases.filter((c) => c.text.includes('أجب بثقة المعلم العارف')
+        || c.text.includes('لا تتردّدْ ولا تعتذرْ')
+        || c.text.includes('لا تبرر تردُّدك'))));
+
+    // Actual non-hadith question through the deterministic text router + buildSystemPrompt. The
+    // epistemic floor must not turn into a blanket refusal or remove ordinary learning behaviour.
+    const ROUTE = await esm('lib/route-classify.js');
+    const neutralQuestion = 'كم حاصل سبعة في ثمانية؟';
+    const neutralRoute = ROUTE.classifyRoute([{ role: 'user', content: neutralQuestion }]);
+    const neutralPromptCases = profiles.map((profile) => MOD.buildSystemPrompt(
+      profile.name, profile.age, profile.gender, 'chat'));
+    ok('F-034/F-062 negative control: an actual non-hadith question stays GEN and answerable',
+      neutralRoute === 'GEN'
+        && neutralPromptCases.every((prompt) => prompt.includes('إِنْ طَلَبَ مَسْأَلَةَ رِيَاضِيَّات')
+          && prompt.includes('حُلَّهَا بِفَرَح')
+          && prompt.includes('لا تحوِّلْ نقصَ الدليلِ إلى رفضٍ دائم')),
+      'route=' + neutralRoute);
+    ok('F-034/F-062 positive controls: safe attribution and worship instructions remain active',
+      allCases.every((c) => c.text.includes('لا تُكمِلْ نسبةً من ذاكرتك')
+        && c.text.includes('<worship id="salah"></worship>')
+        && c.text.includes('لا تَختلق آية ولا حديثاً')),
+      detail(allCases.filter((c) => !c.text.includes('لا تُكمِلْ نسبةً من ذاكرتك')
+        || !c.text.includes('<worship id="salah"></worship>')
+        || !c.text.includes('لا تَختلق آية ولا حديثاً'))));
+
+    // Fresh, source-injected mutants live outside the worktree. Each restores the exact defect
+    // mechanism, then the same behavioural predicate above must reject its generated prompt.
+    if (systemPromptArg < 0) {
+      const mutantDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a8-epistemic-'));
+      try {
+        const loadMutant = async (name, mutantSource) => {
+          const file = path.join(mutantDir, name + '.mjs');
+          fs.writeFileSync(file, mutantSource, 'utf8');
+          return import('file://' + file.replace(/\\/g, '/') + '?v=' + Date.now() + '-' + name);
+        };
+
+        let f034MutantSource = src.replace(
+          '<hadith>نَصُّ الحَدِيثِ المُشَكَّل</hadith>',
+          '<hadith narrator="الراوي مثلاً البخاري" ruling="الحكم مثلاً متفق عليه">نَصُّ الحَدِيثِ المُشَكَّل</hadith>');
+        f034MutantSource = f034MutantSource.replace(
+          'خاصّيتا narrator وruling اختياريّتان',
+          'خاصّيتا narrator وruling إلزاميّتان ويجبُ ملؤهما ولو لم تَرِدْ بياناتُهما في المادّة');
+        ok('F-034 mutant: the final source exposes both injection seams',
+          f034MutantSource !== src
+            && f034MutantSource.includes('خاصّيتا narrator وruling إلزاميّتان'));
+        if (f034MutantSource !== src) {
+          const mutant = await loadMutant('f034-mandatory-fields', f034MutantSource);
+          const prompt = mutant.buildSystemPrompt('خالد', 30, 'male', 'chat');
+          ok('F-034 mutant killed: mandatory memory-backed fields violate the generated contract',
+            !safeHadithContract(prompt)
+              && prompt.includes('خاصّيتا narrator وruling إلزاميّتان'));
+        }
+
+        let f062MutantSource = src.replace(
+          '- **ثقةٌ معايرةٌ بالدليل:** اجزمْ حين يكونُ الدليلُ حاضرًا وصريحًا، وصرّحْ تحديدًا بما لم يثبتْ أو بما نقصَ من المصدر.',
+          '- **لا تبرر تردُّدك** ("هذا سؤال صعب"، "لست متأكداً") — أجب بثقة المعلم العارف.');
+        f062MutantSource = f062MutantSource.replace(
+          '- **إفصاحٌ موجزٌ لا مراوغة:** لا تجعلْ هذا الإفصاحَ اعتذارًا مطوّلًا ولا عبارةً مائعة، ولا تحوِّلْ نقصَ الدليلِ إلى رفضٍ دائم؛ حدِّدِ النقصَ ثمّ قدِّمْ ما يثبته الدليلُ فقط.',
+          '- **لا تكثر من الاعتذار** ("آسف"، "أعتذر") — المعلم لا يعتذر عن وجوده.');
+        ok('F-062 mutant: the final source exposes both confidence injection seams',
+          f062MutantSource !== src && f062MutantSource.includes('أجب بثقة المعلم العارف'));
+        if (f062MutantSource !== src) {
+          const mutant = await loadMutant('f062-unconditional-confidence', f062MutantSource);
+          const prompt = mutant.buildSystemPrompt('خالد', 30, 'male', 'chat');
+          ok('F-062 mutant killed: unconditional confidence violates the generated contract',
+            !calibratedConfidence(prompt) && prompt.includes('أجب بثقة المعلم العارف'));
+        }
+      } finally {
+        fs.rmSync(mutantDir, { recursive: true, force: true });
+      }
+    }
+  }
 
   // F-064. Exercise the prompt actually generated for every band/mode, then the same central
   // finalizer that decides whether the promised attribution contract was kept.

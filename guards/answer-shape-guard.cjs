@@ -485,10 +485,13 @@ function answerShapeViolations(reply) {
       /ولا صيغةً واحدةً تتكرّرُ في كلِّ ردّ/u.test(p));
     ok('the prompt forbids template headings by name («النصيحة الذهبية» and its kind)',
       /لا عناوينَ قالبيّةً ثابتة/u.test(p));
-    ok('the prompt keeps narrator and ruling in separate boxes',
-      /الخانتانِ لا تتبادلان/u.test(p));
-    ok('...and names the broken output that rule prevents',
-      /«رَوَى متفق عليه»/u.test(p));
+    ok('the prompt keeps narrator and ruling optional and in separate boxes',
+      p.includes('خاصّيتا narrator وruling اختياريّتان')
+        && p.includes('إذا أضفتَ الخاصّيتينِ فلا تتبادلان'));
+    ok('...and binds each box to its own evidenced meaning instead of model memory',
+      p.includes('narrator = **المُخرِّجُ حصرًا**')
+        && p.includes('ruling = **الدرجةُ حصرًا**')
+        && p.includes('لا تجعلْ ذاكرتَك مصدرًا لمُخرِّجٍ أو درجةٍ أو تخريج'));
     // البند ٣: the buttons stay, the BLIND mandate goes.
     ok('suggestions are conditional, not mandatory on every reply',
       /الاقتراحاتُ بحسبِ المقام لا بحكمِ العادة/u.test(p));
