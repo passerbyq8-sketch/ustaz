@@ -853,11 +853,39 @@ async function main() {
   // =========================================================================
   console.log('\n=== P1. ONE ROSTER, NOT TWO ===');
   {
-    ok('the entity roster exposes a drift check against the source registry',
-      typeof ENT.rosterDriftProblems === 'function', 'no comparison exists');
-    if (typeof ENT.rosterDriftProblems === 'function') {
-      eq('...and the two agree', ENT.rosterDriftProblems(), []);
+    // F-071 removed the dead product export; the guard retains the complete causal comparison.
+    const rosterProblems = [];
+    for (const entity of ENT.ROSTER) {
+      if (entity.targetType === 'person' && entity.era === 'historical'
+        && SPOL.POLICY_ROWS.some((row) => row.ownerId === entity.canonicalId)) {
+        rosterProblems.push('historical/source-policy collision:' + entity.canonicalId);
+      }
     }
+    for (const row of SPOL.POLICY_ROWS) {
+      if (row.ownerId && ENT.eraOf(row.ownerId) !== 'contemporary') {
+        rosterProblems.push('owner era mismatch:' + row.ownerId);
+      }
+      if (row.ownerId && row.health === 'enabled'
+        && SOURCE_REGISTRY.SCHOLAR_SITES.some((site) => site.domain === row.domain && site.aliases.length > 0)
+        && !ENT.CONTEMPORARY_IDS.includes(row.ownerId)) {
+        rosterProblems.push('derived contemporary missing:' + row.ownerId);
+      }
+      if (row.ownerId && row.health === 'enabled' && SPOL.ownerOf(row.domain) !== row.ownerId) {
+        rosterProblems.push('domain/owner mismatch:' + row.domain);
+      }
+    }
+    const aliases = new Map();
+    for (const entity of ENT.ROSTER) {
+      for (const alias of entity.aliases) {
+        if (aliases.has(alias) && aliases.get(alias) !== entity.canonicalId) {
+          rosterProblems.push('ambiguous alias:' + alias);
+        }
+        aliases.set(alias, entity.canonicalId);
+      }
+    }
+    eq('the guard-side causal roster inventory preserves the former drift coverage', rosterProblems, []);
+    ok('F-071 the dead roster export stays absent',
+      !Object.prototype.hasOwnProperty.call(ENT, 'rosterDriftProblems'));
     const src = read('lib/policy/entities.js');
     ok('there is no second hand-written owner-id table in the policy core',
       !/const DOMAIN_TO_OWNER = Object\.freeze\(\{[\s\S]{80,}\}\)/.test(src),

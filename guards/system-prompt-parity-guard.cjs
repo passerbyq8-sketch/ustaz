@@ -27,6 +27,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const vm = require('vm');
 const crypto = require('crypto');
 
@@ -74,12 +75,16 @@ const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\
 // construction to the model and stopped advertising a fixed source roster. Instead it says that
 // only server-delivered material may be used and that the server alone builds trusted cards.
 // Every sample shrank by EXACTLY 565 bytes; the uniform delta is the expected bounded change.
+//
+// RE-MEASURED 2026-08-12 (A7 F-064). A broad permission/list for naming scholars was replaced by
+// the server contract: neutral mention remains allowed, but a position needs evidence and a
+// same-person source licence delivered in this request. Every sample grew by EXACTLY 57 bytes.
 const PINNED = [
-  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 56038, sha: '834dc80d243550c0b4e2c56a8b9700399c7c86b46ab0e4b4a7bc5547526a14c9' },
-  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 54533, sha: '95264bdfd89a20793339cd34b067baab9ffd42e1771bbf8a1370e3159bdb28f5' },
-  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 54307, sha: 'af43881e81894a0a37f3aa6e4db04f50eddb082391541d17ed5a89454510509d' },
-  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 69121, sha: '0c0d3421384987742a60df76603a35bf0261051b6c0176eabb76be4080e920f8' },
-  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 67433, sha: '3855913b3feaa73f345715b153a6225cefe001e6283d56dcb38436b98a608031' },
+  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 56095, sha: '433b30b14fbb62b04557bbf9063ff29b193505a40a610ff0bc82185f92606e38' },
+  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 54590, sha: '154eb0a6b8626d8b6f969fc87bbefc2e7210f115c6b0c2a8b470a88f28f1eaf9' },
+  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 54364, sha: 'e2834b138c5a009494372b33ee5f652910cd7ec5b4d3b88513af93aa2564f3a5' },
+  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 69178, sha: 'b49c1d87f1608736deb2ecf937043ec88dba68b3e37e90a3edb778ea49a4f8c5' },
+  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 67490, sha: '4d3b7b9f4618270532ecdb82f37748845939494988b95a33bfdb8ec9ec634c70' },
 ];
 
 (async function main() {
@@ -98,6 +103,101 @@ const PINNED = [
   ok('...and exports buildSystemPrompt', typeof MOD.buildSystemPrompt === 'function');
   ok('...and exports CLASSIFIER_SYSTEM_PROMPT', typeof MOD.CLASSIFIER_SYSTEM_PROMPT === 'string' && MOD.CLASSIFIER_SYSTEM_PROMPT.length > 200);
   ok('...and exports buildFastGenPrompt', typeof MOD.buildFastGenPrompt === 'function');
+
+  // F-064. Exercise the prompt actually generated for every band/mode, then the same central
+  // finalizer that decides whether the promised attribution contract was kept.
+  {
+    const prompts = [
+      MOD.buildSystemPrompt('خالد', 7, 'male', 'chat'),
+      MOD.buildSystemPrompt('هند', 15, 'female', 'chat'),
+      MOD.buildSystemPrompt('خالد', 30, 'male', 'call'),
+    ];
+    const lines = prompts.map((prompt) => prompt.split(/\r?\n/)
+      .find((line) => line.startsWith('٦. **ذِكْرُ العلماء ونسبةُ الأقوال:**')) || '');
+    const obeysDeliveredContract = (line) => line.includes('ذكرُ اسمِ العالمِ ذكرًا محايدًا')
+      && line.includes('الدليلِ المرتبطِ به') && line.includes('ترخيصِ المصدرِ لنفسِ الشخص')
+      && line.includes('سلَّمه الخادمُ فعليًّا في هذا الطلب');
+    ok('F-064: every generated prompt permits a neutral name but binds positions to delivered proof',
+      lines.every(obeysDeliveredContract),
+      JSON.stringify(lines));
+    ok('F-064: the generated contract forbids memory completion and cross-entity licence',
+      lines.every((line) => line.includes('لا تُكمِلْ نسبةً من ذاكرتك')
+        && line.includes('لا تنقلْ ترخيصَ كيانٍ إلى كيانٍ آخر')),
+      JSON.stringify(lines));
+    ok('F-064: the old broad permission and its model-facing name roster are absent',
+      prompts.every((prompt) => !prompt.includes('يمكنك ذكر أسماء العلماء الموثوقين')),
+      lines.join('\n'));
+
+    const FT = await esm('lib/finalize-reader-text.js');
+    const CG = await esm('lib/policy/consistency-gate.js');
+    const SA = await esm('lib/policy/source-attribution.js');
+    const sameEntityPages = [{
+      url: 'https://binbaz.org.sa/fatwas/064',
+      text: 'يرى ابن باز وجوب ذلك.',
+    }];
+    const crossEntityPages = [{
+      url: 'https://binothaimeen.net/content/064',
+      text: 'يرى ابن عثيمين وجوب ذلك.',
+    }];
+    const sameEntityLicence = SA.attributionLicence(sameEntityPages);
+    const crossEntityLicence = SA.attributionLicence(crossEntityPages);
+    const finalize = (text, pages) => {
+      const delivered = Array.isArray(pages) ? pages : [];
+      const licence = SA.attributionLicence(delivered);
+      return FT.finalizeReaderText({
+        text, sources: delivered, fallbackText: 'SAFE',
+        consistencyContext: {
+          entity: 'ابن باز', subjectEntity: 'ابن باز', identityVerified: true,
+          notDirectlyVerified: false, searchProven: true, sourceLicence: licence.personIds,
+        },
+      });
+    };
+    ok('F-064: same/cross licences are derived from the delivered fixture pages themselves',
+      JSON.stringify(sameEntityLicence.personIds) === JSON.stringify(['ibn-baz'])
+        && JSON.stringify(crossEntityLicence.personIds) === JSON.stringify(['ibn-uthaymeen'])
+        && sameEntityLicence.pages[0].class === SA.ATTRIBUTION_SOURCE_CLASS.DOMAIN_OWNER
+        && crossEntityLicence.pages[0].class === SA.ATTRIBUTION_SOURCE_CLASS.DOMAIN_OWNER,
+      JSON.stringify({ sameEntityLicence, crossEntityLicence }));
+    const neutral = finalize('ورد اسم ابن باز في السؤال.', []);
+    const unlicensed = finalize('يرى ابن باز وجوب ذلك.', []);
+    const crossEntity = finalize('يرى ابن باز وجوب ذلك.', crossEntityPages);
+    const licensed = finalize('يرى ابن باز وجوب ذلك.', sameEntityPages);
+    ok('F-064: finalizer preserves neutral mention byte-for-byte without a licence',
+      neutral.ok && neutral.text === 'ورد اسم ابن باز في السؤال.', JSON.stringify(neutral));
+    ok('F-064: finalizer refuses an unlicensed or cross-bound position as the prompt promises',
+      [unlicensed, crossEntity].every((result) => !result.ok
+        && result.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED)),
+      JSON.stringify({ unlicensed, crossEntity }));
+    ok('F-064: delivered same-person evidence and its derived licence preserve the position byte-for-byte',
+      licensed.ok && licensed.text === 'يرى ابن باز وجوب ذلك.', JSON.stringify(licensed));
+
+    // This mutant is rebuilt from the final prompt source on every run and lives only in the OS
+    // temp directory. It restores the old broad permission; the semantic predicate above—not a
+    // hash—must reject it.
+    if (systemPromptArg < 0) {
+      const mutantDir = fs.mkdtempSync(path.join(os.tmpdir(), 'a7-f064-'));
+      const mutantFile = path.join(mutantDir, 'system-prompt-f064-mutant.mjs');
+      try {
+        const fixedRule = 'يجوزُ ذكرُ اسمِ العالمِ ذكرًا محايدًا. أمّا نسبةُ رأيٍ أو قولٍ أو حكمٍ إليه فلا تجوزُ إلا بقدرِ الدليلِ المرتبطِ به وترخيصِ المصدرِ لنفسِ الشخص، ممّا سلَّمه الخادمُ فعليًّا في هذا الطلب. لا تُكمِلْ نسبةً من ذاكرتك، ولا تنقلْ ترخيصَ كيانٍ إلى كيانٍ آخر.';
+        const broadRule = 'يمكنك ذكر أسماء العلماء الموثوقين والاستفادة من أقوالهم عند الحاجة.';
+        const mutantSource = src.replace(fixedRule, broadRule);
+        ok('F-064: fresh broad-permission mutant was derived from the final prompt source',
+          mutantSource !== src,
+          'the contract seam moved; update the mutant instead of relying on prompt hashes');
+        if (mutantSource !== src) {
+          fs.writeFileSync(mutantFile, mutantSource, 'utf8');
+          const MUTANT = await import('file://' + mutantFile.replace(/\\/g, '/'));
+          const mutantLine = MUTANT.buildSystemPrompt('خالد', 30, 'male', 'chat').split(/\r?\n/)
+            .find((line) => line.startsWith('٦. **ذِكْرُ العلماء ونسبةُ الأقوال:**')) || '';
+          ok('F-064: fresh broad-permission mutant is killed by the delivered-proof contract',
+            !obeysDeliveredContract(mutantLine) && mutantLine.includes('يمكنك ذكر أسماء العلماء الموثوقين'),
+            mutantLine);
+        }
+      } finally {
+        fs.rmSync(mutantDir, { recursive: true, force: true });
+      }
+    }
+  }
 
   // F-067. Source cards are server-owned structured output. Exercise the generated prompt rather
   // than grepping its source: no reader profile/mode may teach the model a start-tag template or

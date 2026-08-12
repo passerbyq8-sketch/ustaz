@@ -697,10 +697,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const libUrl = 'file:///' + path.join(REPO, 'lib').replace(/\\/g, '/') + '/';
     const rewriteImports = (text) => text.replace(/from '\.\/([^']+)'/g,
       (_match, rel) => "from '" + libUrl + rel + "'");
-    const sacredRule = `    if (isSacredAttributionCapture(capture.raw, name, {
-      frameText: capture.frameText,
-      question: n,
-    })) continue;`;
+    const sacredRule = '    if (sacred) {';
     const intentRule = `  captures.sort((a, b) => INTENT_RANK[a.intent] - INTENT_RANK[b.intent]
     || a.index - b.index || a.priority - b.priority);`;
     ok('mutation precondition: the capture-scoped sacred veto exists', src.includes(sacredRule));
@@ -708,7 +705,8 @@ const user = (t) => [{ role: 'user', content: t }];
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a2-attribution-mut-'));
     try {
       const sacredFile = path.join(dir, 'sacred-veto-removed.mjs');
-      fs.writeFileSync(sacredFile, rewriteImports(src.replace(sacredRule, '')), 'utf8');
+      fs.writeFileSync(sacredFile,
+        rewriteImports(src.replace(sacredRule, '    if (false && sacred) {')), 'utf8');
       const SacredMutant = await import('file:///' + sacredFile.replace(/\\/g, '/'));
       const sacredResult = SacredMutant.detectAttribution([
         { role: 'user', content: 'قال رسول الله ﷺ إنما الأعمال بالنيات' },

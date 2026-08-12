@@ -25,6 +25,7 @@
 // Usage: node guards/identity-guard.cjs
 'use strict';
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const REPO = path.join(__dirname, '..');
@@ -319,6 +320,76 @@ const PAGES = {
       ok('...and it leaks no fragment of the name',
         !k.includes('الرويشد') && !k.includes('عبدالله'), k);
       eq('...and two spellings of one name share it', C.cacheKeyFor('عبد الله الرُّويْشِد'), k);
+
+      // F-016: this cache stores human identities only. A sacred/title-only capture may neither
+      // address the store nor be accepted as a stored verdict, even under concurrent calls.
+      eq('F-016 sacred capture has no cache key', C.cacheKeyFor('رسول'), '');
+      for (const title of ['الإمام', 'الشيخ', 'الدكتور']) {
+        eq('F-016 bare title has no cache key: ' + title, C.cacheKeyFor(title), '');
+      }
+      let forbiddenGets = 0, forbiddenPuts = 0, forbiddenFetches = 0;
+      const forbiddenCache = {
+        get: async () => { forbiddenGets++; return { kind: ID.IDENTITY.SCHOLAR, display: 'رسول', source: 'legacy' }; },
+        put: async () => { forbiddenPuts++; return true; },
+      };
+      const forbidden = await Promise.all(Array.from({ length: 8 }, () => ID.identityFor('رسول', {
+        cache: forbiddenCache,
+        fetchPage: async () => { forbiddenFetches++; return null; },
+      })));
+      ok('F-016 concurrent sacred captures stay UNKNOWN without any cache read/write/fetch',
+        forbidden.every((item) => item.kind === ID.IDENTITY.UNKNOWN)
+          && forbiddenGets === 0 && forbiddenPuts === 0 && forbiddenFetches === 0,
+        JSON.stringify({ forbiddenGets, forbiddenPuts, forbiddenFetches, forbidden }));
+
+      const memory = new Map();
+      let storedTtl = 0;
+      const memoryBackend = {
+        get: async (key) => memory.get(key) || null,
+        setex: async (key, ttl, value) => { storedTtl = ttl; memory.set(key, value); return true; },
+      };
+      const memoryCache = C.identityCache(memoryBackend);
+      const trusted = {
+        kind: ID.IDENTITY.SCHOLAR, display: 'ابن باز', descriptor: 'عالم وفقيه',
+        url: 'https://binbaz.org.sa/', source: 'whitelist',
+      };
+      ok('F-016 a trusted human identity is written', await memoryCache.put('ابن باز', trusted));
+      eq('F-016 a trusted human identity is read back', await memoryCache.get('ابن باز'), trusted);
+      ok('F-016 stored TTL is positive and bounded by the declared found TTL',
+        storedTtl > 0 && storedTtl <= C.FOUND_TTL_SECONDS, String(storedTtl));
+      eq('F-016 cross-name store leakage is rejected by the envelope binding',
+        await C.identityCache({ get: async () => [...memory.values()][0], setex: async () => true }).get('ابن عثيمين'), null);
+      eq('F-016 a pre-schema legacy value is stale and cannot be returned',
+        await C.identityCache({ get: async () => trusted, setex: async () => true }).get('ابن باز'), null);
+      const brokenCache = C.identityCache({
+        get: async () => { throw new Error('store read failed'); },
+        setex: async () => { throw new Error('store write failed'); },
+      });
+      eq('F-016 store read failure is a closed miss', await brokenCache.get('ابن باز'), null);
+      eq('F-016 store write failure is a closed refusal', await brokenCache.put('ابن باز', trusted), false);
+
+      const indexSource = read('lib/identity/index.js');
+      const veto = 'if (!key || !isHumanIdentityCandidate(name)) return unknown;';
+      ok('F-016 mutation precondition: human-only veto precedes injected effects', indexSource.includes(veto));
+      const absoluteImports = (source, baseFile) => source.replace(
+        /from '(\.\.?\/[^']+)'/g,
+        (_match, rel) => "from 'file:///" + path.resolve(path.dirname(baseFile), rel).replace(/\\/g, '/') + "'",
+      );
+      const mutantDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a7-f016-mut-'));
+      try {
+        const mutantFile = path.join(mutantDir, 'identity-human-veto-removed.mjs');
+        fs.writeFileSync(mutantFile, absoluteImports(indexSource.replace(veto, 'if (!key) return unknown;'),
+          path.join(REPO, 'lib/identity/index.js')), 'utf8');
+        const Mutant = await import('file:///' + mutantFile.replace(/\\/g, '/'));
+        let mutantReads = 0;
+        const escaped = await Mutant.identityFor('رسول', { cache: {
+          get: async () => { mutantReads++; return { ...trusted, display: 'رسول', source: 'legacy' }; },
+          put: async () => true,
+        } });
+        ok('F-016 MUTANT KILLED: removing the human-only veto revives poisoned sacred identity',
+          escaped.kind === ID.IDENTITY.SCHOLAR && mutantReads === 1, JSON.stringify({ escaped, mutantReads }));
+      } finally {
+        try { fs.rmSync(mutantDir, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
       if (hadSecret) process.env.LEDGER_CACHE_SECRET = prevSecret; else delete process.env.LEDGER_CACHE_SECRET;
       if (hadFounder) process.env.FOUNDER_SECRET = prevFounder; else delete process.env.FOUNDER_SECRET;
 

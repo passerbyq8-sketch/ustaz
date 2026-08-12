@@ -496,13 +496,13 @@ const HUMAN_DIVINE_NAME_CASES = [
           && result.problems.includes('CONSISTENCY_DROP_WHOLE'), JSON.stringify(result));
     }
     const safeUnknownIdentityProse = [
-      'لم أتحقق من فلان الفلاني. ابن باز عالم معروف.',
+      'لم أتحقق من فلان الفلاني. لا أعلم هل ابن باز عالم معروف.',
       'فلان الفلاني ليس عالمًا معروفًا.',
       'لا أعلم هل فلان الفلاني عالم معروف.',
       'لم نقف على ما يثبت أن فلان الفلاني من العلماء.',
-      'ورد اسم فلان الفلاني، أما ابن باز فمن كبار العلماء.',
+      'ورد اسم فلان الفلاني، أما ابن باز فذُكر اسمه فقط.',
       'هذا نص عام لا يحتوي اسم الشخص المقصود.',
-      'ورد اسم فلان الفلاني فقط. ابن باز من كبار العلماء.',
+      'ورد اسم فلان الفلاني فقط. ورد اسم ابن باز فقط.',
       'لم نقفْ على شخصيّةٍ معروفةٍ بهذا الاسم',
     ];
     for (const text of safeUnknownIdentityProse) {
@@ -521,7 +521,10 @@ const HUMAN_DIVINE_NAME_CASES = [
       JSON.stringify(targetClaimResult));
     const otherIdentityBeforeTargetMention =
       'ابن باز عالم معروف، فلان الفلاني مذكور في السؤال.';
-    const otherIdentityResult = finalizeUnknownIdentity(otherIdentityBeforeTargetMention);
+    const otherIdentityResult = FT.finalizeReaderText({
+      text: otherIdentityBeforeTargetMention, sources: [], fallbackText: 'SAFE',
+      consistencyContext: { ...unknownIdentityContext, sourceLicence: ['ibn-baz'] },
+    });
     ok('F-007 entity-binding RED: a predicate about Ibn Baz cannot cross a comma onto the target',
       otherIdentityResult.ok === true && otherIdentityResult.text === otherIdentityBeforeTargetMention
         && !otherIdentityResult.problems.includes(CG.PROBLEM.IDENTITY_WITHOUT_EVIDENCE),
@@ -545,11 +548,14 @@ const HUMAN_DIVINE_NAME_CASES = [
     ok('F-007 Unicode boundary: the entity does not match inside a longer Arabic word',
       singleEmbedded.ok === true && singleEmbedded.text === 'الصالحين أهل خير، ولا يرد هنا اسم الشخص.');
     const verifiedIdentity = FT.finalizeReaderText({
-      text: 'فلان الفلاني شيخ معروف.', sources: [], fallbackText: 'SAFE',
-      consistencyContext: { ...unknownIdentityContext, identityVerified: true, identityStatus: 'scholar' },
+      text: 'ابن باز شيخ معروف.', sources: [], fallbackText: 'SAFE',
+      consistencyContext: {
+        ...unknownIdentityContext, entity: 'ابن باز', subjectEntity: 'ابن باز',
+        identityVerified: true, identityStatus: 'scholar', sourceLicence: ['ibn-baz'],
+      },
     });
     ok('F-007 resolved control: verified identity bypasses the UNKNOWN-only gate',
-      verifiedIdentity.ok === true && verifiedIdentity.text === 'فلان الفلاني شيخ معروف.');
+      verifiedIdentity.ok === true && verifiedIdentity.text === 'ابن باز شيخ معروف.');
     const finalizerSource = read('lib/finalize-reader-text.js');
     const consistencySource = read('lib/policy/consistency-gate.js');
     const helperSignature = 'export function assertsUnverifiedIdentityAbout(text, entity) {';
@@ -580,11 +586,14 @@ const HUMAN_DIVINE_NAME_CASES = [
       };
       const DisabledHelperFinalizer = await loadFinalizerMutant('helper-disabled', '  return false;');
       const escaped = DisabledHelperFinalizer.finalizeReaderText({
-        text: 'فلان الفلاني عالم معروف.', sources: [], fallbackText: 'SAFE',
-        consistencyContext: unknownIdentityContext,
+        text: 'ابن باز عالم معروف.', sources: [], fallbackText: 'SAFE',
+        consistencyContext: {
+          ...unknownIdentityContext, entity: 'ابن باز', subjectEntity: 'ابن باز',
+          sourceLicence: ['ibn-baz'],
+        },
       });
       ok('MUTANT KILLED: disabling the central UNKNOWN helper lets a hostile identity pass',
-        escaped.ok === true && escaped.text === 'فلان الفلاني عالم معروف.', JSON.stringify(escaped));
+        escaped.ok === true && escaped.text === 'ابن باز عالم معروف.', JSON.stringify(escaped));
 
       const GlobalBindingFinalizer = await loadFinalizerMutant('global-binding',
         `  const foldedText = fold(String(text || ''));
@@ -594,7 +603,7 @@ const HUMAN_DIVINE_NAME_CASES = [
       const separateClaim = 'لم أتحقق من فلان الفلاني. ابن باز عالم معروف.';
       const falsePositive = GlobalBindingFinalizer.finalizeReaderText({
         text: separateClaim, sources: [], fallbackText: 'SAFE',
-        consistencyContext: unknownIdentityContext,
+        consistencyContext: { ...unknownIdentityContext, sourceLicence: ['ibn-baz'] },
       });
       ok('MUTANT KILLED: whole-answer entity/attribute co-occurrence rejects a separate person',
         falsePositive.ok === false && falsePositive.text === 'SAFE', JSON.stringify(falsePositive));
@@ -1081,7 +1090,7 @@ const HUMAN_DIVINE_NAME_CASES = [
       }
       const safeUnknownBodies = [
         'لا أعلم هل فلان الفلاني عالم معروف.',
-        'لم أتحقق من فلان الفلاني. ابن باز عالم معروف.',
+        'لم أتحقق من فلان الفلاني. لا أعلم هل ابن باز عالم معروف.',
       ];
       for (const safeBody of safeUnknownBodies) {
         const safe = await drive(unknownIdentityQuestion, safeBody, {

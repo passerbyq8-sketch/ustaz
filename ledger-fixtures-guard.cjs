@@ -892,6 +892,7 @@ async function main() {
     const r = await EN.runEngine(F4.question, {
       dailyBudgetMode: 'fixture',
       band: 'adult', bandSites, search, now: () => (t += 5),
+      directReader: async () => [],
       fetchImpl: async (u) => {
         if (String(u).includes('api.anthropic.com')) { const e = new Error('x'); e.name = 'AbortError'; throw e; }
         return { ok: false, status: 500, headers: { get: () => 'text/html' }, body: null, text: async () => '' };
@@ -906,7 +907,8 @@ async function main() {
     let t = 0;
     const r = await EN.runEngine(F4.question, {
       dailyBudgetMode: 'fixture',
-      band: 'adult', bandSites, search: async () => [], fetchImpl, now: () => (t += 5),
+      band: 'adult', bandSites, search: async () => [], fetchImpl,
+      directReader: async () => [], now: () => (t += 5),
     });
     eq('no search results => SAFE_REJECTION', r.outcome, 'SAFE_REJECTION');
     ok('...and the internal reason is «not found», not «does not exist»',
@@ -918,6 +920,7 @@ async function main() {
     const r = await EN.runEngine(F4.question, {
       dailyBudgetMode: 'fixture',
       band: 'adult', bandSites, search, now: () => (t += 5),
+      directReader: async () => [],
       fetchImpl: async (u, init) => {
         if (String(u).includes('api.anthropic.com')) return jsonResponse(modelReply(JSON.parse(init.body)));
         return { ok: false, status: 404, headers: { get: () => 'text/html' }, body: null, text: async () => '' };
@@ -926,7 +929,7 @@ async function main() {
     eq('every page failing => SAFE_REJECTION', r.outcome, 'SAFE_REJECTION');
   }
   {
-    // PROMPT INJECTION beside valid evidence: the instruction is ignored, the evidence survives.
+    // PROMPT INJECTION beside otherwise relevant evidence: reject that page as a source.
     const hostile = P([
       'السؤال: ما حكم بيع الذهب بالتقسيط؟',
       'الجواب: الحمد لله. بيع الذهب بالتقسيط لا يجوز لعدم التقابض.' + LONG,
@@ -936,11 +939,18 @@ async function main() {
     CORPUS['https://islamqa.info/ar/answers/7002/x'] = hostile;
     const r = await runFixture(F4);
     CORPUS['https://islamqa.info/ar/answers/7002/x'] = saved;
-    const src = Array.from(r.ledger.sources.values()).find((s) => s.canonicalUrl.includes('7002'));
-    ok('injection markers are recorded', !!src && src.injectionMarkers.length > 0,
-      JSON.stringify(src && src.injectionMarkers));
-    ok('...the injected URL never becomes a card', r.cards.every((c) => !c.url.includes('evil.example')));
-    ok('...and the valid evidence on the same page still worked', r.outcome === 'FULL' || r.ledger.verifiedClaims().length > 0);
+    const injectedSource = Array.from(r.ledger.sources.values()).find((s) => s.canonicalUrl.includes('7002'));
+    ok('injection markers are recorded even though the page is rejected',
+      r.ledger.telemetryShape().injection_markers_seen > 0,
+      JSON.stringify(r.ledger.telemetryShape()));
+    ok('...the marked page is not admitted as a source', !injectedSource);
+    ok('...the marked page never becomes a source card',
+      r.cards.every((c) => !c.url.includes('7002') && !c.url.includes('evil.example')));
+    ok('...and no claim is verified from the marked page',
+      r.ledger.verifiedClaims().every((c) => {
+        const source = r.ledger.source(c.sourceId);
+        return !source || !source.canonicalUrl.includes('7002');
+      }));
   }
   {
     // A LEGITIMATELY SHORT fatwa is not refused for being short.

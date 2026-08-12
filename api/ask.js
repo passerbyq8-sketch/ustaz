@@ -797,10 +797,9 @@ export default async function handler(req, res) {
   // pages are registered through the seam before that branch writes or closes; they are not
   // mixed into legacy retrieval decisions or source-selection state.
   const ledgerFinalizerSources = [];
-  // COUNTED, NEVER ACTED ON — the shipped path's answer to the ledger's `injection_markers_seen`
-  // (lib/ledger/schema.js). lib/retrieve.js fences every retrieved page in wrapUntrusted and
-  // reports which marker shapes it saw; this is where the request as a whole adds them up, so a
-  // page that tried to talk to the model leaves a number in the log instead of only a fence.
+  // REJECTED AND COUNTED — lib/retrieve.js refuses every instruction-bearing page before it can
+  // become model context or a source card, and reports the marker shapes it rejected. This is
+  // where the request adds them up, so the rejection remains observable across fallback passes.
   const injectionMarkersSeen = [];
   const remember = (r) => {
     if (r && Array.isArray(r.sources)) fetchedPages.push(...r.sources);
@@ -997,7 +996,7 @@ export default async function handler(req, res) {
     // what an unregistered name thinks of it.
     if (unregisteredName) console.log('[entity] unregistered name — it will not travel in the query');
 
-    const topicClass = classifyTopic(questionText, plan);
+    const topicClass = classifyTopic(questionText, plan, effectiveRoute);
     const ageAccess = access({ topicClass, audienceBand });
     console.log('[policy]', {
       topicClass, audienceBand, audienceSource, outcome: ageAccess.outcome,
@@ -2514,10 +2513,9 @@ export default async function handler(req, res) {
       })
     );
 
-    // THE STAMP. Every tool_result above carries page text that is now fenced by wrapUntrusted
-    // inside lib/retrieve.js. This says how many marker shapes those pages used — a page talking
-    // to the model rather than to a reader is a thing an operator must be able to SEE, and a
-    // silent fence looks exactly like a page that never tried.
+    // THE STAMP. Clean tool results remain fenced by wrapUntrusted; instruction-bearing pages
+    // never reached them. This count says how many marker shapes were rejected across the whole
+    // request, including failed preferred/targeted passes before the surviving clean pass.
     console.log('[retrieve] injection_markers_seen', {
       count: injectionMarkersSeen.length,
       markers: [...new Set(injectionMarkersSeen)],

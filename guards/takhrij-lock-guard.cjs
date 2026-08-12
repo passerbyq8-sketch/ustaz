@@ -823,7 +823,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           && presenceBad.res.endsBeforeFinalizer === 0
           && !presenceBad.res.writes.join('').includes(contradiction)
           && JSON.stringify(presenceBad.finalizerProblems)
-            === JSON.stringify(['IDENTITY_WITHOUT_EVIDENCE', 'CONSISTENCY_DROP_WHOLE']),
+            === JSON.stringify([
+              'IDENTITY_WITHOUT_EVIDENCE',
+              'ATTRIBUTION_NOT_LICENSED',
+              'CONSISTENCY_DROP_WHOLE',
+            ]),
         JSON.stringify({ text: presenceBad.text, problems: presenceBad.finalizerProblems }));
       const presenceBody = '\u0647\u0630\u0627 \u0647\u0648 \u0627\u0644\u062d\u062f \u0627\u0644\u0645\u062a\u0627\u062d \u0645\u0646 \u0627\u0644\u062a\u062d\u0642\u0642.';
       const presencePlan = (await esm('lib/ask-plan.js')).planAsk(presenceQuestion);

@@ -94,6 +94,16 @@ async function main() {
   const CG = await esm('lib/policy/consistency-gate.js');
   const DC = await esm('lib/daycap.js');
   const STORE = await esm('lib/ledger/redis.js');
+  const SA = await esm('lib/policy/source-attribution.js');
+  const deliveredTransmissionPages = [{
+    url: 'https://islamqa.info/ar/answers/064',
+    text: 'ذكر المصدر أن شيخ الإسلام ابن تيمية يرى عدم مشروعية القضاء.',
+  }];
+  const deliveredTransmissionLicence = SA.attributionLicence(deliveredTransmissionPages);
+  ok('the historical licence used by GREEN fixtures is derived from delivered page evidence',
+    JSON.stringify(deliveredTransmissionLicence.personIds) === JSON.stringify(['ibn-taymiyyah'])
+      && deliveredTransmissionLicence.pages[0].class === SA.ATTRIBUTION_SOURCE_CLASS.NAME_IN_TEXT,
+    JSON.stringify(deliveredTransmissionLicence));
 
   // =========================================================================
   console.log('\n=== A. WHICH ENGINE PRODUCED THE DEFECT — ESTABLISHED, NOT ASSUMED ===');
@@ -132,7 +142,10 @@ async function main() {
   // =========================================================================
   console.log('\n=== B. THE GATE ITSELF — RED on the served reply, GREEN on the sourced one ===');
   {
-    const ctx = { entity: 'ابن تيميه', notDirectlyVerified: true, searchProven: false, allowSourcedPosition: true };
+    const ctx = {
+      entity: 'ابن تيميه', notDirectlyVerified: true, searchProven: false,
+      allowSourcedPosition: true, sourceLicence: deliveredTransmissionLicence.personIds,
+    };
     const bad = CG.consistencyProblems(BAD_DRAFT + ' تنبيه: لم أقف على نصٍّ مباشرٍ للشيخ ابن تيميه.', ctx);
     ok('RED: the served reply is rejected', bad.length > 0, JSON.stringify(bad));
     ok('...for claiming a position with no verified text',
@@ -158,7 +171,10 @@ async function main() {
       CG.consistencyProblems('قال تعالى «وأقيموا الصلاة» والحكم العام وجوب المبادرة.', ctx), []);
     // Once his text IS verified, none of this applies.
     eq('with his text verified, the same reply is unrestricted',
-      CG.consistencyProblems(BAD_DRAFT, { entity: 'ابن تيميه', notDirectlyVerified: false, searchProven: true }), []);
+      CG.consistencyProblems(BAD_DRAFT, {
+        entity: 'ابن تيميه', notDirectlyVerified: false, searchProven: true,
+        sourceLicence: deliveredTransmissionLicence.personIds,
+      }), []);
   }
 
   // =========================================================================
@@ -324,6 +340,7 @@ async function main() {
     const ctx = {
       entity: 'ابن تيميه', notDirectlyVerified: true, searchProven: true,
       allowSourcedPosition: true, transmissionPublishers: pubs,
+      sourceLicence: deliveredTransmissionLicence.personIds,
     };
     eq('GREEN: a transmission that NAMES the publisher passes',
       CG.consistencyProblems(

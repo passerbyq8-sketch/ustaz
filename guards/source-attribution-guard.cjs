@@ -28,6 +28,7 @@
 // Usage: node guards/source-attribution-guard.cjs
 'use strict';
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const REPO = path.join(__dirname, '..');
@@ -65,10 +66,11 @@ const TARIQ_DRAFT = [
 (async function main() {
   console.log('=== source-attribution-guard — a person is named by a page, or not at all ===');
 
-  let SA = null, CG = null;
+  let SA = null, CG = null, FT = null;
   try {
     SA = await esm('lib/policy/source-attribution.js');
     CG = await esm('lib/policy/consistency-gate.js');
+    FT = await esm('lib/finalize-reader-text.js');
   } catch (e) {
     ok('lib/policy/source-attribution.js loads', false, e.message);
     console.log('\n=== ' + (checks - failures) + '/' + checks + ' — FAIL ===');
@@ -253,14 +255,154 @@ const TARIQ_DRAFT = [
     ok('GREEN — a licensed man may be credited by the source-class rule',
       !licensed.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED), JSON.stringify(licensed.problems));
 
-    // ── AND THE RULE IS OFF WHEN NOBODY SUPPLIED A LICENCE ───────────────────
-    // An absent `sourceLicence` is "this caller has not been wired yet", NOT "license nothing":
-    // a check that fired on absence would refuse every existing caller's draft.
-    const unwired = CG.screenDraft(TARIQ_DRAFT, {
-      entity: 'طارق العلي', notDirectlyVerified: true, searchProven: true,
+    // F-031: absence/null are not proof of a licence. Exercise the real finalizer, and distinguish
+    // an attributed claim from ordinary prose so the fail-closed default cannot become a text ban.
+    const claim = 'يرى ابن باز وجوب ذلك.';
+    const finalize = (sourceLicence, includeProperty = true) => FT.finalizeReaderText({
+      text: claim, sources: [], fallbackText: 'SAFE',
+      consistencyContext: {
+        entity: 'ابن باز', subjectEntity: 'ابن باز', identityVerified: true, searchProven: true,
+        ...(includeProperty ? { sourceLicence } : {}),
+      },
     });
-    ok('an absent licence leaves the shipped behaviour exactly as it was',
-      !unwired.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED), JSON.stringify(unwired.problems));
+    const absent = finalize(undefined, false);
+    const nil = finalize(null);
+    const empty = finalize([]);
+    const otherEntity = finalize(['ibn-uthaymeen']);
+    const sameEntity = finalize(['ibn-baz']);
+    ok('F-031 absent sourceLicence rejects an attributed claim through finalization',
+      !absent.ok && absent.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED), JSON.stringify(absent));
+    ok('F-031 null sourceLicence rejects an attributed claim through finalization',
+      !nil.ok && nil.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED), JSON.stringify(nil));
+    ok('F-031 an empty licence rejects an attributed claim',
+      !empty.ok && empty.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED), JSON.stringify(empty));
+    ok('F-031 a licence for another entity cannot cross-bind',
+      !otherEntity.ok && otherEntity.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED), JSON.stringify(otherEntity));
+    ok('F-031 the same entity licence preserves the claim byte-for-byte',
+      sameEntity.ok && sameEntity.text === claim, JSON.stringify(sameEntity));
+    for (const attributed of [
+      'يرى الشيخ ابن باز وجوب ذلك.',
+      'قال الشيخ ابن باز إن ذلك واجب.',
+      'ابن باز هو عالم معروف.',
+      'يرى فضيلة الشيخ ابن باز وجوب ذلك.',
+      'قال سماحة الشيخ ابن باز إن ذلك واجب.',
+      'صحح فضيلة الشيخ ابن باز الحديث.',
+      'ابن باز، عالم معروف.',
+      'ابن باز، وهو عالم معروف.',
+      'أما ابن باز، فهو عالم معروف.',
+      'العالم المعروف، ابن باز.',
+      'فابن باز يرى وجوب ذلك.',
+      'وابن باز يرى وجوب ذلك.',
+      'أما ابن باز فهو عالم معروف.',
+      'أما ابن باز فيرى وجوب ذلك.',
+      'ابن باز فإنه عالم معروف.',
+      'العالم المعروف، ابن باز، يرى وجوب ذلك.',
+      'ومن كبار العلماء: ابن باز.',
+      'يرى معالي الشيخ ابن باز وجوب ذلك.',
+      'قال الوالد الشيخ ابن باز ذلك.',
+      'هذا قول ابن باز في المسألة.',
+      'موقف ابن باز هو الوجوب.',
+      'كان ابن باز عالمًا.',
+      'ورد اسم ابن باز فقط، وابن عثيمين يرى الوجوب.',
+    ]) {
+      const result = FT.finalizeReaderText({
+        text: attributed, sources: [], fallbackText: 'SAFE',
+        consistencyContext: {
+          entity: 'ابن باز', subjectEntity: 'ابن باز', identityVerified: true,
+          searchProven: true, sourceLicence: null,
+        },
+      });
+      ok('F-031 title/copula cannot bypass an absent licence — «' + attributed + '»',
+        !result.ok && result.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED),
+        JSON.stringify(result));
+    }
+    for (const attributed of [
+      'لا أعلم هل ابن باز عالم ثم يرى ابن عثيمين وجوب ذلك.',
+      'لم أتحقق من ابن باز ثم قال ابن عثيمين كذا.',
+      'لا أعلم هل ابن باز عالم، وابن عثيمين يرى الوجوب.',
+      'هل ابن باز عالم، ويرى ابن عثيمين التحريم.',
+    ]) {
+      const result = FT.finalizeReaderText({
+        text: attributed, sources: [], fallbackText: 'SAFE',
+        consistencyContext: {
+          entity: 'ابن باز', subjectEntity: 'ابن باز', identityVerified: true,
+          searchProven: true, sourceLicence: null,
+        },
+      });
+      ok('F-031 non-assertion for A cannot hide an unlicensed claim about B — «' + attributed + '»',
+        !result.ok && result.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED),
+        JSON.stringify(result));
+    }
+    const uncertain = 'لا أعلم هل ابن باز عالم معروف.';
+    const uncertainResult = FT.finalizeReaderText({
+      text: uncertain, sources: [], fallbackText: 'SAFE',
+      consistencyContext: {
+        entity: 'ابن باز', subjectEntity: 'ابن باز', identityStatus: 'unknown',
+        identityVerified: false, searchProven: true, sourceLicence: null,
+      },
+    });
+    ok('F-031 a same-entity uncertainty remains a non-assertion byte-for-byte',
+      uncertainResult.ok && uncertainResult.text === uncertain, JSON.stringify(uncertainResult));
+    for (const nonAssertion of [
+      'هل يرى ابن باز وجوب ذلك؟',
+      'لا أعلم هل يرى ابن باز وجوب ذلك.',
+      'هل يرى الشيخ ابن باز وجوب ذلك؟',
+      'لا أعلم هل الشيخ ابن باز عالم معروف.',
+      'لا أدري هل الإمام ابن باز عالم معروف.',
+      'لا أستطيع القول إن الشيخ ابن باز عالم معروف.',
+      'لم نقف على ما يثبت أن الشيخ ابن باز من العلماء.',
+      'هل ابن عثيمين يرى وجوب ذلك؟',
+      'هل وجوب ذلك هو رأي ابن باز؟',
+      'لا أعلم هل وجوب ذلك هو رأي ابن باز.',
+      'أيرى ابن باز وجوب ذلك؟',
+      'ما قال ابن باز ذلك.',
+      'أقال ابن باز ذلك؟',
+      'أصحح ابن باز الحديث؟',
+      'ليس هذا قول ابن باز.',
+      'هذا ليس قول ابن باز.',
+      'ماذا قال ابن باز؟',
+      'ما رأي ابن باز؟',
+      'قال ابن باز ماذا؟',
+      'ورد اسم ابن باز وهو مذكور فقط.',
+      'ابن باز وهو مذكور في السؤال فقط.',
+    ]) {
+      const result = FT.finalizeReaderText({
+        text: nonAssertion, sources: [], fallbackText: 'SAFE',
+        consistencyContext: {
+          entity: 'ابن باز', subjectEntity: 'ابن باز', identityStatus: 'unknown',
+          identityVerified: false, searchProven: true, sourceLicence: null,
+        },
+      });
+      ok('F-031 question/uncertainty is not an attributed claim — «' + nonAssertion + '»',
+        result.ok && result.text === nonAssertion, JSON.stringify(result));
+    }
+    const general = 'الصلاة عبادة عظيمة.';
+    const generalResult = FT.finalizeReaderText({
+      text: general, sources: [], fallbackText: 'SAFE', consistencyContext: { sourceLicence: null },
+    });
+    ok('F-031 general prose remains byte-identical without a licence',
+      generalResult.ok && generalResult.text === general, JSON.stringify(generalResult));
+
+    const gateFile = path.join(REPO, 'lib/policy/consistency-gate.js');
+    const gateSource = read('lib/policy/consistency-gate.js');
+    const fixedCondition = 'if (creditsAPolicedName(t, policedNamePattern(ctx))) {';
+    const oldCondition = 'if (Array.isArray(ctx.sourceLicence) && creditsAPolicedName(t, policedNamePattern(ctx))) {';
+    ok('F-031 mutation precondition: absence is handled by the claim detector', gateSource.includes(fixedCondition));
+    const absoluteImports = (source) => source.replace(/from '(\.\.?\/[^']+)'/g, (_match, rel) =>
+      "from 'file:///" + path.resolve(path.dirname(gateFile), rel).replace(/\\/g, '/') + "'");
+    const mutantDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a7-f031-mut-'));
+    try {
+      const mutantFile = path.join(mutantDir, 'array-only-licence.mjs');
+      fs.writeFileSync(mutantFile, absoluteImports(gateSource.replace(fixedCondition, oldCondition)), 'utf8');
+      const Mutant = await import('file:///' + mutantFile.replace(/\\/g, '/'));
+      const escaped = Mutant.screenDraft(claim, {
+        entity: 'ابن باز', subjectEntity: 'ابن باز', identityVerified: true, searchProven: true,
+      });
+      ok('F-031 MUTANT KILLED: Array.isArray-only behavior lets the absent licence escape',
+        !escaped.problems.includes(CG.PROBLEM.ATTRIBUTION_NOT_LICENSED), JSON.stringify(escaped));
+    } finally {
+      try { fs.rmSync(mutantDir, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
   }
 
   // ==========================================================================
