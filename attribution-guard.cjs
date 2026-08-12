@@ -20,10 +20,10 @@
 //                   before the model is called, the answer is buffered, and refusal is the
 //                   default on every failure path.
 //
-// NETWORK. Part B talks to binothaimeen.net. It is skipped automatically when the host is
-// unreachable, and it never makes more than the two calls the adapter itself makes.
+// NO NETWORK. Part B drives the real adapter through a local transport fixture. Search order,
+// candidate pooling, lesson fetches, retries, and the per-request cap are therefore deterministic.
 //
-// Usage: node attribution-guard.cjs [--offline]
+// Usage: node attribution-guard.cjs
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -31,7 +31,6 @@ const path = require('path');
 const vm = require('vm');
 const babelParser = require('@babel/parser');
 
-const OFFLINE = process.argv.includes('--offline');
 const REPO = __dirname;
 
 let failures = 0, checks = 0, skipped = 0;
@@ -46,7 +45,6 @@ function eq(name, actual, expected) {
   const a = JSON.stringify(actual), e = JSON.stringify(expected);
   return ok(name, a === e, 'expected ' + e + '\n        actual   ' + a);
 }
-function skip(name, why) { skipped++; console.log('  SKIP  ' + name + '  (' + why + ')'); }
 const cps = (x) => Array.prototype.map.call(String(x == null ? '' : x), (c) => c.charCodeAt(0).toString(16)).join(' ');
 const user = (t) => [{ role: 'user', content: t }];
 
@@ -55,6 +53,7 @@ const user = (t) => [{ role: 'user', content: t }];
 
   const A = await import('file://' + path.join(REPO, 'lib', 'attribution.js').replace(/\\/g, '/'));
   const B = await import('file://' + path.join(REPO, 'lib', 'binothaimeen.js').replace(/\\/g, '/'));
+  const Budget = await import('file://' + path.join(REPO, 'lib', 'ledger', 'budgets.js').replace(/\\/g, '/'));
   const S = await import('file://' + path.join(REPO, 'lib', 'policy', 'sacred-attribution.js').replace(/\\/g, '/'));
 
   // =========================================================================
@@ -154,18 +153,74 @@ const user = (t) => [{ role: 'user', content: t }];
   const ID = '443c0396-cc67-4fd6-b320-1b79bba567a9';
   // The page that states the EIGHTY-DAY limit, which is the one an eighty-day question needs.
   const ID80 = '80651235-18e9-4f06-833b-0f531d2d1af9';
+  const ID90 = 'fixture-days-81-120';
+  const ID_TRAVEL = 'fixture-no-duration-travel';
+  const TAPE_ID = '2a31bf00-7039-496b-9a42-27d74b796bb6';
+  const MONTH_TITLE = 'حكم الصلاة والصيام لمن أسقطت الجنين في الشهر الثاني';
+  const MONTH_TEXT = 'السؤال: أسقطت المرأة في الشهر الثاني. الجواب: هذا الدم ليس نفاساً بل دم فساد، '
+    + 'وتصوم وتصلي؛ لأن خلق الإنسان لم يتبين في هذا السقط، وهذا حكم الشهر الثاني فقط.';
+  const EIGHTY_TITLE = 'ضابط السقط الذي تترك المرأة لأجله الصلاة';
+  const EIGHTY_TEXT = 'السؤال: امرأة أسقطت الجنين قبل ثمانين يوماً. الجواب: قبل الثمانين لا يتبين خلق '
+    + 'الإنسان، وليس الدم نفاساً بل دم فساد، ولذلك تصوم وتصلي.';
+  const NINETY_TITLE = 'حكم الدم لمن أسقطت بعد ثلاثة أشهر';
+  const NINETY_TEXT = 'السؤال: امرأة أسقطت بعد ثلاثة أشهر. الجواب: إذا أسقطت بعد ثلاثة أشهر فلها حكم '
+    + 'هذه المدة، ويُنظر في خلق الإنسان، وتصلي وتصوم بحسب التفصيل المذكور.';
+  const TRAVEL_TITLE = 'حكم الصلاة في السفر';
+  const TRAVEL_TEXT = 'السؤال: ما حكم الصلاة في السفر؟ الجواب: تقصر الصلاة الرباعية في السفر، '
+    + 'وهذه فتوى مختصرة في حكم صلاة المسافر.';
+  const TAPE_TITLE = 'كتاب النكاح (الشرح الثالث) - 17';
+  const TAPE_TEXT = 'التفريغ النصي للشريط رقم سبعة عشر، وهو درس مطول وليس فتوى موجهة إلى سؤال بعينه.';
+  const lessons = new Map([
+    [ID, { title: MONTH_TITLE, text: MONTH_TEXT }],
+    [ID80, { title: EIGHTY_TITLE, text: EIGHTY_TEXT }],
+    [ID90, { title: NINETY_TITLE, text: NINETY_TEXT }],
+    [ID_TRAVEL, { title: TRAVEL_TITLE, text: TRAVEL_TEXT }],
+    [TAPE_ID, { title: TAPE_TITLE, text: TAPE_TEXT }],
+  ]);
+  const fixtureAttempts = [];
+  const jsonResponse = (data) => ({
+    ok: true,
+    status: 200,
+    async text() { return JSON.stringify({ data }); },
+  });
+  const searchRow = (id) => {
+    const hit = lessons.get(id);
+    return { id, title: { ar: hit.title }, content: { ar: hit.text }, relevance: 1 };
+  };
+  const fixtureFetch = async (url, init) => {
+    if (String(url).includes('/api/search-data')) {
+      const term = JSON.parse(init.body).searchTerm;
+      const n = B.normaliseAr(term);
+      fixtureAttempts.push({ kind: 'search', term });
+      let ids = [];
+      if (n.includes('الثمانين') || n.includes('ثمانين')) ids = [ID80];
+      else if (n.includes('الشهر الثاني')) ids = [ID];
+      else if (n === B.normaliseAr('الصلاة في السفر؟')) ids = [ID_TRAVEL];
+      else if (n === B.normaliseAr('فيمن أسقطت بعد 90 يوماً؟')) ids = [ID];
+      // The site's broad subject search is what exposes both period candidates. Before the
+      // regression fix this useful term sits outside the four-search cap for a ninety-day query.
+      else if (n === B.normaliseAr('أسقطت')) ids = [ID90, ID];
+      return jsonResponse(ids.map(searchRow));
+    }
+    const match = String(url).match(/\/lessons\/audios\/show\/([^/]+)/);
+    const id = match ? decodeURIComponent(match[1]) : '';
+    fixtureAttempts.push({ kind: 'fetch', id });
+    const hit = lessons.get(id);
+    return jsonResponse(hit ? {
+      title: { ar: hit.title },
+      objective: { content: { ar: '<p>' + hit.text + '</p>' } },
+    } : null);
+  };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = fixtureFetch;
+  B.__clearCacheForTest();
   let lesson = null;
-  if (OFFLINE) {
-    skip('the official corpus is reachable', '--offline');
-  } else {
+  try {
     try {
       lesson = await B.fetchLesson(ID);
     } catch (e) { lesson = null; }
-    if (!lesson) {
-      skip('the official corpus is reachable', 'binothaimeen.net did not answer');
-      skip('...and the adapter fails CLOSED when it does not', 'covered by C');
-    } else {
-      ok('the official corpus is reachable and the lesson parses', !!lesson.exactText);
+    ok('the local official-corpus fixture is reachable and the lesson parses', !!(lesson && lesson.exactText));
+    if (lesson) {
       eq('...it reports the scholar', lesson.scholar, 'محمد بن صالح العثيمين');
       ok('...and the publisher', /الموقع الرسمي/.test(lesson.publisher));
       eq('...the id it was asked for', lesson.sourceId, ID);
@@ -237,12 +292,24 @@ const user = (t) => [{ role: 'user', content: t }];
 
       // A question the corpus does not answer must come back EMPTY, not with a near miss.
       const miss = await B.retrieveIbnUthaymeen('ما حكم تعدين العملات الرقمية المشفرة والبلوكتشين');
-      eq('a question the corpus does not answer yields NO source', miss.length, 0);
+      B.__clearCacheForTest();
+      const noDurationStart = fixtureAttempts.length;
+      const noDuration = await B.retrieveIbnUthaymeen('ما حكم الصلاة في السفر؟');
+      const noDurationAttempts = fixtureAttempts.slice(noDurationStart);
+      ok('an unanswered query fails closed and an answerable query with no duration does not regress',
+        miss.length === 0 && noDuration.length === 1 && noDuration[0].sourceId === ID_TRAVEL
+          && noDurationAttempts.length <= Budget.MAX_PAGES_FETCHED,
+        JSON.stringify({ miss: miss.length, noDuration: noDuration.map((s) => s.sourceId),
+          attempts: noDurationAttempts, cap: Budget.MAX_PAGES_FETCHED }));
 
       // 81–120 DAYS and BEYOND 120. Neither may be answered from the second-month fatwa: it is a
       // different case, and the app has no business extending a ruling past what its source says.
+      // Start this causal request cold: earlier independent phrasing fixtures must not decide
+      // whether its search and fetch are exercised or hide either attempt behind their cache.
+      B.__clearCacheForTest();
       const later = A.detectAttribution(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت بعد 90 يوماً؟'));
       let laterPool = [];
+      const laterAttemptStart = fixtureAttempts.length;
       const laterSrc = await B.retrieveIbnUthaymeen(later.question, {
         excludeWords: String(later.scholarName || '').split(' '),
         rank: async (q, cands) => {
@@ -251,11 +318,22 @@ const user = (t) => [{ role: 'user', content: t }];
           return hit ? hit.id : null;
         },
       });
+      const laterAttempts = fixtureAttempts.slice(laterAttemptStart);
+      console.log('  INFO  F-163 regression trace ' + JSON.stringify({
+        attempts: laterAttempts, count: laterAttempts.length, cap: Budget.MAX_PAGES_FETCHED,
+      }));
       ok('the 81–120 day band has its OWN page in the pool, not the second-month one',
-        laterPool.some((t) => t.indexOf('ثلاثة أشهر') !== -1), JSON.stringify(laterPool.slice(0, 6)));
+        laterPool.some((t) => t.indexOf('ثلاثة أشهر') !== -1)
+          && laterAttempts.filter((a) => a.kind === 'search').length <= Budget.MAX_PAGES_FETCHED - 1,
+        JSON.stringify({ pool: laterPool.slice(0, 6), attempts: laterAttempts }));
       ok('...and a 90-day question resolves to a page whose own period covers it',
-        laterSrc.length === 1 && laterSrc[0].sourceId !== ID && laterSrc[0].periodTier <= 1,
-        JSON.stringify(laterSrc.map((s) => s.title + ' /' + s.periodVerdict)));
+        laterSrc.length === 1 && laterSrc[0].sourceId === ID90 && laterSrc[0].periodTier <= 1
+          && laterAttempts.length <= Budget.MAX_PAGES_FETCHED,
+        JSON.stringify({
+          sources: laterSrc.map((s) => s.title + ' /' + s.periodVerdict),
+          attempts: laterAttempts,
+          cap: Budget.MAX_PAGES_FETCHED,
+        }));
 
       // THE RANKER CAN BE OVERRULED, and this is the check that proves it against the live site.
       // Force it to make exactly the mistake a model can make — the second-month fatwa for a
@@ -292,11 +370,14 @@ const user = (t) => [{ role: 'user', content: t }];
 
       // A LECTURE TRANSCRIPT IS NOT A FATWA. Measured: before this rule the top-scoring candidate
       // for the original question was a two-hour tape of كتاب النكاح, at overlap 1.00.
-      const tape = await B.fetchLesson('2a31bf00-7039-496b-9a42-27d74b796bb6');
-      if (!tape) skip('a lecture transcript is rejected as a source', 'lesson unavailable');
-      else ok('a lecture transcript is rejected as a source', !B.isTargetedFatwa(tape.title, tape.exactText),
-        cps(tape.title) + ' / ' + tape.exactText.length + ' chars');
+      const tape = await B.fetchLesson(TAPE_ID);
+      ok('a lecture transcript is rejected as a source',
+        !!tape && !B.isTargetedFatwa(tape.title, tape.exactText),
+        tape ? cps(tape.title) + ' / ' + tape.exactText.length + ' chars' : '(fixture lesson missing)');
     }
+  } finally {
+    globalThis.fetch = realFetch;
+    B.__clearCacheForTest();
   }
 
   // The sanitiser and the scorer are pure and are checked with or without the network.
