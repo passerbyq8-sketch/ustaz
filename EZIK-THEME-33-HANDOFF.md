@@ -23,21 +23,23 @@
 
 ## شاشات إستانة ٣٣ — القائمة الكاملة
 
-### index.html — ١٢ شاشة، صفر legacy
+### index.html — ١٣ شاشة، صفر legacy
 
 | الشاشة | المفردات |
 |---|---|
 | loading | `.ezload-*` |
 | onboarding | `.ezonb-*` |
+| home | `.ezist-*` |
+| fatwa | `.ezf-*` |
 | chat | `.ezc-*` |
-| call | `.ezcall-*` |
-| favorites | `.ezfav-*` |
 | parentGate | `.ezgate-*` |
 | parentDashboard | `.ezparent-*` |
-| home | `.ezist-*` |
-| adhkar | `.ezia-*` |
-| memorize / settings | `.ezsh-*` (الغلاف المشترك) |
+| settings | `.ezsh-*` (الغلاف المشترك) |
+| favorites | `.ezfav-*` |
+| call | `.ezcall-*` |
+| memorize | `.ezsh-*` (الغلاف المشترك) |
 | mushaf | `.ezmr-*` |
+| adhkar | `.ezia-*` |
 
 ### الحواجز الثلاثة — كلها إستانة
 

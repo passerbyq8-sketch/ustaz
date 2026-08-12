@@ -28,6 +28,47 @@ const MAX_TASHKEEL_CHARS = 5000;
 // response — which is exactly why it must not carry the provider's own error string.
 const TASHKEEL_FAILED_MESSAGE = 'تعذّر التشكيل — أُعيد النص كما هو.';
 
+// A provider may add Arabic combining marks, and nothing else. Comparing the text with those
+// marks removed pins every letter, digit, space and punctuation byte. The per-gap subsequence
+// check then pins every mark the reader already supplied to the same position and order
+// (including U+0670), while still allowing the provider to add another mark beside it.
+const ARABIC_DIACRITIC_RANGE = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7-\u06E8\u06EA-\u06ED\u08D3-\u08FF]/u;
+const COMBINING_MARK = /\p{M}/u;
+
+function isArabicDiacritic(ch) {
+  return COMBINING_MARK.test(ch) && ARABIC_DIACRITIC_RANGE.test(ch);
+}
+
+function structuralParts(value) {
+  let base = '';
+  const marks = [[]];
+  for (const ch of String(value)) {
+    if (isArabicDiacritic(ch)) {
+      marks[marks.length - 1].push(ch);
+    } else {
+      base += ch;
+      marks.push([]);
+    }
+  }
+  return { base, marks };
+}
+
+export function isSafeDiacritization(original, candidate) {
+  if (typeof original !== 'string' || typeof candidate !== 'string' || !candidate) return false;
+  const before = structuralParts(original);
+  const after = structuralParts(candidate);
+  if (before.base !== after.base || before.marks.length !== after.marks.length) return false;
+
+  for (let i = 0; i < before.marks.length; i++) {
+    let originalMarkIndex = 0;
+    for (const mark of after.marks[i]) {
+      if (mark === before.marks[i][originalMarkIndex]) originalMarkIndex++;
+    }
+    if (originalMarkIndex !== before.marks[i].length) return false;
+  }
+  return true;
+}
+
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -79,10 +120,6 @@ export default async function handler(req, res) {
   if (!rl.ok) {
     return res.status(429).json({ error: 'audio rate limit exceeded' });
   }
-
-  // إزالة أي تشكيل موجود لضمان معالجة موحّدة ومُتَّسقة
-  // (نُزيل الفتحة والكسرة والضمة والسكون والشدة والتنوينات والألف الخنجرية)
-  const stripped = text.replace(/[\u064B-\u0652\u0670]/g, '');
 
   // تحضير تلميح الجنس لمساعدة المُشكِّل في تمييز المؤنث/المذكر
   const genderHint = gender === 'female'
@@ -139,7 +176,9 @@ export default async function handler(req, res) {
         max_tokens: 2000,
         system: systemPrompt,
         messages: [
-          { role: 'user', content: stripped }
+          // Existing marks are evidence, not disposable input. The validator below independently
+          // rejects any output that moves or removes one of them.
+          { role: 'user', content: text }
         ],
       }),
     });
@@ -163,12 +202,11 @@ export default async function handler(req, res) {
     const diacritized = data.content
       .map(c => c.type === 'text' ? c.text : '')
       .filter(Boolean)
-      .join('')
-      .trim();
+      .join('');
 
-    // إذا لم نحصل على نص مشكّل صالح، نُرجع الأصل
+    // Fail closed to the exact input. No normalization or trimming is allowed on this path.
     return res.status(200).json({
-      text: diacritized || text
+      text: isSafeDiacritization(text, diacritized) ? diacritized : text
     });
   } catch (error) {
     console.error('[tashkeel] transport failed: ' + (error && error.message ? String(error.message).slice(0, 200) : 'unknown'));

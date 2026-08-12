@@ -254,9 +254,9 @@ Query bounds asserted **independently**: `379c/44w` PASS, `380c/45w` PASS, `381c
 `BLOCKED`, `51w` alone `BLOCKED`.
 
 Daily budget: injectable; fake-store tests only; ten concurrent reservations against a ceiling of
-four grant **exactly four**; unreachable store fails **closed**; unset budget reports
-`not_configured` and refuses. Reservation happens **before** the provider call and **after** the
-cache lookup (both asserted positionally in `engine.js`). Kill switch independence asserted.
+four grant **exactly four**; unreachable store fails **closed**; an absent or malformed environment
+value resolves to the finite default 5000. Reservation happens **before** the provider call and
+**after** the cache lookup (both asserted positionally in `engine.js`). Kill switch independence asserted.
 
 Negative cache: empty results stored, TTL `3600s`, positive TTL `86400s`. Key is
 `lg:s:<40 hex>` HMAC; `keyLeaks()` confirms no readable fragment of the question; a missing secret
@@ -273,11 +273,14 @@ environment, so `client()` returns `null` on every real path. No key was created
 
 | | |
 |---|---|
-| Policy rows | 26 |
-| Enabled | 25 |
-| Enabled **and** searchable | 24 |
-| Registry active | 24 |
-| Registry blocked | 1 |
+| Policy rows | 27 |
+| Enabled | 24 |
+| Enabled **and** searchable | 22 |
+| Registry total | 31 |
+| Registry active | 22 |
+| Registry blocked | 2 |
+| Registry deferred | 3 |
+| Registry world | 4 |
 | `conformanceProblems()` | `[]` |
 | Capabilities changed by this RFC | **0** |
 | Sources activated by this RFC | **0** |
@@ -293,7 +296,7 @@ lib/ledger/source-policy.js` returns **empty**.
 
 ## K. Gates and tests
 
-All 35 gates, run individually via `gates.json`:
+All 71 gates, run individually via `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -301,14 +304,20 @@ classifier 0 · hafs 0 · call 0 · history 0 · markdown 0 · reveal 0 · quran
 prayerquest 0 · bankintegrity 0 · contentreview 0 · themecoverage 0 · chatux 0 · a11y 0
 questux 0 · attribution 0 · claim 0 · sourceregistry 0 · bravequery 0 · smartretrieval 0
 ledgercontract 0 · ledgerretrieval 0 · ledgergates 0 · ledgerruntime 0 · ledgerfixtures 0
-ledgerseam 0 · rfcpolicy 0 · rfcruntime 0
+ledgerseam 0 · rfcpolicy 0 · rfcruntime 0 · rfcwiring 0 · rfcround3 0 · rfcmode 0
+rfchistorical 0 · rfcconsistency 0 · rfcworld 0 · scholardrift 0 · shippedreality 0
+pagematch 0 · takhrij 0 · quotedphrase 0 · adaptedcorpus 0 · deaddomains 0
+floorsfilters 0 · liveness 0 · aiconsent 0 · srcattr 0 · referraltail 0 · namepresence 0
+voicesafety 0 · wird 0 · worldparity 0 · rulingsource 0 · retrievalobs 0 · madinahafs 0
+i18nui 0 · adhkartwins 0 · systemprompt 0 · lockpackage 0 · sourcehonesty 0
+ledgertelemetry 0 · livesearch 0 · answershape 0 · identity 0 · transfermode 0 · anchormode 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        35/35 PASS
-RECON              PASS=119 WARN=6 FAIL=0   (baseline 117 + the 2 new gates)
+TOTAL_GATES        71/71 PASS
+RECON              PASS=158 WARN=3 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
@@ -393,9 +402,9 @@ what earlier sections of this report claimed:
    intent and wrong about fact: the engine imported `POLICY_VERSION` and nothing else. The IR now
    derives `claim_relation`, `target_type`, `era`, roles and `provenance_cap` inside
    `lib/ledger/query-ir.js`, claims are stamped with them, and Gate 3 enforces them.
-2. **The daily ceiling was optional.** §I said the ledger is not activatable without a configured
-   budget. That was true of the intent and false of the code — `opts.dailyBudget || null` let any
-   caller omit it. It is now a precondition of `decidePath`.
+2. **The daily ceiling was optional.** §I said the ledger must not search without a finite budget.
+   The constructor now uses `DEFAULT_DAILY_SEARCH_BUDGET=5000` for absent or malformed environment
+   input; `decidePath()` no longer carries an unconfigured-budget branch that can never be reached.
 3. **`SERVICE_LIMITED` was a side field**, not an outcome. It is an outcome now, with
    `PARTIAL_SERVICE_LIMITED` for the case where part of the answer survived.
 4. **The age source was mislabelled.** §H and the handler called a client-supplied `band` an
@@ -407,10 +416,9 @@ ids, and corpus pages below the 300-character evidence floor).
 
 ## N. Known limitations
 
-1. **`DAILY_SEARCH_BUDGET` has no production value.** Deliberately not guessed. Until it is set
-   from the cost dashboard, `configuredLimit()` returns `null`, `decidePath()` returns `legacy`
-   with reason `daily_budget_unconfigured`, and the ledger path is genuinely unreachable.
-   **This must be set before any canary.**
+1. **`DAILY_SEARCH_BUDGET` is optional configuration.** `configuredLimit()` returns the shipped
+   finite default 5000 when it is absent or malformed, accepts valid integer overrides, and honours
+   zero as a hard stop. `decidePath()` does not branch on this always-configured result.
 
 2. **There is no server-authenticated age, and the code no longer pretends otherwise.** `band`
    reaches the server as `deriveCaps(p.age).band`, computed in the browser from
@@ -444,8 +452,7 @@ ids, and corpus pages below the 300-character evidence floor).
 8. **The topic classifier is lexical over a reviewed vocabulary.** It is conjunction-based for
    hazards and IR-driven for scholar questions, which is what the RFC requires, but it is not a
    semantic model. Dialect coverage beyond the tested Gulf forms is unmeasured.
-9. **`wird-guard.cjs`** — not present in this repository and not in `gates.json`; nothing was done
-   about it, correctly out of scope.
+9. **Wird gate.** `tools/wird-guard.cjs` is present and registered in `gates.json` as `wird`.
 10. **The child-path answers were produced with a stubbed model.** The deterministic floor, the
    repair and the routing are real and measured; the *quality* of an unstubbed model's draft is
    not, and is a live-eval question.

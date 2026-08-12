@@ -31,6 +31,10 @@ function ok(name, cond, detail) {
   console.log('  FAIL  ' + name + (detail ? '\n        ' + detail : ''));
   return false;
 }
+function eq(name, actual, expected) {
+  const a = JSON.stringify(actual), e = JSON.stringify(expected);
+  return ok(name, a === e, 'expected ' + e + '\n        actual   ' + a);
+}
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 
@@ -53,7 +57,8 @@ function fakeRes() {
     // would read every relayed reply as gibberish and every assertion about one as vacuous.
     write(s) { this.writes.push(decodeWrite(s)); return true; },
     end(s) { if (s) this.writes.push(decodeWrite(s)); this.ended += 1; return this; },
-    json(o) { this.writes.push(JSON.stringify(o)); this.ended += 1; return this; },
+    json(o) { this.body = o; this.writes.push(JSON.stringify(o)); this.ended += 1; return this; },
+    send(o) { this.body = o; this.ended += 1; return this; },
   };
 }
 const readerText = (res) => res.writes.join('')
@@ -216,6 +221,205 @@ const BENIGN = 'شنو معنى الإحسان؟';
       ok('the age band is stripped from the body sent upstream',
         !!sentBody && sentBody.band === undefined, JSON.stringify(sentBody && Object.keys(sentBody)));
     }
+
+    console.log('\n=== E. F-109 — THE EXISTING IMPERMISSIBLE-REQUEST CLASSIFIER GUARDS BOTH RELAYS ===');
+    {
+      const IR = await esm('lib/policy/impermissible-request.js');
+      const fastHandler = (await esm('api/chat-fast.js')).default;
+      const BLOCKED = 'ابغى أغنية حلوة';
+      const RULING = 'ما حكم الأغاني؟';
+      ok('the blocked fixture is classified by the existing shared classifier',
+        IR.classifyImpermissibleRequest(BLOCKED).blocked === true);
+      ok('the ruling twin is not blocked by that classifier',
+        IR.classifyImpermissibleRequest(RULING).blocked === false);
+
+      const reply = (text) => {
+        const frame = 'data: ' + JSON.stringify({
+          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text },
+        }) + '\n\n' + 'data: ' + JSON.stringify({ type: 'message_stop' }) + '\n\n';
+        let sent = false;
+        return {
+          ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text }] }),
+          text: async () => '',
+          body: { getReader: () => ({ read: async () => (sent ? { done: true }
+            : (sent = true, { done: false, value: new Uint8Array(Buffer.from(frame, 'utf8')) })) }) },
+        };
+      };
+
+      for (const [name, routeHandler] of [['chat', handler], ['chat-fast', fastHandler]]) {
+        let providerCalls = 0;
+        globalThis.fetch = async (url) => {
+          if (String(url).includes('api.anthropic.com')) {
+            providerCalls++;
+            return reply('جواب المزود.');
+          }
+          throw new Error('offline limiter fixture');
+        };
+        const blockedRes = fakeRes();
+        await routeHandler(mkReq(BLOCKED, { age: 25, band: 'adult' }), blockedRes);
+        ok(name + ': a prohibited request makes zero Anthropic calls', providerCalls === 0,
+          'calls=' + providerCalls);
+        eq(name + ': the endpoint returns the shared age-appropriate counsel',
+          readerText(blockedRes), IR.impermissibleCounsel('adult'));
+
+        providerCalls = 0;
+        const cleanRes = fakeRes();
+        await routeHandler(mkReq(RULING, { age: 25, band: 'adult' }), cleanRes);
+        ok(name + ': the clean ruling twin keeps exactly one Anthropic call', providerCalls === 1,
+          'calls=' + providerCalls);
+        eq(name + ': the clean provider answer is still relayed unchanged',
+          readerText(cleanRes), 'جواب المزود.');
+      }
+    }
+
+    console.log('\n=== F. F-108 — TASHKEEL MAY ADD MARKS AND CHANGE NOTHING ELSE ===');
+    {
+      const TASH = await esm('api/tashkeel.js');
+      const ORIGINAL = 'هٰذا نصٌّ ثابت.';
+      const GOOD = 'هٰذَا نَصٌّ ثَابِتٌ.';
+      const mutations = [
+        ['a changed letter', 'هٰذِهِ نَصٌّ ثَابِتٌ.'],
+        ['a changed word', 'هٰذَا قَوْلٌ ثَابِتٌ.'],
+        ['a moved space', 'هٰذَا  نَصٌّ ثَابِتٌ.'],
+        ['changed punctuation', 'هٰذَا نَصٌّ ثَابِتٌ!'],
+        ['deleted U+0670', 'هَذَا نَصٌّ ثَابِتٌ.'],
+        ['reordered existing marks', 'هٰذا نصٌّ ثابت.'],
+      ];
+      ok('the pure validator accepts a correct addition-only diacritization',
+        TASH.isSafeDiacritization(ORIGINAL, GOOD));
+      for (const [label, mutant] of mutations) {
+        ok('the pure validator rejects ' + label, !TASH.isSafeDiacritization(ORIGINAL, mutant));
+      }
+
+      const runTashkeel = async (candidate) => {
+        let providerCalls = 0, sentText = null;
+        globalThis.fetch = async (url, init) => {
+          if (String(url).includes('api.anthropic.com')) {
+            providerCalls++;
+            sentText = JSON.parse(init.body).messages[0].content;
+            return { ok: true, status: 200, json: async () => ({
+              content: [{ type: 'text', text: candidate }],
+            }) };
+          }
+          throw new Error('offline limiter fixture');
+        };
+        const res = fakeRes();
+        await TASH.default({ method: 'POST', headers: mkReq('').headers,
+          body: { text: ORIGINAL, gender: 'male', band: 'adult' } }, res);
+        return { res, providerCalls, sentText };
+      };
+
+      const good = await runTashkeel(GOOD);
+      eq('the endpoint passes a valid diacritization', good.res.body.text, GOOD);
+      eq('the provider receives the exact original, including U+0670', good.sentText, ORIGINAL);
+      ok('the valid case uses the existing single provider call', good.providerCalls === 1);
+      for (const [label, mutant] of mutations) {
+        const out = await runTashkeel(mutant);
+        eq('the endpoint returns the original byte-for-byte for ' + label, out.res.body.text, ORIGINAL);
+        ok(label + ' still used no retry/model call', out.providerCalls === 1,
+          'calls=' + out.providerCalls);
+      }
+    }
+
+    console.log('\n=== G. F-112/F-113 — TTS BODY AND ERROR RESPONSES ARE CLOSED ===');
+    {
+      const tts = (await esm('api/tts.js')).default;
+      const hadEleven = Object.prototype.hasOwnProperty.call(process.env, 'ELEVENLABS_API_KEY');
+      const prevEleven = process.env.ELEVENLABS_API_KEY;
+      process.env.ELEVENLABS_API_KEY = 'test-key-not-a-credential';
+      const ttsReq = (body) => ({ method: 'POST', headers: mkReq('').headers, body });
+      const BAD_BODY = { error: 'النص مطلوب' };
+      const SAFE_ERROR = { error: 'تعذّر توليد الصوت الآن.' };
+      try {
+        for (const [label, body] of [
+          ['missing body', undefined], ['null body', null], ['malformed JSON', '{'],
+          ['primitive body', 17], ['array body', []], ['empty object', {}],
+          ['non-string text', { text: 17 }], ['JSON empty object', '{}'],
+          ['young body without text', { band: 'young' }],
+        ]) {
+          let externalCalls = 0;
+          globalThis.fetch = async () => { externalCalls++; throw new Error('must not be reached'); };
+          const res = fakeRes();
+          await tts(ttsReq(body), res);
+          ok(label + ' returns the fixed 400', res.code === 400, 'status=' + res.code);
+          eq(label + ' returns the fixed body', res.body, BAD_BODY);
+          ok(label + ' makes zero external calls', externalCalls === 0, 'calls=' + externalCalls);
+        }
+
+        delete process.env.ELEVENLABS_API_KEY;
+        let noKeyCalls = 0;
+        globalThis.fetch = async () => { noKeyCalls++; throw new Error('must not be reached'); };
+        const invalidWithoutKey = fakeRes();
+        await tts(ttsReq({ text: 17 }), invalidWithoutKey);
+        ok('an invalid object still returns 400 when provider configuration is absent',
+          invalidWithoutKey.code === 400, 'status=' + invalidWithoutKey.code);
+        eq('an invalid object without provider configuration uses the fixed body',
+          invalidWithoutKey.body, BAD_BODY);
+        ok('an invalid object without provider configuration makes zero external calls',
+          noKeyCalls === 0, 'calls=' + noKeyCalls);
+        process.env.ELEVENLABS_API_KEY = 'test-key-not-a-credential';
+
+        const providerLeak = 'SECRET_X <script>alert(1)</script> {"token":"JSON_Y"}';
+        let elevenCalls = 0;
+        globalThis.fetch = async (url) => {
+          if (String(url).includes('api.elevenlabs.io')) {
+            elevenCalls++;
+            return { ok: false, status: 401, text: async () => providerLeak };
+          }
+          throw new Error('offline limiter fixture');
+        };
+        const providerRes = fakeRes();
+        await tts(ttsReq({ text: 'نص', gender: 'male', band: 'adult' }), providerRes);
+        ok('an upstream failure maps to HTTP 502', providerRes.code === 502,
+          'status=' + providerRes.code);
+        eq('the upstream failure uses the fixed safe message', providerRes.body, SAFE_ERROR);
+        const providerWire = JSON.stringify(providerRes.body);
+        ok('secret, HTML and JSON fragments never reach the client',
+          !providerWire.includes('SECRET_X') && !providerWire.includes('<script>')
+          && !providerWire.includes('JSON_Y'), providerWire);
+        ok('the failed valid request made exactly one ElevenLabs call', elevenCalls === 1,
+          'calls=' + elevenCalls);
+
+        elevenCalls = 0;
+        globalThis.fetch = async (url) => {
+          if (String(url).includes('api.elevenlabs.io')) {
+            elevenCalls++;
+            throw new Error('EXCEPTION_Z private');
+          }
+          throw new Error('offline limiter fixture');
+        };
+        const exceptionRes = fakeRes();
+        await tts(ttsReq({ text: 'نص', gender: 'male', band: 'adult' }), exceptionRes);
+        ok('a provider exception maps to HTTP 502', exceptionRes.code === 502,
+          'status=' + exceptionRes.code);
+        eq('the provider exception uses the same fixed message', exceptionRes.body, SAFE_ERROR);
+        ok('the raw exception is absent', !JSON.stringify(exceptionRes.body).includes('EXCEPTION_Z'));
+        ok('the throwing request made exactly one ElevenLabs call', elevenCalls === 1,
+          'calls=' + elevenCalls);
+
+        const audio = Buffer.from([0x49, 0x44, 0x33, 0x04]);
+        elevenCalls = 0;
+        globalThis.fetch = async (url) => {
+          if (String(url).includes('api.elevenlabs.io')) {
+            elevenCalls++;
+            return { ok: true, status: 200,
+              arrayBuffer: async () => audio.buffer.slice(audio.byteOffset, audio.byteOffset + audio.byteLength) };
+          }
+          throw new Error('offline limiter fixture');
+        };
+        const audioRes = fakeRes();
+        await tts(ttsReq({ text: 'نص سليم', gender: 'male', band: 'adult' }), audioRes);
+        ok('a valid TTS request stays successful', audioRes.code === 0 || audioRes.code === 200,
+          'status=' + audioRes.code);
+        ok('the successful audio bytes stay exact', Buffer.isBuffer(audioRes.body)
+          && audioRes.body.equals(audio), String(audioRes.body));
+        ok('the valid request keeps exactly one ElevenLabs call', elevenCalls === 1,
+          'calls=' + elevenCalls);
+      } finally {
+        if (hadEleven) process.env.ELEVENLABS_API_KEY = prevEleven;
+        else delete process.env.ELEVENLABS_API_KEY;
+      }
+    }
   } finally {
     globalThis.fetch = realFetch;
     if (hadKey) process.env.ANTHROPIC_API_KEY = prevKey;
@@ -224,7 +428,7 @@ const BENIGN = 'شنو معنى الإحسان؟';
     else delete process.env.FOUNDER_SECRET;
   }
 
-  console.log('\n=== E. WHAT THIS BATCH DELIBERATELY DID NOT DO ===');
+  console.log('\n=== H. WHAT THIS BATCH DELIBERATELY DID NOT DO ===');
   ok('the voice path is NOT redirected into api/ask.js',
     !/from '\.\/ask\.js'|require\('\.\/ask/.test(chatSrc),
     'that is a larger batch of its own; this gate exists so it is not done by accident here');

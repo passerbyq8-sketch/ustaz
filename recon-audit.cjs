@@ -849,6 +849,45 @@ head('15) CLIENT/SERVER BODY-CAP MIRROR');
 }
 
 /* ---------------------------------------------------------------- *
+ * 16) CURRENT IMPLEMENTATION-REPORT FACTS
+ * ---------------------------------------------------------------- */
+head('16) CURRENT IMPLEMENTATION-REPORT FACTS');
+{
+  const report = read('EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md') || '';
+  let gates = [];
+  try { gates = JSON.parse(read('gates.json') || '[]'); } catch (_) { /* item 14 reports this */ }
+  const gateCount = gates.length;
+  const summaryBeforeThisCheck = { pass: P, warn: W, fail: F };
+  const reconLine = /RECON\s+PASS=(\d+)\s+WARN=(\d+)\s+FAIL=(\d+)/.exec(report);
+  const wirdEntry = gates.find((entry) => entry && entry.name === 'wird');
+  const gatesSectionAt = report.indexOf('## K. Gates and tests');
+  const gatesSectionEnd = report.indexOf('\n## ', gatesSectionAt + 4);
+  const gatesSection = gatesSectionAt === -1 ? '' : report.slice(gatesSectionAt,
+    gatesSectionEnd === -1 ? report.length : gatesSectionEnd);
+  const problems = [];
+  if (!wirdEntry || wirdEntry.script !== 'tools/wird-guard.cjs') problems.push('governing wird entry is missing');
+  if (/not present in this repository and not in `gates\.json`/.test(report)) problems.push('stale wird absence claim remains');
+  if (!report.includes('`tools/wird-guard.cjs` is present and registered in `gates.json` as `wird`')) {
+    problems.push('current wird fact is not stated');
+  }
+  if (!gatesSection.includes('All ' + gateCount + ' gates')) problems.push('gate-count prose is stale');
+  if (!gatesSection.includes('TOTAL_GATES        ' + gateCount + '/' + gateCount + ' PASS')) problems.push('TOTAL_GATES is stale');
+  for (const entry of gates) {
+    if (!new RegExp('(?:^|\\s)' + entry.name + '\\s+0(?:\\s|·|$)', 'm').test(gatesSection)) {
+      problems.push('gate roster omits ' + entry.name);
+    }
+  }
+  if (!reconLine || Number(reconLine[1]) !== summaryBeforeThisCheck.pass
+    || Number(reconLine[2]) !== summaryBeforeThisCheck.warn
+    || Number(reconLine[3]) !== summaryBeforeThisCheck.fail) {
+    problems.push('RECON summary is stale (current ' + summaryBeforeThisCheck.pass + '/'
+      + summaryBeforeThisCheck.warn + '/' + summaryBeforeThisCheck.fail + ')');
+  }
+  if (problems.length) fail('implementation report drift: ' + problems.join('; '));
+  else info('implementation report matches gates.json, wird registration, and this recon summary');
+}
+
+/* ---------------------------------------------------------------- *
  * SUMMARY
  * ---------------------------------------------------------------- */
 console.log('\n==================================================================');

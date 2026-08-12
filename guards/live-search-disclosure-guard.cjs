@@ -261,6 +261,116 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       !ASK.includes(D.NO_LIVE_RESULTS_DISCLOSURE));
   }
 
+  // =========================================================================
+  console.log('\n=== F. F-116 — BOTH SPOKEN ANSWER RELAYS CARRY THE SAME DISCLOSURE ===');
+  {
+    const chat = (await esm('api/chat.js')).default;
+    const chatFast = (await esm('api/chat-fast.js')).default;
+    const voiceSources = [read('api/chat.js'), read('api/chat-fast.js')];
+    ok('both voice relays import liveSearchNotice from the existing policy module',
+      voiceSources.every((s) => /liveSearchNotice[^\n]*from '\.\.\/lib\/policy\/live-search-disclosure\.js'/.test(s)));
+    ok('both voice relays import the existing world classifier',
+      voiceSources.every((s) => /classifyWorldIntent[^\n]*from '\.\.\/lib\/world-intent\.js'/.test(s)));
+    ok('neither voice relay inlines the disclosure sentence',
+      voiceSources.every((s) => !s.includes(NOTICE)));
+
+    const oldSecret = process.env.FOUNDER_SECRET;
+    const oldKey = process.env.ANTHROPIC_API_KEY;
+    const realFetch = globalThis.fetch;
+    process.env.FOUNDER_SECRET = 'voice-live-search-local-secret';
+    process.env.ANTHROPIC_API_KEY = 'test-key-not-a-credential';
+    const voiceDevice = 'voice-live-search-device';
+    const voiceFounder = DC.founderTokenFor(voiceDevice);
+    const VOICE_DRAFT = 'جواب المزود كما وصل.';
+    const UPSTREAM_WIRE = 'data: ' + JSON.stringify({
+      type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: VOICE_DRAFT },
+    }) + '\n\n' + 'data: ' + JSON.stringify({ type: 'message_stop' }) + '\n\n';
+    const decode = (v) => {
+      if (typeof v === 'string') return v;
+      if (Buffer.isBuffer(v)) return v.toString('utf8');
+      if (ArrayBuffer.isView(v)) return Buffer.from(v.buffer, v.byteOffset, v.byteLength).toString('utf8');
+      return String(v);
+    };
+    const voiceRes = () => ({
+      code: 0, statusCode: 200, headers: {}, writes: [], ended: 0,
+      status(c) { this.code = c; this.statusCode = c; return this; },
+      setHeader(k, v) { this.headers[k] = v; return this; }, flushHeaders() {},
+      write(v) { this.writes.push(decode(v)); return true; },
+      end(v) { if (v !== undefined) this.writes.push(decode(v)); this.ended++; return this; },
+      json(v) { this.jsonBody = v; this.ended++; return this; },
+    });
+    const voiceReq = (question, extra = {}) => ({
+      method: 'POST',
+      headers: {
+        'x-real-ip': '127.0.0.1', 'x-murabbi-device': voiceDevice,
+        'x-murabbi-founder': voiceFounder, 'x-ezik-ai-consent': '2026-08-06-1',
+      },
+      body: Object.assign({
+        max_tokens: 4096, stream: true, system: 'ignored by the server', age: 25, band: 'adult',
+        messages: [{ role: 'user', content: question }],
+      }, extra),
+    });
+    const voiceText = (res) => readerText(res);
+    const driveVoice = async (route, question, extra) => {
+      let anthropicCalls = 0, sentBody = null;
+      globalThis.fetch = async (url, init) => {
+        if (!String(url).includes('api.anthropic.com')) throw new Error('offline limiter fixture');
+        anthropicCalls++;
+        sentBody = JSON.parse(init.body);
+        let sent = false;
+        return {
+          ok: true, status: 200, text: async () => '',
+          json: async () => ({ content: [{ type: 'text', text: VOICE_DRAFT }] }),
+          body: { getReader: () => ({ read: async () => (sent ? { done: true }
+            : (sent = true, { done: false, value: new Uint8Array(Buffer.from(UPSTREAM_WIRE, 'utf8')) })) }) },
+        };
+      };
+      const res = voiceRes();
+      await route(voiceReq(question, extra), res);
+      return { res, raw: res.writes.join(''), text: voiceText(res), anthropicCalls, sentBody };
+    };
+
+    try {
+      const Q_WORLD = 'كم سعر صرف الدولار مقابل الدينار؟';
+      const Q_PLAIN = 'كيف أنظم وقتي في المذاكرة؟';
+      for (const [name, route] of [['chat', chat], ['chat-fast', chatFast]]) {
+        const live = await driveVoice(route, Q_WORLD);
+        ok(name + ': a live-world voice turn keeps one provider call', live.anthropicCalls === 1,
+          'calls=' + live.anthropicCalls);
+        ok(name + ': the spoken output opens with the shared disclosure',
+          live.text.startsWith(NOTICE + '\n\n'), JSON.stringify(live.text));
+        eq(name + ': the shared disclosure occurs exactly once', live.text.split(NOTICE).length - 1, 1);
+        ok(name + ': the model draft follows the disclosure', live.text.endsWith(VOICE_DRAFT),
+          JSON.stringify(live.text));
+        ok(name + ': the disclosure was not put in the model prompt',
+          !JSON.stringify(live.sentBody).includes(NOTICE));
+
+        const plainVoice = await driveVoice(route, Q_PLAIN);
+        ok(name + ': a non-live voice turn keeps one provider call', plainVoice.anthropicCalls === 1,
+          'calls=' + plainVoice.anthropicCalls);
+        eq(name + ': a non-live voice response is byte-identical to upstream',
+          plainVoice.raw, UPSTREAM_WIRE);
+
+        const childLive = await driveVoice(route, Q_WORLD, { age: 7, band: 'young' });
+        ok(name + ': the child floor still uses one provider call', childLive.anthropicCalls === 1,
+          'calls=' + childLive.anthropicCalls);
+        ok(name + ': the child-floor spoken output also opens with the disclosure',
+          childLive.text.startsWith(NOTICE + '\n\n'), JSON.stringify(childLive.text));
+      }
+
+      const classifier = await driveVoice(chatFast, Q_WORLD, { max_tokens: 8 });
+      ok('chat-fast classifier turn keeps one provider call', classifier.anthropicCalls === 1,
+        'calls=' + classifier.anthropicCalls);
+      eq('chat-fast classifier bytes receive no spoken disclosure', classifier.raw, UPSTREAM_WIRE);
+    } finally {
+      globalThis.fetch = realFetch;
+      if (oldSecret === undefined) delete process.env.FOUNDER_SECRET;
+      else process.env.FOUNDER_SECRET = oldSecret;
+      if (oldKey === undefined) delete process.env.ANTHROPIC_API_KEY;
+      else process.env.ANTHROPIC_API_KEY = oldKey;
+    }
+  }
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));

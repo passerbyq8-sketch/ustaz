@@ -386,6 +386,10 @@ function partA() {
   const QMAX = c.grab('EZIK_QUOTE_MAX');
   const QA = plain(c.grab('EZIK_QUICK_ACTIONS') || []);
   const parse = c.grab('parseRichMessage');
+  const stripIncomplete = c.grab('stripIncompleteTags');
+  const formatForTTS = c.grab('formatForTTS');
+  const knownTagNames = plain(c.grab('KNOWN_TAG_NAMES') || []);
+  const knownTags = c.grab('KNOWN_TAGS');
 
   if (!ok('the fold helpers are on the page', typeof foldSegments === 'function' && typeof foldCut === 'function')) return;
   ok('the thresholds are declared as named constants', typeof MIN === 'number' && typeof HEAD === 'number',
@@ -500,6 +504,69 @@ function partA() {
     QA.every((q) => typeof q.prompt === 'string' && q.prompt.length > 20));
   ok('...and none of them carries an endpoint, a model or a depth',
     QA.every((q) => Object.keys(q).sort().join(',') === 'key,label,prompt'), JSON.stringify(QA.map((q) => Object.keys(q))));
+
+  // --- F-124: one governing registry for every shipped rich-message tag ----------------------
+  const EXPECTED_TAGS = [
+    'verse', 'surah', 'hadith', 'steps', 'suggestions',
+    'board', 'document', 'source', 'dhikr', 'worship',
+  ];
+  const tagRegistryProblems = (names) => {
+    const list = Array.isArray(names) ? names : [];
+    const problems = [];
+    for (const tag of EXPECTED_TAGS) if (list.indexOf(tag) === -1) problems.push('missing:' + tag);
+    for (const tag of list) if (EXPECTED_TAGS.indexOf(tag) === -1) problems.push('unknown:' + tag);
+    if (new Set(list).size !== list.length) problems.push('duplicate');
+    return problems.sort();
+  };
+  eq('the governing tag registry contains every shipped tag and no unknown tag',
+    tagRegistryProblems(knownTagNames), []);
+  eq('KNOWN_TAGS is derived from that registry in the same order',
+    knownTags, knownTagNames.join('|'));
+  for (const tag of EXPECTED_TAGS) {
+    const mutant = knownTagNames.filter((name) => name !== tag);
+    ok('counter-mutation: deleting ' + tag + ' is rejected',
+      tagRegistryProblems(mutant).includes('missing:' + tag));
+  }
+
+  const tagFixtures = {
+    verse: '<verse surah="الفاتحة" ayah="1"></verse>',
+    surah: '<surah num="1"></surah>',
+    hadith: '<hadith narrator="البخاري" ruling="صحيح">نص</hadith>',
+    steps: '<steps>- أولاً</steps>',
+    suggestions: '<suggestions>- سؤال</suggestions>',
+    board: '<board>x = 1</board>',
+    document: '<document title="عنوان">متن</document>',
+    source: '<source site="مثال" url="https://example.invalid">عنوان</source>',
+    dhikr: '<dhikr id="morning-1"></dhikr>',
+    worship: '<worship id="salah"></worship>',
+  };
+  for (const tag of EXPECTED_TAGS) {
+    const parsedTag = plain(parse(tagFixtures[tag], 30));
+    const recognized = tag === 'suggestions'
+      ? parsedTag.suggestions.length === 1
+      : parsedTag.segments.some((segment) => segment.type === tag);
+    ok('the real parser recognizes the shipped ' + tag + ' tag', recognized,
+      JSON.stringify(parsedTag));
+    eq('an incomplete ' + tag + ' tag is stripped by the same registry',
+      stripIncomplete('قبل <' + tag + '>مقطوع'), 'قبل ');
+  }
+  const unknownTag = plain(parse('<invented>text</invented>', 30));
+  ok('an unknown tag never becomes a parser segment',
+    unknownTag.segments.every((segment) => segment.type !== 'invented'));
+
+  // --- F-128: pronunciation substitutions are math-token scoped and URL-safe -----------------
+  const LATIN_WORDS = 'cosmos Sinclair Constantine Costanza Tanner arcsin cosé';
+  eq('trig letter sequences inside Latin words and names stay unchanged',
+    formatForTTS(LATIN_WORDS), LATIN_WORDS);
+  const URL = 'https://example.com/cos/sin?x=tan&ratio=3/4';
+  eq('a URL keeps its trig names, operators and every slash unchanged',
+    formatForTTS(URL), URL);
+  eq('standalone trig tokens are pronounced as mathematics',
+    formatForTTS('cos + sin + tan'), 'كوساين زائد ساين زائد تانجنت');
+  eq('a numeric fraction still pronounces its slash as division',
+    formatForTTS('3/4'), 'ثلاثة على أربعة');
+  const ARABIC_PROSE = 'هذا نص عربي سليم.';
+  eq('ordinary Arabic prose remains byte-identical', formatForTTS(ARABIC_PROSE), ARABIC_PROSE);
 }
 
 // ===========================================================================
@@ -1205,9 +1272,11 @@ async function partGStreaming() {
 
   // ---- and a NEW chat inherits nothing ----
   await d.click(d.byLabel(S.MENU_OPEN), 'menu');
+  const netBeforeNewChat = c.net().length;
   await d.click(d.byText(S.NEW_CHAT), 'new chat');
   await tick(80);
   ok('a new chat starts empty', d.text().indexOf(S.W_HEAD) === -1);
+  eq('...and starts no greeting/model request', c.net().length, netBeforeNewChat);
   ok('...with no runtime error anywhere on this path', !c.err(), String(c.err()));
 }
 
@@ -1728,6 +1797,13 @@ function partE() {
   delete missingRequiredPackage.dependencies.minisearch;
   ok('counter-mutation: deleting a required package is rejected',
     missingPackages(missingRequiredPackage).includes('dependencies:minisearch'));
+
+  // F-122: the only occurrence was a dead declaration. Its deletion may not be replaced with a
+  // startup effect or another greeting path; resetThread/newChat continue to make an empty thread.
+  eq('the dead sendInitialGreeting symbol is absent',
+    (decoded.match(/\bsendInitialGreeting\b/g) || []).length, 0);
+  ok('new-chat still clears the message list directly',
+    /const resetThread = \(\)[\s\S]{0,700}?setMessages\(\[\]\);/.test(decoded));
 }
 
 // ===========================================================================

@@ -68,6 +68,7 @@ const quotedDomains = (body) =>
   console.log('=== source-registry-guard — one row per source, and a page is not a host ===');
 
   const R = await esm('lib/source-registry.js');
+  const SP = await esm('lib/ledger/source-policy.js');
   const P = await esm('lib/source-purpose.js');
   const G = await esm('lib/source-page-gates.js');
   const { parseHTML } = await import('linkedom');
@@ -114,6 +115,29 @@ const quotedDomains = (body) =>
   eq('registry adult set == SITES_ADULT', sorted(R.domainsForBand('adult')), sorted(adultArr));
   eq('registry minor set == SITES_MINOR', sorted(R.domainsForBand('minor')), sorted(minorArr));
   eq('registry minor-fallback set == SITES_MINOR_FALLBACK', sorted(R.domainsForBand('minor-fallback')), sorted(fallbackArr));
+
+  const report = read('EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md');
+  const documentedSourceCounts = [
+    /\| Policy rows \| (\d+) \|/.exec(report)?.[1],
+    /\| Enabled \| (\d+) \|/.exec(report)?.[1],
+    /\| Enabled \*\*and\*\* searchable \| (\d+) \|/.exec(report)?.[1],
+    /\| Registry active \| (\d+) \|/.exec(report)?.[1],
+    /\| Registry blocked \| (\d+) \|/.exec(report)?.[1],
+    /\| Registry total \| (\d+) \|/.exec(report)?.[1],
+    /\| Registry deferred \| (\d+) \|/.exec(report)?.[1],
+    /\| Registry world \| (\d+) \|/.exec(report)?.[1],
+  ].map((value) => value == null ? null : Number(value));
+  eq('the implementation report source counts match the governing registries',
+    documentedSourceCounts, [
+      SP.POLICY_ROWS.length,
+      SP.POLICY_ROWS.filter((row) => row.health === 'enabled').length,
+      SP.POLICY_ROWS.filter((row) => row.health === 'enabled' && row.searchable).length,
+      R.activeSources().length,
+      R.blockedSources().length,
+      R.SOURCES.length,
+      R.SOURCES.filter((row) => row.status === 'deferred').length,
+      R.worldSources().length,
+    ]);
 
   // ── THE CHILD'S ROSTER, PINNED BY NAME (batch 2, step 10) ─────────────────
   // Widened on 2026-08-05 by an explicit decision of the project's owner, from two domains to

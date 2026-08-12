@@ -84,6 +84,7 @@ Exit 0 = every page built and verified. Exit 1 = something failed.
 """
 
 import argparse
+import datetime
 import hashlib
 import json
 import os
@@ -131,7 +132,7 @@ SAFETY_MARGIN = 6         # px of guaranteed white kept outside the measured fra
 # label: the build measures the real number and stops before writing anything if the two
 # disagree, so a detector that started finding the wrong thing cannot quietly rewrite 604
 # approved assets. Override with --expect-side-marker-pages once the number is reviewed.
-EXPECTED_SIDE_MARKER_PAGES = 254
+EXPECTED_SIDE_MARKER_PAGES = 252
 
 # What the largest connected component has to look like before it is accepted as the
 # printed floral frame rather than as, say, a merged block of text.
@@ -1168,7 +1169,17 @@ def build(pdf, args, pages, plans):
     return records, failures
 
 
-def write_manifest(records):
+def generated_on_utc(clock=None):
+    """Return the injected build time as a stable UTC calendar date."""
+    now = (clock or (lambda: datetime.datetime.now(datetime.timezone.utc)))()
+    if not isinstance(now, datetime.datetime):
+        raise TypeError('clock must return datetime.datetime')
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError('clock must return a timezone-aware datetime')
+    return now.astimezone(datetime.timezone.utc).strftime('%Y-%m-%d')
+
+
+def write_manifest(records, clock=None, manifest_path=MANIFEST):
     pages = [records[n] for n in sorted(records)]
     total = sum(p['bytes'] for p in pages)
     doc = {
@@ -1176,7 +1187,7 @@ def write_manifest(records):
         'purpose': ('Printed Madina Mushaf page images, printed pages 1-604. Page images only: '
                     'this file records provenance, geometry and hashes and holds no Quran text '
                     'and no OCR output.'),
-        'generatedOn': '2026-07-31',
+        'generatedOn': generated_on_utc(clock),
         'source': {
             'publisher': 'King Fahd Glorious Quran Printing Complex (Majma al-Malik Fahd li-Tibaat al-Mushaf al-Sharif)',
             'edition': 'Mushaf al-Madinah al-Nabawiyyah, riwayat Hafs an Asim, standard size, green, 1441 AH printing (2020)',
@@ -1293,7 +1304,7 @@ def write_manifest(records):
             'local-only state, never sent to AI',
         ],
     }
-    with open(MANIFEST, 'w', encoding='ascii', newline='\n') as fh:
+    with open(manifest_path, 'w', encoding='ascii', newline='\n') as fh:
         json.dump(doc, fh, indent=2, ensure_ascii=True)
         fh.write('\n')
     return doc

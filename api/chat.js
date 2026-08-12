@@ -11,6 +11,9 @@ import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '.
 import { buildSystemPrompt } from '../lib/system-prompt.js';
 import { readerFromBody, dropClientSystem } from '../lib/reader-fields.js';
 import { guardEmptyAnswer } from '../lib/empty-answer.js';
+import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/policy/impermissible-request.js';
+import { classifyWorldIntent } from '../lib/world-intent.js';
+import { liveSearchNotice } from '../lib/policy/live-search-disclosure.js';
 
 // The reader's own words for THIS turn. Same shape api/ask.js reads: the content may be a plain
 // string or the block array the voice client sends.
@@ -183,6 +186,16 @@ export default async function handler(req, res) {
   // doing half of it here would be worse than either end of it.
   const voiceText = lastUserText(outgoingBody && outgoingBody.messages);
   const voiceAudience = resolveAudience({ serverBand: null, clientBand: voiceBand });
+  const impermissible = classifyImpermissibleRequest(voiceText);
+  if (impermissible.blocked) {
+    console.warn('[policy] IMPERMISSIBLE_REQUEST', {
+      kind: impermissible.kind, band: voiceAudience.band, path: 'voice', policyVersion: POLICY_VERSION,
+    });
+    return sendCapMessageSse(res, impermissibleCounsel(voiceAudience.band));
+  }
+  const voiceLiveNotice = liveSearchNotice({
+    worldWanted: classifyWorldIntent(voiceText).world, answeredFromLive: false,
+  });
   const voiceHazard = graveHazard(voiceText);
   if (voiceHazard) {
     // The SAME redirect the text path emits, from the same constant. Band-independent, exactly as
@@ -271,7 +284,8 @@ export default async function handler(req, res) {
       });
       // A DISCARDED DRAFT FALLS BACK TO THE CHILD LINE, not to the hazard redirect — the redirect
       // answers a question this child did not ask and reads to them as an accusation.
-      return sendCapMessageSse(res, rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN'));
+      return sendCapMessageSse(res, [voiceLiveNotice, rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN')]
+        .filter(Boolean).join('\n\n'));
     }
 
     // Thin streaming relay: forward the SSE bytes unmodified; the client parses the events.
@@ -280,6 +294,13 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('X-Accel-Buffering', 'no'); // disable any proxy buffering
     res.flushHeaders?.();
+    if (voiceLiveNotice) {
+      const noticeFrame = {
+        type: 'content_block_delta', index: 0,
+        delta: { type: 'text_delta', text: voiceLiveNotice + '\n\n' },
+      };
+      res.write(`data: ${JSON.stringify(noticeFrame)}\n\n`);
+    }
     const reader = upstream.body.getReader();
     try {
       while (true) {

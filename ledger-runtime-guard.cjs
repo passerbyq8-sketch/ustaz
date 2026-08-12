@@ -72,11 +72,8 @@ async function main() {
     LEDGER_CACHE_SECRET: process.env.LEDGER_CACHE_SECRET,
     DAILY_SEARCH_BUDGET: process.env.DAILY_SEARCH_BUDGET,
   };
-  // A FOURTH PRECONDITION EXISTS NOW (RFC v0.5-R2 review, P0-2): decidePath() refuses the ledger
-  // unless a daily search ceiling is configured, because "not activatable without a budget" was
-  // written in the spec and then not enforced anywhere. Every decidePath assertion below is about
-  // the OTHER three conditions, so the ceiling is set here and its own behaviour is asserted
-  // separately at the end of this block.
+  // Keep a written ceiling for the historical switch fixtures. The dedicated table below proves
+  // that an absent or malformed value now resolves to the same finite code default instead.
   process.env.DAILY_SEARCH_BUDGET = '500';
   process.env.RFC_V05_MODE = 'public';
   const restoreEnv = () => {
@@ -120,17 +117,9 @@ async function main() {
     eq('«on» opens it', FL.envAllows(), true);
   }
 
-  // ── THE FOURTH PRECONDITION: A DAILY CEILING MUST EXIST ────────────────────
-  // RFC v0.5-R2 §9 says the ledger is not activatable without a configured daily search budget.
-  // That promise is UNCHANGED by the go-live and is still enforced at the PATH, which is the only
-  // place it can be kept: after decidePath returns 'ledger', a ceiling exists by construction.
-  //
-  // WHAT THE GO-LIVE CHANGED is where the ceiling comes from when nobody set one. It used to be
-  // "nowhere, so the path does not run" — correct for an internal rollout, and silently wrong for
-  // a public one, because it would have turned the go-live into a deploy that changed nothing.
-  // There is now a code default (lib/ledger/daily-budget.js DEFAULT_DAILY_SEARCH_BUDGET), so the
-  // ceiling always exists; what this section proves is that it is a REAL number, that the env var
-  // still overrides it, and that a garbled value never becomes "no cap".
+  // ── THE DAILY CEILING EXISTS BY CONSTRUCTION ───────────────────────────────
+  // configuredLimit() always returns a real cap: the finite default for absent/malformed input,
+  // or the exact valid override (including zero). decidePath therefore has no unconfigured arm.
   {
     process.env.FOUNDER_SECRET = 'test-secret-for-the-gate';
     const dev = 'abcdefgh12345678';
@@ -139,6 +128,12 @@ async function main() {
 
     delete process.env.DAILY_SEARCH_BUDGET;
     FL.__resetFlagCacheForTest();
+    eq('the configured-limit compatibility table stays exact', [
+      DB.configuredLimit({}),
+      DB.configuredLimit({ DAILY_SEARCH_BUDGET: 'abc' }),
+      DB.configuredLimit({ DAILY_SEARCH_BUDGET: '-5' }),
+      DB.configuredLimit({ DAILY_SEARCH_BUDGET: '0' }),
+    ], [5000, 5000, 5000, 0]);
     ok('an unset ceiling is a real finite number, never null and never Infinity',
       Number.isInteger(DB.configuredLimit()) && DB.configuredLimit() > 0
         && Number.isFinite(DB.configuredLimit()), String(DB.configuredLimit()));
@@ -161,6 +156,26 @@ async function main() {
 
     process.env.DAILY_SEARCH_BUDGET = saved === undefined ? '500' : saved;
     FL.__resetFlagCacheForTest();
+
+    const flagCode = code('lib/ledger/flag.js');
+    eq('the two unreachable daily_budget_unconfigured branches are absent',
+      (flagCode.match(/daily_budget_unconfigured/g) || []).length, 0);
+
+    const staleBudgetClaims = [
+      'lib/ledger/daily-budget.js',
+      'EZIK-RFC-V0.5-R2-FROZEN.md',
+      'EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md',
+    ].flatMap((rel) => {
+      const src = read(rel);
+      return [
+        /configuredLimit\(\) returns `null`/.test(src),
+        /reports `configured: false`/.test(src),
+        /reports `not_configured`/.test(src),
+        /not activatable without a `DAILY_SEARCH_BUDGET` value/.test(src),
+      ];
+    });
+    ok('budget documentation no longer claims the defaulted path is unconfigured',
+      staleBudgetClaims.every((found) => !found));
   }
 
   // =========================================================================

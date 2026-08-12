@@ -128,8 +128,8 @@ const issue = (over) => Object.assign({
     text: 'يجوز الجمع بين الصلاتين في السفر',
     spanIds: [u1Spans[0]],
     components: [
-      { componentId: 'c1k1', kind: 'subject', text: 'الجمع بين الصلاتين', spanIds: [u1Spans[0]], pivotal: true },
-      { componentId: 'c1k2', kind: 'ruling', text: 'يجوز', spanIds: [u1Spans[0]], pivotal: true },
+      { componentId: 'c1k1', kind: 'subject', text: 'الجمع بين الصلاتين', spanIds: [u1Spans[0]] },
+      { componentId: 'c1k2', kind: 'ruling', text: 'يجوز', spanIds: [u1Spans[0]] },
     ],
     verified: null,
   });
@@ -140,6 +140,25 @@ const issue = (over) => Object.assign({
     const g = GA.gate1(L, L.claim('c1'), issue());
     ok('GATE 1 passes a well-formed claim', g.ok, JSON.stringify(g.problems));
     eq('...and the ledger is internally consistent', L.integrityProblems(), []);
+  }
+
+  {
+    const assertionMatrix = (claim) => {
+      const L = mkLedger();
+      L.addClaim(claim);
+      const parsed = GA.readGate2Reply(JSON.stringify({ verdicts: [
+        { claim_id: 'c1', verdict: 'PASS', unsupported_components: [] },
+      ] }), ['c1']);
+      return {
+        gate1: GA.gate1(L, L.claim('c1'), issue()),
+        gate2Prompt: GA.buildGate2Prompt(L, [L.claim('c1')]),
+        gate2Verdict: parsed.verdicts.get('c1'),
+      };
+    };
+    const before = goodClaim();
+    before.components.forEach((component) => { component['pivo' + 'tal'] = true; });
+    eq('removing the dead component side field leaves the claim assertion matrix byte-identical',
+      assertionMatrix(before), assertionMatrix(goodClaim()));
   }
 
   // ── the mutations. Each one must FAIL, and the original must still PASS. ──
@@ -362,8 +381,8 @@ const issue = (over) => Object.assign({
     ok('a well-formed extraction is read', r.ok && r.claims.length === 1, JSON.stringify(r));
     eq('...and its components carry declared kinds',
       r.claims[0].components.map((c) => c.kind), ['subject', 'condition', 'ruling']);
-    ok('...with subject and ruling marked pivotal',
-      r.claims[0].components.filter((c) => c.pivotal).map((c) => c.kind).join(',') === 'subject,ruling');
+    ok('...without an unused pivotal side field',
+      r.claims[0].components.every((c) => !Object.prototype.hasOwnProperty.call(c, 'pivotal')));
 
     // THE CONDITION MAY NOT BE RESTATED INSIDE THE RULING.
     const restated = JSON.stringify({
@@ -495,9 +514,9 @@ const issue = (over) => Object.assign({
         claimId: id, issueId: 'iss_1', sourceId: SID, slot: 'ruling', text: ruling,
         spanIds: [u1Spans[0]], verified: true,
         components: [
-          { componentId: id + 'k1', kind: 'subject', text: subject, spanIds: [u1Spans[0]], pivotal: true },
-          { componentId: id + 'k2', kind: 'condition', text: condition, spanIds: [u1Spans[0]], pivotal: false },
-          { componentId: id + 'k3', kind: 'ruling', text: ruling, spanIds: [u1Spans[0]], pivotal: true },
+          { componentId: id + 'k1', kind: 'subject', text: subject, spanIds: [u1Spans[0]] },
+          { componentId: id + 'k2', kind: 'condition', text: condition, spanIds: [u1Spans[0]] },
+          { componentId: id + 'k3', kind: 'ruling', text: ruling, spanIds: [u1Spans[0]] },
         ],
       };
       return c;

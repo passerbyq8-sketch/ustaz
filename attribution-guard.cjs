@@ -563,6 +563,8 @@ const user = (t) => [{ role: 'user', content: t }];
       SURAH_NAMES: [],
       getVerseText: () => null,
     };
+    sandbox.KNOWN_TAG_NAMES = vm.runInNewContext('(' + initializer('KNOWN_TAG_NAMES') + ')', sandbox);
+    sandbox.KNOWN_TAGS = vm.runInNewContext('(' + initializer('KNOWN_TAGS') + ')', sandbox);
     const clientFunction = (name) => {
       const source = initializer(name);
       ok('the client exposes ' + name + ' as a structural unit', !!source);

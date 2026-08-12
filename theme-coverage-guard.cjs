@@ -1275,6 +1275,16 @@ ok('the chat is still the render fall-through', /screen === 'chat' \|\| screen =
 foundScreens.add('chat');
 
 const declared = new Set(Object.keys(INDEX_SCREENS));
+const handoff = fs.readFileSync(path.join(__dirname, 'EZIK-THEME-33-HANDOFF.md'), 'utf8');
+const handoffAt = handoff.indexOf('### index.html');
+const handoffEnd = handoff.indexOf('\n### ', handoffAt + 4);
+const handoffIndexSection = handoffAt === -1 ? '' : handoff.slice(handoffAt, handoffEnd === -1 ? handoff.length : handoffEnd);
+const handoffScreens = Array.from(handoffIndexSection.matchAll(/^\|\s*([A-Za-z][A-Za-z0-9]*)\s*\|/gm), (m) => m[1]);
+const arabicCount = String(declared.size).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+ok('the handoff states the governing index.html screen count',
+  handoffIndexSection.includes('### index.html — ' + arabicCount + ' شاشة'));
+eq('the handoff screen list matches the governing reachable inventory',
+  handoffScreens.slice().sort(), Array.from(declared).sort());
 const missingFromTable = [...foundScreens].filter((k) => !declared.has(k)).sort();
 const staleInTable = [...declared].filter((k) => !foundScreens.has(k)).sort();
 eq('every reachable index.html screen is in the inventory', missingFromTable, []);
@@ -2161,7 +2171,7 @@ ok('N14: ...and the autosave still files on the QUESTION',
   /setMessages\(updated\);[\s\S]{0,600}?saveMessages\(updated\);/.test(html));
 ok('N15: the endpoints are the shipped pair',
   /endpoint = \(mode === 'call' \? '\/api\/chat' : '\/api\/ask'\)/.test(html)
-  && /endpoint: '\/api\/chat',/.test(html));
+  && /const response = await aiFetch\(endpoint, \{/.test(html));
 ok('N16: the request body is the shipped shape',
   html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, name: p.name, age: p.age, gender: p.gender, mode, messages: msgs, ...__extra });") !== -1);
 ok('N16: ...including the depth and band terms and the size fit',

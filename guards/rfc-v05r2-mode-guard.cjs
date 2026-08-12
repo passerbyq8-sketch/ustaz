@@ -204,11 +204,12 @@ async function main() {
   }
 
   // =========================================================================
-  console.log('\n=== F. THE DAY CEILING IS STILL A PRECONDITION OF THE LEDGER ===');
+  console.log('\n=== F. THE DAY CEILING EXISTS BY CONSTRUCTION ===');
   {
-    // RFC v0.5-R2 §9's promise — the path never runs without a ceiling — is UNCHANGED, and it is
-    // still enforced at decidePath. What the go-live changed is where the ceiling comes from when
-    // nobody wrote one: it used to come from nowhere, which made an unconfigured budget the thing
+    // RFC v0.5-R2 §9's promise — the path never runs without a ceiling — is kept by the budget
+    // constructor, not by an unreachable decidePath branch. What the go-live changed is where it
+    // comes from when nobody wrote one: it used to come from nowhere, which made an unconfigured
+    // budget the thing
     // that switched the whole feature off. For a public path that is a trap, not a safeguard, so
     // there is a code default and the promise is kept by construction instead.
     //
@@ -359,13 +360,14 @@ async function main() {
     // THE ROLLBACK IS ONE CONSTANT, AND IT IS STILL WIRED. `mode === 'unset'` is unreachable
     // while PUBLIC_GO_LIVE is true, so it cannot be driven here — but it is the arm that comes
     // back if the constant is flipped, and an arm nobody checks is an arm that quietly rots. So
-    // it is asserted on the SOURCE: the credential test, the ceiling test and the store-value
-    // test are all still there, in that order, under a branch guarded by an unset mode.
+    // it is asserted on the SOURCE: the credential and store-value tests are still there, in that
+    // order, under a branch guarded by an unset mode.
     const flagSrc = read('lib/ledger/flag.js');
     ok('the shipped rollout arm still exists for `unset`',
       /if \(mode !== 'unset'\)[\s\S]*?if \(!isInternalTester\(req\)\) return \{ path: 'legacy', reason: 'not_internal' \}/.test(flagSrc));
-    ok('...and it still requires a ceiling before reading the store',
-      /reason: 'not_internal' \}[\s\S]{0,900}?isConfigured\(\)[\s\S]{0,600}?readRuntimeFlag\(now\)/.test(flagSrc));
+    ok('...and the dead unconfigured-budget arm is not between credential and store',
+      /reason: 'not_internal' \}[\s\S]{0,500}?readRuntimeFlag\(now\)/.test(flagSrc)
+      && !/daily_budget_unconfigured/.test(flagSrc));
     ok('...and flipping PUBLIC_GO_LIVE back to false is what restores it',
       /if \(v === ''\) return PUBLIC_GO_LIVE;/.test(flagSrc)
       && /if \(raw === ''\) return PUBLIC_GO_LIVE \? 'public' : 'unset';/.test(flagSrc));

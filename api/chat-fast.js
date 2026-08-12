@@ -46,6 +46,9 @@ import { lastUserText } from '../lib/attribution.js';
 import { CLASSIFIER_SYSTEM_PROMPT, buildFastGenPrompt } from '../lib/system-prompt.js';
 import { readerFromBody, dropClientSystem } from '../lib/reader-fields.js';
 import { guardEmptyAnswer } from '../lib/empty-answer.js';
+import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/policy/impermissible-request.js';
+import { classifyWorldIntent } from '../lib/world-intent.js';
+import { liveSearchNotice } from '../lib/policy/live-search-disclosure.js';
 
 // THE CLASSIFIER TURN, IDENTIFIED. This relay carries TWO different things: the route classifier
 // (index.html:7879 — `max_tokens: 8`, one word of output, never spoken to the child) and the GEN
@@ -208,6 +211,18 @@ export default async function handler(req, res) {
   const isClassifierTurn = Number(outgoingBody && outgoingBody.max_tokens) <= CLASSIFIER_MAX_TOKENS;
   const voiceText = lastUserText(outgoingBody && outgoingBody.messages);
   const voiceAudience = resolveAudience({ serverBand: null, clientBand: voiceBand });
+  const impermissible = classifyImpermissibleRequest(voiceText);
+  if (impermissible.blocked) {
+    console.warn('[policy] IMPERMISSIBLE_REQUEST', {
+      kind: impermissible.kind, band: voiceAudience.band, path: 'voice-fast',
+      turn: isClassifierTurn ? 'classifier' : 'answer', policyVersion: POLICY_VERSION,
+    });
+    return sendCapMessageSse(res, impermissibleCounsel(voiceAudience.band));
+  }
+  // The classifier's one-word result is routing data, never spoken. Prefix only answer turns.
+  const voiceLiveNotice = isClassifierTurn ? '' : liveSearchNotice({
+    worldWanted: classifyWorldIntent(voiceText).world, answeredFromLive: false,
+  });
   const voiceHazard = graveHazard(voiceText);
   if (voiceHazard) {
     // Band-independent, exactly as in api/ask.js and api/chat.js: refused for everybody, not only
@@ -294,7 +309,8 @@ export default async function handler(req, res) {
       });
       // A DISCARDED DRAFT FALLS BACK TO THE CHILD LINE, not to the hazard redirect — the redirect
       // answers a question this child did not ask and reads to them as an accusation.
-      return sendCapMessageSse(res, rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN'));
+      return sendCapMessageSse(res, [voiceLiveNotice, rep.text || warmTemplateFor('GENERAL_CHILD_BENIGN')]
+        .filter(Boolean).join('\n\n'));
     }
 
     // Thin streaming relay: forward the SSE bytes unmodified; the client parses the events.
@@ -303,6 +319,13 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders?.();
+    if (voiceLiveNotice) {
+      const noticeFrame = {
+        type: 'content_block_delta', index: 0,
+        delta: { type: 'text_delta', text: voiceLiveNotice + '\n\n' },
+      };
+      res.write(`data: ${JSON.stringify(noticeFrame)}\n\n`);
+    }
     const reader = upstream.body.getReader();
     try {
       while (true) {

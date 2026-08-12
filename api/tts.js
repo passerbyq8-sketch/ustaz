@@ -41,6 +41,7 @@ const LANGUAGE_CODE = 'ar';
 // (even a long worship card) is well under this; larger is abuse or a bug. If a
 // real answer is ever clipped, raise this AND MAX_TASHKEEL_CHARS together.
 const MAX_TTS_CHARS = 8000;
+const TTS_FAILED_MESSAGE = 'تعذّر توليد الصوت الآن.';
 
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
@@ -56,6 +57,22 @@ export default async function handler(req, res) {
   // even parsed out of the body -- so an un-consented request costs nothing and reaches no vendor.
   if (!guardAIConsent(req, res)) return;
 
+  // Reject a missing, malformed or unparsed body before reading configuration, rate limiting or
+  // contacting ElevenLabs. A JSON string is tolerated because some runtimes do not pre-parse it.
+  let body = req.body;
+  if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = null; } }
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return res.status(400).json({ error: 'النص مطلوب' });
+  }
+
+  const { text, gender, band } = body;
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({ error: 'النص مطلوب' });
+  }
+  if (text.length > MAX_TTS_CHARS) {
+    return res.status(400).json({ error: `النص طويل جداً (الحد ${MAX_TTS_CHARS} حرف)` });
+  }
+
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
     return res.status(500).json({
@@ -63,7 +80,6 @@ export default async function handler(req, res) {
     });
   }
 
-  const { text, gender, band } = req.body;
   // Second layer -- NOT a lock. band is client-asserted, so this only raises the cost of a
   // casual bypass; real enforcement needs server-side identity, which this product has none
   // of by design (no accounts). Mirrors CHILD_VOICE_ENABLED=false at index.html:133 -- if
@@ -71,12 +87,6 @@ export default async function handler(req, res) {
   // Data Safety updated BEFORE deploy. A stale client sending no band is not blocked.
   if (band === 'young') {
     return res.status(403).json({ error: 'child voice disabled' });
-  }
-  if (!text || typeof text !== 'string') {
-    return res.status(400).json({ error: 'النص مطلوب' });
-  }
-  if (text.length > MAX_TTS_CHARS) {
-    return res.status(400).json({ error: `النص طويل جداً (الحد ${MAX_TTS_CHARS} حرف)` });
   }
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.headers['x-real-ip'] || 'unknown';
   const rl = await checkAudioLimit(ip, 'tts');
@@ -118,10 +128,9 @@ export default async function handler(req, res) {
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      return res.status(response.status).json({
-        error: `ElevenLabs error: ${errorText.slice(0, 200)}`
-      });
+      // Provider bodies can contain account data, HTML, JSON and identifiers. None is client data.
+      console.error('[tts] upstream failed with status ' + response.status);
+      return res.status(502).json({ error: TTS_FAILED_MESSAGE });
     }
 
     const audioBuffer = await response.arrayBuffer();
@@ -129,6 +138,7 @@ export default async function handler(req, res) {
     res.setHeader('Content-Length', audioBuffer.byteLength);
     return res.send(Buffer.from(audioBuffer));
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('[tts] transport failed');
+    return res.status(502).json({ error: TTS_FAILED_MESSAGE });
   }
 }

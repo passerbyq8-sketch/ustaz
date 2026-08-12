@@ -2907,7 +2907,11 @@ const getDailyVerse = () => {
 // يحذف أي وسم معروف (<verse>/<hadith>/<steps>/<suggestions>) فُتِح ولم يُغلَق — يحدث
 // عند اقتطاع الردّ منتصف الوسم — وأي بقايا "<...>" يتيمة في آخر النص، كي لا يتسرّب
 // ترميز خام إلى الطفل (عرض) ولا إلى ElevenLabs (صوت). مستقلّ تماماً عن max_tokens.
-const KNOWN_TAGS = 'verse|surah|hadith|steps|suggestions|source|dhikr';
+const KNOWN_TAG_NAMES = Object.freeze([
+  'verse', 'surah', 'hadith', 'steps', 'suggestions',
+  'board', 'document', 'source', 'dhikr', 'worship',
+]);
+const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 const stripIncompleteTags = (text) => {
   if (!text || typeof text !== 'string') return text || '';
   let t = text;
@@ -3250,7 +3254,7 @@ const parseRichMessage = (text, viewerAge) => {
   let remaining = text;
 
   // أنماط الوسوم
-  const tagPattern = /<(verse|surah|hadith|steps|suggestions|board|document|source|dhikr|worship)([^>]*)>([\s\S]*?)<\/\1>/g;
+  const tagPattern = new RegExp(`<(${KNOWN_TAGS})([^>]*)>([\\s\\S]*?)</\\1>`, 'g');
   let lastIndex = 0;
   let match;
   while ((match = tagPattern.exec(text)) !== null) {
@@ -3401,9 +3405,19 @@ const formatForTTS = (text) => {
   t = t.replace(/<worship[^>]*>[\s\S]*?<\/worship>/g, ' ');
   t = t.replace(/<worship[^>]*\/?>/g, ' ');
   t = t.replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g, ' ').replace(/[ \t]{2,}/g, ' ');
+  // Keep links opaque while pronunciation-only math substitutions run. In particular, neither a
+  // trig name in a path nor any slash/query operator in a URL is spoken as mathematics.
+  const protectedUrls = [];
+  t = t.replace(/\b(?:https?:\/\/|www\.)[^\s<>"'﴿﴾]+/gi, (url) => {
+    const token = '\uE000' + String.fromCharCode(0xE100 + protectedUrls.length) + '\uE001';
+    protectedUrls.push({ token, url });
+    return token;
+  });
   // رموزٌ ودوالُّ رياضيّةٌ خارج <board> → أسماؤها المتعارَف عليها (شبكة أمان للنطق)
+  const trigNames = { cos: ' كوساين ', sin: ' ساين ', tan: ' تانجنت ' };
   t = t
-       .replace(/cos/gi, ' كوساين ').replace(/sin/gi, ' ساين ').replace(/tan/gi, ' تانجنت ')
+       .replace(/(^|[^\p{L}\p{N}_])(cos|sin|tan)(?=$|[^\p{L}\p{N}_])/giu,
+         (_all, left, name) => left + trigNames[name.toLowerCase()])
        .replace(/π/g, ' باي ').replace(/°/g, ' درجة ').replace(/√/g, ' الجذر التربيعيّ لـ ')
        .replace(/×/g, ' في ').replace(/÷/g, ' على ').replace(/\//g, ' على ')
        .replace(/\+/g, ' زائد ').replace(/−/g, ' ناقص ').replace(/=/g, ' يساوي ')
@@ -3456,6 +3470,7 @@ const formatForTTS = (text) => {
   t = t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document)\b/gi, ' ');
   // تنظيف الفراغات
   t = t.replace(/\s+/g, ' ').trim();
+  for (const { token, url } of protectedUrls) t = t.split(token).join(url);
   return t;
 };
 
@@ -7847,43 +7862,6 @@ function App() {
       console.error('[Al-Murabbi] Network error:', e);
       return getFriendlyError('network', p.gender);
     }
-  };
-
-  const sendInitialGreeting = async (p) => {
-    setIsLoading(true);
-    setStreamingText('');
-    // The opener: send a neutral trigger only — no fake greeting — the opening rule in the
-    // system prompt is what makes it initiate with "السلام عليكم" rather than reply.
-    const controller = new AbortController();
-    abortRef.current = controller;
-    let reply;
-    try {
-      reply = await callAI([{ role: 'user', content: 'ابدأ المحادثة' }], p, {
-        signal: controller.signal,
-        // Greeting: normal 'chat' prompt but force /api/chat — a greeting never needs RAG,
-        // so skip /api/ask's round-1 tool overhead.
-        endpoint: '/api/chat',
-        onDelta: (partial) => { if (abortRef.current === controller) setStreamingText(partial); },
-      });
-    } catch (e) {
-      if (e.name === 'AbortError') {
-        // Aborted (e.g. a screen-change cleanup). Clear the loading/typing UI so the chat
-        // isn't wedged on the dots — but ONLY if this controller still owns the UI; if a
-        // newer request took over, leave the state to it.
-        if (abortRef.current === controller) { setIsLoading(false); setStreamingText(null); }
-        return;
-      }
-      reply = getFriendlyError('network', p.gender);
-    }
-    if (abortRef.current !== controller) return; // a newer request owns the UI — leave its state alone
-    abortRef.current = null;
-    setStreamingText(null);
-    const newMsgs = [{ role: 'assistant', content: reply, timestamp: new Date().toISOString() }];
-    setMessages(newMsgs);
-    markStreamedOpen(0);   // S98: the greeting streams too, and settles by the same rule
-    saveMessages(newMsgs);
-    setIsLoading(false);
-    if (voiceMode) speakReply(reply); // audio runs on the final full text only — as today
   };
 
   const onPickImage = async (e) => {
