@@ -1237,15 +1237,19 @@ const user = (t) => [{ role: 'user', content: t }];
     ok('...and an abort signal is honoured', /io\.signal/.test(bt));
     ok('both the search POST and the lesson GET pass it through',
       /SEARCH_TIMEOUT_MS, io\)/.test(bt) && /SHOW_TIMEOUT_MS, io\)/.test(bt));
-    // The shipped attributed route must pass NO gate, so the adapter behaves there exactly as it
-    // always has. Checked as an object KEY (`io:`) rather than a substring — "attribution"
-    // contains the letters "io", and the first version of this assertion matched that.
+    // The shipped attributed route passes no external Ledger gate. F-163 now gives that invocation
+    // its own local per-request cap; it does not borrow a global counter or activate Ledger.
+    // Checked as an object KEY (`io:`) rather than a substring — "attribution" contains the
+    // letters "io", and the first version of this assertion matched that.
     ok('the SHIPPED attributed route passes no gate, so legacy is unchanged',
       !/\bio\s*:/.test(code('api/ask.js')));
     ok('...while the ledger path does pass one',
       /\{ io \}/.test(code('lib/ledger/direct-corpus.js')));
-    ok('...and the adapter defaults to no gate when none is given',
-      /const io = o\.io \|\| null;/.test(bt));
+    ok('...and the adapter defaults to an isolated governing cap when none is given',
+      /let localAttempts = 0;/.test(bt)
+      && /const localIo = \{/.test(bt)
+      && /MAX_PAGES_FETCHED - RESERVE_FOR_FETCH/.test(bt)
+      && /const io = o\.io \|\| localIo;/.test(bt));
   }
 
   SF.__resetResolver();

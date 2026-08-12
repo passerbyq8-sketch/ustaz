@@ -92,6 +92,7 @@ const HUMAN_DIVINE_NAME_CASES = [
   const PG = await esm('lib/source-page-gates.js');
   const RC = await esm('lib/route-classify.js');
   const RETRIEVE = await esm('lib/retrieve.js');
+  const DAILY = await esm('lib/ledger/daily-budget.js');
   const DC = await esm('lib/daycap.js');
   const DAY = DC;
   const STORE = await esm('lib/ledger/redis.js');
@@ -281,6 +282,7 @@ const HUMAN_DIVINE_NAME_CASES = [
     try {
       const timedOut = await RETRIEVE.retrieveWorld('فلان الفلاني', {
         maxWaves: 1, maxResults: 1, searchTimeoutMs: 5,
+        dailyBudget: new DAILY.DailySearchBudget({ limit: 1, store: DAILY.fakeStore() }),
       });
       ok('F-003 real timer: the cancellable provider deadline is SEARCH_FAILED, not ABSENT',
         timedOut.diagnostics.outcome === RETRIEVE.WORLD_RETRIEVAL_OUTCOME.SEARCH_FAILED

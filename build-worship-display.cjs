@@ -27,7 +27,7 @@ const GOLDEN = path.join(__dirname, 'worship-golden.json');
 const OUT = path.join(__dirname, 'worship-display.json');
 
 // --- pinned: the golden this script was written against -----------------------
-const GOLDEN_SHA = '1ED255A3881736B05AEB19FB0091F617092533558C65EE55BF76E8F1FE64E4A8';
+const GOLDEN_SHA = '70A87EDDBDE9D66F07E86963262403CFDF73CFA637AAE929FAA2FE88A4B9BB9C';
 
 // --- the ghusl:young display text. Authored by the user, 13 July 2026. --------
 // Every sentence is drawn from his own golden block; only the pronoun moved.

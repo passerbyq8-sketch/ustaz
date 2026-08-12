@@ -424,6 +424,17 @@ const PAGES = {
       try {
         const DC = await esm('lib/daycap.js');
         const CONSENT = await esm('lib/ai-consent.js');
+        const LEDGER_STORE = await esm('lib/ledger/redis.js');
+        let dailySearchUnits = 0;
+        // F-038 makes every world-provider call reserve the canonical daily budget first. This
+        // local Redis double models that Lua reservation; without it the test would be exercising
+        // an infrastructure outage and could never reach the identity assertion it owns.
+        LEDGER_STORE.__setRedisForTest({
+          async eval(_script, _keys, args) {
+            dailySearchUnits++;
+            return [dailySearchUnits, dailySearchUnits <= Number(args[0]) ? 1 : 0];
+          },
+        });
         const DEVICE = 'identity-guard-device';
         const FOUNDER = DC.founderTokenFor(DEVICE);
 
@@ -620,6 +631,7 @@ const PAGES = {
       } finally {
         console.log = realLog;
         globalThis.fetch = throwingFetch;
+        try { (await esm('lib/ledger/redis.js')).__resetRedis(); } catch { /* test cleanup */ }
         for (const k of Object.keys(saved)) {
           if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
         }
@@ -659,6 +671,16 @@ const PAGES = {
       try {
         const DC = await esm('lib/daycap.js');
         const CONSENT = await esm('lib/ai-consent.js');
+        const LEDGER_STORE = await esm('lib/ledger/redis.js');
+        let dailySearchUnits = 0;
+        // F-038 makes the driven world lookup reserve the canonical budget. Keep this identity
+        // fixture focused on cascade ordering by supplying the local atomic reservation double.
+        LEDGER_STORE.__setRedisForTest({
+          async eval(_script, _keys, args) {
+            dailySearchUnits++;
+            return [dailySearchUnits, dailySearchUnits <= Number(args[0]) ? 1 : 0];
+          },
+        });
 
         const WIKI = '<html><body><div class="mw-parser-output">'
           + '<p>عبد الله الرويشد مطرب وملحن كويتي من مواليد 1961.</p></div></body></html>';
@@ -769,6 +791,7 @@ const PAGES = {
       } finally {
         console.log = realLog;
         globalThis.fetch = throwingFetch;
+        try { (await esm('lib/ledger/redis.js')).__resetRedis(); } catch { /* test cleanup */ }
         for (const k of Object.keys(saved)) {
           if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
         }

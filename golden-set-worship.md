@@ -2,9 +2,9 @@
 
 **تطبيقُ المربّي · وثيقةٌ حاكمةٌ متعقّبة · مُوَلّدةٌ آليًّا — لا تُحرّرْ باليد**
 
-> ⚠️ **وثيقةٌ مُوَلّدة.** أُنشئت بـ`build-golden-md.cjs` من `worship-golden.json` — **لا تُعدّلْ يدويًّا**؛ عدّلِ الذهبيّ (`index.html` ثمّ `--save-golden`) ثمّ أعِدِ التوليد. أيّ تحريرٍ يدويٍّ يُمحى عند التوليدِ التالي.
+> ⚠️ **وثيقةٌ مُوَلّدة.** أُنشئت بـ`build-golden-md.cjs` من `worship-golden.json` — **لا تُعدّلْ يدويًّا**؛ عدّلِ الذهبيّ (`lib/system-prompt.js` ثمّ `--save-golden`) ثمّ أعِدِ التوليد. أيّ تحريرٍ يدويٍّ يُمحى عند التوليدِ التالي.
 >
-> **المرجعُ الآليّ:** `worship-golden.json` (يقارنُ به `worship-guard.cjs`). **الكتل = ٨** · أُنشئَ المصدرُ `2026-07-30T18:46:51.958Z` من `index.html`.
+> **المرجعُ الآليّ:** `worship-golden.json` (يقارنُ به `worship-guard.cjs`). **الكتل = ٨** · أُنشئَ المصدرُ `2026-07-30T18:46:51.958Z` من `lib/system-prompt.js`.
 >
 > **البصمةُ لكلّ كتلة (من الذهبيّ مباشرةً):**
 
@@ -21,7 +21,7 @@
 
 ---
 
-> **ما هذه الوثيقة؟** المرآةُ البشريّةُ لـ`worship-golden.json`: تُثبّتُ النصّ القانونيّ (canonical) لكلّ عبادةٍ × فئةٍ عمريّة، حرفيًّا كما التُقِطت من `index.html`. النصّوصُ أدناه ليست نسخًا يدويًّا بل مُوَلّدةٌ من `rawText` المخزّن في الذهبيّ، فهي مطابقةٌ بايتًا ببايتٍ لما يحرسُه الحارس.
+> **ما هذه الوثيقة؟** المرآةُ البشريّةُ لـ`worship-golden.json`: تُثبّتُ النصّ القانونيّ (canonical) لكلّ عبادةٍ × فئةٍ عمريّة، حرفيًّا كما التُقِطت من `lib/system-prompt.js`. النصّوصُ أدناه ليست نسخًا يدويًّا بل مُوَلّدةٌ من `rawText` المخزّن في الذهبيّ، فهي مطابقةٌ بايتًا ببايتٍ لما يحرسُه الحارس.
 >
 > **لماذا؟** عمودُ العبادةِ ليس مقفلًا بنيويًّا بعدُ (يُعادُ توليدُه حسب العمر)؛ فالحارسُ (`worship-guard.cjs`) ضروريٌّ حتّى يأتيَ القفلُ البنيويُّ الكامل. وهذه الوثيقةُ **حارسُ انحدارٍ لا قفلٌ بنيويّ**: تكشفُ الانحراف بعد وقوعِه، ولا تمنعُ التوليدَ ابتداءً.
 
@@ -228,11 +228,11 @@ rawHash `98fab1fd0984aea3` · bareHash `b2b6545060e1006c`
 ---
 
 ## ٣) إجراءُ الحارس — `worship-guard.cjs` (قراءةٌ فقط)
-لا يكتبُ في `index.html` أبدًا؛ يقرأُ منه فقط، ويكتبُ `worship-golden.json` الذي تُسمّيه أنت.
+لا يكتبُ في `lib/system-prompt.js` أبدًا؛ يقرأُ منه فقط، ويكتبُ `worship-golden.json` الذي تُسمّيه أنت.
 ```
-node worship-guard.cjs --list        index.html
-node worship-guard.cjs --save-golden index.html worship-golden.json
-node worship-guard.cjs --compare     index.html worship-golden.json
+node worship-guard.cjs --list        lib/system-prompt.js
+node worship-guard.cjs --save-golden lib/system-prompt.js worship-golden.json
+node worship-guard.cjs --compare     lib/system-prompt.js worship-golden.json
 ```
 **التطبيع:** CRLF→LF · تجريدُ التشكيل (`[\u064B-\u0652\u0670\u0640]`) · تسويةُ الهمزات (`[أإآٱ]→ا`) قبل المقارنة.
 
@@ -263,7 +263,7 @@ node worship-guard.cjs --compare     index.html worship-golden.json
 ---
 
 ## ٥) ما لا يُلمَس
-أعمدةُ العبادةِ نفسُها (نوثّقُ ونحرسُ لا نُغيّر) · وضعُ المكالمة · بياناتُ `/adhkar.json`. الحارسُ **قراءةٌ فقط** من `index.html`، وهذه الوثيقةُ **مُوَلّدةٌ** من الذهبيّ.
+أعمدةُ العبادةِ نفسُها (نوثّقُ ونحرسُ لا نُغيّر) · وضعُ المكالمة · بياناتُ `/adhkar.json`. الحارسُ **قراءةٌ فقط** من `lib/system-prompt.js`، وهذه الوثيقةُ **مُوَلّدةٌ** من الذهبيّ.
 
 ## الملفّاتُ المتعقّبة (`git add` بالاسم صراحةً)
 1. `worship-golden.json` — المرجعُ الآليّ (المصدرُ الوحيدُ لهذه الوثيقة).

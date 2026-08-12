@@ -32,6 +32,27 @@ function ok(name, cond, detail) {
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 const exists = (rel) => fs.existsSync(path.join(REPO, rel));
+const retrieveSourceArg = process.argv.indexOf('--retrieve-source');
+const retrieveSourceFile = retrieveSourceArg >= 0 && process.argv[retrieveSourceArg + 1]
+  ? path.resolve(process.argv[retrieveSourceArg + 1])
+  : path.join(REPO, 'lib/retrieve.js');
+const esmRetrieve = () => {
+  if (retrieveSourceArg < 0) return import('file://' + retrieveSourceFile.replace(/\\/g, '/'));
+  // A mutant lives outside the checkout and therefore cannot resolve this checkout's packages.
+  // Rewrite only its import specifiers to the real read-only dependencies; the module body under
+  // test remains the external file byte-for-byte.
+  const external = fs.readFileSync(retrieveSourceFile, 'utf8').replace(
+    /from\s+(['"])([^'"]+)\1/g,
+    (whole, quote, specifier) => {
+      if (specifier.startsWith('node:')) return whole;
+      const target = specifier.startsWith('.')
+        ? path.resolve(REPO, 'lib', specifier)
+        : require.resolve(specifier, { paths: [REPO] });
+      return 'from ' + quote + 'file:///' + target.replace(/\\/g, '/') + quote;
+    },
+  );
+  return import('data:text/javascript;base64,' + Buffer.from(external, 'utf8').toString('base64'));
+};
 
 // Anything that claims to be a browser. `Mozilla/` is the token an operator's filter greps for,
 // which is why the old "honest" string in safe-fetch.js — Mozilla/5.0 (compatible; EzikBot…) —
@@ -77,7 +98,7 @@ const stripComments = (s) => String(s)
 
   // ── DRIVEN: what actually goes out on the wire ────────────────────────────
   {
-    const RT = await esm('lib/retrieve.js');
+    const RT = await esmRetrieve();
     const realFetch = globalThis.fetch;
     let sentUA = null;
     globalThis.fetch = async (url, init) => {
@@ -281,7 +302,7 @@ const stripComments = (s) => String(s)
   // ══════════════════════════════════════════════════════════════════════════
 
   const DB = await esm('lib/domain-budget.js');
-  const RUNTIME = await esm('lib/retrieve.js');
+  const RUNTIME = await esmRetrieve();
   const DEFAULT_BUDGET = RUNTIME.DEFAULT_FETCH_TIMEOUT_MS;
 
   ok('C1: islamweb has its own timeout, and it is the measured constant',
@@ -316,7 +337,7 @@ const stripComments = (s) => String(s)
     'a throttled host and a slow host look identical from outside');
   {
     // "وسم degraded فقط — لا حذف من أي قائمة". Proven, not promised.
-    const RT2 = await esm('lib/retrieve.js');
+    const RT2 = await esmRetrieve();
     ok('C5: ...and it is REMOVED FROM NO LIST',
       RT2.SITES_MINOR.includes('islamstory.com') && RT2.SITES_ADULT.includes('islamstory.com'),
       'degraded is a label for the owner to decide against, never a filter');
@@ -353,8 +374,8 @@ const stripComments = (s) => String(s)
       'a sample between the new timeout and the default would be an answer this change throws away');
   }
   ok('C6: ...and it is on every list it was on before — a timeout is not a removal',
-    (await esm('lib/retrieve.js')).SITES_MINOR.includes('islamstory.com')
-    && (await esm('lib/retrieve.js')).SITES_ADULT.includes('islamstory.com'));
+    (await esmRetrieve()).SITES_MINOR.includes('islamstory.com')
+    && (await esmRetrieve()).SITES_ADULT.includes('islamstory.com'));
   ok('C6: ...and it goes through the SAME lookup every other host does',
     DB.fetchTimeoutFor('https://islamstory.com/ar/artical/1', DEFAULT_BUDGET) === 5000
     && DB.fetchTimeoutFor('https://www.islamstory.com/ar/artical/1', DEFAULT_BUDGET) === 5000);
@@ -673,7 +694,7 @@ const stripComments = (s) => String(s)
   // is a different claim from "that is what travels on the wire". Section A makes the same
   // distinction about the user-agent, for the same reason.
 
-  const RTO = await esm('lib/retrieve.js');
+  const RTO = await esmRetrieve();
   const DB2 = await esm('lib/ledger/daily-budget.js');
 
   ok('F1: safesearch follows the owner\'s rule — strict for young, teen AND the absent band',
@@ -777,6 +798,109 @@ const stripComments = (s) => String(s)
       && /daily-budget\.js/.test(read('lib/retrieve.js'))
       && !/DAILY|DAY_CAP|dayCap/.test(read('lib/retrieve.js').split('retrieveOpenWorld')[1] || ''),
       'the brief: «يستهلك من سقف Brave اليومي القائم — لا سقف جديد»');
+  }
+
+  // ── F4: the split between the two world searches ──────────────────────────
+  // F-038: retrieveWorld uses the same atomic daily-search reservation as the open and Ledger
+  // paths.  These calls inject both the store/clock and the provider transport; no live socket is
+  // available to the test, and a refusal must be observable as SERVICE_LIMITED rather than an
+  // apparently completed empty search.
+  {
+    const realFetch = globalThis.fetch;
+    const realKey = process.env.BRAVE_API_KEY;
+    process.env.BRAVE_API_KEY = 'test-brave-key';
+    let transportCalls = 0;
+    const emptyTransport = async () => {
+      transportCalls++;
+      return { ok: true, status: 200, json: async () => ({ web: { results: [] } }) };
+    };
+    // If `opts.transport` is accidentally ignored, this still remains offline and the counter
+    // exposes the call.  The product test below additionally requires the injected function.
+    globalThis.fetch = async () => { throw new Error('F-038 transport injection was ignored'); };
+    const counted = (inner) => {
+      const state = { calls: 0 };
+      return {
+        state,
+        async reserve() { state.calls++; return inner.reserve(); },
+      };
+    };
+    try {
+      const clock = () => Date.UTC(2026, 7, 12, 10, 0, 0);
+      const allowedBudget = counted(new DB2.DailySearchBudget({
+        limit: 10, store: DB2.fakeStore(), now: clock,
+      }));
+      transportCalls = 0;
+      const allowed = await RTO.retrieveWorld('آخر أخبار الاقتصاد', {
+        dailyBudget: allowedBudget, transport: emptyTransport,
+      });
+      ok('F-038 allow: one atomic reservation precedes one provider transport',
+        allowedBudget.state.calls === 1 && transportCalls === 1
+          && allowed.diagnostics.outcome === RTO.WORLD_RETRIEVAL_OUTCOME.COMPLETED_EMPTY,
+        JSON.stringify({ reservations: allowedBudget.state.calls, transportCalls, diagnostics: allowed.diagnostics }));
+
+      const deniedBudget = counted(new DB2.DailySearchBudget({
+        limit: 0, store: DB2.fakeStore(), now: clock,
+      }));
+      transportCalls = 0;
+      const denied = await RTO.retrieveWorld('آخر أخبار الاقتصاد', {
+        dailyBudget: deniedBudget, transport: emptyTransport,
+      });
+      ok('F-038 exhausted: zero provider calls and an explicit safe limited outcome',
+        deniedBudget.state.calls === 1 && transportCalls === 0
+          && denied.diagnostics.outcome === DB2.SERVICE_LIMITED
+          && denied.diagnostics.reasons.includes(DB2.SERVICE_LIMITED),
+        JSON.stringify({ reservations: deniedBudget.state.calls, transportCalls, diagnostics: denied.diagnostics }));
+
+      const throwingBudget = counted(new DB2.DailySearchBudget({
+        limit: 10,
+        store: { async evalScript() { throw new Error('local-store-down'); } },
+        now: clock,
+      }));
+      transportCalls = 0;
+      const storeFailure = await RTO.retrieveWorld('آخر أخبار الاقتصاد', {
+        dailyBudget: throwingBudget, transport: emptyTransport,
+      });
+      ok('F-038 reservation exception fails closed before transport without a bypass',
+        throwingBudget.state.calls === 1 && transportCalls === 0
+          && storeFailure.diagnostics.outcome === DB2.SERVICE_LIMITED,
+        JSON.stringify({ reservations: throwingBudget.state.calls, transportCalls, diagnostics: storeFailure.diagnostics }));
+
+      const timeoutBudget = counted(new DB2.DailySearchBudget({
+        limit: 10, store: DB2.fakeStore(), now: clock,
+      }));
+      transportCalls = 0;
+      const timeoutTransport = async () => {
+        transportCalls++;
+        const error = new Error('local timeout'); error.name = 'AbortError'; throw error;
+      };
+      const timedOut = await RTO.retrieveWorld('آخر أخبار الاقتصاد', {
+        dailyBudget: timeoutBudget, transport: timeoutTransport,
+      });
+      ok('F-038 provider timeout spends the reservation once for that logical operation',
+        timeoutBudget.state.calls === 1 && transportCalls === 1
+          && timedOut.diagnostics.outcome === RTO.WORLD_RETRIEVAL_OUTCOME.SEARCH_FAILED,
+        JSON.stringify({ reservations: timeoutBudget.state.calls, transportCalls, diagnostics: timedOut.diagnostics }));
+
+      const compareBudget = counted(new DB2.DailySearchBudget({
+        limit: 10, store: DB2.fakeStore(), now: clock,
+      }));
+      const nameBudget = counted(new DB2.DailySearchBudget({
+        limit: 10, store: DB2.fakeStore(), now: clock,
+      }));
+      transportCalls = 0;
+      await RTO.retrieveWorld('مقارنة خبرية', { dailyBudget: compareBudget, transport: emptyTransport });
+      const afterComparison = transportCalls;
+      await RTO.retrieveWorld('خالد عبدالرحمن', {
+        maxWaves: 1, maxResults: 3, dailyBudget: nameBudget, transport: emptyTransport,
+      });
+      ok('F-038 comparison and name-presence shapes obey the identical reservation contract',
+        compareBudget.state.calls === 1 && nameBudget.state.calls === 1
+          && afterComparison === 1 && transportCalls === 2,
+        JSON.stringify({ comparison: compareBudget.state.calls, name: nameBudget.state.calls, transportCalls }));
+    } finally {
+      globalThis.fetch = realFetch;
+      if (realKey === undefined) delete process.env.BRAVE_API_KEY; else process.env.BRAVE_API_KEY = realKey;
+    }
   }
 
   // ── F4: the split between the two world searches ──────────────────────────

@@ -1,6 +1,6 @@
 'use strict';
 /*
- * worship-guard.cjs — حارسُ انحدارِ نصوصِ العبادة (قراءةٌ فقط، لا يكتبُ في index.html)
+ * worship-guard.cjs — حارسُ انحدارِ نصوصِ العبادة (قراءةٌ فقط، لا يكتبُ في system-prompt.js)
  * ------------------------------------------------------------------------------
  * يلتقطُ النصَّ القانونيَّ لأعمدةِ العبادةِ كما هي الآن (مرجعٌ ذهبيّ)، ثم يكشفُ لاحقًا
  * إن أُعيدَ توليدُ عمودٍ أو انحرفَ نصُّه (تغيّرُ خطواتٍ أو حروف).
@@ -11,16 +11,17 @@
  * (يُلتقَطُ فقط ما يبدأُ فرعُه بلافتةِ ═══ — أي أعمدةُ العبادة، لا أيَّ تفريعٍ آخر.)
  *
  * الأطوار:
- *   node worship-guard.cjs --list        index.html
- *   node worship-guard.cjs --save-golden index.html worship-golden.json
- *   node worship-guard.cjs --compare     index.html worship-golden.json
+ *   node worship-guard.cjs --list        lib/system-prompt.js
+ *   node worship-guard.cjs --save-golden lib/system-prompt.js worship-golden.json
+ *   node worship-guard.cjs --compare     lib/system-prompt.js worship-golden.json
  *
- * سلامة: لا يكتبُ في index.html أبدًا (قراءةٌ فقط منه). يكتبُ فقط worship-golden.json.
+ * سلامة: لا يكتبُ في lib/system-prompt.js أبدًا (قراءةٌ فقط منه). يكتبُ فقط worship-golden.json.
  * تطبيعُ المقارنة (دفتر الإدراج §٤): CRLF→LF · تجريدُ التشكيل · تسويةُ الهمزات.
  */
 
 const fs = require('fs');
 const crypto = require('crypto');
+const path = require('path');
 const BANNER = '\u2550\u2550\u2550';                 // ═══
 const MARK = "${band === 'young' ? " + "`";           // بدايةُ تفريعِ العمر (يتبعُها فرعُ الصغير)
 
@@ -116,14 +117,19 @@ function cmdCompare(file, goldenPath){
   const cols = extractColumns(readOrDie(file));
   const cur = new Map(cols.map(c => [keyOf(c), c.body]));
   let hard = 0, soft = 0;
+  const sourceId = p => path.resolve(String(p || '')).replace(/\\/g, '/');
+  if (sourceId(golden.source) !== sourceId(file)) {
+    console.error(`✗ مصدرُ الذهبيّ ${golden.source || '(غائب)'} لا يطابقُ الملفَّ المحروس ${file}.`);
+    hard++;
+  }
   // خطأ ٢٨ (ق٥٠/ق٢٥): حارسٌ لم يقارنْ شيئًا لا يمرّ — ذهبيٌّ فارغٌ أو استخراجٌ فارغٌ ⟹ خروجٌ غيرُ صفريّ.
   const goldKeys = new Set(Object.keys(golden.blocks || {}));
   if (goldKeys.size === 0 || cols.length === 0){
     console.error(`✗ لا مقارنة: ذهبيٌّ=${goldKeys.size} · حاليٌّ=${cols.length}. حارسٌ لم يقارنْ شيئًا لا يمرّ.`);
     process.exit(2);
   }
-  // خطأ ٢٩: مقارنةٌ ثنائيّة. الحلقةُ أدناه تمسكُ ما في الذهبيِّ وغابَ عن index.html؛ وهذه تمسكُ العكسَ:
-  // عمودًا في index.html غائبًا عن الذهبيِّ (عمودٌ غيرُ محروس). كلا الاتّجاهَينِ انحرافٌ صلب.
+  // خطأ ٢٩: مقارنةٌ ثنائيّة. الحلقةُ أدناه تمسكُ ما في الذهبيِّ وغابَ عن المصدر؛ وهذه تمسكُ العكسَ:
+  // عمودًا في المصدر غائبًا عن الذهبيِّ (عمودٌ غيرُ محروس). كلا الاتّجاهَينِ انحرافٌ صلب.
   for (const key of cur.keys()){
     if (!goldKeys.has(key)){ console.log(`  ✗ زائد    | ${key}`); hard++; }
   }
@@ -151,9 +157,9 @@ function cmdCompare(file, goldenPath){
 
 function usage(){ console.log(`
 worship-guard.cjs — حارسُ نصوصِ العبادة (قراءةٌ فقط)
-  node worship-guard.cjs --list        index.html
-  node worship-guard.cjs --save-golden index.html worship-golden.json
-  node worship-guard.cjs --compare     index.html worship-golden.json
+  node worship-guard.cjs --list        lib/system-prompt.js
+  node worship-guard.cjs --save-golden lib/system-prompt.js worship-golden.json
+  node worship-guard.cjs --compare     lib/system-prompt.js worship-golden.json
 `); process.exit(2); }   // ق٥٠ — حارسٌ لم يقارنْ شيئاً لا يخرجُ بصفر
 
 const a = process.argv.slice(2);

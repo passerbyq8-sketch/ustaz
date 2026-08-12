@@ -2,8 +2,46 @@
 
 Actual results only. Nothing in this document is projected, and no live measurement was taken.
 
-**Branch:** `guarded/rfc-v0.5-r2` (local only) · **PUSHED = NO** · **DEPLOYED = NO** ·
-**LEDGER_ENABLED = NO**
+**Historical implementation-run snapshot:** branch `guarded/rfc-v0.5-r2` was local-only,
+`PUSHED = NO`, `DEPLOYED = NO`, and Ledger was not enabled at the end of that run. These are
+historical facts, not present-tense deployment claims.
+
+### Current repository truth (F-198)
+
+The current repository code has `PUBLIC_GO_LIVE=true`. With `LEDGER_RAG`, `RFC_V05_MODE`, and the
+runtime brake absent, `decidePath()` returns `ledger:mode_public` for an anonymous request. The only
+accepted written `RFC_V05_MODE` values are `off`, `internal`, and `public`; an unknown value becomes
+`off`. `PUBLIC_GO_LIVE=false` would restore the older credential-plus-store rollout arm, while
+explicit floors, modes, and the Upstash brake remain effective stops.
+
+The legacy-policy helper still defaults disabled when `RFC_V05_LEGACY_POLICY` is absent and reports
+`false:env_floor_off`, but the handler no longer uses it to gate repairs. The result is logged for
+telemetry; `planAsk(..., { policyEnabled: true })` applies the corrections unconditionally.
+
+This is a code/default snapshot only. No live probe is allowed in this review, `vercel.json` tracks
+none of the rollout variables, and the effective deployment environment and Upstash brake are not
+present in the repository. Current deployment state is therefore **UNMEASURED_OFFLINE**, not “on”
+or “off”.
+
+<!-- F198_CURRENT_TRUTH_BEGIN -->
+```text
+PUBLIC_GO_LIVE=true
+LEDGER_DEFAULT_ENABLED=true
+RFC_V05_MODE_ACCEPTED=off,internal,public
+RFC_V05_MODE_UNSET=public
+RFC_V05_MODE_UNKNOWN=off
+LEDGER_RAG_UNSET_ALLOWS=true
+DECIDE_PATH_UNSET_ANON=ledger:mode_public
+LEGACY_POLICY_DEFAULT_ENABLED=false
+RFC_V05_LEGACY_POLICY_UNSET_ALLOWS=false
+DECIDE_LEGACY_POLICY_UNSET_ANON=false:env_floor_off
+LEGACY_REPAIRS_RUNTIME=unconditional
+TRACKED_DEPLOYMENT_ROLLOUT_ENV=absent
+DEPLOYMENT_SNAPSHOT=UNMEASURED_OFFLINE
+DEFAULT_CODE_VS_DEPLOYMENT=code-default-is-measured;effective-deployment-is-not
+OLD_ROLLOUT_SNAPSHOT=HISTORICAL_ONLY
+```
+<!-- F198_CURRENT_TRUTH_END -->
 
 ---
 
@@ -317,7 +355,7 @@ Every one **PASS**, exit code `0`.
 
 ```
 TOTAL_GATES        71/71 PASS
-RECON              PASS=158 WARN=3 FAIL=0
+RECON              PASS=159 WARN=3 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
@@ -369,7 +407,10 @@ whose tests had not passed.
 
 ---
 
-## M. Git end state
+## M. Historical Git end state of the original implementation run
+
+The block below is retained as provenance for that completed run only. It does not describe the
+current branch, current push status, or effective deployment.
 
 ```
 END_BRANCH        guarded/rfc-v0.5-r2
@@ -429,11 +470,11 @@ ids, and corpus pages below the 300-character evidence floor).
    one existed; none does. Building one is out of this RFC's scope and is the single change that
    would most strengthen the child policy.
 
-3. **The legacy repairs are behind `RFC_V05_LEGACY_POLICY` and are OFF.** Nothing in §H reaches an
-   ordinary reader today. With the flag off the handler's routing expression is byte-for-byte the
-   shipped one and every new branch is unreachable; `ledger-contract-guard` records that the old
-   «ذهب» mis-read is still what ships. Turning it on is a separate, deliberate act, and no value
-   was changed in this work.
+3. **Superseded rollout statement:** the legacy repairs were originally placed behind
+   `RFC_V05_LEGACY_POLICY`. In the current handler, that decision is still computed and logged but
+   does not gate the repairs: `planAsk(..., { policyEnabled: true })` makes them unconditional.
+   With the env unset, the helper itself still reports disabled (`env_floor_off`); that is a
+   telemetry fact, not the runtime state of the corrections.
 4. **Legacy has no Gate 3.** `ABOUT_ENTITY` on the legacy path is protected by a *buffered*
    deterministic check (`violatesTemplate`) rather than by the ledger's entailment gate. That is
    strictly better than the streamed alternative and strictly weaker than Gate 3. The narrower
@@ -463,9 +504,10 @@ ids, and corpus pages below the 300-character evidence floor).
 
 To be run only after this review, with explicit authorisation.
 
-1. **Internal preview** — deploy the branch to a private preview with `LEDGER_ENABLED` off and no
-   internal credential issued. Confirm the adult streamed path is byte-identical to production for
-   three ordinary fiqh questions.
+1. **Explicit rollback preview** — deploy only with separate authorisation, setting the actual
+   controls `LEDGER_RAG=off` or `RFC_V05_MODE=off` (there is no `LEDGER_ENABLED` control). Confirm
+   `decidePath()` reports the corresponding legacy reason and the adult streamed path remains
+   protocol-correct for three ordinary fiqh questions.
 2. **Ibn Taymiyyah** — ask «هل خالف شيخ الإسلام ابن تيمية أهل السنة والجماعة؟» as an adult.
    Expect: a sourced answer with a card, **no** «لم أتبيّنْ أيَّ شيخٍ تقصد», and no sentence of the
    form «قال ابن تيمية».
@@ -479,7 +521,8 @@ To be run only after this review, with explicit authorisation.
 6. **Budget exhaustion** — with `DAILY_SEARCH_BUDGET` set to a small value on the preview only,
    exhaust it and confirm: `SERVICE_LIMITED` wording, never `NOT_FOUND`, no new provider call, and
    that `LOCAL_FROZEN` (Quran, adhkar, fixed worship texts) and the benign child path still answer.
-7. **Ledger default off** — confirm with the flag untouched that `decidePath()` returns `legacy` for
-   every request, including one carrying a forged internal header.
+7. **Ledger code default and rollback** — with rollout env absent and no explicit runtime brake,
+   confirm `decidePath()` returns `ledger:mode_public` for ordinary and forged-header requests.
+   Then set `RFC_V05_MODE=off` in the preview and confirm both return `legacy:mode_off`.
 
 None of the above has been executed.

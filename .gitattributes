@@ -58,6 +58,7 @@ gates.json text eol=lf
 hafs-map-guard.cjs        text eol=lf
 data/mushaf-hafs-map.json text eol=lf
 build-golden-md.cjs text eol=lf
+golden-set-worship.md text eol=lf
 build-mushaf-layout.cjs text eol=lf
 esc.cjs text eol=lf
 flip-stream-flag.cjs text eol=lf

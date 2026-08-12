@@ -37,6 +37,11 @@ function ok(name, cond, detail) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+const askSourceArg = process.argv.indexOf('--ask-source');
+const askSourceFile = askSourceArg >= 0 && process.argv[askSourceArg + 1]
+  ? path.resolve(process.argv[askSourceArg + 1])
+  : path.join(REPO, 'api/ask.js');
+const readAsk = () => fs.readFileSync(askSourceFile, 'utf8');
 const exists = (rel) => fs.existsSync(path.join(REPO, rel));
 const bare = (s) => String(s == null ? '' : s).replace(/[ً-ْٰـ]/g, '');
 
@@ -138,7 +143,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     'text=' + r7.text);
 
   // ── 7. WIRING — both paths ─────────────────────────────────────────────────
-  const askSrc = read('api/ask.js');
+  const askSrc = readAsk();
   ok('api/ask.js imports the takhrij lock', /takhrij-lock\.js/.test(askSrc));
   ok('api/ask.js applies it to the drafted reply', /lockTakhrij\s*\(/.test(askSrc));
 
@@ -346,7 +351,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
 
   {
     const target = makeTarget();
-    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    let finalizerCalls = 0;
+    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => {
+      finalizerCalls++;
+      return { text: x.text, ok: true };
+    } });
     const payload = delta('# Heading\n\n- one\n- two') + stop;
     writer.write(payload.slice(0, 7));
     writer.write(payload.slice(7, 29));
@@ -355,6 +364,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     writer.end();
     ok('...and final text is emitted only at end', visible(target) === '# Heading\n\n- one\n- two');
     ok('...with exactly one message_stop and one end', (target.writes.join('').match(/message_stop/g) || []).length === 1 && target.ended === 1);
+    writer.end();
+    writer.write(delta('late'));
+    ok('F-024: the central composer runs exactly once and a terminal response accepts no later byte',
+      finalizerCalls === 1 && (target.writes.join('').match(/message_stop/g) || []).length === 1
+        && target.ended === 1 && !visible(target).includes('late'));
   }
   {
     const target = makeTarget();
@@ -590,7 +604,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   }
   {
     const parser = require('@babel/parser');
-    const ast = parser.parse(read('api/ask.js'), { sourceType: 'module', plugins: ['optionalChaining'] });
+    const askSource = readAsk();
+    const ast = parser.parse(askSource, { sourceType: 'module', plugins: ['optionalChaining'] });
     const writes = [], wrappers = [];
     const walk = (node, fn = '') => {
       if (!node || typeof node !== 'object') return;
@@ -609,8 +624,9 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     walk(ast);
     const handlerWrapper = wrappers.find((item) => item.scope === 'handler');
     const synthWrapper = wrappers.find((item) => item.scope === 'sendSynthesizedText');
-    const bypasses = writes.filter((item) => item.scope === 'handler' && item.line < handlerWrapper.line)
-      .filter((item) => !read('api/ask.js').split(/\r?\n/)[item.line - 1].includes(': keepalive'));
+    const handlerWrapperLine = handlerWrapper ? handlerWrapper.line : Number.POSITIVE_INFINITY;
+    const bypasses = writes.filter((item) => item.scope === 'handler' && item.line < handlerWrapperLine)
+      .filter((item) => !askSource.split(/\r?\n/)[item.line - 1].includes(': keepalive'));
     ok('AST structural gate: every reader-text write is dominated by a finalized writer', !!handlerWrapper && !!synthWrapper && bypasses.length === 0, JSON.stringify(bypasses));
     ok('the ledger receives the reassigned response facade in the real handler AST', !!handlerWrapper && writes.some((item) => item.scope === 'handler' && item.line > handlerWrapper.line));
   }
@@ -623,7 +639,13 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const STORE = await esm('lib/ledger/redis.js');
     process.env.ANTHROPIC_API_KEY = 'a1-local'; process.env.BRAVE_API_KEY = 'a1-local';
     process.env.FOUNDER_SECRET = 'a1-local-secret'; process.env.RFC_V05_MODE = 'internal'; process.env.LEDGER_RAG = 'off';
-    STORE.__setRedisForTest(null);
+    let dailySearchUnits = 0;
+    STORE.__setRedisForTest({
+      async eval(_script, _keys, args) {
+        dailySearchUnits++;
+        return [dailySearchUnits, dailySearchUnits <= Number(args[0]) ? 1 : 0];
+      },
+    });
     const cap = new Map();
     DAY.__setRedisForTest({ async mget(...ks) { return ks.map((k) => cap.get(k) || null); }, async sismember() { return 0; }, pipeline() { const q = []; return {
       incr(k) { q.push(() => { const n = (Number(cap.get(k)) || 0) + 1; cap.set(k, n); return n; }); }, expire() { q.push(() => 1); }, async exec() { return q.map((f) => f()); },

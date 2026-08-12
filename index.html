@@ -2214,7 +2214,10 @@ const resolveWorshipTags = async (text, band) => {
   return text.replace(/<worship([^>]*)>[\s\S]*?<\/worship>/g, (_w, attrs) => {
     const m = attrs.match(/id=["']([^"']+)["']/);
     const cell = m && data && data.cells && data.cells[m[1] + ':' + arm];
-    return (cell && cell.text) ? ' ' + cell.text + ' ' : ' ';
+    const canonical = cell && typeof cell.text === 'string' && cell.text.trim()
+      ? cell.text
+      : ezT('errors.generic');
+    return ' ' + canonical + ' ';
   });
 };
 // كل أذكار بابٍ بعددِ التكرار والصوت، أو [] (لا يقع أبداً على نصّ النموذج)

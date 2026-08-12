@@ -49,7 +49,7 @@
 import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
 import { safeId } from '../lib/daycap.js';
-import { ATTEMPT_MESSAGES, ipDigest, noteAttempt } from '../lib/attempts.js';
+import { ATTEMPT_MESSAGES, ipDigest, checkAttempts, noteFailedAttempt } from '../lib/attempts.js';
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 
 // D13's two dimensions, and DELIBERATELY NO GLOBAL ONE. The founder PIN has an app-wide ceiling
@@ -160,21 +160,29 @@ export default async function handler(req, res) {
 
   if (action !== 'verify' && action !== 'set') return refuse();
 
-  // Attempt accounting runs BEFORE any comparison, so a wrong code is always counted and a
-  // locked-out caller never reaches the compare at all -- a correct code after lockout stays
-  // refused for the rest of the Kuwait day.
-  const gate = await noteAttempt(client(), {
+  // Check before comparing, but consume only after a failed credential decision. The atomic
+  // consume below remains authoritative if concurrent requests both pass this read-only check.
+  const attempt = {
     ns: ATTEMPT_NS,
     deviceId,
     ipHash: ipDigest(req),
     perDevice: PER_DEVICE_ATTEMPTS,
     perIp: PER_IP_ATTEMPTS,
     perGlobal: null,
-  });
+  };
+  const gate = await checkAttempts(client(), attempt);
   if (gate.unavailable) return unavailable();
   if (gate.locked) {
     return res.status(429).json({ error: 'parent-locked', message: PARENT_MESSAGES['parent-locked'] });
   }
+  const failedAttempt = async (status, error, message) => {
+    const spent = await noteFailedAttempt(client(), attempt);
+    if (spent.unavailable) return unavailable();
+    if (spent.locked) {
+      return res.status(429).json({ error: 'parent-locked', message: PARENT_MESSAGES['parent-locked'] });
+    }
+    return res.status(status).json({ error, message });
+  };
 
   const store = await loadRecord(deviceId);
   if (!store.ok) return unavailable();
@@ -192,8 +200,8 @@ export default async function handler(req, res) {
     // caller aiming at an occupied device costs the same as a real first-time save.
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = scryptHash(shapeOk ? supplied : '0000', salt).toString('hex');
-    if (rec) return refuse();
-    if (!shapeOk) return res.status(400).json({ error: 'parent-weak', message: PARENT_MESSAGES['parent-weak'] });
+    if (rec) return failedAttempt(401, 'parent-refused', PARENT_MESSAGES['parent-refused']);
+    if (!shapeOk) return failedAttempt(400, 'parent-weak', PARENT_MESSAGES['parent-weak']);
     if (!(await storeRecord(deviceId, salt, hash))) {
       return res.status(429).json({ error: 'parent-save-failed', message: PARENT_MESSAGES['parent-save-failed'] });
     }
@@ -235,5 +243,5 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, migrated: true });
   }
 
-  return refuse();
+  return failedAttempt(401, 'parent-refused', PARENT_MESSAGES['parent-refused']);
 }

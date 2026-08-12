@@ -46,6 +46,10 @@ function eq(name, actual, expected) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+const systemPromptArg = process.argv.indexOf('--system-prompt-source');
+const systemPromptFile = systemPromptArg >= 0 && process.argv[systemPromptArg + 1]
+  ? path.resolve(process.argv[systemPromptArg + 1])
+  : path.join(REPO, 'lib/system-prompt.js');
 
 // Pull a literal array body out of a module's source, so the gate reads what SHIPS rather
 // than what a re-implementation here would compute.
@@ -115,6 +119,41 @@ const quotedDomains = (body) =>
   eq('registry adult set == SITES_ADULT', sorted(R.domainsForBand('adult')), sorted(adultArr));
   eq('registry minor set == SITES_MINOR', sorted(R.domainsForBand('minor')), sorted(minorArr));
   eq('registry minor-fallback set == SITES_MINOR_FALLBACK', sorted(R.domainsForBand('minor-fallback')), sorted(fallbackArr));
+
+  // F-068. A prompt label is grouped from registry data rather than pinned here: old/new rows may
+  // legitimately share a scholar label, and the claim is sound when at least one matching row is
+  // actually active, scoped and present in a retrieval band. Removing the whole roster is not a
+  // vacuous pass because the second assertion requires the server-material contract explicitly.
+  const SYSTEM = await import('file://' + systemPromptFile.replace(/\\/g, '/'));
+  const generatedPrompt = SYSTEM.buildSystemPrompt('خالد', 30, 'male', 'chat');
+  const materialHeading = generatedPrompt.indexOf('═══ المواد والمصادر');
+  const sourceHeading = materialHeading >= 0 ? materialHeading : generatedPrompt.indexOf('═══ مصادرك');
+  const sourceBodyStart = generatedPrompt.indexOf('\n', sourceHeading) + 1;
+  const sourceEnd = generatedPrompt.indexOf('\n═══', sourceBodyStart);
+  const sourceSection = sourceHeading >= 0 && sourceBodyStart > sourceHeading && sourceEnd > sourceBodyStart
+    ? generatedPrompt.slice(sourceHeading, sourceEnd)
+    : '';
+  const labelRows = new Map();
+  for (const row of R.SOURCES) {
+    const bareName = row.name
+      .replace(/\s*\([^)]*\)\s*/g, ' ')
+      .replace(/^(?:الموقع الرسمي للشيخ|موقع الشيخ|موقع د\.?|موقع|شبكة|مركز|مجمع)\s+/, '')
+      .trim();
+    for (const label of new Set([row.name, bareName, row.domain].filter((v) => String(v).trim().length >= 4))) {
+      if (!labelRows.has(label)) labelRows.set(label, []);
+      labelRows.get(label).push(row);
+    }
+  }
+  const retrievable = (row) => row.status === 'active' && Array.isArray(row.scopes)
+    && row.scopes.length > 0 && Array.isArray(row.bands)
+    && row.bands.some((band) => R.domainsForBand(band).includes(row.domain));
+  const namedLabels = [...labelRows.keys()].filter((label) => sourceSection.includes(label));
+  const unavailableClaims = namedLabels.filter((label) => !labelRows.get(label).some(retrievable));
+  ok('F-068: every registry-derived source named as available by the prompt is retrievable',
+    unavailableClaims.length === 0,
+    JSON.stringify(unavailableClaims.map((label) => ({ label, rows: labelRows.get(label).map((r) => ({ id: r.id, status: r.status, bands: r.bands, scopes: r.scopes })) }))));
+  ok('F-068: the prompt limits itself to materials and sources actually delivered by the server',
+    /الموادِ والمصادرِ[^\n]{0,120}سلَّمها لك الخادمُ فعليًّا/.test(sourceSection), sourceSection);
 
   const report = read('EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md');
   const documentedSourceCounts = [

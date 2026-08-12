@@ -34,7 +34,7 @@
 import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
 import { safeId, founderTokenFor, hasUnrevokedFounderToken } from '../lib/daycap.js';
-import { ATTEMPT_MESSAGES, ipDigest, noteAttempt as countAttempt } from '../lib/attempts.js';
+import { ATTEMPT_MESSAGES, ipDigest, checkAttempts, noteFailedAttempt } from '../lib/attempts.js';
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 
 // Attempts per device, per IP, and across everybody -- each per Kuwait day. The device limit is
@@ -129,7 +129,7 @@ async function storePinHash(saltHex, hashHex) {
 // The key prefix is UNCHANGED ('ul:v1'), so the counters this endpoint already wrote in
 // production keep counting the same attempts against the same callers across the deploy.
 const ATTEMPT_NS = 'ul:v1';
-const noteAttempt = (deviceId, ipHash) => countAttempt(client(), {
+const attemptOptions = (deviceId, ipHash) => ({
   ns: ATTEMPT_NS,
   deviceId,
   ipHash,
@@ -156,21 +156,32 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'unlock-refused', message: UNLOCK_MESSAGES['unlock-refused'] });
   }
 
-  // Attempt accounting runs BEFORE the comparison, so a wrong PIN is always counted and a
-  // locked-out device never reaches the compare at all -- a correct PIN after lockout stays
-  // refused for the rest of the Kuwait day.
-  const gate = await noteAttempt(deviceId, ipDigest(req));
+  // The read-only check runs BEFORE the comparison; only the failure branch below atomically
+  // consumes allowance. A correct PIN is therefore free, while a caller already at the ceiling
+  // still never reaches the comparison.
+  const attempt = attemptOptions(deviceId, ipDigest(req));
+  const gate = await checkAttempts(client(), attempt);
   if (gate.unavailable) {
     return res.status(429).json({ error: 'unlock-unavailable', message: UNLOCK_MESSAGES['unlock-unavailable'] });
   }
   if (gate.locked) {
     return res.status(429).json({ error: 'unlock-locked', message: UNLOCK_MESSAGES['unlock-locked'] });
   }
+  const failedAttempt = async (status, error, message) => {
+    const spent = await noteFailedAttempt(client(), attempt);
+    if (spent.unavailable) {
+      return res.status(429).json({ error: 'unlock-unavailable', message: UNLOCK_MESSAGES['unlock-unavailable'] });
+    }
+    if (spent.locked) {
+      return res.status(429).json({ error: 'unlock-locked', message: UNLOCK_MESSAGES['unlock-locked'] });
+    }
+    return res.status(status).json({ error, message });
+  };
 
   // ============================================================
   // D89 -- SET A NEW PIN. Requires a VALID FOUNDER TOKEN and nothing else: never the old PIN
-  // alone, never an env check, never an IP. The attempt limiter above has ALREADY run and
-  // counted this call, so this path cannot be used to grind the store either.
+  // alone, never an env check, never an IP. Failed authorisation or shape checks spend the same
+  // allowance; a successful change does not.
   // ============================================================
   if (body && body.action === 'set-pin') {
     // D06: the FULL check. Changing the PIN is the most privileged thing this app can do -- it
@@ -186,10 +197,10 @@ export default async function handler(req, res) {
     // Authorisation is judged BEFORE shape, so a caller without a token cannot even learn the
     // shape rule: it gets the SAME refusal a wrong PIN gets, byte for byte.
     if (!authorised) {
-      return res.status(401).json({ error: 'unlock-refused', message: UNLOCK_MESSAGES['unlock-refused'] });
+      return failedAttempt(401, 'unlock-refused', UNLOCK_MESSAGES['unlock-refused']);
     }
     if (!shapeOk) {
-      return res.status(400).json({ error: 'pin-weak', message: UNLOCK_MESSAGES['pin-weak'] });
+      return failedAttempt(400, 'pin-weak', UNLOCK_MESSAGES['pin-weak']);
     }
     const wrote = await storePinHash(salt, hash);
     if (!wrote) {
@@ -234,7 +245,7 @@ export default async function handler(req, res) {
   const token = founderTokenFor(deviceId);
 
   if (!pinOk || !token) {
-    return res.status(401).json({ error: 'unlock-refused', message: UNLOCK_MESSAGES['unlock-refused'] });
+    return failedAttempt(401, 'unlock-refused', UNLOCK_MESSAGES['unlock-refused']);
   }
   // The token, and nothing else. The PIN is never echoed back.
   return res.status(200).json({ token });

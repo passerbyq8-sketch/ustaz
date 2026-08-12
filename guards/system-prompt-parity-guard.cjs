@@ -42,6 +42,10 @@ function ok(name, cond, detail) {
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 const sha = (t) => crypto.createHash('sha256').update(t, 'utf8').digest('hex');
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
+const systemPromptArg = process.argv.indexOf('--system-prompt-source');
+const systemPromptFile = systemPromptArg >= 0 && process.argv[systemPromptArg + 1]
+  ? path.resolve(process.argv[systemPromptArg + 1])
+  : path.join(REPO, 'lib/system-prompt.js');
 // Read, not retyped: a hardcoded consent version here would go stale the next time it is bumped
 // and every driven case in section F would start refusing for the wrong reason.
 const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\s*=\s*'([^']+)'/) || [])[1];
@@ -65,21 +69,26 @@ const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\
 // on template headings («النصيحة الذهبية» and its kind) was added. Every sample grew by EXACTLY
 // 2552 bytes — the same arithmetic, and the tightest form of it: one region, five samples, one
 // delta. A sample moving by a different amount is the drift this pin exists to catch.
+//
+// RE-MEASURED 2026-08-12 (A6 F-067/F-068). The prompt stopped assigning trusted source-card
+// construction to the model and stopped advertising a fixed source roster. Instead it says that
+// only server-delivered material may be used and that the server alone builds trusted cards.
+// Every sample shrank by EXACTLY 565 bytes; the uniform delta is the expected bounded change.
 const PINNED = [
-  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 56603, sha: 'fc75946f067a6862fc4a1bd11f3d25d45fb35b9884e809a639c0942691ba4fb6' },
-  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 55098, sha: '18ae3198584bfa9b90bd98a9de51b247c6ab0ec05fd284307b114a6d37b00c11' },
-  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 54872, sha: 'b8127dd8d6bce54676c3b385f5681f3c4aa29e5054b043356a976a19f4c87179' },
-  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 69686, sha: '0fb7fbc1b860fb4033c75f10d4ca5dbbcba4fa6c08c9f12cd254119b26a18589' },
-  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 67998, sha: 'e1a79146f5fad356e1c9161cc1dd4f5facec5dd04ec2a401fe06eeb0b20ccbb5' },
+  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 56038, sha: '834dc80d243550c0b4e2c56a8b9700399c7c86b46ab0e4b4a7bc5547526a14c9' },
+  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 54533, sha: '95264bdfd89a20793339cd34b067baab9ffd42e1771bbf8a1370e3159bdb28f5' },
+  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 54307, sha: 'af43881e81894a0a37f3aa6e4db04f50eddb082391541d17ed5a89454510509d' },
+  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 69121, sha: '0c0d3421384987742a60df76603a35bf0261051b6c0176eabb76be4080e920f8' },
+  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 67433, sha: '3855913b3feaa73f345715b153a6225cefe001e6283d56dcb38436b98a608031' },
 ];
 
 (async function main() {
   console.log('=== system-prompt-parity-guard -- the server owns the prompt, and it has not drifted ===');
 
   // ── A. the module loads and is PURE ──────────────────────────────────────
-  const src = read('lib/system-prompt.js');
+  const src = fs.readFileSync(systemPromptFile, 'utf8');
   let MOD = null;
-  try { MOD = await esm('lib/system-prompt.js'); }
+  try { MOD = await import('file://' + systemPromptFile.replace(/\\/g, '/')); }
   catch (e) {
     ok('lib/system-prompt.js loads', false, e.message);
     console.log('\n=== ' + (checks - failures) + '/' + checks + ' -- FAIL ===');
@@ -89,6 +98,25 @@ const PINNED = [
   ok('...and exports buildSystemPrompt', typeof MOD.buildSystemPrompt === 'function');
   ok('...and exports CLASSIFIER_SYSTEM_PROMPT', typeof MOD.CLASSIFIER_SYSTEM_PROMPT === 'string' && MOD.CLASSIFIER_SYSTEM_PROMPT.length > 200);
   ok('...and exports buildFastGenPrompt', typeof MOD.buildFastGenPrompt === 'function');
+
+  // F-067. Source cards are server-owned structured output. Exercise the generated prompt rather
+  // than grepping its source: no reader profile/mode may teach the model a start-tag template or
+  // command it to append one. Negative mentions such as the call-mode ban remain legitimate.
+  {
+    const prompts = [
+      MOD.buildSystemPrompt('خالد', 7, 'male', 'chat'),
+      MOD.buildSystemPrompt('هند', 30, 'female', 'chat'),
+      MOD.buildSystemPrompt('خالد', 15, 'male', 'call'),
+    ];
+    const templates = prompts.flatMap((prompt) => prompt.match(/<source\b[^>]*(?:\bsite=|\burl=)[^>]*>/gi) || []);
+    ok('F-067: no generated prompt shows a model-authored <source> start-tag template',
+      templates.length === 0, JSON.stringify(templates));
+    const positiveCommands = prompts.flatMap((prompt) => prompt.split(/\r?\n/).filter((line) =>
+      /<source\b/i.test(line)
+      && /(?:أَضِفْ|انْسُبْ|انسُبْ|بطاقةٌ لكل|بطاقةِ source مستقلّة)/.test(line)));
+    ok('F-067: no generated prompt asks the model to create or append a source card',
+      positiveCommands.length === 0, JSON.stringify(positiveCommands));
+  }
 
   // Purity: run the builder's own source in a sandbox with NOTHING in it. A reach for
   // window/document/localStorage is a ReferenceError, and that is the point.

@@ -14,6 +14,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 
 const REPO = __dirname;
 let failures = 0, checks = 0;
@@ -30,6 +31,34 @@ function eq(name, actual, expected) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+const dataUrl = (source) => 'data:text/javascript;base64,' + Buffer.from(source, 'utf8').toString('base64');
+const fileUrl = (rel) => pathToFileURL(path.join(REPO, rel)).href;
+
+// F-077 mutation seam. Either or both sources may be supplied from an archive outside this
+// repository. page.js keeps all of its real dependencies; only import addresses are made
+// absolute because a data: module has no directory against which to resolve them.
+async function pageAndSegmentModules() {
+  const segAt = process.argv.indexOf('--segment-source');
+  const pageAt = process.argv.indexOf('--page-source');
+  const segmentSource = segAt >= 0 ? fs.readFileSync(path.resolve(process.argv[segAt + 1]), 'utf8') : null;
+  const segmentUrl = segmentSource ? dataUrl(segmentSource) : fileUrl('lib/ledger/segment.js');
+  const SG = segmentSource ? await import(segmentUrl) : await esm('lib/ledger/segment.js');
+  if (pageAt < 0 && segAt < 0) return { SG, PG: await esm('lib/ledger/page.js') };
+  let source = pageAt >= 0
+    ? fs.readFileSync(path.resolve(process.argv[pageAt + 1]), 'utf8')
+    : read('lib/ledger/page.js');
+  const imports = new Map([
+    ['linkedom', pathToFileURL(require.resolve('linkedom')).href],
+    ['@mozilla/readability', pathToFileURL(require.resolve('@mozilla/readability')).href],
+    ['../source-page-gates.js', fileUrl('lib/source-page-gates.js')],
+    ['./safe-fetch.js', fileUrl('lib/ledger/safe-fetch.js')],
+    ['./canonical.js', fileUrl('lib/ledger/canonical.js')],
+    ['./source-policy.js', fileUrl('lib/ledger/source-policy.js')],
+    ['./segment.js', segmentUrl],
+  ]);
+  for (const [from, to] of imports) source = source.replaceAll(`'${from}'`, `'${to}'`);
+  return { SG, PG: await import(dataUrl(source)) };
+}
 // Source with comments removed. A rule about what the CODE does must be checked against code:
 // scanning the raw file finds the word in the comment that documents the rule and "fails" it.
 // `[^\r\n]*` with no `$`: on a CRLF file `.` cannot match \r and `$` (no m flag) asserts the end
@@ -47,13 +76,122 @@ const issue = (over) => Object.assign({
 (async function main() {
   console.log('=== ledger-gates-guard — spans, offsets, and the three gates ===');
 
-  const SG = await esm('lib/ledger/segment.js');
+  const { SG, PG } = await pageAndSegmentModules();
   const SC = await esm('lib/ledger/schema.js');
   const GA = await esm('lib/ledger/gates.js');
   const EX = await esm('lib/ledger/extract.js');
   const DR = await esm('lib/ledger/draft.js');
   const VW = await esm('lib/ledger/views.js');
   const AS = await esm('lib/ledger/assemble.js');
+  const SF = await esm('lib/ledger/safe-fetch.js');
+
+  // =========================================================================
+  console.log('\n=== A0. F-077 — loadPage preserves real question/answer units ===');
+  // Use an enabled host with real page rules. An ungoverned URL would miss the second flattening
+  // point inside gateSourcePage and let the original F-077 mechanism survive on production paths.
+  const F77_URL = 'https://eftaa.awqaf.gov.kw/article/a6-ledger-units';
+  const F77_FILLER = 'هذا نص توضيحي طويل يحفظ بنية الفقرة ولا يحمل أي تعليمات. '.repeat(6);
+  const F77_HTML = `<!doctype html><html lang="ar"><head>
+    <title>اختبار وحدات الفتوى</title><link rel="canonical" href="${F77_URL}">
+    </head><body><nav>NOISE_NAV_MUST_NOT_SURVIVE</nav><main><article>
+    <h1>اختبار وحدات الفتوى</h1>
+    <section><h2>السؤال: CONDITION_ONE هل هذا جائز؟</h2>
+    <p>الجواب: RULING_ONE   الحكم الأول. ${F77_FILLER}</p></section>
+    <section><h2>السؤال: CONDITION_TWO هل ذاك جائز؟</h2>
+    <p>الجواب: RULING_TWO   الحكم الثاني. ${F77_FILLER}</p></section>
+    <script>NOISE_SCRIPT_MUST_NOT_SURVIVE</script></article></main>
+    <footer>NOISE_FOOTER_MUST_NOT_SURVIVE</footer></body></html>`;
+  const htmlResponse = (body) => ({
+    status: 200,
+    headers: { get: (k) => (String(k).toLowerCase() === 'content-type' ? 'text/html; charset=utf-8' : null) },
+    body: null,
+    text: async () => body,
+  });
+  let loaded;
+  SF.__setResolverForTest(async () => [{ address: '8.8.8.8', family: 4 }]);
+  try {
+    loaded = await PG.loadPage(F77_URL, { fetchImpl: async () => htmlResponse(F77_HTML) });
+  } finally {
+    SF.__resetResolver();
+  }
+  ok('F-077: the real loadPage harness succeeds without network', loaded && loaded.ok,
+    JSON.stringify(loaded && { reason: loaded.reason, url: loaded.url }));
+  const loadedSeg = loaded && loaded.ok ? loaded.segmented : SG.segmentPage({
+    sourceId: F77_URL, canonicalUrl: F77_URL, authorialText: '', adapterVersion: 'readability@r1',
+  });
+  eq('F-077: two question/answer pairs become exactly two answer units', loadedSeg.answerUnits.length, 2);
+  ok('F-077: every answer remains attached to its own question',
+    loadedSeg.answerUnits.length === 2
+    && loadedSeg.answerUnits[0].text.includes('CONDITION_ONE')
+    && loadedSeg.answerUnits[0].text.includes('RULING_ONE')
+    && !loadedSeg.answerUnits[0].text.includes('RULING_TWO')
+    && loadedSeg.answerUnits[1].text.includes('CONDITION_TWO')
+    && loadedSeg.answerUnits[1].text.includes('RULING_TWO')
+    && !loadedSeg.answerUnits[1].text.includes('RULING_ONE'),
+    JSON.stringify(loadedSeg.answerUnits.map((u) => u.text)));
+  ok('F-077: Readability noise is absent and intra-block whitespace remains normalized',
+    !loadedSeg.authorialText.includes('NOISE_NAV_MUST_NOT_SURVIVE')
+    && !loadedSeg.authorialText.includes('NOISE_SCRIPT_MUST_NOT_SURVIVE')
+    && !loadedSeg.authorialText.includes('NOISE_FOOTER_MUST_NOT_SURVIVE')
+    && !loadedSeg.authorialText.includes('RULING_ONE   الحكم'), loadedSeg.authorialText);
+  {
+    let bad = 0;
+    for (const span of loadedSeg.spans) {
+      if (SG.sliceByBytes(loadedSeg.authorialText, span.startOffsetUtf8Bytes, span.endOffsetUtf8Bytes) !== span.exactText) bad++;
+      if (SG.sha256(span.exactText) !== span.contentSha256) bad++;
+    }
+    eq('F-077: loaded spans retain exact UTF-8 offsets and hashes', bad, 0);
+  }
+  {
+    const single = SG.segmentPage({
+      sourceId: F77_URL + '-single', canonicalUrl: F77_URL + '-single',
+      authorialText: 'السؤال: SINGLE_QUESTION هل يجوز؟\nالجواب: SINGLE_ANSWER نعم مع الشرط المذكور.',
+      adapterVersion: 'readability@r1',
+    });
+    ok('F-077: a single question/answer remains one intact unit',
+      single.answerUnits.length === 1
+      && single.answerUnits[0].text.includes('SINGLE_QUESTION')
+      && single.answerUnits[0].text.includes('SINGLE_ANSWER'),
+      JSON.stringify(single.answerUnits.map((u) => u.text)));
+  }
+  {
+    const spanContaining = (needle) => loadedSeg.spans.find((s) => s.exactText.includes(needle));
+    const c1 = spanContaining('CONDITION_ONE');
+    const r1 = spanContaining('RULING_ONE');
+    const r2 = spanContaining('RULING_TWO');
+    const globalId = (span) => span ? loadedSeg.sourceId + '#' + span.spanId : loadedSeg.sourceId + '#missing';
+    const claim = (conditionSpan, rulingSpan) => ({
+      claimId: 'f77_claim', issueId: 'iss_1', sourceId: loadedSeg.sourceId, slot: 'ruling',
+      text: 'CONDITION_ONE مع الحكم', spanIds: [globalId(conditionSpan), globalId(rulingSpan)],
+      components: [
+        { componentId: 'f77_condition', kind: 'condition', text: 'CONDITION_ONE', spanIds: [globalId(conditionSpan)] },
+        { componentId: 'f77_ruling', kind: 'ruling', text: 'الحكم', spanIds: [globalId(rulingSpan)] },
+      ],
+      verified: null,
+    });
+    const ledgerFor = (candidate) => {
+      const L = new SC.Ledger('tr_f77');
+      L.setIssues([issue()]);
+      L.addSegmentedPage(loadedSeg, { host: 'eftaa.awqaf.gov.kw', ownerId: 'eftaa-kw', capability: 'fatwa' });
+      L.addClaim(candidate);
+      return L;
+    };
+    const same = ledgerFor(claim(c1, r1));
+    ok('F-077: Gate 1 accepts condition and ruling from the same actual unit',
+      !!c1 && !!r1 && GA.gate1(same, same.claim('f77_claim'), issue()).ok,
+      JSON.stringify(GA.gate1(same, same.claim('f77_claim'), issue()).problems));
+    eq('F-077: the same-unit ledger record remains internally sound', same.integrityProblems(), []);
+
+    const crossed = ledgerFor(claim(c1, r2));
+    const crossedGate = GA.gate1(crossed, crossed.claim('f77_claim'), issue());
+    ok('F-077: Gate 1 forbids a condition from unit one welded to a ruling from unit two',
+      !!c1 && !!r2 && !crossedGate.ok
+      && crossedGate.problems.includes('spans-span-multiple-answer-units'),
+      JSON.stringify(crossedGate.problems));
+    ok('F-077: ledger integrity independently reports the cross-unit composition',
+      crossed.integrityProblems().some((p) => p.includes('answer units')),
+      JSON.stringify(crossed.integrityProblems()));
+  }
 
   // =========================================================================
   console.log('\n=== A. UTF-8 BYTE OFFSETS, ON TEXT THAT BREAKS CHARACTER INDICES ===');

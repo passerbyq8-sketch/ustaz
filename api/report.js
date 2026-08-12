@@ -15,6 +15,7 @@
 
 import { Redis } from '@upstash/redis';
 import { checkReportLimit, applyCorsOrigin } from '../lib/ratelimit.js';
+import { clientAddress } from '../lib/attempts.js';
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -77,9 +78,7 @@ export default async function handler(req, res) {
   const band = BANDS.has(body.band) ? body.band : '';
 
   // The IP is an EPHEMERAL throttle key ONLY. It never enters `record`.
-  const ip = req.headers['x-real-ip']
-    || (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
-    || 'unknown';
+  const ip = clientAddress(req, 'unknown');
   const rl = await checkReportLimit(ip);
   if (!rl.ok) {
     return res.status(429).json({ error: 'report rate limit exceeded' });

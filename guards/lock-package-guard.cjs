@@ -33,6 +33,69 @@ function ok(name, cond, detail) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+const fileUrl = (rel) => 'file://' + path.join(REPO, rel).replace(/\\/g, '/');
+const dataUrl = (source) => 'data:text/javascript;base64,' + Buffer.from(source, 'utf8').toString('base64');
+
+// Mutation seam for F-115. A supplied attempts module lives OUTSIDE the repository; the real
+// unlock and parent handlers are loaded unchanged except that their one limiter import points to
+// it. All other local imports still resolve to the repository, and Redis remains the local seam.
+async function lockModules() {
+  const at = process.argv.indexOf('--attempts-source');
+  if (at < 0) return { UNLOCK: await esm('api/unlock.js'), PC: await esm('api/parent-code.js') };
+  let attemptsSource = fs.readFileSync(path.resolve(process.argv[at + 1]), 'utf8');
+  // The causal mutant is the pre-F-115 module itself: its old noteAttempt performed the
+  // read/check/write during the handler's precheck. Adapt only its export names in memory so the
+  // new handlers can drive that exact old mechanism without writing a mutant into this tree.
+  if (!/export async function checkAttempts\s*\(/.test(attemptsSource)
+      && /export async function noteAttempt\s*\(/.test(attemptsSource)) {
+    attemptsSource = attemptsSource
+      .replace('export async function noteAttempt(', 'export async function checkAttempts(')
+      .concat('\nexport async function noteFailedAttempt() { return {}; }\n');
+  }
+  attemptsSource = attemptsSource.replace("'./daycap.js'", `'${fileUrl('lib/daycap.js')}'`);
+  const attemptsUrl = dataUrl(attemptsSource);
+  const load = async (rel) => {
+    let source = read(rel)
+      .replace("import { Redis } from '@upstash/redis';", 'const Redis = class LocalRedis {};')
+      .replace("'../lib/daycap.js'", `'${fileUrl('lib/daycap.js')}'`)
+      .replace("'../lib/ratelimit.js'", `'${fileUrl('lib/ratelimit.js')}'`)
+      .replace("'../lib/attempts.js'", `'${attemptsUrl}'`);
+    return import(dataUrl(source));
+  };
+  return { UNLOCK: await load('api/unlock.js'), PC: await load('api/parent-code.js') };
+}
+
+// Loads the real report handler while replacing only infrastructure imports. The request and
+// throttle control flow stay intact, but this gate can never open a Redis connection.
+async function reportHandlerWithLocalStubs() {
+  const stubName = '__USTAZ_LOCK_REPORT_STUBS__';
+  const sourceArg = process.argv.indexOf('--report-source');
+  const reportSource = sourceArg >= 0 ? fs.readFileSync(path.resolve(process.argv[sourceArg + 1]), 'utf8') : read('api/report.js');
+  const source = reportSource
+    .replace("import { Redis } from '@upstash/redis';", `const Redis = globalThis.${stubName}.Redis;`)
+    .replace(
+      "import { checkReportLimit, applyCorsOrigin } from '../lib/ratelimit.js';",
+      `const { checkReportLimit, applyCorsOrigin } = globalThis.${stubName};`
+    )
+    .replace(
+      "import { clientAddress } from '../lib/attempts.js';",
+      `const { clientAddress } = globalThis.${stubName};`
+    );
+  globalThis[stubName] = {
+    Redis: class LocalRedis {},
+    checkReportLimit: (...args) => globalThis[stubName].limit(...args),
+    applyCorsOrigin: () => false,
+    clientAddress: (...args) => globalThis[stubName].address(...args),
+    limit: async () => ({ ok: false }),
+    address: () => null,
+  };
+  const url = 'data:text/javascript;base64,' + Buffer.from(source, 'utf8').toString('base64');
+  return {
+    module: await import(url),
+    stubs: globalThis[stubName],
+    cleanup: () => { delete globalThis[stubName]; },
+  };
+}
 
 // ── A STORE DOUBLE ───────────────────────────────────────────────────────────
 // An in-memory map with exactly the surface the lock code uses. `boom` makes every call throw,
@@ -49,6 +112,25 @@ function fakeRedis(seed) {
     async set(k, v) { self._guard(); m.set(k, v); return 'OK'; },
     async del(k) { self._guard(); m.delete(k); return 1; },
     async mget(...keys) { self._guard(); return keys.map((k) => (m.has(k) ? m.get(k) : null)); },
+    async eval(_script, keys, args) {
+      self._guard();
+      const count = Number(args[0]);
+      if (!Number.isInteger(count) || count !== keys.length) return [-1, 0];
+      const ceilings = args.slice(1, count + 1).map(Number);
+      const values = keys.map((k) => {
+        const raw = m.has(k) ? m.get(k) : 0;
+        if (raw === null || raw === undefined || raw === '') return 0;
+        const n = typeof raw === 'number' ? raw : Number(String(raw));
+        return Number.isFinite(n) ? n : NaN;
+      });
+      if (values.some((n) => !Number.isFinite(n)) || ceilings.some((n) => !Number.isFinite(n))) {
+        return [-1, 0];
+      }
+      const spent = values.findIndex((n, i) => n >= ceilings[i]);
+      if (spent >= 0) return [0, spent + 1];
+      for (let i = 0; i < keys.length; i++) m.set(keys[i], values[i] + 1);
+      return [1, 0];
+    },
     async sadd(k, v) { self._guard(); if (!sets.has(k)) sets.set(k, new Set()); sets.get(k).add(String(v)); return 1; },
     async sismember(k, v) { self._guard(); return sets.has(k) && sets.get(k).has(String(v)) ? 1 : 0; },
     pipeline() {
@@ -103,7 +185,7 @@ function envSandbox(vars) {
   console.log('=== lock-package-guard — D13 + D12 + D06, driven not grepped ===');
 
   const DC = await esm('lib/daycap.js');
-  const UNLOCK = await esm('api/unlock.js');
+  const { UNLOCK, PC } = await lockModules();
   const unlock = UNLOCK.default;
 
   const DAY = DC.kuwaitDayStamp();
@@ -131,9 +213,8 @@ function envSandbox(vars) {
 
     // Drives one POST against a fresh store double and hands back both the response and the
     // store, so every assertion can read the COUNTERS as well as the status.
-    const post = async (opts) => {
+    const postWithStore = async (store, opts) => {
       const o = opts || {};
-      const store = fakeRedis(o.seed);
       if (o.boom) store.boom = true;
       UNLOCK.__setRedisForTest(store);
       const headers = Object.assign({}, o.headers);
@@ -143,18 +224,18 @@ function envSandbox(vars) {
       await unlock(req, res);
       return { res, store };
     };
+    const post = async (opts) => postWithStore(fakeRedis((opts || {}).seed), opts);
 
     {
       const { res, store } = await post({});
       ok('A1: a fresh device on a fresh address unlocks',
         res.code === 200 && !!res.body && typeof res.body.token === 'string',
         'code=' + res.code + ' body=' + JSON.stringify(res.body));
-      ok('A1: ...and all three counters moved by exactly one',
-        store.map.get(kDev(DEVICE)) === 1 && store.map.get(kIp(IP_A)) === 1 && store.map.get(kAll) === 1,
+      ok('A1: ...and success leaves all three failed-attempt counters untouched',
+        store.map.get(kDev(DEVICE)) === undefined && store.map.get(kIp(IP_A)) === undefined && store.map.get(kAll) === undefined,
         'dev=' + store.map.get(kDev(DEVICE)) + ' ip=' + store.map.get(kIp(IP_A)) + ' all=' + store.map.get(kAll));
-      ok('A1: ...and the store holds a DIGEST of the address, never the address',
-        [...store.map.keys()].some((k) => k.indexOf(dig(IP_A)) !== -1)
-        && ![...store.map.keys()].some((k) => k.indexOf(IP_A) !== -1),
+      ok('A1: ...and success stores neither the address nor its digest',
+        ![...store.map.keys()].some((k) => k.indexOf(dig(IP_A)) !== -1 || k.indexOf(IP_A) !== -1),
         [...store.map.keys()].join(' | '));
     }
 
@@ -202,15 +283,16 @@ function envSandbox(vars) {
 
     {
       // No address header at all. The dimension is absent, not fatal -- but the other two must
-      // still be counted, or "no header" would be a way to buy unlimited attempts.
+      // still be protected by the device and global ceilings when a failure occurs. A success is
+      // free under F-115, so it must not mint either failed-attempt counter.
       const store = fakeRedis({});
       UNLOCK.__setRedisForTest(store);
       const res = fakeRes();
       await unlock({ method: 'POST', headers: {}, body: { pin: PIN, deviceId: DEVICE } }, res);
       ok('A6: a request with NO address header still unlocks',
         res.code === 200 && !!res.body && res.body.token, 'code=' + res.code);
-      ok('A6: ...and is still counted on the device and global dimensions',
-        store.map.get(kDev(DEVICE)) === 1 && store.map.get(kAll) === 1,
+      ok('A6: ...and success leaves the device and global failed-attempt counters untouched',
+        store.map.get(kDev(DEVICE)) === undefined && store.map.get(kAll) === undefined,
         'dev=' + store.map.get(kDev(DEVICE)) + ' all=' + store.map.get(kAll));
       ok('A6: ...and no address counter was invented for it',
         ![...store.map.keys()].some((k) => k.startsWith('ul:v1:ip:')),
@@ -252,11 +334,97 @@ function envSandbox(vars) {
       /from '\.\.\/lib\/attempts\.js'/.test(read('api/unlock.js'))
       && /from '\.\.\/lib\/attempts\.js'/.test(read('api/parent-code.js')));
 
+    // F-118. Drive /api/report itself and capture the exact key handed to its limiter. A 429
+    // deliberately stops before the report store, so this test persists nothing and uses no
+    // network. ipDigest() is the canonical edge-address contract used by the secret limiters.
+    console.log('\n=== A12. F-118 — report address follows the canonical edge contract ===');
+    const ATTEMPTS = await esm('lib/attempts.js');
+    const reportHarness = await reportHandlerWithLocalStubs();
+    try {
+      reportHarness.stubs.address = (...args) => ATTEMPTS.clientAddress(...args);
+      const report = reportHarness.module.default;
+      const cases = [
+        ['both headers prefer forwarded', { 'x-forwarded-for': ' 203.0.113.11, 10.0.0.4 ', 'x-real-ip': '198.51.100.91' }, '203.0.113.11'],
+        ['forwarded list takes its first member', { 'x-forwarded-for': ' 203.0.113.12 , 10.0.0.5' }, '203.0.113.12'],
+        ['forwarded-only is accepted', { 'x-forwarded-for': ' 203.0.113.13 ' }, '203.0.113.13'],
+        ['real-only is the fallback', { 'x-real-ip': ' 198.51.100.92 ' }, '198.51.100.92'],
+        ['missing headers use the shared throttle fallback', {}, 'unknown'],
+      ];
+      const observed = [];
+      for (const [name, headers, expected] of cases) {
+        const keys = [];
+        reportHarness.stubs.limit = async (key) => { keys.push(key); return { ok: false }; };
+        const res = fakeRes();
+        await report({ method: 'POST', headers, body: { reason: 'wrong_info' } }, res);
+        observed.push({ name, headers, expected, keys, code: res.code });
+        ok('A12: ' + name, keys.length === 1 && keys[0] === expected && res.code === 429,
+          JSON.stringify({ keys, expected, code: res.code }));
+      }
+      ok('A12: every concrete report key hashes to the same attempts bucket',
+        observed.every(({ headers, keys }) => {
+          const canonical = ATTEMPTS.ipDigest({ headers });
+          return keys[0] === 'unknown' ? canonical === null : dig(keys[0]) === canonical;
+        }), JSON.stringify(observed));
+    } finally {
+      reportHarness.cleanup();
+    }
+
+    // F-115. The allowance describes FAILED credential guesses, not successful openings. These
+    // requests share one store so the handler's actual check/consume lifecycle is observable.
+    console.log('\n=== A13. F-115 — only failed unlock guesses consume allowance ===');
+    {
+      const store = fakeRedis({});
+      const responses = [];
+      for (let i = 0; i < 6; i++) responses.push((await postWithStore(store, {})).res);
+      ok('A13: six correct PINs all succeed without consuming failed-attempt allowance',
+        responses.every((res) => res.code === 200 && res.body && res.body.token)
+        && store.map.get(kDev(DEVICE)) === undefined
+        && store.map.get(kIp(IP_A)) === undefined
+        && store.map.get(kAll) === undefined,
+        JSON.stringify({ codes: responses.map((res) => res.code), dev: store.map.get(kDev(DEVICE)), ip: store.map.get(kIp(IP_A)), all: store.map.get(kAll) }));
+    }
+    {
+      const store = fakeRedis({});
+      const responses = [];
+      for (let i = 0; i < 6; i++) {
+        responses.push((await postWithStore(store, { body: { pin: '999999' } })).res);
+      }
+      ok('A13: five wrong PINs spend the allowance and the sixth is locked',
+        responses.slice(0, 5).every((res) => res.code === 401 && res.body && res.body.error === 'unlock-refused')
+        && responses[5].code === 429 && responses[5].body && responses[5].body.error === 'unlock-locked'
+        && store.map.get(kDev(DEVICE)) === 5 && store.map.get(kIp(IP_A)) === 5 && store.map.get(kAll) === 5
+        && [...store.map.keys()].some((k) => k.indexOf(dig(IP_A)) !== -1)
+        && ![...store.map.keys()].some((k) => k.indexOf(IP_A) !== -1),
+        JSON.stringify({ codes: responses.map((res) => res.code), dev: store.map.get(kDev(DEVICE)), ip: store.map.get(kIp(IP_A)), all: store.map.get(kAll) }));
+    }
+    {
+      const store = fakeRedis({});
+      await postWithStore(store, { body: { pin: '999999' } });
+      await postWithStore(store, { body: { pin: '999999' } });
+      const success = (await postWithStore(store, {})).res;
+      ok('A13: a later success neither spends nor clears earlier failures',
+        success.code === 200 && store.map.get(kDev(DEVICE)) === 2
+        && store.map.get(kIp(IP_A)) === 2 && store.map.get(kAll) === 2,
+        JSON.stringify({ code: success.code, dev: store.map.get(kDev(DEVICE)), ip: store.map.get(kIp(IP_A)), all: store.map.get(kAll) }));
+    }
+    {
+      const seed = {}; seed[kDev(DEVICE)] = 4;
+      const store = fakeRedis(seed);
+      const responses = await Promise.all([
+        postWithStore(store, { body: { pin: '999999' } }),
+        postWithStore(store, { body: { pin: '999999' } }),
+      ]);
+      const codes = responses.map(({ res }) => res.code).sort((a, b) => a - b);
+      ok('A13: concurrent failures atomically stop at the fifth failure',
+        codes[0] === 401 && codes[1] === 429 && store.map.get(kDev(DEVICE)) === 5
+        && store.map.get(kIp(IP_A)) === 1 && store.map.get(kAll) === 1,
+        JSON.stringify({ codes, dev: store.map.get(kDev(DEVICE)), ip: store.map.get(kIp(IP_A)), all: store.map.get(kAll) }));
+    }
+
     // ══════════════════════════════════════════════════════════════════════════
     console.log('\n=== B. D12 — the parent code is judged on the SERVER ===');
     // ══════════════════════════════════════════════════════════════════════════
 
-    const PC = await esm('api/parent-code.js');
     const parent = PC.default;
     const PDEV = 'lockguard-parent-device';
     const CODE = '4821';
@@ -268,9 +436,8 @@ function envSandbox(vars) {
     // One POST, its own store double, and the store handed back so counters and records can both
     // be read. Note BOTH seams are stubbed -- the endpoint's client and, through it, the limiter's,
     // because lib/attempts.js is passed the caller's client rather than building its own.
-    const pcPost = async (opts) => {
+    const pcPostWithStore = async (store, opts) => {
       const o = opts || {};
-      const store = fakeRedis(o.seed);
       if (o.boom) store.boom = true;
       PC.__setRedisForTest(store);
       const headers = {};
@@ -280,6 +447,7 @@ function envSandbox(vars) {
       await parent(req, res);
       return { res, store };
     };
+    const pcPost = async (opts) => pcPostWithStore(fakeRedis((opts || {}).seed), opts);
 
     {
       const { res } = await pcPost({ body: { action: 'status' } });
@@ -409,6 +577,56 @@ function envSandbox(vars) {
       const { res } = await pcPost({ body: { action: 'verify', pin: CODE, deviceId: 'no' } });
       ok('B7: ...and an unusable device id gets the ordinary refusal',
         res.code === 401 && res.body && res.body.error === 'parent-refused', 'code=' + res.code);
+    }
+
+    console.log('\n=== B9. F-115 — parent-code uses the same failed-only atomic contract ===');
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const store = fakeRedis(seed);
+      const responses = [];
+      for (let i = 0; i < 6; i++) {
+        responses.push((await pcPostWithStore(store, { body: { action: 'verify', pin: CODE } })).res);
+      }
+      ok('B9: six correct parent codes all succeed without consuming failed-attempt allowance',
+        responses.every((res) => res.code === 200 && res.body && res.body.ok === true)
+        && store.map.get(pcDev(PDEV)) === undefined && store.map.get(pcIp(IP_A)) === undefined,
+        JSON.stringify({ codes: responses.map((res) => res.code), dev: store.map.get(pcDev(PDEV)), ip: store.map.get(pcIp(IP_A)) }));
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const store = fakeRedis(seed);
+      const responses = [];
+      for (let i = 0; i < 6; i++) {
+        responses.push((await pcPostWithStore(store, { body: { action: 'verify', pin: '9999' } })).res);
+      }
+      ok('B9: five wrong parent codes spend the allowance and the sixth is locked',
+        responses.slice(0, 5).every((res) => res.code === 401 && res.body && res.body.error === 'parent-refused')
+        && responses[5].code === 429 && responses[5].body && responses[5].body.error === 'parent-locked'
+        && store.map.get(pcDev(PDEV)) === 5 && store.map.get(pcIp(IP_A)) === 5,
+        JSON.stringify({ codes: responses.map((res) => res.code), dev: store.map.get(pcDev(PDEV)), ip: store.map.get(pcIp(IP_A)) }));
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const store = fakeRedis(seed);
+      await pcPostWithStore(store, { body: { action: 'verify', pin: '9999' } });
+      await pcPostWithStore(store, { body: { action: 'verify', pin: '9999' } });
+      const success = (await pcPostWithStore(store, { body: { action: 'verify', pin: CODE } })).res;
+      ok('B9: a later parent-code success neither spends nor clears earlier failures',
+        success.code === 200 && store.map.get(pcDev(PDEV)) === 2 && store.map.get(pcIp(IP_A)) === 2,
+        JSON.stringify({ code: success.code, dev: store.map.get(pcDev(PDEV)), ip: store.map.get(pcIp(IP_A)) }));
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord; seed[pcDev(PDEV)] = 4;
+      const store = fakeRedis(seed);
+      const responses = await Promise.all([
+        pcPostWithStore(store, { body: { action: 'verify', pin: '9999' } }),
+        pcPostWithStore(store, { body: { action: 'verify', pin: '9999' } }),
+      ]);
+      const codes = responses.map(({ res }) => res.code).sort((a, b) => a - b);
+      ok('B9: concurrent parent-code failures atomically stop at the fifth failure',
+        codes[0] === 401 && codes[1] === 429 && store.map.get(pcDev(PDEV)) === 5
+        && store.map.get(pcIp(IP_A)) === 1,
+        JSON.stringify({ codes, dev: store.map.get(pcDev(PDEV)), ip: store.map.get(pcIp(IP_A)) }));
     }
 
     // ── the browser half ──────────────────────────────────────────────────────

@@ -493,9 +493,12 @@ async function main() {
     for (const drop of (state.dropSentences || [])) {
       text = text.split('. ').filter((s) => !s.includes(drop)).join('. ');
     }
-    // MUTATION: give the page a second ANSWER UNIT, so a claim can be welded across two of them.
-    // A blank line is the structural break lib/ledger/segment.js splits units on.
-    if (state.splitUnits) text = text.replace('وكذلك تصوم', '\n\nوكذلك تصوم');
+    // MUTATION: give the page a second explicit QUESTION/ANSWER unit, so a claim can be welded
+    // across two of them. A blank paragraph inside one labelled answer is deliberately NOT a new
+    // answer unit after F-077; the next question is the governing boundary.
+    if (state.splitUnits) {
+      text = text.replace('وكذلك تصوم', '\n\nالسؤال: سؤال مستقل.\nالجواب: وكذلك تصوم');
+    }
     return [{
       canonicalUrl: dc.canonical_url, title: dc.title, scholar: dc.scholar, exactText: text,
     }];

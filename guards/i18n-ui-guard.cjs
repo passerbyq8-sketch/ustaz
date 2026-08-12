@@ -847,7 +847,58 @@ async function partE() {
     !/(sk-[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{20,}|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY)/.test(surface));
 }
 
-/* ===================== F. THE TREASURE JOURNEY =========================== */
+/* ===================== F. WORSHIP SPEECH FAILURE ========================= */
+// F-125. These cases execute the shipped loadWorship -> resolveWorshipTags -> formatForTTS
+// pipeline with a local fetch double. The model's raw tag body must never be the fallback, and a
+// failed canonical-data load must remain audible in the language the reader selected.
+async function partWorshipFailure() {
+  console.log('\n=== F. WORSHIP SPEECH FAILURE (F-125) ===');
+
+  const run = async (lang, fetchDouble, band) => {
+    const c = buildContext({ seed: { [S.LANG_KEY]: lang } });
+    c.window.fetch = fetchDouble;
+    const resolve = c.grab('resolveWorshipTags');
+    const speak = c.grab('formatForTTS');
+    const fallback = c.grab("ezT('errors.generic')");
+    const raw = 'before <worship id="fixture">MODEL RAW MARKUP</worship> after';
+    const resolved = await resolve(raw, band || 'adult');
+    return { fallback, raw, resolved, spoken: speak(resolved).trim() };
+  };
+  const rejectedFetch = async () => { throw new Error('local worship loader rejection'); };
+  const malformedFetch = async () => ({ ok: true, json: async () => ({ cells: [] }) });
+  const missingFetch = async () => ({ ok: true, json: async () => ({ cells: {} }) });
+
+  for (const lang of ['ar', 'en']) {
+    const r = await run(lang, rejectedFetch);
+    ok('loader rejection is audible in ' + lang,
+      r.spoken.includes(r.fallback) && r.spoken.length > 0,
+      JSON.stringify({ fallback: r.fallback, resolved: r.resolved, spoken: r.spoken }));
+    ok('loader rejection exposes no raw worship markup in ' + lang,
+      !/<\/?worship\b/i.test(r.resolved) && !/MODEL RAW MARKUP/.test(r.resolved), r.resolved);
+  }
+
+  const malformed = await run('ar', malformedFetch);
+  ok('malformed worship data uses the existing localized failure state',
+    malformed.spoken.includes(malformed.fallback) && malformed.spoken.length > 0,
+    JSON.stringify(malformed));
+  const missing = await run('en', missingFetch);
+  ok('a missing worship key uses the existing localized failure state',
+    missing.spoken.includes(missing.fallback) && missing.spoken.length > 0,
+    JSON.stringify(missing));
+
+  const goldenText = 'GOLDEN  BYTES\nNEXT';
+  const success = await run('en', async () => ({
+    ok: true,
+    json: async () => ({ cells: { 'fixture:adult': { text: goldenText } } }),
+  }));
+  eq('the current successful worship replacement stays byte-for-byte identical',
+    success.resolved, 'before  ' + goldenText + '  after');
+  ok('the successful path also exposes neither raw markup nor an empty utterance',
+    success.spoken.length > 0 && !/<\/?worship\b/i.test(success.resolved)
+      && !/MODEL RAW MARKUP/.test(success.resolved), JSON.stringify(success));
+}
+
+/* ===================== G. THE TREASURE JOURNEY =========================== */
 // quest.html is a standalone vanilla page with its own tiny layer. It is checked by reading and
 // by RUNNING that layer in isolation — the page itself is driven by quest-ux-guard, in a real
 // browser, and this guard does not duplicate that.
@@ -917,6 +968,7 @@ function partF() {
   await partD0();
   await partD();
   await partE();
+  await partWorshipFailure();
   partF();
   console.log('');
   // The skipped count is stated on its own and never folded into the total. A run that could not

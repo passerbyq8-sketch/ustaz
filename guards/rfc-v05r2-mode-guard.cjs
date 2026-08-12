@@ -42,6 +42,14 @@ const ENV_KEYS = ['LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE',
   'DAILY_SEARCH_BUDGET', 'FOUNDER_SECRET'];
 
 const REPO = path.join(__dirname, '..');
+const sourceArg = (name) => {
+  const at = process.argv.indexOf(name);
+  return at >= 0 && process.argv[at + 1] ? path.resolve(process.argv[at + 1]) : null;
+};
+const DOC_SOURCES = new Map([
+  ['EZIK-RFC-V0.5-R2-FROZEN.md', sourceArg('--frozen-source')],
+  ['EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md', sourceArg('--report-source')],
+]);
 let failures = 0, checks = 0;
 function ok(name, cond, detail) {
   checks++;
@@ -55,7 +63,17 @@ function eq(name, actual, expected) {
   return ok(name, a === e, 'expected ' + e + '\n        actual   ' + a);
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
-const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+const read = (rel) => fs.readFileSync(DOC_SOURCES.get(rel) || path.join(REPO, rel), 'utf8');
+function f198Truth(rel) {
+  const match = read(rel).match(/<!-- F198_CURRENT_TRUTH_BEGIN -->\s*```text\s*([\s\S]*?)\s*```\s*<!-- F198_CURRENT_TRUTH_END -->/);
+  if (!match) return null;
+  const out = {};
+  for (const line of match[1].split(/\r?\n/)) {
+    const at = line.indexOf('=');
+    if (at > 0) out[line.slice(0, at).trim()] = line.slice(at + 1).trim();
+  }
+  return out;
+}
 
 function fakeRedis() {
   const m = new Map();
@@ -390,6 +408,62 @@ async function main() {
     ok('no secret value is logged by either switch',
       !/console\.(log|warn|error)/.test(read('lib/ledger/flag.js'))
       && !/console\.(log|warn|error)/.test(read('lib/legacy-policy-flag.js')));
+  }
+
+  // =========================================================================
+  console.log('\n=== K. F-198 — DOCUMENTATION FOLLOWS THE EXECUTED TRUTH TABLE ===');
+  {
+    setEnv({});
+    redis._map.clear();
+    const t = fresh();
+    const ledgerDecision = await FL.decidePath(anonReq, t);
+    const legacyDecision = await LP.decideLegacyPolicy(anonReq, fresh());
+    const flagSource = read('lib/ledger/flag.js');
+    const modeLine = flagSource.match(/if \(raw === 'off' \|\| raw === 'internal' \|\| raw === 'public'\) return raw;/);
+    const acceptedModes = modeLine ? Array.from(modeLine[0].matchAll(/'([^']+)'/g), (m) => m[1]) : [];
+    ok('F-198: accepted RFC_V05_MODE values are derived and executable',
+      acceptedModes.length > 0 && acceptedModes.every((mode) => {
+        process.env.RFC_V05_MODE = mode;
+        return FL.envMode() === mode;
+      }), JSON.stringify(acceptedModes));
+    setEnv({});
+
+    const askSource = read('api/ask.js');
+    const correctionsRuntime = /planAsk\(body\.messages, \{ policyEnabled: true \}\)/.test(askSource)
+      && /policyEnabled: legacyPolicy\.enabled, flag: legacyPolicy\.reason/.test(askSource)
+      ? 'unconditional' : 'flag-gated';
+    const vercelSource = read('vercel.json');
+    const trackedRolloutEnv = /RFC_V05_MODE|LEDGER_RAG|RFC_V05_LEGACY_POLICY/.test(vercelSource)
+      ? 'present' : 'absent';
+    const expected = {
+      PUBLIC_GO_LIVE: String(FL.PUBLIC_GO_LIVE),
+      LEDGER_DEFAULT_ENABLED: String(FL.DEFAULT_ENABLED),
+      RFC_V05_MODE_ACCEPTED: acceptedModes.join(','),
+      RFC_V05_MODE_UNSET: FL.envMode(),
+      RFC_V05_MODE_UNKNOWN: (() => { process.env.RFC_V05_MODE = 'not-a-mode'; const v = FL.envMode(); delete process.env.RFC_V05_MODE; return v; })(),
+      LEDGER_RAG_UNSET_ALLOWS: String(FL.envAllows()),
+      DECIDE_PATH_UNSET_ANON: ledgerDecision.path + ':' + ledgerDecision.reason,
+      LEGACY_POLICY_DEFAULT_ENABLED: String(LP.DEFAULT_ENABLED),
+      RFC_V05_LEGACY_POLICY_UNSET_ALLOWS: String(LP.envAllows()),
+      DECIDE_LEGACY_POLICY_UNSET_ANON: String(legacyDecision.enabled) + ':' + legacyDecision.reason,
+      LEGACY_REPAIRS_RUNTIME: correctionsRuntime,
+      TRACKED_DEPLOYMENT_ROLLOUT_ENV: trackedRolloutEnv,
+      DEPLOYMENT_SNAPSHOT: 'UNMEASURED_OFFLINE',
+    };
+    for (const rel of ['EZIK-RFC-V0.5-R2-FROZEN.md', 'EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md']) {
+      const truth = f198Truth(rel);
+      ok('F-198: ' + rel + ' carries a machine-checked current truth block', !!truth,
+        'missing F198_CURRENT_TRUTH block');
+      if (!truth) continue;
+      for (const [key, value] of Object.entries(expected)) {
+        eq('F-198: ' + rel + ' documents ' + key, truth[key], value);
+      }
+      eq('F-198: ' + rel + ' distinguishes default code from deployment evidence',
+        truth.DEFAULT_CODE_VS_DEPLOYMENT,
+        'code-default-is-measured;effective-deployment-is-not');
+      eq('F-198: ' + rel + ' labels the old rollout record historical',
+        truth.OLD_ROLLOUT_SNAPSHOT, 'HISTORICAL_ONLY');
+    }
   }
 
   restore();

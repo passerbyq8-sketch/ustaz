@@ -34,6 +34,24 @@ function ok(name, cond, detail) {
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+const binothaimeenSourceArg = process.argv.indexOf('--binothaimeen-source');
+const binothaimeenSourceFile = binothaimeenSourceArg >= 0 && process.argv[binothaimeenSourceArg + 1]
+  ? path.resolve(process.argv[binothaimeenSourceArg + 1])
+  : path.join(REPO, 'lib/binothaimeen.js');
+const esmBinothaimeen = () => {
+  if (binothaimeenSourceArg < 0) return esm('lib/binothaimeen.js');
+  const external = fs.readFileSync(binothaimeenSourceFile, 'utf8').replace(
+    /from\s+(['"])([^'"]+)\1/g,
+    (whole, quote, specifier) => {
+      if (specifier.startsWith('node:')) return whole;
+      const target = specifier.startsWith('.')
+        ? path.resolve(REPO, 'lib', specifier)
+        : require.resolve(specifier, { paths: [REPO] });
+      return 'from ' + quote + 'file:///' + target.replace(/\\/g, '/') + quote;
+    },
+  );
+  return import('data:text/javascript;base64,' + Buffer.from(external, 'utf8').toString('base64'));
+};
 
 const Q_TRAVEL = 'ما حكم السفر للسياحة إلى دول غير مسلمة؟';
 const LESSON_URL = 'https://binothaimeen.net/content/12345';
@@ -222,6 +240,85 @@ const LESSON_TEXT = 'السفر إلى بلاد الكفار للسياحة لا
   ok('MAX_MODEL_CALLS is still 8 — 7 + the query-IR repair call', B.MAX_MODEL_CALLS === 8, String(B.MAX_MODEL_CALLS));
   ok('no run breached a budget', (r.budget.snapshot().breaches || []).length === 0,
     JSON.stringify(r.budget.snapshot().breaches));
+
+  // F-163. The legacy attributed caller does not supply Ledger `io`, but it still has to obey the
+  // same governing per-request outbound cap. Drive the real search -> httpJson -> lesson path;
+  // every transport below is local and every retry is visible in the counter.
+  {
+    const BINO = await esmBinothaimeen();
+    const realFetch = globalThis.fetch;
+    const cap = B.MAX_PAGES_FETCHED;
+    const json = (value) => ({
+      ok: true, status: 200,
+      async text() { return JSON.stringify(value); },
+    });
+    try {
+      BINO.__clearCacheForTest();
+      let permanentCalls = 0;
+      globalThis.fetch = async () => { permanentCalls++; throw new Error('permanent-local-failure'); };
+      const permanent = await BINO.retrieveIbnUthaymeen(
+        'حكم معاملة مستقلة كثيرة التفاصيل والقيود النادرة الأولى',
+      );
+      ok('F-163 permanent failure never exceeds the governing per-request cap',
+        permanent.length === 0 && permanentCalls <= cap,
+        JSON.stringify({ permanentCalls, cap }));
+
+      BINO.__clearCacheForTest();
+      let retryCalls = 0;
+      globalThis.fetch = async () => {
+        retryCalls++;
+        if (retryCalls === 1) throw new Error('first-attempt-local-failure');
+        return json({ data: [] });
+      };
+      await BINO.retrieveIbnUthaymeen('حكم معاملة ثانية ذات شروط متعددة متباينة ومفصلة');
+      ok('F-163 retries are charged as outbound attempts under the same cap',
+        retryCalls >= 2 && retryCalls <= cap,
+        JSON.stringify({ retryCalls, cap }));
+
+      BINO.__clearCacheForTest();
+      let successCalls = 0;
+      const successId = 'a6-success-id';
+      globalThis.fetch = async (url) => {
+        successCalls++;
+        if (String(url).includes('/api/search-data')) {
+          return json({ data: [{
+            id: successId, title: { ar: LESSON_TITLE }, content: { ar: LESSON_TEXT }, relevance: 1,
+          }] });
+        }
+        if (String(url).includes('/lessons/audios/show/')) {
+          return json({ data: {
+            title: { ar: LESSON_TITLE },
+            objective: { content: { ar: '<p>' + LESSON_TEXT + '</p>' } },
+          } });
+        }
+        throw new Error('unexpected local URL ' + url);
+      };
+      const success = await BINO.retrieveIbnUthaymeen(Q_TRAVEL);
+      ok('F-163 normal success keeps search and lesson fetch inside the governing cap',
+        success.length === 1 && success[0].sourceId === successId
+          && successCalls >= 2 && successCalls <= cap,
+        JSON.stringify({ successCalls, cap, sources: success.map((s) => s.sourceId) }));
+
+      BINO.__clearCacheForTest();
+      let concurrentCalls = 0;
+      globalThis.fetch = async () => { concurrentCalls++; throw new Error('concurrent-local-failure'); };
+      const concurrent = await Promise.all([
+        BINO.retrieveIbnUthaymeen('حكم نازلة مستقلة أولى بقيود كثيرة وتفاصيل نادرة'),
+        BINO.retrieveIbnUthaymeen('حكم نازلة مستقلة ثانية بشروط كثيرة وملابسات مختلفة'),
+      ]);
+      ok('F-163 concurrent requests own independent counters, each bounded by the same cap',
+        concurrent.every((items) => items.length === 0)
+          && concurrentCalls > cap && concurrentCalls <= cap * 2,
+        JSON.stringify({ concurrentCalls, perRequestCap: cap }));
+
+      ok('F-163 exhaustion prevented every outbound attempt beyond the governing cap',
+        permanentCalls === cap && retryCalls === cap && concurrentCalls === cap * 2,
+        JSON.stringify({ permanentCalls, retryCalls, concurrentCalls, cap }));
+    } finally {
+      globalThis.fetch = realFetch;
+      BINO.__clearCacheForTest();
+    }
+  }
 
   // ── 6. WIRING ──────────────────────────────────────────────────────────────
   const eng = read('lib/ledger/engine.js');

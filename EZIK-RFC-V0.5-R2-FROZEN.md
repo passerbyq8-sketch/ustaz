@@ -1,8 +1,49 @@
 # EZIK RFC v0.5-R2 — FROZEN SPECIFICATION (as implemented)
 
-**Status:** frozen and approved by the owner. Implemented locally on branch `guarded/rfc-v0.5-r2`.
-**Baseline:** `2046114a98f5d248672bc209914ec4baeff8a3d6` (re-pinned by the owner; see §0).
-**Not deployed. Not pushed. Ledger remains DEFAULT OFF.**
+**Historical status:** frozen and approved by the owner on branch `guarded/rfc-v0.5-r2`.
+**Historical baseline:** `2046114a98f5d248672bc209914ec4baeff8a3d6` (re-pinned by the owner; see §0).
+The original “not deployed / not pushed / default off” statement describes that historical rollout
+snapshot only. It is not a claim about the current deployment.
+
+### Current repository truth (F-198)
+
+The current code default is public Ledger: with all rollout variables unset,
+`PUBLIC_GO_LIVE=true`, `envMode()` is `public`, and an anonymous request reaches
+`ledger:mode_public`. This is a measured property of the repository code, not evidence about the
+effective deployment. `vercel.json` contains none of the rollout variables, and this offline review
+made no live environment or Upstash probe, so effective deployment state is
+**UNMEASURED_OFFLINE**.
+
+`RFC_V05_MODE` accepts exactly `off`, `internal`, and `public` (case/outer whitespace normalize);
+an unknown written value fails closed to `off`. `PUBLIC_GO_LIVE` governs the unset defaults of
+`LEDGER_RAG` and `RFC_V05_MODE`; setting it back to `false` restores the credential-plus-store
+rollout arm. Explicit floors, modes, and the Upstash brake still override the public code default.
+
+The legacy-policy decision helper has a different unset result: its own env floor
+`RFC_V05_LEGACY_POLICY` is false when absent, so the helper reports `false:env_floor_off`.
+That value is telemetry only in the current handler. The repairs themselves are unconditional:
+`api/ask.js` calls `planAsk(..., { policyEnabled: true })` and logs the helper result without using
+it to gate those corrections.
+
+<!-- F198_CURRENT_TRUTH_BEGIN -->
+```text
+PUBLIC_GO_LIVE=true
+LEDGER_DEFAULT_ENABLED=true
+RFC_V05_MODE_ACCEPTED=off,internal,public
+RFC_V05_MODE_UNSET=public
+RFC_V05_MODE_UNKNOWN=off
+LEDGER_RAG_UNSET_ALLOWS=true
+DECIDE_PATH_UNSET_ANON=ledger:mode_public
+LEGACY_POLICY_DEFAULT_ENABLED=false
+RFC_V05_LEGACY_POLICY_UNSET_ALLOWS=false
+DECIDE_LEGACY_POLICY_UNSET_ANON=false:env_floor_off
+LEGACY_REPAIRS_RUNTIME=unconditional
+TRACKED_DEPLOYMENT_ROLLOUT_ENV=absent
+DEPLOYMENT_SNAPSHOT=UNMEASURED_OFFLINE
+DEFAULT_CODE_VS_DEPLOYMENT=code-default-is-measured;effective-deployment-is-not
+OLD_ROLLOUT_SNAPSHOT=HISTORICAL_ONLY
+```
+<!-- F198_CURRENT_TRUTH_END -->
 
 This document records the specification **as it was actually built**. Where the built behaviour
 differs from the first draft of the RFC, the difference is stated here rather than smoothed over.
@@ -245,25 +286,29 @@ codes and short TTLs — no text.
 
 ---
 
-## 11b. Rollout (added by the owner review)
+## 11b. Rollout (current code truth; historical design superseded)
 
-Two independent switches, both **default OFF**, both failing OFF on every error:
+The two decision helpers no longer have the same default and they do not both govern runtime
+behaviour:
 
 | Switch | Governs | Env floor | Identity | Runtime |
 |---|---|---|---|---|
-| `lib/ledger/flag.js` | the ledger engine | `LEDGER_RAG` | founder HMAC | Upstash, 5s TTL |
-| `lib/legacy-policy-flag.js` | the legacy repairs (safety triage, child-benign, health referral, ABOUT_ENTITY branch, classifier veto) | `RFC_V05_LEGACY_POLICY` | founder HMAC | Upstash, 5s TTL |
+| `lib/ledger/flag.js` | the ledger engine | `LEDGER_RAG`; unset follows `PUBLIC_GO_LIVE=true` | founder HMAC in `internal`/rollback mode | Upstash brake, 5s TTL |
+| `lib/legacy-policy-flag.js` | telemetry for the former legacy-repair rollout decision | `RFC_V05_LEGACY_POLICY`; unset is false | founder HMAC in `internal`/rollback mode | Upstash decision value, 5s TTL |
 
 The ledger budget receives the finite default when `DAILY_SEARCH_BUDGET` is absent or malformed;
-`decidePath()` has no unconfigured-budget branch. With the legacy switch off, the handler's
-routing expression is byte-for-byte the shipped one and no new branch is
-reachable. Neither switch reads the store for a reader who is not an internal tester. No value was
-changed by this work.
+`decidePath()` has no unconfigured-budget branch. In the present code, an unset Ledger floor and
+mode select `ledger:mode_public`; explicit `LEDGER_RAG=off`, `RFC_V05_MODE=off`, or the runtime
+brake select legacy. The legacy-policy helper can still report disabled, but `api/ask.js` applies
+the repaired planning policy unconditionally and uses that helper only in telemetry.
 
-## 12. What is explicitly still off
+## 12. What remains unmeasured or explicitly stoppable
 
 * Ledger search always has the finite default ceiling unless `DAILY_SEARCH_BUDGET` overrides it.
-* The legacy policy repairs remain **DEFAULT OFF** behind `RFC_V05_LEGACY_POLICY`.
-* No shadow, no canary, no preview, no deploy, no environment or Upstash change.
+* The code default is Ledger-public, but explicit floors/modes and the Upstash brake can stop it.
+* `RFC_V05_LEGACY_POLICY` is unset-off as a decision/telemetry signal; it no longer gates the
+  legacy repairs, which are unconditional in `api/ask.js`.
+* Effective deployment env and Upstash values are not stored in this repository and were not
+  probed in this offline pass; deployment state is therefore unmeasured, not asserted on or off.
 * Live Preview Ledger path, live LLM eval, live Brave contract, P50/P95 live latency, and live
   token/cost metrics all remain **VOID**.
