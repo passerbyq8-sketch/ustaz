@@ -147,6 +147,49 @@ function wrapSystem(system) {
   return system;
 }
 
+function providerMaxTokens(value) {
+  return typeof value === 'number' && Number.isFinite(value)
+    && Number.isInteger(value) && value > 0
+    ? Math.min(value, MAX_CHAT_TOKENS)
+    : MAX_CHAT_TOKENS;
+}
+
+function providerMessages(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return null;
+  const clean = [];
+  for (const message of messages) {
+    if (!message || typeof message !== 'object' || Array.isArray(message)
+        || (message.role !== 'user' && message.role !== 'assistant')) return null;
+    let content;
+    if (typeof message.content === 'string' && message.content.trim()) {
+      content = message.content;
+    } else if (Array.isArray(message.content) && message.content.length) {
+      content = [];
+      for (const block of message.content) {
+        if (!block || typeof block !== 'object' || Array.isArray(block)) return null;
+        if (block.type === 'text' && typeof block.text === 'string' && block.text.trim()) {
+          content.push({ type: 'text', text: block.text });
+          continue;
+        }
+        const source = block.source;
+        if ((block.type === 'image' || block.type === 'document')
+            && source && typeof source === 'object' && !Array.isArray(source)
+            && source.type === 'base64' && typeof source.media_type === 'string'
+            && source.media_type && typeof source.data === 'string' && source.data) {
+          content.push({
+            type: block.type,
+            source: { type: 'base64', media_type: source.media_type, data: source.data },
+          });
+          continue;
+        }
+        return null;
+      }
+    } else return null;
+    clean.push({ role: message.role, content });
+  }
+  return clean[clean.length - 1].role === 'user' ? clean : null;
+}
+
 // Depth-based instruction. Returns '' for brief (no injection), or the Arabic
 // instruction text for 'deep' (مفصّل) / 'scholar' (طالب العلم). Approved verbatim.
 // EXPORTED so guards/answer-shape-guard.cjs can RUN it rather than read the file for its text —
@@ -326,6 +369,7 @@ async function rankCandidates(question, candidates, model, headers) {
       body: JSON.stringify({
         model,
         max_tokens: 16,
+        thinking: { type: 'disabled' },
         system: 'أنت مُصنِّفٌ يختارُ عنوانًا واحدًا من قائمة. لا تُفتِ ولا تشرح.',
         messages: [{ role: 'user', content: prompt }],
         stream: false,
@@ -596,6 +640,9 @@ export default async function handler(req, res) {
   if (bodyBytes > MAX_CHAT_BODY_BYTES) {
     return res.status(413).json({ error: 'Request body too large' });
   }
+  const messages = providerMessages(body.messages);
+  if (!messages) return res.status(400).json({ error: 'invalid messages' });
+  body.messages = messages;
 
   // DAILY QUESTION CAP (directive 78). Sits AFTER body parse + the size cap and BEFORE the
   // first Anthropic call, so a capped request costs nothing. NO IP: identity is the device
@@ -618,7 +665,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: cap.reason, message: dayCapMessage(cap.reason) });
   }
 
-  const maxTokens = Math.min(body.max_tokens || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
+  const maxTokens = providerMaxTokens(body.max_tokens);
   // TIER LOCK (directive 82). The UI cannot be the lock: anyone can POST here directly with
   // depth:"scholar" and get the premium model on our bill. So the SERVER decides -- without a
   // valid founder token the requested depth is dropped and the default tier is served.
@@ -2649,6 +2696,7 @@ export default async function handler(req, res) {
             method: 'POST', headers,
             body: JSON.stringify({
               model: STANDARD_MODEL, max_tokens: 8, stream: false,
+              thinking: { type: 'disabled' },
               system: TRANSFER_JUDGE_SYSTEM,
               messages: [{ role: 'user', content: prompt }],
             }),

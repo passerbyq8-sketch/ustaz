@@ -76,6 +76,49 @@ function standardVoiceModel() {
   return process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5';
 }
 
+function providerMaxTokens(value) {
+  return typeof value === 'number' && Number.isFinite(value)
+    && Number.isInteger(value) && value > 0
+    ? Math.min(value, MAX_CHAT_TOKENS)
+    : MAX_CHAT_TOKENS;
+}
+
+function providerMessages(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return null;
+  const clean = [];
+  for (const message of messages) {
+    if (!message || typeof message !== 'object' || Array.isArray(message)
+        || (message.role !== 'user' && message.role !== 'assistant')) return null;
+    let content;
+    if (typeof message.content === 'string' && message.content.trim()) {
+      content = message.content;
+    } else if (Array.isArray(message.content) && message.content.length) {
+      content = [];
+      for (const block of message.content) {
+        if (!block || typeof block !== 'object' || Array.isArray(block)) return null;
+        if (block.type === 'text' && typeof block.text === 'string' && block.text.trim()) {
+          content.push({ type: 'text', text: block.text });
+          continue;
+        }
+        const source = block.source;
+        if ((block.type === 'image' || block.type === 'document')
+            && source && typeof source === 'object' && !Array.isArray(source)
+            && source.type === 'base64' && typeof source.media_type === 'string'
+            && source.media_type && typeof source.data === 'string' && source.data) {
+          content.push({
+            type: block.type,
+            source: { type: 'base64', media_type: source.media_type, data: source.data },
+          });
+          continue;
+        }
+        return null;
+      }
+    } else return null;
+    clean.push({ role: message.role, content });
+  }
+  return clean[clean.length - 1].role === 'user' ? clean : null;
+}
+
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -132,6 +175,7 @@ export default async function handler(req, res) {
   let isClassifierTurn;
   try {
     const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : { ...req.body };
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('bad body');
 
     // ROLE IS DECIDED ONCE, from the original value, before output-budget sanitisation. Do not
     // coerce it: only the shipped numeric 8 is the legacy classifier compatibility signal.
@@ -142,11 +186,12 @@ export default async function handler(req, res) {
 
     // Output cap decided HERE, not by the client. The classifier's numeric 8 and the GEN
     // answer's 4096 pass through untouched. An attacker asking for 64000 does not.
-    parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
-    parsed.model = standardVoiceModel();
+    const messages = providerMessages(parsed.messages);
+    if (!messages) throw new Error('bad messages');
+    const model = standardVoiceModel();
     console.log('[tier] voice-fast', {
       role: isClassifierTurn ? 'classifier' : 'answer',
-      model: parsed.model,
+      model,
     });
 
     // SIBLING CONTRACT (api/chat.js A3): `output_config` is NOT accepted by /v1/messages -- its
@@ -170,12 +215,11 @@ export default async function handler(req, res) {
     // as a role. The discriminator does not select a model tier.
     const reader = readerFromBody(parsed);
     dropClientSystem(parsed, 'chat-fast');
-    parsed.system = [{
+    const system = [{
       type: 'text',
       text: isClassifierTurn ? CLASSIFIER_SYSTEM_PROMPT : buildFastGenPrompt(reader.age),
       cache_control: { type: 'ephemeral' },
     }];
-    for (const k of ['name', 'age', 'gender', 'mode']) if (parsed[k] !== undefined) delete parsed[k];
 
     // SIBLING CONTRACT (api/chat.js C): `band` is a field this app adds so the policy below has
     // something to govern by, and /v1/messages 400s on an unknown top-level field. Read it, then
@@ -191,9 +235,14 @@ export default async function handler(req, res) {
     //    Two claims, one reader, and the NARROWER wins — same reader-fields result as the two
     //    siblings, shared by both the prompt input and this policy branch.
     voiceBand = reader.band;
-    if (parsed.band !== undefined) delete parsed.band;
-
-    outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.
+    outgoingBody = {
+      model,
+      max_tokens: providerMaxTokens(requestedMaxTokens),
+      system,
+      messages,
+      stream: true,
+      ...(isClassifierTurn ? { thinking: { type: 'disabled' } } : {}),
+    };
 
     // قرار ٩, sibling of api/chat.js -- but NOT on the classifier turn, and the exemption is
     // explicit rather than assumed. That turn's reply is one word nobody ever sees; the client

@@ -893,7 +893,9 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
             && JSON.stringify(allowed.request.messages).includes(INJECTION_MARKERS[0]));
         ok('the judge request keeps its one-word budget and disables streaming/thinking',
           allowed.request && allowed.request.max_tokens === 8 && allowed.request.stream === false
-            && !Object.prototype.hasOwnProperty.call(allowed.request, 'thinking'));
+            && JSON.stringify(allowed.request.thinking) === JSON.stringify({ type: 'disabled' })
+            && Object.keys(allowed.request).sort().join(',')
+              === 'max_tokens,messages,model,stream,system,thinking');
 
         const invalidJudgeCases = [
           ['yes', { stop_reason: 'end_turn', content: [{ type: 'text', text: 'نعم' }] }, false],

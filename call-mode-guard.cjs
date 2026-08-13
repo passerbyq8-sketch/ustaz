@@ -105,7 +105,7 @@ async function checkRelays() {
   delete process.env.MODEL_STANDARD;
   delete process.env.MODEL_FAST;
   delete process.env.TASHKEEL_MODEL;
-  delete process.env.CALL_THINKING;
+  process.env.CALL_THINKING = 'disabled';
 
   const DEVICE = 'callmodeguarddevice01';
   const founder = founderTokenFor(DEVICE); // founder short-circuits the day cap BEFORE any Redis
@@ -171,11 +171,25 @@ async function checkRelays() {
     // A client that ASKS for the unsupported field: the relay must strip it, not forward it.
     body: Object.assign({
       max_tokens: 4096,
-      stream: true,
+      stream: false,
       system: 'guard probe',
       messages: [{ role: 'user', content: 'probe' }],
+      name: 'guard',
+      age: 30,
+      gender: 'male',
+      mode: 'normal',
+      band: 'adult',
       output_config: { effort: 'high' },
       model: 'claude-opus-5',
+      temperature: 0.25,
+      top_p: 0.75,
+      top_k: 4,
+      thinking: { type: 'enabled', budget_tokens: 1024 },
+      tools: [{ name: 'client_tool', input_schema: { type: 'object' } }],
+      tool_choice: { type: 'any' },
+      metadata: { user_id: 'client-owned' },
+      stop_sequences: ['CLIENT_STOP'],
+      unknown_provider_canary: true,
     }, extra || {}),
   });
 
@@ -199,6 +213,11 @@ async function checkRelays() {
       else pass('A3 ' + name + ' sent NO output_config (CALL_EFFORT=high and a client-supplied one were both ignored)');
       if (sent.effort !== undefined) fail('A3 ' + name + ' sent a bare top-level effort field');
       else pass('A3 ' + name + ' sent no bare effort field');
+      const relayKeys = Object.keys(sent).sort().join(',');
+      if (relayKeys === 'max_tokens,messages,model,stream,system' && sent.stream === true
+          && sent.thinking === undefined) {
+        pass('A3 ' + name + ' sends only the server-owned ordinary-answer envelope');
+      } else fail('A3 ' + name + ' provider keys/stream = ' + relayKeys + '/' + sent.stream);
 
       // Standing invariants that share this transform -- if one breaks, the same edit broke it.
       if (name === 'api/chat.js' && sent.model === 'claude-sonnet-5') pass('A4 api/chat.js still forces the STANDARD model server-side');
@@ -230,6 +249,17 @@ async function checkRelays() {
       await fastHandler(req, res);
       return { sent, calls: anthropicCalls, res, text: responseText(res) };
     };
+    const chatHandler = (await import(pathToUrl('api/chat.js'))).default;
+    const runChat = async ({ maxTokens, omitMaxTokens = false, token = 'answer', body = {} } = {}) => {
+      sent = null;
+      anthropicCalls = 0;
+      upstreamToken = token;
+      const req = mkReq(Object.assign({}, body, { max_tokens: maxTokens }));
+      if (omitMaxTokens) delete req.body.max_tokens;
+      const res = mkRes();
+      await chatHandler(req, res);
+      return { sent, calls: anthropicCalls, res, text: responseText(res) };
+    };
 
     process.env.MODEL_STANDARD = 'call-mode-standard-sentinel';
     process.env.MODEL = 'call-mode-legacy-sentinel';
@@ -246,7 +276,9 @@ async function checkRelays() {
         });
         if (result.sent && result.sent.model === 'call-mode-standard-sentinel'
             && result.sent.max_tokens === 8
-            && promptText(result.sent) === CLASSIFIER_SYSTEM_PROMPT) {
+            && promptText(result.sent) === CLASSIFIER_SYSTEM_PROMPT
+            && JSON.stringify(result.sent.thinking) === JSON.stringify({ type: 'disabled' })
+            && Object.keys(result.sent).sort().join(',') === 'max_tokens,messages,model,stream,system,thinking') {
           pass('A6 exact numeric 8 keeps the classifier prompt and STANDARD model');
         } else fail('A6 exact numeric 8 changed classifier role or model');
         if (result.calls === 1 && result.text === tokenWire(token)
@@ -258,19 +290,26 @@ async function checkRelays() {
 
       const answerCases = [
         ['numeric-7', 7, false], ['numeric-9', 9, false], ['numeric-4096', 4096, false],
+        ['huge', 64000, false],
         ['missing', undefined, true], ['zero', 0, false], ['null', null, false],
         ['false', false, false], ['empty-string', '', false], ['whitespace', '   ', false],
         ['string-8', '8', false], ['string-0', '0', false], ['negative', -1, false],
+        ['nan', NaN, false], ['infinity', Infinity, false], ['negative-infinity', -Infinity, false],
+        ['decimal', 1.5, false], ['true', true, false],
         ['array-8', [8], false], ['empty-array', [], false], ['object', {}, false],
       ];
       for (const [label, maxTokens, omitMaxTokens] of answerCases) {
         const result = await runFast({
           maxTokens, omitMaxTokens, token: 'answer', body: { band: 'adult', age: 30 },
         });
-        const expectedBudget = omitMaxTokens ? 4096 : Math.min(Number(maxTokens) || 4096, 4096);
+        const expectedBudget = !omitMaxTokens && typeof maxTokens === 'number'
+          && Number.isFinite(maxTokens) && Number.isInteger(maxTokens) && maxTokens > 0
+          ? Math.min(maxTokens, 4096) : 4096;
         if (result.sent && result.sent.model === 'call-mode-standard-sentinel'
             && result.sent.max_tokens === expectedBudget
             && promptText(result.sent) === buildFastGenPrompt(30)
+            && result.sent.thinking === undefined
+            && Object.keys(result.sent).sort().join(',') === 'max_tokens,messages,model,stream,system'
             && result.res.__emptyAnswerGuarded === true) {
           pass('A6 noncanonical ' + label + ' remains an answer on STANDARD');
         } else fail('A6 noncanonical ' + label + ' gained classifier role or changed model');
@@ -278,6 +317,74 @@ async function checkRelays() {
           fail('A6 noncanonical ' + label + ' changed answer call count or relay shape (calls='
             + result.calls + ', bytes=' + Buffer.byteLength(result.text) + ')');
         } else pass('A6 noncanonical ' + label + ' preserves one answer provider call and relay shape');
+      }
+
+      for (const [label, maxTokens, omitMaxTokens] of [...answerCases, ['numeric-8', 8, false]]) {
+        const result = await runChat({ maxTokens, omitMaxTokens });
+        const expectedBudget = !omitMaxTokens && typeof maxTokens === 'number'
+          && Number.isFinite(maxTokens) && Number.isInteger(maxTokens) && maxTokens > 0
+          ? Math.min(maxTokens, 4096) : 4096;
+        if (result.sent && result.sent.model === 'call-mode-standard-sentinel'
+            && result.sent.max_tokens === expectedBudget && Number.isInteger(result.sent.max_tokens)
+            && result.sent.max_tokens > 0 && result.sent.thinking === undefined
+            && Object.keys(result.sent).sort().join(',') === 'max_tokens,messages,model,stream,system'
+            && result.calls === 1 && result.text === tokenWire('answer')) {
+          pass('A6 chat token ' + label + ' is a positive bounded STANDARD answer');
+        } else fail('A6 chat token ' + label + ' leaked an invalid budget, role, or envelope');
+      }
+
+      const validHistories = [
+        [{ role: 'user', content: 'probe' }],
+        [
+          { role: 'user', content: 'first' },
+          { role: 'assistant', content: 'reply' },
+          { role: 'user', content: 'probe' },
+        ],
+        [{
+          role: 'user', ignored: 'strip-me', content: [
+            { type: 'image', ignored: true, source: {
+              type: 'base64', media_type: 'image/png', data: 'YWJj', ignored: true,
+            } },
+            { type: 'text', text: 'probe', ignored: true },
+          ],
+        }],
+      ];
+      for (const [index, messages] of validHistories.entries()) {
+        for (const [label, run] of [
+          ['chat-fast', () => runFast({ maxTokens: 4096, token: 'answer', body: { messages } })],
+          ['chat', () => runChat({ maxTokens: 4096, body: { messages } })],
+        ]) {
+          const result = await run();
+          const cleanMessages = result.sent && result.sent.messages;
+          const noUnknownNested = cleanMessages && !JSON.stringify(cleanMessages).includes('ignored');
+          if (result.calls === 1 && Array.isArray(cleanMessages)
+              && cleanMessages[cleanMessages.length - 1].role === 'user' && noUnknownNested) {
+            pass('A6 ' + label + ' accepts valid user-ending history ' + index + ' and strips nested unknowns');
+          } else fail('A6 ' + label + ' rejected or leaked valid history ' + index);
+        }
+      }
+
+      const invalidHistories = [
+        [],
+        [{ role: 'system', content: 'probe' }],
+        [{ role: 'tool', content: 'probe' }],
+        [null],
+        [{ role: 'user', content: 7 }],
+        [{ role: 'user', content: {} }],
+        [{ role: 'user', content: [{ type: 'tool_use', name: 'x' }] }],
+        [{ role: 'user', content: 'first' }, { role: 'assistant', content: 'prefill' }],
+        [{ role: 'assistant', content: 'prefill' }],
+      ];
+      for (const [index, messages] of invalidHistories.entries()) {
+        for (const [label, run] of [
+          ['chat-fast', () => runFast({ maxTokens: 4096, token: 'answer', body: { messages } })],
+          ['chat', () => runChat({ maxTokens: 4096, body: { messages } })],
+        ]) {
+          const result = await run();
+          if (result.calls === 0 && result.sent === null && result.res.statusCode === 400) {
+            pass('A6 ' + label + ' rejects invalid/prefill history ' + index + ' before provider');
+          } else fail('A6 ' + label + ' relayed invalid/prefill history ' + index);
+        }
       }
 
       const forged = await runFast({
@@ -353,6 +460,8 @@ async function checkModelRouting() {
   const SONNET = 'claude-sonnet-5';
   const OPUS = 'claude-opus-5';
   const HAIKU = 'claude-haiku-4-5-20251001';
+  const STANDARD_SENTINEL = 'call-mode-ask-standard-sentinel';
+  const PREMIUM_SENTINEL = 'call-mode-ask-premium-sentinel';
   const envKeys = [
     'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET',
     'MODEL', 'MODEL_STANDARD', 'MODEL_PREMIUM', 'MODEL_FAST', 'TASHKEEL_MODEL',
@@ -373,6 +482,10 @@ async function checkModelRouting() {
   process.env.BRAVE_API_KEY = 'test-brave-not-real';
   process.env.FOUNDER_SECRET = 'model-routing-guard-secret';
   process.env.DAILY_SEARCH_BUDGET = '1000';
+  process.env.MODEL_STANDARD = STANDARD_SENTINEL;
+  process.env.MODEL_PREMIUM = PREMIUM_SENTINEL;
+  process.env.MODEL = 'call-mode-ask-legacy-sentinel';
+  process.env.MODEL_FAST = 'call-mode-ask-fast-sentinel';
 
   const DEVICE = 'modelroutingguarddevice01';
   const capCounts = new Map();
@@ -456,9 +569,15 @@ async function checkModelRouting() {
 
   global.fetch = async (url, opts) => {
     const u = String(url);
+    if (u === '/pipeline' && opts && opts.method === 'POST') {
+      return new Response('{}', { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
     if (u.includes('api.anthropic.com')) {
       const body = JSON.parse((opts && opts.body) || '{}');
       modelBodies.push(body);
+      if (transportMode === 'ranker' && body.max_tokens === 16) {
+        return jsonResponse({ content: [{ type: 'text', text: '1' }], stop_reason: 'end_turn' });
+      }
       if (transportMode === 'legacy-tool' && Array.isArray(body.tools)) {
         return jsonResponse({
           content: [{ type: 'tool_use', id: 'tool_guard_1', name: 'search_islamic_sources', input: { query: 'الوضوء' } }],
@@ -475,6 +594,21 @@ async function checkModelRouting() {
     if (u.includes('api.search.brave.com')) {
       return jsonResponse({ web: { results: transportMode === 'ledger'
         ? [{ url: PAGE_URL, title: 'حكم قتل النمل', description: '' }] : [] } });
+    }
+    if (transportMode === 'ranker' && u === 'https://shekhcp.binothaimeen.net/api/search-data'
+        && opts && opts.method === 'POST') {
+      return jsonResponse({ data: [
+        { id: 'rank-1', title: { ar: 'حكم الوضوء' }, content: { ar: 'حكم الوضوء' } },
+        { id: 'rank-2', title: { ar: 'صفة الوضوء' }, content: { ar: 'صفة الوضوء' } },
+      ] });
+    }
+    if (transportMode === 'ranker'
+        && u.startsWith('https://shekhapi.binothaimeen.net/lessons/audios/show/rank-')) {
+      const first = u.includes('/rank-1/');
+      return jsonResponse({ data: {
+        title: { ar: first ? 'حكم الوضوء' : 'صفة الوضوء' },
+        objective: { content: { ar: '<p>الوضوء عبادة معلومة، وهذا نص منشور يشرح حكم الوضوء وصفته وشروطه شرحا واضحا.</p>' } },
+      } });
     }
     if (u.split('#')[0] === PAGE_URL) return htmlResponse(u);
     // The rate-limit clients are intentionally offline. Their production contract is fail-open;
@@ -524,6 +658,11 @@ async function checkModelRouting() {
   try {
     const ASK = await import(pathToUrl('api/ask.js'));
     const handler = ASK.default;
+    const askSource = read('api/ask.js') || '';
+    if (/const STANDARD_MODEL\s*=\s*process\.env\.MODEL_STANDARD\s*\|\|\s*process\.env\.MODEL\s*\|\|\s*'claude-sonnet-5'/.test(askSource)
+        && /process\.env\.MODEL_PREMIUM\s*\|\|\s*process\.env\.MODEL\s*\|\|\s*'claude-opus-5'/.test(askSource)) {
+      pass('D0 ask role resolvers retain dedicated -> legacy -> exact Model-5 fallback precedence');
+    } else fail('D0 ask standard/premium resolver precedence changed');
     const drive = async (request, mode) => {
       transportMode = mode;
       modelBodies.length = 0;
@@ -542,27 +681,106 @@ async function checkModelRouting() {
     };
 
     const ordinary = await drive(mkReq({
-      question: 'كم يساوي اثنان زائد اثنان؟', extra: { depth: 'brief' },
+      question: 'كم يساوي اثنان زائد اثنان؟', extra: {
+        depth: 'brief', model: 'client-model-canary', system: 'client-system-canary',
+        temperature: 0.2, top_p: 0.8, top_k: 3,
+        thinking: { type: 'enabled', budget_tokens: 1024 },
+        tools: [{ name: 'client_tool' }], tool_choice: { type: 'any' },
+        metadata: { user_id: 'client' }, stop_sequences: ['CLIENT_STOP'],
+        unknown_provider_canary: true,
+      },
     }), 'legacy-gen');
-    if (firstModel(ordinary.bodies) === SONNET) pass('D1 ordinary/default/brief answer sends Sonnet 5');
+    if (firstModel(ordinary.bodies) === STANDARD_SENTINEL) pass('D1 ordinary/default/brief answer sends the STANDARD resolver');
     else fail('D1 ordinary/default/brief model = ' + firstModel(ordinary.bodies));
+    const ordinaryKeys = Object.keys(ordinary.bodies[0] || {}).sort().join(',');
+    if (ordinaryKeys === 'max_tokens,messages,model,stream,system'
+        && ordinary.bodies[0].thinking === undefined) {
+      pass('D1 ask ordinary envelope contains only server-owned provider keys');
+    } else fail('D1 ask ordinary provider keys = ' + ordinaryKeys);
+
+    const strictBudget = (value, missing = false) => !missing && typeof value === 'number'
+      && Number.isFinite(value) && Number.isInteger(value) && value > 0
+      ? Math.min(value, 4096) : 4096;
+    const askTokenCases = [
+      ['negative', -1, false], ['zero', 0, false], ['nan', NaN, false],
+      ['infinity', Infinity, false], ['negative-infinity', -Infinity, false],
+      ['decimal', 1.5, false], ['string', '8', false], ['null', null, false],
+      ['missing', undefined, true], ['numeric-8', 8, false], ['numeric-9', 9, false],
+      ['huge', 64000, false],
+    ];
+    for (const [label, value, missing] of askTokenCases) {
+      const request = mkReq({ question: 'What is two plus two?' });
+      if (missing) delete request.body.max_tokens;
+      else request.body.max_tokens = value;
+      const out = await drive(request, 'legacy-gen');
+      const provider = out.bodies[0];
+      if (out.bodies.length === 1 && provider && provider.max_tokens === strictBudget(value, missing)
+          && Number.isInteger(provider.max_tokens) && provider.max_tokens > 0
+          && provider.max_tokens <= 4096 && provider.model === STANDARD_SENTINEL
+          && provider.thinking === undefined) {
+        pass('D1 ask token ' + label + ' is a positive bounded STANDARD answer');
+      } else fail('D1 ask token ' + label + ' leaked an invalid budget or envelope');
+    }
+
+    const askValidHistories = [
+      [
+        { role: 'user', content: 'first' },
+        { role: 'assistant', content: 'reply' },
+        { role: 'user', content: 'What is two plus two?' },
+      ],
+      [{
+        role: 'user', ignored: true, content: [
+          { type: 'document', ignored: true, source: {
+            type: 'base64', media_type: 'application/pdf', data: 'YWJj', ignored: true,
+          } },
+          { type: 'text', text: 'What is two plus two?', ignored: true },
+        ],
+      }],
+    ];
+    for (const [index, messages] of askValidHistories.entries()) {
+      const out = await drive(mkReq({ question: 'unused', extra: { messages } }), 'legacy-gen');
+      const upstreamMessages = out.bodies[0] && out.bodies[0].messages;
+      if (out.bodies.length === 1 && Array.isArray(upstreamMessages)
+          && upstreamMessages[upstreamMessages.length - 1].role === 'user'
+          && !JSON.stringify(upstreamMessages).includes('ignored')) {
+        pass('D1 ask accepts valid user-ending history ' + index + ' and strips nested unknowns');
+      } else fail('D1 ask rejected or leaked valid history ' + index);
+    }
+
+    const askInvalidHistories = [
+      [], [{ role: 'system', content: 'probe' }], [{ role: 'tool', content: 'probe' }],
+      [null], [{ role: 'user', content: 7 }], [{ role: 'user', content: {} }],
+      [{ role: 'user', content: [{ type: 'tool_use', name: 'x' }] }],
+      [{ role: 'user', content: 'first' }, { role: 'assistant', content: 'prefill' }],
+      [{ role: 'assistant', content: 'prefill' }],
+    ];
+    for (const [index, messages] of askInvalidHistories.entries()) {
+      const out = await drive(mkReq({ question: 'unused', extra: { messages } }), 'legacy-gen');
+      if (out.bodies.length === 0 && out.res.statusCode === 400) {
+        pass('D1 ask rejects invalid/prefill history ' + index + ' before provider');
+      } else fail('D1 ask relayed invalid/prefill history ' + index);
+    }
 
     const deep = await drive(mkReq({
       question: 'كم يساوي اثنان زائد اثنان؟', extra: { depth: 'deep' }, authorized: true,
     }), 'legacy-gen');
-    if (firstModel(deep.bodies) === OPUS) pass('D2 authorized founder deep sends Opus 5');
+    if (firstModel(deep.bodies) === PREMIUM_SENTINEL) pass('D2 authorized founder deep sends the PREMIUM resolver');
     else fail('D2 authorized founder deep model = ' + firstModel(deep.bodies));
 
     const forged = [
       ['deep', { depth: 'deep' }],
       ['scholar', { depth: 'scholar' }],
       ['premium', { tier: 'premium' }],
+      ['combined-student', {
+        depth: 'scholar', tier: 'premium', premium: true, student: true,
+        model: PREMIUM_SENTINEL, role: 'premium', mode: 'scholar',
+      }],
     ];
     for (const [label, extra] of forged) {
       const out = await drive(mkReq({
         question: 'كم يساوي اثنان زائد اثنان؟', extra,
       }), 'legacy-gen');
-      if (firstModel(out.bodies) === SONNET) pass('D3 forged ' + label + ' stays standard Sonnet');
+      if (firstModel(out.bodies) === STANDARD_SENTINEL) pass('D3 forged ' + label + ' stays on the STANDARD resolver');
       else fail('D3 forged ' + label + ' model = ' + firstModel(out.bodies));
       if (!systemText(out.bodies[0]).includes(ASK.buildDepthInstruction('scholar'))) {
         pass('D3 forged ' + label + ' gets no scholar capability');
@@ -584,7 +802,7 @@ async function checkModelRouting() {
         question: 'ما حكم الوضوء؟', age: 12, band: 'adult',
         extra: { depth: 'scholar' }, authorized: true,
       }), 'legacy-tool');
-      if (firstModel(youngScholar.bodies) === SONNET) pass('D4 under-age scholar request stays standard Sonnet');
+      if (firstModel(youngScholar.bodies) === STANDARD_SENTINEL) pass('D4 under-age scholar request stays on the STANDARD resolver');
       else fail('D4 under-age scholar model = ' + firstModel(youngScholar.bodies));
       if (!systemText(youngScholar.bodies[0]).includes(ASK.buildDepthInstruction('scholar')) && encyclopediaReads === 0) {
         pass('D4 under-age scholar request opens neither scholar prompt nor encyclopedia');
@@ -594,11 +812,25 @@ async function checkModelRouting() {
         question: 'ما حكم الوضوء؟', age: 25, band: 'adult',
         extra: { depth: 'scholar' }, authorized: true,
       }), 'legacy-tool');
-      if (firstModel(adultScholar.bodies) === OPUS) pass('D5 authorized adult scholar sends Opus 5');
+      if (firstModel(adultScholar.bodies) === PREMIUM_SENTINEL) pass('D5 authorized adult scholar sends the PREMIUM resolver');
       else fail('D5 authorized adult scholar model = ' + firstModel(adultScholar.bodies));
       if (systemText(adultScholar.bodies[0]).includes(ASK.buildDepthInstruction('scholar')) && encyclopediaReads > 0) {
         pass('D5 authorized adult scholar keeps the scholar prompt and encyclopedia capability');
       } else fail('D5 adult scholar capability missing (encyclopedia reads=' + encyclopediaReads + ')');
+
+      const ranked = await drive(mkReq({
+        question: 'هل أفتى الشيخ محمد بن صالح العثيمين بأن من أسقطت قبل ثمانين يوما تترك الصلاة؟',
+        age: 25, band: 'adult',
+      }), 'ranker');
+      const rankBodies = ranked.bodies.filter((body) => body.max_tokens === 16);
+      if (rankBodies.length === 1
+          && rankBodies[0].model === STANDARD_SENTINEL
+          && rankBodies[0].stream === false
+          && JSON.stringify(rankBodies[0].thinking) === JSON.stringify({ type: 'disabled' })
+          && Object.keys(rankBodies[0]).sort().join(',')
+            === 'max_tokens,messages,model,stream,system,thinking') {
+        pass('D5 attributed-title ranker uses one minimal 16-token STANDARD envelope with thinking disabled');
+      } else fail('D5 title-ranker envelope = ' + JSON.stringify(rankBodies.map((b) => Object.keys(b).sort())));
     } finally {
       fs.readFileSync = realReadFileSync;
       moduleBuiltin.syncBuiltinESMExports();
@@ -612,9 +844,9 @@ async function checkModelRouting() {
     const ledgerStandard = await driveLedger({ depth: 'scholar', tier: 'premium' }, false);
     const standardPlans = ledgerStandard.bodies.filter(isPlanner);
     const standardStages = ledgerStandard.bodies.filter((b) => !isPlanner(b));
-    if (standardPlans.length && standardPlans.every((b) => b.model === OPUS)) pass('D6 Ledger planner uses Opus 5');
+    if (standardPlans.length && standardPlans.every((b) => b.model === PREMIUM_SENTINEL)) pass('D6 Ledger planner uses the server-owned PREMIUM resolver');
     else fail('D6 Ledger planner models = ' + JSON.stringify(standardPlans.map((b) => b.model)));
-    if (standardStages.length && standardStages.every((b) => b.model === SONNET)) {
+    if (standardStages.length && standardStages.every((b) => b.model === STANDARD_SENTINEL)) {
       pass('D6 forged Ledger premium/depth stays on standard Sonnet stages');
     } else fail('D6 forged Ledger downstream models = ' + JSON.stringify(standardStages.map((b) => b.model)));
 
@@ -622,9 +854,9 @@ async function checkModelRouting() {
       const premium = await driveLedger({ depth }, true);
       const plans = premium.bodies.filter(isPlanner);
       const stages = premium.bodies.filter((b) => !isPlanner(b));
-      if (plans.length && plans.every((b) => b.model === OPUS)) pass('D7 Ledger ' + depth + ' planner uses Opus 5');
+      if (plans.length && plans.every((b) => b.model === PREMIUM_SENTINEL)) pass('D7 Ledger ' + depth + ' planner uses the PREMIUM resolver');
       else fail('D7 Ledger ' + depth + ' planner models = ' + JSON.stringify(plans.map((b) => b.model)));
-      if (stages.length && stages.every((b) => b.model === OPUS)) pass('D7 authorized Ledger ' + depth + ' stages use Opus 5');
+      if (stages.length && stages.every((b) => b.model === PREMIUM_SENTINEL)) pass('D7 authorized Ledger ' + depth + ' stages use the PREMIUM resolver');
       else fail('D7 authorized Ledger ' + depth + ' downstream models = ' + JSON.stringify(stages.map((b) => b.model)));
     }
 
@@ -646,10 +878,18 @@ async function checkModelRouting() {
       system: 's', user: 'u', purpose: 'guard-premium', tier: 'premium', fetchImpl: directFetch,
       budget: new BUDGET.Budget({ now: () => ++tick }),
     });
-    if (direct[0] && direct[0].model === SONNET) pass('D8 Ledger standard resolver sends Sonnet 5');
+    if (direct[0] && direct[0].model === STANDARD_SENTINEL) pass('D8 Ledger standard resolver uses MODEL_STANDARD');
     else fail('D8 Ledger standard resolver model = ' + (direct[0] && direct[0].model));
-    if (direct[1] && direct[1].model === OPUS) pass('D8 Ledger premium resolver sends Opus 5');
+    if (direct[1] && direct[1].model === PREMIUM_SENTINEL) pass('D8 Ledger premium resolver uses MODEL_PREMIUM');
     else fail('D8 Ledger premium resolver model = ' + (direct[1] && direct[1].model));
+    if (direct.length === 2 && direct.every((body) =>
+      Object.keys(body).sort().join(',') === 'max_tokens,messages,model,stream,system'
+      && Number.isInteger(body.max_tokens) && body.max_tokens > 0 && body.max_tokens <= 3000
+      && body.stream === false && body.thinking === undefined
+      && Array.isArray(body.messages) && body.messages.length === 1
+      && body.messages[0].role === 'user')) {
+      pass('D8 Ledger envelopes stay minimal with positive server-owned budgets and no thinking');
+    } else fail('D8 Ledger envelope keys or budgets changed');
     if (HAIKU === 'claude-haiku-4-5-20251001') pass('D9 fast-model control id stayed byte-exact');
   } finally {
     global.fetch = realFetch;

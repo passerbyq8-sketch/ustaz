@@ -31,6 +31,49 @@ function lastUserText(messages) {
   return '';
 }
 
+function providerMaxTokens(value) {
+  return typeof value === 'number' && Number.isFinite(value)
+    && Number.isInteger(value) && value > 0
+    ? Math.min(value, MAX_CHAT_TOKENS)
+    : MAX_CHAT_TOKENS;
+}
+
+function providerMessages(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return null;
+  const clean = [];
+  for (const message of messages) {
+    if (!message || typeof message !== 'object' || Array.isArray(message)
+        || (message.role !== 'user' && message.role !== 'assistant')) return null;
+    let content;
+    if (typeof message.content === 'string' && message.content.trim()) {
+      content = message.content;
+    } else if (Array.isArray(message.content) && message.content.length) {
+      content = [];
+      for (const block of message.content) {
+        if (!block || typeof block !== 'object' || Array.isArray(block)) return null;
+        if (block.type === 'text' && typeof block.text === 'string' && block.text.trim()) {
+          content.push({ type: 'text', text: block.text });
+          continue;
+        }
+        const source = block.source;
+        if ((block.type === 'image' || block.type === 'document')
+            && source && typeof source === 'object' && !Array.isArray(source)
+            && source.type === 'base64' && typeof source.media_type === 'string'
+            && source.media_type && typeof source.data === 'string' && source.data) {
+          content.push({
+            type: block.type,
+            source: { type: 'base64', media_type: source.media_type, data: source.data },
+          });
+          continue;
+        }
+        return null;
+      }
+    } else return null;
+    clean.push({ role: message.role, content });
+  }
+  return clean[clean.length - 1].role === 'user' ? clean : null;
+}
+
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -96,18 +139,21 @@ export default async function handler(req, res) {
   try {
     // req.body is an object on Vercel Node functions, but tolerate a raw string too.
     const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : { ...req.body };
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('bad body');
 
     // (A) Model is decided here, not by the client. The hardcoded fallback is SONNET,
     //     not Opus: if MODEL_STANDARD ever goes missing from the Vercel env, this relay
     //     must degrade to the tier the voice route is SUPPOSED to run (sonnet-5), not
     //     silently UPGRADE to the most expensive model in the account. A fallback that
     //     costs 5x more than the intended path is not a fallback; it is a trap.
-    parsed.model = process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5';
-    console.log('[tier] voice', { model: parsed.model });
+    const model = process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5';
+    console.log('[tier] voice', { model });
 
     // (A2) Output cap decided HERE, not by the client. The app asks for 4096; an
     //      attacker asks for 64000 and multiplies the bill by 16 on one request.
-    parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
+    const maxTokens = providerMaxTokens(parsed.max_tokens);
+    const messages = providerMessages(parsed.messages);
+    if (!messages) throw new Error('bad messages');
     // (A3) EFFORT IS PERMANENTLY OFF. `output_config` (and its `effort` field) is NOT a
     //      parameter this endpoint's upstream accepts: /v1/messages rejects the whole
     //      request with a 400 the moment it appears. The old ENV gate (CALL_EFFORT) meant
@@ -120,13 +166,9 @@ export default async function handler(req, res) {
       console.warn('[chat] stripped unsupported output_config from the outgoing body');
       delete parsed.output_config;
     }
-    // Thinking stays ENV-gated: `thinking` IS an accepted parameter. Unset = API default.
-    if (String(process.env.CALL_THINKING || '').trim() === 'disabled') {
-      parsed.thinking = { type: 'disabled' };
-    }
     console.log('[effort] voice', {
       effort: 'unset(never sent)',
-      thinking: (parsed.thinking && parsed.thinking.type) || 'default(adaptive)'
+      thinking: 'default(adaptive)'
     });
 
     // (B) Ephemeral prompt caching on the system prompt (the bulk of input cost). The client
@@ -140,7 +182,7 @@ export default async function handler(req, res) {
     //     what changed is where the string comes from, not how it is sent.
     const reader = readerFromBody(parsed);
     dropClientSystem(parsed, 'chat');
-    parsed.system = [{
+    const system = [{
       type: 'text',
       text: buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode),
       cache_control: { type: 'ephemeral' },
@@ -158,9 +200,7 @@ export default async function handler(req, res) {
     //     young. reader-fields owns that effective band and the age fed to the prompt, so persona
     //     and policy cannot take different branches.
     voiceBand = reader.band;
-    if (parsed.band !== undefined) delete parsed.band;
-
-    outgoingBody = parsed; // messages / stream as sent. model and max_tokens are OURS.
+    outgoingBody = { model, max_tokens: maxTokens, system, messages, stream: true };
   } catch (e) {
     // We do NOT pass the raw client body through any more. The old "graceful
     // passthrough" was a bypass of the very thing it guarded: on any transform error
