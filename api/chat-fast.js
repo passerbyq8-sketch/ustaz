@@ -1,14 +1,14 @@
 // api/chat-fast.js
 // FAST GENERAL CHANNEL relay — CALL mode only.
 // Byte-faithful sibling of api/chat.js with one routing distinction: its unheard classifier
-// resolves FAST (Haiku), while its user-visible answer resolves STANDARD (Sonnet). Everything else — CORS,
+// and its user-visible answer both resolve STANDARD (Sonnet). Everything else — CORS,
 // ephemeral system-prompt caching, upstream-error passthrough, and the thin SSE relay —
 // is intentionally identical to api/chat.js so the client parser needs ZERO changes.
 //
 // SAFETY NOTE — REWRITTEN, BECAUSE THE OLD ONE WAS THE DEFECT. It used to read: "the guarantee
 // that religious / worship / Quran questions never reach this thin path lives ENTIRELY in the
 // client-side classifier (index.html callAI), NOT here." A guarantee enforced by the thing being
-// classified is not a guarantee — the classifier is a Haiku call over the child's own words, and
+// classified is not a guarantee — the classifier is a model call over the child's own words, and
 // when it says GEN the answer turn came straight here with nothing in the way.
 //
 // So this relay is no longer a PURE RELAY. It now runs the SAME hazard triage, the SAME age
@@ -65,14 +65,14 @@ import { liveSearchNotice } from '../lib/policy/live-search-disclosure.js';
 // The hazard refusal and the age policy are NOT scoped this way — they run on every turn, the
 // classifier included, because a refusal is free and must never cost a question.
 //
-// A caller who sets max_tokens:8 by hand to dodge the day cap buys themselves eight tokens of
-// output. The throttle, the global kill-switch and the input cap are untouched by the trick.
+// Only the shipped client's exact numeric `max_tokens: 8` is the legacy classifier signal.
+// Strings, coercible containers and every other number are answer turns, so they receive every
+// answer-only policy below. The throttle, global kill-switch and input cap remain universal.
 const CLASSIFIER_MAX_TOKENS = 8;
 
-function modelForVoiceTurn(isClassifierTurn) {
-  if (isClassifierTurn) {
-    return process.env.MODEL_FAST || 'claude-haiku-4-5-20251001';
-  }
+// Model tier is server-controlled and identical for both semantic roles. max_tokens preserves
+// the shipped classifier compatibility signal, but it cannot select a model tier.
+function standardVoiceModel() {
   return process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5';
 }
 
@@ -125,20 +125,27 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY غير مضبوط' });
   }
 
-  // Server-authoritative model override. The same endpoint carries two semantic roles:
-  // only its unheard classifier resolves FAST; every user-visible answer resolves STANDARD.
+  // Server-authoritative model override. The same endpoint carries two semantic roles, but both
+  // resolve through the same STANDARD model tier.
   let outgoingBody = req.body;
   let voiceBand;
+  let isClassifierTurn;
   try {
     const parsed = typeof req.body === 'string' ? JSON.parse(req.body) : { ...req.body };
 
-    // Output cap decided HERE, not by the client. The classifier asks for 8 and the GEN
-    // answer for 4096 -- both pass through untouched. An attacker asking for 64000 does not.
+    // ROLE IS DECIDED ONCE, from the original value, before output-budget sanitisation. Do not
+    // coerce it: only the shipped numeric 8 is the legacy classifier compatibility signal.
+    const requestedMaxTokens = parsed.max_tokens;
+    isClassifierTurn = typeof requestedMaxTokens === 'number'
+      && Number.isFinite(requestedMaxTokens)
+      && requestedMaxTokens === CLASSIFIER_MAX_TOKENS;
+
+    // Output cap decided HERE, not by the client. The classifier's numeric 8 and the GEN
+    // answer's 4096 pass through untouched. An attacker asking for 64000 does not.
     parsed.max_tokens = Math.min(Number(parsed.max_tokens) || MAX_CHAT_TOKENS, MAX_CHAT_TOKENS);
-    const classifierTurnForPrompt = Number(parsed.max_tokens) <= CLASSIFIER_MAX_TOKENS;
-    parsed.model = modelForVoiceTurn(classifierTurnForPrompt);
+    parsed.model = standardVoiceModel();
     console.log('[tier] voice-fast', {
-      role: classifierTurnForPrompt ? 'classifier' : 'answer',
+      role: isClassifierTurn ? 'classifier' : 'answer',
       model: parsed.model,
     });
 
@@ -158,15 +165,14 @@ export default async function handler(req, res) {
     //
     // This relay serves two different turns and they need different text: the classifier, whose
     // one word nobody hears, and the thin GEN answer, which a child does hear. They are told
-    // apart by max_tokens -- already clamped on the line above, and already this file's own test
-    // for isClassifierTurn further down. Using the existing discriminator keeps the two decisions
-    // (which prompt, and which policy) reading the same signal; a second field could disagree
-    // with itself.
+    // apart by the single isClassifierTurn decision above. That same boolean is passed through
+    // every prompt and policy decision below; the sanitised output budget is never reinterpreted
+    // as a role. The discriminator does not select a model tier.
     const reader = readerFromBody(parsed);
     dropClientSystem(parsed, 'chat-fast');
     parsed.system = [{
       type: 'text',
-      text: classifierTurnForPrompt ? CLASSIFIER_SYSTEM_PROMPT : buildFastGenPrompt(reader.age),
+      text: isClassifierTurn ? CLASSIFIER_SYSTEM_PROMPT : buildFastGenPrompt(reader.age),
       cache_control: { type: 'ephemeral' },
     }];
     for (const k of ['name', 'age', 'gender', 'mode']) if (parsed[k] !== undefined) delete parsed[k];
@@ -195,7 +201,7 @@ export default async function handler(req, res) {
     // (index.html). So an Arabic apology posted into that channel would be dead text at best,
     // and it is installed here, after max_tokens has told us which turn this is, rather than at
     // the top of the handler where that is not yet known.
-    if (!classifierTurnForPrompt) guardEmptyAnswer(res, 'chat-fast');
+    if (!isClassifierTurn) guardEmptyAnswer(res, 'chat-fast');
   } catch (e) {
     // No raw passthrough. Same reason as api/chat.js: the old fallback handed the client
     // back control of the model and the token cap on any transform error. SIBLING CONTRACT.
@@ -215,7 +221,6 @@ export default async function handler(req, res) {
   //
   // IT RUNS BEFORE THE DAY CAP AS WELL AS BEFORE THE FETCH — the same order as the sibling. A
   // refusal costs nothing, and it must not cost the reader one of their questions for the day.
-  const isClassifierTurn = Number(outgoingBody && outgoingBody.max_tokens) <= CLASSIFIER_MAX_TOKENS;
   const voiceText = lastUserText(outgoingBody && outgoingBody.messages);
   const voiceAudience = resolveAudience({ serverBand: null, clientBand: voiceBand });
   const impermissible = classifyImpermissibleRequest(voiceText);
@@ -292,7 +297,7 @@ export default async function handler(req, res) {
     });
 
     // Forward upstream errors (400 bad-model / 401 quota / 429 / 5xx) verbatim so a wrong
-    // MODEL_FAST string or a credit problem fails LOUDLY in logs, not as a silent hang.
+    // MODEL_STANDARD string or a credit problem fails LOUDLY in logs, not as a silent hang.
     if (!upstream.ok) {
       const errText = await upstream.text().catch(() => '');
       res.status(upstream.status);

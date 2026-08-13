@@ -587,8 +587,30 @@ function answerShapeViolations(reply) {
     }
     // ...and the classifier turn is exempted DELIBERATELY, not by accident: its one word is a
     // routing token the client compares against 'GEN', never a sentence anybody reads.
+    const fastSource = read('api/chat-fast.js');
+    const roleAssignments = [...fastSource.matchAll(
+      /^\s*([A-Za-z_$][\w$]*)\s*=\s*typeof\s+([A-Za-z_$][\w$]*)\s*===\s*['"]number['"]\s*&&\s*Number\.isFinite\(\2\)\s*&&\s*\2\s*===\s*CLASSIFIER_MAX_TOKENS\s*;/gm
+    )];
+    const canonicalRole = roleAssignments.length === 1 ? roleAssignments[0][1] : null;
+    const rawBudget = roleAssignments.length === 1 ? roleAssignments[0][2] : null;
+    const reEscape = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rawBinding = rawBudget && new RegExp(
+      '\\bconst\\s+' + reEscape(rawBudget) + '\\s*=\\s*parsed\\.max_tokens\\s*;'
+    );
+    const guardedCall = canonicalRole && new RegExp(
+      "\\bif\\s*\\(\\s*!\\s*" + reEscape(canonicalRole)
+        + "\\s*\\)\\s*guardEmptyAnswer\\(res,\\s*['\"]chat-fast['\"]\\s*\\)\\s*;"
+    );
+    const chatFastGuardCalls = fastSource.match(
+      /\bguardEmptyAnswer\(res,\s*['"]chat-fast['"]\s*\)\s*;/g
+    ) || [];
     ok('api/chat-fast.js exempts the classifier turn from the apology',
-      /if \(!classifierTurnForPrompt\) guardEmptyAnswer\(res, 'chat-fast'\);/.test(read('api/chat-fast.js')));
+      /\bconst\s+CLASSIFIER_MAX_TOKENS\s*=\s*8\s*;/.test(fastSource)
+      && canonicalRole !== null
+      && rawBinding.test(fastSource)
+      && chatFastGuardCalls.length === 1
+      && guardedCall.test(fastSource),
+      'expected one exact-numeric-8 role assignment and the same captured boolean at the sole chat-fast guard');
   }
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));

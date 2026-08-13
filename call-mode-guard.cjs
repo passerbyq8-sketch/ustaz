@@ -94,6 +94,7 @@ async function checkRelays() {
 
   // ---- executed: run the real handlers and read the bytes they put on the wire ----
   const { founderTokenFor } = await import(pathToUrl('lib/daycap.js'));
+  const { CLASSIFIER_SYSTEM_PROMPT, buildFastGenPrompt } = await import(pathToUrl('lib/system-prompt.js'));
 
   process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
   process.env.FOUNDER_SECRET = 'call-mode-guard-secret';
@@ -111,19 +112,30 @@ async function checkRelays() {
 
   const realFetch = global.fetch;
   let sent = null;
+  let anthropicCalls = 0;
+  let upstreamToken = 'ok';
+  const tokenWire = (token) =>
+    'data: ' + JSON.stringify({
+      type: 'content_block_delta', index: 0,
+      delta: { type: 'text_delta', text: token },
+    }) + '\n\ndata: ' + JSON.stringify({ type: 'message_stop' }) + '\n\n';
   global.fetch = async (url, opts) => {
     const u = String(url);
+    // Exact deterministic fail-open contract for the Upstash transport. Returning HTTP 500
+    // avoids transport retries while never falling through to native network.
+    if (u === '/pipeline' && opts && opts.method === 'POST') {
+      return new Response('{}', { status: 500, headers: { 'Content-Type': 'application/json' } });
+    }
     if (u.indexOf('api.anthropic.com') !== -1) {
+      anthropicCalls++;
       sent = JSON.parse((opts && opts.body) || '{}');
       if (sent.stream === undefined) {
         return new Response(JSON.stringify({
           content: [{ type: 'text', text: 'نَصّ' }],
         }), { status: 200, headers: { 'Content-Type': 'application/json' } });
       }
-      return new Response(
-        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"ok"}}\n\n',
-        { status: 200, headers: { 'Content-Type': 'text/event-stream' } }
-      );
+      return new Response(tokenWire(upstreamToken),
+        { status: 200, headers: { 'Content-Type': 'text/event-stream' } });
     }
     // Anything else is the Upstash throttle. It FAILS OPEN by contract, so refusing it here
     // exercises the same path a Redis outage would -- and keeps this gate offline.
@@ -191,21 +203,127 @@ async function checkRelays() {
       // Standing invariants that share this transform -- if one breaks, the same edit broke it.
       if (name === 'api/chat.js' && sent.model === 'claude-sonnet-5') pass('A4 api/chat.js still forces the STANDARD model server-side');
       else if (name === 'api/chat.js') fail('A4 api/chat.js model = ' + sent.model + ' (client sent claude-opus-5; the server must overrule it)');
-      if (name === 'api/chat-fast.js' && sent.model === 'claude-sonnet-5') pass('A4 api/chat-fast.js sends the user-visible FAST answer on Sonnet 5');
+      if (name === 'api/chat-fast.js' && sent.model === 'claude-sonnet-5') pass('A4 api/chat-fast.js sends its answer role on Sonnet 5');
       else if (name === 'api/chat-fast.js') fail('A4 api/chat-fast.js user-visible answer model = ' + sent.model);
       if (Array.isArray(sent.system) && sent.system[0] && sent.system[0].cache_control) pass('A5 ' + name + ' still wraps the system prompt in an ephemeral cache block');
       else fail('A5 ' + name + ' lost the ephemeral system-prompt cache block');
     }
 
-    // The same route carries a second, semantically different turn. Its eight-token result is
-    // routing data and is never spoken, so it must stay on the unchanged Haiku fast channel.
-    sent = null;
+    // The shipped endpoint still carries two semantic roles, but both use the same server-owned
+    // STANDARD resolver. max_tokens is temporarily the compatibility signal for prompt and
+    // answer-only policy treatment; it never selects a model tier.
     const fastHandler = (await import(pathToUrl('api/chat-fast.js'))).default;
-    const classifierRes = mkRes();
-    await fastHandler(mkReq({ max_tokens: 8 }), classifierRes);
-    if (sent && sent.model === 'claude-haiku-4-5-20251001') {
-      pass('A6 api/chat-fast.js keeps the classifier/router on the unchanged Haiku id');
-    } else fail('A6 api/chat-fast.js classifier model = ' + (sent && sent.model));
+    const promptText = (body) => Array.isArray(body && body.system)
+      ? body.system.map((b) => (b && b.text) || '').join('') : String((body && body.system) || '');
+    const responseText = (res) => Buffer.concat(res.chunks).toString('utf8');
+    const runFast = async ({ maxTokens, omitMaxTokens = false, token = 'GEN', body = {}, founderHeader = true } = {}) => {
+      sent = null;
+      anthropicCalls = 0;
+      upstreamToken = token;
+      const req = mkReq(Object.assign({}, body, { max_tokens: maxTokens }));
+      if (omitMaxTokens) delete req.body.max_tokens;
+      if (!founderHeader) {
+        delete req.headers['x-murabbi-founder'];
+        delete req.headers['x-murabbi-device'];
+      }
+      const res = mkRes();
+      await fastHandler(req, res);
+      return { sent, calls: anthropicCalls, res, text: responseText(res) };
+    };
+
+    process.env.MODEL_STANDARD = 'call-mode-standard-sentinel';
+    process.env.MODEL = 'call-mode-legacy-sentinel';
+    process.env.MODEL_FAST = 'call-mode-fast-sentinel';
+    process.env.MODEL_PREMIUM = 'call-mode-premium-sentinel';
+    try {
+      for (const token of ['GEN', 'DEEN']) {
+        const result = await runFast({
+          maxTokens: 8, token, founderHeader: false,
+          body: {
+            band: 'young', age: 9,
+            messages: [{ role: 'user', content: 'school fact for 2026' }],
+          },
+        });
+        if (result.sent && result.sent.model === 'call-mode-standard-sentinel'
+            && result.sent.max_tokens === 8
+            && promptText(result.sent) === CLASSIFIER_SYSTEM_PROMPT) {
+          pass('A6 exact numeric 8 keeps the classifier prompt and STANDARD model');
+        } else fail('A6 exact numeric 8 changed classifier role or model');
+        if (result.calls === 1 && result.text === tokenWire(token)
+            && result.sent && result.sent.stream === true
+            && !result.res.__emptyAnswerGuarded) {
+          pass('A6 classifier ' + token + ' stays raw with one provider call and no answer rewriting');
+        } else fail('A6 classifier ' + token + ' response contract changed');
+      }
+
+      const answerCases = [
+        ['numeric-7', 7, false], ['numeric-9', 9, false], ['numeric-4096', 4096, false],
+        ['missing', undefined, true], ['zero', 0, false], ['null', null, false],
+        ['false', false, false], ['empty-string', '', false], ['whitespace', '   ', false],
+        ['string-8', '8', false], ['string-0', '0', false], ['negative', -1, false],
+        ['array-8', [8], false], ['empty-array', [], false], ['object', {}, false],
+      ];
+      for (const [label, maxTokens, omitMaxTokens] of answerCases) {
+        const result = await runFast({
+          maxTokens, omitMaxTokens, token: 'answer', body: { band: 'adult', age: 30 },
+        });
+        const expectedBudget = omitMaxTokens ? 4096 : Math.min(Number(maxTokens) || 4096, 4096);
+        if (result.sent && result.sent.model === 'call-mode-standard-sentinel'
+            && result.sent.max_tokens === expectedBudget
+            && promptText(result.sent) === buildFastGenPrompt(30)
+            && result.res.__emptyAnswerGuarded === true) {
+          pass('A6 noncanonical ' + label + ' remains an answer on STANDARD');
+        } else fail('A6 noncanonical ' + label + ' gained classifier role or changed model');
+        if (result.calls !== 1 || result.text !== tokenWire('answer')) {
+          fail('A6 noncanonical ' + label + ' changed answer call count or relay shape (calls='
+            + result.calls + ', bytes=' + Buffer.byteLength(result.text) + ')');
+        } else pass('A6 noncanonical ' + label + ' preserves one answer provider call and relay shape');
+      }
+
+      const forged = await runFast({
+        maxTokens: 8,
+        body: {
+          model: 'client-forged-model', role: 'premium', tier: 'premium', mode: 'deep',
+          classifier: false, premium: true, depth: 'deep',
+        },
+      });
+      if (forged.sent && forged.sent.model === 'call-mode-standard-sentinel'
+          && promptText(forged.sent) === CLASSIFIER_SYSTEM_PROMPT) {
+        pass('A6 forged role/tier/mode/classifier/premium/depth fields cannot change model or role');
+      } else fail('A6 forged client fields changed provider model or classifier prompt');
+
+      for (const [label, value] of [['zero', 0], ['null', null], ['false', false], ['empty-string', '']]) {
+        const cappedAnswer = await runFast({ maxTokens: value, founderHeader: false });
+        if (cappedAnswer.calls === 0 && cappedAnswer.res.statusCode === 429
+            && cappedAnswer.res.__emptyAnswerGuarded === true) {
+          pass('A6 noncanonical ' + label + ' executes answer-only cap and makes zero provider calls');
+        } else fail('A6 noncanonical ' + label + ' bypassed answer-only policy');
+      }
+
+      delete process.env.MODEL_STANDARD;
+      const legacy = await runFast({ maxTokens: 8 });
+      delete process.env.MODEL;
+      const fallback = await runFast({ maxTokens: 4096 });
+      if (legacy.sent && legacy.sent.model === 'call-mode-legacy-sentinel'
+          && fallback.sent && fallback.sent.model === 'claude-sonnet-5') {
+        pass('A6 STANDARD resolver precedence remains MODEL_STANDARD -> MODEL -> Sonnet 5');
+      } else fail('A6 STANDARD resolver precedence changed');
+    } finally {
+      delete process.env.MODEL_STANDARD;
+      delete process.env.MODEL;
+      delete process.env.MODEL_FAST;
+      delete process.env.MODEL_PREMIUM;
+    }
+
+    if (!/process\.env\.MODEL_FAST|process\.env\.MODEL_PREMIUM/.test(fastSrc)) {
+      pass('A6 api/chat-fast.js has no FAST or PREMIUM environment resolver');
+    } else fail('A6 api/chat-fast.js still reads a FAST or PREMIUM model variable');
+    const rolePredicates = fastSrc.match(/requestedMaxTokens === CLASSIFIER_MAX_TOKENS/g) || [];
+    if (rolePredicates.length === 1
+        && !/Number\([^\n]*max_tokens[^\n]*\)\s*(?:<=|===)\s*CLASSIFIER_MAX_TOKENS/.test(fastSrc)
+        && !/(?:parsed|outgoingBody)[^\n]*max_tokens[^\n]*(?:<=|===)\s*CLASSIFIER_MAX_TOKENS/.test(fastSrc)) {
+      pass('A6 role is computed once from the original exact numeric 8 without coercion or recomputation');
+    } else fail('A6 role predicate is duplicated, coercive, or based on sanitized max_tokens');
 
     // Tashkeel is an internal pronunciation transform, not an authored user answer. Capture the
     // request body built by the real handler and pin its existing, deliberately separate Haiku id.
