@@ -186,8 +186,12 @@ const user = (t) => [{ role: 'user', content: t }];
   console.log('\n=== B. THE SEAM, DRIVEN END TO END WITH req/res DOUBLES ===');
 
   process.env.ANTHROPIC_API_KEY = 'stub-for-gate';
-  const savedEnv = { LEDGER_RAG: process.env.LEDGER_RAG, FOUNDER_SECRET: process.env.FOUNDER_SECRET, LEDGER_CACHE_SECRET: process.env.LEDGER_CACHE_SECRET };
+  const savedEnv = { LEDGER_RAG: process.env.LEDGER_RAG, FOUNDER_SECRET: process.env.FOUNDER_SECRET, LEDGER_CACHE_SECRET: process.env.LEDGER_CACHE_SECRET,
+    MODEL_STANDARD: process.env.MODEL_STANDARD, MODEL_PREMIUM: process.env.MODEL_PREMIUM, MODEL: process.env.MODEL };
   process.env.FOUNDER_SECRET = 'seam-secret';
+  process.env.MODEL_STANDARD = 'seam-standard';
+  process.env.MODEL_PREMIUM = 'seam-premium';
+  process.env.MODEL = 'seam-legacy';
   delete process.env.LEDGER_CACHE_SECRET;
   SF.__setResolverForTest(async () => [{ address: '8.8.8.8', family: 4 }]);
 
@@ -208,6 +212,17 @@ const user = (t) => [{ role: 'user', content: t }];
   const seen = { questions: [], modelCalls: 0, engineCalls: 0 };
   let a1SentenceText = null;
   let a1EvidenceText = null;
+  let forceSafeRejectionPlan = false;
+  const SAFE_Q = '\u0645\u0627 \u0631\u0623\u064a \u0627\u0628\u0646 \u0628\u0627\u0632 \u0641\u064a \u0627\u0644\u062c\u0645\u0639 \u0628\u064a\u0646 \u0627\u0644\u0635\u0644\u0627\u062a\u064a\u0646\u061f';
+  const SAFE_QUALIFIER = '\u0647\u0644 \u0627\u0644\u062d\u0643\u0645 \u0648\u0627\u062c\u0628\u061f';
+  const SAFE_PLAN = {
+    issues: [{
+      issue_id: 'iss_1', intent: 'scholar_opinion', requested_authority_id: 'ibn-baz',
+      protected_entities: ['traveller'], core_terms: ['prayer shortening'], context_vars: [],
+      exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+    }],
+    missing_qualifiers: [SAFE_QUALIFIER], confidence: 'high',
+  };
   function modelReply(body) {
     const u = body.messages[0].content;
     seen.modelCalls++;
@@ -220,6 +235,9 @@ const user = (t) => [{ role: 'user', content: t }];
     if (u.includes('"issue_id"')) {
       const q = u.split('\n')[1];
       seen.questions.push(q);
+      if (forceSafeRejectionPlan) {
+        return { content: [{ type: 'text', text: JSON.stringify(SAFE_PLAN) }], usage: { output_tokens: 50 } };
+      }
       const authority = /ابن باز/.test(q) ? 'ibn-baz' : null;
       return { content: [{ type: 'text', text: JSON.stringify({
         issues: [{
@@ -309,7 +327,7 @@ const user = (t) => [{ role: 'user', content: t }];
       bandSites: SP.searchableDomains(),
       buildSourceTag: buildOwnedCard,
       registerFinalizerSources: (pages) => registeredSources.push(...pages),
-      search, fetchImpl,
+      search, fetchImpl, adapterFetchImpl: fetchImpl,
       now: () => (t += 5),
       startedAt: 0,
     }, over));
@@ -477,9 +495,106 @@ const user = (t) => [{ role: 'user', content: t }];
       const card = askMod.buildSourceTag({ url: RESULTS[0].url + '?a1=handler-green', title: '\u0635' }).tag;
       ok('F-010 handler Ledger green preserves evidence-backed text and card byte-for-byte', greenText === unsafe + '\n' + card);
       ok('F-010 handler Ledger green callback fills context before first end', greenContext && greenContext.sources.length === 1 && greenContext.sources[0].passage.includes(unsafe) && greenRes.preFinalizerWrites === 0 && greenRes.preFinalizerEnds === 0 && greenFrames.filter((frame) => frame.type === 'message_stop').length === 1);
+
+      const trusted = await runSeam(SAFE_Q, {
+        plannerOverride: SAFE_PLAN,
+        search: async () => { throw new Error('safe rejection must not search'); },
+      });
+      ok('trusted safe rejection is the exact server-owned outcome and text',
+        trusted.out.outcome === 'SAFE_REJECTION' && trusted.out.text.endsWith('- ' + SAFE_QUALIFIER));
+
+      const runTrustedHandler = async (depth) => {
+        forceSafeRejectionPlan = true;
+        seen.modelCalls = 0;
+        const target = handlerResponse();
+        const req = handlerRequest();
+        req.body = { band: 'adult', age: 30, depth, messages: user(SAFE_Q) };
+        let tier = null;
+        const originalLog = console.log;
+        console.log = (label, value, ...rest) => {
+          if (label === '[tier]' && value && typeof value === 'object') tier = { ...value };
+          originalLog(label, value, ...rest);
+        };
+        try { await askMod.default(req, target); } finally { console.log = originalLog; }
+        const frames = target.frames();
+        return {
+          target, frames, calls: seen.modelCalls, tier,
+          text: frames.filter((frame) => frame.delta).map((frame) => frame.delta.text).join(''),
+          context: target[A1SSE.FINALIZATION_CONTEXT],
+        };
+      };
+      const detailed = await runTrustedHandler('deep');
+      const student = await runTrustedHandler('scholar');
+      for (const [label, run] of [['Detailed', detailed], ['Student', student]]) {
+        eq(label + ' trusted follow-up survives byte-exact', run.text, trusted.out.text);
+        ok(label + ' trusted follow-up is typed as a non-answer only by the server outcome',
+          run.context && run.context.kind === 'safe_rejection');
+        ok(label + ' trusted follow-up closes once with one stop and no fabricated card',
+          run.target.ended === 1 && run.frames.filter((frame) => frame.type === 'message_stop').length === 1
+            && !run.text.includes('<source'));
+        eq(label + ' reaches no final reader-answer call (only the auxiliary planner)', run.calls, 1);
+        ok(label + ' keeps server-authorized Premium routing',
+          run.tier && run.tier.founderUnlocked === true && run.tier.usePremium === true
+            && run.tier.model === 'seam-premium');
+      }
+
+      seen.modelCalls = 0;
+      const deniedRes = handlerResponse();
+      const deniedReq = handlerRequest();
+      delete deniedReq.headers['x-murabbi-founder'];
+      deniedReq.body = {
+        band: 'adult', age: 30, depth: 'scholar', tier: 'premium', premium: true, student: true,
+        outcome: 'SAFE_REJECTION', kind: 'safe_rejection', messages: user(SAFE_Q),
+      };
+      let deniedTier = null;
+      const originalLog = console.log;
+      console.log = (label, value, ...rest) => {
+        if (label === '[tier]' && value && typeof value === 'object') deniedTier = { ...value };
+        originalLog(label, value, ...rest);
+      };
+      try { await askMod.default(deniedReq, deniedRes); } finally { console.log = originalLog; }
+      ok('unauthorized forged scholar fields keep Standard routing',
+        deniedTier && deniedTier.founderUnlocked === false && deniedTier.usePremium === false
+          && deniedTier.model === 'seam-standard');
+
+      for (const malformed of [undefined, null, '', 'safe_rejection', 'PARTIAL', 'FULL',
+        ' SAFE_REJECTION ', {}, [], 1, true]) {
+        eq('unknown/malformed outcome remains an answer', askMod.ledgerFinalizerKind(malformed), 'answer');
+      }
+      eq('only exact SAFE_REJECTION maps to non-answer',
+        askMod.ledgerFinalizerKind('SAFE_REJECTION'), 'safe_rejection');
+
+      const unsourced = A1FINAL.finalizeReaderText({
+        kind: askMod.ledgerFinalizerKind('PARTIAL'),
+        text: '\u0647\u0630\u0627 \u0648\u0627\u062c\u0628.',
+        fallbackText: A1FINAL.FINALIZER_REFUSAL,
+        consistencyContext: { pageTexts: [] },
+      });
+      ok('PARTIAL unsourced ruling remains an answer and is blocked by the finalizer',
+        !unsourced.ok && unsourced.text === A1FINAL.FINALIZER_REFUSAL
+          && unsourced.problems.includes('RULING_WITHOUT_SOURCE'));
+      const documented = '\u0647\u0630\u0627 \u0648\u0627\u062c\u0628.';
+      const full = A1FINAL.finalizeReaderText({
+        kind: askMod.ledgerFinalizerKind('FULL'), text: documented,
+        consistencyContext: { pageTexts: [documented] },
+      });
+      ok('FULL documented answer still traverses and passes the finalizer',
+        full.ok && full.text === documented);
+
+      forceSafeRejectionPlan = false;
+      a1SentenceText = unsafe; a1EvidenceText = null;
+      const forgedRes = handlerResponse();
+      const forgedReq = handlerRequest();
+      Object.assign(forgedReq.body, {
+        outcome: 'SAFE_REJECTION', ledgerOutcome: 'SAFE_REJECTION', kind: 'safe_rejection',
+      });
+      await askMod.default(forgedReq, forgedRes);
+      const forgedContext = forgedRes[A1SSE.FINALIZATION_CONTEXT];
+      ok('forged client outcome cannot obtain the non-answer path',
+        forgedContext && forgedContext.kind === 'answer');
     } finally {
       globalThis.fetch = originalFetch;
-      a1SentenceText = null; a1EvidenceText = null;
+      a1SentenceText = null; a1EvidenceText = null; forceSafeRejectionPlan = false;
       for (const [key, value] of Object.entries(handlerEnv)) {
         if (value === undefined) delete process.env[key]; else process.env[key] = value;
       }

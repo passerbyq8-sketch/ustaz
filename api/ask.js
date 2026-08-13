@@ -209,6 +209,13 @@ export function buildDepthInstruction(depth) {
   return '';
 }
 
+// Ledger's outcome is server-owned: it comes from runEngine() through the awaited seam, never
+// from request data or model prose. Only its exact refusal enum is non-answer text; every other
+// value deliberately stays on the ordinary answer finalizer path.
+export function ledgerFinalizerKind(outcome) {
+  return outcome === 'SAFE_REJECTION' ? 'safe_rejection' : 'answer';
+}
+
 // THE BOUNDED EDUCATIONAL BLOCK FOR A BENIGN CHILD QUESTION (RFC v0.5-R2 §10).
 //
 // IT IS NOT THE SAFETY GUARANTEE, and that separation is the point. This asks for the answer we
@@ -919,6 +926,7 @@ export default async function handler(req, res) {
       }
       return {
         ...finalizerContext,
+        kind: ledgerFinalizerKind(finalizerContext.ledgerOutcome),
         sources: [...fetchedPages, ...ledgerFinalizerSources],
         consistencyContext: finalizerContext.consistencyContext ? {
           ...finalizerContext.consistencyContext,
@@ -1797,6 +1805,11 @@ export default async function handler(req, res) {
         registerFinalizerSources: (pages) => {
           ledgerFinalizerSources.length = 0;
           if (Array.isArray(pages)) ledgerFinalizerSources.push(...pages);
+        },
+        registerFinalizerOutcome: (outcome) => {
+          // Only the awaited Ledger seam can write this server-owned field. Unknown values stay
+          // ordinary answers and fail through the complete finalizer.
+          finalizerContext.ledgerOutcome = outcome === 'SAFE_REJECTION' ? outcome : '';
         },
         search: (q, sites) => braveSearch(q, sites),
         startedAt: ledgerStartedAt,
