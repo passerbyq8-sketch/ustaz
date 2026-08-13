@@ -18,8 +18,10 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const REPO = path.join(__dirname, '..');
+const MODEL_PROBE_EXPECTED = process.env.F028_MODEL_PROBE_EXPECTED || '';
 let failures = 0, checks = 0;
 function ok(name, cond, detail) {
   checks++;
@@ -242,6 +244,15 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
       ok('«نعم» refuses', yes.transfer === false && yes.reason === 'judge-refused');
       const no = await I.considerTransfer(A, page, { judge: async () => 'لا', band: 'adult' });
       ok('«لا» allows', no.transfer === true && no.reason === 'judge-allowed');
+      const parserAllows = ['لا', ' لا ', '\n\tلا\r\n'];
+      const parserRejects = [
+        'نعم', 'لا بالتأكيد', 'الجواب لا', 'لا.', 'لَا', 'ﻻ', 'لـا',
+        'لا\u200f', 'لا\nبالتأكيد', '{"answer":"لا"}', '```لا```', '', '   ',
+        null, undefined, false, 0, ['لا'], { answer: 'لا' },
+      ];
+      ok('strict parser allows only exact «لا» with outer ECMAScript whitespace',
+        parserAllows.every((reply) => M.judgeAllowsTransfer(reply) === true)
+          && parserRejects.every((reply) => M.judgeAllowsTransfer(reply) === false));
       // AMBIGUITY IS A REFUSAL. None of these is an unambiguous «لا».
       for (const reply of ['لا، لأن أحدهما مقيد بالمكان', 'ربما', 'no', '', 'نعم في الجملة']) {
         const r = await I.considerTransfer(A, page, { judge: async () => reply, band: 'adult' });
@@ -681,13 +692,20 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
     // "no answer was generated" are different claims and only the second one is the feature.
     {
       const saved = {};
-      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG', 'DAILY_SEARCH_BUDGET'])
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG', 'DAILY_SEARCH_BUDGET',
+        'MODEL_STANDARD', 'MODEL', 'MODEL_FAST', 'MODEL_PREMIUM'])
         saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
       process.env.ANTHROPIC_API_KEY = 'sk-ant-transfer-guard-fake';
       process.env.BRAVE_API_KEY = 'brave-transfer-guard-fake';
       process.env.RFC_V05_MODE = 'off';
       process.env.LEDGER_RAG = 'off';
       process.env.FOUNDER_SECRET = 'transfer-guard-driven-secret';
+      if (!MODEL_PROBE_EXPECTED) {
+        process.env.MODEL_STANDARD = 'F028_STANDARD_SENTINEL';
+        process.env.MODEL = 'F028_LEGACY_SENTINEL';
+        process.env.MODEL_FAST = 'F028_FAST_SENTINEL';
+        process.env.MODEL_PREMIUM = 'F028_PREMIUM_SENTINEL';
+      }
       const throwingFetch = globalThis.fetch;
       try {
         const DC = await esm('lib/daycap.js');
@@ -695,30 +713,52 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
         const DEVICE = 'transfer-guard-device';
         const FOUNDER = DC.founderTokenFor(DEVICE);
         const PUBLISHED_Q = 'ما حكم العقيقة عن المولود';
-        const PAGE = labelPage(PUBLISHED_Q, HAMDALA + ' ' + BODY.repeat(4));
-
-        let vendor = 0;
-        const install = () => {
+        const DEFAULT_URL = 'https://islamweb.net/ar/fatwa/1001/x';
+        let vendor = 0, judgeCalls = 0, judgeRequest = null;
+        const install = (config = {}) => {
           vendor = 0;
-          globalThis.fetch = async (url, opts) => {
+          judgeCalls = 0;
+          judgeRequest = null;
+          const publishedQuestion = config.publishedQuestion || PUBLISHED_Q;
+          const pageUrl = config.pageUrl || DEFAULT_URL;
+          const pageTitle = config.pageTitle || 'العقيقة';
+          const pageAnswer = config.pageAnswer || (HAMDALA + ' ' + BODY.repeat(4));
+          const page = labelPage(publishedQuestion, pageAnswer);
+          const judgeOutcome = Object.prototype.hasOwnProperty.call(config, 'judgeOutcome')
+            ? config.judgeOutcome
+            : { stop_reason: 'end_turn', content: [{ type: 'text', text: 'لا' }] };
+          globalThis.fetch = async (url, opts = {}) => {
+            if (url === '/pipeline') return new Response('{}', { status: 500 });
             const u = String(url);
             if (u.includes('api.anthropic.com')) {
               vendor++;
               const b = JSON.parse(opts.body);
+              if (b.max_tokens === 8) {
+                judgeCalls++;
+                judgeRequest = b;
+                if (config.judgeThrows) throw new Error('judge fixture unavailable');
+                return {
+                  ok: true, status: 200, json: async () => judgeOutcome,
+                  body: { getReader: () => ({ read: async () => ({ done: true }) }) }, text: async () => '',
+                };
+              }
               return {
                 ok: true, status: 200,
                 json: async () => (vendor === 1
                   ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't1', name: 'search_islamic_sources', input: { query: 'حكم العقيقة' } }] }
-                  : { content: [{ type: 'text', text: (b.max_tokens === 8 ? 'لا' : 'مسوّدة مولَّدة.') }] }),
+                  : { stop_reason: 'end_turn', content: [{ type: 'text', text: 'مسوّدة مولَّدة.' }] }),
                 body: { getReader: () => ({ read: async () => ({ done: true }) }) }, text: async () => '',
               };
             }
             if (u.includes('api.search.brave.com')) {
               return { ok: true, status: 200, text: async () => '', json: async () => ({ web: { results: [
-                { title: 'العقيقة', url: 'https://islamweb.net/ar/fatwa/1001/x', description: '' },
+                { title: pageTitle, url: pageUrl, description: publishedQuestion },
               ] } }) };
             }
-            return { ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => PAGE, url: u };
+            if (u === pageUrl) {
+              return { ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => page, url: u };
+            }
+            throw new Error('unexpected transfer guard fetch: ' + u);
           };
         };
         const mkRes = () => {
@@ -750,12 +790,12 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
           r.on = () => r; r.once = () => r; r.removeListener = () => r; r.emit = () => r;
           return r;
         };
-        const mkReq = (q) => ({
+        const mkReq = (q, bodyOverrides = {}) => ({
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-ezik-ai-consent': CONSENT.AI_CONSENT_VERSION,
             'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER },
           body: { name: 'خالد', age: 30, gender: 'male', mode: 'chat', band: 'adult',
-            messages: [{ role: 'user', content: q }] },
+            messages: [{ role: 'user', content: q }], ...bodyOverrides },
           socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
         });
         // Execute the exact handleEvent body shipped in index.html, not a test-only SSE parser.
@@ -799,6 +839,115 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
         const t2 = readerText(res2);
         ok('a flipped question does NOT get the published text', !/العقيقة سنة مؤكدة/.test(t2));
         ok('...and is generated instead', vendor >= 2, String(vendor));
+        eq('a non-transfer route makes zero transfer-judge calls', judgeCalls, 0);
+
+        // ── F-028: conditional judge routing, envelope and publication ──────────
+        const INJECTION_MARKERS = [
+          'F028_QUESTION_INJECTION', 'F028_PAGE_INJECTION',
+          'F028_TITLE_INJECTION', 'F028_URL_INJECTION',
+        ];
+        const SAFE_JUDGE_MARKER = 'F028_SAFE_JUDGE_LITERAL';
+        const JUDGE_BASE = 'ما حكم العقيقة عن المولود في اليوم السابع من ولادته';
+        const JUDGE_PUBLISHED_Q = JUDGE_BASE + ' ' + INJECTION_MARKERS[0];
+        const JUDGE_READER_Q = JUDGE_BASE + ' في البيت ' + INJECTION_MARKERS[0];
+        const JUDGE_URL = 'https://islamweb.net/ar/fatwa/1001/' + INJECTION_MARKERS[3];
+        const JUDGE_ANSWER = SAFE_JUDGE_MARKER + ' ' + BODY.repeat(4)
+          + ' ' + INJECTION_MARKERS[1];
+        const validEnvelope = { stop_reason: 'end_turn', content: [{ type: 'text', text: 'لا' }] };
+        const judgeCmp = M.compareQuestions(JUDGE_READER_Q, JUDGE_PUBLISHED_Q);
+        ok('F-028 fixture traverses the real conditional judge band', judgeCmp.verdict === M.TRANSFER.JUDGE,
+          JSON.stringify(judgeCmp));
+        const runJudge = async (judgeOutcome, judgeThrows = false) => {
+          install({
+            publishedQuestion: JUDGE_PUBLISHED_Q,
+            pageUrl: JUDGE_URL,
+            pageTitle: INJECTION_MARKERS[2],
+            pageAnswer: JUDGE_ANSWER,
+            judgeOutcome,
+            judgeThrows,
+          });
+          const out = mkRes();
+          await handler(mkReq(JUDGE_READER_Q, {
+            depth: 'scholar', model: 'F028_BODY_MODEL_ATTACK', premium: true, founder: true,
+          }), out);
+          return { text: readerText(out), vendor, judgeCalls, request: judgeRequest };
+        };
+
+        const allowed = await runJudge(validEnvelope);
+        ok('exact «لا» in one end_turn text block publishes the safe literal marker',
+          allowed.text.includes(SAFE_JUDGE_MARKER), allowed.text.slice(0, 240));
+        ok('the conditional transfer spends one judge call and no generated-answer call',
+          allowed.vendor === 2 && allowed.judgeCalls === 1,
+          JSON.stringify({ vendor: allowed.vendor, judgeCalls: allowed.judgeCalls }));
+        const expectedModel = MODEL_PROBE_EXPECTED || 'F028_STANDARD_SENTINEL';
+        const modelPass = allowed.request && allowed.request.model === expectedModel
+          && allowed.request.model !== process.env.MODEL_FAST
+          && allowed.request.model !== process.env.MODEL_PREMIUM
+          && allowed.request.model !== 'F028_BODY_MODEL_ATTACK';
+        ok('the transfer judge uses only the server-controlled standard-model precedence',
+          modelPass, JSON.stringify({ actual: allowed.request && allowed.request.model, expected: expectedModel }));
+        const fixedSystem = allowed.request && allowed.request.system;
+        ok('the transfer judge has a fixed top-level system boundary for the existing symmetric question',
+          typeof fixedSystem === 'string' && fixedSystem.includes(M.JUDGE_QUESTION)
+            && INJECTION_MARKERS.every((marker) => !fixedSystem.includes(marker))
+            && JSON.stringify(allowed.request.messages).includes(INJECTION_MARKERS[0]));
+        ok('the judge request keeps its one-word budget and disables streaming/thinking',
+          allowed.request && allowed.request.max_tokens === 8 && allowed.request.stream === false
+            && !Object.prototype.hasOwnProperty.call(allowed.request, 'thinking'));
+
+        const invalidJudgeCases = [
+          ['yes', { stop_reason: 'end_turn', content: [{ type: 'text', text: 'نعم' }] }, false],
+          ['extra text', { stop_reason: 'end_turn', content: [{ type: 'text', text: 'لا بالتأكيد' }] }, false],
+          ['surrounding words', { stop_reason: 'end_turn', content: [{ type: 'text', text: 'الجواب لا' }] }, false],
+          ['empty', { stop_reason: 'end_turn', content: [{ type: 'text', text: '   ' }] }, false],
+          ['JSON', { stop_reason: 'end_turn', content: [{ type: 'text', text: '{"answer":"لا"}' }] }, false],
+          ['Markdown', { stop_reason: 'end_turn', content: [{ type: 'text', text: '```لا```' }] }, false],
+          ['zero blocks', { stop_reason: 'end_turn', content: [] }, false],
+          ['multiple blocks', { stop_reason: 'end_turn', content: [{ type: 'text', text: 'لا' }, { type: 'text', text: '' }] }, false],
+          ['non-text block', { stop_reason: 'end_turn', content: [{ type: 'tool_use', text: 'لا' }] }, false],
+          ['non-string text', { stop_reason: 'end_turn', content: [{ type: 'text', text: 7 }] }, false],
+          ['malformed response', null, false],
+          ['max_tokens stop', { stop_reason: 'max_tokens', content: [{ type: 'text', text: 'لا' }] }, false],
+          ['missing stop', { content: [{ type: 'text', text: 'لا' }] }, false],
+          ['other stop', { stop_reason: 'tool_use', content: [{ type: 'text', text: 'لا' }] }, false],
+          ['provider exception', null, true],
+        ];
+        let comparisonSystem = null;
+        for (const [name, outcome, throws] of invalidJudgeCases) {
+          const rejected = await runJudge(outcome, throws);
+          ok('F-028 rejects ' + name + ' without publishing the literal marker',
+            !rejected.text.includes(SAFE_JUDGE_MARKER) && rejected.judgeCalls === 1,
+            JSON.stringify({ published: rejected.text.includes(SAFE_JUDGE_MARKER), calls: rejected.judgeCalls }));
+          if (!comparisonSystem && rejected.request) comparisonSystem = rejected.request.system;
+        }
+        ok('the top-level system is byte-identical across response fixtures',
+          typeof fixedSystem === 'string' && comparisonSystem === fixedSystem);
+
+        if (MODEL_PROBE_EXPECTED) {
+          if (modelPass) console.log('F028_MODEL_PROBE=PASS:' + MODEL_PROBE_EXPECTED);
+        } else {
+          const modelCases = [
+            ['MODEL_STANDARD wins', 'F028_CASE_STANDARD', 'F028_CASE_LEGACY', 'F028_CASE_STANDARD'],
+            ['MODEL fallback wins', null, 'F028_CASE_LEGACY', 'F028_CASE_LEGACY'],
+            ['local fallback wins', null, null, 'claude-sonnet-5'],
+          ];
+          for (const [name, standard, legacy, expected] of modelCases) {
+            const childEnv = { ...process.env,
+              F028_MODEL_PROBE_EXPECTED: expected,
+              MODEL_FAST: 'F028_CASE_FAST', MODEL_PREMIUM: 'F028_CASE_PREMIUM' };
+            if (standard === null) delete childEnv.MODEL_STANDARD;
+            else childEnv.MODEL_STANDARD = standard;
+            if (legacy === null) delete childEnv.MODEL;
+            else childEnv.MODEL = legacy;
+            const child = spawnSync(process.execPath, [__filename], {
+              cwd: REPO, env: childEnv, encoding: 'utf8', timeout: 120000, maxBuffer: 4 * 1024 * 1024,
+            });
+            ok('fresh-process precedence: ' + name,
+              child.status === 0 && child.stdout.includes('F028_MODEL_PROBE=PASS:' + expected),
+              JSON.stringify({ status: child.status, signal: child.signal,
+                error: child.error && child.error.code, stderr: String(child.stderr || '').slice(-300) }));
+          }
+        }
 
         // ── A3 / F-203: real endpoint, local pages, shipped client parser ───────
         const f5 = A3_CASES.stage5;
