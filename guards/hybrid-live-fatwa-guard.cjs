@@ -334,6 +334,24 @@ async function runHybridGuard() {
   }] }), localPack, joinContext);
   ok('a scholar attribution without his direct evidence is rejected', forgedAttribution.valid.length === 0);
 
+  const questionOnlyEvidence = {
+    id: 'live:https://islamqa.info/ar/answers/fixture', kind: 'live_page',
+    title: 'هل يجوز الجمع بين الصلاتين للمسافر؟', publisher: 'الإسلام سؤال وجواب',
+    url: 'https://islamqa.info/ar/answers/fixture', authorityId: '', directAttribution: false,
+    contentMode: 'written_page', score: 70,
+    supportText: 'هل يجوز الجمع بين الصلاتين للمسافر؟ يجوز الجمع بين الصلاتين للمسافر عند الحاجة والمشقة في السفر.',
+    passage: 'هل يجوز الجمع بين الصلاتين للمسافر؟ يجوز الجمع بين الصلاتين للمسافر عند الحاجة والمشقة في السفر.',
+  };
+  const questionOnlyClaim = H.validateHybridClaims(JSON.stringify({ claims: [{
+    evidence_id: questionOnlyEvidence.id,
+    support_quote: 'هل يجوز الجمع بين الصلاتين للمسافر؟',
+    claim: 'سؤال مطابق', sentence: 'هل يجوز الجمع بين الصلاتين للمسافر؟',
+  }] }), [questionOnlyEvidence], joinContext);
+  const answerableFallback = H.__hybridTest.fallbackQuote(questionOnlyEvidence, joinContext);
+  ok('MUTANT killed: a matching question heading cannot masquerade as an answer or earn a card',
+    questionOnlyClaim.valid.length === 0 && !H.__hybridTest.isQuestionOnlyQuote(answerableFallback)
+      && answerableFallback.includes('يجوز الجمع'));
+
   const veil = contextFor(S, R, A, 'هل النقاب واجب؟');
   const veilOpposition = H.__hybridTest.liveEvidence({ sources: [{
     title: 'حكم النقاب والأدلة في ستر الوجه',
