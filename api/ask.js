@@ -100,6 +100,12 @@ import { guardEmptyAnswer } from '../lib/empty-answer.js';
 // thing that can differ between environments.
 import { anchorModeEnabled } from '../lib/anchor/flag.js';
 import { parseUnits, verifyUnits, composeUnits, honestTakhrijInDraft, UNIT_INSTRUCTION } from '../lib/anchor/units.js';
+import {
+  NO_STORED_EVIDENCE,
+  classifyReligiousRuntime,
+  resolveStoredContext,
+  runStoredFiqhTurn,
+} from '../lib/stored-deen.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const STANDARD_MODEL = process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5';
@@ -771,6 +777,10 @@ export default async function handler(req, res) {
   // still decided and still reported in telemetry below, because "which readers were on which
   // path" must stay measurable — it simply no longer decides whether a wrong answer goes out.
   const legacyPolicy = await decideLegacyPolicy(req);
+  const currentQuestionText = lastUserText(body.messages);
+  // The legacy paths keep their thread IR, but domain/retrieval owns a separate current-turn IR.
+  // No entity inferred from older turns may enter the stored query, prompt, answer or telemetry.
+  const currentPlan = planAsk([{ role: 'user', content: currentQuestionText }], { policyEnabled: true });
   const plan = planAsk(body.messages, { policyEnabled: true });
   const attribution = plan.attribution;
   const claimSubject = plan.claimSubject;
@@ -779,44 +789,15 @@ export default async function handler(req, res) {
   const rawQueryEntity = rawQueryEntityInQuestion(plan);
   const trustedReaderEntity = trustedReaderEntityInQuestion(plan);
   const unregisteredName = unregisteredNameInQuestion(plan);
-  // A NAME OVERRIDES THE ROUTE, BUT IT DOES NOT REPLACE THE SEARCH. «ما رأي الشيخ ابن عثيمين
-  // فيمن أسقطت دون ٨٠ يوم؟» contains not one DEEN word, so the lexical router calls it GEN —
-  // and GEN runs with no tools and no retrieval, which is how the original inverted fatwa was
-  // produced. Anything naming a scholar or a scholar's site is therefore forced onto the
-  // sourced route, whichever way it ends.
-  // A QUESTION ABOUT A SCHOLAR IS A SOURCED QUESTION TOO. «هل خالف ابن تيمية أهل السنة؟» asks
-  // something the app must answer from a page, not from the model's recollection of a polemic —
-  // so ABOUT_ENTITY joins the named-opinion shapes in forcing the sourced route, even though it
-  // attributes nothing to anybody and takes none of the attribution branches below.
-  // THE TWO NEW RELATIONS ARE NOT BEHIND THE FLAG EITHER, and specifically because the branch that
-  // consumes them is not: with the flag off «هل خالف ابن تيمية أهل السنة؟» took the GEN route and
-  // returned from it long before reaching the buffered ABOUT_ENTITY handler below, which made that
-  // handler unreachable code dressed up as a safeguard. Routing and handling are one repair.
-  // ── A RELIGIOUS QUESTION DOES NOT TRAVEL A PATH WITH NO SOURCE ────────────
-  //
-  // MEASURED: explicit religious questions — «ما معنى الإحسان؟», «اشرح لي معنى التوكل» — were
-  // classified GEN, and the GEN branch runs ONE streamed model call with no tools and strips every
-  // <source> tag on the way out. So the reader got a religious answer from the model's memory, with
-  // no retrieval and no card, on exactly the subjects this app exists to transmit rather than
-  // compose.
-  //
-  // THE SAME PREDICATE lib/world-intent.js ALREADY TRUSTS. There, isReligiousText() is rule 1 and
-  // it OVERRIDES every news trigger: a message that names a religious subject is not a world
-  // question whatever else it says. Here it does the mirror job — a message that names a religious
-  // subject is not a sourceless question whatever the lexical router made of the sentence. One
-  // predicate, both directions, so the two cannot drift into disagreeing about the same message.
-  //
-  // It reads the LAST USER MESSAGE, which is what world-intent.js is handed too. classifyRoute()
-  // above additionally inherits context across turns and is unchanged; this only ever ADDS to what
-  // it decided, and can never turn a DEEN turn into a GEN one.
-  const religiousRelation = plan.claimRelation === 'ABOUT_ENTITY' || plan.claimRelation === 'BY_MADHHAB';
-  const effectiveRoute = (plan.attributionMode !== 'none' || religiousRelation
-    || isReligiousText(lastUserText(body.messages))
-    || containsPropheticOrDivineSubject(lastUserText(body.messages))) ? 'DEEN' : route;
+  // DOMAIN FIRST. A name or opinion frame describes a request; it does not make the subject
+  // religious. Only the current turn's religious/sacred content, or the router's explicit direct
+  // continuation, enters DEEN.
+  const currentRuntime = classifyReligiousRuntime(currentQuestionText, currentPlan, route);
+  const effectiveRoute = currentRuntime === 'GENERAL' ? 'GEN' : 'DEEN';
   console.log('[route]', {
     route: effectiveRoute, lexicalRoute: route, band,
-    purpose: plan.purpose, mode: plan.attributionMode,
-    entity: plan.namedEntity || null, officialDomain: plan.officialDomain || null,
+    purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
+    entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
   });
 
   const headers = {
@@ -854,6 +835,10 @@ export default async function handler(req, res) {
   // pages are registered through the seam before that branch writes or closes; they are not
   // mixed into legacy retrieval decisions or source-selection state.
   const ledgerFinalizerSources = [];
+  // Stored records have their own lifecycle. Keeping them separate prevents local candidates from
+  // affecting legacy retrieval choices while still making accepted, used evidence visible to the
+  // takhrij/finalization boundary.
+  const storedFinalizerSources = [];
   // REJECTED AND COUNTED — lib/retrieve.js refuses every instruction-bearing page before it can
   // become model context or a source card, and reports the marker shapes it rejected. This is
   // where the request adds them up, so the rejection remains observable across fallback passes.
@@ -873,7 +858,7 @@ export default async function handler(req, res) {
   // A template, a refusal or a card carries no takhrij, so for those this returns its input
   // byte-for-byte — which is why it is safe to put on the one path they all share.
   const seal = (text) => {
-    const locked = lockTakhrij(String(text == null ? '' : text), fetchedPages);
+    const locked = lockTakhrij(String(text == null ? '' : text), [...fetchedPages, ...storedFinalizerSources]);
     if (locked.removed.length || locked.droppedSentences.length) {
       console.warn('[takhrij] unsupported takhrij removed:', {
         removed: locked.removed.map((r) => r.kind).join(','),
@@ -927,7 +912,7 @@ export default async function handler(req, res) {
       return {
         ...finalizerContext,
         kind: ledgerFinalizerKind(finalizerContext.ledgerOutcome),
-        sources: [...fetchedPages, ...ledgerFinalizerSources],
+        sources: [...fetchedPages, ...ledgerFinalizerSources, ...storedFinalizerSources],
         consistencyContext: finalizerContext.consistencyContext ? {
           ...finalizerContext.consistencyContext,
           pageTexts: fetchedPages.map((p) => (p && p.passage) || ''),
@@ -1052,13 +1037,15 @@ export default async function handler(req, res) {
     // WHAT IS LEFT IS DETERMINISTIC AND COSTS NOTHING. A name no registry and no roster knows is
     // stripped out of the search query, because the sources hold the ruling and nobody publishes
     // what an unregistered name thinks of it.
-    if (unregisteredName) console.log('[entity] unregistered name — it will not travel in the query');
+    if (unregisteredNameInQuestion(currentPlan)) {
+      console.log('[entity] current-turn unregistered name — it will not travel in the query');
+    }
 
-    const topicClass = classifyTopic(questionText, plan, effectiveRoute);
+    const topicClass = classifyTopic(questionText, currentPlan, effectiveRoute);
     const ageAccess = access({ topicClass, audienceBand });
     console.log('[policy]', {
       topicClass, audienceBand, audienceSource, outcome: ageAccess.outcome,
-      sourcePolicy: ageAccess.sourcePolicy, relation: plan.claimRelation, path: ledgerPath.path,
+      sourcePolicy: ageAccess.sourcePolicy, relation: currentPlan.claimRelation, path: ledgerPath.path,
       policyVersion: POLICY_VERSION, policyEnabled: legacyPolicy.enabled, flag: legacyPolicy.reason,
     });
 
@@ -1112,6 +1099,67 @@ export default async function handler(req, res) {
     if (ageAccess.outcome === 'REFER_ADULT') {
       console.warn('[policy] GENERAL_HEALTH_INTERIM referral', { topicClass, band: audienceBand });
       return emitOnce(warmTemplateFor('GENERAL_HEALTH_INTERIM'));
+    }
+
+    // ── STORED FIQH, AFTER SAFETY/AGE AND BEFORE EVERY GENERIC RETRIEVAL ENGINE ────────────────
+    // Quran text, adhkar, frozen worship and hadith/takhrij keep their existing specialised
+    // runtime. Only ordinary fiqh/theology enters the local encyclopedia. This branch returns
+    // before world identity, Ledger, Brave, page fetches and source adapters.
+    const storedContext = resolveStoredContext(body.messages, {
+      currentPlan,
+      lexicalRoute: effectiveRoute,
+    });
+    if (storedContext.runtime === 'STORED_FIQH') {
+      finalizerContext.fallbackText = NO_STORED_EVIDENCE;
+      finalizerContext.allowWireOwnedCards = false;
+      // The legacy plan may legitimately carry an anaphoric identity for its own paths. It is not
+      // evidence for this one, so the stored path starts a fresh consistency context.
+      finalizerContext.consistencyContext = null;
+      const storedUpstream = bindUpstreamToClient(res, req.signal);
+      let storedOut;
+      try {
+        storedOut = await runStoredFiqhTurn({
+          context: storedContext,
+          depth: band === 'adult' ? effectiveDepth : 'brief',
+          model,
+          maxTokens,
+          usePremium,
+          effort: round2Effort,
+          providerUrl: ANTHROPIC_URL,
+          headers,
+          signal: storedUpstream.signal,
+        });
+      } finally {
+        storedUpstream.cleanup();
+      }
+      if (storedUpstream.signal.aborted || req.signal?.aborted) return;
+
+      const used = new Set(storedOut.validatedUsedRecordIds || []);
+      storedFinalizerSources.length = 0;
+      for (const entry of storedOut.accepted || []) {
+        if (entry && entry.record && used.has(entry.record.id)) storedFinalizerSources.push(entry.record);
+      }
+      const cards = registerOwnedCards(storedOut.cards || []);
+      finalizerContext.readerCards = cards;
+      finalizerContext.readerCardPrefix = cards.length ? '\n\n' : '';
+      console.log('[stored-deen]', {
+        route: storedContext.runtime,
+        domain: storedContext.resolvedDomain,
+        resolvedScholar: storedContext.resolvedScholar ? storedContext.resolvedScholar.display : null,
+        resolvedTopic: storedContext.resolvedTopic,
+        query: storedOut.searchQuery,
+        candidates: storedOut.candidateRecordIds,
+        evidence: storedOut.evidencePackIds,
+        used: storedOut.validatedUsedRecordIds,
+        cards: cards.map((card) => card.recordId),
+        outcome: storedOut.outcome,
+        corpusCalls: storedOut.storedCorpusCalls,
+        model: storedOut.modelCallsForReligiousAnswer,
+        publicSearch: storedOut.publicSourceSearchCalls,
+        publicFetch: storedOut.publicSourceFetchCalls,
+        adapters: storedOut.externalSourceAdapterCalls,
+      });
+      return emitOnce(storedOut.text || NO_STORED_EVIDENCE);
     }
 
     // ── GENERAL_CHILD_BENIGN (RFC v0.5-R2 §10) ─────────────────────────────
@@ -1946,8 +1994,8 @@ export default async function handler(req, res) {
     // With the verdict gone, nothing here decides who anybody is. An UNREGISTERED name simply has
     // no corpus to search: the hunt below cannot reach one for him, and nothing of his is verified
     // — which is what the flag records. The gates stay armed either way.
-    if (unregisteredName) attributionUnverified = true;
-    const attributionActive = !!trustedReaderEntity
+    if (effectiveRoute === 'DEEN' && unregisteredName) attributionUnverified = true;
+    const attributionActive = effectiveRoute === 'DEEN' && !!trustedReaderEntity
       && (plan.attributionMode === 'namedScholarOpinion') && !unregisteredName;
     if (attributionActive) {
       let attributedSources = [];

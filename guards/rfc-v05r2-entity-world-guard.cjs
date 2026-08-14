@@ -53,10 +53,10 @@ const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/')
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 
 const DEVICE = 'abcdefgh12345678';
-const Q_SINGER = 'ما رأي خالد عبدالرحمن في قصر الصلاة؟';
-const Q_SINGER_TITLED = 'ما رأي الشيخ خالد عبدالرحمن في قصر الصلاة؟';
-const Q_BAZ = 'ما رأي ابن باز في قصر الصلاة؟';
-const Q_TAYMIYYAH = 'ما رأي ابن تيمية في قصر الصلاة؟';
+const Q_SINGER = 'ما رأي خالد عبدالرحمن في الجمع بين الصلاتين للمسافر؟';
+const Q_SINGER_TITLED = 'ما رأي الشيخ خالد عبدالرحمن في الجمع بين الصلاتين للمسافر؟';
+const Q_BAZ = 'ما رأي ابن باز في الجمع بين الصلاتين للمسافر؟';
+const Q_TAYMIYYAH = 'ما رأي ابن تيمية في الجمع بين الصلاتين للمسافر؟';
 
 // The ruling, and not one word about the man. This is what a reply may now look like.
 const GOOD_DRAFT = 'ذكر موقع الإسلام سؤال وجواب أنّ المسافر يقصر الرباعية إلى ركعتين، '
@@ -342,6 +342,22 @@ async function main() {
           if (/GEN|DEEN/.test(txt) && txt.length < 400) {
             return jsonRes({ content: [{ type: 'text', text: 'DEEN' }], stop_reason: 'end_turn' });
           }
+          let payload = null;
+          try { payload = JSON.parse(txt); } catch {}
+          const record = payload && Array.isArray(payload.evidence_pack) ? payload.evidence_pack[0] : null;
+          if (record) {
+            const storedText = String(record.stored_text || record.snippet || '');
+            const marker = 'يجوز الجمع للمسافر بين الصلاتين';
+            const at = storedText.indexOf(marker);
+            if (at >= 0) {
+              const start = Math.max(0, storedText.lastIndexOf('.', at) + 1);
+              const stop = storedText.indexOf('.', at);
+              const support = storedText.slice(start, stop > at ? stop + 1 : Math.min(storedText.length, at + 500)).trim();
+              return jsonRes({ content: [{ type: 'text', text: JSON.stringify({ claims: [{
+                record_id: record.record_id, support_quote: support, sentence: draft,
+              }] }) }], stop_reason: 'end_turn' });
+            }
+          }
           state.round += 1;
           if (state.round === 1) {
             return jsonRes({
@@ -396,7 +412,12 @@ async function main() {
         return { ok: false, status: 404, url: u, headers: { get: () => 'text/html' }, text: async () => '' };
       };
       const res = makeRes();
-      await (await esm('api/ask.js')).default(makeReq(question), res);
+      const realLog = console.log;
+      console.log = (...args) => {
+        if (args[0] === '[stored-deen]' && args[1]) state.stored = args[1];
+        realLog.apply(console, args);
+      };
+      try { await (await esm('api/ask.js')).default(makeReq(question), res); } finally { console.log = realLog; }
       return { text: readerText(res), res, state };
     };
 
@@ -433,18 +454,27 @@ async function main() {
         !WORLD_ONLY('identity (' + RET.SITES_GENERAL.map((domain) => 'site:' + domain).join(' OR ')
           + ' OR site:unregistered.example)'));
       const religiousQueries = singer.state.braveQueries.filter((q) => !WORLD_ONLY(q));
-      ok('the search of the RELIGIOUS list carried NO unregistered name',
-        religiousQueries.length > 0 && religiousQueries.every((q) => !/خالد|عبدالرحمن/.test(q)),
+      ok('the stored religious path makes no public-list query at all',
+        religiousQueries.length === 0 && singer.state.braveQueries.length === 0,
         JSON.stringify(religiousQueries));
       ok('...and the only query that may carry the name is the world look-up, bounded to ONE',
         singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).length <= 1
         && singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).every(WORLD_ONLY),
         JSON.stringify(singer.state.braveQueries));
-      ok('...and it still carried the actual fiqh topic',
-        singer.state.braveQueries.some((q) => /قصر|الصلاة/.test(q)),
-        JSON.stringify(singer.state.braveQueries));
-      ok('the reader gets the ruling he actually asked about',
-        /قصر|ركعتين/.test(singer.text), singer.text.slice(0, 200));
+      ok('...and the closed-corpus query carries only the actual fiqh topic',
+        /جمع|صلاتين|مسافر/u.test(String(singer.state.stored?.query || ''))
+          && !/خالد|عبدالرحمن/u.test(String(singer.state.stored?.query || ''))
+          && singer.state.stored?.publicSearch === 0 && singer.state.stored?.publicFetch === 0
+          && singer.state.stored?.adapters === 0,
+        JSON.stringify(singer.state.stored));
+      ok('the reader gets only the general stored ruling, with no false attribution',
+        /لا يوجد في مصادري المخزنة نص منسوب لـخالد عبدالرحمن/u.test(singer.text)
+          && /يجوز الجمع للمسافر بين الصلاتين/u.test(singer.text)
+          && !/قال خالد|قال الشيخ خالد/u.test(singer.text)
+          && singer.state.stored?.evidence?.length === 1
+          && JSON.stringify(singer.state.stored.evidence) === JSON.stringify(singer.state.stored.used)
+          && singer.state.stored?.cards?.length === 1,
+        JSON.stringify({ stored: singer.state.stored, text: singer.text.slice(0, 260) }));
       // RE-PINNED, AND STRONGER. The old gate asserted the reader is TOLD who the man really is.
       // Nothing sourced that, so nothing may say it — in either direction.
       ok('...and not one word is said about the man himself',

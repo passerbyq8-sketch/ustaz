@@ -657,6 +657,7 @@ async function checkModelRouting() {
 
   try {
     const ASK = await import(pathToUrl('api/ask.js'));
+    const STORED = await import(pathToUrl('lib/stored-deen.js'));
     const handler = ASK.default;
     const askSource = read('api/ask.js') || '';
     if (/const STANDARD_MODEL\s*=\s*process\.env\.MODEL_STANDARD\s*\|\|\s*process\.env\.MODEL\s*\|\|\s*'claude-sonnet-5'/.test(askSource)
@@ -804,9 +805,13 @@ async function checkModelRouting() {
       }), 'legacy-tool');
       if (firstModel(youngScholar.bodies) === STANDARD_SENTINEL) pass('D4 under-age scholar request stays on the STANDARD resolver');
       else fail('D4 under-age scholar model = ' + firstModel(youngScholar.bodies));
-      if (!systemText(youngScholar.bodies[0]).includes(ASK.buildDepthInstruction('scholar')) && encyclopediaReads === 0) {
-        pass('D4 under-age scholar request opens neither scholar prompt nor encyclopedia');
-      } else fail('D4 under-age scholar capability opened (encyclopedia reads=' + encyclopediaReads + ')');
+      const storedScholarInstruction = STORED.storedAnswerProfile('scholar').length;
+      if (youngScholar.bodies.length > 0
+          && youngScholar.bodies.every((body) => body.model === STANDARD_SENTINEL)
+          && youngScholar.bodies.every((body) => !systemText(body).includes(storedScholarInstruction))
+          && encyclopediaReads > 0) {
+        pass('D4 under-age scholar request shares stored evidence but opens no scholar capability');
+      } else fail('D4 under-age stored/model policy drifted (encyclopedia reads=' + encyclopediaReads + ')');
 
       const adultScholar = await drive(mkReq({
         question: 'ما حكم الوضوء؟', age: 25, band: 'adult',
@@ -814,12 +819,15 @@ async function checkModelRouting() {
       }), 'legacy-tool');
       if (firstModel(adultScholar.bodies) === PREMIUM_SENTINEL) pass('D5 authorized adult scholar sends the PREMIUM resolver');
       else fail('D5 authorized adult scholar model = ' + firstModel(adultScholar.bodies));
-      if (systemText(adultScholar.bodies[0]).includes(ASK.buildDepthInstruction('scholar')) && encyclopediaReads > 0) {
-        pass('D5 authorized adult scholar keeps the scholar prompt and encyclopedia capability');
+      if (adultScholar.bodies.length > 0
+          && adultScholar.bodies.every((body) => body.model === PREMIUM_SENTINEL)
+          && adultScholar.bodies.some((body) => systemText(body).includes(storedScholarInstruction))
+          && encyclopediaReads > 0) {
+        pass('D5 authorized adult scholar keeps the scholar stored profile and shared evidence policy');
       } else fail('D5 adult scholar capability missing (encyclopedia reads=' + encyclopediaReads + ')');
 
       const ranked = await drive(mkReq({
-        question: 'هل أفتى الشيخ محمد بن صالح العثيمين بأن من أسقطت قبل ثمانين يوما تترك الصلاة؟',
+        question: 'هل أفتى الشيخ محمد بن صالح العثيمين بأن من أسقطت قبل ثمانين يوما تترك الصلاة؟ — شرح حديث',
         age: 25, band: 'adult',
       }), 'ranker');
       const rankBodies = ranked.bodies.filter((body) => body.max_tokens === 16);
@@ -841,7 +849,7 @@ async function checkModelRouting() {
     // channel, including the planner. D7 below keeps the authorized positive controls unchanged.
     const driveLedger = async (extra, authorized) => {
       const request = mkReq({
-        question: 'ما حكم قتل النمل؟', age: 25, band: 'adult', extra, authorized,
+        question: 'ما الفرق بين الخرسانة المسلحة وسابقة الإجهاد؟', age: 25, band: 'adult', extra, authorized,
       });
       return { ...(await drive(request, 'ledger')), request };
     };

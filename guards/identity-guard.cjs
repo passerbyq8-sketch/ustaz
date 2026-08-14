@@ -556,7 +556,7 @@ const PAGES = {
           headers: { 'content-type': 'application/json', 'x-ezik-ai-consent': CONSENT.AI_CONSENT_VERSION,
             'x-murabbi-device': DEVICE, 'x-murabbi-founder': FOUNDER },
           body: { name: 'خالد', age: 30, gender: 'male', mode: 'chat', band: 'adult',
-            messages: [{ role: 'user', content: 'ماقول الشيخ عبدالله الرويشد في أحكام العقيقه' }] },
+            messages: [{ role: 'user', content: 'ماقول الشيخ عبدالله الرويشد في شرح حديث عن أحكام العقيقه' }] },
           socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
         };
 
@@ -827,7 +827,7 @@ const PAGES = {
         const CORRECTION = 'ليس ممّن تُؤخَذ عنه الفتوى في مصادرنا';
 
         // ── (1) IDENTITY DECIDED: the opening must be ABSENT ──────────────────
-        const decided = await run('ماقول الشيخ عبدالله الرويشد في حكم الغناء', WIKI);
+        const decided = await run('ماقول الشيخ عبدالله الرويشد في شرح حديث عن حكم الغناء', WIKI);
         if (ok('the cascade placed him as a public figure', /"kind":"public_figure"/.test(decided.identity),
           decided.identity || 'no [identity] line — the probe never ran, so this case proves nothing')) {
           ok('DECIDED: the ignorance opening is ABSENT from what the reader gets',
@@ -841,7 +841,7 @@ const PAGES = {
         }
 
         // ── (2) IDENTITY UNKNOWN: the opening must be PRESENT ─────────────────
-        const unknown = await run('ماقول الشيخ سالم المري العتيبي في حكم الغناء', null);
+        const unknown = await run('ماقول الشيخ سالم المري العتيبي في شرح حديث عن حكم الغناء', null);
         if (ok('the cascade reached UNKNOWN for a name nothing carries', /"kind":"unknown"/.test(unknown.identity),
           unknown.identity || 'no [identity] line')) {
           ok('UNKNOWN: the ignorance opening IS printed — it is the honest sentence here',

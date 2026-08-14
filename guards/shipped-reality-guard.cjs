@@ -73,6 +73,7 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
   const DAYCAP = await esm('lib/daycap.js');
   const FLAG = await esm('lib/ledger/flag.js');
   const LEGACY = await esm('lib/legacy-policy-flag.js');
+  const STORED = await esm('lib/stored-deen.js');
   const handler = (await esm('api/ask.js')).default;
 
   const ROLLOUT_ENV = ['RFC_V05_MODE', 'RFC_V05_LEGACY_POLICY', 'LEDGER_RAG', 'DAILY_SEARCH_BUDGET',
@@ -182,12 +183,19 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
       body: { system: 'أنت عزك', messages: [{ role: 'user', content: question }], ...(band ? { band } : {}) },
     };
     let crashed = null;
+    let stored = null;
+    const realLog = console.log;
+    console.log = (...args) => {
+      if (args[0] === '[stored-deen]' && args[1]) stored = args[1];
+      realLog.apply(console, args);
+    };
     try { await handler(req, res); } catch (e) { crashed = e; }
+    finally { console.log = realLog; }
     globalThis.fetch = realFetch;
     const decided = await FLAG.decidePath(req);
     return {
       res, crashed, text: readerText(res), statusCode: res.statusCode,
-      systems: modelSystems.slice(), path: decided.path, reason: decided.reason,
+      systems: modelSystems.slice(), path: decided.path, reason: decided.reason, stored,
     };
   }
 
@@ -283,11 +291,16 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
       !ASKS_IDENTITY.test(r.text), r.text.slice(0, 140));
   }
   {
-    // ...while GENUINE ambiguity between REGISTERED men may still ask, because we can name them.
-    const r = await drive('ما رأي خالد المصلح خالد السبت في الطلاق في الغضب؟', 'adult', 'legacy');
-    ok('genuine ambiguity still asks, and names the candidates',
-      /أكثر من عالِمٍ عندنا/.test(r.text) && /خالد المصلح/.test(r.text) && /خالد السبت/.test(r.text),
-      r.text.slice(0, 200));
+    // Current-turn ambiguity must neither choose the first name nor revive the retired
+    // deterministic interrogation. Use a topic that has stored evidence so this cannot pass only
+    // because retrieval happened to miss.
+    const r = await drive('ما رأي خالد المصلح خالد السبت في الجمع بين الصلاتين للمسافر؟', 'adult', 'legacy');
+    ok('genuine ambiguity fails closed before corpus/model without selecting a candidate',
+      r.text === STORED.NO_STORED_EVIDENCE && r.systems.length === 0
+        && r.stored?.corpusCalls === 0 && r.stored?.model === 0
+        && r.stored?.resolvedScholar === null && r.stored?.query === ''
+        && !/خالد المصلح|خالد السبت|أكثر من عالِم/u.test(r.text),
+      JSON.stringify({ stored: r.stored, systems: r.systems.length, text: r.text }));
     ok('...and does not demand a website', !/رابطَ موقعِه/.test(r.text));
   }
 

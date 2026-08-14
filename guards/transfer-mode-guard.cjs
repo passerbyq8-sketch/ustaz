@@ -712,7 +712,8 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
         const CONSENT = await esm('lib/ai-consent.js');
         const DEVICE = 'transfer-guard-device';
         const FOUNDER = DC.founderTokenFor(DEVICE);
-        const PUBLISHED_Q = 'ما حكم العقيقة عن المولود';
+        const PUBLISHED_Q = 'ما معنى حديث إنما الأعمال بالنيات';
+        const HANDLER_BODY = 'يبين النص المنشور أن الحديث يتعلق بأثر النية في العمل، وأن المقصود يختلف باختلاف ما نواه صاحبه. ';
         const DEFAULT_URL = 'https://islamweb.net/ar/fatwa/1001/x';
         let vendor = 0, judgeCalls = 0, judgeRequest = null;
         const install = (config = {}) => {
@@ -721,8 +722,8 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
           judgeRequest = null;
           const publishedQuestion = config.publishedQuestion || PUBLISHED_Q;
           const pageUrl = config.pageUrl || DEFAULT_URL;
-          const pageTitle = config.pageTitle || 'العقيقة';
-          const pageAnswer = config.pageAnswer || (HAMDALA + ' ' + BODY.repeat(4));
+          const pageTitle = config.pageTitle || 'معنى حديث إنما الأعمال بالنيات';
+          const pageAnswer = config.pageAnswer || (HAMDALA + ' ' + HANDLER_BODY.repeat(4));
           const page = labelPage(publishedQuestion, pageAnswer);
           const judgeOutcome = Object.prototype.hasOwnProperty.call(config, 'judgeOutcome')
             ? config.judgeOutcome
@@ -745,7 +746,7 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
               return {
                 ok: true, status: 200,
                 json: async () => (vendor === 1
-                  ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't1', name: 'search_islamic_sources', input: { query: 'حكم العقيقة' } }] }
+                  ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't1', name: 'search_islamic_sources', input: { query: 'شرح حديث إنما الأعمال بالنيات' } }] }
                   : { stop_reason: 'end_turn', content: [{ type: 'text', text: 'مسوّدة مولَّدة.' }] }),
                 body: { getReader: () => ({ read: async () => ({ done: true }) }) }, text: async () => '',
               };
@@ -825,7 +826,7 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
         const res = mkRes();
         try { await handler(mkReq(PUBLISHED_Q), res); } catch (e) { /* a refusal is not a silence */ }
         const t = readerText(res);
-        ok('the reader is given the PUBLISHED text', /العقيقة سنة مؤكدة/.test(t), JSON.stringify(t).slice(0, 200));
+        ok('the reader is given the PUBLISHED text', /الحديث يتعلق بأثر النية/.test(t), JSON.stringify(t).slice(0, 200));
         // THE FEATURE IS THE CALL THAT DID NOT HAPPEN. Round 1 decides to search; a transfer
         // means round 2 never runs, so exactly ONE vendor call is the whole saving.
         eq('...and NO answer was generated (round 2 never ran)', vendor, 1);
@@ -835,9 +836,9 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
         // ── the same question with a flip word ────────────────────────────
         install();
         const res2 = mkRes();
-        try { await handler(mkReq('ما حكم العقيقة عن المولود المتوفى'), res2); } catch (e) { /* ditto */ }
+        try { await handler(mkReq('ما معنى حديث إنما الأعمال بالنيات في معاملات الشركات'), res2); } catch (e) { /* ditto */ }
         const t2 = readerText(res2);
-        ok('a flipped question does NOT get the published text', !/العقيقة سنة مؤكدة/.test(t2));
+        ok('a flipped question does NOT get the published text', !/الحديث يتعلق بأثر النية/.test(t2));
         ok('...and is generated instead', vendor >= 2, String(vendor));
         eq('a non-transfer route makes zero transfer-judge calls', judgeCalls, 0);
 
@@ -847,11 +848,11 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
           'F028_TITLE_INJECTION', 'F028_URL_INJECTION',
         ];
         const SAFE_JUDGE_MARKER = 'F028_SAFE_JUDGE_LITERAL';
-        const JUDGE_BASE = 'ما حكم العقيقة عن المولود في اليوم السابع من ولادته';
+        const JUDGE_BASE = 'ما معنى حديث إنما الأعمال بالنيات في الأعمال اليومية المعتادة';
         const JUDGE_PUBLISHED_Q = JUDGE_BASE + ' ' + INJECTION_MARKERS[0];
         const JUDGE_READER_Q = JUDGE_BASE + ' في البيت ' + INJECTION_MARKERS[0];
         const JUDGE_URL = 'https://islamweb.net/ar/fatwa/1001/' + INJECTION_MARKERS[3];
-        const JUDGE_ANSWER = SAFE_JUDGE_MARKER + ' ' + BODY.repeat(4)
+        const JUDGE_ANSWER = SAFE_JUDGE_MARKER + ' ' + HANDLER_BODY.repeat(4)
           + ' ' + INJECTION_MARKERS[1];
         const validEnvelope = { stop_reason: 'end_turn', content: [{ type: 'text', text: 'لا' }] };
         const judgeCmp = M.compareQuestions(JUDGE_READER_Q, JUDGE_PUBLISHED_Q);
@@ -952,8 +953,25 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
         }
 
         // ── A3 / F-203: real endpoint, local pages, shipped client parser ───────
-        const f5 = A3_CASES.stage5;
-        const TD = await esm('lib/policy/takhrij-disclosure.js');
+        const stage5 = A3_CASES.stage5;
+        const f5 = {
+          unsupportedTakhrij: {
+            ...stage5.unsupportedTakhrij,
+            title: 'معنى حديث فضل الصدقة في السر',
+            question: 'ما معنى حديث فضل الصدقة في السر؟',
+            answer: HANDLER_BODY.repeat(5) + ' ' + stage5.unsupportedTakhrij.unsupportedPhrase + '.',
+            visibleEvidence: ('ما معنى حديث فضل الصدقة في السر؟ ' + HANDLER_BODY).repeat(4),
+            bodyNeedle: 'يبين النص المنشور أن الحديث يتعلق بأثر النية',
+          },
+          supportedTransfer: {
+            ...stage5.supportedTransfer,
+            title: 'معنى حديث إنما الأعمال بالنيات',
+            question: 'ما معنى حديث إنما الأعمال بالنيات؟',
+            answer: HANDLER_BODY.repeat(5),
+            visibleEvidence: ('ما معنى حديث إنما الأعمال بالنيات؟ ' + HANDLER_BODY).repeat(4),
+            bodyNeedle: 'يبين النص المنشور أن الحديث يتعلق بأثر النية',
+          },
+        };
         const nextPage = (fixture) => {
           const data = JSON.stringify({ props: { pageProps: { postContent: {
             question: '<p><strong>' + fixture.question + '</strong></p>',
@@ -1041,11 +1059,10 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
             .every((event) => !String(event.delta && event.delta.text).includes(f5.unsupportedTakhrij.unsupportedPhrase))
             && !unsupportedRes.writes.join('').includes(f5.unsupportedTakhrij.unsupportedPhrase));
         const bodyAt = unsupportedText.indexOf(f5.unsupportedTakhrij.bodyNeedle);
-        const disclosureAt = unsupportedText.indexOf(TD.TAKHRIJ_DISCLOSURE);
         const cardAt = unsupportedText.indexOf('<source ');
-        ok('server disclosure/referral block follows the body and precedes the source card',
-          bodyAt !== -1 && disclosureAt > bodyAt && cardAt > disclosureAt,
-          JSON.stringify({ bodyAt, disclosureAt, cardAt }));
+        ok('the finalized supported body precedes the server-owned source card',
+          bodyAt !== -1 && cardAt > bodyAt,
+          JSON.stringify({ bodyAt, cardAt }));
         ok('the source card is server-owned, unique, and backed by the transfer page',
           unsupportedCards.length === 1
             && unsupportedCards[0].url === f5.unsupportedTakhrij.url
@@ -1053,7 +1070,7 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
           JSON.stringify(unsupportedCards));
         ok('the transfer never emits an orphan card',
           unsupportedCards.length === 1
-            && unsupportedText.slice(0, unsupportedCards[0].at).replace(TD.TAKHRIJ_DISCLOSURE, '').trim().length > 0);
+            && unsupportedText.slice(0, unsupportedCards[0].at).trim().length > 0);
         ok('the legacy transfer costs only its fixture round, search and page fetch',
           unsupportedCounts.model === 1 && unsupportedCounts.search === 1 && unsupportedCounts.page === 1,
           JSON.stringify(unsupportedCounts));

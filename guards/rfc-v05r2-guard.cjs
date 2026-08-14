@@ -832,7 +832,8 @@ function runtimeMentions(name) {
         && ['young', 'adult'].every((band) => AGE.access({ topicClass: math.topic, audienceBand: band }).outcome === 'ALLOW'),
       JSON.stringify(math));
     ok('F-069 the runtime passes the already-decided route into the classifier',
-      /classifyTopic\(questionText, plan, effectiveRoute\)/.test(read('api/ask.js')));
+      /const currentRuntime = classifyReligiousRuntime\(currentQuestionText, currentPlan, route\);/.test(read('api/ask.js'))
+        && /classifyTopic\(questionText, currentPlan, effectiveRoute\)/.test(read('api/ask.js')));
     ok('F-069 Ledger passes its structured issue intents into the same classifier',
       /classifyTopic\(question, \{[\s\S]{0,160}intents: plan\.issues\.map/.test(read('lib/ledger/engine.js')));
 

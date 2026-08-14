@@ -297,6 +297,26 @@ async function main() {
     headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
     json: async () => o, text: async () => JSON.stringify(o),
   });
+  const streamResponse = (text) => {
+    const frames = [
+      `event: content_block_delta\ndata: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: String(text || '') } })}\n\n`,
+      'event: message_stop\ndata: {"type":"message_stop"}\n\n',
+    ];
+    let index = 0;
+    return {
+      ok: true, status: 200,
+      headers: { get: () => 'text/event-stream' },
+      body: { getReader: () => ({
+        async read() {
+          return index < frames.length
+            ? { done: false, value: new TextEncoder().encode(frames[index++]) }
+            : { done: true, value: undefined };
+        },
+        releaseLock() {}, async cancel() { index = frames.length; },
+      }) },
+      text: async () => '',
+    };
+  };
   const htmlResponse = (body) => ({
     ok: true, status: 200, url: '',
     headers: {
@@ -318,7 +338,10 @@ async function main() {
     globalThis.fetch = async (url, init) => {
       const u = String(url);
       if (u.includes('api.anthropic.com')) {
-        return jsonResponse(modelReply(JSON.parse(init.body), script));
+        const body = JSON.parse(init.body);
+        const reply = modelReply(body, script);
+        if (body.stream) return streamResponse(reply?.content?.[0]?.text || '{}');
+        return jsonResponse(reply);
       }
       if (u.includes('api.search.brave.com')) {
         braveCalls++;
@@ -352,6 +375,7 @@ async function main() {
   // to a global for a test's benefit.
   const SEAM = await esm('lib/ledger/seam.js');
   const ASK = await esm('api/ask.js');
+  const STORED = await esm('lib/stored-deen.js');
   const driveSeam = async (question, script, opts = {}) => {
     installRedis('on');
     installFetch(script);
@@ -382,8 +406,15 @@ async function main() {
     installFetch(script);
     resetCounters();
     const res = makeRes();
-    await handler(makeReq(question, band), res);
-    return { res, text: readerText(res), modelCalls: modelCalls.slice(), braveCalls, pageFetches: pageFetches.slice() };
+    let stored = null;
+    const realLog = console.log;
+    console.log = (...args) => {
+      if (args[0] === '[stored-deen]' && args[1]) stored = args[1];
+      realLog.apply(console, args);
+    };
+    try { await handler(makeReq(question, band), res); } finally { console.log = realLog; }
+    return { res, text: readerText(res), modelCalls: modelCalls.slice(), braveCalls,
+      pageFetches: pageFetches.slice(), stored };
   };
 
   // =========================================================================
@@ -407,10 +438,15 @@ async function main() {
     const out = await driveSeam('هل خالف ابن تيمية أهل السنة والجماعة؟', script);
     const outH = await driveLedger('هل خالف ابن تيمية أهل السنة والجماعة؟', 'adult', script);
 
-    ok('the ledger path actually ran through the handler', outH.braveCalls >= 1,
-      'model calls seen: ' + JSON.stringify(outH.modelCalls));
-    ok('...and there was NO pre-search rejection on the name',
-      outH.braveCalls >= 1, 'a refusal before search would have spent zero provider calls');
+    ok('the handler rejects the unrelated named stance through stored relevance, not public retrieval',
+      outH.stored && outH.stored.corpusCalls === 1 && outH.stored.model === 0
+        && outH.braveCalls === 0
+        && outH.pageFetches.filter((url) => /^https?:/u.test(String(url))).length === 0
+        && outH.text === STORED.NO_STORED_EVIDENCE,
+      JSON.stringify({ stored: outH.stored, brave: outH.braveCalls, text: outH.text }));
+    ok('...and emits neither an attribution nor a source card for the rejected record',
+      !/قال ابن تيمية|<source\b/u.test(outH.text) && outH.res.ended === 1,
+      outH.text.slice(0, 220));
 
     const ir = out.out ? out.out.policy : null;
     ok('the ledger exposes the IR it actually used', !!ir, 'nothing was published for inspection');
@@ -669,7 +705,7 @@ async function main() {
       console.log = (...args) => { events.push(args); };
       try {
         const res = makeRes();
-        await handler(makeReq('ما حكم المسألة؟', undefined, {
+        await handler(makeReq('ما الفرق بين الخرسانة المسلحة وسابقة الإجهاد؟', undefined, {
           body: { name: 'خالد', gender: 'male', mode: 'chat', ...body },
         }), res);
       } finally {

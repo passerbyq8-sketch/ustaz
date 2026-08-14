@@ -631,8 +631,9 @@ const HUMAN_DIVINE_NAME_CASES = [
   console.log('\n=== E. A RELIGIOUS QUESTION NEVER TRAVELS A SOURCELESS PATH (§4) ===');
   {
     const ask = read('api/ask.js');
-    ok('isReligiousText() is wired into effectiveRoute, as world-intent.js uses it',
-      /const effectiveRoute = \([\s\S]{0,400}?isReligiousText\(lastUserText\(body\.messages\)\)[\s\S]{0,160}?containsPropheticOrDivineSubject\(lastUserText\(body\.messages\)\)\)/.test(ask));
+    ok('the current-turn domain classifier is wired into effectiveRoute before world intent',
+      /const currentRuntime = classifyReligiousRuntime\(currentQuestionText, currentPlan, route\);/.test(ask)
+        && /const effectiveRoute = currentRuntime === 'GENERAL' \? 'GEN' : 'DEEN';/.test(ask));
     ok('...and routing plus source filtering share the shipped router module',
       /import \{[^}]*classifyRoute[^}]*createSourceFilter[^}]*isReligiousText[^}]*normalizeArabic[^}]*\} from '\.\.\/lib\/route-classify\.js';/.test(ask));
     // The twelve, and the ratio.
@@ -1010,7 +1011,12 @@ const HUMAN_DIVINE_NAME_CASES = [
         return { ok: false, status: 404, url: u, headers: { get: () => 'text/html' }, text: async () => '' };
       };
       const res = makeRes();
-      try { await (await esm('api/ask.js')).default(makeReq(question), res); } finally {
+      // Generic fiqh now belongs to the stored-corpus branch and deliberately bypasses the old
+      // public identity/retrieval path. These handler fixtures own the still-live specialised
+      // hadith/name-presence path, while identity-shaped world questions remain byte-exact.
+      const runtimeQuestion = classifiedRoute === 'GEN' || NP.identitySubject(question)
+        ? question : question + ' — شرح حديث';
+      try { await (await esm('api/ask.js')).default(makeReq(runtimeQuestion), res); } finally {
         activeState = null;
         console.log = originalLog;
         console.warn = originalWarn;

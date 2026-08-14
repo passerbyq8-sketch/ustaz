@@ -70,7 +70,7 @@ const DEVICE = 'abcdefgh12345678';
 // ── the exact questions from the report ──────────────────────────────────────
 const Q_QADA = 'ما رأي ابن تيمية فيمن ترك الصلاة تكاسلًا هل عليه قضاء؟';
 const Q_AHLSUNNA = 'هل خالف شيخ الإسلام ابن تيمية أهل السنة والجماعة؟';
-const Q_MUTLAQ = 'ما رأي الشيخ مطلق الجاسر في هذه المسألة؟';
+const Q_MUTLAQ = 'ما رأي الشيخ مطلق الجاسر في الجمع بين الصلاتين للمسافر؟';
 const Q_DUA = 'ما حكم قول يا معطي لا تبطي؟';
 
 // The reply that was actually served, reproduced verbatim in shape: assertion + quotation +
@@ -95,6 +95,7 @@ async function main() {
   const DC = await esm('lib/daycap.js');
   const STORE = await esm('lib/ledger/redis.js');
   const SA = await esm('lib/policy/source-attribution.js');
+  const STORED = await esm('lib/stored-deen.js');
   const deliveredTransmissionPages = [{
     url: 'https://islamqa.info/ar/answers/064',
     text: 'ذكر المصدر أن شيخ الإسلام ابن تيمية يرى عدم مشروعية القضاء.',
@@ -398,8 +399,8 @@ async function main() {
     STORE.__setRedisForTest(null);
 
     const makeRes = () => ({
-      writes: [], ended: 0,
-      status() { return this; }, setHeader() { return this; }, flushHeaders() {},
+      writes: [], ended: 0, headersSent: false,
+      status() { return this; }, setHeader() { return this; }, flushHeaders() { this.headersSent = true; },
       write(s) { this.writes.push(String(s)); return true; }, end() { this.ended += 1; return this; },
       json(o) { this.jsonBody = o; this.ended += 1; return this; },
     });
@@ -426,7 +427,7 @@ async function main() {
     // shape for a fiqh question: the tool runs, retrieval comes back empty, and the model then
     // drafts anyway. Without it round 1 answers straight from the model and a whole class of
     // gating never runs — which is itself the exit the defect escaped through.
-    const install = (draft, searchFirst = false) => {
+    const install = (draft, searchFirst = false, groundedStored = false) => {
       let round = 0;
       globalThis.fetch = async (url, init) => {
         const u = String(url);
@@ -434,6 +435,24 @@ async function main() {
           const body = JSON.parse(init.body);
           const last = body.messages[body.messages.length - 1];
           const txt = typeof last.content === 'string' ? last.content : '';
+          if (groundedStored) {
+            let payload = null;
+            try { payload = JSON.parse(txt); } catch {}
+            const record = payload && Array.isArray(payload.evidence_pack) ? payload.evidence_pack[0] : null;
+            if (record) {
+              const storedText = String(record.stored_text || record.snippet || '');
+              const marker = 'يجوز الجمع للمسافر بين الصلاتين';
+              const at = storedText.indexOf(marker);
+              if (at >= 0) {
+                const start = Math.max(0, storedText.lastIndexOf('.', at) + 1);
+                const stop = storedText.indexOf('.', at);
+                const support = storedText.slice(start, stop > at ? stop + 1 : Math.min(storedText.length, at + 500)).trim();
+                const claims = [{ record_id: record.record_id, support_quote: support, sentence: draft }];
+                return { ok: true, status: 200, headers: { get: () => 'application/json' },
+                  json: async () => ({ content: [{ type: 'text', text: JSON.stringify({ claims }) }], stop_reason: 'end_turn' }) };
+              }
+            }
+          }
           // The route classifier's own probe answers with a bare label.
           if (/GEN|DEEN/.test(txt) && txt.length < 400) {
             return { ok: true, status: 200, headers: { get: () => 'application/json' },
@@ -457,11 +476,17 @@ async function main() {
     };
 
     const handler = (await esm('api/ask.js')).default;
-    const drive = async (q, draft, prior = [], searchFirst = false) => {
-      install(draft, searchFirst);
+    const drive = async (q, draft, prior = [], searchFirst = false, groundedStored = false) => {
+      install(draft, searchFirst, groundedStored);
       const res = makeRes();
-      await handler(makeReq(q, prior), res);
-      return { text: readerText(res), res };
+      let stored = null;
+      const realLog = console.log;
+      console.log = (...args) => {
+        if (args[0] === '[stored-deen]' && args[1]) stored = args[1];
+        realLog.apply(console, args);
+      };
+      try { await handler(makeReq(q, prior), res); } finally { console.log = realLog; }
+      return { text: readerText(res), res, stored };
     };
 
     try {
@@ -473,8 +498,7 @@ async function main() {
         !/يرى ابن تيمية/.test(bad.text), bad.text.slice(0, 220));
       ok('...and the contradiction is impossible: no «لم أقف» beside a credit',
         !(/لم أقف/.test(bad.text) && /ابن تيمية (?:يرى|قال)/.test(bad.text)), bad.text.slice(0, 220));
-      ok('...the reader gets the constrained reply instead',
-        /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(bad.text), bad.text.slice(0, 220));
+      eq('...the reader gets the exact closed-corpus abstention instead', bad.text, STORED.NO_STORED_EVIDENCE);
       eq('...and the stream closes exactly once', bad.res.ended, 1);
 
       // ── THE GREEN FIXTURE, RE-PINNED ON THE STRONGER CONDITION ─────────────
@@ -491,8 +515,8 @@ async function main() {
       // `consistencyProblems` directly, and once below with a licence in hand — which is the state
       // production is in whenever this branch actually has pages to draft over.
       const good = await drive(Q_QADA, GOOD_DRAFT);
-      ok('GREEN: with NO page retrieved, even a well-formed transmission is refused',
-        /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(good.text), good.text.slice(0, 220));
+      eq('GREEN: with NO accepted stored evidence, even a well-formed transmission is refused',
+        good.text, STORED.NO_STORED_EVIDENCE);
       ok('...and it is not replaced by a quotation of him', !/«[^»]{12,}»/.test(good.text), good.text.slice(0, 220));
       ok('...and the same draft passes the gate once a page licenses him',
         CG.consistencyProblems(GOOD_DRAFT, {
@@ -507,9 +531,11 @@ async function main() {
         { role: 'assistant', content: 'جواب سابق.' },
       ];
       const badAfter = await drive(Q_QADA, BAD_DRAFT, prior);
-      ok('RED holds inside a running thread too',
-        !/مجموع الفتاوى/.test(badAfter.text) && /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(badAfter.text),
-        badAfter.text.slice(0, 200));
+      ok('RED holds inside a running thread with the current scholar isolated',
+        badAfter.text === STORED.NO_STORED_EVIDENCE
+          && badAfter.stored?.resolvedScholar === 'ابن تيمية'
+          && !JSON.stringify({ stored: badAfter.stored, text: badAfter.text }).includes('ابن باز'),
+        JSON.stringify({ stored: badAfter.stored, text: badAfter.text }));
 
       // ── THE PATH INDICATOR, AGAINST THE ENGINE THAT ACTUALLY RAN ───────────
       ok('the indicator says legacy when the ledger did not run',
@@ -529,9 +555,15 @@ async function main() {
       eq('...and the stream still closes exactly once', dua.res.ended, 1);
 
       // ── مطلق الجاسر — a clear name, searched first, never credited unsourced ─
-      const mutlaq = await drive(Q_MUTLAQ, 'قال الشيخ مطلق الجاسر إنّ ذلك جائز.');
+      const mutlaq = await drive(Q_MUTLAQ, 'قال الشيخ مطلق الجاسر إنّ ذلك جائز.', [], false, true);
       ok('a contemporary is not credited without a primary source',
-        !/قال الشيخ مطلق الجاسر/.test(mutlaq.text), mutlaq.text.slice(0, 200));
+        !/قال الشيخ مطلق الجاسر/.test(mutlaq.text)
+          && /لا يوجد في مصادري المخزنة نص منسوب لـمطلق الجاسر/.test(mutlaq.text)
+          && /جاء في مادة/.test(mutlaq.text)
+          && mutlaq.stored?.evidence?.length === 1
+          && JSON.stringify(mutlaq.stored.evidence) === JSON.stringify(mutlaq.stored.used)
+          && mutlaq.stored?.cards?.length === 1,
+        JSON.stringify({ stored: mutlaq.stored, text: mutlaq.text.slice(0, 240) }));
       eq('...and the stream closes exactly once', mutlaq.res.ended, 1);
 
       // ── the ABOUT question must not regress to the identity template ───────

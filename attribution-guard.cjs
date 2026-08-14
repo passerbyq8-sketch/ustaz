@@ -533,6 +533,8 @@ const user = (t) => [{ role: 'user', content: t }];
   // the shipped expression is lifted out of the source and EVALUATED against real plans.
   {
     const { planAsk } = await import('file://' + path.join(REPO, 'lib', 'ask-plan.js').replace(/\\/g, '/'));
+    const { classifyRoute } = await import('file://' + path.join(REPO, 'lib', 'route-classify.js').replace(/\\/g, '/'));
+    const { classifyReligiousRuntime } = await import('file://' + path.join(REPO, 'lib', 'stored-deen.js').replace(/\\/g, '/'));
     // MEASURED AT THE PLANNER, AND THE ROUTING ITSELF IS MEASURED BY DRIVING THE HANDLER.
     //
     // An earlier version of this block lifted the `effectiveRoute` expression out of the source
@@ -547,9 +549,18 @@ const user = (t) => [{ role: 'user', content: t }];
       planAsk(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون ٨٠ يوم؟')).attributionMode, 'namedScholarOpinion');
     eq('...and an ordinary question is not',
       planAsk(user('كيف أرتب يومي؟')).attributionMode, 'none');
-    ok('the handler routes anything attributed to DEEN',
-      /plan\.attributionMode !== 'none'[\s\S]{0,200}\? 'DEEN'/.test(ask),
-      'an attributed question could still take the unsourced GEN path');
+    const namedGeneral = 'ما رأي ابن باز في هندسة الجسور؟';
+    const namedReligious = 'ما رأي ابن باز في الجمع بين الصلاتين للمسافر؟';
+    const generalPlan = planAsk(user(namedGeneral));
+    const religiousPlan = planAsk(user(namedReligious));
+    ok('domain routing is independent of attribution while named religious topics stay sourced',
+      generalPlan.attributionMode !== 'none'
+        && classifyRoute(user(namedGeneral)) === 'GEN'
+        && classifyReligiousRuntime(namedGeneral, generalPlan, 'GEN') === 'GENERAL'
+        && classifyRoute(user(namedReligious)) === 'DEEN'
+        && classifyReligiousRuntime(namedReligious, religiousPlan, 'DEEN') === 'STORED_FIQH'
+        && /const attributionActive = effectiveRoute === 'DEEN'/.test(ask),
+      'a name either forced DEEN or opened the religious adapter from GENERAL');
   }
   ok('the attributed branch runs BEFORE the GEN route',
     ask.indexOf("plan.attributionMode === 'namedScholarOpinion'") < ask.indexOf("if (effectiveRoute === 'GEN')"));

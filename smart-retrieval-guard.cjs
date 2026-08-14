@@ -50,6 +50,8 @@ const user = (t) => [{ role: 'user', content: t }];
   const A = await esm('lib/attribution.js');
   const R = await esm('lib/source-registry.js');
   const B = await esm('lib/brave-query.js');
+  const ROUTE = await esm('lib/route-classify.js');
+  const STORED = await esm('lib/stored-deen.js');
   const ask = read('api/ask.js');
 
   // =========================================================================
@@ -603,8 +605,17 @@ const user = (t) => [{ role: 'user', content: t }];
       planAsk(user('ما رأي الشيخ عبدالمحسن العباد في الطلاق في الغضب؟')).attributionMode, 'namedScholarOpinion');
     eq('...and an ordinary question is not',
       planAsk(user('احك لي نكتة')).attributionMode, 'none');
-    ok('the handler routes anything attributed to DEEN',
-      /plan\.attributionMode !== 'none'[\s\S]{0,200}\? 'DEEN'/.test(ask));
+    const namedGeneral = 'ما رأي ابن باز في هندسة الجسور؟';
+    const namedReligious = 'ما رأي ابن باز في الجمع بين الصلاتين للمسافر؟';
+    const generalPlan = planAsk(user(namedGeneral));
+    const religiousPlan = planAsk(user(namedReligious));
+    ok('domain routing is independent of attribution while named religious topics stay sourced',
+      generalPlan.attributionMode !== 'none'
+        && ROUTE.classifyRoute(user(namedGeneral)) === 'GEN'
+        && STORED.classifyReligiousRuntime(namedGeneral, generalPlan, 'GEN') === 'GENERAL'
+        && ROUTE.classifyRoute(user(namedReligious)) === 'DEEN'
+        && STORED.classifyReligiousRuntime(namedReligious, religiousPlan, 'DEEN') === 'STORED_FIQH'
+        && /const attributionActive = effectiveRoute === 'DEEN'/.test(ask));
   }
   ok('the adapter is tried FIRST for the scholar who has one', /if \(plan\.hasDirectAdapter\)/.test(ask));
   ok('a scholar without an adapter still gets his own site searched',

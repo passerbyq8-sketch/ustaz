@@ -200,12 +200,18 @@ const user = (t) => [{ role: 'user', content: t }];
   const anonReq = { headers: {} };
 
   const LONG = ' وهذا مبسوط في كتب أهل العلم مع بيان الأدلة والتفصيل الوافي في المسألة.'.repeat(6);
+  const HANDLER_SEAM_Q = 'ما الفرق بين الخرسانة المسلحة وسابقة الإجهاد؟';
   const PAGES = {
     'https://islamqa.info/ar/answers/9001/x':
       '<html><head><title>ص</title></head><body><article><p>السؤال: ما حكم بيع الذهب بالتقسيط؟</p>'
       + '<p>الجواب: الحمد لله. بيع الذهب بالتقسيط لا يجوز لعدم التقابض.' + LONG + '</p></article></body></html>',
+    'https://islamqa.info/ar/answers/9002/concrete':
+      '<html><head><title>الخرسانة المسلحة وسابقة الإجهاد</title></head><body><article><p>السؤال: '
+      + HANDLER_SEAM_Q + '</p><p>الجواب: الخرسانة المسلحة تستخدم تسليحا عاديا، أما سابقة الإجهاد '
+      + 'فتطبق فيها إجهادات ضغط قبل أحمال الخدمة.' + LONG + '</p></article></body></html>',
   };
   const RESULTS = [{ url: 'https://islamqa.info/ar/answers/9001/x', title: 'بيع الذهب بالتقسيط', snippet: '' }];
+  const HANDLER_RESULTS = [{ url: 'https://islamqa.info/ar/answers/9002/concrete', title: 'الخرسانة المسلحة وسابقة الإجهاد', snippet: '' }];
 
   // The planner double reads the question it was ACTUALLY given, so a mutilated question shows
   // up as a wrong plan rather than as a silently different search.
@@ -237,6 +243,16 @@ const user = (t) => [{ role: 'user', content: t }];
       seen.questions.push(q);
       if (forceSafeRejectionPlan) {
         return { content: [{ type: 'text', text: JSON.stringify(SAFE_PLAN) }], usage: { output_tokens: 50 } };
+      }
+      if (/الخرسانة|الإجهاد/.test(q)) {
+        return { content: [{ type: 'text', text: JSON.stringify({
+          issues: [{
+            issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
+            protected_entities: ['الخرسانة المسلحة'], core_terms: ['سابقة الإجهاد'], context_vars: [],
+            exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+          }],
+          missing_qualifiers: [], confidence: 'high',
+        }) }], usage: { output_tokens: 50 } };
       }
       const authority = /ابن باز/.test(q) ? 'ibn-baz' : null;
       return { content: [{ type: 'text', text: JSON.stringify({
@@ -446,7 +462,8 @@ const user = (t) => [{ role: 'user', content: t }];
         return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => payload, text: async () => JSON.stringify(payload) };
       }
       if (u.includes('api.search.brave.com')) {
-        const results = RESULTS.map((result) => a1EvidenceText ? { ...result, url: result.url + '?a1=handler-green' } : { ...result });
+        const fixtures = /الخرسانة|الإجهاد/.test(decodeURIComponent(u)) ? HANDLER_RESULTS : RESULTS;
+        const results = fixtures.map((result) => a1EvidenceText ? { ...result, url: result.url + '?a1=handler-green' } : { ...result });
         return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => ({ web: { results: results.map((result) => ({ ...result, description: result.snippet })) } }) };
       }
       return fetchImpl(u, init);
@@ -456,7 +473,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const handlerRequest = () => ({
       method: 'POST',
       headers: { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' },
-      body: { band: 'adult', messages: user('\u0645\u0627 \u062d\u0643\u0645 \u0628\u064a\u0639 \u0627\u0644\u0630\u0647\u0628 \u0628\u0627\u0644\u062a\u0642\u0633\u064a\u0637\u061f') },
+      body: { band: 'adult', age: 30, messages: user(HANDLER_SEAM_Q) },
     });
     const handlerResponse = () => {
       const target = fakeRes();
@@ -492,7 +509,9 @@ const user = (t) => [{ role: 'user', content: t }];
       const greenFrames = greenRes.frames();
       const greenText = greenFrames.filter((frame) => frame.delta).map((frame) => frame.delta.text).join('');
       const greenContext = greenRes[A1SSE.FINALIZATION_CONTEXT];
-      const card = askMod.buildSourceTag({ url: RESULTS[0].url + '?a1=handler-green', title: '\u0635' }).tag;
+      const card = askMod.buildSourceTag({
+        url: HANDLER_RESULTS[0].url + '?a1=handler-green', title: HANDLER_RESULTS[0].title,
+      }).tag;
       ok('F-010 handler Ledger green preserves evidence-backed text and card byte-for-byte', greenText === unsafe + '\n' + card);
       ok('F-010 handler Ledger green callback fills context before first end', greenContext && greenContext.sources.length === 1 && greenContext.sources[0].passage.includes(unsafe) && greenRes.preFinalizerWrites === 0 && greenRes.preFinalizerEnds === 0 && greenFrames.filter((frame) => frame.type === 'message_stop').length === 1);
 
@@ -508,7 +527,7 @@ const user = (t) => [{ role: 'user', content: t }];
         seen.modelCalls = 0;
         const target = handlerResponse();
         const req = handlerRequest();
-        req.body = { band: 'adult', age: 30, depth, messages: user(SAFE_Q) };
+        req.body = { band: 'adult', age: 30, depth, messages: user(HANDLER_SEAM_Q) };
         let tier = null;
         const originalLog = console.log;
         console.log = (label, value, ...rest) => {
@@ -1429,7 +1448,7 @@ const user = (t) => [{ role: 'user', content: t }];
     const FULL_PLAN = {
       issues: [{
         issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
-        protected_entities: ['بيع الذهب'], core_terms: ['التقسيط'], context_vars: [],
+        protected_entities: ['الخرسانة المسلحة'], core_terms: ['سابقة الإجهاد'], context_vars: [],
         exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
       }],
       missing_qualifiers: [], confidence: 'high',
@@ -1482,7 +1501,8 @@ const user = (t) => [{ role: 'user', content: t }];
           json: async () => payload, text: async () => JSON.stringify(payload) };
       }
       if (target.includes('api.search.brave.com')) {
-        const payload = { web: { results: RESULTS.map((result) => ({
+        const fixtures = /الخرسانة|الإجهاد/.test(decodeURIComponent(target)) ? HANDLER_RESULTS : RESULTS;
+        const payload = { web: { results: fixtures.map((result) => ({
           ...result, description: result.snippet,
         })) } };
         return { ok: true, status: 200, headers: { get: () => 'application/json' },
@@ -1504,7 +1524,7 @@ const user = (t) => [{ role: 'user', content: t }];
       if (spec.authorized) headers['x-murabbi-founder'] = DC.founderTokenFor(device);
       const body = {
         band: 'adult', age: 30, depth: spec.depth,
-        messages: user(spec.safe ? SAFE_Q : FULL_Q),
+        messages: user(HANDLER_SEAM_Q),
       };
       if (spec.forged) Object.assign(body, {
         depth: 'scholar', premium: true, student: true, tier: 'premium',
