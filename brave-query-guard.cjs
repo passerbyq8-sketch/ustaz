@@ -42,6 +42,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 
   const B = await esm('lib/brave-query.js');
   const R = await esm('lib/source-registry.js');
+  const SAFE_FETCH = await esm('lib/ledger/safe-fetch.js');
   const retrieveSrc = read('lib/retrieve.js');
 
   const ADULT = R.domainsForBand('adult');
@@ -254,6 +255,10 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   {
     // Stub ONLY the Brave endpoint and the page fetches, then drive the real retrieve().
     const realFetch = globalThis.fetch;
+    // The provider and every page are already stubbed below. Keep the SSRF
+    // preflight in the exercised path, but do not let host DNS make this
+    // offline planner contract flaky under the parallel gate runner.
+    SAFE_FETCH.__setResolverForTest(async () => [{ address: '93.184.216.34', family: 4 }]);
     // A synthetic Response reports url === '', and retrieve.js reads res.url as the FINAL
     // post-redirect host and refuses anything off-list — correctly. So the stub has to say
     // where it came from, exactly as a real fetch does, or the test would be measuring the
@@ -363,6 +368,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     console.log(`        -> worst case: ${scenario.braveQueries.length} search request(s), ${scenario.pageFetches.length} page fetch(es)`);
 
     globalThis.fetch = realFetch;
+    SAFE_FETCH.__resetResolver();
   }
 
   // =========================================================================

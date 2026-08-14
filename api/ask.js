@@ -895,23 +895,28 @@ export default async function handler(req, res) {
       return result;
     },
     context: ({ wireText, events }) => {
-      // Defense in depth for streamed model markup. The central SSE writer remains the sole
-      // byte parser; this existing cross-delta filter only inspects its already validated text
-      // events. GEN/DEEN own no wire cards, so any change means the model attempted a source tag
-      // and the stream fails closed. Ledger-owned wire cards follow their separate structured path.
+      // The central SSE writer remains the sole byte parser. GEN/DEEN own no
+      // model-written cards; their untrusted tags are removed after the full
+      // stream is assembled, while ordinary prose is still finalized normally.
+      let strippedWireText = wireText;
       if (finalizerContext.allowWireOwnedCards === false) {
         const filter = createSourceFilter();
-        let filtered = '';
+        strippedWireText = '';
         for (const evt of events) {
           if (evt && evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
-            filtered += filter.push(evt.delta.text);
+            strippedWireText += filter.push(evt.delta.text);
           }
         }
-        filtered += filter.end();
-        if (filtered !== wireText) throw new Error('model-source-markup');
+        strippedWireText += filter.end();
       }
       return {
         ...finalizerContext,
+        // Source markup written by a model is never a card.  The central writer
+        // drops it across the completed byte stream and preserves the ordinary
+        // prose; only records registered in sourceCards may be appended later.
+        stripUnownedSourceCards: finalizerContext.allowWireOwnedCards === false
+          && typeof createSourceFilter === 'function',
+        strippedWireText,
         kind: ledgerFinalizerKind(finalizerContext.ledgerOutcome),
         sources: [...fetchedPages, ...ledgerFinalizerSources, ...storedFinalizerSources],
         consistencyContext: finalizerContext.consistencyContext ? {
@@ -1756,6 +1761,22 @@ export default async function handler(req, res) {
         // present live material with nothing to check it against, drop back to the plain route.
         console.warn('[world-search] no encodable card — falling through');
       } else {
+        if (worldIntent.reason === 'ATTRIBUTED_POSITION' && trustedReaderEntity && !worldOpen) {
+          const wanted = normalizeArabic(trustedReaderEntity);
+          const pageCarriesEntity = worldPass.sources.some((source) => {
+            const material = normalizeArabic(`${source?.title || ''} ${source?.passage || source?.text || ''}`);
+            return wanted && (` ${material} `).includes(` ${wanted} `);
+          });
+          if (pageCarriesEntity && finalizerContext.consistencyContext) {
+            finalizerContext.consistencyContext = {
+              ...finalizerContext.consistencyContext,
+              searchProven: true,
+              identityVerified: true,
+              allowSourcedPosition: true,
+              licensedEntitySurfaces: [trustedReaderEntity],
+            };
+          }
+        }
         const wr = await fetch(ANTHROPIC_URL, {
           method: 'POST',
           headers,
@@ -2512,9 +2533,9 @@ export default async function handler(req, res) {
         // (ar.wikipedia.org through safeFetch), so the reader was given a sourced answer and no
         // way to see the source.
         //
-        // IT IS REGISTERED HERE AS STRUCTURED SERVER DATA. `createSourceFilter()` strips every
-        // <source> tag out of MODEL text on this branch, while the central finalizer appends only
-        // this owned record after validating the complete prose.
+        // IT IS REGISTERED HERE AS STRUCTURED SERVER DATA. The central finalized writer strips
+        // every <source> tag out of MODEL text on this branch, while appending only this owned
+        // record after validating the complete prose.
         //
         // AND ONLY FOR A PAGE. `identityUrl` is empty for a whitelist hit, which is a table
         // lookup with no page behind it: a card there would be a citation to nothing. The

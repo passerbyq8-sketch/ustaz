@@ -52,6 +52,7 @@ const user = (t) => [{ role: 'user', content: t }];
   const B = await esm('lib/brave-query.js');
   const ROUTE = await esm('lib/route-classify.js');
   const STORED = await esm('lib/stored-deen.js');
+  const SAFE_FETCH = await esm('lib/ledger/safe-fetch.js');
   const ask = read('api/ask.js');
 
   // =========================================================================
@@ -272,6 +273,11 @@ const user = (t) => [{ role: 'user', content: t }];
   console.log('\n=== D. THE REQUEST PATH (model + network stubbed) ===');
   {
     const realFetch = globalThis.fetch;
+    // These request fixtures own both Brave and page responses. Resolve their
+    // hosts to a deterministic public address so the real SSRF preflight stays
+    // covered without depending on external DNS; safe-fetch's own guards test
+    // private, mixed and failed resolutions separately.
+    SAFE_FETCH.__setResolverForTest(async () => [{ address: '93.184.216.34', family: 4 }]);
     const at = (r, u) => { Object.defineProperty(r, 'url', { value: u }); return r; };
     const state = { brave: 0, pages: 0, anthropic: 0 };
     const PAGE = 'نصٌّ علميٌّ كافٍ في المسألة وفيه بيان الحكم بالدليل والتفصيل الوافي. '.repeat(30);
@@ -420,6 +426,7 @@ const user = (t) => [{ role: 'user', content: t }];
     }
 
     globalThis.fetch = realFetch;
+    SAFE_FETCH.__resetResolver();
   }
 
   // =========================================================================

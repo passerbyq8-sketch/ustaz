@@ -92,6 +92,7 @@ const HUMAN_DIVINE_NAME_CASES = [
   const PG = await esm('lib/source-page-gates.js');
   const RC = await esm('lib/route-classify.js');
   const RETRIEVE = await esm('lib/retrieve.js');
+  const SAFE_FETCH = await esm('lib/ledger/safe-fetch.js');
   const DAILY = await esm('lib/ledger/daily-budget.js');
   const DC = await esm('lib/daycap.js');
   const DAY = DC;
@@ -663,6 +664,11 @@ const HUMAN_DIVINE_NAME_CASES = [
     // separate concern and is not what this guard is about.
     process.env.LEDGER_RAG = 'off';
     STORE.__setRedisForTest(null);
+    // These handler fixtures exercise attribution and source lifecycle, not the
+    // machine's DNS resolver. Keep the real SSRF address gate in the path while
+    // giving every fixture host a deterministic public address; the dedicated
+    // safe-fetch guards own private/mixed/DNS-failure coverage.
+    SAFE_FETCH.__setResolverForTest(async () => [{ address: '93.184.216.34', family: 4 }]);
 
     // THE DAY CAP IS A SEPARATE STORE, AND IT FAILS CLOSED. Without this stub guardDayCap cannot
     // reach Upstash, answers 429 `cap-unavailable` with a JSON body, and the handler returns before
@@ -1757,6 +1763,7 @@ const HUMAN_DIVINE_NAME_CASES = [
           && closedLifecycle(singleLegacy.res), singleLegacy.text);
     } finally {
       globalThis.fetch = realFetch;
+      SAFE_FETCH.__resetResolver();
       delete process.env.DAILY_SEARCH_BUDGET;
     }
   }
