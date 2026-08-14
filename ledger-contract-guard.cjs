@@ -23,6 +23,8 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawnSync } = require('child_process');
+const { isDeepStrictEqual } = require('util');
+const babelParser = require('@babel/parser');
 
 const REPO = __dirname;
 let failures = 0, checks = 0;
@@ -302,66 +304,196 @@ const templateOf = (p) => {
   }
 
   // =========================================================================
-  // THE STRICTEST TASK DOES NOT RUN ON THE WEAKEST MODEL
+  // THE PLAN CALL USES THE SAME SERVER-OWNED TIER AS THE REQUEST
   //
-  // MEASURED, 2026-08-07: lib/ledger/seam.js never passed `tier`, so every request through the
-  // seam reached callModel() with `tier === undefined`, which defaults to 'standard', which
-  // production sets to Haiku. The one call that decides whether the request searches at all ran
-  // on the cheapest channel for everybody — including a reader entitled to more.
-  //
-  // DRIVEN, NOT GREPPED. The stub reads the model out of the request body the planner actually
-  // built, so deleting the pin fails this section rather than a regex.
-  console.log('\n=== D2b. THE PLAN CALL PINS THE STRONGEST CHANNEL ===');
+  // DRIVEN, NOT GREPPED. The stub reads the model from both provider bodies the real planner
+  // builds: the initial query-IR attempt and its one schema-repair attempt. The engine controls
+  // below enter through runEngine(), while the malformed matrix drives the planner boundary
+  // directly so inherited and non-primitive values can be represented without pretending JSON
+  // can carry a prototype.
+  console.log('\n=== D2b. THE PLAN CALL INHERITS ONE FAIL-CLOSED REQUEST TIER ===');
   {
     const MODEL = await esm('lib/ledger/model.js');
     const BG = await esm('lib/ledger/budgets.js');
+    const ENG = await esm('lib/ledger/engine.js');
     const env = ['MODEL_PREMIUM', 'MODEL_STANDARD', 'MODEL', 'ANTHROPIC_API_KEY'];
     const saved = env.map((k) => [k, Object.prototype.hasOwnProperty.call(process.env, k), process.env[k]]);
     process.env.MODEL_PREMIUM = 'test-premium-channel';
     process.env.MODEL_STANDARD = 'test-standard-channel';
     delete process.env.MODEL;
     process.env.ANTHROPIC_API_KEY = 'test-key-not-a-credential';
-    const sent = [];
-    const stubFetch = async (_url, init) => {
-      sent.push(JSON.parse(init.body).model);
-      return {
-        ok: true, status: 200,
-        json: async () => ({ content: [{ type: 'text', text: '{}' }] }),
-        text: async () => '{}',
-      };
-    };
     try {
-      eq('the tier constant names the strongest configured channel', PLAN.PLANNER_TIER, 'premium');
-      // The seam's own shape: no `tier` anywhere. This is the case that was broken.
-      await PLAN.planQuestion('ما حكم بيع الذهب بالتقسيط؟', {
-        budget: new BG.Budget({ now: () => 1770000000000 }), fetchImpl: stubFetch,
-      });
-      // And a caller that hands in the reader's ordinary tier must not drag it back down.
-      await PLAN.planQuestion('ما حكم بيع الذهب بالتقسيط؟', {
-        budget: new BG.Budget({ now: () => 1770000000000 }), fetchImpl: stubFetch, tier: 'standard',
-      });
-      // The stub replies `{}`, which fails validation, so each call is followed by its REPAIR
-      // call — and the repair must be on the strongest channel too, for exactly the same reason.
-      // Asserted over every call rather than a fixed count, so adding an arm cannot silently
-      // introduce one that quietly runs cheap.
-      ok('every plan call went out on MODEL_PREMIUM — the repair call included',
-        sent.length >= 2 && sent.every((m) => m === 'test-premium-channel'), JSON.stringify(sent));
+      const plannerCase = async ({ label, tier, mode = 'own' }) => {
+        const bodies = [];
+        const stubFetch = async (_url, init) => {
+          bodies.push(JSON.parse(init.body));
+          return {
+            ok: true, status: 200,
+            json: async () => ({ content: [{ type: 'text', text: '{}' }] }),
+            text: async () => '{}',
+          };
+        };
+        const base = {
+          budget: new BG.Budget({ now: () => 1770000000000 }), fetchImpl: stubFetch,
+        };
+        let options = base;
+        if (mode === 'own') options = { ...base, tier };
+        if (mode === 'inherited') options = Object.assign(Object.create({ tier: 'premium' }), base);
+        if (mode === 'inherited-getter') {
+          const proto = {};
+          Object.defineProperty(proto, 'tier', {
+            enumerable: true,
+            get() { throw new Error('inherited tier getter must not run'); },
+          });
+          options = Object.assign(Object.create(proto), base);
+        }
+        await PLAN.planQuestion('ما حكم بيع الذهب بالتقسيط؟', options);
+        return { label, bodies };
+      };
+      const cases = [
+        { label: 'missing tier', mode: 'missing' },
+        { label: 'undefined tier', tier: undefined }, { label: 'null tier', tier: null },
+        { label: 'false tier', tier: false }, { label: 'true tier', tier: true },
+        { label: 'zero tier', tier: 0 }, { label: 'one tier', tier: 1 },
+        { label: 'empty tier', tier: '' }, { label: 'unknown tier', tier: 'unknown' },
+        { label: 'wrong-case tier', tier: 'PREMIUM' }, { label: 'object tier', tier: {} },
+        { label: 'array tier', tier: [] }, { label: 'inherited premium tier', mode: 'inherited' },
+        { label: 'inherited premium getter', mode: 'inherited-getter' },
+        { label: 'exact Standard tier', tier: 'standard' },
+        { label: 'exact Premium tier', tier: 'premium', premium: true },
+      ];
+      const allBodies = [];
+      for (const spec of cases) {
+        const run = await plannerCase(spec);
+        const expected = spec.premium ? 'test-premium-channel' : 'test-standard-channel';
+        allBodies.push(...run.bodies);
+        eq(spec.label + ' keeps the initial-plus-repair call count', run.bodies.length, 2);
+        ok(spec.label + ' resolves every query_ir attempt through the expected channel',
+          run.bodies.every((body) => body.model === expected), JSON.stringify(run.bodies.map((body) => body.model)));
+        eq(spec.label + ' keeps one tier across initial and repair',
+          run.bodies.map((body) => body.model), [expected, expected]);
+      }
+      ok('every planner provider envelope remains sanitized', allBodies.length === cases.length * 2
+        && allBodies.every((body) => Object.keys(body).sort().join(',')
+          === 'max_tokens,messages,model,stream,system'));
+      ok('planner exposes no module-global tier override',
+        !Object.prototype.hasOwnProperty.call(PLAN, 'PLANNER_TIER'));
+      const plannerSource = read('lib/ledger/planner.js');
+      ok('planner neither reads a client body nor retains a global tier constant',
+        !/\bbody\s*\./.test(plannerSource) && !/PLANNER_TIER/.test(plannerSource));
+
+      const FOLLOW_UP_PLAN = {
+        issues: [{
+          issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
+          protected_entities: ['بيع الذهب'], core_terms: ['التقسيط'], context_vars: [],
+          exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+        }],
+        missing_qualifiers: ['هل تم القبض في المجلس؟'], confidence: 'high',
+      };
+      const runEngineTier = async ({ tier, mode = 'own' }) => {
+        const bodies = [];
+        let tick = 1770000000000;
+        const fetchImpl = async (_url, init) => {
+          bodies.push(JSON.parse(init.body));
+          const text = bodies.length === 1 ? '{}' : JSON.stringify(FOLLOW_UP_PLAN);
+          const payload = { content: [{ type: 'text', text }] };
+          return { ok: true, status: 200, json: async () => payload, text: async () => JSON.stringify(payload) };
+        };
+        const base = {
+          dailyBudgetMode: 'fixture', band: 'adult', audienceBand: 'adult',
+          bandSites: SP.searchableDomains(), search: async () => { throw new Error('follow-up must not search'); },
+          fetchImpl, now: () => ++tick, startedAt: 1770000000000,
+        };
+        let options = base;
+        if (mode === 'own') options = { ...base, tier };
+        if (mode === 'inherited') options = Object.assign(Object.create({ tier }), base);
+        if (mode === 'inherited-getter') {
+          const proto = {};
+          Object.defineProperty(proto, 'tier', {
+            enumerable: true,
+            get() { throw new Error('direct-engine inherited tier getter must not run'); },
+          });
+          options = Object.assign(Object.create(proto), base);
+        }
+        const out = await ENG.runEngine('ما حكم بيع الذهب بالتقسيط؟', options);
+        return { bodies, out };
+      };
+      const engineStandard = await runEngineTier({ tier: 'standard' });
+      const enginePremium = await runEngineTier({ tier: 'premium' });
+      ok('runEngine dynamically carries Standard into its real planner initial and repair calls',
+        engineStandard.bodies.length === 2
+          && engineStandard.bodies.every((body) => body.model === 'test-standard-channel')
+          && engineStandard.out.outcome === 'SAFE_REJECTION');
+      ok('runEngine dynamically carries exact Premium into its real planner initial and repair calls',
+        enginePremium.bodies.length === 2
+          && enginePremium.bodies.every((body) => body.model === 'test-premium-channel')
+          && enginePremium.out.outcome === 'SAFE_REJECTION');
+      eq('runEngine charges both routed calls to query_ir', [
+        engineStandard.out.budget.snapshot().byPurpose['modelCalls:query_ir'],
+        enginePremium.out.budget.snapshot().byPurpose['modelCalls:query_ir'],
+      ], [2, 2]);
+      for (const spec of [
+        { label: 'missing tier', mode: 'missing' },
+        { label: 'malformed object tier', mode: 'own', tier: {} },
+        { label: 'inherited Premium tier', mode: 'inherited', tier: 'premium' },
+        { label: 'inherited Premium getter', mode: 'inherited-getter' },
+      ]) {
+        const run = await runEngineTier(spec);
+        ok('runEngine ' + spec.label + ' fails closed across initial and repair',
+          run.bodies.length === 2
+            && run.bodies.every((body) => body.model === 'test-standard-channel')
+            && run.out.outcome === 'SAFE_REJECTION',
+          JSON.stringify(run.bodies.map((body) => body.model)));
+      }
       eq('...and the standard channel is a DIFFERENT string, so the check is not vacuous',
         MODEL.modelFor('standard'), 'test-standard-channel');
+      eq('...and exact Premium still resolves through MODEL_PREMIUM',
+        MODEL.modelFor('premium'), 'test-premium-channel');
     } finally {
       for (const [k, had, v] of saved) { if (had) process.env[k] = v; else delete process.env[k]; }
     }
-    // THE ANSWER'S TIER IS UNTOUCHED. Pinning the plan call is not «the engine upgrades a tier»:
-    // every call whose output the reader receives still runs on whatever the caller passed.
+    // Every later call keeps using the same caller-owned request tier. Parse the real call sites:
+    // a source slice can mistake a comment for an option and used to reject the valid final
+    // shorthand `{ ..., tier }` because the identifier is followed by `}` rather than a comma.
     const ENGSRC = read('lib/ledger/engine.js');
+    const engineAst = babelParser.parse(ENGSRC, { sourceType: 'module' });
+    const callsByName = new Map();
+    const walk = (node) => {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'CallExpression' && node.callee?.type === 'Identifier') {
+        const rows = callsByName.get(node.callee.name) || [];
+        rows.push(node);
+        callsByName.set(node.callee.name, rows);
+      }
+      for (const [key, value] of Object.entries(node)) {
+        if (key === 'loc' || key === 'start' || key === 'end') continue;
+        if (Array.isArray(value)) value.forEach(walk);
+        else if (value && typeof value === 'object' && typeof value.type === 'string') walk(value);
+      }
+    };
+    walk(engineAst);
     for (const site of ['runExtraction', 'runGate2', 'runGate3', 'runDraft']) {
-      const i = ENGSRC.indexOf(site + '(');
-      ok(site + ' still runs on the CALLER\'s tier', i !== -1
-        && /tier: opts\.tier/.test(ENGSRC.slice(i, i + 400)), 'no `tier: opts.tier` near ' + site);
+      const calls = callsByName.get(site) || [];
+      const options = calls.length === 1 ? calls[0].arguments.at(-1) : null;
+      const tierProperties = options?.type === 'ObjectExpression'
+        ? options.properties.filter((property) => property.type === 'ObjectProperty'
+          && !property.computed && property.key?.type === 'Identifier' && property.key.name === 'tier')
+        : [];
+      ok(site + ' still runs on the normalized request-local tier', calls.length === 1
+        && options.type === 'ObjectExpression'
+        && tierProperties.length === 1
+        && tierProperties[0].value?.type === 'Identifier'
+        && tierProperties[0].value.name === 'tier',
+      'the unique ' + site + ' call must pass the local identifier `tier` in its options object');
     }
-    ok('...and the plan call no longer takes one at all',
-      /planQuestion\(question, \{[^}]*\}\)/.test(ENGSRC)
-      && !/planQuestion\(question, \{[^}]*tier/.test(ENGSRC));
+    const planCall = ENGSRC.slice(ENGSRC.indexOf('planQuestion(question,'),
+      ENGSRC.indexOf('planQuestion(question,') + 300);
+    ok('...and the production plan call transports the normalized local tier explicitly',
+      /planQuestion\(question, \{[\s\S]*tier\s*,/.test(planCall)
+        && !/tier:\s*opts\.tier/.test(planCall), planCall);
+    ok('no model-routing call in the engine reads opts.tier after normalization',
+      (ENGSRC.match(/opts\.tier/g) || []).length === 1,
+      JSON.stringify(ENGSRC.match(/opts\.tier/g) || []));
   }
 
   // =========================================================================
@@ -520,8 +652,12 @@ const templateOf = (p) => {
           body: null, text: async () => body,
         };
       }
-      if (!u.includes('api.anthropic.com')) throw new Error('F-045 unexpected I/O: ' + u);
+      if (!u.includes('api.anthropic.com')) {
+        state.unknownFetches++;
+        throw new Error('F-045 unexpected I/O: ' + u);
+      }
       const body = JSON.parse(init.body);
+      state.models.push(body.model);
       const user = body.messages[0].content;
       if (user.includes('"answers"')) {
         state.purposes.push('page_match');
@@ -566,9 +702,13 @@ const templateOf = (p) => {
       }
       throw new Error('F-045 unrecognised local prompt');
     };
-    const saved = new Map(['ANTHROPIC_API_KEY', 'LEDGER_CACHE_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN']
+    const saved = new Map(['ANTHROPIC_API_KEY', 'LEDGER_CACHE_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN',
+      'MODEL_STANDARD', 'MODEL_PREMIUM', 'MODEL']
       .map((k) => [k, [Object.prototype.hasOwnProperty.call(process.env, k), process.env[k]]]));
     process.env.ANTHROPIC_API_KEY = 'test-key-not-a-credential';
+    process.env.MODEL_STANDARD = 'f045-standard-channel';
+    process.env.MODEL_PREMIUM = 'f045-premium-channel';
+    delete process.env.MODEL;
     delete process.env.LEDGER_CACHE_SECRET;
     delete process.env.KV_REST_API_URL;
     delete process.env.KV_REST_API_TOKEN;
@@ -576,15 +716,29 @@ const templateOf = (p) => {
     const realFetch = globalThis.fetch;
     globalThis.fetch = async () => { forbiddenGlobalFetch++; throw new Error('F-045 global fetch forbidden'); };
     SAFE.__setResolverForTest(async () => [{ address: '93.184.216.34', family: 4 }]);
-    const drive = async (mode, budget, results) => {
-      const state = { pageFetches: 0, purposes: [] };
-      const out = await ENG.runEngine(Q, {
+    const drive = async (mode, budget, results, tierSpec = { mode: 'missing' }) => {
+      const state = { pageFetches: 0, purposes: [], models: [], unknownFetches: 0, getterReads: 0 };
+      const base = {
         band: 'adult', audienceBand: 'adult', bandSites: ['islamqa.info'],
         plannerOverride: rawPlan, budget,
         search: async () => results || [{ url: URL, title: 'حكم ترك الصلاة', snippet: 'حكم ترك الصلاة' }],
         fetchImpl: scripted(mode, state), directReader: async () => [],
         dailyBudgetMode: 'fixture',
-      });
+      };
+      let options = base;
+      if (tierSpec.mode === 'own') options = { ...base, tier: tierSpec.value };
+      if (tierSpec.mode === 'inherited') {
+        options = Object.assign(Object.create({ tier: tierSpec.value }), base);
+      }
+      if (tierSpec.mode === 'inherited-getter') {
+        const proto = {};
+        Object.defineProperty(proto, 'tier', {
+          enumerable: true,
+          get() { state.getterReads++; return 'premium'; },
+        });
+        options = Object.assign(Object.create(proto), base);
+      }
+      const out = await ENG.runEngine(Q, options);
       return { out, state };
     };
     try {
@@ -645,6 +799,198 @@ const templateOf = (p) => {
       ok('F-045 accepted candidate carries no unverified-page rejection',
         !accepted.out.ledger.rejections.some((r) => r.code === 'page_match_candidate_not_verified'),
         JSON.stringify(accepted.out.ledger.rejections));
+      const downstreamPurposes = [
+        'page_match', 'claim_extraction', 'claim_verification', 'drafting', 'sentence_verification',
+      ];
+      const canonicalSemantic = (value, at = '$', seen = new WeakSet()) => {
+        if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+        if (typeof value === 'number') {
+          if (!Number.isFinite(value)) throw new TypeError('F-045 unsupported number at ' + at);
+          return value;
+        }
+        if (typeof value === 'undefined' || typeof value === 'bigint'
+          || typeof value === 'function' || typeof value === 'symbol') {
+          throw new TypeError('F-045 unsupported ' + typeof value + ' at ' + at);
+        }
+        if (seen.has(value)) throw new TypeError('F-045 cycle at ' + at);
+        seen.add(value);
+        try {
+          if (Array.isArray(value)) {
+            // `length` is structural and is the sole excluded own property: the preserved indexes
+            // determine it exactly. Sparse arrays, accessors, symbols, and extra fields fail loudly.
+            if (Object.getOwnPropertySymbols(value).length) {
+              throw new TypeError('F-045 unsupported array symbol at ' + at);
+            }
+            const extras = Object.getOwnPropertyNames(value).filter((key) => {
+              if (key === 'length') return false;
+              return !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length;
+            });
+            if (extras.length) throw new TypeError('F-045 unsupported array fields at ' + at + ': ' + extras.join(','));
+            const out = [];
+            for (let i = 0; i < value.length; i++) {
+              const descriptor = Object.getOwnPropertyDescriptor(value, String(i));
+              if (!descriptor) throw new TypeError('F-045 sparse array at ' + at + '[' + i + ']');
+              if (!Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+                throw new TypeError('F-045 array accessor at ' + at + '[' + i + ']');
+              }
+              out.push(canonicalSemantic(descriptor.value, at + '[' + i + ']', seen));
+            }
+            return out;
+          }
+          if (value instanceof Map) {
+            if (Reflect.ownKeys(value).length) throw new TypeError('F-045 unsupported Map fields at ' + at);
+            const entries = Array.from(value.entries(), ([key, item], i) => [
+              canonicalSemantic(key, at + '.<map-key-' + i + '>', seen),
+              canonicalSemantic(item, at + '.<map-value-' + i + '>', seen),
+            ]);
+            entries.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+            return { $semanticType: 'Map', entries };
+          }
+          if (value instanceof Set) {
+            if (Reflect.ownKeys(value).length) throw new TypeError('F-045 unsupported Set fields at ' + at);
+            const values = Array.from(value.values(), (item, i) =>
+              canonicalSemantic(item, at + '.<set-value-' + i + '>', seen));
+            values.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+            return { $semanticType: 'Set', values };
+          }
+          const prototype = Object.getPrototypeOf(value);
+          if (prototype !== Object.prototype && prototype !== null) {
+            throw new TypeError('F-045 unsupported prototype at ' + at);
+          }
+          if (Object.getOwnPropertySymbols(value).length) {
+            throw new TypeError('F-045 unsupported object symbol at ' + at);
+          }
+          const out = {};
+          for (const key of Object.getOwnPropertyNames(value).sort()) {
+            const descriptor = Object.getOwnPropertyDescriptor(value, key);
+            if (!descriptor.enumerable) {
+              throw new TypeError('F-045 unsupported non-enumerable field at ' + at + '.' + key);
+            }
+            if (!Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+              throw new TypeError('F-045 object accessor at ' + at + '.' + key);
+            }
+            out[key] = canonicalSemantic(descriptor.value, at + '.' + key, seen);
+          }
+          return out;
+        } finally {
+          seen.delete(value);
+        }
+      };
+      const expectedVerifiedClaimsLiteral = Object.freeze([Object.freeze({
+        claimId: 'c1_a2fucg_1',
+        issueId: 'iss_1',
+        sourceId: 'https://islamqa.info/ar/answers/999001/x',
+        text: 'ترك الصلاة من أعظم الذنوب.',
+        slot: 'ruling',
+        spanIds: Object.freeze(['https://islamqa.info/ar/answers/999001/x#u1s1']),
+        components: Object.freeze([Object.freeze({
+          componentId: 'c1_a2fucg_1k1',
+          kind: 'ruling',
+          text: 'ترك الصلاة من أعظم الذنوب.',
+          spanIds: Object.freeze(['https://islamqa.info/ar/answers/999001/x#u1s1']),
+        })]),
+        extractorVersion: 'extract-v1',
+        verified: true,
+        cycle: 1,
+        claimRelation: 'NONE',
+        targetType: '',
+        era: 'unknown',
+        provenanceCap: 'NONE',
+        provenanceGrade: 'NONE',
+        provenanceReason: 'no_authority_requested',
+        provenanceLocator: '',
+        unsupportedComponents: Object.freeze([]),
+        verifierVersion: 'gate2-v1',
+        viewId: 'v1',
+      })]);
+      const expectedVerifiedClaimsSemantic = canonicalSemantic(expectedVerifiedClaimsLiteral);
+      const semanticResult = ({ out, state }) => {
+        const telemetry = out.ledger.telemetryShape();
+        const verifiedClaims = out.ledger.verifiedClaims();
+        return {
+          outcome: out.outcome,
+          cards: out.cards.length,
+          sources: out.ledger.sources.size,
+          sourceUrls: Array.from(out.ledger.sources.values()).map((source) => source.canonicalUrl),
+          verifiedClaimCount: verifiedClaims.length,
+          verifiedClaims: canonicalSemantic(verifiedClaims),
+          rejectionCodes: out.ledger.rejections.map((rejection) => rejection.code),
+          coverage: {
+            requiredSlots: telemetry.required_slot_count,
+            filledSlots: telemetry.filled_slot_count,
+            issues: out.ledger.issues.map((issue) => ({
+              issueId: issue.issueId,
+              complete: out.ledger.issueComplete(issue.issueId),
+              slots: out.ledger.slotsFor(issue.issueId).map((slot) => ({
+                slot: slot.slot, status: slot.status, claimIds: slot.claimIds,
+              })),
+            })),
+          },
+          finalUnresolvedCandidate: {
+            eligiblePages: out.ledger.slotProof('iss_1', 'ruling').eligiblePages,
+            rejected: out.ledger.rejections.some((rejection) =>
+              rejection.code === 'page_match_candidate_not_verified'),
+          },
+          purposes: state.purposes.slice(),
+          modelBodies: state.models.length,
+          pending: state.models.length - state.purposes.length,
+          unknownNetwork: state.unknownFetches,
+          liveNetwork: forbiddenGlobalFetch,
+        };
+      };
+      const acceptedSemantic = semanticResult(accepted);
+      eq('F-045 accepted semantic baseline outcome remains PARTIAL', acceptedSemantic.outcome, 'PARTIAL');
+      const acceptedVerifiedClaims = accepted.out.ledger.verifiedClaims();
+      const verifiedClaimKeyInventory = Array.from(new Set(
+        acceptedVerifiedClaims.flatMap((claim) => Object.keys(claim)))).sort();
+      const verifiedComponentKeyInventory = Array.from(new Set(
+        acceptedVerifiedClaims.flatMap((claim) => (claim.components || [])
+          .flatMap((component) => Object.keys(component))))).sort();
+      ok('F-045 independent expected verified-claim literal is nonempty and not derived from output',
+        expectedVerifiedClaimsLiteral.length > 0
+          && expectedVerifiedClaimsLiteral !== acceptedVerifiedClaims
+          && expectedVerifiedClaimsLiteral[0] !== acceptedVerifiedClaims[0]
+          && expectedVerifiedClaimsLiteral[0].text === 'ترك الصلاة من أعظم الذنوب.',
+        JSON.stringify(expectedVerifiedClaimsLiteral));
+      eq('F-045 verified claim own-enumerable key inventory is complete',
+        verifiedClaimKeyInventory, Object.keys(expectedVerifiedClaimsLiteral[0]).sort());
+      eq('F-045 verified component own-enumerable key inventory is complete',
+        verifiedComponentKeyInventory, Object.keys(expectedVerifiedClaimsLiteral[0].components[0]).sort());
+      ok('F-045 accepted verified claims deep-exactly match the independent semantic literal',
+        isDeepStrictEqual(canonicalSemantic(acceptedVerifiedClaims), expectedVerifiedClaimsSemantic),
+        'expected ' + JSON.stringify(expectedVerifiedClaimsSemantic)
+          + '\n        actual   ' + JSON.stringify(canonicalSemantic(acceptedVerifiedClaims)));
+      console.log('  INFO  F-045 VERIFIED_CLAIM_KEY_INVENTORY=' + verifiedClaimKeyInventory.join(','));
+      console.log('  INFO  F-045 VERIFIED_COMPONENT_KEY_INVENTORY=' + verifiedComponentKeyInventory.join(','));
+      const routedRuns = [];
+      for (const spec of [
+        { label: 'own Standard', tier: { mode: 'own', value: 'standard' }, model: 'f045-standard-channel' },
+        { label: 'own exact Premium', tier: { mode: 'own', value: 'premium' }, model: 'f045-premium-channel' },
+        { label: 'inherited Premium', tier: { mode: 'inherited', value: 'premium' }, model: 'f045-standard-channel' },
+        { label: 'inherited Premium getter', tier: { mode: 'inherited-getter' }, model: 'f045-standard-channel' },
+      ]) {
+        const routed = await drive('accept', new BG.Budget({ now: fixedNow, startedAt: fixedNow() }),
+          undefined, spec.tier);
+        routedRuns.push(routed);
+        eq('F-045 ' + spec.label + ' reaches every downstream model purpose',
+          routed.state.purposes, downstreamPurposes);
+        ok('F-045 ' + spec.label + ' keeps every downstream body on one request-local tier',
+          routed.state.models.length === downstreamPurposes.length
+            && routed.state.models.every((model) => model === spec.model),
+          JSON.stringify(routed.state.models));
+        // OWNER-AUTHORIZED FOUR-NAME CORRECTION: the real F-045 baseline is PARTIAL because its
+        // final candidate remains unresolved. The old FULL wording was false; this exact semantic
+        // comparison is broader and stronger than an outcome-only assertion.
+        eq('F-045 ' + spec.label + ' matches the exact accepted PARTIAL semantic baseline',
+          semanticResult(routed), acceptedSemantic);
+        ok('F-045 ' + spec.label + ' verified claims deep-exactly match the independent semantic literal',
+          isDeepStrictEqual(canonicalSemantic(routed.out.ledger.verifiedClaims()),
+            expectedVerifiedClaimsSemantic),
+          'expected ' + JSON.stringify(expectedVerifiedClaimsSemantic)
+            + '\n        actual   ' + JSON.stringify(canonicalSemantic(routed.out.ledger.verifiedClaims())));
+      }
+      eq('F-045 inherited Premium getter remains unread after request-tier normalization',
+        routedRuns[3].state.getterReads, 0);
       const mixed = await drive('accept', new BG.Budget({ now: fixedNow, startedAt: fixedNow() }), [
         { url: URL, title: 'حكم ترك الصلاة', snippet: 'حكم ترك الصلاة' },
         { url: CONFIRMED_URL, title: 'حكم ترك الصلاة تكاسلًا', snippet: 'حكم ترك الصلاة تكاسلًا' },
@@ -661,9 +1007,14 @@ const templateOf = (p) => {
       ok('F-045 all fixtures used injected transports only',
         forbiddenGlobalFetch === 0
           && [noBudget, accepted].every((r) => r.state.pageFetches === 1)
+          && routedRuns.every((r) => r.state.pageFetches === 1
+            && r.state.unknownFetches === 0
+            && r.state.models.length - r.state.purposes.length === 0)
           && mixed.state.pageFetches === 2,
         JSON.stringify({ forbiddenGlobalFetch,
-          pageFetches: [noBudget, accepted, mixed].map((r) => r.state.pageFetches) }));
+          pageFetches: [noBudget, accepted, ...routedRuns, mixed].map((r) => r.state.pageFetches),
+          unknownFetches: routedRuns.map((r) => r.state.unknownFetches),
+          pending: routedRuns.map((r) => r.state.models.length - r.state.purposes.length) }));
     } finally {
       SAFE.__resetResolver();
       globalThis.fetch = realFetch;

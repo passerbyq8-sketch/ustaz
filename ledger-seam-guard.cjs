@@ -1367,6 +1367,368 @@ const user = (t) => [{ role: 'user', content: t }];
       && /const io = o\.io \|\| localIo;/.test(bt));
   }
 
+  // =========================================================================
+  console.log('\n=== K. SERVER-OWNED MODEL TIER — REAL HANDLER, PLANNER, RETRY AND CONCURRENCY ===');
+  {
+    const { AsyncLocalStorage } = require('node:async_hooks');
+    const requestScope = new AsyncLocalStorage();
+    const ROUTE_PLAN = await esm('lib/ledger/planner.js');
+    const STANDARD = 'planner-standard-sentinel';
+    const PREMIUM = 'planner-premium-sentinel';
+    const LEGACY = 'planner-legacy-sentinel';
+    const routeKeys = ['LEDGER_RAG', 'RFC_V05_MODE', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY',
+      'FOUNDER_SECRET', 'MODEL_STANDARD', 'MODEL_PREMIUM', 'MODEL', 'DAILY_SEARCH_BUDGET'];
+    const routeSaved = routeKeys.map((key) => [key,
+      Object.prototype.hasOwnProperty.call(process.env, key), process.env[key]]);
+    const realFetch = globalThis.fetch;
+    const realSpend = BG.Budget.prototype.spend;
+    const realLog = console.log;
+    const modelCalls = [];
+    const purposeEvents = [];
+    const tierByRequest = new Map();
+    const configs = new Map();
+    const queryCounts = new Map();
+    const unknownFetches = [];
+    const barrierArrivals = new Set();
+    let releaseBarrier;
+    const barrier = new Promise((resolve) => { releaseBarrier = resolve; });
+
+    process.env.LEDGER_RAG = 'true';
+    process.env.RFC_V05_MODE = 'public';
+    process.env.ANTHROPIC_API_KEY = 'planner-routing-anthropic-stub';
+    process.env.BRAVE_API_KEY = 'planner-routing-brave-stub';
+    process.env.FOUNDER_SECRET = 'planner-routing-founder-secret';
+    process.env.MODEL_STANDARD = STANDARD;
+    process.env.MODEL_PREMIUM = PREMIUM;
+    process.env.MODEL = LEGACY;
+    process.env.DAILY_SEARCH_BUDGET = '500';
+
+    const ledgerStore = new Map();
+    STORE.__setRedisForTest({
+      async get(key) { return ledgerStore.has(key) ? ledgerStore.get(key) : null; },
+      async set(key, value) { ledgerStore.set(key, value); return 'OK'; },
+      async setex(key, _ttl, value) { ledgerStore.set(key, value); return 'OK'; },
+      async eval() { return [1, 1]; }, async incr() { return 1; }, async expire() { return 1; },
+    });
+    const capCounts = new Map();
+    DC.__setRedisForTest({
+      async sismember() { return 0; },
+      async mget(...keys) { return keys.map((key) => capCounts.get(key) || null); },
+      pipeline() {
+        const ops = [];
+        return {
+          incr(key) { ops.push(() => { const n = (Number(capCounts.get(key)) || 0) + 1; capCounts.set(key, n); return n; }); return this; },
+          expire() { ops.push(() => 1); return this; },
+          async exec() { return ops.map((op) => op()); },
+        };
+      },
+    });
+    FL.__resetFlagCacheForTest();
+
+    const FULL_Q = 'ما حكم بيع الذهب بالتقسيط؟';
+    const FULL_PLAN = {
+      issues: [{
+        issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
+        protected_entities: ['بيع الذهب'], core_terms: ['التقسيط'], context_vars: [],
+        exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+      }],
+      missing_qualifiers: [], confidence: 'high',
+    };
+    BG.Budget.prototype.spend = function observedSpend(kind, n, purpose) {
+      const requestId = requestScope.getStore();
+      if (requestId && kind === 'modelCalls') purposeEvents.push({ requestId, purpose });
+      return realSpend.call(this, kind, n, purpose);
+    };
+    console.log = (label, value, ...rest) => {
+      const requestId = requestScope.getStore();
+      if (requestId && label === '[tier]' && value && typeof value === 'object') {
+        tierByRequest.set(requestId, { ...value });
+      }
+      realLog(label, value, ...rest);
+    };
+    globalThis.fetch = async (url, init = {}) => {
+      const requestId = requestScope.getStore() || 'no-request';
+      const target = String(url);
+      if (target === '/pipeline' && init && init.method === 'POST') {
+        return new Response('{}', { status: 500, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (target.includes('api.anthropic.com')) {
+        const body = JSON.parse(init.body || '{}');
+        const requestPurposes = purposeEvents.filter((event) => event.requestId === requestId);
+        const purpose = requestPurposes.length ? requestPurposes[requestPurposes.length - 1].purpose : '';
+        const prompt = String(((((body.messages || [])[0] || {}).content) || ''));
+        const call = { requestId, purpose, model: body.model, planner: purpose === 'query_ir', prompt };
+        modelCalls.push(call);
+        const config = configs.get(requestId) || {};
+        let text;
+        if (purpose === 'query_ir') {
+          const queryCount = (queryCounts.get(requestId) || 0) + 1;
+          queryCounts.set(requestId, queryCount);
+          if (config.concurrent && queryCount === 1) {
+            barrierArrivals.add(requestId);
+            if (barrierArrivals.size === 2) releaseBarrier();
+            await barrier;
+          }
+          text = config.retry && queryCount === 1
+            ? '{}'
+            : JSON.stringify(config.safe ? SAFE_PLAN : FULL_PLAN);
+        } else {
+          const payload = modelReply(body);
+          return { ok: true, status: 200, headers: { get: () => 'application/json' },
+            json: async () => payload, text: async () => JSON.stringify(payload) };
+        }
+        const payload = { content: [{ type: 'text', text }], usage: { output_tokens: 20 } };
+        return { ok: true, status: 200, headers: { get: () => 'application/json' },
+          json: async () => payload, text: async () => JSON.stringify(payload) };
+      }
+      if (target.includes('api.search.brave.com')) {
+        const payload = { web: { results: RESULTS.map((result) => ({
+          ...result, description: result.snippet,
+        })) } };
+        return { ok: true, status: 200, headers: { get: () => 'application/json' },
+          json: async () => payload, text: async () => JSON.stringify(payload) };
+      }
+      if (Object.prototype.hasOwnProperty.call(PAGES, target.split('?')[0])) return fetchImpl(target, init);
+      unknownFetches.push({ requestId, target });
+      throw new Error('routing fixture blocked non-stub fetch: ' + target.slice(0, 100));
+    };
+
+    let requestNumber = 0;
+    const makeRequest = (spec) => {
+      requestNumber++;
+      const device = 'plannerroutingdevice' + String(requestNumber).padStart(3, '0');
+      const headers = {
+        'x-murabbi-device': device,
+        'x-ezik-ai-consent': '2026-08-06-1',
+      };
+      if (spec.authorized) headers['x-murabbi-founder'] = DC.founderTokenFor(device);
+      const body = {
+        band: 'adult', age: 30, depth: spec.depth,
+        messages: user(spec.safe ? SAFE_Q : FULL_Q),
+      };
+      if (spec.forged) Object.assign(body, {
+        depth: 'scholar', premium: true, student: true, tier: 'premium',
+        plannerTier: 'premium', usePremium: true, model: 'claude-opus-5',
+        founderUnlocked: true, outcome: 'SAFE_REJECTION', kind: 'safe_rejection',
+      });
+      return { method: 'POST', headers, body };
+    };
+    const makeResponse = () => {
+      const target = fakeRes();
+      target.headersSent = false;
+      target.json = function json(value) { this.jsonBody = value; this.ended++; return this; };
+      return target;
+    };
+    const runCase = async (spec) => {
+      configs.set(spec.id, spec);
+      const response = makeResponse();
+      const request = makeRequest(spec);
+      await requestScope.run(spec.id, () => askMod.default(request, response));
+      const calls = modelCalls.filter((call) => call.requestId === spec.id);
+      const frames = response.frames();
+      return {
+        ...spec, request, response, calls, frames,
+        purposes: purposeEvents.filter((event) => event.requestId === spec.id),
+        tier: tierByRequest.get(spec.id),
+        text: frames.filter((frame) => frame.delta).map((frame) => frame.delta.text).join(''),
+        context: response[A1SSE.FINALIZATION_CONTEXT],
+      };
+    };
+
+    try {
+      ok('routing matrix uses distinct Standard, Premium and legacy sentinels',
+        new Set([STANDARD, PREMIUM, LEGACY]).size === 3);
+      const fullSpecs = [
+        { id: 'CASE_1_STANDARD_BRIEF', authorized: false, depth: 'brief', expectedPremium: false },
+        { id: 'CASE_2_UNAUTHORIZED_DEEP', authorized: false, depth: 'deep', expectedPremium: false },
+        { id: 'CASE_3_FORGED_SCHOLAR', authorized: false, depth: 'scholar', forged: true, expectedPremium: false },
+        { id: 'CASE_4_AUTHORIZED_BRIEF', authorized: true, depth: 'brief', expectedPremium: false },
+        { id: 'CASE_5_AUTHORIZED_DEEP', authorized: true, depth: 'deep', expectedPremium: true },
+        { id: 'CASE_6_AUTHORIZED_SCHOLAR', authorized: true, depth: 'scholar', expectedPremium: true },
+      ];
+      const fullRuns = [];
+      for (const spec of fullSpecs) fullRuns.push(await runCase(spec));
+      for (const run of fullRuns) {
+        const expectedModel = run.expectedPremium ? PREMIUM : STANDARD;
+        ok(run.id + ' real handler authorization owns usePremium', run.tier
+          && run.tier.founderUnlocked === run.authorized && run.tier.usePremium === run.expectedPremium,
+        JSON.stringify(run.tier));
+        ok(run.id + ' correlates every provider call to a named Ledger purpose', run.calls.length >= 2
+          && run.calls.every((call) => call.purpose)
+          && run.calls.filter((call) => call.purpose === 'query_ir').length === 1,
+        JSON.stringify(run.calls));
+        ok(run.id + ' keeps every Ledger call on its request-local model',
+          run.calls.every((call) => call.model === expectedModel), JSON.stringify(run.calls));
+        eq(run.id + ' reaches exactly one reader-answer drafting call',
+          run.calls.filter((call) => call.purpose === 'drafting').length, 1);
+        eq(run.id + ' Premium body count matches entitlement',
+          run.calls.filter((call) => call.model === PREMIUM).length,
+          run.expectedPremium ? run.calls.length : 0);
+        ok(run.id + ' stays on the answer path and closes once', run.context
+          && run.context.kind === 'answer' && run.response.ended === 1
+          && run.frames.filter((frame) => frame.type === 'message_stop').length === 1);
+      }
+      const forgedFull = fullRuns.find((run) => run.id === 'CASE_3_FORGED_SCHOLAR');
+      ok('CASE_3 forged client outcome cannot obtain safe_rejection or Premium', forgedFull
+        && forgedFull.context && forgedFull.context.kind === 'answer'
+        && forgedFull.calls.every((call) => call.model === STANDARD));
+
+      const safeSpecs = [
+        { id: 'CASE_8_SAFE_REJECTION_STANDARD', authorized: false, depth: 'brief', safe: true, expectedPremium: false },
+        { id: 'CASE_9_SAFE_REJECTION_DEEP', authorized: true, depth: 'deep', safe: true, expectedPremium: true },
+        { id: 'CASE_9_SAFE_REJECTION_SCHOLAR', authorized: true, depth: 'scholar', safe: true, expectedPremium: true },
+      ];
+      const safeRuns = [];
+      for (const spec of safeSpecs) safeRuns.push(await runCase(spec));
+      for (const run of safeRuns) {
+        const expectedModel = run.expectedPremium ? PREMIUM : STANDARD;
+        eq(run.id + ' has exactly one query_ir call',
+          run.calls.map((call) => call.purpose), ['query_ir']);
+        eq(run.id + ' planner uses the server-owned model', run.calls[0] && run.calls[0].model, expectedModel);
+        eq(run.id + ' has zero reader-answer calls',
+          run.calls.filter((call) => call.purpose === 'drafting').length, 0);
+        ok(run.id + ' preserves the trusted follow-up byte-exact and typed', run.context
+          && run.context.kind === 'safe_rejection' && run.text.endsWith('- ' + SAFE_QUALIFIER), run.text);
+        ok(run.id + ' closes once without a fabricated source', run.response.ended === 1
+          && run.frames.filter((frame) => frame.type === 'message_stop').length === 1
+          && !run.text.includes('<source'));
+      }
+
+      const malformed = [
+        ['missing', undefined, 'missing'], ['undefined', undefined], ['null', null],
+        ['false', false], ['true', true], ['zero', 0], ['one', 1], ['empty', ''],
+        ['unknown', 'unknown'], ['wrong-case', 'PREMIUM'], ['object', {}], ['array', []],
+        ['inherited-premium', 'premium', 'inherited'],
+        ['inherited-premium-getter', undefined, 'inherited-getter'],
+      ];
+      for (const [label, value, mode = 'own'] of malformed) {
+        const bodies = [];
+        const directFetch = async (_url, init) => {
+          bodies.push(JSON.parse(init.body));
+          const payload = { content: [{ type: 'text', text: '{}' }] };
+          return { ok: true, status: 200, json: async () => payload, text: async () => JSON.stringify(payload) };
+        };
+        const base = { budget: new BG.Budget({ now: () => 1770000000000 }), fetchImpl: directFetch };
+        let options = base;
+        if (mode === 'own') options = { ...base, tier: value };
+        if (mode === 'inherited') options = Object.assign(Object.create({ tier: value }), base);
+        if (mode === 'inherited-getter') {
+          const proto = {};
+          Object.defineProperty(proto, 'tier', {
+            enumerable: true,
+            get() { throw new Error('planner inherited tier getter must not run'); },
+          });
+          options = Object.assign(Object.create(proto), base);
+        }
+        await ROUTE_PLAN.planQuestion(FULL_Q, options);
+        eq('CASE_7 ' + label + ' keeps initial-plus-repair count', bodies.length, 2);
+        ok('CASE_7 ' + label + ' fails closed across initial and repair',
+          bodies.every((body) => body.model === STANDARD), JSON.stringify(bodies.map((body) => body.model)));
+      }
+
+      const runSeamTierBoundary = async ({ id, mode, value, expectedModel }) => {
+        const spec = { id, safe: true, retry: true };
+        configs.set(id, spec);
+        const response = makeResponse();
+        let finalOutcome = null;
+        const base = {
+          dailyBudgetMode: 'fixture', messages: user(SAFE_Q),
+          band: 'adult', audienceBand: 'adult', bandSites: SP.searchableDomains(),
+          search: async () => { throw new Error('safe plan must not search'); },
+          fetchImpl: globalThis.fetch, adapterFetchImpl: globalThis.fetch,
+          buildSourceTag: askMod.buildSourceTag,
+          registerFinalizerOutcome: (outcome) => { finalOutcome = outcome; },
+          now: () => 1770000000000, startedAt: 1770000000000,
+        };
+        let options = base;
+        if (mode === 'own') options = { ...base, tier: value };
+        if (mode === 'inherited') options = Object.assign(Object.create({ tier: value }), base);
+        if (mode === 'inherited-getter') {
+          const proto = {};
+          Object.defineProperty(proto, 'tier', {
+            enumerable: true,
+            get() { throw new Error('seam inherited tier getter must not run'); },
+          });
+          options = Object.assign(Object.create(proto), base);
+        }
+        const out = await requestScope.run(id, () => SEAM.runLedgerTurn(response, options));
+        const calls = modelCalls.filter((call) => call.requestId === id);
+        eq(id + ' drives initial and repair through the real seam',
+          calls.map((call) => call.purpose), ['query_ir', 'query_ir']);
+        eq(id + ' keeps both seam-routed bodies on the expected local model',
+          calls.map((call) => call.model), [expectedModel, expectedModel]);
+        ok(id + ' remains a typed SAFE_REJECTION with one close and no source',
+          out.outcome === 'SAFE_REJECTION' && finalOutcome === 'SAFE_REJECTION'
+            && response.ended === 1
+            && response.frames().filter((frame) => frame.type === 'message_stop').length === 1
+            && !response.body.includes('<source'));
+      };
+      await runSeamTierBoundary({
+        id: 'CASE_7_SEAM_INHERITED_PREMIUM', mode: 'inherited', value: 'premium', expectedModel: STANDARD,
+      });
+      await runSeamTierBoundary({
+        id: 'CASE_7_SEAM_INHERITED_GETTER_PREMIUM', mode: 'inherited-getter', expectedModel: STANDARD,
+      });
+      await runSeamTierBoundary({
+        id: 'CASE_7_SEAM_MISSING', mode: 'missing', expectedModel: STANDARD,
+      });
+      await runSeamTierBoundary({
+        id: 'CASE_7_SEAM_MALFORMED', mode: 'own', value: {}, expectedModel: STANDARD,
+      });
+      await runSeamTierBoundary({
+        id: 'CASE_7_SEAM_OWN_STANDARD', mode: 'own', value: 'standard', expectedModel: STANDARD,
+      });
+      await runSeamTierBoundary({
+        id: 'CASE_7_SEAM_OWN_PREMIUM', mode: 'own', value: 'premium', expectedModel: PREMIUM,
+      });
+
+      const concurrentSpecs = [
+        { id: 'CASE_11_CONCURRENT_STANDARD', authorized: false, depth: 'brief', safe: true,
+          retry: true, concurrent: true, expectedPremium: false },
+        { id: 'CASE_11_CONCURRENT_PREMIUM', authorized: true, depth: 'deep', safe: true,
+          retry: true, concurrent: true, expectedPremium: true },
+      ];
+      const concurrentRuns = await Promise.all(concurrentSpecs.map((spec) => runCase(spec)));
+      eq('CASE_11 deterministic barrier observed both requests before release',
+        Array.from(barrierArrivals).sort(), concurrentSpecs.map((spec) => spec.id).sort());
+      for (const run of concurrentRuns) {
+        const expectedModel = run.expectedPremium ? PREMIUM : STANDARD;
+        eq(run.id + ' keeps two query_ir attempts through repair',
+          run.calls.map((call) => call.purpose), ['query_ir', 'query_ir']);
+        eq(run.id + ' keeps one model across the retry',
+          run.calls.map((call) => call.model), [expectedModel, expectedModel]);
+        ok(run.id + ' retains its own authorization with no cross-request leak', run.tier
+          && run.tier.usePremium === run.expectedPremium
+          && run.context && run.context.kind === 'safe_rejection');
+        eq(run.id + ' reaches no reader-answer during retry-safe-rejection',
+          run.calls.filter((call) => call.purpose === 'drafting').length, 0);
+      }
+
+      const partial = A1FINAL.finalizeReaderText({
+        kind: askMod.ledgerFinalizerKind('PARTIAL'), text: 'هذا واجب.',
+        fallbackText: A1FINAL.FINALIZER_REFUSAL, consistencyContext: { pageTexts: [] },
+      });
+      const documented = 'هذا واجب.';
+      const full = A1FINAL.finalizeReaderText({
+        kind: askMod.ledgerFinalizerKind('FULL'), text: documented,
+        consistencyContext: { pageTexts: [documented] },
+      });
+      ok('CASE_10 PARTIAL unsourced ruling remains blocked',
+        !partial.ok && partial.problems.includes('RULING_WITHOUT_SOURCE'));
+      ok('CASE_10 documented FULL remains an answer and passes', full.ok && full.text === documented);
+      eq('CASE_10 unknown outcome remains an answer', askMod.ledgerFinalizerKind('UNKNOWN'), 'answer');
+      eq('routing matrix attempted no live or unstubbed network', unknownFetches, []);
+    } finally {
+      globalThis.fetch = realFetch;
+      BG.Budget.prototype.spend = realSpend;
+      console.log = realLog;
+      for (const [key, had, value] of routeSaved) {
+        if (had) process.env[key] = value; else delete process.env[key];
+      }
+      FL.__resetFlagCacheForTest();
+    }
+  }
+
   SF.__resetResolver();
   for (const [k, v] of Object.entries(savedEnv)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
 

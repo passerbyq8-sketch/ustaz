@@ -141,6 +141,41 @@ function recordingRedis() {
 }
 
 (async function main() {
+  // Fixture-only transport audit. Every external boundary is injected below; the global fetch
+  // trap is evidence that no forgotten path escaped the fixture.
+  const MODEL_URL = 'https://api.anthropic.com/v1/messages';
+  const ADAPTER_SEARCH_URL = 'https://shekhcp.binothaimeen.net/api/search-data';
+  const ADAPTER_SHOW_PREFIX = 'https://shekhapi.binothaimeen.net/lessons/audios/show/';
+  const fetchAudit = { attempts: [], live: 0, unknown: 0 };
+  const realGlobalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    fetchAudit.live++;
+    fetchAudit.attempts.push({ boundary: 'global', url: String(url) });
+    throw new Error('telemetry fixture blocked live fetch: ' + String(url));
+  };
+  const recordModelFetch = (url) => {
+    const target = String(url);
+    fetchAudit.attempts.push({ boundary: 'model', url: target });
+    if (target !== MODEL_URL) {
+      fetchAudit.unknown++;
+      throw new Error('telemetry fixture unknown model URL: ' + target);
+    }
+  };
+  const adapterFetchImpl = async (url) => {
+    const target = String(url);
+    fetchAudit.attempts.push({ boundary: 'adapter', url: target });
+    if (target !== ADAPTER_SEARCH_URL && !target.startsWith(ADAPTER_SHOW_PREFIX)) {
+      fetchAudit.unknown++;
+      throw new Error('telemetry fixture unknown adapter URL: ' + target);
+    }
+    const payload = target === ADAPTER_SEARCH_URL ? { data: [] } : { data: null };
+    return {
+      ok: true, status: 200,
+      headers: { get: () => 'application/json' },
+      json: async () => payload,
+      text: async () => JSON.stringify(payload),
+    };
+  };
   console.log('=== ledger-telemetry-guard — the metrics record, and the engine that feeds it ===');
 
   const ownSections = sectionIds(read('guards/ledger-telemetry-guard.cjs'));
@@ -229,11 +264,14 @@ function recordingRedis() {
     const PLAN = await esm('lib/ledger/planner.js');
     const Q = 'ما حكم صيام يوم عرفة لغير الحاج؟';
     const tpl = templateOf(PLAN.buildPlannerPrompt(Q));
-    const stubFetch = async () => ({
-      ok: true, status: 200,
-      json: async () => ({ content: [{ type: 'text', text: tpl }] }),
-      text: async () => JSON.stringify({ content: [{ type: 'text', text: tpl }] }),
-    });
+    const stubFetch = async (url) => {
+      recordModelFetch(url);
+      return {
+        ok: true, status: 200,
+        json: async () => ({ content: [{ type: 'text', text: tpl }] }),
+        text: async () => JSON.stringify({ content: [{ type: 'text', text: tpl }] }),
+      };
+    };
     // callModel() refuses with `no-key` before it reaches fetchImpl, so a fake key is set for the
     // drive and removed after. Nothing leaves the machine: every call in this block is the stub.
     const hadKey = Object.prototype.hasOwnProperty.call(process.env, 'ANTHROPIC_API_KEY');
@@ -243,7 +281,7 @@ function recordingRedis() {
     try {
       out = await ENG.runEngine(Q, {
         band: 'adult', audienceBand: 'adult', bandSites: ['islamqa.info'],
-        fetchImpl: stubFetch, search: async () => [],
+        fetchImpl: stubFetch, adapterFetchImpl, search: async () => [],
         flagState: 'mode_public',
         dailyBudget: new DB.DailySearchBudget({ limit: 100, now: () => 1770000000000, store: DB.fakeStore() }),
       });
@@ -437,11 +475,14 @@ function recordingRedis() {
     const PLAN = await esm('lib/ledger/planner.js');
     const Q = 'ما حكم صيام يوم عرفة لغير الحاج؟';
     const tpl = templateOf(PLAN.buildPlannerPrompt(Q));
-    const stubFetch = async () => ({
-      ok: true, status: 200,
-      json: async () => ({ content: [{ type: 'text', text: tpl }] }),
-      text: async () => JSON.stringify({ content: [{ type: 'text', text: tpl }] }),
-    });
+    const stubFetch = async (url) => {
+      recordModelFetch(url);
+      return {
+        ok: true, status: 200,
+        json: async () => ({ content: [{ type: 'text', text: tpl }] }),
+        text: async () => JSON.stringify({ content: [{ type: 'text', text: tpl }] }),
+      };
+    };
     const fakeRes = () => {
       const frames = [];
       return { frames, write(s) { frames.push(s); }, end() { frames.push('<<END>>'); } };
@@ -451,7 +492,7 @@ function recordingRedis() {
       const out = await SEAM.runLedgerTurn(res, {
         messages: [{ role: 'user', content: Q }],
         band: 'adult', audienceBand: 'adult', bandSites: ['islamqa.info'],
-        fetchImpl: stubFetch, search: async () => [],
+        fetchImpl: stubFetch, adapterFetchImpl, search: async () => [],
         flagState: 'mode_public',
         traceId: 'tr_fixed01',
         dailyBudget: new DB.DailySearchBudget({ limit: 100, now: () => 1770000000000, store: DB.fakeStore() }),
@@ -515,11 +556,14 @@ function recordingRedis() {
     const PLAN = await esm('lib/ledger/planner.js');
     const Q = 'ما حكم صيام يوم عرفة لغير الحاج؟';
     const tpl = templateOf(PLAN.buildPlannerPrompt(Q));
-    const stubFetch = async () => ({
-      ok: true, status: 200,
-      json: async () => ({ content: [{ type: 'text', text: tpl }] }),
-      text: async () => JSON.stringify({ content: [{ type: 'text', text: tpl }] }),
-    });
+    const stubFetch = async (url) => {
+      recordModelFetch(url);
+      return {
+        ok: true, status: 200,
+        json: async () => ({ content: [{ type: 'text', text: tpl }] }),
+        text: async () => JSON.stringify({ content: [{ type: 'text', text: tpl }] }),
+      };
+    };
     // ONE timeline, both kinds of event on it, so "after" is a fact about order and not a claim
     // about which file a line appears in.
     const timeline = [];
@@ -552,7 +596,7 @@ function recordingRedis() {
       await SEAM.runLedgerTurn(res, {
         messages: [{ role: 'user', content: Q }],
         band: 'adult', audienceBand: 'adult', bandSites: ['islamqa.info'],
-        fetchImpl: stubFetch, search: async () => [],
+        fetchImpl: stubFetch, adapterFetchImpl, search: async () => [],
         flagState: 'mode_public', traceId: 'tr_order1',
         dailyBudget: new DB.DailySearchBudget({ limit: 100, now: () => 1770000000000, store: DB.fakeStore() }),
       });
@@ -833,6 +877,15 @@ function recordingRedis() {
       telemetryExitProblems(unwrappedFixture, 'runLedgerTurn').length === 3,
       JSON.stringify(telemetryExitProblems(unwrappedFixture, 'runLedgerTurn')));
   }
+
+  ok('telemetry fixture exercised the external adapter through its injected boundary',
+    fetchAudit.attempts.some((attempt) => attempt.boundary === 'adapter'));
+  ok('telemetry fixture LIVE_FETCHES=0', fetchAudit.live === 0, JSON.stringify(fetchAudit.attempts));
+  ok('telemetry fixture UNKNOWN_FETCHES=0', fetchAudit.unknown === 0, JSON.stringify(fetchAudit.attempts));
+  console.log('FETCH_ATTEMPTS=' + JSON.stringify(fetchAudit.attempts));
+  console.log('LIVE_FETCHES=' + fetchAudit.live);
+  console.log('UNKNOWN_FETCHES=' + fetchAudit.unknown);
+  globalThis.fetch = realGlobalFetch;
 
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'

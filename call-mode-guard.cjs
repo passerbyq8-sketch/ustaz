@@ -836,19 +836,47 @@ async function checkModelRouting() {
       moduleBuiltin.syncBuiltinESMExports();
     }
 
-    // Drive the public Ledger path through api/ask.js. The planner is always premium; every later
-    // model request must inherit only the server-authorized answer tier, never body.tier/depth.
-    const driveLedger = async (extra, authorized) => drive(mkReq({
-      question: 'ما حكم قتل النمل؟', age: 25, band: 'adult', extra, authorized,
-    }), 'ledger');
-    const ledgerStandard = await driveLedger({ depth: 'scholar', tier: 'premium' }, false);
+    // Drive the public Ledger path through api/ask.js. D6 deliberately has no founder header:
+    // its forged depth/tier fields must leave EVERY provider body on the server-owned Standard
+    // channel, including the planner. D7 below keeps the authorized positive controls unchanged.
+    const driveLedger = async (extra, authorized) => {
+      const request = mkReq({
+        question: 'ما حكم قتل النمل؟', age: 25, band: 'adult', extra, authorized,
+      });
+      return { ...(await drive(request, 'ledger')), request };
+    };
+    let d6Tier = null;
+    const d6OriginalLog = console.log;
+    console.log = (label, value, ...rest) => {
+      if (label === '[tier]' && value && typeof value === 'object') d6Tier = { ...value };
+      d6OriginalLog(label, value, ...rest);
+    };
+    let ledgerStandard;
+    try {
+      ledgerStandard = await driveLedger({ depth: 'scholar', tier: 'premium' }, false);
+    } finally {
+      console.log = d6OriginalLog;
+    }
     const standardPlans = ledgerStandard.bodies.filter(isPlanner);
     const standardStages = ledgerStandard.bodies.filter((b) => !isPlanner(b));
-    if (standardPlans.length && standardPlans.every((b) => b.model === PREMIUM_SENTINEL)) pass('D6 Ledger planner uses the server-owned PREMIUM resolver');
+    if (!Object.prototype.hasOwnProperty.call(ledgerStandard.request.headers, DAY.FOUNDER_HEADER)) {
+      pass('D6 enters through api/ask with the forged request still unauthenticated');
+    } else fail('D6 fixture unexpectedly carries a founder credential');
+    if (d6Tier && d6Tier.founderUnlocked === false && d6Tier.usePremium === false) {
+      pass('D6 real handler authorization keeps the forged request Standard');
+    } else fail('D6 handler tier decision = ' + JSON.stringify(d6Tier));
+    if (standardPlans.length && standardPlans.every((b) => b.model === STANDARD_SENTINEL)) pass('D6 Ledger planner inherits the server-owned STANDARD resolver');
     else fail('D6 Ledger planner models = ' + JSON.stringify(standardPlans.map((b) => b.model)));
     if (standardStages.length && standardStages.every((b) => b.model === STANDARD_SENTINEL)) {
       pass('D6 forged Ledger premium/depth stays on standard Sonnet stages');
     } else fail('D6 forged Ledger downstream models = ' + JSON.stringify(standardStages.map((b) => b.model)));
+    if (ledgerStandard.bodies.length === 2
+        && ledgerStandard.bodies.every((body) => body.model === STANDARD_SENTINEL)) {
+      pass('D6 every provider body for the forged request is Standard');
+    } else fail('D6 provider bodies = ' + JSON.stringify(ledgerStandard.bodies.map((b) => b.model)));
+    if (ledgerStandard.bodies.filter((body) => body.model === PREMIUM_SENTINEL).length === 0) {
+      pass('D6 forged request has zero Premium bodies, including planner repair/retry');
+    } else fail('D6 forged request reached Premium');
 
     for (const depth of ['deep', 'scholar']) {
       const premium = await driveLedger({ depth }, true);
