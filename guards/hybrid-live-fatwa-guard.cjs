@@ -429,7 +429,7 @@ async function runHybridGuard() {
       traveller: /مسافر/u.test(broadJoin.text), rain: /المطر/u.test(broadJoin.text),
       clarification: /وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(broadJoin.text) }));
   ok('the live veil query explicitly searches the documented disagreement within Brave limits',
-    veilLiveQueries.length === 2 && veilLiveQueries.some((query) => query.includes('غير واجب'))
+    veilLiveQueries.length === 2 && veilLiveQueries.some((query) => query.includes('فرض أم مستحب') && query.includes('ليس بواجب'))
       && veilLiveQueries.every((query) => BQ.measureQuery(query).chars <= 380
         && BQ.measureQuery(query).words <= 45),
     JSON.stringify(veilLiveQueries));
