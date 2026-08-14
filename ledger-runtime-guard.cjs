@@ -326,7 +326,7 @@ async function main() {
   {
     const ask = read('api/ask.js');
     const decideAt = ask.indexOf('const ledgerPath = await decidePath(req);');
-    const branchAt = ask.indexOf("if (ledgerPath.path === 'ledger') {");
+    const branchAt = ask.indexOf("if (ledgerPath.path === 'ledger' && storedContext.runtime === 'HADITH') {");
     ok('the engine is never reached without decidePath saying so',
       decideAt > -1 && branchAt > decideAt);
     ok('...and only decidePath can set the value the branch tests',
@@ -338,7 +338,7 @@ async function main() {
     && /GEN ROUTE: ONE streamed round, NO tools/.test(read('api/ask.js'))
     && /ROUND 1 \(DEEN\): non-streamed, WITH tools, search FORCED/.test(read('api/ask.js')));
   ok('the ledger branch never falls through into the legacy path',
-    /if \(ledgerPath\.path === 'ledger'\) \{[\s\S]*?return res\.end\(\);\r?\n    \}/.test(read('api/ask.js')));
+    /if \(ledgerPath\.path === 'ledger' && storedContext\.runtime === 'HADITH'\) \{[\s\S]*?return res\.end\(\);\r?\n    \}/.test(read('api/ask.js')));
   ok('no token value is ever logged by the flag module',
     !/console\.(log|warn|error)/.test(read('lib/ledger/flag.js')));
   // The one log line the ledger branch writes: counts, an outcome code and a trace id. Asserted

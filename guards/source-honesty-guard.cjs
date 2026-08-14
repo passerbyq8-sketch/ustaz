@@ -674,13 +674,13 @@ const stripComments = (s) => String(s)
     const atFilter = ASK.indexOf('const impermissible = effectiveRoute');
     const atSearch = ASK.indexOf('const LIVE_QUANTITY = worldIntent.reason');
     const atChild = ASK.indexOf("if (ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'");
-    const atLedger = ASK.indexOf("if (ledgerPath.path === 'ledger') {");
+    const atLedger = ASK.indexOf("if (ledgerPath.path === 'ledger' && storedContext.runtime === 'HADITH') {");
     ok('E11: ...and it sits above the SEARCH — a refusal must not spend a unit of the day first',
       atFilter > 0 && atSearch > 0 && atFilter < atSearch,
       'filter=' + atFilter + ' search=' + atSearch);
     ok('E11: ...above the CHILD-BENIGN branch, which returns and would swallow it for young/teen',
       atChild > 0 && atFilter < atChild, 'filter=' + atFilter + ' child=' + atChild);
-    ok('E11: ...and above the LEDGER branch, which returns for every reader',
+    ok('E11: ...and above the attributed-HADITH LEDGER branch, which returns before legacy',
       atLedger > 0 && atFilter < atLedger && atSearch < atLedger,
       'filter=' + atFilter + ' search=' + atSearch + ' ledger=' + atLedger);
     ok('E11: ...and the world SEARCH is above the child branch too, for the same reason',

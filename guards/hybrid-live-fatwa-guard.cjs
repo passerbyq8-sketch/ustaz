@@ -90,10 +90,10 @@ async function runHybridGuard() {
   console.log('\n=== hybrid-live-fatwa — three paths, grounding, degradation and mutants ===');
   const corpusBefore = fs.readFileSync(CORPUS);
   const livenessBefore = fs.readFileSync(LIVENESS);
-  const [H, S, R, A, BQ, FC, FSVC, RET] = await Promise.all([
+  const [H, S, R, A, BQ, FC, FSVC, RET, CLOSED] = await Promise.all([
     esm('lib/hybrid-deen.js'), esm('lib/stored-deen.js'), esm('lib/route-classify.js'),
     esm('lib/ask-plan.js'), esm('lib/brave-query.js'), esm('lib/fatwa-contract.js'),
-    esm('lib/fatwa-service.js'), esm('lib/retrieve.js'),
+    esm('lib/fatwa-service.js'), esm('lib/retrieve.js'), esm('lib/closed-deen.js'),
   ]);
   const JOIN = 'ما حكم الجمع بين الصلاتين للمسافر؟';
   const BAZ = 'ما رأي ابن باز في الجمع بين الصلاتين للمسافر؟';
@@ -105,9 +105,20 @@ async function runHybridGuard() {
     const c = contextFor(S, R, A, q);
     ok('router-first keeps GENERAL out of DEEN — ' + q, c.runtime === 'GENERAL');
   }
-  for (const q of ['اكتب آية الكرسي كاملة', 'ما صحة حديث إنما الأعمال بالنيات؟', 'أذكار الصباح']) {
+  const closedFixtures = [
+    ['اكتب آية الكرسي كاملة', '<verse surah_num="2" ayah="255"></verse>'],
+    ['ما صحة حديث إنما الأعمال بالنيات؟', '<hadith narrator="عمر بن الخطاب رضي الله عنه"'],
+    ['أذكار الصباح', '<dhikr id="27"></dhikr>'],
+    ['كيف أتوضأ؟', '<worship id="wudu"></worship>'],
+  ];
+  for (const [q, marker] of closedFixtures) {
     const c = contextFor(S, R, A, q);
     ok('closed specialised route bypasses hybrid — ' + q, c.runtime !== 'STORED_FIQH');
+    const out = CLOSED.runClosedDeenTurn(c);
+    ok('closed route is complete local output with zero retrieval — ' + q, out && out.text.includes(marker)
+      && out.storedCorpusCalls === 0 && out.fatwaSearchCalls === 0
+      && out.braveSearchCalls === 0 && out.livePageFetchCalls === 0
+      && out.modelCallsForReligiousAnswer === 0 && !out.text.includes('<source'), JSON.stringify(out));
   }
   const switched = contextFor(S, R, A, 'هل خالف ابن تيمية أهل السنة والجماعة؟', [
     { role: 'user', content: 'ما رأي ستيف جوبز في التصميم؟' }, { role: 'assistant', content: 'جواب.' },
@@ -271,6 +282,9 @@ async function runHybridGuard() {
   const engineSource = fs.readFileSync(path.join(ROOT, 'lib', 'ledger', 'engine.js'), 'utf8');
   ok('public ordinary DEEN dynamically invokes the hybrid coordinator', askSource.includes("await import('../lib/hybrid-deen.js')")
     && askSource.includes('if (toLedger)'));
+  ok('router-first handler limits Ledger to unresolved HADITH after local closed answers',
+    askSource.includes("runClosedDeenTurn(storedContext)")
+    && askSource.includes("ledgerPath.path === 'ledger' && storedContext.runtime === 'HADITH'"));
   ok('Ledger records a missing qualifier but does not early-return a follow-up', engineSource.includes('REJECTION.QUALIFIER_MISSING')
     && !engineSource.includes("return finish({ outcome: 'SAFE_REJECTION', text: followUpText(plan)"));
 

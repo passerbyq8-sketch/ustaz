@@ -110,7 +110,7 @@ const user = (t) => [{ role: 'user', content: t }];
   // asserting something false about the shipped path rather than something true about the new
   // one. The branch body is sliced out by brace-matching from its own `if`.
   const ledgerBranch = (() => {
-    const start = askCode.indexOf("if (ledgerPath.path === 'ledger') {");
+    const start = askCode.indexOf("if (ledgerPath.path === 'ledger' && storedContext.runtime === 'HADITH') {");
     if (start === -1) return '';
     let depth = 0;
     for (let i = askCode.indexOf('{', start); i < askCode.length; i++) {
@@ -200,18 +200,18 @@ const user = (t) => [{ role: 'user', content: t }];
   const anonReq = { headers: {} };
 
   const LONG = ' وهذا مبسوط في كتب أهل العلم مع بيان الأدلة والتفصيل الوافي في المسألة.'.repeat(6);
-  const HANDLER_SEAM_Q = 'ما الفرق بين الخرسانة المسلحة وسابقة الإجهاد؟';
+  const HANDLER_SEAM_Q = 'ما صحة حديث المسلم من سلم المسلمون من لسانه ويده؟';
   const PAGES = {
     'https://islamqa.info/ar/answers/9001/x':
       '<html><head><title>ص</title></head><body><article><p>السؤال: ما حكم بيع الذهب بالتقسيط؟</p>'
       + '<p>الجواب: الحمد لله. بيع الذهب بالتقسيط لا يجوز لعدم التقابض.' + LONG + '</p></article></body></html>',
-    'https://islamqa.info/ar/answers/9002/concrete':
-      '<html><head><title>الخرسانة المسلحة وسابقة الإجهاد</title></head><body><article><p>السؤال: '
-      + HANDLER_SEAM_Q + '</p><p>الجواب: الخرسانة المسلحة تستخدم تسليحا عاديا، أما سابقة الإجهاد '
-      + 'فتطبق فيها إجهادات ضغط قبل أحمال الخدمة.' + LONG + '</p></article></body></html>',
+    'https://islamqa.info/ar/answers/9002/hadith':
+      '<html><head><title>حديث المسلم من سلم المسلمون من لسانه ويده</title></head><body><article><p>السؤال: '
+      + HANDLER_SEAM_Q + '</p><p>الجواب: حديث المسلم من سلم المسلمون من لسانه ويده حديث صحيح.'
+      + LONG + '</p></article></body></html>',
   };
   const RESULTS = [{ url: 'https://islamqa.info/ar/answers/9001/x', title: 'بيع الذهب بالتقسيط', snippet: '' }];
-  const HANDLER_RESULTS = [{ url: 'https://islamqa.info/ar/answers/9002/concrete', title: 'الخرسانة المسلحة وسابقة الإجهاد', snippet: '' }];
+  const HANDLER_RESULTS = [{ url: 'https://islamqa.info/ar/answers/9002/hadith', title: 'حديث المسلم من سلم المسلمون من لسانه ويده', snippet: '' }];
 
   // The planner double reads the question it was ACTUALLY given, so a mutilated question shows
   // up as a wrong plan rather than as a silently different search.
@@ -244,12 +244,12 @@ const user = (t) => [{ role: 'user', content: t }];
       if (forceSafeRejectionPlan) {
         return { content: [{ type: 'text', text: JSON.stringify(SAFE_PLAN) }], usage: { output_tokens: 50 } };
       }
-      if (/الخرسانة|الإجهاد/.test(q)) {
+      if (/المسلمون|لسانه|يده/.test(q)) {
         return { content: [{ type: 'text', text: JSON.stringify({
           issues: [{
-            issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
-            protected_entities: ['الخرسانة المسلحة'], core_terms: ['سابقة الإجهاد'], context_vars: [],
-            exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+            issue_id: 'iss_1', intent: 'hadith_grading', requested_authority_id: null,
+            protected_entities: ['المسلمون'], core_terms: ['لسانه', 'يده'], context_vars: [],
+            exact_user_phrases: ['المسلم من سلم المسلمون من لسانه ويده'], required_slots: ['hadith_grading'], dependencies: [], temporal_scope: 'unknown',
           }],
           missing_qualifiers: [], confidence: 'high',
         }) }], usage: { output_tokens: 50 } };
@@ -266,13 +266,17 @@ const user = (t) => [{ role: 'user', content: t }];
       }) }], usage: { output_tokens: 50 } };
     }
     if (u.includes('استخرِجِ الادّعاءاتِ الذرّيّة')) {
-      const m = u.match(/\[([^\]\s]+#u\d+s\d+)\]\s*([^\n]*)/);
+      const matches = Array.from(u.matchAll(/\[([^\]\s]+#u\d+s\d+)\]\s*([^\n]*)/g));
+      const handlerHadith = u.includes(HANDLER_SEAM_Q);
+      const m = handlerHadith
+        ? (matches.find((item) => item[2].includes('الجواب:')) || matches[0])
+        : matches[0];
       if (!m) return { content: [{ type: 'text', text: '{"claims":[]}' }], usage: {} };
       return { content: [{ type: 'text', text: JSON.stringify({ claims: [{
-        claim_id: 'c1', text: m[2].slice(0, 100), slot: 'ruling', span_ids: [m[1]],
+        claim_id: 'c1', text: m[2].slice(0, 100), slot: handlerHadith ? 'hadith_grading' : 'ruling', span_ids: [m[1]],
         components: [
-          { component_id: 'k1', kind: 'subject', text: 'بيع الذهب بالتقسيط', span_ids: [m[1]] },
-          { component_id: 'k2', kind: 'ruling', text: m[2].slice(0, 60), span_ids: [m[1]] },
+          { component_id: 'k1', kind: 'subject', text: handlerHadith ? 'حديث المسلم من سلم المسلمون من لسانه ويده' : 'بيع الذهب بالتقسيط', span_ids: [m[1]] },
+          { component_id: 'k2', kind: 'ruling', text: handlerHadith ? 'حديث صحيح' : m[2].slice(0, 60), span_ids: [m[1]] },
         ],
       }] }) }], usage: {} };
     }
@@ -462,7 +466,7 @@ const user = (t) => [{ role: 'user', content: t }];
         return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => payload, text: async () => JSON.stringify(payload) };
       }
       if (u.includes('api.search.brave.com')) {
-        const fixtures = /الخرسانة|الإجهاد/.test(decodeURIComponent(u)) ? HANDLER_RESULTS : RESULTS;
+        const fixtures = /المسلمون|لسانه|يده/.test(decodeURIComponent(u)) ? HANDLER_RESULTS : RESULTS;
         const results = fixtures.map((result) => a1EvidenceText ? { ...result, url: result.url + '?a1=handler-green' } : { ...result });
         return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => ({ web: { results: results.map((result) => ({ ...result, description: result.snippet })) } }) };
       }
@@ -512,7 +516,11 @@ const user = (t) => [{ role: 'user', content: t }];
       const card = askMod.buildSourceTag({
         url: HANDLER_RESULTS[0].url + '?a1=handler-green', title: HANDLER_RESULTS[0].title,
       }).tag;
-      ok('F-010 handler Ledger green preserves evidence-backed text and card byte-for-byte', greenText === unsafe + '\n' + card);
+      const partialNote = 'وجدنا مواد تتناول المسألة، لكن لم يثبت منها ما يكفي لإسناد هذا الجزء إسنادًا صريحًا.';
+      const expectedHadithGreen = unsafe + '\n\n' + partialNote + '\n' + card;
+      ok('F-010 handler Ledger green preserves evidence-backed text, typed partial note and card byte-for-byte',
+        greenText === expectedHadithGreen,
+        JSON.stringify({ expected: expectedHadithGreen, actual: greenText }));
       ok('F-010 handler Ledger green callback fills context before first end', greenContext && greenContext.sources.length === 1 && greenContext.sources[0].passage.includes(unsafe) && greenRes.preFinalizerWrites === 0 && greenRes.preFinalizerEnds === 0 && greenFrames.filter((frame) => frame.type === 'message_stop').length === 1);
 
       const trusted = await runSeam(SAFE_Q, {
@@ -1449,9 +1457,9 @@ const user = (t) => [{ role: 'user', content: t }];
     const FULL_Q = 'ما حكم بيع الذهب بالتقسيط؟';
     const FULL_PLAN = {
       issues: [{
-        issue_id: 'iss_1', intent: 'fatwa', requested_authority_id: null,
-        protected_entities: ['الخرسانة المسلحة'], core_terms: ['سابقة الإجهاد'], context_vars: [],
-        exact_user_phrases: [], required_slots: [], dependencies: [], temporal_scope: 'unknown',
+        issue_id: 'iss_1', intent: 'hadith_grading', requested_authority_id: null,
+        protected_entities: ['المسلمون'], core_terms: ['لسانه', 'يده'], context_vars: [],
+        exact_user_phrases: ['المسلم من سلم المسلمون من لسانه ويده'], required_slots: ['hadith_grading'], dependencies: [], temporal_scope: 'unknown',
       }],
       missing_qualifiers: [], confidence: 'high',
     };
@@ -1503,7 +1511,7 @@ const user = (t) => [{ role: 'user', content: t }];
           json: async () => payload, text: async () => JSON.stringify(payload) };
       }
       if (target.includes('api.search.brave.com')) {
-        const fixtures = /الخرسانة|الإجهاد/.test(decodeURIComponent(target)) ? HANDLER_RESULTS : RESULTS;
+        const fixtures = /المسلمون|لسانه|يده/.test(decodeURIComponent(target)) ? HANDLER_RESULTS : RESULTS;
         const payload = { web: { results: fixtures.map((result) => ({
           ...result, description: result.snippet,
         })) } };

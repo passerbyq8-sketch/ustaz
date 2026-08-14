@@ -106,6 +106,7 @@ import {
   resolveStoredContext,
   runStoredFiqhTurn,
 } from '../lib/stored-deen.js';
+import { runClosedDeenTurn } from '../lib/closed-deen.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const STANDARD_MODEL = process.env.MODEL_STANDARD || process.env.MODEL || 'claude-sonnet-5';
@@ -1110,6 +1111,28 @@ export default async function handler(req, res) {
       currentPlan,
       lexicalRoute: effectiveRoute,
     });
+    const closedOut = runClosedDeenTurn(storedContext);
+    if (closedOut) {
+      // The browser expands these server-owned tags from frozen local data.  No
+      // retrieval adapter or model is involved, and the final takhrij lock sees
+      // the exact local bibliography used by a registered hadith when present.
+      finalizerContext.allowWireOwnedCards = false;
+      finalizerContext.consistencyContext = null;
+      if (Array.isArray(closedOut.finalizerSources)) {
+        storedFinalizerSources.push(...closedOut.finalizerSources);
+      }
+      console.log('[closed-deen]', {
+        route: storedContext.runtime,
+        sourceIds: closedOut.sourceIds || [],
+        outcome: closedOut.outcome,
+        corpusCalls: closedOut.storedCorpusCalls,
+        fatwaSearch: closedOut.fatwaSearchCalls,
+        braveSearch: closedOut.braveSearchCalls,
+        liveFetch: closedOut.livePageFetchCalls,
+        model: closedOut.modelCallsForReligiousAnswer,
+      });
+      return emitOnce(closedOut.text);
+    }
     if (storedContext.runtime === 'STORED_FIQH') {
       finalizerContext.fallbackText = NO_STORED_EVIDENCE;
       finalizerContext.allowWireOwnedCards = false;
@@ -1806,12 +1829,12 @@ export default async function handler(req, res) {
       return emitOnce(ambiguousScholarPrompt(plan.scholarCandidates));
     }
 
-    // ── LEDGER RAG — NOW THE PATH EVERY READER TAKES ───────────────────────
+    // ── LEDGER RAG — ATTRIBUTED HADITH RETRIEVAL AFTER ROUTER-FIRST ────────
     //
-    // PUBLIC AS OF 2026-08-05 (owner decision, lib/ledger/flag.js PUBLIC_GO_LIVE). It was a
-    // parallel path behind three independent conditions — an env floor, a server-verified
-    // internal credential, and a runtime value in Upstash. The credential requirement is gone
-    // and the defaults are open, so this is the ordinary path, not the exception.
+    // Ordinary fiqh already returned through the hybrid coordinator above, and GENERAL plus the
+    // frozen Quran/adhkar/worship paths must never be pulled back into religious retrieval here.
+    // Ledger remains the attributed retrieval engine for a HADITH question not covered by the
+    // small reviewed local registry.
     //
     // WHAT SURVIVED THE GO-LIVE, because a go-live that removed the brakes would be a one-way
     // door: `LEDGER_RAG=off` still closes the floor for everybody, `RFC_V05_MODE=off|internal`
@@ -1828,7 +1851,7 @@ export default async function handler(req, res) {
     // the `toLedger` alias: ledger-seam-guard locates this branch by it in order to prove the
     // engine's question does not come from the legacy classifier, and a branch a gate cannot find
     // is a branch nothing checks.
-    if (ledgerPath.path === 'ledger') {
+    if (ledgerPath.path === 'ledger' && storedContext.runtime === 'HADITH') {
       // The seam is a module, not ten lines here, so this exact code path is what
       // ledger-seam-guard.cjs drives with req/res doubles. A branch that only the handler can
       // reach is a branch only a regex can check.

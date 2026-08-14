@@ -1522,15 +1522,21 @@ const HUMAN_DIVINE_NAME_CASES = [
         'تعالى صوت خالد في المجلس، فما رأيه؟',
         'تعالى البناء فوق الطريق',
       ]) {
-        const mundane = await drive(question, 'نص دنيوي لا ينبغي أن يصل بلا دليل هنا.', {
+        const generalBody = 'نص دنيوي لا ينبغي أن يصل بلا دليل هنا.';
+        const mundane = await drive(question, generalBody, {
           classifiedRoute: 'GEN', religiousHit: false,
         });
-        ok('F-002 Ledger E2E: mundane «تعالى» does not force DEEN or a person probe',
-          mundane.state.ledgerPlannerCalls >= 1
-            && mundane.res.writes.join('').includes(': rfc-path=ledger')
+        ok('F-002 router-first E2E: mundane «تعالى» bypasses DEEN/Ledger and any person probe',
+          mundane.state.ledgerPlannerCalls === 0
             && mundane.state.routeEvents.some((event) => event.route === 'GEN' && !event.entity)
             && mundane.state.worldProbeCalls === 0
-            && mundane.text === ledgerServiceRefusal && closedLifecycle(mundane.res), mundane.text);
+            && mundane.text === generalBody && closedLifecycle(mundane.res), JSON.stringify({
+              text: mundane.text,
+              plannerCalls: mundane.state.ledgerPlannerCalls,
+              routes: mundane.state.routeEvents,
+              worldProbeCalls: mundane.state.worldProbeCalls,
+              writes: mundane.res.writes,
+            }));
       }
 
       for (const fixture of [

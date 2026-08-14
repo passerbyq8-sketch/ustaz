@@ -849,7 +849,10 @@ async function checkModelRouting() {
     // channel, including the planner. D7 below keeps the authorized positive controls unchanged.
     const driveLedger = async (extra, authorized) => {
       const request = mkReq({
-        question: 'ما الفرق بين الخرسانة المسلحة وسابقة الإجهاد؟', age: 25, band: 'adult', extra, authorized,
+        // Ordinary GENERAL questions are router-first and cannot enter Ledger.  Use an
+        // unregistered hadith-grading turn so this resolver test still drives the real
+        // post-router Ledger seam (the intentions hadith is handled by the local registry).
+        question: 'ما صحة حديث النهي عن قتل النمل؟', age: 25, band: 'adult', extra, authorized,
       });
       return { ...(await drive(request, 'ledger')), request };
     };

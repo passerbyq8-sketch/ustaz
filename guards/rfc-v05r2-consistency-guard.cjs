@@ -51,7 +51,7 @@ function ledgerBranchBody(src) {
     if (!node || typeof node !== 'object') continue;
     if (node.type === 'IfStatement'
       && src.slice(node.test.start, node.test.end).replace(/\s+/g, ' ').trim()
-        === "ledgerPath.path === 'ledger'") {
+        === "ledgerPath.path === 'ledger' && storedContext.runtime === 'HADITH'") {
       return src.slice(node.consequent.start, node.consequent.end);
     }
     for (const value of Object.values(node)) {
@@ -124,7 +124,7 @@ async function main() {
       && !/catch[\s\S]{0,400}legacy/i.test(tail));
 
     const longFixture = `async function fixture() {
-      if (ledgerPath.path === 'ledger') {
+      if (ledgerPath.path === 'ledger' && storedContext.runtime === 'HADITH') {
         if (nested) {
           nestedWork();
         }
