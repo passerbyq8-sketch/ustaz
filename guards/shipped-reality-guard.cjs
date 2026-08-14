@@ -283,10 +283,13 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
       !ASKS_IDENTITY.test(r.text), r.text.slice(0, 140));
   }
   {
-    // ...while GENUINE ambiguity between REGISTERED men may still ask, because we can name them.
+    // The stored-only path does not stop for identity ambiguity. It treats the captured words as
+    // the requested attribution, states that no attributed record exists, and continues with the
+    // general stored material.
     const r = await drive('ما رأي خالد المصلح خالد السبت في الطلاق في الغضب؟', 'adult', 'legacy');
-    ok('genuine ambiguity still asks, and names the candidates',
-      /أكثر من عالِمٍ عندنا/.test(r.text) && /خالد المصلح/.test(r.text) && /خالد السبت/.test(r.text),
+    ok('a multi-name request is not turned into a clarification',
+      !/أكثر من عالِمٍ عندنا/.test(r.text) && /لا يوجد في مصادري المخزنة نص منسوب/.test(r.text)
+        && /<source\b/.test(r.text),
       r.text.slice(0, 200));
     ok('...and does not demand a website', !/رابطَ موقعِه/.test(r.text));
   }

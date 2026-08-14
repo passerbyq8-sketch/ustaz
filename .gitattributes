@@ -290,6 +290,14 @@ guards/anchor-mode-guard.cjs text eol=lf
 lib/anchor/flag.js text eol=lf
 lib/anchor/units.js text eol=lf
 
+# Stored-only religious answer cleanup. The gate checks exact Arabic output and the corpus hash;
+# keep the implementation, guard, and documentation archive stable across checkout platforms.
+guards/stored-deen-guard.cjs text eol=lf
+lib/stored-deen.js text eol=lf
+lib/encyclopedia.js text eol=lf
+docs/archive/religious-runtime-policy-63b8651.md text eol=lf
+EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md text eol=crlf
+
 # ح٣: the frozen transfer fixtures. THESE ARE NOT OUR TEXT — they are the bytes eleven hosts
 # actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a SHA8 of
 # each one. Any end-of-line normalisation, in either direction, on any machine, changes those

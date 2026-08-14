@@ -383,7 +383,14 @@ async function main() {
     resetCounters();
     const res = makeRes();
     await handler(makeReq(question, band), res);
-    return { res, text: readerText(res), modelCalls: modelCalls.slice(), braveCalls, pageFetches: pageFetches.slice() };
+    return {
+      res,
+      text: readerText(res),
+      modelCalls: modelCalls.slice(),
+      modelBodies: modelBodies.slice(),
+      braveCalls,
+      pageFetches: pageFetches.slice(),
+    };
   };
 
   // =========================================================================
@@ -407,10 +414,13 @@ async function main() {
     const out = await driveSeam('هل خالف ابن تيمية أهل السنة والجماعة؟', script);
     const outH = await driveLedger('هل خالف ابن تيمية أهل السنة والجماعة؟', 'adult', script);
 
-    ok('the ledger path actually ran through the handler', outH.braveCalls >= 1,
+    ok('the handler now answers the religious turn through one stored-evidence model call',
+      outH.modelBodies.length === 1
+      && /"evidence_pack"/.test(String(outH.modelBodies[0].messages[0].content)),
       'model calls seen: ' + JSON.stringify(outH.modelCalls));
-    ok('...and there was NO pre-search rejection on the name',
-      outH.braveCalls >= 1, 'a refusal before search would have spent zero provider calls');
+    ok('...without public search or page fetching',
+      outH.braveCalls === 0 && outH.pageFetches.every((url) => !/^https?:\/\//iu.test(url)),
+      JSON.stringify({ braveCalls: outH.braveCalls, pageFetches: outH.pageFetches }));
 
     const ir = out.out ? out.out.policy : null;
     ok('the ledger exposes the IR it actually used', !!ir, 'nothing was published for inspection');
@@ -654,10 +664,9 @@ async function main() {
         AGE.resolveAudience({ serverBand: null, clientBand: reader.band }).band, expected);
     }
 
-    // Drive locally-crafted bodies through the real Legacy handler too. The structured tier and
-    // policy records show which band the handler used, while the captured vendor request shows
-    // which persona it actually built. A pure helper test alone would miss a route recomputing
-    // one side from the raw body.
+    // Drive locally-crafted bodies through the real handler too. Religious turns now return from
+    // the stored-evidence route before the retired Legacy religious policy. The tier record still
+    // proves the server-derived band, while the vendor request proves the shared stored prompt.
     process.env.LEDGER_RAG = 'off';
     installRedis(undefined);
     FLAG.__resetFlagCacheForTest();
@@ -669,7 +678,7 @@ async function main() {
       console.log = (...args) => { events.push(args); };
       try {
         const res = makeRes();
-        await handler(makeReq('ما حكم المسألة؟', undefined, {
+        await handler(makeReq('ما حكم الجمع بين الصلاتين للمسافر؟', undefined, {
           body: { name: 'خالد', gender: 'male', mode: 'chat', ...body },
         }), res);
       } finally {
@@ -677,17 +686,16 @@ async function main() {
       }
       const tier = events.find((args) => args[0] === '[tier]');
       const policy = events.find((args) => args[0] === '[policy]');
-      eq(label + ': Legacy handler tier uses the effective band', tier && tier[1] && tier[1].band, expected);
-      eq(label + ': Legacy handler policy uses the effective band',
-        policy && policy[1] && policy[1].audienceBand, expected);
+      eq(label + ': handler tier uses the effective band', tier && tier[1] && tier[1].band, expected);
+      ok(label + ': retired religious policy is not reached', policy === undefined,
+        policy && policy[1] ? JSON.stringify(policy[1]) : '');
       const sent = modelBodies.find((b) => b && b.system);
       const sentSystem = sent
         ? (Array.isArray(sent.system) ? sent.system.map((block) => block && block.text || '').join('') : String(sent.system))
         : '';
-      ok(label + ': Legacy handler sends the matching persona',
-        expected === 'adult'
-          ? sentSystem.includes(ADULT_MARK) && !sentSystem.includes(YOUNG_MARK)
-          : sentSystem.includes(YOUNG_MARK) && !sentSystem.includes(ADULT_MARK),
+      ok(label + ': handler sends the stored-evidence prompt without a depth-specific persona',
+        sentSystem.includes('Evidence Pack المخزن المرفق وحده')
+          && !sentSystem.includes(ADULT_MARK) && !sentSystem.includes(YOUNG_MARK),
         sent ? 'captured a mismatched system prompt' : 'no vendor request was captured');
     }
 

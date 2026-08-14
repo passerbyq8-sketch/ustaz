@@ -334,7 +334,7 @@ lib/ledger/source-policy.js` returns **empty**.
 
 ## K. Gates and tests
 
-All 71 gates, run individually via `gates.json`:
+All 69 gates, run individually via `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -342,20 +342,20 @@ classifier 0 · hafs 0 · call 0 · history 0 · markdown 0 · reveal 0 · quran
 prayerquest 0 · bankintegrity 0 · contentreview 0 · themecoverage 0 · chatux 0 · a11y 0
 questux 0 · attribution 0 · claim 0 · sourceregistry 0 · bravequery 0 · smartretrieval 0
 ledgercontract 0 · ledgerretrieval 0 · ledgergates 0 · ledgerruntime 0 · ledgerfixtures 0
-ledgerseam 0 · rfcpolicy 0 · rfcruntime 0 · rfcwiring 0 · rfcround3 0 · rfcmode 0
+storeddeen 0 · rfcpolicy 0 · rfcruntime 0 · rfcwiring 0 · rfcround3 0 · rfcmode 0
 rfchistorical 0 · rfcconsistency 0 · rfcworld 0 · scholardrift 0 · shippedreality 0
 pagematch 0 · takhrij 0 · quotedphrase 0 · adaptedcorpus 0 · deaddomains 0
-floorsfilters 0 · liveness 0 · aiconsent 0 · srcattr 0 · referraltail 0 · namepresence 0
+floorsfilters 0 · liveness 0 · aiconsent 0 · srcattr 0 · referraltail 0
 voicesafety 0 · wird 0 · worldparity 0 · rulingsource 0 · retrievalobs 0 · madinahafs 0
 i18nui 0 · adhkartwins 0 · systemprompt 0 · lockpackage 0 · sourcehonesty 0
-ledgertelemetry 0 · livesearch 0 · answershape 0 · identity 0 · transfermode 0 · anchormode 0
+ledgertelemetry 0 · livesearch 0 · answershape 0 · identity 0 · anchormode 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        71/71 PASS
-RECON              PASS=158 WARN=3 FAIL=0
+TOTAL_GATES        69/69 PASS
+RECON              PASS=156 WARN=3 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
@@ -364,7 +364,8 @@ LEGACY_REGRESSIONS attribution 111/111 · smartretrieval 144/144 · claim · sou
 ```
 
 Guard totals: `ledger-fixtures-guard` 417/417 · `ledger-contract-guard` 168/168 ·
-`rfc-v05r2-guard` 125/125 · `rfc-v05r2-runtime-guard` 96/96.
+`rfc-v05r2-guard` 125/125 · `rfc-v05r2-runtime-guard` 96/96 ·
+`stored-deen-guard` 88/88.
 
 **Mutations closed.** New, in `rfc-v05r2-runtime-guard` §M:
 

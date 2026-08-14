@@ -170,6 +170,12 @@ async function main() {
     const user = body.messages[0].content;
     modelCalls.push(user.slice(0, 30));
     const jr = (o) => ({ content: [{ type: 'text', text: JSON.stringify(o) }], usage: { output_tokens: 40 } });
+    if (user.includes('"evidence_pack"')) {
+      return {
+        content: [{ type: 'text', text: 'يعرض النص المخزن الحكم المتعلق بقتل النمل دون أن يجعل لفظ السؤال خطرًا عامًا.' }],
+        usage: { output_tokens: 40 },
+      };
+    }
     // RE-PINNED ON THE STRONGER KEY, ASSERTION KEPT. This stub used to recognise the planner call by
     // one sentence of its prose. Batch 5 step 7 rewrote that prose -- the printed template was itself
     // an INVALID plan, so every live request died at PLAN_INVALID after one model call and never
@@ -281,7 +287,8 @@ async function main() {
     ok('...and no dose anywhere in it', !/\d+\s*(?:حبه|حبة|قرص|مل)/.test(out.text), out.text);
   }
   {
-    // The word «قتل» must NOT block a fiqh question a child may have — it must reach retrieval.
+    // The word «قتل» must NOT block a fiqh question a child may have. It reaches the stored
+    // corpus directly and must not spend a Brave call merely because the old Ledger is enabled.
     const script = {
       plan: {
         issues: [{
@@ -297,8 +304,10 @@ async function main() {
     };
     const out = await driveHandler('ما حكم قتل النمل؟', 'young', script, { ledger: true, legacyPolicy: false });
     ok('a benign fiqh question is NOT blocked on the word «قتل»',
-      out.braveCalls >= 1, 'brave=' + out.braveCalls + ' text=' + out.text.slice(0, 160));
-    ok('...and the model ceiling still holds', out.modelCalls.length <= 7, String(out.modelCalls.length));
+      /النمل/.test(out.text) && !/خلط بعض المواد/.test(out.text),
+      'brave=' + out.braveCalls + ' text=' + out.text.slice(0, 160));
+    eq('...with no public search', out.braveCalls, 0);
+    eq('...and one stored-evidence answer call', out.modelCalls.length, 1);
   }
   {
     // AGE_ACCESS_POLICY must run INSIDE the engine too, so a direct caller cannot skip it.

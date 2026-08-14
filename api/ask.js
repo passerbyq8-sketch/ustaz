@@ -697,19 +697,11 @@ export default async function handler(req, res) {
   // between a server band and a client claim -- a claim may RESTRICT and may not RELEASE -- and
   // it means the prompt's own persona fork and this band can never disagree about who is reading.
   const band = reader.band;
-  // BAND GATE (khilaf-policy §1/§2/§3). The depth instruction is ADULT-ONLY. 'scholar' orders the model
-  // to present up to FOUR differing scholarly opinions with evidence; injecting that into a child's
-  // system prompt is a direct policy breach. Mirrors usePremium (next line) and scholarMode (round 2),
-  // both of which already check the band. Fail-CLOSED: an absent or garbled band gets NO instruction.
-  const depthInstruction = band === 'adult' ? buildDepthInstruction(effectiveDepth) : '';
   const usePremium = band === 'adult' && (effectiveDepth === 'deep' || effectiveDepth === 'scholar');
   const model = usePremium
     ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-5')
     : STANDARD_MODEL;
   console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, usePremium, model });
-  // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
-  // deleted at parse time, so there is not even a value in scope to fall back to.
-  const system = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
 
   // DETERMINISTIC ROUTE (lib/route-classify.js). Decided HERE, on the server, from the
   // messages themselves -- never from a client-supplied field, because the whole point is
@@ -721,6 +713,69 @@ export default async function handler(req, res) {
   // It changes neither the model, the system prompt, the effort, the token cap, the band,
   // nor the allow-list. Real doubt resolves to DEEN.
   const route = classifyRoute(body.messages);
+
+  // ── RELIGIOUS QUESTIONS: THE STORED CORPUS IS THE WHOLE SOURCE LAYER ───────────────
+  // This branch precedes planAsk(), the legacy policy switch, the Ledger switch and every
+  // religious gate they own. A DEEN turn therefore cannot reach required_slots, deterministic
+  // clarification, FOLLOW_UP, SAFE_REJECTION, Brave, a public fetch, or a source adapter.
+  //
+  // A named-opinion shape is included even when the lexical router does not know the subject
+  // word (for example «ما رأي ابن باز في التصوير؟»). Name recognition here changes only which
+  // local corpus is queried; it grants no authority and blocks nothing.
+  const storedDeen = await import('../lib/stored-deen.js');
+  if (route === 'DEEN' || storedDeen.isStoredDeenRequest(body.messages)) {
+    console.log('[route]', { route: 'DEEN_STORED', lexicalRoute: route, band });
+    res.status(200);
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders?.();
+    let storedKeepAlive = setInterval(() => { try { res.write(': keepalive\n\n'); } catch {} }, 10000);
+    const clearStoredKeepAlive = () => {
+      if (!storedKeepAlive) return;
+      clearInterval(storedKeepAlive);
+      storedKeepAlive = null;
+    };
+    const storedUpstream = bindUpstreamToClient(res, req.signal);
+    try {
+      const out = await storedDeen.runStoredDeenTurn(res, {
+        messages: body.messages,
+        depth: band === 'adult' ? (effectiveDepth || 'brief') : 'brief',
+        model,
+        maxTokens,
+        usePremium,
+        effort: round2Effort,
+        apiKey,
+        signal: storedUpstream.signal,
+        beforeFirstOutput: clearStoredKeepAlive,
+      });
+      console.log('[stored-deen]', {
+        outcome: out.outcome,
+        records: out.records.map((record) => record.id),
+        model: out.modelCalls,
+        publicSearch: out.publicSourceSearchCalls,
+        publicFetch: out.publicSourceFetchCalls,
+        adapters: out.externalSourceAdapterCalls,
+      });
+    } catch (error) {
+      clearStoredKeepAlive();
+      console.error('[stored-deen] handler error', error && error.message);
+      if (!res.writableEnded) {
+        try { storedDeen.writeStoredErrorSse(res, 'server error'); } catch {}
+      }
+    } finally {
+      clearStoredKeepAlive();
+      storedUpstream.cleanup();
+    }
+    return;
+  }
+
+  // The general path is intentionally unchanged. Its adult-only depth prompt and server-owned
+  // model entitlement retain their existing behaviour; only DEEN returned above.
+  const depthInstruction = band === 'adult' ? buildDepthInstruction(effectiveDepth) : '';
+  // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
+  // deleted at parse time, so there is not even a value in scope to fall back to.
+  const system = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
   // ── THE AGE BAND THAT GOVERNS POLICY, WHICH IS NOT THE ONE THAT GOVERNS SOURCES ──
   //
   // `band` above still does exactly what it did: it picks the retrieval allow-list, and an absent

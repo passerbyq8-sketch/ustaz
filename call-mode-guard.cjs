@@ -657,6 +657,7 @@ async function checkModelRouting() {
 
   try {
     const ASK = await import(pathToUrl('api/ask.js'));
+    const STORED = await import(pathToUrl('lib/stored-deen.js'));
     const handler = ASK.default;
     const askSource = read('api/ask.js') || '';
     if (/const STANDARD_MODEL\s*=\s*process\.env\.MODEL_STANDARD\s*\|\|\s*process\.env\.MODEL\s*\|\|\s*'claude-sonnet-5'/.test(askSource)
@@ -787,8 +788,8 @@ async function checkModelRouting() {
       } else fail('D3 forged ' + label + ' reached the scholar instruction');
     }
 
-    // Observe the real lazy encyclopedia read. A founder token alone is insufficient: the
-    // current age policy must also resolve the request to adult before that module is touched.
+    // Observe the real lazy stored-corpus read. Every religious depth uses the same corpus; age
+    // and entitlement continue to own only answer length/model selection.
     const moduleBuiltin = require('module');
     const realReadFileSync = fs.readFileSync;
     let encyclopediaReads = 0;
@@ -804,9 +805,12 @@ async function checkModelRouting() {
       }), 'legacy-tool');
       if (firstModel(youngScholar.bodies) === STANDARD_SENTINEL) pass('D4 under-age scholar request stays on the STANDARD resolver');
       else fail('D4 under-age scholar model = ' + firstModel(youngScholar.bodies));
-      if (!systemText(youngScholar.bodies[0]).includes(ASK.buildDepthInstruction('scholar')) && encyclopediaReads === 0) {
-        pass('D4 under-age scholar request opens neither scholar prompt nor encyclopedia');
-      } else fail('D4 under-age scholar capability opened (encyclopedia reads=' + encyclopediaReads + ')');
+      if (systemText(youngScholar.bodies[0]).includes('Evidence Pack المخزن')
+          && systemText(youngScholar.bodies[0]).includes(STORED.storedAnswerProfile('brief').length)
+          && !systemText(youngScholar.bodies[0]).includes(STORED.storedAnswerProfile('scholar').length)
+          && encyclopediaReads === 1) {
+        pass('D4 under-age scholar request reads the common corpus but keeps brief length');
+      } else fail('D4 under-age stored profile/corpus mismatch (encyclopedia reads=' + encyclopediaReads + ')');
 
       const adultScholar = await drive(mkReq({
         question: 'ما حكم الوضوء؟', age: 25, band: 'adult',
@@ -814,29 +818,29 @@ async function checkModelRouting() {
       }), 'legacy-tool');
       if (firstModel(adultScholar.bodies) === PREMIUM_SENTINEL) pass('D5 authorized adult scholar sends the PREMIUM resolver');
       else fail('D5 authorized adult scholar model = ' + firstModel(adultScholar.bodies));
-      if (systemText(adultScholar.bodies[0]).includes(ASK.buildDepthInstruction('scholar')) && encyclopediaReads > 0) {
-        pass('D5 authorized adult scholar keeps the scholar prompt and encyclopedia capability');
-      } else fail('D5 adult scholar capability missing (encyclopedia reads=' + encyclopediaReads + ')');
+      if (systemText(adultScholar.bodies[0]).includes('Evidence Pack المخزن')
+          && systemText(adultScholar.bodies[0]).includes(STORED.storedAnswerProfile('scholar').length)
+          && encyclopediaReads === 1) {
+        pass('D5 authorized adult scholar changes length/model without changing the stored corpus');
+      } else fail('D5 adult stored profile missing (encyclopedia reads=' + encyclopediaReads + ')');
 
       const ranked = await drive(mkReq({
         question: 'هل أفتى الشيخ محمد بن صالح العثيمين بأن من أسقطت قبل ثمانين يوما تترك الصلاة؟',
         age: 25, band: 'adult',
       }), 'ranker');
       const rankBodies = ranked.bodies.filter((body) => body.max_tokens === 16);
-      if (rankBodies.length === 1
-          && rankBodies[0].model === STANDARD_SENTINEL
-          && rankBodies[0].stream === false
-          && JSON.stringify(rankBodies[0].thinking) === JSON.stringify({ type: 'disabled' })
-          && Object.keys(rankBodies[0]).sort().join(',')
-            === 'max_tokens,messages,model,stream,system,thinking') {
-        pass('D5 attributed-title ranker uses one minimal 16-token STANDARD envelope with thinking disabled');
-      } else fail('D5 title-ranker envelope = ' + JSON.stringify(rankBodies.map((b) => Object.keys(b).sort())));
+      if (rankBodies.length === 0 && ranked.bodies.length === 1
+          && ranked.bodies[0].model === STANDARD_SENTINEL
+          && ranked.bodies[0].stream === false
+          && systemText(ranked.bodies[0]).includes('Evidence Pack المخزن')) {
+        pass('D5 named opinion uses one stored-evidence answer call and no title-ranker call');
+      } else fail('D5 stored named-opinion envelope = ' + JSON.stringify(ranked.bodies.map((b) => Object.keys(b).sort())));
     } finally {
       fs.readFileSync = realReadFileSync;
       moduleBuiltin.syncBuiltinESMExports();
     }
 
-    // Drive the public Ledger path through api/ask.js. D6 deliberately has no founder header:
+    // Drive the public stored-DEEN path through api/ask.js. D6 deliberately has no founder header:
     // its forged depth/tier fields must leave EVERY provider body on the server-owned Standard
     // channel, including the planner. D7 below keeps the authorized positive controls unchanged.
     const driveLedger = async (extra, authorized) => {
@@ -865,14 +869,14 @@ async function checkModelRouting() {
     if (d6Tier && d6Tier.founderUnlocked === false && d6Tier.usePremium === false) {
       pass('D6 real handler authorization keeps the forged request Standard');
     } else fail('D6 handler tier decision = ' + JSON.stringify(d6Tier));
-    if (standardPlans.length && standardPlans.every((b) => b.model === STANDARD_SENTINEL)) pass('D6 Ledger planner inherits the server-owned STANDARD resolver');
-    else fail('D6 Ledger planner models = ' + JSON.stringify(standardPlans.map((b) => b.model)));
-    if (standardStages.length && standardStages.every((b) => b.model === STANDARD_SENTINEL)) {
-      pass('D6 forged Ledger premium/depth stays on standard Sonnet stages');
+    if (standardPlans.length === 0) pass('D6 stored DEEN creates no planner call');
+    else fail('D6 unexpected planner models = ' + JSON.stringify(standardPlans.map((b) => b.model)));
+    if (standardStages.length === 1 && standardStages.every((b) => b.model === STANDARD_SENTINEL)) {
+      pass('D6 forged stored-DEEN premium/depth stays on one standard Sonnet answer');
     } else fail('D6 forged Ledger downstream models = ' + JSON.stringify(standardStages.map((b) => b.model)));
-    if (ledgerStandard.bodies.length === 2
+    if (ledgerStandard.bodies.length === 1
         && ledgerStandard.bodies.every((body) => body.model === STANDARD_SENTINEL)) {
-      pass('D6 every provider body for the forged request is Standard');
+      pass('D6 the only provider body for the forged request is Standard');
     } else fail('D6 provider bodies = ' + JSON.stringify(ledgerStandard.bodies.map((b) => b.model)));
     if (ledgerStandard.bodies.filter((body) => body.model === PREMIUM_SENTINEL).length === 0) {
       pass('D6 forged request has zero Premium bodies, including planner repair/retry');
@@ -882,10 +886,10 @@ async function checkModelRouting() {
       const premium = await driveLedger({ depth }, true);
       const plans = premium.bodies.filter(isPlanner);
       const stages = premium.bodies.filter((b) => !isPlanner(b));
-      if (plans.length && plans.every((b) => b.model === PREMIUM_SENTINEL)) pass('D7 Ledger ' + depth + ' planner uses the PREMIUM resolver');
-      else fail('D7 Ledger ' + depth + ' planner models = ' + JSON.stringify(plans.map((b) => b.model)));
-      if (stages.length && stages.every((b) => b.model === PREMIUM_SENTINEL)) pass('D7 authorized Ledger ' + depth + ' stages use the PREMIUM resolver');
-      else fail('D7 authorized Ledger ' + depth + ' downstream models = ' + JSON.stringify(stages.map((b) => b.model)));
+      if (plans.length === 0) pass('D7 stored ' + depth + ' creates no planner call');
+      else fail('D7 unexpected ' + depth + ' planner models = ' + JSON.stringify(plans.map((b) => b.model)));
+      if (stages.length === 1 && stages.every((b) => b.model === PREMIUM_SENTINEL)) pass('D7 authorized stored ' + depth + ' uses one PREMIUM answer');
+      else fail('D7 authorized stored ' + depth + ' models = ' + JSON.stringify(stages.map((b) => b.model)));
     }
 
     // Pin the resolver itself through the same callModel function every Ledger stage invokes.
