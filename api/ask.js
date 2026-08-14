@@ -1101,10 +1101,11 @@ export default async function handler(req, res) {
       return emitOnce(warmTemplateFor('GENERAL_HEALTH_INTERIM'));
     }
 
-    // ── STORED FIQH, AFTER SAFETY/AGE AND BEFORE EVERY GENERIC RETRIEVAL ENGINE ────────────────
+    // ── ORDINARY DEEN: LOCAL + FATWA CORPUS + BRAVE/FETCH ───────────────────
     // Quran text, adhkar, frozen worship and hadith/takhrij keep their existing specialised
-    // runtime. Only ordinary fiqh/theology enters the local encyclopedia. This branch returns
-    // before world identity, Ledger, Brave, page fetches and source adapters.
+    // runtime. Ordinary fiqh/theology uses the rollout decision already made above: the open
+    // path coordinates all three evidence stores, while the brake retains the proven local
+    // answer. There is no local early-return in the public path any more.
     const storedContext = resolveStoredContext(body.messages, {
       currentPlan,
       lexicalRoute: effectiveRoute,
@@ -1118,8 +1119,9 @@ export default async function handler(req, res) {
       const storedUpstream = bindUpstreamToClient(res, req.signal);
       let storedOut;
       try {
-        storedOut = await runStoredFiqhTurn({
+        const shared = {
           context: storedContext,
+          band,
           depth: band === 'adult' ? effectiveDepth : 'brief',
           model,
           maxTokens,
@@ -1128,7 +1130,15 @@ export default async function handler(req, res) {
           providerUrl: ANTHROPIC_URL,
           headers,
           signal: storedUpstream.signal,
-        });
+        };
+        if (toLedger) {
+          // Lazy because it loads Readability/linkedom and the live adapters; specialised
+          // local turns and GENERAL questions pay none of that module cost.
+          const { runHybridDeenTurn } = await import('../lib/hybrid-deen.js');
+          storedOut = await runHybridDeenTurn(shared);
+        } else {
+          storedOut = await runStoredFiqhTurn(shared);
+        }
       } finally {
         storedUpstream.cleanup();
       }
@@ -1136,13 +1146,23 @@ export default async function handler(req, res) {
 
       const used = new Set(storedOut.validatedUsedRecordIds || []);
       storedFinalizerSources.length = 0;
-      for (const entry of storedOut.accepted || []) {
-        if (entry && entry.record && used.has(entry.record.id)) storedFinalizerSources.push(entry.record);
+      if (toLedger) {
+        for (const evidence of storedOut.usedEvidence || []) {
+          if (evidence?.localEntry?.record) storedFinalizerSources.push(evidence.localEntry.record);
+          else if (evidence) storedFinalizerSources.push({
+            url: evidence.url, title: evidence.title,
+            passage: evidence.passage || evidence.supportText || '',
+          });
+        }
+      } else {
+        for (const entry of storedOut.accepted || []) {
+          if (entry && entry.record && used.has(entry.record.id)) storedFinalizerSources.push(entry.record);
+        }
       }
       const cards = registerOwnedCards(storedOut.cards || []);
       finalizerContext.readerCards = cards;
       finalizerContext.readerCardPrefix = cards.length ? '\n\n' : '';
-      console.log('[stored-deen]', {
+      console.log(toLedger ? '[hybrid-deen]' : '[stored-deen]', {
         route: storedContext.runtime,
         domain: storedContext.resolvedDomain,
         resolvedScholar: storedContext.resolvedScholar ? storedContext.resolvedScholar.display : null,
@@ -1150,14 +1170,24 @@ export default async function handler(req, res) {
         query: storedOut.searchQuery,
         candidates: storedOut.candidateRecordIds,
         evidence: storedOut.evidencePackIds,
-        used: storedOut.validatedUsedRecordIds,
-        cards: cards.map((card) => card.recordId),
+        used: storedOut.validatedUsedEvidenceIds || storedOut.validatedUsedRecordIds,
+        cards: cards.map((card) => card.evidenceId || card.recordId || card.url),
         outcome: storedOut.outcome,
         corpusCalls: storedOut.storedCorpusCalls,
         model: storedOut.modelCallsForReligiousAnswer,
         publicSearch: storedOut.publicSourceSearchCalls,
         publicFetch: storedOut.publicSourceFetchCalls,
         adapters: storedOut.externalSourceAdapterCalls,
+        fatwaSearch: storedOut.fatwaSearchCalls || 0,
+        fatwaStatus: storedOut.fatwaValidation?.status || (storedOut.degraded || []).find((item) => item.startsWith('fatwa:')) || null,
+        fatwaScholars: storedOut.fatwaValidation?.scholars || null,
+        fatwaTotal: storedOut.fatwaValidation?.total || null,
+        ibnBazTotal: storedOut.fatwaValidation?.ibnBaz || null,
+        braveSearch: storedOut.braveSearchCalls || 0,
+        liveFetch: storedOut.livePageFetchCalls || 0,
+        contentModes: (storedOut.usedEvidence || []).map((entry) => entry.contentMode),
+        degraded: storedOut.degraded || [],
+        elapsedMs: storedOut.elapsedMs || null,
       });
       return emitOnce(storedOut.text || NO_STORED_EVIDENCE);
     }

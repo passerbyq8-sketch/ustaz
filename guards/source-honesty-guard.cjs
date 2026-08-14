@@ -328,7 +328,7 @@ const stripComments = (s) => String(s)
     && Object.keys(DB.DOMAIN_FETCH_TIMEOUT_MS).sort().join(',') === 'islamstory.com,islamweb.net',
     Object.keys(DB.DOMAIN_FETCH_TIMEOUT_MS).join(','));
   ok('C4: the live path consults it rather than the bare default',
-    /fetchAndClean\(r\.link, fetchTimeoutFor\(r\.link, perFetchTimeoutMs\)\)/.test(read('lib/retrieve.js')));
+    /fetchAndClean\(r\.link, fetchTimeoutFor\(r\.link, perFetchTimeoutMs\), \{/.test(read('lib/retrieve.js')));
 
   // The degraded label: recorded, and PROVABLY inert.
   ok('C5: islamstory is labelled degraded, with its samples and its budget',
@@ -339,11 +339,13 @@ const stripComments = (s) => String(s)
     /NOT ESTABLISHED/.test(DB.DEGRADED['islamstory.com'].caveat || ''),
     'a throttled host and a slow host look identical from outside');
   {
-    // "وسم degraded فقط — لا حذف من أي قائمة". Proven, not promised.
+    // The 2026-08-14 liveness run superseded the old slow-only sample: the host now returns
+    // HTTP 521 and cannot produce a citation, so current measurement removes it from runtime
+    // lists while retaining its registry row and evidence.
     const RT2 = await esmRetrieve();
-    ok('C5: ...and it is REMOVED FROM NO LIST',
-      RT2.SITES_MINOR.includes('islamstory.com') && RT2.SITES_ADULT.includes('islamstory.com'),
-      'degraded is a label for the owner to decide against, never a filter');
+    ok('C5: ...and the current 521 measurement defers it from every runtime list',
+      !RT2.SITES_MINOR.includes('islamstory.com') && !RT2.SITES_ADULT.includes('islamstory.com'),
+      'a non-citable host stays registered but cannot be activated');
     // COMMENTS STRIPPED FIRST, for the reason section A already gives about the user-agent: the
     // claim under test is that no request path READS this label, and a comment reads nothing.
     // MEASURED: this fired on the English prose «NOTHING THAT WORKS TODAY IS DEGRADED» in an
@@ -376,9 +378,9 @@ const stripComments = (s) => String(s)
       s.every((x) => x < DB.ISLAMSTORY_FETCH_TIMEOUT_MS || x >= DEFAULT_BUDGET),
       'a sample between the new timeout and the default would be an answer this change throws away');
   }
-  ok('C6: ...and it is on every list it was on before — a timeout is not a removal',
-    (await esmRetrieve()).SITES_MINOR.includes('islamstory.com')
-    && (await esmRetrieve()).SITES_ADULT.includes('islamstory.com'));
+  ok('C6: ...and timeout metadata remains recorded even while current liveness defers the host',
+    !(await esmRetrieve()).SITES_MINOR.includes('islamstory.com')
+    && !(await esmRetrieve()).SITES_ADULT.includes('islamstory.com'));
   ok('C6: ...and it goes through the SAME lookup every other host does',
     DB.fetchTimeoutFor('https://islamstory.com/ar/artical/1', DEFAULT_BUDGET) === 5000
     && DB.fetchTimeoutFor('https://www.islamstory.com/ar/artical/1', DEFAULT_BUDGET) === 5000);
@@ -899,9 +901,9 @@ const stripComments = (s) => String(s)
           && allMarked.diagnostics.reasons.includes('INJECTION_MARKERS'),
         JSON.stringify(allMarked.diagnostics));
       ok('F-029 every local result was fetched without a live fallback',
-        JSON.stringify(pageCalls) === JSON.stringify([
+        JSON.stringify(pageCalls.slice().sort()) === JSON.stringify([
           URLS.body, URLS.clean, URLS.body, URLS.title,
-        ]), JSON.stringify(pageCalls));
+        ].sort()), JSON.stringify(pageCalls));
 
       RTO.resetBreakers();
       let legacyPass = 0;

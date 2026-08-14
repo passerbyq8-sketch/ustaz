@@ -57,6 +57,7 @@ const PAGES = {
   console.log('=== identity-guard — a name is unknown until a source says otherwise ===');
 
   const realFetch = globalThis.fetch;
+  let safeFetchModule = null;
   // NOTHING IN THIS GATE MAY TOUCH THE NETWORK. A reach is a failure, not a slow pass.
   let reachedNetwork = 0;
   globalThis.fetch = async (u) => { reachedNetwork++; throw new Error('network reached: ' + u); };
@@ -65,6 +66,11 @@ const PAGES = {
     const ID = await esm('lib/identity/index.js');
     const WL = await esm('lib/identity/whitelist.js');
     const REG = await esm('lib/source-registry.js');
+    // Driven sections below replace fetch with fixtures and must not depend on the host
+    // machine's DNS. Keep the real preflight code in the path, but resolve every admitted
+    // fixture host to a known public address through the existing test seam.
+    safeFetchModule = await esm('lib/ledger/safe-fetch.js');
+    safeFetchModule.__setResolverForTest(async () => [{ address: '8.8.8.8', family: 4 }]);
 
     // The injected page fetcher. Returns a fixture or null — never a request.
     const fetchPage = async (url) => {
@@ -975,6 +981,7 @@ const PAGES = {
         /guards\/identity-guard\.cjs text eol=lf/.test(read('.gitattributes')));
     }
   } finally {
+    if (safeFetchModule) safeFetchModule.__resetResolver();
     globalThis.fetch = realFetch;
   }
 

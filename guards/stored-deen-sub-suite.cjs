@@ -540,7 +540,7 @@ async function runSuite() {
       publicFetch: row.stored?.publicFetch,
       adapters: row.stored?.adapters,
     }));
-    ok('stored flows made no public source search/fetch/adapter network call', storedNetworkMetrics
+    ok('explicit LEDGER_RAG=off brake keeps the local fallback network-free', storedNetworkMetrics
       .every((metrics) => metrics.publicSearch === 0 && metrics.publicFetch === 0 && metrics.adapters === 0)
         && publicSourceTargets.length === 0,
     JSON.stringify({ publicSourceTargets, storedNetworkMetrics }));
@@ -552,8 +552,8 @@ async function runSuite() {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-stored-mutants-'));
   try {
     const m1 = await storedMutant(temp, 'named-person-domain', (source) => source.replace(
-      "if (lexicalRoute !== 'DEEN' && !isReligiousText(question)) return 'GENERAL';",
-      "if (/^(?:ما\\s+(?:هو\\s+)?(?:راي|قول))/u.test(folded)) return 'STORED_FIQH';\n  if (lexicalRoute !== 'DEEN' && !isReligiousText(question)) return 'GENERAL';",
+      "const plannedReligious = !!(plan && ['fatwa', 'tafsir', 'hadith'].includes(plan.purpose));",
+      "if (/^(?:ما\\s+(?:هو\\s+)?(?:راي|قول))/u.test(folded)) return 'STORED_FIQH';\n  const plannedReligious = !!(plan && ['fatwa', 'tafsir', 'hadith'].includes(plan.purpose));",
     ));
     ok('MUTANT 1 KILLED: generic named-person cannot force DEEN', m1.classifyReligiousRuntime(GENERAL[0], currentPlan(A, GENERAL[0]), 'GEN') !== 'GENERAL');
 
@@ -652,7 +652,7 @@ async function runSuite() {
     const publicCounts = { search: 0, fetch: 0, adapter: 0 };
     await m14.runStoredFiqhTurn({ context: contextFor(S, R, A, STANCE), retrieve: async () => ({ records: [] }),
       publicSearch: async () => { publicCounts.search++; }, publicFetch: async () => { publicCounts.fetch++; }, externalAdapter: async () => { publicCounts.adapter++; } });
-    ok('MUTANT 14 KILLED: public search/fetch/adapter fallthrough is observable', JSON.stringify(publicCounts) === JSON.stringify({ search: 1, fetch: 1, adapter: 1 }));
+    ok('MUTANT 14 KILLED: the explicit local brake cannot acquire public I/O', JSON.stringify(publicCounts) === JSON.stringify({ search: 1, fetch: 1, adapter: 1 }));
 
     const m15 = await storedMutant(temp, 'mode-evidence-policy', (source) => source.replace(
       'const accepted = selection.accepted.slice(0, MAX_EVIDENCE_RECORDS);',
@@ -670,6 +670,11 @@ async function runSuite() {
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
+
+  console.log('\n--- F2. PUBLIC HYBRID CONTRACT ---');
+  const hybrid = await require('./hybrid-live-fatwa-guard.cjs').runHybridGuard();
+  ok('public DEEN hybrid sub-suite and its major-gate mutants are green', hybrid.failures === 0,
+    JSON.stringify(hybrid));
 
   console.log('\n--- G. POST-RUN FREEZE ---');
   const afterBuffer = fs.readFileSync(CORPUS);

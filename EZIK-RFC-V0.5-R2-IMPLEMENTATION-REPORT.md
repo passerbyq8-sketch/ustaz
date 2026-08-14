@@ -312,12 +312,12 @@ environment, so `client()` returns `null` on every real path. No key was created
 | | |
 |---|---|
 | Policy rows | 27 |
-| Enabled | 24 |
-| Enabled **and** searchable | 22 |
+| Enabled | 21 |
+| Enabled **and** searchable | 19 |
 | Registry total | 31 |
-| Registry active | 22 |
+| Registry active | 19 |
 | Registry blocked | 2 |
-| Registry deferred | 3 |
+| Registry deferred | 6 |
 | Registry world | 4 |
 | `conformanceProblems()` | `[]` |
 | Capabilities changed by this RFC | **0** |
@@ -355,7 +355,7 @@ Every one **PASS**, exit code `0`.
 
 ```
 TOTAL_GATES        71/71 PASS
-RECON              PASS=159 WARN=3 FAIL=0
+RECON              PASS=157 WARN=6 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

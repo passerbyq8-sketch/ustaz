@@ -433,24 +433,25 @@ head('9) RAG SOURCE LISTS & GATES (lib/retrieve.js)');
     // second (tafsir.net, al-abbaad.com). The exact membership and the per-source scope are
     // asserted by source-registry-guard.cjs; this stays a count lock so a silent addition here
     // is visible in the audit too.
-    // 24 until 2026-08-05; 22 since dorar.net, tafsir.app and ferkous.com were deferred for measured
-    // liveness failures and ferkous.app was admitted in their place (net -2).
-    if (adult.length){ info('SITES_ADULT (' + adult.length + '): ' + adult.join(', ')); if (adult.length===22) pass('SITES_ADULT count = 22'); else warn('SITES_ADULT count = ' + adult.length + ' (expected 22 -- update deliberately)'); }
+    // 24 until 2026-08-05; 22 after the first measured deferrals; 19 since the 2026-08-14
+    // re-measurement deferred islamstory.com, al-badr.net and othmanalkhamees.com too.
+    if (adult.length){ info('SITES_ADULT (' + adult.length + '): ' + adult.join(', ')); if (adult.length===19) pass('SITES_ADULT count = 19 (measured 2026-08-14)'); else warn('SITES_ADULT count = ' + adult.length + ' (expected 19 -- update deliberately)'); }
     else warn('could not extract SITES_ADULT');
-    // WIDENED 2026-08-05 by an explicit decision of the project's owner, from 2 to 8. It changes
+    // WIDENED 2026-08-05 by an explicit decision of the project's owner, from 2 to 8, then reduced
+    // to 7 on 2026-08-14 when islamstory.com measured HTTP 521. It changes
     // WHICH VETTED PAGES a child's search may draw from and nothing about what is said to a child:
     // the khilaf policy, the age floor and the worship lock are all downstream of retrieval.
-    if (minor.length){ info('SITES_MINOR (' + minor.length + '): ' + minor.join(', ')); if (minor.length===8) pass('SITES_MINOR count = 8 (owner decision, 2026-08-05)'); else warn('SITES_MINOR count = ' + minor.length + ' (expected 8 -- update deliberately)'); }
+    if (minor.length){ info('SITES_MINOR (' + minor.length + '): ' + minor.join(', ')); if (minor.length===7) pass('SITES_MINOR count = 7 (measured 2026-08-14)'); else warn('SITES_MINOR count = ' + minor.length + ' (expected 7 -- update deliberately)'); }
     else warn('could not extract SITES_MINOR');
 
     // minor set must be the strict subset
     // THE CHILD ROSTER, by name. The exact membership is asserted by source-registry-guard.cjs;
     // this stays here as an audit-visible lock so a domain appearing on a child's list is never a
-    // diff nobody reads. Every one of the eight is measured  in data/source-liveness.json.
+    // diff nobody reads. Every one of the seven is currently eligible and searchable.
     const MINOR_EXPECTED = ['islamqa.info', 'binbaz.org.sa', 'islamweb.net', 'alukah.net',
-      'iifa-aifi.org', 'islamstory.com', 'ibn-jebreen.com', 'almosleh.com'];
+      'iifa-aifi.org', 'ibn-jebreen.com', 'almosleh.com'];
     const minorOk = minor.length === MINOR_EXPECTED.length && MINOR_EXPECTED.every((d) => minor.includes(d));
-    if (minor.length) { if (minorOk) pass('SITES_MINOR == the eight the owner named (khilaf policy unchanged)'); else warn('SITES_MINOR is not the expected eight -- CHILD-SAFETY: verify'); }
+    if (minor.length) { if (minorOk) pass('SITES_MINOR == the seven currently measured ready (khilaf policy unchanged)'); else warn('SITES_MINOR is not the expected seven -- CHILD-SAFETY: verify'); }
 
     // gate functions & slugs
     for (const g of ['isKhameesBlocked','isTafsirAppBookBlocked','retrieve']){

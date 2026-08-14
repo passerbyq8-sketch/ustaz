@@ -118,6 +118,7 @@ const BRAVE_RESULTS = [
 // happened to open. A MISSING PAGE on a scripted host is not one of these: the 404 branch below
 // is deliberate and several checks depend on it, so the test is on the HOST, not on the URL.
 const SCRIPTED_HOSTS = new Set(['api.anthropic.com', 'api.search.brave.com']);
+SCRIPTED_HOSTS.add('ezik-fatwas.vercel.app');
 for (const u of Object.keys(CORPUS)) { try { SCRIPTED_HOSTS.add(new URL(u).hostname); } catch { /* not a URL */ } }
 for (const r of BRAVE_RESULTS) { try { SCRIPTED_HOSTS.add(new URL(r.url).hostname); } catch { /* not a URL */ } }
 const offScript = (u) => {
@@ -140,6 +141,10 @@ async function main() {
   const SOURCE_REGISTRY = await esm('lib/source-registry.js');
   const READER = await esm('lib/reader-fields.js');
   const SYSTEM_PROMPT = await esm('lib/system-prompt.js');
+  const FATWA_CONTRACT = await esm('lib/fatwa-contract.js');
+  const FATWA_SCHOLARS_FIXTURE = FATWA_CONTRACT.FATWA_SCHOLARS.map((entry) => ({
+    id: entry.id, snapshot: { records: entry.count },
+  }));
 
   // ── the harness ────────────────────────────────────────────────────────────
   const DEVICE = 'wiring-guard-device-01';
@@ -337,6 +342,21 @@ async function main() {
   const installFetch = (script) => {
     globalThis.fetch = async (url, init) => {
       const u = String(url);
+      if (u.startsWith(FATWA_CONTRACT.FATWA_BASE + '/api/v1/')) {
+        const pathname = new URL(u).pathname;
+        if (pathname === '/api/v1/health') return jsonResponse({
+          ok: true, schemaVersion: FATWA_CONTRACT.FATWA_SCHEMA,
+          counts: { scholars: FATWA_SCHOLARS_FIXTURE.length },
+        });
+        if (pathname === '/api/v1/scholars') return jsonResponse({
+          ok: true, schemaVersion: FATWA_CONTRACT.FATWA_SCHEMA,
+          scholars: FATWA_SCHOLARS_FIXTURE,
+        });
+        return jsonResponse({
+          ok: true, schemaVersion: FATWA_CONTRACT.FATWA_SCHEMA,
+          results: [], pagination: { total: 0 },
+        });
+      }
       if (u.includes('api.anthropic.com')) {
         const body = JSON.parse(init.body);
         const reply = modelReply(body, script);
@@ -407,14 +427,16 @@ async function main() {
     resetCounters();
     const res = makeRes();
     let stored = null;
+    let hybrid = null;
     const realLog = console.log;
     console.log = (...args) => {
       if (args[0] === '[stored-deen]' && args[1]) stored = args[1];
+      if (args[0] === '[hybrid-deen]' && args[1]) hybrid = args[1];
       realLog.apply(console, args);
     };
     try { await handler(makeReq(question, band), res); } finally { console.log = realLog; }
     return { res, text: readerText(res), modelCalls: modelCalls.slice(), braveCalls,
-      pageFetches: pageFetches.slice(), stored };
+      pageFetches: pageFetches.slice(), stored, hybrid };
   };
 
   // =========================================================================
@@ -438,14 +460,14 @@ async function main() {
     const out = await driveSeam('هل خالف ابن تيمية أهل السنة والجماعة؟', script);
     const outH = await driveLedger('هل خالف ابن تيمية أهل السنة والجماعة؟', 'adult', script);
 
-    ok('the handler rejects the unrelated named stance through stored relevance, not public retrieval',
-      outH.stored && outH.stored.corpusCalls === 1 && outH.stored.model === 0
-        && outH.braveCalls === 0
-        && outH.pageFetches.filter((url) => /^https?:/u.test(String(url))).length === 0
-        && outH.text === STORED.NO_STORED_EVIDENCE,
-      JSON.stringify({ stored: outH.stored, brave: outH.braveCalls, text: outH.text }));
-    ok('...and emits neither an attribution nor a source card for the rejected record',
-      !/قال ابن تيمية|<source\b/u.test(outH.text) && outH.res.ended === 1,
+    ok('the handler compares the local, fatwa and live paths for the religious topic',
+      outH.hybrid && outH.hybrid.corpusCalls === 1
+        && outH.hybrid.fatwaSearch === 1 && outH.braveCalls >= 1
+        && outH.pageFetches.some((url) => /^https:\/\/islamqa\.info\//u.test(String(url)))
+        && outH.hybrid.evidence.length >= 1,
+      JSON.stringify({ hybrid: outH.hybrid, brave: outH.braveCalls, text: outH.text }));
+    ok('...uses a general source without inventing direct speech by Ibn Taymiyyah',
+      !/قال ابن تيمية/u.test(outH.text) && /<source\b/u.test(outH.text) && outH.res.ended === 1,
       outH.text.slice(0, 220));
 
     const ir = out.out ? out.out.policy : null;

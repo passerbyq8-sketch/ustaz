@@ -188,9 +188,9 @@ const quotedDomains = (body) =>
   // أُحيي», and it was not. Measured the same day, it answers HTTP 403 to every server-side
   // request including its own published API. The condition is asserted below so that reviving the
   // domain and forgetting the child's list cannot both happen quietly.
-  eq('the child roster is exactly the eight the owner named', sorted(minorArr), sorted([
+  eq('the child roster is exactly the seven currently live-citable sources', sorted(minorArr), sorted([
     'islamqa.info', 'binbaz.org.sa', 'islamweb.net', 'alukah.net',
-    'iifa-aifi.org', 'islamstory.com', 'ibn-jebreen.com', 'almosleh.com',
+    'iifa-aifi.org', 'ibn-jebreen.com', 'almosleh.com',
   ]));
   ok('dorar.net is on the child list ONLY if it was revived',
     minorArr.includes('dorar.net') === ((R.findSource('dorar.net') || {}).status === 'active'),
@@ -220,7 +220,9 @@ const quotedDomains = (body) =>
   const islamstory = R.findSource('islamstory.com');
   ok('islamstory.com is present EXACTLY once', !!islamstory
     && R.SOURCES.filter((s) => s.domain === 'islamstory.com').length === 1);
-  ok('islamstory.com appears once in SITES_ADULT', adultArr.filter((d) => d === 'islamstory.com').length === 1);
+  ok('islamstory.com is absent from SITES_ADULT after the current HTTP 521 measurement',
+    adultArr.filter((d) => d === 'islamstory.com').length === 0
+      && islamstory.status === 'deferred' && /521|2026-08-14/.test(String(islamstory.note || '')));
 
   // tafsir.app AND tafsir.net ARE TWO SOURCES, NOT ONE.
   //
@@ -307,7 +309,7 @@ const quotedDomains = (body) =>
   // remove a source that was admitted on condition of a scope.
   //
   // ── WHY THE LIST IS NOW IN TWO HALVES (2026-08-05) ──
-  // Three of the original fifteen were DEFERRED for LIVENESS, which is a different fact from
+  // Six legacy domains are DEFERRED for current liveness/extractability, which is a different fact from
   // scope and must not be allowed to look like one:
   //   ferkous.com  — the site moved to ferkous.app (302 on every path; the redirect lands on HTTP,
   //                  which canonical.js refuses). The material is still reachable, under the new
@@ -320,11 +322,14 @@ const quotedDomains = (body) =>
   // every deferred one must be refused for every purpose — because a domain that cannot answer
   // must not sit in a candidate list looking like coverage.
   const LEGACY_LIVE = ['islamweb.net', 'binbaz.org.sa', 'alukah.net', 'islamqa.info', 'sh-albarrak.com',
-    'almosleh.com', 'islamstory.com', 'al-badr.net', 'othmanalkhamees.com', 'iifa-aifi.org',
+    'almosleh.com', 'iifa-aifi.org',
     'ferkous.app', 'dr-mutlaq.com', 'eftaa.awqaf.gov.kw'];
-  const LEGACY_DEFERRED = ['ferkous.com', 'tafsir.app', 'dorar.net'];
+  const LEGACY_DEFERRED = [
+    'ferkous.com', 'tafsir.app', 'dorar.net',
+    'islamstory.com', 'al-badr.net', 'othmanalkhamees.com',
+  ];
   const LEGACY = LEGACY_LIVE.concat(LEGACY_DEFERRED);
-  eq('the fifteen pre-existing sources are all still registered', LEGACY.filter((d) => !R.findSource(d)), []);
+  eq('the legacy sources are all still registered', LEGACY.filter((d) => !R.findSource(d)), []);
   eq('...and none of them was deleted rather than deferred',
     LEGACY_DEFERRED.filter((d) => (R.findSource(d) || {}).status !== 'deferred'), []);
   for (const p of R.PURPOSES) {

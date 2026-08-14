@@ -5,11 +5,15 @@
     "api/ask.js": { "maxDuration": 300, "includeFiles": "lib/data/fiqh-search.json.gz" },
     "api/chat.js": { "maxDuration": 300 },
     "api/chat-fast.js": { "maxDuration": 300 },
+    "api/fatwa-proxy.js": { "maxDuration": 30 },
     "api/tashkeel.js": { "maxDuration": 300 },
     "api/tts.js": { "maxDuration": 300 },
     "api/stt.js": { "maxDuration": 300 },
     "api/report.js": { "maxDuration": 300 }
   },
+  "rewrites": [
+    { "source": "/api/v1/:path*", "destination": "/api/fatwa-proxy?path=:path*" }
+  ],
   "headers": [
     { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
     { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }

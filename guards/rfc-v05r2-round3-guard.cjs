@@ -240,17 +240,19 @@ async function main() {
     let ageFloorLog = null;
     let policyLog = null;
     let storedLog = null;
+    let hybridLog = null;
     const realLog = console.log;
     console.log = (...a) => {
       if (a[0] === '[policy] AGE_FLOOR' && a[1]) ageFloorLog = a[1];
       if (a[0] === '[policy]' && a[1]) policyLog = a[1];
       if (a[0] === '[stored-deen]' && a[1]) storedLog = a[1];
+      if (a[0] === '[hybrid-deen]' && a[1]) hybridLog = a[1];
       realLog.apply(console, a);
     };
     const res = makeRes();
     try { await handlerRef(makeReq(question, band), res); } finally { console.log = realLog; }
     return { res, text: readerText(res), modelCalls: modelCalls.slice(), braveCalls,
-      ageFloorLog, policyLog, storedLog };
+      ageFloorLog, policyLog, storedLog, hybridLog };
   };
   const handlerRef = ASK.default;
 
@@ -302,14 +304,14 @@ async function main() {
       braveResults: [{ url: 'https://islamqa.info/ar/answers/9101/x', title: 'حكم المسألة', description: '' }],
     };
     const out = await driveHandler('ما حكم قتل النمل؟', 'young', script, { ledger: true, legacyPolicy: false });
-    ok('a benign fiqh question is not safety-blocked on «قتل» and reaches closed stored retrieval',
+    ok('a benign fiqh question is not safety-blocked on «قتل» and reaches hybrid retrieval',
       out.policyLog?.outcome === 'ALLOW'
-        && out.storedLog?.route === 'STORED_FIQH' && out.storedLog?.domain === 'DEEN'
-        && out.storedLog?.corpusCalls === 1 && out.storedLog?.publicSearch === 0
-        && out.storedLog?.publicFetch === 0 && out.storedLog?.adapters === 0
-        && out.braveCalls === 0 && out.text === STORED.NO_STORED_EVIDENCE
+        && out.hybridLog?.route === 'STORED_FIQH' && out.hybridLog?.domain === 'DEEN'
+        && out.hybridLog?.corpusCalls === 1 && out.hybridLog?.publicSearch >= 1
+        && out.hybridLog?.publicFetch >= 1 && out.hybridLog?.adapters >= 1
+        && out.braveCalls >= 1 && !/وضح|حدّد|حدد|NEEDS_QUALIFIER/u.test(out.text)
         && !/<source\b/u.test(out.text) && out.res.ended === 1,
-      JSON.stringify({ policy: out.policyLog, stored: out.storedLog, brave: out.braveCalls, text: out.text }));
+      JSON.stringify({ policy: out.policyLog, hybrid: out.hybridLog, brave: out.braveCalls, text: out.text }));
     ok('...and the model ceiling still holds', out.modelCalls.length <= 7, String(out.modelCalls.length));
   }
   {

@@ -358,6 +358,7 @@ const issue = (over) => Object.assign({
       ['10.1.2.3', 'private-10/8'], ['172.16.0.1', 'private-172.16/12'], ['172.31.255.255', 'private-172.16/12'],
       ['192.168.1.1', 'private-192.168/16'], ['169.254.169.254', 'link-local'],
       ['100.64.0.1', 'cgnat-100.64/10'], ['224.0.0.1', 'multicast-or-reserved'],
+      ['198.51.100.7', 'documentation'], ['203.0.113.9', 'documentation'],
       ['::1', 'loopback'], ['fd00::1', 'unique-local-fc00::/7'], ['fe80::1', 'link-local-fe80::/10'],
       ['ff02::1', 'multicast-ff00::/8'], ['::ffff:127.0.0.1', 'ipv4-mapped:loopback'],
       ['::ffff:169.254.169.254', 'ipv4-mapped:link-local'],

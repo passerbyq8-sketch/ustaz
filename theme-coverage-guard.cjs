@@ -2169,8 +2169,8 @@ ok('N14: the send button is in the dock and calls the shipped sender',
   /<button onClick=\{\(\) => sendMessage\(input\)\} disabled=\{isLoading \|\| \(!input\.trim\(\) && !pendingImage\)\}/.test(chatSrc));
 ok('N14: ...and the autosave still files on the QUESTION',
   /setMessages\(updated\);[\s\S]{0,600}?saveMessages\(updated\);/.test(html));
-ok('N15: the endpoints are the shipped pair',
-  /endpoint = \(mode === 'call' \? '\/api\/chat' : '\/api\/ask'\)/.test(html)
+ok('N15: text and call share the grounded answer endpoint',
+  /endpoint = '\/api\/ask'/.test(html)
   && /const response = await aiFetch\(endpoint, \{/.test(html));
 ok('N16: the request body is the shipped shape',
   html.indexOf("const __mkBody = (msgs) => ({ max_tokens: 4096, stream: true, name: p.name, age: p.age, gender: p.gender, mode, messages: msgs, ...__extra });") !== -1);
@@ -2536,8 +2536,8 @@ ok('O9: the screen is still entered by setting the screen, and by nothing else',
 }
 
 /* ---- O11/O12. the endpoints ------------------------------------------- */
-ok('O11: the call still speaks to /api/chat and the text chat still speaks to /api/ask',
-  /endpoint = \(mode === 'call' \? '\/api\/chat' : '\/api\/ask'\)/.test(html));
+ok('O11: call and text both speak to /api/ask for answer parity',
+  /endpoint = '\/api\/ask'/.test(html));
 ok('O11: ...and the call turn still asks for mode:\'call\', which is what chooses it',
   /reply = await callAI\(apiHistory, profile, \{\s*\r?\n\s*signal: controller\.signal, mode: 'call',/.test(html));
 ok('O11: ...on the shipped body, unchanged',

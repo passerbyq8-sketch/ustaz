@@ -799,7 +799,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       if (storedSuite.stdout) process.stdout.write(storedSuite.stdout);
       if (storedSuite.stderr) process.stderr.write(storedSuite.stderr);
       ok('F-010 stored-DEEN sub-suite: grounded output, real takhrij lock and all mutants pass',
-        storedSuite.status === 0 && /stored-DEEN sub-suite: 84\/84 — PASS/u.test(storedSuite.stdout || ''),
+        storedSuite.status === 0 && /stored-DEEN sub-suite: 85\/85 — PASS/u.test(storedSuite.stdout || ''),
         'status=' + storedSuite.status + (storedSuite.error ? ' error=' + storedSuite.error.message : ''));
 
       // A typed identity question is the live structured route where namedEntity is empty while a

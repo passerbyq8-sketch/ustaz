@@ -4003,13 +4003,10 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
 // ============================================================
 // OFFICIAL FATWA SEARCH -- READ ONLY
 // ============================================================
-// This URL is the owner's public PREVIEW deployment. The production cutover changes this one
-// value (or defines window.EZIK_FATWA_API_BASE before this script); nothing else in Ezik knows
-// where the snapshot lives. Search asks for the complete official record and never calls a model.
-const EZIK_FATWA_API_BASE = String(
-  (typeof window !== 'undefined' && window.EZIK_FATWA_API_BASE) ||
-  'https://ezik-fatwas.vercel.app'
-).replace(/\/+$/, '');
+// The browser speaks only to Ezik's own /api/v1 contract. vercel.json rewrites that path to
+// the fixed, bounded server-side proxy; the second service is never contacted by the client.
+// Search still asks for the same complete official record and never calls a model.
+const EZIK_FATWA_API_BASE = '';
 
 async function ezikFatwaFetch(path, signal) {
   const response = await fetch(EZIK_FATWA_API_BASE + path, {
@@ -7679,12 +7676,15 @@ function App() {
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
   };
 
-  const callAI = async (history, p, { onDelta, signal, mode = 'chat', endpoint = (mode === 'call' ? '/api/chat' : '/api/ask') } = {}) => {
+  const callAI = async (history, p, { onDelta, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
     if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
     // بلا موافقةٍ صريحةٍ سارية: لا سؤال، ولا تصنيف، ولا تحيّةَ إقلاع. يُقرأ المخزنُ هنا لا رايةٌ
     // محفوظةٌ سلفاً، فسحبُ الموافقةِ أثناءَ فتحِ الشاشةِ يُطاع فوراً.
     if (!hasValidAIConsent()) return '';
-    const FAST_CHANNEL_ENABLED = true;
+    // Text and call share the same deterministic server router and evidence path. The thin
+    // classifier remains below as dead-compatible code for rollback archaeology, but no voice
+    // turn can bypass /api/ask and disagree with the text answer.
+    const FAST_CHANNEL_ENABLED = false;
     const __classifyFast = async () => {
       try {
         const __ex = (m) => (m && typeof m.content === 'string') ? m.content : (m && typeof m.text === 'string') ? m.text : (m && Array.isArray(m.content)) ? m.content.map(c => (c && typeof c.text === 'string') ? c.text : '').join(' ') : '';
@@ -7736,9 +7736,9 @@ function App() {
       endpoint = '/api/chat-fast';
     }
     try {
-      // Route: TEXT chat -> /api/ask (server-side RAG tool loop); VOICE (mode:'call') -> /api/chat.
-      // `endpoint` defaults from `mode` but can be overridden (e.g. the greeting forces /api/chat
-      // to skip pointless round-1 tool overhead while STILL using the normal 'chat' prompt).
+      // Text and voice both enter /api/ask; the server's current-turn router decides GENERAL,
+      // specialised local DEEN, or hybrid DEEN. `endpoint` may still be overridden by an explicit
+      // non-conversation caller, but call mode itself no longer selects a different brain.
       // Model is chosen SERVER-SIDE (api/ask: Opus for adult detailed/scholar, else Sonnet;
       // api/chat: Sonnet). The client does NOT pick it; any model/temperature/top_p/top_k sent here
       // is ignored or 400s -- so we send none. max_tokens 4096 leaves room for a long fully-vocalized

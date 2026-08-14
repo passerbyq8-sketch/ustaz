@@ -75,7 +75,7 @@ const PT = (paras) => '<html><head><title>صفحة</title>'
   + '</head><body><article>'
   + paras.map((x) => '<p>' + x + '</p>').join('\n') + '</article></body></html>';
 
-const HADITH_EXPLANATION_FIXTURE_URL = 'https://al-badr.net/articles/5001';
+const HADITH_EXPLANATION_FIXTURE_URL = 'https://islamqa.info/ar/answers/7005/x';
 
 const CORPUS = {
   // Was tafsir.app until 2026-08-05. That host is DEFERRED (client-rendered, zero extractable
@@ -88,12 +88,10 @@ const CORPUS = {
   'https://tafsir.net/articles/9001': P([
     'دراسة في معنى قوله تعالى فويل للمصلين. المراد بالساهين المتهاونون بالصلاة.' + LONG,
   ]),
-  // Was dorar.net until 2026-08-05. That host is DEFERRED (HTTP 403 for every server-side client,
-  // including its own published API). al-badr.net is the live source with the highest declared
-  // hadith_explanation priority among hosts that publish readable text (60) AND — the contrast F2
-  // exists to test — it is eligible for hadith EXPLANATION while being ineligible for hadith
-  // GRADING, exactly as dorar.net was the reverse case. (al-abbaad.com scores higher still but
-  // declares requiresTranscript, so a text fixture on it would be refused for the wrong reason.)
+  // dorar.net is deferred (403), and the 2026-08-14 measurement also deferred al-badr.net after
+  // it stopped producing citable pages.  The fixture follows the highest-priority currently
+  // searchable text-capable explanation source.  The contrast F2 tests explanation eligibility,
+  // not the historical availability of either failed host.
   [HADITH_EXPLANATION_FIXTURE_URL]: P([
     'شرح حديث إنما الأعمال بالنيات. معنى الحديث أن العمل يصح بالنية ويفسد بفقدها.' + LONG,
     'وهذا الحديث أصل عظيم من أصول الدين.' + LONG,

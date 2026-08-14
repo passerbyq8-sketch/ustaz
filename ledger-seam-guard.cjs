@@ -519,8 +519,10 @@ const user = (t) => [{ role: 'user', content: t }];
         plannerOverride: SAFE_PLAN,
         search: async () => { throw new Error('safe rejection must not search'); },
       });
-      ok('trusted safe rejection is the exact server-owned outcome and text',
-        trusted.out.outcome === 'SAFE_REJECTION' && trusted.out.text.endsWith('- ' + SAFE_QUALIFIER));
+      ok('a missing qualifier is telemetry, never a reader follow-up',
+        trusted.out.outcome === 'SAFE_REJECTION'
+          && !trusted.out.text.includes(SAFE_QUALIFIER)
+          && !/NEEDS_QUALIFIER|وضح سؤالك|حدد المقصود/u.test(trusted.out.text));
 
       const runTrustedHandler = async (depth) => {
         forceSafeRejectionPlan = true;
@@ -545,8 +547,8 @@ const user = (t) => [{ role: 'user', content: t }];
       const detailed = await runTrustedHandler('deep');
       const student = await runTrustedHandler('scholar');
       for (const [label, run] of [['Detailed', detailed], ['Student', student]]) {
-        eq(label + ' trusted follow-up survives byte-exact', run.text, trusted.out.text);
-        ok(label + ' trusted follow-up is typed as a non-answer only by the server outcome',
+        eq(label + ' server-owned no-evidence text survives byte-exact', run.text, trusted.out.text);
+        ok(label + ' no-evidence response is typed as a non-answer only by the server outcome',
           run.context && run.context.kind === 'safe_rejection');
         ok(label + ' trusted follow-up closes once with one stop and no fabricated card',
           run.target.ended === 1 && run.frames.filter((frame) => frame.type === 'message_stop').length === 1
@@ -1607,8 +1609,10 @@ const user = (t) => [{ role: 'user', content: t }];
         eq(run.id + ' planner uses the server-owned model', run.calls[0] && run.calls[0].model, expectedModel);
         eq(run.id + ' has zero reader-answer calls',
           run.calls.filter((call) => call.purpose === 'drafting').length, 0);
-        ok(run.id + ' preserves the trusted follow-up byte-exact and typed', run.context
-          && run.context.kind === 'safe_rejection' && run.text.endsWith('- ' + SAFE_QUALIFIER), run.text);
+        ok(run.id + ' never turns a missing qualifier into a follow-up', run.context
+          && run.context.kind === 'safe_rejection'
+          && !run.text.includes(SAFE_QUALIFIER)
+          && !/NEEDS_QUALIFIER|وضح سؤالك|حدد المقصود/u.test(run.text), run.text);
         ok(run.id + ' closes once without a fabricated source', run.response.ended === 1
           && run.frames.filter((frame) => frame.type === 'message_stop').length === 1
           && !run.text.includes('<source'));
