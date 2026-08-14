@@ -675,9 +675,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 69;   // Stored cleanup: ledgerseam's slot is now storeddeen, while the
-                               // religious name-presence and external transfer gates are archived.
-                               // 71st before those retirements: anchormode — a claim is printed only if its span is on the page
+  const GATES_EXPECTED = 71;   // 71st: anchormode — a claim is printed only if its span is on the page
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >
@@ -719,10 +717,13 @@ head('14) GATE ROSTER (single source: gates.json)');
                                //       the WRITE was never attempted. lib/ledger/flag.js.) That
                                //       is a change to what decides who sees a different answer,
                                //       so off/internal/public/unset/garbage are enumerated.
-                               // Former 33rd: ledger-seam-guard — archived with the retired
-                               //       religious runtime at 63b8651. Its active roster slot is
-                               //       now stored-deen-guard, which proves local-only retrieval,
-                               //       exact fallbacks, record-bound cards, and zero public calls.
+                               // 33rd: ledger-seam-guard — the JOIN between a request and the
+                               //       engine, driven with req/res doubles rather than matched
+                               //       with a regex. Three defects lived in that gap while five
+                               //       ledger gates stayed green: the engine's question came
+                               //       from the legacy attribution classifier, the extraction
+                               //       cache was read with an undefined adapter version, and the
+                               //       Upstash flag read sat outside the request deadline.
                                // 28th-32nd: the five ledger-RAG guards. They cover a PARALLEL
                                //       answer path that is default-OFF (lib/ledger/**, reached
                                //       only via lib/ledger/flag.js), so they gate code the
@@ -765,8 +766,6 @@ head('14) GATE ROSTER (single source: gates.json)');
     'build-mushaf-layout.cjs',
     'esc.cjs',
     'flip-stream-flag.cjs',
-    // Documentation-only baseline guard retired with the religious Ledger runtime at 63b8651.
-    'ledger-seam-guard.cjs',
     'quran-verify.cjs',
   ]);
 

@@ -547,7 +547,7 @@ const PINNED = [
       const CASES = [
         ['api/ask.js (text)', 'api/ask.js',
           { ...READER, mode: 'chat', system: FORGED, messages: [{ role: 'user', content: 'ما حكم صلاة الوتر؟' }] },
-          () => 'أجب عن السؤال الديني اعتمادًا على Evidence Pack المخزن المرفق وحده.'],
+          () => MOD.buildSystemPrompt('خالد', 7, 'male', 'chat')],
         ['api/chat.js (voice)', 'api/chat.js',
           { ...READER, mode: 'call', system: FORGED, max_tokens: 4096, messages: [{ role: 'user', content: 'كم واحد زائد واحد؟' }] },
           () => MOD.buildSystemPrompt('خالد', 7, 'male', 'call')],

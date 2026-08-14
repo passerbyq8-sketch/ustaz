@@ -473,8 +473,8 @@ async function main() {
         !/يرى ابن تيمية/.test(bad.text), bad.text.slice(0, 220));
       ok('...and the contradiction is impossible: no «لم أقف» beside a credit',
         !(/لم أقف/.test(bad.text) && /ابن تيمية (?:يرى|قال)/.test(bad.text)), bad.text.slice(0, 220));
-      ok('...the reader gets the stored-source absence lead instead',
-        /لا يوجد في مصادري المخزنة نص منسوب لابن تيمية/.test(bad.text), bad.text.slice(0, 220));
+      ok('...the reader gets the constrained reply instead',
+        /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(bad.text), bad.text.slice(0, 220));
       eq('...and the stream closes exactly once', bad.res.ended, 1);
 
       // ── THE GREEN FIXTURE, RE-PINNED ON THE STRONGER CONDITION ─────────────
@@ -491,11 +491,9 @@ async function main() {
       // `consistencyProblems` directly, and once below with a licence in hand — which is the state
       // production is in whenever this branch actually has pages to draft over.
       const good = await drive(Q_QADA, GOOD_DRAFT);
-      ok('GREEN: the handler ignores the unsourced transmission and uses its stored-source lead',
-        /لا يوجد في مصادري المخزنة نص منسوب لابن تيمية/.test(good.text), good.text.slice(0, 220));
-      ok('...and it does not replace it with another attribution to him',
-        !/(?:قال|يرى|أفتى)\s+(?:الشيخ\s+)?ابن تيمية|ابن تيمية\s+(?:قال|يرى|أفتى)/u.test(good.text),
-        good.text.slice(0, 220));
+      ok('GREEN: with NO page retrieved, even a well-formed transmission is refused',
+        /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(good.text), good.text.slice(0, 220));
+      ok('...and it is not replaced by a quotation of him', !/«[^»]{12,}»/.test(good.text), good.text.slice(0, 220));
       ok('...and the same draft passes the gate once a page licenses him',
         CG.consistencyProblems(GOOD_DRAFT, {
           entity: 'ابن تيميه', notDirectlyVerified: true, searchProven: true,
@@ -510,13 +508,12 @@ async function main() {
       ];
       const badAfter = await drive(Q_QADA, BAD_DRAFT, prior);
       ok('RED holds inside a running thread too',
-        !/مجموع الفتاوى/.test(badAfter.text)
-          && /لا يوجد في مصادري المخزنة نص منسوب لابن تيمية/.test(badAfter.text),
+        !/مجموع الفتاوى/.test(badAfter.text) && /لا أنسبُ قولًا في هذه المسألة إلى أحدٍ/.test(badAfter.text),
         badAfter.text.slice(0, 200));
 
-      // ── THE RETIRED PATH INDICATOR IS UNREACHABLE ON A STORED TURN ─────────
-      ok('the stored religious return emits no legacy/Ledger path indicator',
-        !comments(bad.res).some((l) => l.includes('rfc-path=')), comments(bad.res).join(' | '));
+      // ── THE PATH INDICATOR, AGAINST THE ENGINE THAT ACTUALLY RAN ───────────
+      ok('the indicator says legacy when the ledger did not run',
+        comments(bad.res).some((l) => l.includes('rfc-path=legacy')), comments(bad.res).join(' | '));
       ok('...and it never leaks a reason code or a credential',
         !comments(bad.res).some((l) => /founder|reason|token|budget/i.test(l)));
 

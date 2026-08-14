@@ -160,6 +160,11 @@
     "args": "--compare data/ledger-fixtures.json"
   },
   {
+    "name": "ledgerseam",
+    "script": "ledger-seam-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "rfcpolicy",
     "script": "guards/rfc-v05r2-guard.cjs",
     "args": ""
@@ -260,6 +265,11 @@
     "args": ""
   },
   {
+    "name": "namepresence",
+    "script": "guards/name-presence-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "voicesafety",
     "script": "guards/voice-safety-guard.cjs",
     "args": ""
@@ -335,8 +345,8 @@
     "args": ""
   },
   {
-    "name": "storeddeen",
-    "script": "guards/stored-deen-guard.cjs",
+    "name": "transfermode",
+    "script": "guards/transfer-mode-guard.cjs",
     "args": ""
   },
   {

@@ -433,15 +433,16 @@ async function main() {
         !WORLD_ONLY('identity (' + RET.SITES_GENERAL.map((domain) => 'site:' + domain).join(' OR ')
           + ' OR site:unregistered.example)'));
       const religiousQueries = singer.state.braveQueries.filter((q) => !WORLD_ONLY(q));
-      ok('the religious turn performs no public-source query at all',
-        religiousQueries.length === 0,
+      ok('the search of the RELIGIOUS list carried NO unregistered name',
+        religiousQueries.length > 0 && religiousQueries.every((q) => !/خالد|عبدالرحمن/.test(q)),
         JSON.stringify(religiousQueries));
-      ok('...and no world look-up carries the requested name either',
-        singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).length === 0,
+      ok('...and the only query that may carry the name is the world look-up, bounded to ONE',
+        singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).length <= 1
+        && singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).every(WORLD_ONLY),
         JSON.stringify(singer.state.braveQueries));
-      ok('...while the actual fiqh topic reaches the local Evidence Pack request',
-        singer.state.prompts.some((prompt) => /"evidence_pack"/.test(prompt) && /قصر|الصلاة/.test(prompt)),
-        JSON.stringify(singer.state.prompts));
+      ok('...and it still carried the actual fiqh topic',
+        singer.state.braveQueries.some((q) => /قصر|الصلاة/.test(q)),
+        JSON.stringify(singer.state.braveQueries));
       ok('the reader gets the ruling he actually asked about',
         /قصر|ركعتين/.test(singer.text), singer.text.slice(0, 200));
       // RE-PINNED, AND STRONGER. The old gate asserted the reader is TOLD who the man really is.

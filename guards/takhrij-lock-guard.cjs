@@ -678,29 +678,6 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         const u = String(url);
         if (u.includes('api.anthropic.com')) {
           const b = JSON.parse(init.body || '{}');
-          const storedPayload = String(b.messages?.[0]?.content || '');
-          if (storedPayload.includes('"evidence_pack"')) {
-            if (disconnectMode) {
-              return new Promise((resolve, reject) => {
-                const rejectAbort = () => {
-                  upstreamCancelCalls++;
-                  upstreamSignalAborted = !!init.signal?.aborted;
-                  const error = new Error('aborted');
-                  error.name = 'AbortError';
-                  reject(error);
-                };
-                init.signal?.addEventListener?.('abort', rejectAbort, { once: true });
-                queueMicrotask(() => {
-                  disconnected = true;
-                  writesAtDisconnect = activeResponse.writes.length;
-                  endsAtDisconnect = activeResponse.ended;
-                  if (disconnectMode === 'close') activeResponse.emit('close');
-                  else requestAbort.abort();
-                });
-              });
-            }
-            return jr({ content: [{ type: 'text', text: draft }], stop_reason: 'end_turn' });
-          }
           if (b.stream) { const frames = [
             event({ type: 'message_start', message: { id: 'msg_a1', type: 'message', role: 'assistant', content: [] } }),
             event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }),
@@ -811,17 +788,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
 
       const deenQuestion = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629\u061f';
       const deenUnsafe = await drive({ question: deenQuestion, draft: badTakhrij, evidence: '\u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 \u0645\u0634\u0631\u0648\u0639.' });
+      ok('F-010 DEEN negative: safe body remains after removing unverified takhrij', rawContract(deenUnsafe) && deenUnsafe.text.startsWith('\u062c\u0648\u0627\u0628 \u0645\u0641\u064a\u062f.') && !deenUnsafe.res.writes.join('').includes('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a'), deenUnsafe.res.writes.join(''));
       const deenBody = '\u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 \u0645\u0634\u0631\u0648\u0639.';
       const deenSafe = await drive({ question: deenQuestion, draft: deenBody, evidence: '\u062d\u0643\u0645 ' + deenBody });
-      const expectedDeenCard = '<source site="الموسوعة الفقهية الكويتية" record="F02316">مادة قَصْرُ الصَّلاَةِ — الجزء 33 — السجل F02316</source>';
-      ok('F-010 DEEN local path preserves the cleaned body and replaces every external card',
-        rawContract(deenUnsafe)
-          && deenUnsafe.text === badTakhrij.replace('. ', '.\n') + '\n\n' + expectedDeenCard
-          && !deenUnsafe.res.writes.join('').includes('<source url='),
-        deenUnsafe.res.writes.join(''));
-      ok('F-010 DEEN green: body and stored-record card are byte-identical and ordered',
-        rawContract(deenSafe) && deenSafe.text === deenBody + '\n\n' + expectedDeenCard,
-        deenSafe.text);
+      const expectedDeenCard = '<source site="islamqa.info" url="https://islamqa.info/ar/answers/999999/a1-local">A1 evidence</source>';
+      ok('F-010 DEEN green: body and server-owned card are byte-identical and ordered', rawContract(deenSafe) && deenSafe.text === deenBody + expectedDeenCard, deenSafe.text);
       for (const disconnectMode of ['close', 'abort']) {
         const disconnected = await drive({
           question: deenQuestion, draft: deenBody, evidence: '\u062d\u0643\u0645 ' + deenBody,
@@ -834,15 +805,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
             && disconnected.res.ended === 0 && disconnected.text === '');
       }
       const deenCrlf = await drive({ question: deenQuestion, draft: deenBody, evidence: '\u062d\u0643\u0645 ' + deenBody, wireMode: 'crlf-partial' });
-      ok('SSE causal RED: stored DEEN keeps an exact client lifecycle and record card',
-        rawContract(deenCrlf) && deenCrlf.text === deenBody + '\n\n' + expectedDeenCard,
-        deenCrlf.text);
+      ok('SSE causal RED: DEEN partial CRLF lifecycle keeps exact body and structured card',
+        rawContract(deenCrlf) && deenCrlf.text === deenBody + expectedDeenCard, deenCrlf.text);
       const supportedTakhrij = '\u0647\u0630\u0627 \u062d\u062f\u064a\u062b \u0639\u0638\u064a\u0645 \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.';
       const deenTakhrijGreen = await drive({ question: deenQuestion, draft: supportedTakhrij, evidence: '\u062d\u0643\u0645 \u0642\u0635\u0631 \u0627\u0644\u0635\u0644\u0627\u0629. ' + supportedTakhrij });
-      ok('F-010 DEEN takhrij green: stored-grounded wording and card remain byte-for-byte',
-        rawContract(deenTakhrijGreen)
-          && deenTakhrijGreen.text === supportedTakhrij + '\n\n' + expectedDeenCard,
-        deenTakhrijGreen.text);
+      ok('F-010 DEEN takhrij green: evidenced wording and card remain byte-for-byte', rawContract(deenTakhrijGreen) && deenTakhrijGreen.text === supportedTakhrij + expectedDeenCard, deenTakhrijGreen.text);
 
       // A typed identity question is the live structured route where namedEntity is empty while a
       // real, completed name-presence probe can still own a lead.  The old raw-attribution fixture

@@ -564,12 +564,14 @@ const PAGES = {
         try { await handler(req, mkRes()); } catch (e) { /* a refusal is not a silence */ }
 
         const all = JSON.stringify(sent);
-        ok('the religious handler uses one stored-evidence drafting call',
-          sent.length === 1
-            && String(sent[0]?.messages?.[0]?.content || '').includes('"evidence_pack"'),
-          sent.length + ' vendor call(s)');
-        ok('...and the retired identity fact block never reaches that call',
-          !all.includes('هويّةُ الاسمِ المذكور') && !all.includes('فلا تصفْه بشيخٍ'));
+        if (ok('the handler reached a drafting round', sent.length >= 2,
+          'only ' + sent.length + ' vendor call(s) — fix the harness, do not delete the case')) {
+          ok('the identity fact block reached the model', all.includes('هويّةُ الاسمِ المذكور'));
+          ok('...saying he is NOT one of the people of knowledge', all.includes('ليس من أهلِ العلمِ'));
+          ok('...forbidding the title outright', all.includes('فلا تصفْه بشيخٍ'));
+          ok('...ordering the question answered anyway', all.includes('أجِبْ عن المسألةِ نفسِها'));
+          ok('...and carrying the descriptor the SOURCE gave', all.includes('مطرب'));
+        }
       } finally {
         globalThis.fetch = throwingFetch;
         for (const k of Object.keys(saved)) {
@@ -824,23 +826,30 @@ const PAGES = {
         const OPENING = 'لم أتحقق من هذا الاسم ضمن النتائج التي فُحصت';
         const CORRECTION = 'ليس ممّن تُؤخَذ عنه الفتوى في مصادرنا';
 
-        // ── (1) A NAMED RELIGIOUS OPINION DOES NOT RUN THE IDENTITY CASCADE ──
+        // ── (1) IDENTITY DECIDED: the opening must be ABSENT ──────────────────
         const decided = await run('ماقول الشيخ عبدالله الرويشد في حكم الغناء', WIKI);
-        ok('the named religious request bypasses the public-figure cascade',
-          decided.identity === '', decided.identity);
-        ok('...and gets the stored-source absence lead without the old identity correction',
-          /لا يوجد في مصادري المخزنة نص منسوب/.test(decided.text)
-            && !decided.text.includes(OPENING) && !decided.text.includes(CORRECTION),
-          decided.text.slice(0, 160));
+        if (ok('the cascade placed him as a public figure', /"kind":"public_figure"/.test(decided.identity),
+          decided.identity || 'no [identity] line — the probe never ran, so this case proves nothing')) {
+          ok('DECIDED: the ignorance opening is ABSENT from what the reader gets',
+            !decided.text.includes(OPENING), decided.text.slice(0, 160));
+          // ...and it is REPLACED, not merely deleted: the reader still gets a true sentence.
+          ok('...and the correction stands in its place', decided.text.includes(CORRECTION),
+            decided.text.slice(0, 160));
+          // ...and the ruling the reader actually asked about survived both.
+          ok('...and the sourced answer still reaches him', /الغناء/.test(decided.text));
+          ok('...carrying its card', /<source/.test(decided.text));
+        }
 
-        // ── (2) AN UNKNOWN NAME FOLLOWS THE SAME STORED-ONLY CONTRACT ─────────
+        // ── (2) IDENTITY UNKNOWN: the opening must be PRESENT ─────────────────
         const unknown = await run('ماقول الشيخ سالم المري العتيبي في حكم الغناء', null);
-        ok('the unknown-name religious request also bypasses the identity cascade',
-          unknown.identity === '', unknown.identity);
-        ok('...and receives no old UNKNOWN opening or public-figure correction',
-          /لا يوجد في مصادري المخزنة نص منسوب/.test(unknown.text)
-            && !unknown.text.includes(OPENING) && !unknown.text.includes(CORRECTION),
-          unknown.text.slice(0, 160));
+        if (ok('the cascade reached UNKNOWN for a name nothing carries', /"kind":"unknown"/.test(unknown.identity),
+          unknown.identity || 'no [identity] line')) {
+          ok('UNKNOWN: the ignorance opening IS printed — it is the honest sentence here',
+            unknown.text.includes(OPENING), unknown.text.slice(0, 160));
+          ok('...and the correction is NOT, because nothing was placed',
+            !unknown.text.includes(CORRECTION), unknown.text.slice(0, 160));
+          ok('...and the ruling still reaches him too', /الغناء/.test(unknown.text));
+        }
 
         // ── (3) THE ORDER THAT CAUSED IT, PINNED STRUCTURALLY ─────────────────
         // The sentence may not be built before the verdict it consults exists.
