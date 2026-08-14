@@ -129,6 +129,44 @@ async function runHybridGuard() {
     SW.stripUnownedSourceCards(forgedGeneralCard), 'جواب عام آمن.  تتمة.');
   ok('MUTANT killed: leaving a model-owned GENERAL card would expose unverified markup',
     forgedGeneralCard.includes('<source') && !SW.stripUnownedSourceCards(forgedGeneralCard).includes('<source'));
+  const generalWrites = [];
+  const generalTarget = {
+    headersSent: true,
+    write(chunk, encoding, callback) {
+      generalWrites.push(Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk));
+      if (typeof encoding === 'function') encoding(); else callback?.();
+      return true;
+    },
+    end(callback) { callback?.(); }, once() {}, removeListener() {},
+  };
+  const generalWriter = SW.createFinalizedSseResponse(generalTarget, {
+    failureText: 'SAFE-FAIL',
+    context: ({ events }) => {
+      const filter = R.createSourceFilter();
+      let strippedWireText = '';
+      for (const event of events) {
+        if (event?.type === 'content_block_delta' && event?.delta?.type === 'text_delta') {
+          strippedWireText += filter.push(event.delta.text);
+        }
+      }
+      strippedWireText += filter.end();
+      return { allowWireOwnedCards: false, stripUnownedSourceCards: true, strippedWireText };
+    },
+    finalize: ({ text }) => ({ ok: !text.includes('<source'), text }),
+  });
+  const generalFrame = (event) => `data: ${JSON.stringify(event)}\n\n`;
+  generalWriter.write([
+    { type: 'message_start', message: { role: 'assistant' } },
+    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: forgedGeneralCard } },
+    { type: 'content_block_stop', index: 0 }, { type: 'message_stop' },
+  ].map(generalFrame).join(''));
+  generalWriter.end();
+  const generalVisible = generalWrites.join('').split(/\r?\n/u).filter((line) => line.startsWith('data:'))
+    .map((line) => { try { return JSON.parse(line.slice(5)); } catch { return null; } })
+    .filter((event) => event?.type === 'content_block_delta').map((event) => event.delta.text).join('');
+  ok('central SSE writer preserves ordinary GENERAL prose while removing an unowned card',
+    generalVisible === 'جواب عام آمن.  تتمة.' && !generalVisible.includes('SAFE-FAIL'));
   const closedFixtures = [
     ['اكتب آية الكرسي كاملة', '<verse surah_num="2" ayah="255"></verse>'],
     ['ما صحة حديث إنما الأعمال بالنيات؟', '<hadith narrator="عمر بن الخطاب رضي الله عنه"'],
@@ -288,6 +326,66 @@ async function runHybridGuard() {
   });
   ok('documented disagreement is surfaced with both real source cards', conflict.outcome === 'ANSWER'
     && conflict.text.includes('واجب') && conflict.text.includes('ليس واجبًا') && conflict.cards.length === 2);
+  const conflictFallback = await H.runHybridDeenTurn({
+    context: veil, band: 'adult', depth: 'normal', dailyBudget: budget,
+    localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+    fatwaSearch: async () => ({ calls: 1, records: [viewA, viewB] }),
+    liveRetrieve: async (_q, opts) => markLive(opts.diagnostics, { sources: [] }),
+    generate: async () => JSON.stringify({ comparison: 'mutant: one side only', claims: [
+      { evidence_id: viewA.id, support_quote: viewA.supportText, claim: viewA.supportText, sentence: viewA.supportText },
+    ] }), verify: verifyIds(viewA.id),
+  });
+  ok('one-sided veil synthesis cannot erase disagreement already present in the Evidence Pack',
+    conflictFallback.outcome === 'ANSWER' && conflictFallback.text.includes('واجب')
+      && conflictFallback.text.includes('ليس واجبًا') && conflictFallback.cards.length === 2,
+    JSON.stringify({ text: conflictFallback.text, cards: conflictFallback.cards }));
+
+  const goldContext = contextFor(S, R, A, 'ما حكم بيع الذهب بالتقسيط؟');
+  const goldSupport = 'شراء الذهب بالتقسيط بعملة ورقية حرام ولا يجوز؛ لأن بيع الذهب بالنقد يشترط فيه التقابض في العقد قبل التفرق.';
+  const goldEvidence = fatwaEvidence({
+    id: 'fatwa:binothaimeen:9405', title: 'حكم شراء الذهب بالتقسيط',
+    url: 'https://binothaimeen.net/ar/voice_library/lessonDetails/gold', publisher: 'ابن عثيمين',
+    authorityId: 'ibn-uthaymeen', scholarId: 'binothaimeen', supportText: goldSupport, passage: goldSupport,
+  });
+  const goldClarity = await H.runHybridDeenTurn({
+    context: goldContext, band: 'adult', depth: 'normal', dailyBudget: budget,
+    localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+    fatwaSearch: async () => ({ calls: 1, records: [goldEvidence] }),
+    liveRetrieve: async (_q, opts) => markLive(opts.diagnostics, { sources: [] }),
+    generate: async () => JSON.stringify({ claims: [{
+      evidence_id: goldEvidence.id,
+      support_quote: 'لأن بيع الذهب بالنقد يشترط فيه التقابض في العقد قبل التفرق.',
+      claim: 'التقابض شرط', sentence: 'التقابض شرط.',
+    }] }), verify: verifyIds(goldEvidence.id),
+  });
+  ok('a ruling answer cannot stop at a reason while omitting the explicit ruling',
+    goldClarity.outcome === 'ANSWER' && H.__hybridTest.statesRuling(goldClarity.text)
+      && /حرام|لا يجوز/u.test(goldClarity.text), goldClarity.text);
+
+  const broadJoinContext = contextFor(S, R, A, 'ما حكم الجمع بين الصلاتين؟');
+  const broadJoinSupport = [
+    'يجوز للمسافر الجمع بين الصلاتين عند الحاجة.',
+    'ويجوز الجمع بين الصلاتين بسبب المطر بشروطه.',
+    'ويجوز للمريض الجمع بين الصلاتين إذا لحقته مشقة.',
+  ].join(' ');
+  const broadJoinEvidence = fatwaEvidence({ supportText: broadJoinSupport, passage: broadJoinSupport });
+  const broadJoin = await H.runHybridDeenTurn({
+    context: broadJoinContext, band: 'adult', depth: 'normal', dailyBudget: budget,
+    localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+    fatwaSearch: async () => ({ calls: 1, records: [broadJoinEvidence] }),
+    liveRetrieve: async (_q, opts) => markLive(opts.diagnostics, { sources: [] }),
+    generate: async () => JSON.stringify({ claims: [{
+      evidence_id: broadJoinEvidence.id,
+      support_quote: 'يجوز للمسافر الجمع بين الصلاتين عند الحاجة.',
+      claim: 'يجوز للمسافر الجمع', sentence: 'يجوز للمسافر الجمع بين الصلاتين عند الحاجة.',
+    }] }), verify: verifyIds(broadJoinEvidence.id),
+  });
+  ok('an unqualified common ruling covers multiple documented basic forms without clarification',
+    broadJoin.outcome === 'ANSWER' && /مسافر/u.test(broadJoin.text) && /المطر/u.test(broadJoin.text)
+      && !/وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(broadJoin.text) && broadJoin.cards.length === 1,
+    JSON.stringify({ text: broadJoin.text, outcome: broadJoin.outcome, cards: broadJoin.cards,
+      traveller: /مسافر/u.test(broadJoin.text), rain: /المطر/u.test(broadJoin.text),
+      clarification: /وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(broadJoin.text) }));
   ok('the live veil query explicitly searches the documented disagreement within Brave limits',
     veilLiveQuery.includes('خلاف الفقهاء')
       && BQ.measureQuery(veilLiveQuery).chars <= 380 && BQ.measureQuery(veilLiveQuery).words <= 45,

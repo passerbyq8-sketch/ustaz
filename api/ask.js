@@ -927,6 +927,7 @@ export default async function handler(req, res) {
     },
     signal: req.signal,
     failureText: FINALIZER_REFUSAL,
+    onReject: (detail) => console.warn('[finalized-sse] rejected', detail),
   });
   const ownedSourceTag = (source) => {
     const card = buildSourceTag(source);
