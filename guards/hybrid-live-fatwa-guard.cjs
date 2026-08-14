@@ -335,6 +335,14 @@ async function runHybridGuard() {
   ok('a scholar attribution without his direct evidence is rejected', forgedAttribution.valid.length === 0);
 
   const veil = contextFor(S, R, A, 'هل النقاب واجب؟');
+  const veilOpposition = H.__hybridTest.liveEvidence({ sources: [{
+    title: 'حكم النقاب والأدلة في ستر الوجه',
+    url: 'https://www.islamweb.net/ar/fatwa/8287/حكم-النقاب', answerFormat: 'text',
+    passage: 'مذهب أبي حنيفة ومالك أن تغطية الوجه والكفين غير واجبة، بل مستحبة، وتجب عند خوف الفتنة.',
+  }] }, veil);
+  ok('واجبة/واجب are one exact ruling family without reverting to substring relevance',
+    veilOpposition.length === 1 && H.__hybridTest.veilStances(veilOpposition[0].supportText).nonDuty,
+    JSON.stringify(veilOpposition));
   const transcript = FSVC.__fatwaTest.normalizeRecord({
     id: 1336, uid: 'aljasser:1336', title: 'أرى النقاب واجبًا وأمي تمنعني',
     scholar: { id: 'aljasser' }, source: { canonicalUrl: 'https://youtube.com/watch?v=fixture' },
