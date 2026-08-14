@@ -498,6 +498,8 @@ async function runHybridGuard() {
   ok('GENERAL strips unowned model cards but keeps the answer, and attributed positions use world search',
     askSource.includes('stripUnownedSourceCards: finalizerContext.allowWireOwnedCards === false')
       && askSource.includes("worldIntent.reason === 'ATTRIBUTED_POSITION'"));
+  ok('MUTANT killed: an attributed GENERAL position cannot fall through to model memory after a live miss',
+    /if \(worldIntent\.reason === 'ATTRIBUTED_POSITION' && !worldPass\) \{[\s\S]{0,500}لن أنسب إليه قولًا من الذاكرة/u.test(askSource));
   ok('Ledger records a missing qualifier but does not early-return a follow-up', engineSource.includes('REJECTION.QUALIFIER_MISSING')
     && !engineSource.includes("return finish({ outcome: 'SAFE_REJECTION', text: followUpText(plan)"));
 

@@ -1376,6 +1376,16 @@ export default async function handler(req, res) {
       hosts: worldPass ? worldPass.sources.map((s) => { try { return new URL(s.url).hostname; } catch { return '?'; } }) : [],
     });
 
+    // A named person's position is an attribution claim, not ordinary timeless
+    // knowledge. If both eligible live passes produced no page, falling through
+    // to the general model lets it recreate the very attribution the search was
+    // introduced to verify. Refuse that attribution deterministically; do not
+    // turn a budget cap, 429, or empty result into a quote from model memory.
+    if (worldIntent.reason === 'ATTRIBUTED_POSITION' && !worldPass) {
+      console.warn('[world-search] attributed position has no eligible live evidence');
+      return emitOnce('لم أعثر على مصدر حي مؤهّل ينقل رأي هذا الشخص في المسألة، لذلك لن أنسب إليه قولًا من الذاكرة.');
+    }
+
     if (ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
       && !worldPass
       && (audienceBand === 'young' || audienceBand === 'teen')) {
