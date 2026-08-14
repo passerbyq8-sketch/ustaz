@@ -414,11 +414,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   }
   {
     const source = read('lib/finalized-sse-writer.js');
-    const deltaGate = `      if (!messageStarted || messageDeltaSeen || !open.has(event.index) || !event.delta
-        || event.delta.type !== 'text_delta' || typeof event.delta.text !== 'string') return { valid: false, complete: true };`;
+    const deltaGate = `      const blockType = open.get(event.index);
+      if (!messageStarted || messageDeltaSeen || !blockType || !event.delta) return reject('content-block-delta');`;
     ok('mutation precondition: text deltas require both message and block start', source.includes(deltaGate));
-    const mutant = source.replace(deltaGate, `      if (messageDeltaSeen || !event.delta
-        || event.delta.type !== 'text_delta' || typeof event.delta.text !== 'string') return { valid: false, complete: true };`);
+    const mutant = source.replace(deltaGate, `      const blockType = open.get(event.index) || 'text';
+      if (messageDeltaSeen || !event.delta) return reject('content-block-delta');`);
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a2-sse-mut-'));
     try {
       const file = path.join(dir, 'delta-before-start.mjs');

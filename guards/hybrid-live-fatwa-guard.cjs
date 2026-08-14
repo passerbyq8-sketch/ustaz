@@ -167,6 +167,40 @@ async function runHybridGuard() {
     .filter((event) => event?.type === 'content_block_delta').map((event) => event.delta.text).join('');
   ok('central SSE writer preserves ordinary GENERAL prose while removing an unowned card',
     generalVisible === 'جواب عام آمن.  تتمة.' && !generalVisible.includes('SAFE-FAIL'));
+  const thinkingWrites = [];
+  const thinkingTarget = {
+    headersSent: true,
+    write(chunk, encoding, callback) {
+      thinkingWrites.push(Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk));
+      if (typeof encoding === 'function') encoding(); else callback?.();
+      return true;
+    },
+    end(callback) { callback?.(); }, once() {}, removeListener() {},
+  };
+  const thinkingWriter = SW.createFinalizedSseResponse(thinkingTarget, {
+    failureText: 'SAFE-FAIL', finalize: ({ text }) => ({ ok: true, text }),
+  });
+  thinkingWriter.write([
+    { type: 'message_start', message: { role: 'assistant' } },
+    { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '' } },
+    { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: 'hidden' } },
+    { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: 'signed' } },
+    { type: 'content_block_stop', index: 0 },
+    { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } },
+    { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'جواب هندسي مباشر.' } },
+    { type: 'content_block_stop', index: 1 },
+    { type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 5 } },
+    { type: 'message_delta', delta: {}, usage: { output_tokens: 5 } },
+    { type: 'message_stop' },
+  ].map(generalFrame).join(''));
+  thinkingWriter.end();
+  const thinkingWire = thinkingWrites.join('');
+  const thinkingVisible = thinkingWire.split(/\r?\n/u).filter((line) => line.startsWith('data:'))
+    .map((line) => { try { return JSON.parse(line.slice(5)); } catch { return null; } })
+    .filter((event) => event?.type === 'content_block_delta').map((event) => event.delta.text || '').join('');
+  ok('adaptive-thinking lifecycle is accepted but hidden blocks never reach the reader',
+    thinkingVisible === 'جواب هندسي مباشر.' && !thinkingWire.includes('thinking_delta')
+      && !thinkingWire.includes('signature_delta') && !thinkingWire.includes('SAFE-FAIL'));
   const closedFixtures = [
     ['اكتب آية الكرسي كاملة', '<verse surah_num="2" ayah="255"></verse>'],
     ['ما صحة حديث إنما الأعمال بالنيات؟', '<hadith narrator="عمر بن الخطاب رضي الله عنه"'],
@@ -313,12 +347,12 @@ async function runHybridGuard() {
     publisher: 'مصطفى العدوي', authorityId: 'mostafa-aladwy', supportText: 'النقاب واجب على المرأة.', passage: 'النقاب واجب على المرأة.', score: 90 }) };
   const viewB = { ...fatwaEvidence({ id: 'fatwa:meshhoor:2', url: 'https://meshhoor.com/fatwa/2',
     publisher: 'مشهور آل سلمان', authorityId: 'meshhoor-al-salman', supportText: 'النقاب ليس واجبًا عند قول معتبر، والمسألة خلافية.', passage: 'النقاب ليس واجبًا عند قول معتبر، والمسألة خلافية.', score: 89 }) };
-  let veilLiveQuery = '';
+  const veilLiveQueries = [];
   const conflict = await H.runHybridDeenTurn({
     context: veil, band: 'adult', depth: 'normal', dailyBudget: budget,
     localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
     fatwaSearch: async () => ({ calls: 1, records: [viewA, viewB] }),
-    liveRetrieve: async (q, opts) => { veilLiveQuery = q; return markLive(opts.diagnostics, { sources: [] }); },
+    liveRetrieve: async (q, opts) => { veilLiveQueries.push(q); return markLive(opts.diagnostics, { sources: [] }); },
     generate: async () => JSON.stringify({ comparison: 'خلاف معتبر', claims: [
       { evidence_id: viewA.id, support_quote: viewA.supportText, claim: viewA.supportText, sentence: viewA.supportText },
       { evidence_id: viewB.id, support_quote: viewB.supportText, claim: viewB.supportText, sentence: viewB.supportText },
@@ -387,9 +421,10 @@ async function runHybridGuard() {
       traveller: /مسافر/u.test(broadJoin.text), rain: /المطر/u.test(broadJoin.text),
       clarification: /وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(broadJoin.text) }));
   ok('the live veil query explicitly searches the documented disagreement within Brave limits',
-    veilLiveQuery.includes('خلاف الفقهاء')
-      && BQ.measureQuery(veilLiveQuery).chars <= 380 && BQ.measureQuery(veilLiveQuery).words <= 45,
-    veilLiveQuery);
+    veilLiveQueries.length === 2 && veilLiveQueries.some((query) => query.includes('غير واجب'))
+      && veilLiveQueries.every((query) => BQ.measureQuery(query).chars <= 380
+        && BQ.measureQuery(query).words <= 45),
+    JSON.stringify(veilLiveQueries));
 
   console.log('\n--- BRAVE, HOST/FETCH AND SERVER-ONLY PROXY CONTRACTS ---');
   const planned = BQ.planQueries('سؤال '.repeat(200), RET.SITES_ADULT);
@@ -485,7 +520,9 @@ async function runHybridGuard() {
       && mutantFatwaOnly.outcome === 'NO_HYBRID_EVIDENCE');
 
     const mLive = await mutant(temp, 'live-path', (src) => src.replace(
-      'liveResult = await doLive(scholar.sourceDomain);', 'liveResult = { sources: [] }; // mutant: named Brave/fetch path deleted'));
+      `liveResult = mergeLiveResults(await Promise.all(
+      queries.map((searchQuery) => doLive(searchQuery, scholar.sourceDomain))));`,
+      'liveResult = { sources: [] }; // mutant: named Brave/fetch path deleted'));
     const emptyFatwa = async () => ({ calls: 1, records: [] });
     const actualLiveOnly = await H.runHybridDeenTurn({ context: bazContext, band: 'adult', dailyBudget: budget,
       localRetrieve: emptyLocal, fatwaSearch: emptyFatwa, liveRetrieve: async (_q, opts) => markLive(opts.diagnostics),

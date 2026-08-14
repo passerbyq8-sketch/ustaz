@@ -1197,6 +1197,7 @@ export default async function handler(req, res) {
         resolvedScholar: storedContext.resolvedScholar ? storedContext.resolvedScholar.display : null,
         resolvedTopic: storedContext.resolvedTopic,
         query: storedOut.searchQuery,
+        queries: storedOut.searchQueries || (storedOut.searchQuery ? [storedOut.searchQuery] : []),
         candidates: storedOut.candidateRecordIds,
         evidence: storedOut.evidencePackIds,
         used: storedOut.validatedUsedEvidenceIds || storedOut.validatedUsedRecordIds,
