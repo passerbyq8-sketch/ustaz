@@ -59,11 +59,8 @@ const uncardable = () => ({
   publisher: 'insecure.example', passage: PASSAGE, text: PASSAGE, authorialText: PASSAGE,
 });
 
-async function sectionA() {
-  console.log('\n--- A. lib/hybrid-deen.js: no used record without a card ---');
-  const H = await esm(HYBRID);
-
-  const run = (sources) => H.runHybridDeenTurn({
+function runHybrid(H, sources) {
+  return H.runHybridDeenTurn({
     context: { currentQuestion: 'ما حكم هذه المسألة؟', resolvedScholar: null },
     band: 'adult', depth: 'normal', dailyBudget: openBudget,
     localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
@@ -72,6 +69,13 @@ async function sectionA() {
     generate: async () => { throw new Error('model offline'); },
     verify: async () => '{"supported_ids":[]}',
   });
+}
+
+async function sectionA() {
+  console.log('\n--- A. lib/hybrid-deen.js: no used record without a card ---');
+  const H = await esm(HYBRID);
+
+  const run = (sources) => runHybrid(H, sources);
 
   const both = await run([cardable(), uncardable()]);
   ok('A1 the turn still answers when a cardable page is present',
@@ -162,20 +166,41 @@ async function mutants() {
     ok('MUTANT KILLED: ' + name, !survived, 'the rule was removed and this gate stayed green');
   }
 
-  // M1 — hybrid-deen stops dropping uncarded records. A5 is re-evaluated, not A2: the drop cannot
-  // fire on any input reachable today (measured, see the header), so removing it changes no
-  // behaviour to observe. What it does change is that the law is no longer enforced anywhere on
-  // this path, and that is the thing worth failing on.
+  // M1 — boot the changed module and drive the paired fixture through it. Reading `changed` here
+  // used to ask whether the mutation removed the very string it had just removed, so this mutant
+  // was declared dead by construction without executing one byte of the twin.
   await mutate('hybrid-remove-the-card-or-drop-enforcement', HYBRID,
     (s) => s.replace('const uncarded = usedEvidence.filter((entry) => !cardsFor([entry]).length);',
       'const uncarded = [];'),
-    async (twin, changed) => /const uncarded = usedEvidence\.filter\(\(entry\) => !cardsFor\(\[entry\]\)\.length\);/.test(changed));
+    async (twin) => {
+      const mod = await esm(twin);
+      const reachesEvidenceButNotCards = {
+        ...uncardable(),
+        url: 'https://user:pass@binbaz.org.sa/fatwas/3578/example',
+      };
+      const out = await runHybrid(mod, [cardable(), reachesEvidenceButNotCards]);
+      return out.outcome !== 'ANSWER'
+        || (out.usedEvidence.length === out.cards.length
+          && !out.usedEvidence.some((entry) => String(entry.url || '').startsWith('http://')));
+    });
 
-  // M2 — the encyclopedia excerpt is appended to the tool_result again.
+  // M2 — expose only the mutant's content composer, wire the changed handler through it, import
+  // the changed api module, and measure the bytes it would return. The export exists only in the
+  // temporary twin; production keeps no test seam and the gate no longer substitutes a text scan
+  // for executable evidence.
   await mutate('ask-reappend-uncarded-excerpt', ASK,
-    (s) => s.replace('const content = webText;',
-      'let content = webText; if (globalThis.__enc) content = webText + "\\n" + globalThis.__enc;'),
-    async (twin, changed) => /const content = webText;/.test(changed) && !/content = webText \+/.test(changed));
+    (s) => s
+      .replace("const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';",
+        "const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';\n"
+        + "export const __cardOrContextMutantContent = (webText, excerpt) => webText + '\\n' + excerpt;")
+      .replace('const content = webText;',
+        "const content = __cardOrContextMutantContent(webText, globalThis.__enc || '');"),
+    async (twin) => {
+      const mod = await esm(twin);
+      const visible = 'retrieved page with a reader-visible card';
+      const hidden = 'uncarded encyclopedia excerpt';
+      return mod.__cardOrContextMutantContent(visible, hidden) === visible;
+    });
 }
 
 (async () => {
