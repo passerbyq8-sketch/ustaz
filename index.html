@@ -2915,7 +2915,24 @@ const KNOWN_TAG_NAMES = Object.freeze([
   'board', 'document', 'source', 'dhikr', 'worship',
 ]);
 const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
-const stripIncompleteTags = (text) => {
+// سجلُّ الإنقاذ: كلُّ مرّةٍ أفرغ فيها التنظيفُ نصًّا خادميًّا غيرَ فارغٍ فأُنقِذ بدلَ أن يُمحى.
+// يبقى في الذاكرة للعميل وللحارس؛ لا يُرسَل إلى أيِّ خادم.
+const EZIK_TAG_RESCUES = [];
+
+// تعقيمٌ آمنٌ للنصِّ الذي كان سيُمحى بالكامل: تُنزَع الأقواسُ الزاويّةُ وما بينها، ويبقى النثر.
+// وسما الآيةِ والسورةِ يأخذان ما بعدهما إن انقطعا، فالتلاوةُ يتلوها القارئُ الحقيقيُّ بصوته
+// ولا نخترعُ لها نصًّا من عندنا.
+const rescueTruncated = (text) => String(text || '')
+  .replace(/<(verse|surah)\b[^>]*>[\s\S]*$/g, ' ')
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/<[^>]*$/g, ' ')
+  .replace(/[^\S\n]+/g, ' ')
+  .replace(/ ?\n ?/g, '\n')
+  .trim();
+
+// opts.rescue — للقُرّاءِ الذين يقرأون النصَّ النهائيَّ وحدَهم (العرضُ والصوتُ وسجلُّ الأهل).
+// المسارُ المتدفّقُ لا يمرّره: الوسمُ الناقصُ أثناءَ التدفّقِ حالةٌ طبيعيّةٌ والقصُّ فيه صواب.
+const stripIncompleteTags = (text, opts) => {
   if (!text || typeof text !== 'string') return text || '';
   let t = text;
   // ٠. طَبِّع وسمَي الآية/السورة ذاتيَّي الإغلاق (<verse .../>، <surah .../>) إلى صيغةٍ
@@ -2932,7 +2949,24 @@ const stripIncompleteTags = (text) => {
   if (cut >= 0) t = t.slice(0, cut);
   // ٢. "<" مقطوع في آخر النص بلا ">" مطابق (مثل "<ver" أو "<verse surah=") → احذفه.
   t = t.replace(/<[^>]*$/, '');
-  return t;
+  // ٣. الإنقاذ (X-014): إن كان الخادمُ قد سلّم نصًّا فيه كلامٌ حقيقيّ، وأفرغه التنظيفُ
+  //    بالكامل — وهذا يقع حين يكون الوسمُ المقطوعُ أوَّلَ النصِّ فيصيرُ موضعُ القصِّ صفرًا —
+  //    فالطفلُ يرى فقاعةً فارغةً ويسمعُ صمتًا، وهو أسوأُ من نصٍّ منقوصٍ مُعقَّم. نعرضُ النثرَ
+  //    الباقيَ بعد تعقيمٍ آمن، ونُسجِّلُ أنّ الجوابَ وصل منقوصًا.
+  const out = t;
+  if (opts && opts.rescue && out.trim() === '' && text.trim() !== '') {
+    const tagMatch = new RegExp(`<(${KNOWN_TAGS})\\b`).exec(text);
+    const rescued = rescueTruncated(text);
+    if (rescued) {
+      EZIK_TAG_RESCUES.push({
+        tag: tagMatch ? tagMatch[1] : 'unknown',
+        reason: 'truncated-tag-emptied-reply',
+        chars: rescued.length,
+      });
+      return rescued;
+    }
+  }
+  return out;
 };
 
 // ============================================================
@@ -3251,7 +3285,7 @@ const parseRichMessage = (text, viewerAge) => {
     return { segments: [{ type: 'text', content: text || '' }], suggestions: [] };
   }
   // نُنظّف الترميز الناقص قبل التحليل كي لا يظهر "<verse surah=..." كنصّ خام للطفل
-  text = stripIncompleteTags(text);
+  text = stripIncompleteTags(text, { rescue: true });
   const segments = [];
   let suggestions = [];
   let remaining = text;
@@ -3365,7 +3399,7 @@ const parseRichMessage = (text, viewerAge) => {
 const formatForTTS = (text) => {
   if (!text) return '';
   // نحذف أي وسم ناقص/بقايا "<...>" قبل أي معالجة كي لا يصل ترميز خام إلى ElevenLabs
-  let t = stripIncompleteTags(text);
+  let t = stripIncompleteTags(text, { rescue: true });
   // إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
@@ -3484,7 +3518,7 @@ const formatForTTS = (text) => {
 const formatForLog = (text) => {
   if (!text) return '';
   // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
-  let t = stripIncompleteTags(text);
+  let t = stripIncompleteTags(text, { rescue: true });
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // المصدر: نُبقي عنوانه نصّاً مقروءاً في سجلّ الأهل (للتحقّق) ونُسقِط الرابط — لا نعرض URL خاماً
   t = t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g, (_, title) => {
@@ -7297,7 +7331,7 @@ function App() {
   };
   const buildAudioSequence = (text) => {
     // نُنظّف الترميز الناقص أوّلاً كي لا يُرسَل "<verse surah=..." خاماً إلى ElevenLabs
-    text = stripIncompleteTags(text);
+    text = stripIncompleteTags(text, { rescue: true });
     const parts = [];
     const blockRe = /<(verse|surah|dhikr)([^>]*)>[\s\S]*?<\/\1>/g;
     let last = 0, m;
