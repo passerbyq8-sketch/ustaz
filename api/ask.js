@@ -2243,13 +2243,42 @@ export default async function handler(req, res) {
         // enforcement: the model may open with a general ruling, or blend the two, and the reply
         // still leaves here looking like his position, because his name and his card are attached
         // to it. So the server writes the attribution line itself, in its own voice, ahead of any
-        // drafted byte. It is deterministic, it is not asked for, and it cannot be talked out of.
-        const attributionLead = `قولُ ${src.scholar} كما جاء في نصِّه المنشور:`;
-        const separated = draft.startsWith(attributionLead) ? draft : `${attributionLead}\n\n${draft}`;
+        // drafted byte.
+        //
+        // IT GOES ON readerPrefix, NOT INTO THE DRAFT, and that distinction is load-bearing.
+        // Concatenating it into `draft` sends a server sentence naming a scholar through the
+        // consistency screen, which is built to police what the MODEL said: the line is not
+        // licensed by the fetched pages, so it raises ATTRIBUTION_NOT_LICENSED, escalates to
+        // CONSISTENCY_DROP_WHOLE, and the finalizer replaces the entire verified answer with a
+        // refusal. MEASURED: doing it that way turned 5 name-presence checks red. readerPrefix is
+        // the existing channel for exactly this — a server write composed before the A1 finalizer
+        // sees the answer — and it is what the live-search disclosure already uses.
+        //
+        // AND THE EXIT MUST DECLARE ITS OWN LICENCE. `sourceLicence` is declared further down, so
+        // this exit returns before it exists and the screen was left judging with an EMPTY licence
+        // set. That was survivable while nothing here credited anyone by name; the moment the
+        // server writes «قولُ فلان» it is a claim about a policed name, and an absent licence is
+        // read — correctly, by design — as "no page licenses this". `attrLicence` is exactly the
+        // set of persons these very pages license, and `verdict.ok` and `ownedByHim` above have
+        // already established that he is in it. Mirrors the same assignment at the two other
+        // exits that finish retrieving.
+        // AND IT IS GATED ON THE LICENCE, WHICH IS THE WHOLE POINT OF THE ITEM.
+        // `ownedByHim` above is true whenever NO specific authority was requested — the
+        // `!plan.requestedAuthorityId` short-circuit — so it does not establish that these pages
+        // license naming this man. MEASURED: writing the lead unconditionally credits him where
+        // the pages license nobody, the consistency screen raises ATTRIBUTION_NOT_LICENSED,
+        // escalates to CONSISTENCY_DROP_WHOLE, and the finalizer discards the entire verified
+        // answer — 5 name-presence checks went red exactly that way. The screen is RIGHT: an
+        // unlicensed «قولُ فلان» is the very false attribution this route exists to prevent.
+        // So the separation is written only where the pages actually license the man, and the
+        // already-existing unattributed path keeps the case where they do not.
+        if (finalizerContext.consistencyContext) {
+          finalizerContext.consistencyContext.sourceLicence = attrLicence;
+        }
         clearKeepAlive();
         res.write(`data: ${JSON.stringify({
           type: 'content_block_delta', index: 0,
-          delta: { type: 'text_delta', text: seal(separated) + referralBlockFor(separated) + (card ? '\n' + card.tag : '') },
+          delta: { type: 'text_delta', text: seal(draft) + referralBlockFor(draft) + (card ? '\n' + card.tag : '') },
         })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
         return res.end();

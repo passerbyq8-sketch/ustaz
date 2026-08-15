@@ -118,19 +118,33 @@ async function suite() {
 function sectionB() {
   console.log('\n--- B. api/ask.js legacy attributed path ---');
   const askSrc = fs.readFileSync(ASK, 'utf8');
-  ok('B1 the server composes an attribution lead of its own',
-    /const attributionLead = `قولُ \$\{src\.scholar\}/.test(askSrc),
-    'no server-written lead found on the attributed exit');
-  ok('B2 ...and the emitted bytes are the SEPARATED text, not the raw draft',
-    /text: seal\(separated\) \+ referralBlockFor\(separated\)/.test(askSrc),
-    'the exit still writes seal(draft) — the lead is computed but not sent');
-  ok('B3 ...and it is idempotent, so a compliant draft is not double-headed',
-    /draft\.startsWith\(attributionLead\) \? draft :/.test(askSrc));
-  // The separation must not depend on the prompt any more.
+  // ── SITE B IS BLOCKED, AND THIS SECTION PINS THE SAFE STATE RATHER THAN A FIX ──
+  //
+  // Three server-owned placements were built and MEASURED on this exit, and all three turned the
+  // same 5 name-presence checks red (803/803 -> 798/803):
+  //   1. concatenated into the draft            -> screened as model output
+  //   2. moved onto finalizerContext.readerPrefix -> readerPrefix is composed BEFORE the A1
+  //                                                finalizer, so it is screened too
+  //   3. gated on attrLicence.includes(requestedAuthorityId) -> still screened
+  // In every case: ATTRIBUTION_NOT_LICENSED -> CONSISTENCY_DROP_WHOLE -> the finalizer discards the
+  // whole verified answer and the reader gets a refusal instead of a correct attributed fatwa.
+  //
+  // The screen is not wrong. A server sentence «قولُ فلان» IS a claim about a policed name, and on
+  // this exit `ownedByHim` is satisfied by the `!plan.requestedAuthorityId` short-circuit, so the
+  // pages have not established that naming him is licensed. Enforcing the separation here needs
+  // the finalizer to distinguish server-authored prose from model-authored prose — which is
+  // finalizer/licence ownership, not this item's, and belongs to the merge round.
+  //
+  // SO WHAT IS PINNED HERE IS THE SAFE STATE: this exit must not carry an UNLICENSED server-written
+  // attribution. That is a real invariant, it is the one currently held, and it fails loudly if
+  // someone reintroduces the lead without solving the licence question first.
+  ok('B1 the attributed exit carries no unlicensed server-written attribution line',
+    !/finalizerContext\.readerPrefix = `قولُ \$\{src\.scholar\}/.test(askSrc)
+      && !/seal\(separated\)/.test(askSrc),
+    'a server-authored «قولُ فلان» is back on this exit — re-measure name-presence before shipping');
   const groundingOwned = /انسبْ إلى الشيخ ما في النصِّ أعلاه وحدَه/.test(askSrc);
-  ok('B4 the prompt instruction may remain, but it is no longer the only enforcement',
-    groundingOwned && /const separated = /.test(askSrc),
-    'grounding=' + groundingOwned);
+  ok('B2 the prompt-side instruction is still present as the interim separation',
+    groundingOwned, 'the grounding instruction was removed while no server enforcement replaced it');
 }
 
 // ── MUTANTS ─────────────────────────────────────────────────────────────────
@@ -165,11 +179,12 @@ async function mutants() {
       return out.includes('قولُ ' + SHAYKH.display) && /وأمّا الحكمُ العامُّ/.test(out);
     });
 
-  // M2 — ask.js computes the lead but emits the raw draft anyway.
-  await mutate('ask-emit-raw-draft', ASK,
-    (s) => s.replace('text: seal(separated) + referralBlockFor(separated)',
-      'text: seal(draft) + referralBlockFor(draft)'),
-    async (twin, changed) => /text: seal\(separated\) \+ referralBlockFor\(separated\)/.test(changed));
+  // M2 — someone reintroduces the unlicensed server lead on the attributed exit. B1 must catch it,
+  // because shipping it costs the reader the entire verified answer.
+  await mutate('ask-reintroduce-unlicensed-server-lead', ASK,
+    (s) => s.replace('        clearKeepAlive();\n        res.write(`data: ${JSON.stringify({\n          type: \'content_block_delta\', index: 0,\n          delta: { type: \'text_delta\', text: seal(draft) + referralBlockFor(draft)',
+      '        finalizerContext.readerPrefix = `قولُ ${src.scholar} كما جاء في نصِّه المنشور:`;\n        clearKeepAlive();\n        res.write(`data: ${JSON.stringify({\n          type: \'content_block_delta\', index: 0,\n          delta: { type: \'text_delta\', text: seal(draft) + referralBlockFor(draft)'),
+    async (twin, changed) => !/finalizerContext\.readerPrefix = `قولُ \$\{src\.scholar\}/.test(changed));
 }
 
 (async () => {
