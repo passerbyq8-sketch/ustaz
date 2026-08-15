@@ -1,0 +1,50 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-10",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The shipped-reality gate drives the real handler under constructed local state and authored transports. A named deployed reader response is not observed offline.",
+  "sources": [
+    {
+      "key": "oldGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/shipped-reality-guard.cjs",
+      "sha256": "e6883a82988b728e4f872ef82685d90238414e0187e42284f2dd59352396f88d"
+    },
+    {
+      "key": "ask",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "api/ask.js",
+      "sha256": "2aac493bd14c5ca5da1b83367ef8f7859a12be14ca3658655371ee72c83892ec"
+    },
+    {
+      "key": "hybrid",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/hybrid-deen.js",
+      "sha256": "9c2fd7cdb1ecd73e6eb59beecefd00c71935e8a7067567136bbbb08f40d59c89"
+    },
+    {
+      "key": "fullFatwa",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/full-fatwa.js",
+      "sha256": "298a10d137cc6693ce581c0f672032ff07d854ac3adfc7976fbaa2d2bca95175"
+    }
+  ],
+  "localScenario": {
+    "rolloutEnvironment": "cleared",
+    "ledgerStore": "injected-null",
+    "anthropic": "authored-fetch-double",
+    "brave": "authored-fetch-double",
+    "dayCap": "allowing-double"
+  },
+  "externalEvidence": {
+    "status": "BLOCKED_OFFLINE",
+    "acceptanceGreen": false,
+    "deploymentId": null,
+    "deployedGitSha": null,
+    "environmentRecord": null,
+    "storeRecord": null,
+    "providerRequestIds": null,
+    "rawSse": null,
+    "reason": "offline directive"
+  }
+}
