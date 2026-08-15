@@ -54,10 +54,21 @@ function importsFromTree(source, originalFile) {
 const openBudget = { reserve: async () => ({ ok: true }), snapshot: () => ({}) };
 
 // One live page that CAN become a card (clean https) and one that cannot (http, which
-// externalCard() refuses outright). Both carry the same answering passage, so the only thing
-// separating them is whether the reader could ever be shown them.
+// externalCard() refuses outright). The two passages answer the question equally and are equally
+// topical, so the only thing separating the pages is still whether the reader could ever be shown
+// them — which is the whole point of the pair.
+//
+// THEY MUST NOT BE THE SAME STRING, and that is measured, not stylistic. أ-٤ added containment
+// de-duplication to the summary: a span sitting inside another span is one piece of evidence, not
+// two. With both fixtures carrying one identical passage the pair COLLAPSED before the used set was
+// ever assembled, so the uncardable page never reached the card-or-drop rule —
+// `uncarded-evidence-dropped` stopped appearing, and M1 below could no longer observe the rule it
+// exists to remove. The mutant went from killed to silently surviving without one byte of the
+// product regressing. Distinct passages restore the reach.
 const PASSAGE = 'الحكمُ في هذه المسألةِ أنّها جائزةٌ ولا حرجَ فيها عند جمهور أهل العلم، '
   + 'وقد نصّ على ذلك غيرُ واحدٍ من أهل العلم، والأمرُ في هذا واسع.';
+const PASSAGE_TWIN = 'وهذه المسألةُ حكمُها الجوازُ أيضًا عند أكثر أهل العلم، ولا بأسَ بها، '
+  + 'وقد أفتى بذلك جمعٌ من المحقِّقين، والأمرُ فيها موسَّع.';
 
 const cardable = () => ({
   url: 'https://binbaz.org.sa/fatwas/3577/example', title: 'فتوى مؤهَّلة',
@@ -65,7 +76,7 @@ const cardable = () => ({
 });
 const uncardable = () => ({
   url: 'http://insecure.example/fatwa/1', title: 'صفحةٌ لا تصلح بطاقةً',
-  publisher: 'insecure.example', passage: PASSAGE, text: PASSAGE, authorialText: PASSAGE,
+  publisher: 'insecure.example', passage: PASSAGE_TWIN, text: PASSAGE_TWIN, authorialText: PASSAGE_TWIN,
 });
 
 function runHybrid(H, sources) {
