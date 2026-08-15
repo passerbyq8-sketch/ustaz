@@ -38,6 +38,13 @@ function line(k, v) { console.log('  ' + String(k).padEnd(34) + ' ' + v); }
   const haveModel = !!process.env.ANTHROPIC_API_KEY;
   line('BRAVE_API_KEY', haveBrave ? 'present' : 'ABSENT');
   line('ANTHROPIC_API_KEY', haveModel ? 'present' : 'ABSENT');
+  let dailyBudget = null;
+  if (haveBrave) {
+    const { DailySearchBudget } = await esm('lib/ledger/daily-budget.js');
+    // This harness spends real provider units when enabled, so it shares the production daily
+    // reservation contract instead of silently treating an evaluation as unmetered traffic.
+    dailyBudget = new DailySearchBudget();
+  }
 
   // ── the provider contract test ────────────────────────────────────────────
   // A unit test with a mocked provider proves we BUILT `site:A OR site:B`. It cannot prove the
@@ -48,7 +55,8 @@ function line(k, v) { console.log('  ' + String(k).padEnd(34) + ' ' + v); }
       line('or_form_honoured', VOID + ' (no BRAVE_API_KEY)');
     } else {
       const { probeOrContract } = await esm('lib/ledger/search.js');
-      const r = await probeOrContract(['islamqa.info', 'islamweb.net'], 'حكم صيام عرفة');
+      const r = await probeOrContract(
+        ['islamqa.info', 'islamweb.net'], 'حكم صيام عرفة', { dailyBudget });
       line('or_form_ran', String(r.ran));
       line('or_form_honoured', r.ran ? String(r.orHonoured) : VOID);
       line('detail', r.detail);
@@ -83,7 +91,10 @@ function line(k, v) { console.log('  ' + String(k).padEnd(34) + ' ' + v); }
     const started = Date.now();
     let out;
     try {
-      out = await runEngine(f.question, { band: 'adult', bandSites, search: braveSearch });
+      out = await runEngine(f.question, {
+        band: 'adult', bandSites, search: braveSearch,
+        dailyBudget, searchHandlesDailyBudget: true,
+      });
     } catch (e) {
       rows.push({ id: f.id, error: (e && e.message) || 'threw', ms: Date.now() - started });
       continue;
