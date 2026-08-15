@@ -922,10 +922,30 @@ function partF() {
   ok('an unrecognised stored value falls back to ar rather than breaking the page',
     /if\(v!=='ar'&&v!=='en'\)\{v='ar';\}/.test(q));
 
-  // The layer, run on its own. It declares no DOM dependency, so it needs no browser.
-  const core = q.slice(q.indexOf('var QUEST_I18N = {'), q.indexOf('\r\n  }\r\n', q.indexOf('function qT(')) + 6);
-  const sandbox = { localStorage: { getItem: () => 'en' }, Object, String, RegExp, JSON };
-  vm.runInContext(core, vm.createContext(sandbox), { filename: 'quest-i18n.js' });
+  // The layer, run on its own. It declares no DOM dependency, so it needs no browser. Extract
+  // by JavaScript landmarks rather than one checkout's newline bytes: the previous CRLF-only
+  // terminator returned an empty program when Git materialised this protected page with LF.
+  const extractCore = (source) => {
+    const start = source.indexOf('var QUEST_I18N = {');
+    const lookup = source.indexOf('function qT(', start);
+    const nextModule = source.indexOf('/* ==========================================================', lookup);
+    if (start < 0 || lookup < 0 || nextModule < 0) throw new Error('quest i18n extraction landmark moved');
+    return source.slice(start, nextModule);
+  };
+  const evaluateCore = (source) => {
+    const extracted = extractCore(source);
+    const context = { localStorage: { getItem: () => 'en' }, Object, String, RegExp, JSON };
+    vm.runInContext(extracted, vm.createContext(context), { filename: 'quest-i18n.js' });
+    return { extracted, context };
+  };
+  const evaluated = evaluateCore(q);
+  const core = evaluated.extracted;
+  const sandbox = evaluated.context;
+  const lfEvaluation = evaluateCore(q.replace(/\r\n?/g, '\n')).context;
+  const crlfEvaluation = evaluateCore(q.replace(/\r\n?/g, '\n').replace(/\n/g, '\r\n')).context;
+  eq('the same real dictionary executes under LF and CRLF checkout bytes',
+    [Object.keys(lfEvaluation.QUEST_I18N), Object.keys(crlfEvaluation.QUEST_I18N)],
+    [['ar', 'en'], ['ar', 'en']]);
   const D = sandbox.QUEST_I18N || {};
   eq('the journey declares exactly ar and en', Object.keys(D).sort(), ['ar', 'en']);
   const qa = Object.keys(D.ar || {}), qe = Object.keys(D.en || {});
@@ -946,6 +966,19 @@ function partF() {
   eq('...leaves an unsupplied one as authored', sandbox.qT('quest.review').indexOf('undefined'), -1);
   eq('...and never returns a raw key', sandbox.qT('no.such.key'), '');
   eq('...and is running in the language that was stored', sandbox.QUEST_LANG, 'en');
+
+  const languageMutantSource = q.replace('\n    en: {', '\n    zz: {');
+  if (languageMutantSource === q) throw new Error('quest language mutation seam moved');
+  const languageMutant = evaluateCore(languageMutantSource).context.QUEST_I18N;
+  ok('MUTANT killed: renaming the English dictionary fails the exact language roster',
+    JSON.stringify(Object.keys(D).sort()) === JSON.stringify(['ar', 'en'])
+      && JSON.stringify(Object.keys(languageMutant).sort()) !== JSON.stringify(['ar', 'en']));
+  const fallbackMutantSource = q.replace("if (typeof out !== 'string') return '';",
+    "if (typeof out !== 'string') return k; // mutant: expose the untranslated key");
+  if (fallbackMutantSource === q) throw new Error('quest lookup mutation seam moved');
+  const fallbackMutant = evaluateCore(fallbackMutantSource).context;
+  ok('MUTANT killed: returning a missing raw key violates the shipped empty fallback',
+    sandbox.qT('no.such.key') === '' && fallbackMutant.qT('no.such.key') === 'no.such.key');
 
   // The bank, and everything else the journey must not have touched.
   ok('every control the round guard drives is routed through the lookup',
