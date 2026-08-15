@@ -445,7 +445,7 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
     // returning null on every real page it was ever shown.
     //
     // These pages are not written by anybody here. They are the bytes eleven hosts served on
-    // 2026-08-08, frozen under data/transfer-fixtures/ with a SHA8 of each in its manifest, and
+    // 2026-08-08, frozen under data/transfer-fixtures/ with a full SHA-256 in its manifest, and
     // marked binary in .gitattributes so no checkout can rewrite an ending and break the seal.
     //
     // WHAT A FROZEN PAGE CAN AND CANNOT PROVE. It proves the reader reads what the host really
@@ -464,19 +464,19 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
       ok('the manifest records how the pages were obtained',
         manifest.method === 'GET' && /EzikBot/.test(String(manifest.userAgent || '')),
         JSON.stringify({ method: manifest.method, ua: manifest.userAgent }));
-      ok('every fixture carries a source URL, a fetch date and a SHA8',
+      ok('every fixture carries a source URL, a fetch date and a full SHA-256',
         names.every((n) => {
           const p = manifest.pages[n];
-          return p && /^https:\/\//.test(p.url) && /^\d{4}-\d{2}-\d{2}$/.test(p.fetchedAt) && /^[0-9a-f]{8}$/.test(p.sha8);
+          return p && /^https:\/\//.test(p.url) && /^\d{4}-\d{2}-\d{2}$/.test(p.fetchedAt) && /^[0-9a-f]{64}$/.test(p.sha256);
         }));
-      // AND THE SHA8 IS RECOMPUTED, not trusted. A header nobody checks is a header that drifts.
+      // AND THE SHA-256 IS RECOMPUTED, not trusted. A header nobody checks is a header that drifts.
       let sealed = 0;
       for (const n of names) {
-        const actual = crypto.createHash('sha256').update(page(n)).digest('hex').slice(0, 8);
-        if (actual === manifest.pages[n].sha8) sealed++;
-        else ok('SHA8 of ' + n, false, 'manifest ' + manifest.pages[n].sha8 + ' · actual ' + actual);
+        const actual = crypto.createHash('sha256').update(page(n)).digest('hex');
+        if (actual === manifest.pages[n].sha256) sealed++;
+        else ok('SHA-256 of ' + n, false, 'manifest ' + manifest.pages[n].sha256 + ' · actual ' + actual);
       }
-      ok('every frozen page still hashes to the SHA8 its manifest publishes',
+      ok('every frozen page still hashes to the full SHA-256 its manifest publishes',
         sealed === names.length, sealed + '/' + names.length);
       ok('...and there are pages from at least seven distinct hosts',
         new Set(names.map((n) => { try { return new URL(manifest.pages[n].url).hostname.replace(/^www\./, ''); } catch { return n; } })).size >= 7);

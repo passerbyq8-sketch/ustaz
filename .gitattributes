@@ -322,13 +322,15 @@ guards/honesty/g12-source-liveness.cjs text eol=lf
 guards/fixtures/honesty/g12-source-liveness.json text eol=lf
 guards/honesty/g15-live-search.cjs text eol=lf
 guards/fixtures/honesty/g15-live-search.json text eol=lf
+guards/honesty/g16-transfer-mode.cjs text eol=lf
+guards/fixtures/honesty/g16-transfer-mode.json text eol=lf
 guards/fixtures-full-fatwa.json text eol=lf
 lib/full-fatwa.js text eol=lf
 lib/anchor/flag.js text eol=lf
 lib/anchor/units.js text eol=lf
 
 # ح٣: the frozen transfer fixtures. THESE ARE NOT OUR TEXT — they are the bytes eleven hosts
-# actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a SHA8 of
+# actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a full SHA-256 of
 # each one. Any end-of-line normalisation, in either direction, on any machine, changes those
 # bytes and breaks the attestation — which is precisely defect 40 at the head of this file,
 # arriving a second time by a different door. So they are marked BINARY, not pinned to an

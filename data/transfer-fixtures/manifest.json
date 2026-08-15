@@ -6,77 +6,77 @@
     "binbaz-3577.html": {
       "url": "https://binbaz.org.sa/fatwas/3577/حكم-طهارة-الماء-دون-القلتين-اذا-خالطته-نجاسة",
       "fetchedAt": "2026-08-08",
-      "sha8": "47f47781",
+      "sha256": "47f47781d836188754effa75e96d72580c7f10c72999509f60523fe5d484c447",
       "bytes": 98274,
       "why": "binbaz: a published question that really is a question, and a multi-paragraph answer."
     },
     "binbaz-15222.html": {
       "url": "https://binbaz.org.sa/fatwas/15222/حكم-من-فعل-محظورات-من-جنس-واحد",
       "fetchedAt": "2026-08-08",
-      "sha8": "7a1d4d68",
+      "sha256": "7a1d4d6872f09c40240e54101dc7fd118e92c802c4192f67908d0d580d6a5f2e",
       "bytes": 91593,
       "why": "binbaz: a SHORT answer whose body is one <strong>-led text node plus a <section class=footnotes> citation."
     },
     "binbaz-21305.html": {
       "url": "https://binbaz.org.sa/fatwas/21305/هل-يجوز-الحلق-والتقصير-قبل-الذبح",
       "fetchedAt": "2026-08-08",
-      "sha8": "8098e1b7",
+      "sha256": "8098e1b756409f4168a1d08f7af63bb187c0dbe18f57d9ff7f82650788496a48",
       "bytes": 95038,
       "why": "binbaz: the answer lives in a BARE TEXT NODE beside <p><b>الجواب:</b></p> — the shape that made a p/li sweep read 7 characters."
     },
     "binbaz-5235.html": {
       "url": "https://binbaz.org.sa/fatwas/5235/حكم-من-لبس-المخيط-قبل-رمي-الجمرة",
       "fetchedAt": "2026-08-08",
-      "sha8": "e5d37467",
+      "sha256": "e5d37467d40f6558554543d9690c5d14f8e4e567e16f91fa2c650f7a8c4722ca",
       "bytes": 113479,
       "why": "binbaz: the published «question» is a LISTENER MESSAGE. Kept as the case that must NOT transfer."
     },
     "islamweb-411118.html": {
       "url": "https://www.islamweb.net/ar/fatwa/411118/",
       "fetchedAt": "2026-08-08",
-      "sha8": "ca2d30fe",
+      "sha256": "ca2d30fe2a45d16373539c4361f103a8f32bb7239ffa4c240e394196600048df",
       "bytes": 122470,
       "why": "islamweb: the host the label reader really does work on, and the one whose answer runs into the footer."
     },
     "islamqa-508244.html": {
       "url": "https://islamqa.info/ar/answers/508244",
       "fetchedAt": "2026-08-08",
-      "sha8": "5444241f",
+      "sha256": "5444241fb91f183692572d8b8853205cb1ec8f3d10ff7967446f2f4fdfc6e547",
       "bytes": 190154,
       "why": "islamqa: THE ADVERSARIAL PAGE. byLabels returns a non-null pair whose answer is the sidebar."
     },
     "alukah-183761.html": {
       "url": "https://www.alukah.net/fatawa_counsels/4/183761/",
       "fetchedAt": "2026-08-08",
-      "sha8": "60c8bd27",
+      "sha256": "60c8bd27b591510bbf8e6a8640f9b3d732631872749ef860518fbb40c60b8222",
       "bytes": 103052,
       "why": "alukah: a real /fatawa_counsels/ page printing «الجواب», never «الإجابة»."
     },
     "ferkous-1438.html": {
       "url": "https://ferkous.app/home/index.php?q=fatwa-1438",
       "fetchedAt": "2026-08-08",
-      "sha8": "a8261cf6",
+      "sha256": "a8261cf69663da7482d12fa15f0f5aecc3da2290863a99187af8abcf7d899b2b",
       "bytes": 51602,
       "why": "ferkous: a real fatwa page printing «الجواب», never «الإجابة»."
     },
     "sh-albarrak-29332.html": {
       "url": "https://sh-albarrak.com/fatwas/29332",
       "fetchedAt": "2026-08-08",
-      "sha8": "cd68ed8c",
+      "sha256": "cd68ed8ca2246d3d48181ac22f9ed9cfe5e65db4411f6d2549c1e7a28d81c1dd",
       "bytes": 45239,
       "why": "sh-albarrak: the Next.js host whose answer exists only inside __NEXT_DATA__."
     },
     "almosleh-28352.html": {
       "url": "https://www.almosleh.com/ar/28352",
       "fetchedAt": "2026-08-08",
-      "sha8": "f583c023",
+      "sha256": "f583c023985c6da09036a799b0f98ab776bf95c8732448502e0091df7b0dc3f3",
       "bytes": 77192,
       "why": "almosleh: the host with the submission form near the top, where the LAST question label is the right one."
     },
     "mostafaaladwy-106715.html": {
       "url": "https://mostafaaladwy.com/fatwa/106715/",
       "fetchedAt": "2026-08-08",
-      "sha8": "fd7a780f",
+      "sha256": "fd7a780f60622c68b70a624b709959a58ceccaacfaf76360a733e8bf85eaeea1",
       "bytes": 96996,
       "why": "mostafaaladwy: the eighth domain, whose answer is a video. Kept to prove the exclusion holds on a real page."
     }

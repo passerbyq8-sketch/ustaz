@@ -1,0 +1,66 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-16",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "Full SHA-256 seals and production extraction/matching are measured on eleven frozen real pages. Authored semantic cases and current host markup are not relabeled as live evidence.",
+  "sources": [
+    {
+      "key": "oldGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/transfer-mode-guard.cjs",
+      "sha256": "b980085ef2c893698186fdd4e30893a36de22cefeebf3c7ff063af4f8e9869dc"
+    },
+    {
+      "key": "extract",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/transfer/extract.js",
+      "sha256": "9cadd0b4777a85d169b824a7ed7b118c25bfcb53ccdee71cfbd1b6c90fc7ea06"
+    },
+    {
+      "key": "match",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/transfer/match.js",
+      "sha256": "0c7d2fd3ab50fe161b8f2375678d8b66891bcf0aad6ea6f24e2ee75786de0049"
+    },
+    {
+      "key": "transferIndex",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/transfer/index.js",
+      "sha256": "05c034d14cb648c1a4a3da6215eca3bf6e80dfcf8b1fefc2dd2d11bee52a4745"
+    },
+    {
+      "key": "oldManifest",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "data/transfer-fixtures/manifest.json",
+      "sha256": "519d899cc811ddc95fb0c2a2bfadd2cdccca54cc74200f5abf9a2d28785d55e5"
+    }
+  ],
+  "pages": [
+    { "file": "binbaz-3577.html", "sha256": "47f47781d836188754effa75e96d72580c7f10c72999509f60523fe5d484c447", "bytes": 98274, "urlSha256": "7c194ff74ca690db38bd7e5a807e1ee37e628aba1e837261744c15ae4f1ac482", "pair": [76, 1294] },
+    { "file": "binbaz-15222.html", "sha256": "7a1d4d6872f09c40240e54101dc7fd118e92c802c4192f67908d0d580d6a5f2e", "bytes": 91593, "urlSha256": "6baff6d815840e45e21c2a6d23ec39e3de9161198b935b8c7a6452bda63c7123", "pair": [55, 270] },
+    { "file": "binbaz-21305.html", "sha256": "8098e1b756409f4168a1d08f7af63bb187c0dbe18f57d9ff7f82650788496a48", "bytes": 95038, "urlSha256": "186a3fbc35a5c7eb27ebd1042d440f8ed8a0d0333f64bee64572222d8f4fd7ed", "pair": [96, 571] },
+    { "file": "binbaz-5235.html", "sha256": "e5d37467d40f6558554543d9690c5d14f8e4e567e16f91fa2c650f7a8c4722ca", "bytes": 113479, "urlSha256": "283a8fabb19aab23d02a589d7c20713aef3807277c3aae6799ad4c206f6b4901", "pair": [124, 3973] },
+    { "file": "islamweb-411118.html", "sha256": "ca2d30fe2a45d16373539c4361f103a8f32bb7239ffa4c240e394196600048df", "bytes": 122470, "urlSha256": "52995977904656b18d5b470e5ef21771b94a6501e7099f97f6e73981ec1a32d7", "pair": [615, 1900] },
+    { "file": "islamqa-508244.html", "sha256": "5444241fb91f183692572d8b8853205cb1ec8f3d10ff7967446f2f4fdfc6e547", "bytes": 190154, "urlSha256": "8aecfc88399554c765ea43d7d4d25c52af510fda35a2c8ed9c7b9fa47827d68f", "pair": null },
+    { "file": "alukah-183761.html", "sha256": "60c8bd27b591510bbf8e6a8640f9b3d732631872749ef860518fbb40c60b8222", "bytes": 103052, "urlSha256": "cd6a1c16981ec5e148061402fca78e7c8d4f3d5cb6a6b47ff13a40e990aed811", "pair": null },
+    { "file": "ferkous-1438.html", "sha256": "a8261cf69663da7482d12fa15f0f5aecc3da2290863a99187af8abcf7d899b2b", "bytes": 51602, "urlSha256": "0a939775fd15f3c05a48cc91f79ed98621942dfbdf77f6b5d8cf2876f9434068", "pair": null },
+    { "file": "sh-albarrak-29332.html", "sha256": "cd68ed8ca2246d3d48181ac22f9ed9cfe5e65db4411f6d2549c1e7a28d81c1dd", "bytes": 45239, "urlSha256": "409c3812067e2a9f65c08aba7b6ad9b0a6d15218c739a055236a8885190bd563", "pair": [207, 215] },
+    { "file": "almosleh-28352.html", "sha256": "f583c023985c6da09036a799b0f98ab776bf95c8732448502e0091df7b0dc3f3", "bytes": 77192, "urlSha256": "52e72f0483e852f707f34c8aa78dc1eaa5e5d283ee54674f891c51fb8675a73c", "pair": [56, 1087] },
+    { "file": "mostafaaladwy-106715.html", "sha256": "fd7a780f60622c68b70a624b709959a58ceccaacfaf76360a733e8bf85eaeea1", "bytes": 96996, "urlSha256": "51377574b08d37a55756303c70b582bbd86fd61334ead232455db5ccd5f71413", "pair": null }
+  ],
+  "semanticCase": {
+    "file": "islamweb-411118.html",
+    "qualifierCodePoints": [32, 1604, 1604, 1605, 1587, 1575, 1601, 1585],
+    "minimumSimilarity": 0.97,
+    "expectedFlipCount": 1,
+    "expectedVerdict": "no"
+  },
+  "currentMarkupEvidence": {
+    "status": "BLOCKED_OFFLINE",
+    "acceptanceGreen": false,
+    "requestId": null,
+    "rawResponseSha256": null,
+    "extractorResult": null,
+    "reason": "offline directive"
+  }
+}

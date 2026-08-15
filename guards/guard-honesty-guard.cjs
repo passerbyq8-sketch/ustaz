@@ -6,7 +6,7 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const BASELINE = 'd2c5828707b51a450826a03283f185baaba60829';
-const REQUIRED_ITEMS = Object.freeze(['G-01', 'G-06', 'G-07', 'G-08', 'G-09', 'G-10', 'G-11', 'G-12', 'G-15']);
+const REQUIRED_ITEMS = Object.freeze(['G-01', 'G-06', 'G-07', 'G-08', 'G-09', 'G-10', 'G-11', 'G-12', 'G-15', 'G-16']);
 let checks = 0;
 let failures = 0;
 
