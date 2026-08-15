@@ -21,7 +21,27 @@ function gitShow(root, revision, rel) {
 function functionSource(source, name) {
   const start = source.indexOf('function ' + name);
   if (start < 0) return null;
-  const brace = source.indexOf('{', start);
+  const signature = source.indexOf('(', start);
+  if (signature < 0) return null;
+  let paramDepth = 0;
+  let paramQuote = '';
+  let paramEscaped = false;
+  let brace = -1;
+  for (let i = signature; i < source.length; i++) {
+    const char = source[i];
+    if (paramQuote) {
+      if (paramEscaped) paramEscaped = false;
+      else if (char === '\\') paramEscaped = true;
+      else if (char === paramQuote) paramQuote = '';
+      continue;
+    }
+    if (char === "'" || char === '"' || char === '`') { paramQuote = char; continue; }
+    if (char === '(') paramDepth++;
+    else if (char === ')' && --paramDepth === 0) {
+      brace = source.indexOf('{', i + 1);
+      break;
+    }
+  }
   if (brace < 0) return null;
   let depth = 0;
   let quote = '';

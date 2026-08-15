@@ -1,0 +1,42 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-07",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The existing RFC runtime and search-budget gates are offline tests. No named deployment, real Upstash transaction, provider request ID, or raw deployed SSE was observed.",
+  "sources": [
+    {
+      "key": "runtimeGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/rfc-v05r2-runtime-guard.cjs",
+      "sha256": "89846216bc9fb5463f7f3e5a8ed5009c1655f55f77d30dcf92bba3a4b128563a"
+    },
+    {
+      "key": "budgetGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/search-budget-p0-guard.cjs",
+      "sha256": "82c30d85d5fe6a634c413855c357aa67d73a438c33c1673951f102a46fb3a239"
+    },
+    {
+      "key": "search",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/ledger/search.js",
+      "sha256": "00fe43e114593356c33a5bf4b04e79465d6a5205ed581b8600990e952231cb35"
+    },
+    {
+      "key": "budget",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/ledger/daily-budget.js",
+      "sha256": "b2d113bc9198d219710958033a025f7632c0a4724093f762287b941a6b67a573"
+    }
+  ],
+  "externalEvidence": {
+    "acceptanceGreen": false,
+    "deploymentId": null,
+    "deployedGitSha": null,
+    "upstashTransaction": null,
+    "braveRequestId": null,
+    "anthropicRequestId": null,
+    "rawSse": null,
+    "reason": "offline directive"
+  }
+}
