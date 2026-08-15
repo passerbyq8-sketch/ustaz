@@ -251,6 +251,19 @@ guards/search-budget-p0-guard.cjs text eol=lf
 guards/hybrid-live-fatwa-guard.cjs text eol=lf
 lib/fatwa-service.js text eol=lf
 lib/hybrid-deen.js text eol=lf
+# The missing sibling of the three above, and the whole of the takhrij failure that stood red on
+# d2c5828 before either parallel branch was written. MEASURED, both halves:
+# guards/stored-deen-sub-suite.cjs's routeMutant() reads lib/route-classify.js RAW and mutates it
+# by substring, and its seams contain \n. The file was stored LF and pinned NOWHERE, so a clone
+# with core.autocrlf=true (the default state of this machine) checked it out with 320 CR, every
+# seam missed, and routeMutant threw `route mutation seam moved: scan-old-turns` -- gate takhrij
+# 84/87 FAIL. The guard was right to complain: a mutant that is never applied must never be
+# reported as a mutant that was killed.
+# And the pin cannot be replaced by flipping core.autocrlf, because guards/i18n-ui-guard.cjs cuts
+# quest.html on \r\n and quest.html is unpinned too -- so that guard REQUIRES CRLF where this one
+# requires LF. All four combinations were measured in round A: no single value of core.autocrlf
+# satisfies both. Only a per-path pin does, and quest.html is a protected path this round.
+lib/route-classify.js text eol=lf
 lib/stored-deen.js text eol=lf
 # The telemetry gate compares a record it BUILT against a record it read back out of a store
 # double, and asserts byte-identical socket frames across two runs. Both comparisons are exact, so
