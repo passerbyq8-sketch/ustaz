@@ -353,5 +353,15 @@
     "name": "anchormode",
     "script": "guards/anchor-mode-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "searchbudgetp0",
+    "script": "guards/search-budget-p0-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "fullfatwa",
+    "script": "guards/full-fatwa-contract-guard.cjs",
+    "args": ""
   }
 ]

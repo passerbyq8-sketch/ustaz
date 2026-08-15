@@ -481,7 +481,11 @@ async function main() {
     const out = await driveSeam('هل خالف ابن تيمية أهل السنة والجماعة؟', script);
     const outH = await driveLedger('هل خالف ابن تيمية أهل السنة والجماعة؟', 'adult', script);
 
-    ok('the handler falls through local -> fatwa -> live when named direct evidence is unavailable',
+    // OWNER ORDER 2026-08-15: the escalation is fatwa -> stored/local -> paid live. This case
+    // exhausts all three tiers, because none of them holds evidence attributable to the named
+    // scholar, so the reorder leaves the call COUNTS untouched — only the sequence moved. The
+    // label now names the sequence actually executed instead of the one that used to be.
+    ok('the handler falls through fatwa -> local -> live when named direct evidence is unavailable',
       outH.hybrid && outH.hybrid.corpusCalls === 1
         && outH.hybrid.fatwaSearch === 1 && outH.braveCalls >= 1
         && outH.pageFetches.some((url) => /^https:\/\/islamqa\.info\//u.test(String(url)))

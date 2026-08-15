@@ -293,6 +293,15 @@ lib/transfer/trim.js text eol=lf
 # the guard reads them as text, and the span test matches NORMALISED Arabic — a CR inside a span
 # would break the containment check that decides whether a claim may be printed at all.
 guards/anchor-mode-guard.cjs text eol=lf
+
+# Gates 72-73 and the module they drive. searchbudgetp0 was ALREADY tracked and pinned; the
+# full-fatwa contract guard and lib/full-fatwa.js are new. Same reason as every gate above,
+# and sharper here: span verification is a LITERAL substring test over normalised Arabic, so a
+# stray CR inside a carrying passage would silently fail a span that is genuinely in the source
+# — and a dropped span is exactly the truncation this gate exists to prevent.
+guards/full-fatwa-contract-guard.cjs text eol=lf
+guards/fixtures-full-fatwa.json text eol=lf
+lib/full-fatwa.js text eol=lf
 lib/anchor/flag.js text eol=lf
 lib/anchor/units.js text eol=lf
 

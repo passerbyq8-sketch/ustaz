@@ -243,12 +243,17 @@ async function runHybridGuard() {
     liveRetrieve: async (_q, opts) => { events.push('brave:start'); await Promise.resolve(); events.push('brave:end'); return markLive(opts.diagnostics); },
     generate: modelUsing(f.id, f.supportText), verify: verifyIds(f.id),
   });
-  ok('ordinary DEEN falls through local to fatwa and does not spend Brave when fatwa answers',
-    integrated.storedCorpusCalls === 1 && integrated.fatwaSearchCalls === 1
+  // OWNER ORDER 2026-08-15: the fatwa service leads. When it answers, the local encyclopedia
+  // is not consulted at all — so storedCorpusCalls is 0 here, where it used to be 1. That is
+  // the amendment working, not a regression: a published fatwa with a citable scholar and URL
+  // outranks an unattributed encyclopedia paragraph, and there is no reason to fetch the
+  // weaker source once the stronger one has spoken.
+  ok('ordinary DEEN is answered by the fatwa service without descending to local or Brave',
+    integrated.storedCorpusCalls === 0 && integrated.fatwaSearchCalls === 1
       && integrated.braveSearchCalls === 0 && integrated.livePageFetchCalls === 0,
     JSON.stringify(integrated));
-  eq('source tiers run in strict local -> fatwa order and stop before Brave', events,
-    ['local:start', 'local:end', 'fatwa:start', 'fatwa:end']);
+  eq('source tiers run in strict fatwa -> local order and stop before Brave', events,
+    ['fatwa:start', 'fatwa:end']);
   eq('only evidence used by a sentence receives a card', integrated.cards.map((card) => card.evidenceId), [f.id]);
   eq('used evidence is separately observable', integrated.validatedUsedEvidenceIds, [f.id]);
   ok('fatwa health totals travel into telemetry', integrated.fatwaValidation.status === 'OK'
@@ -312,9 +317,16 @@ async function runHybridGuard() {
     fatwaSearch: async () => { skippedRemoteCalls++; throw new Error('fatwa_offline'); },
     liveRetrieve: async () => { skippedRemoteCalls++; throw new Error('429'); },
   });
-  ok('eligible local evidence prevents both remote paths from being invoked', bothDown.outcome === 'ANSWER'
-    && bothDown.storedCorpusCalls === 1 && skippedRemoteCalls === 0
-    && !/وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(bothDown.text));
+  // OWNER ORDER 2026-08-15: the fatwa service is tried FIRST, so eligible local evidence can
+  // no longer prevent it from being invoked — it is the tier above, not below. What local
+  // evidence still prevents is the PAID tier. Hence exactly one skipped remote call (the
+  // failed fatwa attempt) and zero Brave, where this used to assert zero of both.
+  ok('eligible local evidence prevents the paid live path after the fatwa tier fails',
+    bothDown.outcome === 'ANSWER'
+    && bothDown.storedCorpusCalls === 1 && skippedRemoteCalls === 1
+    && bothDown.braveSearchCalls === 0
+    && bothDown.degraded.some((x) => x.startsWith('fatwa:'))
+    && !/وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(bothDown.text), JSON.stringify(bothDown.degraded));
   const noReference = await H.runHybridDeenTurn({ context: contextFor(S, R, A, 'ما حكمه؟') });
   ok('empty reference states absence without a follow-up question', noReference.outcome === 'REFERENCE_ABSENT'
     && noReference.cards.length === 0 && !/[؟?]/u.test(noReference.text));
@@ -371,9 +383,20 @@ async function runHybridGuard() {
     url: 'https://www.islamweb.net/ar/fatwa/8287/حكم-النقاب', answerFormat: 'text',
     passage: 'مذهب أبي حنيفة ومالك أن تغطية الوجه والكفين غير واجبة، بل مستحبة، وتجب عند خوف الفتنة.',
   }] }, veil);
+  // §8 FIXTURE, NOT A BRANCH. veilStances() was a per-topic detector in runtime code and is
+  // gone. What this now proves is the thing §8 actually requires: the GENERAL stance reader
+  // reaches the veil case unaided. «غير واجبة» must read as a permission and not — via the
+  // «واجب» inside it — as an obligation, which is the trap the hand-written detector existed
+  // to dodge for this one topic and the general one dodges for every topic.
   ok('واجبة/واجب are one exact ruling family without reverting to substring relevance',
-    veilOpposition.length === 1 && H.__hybridTest.veilStances(veilOpposition[0].supportText).nonDuty,
+    veilOpposition.length === 1 && H.__hybridTest.stancesIn(veilOpposition[0].supportText).permit,
     JSON.stringify(veilOpposition));
+  ok('§8: the general stance reader covers the veil case with no veil-specific code',
+    H.__hybridTest.stancesIn('تغطية الوجه غير واجبة، بل مستحبة').permit === true
+      && H.__hybridTest.stancesIn('تغطية الوجه غير واجبة، بل مستحبة').forbid === false
+      && H.__hybridTest.stancesIn('ستر الوجه واجب على المرأة').forbid === true
+      && H.__hybridTest.coversDisagreement(
+        'النقاب واجب عند الجمهور، وذهب آخرون إلى أنه غير واجب') === true);
   const transcript = FSVC.__fatwaTest.normalizeRecord({
     id: 1336, uid: 'aljasser:1336', title: 'أرى النقاب واجبًا وأمي تمنعني',
     scholar: { id: 'aljasser' }, source: { canonicalUrl: 'https://youtube.com/watch?v=fixture' },
@@ -419,8 +442,24 @@ async function runHybridGuard() {
   ];
   ok('all required face-veil phrasings resolve to one retrieval topic',
     veilForms.every((form) => S.canonicalStoredTopic(form) === 'هل النقاب واجب'));
-  eq('the fatwa service uses a bounded two-query veil expansion',
-    FSVC.__fatwaTest.searchQueriesFor(veil), ['هل النقاب واجب؟', 'حكم تغطية وجه المرأة']);
+  // §8 FIXTURE: the two-query veil expansion in fatwa-service.js is DELETED. It was a per-topic
+  // branch — the only topic in the product that got a second, hand-written query — and this
+  // assertion used to pin it. What replaces it is the general rule, proven twice below: the
+  // service now sends the canonical topic and nothing bespoke, and the disagreement-seeking
+  // expansion comes from liveQueries for ANY ruling question.
+  eq('the fatwa service no longer special-cases the veil topic',
+    FSVC.__fatwaTest.searchQueriesFor(veil), ['هل النقاب واجب']);
+  ok('§8: the disagreement expansion is general — the veil case gets it with no veil code',
+    H.__hybridTest.liveQueries(veil).length === 2
+      && /خلاف/u.test(H.__hybridTest.liveQueries(veil)[1]));
+  {
+    // The proof that it generalises: a topic that never had a branch of its own, and never
+    // would have got one, receives exactly the same treatment.
+    const insurance = contextFor(S, R, A, 'ما حكم التأمين التجاري؟');
+    ok('§8: a topic that never had a branch gets the same disagreement expansion',
+      H.__hybridTest.liveQueries(insurance).length === 2
+        && /خلاف/u.test(H.__hybridTest.liveQueries(insurance)[1]));
+  }
 
   const publishedVeilDisagreement = fatwaEvidence({
     id: 'fatwa:aladawy:1054', title: 'هل النقاب واجب أم مستحب ؟',
@@ -448,10 +487,14 @@ async function runHybridGuard() {
       generate: async () => { throw new Error('model memory disabled'); },
       verify: async () => '{"supported_ids":[]}',
     });
+    // fatwaSearchCalls stays 2 here: this case's `fatwaSearch` is a STUB that reports calls:2
+    // of its own, so the number measures the fixture and not the deleted veil branch. The one
+    // substantive change is the coverage helper — `coversDisagreement` is the general reader,
+    // where this used to call the veil-specific `veilStances`.
     ok(question + ' returns documented disagreement from fatwa service with Brave closed',
       result.outcome === 'ANSWER' && result.fatwaSearchCalls === 2
         && result.fatwaValidation?.status === 'OK' && result.braveSearchCalls === 0 && liveCalls === 0
-        && H.__hybridTest.veilStances(result.text).duty && H.__hybridTest.veilStances(result.text).nonDuty
+        && H.__hybridTest.coversDisagreement(result.text)
         && !/وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(result.text), JSON.stringify(result));
     eq(question + ' used evidence exactly equals its source cards',
       result.validatedUsedEvidenceIds, result.cards.map((card) => card.evidenceId));

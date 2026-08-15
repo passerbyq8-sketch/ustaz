@@ -334,7 +334,7 @@ lib/ledger/source-policy.js` returns **empty**.
 
 ## K. Gates and tests
 
-All 71 gates, run individually via `gates.json`:
+All 73 gates, run individually via `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -349,13 +349,14 @@ floorsfilters 0 · liveness 0 · aiconsent 0 · srcattr 0 · referraltail 0 · n
 voicesafety 0 · wird 0 · worldparity 0 · rulingsource 0 · retrievalobs 0 · madinahafs 0
 i18nui 0 · adhkartwins 0 · systemprompt 0 · lockpackage 0 · sourcehonesty 0
 ledgertelemetry 0 · livesearch 0 · answershape 0 · identity 0 · transfermode 0 · anchormode 0
+searchbudgetp0 0 · fullfatwa 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        71/71 PASS
-RECON              PASS=157 WARN=6 FAIL=0
+TOTAL_GATES        73/73 PASS
+RECON              PASS=161 WARN=6 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

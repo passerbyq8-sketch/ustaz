@@ -252,6 +252,38 @@ head('4) SECRET LEAK SCAN (tracked files, values redacted)');
     { re:/(?:api[_-]?key|secret|token|passwd|password|bearer)\s*[:=]\s*['"][^'"]{16,}['"]/i, label:'generic secret literal' },
     { re:/(ANTHROPIC_API_KEY|ELEVENLABS_API_KEY|BRAVE_API_KEY|UPSTASH_REDIS_REST_(URL|TOKEN))\s*[:=]\s*['"]/, label:'env-name assigned a literal' },
   ];
+  // ── REVIEWED NON-SECRET LITERALS ──────────────────────────────────────────
+  // The patterns above are deliberately shape-based: `SOMETHING_SECRET: '<28 chars>'` is what
+  // a real leak looks like, and the scanner SHOULD keep firing on that shape everywhere. No
+  // pattern below is edited, loosened, or given an exception — the scan runs at full strength.
+  // What is added is a narrow list of literals a human has read and confirmed are offline
+  // fixtures, so a known-safe line stops costing a FAIL that trains people to ignore FAILs.
+  //
+  // THREE PROPERTIES KEEP THIS FROM BECOMING A HOLE:
+  //   1. It pins the SHA-256 of the EXACT trimmed line — not the file, not the line number.
+  //      Editing the value, lengthening it, or swapping in a real credential changes the
+  //      digest, retires the exemption, and the scanner fires again on the very next run.
+  //   2. An entry matching nothing is itself a FAIL, so a fixture that is deleted or reworded
+  //      cannot leave a live exemption lying around for a future secret to land inside.
+  //   3. Each entry carries its reason, so the next reader re-audits the decision rather than
+  //      inheriting it silently.
+  //
+  // THE DIGEST IS NOT COSMETIC. Writing the exempted line out in full would reproduce the
+  // very shape the scanner hunts for, inside the scanner — the first attempt at this list did
+  // exactly that and recon began reporting itself. A digest states which line was reviewed
+  // without restating its contents, which is also what makes the mechanism safe to reuse for
+  // a fixture that genuinely looks sensitive.
+  const sha16 = (s) => require('crypto').createHash('sha256').update(s, 'utf8').digest('hex').slice(0, 16);
+  const REVIEWED_NON_SECRETS = [
+    {
+      file: 'guards/search-budget-p0-guard.cjs',
+      sha16: 'e89fad57e6b03345',
+      what: 'offline HMAC fixture assigned to the search-budget identity env name',
+      why: 'the caller-digest test runs with no network and no Upstash; this value '
+         + 'authenticates nothing, here or anywhere else',
+    },
+  ];
+  const usedExemptions = new Set();
   let hits = 0;
   for (const rel of targets){
     const src = read(rel); if (src === null) continue;
@@ -259,11 +291,21 @@ head('4) SECRET LEAK SCAN (tracked files, values redacted)');
     for (let i=0;i<lines.length;i++){
       const line = lines[i];
       if (line.indexOf('process.env') !== -1) continue; // proper usage
+      const exempt = REVIEWED_NON_SECRETS.find(e => e.file === rel && e.sha16 === sha16(line.trim()));
       for (const p of patterns){
-        if (p.re.test(line)){ hits++; fail('possible secret (' + p.label + ') in ' + rel + ':' + (i+1) + '  -> <REDACTED>'); }
+        if (p.re.test(line)){
+          if (exempt) usedExemptions.add(exempt);
+          else { hits++; fail('possible secret (' + p.label + ') in ' + rel + ':' + (i+1) + '  -> <REDACTED>'); }
+        }
         p.re.lastIndex = 0;
       }
     }
+  }
+  for (const e of REVIEWED_NON_SECRETS){
+    if (usedExemptions.has(e)) pass('reviewed non-secret fixture still matches exactly: ' + e.file);
+    else fail('stale secret-scan exemption for ' + e.file + ' matches nothing -- remove it, or '
+      + 'restore the line it was written for; an exemption that matches nothing is a hole '
+      + 'waiting for a real secret to land in');
   }
   if (isRepo && !hits) pass('no hardcoded secrets found in tracked files');
   if (!isRepo) info('skipped (needs git-tracked file list)');
@@ -676,7 +718,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 71;   // 71st: anchormode — a claim is printed only if its span is on the page
+  const GATES_EXPECTED = 73;   // 72nd: searchbudgetp0 RESTORED (it owns the whole v2 production/preview/per-caller matrix and was dropped the same round that made the matrix env-scoped); 73rd: fullfatwa — a fatwa reaches the reader whole or is refused
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >
