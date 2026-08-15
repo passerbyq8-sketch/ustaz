@@ -465,13 +465,24 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok('event after stop fails closed', validClientSequence(parseEvents(target)) && visible(target) === 'server output rejected');
   }
   {
+    // OLD LAW (until أ-٦/٣): `visible(target) === ''` — a no-text answer was replayed as a
+    // structurally perfect stream carrying zero bytes. NEW LAW: an empty approval is a failure,
+    // not an answer; the lifecycle stays valid but it carries an explicit failure text and a
+    // reportReject. The structural half of the old claim is kept verbatim — only the empty
+    // payload is replaced by the spoken one.
     const target = makeTarget();
-    const writer = SW.createFinalizedSseResponse(target, { finalize: (x) => ({ text: x.text, ok: true }) });
+    const rejects = [];
+    const writer = SW.createFinalizedSseResponse(target, {
+      finalize: (x) => ({ text: x.text, ok: true }),
+      onReject: (r) => rejects.push(r),
+    });
     const full = event({ type: 'message_start', message: { role: 'assistant' } })
       + event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } })
       + event({ type: 'content_block_stop', index: 0 }) + stop;
     writer.write(full); writer.end();
-    ok('a no-text answer retains a valid complete lifecycle', validClientSequence(parseEvents(target)) && visible(target) === '');
+    ok('a no-text answer fails explicitly and keeps a valid complete lifecycle',
+      validClientSequence(parseEvents(target)) && visible(target) === 'server output rejected'
+      && rejects.length === 1 && rejects[0].stage === 'finalize-empty');
   }
   {
     const target = makeTarget();
@@ -583,25 +594,39 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok('multiple server-owned cards retain byte order after prose finalization', visible(target) === answer);
   }
   {
+    // OLD LAW: `visible(target) === ''`. NEW LAW (\u0623-\u0666/\u0663): the orphan-card purpose is unchanged and
+    // still asserted \u2014 no card survives the emptying \u2014 but the reader is now told the answer failed
+    // instead of watching a blank bubble.
     const target = makeTarget();
+    const rejects = [];
     const card = { tag: '<source url="https://owned.example">owned</source>' };
     const writer = SW.createFinalizedSseResponse(target, {
       context: { sourceCards: [card], readerCards: [card] },
       finalize: () => ({ text: '', ok: true }),
+      onReject: (r) => rejects.push(r),
     });
     writer.write(delta('text removed by finalizer') + stop); writer.end();
-    ok('SSE causal RED: a finalizer-empty answer never leaves an orphan source card', visible(target) === '');
+    ok('SSE causal RED: a finalizer-empty answer fails explicitly and leaves no orphan source card',
+      visible(target) === 'server output rejected' && !visible(target).includes('<source')
+      && rejects.length === 1 && rejects[0].stage === 'finalize-empty');
   }
   {
+    // OLD LAW: `visible(target) === 'LEAD'` \u2014 the server-owned prefix stood alone as the whole
+    // answer once the body was stripped. NEW LAW (\u0623-\u0666/\u0663): the emptiness test reads the SUBSTANTIVE
+    // text, so scaffold cannot stand in for an answer that never arrived; the prefix does not
+    // survive as a lone bubble. The orphan-card half of the claim is kept verbatim.
     const target = makeTarget();
+    const rejects = [];
     const card = { tag: '<source url="https://owned.example">owned</source>' };
     const writer = SW.createFinalizedSseResponse(target, {
       context: { readerPrefix: 'LEAD', sourceCards: [card], readerCards: [card] },
       finalize,
+      onReject: (r) => rejects.push(r),
     });
     writer.write(delta('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645.') + stop); writer.end();
-    ok('SSE causal RED: server prefix cannot make a stripped body eligible for an orphan card',
-      visible(target) === 'LEAD' && !visible(target).includes('<source'));
+    ok('SSE causal RED: a server prefix cannot stand in for a stripped body, and licenses no orphan card',
+      visible(target) === 'server output rejected' && !visible(target).includes('<source')
+      && rejects.length === 1 && rejects[0].stage === 'finalize-empty');
   }
   {
     const target = makeTarget();
