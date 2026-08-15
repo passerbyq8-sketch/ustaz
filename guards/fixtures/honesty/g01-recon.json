@@ -1,0 +1,63 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-01",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The recon parser is measured on real repository blobs and an independently frozen roster; its authored miniature remains diagnostic only.",
+  "sources": [
+    {
+      "key": "gates",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "gates.json",
+      "sha256": "57f81bd701d3659ff9c91bfc498a68787766ce903f537ad78b3434f782ddbc6d"
+    },
+    {
+      "key": "retrieve",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/retrieve.js",
+      "sha256": "9e5176d6713bf9f89033fecdece035bad67dc3ab073782ab6331682ddfcf5a9d"
+    },
+    {
+      "key": "historicalParser",
+      "revision": "71d833691068f3ea709b0cc81328ace3e91f3458",
+      "path": "recon-audit.cjs",
+      "sha256": "1c17c7e4690c2e428c3045627ff22d931889866220e0747762cd8409fdc80ec1"
+    },
+    {
+      "key": "historicalReal",
+      "revision": "71d833691068f3ea709b0cc81328ace3e91f3458",
+      "path": "build-worship-display.cjs",
+      "sha256": "84e8884b99af5a911393c94554a059b1816fed168e91c605b93e99e459689d82"
+    }
+  ],
+  "expectedGateNames": [
+    "worship", "quran", "layout", "babel", "runtime", "recon", "display", "referral",
+    "classifier", "hafs", "call", "history", "markdown", "reveal", "quranquest",
+    "prayerquest", "bankintegrity", "contentreview", "themecoverage", "chatux", "a11y",
+    "questux", "attribution", "claim", "sourceregistry", "bravequery", "smartretrieval",
+    "ledgercontract", "ledgerretrieval", "ledgergates", "ledgerruntime", "ledgerfixtures",
+    "ledgerseam", "rfcpolicy", "rfcruntime", "rfcwiring", "rfcround3", "rfcmode",
+    "rfchistorical", "rfcconsistency", "rfcworld", "scholardrift", "shippedreality",
+    "pagematch", "takhrij", "quotedphrase", "adaptedcorpus", "deaddomains", "floorsfilters",
+    "liveness", "aiconsent", "srcattr", "referraltail", "namepresence", "voicesafety", "wird",
+    "worldparity", "rulingsource", "retrievalobs", "madinahafs", "i18nui", "adhkartwins",
+    "systemprompt", "lockpackage", "sourcehonesty", "ledgertelemetry", "livesearch",
+    "answershape", "identity", "transfermode", "anchormode", "searchbudgetp0", "fullfatwa"
+  ],
+  "expectedMinorDomains": [
+    "islamqa.info", "binbaz.org.sa", "islamweb.net", "alukah.net", "iifa-aifi.org",
+    "ibn-jebreen.com", "almosleh.com"
+  ],
+  "expectedAdultDomains": [
+    "islamweb.net", "binbaz.org.sa", "alukah.net", "islamqa.info", "sh-albarrak.com",
+    "almosleh.com", "iifa-aifi.org", "ferkous.app", "dr-mutlaq.com", "eftaa.awqaf.gov.kw",
+    "saleh.af.org.sa", "khaledalsabt.com", "ibn-jebreen.com", "mostafaaladwy.com",
+    "almunajjid.com", "khutabaa.com", "salafcenter.org", "tafsir.net", "al-abbaad.com"
+  ],
+  "historical": {
+    "arrayName": "CELLS",
+    "fullLength": 669,
+    "fullSha256": "0c4eb76c1537ac5a6efc3d8e85772f9ff0e93f7be87d029b6d81132925a3837b",
+    "oldLength": 78,
+    "oldSha256": "c6dcbe5378f4936577d1ec415a9438d0594445675481e0e7582a829dfa35336b"
+  }
+}

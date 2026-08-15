@@ -1,0 +1,50 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-11",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The dead-domains gate enforces repository decisions offline. Historical prose does not authenticate current HTTP, redirects, extracted bytes, or citation eligibility.",
+  "sources": [
+    {
+      "key": "oldGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/dead-domains-guard.cjs",
+      "sha256": "13446bb5995b6a54a7e7cc759bc9563e9288fd0c39afd3d97d3d71e88cc15e16"
+    },
+    {
+      "key": "registry",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/source-registry.js",
+      "sha256": "8d79a7606b922b7e725907970c86387e1c8f68898a39fb66c8578eded0c2872f"
+    },
+    {
+      "key": "sourcePolicy",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/ledger/source-policy.js",
+      "sha256": "90c875c0135a4b93e7176128c372e3e585970240602a08b2ecfd652a8fe5d296"
+    },
+    {
+      "key": "capability",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/ledger/capability.js",
+      "sha256": "8d7baa0aa2e8f9e3e8b532af89520502efce07deb64aa70c98369a43be960d8d"
+    },
+    {
+      "key": "retrieve",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/retrieve.js",
+      "sha256": "9e5176d6713bf9f89033fecdece035bad67dc3ab073782ab6331682ddfcf5a9d"
+    }
+  ],
+  "decisions": {
+    "deferred": ["dorar.net", "tafsir.app", "ferkous.com"],
+    "active": ["ferkous.app", "mostafaaladwy.com"]
+  },
+  "externalEvidence": {
+    "status": "BLOCKED_OFFLINE",
+    "acceptanceGreen": false,
+    "transactions": null,
+    "rawResponseArchive": null,
+    "signature": null,
+    "reason": "offline directive"
+  }
+}

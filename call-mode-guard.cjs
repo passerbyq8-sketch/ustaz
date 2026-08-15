@@ -13,9 +13,8 @@
 //      both ended in an empty catch + a re-opened mic, and the 400 above reached the
 //      child as "لم أفهم سؤالك" -- blaming them for a request the model never read.
 //
-// CHECK A  api/chat.js + api/chat-fast.js, EXECUTED: the handler is actually invoked with
-//          CALL_EFFORT set AND a client-supplied output_config, and the bytes it puts on
-//          the wire are inspected. This is behaviour, not a grep for a comment.
+// CHECK A  api/chat.js + api/chat-fast.js, EXECUTED: both retired handlers return 410 and make
+//          no provider call. Voice answers now use /api/ask, whose model map is CHECK D.
 // CHECK B  index.html message maps, EXECUTED: the three message functions are extracted
 //          from the page and run, so a message that goes blank or collapses into another
 //          fails here rather than on a child's screen.
@@ -70,9 +69,46 @@ function extractDecl(src, header) {
 }
 
 // ===========================================================================
-// CHECK A -- the relays, EXECUTED
+// CHECK A -- the retired relays, EXECUTED
 // ===========================================================================
 async function checkRelays() {
+  const realFetch = global.fetch;
+  let fetches = 0;
+  global.fetch = async () => { fetches++; throw new Error('retired relay reached transport'); };
+  try {
+    for (const rel of ['api/chat.js', 'api/chat-fast.js']) {
+      const src = read(rel);
+      if (src === null) abort('cannot read ' + rel);
+      const handler = (await import(pathToUrl(rel) + '?retired=' + Date.now())).default;
+      const res = { statusCode: 200, payload: null, headers: {} };
+      res.status = (code) => { res.statusCode = code; return res; };
+      res.setHeader = (name, value) => { res.headers[String(name).toLowerCase()] = value; };
+      res.getHeader = (name) => res.headers[String(name).toLowerCase()];
+      res.json = (payload) => { res.payload = payload; return res; };
+      res.end = () => res;
+      await handler({
+        method: 'POST',
+        headers: { 'x-ezik-ai-consent': '2026-08-06-1' },
+        body: { messages: [{ role: 'user', content: 'relay retirement probe' }] },
+        socket: { remoteAddress: '127.0.0.1' },
+      }, res);
+      if (res.statusCode === 410 && res.payload?.replacement === '/api/ask') {
+        pass('A0 ' + rel + ' is retired in favour of /api/ask');
+      } else fail('A0 ' + rel + ' retirement response changed');
+      if (!/fetch\s*\(|anthropic|getReader\s*\(/i.test(src)) {
+        pass('A1 ' + rel + ' contains no provider relay');
+      } else fail('A1 ' + rel + ' contains an active provider surface');
+    }
+    if (fetches === 0) pass('A2 retired relays make zero provider calls');
+    else fail('A2 retired relays made ' + fetches + ' provider calls');
+  } finally {
+    global.fetch = realFetch;
+  }
+}
+
+// Historical active-relay coverage retained for archaeology only. It is deliberately not called:
+// CHECK D owns the live /api/ask model map and the retiredchat gate owns reopening mutants.
+async function checkActiveRelaysHistorical() {
   const chatSrc = read('api/chat.js');
   const fastSrc = read('api/chat-fast.js');
   if (chatSrc === null) abort('cannot read api/chat.js');

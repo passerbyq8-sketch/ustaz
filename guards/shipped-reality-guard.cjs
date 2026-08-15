@@ -1,5 +1,5 @@
 // guards/shipped-reality-guard.cjs
-// WHAT A READER ACTUALLY GETS TODAY, DRIVEN THROUGH THE REAL api/ask.js.
+// CONSTRUCTED LOCAL HANDLER SCENARIOS, DRIVEN THROUGH THE REAL api/ask.js.
 //
 // ── WHY THIS EXISTS ALONGSIDE EVERY OTHER GATE ───────────────────────────────
 // The other gates prove that modules are correct and that the handler is wired to them. Every one
@@ -8,9 +8,10 @@
 // because they measured a CONFIGURATION nobody deploys: flags set, stores reachable, credentials
 // present. Production has none of those.
 //
-// So this gate measures the two states that actually exist.
+// The motivating production statements above are historical context, not measurements made by
+// this gate. It measures two explicitly constructed local states:
 //
-//   (A) FRESH PRODUCTION, AS IT REALLY IS — zero rollout env vars, ledger/flag store unreadable.
+//   (A) LOCAL ZERO-CONFIG SIMULATION — zero rollout env vars, ledger/flag store injected null.
 //       Since the go-live this routes to the LEDGER. It asserts that this is so, that nothing
 //       crashes, and that the three protections which run before either engine really run.
 //
@@ -67,7 +68,7 @@ const FOUR = [
 const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يتّضح لي أيُّ شيخٍ تقصد|رابطَ موقعِه|رابط موقعه الرسمي|اذكرْ لي اسمَه/;
 
 (async function main() {
-  console.log('=== shipped-reality-guard — the two states that actually exist ===');
+  console.log('=== shipped-reality-guard — two constructed local handler states ===');
 
   const LEDGER_REDIS = await esm('lib/ledger/redis.js');
   const DAYCAP = await esm('lib/daycap.js');
@@ -161,7 +162,7 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
   };
 
   /**
-   * @param mode 'fresh' — zero rollout env, store unreadable (what production is)
+   * @param mode 'fresh' — zero rollout env, store injected null (local simulation)
    *             'legacy' — LEDGER_RAG=off, the documented brake
    */
   async function drive(question, band, mode, modelText) {
@@ -170,7 +171,7 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
     process.env.BRAVE_API_KEY = 'guard-not-a-real-key';
     if (mode === 'legacy') process.env.LEDGER_RAG = 'off';
 
-    // The ledger/flag store is genuinely unreadable in BOTH cases. Nothing here turns a flag on.
+    // The ledger/flag store is injected as null in BOTH cases. Nothing here observes a real store.
     LEDGER_REDIS.__setRedisForTest(null);
     FLAG.__resetFlagCacheForTest();
     LEGACY.__resetLegacyFlagCacheForTest();
@@ -202,7 +203,7 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
   }
 
   // =========================================================================
-  console.log('\n=== A. FRESH PRODUCTION — zero env, unreadable store ===');
+  console.log('\n=== A. LOCAL ZERO-CONFIG SIMULATION — zero env, injected-null store ===');
   {
     const r = await drive('ما حكم بيع الذهب بالتقسيط؟', 'adult', 'fresh');
     eq('with nothing configured, the LEDGER is what is served', r.path, 'ledger');

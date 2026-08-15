@@ -1,0 +1,52 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-12",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The offline guard checks internal coverage, recorded status, and a claimed date. The protected JSON has no raw-response hashes or signature and cannot authenticate current liveness.",
+  "sources": [
+    {
+      "key": "oldGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/source-liveness-guard.cjs",
+      "sha256": "864436a88efb18d387be205619d04794c26c0a2ac400537e774483315ec8d3a2"
+    },
+    {
+      "key": "probeTool",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "tools/source-liveness.cjs",
+      "sha256": "69661c83b084754e95c143aaa890deeb405789164751fb83897bea841c2f015f"
+    },
+    {
+      "key": "protectedSummary",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "data/source-liveness.json",
+      "sha256": "75b88f5c092eea8ae5e4198a33203e99dd136e06581d8b69bf7dc1037322aa4d"
+    },
+    {
+      "key": "registry",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/source-registry.js",
+      "sha256": "8d79a7606b922b7e725907970c86387e1c8f68898a39fb66c8578eded0c2872f"
+    },
+    {
+      "key": "retrieve",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/retrieve.js",
+      "sha256": "9e5176d6713bf9f89033fecdece035bad67dc3ab073782ab6331682ddfcf5a9d"
+    }
+  ],
+  "protectedSummary": {
+    "measuredAt": "2026-08-07",
+    "rows": 31,
+    "signaturePresent": false,
+    "rawResponseShaRows": 0
+  },
+  "externalEvidence": {
+    "status": "BLOCKED_OFFLINE",
+    "acceptanceGreen": false,
+    "signedManifest": null,
+    "rawResponseArchive": null,
+    "ciJobOrOperatorSignature": null,
+    "reason": "offline directive"
+  }
+}

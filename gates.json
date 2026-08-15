@@ -363,5 +363,15 @@
     "name": "fullfatwa",
     "script": "guards/full-fatwa-contract-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "retiredchat",
+    "script": "guards/retired-chat-endpoints-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "guardhonesty",
+    "script": "guards/guard-honesty-guard.cjs",
+    "args": ""
   }
 ]

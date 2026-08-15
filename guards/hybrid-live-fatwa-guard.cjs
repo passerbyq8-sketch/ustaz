@@ -11,8 +11,10 @@ const { pathToFileURL } = require('url');
 const ROOT = path.resolve(__dirname, '..');
 const CORPUS = path.join(ROOT, 'lib', 'data', 'fiqh-search.json.gz');
 const LIVENESS = path.join(ROOT, 'data', 'source-liveness.json');
+const X021_FIXTURE = path.join(ROOT, 'guards', 'fixtures', 'honesty', 'x021-fatwa-telemetry.json');
 const CORPUS_HASH = '6482d677ebf09cc5627a172ee77114587046edeb95529092cb644e42e00d13a2';
 const LIVENESS_HASH = '75b88f5c092eea8ae5e4198a33203e99dd136e06581d8b69bf7dc1037322aa4d';
+const X021_FIXTURE_HASH = 'b0df8dfc878e216c2fd603bca6ffbe9daa2d104e17d9991661edc08f2fd9f589';
 let checks = 0, failures = 0;
 function ok(name, condition, detail = '') {
   checks++;
@@ -70,7 +72,7 @@ function modelUsing(id, quote, sentence = quote) {
 const verifyIds = (...ids) => async () => JSON.stringify({ supported_ids: ids });
 const budget = { reserve: async () => ({ ok: true }), snapshot: () => ({ configured: true, limit: 7, reservedThisRequest: 1 }) };
 
-function importableHybrid(source) {
+function importableLibModule(source) {
   const lib = path.join(ROOT, 'lib');
   return source.replace(/from\s+(['"])(\.\/[^'"]+)\1/gu, (_all, quote, specifier) =>
     `from ${quote}${pathToFileURL(path.resolve(lib, specifier)).href}${quote}`);
@@ -78,12 +80,48 @@ function importableHybrid(source) {
 
 async function mutant(temp, name, mutate) {
   const original = fs.readFileSync(path.join(ROOT, 'lib', 'hybrid-deen.js'), 'utf8');
-  const ready = importableHybrid(original);
+  const ready = importableLibModule(original);
   const changed = mutate(ready);
   if (changed === ready) throw new Error('hybrid mutation seam moved: ' + name);
   const file = path.join(temp, name + '.mjs');
   fs.writeFileSync(file, changed, 'utf8');
   return import(pathToFileURL(file).href + '?v=' + Date.now() + '-' + name);
+}
+
+async function fatwaServiceMutant(temp, name, mutate) {
+  const original = fs.readFileSync(path.join(ROOT, 'lib', 'fatwa-service.js'), 'utf8');
+  const ready = importableLibModule(original);
+  const changed = mutate(ready);
+  if (changed === ready) throw new Error('fatwa-service mutation seam moved: ' + name);
+  const file = path.join(temp, name + '.mjs');
+  fs.writeFileSync(file, changed, 'utf8');
+  return import(pathToFileURL(file).href + '?v=' + Date.now() + '-' + name);
+}
+
+function recordedFatwaTransport(fixture, requests) {
+  return async (input, init = {}) => {
+    const url = input instanceof URL ? input : new URL(String(input));
+    const payload = fixture.responses[url.pathname];
+    requests.push({ method: String(init.method || 'GET'), pathname: url.pathname, search: url.search });
+    if (!payload) throw new Error('unsealed-fatwa-path:' + url.pathname);
+    const body = JSON.stringify(payload);
+    return {
+      ok: true,
+      status: 200,
+      url: url.href,
+      headers: { get(name) {
+        const key = String(name).toLowerCase();
+        if (key === 'content-type') return 'application/json; charset=utf-8';
+        if (key === 'content-length') return String(Buffer.byteLength(body, 'utf8'));
+        return null;
+      } },
+      text: async () => body,
+    };
+  };
+}
+
+function requestsFor(requests, pathname) {
+  return requests.filter((entry) => entry.pathname === pathname);
 }
 
 async function runHybridGuard() {
@@ -248,7 +286,7 @@ async function runHybridGuard() {
   // the amendment working, not a regression: a published fatwa with a citable scholar and URL
   // outranks an unattributed encyclopedia paragraph, and there is no reason to fetch the
   // weaker source once the stronger one has spoken.
-  ok('ordinary DEEN is answered by the fatwa service without descending to local or Brave',
+  ok('authored adapter unit: ordinary DEEN stops after the reported fatwa result',
     integrated.storedCorpusCalls === 0 && integrated.fatwaSearchCalls === 1
       && integrated.braveSearchCalls === 0 && integrated.livePageFetchCalls === 0,
     JSON.stringify(integrated));
@@ -256,9 +294,102 @@ async function runHybridGuard() {
     ['fatwa:start', 'fatwa:end']);
   eq('only evidence used by a sentence receives a card', integrated.cards.map((card) => card.evidenceId), [f.id]);
   eq('used evidence is separately observable', integrated.validatedUsedEvidenceIds, [f.id]);
-  ok('fatwa health totals travel into telemetry', integrated.fatwaValidation.status === 'OK'
+  ok('authored adapter unit: verification fields propagate structurally', integrated.fatwaValidation.status === 'OK'
     && integrated.fatwaValidation.scholars === 18 && integrated.fatwaValidation.total === 73130
     && integrated.fatwaValidation.ibnBaz === 18479);
+
+  console.log('\n--- X-021 OBSERVED FATWA REQUEST TELEMETRY ---');
+  const x021Bytes = fs.readFileSync(X021_FIXTURE);
+  eq('X-021 offline response fixture has its full-file seal', sha(x021Bytes), X021_FIXTURE_HASH);
+  const x021 = JSON.parse(x021Bytes.toString('utf8'));
+  ok('X-021 external service freshness remains blocked in the offline run',
+    x021.externalEvidence.status === 'BLOCKED_OFFLINE'
+      && x021.externalEvidence.acceptanceGreen === false
+      && x021.externalEvidence.currentServiceResponse === null);
+  const telemetryContext = {
+    currentQuestion: 'offline telemetry query',
+    resolvedTopic: 'offline telemetry query',
+  };
+  const adapterRequests = [];
+  const adapterResult = await FSVC.searchFatwas(telemetryContext, {
+    fetchImpl: recordedFatwaTransport(x021, adapterRequests),
+    force: true,
+  });
+  eq('X-021 production adapter drives the sealed verification and search paths',
+    adapterRequests.map((entry) => entry.pathname),
+    [...x021.expected.verificationRequestPaths, x021.expected.searchRequestPath]);
+  ok('X-021 production adapter sends only GET requests',
+    adapterRequests.every((entry) => entry.method === 'GET'));
+  const observedAdapterSearches = requestsFor(adapterRequests, x021.expected.searchRequestPath).length;
+  eq('X-021 adapter call metric equals observed search endpoint requests',
+    adapterResult.calls, observedAdapterSearches);
+  eq('X-021 adapter observed the independently declared search count',
+    observedAdapterSearches, x021.expected.searchRequests);
+  ok('X-021 real verification result carries the sealed contract totals',
+    adapterResult.verification.status === 'OK'
+      && adapterResult.verification.scholars === x021.expected.scholars
+      && adapterResult.verification.total === x021.expected.total
+      && adapterResult.verification.ibnBaz === x021.expected.ibnBaz);
+
+  const coordinatorRequests = [];
+  const coordinatorResult = await H.runHybridDeenTurn({
+    context: telemetryContext,
+    band: 'adult',
+    depth: 'normal',
+    dailyBudget: budget,
+    fetchImpl: recordedFatwaTransport(x021, coordinatorRequests),
+    localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+    liveRetrieve: async () => ({ sources: [] }),
+    generate: async () => { throw new Error('model memory disabled'); },
+    verify: verifyIds(),
+  });
+  const observedCoordinatorSearches = requestsFor(coordinatorRequests, x021.expected.searchRequestPath).length;
+  eq('X-021 cached verification leaves the coordinator one observed search request',
+    coordinatorRequests.map((entry) => entry.pathname), [x021.expected.searchRequestPath]);
+  ok('X-021 coordinator propagates the real adapter request count',
+    coordinatorResult.outcome === 'NO_HYBRID_EVIDENCE'
+      && coordinatorResult.fatwaSearchCalls === observedCoordinatorSearches
+      && coordinatorResult.externalSourceAdapterCalls === observedCoordinatorSearches
+      && observedCoordinatorSearches === x021.expected.returnedSearchCalls,
+    JSON.stringify(coordinatorResult));
+
+  const x021Temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ezik-x021-mutants-'));
+  try {
+    const falseCountService = await fatwaServiceMutant(x021Temp, 'false-fatwa-count', (src) => src.replace(
+      'calls: queries.length,', 'calls: queries.length + 1, // mutant: falsified telemetry'));
+    const falseCountRequests = [];
+    const falseCountResult = await falseCountService.searchFatwas(telemetryContext, {
+      fetchImpl: recordedFatwaTransport(x021, falseCountRequests),
+      force: true,
+    });
+    const falseCountObserved = requestsFor(falseCountRequests, x021.expected.searchRequestPath).length;
+    ok('X-021 MUTANT 1 KILLED: a falsified returned count disagrees with observed search requests',
+      falseCountObserved === x021.expected.searchRequests
+        && falseCountResult.calls !== falseCountObserved);
+
+    const bypassCoordinator = await mutant(x021Temp, 'fatwa-count-bypass', (src) => src.replace(
+      'fatwaSearchCalls: Number(fatwaResult?.calls || 0),',
+      'fatwaSearchCalls: 0, // mutant: coordinator propagation bypassed'));
+    const bypassRequests = [];
+    const bypassResult = await bypassCoordinator.runHybridDeenTurn({
+      context: telemetryContext,
+      band: 'adult',
+      depth: 'normal',
+      dailyBudget: budget,
+      fetchImpl: recordedFatwaTransport(x021, bypassRequests),
+      localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+      liveRetrieve: async () => ({ sources: [] }),
+      generate: async () => { throw new Error('model memory disabled'); },
+      verify: verifyIds(),
+    });
+    const bypassObserved = requestsFor(bypassRequests, x021.expected.searchRequestPath).length;
+    ok('X-021 MUTANT 2 KILLED: bypassing coordinator propagation loses the observed count',
+      bypassObserved === x021.expected.searchRequests
+        && coordinatorResult.fatwaSearchCalls === bypassObserved
+        && bypassResult.fatwaSearchCalls !== bypassObserved);
+  } finally {
+    fs.rmSync(x021Temp, { recursive: true, force: true });
+  }
 
   const duplicateSupport = 'يجوز للمسافر الجمع بين الصلاتين عند الحاجة. والجمع بين الصلاتين للمسافر رخصة عند الحاجة.';
   const duplicateEvidence = fatwaEvidence({ supportText: duplicateSupport, passage: duplicateSupport });

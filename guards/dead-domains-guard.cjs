@@ -1,7 +1,7 @@
 // guards/dead-domains-guard.cjs — a domain that cannot produce a citation is not on a list.
 //
-// MEASURED 2026-08-05, each through lib/retrieve.js's OWN fetchAndClean() and page gates, so what
-// was measured is what production does:
+// HISTORICAL OPERATOR NOTES FROM 2026-08-05 follow. This gate consumes no raw responses,
+// redirect chains, WARC records or signatures, so the notes are context—not current measurements:
 //
 //   dorar.net           HTTP 403 on «/», «/hadith/search?q=…», «/feqhia/1» AND on the documented
 //                       «/dorar_api.json?skey=…». Every path returns the same ~6,100-byte refusal.
@@ -35,8 +35,8 @@
 //                       five sampled pages returned «BLOCKED (no-published-answer)», which is the
 //                       page gate working exactly as its registry note says it should.
 //
-// This guard runs OFFLINE. It asserts the DECISIONS, not the network: what is on a production
-// list, what grants a capability, and that nothing deferred can still be reached.
+// This guard runs OFFLINE. It asserts registry/list/capability DECISIONS, not current network
+// facts: no note length or prose status is treated as authentic liveness evidence.
 //
 // Usage: node guards/dead-domains-guard.cjs
 'use strict';
@@ -74,9 +74,9 @@ const DEFERRED = ['dorar.net', 'tafsir.app', 'ferkous.com'];
     const row = R.findSource(d);
     ok(d + ': registry status is «deferred»', row && row.status === 'deferred',
       row ? 'status=' + row.status : 'no row');
-    ok(d + ': the row survives, with the measurement recorded',
+    ok(d + ': the row survives with a historical decision note',
       row && typeof row.note === 'string' && row.note.length > 30,
-      'the evidence must outlive the person who gathered it');
+      'this preserves rationale only; the external transaction is not present');
     ok(d + ': grants no scope at all', row && row.scopes.length === 0,
       JSON.stringify(row && row.scopes));
     ok(d + ': sits on no band', row && row.bands.length === 0, JSON.stringify(row && row.bands));
@@ -121,9 +121,11 @@ const DEFERRED = ['dorar.net', 'tafsir.app', 'ferkous.com'];
     res.status === 'resolved' && res.domain === 'ferkous.app', JSON.stringify(res));
 
   // ── 4. mostafaaladwy.com WAS NOT DEFERRED — IT WORKS ───────────────────────
+  // "WORKS" in the historical heading means the active registry decision only. Current network
+  // and extractor truth require an authenticated external transaction that this gate lacks.
   const ma = R.findSource('mostafaaladwy.com');
-  ok('mostafaaladwy.com is still active', ma && ma.status === 'active',
-    'its extractor reaches the answer body; the defect was the generic 200-char floor (step 6)');
+  ok('mostafaaladwy.com is still active in the registry', ma && ma.status === 'active',
+    'current network/extractor truth requires an authenticated external transaction');
   ok('...and still on SITES_ADULT', RT.SITES_ADULT.includes('mostafaaladwy.com'));
 
   // ── 5. NOTHING DRIFTED ─────────────────────────────────────────────────────

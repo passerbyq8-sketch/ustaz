@@ -51,6 +51,7 @@ build-worship-display.cjs text eol=lf
 referral-guard.cjs        text eol=lf
 classifier-guard.cjs      text eol=lf
 gates.json text eol=lf
+EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md text eol=lf
 
 # Gate 10 (hafs-map-guard) and the correspondence map it SHA-pins. Defect 40 again:
 # the map's sha256 is asserted by the gate, so a fresh clone with core.autocrlf=true
@@ -300,13 +301,39 @@ guards/anchor-mode-guard.cjs text eol=lf
 # stray CR inside a carrying passage would silently fail a span that is genuinely in the source
 # — and a dropped span is exactly the truncation this gate exists to prevent.
 guards/full-fatwa-contract-guard.cjs text eol=lf
+guards/retired-chat-endpoints-guard.cjs text eol=lf
+guards/guard-honesty-guard.cjs text eol=lf
+guards/honesty/_lib.cjs text eol=lf
+guards/honesty/g01-recon.cjs text eol=lf
+guards/fixtures/honesty/g01-recon.json text eol=lf
+guards/honesty/g06-ledger-runtime.cjs text eol=lf
+guards/fixtures/honesty/g06-ledger-runtime.json text eol=lf
+guards/honesty/g07-rfc-runtime.cjs text eol=lf
+guards/fixtures/honesty/g07-rfc-runtime.json text eol=lf
+guards/honesty/g08-rfc-round3.cjs text eol=lf
+guards/fixtures/honesty/g08-rfc-round3.json text eol=lf
+guards/honesty/g09-rfc-mode.cjs text eol=lf
+guards/fixtures/honesty/g09-rfc-mode.json text eol=lf
+guards/honesty/g10-shipped-reality.cjs text eol=lf
+guards/fixtures/honesty/g10-shipped-reality.json text eol=lf
+guards/honesty/g11-dead-domains.cjs text eol=lf
+guards/fixtures/honesty/g11-dead-domains.json text eol=lf
+guards/honesty/g12-source-liveness.cjs text eol=lf
+guards/fixtures/honesty/g12-source-liveness.json text eol=lf
+guards/honesty/g15-live-search.cjs text eol=lf
+guards/fixtures/honesty/g15-live-search.json text eol=lf
+guards/honesty/g16-transfer-mode.cjs text eol=lf
+guards/fixtures/honesty/g16-transfer-mode.json text eol=lf
+guards/honesty/g17-anchor-mode.cjs text eol=lf
+guards/fixtures/honesty/g17-anchor-mode.json text eol=lf
+guards/fixtures/honesty/x021-fatwa-telemetry.json text eol=lf
 guards/fixtures-full-fatwa.json text eol=lf
 lib/full-fatwa.js text eol=lf
 lib/anchor/flag.js text eol=lf
 lib/anchor/units.js text eol=lf
 
 # ح٣: the frozen transfer fixtures. THESE ARE NOT OUR TEXT — they are the bytes eleven hosts
-# actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a SHA8 of
+# actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a full SHA-256 of
 # each one. Any end-of-line normalisation, in either direction, on any machine, changes those
 # bytes and breaks the attestation — which is precisely defect 40 at the head of this file,
 # arriving a second time by a different door. So they are marked BINARY, not pinned to an

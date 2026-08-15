@@ -1,4 +1,4 @@
-// guards/source-liveness-guard.cjs — no dead domain sits on a production list.
+// guards/source-liveness-guard.cjs — offline consistency over recorded liveness rows.
 //
 // ── THE HOLE THIS CLOSES ─────────────────────────────────────────────────────
 // On 2026-08-05, dorar.net (on the ADULT list and on the CHILD'S list), tafsir.app and
@@ -7,16 +7,15 @@
 // throughout — because every gate in the repo is offline, and they all check that the LISTS are
 // CONSISTENT. Consistency with a dead domain is still consistency.
 //
-// So the measurement is taken by tools/source-liveness.cjs (network required, run by hand, one
-// real article per registered domain through lib/retrieve.js's own fetch and gates) and committed
-// to data/source-liveness.json. THIS gate reads that file and never touches a network: a suite
-// that goes red because somebody else's server is slow teaches a team to ignore red.
+// tools/source-liveness.cjs can write a network summary to data/source-liveness.json. THIS gate
+// reads that editable summary and never touches a network. Without signed raw transactions, body
+// hashes and redirect records, the file is not authentic proof of current external liveness.
 //
 // ── WHAT IT FAILS ON ─────────────────────────────────────────────────────────
-//   1. a domain measured DEAD that is still on a production list;
+//   1. a domain recorded DEAD that is still on a production list;
 //   2. a production-list domain that the file does not mention at all — otherwise deleting a row
 //      would be a way to hide a dead source;
-//   3. a measurement older than MAX_AGE_DAYS. A liveness file nobody re-runs is a liveness file
+//   3. a recorded date older than MAX_AGE_DAYS. Date freshness is not transaction authenticity;
 //      that describes a web which no longer exists, and it would go on certifying a dead domain
 //      indefinitely.
 //
@@ -49,7 +48,7 @@ const FILE = path.join(REPO, 'data', 'source-liveness.json');
 const MAX_AGE_DAYS = 30;
 
 (async function main() {
-  console.log('=== source-liveness-guard — no dead domain sits on a production list ===');
+  console.log('=== source-liveness-guard — offline consistency of recorded source rows ===');
 
   if (!ok('data/source-liveness.json exists', fs.existsSync(FILE),
     'run: node tools/source-liveness.cjs --write')) {
@@ -65,17 +64,17 @@ const MAX_AGE_DAYS = 30;
     process.exit(1);
   }
   ok('...and is valid JSON', true);
-  ok('it records WHEN it was measured', typeof doc.measuredAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(doc.measuredAt),
+  ok('it claims WHEN the summary was measured', typeof doc.measuredAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(doc.measuredAt),
     String(doc.measuredAt));
-  ok('it records WHICH tool measured it', doc.tool === 'tools/source-liveness.cjs', String(doc.tool));
+  ok('it names WHICH tool claims to have measured it', doc.tool === 'tools/source-liveness.cjs', String(doc.tool));
   ok('it carries a row per domain', Array.isArray(doc.domains) && doc.domains.length > 0,
     String(doc.domains && doc.domains.length));
 
   // ── 3. STALENESS ───────────────────────────────────────────────────────────
   const measured = Date.parse(doc.measuredAt + 'T00:00:00Z');
   const ageDays = Math.floor((Date.now() - measured) / 86400000);
-  ok('the measurement is not in the future', ageDays >= 0, 'measuredAt=' + doc.measuredAt);
-  ok('the measurement is younger than ' + MAX_AGE_DAYS + ' days',
+  ok('the claimed date is not in the future', ageDays >= 0, 'measuredAt=' + doc.measuredAt);
+  ok('the claimed date is younger than ' + MAX_AGE_DAYS + ' days',
     ageDays <= MAX_AGE_DAYS,
     'measured ' + doc.measuredAt + ' — ' + ageDays + ' days ago. '
     + 'Re-run: node tools/source-liveness.cjs --write');
@@ -97,7 +96,7 @@ const MAX_AGE_DAYS = 30;
     const row = byDomain.get(d);
     return row && row.status === 'dead';
   });
-  ok('no domain measured DEAD is on a production list', deadOnList.length === 0,
+  ok('no domain recorded DEAD is on a production list', deadOnList.length === 0,
     deadOnList.map((d) => d + ' (' + (byDomain.get(d) || {}).note + ')').join('; '));
 
   // A production domain that cannot produce a citation is not a failure on its own — a single
@@ -109,12 +108,12 @@ const MAX_AGE_DAYS = 30;
 
   // ── 2. COVERAGE — deleting a row must not be a way to reach green ──────────
   const missing = [...production].filter((d) => !byDomain.has(d));
-  ok('every production domain is measured in the file', missing.length === 0,
+  ok('every production domain is represented in the summary', missing.length === 0,
     missing.join(', ') + ' — add a probe URL in tools/source-liveness.cjs and re-run it');
 
-  // Every row must carry the URL that was actually tried, or the measurement is unreviewable.
+  // Every row must carry the URL it claims was tried; authenticity is a separate external layer.
   const noUrl = doc.domains.filter((r) => r.status !== 'unprobed' && !r.url);
-  ok('every measured row records the URL that was tried', noUrl.length === 0,
+  ok('every non-unprobed row records its claimed URL', noUrl.length === 0,
     noUrl.map((r) => r.domain).join(', '));
 
   // The deferred rows must NOT be on a production list — that is step 5's decision, re-checked

@@ -25,8 +25,11 @@
 //       to be first, so a sentence resting on an A claim and a NONE claim passed or failed on
 //       array order.
 //
-// Everything below drives production code. `api/ask.js`'s own default export is called; only
-// `globalThis.fetch` is replaced, at the transport boundary. Usage: node guards/rfc-v05r2-round3-guard.cjs
+// Everything below drives production orchestration, including `api/ask.js`'s default export.
+// The transport boundary, model replies, plans and most HTML bodies are authored doubles, so
+// those cases prove wiring and branch contracts—not real planning, page truth or deployment.
+// Frozen real-page evidence is measured separately by guard-honesty-guard.
+// Usage: node guards/rfc-v05r2-round3-guard.cjs
 'use strict';
 const fs = require('fs');
 const path = require('path');

@@ -486,8 +486,9 @@ const PINNED = [
       && html.indexOf("...(mode === 'chat' && endpoint === '/api/ask' ? { band:") === -1
       && /^\s*band: deriveCaps\(p\.age\)\.band,$/m.test(html),
       'a route-conditional band is back -- that is the hole api/chat-fast.js could not close alone');
-    ok('...and the classifier turn carries it too',
-      /max_tokens: 8[^\n]*band: deriveCaps\(p\.age\)\.band/.test(html));
+    ok('...and the old classifier is disabled while retaining its rollback fields',
+      /const FAST_CHANNEL_ENABLED = false;/.test(html)
+      && /max_tokens: 8[^\n]*band: deriveCaps\(p\.age\)\.band/.test(html));
   }
 
   // ── F. A FORGED body.system HAS NO EFFECT (م٦) ───────────────────────────
@@ -548,17 +549,24 @@ const PINNED = [
         ['api/ask.js (text)', 'api/ask.js',
           { ...READER, mode: 'chat', system: FORGED, messages: [{ role: 'user', content: 'كم حاصل سبعة في ثمانية؟' }] },
           () => MOD.buildSystemPrompt('خالد', 7, 'male', 'chat')],
-        ['api/chat.js (voice)', 'api/chat.js',
+        ['api/ask.js (voice)', 'api/ask.js',
           { ...READER, mode: 'call', system: FORGED, max_tokens: 4096, messages: [{ role: 'user', content: 'كم واحد زائد واحد؟' }] },
           () => MOD.buildSystemPrompt('خالد', 7, 'male', 'call')],
-        ['api/chat-fast.js (classifier)', 'api/chat-fast.js',
+        ['api/ask.js (former classifier shape)', 'api/ask.js',
           { ...READER, mode: 'call', system: FORGED, max_tokens: 8, messages: [{ role: 'user', content: 'كم واحد زائد واحد؟' }] },
-          () => MOD.CLASSIFIER_SYSTEM_PROMPT],
-        ['api/chat-fast.js (answer)', 'api/chat-fast.js',
+          () => MOD.buildSystemPrompt('', 7, 'male', 'call')],
+        ['api/ask.js (former fast-answer shape)', 'api/ask.js',
           { ...READER, mode: 'call', system: FORGED, max_tokens: 4096, messages: [{ role: 'user', content: 'كم واحد زائد واحد؟' }] },
-          () => MOD.buildFastGenPrompt(7)],
+          () => MOD.buildSystemPrompt('', 7, 'male', 'call')],
       ];
-      for (const [label, rel, body, expect] of CASES) {
+      for (const rel of ['api/chat.js', 'api/chat-fast.js']) {
+        const retired = read(rel);
+        ok(rel + ' is retired instead of owning another prompt',
+          /status\(410\)/.test(retired)
+          && /RETIRED_CHAT_REPLACEMENT = '\/api\/ask'/.test(retired)
+          && !/buildSystemPrompt|buildFastGenPrompt|CLASSIFIER_SYSTEM_PROMPT/.test(retired));
+      }
+      for (const [label, rel, body, expect] of CASES.filter(([label]) => !label.includes('(former '))) {
         captured = null;
         // قرار ٦ is "log, not 400", so the drop has an observable half and it is asserted here
         // for the same reason the rest of F is driven: a route that silently stopped dropping

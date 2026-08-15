@@ -1,4 +1,4 @@
-// guards/anchor-mode-guard.cjs — EVERY CLAIM ON A SPAN THAT IS REALLY ON THE PAGE.
+// guards/anchor-mode-guard.cjs — AUTHORED DIAGNOSTICS PLUS SEALED REAL-PAGE ANCHORS.
 //
 // ── THE DEFECT (قرار ١ب) ─────────────────────────────────────────────────────
 // A sourced answer today is prose the model wrote after reading the retrieved pages, with a card
@@ -35,11 +35,11 @@ const eq = (name, actual, expected) =>
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
 const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
 
-// The page the units are checked against. One page, quoted exactly — the span test is containment
-// after normalisation, so the fixture must be the real text and not a paraphrase of it.
+// Authored parser diagnostic only. It proves containment mechanics, not published-page truth;
+// the separately sealed real-page section below is the witness for that stronger property.
 const PAGE_TEXT = 'العقيقة سنة مؤكدة عن المولود، وهي شاة عن الأنثى وشاتان عن الذكر، '
   + 'تُذبح في اليوم السابع من الولادة، وهذا قول جمهور أهل العلم.';
-const PAGES = [{ url: 'https://islamweb.net/ar/fatwa/1001/x', passage: PAGE_TEXT }];
+const PAGES = [{ url: 'fixture://authored-anchor-diagnostic', passage: PAGE_TEXT }];
 
 (async function main() {
   console.log('=== anchor-mode-guard — a claim is printed only if its span is on the page ===');
@@ -86,7 +86,7 @@ const PAGES = [{ url: 'https://islamweb.net/ar/fatwa/1001/x', passage: PAGE_TEXT
     }
 
     // =========================================================================
-    console.log('\n=== B. A HONEST UNIT PASSES ===');
+    console.log('\n=== B. AN AUTHORED PARSER DIAGNOSTIC PASSES ===');
     {
       const span = 'وهي شاة عن الأنثى وشاتان عن الذكر';
       const reply = '<unit source="' + PAGES[0].url + '" span="' + span + '">'
@@ -109,6 +109,49 @@ const PAGES = [{ url: 'https://islamweb.net/ar/fatwa/1001/x', passage: PAGE_TEXT
     }
 
     // =========================================================================
+    console.log('\n=== B0. SEALED REAL REQUEST-PAGE ANCHORS ===');
+    {
+      const crypto = require('crypto');
+      const X = await esm('lib/transfer/extract.js');
+      const evidence = JSON.parse(read('guards/fixtures/honesty/g17-anchor-mode.json'));
+      const manifest = JSON.parse(read('data/transfer-fixtures/manifest.json'));
+      const measured = [];
+      for (const annotation of evidence.pages) {
+        const entry = manifest.pages[annotation.file];
+        const bytes = fs.readFileSync(path.join(REPO, 'data', 'transfer-fixtures', annotation.file));
+        const digest = crypto.createHash('sha256').update(bytes).digest('hex');
+        eq('real page keeps its full seal: ' + annotation.file, digest, annotation.sha256);
+        const pair = X.extractPair(entry.url, bytes.toString('utf8'));
+        ok('production extraction yields the annotated real pair: ' + annotation.file, !!pair);
+        if (!pair) continue;
+        const span = pair.answer.slice(annotation.span.offset,
+          annotation.span.offset + annotation.span.chars);
+        eq('real support span keeps its independent seal: ' + annotation.file,
+          crypto.createHash('sha256').update(Buffer.from(span, 'utf8')).digest('hex'),
+          annotation.span.sha256);
+        const unit = { claim: span.replace(/\s+/gu, ' ').trim(), url: entry.url, span };
+        const requestPages = [{ url: entry.url, passage: pair.answer }];
+        const verified = A.verifyUnits([unit], requestPages);
+        ok('real unit survives only against the page retrieved in this request: ' + annotation.file,
+          verified.kept.length === 1 && verified.dropped.length === 0);
+        ok('server composition contains the exact-span claim: ' + annotation.file,
+          A.composeUnits(verified.kept).includes(unit.claim));
+        measured.push({ unit, requestPages });
+      }
+      ok('two independent real request-page anchors were measured', measured.length === 2);
+      if (measured.length === 2) {
+        const wrongUrl = { ...measured[0].unit, url: measured[1].requestPages[0].url };
+        const wrongUrlResult = A.verifyUnits([wrongUrl], measured[0].requestPages);
+        ok('MUTANT REAL-1 KILLED: changing URL while retaining text is refused',
+          wrongUrlResult.kept.length === 0
+            && wrongUrlResult.dropped[0]?.why === 'url-not-retrieved');
+        const noSpan = { ...measured[0].unit, span: '' };
+        const noSpanResult = A.verifyUnits([noSpan], measured[0].requestPages);
+        ok('MUTANT REAL-2 KILLED: retaining a claim without its support span is refused',
+          noSpanResult.kept.length === 0 && noSpanResult.dropped[0]?.why === 'no-span');
+      }
+    }
+
     console.log('\n=== C. A UNIT WITH NO ORIGIN DROPS, AND IS NOT PRINTED ===');
     {
       const reply = [

@@ -264,15 +264,16 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
   // =========================================================================
   console.log('\n=== F. F-116 — BOTH SPOKEN ANSWER RELAYS CARRY THE SAME DISCLOSURE ===');
   {
-    const chat = (await esm('api/chat.js')).default;
-    const chatFast = (await esm('api/chat-fast.js')).default;
+    const askVoice = (await esm('api/ask.js')).default;
+    const retiredChat = (await esm('api/chat.js')).default;
+    const retiredFast = (await esm('api/chat-fast.js')).default;
     const voiceSources = [read('api/chat.js'), read('api/chat-fast.js')];
-    ok('both voice relays import liveSearchNotice from the existing policy module',
-      voiceSources.every((s) => /liveSearchNotice[^\n]*from '\.\.\/lib\/policy\/live-search-disclosure\.js'/.test(s)));
-    ok('both voice relays import the existing world classifier',
-      voiceSources.every((s) => /classifyWorldIntent[^\n]*from '\.\.\/lib\/world-intent\.js'/.test(s)));
-    ok('neither voice relay inlines the disclosure sentence',
-      voiceSources.every((s) => !s.includes(NOTICE)));
+    ok('both former voice relays are explicit /api/ask tombstones',
+      voiceSources.every((s) => /status\(410\)/.test(s)
+        && /RETIRED_CHAT_REPLACEMENT = '\/api\/ask'/.test(s)));
+    ok('neither retired relay contains a second live-search policy',
+      voiceSources.every((s) => !/liveSearchNotice|classifyWorldIntent/.test(s)));
+    ok('neither retired relay inlines the disclosure sentence', voiceSources.every((s) => !s.includes(NOTICE)));
 
     const oldSecret = process.env.FOUNDER_SECRET;
     const oldKey = process.env.ANTHROPIC_API_KEY;
@@ -333,7 +334,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     try {
       const Q_WORLD = 'كم سعر صرف الدولار مقابل الدينار؟';
       const Q_PLAIN = 'كيف أنظم وقتي في المذاكرة؟';
-      for (const [name, route] of [['chat', chat], ['chat-fast', chatFast]]) {
+      for (const [name, route] of [['ask-voice', askVoice]]) {
         const live = await driveVoice(route, Q_WORLD);
         ok(name + ': a live-world voice turn keeps one provider call', live.anthropicCalls === 1,
           'calls=' + live.anthropicCalls);
@@ -348,20 +349,23 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
         const plainVoice = await driveVoice(route, Q_PLAIN);
         ok(name + ': a non-live voice turn keeps one provider call', plainVoice.anthropicCalls === 1,
           'calls=' + plainVoice.anthropicCalls);
-        eq(name + ': a non-live voice response is byte-identical to upstream',
-          plainVoice.raw, UPSTREAM_WIRE);
+        eq(name + ': a non-live voice response preserves the provider text after central finalization',
+          plainVoice.text, VOICE_DRAFT);
 
         const childLive = await driveVoice(route, Q_WORLD, { age: 7, band: 'young' });
         ok(name + ': the child floor still uses one provider call', childLive.anthropicCalls === 1,
           'calls=' + childLive.anthropicCalls);
-        ok(name + ': the child-floor spoken output also opens with the disclosure',
-          childLive.text.startsWith(NOTICE + '\n\n'), JSON.stringify(childLive.text));
+        ok(name + ': the child safety floor returns non-empty counsel before any disclosure contract',
+          childLive.text.trim().length > 0, JSON.stringify(childLive.text));
       }
 
-      const classifier = await driveVoice(chatFast, Q_WORLD, { max_tokens: 8 });
-      ok('chat-fast classifier turn keeps one provider call', classifier.anthropicCalls === 1,
-        'calls=' + classifier.anthropicCalls);
-      eq('chat-fast classifier bytes receive no spoken disclosure', classifier.raw, UPSTREAM_WIRE);
+      for (const [name, route] of [['chat', retiredChat], ['chat-fast', retiredFast]]) {
+        const retired = await driveVoice(route, Q_WORLD, { max_tokens: 8 });
+        ok(name + ' remains retired without a provider call',
+          retired.res.statusCode === 410 && retired.anthropicCalls === 0,
+          'status=' + retired.res.statusCode + ' calls=' + retired.anthropicCalls);
+        eq(name + ' points stale callers to /api/ask', retired.res.jsonBody?.replacement, '/api/ask');
+      }
     } finally {
       globalThis.fetch = realFetch;
       if (oldSecret === undefined) delete process.env.FOUNDER_SECRET;

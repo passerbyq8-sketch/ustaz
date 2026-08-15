@@ -1,0 +1,38 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-15",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The existing gate honestly proves the narrow offline disclosure contract. A real Brave-empty preview replay is optional supplemental evidence and is not claimed.",
+  "sources": [
+    {
+      "key": "guard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/live-search-disclosure-guard.cjs",
+      "sha256": "be0e41a23b7c60fa91c48c495e25af5ea38ebaa953d54c1ec41912bdba227d54"
+    },
+    {
+      "key": "policy",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/policy/live-search-disclosure.js",
+      "sha256": "b16257af25fea877ecf3440e57e1354bd2757e60630ac66e402bff4673e4af75"
+    },
+    {
+      "key": "ask",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "api/ask.js",
+      "sha256": "2aac493bd14c5ca5da1b83367ef8f7859a12be14ca3658655371ee72c83892ec"
+    }
+  ],
+  "truthTable": [
+    { "worldWanted": true, "answeredFromLive": false, "notice": true },
+    { "worldWanted": true, "answeredFromLive": true, "notice": false },
+    { "worldWanted": false, "answeredFromLive": false, "notice": false },
+    { "worldWanted": false, "answeredFromLive": true, "notice": false }
+  ],
+  "optionalExternalReplay": {
+    "status": "NOT_ACQUIRED_OPTIONAL",
+    "deploymentId": null,
+    "braveRequestId": null,
+    "rawSse": null
+  }
+}
