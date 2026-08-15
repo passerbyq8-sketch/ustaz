@@ -76,8 +76,14 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   ok('the false attribution to the Ṣaḥīḥayn is removed',
     bare(r.text).indexOf('رواه البخاري ومسلم') === -1 && bare(r.text).indexOf('متفق عليه') === -1,
     'text=' + r.text);
-  ok('...and the matn itself still stands',
-    bare(r.text).indexOf('الراكب شيطان') !== -1, 'text=' + r.text);
+  // X-013/ز REVERSED THIS. It used to require the matn to stand once its false credit was cut
+  // out. Excising the credit alone leaves the narration asserted with the one attribution a
+  // reader could have checked quietly deleted — a stronger claim than the one that failed. The
+  // sentence is now dropped whole and the drop is explicit.
+  ok('...and the whole sentence goes with it, explicitly, rather than a stripped matn shipping',
+    bare(r.text).indexOf('الراكب شيطان') === -1 && r.outcome === 'REFUSED'
+      && Array.isArray(r.degraded) && r.degraded.length > 0,
+    'text=' + r.text + ' outcome=' + r.outcome);
   ok('...and the removal is REPORTED, not silent',
     Array.isArray(r.removed) && r.removed.length >= 1, JSON.stringify(r.removed));
 
@@ -104,8 +110,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   const r4 = TL.lockTakhrij(graded, [{ passage: PAGE_WITHOUT }]);
   ok('an unsupported GRADE is removed too',
     bare(r4.text).indexOf('صححه الألباني') === -1, 'text=' + r4.text);
-  ok('...and the matn survives the grade being removed',
-    bare(r4.text).indexOf('الراكب شيطان') !== -1, 'text=' + r4.text);
+  // Same reversal as above, for an unsupported GRADE rather than a collector.
+  ok('...and the sentence carrying the grade is dropped whole, not left as a bare matn',
+    bare(r4.text).indexOf('الراكب شيطان') === -1 && r4.outcome === 'REFUSED',
+    'text=' + r4.text + ' outcome=' + r4.outcome);
   const r5 = TL.lockTakhrij(graded, [{ passage: PAGE_WITHOUT + ' وقد صححه الألباني رحمه الله.' }]);
   ok('a SUPPORTED grade is left alone',
     bare(r5.text).indexOf('صححه الألباني') !== -1 && r5.removed.length === 0, 'text=' + r5.text);
