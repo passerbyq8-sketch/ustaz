@@ -24,6 +24,7 @@
 // Offline and deterministic. Usage: node guards/card-or-no-context-par-a-guard.cjs [--mutants]
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { pathToFileURL } = require('url');
 
@@ -41,6 +42,13 @@ function ok(label, cond, detail) {
   return false;
 }
 const esm = (f) => import(pathToFileURL(f).href + '?v=' + Date.now() + '-' + Math.random());
+
+function importsFromTree(source, originalFile) {
+  return source.replace(/(['"])(\.\.?\/[^'"\r\n]+\.js)\1/gu, (_all, quote, specifier) => {
+    const target = path.resolve(path.dirname(originalFile), specifier);
+    return quote + pathToFileURL(target).href + quote;
+  });
+}
 
 const openBudget = { reserve: async () => ({ ok: true }), snapshot: () => ({}) };
 
@@ -158,11 +166,12 @@ async function mutants() {
       console.log('  FAIL  MUTANT ' + name + ': seam moved, mutation did not apply');
       return;
     }
-    const twin = file.replace(/\.js$/, '.__mutant__.js');
-    fs.writeFileSync(twin, changed, 'utf8');
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-card-or-context-'));
+    const twin = path.join(temp, path.basename(file).replace(/\.js$/, '.__mutant__.mjs'));
+    fs.writeFileSync(twin, importsFromTree(changed, file), 'utf8');
     let survived = true;
     try { survived = await check(twin, changed); } catch (e) { survived = false; }
-    finally { fs.rmSync(twin, { force: true }); }
+    finally { fs.rmSync(temp, { recursive: true, force: true }); }
     ok('MUTANT KILLED: ' + name, !survived, 'the rule was removed and this gate stayed green');
   }
 
