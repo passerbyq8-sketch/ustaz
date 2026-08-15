@@ -2235,10 +2235,19 @@ export default async function handler(req, res) {
         const card = buildSourceTag({ url: src.canonicalUrl, title: src.title });
         registerOwnedCards(card ? [card] : []);
         console.log('[attribution]', REASON.DIRECT_ATTRIBUTION_CONFIRMED, { scholar: src.scholar, id: src.sourceId });
+        // ── X-023/X-005 · THE SEPARATION IS SERVER-OWNED ON THE LEGACY PATH TOO ──
+        // Until now the only thing keeping «قول الشيخ» apart from «الحكم العام» on this path was
+        // the wording of `grounding` above — an instruction to the model. An instruction is not an
+        // enforcement: the model may open with a general ruling, or blend the two, and the reply
+        // still leaves here looking like his position, because his name and his card are attached
+        // to it. So the server writes the attribution line itself, in its own voice, ahead of any
+        // drafted byte. It is deterministic, it is not asked for, and it cannot be talked out of.
+        const attributionLead = `قولُ ${src.scholar} كما جاء في نصِّه المنشور:`;
+        const separated = draft.startsWith(attributionLead) ? draft : `${attributionLead}\n\n${draft}`;
         clearKeepAlive();
         res.write(`data: ${JSON.stringify({
           type: 'content_block_delta', index: 0,
-          delta: { type: 'text_delta', text: seal(draft) + referralBlockFor(draft) + (card ? '\n' + card.tag : '') },
+          delta: { type: 'text_delta', text: seal(separated) + referralBlockFor(separated) + (card ? '\n' + card.tag : '') },
         })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
         return res.end();
