@@ -53,7 +53,7 @@ Every numbered item has its own commit. Every honesty rewrite has two killed mut
 | Item | Commit | GREEN evidence | Mutants |
 |---|---|---|---|
 | X-012 | `402b1234833e795d6a743a883bc1e3c41177293a` | retired-endpoint guard `14/14`; adjacent call/voice/live-search/shape/prompt gates green | `2/2` killed |
-| G-01 | `b0cf2f9d5e364e9bbe2a7c6f94ef1b2701f4061d` | G-01 witness `17/17`; recon ultimately `163/3/0` | `2/2` killed |
+| G-01 | `b0cf2f9d5e364e9bbe2a7c6f94ef1b2701f4061d` | G-01 witness `17/17`; recon ultimately `164/3/0` | `2/2` killed |
 | G-06, including X-009 | `7563e374fc906c5aff1e77a11a7e14a6ea61a3f7` | Ledger runtime `175/175`; honesty cumulative `32/32` | `2/2` killed |
 | G-07 | `2b04262669d4c357a532097d2e2e2b4b09b63044` | RFC runtime `103/103`; search budget `33/33`; honesty cumulative `45/45` | `2/2` killed |
 | G-08 | `cde89ffc952ede86aeef8f64b4f07d88efb683d4` | RFC round 3 `85/85`; honesty cumulative `79/79` | `2/2` killed |
@@ -135,7 +135,7 @@ The diff is empty for Owner-A files `lib/system-prompt.js`, `index.html`, `lib/t
 | Check | Result |
 |---|---|
 | Complete gate runner | `75/75 EXIT=0` |
-| Recon inside complete runner | `PASS=163 WARN=3 FAIL=0` |
+| Recon inside complete runner | `PASS=164 WARN=3 FAIL=0` |
 | Guard-honesty meta gate | `214/214` |
 | Full-fatwa contract | `66/66` |
 | Hybrid/fatwa including X-021 | `93/93` |
