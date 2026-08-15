@@ -718,8 +718,10 @@ export default async function handler(req, res) {
   const band = reader.band;
   // BAND GATE (khilaf-policy §1/§2/§3). The depth instruction is ADULT-ONLY. 'scholar' orders the model
   // to present up to FOUR differing scholarly opinions with evidence; injecting that into a child's
-  // system prompt is a direct policy breach. Mirrors usePremium (next line) and scholarMode (round 2),
-  // both of which already check the band. Fail-CLOSED: an absent or garbled band gets NO instruction.
+  // system prompt is a direct policy breach. Mirrors usePremium (next line), which already checks
+  // the band. (The round-2 `scholarMode` gate this used to name alongside it is gone: X-020 removed
+  // the encyclopedia excerpt it guarded, because that text entered the model's context uncarded.)
+  // Fail-CLOSED: an absent or garbled band gets NO instruction.
   const depthInstruction = band === 'adult' ? buildDepthInstruction(effectiveDepth) : '';
   const usePremium = band === 'adult' && (effectiveDepth === 'deep' || effectiveDepth === 'scholar');
   const model = usePremium
@@ -2676,16 +2678,26 @@ export default async function handler(req, res) {
     // retrieve/linkedom. Imported ONCE here, shared by the concurrent branches below.
     const { retrieve } = await import('../lib/retrieve.js');
 
-    // GOVERNANCE GATE (khilaf-policy §3/§6/§8): the Kuwaiti Fiqh Encyclopedia is
-    // multi-madhhab (raw اختلاف الحكم) and is therefore SCHOLAR-ONLY background material.
-    // Fire it ONLY for depth==='scholar' AND adult band. Any other case (ordinary user,
-    // under-18, or an absent band) leaves scholarMode false and the encyclopedia untouched.
-    const scholarMode = effectiveDepth === 'scholar' && band === 'adult';
-    let retrieveEncyclopedia = null;
-    if (scholarMode) {
-      // Lazy: non-scholar requests never load the encyclopedia module or MiniSearch.
-      ({ retrieveEncyclopedia } = await import('../lib/encyclopedia.js'));
-    }
+    // ── X-020 / X-003 · THE ENCYCLOPEDIA EXCERPT NO LONGER ENTERS THE CONTEXT ──
+    //
+    // THE LAW: every source text that reaches the model either has a card among the cards the
+    // reader is shown, or it does not enter the context at all. The Kuwaiti Fiqh Encyclopedia
+    // excerpt was appended to the tool_result below — so it reached the model and was drafted
+    // over — while the cards were built exclusively from `retrievedSources`. It could therefore
+    // shape a religious answer while the reader was shown no trace of it and could not go and
+    // check it. Its own label («مادّةٌ مرجعيّةٌ للدراسة … لا حكمًا») does not fix that: a label
+    // constrains how the model is asked to treat the text, not whether the reader can see it.
+    //
+    // BETWEEN A CARD AND REMOVAL, THE CHOICE WAS MEASURED, NOT PREFERRED. The excerpt was
+    // instrumented and ten batteries that drive this handler were run against it — round3,
+    // wiring, shipped-reality, live-search, answer-shape, identity, name-presence, takhrij,
+    // full-fatwa and ledger-seam. The branch was reached ZERO times, so nothing measurable
+    // changes when it is removed, and under §5ج the honest resolution of a text with no measured
+    // effect is to take it out of the context rather than to mint a card for it.
+    //
+    // Reversing this is cheap and deliberate: lib/hybrid-deen.js already builds a card for a
+    // `local_encyclopedia` record through storedSourceCards(), so restoring the excerpt WITH a
+    // card is a small change on that path — not a rewrite.
 
     // Run every angle's retrieve() concurrently: ~A+B collapses to ~max(A,B).
     // Promise.all preserves input order, so toolResults stays aligned 1:1 with
@@ -2727,24 +2739,9 @@ export default async function handler(req, res) {
           console.warn('[ask] retrieval threw:', e.message);
           webText = 'لم يُعثر على مصدرٍ موثوقٍ في المواقع المعتمدة للإجابة عن هذا السؤال.';
         }
-        // Scholar mode (18+) only: append the encyclopedia as clearly-labelled study
-        // background. Soft-fail — any error keeps the web-only result. This content lands
-        // in round2Messages (the messages array), i.e. AFTER the cached system prefix, so
-        // the prompt cache is never busted.
-        let content = webText;
-        if (scholarMode && retrieveEncyclopedia) {
-          try {
-            const enc = await retrieveEncyclopedia(q);
-            if (enc.text) {
-              content = webText
-                + '\n' + '═'.repeat(40) + '\n'
-                + '【مادّةٌ مرجعيّةٌ للدراسة — الموسوعة الفقهية الكويتية. خلفيّةٌ لطالب العلم تُعرَض منسوبةً لأصحابها لا حكمًا، ولا تُستعمَل في صفة عبادةٍ مقفلة.】\n'
-                + enc.text;
-            }
-          } catch (e) {
-            console.warn('[ask] encyclopedia retrieval threw:', e.message);
-          }
-        }
+        // X-020 / X-003: the tool_result carries the retrieved pages and NOTHING ELSE. Every one
+        // of them is a page that produced a card above; nothing uncarded is appended here.
+        const content = webText;
         return { type: 'tool_result', tool_use_id: block.id, content };
       })
     );
