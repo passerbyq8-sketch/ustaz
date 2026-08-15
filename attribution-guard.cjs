@@ -549,18 +549,42 @@ const user = (t) => [{ role: 'user', content: t }];
       planAsk(user('ما رأي الشيخ ابن عثيمين فيمن أسقطت دون ٨٠ يوم؟')).attributionMode, 'namedScholarOpinion');
     eq('...and an ordinary question is not',
       planAsk(user('كيف أرتب يومي؟')).attributionMode, 'none');
+    // OLD LAW (until أ-١): «ما رأي ابن باز في هندسة الجسور؟» had to stay `GENERAL` — the claim was
+    // "domain routing is independent of attribution". The only thing separating that fixture from
+    // its religious twin was TOPIC VOCABULARY, and أ-١ orders exactly that reliance dropped: a
+    // request for a rostered muftī's position is a fatwa request BY STRUCTURE (an opinion frame in
+    // the plan + the name resolving on the fatwa roster), whatever the subject. Where his corpus
+    // holds nothing, that path refuses honestly by name — which the directive prefers to an
+    // unsourced GEN answer written in his shadow.
+    //
+    // NEW LAW, and it is still a two-sided claim, so a name cannot simply seize the domain:
+    //   * LEXICAL routing stays independent of attribution — bridges are still lexically GEN;
+    //   * the RELIGIOUS surface follows the structure — opinion frame + roster ⟹ the fatwa path;
+    //   * an unrostered name with the same frame, and a rostered name with no opinion frame
+    //     («من هو ابن باز؟»), both stay GENERAL. Those two are what keep this structural, not a
+    //     licence for any proper noun.
     const namedGeneral = 'ما رأي ابن باز في هندسة الجسور؟';
     const namedReligious = 'ما رأي ابن باز في الجمع بين الصلاتين للمسافر؟';
+    const unrosteredName = 'ما رأي أحمد الشقيري في هندسة الجسور؟';
+    const identityOnly = 'من هو ابن باز؟';
     const generalPlan = planAsk(user(namedGeneral));
     const religiousPlan = planAsk(user(namedReligious));
-    ok('domain routing is independent of attribution while named religious topics stay sourced',
+    const unrosteredPlan = planAsk(user(unrosteredName));
+    const identityPlan = planAsk(user(identityOnly));
+    ok('lexical routing stays independent of attribution',
       generalPlan.attributionMode !== 'none'
         && classifyRoute(user(namedGeneral)) === 'GEN'
-        && classifyReligiousRuntime(namedGeneral, generalPlan, 'GEN') === 'GENERAL'
         && classifyRoute(user(namedReligious)) === 'DEEN'
-        && classifyReligiousRuntime(namedReligious, religiousPlan, 'DEEN') === 'STORED_FIQH'
         && /const attributionActive = effectiveRoute === 'DEEN'/.test(ask),
-      'a name either forced DEEN or opened the religious adapter from GENERAL');
+      'a name forced the lexical route');
+    ok('a rostered scholar asked for his position reaches the sourced path on structure, not topic words',
+      classifyReligiousRuntime(namedGeneral, generalPlan, 'GEN') === 'STORED_FIQH'
+        && classifyReligiousRuntime(namedReligious, religiousPlan, 'DEEN') === 'STORED_FIQH',
+      'an attributed request fell to the unsourced general path');
+    ok('...and neither half alone opens it: an unrostered name, or a rostered name with no opinion frame',
+      classifyReligiousRuntime(unrosteredName, unrosteredPlan, classifyRoute(user(unrosteredName))) === 'GENERAL'
+        && classifyReligiousRuntime(identityOnly, identityPlan, classifyRoute(user(identityOnly))) === 'GENERAL',
+      'a bare name seized the religious domain');
   }
   ok('the attributed branch runs BEFORE the GEN route',
     ask.indexOf("plan.attributionMode === 'namedScholarOpinion'") < ask.indexOf("if (effectiveRoute === 'GEN')"));
