@@ -27,7 +27,7 @@ const GOLDEN = path.join(__dirname, 'worship-golden.json');
 const OUT = path.join(__dirname, 'worship-display.json');
 
 // --- pinned: the golden this script was written against -----------------------
-const GOLDEN_SHA = '70A87EDDBDE9D66F07E86963262403CFDF73CFA637AAE929FAA2FE88A4B9BB9C';
+const GOLDEN_SHA = 'D0ECB97910A1152B816291330E5AE4005C6F04587497FDE27D84B0BE842EBEB2';
 
 // --- the ghusl:young display text. Authored by the user, 13 July 2026. --------
 // Every sentence is drawn from his own golden block; only the pronoun moved.
@@ -54,7 +54,7 @@ const CELLS = [
   { id: 'salah',    band: 'adult', rawHash: '1edb4b7c018953db', lines: [6, 23] },
   { id: 'wudu',     band: 'young', rawHash: 'b288599c3c1f17fe', lines: [6, 17] },
   { id: 'wudu',     band: 'adult', rawHash: '612d5d60ac798fde', lines: [6, 18] },
-  { id: 'ghusl',    band: 'young', rawHash: '6c347163199b02e1', lines: null   },  // authored
+  { id: 'ghusl',    band: 'young', rawHash: 'cb59cf23f1425187', lines: null   },  // authored
   { id: 'ghusl',    band: 'adult', rawHash: '99671ce843485bb9', lines: [4, 16] },
   { id: 'tayammum', band: 'young', rawHash: '98fab1fd0984aea3', lines: [4, 13] },
   { id: 'tayammum', band: 'adult', rawHash: '98fab1fd0984aea3', lines: [4, 13] },
