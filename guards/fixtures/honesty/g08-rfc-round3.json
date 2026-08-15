@@ -1,0 +1,77 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-08",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The existing round-3 gate proves production wiring with authored model and transport doubles. This witness separately proves provenance on frozen real pages; a real preview planner record remains absent.",
+  "sources": [
+    {
+      "key": "oldGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/rfc-v05r2-round3-guard.cjs",
+      "sha256": "6b2e0b92fd2da5ca9eb80a0386872438a5ed931459858abfa3ea09f5b6c9c3df"
+    },
+    {
+      "key": "extract",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/transfer/extract.js",
+      "sha256": "9cadd0b4777a85d169b824a7ed7b118c25bfcb53ccdee71cfbd1b6c90fc7ea06"
+    },
+    {
+      "key": "fullFatwa",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/full-fatwa.js",
+      "sha256": "298a10d137cc6693ce581c0f672032ff07d854ac3adfc7976fbaa2d2bca95175"
+    },
+    {
+      "key": "sourceRegistry",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/source-registry.js",
+      "sha256": "8d79a7606b922b7e725907970c86387e1c8f68898a39fb66c8578eded0c2872f"
+    },
+    {
+      "key": "transferManifest",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "data/transfer-fixtures/manifest.json",
+      "sha256": "519d899cc811ddc95fb0c2a2bfadd2cdccca54cc74200f5abf9a2d28785d55e5"
+    }
+  ],
+  "externalEvidence": {
+    "acceptanceGreen": false,
+    "previewDeploymentId": null,
+    "providerPlannerRecord": null,
+    "reviewerLabels": null,
+    "reason": "offline directive"
+  },
+  "pages": [
+    {
+      "file": "binbaz-3577.html",
+      "url": "https://binbaz.org.sa/fatwas/3577/",
+      "urlPrefixOnly": true,
+      "blobSha256": "47f47781d836188754effa75e96d72580c7f10c72999509f60523fe5d484c447",
+      "bytes": 98274,
+      "registryId": "binbaz",
+      "directAttribution": true,
+      "questionChars": 76,
+      "questionSha256": "21c6410108da7ef06a7e7f6bf4ade7b2f9e34cb2fe2fe4358064f5e617374df6",
+      "answerChars": 1294,
+      "answerSha256": "e6718aeee77dd8a0b3bd4d645eef1bbb6f0307b120fcbb1f6ef49de017741924",
+      "fullTextHash": "e2691adbc770bbfed5d42328c30e3fe48a6ac285ecb8762282133817275f2e76",
+      "supportSpan": { "offset": 0, "chars": 160, "sha256": "5275d0076a971b31cb4013d1bb1291b279e5ace3e43f6fd78933a95e2c7c66af" }
+    },
+    {
+      "file": "islamweb-411118.html",
+      "url": "https://www.islamweb.net/ar/fatwa/411118/",
+      "urlPrefixOnly": false,
+      "blobSha256": "ca2d30fe2a45d16373539c4361f103a8f32bb7239ffa4c240e394196600048df",
+      "bytes": 122470,
+      "registryId": "islamweb",
+      "directAttribution": false,
+      "questionChars": 615,
+      "questionSha256": "1684c4d8944423b018f05c019363620f54a3d522b952d234b9b029ab39930831",
+      "answerChars": 1900,
+      "answerSha256": "f80d901bd65f23c4668d82439d4c581343a4f101d6d7f6ad9ab794dbad309ccb",
+      "fullTextHash": "941b4c45c0368536cf63a6769eba1500622477b419788b15f3bb91ab75acc5dd",
+      "supportSpan": { "offset": 0, "chars": 160, "sha256": "0d0c08d2d2cdbb9ee0d78f0396b21fba2104e42b857bf011e91442c5d4b49a0e" }
+    }
+  ]
+}
