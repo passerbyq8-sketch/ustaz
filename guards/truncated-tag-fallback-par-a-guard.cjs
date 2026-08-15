@@ -103,10 +103,40 @@ const FIXTURES = [
     text: '<hadith narrator="البخاريّ" ruling="صحيح">إنّما الأعمالُ بالنيّات، وإنّما لكلِّ امرئٍ ما نوى',
     words: ['الأعمالُ بالنيّات'],
   },
+  // ── VERSE AND SURAH AT POSITION 0 (أ-٧ / CI-01) ──────────────────────────
+  // These two tags were the ONLY ones the rescue deleted to the end of the text instead of to
+  // the end of the tag, so a reply that opened with a cut āyah and continued in ordinary prose
+  // reached the child as nothing at all — 0 characters shown, 0 spoken, 0 in the parents' log.
+  // Both shapes are pinned: WITH prose after the tag, where the prose must survive, and WITHOUT
+  // it, where there is genuinely nothing to rescue and the RECORD is what must still be written.
   {
-    id: 'prose-then-cut-tag',
-    text: 'الوضوءُ طهارةٌ عظيمة، وهذه صفتُه.\n<steps title="الصفة">\n١. النيّة',
-    words: ['الوضوءُ طهارةٌ عظيمة'],
+    id: 'verse-cut-at-zero-with-prose',
+    text: '<verse surah="البقرة" ayah="٢٥٥">اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ\nوهذا شرحٌ نثريٌّ حقيقيٌّ بعد الآية يجب أن يصل الطفل.',
+    words: ['شرحٌ نثريٌّ حقيقيٌّ'],
+  },
+  {
+    id: 'surah-cut-at-zero-with-prose',
+    text: '<surah num="112" from="1" to="4">قل هو الله أحد\nونصيحةٌ نثريّةٌ للطفل بعدها.',
+    words: ['ونصيحةٌ نثريّةٌ للطفل'],
+  },
+  {
+    id: 'verse-cut-at-zero-no-prose',
+    text: '<verse surah="الفاتحة" ayah="١">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+    words: [],
+    // Nothing follows the tag, so there is no prose to show. The reply is still EMPTIED, and an
+    // emptying with nothing to rescue is the case the old code recorded nowhere at all.
+    expectEmpty: true,
+  },
+  // REPLACED (أ-٧). The old `prose-then-cut-tag` fixture was SCENERY: its prose sits BEFORE the
+  // tag, so stripIncompleteTags never empties it, the rescue never runs, and it measured ZERO
+  // rescue records while appearing to test the rescue. It is replaced by a fixture whose prose
+  // sits AFTER the cut tag — which is the only arrangement that actually empties the reply and
+  // therefore the only one that drives the code this gate exists to hold.
+  {
+    id: 'cut-tag-then-prose',
+    text: '<steps title="الصفة">\n١. النيّة\nوبعد الخطوات نصيحةٌ نثريّةٌ لا علاقة لها بالوسم.',
+    words: ['نصيحةٌ نثريّةٌ لا علاقة لها بالوسم'],
+    mustRescue: true,
   },
 ];
 
@@ -121,42 +151,63 @@ function runSuite(client, phase) {
   const strip = client.grab('stripIncompleteTags');
   const parse = client.grab('parseRichMessage');
   const tts = client.grab('formatForTTS');
+  const log = client.grab('formatForLog');
   const preview = client.grab('formatForStreamPreview');
+  const rescues = client.grab('EZIK_TAG_RESCUES');
 
-  if (!ok(phase + ': the three shipped readers are on the page',
-    typeof strip === 'function' && typeof parse === 'function' && typeof tts === 'function')) return;
+  // FOUR readers, not three. formatForLog is the parents' log — the surface a parent opens to
+  // check what their child was told — and it was the one reader this gate never drove, so an
+  // answer could vanish from it while the other three were proven fine.
+  if (!ok(phase + ': the four shipped final-text readers are on the page',
+    typeof strip === 'function' && typeof parse === 'function' && typeof tts === 'function'
+      && typeof log === 'function')) return;
 
   for (const f of FIXTURES) {
     ok(phase + ' [' + f.id + '] the server text is not empty to begin with', f.text.trim().length > 0);
+    const before = Array.isArray(rescues) ? rescues.length : 0;
 
     const shown = renderedProse(parse, f.text);
-    ok(phase + ' [' + f.id + '] the reader is shown the prose that survived', shown.length > 0,
-      'rendered prose is EMPTY -- the whole answer vanished');
-    if (shown.length > 0) {
-      ok(phase + ' [' + f.id + '] and it is the real prose, not a placeholder',
-        f.words.every((w) => shown.includes(w)), JSON.stringify(shown.slice(0, 80)));
-      ok(phase + ' [' + f.id + '] with no raw markup left in it',
-        !/[<>]/.test(shown), JSON.stringify(shown.slice(0, 80)));
+    const spoken = String(tts(f.text) || '').trim();
+    const logged = String(log(f.text) || '').trim();
+
+    if (f.expectEmpty) {
+      // Nothing followed the tag, so no reader can be given prose. What must NOT happen is that
+      // the emptying goes unrecorded — see the rescue-ledger assertion below.
+      ok(phase + ' [' + f.id + '] there is genuinely no prose to rescue', shown.length === 0);
+    } else {
+      for (const [reader, text] of [['display', shown], ['TTS', spoken], ['parent log', logged]]) {
+        ok(phase + ' [' + f.id + '] the ' + reader + ' keeps the prose that survived', text.length > 0,
+          reader + ' is EMPTY -- the whole answer vanished');
+        if (text.length > 0) {
+          ok(phase + ' [' + f.id + '] ...and the ' + reader + ' carries the REAL prose',
+            f.words.every((w) => text.includes(w)), JSON.stringify(text.slice(0, 90)));
+          ok(phase + ' [' + f.id + '] ...with no raw markup in the ' + reader,
+            !/[<>]/.test(text), JSON.stringify(text.slice(0, 90)));
+        }
+      }
     }
 
-    const spoken = String(tts(f.text) || '').trim();
-    ok(phase + ' [' + f.id + '] TTS has something to say', spoken.length > 0,
-      'TTS text is EMPTY -- the child hears silence');
-    if (spoken.length > 0) {
-      ok(phase + ' [' + f.id + '] and TTS carries no raw markup', !/[<>]/.test(spoken),
-        JSON.stringify(spoken.slice(0, 80)));
-    }
+    // EVERY fixture must have driven the rescue. A fixture that records nothing is scenery: it
+    // asserts against code that never ran, which is exactly what `prose-then-cut-tag` did.
+    const added = (Array.isArray(rescues) ? rescues.length : 0) - before;
+    ok(phase + ' [' + f.id + '] the rescue path actually RAN for this fixture', added > 0,
+      'zero rescue records: this fixture does not empty the reply, so it tests nothing');
   }
 
   // The rescue must be recorded, not silent.
-  const log = client.grab('EZIK_TAG_RESCUES');
   ok(phase + ': the client records a degraded entry when it rescues',
-    Array.isArray(log) && log.length > 0, 'no degraded record was written');
-  if (Array.isArray(log) && log.length) {
+    Array.isArray(rescues) && rescues.length > 0, 'no degraded record was written');
+  if (Array.isArray(rescues) && rescues.length) {
     ok(phase + ': each degraded record names the tag it rescued from',
-      log.every((r) => r && typeof r.tag === 'string' && r.tag.length > 0
+      rescues.every((r) => r && typeof r.tag === 'string' && r.tag.length > 0
         && typeof r.reason === 'string' && r.reason.length > 0),
-      JSON.stringify(log.slice(0, 2)));
+      JSON.stringify(rescues.slice(0, 2)));
+    // AND IT IS WRITTEN EVEN WHEN NOTHING SURVIVES. `if (rescued)` used to guard the ledger write
+    // as well as the return, so the worst case — an answer emptied with no prose to recover —
+    // left no trace anywhere and was indistinguishable from "the model said nothing".
+    ok(phase + ': an emptying with NOTHING to rescue is still recorded',
+      rescues.some((r) => r && r.rescued === false),
+      'no unrescuable emptying was recorded: ' + JSON.stringify(rescues.map((r) => r && r.reason)));
   }
 
   // Streaming must NOT be rescued: a partial tag mid-stream is normal and must still be cut.
@@ -190,6 +241,29 @@ function mutants() {
       // Rescue, but hand back the raw server text — raw markup reaches the child and ElevenLabs.
       apply: (s) => s.replace('const rescued = rescueTruncated(text);', 'const rescued = text;'),
     },
+    {
+      name: 'verse-tag-eats-the-tail-again',
+      // Put the tail-cut back: the āyah tag deletes to the END OF THE TEXT rather than to the end
+      // of its own extent. This is CI-01 exactly, and the fixtures whose prose follows the tag
+      // must go dark.
+      apply: (s) => s.replace(
+        'const VERSE_TAG_EXTENT = /<(verse|surah)\\b[^>]*>(?:[\\s\\S]*?<\\/\\1>|[^<\\n]*)/g;',
+        'const VERSE_TAG_EXTENT = /<(verse|surah)\\b[^>]*>[\\s\\S]*$/g;'),
+      check: (parse, tts, log) => {
+        const f = FIXTURES.find((x) => x.id === 'verse-cut-at-zero-with-prose');
+        return renderedProse(parse, f.text).length > 0 && String(tts(f.text) || '').trim().length > 0;
+      },
+    },
+    {
+      name: 'ledger-written-only-when-something-survives',
+      // Restore the `if (rescued)` guard around the ledger write: an emptying with nothing to
+      // recover goes back to leaving no trace at all.
+      // Single-line seam on purpose: index.html is CRLF in the working tree and LF in the object
+      // store, so any mutation anchor that spans a line break matches in one checkout and not the
+      // other — and a seam that silently fails to apply is a mutant that silently never runs.
+      apply: (s) => s.replace('    EZIK_TAG_RESCUES.push({', '    if (rescued) EZIK_TAG_RESCUES.push({'),
+      ledger: true,
+    },
   ];
 
   for (const c of cases) {
@@ -205,10 +279,18 @@ function mutants() {
       const client = bootClient(changed);
       const parse = client.grab('parseRichMessage');
       const tts = client.grab('formatForTTS');
+      const logFn = client.grab('formatForLog');
       const f = FIXTURES[0];
       const shown = renderedProse(parse, f.text);
       const spoken = String(tts(f.text) || '').trim();
-      if (c.name === 'disable-the-rescue') survived = shown.length > 0 && spoken.length > 0;
+      if (c.ledger) {
+        // Drive every fixture, then ask whether the unrescuable emptying left a record.
+        const rescues = client.grab('EZIK_TAG_RESCUES');
+        for (const fx of FIXTURES) { renderedProse(parse, fx.text); tts(fx.text); logFn(fx.text); }
+        survived = Array.isArray(rescues) && rescues.some((r) => r && r.rescued === false);
+      } else if (typeof c.check === 'function') {
+        survived = c.check(parse, tts, logFn);
+      } else if (c.name === 'disable-the-rescue') survived = shown.length > 0 && spoken.length > 0;
       else survived = !/[<>]/.test(shown) && !/[<>]/.test(spoken);
     } catch (e) { survived = false; }
     fail = before;

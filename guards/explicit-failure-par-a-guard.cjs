@@ -22,6 +22,7 @@ const { pathToFileURL } = require('url');
 const ROOT = path.resolve(__dirname, '..');
 const TAKHRIJ = path.join(ROOT, 'lib', 'takhrij-lock.js');
 const CONSISTENCY = path.join(ROOT, 'lib', 'policy', 'consistency-gate.js');
+const FINALIZE = path.join(ROOT, 'lib', 'finalize-reader-text.js');
 
 let pass = 0;
 let fail = 0;
@@ -126,12 +127,74 @@ async function suite() {
       const r = C.screenDraft(mixed, { ...CTX, subjectEntity: 'فلان', entity: 'فلان' });
       return r.dropWhole ? r.outcome === 'REFUSED' && r.text === '' : true;
     })(), 'dropWhole did not map to an explicit refusal outcome');
+
+  // ── C. THE CONSUMER (أ-٧ / CI-03) ─────────────────────────────────────────
+  //
+  // A and B prove the two finalisers REPORT a REBUILT outcome. They cannot prove anybody acts on
+  // it, and for a long time nobody did: lib/finalize-reader-text.js computed `screened.text` and
+  // then discarded it, because every code the screen reported made the result fatal one branch
+  // later. So a rebuilt, safe, sourced answer was replaced by the blanket refusal on every path —
+  // the reporting was honest and the delivery was not. This drives the CONSUMER and asserts that
+  // the rebuilt text reaches the reader and that `degraded` reaches the caller with it.
+  console.log('\n--- C. lib/finalize-reader-text.js — the consumer of both verdicts ---');
+  const FIN = await esm(FINALIZE);
+  const REBUILT_CTX = {
+    pageTexts: ['قال ابن باز إن الجمع بين الصلاتين للمسافر جائز، وهو قول جمهور أهل العلم.'],
+    entity: 'ابن باز', subjectEntity: '', identityStatus: 'verified', identityVerified: true,
+    sourceLicence: ['ibn-baz'],
+  };
+  // Sentence 1 is an attributed ruling the page carries. Sentence 2 is the app weighing the views
+  // in its own voice, which the screen drops. One survives, so the verdict is REBUILT, not REFUSED.
+  const REBUILT_DRAFT = 'قال ابنُ بازٍ إنّ الجمعَ بين الصلاتين للمسافرِ جائزٌ. '
+    + 'والراجحُ عندي في هذه المسألةِ خلافُ ذلك.';
+  const rebuilt = FIN.finalizeReaderText({
+    kind: 'answer', text: REBUILT_DRAFT, sources: [], consistencyContext: REBUILT_CTX,
+  });
+  ok('C1 the fixture still produces a REBUILT screen verdict, not a whole drop',
+    C.screenDraft(REBUILT_DRAFT, REBUILT_CTX).outcome === 'REBUILT',
+    'the fixture no longer exercises the rule: ' + JSON.stringify(C.screenDraft(REBUILT_DRAFT, REBUILT_CTX).outcome));
+  ok('C2 the rebuilt text is DELIVERED, not replaced by the blanket refusal',
+    rebuilt.ok === true && rebuilt.text !== FIN.FINALIZER_REFUSAL,
+    JSON.stringify({ ok: rebuilt.ok, text: rebuilt.text.slice(0, 90) }));
+  ok('C3 ...and it is the attributed sentence that survived',
+    rebuilt.text.includes('الجمعَ بين الصلاتين للمسافرِ جائزٌ')
+      && !rebuilt.text.includes('والراجحُ عندي'),
+    JSON.stringify(rebuilt.text.slice(0, 140)));
+  ok('C4 the caller is told it was degraded, and how',
+    Array.isArray(rebuilt.degraded) && rebuilt.degraded.some((d) => /consistency-dropped/.test(String(d))),
+    'degraded=' + JSON.stringify(rebuilt.degraded));
+  ok('C5 the outcome travels with it', rebuilt.outcome === 'REBUILT',
+    'outcome=' + JSON.stringify(rebuilt.outcome));
+
+  // dropWhole must remain fatal. The relaxation above is scoped to a verdict that kept something.
+  const refused = FIN.finalizeReaderText({
+    kind: 'answer', text: 'والحكمُ في هذه المسألةِ أنّه واجبٌ بلا خلاف.', sources: [],
+    consistencyContext: { pageTexts: [], entity: 'فلان', subjectEntity: 'فلان', identityStatus: 'unknown' },
+  });
+  ok('C6 a whole drop is STILL fatal and still refuses explicitly',
+    refused.ok === false && refused.text === FIN.FINALIZER_REFUSAL && refused.outcome === 'REFUSED',
+    JSON.stringify({ ok: refused.ok, outcome: refused.outcome }));
 }
 
 // ── MUTANTS ─────────────────────────────────────────────────────────────────
 async function mutants() {
   console.log('\n--- C. REQUIRED MUTANTS ---');
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-par-a-xfail-'));
+
+  // ── THE MUTANT NEVER TOUCHES THE TRACKED TREE (أ-٧ / CI-17) ───────────────
+  //
+  // This used to write `<module>.__mutant__.js` NEXT TO the original, inside lib/, and delete it
+  // afterwards. A read-only gate was therefore writing into the working tree; `git status` was
+  // dirty for the duration of every run, and a kill between the write and the `rmSync` left a
+  // mutant sitting beside the module it mutates. The reason it was written there at all was to
+  // keep the module's own relative imports resolvable — so the fix is to make the imports
+  // resolvable from anywhere instead: rewrite each relative specifier to an ABSOLUTE file URL
+  // pointing back at the real tree, then write the mutant into an OS temp directory.
+  function importableFrom(file, source) {
+    const dir = path.dirname(file);
+    return source.replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_all, quote, specifier) =>
+      `from ${quote}${pathToFileURL(path.resolve(dir, specifier)).href}${quote}`);
+  }
 
   async function mutate(name, file, apply, check) {
     const original = fs.readFileSync(file, 'utf8');
@@ -141,15 +204,13 @@ async function mutants() {
       console.log('  FAIL  MUTANT ' + name + ': seam moved, mutation did not apply');
       return;
     }
-    // Keep the module's own imports resolvable by writing the mutant beside the original.
-    const twin = file.replace(/\.js$/, '.__mutant__.js');
-    fs.writeFileSync(twin, changed, 'utf8');
+    const twin = path.join(temp, path.basename(file).replace(/\.js$/, '.__mutant__.mjs'));
+    fs.writeFileSync(twin, importableFrom(file, changed), 'utf8');
     let survived = true;
     try {
       const mod = await esm(twin);
       survived = await check(mod);
     } catch (e) { survived = false; }
-    finally { fs.rmSync(twin, { force: true }); }
     ok('MUTANT KILLED: ' + name, !survived, 'the defect was reintroduced and this gate stayed green');
   }
 
