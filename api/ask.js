@@ -24,7 +24,7 @@ import {
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
-import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic } from '../lib/route-classify.js';
+import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
 import { consistencyProblems, screenDraft, NO_ATTRIBUTION_AVAILABLE } from '../lib/policy/consistency-gate.js';
@@ -2618,7 +2618,19 @@ export default async function handler(req, res) {
         // AND ONLY FOR A PAGE. `identityUrl` is empty for a whitelist hit, which is a table
         // lookup with no page behind it: a card there would be a citation to nothing. The
         // directive's rule, enforced by the source of the verdict rather than by a guess.
-        if (identityUrl) {
+        // ── A FIQH RULING QUESTION TAKES NO GENERAL-PURPOSE CARD (CX-01) ───
+        //
+        // MEASURED: a question asking for a ruling landed on GEN and was shipped with a
+        // WIKIPEDIA card underneath it. An encyclopaedia biography is a perfectly good source
+        // for «من هو فلان؟» and is no source at all for «ما حكم كذا؟» — but a card reads as
+        // provenance, so the reader is shown a ruling that appears to be sourced, by a page
+        // that rules on nothing. The honest refusal the GEN branch already carries is better
+        // than a citation to the wrong kind of document, so the card is withheld and only the
+        // card: the answer itself is unchanged. The condition is the ruling FRAME, so it does
+        // not depend on which topic was asked about.
+        if (identityUrl && isRulingFrame(currentQuestionText)) {
+          console.log('[identity-card] withheld: ruling frame takes no general-purpose card');
+        } else if (identityUrl) {
           // buildSourceTag returns the CARD RECORD, not the string — `.tag` is the wire form, and
           // it returns null for any URL that cannot be encoded safely. Both are honoured here.
           const idCard = buildSourceTag({ url: identityUrl, title: identityTitle || nameShape.name });
