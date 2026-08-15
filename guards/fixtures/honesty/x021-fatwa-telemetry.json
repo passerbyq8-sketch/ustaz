@@ -1,0 +1,81 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "X-021",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "Fatwa search-call telemetry is checked against requests observed at the production adapter transport boundary, then checked again after coordinator propagation.",
+  "responses": {
+    "/api/v1/health": {
+      "ok": true,
+      "schemaVersion": "fatwa.api.v1",
+      "scholars": [
+        "binbaz",
+        "albarrak",
+        "meshhoor",
+        "alkhathlan",
+        "aladawy",
+        "almosleh",
+        "almufti",
+        "othmanalkhamees",
+        "alathary",
+        "shrajhi",
+        "kuwait_eftaa",
+        "alkhudair",
+        "alfawzan",
+        "ibnjebreen",
+        "salmajed",
+        "binothaimeen",
+        "almunajjid",
+        "aljasser"
+      ]
+    },
+    "/api/v1/scholars": {
+      "ok": true,
+      "schemaVersion": "fatwa.api.v1",
+      "scholars": [
+        { "id": "binbaz", "snapshot": { "records": 18479 } },
+        { "id": "albarrak", "snapshot": { "records": 10740 } },
+        { "id": "meshhoor", "snapshot": { "records": 4166 } },
+        { "id": "alkhathlan", "snapshot": { "records": 1570 } },
+        { "id": "aladawy", "snapshot": { "records": 1308 } },
+        { "id": "almosleh", "snapshot": { "records": 822 } },
+        { "id": "almufti", "snapshot": { "records": 459 } },
+        { "id": "othmanalkhamees", "snapshot": { "records": 410 } },
+        { "id": "alathary", "snapshot": { "records": 393 } },
+        { "id": "shrajhi", "snapshot": { "records": 91 } },
+        { "id": "kuwait_eftaa", "snapshot": { "records": 25 } },
+        { "id": "alkhudair", "snapshot": { "records": 14 } },
+        { "id": "alfawzan", "snapshot": { "records": 13 } },
+        { "id": "ibnjebreen", "snapshot": { "records": 4 } },
+        { "id": "salmajed", "snapshot": { "records": 17875 } },
+        { "id": "binothaimeen", "snapshot": { "records": 13343 } },
+        { "id": "almunajjid", "snapshot": { "records": 1203 } },
+        { "id": "aljasser", "snapshot": { "records": 2215 } }
+      ]
+    },
+    "/api/v1/fatwas/search": {
+      "ok": true,
+      "schemaVersion": "fatwa.api.v1",
+      "results": [],
+      "pagination": { "total": 0 }
+    }
+  },
+  "expected": {
+    "verificationRequestPaths": [
+      "/api/v1/health",
+      "/api/v1/scholars"
+    ],
+    "searchRequestPath": "/api/v1/fatwas/search",
+    "verificationRequests": 2,
+    "searchRequests": 1,
+    "returnedSearchCalls": 1,
+    "scholars": 18,
+    "total": 73130,
+    "ibnBaz": 18479
+  },
+  "externalEvidence": {
+    "status": "BLOCKED_OFFLINE",
+    "acceptanceGreen": false,
+    "currentServiceResponse": null,
+    "reason": "The governing directive forbids network access; this fixture proves local request accounting, not current deployment state."
+  }
+}

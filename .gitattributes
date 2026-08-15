@@ -326,6 +326,7 @@ guards/honesty/g16-transfer-mode.cjs text eol=lf
 guards/fixtures/honesty/g16-transfer-mode.json text eol=lf
 guards/honesty/g17-anchor-mode.cjs text eol=lf
 guards/fixtures/honesty/g17-anchor-mode.json text eol=lf
+guards/fixtures/honesty/x021-fatwa-telemetry.json text eol=lf
 guards/fixtures-full-fatwa.json text eol=lf
 lib/full-fatwa.js text eol=lf
 lib/anchor/flag.js text eol=lf
