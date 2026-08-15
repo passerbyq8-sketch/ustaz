@@ -1,9 +1,10 @@
 // ledger-runtime-guard.cjs — the switch, the kill switch, the caches and the telemetry.
 //
-// THE PROPERTY THIS GATE EXISTS TO PROVE: there is exactly ONE arrangement of facts that runs
-// the new engine, and every other arrangement — including every way of FAILING to establish
-// one of them — runs the shipped path. That is asserted here by enumeration rather than by
-// reading the code and agreeing with it.
+// THE LOCAL PROPERTY THIS GATE PROVES: decidePath admits only the enumerated rollout
+// configurations. That decision is necessary but not sufficient to run the Ledger engine:
+// api/ask.js additionally requires an unresolved HADITH runtime, and ordinary fiqh returns
+// through its earlier stored/hybrid route. This offline gate uses preview configuration and an
+// in-memory Redis double; it does not claim to observe a deployed environment or a real store.
 //
 // AND THE PROPERTY THE PRIVACY WORK RESTS ON: a cache key contains no readable fragment of the
 // reader's question, and a telemetry record is built from an ALLOW-LIST, so a field added later
@@ -86,10 +87,10 @@ async function main() {
   };
 
   // =========================================================================
-  // THE DEFAULT WAS OFF UNTIL THE PUBLIC GO-LIVE (owner decision, 2026-08-05). It is now ON, and
+  // The repository default is ON; this offline gate does not observe a deployed environment.
   // this section asserts the new default AND — the half that matters — that every brake the old
   // default made unnecessary still works: the env floor, the mode, and the Upstash kill switch.
-  console.log('\n=== A. THE DEFAULT IS PUBLIC, AND IT IS A VALUE ===');
+  console.log('\n=== A. THE REPOSITORY DEFAULT IS PUBLIC, AND IT IS A VALUE ===');
   eq('PUBLIC_GO_LIVE is the single constant that decides it', FL.PUBLIC_GO_LIVE, true);
   eq('DEFAULT_ENABLED follows it', FL.DEFAULT_ENABLED, FL.PUBLIC_GO_LIVE);
   ok('the flag key is namespaced away from every existing prefix',
@@ -102,7 +103,7 @@ async function main() {
       ? true : STORE.key('x', 'y').startsWith('lg:'));
   {
     delete process.env.LEDGER_RAG;
-    eq('an unset LEDGER_RAG now opens the floor (the go-live default)', FL.envAllows(), true);
+    eq('an unset LEDGER_RAG opens the local floor by repository default', FL.envAllows(), true);
     // AN EXPLICIT VALUE STILL BEATS THE DEFAULT, IN BOTH DIRECTIONS. This is the brake, and it is
     // the whole reason the go-live is a constant rather than a deletion.
     for (const v of ['off', 'false', '0', 'yes', 'enabled']) {
@@ -184,7 +185,7 @@ async function main() {
     const redis = fakeRedis();
     STORE.__setRedisForTest(redis);
 
-    // THE MATRIX AFTER THE PUBLIC GO-LIVE.
+    // THE LOCAL PUBLIC-MODE DECISION MATRIX (simulated inputs, not deployed state).
     //
     // Two rows changed on purpose and they ARE the go-live: an anonymous reader and a forged
     // token now reach the ledger, because there is no longer a credential to forge — the path is
@@ -296,7 +297,7 @@ async function main() {
     process.env.RFC_V05_MODE = 'public';
     FL.__resetFlagCacheForTest();
     const anon = await FL.decidePath(anonReq, t + 10 ** 6);
-    eq('an anonymous caller now takes the public path', anon.path, 'ledger');
+    eq('an anonymous simulated caller receives the public-mode decision', anon.path, 'ledger');
     eq('...with the mode as the reason', anon.reason, 'mode_public');
     ok('...and the reason carries no credential, device or question',
       /^[a-z_]+$/.test(anon.reason) && !/founder|token|device|secret/i.test(anon.reason), anon.reason);

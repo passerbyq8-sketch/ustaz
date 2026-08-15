@@ -1,0 +1,37 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-06",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The offline gate proves local decidePath outcomes. Ledger execution additionally requires the later HADITH dispatch; deployed environment and Redis state are not observed.",
+  "sources": [
+    {
+      "key": "oldGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "ledger-runtime-guard.cjs",
+      "sha256": "529a38610b33afba62bf52407764e254ab58679253b9cc04a11c1eee5ff0e93c"
+    },
+    {
+      "key": "ask",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "api/ask.js",
+      "sha256": "2aac493bd14c5ca5da1b83367ef8f7859a12be14ca3658655371ee72c83892ec"
+    },
+    {
+      "key": "flag",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/ledger/flag.js",
+      "sha256": "cbe2662b09d4986613e2bc5099fcb93c0e7bde7c7482e16283bc87f9d770eb51"
+    }
+  ],
+  "externalEvidence": {
+    "deploymentEnvironmentObserved": false,
+    "realRedisObserved": false,
+    "reason": "offline directive"
+  },
+  "decisionCases": [
+    { "floor": "off", "mode": "public", "stored": true, "expected": "legacy" },
+    { "floor": "on", "mode": "internal", "stored": true, "expected": "legacy" },
+    { "floor": "on", "mode": "public", "stored": true, "expected": "ledger" },
+    { "floor": "on", "mode": "public", "stored": false, "expected": "legacy" }
+  ]
+}
