@@ -1,0 +1,109 @@
+{
+  "schema": "ezik.gemini13-route-matrix.v1",
+  "enforce": false,
+  "enforceReason": "التنفيذ الإلزامي يُقلب true في جولة الدمج بعد هبوط فرع أ",
+  "rows": [
+    {
+      "id": 1,
+      "question": "طيارة طاحت بالضبط على خط الحدود بين السعودية والكويت.. وين المفروض يدفنون \"الناجين\"؟",
+      "target": { "lexical": "GEN", "surface": "GENERAL" },
+      "note": "logic-riddle"
+    },
+    {
+      "id": 2,
+      "question": "لو كنت قاعد تركض بسباق، وشديت حيلك وتجاوزت الشخص اللي بالمركز \"الثاني\".. أنت الحين بأي مركز؟",
+      "target": { "lexical": "GEN", "surface": "GENERAL" },
+      "note": "logic-riddle"
+    },
+    {
+      "id": 3,
+      "question": "تيلفون وكفر سعرهم مع بعض 110. إذا كان التيلفون أغلى من الكفر بـ 100 بالضبط.. كم سعر الكفر؟",
+      "target": { "lexical": "GEN", "surface": "GENERAL" },
+      "note": "general-arithmetic"
+    },
+    {
+      "id": 4,
+      "question": "أبو مريم\" عنده 3 بنات: الأولى اسمها ندى، والثانية اسمها نوال.. شنو اسم البنت الثالثة؟",
+      "target": { "lexical": "GEN", "surface": "GENERAL" },
+      "note": "logic-riddle"
+    },
+    {
+      "id": 5,
+      "question": "كم شهر بالسنة الميلادية فيه 28 يوم؟",
+      "target": { "lexical": "GEN", "surface": "GENERAL" },
+      "note": "general-calendar"
+    },
+    {
+      "id": 6,
+      "question": "كم عدد الحيوانات من كل نوع اللي خذاها معاه \"النبي موسى\" عليه السلام في السفينة؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "deferred-owner-decision"
+    },
+    {
+      "id": 7,
+      "question": "هل يجوز شرعاً وقانوناً إن الرجل يتزوج \"أخت أرملته\"؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "fiqh-route-target"
+    },
+    {
+      "id": 8,
+      "question": "لو الله كتب لك ودخلت داخل الكعبة المشرفة، بأي اتجاه تصلي عشان تكون قبلتك صح؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "fiqh-route-target"
+    },
+    {
+      "id": 9,
+      "question": "شنو هي الصلاة المفروضة اللي نصليها كاملة وإحنا واقفين، لا فيها ركوع ولا فيها سجود أبدًا؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "deferred-owner-decision"
+    },
+    {
+      "id": 10,
+      "question": "من هو النبي اللي مات، بس عمره ما انولد؟ (يعني ماله لا أم ولا أب).",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "deferred-owner-decision"
+    },
+    {
+      "id": 11,
+      "question": "دخلت المسجد ولقيت الإمام \"راكع\"، وبسرعة عشان تلحق الركعة كبّرت (تكبيرة الإحرام) وأنت قاعد تنزل للركوع. هل صلاتك صحيحة وتنحسب لك الركعة؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "fiqh-route-target"
+    },
+    {
+      "id": 12,
+      "question": "رحت محل ذهب، وعطيت الصايغ طقمك القديم (وزنه 50 جرام) وأخذت طقم جديد (وزنه 50 جرام)، بس دفعت للصايغ 50 دينار/ريال من جيبك عشان \"فرق المصنعية\". هل هالبيعة حلال شرعاً؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "fiqh-route-target"
+    },
+    {
+      "id": 13,
+      "question": "أنت صايم ومسافر بالطيارة، وحان موعد أذان المغرب في \"المدينة اللي تحتك بالضبط\"، بس أنت من دريشة الطيارة لا زلت تشوف الشمس واضحة ما غابت بسبب ارتفاع الطيارة. تفطر ولا تكمل صيام؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "fiqh-route-target"
+    },
+    {
+      "id": 14,
+      "question": "السلام عليكم ورحمة الله وبركاته : س : عند دخول وقت صلاة العصر ، أنا أعلم أن بدخول المسجد لابد من صلاة ركعتان لتحية المسجد ن كما أني سمعت أن سنة صلاة العصر تكون قبل الفريضة ، فكيف أصلي سنة تحية المسجد مع ركعتان السنة ، هل أنوي باسنتين في صلاة واحدة أ ماذا ؟؟؟؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "fiqh-route-target"
+    },
+    {
+      "id": 15,
+      "question": "ما هو رأي الشيخ ابن عثيمين في وجوب تغطية وجه المرأة؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "fiqh-route-target"
+    },
+    {
+      "id": 16,
+      "question": "رأي ابن باز في الجمع للمسافر",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "fiqh-route-target"
+    },
+    {
+      "id": 17,
+      "question": "ما حكم الدخان؟",
+      "target": { "lexical": "DEEN", "surface": "STORED_FIQH" },
+      "note": "relevance-tested-in-A"
+    }
+  ]
+}

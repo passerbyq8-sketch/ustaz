@@ -14,10 +14,10 @@ const LIVENESS = path.join(ROOT, 'data', 'source-liveness.json');
 const X021_FIXTURE = path.join(ROOT, 'guards', 'fixtures', 'honesty', 'x021-fatwa-telemetry.json');
 const CORPUS_HASH = '6482d677ebf09cc5627a172ee77114587046edeb95529092cb644e42e00d13a2';
 const LIVENESS_HASH = '75b88f5c092eea8ae5e4198a33203e99dd136e06581d8b69bf7dc1037322aa4d';
-// Re-cut in the merge round: the fixture's externalEvidence moved from BLOCKED_OFFLINE to the
-// observed preview response. The seal is on the whole file, so it changes whenever the fixture
-// does -- which is the point: no one edits this fixture without the seal saying so.
-const X021_FIXTURE_HASH = '8b6d4708ac06062a928ac5db2a8f822c6615fd45f9ac226e47c4b55932649819';
+// Re-cut in semantic round B after CLAIMS_AUDIT/د's production-smoke values were copied into the
+// formerly-null production field. The seal is on the whole file, so it changes whenever the
+// fixture does -- which is the point: no one edits this fixture without the seal saying so.
+const X021_FIXTURE_HASH = '2740b32014c481f4b7ebb0fe5ba6eddfa9f03f777573bc967ff5fba6fc214cde';
 let checks = 0, failures = 0;
 function ok(name, condition, detail = '') {
   checks++;
@@ -309,7 +309,7 @@ async function runHybridGuard() {
   // no longer "blocked" but "observed, and it agrees". The assertion therefore checks the AGREEMENT
   // -- an observed response whose counts differ from the counts this fixture authored offline would
   // mean the offline accounting had drifted from the shipped service, which is the whole point of
-  // measuring it. The production half is a separate deployment and stays explicitly deferred.
+  // measuring it. Semantic round B fills the production half from the sealed publish report.
   const x021seen = x021.externalEvidence.currentServiceResponse;
   ok('X-021 the current service was observed on a named deployment and agrees with the offline counts',
     x021.externalEvidence.status === 'OBSERVED_PREVIEW'
@@ -323,10 +323,19 @@ async function runHybridGuard() {
       && x021seen.total === x021.expected.total
       && x021seen.ibnBaz === x021.expected.ibnBaz
       && x021seen.fatwaSearch === x021.expected.returnedSearchCalls);
-  ok('X-021 the production half is deferred in words rather than left silent',
-    x021.externalEvidence.production === null
-      && typeof x021.externalEvidence.productionReason === 'string'
-      && x021.externalEvidence.productionReason.length > 0);
+  const x021Production = x021.externalEvidence.production;
+  ok('X-021 the production publish smoke is recorded and agrees with the offline counts',
+    x021Production !== null
+      && x021Production.budgetEnvironment === 'production'
+      && x021Production.fatwaStatus === 'OK'
+      && x021Production.scholars === x021.expected.scholars
+      && x021Production.total === x021.expected.total
+      && x021Production.ibnBaz === x021.expected.ibnBaz
+      && x021Production.deploymentId === 'dpl_7no8tbAGwnsVnde11xsmwzmJSeFH'
+      && /48618485/u.test(x021.externalEvidence.productionReason || ''));
+  eq('X-021 production shorthand matches CLAIMS_AUDIT/د',
+    `${x021Production.scholars}/${x021Production.total}/${x021Production.ibnBaz} · ${x021Production.fatwaStatus}`,
+    '18/73130/18479 · OK');
   ok('X-021 MUTANT KILLED: an observed response that disagrees with the offline counts cannot pass',
     !(x021seen.scholars === x021.expected.scholars && x021seen.total === x021.expected.total - 1));
   const telemetryContext = {

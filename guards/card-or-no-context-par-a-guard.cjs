@@ -24,7 +24,9 @@
 // Offline and deterministic. Usage: node guards/card-or-no-context-par-a-guard.cjs [--mutants]
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { pathToFileURL } = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -41,6 +43,13 @@ function ok(label, cond, detail) {
   return false;
 }
 const esm = (f) => import(pathToFileURL(f).href + '?v=' + Date.now() + '-' + Math.random());
+
+function importsFromTree(source, originalFile) {
+  return source.replace(/(['"])(\.\.?\/[^'"\r\n]+\.js)\1/gu, (_all, quote, specifier) => {
+    const target = path.resolve(path.dirname(originalFile), specifier);
+    return quote + pathToFileURL(target).href + quote;
+  });
+}
 
 const openBudget = { reserve: async () => ({ ok: true }), snapshot: () => ({}) };
 
@@ -59,11 +68,8 @@ const uncardable = () => ({
   publisher: 'insecure.example', passage: PASSAGE, text: PASSAGE, authorialText: PASSAGE,
 });
 
-async function sectionA() {
-  console.log('\n--- A. lib/hybrid-deen.js: no used record without a card ---');
-  const H = await esm(HYBRID);
-
-  const run = (sources) => H.runHybridDeenTurn({
+function runHybrid(H, sources) {
+  return H.runHybridDeenTurn({
     context: { currentQuestion: 'ما حكم هذه المسألة؟', resolvedScholar: null },
     band: 'adult', depth: 'normal', dailyBudget: openBudget,
     localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
@@ -72,6 +78,13 @@ async function sectionA() {
     generate: async () => { throw new Error('model offline'); },
     verify: async () => '{"supported_ids":[]}',
   });
+}
+
+async function sectionA() {
+  console.log('\n--- A. lib/hybrid-deen.js: no used record without a card ---');
+  const H = await esm(HYBRID);
+
+  const run = (sources) => runHybrid(H, sources);
 
   const both = await run([cardable(), uncardable()]);
   ok('A1 the turn still answers when a cardable page is present',
@@ -154,28 +167,78 @@ async function mutants() {
       console.log('  FAIL  MUTANT ' + name + ': seam moved, mutation did not apply');
       return;
     }
-    const twin = file.replace(/\.js$/, '.__mutant__.js');
-    fs.writeFileSync(twin, changed, 'utf8');
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-card-or-context-'));
+    const twin = path.join(temp, path.basename(file).replace(/\.js$/, '.__mutant__.mjs'));
+    fs.writeFileSync(twin, importsFromTree(changed, file), 'utf8');
     let survived = true;
     try { survived = await check(twin, changed); } catch (e) { survived = false; }
-    finally { fs.rmSync(twin, { force: true }); }
+    finally { fs.rmSync(temp, { recursive: true, force: true }); }
     ok('MUTANT KILLED: ' + name, !survived, 'the rule was removed and this gate stayed green');
   }
 
-  // M1 — hybrid-deen stops dropping uncarded records. A5 is re-evaluated, not A2: the drop cannot
-  // fire on any input reachable today (measured, see the header), so removing it changes no
-  // behaviour to observe. What it does change is that the law is no longer enforced anywhere on
-  // this path, and that is the thing worth failing on.
+  // M1 — boot the changed module and drive the paired fixture through it. Reading `changed` here
+  // used to ask whether the mutation removed the very string it had just removed, so this mutant
+  // was declared dead by construction without executing one byte of the twin.
   await mutate('hybrid-remove-the-card-or-drop-enforcement', HYBRID,
     (s) => s.replace('const uncarded = usedEvidence.filter((entry) => !cardsFor([entry]).length);',
       'const uncarded = [];'),
-    async (twin, changed) => /const uncarded = usedEvidence\.filter\(\(entry\) => !cardsFor\(\[entry\]\)\.length\);/.test(changed));
+    async (twin) => {
+      const mod = await esm(twin);
+      const reachesEvidenceButNotCards = {
+        ...uncardable(),
+        url: 'https://user:pass@binbaz.org.sa/fatwas/3578/example',
+      };
+      const out = await runHybrid(mod, [cardable(), reachesEvidenceButNotCards]);
+      return out.outcome !== 'ANSWER'
+        || (out.usedEvidence.length === out.cards.length
+          && !out.usedEvidence.some((entry) => String(entry.url || '').startsWith('http://')));
+    });
 
-  // M2 — the encyclopedia excerpt is appended to the tool_result again.
+  // M2 — expose only the mutant's content composer, wire the changed handler through it, import
+  // the changed api module, and measure the bytes it would return. The export exists only in the
+  // temporary twin; production keeps no test seam and the gate no longer substitutes a text scan
+  // for executable evidence.
   await mutate('ask-reappend-uncarded-excerpt', ASK,
-    (s) => s.replace('const content = webText;',
-      'let content = webText; if (globalThis.__enc) content = webText + "\\n" + globalThis.__enc;'),
-    async (twin, changed) => /const content = webText;/.test(changed) && !/content = webText \+/.test(changed));
+    (s) => s
+      .replace("const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';",
+        "const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';\n"
+        + "export const __cardOrContextMutantContent = (webText, excerpt) => webText + '\\n' + excerpt;")
+      .replace('const content = webText;',
+        "const content = __cardOrContextMutantContent(webText, globalThis.__enc || '');"),
+    async (twin) => {
+      const mod = await esm(twin);
+      const visible = 'retrieved page with a reader-visible card';
+      const hidden = 'uncarded encyclopedia excerpt';
+      return mod.__cardOrContextMutantContent(visible, hidden) === visible;
+    });
+}
+
+function registeredCompanions() {
+  console.log('\n--- D. REGISTERED COMPANION GATES ---');
+  let roster;
+  try {
+    roster = JSON.parse(fs.readFileSync(path.join(ROOT, 'gates.json'), 'utf8'));
+  } catch (error) {
+    ok('gates.json companion registration is readable', false, error.message);
+    return;
+  }
+  const self = Array.isArray(roster)
+    ? roster.find((entry) => entry?.script === 'guards/card-or-no-context-par-a-guard.cjs')
+    : null;
+  const companions = Array.isArray(self?.companions) ? self.companions : [];
+  ok('gemini13 is named in this gate registration', companions.some((entry) =>
+    entry?.name === 'gemini13' && entry?.script === 'guards/gemini13-route-guard.cjs'));
+  for (const companion of companions) {
+    const args = String(companion?.args || '').trim().split(/\s+/u).filter(Boolean);
+    const result = spawnSync(process.execPath, [path.join(ROOT, companion.script), ...args], {
+      cwd: ROOT,
+      encoding: 'utf8',
+    });
+    if (result.stdout) process.stdout.write(result.stdout);
+    if (result.stderr) process.stderr.write(result.stderr);
+    ok('registered companion passes: ' + companion.name, result.status === 0,
+      result.error?.message || result.stderr || `exit=${result.status}`);
+  }
 }
 
 (async () => {
@@ -183,6 +246,7 @@ async function mutants() {
     await sectionA();
     sectionB();
     if (process.argv.includes('--mutants')) await mutants();
+    if (process.argv.includes('--registered-companions')) registeredCompanions();
   } catch (e) {
     console.error('GUARD ERROR:', e && e.stack ? e.stack : e);
     process.exit(1);

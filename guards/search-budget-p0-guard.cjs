@@ -27,8 +27,9 @@ function eq(name, actual, expected) {
 
 (async () => {
   console.log('\n=== search-budget-p0 — environment, caller fairness, atomicity and privacy ===');
-  const [DB, RL, RTO] = await Promise.all([
+  const [DB, RL, RTO, SEARCH] = await Promise.all([
     esm('lib/ledger/daily-budget.js'), esm('lib/ratelimit.js'), esm('lib/retrieve.js'),
+    esm('lib/ledger/search.js'),
   ]);
 
   const now = Date.UTC(2026, 7, 15, 12, 0, 0);
@@ -171,6 +172,33 @@ function eq(name, actual, expected) {
     process.env.BRAVE_API_KEY = 'offline-brave-key';
     await RTO.retrieveOpenWorld('x'.repeat(500), { band: 'adult', dailyBudget: countedBudget });
     eq('a locally rejected query consumes no budget unit', [reserveCalls, providerCalls], [0, 0]);
+
+    let nakedReason = '';
+    let nakedProviderCalls = 0;
+    try {
+      await SEARCH.braveSearch('bounded naked adapter query', ['islamqa.info'], {
+        fetchImpl: async () => {
+          nakedProviderCalls += 1;
+          throw new Error('unmetered transport must not run');
+        },
+      });
+    } catch (error) {
+      nakedReason = error && (error.reason || error.message);
+    }
+    eq('a bare provider-adapter call throws before its injected transport',
+      [nakedReason, nakedProviderCalls], ['budget_store_unavailable', 0]);
+
+    let explicitProviderCalls = 0;
+    // This deterministic adapter fixture has no daily store and no real wire; the named opt-out
+    // exists only to prove that an intentionally unmetered caller cannot be confused with silence.
+    await SEARCH.braveSearch('bounded explicit fixture query', ['islamqa.info'], {
+      allowUnmetered: true,
+      fetchImpl: async () => {
+        explicitProviderCalls += 1;
+        return { ok: true, status: 200, json: async () => ({ web: { results: [] } }) };
+      },
+    });
+    eq('the named unmetered escape hatch remains explicit and offline', explicitProviderCalls, 1);
 
     globalThis.fetch = async () => {
       providerCalls += 1;
