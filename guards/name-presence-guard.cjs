@@ -305,7 +305,7 @@ const HUMAN_DIVINE_NAME_CASES = [
 
     const ask = read('api/ask.js');
     ok('the probe is bounded to ONE wave and a handful of candidates',
-      /retrieveWorld\(nameShape\.name, \{ maxWaves: 1, maxResults: 3 \}\)/.test(ask));
+      /retrieveWorld\(nameShape\.name, \{[\s\S]{0,120}maxWaves: 1, maxResults: 3, dailyBudget: paidSearchBudget/.test(ask));
     ok('...and searches the WORLD list only — never a religious one',
       /retrieveWorld\(nameShape\.name/.test(ask) && !/retrieve\(nameShape\.name/.test(ask));
     ok('a search that never ran may not become an absence: no key ⇒ no probe, no line',
@@ -660,6 +660,9 @@ const HUMAN_DIVINE_NAME_CASES = [
     process.env.ANTHROPIC_API_KEY = 'test-key';
     process.env.BRAVE_API_KEY = 'test-brave';
     process.env.FOUNDER_SECRET = 'name-presence-guard-secret';
+    process.env.VERCEL_ENV = 'preview';
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+    process.env.SEARCH_BUDGET_PER_CALLER = '20';
     // The legacy path, switched off the ledger by its documented floor — the ledger engine is a
     // separate concern and is not what this guard is about.
     process.env.LEDGER_RAG = 'off';
@@ -837,7 +840,9 @@ const HUMAN_DIVINE_NAME_CASES = [
       async sismember() { return 0; },
       async eval(_script, _keys, args) {
         ledgerBudgetUsed += 1;
-        return [ledgerBudgetUsed, ledgerBudgetUsed <= Number(args[0]) ? 1 : 0];
+        if (ledgerBudgetUsed > Number(args[0])) return [ledgerBudgetUsed - 1, 0, 0, 1];
+        if (ledgerBudgetUsed > Number(args[1])) return [ledgerBudgetUsed - 1, ledgerBudgetUsed - 1, 0, 2];
+        return [ledgerBudgetUsed, ledgerBudgetUsed, 1, 0];
       },
     });
 
@@ -848,6 +853,7 @@ const HUMAN_DIVINE_NAME_CASES = [
       // Each drive is an independent request fixture; do not let the test's matrix exhaust a
       // reader's production day cap and turn later assertions into cap-template assertions.
       capCounts.clear();
+      ledgerBudgetUsed = 0;
       const state = {
         braveQueries: [], round: 0, identityCalls: 0, identityCacheWrites: 0, worldProbeCalls: 0,
         ledgerPlannerCalls: 0, modelRequests: [], presenceEvents: [], routeEvents: [], modelStages: [],
@@ -1353,7 +1359,9 @@ const HUMAN_DIVINE_NAME_CASES = [
       // makes the seam run; no live dependency is used and the identity stages remain untouched.
       process.env.LEDGER_RAG = 'on';
       process.env.RFC_V05_MODE = 'internal';
-      process.env.DAILY_SEARCH_BUDGET = '500';
+      process.env.VERCEL_ENV = 'preview';
+      process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+      process.env.SEARCH_BUDGET_PER_CALLER = '20';
       ledgerBudgetUsed = 0;
       for (const worldFailure of ['throw', 'timeout']) {
         const failedPresence = await drive(failedPresenceQuestion, inventedBody, { worldFailure });
@@ -1764,7 +1772,9 @@ const HUMAN_DIVINE_NAME_CASES = [
     } finally {
       globalThis.fetch = realFetch;
       SAFE_FETCH.__resetResolver();
-      delete process.env.DAILY_SEARCH_BUDGET;
+      delete process.env.VERCEL_ENV;
+      delete process.env.SEARCH_BUDGET_GLOBAL_PREVIEW;
+      delete process.env.SEARCH_BUDGET_PER_CALLER;
     }
   }
 

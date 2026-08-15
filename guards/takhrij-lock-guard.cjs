@@ -640,11 +640,13 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const STORE = await esm('lib/ledger/redis.js');
     process.env.ANTHROPIC_API_KEY = 'a1-local'; process.env.BRAVE_API_KEY = 'a1-local';
     process.env.FOUNDER_SECRET = 'a1-local-secret'; process.env.RFC_V05_MODE = 'internal'; process.env.LEDGER_RAG = 'off';
+    process.env.VERCEL_ENV = 'preview'; process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '100';
+    process.env.SEARCH_BUDGET_PER_CALLER = '100';
     let dailySearchUnits = 0;
     STORE.__setRedisForTest({
       async eval(_script, _keys, args) {
         dailySearchUnits++;
-        return [dailySearchUnits, dailySearchUnits <= Number(args[0]) ? 1 : 0];
+        return [dailySearchUnits, dailySearchUnits, 1, 0];
       },
     });
     const cap = new Map();

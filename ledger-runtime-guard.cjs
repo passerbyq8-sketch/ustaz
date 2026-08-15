@@ -18,7 +18,8 @@ const path = require('path');
 const { withRestoredProcessEnv } = require('./tools/guard-env.cjs');
 
 const ENV_KEYS = ['LEDGER_RAG', 'RFC_V05_MODE', 'FOUNDER_SECRET', 'LEDGER_CACHE_SECRET',
-  'DAILY_SEARCH_BUDGET'];
+  'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PRODUCTION', 'SEARCH_BUDGET_GLOBAL_PREVIEW',
+  'SEARCH_BUDGET_GLOBAL_DEVELOPMENT', 'SEARCH_BUDGET_PER_CALLER'];
 const crypto = require('crypto');
 
 const REPO = __dirname;
@@ -70,11 +71,13 @@ async function main() {
     LEDGER_RAG: process.env.LEDGER_RAG,
     FOUNDER_SECRET: process.env.FOUNDER_SECRET,
     LEDGER_CACHE_SECRET: process.env.LEDGER_CACHE_SECRET,
-    DAILY_SEARCH_BUDGET: process.env.DAILY_SEARCH_BUDGET,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    SEARCH_BUDGET_GLOBAL_PREVIEW: process.env.SEARCH_BUDGET_GLOBAL_PREVIEW,
+    SEARCH_BUDGET_PER_CALLER: process.env.SEARCH_BUDGET_PER_CALLER,
   };
-  // Keep a written ceiling for the historical switch fixtures. The dedicated table below proves
-  // that an absent or malformed value now resolves to the same finite code default instead.
-  process.env.DAILY_SEARCH_BUDGET = '500';
+  process.env.VERCEL_ENV = 'preview';
+  process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '500';
+  process.env.SEARCH_BUDGET_PER_CALLER = '20';
   process.env.RFC_V05_MODE = 'public';
   const restoreEnv = () => {
     for (const [k, v] of Object.entries(ORIGINAL_ENV)) {
@@ -124,58 +127,44 @@ async function main() {
     process.env.FOUNDER_SECRET = 'test-secret-for-the-gate';
     const dev = 'abcdefgh12345678';
     const req = { headers: { 'x-murabbi-device': dev, 'x-murabbi-founder': DC.founderTokenFor(dev) } };
-    const saved = process.env.DAILY_SEARCH_BUDGET;
+    const saved = process.env.SEARCH_BUDGET_GLOBAL_PREVIEW;
 
-    delete process.env.DAILY_SEARCH_BUDGET;
+    delete process.env.SEARCH_BUDGET_GLOBAL_PREVIEW;
     FL.__resetFlagCacheForTest();
-    eq('the configured-limit compatibility table stays exact', [
+    eq('the v2 configured-limit compatibility table stays exact', [
       DB.configuredLimit({}),
       DB.configuredLimit({ DAILY_SEARCH_BUDGET: 'abc' }),
-      DB.configuredLimit({ DAILY_SEARCH_BUDGET: '-5' }),
-      DB.configuredLimit({ DAILY_SEARCH_BUDGET: '0' }),
-    ], [5000, 5000, 5000, 0]);
-    ok('an unset ceiling is a real finite number, never null and never Infinity',
-      Number.isInteger(DB.configuredLimit()) && DB.configuredLimit() > 0
-        && Number.isFinite(DB.configuredLimit()), String(DB.configuredLimit()));
-    eq('...so the path is configured by construction', DB.isConfigured(), true);
+      DB.configuredLimit({ VERCEL_ENV: 'preview', SEARCH_BUDGET_GLOBAL_PREVIEW: '-5' }),
+      DB.configuredLimit({ VERCEL_ENV: 'preview', SEARCH_BUDGET_GLOBAL_PREVIEW: '0' }),
+    ], [null, null, null, 0]);
+    eq('an unset ceiling is unconfigured rather than an implicit allowance', DB.configuredLimit(), null);
+    eq('...so paid search is fail-closed until both caps are configured', DB.isConfigured(), false);
     const on = await FL.decidePath(req);
-    eq('an unset ceiling no longer blocks the public path', on.path, 'ledger');
+    eq('retrieval routing remains independent from the downstream spend cap', on.path, 'ledger');
 
     // A GARBLED VALUE IS THE DEFAULT, NEVER A COERCION AND NEVER "UNLIMITED". A typo must not be
     // able to raise, remove, or zero a spend cap.
     for (const bad of ['', 'lots', '-1', '2.5', 'Infinity', 'NaN']) {
-      process.env.DAILY_SEARCH_BUDGET = bad;
-      eq('a garbled ceiling «' + bad + '» falls back to the default',
-        DB.configuredLimit(), DB.DEFAULT_DAILY_SEARCH_BUDGET);
+      process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = bad;
+      eq('a garbled ceiling «' + bad + '» fails closed', DB.configuredLimit(), null);
     }
     // ...and a written value still governs, including a deliberate zero.
-    process.env.DAILY_SEARCH_BUDGET = '7';
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '7';
     eq('an explicit ceiling is read exactly', DB.configuredLimit(), 7);
-    process.env.DAILY_SEARCH_BUDGET = '0';
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '0';
     eq('an explicit zero is honoured (a hard stop, not the default)', DB.configuredLimit(), 0);
 
-    process.env.DAILY_SEARCH_BUDGET = saved === undefined ? '500' : saved;
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = saved === undefined ? '500' : saved;
     FL.__resetFlagCacheForTest();
 
     const flagCode = code('lib/ledger/flag.js');
     eq('the two unreachable daily_budget_unconfigured branches are absent',
       (flagCode.match(/daily_budget_unconfigured/g) || []).length, 0);
 
-    const staleBudgetClaims = [
-      'lib/ledger/daily-budget.js',
-      'EZIK-RFC-V0.5-R2-FROZEN.md',
-      'EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md',
-    ].flatMap((rel) => {
-      const src = read(rel);
-      return [
-        /configuredLimit\(\) returns `null`/.test(src),
-        /reports `configured: false`/.test(src),
-        /reports `not_configured`/.test(src),
-        /not activatable without a `DAILY_SEARCH_BUDGET` value/.test(src),
-      ];
-    });
-    ok('budget documentation no longer claims the defaulted path is unconfigured',
-      staleBudgetClaims.every((found) => !found));
+    const budgetSource = read('lib/ledger/daily-budget.js');
+    ok('the executable budget has no numeric default and ignores the obsolete single cap',
+      !/DEFAULT_DAILY_SEARCH_BUDGET/.test(budgetSource)
+        && DB.configuredLimit({ VERCEL_ENV: 'preview', DAILY_SEARCH_BUDGET: '999' }) === null);
   }
 
   // =========================================================================

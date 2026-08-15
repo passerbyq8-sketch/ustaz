@@ -14,7 +14,13 @@
 // and any jsdom load failure is contained to retrieval instead of crashing the whole
 // function at invocation.
 
-import { checkAskLimit, MAX_CHAT_BODY_BYTES, MAX_CHAT_TOKENS, applyCorsOrigin } from '../lib/ratelimit.js';
+import {
+  checkAskLimit,
+  MAX_CHAT_BODY_BYTES,
+  MAX_CHAT_TOKENS,
+  applyCorsOrigin,
+  searchBudgetCallerDigests,
+} from '../lib/ratelimit.js';
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
@@ -679,6 +685,12 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: cap.reason, message: dayCapMessage(cap.reason) });
   }
 
+  // Server-derived charging identities only. The helper returns HMAC digests and never raw
+  // account/device/cookie values; every paid-search path below receives the same dimensions.
+  const paidSearchCallerDigests = searchBudgetCallerDigests(req);
+  const { DailySearchBudget } = await import('../lib/ledger/daily-budget.js');
+  const paidSearchBudget = new DailySearchBudget({ callerDigests: paidSearchCallerDigests });
+
   const maxTokens = providerMaxTokens(body.max_tokens);
   // TIER LOCK (directive 82). The UI cannot be the lock: anyone can POST here directly with
   // depth:"scholar" and get the premium model on our bill. So the SERVER decides -- without a
@@ -1159,6 +1171,8 @@ export default async function handler(req, res) {
           providerUrl: ANTHROPIC_URL,
           headers,
           signal: storedUpstream.signal,
+          callerDigests: paidSearchCallerDigests,
+          dailyBudget: paidSearchBudget,
         };
         if (toLedger) {
           // Lazy because it loads Readability/linkedom and the live adapters; specialised
@@ -1217,6 +1231,8 @@ export default async function handler(req, res) {
         liveFetch: storedOut.livePageFetchCalls || 0,
         contentModes: (storedOut.usedEvidence || []).map((entry) => entry.contentMode),
         degraded: storedOut.degraded || [],
+        budgetReason: storedOut.diagnostics?.budget?.lastReason || null,
+        budgetEnvironment: storedOut.diagnostics?.budget?.environment || null,
         elapsedMs: storedOut.elapsedMs || null,
       });
       return emitOnce(storedOut.text || NO_STORED_EVIDENCE);
@@ -1333,13 +1349,15 @@ export default async function handler(req, res) {
     const LIVE_QUANTITY = worldIntent.reason === 'WEATHER' || worldIntent.reason === 'MARKET_PRICE';
     let worldPass = null;
     let worldOpen = false;
+    let worldBudget = null;
     if (worldIntent.world) {
       try {
         const { retrieveWorld, retrieveOpenWorld } = await import('../lib/retrieve.js');
+        worldBudget = paidSearchBudget;
         if (!LIVE_QUANTITY) {
           // No band, no depth, no purpose: none of them means anything on this list, and passing
           // one would suggest it did.
-          const w = remember(await retrieveWorld(questionText));
+          const w = remember(await retrieveWorld(questionText, { dailyBudget: worldBudget }));
           if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
         }
         if (!worldPass) {
@@ -1355,13 +1373,12 @@ export default async function handler(req, res) {
           // readerFromBody() resolves absence to young, so the unidentified reader remains on the
           // strict side without a second fallback rule here. A consistent adult age+band gets the
           // ordinary filter; neither a lone adult band nor an absent age can open it.
-          const { DailySearchBudget } = await import('../lib/ledger/daily-budget.js');
           const o = remember(await retrieveOpenWorld(questionText, {
             band,
             // THE EXISTING CEILING, NOT A SECOND ONE — same module, same global day key, same
             // limit. Constructed here rather than threaded from the ledger branch because that
             // branch is below this one and never runs when this one answers.
-            dailyBudget: new DailySearchBudget(),
+            dailyBudget: worldBudget,
           }));
           if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; }
         }
@@ -1372,6 +1389,7 @@ export default async function handler(req, res) {
     console.log('[world-search]', {
       route: effectiveRoute, intent: worldIntent.world, reason: worldIntent.reason,
       matched: worldIntent.matched, open: worldOpen, band: audienceBand,
+      budgetReason: worldBudget?.snapshot?.().lastReason || null,
       sources: worldPass ? worldPass.sources.length : 0,
       hosts: worldPass ? worldPass.sources.map((s) => { try { return new URL(s.url).hostname; } catch { return '?'; } }) : [],
     });
@@ -1486,7 +1504,9 @@ export default async function handler(req, res) {
         // takhrij lock and the ترجيح screen read; a news or encyclopedia page is «دليلٌ لا حكم» and
         // must never end up in it, or a preference printed on Wikipedia could license one in a
         // fatwa. This page reaches exactly one place — the identity answer below — and no further.
-        const w = await retrieveWorld(nameShape.name, { maxWaves: 1, maxResults: 3 });
+        const w = await retrieveWorld(nameShape.name, {
+          maxWaves: 1, maxResults: 3, dailyBudget: paidSearchBudget,
+        });
         const retrievalOutcome = w && w.diagnostics && w.diagnostics.outcome;
         page = firstPageBearing(nameShape.name, (w && w.sources) || [], nameIdentityTrust);
         const searchCompleted = retrievalOutcome === WORLD_RETRIEVAL_OUTCOME.FOUND
@@ -1945,7 +1965,8 @@ export default async function handler(req, res) {
           // ordinary answers and fail through the complete finalizer.
           finalizerContext.ledgerOutcome = outcome === 'SAFE_REJECTION' ? outcome : '';
         },
-        search: (q, sites) => braveSearch(q, sites),
+        search: (q, sites, searchOptions) => braveSearch(q, sites, searchOptions),
+        searchHandlesDailyBudget: true,
         startedAt: ledgerStartedAt,
         beforeFirstOutput: clearKeepAlive,
         // THE ONE FACT ONLY THIS HANDLER KNOWS. `flagState` is decidePath()'s OWN reason code —
@@ -1956,6 +1977,8 @@ export default async function handler(req, res) {
         // as of 2026-08-07 (owner decision), because a request nobody can observe is a request the
         // group test cannot count. See lib/ledger/telemetry.js record().
         flagState: ledgerPath.reason,
+        callerDigests: paidSearchCallerDigests,
+        dailyBudget: paidSearchBudget,
       });
       return;
     }
@@ -2115,6 +2138,7 @@ export default async function handler(req, res) {
           const { retrieve } = await import('../lib/retrieve.js');
           const scoped = await retrieve(plan.topic || attribution.question, {
             band, depth: effectiveDepth, preferDomain: plan.officialDomain,
+            dailyBudget: paidSearchBudget,
           });
           attributedSources = (scoped.sources || []).map((s) => ({
             scholar: plan.namedEntity,
@@ -2367,7 +2391,9 @@ export default async function handler(req, res) {
         // way; this way it is also spelled the way the sources spell it.
         const asked = lastUserText(body.messages) || attribution.question || '';
         const encQuery = (asked.trim() || `${plan.namedEntity} ${plan.topic || ''}`).trim();
-        const enc = remember(await retrieve(encQuery, { band, depth: effectiveDepth }));
+        const enc = remember(await retrieve(encQuery, {
+          band, depth: effectiveDepth, dailyBudget: paidSearchBudget,
+        }));
         const encSources = (enc.sources || []).slice(0, MAX_SOURCES);
         // Pages exist now, so the source-class rule is armed for every exit below — including the
         // fall-through, which used to be the looser of the two and is the one that actually served
@@ -2679,7 +2705,9 @@ export default async function handler(req, res) {
           // `depth` is passed for RETRIEVAL TARGETING only (lib/source-intent.js reads it).
           // It does not reach the model, and effectiveDepth is already the server-decided
           // value, not the client's claim.
-          const out = remember(await retrieve(q, { band, depth: effectiveDepth }));
+          const out = remember(await retrieve(q, {
+            band, depth: effectiveDepth, dailyBudget: paidSearchBudget,
+          }));
           webText = out.text;
           // PRESERVE (was: dropped). Allow-list trust is already established upstream.
           if (Array.isArray(out.sources) && out.sources.length) {
@@ -2927,7 +2955,9 @@ export default async function handler(req, res) {
         const variants = phraseVariants(claimSubject.subject);
         const probe = variants.length > 1 ? variants[0] + ' ' + variants[1] : claimSubject.subject;
         try {
-          const extra = remember(await retrieve(probe, { band, depth: effectiveDepth }));
+          const extra = remember(await retrieve(probe, {
+            band, depth: effectiveDepth, dailyBudget: paidSearchBudget,
+          }));
           if (Array.isArray(extra.sources) && extra.sources.length) {
             retrievedPages.push(...extra.sources);
             supporting = sourcesAddressingSubject(claimSubject.subject, retrievedPages);

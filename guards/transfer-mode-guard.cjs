@@ -692,7 +692,8 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
     // "no answer was generated" are different claims and only the second one is the feature.
     {
       const saved = {};
-      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG', 'DAILY_SEARCH_BUDGET',
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG',
+        'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_PER_CALLER',
         'MODEL_STANDARD', 'MODEL', 'MODEL_FAST', 'MODEL_PREMIUM'])
         saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
       process.env.ANTHROPIC_API_KEY = 'sk-ant-transfer-guard-fake';
@@ -700,6 +701,9 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
       process.env.RFC_V05_MODE = 'off';
       process.env.LEDGER_RAG = 'off';
       process.env.FOUNDER_SECRET = 'transfer-guard-driven-secret';
+      process.env.VERCEL_ENV = 'preview';
+      process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+      process.env.SEARCH_BUDGET_PER_CALLER = '20';
       if (!MODEL_PROBE_EXPECTED) {
         process.env.MODEL_STANDARD = 'F028_STANDARD_SENTINEL';
         process.env.MODEL = 'F028_LEGACY_SENTINEL';
@@ -710,6 +714,18 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
       try {
         const DC = await esm('lib/daycap.js');
         const CONSENT = await esm('lib/ai-consent.js');
+        const STORE = await esm('lib/ledger/redis.js');
+        let budgetUsed = 0;
+        STORE.__setRedisForTest({
+          async get() { return null; },
+          async set() { return 'OK'; },
+          async eval(_script, _keys, args) {
+            if (budgetUsed >= Number(args[0])) return [budgetUsed, 0, 0, 1];
+            if (budgetUsed >= Number(args[1])) return [budgetUsed, budgetUsed, 0, 2];
+            budgetUsed += 1;
+            return [budgetUsed, budgetUsed, 1, 0];
+          },
+        });
         const DEVICE = 'transfer-guard-device';
         const FOUNDER = DC.founderTokenFor(DEVICE);
         const PUBLISHED_Q = 'ما معنى حديث إنما الأعمال بالنيات';
@@ -720,6 +736,7 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
           vendor = 0;
           judgeCalls = 0;
           judgeRequest = null;
+          budgetUsed = 0;
           const publishedQuestion = config.publishedQuestion || PUBLISHED_Q;
           const pageUrl = config.pageUrl || DEFAULT_URL;
           const pageTitle = config.pageTitle || 'معنى حديث إنما الأعمال بالنيات';
@@ -1097,7 +1114,9 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
         // transfer block with the candidate page after a ledger model failure.
         process.env.LEDGER_RAG = 'on';
         process.env.RFC_V05_MODE = 'public';
-        process.env.DAILY_SEARCH_BUDGET = '20';
+        process.env.VERCEL_ENV = 'preview';
+        process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+        process.env.SEARCH_BUDGET_PER_CALLER = '20';
         const LF = await esm('lib/ledger/flag.js');
         LF.__resetFlagCacheForTest();
         const ledgerCounts = installA3(f5.supportedTransfer, { ledgerFailure: true });
@@ -1109,11 +1128,12 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
           !!ledgerText.trim() && !ledgerText.includes(f5.supportedTransfer.bodyNeedle)
             && sourceCards(ledgerText).length === 0,
           ledgerText.slice(0, 300));
-        ok('...and performs no legacy search or page fetch after the ledger failure',
-          ledgerCounts.search === 0 && ledgerCounts.page === 0 && ledgerCounts.model <= 1,
+        ok('...and performs only Ledger\'s bounded search/page, with no second legacy pass',
+          ledgerCounts.search === 1 && ledgerCounts.page === 1 && ledgerCounts.model <= 2,
           JSON.stringify(ledgerCounts));
       } finally {
         globalThis.fetch = throwingFetch;
+        try { (await esm('lib/ledger/redis.js')).__resetRedis(); } catch {}
         for (const k of Object.keys(saved)) {
           if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
         }

@@ -22,7 +22,9 @@ const path = require('path');
 const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
 
 const ENV_KEYS = ['FOUNDER_SECRET', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LEDGER_RAG',
-  'DAILY_SEARCH_BUDGET', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE'];
+  'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PRODUCTION', 'SEARCH_BUDGET_GLOBAL_PREVIEW',
+  'SEARCH_BUDGET_GLOBAL_DEVELOPMENT', 'SEARCH_BUDGET_PER_CALLER',
+  'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE'];
 
 const REPO = path.join(__dirname, '..');
 
@@ -152,6 +154,9 @@ async function main() {
   process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
   process.env.BRAVE_API_KEY = 'test-brave-not-real';
   process.env.RFC_V05_MODE = 'public';
+  process.env.VERCEL_ENV = 'preview';
+  process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+  process.env.SEARCH_BUDGET_PER_CALLER = '20';
   delete process.env.RFC_V05_LEGACY_POLICY;
   const FOUNDER = DAY.founderTokenFor(DEVICE);
 
@@ -166,15 +171,26 @@ async function main() {
       async incr(k) { const n = (Number(mem.get(k)) || 0) + 1; mem.set(k, n); return n; },
       async expire(k, s) { mem.set(k + ':ex', s); return 1; },
       async eval(script, keys, args) {
-        // The same semantics the real Lua must have: INCR, set TTL on the first increment,
-        // compare against the limit, return [used, allowed].
-        const k = keys[0];
-        const limit = Number(args[0]);
-        const ttl = Number(args[1]);
-        const used = (Number(mem.get(k)) || 0) + 1;
-        mem.set(k, used);
-        if (used === 1) mem.set(k + ':ex', ttl);
-        return [used, used <= limit ? 1 : 0];
+        const globalLimit = Number(args[0]);
+        const callerLimit = Number(args[1]);
+        const expiresAt = Number(args[2]);
+        const globalUsed = Number(mem.get(keys[0])) || 0;
+        if (globalUsed >= globalLimit) return [globalUsed, 0, 0, 1];
+        for (const key of keys.slice(1)) {
+          const callerUsed = Number(mem.get(key)) || 0;
+          if (callerUsed >= callerLimit) return [globalUsed, callerUsed, 0, 2];
+        }
+        const nextGlobal = globalUsed + 1;
+        mem.set(keys[0], nextGlobal);
+        if (nextGlobal === 1) mem.set(keys[0] + ':ex', expiresAt);
+        let callerMax = 0;
+        for (const key of keys.slice(1)) {
+          const nextCaller = (Number(mem.get(key)) || 0) + 1;
+          mem.set(key, nextCaller);
+          if (nextCaller === 1) mem.set(key + ':ex', expiresAt);
+          callerMax = Math.max(callerMax, nextCaller);
+        }
+        return [nextGlobal, callerMax, 1, 0];
       },
     });
   };
@@ -409,18 +425,23 @@ async function main() {
       buildSourceTag: ASK.buildSourceTag,
       search: async () => (script.braveResults || BRAVE_RESULTS)
         .map((r) => ({ url: r.url, title: r.title, snippet: '' })),
-      dailyBudget: new DB.DailySearchBudget({ limit: 1000, now: () => 1770000000000 }),
+      dailyBudget: new DB.DailySearchBudget({
+        limit: 1000, now: () => 1770000000000,
+        callerDigests: ['wiring_seam_caller_digest_01'],
+      }),
     });
     return { out, res, text: readerText(res), modelCalls: modelCalls.slice() };
   };
 
   const driveLedger = async (question, band, script, envOverrides = {}) => {
     // LEDGER_RAG is overridable now: since the go-live the env FLOOR is the lever that switches
-    // this path off, where an absent DAILY_SEARCH_BUDGET used to do it as a side effect.
+    // this path off; paid-search caps are enforced independently at the transport boundary.
     process.env.LEDGER_RAG = envOverrides.LEDGER_RAG === undefined ? 'on' : envOverrides.LEDGER_RAG;
-    process.env.DAILY_SEARCH_BUDGET = envOverrides.DAILY_SEARCH_BUDGET === undefined
-      ? '100' : envOverrides.DAILY_SEARCH_BUDGET;
-    if (envOverrides.DAILY_SEARCH_BUDGET === null) delete process.env.DAILY_SEARCH_BUDGET;
+    process.env.VERCEL_ENV = 'preview';
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = envOverrides.SEARCH_BUDGET_GLOBAL_PREVIEW === undefined
+      ? '40' : envOverrides.SEARCH_BUDGET_GLOBAL_PREVIEW;
+    process.env.SEARCH_BUDGET_PER_CALLER = envOverrides.SEARCH_BUDGET_PER_CALLER === undefined
+      ? '20' : envOverrides.SEARCH_BUDGET_PER_CALLER;
     installRedis('on');
     FLAG.__resetFlagCacheForTest();
     installFetch(script);
@@ -460,7 +481,7 @@ async function main() {
     const out = await driveSeam('هل خالف ابن تيمية أهل السنة والجماعة؟', script);
     const outH = await driveLedger('هل خالف ابن تيمية أهل السنة والجماعة؟', 'adult', script);
 
-    ok('the handler compares the local, fatwa and live paths for the religious topic',
+    ok('the handler falls through local -> fatwa -> live when named direct evidence is unavailable',
       outH.hybrid && outH.hybrid.corpusCalls === 1
         && outH.hybrid.fatwaSearch === 1 && outH.braveCalls >= 1
         && outH.pageFetches.some((url) => /^https:\/\/islamqa\.info\//u.test(String(url)))
@@ -586,17 +607,16 @@ async function main() {
     process.env.LEDGER_RAG = 'on';
     installRedis('on');
     FLAG.__resetFlagCacheForTest();
-    delete process.env.DAILY_SEARCH_BUDGET;
+    delete process.env.SEARCH_BUDGET_GLOBAL_PREVIEW;
     const d = await FLAG.decidePath(makeReq('س', 'adult'));
-    eq('decidePath admits the ledger on the default ceiling', d.path, 'ledger');
-    ok('...and the ceiling it will run under is a real finite cap',
-      Number.isInteger(BUDGET.configuredLimit()) && BUDGET.configuredLimit() > 0
-      && Number.isFinite(BUDGET.configuredLimit()), String(BUDGET.configuredLimit()));
-    process.env.DAILY_SEARCH_BUDGET = '100';
+    eq('decidePath remains independent from an unconfigured paid transport', d.path, 'ledger');
+    eq('...and the missing cap is a hard stop rather than an implicit allowance',
+      BUDGET.configuredLimit(), null);
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
     FLAG.__resetFlagCacheForTest();
     const d2 = await FLAG.decidePath(makeReq('س', 'adult'));
     eq('...and a written ceiling is honoured just the same', d2.path, 'ledger');
-    eq('...with the env value governing the number', BUDGET.configuredLimit(), 100);
+    eq('...with the preview env value governing the number', BUDGET.configuredLimit(), 40);
     // THE FLOOR IS STILL THE THING THAT STOPS IT, and it stops it before a provider is touched.
     const script = { plan: { issues: [], missing_qualifiers: [], confidence: 'high' }, annotations: [], sentences: [] };
     const out = await driveLedger('ما حكم المسألة؟', 'adult', script, { LEDGER_RAG: 'off' });
@@ -631,7 +651,10 @@ async function main() {
   {
     // (3) ATOMICITY: one operation, and the TTL is set by the same operation.
     installRedis(undefined);
-    const b = new DB.DailySearchBudget({ limit: 4, now: () => 1770000000000 });
+    const b = new DB.DailySearchBudget({
+      limit: 4, now: () => 1770000000000,
+      callerDigests: ['wiring_atomic_caller_digest_02'],
+    });
     const results = await Promise.all(Array.from({ length: 10 }, () => b.reserve()));
     eq('ten concurrent reservations at limit 4 grant exactly four', results.filter((r) => r.ok).length, 4);
     const key = DB.dayKey(1770000000000);
@@ -660,7 +683,10 @@ async function main() {
     });
 
     // NOTHING verified before the ceiling: a clean SERVICE_LIMITED.
-    const zero = new DB.DailySearchBudget({ limit: 0, now: () => 1770000000000 });
+    const zero = new DB.DailySearchBudget({
+      limit: 0, now: () => 1770000000000,
+      callerDigests: ['wiring_zero_caller_digest_03'],
+    });
     const out0 = await ENG.runEngine('ما حكم المسألة؟', {
       band: 'adult', bandSites: ['islamqa.info'], search: async () => BRAVE_RESULTS,
       dailyBudget: zero,
@@ -755,7 +781,9 @@ async function main() {
     // case is already driven through Legacy above and does not need to open Ledger's adult-only
     // source adapters merely to repeat the same identity assertion.
     process.env.LEDGER_RAG = 'on';
-    process.env.DAILY_SEARCH_BUDGET = '100';
+    process.env.VERCEL_ENV = 'preview';
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+    process.env.SEARCH_BUDGET_PER_CALLER = '20';
     for (const [label, body, expected] of cases.filter((entry) => entry[2] === 'young')) {
       installRedis('on');
       FLAG.__resetFlagCacheForTest();

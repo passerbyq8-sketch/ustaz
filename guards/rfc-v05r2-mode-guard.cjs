@@ -39,7 +39,8 @@ const path = require('path');
 const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
 
 const ENV_KEYS = ['LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE',
-  'DAILY_SEARCH_BUDGET', 'FOUNDER_SECRET'];
+  'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PRODUCTION', 'SEARCH_BUDGET_GLOBAL_PREVIEW',
+  'SEARCH_BUDGET_GLOBAL_DEVELOPMENT', 'SEARCH_BUDGET_PER_CALLER', 'FOUNDER_SECRET'];
 
 const REPO = path.join(__dirname, '..');
 const sourceArg = (name) => {
@@ -98,7 +99,9 @@ async function main() {
     LEDGER_RAG: process.env.LEDGER_RAG,
     RFC_V05_LEGACY_POLICY: process.env.RFC_V05_LEGACY_POLICY,
     RFC_V05_MODE: process.env.RFC_V05_MODE,
-    DAILY_SEARCH_BUDGET: process.env.DAILY_SEARCH_BUDGET,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    SEARCH_BUDGET_GLOBAL_PREVIEW: process.env.SEARCH_BUDGET_GLOBAL_PREVIEW,
+    SEARCH_BUDGET_PER_CALLER: process.env.SEARCH_BUDGET_PER_CALLER,
     FOUNDER_SECRET: process.env.FOUNDER_SECRET,
   };
   const restore = () => {
@@ -121,10 +124,15 @@ async function main() {
   // assertion below can be reading a value another assertion left behind.
   const fresh = () => { clock += 100000; FL.__resetFlagCacheForTest(); LP.__resetLegacyFlagCacheForTest(); return clock; };
   const setEnv = (o) => {
-    for (const k of ['LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE', 'DAILY_SEARCH_BUDGET']) delete process.env[k];
+    for (const k of ['LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE', 'VERCEL_ENV',
+      'SEARCH_BUDGET_GLOBAL_PRODUCTION', 'SEARCH_BUDGET_GLOBAL_PREVIEW',
+      'SEARCH_BUDGET_GLOBAL_DEVELOPMENT', 'SEARCH_BUDGET_PER_CALLER']) delete process.env[k];
     for (const [k, v] of Object.entries(o)) process.env[k] = v;
   };
-  const FLOORS = { LEDGER_RAG: 'on', RFC_V05_LEGACY_POLICY: 'on', DAILY_SEARCH_BUDGET: '20' };
+  const FLOORS = {
+    LEDGER_RAG: 'on', RFC_V05_LEGACY_POLICY: 'on', VERCEL_ENV: 'preview',
+    SEARCH_BUDGET_GLOBAL_PREVIEW: '40', SEARCH_BUDGET_PER_CALLER: '20',
+  };
 
   // =========================================================================
   console.log('\n=== A. THE MODE VALUE ITSELF ===');
@@ -206,7 +214,7 @@ async function main() {
     // closed floor, so «no floor» and «floor off» were the same test. They are different now: an
     // unset floor is OPEN, and only an explicit `off` closes it. That explicit `off` is the brake
     // the go-live promised to keep, so it is what this section asserts.
-    setEnv({ LEDGER_RAG: 'off', RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '20' });
+    setEnv({ ...FLOORS, LEDGER_RAG: 'off', RFC_V05_MODE: 'public' });
     let t = fresh();
     eq('public with the ledger floor CLOSED => legacy', (await FL.decidePath(anonReq, t)).path, 'legacy');
     t = fresh();
@@ -216,7 +224,10 @@ async function main() {
       (await FL.decidePath(internalReq, t)).path, 'legacy');
     // The POLICY floor is a separate env var and is unchanged by the go-live: it is still off
     // unless RFC_V05_LEGACY_POLICY says otherwise.
-    setEnv({ RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '20' });
+    setEnv({
+      LEDGER_RAG: 'on', VERCEL_ENV: 'preview', SEARCH_BUDGET_GLOBAL_PREVIEW: '40',
+      SEARCH_BUDGET_PER_CALLER: '20', RFC_V05_MODE: 'public',
+    });
     t = fresh();
     eq('public with NO policy floor => repairs off', (await LP.decideLegacyPolicy(anonReq, t)).enabled, false);
   }
@@ -235,21 +246,23 @@ async function main() {
     // always a ceiling, it is a real finite number, a typo can never remove it, and a written
     // value still governs".
     redis._map.clear();
-    setEnv({ LEDGER_RAG: 'on', RFC_V05_LEGACY_POLICY: 'on', RFC_V05_MODE: 'public' });
-    ok('an unwritten ceiling is a real finite number, never null and never unlimited',
-      Number.isInteger(DB.configuredLimit()) && DB.configuredLimit() > 0
-        && Number.isFinite(DB.configuredLimit()), String(DB.configuredLimit()));
-    eq('...so the path is configured by construction', DB.isConfigured(), true);
+    setEnv({ LEDGER_RAG: 'on', RFC_V05_LEGACY_POLICY: 'on', RFC_V05_MODE: 'public',
+      VERCEL_ENV: 'preview', SEARCH_BUDGET_PER_CALLER: '20' });
+    eq('an unwritten v2 global ceiling is unconfigured, never unlimited', DB.configuredLimit(), null);
+    eq('...so paid search is fail-closed until the global cap is configured', DB.isConfigured(), false);
     let t = fresh();
-    eq('public with the default ceiling => ledger', (await FL.decidePath(anonReq, t)).path, 'ledger');
+    eq('retrieval routing stays public while paid transport remains capped downstream',
+      (await FL.decidePath(anonReq, t)).path, 'ledger');
     for (const bad of ['', 'lots', '-1', '2.5', 'Infinity']) {
-      setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: bad });
-      eq('a garbled ceiling «' + bad + '» falls back to the default, never to "no cap"',
-        DB.configuredLimit(), DB.DEFAULT_DAILY_SEARCH_BUDGET);
+      setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', VERCEL_ENV: 'preview',
+        SEARCH_BUDGET_GLOBAL_PREVIEW: bad, SEARCH_BUDGET_PER_CALLER: '20' });
+      eq('a garbled ceiling «' + bad + '» fails closed', DB.configuredLimit(), null);
     }
-    setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '20' });
-    eq('a written ceiling still governs', DB.configuredLimit(), 20);
-    setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', DAILY_SEARCH_BUDGET: '0' });
+    setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', VERCEL_ENV: 'preview',
+      SEARCH_BUDGET_GLOBAL_PREVIEW: '40', SEARCH_BUDGET_PER_CALLER: '20' });
+    eq('a written environment ceiling governs', DB.configuredLimit(), 40);
+    setEnv({ LEDGER_RAG: 'on', RFC_V05_MODE: 'public', VERCEL_ENV: 'preview',
+      SEARCH_BUDGET_GLOBAL_PREVIEW: '0', SEARCH_BUDGET_PER_CALLER: '20' });
     eq('an explicit zero is honoured, not overwritten by the default', DB.configuredLimit(), 0);
   }
 

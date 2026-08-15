@@ -187,7 +187,9 @@ const user = (t) => [{ role: 'user', content: t }];
 
   process.env.ANTHROPIC_API_KEY = 'stub-for-gate';
   const savedEnv = { LEDGER_RAG: process.env.LEDGER_RAG, FOUNDER_SECRET: process.env.FOUNDER_SECRET, LEDGER_CACHE_SECRET: process.env.LEDGER_CACHE_SECRET,
-    MODEL_STANDARD: process.env.MODEL_STANDARD, MODEL_PREMIUM: process.env.MODEL_PREMIUM, MODEL: process.env.MODEL };
+    MODEL_STANDARD: process.env.MODEL_STANDARD, MODEL_PREMIUM: process.env.MODEL_PREMIUM, MODEL: process.env.MODEL,
+    VERCEL_ENV: process.env.VERCEL_ENV, SEARCH_BUDGET_GLOBAL_PREVIEW: process.env.SEARCH_BUDGET_GLOBAL_PREVIEW,
+    SEARCH_BUDGET_PER_CALLER: process.env.SEARCH_BUDGET_PER_CALLER };
   process.env.FOUNDER_SECRET = 'seam-secret';
   process.env.MODEL_STANDARD = 'seam-standard';
   process.env.MODEL_PREMIUM = 'seam-premium';
@@ -436,16 +438,20 @@ const user = (t) => [{ role: 'user', content: t }];
   {
     // The actual /api/ask handler takes the Ledger path. All provider/store dependencies are
     // local doubles; the finalizer context can only be populated by runLedgerTurn's callback.
-    const handlerEnv = Object.fromEntries(['LEDGER_RAG', 'RFC_V05_MODE', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET']
+    const handlerEnv = Object.fromEntries(['LEDGER_RAG', 'RFC_V05_MODE', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET',
+      'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_PER_CALLER']
       .map((key) => [key, process.env[key]]));
     process.env.LEDGER_RAG = 'true';
     process.env.RFC_V05_MODE = 'public';
     process.env.ANTHROPIC_API_KEY = 'a1-ledger-handler';
     process.env.BRAVE_API_KEY = 'a1-ledger-handler';
     process.env.FOUNDER_SECRET = 'a1-ledger-handler-secret';
+    process.env.VERCEL_ENV = 'preview';
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '100';
+    process.env.SEARCH_BUDGET_PER_CALLER = '100';
     const storeClient = {
       async get() { return null; }, async set() { return 'OK'; }, async setex() { return 'OK'; },
-      async eval() { return [1, 1]; }, async incr() { return 1; }, async expire() { return 1; },
+      async eval() { return [1, 1, 1, 0]; }, async incr() { return 1; }, async expire() { return 1; },
     };
     STORE.__setRedisForTest(storeClient);
     FL.__resetFlagCacheForTest();
@@ -757,9 +763,11 @@ const user = (t) => [{ role: 'user', content: t }];
     // 'public', so a case that left it alone would be testing the public arm while claiming to
     // test another — which is exactly how this section started failing when the default flipped.
     const decide = async (env, mode, req, flagValue) => {
-      // A ceiling is present in all of these: they are about the floor, the mode, the credential
-      // and the kill switch. The ceiling's own behaviour is asserted in ledger-runtime-guard.
-      process.env.DAILY_SEARCH_BUDGET = '500';
+      // The switch itself does not spend, but keep the canonical v2 caps configured so this
+      // fixture cannot accidentally depend on the retired DAILY_SEARCH_BUDGET variable.
+      process.env.VERCEL_ENV = 'preview';
+      process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '500';
+      process.env.SEARCH_BUDGET_PER_CALLER = '500';
       process.env.LEDGER_RAG = env;
       process.env.RFC_V05_MODE = mode;
       redis._m.clear();
@@ -1406,7 +1414,8 @@ const user = (t) => [{ role: 'user', content: t }];
     const PREMIUM = 'planner-premium-sentinel';
     const LEGACY = 'planner-legacy-sentinel';
     const routeKeys = ['LEDGER_RAG', 'RFC_V05_MODE', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY',
-      'FOUNDER_SECRET', 'MODEL_STANDARD', 'MODEL_PREMIUM', 'MODEL', 'DAILY_SEARCH_BUDGET'];
+      'FOUNDER_SECRET', 'MODEL_STANDARD', 'MODEL_PREMIUM', 'MODEL', 'VERCEL_ENV',
+      'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_PER_CALLER'];
     const routeSaved = routeKeys.map((key) => [key,
       Object.prototype.hasOwnProperty.call(process.env, key), process.env[key]]);
     const realFetch = globalThis.fetch;
@@ -1430,14 +1439,16 @@ const user = (t) => [{ role: 'user', content: t }];
     process.env.MODEL_STANDARD = STANDARD;
     process.env.MODEL_PREMIUM = PREMIUM;
     process.env.MODEL = LEGACY;
-    process.env.DAILY_SEARCH_BUDGET = '500';
+    process.env.VERCEL_ENV = 'preview';
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '500';
+    process.env.SEARCH_BUDGET_PER_CALLER = '500';
 
     const ledgerStore = new Map();
     STORE.__setRedisForTest({
       async get(key) { return ledgerStore.has(key) ? ledgerStore.get(key) : null; },
       async set(key, value) { ledgerStore.set(key, value); return 'OK'; },
       async setex(key, _ttl, value) { ledgerStore.set(key, value); return 'OK'; },
-      async eval() { return [1, 1]; }, async incr() { return 1; }, async expire() { return 1; },
+      async eval() { return [1, 1, 1, 0]; }, async incr() { return 1; }, async expire() { return 1; },
     });
     const capCounts = new Map();
     DC.__setRedisForTest({

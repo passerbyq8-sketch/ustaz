@@ -285,6 +285,9 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     };
     process.env.BRAVE_API_KEY = process.env.BRAVE_API_KEY || 'stub-for-gate';
     const { retrieve, resetBreakers } = await esm('lib/retrieve.js');
+    // Paid search is fail-closed in production. This offline gate owns a provider double, so it
+    // also owns an explicit successful reservation double for each Brave transport attempt.
+    const paidBudget = { reserve: async () => ({ ok: true }) };
 
     const reset = () => {
       scenario.braveQueries = []; scenario.pageFetches = [];
@@ -309,7 +312,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     reset();
     scenario.results[1] = [{ title: 'x', url: 'https://islamweb.net/ar/fatwa/1/x', description: '' }];
     scenario.pages['https://islamweb.net/ar/fatwa/1/x'] = PAGE('حكم صيام يوم عرفة');
-    let out = await retrieve('ما حكم صيام عرفة', { band: 'adult' });
+    let out = await retrieve('ما حكم صيام عرفة', { band: 'adult', dailyBudget: paidBudget });
     ok('a verified source is returned', out.sources.length === 1, JSON.stringify(out.sources.map((s) => s.url)));
     ok('every Brave query sent is within the HARD limit', scenario.braveQueries.every((q) => B.withinHard(q)));
     ok('every Brave query sent is within OUR SAFE limit', scenario.braveQueries.every((q) => B.withinSafe(q)),
@@ -324,7 +327,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     // and not khutabaa's (correct) refusal to cite an anonymous khutbah.
     scenario.results[2] = [{ title: 'y', url: 'https://ferkous.app/ar/fatawa/1', description: '' }];
     scenario.pages['https://ferkous.app/ar/fatawa/1'] = PAGE('خطبة عن بر الوالدين');
-    out = await retrieve('خطبة عن بر الوالدين', { band: 'adult' });
+    out = await retrieve('خطبة عن بر الوالدين', { band: 'adult', dailyBudget: paidBudget });
     ok('group 1 empty -> a second Brave request is made', scenario.braveQueries.length >= 2,
       String(scenario.braveQueries.length));
     ok('...and group 2 can answer the question', out.sources.length === 1, JSON.stringify(out.sources.map((s) => s.url)));
@@ -334,7 +337,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     scenario.results[1] = [{ title: 'i', url: 'https://mostafaaladwy.com/fatwa-category/x/', description: '' }];
     scenario.results[2] = [{ title: 'y', url: 'https://ferkous.app/ar/fatawa/2', description: '' }];
     scenario.pages['https://ferkous.app/ar/fatawa/2'] = PAGE('خطبة عن الصبر');
-    out = await retrieve('خطبة عن الصبر', { band: 'adult' });
+    out = await retrieve('خطبة عن الصبر', { band: 'adult', dailyBudget: paidBudget });
     ok('an index page in group 1 does not end the search', scenario.braveQueries.length >= 2);
     ok('...and the listing was never fetched', !scenario.pageFetches.some((u) => u.includes('fatwa-category')));
 
@@ -344,7 +347,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     scenario.results[1] = [{ title: 'd', url: DUP, description: '' }];
     scenario.results[2] = [{ title: 'd', url: DUP, description: '' }];
     // no page body registered -> 404 -> not usable, so both groups run
-    out = await retrieve('سؤال عام عن الأخلاق', { band: 'adult' });
+    out = await retrieve('سؤال عام عن الأخلاق', { band: 'adult', dailyBudget: paidBudget });
     eq('a duplicate URL across groups is fetched only once',
       scenario.pageFetches.filter((u) => u === DUP).length, 1);
     eq('...and with nothing usable, no source is invented', out.sources.length, 0);
@@ -353,13 +356,13 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
     reset();
     scenario.results[1] = [{ title: 'c', url: 'https://binbaz.org.sa/fatwas/1/x', description: '' }];
     scenario.pages['https://binbaz.org.sa/fatwas/1/x'] = PAGE('حكم صيام يوم عرفة');
-    out = await retrieve('ما حكم صيام عرفة', { band: 'young' });
+    out = await retrieve('ما حكم صيام عرفة', { band: 'young', dailyBudget: paidBudget });
     eq('the child band still costs exactly one Brave request', scenario.braveQueries.length, 1);
     ok('...and still returns its source', out.sources.length === 1);
 
     // Worst case: nothing anywhere. Bounded requests, and no fabrication.
     reset();
-    out = await retrieve('سؤال لا مصدر له إطلاقا', { band: 'adult' });
+    out = await retrieve('سؤال لا مصدر له إطلاقا', { band: 'adult', dailyBudget: paidBudget });
     ok('worst case makes at most 3 Brave requests', scenario.braveQueries.length <= 3,
       String(scenario.braveQueries.length));
     ok('worst case fetches no more than 8 pages', scenario.pageFetches.length <= 8,

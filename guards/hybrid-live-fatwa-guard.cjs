@@ -225,26 +225,30 @@ async function runHybridGuard() {
   ok('answerable sparse fiqh is routed to hybrid', contextFor(S, R, A, 'هل النقاب واجب؟').runtime === 'STORED_FIQH');
   ok('sparse named fiqh is routed to hybrid', contextFor(S, R, A, 'ما رأي ابن عثيمين فيمن أسقطت دون ثمانين يومًا؟').runtime === 'STORED_FIQH');
 
-  console.log('\n--- THREE INDEPENDENT PATHS AND USED-CARD LIFECYCLE ---');
+  console.log('\n--- ORDERED SOURCE TIERS AND USED-CARD LIFECYCLE ---');
   const f = fatwaEvidence();
   const events = [];
-  const localReal = (opts) => { events.push('local:start'); return S.retrieveStoredFiqhEvidence(opts).then((x) => { events.push('local:end'); return x; }); };
+  const localEmpty = async () => {
+    events.push('local:start');
+    await Promise.resolve();
+    events.push('local:end');
+    return { storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] };
+  };
   const integrated = await H.runHybridDeenTurn({
     context: joinContext, band: 'adult', depth: 'normal', dailyBudget: budget,
-    localRetrieve: localReal,
+    localRetrieve: localEmpty,
     fatwaSearch: async () => { events.push('fatwa:start'); await Promise.resolve(); events.push('fatwa:end'); return {
       calls: 1, verification: { status: 'OK', scholars: 18, total: 73130, ibnBaz: 18479, failures: [] }, records: [f],
     }; },
     liveRetrieve: async (_q, opts) => { events.push('brave:start'); await Promise.resolve(); events.push('brave:end'); return markLive(opts.diagnostics); },
     generate: modelUsing(f.id, f.supportText), verify: verifyIds(f.id),
   });
-  ok('ordinary DEEN invokes local + fatwa + Brave/fetch', integrated.storedCorpusCalls === 1
-    && integrated.fatwaSearchCalls === 1 && integrated.braveSearchCalls === 1
-    && integrated.livePageFetchCalls === 1, JSON.stringify(integrated));
-  ok('unnamed independent paths start in parallel', ['local:start', 'fatwa:start', 'brave:start']
-    .every((event) => events.indexOf(event) >= 0 && events.indexOf(event) < Math.min(
-      ...['local:end', 'fatwa:end', 'brave:end'].map((end) => events.indexOf(end))
-    )), JSON.stringify(events));
+  ok('ordinary DEEN falls through local to fatwa and does not spend Brave when fatwa answers',
+    integrated.storedCorpusCalls === 1 && integrated.fatwaSearchCalls === 1
+      && integrated.braveSearchCalls === 0 && integrated.livePageFetchCalls === 0,
+    JSON.stringify(integrated));
+  eq('source tiers run in strict local -> fatwa order and stop before Brave', events,
+    ['local:start', 'local:end', 'fatwa:start', 'fatwa:end']);
   eq('only evidence used by a sentence receives a card', integrated.cards.map((card) => card.evidenceId), [f.id]);
   eq('used evidence is separately observable', integrated.validatedUsedEvidenceIds, [f.id]);
   ok('fatwa health totals travel into telemetry', integrated.fatwaValidation.status === 'OK'
@@ -275,7 +279,8 @@ async function runHybridGuard() {
     liveRetrieve: async (_q, opts) => { namedEvents.push('live:start'); namedEvents.push('live:end'); return markLive(opts.diagnostics, { sources: [] }); },
     generate: modelUsing(f.id, f.supportText), verify: verifyIds(f.id),
   });
-  ok('named scholar uses exact fatwa id before official live preference', namedEvents.indexOf('fatwa:end') < namedEvents.indexOf('live:start'), JSON.stringify(namedEvents));
+  eq('named scholar uses the exact fatwa id and stops before paid live search', namedEvents,
+    ['fatwa:start', 'fatwa:end']);
 
   console.log('\n--- DEGRADATION IS NOT CLARIFICATION ---');
   const common = {
@@ -284,24 +289,32 @@ async function runHybridGuard() {
     generate: async () => { throw new Error('fixture synthesis unavailable'); },
     verify: async () => '{"supported_ids":[]}',
   };
+  let closedBraveCalls = 0;
   const braveDown = await H.runHybridDeenTurn({ ...common,
+    localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+    dailyBudget: { reserve: async () => ({ ok: false, reason: 'day_cap_reached' }),
+      snapshot: () => ({ lastReason: 'day_cap_reached' }) },
     fatwaSearch: async () => ({ calls: 1, records: [f] }),
-    liveRetrieve: async (_q, opts) => { opts.diagnostics.search.failed++; throw new Error('429'); },
+    liveRetrieve: async () => { closedBraveCalls++; throw new Error('Brave must stay closed'); },
   });
-  ok('Brave-only failure still answers from eligible evidence', braveDown.outcome === 'ANSWER'
-    && braveDown.degraded.some((x) => x.startsWith('brave:')) && !/وضح|حدد|NEEDS_QUALIFIER/u.test(braveDown.text));
+  ok('fatwa evidence answers while Brave is experimentally day-cap closed', braveDown.outcome === 'ANSWER'
+    && closedBraveCalls === 0 && braveDown.braveSearchCalls === 0
+    && !/وضح|حدد|NEEDS_QUALIFIER/u.test(braveDown.text));
   const fatwaDown = await H.runHybridDeenTurn({ ...common,
+    localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
     fatwaSearch: async () => { throw new Error('fatwa_offline'); },
     liveRetrieve: async (_q, opts) => markLive(opts.diagnostics),
   });
   ok('fatwa-only failure still answers from local/live evidence', fatwaDown.outcome === 'ANSWER'
     && fatwaDown.degraded.some((x) => x.startsWith('fatwa:')));
+  let skippedRemoteCalls = 0;
   const bothDown = await H.runHybridDeenTurn({ ...common,
-    fatwaSearch: async () => { throw new Error('fatwa_offline'); },
-    liveRetrieve: async (_q, opts) => { opts.diagnostics.search.failed++; throw new Error('429'); },
+    fatwaSearch: async () => { skippedRemoteCalls++; throw new Error('fatwa_offline'); },
+    liveRetrieve: async () => { skippedRemoteCalls++; throw new Error('429'); },
   });
-  ok('both remote failures still answer when local evidence remains', bothDown.outcome === 'ANSWER'
-    && bothDown.storedCorpusCalls === 1 && !/وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(bothDown.text));
+  ok('eligible local evidence prevents both remote paths from being invoked', bothDown.outcome === 'ANSWER'
+    && bothDown.storedCorpusCalls === 1 && skippedRemoteCalls === 0
+    && !/وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(bothDown.text));
   const noReference = await H.runHybridDeenTurn({ context: contextFor(S, R, A, 'ما حكمه؟') });
   ok('empty reference states absence without a follow-up question', noReference.outcome === 'REFERENCE_ABSENT'
     && noReference.cards.length === 0 && !/[؟?]/u.test(noReference.text));
@@ -400,6 +413,52 @@ async function runHybridGuard() {
       && conflictFallback.text.includes('ليس واجبًا') && conflictFallback.cards.length === 2,
     JSON.stringify({ text: conflictFallback.text, cards: conflictFallback.cards }));
 
+  const veilForms = [
+    'النقاب', 'تغطية وجه المرأة', 'ستر وجه المرأة', 'كشف وجه المرأة',
+    'حكم الوجه والكفين', 'هل النقاب واجب؟', 'حكم تغطية وجه المرأة',
+  ];
+  ok('all required face-veil phrasings resolve to one retrieval topic',
+    veilForms.every((form) => S.canonicalStoredTopic(form) === 'هل النقاب واجب'));
+  eq('the fatwa service uses a bounded two-query veil expansion',
+    FSVC.__fatwaTest.searchQueriesFor(veil), ['هل النقاب واجب؟', 'حكم تغطية وجه المرأة']);
+
+  const publishedVeilDisagreement = fatwaEvidence({
+    id: 'fatwa:aladawy:1054', title: 'هل النقاب واجب أم مستحب ؟',
+    url: 'https://mostafaaladwy.com/fatwa/1054/x', publisher: 'مصطفى العدوي',
+    authorityId: 'mostafa-aladwy', scholarId: 'aladawy',
+    supportText: 'الشيخ: والله يا أختي النقاب في وجوبه قولان مشهوران للعلماء: القول الأول: وجوب تغطية الوجه، والثاني: جواز كشفه إذا لم تكن هناك فتنة. وأنا أختار القول الأول لإقامة الدليل عليه ألا وهو: أن النقاب يجب، فالنقاب واجب فيما أختاره، والله أعلم.',
+    passage: 'الشيخ: والله يا أختي النقاب في وجوبه قولان مشهوران للعلماء: القول الأول: وجوب تغطية الوجه، والثاني: جواز كشفه إذا لم تكن هناك فتنة. وأنا أختار القول الأول لإقامة الدليل عليه ألا وهو: أن النقاب يجب، فالنقاب واجب فيما أختاره، والله أعلم.',
+  });
+  const closedBudget = {
+    reserve: async () => ({ ok: false, reason: 'day_cap_reached' }),
+    snapshot: () => ({ configured: true, environment: 'preview', lastReason: 'day_cap_reached' }),
+  };
+  for (const question of ['هل النقاب واجب؟', 'حكم تغطية وجه المرأة']) {
+    const questionContext = contextFor(S, R, A, question);
+    let liveCalls = 0;
+    const result = await H.runHybridDeenTurn({
+      context: questionContext, band: 'adult', depth: 'normal', dailyBudget: closedBudget,
+      localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+      fatwaSearch: async () => ({
+        calls: 2, queries: ['هل النقاب واجب؟', 'حكم تغطية وجه المرأة'],
+        verification: { status: 'OK', scholars: 18, total: 73130, ibnBaz: 18479, failures: [] },
+        records: [publishedVeilDisagreement],
+      }),
+      liveRetrieve: async () => { liveCalls++; throw new Error('Brave must remain closed'); },
+      generate: async () => { throw new Error('model memory disabled'); },
+      verify: async () => '{"supported_ids":[]}',
+    });
+    ok(question + ' returns documented disagreement from fatwa service with Brave closed',
+      result.outcome === 'ANSWER' && result.fatwaSearchCalls === 2
+        && result.fatwaValidation?.status === 'OK' && result.braveSearchCalls === 0 && liveCalls === 0
+        && H.__hybridTest.veilStances(result.text).duty && H.__hybridTest.veilStances(result.text).nonDuty
+        && !/وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(result.text), JSON.stringify(result));
+    eq(question + ' used evidence exactly equals its source cards',
+      result.validatedUsedEvidenceIds, result.cards.map((card) => card.evidenceId));
+    eq(question + ' uses only the qualifying published fatwa',
+      result.validatedUsedEvidenceIds, ['fatwa:aladawy:1054']);
+  }
+
   const goldContext = contextFor(S, R, A, 'ما حكم بيع الذهب بالتقسيط؟');
   const goldSupport = 'شراء الذهب بالتقسيط بعملة ورقية حرام ولا يجوز؛ لأن بيع الذهب بالنقد يشترط فيه التقابض في العقد قبل التفرق.';
   const goldEvidence = fatwaEvidence({
@@ -446,11 +505,7 @@ async function runHybridGuard() {
     JSON.stringify({ text: broadJoin.text, outcome: broadJoin.outcome, cards: broadJoin.cards,
       traveller: /مسافر/u.test(broadJoin.text), rain: /المطر/u.test(broadJoin.text),
       clarification: /وضح|حدد|هل تقصد|NEEDS_QUALIFIER/u.test(broadJoin.text) }));
-  ok('the live veil query explicitly searches the documented disagreement within Brave limits',
-    veilLiveQueries.length === 2 && veilLiveQueries.some((query) => query.includes('فرض أم مستحب') && query.includes('ليس بواجب'))
-      && veilLiveQueries.every((query) => BQ.measureQuery(query).chars <= 380
-        && BQ.measureQuery(query).words <= 45),
-    JSON.stringify(veilLiveQueries));
+  eq('qualified fatwa disagreement prevents every paid veil query', veilLiveQueries, []);
 
   console.log('\n--- BRAVE, HOST/FETCH AND SERVER-ONLY PROXY CONTRACTS ---');
   const planned = BQ.planQueries('سؤال '.repeat(200), RET.SITES_ADULT);
@@ -510,10 +565,15 @@ async function runHybridGuard() {
       'const usedEvidence = [];',
       'const usedEvidence = pack.slice(0, MAX_CARDS); // mutant: cards for unused evidence',
     ));
+    const unused = fatwaEvidence({
+      id: 'fatwa:binbaz:unused', url: 'https://binbaz.org.sa/fatwas/unused/x',
+      supportText: f.supportText + ' وهذه نتيجة ثانية لم يستخدمها الجواب.',
+      passage: f.supportText + ' وهذه نتيجة ثانية لم يستخدمها الجواب.',
+    });
     const mutantCards = await mCards.runHybridDeenTurn({
       context: joinContext, band: 'adult', depth: 'normal', dailyBudget: budget,
-      localRetrieve: (opts) => S.retrieveStoredFiqhEvidence(opts),
-      fatwaSearch: async () => ({ calls: 1, records: [f] }),
+      localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+      fatwaSearch: async () => ({ calls: 1, records: [f, unused] }),
       liveRetrieve: async (_q, opts) => markLive(opts.diagnostics),
       generate: modelUsing(f.id, f.supportText), verify: verifyIds(f.id),
     });
@@ -549,7 +609,7 @@ async function runHybridGuard() {
 
     const mLive = await mutant(temp, 'live-path', (src) => src.replace(
       `liveResult = mergeLiveResults(await Promise.all(
-      queries.map((searchQuery) => doLive(searchQuery, scholar.sourceDomain))));`,
+      queries.map((searchQuery) => doLive(searchQuery, scholar?.sourceDomain || ''))));`,
       'liveResult = { sources: [] }; // mutant: named Brave/fetch path deleted'));
     const emptyFatwa = async () => ({ calls: 1, records: [] });
     const actualLiveOnly = await H.runHybridDeenTurn({ context: bazContext, band: 'adult', dailyBudget: budget,
@@ -562,8 +622,8 @@ async function runHybridGuard() {
       && mutantLiveOnly.outcome === 'NO_HYBRID_EVIDENCE');
 
     const mLocal = await mutant(temp, 'local-path', (src) => src.replace(
-      'const localPromise = Promise.resolve().then(() => localFn({ context, answerabilityEvaluator: options.answerabilityEvaluator }));',
-      'const localPromise = Promise.resolve(null); // mutant: local corpus path deleted'));
+      'try { localResult = await localFn({ context, answerabilityEvaluator: options.answerabilityEvaluator }); }',
+      'try { localResult = null; /* mutant: local corpus path deleted */ }'));
     const actualLocalOnly = bothDown;
     const mutantLocalOnly = await mLocal.runHybridDeenTurn({ ...common,
       fatwaSearch: async () => { throw new Error('fatwa_offline'); },

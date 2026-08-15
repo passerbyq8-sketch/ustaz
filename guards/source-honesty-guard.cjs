@@ -741,7 +741,9 @@ const stripComments = (s) => String(s)
     };
     let out;
     try {
-      out = await RTO.retrieveOpenWorld('كم درجة الحرارة اليوم في الكويت؟', { band: 'young' });
+      out = await RTO.retrieveOpenWorld('كم درجة الحرارة اليوم في الكويت؟', {
+        band: 'young', dailyBudget: { reserve: async () => ({ ok: true }) },
+      });
     } finally {
       globalThis.fetch = realFetch;
       if (realKey === undefined) delete process.env.BRAVE_API_KEY; else process.env.BRAVE_API_KEY = realKey;
@@ -798,8 +800,8 @@ const stripComments = (s) => String(s)
     ok('F3: ...and a refused reservation is a FALL-THROUGH, never a refusal to the reader',
       Array.isArray(refused.sources) && refused.sources.length === 0,
       'the caller takes the ordinary GEN route; the reader loses the live facts, never the answer');
-    ok('F3: it is the EXISTING ceiling — same module, same global day key, no second cap',
-      /lg:dsb:|store\.key\('dsb'/.test(read('lib/ledger/daily-budget.js'))
+    ok('F3: it is the canonical v2 ceiling — same module and one environment-scoped namespace',
+      /ezik:search-budget:v2/.test(read('lib/ledger/daily-budget.js'))
       && /daily-budget\.js/.test(read('lib/retrieve.js'))
       && !/DAILY|DAY_CAP|dayCap/.test(read('lib/retrieve.js').split('retrieveOpenWorld')[1] || ''),
       'the brief: «يستهلك من سقف Brave اليومي القائم — لا سقف جديد»');
@@ -1126,7 +1128,7 @@ const stripComments = (s) => String(s)
     ok('F4: a LIVE QUANTITY goes straight to the open search',
       /const LIVE_QUANTITY = worldIntent\.reason === 'WEATHER' \|\| worldIntent\.reason === 'MARKET_PRICE';/.test(ASK));
     ok('F4: ...and every other reason keeps the vetted, host-allow-listed retrieval first',
-      /if \(!LIVE_QUANTITY\) \{[\s\S]{0,400}retrieveWorld\(questionText\)/.test(ASK),
+      /if \(!LIVE_QUANTITY\) \{[\s\S]{0,500}retrieveWorld\(questionText, \{ dailyBudget: worldBudget \}\)/.test(ASK),
       'nothing that works today is degraded to snippets');
     ok('F4: ...reaching the open search only when that came back empty',
       /if \(!worldPass\) \{[\s\S]{0,1600}retrieveOpenWorld\(questionText/.test(ASK));
@@ -1186,6 +1188,9 @@ const stripComments = (s) => String(s)
     process.env.RFC_V05_MODE = 'internal';
     process.env.ANTHROPIC_API_KEY = 'test-key';
     process.env.BRAVE_API_KEY = 'test-brave';
+    process.env.VERCEL_ENV = 'preview';
+    process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+    process.env.SEARCH_BUDGET_PER_CALLER = '20';
     // The legacy path, switched off the ledger by its documented floor — the same note
     // guards/rfc-v05r2-consistency-guard.cjs carries.
     process.env.LEDGER_RAG = 'off';
@@ -1193,7 +1198,10 @@ const stripComments = (s) => String(s)
     // that never answers would fail the reservation closed — which would make every case below
     // pass for the wrong reason, by never searching at all.
     let counter = 0;
-    STORE.__setRedisForTest({ eval: async () => { counter += 1; return [counter, counter <= 50 ? 1 : 0]; } });
+    STORE.__setRedisForTest({ eval: async () => {
+      counter += 1;
+      return [counter, counter, 1, 0];
+    } });
 
     const RESULTS = [
       { title: 'الطقس في مدينة الكويت', url: 'https://www.accuweather.com/ar/kw/kuwait-city/1', description: 'درجة الحرارة اليوم 44 مئوية' },
@@ -1330,7 +1338,8 @@ const stripComments = (s) => String(s)
       globalThis.fetch = saved.fetch;
       STORE.__resetRedis();
       for (const k of ['FOUNDER_SECRET', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE',
-        'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LEDGER_RAG']) {
+        'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LEDGER_RAG', 'VERCEL_ENV',
+        'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_PER_CALLER']) {
         if (saved.env[k] === undefined) delete process.env[k]; else process.env[k] = saved.env[k];
       }
     }

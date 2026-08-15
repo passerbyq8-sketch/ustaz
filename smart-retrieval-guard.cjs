@@ -295,17 +295,24 @@ const user = (t) => [{ role: 'user', content: t }];
     };
     process.env.BRAVE_API_KEY = process.env.BRAVE_API_KEY || 'stub-for-gate';
     const { retrieve } = await esm('lib/retrieve.js');
+    // This section stubs the paid provider itself; explicitly authorize each corresponding
+    // transport attempt so the test measures retrieval policy, not store unavailability.
+    const paidBudget = { reserve: async () => ({ ok: true }) };
 
     // A scoped search restricted to a domain that is NOT on the band list must return
     // nothing rather than silently widening.
     state.brave = 0;
-    let out = await retrieve('الطلاق في الغضب', { band: 'adult', onlySites: ['not-on-any-list.example'] });
+    let out = await retrieve('الطلاق في الغضب', {
+      band: 'adult', onlySites: ['not-on-any-list.example'], dailyBudget: paidBudget,
+    });
     eq('a scoped search off the band list returns no source', out.sources.length, 0);
     eq('...and costs no request at all', state.brave, 0);
 
     // A scoped search restricted to an approved domain searches ONLY that domain.
     state.brave = 0;
-    out = await retrieve('الطلاق في الغضب', { band: 'adult', onlySites: ['islamweb.net'] });
+    out = await retrieve('الطلاق في الغضب', {
+      band: 'adult', onlySites: ['islamweb.net'], dailyBudget: paidBudget,
+    });
     ok('a scoped search of an approved domain runs', state.brave >= 1);
     eq('...as exactly one request', state.brave, 1);
 
@@ -344,7 +351,9 @@ const user = (t) => [{ role: 'user', content: t }];
       // The preferred domain is asked about FIRST, alone.
       queries.length = 0;
       globalThis.fetch = braveWith([]);
-      await retrieve('الطلاق في الغضب', { band: 'adult', preferDomain: 'binbaz.org.sa' });
+      await retrieve('الطلاق في الغضب', {
+        band: 'adult', preferDomain: 'binbaz.org.sa', dailyBudget: paidBudget,
+      });
       ok('the preferred domain is asked about first, on its own',
         queries.length > 0 && /site:binbaz\.org\.sa/.test(queries[0])
         && !/site:islamweb\.net/.test(queries[0]), JSON.stringify(queries[0] || ''));
@@ -359,7 +368,9 @@ const user = (t) => [{ role: 'user', content: t }];
       // question may already use, and admits none.
       queries.length = 0;
       globalThis.fetch = braveWith([]);
-      await retrieve('الطلاق في الغضب', { band: 'adult', preferDomain: 'al-abbaad.com' });
+      await retrieve('الطلاق في الغضب', {
+        band: 'adult', preferDomain: 'al-abbaad.com', dailyBudget: paidBudget,
+      });
       ok('a domain the PURPOSE filter excludes is not reached by preferring it',
         queries.every((q) => !/site:al-abbaad\.com/.test(q)), JSON.stringify(queries));
 
@@ -367,7 +378,9 @@ const user = (t) => [{ role: 'user', content: t }];
       // search runs unchanged — it is not an error and it is not an escape hatch.
       queries.length = 0;
       globalThis.fetch = braveWith([]);
-      await retrieve('الطلاق في الغضب', { band: 'adult', preferDomain: 'not-on-any-list.example' });
+      await retrieve('الطلاق في الغضب', {
+        band: 'adult', preferDomain: 'not-on-any-list.example', dailyBudget: paidBudget,
+      });
       ok('a preferred domain off the band list is never asked about',
         queries.every((q) => !/not-on-any-list/.test(q)), JSON.stringify(queries));
       ok('...and the ordinary search still ran', queries.length >= 1);
@@ -399,7 +412,9 @@ const user = (t) => [{ role: 'user', content: t }];
         }
         return at(new Response(VIDEO_PAGE, { status: 200, headers: { 'content-type': 'text/html' } }), u);
       };
-      const vid = await retrieve('ما حكم صلاة الوتر', { band: 'adult', onlySites: ['mostafaaladwy.com'] });
+      const vid = await retrieve('ما حكم صلاة الوتر', {
+        band: 'adult', onlySites: ['mostafaaladwy.com'], dailyBudget: paidBudget,
+      });
       globalThis.fetch = saved;
 
       // THE WITNESS THE DECISION ASKS FOR: its page does not enter the text evidence.
@@ -419,7 +434,9 @@ const user = (t) => [{ role: 'user', content: t }];
 
       // THE NEGATIVE. A text domain is untouched by any of this — otherwise the rule above would
       // be silently emptying the evidence for every source in the app.
-      const txt = await retrieve('الطلاق في الغضب', { band: 'adult', onlySites: ['islamweb.net'] });
+      const txt = await retrieve('الطلاق في الغضب', {
+        band: 'adult', onlySites: ['islamweb.net'], dailyBudget: paidBudget,
+      });
       ok('a TEXT domain still carries its passage into the evidence',
         txt.sources.length === 0 || (txt.sources[0].passage && txt.sources[0].answerFormat === 'text'),
         JSON.stringify((txt.sources[0] || {}).answerFormat));

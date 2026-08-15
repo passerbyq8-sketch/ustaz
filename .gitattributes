@@ -64,6 +64,7 @@ esc.cjs text eol=lf
 flip-stream-flag.cjs text eol=lf
 quran-verify.cjs text eol=lf
 lib/daycap.js text eol=lf
+lib/ratelimit.js text eol=lf
 api/unlock.js text eol=crlf
 
 # Gate 11 (call-mode-guard). Same reason as every gate above: it brace-slices index.html,
@@ -245,6 +246,11 @@ guards/lock-package-guard.cjs text eol=lf
 # fetcher to read the header actually sent, so a CR introduced by core.autocrlf on one side of
 # a comparison and not the other is a failure with nothing to do with honesty.
 guards/source-honesty-guard.cjs text eol=lf
+guards/search-budget-p0-guard.cjs text eol=lf
+guards/hybrid-live-fatwa-guard.cjs text eol=lf
+lib/fatwa-service.js text eol=lf
+lib/hybrid-deen.js text eol=lf
+lib/stored-deen.js text eol=lf
 # The telemetry gate compares a record it BUILT against a record it read back out of a store
 # double, and asserts byte-identical socket frames across two runs. Both comparisons are exact, so
 # a CR introduced by core.autocrlf on one side and not the other would be a failure with nothing

@@ -490,13 +490,17 @@ const PAGES = {
     // deliberately not enough: F-081 requires the typed veto to remain authoritative.
     {
       const saved = {};
-      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG',
+        'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_PER_CALLER'])
         saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
       process.env.ANTHROPIC_API_KEY = 'sk-ant-identity-guard-fake';
       process.env.BRAVE_API_KEY = 'brave-identity-guard-fake';
       process.env.RFC_V05_MODE = 'off';
       process.env.LEDGER_RAG = 'off';
       process.env.FOUNDER_SECRET = 'identity-guard-driven-secret';
+      process.env.VERCEL_ENV = 'preview';
+      process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '100';
+      process.env.SEARCH_BUDGET_PER_CALLER = '100';
       const throwingFetch = globalThis.fetch;
       try {
         const DC = await esm('lib/daycap.js');
@@ -509,7 +513,7 @@ const PAGES = {
         LEDGER_STORE.__setRedisForTest({
           async eval(_script, _keys, args) {
             dailySearchUnits++;
-            return [dailySearchUnits, dailySearchUnits <= Number(args[0]) ? 1 : 0];
+            return [dailySearchUnits, dailySearchUnits, 1, 0];
           },
         });
         const DEVICE = 'identity-guard-device';
@@ -598,19 +602,31 @@ const PAGES = {
     // (so the «من هو» exit above falls through), and the wikipedia stage still places him.
     {
       const saved = {};
-      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG',
+        'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_PER_CALLER'])
         saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
       process.env.ANTHROPIC_API_KEY = 'sk-ant-identity-guard-fake';
       process.env.BRAVE_API_KEY = 'brave-identity-guard-fake';
       process.env.RFC_V05_MODE = 'off';
       process.env.LEDGER_RAG = 'off';
       process.env.FOUNDER_SECRET = 'identity-guard-driven-secret';
+      process.env.VERCEL_ENV = 'preview';
+      process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '100';
+      process.env.SEARCH_BUDGET_PER_CALLER = '100';
       const throwingFetch = globalThis.fetch;
       const realLog = console.log;
       const routeLines = [];
       try {
         const DC = await esm('lib/daycap.js');
         const CONSENT = await esm('lib/ai-consent.js');
+        const LEDGER_STORE = await esm('lib/ledger/redis.js');
+        let dailySearchUnits = 0;
+        LEDGER_STORE.__setRedisForTest({
+          async eval() {
+            dailySearchUnits++;
+            return [dailySearchUnits, dailySearchUnits, 1, 0];
+          },
+        });
         const DEVICE = 'identity-guard-device-gen';
         const FOUNDER = DC.founderTokenFor(DEVICE);
 
@@ -734,7 +750,8 @@ const PAGES = {
     // the reader the one honest sentence for a name nobody can place.
     {
       const saved = {};
-      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG'])
+      for (const k of ['ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET', 'RFC_V05_MODE', 'LEDGER_RAG',
+        'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_PER_CALLER'])
         saved[k] = Object.prototype.hasOwnProperty.call(process.env, k) ? process.env[k] : undefined;
       process.env.ANTHROPIC_API_KEY = 'sk-ant-identity-guard-fake';
       process.env.BRAVE_API_KEY = 'brave-identity-guard-fake';
@@ -743,6 +760,9 @@ const PAGES = {
       // The day-cap store is unreachable here and fails CLOSED by design, so without a founder
       // token the handler refuses before the router and every assertion below would be vacuous.
       process.env.FOUNDER_SECRET = 'identity-guard-driven-secret';
+      process.env.VERCEL_ENV = 'preview';
+      process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '100';
+      process.env.SEARCH_BUDGET_PER_CALLER = '100';
       const throwingFetch = globalThis.fetch;
       const realLog = console.log;
       try {
@@ -755,7 +775,7 @@ const PAGES = {
         LEDGER_STORE.__setRedisForTest({
           async eval(_script, _keys, args) {
             dailySearchUnits++;
-            return [dailySearchUnits, dailySearchUnits <= Number(args[0]) ? 1 : 0];
+            return [dailySearchUnits, dailySearchUnits, 1, 0];
           },
         });
 

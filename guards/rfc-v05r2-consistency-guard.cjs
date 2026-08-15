@@ -307,7 +307,7 @@ async function main() {
     ok('...and a historical scholar is inside that set, not a special case for it',
       !/plan\.authorityEra === 'historical'\s*\n?\s*&& plan\.namedEntity\) \{/.test(s));
     ok('...over the band\'s ordinary approved list, not a new one',
-      /retrieve\(encQuery, \{ band, depth: effectiveDepth \}\)/.test(s),
+      /retrieve\(encQuery, \{[\s\S]{0,160}?band, depth: effectiveDepth, dailyBudget: paidSearchBudget,[\s\S]{0,40}?\}\)/.test(s),
       'no onlySites: narrowing to a domain a historical scholar does not have is the original bug');
     ok('...with the reader\'s own sentence as the query, so the NAME is bound into it',
       /const asked = lastUserText\(body\.messages\)/.test(s));

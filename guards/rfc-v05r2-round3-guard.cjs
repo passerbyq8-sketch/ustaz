@@ -33,7 +33,9 @@ const path = require('path');
 const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
 
 const ENV_KEYS = ['FOUNDER_SECRET', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY',
-  'DAILY_SEARCH_BUDGET', 'LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE'];
+  'VERCEL_ENV', 'SEARCH_BUDGET_GLOBAL_PRODUCTION', 'SEARCH_BUDGET_GLOBAL_PREVIEW',
+  'SEARCH_BUDGET_GLOBAL_DEVELOPMENT', 'SEARCH_BUDGET_PER_CALLER',
+  'LEDGER_RAG', 'RFC_V05_LEGACY_POLICY', 'RFC_V05_MODE'];
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
@@ -107,7 +109,9 @@ async function main() {
   process.env.FOUNDER_SECRET = 'round3-guard-secret';
   process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
   process.env.BRAVE_API_KEY = 'test-brave-not-real';
-  process.env.DAILY_SEARCH_BUDGET = '500';
+  process.env.VERCEL_ENV = 'preview';
+  process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+  process.env.SEARCH_BUDGET_PER_CALLER = '20';
   process.env.RFC_V05_MODE = 'public';
   const FOUNDER = DAY.founderTokenFor(DEVICE);
 
@@ -122,8 +126,21 @@ async function main() {
       async incr(k) { const n = (Number(mem.get(k)) || 0) + 1; mem.set(k, n); return n; },
       async expire() { return 1; },
       async eval(s, keys, args) {
-        const k = keys[0]; const used = (Number(mem.get(k)) || 0) + 1; mem.set(k, used);
-        return [used, used <= Number(args[0]) ? 1 : 0];
+        const globalUsed = Number(mem.get(keys[0])) || 0;
+        if (globalUsed >= Number(args[0])) return [globalUsed, 0, 0, 1];
+        for (const key of keys.slice(1)) {
+          const callerUsed = Number(mem.get(key)) || 0;
+          if (callerUsed >= Number(args[1])) return [globalUsed, callerUsed, 0, 2];
+        }
+        const nextGlobal = globalUsed + 1;
+        mem.set(keys[0], nextGlobal);
+        let callerMax = 0;
+        for (const key of keys.slice(1)) {
+          const nextCaller = (Number(mem.get(key)) || 0) + 1;
+          mem.set(key, nextCaller);
+          callerMax = Math.max(callerMax, nextCaller);
+        }
+        return [nextGlobal, callerMax, 1, 0];
       },
     });
     FLAG.__resetFlagCacheForTest();

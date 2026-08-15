@@ -21,7 +21,9 @@ const fs = require('fs');
 const path = require('path');
 const { withRestoredProcessEnv } = require('../tools/guard-env.cjs');
 
-const ENV_KEYS = ['LEDGER_CACHE_SECRET', 'FOUNDER_SECRET', 'DAILY_SEARCH_BUDGET',
+const ENV_KEYS = ['LEDGER_CACHE_SECRET', 'FOUNDER_SECRET', 'VERCEL_ENV',
+  'SEARCH_BUDGET_GLOBAL_PRODUCTION', 'SEARCH_BUDGET_GLOBAL_PREVIEW',
+  'SEARCH_BUDGET_GLOBAL_DEVELOPMENT', 'SEARCH_BUDGET_PER_CALLER',
   'ANTHROPIC_API_KEY', 'RFC_V05_LEGACY_POLICY', 'KV_REST_API_URL',
   'KV_REST_API_TOKEN'];
 
@@ -176,16 +178,12 @@ async function main() {
     //
     // What must remain true is the part that protects the account: a ceiling always EXISTS, it is
     // a real finite integer, and no absent or malformed value can ever be read as "unlimited".
-    const savedEnv = process.env.DAILY_SEARCH_BUDGET;
-    delete process.env.DAILY_SEARCH_BUDGET;
-    ok('an unset budget yields the declared default, not null',
-      DB.configuredLimit({}) === DB.DEFAULT_DAILY_SEARCH_BUDGET && DB.isConfigured({}) === true,
+    ok('an unset v2 budget is unconfigured and therefore fail-closed',
+      DB.configuredLimit({}) === null && DB.isConfigured({}) === false,
       String(DB.configuredLimit({})));
-    ok('...and that default is a real finite positive integer',
-      Number.isInteger(DB.DEFAULT_DAILY_SEARCH_BUDGET) && DB.DEFAULT_DAILY_SEARCH_BUDGET > 0
-      && Number.isFinite(DB.DEFAULT_DAILY_SEARCH_BUDGET), String(DB.DEFAULT_DAILY_SEARCH_BUDGET));
-    const unset = new DB.DailySearchBudget({ limit: DB.configuredLimit({}), store: DB.fakeStore() });
-    ok('...so a budget built from it is configured, never "unlimited"', unset.configured === true);
+    const unset = new DB.DailySearchBudget({ env: {}, store: DB.fakeStore() });
+    ok('...and a budget built from it refuses provider spend', unset.configured === false
+      && (await unset.reserve()).reason === 'budget_store_unavailable');
     ok('...and it still refuses once its ceiling is spent', (await (async () => {
       const spent = new DB.DailySearchBudget({ limit: 1, store: DB.fakeStore(), now: () => 1770000000000 });
       await spent.reserve();
@@ -195,16 +193,17 @@ async function main() {
     // unchanged; only where the number comes from moved.
     const nulled = new DB.DailySearchBudget({ limit: null, store: DB.fakeStore() });
     eq('a budget constructed with no limit refuses every reservation',
-      (await nulled.reserve()).reason, 'not_configured');
-    ok('a garbled value is the DEFAULT, never coerced and never unlimited',
-      DB.configuredLimit({ DAILY_SEARCH_BUDGET: 'lots' }) === DB.DEFAULT_DAILY_SEARCH_BUDGET
-      && DB.configuredLimit({ DAILY_SEARCH_BUDGET: '-5' }) === DB.DEFAULT_DAILY_SEARCH_BUDGET
-      && DB.configuredLimit({ DAILY_SEARCH_BUDGET: '3.5' }) === DB.DEFAULT_DAILY_SEARCH_BUDGET
-      && DB.configuredLimit({ DAILY_SEARCH_BUDGET: 'Infinity' }) === DB.DEFAULT_DAILY_SEARCH_BUDGET);
-    eq('...and a real value is read exactly', DB.configuredLimit({ DAILY_SEARCH_BUDGET: '250' }), 250);
+      (await nulled.reserve()).reason, 'budget_store_unavailable');
+    ok('garbled environment values are rejected, never coerced and never unlimited',
+      DB.configuredLimit({ VERCEL_ENV: 'production', SEARCH_BUDGET_GLOBAL_PRODUCTION: 'lots' }) === null
+      && DB.configuredLimit({ VERCEL_ENV: 'production', SEARCH_BUDGET_GLOBAL_PRODUCTION: '-5' }) === null
+      && DB.configuredLimit({ VERCEL_ENV: 'production', SEARCH_BUDGET_GLOBAL_PRODUCTION: '3.5' }) === null
+      && DB.configuredLimit({ VERCEL_ENV: 'production', SEARCH_BUDGET_GLOBAL_PRODUCTION: 'Infinity' }) === null);
+    eq('...and a real production value is read exactly', DB.configuredLimit({
+      VERCEL_ENV: 'production', SEARCH_BUDGET_GLOBAL_PRODUCTION: '250',
+    }), 250);
     eq('...and an explicit zero is a hard stop, not the default',
-      DB.configuredLimit({ DAILY_SEARCH_BUDGET: '0' }), 0);
-    if (savedEnv !== undefined) process.env.DAILY_SEARCH_BUDGET = savedEnv;
+      DB.configuredLimit({ VERCEL_ENV: 'production', SEARCH_BUDGET_GLOBAL_PRODUCTION: '0' }), 0);
 
     // BEFORE THE LIMIT: the search works.
     const store3 = DB.fakeStore();
@@ -238,13 +237,14 @@ async function main() {
     const down = DB.fakeStore(); down.unavailable = true;
     const bd = new DB.DailySearchBudget({ limit: 10, store: down });
     const rd = await bd.reserve();
-    ok('an unreachable store refuses by default', rd.ok === false && rd.reason === 'store_unavailable');
+    ok('an unreachable store refuses by default', rd.ok === false && rd.reason === 'budget_store_unavailable');
     const bo = new DB.DailySearchBudget({ limit: 10, store: down, failOpen: true });
-    ok('...and only opens when explicitly asked to', (await bo.reserve()).ok === true);
+    ok('...and cannot be opened by a caller option', (await bo.reserve()).ok === false);
 
     // THE KEY CARRIES NO READER.
     const key = DB.dayKey(1770000000000);
-    ok('the day key is namespaced and dated', /^lg:dsb:\d{4}-\d{2}-\d{2}$/.test(key), key);
+    ok('the day key is v2-namespaced, environment-scoped and dated',
+      /^ezik:search-budget:v2:development:\d{4}-\d{2}-\d{2}$/.test(key), key);
     ok('...and holds no device id, ip, cookie or question', !/device|ip|cookie|token|\?/.test(key));
     ok('the counter expires with its day',
       DB.secondsUntilUtcMidnight(1770000000000) <= 24 * 3600 + 120

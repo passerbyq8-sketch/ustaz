@@ -465,7 +465,8 @@ async function checkModelRouting() {
   const envKeys = [
     'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'FOUNDER_SECRET',
     'MODEL', 'MODEL_STANDARD', 'MODEL_PREMIUM', 'MODEL_FAST', 'TASHKEEL_MODEL',
-    'LEDGER_RAG', 'RFC_V05_MODE', 'DAILY_SEARCH_BUDGET',
+    'LEDGER_RAG', 'RFC_V05_MODE', 'VERCEL_ENV',
+    'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_PER_CALLER',
     'KV_REST_API_URL', 'KV_REST_API_TOKEN',
   ];
   const saved = envKeys.map((k) => [k, Object.prototype.hasOwnProperty.call(process.env, k), process.env[k]]);
@@ -481,7 +482,9 @@ async function checkModelRouting() {
   process.env.ANTHROPIC_API_KEY = 'test-key-not-real';
   process.env.BRAVE_API_KEY = 'test-brave-not-real';
   process.env.FOUNDER_SECRET = 'model-routing-guard-secret';
-  process.env.DAILY_SEARCH_BUDGET = '1000';
+  process.env.VERCEL_ENV = 'preview';
+  process.env.SEARCH_BUDGET_GLOBAL_PREVIEW = '40';
+  process.env.SEARCH_BUDGET_PER_CALLER = '20';
   process.env.MODEL_STANDARD = STANDARD_SENTINEL;
   process.env.MODEL_PREMIUM = PREMIUM_SENTINEL;
   process.env.MODEL = 'call-mode-ask-legacy-sentinel';
@@ -510,11 +513,23 @@ async function checkModelRouting() {
     async incr(k) { const n = (Number(ledgerStore.get(k)) || 0) + 1; ledgerStore.set(k, n); return n; },
     async expire(k, s) { ledgerStore.set(k + ':ex', s); return 1; },
     async eval(_script, keys, args) {
-      const k = keys[0];
-      const used = (Number(ledgerStore.get(k)) || 0) + 1;
-      ledgerStore.set(k, used);
-      if (used === 1) ledgerStore.set(k + ':ex', Number(args[1]));
-      return [used, used <= Number(args[0]) ? 1 : 0];
+      const globalUsed = Number(ledgerStore.get(keys[0])) || 0;
+      if (globalUsed >= Number(args[0])) return [globalUsed, 0, 0, 1];
+      for (const key of keys.slice(1)) {
+        const callerUsed = Number(ledgerStore.get(key)) || 0;
+        if (callerUsed >= Number(args[1])) return [globalUsed, callerUsed, 0, 2];
+      }
+      const nextGlobal = globalUsed + 1;
+      ledgerStore.set(keys[0], nextGlobal);
+      if (nextGlobal === 1) ledgerStore.set(keys[0] + ':ex', Number(args[2]));
+      let callerMax = 0;
+      for (const key of keys.slice(1)) {
+        const nextCaller = (Number(ledgerStore.get(key)) || 0) + 1;
+        ledgerStore.set(key, nextCaller);
+        if (nextCaller === 1) ledgerStore.set(key + ':ex', Number(args[2]));
+        callerMax = Math.max(callerMax, nextCaller);
+      }
+      return [nextGlobal, callerMax, 1, 0];
     },
   });
 
