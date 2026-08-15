@@ -2,7 +2,7 @@
   "schema": "ezik.guard-honesty.v1",
   "id": "G-07",
   "baseline": "d2c5828707b51a450826a03283f185baaba60829",
-  "claim": "The existing RFC runtime and search-budget gates are offline tests. No named deployment, real Upstash transaction, provider request ID, or raw deployed SSE was observed.",
+  "claim": "The existing RFC runtime and search-budget gates are offline tests. A named deployment and raw deployed SSE ARE now observed on the merge preview. A provider request id is still not observed -- and that is a property of the code, not of the round: nothing in the shipped path ever reads one.",
   "sources": [
     {
       "key": "runtimeGuard",
@@ -31,12 +31,22 @@
   ],
   "externalEvidence": {
     "acceptanceGreen": false,
-    "deploymentId": null,
-    "deployedGitSha": null,
+    "deploymentId": "dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4",
+    "deployedGitSha": "e4b48de9f23e4f784ae8f9123e8855288b67b6b8",
     "upstashTransaction": null,
     "braveRequestId": null,
     "anthropicRequestId": null,
-    "rawSse": null,
-    "reason": "offline directive"
+    "rawSse": {
+      "sha256": "1d3811b9314d0e30fca0a92ce33505ae0cd1af079bf106fb995df6ab0f840344",
+      "bytes": 2856,
+      "vercelId": "bom1::iad1::rdxjk-1786812863785-ee8b7bf072f1",
+      "what": "the gold fatwa turn as the deployed preview streamed it, captured whole before assembly"
+    },
+    "reason": "measured on the merge preview of 2026-08-15; acceptanceGreen stays false because two of this fixture's own required fields are still unobtainable, and the bar is not lowered to the evidence that happened to be reachable",
+    "blocked": {
+      "upstashTransaction": "no transaction id is printed anywhere: lib/ledger/daily-budget.js logs nothing. The reservation was still observed BY EFFECT -- a Brave call cannot run unless reserve() returns ok -- and that effect is recorded in the G-06 fixture rather than dressed up as an id here",
+      "braveRequestId": "lib/ledger/search.js reads only the results body from the Brave response; no request id is read, logged or returned, so there is no value to capture without changing shipped code",
+      "anthropicRequestId": "the stream the client receives is server-finalized -- its message id is the literal 'server-finalized' -- and the deployed code logs no upstream id, so the provider id never leaves the vendor call"
+    }
   }
 }

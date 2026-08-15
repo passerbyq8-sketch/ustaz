@@ -2,7 +2,7 @@
   "schema": "ezik.guard-honesty.v1",
   "id": "G-08",
   "baseline": "d2c5828707b51a450826a03283f185baaba60829",
-  "claim": "The existing round-3 gate proves production wiring with authored model and transport doubles. This witness separately proves provenance on frozen real pages; a real preview planner record remains absent.",
+  "claim": "The existing round-3 gate proves production wiring with authored model and transport doubles. This witness separately proves provenance on frozen real pages. A real preview planner record is no longer absent -- one was produced by the deployed planner on the merge preview and is recorded below. Two-reviewer semantic labels remain absent, because they need two people and no measurement can stand in for them.",
   "sources": [
     {
       "key": "oldGuard",
@@ -37,10 +37,26 @@
   ],
   "externalEvidence": {
     "acceptanceGreen": false,
-    "previewDeploymentId": null,
-    "providerPlannerRecord": null,
+    "previewDeploymentId": "dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4",
+    "providerPlannerRecord": {
+      "deployedGitSha": "e4b48de9f23e4f784ae8f9123e8855288b67b6b8",
+      "vercelId": "bom1::iad1::bmc65-1786813193159-377a83a5938a",
+      "plan": "[retrieve] plan: 1 group(s) -- #1:4 sites 116c/12w",
+      "providerCalls": [
+        "[retrieve] brave group 1/1 (4 sites) 116c/12w",
+        "[retrieve/open] brave OPEN 28c/5w safesearch=moderate"
+      ],
+      "groupOutcome": "[retrieve] exhausted -- 1 group(s) searched, no candidate survived",
+      "openOutcome": "[retrieve/open] kept 6 of 6 provider result(s)",
+      "answered": "cards: 3 | hosts: aljazeera.net, snabusiness.com, alarabiya.net",
+      "pathSkips": 4,
+      "what": "the real planner on the deployed preview, printed by the deployed code and read back from the deployment log -- not a double"
+    },
     "reviewerLabels": null,
-    "reason": "offline directive"
+    "reason": "measured on the merge preview of 2026-08-15; acceptanceGreen stays false while reviewerLabels is empty",
+    "blocked": {
+      "reviewerLabels": "two independent human reviewers labelling the same semantic case; no run of any guard can produce this, so it stays empty rather than being approximated by a third machine opinion"
+    }
   },
   "pages": [
     {

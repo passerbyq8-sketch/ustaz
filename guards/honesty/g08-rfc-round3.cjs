@@ -28,10 +28,36 @@ module.exports = {
     ctx.ok('G-08 guard now labels model, plan, transport and HTML truth as authored',
       guard.includes('model replies, plans and most HTML bodies are authored doubles')
         && guard.includes('prove wiring and branch contracts'));
-    ctx.ok('G-08 real preview planner acceptance remains explicitly not green',
-      fixture.externalEvidence.acceptanceGreen === false
-        && fixture.externalEvidence.previewDeploymentId === null
-        && fixture.externalEvidence.providerPlannerRecord === null);
+    // MERGE ROUND: the planner record exists now, produced by the deployed preview. What the
+    // assertion has to prevent is a record that merely LOOKS live: the deployment id, the git sha
+    // and the request id are what tie these lines to one real invocation, and a record without
+    // them is prose. reviewerLabels stays empty and must say why -- a human label is not measurable.
+    const evidence = fixture.externalEvidence;
+    const named = (value) => typeof value === 'string' && value.length > 0;
+    function evidenceIsHonest(subject) {
+      const record = subject.providerPlannerRecord;
+      if (record !== null) {
+        if (!/^dpl_[A-Za-z0-9]+$/.test(subject.previewDeploymentId || '')) return false;
+        if (!/^[0-9a-f]{40}$/.test(record.deployedGitSha || '')) return false;
+        if (!named(record.vercelId) || !named(record.plan) || !named(record.groupOutcome)) return false;
+        if (!Array.isArray(record.providerCalls) || !record.providerCalls.length) return false;
+      }
+      if (subject.reviewerLabels === null
+        && !named(subject.blocked && subject.blocked.reviewerLabels)) return false;
+      if (subject.acceptanceGreen === true
+        && (record === null || subject.reviewerLabels === null)) return false;
+      return named(subject.reason);
+    }
+    ctx.ok('G-08 the preview planner record is tied to one named deployed invocation',
+      evidence.acceptanceGreen === false
+        && evidence.providerPlannerRecord !== null
+        && evidenceIsHonest(evidence));
+    ctx.ok('G-08 MUTANT 3 KILLED: a planner record with no deployment id behind it fails',
+      !evidenceIsHonest({ ...evidence, previewDeploymentId: null }));
+    ctx.ok('G-08 MUTANT 4 KILLED: acceptance green while reviewer labels are empty fails',
+      !evidenceIsHonest({ ...evidence, acceptanceGreen: true }));
+    ctx.ok('G-08 MUTANT 5 KILLED: an empty reviewer-label field with no stated reason fails',
+      !evidenceIsHonest({ ...evidence, blocked: {} }));
 
     const EXTRACT = await import(pathToFileURL(path.join(ctx.root, 'lib/transfer/extract.js')).href);
     const FULL = await import(pathToFileURL(path.join(ctx.root, 'lib/full-fatwa.js')).href);

@@ -34,11 +34,34 @@ module.exports = {
       guard.includes('Offline and deterministic. No network, no live model, no live Redis')
         && guard.includes('THE FOUR COMBINATIONS')
         && guard.includes('NO disclosure anywhere in it'));
-    ctx.ok('G-15 optional external replay is not claimed',
-      fixture.optionalExternalReplay.status === 'NOT_ACQUIRED_OPTIONAL'
-        && fixture.optionalExternalReplay.deploymentId === null
-        && fixture.optionalExternalReplay.braveRequestId === null
-        && fixture.optionalExternalReplay.rawSse === null);
+    // MERGE ROUND: the optional replay was acquired. Two states are legitimate here and a third
+    // is not: NOT_ACQUIRED_OPTIONAL with everything empty, or ACQUIRED with the deployment, the
+    // sha and the raw stream all named. "ACQUIRED" with nothing behind it is the failure this
+    // assertion exists to catch, which is exactly why it is written as a function of the status.
+    const replay = fixture.optionalExternalReplay;
+    const named = (value) => typeof value === 'string' && value.length > 0;
+    function replayIsHonest(subject) {
+      if (subject.status === 'NOT_ACQUIRED_OPTIONAL') {
+        return subject.deploymentId === null && subject.braveRequestId === null && subject.rawSse === null;
+      }
+      if (subject.status !== 'ACQUIRED') return false;
+      if (!/^dpl_[A-Za-z0-9]+$/.test(subject.deploymentId || '')) return false;
+      if (!/^[0-9a-f]{40}$/.test(subject.deployedGitSha || '')) return false;
+      if (!subject.rawSse || !/^[0-9a-f]{64}$/.test(subject.rawSse.sha256 || '')) return false;
+      if (!named(subject.rawSse.vercelId)) return false;
+      if (!subject.observed || !named(subject.observed.siteRestrictedPass)) return false;
+      if (subject.braveRequestId === null
+        && !named(subject.blocked && subject.blocked.braveRequestId)) return false;
+      return named(subject.reason);
+    }
+    ctx.ok('G-15 the acquired replay names its deployment, its stream and its empty pass',
+      replay.status === 'ACQUIRED' && replayIsHonest(replay));
+    ctx.ok('G-15 MUTANT 3 KILLED: a replay declared acquired with no stream behind it fails',
+      !replayIsHonest({ ...replay, rawSse: null }));
+    ctx.ok('G-15 MUTANT 4 KILLED: a replay declared acquired with no deployment behind it fails',
+      !replayIsHonest({ ...replay, deploymentId: null }));
+    ctx.ok('G-15 MUTANT 5 KILLED: an unknown replay status fails rather than passing quietly',
+      !replayIsHonest({ ...replay, status: 'PROBABLY_FINE' }));
 
     const POLICY = await import(
       pathToFileURL(path.join(ctx.root, 'lib/policy/live-search-disclosure.js')).href);

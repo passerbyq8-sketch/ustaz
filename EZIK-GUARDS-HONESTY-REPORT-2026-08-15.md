@@ -115,6 +115,32 @@ No fixture in this audit is presented as a current network observation. Authored
 
 These blocks do not invalidate the narrower local mechanisms. They do prevent any claim that deployment, provider, Redis, current-host markup, or current liveness was observed in this offline round.
 
+### Merge round, 2026-08-15: what the preview opened, and what it did not
+
+The offline round could not reach a network. The merge round could, and the directive ordered every
+criterion above measured where the preview admits measurement, updated with the live result, and
+declared — never inferred — where it does not. Measured on preview deployment
+`dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4`, git SHA `e4b48de9f23e4f784ae8f9123e8855288b67b6b8`:
+
+| Scope | Now | What was actually observed |
+|---|---|---|
+| G-06 | **OPENED** | `budgetEnvironment: 'preview'` · `path: 'ledger'` · `flag: 'mode_public'`, printed by the deployed code. The store reservation is observed **by its enforced effect**: a Brave call cannot run unless `reserve()` returns ok, and two ran. No transaction id exists to quote — `lib/ledger/daily-budget.js` logs nothing — and that is stated in the fixture rather than dressed up. |
+| G-07 | **PARTLY OPENED** | Deployment id, deployed git SHA and the raw deployed SSE (sha256 + bytes + `x-vercel-id`) are now real. `acceptanceGreen` stays **false**: two of this fixture's own required fields cannot be obtained at all, and the bar was not lowered to the evidence that happened to be reachable. |
+| G-08 | **PARTLY OPENED** | A real preview planner record: `plan: 1 group(s) — #1:4 sites 116c/12w`, both provider calls, `exhausted — no candidate survived`, `kept 6 of 6`, `cards: 3`. `reviewerLabels` stays empty — two people are not a measurement. |
+| G-15 | **ACQUIRED** | The optional replay exists now: the site-restricted Brave pass came back genuinely empty on the deployed preview, the open pass kept 6 of 6, and the served answer attributed each fact to its result. |
+| G-16 | **CAPTURED** | The same binbaz page fetched today with the manifest's own user agent: raw bytes moved (98,289 vs 98,274 frozen) **and two fetches minutes apart hashed differently** — so a live raw SHA seals one response, never a page, which is the measured reason the eleven frozen pages exist. The shipped extractor returned a pair byte-identical to the frozen one. |
+| X-021 | **OBSERVED (preview)** | `fatwaStatus: OK` · `scholars: 18` · `total: 73130` · `ibnBaz: 18479`, read from the deployed adapter's telemetry on two fatwa turns — **identical** to the counts this fixture authored offline. The production service is a separate deployment and is deferred, in words, to the publish smoke. |
+
+Three fields remain unobtainable, and the reason in each case is a property of the shipped code
+rather than of this round — so they are recorded as measured impossibilities, not as pending work:
+
+- **`braveRequestId`** — `lib/ledger/search.js` reads only the results body; no provider request id is read, logged or returned.
+- **`anthropicRequestId`** — the stream the client receives is server-finalized; its message id is the literal `server-finalized`, and no upstream id is logged.
+- **`upstashTransaction`** — nothing in the budget path prints a transaction id; only the enforced effect is observable.
+
+G-09, G-10, G-11, G-12 and G-17 were **not** in the directive's list and were not touched: their
+criteria stay `BLOCKED_OFFLINE` exactly as the offline round left them.
+
 ## Protected and ownership invariants
 
 Each object ID is identical at the locked baseline and the final implementation SHA.
@@ -134,11 +160,11 @@ The diff is empty for Owner-A files `lib/system-prompt.js`, `index.html`, `lib/t
 
 | Check | Result |
 |---|---|
-| Complete gate runner | `75/75 EXIT=0` |
-| Recon inside complete runner | `PASS=164 WARN=3 FAIL=0` |
-| Guard-honesty meta gate | `214/214` |
+| Complete gate runner | `75/75 EXIT=0` (merge round: `80/80 EXIT=0`) |
+| Recon inside complete runner | `PASS=164 WARN=3 FAIL=0` (merge round: `PASS=169 WARN=3 FAIL=0`) |
+| Guard-honesty meta gate | `214/214` (merge round, with the live evidence asserted: `228/228`) |
 | Full-fatwa contract | `66/66` |
-| Hybrid/fatwa including X-021 | `93/93` |
+| Hybrid/fatwa including X-021 | `93/93` (merge round: `95/95`) |
 | Retired endpoints | `14/14` |
 | i18n UI | `256/256` |
 | Quest UX in permitted headless-browser environment | `56/56` |

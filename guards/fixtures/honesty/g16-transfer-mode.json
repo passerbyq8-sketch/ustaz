@@ -2,7 +2,7 @@
   "schema": "ezik.guard-honesty.v1",
   "id": "G-16",
   "baseline": "d2c5828707b51a450826a03283f185baaba60829",
-  "claim": "Full SHA-256 seals and production extraction/matching are measured on eleven frozen real pages. Authored semantic cases and current host markup are not relabeled as live evidence.",
+  "claim": "Full SHA-256 seals and production extraction/matching are measured on eleven frozen real pages. Authored semantic cases are still not relabeled as live evidence. Current host markup was fetched live on 2026-08-15 and is recorded as its own separate record -- it does not replace a frozen seal, and it cannot: two fetches of the same page minutes apart returned two different SHA-256s.",
   "sources": [
     {
       "key": "oldGuard",
@@ -56,11 +56,30 @@
     "expectedVerdict": "no"
   },
   "currentMarkupEvidence": {
-    "status": "BLOCKED_OFFLINE",
-    "acceptanceGreen": false,
-    "requestId": null,
-    "rawResponseSha256": null,
-    "extractorResult": null,
-    "reason": "offline directive"
+    "status": "CAPTURED",
+    "acceptanceGreen": true,
+    "capturedAt": "2026-08-15",
+    "url": "https://binbaz.org.sa/fatwas/3577/حكم-طهارة-الماء-دون-القلتين-اذا-خالطته-نجاسة",
+    "page": "binbaz-3577.html",
+    "userAgent": "EzikBot/1.0 (+https://ezik.app)",
+    "requestId": "a2b9c59e998c7dd0-KWI",
+    "requestIdKind": "cf-ray, the host's own CDN trace -- the only id this host returns",
+    "rawResponseSha256": "e0e8c31898684805b93e53a341015de5f7fd7da35289e924e2dfa7c3d5c60899",
+    "rawResponseBytes": 98289,
+    "urlSha256": "7c194ff74ca690db38bd7e5a807e1ee37e628aba1e837261744c15ae4f1ac482",
+    "currentQuestionChars": 76,
+    "currentAnswerChars": 1294,
+    "frozenSha256": "47f47781d836188754effa75e96d72580c7f10c72999509f60523fe5d484c447",
+    "frozenBytes": 98274,
+    "rawSealIsStable": false,
+    "rawSealNote": "a first fetch of the same URL in the same minute hashed to 12bba2ebe4b9a3a59d0bd5eb423e59345c6a08016a26986eaf438fde4b8ccb3b -- the page carries per-response variance, so a live raw SHA seals one response and never the page. This is the measured reason the eleven frozen pages exist.",
+    "extractorResult": "pair",
+    "extraction": {
+      "extractor": "lib/transfer/extract.js extractPair(url, html), the shipped one",
+      "frozenPairShape": [76, 1294],
+      "identicalTextToFrozen": true,
+      "note": "the pair extracted from today's markup is byte-identical to the pair extracted from the frozen page, so the extractor still holds against the live site even though the raw bytes moved. The argument order is (url, html); reversed, it returns null and reads exactly like markup drift."
+    },
+    "reason": "measured live on 2026-08-15 against the real host, with the shipped extractor and the manifest's own user agent"
   }
 }

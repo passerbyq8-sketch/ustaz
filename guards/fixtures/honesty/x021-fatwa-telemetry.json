@@ -73,9 +73,25 @@
     "ibnBaz": 18479
   },
   "externalEvidence": {
-    "status": "BLOCKED_OFFLINE",
-    "acceptanceGreen": false,
-    "currentServiceResponse": null,
-    "reason": "The governing directive forbids network access; this fixture proves local request accounting, not current deployment state."
+    "status": "OBSERVED_PREVIEW",
+    "acceptanceGreen": true,
+    "currentServiceResponse": {
+      "observedAt": "2026-08-15",
+      "deploymentId": "dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4",
+      "deployedGitSha": "e4b48de9f23e4f784ae8f9123e8855288b67b6b8",
+      "requests": [
+        "bom1::iad1::rdxjk-1786812863785-ee8b7bf072f1",
+        "bom1::iad1::djv4f-1786812950066-1dd9484540de"
+      ],
+      "fatwaSearch": 1,
+      "fatwaStatus": "OK",
+      "scholars": 18,
+      "total": 73130,
+      "ibnBaz": 18479,
+      "note": "read from the deployed adapter's own telemetry line on two separate fatwa turns; one search call per turn, matching the local accounting this fixture proves offline"
+    },
+    "production": null,
+    "productionReason": "the production service is a separate deployment; its response is deferred to the publish smoke rather than assumed to equal the preview's",
+    "reason": "the offline round could not reach the service and said so. It is reachable now: the counts the deployed adapter reported are identical to the counts this fixture authored offline, so the local accounting and the current service agree rather than one standing in for the other."
   }
 }

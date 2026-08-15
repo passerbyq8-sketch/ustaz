@@ -2,7 +2,7 @@
   "schema": "ezik.guard-honesty.v1",
   "id": "G-06",
   "baseline": "d2c5828707b51a450826a03283f185baaba60829",
-  "claim": "The offline gate proves local decidePath outcomes. Ledger execution additionally requires the later HADITH dispatch; deployed environment and Redis state are not observed.",
+  "claim": "The offline gate proves local decidePath outcomes. Ledger execution additionally requires the later HADITH dispatch. The deployed environment and a granted store reservation ARE now observed, on the named merge preview -- by the enforced effect of the reservation, not by a transaction id, which the deployed code never prints.",
   "sources": [
     {
       "key": "oldGuard",
@@ -24,9 +24,18 @@
     }
   ],
   "externalEvidence": {
-    "deploymentEnvironmentObserved": false,
-    "realRedisObserved": false,
-    "reason": "offline directive"
+    "deploymentEnvironmentObserved": true,
+    "realRedisObserved": true,
+    "reason": "measured on the merge preview of 2026-08-15; not inferred, and not carried over from the offline round",
+    "observation": {
+      "deploymentId": "dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4",
+      "deployedGitSha": "e4b48de9f23e4f784ae8f9123e8855288b67b6b8",
+      "target": "preview",
+      "environmentLine": "budgetEnvironment: 'preview' | path: 'ledger' | flag: 'mode_public'",
+      "storeEffect": "a live world pass on this deployment completed with budgetReason: null and two Brave calls; lib/ledger/search.js refuses transport unless dailyBudget.reserve() returns ok, so the deployed store granted a reservation",
+      "storeTransactionId": null,
+      "storeTransactionIdReason": "the deployed code prints no store transaction id -- lib/ledger/daily-budget.js logs nothing at all -- so no such value exists to capture; only the enforced effect above is observable"
+    }
   },
   "decisionCases": [
     { "floor": "off", "mode": "public", "stored": true, "expected": "legacy" },

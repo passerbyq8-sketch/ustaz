@@ -32,11 +32,40 @@ module.exports = {
       runtimeGuard.includes('EVERYTHING HERE IS OFFLINE AND DETERMINISTIC')
         && runtimeGuard.includes('https://fake.invalid')
         && budgetGuard.includes('Entirely offline: Redis and Brave are deterministic doubles'));
-    ctx.ok('G-07 external acceptance remains explicitly not green',
-      fixture.externalEvidence.acceptanceGreen === false
-        && Object.entries(fixture.externalEvidence)
-          .filter(([key]) => !['acceptanceGreen', 'reason'].includes(key))
-          .every(([, value]) => value === null));
+    // MERGE ROUND: the offline round could assert "every field is null", which is easy to keep
+    // true and says nothing once a deployment exists. The rule now is per field: whatever was
+    // observed must be named in a checkable shape, and whatever is still missing must carry a
+    // measured reason. acceptanceGreen may only be true when NOTHING is missing -- the bar this
+    // fixture set for itself, not the bar the reachable evidence happens to clear.
+    const evidence = fixture.externalEvidence;
+    const named = (value) => typeof value === 'string' && value.length > 0;
+    function evidenceIsHonest(subject) {
+      const required = ['deploymentId', 'deployedGitSha', 'upstashTransaction',
+        'braveRequestId', 'anthropicRequestId', 'rawSse'];
+      const missing = required.filter((key) => subject[key] === null || subject[key] === undefined);
+      for (const key of missing) {
+        if (!named(subject.blocked && subject.blocked[key])) return false;
+      }
+      if (subject.acceptanceGreen === true && missing.length) return false;
+      if (subject.deploymentId !== null && !/^dpl_[A-Za-z0-9]+$/.test(subject.deploymentId)) return false;
+      if (subject.deployedGitSha !== null && !/^[0-9a-f]{40}$/.test(subject.deployedGitSha)) return false;
+      if (subject.rawSse !== null) {
+        if (!/^[0-9a-f]{64}$/.test(subject.rawSse.sha256)) return false;
+        if (!(Number.isInteger(subject.rawSse.bytes) && subject.rawSse.bytes > 0)) return false;
+        if (!named(subject.rawSse.vercelId)) return false;
+      }
+      return named(subject.reason);
+    }
+    ctx.ok('G-07 the deployed half is named and the missing half states why',
+      evidence.acceptanceGreen === false
+        && named(evidence.deploymentId) && named(evidence.deployedGitSha) && evidence.rawSse !== null
+        && evidenceIsHonest(evidence));
+    ctx.ok('G-07 MUTANT 3 KILLED: declaring acceptance green while a required field is missing fails',
+      !evidenceIsHonest({ ...evidence, acceptanceGreen: true }));
+    ctx.ok('G-07 MUTANT 4 KILLED: dropping a blocked field reason fails',
+      !evidenceIsHonest({ ...evidence, blocked: { ...evidence.blocked, braveRequestId: '' } }));
+    ctx.ok('G-07 MUTANT 5 KILLED: an SSE seal that is not a sha256 fails',
+      !evidenceIsHonest({ ...evidence, rawSse: { ...evidence.rawSse, sha256: 'not-a-hash' } }));
 
     const searchPath = path.join(ctx.root, 'lib/ledger/search.js');
     const SEARCH = await import(pathToFileURL(searchPath).href);

@@ -2,7 +2,7 @@
   "schema": "ezik.guard-honesty.v1",
   "id": "G-15",
   "baseline": "d2c5828707b51a450826a03283f185baaba60829",
-  "claim": "The existing gate honestly proves the narrow offline disclosure contract. A real Brave-empty preview replay is optional supplemental evidence and is not claimed.",
+  "claim": "The existing gate honestly proves the narrow offline disclosure contract. The optional supplemental evidence -- a real preview replay in which the site-restricted Brave pass came back empty -- was acquired on 2026-08-15 and is recorded below. It supplements the offline contract; it does not replace it.",
   "sources": [
     {
       "key": "guard",
@@ -30,9 +30,25 @@
     { "worldWanted": false, "answeredFromLive": true, "notice": false }
   ],
   "optionalExternalReplay": {
-    "status": "NOT_ACQUIRED_OPTIONAL",
-    "deploymentId": null,
+    "status": "ACQUIRED",
+    "deploymentId": "dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4",
+    "deployedGitSha": "e4b48de9f23e4f784ae8f9123e8855288b67b6b8",
     "braveRequestId": null,
-    "rawSse": null
+    "rawSse": {
+      "sha256": "1eb9ddd040b21cc683ae5b360c82ec6da865d75b75eab1bf0c1e821e3f2fa3fe",
+      "bytes": 2355,
+      "vercelId": "bom1::iad1::bmc65-1786813193159-377a83a5938a"
+    },
+    "observed": {
+      "siteRestrictedPass": "[retrieve] exhausted -- 1 group(s) searched, no candidate survived; [retrieve/world] nothing survived -- the world pass over 4 general source(s) kept no page",
+      "openPass": "[retrieve/open] kept 6 of 6 provider result(s)",
+      "disclosureInAnswer": true,
+      "disclosureShape": "the served answer attributes each fact to its result rather than asserting it bare -- the first clause names the result it came from",
+      "braveUnits": 2
+    },
+    "reason": "acquired live on the merge preview; the empty half of the truth table was produced by the real provider, not by a double",
+    "blocked": {
+      "braveRequestId": "lib/ledger/search.js reads only the results body; no provider request id is read, logged or returned, so none exists to capture without changing shipped code"
+    }
   }
 }

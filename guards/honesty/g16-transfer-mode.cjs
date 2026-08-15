@@ -69,11 +69,19 @@ module.exports = {
     ctx.ok('G-16 MUTANT 1 KILLED: similarity cannot bypass a real qualifier conflict',
       bypassed !== semantic.expectedVerdict);
 
-    ctx.ok('G-16 current-markup evidence remains explicitly blocked',
-      fixture.currentMarkupEvidence.status === 'BLOCKED_OFFLINE'
-        && fixture.currentMarkupEvidence.acceptanceGreen === false
-        && fixture.currentMarkupEvidence.requestId === null
-        && fixture.currentMarkupEvidence.rawResponseSha256 === null);
+    // MERGE ROUND: the capture happened, against the real host, with the manifest's own user agent
+    // and the shipped extractor. It is checked by the SAME validator the offline round wrote for
+    // this moment -- freshWitnessValid -- so nothing about the bar was rewritten to fit the
+    // evidence. The page it was taken from is named by its URL seal, not by trust.
+    ctx.ok('G-16 current-markup evidence is captured and satisfies the fresh-witness contract',
+      freshWitnessValid(fixture.currentMarkupEvidence, fixture.pages[0].urlSha256));
+    ctx.ok('G-16 the live capture does not pretend a live raw hash is a seal',
+      fixture.currentMarkupEvidence.rawSealIsStable === false
+        && fixture.currentMarkupEvidence.rawResponseSha256 !== fixture.currentMarkupEvidence.frozenSha256
+        && typeof fixture.currentMarkupEvidence.rawSealNote === 'string'
+        && fixture.currentMarkupEvidence.rawSealNote.length > 0);
+    ctx.ok('G-16 MUTANT 3 KILLED: a capture pinned to the wrong page cannot pass',
+      !freshWitnessValid(fixture.currentMarkupEvidence, fixture.pages[1].urlSha256));
     const freshBase = {
       status: 'CAPTURED', acceptanceGreen: true, requestId: 'req_markup_probe',
       rawResponseSha256: 'a'.repeat(64), urlSha256: fixture.pages[4].urlSha256,

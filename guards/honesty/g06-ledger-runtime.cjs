@@ -34,9 +34,42 @@ module.exports = {
     ctx.ok('G-06 corrected claim separates a routing decision from engine execution',
       guard.includes('necessary but not sufficient to run the Ledger engine')
         && guard.includes('does not claim to observe a deployed environment or a real store'));
-    ctx.ok('G-06 external deployment evidence is explicitly absent',
-      fixture.externalEvidence.deploymentEnvironmentObserved === false
-        && fixture.externalEvidence.realRedisObserved === false);
+    // MERGE ROUND: this was 'external deployment evidence is explicitly absent'. It is no longer
+    // absent -- the merge preview was driven live -- so the assertion changes from "claims nothing"
+    // to "claims exactly what it can name". An observation must carry its deployment id and git sha,
+    // and anything still unobtainable must say WHY in a measured sentence rather than going quiet.
+    const named = (value) => typeof value === 'string' && value.length > 0;
+    // ONE validator, driven twice: once on the real evidence and once on a damaged copy. A rule
+    // that is only ever applied to the passing case is not a rule.
+    function evidenceIsHonest(evidence) {
+      const seen = evidence && evidence.observation;
+      if (!seen) return false;
+      if (evidence.deploymentEnvironmentObserved === true) {
+        if (!/^dpl_[A-Za-z0-9]+$/.test(seen.deploymentId)) return false;
+        if (!/^[0-9a-f]{40}$/.test(seen.deployedGitSha)) return false;
+        if (!named(seen.target) || !named(seen.environmentLine)) return false;
+      }
+      if (evidence.realRedisObserved === true) {
+        if (!named(seen.storeEffect)) return false;
+        // Either a transaction id, or an explicit measured statement of why there is none.
+        if (seen.storeTransactionId === null && !named(seen.storeTransactionIdReason)) return false;
+      }
+      return named(evidence.reason);
+    }
+    ctx.ok('G-06 deployment and store evidence is named rather than asserted',
+      fixture.externalEvidence.deploymentEnvironmentObserved === true
+        && fixture.externalEvidence.realRedisObserved === true
+        && evidenceIsHonest(fixture.externalEvidence));
+    const damaged = (patch) => ({
+      ...fixture.externalEvidence,
+      observation: { ...fixture.externalEvidence.observation, ...patch },
+    });
+    ctx.ok('G-06 MUTANT 3 KILLED: a store claim with no transaction id AND no stated reason fails',
+      !evidenceIsHonest(damaged({ storeTransactionIdReason: '' })));
+    ctx.ok('G-06 MUTANT 4 KILLED: an observed environment with no deployment id fails',
+      !evidenceIsHonest(damaged({ deploymentId: null })));
+    ctx.ok('G-06 MUTANT 5 KILLED: an observed environment pinned to a sha that is not one fails',
+      !evidenceIsHonest(damaged({ deployedGitSha: 'e4b48de' })));
 
     const redisUrl = pathToFileURL(path.join(ctx.root, 'lib/ledger/redis.js')).href;
     const flagUrl = pathToFileURL(path.join(ctx.root, 'lib/ledger/flag.js')).href;
