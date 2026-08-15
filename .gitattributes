@@ -190,6 +190,15 @@ guards/page-match-guard.cjs text eol=lf
 lib/page-match.js text eol=lf
 guards/takhrij-lock-guard.cjs text eol=lf
 lib/takhrij-lock.js text eol=lf
+# The same defect as lib/route-classify.js below, found by fixing that one: with the route seam
+# repaired, gate takhrij went 84/87 -> 85/87 and uncovered two more assertions of its own that had
+# been dark behind the earlier abort. takhrij-lock-guard.cjs:425 mutates lib/finalized-sse-writer.js
+# by a THREE-LINE template literal, so every \n in the seam has to match; the file was stored LF,
+# pinned nowhere, and checked out with 396 CR. `mutation precondition` is the guard's own honest
+# statement that its mutant was not applied, and the mutant assertion behind it failed for the same
+# reason. Neither the file nor the guard was touched by either parallel branch -- both blobs are
+# byte-identical to d2c5828 -- so this is baseline debt, uncovered here and closed here.
+lib/finalized-sse-writer.js text eol=lf
 lib/frozen-text.js text eol=lf
 guards/quoted-phrase-guard.cjs text eol=lf
 guards/adapted-corpus-guard.cjs text eol=lf
