@@ -90,8 +90,15 @@
       "ibnBaz": 18479,
       "note": "read from the deployed adapter's own telemetry line on two separate fatwa turns; one search call per turn, matching the local accounting this fixture proves offline"
     },
-    "production": null,
-    "productionReason": "the production service is a separate deployment; its response is deferred to the publish smoke rather than assumed to equal the preview's",
+    "production": {
+      "budgetEnvironment": "production",
+      "fatwaStatus": "OK",
+      "scholars": 18,
+      "total": 73130,
+      "ibnBaz": 18479,
+      "deploymentId": "dpl_7no8tbAGwnsVnde11xsmwzmJSeFH"
+    },
+    "productionReason": "measured by the production publish smoke and copied mechanically from CLAIMS_AUDIT/د in the merge report sealed by sha8 48618485",
     "reason": "the offline round could not reach the service and said so. It is reachable now: the counts the deployed adapter reported are identical to the counts this fixture authored offline, so the local accounting and the current service agree rather than one standing in for the other."
   }
 }
