@@ -2920,10 +2920,18 @@ const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 const EZIK_TAG_RESCUES = [];
 
 // تعقيمٌ آمنٌ للنصِّ الذي كان سيُمحى بالكامل: تُنزَع الأقواسُ الزاويّةُ وما بينها، ويبقى النثر.
-// وسما الآيةِ والسورةِ يأخذان ما بعدهما إن انقطعا، فالتلاوةُ يتلوها القارئُ الحقيقيُّ بصوته
-// ولا نخترعُ لها نصًّا من عندنا.
+//
+// الحذفُ بمدى الوسمِ لا بذيلِ النصّ (أ-٦/١). كان سطرُ الآيةِ والسورةِ يحذفُ من الوسمِ إلى آخرِ
+// النصِّ كلِّه، فجوابٌ من ١٣٠ حرفًا فيه ٥٥ حرفَ نثرٍ بعدَ آيةٍ مقطوعةٍ كان يصلُ صفرًا: العرضُ
+// والصوتُ وسجلُّ الأهلِ كلُّها فارغة. ونحن لا نمنعُ إلا نصَّ التلاوةِ نفسَه — لأنّ التلاوةَ
+// يتلوها القارئُ الحقيقيُّ بصوته ولا نخترعُ لها نصًّا من عندنا — أمّا النثرُ الذي يليها فليس
+// تلاوةً ولا علاقةَ له بالوسم، فيعيش.
+//
+// فالمدى: من فتحِ الوسمِ إلى إغلاقِه المطابقِ إن وُجد؛ وإن كان الوسمُ مقطوعًا بلا إغلاق فإلى
+// أوّلِ «<» أو أوّلِ سطرٍ جديد — أيُّهما أسبق. وهذا يُبقي كلَّ ما بعدَ السطرِ سليمًا.
+const VERSE_TAG_EXTENT = /<(verse|surah)\b[^>]*>(?:[\s\S]*?<\/\1>|[^<\n]*)/g;
 const rescueTruncated = (text) => String(text || '')
-  .replace(/<(verse|surah)\b[^>]*>[\s\S]*$/g, ' ')
+  .replace(VERSE_TAG_EXTENT, ' ')
   .replace(/<[^>]*>/g, ' ')
   .replace(/<[^>]*$/g, ' ')
   .replace(/[^\S\n]+/g, ' ')
@@ -2957,14 +2965,17 @@ const stripIncompleteTags = (text, opts) => {
   if (opts && opts.rescue && out.trim() === '' && text.trim() !== '') {
     const tagMatch = new RegExp(`<(${KNOWN_TAGS})\\b`).exec(text);
     const rescued = rescueTruncated(text);
-    if (rescued) {
-      EZIK_TAG_RESCUES.push({
-        tag: tagMatch ? tagMatch[1] : 'unknown',
-        reason: 'truncated-tag-emptied-reply',
-        chars: rescued.length,
-      });
-      return rescued;
-    }
+    // التسجيلُ دائمًا (أ-٦/٢). كان `if (rescued)` يحرسُ الدفعَ في السجلِّ كما يحرسُ العودة، فحين
+    // لم يبقَ نثرٌ يُنقَذ لم يُكتَبْ شيءٌ في أيِّ مكان: الفقاعةُ تفرغُ والسجلُّ يقولُ إنّ شيئًا لم
+    // يقع. أسوأُ الحالتينِ هي التي لا أثرَ لها. فالسجلُّ الآن يُكتَبُ في الحالتين، والفرقُ في
+    // `reason` وفي `chars`، وتبقى العودةُ مشروطةً بوجودِ نثرٍ فعلاً.
+    EZIK_TAG_RESCUES.push({
+      tag: tagMatch ? tagMatch[1] : 'unknown',
+      reason: rescued ? 'truncated-tag-emptied-reply' : 'truncated-tag-emptied-reply-unrescuable',
+      chars: rescued.length,
+      rescued: rescued.length > 0,
+    });
+    if (rescued) return rescued;
   }
   return out;
 };
@@ -7892,7 +7903,14 @@ function App() {
         return getFriendlyError('server', p.gender);
       }
       // Return the full accumulated text so the existing parse + audio pipeline runs unchanged.
-      return full || getFriendlyError('general', p.gender);
+      //
+      // ── «تعذّر الجواب» ليست «لم أفهم سؤالك» (أ-٦/٣) ────────────────────────
+      // بلوغُ هذا السطرِ بنصٍّ فارغٍ يعني أنّ البثَّ وصلَ سليمَ البنيةِ ولم يحملْ حرفًا واحدًا —
+      // أي أنّ الخادمَ لم يُنتِجْ جوابًا. جملةُ `general` تقولُ للطفلِ «لم أفهم سؤالك»، فتُلقي
+      // عليه عهدةَ عطبٍ عندنا وترسلُه يعيدُ صياغةَ سؤالٍ سليمٍ إلى ما لا نهاية، بينما يبقى
+      // العطبُ الحقيقيُّ غيرَ مرئيّ. وهي العلّةُ نفسُها الموثّقةُ فوقَ `technical` في جدولِ
+      // الرسائل، والحالةُ هنا حالتُها: نتحمّلُ العطبَ ولا ننسبُه إلى سؤاله.
+      return full || getFriendlyError('technical', p.gender);
     } catch (e) {
       if (e.name === 'AbortError') throw e; // cancelled by a new message — handled by the caller
       // Genuine network failure (offline browser, CORS, ...) — friendly message.
