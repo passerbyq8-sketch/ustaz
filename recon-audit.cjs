@@ -718,7 +718,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 73;   // 72nd: searchbudgetp0 RESTORED (it owns the whole v2 production/preview/per-caller matrix and was dropped the same round that made the matrix env-scoped); 73rd: fullfatwa — a fatwa reaches the reader whole or is refused
+  const GATES_EXPECTED = 74;   // 74th: retiredchat -- unused model-only relays stay 410 and /api/ask remains the only answer path
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;
                                //       the four ordered tiers (byline > domain owner > name in text >

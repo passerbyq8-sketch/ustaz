@@ -300,6 +300,7 @@ guards/anchor-mode-guard.cjs text eol=lf
 # stray CR inside a carrying passage would silently fail a span that is genuinely in the source
 # — and a dropped span is exactly the truncation this gate exists to prevent.
 guards/full-fatwa-contract-guard.cjs text eol=lf
+guards/retired-chat-endpoints-guard.cjs text eol=lf
 guards/fixtures-full-fatwa.json text eol=lf
 lib/full-fatwa.js text eol=lf
 lib/anchor/flag.js text eol=lf
