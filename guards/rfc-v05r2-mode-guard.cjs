@@ -1,15 +1,14 @@
 // guards/rfc-v05r2-mode-guard.cjs — the three-mode rollout switch: off / internal / public.
 //
-// WHY THIS GATE EXISTS. The switch these two paths shipped behind needed a value written into
-// Upstash, and that value has never been written.
+// WHY THIS GATE EXISTS. It enumerates the repository's three-mode switch and rollback contract.
+// It does not determine what values are installed in a current deployment or Upstash instance.
 //
 // A CLAIM STAMPED «MEASURED» STOOD HERE AND WAS FALSE (corrected 2026-08-07). It read: «every
 // secret in this project reads back empty because they are stored write-only, so that value
 // cannot be written at all». It was copied from lib/ledger/flag.js, which had not measured it
-// either. Measured on 2026-08-07 against the live store: PING -> PONG, DBSIZE -> 66, and
-// `lg:flag:ledger_rag_enabled` -> null alongside live `lg:t:*` / `lg:dsb:*` records. Reads work.
-// The runtime value is ABSENT, not unreadable, and whether this project can WRITE it was never
-// attempted and remains unmeasured. See lib/ledger/flag.js for the full correction.
+// either. A dated operator note said PING -> PONG, DBSIZE -> 66 and the runtime key -> null,
+// but this gate consumes no immutable external record for that note. It is historical context,
+// not a passing assertion. Current presence, readability and write permission remain unmeasured.
 //
 // THE ENUMERATION BELOW IS UNAFFECTED, and so is the owner's decision that the ENVIRONMENT
 // carries the activation authority while the store is an optional brake — that was a decision of
@@ -344,7 +343,7 @@ async function main() {
     eq('...and stays off on the cached read', await FL.killSwitchEngaged(t0 + 400), false);
     eq('...and the path is still the ledger', (await FL.decidePath(anonReq, t0 + 500)).path, 'ledger');
 
-    // The same for an ABSENT key, which is the actual production state.
+    // The same for a simulated ABSENT key. This says nothing about current production state.
     STORE.__setRedisForTest(redis);
     redis._map.clear();
     FL.__resetFlagCacheForTest();
@@ -368,11 +367,10 @@ async function main() {
   }
 
   // =========================================================================
-  console.log('\n=== I. WITH NO MODE SET, THE PATH IS PUBLIC — AND THE ROLLBACK IS INTACT ===');
+  console.log('\n=== I. WITH NO LOCAL MODE SET, THE REPOSITORY DEFAULT IS PUBLIC ===');
   {
-    // WHAT AN UNCONFIGURED DEPLOYMENT DOES. This is the state a fresh production environment is
-    // in: no mode, no floor, no ceiling, nothing in the store. Before the go-live it meant OFF;
-    // it now means the engine, for everybody, which is the whole point of the change.
+    // WHAT AN UNCONFIGURED LOCAL ENVIRONMENT DOES. These are cleared process variables and a
+    // fake empty map, not observations of a fresh production deployment.
     setEnv({});
     redis._map.clear();
     let t = fresh();

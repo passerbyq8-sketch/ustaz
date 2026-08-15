@@ -1,0 +1,41 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-09",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "The mode gate proves local enumeration with an in-memory Redis double. Current deployment variables, Upstash state, and rollback responses are blocked offline.",
+  "sources": [
+    {
+      "key": "oldGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/rfc-v05r2-mode-guard.cjs",
+      "sha256": "4deed637781567e17801af4b7438ce70614d4fd18089a4ae24a3219fec4e4428"
+    },
+    {
+      "key": "flag",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/ledger/flag.js",
+      "sha256": "cbe2662b09d4986613e2bc5099fcb93c0e7bde7c7482e16283bc87f9d770eb51"
+    },
+    {
+      "key": "vercel",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "vercel.json",
+      "sha256": "4ca6aae084a4c67b8c20b9692ce7e6e4d927fc7f24a12612b808f92918d745e3"
+    }
+  ],
+  "externalEvidence": {
+    "status": "BLOCKED_OFFLINE",
+    "acceptanceGreen": false,
+    "deployment": null,
+    "store": null,
+    "probes": null,
+    "reason": "offline directive"
+  },
+  "localCases": [
+    { "floor": "on", "mode": "off", "stored": null, "expected": "legacy" },
+    { "floor": "on", "mode": "internal", "stored": null, "expected": "legacy" },
+    { "floor": "on", "mode": "public", "stored": null, "expected": "ledger" },
+    { "floor": "on", "mode": "public", "stored": "off", "expected": "legacy" },
+    { "floor": null, "mode": null, "stored": null, "expected": "ledger" }
+  ]
+}
