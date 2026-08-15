@@ -86,11 +86,11 @@ const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\
 // specific disclosure. Chat samples grew by EXACTLY 982 bytes; call samples grew by EXACTLY 1124
 // bytes because they also carry the voice-specific form of the same contract.
 const PINNED = [
-  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 57077, sha: '2d76fc37b604a8765031d37510816d09d733300c6424c1cfa06011f1eeeede4e' },
-  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 55572, sha: '9775bd419ea281353c1e3a693355b168196af4a950eebd8bf7fc24ee6bf13bd8' },
-  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 55346, sha: '76bbc92a2605c39d8aa5ddbc115dff19ee6fb843370d584488fcfd792baced50' },
-  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 70302, sha: 'f4424d530d50af7eb9736fe64d1476764098eb29a623fb1cabb206a1d8f537ff' },
-  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 68614, sha: 'ce44aef0c2a8608ef77cf3b61410b3a5e3a9b0c46361cc54b3bcd7fef851baaa' },
+  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 57155, sha: '2207ce44a46c47e872a9ca335345051afd9150d34b9627be50e5974c4dc6e908' },
+  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 55650, sha: 'efc80470697202496fecece2ec1ffa241e441d8f6a9782b7ffda94a8250b48fc' },
+  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 55424, sha: '059bc9ac737b5826bd4f549814dee1e9f448ab7556b77503b94043fffbc8ab01' },
+  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 70380, sha: '6b0f9fa4e5491c2ae4b629cf9f121d02230462f1471cd397d564a46dfad264a7' },
+  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 68692, sha: '8d472f9b2431dd6b7dafd28fd3efe326d237d82c3e5a0bd33b31a49b820f8fab' },
 ];
 
 (async function main() {
