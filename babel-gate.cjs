@@ -59,4 +59,9 @@ blkLines.forEach((l, i) => {
     console.log(`block L${i + 1} / html L${lineOffset + i + 1}: ${l.trim()}`);
   }
 });
-if (!found) console.log('(no lines containing the word "import" in the babel block)');
+if (!found) {
+  console.log('(no lines containing the word "import" in the babel block)');
+} else {
+  console.log(`FAIL: ${found} import-scan violation(s) in the babel block`);
+  process.exit(1);
+}
