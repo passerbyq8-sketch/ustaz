@@ -629,17 +629,31 @@ const user = (t) => [{ role: 'user', content: t }];
       planAsk(user('ما رأي الشيخ عبدالمحسن العباد في الطلاق في الغضب؟')).attributionMode, 'namedScholarOpinion');
     eq('...and an ordinary question is not',
       planAsk(user('احك لي نكتة')).attributionMode, 'none');
+    // Same law change as attribution-guard, same shape. OLD LAW (until أ-١): the bridges fixture
+    // had to stay `GENERAL`, which made the guarantee rest on TOPIC VOCABULARY — the single
+    // difference between the two fixtures. أ-١ replaces that with a structural proof: an opinion
+    // frame in the plan PLUS the name resolving on the fatwa roster is what reaches the sourced
+    // path. Lexical routing is still independent of attribution, and neither half alone suffices —
+    // an unrostered name and a bare identity question both stay GENERAL.
     const namedGeneral = 'ما رأي ابن باز في هندسة الجسور؟';
     const namedReligious = 'ما رأي ابن باز في الجمع بين الصلاتين للمسافر؟';
+    const unrosteredName = 'ما رأي أحمد الشقيري في هندسة الجسور؟';
+    const identityOnly = 'من هو ابن باز؟';
     const generalPlan = planAsk(user(namedGeneral));
     const religiousPlan = planAsk(user(namedReligious));
-    ok('domain routing is independent of attribution while named religious topics stay sourced',
+    const unrosteredPlan = planAsk(user(unrosteredName));
+    const identityPlan = planAsk(user(identityOnly));
+    ok('lexical routing stays independent of attribution',
       generalPlan.attributionMode !== 'none'
         && ROUTE.classifyRoute(user(namedGeneral)) === 'GEN'
-        && STORED.classifyReligiousRuntime(namedGeneral, generalPlan, 'GEN') === 'GENERAL'
         && ROUTE.classifyRoute(user(namedReligious)) === 'DEEN'
-        && STORED.classifyReligiousRuntime(namedReligious, religiousPlan, 'DEEN') === 'STORED_FIQH'
         && /const attributionActive = effectiveRoute === 'DEEN'/.test(ask));
+    ok('a rostered scholar asked for his position reaches the sourced path on structure, not topic words',
+      STORED.classifyReligiousRuntime(namedGeneral, generalPlan, 'GEN') === 'STORED_FIQH'
+        && STORED.classifyReligiousRuntime(namedReligious, religiousPlan, 'DEEN') === 'STORED_FIQH');
+    ok('...and neither half alone opens it: an unrostered name, or a rostered name with no opinion frame',
+      STORED.classifyReligiousRuntime(unrosteredName, unrosteredPlan, ROUTE.classifyRoute(user(unrosteredName))) === 'GENERAL'
+        && STORED.classifyReligiousRuntime(identityOnly, identityPlan, ROUTE.classifyRoute(user(identityOnly))) === 'GENERAL');
   }
   ok('the adapter is tried FIRST for the scholar who has one', /if \(plan\.hasDirectAdapter\)/.test(ask));
   ok('a scholar without an adapter still gets his own site searched',
