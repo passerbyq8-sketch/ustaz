@@ -1,0 +1,59 @@
+{
+  "schema": "ezik.guard-honesty.v1",
+  "id": "G-17",
+  "baseline": "d2c5828707b51a450826a03283f185baaba60829",
+  "claim": "Authored parser diagnostics are labeled as such. Exact-span units are separately verified against full-sealed real pages and the URL set retrieved for that request.",
+  "sources": [
+    {
+      "key": "oldGuard",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "guards/anchor-mode-guard.cjs",
+      "sha256": "e71eafd384c90213570e7c2acb727fc3feca46ed4bda76fe2a7185ce4c806648"
+    },
+    {
+      "key": "units",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/anchor/units.js",
+      "sha256": "367e2a39003dc86c0005ab07764521f85f0a43a197e3d073a9a09773aed823bb"
+    },
+    {
+      "key": "extract",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "lib/transfer/extract.js",
+      "sha256": "9cadd0b4777a85d169b824a7ed7b118c25bfcb53ccdee71cfbd1b6c90fc7ea06"
+    },
+    {
+      "key": "oldManifest",
+      "revision": "d2c5828707b51a450826a03283f185baaba60829",
+      "path": "data/transfer-fixtures/manifest.json",
+      "sha256": "519d899cc811ddc95fb0c2a2bfadd2cdccca54cc74200f5abf9a2d28785d55e5"
+    }
+  ],
+  "pages": [
+    {
+      "file": "binbaz-3577.html",
+      "sha256": "47f47781d836188754effa75e96d72580c7f10c72999509f60523fe5d484c447",
+      "urlSha256": "7c194ff74ca690db38bd7e5a807e1ee37e628aba1e837261744c15ae4f1ac482",
+      "answerChars": 1294,
+      "answerSha256": "e6718aeee77dd8a0b3bd4d645eef1bbb6f0307b120fcbb1f6ef49de017741924",
+      "span": { "offset": 0, "chars": 160, "sha256": "5275d0076a971b31cb4013d1bb1291b279e5ace3e43f6fd78933a95e2c7c66af" },
+      "claimForm": "exact-published-span"
+    },
+    {
+      "file": "islamweb-411118.html",
+      "sha256": "ca2d30fe2a45d16373539c4361f103a8f32bb7239ffa4c240e394196600048df",
+      "urlSha256": "52995977904656b18d5b470e5ef21771b94a6501e7099f97f6e73981ec1a32d7",
+      "answerChars": 1900,
+      "answerSha256": "f80d901bd65f23c4668d82439d4c581343a4f101d6d7f6ad9ab794dbad309ccb",
+      "span": { "offset": 0, "chars": 160, "sha256": "0d0c08d2d2cdbb9ee0d78f0396b21fba2104e42b857bf011e91442c5d4b49a0e" },
+      "claimForm": "exact-published-span"
+    }
+  ],
+  "externalEvidence": {
+    "status": "BLOCKED_OFFLINE",
+    "acceptanceGreen": false,
+    "currentLivenessRecord": null,
+    "twoReviewerSemanticLabels": null,
+    "reason": "offline directive; exact-span claims need no semantic paraphrase judgment"
+  }
+}
