@@ -10,7 +10,7 @@ const fixtureArg = process.argv.slice(2).find((arg) => !String(arg).startsWith('
 const MATRIX = fixtureArg
   ? path.resolve(process.cwd(), fixtureArg)
   : path.join(ROOT, 'fixtures', 'gemini13-matrix.json');
-const REQUIRED_REASON = 'التنفيذ الإلزامي يُقلب true في جولة الدمج بعد هبوط فرع أ';
+const REQUIRED_REASON = 'إلزاميّ منذ جولة الدمج الدلاليّة ١٥ أغسطس ٢٠٢٦ بعد هبوط فرعي أ وب';
 
 const esm = (relative) => import(pathToFileURL(path.join(ROOT, relative)).href);
 
