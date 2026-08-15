@@ -718,7 +718,21 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 75;   // 75th: guardhonesty -- governing claims are measured against sealed repository evidence and killed mutants
+  const GATES_EXPECTED = 80;   // 76th-80th: the five answer-path guards of parallel round A, listed in the
+                               //       merge round because gates.json belonged to the other writer while they
+                               //       were being built. Each is registered WITH --mutants, without which the
+                               //       mutation half never runs in the suite and the gate asserts half of what
+                               //       its own report claims: promptconsistency (the prompt does not contradict
+                               //       itself on the verse or on the age bound, read from the LIVE text and with
+                               //       the bound derived from index.html) -- truncatedtag (a tag cut at offset
+                               //       zero no longer empties display AND voice together, and the rescue stays
+                               //       opt-in: the four final-text readers pass it, the streaming path does not)
+                               //       -- explicitfailure (no silent excision in EITHER finaliser: the sentence
+                               //       falls whole and `degraded` always rides along) -- scholarseparation (the
+                               //       SERVER, not the prompt, splits the shaykh's saying from the general
+                               //       ruling; site 2 in api/ask.js stays BLOCKED and its safe state is pinned)
+                               //       -- cardorcontext (a stored page earns a card or never enters the context)
+                               // 75th: guardhonesty -- governing claims are measured against sealed repository evidence and killed mutants
                                // 74th: retiredchat -- unused model-only relays stay 410 and /api/ask remains the only answer path
                                //       or a browser speech engine before an explicit, versioned consent
                                // 52nd: source-attribution — a person is named by a page or not at all;

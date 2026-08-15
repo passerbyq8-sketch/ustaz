@@ -332,6 +332,21 @@ lib/full-fatwa.js text eol=lf
 lib/anchor/flag.js text eol=lf
 lib/anchor/units.js text eol=lf
 
+# Gates 76-80: the five answer-path guards of parallel round A, listed as gates in the merge
+# round because gates.json belonged to the other writer while they were being built. Same
+# reason as every gate above, and it is not decorative for these five: each of them reads
+# repository files RAW and seams on text containing \n — prompt-consistency derives the age
+# bound from an expression in index.html, truncated-tag boots the shipped text/babel block and
+# calls the real functions, and the other three seam on source literals to plant their mutants.
+# A clone with core.autocrlf=true would hand them CRLF, the seams would miss, and a mutant that
+# was never applied reports as a mutant that was killed — which is defect 40 at the head of this
+# file arriving through the same door, and the exact shape of the takhrij failure below.
+guards/prompt-consistency-par-a-guard.cjs text eol=lf
+guards/truncated-tag-fallback-par-a-guard.cjs text eol=lf
+guards/explicit-failure-par-a-guard.cjs text eol=lf
+guards/scholar-separation-par-a-guard.cjs text eol=lf
+guards/card-or-no-context-par-a-guard.cjs text eol=lf
+
 # ح٣: the frozen transfer fixtures. THESE ARE NOT OUR TEXT — they are the bytes eleven hosts
 # actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a full SHA-256 of
 # each one. Any end-of-line normalisation, in either direction, on any machine, changes those
