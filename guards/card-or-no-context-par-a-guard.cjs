@@ -26,6 +26,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { pathToFileURL } = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -212,11 +213,40 @@ async function mutants() {
     });
 }
 
+function registeredCompanions() {
+  console.log('\n--- D. REGISTERED COMPANION GATES ---');
+  let roster;
+  try {
+    roster = JSON.parse(fs.readFileSync(path.join(ROOT, 'gates.json'), 'utf8'));
+  } catch (error) {
+    ok('gates.json companion registration is readable', false, error.message);
+    return;
+  }
+  const self = Array.isArray(roster)
+    ? roster.find((entry) => entry?.script === 'guards/card-or-no-context-par-a-guard.cjs')
+    : null;
+  const companions = Array.isArray(self?.companions) ? self.companions : [];
+  ok('gemini13 is named in this gate registration', companions.some((entry) =>
+    entry?.name === 'gemini13' && entry?.script === 'guards/gemini13-route-guard.cjs'));
+  for (const companion of companions) {
+    const args = String(companion?.args || '').trim().split(/\s+/u).filter(Boolean);
+    const result = spawnSync(process.execPath, [path.join(ROOT, companion.script), ...args], {
+      cwd: ROOT,
+      encoding: 'utf8',
+    });
+    if (result.stdout) process.stdout.write(result.stdout);
+    if (result.stderr) process.stderr.write(result.stderr);
+    ok('registered companion passes: ' + companion.name, result.status === 0,
+      result.error?.message || result.stderr || `exit=${result.status}`);
+  }
+}
+
 (async () => {
   try {
     await sectionA();
     sectionB();
     if (process.argv.includes('--mutants')) await mutants();
+    if (process.argv.includes('--registered-companions')) registeredCompanions();
   } catch (e) {
     console.error('GUARD ERROR:', e && e.stack ? e.stack : e);
     process.exit(1);
