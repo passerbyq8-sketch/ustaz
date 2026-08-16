@@ -174,6 +174,63 @@ async function suite() {
   ok('C6 a whole drop is STILL fatal and still refuses explicitly',
     refused.ok === false && refused.text === FIN.FINALIZER_REFUSAL && refused.outcome === 'REFUSED',
     JSON.stringify({ ok: refused.ok, outcome: refused.outcome }));
+
+  // ── D. THE FLIPPED LAW (merge §٤ / L1) ────────────────────────────────────
+  //
+  // EVERYTHING ABOVE STAYS TRUE AND MUST. A through C are the LEGACY finalisers, which the free
+  // path does not use and this round does not touch: with FREE_BRAIN_V1 off, api/ask.js runs
+  // exactly what it ran on 40f540e. «غياب النص الباقي ⇒ رفض» is still their law.
+  //
+  // WHAT FLIPS IS WHICH PATH THAT LAW GOVERNS. On the reviewer's path the same input produces the
+  // opposite outcome, and the pairing is the proof: the SAME sentence A8 refuses to a blank, and
+  // the SAME draft B1 drops, are both DELIVERED here — visibly tagged as understanding rather
+  // than presented as a fatwa. A refusal is the last rung, not the first.
+  console.log('\n--- D. the replaced law: on the reviewer path nothing is refused to a blank ---');
+  const LAW = require('./replaced-law-lib.cjs');
+  const loop = await LAW.fresh(LAW.LOOP, 'xfail-flip');
+
+  // A8's fixture: the takhrij WAS the whole sentence, so the legacy lock leaves nothing.
+  const A8_LEGACY = T.lockTakhrij('رواه الترمذيُّ.', [PAGE]);
+  const a8Free = await LAW.driveFreeTurn({ module: loop, answer: 'رواه الترمذيُّ.' });
+  ok('D1 the legacy lock still refuses that sentence to an empty string',
+    A8_LEGACY.outcome === 'REFUSED' && A8_LEGACY.text.trim() === '', JSON.stringify(A8_LEGACY.outcome));
+  ok('D2 FLIPPED — the reviewer path delivers the same sentence instead of blanking it',
+    a8Free.text.trim().length > 0 && a8Free.text.includes('الترمذيُّ'), JSON.stringify(a8Free.text));
+
+  // B1's fixture: one offending sentence among clean ones, no subject entity to escalate on.
+  const B1_DRAFT = 'الصلاةُ ركنٌ من أركانِ الإسلام. والحكمُ في هذه المسألةِ أنّه واجبٌ بلا خلاف.';
+  const b1Legacy = C.screenDraft(B1_DRAFT, { pageTexts: [], entity: '', subjectEntity: '', identityStatus: 'unknown' });
+  const b1Free = await LAW.driveFreeTurn({ module: loop, answer: B1_DRAFT });
+  ok('D3 the legacy screen still drops the offending sentence',
+    (b1Legacy.droppedSentences || []).length > 0 || b1Legacy.dropWhole === true,
+    JSON.stringify(b1Legacy.problems));
+  ok('D4 FLIPPED — the reviewer keeps that sentence and tags it as understanding',
+    b1Free.text.includes('واجبٌ بلا خلاف') && b1Free.text.includes('【فهمٌ لا فتوى】'),
+    JSON.stringify(b1Free.text));
+  ok('D5 ...and reports it as a tagged understanding, not as a drop',
+    (b1Free.verdict?.counts || {})['tagged-fiqh-understanding'] >= 1
+      && b1Free.verdict?.usedLastResort === false,
+    JSON.stringify(b1Free.verdict?.counts));
+
+  // The loop imports the reviewer STATICALLY (deliberately — see lib/free-brain/review.js), so a
+  // reviewer twin cannot be swapped underneath a loop twin. The mutant is therefore measured on
+  // the reviewer's own contract, which is where the law being restored actually lives: does the
+  // sentence D4 just proved survives, still survive?
+  const reviewerTwin = await LAW.mutate({
+    file: LAW.REVIEWER,
+    name: 'unsourced-ruling-refused-again-direct',
+    transform: (source) => source.replace(
+      /^ {6}let reviewed = tag\(sentence, TAGS\.FIQH_UNSOURCED\);$/mu,
+      "      let reviewed = ''; // mutant: the old law — an unsourced ruling is refused, not tagged"),
+    check: (twin) => {
+      const out = twin.reviewAnswer({ text: B1_DRAFT, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      return out.text.includes('واجبٌ بلا خلاف') && out.text.includes('【فهمٌ لا فتوى】');
+    },
+  });
+  ok('D6 mutant restoring «nothing survives ⇒ refuse» applies', reviewerTwin.changed, reviewerTwin.error);
+  ok('D7 mutant twin loads', reviewerTwin.loaded, reviewerTwin.error);
+  ok('D8 MUTANT KILLED — the unsourced ruling cannot be blanked again',
+    reviewerTwin.loaded && reviewerTwin.survived === false, JSON.stringify(reviewerTwin));
 }
 
 // ── MUTANTS ─────────────────────────────────────────────────────────────────

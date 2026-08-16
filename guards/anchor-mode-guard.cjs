@@ -269,6 +269,54 @@ const PAGES = [{ url: 'fixture://authored-anchor-diagnostic', passage: PAGE_TEXT
       ok('.gitattributes pins it to LF',
         /guards\/anchor-mode-guard\.cjs text eol=lf/.test(read('.gitattributes')));
     }
+
+    // =========================================================================
+    // THE FLIPPED LAW (merge §٤ / L1)
+    //
+    // SECTION E STAYS TRUE AND MUST: on the anchor path, zero surviving units compose to the
+    // empty string and api/ask.js turns that into NO_VERIFIED_SOURCE_MESSAGE. That path is
+    // untouched by this round and is what runs with FREE_BRAIN_V1 off.
+    //
+    // WHAT FLIPS IS THE PATH THE REVIEWER GOVERNS. There, zero evidence is not zero answer: the
+    // claim is delivered in the app's own voice, visibly marked as understanding rather than as
+    // a transmitted text. An unmarked silence is the failure this round replaced.
+    console.log('\n=== I. THE REPLACED LAW: zero evidence is not zero answer ===');
+    {
+      const LAW = require('./replaced-law-lib.cjs');
+      const loop = await LAW.fresh(LAW.LOOP, 'anchor-flip');
+      const CLAIM = 'الجمع بين الصلاتين للمسافر جائز عند الحاجة.';
+
+      // The legacy half, re-measured here so the pairing is one comparison and not two beliefs.
+      const invented = '<unit source="' + PAGES[0].url + '" span="مقطع مختلق تمامًا لا يوجد">دعوى.</unit>';
+      const survivors = A.verifyUnits(A.parseUnits(invented), PAGES).kept;
+      ok('I1 the anchor path still composes nothing when nothing survives',
+        survivors.length === 0 && A.composeUnits(survivors) === '', 'kept=' + survivors.length);
+
+      const free = await LAW.driveFreeTurn({ module: loop, answer: CLAIM });
+      ok('I2 FLIPPED — the reviewer path answers with zero evidence instead of composing nothing',
+        free.text.trim().length > 0 && free.text.includes('جائز'), JSON.stringify(free.text));
+      ok('I3 ...and says so in the open, as understanding rather than as a transmitted text',
+        free.text.includes('【فهمٌ لا فتوى】'), JSON.stringify(free.text));
+      ok('I4 ...and nothing was cited, so no source is being implied',
+        free.cited.length === 0 && free.evidence.length === 0,
+        'cited=' + free.cited.length + ' retrieved=' + free.evidence.length);
+
+      const twin = await LAW.mutate({
+        file: LAW.REVIEWER,
+        name: 'zero-evidence-composes-nothing',
+        transform: (src) => src.replace(
+          /^ {2}const reviewedText = output\.join\('\\n'\)\.trim\(\) \|\| LAST_RESORT;$/mu,
+          "  const reviewedText = sources.length ? output.join('\\n').trim() : ''; // mutant: no evidence, no answer"),
+        check: (mod) => {
+          const out = mod.reviewAnswer({ text: CLAIM, evidence: [], domain: 'fiqh', mode: 'عادي' });
+          return out.text.trim().length > 0 && out.text.includes('جائز');
+        },
+      });
+      ok('I5 mutant restoring «no evidence ⇒ no answer» applies', twin.changed, twin.error);
+      ok('I6 mutant twin loads', twin.loaded, twin.error);
+      ok('I7 MUTANT KILLED — the answer cannot be composed away again',
+        twin.loaded && twin.survived === false, JSON.stringify(twin));
+    }
   } finally {
     globalThis.fetch = realFetch;
   }

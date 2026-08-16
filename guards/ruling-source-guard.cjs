@@ -219,6 +219,62 @@ const FRAMING = 'هذه المسألة مما تكلم فيه أهل العلم�
       bare === 0, 'found ' + bare + ' un-routed exit(s)');
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // H. THE REPLACED LAW (merge §٤ / L1): the reviewer path does not refuse.
+  //
+  // A THROUGH G STAY TRUE AND MUST. The screen, the drop and the «no verified source» reply are
+  // the LEGACY law, they still govern the three buffered exits, and this round changes none of
+  // them: with FREE_BRAIN_V1 off, api/ask.js runs what it ran on 40f540e.
+  //
+  // WHAT FLIPS. On the reviewer path this same invented ruling is not dropped and the reply is
+  // not NO_VERIFIED_SOURCE_MESSAGE. It is delivered in the app's own voice under 【فهمٌ لا فتوى】 —
+  // a STRONGER honesty claim than the drop, not a weaker one: the drop hid that the app had a
+  // view at all, while the tag states both the view and its standing. And the screen that would
+  // have dropped it is not merely bypassed, it is explicitly disarmed at the branch, so this path
+  // has one output policy rather than two racing ones.
+  console.log('\n=== H. THE REPLACED LAW: the reviewer path tags instead of refusing ===');
+  {
+    const LAW = require('./replaced-law-lib.cjs');
+    const loop = await LAW.fresh(LAW.LOOP, 'ruling-flip');
+    const ask = read('api/ask.js');
+    const CG = await esm('lib/policy/consistency-gate.js');
+    const CTX = { pageTexts: [], entity: '', subjectEntity: '', identityStatus: 'unknown' };
+    const freeBranch = ask.slice(ask.indexOf('if (freeBrain.enabled'), ask.indexOf('if (storedContext.runtime'));
+
+    const legacy = CG.screenDraft(INVENTED_RULING, CTX);
+    ok('H1 the legacy screen still refuses that exact ruling with no page behind it',
+      legacy.dropWhole === true || (legacy.droppedSentences || []).length > 0,
+      JSON.stringify({ outcome: legacy.outcome, problems: legacy.problems }));
+
+    const free = await LAW.driveFreeTurn({ module: loop, answer: INVENTED_RULING });
+    ok('H2 FLIPPED — the reviewer path delivers the same ruling instead of refusing',
+      free.text.includes('يجب الطهور') && free.text.includes('【فهمٌ لا فتوى】'), JSON.stringify(free.text));
+    ok('H3 ...and the reply is not one of the legacy refusal texts',
+      !/لم أقف|لا يمكنني أن أنسب/.test(free.text), JSON.stringify(free.text));
+    ok('H4 the free branch disarms the screen rather than racing it',
+      freeBranch.length > 0 && /finalizerContext\.consistencyContext = null;/.test(freeBranch),
+      'the free branch must null the consistency context, or two output policies ship at once');
+    ok('H5 ...and routes no refusalFor() of its own',
+      freeBranch.length > 0 && !/refusalFor\(/.test(freeBranch),
+      'a refusalFor() inside the free branch would be the old law arriving through the new door');
+
+    const twin = await LAW.mutate({
+      file: LAW.REVIEWER,
+      name: 'unsourced-ruling-dropped-on-the-reviewer-path',
+      transform: (src) => src.replace(
+        /^ {6}let reviewed = tag\(sentence, TAGS\.FIQH_UNSOURCED\);$/mu,
+        "      let reviewed = ''; // mutant: the old law — an unsourced ruling is dropped"),
+      check: (mod) => {
+        const out = mod.reviewAnswer({ text: INVENTED_RULING, evidence: [], domain: 'fiqh', mode: 'عادي' });
+        return out.text.includes('يجب الطهور') && out.text.includes('【فهمٌ لا فتوى】');
+      },
+    });
+    ok('H6 mutant restoring the drop applies', twin.changed, twin.error);
+    ok('H7 mutant twin loads', twin.loaded, twin.error);
+    ok('H8 MUTANT KILLED — the unsourced ruling cannot be dropped again on this path',
+      twin.loaded && twin.survived === false, JSON.stringify(twin));
+  }
+
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

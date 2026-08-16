@@ -1555,7 +1555,7 @@ export default async function handler(req, res) {
       const gcPayload = await gc.json();
       const gcDraft = (gcPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
         .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .replace(/<source\b[^>]*>?[^<\n]*/giu, '')
         .trim();
       const rep = ageRepair(gcDraft, { topicClass, audienceBand });
       // THE FLOOR STAMP. A benign child reply that cannot show the floor ran is indistinguishable
@@ -1705,7 +1705,7 @@ export default async function handler(req, res) {
         // The model contributes no card on this route either.
         const iDraft = (iPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
           .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-          .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+          .replace(/<source\b[^>]*>?[^<\n]*/giu, '')
           .trim();
         if (iDraft) {
           console.log('[name-presence] identity answered', { hosts: idCards.map((c) => c.host) });
@@ -1964,7 +1964,7 @@ export default async function handler(req, res) {
         // The model contributes no card here either, on any route.
         const wDraft = (wPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
           .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-          .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+          .replace(/<source\b[^>]*>?[^<\n]*/giu, '')
           .trim();
         if (wDraft) {
           // ── THE CHILD'S FLOOR FOLLOWS THE CHILD ONTO THIS PATH ────────────
@@ -2327,7 +2327,7 @@ export default async function handler(req, res) {
       // The model may never contribute a card here, exactly as on every other route.
       const draft = drafted
         .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .replace(/<source\b[^>]*>?[^<\n]*/giu, '')
         .trim();
 
       // ── AND THE PAGE MUST LICENSE NAMING HIM, NOT MERELY BE ON HIS DOMAIN ──
@@ -2624,7 +2624,7 @@ export default async function handler(req, res) {
             const ePayload = await re.json();
             const eDraft = (ePayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
               .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-              .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+              .replace(/<source\b[^>]*>?[^<\n]*/giu, '')
               .trim();
             // THE SAME GATE, WITH TRANSMISSION ALLOWED. A position credited to him passes only when
             // the sentence transmits it AND names one of the publishers we actually fetched.
@@ -2816,7 +2816,7 @@ export default async function handler(req, res) {
       // (Only branch (b) below, where retrieve() actually ran, may legitimately carry <source>.)
       const clean = text
         .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-        .replace(/<source\b[^>]*>?[\s\S]*$/i, '');
+        .replace(/<source\b[^>]*>?[^<\n]*/giu, '');
       // THE EXIT THE DEFECT ESCAPED THROUGH. No tool was called here, so nothing of his was
       // searched and nothing was retrieved — which makes any position credited to him in this
       // draft the app's own invention rather than a transmission from anywhere.
@@ -3174,7 +3174,7 @@ export default async function handler(req, res) {
       // The model contributes no card here either, on any route.
       const cDraft = cDrafted
         .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .replace(/<source\b[^>]*>?[^<\n]*/giu, '')
         .trim();
 
       const cVerdict = verifyClaims(cDraft, claimSubject, retrievedPages);
@@ -3248,7 +3248,7 @@ export default async function handler(req, res) {
       const aPayload = await ra2.json();
       const aDraft = (aPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
         .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .replace(/<source\b[^>]*>?[^<\n]*/giu, '')
         .trim();
       const crossed = violatesTemplate(aDraft, { relation: 'ABOUT_ENTITY', grade: 'C' });
       console.log('[about]', { entity: plan.requestedAuthorityId || (plan.entities[0] || {}).canonicalId || '', crossed });
@@ -3293,7 +3293,7 @@ export default async function handler(req, res) {
       const bPayload = await r2b.json();
       const bDraft = (bPayload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
         .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '')
-        .replace(/<source\b[^>]*>?[\s\S]*$/i, '')
+        .replace(/<source\b[^>]*>?[^<\n]*/giu, '')
         .trim();
       const bScreened = attributionProblems(bDraft);
       if (!bDraft || (bScreened && bScreened.dropWhole)) {

@@ -298,11 +298,66 @@ function mutants() {
   }
 }
 
+// ── C. THE SERVER SIDE OF THE SAME DEFECT (merge §٥) ────────────────────────
+//
+// SAME DEFECT, ONE LAYER UP, AND IT WAS NAMED AND LEFT OPEN. Branch أ's report item 11 recorded
+// that api/ask.js strips an UNCLOSED `<source` tag with `[\s\S]*$` — cut to the END OF THE STRING
+// — while its two twins had already been corrected to stop at the tag's own boundary:
+// lib/finalized-sse-writer.js `stripUnownedSourceCards` uses `[^<\n]*`, and
+// lib/route-classify.js `createSourceFilter` ends an unclosed card's extent at a newline.
+//
+// WHAT THAT COST, MEASURED on the two shapes below: an unclosed tag in the MIDDLE of a reply
+// deleted every sentence after it, and an unclosed tag at the START of a reply deleted the reply.
+// That is this gate's own headline defect — «a cut tag must not empty the answer» — arriving on
+// the server instead of in the browser, at NINE call sites: the child benign draft, the identity
+// draft, the world draft, the ruling draft and the entity-repair draft among them.
+//
+// The repair is the twins' expression, verbatim, at all nine.
+function serverStrip() {
+  console.log('\n--- C. api/ask.js: an unclosed <source> must not eat the rest of the answer ---');
+  const ask = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
+  const WRITER = fs.readFileSync(path.join(ROOT, 'lib', 'finalized-sse-writer.js'), 'utf8');
+
+  const OLD_FORM = /\.replace\(\/<source\\b\[\^>\]\*>\?\[\\s\\S\]\*\$\/i, ''\)/g;
+  const NEW_FORM = /\.replace\(\/<source\\b\[\^>\]\*>\?\[\^<\\n\]\*\/giu, ''\)/g;
+  const oldCount = (ask.match(OLD_FORM) || []).length;
+  const newCount = (ask.match(NEW_FORM) || []).length;
+  ok('C1 no buffered draft still cuts to the end of the string', oldCount === 0, 'found ' + oldCount);
+  ok('C2 every one of the nine sites now uses the tag-bounded form', newCount === 9, 'found ' + newCount);
+  ok('C3 ...and it is the twin\'s expression, not a third dialect',
+    /\.replace\(\/<source\\b\[\^>\]\*>\?\[\^<\\n\]\*\/giu, ''\)/.test(WRITER),
+    'lib/finalized-sse-writer.js no longer carries the form this was unified with');
+
+  // Executed, not scanned: both expressions are run over the two shapes that matter.
+  const strip = (second) => (text) => String(text)
+    .replace(/<source\b[^>]*>[\s\S]*?<\/source>/gi, '').replace(second, '').trim();
+  const fixed = strip(/<source\b[^>]*>?[^<\n]*/giu);
+  const broken = strip(/<source\b[^>]*>?[\s\S]*$/i);
+  const MID = 'الجواب الأول.\n<source site="x" url="https://a/b">عنوان\nوالجواب الثاني، وهو الأهم.';
+  const HEAD = '<source site="x" url="https://a/b">عنوان\nكل الجواب هنا.';
+  const CLOSED = 'الجواب الأول. <source site="x" url="https://a/b">عنوان</source>\nوالجواب الثاني.';
+
+  ok('C4 an unclosed tag mid-answer no longer deletes what follows it',
+    fixed(MID).includes('والجواب الثاني') && !broken(MID).includes('والجواب الثاني'), JSON.stringify(fixed(MID)));
+  ok('C5 an unclosed tag at the START no longer empties the whole reply',
+    fixed(HEAD) === 'كل الجواب هنا.' && broken(HEAD) === '', JSON.stringify(fixed(HEAD)));
+  ok('C6 the tag itself is still removed — this widens no markup through',
+    !/[<>]/.test(fixed(MID)) && !/[<>]/.test(fixed(HEAD)), JSON.stringify([fixed(MID), fixed(HEAD)]));
+  ok('C7 a WELL-FORMED card is treated exactly as before — the repair is scoped to the broken shape',
+    fixed(CLOSED) === broken(CLOSED), JSON.stringify([fixed(CLOSED), broken(CLOSED)]));
+
+  // The mutant is the pre-repair expression itself, run over the same two shapes.
+  ok('C8 MUTANT KILLED: restoring `[\\s\\S]*$` empties the reply again',
+    broken(HEAD) === '' && broken(MID) !== fixed(MID),
+    'the old expression no longer differs from the new one, so C4/C5 prove nothing');
+}
+
 (function main() {
   console.log('=== truncated-tag-fallback-par-a-guard -- X-014: a cut tag must not empty the answer ===');
   try {
     console.log('\n--- A/B. SHIPPED CLIENT, FINAL-TEXT READERS ---');
     runSuite(bootClient(), 'live');
+    serverStrip();
     if (process.argv.includes('--mutants')) mutants();
   } catch (e) {
     console.error('GUARD ERROR:', e && e.stack ? e.stack : e);

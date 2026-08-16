@@ -1788,6 +1788,62 @@ const HUMAN_DIVINE_NAME_CASES = [
       /guards\/name-presence-guard\.cjs text eol=lf/.test(read('.gitattributes')));
   }
 
+  // =========================================================================
+  // H. THE REPLACED LAW (merge §٤ / L1): the literal refusals are not universal.
+  //
+  // EVERY LITERAL FIXTURE ABOVE STAYS TRUE AND MUST. `sacred.text === sourceRefusal`,
+  // `hostile.text === nameUnknownLine(...) + FINALIZER_REFUSAL` — those are the LEGACY and LEDGER
+  // handlers, byte for byte, and this round changes neither. With FREE_BRAIN_V1 off they are what
+  // a reader receives.
+  //
+  // WHAT FLIPS is the claim those fixtures quietly carried: that «no evidence in hand» has ONE
+  // reply in this application. On the reviewer path it has another, and it is not a refusal
+  // constant. A named scholar with no page keeps his CLAIM and loses his NAME — the sentence
+  // survives as the app's own understanding. The name is the thing that needed a source; the
+  // meaning did not have to die with it.
+  console.log('\n=== H. THE REPLACED LAW: the literal refusals are not universal ===');
+  {
+    const LAW = require('./replaced-law-lib.cjs');
+    const loop = await LAW.fresh(LAW.LOOP, 'namepresence-flip');
+    const FIN = await esm('lib/finalize-reader-text.js');
+    // THE TAG IS READ FROM THE MODULE, NOT RETYPED. Measured: a hand-typed
+    // «【فهمٌ لا نصٌّ منقول】» differs from the shipped constant by the ORDER of two combining
+    // marks on ص (U+0651 U+064C against U+064C U+0651). The two render identically and compare
+    // unequal, so the assertion failed on a difference no reader could ever see.
+    const RV = await esm('lib/output-reviewer.js');
+    const NAMED = 'قال ابن باز إن الجمع للمسافر جائز عند الحاجة.';
+
+    const free = await LAW.driveFreeTurn({ module: loop, answer: NAMED });
+    ok('H1 FLIPPED — a named scholar with no page in hand is not answered with a refusal constant',
+      !free.text.includes(FIN.FINALIZER_REFUSAL)
+        && !/لم نقفْ على شخصيّةٍ معروفةٍ بهذا الاسم/.test(free.text), JSON.stringify(free.text));
+    ok('H2 ...the NAME is what is removed, and the claim survives without it',
+      !free.text.includes('ابن باز') && free.text.includes('الجمع للمسافر جائز'),
+      JSON.stringify(free.text));
+    ok('H3 ...and the removal is stated to the reader rather than performed silently',
+      free.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED), JSON.stringify(free.text));
+    ok('H4 ...and the turn records the strip as a reviewed action, not as a drop',
+      (free.verdict && free.verdict.counts
+        && free.verdict.counts['removed-unsupported-attribution'] === 1)
+        && free.verdict.usedLastResort === false, JSON.stringify(free.verdict && free.verdict.counts));
+
+    const twin = await LAW.mutate({
+      file: LAW.REVIEWER,
+      name: 'unsupported-name-takes-the-sentence-with-it',
+      transform: (src) => src.replace(
+        /^ {8}const generalized = generalizeAttribution\(sentence, attribution\);$/mu,
+        "        const generalized = ''; // mutant: the old law — the name dies and the claim with it"),
+      check: (mod) => {
+        const out = mod.reviewAnswer({ text: NAMED, evidence: [], domain: 'fiqh', mode: 'عادي' });
+        return out.text.includes('الجمع للمسافر جائز') && out.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED);
+      },
+    });
+    ok('H5 mutant restoring «the name dies and the claim with it» applies', twin.changed, twin.error);
+    ok('H6 mutant twin loads', twin.loaded, twin.error);
+    ok('H7 MUTANT KILLED — losing the name cannot go back to losing the answer',
+      twin.loaded && twin.survived === false, JSON.stringify(twin));
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'
     : 'OK: ' + checks + '/' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);

@@ -914,7 +914,19 @@ const quotedDomains = (body) =>
   console.log('\n=== H. NO RAW SOURCE TAG REACHES A READER ===');
   const stripCount = (askSrc.match(/replace\(\/<source\\b\[\^>\]\*>\[\\s\\S\]\*\?<\\\/source>\/gi, ''\)/g) || []).length;
   ok('api/ask.js strips model-written <source> pairs on every buffered branch', stripCount >= 3, 'found ' + stripCount);
-  ok('api/ask.js strips a DANGLING <source with no close', /<source\\b\[\^>\]\*>\?\[\\s\\S\]\*\$/.test(askSrc));
+  // FLIPPED (merge §٥). This used to pin `[\s\S]*$` — strip from the dangling tag to the END OF
+  // THE STRING — and that expression was the defect, not the rule: an unclosed `<source` in the
+  // middle of a reply deleted every sentence after it, and one at the START deleted the reply.
+  // Both twins had already been corrected to stop at the tag's own boundary
+  // (lib/finalized-sse-writer.js `stripUnownedSourceCards`, lib/route-classify.js
+  // `createSourceFilter`); api/ask.js was the one that had not, at nine sites. The assertion now
+  // pins the corrected form AND the absence of the old one, because a gate that only asserts the
+  // presence of the new expression would stay green if a tenth site kept the old.
+  // Executed evidence and the killed mutant live in guards/truncated-tag-fallback-par-a-guard.cjs.
+  ok('api/ask.js strips a DANGLING <source at the TAG BOUNDARY, not to end-of-string',
+    /<source\\b\[\^>\]\*>\?\[\^<\\n\]\*\/giu/.test(askSrc)
+      && !/<source\\b\[\^>\]\*>\?\[\\s\\S\]\*\$/.test(askSrc),
+    'an unclosed tag must not take the rest of the answer with it');
   ok('the streaming branch uses createSourceFilter (tag removal across chunk boundaries)',
     /createSourceFilter\(\)/.test(askSrc) && /filter\.push\(evt\.delta\.text\)/.test(askSrc));
   {

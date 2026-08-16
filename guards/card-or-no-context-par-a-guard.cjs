@@ -224,6 +224,69 @@ async function mutants() {
     });
 }
 
+// ── E. THE REPLACED LAW (merge §٤ / L2) ─────────────────────────────────────
+//
+// A AND B STAY TRUE AND MUST. On the hybrid path, `used == cards` is still the invariant and the
+// encyclopedia excerpt still stays out of the model's context. Neither is touched by this round,
+// and with FREE_BRAIN_V1 off they are the law a reader gets.
+//
+// WHAT FLIPS. On the reviewer path the rule is THE CARD FOLLOWS THE CITATION, and the difference
+// is not a relaxation — it is a different mechanism for the same guarantee. The old law protected
+// the reader by refusing to draft over anything they could not open. The new one lets the material
+// in and makes the SENTENCE carry its own standing: a claim built on a page gets that page's card,
+// and a claim built on something with no page is marked as understanding rather than presented as
+// a transmitted text. The Kuwaiti fiqh encyclopedia is exactly that case — 3,070 edited fiqh
+// terms, quotable, citable, and with no URL anywhere in the corpus — so under `used == cards` it
+// could only ever be excluded, which is what section B recorded when it removed it.
+//
+// Driven, not scanned: the model really calls `search_sources`, the encyclopedia really answers
+// in-process, the answer really cites it, and the card rule really produces one fewer card.
+async function sectionE() {
+  console.log('\n--- E. the replaced law: the card follows the citation, not the retrieval ---');
+  const LAW = require('./replaced-law-lib.cjs');
+  const loop = await LAW.fresh(LAW.LOOP, 'cardorcontext-flip');
+
+  const free = await LAW.driveFreeTurn({
+    module: loop,
+    search: 'الوضوء',
+    answer: 'الوضوء في اللغة من الوضاءة وهي النظافة [[1]].',
+  });
+  const cards = LAW.freePathCards(free.cited);
+  ok('E1 the encyclopedia really answered, and the answer really cited it',
+    free.cited.length === 1 && free.cited[0].kind === 'encyclopedia',
+    JSON.stringify(free.cited.map((row) => [row.kind, row.url])));
+  ok('E2 FLIPPED — a cited record with no page is USED and carries no card',
+    free.cited.length === 1 && cards.length === 0 && free.cited[0].url === '',
+    'cited=' + free.cited.length + ' cards=' + cards.length);
+  ok('E3 ...and the answer stands rather than being refused for the missing card',
+    free.text.includes('الوضاءة') && free.text.trim().length > 0, JSON.stringify(free.text));
+  ok('E4 ...and the sentence is marked, which is what replaced the card as the honesty mechanism',
+    free.verdict && free.verdict !== 'unreviewed'
+      && Object.keys(free.verdict.counts || {}).length > 0, JSON.stringify(free.verdict?.counts));
+  ok('E5 the citation marker itself never reaches the reader',
+    !/\[\[|\]\]/u.test(free.text), JSON.stringify(free.text));
+
+  const twin = await LAW.mutate({
+    file: LAW.LOOP,
+    name: 'uncardable-citation-dropped-again',
+    transform: (src) => src.replace(
+      /^ {2}const cited = citedRefs\.map\(\(ref\) => table\.byRef\(ref\)\)\.filter\(Boolean\);$/mu,
+      '  const cited = citedRefs.map((ref) => table.byRef(ref)).filter(Boolean).filter((row) => row.url);'),
+    check: async (mod) => {
+      const out = await LAW.driveFreeTurn({
+        module: mod,
+        search: 'الوضوء',
+        answer: 'الوضوء في اللغة من الوضاءة وهي النظافة [[1]].',
+      });
+      return out.cited.length === 1 && LAW.freePathCards(out.cited).length === 0;
+    },
+  });
+  ok('E6 mutant restoring «used == cards» on this path applies', twin.changed, twin.error);
+  ok('E7 mutant twin loads', twin.loaded, twin.error);
+  ok('E8 MUTANT KILLED: a cited record without a page cannot be dropped again',
+    twin.loaded && twin.survived === false, JSON.stringify(twin));
+}
+
 function registeredCompanions() {
   console.log('\n--- D. REGISTERED COMPANION GATES ---');
   let roster;
@@ -256,6 +319,7 @@ function registeredCompanions() {
   try {
     await sectionA();
     sectionB();
+    await sectionE();
     if (process.argv.includes('--mutants')) await mutants();
     if (process.argv.includes('--registered-companions')) registeredCompanions();
   } catch (e) {

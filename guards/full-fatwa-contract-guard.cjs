@@ -465,6 +465,84 @@ async function main() {
   eq('§8b2. both sides match the same topic terms — neither is scored lower for its morphology',
     femScore.matched.slice().sort(), mascScore.matched.slice().sort());
 
+  console.log('\n--- §8c · `directlyFramed` UNPARKED: THE RIBAWI-METAL FAMILY (merge §٥) ---');
+  // THE PARKED ITEM, CLOSED. Branch أ measured that «بيع الذهب بالذهب متفاضلا حكم» returns two
+  // records from the real service and that BOTH are refused — including «شروط بيع الربوي بمثله»,
+  // which matched all three topic terms and scored 32 and is a fatwa on exactly that question. It
+  // was refused by `directlyFramed`, whose windows are computed per FIELD: بيع sits in the title,
+  // متفاضل in the published question and ذهب in the answer, so no two of the three are ever in
+  // the same field and every window is Infinity.
+  //
+  // The repair is ADDITIVE — a second TERM_FAMILIES entry, consulted only after the ordinary test
+  // has already refused — and NOT a wider window. The fixture below is the two records exactly as
+  // the live service returned them, so this replays a measurement rather than restating a belief.
+  {
+    const FX = JSON.parse(fs.readFileSync(path.join(REPO, 'fixtures/riba-family-two-records.json'), 'utf8'));
+    ok('§8c0. the fixture is the real pair the service returns for that query',
+      FX.schema === 'ezik.riba-family.two-records.v1' && FX.records.length === 2
+        && FX.records[0].title === 'شروط بيع الربوي بمثله', JSON.stringify(FX.records.map((r) => r.title)));
+    const ribaCtx = { currentQuestion: FX.query, resolvedTopic: FX.query, resolvedScholar: null };
+    const inTheHeart = FX.records[0];
+    const aboutWheat = FX.records[1];
+    const heartScore = FSVC2.__fatwaTest.topicalScore(inTheHeart, ribaCtx);
+    const wheatScore = FSVC2.__fatwaTest.topicalScore(aboutWheat, ribaCtx);
+
+    ok('§8c1. POSITIVE — «شروط بيع الربوي بمثله» is now accepted, and by the bridge',
+      heartScore.accepted === true && heartScore.bridged === true, JSON.stringify(heartScore));
+    ok('§8c2. ...on the same three matched terms branch أ measured',
+      JSON.stringify(heartScore.matched.slice().sort()) === JSON.stringify(['بيع', 'ذهب', 'متفاضلا'].sort()),
+      JSON.stringify(heartScore.matched));
+    ok('§8c3. ...and its score is UNCHANGED at 32 — the bridge admits, it never pays',
+      heartScore.score === 32, String(heartScore.score));
+    ok('§8c4. ...and it becomes a real record with an https page, so a card can be built for it',
+      (() => {
+        const rec = FSVC2.__fatwaTest.normalizeRecord(inTheHeart, ribaCtx);
+        return Boolean(rec) && /^https:\/\/binbaz\.org\.sa\//u.test(rec.url) && rec.publisher === 'ابن باز';
+      })(), 'the accepted record must normalise with a citable https URL');
+
+    ok('§8c5. NEGATIVE — the higher-scoring wheat ruling is STILL refused for a gold question',
+      wheatScore.accepted === false && wheatScore.bridged === false
+        && wheatScore.score > heartScore.score, JSON.stringify(wheatScore));
+    const unrelated = FSVC2.__fatwaTest.topicalScore(inTheHeart,
+      { currentQuestion: 'حكم سماع الموسيقى', resolvedTopic: 'حكم سماع الموسيقى', resolvedScholar: null });
+    ok('§8c6. NEGATIVE — an unrelated question does not reach this record through the family',
+      unrelated.accepted === false && unrelated.bridged === false, JSON.stringify(unrelated));
+    const halfFamily = FSVC2.__fatwaTest.topicalScore(inTheHeart,
+      { currentQuestion: 'حكم بيع السيارة القديمة', resolvedTopic: 'حكم بيع السيارة القديمة', resolvedScholar: null });
+    ok('§8c7. NEGATIVE — the exchange verb ALONE does not carry the family',
+      halfFamily.bridged === false, JSON.stringify(halfFamily));
+
+    // The mutant: remove the family and the parked defect returns.
+    const os = require('os');
+    const { pathToFileURL } = require('url');
+    const LEX = path.join(REPO, 'lib', 'data', 'lexicon-ar.js');
+    const original = fs.readFileSync(LEX, 'utf8');
+    const mutated = original.replace(/^ {4}key: 'ribawi-metal-exchange',$/mu, "    key: 'ribawi-metal-exchange-DISABLED',\n    disabled: true,")
+      .replace(/^ {4}act: Object\.freeze\(\[\r?\n {6}'بيع', 'يبيع'[\s\S]*?\r?\n {4}\]\),$/mu, '    act: Object.freeze([]),');
+    ok('§8c8. family mutant seam applied', mutated !== original, 'the lexicon seam moved');
+    if (mutated !== original) {
+      const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-riba-family-'));
+      const twinLex = path.join(temp, 'lexicon-ar.mjs');
+      fs.writeFileSync(twinLex, mutated, 'utf8');
+      const twinSvc = path.join(temp, 'fatwa-service.mjs');
+      fs.writeFileSync(twinSvc, fs.readFileSync(path.join(REPO, 'lib', 'fatwa-service.js'), 'utf8')
+        .replace("'./data/lexicon-ar.js'", JSON.stringify(pathToFileURL(twinLex).href))
+        .replace(/(['"])(\.\/[^'"\r\n]+\.js)\1/gu, (_a, q, spec) =>
+          q + pathToFileURL(path.resolve(path.join(REPO, 'lib'), spec)).href + q), 'utf8');
+      let survived = null;
+      try {
+        const twin = await import(pathToFileURL(twinSvc).href + '?v=' + Date.now());
+        survived = twin.__fatwaTest.topicalScore(inTheHeart, ribaCtx).accepted === true;
+      } catch (error) {
+        survived = 'THREW: ' + (error && error.message);
+      } finally {
+        fs.rmSync(temp, { recursive: true, force: true });
+      }
+      ok('§8c9. MUTANT KILLED: without the family the in-the-heart fatwa is refused again',
+        survived === false, String(survived));
+    }
+  }
+
   console.log('\n--- §10 · MODES DIFFER ONLY BY MODEL AND DEPTH ---');
   const perMode = {};
   for (const depth of ['brief', 'normal', 'deep', 'scholar']) {

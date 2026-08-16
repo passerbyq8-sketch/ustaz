@@ -582,6 +582,62 @@ async function main() {
     }
   }
 
+  // ═════════════════════════════════════════════════════════════════════════
+  // THE REPLACED LAW (merge §٤ / L1): there is a FOURTH exit, and it does not refuse.
+  //
+  // EVERY ASSERTION ABOVE STAYS TRUE AND MUST. The three buffered exits still refuse whole on
+  // `dropWhole`, still take their wording from the one `refusalFor` decision, and are still what
+  // runs with FREE_BRAIN_V1 off. Nothing about them moved.
+  //
+  // WHAT FLIPS is that «every buffered exit» is no longer «every exit». The free branch is a
+  // fourth one, it screens nothing — `consistencyContext` is nulled at the branch — and on the
+  // very draft the screen drops WHOLE it delivers a tagged answer instead. Both halves have to be
+  // asserted together or the pair is unreadable: an exit that refuses nothing is either the new
+  // law or a hole, and what tells them apart is that this one is reviewed.
+  console.log('\n--- THE REPLACED LAW: the free branch is a fourth exit that refuses nothing ---');
+  {
+    const LAW = require('./replaced-law-lib.cjs');
+    const loop = await LAW.fresh(LAW.LOOP, 'rfcconsistency-flip');
+    const CG = await esm('lib/policy/consistency-gate.js');
+    const askSrc = read('api/ask.js');
+    const freeBranch = askSrc.slice(askSrc.indexOf('if (freeBrain.enabled'), askSrc.indexOf('if (storedContext.runtime'));
+    // A draft whose offence IS the substance, and whose subject is the man asked about — the
+    // shape the section above pins as a whole drop.
+    const DRAFT = 'والحكمُ في هذه المسألةِ أنّه واجبٌ بلا خلاف.';
+    const whole = CG.screenDraft(DRAFT, {
+      pageTexts: [], entity: 'فلان', subjectEntity: 'فلان', identityStatus: 'unknown',
+    });
+    ok('the legacy screen still drops that draft WHOLE', whole.dropWhole === true,
+      JSON.stringify({ outcome: whole.outcome, problems: whole.problems }));
+
+    const free = await LAW.driveFreeTurn({ module: loop, answer: DRAFT });
+    ok('FLIPPED — the free exit delivers the same draft rather than refusing it whole',
+      free.text.includes('واجبٌ بلا خلاف'), JSON.stringify(free.text));
+    ok('...marked as understanding, so delivering it is not the same as asserting a fatwa',
+      free.text.includes('【فهمٌ لا فتوى】'), JSON.stringify(free.text));
+    ok('...and it is reviewed, which is what separates a fourth exit from a hole',
+      Boolean(free.verdict) && free.verdict !== 'unreviewed' && free.verdict.version === 'freebrain-b-v1',
+      JSON.stringify(free.verdict).slice(0, 160));
+    ok('...and the free branch carries no refusalFor() and no screen of its own',
+      freeBranch.length > 0 && !/refusalFor\(/.test(freeBranch)
+        && /finalizerContext\.consistencyContext = null;/.test(freeBranch),
+      'the free branch must neither screen nor refuse, or two output policies ship at once');
+
+    const twin = await LAW.mutate({
+      file: LAW.REVIEWER,
+      name: 'substance-offence-dropped-whole-on-the-reviewer-path',
+      transform: (s2) => s2.replace(
+        /^ {6}let reviewed = tag\(sentence, TAGS\.FIQH_UNSOURCED\);$/mu,
+        "      let reviewed = ''; // mutant: the old law — the substance offence is dropped whole"),
+      check: (mod) => mod.reviewAnswer({ text: DRAFT, evidence: [], domain: 'fiqh', mode: 'عادي' })
+        .text.includes('واجبٌ بلا خلاف'),
+    });
+    ok('mutant restoring the whole drop applies', twin.changed, twin.error);
+    ok('mutant twin loads', twin.loaded, twin.error);
+    ok('MUTANT KILLED — the fourth exit cannot go back to refusing whole',
+      twin.loaded && twin.survived === false, JSON.stringify(twin));
+  }
+
   console.log('\n' + (failures ? 'FAIL ' : 'PASS ') + (checks - failures) + '/' + checks);
   return failures ? 1 : 0;
 }
