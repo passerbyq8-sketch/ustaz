@@ -334,7 +334,7 @@ lib/ledger/source-policy.js` returns **empty**.
 
 ## K. Gates and tests
 
-All 86 gates, run individually via `gates.json`:
+All 86 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -374,10 +374,10 @@ Guard totals: `ledger-fixtures-guard` 417/417 · `ledger-contract-guard` 168/168
 
 FreeBrain-B output-reviewer totals: six-case matrix 56/56 · attribution-on-output 20/20 ·
 domain-contract 10/10 · no-empty-answer 5/5 · ladder-order 6/6 · tag-honesty 7/7.
-The first sandboxed aggregate run hit the inherited browser `Page.enable` timeout in `questux`;
-the required out-of-sandbox rerun completed in 7.5 seconds at 56/56. The 180-second aggregate
-wrapper then expired after gate 44, so gates 45–86 were executed directly from the same roster;
-all 42 exited zero.
+The final out-of-sandbox canonical run completed all 86 gates contiguously in 333.5 seconds at
+HEAD `8f9193d799c9e7d086ca91aaef6fd43b1fbd8354`, with zero dirty paths before and after. Evidence:
+`C:\Users\passe\AppData\Local\Temp\ezik-gates\runs\2026-08-16T05-28-42-729Z-29940`.
+This supersedes the preliminary sandboxed browser timeout and split-tail diagnostic runs.
 
 **Mutations closed.** New, in `rfc-v05r2-runtime-guard` §M:
 
