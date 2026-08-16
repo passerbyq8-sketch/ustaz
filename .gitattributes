@@ -369,6 +369,21 @@ guards/explicit-failure-par-a-guard.cjs text eol=lf
 guards/scholar-separation-par-a-guard.cjs text eol=lf
 guards/card-or-no-context-par-a-guard.cjs text eol=lf
 
+# Gates 81-86: the FreeBrain-B output reviewer. The five mutation guards rewrite literal seams
+# from lib/output-reviewer.js into OS-temp twins, so CR injection would make a non-applied mutant
+# look killed. The matrix and its fixture are byte-stable evidence of the six required cases.
+guards/output-reviewer-matrix-guard.cjs text eol=lf
+guards/attribution-on-output-guard.cjs text eol=lf
+guards/domain-contract-guard.cjs text eol=lf
+guards/no-empty-answer-guard.cjs text eol=lf
+guards/ladder-order-guard.cjs text eol=lf
+guards/tag-honesty-guard.cjs text eol=lf
+guards/output-reviewer-mutant-lib.cjs text eol=lf
+lib/output-reviewer.js text eol=lf
+fixtures/output-reviewer-six-cases.json text eol=lf
+guards/gemini13-route-guard.cjs text eol=lf
+fixtures/gemini13-matrix.json text eol=lf
+
 # ح٣: the frozen transfer fixtures. THESE ARE NOT OUR TEXT — they are the bytes eleven hosts
 # actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a full SHA-256 of
 # each one. Any end-of-line normalisation, in either direction, on any machine, changes those

@@ -1,0 +1,131 @@
+{
+  "schema": "ezik.output-reviewer.six-cases.v1",
+  "cases": [
+    {
+      "id": "a-matched-attribution",
+      "label": "حكم منسوب بدليل مطابق يمر كما هو",
+      "input": {
+        "text": "قال ابن باز إن الجمع للمسافر جائز عند الحاجة.",
+        "evidence": [
+          {
+            "id": "binbaz-join-1",
+            "title": "حكم الجمع للمسافر",
+            "url": "https://binbaz.org.sa/fatwas/20214/joining-prayers",
+            "scholar": "ابن باز",
+            "snippet": "الجمع للمسافر جائز عند الحاجة إذا وجد سببه."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "موجز"
+      },
+      "expect": {
+        "exactText": "قال ابن باز إن الجمع للمسافر جائز عند الحاجة.",
+        "actions": ["kept-sourced-attribution"],
+        "contains": ["ابن باز"],
+        "excludes": ["【فهمٌ لا نصٌّ منقول】", "【فهمٌ لا فتوى】"]
+      }
+    },
+    {
+      "id": "b-wrong-scholar-evidence",
+      "label": "دليل عالم آخر ينزع النسبة ويوسم الفهم",
+      "input": {
+        "text": "قال ابن باز إن الجمع للمسافر جائز عند الحاجة.",
+        "evidence": [
+          {
+            "id": "uthaymeen-join-1",
+            "title": "حكم الجمع للمسافر",
+            "url": "https://binothaimeen.net/content/410",
+            "scholar": "ابن عثيمين",
+            "snippet": "الجمع للمسافر جائز عند الحاجة إذا وجد سببه."
+          }
+        ],
+        "domain": "fiqh",
+        "mode": "عادي"
+      },
+      "expect": {
+        "actions": ["removed-unsupported-attribution"],
+        "contains": ["الفهمُ العامُّ", "【فهمٌ لا نصٌّ منقول】", "الجمع للمسافر جائز"],
+        "excludes": ["ابن باز", "ابن عثيمين"]
+      }
+    },
+    {
+      "id": "c-unattributed-fiqh",
+      "label": "حكم بلا نسبة يمر بصوت فهم لا فتوى",
+      "input": {
+        "text": "الجمع للمسافر جائز عند الحاجة.",
+        "evidence": [],
+        "domain": "fiqh",
+        "mode": "مفصّل"
+      },
+      "expect": {
+        "actions": ["tagged-fiqh-understanding"],
+        "contains": ["الجمع للمسافر جائز", "【فهمٌ لا فتوى】"],
+        "excludes": ["لم يصلني نصٌّ"]
+      }
+    },
+    {
+      "id": "d-dynamic-general",
+      "label": "خبر عام متغير يمر برابط وتاريخ",
+      "input": {
+        "text": "درجة الحرارة اليوم في الكويت 38 مئوية.",
+        "evidence": [
+          {
+            "id": "weather-20260816",
+            "title": "طقس الكويت اليوم",
+            "url": "https://weather.example/kuwait/2026-08-16",
+            "scholar": "إدارة الأرصاد الجوية",
+            "snippet": "درجة الحرارة اليوم في الكويت 38 مئوية.",
+            "date": "2026-08-16"
+          }
+        ],
+        "domain": "general",
+        "mode": "عادي"
+      },
+      "expect": {
+        "actions": ["kept-dynamic-with-dated-source"],
+        "contains": ["38 مئوية", "https://weather.example/kuwait/2026-08-16", "2026-08-16"],
+        "excludes": ["【فهمٌ لا فتوى】", "لم يصلني مصدرٌ مؤرّخ"]
+      }
+    },
+    {
+      "id": "e-stable-general",
+      "label": "معرفة عامة ثابتة تمر بلا مطالبة بمصدر",
+      "input": {
+        "text": "ناتج ضرب سبعة في ثمانية هو ستة وخمسون.",
+        "evidence": [],
+        "domain": "general",
+        "mode": "موجز"
+      },
+      "expect": {
+        "actions": ["tagged-stable-general-knowledge"],
+        "contains": ["ستة وخمسون", "【معرفةٌ مستقرة غير منقولة】"],
+        "excludes": ["المصدر:", "لم يصلني مصدرٌ مؤرّخ", "【فهمٌ لا فتوى】"]
+      }
+    },
+    {
+      "id": "f-mixed-sentence-law",
+      "label": "النص المختلط يطبق قانون كل جملة",
+      "input": {
+        "text": "الجمع للمسافر جائز عند الحاجة. درجة الحرارة اليوم في الكويت 38 مئوية.",
+        "evidence": [
+          {
+            "id": "weather-20260816",
+            "title": "طقس الكويت اليوم",
+            "url": "https://weather.example/kuwait/2026-08-16",
+            "scholar": "إدارة الأرصاد الجوية",
+            "snippet": "درجة الحرارة اليوم في الكويت 38 مئوية.",
+            "date": "2026-08-16"
+          }
+        ],
+        "domain": "mixed",
+        "mode": "طالب علم"
+      },
+      "expect": {
+        "actions": ["tagged-fiqh-understanding", "kept-dynamic-with-dated-source"],
+        "domains": ["fiqh", "general"],
+        "contains": ["【فهمٌ لا فتوى】", "https://weather.example/kuwait/2026-08-16", "2026-08-16"],
+        "excludes": ["لم يصلني نصٌّ", "لم يصلني مصدرٌ مؤرّخ"]
+      }
+    }
+  ]
+}

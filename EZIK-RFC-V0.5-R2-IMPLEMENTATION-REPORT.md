@@ -334,7 +334,7 @@ lib/ledger/source-policy.js` returns **empty**.
 
 ## K. Gates and tests
 
-All 80 gates, run individually via `gates.json`:
+All 86 gates, run individually via `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -353,13 +353,15 @@ searchbudgetp0 0 · fullfatwa 0
 retiredchat 0  guardhonesty 0
 promptconsistency 0 · truncatedtag 0 · explicitfailure 0 · scholarseparation 0
 cardorcontext 0
+reviewermatrix 0 · attributionoutput 0 · domaincontract 0 · noemptyanswer 0
+ladderorder 0 · taghonesty 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        80/80 PASS
-RECON              PASS=169 WARN=3 FAIL=0
+TOTAL_GATES        86/86 PASS
+RECON              PASS=175 WARN=3 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
@@ -369,6 +371,13 @@ LEGACY_REGRESSIONS attribution 111/111 · smartretrieval 144/144 · claim · sou
 
 Guard totals: `ledger-fixtures-guard` 417/417 · `ledger-contract-guard` 168/168 ·
 `rfc-v05r2-guard` 125/125 · `rfc-v05r2-runtime-guard` 96/96.
+
+FreeBrain-B output-reviewer totals: six-case matrix 56/56 · attribution-on-output 20/20 ·
+domain-contract 10/10 · no-empty-answer 5/5 · ladder-order 6/6 · tag-honesty 7/7.
+The first sandboxed aggregate run hit the inherited browser `Page.enable` timeout in `questux`;
+the required out-of-sandbox rerun completed in 7.5 seconds at 56/56. The 180-second aggregate
+wrapper then expired after gate 44, so gates 45–86 were executed directly from the same roster;
+all 42 exited zero.
 
 **Mutations closed.** New, in `rfc-v05r2-runtime-guard` §M:
 

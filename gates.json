@@ -405,5 +405,35 @@
         "args": ""
       }
     ]
+  },
+  {
+    "name": "reviewermatrix",
+    "script": "guards/output-reviewer-matrix-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "attributionoutput",
+    "script": "guards/attribution-on-output-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "domaincontract",
+    "script": "guards/domain-contract-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "noemptyanswer",
+    "script": "guards/no-empty-answer-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "ladderorder",
+    "script": "guards/ladder-order-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "taghonesty",
+    "script": "guards/tag-honesty-guard.cjs",
+    "args": ""
   }
 ]
