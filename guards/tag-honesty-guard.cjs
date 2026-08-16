@@ -155,18 +155,29 @@ const unsupportedIsTagged = (module) => {
     // Escapes, not Arabic: the shadda/damma ORDER in the middle word is the whole reason a
     // hand-typed copy of this phrase silently fails to match the one the module used to carry.
     const HEDGE = String.fromCharCode(0x0627,0x0644,0x0641,0x0647,0x0645,0x064f,0x0020,0x0627,0x0644,0x0639,0x0627,0x0645,0x0651,0x064f,0x0020,0x0645,0x0646,0x0020,0x0627,0x0644,0x0645,0x0639,0x0637,0x064a,0x0627,0x062a,0x0650,0x0020,0x0627,0x0644,0x0645,0x062a,0x0627,0x062d,0x0629);
+    //
+    // ── AND WHY q19 IS NO LONGER ONE OF THESE WITNESSES (repair §٢/١) ────────
+    // It used to be. Its «frame» was ' عند المسح:' — «at the time of wiping», a plain Arabic
+    // adverbial — and this guard asserted that the reviewer CUT it out of the sentence, so the
+    // defect was not merely shipped, it was pinned in place by a green gate. It moves below, to
+    // ADVERBIALS, where the assertion is inverted: the phrase is carried and the sentence is not
+    // touched. Nothing was softened to make room for it — a second real mid-sentence credit takes
+    // its place here, so the property below is still proved on two witnesses and the mutant that
+    // guards it still has two chances to survive.
     const MID_SENTENCE = [
       {
         id: 'q15',
         head: 'كفارةُ الشهرينِ المتتابعينِ إنّما تجبُ في جماعِ الصائمِ عمدًا في نهارِ رمضانَ تحديدًا،',
         frame: ' كما قال ابن عثيمين:',
         claim: ' لا في مطلقِ الأكلِ والشربِ المتعمّد.',
+        credit: 'ابن عثيمين',
       },
       {
-        id: 'q19',
-        head: 'يبني على مدة إقامة (يوم وليلة) لا مدة سفر؛ لأن العبرة بحاله',
-        frame: ' عند المسح:',
-        claim: ' وقد مسح وهو مقيم، فتُحسب مدته على أساس الإقامة.',
+        id: 'khuff',
+        head: 'ومدةُ المسحِ للمقيمِ يومٌ وليلة،',
+        frame: ' كما قال ابن باز:',
+        claim: ' وتبدأُ من أوّلِ مسحٍ بعدَ الحدث.',
+        credit: 'ابن باز',
       },
     ];
 
@@ -195,11 +206,124 @@ const unsupportedIsTagged = (module) => {
       ok(witness.id + ': the mark is the LAST thing in the sentence',
         out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED), out.text);
       ok(witness.id + ': and the credit itself is gone',
-        !/ابن عثيمين/u.test(out.text), out.text);
+        !out.text.includes(witness.credit), out.text);
     }
     ok('both witnesses stitch back to exactly the sentence minus its credit', stitchedCleanly(module));
     ok('the hedge phrase exists nowhere in the reviewer any more',
       !require('fs').readFileSync(REVIEWER, 'utf8').includes(HEDGE));
+
+    // ── ADVERBIALS: «عندَ» IS TWO WORDS, AND ONLY ONE OF THEM CREDITS ANYBODY ─
+    //
+    // THE DEFECT THIS INVERTS. «عندَ الحنفيّةِ كذا» names whose view it is. «عندَ الوضوءِ كذا»
+    // names WHEN. The reviewer's third frame read the particle and not what followed it, so an
+    // adverbial was classified as a credit to a scholar named «المسح» and cut out of a connected
+    // sentence. Measured on the owner's question ١٩, and carried in this very file as a witness
+    // of correct behaviour until this round.
+    //
+    // A SCHOOL IS NOT A MAN EITHER, and that is not an accident of the person test — it is
+    // lib/policy/entities.js:103 stating the same rule for the router: a madhhab «may never take a
+    // person-attribution template and may never be routed to somebody's official site». There is
+    // no source that could ever license it, so classifying it as a person-credit would mean
+    // stripping it from every sentence it ever appears in. It is carried, and the answer-level
+    // notice is what tells the reader this is understanding rather than a sourced fatwa.
+    const ADVERBIALS = [
+      { id: 'q19-wiping', text: 'يبني على مدة إقامة (يوم وليلة) لا مدة سفر؛ لأن العبرة بحاله عند المسح: وقد مسح وهو مقيم، فتُحسب مدته على أساس الإقامة.', keep: 'عند المسح' },
+      { id: 'wudu', text: 'عند الوضوء: يُسمّي المتوضّئ ويغسل كفّيه ثلاثًا.', keep: 'عند الوضوء' },
+      { id: 'as-needed', text: 'يخرج بحسب الحاجة: بقدر ما يدفع الضرر لا أكثر.', keep: 'بحسب الحاجة' },
+      { id: 'madhhab', text: 'عند الحنابلة: نقض الوضوء بأكل لحم الإبل ثابت.', keep: 'عند الحنابلة' },
+      { id: 'jumhur', text: 'صلاة الكسوف سنّة مؤكّدة عند جمهور الفقهاء، وتُصلّى ركعتين.', keep: 'عند جمهور الفقهاء' },
+    ];
+    const adverbialsSurvive = (mod) => ADVERBIALS.every((witness) => {
+      const out = mod.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      return out.text.includes(witness.text)
+        && out.annotations[0]?.action === 'tagged-fiqh-understanding';
+    });
+    for (const witness of ADVERBIALS) {
+      const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      ok(witness.id + ': the phrase is not read as a credit and is carried whole',
+        out.text.includes(witness.keep) && out.text.includes(witness.text), out.text);
+      ok(witness.id + ': and nothing was cut out of the sentence',
+        out.annotations[0]?.action === 'tagged-fiqh-understanding', out.annotations[0]?.action);
+    }
+    // ...AND THE SAME PARTICLE STILL CREDITS A PERSON. Without these three, the rule above could
+    // be satisfied by a reviewer that stopped reading «عند» at all.
+    for (const [label, text, credit] of [
+      ['registry name', 'عند ابن باز: الجمع للمسافر جائز عند الحاجة.', 'ابن باز'],
+      ['title + name', 'عند الشيخ محمد الأمين: الجمع للمسافر جائز.', 'محمد الأمين'],
+      ['«بحسب» + name', 'بحسب ابن عثيمين: الجمع للمسافر جائز.', 'ابن عثيمين'],
+    ]) {
+      const out = module.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      ok('«عند/بحسب» still removes an unsupported PERSON credit: ' + label,
+        !out.text.includes(credit)
+          && out.annotations[0]?.action === 'removed-unsupported-attribution', out.text);
+    }
+
+    // ── §٢/٢: A REMOVAL THAT LEAVES A HOLE IS NOT A REMOVAL ──────────────────
+    //
+    // THE WITNESS, printed whole in the battery report, from the owner's question ١٢ on the live
+    // preview. The reviewer cut «فتوى ابن باز» out and left the preposition that governed it
+    // holding nothing, and left the prayer for a man who was no longer in the sentence:
+    //
+    //   «يجوز لها ذلك، وهذا مصرَّحٌ به في رحمه الله: فقد نصّ على أنّ…»
+    //
+    // §٢ allows two outcomes and forbids only the third: either what remains is a complete Arabic
+    // sentence, or the name stays and the sentence is marked as it is. A broken output is not
+    // guarding anything.
+    const Q12 = 'يجوز لها ذلك، وهذا مصرَّحٌ به في فتوى ابن باز رحمه الله: فقد نصّ على أنّ كونَ المرأةِ المعتدَّةِ طالبةً أو معلّمةً أو موظّفةً من الحاجاتِ المهمّةِ التي تُبيحُ لها الخروجَ من بيتِ العدّةِ نهارًا.';
+    const seamHolds = (mod) => {
+      const out = mod.reviewAnswer({ text: Q12, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      return out.text.includes(Q12)
+        && !/به\s+في\s+رحمه\s+الله/u.test(out.text)
+        && out.text.trimEnd().endsWith(mod.REVIEW_TAGS.ATTRIBUTION_REMOVED);
+    };
+    {
+      const out = module.reviewAnswer({ text: Q12, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      ok('q12: the preposition is not left holding nothing', !/به\s+في\s+رحمه\s+الله/u.test(out.text), out.text);
+      ok('q12: the reader receives his own sentence, whole', out.text.includes(Q12), out.text);
+      ok('q12: and it is marked as understanding rather than transmitted text',
+        out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED), out.text);
+      ok('q12: and the verdict names what actually happened',
+        out.annotations[0]?.action === 'kept-unsupported-attribution-marked',
+        out.annotations[0]?.action);
+    }
+    // The prayer belongs to the name, so when the name CAN be cut the prayer goes with it.
+    {
+      const out = module.reviewAnswer({
+        text: 'قال ابن باز رحمه الله إن الجمع للمسافر جائز عند الحاجة.',
+        evidence: [], domain: 'fiqh', mode: 'عادي',
+      });
+      ok('a removed name takes its honorific prayer with it',
+        !out.text.includes('ابن باز') && !out.text.includes('رحمه الله')
+          && out.text.includes('الجمع للمسافر جائز'), out.text);
+    }
+
+    // ── §٢/١ MUTANT: LET THE PARTICLE ALONE DECIDE AGAIN ─────────────────────
+    const particleMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'ambiguous-particle-credits-any-noun',
+      transform: (source) => source.replace(
+        '    if (!framePointsAtAPerson(match.groups.frame, claimed)) continue;\n',
+        '    // mutant: «عند الوضوء» is a scholar named «الوضوء»\n'),
+      survives: adverbialsSurvive,
+    });
+    ok('adverbial mutant seam applied', particleMutant.changed, particleMutant.error);
+    ok('adverbial mutant module loaded successfully', particleMutant.loaded, particleMutant.error);
+    ok('MUTANT KILLED: an Arabic adverbial cannot be read as a credit again',
+      particleMutant.loaded && particleMutant.survived === false, JSON.stringify(particleMutant));
+
+    // ── §٢/٢ MUTANT: LEAVE THE BROKEN SENTENCE ───────────────────────────────
+    const seamMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'remove-the-name-and-leave-the-hole',
+      transform: (source) => source.replace(
+        '          if (removalBreaksSentence(part, attribution)) {',
+        '          if (false && removalBreaksSentence(part, attribution)) { // mutant: ship the break'),
+      survives: seamHolds,
+    });
+    ok('broken-seam mutant seam applied', seamMutant.changed, seamMutant.error);
+    ok('broken-seam mutant module loaded successfully', seamMutant.loaded, seamMutant.error);
+    ok('MUTANT KILLED: a name cannot be cut out leaving a sentence that is not Arabic',
+      seamMutant.loaded && seamMutant.survived === false, JSON.stringify(seamMutant));
 
     // ── §٣ MUTANT: PUT THE PHRASE BACK INTO THE MIDDLE ───────────────────────
     const midMutant = await runMutant({
