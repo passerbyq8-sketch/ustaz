@@ -723,6 +723,13 @@ export default async function handler(req, res) {
   // between a server band and a client claim -- a claim may RESTRICT and may not RELEASE -- and
   // it means the prompt's own persona fork and this band can never disagree about who is reading.
   const band = reader.band;
+  // READ OUT HERE, AND NOT WHERE IT IS USED. Two later blocks declare a `const reader` of their
+  // own for a stream reader (`g.body.getReader()`, `r2.body.getReader()`), and the ROUND 2 one is
+  // at the TOP LEVEL of the handler's try block — so the identifier `reader` is in its temporal
+  // dead zone for that whole block, and the reader-fields object is unreachable from anywhere
+  // inside it. That was latent while nothing referenced it early; the free branch does, so the
+  // value is captured here where the name still means what it says.
+  const readerMode = reader.mode;
   // BAND GATE (khilaf-policy §1/§2/§3). The depth instruction is ADULT-ONLY. 'scholar' orders the model
   // to present up to FOUR differing scholarly opinions with evidence; injecting that into a child's
   // system prompt is a direct policy breach. Mirrors usePremium (next line), which already checks
@@ -1226,7 +1233,7 @@ export default async function handler(req, res) {
           usePremium,
           effort: round2Effort,
           band,
-          mode: reader.mode,
+          mode: readerMode,
           lexicalRoute: effectiveRoute,
           providerUrl: ANTHROPIC_URL,
           headers,
