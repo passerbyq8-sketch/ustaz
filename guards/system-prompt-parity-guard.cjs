@@ -85,12 +85,21 @@ const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\
 // same evidence condition without a visual tag. Unconditional confidence became calibrated,
 // specific disclosure. Chat samples grew by EXACTLY 982 bytes; call samples grew by EXACTLY 1124
 // bytes because they also carry the voice-specific form of the same contract.
+// حكمُ المالكِ 2026-08-16 — قسمُ «قِرَاءَةُ الرِّسَالَة»: الرسالةُ الطويلةُ مدخلٌ عاديٌّ يُقرأُ
+// كاملًا رسالةً واحدة، وأسئلتُها كلُّها تُجاب، والنثرُ الذي ليس سؤالًا سياقٌ لا خانةُ سؤال.
+// ومعه حدٌّ على قاعدةِ أعمدةِ العبادة: الوسمُ جوابُ من طلبَ الصفةَ، لا جوابُ كلِّ رسالةٍ ذُكرت
+// فيها عبادة، ولا يبتلعُ بقيّةَ أسئلةِ الرسالة. والقياسُ الذي أوجبَ هذا الحدَّ مقيسٌ لا مُتخيَّل:
+// لصقةٌ فيها ثلاثةُ أسئلةٍ مضمّنةٍ عادت من الإنتاجِ بـ<worship id="salah"></worship> وحدَه —
+// ثلاثين حرفًا، وصفرًا من أسئلتِها الثلاثة.
+//
+// والنموُّ **موحّدٌ ٢٠٧٩ بايتًا في البنودِ الخمسةِ كلِّها**، وهذا نفسُه دليلٌ يُقرأ: النصُّ الجديدُ
+// لا يقعُ في فرعٍ مشروطٍ بعمرٍ ولا بجنسٍ ولا بوضع، بل يُقرأُ على كلِّ مخاطَبٍ سواء.
 const PINNED = [
-  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 57155, sha: '2207ce44a46c47e872a9ca335345051afd9150d34b9627be50e5974c4dc6e908' },
-  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 55650, sha: 'efc80470697202496fecece2ec1ffa241e441d8f6a9782b7ffda94a8250b48fc' },
-  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 55424, sha: '059bc9ac737b5826bd4f549814dee1e9f448ab7556b77503b94043fffbc8ab01' },
-  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 70380, sha: '6b0f9fa4e5491c2ae4b629cf9f121d02230462f1471cd397d564a46dfad264a7' },
-  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 68692, sha: '8d472f9b2431dd6b7dafd28fd3efe326d237d82c3e5a0bd33b31a49b820f8fab' },
+  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 59234, sha: '208524ffbc1000e03a7162be70a18c025c4a677298a2e7ec60b8ab8cd3388b85' },
+  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 57729, sha: 'b0fc8cc16f001c8602ab12eba4a5e35fe3ee3c8124759687901eba93d0b0afa7' },
+  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 57503, sha: '3a9d29ed69510d012b0f7a9c889aa3bbb3f873652e456964ff36d170c84b4473' },
+  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 72459, sha: 'e7a378a2b549655525c9e72c0615cd7b34a964e242abb4c642a726ea62fb7c98' },
+  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 70771, sha: '6b1595eb52d31bc6978386a265d0af0fc8b53ff628acb2f8e5bd1fbcd0b6323f' },
 ];
 
 (async function main() {
