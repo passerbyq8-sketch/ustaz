@@ -718,7 +718,13 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 86;   // 81st-86th: the pure output-reviewer matrix and the five mutation-backed
+  const GATES_EXPECTED = 87;   // 87th: standingnotice -- guards/standing-notice-band-guard.cjs. The standing
+                               //       notice under the composer carried «راجِعْ ما يهمُّك مع والديك» with NO
+                               //       condition at all, so every adult reader was being sent to his parents.
+                               //       The gate boots the shipped babel block, drives standingNoticeKey through
+                               //       deriveCaps from real ages, and kills two mutants: the unconditional line,
+                               //       and the condition inverted so the child loses the clause instead.
+                               // 81st-86th: the pure output-reviewer matrix and the five mutation-backed
                                //       FreeBrain-B guards. They constrain the output boundary without touching
                                //       the parallel answer-path owner.
                                // 76th-80th: the five answer-path guards of parallel round A, listed in the

@@ -1523,6 +1523,7 @@ const EZ_I18N = {
     'chat.depthDetailed': '\u0645\u0641\u0635\u0651\u0644',
     'chat.depthScholar': '\u0637\u0627\u0644\u0628 \u0627\u0644\u0639\u0644\u0645',
     'chat.standingNotice': 'عزك ذكاءٌ اصطناعيّ وقد يُخطئ — راجِعْ ما يهمُّك مع والديك أو مع أهل العلم.',
+    'chat.standingNoticeAdult': 'عزك ذكاءٌ اصطناعيّ وقد يُخطئ — راجِعْ ما يهمُّك مع أهل العلم.',
     'navigation.settings2': '\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a',
     'home.hadithOfDay': 'حديث اليوم',
     'home.verseOfDay': 'آية اليوم',
@@ -1713,6 +1714,7 @@ const EZ_I18N = {
     'chat.depthDetailed': 'Detailed',
     'chat.depthScholar': 'Student of knowledge',
     'chat.standingNotice': 'Ezik is an artificial intelligence and can be wrong — check what matters to you with your parents or with people of knowledge.',
+    'chat.standingNoticeAdult': 'Ezik is an artificial intelligence and can be wrong — check what matters to you with people of knowledge.',
     'navigation.settings2': 'Settings',
     'home.hadithOfDay': 'Hadith of the day',
     'home.verseOfDay': 'Verse of the day',
@@ -3264,6 +3266,24 @@ function deriveCaps(age) {
     upload:   band !== 'young',   // hidden for young by BAND (no parent override)
     export:   band !== 'young',   // preserves current >=11 behavior exactly
   };
+}
+
+// ============================================================
+// standingNoticeKey — أيُّ تنبيهٍ دائمٍ يراه هذا القارئ (§٥).
+//
+// الحالُ قبلَ اليوم: سطرٌ واحدٌ بلا شرطٍ البتّة، فكلُّ بالغٍ يقرأُ «راجِعْ ما يهمُّك مع
+// والديك». والشرطُ هنا مبنيٌّ على ما يقيسُه التطبيقُ فعلًا — نطاقُ deriveCaps المشتقُّ من
+// سنةِ الميلادِ المخزّنة — لا على حقلٍ جديدٍ يُخمَّن. البالغُ (١٨+) يرى الصيغةَ بلا
+// «والديك»، والصغيرُ واليافعُ يريانِها كما هي بحرفِها، وهو الاختيارُ الذي يجري عليه هذا
+// الملفُّ في كلِّ فرقٍ آخرَ من نوعِه (`band !== 'young'` في deriveCaps وتوأمُه في
+// WorshipCard): مَن يعيشُ في بيتِ أبويهِ تُقالُ له.
+//
+// A PURE FUNCTION ON PURPOSE. guards/standing-notice-band-guard.cjs lifts it out of the shipped
+// babel block and drives both arms, so the rule is asserted where it lives instead of being
+// re-described in a regex over this file.
+// ============================================================
+function standingNoticeKey(band) {
+  return band === 'adult' ? 'chat.standingNoticeAdult' : 'chat.standingNotice';
 }
 
 // ============================================================
@@ -8958,7 +8978,7 @@ function App() {
           )}
         </div>
       </div>
-      <div className="ezc-note">{ezT('chat.standingNotice')}</div>
+      <div className="ezc-note">{ezT(standingNoticeKey(caps.band))}</div>
         </div>
       </div>
       {/* D85: the drawer. Order is fixed: new chat, القائمة (the existing home screen -- the
