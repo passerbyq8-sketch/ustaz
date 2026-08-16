@@ -207,8 +207,82 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('ALL EXITS: the reviewer is reached from every one of them', everyExitReviewed(results),
       JSON.stringify(results.map((r) => [r.exit.id, r.reviewed, r.nonEmpty, r.threw])));
 
+    // ── D. §٢: PROSE WRITTEN IN A TOOL ROUND IS THE READER'S, NOT SCRATCH ────
+    //
+    // THE LAW THIS INVERTS. Until this round the loop kept the prose of the LAST call only. A
+    // round whose `stop_reason` was `tool_use` could carry text blocks beside its tool calls, and
+    // those blocks went into the conversation history and reached nobody.
+    //
+    // MEASURED, on the preview, on the owner's twenty-question message (round ledger, 2026-08-16):
+    // rounds 1–3 carried 82, 81 and 883 characters of prose and round 4 carried 3,707. The 1,046
+    // that were dropped were not narration filler — the surviving answer OPENED AT «٦.», because
+    // questions one through five had already been answered inside the block round 3 discarded.
+    //
+    // The order matters as much as the presence: an answer assembled out of order is a different
+    // defect wearing the same green tick, so it is asserted separately.
+    async function driveScript(loopModule, script) {
+      const realFetch = globalThis.fetch;
+      let n = 0;
+      globalThis.fetch = async (input) => {
+        const url = String(input?.url || input);
+        if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+        return { ok: true, status: 200, json: async () => script(n++) };
+      };
+      try { return await loopModule.runFreeBrainTurn({ ...BASE }); }
+      finally { globalThis.fetch = realFetch; }
+    }
+
+    const withTool = (text, id) => ({
+      stop_reason: 'tool_use',
+      content: [
+        ...(text ? [{ type: 'text', text }] : []),
+        { type: 'tool_use', id, name: 'search_fatawa', input: { query: 'الجمع للمسافر' } },
+      ],
+    });
+
+    const EARLY = 'الجمع للمسافر جائز عند الحاجة.';
+    const LATE = 'ومدة المسح للمسافر ثلاثة أيام بلياليها.';
+    const carriesBothRounds = async (loopModule) => {
+      const turn = await driveScript(loopModule,
+        (i) => (i === 0 ? withTool(EARLY, 't0') : textPayload(LATE)));
+      return typeof turn?.text === 'string'
+        && turn.text.includes(EARLY)
+        && turn.text.includes(LATE)
+        && turn.text.indexOf(EARLY) < turn.text.indexOf(LATE);
+    };
+
+    ok('a tool round\'s prose reaches the reader, in the order it was written',
+      await carriesBothRounds(loop));
+
+    const ledgerTurn = await driveScript(loop,
+      (i) => (i === 0 ? withTool(EARLY, 't0') : textPayload(LATE)));
+    ok('...and the round ledger records the shape of every call',
+      Array.isArray(ledgerTurn.roundLedger) && ledgerTurn.roundLedger.length === 2
+        && ledgerTurn.roundLedger[0].textChars === EARLY.length
+        && ledgerTurn.roundLedger[0].toolUse === 1
+        && ledgerTurn.roundLedger[1].textChars === LATE.length,
+      JSON.stringify(ledgerTurn.roundLedger));
+
+    // THE TRAP §٢ NAMES. A last call that REWRITES what an earlier one already said must not be
+    // delivered twice — and the longer, complete version is the one that survives.
+    const repeatTurn = await driveScript(loop,
+      (i) => (i === 0 ? withTool(EARLY, 't0') : textPayload(EARLY + ' ' + LATE)));
+    ok('a repeated earlier draft is delivered once, not twice',
+      repeatTurn.text.split(EARLY).length - 1 === 1, repeatTurn.text);
+    ok('...and it is the COMPLETE version that survives the deduplication',
+      repeatTurn.text.includes(LATE), repeatTurn.text);
+
+    // A tool round with no prose at all still behaves exactly as it did: nothing to carry, and
+    // the write call is what answers.
+    const silentTurn = await driveScript(loop,
+      (i) => (i < 2 ? withTool('', 't' + i) : textPayload(LATE)));
+    ok('a silent tool round adds nothing and changes nothing',
+      silentTurn.text.includes(LATE) && !silentTurn.text.includes(EARLY), silentTurn.text);
+
     // ── D. the two mutants that restore the pre-merge behaviour ─────────────
-    async function loopMutant(name, transform) {
+    // `probe` names the property THIS mutant is measured against. Without it the property is the
+    // one section C asserts — every exit reaches the reviewer with a non-empty string.
+    async function loopMutant(name, transform, probe) {
       const original = fs.readFileSync(LOOP, 'utf8');
       const changed = transform(original);
       if (changed === original) return { changed: false, loaded: false, survived: null, error: 'seam moved' };
@@ -217,8 +291,10 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       fs.writeFileSync(twin, importsFromTree(changed, LOOP), 'utf8');
       try {
         const twinModule = await fresh(twin, name);
-        const twinResults = await driveExits(twinModule, module.REVIEW_LAST_RESORT);
-        return { changed: true, loaded: true, survived: everyExitReviewed(twinResults), error: null };
+        const survived = probe
+          ? Boolean(await probe(twinModule))
+          : everyExitReviewed(await driveExits(twinModule, module.REVIEW_LAST_RESORT));
+        return { changed: true, loaded: true, survived, error: null };
       } catch (error) {
         return { changed: true, loaded: false, survived: null, error: error?.stack || String(error) };
       } finally {
@@ -247,6 +323,32 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('escaping-error mutant module loaded successfully', throwMutant.loaded, throwMutant.error);
     ok('MUTANT KILLED: an exit that throws past the reviewer cannot pass',
       throwMutant.loaded && throwMutant.survived === false, JSON.stringify(throwMutant));
+
+    // M3 — §٢'s law inverted: the tool round's prose goes back on the floor. This is the exact
+    // pre-repair loop, and it is the one that cost the owner questions one through five.
+    const dropMutant = await loopMutant('tool-round-prose-discarded',
+      (source) => source.replace('    if (roundText) written.push(roundText);',
+        '    // mutant: the pre-repair loop threw this away'),
+      carriesBothRounds);
+    ok('dropped-prose mutant seam applied', dropMutant.changed, dropMutant.error);
+    ok('dropped-prose mutant module loaded successfully', dropMutant.loaded, dropMutant.error);
+    ok('MUTANT KILLED: prose written in a tool round cannot go back on the floor',
+      dropMutant.loaded && dropMutant.survived === false, JSON.stringify(dropMutant));
+
+    // M4 — the write keyed back on the accumulated text instead of on `finished`. With an early
+    // round having already written something, E4's tools-removed write never runs at all, so a
+    // turn whose last round said nothing usable delivers a stale fragment instead of an answer.
+    const keyMutant = await loopMutant('write-keyed-on-text-again',
+      (source) => source.replace('  if (!finished) {', '  if (!written.length) {'),
+      async (twinModule) => {
+        const turn = await driveScript(twinModule,
+          (i) => (i === 0 ? withTool(EARLY, 't0') : textPayload(i === 1 ? '' : LATE)));
+        return typeof turn?.text === 'string' && turn.text.includes(LATE);
+      });
+    ok('write-key mutant seam applied', keyMutant.changed, keyMutant.error);
+    ok('write-key mutant module loaded successfully', keyMutant.loaded, keyMutant.error);
+    ok('MUTANT KILLED: E4 cannot be deleted by keying the write on the accumulated text',
+      keyMutant.loaded && keyMutant.survived === false, JSON.stringify(keyMutant));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
