@@ -405,5 +405,10 @@
         "args": ""
       }
     ]
+  },
+  {
+    "name": "batchsplit",
+    "script": "guards/batch-split-guard.cjs",
+    "args": "--mutants"
   }
 ]
