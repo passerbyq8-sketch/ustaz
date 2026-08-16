@@ -2165,11 +2165,8 @@ ok('N13: ...and deleting the OPEN conversation still empties the thread',
   /if \(chatIdRef\.current === id\) resetThread\(\);/.test(html));
 
 /* ---- N14..N17. the turn: send, endpoint, payload, stream --------------- */
-// د-١: الملحنُ صار ينادي sendComposed — وهو المرسلُ المشحون: يقسّمُ الرسالةَ المرقّمةَ ثمّ يمرّرُ
-// كلَّ بندٍ إلى sendMessage نفسِها، ورسالةٌ بلا ترقيمٍ تصلُها كما كانت. والزرُّ يُقفَلُ أثناءَ
-// الدفعةِ (batchProgress) كما يُقفَلُ أثناءَ بثٍّ واحد، فلا يُجهِضُ بندٌ بندًا.
 ok('N14: the send button is in the dock and calls the shipped sender',
-  /<button onClick=\{\(\) => sendComposed\(input\)\} disabled=\{isLoading \|\| batchProgress !== null \|\| \(!input\.trim\(\) && !pendingImage\)\}/.test(chatSrc));
+  /<button onClick=\{\(\) => sendMessage\(input\)\} disabled=\{isLoading \|\| \(!input\.trim\(\) && !pendingImage\)\}/.test(chatSrc));
 ok('N14: ...and the autosave still files on the QUESTION',
   /setMessages\(updated\);[\s\S]{0,600}?saveMessages\(updated\);/.test(html));
 ok('N15: text and call share the grounded answer endpoint',
@@ -2247,7 +2244,7 @@ ok('N26: ...and the two deep tiers still need the token, via the SAME unlock she
 
 /* ---- N27..N29. keyboard, names, and the way out of the drawer ---------- */
 ok('N27: Enter sends and Shift+Enter does not -- byte for byte',
-  chatSrc.indexOf("onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.style.height = 'auto'; sendComposed(input); } }}") !== -1);
+  chatSrc.indexOf("onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.style.height = 'auto'; sendMessage(input); } }}") !== -1);
 ok('N27: ...and the textarea still grows only within its shipped bound',
   s.input && s.input.maxHeight === 200 && s.input.resize === 'none');
 {

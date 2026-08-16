@@ -718,7 +718,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 81;   // 76th-80th: the five answer-path guards of parallel round A, listed in the
+  const GATES_EXPECTED = 80;   // 76th-80th: the five answer-path guards of parallel round A, listed in the
                                //       merge round because gates.json belonged to the other writer while they
                                //       were being built. Each is registered WITH --mutants, without which the
                                //       mutation half never runs in the suite and the gate asserts half of what

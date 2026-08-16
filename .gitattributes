@@ -368,10 +368,6 @@ guards/truncated-tag-fallback-par-a-guard.cjs text eol=lf
 guards/explicit-failure-par-a-guard.cjs text eol=lf
 guards/scholar-separation-par-a-guard.cjs text eol=lf
 guards/card-or-no-context-par-a-guard.cjs text eol=lf
-# د-١: batch-split boots the shipped text/babel block and plants its mutants on SOURCE LITERALS
-# inside index.html — six of them, each a single line. It belongs to the same family above and
-# fails the same way on a CRLF clone: a seam that misses is a mutant that reports itself killed.
-guards/batch-split-guard.cjs text eol=lf
 
 # ح٣: the frozen transfer fixtures. THESE ARE NOT OUR TEXT — they are the bytes eleven hosts
 # actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a full SHA-256 of

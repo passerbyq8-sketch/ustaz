@@ -2446,51 +2446,6 @@ const sliceHistoryForAPI = (messages) => {
 };
 
 // ============================================================
-// د-١ — «الدفعة»: تقسيمُ الرسالةِ المرقّمةِ إلى أسئلةٍ مستقلّة (عميليّ بحت)
-// ============================================================
-// لماذا في العميل. كلُّ سؤالٍ يستحقُّ الأنبوبَ كاملًا: التوجيهَ والاسترجاعَ والحرّاسَ والعقدَ
-// وبطاقاتِه وصوتَه. والخادمُ محدودٌ بالطلبِ الواحد — مهلةٌ عامّةٌ ونداءاتٌ معدودةٌ وسقفُ إخراج —
-// فعشرون أنبوبًا لا تعيشُ في طلبٍ واحد. فالتقسيمُ هنا، والإرسالُ عشرون طلبًا مستقلًّا متتابعًا.
-//
-// ولماذا الترقيمُ وحدَه، لا التخمينُ اللغويّ. «كم سؤالًا في هذا النصّ؟» سؤالٌ لا جوابَ حتميَّ له:
-// علاماتُ الاستفهامِ تكذب («ما رأيك؟ وهل...» جملةٌ واحدةٌ بسؤالين شكليّين)، والأسطرُ تكذب،
-// والنموذجُ لو استُشير لأعطى عددًا مختلفًا في كلِّ مرّة. أمّا الترقيمُ فعلامةٌ كتبها المستخدمُ بيدِه
-// وقصدَ بها الفصل. فالعقدُ هنا: سطران فأكثرُ يبدآن برقمٍ وفاصلِه ⟹ تقسيم؛ وما دون ذلك ⟹ لا يُمَسّ.
-// دالّةٌ نقيّةٌ حتميّة: نفسُ النصِّ يعطي نفسَ القائمةِ دائمًا، والحارسُ يُقلعها من هذه الصفحةِ نفسِها.
-//
-// العلامة: أرقامٌ لاتينيّةٌ أو عربيّةٌ في أوّلِ السطر، يتبعها أحدُ الفواصلِ الأربعة، ثمّ فراغٌ اختياريّ.
-// يُتسامَحُ مع فراغٍ سابقٍ ومع محارفِ الاتّجاه (RLM/LRM/ALM) لأنّ اللصقَ من الهواتفِ يحملها.
-// الفاصلُ ومحارفُ الاتّجاهِ مكتوبةٌ بأكوادِها \u لا بأشخاصِها: الشرطةُ مهروبةٌ لأنّها
-// داخلَ الصّنفِ تصنعُ مدًى لا حرفًا — مدًى يبتلعُ ألفَ محرفٍ ويجعلُ كلَّ سطرٍ تقريبًا «مرقّمًا»؛
-// ومحارفُ الاتّجاهِ غيرُ مرئيّةٍ في المحرّر، فنسخُها بالخطأِ لا يُرى في المراجعة.
-const EZIK_BATCH_MARK = /^[ \t\u00a0\u200e\u200f\u061c]*([0-9\u0660-\u0669]+)[.)\-\u0640][ \t\u00a0]*/;
-
-// نصُّ البندِ حرفيٌّ: من أوّلِ سطرِه المرقَّمِ (بعد نزعِ الرقمِ وفاصلِه) إلى ما قبلَ السطرِ المرقَّمِ
-// التالي، بلا إعادةِ صياغةٍ ولا حذفٍ داخليّ — يُقصُّ الفراغُ الطرفيُّ فقط، وبه تُعرَفُ البنودُ الفارغة.
-// ما قبلَ أوّلِ سطرٍ مرقَّمٍ (تمهيدٌ كـ«عندي أسئلة:») لا يُرمى: يُضَمُّ إلى البندِ الأوّل. إسقاطُه
-// كان سيكونُ ضياعَ نصٍّ كتبَه المستخدمُ صامتًا، وهو أسوأُ ما قد تفعلَه شاشةٌ بسؤالِ صاحبِها.
-// العائدُ دائمًا مصفوفةٌ غيرُ فارغة؛ طولُها ١ يعني «ليست دفعةً» والنصُّ يمرُّ كما هو تمامًا.
-const splitNumberedBatch = (text) => {
-  const src = typeof text === 'string' ? text : '';
-  if (!src.trim()) return [src];
-  const lines = src.split('\n');
-  const marks = [];
-  for (let i = 0; i < lines.length; i++) if (EZIK_BATCH_MARK.test(lines[i])) marks.push(i);
-  if (marks.length < 2) return [src];          // سطرٌ مرقَّمٌ واحدٌ أو لا شيء ⟹ رسالةٌ واحدة
-  const preamble = marks[0] > 0 ? lines.slice(0, marks[0]).join('\n').replace(/\s+$/, '') : '';
-  const out = [];
-  for (let k = 0; k < marks.length; k++) {
-    const to = k + 1 < marks.length ? marks[k + 1] : lines.length;
-    // الاستبدالُ مثبَّتٌ بـ^ وغيرُ عامّ، فلا ينزعُ إلّا علامةَ السطرِ الأوّلِ من البند.
-    let body = lines.slice(marks[k], to).join('\n').replace(EZIK_BATCH_MARK, '').replace(/\s+$/, '');
-    if (!body.trim()) continue;                // بندٌ فارغٌ أو أبيضُ يُتخطّى بلا مقطعٍ فارغ
-    if (!out.length && preamble) body = preamble + '\n' + body;
-    out.push(body);
-  }
-  return out.length >= 2 ? out : [src];        // بندٌ واحدٌ نجا ⟹ لا تقسيم
-};
-
-// ============================================================
 // Body-size budget — the client must measure what the server measures (item 1 / defects 44+45).
 // ============================================================
 // Mirror of the server's hard INPUT cap. MUST equal MAX_CHAT_BODY_BYTES in lib/ratelimit.js:239;
@@ -6261,9 +6216,6 @@ function App() {
   const audioPlayTokenRef = useRef(0);  // invalidates stale pause/ended events on the reused element
   const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
   const [searchingSources, setSearchingSources] = useState(false); // TEXT path only: shows "يبحث في المصادر…" during the silent RAG round-1 wait
-  // د-١: تقدّمُ الدفعة — {index,total} ما دامت الأسئلةُ المتتابعةُ تُرسَل، ثمّ null. حالةٌ واحدةٌ
-  // تعيشُ عبرَ البنودِ كلِّها، بخلافِ isLoading الذي يرتفعُ ويسقطُ مع كلِّ بندٍ على حدة.
-  const [batchProgress, setBatchProgress] = useState(null);
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
   const searchTimerRef = useRef(null);    // delayed trigger for the "searching sources…" hint (client-side, time-based)
 
@@ -8062,17 +8014,11 @@ function App() {
     setSearchingSources(false);
   };
 
-  // د-١: `opts.baseMessages` هو السجلُّ الذي يُبنى عليه هذا الدور. بدونه يقرأُ الدورُ `messages`
-  // من الإغلاق، وذلك صحيحٌ للرسالةِ المفردة وخطأٌ قاتلٌ في الدفعة: البنودُ العشرون تُنادى كلُّها من
-  // إغلاقِ رَسْمةٍ واحدة، فيبني البندُ الثاني على سجلٍّ لم يرَ سؤالَ الأوّلِ ولا جوابَه، فتُمحى
-  // الأزواجُ السابقةُ من الشاشةِ ومن التخزين. فيُمرَّرُ السجلُّ صراحةً، ويُعادُ السجلُّ النهائيُّ
-  // ليكونَ أساسَ البندِ التالي. والعائدُ null يعني «لم يكتمل هذا الدور» (إجهاضٌ أو موافقةٌ ناقصة).
-  const sendMessage = async (text, opts) => {
-    const baseMessages = (opts && Array.isArray(opts.baseMessages)) ? opts.baseMessages : messages;
-    if ((!text.trim() && !pendingImage) || isLoading) return null;
+  const sendMessage = async (text) => {
+    if ((!text.trim() && !pendingImage) || isLoading) return;
     // بلا موافقةٍ سارية لا تُكتب الرسالةُ في السجلّ ولا تُرسَل: الشاشةُ نفسُها مستبدَلةٌ بوضعِ
     // «بلا ذكاء اصطناعيّ»، وهذا حاجزٌ ثانٍ كي لا يفتح مسارٌ آخرُ هذا البابَ لاحقاً.
-    if (!hasValidAIConsent()) { setAiConsent(aiConsentStatus()); return null; }
+    if (!hasValidAIConsent()) { setAiConsent(aiConsentStatus()); return; }
     // New message mid audio sequence -> cancel current audio so the new reply starts clean.
     cancelAudio();
     // Abort any in-flight stream cleanly (ties into the cancellation discipline).
@@ -8094,7 +8040,7 @@ function App() {
         ]
       : text;
     const userMsg = { role: 'user', content, timestamp: new Date().toISOString() };
-    const updated = [...baseMessages, userMsg];
+    const updated = [...messages, userMsg];
     setMessages(updated);
     // S92: the conversation is filed HERE, on the QUESTION -- not after the reply lands. "Saved
     // automatically on the first message" has to survive a reply that never arrives: a dropped
@@ -8132,13 +8078,11 @@ function App() {
         // but ONLY if this controller still owns the UI; if a newer send took over, leave it.
         // The partial reply is discarded (the assistant message is only pushed below on success).
         if (abortRef.current === controller) { clearSearchingHint(); setIsLoading(false); setStreamingText(null); }
-        return null;
+        return;
       }
-      // فشلُ بندٍ لا يوقفُ الدفعة: هذا السطرُ يحوّلُ العطبَ إلى جوابٍ صريحٍ مكتوبٍ في مكانِه، ثمّ
-      // يُستأنَفُ المسارُ إلى نهايتِه ويُعادُ السجلُّ — فيمضي البندُ التالي على سجلٍّ يحملُ فشلَ سابقِه.
       reply = getFriendlyError('network', profile?.gender);
     }
-    if (abortRef.current !== controller) return null; // a newer request owns the UI — leave its state alone
+    if (abortRef.current !== controller) return; // a newer request owns the UI — leave its state alone
     abortRef.current = null;
     clearSearchingHint();
     setStreamingText(null);
@@ -8154,35 +8098,6 @@ function App() {
     saveMessages(final);
     setIsLoading(false);
     if (voiceMode) speakReply(reply); // audio runs on the final full text — not during the stream
-    return final;
-  };
-
-  // ============================================================
-  // د-١ — مُشغّلُ الدفعة: بندٌ بعدَ بند، لا تَوازٍ
-  // ============================================================
-  // التتابعُ شرطٌ لا تحسين. كلُّ بندٍ طلبُ /api/ask مستقلٌّ ببثِّه وعقدِه وبطاقاتِه وصوتِه، وبثٌّ
-  // واحدٌ فقط يملكُ الشاشةَ في اللحظة (abortRef يُجهضُ سابقَه صراحةً) — فتوازي العشرين يعني عشرين
-  // إجهاضًا وجوابًا واحدًا ناجيًا. فالبندُ التالي لا يُرسَلُ حتى ينتهيَ بثُّ سابقِه.
-  //
-  // ومع مرفقٍ لا تُقسَّمُ الرسالة: المرفقُ يُقرأُ من الإغلاقِ لا من الوسائط، فتقسيمُ رسالةٍ معه كان
-  // سيُلحقُ نسخةَ الملفِّ كاملةً بكلِّ بندٍ من العشرين. وسؤالٌ مع مستندٍ هو سؤالٌ عن المستند.
-  //
-  // ولا سقفَ هنا على عددِ البنود: سقفا الشخصِ في الدقيقةِ واليومِ (lib/ratelimit.js) هما الحدُّ،
-  // وهما يفشلان فشلًا صريحًا في بندِه المرئيِّ — أهونُ من سقفٍ صامتٍ يبتلعُ أسئلةَ المستخدم.
-  const sendComposed = async (text) => {
-    const parts = pendingImage ? [text] : splitNumberedBatch(text);
-    if (parts.length < 2) return sendMessage(text);
-    if (isLoading) return null;
-    let base = messages;
-    for (let i = 0; i < parts.length; i++) {
-      setBatchProgress({ index: i + 1, total: parts.length });
-      const done = await sendMessage(parts[i], { baseMessages: base });
-      // null = إجهاضٌ أو رسالةٌ لم تُرسَل: الشاشةُ لم تَعُد لهذه الدفعة، فالتوقّفُ هو الصواب.
-      if (!Array.isArray(done)) break;
-      base = done;
-    }
-    setBatchProgress(null);
-    return base;
   };
 
   // ============================================================
@@ -8210,7 +8125,6 @@ function App() {
   const quickActionsVisible = !!lastMsg
     && lastMsg.role === 'assistant'
     && !isLoading
-    && batchProgress === null   // د-١: بين بندين تسقطُ isLoading لحظةً — ولا يُعرَضُ شريطُ الإجراءاتِ في تلك اللحظة
     && streamingText === null
     && !ezikIsErrorReply(lastMsg.content)
     && messages.some((m) => m && m.role === 'user');
@@ -8914,24 +8828,17 @@ function App() {
           <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: 'var(--red-lift)', fontSize: 18, cursor: 'pointer' }} aria-label={ezT("chat.removeImage")}>×</button>
         </div>
       )}
-      {/* د-١: عدّادُ الدفعة. سطرٌ واحدٌ فوقَ الملحن يقولُ أين نحن من القائمة، فلا تبدو الشاشةُ
-          واقفةً بينما تسعةَ عشرَ سؤالًا في الطريق. role=status ليقرأَه قارئُ الشاشةِ عند كلِّ بند. */}
-      {batchProgress && (
-        <div style={s.batchProgress} role="status" aria-live="polite">
-          {'السؤال ' + toArabicDigits(batchProgress.index) + ' من ' + toArabicDigits(batchProgress.total)}
-        </div>
-      )}
       <div style={s.inputBar}>
         <textarea
           ref={inputElRef}
           rows={1}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.style.height = 'auto'; sendComposed(input); } }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.style.height = 'auto'; sendMessage(input); } }}
           style={s.input}
-          disabled={isLoading || isListening || batchProgress !== null}
+          disabled={isLoading || isListening}
         />
-        <button onClick={() => sendComposed(input)} disabled={isLoading || batchProgress !== null || (!input.trim() && !pendingImage)} style={{ ...s.sendBtn, opacity: isLoading || batchProgress !== null || !input.trim() ? 0.4 : 1 }}>
+        <button onClick={() => sendMessage(input)} disabled={isLoading || (!input.trim() && !pendingImage)} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
           <SendIcon size={20} color="var(--on-accent)" />
         </button>
       </div>
@@ -13937,8 +13844,6 @@ const s = {
   mdTd: { border: '1px solid var(--line)', padding: '7px 10px', verticalAlign: 'top' },
   typingDots: { display: 'flex', gap: 4, padding: '4px 0' },
   searchingHint: { display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', fontSize: 14, color: 'var(--red)' },
-  // د-١: عدّادُ الدفعة فوقَ الملحن. ألوانُه رموزُ السمةِ وحدَها، فلا يشذُّ في سمةٍ من السمات.
-  batchProgress: { direction: 'rtl', textAlign: 'center', padding: '4px 10px', fontSize: 13, color: 'var(--muted)' },
   dot: { fontSize: 10, color: 'var(--red)', animation: 'typing 1.4s infinite' },
 
   // ===== بطاقة الآية =====
