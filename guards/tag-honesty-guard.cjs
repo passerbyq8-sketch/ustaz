@@ -138,6 +138,85 @@ const unsupportedIsTagged = (module) => {
     ok('MUTANT KILLED: transmitted text cannot be marked as understanding',
       quoteMutant.loaded && quoteMutant.survived === false, JSON.stringify(quoteMutant));
 
+    // ── §٣: THE MARK GOES AT THE END OF THE SENTENCE, OR IT DOES NOT GO ──────
+    //
+    // THE DEFECT, MEASURED ON THE LIVE PREVIEW AND REPORTED BY THE OWNER. When an attribution was
+    // detected in the MIDDLE of a sentence, `generalizeAttribution` rebuilt the sentence as
+    // `<before> ‹hedge›: <claim>` — driving a fixed phrase through the spine of a connected
+    // Arabic sentence and breaking its back. Two witnesses, questions ١٥ and ١٩ of the owner's
+    // twenty-question message.
+    //
+    // WHY THE FOUR ANSWERS OF THE PREVIOUS ROUND DID NOT CATCH IT. Their proof was «the prose is
+    // byte-identical», and not one of those four carried a REPLACED attribution — only tagged
+    // ones. The case was outside the witness, not inside it and passing.
+    //
+    // The hedge is written here in escapes on purpose: it must no longer exist as a literal
+    // anywhere in the reviewer, and a guard that spells it out in Arabic would be one more copy.
+    // Escapes, not Arabic: the shadda/damma ORDER in the middle word is the whole reason a
+    // hand-typed copy of this phrase silently fails to match the one the module used to carry.
+    const HEDGE = String.fromCharCode(0x0627,0x0644,0x0641,0x0647,0x0645,0x064f,0x0020,0x0627,0x0644,0x0639,0x0627,0x0645,0x0651,0x064f,0x0020,0x0645,0x0646,0x0020,0x0627,0x0644,0x0645,0x0639,0x0637,0x064a,0x0627,0x062a,0x0650,0x0020,0x0627,0x0644,0x0645,0x062a,0x0627,0x062d,0x0629);
+    const MID_SENTENCE = [
+      {
+        id: 'q15',
+        head: 'كفارةُ الشهرينِ المتتابعينِ إنّما تجبُ في جماعِ الصائمِ عمدًا في نهارِ رمضانَ تحديدًا،',
+        frame: ' كما قال ابن عثيمين:',
+        claim: ' لا في مطلقِ الأكلِ والشربِ المتعمّد.',
+      },
+      {
+        id: 'q19',
+        head: 'يبني على مدة إقامة (يوم وليلة) لا مدة سفر؛ لأن العبرة بحاله',
+        frame: ' عند المسح:',
+        claim: ' وقد مسح وهو مقيم، فتُحسب مدته على أساس الإقامة.',
+      },
+    ];
+
+    // The property, stated once so the mutant below is measured against exactly it: the reviewed
+    // sentence is the reader's own words with the credit removed, and the mark after the full
+    // stop. Nothing between the two halves, and nothing after the mark.
+    const stitchedCleanly = (mod) => MID_SENTENCE.every((witness) => {
+      const out = mod.reviewAnswer({
+        text: witness.head + witness.frame + witness.claim,
+        evidence: [], domain: 'fiqh', mode: 'عادي',
+      });
+      const expected = (witness.head + witness.claim).replace(/\s+/gu, ' ').trim()
+        + ' ' + mod.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+      return out.text.replace(/\s+/gu, ' ').trim() === expected;
+    });
+
+    for (const witness of MID_SENTENCE) {
+      const out = module.reviewAnswer({
+        text: witness.head + witness.frame + witness.claim,
+        evidence: [], domain: 'fiqh', mode: 'عادي',
+      });
+      ok(witness.id + ': nothing is injected into the middle of the sentence',
+        !out.text.includes(HEDGE), out.text);
+      ok(witness.id + ': the reader keeps his own words on both sides of the removed credit',
+        out.text.includes(witness.head.trim()) && out.text.includes(witness.claim.trim()), out.text);
+      ok(witness.id + ': the mark is the LAST thing in the sentence',
+        out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED), out.text);
+      ok(witness.id + ': and the credit itself is gone',
+        !/ابن عثيمين/u.test(out.text), out.text);
+    }
+    ok('both witnesses stitch back to exactly the sentence minus its credit', stitchedCleanly(module));
+    ok('the hedge phrase exists nowhere in the reviewer any more',
+      !require('fs').readFileSync(REVIEWER, 'utf8').includes(HEDGE));
+
+    // ── §٣ MUTANT: PUT THE PHRASE BACK INTO THE MIDDLE ───────────────────────
+    const midMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'inject-into-the-middle-again',
+      transform: (source) => source.replace(
+        '  return `${head} ${claim}`;',
+        '  return `${head} ` + \'\\u0627\\u0644\\u0641\\u0647\\u0645\\u064f \\u0627\\u0644\\u0639\\u0627'
+        + '\\u0645\\u0651\\u064f \\u0645\\u0646 \\u0627\\u0644\\u0645\\u0639\\u0637\\u064a\\u0627\\u062a'
+        + '\\u0650 \\u0627\\u0644\\u0645\\u062a\\u0627\\u062d\\u0629\' + `: ${claim}`; // mutant'),
+      survives: stitchedCleanly,
+    });
+    ok('mid-sentence mutant seam applied', midMutant.changed, midMutant.error);
+    ok('mid-sentence mutant module loaded successfully', midMutant.loaded, midMutant.error);
+    ok('MUTANT KILLED: the phrase cannot go back into the middle of a sentence',
+      midMutant.loaded && midMutant.survived === false, JSON.stringify(midMutant));
+
     const mutant = await runMutant({
       sourceFile: REVIEWER,
       name: 'strip-unsupported-attribution-without-tag',
