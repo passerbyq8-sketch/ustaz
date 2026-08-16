@@ -70,8 +70,8 @@ const keepsStableGeneral = (module) => {
       sourceFile: REVIEWER,
       name: 'every-retrieved-result-earns-a-card',
       transform: (source) => source.replace(
-        'const reviewed = tag(sentence, TAGS.GENERAL_STABLE);\n    output.push(reviewed);',
-        "const reviewed = sources[0] ? `${tag(sentence, TAGS.GENERAL_STABLE)}\\n${sourceTail(sources[0])}` : tag(sentence, TAGS.GENERAL_STABLE);\n    output.push(reviewed);"),
+        "      output.push(part);\n      annotations.push(actionRecord(ordinal, scopedDomain, 'tagged-stable-general-knowledge'",
+        "      output.push(sources[0] ? `${part}\\n${sourceTail(sources[0])}` : part);\n      annotations.push(actionRecord(ordinal, scopedDomain, 'tagged-stable-general-knowledge'"),
       survives: (mutantModule) => {
         const out = mutantModule.reviewAnswer({ ...stableInput, evidence: [retrievedButUnneeded] });
         return !out.text.includes(retrievedButUnneeded.url) && !out.text.includes('المصدر:');

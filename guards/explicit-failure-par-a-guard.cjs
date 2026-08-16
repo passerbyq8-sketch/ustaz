@@ -220,8 +220,8 @@ async function suite() {
     file: LAW.REVIEWER,
     name: 'unsourced-ruling-refused-again-direct',
     transform: (source) => source.replace(
-      /^ {6}let reviewed = tag\(sentence, TAGS\.FIQH_UNSOURCED\);$/mu,
-      "      let reviewed = ''; // mutant: the old law — an unsourced ruling is refused, not tagged"),
+      /^ {8}let reviewed = part;$/mu,
+      "        let reviewed = ''; // mutant: the old law — an unsourced ruling is refused, not tagged"),
     check: (twin) => {
       const out = twin.reviewAnswer({ text: B1_DRAFT, evidence: [], domain: 'fiqh', mode: 'عادي' });
       return out.text.includes('واجبٌ بلا خلاف') && out.text.includes('【فهمٌ لا فتوى】');

@@ -1831,8 +1831,8 @@ const HUMAN_DIVINE_NAME_CASES = [
       file: LAW.REVIEWER,
       name: 'unsupported-name-takes-the-sentence-with-it',
       transform: (src) => src.replace(
-        /^ {8}const generalized = generalizeAttribution\(sentence, attribution\);$/mu,
-        "        const generalized = ''; // mutant: the old law — the name dies and the claim with it"),
+        /^ {10}const generalized = generalizeAttribution\(part, attribution\);$/mu,
+        "          const generalized = ''; // mutant: the old law — the name dies and the claim with it"),
       check: (mod) => {
         const out = mod.reviewAnswer({ text: NAMED, evidence: [], domain: 'fiqh', mode: 'عادي' });
         return out.text.includes('الجمع للمسافر جائز') && out.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED);

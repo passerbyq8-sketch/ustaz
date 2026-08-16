@@ -262,8 +262,8 @@ const FRAMING = 'هذه المسألة مما تكلم فيه أهل العلم�
       file: LAW.REVIEWER,
       name: 'unsourced-ruling-dropped-on-the-reviewer-path',
       transform: (src) => src.replace(
-        /^ {6}let reviewed = tag\(sentence, TAGS\.FIQH_UNSOURCED\);$/mu,
-        "      let reviewed = ''; // mutant: the old law — an unsourced ruling is dropped"),
+        /^ {8}let reviewed = part;$/mu,
+        "        let reviewed = ''; // mutant: the old law — an unsourced ruling is dropped"),
       check: (mod) => {
         const out = mod.reviewAnswer({ text: INVENTED_RULING, evidence: [], domain: 'fiqh', mode: 'عادي' });
         return out.text.includes('يجب الطهور') && out.text.includes('【فهمٌ لا فتوى】');

@@ -38,8 +38,8 @@ const usesHigherRung = (module) => {
       sourceFile: REVIEWER,
       name: 'apology-despite-matching-evidence',
       transform: (source) => source.replace(
-        'if (matched) {\n          output.push(sentence);',
-        'if (matched) {\n          output.push(LAST_RESORT);'),
+        'if (matched) {\n            output.push(part);',
+        'if (matched) {\n            output.push(LAST_RESORT);'),
       survives: usesHigherRung,
     });
     ok('mutant seam applied', mutant.changed, mutant.error);

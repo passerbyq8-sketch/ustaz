@@ -627,8 +627,8 @@ async function main() {
       file: LAW.REVIEWER,
       name: 'substance-offence-dropped-whole-on-the-reviewer-path',
       transform: (s2) => s2.replace(
-        /^ {6}let reviewed = tag\(sentence, TAGS\.FIQH_UNSOURCED\);$/mu,
-        "      let reviewed = ''; // mutant: the old law — the substance offence is dropped whole"),
+        /^ {8}let reviewed = part;$/mu,
+        "        let reviewed = ''; // mutant: the old law — the substance offence is dropped whole"),
       check: (mod) => mod.reviewAnswer({ text: DRAFT, evidence: [], domain: 'fiqh', mode: 'عادي' })
         .text.includes('واجبٌ بلا خلاف'),
     });
