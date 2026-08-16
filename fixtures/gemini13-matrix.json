@@ -55,7 +55,14 @@
         "lexical": "DEEN",
         "surface": "STORED_FIQH"
       },
-      "note": "deferred-owner-decision"
+      "note": "correct-tagged-answer",
+      "review": {
+        "rawAnswer": "السفينة كانت سفينة نوح عليه السلام، لا موسى؛ ولذلك لم يأخذ موسى فيها حيوانات.",
+        "domain": "fiqh",
+        "mode": "عادي",
+        "expectedAction": "tagged-fiqh-understanding",
+        "expectedContains": ["سفينة نوح", "لا موسى", "【فهمٌ لا فتوى】"]
+      }
     },
     {
       "id": 7,
@@ -82,7 +89,14 @@
         "lexical": "DEEN",
         "surface": "STORED_FIQH"
       },
-      "note": "deferred-owner-decision"
+      "note": "correct-tagged-answer",
+      "review": {
+        "rawAnswer": "هي صلاة الجنازة؛ تُصلّى قيامًا، وليس فيها ركوع ولا سجود.",
+        "domain": "fiqh",
+        "mode": "عادي",
+        "expectedAction": "tagged-fiqh-understanding",
+        "expectedContains": ["صلاة الجنازة", "ليس فيها ركوع ولا سجود", "【فهمٌ لا فتوى】"]
+      }
     },
     {
       "id": 10,
@@ -91,7 +105,14 @@
         "lexical": "DEEN",
         "surface": "STORED_FIQH"
       },
-      "note": "deferred-owner-decision"
+      "note": "correct-tagged-answer",
+      "review": {
+        "rawAnswer": "هو آدم عليه السلام؛ خلقه الله من غير أب ولا أم، ثم مات.",
+        "domain": "fiqh",
+        "mode": "عادي",
+        "expectedAction": "tagged-fiqh-understanding",
+        "expectedContains": ["آدم عليه السلام", "غير أب ولا أم", "【فهمٌ لا فتوى】"]
+      }
     },
     {
       "id": 11,
