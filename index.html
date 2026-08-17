@@ -1407,7 +1407,15 @@ const EZ_I18N = {
     'chat.send': 'إرسال',
     'chat.stop': 'إيقاف',
     'chat.placeholder': 'اكتب سؤالك…',
-    'chat.searchingSources': 'يبحث في المصادر…',
+    // XI-02: NEUTRAL BY MEASUREMENT. This hint is a CLIENT-SIDE TIMER, not a server signal —
+    // index.html's own note at `clearSearchingHint` says so. It fired in 10 rounds of 10 on
+    // 17 August, always at 4.0s, and three of those rounds ended with ZERO source cards: the
+    // shortest finished at 4,604ms, so a reader was told «searching the sources» for 548ms of
+    // an answer that showed no source at all. A timer cannot promise a search it cannot see.
+    // What it CAN say truthfully is that the answer is still being prepared, which is true of
+    // every turn it fires on. (The key keeps its historical name; the string is what a reader
+    // sees, and renaming the key would touch nine call sites for no reader-visible gain.)
+    'chat.searchingSources': 'يُحضِّرُ الجوابَ…',
     'chat.quickActions': 'إجراءات سريعة على آخر رد',
     'chat.removeImage': 'إزالة الصورة',
     'chat.listen': 'استمع للرد',
@@ -1598,7 +1606,7 @@ const EZ_I18N = {
     'chat.send': 'Send',
     'chat.stop': 'Stop',
     'chat.placeholder': 'Type your question…',
-    'chat.searchingSources': 'Searching the sources…',
+    'chat.searchingSources': 'Preparing the answer…',
     'chat.quickActions': 'Quick actions on the latest reply',
     'chat.removeImage': 'Remove the image',
     'chat.listen': 'Listen to the reply',
@@ -6285,7 +6293,10 @@ function App() {
   const audioDoneRef = useRef(null);    // current TTS playback resolver, so takeAudioFocus can cancel it cleanly
   const audioPlayTokenRef = useRef(0);  // invalidates stale pause/ended events on the reused element
   const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
-  const [searchingSources, setSearchingSources] = useState(false); // TEXT path only: shows "يبحث في المصادر…" during the silent RAG round-1 wait
+  // TEXT path only: shows chat.searchingSources during the silent round-1 wait. The name is
+  // historical — XI-02 made the string neutral, because the client cannot know that a search
+  // is running and three of ten measured rounds carrying this hint returned no source at all.
+  const [searchingSources, setSearchingSources] = useState(false);
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
   const searchTimerRef = useRef(null);    // delayed trigger for the "searching sources…" hint (client-side, time-based)
 
@@ -8857,7 +8868,9 @@ function App() {
               ? <div style={s.bubbleText}><EzikMarkdown text={formatForStreamPreview(streamingText)} /></div>
               : searchingSources
                 ? <div style={s.searchingHint}>
-                    <span>يبحث في المصادر…</span>
+                    {/* XI-02: read from the dictionary, so the string a reader sees exists in
+                        exactly one place and cannot drift back into a promise of a search. */}
+                    <span>{ezT('chat.searchingSources')}</span>
                     <span style={s.dot}>●</span>
                     <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
                     <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
