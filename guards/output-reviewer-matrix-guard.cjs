@@ -69,6 +69,85 @@ const appearsInOrder = (text, needles) => {
       }
     }
 
+    ok('A-2 fixture carries the literal regression, all quote styles, fallback, and controls',
+      Array.isArray(fixture.a2?.cases) && fixture.a2.cases.length === 7);
+    const a2CasePasses = (mod, test) => {
+      const result = mod.reviewAnswer(test.input);
+      const tag = mod.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+      return result.text === test.expect.body + ' ' + tag
+        && occurrences(result.text, tag) === 1
+        && JSON.stringify(result.annotations.map((item) => item.action))
+          === JSON.stringify(test.expect.actions);
+    };
+    for (const test of fixture.a2?.cases || []) {
+      const result = module.reviewAnswer(test.input);
+      const tag = module.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+      ok(test.id + ': quoted prose stays contiguous and the tag remains last',
+        a2CasePasses(module, test), result.text);
+      ok(test.id + ': review remains exactly one sentence with the expected action',
+        result.annotations.length === 1
+          && JSON.stringify(result.annotations.map((item) => item.action))
+            === JSON.stringify(test.expect.actions), JSON.stringify(result.annotations));
+      if (test.expect.close) {
+        ok(test.id + ': the tag is after the closing quote',
+          result.text.lastIndexOf(test.expect.close) < result.text.indexOf(tag), result.text);
+      } else if (test.expect.unclosed) {
+        ok(test.id + ': an unclosed quote keeps its tag at the part end',
+          result.text.endsWith(tag) && occurrences(result.text, tag) === 1, result.text);
+      }
+    }
+
+    const tagPlacementMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'tag-inside-open-quote',
+      transform: (source) => source.replace(
+        '    if (SENTENCE_STOP_RE.test(char) && !hasOpenQuote(quoteState)) safeAt = index + 1;',
+        '    if (SENTENCE_STOP_RE.test(char)) safeAt = index + 1; // mutant: tag inside an open quote'),
+      survives: (mutantModule) => (fixture.a2?.cases || [])
+        .every((test) => a2CasePasses(mutantModule, test)),
+    });
+    ok('A-2 tag-inside-open-quote mutant seam applied',
+      tagPlacementMutant.changed, tagPlacementMutant.error);
+    ok('A-2 tag-inside-open-quote mutant module loaded',
+      tagPlacementMutant.loaded, tagPlacementMutant.error);
+    ok('MUTANT KILLED: a sentence tag cannot land inside an open quote',
+      tagPlacementMutant.loaded && tagPlacementMutant.survived === false,
+      JSON.stringify(tagPlacementMutant));
+
+    const sentenceSplitMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'split-sentence-inside-quote',
+      transform: (source) => source.replace(
+        '    if (hasOpenQuote(quoteState)) continue; // QUOTE_AWARE_SENTENCE_BOUNDARY',
+        '    if (false && hasOpenQuote(quoteState)) continue; // mutant: split inside a quote'),
+      survives: (mutantModule) => (fixture.a2?.cases || [])
+        .every((test) => a2CasePasses(mutantModule, test)),
+    });
+    ok('A-2 split-sentence-inside-quote mutant seam applied',
+      sentenceSplitMutant.changed, sentenceSplitMutant.error);
+    ok('A-2 split-sentence-inside-quote mutant module loaded',
+      sentenceSplitMutant.loaded, sentenceSplitMutant.error);
+    ok('MUTANT KILLED: quoted punctuation cannot become a sentence boundary',
+      sentenceSplitMutant.loaded && sentenceSplitMutant.survived === false,
+      JSON.stringify(sentenceSplitMutant));
+
+    const droppedTagMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'drop-tag-when-no-safe-slot',
+      transform: (source) => source.replace(
+        '  if (hasOpenQuote(quoteState)) return value.length; // KEEP_TAG_AT_UNCLOSED_PART_END',
+        '  if (hasOpenQuote(quoteState)) return -1; // mutant: drop tag when no safe slot exists'),
+      survives: (mutantModule) => (fixture.a2?.cases || [])
+        .every((test) => a2CasePasses(mutantModule, test)),
+    });
+    ok('A-2 drop-tag-when-no-safe-slot mutant seam applied',
+      droppedTagMutant.changed, droppedTagMutant.error);
+    ok('A-2 drop-tag-when-no-safe-slot mutant module loaded',
+      droppedTagMutant.loaded, droppedTagMutant.error);
+    ok('MUTANT KILLED: an unclosed quote cannot make the tag disappear',
+      droppedTagMutant.loaded && droppedTagMutant.survived === false,
+      JSON.stringify(droppedTagMutant));
+
     ok('C-2 fixture carries the four measured open-structure cases',
       Array.isArray(fixture.c2?.cases) && fixture.c2.cases.length === 4);
     const c2CasePasses = (mod, test) => {

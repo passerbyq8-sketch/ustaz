@@ -184,6 +184,107 @@
       }
     }
   ],
+  "a2": {
+    "cases": [
+      {
+        "id": "a2-q14-guillemet",
+        "input": {
+          "text": "قال ابن باز إن … لحديث النبي صلى الله عليه وسلم: «لعلكم تقرؤون خلف إمامكم؟\nقالوا: نعم، قال: لا تفعلوا إلا بفاتحة الكتاب، فإنه لا صلاة لمن لم يقرأ بها».",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "… لحديث النبي صلى الله عليه وسلم: «لعلكم تقرؤون خلف إمامكم؟\nقالوا: نعم، قال: لا تفعلوا إلا بفاتحة الكتاب، فإنه لا صلاة لمن لم يقرأ بها».",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "»"
+        }
+      },
+      {
+        "id": "a2-guillemet-internal-stops",
+        "input": {
+          "text": "قال ابن باز إن النص: «هل هذا صحيح؟ نعم.»",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص: «هل هذا صحيح؟ نعم.»",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "»"
+        }
+      },
+      {
+        "id": "a2-ascii-internal-stops",
+        "input": {
+          "text": "قال ابن باز إن النص: \"هل هذا صحيح؟ نعم.\"",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص: \"هل هذا صحيح؟ نعم.\"",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "\""
+        }
+      },
+      {
+        "id": "a2-curly-internal-stops",
+        "input": {
+          "text": "قال ابن باز إن النص: “هل هذا صحيح؟ نعم.”",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص: “هل هذا صحيح؟ نعم.”",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "”"
+        }
+      },
+      {
+        "id": "a2-unclosed-guillemet",
+        "input": {
+          "text": "قال ابن باز إن النص: «هل هذا صحيح؟ نعم. هذا صحيح.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص: «هل هذا صحيح؟ نعم. هذا صحيح.",
+          "actions": ["removed-unsupported-attribution"],
+          "unclosed": true
+        }
+      },
+      {
+        "id": "a2-ordinary-outside-quote",
+        "input": {
+          "text": "قال ابن باز إن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "الجمع للمسافر جائز عند الحاجة.",
+          "actions": ["removed-unsupported-attribution"]
+        }
+      },
+      {
+        "id": "a2-closed-quote-then-continuation",
+        "input": {
+          "text": "قال ابن باز إن النص «يجوز عند الحاجة» ثم يستمر البيان إلى آخر الجملة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص «يجوز عند الحاجة» ثم يستمر البيان إلى آخر الجملة.",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "»"
+        }
+      }
+    ]
+  },
   "c2": {
     "tail": "وتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.",
     "cases": [
