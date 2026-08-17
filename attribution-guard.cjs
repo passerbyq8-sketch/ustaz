@@ -687,6 +687,13 @@ const user = (t) => [{ role: 'user', content: t }];
     sandbox.EZIK_NOTICE_RE = vm.runInNewContext('(' + initializer('EZIK_NOTICE_RE') + ')', sandbox);
     sandbox.EZIK_NOTICE_ALL = vm.runInNewContext('(' + initializer('EZIK_NOTICE_ALL') + ')', sandbox);
     sandbox.ezikLiftNotices = vm.runInNewContext('(' + initializer('ezikLiftNotices') + ')', sandbox);
+    // §٢ (C): three of the four readers now take the truncation marker off before anything else,
+    // so the marker's own constants are hoisted here for the same reason the notice ones are — the
+    // REAL strip is driven, not a stub that would agree with whatever the client happened to do.
+    // The two regexps are hoisted before the function that closes over them.
+    sandbox.EZIK_INCOMPLETE_STRIP = vm.runInNewContext('(' + initializer('EZIK_INCOMPLETE_STRIP') + ')', sandbox);
+    sandbox.EZIK_INCOMPLETE_TEST = vm.runInNewContext('(' + initializer('EZIK_INCOMPLETE_TEST') + ')', sandbox);
+    sandbox.ezikStripIncomplete = vm.runInNewContext('(' + initializer('ezikStripIncomplete') + ')', sandbox);
     const clientFunction = (name) => {
       const source = initializer(name);
       ok('the client exposes ' + name + ' as a structural unit', !!source);
