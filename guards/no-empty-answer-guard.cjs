@@ -481,8 +481,9 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // M6 — the delivery filter removed. This is the shipped behaviour of 17 August: everything
     // collected is handed over, announcements included.
     const deliverMutant = await loopMutant('delivery-filter-removed',
-      (source) => source.replace('  const answer = deliverableText(collected);',
-        '  const answer = collected; // mutant: deliver everything that was collected'),
+      // §٢ made `answer` a `let` — the citation retry can replace it — and the seam moved with it.
+      (source) => source.replace('  let answer = deliverableText(collected);',
+        '  let answer = collected; // mutant: deliver everything that was collected'),
       async (twinModule) => {
         const turn = await driveScript(twinModule,
           (i) => (i === 0 ? withTool(ANNOUNCE, 't0') : textPayload(LATE)));
@@ -503,6 +504,74 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('wide-filter mutant module loaded successfully', wideMutant.loaded, wideMutant.error);
     ok('MUTANT KILLED: a filter that also drops answers is a removal, not a repair',
       wideMutant.loaded && wideMutant.survived === false, JSON.stringify(wideMutant));
+
+    // ── F3. THE FOURTH CLASS: PROSE THAT REPORTS ON THE TOOL RUN ─────────────
+    //
+    // F1/F2 above pin the THIRD class — «سأبحث», a promise to go and look. The fourth class is its
+    // past tense: prose describing what the tool was queried with, what came back, and that what
+    // came back was general or useless. `PROMISE_RE` does not match it and MUST NOT, so it shipped
+    // on 17 August and reached the reader on preview and on production alike.
+    //
+    // THE LAW HERE IS A BOUNDARY, NOT A DROP, and both sides of it are pinned:
+    //   dropped   — the description of what the TOOL did                       (the two witnesses)
+    //   delivered — the sentence telling the READER the information did not hold up, which is the
+    //               reviewer's own substitute line, AND a disclosure that mentions the search
+    // Without that second negative witness this section would bless «drop every mention of البحث»,
+    // and M8 below is the mutant that proves it does not.
+    const TOOL_REPORT_WITNESSES = Object.freeze([
+      // preview — the arithmetic and gold answers, EZIK-FIX-A-MERGE-REPORT-2026-08-17.md:249
+      'تلك النتائج التي وصلتني كانت بحثًا عن كلمة "تجربة" لا عن مسألتك.',
+      // production — the reviewer's own `before`, EZIK-FIX-A-PUBLISH-REPORT-2026-08-17.md §٤
+      'نتيجة البحث لم تُعطِني سعراً حقيقيّاً لجرام الذهب اليوم؛ ما ظهر مجرد معلومات عامة عن عنصر الذهب الكيميائيّ، لا سعرَ سوقٍ.',
+    ]);
+    // The line the reviewer PUTS THERE when it destroys an unsupported dynamic claim. If this one
+    // ever starts being dropped, the reader is told nothing at all instead of being told the truth.
+    const REVIEWER_SUBSTITUTE = 'لم يصلني مصدرٌ مؤرّخ يمكن أن يثبت هذه المعلومة المتغيّرة في هذه الدورة.';
+    // Mentions the search AND must survive — this is the whole boundary in one sentence.
+    const READER_DISCLOSURE = 'لم أجد في بحثي عن هذه المسألة نصًّا لعالمٍ بعينِه.';
+    const FINDING_FROM_SEARCH = 'نتيجة البحث أن جمهور أهل العلم على أن المسح جائز.';
+
+    const dropsReports = (mod) => TOOL_REPORT_WITNESSES.every((s) => mod.deliverableText(s).trim() === '');
+    // The property M8 is measured against, and the reason it is a REPAIR and not a removal.
+    const keepsDisclosures = (mod) => mod.deliverableText(REVIEWER_SUBSTITUTE).includes('لم يصلني')
+      && mod.deliverableText(READER_DISCLOSURE).includes('لم أجد')
+      && mod.deliverableText(FINDING_FROM_SEARCH).includes('جمهور');
+
+    ok('prose that reports on the tool run does not reach the reader', dropsReports(loop),
+      JSON.stringify(TOOL_REPORT_WITNESSES.map((s) => loop.deliverableText(s))));
+    ok('...while the reviewer\'s own substitute line still does',
+      loop.deliverableText(REVIEWER_SUBSTITUTE).includes('لم يصلني'));
+    ok('...and a disclosure to the reader survives even though it mentions the search',
+      loop.deliverableText(READER_DISCLOSURE).includes('لم أجد'));
+    ok('...and a FINDING reported from the search is content, and survives',
+      loop.deliverableText(FINDING_FROM_SEARCH).includes('جمهور'));
+    // THE SAFETY PROPERTY, AS A PROPERTY AND NOT AS A SAMPLE. The class is new, so ordinary prose
+    // about searching — the kind an answer legitimately contains — must be untouched by it. Each
+    // of these mentions the search or its results and none of them describes the tool run.
+    const ORDINARY_SEARCH_PROSE = Object.freeze([
+      'وقد بحثت في هذه المسألة فوجدت كلام أهل العلم متفقًا عليها.',
+      'ونتيجة البحث أن المسألة خلافية بين الفقهاء.',
+      'والبحث عن الحق في هذه المسألة مطلوب من المستفتي.',
+      'ولم يصلني في هذه الدورة نص لعالم بعينه في هذه المسألة.',
+      'ومصادر هذه المسألة مبسوطة في كتب الفقه.',
+    ]);
+    ok('ordinary prose that merely mentions the search is untouched by the new class',
+      ORDINARY_SEARCH_PROSE.every((s) => !loop.isToolResultReport(s)
+        && loop.deliverableText(s).trim().length > 0),
+      JSON.stringify(ORDINARY_SEARCH_PROSE.filter((s) => loop.isToolResultReport(s))));
+
+    // M8 — the over-reach §٣ names: the drop widened to every mention of the search. It is one
+    // seam because the fast path deliberately OVER-admits, so the decision lives in one line.
+    const reportMutant = await loopMutant('report-filter-ignores-predicate',
+      (source) => source.replace(
+        '  return TOOL_TOPIC_RE.test(folded) && TOOL_REPORT_RE.test(folded);',
+        '  return TOOL_MENTION_RE.test(folded); // mutant: drop every mention of the search'),
+      keepsDisclosures);
+    ok('report-filter mutant seam applied', reportMutant.changed, reportMutant.error);
+    ok('report-filter mutant module loaded successfully', reportMutant.loaded, reportMutant.error);
+    ok('MUTANT KILLED: widening the drop to every mention of the search kills the disclosure the '
+      + 'reader is owed', reportMutant.loaded && reportMutant.survived === false,
+    JSON.stringify(reportMutant));
 
     // ── G. §٣: THE CARD IS DECIDED AFTER THE REVIEWER, NOT BEFORE ────────────
     //
@@ -688,6 +757,551 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // it is supposed to be reporting.
     ok('...and the handler does not import the reviewer to manufacture the minute itself',
       !/(?:import|from)\s*\(?\s*'[^']*output-reviewer\.js'/u.test(askSource));
+
+    // ── K. §١: THE KHILAF SIGNAL — PRODUCED HERE, AND `null` IS NOT `false` ───
+    //
+    // THE JOINT, AND WHY IT IS SHAPED LIKE SECTION J. Branch ب consumes the signal; this half
+    // produces it. The two names are literal — `khilafFromOpinions` and `opinionCount` — and the
+    // one clause that cannot be traded away is that `null` means «I do not know» and NEVER means
+    // `false`: a `false` sent out of ignorance suppresses the khilaf tail on a matter that really
+    // is disputed, which is a lie told inside the reader's own reply.
+    //
+    // WHAT WAS MEASURED, AND WHY THE ANSWER IS `null` (tools/khilaf-signal-measure.mjs):
+    //   * a field in the fatwa store — 0 of 20 deposited records. The contract has no such field.
+    //   * a tag in the data — 0 of 20. `categories`/`collection.name` name an archive series
+    //     («فتاوى نور على الدرب», «الشريط رقم [304]»), never a disagreement.
+    //   * multiplicity of distinct sources — the deposited set holds exactly ONE multi-source
+    //     evidence set, the ribā pair, and the proxy fires on it and is WRONG: one doctrine applied
+    //     to two different questions, not two opinions on one. 0 correct, 1 false.
+    //   * and the other branch is worse — reading `opinionCount === 1` as `false` contradicts the
+    //     material in hand on 1 of the 18 single-source records (al-Athary on divorce in anger,
+    //     whose own text declares the matter disputed).
+    // So the probe answers `null`, always, and says so in its own comment.
+
+    // ── K1. THE COUNT IS THE PAIR «domain + fatwa id», AND NEITHER HALF ALONE ─
+    const fatwaRow = (n, host, id) => ({ ref: n, url: `https://${host}/fatwas/${id}`, recordId: `${host}:${id}`, publisher: 'x' });
+    const countOf = (loopModule, rowsIn) => loopModule.khilafSignal(rowsIn).opinionCount;
+    ok('no evidence at all counts zero sources', countOf(loop, []) === 0, String(countOf(loop, [])));
+    ok('one source counts one', countOf(loop, [fatwaRow(1, 'binbaz.org.sa', 1)]) === 1);
+    // The reason the domain alone will not do: two rulings by one scholar on one host are two
+    // published rulings, and they are exactly the pair that can differ.
+    ok('TWO fatwas on ONE host count as two sources, not one',
+      countOf(loop, [fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'binbaz.org.sa', 2)]) === 2,
+      JSON.stringify([...loop.distinctSourceKeys([fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'binbaz.org.sa', 2)])]));
+    // And the reason the id alone will not do: ids are unique per site, never across sites.
+    ok('the SAME id on two different hosts counts as two sources',
+      countOf(loop, [
+        { ref: 1, url: 'https://binbaz.org.sa/fatwas/7', recordId: '7' },
+        { ref: 2, url: 'https://islamqa.info/ar/answers/7', recordId: '7' },
+      ]) === 2);
+    ok('one page cited twice is one source',
+      countOf(loop, [fatwaRow(1, 'binbaz.org.sa', 9), fatwaRow(2, 'binbaz.org.sa', 9)]) === 1);
+    ok('www. is not a second domain',
+      countOf(loop, [
+        { ref: 1, url: 'https://www.almosleh.com/ar/1', recordId: 'a' },
+        { ref: 2, url: 'https://almosleh.com/ar/1', recordId: 'a' },
+      ]) === 1);
+    // A ROW WITH NO PAGE IS STILL A SOURCE. The Kuwaiti encyclopedia has no URL, and folding two of
+    // its entries into one would under-report the very multiplicity this number exists to measure.
+    ok('two encyclopedia rows with no URL are still two distinct sources',
+      countOf(loop, [
+        { ref: 1, url: '', publisher: 'الموسوعة الفقهية الكويتية', recordId: 'e1' },
+        { ref: 2, url: '', publisher: 'الموسوعة الفقهية الكويتية', recordId: 'e2' },
+      ]) === 2);
+    // ...and with neither a URL nor a record id, the table `ref` is unique by construction, so two
+    // anonymous rows still count as two rather than collapsing into one.
+    ok('two rows with neither URL nor record id still count as two',
+      countOf(loop, [{ ref: 1 }, { ref: 2 }]) === 2);
+    ok('a malformed URL does not throw, and the row still counts',
+      countOf(loop, [{ ref: 1, url: 'not a url', publisher: 'p', recordId: 'r' }]) === 1);
+
+    // ── K2. THE CONTRACT: null, NEVER false — AND NEVER true ON ONE SOURCE ────
+    const SIGNAL_ROW_SETS = Object.freeze([
+      [],
+      [fatwaRow(1, 'binbaz.org.sa', 1)],
+      [fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'islamqa.info', 2)],
+      [fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'islamqa.info', 2), fatwaRow(3, 'salmajed.com', 3)],
+    ]);
+    // The property every mutant below is measured against, stated once.
+    const neverLies = (loopModule) => SIGNAL_ROW_SETS.every((rowsIn) => {
+      const signal = loopModule.khilafSignal(rowsIn);
+      if (signal.khilafFromOpinions === false) return false;                  // never `false`
+      if (signal.khilafFromOpinions === true && signal.opinionCount <= 1) return false; // never `true` on one
+      return Number.isInteger(signal.opinionCount) && signal.opinionCount === rowsIn.length;
+    });
+    ok('the signal never reports `false`, and never reports `true` from a single source',
+      neverLies(loop), JSON.stringify(SIGNAL_ROW_SETS.map((r) => loop.khilafSignal(r))));
+    // THE NEGATIVE WITNESS §١ REQUIRES, BY NAME.
+    const singleSource = loop.khilafSignal([fatwaRow(1, 'binbaz.org.sa', 1)]);
+    ok('THE NEGATIVE WITNESS: one source -> opinionCount 1, and khilafFromOpinions is not `true`',
+      singleSource.opinionCount === 1 && singleSource.khilafFromOpinions !== true,
+      JSON.stringify(singleSource));
+    ok('...and today it is `null` — «I do not know» — because nothing measured distinguishes it',
+      singleSource.khilafFromOpinions === null, JSON.stringify(singleSource));
+    ok('the probe answers null for every row set, which is what the measurement licensed',
+      SIGNAL_ROW_SETS.every((r) => loop.khilafFromOpinionsProbe(r) === null),
+      JSON.stringify(SIGNAL_ROW_SETS.map((r) => loop.khilafFromOpinionsProbe(r))));
+
+    // ── K2b. THE ONE MEASURED COUNTER-EXAMPLE, HELD AS A PROPERTY ─────────────
+    //
+    // `neverLies` above cannot catch a `true` reported on a TWO-source set: nothing in the shape of
+    // an evidence set says whether its sources actually differ. Only ground truth can, and the tree
+    // holds exactly one evidence set with ground truth attached — the ribā pair, whose own fixture
+    // note records that the two records answer two DIFFERENT questions («الأوّل في صميم المسألة
+    // والثاني عن القمح»). Two distinct sources, and NOT two opinions. So this is the case that says
+    // «more than one source» is not «more than one opinion», and it is read from the fixture rather
+    // than retyped, so a change to the corpus changes the test with it.
+    const RIBA = JSON.parse(fs.readFileSync(path.join(ROOT, 'fixtures', 'riba-family-two-records.json'), 'utf8'));
+    const ribaRows = RIBA.records.map((record, i) => ({
+      ref: i + 1,
+      url: record.source?.url || '',
+      publisher: record.scholar?.shortName || '',
+      recordId: record.uid,
+    }));
+    const honoursMeasuredNegative = (loopModule) => {
+      const signal = loopModule.khilafSignal(ribaRows);
+      // Two distinct sources, and neither `true` (a lie about them) nor `false` (a lie about the
+      // matter, which really is a matter on which fiqh has more than one position elsewhere).
+      return signal.opinionCount === 2 && signal.khilafFromOpinions === null;
+    };
+    ok('the measured two-source set counts two, and is reported as «I do not know», not as khilaf',
+      honoursMeasuredNegative(loop), JSON.stringify(loop.khilafSignal(ribaRows)));
+
+    // ── K3. IT REALLY CROSSES THE SEAM, OBSERVED AND NOT ASSUMED ──────────────
+    //
+    // The pure reviewer is branch ب's and today ignores fields it has no rule for, so a text
+    // assertion alone could not tell «forwarded» from «dropped». The seam is therefore executed
+    // against a RECORDER standing in for the reviewer: a copy of lib/free-brain/review.js in
+    // os.tmpdir() with its one import repointed. The recorder publishes on `globalThis` because
+    // `fresh()` cache-busts every import, so a module imported twice is two instances and a plain
+    // export could not be read back.
+    async function seamSaw(input) {
+      const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-khilaf-seam-'));
+      try {
+        fs.writeFileSync(path.join(temp, 'recorder.mjs'),
+          'export function reviewAnswer(input) {\n'
+          + '  (globalThis.__ezikSeamSaw ||= []).push(input);\n'
+          + "  return { text: String(input.text || ''), annotations: [], verdict: { version: 'recorder' } };\n"
+          + '}\n', 'utf8');
+        const rewired = importsFromTree(fs.readFileSync(SEAM, 'utf8'), SEAM)
+          .replace(/from '[^']*output-reviewer\.js'/u, "from './recorder.mjs'");
+        const seamFile = path.join(temp, 'seam.mjs');
+        fs.writeFileSync(seamFile, rewired, 'utf8');
+        globalThis.__ezikSeamSaw = [];
+        const seam = await fresh(seamFile, 'khilaf-seam');
+        await seam.reviewAnswer(input);
+        return (globalThis.__ezikSeamSaw || [])[0] || null;
+      } finally {
+        delete globalThis.__ezikSeamSaw;
+        fs.rmSync(temp, { recursive: true, force: true });
+      }
+    }
+    const base = { text: 'الجمع للمسافر جائز.', evidence: [], domain: 'fiqh', mode: 'عادي' };
+    const sawTrue = await seamSaw({ ...base, khilafFromOpinions: true, opinionCount: 3 });
+    ok('the seam forwards `khilafFromOpinions` under exactly that name',
+      sawTrue && sawTrue.khilafFromOpinions === true, JSON.stringify(sawTrue && Object.keys(sawTrue)));
+    ok('...and `opinionCount` under exactly that name',
+      sawTrue && sawTrue.opinionCount === 3, JSON.stringify(sawTrue && sawTrue.opinionCount));
+    // THE NORMALISATION IS THE POINT. Anything that is not literally true or false is «I do not
+    // know», so an absent signal, an undefined, or a truthy string can never become a `false`.
+    for (const [label, value] of [
+      ['absent', undefined], ['null', null], ['a truthy string', 'yes'],
+      ['zero', 0], ['an empty string', ''],
+    ]) {
+      const saw = await seamSaw({ ...base, khilafFromOpinions: value });
+      ok(`...and ${label} crosses the seam as null, not as false`,
+        saw && saw.khilafFromOpinions === null, JSON.stringify(saw && saw.khilafFromOpinions));
+    }
+    ok('...while a genuine `false` is carried through as `false`',
+      (await seamSaw({ ...base, khilafFromOpinions: false }))?.khilafFromOpinions === false);
+    for (const [label, value] of [['absent', undefined], ['negative', -1], ['a fraction', 1.5], ['NaN', NaN], ['a string', '2']]) {
+      const saw = await seamSaw({ ...base, opinionCount: value });
+      ok(`a count that is ${label} crosses the seam as null, not as a number`,
+        saw && saw.opinionCount === null, JSON.stringify(saw && saw.opinionCount));
+    }
+    ok('...and zero is a real count, not an absence', (await seamSaw({ ...base, opinionCount: 0 }))?.opinionCount === 0);
+
+    // ── K4. AND THE LOOP PRODUCES IT ON A REAL TURN ──────────────────────────
+    // Driven offline through the same in-process encyclopedia Section G uses. `khilafSignal` is
+    // computed on the rows the PROPOSAL rested on, so a turn whose second sentence the reviewer
+    // later destroys still reports the two sources its draft leaned on — the signal is about the
+    // evidence, not about the surviving cards.
+    const oneCiteTurn = await citeTurn(loop, RULING);
+    ok('a turn that cited one row reports opinionCount 1',
+      oneCiteTurn.opinionCount === 1, JSON.stringify([oneCiteTurn.opinionCount, (oneCiteTurn.cited || []).length]));
+    ok('...and reports khilafFromOpinions as null, not false',
+      oneCiteTurn.khilafFromOpinions === null, JSON.stringify(oneCiteTurn.khilafFromOpinions));
+    ok('a turn whose draft rested on two rows reports two, even after the reviewer cut one sentence',
+      survivorTurn.opinionCount === 2 && (survivorTurn.cited || []).length === 1,
+      JSON.stringify([survivorTurn.opinionCount, (survivorTurn.cited || []).length]));
+    // A ref the model invented resolves to no row, so it buys no count either.
+    ok('an invented ref adds nothing to the count', inventedTurn.opinionCount === 0,
+      JSON.stringify(inventedTurn.opinionCount));
+    // The loop hands both names to the seam. Pinned as text for the reason Section J gives about
+    // its own joint: the field name written into both halves of the order IS the contract.
+    const loopSource = fs.readFileSync(LOOP, 'utf8');
+    for (const field of ['khilafFromOpinions', 'opinionCount']) {
+      ok('the loop passes `' + field + '` into the one call to branch ب',
+        new RegExp('^ {4}' + field + ': khilaf\\.' + field + ',$', 'mu').test(loopSource), field);
+    }
+    // ...and the platform log reports them, `null` included. A field that vanishes when it is null
+    // cannot be told apart from a field that was never wired.
+    for (const field of ['khilafFromOpinions', 'opinionCount']) {
+      ok('...and api/ask.js logs `' + field + '`, null and all',
+        new RegExp('^ {8}' + field + ': out\\.' + field + ' \\?\\? null,$', 'mu').test(askSource), field);
+    }
+
+    // ── K5. THE MUTANTS ──────────────────────────────────────────────────────
+    // M12 — the exact lie the contract forbids: silence read as denial.
+    const falseMutant = await loopMutant('probe-reports-false-when-it-does-not-know',
+      (source) => source.replace('export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return KHILAF_UNKNOWN;',
+        'export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return false; // mutant: «I do not know» reported as «no»')
+        .replace('export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return KHILAF_UNKNOWN;',
+          'export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return false; // mutant: «I do not know» reported as «no»'),
+      neverLies);
+    ok('false-signal mutant seam applied', falseMutant.changed, falseMutant.error);
+    ok('false-signal mutant module loaded successfully', falseMutant.loaded, falseMutant.error);
+    ok('MUTANT KILLED: `null` cannot be turned into `false` — that suppresses the khilaf tail',
+      falseMutant.loaded && falseMutant.survived === false, JSON.stringify(falseMutant));
+
+    // M13 — the opposite lie: a hunch reported as knowledge. `neverLies` cannot catch this one —
+    // the negative-witness clause already stops it on a single source — so it is measured against
+    // the ONE evidence set in this tree whose ground truth is recorded: two distinct sources that
+    // are not two opinions. That is what makes «more than one source» an unsafe proxy, and it is
+    // the whole reason §١'s answer is `null`.
+    const trueMutant = await loopMutant('probe-reports-true-on-a-hunch',
+      (source) => source.replace('export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return KHILAF_UNKNOWN;',
+        'export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return true; // mutant: a hunch reported as knowledge')
+        .replace('export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return KHILAF_UNKNOWN;',
+          'export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return true; // mutant: a hunch reported as knowledge'),
+      honoursMeasuredNegative);
+    ok('true-signal mutant seam applied', trueMutant.changed, trueMutant.error);
+    ok('true-signal mutant module loaded successfully', trueMutant.loaded, trueMutant.error);
+    ok('MUTANT KILLED: multiplicity of SOURCES cannot be reported as multiplicity of OPINIONS',
+      trueMutant.loaded && trueMutant.survived === false, JSON.stringify(trueMutant));
+
+    // M14 — the invariant deleted rather than the probe changed. This is the mutant that proves the
+    // negative witness is enforced in `khilafSignal` and not merely implied by the probe's answer.
+    const guardMutant = await loopMutant('negative-witness-clause-removed',
+      (source) => source
+        .replace(/ {2}const khilafFromOpinions = \(probed === true && opinionCount <= 1\) \? null\r?\n {4}: known \? probed\r?\n {6}: null;/u,
+          '  const khilafFromOpinions = known ? probed : null; // mutant: the negative witness deleted')
+        .replace('export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return KHILAF_UNKNOWN;',
+          'export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return true;')
+        .replace('export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return KHILAF_UNKNOWN;',
+          'export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return true;'),
+      neverLies);
+    ok('negative-witness mutant seam applied', guardMutant.changed, guardMutant.error);
+    ok('negative-witness mutant module loaded successfully', guardMutant.loaded, guardMutant.error);
+    ok('MUTANT KILLED: removing the single-source clause lets a hunch through',
+      guardMutant.loaded && guardMutant.survived === false, JSON.stringify(guardMutant));
+
+    // M15 — the count keyed on the domain alone, which folds two rulings by one scholar into one
+    // and under-reports exactly the multiplicity the number exists to measure.
+    const keyMutantK = await loopMutant('count-keyed-on-domain-alone',
+      (source) => source.replace('    keys.add(`${domain}|${id}`);',
+        '    keys.add(domain); // mutant: the domain alone, so two fatwas on one host count as one'),
+      async (twinModule) => countOf(twinModule, [fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'binbaz.org.sa', 2)]) === 2);
+    ok('domain-only mutant seam applied', keyMutantK.changed, keyMutantK.error);
+    ok('domain-only mutant module loaded successfully', keyMutantK.loaded, keyMutantK.error);
+    ok('MUTANT KILLED: two rulings on one host cannot be counted as one source',
+      keyMutantK.loaded && keyMutantK.survived === false, JSON.stringify(keyMutantK));
+
+    // M16 — the seam turns an absent signal into a denial. Same lie as M12, told one file later,
+    // which is why it needs its own mutant: the loop could be perfect and this would still ship it.
+    const seamMutant = await (async () => {
+      const original = fs.readFileSync(SEAM, 'utf8');
+      const changed = original.replace(
+        /khilafFromOpinions: input\.khilafFromOpinions === true \|\| input\.khilafFromOpinions === false\r?\n {8}\? input\.khilafFromOpinions : null,/u,
+        'khilafFromOpinions: input.khilafFromOpinions === true, // mutant: absence becomes denial');
+      if (changed === original) return { changed: false, loaded: false, survived: null, error: 'seam moved' };
+      const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-khilaf-seamfile-'));
+      try {
+        fs.writeFileSync(path.join(temp, 'recorder.mjs'),
+          'export function reviewAnswer(input) {\n'
+          + '  (globalThis.__ezikSeamSaw ||= []).push(input);\n'
+          + "  return { text: String(input.text || ''), annotations: [], verdict: { version: 'recorder' } };\n"
+          + '}\n', 'utf8');
+        const twin = path.join(temp, 'seam-mutant.mjs');
+        fs.writeFileSync(twin, importsFromTree(changed, SEAM)
+          .replace(/from '[^']*output-reviewer\.js'/u, "from './recorder.mjs'"), 'utf8');
+        globalThis.__ezikSeamSaw = [];
+        const twinModule = await fresh(twin, 'seam-mutant');
+        await twinModule.reviewAnswer({ ...base });
+        const saw = (globalThis.__ezikSeamSaw || [])[0] || null;
+        return { changed: true, loaded: true, survived: Boolean(saw && saw.khilafFromOpinions === null), error: null };
+      } catch (error) {
+        return { changed: true, loaded: false, survived: null, error: error?.stack || String(error) };
+      } finally {
+        delete globalThis.__ezikSeamSaw;
+        fs.rmSync(temp, { recursive: true, force: true });
+      }
+    })();
+    ok('seam-normalisation mutant seam applied', seamMutant.changed, seamMutant.error);
+    ok('seam-normalisation mutant module loaded successfully', seamMutant.loaded, seamMutant.error);
+    ok('MUTANT KILLED: the seam cannot turn an absent signal into a `false`',
+      seamMutant.loaded && seamMutant.survived === false, JSON.stringify(seamMutant));
+
+    // AND THE MEASUREMENT THAT LICENSED `null` IS IN THE TREE AND RUNNABLE. A verdict of «no
+    // reliable signal exists» rests on numbers, and numbers nobody can re-run are an assertion.
+    ok('the measurement behind §١\'s verdict is committed and names its corpora',
+      fs.existsSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'))
+        && /fatwa-authority-eighteen\.json/u.test(fs.readFileSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'), 'utf8'))
+        && /riba-family-two-records\.json/u.test(fs.readFileSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'), 'utf8')));
+
+    // ── L. §٢: ONE WRITING ROUND WHEN A RULING ARRIVES CITING NOTHING ─────────
+    //
+    // WHAT MEASURED IT. Question 19, four passes on ezik.app: three came back with `cited: []` and
+    // all four with `retrieved: 4`. The evidence arrived; the model did not cite it. So this is a
+    // WRITING round and not a search — and every one of §٢'s five constraints is a property here,
+    // because a repair whose limits are not pinned is a repair that grows.
+    //
+    // HOW IT IS DRIVEN. `search_sources` fills the table from the in-process Kuwaiti encyclopedia,
+    // which needs no network; the stub throws on any host but its own, so the offline guarantee this
+    // file makes elsewhere is unchanged. A first write that cites nothing is the trigger, and the
+    // script's THIRD payload is the retry's.
+    const UNCITED = 'الجمع للمسافر جائز عند الحاجة، ولا حرج عليه في ذلك.';
+    const RECITED = 'الجمع للمسافر جائز عند الحاجة [[1]]، ولا حرج عليه في ذلك.';
+    const oneTool = (id) => ({
+      stop_reason: 'tool_use',
+      content: [{ type: 'tool_use', id, name: 'search_sources', input: { query: 'الجمع بين الصلاتين للمسافر' } }],
+    });
+    // i=0 the tool round · i=1 the first write · i=2 the §٢ retry.
+    const retryScript = (third) => (i) => (i === 0 ? oneTool('t0') : i === 1 ? textPayload(UNCITED) : third(i));
+
+    const retried = await driveScript(loop, retryScript(() => textPayload(RECITED)));
+    ok('a fiqh ruling that cited nothing while evidence sat unused triggers one extra round',
+      retried.citationRetries === 1, JSON.stringify(retried.citationRetries));
+    ok('...and it is named in degraded under its OWN name, with the outcome',
+      (retried.degraded || []).some((d) => /^citation_retry:cited:\d+$/u.test(d)),
+      JSON.stringify(retried.degraded));
+    ok('...and the extra time is recorded as a raw number',
+      (retried.degraded || []).some((d) => /^citation_retry_ms:\d+$/u.test(d)),
+      JSON.stringify(retried.degraded));
+    // §٢/٥ — the name is its own. The counter that already counts two classes does not become three.
+    ok('...and NOTHING was injected into tool_announcement_dropped',
+      !(retried.degraded || []).some((d) => /^tool_announcement_dropped:/u.test(d)),
+      JSON.stringify(retried.degraded));
+    ok('...and the citation it produced becomes a real card, from a row that was in the table',
+      (retried.cited || []).length === 1 && retried.cited[0].ref === 1,
+      JSON.stringify((retried.cited || []).map((r) => r.ref)));
+    ok('...and the retry is one MODEL call, on top of the two the turn already made',
+      retried.modelCalls === 3, JSON.stringify(retried.modelCalls));
+    ok('...and it is recorded in the round ledger under its own phase',
+      (retried.roundLedger || []).some((row) => row.phase === 'cite-retry'),
+      JSON.stringify((retried.roundLedger || []).map((r) => [r.n, r.phase])));
+    // ...and no two ledger rows share an ordinal, which is what `rounds + 2` is for.
+    ok('...and no two ledger rows share an ordinal',
+      new Set((retried.roundLedger || []).map((r) => r.n)).size === (retried.roundLedger || []).length,
+      JSON.stringify((retried.roundLedger || []).map((r) => r.n)));
+
+    // §٢/٤ — STILL EMPTY THE SECOND TIME: THE FIRST ANSWER GOES OUT AS IT WAS.
+    const stillUncited = await driveScript(loop, retryScript(() => textPayload(UNCITED)));
+    const firstAnswerSurvives = (turn) => typeof turn?.text === 'string'
+      && turn.text.includes('الجمع للمسافر جائز عند الحاجة')
+      && turn.text.includes('ولا حرج عليه في ذلك');
+    ok('a retry that still cites nothing delivers the FIRST answer, whole',
+      firstAnswerSurvives(stillUncited), stillUncited.text);
+    ok('...and no card is invented for it', (stillUncited.cited || []).length === 0,
+      JSON.stringify(stillUncited.cited));
+    ok('...and the outcome is named rather than left silent',
+      (stillUncited.degraded || []).includes('citation_retry:still_uncited'),
+      JSON.stringify(stillUncited.degraded));
+    // §٢/١ — ONE ONLY. A second empty retry must not buy a third call.
+    ok('...and it does not buy a second retry — one only',
+      stillUncited.citationRetries === 1 && stillUncited.modelCalls === 3,
+      JSON.stringify([stillUncited.citationRetries, stillUncited.modelCalls]));
+
+    // A retry whose own provider call fails is not a failed turn. The first answer is already in
+    // hand, and `failure` stays null so an optional extra call cannot masquerade as a broken answer.
+    // `driveScript` above resolves every payload; a THROWING round needs a driver that throws, so
+    // this one honours an Error returned by the script the way `driveExits` does.
+    async function driveThrowable(loopModule, script) {
+      const realFetch = globalThis.fetch;
+      let n = 0;
+      globalThis.fetch = async (input) => {
+        const url = String(input?.url || input);
+        if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+        const step = script(n++);
+        if (step instanceof Error) throw step;
+        return { ok: true, status: 200, json: async () => step };
+      };
+      try { return await loopModule.runFreeBrainTurn({ ...BASE }); }
+      finally { globalThis.fetch = realFetch; }
+    }
+    const retryFailed = await driveThrowable(loop,
+      retryScript(() => Object.assign(new Error('upstream 529'), { status: 529 })));
+    ok('a retry whose provider call throws still delivers the first answer',
+      firstAnswerSurvives(retryFailed), retryFailed.text);
+    ok('...and the turn does not report itself as failed',
+      retryFailed.failure === null, String(retryFailed.failure));
+    ok('...and the error is named in degraded, not swallowed',
+      (retryFailed.degraded || []).some((d) => /^citation_retry:error:529:/u.test(d)),
+      JSON.stringify(retryFailed.degraded));
+
+    // ── L2. THE THREE CASES THAT MUST NOT TRIGGER IT ──────────────────────────
+    // An answer that already cited. Nothing is missing, so nothing is spent.
+    const alreadyCited = await driveScript(loop, (i) => (i === 0 ? oneTool('t0') : textPayload(RECITED)));
+    ok('an answer that already cited buys no extra round',
+      alreadyCited.citationRetries === 0
+        && !(alreadyCited.degraded || []).some((d) => /^citation_retry/u.test(d)),
+      JSON.stringify([alreadyCited.citationRetries, alreadyCited.degraded]));
+    // Nothing retrieved: there is nothing to be asked to cite, and asking would only buy a call to
+    // be told so. `lexicalRoute: 'DEEN'` keeps the domain fiqh, so this isolates `retrieved > 0`.
+    const nothingRetrieved = await driveScript(loop, () => textPayload(UNCITED));
+    ok('a fiqh answer with NOTHING retrieved buys no extra round — there is nothing to cite',
+      nothingRetrieved.domain === 'fiqh' && nothingRetrieved.citationRetries === 0,
+      JSON.stringify([nothingRetrieved.domain, nothingRetrieved.citationRetries]));
+    // AN EMPTY ANSWER IS NOT A RULING MISSING AN ATTRIBUTION. E6/E7 reach the tail with no text at
+    // all, which satisfies «cited is empty» trivially — and the retry would then post an assistant
+    // turn with empty content, which the provider refuses. So the one turn already in trouble would
+    // spend a call to earn a 400. The reviewer's last rung is what serves those exits.
+    const emptyAnswerTurn = await driveScript(loop,
+      (i) => (i === 0 ? oneTool('t0') : textPayload('')));
+    ok('a turn with NO answer at all buys no extra round — an empty answer is not a ruling',
+      emptyAnswerTurn.citationRetries === 0
+        && (emptyAnswerTurn.evidence || []).length > 0
+        && !(emptyAnswerTurn.degraded || []).some((d) => /^citation_retry/u.test(d)),
+      JSON.stringify([emptyAnswerTurn.citationRetries, (emptyAnswerTurn.evidence || []).length,
+        emptyAnswerTurn.degraded]));
+    ok('...and it still reaches the reviewer\'s explicit last rung, which is what serves that exit',
+      emptyAnswerTurn.text === module.REVIEW_LAST_RESORT, JSON.stringify(emptyAnswerTurn.text));
+
+    // And a general-scope turn is outside the item. Driven with `search_live` alone, which
+    // `domainOf` reads as general, and which finds nothing offline.
+    const liveOnly = (id) => ({
+      stop_reason: 'tool_use',
+      content: [{ type: 'tool_use', id, name: 'search_live', input: { query: 'طقس الكويت' } }],
+    });
+    const generalTurn = await driveScript(loop,
+      (i) => (i === 0 ? liveOnly('t0') : textPayload('طقس الكويت اليوم حار.')));
+    ok('a general-scope turn is outside the item and buys no extra round',
+      generalTurn.domain === 'general' && generalTurn.citationRetries === 0,
+      JSON.stringify([generalTurn.domain, generalTurn.citationRetries]));
+
+    // ── L3. IT IS A WRITING ROUND, AND THAT IS OBSERVED ON THE WIRE ───────────
+    // §٢/٢ and §٢/٣ are one fact about the request body: the retry call offers NO tools, so there is
+    // no search for the model to ask for and no paid call for it to spend. Read off the bodies the
+    // stub was handed rather than inferred from the code.
+    async function bodiesFor(loopModule, script) {
+      const realFetch = globalThis.fetch;
+      const bodies = [];
+      let n = 0;
+      globalThis.fetch = async (input, init) => {
+        const url = String(input?.url || input);
+        if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+        bodies.push(JSON.parse(String(init?.body || '{}')));
+        const step = script(n++);
+        if (step instanceof Error) throw step;
+        return { ok: true, status: 200, json: async () => step };
+      };
+      try { await loopModule.runFreeBrainTurn({ ...BASE }); } finally { globalThis.fetch = realFetch; }
+      return bodies;
+    }
+    const retryBodies = await bodiesFor(loop, retryScript(() => textPayload(RECITED)));
+    ok('the retry is the third provider call of the turn', retryBodies.length === 3,
+      JSON.stringify(retryBodies.length));
+    ok('...and it offers NO tools at all, so no search can be made in it',
+      retryBodies.length === 3 && !('tools' in retryBodies[2]),
+      JSON.stringify(Object.keys(retryBodies[2] || {})));
+    ok('...and it carries the §٢ note as the last thing the model reads',
+      retryBodies.length === 3
+        && retryBodies[2].messages[retryBodies[2].messages.length - 1].content === instructions.CITATION_RETRY_NOTE,
+      JSON.stringify(String(retryBodies[2]?.messages?.slice(-1)[0]?.content || '').slice(0, 80)));
+    ok('...and it replays the model\'s own prose as the assistant turn it is rewriting',
+      retryBodies.length === 3
+        && retryBodies[2].messages[retryBodies[2].messages.length - 2].role === 'assistant'
+        && String(retryBodies[2].messages[retryBodies[2].messages.length - 2].content).includes('الجمع للمسافر جائز'),
+      JSON.stringify(retryBodies[2]?.messages?.slice(-2)[0]?.role));
+    ok('...and the tool results are still above it, so «الأدلّة أعلاه» is true of that message',
+      retryBodies.length === 3 && retryBodies[2].messages.some((m) => m.role === 'user'
+        && Array.isArray(m.content) && m.content.some((b) => b?.type === 'tool_result')));
+    // The note itself forbids the two things a rewrite could otherwise do: invent a ref, or soften
+    // the ruling to make the citation fit. Pinned because they are the note's whole safety margin.
+    for (const clause of ['ولا تُنشئْ رقمًا لم يردْ في نتائجِ الأدوات', 'ولا تُغيّرِ الحكمَ ولا تُضعِفْه']) {
+      ok('the §٢ note carries the clause: ' + clause.slice(0, 24),
+        instructions.CITATION_RETRY_NOTE.includes(clause), instructions.CITATION_RETRY_NOTE);
+    }
+    // §٢/٢ — MAX_TOOL_ROUNDS IS NOT RAISED. Read from the module the loop imports it from.
+    const tools = await fresh(path.join(ROOT, 'lib', 'free-brain', 'tools.js'), 'tools-base');
+    ok('MAX_TOOL_ROUNDS is still six — the tool loop was not widened',
+      tools.MAX_TOOL_ROUNDS === 6, String(tools.MAX_TOOL_ROUNDS));
+    ok('...and the ceiling on retries is one, written as a constant',
+      /^const MAX_CITATION_RETRIES = 1;$/mu.test(loopSource));
+    // ...and api/ask.js reports the cost.
+    ok('api/ask.js logs the retry count beside the model-call count',
+      /^ {8}citationRetries: out\.citationRetries \?\? 0,$/mu.test(askSource));
+
+    // ── L4. THE MUTANTS ──────────────────────────────────────────────────────
+    // The property all four are measured against: the retry happens exactly once, spends no search,
+    // and never replaces a delivered answer with a weaker one.
+    const retryIsBounded = async (loopModule) => {
+      const good = await driveScript(loopModule, retryScript(() => textPayload(RECITED)));
+      const bad = await driveScript(loopModule, retryScript(() => textPayload(UNCITED)));
+      const bodies = await bodiesFor(loopModule, retryScript(() => textPayload(RECITED)));
+      return good.citationRetries === 1 && good.modelCalls === 3
+        && bad.citationRetries === 1 && bad.modelCalls === 3 && firstAnswerSurvives(bad)
+        && bodies.length === 3 && !('tools' in bodies[2]);
+    };
+    ok('the retry is bounded: once, toolless, and never a substitution for the first answer',
+      await retryIsBounded(loop));
+
+    // M17 — the ceiling raised. This is the item turning into a loop, which is the one thing §٢/١
+    // names by number.
+    const loopyMutant = await loopMutant('retry-ceiling-raised',
+      (source) => source.replace('const MAX_CITATION_RETRIES = 1;',
+        'const MAX_CITATION_RETRIES = 3; // mutant: the item becomes a loop')
+        .replace(/ {2}if \(citationRetries < MAX_CITATION_RETRIES\r?\n/u,
+          '  while (citationRetries < MAX_CITATION_RETRIES\n'),
+      retryIsBounded);
+    ok('retry-ceiling mutant seam applied', loopyMutant.changed, loopyMutant.error);
+    ok('retry-ceiling mutant module loaded successfully', loopyMutant.loaded, loopyMutant.error);
+    ok('MUTANT KILLED: the one extra round cannot become two',
+      loopyMutant.loaded && loopyMutant.survived === false, JSON.stringify(loopyMutant));
+
+    // M18 — the tools put back on the retry call. This is §٢/٢ and §٢/٣ broken in one line: a
+    // retrieval round wearing a writing round's name, free to spend a paid search.
+    const toolsBackMutant = await loopMutant('retry-offers-tools-again',
+      (source) => source.replace(
+        '          // NO `tools` KEY. Constraint (2) and (3) are this absence and not a check somewhere else.',
+        '          tools: FREE_BRAIN_TOOLS, // mutant: a retrieval round in a writing round\'s clothes'),
+      retryIsBounded);
+    ok('tools-back mutant seam applied', toolsBackMutant.changed, toolsBackMutant.error);
+    ok('tools-back mutant module loaded successfully', toolsBackMutant.loaded, toolsBackMutant.error);
+    ok('MUTANT KILLED: the retry cannot be given tools to spend',
+      toolsBackMutant.loaded && toolsBackMutant.survived === false, JSON.stringify(toolsBackMutant));
+
+    // M19 — the retry's text adopted unconditionally. §٢/٤ forbids exactly this: a second answer
+    // that still cites nothing REPLACING the first, which is a substitution by a weaker answer.
+    const adoptMutant = await loopMutant('retry-text-adopted-even-when-uncited',
+      (source) => source.replace(/ {6}if \(retryRefs\.length\) \{\r?\n/u,
+        '      if (true) { // mutant: adopt the retry whatever it cited\n'),
+      async (twinModule) => {
+        // The mutant is caught by what the reader receives: a retry that dropped half the answer
+        // must not be the answer, and this one drops «ولا حرج عليه في ذلك».
+        const bad = await driveScript(twinModule,
+          retryScript(() => textPayload('الجمع للمسافر جائز عند الحاجة.')));
+        return firstAnswerSurvives(bad);
+      });
+    ok('adopt-anyway mutant seam applied', adoptMutant.changed, adoptMutant.error);
+    ok('adopt-anyway mutant module loaded successfully', adoptMutant.loaded, adoptMutant.error);
+    ok('MUTANT KILLED: a retry that still cites nothing cannot replace the delivered answer',
+      adoptMutant.loaded && adoptMutant.survived === false, JSON.stringify(adoptMutant));
+
+    // M20 — the outcome folded into `tool_announcement_dropped`, which §٢/٥ forbids by name: that
+    // counter already counts two classes, and a third makes the number unreadable in a new way.
+    const nameMutant = await loopMutant('retry-injected-into-the-announcement-counter',
+      (source) => source.replace(
+        '    ctx.degraded.push(`citation_retry:${retryOutcome}`);',
+        '    ctx.degraded.push(`tool_announcement_dropped:${retryOutcome}`); // mutant: hidden in another counter'),
+      async (twinModule) => {
+        const turn = await driveScript(twinModule, retryScript(() => textPayload(RECITED)));
+        return (turn.degraded || []).some((d) => /^citation_retry:/u.test(d));
+      });
+    ok('own-name mutant seam applied', nameMutant.changed, nameMutant.error);
+    ok('own-name mutant module loaded successfully', nameMutant.loaded, nameMutant.error);
+    ok('MUTANT KILLED: the retry cannot be hidden inside the announcement counter',
+      nameMutant.loaded && nameMutant.survived === false, JSON.stringify(nameMutant));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

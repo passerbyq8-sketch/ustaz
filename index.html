@@ -3530,6 +3530,21 @@ const formatForTTS = (text) => {
   // Any tag surviving to here -> a single space (silence): never the raw tag, never model text.
   t = t.replace(/<worship[^>]*>[\s\S]*?<\/worship>/g, ' ');
   t = t.replace(/<worship[^>]*\/?>/g, ' ');
+  // ── §٤ — الوسمُ لا يُنطَق (the review mark is a label, not a sentence) ──────
+  // K-5/XI-04 made 【…】 a badge on the SCREEN and took the brackets off the CLIPBOARD. The voice
+  // was outside that item's scope and was left as it was, so a listener still heard «فهمٌ لا فتوى»
+  // read out inside the answer — the one reader of the four still being handed the raw mark.
+  // It is a label ABOUT the answer, not a sentence OF it, and nothing else on this page speaks the
+  // name of a tag: every angle-bracket tag above is either rewritten to natural speech or silenced.
+  //
+  // THE INFORMATION IS NOT TAKEN FROM THE READER. The badge is still drawn (`ezikLiftNotices`),
+  // and the notice's own sentence — «ما تقدّم فهمٌ مبنيٌّ على ما بين يديّ في هذه الدورة، لا فتوى
+  // مسنَدةٌ إلى مفتٍ بعينِه.» — is prose, and is still spoken in full. Only the bracketed LABEL goes.
+  //
+  // A SPACE AND NOT AN EMPTY STRING. `tag()` appends the mark straight after the full stop
+  // («…لا واجبٌ.【فهمٌ لا نصٌّ منقول】»), so deleting it to nothing would weld the sentence that
+  // precedes it to the one that follows and ElevenLabs would read the two as a single word.
+  t = t.replace(EZIK_NOTICE_ALL, ' ');
   t = t.replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g, ' ').replace(/[ \t]{2,}/g, ' ');
   // Keep links opaque while pronunciation-only math substitutions run. In particular, neither a
   // trig name in a path nor any slash/query operator in a URL is spoken as mathematics.
@@ -3656,6 +3671,36 @@ const formatForLog = (text) => {
     const title = readStepsTitle(attrs);
     return (title ? ' ' + title + ': ' : ' ') + items.join(' ثُمَّ ') + '. ';
   });
+  // ── §٣ — الوسمُ شارةٌ في السجلِّ أيضًا، لا محارفُ خامّ (the mark is a badge here too) ──
+  //
+  // WHAT WAS STILL WRONG, AND WHY THIS SURFACE WAS THE ONE LEFT. K-5/XI-04 made 【…】 a badge on the
+  // SCREEN and took the ornate brackets off the CLIPBOARD; §٤ of the A-3 round took them out of the
+  // VOICE. The parents' log was the fourth reader and kept them verbatim, so the surface a parent
+  // opens in order to check what their child was told still showed the one defect the owner named
+  // about the mark: its shape, «بين قوسينِ غريبين».
+  //
+  // THE INFORMATION IS NOT TAKEN FROM THE PARENT — that is the whole difference between this and
+  // the voice. The voice DROPS the label because a label is not a sentence to be read aloud; the
+  // log KEEPS it, because a parent checking an answer needs to know it was understanding rather
+  // than a sourced fatwa. Only the shape changes.
+  //
+  // AND THE SHAPE IT CHANGES TO IS THIS SURFACE'S OWN BADGE, NOT A NEW INVENTION. §٣ allows «شارةٌ
+  // أو ما يقومُ مقامَها في سياقِ السجلّ», and the log is a plain-text surface — `formatForLog`
+  // returns a string that is rendered into one <div>, so there is no element to draw. What this
+  // function already does for every other label it emits is exactly the answer: the source becomes
+  // ` [المصدر: …] `, a verse reference becomes ` [سورة …، آية …] `, a recitation becomes
+  // ` [تلاوة سورة …] `. So the review mark becomes ` [فهمٌ لا فتوى] ` — set off as a label, in the
+  // idiom the parent is already reading on the same line, and without the ornate pair.
+  //
+  // MATCHED BY THE BRACKETS AND NOT BY THE LABEL TEXT, for the reason §٤ measured: the same label
+  // is written with two different mark orders inside lib/output-reviewer.js (shadda before damma at
+  // :9, after it at :669) — one NFC, one glyph, different code units — so any match on the label's
+  // text would miss one of them. EZIK_NOTICE_ALL is the same constant the screen badge and the
+  // voice both use, so all four readers agree on what a mark IS.
+  //
+  // SPACES ON BOTH SIDES, NOT NONE: `tag()` appends the mark straight after the full stop
+  // («…لا واجبٌ.【فهمٌ لا نصٌّ منقول】»), and the whitespace fold below collapses the pair to one.
+  t = t.replace(EZIK_NOTICE_ALL, (_all, label) => ' [' + String(label || '').trim() + '] ');
   t = t.replace(/\s+/g, ' ').trim();
   return t;
 };

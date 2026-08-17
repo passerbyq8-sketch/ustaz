@@ -1316,6 +1316,15 @@ export default async function handler(req, res) {
         retrieved: out.evidence.length,
         cited: out.cited.map((row) => row.ref),
         cards: cards.length,
+        // §١ — WHAT WAS HANDED TO THE REVIEWER AS THE FIRST PRONG OF THE KHILAF RULE. Both names
+        // are logged, and `khilafFromOpinions: null` is logged AS null rather than omitted: «I do
+        // not know» is the answer this producer gives today, and a field that vanishes when it is
+        // null is a field nobody can tell apart from a field that was never wired.
+        khilafFromOpinions: out.khilafFromOpinions ?? null,
+        opinionCount: out.opinionCount ?? null,
+        // §٢ — 0 or 1. Beside `modelCalls` above, which is the whole cost of the item: the extra
+        // round is one model call and no search call at all.
+        citationRetries: out.citationRetries ?? 0,
         verdict: out.verdict,
         degraded: out.degraded,
         injectionMarkers: out.injectionMarkers.length,
