@@ -218,7 +218,7 @@ const appearsInOrder = (text, needles) => {
         JSON.stringify(result.verdict));
     }
 
-    ok('B-2b fixture carries the four trigger-priority witnesses and four narrowed negatives',
+    ok('B-2c fixture carries four trigger-priority witnesses, three restored words, and one boundary control',
       Array.isArray(fixture.b2b?.cases) && fixture.b2b.cases.length === 8);
     const b2bCasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
@@ -242,22 +242,22 @@ const appearsInOrder = (text, needles) => {
         }));
     }
 
-    const looseProseMutant = await runMutant({
+    const narrowedProseMutant = await runMutant({
       sourceFile: REVIEWER,
-      name: 'prose-trigger-uses-loose-markers',
+      name: 'prose-trigger-narrows-again',
       transform: (source) => source.replace(
-        '  return KHILAF_MARKERS.test(normalizeArabic(sentence)); // MODEL_PROSE_KHILAF_NARROW',
-        '  return KHILAF_MARKERS.test(normalizeArabic(sentence)) || /(?:الراجح|الجمهور|بعض\\s+اهل\\s+العلم)/u.test(normalizeArabic(sentence)); // mutant: loose prose markers'),
+        "  return BOUNDED_KHILAF_PROSE_MARKERS.test(withoutDiacritics); // MODEL_PROSE_KHILAF_BROAD_BOUNDED",
+        "  return KHILAF_MARKERS.test(normalizeArabic(sentence)); // mutant: prose narrows again"),
       survives: (mutantModule) => (fixture.b2b?.cases || [])
         .every((test) => b2bCasePasses(mutantModule, test)),
     });
-    ok('B-2b prose-trigger-uses-loose-markers mutant seam applied',
-      looseProseMutant.changed, looseProseMutant.error);
-    ok('B-2b prose-trigger-uses-loose-markers mutant module loaded',
-      looseProseMutant.loaded, looseProseMutant.error);
-    ok('MUTANT KILLED: prose cannot restore the loose preference and majority markers',
-      looseProseMutant.loaded && looseProseMutant.survived === false,
-      JSON.stringify(looseProseMutant));
+    ok('B-2c prose-trigger-narrows-again mutant seam applied',
+      narrowedProseMutant.changed, narrowedProseMutant.error);
+    ok('B-2c prose-trigger-narrows-again mutant module loaded',
+      narrowedProseMutant.loaded, narrowedProseMutant.error);
+    ok('MUTANT KILLED: prose cannot lose the restored production vocabulary',
+      narrowedProseMutant.loaded && narrowedProseMutant.survived === false,
+      JSON.stringify(narrowedProseMutant));
 
     const proseShadowMutant = await runMutant({
       sourceFile: REVIEWER,

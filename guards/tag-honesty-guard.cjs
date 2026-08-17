@@ -336,6 +336,7 @@ const unsupportedIsTagged = (module) => {
         id: 'joined-fa-connector',
         text: 'فأما رأي الشيخ محمد الأمين أن الراجح المنع.',
         claim: 'الراجح المنع.',
+        khilafTrigger: 'prose',
       },
       {
         id: 'joined-honorific-prayer',
@@ -345,10 +346,15 @@ const unsupportedIsTagged = (module) => {
     ]) {
       const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
       const expected = witness.claim + ' ' + module.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+      const outputLines = out.text.split('\n');
+      const expectedKhilafTrigger = witness.khilafTrigger || null;
       ok(witness.id + ': genuinely unsupported credit is still removed',
         out.annotations[0]?.action === 'removed-unsupported-attribution'
           && !out.text.includes('محمد الأمين'), out.text);
-      ok(witness.id + ': removal preserves the complete semantic claim', out.text === expected, out.text);
+      ok(witness.id + ': removal preserves the complete semantic claim and exact notice count',
+        outputLines[0] === expected
+          && out.verdict.khilafTrigger === expectedKhilafTrigger
+          && outputLines.length === (expectedKhilafTrigger ? 2 : 1), out.text);
     }
 
     const joinedCalculation = 'سعر اليوم وس + ص مجموع المبلغين.';
