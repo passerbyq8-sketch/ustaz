@@ -336,8 +336,8 @@ const appearsInOrder = (text, needles) => {
     };
     const selfContradictionKeys = ['at', 'detected', 'first', 'later', 'shape'];
     const b3ExpectedText = new Map();
-    ok('B-3A fixture carries the three deposited contradiction witnesses',
-      Array.isArray(fixture.b3a?.positives) && fixture.b3a.positives.length === 3);
+    ok('B-3A fixture carries the two surviving contradiction witnesses',
+      Array.isArray(fixture.b3a?.positives) && fixture.b3a.positives.length === 2);
     for (const test of fixture.b3a?.positives || []) {
       const result = module.reviewAnswer(test.input);
       const finding = result.verdict.selfContradiction;
@@ -359,8 +359,8 @@ const appearsInOrder = (text, needles) => {
         result.text.includes(test.input.text), result.text);
     }
 
-    ok('B-3A fixture carries every mandatory differentiated negative',
-      Array.isArray(fixture.b3a?.negatives) && fixture.b3a.negatives.length === 4);
+    ok('B-3A fixture carries every mandatory differentiated negative and the struck quantity witness',
+      Array.isArray(fixture.b3a?.negatives) && fixture.b3a.negatives.length === 5);
     for (const test of fixture.b3a?.negatives || []) {
       const result = module.reviewAnswer(test.input);
       const finding = result.verdict.selfContradiction;
@@ -439,6 +439,74 @@ const appearsInOrder = (text, needles) => {
     ok('MUTANT KILLED: contradiction measurement cannot edit reader text',
       editsTextMutant.loaded && editsTextMutant.survived === false,
       JSON.stringify(editsTextMutant));
+
+    // String.raw, not a plain template: the captured regexes carry backslash escapes and a
+    // cooked template would eat them, leaving a mutant that cannot fire and a guard that
+    // reports a kill it never made.
+    const QUANTITY_AGAIN = String.raw`
+const RESULT_QUANTITY_RE = /(?:^|\s)(?:فالحاصل|فالخلاصه|الخلاصه|اي|عليه|يلزمه|يقوم|ياتي|يتم|اتم|يكمل|قدرها|مقدارها|فتكون|تكون)(?:\s|$)/u;
+
+function quantityClaims(part) {
+  const normalized = normalizeArabic(part.text);
+  const claims = [];
+  const add = (unit, amount) => {
+    if (!claims.some((claim) => claim.unit === unit && claim.amount === amount)) {
+      claims.push({ ...part, unit, amount });
+    }
+  };
+  if (/(?:^|\s)ركعت(?:ان|ين)(?:\s|$)/u.test(normalized)) add('rakah', 2);
+  if (/(?:^|\s)ركعه\s+واحده(?:\s|$)/u.test(normalized)) add('rakah', 1);
+  for (const match of normalized.matchAll(/(?:^|\s)(\d+)\s+ركع(?:ه|ات)(?:\s|$)/gu)) {
+    add('rakah', Number(match[1]));
+  }
+  if (/(?:^|\s)نصف\s+صاع(?:\s|$)/u.test(normalized)) add('saa', 0.5);
+  if (/(?:^|\s)صاع(?:\s+واحد)?(?:\s|$)/u.test(normalized)
+      && !/(?:^|\s)نصف\s+صاع(?:\s|$)/u.test(normalized)) add('saa', 1);
+  if (/(?:^|\s)صاع(?:ان|ين)(?:\s|$)/u.test(normalized)) add('saa', 2);
+  for (const match of normalized.matchAll(/(?:^|\s)(\d+)\s+اصواع?(?:\s|$)/gu)) {
+    add('saa', Number(match[1]));
+  }
+  return claims;
+}
+
+function quantityContradiction(parts) {
+  const claims = [];
+  for (const part of parts) {
+    for (const claim of quantityClaims(part)) {
+      for (const first of claims) {
+        if (first.unit !== claim.unit || first.amount === claim.amount) continue;
+        const framed = RESULT_QUANTITY_RE.test(normalizeArabic(first.scope))
+          || RESULT_QUANTITY_RE.test(normalizeArabic(claim.scope));
+        if (!framed && !sameContradictionTopic(first, claim)) continue;
+        if (differentiatedCase(first, claim)) continue;
+        return contradictionFinding('quantity', first, claim);
+      }
+      claims.push(claim);
+    }
+  }
+  return null;
+}
+`;
+    const quantityBackMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'contradiction-quantity-reintroduced',
+      transform: (source) => source
+        .replace(
+          '    namedAnswerContradiction(parts), // TWO_MEASURED_SHAPES_ONLY',
+          '    quantityContradiction(parts),\n    namedAnswerContradiction(parts), // mutant: the struck shape returns')
+        .replace(
+          'const NO_SELF_CONTRADICTION = Object.freeze({',
+          QUANTITY_AGAIN.trim() + '\n\nconst NO_SELF_CONTRADICTION = Object.freeze({'),
+      survives: b3FixturePasses,
+    });
+    printB3Mutant('contradiction-quantity-reintroduced', quantityBackMutant);
+    ok('B-3A contradiction-quantity-reintroduced mutant seam applied',
+      quantityBackMutant.changed, quantityBackMutant.error);
+    ok('B-3A contradiction-quantity-reintroduced mutant module loaded',
+      quantityBackMutant.loaded, quantityBackMutant.error);
+    ok('MUTANT KILLED: the retired quantity shape cannot come back — it fires on «two, not one»',
+      quantityBackMutant.loaded && quantityBackMutant.survived === false,
+      JSON.stringify(quantityBackMutant));
 
     const dropsFieldMutant = await runMutant({
       sourceFile: REVIEWER,
