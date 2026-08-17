@@ -385,6 +385,18 @@ fixtures/output-reviewer-six-cases.json text eol=lf
 guards/gemini13-route-guard.cjs text eol=lf
 fixtures/gemini13-matrix.json text eol=lf
 
+# The FreeBrain-A answer path. Same reason as lib/route-classify.js below and lib/output-reviewer.js
+# above, and it is the same PAIRING: guards/no-empty-answer-guard.cjs is pinned on line 378 and it
+# reads lib/free-brain/loop.js RAW and plants six mutants into it by literal substring and by
+# `^…$` regex. A guard that is pinned while the file it mutates is not is the exact asymmetry that
+# produced the takhrij failure (lib/route-classify.js, 320 CR) and the takhrij-lock failure
+# (lib/finalized-sse-writer.js, 396 CR). MEASURED here before the pin: the file was stored LF
+# (41,044 bytes) and checked out with 737 CR (41,781 bytes) on this machine.
+# The seams themselves were already written CRLF-aware — `\r?\n` where they span lines, and `$`
+# in multiline mode matches before a bare CR in JS — so all six applied in BOTH states and this
+# pin revives no mutant that was blind. It closes the disagreement, not a failure.
+lib/free-brain/loop.js text eol=lf
+
 # ح٣: the frozen transfer fixtures. THESE ARE NOT OUR TEXT — they are the bytes eleven hosts
 # actually served on 2026-08-08, and data/transfer-fixtures/manifest.json publishes a full SHA-256 of
 # each one. Any end-of-line normalisation, in either direction, on any machine, changes those
