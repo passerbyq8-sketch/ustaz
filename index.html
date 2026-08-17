@@ -3339,7 +3339,7 @@ function showChildVoiceNotice(setMsg) {
 const EZIK_NOTICE_RE = /【([^】\n]{1,80})】/u;
 const EZIK_NOTICE_ALL = /【([^】\n]{1,80})】/gu;
 
-function ezikLiftNotices(segments) {
+const ezikLiftNotices = (segments) => {
   const out = [];
   (segments || []).forEach((seg) => {
     if (!seg || seg.type !== 'text' || !EZIK_NOTICE_RE.test(seg.content || '')) { out.push(seg); return; }
@@ -3363,7 +3363,7 @@ function ezikLiftNotices(segments) {
     notices.forEach((notice) => out.push(notice));
   });
   return out;
-}
+};
 
 const parseRichMessage = (text, viewerAge) => {
   // Tolerate a <document> whose </document> never arrived (stream/token cutoff): close it so it still renders as a card.
