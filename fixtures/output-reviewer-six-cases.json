@@ -183,5 +183,76 @@
         ]
       }
     }
-  ]
+  ],
+  "c2": {
+    "tail": "وتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.",
+    "cases": [
+      {
+        "id": "c2-colon-before-hadith",
+        "input": {
+          "text": "المسألة فيها خلاف، لعموم قوله صلى الله عليه وسلم:\n<hadith>لَا صَلَاةَ لِمَنْ لَمْ يَقْرَأْ بِفَاتِحَةِ الْكِتَابِ</hadith>",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "adjacent": ["صلى الله عليه وسلم:\n<hadith>"],
+          "ordered": ["صلى الله عليه وسلم:", "<hadith>", "</hadith>", "وتُراجَع المسألة", "【فهمٌ لا فتوى】"],
+          "tailCount": 1,
+          "noticeCount": 1
+        }
+      },
+      {
+        "id": "c2-incomplete-particle-before-hadith",
+        "input": {
+          "text": "ولحديث عبادة بن الصامت رضي الله عنه في صلاة الفجر، حين\n<hadith>لَا تَفْعَلُوا إِلَّا بِفَاتِحَةِ الْكِتَابِ</hadith>",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "adjacent": ["حين\n<hadith>"],
+          "ordered": ["حين", "<hadith>", "</hadith>", "【فهمٌ لا فتوى】"],
+          "tailCount": 0,
+          "noticeCount": 1
+        }
+      },
+      {
+        "id": "c2-open-quotation-across-card",
+        "input": {
+          "text": "المسألة فيها خلاف، ونصها: \"إن كان المقصود إلزامه بالأخذ\n<source site=\"example.test\" url=\"https://example.test/fatwa\">نص المصدر</source>\nفلا يقع الطلاق\".",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "adjacent": ["بالأخذ\n<source", "</source>\nفلا يقع الطلاق\"."],
+          "ordered": ["\"إن كان المقصود", "<source", "</source>", "فلا يقع الطلاق\".", "وتُراجَع المسألة", "【فهمٌ لا فتوى】"],
+          "tailCount": 1,
+          "noticeCount": 1
+        }
+      },
+      {
+        "id": "c2-introduction-before-steps",
+        "input": {
+          "text": "فالواجب عليه:\n<steps title=\"العمل\">\n- يقضي الدين.\n- يرد الحق.\n</steps>",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "adjacent": ["فالواجب عليه:\n<steps"],
+          "ordered": ["فالواجب عليه:", "<steps", "</steps>", "【فهمٌ لا فتوى】"],
+          "tailCount": 0,
+          "noticeCount": 1
+        }
+      }
+    ],
+    "tailFlood": {
+      "text": "في المسألة خلاف. وللعلماء قولان. واختلف الفقهاء في التفصيل.",
+      "evidence": [],
+      "domain": "fiqh",
+      "mode": "عادي"
+    }
+  }
 }
