@@ -180,6 +180,110 @@ const appearsInOrder = (text, needles) => {
     ok('MUTANT KILLED: answer notes cannot return inside an open sentence',
       placementMutant.loaded && placementMutant.survived === false, JSON.stringify(placementMutant));
 
+    ok('B-2 fixture carries the six required source/opinion witnesses',
+      Array.isArray(fixture.b2?.cases) && fixture.b2.cases.length === 6);
+    const b2CasePasses = (mod, test) => {
+      const result = mod.reviewAnswer(test.input);
+      return occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
+        && result.verdict.khilafTrigger === test.expect.trigger
+        && result.verdict.khilafFromSource === test.expect.fromSource
+        && result.verdict.khilafFromOpinions === test.expect.fromOpinions
+        && result.verdict.opinionCount === test.expect.opinionCount;
+    };
+    for (const test of fixture.b2?.cases || []) {
+      const result = module.reviewAnswer(test.input);
+      ok(test.id + ': tail count and verdict provenance are exact',
+        b2CasePasses(module, test), JSON.stringify({
+          tailCount: occurrences(result.text, fixture.c2.tail),
+          trigger: result.verdict.khilafTrigger,
+          fromSource: result.verdict.khilafFromSource,
+          fromOpinions: result.verdict.khilafFromOpinions,
+          opinionCount: result.verdict.opinionCount,
+        }));
+    }
+
+    ok('B-2 fixture measures four explicit and four weak source constructions',
+      Array.isArray(fixture.b2?.markerCases) && fixture.b2.markerCases.length === 8);
+    const markerBase = fixture.b2.cases[0].input;
+    for (const test of fixture.b2?.markerCases || []) {
+      const result = module.reviewAnswer({
+        ...markerBase,
+        evidence: [{ id: test.id, snippet: test.snippet }],
+      });
+      ok(test.id + ': source construction classification is exact',
+        result.verdict.khilafFromSource === test.expect
+          && occurrences(result.text, fixture.c2.tail) === (test.expect ? 1 : 0),
+        JSON.stringify(result.verdict));
+    }
+
+    const modelProseMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'khilaf-from-model-prose-again',
+      transform: (source) => source.replace(
+        "        if (!khilafFromSource && sources.some((source) => sourceSupportsKhilaf(part, source))) {",
+        "        if (!khilafFromSource && (KHILAF_MARKERS.test(normalizeArabic(part)) || sources.some((source) => sourceSupportsKhilaf(part, source)))) { // mutant: model prose triggers"),
+      survives: (mutantModule) => (fixture.b2?.cases || [])
+        .every((test) => b2CasePasses(mutantModule, test)),
+    });
+    ok('B-2 khilaf-from-model-prose-again mutant seam applied',
+      modelProseMutant.changed, modelProseMutant.error);
+    ok('B-2 khilaf-from-model-prose-again mutant module loaded',
+      modelProseMutant.loaded, modelProseMutant.error);
+    ok('MUTANT KILLED: model prose cannot classify the answer as disputed',
+      modelProseMutant.loaded && modelProseMutant.survived === false,
+      JSON.stringify(modelProseMutant));
+
+    const wholePageMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'khilaf-scan-whole-page',
+      transform: (source) => source.replace(
+        '  return evidence.snippet; // KHILAF_EXCERPT_ONLY',
+        "  return Object.values(evidence.raw || {}).filter((value) => typeof value === 'string').join(' '); // mutant: scan whole page"),
+      survives: (mutantModule) => (fixture.b2?.cases || [])
+        .every((test) => b2CasePasses(mutantModule, test)),
+    });
+    ok('B-2 khilaf-scan-whole-page mutant seam applied',
+      wholePageMutant.changed, wholePageMutant.error);
+    ok('B-2 khilaf-scan-whole-page mutant module loaded',
+      wholePageMutant.loaded, wholePageMutant.error);
+    ok('MUTANT KILLED: page text outside the supporting excerpt cannot trigger',
+      wholePageMutant.loaded && wholePageMutant.survived === false,
+      JSON.stringify(wholePageMutant));
+
+    const absentOpinionsMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'khilaf-guess-opinions-when-absent',
+      transform: (source) => source.replace(
+        '    ? true : khilafFromOpinions === false ? false : null; // PRESERVE_ABSENT_OPINIONS',
+        '    ? true : khilafFromOpinions === false ? false : false; // mutant: absence guessed false'),
+      survives: (mutantModule) => (fixture.b2?.cases || [])
+        .every((test) => b2CasePasses(mutantModule, test)),
+    });
+    ok('B-2 khilaf-guess-opinions-when-absent mutant seam applied',
+      absentOpinionsMutant.changed, absentOpinionsMutant.error);
+    ok('B-2 khilaf-guess-opinions-when-absent mutant module loaded',
+      absentOpinionsMutant.loaded, absentOpinionsMutant.error);
+    ok('MUTANT KILLED: missing opinion metadata remains null without muting source evidence',
+      absentOpinionsMutant.loaded && absentOpinionsMutant.survived === false,
+      JSON.stringify(absentOpinionsMutant));
+
+    const doubleTailMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'khilaf-tail-twice',
+      transform: (source) => source.replace(
+        '  if (khilafTrigger && !output.some((chunk) => chunk.includes(KHILAF_TAIL.trim()))) {\n    notices.push(KHILAF_TAIL.trim());\n  }',
+        '  if (khilafFromSource) notices.push(KHILAF_TAIL.trim());\n  if (normalizedKhilafFromOpinions === true) notices.push(KHILAF_TAIL.trim()); // mutant: one tail per signal'),
+      survives: (mutantModule) => (fixture.b2?.cases || [])
+        .every((test) => b2CasePasses(mutantModule, test)),
+    });
+    ok('B-2 khilaf-tail-twice mutant seam applied',
+      doubleTailMutant.changed, doubleTailMutant.error);
+    ok('B-2 khilaf-tail-twice mutant module loaded',
+      doubleTailMutant.loaded, doubleTailMutant.error);
+    ok('MUTANT KILLED: two true signals still produce one answer-level tail',
+      doubleTailMutant.loaded && doubleTailMutant.survived === false,
+      JSON.stringify(doubleTailMutant));
+
     const auditExcerpt = (value) => Array.from(String(value ?? '')).slice(0, 200).join('');
     const c3CasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);

@@ -291,6 +291,7 @@
       {
         "id": "c2-colon-before-hadith",
         "input": {
+          "khilafFromOpinions": true,
           "text": "المسألة فيها خلاف، لعموم قوله صلى الله عليه وسلم:\n<hadith>لَا صَلَاةَ لِمَنْ لَمْ يَقْرَأْ بِفَاتِحَةِ الْكِتَابِ</hadith>",
           "evidence": [],
           "domain": "fiqh",
@@ -321,6 +322,7 @@
       {
         "id": "c2-open-quotation-across-card",
         "input": {
+          "khilafFromOpinions": true,
           "text": "المسألة فيها خلاف، ونصها: \"إن كان المقصود إلزامه بالأخذ\n<source site=\"example.test\" url=\"https://example.test/fatwa\">نص المصدر</source>\nفلا يقع الطلاق\".",
           "evidence": [],
           "domain": "fiqh",
@@ -350,11 +352,103 @@
       }
     ],
     "tailFlood": {
+      "khilafFromOpinions": true,
       "text": "في المسألة خلاف. وللعلماء قولان. واختلف الفقهاء في التفصيل.",
       "evidence": [],
       "domain": "fiqh",
       "mode": "عادي"
     }
+  },
+  "b2": {
+    "cases": [
+      {
+        "id": "b2-source-when-opinions-absent",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{
+            "id": "b2-source-explicit",
+            "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645."
+          }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a"
+        },
+        "expect": { "tailCount": 1, "trigger": "source", "fromSource": true, "fromOpinions": null, "opinionCount": null }
+      },
+      {
+        "id": "b2-opinions-with-silent-source",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{ "id": "b2-source-silent", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a",
+          "khilafFromOpinions": true,
+          "opinionCount": 2
+        },
+        "expect": { "tailCount": 1, "trigger": "opinions", "fromSource": false, "fromOpinions": true, "opinionCount": 2 }
+      },
+      {
+        "id": "b2-both-signals-one-tail",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{
+            "id": "b2-source-and-opinions",
+            "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645."
+          }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a",
+          "khilafFromOpinions": true,
+          "opinionCount": 3
+        },
+        "expect": { "tailCount": 1, "trigger": "both", "fromSource": true, "fromOpinions": true, "opinionCount": 3 }
+      },
+      {
+        "id": "b2-model-prose-cannot-trigger",
+        "input": {
+          "text": "\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{ "id": "b2-model-only-source", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "opinionCount": null }
+      },
+      {
+        "id": "b2-unrelated-excerpt-cannot-trigger",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [
+            { "id": "b2-supporting-silent", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." },
+            { "id": "b2-other-issue", "snippet": "\u0632\u0643\u0627\u0629 \u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0645\u0624\u062c\u0644 \u0644\u0647\u0627 \u062d\u0643\u0645 \u0622\u062e\u0631\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645." }
+          ],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "opinionCount": null }
+      },
+      {
+        "id": "b2-whole-page-cannot-trigger",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{
+            "id": "b2-scoped-snippet",
+            "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+            "pageText": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645."
+          }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "opinionCount": null }
+      }
+    ],
+    "markerCases": [
+      { "id": "explicit-fihi-khilaf", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645.", "expect": true },
+      { "id": "explicit-scholars-differed", "snippet": "\u0627\u062e\u062a\u0644\u0641 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u064a \u062d\u0643\u0645 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.", "expect": true },
+      { "id": "explicit-two-opinions", "snippet": "\u0641\u064a \u062d\u0643\u0645 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u0642\u0648\u0644\u0627\u0646 \u0645\u0634\u0647\u0648\u0631\u0627\u0646\u060c \u0648\u0627\u0644\u0642\u0648\u0644 \u0628\u0627\u0644\u062c\u0648\u0627\u0632 \u0645\u0639\u0631\u0648\u0641.", "expect": true },
+      { "id": "explicit-several-opinions", "snippet": "\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u0623\u0642\u0648\u0627\u0644 \u0623\u062e\u0631\u0649\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": true },
+      { "id": "weak-preferred-view", "snippet": "\u0627\u0644\u0631\u0627\u062c\u062d \u0623\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.", "expect": false },
+      { "id": "weak-majority", "snippet": "\u0627\u0644\u062c\u0645\u0647\u0648\u0631 \u0639\u0644\u0649 \u0623\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false },
+      { "id": "weak-some-scholars", "snippet": "\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0625\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false },
+      { "id": "lexical-contrast-only", "snippet": "\u0628\u062e\u0644\u0627\u0641 \u0627\u0644\u0645\u0642\u064a\u0645\u060c \u0641\u0625\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false }
+    ]
   },
   "c3": {
     "cases": [
