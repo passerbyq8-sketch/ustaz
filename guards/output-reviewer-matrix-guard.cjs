@@ -341,11 +341,54 @@ function verbatimMarkerCopies(files, markerSets) {
         }));
     }
 
+    const exportedMarkerCorpus = fixture.b2b?.exportedMarkerCorpus;
+    const exportedMarkerCases = exportedMarkerCorpus?.cases || [];
+    const withoutArabicDiacritics = (value) => String(value ?? '')
+      .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/gu, '');
+    const exportedMarkerCorpusPasses = (mod) => {
+      const observations = exportedMarkerCases.map((test) =>
+        mod.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(test.text)));
+      return observations.filter(Boolean).length === exportedMarkerCorpus.expectedBoundedHits
+        && observations.every((actual, index) => actual === exportedMarkerCases[index].expect);
+    };
+    ok('C-3 exported-marker witness carries all twenty deposited X-Ray answers',
+      exportedMarkerCases.length === 20
+        && exportedMarkerCorpus.expectedRawHits === 9
+        && exportedMarkerCorpus.expectedBoundedHits === 8);
+    ok('C-3 importer receives the bounded detector and observes eight hits, not nine',
+      exportedMarkerCorpusPasses(module));
+    ok('C-3 optional conjunction is accepted while Arabic-letter adhesion is rejected',
+      exportedMarkerCases[12]?.expect === true
+        && exportedMarkerCases[19]?.expect === false
+        && module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(exportedMarkerCases[12]?.text))
+        && !module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(exportedMarkerCases[19]?.text)));
+
+    let rawExportHitCount = null;
+    const rawExportMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'exports-raw-khilaf-vocabulary',
+      transform: (source) => source.replace(
+        'export const KHILAF_PROSE_MARKERS = new RegExp(',
+        'export const KHILAF_PROSE_MARKERS = RAW_KHILAF_PROSE_MARKERS; // mutant: raw export\nconst UNUSED_BOUNDED_KHILAF_PROSE_MARKERS = new RegExp('),
+      survives: (mutantModule) => {
+        rawExportHitCount = exportedMarkerCases.filter((test) =>
+          mutantModule.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(test.text))).length;
+        return exportedMarkerCorpusPasses(mutantModule);
+      },
+    });
+    ok('C-3 raw-export mutant seam applied and module loaded',
+      rawExportMutant.changed && rawExportMutant.loaded, rawExportMutant.error);
+    ok('C-3 raw-export mutant reproduces the measured ninth hit',
+      rawExportHitCount === exportedMarkerCorpus.expectedRawHits, String(rawExportHitCount));
+    ok('MUTANT KILLED: exported khilaf prose surface cannot regress to raw vocabulary',
+      rawExportMutant.loaded && rawExportMutant.survived === false,
+      JSON.stringify(rawExportMutant));
+
     const narrowedProseMutant = await runMutant({
       sourceFile: REVIEWER,
       name: 'prose-trigger-narrows-again',
       transform: (source) => source.replace(
-        "  return BOUNDED_KHILAF_PROSE_MARKERS.test(withoutDiacritics); // MODEL_PROSE_KHILAF_BROAD_BOUNDED",
+        "  return KHILAF_PROSE_MARKERS.test(withoutDiacritics); // MODEL_PROSE_KHILAF_BROAD_BOUNDED",
         "  return KHILAF_SOURCE_MARKERS.test(normalizeArabic(sentence)); // mutant: prose narrows again"),
       survives: (mutantModule) => (fixture.b2b?.cases || [])
         .every((test) => b2bCasePasses(mutantModule, test)),

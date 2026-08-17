@@ -503,6 +503,35 @@
     ]
   },
   "b2b": {
+    "exportedMarkerCorpus": {
+      "source": "sessions/EZIK-XRAY-CC-ANSWERS-2026-08-17.txt",
+      "sourceSha256Prefix": "FC1198A6",
+      "representation": "one marker-bearing excerpt, or an empty string, for each deposited answer",
+      "expectedRawHits": 9,
+      "expectedBoundedHits": 8,
+      "cases": [
+        { "id": "xray-answer-01", "text": "نعم، ترثه؛ فالمطلقة طلاقا رجعيا لا تزال", "expect": false },
+        { "id": "xray-answer-02", "text": "ترثه، نعم — وهذا هو الحكم الفقهي المقرر", "expect": false },
+        { "id": "xray-answer-03", "text": "الراجح", "expect": true },
+        { "id": "xray-answer-04", "text": "هذا الشخص لم يدرك الركوع مع الإمام، بل جاء بعده", "expect": false },
+        { "id": "xray-answer-05", "text": "لا ينتقض وضوؤك، ولا يجب عليك إعادته", "expect": false },
+        { "id": "xray-answer-06", "text": "لا ينتقض وضوؤك في هذه الحال، ولا يجب عليك إعادته", "expect": false },
+        { "id": "xray-answer-07", "text": "خلاف", "expect": true },
+        { "id": "xray-answer-08", "text": "خلاف", "expect": true },
+        { "id": "xray-answer-09", "text": "سأبحث لك في فتاوى العلماء عن هذه المسألة", "expect": false },
+        { "id": "xray-answer-10", "text": "الراجح", "expect": true },
+        { "id": "xray-answer-11", "text": "", "expect": false },
+        { "id": "xray-answer-12", "text": "", "expect": false },
+        { "id": "xray-answer-13", "text": "فالراجح", "expect": true },
+        { "id": "xray-answer-14", "text": "الراجح", "expect": true },
+        { "id": "xray-answer-15", "text": "اختلف", "expect": true },
+        { "id": "xray-answer-16", "text": "بعض أهل العلم", "expect": true },
+        { "id": "xray-answer-17", "text": "سأتحقق من هذه المسألة الدقيقة", "expect": false },
+        { "id": "xray-answer-18", "text": "سأتحقق من هذه المسألة الدقيقة", "expect": false },
+        { "id": "xray-answer-19", "text": "يقطعها فورا يا مساعد، ولا يجوز له أن يكمل", "expect": false },
+        { "id": "xray-answer-20", "text": "بخلاف", "expect": false }
+      ]
+    },
     "cases": [
       {
         "id": "b2b-prose-only-explicit",
