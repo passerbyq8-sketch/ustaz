@@ -756,6 +756,297 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // it is supposed to be reporting.
     ok('...and the handler does not import the reviewer to manufacture the minute itself',
       !/(?:import|from)\s*\(?\s*'[^']*output-reviewer\.js'/u.test(askSource));
+
+    // ── K. §١: THE KHILAF SIGNAL — PRODUCED HERE, AND `null` IS NOT `false` ───
+    //
+    // THE JOINT, AND WHY IT IS SHAPED LIKE SECTION J. Branch ب consumes the signal; this half
+    // produces it. The two names are literal — `khilafFromOpinions` and `opinionCount` — and the
+    // one clause that cannot be traded away is that `null` means «I do not know» and NEVER means
+    // `false`: a `false` sent out of ignorance suppresses the khilaf tail on a matter that really
+    // is disputed, which is a lie told inside the reader's own reply.
+    //
+    // WHAT WAS MEASURED, AND WHY THE ANSWER IS `null` (tools/khilaf-signal-measure.mjs):
+    //   * a field in the fatwa store — 0 of 20 deposited records. The contract has no such field.
+    //   * a tag in the data — 0 of 20. `categories`/`collection.name` name an archive series
+    //     («فتاوى نور على الدرب», «الشريط رقم [304]»), never a disagreement.
+    //   * multiplicity of distinct sources — the deposited set holds exactly ONE multi-source
+    //     evidence set, the ribā pair, and the proxy fires on it and is WRONG: one doctrine applied
+    //     to two different questions, not two opinions on one. 0 correct, 1 false.
+    //   * and the other branch is worse — reading `opinionCount === 1` as `false` contradicts the
+    //     material in hand on 1 of the 18 single-source records (al-Athary on divorce in anger,
+    //     whose own text declares the matter disputed).
+    // So the probe answers `null`, always, and says so in its own comment.
+
+    // ── K1. THE COUNT IS THE PAIR «domain + fatwa id», AND NEITHER HALF ALONE ─
+    const fatwaRow = (n, host, id) => ({ ref: n, url: `https://${host}/fatwas/${id}`, recordId: `${host}:${id}`, publisher: 'x' });
+    const countOf = (loopModule, rowsIn) => loopModule.khilafSignal(rowsIn).opinionCount;
+    ok('no evidence at all counts zero sources', countOf(loop, []) === 0, String(countOf(loop, [])));
+    ok('one source counts one', countOf(loop, [fatwaRow(1, 'binbaz.org.sa', 1)]) === 1);
+    // The reason the domain alone will not do: two rulings by one scholar on one host are two
+    // published rulings, and they are exactly the pair that can differ.
+    ok('TWO fatwas on ONE host count as two sources, not one',
+      countOf(loop, [fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'binbaz.org.sa', 2)]) === 2,
+      JSON.stringify([...loop.distinctSourceKeys([fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'binbaz.org.sa', 2)])]));
+    // And the reason the id alone will not do: ids are unique per site, never across sites.
+    ok('the SAME id on two different hosts counts as two sources',
+      countOf(loop, [
+        { ref: 1, url: 'https://binbaz.org.sa/fatwas/7', recordId: '7' },
+        { ref: 2, url: 'https://islamqa.info/ar/answers/7', recordId: '7' },
+      ]) === 2);
+    ok('one page cited twice is one source',
+      countOf(loop, [fatwaRow(1, 'binbaz.org.sa', 9), fatwaRow(2, 'binbaz.org.sa', 9)]) === 1);
+    ok('www. is not a second domain',
+      countOf(loop, [
+        { ref: 1, url: 'https://www.almosleh.com/ar/1', recordId: 'a' },
+        { ref: 2, url: 'https://almosleh.com/ar/1', recordId: 'a' },
+      ]) === 1);
+    // A ROW WITH NO PAGE IS STILL A SOURCE. The Kuwaiti encyclopedia has no URL, and folding two of
+    // its entries into one would under-report the very multiplicity this number exists to measure.
+    ok('two encyclopedia rows with no URL are still two distinct sources',
+      countOf(loop, [
+        { ref: 1, url: '', publisher: 'الموسوعة الفقهية الكويتية', recordId: 'e1' },
+        { ref: 2, url: '', publisher: 'الموسوعة الفقهية الكويتية', recordId: 'e2' },
+      ]) === 2);
+    // ...and with neither a URL nor a record id, the table `ref` is unique by construction, so two
+    // anonymous rows still count as two rather than collapsing into one.
+    ok('two rows with neither URL nor record id still count as two',
+      countOf(loop, [{ ref: 1 }, { ref: 2 }]) === 2);
+    ok('a malformed URL does not throw, and the row still counts',
+      countOf(loop, [{ ref: 1, url: 'not a url', publisher: 'p', recordId: 'r' }]) === 1);
+
+    // ── K2. THE CONTRACT: null, NEVER false — AND NEVER true ON ONE SOURCE ────
+    const SIGNAL_ROW_SETS = Object.freeze([
+      [],
+      [fatwaRow(1, 'binbaz.org.sa', 1)],
+      [fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'islamqa.info', 2)],
+      [fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'islamqa.info', 2), fatwaRow(3, 'salmajed.com', 3)],
+    ]);
+    // The property every mutant below is measured against, stated once.
+    const neverLies = (loopModule) => SIGNAL_ROW_SETS.every((rowsIn) => {
+      const signal = loopModule.khilafSignal(rowsIn);
+      if (signal.khilafFromOpinions === false) return false;                  // never `false`
+      if (signal.khilafFromOpinions === true && signal.opinionCount <= 1) return false; // never `true` on one
+      return Number.isInteger(signal.opinionCount) && signal.opinionCount === rowsIn.length;
+    });
+    ok('the signal never reports `false`, and never reports `true` from a single source',
+      neverLies(loop), JSON.stringify(SIGNAL_ROW_SETS.map((r) => loop.khilafSignal(r))));
+    // THE NEGATIVE WITNESS §١ REQUIRES, BY NAME.
+    const singleSource = loop.khilafSignal([fatwaRow(1, 'binbaz.org.sa', 1)]);
+    ok('THE NEGATIVE WITNESS: one source -> opinionCount 1, and khilafFromOpinions is not `true`',
+      singleSource.opinionCount === 1 && singleSource.khilafFromOpinions !== true,
+      JSON.stringify(singleSource));
+    ok('...and today it is `null` — «I do not know» — because nothing measured distinguishes it',
+      singleSource.khilafFromOpinions === null, JSON.stringify(singleSource));
+    ok('the probe answers null for every row set, which is what the measurement licensed',
+      SIGNAL_ROW_SETS.every((r) => loop.khilafFromOpinionsProbe(r) === null),
+      JSON.stringify(SIGNAL_ROW_SETS.map((r) => loop.khilafFromOpinionsProbe(r))));
+
+    // ── K2b. THE ONE MEASURED COUNTER-EXAMPLE, HELD AS A PROPERTY ─────────────
+    //
+    // `neverLies` above cannot catch a `true` reported on a TWO-source set: nothing in the shape of
+    // an evidence set says whether its sources actually differ. Only ground truth can, and the tree
+    // holds exactly one evidence set with ground truth attached — the ribā pair, whose own fixture
+    // note records that the two records answer two DIFFERENT questions («الأوّل في صميم المسألة
+    // والثاني عن القمح»). Two distinct sources, and NOT two opinions. So this is the case that says
+    // «more than one source» is not «more than one opinion», and it is read from the fixture rather
+    // than retyped, so a change to the corpus changes the test with it.
+    const RIBA = JSON.parse(fs.readFileSync(path.join(ROOT, 'fixtures', 'riba-family-two-records.json'), 'utf8'));
+    const ribaRows = RIBA.records.map((record, i) => ({
+      ref: i + 1,
+      url: record.source?.url || '',
+      publisher: record.scholar?.shortName || '',
+      recordId: record.uid,
+    }));
+    const honoursMeasuredNegative = (loopModule) => {
+      const signal = loopModule.khilafSignal(ribaRows);
+      // Two distinct sources, and neither `true` (a lie about them) nor `false` (a lie about the
+      // matter, which really is a matter on which fiqh has more than one position elsewhere).
+      return signal.opinionCount === 2 && signal.khilafFromOpinions === null;
+    };
+    ok('the measured two-source set counts two, and is reported as «I do not know», not as khilaf',
+      honoursMeasuredNegative(loop), JSON.stringify(loop.khilafSignal(ribaRows)));
+
+    // ── K3. IT REALLY CROSSES THE SEAM, OBSERVED AND NOT ASSUMED ──────────────
+    //
+    // The pure reviewer is branch ب's and today ignores fields it has no rule for, so a text
+    // assertion alone could not tell «forwarded» from «dropped». The seam is therefore executed
+    // against a RECORDER standing in for the reviewer: a copy of lib/free-brain/review.js in
+    // os.tmpdir() with its one import repointed. The recorder publishes on `globalThis` because
+    // `fresh()` cache-busts every import, so a module imported twice is two instances and a plain
+    // export could not be read back.
+    async function seamSaw(input) {
+      const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-khilaf-seam-'));
+      try {
+        fs.writeFileSync(path.join(temp, 'recorder.mjs'),
+          'export function reviewAnswer(input) {\n'
+          + '  (globalThis.__ezikSeamSaw ||= []).push(input);\n'
+          + "  return { text: String(input.text || ''), annotations: [], verdict: { version: 'recorder' } };\n"
+          + '}\n', 'utf8');
+        const rewired = importsFromTree(fs.readFileSync(SEAM, 'utf8'), SEAM)
+          .replace(/from '[^']*output-reviewer\.js'/u, "from './recorder.mjs'");
+        const seamFile = path.join(temp, 'seam.mjs');
+        fs.writeFileSync(seamFile, rewired, 'utf8');
+        globalThis.__ezikSeamSaw = [];
+        const seam = await fresh(seamFile, 'khilaf-seam');
+        await seam.reviewAnswer(input);
+        return (globalThis.__ezikSeamSaw || [])[0] || null;
+      } finally {
+        delete globalThis.__ezikSeamSaw;
+        fs.rmSync(temp, { recursive: true, force: true });
+      }
+    }
+    const base = { text: 'الجمع للمسافر جائز.', evidence: [], domain: 'fiqh', mode: 'عادي' };
+    const sawTrue = await seamSaw({ ...base, khilafFromOpinions: true, opinionCount: 3 });
+    ok('the seam forwards `khilafFromOpinions` under exactly that name',
+      sawTrue && sawTrue.khilafFromOpinions === true, JSON.stringify(sawTrue && Object.keys(sawTrue)));
+    ok('...and `opinionCount` under exactly that name',
+      sawTrue && sawTrue.opinionCount === 3, JSON.stringify(sawTrue && sawTrue.opinionCount));
+    // THE NORMALISATION IS THE POINT. Anything that is not literally true or false is «I do not
+    // know», so an absent signal, an undefined, or a truthy string can never become a `false`.
+    for (const [label, value] of [
+      ['absent', undefined], ['null', null], ['a truthy string', 'yes'],
+      ['zero', 0], ['an empty string', ''],
+    ]) {
+      const saw = await seamSaw({ ...base, khilafFromOpinions: value });
+      ok(`...and ${label} crosses the seam as null, not as false`,
+        saw && saw.khilafFromOpinions === null, JSON.stringify(saw && saw.khilafFromOpinions));
+    }
+    ok('...while a genuine `false` is carried through as `false`',
+      (await seamSaw({ ...base, khilafFromOpinions: false }))?.khilafFromOpinions === false);
+    for (const [label, value] of [['absent', undefined], ['negative', -1], ['a fraction', 1.5], ['NaN', NaN], ['a string', '2']]) {
+      const saw = await seamSaw({ ...base, opinionCount: value });
+      ok(`a count that is ${label} crosses the seam as null, not as a number`,
+        saw && saw.opinionCount === null, JSON.stringify(saw && saw.opinionCount));
+    }
+    ok('...and zero is a real count, not an absence', (await seamSaw({ ...base, opinionCount: 0 }))?.opinionCount === 0);
+
+    // ── K4. AND THE LOOP PRODUCES IT ON A REAL TURN ──────────────────────────
+    // Driven offline through the same in-process encyclopedia Section G uses. `khilafSignal` is
+    // computed on the rows the PROPOSAL rested on, so a turn whose second sentence the reviewer
+    // later destroys still reports the two sources its draft leaned on — the signal is about the
+    // evidence, not about the surviving cards.
+    const oneCiteTurn = await citeTurn(loop, RULING);
+    ok('a turn that cited one row reports opinionCount 1',
+      oneCiteTurn.opinionCount === 1, JSON.stringify([oneCiteTurn.opinionCount, (oneCiteTurn.cited || []).length]));
+    ok('...and reports khilafFromOpinions as null, not false',
+      oneCiteTurn.khilafFromOpinions === null, JSON.stringify(oneCiteTurn.khilafFromOpinions));
+    ok('a turn whose draft rested on two rows reports two, even after the reviewer cut one sentence',
+      survivorTurn.opinionCount === 2 && (survivorTurn.cited || []).length === 1,
+      JSON.stringify([survivorTurn.opinionCount, (survivorTurn.cited || []).length]));
+    // A ref the model invented resolves to no row, so it buys no count either.
+    ok('an invented ref adds nothing to the count', inventedTurn.opinionCount === 0,
+      JSON.stringify(inventedTurn.opinionCount));
+    // The loop hands both names to the seam. Pinned as text for the reason Section J gives about
+    // its own joint: the field name written into both halves of the order IS the contract.
+    const loopSource = fs.readFileSync(LOOP, 'utf8');
+    for (const field of ['khilafFromOpinions', 'opinionCount']) {
+      ok('the loop passes `' + field + '` into the one call to branch ب',
+        new RegExp('^ {4}' + field + ': khilaf\\.' + field + ',$', 'mu').test(loopSource), field);
+    }
+    // ...and the platform log reports them, `null` included. A field that vanishes when it is null
+    // cannot be told apart from a field that was never wired.
+    for (const field of ['khilafFromOpinions', 'opinionCount']) {
+      ok('...and api/ask.js logs `' + field + '`, null and all',
+        new RegExp('^ {8}' + field + ': out\\.' + field + ' \\?\\? null,$', 'mu').test(askSource), field);
+    }
+
+    // ── K5. THE MUTANTS ──────────────────────────────────────────────────────
+    // M12 — the exact lie the contract forbids: silence read as denial.
+    const falseMutant = await loopMutant('probe-reports-false-when-it-does-not-know',
+      (source) => source.replace('export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return KHILAF_UNKNOWN;',
+        'export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return false; // mutant: «I do not know» reported as «no»')
+        .replace('export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return KHILAF_UNKNOWN;',
+          'export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return false; // mutant: «I do not know» reported as «no»'),
+      neverLies);
+    ok('false-signal mutant seam applied', falseMutant.changed, falseMutant.error);
+    ok('false-signal mutant module loaded successfully', falseMutant.loaded, falseMutant.error);
+    ok('MUTANT KILLED: `null` cannot be turned into `false` — that suppresses the khilaf tail',
+      falseMutant.loaded && falseMutant.survived === false, JSON.stringify(falseMutant));
+
+    // M13 — the opposite lie: a hunch reported as knowledge. `neverLies` cannot catch this one —
+    // the negative-witness clause already stops it on a single source — so it is measured against
+    // the ONE evidence set in this tree whose ground truth is recorded: two distinct sources that
+    // are not two opinions. That is what makes «more than one source» an unsafe proxy, and it is
+    // the whole reason §١'s answer is `null`.
+    const trueMutant = await loopMutant('probe-reports-true-on-a-hunch',
+      (source) => source.replace('export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return KHILAF_UNKNOWN;',
+        'export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return true; // mutant: a hunch reported as knowledge')
+        .replace('export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return KHILAF_UNKNOWN;',
+          'export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return true; // mutant: a hunch reported as knowledge'),
+      honoursMeasuredNegative);
+    ok('true-signal mutant seam applied', trueMutant.changed, trueMutant.error);
+    ok('true-signal mutant module loaded successfully', trueMutant.loaded, trueMutant.error);
+    ok('MUTANT KILLED: multiplicity of SOURCES cannot be reported as multiplicity of OPINIONS',
+      trueMutant.loaded && trueMutant.survived === false, JSON.stringify(trueMutant));
+
+    // M14 — the invariant deleted rather than the probe changed. This is the mutant that proves the
+    // negative witness is enforced in `khilafSignal` and not merely implied by the probe's answer.
+    const guardMutant = await loopMutant('negative-witness-clause-removed',
+      (source) => source
+        .replace(/ {2}const khilafFromOpinions = \(probed === true && opinionCount <= 1\) \? null\r?\n {4}: known \? probed\r?\n {6}: null;/u,
+          '  const khilafFromOpinions = known ? probed : null; // mutant: the negative witness deleted')
+        .replace('export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return KHILAF_UNKNOWN;',
+          'export function khilafFromOpinionsProbe(rows) {\r\n  void rows;\r\n  return true;')
+        .replace('export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return KHILAF_UNKNOWN;',
+          'export function khilafFromOpinionsProbe(rows) {\n  void rows;\n  return true;'),
+      neverLies);
+    ok('negative-witness mutant seam applied', guardMutant.changed, guardMutant.error);
+    ok('negative-witness mutant module loaded successfully', guardMutant.loaded, guardMutant.error);
+    ok('MUTANT KILLED: removing the single-source clause lets a hunch through',
+      guardMutant.loaded && guardMutant.survived === false, JSON.stringify(guardMutant));
+
+    // M15 — the count keyed on the domain alone, which folds two rulings by one scholar into one
+    // and under-reports exactly the multiplicity the number exists to measure.
+    const keyMutantK = await loopMutant('count-keyed-on-domain-alone',
+      (source) => source.replace('    keys.add(`${domain}|${id}`);',
+        '    keys.add(domain); // mutant: the domain alone, so two fatwas on one host count as one'),
+      async (twinModule) => countOf(twinModule, [fatwaRow(1, 'binbaz.org.sa', 1), fatwaRow(2, 'binbaz.org.sa', 2)]) === 2);
+    ok('domain-only mutant seam applied', keyMutantK.changed, keyMutantK.error);
+    ok('domain-only mutant module loaded successfully', keyMutantK.loaded, keyMutantK.error);
+    ok('MUTANT KILLED: two rulings on one host cannot be counted as one source',
+      keyMutantK.loaded && keyMutantK.survived === false, JSON.stringify(keyMutantK));
+
+    // M16 — the seam turns an absent signal into a denial. Same lie as M12, told one file later,
+    // which is why it needs its own mutant: the loop could be perfect and this would still ship it.
+    const seamMutant = await (async () => {
+      const original = fs.readFileSync(SEAM, 'utf8');
+      const changed = original.replace(
+        /khilafFromOpinions: input\.khilafFromOpinions === true \|\| input\.khilafFromOpinions === false\r?\n {8}\? input\.khilafFromOpinions : null,/u,
+        'khilafFromOpinions: input.khilafFromOpinions === true, // mutant: absence becomes denial');
+      if (changed === original) return { changed: false, loaded: false, survived: null, error: 'seam moved' };
+      const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-khilaf-seamfile-'));
+      try {
+        fs.writeFileSync(path.join(temp, 'recorder.mjs'),
+          'export function reviewAnswer(input) {\n'
+          + '  (globalThis.__ezikSeamSaw ||= []).push(input);\n'
+          + "  return { text: String(input.text || ''), annotations: [], verdict: { version: 'recorder' } };\n"
+          + '}\n', 'utf8');
+        const twin = path.join(temp, 'seam-mutant.mjs');
+        fs.writeFileSync(twin, importsFromTree(changed, SEAM)
+          .replace(/from '[^']*output-reviewer\.js'/u, "from './recorder.mjs'"), 'utf8');
+        globalThis.__ezikSeamSaw = [];
+        const twinModule = await fresh(twin, 'seam-mutant');
+        await twinModule.reviewAnswer({ ...base });
+        const saw = (globalThis.__ezikSeamSaw || [])[0] || null;
+        return { changed: true, loaded: true, survived: Boolean(saw && saw.khilafFromOpinions === null), error: null };
+      } catch (error) {
+        return { changed: true, loaded: false, survived: null, error: error?.stack || String(error) };
+      } finally {
+        delete globalThis.__ezikSeamSaw;
+        fs.rmSync(temp, { recursive: true, force: true });
+      }
+    })();
+    ok('seam-normalisation mutant seam applied', seamMutant.changed, seamMutant.error);
+    ok('seam-normalisation mutant module loaded successfully', seamMutant.loaded, seamMutant.error);
+    ok('MUTANT KILLED: the seam cannot turn an absent signal into a `false`',
+      seamMutant.loaded && seamMutant.survived === false, JSON.stringify(seamMutant));
+
+    // AND THE MEASUREMENT THAT LICENSED `null` IS IN THE TREE AND RUNNABLE. A verdict of «no
+    // reliable signal exists» rests on numbers, and numbers nobody can re-run are an assertion.
+    ok('the measurement behind §١\'s verdict is committed and names its corpora',
+      fs.existsSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'))
+        && /fatwa-authority-eighteen\.json/u.test(fs.readFileSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'), 'utf8'))
+        && /riba-family-two-records\.json/u.test(fs.readFileSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'), 'utf8')));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
