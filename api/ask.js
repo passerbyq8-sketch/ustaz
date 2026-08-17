@@ -1274,6 +1274,38 @@ export default async function handler(req, res) {
           url: row.url, title: row.title, passage: row.passage || row.text || '',
         });
       }
+      // ── §٤: THE MINUTE OF WHAT WAS REMOVED (XC-03) ─────────────────────────
+      //
+      // WHAT THE LOG COULD NOT SAY. The reviewer's three destructive arms keep the original in
+      // `annotations` in memory, and `verdict` reduced each one to a sentence number and an action
+      // name. So the operational log knew that a removal had happened and never what was removed —
+      // and every reviewer defect since has had to be reconstructed by hand, by joining a Vercel
+      // line to a delivered answer through `x-vercel-id` (EZIK-SET2-REPORT-2026-08-16.md:64-75).
+      //
+      // THE TWO NAMES ARE `before` AND `after`, WRITTEN INTO BOTH HALVES OF THIS ROUND'S ORDER.
+      // They are branch ب's to produce, on `verdict.sentences`, capped at 200 characters each.
+      // Nothing is invented here and lib/output-reviewer.js is not touched: this reads the field
+      // if it is there and reports its absence if it is not, so the two halves can land in either
+      // order without one of them failing on the other.
+      //
+      // IT IS SERIALISED RATHER THAN HANDED TO console.log AS AN OBJECT. `verdict` below is
+      // already three levels deep by the time it reaches `sentences[i].before`, and the platform
+      // log prints `[Object]` at that depth — a minute nobody can read is the defect, not the fix.
+      const redactions = (Array.isArray(out.verdict?.sentences) ? out.verdict.sentences : [])
+        .filter((row) => row && (typeof row.before === 'string' || typeof row.after === 'string'))
+        .map((row) => ({
+          sentence: row.sentence, action: row.action, before: row.before, after: row.after,
+        }));
+      const destructive = (Array.isArray(out.verdict?.sentences) ? out.verdict.sentences : [])
+        .filter((row) => row && /^(?:removed-|replaced-|last-resort)/u.test(String(row.action || '')));
+      console.log('[free-brain/redactions]', JSON.stringify({
+        destructive: destructive.length,
+        carried: redactions.length,
+        // Said out loud rather than left as a silent empty array: a turn that cut something and
+        // recorded nothing is the state this item exists to end, and it must be visible as such.
+        minuteMissing: destructive.length > 0 && redactions.length === 0,
+        rows: redactions,
+      }));
       console.log('[free-brain/turn]', {
         domain: out.domain,
         rounds: out.rounds,

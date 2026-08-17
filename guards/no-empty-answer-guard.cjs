@@ -666,6 +666,28 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
         .test(askSource));
     ok('...and MAX_SOURCES is still the one constant, still three',
       /^const MAX_SOURCES = 3;$/mu.test(askSource));
+
+    // ── J. §٤: THE MINUTE OF WHAT WAS REMOVED (XC-03) ────────────────────────
+    //
+    // THE JOINT WITH BRANCH ب. It produces `before` and `after` on `verdict.sentences`; this side
+    // prints them. The two names are pinned by TEXT because that is what the joint IS — a field
+    // name written into both halves of the order — and because the producing half lands in another
+    // worktree, so the only thing this gate can hold today is that the consumer reads exactly the
+    // agreed names and invents neither.
+    ok('the redaction minute is emitted as its own serialised line',
+      /console\.log\('\[free-brain\/redactions\]', JSON\.stringify\(\{/u.test(askSource));
+    for (const field of ['before', 'after']) {
+      ok('...and it reads the agreed field name `' + field + '` and no synonym',
+        new RegExp("typeof row\\." + field + " === 'string'").test(askSource)
+          && new RegExp("\\b" + field + ": row\\." + field).test(askSource), field);
+    }
+    ok('...and it reports a cut whose minute did not arrive rather than printing an empty array',
+      /minuteMissing: destructive\.length > 0 && redactions\.length === 0,/u.test(askSource));
+    // The minute is READ, never produced here: the handler reaches the reviewer through the loop's
+    // one call site and holds no import of its own, so this side cannot start writing the fields
+    // it is supposed to be reporting.
+    ok('...and the handler does not import the reviewer to manufacture the minute itself',
+      !/(?:import|from)\s*\(?\s*'[^']*output-reviewer\.js'/u.test(askSource));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
