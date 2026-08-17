@@ -381,8 +381,11 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // NOTE ON LINE ENDINGS: this working tree checks out CRLF, so every seam below matches on
     // `\r?\n` rather than a literal newline. A seam written with `\n` reports «seam moved» on
     // Windows and «MUTANT KILLED» on nothing at all.
+    // §٣ MOVED THIS SEAM AND THE MUTANT MOVED WITH IT. The turn now returns `deliveredText` —
+    // the reviewer's text with the model's invented footnote numbers taken out of it — so the
+    // mutant that puts the unreviewed draft back on the wire names that binding instead.
     const shownMutant = await loopMutant('reviewed-text-discarded',
-      (source) => source.replace(/^ {4}text: reviewed\.text,$/mu, '    text: readerText,'));
+      (source) => source.replace(/^ {4}text: deliveredText,$/mu, '    text: readerText,'));
     ok('shown-text mutant seam applied', shownMutant.changed, shownMutant.error);
     ok('shown-text mutant module loaded successfully', shownMutant.loaded, shownMutant.error);
     ok('MUTANT KILLED: showing the draft instead of the reviewed text cannot pass',
@@ -500,6 +503,99 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('wide-filter mutant module loaded successfully', wideMutant.loaded, wideMutant.error);
     ok('MUTANT KILLED: a filter that also drops answers is a removal, not a repair',
       wideMutant.loaded && wideMutant.survived === false, JSON.stringify(wideMutant));
+
+    // ── G. §٣: THE CARD IS DECIDED AFTER THE REVIEWER, NOT BEFORE ────────────
+    //
+    // THE DEFECT. `collectCited` ran on the PROPOSAL and the card list was built from its answer,
+    // while `reviewAnswer` ran afterwards on the same text and was free to destroy the very
+    // sentence that had cited. The card outlived its sentence. XI-05 is what that looks like on a
+    // screen: a full ayah card under «ما حكم صيام يوم عرفة لغير الحاج؟», mostly about the
+    // forbidden meats, beneath prose that refers to no verse at all.
+    //
+    // HOW IT IS DRIVEN WITHOUT A NETWORK, and why the second tool call is here. The reviewer only
+    // DESTROYS a sentence on its dynamic-claim arm, and `sentenceDomain` only reaches that arm
+    // per-sentence when the turn's domain is `mixed`. `domainOf` reads `ctx.spend`, and `runTool`
+    // records spend for a call that returned NOTHING — so a `search_live` call that finds zero
+    // pages offline still makes the turn mixed, while `search_sources` fills the evidence table
+    // from the in-process encyclopedia. Both are offline: the stub throws on any host but its own,
+    // which is this file's standing guarantee that no egress happens.
+    const twoTools = (id) => ({
+      stop_reason: 'tool_use',
+      content: [
+        { type: 'tool_use', id: id + 'a', name: 'search_sources', input: { query: 'الجمع بين الصلاتين للمسافر' } },
+        { type: 'tool_use', id: id + 'b', name: 'search_live', input: { query: 'طقس الكويت' } },
+      ],
+    });
+    const RULING = 'الجمع للمسافر جائز عند الحاجة [[1]].';
+    const DOOMED = 'درجة الحرارة اليوم في الكويت ثمان وثلاثون مئوية [[2]].';
+    const citeTurn = (loopModule, final) => driveScript(loopModule,
+      (i) => (i === 0 ? twoTools('t0') : textPayload(final)));
+
+    const survivorTurn = await citeTurn(loop, RULING + '\n' + DOOMED);
+    ok('the turn is mixed, so the reviewer judges each sentence in its own domain',
+      survivorTurn.domain === 'mixed', String(survivorTurn.domain));
+    ok('the reviewer destroyed the dynamic claim that cited [[2]]',
+      !survivorTurn.text.includes('ثمان وثلاثون'), survivorTurn.text);
+    // THE PROPERTY. Two refs were cited by the PROPOSAL; one sentence survived; one card is
+    // returned, and it is the surviving sentence's.
+    const cardsAfterReview = (turn) => Array.isArray(turn?.cited) && turn.cited.length === 1
+      && turn.cited[0].ref === 1;
+    ok('...so one card is returned, not two — the card follows the sentence that was delivered',
+      cardsAfterReview(survivorTurn), JSON.stringify((survivorTurn.cited || []).map((r) => r.ref)));
+    ok('...and the recount is named in degraded',
+      (survivorTurn.degraded || []).includes('cards_after_review:2->1'),
+      JSON.stringify(survivorTurn.degraded));
+
+    // A turn whose ONLY citing sentence is destroyed keeps no card at all.
+    const orphanedTurn = await citeTurn(loop, DOOMED);
+    ok('a card whose only sentence the reviewer replaced is not shown',
+      (orphanedTurn.cited || []).length === 0, JSON.stringify(orphanedTurn.cited));
+    // ...and the standing safety property §٣ says must not be broken: a row that never entered the
+    // model's context cannot be shown. `byRef` resolves nothing outside the table, so a ref the
+    // model invented buys no card.
+    const inventedTurn = await citeTurn(loop, 'الجمع للمسافر جائز عند الحاجة [[97]].');
+    ok('a ref the model invented resolves to no card at all',
+      (inventedTurn.cited || []).length === 0, JSON.stringify(inventedTurn.cited));
+
+    // M8 — the pre-repair ORDER restored: the cards are read off the proposal again.
+    const orderMutant = await loopMutant('cards-collected-before-the-reviewer',
+      // `\r?\n`, for the reason M1's note gives: this tree checks out CRLF, and a seam written
+      // with a bare `\n` reports «seam moved» and kills nothing at all.
+      (source) => source.replace(
+        / {2}const surviving = citedRefs\r?\n/u,
+        '  const surviving = citedRefs.map((ref) => ({ ref, anchor: \'\', at: 0 })); const _ignored = citedRefs\n'),
+      async (twinModule) => cardsAfterReview(await citeTurn(twinModule, RULING + '\n' + DOOMED)));
+    ok('card-order mutant seam applied', orderMutant.changed, orderMutant.error);
+    ok('card-order mutant module loaded successfully', orderMutant.loaded, orderMutant.error);
+    ok('MUTANT KILLED: a card list read off the proposal cannot pass',
+      orderMutant.loaded && orderMutant.survived === false, JSON.stringify(orderMutant));
+
+    // ── H. §٣/٢: A REFERENCE NUMBER WITH NO CARD BEHIND IT DOES NOT GO OUT ───
+    //
+    // `[1]`, `[2][4]`, `[7]` are not the tool layer's `[[n]]` — they are the model's own footnotes
+    // into a numbered reference list this application has never rendered. Nothing saw them, so
+    // nothing removed them: question 14 delivered five of them over two passes with ZERO cards
+    // under the answer (XI-15). The reader is promised a reference and given no way to reach one.
+    const FOOTNOTED = 'الجمع للمسافر جائز عند الحاجة [[1]]. وقال أهل العلم بذلك [7] وكذلك [1][2].';
+    const noOrphanNumbers = async (loopModule) => {
+      const turn = await citeTurn(loopModule, FOOTNOTED);
+      return typeof turn?.text === 'string'
+        && !/\[\s*[0-9٠-٩]/u.test(turn.text)
+        && turn.text.includes('وقال أهل العلم بذلك');
+    };
+    ok('an invented reference number does not reach the reader, and its prose does',
+      await noOrphanNumbers(loop));
+
+    // M9 — the removal dropped. The numbers ride out again exactly as they did on 17 August.
+    const numberMutant = await loopMutant('orphan-reference-numbers-delivered',
+      (source) => source.replace(
+        '  const deliveredText = dropOrphanRefNumbers(reviewed.text) || reviewed.text;',
+        '  const deliveredText = reviewed.text; // mutant: deliver the invented footnotes'),
+      noOrphanNumbers);
+    ok('orphan-number mutant seam applied', numberMutant.changed, numberMutant.error);
+    ok('orphan-number mutant module loaded successfully', numberMutant.loaded, numberMutant.error);
+    ok('MUTANT KILLED: an invented reference number cannot be delivered again',
+      numberMutant.loaded && numberMutant.survived === false, JSON.stringify(numberMutant));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
