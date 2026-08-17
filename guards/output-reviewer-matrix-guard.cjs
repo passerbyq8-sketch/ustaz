@@ -9,6 +9,8 @@ const { runMutant } = require('./output-reviewer-mutant-lib.cjs');
 const ROOT = path.resolve(__dirname, '..');
 const FIXTURE = path.join(ROOT, 'fixtures', 'output-reviewer-six-cases.json');
 const REVIEWER = path.join(ROOT, 'lib', 'output-reviewer.js');
+const REVIEWER_REPO_PATH = 'lib/output-reviewer.js';
+const REPOSITORY_SCAN_IGNORES = new Set(['.git', 'node_modules']);
 
 let pass = 0;
 let fail = 0;
@@ -28,6 +30,36 @@ const appearsInOrder = (text, needles) => {
   return true;
 };
 
+const repoPath = (absolute) => path.relative(ROOT, absolute).split(path.sep).join('/');
+function repositoryFiles(directory = ROOT) {
+  const files = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const absolute = path.join(directory, entry.name);
+    const relative = repoPath(absolute);
+    if (entry.isDirectory()) {
+      if (!REPOSITORY_SCAN_IGNORES.has(entry.name)) files.push(...repositoryFiles(absolute));
+    } else if (entry.isFile() && relative !== '.git') {
+      files.push({ absolute, relative });
+    }
+  }
+  return files;
+}
+
+function verbatimMarkerCopies(files, markerSets) {
+  const signatures = markerSets.map((markerSet) => markerSet.toString());
+  const copies = [];
+  for (const file of files) {
+    if (file.relative === REVIEWER_REPO_PATH) continue;
+    const bytes = file.text === undefined ? fs.readFileSync(file.absolute) : Buffer.from(file.text);
+    if (bytes.includes(0)) continue;
+    const text = file.text === undefined ? bytes.toString('utf8') : file.text;
+    signatures.forEach((signature, markerSet) => {
+      if (text.includes(signature)) copies.push({ path: file.relative, markerSet });
+    });
+  }
+  return copies;
+}
+
 (async () => {
   try {
     const fixture = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
@@ -41,6 +73,21 @@ const appearsInOrder = (text, needles) => {
     try { module = await import(pathToFileURL(REVIEWER).href + '?matrix=' + Date.now()); }
     finally { globalThis.fetch = originalFetch; }
     ok('module exports the exact reviewAnswer function', typeof module.reviewAnswer === 'function');
+    const markerSets = [module.KHILAF_PROSE_MARKERS, module.KHILAF_SOURCE_MARKERS];
+    ok('reviewer exports distinct broad-prose and narrow-source marker sets',
+      markerSets.every((markerSet) => markerSet instanceof RegExp)
+        && markerSets[0].toString() !== markerSets[1].toString());
+    const syntheticCopies = verbatimMarkerCopies([
+      { relative: 'arbitrary/copied-markers.js', text: markerSets[0].toString() },
+    ], markerSets);
+    ok('marker-family guard rejects a verbatim copy at an arbitrary repository path',
+      syntheticCopies.length === 1 && syntheticCopies[0].path === 'arbitrary/copied-markers.js',
+      JSON.stringify(syntheticCopies));
+    // No CC-tool exception is carried here: that file is absent on this branch. If its stale copy
+    // is merged, this scan must fail until the tool imports these exported marker sets.
+    const repositoryCopies = verbatimMarkerCopies(repositoryFiles(), markerSets);
+    ok('no repository file outside the reviewer carries a verbatim khilaf marker-set copy',
+      repositoryCopies.length === 0, JSON.stringify(repositoryCopies));
 
     for (const test of fixture.cases || []) {
       const result = module.reviewAnswer(test.input);
@@ -218,7 +265,7 @@ const appearsInOrder = (text, needles) => {
         JSON.stringify(result.verdict));
     }
 
-    ok('B-2b fixture carries the four trigger-priority witnesses and four narrowed negatives',
+    ok('B-2c fixture carries four trigger-priority witnesses, three restored words, and one boundary control',
       Array.isArray(fixture.b2b?.cases) && fixture.b2b.cases.length === 8);
     const b2bCasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
@@ -242,22 +289,22 @@ const appearsInOrder = (text, needles) => {
         }));
     }
 
-    const looseProseMutant = await runMutant({
+    const narrowedProseMutant = await runMutant({
       sourceFile: REVIEWER,
-      name: 'prose-trigger-uses-loose-markers',
+      name: 'prose-trigger-narrows-again',
       transform: (source) => source.replace(
-        '  return KHILAF_MARKERS.test(normalizeArabic(sentence)); // MODEL_PROSE_KHILAF_NARROW',
-        '  return KHILAF_MARKERS.test(normalizeArabic(sentence)) || /(?:الراجح|الجمهور|بعض\\s+اهل\\s+العلم)/u.test(normalizeArabic(sentence)); // mutant: loose prose markers'),
+        "  return BOUNDED_KHILAF_PROSE_MARKERS.test(withoutDiacritics); // MODEL_PROSE_KHILAF_BROAD_BOUNDED",
+        "  return KHILAF_SOURCE_MARKERS.test(normalizeArabic(sentence)); // mutant: prose narrows again"),
       survives: (mutantModule) => (fixture.b2b?.cases || [])
         .every((test) => b2bCasePasses(mutantModule, test)),
     });
-    ok('B-2b prose-trigger-uses-loose-markers mutant seam applied',
-      looseProseMutant.changed, looseProseMutant.error);
-    ok('B-2b prose-trigger-uses-loose-markers mutant module loaded',
-      looseProseMutant.loaded, looseProseMutant.error);
-    ok('MUTANT KILLED: prose cannot restore the loose preference and majority markers',
-      looseProseMutant.loaded && looseProseMutant.survived === false,
-      JSON.stringify(looseProseMutant));
+    ok('B-2c prose-trigger-narrows-again mutant seam applied',
+      narrowedProseMutant.changed, narrowedProseMutant.error);
+    ok('B-2c prose-trigger-narrows-again mutant module loaded',
+      narrowedProseMutant.loaded, narrowedProseMutant.error);
+    ok('MUTANT KILLED: prose cannot lose the restored production vocabulary',
+      narrowedProseMutant.loaded && narrowedProseMutant.survived === false,
+      JSON.stringify(narrowedProseMutant));
 
     const proseShadowMutant = await runMutant({
       sourceFile: REVIEWER,

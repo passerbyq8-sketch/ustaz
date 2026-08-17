@@ -497,14 +497,14 @@
         "expect": { "tailCount": 1, "trigger": "both", "fromSource": true, "fromOpinions": true, "fromModelProse": true, "opinionCount": 3 }
       },
       {
-        "id": "b2b-loose-preferred-view",
+        "id": "b2c-conjoined-preferred-view",
         "input": {
-          "text": "الراجح أن الجمع للمسافر جائز عند الحاجة.",
+          "text": "فالراجح أن الجمع للمسافر جائز عند الحاجة.",
           "evidence": [],
           "domain": "fiqh",
           "mode": "عادي"
         },
-        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
       },
       {
         "id": "b2b-loose-majority",
@@ -514,7 +514,7 @@
           "domain": "fiqh",
           "mode": "عادي"
         },
-        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
       },
       {
         "id": "b2b-loose-some-scholars",
@@ -524,7 +524,7 @@
           "domain": "fiqh",
           "mode": "عادي"
         },
-        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
       },
       {
         "id": "b2b-lexical-contrast-only",
