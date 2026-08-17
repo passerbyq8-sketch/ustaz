@@ -1152,6 +1152,21 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('a fiqh answer with NOTHING retrieved buys no extra round — there is nothing to cite',
       nothingRetrieved.domain === 'fiqh' && nothingRetrieved.citationRetries === 0,
       JSON.stringify([nothingRetrieved.domain, nothingRetrieved.citationRetries]));
+    // AN EMPTY ANSWER IS NOT A RULING MISSING AN ATTRIBUTION. E6/E7 reach the tail with no text at
+    // all, which satisfies «cited is empty» trivially — and the retry would then post an assistant
+    // turn with empty content, which the provider refuses. So the one turn already in trouble would
+    // spend a call to earn a 400. The reviewer's last rung is what serves those exits.
+    const emptyAnswerTurn = await driveScript(loop,
+      (i) => (i === 0 ? oneTool('t0') : textPayload('')));
+    ok('a turn with NO answer at all buys no extra round — an empty answer is not a ruling',
+      emptyAnswerTurn.citationRetries === 0
+        && (emptyAnswerTurn.evidence || []).length > 0
+        && !(emptyAnswerTurn.degraded || []).some((d) => /^citation_retry/u.test(d)),
+      JSON.stringify([emptyAnswerTurn.citationRetries, (emptyAnswerTurn.evidence || []).length,
+        emptyAnswerTurn.degraded]));
+    ok('...and it still reaches the reviewer\'s explicit last rung, which is what serves that exit',
+      emptyAnswerTurn.text === module.REVIEW_LAST_RESORT, JSON.stringify(emptyAnswerTurn.text));
+
     // And a general-scope turn is outside the item. Driven with `search_live` alone, which
     // `domainOf` reads as general, and which finds nothing offline.
     const liveOnly = (id) => ({
