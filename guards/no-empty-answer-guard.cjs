@@ -504,6 +504,74 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('MUTANT KILLED: a filter that also drops answers is a removal, not a repair',
       wideMutant.loaded && wideMutant.survived === false, JSON.stringify(wideMutant));
 
+    // ── F3. THE FOURTH CLASS: PROSE THAT REPORTS ON THE TOOL RUN ─────────────
+    //
+    // F1/F2 above pin the THIRD class — «سأبحث», a promise to go and look. The fourth class is its
+    // past tense: prose describing what the tool was queried with, what came back, and that what
+    // came back was general or useless. `PROMISE_RE` does not match it and MUST NOT, so it shipped
+    // on 17 August and reached the reader on preview and on production alike.
+    //
+    // THE LAW HERE IS A BOUNDARY, NOT A DROP, and both sides of it are pinned:
+    //   dropped   — the description of what the TOOL did                       (the two witnesses)
+    //   delivered — the sentence telling the READER the information did not hold up, which is the
+    //               reviewer's own substitute line, AND a disclosure that mentions the search
+    // Without that second negative witness this section would bless «drop every mention of البحث»,
+    // and M8 below is the mutant that proves it does not.
+    const TOOL_REPORT_WITNESSES = Object.freeze([
+      // preview — the arithmetic and gold answers, EZIK-FIX-A-MERGE-REPORT-2026-08-17.md:249
+      'تلك النتائج التي وصلتني كانت بحثًا عن كلمة "تجربة" لا عن مسألتك.',
+      // production — the reviewer's own `before`, EZIK-FIX-A-PUBLISH-REPORT-2026-08-17.md §٤
+      'نتيجة البحث لم تُعطِني سعراً حقيقيّاً لجرام الذهب اليوم؛ ما ظهر مجرد معلومات عامة عن عنصر الذهب الكيميائيّ، لا سعرَ سوقٍ.',
+    ]);
+    // The line the reviewer PUTS THERE when it destroys an unsupported dynamic claim. If this one
+    // ever starts being dropped, the reader is told nothing at all instead of being told the truth.
+    const REVIEWER_SUBSTITUTE = 'لم يصلني مصدرٌ مؤرّخ يمكن أن يثبت هذه المعلومة المتغيّرة في هذه الدورة.';
+    // Mentions the search AND must survive — this is the whole boundary in one sentence.
+    const READER_DISCLOSURE = 'لم أجد في بحثي عن هذه المسألة نصًّا لعالمٍ بعينِه.';
+    const FINDING_FROM_SEARCH = 'نتيجة البحث أن جمهور أهل العلم على أن المسح جائز.';
+
+    const dropsReports = (mod) => TOOL_REPORT_WITNESSES.every((s) => mod.deliverableText(s).trim() === '');
+    // The property M8 is measured against, and the reason it is a REPAIR and not a removal.
+    const keepsDisclosures = (mod) => mod.deliverableText(REVIEWER_SUBSTITUTE).includes('لم يصلني')
+      && mod.deliverableText(READER_DISCLOSURE).includes('لم أجد')
+      && mod.deliverableText(FINDING_FROM_SEARCH).includes('جمهور');
+
+    ok('prose that reports on the tool run does not reach the reader', dropsReports(loop),
+      JSON.stringify(TOOL_REPORT_WITNESSES.map((s) => loop.deliverableText(s))));
+    ok('...while the reviewer\'s own substitute line still does',
+      loop.deliverableText(REVIEWER_SUBSTITUTE).includes('لم يصلني'));
+    ok('...and a disclosure to the reader survives even though it mentions the search',
+      loop.deliverableText(READER_DISCLOSURE).includes('لم أجد'));
+    ok('...and a FINDING reported from the search is content, and survives',
+      loop.deliverableText(FINDING_FROM_SEARCH).includes('جمهور'));
+    // THE SAFETY PROPERTY, AS A PROPERTY AND NOT AS A SAMPLE. The class is new, so ordinary prose
+    // about searching — the kind an answer legitimately contains — must be untouched by it. Each
+    // of these mentions the search or its results and none of them describes the tool run.
+    const ORDINARY_SEARCH_PROSE = Object.freeze([
+      'وقد بحثت في هذه المسألة فوجدت كلام أهل العلم متفقًا عليها.',
+      'ونتيجة البحث أن المسألة خلافية بين الفقهاء.',
+      'والبحث عن الحق في هذه المسألة مطلوب من المستفتي.',
+      'ولم يصلني في هذه الدورة نص لعالم بعينه في هذه المسألة.',
+      'ومصادر هذه المسألة مبسوطة في كتب الفقه.',
+    ]);
+    ok('ordinary prose that merely mentions the search is untouched by the new class',
+      ORDINARY_SEARCH_PROSE.every((s) => !loop.isToolResultReport(s)
+        && loop.deliverableText(s).trim().length > 0),
+      JSON.stringify(ORDINARY_SEARCH_PROSE.filter((s) => loop.isToolResultReport(s))));
+
+    // M8 — the over-reach §٣ names: the drop widened to every mention of the search. It is one
+    // seam because the fast path deliberately OVER-admits, so the decision lives in one line.
+    const reportMutant = await loopMutant('report-filter-ignores-predicate',
+      (source) => source.replace(
+        '  return TOOL_TOPIC_RE.test(folded) && TOOL_REPORT_RE.test(folded);',
+        '  return TOOL_MENTION_RE.test(folded); // mutant: drop every mention of the search'),
+      keepsDisclosures);
+    ok('report-filter mutant seam applied', reportMutant.changed, reportMutant.error);
+    ok('report-filter mutant module loaded successfully', reportMutant.loaded, reportMutant.error);
+    ok('MUTANT KILLED: widening the drop to every mention of the search kills the disclosure the '
+      + 'reader is owed', reportMutant.loaded && reportMutant.survived === false,
+    JSON.stringify(reportMutant));
+
     // ── G. §٣: THE CARD IS DECIDED AFTER THE REVIEWER, NOT BEFORE ────────────
     //
     // THE DEFECT. `collectCited` ran on the PROPOSAL and the card list was built from its answer,
