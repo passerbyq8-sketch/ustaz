@@ -17,10 +17,10 @@
 // and (b) completely, because those are enumerations rather than samples, and they settle (c) only
 // in the negative — one trial cannot license a threshold, and the one trial there is says no.
 //
-// WHAT IT DOES NOT DO. It builds no ruling detector. The one regex it carries is a copy of the
-// reviewer's shipped KHILAF_MARKERS, used as a MEASURING INSTRUMENT to count how often a deposited
-// excerpt declares dispute in its own words — the very prong branch ب computes. It is never used
-// to decide anything this producer emits.
+// WHAT IT DOES NOT DO. It builds no ruling detector. The one regex it uses is IMPORTED from the
+// reviewer and never copied, and it is used as a MEASURING INSTRUMENT to count how often a
+// deposited excerpt declares dispute in its own words. It is never used to decide anything this
+// producer emits.
 //
 // Usage:  node tools/khilaf-signal-measure.mjs
 // Exit:   0 always. This is a measurement, not a gate.
@@ -29,14 +29,17 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { distinctSourceKeys, khilafSignal } from '../lib/free-brain/loop.js';
+import { KHILAF_PROSE_MARKERS } from '../lib/output-reviewer.js';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = (rel) => JSON.parse(readFileSync(join(REPO, rel), 'utf8'));
 
-// A verbatim copy of lib/output-reviewer.js's KHILAF_MARKERS. Copied and not imported because it
-// is not exported, and because a measuring instrument that drifts from the thing it measures is
-// worse than no instrument: if the reviewer's set changes, this line is the one to change with it.
-const KHILAF_MARKERS = /(?:خلاف|اختلف|قولان|أقوال|الراجح|الجمهور|بعض\s+أهل\s+العلم)/u;
+// IMPORTED, NEVER COPIED — and the import is the point. The reviewer owns this vocabulary and
+// exports it under two names: KHILAF_PROSE_MARKERS, the broad model-prose set, which is the one
+// this instrument has measured with since it was written; and KHILAF_SOURCE_MARKERS, the
+// narrowed constructions the source prong keys on. A copy here drifts from the thing it measures
+// the moment the reviewer's set moves, and the reviewer's own guard now fails ANY file outside it
+// that carries either set verbatim, with no exception for this tool.
 
 const line = (s) => process.stdout.write(s + '\n');
 const rule = () => line('-'.repeat(78));
@@ -84,7 +87,7 @@ for (const record of riba.records) {
   if (values.length) taggedRecords += 1;
   values.forEach((v) => tagValues.add(v));
 }
-const disputeTags = [...tagValues].filter((v) => KHILAF_MARKERS.test(v) || DISPUTE_WORD.test(v));
+const disputeTags = [...tagValues].filter((v) => KHILAF_PROSE_MARKERS.test(v) || DISPUTE_WORD.test(v));
 line(`  tag-shaped fields present: categories · collection.name`);
 line(`  records carrying any tag value: ${taggedRecords} of ${riba.records.length}`);
 line(`  distinct tag values (${tagValues.size}):`);
@@ -115,7 +118,7 @@ const declaring = [];
 for (const row of rowsA) {
   const signal = khilafSignal([row]);
   if (signal.opinionCount === 1) singles += 1;
-  if (KHILAF_MARKERS.test(row.text)) {
+  if (KHILAF_PROSE_MARKERS.test(row.text)) {
     singlesWhoseOwnTextDeclaresKhilaf += 1;
     declaring.push(row.title);
   }
@@ -136,7 +139,7 @@ line(`    opinionCount         : ${signalB.opinionCount}`);
 line(`    query                : ${riba.query}`);
 for (const r of riba.records) {
   line(`    - ${r.scholar?.shortName}: ${r.title}`);
-  line(`        own text declares khilaf: ${KHILAF_MARKERS.test((r.content?.question || '') + ' ' + (r.content?.answer || ''))}`);
+  line(`        own text declares khilaf: ${KHILAF_PROSE_MARKERS.test((r.content?.question || '') + ' ' + (r.content?.answer || ''))}`);
 }
 line(`    fixture's own note   : ${riba.note}`);
 line('');
