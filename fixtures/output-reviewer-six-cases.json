@@ -615,6 +615,30 @@
         "expect": { "shape": "named-answer", "firstContains": "\u0625\u062f\u0631\u064a\u0633", "laterContains": "\u0623\u0645\u0651\u0627 \u0639\u064a\u0633\u0649" }
       }
     ],
+    "quantityMeasurement": {
+      "priorMixedBlocks": 230,
+      "priorAnswerBlocksAfterQuestionExclusion": 140,
+      "set2AnswerBlocks": 11,
+      "totalAnswerBlocks": 151,
+      "truePositives": 1,
+      "falsePositives": 3,
+      "decision": "retired",
+      "falsePositiveIds": [
+        "battery-Q18-NEW/prod-2-part-versus-total",
+        "xray-Q12-turn-1-two-not-one",
+        "set2-preview-1-Q12-two-not-one"
+      ],
+      "positive": {
+        "id": "set2-preview-2-Q12-opposite-poles",
+        "source": "EZIK-SET2-FIQH-FOR-OWNER-2026-08-16.md preview/2/12",
+        "input": {
+          "text": "عليه أن يقوم بعد سلام الإمام ليصلّي ركعتين، لا ركعة واحدة.\nفالجواب: يقوم بعد سلام الإمام ليصلي ركعة واحدة فقط، لا ركعتين.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "audit"
+        }
+      }
+    },
     "negatives": [
       {
         "id": "b3a-traveller-distinction",
@@ -635,7 +659,7 @@
       {
         "id": "b3a-xray-q12-turn-1-negation-not-quantity",
         "source": "EZIK-XRAY-CC-ANSWERS-2026-08-17.txt Q12 turn 1",
-        "why": "struck 2026-08-17: the later clause negates the alternative inside one sentence ('two, not one'); it is not a second ruling. The quantity shape scored 0 hits and 1 false over the 140 deposited answers and was retired.",
+        "why": "remeasured 2026-08-17 on 151 answer-only blocks: the later clause negates the alternative inside one sentence ('two, not one'); it is not a second ruling. Quantity scored 1 true and 3 false, so it remains retired.",
         "input": {
           "text": "\u0641\u0625\u0630\u0627 \u0633\u0644\u0651\u0645 \u0627\u0644\u0625\u0645\u0627\u0645\u060c \u0642\u0627\u0645 \u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0628\u0648\u0642\u064f \u0641\u0623\u062a\u0645\u0651 \u0635\u0644\u0627\u062a\u0647 \u0627\u0644\u0641\u062c\u0631\u064e \u0643\u0627\u0645\u0644\u0629\u064b\u060c \u0623\u064a \u0631\u0643\u0639\u062a\u064a\u0646\u060c \u0644\u0627 \u0631\u0643\u0639\u0629\u064b \u0648\u0627\u062d\u062f\u0629\u060c \u0644\u0623\u0646\u0651\u0647 \u0644\u0645 \u064a\u064f\u062f\u0631\u0643 \u0645\u0639 \u0627\u0644\u0625\u0645\u0627\u0645 \u0648\u0644\u0627 \u0631\u0643\u0639\u0629\u064b \u0648\u0627\u062d\u062f\u0629\u064b \u0645\u0639\u062a\u062f\u064b\u0651\u0627 \u0628\u0647\u0627.",
           "evidence": [],

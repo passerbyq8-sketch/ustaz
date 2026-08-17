@@ -501,6 +501,25 @@ function verbatimMarkerCopies(files, markerSets) {
         result.text.includes(test.input.text), result.text);
     }
 
+    const quantityMeasurement = fixture.b3a?.quantityMeasurement;
+    ok('FIX-C-2 records the answer-only quantity measurement and numeric retirement decision',
+      quantityMeasurement?.priorMixedBlocks === 230
+        && quantityMeasurement.priorAnswerBlocksAfterQuestionExclusion === 140
+        && quantityMeasurement.set2AnswerBlocks === 11
+        && quantityMeasurement.totalAnswerBlocks === 151
+        && quantityMeasurement.truePositives === 1
+        && quantityMeasurement.falsePositives === 3
+        && quantityMeasurement.falsePositives > quantityMeasurement.truePositives
+        && quantityMeasurement.decision === 'retired'
+        && Array.isArray(quantityMeasurement.falsePositiveIds)
+        && quantityMeasurement.falsePositiveIds.length === 3,
+      JSON.stringify(quantityMeasurement));
+    const quantityPositive = module.reviewAnswer(quantityMeasurement.positive.input);
+    ok('FIX-C-2 deposits the new real quantity hit while the rejected shape stays absent',
+      quantityPositive.verdict.selfContradiction?.detected === false
+        && quantityPositive.text.includes(quantityMeasurement.positive.input.text),
+      JSON.stringify(quantityPositive.verdict.selfContradiction));
+
     ok('B-3A fixture carries every mandatory differentiated negative and the struck quantity witness',
       Array.isArray(fixture.b3a?.negatives) && fixture.b3a.negatives.length === 5);
     for (const test of fixture.b3a?.negatives || []) {
