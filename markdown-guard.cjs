@@ -455,5 +455,70 @@ console.log('\n=== D. THE WIRING (index.html) ===');
     !!first('[role="heading"]') && !!first('strong') && textOf().indexOf('**') === -1, textOf());
 }
 
+// ===========================================================================
+// F — XI-04: the review mark is a badge, and the clipboard has no brackets.
+// ===========================================================================
+// MEASURED on 17 August: in 10 browser rounds of 10 the final sheet carried «【فهم لا فتوى】 ما
+// تقدم فهم…» as raw characters in the prose, one round carried a second mark INSIDE a paragraph,
+// and the copy button put the 【】 brackets on the clipboard verbatim. Every ANGLE-bracket tag was
+// drawn as a card in the same ten rounds; this was the one mark with no renderer, so it fell
+// through as text. Asserted here because this is the file that renders a reply for real and reads
+// the DOM back — a text scan over index.html could not tell a badge from a paragraph.
+{
+  console.log('\n=== F. THE REVIEW MARK IS DRAWN, NOT PRINTED (XI-04) ===');
+  const OPEN = '【';
+  const CLOSE = '】';
+  const BRACKETS = /[【】]/u;
+  // Both shapes lib/output-reviewer.js produces: the notice that OPENS its own line, and the
+  // per-sentence mark that CLOSES a line of prose.
+  const NOTICE = OPEN + 'فهمٌ لا فتوى' + CLOSE + ' ما تقدّم فهمٌ مبنيٌّ على ما بين يديّ في هذه الدورة.';
+  const MARKED = 'وكذا الكبد والطحال لا تنقض عند الشيخ. ' + OPEN + 'فهمٌ لا نصٌّ منقول' + CLOSE;
+  const reply = MARKED + '\n\n' + NOTICE
+    + '\n\n<source site="binbaz.org.sa" url="https://binbaz.org.sa/x">فتوى</source>';
+  const parsed = api.parseRich(reply, 30);
+  const kinds = parsed.segments.map((sg) => sg.type);
+  eq('the mark is lifted into its own segment beside the cards', kinds,
+    ['text', 'notice', 'notice', 'source']);
+  ok('no prose segment still carries a bracket',
+    !parsed.segments.some((sg) => sg.type === 'text' && BRACKETS.test(sg.content)),
+    JSON.stringify(parsed.segments.filter((sg) => sg.type === 'text').map((sg) => sg.content)));
+  ok('the prose that carried the closing mark is delivered whole',
+    parsed.segments[0].content.indexOf('وكذا الكبد والطحال لا تنقض عند الشيخ.') === 0,
+    parsed.segments[0].content);
+  ok('a mark that OPENS its line takes the server sentence with it',
+    parsed.segments[2].label === 'فهمٌ لا فتوى'
+      && parsed.segments[2].content.indexOf('ما تقدّم') === 0,
+    JSON.stringify(parsed.segments[2]));
+  ok('a mark that CLOSES a line takes no body from the prose around it',
+    parsed.segments[1].content === '', JSON.stringify(parsed.segments[1]));
+
+  const copied = api.serialize(parsed.segments, { tashkeel: true, band: 'adult' });
+  ok('THE CLIPBOARD CARRIES NO BRACKET', !BRACKETS.test(copied), copied);
+  ok('...and still carries what the mark said',
+    copied.indexOf('فهمٌ لا فتوى') !== -1 && copied.indexOf('فهمٌ لا نصٌّ منقول') !== -1, copied);
+
+  // RENDER THE WHOLE REPLY and read the tree, which is the only thing that can tell a badge from
+  // a paragraph. `render()` above mounts one Markdown component; this mounts the segment list.
+  const segHost = window.document.getElementById('md');
+  vm.runInContext(
+    '(function (host, text) {'
+    + '  var p = parseRichMessage(text, 30);'
+    + '  ReactDOM.flushSync(function () {'
+    + '    host.__r.render(React.createElement(React.Fragment, null,'
+    + '      ezikRenderSegments(p.segments, { tashkeel: true, age: 30 })));'
+    + '  });'
+    + '})', ctx, { filename: 'markdown-guard-segments' })(
+    Object.assign(segHost, { __r: mdRoot }), reply);
+  const shown = String(segHost.textContent || '');
+  ok('RENDERED: no ornate bracket reaches the screen', !BRACKETS.test(shown), shown.slice(0, 240));
+  ok('RENDERED: the mark is announced as a note, not as more of the answer',
+    !!segHost.querySelector('[role="note"]'), segHost.innerHTML.slice(0, 300));
+  ok('RENDERED: what the mark said is still on the screen',
+    shown.indexOf('فهمٌ لا فتوى') !== -1, shown.slice(0, 240));
+  ok('RENDERED: the answer prose and the source chip are untouched',
+    shown.indexOf('لا تنقض عند الشيخ') !== -1 && shown.indexOf('binbaz.org.sa') !== -1,
+    shown.slice(0, 320));
+}
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

@@ -681,6 +681,12 @@ const user = (t) => [{ role: 'user', content: t }];
     };
     sandbox.KNOWN_TAG_NAMES = vm.runInNewContext('(' + initializer('KNOWN_TAG_NAMES') + ')', sandbox);
     sandbox.KNOWN_TAGS = vm.runInNewContext('(' + initializer('KNOWN_TAGS') + ')', sandbox);
+    // XI-04: parseRichMessage now lifts the review mark out of the prose before it returns.
+    // These three are hoisted the same way KNOWN_TAGS is, so this gate drives the REAL lift
+    // rather than a passthrough stub that would agree with anything the client did.
+    sandbox.EZIK_NOTICE_RE = vm.runInNewContext('(' + initializer('EZIK_NOTICE_RE') + ')', sandbox);
+    sandbox.EZIK_NOTICE_ALL = vm.runInNewContext('(' + initializer('EZIK_NOTICE_ALL') + ')', sandbox);
+    sandbox.ezikLiftNotices = vm.runInNewContext('(' + initializer('ezikLiftNotices') + ')', sandbox);
     const clientFunction = (name) => {
       const source = initializer(name);
       ok('the client exposes ' + name + ' as a structural unit', !!source);

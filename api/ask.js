@@ -1206,7 +1206,7 @@ export default async function handler(req, res) {
       // Lazy for the reason the head of this file gives about retrieve(): the loop reaches
       // linkedom/Readability only if the model actually calls a web tool, and a turn that
       // answers a sum from memory must not pay for loading them.
-      const { runFreeBrainTurn } = await import('../lib/free-brain/loop.js');
+      const { runFreeBrainTurn, pickReaderCards } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
 
       // The model writes no cards on this path — it cites by marker and the SERVER builds the
@@ -1245,21 +1245,67 @@ export default async function handler(req, res) {
       }
       if (freeUpstream.signal.aborted || req.signal?.aborted) return;
 
-      // THE CARD FOLLOWS THE CITATION. `out.cited` is the rows the finished text actually cited,
-      // in the order it cited them — not the rows retrieval happened to return.
-      const cards = registerOwnedCards(out.cited
-        .map((row) => (row.url ? buildSourceTag({ url: row.url, title: row.title }) : null))
-        .filter(Boolean));
+      // THE CARD FOLLOWS THE CITATION. `out.cited` is the rows the DELIVERED text actually cited,
+      // in the order the delivered text cites them — not the rows retrieval happened to return,
+      // and not the rows the draft cited before the reviewer had its say (see §٣ in
+      // lib/free-brain/loop.js).
+      //
+      // ── AND THE CEILING IS THE SAME CEILING (XC-07) ────────────────────────
+      // MAX_SOURCES has said «three» since it was written, and the free branch was the one path
+      // that never read it: this list was built with no `slice` and no limit, so every cited row
+      // with a usable URL became a card however many there were. MEASURED: four cards in three
+      // answers of the second set, and five on question 17 of the 17 August production battery.
+      // Past three, a reply stops citing and starts listing — which is the whole reason the
+      // constant exists. The selection rule, and why deduplication runs before the cut, are
+      // written out in `pickReaderCards`; the constant stays here, where every other path reads it.
+      const cards = registerOwnedCards(pickReaderCards(out.cited, MAX_SOURCES,
+        (row) => buildSourceTag({ url: row.url, title: row.title })));
       finalizerContext.readerCards = cards;
       finalizerContext.readerCardPrefix = cards.length ? '\n\n' : '';
-      // The takhrij seal reads the pages in hand. Only the CITED rows are handed to it, for the
-      // same reason only they get cards: a page nobody quoted supports nothing.
+      // The takhrij seal reads the pages in hand. Only the CITED rows are handed to it: a page
+      // nobody quoted supports nothing. It is deliberately NOT capped with the cards above — the
+      // cap is a rule about how much a reply may display, and the seal displays nothing. It
+      // verifies that a quotation in the prose came from a page this turn actually held, and
+      // withholding the fourth of those pages from it would make it fail to find a quotation that
+      // is perfectly well sourced.
       storedFinalizerSources.length = 0;
       for (const row of out.cited) {
         storedFinalizerSources.push({
           url: row.url, title: row.title, passage: row.passage || row.text || '',
         });
       }
+      // ── §٤: THE MINUTE OF WHAT WAS REMOVED (XC-03) ─────────────────────────
+      //
+      // WHAT THE LOG COULD NOT SAY. The reviewer's three destructive arms keep the original in
+      // `annotations` in memory, and `verdict` reduced each one to a sentence number and an action
+      // name. So the operational log knew that a removal had happened and never what was removed —
+      // and every reviewer defect since has had to be reconstructed by hand, by joining a Vercel
+      // line to a delivered answer through `x-vercel-id` (EZIK-SET2-REPORT-2026-08-16.md:64-75).
+      //
+      // THE TWO NAMES ARE `before` AND `after`, WRITTEN INTO BOTH HALVES OF THIS ROUND'S ORDER.
+      // They are branch ب's to produce, on `verdict.sentences`, capped at 200 characters each.
+      // Nothing is invented here and lib/output-reviewer.js is not touched: this reads the field
+      // if it is there and reports its absence if it is not, so the two halves can land in either
+      // order without one of them failing on the other.
+      //
+      // IT IS SERIALISED RATHER THAN HANDED TO console.log AS AN OBJECT. `verdict` below is
+      // already three levels deep by the time it reaches `sentences[i].before`, and the platform
+      // log prints `[Object]` at that depth — a minute nobody can read is the defect, not the fix.
+      const redactions = (Array.isArray(out.verdict?.sentences) ? out.verdict.sentences : [])
+        .filter((row) => row && (typeof row.before === 'string' || typeof row.after === 'string'))
+        .map((row) => ({
+          sentence: row.sentence, action: row.action, before: row.before, after: row.after,
+        }));
+      const destructive = (Array.isArray(out.verdict?.sentences) ? out.verdict.sentences : [])
+        .filter((row) => row && /^(?:removed-|replaced-|last-resort)/u.test(String(row.action || '')));
+      console.log('[free-brain/redactions]', JSON.stringify({
+        destructive: destructive.length,
+        carried: redactions.length,
+        // Said out loud rather than left as a silent empty array: a turn that cut something and
+        // recorded nothing is the state this item exists to end, and it must be visible as such.
+        minuteMissing: destructive.length > 0 && redactions.length === 0,
+        rows: redactions,
+      }));
       console.log('[free-brain/turn]', {
         domain: out.domain,
         rounds: out.rounds,

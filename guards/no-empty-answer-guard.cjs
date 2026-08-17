@@ -381,8 +381,11 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // NOTE ON LINE ENDINGS: this working tree checks out CRLF, so every seam below matches on
     // `\r?\n` rather than a literal newline. A seam written with `\n` reports «seam moved» on
     // Windows and «MUTANT KILLED» on nothing at all.
+    // §٣ MOVED THIS SEAM AND THE MUTANT MOVED WITH IT. The turn now returns `deliveredText` —
+    // the reviewer's text with the model's invented footnote numbers taken out of it — so the
+    // mutant that puts the unreviewed draft back on the wire names that binding instead.
     const shownMutant = await loopMutant('reviewed-text-discarded',
-      (source) => source.replace(/^ {4}text: reviewed\.text,$/mu, '    text: readerText,'));
+      (source) => source.replace(/^ {4}text: deliveredText,$/mu, '    text: readerText,'));
     ok('shown-text mutant seam applied', shownMutant.changed, shownMutant.error);
     ok('shown-text mutant module loaded successfully', shownMutant.loaded, shownMutant.error);
     ok('MUTANT KILLED: showing the draft instead of the reviewed text cannot pass',
@@ -423,6 +426,268 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('write-key mutant module loaded successfully', keyMutant.loaded, keyMutant.error);
     ok('MUTANT KILLED: E4 cannot be deleted by keying the write on the accumulated text',
       keyMutant.loaded && keyMutant.survived === false, JSON.stringify(keyMutant));
+
+    // ── F. §٢: COLLECTED, YES. DELIVERED, ONLY IF IT IS AN ANSWER ────────────
+    //
+    // WHAT THIS SECTION REPLACES, AND WHY THE OLD ASSERTION WAS TOO WIDE. Section D above proves
+    // that prose written in a tool round is not thrown on the floor, and that is still true and
+    // still asserted. But until this round `carriesBothRounds` was the WHOLE law, and it says
+    // «every tool-round prose reaches the reader» — an assertion that also blesses the case
+    // XC-13 named: an announcement of a move to a tool, delivered as an answer. The X-ray
+    // measured six of them on twenty fiqh answers, five as the FIRST line the reader saw
+    // (EZIK-XRAY-CC-REPORT-2026-08-17.md, XI-03). The guard was proving a mechanism wider than
+    // the safe property.
+    //
+    // THE LAW IS NOW TWO CLAUSES AND BOTH ARE PINNED HERE:
+    //   collection  — every round's prose is still gathered, whatever it says   (D above, and the
+    //                 ledger assertion below, which counts the announcement's characters)
+    //   delivery    — an announcement of a move to a tool is not handed over    (F1)
+    //   and the negative witness that keeps this a REPAIR and not a REMOVAL:
+    //   a real answer written in a tool round is delivered WHOLE, including one that answers and
+    //   announces in the same sentence (F2). A mutant that drops it dies (M7).
+    const ANNOUNCE = 'سأبحث لك في فتاوى العلماء عن هذه المسألة تحديداً.';   // XI-03, answer 15/1
+    const MIXED = 'سأتحقق من المدة، والجمع للمسافر جائز عند الحاجة.';       // announces AND answers
+
+    // F1 — the announcement is collected and not delivered.
+    const announceTurn = await driveScript(loop,
+      (i) => (i === 0 ? withTool(ANNOUNCE, 't0') : textPayload(LATE)));
+    ok('an announcement of a move to a tool does not reach the reader',
+      !announceTurn.text.includes('سأبحث'), announceTurn.text);
+    ok('...and the answer that followed it still does',
+      announceTurn.text.includes(LATE), announceTurn.text);
+    // COLLECTION IS UNTOUCHED, AND THIS IS WHERE THAT IS PROVED RATHER THAN ASSERTED. The ledger
+    // counts the characters the ROUND CARRIED; the text above is what was DELIVERED. The two
+    // disagreeing by exactly the announcement is the whole of the new law in one pair of numbers.
+    ok('...while the round ledger still records that the round CARRIED that prose',
+      announceTurn.roundLedger[0].textChars === ANNOUNCE.length,
+      JSON.stringify(announceTurn.roundLedger));
+    ok('...and the drop is named in degraded with the size it removed',
+      (announceTurn.degraded || []).some((d) => /^tool_announcement_dropped:\d+$/u.test(d)),
+      JSON.stringify(announceTurn.degraded));
+
+    // F2 — THE NEGATIVE WITNESS. Without this the filter could be «drop every tool-round line»
+    // and every assertion above would still be green.
+    const keepsRealAnswer = async (loopModule) => {
+      const plain = await driveScript(loopModule,
+        (i) => (i === 0 ? withTool(EARLY, 't0') : textPayload(LATE)));
+      const mixed = await driveScript(loopModule,
+        (i) => (i === 0 ? withTool(MIXED, 't0') : textPayload(LATE)));
+      return typeof plain?.text === 'string' && plain.text.includes(EARLY)
+        && typeof mixed?.text === 'string' && mixed.text.includes(MIXED);
+    };
+    ok('a real answer written in a tool round is delivered, whole — including one that announces '
+      + 'and answers in the same sentence', await keepsRealAnswer(loop));
+
+    // M6 — the delivery filter removed. This is the shipped behaviour of 17 August: everything
+    // collected is handed over, announcements included.
+    const deliverMutant = await loopMutant('delivery-filter-removed',
+      (source) => source.replace('  const answer = deliverableText(collected);',
+        '  const answer = collected; // mutant: deliver everything that was collected'),
+      async (twinModule) => {
+        const turn = await driveScript(twinModule,
+          (i) => (i === 0 ? withTool(ANNOUNCE, 't0') : textPayload(LATE)));
+        return typeof turn?.text === 'string' && !turn.text.includes('سأبحث');
+      });
+    ok('delivery-filter mutant seam applied', deliverMutant.changed, deliverMutant.error);
+    ok('delivery-filter mutant module loaded successfully', deliverMutant.loaded, deliverMutant.error);
+    ok('MUTANT KILLED: the announcement cannot be delivered by dropping the filter',
+      deliverMutant.loaded && deliverMutant.survived === false, JSON.stringify(deliverMutant));
+
+    // M7 — the filter widened to «anything that announces», the exact over-reach §٢/٢ forbids.
+    // It kills the sentence that announces AND answers, and F2's property is what catches it.
+    const wideMutant = await loopMutant('filter-ignores-answer-content',
+      (source) => source.replace('  if (ANSWER_CONTENT_RE.test(folded)) return false;',
+        '  // mutant: drop anything that announces, answer content or not'),
+      keepsRealAnswer);
+    ok('wide-filter mutant seam applied', wideMutant.changed, wideMutant.error);
+    ok('wide-filter mutant module loaded successfully', wideMutant.loaded, wideMutant.error);
+    ok('MUTANT KILLED: a filter that also drops answers is a removal, not a repair',
+      wideMutant.loaded && wideMutant.survived === false, JSON.stringify(wideMutant));
+
+    // ── G. §٣: THE CARD IS DECIDED AFTER THE REVIEWER, NOT BEFORE ────────────
+    //
+    // THE DEFECT. `collectCited` ran on the PROPOSAL and the card list was built from its answer,
+    // while `reviewAnswer` ran afterwards on the same text and was free to destroy the very
+    // sentence that had cited. The card outlived its sentence. XI-05 is what that looks like on a
+    // screen: a full ayah card under «ما حكم صيام يوم عرفة لغير الحاج؟», mostly about the
+    // forbidden meats, beneath prose that refers to no verse at all.
+    //
+    // HOW IT IS DRIVEN WITHOUT A NETWORK, and why the second tool call is here. The reviewer only
+    // DESTROYS a sentence on its dynamic-claim arm, and `sentenceDomain` only reaches that arm
+    // per-sentence when the turn's domain is `mixed`. `domainOf` reads `ctx.spend`, and `runTool`
+    // records spend for a call that returned NOTHING — so a `search_live` call that finds zero
+    // pages offline still makes the turn mixed, while `search_sources` fills the evidence table
+    // from the in-process encyclopedia. Both are offline: the stub throws on any host but its own,
+    // which is this file's standing guarantee that no egress happens.
+    const twoTools = (id) => ({
+      stop_reason: 'tool_use',
+      content: [
+        { type: 'tool_use', id: id + 'a', name: 'search_sources', input: { query: 'الجمع بين الصلاتين للمسافر' } },
+        { type: 'tool_use', id: id + 'b', name: 'search_live', input: { query: 'طقس الكويت' } },
+      ],
+    });
+    const RULING = 'الجمع للمسافر جائز عند الحاجة [[1]].';
+    const DOOMED = 'درجة الحرارة اليوم في الكويت ثمان وثلاثون مئوية [[2]].';
+    const citeTurn = (loopModule, final) => driveScript(loopModule,
+      (i) => (i === 0 ? twoTools('t0') : textPayload(final)));
+
+    const survivorTurn = await citeTurn(loop, RULING + '\n' + DOOMED);
+    ok('the turn is mixed, so the reviewer judges each sentence in its own domain',
+      survivorTurn.domain === 'mixed', String(survivorTurn.domain));
+    ok('the reviewer destroyed the dynamic claim that cited [[2]]',
+      !survivorTurn.text.includes('ثمان وثلاثون'), survivorTurn.text);
+    // THE PROPERTY. Two refs were cited by the PROPOSAL; one sentence survived; one card is
+    // returned, and it is the surviving sentence's.
+    const cardsAfterReview = (turn) => Array.isArray(turn?.cited) && turn.cited.length === 1
+      && turn.cited[0].ref === 1;
+    ok('...so one card is returned, not two — the card follows the sentence that was delivered',
+      cardsAfterReview(survivorTurn), JSON.stringify((survivorTurn.cited || []).map((r) => r.ref)));
+    ok('...and the recount is named in degraded',
+      (survivorTurn.degraded || []).includes('cards_after_review:2->1'),
+      JSON.stringify(survivorTurn.degraded));
+
+    // A turn whose ONLY citing sentence is destroyed keeps no card at all.
+    const orphanedTurn = await citeTurn(loop, DOOMED);
+    ok('a card whose only sentence the reviewer replaced is not shown',
+      (orphanedTurn.cited || []).length === 0, JSON.stringify(orphanedTurn.cited));
+    // ...and the standing safety property §٣ says must not be broken: a row that never entered the
+    // model's context cannot be shown. `byRef` resolves nothing outside the table, so a ref the
+    // model invented buys no card.
+    const inventedTurn = await citeTurn(loop, 'الجمع للمسافر جائز عند الحاجة [[97]].');
+    ok('a ref the model invented resolves to no card at all',
+      (inventedTurn.cited || []).length === 0, JSON.stringify(inventedTurn.cited));
+
+    // M8 — the pre-repair ORDER restored: the cards are read off the proposal again.
+    const orderMutant = await loopMutant('cards-collected-before-the-reviewer',
+      // `\r?\n`, for the reason M1's note gives: this tree checks out CRLF, and a seam written
+      // with a bare `\n` reports «seam moved» and kills nothing at all.
+      (source) => source.replace(
+        / {2}const surviving = citedRefs\r?\n/u,
+        '  const surviving = citedRefs.map((ref) => ({ ref, anchor: \'\', at: 0 })); const _ignored = citedRefs\n'),
+      async (twinModule) => cardsAfterReview(await citeTurn(twinModule, RULING + '\n' + DOOMED)));
+    ok('card-order mutant seam applied', orderMutant.changed, orderMutant.error);
+    ok('card-order mutant module loaded successfully', orderMutant.loaded, orderMutant.error);
+    ok('MUTANT KILLED: a card list read off the proposal cannot pass',
+      orderMutant.loaded && orderMutant.survived === false, JSON.stringify(orderMutant));
+
+    // ── H. §٣/٢: A REFERENCE NUMBER WITH NO CARD BEHIND IT DOES NOT GO OUT ───
+    //
+    // `[1]`, `[2][4]`, `[7]` are not the tool layer's `[[n]]` — they are the model's own footnotes
+    // into a numbered reference list this application has never rendered. Nothing saw them, so
+    // nothing removed them: question 14 delivered five of them over two passes with ZERO cards
+    // under the answer (XI-15). The reader is promised a reference and given no way to reach one.
+    const FOOTNOTED = 'الجمع للمسافر جائز عند الحاجة [[1]]. وقال أهل العلم بذلك [7] وكذلك [1][2].';
+    const noOrphanNumbers = async (loopModule) => {
+      const turn = await citeTurn(loopModule, FOOTNOTED);
+      return typeof turn?.text === 'string'
+        && !/\[\s*[0-9٠-٩]/u.test(turn.text)
+        && turn.text.includes('وقال أهل العلم بذلك');
+    };
+    ok('an invented reference number does not reach the reader, and its prose does',
+      await noOrphanNumbers(loop));
+
+    // M9 — the removal dropped. The numbers ride out again exactly as they did on 17 August.
+    const numberMutant = await loopMutant('orphan-reference-numbers-delivered',
+      (source) => source.replace(
+        '  const deliveredText = dropOrphanRefNumbers(reviewed.text) || reviewed.text;',
+        '  const deliveredText = reviewed.text; // mutant: deliver the invented footnotes'),
+      noOrphanNumbers);
+    ok('orphan-number mutant seam applied', numberMutant.changed, numberMutant.error);
+    ok('orphan-number mutant module loaded successfully', numberMutant.loaded, numberMutant.error);
+    ok('MUTANT KILLED: an invented reference number cannot be delivered again',
+      numberMutant.loaded && numberMutant.survived === false, JSON.stringify(numberMutant));
+
+    // ── I. §١: THE CARD CEILING APPLIES TO THIS BRANCH TOO (XC-07) ───────────
+    //
+    // `MAX_SOURCES = 3` sat in api/ask.js unread by this path: the card list was built with no
+    // slice and no limit, and `registerOwnedCards` only removes duplicates. Four cards came out in
+    // three answers of the second set and five on question 17 of the 17 August battery.
+    //
+    // The rule is driven as the pure function it is. `max` and `buildTag` are the handler's — the
+    // constant and the URL safety stay where they were — so what is asserted here is the SELECTION
+    // and nothing else.
+    const rows = (n) => Array.from({ length: n }, (_, i) => ({
+      ref: i + 1, url: 'https://binbaz.org.sa/fatwas/' + (i + 1), title: 'فتوى ' + (i + 1),
+    }));
+    const tagOf = (row) => ({ tag: '<source url="' + row.url + '">' + row.title + '</source>' });
+    const capped = (loopModule, cited) => loopModule.pickReaderCards(cited, 3, tagOf);
+
+    ok('five cited pages yield three cards', capped(loop, rows(5)).length === 3,
+      JSON.stringify(capped(loop, rows(5)).length));
+    ok('four cited pages yield three cards', capped(loop, rows(4)).length === 3);
+    ok('two cited pages still yield two — the ceiling is not a quota',
+      capped(loop, rows(2)).length === 2);
+    ok('the three kept are the FIRST three in delivered-text order, not any other three',
+      capped(loop, rows(5)).map((c) => c.tag).join('|')
+        === rows(3).map((r) => tagOf(r).tag).join('|'),
+      JSON.stringify(capped(loop, rows(5)).map((c) => c.tag)));
+    // DEDUPLICATION BEFORE THE CUT. Four citations of which two are the same page must deliver
+    // THREE distinct cards, not two — capping first would let the repeat evict a distinct source.
+    const withRepeat = [rows(1)[0], rows(1)[0], ...rows(4).slice(1)];
+    ok('a page cited twice costs one slot, not two',
+      capped(loop, withRepeat).length === 3
+        && new Set(capped(loop, withRepeat).map((c) => c.tag)).size === 3,
+      JSON.stringify(capped(loop, withRepeat).map((c) => c.tag)));
+    ok('a cited row with no page yields no card and consumes no slot',
+      capped(loop, [{ ref: 1, url: '', title: 'الموسوعة' }, ...rows(3)]).length === 3);
+
+    // M10 — the limit dropped, which is the shipped behaviour of 17 August.
+    const capMutant = await loopMutant('card-ceiling-removed',
+      (source) => source.replace('    if (out.length >= max) break;',
+        '    // mutant: no ceiling on this branch, exactly as it shipped'),
+      async (twinModule) => capped(twinModule, rows(5)).length === 3);
+    ok('card-ceiling mutant seam applied', capMutant.changed, capMutant.error);
+    ok('card-ceiling mutant module loaded successfully', capMutant.loaded, capMutant.error);
+    ok('MUTANT KILLED: the free branch cannot go back to an unlimited card list',
+      capMutant.loaded && capMutant.survived === false, JSON.stringify(capMutant));
+
+    // M11 — the cut moved ahead of the deduplication. It passes every count above and still hands
+    // the reader two cards where three distinct pages were cited.
+    const orderCapMutant = await loopMutant('cap-before-dedup',
+      (source) => source.replace(
+        '    if (card && card.tag && !out.some((item) => item.tag === card.tag)) out.push(card);',
+        '    if (card && card.tag) out.push(card);'),
+      async (twinModule) => {
+        const got = capped(twinModule, withRepeat);
+        return got.length === 3 && new Set(got.map((c) => c.tag)).size === 3;
+      });
+    ok('cap-before-dedup mutant seam applied', orderCapMutant.changed, orderCapMutant.error);
+    ok('cap-before-dedup mutant module loaded successfully', orderCapMutant.loaded, orderCapMutant.error);
+    ok('MUTANT KILLED: a repeated page cannot evict a distinct one',
+      orderCapMutant.loaded && orderCapMutant.survived === false, JSON.stringify(orderCapMutant));
+
+    // AND THE HANDLER MUST ACTUALLY CALL IT. A pure rule nothing invokes is a green gate over the
+    // defect itself, which is exactly the shape XC-13 was.
+    const askSource = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
+    ok('api/ask.js builds the free branch\'s cards through the capped rule',
+      /registerOwnedCards\(pickReaderCards\(out\.cited, MAX_SOURCES,/u.test(askSource));
+    ok('...and imports it from the loop rather than keeping a second copy',
+      /const \{ runFreeBrainTurn, pickReaderCards \} = await import\('\.\.\/lib\/free-brain\/loop\.js'\);/u
+        .test(askSource));
+    ok('...and MAX_SOURCES is still the one constant, still three',
+      /^const MAX_SOURCES = 3;$/mu.test(askSource));
+
+    // ── J. §٤: THE MINUTE OF WHAT WAS REMOVED (XC-03) ────────────────────────
+    //
+    // THE JOINT WITH BRANCH ب. It produces `before` and `after` on `verdict.sentences`; this side
+    // prints them. The two names are pinned by TEXT because that is what the joint IS — a field
+    // name written into both halves of the order — and because the producing half lands in another
+    // worktree, so the only thing this gate can hold today is that the consumer reads exactly the
+    // agreed names and invents neither.
+    ok('the redaction minute is emitted as its own serialised line',
+      /console\.log\('\[free-brain\/redactions\]', JSON\.stringify\(\{/u.test(askSource));
+    for (const field of ['before', 'after']) {
+      ok('...and it reads the agreed field name `' + field + '` and no synonym',
+        new RegExp("typeof row\\." + field + " === 'string'").test(askSource)
+          && new RegExp("\\b" + field + ": row\\." + field).test(askSource), field);
+    }
+    ok('...and it reports a cut whose minute did not arrive rather than printing an empty array',
+      /minuteMissing: destructive\.length > 0 && redactions\.length === 0,/u.test(askSource));
+    // The minute is READ, never produced here: the handler reaches the reviewer through the loop's
+    // one call site and holds no import of its own, so this side cannot start writing the fields
+    // it is supposed to be reporting.
+    ok('...and the handler does not import the reviewer to manufacture the minute itself',
+      !/(?:import|from)\s*\(?\s*'[^']*output-reviewer\.js'/u.test(askSource));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

@@ -269,9 +269,15 @@ async function sectionE() {
   const twin = await LAW.mutate({
     file: LAW.LOOP,
     name: 'uncardable-citation-dropped-again',
+    // SEAM MOVED BY §٣ OF THE 2026-08-17 DELIVERY ROUND, PROPERTY UNCHANGED. The card list is now
+    // built AFTER the reviewer, from the refs whose sentences survived into the delivered text
+    // (`surviving`), instead of straight off the proposal. The mutation this gate makes is the
+    // same one it always made — re-add the «only a row with a page counts» filter — applied at the
+    // line that now carries it, and E8 still asserts that a cited record without a page reaches
+    // the model's context and simply gets no card.
     transform: (src) => src.replace(
-      /^ {2}const cited = citedRefs\.map\(\(ref\) => table\.byRef\(ref\)\)\.filter\(Boolean\);$/mu,
-      '  const cited = citedRefs.map((ref) => table.byRef(ref)).filter(Boolean).filter((row) => row.url);'),
+      /^ {2}const cited = surviving\.map\(\(entry\) => table\.byRef\(entry\.ref\)\)\.filter\(Boolean\);$/mu,
+      '  const cited = surviving.map((entry) => table.byRef(entry.ref)).filter(Boolean).filter((row) => row.url);'),
     check: async (mod) => {
       const out = await LAW.driveFreeTurn({
         module: mod,

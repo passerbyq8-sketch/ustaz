@@ -1407,7 +1407,15 @@ const EZ_I18N = {
     'chat.send': 'إرسال',
     'chat.stop': 'إيقاف',
     'chat.placeholder': 'اكتب سؤالك…',
-    'chat.searchingSources': 'يبحث في المصادر…',
+    // XI-02: NEUTRAL BY MEASUREMENT. This hint is a CLIENT-SIDE TIMER, not a server signal —
+    // index.html's own note at `clearSearchingHint` says so. It fired in 10 rounds of 10 on
+    // 17 August, always at 4.0s, and three of those rounds ended with ZERO source cards: the
+    // shortest finished at 4,604ms, so a reader was told «searching the sources» for 548ms of
+    // an answer that showed no source at all. A timer cannot promise a search it cannot see.
+    // What it CAN say truthfully is that the answer is still being prepared, which is true of
+    // every turn it fires on. (The key keeps its historical name; the string is what a reader
+    // sees, and renaming the key would touch nine call sites for no reader-visible gain.)
+    'chat.searchingSources': 'يُحضِّرُ الجوابَ…',
     'chat.quickActions': 'إجراءات سريعة على آخر رد',
     'chat.removeImage': 'إزالة الصورة',
     'chat.listen': 'استمع للرد',
@@ -1598,7 +1606,7 @@ const EZ_I18N = {
     'chat.send': 'Send',
     'chat.stop': 'Stop',
     'chat.placeholder': 'Type your question…',
-    'chat.searchingSources': 'Searching the sources…',
+    'chat.searchingSources': 'Preparing the answer…',
     'chat.quickActions': 'Quick actions on the latest reply',
     'chat.removeImage': 'Remove the image',
     'chat.listen': 'Listen to the reply',
@@ -3309,6 +3317,54 @@ function showChildVoiceNotice(setMsg) {
   } catch (e) {}
 }
 
+// ============================================================
+// XI-04 — الوسمُ شارةٌ لا محارفُ في المتن (the review mark is a badge)
+// ============================================================
+// WHAT WAS MEASURED. In 10 browser rounds of 10 on 17 August the final sheet carried, as raw
+// characters in the prose, the line «【فهم لا فتوى】 ما تقدم فهم مبني على ما بين يدي في هذه
+// الدورة، لا فتوى مسندة إلى مفت بعينه.», and one round carried a second mark INSIDE a paragraph
+// («…وإن توضأ منها احتياطا فحسن لا واجب. 【فهم لا نص منقول】»). The copy button put the 【】
+// brackets on the clipboard verbatim. Every ANGLE-bracket tag was drawn as a card in the same ten
+// rounds; this was the one mark the client had no renderer for, so it fell through as text.
+//
+// THE MEANING STAYS, THE SHAPE CHANGES. The mark is lifted into its own segment and drawn as a
+// badge beside the cards, and the clipboard receives its words without the brackets.
+//
+// TWO SHAPES, AND THEY ARE THE ONLY TWO lib/output-reviewer.js PRODUCES:
+//   (a) `tag()` appends the bare mark AFTER the sentence it is about  -> the mark closes a line
+//   (b) a NOTICE is `mark + ' ' + sentence` as its own output entry   -> the mark opens a line
+// So the rest of the line is the badge's body ONLY when the mark OPENS the line. Anything else —
+// a mark that turns up mid-sentence from some future writer — takes no body and the prose around
+// it is left exactly where it was, rather than being swallowed into a badge.
+const EZIK_NOTICE_RE = /【([^】\n]{1,80})】/u;
+const EZIK_NOTICE_ALL = /【([^】\n]{1,80})】/gu;
+
+const ezikLiftNotices = (segments) => {
+  const out = [];
+  (segments || []).forEach((seg) => {
+    if (!seg || seg.type !== 'text' || !EZIK_NOTICE_RE.test(seg.content || '')) { out.push(seg); return; }
+    const prose = [];
+    const notices = [];
+    String(seg.content).split('\n').forEach((line) => {
+      if (!EZIK_NOTICE_RE.test(line)) { prose.push(line); return; }
+      const labels = [];
+      const stripped = line
+        .replace(EZIK_NOTICE_ALL, (all, label) => { labels.push(label.trim()); return ''; })
+        .replace(/[ \t]{2,}/g, ' ')
+        .trim();
+      const opensLine = /^\s*【/.test(line);
+      labels.forEach((label, i) => notices.push({
+        type: 'notice', label, content: (opensLine && i === 0) ? stripped : '',
+      }));
+      if (!opensLine && stripped) prose.push(stripped);
+    });
+    const kept = prose.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    if (kept) out.push({ type: 'text', content: kept });
+    notices.forEach((notice) => out.push(notice));
+  });
+  return out;
+};
+
 const parseRichMessage = (text, viewerAge) => {
   // Tolerate a <document> whose </document> never arrived (stream/token cutoff): close it so it still renders as a card.
   { const _d = text.search(/<document\b[^>]*>/); if (_d !== -1 && text.indexOf('</document>', _d) === -1) text = text + '</document>'; }
@@ -3421,7 +3477,9 @@ const parseRichMessage = (text, viewerAge) => {
   if (segments.length === 0 && !suggestions.length) {
     segments.push({ type: 'text', content: text.trim() });
   }
-  return { segments, suggestions };
+  // XI-04: the review mark leaves the prose here, LAST — after every card has been separated, so
+  // a mark that landed inside a hadith or a source body is not lifted out of a card it belongs to.
+  return { segments: ezikLiftNotices(segments), suggestions };
 };
 
 // ============================================================
@@ -6235,7 +6293,10 @@ function App() {
   const audioDoneRef = useRef(null);    // current TTS playback resolver, so takeAudioFocus can cancel it cleanly
   const audioPlayTokenRef = useRef(0);  // invalidates stale pause/ended events on the reused element
   const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
-  const [searchingSources, setSearchingSources] = useState(false); // TEXT path only: shows "يبحث في المصادر…" during the silent RAG round-1 wait
+  // TEXT path only: shows chat.searchingSources during the silent round-1 wait. The name is
+  // historical — XI-02 made the string neutral, because the client cannot know that a search
+  // is running and three of ten measured rounds carrying this hint returned no source at all.
+  const [searchingSources, setSearchingSources] = useState(false);
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
   const searchTimerRef = useRef(null);    // delayed trigger for the "searching sources…" hint (client-side, time-based)
 
@@ -8807,7 +8868,9 @@ function App() {
               ? <div style={s.bubbleText}><EzikMarkdown text={formatForStreamPreview(streamingText)} /></div>
               : searchingSources
                 ? <div style={s.searchingHint}>
-                    <span>يبحث في المصادر…</span>
+                    {/* XI-02: read from the dictionary, so the string a reader sees exists in
+                        exactly one place and cannot drift back into a promise of a search. */}
+                    <span>{ezT('chat.searchingSources')}</span>
                     <span style={s.dot}>●</span>
                     <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
                     <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
@@ -9252,6 +9315,11 @@ const REPLY_SERIALIZERS = {
   steps: (sg) => REPLY_LINE(((sg.title || '').trim() ? [(sg.title || '').trim()] : []).concat(
     (sg.items || []).map((it, i) => (i + 1) + '. ' + it))),   // matches the card's <ol> decimal marks
   board: (sg) => sg.content,
+  // XI-04: THE CLIPBOARD CARRIES THE MEANING WITHOUT THE BRACKETS. The reader copied 【】 verbatim
+  // before this, which is the one thing §٥ names about the clipboard. What it says is kept — it is
+  // on the screen and it is about the answer — and the ornate brackets, which were never anything
+  // but a transport marker between the reviewer and this renderer, are not.
+  notice: (sg) => [sg.label, sg.content].map((x) => String(x || '').trim()).filter(Boolean).join(' '),
   document: (sg) => REPLY_LINE([sg.title || '\u0645\u0633\u062A\u0646\u062F', toPlainText(sg.content)]),
 };
 // Every type MessageBubble can render must have an entry above. A new card added to the renderer
@@ -9710,6 +9778,9 @@ function ezikRenderSegments(segments, ctx) {
     }
     if (seg.type === 'document') {
       return <DocumentCard key={i} title={seg.title} content={seg.content} age={age} />;
+    }
+    if (seg.type === 'notice') {
+      return <ReviewNotice key={i} label={seg.label} content={seg.content} />;
     }
     return null;
   });
@@ -10421,6 +10492,21 @@ function StepsCard({ items, title }) {
           <li key={i} style={s.stepsItem}>{item}</li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+// XI-04 — الشارةُ التي حلّت محلَّ المحارفِ الخام. It is drawn like the cards beside it and it
+// carries NO EzikMarkdown: the mark's own body is one plain sentence written by the server, and a
+// second Markdown display site would be a second place for a construct to be interpreted.
+// role="note" so a screen reader announces it as an aside about the answer rather than as more of
+// the answer, which is exactly what it is.
+function ReviewNotice({ label, content }) {
+  const body = String(content || '').trim();
+  return (
+    <div role="note" style={s.reviewNotice}>
+      <span style={s.reviewNoticeLabel}>{label}</span>
+      {body ? <span style={s.reviewNoticeText}>{body}</span> : null}
     </div>
   );
 }
@@ -13888,6 +13974,14 @@ const s = {
   sourceChipSite: { display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontWeight: 600, flexShrink: 0 },
   sourceChipText: { minWidth: 0, /* 13.4-b2 */ color: 'var(--ink)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   sourceChipArrow: { color: 'var(--red)', fontWeight: 700, flexShrink: 0, fontSize: 13 },
+
+  // ===== شارةُ الوسم (XI-04) =====
+  // A footnote, not a pill: its body is a whole sentence, so it wraps and it is not clipped. It
+  // sits at the reading edge like the source chip and uses the same tokens, so it inverts with the
+  // theme and needs no colour of its own.
+  reviewNotice: { display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 6, alignSelf: 'flex-start', maxWidth: '100%', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 12, padding: '8px 12px', fontSize: 12.5, lineHeight: 1.75, fontFamily: 'var(--ez-ui-font)', boxSizing: 'border-box' },
+  reviewNoticeLabel: { color: 'var(--red)', fontWeight: 600, flexShrink: 0 },
+  reviewNoticeText: { minWidth: 0, color: 'var(--muted)', fontWeight: 500 },
 
   // ===== بطاقة الخطوات =====
   stepsCard: { background: 'var(--red-soft)', border: '1px solid var(--line)', borderRadius: 14, padding: '12px 14px' },
