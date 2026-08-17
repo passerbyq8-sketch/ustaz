@@ -730,9 +730,18 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     const askSource = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
     ok('api/ask.js builds the free branch\'s cards through the capped rule',
       /registerOwnedCards\(pickReaderCards\(out\.cited, MAX_SOURCES,/u.test(askSource));
+    // §٣ (C) ADDED TWO NAMES TO THIS IMPORT and the pin moved with them rather than being loosened.
+    // Written as «every one of these four names is in the destructuring, and the specifier is the
+    // loop» instead of as one literal line: the literal broke the moment the list wrapped onto
+    // three lines, and a pin that has to be re-typed whenever a name is added is a pin that gets
+    // deleted. What it still forbids is the thing it was written for — a second copy of the card
+    // rule, or of the footer rule, living in the handler.
+    const freeBrainImport = /const \{([^}]*)\} = await import\('\.\.\/lib\/free-brain\/loop\.js'\);/u
+      .exec(askSource)?.[1] || '';
     ok('...and imports it from the loop rather than keeping a second copy',
-      /const \{ runFreeBrainTurn, pickReaderCards \} = await import\('\.\.\/lib\/free-brain\/loop\.js'\);/u
-        .test(askSource));
+      ['runFreeBrainTurn', 'pickReaderCards', 'encyclopediaTail', 'citedDeliveryLedger']
+        .every((name) => new RegExp('(?:^|[\\s,])' + name + '(?:[\\s,]|$)', 'u').test(freeBrainImport)),
+      freeBrainImport);
     ok('...and MAX_SOURCES is still the one constant, still three',
       /^const MAX_SOURCES = 3;$/mu.test(askSource));
 
@@ -1650,6 +1659,93 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('length-derived mutant module loaded successfully', lengthMutant.loaded, lengthMutant.error);
     ok('MUTANT KILLED: truncation cannot be guessed from the length of the answer',
       lengthMutant.loaded && lengthMutant.survived === false, JSON.stringify(lengthMutant));
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // T. §٣ (C) — THE KUWAITI ENCYCLOPEDIA IS ATTRIBUTED, AND THE LOSS IS NAMED
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // THE DEFECT, AND IT IS VISIBLE IN THIS GUARD'S OWN FIXTURES. `citeTurn` above drives
+    // `search_sources`, which fills the evidence table from the in-process encyclopedia; those rows
+    // carry `url: ''` because the corpus is a local file with no page. `pickReaderCards` builds a
+    // card only `if (row && row.url)`. So a row could be retrieved, cited, survive the reviewer —
+    // and reach the reader as nothing whatever, with no line anywhere saying so.
+    const encTurn = await citeTurn(loop, RULING);
+    const encRows = (encTurn.cited || []).filter((r) => r && r.kind === 'encyclopedia');
+    ok('the driven turn really does rest on an encyclopedia row, so this section tests the real case',
+      encRows.length > 0, JSON.stringify((encTurn.cited || []).map((r) => [r.ref, r.kind, r.url])));
+    ok('...and that row has no page behind it, which is why it was never a card',
+      encRows.every((r) => !r.url), JSON.stringify(encRows.map((r) => r.url)));
+
+    // T1 — THE FOOTER. It names the encyclopedia, and the article when the row carries one.
+    const encTail = loop.encyclopediaTail(encTurn.cited);
+    ok('an answer that rests on the encyclopedia earns an attribution tail',
+      encTail.trim() !== '', JSON.stringify(encTail));
+    ok('...naming the encyclopedia by the publisher the row itself declares',
+      encTail.includes(encRows[0].publisher), JSON.stringify([encTail, encRows[0].publisher]));
+    // THE NEGATIVE WITNESS §٣ NAMES: an answer that did not rest on it gets NOTHING.
+    const noEncTail = (mod) => mod.encyclopediaTail(rows(3)) === ''
+      && mod.encyclopediaTail([]) === ''
+      && mod.encyclopediaTail(null) === '';
+    ok('THE NEGATIVE WITNESS: an answer that did not rest on the encyclopedia gets zero tail',
+      noEncTail(loop), JSON.stringify(loop.encyclopediaTail(rows(3))));
+
+    // T2 — IT IS A FOOTER AND NOT A CARD, so it costs no slot. Five pages and one encyclopedia row:
+    // three cards, and the tail beside them. §٣/٢, as a pair of numbers rather than a promise.
+    const mixedCited = [encRows[0], ...rows(5)];
+    ok('the tail does not consume a card slot — three pages still become three cards',
+      capped(loop, mixedCited).length === 3, JSON.stringify(capped(loop, mixedCited).length));
+    ok('...and the tail is still produced beside them',
+      loop.encyclopediaTail(mixedCited).trim() !== '');
+    ok('...and api/ask.js carries it as the writer\'s own reader suffix, not concatenated onto the text',
+      /finalizerContext\.readerSuffix = encyclopediaTail\(out\.cited\);/u.test(askSource));
+
+    // T3 — §٣/٣: EVERY CITED ROW THAT GAVE THE READER NOTHING IS NAMED WITH ITS REASON.
+    // «لا صمتَ بعدَ اليوم». One row per cited row, in order, and the three reasons the order names.
+    const dupPage = rows(1)[0];
+    const ledgerCited = [encRows[0], ...rows(4), dupPage];
+    const ledger = loop.citedDeliveryLedger(ledgerCited, 3, tagOf);
+    ok('the ledger reports one row per cited row and loses none of them',
+      ledger.length === ledgerCited.length, JSON.stringify(ledger));
+    ok('...the encyclopedia row is `footer`, which is a delivery and no longer a loss',
+      ledger[0].outcome === 'footer', JSON.stringify(ledger[0]));
+    ok('...a page past the ceiling is named `over_cap` and not merely absent',
+      ledger.some((r) => r.outcome === 'over_cap'), JSON.stringify(ledger));
+    ok('...a repeated page is named `duplicate`',
+      loop.citedDeliveryLedger([rows(1)[0], rows(1)[0]], 3, tagOf)[1].outcome === 'duplicate',
+      JSON.stringify(loop.citedDeliveryLedger([rows(1)[0], rows(1)[0]], 3, tagOf)));
+    ok('...a row with no page and no footer is named `no_url` rather than vanishing',
+      loop.citedDeliveryLedger([{ ref: 9, kind: 'fatwa', url: '' }], 3, tagOf)[0].outcome === 'no_url');
+    // AND THE SELECTION AND THE LEDGER AGREE. Two loops that can disagree are one loop and one lie.
+    ok('the ledger counts exactly as many cards as the selection returns',
+      ledger.filter((r) => r.outcome === 'card').length === capped(loop, ledgerCited).length,
+      JSON.stringify([ledger.filter((r) => r.outcome === 'card').length, capped(loop, ledgerCited).length]));
+    ok('...and the handler actually prints it, serialised, on its own line',
+      /console\.log\('\[free-brain\/cited-delivery\]', JSON\.stringify\(\{/u.test(askSource)
+      && /const delivery = citedDeliveryLedger\(out\.cited, MAX_SOURCES, buildFreeCard\);/u.test(askSource));
+
+    // T4 — M26: THE TAIL ATTACHED WITHOUT SUPPORT. §٣'s named mutant: «ومسخةٌ تُلحِقُ التذييلَ بلا
+    // استنادٍ تموت». An attribution that appears under an answer that never touched the source is
+    // an invented citation, which is the worst thing this application can do.
+    const tailMutant = await loopMutant('tail-without-support',
+      (source) => source.replace("  if (!rows.length) return '';",
+        "  if (!rows.length) rows.push({ publisher: 'X', title: 'X' }); // mutant: the tail rides on every answer"),
+      noEncTail);
+    ok('tail-without-support mutant seam applied', tailMutant.changed, tailMutant.error);
+    ok('tail-without-support mutant module loaded successfully', tailMutant.loaded, tailMutant.error);
+    ok('MUTANT KILLED: an attribution tail cannot be attached to an answer that did not rest on it',
+      tailMutant.loaded && tailMutant.survived === false, JSON.stringify(tailMutant));
+
+    // T5 — M27: THE SILENCE RESTORED. The ledger copies the selection's own `break`, and the rows
+    // past the ceiling disappear from the record exactly as they did before this item.
+    const silenceMutant = await loopMutant('cited-ledger-goes-silent-past-the-cap',
+      (source) => source.replace(
+        "    if (tags.length >= max) { out.push({ ...base, outcome: 'over_cap' }); continue; }",
+        '    if (tags.length >= max) break; // mutant: the rows past the ceiling are not recorded'),
+      async (twinModule) => twinModule.citedDeliveryLedger(ledgerCited, 3, tagOf).length === ledgerCited.length);
+    ok('cited-ledger silence mutant seam applied', silenceMutant.changed, silenceMutant.error);
+    ok('cited-ledger silence mutant module loaded successfully', silenceMutant.loaded, silenceMutant.error);
+    ok('MUTANT KILLED: a row dropped at the ceiling cannot go unrecorded',
+      silenceMutant.loaded && silenceMutant.survived === false, JSON.stringify(silenceMutant));
 
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
