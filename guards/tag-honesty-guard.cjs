@@ -93,14 +93,19 @@ const unsupportedIsTagged = (module) => {
       structured.text.includes('فلا وضوء عليه')
         && tagCount(structured.text, module.REVIEW_TAGS.FIQH_UNSOURCED) === 1, structured.text);
 
-    // ── ONE WRITER (§٥/١) ─────────────────────────────────────────────────────
-    // The tag text must be written in exactly one place in the reviewer: the frozen TAGS object.
-    // A second hand-written copy is how the two spellings the owner saw would come back.
+    // ── ONE ENCODING (§٥/١) ───────────────────────────────────────────────────
+    // Comments may name a tag, but every NFC-equivalent occurrence must use the exact same code
+    // point sequence as the frozen runtime value. A reordered combining mark renders identically
+    // and compares differently, which is precisely how two spellings reached one answer before.
     const reviewerSource = require('fs').readFileSync(REVIEWER, 'utf8');
+    const writtenTags = [...reviewerSource.matchAll(/\u3010[^\u3011]+\u3011/gu)].map((match) => match[0]);
     for (const [key, value] of Object.entries(module.REVIEW_TAGS)) {
-      ok('the text of ' + key + ' is written exactly once in the reviewer',
-        reviewerSource.split(value).length - 1 === 1,
-        (reviewerSource.split(value).length - 1) + ' literal(s)');
+      const equivalentForms = new Set(writtenTags
+        .filter((candidate) => candidate.normalize('NFC') === value.normalize('NFC')));
+      ok('every NFC-equivalent ' + key + ' uses the runtime code-point sequence',
+        equivalentForms.size === 1 && equivalentForms.has(value),
+        JSON.stringify([...equivalentForms].map((form) => Array.from(form)
+          .map((char) => char.codePointAt(0).toString(16)))));
     }
 
     // ── §٧ MUTANT ١: PUT THE STAMP BACK ON EVERY SENTENCE ────────────────────

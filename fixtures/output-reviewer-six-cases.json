@@ -184,12 +184,114 @@
       }
     }
   ],
+  "a2": {
+    "cases": [
+      {
+        "id": "a2-q14-guillemet",
+        "input": {
+          "text": "قال ابن باز إن … لحديث النبي صلى الله عليه وسلم: «لعلكم تقرؤون خلف إمامكم؟\nقالوا: نعم، قال: لا تفعلوا إلا بفاتحة الكتاب، فإنه لا صلاة لمن لم يقرأ بها».",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "… لحديث النبي صلى الله عليه وسلم: «لعلكم تقرؤون خلف إمامكم؟\nقالوا: نعم، قال: لا تفعلوا إلا بفاتحة الكتاب، فإنه لا صلاة لمن لم يقرأ بها».",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "»"
+        }
+      },
+      {
+        "id": "a2-guillemet-internal-stops",
+        "input": {
+          "text": "قال ابن باز إن النص: «هل هذا صحيح؟ نعم.»",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص: «هل هذا صحيح؟ نعم.»",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "»"
+        }
+      },
+      {
+        "id": "a2-ascii-internal-stops",
+        "input": {
+          "text": "قال ابن باز إن النص: \"هل هذا صحيح؟ نعم.\"",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص: \"هل هذا صحيح؟ نعم.\"",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "\""
+        }
+      },
+      {
+        "id": "a2-curly-internal-stops",
+        "input": {
+          "text": "قال ابن باز إن النص: “هل هذا صحيح؟ نعم.”",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص: “هل هذا صحيح؟ نعم.”",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "”"
+        }
+      },
+      {
+        "id": "a2-unclosed-guillemet",
+        "input": {
+          "text": "قال ابن باز إن النص: «هل هذا صحيح؟ نعم. هذا صحيح.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص: «هل هذا صحيح؟ نعم. هذا صحيح.",
+          "actions": ["removed-unsupported-attribution"],
+          "unclosed": true
+        }
+      },
+      {
+        "id": "a2-ordinary-outside-quote",
+        "input": {
+          "text": "قال ابن باز إن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "الجمع للمسافر جائز عند الحاجة.",
+          "actions": ["removed-unsupported-attribution"]
+        }
+      },
+      {
+        "id": "a2-closed-quote-then-continuation",
+        "input": {
+          "text": "قال ابن باز إن النص «يجوز عند الحاجة» ثم يستمر البيان إلى آخر الجملة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": {
+          "body": "النص «يجوز عند الحاجة» ثم يستمر البيان إلى آخر الجملة.",
+          "actions": ["removed-unsupported-attribution"],
+          "close": "»"
+        }
+      }
+    ]
+  },
   "c2": {
     "tail": "وتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.",
     "cases": [
       {
         "id": "c2-colon-before-hadith",
         "input": {
+          "khilafFromOpinions": true,
           "text": "المسألة فيها خلاف، لعموم قوله صلى الله عليه وسلم:\n<hadith>لَا صَلَاةَ لِمَنْ لَمْ يَقْرَأْ بِفَاتِحَةِ الْكِتَابِ</hadith>",
           "evidence": [],
           "domain": "fiqh",
@@ -220,6 +322,7 @@
       {
         "id": "c2-open-quotation-across-card",
         "input": {
+          "khilafFromOpinions": true,
           "text": "المسألة فيها خلاف، ونصها: \"إن كان المقصود إلزامه بالأخذ\n<source site=\"example.test\" url=\"https://example.test/fatwa\">نص المصدر</source>\nفلا يقع الطلاق\".",
           "evidence": [],
           "domain": "fiqh",
@@ -249,11 +352,246 @@
       }
     ],
     "tailFlood": {
+      "khilafFromOpinions": true,
       "text": "في المسألة خلاف. وللعلماء قولان. واختلف الفقهاء في التفصيل.",
       "evidence": [],
       "domain": "fiqh",
       "mode": "عادي"
     }
+  },
+  "b2": {
+    "cases": [
+      {
+        "id": "b2-source-when-opinions-absent",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{
+            "id": "b2-source-explicit",
+            "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645."
+          }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a"
+        },
+        "expect": { "tailCount": 1, "trigger": "source", "fromSource": true, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2-opinions-with-silent-source",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{ "id": "b2-source-silent", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a",
+          "khilafFromOpinions": true,
+          "opinionCount": 2
+        },
+        "expect": { "tailCount": 1, "trigger": "opinions", "fromSource": false, "fromOpinions": true, "fromModelProse": false, "opinionCount": 2 }
+      },
+      {
+        "id": "b2-both-signals-one-tail",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{
+            "id": "b2-source-and-opinions",
+            "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645."
+          }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a",
+          "khilafFromOpinions": true,
+          "opinionCount": 3
+        },
+        "expect": { "tailCount": 1, "trigger": "both", "fromSource": true, "fromOpinions": true, "fromModelProse": false, "opinionCount": 3 }
+      },
+      {
+        "id": "b2b-model-prose-restored",
+        "input": {
+          "text": "\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{ "id": "b2-model-only-source", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a"
+        },
+        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
+      },
+      {
+        "id": "b2-unrelated-excerpt-cannot-trigger",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [
+            { "id": "b2-supporting-silent", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." },
+            { "id": "b2-other-issue", "snippet": "\u0632\u0643\u0627\u0629 \u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0645\u0624\u062c\u0644 \u0644\u0647\u0627 \u062d\u0643\u0645 \u0622\u062e\u0631\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645." }
+          ],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2-whole-page-cannot-trigger",
+        "input": {
+          "text": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+          "evidence": [{
+            "id": "b2-scoped-snippet",
+            "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
+            "pageText": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645."
+          }],
+          "domain": "fiqh",
+          "mode": "\u0639\u0627\u062f\u064a"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      }
+    ],
+    "markerCases": [
+      { "id": "explicit-fihi-khilaf", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632\u060c \u0648\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645.", "expect": true },
+      { "id": "explicit-scholars-differed", "snippet": "\u0627\u062e\u062a\u0644\u0641 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u064a \u062d\u0643\u0645 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.", "expect": true },
+      { "id": "explicit-two-opinions", "snippet": "\u0641\u064a \u062d\u0643\u0645 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u0642\u0648\u0644\u0627\u0646 \u0645\u0634\u0647\u0648\u0631\u0627\u0646\u060c \u0648\u0627\u0644\u0642\u0648\u0644 \u0628\u0627\u0644\u062c\u0648\u0627\u0632 \u0645\u0639\u0631\u0648\u0641.", "expect": true },
+      { "id": "explicit-several-opinions", "snippet": "\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u0623\u0642\u0648\u0627\u0644 \u0623\u062e\u0631\u0649\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": true },
+      { "id": "weak-preferred-view", "snippet": "\u0627\u0644\u0631\u0627\u062c\u062d \u0623\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.", "expect": false },
+      { "id": "weak-majority", "snippet": "\u0627\u0644\u062c\u0645\u0647\u0648\u0631 \u0639\u0644\u0649 \u0623\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false },
+      { "id": "weak-some-scholars", "snippet": "\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0625\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false },
+      { "id": "lexical-contrast-only", "snippet": "\u0628\u062e\u0644\u0627\u0641 \u0627\u0644\u0645\u0642\u064a\u0645\u060c \u0641\u0625\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false }
+    ]
+  },
+  "b2b": {
+    "cases": [
+      {
+        "id": "b2b-prose-only-explicit",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "evidence": [{ "id": "b2b-silent-source", "snippet": "الجمع للمسافر جائز عند الحاجة." }],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
+      },
+      {
+        "id": "b2b-source-over-prose",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "evidence": [{ "id": "b2b-explicit-source", "snippet": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة." }],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 1, "trigger": "source", "fromSource": true, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
+      },
+      {
+        "id": "b2b-opinions-over-prose",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "evidence": [{ "id": "b2b-opinions-silent-source", "snippet": "الجمع للمسافر جائز عند الحاجة." }],
+          "domain": "fiqh",
+          "mode": "عادي",
+          "khilafFromOpinions": true,
+          "opinionCount": 2
+        },
+        "expect": { "tailCount": 1, "trigger": "opinions", "fromSource": false, "fromOpinions": true, "fromModelProse": true, "opinionCount": 2 }
+      },
+      {
+        "id": "b2b-all-three-one-tail",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "evidence": [{ "id": "b2b-all-three-source", "snippet": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة." }],
+          "domain": "fiqh",
+          "mode": "عادي",
+          "khilafFromOpinions": true,
+          "opinionCount": 3
+        },
+        "expect": { "tailCount": 1, "trigger": "both", "fromSource": true, "fromOpinions": true, "fromModelProse": true, "opinionCount": 3 }
+      },
+      {
+        "id": "b2b-loose-preferred-view",
+        "input": {
+          "text": "الراجح أن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2b-loose-majority",
+        "input": {
+          "text": "الجمهور على أن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2b-loose-some-scholars",
+        "input": {
+          "text": "قال بعض أهل العلم إن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2b-lexical-contrast-only",
+        "input": {
+          "text": "بخلاف المقيم، فإن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      }
+    ]
+  },
+  "b3a": {
+    "positives": [
+      {
+        "id": "b3a-battery-q17-preview-2-polarity",
+        "source": "EZIK-BATTERY-ANSWERS-2026-08-17.txt Q17 NEW/preview-2",
+        "input": {
+          "text": "\u0648\u0636\u0648\u0624\u0643 \u0635\u062d\u064a\u062d\u064c \u0645\u0627 \u062f\u0645\u062a\u064e \u062a\u0648\u0636\u0651\u0623\u062a\u064e \u0628\u0639\u062f \u0627\u0644\u0623\u0643\u0644\u060c \u0648\u0627\u0644\u0645\u0633\u0623\u0644\u0629\u064f \u0644\u0627 \u062a\u062a\u0639\u0644\u0651\u0642\u064f \u0628\u0627\u0644\u0648\u0636\u0648\u0621\u0650 \u0646\u0641\u0633\u0650\u0647 \u0628\u0644 \u0628\u0623\u0643\u0644\u0650 \u0644\u062d\u0645\u0650 \u0627\u0644\u0625\u0628\u0644\u0650 \u0627\u0644\u0630\u064a \u064a\u062d\u0635\u0644\u064f \u0642\u0628\u0644\u0647.\n\u0641\u0625\u0630\u0627 \u0643\u0646\u062a\u064e \u062a\u0648\u0636\u0651\u0623\u062a\u064e \u0628\u0639\u062f \u0623\u0646 \u0623\u0643\u0644\u062a\u064e \u0644\u062d\u0645\u064e \u0627\u0644\u0625\u0628\u0644\u060c \u0641\u0648\u0636\u0648\u0624\u0643 \u0647\u0630\u0627 \u0628\u0627\u0637\u0644\u064c \u0648\u0644\u0627 \u064a\u0635\u062d\u0651 \u0623\u0646 \u062a\u0635\u0644\u064a \u0628\u0647\u060c \u0644\u0623\u0646\u0651 \u0627\u0644\u0646\u0628\u064a\u064e\u0651 \u0635\u064e\u0644\u064e\u0651\u0649 \u0627\u0644\u0644\u0647\u064f \u0639\u064e\u0644\u064e\u064a\u0652\u0647\u0650 \u0648\u064e\u0633\u064e\u0644\u064e\u0651\u0645\u064e \u0623\u0645\u0631 \u0628\u0627\u0644\u0648\u0636\u0648\u0621 \u0645\u0646 \u0644\u062d\u0648\u0645 \u0627\u0644\u0625\u0628\u0644 \u0635\u0631\u0627\u062d\u0629\u064b.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "audit"
+        },
+        "expect": { "shape": "polarity", "firstContains": "\u0648\u0636\u0648\u0624\u0643 \u0635\u062d\u064a\u062d", "laterContains": "\u0641\u0648\u0636\u0648\u0624\u0643 \u0647\u0630\u0627 \u0628\u0627\u0637\u0644" }
+      },
+      {
+        "id": "b3a-battery-q20-prod-1-named-answer",
+        "source": "EZIK-BATTERY-ANSWERS-2026-08-17.txt Q20 NEW/prod-1",
+        "input": {
+          "text": "\u0625\u062f\u0631\u064a\u0633\u064f \u0639\u0644\u064a\u0647 \u0627\u0644\u0633\u0644\u0627\u0645\u064f\u060c \u0648\u0631\u064f\u0641\u0639 \u0625\u0644\u0649 \u0627\u0644\u0633\u0645\u0627\u0621 \u0648\u0647\u0648 \u062d\u064a\u064c\u0651\u060c \u3010\u0641\u0647\u0645\u064c \u0644\u0627 \u0646\u0635\u0651\u064c \u0645\u0646\u0642\u0648\u0644\u3011\n\u0623\u0645\u0651\u0627 \u0639\u064a\u0633\u0649 \u0639\u0644\u064a\u0647 \u0627\u0644\u0633\u0644\u0627\u0645 \u0641\u0631\u0641\u0639\u064f\u0647 \u062d\u064a\u064b\u0651\u0627 \u0625\u0644\u0649 \u0627\u0644\u0633\u0645\u0627\u0621 \u062b\u0627\u0628\u062a\u064c \u0628\u0627\u0644\u0642\u0631\u0622\u0646 \u0627\u0644\u0643\u0631\u064a\u0645 \u0642\u0637\u0639\u064b\u0627\u060c \u0648\u0647\u0648 \u062d\u064a\u064c\u0651 \u0627\u0644\u0622\u0646 \u0639\u0646\u062f \u0631\u0628\u0651\u0647\u060c \u0648\u0633\u064a\u0646\u0632\u0644\u064f \u0641\u064a \u0622\u062e\u0631 \u0627\u0644\u0632\u0645\u0627\u0646 \u0642\u0628\u0644 \u0642\u064a\u0627\u0645 \u0627\u0644\u0633\u0627\u0639\u0629.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "audit"
+        },
+        "expect": { "shape": "named-answer", "firstContains": "\u0625\u062f\u0631\u064a\u0633", "laterContains": "\u0623\u0645\u0651\u0627 \u0639\u064a\u0633\u0649" }
+      }
+    ],
+    "negatives": [
+      {
+        "id": "b3a-traveller-distinction",
+        "input": { "text": "\u0644\u0627 \u064a\u062c\u0648\u0632\u064f \u0644\u063a\u064a\u0631\u0650 \u0627\u0644\u0645\u0633\u0627\u0641\u0631 \u00b7 \u0648\u064a\u062c\u0648\u0632\u064f \u0644\u0644\u0645\u0633\u0627\u0641\u0631", "evidence": [], "domain": "fiqh", "mode": "audit" }
+      },
+      {
+        "id": "b3a-attributed-disagreement",
+        "input": { "text": "\u0642\u0627\u0644\u064e \u0627\u0628\u0646\u064f \u0628\u0627\u0632 \u0628\u0627\u0644\u062c\u0648\u0627\u0632 \u00b7 \u0648\u0642\u0627\u0644\u064e \u0627\u0628\u0646\u064f \u0639\u062b\u064a\u0645\u064a\u0646 \u0628\u0627\u0644\u0645\u0646\u0639", "evidence": [], "domain": "fiqh", "mode": "audit" }
+      },
+      {
+        "id": "b3a-quantity-distinction",
+        "input": { "text": "\u0631\u0643\u0639\u062a\u0627\u0646\u0650 \u0644\u0645\u0646 \u0623\u062f\u0631\u0643\u064e \u0627\u0644\u0631\u0643\u0648\u0639 \u00b7 \u0648\u0631\u0643\u0639\u0629\u064c \u0648\u0627\u062d\u062f\u0629 \u0644\u0645\u0646 \u0644\u0645 \u064a\u064f\u062f\u0631\u0643\u0652\u0647", "evidence": [], "domain": "fiqh", "mode": "audit" }
+      },
+      {
+        "id": "b3a-clean-answer-field-present",
+        "input": { "text": "\u0627\u0644\u0635\u0644\u0627\u0629 \u0635\u062d\u064a\u062d\u0629\u064c \u0648\u064a\u0645\u0636\u064a \u0641\u064a\u0647\u0627.", "evidence": [], "domain": "fiqh", "mode": "audit" }
+      },
+      {
+        "id": "b3a-xray-q12-turn-1-negation-not-quantity",
+        "source": "EZIK-XRAY-CC-ANSWERS-2026-08-17.txt Q12 turn 1",
+        "why": "struck 2026-08-17: the later clause negates the alternative inside one sentence ('two, not one'); it is not a second ruling. The quantity shape scored 0 hits and 1 false over the 140 deposited answers and was retired.",
+        "input": {
+          "text": "\u0641\u0625\u0630\u0627 \u0633\u0644\u0651\u0645 \u0627\u0644\u0625\u0645\u0627\u0645\u060c \u0642\u0627\u0645 \u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0628\u0648\u0642\u064f \u0641\u0623\u062a\u0645\u0651 \u0635\u0644\u0627\u062a\u0647 \u0627\u0644\u0641\u062c\u0631\u064e \u0643\u0627\u0645\u0644\u0629\u064b\u060c \u0623\u064a \u0631\u0643\u0639\u062a\u064a\u0646\u060c \u0644\u0627 \u0631\u0643\u0639\u0629\u064b \u0648\u0627\u062d\u062f\u0629\u060c \u0644\u0623\u0646\u0651\u0647 \u0644\u0645 \u064a\u064f\u062f\u0631\u0643 \u0645\u0639 \u0627\u0644\u0625\u0645\u0627\u0645 \u0648\u0644\u0627 \u0631\u0643\u0639\u0629\u064b \u0648\u0627\u062d\u062f\u0629\u064b \u0645\u0639\u062a\u062f\u064b\u0651\u0627 \u0628\u0647\u0627.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "audit"
+        }
+      }
+    ]
   },
   "c3": {
     "cases": [
