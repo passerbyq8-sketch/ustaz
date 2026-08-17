@@ -423,6 +423,83 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('write-key mutant module loaded successfully', keyMutant.loaded, keyMutant.error);
     ok('MUTANT KILLED: E4 cannot be deleted by keying the write on the accumulated text',
       keyMutant.loaded && keyMutant.survived === false, JSON.stringify(keyMutant));
+
+    // ── F. §٢: COLLECTED, YES. DELIVERED, ONLY IF IT IS AN ANSWER ────────────
+    //
+    // WHAT THIS SECTION REPLACES, AND WHY THE OLD ASSERTION WAS TOO WIDE. Section D above proves
+    // that prose written in a tool round is not thrown on the floor, and that is still true and
+    // still asserted. But until this round `carriesBothRounds` was the WHOLE law, and it says
+    // «every tool-round prose reaches the reader» — an assertion that also blesses the case
+    // XC-13 named: an announcement of a move to a tool, delivered as an answer. The X-ray
+    // measured six of them on twenty fiqh answers, five as the FIRST line the reader saw
+    // (EZIK-XRAY-CC-REPORT-2026-08-17.md, XI-03). The guard was proving a mechanism wider than
+    // the safe property.
+    //
+    // THE LAW IS NOW TWO CLAUSES AND BOTH ARE PINNED HERE:
+    //   collection  — every round's prose is still gathered, whatever it says   (D above, and the
+    //                 ledger assertion below, which counts the announcement's characters)
+    //   delivery    — an announcement of a move to a tool is not handed over    (F1)
+    //   and the negative witness that keeps this a REPAIR and not a REMOVAL:
+    //   a real answer written in a tool round is delivered WHOLE, including one that answers and
+    //   announces in the same sentence (F2). A mutant that drops it dies (M7).
+    const ANNOUNCE = 'سأبحث لك في فتاوى العلماء عن هذه المسألة تحديداً.';   // XI-03, answer 15/1
+    const MIXED = 'سأتحقق من المدة، والجمع للمسافر جائز عند الحاجة.';       // announces AND answers
+
+    // F1 — the announcement is collected and not delivered.
+    const announceTurn = await driveScript(loop,
+      (i) => (i === 0 ? withTool(ANNOUNCE, 't0') : textPayload(LATE)));
+    ok('an announcement of a move to a tool does not reach the reader',
+      !announceTurn.text.includes('سأبحث'), announceTurn.text);
+    ok('...and the answer that followed it still does',
+      announceTurn.text.includes(LATE), announceTurn.text);
+    // COLLECTION IS UNTOUCHED, AND THIS IS WHERE THAT IS PROVED RATHER THAN ASSERTED. The ledger
+    // counts the characters the ROUND CARRIED; the text above is what was DELIVERED. The two
+    // disagreeing by exactly the announcement is the whole of the new law in one pair of numbers.
+    ok('...while the round ledger still records that the round CARRIED that prose',
+      announceTurn.roundLedger[0].textChars === ANNOUNCE.length,
+      JSON.stringify(announceTurn.roundLedger));
+    ok('...and the drop is named in degraded with the size it removed',
+      (announceTurn.degraded || []).some((d) => /^tool_announcement_dropped:\d+$/u.test(d)),
+      JSON.stringify(announceTurn.degraded));
+
+    // F2 — THE NEGATIVE WITNESS. Without this the filter could be «drop every tool-round line»
+    // and every assertion above would still be green.
+    const keepsRealAnswer = async (loopModule) => {
+      const plain = await driveScript(loopModule,
+        (i) => (i === 0 ? withTool(EARLY, 't0') : textPayload(LATE)));
+      const mixed = await driveScript(loopModule,
+        (i) => (i === 0 ? withTool(MIXED, 't0') : textPayload(LATE)));
+      return typeof plain?.text === 'string' && plain.text.includes(EARLY)
+        && typeof mixed?.text === 'string' && mixed.text.includes(MIXED);
+    };
+    ok('a real answer written in a tool round is delivered, whole — including one that announces '
+      + 'and answers in the same sentence', await keepsRealAnswer(loop));
+
+    // M6 — the delivery filter removed. This is the shipped behaviour of 17 August: everything
+    // collected is handed over, announcements included.
+    const deliverMutant = await loopMutant('delivery-filter-removed',
+      (source) => source.replace('  const answer = deliverableText(collected);',
+        '  const answer = collected; // mutant: deliver everything that was collected'),
+      async (twinModule) => {
+        const turn = await driveScript(twinModule,
+          (i) => (i === 0 ? withTool(ANNOUNCE, 't0') : textPayload(LATE)));
+        return typeof turn?.text === 'string' && !turn.text.includes('سأبحث');
+      });
+    ok('delivery-filter mutant seam applied', deliverMutant.changed, deliverMutant.error);
+    ok('delivery-filter mutant module loaded successfully', deliverMutant.loaded, deliverMutant.error);
+    ok('MUTANT KILLED: the announcement cannot be delivered by dropping the filter',
+      deliverMutant.loaded && deliverMutant.survived === false, JSON.stringify(deliverMutant));
+
+    // M7 — the filter widened to «anything that announces», the exact over-reach §٢/٢ forbids.
+    // It kills the sentence that announces AND answers, and F2's property is what catches it.
+    const wideMutant = await loopMutant('filter-ignores-answer-content',
+      (source) => source.replace('  if (ANSWER_CONTENT_RE.test(folded)) return false;',
+        '  // mutant: drop anything that announces, answer content or not'),
+      keepsRealAnswer);
+    ok('wide-filter mutant seam applied', wideMutant.changed, wideMutant.error);
+    ok('wide-filter mutant module loaded successfully', wideMutant.loaded, wideMutant.error);
+    ok('MUTANT KILLED: a filter that also drops answers is a removal, not a repair',
+      wideMutant.loaded && wideMutant.survived === false, JSON.stringify(wideMutant));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
