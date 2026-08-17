@@ -254,5 +254,45 @@
       "domain": "fiqh",
       "mode": "عادي"
     }
+  },
+  "c3": {
+    "cases": [
+      {
+        "id": "c3-removed-attribution",
+        "input": {
+          "text": "قال ابن باز إن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "action": "removed-unsupported-attribution"
+      },
+      {
+        "id": "c3-replaced-dynamic-claim",
+        "input": {
+          "text": "درجة الحرارة اليوم في الكويت 38 مئوية.",
+          "evidence": [],
+          "domain": "general",
+          "mode": "عادي"
+        },
+        "action": "replaced-unsupported-dynamic-claim"
+      },
+      {
+        "id": "c3-last-resort",
+        "input": {
+          "text": "",
+          "evidence": [],
+          "domain": "general",
+          "mode": "موجز"
+        },
+        "action": "last-resort-no-reliable-text"
+      }
+    ],
+    "nonDestructive": {
+      "text": "ناتج ضرب سبعة في ثمانية هو ستة وخمسون.",
+      "evidence": [],
+      "domain": "general",
+      "mode": "موجز"
+    }
   }
 }
