@@ -1533,6 +1533,124 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('MUTANT KILLED: a rule keyed on the PRESENCE of Latin deletes the answers it was meant to keep',
       wideScriptMutant.loaded && wideScriptMutant.survived === false, JSON.stringify(wideScriptMutant));
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // S. §٢ (C) — THE READER IS TOLD THE ANSWER STOPPED SHORT
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // MEASURED LIVE: an answer cut IN THE MIDDLE OF A WORD arrived carrying the closing review mark,
+    // so it read as finished. The finish state existed on every provider payload and nothing on the
+    // path had ever read it.
+    //
+    // S1 — THE DERIVATION, AS A TABLE. The contract is «true إن انتهتْ آخرُ جولةِ نموذجٍ بغيرِ
+    // end_turn · false إن تمّت · null إن لم يُعرَفْ», so the test is the COMPLEMENT of end_turn and
+    // not a list of the two stop reasons anyone happens to remember.
+    for (const [stop, expected] of [
+      ['end_turn', false], ['max_tokens', true], ['tool_use', true],
+      ['refusal', true], ['pause_turn', true],
+      [null, null], [undefined, null], ['', null], [0, null], [{}, null],
+    ]) {
+      ok(`truncatedFrom(${JSON.stringify(stop)}) is ${JSON.stringify(expected)}`,
+        loop.truncatedFrom(stop) === expected, JSON.stringify(loop.truncatedFrom(stop)));
+    }
+
+    // S2 — AND IT IS READ OFF A REAL TURN. Three shapes, three answers, and none of them is a
+    // property of the text: the two `truncated` turns below deliver the SAME string.
+    const stopPayload = (text, stop) => ({ stop_reason: stop, content: [{ type: 'text', text }] });
+    const SHORT = 'نعم.';
+    const finishedTurn = await driveScript(loop, () => stopPayload(EARLY, 'end_turn'));
+    const cutTurn = await driveScript(loop, () => stopPayload(SHORT, 'max_tokens'));
+    const cutLongTurn = await driveScript(loop, () => stopPayload(EARLY, 'max_tokens'));
+    ok('a turn that ended on end_turn reports truncated:false',
+      finishedTurn.truncated === false && finishedTurn.deliveredStop === 'end_turn',
+      JSON.stringify([finishedTurn.truncated, finishedTurn.deliveredStop]));
+    ok('a turn that ended on max_tokens reports truncated:true — however SHORT its text',
+      cutTurn.truncated === true && cutTurn.deliveredStop === 'max_tokens',
+      JSON.stringify([cutTurn.truncated, cutTurn.deliveredStop, cutTurn.text.length]));
+    ok('...and however LONG it is, the same reason gives the same answer',
+      cutLongTurn.truncated === true, JSON.stringify([cutLongTurn.truncated, cutLongTurn.text.length]));
+    // THE PAIR THAT KILLS A LENGTH RULE, STATED AS ONE FACT: the SHORT cut turn and the LONG
+    // finished turn disagree in exactly the direction a length rule would get backwards.
+    ok('a short CUT answer and a long FINISHED answer are reported oppositely, which no length rule can do',
+      cutTurn.truncated === true && finishedTurn.truncated === false
+      && cutTurn.text.length < finishedTurn.text.length,
+      JSON.stringify([cutTurn.text.length, finishedTurn.text.length]));
+
+    // S3 — «null MEANS I DO NOT KNOW». Every provider call throws, so no round ever came back and
+    // there is no finish state to report. Reporting `false` here would tell the reader that an
+    // answer that does not exist is complete.
+    const noRoundTurn = await driveScript(loop,
+      () => Object.assign(new Error('upstream 529'), { status: 529 }));
+    ok('a turn in which no round came back reports truncated:null, not false',
+      noRoundTurn.truncated === null && noRoundTurn.deliveredStop === null,
+      JSON.stringify([noRoundTurn.truncated, noRoundTurn.deliveredStop]));
+
+    // S4 — IT CROSSES THE SEAM UNDER EXACTLY THAT NAME, and under the same normalisation the khilaf
+    // signal gets. Same recorder, same discipline: anything that is not literally true or false is
+    // `null`, because a truthy string quietly becoming `false` would tell the reviewer that a
+    // half-written answer is whole.
+    ok('the seam forwards `truncated` under exactly that name',
+      (await seamSaw({ ...base, truncated: true }))?.truncated === true);
+    ok('...and a genuine `false` is carried through as `false`',
+      (await seamSaw({ ...base, truncated: false }))?.truncated === false);
+    for (const [label, value] of [
+      ['absent', undefined], ['null', null], ['a truthy string', 'yes'], ['zero', 0], ['an empty string', ''],
+    ]) {
+      const saw = await seamSaw({ ...base, truncated: value });
+      ok(`...and ${label} crosses the seam as null, not as false`,
+        saw && saw.truncated === null, JSON.stringify(saw && saw.truncated));
+    }
+    // The loop hands it to the seam at the SAME call site as the khilaf signal — §٢/١'s «في الموضع
+    // نفسِه الذي تُمرَّرُ فيه إشارةُ الخلاف» — pinned as text, like every other field of that joint.
+    ok('the loop passes `truncated` into the one call to branch ب',
+      /^ {4}truncated,$/mu.test(loopSource));
+    ok('...and api/ask.js logs it beside the stop_reason it was derived from',
+      /^ {8}truncated: out\.truncated \?\? null,$/mu.test(askSource)
+      && /^ {8}deliveredStop: out\.deliveredStop \?\? null,$/mu.test(askSource));
+
+    // S5 — THE CLIENT SAYS IT, AND SAYS IT FROM THE SERVER'S SIGNAL. §٢/٢ gives the LINE to the
+    // client, beside the «كمّل» button that already exists. Held as source assertions because this
+    // guard runs no browser: what it can prove is that the marker is emitted only on `true`, that
+    // the client has a rendered line keyed on it, and that nothing anywhere derives it from the
+    // text. The last of those is the one that matters, and it is the reason for the `!` tests.
+    const indexSource = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    ok('api/ask.js appends the marker only when truncated is literally true',
+      /out\.truncated === true \? TRUNCATED_MARK : ''/u.test(askSource));
+    ok("...and the marker itself carries no prose — the wording is the client's",
+      /^const TRUNCATED_MARK = '\\n<incomplete\/>';$/mu.test(askSource));
+    ok('the client draws a line when, and only when, that marker is present',
+      /ezikAnswerIncomplete\(lastMsg\.content\)/u.test(indexSource)
+      && /const ezikAnswerIncomplete = \(t\) => typeof t === 'string' && EZIK_INCOMPLETE_TEST\.test\(t\);/u
+        .test(indexSource));
+    ok('...and the line has wording in BOTH interface languages, so neither reader is left guessing',
+      /'chat\.qa\.incomplete': '[^']+'/u.test(indexSource)
+      && (indexSource.match(/'chat\.qa\.incomplete':/gu) || []).length === 2);
+    ok('...and it is drawn beside the «كمّل» strip, under the same visibility rule',
+      /\{quickActionsVisible && ezikAnswerIncomplete\(lastMsg\.content\) && \(/u.test(indexSource));
+    ok('...and the marker never rides back up to the model as its own prose',
+      /content: ezikStripIncomplete\(m\.content\) \}/u.test(indexSource));
+    ok('...and it is stripped from every reader that is not the badge: screen, voice and the log',
+      /text = ezikStripIncomplete\(text\);/u.test(indexSource)
+      && (indexSource.match(/stripIncompleteTags\(ezikStripIncomplete\(text\), \{ rescue: true \}\)/gu) || [])
+        .length === 2);
+    // NO SURFACE DERIVES IT FROM THE TEXT. A client that guesses is the same lie told by us.
+    ok('no client rule keys the notice on the length or the last character of the answer',
+      !/ezikAnswerIncomplete[^\n]*\.length/u.test(indexSource));
+
+    // S6 — M25: `truncated` DERIVED FROM THE LENGTH. §٢/٣'s named mutant, and S2's short/long pair
+    // is what kills it: a four-character answer that really was cut must still report `true`.
+    const lengthMutant = await loopMutant('truncated-derived-from-length',
+      (source) => source.replace('  const truncated = truncatedFrom(deliveredStop);',
+        '  const truncated = answer.length >= 4000; // mutant: guessed from the size of the text'),
+      async (twinModule) => {
+        const cut = await driveScript(twinModule, () => stopPayload(SHORT, 'max_tokens'));
+        const done = await driveScript(twinModule, () => stopPayload(EARLY, 'end_turn'));
+        return cut.truncated === true && done.truncated === false;
+      });
+    ok('length-derived mutant seam applied', lengthMutant.changed, lengthMutant.error);
+    ok('length-derived mutant module loaded successfully', lengthMutant.loaded, lengthMutant.error);
+    ok('MUTANT KILLED: truncation cannot be guessed from the length of the answer',
+      lengthMutant.loaded && lengthMutant.survived === false, JSON.stringify(lengthMutant));
+
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
