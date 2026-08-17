@@ -1811,14 +1811,16 @@ const HUMAN_DIVINE_NAME_CASES = [
     // marks on ص (U+0651 U+064C against U+064C U+0651). The two render identically and compare
     // unequal, so the assertion failed on a difference no reader could ever see.
     const RV = await esm('lib/output-reviewer.js');
-    const NAMED = 'قال ابن باز إن الجمع للمسافر جائز عند الحاجة.';
+    const NAMED_CLAIM = 'الجمع للمسافر جائز عند الحاجة.';
+    const NAMED = 'قال ابن باز إن ' + NAMED_CLAIM;
+    const REVIEWED_CLAIM = NAMED_CLAIM + ' ' + RV.REVIEW_TAGS.ATTRIBUTION_REMOVED;
 
     const free = await LAW.driveFreeTurn({ module: loop, answer: NAMED });
     ok('H1 FLIPPED — a named scholar with no page in hand is not answered with a refusal constant',
       !free.text.includes(FIN.FINALIZER_REFUSAL)
         && !/لم نقفْ على شخصيّةٍ معروفةٍ بهذا الاسم/.test(free.text), JSON.stringify(free.text));
     ok('H2 ...the NAME is what is removed, and the claim survives without it',
-      !free.text.includes('ابن باز') && free.text.includes('الجمع للمسافر جائز'),
+      !free.text.includes('ابن باز') && free.text === REVIEWED_CLAIM,
       JSON.stringify(free.text));
     ok('H3 ...and the removal is stated to the reader rather than performed silently',
       free.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED), JSON.stringify(free.text));
@@ -1835,7 +1837,7 @@ const HUMAN_DIVINE_NAME_CASES = [
         "          const generalized = ''; // mutant: the old law — the name dies and the claim with it"),
       check: (mod) => {
         const out = mod.reviewAnswer({ text: NAMED, evidence: [], domain: 'fiqh', mode: 'عادي' });
-        return out.text.includes('الجمع للمسافر جائز') && out.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED);
+        return out.text === NAMED_CLAIM + ' ' + RV.REVIEW_TAGS.ATTRIBUTION_REMOVED;
       },
     });
     ok('H5 mutant restoring «the name dies and the claim with it» applies', twin.changed, twin.error);
