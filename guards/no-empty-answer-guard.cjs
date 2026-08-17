@@ -29,6 +29,7 @@ const ROOT = path.resolve(__dirname, '..');
 const REVIEWER = path.join(ROOT, 'lib', 'output-reviewer.js');
 const LOOP = path.join(ROOT, 'lib', 'free-brain', 'loop.js');
 const SEAM = path.join(ROOT, 'lib', 'free-brain', 'review.js');
+const INSTRUCTIONS = path.join(ROOT, 'lib', 'free-brain', 'instructions.js');
 const { ok, finish } = harness('no-empty-answer');
 
 const samples = Object.freeze([
@@ -184,6 +185,7 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
 
     // ── C. every exit from the loop passes the reviewer ─────────────────────
     const loop = await fresh(LOOP, 'loop-base');
+    const instructions = await fresh(INSTRUCTIONS, 'instructions-base');
     const results = await driveExits(loop, module.REVIEW_LAST_RESORT);
     for (const r of results) {
       ok(`${r.exit.id} ${r.exit.label}: the turn returns rather than throwing`, !r.threw, String(r.threw));
@@ -278,6 +280,78 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       (i) => (i < 2 ? withTool('', 't' + i) : textPayload(LATE)));
     ok('a silent tool round adds nothing and changes nothing',
       silentTurn.text.includes(LATE) && !silentTurn.text.includes(EARLY), silentTurn.text);
+    // ...and THAT is what an opening like «فالمقدارُ صاعٌ…» is made of. The join emits round 2
+    // alone when round 1 said nothing, so a truncated opening after a silent tool round is the
+    // model's own first word and not a deletion. Asserted here because §٣'s verdict rests on it.
+    ok('...so a silent first round leaves the second round\'s opening untouched, whole',
+      silentTurn.text.startsWith(LATE), silentTurn.text);
+
+    // ── E. §٣: THE REMINDER RIDES ON EVERY BATCH, NOT ONLY THE FIRST ─────────
+    //
+    // WHAT IT IS FOR. Between rounds the model cannot see which of its own prose has already been
+    // delivered. Told only «write this round's answer complete», it either writes the whole answer
+    // again — question ١٨ of the owner's battery, the same content restated in different words —
+    // or carries on from a thought the reader never saw — question ١٦, opening «فالمقدارُ صاعٌ…».
+    // Both are answered by two clauses in ROUND_TEXT_REMINDER, and a clause the model does not see
+    // on the round it is about is a clause that is not there. It is the LAST thing in the message
+    // before it writes, and it must be in every such message.
+    async function batchesSeenBy(loopModule, script) {
+      const realFetch = globalThis.fetch;
+      const bodies = [];
+      let n = 0;
+      globalThis.fetch = async (input, init) => {
+        const url = String(input?.url || input);
+        if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+        bodies.push(JSON.parse(String(init?.body || '{}')));
+        return { ok: true, status: 200, json: async () => script(n++) };
+      };
+      try { await loopModule.runFreeBrainTurn({ ...BASE }); } finally { globalThis.fetch = realFetch; }
+      // Every user message that carries tool results, across every request this turn.
+      const seen = [];
+      for (const body of bodies) {
+        for (const message of body.messages || []) {
+          if (message.role !== 'user' || !Array.isArray(message.content)) continue;
+          if (!message.content.some((block) => block?.type === 'tool_result')) continue;
+          const key = JSON.stringify(message.content.map((b) => b.tool_use_id || b.text || b.type));
+          if (seen.some((entry) => entry.key === key)) continue;
+          seen.push({
+            key,
+            reminded: message.content.some((block) => block?.type === 'text'
+              && String(block.text || '').includes(instructions.ROUND_TEXT_REMINDER)),
+          });
+        }
+      }
+      return seen;
+    }
+    const THREE = (i) => (i < 3 ? withTool('', 't' + i) : textPayload(LATE));
+    const everyBatchReminded = async (loopModule) => {
+      const seen = await batchesSeenBy(loopModule, THREE);
+      return seen.length >= 3 && seen.every((entry) => entry.reminded);
+    };
+    const batches = await batchesSeenBy(loop, THREE);
+    ok('three tool rounds produce three batches of results',
+      batches.length >= 3, JSON.stringify(batches.map((b) => b.reminded)));
+    ok('and the round-text reminder rides on every one of them',
+      batches.every((entry) => entry.reminded), JSON.stringify(batches.map((b) => b.reminded)));
+    for (const clause of [
+      'وما كتبتَه في جولةٍ سابقةٍ قد وصلَ القارئَ فعلًا',
+      'لم يرَ نداءاتِ أدواتِك ولا نتائجَها',
+    ]) {
+      ok('the reminder carries the clause: ' + clause.slice(0, 28),
+        instructions.ROUND_TEXT_REMINDER.includes(clause), instructions.ROUND_TEXT_REMINDER);
+    }
+
+    // M5 — the reminder is attached once and then forgotten, which is the placement the previous
+    // round MEASURED to be only partly binding when it lived in the system block.
+    const reminderMutant = await loopMutant('reminder-only-on-the-first-batch',
+      (source) => source.replace(
+        '        { type: \'text\', text: ROUND_TEXT_REMINDER },',
+        '        ...(rounds === 1 ? [{ type: \'text\', text: ROUND_TEXT_REMINDER }] : []),'),
+      everyBatchReminded);
+    ok('reminder mutant seam applied', reminderMutant.changed, reminderMutant.error);
+    ok('reminder mutant module loaded successfully', reminderMutant.loaded, reminderMutant.error);
+    ok('MUTANT KILLED: the round-text reminder cannot be dropped after the first batch',
+      reminderMutant.loaded && reminderMutant.survived === false, JSON.stringify(reminderMutant));
 
     // ── D. the two mutants that restore the pre-merge behaviour ─────────────
     // `probe` names the property THIS mutant is measured against. Without it the property is the

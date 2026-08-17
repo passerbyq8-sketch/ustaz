@@ -1,0 +1,175 @@
+{
+  "schema": "ezik.reviewer.variable-claim-corpus.v1",
+  "measuredAt": "2026-08-16",
+  "source": "ustaz-archive/sessions/EZIK-BATTERY-ANSWERS-2026-08-16.txt — all eighty answers of the owner's twenty-question battery, preview and production",
+  "producedBy": "tools/reviewer-dynamic-measure.mjs",
+  "note": "The first fourteen cases are every sentence in that corpus the pre-repair alternation fired on. Not one of them is a variable claim. The four that follow are not from the corpus: they are the negative witness, so a guard cannot be satisfied by a reviewer that stopped checking.",
+  "cases": [
+    {
+      "id": "q1-production-1#1",
+      "markers": [
+        "الآن"
+      ],
+      "text": "فَكِّرْ فِيهَا هَكَذَا: مَنْ كَانَ فِي المَرْكَزِ الأَخِيرِ صَارَ الآنَ خَلْفَكَ، وَأَنْتَ أَخَذْتَ مَكَانَه فِي التَّرْتِيب، أَيْ صِرْتَ قَبْلَ الأَخِيرِ مُبَاشَرَة، وَهُوَ الَّذِي أَصْبَحَ فِي المَرْكَزِ الأَخِير.",
+      "variable": false,
+      "why": "a race riddle: «الآن» is a discourse adverb about the order of runners, not a moment a source could date"
+    },
+    {
+      "id": "q1-production-2#2",
+      "markers": [
+        "الآن"
+      ],
+      "text": "لو تجاوزتَ صاحبَ المركزِ الأخير، فأنتَ الآن صرتَ فِي المركزِ الأخير أَنتَ نفسِك، لا قبلَه!",
+      "variable": false,
+      "why": "the same riddle, restated: «الآن» locates a position in a queue, not a fact about the world"
+    },
+    {
+      "id": "q6-production-2#3",
+      "markers": [
+        "أسعار"
+      ],
+      "text": "السؤال هنا مسألة حسابية لا علاقة لها بأسعار حقيقية لأحذية معيّنة، فلنحلّها بالمنطق مباشرة.",
+      "variable": false,
+      "why": "the sentence says in so many words that it is NOT about real prices"
+    },
+    {
+      "id": "q6-production-2#4",
+      "markers": [
+        "سعر"
+      ],
+      "text": "لدينا مجموع السعرين خمسة وخمسون دينارًا، والفرق بينهما خمسون دينارًا بالضبط.",
+      "variable": false,
+      "why": "the sum and difference of a two-equation word problem"
+    },
+    {
+      "id": "q6-production-2#5",
+      "markers": [
+        "سعر"
+      ],
+      "text": "الطريقة الأسهل: نطرح الفرق من المجموع، ثم نقسم الناتج على اثنين، فنحصل على السعر الأصغر (الدلاغ).",
+      "variable": false,
+      "why": "the method of solving that word problem, stated in words"
+    },
+    {
+      "id": "q6-production-2#6",
+      "markers": [
+        "سعر"
+      ],
+      "text": "فسعر الدلاغ إذن دينار ونصف الدينار، أي 2.5 دينار.",
+      "variable": false,
+      "why": "the answer to that word problem"
+    },
+    {
+      "id": "q9-production-1#7",
+      "markers": [
+        "الآن"
+      ],
+      "text": "هذا اللغزُ من ألغازِ الفطنةِ الشائعة، والمادّةُ التي بين يديّ الآن لا تتحدّثُ عن هذا اللغزِ إطلاقًا، بل عن موضوعٍ مختلفٍ كليًّا (لهجةٌ أمازيغيّةٌ في المغرب)، فجوابي هنا مبنيٌّ على منطقِ اللغزِ نفسِه لا على تلك المادّة.",
+      "variable": false,
+      "why": "the model describing its own retrieval for this turn — «المادّة التي بين يديّ الآن»"
+    },
+    {
+      "id": "q15-preview-1#8",
+      "markers": [
+        "اليوم"
+      ],
+      "text": "والمتيقَّن الذي لا خلاف فيه: عليه قضاء ذلك اليوم كاملًا، والتوبة والاستغفار مما فعل، لأنه أفسد صومًا صحيحًا بيده وبسوء ظنّه.",
+      "variable": false,
+      "why": "a fasting ruling: «ذلك اليوم» is the day that was broken, not today"
+    },
+    {
+      "id": "q15-preview-2#9",
+      "markers": [
+        "اليوم"
+      ],
+      "text": "- استمرارُه في الأكل متعمدًا بعد ذلك: أفسد به يومًا كان صحيحًا، فعليه قضاءُ ذلك اليوم فقط.",
+      "variable": false,
+      "why": "a fasting ruling: «ذلك اليوم» again, in the second pass"
+    },
+    {
+      "id": "q18-preview-1#10",
+      "markers": [
+        "أخبار"
+      ],
+      "text": "وهذه الصفة ثبتت في الأخبار الصحيحة عن النبيّ صَلَّى اللهُ عَلَيْهِ وَسَلَّم، وهي سنّةٌ مؤكّدة عند جمهور الفقهاء تُصلّى عند كسوف الشمس أو خسوف القمر.",
+      "variable": false,
+      "why": "transmitted reports about the Prophet — «الأخبار الصحيحة» is not news"
+    },
+    {
+      "id": "q19-preview-2#11",
+      "markers": [
+        "أحدث"
+      ],
+      "text": "ووقتُ اللبسِ نفسِه ليس هو المعيار، بل المعيارُ متى بدأتَ المدّةَ (أي أوّل مرّةٍ مسحتَ فيها بعد أن أحدثتَ).",
+      "variable": false,
+      "why": "the VERB «أحدث» — broke his ablution — written with the letters of the elative «latest»"
+    },
+    {
+      "id": "q19-preview-2#12",
+      "markers": [
+        "أحدث"
+      ],
+      "text": "وفي مسألتِك: إن كان قد أحدثَ ثمّ توضّأ ومسحَ وهو مقيمٌ في بيته، فقد بدأت مدّةُ المسحِ من تلك اللحظةِ وهو مقيمٌ، فتكون مدّتُه مدّةَ المقيمِ (يومًا وليلة)، ولا تتحوّلُ إلى مدّةِ المسافرِ (ثلاثةَ أيّامٍ بلياليها) بعد ذلك ولو سافر، لأنّ السفرَ طرأ بعد أن انعقدتْ مدّةُ المسحِ على الإقامة، والعبرةُ بحالِ ابتداءِ المسح لا بحالِ استمرارِه.",
+      "variable": false,
+      "why": "the same verb inside a longer ruling on wiping over the khuff"
+    },
+    {
+      "id": "q19-preview-2#13",
+      "markers": [
+        "أحدث"
+      ],
+      "text": "أمّا لو كان قد لبس الخفَّ وهو مقيم، ثمّ سافر، ثمّ أحدث بعد السفر ومسح لأوّل مرّةٍ وهو مسافر، فحينئذٍ تُحسب له مدّةُ المسافر، لأنّ ابتداء المدّة يكون بأوّل مسحةٍ بعد الحدث لا بوقت اللبس.",
+      "variable": false,
+      "why": "the same verb a third time, in the alternative case of that ruling"
+    },
+    {
+      "id": "q20-preview-2#14",
+      "markers": [
+        "الآن"
+      ],
+      "text": "لم يُقتَل ولم يُصلَب، بل رفعه الله إليه حيًّا، وهو حيٌّ الآن وسينزل في آخر الزمان قبل قيام الساعة.",
+      "variable": false,
+      "why": "a creedal constant about ʿĪsā: «حيٌّ الآن» is not a fact that changes between readings"
+    },
+    {
+      "id": "negative-temperature-today",
+      "markers": [
+        "اليوم",
+        "درجة الحرارة"
+      ],
+      "text": "درجة الحرارة اليوم في الكويت 38 مئوية.",
+      "variable": true,
+      "why": "a measurable quantity, asserted about today — exactly what a dated source settles"
+    },
+    {
+      "id": "negative-gold-price-today",
+      "markers": [
+        "اليوم",
+        "سعر"
+      ],
+      "text": "سعر الذهب اليوم بلغ ثلاثة آلاف دولار للأوقية.",
+      "variable": true,
+      "why": "a price, asserted about today"
+    },
+    {
+      "id": "negative-latest-news-result",
+      "markers": [
+        "آخر+خبر",
+        "نتيجة"
+      ],
+      "text": "آخر الأخبار تقول إن نتيجة المباراة انتهت بالتعادل.",
+      "variable": true,
+      "why": "a result reported as the latest news"
+    },
+    {
+      "id": "negative-oil-prices-now",
+      "markers": [
+        "الآن",
+        "أسعار"
+      ],
+      "text": "أسعار النفط الآن في أعلى مستوى لها منذ سنوات.",
+      "variable": true,
+      "why": "prices, asserted about now"
+    }
+  ]
+}
