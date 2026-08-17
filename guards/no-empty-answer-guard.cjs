@@ -1095,6 +1095,52 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       new Set((retried.roundLedger || []).map((r) => r.n)).size === (retried.roundLedger || []).length,
       JSON.stringify((retried.roundLedger || []).map((r) => r.n)));
 
+    // §٢: THE LEDGER THAT IS PRINTED IS THE LEDGER THAT IS RETURNED.
+    //
+    // WHAT MEASURED IT. The `mnjgt` call reported `modelCalls: 4` and printed a ledger of THREE
+    // rows. The print sat ABOVE the retry block, so it serialised the array before
+    // `ledgerRow(rounds + 2, …, 'cite-retry')` had put the retry's row in it: the row existed in
+    // `out.roundLedger`, which nothing in production reads, and was absent from the one line the
+    // platform log carries. A retry that costs a model call and leaves no trace in the log is a
+    // cost nobody can audit, so the PRINTED line is asserted here and not the returned array alone.
+    async function printedLedgerFor(loopModule, script) {
+      const realLog = console.log;
+      const printed = [];
+      console.log = (...args) => {
+        if (args[0] === '[free-brain/round-ledger]') { printed.push(args[1]); return; }
+        realLog(...args);
+      };
+      let turn;
+      try { turn = await driveScript(loopModule, script); } finally { console.log = realLog; }
+      const rows = printed.map((json) => { try { return JSON.parse(json); } catch { return null; } });
+      return { turn, printed, rows };
+    }
+    const printedRetry = await printedLedgerFor(loop, retryScript(() => textPayload(RECITED)));
+    ok('the round ledger is printed exactly once for the turn',
+      printedRetry.printed.length === 1, JSON.stringify(printedRetry.printed.length));
+    ok('...and the PRINTED ledger carries the cite-retry row, not the returned one alone',
+      Array.isArray(printedRetry.rows[0])
+        && printedRetry.rows[0].some((row) => row.phase === 'cite-retry'),
+      JSON.stringify(printedRetry.rows[0]));
+    ok('...and the printed ledger is row-for-row the ledger the turn returns',
+      JSON.stringify(printedRetry.rows[0]) === JSON.stringify(printedRetry.turn.roundLedger),
+      JSON.stringify([printedRetry.rows[0], printedRetry.turn.roundLedger]));
+    ok('...and it carries one row per model call the turn actually made',
+      Array.isArray(printedRetry.rows[0])
+        && printedRetry.rows[0].length === printedRetry.turn.modelCalls,
+      JSON.stringify([printedRetry.rows[0]?.length, printedRetry.turn.modelCalls]));
+    // Moving the statement must not cost the ORDINARY turn its line: a turn that never retried
+    // still prints, and prints both of its rows.
+    const printedPlain = await printedLedgerFor(loop,
+      (i) => (i === 0 ? withTool(EARLY, 't0') : textPayload(LATE)));
+    ok('a turn that never retried still prints its ledger, whole',
+      printedPlain.printed.length === 1
+        && Array.isArray(printedPlain.rows[0])
+        && printedPlain.rows[0].length === 2
+        && JSON.stringify(printedPlain.rows[0]) === JSON.stringify(printedPlain.turn.roundLedger),
+      JSON.stringify(printedPlain.rows[0]));
+
+
     // §٢/٤ — STILL EMPTY THE SECOND TIME: THE FIRST ANSWER GOES OUT AS IT WAS.
     const stillUncited = await driveScript(loop, retryScript(() => textPayload(UNCITED)));
     const firstAnswerSurvives = (turn) => typeof turn?.text === 'string'
@@ -1302,6 +1348,29 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('own-name mutant module loaded successfully', nameMutant.loaded, nameMutant.error);
     ok('MUTANT KILLED: the retry cannot be hidden inside the announcement counter',
       nameMutant.loaded && nameMutant.survived === false, JSON.stringify(nameMutant));
+
+    // M21 — the print put back above the retry block. This is the defect itself and not a variation
+    // on it: `out.roundLedger` still carries the retry row, and the platform log still does not.
+    const printOrderMutant = await loopMutant('round-ledger-printed-before-the-retry',
+      (source) => {
+        const stripped = source.replace(
+          /\r?\n {2}console\.log\('\[free-brain\/round-ledger\]', JSON\.stringify\(roundLedger\)\);/u, '');
+        if (stripped === source) return source; // seam moved — reported as «seam applied» FAIL
+        const moved = stripped.replace(/ {2}const collected = joinRoundTexts\(written\);/u,
+          "  console.log('[free-brain/round-ledger]', JSON.stringify(roundLedger)); // mutant: printed before the retry\n  const collected = joinRoundTexts(written);");
+        return moved === stripped ? source : moved;
+      },
+      async (twinModule) => {
+        const mutated = await printedLedgerFor(twinModule, retryScript(() => textPayload(RECITED)));
+        return mutated.printed.length === 1
+          && Array.isArray(mutated.rows[0])
+          && mutated.rows[0].some((row) => row.phase === 'cite-retry');
+      });
+    ok('print-order mutant seam applied', printOrderMutant.changed, printOrderMutant.error);
+    ok('print-order mutant module loaded successfully', printOrderMutant.loaded, printOrderMutant.error);
+    ok('MUTANT KILLED: the ledger cannot be printed before the retry row is in it',
+      printOrderMutant.loaded && printOrderMutant.survived === false, JSON.stringify(printOrderMutant));
+
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
