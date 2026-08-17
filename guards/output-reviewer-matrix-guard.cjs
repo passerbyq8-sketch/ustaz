@@ -180,7 +180,7 @@ const appearsInOrder = (text, needles) => {
     ok('MUTANT KILLED: answer notes cannot return inside an open sentence',
       placementMutant.loaded && placementMutant.survived === false, JSON.stringify(placementMutant));
 
-    ok('B-2 fixture carries the six required source/opinion witnesses',
+    ok('B-2 fixture carries the six required source/opinion/prose witnesses',
       Array.isArray(fixture.b2?.cases) && fixture.b2.cases.length === 6);
     const b2CasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
@@ -188,6 +188,7 @@ const appearsInOrder = (text, needles) => {
         && result.verdict.khilafTrigger === test.expect.trigger
         && result.verdict.khilafFromSource === test.expect.fromSource
         && result.verdict.khilafFromOpinions === test.expect.fromOpinions
+        && result.verdict.khilafFromModelProse === test.expect.fromModelProse
         && result.verdict.opinionCount === test.expect.opinionCount;
     };
     for (const test of fixture.b2?.cases || []) {
@@ -198,6 +199,7 @@ const appearsInOrder = (text, needles) => {
           trigger: result.verdict.khilafTrigger,
           fromSource: result.verdict.khilafFromSource,
           fromOpinions: result.verdict.khilafFromOpinions,
+          fromModelProse: result.verdict.khilafFromModelProse,
           opinionCount: result.verdict.opinionCount,
         }));
     }
@@ -216,22 +218,63 @@ const appearsInOrder = (text, needles) => {
         JSON.stringify(result.verdict));
     }
 
-    const modelProseMutant = await runMutant({
+    ok('B-2b fixture carries the four trigger-priority witnesses and four narrowed negatives',
+      Array.isArray(fixture.b2b?.cases) && fixture.b2b.cases.length === 8);
+    const b2bCasePasses = (mod, test) => {
+      const result = mod.reviewAnswer(test.input);
+      return occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
+        && result.verdict.khilafTrigger === test.expect.trigger
+        && result.verdict.khilafFromSource === test.expect.fromSource
+        && result.verdict.khilafFromOpinions === test.expect.fromOpinions
+        && result.verdict.khilafFromModelProse === test.expect.fromModelProse
+        && result.verdict.opinionCount === test.expect.opinionCount;
+    };
+    for (const test of fixture.b2b?.cases || []) {
+      const result = module.reviewAnswer(test.input);
+      ok(test.id + ': one-tail count and named trigger priority are exact',
+        b2bCasePasses(module, test), JSON.stringify({
+          tailCount: occurrences(result.text, fixture.c2.tail),
+          trigger: result.verdict.khilafTrigger,
+          fromSource: result.verdict.khilafFromSource,
+          fromOpinions: result.verdict.khilafFromOpinions,
+          fromModelProse: result.verdict.khilafFromModelProse,
+          opinionCount: result.verdict.opinionCount,
+        }));
+    }
+
+    const looseProseMutant = await runMutant({
       sourceFile: REVIEWER,
-      name: 'khilaf-from-model-prose-again',
+      name: 'prose-trigger-uses-loose-markers',
       transform: (source) => source.replace(
-        "        if (!khilafFromSource && sources.some((source) => sourceSupportsKhilaf(part, source))) {",
-        "        if (!khilafFromSource && (KHILAF_MARKERS.test(normalizeArabic(part)) || sources.some((source) => sourceSupportsKhilaf(part, source)))) { // mutant: model prose triggers"),
-      survives: (mutantModule) => (fixture.b2?.cases || [])
-        .every((test) => b2CasePasses(mutantModule, test)),
+        '  return KHILAF_MARKERS.test(normalizeArabic(sentence)); // MODEL_PROSE_KHILAF_NARROW',
+        '  return KHILAF_MARKERS.test(normalizeArabic(sentence)) || /(?:الراجح|الجمهور|بعض\\s+اهل\\s+العلم)/u.test(normalizeArabic(sentence)); // mutant: loose prose markers'),
+      survives: (mutantModule) => (fixture.b2b?.cases || [])
+        .every((test) => b2bCasePasses(mutantModule, test)),
     });
-    ok('B-2 khilaf-from-model-prose-again mutant seam applied',
-      modelProseMutant.changed, modelProseMutant.error);
-    ok('B-2 khilaf-from-model-prose-again mutant module loaded',
-      modelProseMutant.loaded, modelProseMutant.error);
-    ok('MUTANT KILLED: model prose cannot classify the answer as disputed',
-      modelProseMutant.loaded && modelProseMutant.survived === false,
-      JSON.stringify(modelProseMutant));
+    ok('B-2b prose-trigger-uses-loose-markers mutant seam applied',
+      looseProseMutant.changed, looseProseMutant.error);
+    ok('B-2b prose-trigger-uses-loose-markers mutant module loaded',
+      looseProseMutant.loaded, looseProseMutant.error);
+    ok('MUTANT KILLED: prose cannot restore the loose preference and majority markers',
+      looseProseMutant.loaded && looseProseMutant.survived === false,
+      JSON.stringify(looseProseMutant));
+
+    const proseShadowMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'prose-shadows-the-evidence-trigger',
+      transform: (source) => source.replace(
+        "  if (khilafFromSource && khilafFromOpinions === true) return 'both';",
+        "  if (khilafFromModelProse) return 'prose'; // mutant: prose shadows evidence\n  if (khilafFromSource && khilafFromOpinions === true) return 'both';"),
+      survives: (mutantModule) => (fixture.b2b?.cases || [])
+        .every((test) => b2bCasePasses(mutantModule, test)),
+    });
+    ok('B-2b prose-shadows-the-evidence-trigger mutant seam applied',
+      proseShadowMutant.changed, proseShadowMutant.error);
+    ok('B-2b prose-shadows-the-evidence-trigger mutant module loaded',
+      proseShadowMutant.loaded, proseShadowMutant.error);
+    ok('MUTANT KILLED: evidence retains trigger naming priority over prose',
+      proseShadowMutant.loaded && proseShadowMutant.survived === false,
+      JSON.stringify(proseShadowMutant));
 
     const wholePageMutant = await runMutant({
       sourceFile: REVIEWER,
@@ -267,22 +310,22 @@ const appearsInOrder = (text, needles) => {
       absentOpinionsMutant.loaded && absentOpinionsMutant.survived === false,
       JSON.stringify(absentOpinionsMutant));
 
-    const doubleTailMutant = await runMutant({
+    const threeTailMutant = await runMutant({
       sourceFile: REVIEWER,
-      name: 'khilaf-tail-twice',
+      name: 'three-triggers-three-tails',
       transform: (source) => source.replace(
         '  if (khilafTrigger && !output.some((chunk) => chunk.includes(KHILAF_TAIL.trim()))) {\n    notices.push(KHILAF_TAIL.trim());\n  }',
-        '  if (khilafFromSource) notices.push(KHILAF_TAIL.trim());\n  if (normalizedKhilafFromOpinions === true) notices.push(KHILAF_TAIL.trim()); // mutant: one tail per signal'),
-      survives: (mutantModule) => (fixture.b2?.cases || [])
-        .every((test) => b2CasePasses(mutantModule, test)),
+        '  if (khilafFromSource) notices.push(KHILAF_TAIL.trim());\n  if (normalizedKhilafFromOpinions === true) notices.push(KHILAF_TAIL.trim());\n  if (khilafFromModelProse) notices.push(KHILAF_TAIL.trim()); // mutant: one tail per trigger'),
+      survives: (mutantModule) => (fixture.b2b?.cases || [])
+        .every((test) => b2bCasePasses(mutantModule, test)),
     });
-    ok('B-2 khilaf-tail-twice mutant seam applied',
-      doubleTailMutant.changed, doubleTailMutant.error);
-    ok('B-2 khilaf-tail-twice mutant module loaded',
-      doubleTailMutant.loaded, doubleTailMutant.error);
-    ok('MUTANT KILLED: two true signals still produce one answer-level tail',
-      doubleTailMutant.loaded && doubleTailMutant.survived === false,
-      JSON.stringify(doubleTailMutant));
+    ok('B-2b three-triggers-three-tails mutant seam applied',
+      threeTailMutant.changed, threeTailMutant.error);
+    ok('B-2b three-triggers-three-tails mutant module loaded',
+      threeTailMutant.loaded, threeTailMutant.error);
+    ok('MUTANT KILLED: three true triggers still produce one answer-level tail',
+      threeTailMutant.loaded && threeTailMutant.survived === false,
+      JSON.stringify(threeTailMutant));
 
     const auditExcerpt = (value) => Array.from(String(value ?? '')).slice(0, 200).join('');
     const c3CasePasses = (mod, test) => {

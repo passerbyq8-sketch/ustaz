@@ -372,7 +372,7 @@
           "domain": "fiqh",
           "mode": "\u0639\u0627\u062f\u064a"
         },
-        "expect": { "tailCount": 1, "trigger": "source", "fromSource": true, "fromOpinions": null, "opinionCount": null }
+        "expect": { "tailCount": 1, "trigger": "source", "fromSource": true, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
       },
       {
         "id": "b2-opinions-with-silent-source",
@@ -384,7 +384,7 @@
           "khilafFromOpinions": true,
           "opinionCount": 2
         },
-        "expect": { "tailCount": 1, "trigger": "opinions", "fromSource": false, "fromOpinions": true, "opinionCount": 2 }
+        "expect": { "tailCount": 1, "trigger": "opinions", "fromSource": false, "fromOpinions": true, "fromModelProse": false, "opinionCount": 2 }
       },
       {
         "id": "b2-both-signals-one-tail",
@@ -399,17 +399,17 @@
           "khilafFromOpinions": true,
           "opinionCount": 3
         },
-        "expect": { "tailCount": 1, "trigger": "both", "fromSource": true, "fromOpinions": true, "opinionCount": 3 }
+        "expect": { "tailCount": 1, "trigger": "both", "fromSource": true, "fromOpinions": true, "fromModelProse": false, "opinionCount": 3 }
       },
       {
-        "id": "b2-model-prose-cannot-trigger",
+        "id": "b2b-model-prose-restored",
         "input": {
           "text": "\u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u062e\u0644\u0627\u0641 \u0628\u064a\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645\u060c \u0648\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629.",
           "evidence": [{ "id": "b2-model-only-source", "snippet": "\u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0627\u062c\u0629." }],
           "domain": "fiqh",
           "mode": "\u0639\u0627\u062f\u064a"
         },
-        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "opinionCount": null }
+        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
       },
       {
         "id": "b2-unrelated-excerpt-cannot-trigger",
@@ -422,7 +422,7 @@
           "domain": "fiqh",
           "mode": "\u0639\u0627\u062f\u064a"
         },
-        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "opinionCount": null }
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
       },
       {
         "id": "b2-whole-page-cannot-trigger",
@@ -436,7 +436,7 @@
           "domain": "fiqh",
           "mode": "\u0639\u0627\u062f\u064a"
         },
-        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "opinionCount": null }
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
       }
     ],
     "markerCases": [
@@ -448,6 +448,94 @@
       { "id": "weak-majority", "snippet": "\u0627\u0644\u062c\u0645\u0647\u0648\u0631 \u0639\u0644\u0649 \u0623\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false },
       { "id": "weak-some-scholars", "snippet": "\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0625\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false },
       { "id": "lexical-contrast-only", "snippet": "\u0628\u062e\u0644\u0627\u0641 \u0627\u0644\u0645\u0642\u064a\u0645\u060c \u0641\u0625\u0646 \u0627\u0644\u062c\u0645\u0639 \u0644\u0644\u0645\u0633\u0627\u0641\u0631 \u062c\u0627\u0626\u0632.", "expect": false }
+    ]
+  },
+  "b2b": {
+    "cases": [
+      {
+        "id": "b2b-prose-only-explicit",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "evidence": [{ "id": "b2b-silent-source", "snippet": "الجمع للمسافر جائز عند الحاجة." }],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 1, "trigger": "prose", "fromSource": false, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
+      },
+      {
+        "id": "b2b-source-over-prose",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "evidence": [{ "id": "b2b-explicit-source", "snippet": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة." }],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 1, "trigger": "source", "fromSource": true, "fromOpinions": null, "fromModelProse": true, "opinionCount": null }
+      },
+      {
+        "id": "b2b-opinions-over-prose",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "evidence": [{ "id": "b2b-opinions-silent-source", "snippet": "الجمع للمسافر جائز عند الحاجة." }],
+          "domain": "fiqh",
+          "mode": "عادي",
+          "khilafFromOpinions": true,
+          "opinionCount": 2
+        },
+        "expect": { "tailCount": 1, "trigger": "opinions", "fromSource": false, "fromOpinions": true, "fromModelProse": true, "opinionCount": 2 }
+      },
+      {
+        "id": "b2b-all-three-one-tail",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة.",
+          "evidence": [{ "id": "b2b-all-three-source", "snippet": "في هذه المسألة خلاف بين أهل العلم، والجمع للمسافر جائز عند الحاجة." }],
+          "domain": "fiqh",
+          "mode": "عادي",
+          "khilafFromOpinions": true,
+          "opinionCount": 3
+        },
+        "expect": { "tailCount": 1, "trigger": "both", "fromSource": true, "fromOpinions": true, "fromModelProse": true, "opinionCount": 3 }
+      },
+      {
+        "id": "b2b-loose-preferred-view",
+        "input": {
+          "text": "الراجح أن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2b-loose-majority",
+        "input": {
+          "text": "الجمهور على أن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2b-loose-some-scholars",
+        "input": {
+          "text": "قال بعض أهل العلم إن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      },
+      {
+        "id": "b2b-lexical-contrast-only",
+        "input": {
+          "text": "بخلاف المقيم، فإن الجمع للمسافر جائز عند الحاجة.",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "عادي"
+        },
+        "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
+      }
     ]
   },
   "b3a": {
