@@ -1371,6 +1371,168 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('MUTANT KILLED: the ledger cannot be printed before the retry row is in it',
       printOrderMutant.loaded && printOrderMutant.survived === false, JSON.stringify(printOrderMutant));
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // R. §١ (C) — MACHINE PROSE DOES NOT REACH THE READER IN ANY LANGUAGE
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // WHAT SECTIONS F AND F3 ABOVE PROVE, AND WHAT THEY CANNOT. Both are lists of ARABIC phrases,
+    // so both were blind to the two shapes the owner met on production on 17 August: an English
+    // sentence opening the answer, and the provider's own tool protocol delivered as text. «عايرْنا
+    // على سطحٍ وطبّقنا على سطحٍ آخر» — we calibrated on one surface and enforced on another.
+    //
+    // A SIXTH LIST OF ENGLISH PHRASES WOULD REPEAT THE MISTAKE ONE LANGUAGE LATER. So the two rules
+    // asserted here carry no vocabulary at all: one is about the SCRIPT of a line and one is about
+    // MARKUP. Everything below is therefore a property, and the negative witnesses are what stop a
+    // property from becoming a licence to delete.
+    const ENGLISH_ANNOUNCE = "I'll research each of these five questions in the authoritative sources.";
+    const PROTOCOL_HEAD = '<function_results>\n<result>\n<name>search_islamic_sources</name>\n'
+      + '<output>gold price today 82 usd per gram</output>\n</result>\n</function_results>';
+    // The shape a cut stream leaves: the container opened and no close ever arrived.
+    const PROTOCOL_CUT = '<function_results>\n<result>\n<name>search</name>\n<output>gold price today';
+
+    // R1 — THE POSITIVE PROPERTY, driven through a real turn rather than asserted on a string, so
+    // the rule is proved where it actually runs.
+    const englishTurn = await driveScript(loop,
+      (i) => (i === 0 ? withTool(ENGLISH_ANNOUNCE, 't0') : textPayload(LATE)));
+    ok('an English announcement of a move to a tool does not reach the reader',
+      !englishTurn.text.includes('research each of these'), englishTurn.text);
+    ok('...and the Arabic answer that followed it still does',
+      englishTurn.text.includes(LATE), englishTurn.text);
+    ok('...while the round ledger still records that the round CARRIED that prose',
+      englishTurn.roundLedger[0].textChars === ENGLISH_ANNOUNCE.length,
+      JSON.stringify(englishTurn.roundLedger));
+
+    // R2 — THE PROTOCOL, AT THE HEAD AND NOT AT THE HEAD, CLOSED AND CUT. «في أيِّ موضع».
+    const protocolGone = (mod, text) => {
+      const out = mod.deliverableText(text);
+      return !/<\/?(?:function_results|result|name|output)\b/u.test(out) && !out.includes('gold price today');
+    };
+    ok('a tool-protocol block that OPENS the answer is removed, payload and all',
+      protocolGone(loop, PROTOCOL_HEAD + '\nالجمع للمسافر جائز عند الحاجة.'),
+      loop.deliverableText(PROTOCOL_HEAD + '\nالجمع للمسافر جائز عند الحاجة.'));
+    ok('...and so is one in the MIDDLE of it — the ban is not about the head',
+      protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+    ok('...and one the stream cut mid-block, which has no close to match',
+      protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_CUT),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_CUT));
+    ok('...and the prose on both sides of a closed block survives it',
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.')
+        .includes('الجمع للمسافر جائز.')
+      && loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.')
+        .includes('وهذا هو الراجح'),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+
+    // R3 — THE NEGATIVE WITNESSES §١ NAMES BY NAME. Without these the whole section blesses «drop
+    // every line with a Latin character in it», which is the third mutant it forbids.
+    const SCRIPT_KEEPERS = Object.freeze([
+      // an English TERM inside an Arabic sentence
+      'وهذا ما يسمّى في الدراساتِ المعاصرةِ Fiqh of Minorities، وله ضوابطُه.',
+      // a LINK inside an Arabic sentence
+      'راجعْ نصَّ الفتوى على https://binbaz.org.sa/fatwas/12345 ففيه التفصيل.',
+      // LATIN DIGITS inside an Arabic sentence
+      'ومدّةُ المسحِ للمقيمِ يومٌ وليلة، وللمسافرِ 3 أيّامٍ بلياليها.',
+      // an English UNIT twice over — the case a bare-majority threshold would have eaten
+      'نصابُ الزكاةِ في الذهبِ 85 gram، وفي الفضّةِ 595 gram.',
+      // a bare link on its own line: no letters at all, so it is never judged
+      'https://binbaz.org.sa/fatwas/12345',
+      // an Arabic line ending in a shell command — 11 Latin letters against 14 Arabic, and the
+      // highest-scoring line in the measured KEEP corpus at 0.440
+      'ويكتبُ في الطرفيّة: npm run gates',
+    ]);
+    const keepsScriptWitnesses = (mod) => SCRIPT_KEEPERS.every((line) => {
+      const out = mod.deliverableText(line);
+      return out.trim() !== '' && out.includes(line.slice(0, 12));
+    });
+    ok('an Arabic sentence carrying an English term, a link or a Latin number is delivered whole',
+      keepsScriptWitnesses(loop),
+      JSON.stringify(SCRIPT_KEEPERS.filter((l) => loop.deliverableText(l).trim() === '')));
+
+    // R4 — THE CODE FENCE. §١'s second negative witness is a code block the reader explicitly asked
+    // for. The distinction is made STRUCTURALLY — a fence is markdown's own mark for «this is not
+    // prose» — so no guess about the reader's intent is needed anywhere.
+    const FENCED = 'الشرحُ كما يلي:\n```js\nfunction add(a, b) { return a + b; }\nconst total = add(2, 3);\n```\nوهذا هو المطلوب.';
+    const keepsFence = (mod) => {
+      const out = mod.deliverableText(FENCED);
+      return out.includes('function add(a, b)') && out.includes('const total = add(2, 3);')
+        && out.includes('```js') && out.includes('وهذا هو المطلوب');
+    };
+    ok('a fenced code block the reader asked for survives the script rule, line for line',
+      keepsFence(loop), loop.deliverableText(FENCED));
+
+    // R5 — THE STANDING PROPERTY: nothing above unmade anything below. The six Arabic witnesses of
+    // the 17 August X-ray are still dropped, and a real answer written in a tool round is still
+    // delivered whole. §١'s third and fourth negative witnesses, re-asserted after the new rules.
+    ok('THE SIX ARABIC WITNESSES: still dropped after the two new rules',
+      loop.deliverableText(ANNOUNCE).trim() === '', loop.deliverableText(ANNOUNCE));
+    ok('...and a real answer written in a tool round is still delivered, whole',
+      await keepsRealAnswer(loop));
+    ok('...and the fourth class — prose reporting on the tool run — is still dropped',
+      dropsReports(loop));
+    ok('...and the disclosure the reader is owed still survives', keepsDisclosures(loop));
+
+    // R6 — THE BOUND IS DECLARED AND SITS INSIDE THE MEASURED GAP. §١: «حدُّ الغلبةِ يُقاسُ
+    // ويُعلَن». Recomputed here from the two corpora rather than read off the comment, so a
+    // constant edited without re-measuring fails instead of passing with a stale note beside it.
+    const shareOf = (line) => loop.latinScriptShare(line).share;
+    const MACHINE_CORPUS = Object.freeze([
+      ENGLISH_ANNOUNCE,
+      'Let me search for the most authoritative fatwa on this specific question.',
+      'Based on the search results above, here is what the scholars say:',
+    ]);
+    const judged = SCRIPT_KEEPERS.filter((l) => loop.latinScriptShare(l).letters >= 12);
+    const keepMax = Math.max(...judged.map(shareOf));
+    const dropMin = Math.min(...MACHINE_CORPUS.map(shareOf));
+    ok('the two corpora are separable at all — machine prose scores above every answer line',
+      dropMin > keepMax, JSON.stringify({ keepMax, dropMin }));
+    const declaredShare = Number(/^const LATIN_LINE_SHARE = ([0-9.]+);$/mu.exec(loopSource)?.[1]);
+    const declaredFloor = Number(/^const LATIN_LINE_FLOOR = ([0-9]+);$/mu.exec(loopSource)?.[1]);
+    ok('the threshold is a declared constant, not a literal buried in the test',
+      Number.isFinite(declaredShare) && Number.isFinite(declaredFloor),
+      JSON.stringify({ declaredShare, declaredFloor }));
+    ok('...and it sits strictly inside the measured gap, with room on both sides',
+      declaredShare > keepMax && declaredShare < dropMin,
+      JSON.stringify({ keepMax, declaredShare, dropMin }));
+    ok('...and the measurement that produced it is in the tree and runnable',
+      fs.existsSync(path.join(ROOT, 'tools', 'latin-line-measure.mjs')));
+
+    // R7 — M22: THE SCRIPT RULE CANCELLED. §١'s first named mutant.
+    const scriptMutant = await loopMutant('script-rule-cancelled',
+      (source) => source.replace("    if (isForeignScriptLine(line)) return '';",
+        '    // mutant: the script rule is gone — an English line is delivered as an answer'),
+      async (twinModule) => {
+        const turn = await driveScript(twinModule,
+          (i) => (i === 0 ? withTool(ENGLISH_ANNOUNCE, 't0') : textPayload(LATE)));
+        return typeof turn?.text === 'string' && !turn.text.includes('research each of these');
+      });
+    ok('script-rule mutant seam applied', scriptMutant.changed, scriptMutant.error);
+    ok('script-rule mutant module loaded successfully', scriptMutant.loaded, scriptMutant.error);
+    ok('MUTANT KILLED: an English announcement cannot be delivered by dropping the script rule',
+      scriptMutant.loaded && scriptMutant.survived === false, JSON.stringify(scriptMutant));
+
+    // R8 — M23: THE PROTOCOL BAN NARROWED TO THE HEAD OF THE ANSWER. §١'s second named mutant, and
+    // the reason the section above drives the block from three positions instead of one.
+    const headOnlyMutant = await loopMutant('protocol-ban-head-only',
+      (source) => source.replace("  let out = String(text ?? '');",
+        "  let out = String(text ?? '');\n"
+        + "  if (out.indexOf('<') > 0) return out; // mutant: only a block that OPENS the text is removed"),
+      async (twinModule) => protocolGone(twinModule, 'الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+    ok('head-only mutant seam applied', headOnlyMutant.changed, headOnlyMutant.error);
+    ok('head-only mutant module loaded successfully', headOnlyMutant.loaded, headOnlyMutant.error);
+    ok('MUTANT KILLED: a protocol block below the first line cannot be delivered',
+      headOnlyMutant.loaded && headOnlyMutant.survived === false, JSON.stringify(headOnlyMutant));
+
+    // R9 — M24: THE DROP WIDENED TO EVERY LINE CARRYING A LATIN CHARACTER. §١'s third named
+    // mutant, and the one the negative witnesses exist for.
+    const wideScriptMutant = await loopMutant('script-rule-by-presence',
+      (source) => source.replace('  if (measured.letters < LATIN_LINE_FLOOR) return false;',
+        '  return measured.latin > 0; // mutant: presence, not majority — and no floor either'),
+      keepsScriptWitnesses);
+    ok('wide-script mutant seam applied', wideScriptMutant.changed, wideScriptMutant.error);
+    ok('wide-script mutant module loaded successfully', wideScriptMutant.loaded, wideScriptMutant.error);
+    ok('MUTANT KILLED: a rule keyed on the PRESENCE of Latin deletes the answers it was meant to keep',
+      wideScriptMutant.loaded && wideScriptMutant.survived === false, JSON.stringify(wideScriptMutant));
+
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
