@@ -3530,6 +3530,21 @@ const formatForTTS = (text) => {
   // Any tag surviving to here -> a single space (silence): never the raw tag, never model text.
   t = t.replace(/<worship[^>]*>[\s\S]*?<\/worship>/g, ' ');
   t = t.replace(/<worship[^>]*\/?>/g, ' ');
+  // ── §٤ — الوسمُ لا يُنطَق (the review mark is a label, not a sentence) ──────
+  // K-5/XI-04 made 【…】 a badge on the SCREEN and took the brackets off the CLIPBOARD. The voice
+  // was outside that item's scope and was left as it was, so a listener still heard «فهمٌ لا فتوى»
+  // read out inside the answer — the one reader of the four still being handed the raw mark.
+  // It is a label ABOUT the answer, not a sentence OF it, and nothing else on this page speaks the
+  // name of a tag: every angle-bracket tag above is either rewritten to natural speech or silenced.
+  //
+  // THE INFORMATION IS NOT TAKEN FROM THE READER. The badge is still drawn (`ezikLiftNotices`),
+  // and the notice's own sentence — «ما تقدّم فهمٌ مبنيٌّ على ما بين يديّ في هذه الدورة، لا فتوى
+  // مسنَدةٌ إلى مفتٍ بعينِه.» — is prose, and is still spoken in full. Only the bracketed LABEL goes.
+  //
+  // A SPACE AND NOT AN EMPTY STRING. `tag()` appends the mark straight after the full stop
+  // («…لا واجبٌ.【فهمٌ لا نصٌّ منقول】»), so deleting it to nothing would weld the sentence that
+  // precedes it to the one that follows and ElevenLabs would read the two as a single word.
+  t = t.replace(EZIK_NOTICE_ALL, ' ');
   t = t.replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g, ' ').replace(/[ \t]{2,}/g, ' ');
   // Keep links opaque while pronunciation-only math substitutions run. In particular, neither a
   // trig name in a path nor any slash/query operator in a URL is spoken as mathematics.

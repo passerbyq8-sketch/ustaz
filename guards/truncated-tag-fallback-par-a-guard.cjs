@@ -222,6 +222,83 @@ function runSuite(client, phase) {
     'the rescue must be opt-in, or every streaming caller inherits it');
 }
 
+// ── B2. §٤ — THE REVIEW MARK IS A LABEL, AND A LABEL IS NOT SPOKEN ──────────
+//
+// K-5 (XI-04) made 【…】 a badge on the SCREEN and took the brackets off the CLIPBOARD. The VOICE
+// was outside that item's scope and was left as it was — so of the four readers this gate exists
+// to protect, one was still being handed the raw mark and read «فهمٌ لا فتوى» out loud in the
+// middle of the answer. Every other tag on the page is either rewritten to natural speech or
+// silenced; this was the one that was neither.
+//
+// THE INFORMATION IS NOT TAKEN FROM THE READER, and that is what the negative witnesses below are
+// for. The badge is still drawn, and a notice's own sentence is prose and must still be spoken in
+// full. Only the bracketed LABEL goes. An assertion that the mark is gone, on its own, would be
+// satisfied just as well by a voice that had gone silent.
+//
+// THE FIXTURES ARE READ OFF THE PRODUCER, NOT RETYPED. lib/output-reviewer.js is the only writer
+// of these marks and is not this round's file to edit, so the strings are lifted from its source
+// verbatim. This is not tidiness: the marks carry Arabic diacritics, retyping puts the shadda and
+// the damma in a different ORDER than the file holds them, and the assertion then compares two
+// strings that look identical and are not — a green assertion about nothing.
+// SCOPED TO THE `TAGS` DECLARATION, not to the whole file, and the difference is not cosmetic.
+// Reading every 【…】 in the source picks up the prose comment at :669 as a FOURTH mark — it
+// spells «فهمٌ لا نصٌّ منقول» with the damma before the shadda where the constant at :9 has the
+// shadda before the damma. Same NFC, same rendering, different code units, so `Set` keeps both.
+// That is this file demonstrating the retyping hazard on itself, and it is the reason the strings
+// below are lifted from the DECLARATION and the reason index.html matches the mark by its
+// brackets rather than by its letters.
+function reviewMarks() {
+  const src = fs.readFileSync(path.join(ROOT, 'lib', 'output-reviewer.js'), 'utf8');
+  const tagsAt = src.indexOf('const TAGS = Object.freeze({');
+  const tagsBlock = tagsAt === -1 ? '' : src.slice(tagsAt, src.indexOf('});', tagsAt));
+  const marks = [...new Set(tagsBlock.match(/【[^】\n]{1,80}】/gu) || [])];
+  const start = src.indexOf('const NOTICES = Object.freeze({');
+  const block = start === -1 ? '' : src.slice(start, src.indexOf('});', start));
+  const bodies = [...block.matchAll(/\+\s*'([^']+)'/gu)].map((m) => m[1]);
+  return { marks, bodies };
+}
+
+function reviewMarkSuite(client, phase) {
+  console.log('\n--- B2. the review mark is not spoken ---');
+  const tts = client.grab('formatForTTS');
+  const { marks, bodies } = reviewMarks();
+  // The pairing below is positional, so the shape it assumes is asserted rather than trusted:
+  // three marks, and a notice for all but the first (which `tag()` appends bare).
+  if (!ok(phase + ': the review marks were read off lib/output-reviewer.js, not retyped',
+    typeof tts === 'function' && marks.length === 3 && bodies.length === marks.length - 1,
+    'marks=' + marks.length + ' bodies=' + bodies.length)) return;
+
+  // Prose either side of the mark. Defined once and compared against itself, never against a
+  // string retyped elsewhere.
+  const BEFORE = 'وإن توضأ منها احتياطا فحسن لا واجب.';
+  const AFTER = 'وهذا الذي عليه عامة أهل العلم.';
+
+  marks.forEach((mark, i) => {
+    // Shape (a) — `tag()` appends the bare mark straight after the sentence it is about.
+    const spoken = String(tts(BEFORE + mark + ' ' + AFTER) || '');
+    ok(phase + ' [mark ' + i + ']: the mark is not spoken when it closes a sentence',
+      !spoken.includes(mark), JSON.stringify(spoken.slice(0, 140)));
+    ok(phase + ' [mark ' + i + ']: ...and neither ornate bracket reaches the voice',
+      !spoken.includes('【') && !spoken.includes('】'), JSON.stringify(spoken.slice(0, 140)));
+    // NEGATIVE WITNESS 1 — the answer's own prose is still spoken, on BOTH sides, and the two
+    // sentences are not welded together by deleting the mark to nothing.
+    ok(phase + ' [mark ' + i + ']: ...while the prose either side of it is spoken, whole and apart',
+      spoken.includes(BEFORE + ' ' + AFTER), JSON.stringify(spoken.slice(0, 160)));
+  });
+
+  bodies.forEach((body, i) => {
+    // Shape (b) — a NOTICE is `mark + ' ' + sentence`, its own line.
+    const mark = marks[i + 1];
+    const spoken = String(tts(mark + body) || '');
+    ok(phase + ' [notice ' + i + ']: the notice\'s label is not spoken',
+      !spoken.includes(mark), JSON.stringify(spoken.slice(0, 140)));
+    // NEGATIVE WITNESS 2 — the notice's SENTENCE is the honest disclosure the reader is owed. It
+    // is prose, not a label, and dropping it with the label would be a removal, not a repair.
+    ok(phase + ' [notice ' + i + ']: ...while its sentence is still spoken in full',
+      spoken.includes(body.trim()), JSON.stringify(spoken.slice(0, 200)));
+  });
+}
+
 // ── MUTANTS ─────────────────────────────────────────────────────────────────
 // Each rewrites the shipped index.html source in memory and requires this gate to notice.
 // A mutation that does not change the source is a hard error, never a pass.
@@ -263,6 +340,16 @@ function mutants() {
       // other — and a seam that silently fails to apply is a mutant that silently never runs.
       apply: (s) => s.replace('    EZIK_TAG_RESCUES.push({', '    if (rescued) EZIK_TAG_RESCUES.push({'),
       ledger: true,
+    },
+    {
+      name: 'the-review-mark-is-spoken-again',
+      // §٤ removed. This is the shipped behaviour of 17 August: the badge is drawn on the screen
+      // and the clipboard is clean, and the listener is still read «فهمٌ لا فتوى» mid-answer.
+      // Single-line seam, for the CRLF/LF reason recorded on the mutant above.
+      apply: (s) => s.replace('  t = t.replace(EZIK_NOTICE_ALL, \' \');',
+        '  // mutant: the review mark goes back to the voice'),
+      check: (parse, tts) => reviewMarks().marks.every((m) =>
+        !String(tts('وإن توضأ منها احتياطا فحسن لا واجب.' + m) || '').includes(m)),
     },
   ];
 
@@ -356,7 +443,9 @@ function serverStrip() {
   console.log('=== truncated-tag-fallback-par-a-guard -- X-014: a cut tag must not empty the answer ===');
   try {
     console.log('\n--- A/B. SHIPPED CLIENT, FINAL-TEXT READERS ---');
-    runSuite(bootClient(), 'live');
+    const liveClient = bootClient();
+    runSuite(liveClient, 'live');
+    reviewMarkSuite(liveClient, 'live');
     serverStrip();
     if (process.argv.includes('--mutants')) mutants();
   } catch (e) {
