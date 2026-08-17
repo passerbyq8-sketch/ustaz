@@ -330,6 +330,130 @@ const appearsInOrder = (text, needles) => {
     ok('C-3 audit mutant module loaded successfully', auditMutant.loaded, auditMutant.error);
     ok('MUTANT KILLED: destructive verdict actions cannot drop before/after',
       auditMutant.loaded && auditMutant.survived === false, JSON.stringify(auditMutant));
+
+    const emptySelfContradiction = {
+      detected: false, shape: null, first: null, later: null, at: null,
+    };
+    const selfContradictionKeys = ['at', 'detected', 'first', 'later', 'shape'];
+    const b3ExpectedText = new Map();
+    ok('B-3A fixture carries the three deposited contradiction witnesses',
+      Array.isArray(fixture.b3a?.positives) && fixture.b3a.positives.length === 3);
+    for (const test of fixture.b3a?.positives || []) {
+      const result = module.reviewAnswer(test.input);
+      const finding = result.verdict.selfContradiction;
+      b3ExpectedText.set(test.id, result.text);
+      ok(test.id + ': detector reports the measured shape',
+        finding?.detected === true && finding.shape === test.expect.shape,
+        JSON.stringify(finding));
+      ok(test.id + ': first/later excerpts name the deposited clauses',
+        finding?.first?.includes(test.expect.firstContains)
+          && finding?.later?.includes(test.expect.laterContains), JSON.stringify(finding));
+      ok(test.id + ': part ordinals are an increasing integer pair',
+        Array.isArray(finding?.at) && finding.at.length === 2
+          && finding.at.every(Number.isInteger) && finding.at[0] < finding.at[1],
+        JSON.stringify(finding));
+      ok(test.id + ': both audit excerpts are capped at 200 Unicode points',
+        Array.from(finding?.first || '').length <= 200
+          && Array.from(finding?.later || '').length <= 200, JSON.stringify(finding));
+      ok(test.id + ': detection leaves every deposited character in reader text',
+        result.text.includes(test.input.text), result.text);
+    }
+
+    ok('B-3A fixture carries every mandatory differentiated negative',
+      Array.isArray(fixture.b3a?.negatives) && fixture.b3a.negatives.length === 4);
+    for (const test of fixture.b3a?.negatives || []) {
+      const result = module.reviewAnswer(test.input);
+      const finding = result.verdict.selfContradiction;
+      b3ExpectedText.set(test.id, result.text);
+      ok(test.id + ': differentiation is not reported as contradiction',
+        Object.hasOwn(result.verdict, 'selfContradiction')
+          && JSON.stringify(finding) === JSON.stringify(emptySelfContradiction),
+        JSON.stringify(finding));
+      ok(test.id + ': the present false field has the exact stable schema',
+        JSON.stringify(Object.keys(finding || {}).sort()) === JSON.stringify(selfContradictionKeys),
+        JSON.stringify(finding));
+      ok(test.id + ': a negative finding still leaves reader text untouched',
+        result.text.includes(test.input.text), result.text);
+    }
+
+    const longSelfContradiction = module.reviewAnswer({
+      text: 'وضوؤك صحيح ' + 'والحكم متعلق بالوضوء نفسه دون غيره '.repeat(12) + '. '
+        + 'وضوؤك باطل ' + 'والحكم متعلق بالوضوء نفسه دون غيره '.repeat(12) + '.',
+      evidence: [], domain: 'fiqh', mode: 'audit',
+    }).verdict.selfContradiction;
+    ok('B-3A long contradiction clips first and later at exactly 200 Unicode points',
+      longSelfContradiction.detected
+        && Array.from(longSelfContradiction.first).length === 200
+        && Array.from(longSelfContradiction.later).length === 200,
+      JSON.stringify(longSelfContradiction));
+
+    const b3FixturePasses = (mod) => {
+      for (const test of fixture.b3a?.positives || []) {
+        const result = mod.reviewAnswer(test.input);
+        const finding = result.verdict.selfContradiction;
+        if (result.text !== b3ExpectedText.get(test.id)
+            || finding?.detected !== true || finding.shape !== test.expect.shape
+            || !finding.first?.includes(test.expect.firstContains)
+            || !finding.later?.includes(test.expect.laterContains)) return false;
+      }
+      for (const test of fixture.b3a?.negatives || []) {
+        const result = mod.reviewAnswer(test.input);
+        if (result.text !== b3ExpectedText.get(test.id)
+            || !Object.hasOwn(result.verdict, 'selfContradiction')
+            || JSON.stringify(result.verdict.selfContradiction)
+              !== JSON.stringify(emptySelfContradiction)) return false;
+      }
+      return true;
+    };
+    const printB3Mutant = (name, result) => console.log('MUTANT ' + name
+      + ' changed=' + result.changed + ' loaded=' + result.loaded + ' survived=' + result.survived);
+
+    const conditionsMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'contradiction-ignores-conditions',
+      transform: (source) => source.replaceAll(
+        '      if (differentiatedCase(first, claim)) continue;',
+        '      if (false && differentiatedCase(first, claim)) continue; // mutant: ignore differentiated cases'),
+      survives: b3FixturePasses,
+    });
+    printB3Mutant('contradiction-ignores-conditions', conditionsMutant);
+    ok('B-3A contradiction-ignores-conditions mutant seam applied',
+      conditionsMutant.changed, conditionsMutant.error);
+    ok('B-3A contradiction-ignores-conditions mutant module loaded',
+      conditionsMutant.loaded, conditionsMutant.error);
+    ok('MUTANT KILLED: differentiated cases cannot become contradictions',
+      conditionsMutant.loaded && conditionsMutant.survived === false,
+      JSON.stringify(conditionsMutant));
+
+    const editsTextMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'contradiction-edits-the-text',
+      transform: (source) => source.replace(
+        '  return { text: reviewedText, annotations: Object.freeze(annotations), verdict };',
+        '  return { text: selfContradiction.detected ? selfContradiction.later : reviewedText, annotations: Object.freeze(annotations), verdict }; // mutant: edit on detection'),
+      survives: b3FixturePasses,
+    });
+    printB3Mutant('contradiction-edits-the-text', editsTextMutant);
+    ok('B-3A contradiction-edits-the-text mutant seam applied', editsTextMutant.changed, editsTextMutant.error);
+    ok('B-3A contradiction-edits-the-text mutant module loaded', editsTextMutant.loaded, editsTextMutant.error);
+    ok('MUTANT KILLED: contradiction measurement cannot edit reader text',
+      editsTextMutant.loaded && editsTextMutant.survived === false,
+      JSON.stringify(editsTextMutant));
+
+    const dropsFieldMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'contradiction-field-dropped',
+      transform: (source) => source.replace(
+        '    selfContradiction, // SELF_CONTRADICTION_FIELD_ALWAYS_PRESENT',
+        '    ...(selfContradiction.detected ? { selfContradiction } : {}), // mutant: silence looks like detector failure'),
+      survives: b3FixturePasses,
+    });
+    printB3Mutant('contradiction-field-dropped', dropsFieldMutant);
+    ok('B-3A contradiction-field-dropped mutant seam applied', dropsFieldMutant.changed, dropsFieldMutant.error);
+    ok('B-3A contradiction-field-dropped mutant module loaded', dropsFieldMutant.loaded, dropsFieldMutant.error);
+    ok('MUTANT KILLED: a clean answer must retain the explicit false field',
+      dropsFieldMutant.loaded && dropsFieldMutant.survived === false,
+      JSON.stringify(dropsFieldMutant));
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {
     fail++;
