@@ -730,9 +730,18 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     const askSource = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
     ok('api/ask.js builds the free branch\'s cards through the capped rule',
       /registerOwnedCards\(pickReaderCards\(out\.cited, MAX_SOURCES,/u.test(askSource));
+    // §٣ (C) ADDED TWO NAMES TO THIS IMPORT and the pin moved with them rather than being loosened.
+    // Written as «every one of these four names is in the destructuring, and the specifier is the
+    // loop» instead of as one literal line: the literal broke the moment the list wrapped onto
+    // three lines, and a pin that has to be re-typed whenever a name is added is a pin that gets
+    // deleted. What it still forbids is the thing it was written for — a second copy of the card
+    // rule, or of the footer rule, living in the handler.
+    const freeBrainImport = /const \{([^}]*)\} = await import\('\.\.\/lib\/free-brain\/loop\.js'\);/u
+      .exec(askSource)?.[1] || '';
     ok('...and imports it from the loop rather than keeping a second copy',
-      /const \{ runFreeBrainTurn, pickReaderCards \} = await import\('\.\.\/lib\/free-brain\/loop\.js'\);/u
-        .test(askSource));
+      ['runFreeBrainTurn', 'pickReaderCards', 'encyclopediaTail', 'citedDeliveryLedger']
+        .every((name) => new RegExp('(?:^|[\\s,])' + name + '(?:[\\s,]|$)', 'u').test(freeBrainImport)),
+      freeBrainImport);
     ok('...and MAX_SOURCES is still the one constant, still three',
       /^const MAX_SOURCES = 3;$/mu.test(askSource));
 
@@ -1370,6 +1379,373 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('print-order mutant module loaded successfully', printOrderMutant.loaded, printOrderMutant.error);
     ok('MUTANT KILLED: the ledger cannot be printed before the retry row is in it',
       printOrderMutant.loaded && printOrderMutant.survived === false, JSON.stringify(printOrderMutant));
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // R. §١ (C) — MACHINE PROSE DOES NOT REACH THE READER IN ANY LANGUAGE
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // WHAT SECTIONS F AND F3 ABOVE PROVE, AND WHAT THEY CANNOT. Both are lists of ARABIC phrases,
+    // so both were blind to the two shapes the owner met on production on 17 August: an English
+    // sentence opening the answer, and the provider's own tool protocol delivered as text. «عايرْنا
+    // على سطحٍ وطبّقنا على سطحٍ آخر» — we calibrated on one surface and enforced on another.
+    //
+    // A SIXTH LIST OF ENGLISH PHRASES WOULD REPEAT THE MISTAKE ONE LANGUAGE LATER. So the two rules
+    // asserted here carry no vocabulary at all: one is about the SCRIPT of a line and one is about
+    // MARKUP. Everything below is therefore a property, and the negative witnesses are what stop a
+    // property from becoming a licence to delete.
+    const ENGLISH_ANNOUNCE = "I'll research each of these five questions in the authoritative sources.";
+    const PROTOCOL_HEAD = '<function_results>\n<result>\n<name>search_islamic_sources</name>\n'
+      + '<output>gold price today 82 usd per gram</output>\n</result>\n</function_results>';
+    // The shape a cut stream leaves: the container opened and no close ever arrived.
+    const PROTOCOL_CUT = '<function_results>\n<result>\n<name>search</name>\n<output>gold price today';
+
+    // R1 — THE POSITIVE PROPERTY, driven through a real turn rather than asserted on a string, so
+    // the rule is proved where it actually runs.
+    const englishTurn = await driveScript(loop,
+      (i) => (i === 0 ? withTool(ENGLISH_ANNOUNCE, 't0') : textPayload(LATE)));
+    ok('an English announcement of a move to a tool does not reach the reader',
+      !englishTurn.text.includes('research each of these'), englishTurn.text);
+    ok('...and the Arabic answer that followed it still does',
+      englishTurn.text.includes(LATE), englishTurn.text);
+    ok('...while the round ledger still records that the round CARRIED that prose',
+      englishTurn.roundLedger[0].textChars === ENGLISH_ANNOUNCE.length,
+      JSON.stringify(englishTurn.roundLedger));
+
+    // R2 — THE PROTOCOL, AT THE HEAD AND NOT AT THE HEAD, CLOSED AND CUT. «في أيِّ موضع».
+    const protocolGone = (mod, text) => {
+      const out = mod.deliverableText(text);
+      return !/<\/?(?:function_results|result|name|output)\b/u.test(out) && !out.includes('gold price today');
+    };
+    ok('a tool-protocol block that OPENS the answer is removed, payload and all',
+      protocolGone(loop, PROTOCOL_HEAD + '\nالجمع للمسافر جائز عند الحاجة.'),
+      loop.deliverableText(PROTOCOL_HEAD + '\nالجمع للمسافر جائز عند الحاجة.'));
+    ok('...and so is one in the MIDDLE of it — the ban is not about the head',
+      protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+    ok('...and one the stream cut mid-block, which has no close to match',
+      protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_CUT),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_CUT));
+    ok('...and the prose on both sides of a closed block survives it',
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.')
+        .includes('الجمع للمسافر جائز.')
+      && loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.')
+        .includes('وهذا هو الراجح'),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+
+    // R3 — THE NEGATIVE WITNESSES §١ NAMES BY NAME. Without these the whole section blesses «drop
+    // every line with a Latin character in it», which is the third mutant it forbids.
+    const SCRIPT_KEEPERS = Object.freeze([
+      // an English TERM inside an Arabic sentence
+      'وهذا ما يسمّى في الدراساتِ المعاصرةِ Fiqh of Minorities، وله ضوابطُه.',
+      // a LINK inside an Arabic sentence
+      'راجعْ نصَّ الفتوى على https://binbaz.org.sa/fatwas/12345 ففيه التفصيل.',
+      // LATIN DIGITS inside an Arabic sentence
+      'ومدّةُ المسحِ للمقيمِ يومٌ وليلة، وللمسافرِ 3 أيّامٍ بلياليها.',
+      // an English UNIT twice over — the case a bare-majority threshold would have eaten
+      'نصابُ الزكاةِ في الذهبِ 85 gram، وفي الفضّةِ 595 gram.',
+      // a bare link on its own line: no letters at all, so it is never judged
+      'https://binbaz.org.sa/fatwas/12345',
+      // an Arabic line ending in a shell command — 11 Latin letters against 14 Arabic, and the
+      // highest-scoring line in the measured KEEP corpus at 0.440
+      'ويكتبُ في الطرفيّة: npm run gates',
+    ]);
+    const keepsScriptWitnesses = (mod) => SCRIPT_KEEPERS.every((line) => {
+      const out = mod.deliverableText(line);
+      return out.trim() !== '' && out.includes(line.slice(0, 12));
+    });
+    ok('an Arabic sentence carrying an English term, a link or a Latin number is delivered whole',
+      keepsScriptWitnesses(loop),
+      JSON.stringify(SCRIPT_KEEPERS.filter((l) => loop.deliverableText(l).trim() === '')));
+
+    // R4 — THE CODE FENCE. §١'s second negative witness is a code block the reader explicitly asked
+    // for. The distinction is made STRUCTURALLY — a fence is markdown's own mark for «this is not
+    // prose» — so no guess about the reader's intent is needed anywhere.
+    const FENCED = 'الشرحُ كما يلي:\n```js\nfunction add(a, b) { return a + b; }\nconst total = add(2, 3);\n```\nوهذا هو المطلوب.';
+    const keepsFence = (mod) => {
+      const out = mod.deliverableText(FENCED);
+      return out.includes('function add(a, b)') && out.includes('const total = add(2, 3);')
+        && out.includes('```js') && out.includes('وهذا هو المطلوب');
+    };
+    ok('a fenced code block the reader asked for survives the script rule, line for line',
+      keepsFence(loop), loop.deliverableText(FENCED));
+
+    // R5 — THE STANDING PROPERTY: nothing above unmade anything below. The six Arabic witnesses of
+    // the 17 August X-ray are still dropped, and a real answer written in a tool round is still
+    // delivered whole. §١'s third and fourth negative witnesses, re-asserted after the new rules.
+    ok('THE SIX ARABIC WITNESSES: still dropped after the two new rules',
+      loop.deliverableText(ANNOUNCE).trim() === '', loop.deliverableText(ANNOUNCE));
+    ok('...and a real answer written in a tool round is still delivered, whole',
+      await keepsRealAnswer(loop));
+    ok('...and the fourth class — prose reporting on the tool run — is still dropped',
+      dropsReports(loop));
+    ok('...and the disclosure the reader is owed still survives', keepsDisclosures(loop));
+
+    // R6 — THE BOUND IS DECLARED AND SITS INSIDE THE MEASURED GAP. §١: «حدُّ الغلبةِ يُقاسُ
+    // ويُعلَن». Recomputed here from the two corpora rather than read off the comment, so a
+    // constant edited without re-measuring fails instead of passing with a stale note beside it.
+    const shareOf = (line) => loop.latinScriptShare(line).share;
+    const MACHINE_CORPUS = Object.freeze([
+      ENGLISH_ANNOUNCE,
+      'Let me search for the most authoritative fatwa on this specific question.',
+      'Based on the search results above, here is what the scholars say:',
+    ]);
+    const judged = SCRIPT_KEEPERS.filter((l) => loop.latinScriptShare(l).letters >= 12);
+    const keepMax = Math.max(...judged.map(shareOf));
+    const dropMin = Math.min(...MACHINE_CORPUS.map(shareOf));
+    ok('the two corpora are separable at all — machine prose scores above every answer line',
+      dropMin > keepMax, JSON.stringify({ keepMax, dropMin }));
+    const declaredShare = Number(/^const LATIN_LINE_SHARE = ([0-9.]+);$/mu.exec(loopSource)?.[1]);
+    const declaredFloor = Number(/^const LATIN_LINE_FLOOR = ([0-9]+);$/mu.exec(loopSource)?.[1]);
+    ok('the threshold is a declared constant, not a literal buried in the test',
+      Number.isFinite(declaredShare) && Number.isFinite(declaredFloor),
+      JSON.stringify({ declaredShare, declaredFloor }));
+    ok('...and it sits strictly inside the measured gap, with room on both sides',
+      declaredShare > keepMax && declaredShare < dropMin,
+      JSON.stringify({ keepMax, declaredShare, dropMin }));
+    ok('...and the measurement that produced it is in the tree and runnable',
+      fs.existsSync(path.join(ROOT, 'tools', 'latin-line-measure.mjs')));
+
+    // R7 — M22: THE SCRIPT RULE CANCELLED. §١'s first named mutant.
+    const scriptMutant = await loopMutant('script-rule-cancelled',
+      (source) => source.replace("    if (isForeignScriptLine(line)) return '';",
+        '    // mutant: the script rule is gone — an English line is delivered as an answer'),
+      async (twinModule) => {
+        const turn = await driveScript(twinModule,
+          (i) => (i === 0 ? withTool(ENGLISH_ANNOUNCE, 't0') : textPayload(LATE)));
+        return typeof turn?.text === 'string' && !turn.text.includes('research each of these');
+      });
+    ok('script-rule mutant seam applied', scriptMutant.changed, scriptMutant.error);
+    ok('script-rule mutant module loaded successfully', scriptMutant.loaded, scriptMutant.error);
+    ok('MUTANT KILLED: an English announcement cannot be delivered by dropping the script rule',
+      scriptMutant.loaded && scriptMutant.survived === false, JSON.stringify(scriptMutant));
+
+    // R8 — M23: THE PROTOCOL BAN NARROWED TO THE HEAD OF THE ANSWER. §١'s second named mutant, and
+    // the reason the section above drives the block from three positions instead of one.
+    const headOnlyMutant = await loopMutant('protocol-ban-head-only',
+      (source) => source.replace("  let out = String(text ?? '');",
+        "  let out = String(text ?? '');\n"
+        + "  if (out.indexOf('<') > 0) return out; // mutant: only a block that OPENS the text is removed"),
+      async (twinModule) => protocolGone(twinModule, 'الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+    ok('head-only mutant seam applied', headOnlyMutant.changed, headOnlyMutant.error);
+    ok('head-only mutant module loaded successfully', headOnlyMutant.loaded, headOnlyMutant.error);
+    ok('MUTANT KILLED: a protocol block below the first line cannot be delivered',
+      headOnlyMutant.loaded && headOnlyMutant.survived === false, JSON.stringify(headOnlyMutant));
+
+    // R9 — M24: THE DROP WIDENED TO EVERY LINE CARRYING A LATIN CHARACTER. §١'s third named
+    // mutant, and the one the negative witnesses exist for.
+    const wideScriptMutant = await loopMutant('script-rule-by-presence',
+      (source) => source.replace('  if (measured.letters < LATIN_LINE_FLOOR) return false;',
+        '  return measured.latin > 0; // mutant: presence, not majority — and no floor either'),
+      keepsScriptWitnesses);
+    ok('wide-script mutant seam applied', wideScriptMutant.changed, wideScriptMutant.error);
+    ok('wide-script mutant module loaded successfully', wideScriptMutant.loaded, wideScriptMutant.error);
+    ok('MUTANT KILLED: a rule keyed on the PRESENCE of Latin deletes the answers it was meant to keep',
+      wideScriptMutant.loaded && wideScriptMutant.survived === false, JSON.stringify(wideScriptMutant));
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // S. §٢ (C) — THE READER IS TOLD THE ANSWER STOPPED SHORT
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // MEASURED LIVE: an answer cut IN THE MIDDLE OF A WORD arrived carrying the closing review mark,
+    // so it read as finished. The finish state existed on every provider payload and nothing on the
+    // path had ever read it.
+    //
+    // S1 — THE DERIVATION, AS A TABLE. The contract is «true إن انتهتْ آخرُ جولةِ نموذجٍ بغيرِ
+    // end_turn · false إن تمّت · null إن لم يُعرَفْ», so the test is the COMPLEMENT of end_turn and
+    // not a list of the two stop reasons anyone happens to remember.
+    for (const [stop, expected] of [
+      ['end_turn', false], ['max_tokens', true], ['tool_use', true],
+      ['refusal', true], ['pause_turn', true],
+      [null, null], [undefined, null], ['', null], [0, null], [{}, null],
+    ]) {
+      ok(`truncatedFrom(${JSON.stringify(stop)}) is ${JSON.stringify(expected)}`,
+        loop.truncatedFrom(stop) === expected, JSON.stringify(loop.truncatedFrom(stop)));
+    }
+
+    // S2 — AND IT IS READ OFF A REAL TURN. Three shapes, three answers, and none of them is a
+    // property of the text: the two `truncated` turns below deliver the SAME string.
+    const stopPayload = (text, stop) => ({ stop_reason: stop, content: [{ type: 'text', text }] });
+    const SHORT = 'نعم.';
+    const finishedTurn = await driveScript(loop, () => stopPayload(EARLY, 'end_turn'));
+    const cutTurn = await driveScript(loop, () => stopPayload(SHORT, 'max_tokens'));
+    const cutLongTurn = await driveScript(loop, () => stopPayload(EARLY, 'max_tokens'));
+    ok('a turn that ended on end_turn reports truncated:false',
+      finishedTurn.truncated === false && finishedTurn.deliveredStop === 'end_turn',
+      JSON.stringify([finishedTurn.truncated, finishedTurn.deliveredStop]));
+    ok('a turn that ended on max_tokens reports truncated:true — however SHORT its text',
+      cutTurn.truncated === true && cutTurn.deliveredStop === 'max_tokens',
+      JSON.stringify([cutTurn.truncated, cutTurn.deliveredStop, cutTurn.text.length]));
+    ok('...and however LONG it is, the same reason gives the same answer',
+      cutLongTurn.truncated === true, JSON.stringify([cutLongTurn.truncated, cutLongTurn.text.length]));
+    // THE PAIR THAT KILLS A LENGTH RULE, STATED AS ONE FACT: the SHORT cut turn and the LONG
+    // finished turn disagree in exactly the direction a length rule would get backwards.
+    ok('a short CUT answer and a long FINISHED answer are reported oppositely, which no length rule can do',
+      cutTurn.truncated === true && finishedTurn.truncated === false
+      && cutTurn.text.length < finishedTurn.text.length,
+      JSON.stringify([cutTurn.text.length, finishedTurn.text.length]));
+
+    // S3 — «null MEANS I DO NOT KNOW». Every provider call throws, so no round ever came back and
+    // there is no finish state to report. Reporting `false` here would tell the reader that an
+    // answer that does not exist is complete.
+    const noRoundTurn = await driveScript(loop,
+      () => Object.assign(new Error('upstream 529'), { status: 529 }));
+    ok('a turn in which no round came back reports truncated:null, not false',
+      noRoundTurn.truncated === null && noRoundTurn.deliveredStop === null,
+      JSON.stringify([noRoundTurn.truncated, noRoundTurn.deliveredStop]));
+
+    // S4 — IT CROSSES THE SEAM UNDER EXACTLY THAT NAME, and under the same normalisation the khilaf
+    // signal gets. Same recorder, same discipline: anything that is not literally true or false is
+    // `null`, because a truthy string quietly becoming `false` would tell the reviewer that a
+    // half-written answer is whole.
+    ok('the seam forwards `truncated` under exactly that name',
+      (await seamSaw({ ...base, truncated: true }))?.truncated === true);
+    ok('...and a genuine `false` is carried through as `false`',
+      (await seamSaw({ ...base, truncated: false }))?.truncated === false);
+    for (const [label, value] of [
+      ['absent', undefined], ['null', null], ['a truthy string', 'yes'], ['zero', 0], ['an empty string', ''],
+    ]) {
+      const saw = await seamSaw({ ...base, truncated: value });
+      ok(`...and ${label} crosses the seam as null, not as false`,
+        saw && saw.truncated === null, JSON.stringify(saw && saw.truncated));
+    }
+    // The loop hands it to the seam at the SAME call site as the khilaf signal — §٢/١'s «في الموضع
+    // نفسِه الذي تُمرَّرُ فيه إشارةُ الخلاف» — pinned as text, like every other field of that joint.
+    ok('the loop passes `truncated` into the one call to branch ب',
+      /^ {4}truncated,$/mu.test(loopSource));
+    ok('...and api/ask.js logs it beside the stop_reason it was derived from',
+      /^ {8}truncated: out\.truncated \?\? null,$/mu.test(askSource)
+      && /^ {8}deliveredStop: out\.deliveredStop \?\? null,$/mu.test(askSource));
+
+    // S5 — THE CLIENT SAYS IT, AND SAYS IT FROM THE SERVER'S SIGNAL. §٢/٢ gives the LINE to the
+    // client, beside the «كمّل» button that already exists. Held as source assertions because this
+    // guard runs no browser: what it can prove is that the marker is emitted only on `true`, that
+    // the client has a rendered line keyed on it, and that nothing anywhere derives it from the
+    // text. The last of those is the one that matters, and it is the reason for the `!` tests.
+    const indexSource = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    ok('api/ask.js appends the marker only when truncated is literally true',
+      /out\.truncated === true \? TRUNCATED_MARK : ''/u.test(askSource));
+    ok("...and the marker itself carries no prose — the wording is the client's",
+      /^const TRUNCATED_MARK = '\\n<incomplete\/>';$/mu.test(askSource));
+    ok('the client draws a line when, and only when, that marker is present',
+      /ezikAnswerIncomplete\(lastMsg\.content\)/u.test(indexSource)
+      && /const ezikAnswerIncomplete = \(t\) => typeof t === 'string' && EZIK_INCOMPLETE_TEST\.test\(t\);/u
+        .test(indexSource));
+    ok('...and the line has wording in BOTH interface languages, so neither reader is left guessing',
+      /'chat\.qa\.incomplete': '[^']+'/u.test(indexSource)
+      && (indexSource.match(/'chat\.qa\.incomplete':/gu) || []).length === 2);
+    ok('...and it is drawn beside the «كمّل» strip, under the same visibility rule',
+      /\{quickActionsVisible && ezikAnswerIncomplete\(lastMsg\.content\) && \(/u.test(indexSource));
+    ok('...and the marker never rides back up to the model as its own prose',
+      /content: ezikStripIncomplete\(m\.content\) \}/u.test(indexSource));
+    ok('...and it is stripped from every reader that is not the badge: screen, voice and the log',
+      /text = ezikStripIncomplete\(text\);/u.test(indexSource)
+      && (indexSource.match(/stripIncompleteTags\(ezikStripIncomplete\(text\), \{ rescue: true \}\)/gu) || [])
+        .length === 2);
+    // NO SURFACE DERIVES IT FROM THE TEXT. A client that guesses is the same lie told by us.
+    ok('no client rule keys the notice on the length or the last character of the answer',
+      !/ezikAnswerIncomplete[^\n]*\.length/u.test(indexSource));
+
+    // S6 — M25: `truncated` DERIVED FROM THE LENGTH. §٢/٣'s named mutant, and S2's short/long pair
+    // is what kills it: a four-character answer that really was cut must still report `true`.
+    const lengthMutant = await loopMutant('truncated-derived-from-length',
+      (source) => source.replace('  const truncated = truncatedFrom(deliveredStop);',
+        '  const truncated = answer.length >= 4000; // mutant: guessed from the size of the text'),
+      async (twinModule) => {
+        const cut = await driveScript(twinModule, () => stopPayload(SHORT, 'max_tokens'));
+        const done = await driveScript(twinModule, () => stopPayload(EARLY, 'end_turn'));
+        return cut.truncated === true && done.truncated === false;
+      });
+    ok('length-derived mutant seam applied', lengthMutant.changed, lengthMutant.error);
+    ok('length-derived mutant module loaded successfully', lengthMutant.loaded, lengthMutant.error);
+    ok('MUTANT KILLED: truncation cannot be guessed from the length of the answer',
+      lengthMutant.loaded && lengthMutant.survived === false, JSON.stringify(lengthMutant));
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // T. §٣ (C) — THE KUWAITI ENCYCLOPEDIA IS ATTRIBUTED, AND THE LOSS IS NAMED
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // THE DEFECT, AND IT IS VISIBLE IN THIS GUARD'S OWN FIXTURES. `citeTurn` above drives
+    // `search_sources`, which fills the evidence table from the in-process encyclopedia; those rows
+    // carry `url: ''` because the corpus is a local file with no page. `pickReaderCards` builds a
+    // card only `if (row && row.url)`. So a row could be retrieved, cited, survive the reviewer —
+    // and reach the reader as nothing whatever, with no line anywhere saying so.
+    const encTurn = await citeTurn(loop, RULING);
+    const encRows = (encTurn.cited || []).filter((r) => r && r.kind === 'encyclopedia');
+    ok('the driven turn really does rest on an encyclopedia row, so this section tests the real case',
+      encRows.length > 0, JSON.stringify((encTurn.cited || []).map((r) => [r.ref, r.kind, r.url])));
+    ok('...and that row has no page behind it, which is why it was never a card',
+      encRows.every((r) => !r.url), JSON.stringify(encRows.map((r) => r.url)));
+
+    // T1 — THE FOOTER. It names the encyclopedia, and the article when the row carries one.
+    const encTail = loop.encyclopediaTail(encTurn.cited);
+    ok('an answer that rests on the encyclopedia earns an attribution tail',
+      encTail.trim() !== '', JSON.stringify(encTail));
+    ok('...naming the encyclopedia by the publisher the row itself declares',
+      encTail.includes(encRows[0].publisher), JSON.stringify([encTail, encRows[0].publisher]));
+    // THE NEGATIVE WITNESS §٣ NAMES: an answer that did not rest on it gets NOTHING.
+    const noEncTail = (mod) => mod.encyclopediaTail(rows(3)) === ''
+      && mod.encyclopediaTail([]) === ''
+      && mod.encyclopediaTail(null) === '';
+    ok('THE NEGATIVE WITNESS: an answer that did not rest on the encyclopedia gets zero tail',
+      noEncTail(loop), JSON.stringify(loop.encyclopediaTail(rows(3))));
+
+    // T2 — IT IS A FOOTER AND NOT A CARD, so it costs no slot. Five pages and one encyclopedia row:
+    // three cards, and the tail beside them. §٣/٢, as a pair of numbers rather than a promise.
+    const mixedCited = [encRows[0], ...rows(5)];
+    ok('the tail does not consume a card slot — three pages still become three cards',
+      capped(loop, mixedCited).length === 3, JSON.stringify(capped(loop, mixedCited).length));
+    ok('...and the tail is still produced beside them',
+      loop.encyclopediaTail(mixedCited).trim() !== '');
+    ok('...and api/ask.js carries it as the writer\'s own reader suffix, not concatenated onto the text',
+      /finalizerContext\.readerSuffix = encyclopediaTail\(out\.cited\);/u.test(askSource));
+
+    // T3 — §٣/٣: EVERY CITED ROW THAT GAVE THE READER NOTHING IS NAMED WITH ITS REASON.
+    // «لا صمتَ بعدَ اليوم». One row per cited row, in order, and the three reasons the order names.
+    const dupPage = rows(1)[0];
+    const ledgerCited = [encRows[0], ...rows(4), dupPage];
+    const ledger = loop.citedDeliveryLedger(ledgerCited, 3, tagOf);
+    ok('the ledger reports one row per cited row and loses none of them',
+      ledger.length === ledgerCited.length, JSON.stringify(ledger));
+    ok('...the encyclopedia row is `footer`, which is a delivery and no longer a loss',
+      ledger[0].outcome === 'footer', JSON.stringify(ledger[0]));
+    ok('...a page past the ceiling is named `over_cap` and not merely absent',
+      ledger.some((r) => r.outcome === 'over_cap'), JSON.stringify(ledger));
+    ok('...a repeated page is named `duplicate`',
+      loop.citedDeliveryLedger([rows(1)[0], rows(1)[0]], 3, tagOf)[1].outcome === 'duplicate',
+      JSON.stringify(loop.citedDeliveryLedger([rows(1)[0], rows(1)[0]], 3, tagOf)));
+    ok('...a row with no page and no footer is named `no_url` rather than vanishing',
+      loop.citedDeliveryLedger([{ ref: 9, kind: 'fatwa', url: '' }], 3, tagOf)[0].outcome === 'no_url');
+    // AND THE SELECTION AND THE LEDGER AGREE. Two loops that can disagree are one loop and one lie.
+    ok('the ledger counts exactly as many cards as the selection returns',
+      ledger.filter((r) => r.outcome === 'card').length === capped(loop, ledgerCited).length,
+      JSON.stringify([ledger.filter((r) => r.outcome === 'card').length, capped(loop, ledgerCited).length]));
+    ok('...and the handler actually prints it, serialised, on its own line',
+      /console\.log\('\[free-brain\/cited-delivery\]', JSON\.stringify\(\{/u.test(askSource)
+      && /const delivery = citedDeliveryLedger\(out\.cited, MAX_SOURCES, buildFreeCard\);/u.test(askSource));
+
+    // T4 — M26: THE TAIL ATTACHED WITHOUT SUPPORT. §٣'s named mutant: «ومسخةٌ تُلحِقُ التذييلَ بلا
+    // استنادٍ تموت». An attribution that appears under an answer that never touched the source is
+    // an invented citation, which is the worst thing this application can do.
+    const tailMutant = await loopMutant('tail-without-support',
+      (source) => source.replace("  if (!rows.length) return '';",
+        "  if (!rows.length) rows.push({ publisher: 'X', title: 'X' }); // mutant: the tail rides on every answer"),
+      noEncTail);
+    ok('tail-without-support mutant seam applied', tailMutant.changed, tailMutant.error);
+    ok('tail-without-support mutant module loaded successfully', tailMutant.loaded, tailMutant.error);
+    ok('MUTANT KILLED: an attribution tail cannot be attached to an answer that did not rest on it',
+      tailMutant.loaded && tailMutant.survived === false, JSON.stringify(tailMutant));
+
+    // T5 — M27: THE SILENCE RESTORED. The ledger copies the selection's own `break`, and the rows
+    // past the ceiling disappear from the record exactly as they did before this item.
+    const silenceMutant = await loopMutant('cited-ledger-goes-silent-past-the-cap',
+      (source) => source.replace(
+        "    if (tags.length >= max) { out.push({ ...base, outcome: 'over_cap' }); continue; }",
+        '    if (tags.length >= max) break; // mutant: the rows past the ceiling are not recorded'),
+      async (twinModule) => twinModule.citedDeliveryLedger(ledgerCited, 3, tagOf).length === ledgerCited.length);
+    ok('cited-ledger silence mutant seam applied', silenceMutant.changed, silenceMutant.error);
+    ok('cited-ledger silence mutant module loaded successfully', silenceMutant.loaded, silenceMutant.error);
+    ok('MUTANT KILLED: a row dropped at the ceiling cannot go unrecorded',
+      silenceMutant.loaded && silenceMutant.survived === false, JSON.stringify(silenceMutant));
 
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));

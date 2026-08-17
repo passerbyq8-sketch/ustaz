@@ -1496,6 +1496,8 @@ const EZ_I18N = {
     'chat.qa.quiz': 'اختبرني',
     'chat.qa.shorten': 'اختصر',
     'chat.qa.continue': 'كمّل',
+    // §٢ (C) — تُقالُ صراحةً بجانبِ «كمّل»، ولا يُحذَفُ من الجوابِ حرف.
+    'chat.qa.incomplete': 'هذا الجوابُ لم يكتملْ. اضغطْ «كمّل» ليُتِمَّه.',
     'navigation.menu': '\u0627\u0644\u0642\u0627\u0626\u0645\u0629',
     'navigation.openMenu': '\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629',
     'settings.control': '\u0627\u0644\u062A\u062D\u0643\u0645',
@@ -1687,6 +1689,7 @@ const EZ_I18N = {
     'chat.qa.quiz': 'Quiz me',
     'chat.qa.shorten': 'Shorten',
     'chat.qa.continue': 'Continue',
+    'chat.qa.incomplete': 'This answer did not finish. Press “Continue” to complete it.',
     'navigation.menu': 'Menu',
     'navigation.openMenu': 'Open the side menu',
     'settings.control': 'Parental controls',
@@ -2475,8 +2478,15 @@ const bodyByteSize = (body) => new TextEncoder().encode(JSON.stringify(body)).le
 // Byte-driven history fit. mkBody(msgs) assembles the REAL outgoing body; drop the OLDEST messages
 // until it fits CLIENT_BUDGET, measured the server's way. Never touches the system prompt (not part
 // of `messages`) nor the newest message (msgs[last], the current user turn).
+// §٢ (C) — AND IT IS THE ONE PLACE THE OUTGOING HISTORY IS ASSEMBLED, so it is where the
+// truncation marker comes back off. `<incomplete/>` is a fact about how a past turn was DELIVERED
+// and no part of what was said; replayed to the model as its own prose it becomes an example, and
+// the model starts writing the marker itself — the client's own bookkeeping fed back as vocabulary,
+// and then the notice below is drawn on an answer that finished perfectly well. Assistant STRINGS
+// only: a user turn's content may be an array of image/document blocks and is not ours to rewrite.
 const fitMessagesToBudget = (mkBody, messages) => {
-  let msgs = messages.slice();
+  let msgs = messages.map((m) => ((m && m.role === 'assistant' && typeof m.content === 'string')
+    ? { ...m, content: ezikStripIncomplete(m.content) } : m));
   while (msgs.length > 1 && bodyByteSize(mkBody(msgs)) > CLIENT_BUDGET) {
     msgs = msgs.slice(1); // drop oldest turn; keep the system prompt + the newest user message
   }
@@ -2929,6 +2939,30 @@ const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 // يبقى في الذاكرة للعميل وللحارس؛ لا يُرسَل إلى أيِّ خادم.
 const EZIK_TAG_RESCUES = [];
 
+// ============================================================
+// §٢ (C) — «هذا الجوابُ لم يكتملْ»: العلامةُ التي يرسلُها الخادم، والقراءةُ التي يقرؤها العميل
+// ============================================================
+// THE DEFECT THIS ANSWERS, MEASURED LIVE: a reply cut IN THE MIDDLE OF A WORD arrived wearing the
+// closing review mark, so it read as finished. The client had no way to know otherwise — nothing on
+// the wire said whether the model had stopped or been stopped — and so it said nothing.
+//
+// api/ask.js appends `<incomplete/>` and NOTHING ELSE when, and only when, the round that wrote the
+// delivered text ended on something other than `end_turn`. It is deliberately not a sentence: the
+// wording belongs to this file, in the reader's own language, beside the button that acts on it.
+//
+// IT IS NOT IN `KNOWN_TAG_NAMES`, and that is on purpose. `stripIncompleteTags` cuts from the first
+// UNCLOSED known tag to the end of the text — a self-closing marker would look exactly like that to
+// it, and the answer after it would be deleted to remove a marker whose whole contract is that
+// nothing is deleted. So it is stripped by name, in the three readers that do not already strip
+// every angle bracket (`toPlainText` and `formatForStreamPreview` do).
+//
+// TWO REGEXPS AND NOT ONE: `.test()` on a /g regexp carries `lastIndex` between calls, so the same
+// constant used for both would answer TRUE and FALSE alternately on the identical string.
+const EZIK_INCOMPLETE_STRIP = /<incomplete\s*\/?>/gi;
+const EZIK_INCOMPLETE_TEST = /<incomplete\s*\/?>/i;
+const ezikStripIncomplete = (t) => String(t == null ? '' : t).replace(EZIK_INCOMPLETE_STRIP, '');
+const ezikAnswerIncomplete = (t) => typeof t === 'string' && EZIK_INCOMPLETE_TEST.test(t);
+
 // تعقيمٌ آمنٌ للنصِّ الذي كان سيُمحى بالكامل: تُنزَع الأقواسُ الزاويّةُ وما بينها، ويبقى النثر.
 //
 // الحذفُ بمدى الوسمِ لا بذيلِ النصّ (أ-٦/١). كان سطرُ الآيةِ والسورةِ يحذفُ من الوسمِ إلى آخرِ
@@ -3371,6 +3405,9 @@ const parseRichMessage = (text, viewerAge) => {
   if (!text || typeof text !== 'string') {
     return { segments: [{ type: 'text', content: text || '' }], suggestions: [] };
   }
+  // §٢ (C): علامةُ «لم يكتمل» تُقرأ في شريطِ الإجراءات لا في فقاعةِ الجواب، فتُنزَع هنا أوّلاً —
+  // قبل `stripIncompleteTags`، لأنّها لو بقيت لبَدَت له وسماً مفتوحاً بلا إغلاق.
+  text = ezikStripIncomplete(text);
   // نُنظّف الترميز الناقص قبل التحليل كي لا يظهر "<verse surah=..." كنصّ خام للطفل
   text = stripIncompleteTags(text, { rescue: true });
   const segments = [];
@@ -3487,8 +3524,10 @@ const parseRichMessage = (text, viewerAge) => {
 // ============================================================
 const formatForTTS = (text) => {
   if (!text) return '';
+  // §٢ (C): العلامةُ لا تُنطَق. هي شارةٌ عن الجواب لا جملةٌ منه، كوسمِ المراجعةِ سواءً بسواء.
+  // وقبلَ `stripIncompleteTags` لأنّها لو بقيت لعُدَّت وسماً مقطوعاً فحُذِف ما بعدها.
   // نحذف أي وسم ناقص/بقايا "<...>" قبل أي معالجة كي لا يصل ترميز خام إلى ElevenLabs
-  let t = stripIncompleteTags(text, { rescue: true });
+  let t = stripIncompleteTags(ezikStripIncomplete(text), { rescue: true });
   // إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
@@ -3621,8 +3660,9 @@ const formatForTTS = (text) => {
 // الصوت يحذف الآية (يسمعها الطفل من القارئ)، أما الأهل فيجب أن يَرَوا نصّها في السجلّ.
 const formatForLog = (text) => {
   if (!text) return '';
+  // §٢ (C): والسجلُّ كذلك — الشارةُ للشاشةِ لا لِنصِّ السجلّ، ونزعُها هنا قبلَ التنظيفِ العامّ.
   // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
-  let t = stripIncompleteTags(text, { rescue: true });
+  let t = stripIncompleteTags(ezikStripIncomplete(text), { rescue: true });
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // المصدر: نُبقي عنوانه نصّاً مقروءاً في سجلّ الأهل (للتحقّق) ونُسقِط الرابط — لا نعرض URL خاماً
   t = t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g, (_, title) => {
@@ -8886,6 +8926,17 @@ function App() {
             of its 60 answers, and a keystroke in the composer cannot re-render 60 of them. They
             are laid out IN the scroller, above the end sentinel, so they scroll with the thread
             and can never cover the composer or the tool row. */}
+        {/* §٢ (C): THE READER IS TOLD THE ANSWER STOPPED SHORT, IN A LINE, BESIDE «كمّل».
+            It sits immediately above the strip that carries that button, so the fact and the act
+            are one glance apart. `role="status"` because it is news about what is already on the
+            screen — a screen reader announces it without being moved to it, and it is never
+            focusable, because there is nothing here to press. Rendered from the SERVER'S signal
+            (`<incomplete/>`, appended only when the writing round ended on other than end_turn) and
+            never from the length or the last character of the text: this client cannot tell a short
+            answer from a cut one, and a client that guesses is the defect wearing our own face. */}
+        {quickActionsVisible && ezikAnswerIncomplete(lastMsg.content) && (
+          <div style={s.incompleteNotice} role="status">{ezT('chat.qa.incomplete')}</div>
+        )}
         {quickActionsVisible && (
           <div style={s.quickRow} role="group" aria-label={ezT("chat.quickActions")}>
             {EZIK_QUICK_ACTIONS.map((qa) => (
@@ -13866,6 +13917,9 @@ const s = {
   // S112: the strip stretches to the bounded column and starts at the reading edge, under the
   // sheet it belongs to, instead of hanging off the far side of an unbounded viewport.
   quickRow: { display: 'flex', flexWrap: 'wrap', gap: 8, alignSelf: 'stretch', padding: '2px 0 4px' },
+  // §٢ (C) — سطرُ «لم يكتمل»، فوقَ الشريطِ مباشرةً وبعرضِه. كلُّ لونٍ هنا رمزٌ من رموزِ السمة،
+  // فينتقلُ مع data-theme=dark كبقيّةِ ما يجاورُه. ليس زرّاً ولا يُنقَر: هو خبرٌ عن الجوابِ فوقَه.
+  incompleteNotice: { alignSelf: 'stretch', padding: '8px 12px', marginTop: 2, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 12, fontSize: 13, fontWeight: 700, lineHeight: 1.6 },
   quickBtn: { minHeight: 40, padding: '8px 14px', background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)', borderRadius: 999, fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' },
   // The search box in the drawer, and the favourites screen. Both draw on --white over --page,
   // the same pair every other sheet in the app uses.
