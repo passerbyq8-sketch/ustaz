@@ -481,8 +481,9 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // M6 — the delivery filter removed. This is the shipped behaviour of 17 August: everything
     // collected is handed over, announcements included.
     const deliverMutant = await loopMutant('delivery-filter-removed',
-      (source) => source.replace('  const answer = deliverableText(collected);',
-        '  const answer = collected; // mutant: deliver everything that was collected'),
+      // §٢ made `answer` a `let` — the citation retry can replace it — and the seam moved with it.
+      (source) => source.replace('  let answer = deliverableText(collected);',
+        '  let answer = collected; // mutant: deliver everything that was collected'),
       async (twinModule) => {
         const turn = await driveScript(twinModule,
           (i) => (i === 0 ? withTool(ANNOUNCE, 't0') : textPayload(LATE)));
@@ -1047,6 +1048,245 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       fs.existsSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'))
         && /fatwa-authority-eighteen\.json/u.test(fs.readFileSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'), 'utf8'))
         && /riba-family-two-records\.json/u.test(fs.readFileSync(path.join(ROOT, 'tools', 'khilaf-signal-measure.mjs'), 'utf8')));
+
+    // ── L. §٢: ONE WRITING ROUND WHEN A RULING ARRIVES CITING NOTHING ─────────
+    //
+    // WHAT MEASURED IT. Question 19, four passes on ezik.app: three came back with `cited: []` and
+    // all four with `retrieved: 4`. The evidence arrived; the model did not cite it. So this is a
+    // WRITING round and not a search — and every one of §٢'s five constraints is a property here,
+    // because a repair whose limits are not pinned is a repair that grows.
+    //
+    // HOW IT IS DRIVEN. `search_sources` fills the table from the in-process Kuwaiti encyclopedia,
+    // which needs no network; the stub throws on any host but its own, so the offline guarantee this
+    // file makes elsewhere is unchanged. A first write that cites nothing is the trigger, and the
+    // script's THIRD payload is the retry's.
+    const UNCITED = 'الجمع للمسافر جائز عند الحاجة، ولا حرج عليه في ذلك.';
+    const RECITED = 'الجمع للمسافر جائز عند الحاجة [[1]]، ولا حرج عليه في ذلك.';
+    const oneTool = (id) => ({
+      stop_reason: 'tool_use',
+      content: [{ type: 'tool_use', id, name: 'search_sources', input: { query: 'الجمع بين الصلاتين للمسافر' } }],
+    });
+    // i=0 the tool round · i=1 the first write · i=2 the §٢ retry.
+    const retryScript = (third) => (i) => (i === 0 ? oneTool('t0') : i === 1 ? textPayload(UNCITED) : third(i));
+
+    const retried = await driveScript(loop, retryScript(() => textPayload(RECITED)));
+    ok('a fiqh ruling that cited nothing while evidence sat unused triggers one extra round',
+      retried.citationRetries === 1, JSON.stringify(retried.citationRetries));
+    ok('...and it is named in degraded under its OWN name, with the outcome',
+      (retried.degraded || []).some((d) => /^citation_retry:cited:\d+$/u.test(d)),
+      JSON.stringify(retried.degraded));
+    ok('...and the extra time is recorded as a raw number',
+      (retried.degraded || []).some((d) => /^citation_retry_ms:\d+$/u.test(d)),
+      JSON.stringify(retried.degraded));
+    // §٢/٥ — the name is its own. The counter that already counts two classes does not become three.
+    ok('...and NOTHING was injected into tool_announcement_dropped',
+      !(retried.degraded || []).some((d) => /^tool_announcement_dropped:/u.test(d)),
+      JSON.stringify(retried.degraded));
+    ok('...and the citation it produced becomes a real card, from a row that was in the table',
+      (retried.cited || []).length === 1 && retried.cited[0].ref === 1,
+      JSON.stringify((retried.cited || []).map((r) => r.ref)));
+    ok('...and the retry is one MODEL call, on top of the two the turn already made',
+      retried.modelCalls === 3, JSON.stringify(retried.modelCalls));
+    ok('...and it is recorded in the round ledger under its own phase',
+      (retried.roundLedger || []).some((row) => row.phase === 'cite-retry'),
+      JSON.stringify((retried.roundLedger || []).map((r) => [r.n, r.phase])));
+    // ...and no two ledger rows share an ordinal, which is what `rounds + 2` is for.
+    ok('...and no two ledger rows share an ordinal',
+      new Set((retried.roundLedger || []).map((r) => r.n)).size === (retried.roundLedger || []).length,
+      JSON.stringify((retried.roundLedger || []).map((r) => r.n)));
+
+    // §٢/٤ — STILL EMPTY THE SECOND TIME: THE FIRST ANSWER GOES OUT AS IT WAS.
+    const stillUncited = await driveScript(loop, retryScript(() => textPayload(UNCITED)));
+    const firstAnswerSurvives = (turn) => typeof turn?.text === 'string'
+      && turn.text.includes('الجمع للمسافر جائز عند الحاجة')
+      && turn.text.includes('ولا حرج عليه في ذلك');
+    ok('a retry that still cites nothing delivers the FIRST answer, whole',
+      firstAnswerSurvives(stillUncited), stillUncited.text);
+    ok('...and no card is invented for it', (stillUncited.cited || []).length === 0,
+      JSON.stringify(stillUncited.cited));
+    ok('...and the outcome is named rather than left silent',
+      (stillUncited.degraded || []).includes('citation_retry:still_uncited'),
+      JSON.stringify(stillUncited.degraded));
+    // §٢/١ — ONE ONLY. A second empty retry must not buy a third call.
+    ok('...and it does not buy a second retry — one only',
+      stillUncited.citationRetries === 1 && stillUncited.modelCalls === 3,
+      JSON.stringify([stillUncited.citationRetries, stillUncited.modelCalls]));
+
+    // A retry whose own provider call fails is not a failed turn. The first answer is already in
+    // hand, and `failure` stays null so an optional extra call cannot masquerade as a broken answer.
+    // `driveScript` above resolves every payload; a THROWING round needs a driver that throws, so
+    // this one honours an Error returned by the script the way `driveExits` does.
+    async function driveThrowable(loopModule, script) {
+      const realFetch = globalThis.fetch;
+      let n = 0;
+      globalThis.fetch = async (input) => {
+        const url = String(input?.url || input);
+        if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+        const step = script(n++);
+        if (step instanceof Error) throw step;
+        return { ok: true, status: 200, json: async () => step };
+      };
+      try { return await loopModule.runFreeBrainTurn({ ...BASE }); }
+      finally { globalThis.fetch = realFetch; }
+    }
+    const retryFailed = await driveThrowable(loop,
+      retryScript(() => Object.assign(new Error('upstream 529'), { status: 529 })));
+    ok('a retry whose provider call throws still delivers the first answer',
+      firstAnswerSurvives(retryFailed), retryFailed.text);
+    ok('...and the turn does not report itself as failed',
+      retryFailed.failure === null, String(retryFailed.failure));
+    ok('...and the error is named in degraded, not swallowed',
+      (retryFailed.degraded || []).some((d) => /^citation_retry:error:529:/u.test(d)),
+      JSON.stringify(retryFailed.degraded));
+
+    // ── L2. THE THREE CASES THAT MUST NOT TRIGGER IT ──────────────────────────
+    // An answer that already cited. Nothing is missing, so nothing is spent.
+    const alreadyCited = await driveScript(loop, (i) => (i === 0 ? oneTool('t0') : textPayload(RECITED)));
+    ok('an answer that already cited buys no extra round',
+      alreadyCited.citationRetries === 0
+        && !(alreadyCited.degraded || []).some((d) => /^citation_retry/u.test(d)),
+      JSON.stringify([alreadyCited.citationRetries, alreadyCited.degraded]));
+    // Nothing retrieved: there is nothing to be asked to cite, and asking would only buy a call to
+    // be told so. `lexicalRoute: 'DEEN'` keeps the domain fiqh, so this isolates `retrieved > 0`.
+    const nothingRetrieved = await driveScript(loop, () => textPayload(UNCITED));
+    ok('a fiqh answer with NOTHING retrieved buys no extra round — there is nothing to cite',
+      nothingRetrieved.domain === 'fiqh' && nothingRetrieved.citationRetries === 0,
+      JSON.stringify([nothingRetrieved.domain, nothingRetrieved.citationRetries]));
+    // And a general-scope turn is outside the item. Driven with `search_live` alone, which
+    // `domainOf` reads as general, and which finds nothing offline.
+    const liveOnly = (id) => ({
+      stop_reason: 'tool_use',
+      content: [{ type: 'tool_use', id, name: 'search_live', input: { query: 'طقس الكويت' } }],
+    });
+    const generalTurn = await driveScript(loop,
+      (i) => (i === 0 ? liveOnly('t0') : textPayload('طقس الكويت اليوم حار.')));
+    ok('a general-scope turn is outside the item and buys no extra round',
+      generalTurn.domain === 'general' && generalTurn.citationRetries === 0,
+      JSON.stringify([generalTurn.domain, generalTurn.citationRetries]));
+
+    // ── L3. IT IS A WRITING ROUND, AND THAT IS OBSERVED ON THE WIRE ───────────
+    // §٢/٢ and §٢/٣ are one fact about the request body: the retry call offers NO tools, so there is
+    // no search for the model to ask for and no paid call for it to spend. Read off the bodies the
+    // stub was handed rather than inferred from the code.
+    async function bodiesFor(loopModule, script) {
+      const realFetch = globalThis.fetch;
+      const bodies = [];
+      let n = 0;
+      globalThis.fetch = async (input, init) => {
+        const url = String(input?.url || input);
+        if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+        bodies.push(JSON.parse(String(init?.body || '{}')));
+        const step = script(n++);
+        if (step instanceof Error) throw step;
+        return { ok: true, status: 200, json: async () => step };
+      };
+      try { await loopModule.runFreeBrainTurn({ ...BASE }); } finally { globalThis.fetch = realFetch; }
+      return bodies;
+    }
+    const retryBodies = await bodiesFor(loop, retryScript(() => textPayload(RECITED)));
+    ok('the retry is the third provider call of the turn', retryBodies.length === 3,
+      JSON.stringify(retryBodies.length));
+    ok('...and it offers NO tools at all, so no search can be made in it',
+      retryBodies.length === 3 && !('tools' in retryBodies[2]),
+      JSON.stringify(Object.keys(retryBodies[2] || {})));
+    ok('...and it carries the §٢ note as the last thing the model reads',
+      retryBodies.length === 3
+        && retryBodies[2].messages[retryBodies[2].messages.length - 1].content === instructions.CITATION_RETRY_NOTE,
+      JSON.stringify(String(retryBodies[2]?.messages?.slice(-1)[0]?.content || '').slice(0, 80)));
+    ok('...and it replays the model\'s own prose as the assistant turn it is rewriting',
+      retryBodies.length === 3
+        && retryBodies[2].messages[retryBodies[2].messages.length - 2].role === 'assistant'
+        && String(retryBodies[2].messages[retryBodies[2].messages.length - 2].content).includes('الجمع للمسافر جائز'),
+      JSON.stringify(retryBodies[2]?.messages?.slice(-2)[0]?.role));
+    ok('...and the tool results are still above it, so «الأدلّة أعلاه» is true of that message',
+      retryBodies.length === 3 && retryBodies[2].messages.some((m) => m.role === 'user'
+        && Array.isArray(m.content) && m.content.some((b) => b?.type === 'tool_result')));
+    // The note itself forbids the two things a rewrite could otherwise do: invent a ref, or soften
+    // the ruling to make the citation fit. Pinned because they are the note's whole safety margin.
+    for (const clause of ['ولا تُنشئْ رقمًا لم يردْ في نتائجِ الأدوات', 'ولا تُغيّرِ الحكمَ ولا تُضعِفْه']) {
+      ok('the §٢ note carries the clause: ' + clause.slice(0, 24),
+        instructions.CITATION_RETRY_NOTE.includes(clause), instructions.CITATION_RETRY_NOTE);
+    }
+    // §٢/٢ — MAX_TOOL_ROUNDS IS NOT RAISED. Read from the module the loop imports it from.
+    const tools = await fresh(path.join(ROOT, 'lib', 'free-brain', 'tools.js'), 'tools-base');
+    ok('MAX_TOOL_ROUNDS is still six — the tool loop was not widened',
+      tools.MAX_TOOL_ROUNDS === 6, String(tools.MAX_TOOL_ROUNDS));
+    ok('...and the ceiling on retries is one, written as a constant',
+      /^const MAX_CITATION_RETRIES = 1;$/mu.test(loopSource));
+    // ...and api/ask.js reports the cost.
+    ok('api/ask.js logs the retry count beside the model-call count',
+      /^ {8}citationRetries: out\.citationRetries \?\? 0,$/mu.test(askSource));
+
+    // ── L4. THE MUTANTS ──────────────────────────────────────────────────────
+    // The property all four are measured against: the retry happens exactly once, spends no search,
+    // and never replaces a delivered answer with a weaker one.
+    const retryIsBounded = async (loopModule) => {
+      const good = await driveScript(loopModule, retryScript(() => textPayload(RECITED)));
+      const bad = await driveScript(loopModule, retryScript(() => textPayload(UNCITED)));
+      const bodies = await bodiesFor(loopModule, retryScript(() => textPayload(RECITED)));
+      return good.citationRetries === 1 && good.modelCalls === 3
+        && bad.citationRetries === 1 && bad.modelCalls === 3 && firstAnswerSurvives(bad)
+        && bodies.length === 3 && !('tools' in bodies[2]);
+    };
+    ok('the retry is bounded: once, toolless, and never a substitution for the first answer',
+      await retryIsBounded(loop));
+
+    // M17 — the ceiling raised. This is the item turning into a loop, which is the one thing §٢/١
+    // names by number.
+    const loopyMutant = await loopMutant('retry-ceiling-raised',
+      (source) => source.replace('const MAX_CITATION_RETRIES = 1;',
+        'const MAX_CITATION_RETRIES = 3; // mutant: the item becomes a loop')
+        .replace(/ {2}if \(citationRetries < MAX_CITATION_RETRIES\r?\n/u,
+          '  while (citationRetries < MAX_CITATION_RETRIES\n'),
+      retryIsBounded);
+    ok('retry-ceiling mutant seam applied', loopyMutant.changed, loopyMutant.error);
+    ok('retry-ceiling mutant module loaded successfully', loopyMutant.loaded, loopyMutant.error);
+    ok('MUTANT KILLED: the one extra round cannot become two',
+      loopyMutant.loaded && loopyMutant.survived === false, JSON.stringify(loopyMutant));
+
+    // M18 — the tools put back on the retry call. This is §٢/٢ and §٢/٣ broken in one line: a
+    // retrieval round wearing a writing round's name, free to spend a paid search.
+    const toolsBackMutant = await loopMutant('retry-offers-tools-again',
+      (source) => source.replace(
+        '          // NO `tools` KEY. Constraint (2) and (3) are this absence and not a check somewhere else.',
+        '          tools: FREE_BRAIN_TOOLS, // mutant: a retrieval round in a writing round\'s clothes'),
+      retryIsBounded);
+    ok('tools-back mutant seam applied', toolsBackMutant.changed, toolsBackMutant.error);
+    ok('tools-back mutant module loaded successfully', toolsBackMutant.loaded, toolsBackMutant.error);
+    ok('MUTANT KILLED: the retry cannot be given tools to spend',
+      toolsBackMutant.loaded && toolsBackMutant.survived === false, JSON.stringify(toolsBackMutant));
+
+    // M19 — the retry's text adopted unconditionally. §٢/٤ forbids exactly this: a second answer
+    // that still cites nothing REPLACING the first, which is a substitution by a weaker answer.
+    const adoptMutant = await loopMutant('retry-text-adopted-even-when-uncited',
+      (source) => source.replace(/ {6}if \(retryRefs\.length\) \{\r?\n/u,
+        '      if (true) { // mutant: adopt the retry whatever it cited\n'),
+      async (twinModule) => {
+        // The mutant is caught by what the reader receives: a retry that dropped half the answer
+        // must not be the answer, and this one drops «ولا حرج عليه في ذلك».
+        const bad = await driveScript(twinModule,
+          retryScript(() => textPayload('الجمع للمسافر جائز عند الحاجة.')));
+        return firstAnswerSurvives(bad);
+      });
+    ok('adopt-anyway mutant seam applied', adoptMutant.changed, adoptMutant.error);
+    ok('adopt-anyway mutant module loaded successfully', adoptMutant.loaded, adoptMutant.error);
+    ok('MUTANT KILLED: a retry that still cites nothing cannot replace the delivered answer',
+      adoptMutant.loaded && adoptMutant.survived === false, JSON.stringify(adoptMutant));
+
+    // M20 — the outcome folded into `tool_announcement_dropped`, which §٢/٥ forbids by name: that
+    // counter already counts two classes, and a third makes the number unreadable in a new way.
+    const nameMutant = await loopMutant('retry-injected-into-the-announcement-counter',
+      (source) => source.replace(
+        '    ctx.degraded.push(`citation_retry:${retryOutcome}`);',
+        '    ctx.degraded.push(`tool_announcement_dropped:${retryOutcome}`); // mutant: hidden in another counter'),
+      async (twinModule) => {
+        const turn = await driveScript(twinModule, retryScript(() => textPayload(RECITED)));
+        return (turn.degraded || []).some((d) => /^citation_retry:/u.test(d));
+      });
+    ok('own-name mutant seam applied', nameMutant.changed, nameMutant.error);
+    ok('own-name mutant module loaded successfully', nameMutant.loaded, nameMutant.error);
+    ok('MUTANT KILLED: the retry cannot be hidden inside the announcement counter',
+      nameMutant.loaded && nameMutant.survived === false, JSON.stringify(nameMutant));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

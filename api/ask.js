@@ -1322,6 +1322,9 @@ export default async function handler(req, res) {
         // null is a field nobody can tell apart from a field that was never wired.
         khilafFromOpinions: out.khilafFromOpinions ?? null,
         opinionCount: out.opinionCount ?? null,
+        // §٢ — 0 or 1. Beside `modelCalls` above, which is the whole cost of the item: the extra
+        // round is one model call and no search call at all.
+        citationRetries: out.citationRetries ?? 0,
         verdict: out.verdict,
         degraded: out.degraded,
         injectionMarkers: out.injectionMarkers.length,
