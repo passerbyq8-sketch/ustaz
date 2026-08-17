@@ -596,6 +596,76 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('orphan-number mutant module loaded successfully', numberMutant.loaded, numberMutant.error);
     ok('MUTANT KILLED: an invented reference number cannot be delivered again',
       numberMutant.loaded && numberMutant.survived === false, JSON.stringify(numberMutant));
+
+    // ── I. §١: THE CARD CEILING APPLIES TO THIS BRANCH TOO (XC-07) ───────────
+    //
+    // `MAX_SOURCES = 3` sat in api/ask.js unread by this path: the card list was built with no
+    // slice and no limit, and `registerOwnedCards` only removes duplicates. Four cards came out in
+    // three answers of the second set and five on question 17 of the 17 August battery.
+    //
+    // The rule is driven as the pure function it is. `max` and `buildTag` are the handler's — the
+    // constant and the URL safety stay where they were — so what is asserted here is the SELECTION
+    // and nothing else.
+    const rows = (n) => Array.from({ length: n }, (_, i) => ({
+      ref: i + 1, url: 'https://binbaz.org.sa/fatwas/' + (i + 1), title: 'فتوى ' + (i + 1),
+    }));
+    const tagOf = (row) => ({ tag: '<source url="' + row.url + '">' + row.title + '</source>' });
+    const capped = (loopModule, cited) => loopModule.pickReaderCards(cited, 3, tagOf);
+
+    ok('five cited pages yield three cards', capped(loop, rows(5)).length === 3,
+      JSON.stringify(capped(loop, rows(5)).length));
+    ok('four cited pages yield three cards', capped(loop, rows(4)).length === 3);
+    ok('two cited pages still yield two — the ceiling is not a quota',
+      capped(loop, rows(2)).length === 2);
+    ok('the three kept are the FIRST three in delivered-text order, not any other three',
+      capped(loop, rows(5)).map((c) => c.tag).join('|')
+        === rows(3).map((r) => tagOf(r).tag).join('|'),
+      JSON.stringify(capped(loop, rows(5)).map((c) => c.tag)));
+    // DEDUPLICATION BEFORE THE CUT. Four citations of which two are the same page must deliver
+    // THREE distinct cards, not two — capping first would let the repeat evict a distinct source.
+    const withRepeat = [rows(1)[0], rows(1)[0], ...rows(4).slice(1)];
+    ok('a page cited twice costs one slot, not two',
+      capped(loop, withRepeat).length === 3
+        && new Set(capped(loop, withRepeat).map((c) => c.tag)).size === 3,
+      JSON.stringify(capped(loop, withRepeat).map((c) => c.tag)));
+    ok('a cited row with no page yields no card and consumes no slot',
+      capped(loop, [{ ref: 1, url: '', title: 'الموسوعة' }, ...rows(3)]).length === 3);
+
+    // M10 — the limit dropped, which is the shipped behaviour of 17 August.
+    const capMutant = await loopMutant('card-ceiling-removed',
+      (source) => source.replace('    if (out.length >= max) break;',
+        '    // mutant: no ceiling on this branch, exactly as it shipped'),
+      async (twinModule) => capped(twinModule, rows(5)).length === 3);
+    ok('card-ceiling mutant seam applied', capMutant.changed, capMutant.error);
+    ok('card-ceiling mutant module loaded successfully', capMutant.loaded, capMutant.error);
+    ok('MUTANT KILLED: the free branch cannot go back to an unlimited card list',
+      capMutant.loaded && capMutant.survived === false, JSON.stringify(capMutant));
+
+    // M11 — the cut moved ahead of the deduplication. It passes every count above and still hands
+    // the reader two cards where three distinct pages were cited.
+    const orderCapMutant = await loopMutant('cap-before-dedup',
+      (source) => source.replace(
+        '    if (card && card.tag && !out.some((item) => item.tag === card.tag)) out.push(card);',
+        '    if (card && card.tag) out.push(card);'),
+      async (twinModule) => {
+        const got = capped(twinModule, withRepeat);
+        return got.length === 3 && new Set(got.map((c) => c.tag)).size === 3;
+      });
+    ok('cap-before-dedup mutant seam applied', orderCapMutant.changed, orderCapMutant.error);
+    ok('cap-before-dedup mutant module loaded successfully', orderCapMutant.loaded, orderCapMutant.error);
+    ok('MUTANT KILLED: a repeated page cannot evict a distinct one',
+      orderCapMutant.loaded && orderCapMutant.survived === false, JSON.stringify(orderCapMutant));
+
+    // AND THE HANDLER MUST ACTUALLY CALL IT. A pure rule nothing invokes is a green gate over the
+    // defect itself, which is exactly the shape XC-13 was.
+    const askSource = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
+    ok('api/ask.js builds the free branch\'s cards through the capped rule',
+      /registerOwnedCards\(pickReaderCards\(out\.cited, MAX_SOURCES,/u.test(askSource));
+    ok('...and imports it from the loop rather than keeping a second copy',
+      /const \{ runFreeBrainTurn, pickReaderCards \} = await import\('\.\.\/lib\/free-brain\/loop\.js'\);/u
+        .test(askSource));
+    ok('...and MAX_SOURCES is still the one constant, still three',
+      /^const MAX_SOURCES = 3;$/mu.test(askSource));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

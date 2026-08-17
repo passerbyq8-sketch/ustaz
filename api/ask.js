@@ -1206,7 +1206,7 @@ export default async function handler(req, res) {
       // Lazy for the reason the head of this file gives about retrieve(): the loop reaches
       // linkedom/Readability only if the model actually calls a web tool, and a turn that
       // answers a sum from memory must not pay for loading them.
-      const { runFreeBrainTurn } = await import('../lib/free-brain/loop.js');
+      const { runFreeBrainTurn, pickReaderCards } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
 
       // The model writes no cards on this path — it cites by marker and the SERVER builds the
@@ -1245,15 +1245,29 @@ export default async function handler(req, res) {
       }
       if (freeUpstream.signal.aborted || req.signal?.aborted) return;
 
-      // THE CARD FOLLOWS THE CITATION. `out.cited` is the rows the finished text actually cited,
-      // in the order it cited them — not the rows retrieval happened to return.
-      const cards = registerOwnedCards(out.cited
-        .map((row) => (row.url ? buildSourceTag({ url: row.url, title: row.title }) : null))
-        .filter(Boolean));
+      // THE CARD FOLLOWS THE CITATION. `out.cited` is the rows the DELIVERED text actually cited,
+      // in the order the delivered text cites them — not the rows retrieval happened to return,
+      // and not the rows the draft cited before the reviewer had its say (see §٣ in
+      // lib/free-brain/loop.js).
+      //
+      // ── AND THE CEILING IS THE SAME CEILING (XC-07) ────────────────────────
+      // MAX_SOURCES has said «three» since it was written, and the free branch was the one path
+      // that never read it: this list was built with no `slice` and no limit, so every cited row
+      // with a usable URL became a card however many there were. MEASURED: four cards in three
+      // answers of the second set, and five on question 17 of the 17 August production battery.
+      // Past three, a reply stops citing and starts listing — which is the whole reason the
+      // constant exists. The selection rule, and why deduplication runs before the cut, are
+      // written out in `pickReaderCards`; the constant stays here, where every other path reads it.
+      const cards = registerOwnedCards(pickReaderCards(out.cited, MAX_SOURCES,
+        (row) => buildSourceTag({ url: row.url, title: row.title })));
       finalizerContext.readerCards = cards;
       finalizerContext.readerCardPrefix = cards.length ? '\n\n' : '';
-      // The takhrij seal reads the pages in hand. Only the CITED rows are handed to it, for the
-      // same reason only they get cards: a page nobody quoted supports nothing.
+      // The takhrij seal reads the pages in hand. Only the CITED rows are handed to it: a page
+      // nobody quoted supports nothing. It is deliberately NOT capped with the cards above — the
+      // cap is a rule about how much a reply may display, and the seal displays nothing. It
+      // verifies that a quotation in the prose came from a page this turn actually held, and
+      // withholding the fourth of those pages from it would make it fail to find a quotation that
+      // is perfectly well sourced.
       storedFinalizerSources.length = 0;
       for (const row of out.cited) {
         storedFinalizerSources.push({
