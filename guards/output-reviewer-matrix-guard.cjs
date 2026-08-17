@@ -116,6 +116,58 @@ function verbatimMarkerCopies(files, markerSets) {
       }
     }
 
+    ok('FIX-C-1 fixture carries truncated, complete, and unknown completion states',
+      Array.isArray(fixture.c1?.cases) && fixture.c1.cases.length === 3);
+    const c1CasePasses = (mod, test) => {
+      const result = mod.reviewAnswer(test.input);
+      return occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
+        && occurrences(result.text, mod.REVIEW_TAGS.FIQH_UNSOURCED) === test.expect.noticeCount
+        && result.verdict.answerFooterSuppressedReason === test.expect.reason
+        && (!test.expect.exactInput || result.text === test.input.text);
+    };
+    for (const test of fixture.c1?.cases || []) {
+      const result = module.reviewAnswer(test.input);
+      ok(test.id + ': answer footer follows the exact three-state truncation contract',
+        c1CasePasses(module, test), JSON.stringify({
+          text: result.text,
+          reason: result.verdict.answerFooterSuppressedReason,
+        }));
+    }
+
+    const truncatedFooterMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'append-answer-footer-on-truncated',
+      transform: (source) => source.replace(
+        '  const suppressAnswerFooter = truncated === true; // TRUNCATION_IS_STRICTLY_TRUE',
+        '  const suppressAnswerFooter = false; // mutant: claim completion on truncated output'),
+      survives: (mutantModule) => (fixture.c1?.cases || [])
+        .every((test) => c1CasePasses(mutantModule, test)),
+    });
+    ok('FIX-C-1 append-footer-on-truncated mutant seam applied',
+      truncatedFooterMutant.changed, truncatedFooterMutant.error);
+    ok('FIX-C-1 append-footer-on-truncated mutant module loaded',
+      truncatedFooterMutant.loaded, truncatedFooterMutant.error);
+    ok('MUTANT KILLED: truncated output cannot receive a completion footer',
+      truncatedFooterMutant.loaded && truncatedFooterMutant.survived === false,
+      JSON.stringify(truncatedFooterMutant));
+
+    const unknownFooterMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'suppress-answer-footer-when-truncation-unknown',
+      transform: (source) => source.replace(
+        '  const suppressAnswerFooter = truncated === true; // TRUNCATION_IS_STRICTLY_TRUE',
+        '  const suppressAnswerFooter = truncated !== false; // mutant: unknown means suppress'),
+      survives: (mutantModule) => (fixture.c1?.cases || [])
+        .every((test) => c1CasePasses(mutantModule, test)),
+    });
+    ok('FIX-C-1 suppress-footer-on-unknown mutant seam applied',
+      unknownFooterMutant.changed, unknownFooterMutant.error);
+    ok('FIX-C-1 suppress-footer-on-unknown mutant module loaded',
+      unknownFooterMutant.loaded, unknownFooterMutant.error);
+    ok('MUTANT KILLED: unknown truncation retains today\'s answer footer',
+      unknownFooterMutant.loaded && unknownFooterMutant.survived === false,
+      JSON.stringify(unknownFooterMutant));
+
     ok('A-2 fixture carries the literal regression, all quote styles, fallback, and controls',
       Array.isArray(fixture.a2?.cases) && fixture.a2.cases.length === 7);
     const a2CasePasses = (mod, test) => {
@@ -361,8 +413,8 @@ function verbatimMarkerCopies(files, markerSets) {
       sourceFile: REVIEWER,
       name: 'three-triggers-three-tails',
       transform: (source) => source.replace(
-        '  if (khilafTrigger && !output.some((chunk) => chunk.includes(KHILAF_TAIL.trim()))) {\n    notices.push(KHILAF_TAIL.trim());\n  }',
-        '  if (khilafFromSource) notices.push(KHILAF_TAIL.trim());\n  if (normalizedKhilafFromOpinions === true) notices.push(KHILAF_TAIL.trim());\n  if (khilafFromModelProse) notices.push(KHILAF_TAIL.trim()); // mutant: one tail per trigger'),
+        '    if (khilafTrigger && !output.some((chunk) => chunk.includes(KHILAF_TAIL.trim()))) {\n      notices.push(KHILAF_TAIL.trim());\n    }',
+        '    if (khilafFromSource) notices.push(KHILAF_TAIL.trim());\n    if (normalizedKhilafFromOpinions === true) notices.push(KHILAF_TAIL.trim());\n    if (khilafFromModelProse) notices.push(KHILAF_TAIL.trim()); // mutant: one tail per trigger'),
       survives: (mutantModule) => (fixture.b2b?.cases || [])
         .every((test) => b2bCasePasses(mutantModule, test)),
     });

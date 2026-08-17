@@ -184,6 +184,58 @@
       }
     }
   ],
+  "c1": {
+    "cases": [
+      {
+        "id": "c1-truncated-suppresses-answer-footer",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "audit",
+          "truncated": true
+        },
+        "expect": {
+          "tailCount": 0,
+          "noticeCount": 0,
+          "reason": "truncated",
+          "exactInput": true
+        }
+      },
+      {
+        "id": "c1-complete-keeps-answer-footer",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "audit",
+          "truncated": false
+        },
+        "expect": {
+          "tailCount": 1,
+          "noticeCount": 1,
+          "reason": null,
+          "exactInput": false
+        }
+      },
+      {
+        "id": "c1-unknown-keeps-answer-footer",
+        "input": {
+          "text": "في هذه المسألة خلاف بين أهل العلم",
+          "evidence": [],
+          "domain": "fiqh",
+          "mode": "audit",
+          "truncated": null
+        },
+        "expect": {
+          "tailCount": 1,
+          "noticeCount": 1,
+          "reason": null,
+          "exactInput": false
+        }
+      }
+    ]
+  },
   "a2": {
     "cases": [
       {
