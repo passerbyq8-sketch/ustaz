@@ -82,7 +82,8 @@ const plain = (rows) => JSON.stringify(rows.map((row) => ({
   ids: [...row.ids],
 })));
 
-const text = 'قال ابن باز إن الجمع للمسافر جائز عند الحاجة.';
+const semanticClaim = 'الجمع للمسافر جائز عند الحاجة.';
+const text = 'قال ابن باز إن ' + semanticClaim;
 const supporting = {
   id: 'bb-1', title: 'حكم الجمع للمسافر', url: 'https://binbaz.org.sa/fatwas/1/x',
   scholar: 'ابن باز', snippet: 'الجمع للمسافر جائز عند الحاجة إذا وجد سببه.',
@@ -97,11 +98,13 @@ const oppositeRuling = {
   snippet: 'الجمع للمسافر غير جائز في هذه الصورة ولا يباح له فعله.',
 };
 const input = (evidence) => ({ text, evidence, domain: 'fiqh', mode: 'عادي' });
+const preservesCompleteUnsupportedClaim = (module, out) => out.text
+  === semanticClaim + ' ' + module.REVIEW_TAGS.ATTRIBUTION_REMOVED
+  && out.annotations[0]?.action === 'removed-unsupported-attribution';
 const rejectsWrongScholar = (module) => {
   const out = module.reviewAnswer(input([wrongScholar]));
   return !out.text.includes('ابن باز')
-    && out.text.includes(module.REVIEW_TAGS.ATTRIBUTION_REMOVED)
-    && out.annotations[0]?.action === 'removed-unsupported-attribution';
+    && preservesCompleteUnsupportedClaim(module, out);
 };
 
 (async () => {
@@ -112,8 +115,7 @@ const rejectsWrongScholar = (module) => {
       good.text === text && good.annotations[0]?.action === 'kept-sourced-attribution', good.text);
     const nextCycle = module.reviewAnswer(input([]));
     ok('evidence from the preceding call grants no licence in the next cycle',
-      !nextCycle.text.includes('ابن باز')
-        && nextCycle.annotations[0]?.action === 'removed-unsupported-attribution', nextCycle.text);
+      !nextCycle.text.includes('ابن باز') && preservesCompleteUnsupportedClaim(module, nextCycle), nextCycle.text);
     ok('evidence for another scholar strips the attribution and keeps the claim',
       rejectsWrongScholar(module), module.reviewAnswer(input([wrongScholar])).text);
     const wrongDomain = { ...supporting, url: 'https://example.test/fatwa/1' };
@@ -124,26 +126,29 @@ const rejectsWrongScholar = (module) => {
       }), module.reviewAnswer(input([wrongDomain])).text);
     const irrelevant = { ...supporting, snippet: 'هذا نص في زكاة الحبوب والثمار.' };
     ok('the right scholar and host with an unrelated snippet is not a licence',
-      module.reviewAnswer(input([irrelevant])).annotations[0]?.action === 'removed-unsupported-attribution');
+      preservesCompleteUnsupportedClaim(module, module.reviewAnswer(input([irrelevant]))));
     ok('the right scholar and host carrying the opposite ruling is not a licence',
-      module.reviewAnswer(input([oppositeRuling])).annotations[0]?.action === 'removed-unsupported-attribution');
+      preservesCompleteUnsupportedClaim(module, module.reviewAnswer(input([oppositeRuling]))));
     const honorific = module.reviewAnswer(input([{ ...supporting, scholar: 'الشيخ ابن باز' }]));
     ok('an honorific in evidence does not break the exact authority match',
       honorific.text === text && honorific.annotations[0]?.action === 'kept-sourced-attribution');
-    for (const framed of [
-      'يرى ابن باز جواز الجمع للمسافر.',
-      'رأي الشيخ ابن باز أن الجمع للمسافر جائز.',
-      'ابن باز يرى أن الجمع للمسافر جائز.',
-      'حكم ابن باز هو تحريم الدخان.',
-      'ابن باز يحرّم الدخان.',
-      'قال ابنُ بازٍ بجواز الجمع للمسافر.',
-      'وفقًا لابن باز، الجمع للمسافر جائز.',
+    const joinedHonorific = module.reviewAnswer(input([{ ...supporting, scholar: 'والشيخ ابن باز' }]));
+    ok('a joined Arabic conjunction before an honorific still resolves the exact authority',
+      joinedHonorific.text === text && joinedHonorific.annotations[0]?.action === 'kept-sourced-attribution');
+    for (const { framed, claim } of [
+      { framed: 'يرى ابن باز جواز الجمع للمسافر.', claim: 'جواز الجمع للمسافر.' },
+      { framed: 'رأي الشيخ ابن باز أن الجمع للمسافر جائز.', claim: 'الجمع للمسافر جائز.' },
+      { framed: 'ابن باز يرى أن الجمع للمسافر جائز.', claim: 'الجمع للمسافر جائز.' },
+      { framed: 'حكم ابن باز هو تحريم الدخان.', claim: 'هو تحريم الدخان.' },
+      { framed: 'ابن باز يحرّم الدخان.', claim: 'يحرّم الدخان.' },
+      { framed: 'قال ابنُ بازٍ بجواز الجمع للمسافر.', claim: 'جواز الجمع للمسافر.' },
+      { framed: 'وفقًا لابن باز، الجمع للمسافر جائز.', claim: 'الجمع للمسافر جائز.' },
     ]) {
       const out = module.reviewAnswer({ text: framed, evidence: [], domain: 'fiqh', mode: 'عادي' });
-      ok('unsupported attribution frame is removed: ' + framed,
+      ok('unsupported attribution frame is removed without semantic damage: ' + framed,
         out.annotations[0]?.action === 'removed-unsupported-attribution'
           && !out.text.includes('ابن باز')
-          && out.text.includes(module.REVIEW_TAGS.ATTRIBUTION_REMOVED), out.text);
+          && out.text === claim + ' ' + module.REVIEW_TAGS.ATTRIBUTION_REMOVED, out.text);
     }
 
     const mutant = await runMutant({
@@ -203,12 +208,24 @@ const rejectsWrongScholar = (module) => {
     }
     ok('18/18 — zero false stripping across the whole measured roster', keeps(module));
 
-    // ...and the same eighteen with NO evidence lose it, so the pass above is the registry
-    // working and not the check being switched off.
-    ok('the same eighteen claims with no evidence from this cycle all lose the attribution',
-      eighteen.cases.every((entry) => module.reviewAnswer({
-        text: entry.claim, evidence: [], domain: 'fiqh', mode: 'عادي',
-      }).annotations[0]?.action === 'removed-unsupported-attribution'));
+    // ...and the same eighteen with NO evidence are still handled, so the pass above is the
+    // registry working and not the check being switched off. Removal is not counted as success by
+    // itself: the claim must retain substantive words from the published ruling. If the seam is
+    // unsafe, keeping the original sentence visibly marked is the correct alternative.
+    const unsupportedKeepsMeaning = (entry) => {
+      const out = module.reviewAnswer({ text: entry.claim, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      const action = out.annotations[0]?.action;
+      const handled = action === 'removed-unsupported-attribution'
+        || action === 'kept-unsupported-attribution-marked';
+      const sourceTokens = fold(entry.evidence.snippet).split(' ').filter((token) => token.length > 2);
+      const reviewed = ` ${fold(out.text)} `;
+      const overlap = sourceTokens.filter((token) => reviewed.includes(` ${token} `)).length;
+      return handled
+        && out.text.includes(module.REVIEW_TAGS.ATTRIBUTION_REMOVED)
+        && overlap >= Math.min(3, sourceTokens.length);
+    };
+    ok('the same eighteen claims without evidence remain marked and semantically intact',
+      eighteen.cases.every(unsupportedKeepsMeaning));
 
     // M3 — the pre-derivation registry: only the five hand-written rows. Thirteen scholars lose
     // their names again, which is the defect §٣ was ordered to close.

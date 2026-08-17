@@ -270,11 +270,36 @@ const unsupportedIsTagged = (module) => {
     // sentence, or the name stays and the sentence is marked as it is. A broken output is not
     // guarding anything.
     const Q12 = 'يجوز لها ذلك، وهذا مصرَّحٌ به في فتوى ابن باز رحمه الله: فقد نصّ على أنّ كونَ المرأةِ المعتدَّةِ طالبةً أو معلّمةً أو موظّفةً من الحاجاتِ المهمّةِ التي تُبيحُ لها الخروجَ من بيتِ العدّةِ نهارًا.';
+    const REMOVAL_SAFETY = [
+      {
+        id: 'set2-preview-1-14-joined-preposition',
+        text: 'ومن رأي الشيخ محمد الأمين أن فالأولى عنده الإنصات لقراءة الإمام والاستماع لها.',
+      },
+      {
+        id: 'set2-preview-1-18-semantic-subject',
+        text: 'والفقه عند الشيخ محمد الأمين: يعطى من الزكاة أصلًا، فيقبض المال ثم يقضى به الدين.',
+      },
+      {
+        id: 'set2-preview-2-18-comma-fragment',
+        text: 'فهذا معروف عظيم وصدقة يثاب عليها صاحبها، بحسب الشيخ محمد الأمين:',
+      },
+      {
+        id: 'joined-relative-claim',
+        text: 'قال الشيخ محمد الأمين: والذي اختاره وجوب الوضوء.',
+      },
+    ];
+    const removalSafetyHolds = (mod) => REMOVAL_SAFETY.every((witness) => {
+      const out = mod.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      return out.text.includes(witness.text)
+        && out.text.trimEnd().endsWith(mod.REVIEW_TAGS.ATTRIBUTION_REMOVED)
+        && out.annotations[0]?.action === 'kept-unsupported-attribution-marked';
+    });
     const seamHolds = (mod) => {
       const out = mod.reviewAnswer({ text: Q12, evidence: [], domain: 'fiqh', mode: 'عادي' });
       return out.text.includes(Q12)
         && !/به\s+في\s+رحمه\s+الله/u.test(out.text)
-        && out.text.trimEnd().endsWith(mod.REVIEW_TAGS.ATTRIBUTION_REMOVED);
+        && out.text.trimEnd().endsWith(mod.REVIEW_TAGS.ATTRIBUTION_REMOVED)
+        && removalSafetyHolds(mod);
     };
     {
       const out = module.reviewAnswer({ text: Q12, evidence: [], domain: 'fiqh', mode: 'عادي' });
@@ -286,6 +311,55 @@ const unsupportedIsTagged = (module) => {
         out.annotations[0]?.action === 'kept-unsupported-attribution-marked',
         out.annotations[0]?.action);
     }
+    for (const witness of REMOVAL_SAFETY) {
+      const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      ok(witness.id + ': unsafe removal keeps every original character', out.text.includes(witness.text), out.text);
+      ok(witness.id + ': semantic subject and sentence structure remain intact',
+        out.annotations[0]?.action === 'kept-unsupported-attribution-marked'
+          && out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED), out.text);
+    }
+
+    // Narrowing the destructive branch must not disable attribution review. These unsupported
+    // credits are cleanly removable, including joined conjunctions and an attached honorific.
+    for (const witness of [
+      {
+        id: 'joined-waw-credit',
+        text: 'وقال الشيخ محمد الأمين إن الجمع للمسافر جائز عند الحاجة.',
+        claim: 'الجمع للمسافر جائز عند الحاجة.',
+      },
+      {
+        id: 'joined-fa-connector',
+        text: 'فأما رأي الشيخ محمد الأمين أن الراجح المنع.',
+        claim: 'الراجح المنع.',
+      },
+      {
+        id: 'joined-honorific-prayer',
+        text: 'قال الشيخ محمد الأمين: ورحمه الله، الجمع للمسافر جائز عند الحاجة.',
+        claim: 'الجمع للمسافر جائز عند الحاجة.',
+      },
+    ]) {
+      const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      const expected = witness.claim + ' ' + module.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+      ok(witness.id + ': genuinely unsupported credit is still removed',
+        out.annotations[0]?.action === 'removed-unsupported-attribution'
+          && !out.text.includes('محمد الأمين'), out.text);
+      ok(witness.id + ': removal preserves the complete semantic claim', out.text === expected, out.text);
+    }
+
+    const joinedCalculation = 'سعر اليوم وس + ص مجموع المبلغين.';
+    const calculation = module.reviewAnswer({ text: joinedCalculation, evidence: [], domain: 'general', mode: 'عادي' });
+    ok('joined Arabic algebra variable remains calculation rather than a dynamic claim',
+      calculation.text.includes(joinedCalculation)
+        && calculation.annotations[0]?.action === 'tagged-stable-general-knowledge', calculation.text);
+
+    const noSpaceSentences = module.reviewAnswer({
+      text: 'الجمع للمسافر جائز.والقصر للمسافر سنة.', evidence: [], domain: 'fiqh', mode: 'عادي',
+    });
+    ok('Arabic sentences separated by punctuation without whitespace are reviewed independently',
+      noSpaceSentences.annotations.length === 2
+        && noSpaceSentences.annotations.every((item) => item.action === 'tagged-fiqh-understanding')
+        && noSpaceSentences.text.includes('الجمع للمسافر جائز.')
+        && noSpaceSentences.text.includes('والقصر للمسافر سنة.'), noSpaceSentences.text);
     // The prayer belongs to the name, so when the name CAN be cut the prayer goes with it.
     {
       const out = module.reviewAnswer({
