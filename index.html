@@ -815,6 +815,15 @@
      free space to absorb there is nothing to scroll, and when there is not the margin is 0 and
      scrollHeight is exactly what it was. */
   .ezc-scroll>*:first-child{margin-block-start:auto}
+  /* STREAM-P4 §٣/١: while a question is pinned to the top, that auto margin is exactly the
+     wrong rule, and it is not merely cosmetic — it makes the spacer's arithmetic circular.
+     MEASURED: with a short thread the margin pushes the question DOWN, so the pin asks for a
+     spacer; the spacer makes the content overflow, which resolves the margin to 0 and lifts the
+     question back UP; the pin then computes that no spacer is needed, the margin returns, and
+     the two swap places forever. The question never rose above 410px and the spacer never
+     survived a single frame. Turning the margin off for the duration of the pin makes the
+     measurement monotone: adding room below can then only ever move the question up. */
+  .ezc-scroll.ezc-askpinned>*:first-child{margin-block-start:0}
   .ezc-turn{display:flex;flex-direction:column;gap:8px;min-width:0;max-width:100%}
   .ezc-turn.is-user{align-items:flex-start}
   .ezc-turn.is-ai{align-items:stretch}
@@ -6384,6 +6393,45 @@ function App() {
   // the follow effect saw an unarmed pin and animated an open it was never meant to touch.
   // A counter is decided by the code path, not by which timer won.
   const skipFollowRef = useRef(0);
+  // ── STREAM-P4 §٣/١: THE QUESTION STAYS AT THE TOP ─────────────────────────
+  // The reader's own note, verbatim: the question they just asked should settle at the top of
+  // the transcript and the answer should grow underneath it, instead of the view chasing the
+  // last written character down the screen.
+  //
+  // WHY IT IS AN INDEX AND NOT A BOOLEAN. It is the index of the user message to pin, so a
+  // second question in the same thread re-arms the whole behaviour by pointing at a different
+  // message rather than by resetting a flag. `null` means nothing is pinned.
+  const [pinnedAskIndex, setPinnedAskIndex] = useState(null);
+  const pinAnchorRef = useRef(null);
+  // Live mirror of the state above, for the scroll handlers and the follow effect: those run
+  // outside React's render and must not read a value a re-render has not delivered yet.
+  const pinActiveRef = useRef(false);
+  // The room under the last turn that lets a SHORT answer still be pushed to the top. It is a
+  // number of pixels, recomputed as the answer grows and collapsed to 0 when the turn ends, so
+  // no gap is left behind for the reader to scroll through.
+  const [askPinPad, setAskPinPad] = useState(0);
+  // The spacer ELEMENT. Its applied height is read off it rather than remembered, because a ref
+  // written when `setAskPinPad` is called is one commit ahead of the DOM — see the layout effect.
+  const askPadElRef = useRef(null);
+  // The last scroll position the pin itself wrote, read back from the element. Anything else is
+  // the reader's hand. -1 means the pin has not placed anything yet this turn.
+  const pinScrollTopRef = useRef(-1);
+  // ── STREAM-P4 §٣/٢: `Enter` DOES NOT SEND ON A PHONE ──────────────────────
+  // True while an IME or a predictive keyboard is still assembling a character. An `Enter` in
+  // that state belongs to the keyboard — it is ACCEPTING a candidate — and treating it as a
+  // send is the single commonest way half a question is submitted. `isComposing` on the native
+  // event says this on modern browsers; this ref is what covers the ones where it does not.
+  const composingRef = useRef(false);
+  // WHETHER THE COMPOSER IS BEING DRIVEN BY TOUCH, and «التمييزُ بنوعِ الإدخالِ لا بعرضِ
+  // النافذة» is the whole point: a narrow window on a laptop is still a keyboard, and a wide
+  // tablet is still a thumb. The opening value is the media query — the only thing knowable
+  // before the reader has touched anything — and the first pointer event on the field replaces
+  // it with what the reader is ACTUALLY using, which is what makes a hybrid device correct
+  // rather than merely guessed at.
+  const [inputIsTouch, setInputIsTouch] = useState(() => {
+    try { return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
+    catch (e) { return false; }
+  });
   const recognitionRef = useRef(null);
   const transcriptRef = useRef('');
   const baseTextRef = useRef('');        // input snapshot when dictation (re)starts — new speech is appended after it
@@ -7084,6 +7132,11 @@ function App() {
   useEffect(() => {
     if (skipFollowRef.current > 0) { skipFollowRef.current--; return; }  // this run IS an open
     if (jumpToEndRef.current) return;          // the opening pin owns the position right now
+    // STREAM-P4 §٣/١: «لا قفزَ تلقائيًّا إلى الأسفل أثناءَ الكتابة». This effect IS the jump to
+    // the bottom, and while the question is pinned it is the one thing that would undo it on
+    // every delta. It is declined here rather than by clearing `stickToEndRef`, so the reader's
+    // own at-the-end/reading-above state is exactly what it was when the pin lets go.
+    if (pinActiveRef.current) return;
     if (!stickToEndRef.current) return;        // the user is reading further up
     // S99: the ONE thing reduced motion changes here is the WORD 'smooth'. Every guard the pin
     // depends on is above this line and untouched — the skip counter, the opening pin, the
@@ -7097,7 +7150,87 @@ function App() {
     const el = messagesAreaRef.current;
     if (!el) return;
     stickToEndRef.current = (el.scrollHeight - el.scrollTop - el.clientHeight) < 80;
+    // ── STREAM-P4 §٣/١: «حرّكَ بيدِه ⟹ يتوقّفُ التثبيت» ──────────────────────
+    // The reader moving the transcript ends the pin, and it is detected by comparing where the
+    // container IS against where the pin last PUT it, rather than by listening for a wheel or a
+    // touch. That is not a stylistic preference: wheel and touch are two of the ways a person
+    // scrolls, and a scrollbar drag, a trackpad flick, Page Down, a spacebar and a screen
+    // reader's own navigation are the others. A divergence from the pinned position is what all
+    // of them have in common, so this needs no list of input devices and cannot be defeated by
+    // arriving on a device the list did not name.
+    //
+    // The two-pixel tolerance is for sub-pixel layout and zoom, where reading back `scrollTop`
+    // after writing it does not always return the number that was written.
+    if (pinActiveRef.current && pinScrollTopRef.current >= 0
+      && Math.abs(el.scrollTop - pinScrollTopRef.current) > 2) {
+      pinActiveRef.current = false;
+    }
   };
+
+  // ── STREAM-P4 §٣/١: THE QUESTION SETTLES AT THE TOP, THE ANSWER GROWS UNDER IT ──
+  //
+  // ONE LAYOUT EFFECT, TWO STEPS IN A FIXED ORDER, because the second cannot succeed until the
+  // first has run: a container that does not have enough content below the question CANNOT
+  // scroll that question to its top, and writing `scrollTop` in that state silently does
+  // nothing. So the room is made first and the position is taken second.
+  //
+  // IT IS A LAYOUT EFFECT for the same reason S97's opening pin is: a passive effect runs after
+  // the browser is free to paint, so the reader would see the un-pinned frame first and watch
+  // the correction. This runs inside the commit, so the pinned position IS the first frame.
+  //
+  // AND IT HAS NO DEPENDENCY LIST, deliberately. The answer arrives in many small renders and
+  // each one changes the height underneath the question; re-pinning on every one of them is how
+  // the question is HELD there instead of drifting up as the reply grows.
+  React.useLayoutEffect(() => {
+    if (pinnedAskIndex == null || !pinActiveRef.current) return;
+    const el = messagesAreaRef.current;
+    const anchor = pinAnchorRef.current;
+    if (!el || !anchor) return;
+
+    // Where the question starts, in the container's own scroll coordinates.
+    const anchorTop = anchor.getBoundingClientRect().top
+      - el.getBoundingClientRect().top + el.scrollTop;
+
+    // (1) ROOM. `scrollHeight` already includes whatever spacer is currently applied, so it is
+    // subtracted back out to get the height the turn ACTUALLY occupies below the question. The
+    // shortfall against one viewport is the room still needed, and it therefore shrinks to zero
+    // by itself as a long answer fills the screen. Nothing here is a fixed spacer.
+    //
+    // THE APPLIED HEIGHT IS READ OFF THE ELEMENT, NOT REMEMBERED. The first version of this kept
+    // it in a ref written at the moment `setAskPinPad` was called — that is, one commit BEFORE
+    // the DOM had it. A stream re-renders constantly, so a render landing in that gap measured
+    // `scrollHeight` without the spacer and subtracted a spacer that was already recorded: the
+    // shortfall came back inflated by exactly the pending height, the next pass corrected it in
+    // the other direction, and React stopped the page with «Maximum update depth exceeded»
+    // (#185). The DOM cannot disagree with itself, so it is what is asked.
+    const appliedPad = askPadElRef.current ? askPadElRef.current.offsetHeight : 0;
+    const naturalBelow = el.scrollHeight - appliedPad - anchorTop;
+    const need = Math.max(0, Math.ceil(el.clientHeight - naturalBelow));
+    // Compared against the RENDERED value, and with a pixel of tolerance, so sub-pixel layout
+    // cannot start the same argument by a different route.
+    if (Math.abs(need - askPinPad) > 1) {
+      setAskPinPad(need);
+      // The spacer lands on the next commit, and this effect runs again then. Taking the
+      // position now, against a height that is about to change, would pin to a stale number.
+      return;
+    }
+
+    // (2) POSITION. The written value is read back rather than assumed: the browser clamps
+    // `scrollTop` to what the content allows, and remembering what we ASKED for instead of what
+    // we GOT is what would make the divergence test above fire on the pin's own writes.
+    if (Math.abs(el.scrollTop - anchorTop) > 1) el.scrollTop = anchorTop;
+    pinScrollTopRef.current = el.scrollTop;
+  });
+
+  // The turn is over: the room is given back so no gap is left under the answer, and the pin is
+  // disarmed. Keyed on the two facts that together mean «nothing more is coming».
+  useEffect(() => {
+    if (pinnedAskIndex == null) return;
+    if (isLoading || streamingText !== null) return;
+    pinActiveRef.current = false;
+    setAskPinPad(0);
+    setPinnedAskIndex(null);
+  }, [pinnedAskIndex, isLoading, streamingText]);
 
   // S92: THE AUTOSAVE, and it is still the ONE write point the chat has -- every path that
   // commits a turn (the greeting, a sent message, a call turn) already called this, so filing the
@@ -8226,6 +8359,18 @@ function App() {
     const userMsg = { role: 'user', content, timestamp: new Date().toISOString() };
     const updated = [...messages, userMsg];
     setMessages(updated);
+    // ── STREAM-P4 §٣/١: ARM THE PIN ON THE QUESTION THAT WAS JUST ASKED ──────
+    // Batched with the setMessages above, so the question's very first commit is already the
+    // pinned one and there is no unpinned frame between them. The refs are set synchronously
+    // because the layout effect that does the pinning runs in that same commit, before any
+    // re-render could have delivered the state.
+    //
+    // «ومع كلِّ سؤالٍ جديدٍ في الصفحةِ نفسِها يتكرّرُ السلوك» — this runs on every send, so a
+    // second question re-arms by pointing at its own index; there is no flag to get stuck.
+    pinActiveRef.current = true;
+    pinScrollTopRef.current = -1;
+    setAskPinPad(0);
+    setPinnedAskIndex(updated.length - 1);
     // S92: the conversation is filed HERE, on the QUESTION -- not after the reply lands. "Saved
     // automatically on the first message" has to survive a reply that never arrives: a dropped
     // connection, an abort, the app being closed mid-stream. This is the write that mints the id
@@ -8301,6 +8446,41 @@ function App() {
     if (quickBusyRef.current || isLoading || streamingText !== null) return;
     quickBusyRef.current = true;
     sendMessage(prompt);
+  };
+
+  // ── STREAM-P4 §٣/٢: THE COMPOSER'S `Enter`, IN ONE PLACE ──────────────────
+  //
+  // FOUR TESTS, IN THIS ORDER, AND THE ORDER IS THE RULE:
+  //
+  //  1. NOT AN `Enter` AT ALL — nothing to decide.
+  //  2. THE KEYBOARD IS STILL COMPOSING. An IME, and every predictive Arabic keyboard, uses
+  //     `Enter` to ACCEPT the candidate it is offering. Sending there submits the half of the
+  //     question that had been typed so far, which is the most-reported version of this defect
+  //     and the reason this test comes before every other one.
+  //  3. `Shift+Enter` IS A NEWLINE. Unchanged, on every device.
+  //  4. TOUCH SENDS WITH THE SEND BUTTON, NEVER WITH `Enter`. On a phone `Enter` is how a
+  //     person writes a second line, and the button beside the field is how they send. The
+  //     reverse — the shipped behaviour until now — costs a question every time somebody
+  //     reaches for a new paragraph.
+  //
+  // AND THE KEY IS LABELLED HONESTLY. `enterKeyHint` is what puts «send» or a return arrow on
+  // the on-screen keyboard's corner key; leaving it saying «send» on a path where `Enter`
+  // writes a newline is the keyboard promising something the app then declines to do.
+  const onComposerKeyDown = (e) => {
+    if (e.key !== 'Enter') return;
+    if (composingRef.current || e.nativeEvent?.isComposing
+      || e.which === 229 || e.keyCode === 229) return;
+    if (e.shiftKey) return;
+    if (inputIsTouch) return;
+    e.preventDefault();
+    e.target.style.height = 'auto';
+    sendMessage(input);
+  };
+  // The reader's actual device, recorded from the event rather than inferred from the viewport.
+  // Guarded so an unchanged value costs no render: this fires on every press of the field.
+  const onComposerPointerDown = (e) => {
+    const touch = e.pointerType === 'touch' || e.pointerType === 'pen';
+    if (touch !== inputIsTouch) setInputIsTouch(touch);
   };
   // Where the quick actions may appear, and it is deliberately ONE place: under the newest reply,
   // when that reply is finished, is the assistant's, is not one of the client's own error lines,
@@ -8926,7 +9106,7 @@ function App() {
         </div>
       </div>
 
-      <div ref={messagesAreaRef} onScroll={onMessagesScroll} className="ezc-scroll" style={s.messagesArea}>
+      <div ref={messagesAreaRef} onScroll={onMessagesScroll} className={'ezc-scroll' + (pinnedAskIndex == null ? '' : ' ezc-askpinned')} style={s.messagesArea}>
         {/* S112 -- THE EMPTY STATE. A NEW thread shows this and nothing else: no old messages, no
             history list, no suggestion cards, and no devotional text of any kind. It is drawn
             INSIDE the transcript and centred in the space that is already there, so the composer
@@ -8938,7 +9118,17 @@ function App() {
             <div className="ezc-empty-title">{A2_BRAND}</div>
           </div>
         )}
-        {messages.map((m, i) => <MessageBubble key={i} index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} />)}
+        {messages.map((m, i) => (
+          /* STREAM-P4 §٣/١: a zero-height marker immediately BEFORE the pinned question, which
+             is what the pin measures against. It is a bare element rather than a ref threaded
+             into MessageBubble because that component's props are deliberately pinned for
+             performance (see S98 PERF below) and adding a per-render ref to them would undo
+             that on every message in the thread, to locate one of them. */
+          <React.Fragment key={i}>
+            {i === pinnedAskIndex && <div ref={pinAnchorRef} aria-hidden="true" data-ezik-ask-pin="" />}
+            <MessageBubble index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} />
+          </React.Fragment>
+        ))}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
             inside MessageBubble — so an old conversation does not carry a strip beneath every one
             of its 60 answers, and a keystroke in the composer cannot re-render 60 of them. They
@@ -8997,6 +9187,18 @@ function App() {
           </div>
           </div>
         )}
+        {/* STREAM-P4 §٣/١: the room that lets a SHORT answer still carry its question to the top.
+            It is zero except while a turn is live, and it shrinks to zero by itself as a long
+            answer fills the viewport, so on the common case it never exists at all. It sits
+            ABOVE the end sentinel so that scrollIntoView on that sentinel — which is what the
+            follow effect uses once the pin has let go — still lands at the true end. */}
+        {/* `flexShrink: 0` is not decoration. This scroller is a COLUMN FLEXBOX — that is what the
+            auto margin above it works through — and a flex item with a height and no content is
+            shrinkable by default. MEASURED: the pin computed the room correctly and asked for
+            410px, React rendered it, and flexbox took every pixel back the same frame; the
+            element existed with an offsetHeight of 0 while `scrollHeight` never moved, so the
+            spacer «did not work» in a way no amount of arithmetic would have explained. */}
+        {askPinPad > 0 && <div ref={askPadElRef} aria-hidden="true" data-ezik-ask-pad="" style={{ height: askPinPad, flexShrink: 0 }} />}
         <div ref={messagesEndRef} />
       </div>
 
@@ -9031,7 +9233,11 @@ function App() {
           rows={1}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.style.height = 'auto'; sendMessage(input); } }}
+          onKeyDown={onComposerKeyDown}
+          onPointerDown={onComposerPointerDown}
+          onCompositionStart={() => { composingRef.current = true; }}
+          onCompositionEnd={() => { composingRef.current = false; }}
+          enterKeyHint={inputIsTouch ? 'enter' : 'send'}
           style={s.input}
           disabled={isLoading || isListening}
         />
