@@ -11,13 +11,37 @@ const { pathToFileURL } = require('url');
 const ROOT = path.resolve(__dirname, '..');
 const CORPUS = path.join(ROOT, 'lib', 'data', 'fiqh-search.json.gz');
 const LIVENESS = path.join(ROOT, 'data', 'source-liveness.json');
+const WORSHIP_DISPLAY = path.join(ROOT, 'worship-display.json');
 const X021_FIXTURE = path.join(ROOT, 'guards', 'fixtures', 'honesty', 'x021-fatwa-telemetry.json');
 const CORPUS_HASH = '6482d677ebf09cc5627a172ee77114587046edeb95529092cb644e42e00d13a2';
 const LIVENESS_HASH = '75b88f5c092eea8ae5e4198a33203e99dd136e06581d8b69bf7dc1037322aa4d';
+const WORSHIP_DISPLAY_HASH = '9b05584742fa701e76309a0b4ae68e44178a81876e417fd973c46bbadd4a3d8e';
+const SALAH_ADULT_TEXT_HASH = '7687019965bf142259cdc7660af8c32a211cdb1455f5f479f2a40db8c5a0eba2';
 // Re-cut in semantic round B after CLAIMS_AUDIT/د's production-smoke values were copied into the
 // formerly-null production field. The seal is on the whole file, so it changes whenever the
 // fixture does -- which is the point: no one edits this fixture without the seal saying so.
 const X021_FIXTURE_HASH = '2740b32014c481f4b7ebb0fe5ba6eddfa9f03f777573bc967ff5fba6fc214cde';
+const D2_CASE_QUESTIONS = Object.freeze([
+  'كيف يصلي المريض الذي لا يستطيع القيام؟',
+  'ما كيفية صلاة الخوف عند اشتداد القتال؟',
+  'ما صفة صلاة الجنازة؟',
+  'ما طريقة صلاة الاستخارة؟',
+  'علمني ما يفعل المسبوق إذا أدرك الركعة الأخيرة من الصلاة.',
+  'علميني الفرق بين غسل الجنابة وغسل الجمعة.',
+  'اشرح لي متى ينتقض الوضوء.',
+  'ما خطوات سجود السهو في الصلاة؟',
+  'أخبرني عن عدد ركعات صلاة الوتر.',
+  'في الصلاة، من شك، كم ركعة يبني عليها؟',
+  'في صلاة الضحى، كم عدد ركعاتها؟',
+  'ما هي شروط الصلاة؟',
+  'ماهي سنن الوضوء؟',
+  'ما هو وقت صلاة العصر؟',
+  'ماهو الفرق بين الغسل والوضوء؟',
+  'اعطني شروط التيمم عند فقد الماء.',
+  'هات أدلة المسح على الخفين في الوضوء.',
+  'اذكر لي مبطلات الصلاة.',
+  'اريد معرفة ما يفعله من نسي ركعة من الصلاة.',
+]);
 let checks = 0, failures = 0;
 function ok(name, condition, detail = '') {
   checks++;
@@ -75,10 +99,24 @@ function modelUsing(id, quote, sentence = quote) {
 const verifyIds = (...ids) => async () => JSON.stringify({ supported_ids: ids });
 const budget = { reserve: async () => ({ ok: true }), snapshot: () => ({ configured: true, limit: 7, reservedThisRequest: 1 }) };
 
-function importableLibModule(source) {
-  const lib = path.join(ROOT, 'lib');
+function importableModule(source, directory) {
   return source.replace(/from\s+(['"])(\.\/[^'"]+)\1/gu, (_all, quote, specifier) =>
-    `from ${quote}${pathToFileURL(path.resolve(lib, specifier)).href}${quote}`);
+    `from ${quote}${pathToFileURL(path.resolve(directory, specifier)).href}${quote}`);
+}
+
+function importableLibModule(source) {
+  return importableModule(source, path.join(ROOT, 'lib'));
+}
+
+async function moduleMutant(temp, relative, name, mutate) {
+  const absolute = path.join(ROOT, relative);
+  const original = fs.readFileSync(absolute, 'utf8');
+  const ready = importableModule(original, path.dirname(absolute));
+  const changed = mutate(ready);
+  if (changed === ready) throw new Error(relative + ' mutation seam moved: ' + name);
+  const file = path.join(temp, name + '.mjs');
+  fs.writeFileSync(file, changed, 'utf8');
+  return import(pathToFileURL(file).href + '?v=' + Date.now() + '-' + name);
 }
 
 async function mutant(temp, name, mutate) {
@@ -131,12 +169,13 @@ async function runHybridGuard() {
   console.log('\n=== hybrid-live-fatwa — three paths, grounding, degradation and mutants ===');
   const corpusBefore = fs.readFileSync(CORPUS);
   const livenessBefore = fs.readFileSync(LIVENESS);
-  const [H, S, R, A, BQ, FC, FSVC, RET, CLOSED, W, SW, CG] = await Promise.all([
+  const [H, S, R, A, BQ, FC, FSVC, RET, CLOSED, W, SW, CG, RT] = await Promise.all([
     esm('lib/hybrid-deen.js'), esm('lib/stored-deen.js'), esm('lib/route-classify.js'),
     esm('lib/ask-plan.js'), esm('lib/brave-query.js'), esm('lib/fatwa-contract.js'),
     esm('lib/fatwa-service.js'), esm('lib/retrieve.js'), esm('lib/closed-deen.js'),
     esm('lib/world-intent.js'), esm('lib/finalized-sse-writer.js'),
     esm('lib/policy/consistency-gate.js'),
+    esm('lib/policy/referral-tail.js'),
   ]);
   const JOIN = 'ما حكم الجمع بين الصلاتين للمسافر؟';
   const BAZ = 'ما رأي ابن باز في الجمع بين الصلاتين للمسافر؟';
@@ -257,6 +296,45 @@ async function runHybridGuard() {
       && out.braveSearchCalls === 0 && out.livePageFetchCalls === 0
       && out.modelCallsForReligiousAnswer === 0 && !out.text.includes('<source'), JSON.stringify(out));
   }
+
+  const worshipDisplayBuffer = fs.readFileSync(WORSHIP_DISPLAY);
+  const worshipDisplay = JSON.parse(worshipDisplayBuffer.toString('utf8'));
+  ok('D-2 frozen worship display bytes are unchanged',
+    sha(worshipDisplayBuffer) === WORSHIP_DISPLAY_HASH);
+  const localWorshipFixtures = [
+    ['salah', 'كيف أصلي؟'],
+    ['wudu', 'كيف أتوضأ؟'],
+    ['ghusl', 'ما صفة الغسل؟'],
+    ['tayammum', 'كيف أتيمم؟'],
+  ];
+  for (const [id, question] of localWorshipFixtures) {
+    const context = contextFor(S, R, A, question);
+    const out = CLOSED.runClosedDeenTurn(context);
+    const rawTag = `<worship id="${id}"></worship>`;
+    const adult = worshipDisplay.cells?.[id + ':adult']?.text || '';
+    const young = worshipDisplay.cells?.[id + ':young']?.text || '';
+    ok('D-2 general ' + id + ' description keeps the exact local routing token',
+      context.runtime === 'LOCAL_WORSHIP' && out?.text === rawTag);
+    ok('D-2 general ' + id + ' token resolves to non-empty frozen reader text in both bands',
+      adult.length > rawTag.length && young.length > rawTag.length
+        && [...adult].length !== 30 && [...young].length !== 30);
+  }
+  ok('D-2 generic prayer reaches today\'s adult description byte-for-byte',
+    [...worshipDisplay.cells['salah:adult'].text].length === 2244
+      && sha(Buffer.from(worshipDisplay.cells['salah:adult'].text, 'utf8')) === SALAH_ADULT_TEXT_HASH);
+
+  const d2Rows = D2_CASE_QUESTIONS.map((question, index) => {
+    const context = contextFor(S, R, A, question);
+    const out = CLOSED.runClosedDeenTurn(context);
+    return { id: index + 1, question, context, out };
+  });
+  for (const row of d2Rows) {
+    ok('D-2 XC-10/' + String(row.id).padStart(2, '0') + ' continues to the ordinary brain path',
+      RT.isFrozenWorshipQuestion(row.question) === false
+        && row.context.runtime === 'STORED_FIQH' && row.out === null);
+  }
+  ok('D-2 all nineteen derived cases produce zero 30-character worship answers',
+    d2Rows.every((row) => !row.out || [...row.out.text].length !== 30));
   const switched = contextFor(S, R, A, 'هل خالف ابن تيمية أهل السنة والجماعة؟', [
     { role: 'user', content: 'ما رأي ستيف جوبز في التصميم؟' }, { role: 'assistant', content: 'جواب.' },
     { role: 'user', content: 'هل خالف ابن تيمية أهل السنة والجماعة؟' },
@@ -767,6 +845,25 @@ async function runHybridGuard() {
   console.log('\n--- MAJOR-GATE MUTANTS ---');
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ezik-hybrid-mutants-'));
   try {
+    const mWorshipCapture = await moduleMutant(temp, 'lib/policy/referral-tail.js',
+      'worship-case-recapture', (src) => src.replace(
+        '  if (!GENERAL_WORSHIP_DESCRIPTION.test(shape)) return false; // GENERAL_WORSHIP_DESCRIPTION_GATE',
+        '  if (false && !GENERAL_WORSHIP_DESCRIPTION.test(shape)) return false; // mutant: broad manner capture'));
+    const recaptured = D2_CASE_QUESTIONS.filter((question) =>
+      mWorshipCapture.isFrozenWorshipQuestion(question)).length;
+    ok('D-2 MUTANT KILLED: the old broad manner condition recaptures all nineteen case questions',
+      D2_CASE_QUESTIONS.every((question) => !RT.isFrozenWorshipQuestion(question))
+        && recaptured === D2_CASE_QUESTIONS.length);
+
+    const mEmptyWorship = await moduleMutant(temp, 'lib/closed-deen.js',
+      'worship-empty-tag', (src) => src.replace(
+        '<worship id="salah"></worship>', '<worship id="missing"></worship>'));
+    const mutantTag = mEmptyWorship.__closedDeenTest.worshipAnswer('كيف أصلي؟')?.text || '';
+    const mutantId = /<worship\s+id="([^"]+)"/u.exec(mutantTag)?.[1] || '';
+    ok('D-2 MUTANT KILLED: a worship tag with no frozen content cannot pass as an answer',
+      !!worshipDisplay.cells['salah:adult']?.text
+        && !worshipDisplay.cells[mutantId + ':adult']?.text);
+
     const mCards = await mutant(temp, 'unused-card', (src) => src.replace(
       'const usedEvidence = [];',
       'const usedEvidence = pack.slice(0, MAX_CARDS); // mutant: cards for unused evidence',
