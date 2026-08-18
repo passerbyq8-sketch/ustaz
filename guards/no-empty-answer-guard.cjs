@@ -482,7 +482,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // collected is handed over, announcements included.
     const deliverMutant = await loopMutant('delivery-filter-removed',
       // §٢ made `answer` a `let` — the citation retry can replace it — and the seam moved with it.
-      (source) => source.replace('  let answer = deliverableText(collected);',
+      // §١/٣ (D) moved this seam again: the call now carries the array the losses are named into.
+      (source) => source.replace('  let answer = deliverableText(collected, deliveryNotes);',
         '  let answer = collected; // mutant: deliver everything that was collected'),
       async (twinModule) => {
         const turn = await driveScript(twinModule,
@@ -1746,6 +1747,224 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('cited-ledger silence mutant module loaded successfully', silenceMutant.loaded, silenceMutant.error);
     ok('MUTANT KILLED: a row dropped at the ceiling cannot go unrecorded',
       silenceMutant.loaded && silenceMutant.survived === false, JSON.stringify(silenceMutant));
+
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // U. §١ (D) — CODE IS KNOWN BY ITS SHAPE, NOT BY ITS SHARE OF LATIN
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // MEASURED ON PREVIEW, 17 August. A reader who asked for a zakat function received JavaScript
+    // that does not parse: no `function` line, cut in the middle of the body, and with nothing
+    // anywhere saying a line had been taken out. EZIK-FIX-C-MERGE-PUBLISH-REPORT-2026-08-17.md
+    // §٣/٤ prints all eleven input lines with their Latin counts and shares beside the four the
+    // share rule deleted. The array below is that input, line for line.
+    //
+    // THE THRESHOLD DOES NOT MOVE, AND THAT IS ASSERTED RATHER THAN INTENDED. §١: «استبدالٌ لا
+    // معايرة». Raising the bound would keep `return 0;` and still delete
+    // `function calculateZakat(amount) {`; lowering it would start eating the answer lines R6
+    // measured the constant to protect. Both directions trade one defect for another, because
+    // the share is the wrong question to ask about a line of code.
+    ok('§١ THE THRESHOLD DID NOT MOVE — the repair is a replacement, not a calibration',
+      declaredShare === 0.75 && declaredFloor === 12,
+      JSON.stringify({ declaredShare, declaredFloor }));
+
+    // The fence markers, once: three backticks are markdown's own mark for «this is not prose».
+    const FENCE_TICKS = '```';
+
+    const ZAKAT_LINES = Object.freeze([
+      'function calculateZakat(amount) {',
+      '  const nisab = 85 * 20; // مثال تقريبي بوحدات الذهب، يُحدَّد فعليًا بسعر السوق',
+      '  if (amount < nisab) {',
+      '    return 0;',
+      '  }',
+      '  const zakat = amount * 0.025;',
+      '}',
+      '// مثال على الاستخدام',
+      'const money = 10000;',
+      'const zakat = calculateZakat(money);',
+      'console.log("زكاة المال المستحقة: " + zakat);',
+    ]);
+    const UNFENCED_ZAKAT = ZAKAT_LINES.join('\n');
+    // BYTE FOR BYTE, INDENTATION INCLUDED. §٣/١: «تُسلَّمُ كاملةً سطرًا سطرًا». A comparison that
+    // trimmed would pass on the second defect — the folded indent — while the first was repaired.
+    const deliversZakatWhole = (mod) => {
+      const out = mod.deliverableText(UNFENCED_ZAKAT).split('\n');
+      return out.length === ZAKAT_LINES.length && ZAKAT_LINES.every((line, i) => out[i] === line);
+    };
+    const parsesAsJs = (text) => { try { new Function(text); return true; } catch { return false; } };
+    ok('§٣/١ THE UNFENCED ZAKAT FUNCTION: all eleven lines are delivered, byte for byte',
+      deliversZakatWhole(loop),
+      JSON.stringify(loop.deliverableText(UNFENCED_ZAKAT).split('\n')
+        .map((line, i) => (line === ZAKAT_LINES[i] ? '.' : i))));
+    // ...and the property that makes the count mean something: it is a program, not a fragment.
+    ok('...and the input was valid JavaScript to begin with', parsesAsJs(UNFENCED_ZAKAT));
+    ok('...so what the reader receives is valid JavaScript too',
+      parsesAsJs(loop.deliverableText(UNFENCED_ZAKAT)), loop.deliverableText(UNFENCED_ZAKAT));
+
+    // §٣/٢ — THE SECOND DEFECT THE SAME REPORT MEASURED. Inside the fence the leading whitespace
+    // was folded to a single space, by a pass that ran over the whole text before anything knew
+    // where the fence was. The base tree preserved it, and this is the assertion that says so.
+    const INDENTED_FENCE = FENCE_TICKS + 'js\nfunction f() {\n  const a = 1;\n    return a;\n}\n' + FENCE_TICKS;
+    const keepsIndent = (mod) => {
+      const out = mod.deliverableText(INDENTED_FENCE);
+      return out.includes('\n  const a = 1;') && out.includes('\n    return a;');
+    };
+    ok('§٣/٢ fenced code keeps the leading whitespace the model wrote', keepsIndent(loop),
+      JSON.stringify(loop.deliverableText(INDENTED_FENCE)));
+
+    // A BLOCK IS JUDGED AS A BLOCK. §١: «سطرٌ واحدٌ يُعرَفُ كودًا يجعلُ جيرانَه المتّصلينَ به كودًا».
+    // A Python body carries no terminator on any line but its first, so a per-line rule alone
+    // delivers it with holes in it — which is the same defect one size smaller.
+    const PY_LINES = Object.freeze([
+      'def zakat(amount):',
+      '    nisab = 85 * 20',
+      '    if amount < nisab:',
+      '        return 0',
+      '    return amount * 0.025',
+    ]);
+    const PY_BODY = PY_LINES.join('\n');
+    const deliversPythonWhole = (mod) => {
+      const out = mod.deliverableText(PY_BODY).split('\n');
+      return out.length === PY_LINES.length && PY_LINES.every((line, i) => out[i] === line);
+    };
+    ok('a body with no statement terminators is delivered whole, line for line',
+      deliversPythonWhole(loop), JSON.stringify(loop.deliverableText(PY_BODY).split('\n')));
+    ok('...and exactly ONE of its lines is code on its own evidence — the rest is the spreading',
+      PY_LINES.filter(loop.isCodeShapedLine).length === 1
+        && loop.codeShapedLines(PY_LINES).every(Boolean),
+      JSON.stringify(PY_LINES.map(loop.isCodeShapedLine)));
+
+    // AND THE SPREADING DOES NOT WALK OUT OF THE BLOCK, which is the whole risk it carries: a
+    // rule that calls prose «code» exempts that prose from every filter above it.
+    const INTRO_BLOCK = Object.freeze([
+      'الشرحُ كما يلي:', 'function f() {', '  return 1;', '}', 'وهذا هو المطلوب.',
+    ]);
+    const introFlags = loop.codeShapedLines(INTRO_BLOCK);
+    ok('the spreading stops at the Arabic prose on both sides of the block',
+      introFlags[0] === false && introFlags[4] === false
+        && introFlags[1] && introFlags[2] && introFlags[3], JSON.stringify(introFlags));
+    // THE PROPERTY AND NOT A SAMPLE: neither measured corpus can be joined to a block. The KEEP
+    // corpus must not be swallowed by the exemption and the MACHINE corpus must not escape
+    // through it, and both are put directly under a block to find out.
+    const joinable = (line) => loop.codeShapedLines(['function f() {', line])[1];
+    ok('no line of the machine corpus can be joined to a block above it',
+      MACHINE_CORPUS.every((l) => joinable(l) === false),
+      JSON.stringify(MACHINE_CORPUS.filter(joinable)));
+    ok('...and no declared keeper can be either', SCRIPT_KEEPERS.every((l) => joinable(l) === false),
+      JSON.stringify(SCRIPT_KEEPERS.filter(joinable)));
+
+    // §١/٣ — AND IF A LINE OF A PROGRAMMATIC OUTPUT IS REMOVED ANYWAY, IT IS NAMED. The protocol
+    // ban still runs inside a fence and is still meant to (R2's declared cost), so a code line
+    // carrying the provider's markup is still removed. What changes is that it is no longer
+    // removed in silence — the third thing §٣/٤ of the report found missing.
+    const CODE_WITH_PROTOCOL = FENCE_TICKS + 'js\nconst url = "x";\n'
+      + 'const tag = "<function_results>y</function_results>";\nconst z = 2;\n' + FENCE_TICKS;
+    const namesWhatItLost = (mod) => {
+      const notes = [];
+      mod.deliverableText(CODE_WITH_PROTOCOL, notes);
+      return notes.some((n) => n.startsWith('code_line_dropped:'));
+    };
+    ok('§١/٣ a code line the protocol ban removes is NAMED, not dropped in silence',
+      namesWhatItLost(loop));
+    // ...and the negative half, without which «name everything» would pass by naming everything.
+    ok('...while a text that loses no code line names none', (() => {
+      const quiet = [];
+      loop.deliverableText(UNFENCED_ZAKAT, quiet);
+      return quiet.length === 0;
+    })());
+    ok('...and the loop forwards those names into `degraded`',
+      /for \(const note of deliveryNotes\) ctx\.degraded\.push\(note\);/u.test(loopSource));
+
+    // §٣/٣–٨ — THE STANDING NEGATIVES, RE-ASSERTED AFTER THE EXEMPTION. Every one of them was
+    // measured green before this item, and a rule that exempts «code» could undo any of them by
+    // calling prose code. Asserting them here is what makes this a repair and not a trade.
+    ok('§٣/٣ an Arabic sentence carrying an English term, a link or a Latin number still survives',
+      keepsScriptWitnesses(loop),
+      JSON.stringify(SCRIPT_KEEPERS.filter((l) => loop.deliverableText(l).trim() === '')));
+    const SIX_ARABIC = Object.freeze([
+      'سأبحث لك في فتاوى العلماء عن هذه المسألة تحديداً.',
+      'سأبحث لك في الفتاوى المتخصصة في هذه المسألة تحديداً.',
+      'سأتحقق من هذه المسألة الدقيقة.',
+      'هذه المسألة من دقائق أحكام الزكاة، وفيها تفصيل يستحق أن أستوثق منه لك.',
+      'سأتحقق لك من المسألة في فتاوى العلماء لأزيدك اطمئنانًا بالدليل.',
+    ]);
+    const dropsSixArabic = (mod) => SIX_ARABIC.every((l) => mod.deliverableText(l).trim() === '');
+    ok('§٣/٤ THE SIX ARABIC WITNESSES — five distinct lines over six answers — are still dropped',
+      dropsSixArabic(loop),
+      JSON.stringify(SIX_ARABIC.filter((l) => loop.deliverableText(l).trim() !== '')));
+    ok('§٣/٥ the English planning line is still dropped',
+      loop.deliverableText(ENGLISH_ANNOUNCE).trim() === '', loop.deliverableText(ENGLISH_ANNOUNCE));
+    ok('§٣/٦ tool-protocol blocks are still banned at the head, in the middle, and mid-cut',
+      protocolGone(loop, PROTOCOL_HEAD + '\nالجمع للمسافر جائز عند الحاجة.')
+        && protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.')
+        && protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_CUT));
+    ok('...and inside a code fence, which is a position and not an exemption',
+      protocolGone(loop, FENCE_TICKS + 'js\n' + PROTOCOL_HEAD + '\n' + FENCE_TICKS));
+    ok('§٣/٧ the disclosure the reader is owed still survives', keepsDisclosures(loop));
+    ok('§٣/٨ a real answer written in a tool round is still delivered, whole',
+      await keepsRealAnswer(loop));
+
+    // ── U-M28: THE EXEMPTION CANCELLED. §٣'s first two named mutants at one seam — the share
+    // rule decides for code again, so the unfenced block is torn exactly as it was on 17 August.
+    const shapeMutant = await loopMutant('code-shape-exemption-removed',
+      (source) => source.replace('    if (isCode[index]) return line;',
+        '    // mutant: the share rule decides for code too, exactly as it did on 17 August'),
+      deliversZakatWhole);
+    ok('code-shape mutant seam applied', shapeMutant.changed, shapeMutant.error);
+    ok('code-shape mutant module loaded successfully', shapeMutant.loaded, shapeMutant.error);
+    ok('MUTANT KILLED: an unfenced code line cannot be dropped by the share rule again',
+      shapeMutant.loaded && shapeMutant.survived === false, JSON.stringify(shapeMutant));
+
+    // ── U-M29: THE BLOCK SPREADING REMOVED. Every line answers for itself again, and a body
+    // whose only self-evident line is its first is delivered with holes in it.
+    const blockMutant = await loopMutant('code-block-spread-removed',
+      (source) => source.replace(
+        '    for (let up = index - 1; up >= 0 && joins(up); up -= 1) code[up] = true;\n'
+        + '    for (let down = index + 1; down < rows.length && joins(down); down += 1) code[down] = true;',
+        '    // mutant: every line answers for itself — a block with no terminators is torn again'),
+      deliversPythonWhole);
+    ok('block-spread mutant seam applied', blockMutant.changed, blockMutant.error);
+    ok('block-spread mutant module loaded successfully', blockMutant.loaded, blockMutant.error);
+    ok('MUTANT KILLED: a code block cannot be judged one line at a time',
+      blockMutant.loaded && blockMutant.survived === false, JSON.stringify(blockMutant));
+
+    // ── U-M30: THE SPREADING WIDENED TO EVERY NEIGHBOUR. The opposite over-reach, and the one
+    // that would quietly exempt the prose introducing the block — and a machine line with it.
+    const wideBlockMutant = await loopMutant('code-block-spread-unconditional',
+      (source) => source.replace(
+        '    && CODE_JOIN_RE.test(rows[index]);',
+        ';  // mutant: any non-blank neighbour joins, prose included'),
+      async (twinModule) => {
+        const flags = twinModule.codeShapedLines(INTRO_BLOCK);
+        return flags[0] === false && flags[4] === false;
+      });
+    ok('wide-spread mutant seam applied', wideBlockMutant.changed, wideBlockMutant.error);
+    ok('wide-spread mutant module loaded successfully', wideBlockMutant.loaded, wideBlockMutant.error);
+    ok('MUTANT KILLED: a block cannot spread into the prose that introduced it',
+      wideBlockMutant.loaded && wideBlockMutant.survived === false, JSON.stringify(wideBlockMutant));
+
+    // ── U-M31: THE FOLD PUT BACK OVER THE HEAD OF THE LINE. §٣'s third named mutant. One seam,
+    // because §١/٢ gave the fold one name and one definition for its three callers.
+    const foldMutant = await loopMutant('leading-indent-folded-again',
+      (source) => source.replace(
+        "const foldInnerRun = (whole, lead, rest) => lead + rest.replace(/[ \\t]{2,}/gu, ' ');",
+        "const foldInnerRun = (whole, lead, rest) => (lead + rest).replace(/[ \\t]{2,}/gu, ' ');"),
+      keepsIndent);
+    ok('indent-fold mutant seam applied', foldMutant.changed, foldMutant.error);
+    ok('indent-fold mutant module loaded successfully', foldMutant.loaded, foldMutant.error);
+    ok('MUTANT KILLED: the indentation inside a fence cannot be folded away again',
+      foldMutant.loaded && foldMutant.survived === false, JSON.stringify(foldMutant));
+
+    // ── U-M32: THE LOSS GOES SILENT AGAIN. §١/٣ as a mutant: the notes are collected and the
+    // caller is handed nothing, which is exactly what «فلا يُنزَعُ صامتًا» forbids.
+    const silentCodeMutant = await loopMutant('code-loss-unnamed',
+      (source) => source.replace('  if (Array.isArray(notes)) {',
+        '  if (!Array.isArray(notes) && false) { // mutant: the removal is silent again'),
+      namesWhatItLost);
+    ok('code-loss mutant seam applied', silentCodeMutant.changed, silentCodeMutant.error);
+    ok('code-loss mutant module loaded successfully', silentCodeMutant.loaded, silentCodeMutant.error);
+    ok('MUTANT KILLED: a line taken out of a programmatic output cannot go unnamed',
+      silentCodeMutant.loaded && silentCodeMutant.survived === false, JSON.stringify(silentCodeMutant));
 
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
