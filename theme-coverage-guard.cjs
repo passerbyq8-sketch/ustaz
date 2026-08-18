@@ -2050,7 +2050,12 @@ ok('the drawer markup was located inside it', drawerSrc.length > 3000, 'len=' + 
 const CHAT_ON_EZC =
   html.indexOf(chatRoot) !== -1
   && /<div className="ezc-rail">/.test(chatSrc)
-  && /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\} className="ezc-scroll"/.test(chatSrc)
+  // STREAM-P4 §٣/١ made this className an expression, because the pin has to switch off the
+  // scroller's bottom-aligning auto margin while a question is held at the top. The identity is
+  // still asserted literally, and the ONLY thing the expression is allowed to append is that one
+  // pin class — a computed className that could evaluate to anything would retire this check
+  // rather than update it.
+  && /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\} className=\{'ezc-scroll' \+ \(pinnedAskIndex == null \? '' : ' ezc-askpinned'\)\}/.test(chatSrc)
   && /<div className="ezc-dock">/.test(chatSrc)
   && /<div className="ezc-drawer" role="dialog" aria-modal="true">/.test(chatSrc);
 ok('N1: the chat mounts on the ezc identity, in all four of its pieces', CHAT_ON_EZC);
@@ -2084,8 +2089,16 @@ ok('N4: the transcript is bounded by the same measure, as the scroller\'s own pa
 ok('N4: ...and nothing inline can beat that padding',
   !/padding/.test(JSON.stringify(s.messagesArea || {})),
   'messagesArea = ' + JSON.stringify(s.messagesArea));
+// STREAM-P4 §٣/١ put the messages inside a keyed React.Fragment so a zero-height marker can be
+// placed before the pinned question. A Fragment IS NOT A WRAPPER — it emits no DOM node, so the
+// S97 opening pin still measures the same element and the ResizeObserver still observes the same
+// children. What this check forbids is an ELEMENT around the transcript, and that is still
+// forbidden: the map must be a direct child expression of the scroller, and the bubble must be
+// the first element the Fragment opens.
 ok('N4: ...and no wrapper was inserted between the scroll container and the messages',
-  /className="ezc-scroll" style=\{s\.messagesArea\}>[\s\S]{0,900}?\{messages\.map\(\(m, i\) => <MessageBubble/.test(chatSrc));
+  /className=\{'ezc-scroll'[^>]*style=\{s\.messagesArea\}>[\s\S]{0,1400}?\{messages\.map\(\(m, i\) => \([\s\S]{0,900}?<React\.Fragment key=\{i\}>[\s\S]{0,400}?<MessageBubble/.test(chatSrc));
+ok('N4: ...and the marker it wraps them for is a bare node that draws nothing',
+  /<div ref=\{pinAnchorRef\} aria-hidden="true" data-ezik-ask-pin="" \/>/.test(chatSrc));
 ok('N5: the composer dock is bounded by the same measure',
   /\.ezc-dock-inner\{[^}]*max-width:var\(--ezc-measure\)/.test(css)
   && /\.ezc-dock\{[^}]*justify-content:center/.test(css));
@@ -2167,8 +2180,11 @@ ok('N13: ...and deleting the OPEN conversation still empties the thread',
 /* ---- N14..N17. the turn: send, endpoint, payload, stream --------------- */
 ok('N14: the send button is in the dock and calls the shipped sender',
   /<button onClick=\{\(\) => sendMessage\(input\)\} disabled=\{isLoading \|\| \(!input\.trim\(\) && !pendingImage\)\}/.test(chatSrc));
+// The window widened because STREAM-P4 §٣/١ arms the question-pin between these two statements.
+// The count was only ever a proxy for «nothing substantial in between»; chat-history-guard.cjs
+// carries the direct form of the same property (no `await` may separate them).
 ok('N14: ...and the autosave still files on the QUESTION',
-  /setMessages\(updated\);[\s\S]{0,600}?saveMessages\(updated\);/.test(html));
+  /setMessages\(updated\);[\s\S]{0,1600}?saveMessages\(updated\);/.test(html));
 ok('N15: text and call share the grounded answer endpoint',
   /endpoint = '\/api\/ask'/.test(html)
   && /const response = await aiFetch\(endpoint, \{/.test(html));
@@ -2192,7 +2208,14 @@ ok('N18: ...and the follow effect still refuses to drag a reader back down',
   /if \(!stickToEndRef\.current\) return;/.test(html)
   && /messagesEndRef\.current\?\.scrollIntoView\(\{ behavior: ezikMotionReduced\(a11yRef\.current\.reduceMotion\) \? 'auto' : 'smooth' \}\)/.test(html));
 ok('N18: ...over the SAME element, which still reports its own position',
-  /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\} className="ezc-scroll"/.test(chatSrc));
+  /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\} className=\{'ezc-scroll'/.test(chatSrc));
+// STREAM-P4 §٣/١ added a SECOND reason the follow effect may decline, and the two must not be
+// confused. The reader's own «I have scrolled up» is `stickToEndRef`; the question-pin is its own
+// flag and is checked separately, so the pin cannot be satisfied by quietly clearing the reader's
+// state — which would have left them at the bottom for the NEXT turn as well.
+ok('N18: ...and the pin declines the follow WITHOUT touching the reader\'s own position',
+  /if \(pinActiveRef\.current\) return;\s*\r?\n\s*if \(!stickToEndRef\.current\) return;/.test(html)
+  && !/stickToEndRef\.current = false;/.test(html));
 
 /* ---- N19..N22. the reply's own controls -------------------------------- */
 ok('N19: copy still hands over the whole reply, built on the tap',
@@ -2243,8 +2266,41 @@ ok('N26: ...and the two deep tiers still need the token, via the SAME unlock she
   /if \(\(next === 'detailed' \|\| next === 'scholar'\) && !hasFounderToken\(\)\) \{ setUnlockAsk\(next\); return; \}/.test(chatSrc));
 
 /* ---- N27..N29. keyboard, names, and the way out of the drawer ---------- */
-ok('N27: Enter sends and Shift+Enter does not -- byte for byte',
-  chatSrc.indexOf("onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.style.height = 'auto'; sendMessage(input); } }}") !== -1);
+// ---- N27. WHAT `Enter` DOES, AND IN WHICH ORDER --------------------------
+// THIS CHECK USED TO PIN THE OPPOSITE RULE. It asserted, byte for byte, the inline handler that
+// sent on any bare Enter — and STREAM-P4 §٣/٢ is the owner's decision that a bare Enter must NOT
+// send on a touch device, because Enter there is how a person writes a second line. So this is
+// re-pinned to the rule that replaced it rather than deleted, and it is pinned to the ORDER,
+// which is where the rule actually lives: a composition test placed after the touch test would
+// still pass a byte-comparison and would still send half a question from a laptop.
+{
+  const at = (needle) => html.indexOf(needle);
+  const handler = at('const onComposerKeyDown = (e) => {');
+  const notEnter = at("if (e.key !== 'Enter') return;");
+  const composing = at('if (composingRef.current || e.nativeEvent?.isComposing');
+  const shift = at('if (e.shiftKey) return;');
+  const touch = at('if (inputIsTouch) return;');
+  // Searched FROM the touch test rather than by an absolute needle: index.html is CRLF, and a
+  // needle carrying a bare \n silently matches nothing and reports the order as broken.
+  const send = touch === -1 ? -1 : html.indexOf('sendMessage(input);', touch);
+  ok('N27: the composer has one Enter handler, and it is a named function',
+    handler !== -1 && /onKeyDown=\{onComposerKeyDown\}/.test(chatSrc),
+    'handler at ' + handler);
+  ok('N27: ...and its four tests run in the order the rule is written in',
+    handler !== -1 && notEnter > handler && composing > notEnter && shift > composing
+      && touch > shift && send > touch,
+    JSON.stringify({ handler, notEnter, composing, shift, touch, send }));
+  ok('N27: ...composition is tested BEFORE anything else can send',
+    composing !== -1 && composing < shift && composing < touch
+      && /onCompositionStart=\{\(\) => \{ composingRef\.current = true; \}\}/.test(chatSrc)
+      && /onCompositionEnd=\{\(\) => \{ composingRef\.current = false; \}\}/.test(chatSrc));
+  ok('N27: ...touch is decided by the INPUT DEVICE, never by the window width',
+    /e\.pointerType === 'touch' \|\| e\.pointerType === 'pen'/.test(html)
+      && /matchMedia\('\(pointer: coarse\)'\)/.test(html)
+      && !/innerWidth[^\n]{0,80}inputIsTouch/.test(html));
+  ok('N27: ...and the key is labelled with whatever it is about to do',
+    /enterKeyHint=\{inputIsTouch \? 'enter' : 'send'\}/.test(chatSrc));
+}
 ok('N27: ...and the textarea still grows only within its shipped bound',
   s.input && s.input.maxHeight === 200 && s.input.resize === 'none');
 {

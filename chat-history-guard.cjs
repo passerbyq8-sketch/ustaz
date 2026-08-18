@@ -636,8 +636,16 @@ function partC() {
   ok('...and after resetThread, the only thing it calls',
     resetAt !== -1 && newChatAt !== -1 && resetAt < newChatAt,
     'resetThread at ' + resetAt + ', newChat at ' + newChatAt);
-  ok('the autosave files on the QUESTION, not only after the reply',
-    /setMessages\(updated\);[\s\S]{0,600}?saveMessages\(updated\);/.test(html));
+  // STREAM-P4 §٣/١ arms the question-pin between these two statements, so the window widened.
+  // A character count was only ever a PROXY for «nothing substantial happens in between», and a
+  // wider proxy is a weaker one — so what actually matters is now asserted directly instead: no
+  // `await` may separate them. A save deferred past a suspension point is a save a dropped
+  // connection or a closed tab can lose, which is the whole reason this check exists.
+  const saveWindow = /setMessages\(updated\);([\s\S]{0,1600}?)saveMessages\(updated\);/.exec(html);
+  ok('the autosave files on the QUESTION, not only after the reply', !!saveWindow);
+  ok('...and nothing suspends between the two, so the save cannot be lost with the turn',
+    !!saveWindow && !/\bawait\b/.test(saveWindow[1]),
+    saveWindow ? saveWindow[1].slice(0, 200) : 'no window found at all');
   ok('persistence is on in production', /const PERSIST_CONVERSATION = true;/.test(html));
   ok('«حذف كل البيانات» clears the history too', html.indexOf('ezikClearAllChats();') !== -1);
   ok('deleting the OPEN conversation empties the thread',
