@@ -185,30 +185,41 @@ function sourceSettings() {
  *
  *   «؟.» collapsing to «.»          takhrij-lock.js:233
  *   a line ending in «؟» or «,»     takhrij-lock.js:234
- *   indentation around a newline    takhrij-lock.js:235
  *
- * The reference pass leaves all three alone — its INNER_RUN_RE deliberately PRESERVES
- * leading indentation (loop.js:95-104) — so a tree with the tidy test removed streams them
- * and the mutant is caught again.
+ * TWO HALVES WERE MISSING, AND BOTH ARE STATED BECAUSE BOTH COST A RUN.
+ *
+ *   1. The rebuild's tidy pass is CONDITIONAL on a cut occurring somewhere
+ *      (takhrij-lock.js:217), so a record with nothing for the lock to drop never reaches it.
+ *      Each record therefore carries an unsupported takhrij — «رواه البخاري ومسلم» over no
+ *      pages — so the lock cuts and the tidy pass runs over the whole rebuilt text.
+ *   2. THE TAKHRIJ MUST COME AFTER THE UNIT IT IS MEANT TO REWRITE. Put it first and the very
+ *      unit carrying it is dropped by the per-unit lock, streaming stops there, and the
+ *      tidy-only unit behind it never leaves under any tree — mutated or not. That is the
+ *      shape of the original phase-three witness, where a drop in unit 5 rewrote unit 3.
+ *
+ * MEASURED ON EACH OF THE THREE: the first unit is one `tidyWouldChange` holds and
+ * `refDropWouldChange` does not, the per-unit lock leaves it alone, the whole-text lock drops
+ * one sentence — and the rebuilt text NO LONGER STARTS WITH THAT FIRST UNIT. So a tree with
+ * the tidy test removed streams it and is then caught.
  */
 const TIDY_ONLY_RECORDS = [
-  {
-    id: 'p5-tidy-only:question-then-stop',
-    run: 'FIXTURE',
-    meta: { ms: 1000 },
-    text: 'وهل يجزئ ذلك عن الفرض ؟. نعم يجزئ عند جمهور أهل العلم. والله أعلم بالصواب.',
-  },
   {
     id: 'p5-tidy-only:line-ends-in-a-comma',
     run: 'FIXTURE',
     meta: { ms: 1000 },
-    text: 'الطهارة شرط لصحة الصلاة,\nومن صلى بغير طهارة أعاد صلاته. وهذا قول عامة الفقهاء.',
+    text: 'الطهارة شرط لصحة الصلاة,\nومن صلى بغير طهارة أعاد. وهذا قول عامة الفقهاء. وجاء به الخبر رواه البخاري ومسلم.',
+  },
+  {
+    id: 'p5-tidy-only:comma-before-a-newline',
+    run: 'FIXTURE',
+    meta: { ms: 1000 },
+    text: 'أركان الإسلام خمسة معلومة,\nوأولها الشهادتان. ثم تأتي بقية الأركان. وهذا معلوم بالخبر رواه البخاري ومسلم.',
   },
   {
     id: 'p5-tidy-only:indented-continuation',
     run: 'FIXTURE',
     meta: { ms: 1000 },
-    text: 'أركان الإسلام خمسة معلومة.\n    وأولها شهادة أن لا إله إلا الله. ثم تأتي بقية الأركان.',
+    text: 'الصلاة خمس في اليوم والليلة,\n    وهي عمود الدين. ومن تركها فقد خالف. وجاء الخبر بذلك رواه البخاري ومسلم.',
   },
 ];
 
