@@ -116,6 +116,58 @@ function verbatimMarkerCopies(files, markerSets) {
       }
     }
 
+    ok('FIX-C-1 fixture carries truncated, complete, and unknown completion states',
+      Array.isArray(fixture.c1?.cases) && fixture.c1.cases.length === 3);
+    const c1CasePasses = (mod, test) => {
+      const result = mod.reviewAnswer(test.input);
+      return occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
+        && occurrences(result.text, mod.REVIEW_TAGS.FIQH_UNSOURCED) === test.expect.noticeCount
+        && result.verdict.answerFooterSuppressedReason === test.expect.reason
+        && (!test.expect.exactInput || result.text === test.input.text);
+    };
+    for (const test of fixture.c1?.cases || []) {
+      const result = module.reviewAnswer(test.input);
+      ok(test.id + ': answer footer follows the exact three-state truncation contract',
+        c1CasePasses(module, test), JSON.stringify({
+          text: result.text,
+          reason: result.verdict.answerFooterSuppressedReason,
+        }));
+    }
+
+    const truncatedFooterMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'append-answer-footer-on-truncated',
+      transform: (source) => source.replace(
+        '  const suppressAnswerFooter = truncated === true; // TRUNCATION_IS_STRICTLY_TRUE',
+        '  const suppressAnswerFooter = false; // mutant: claim completion on truncated output'),
+      survives: (mutantModule) => (fixture.c1?.cases || [])
+        .every((test) => c1CasePasses(mutantModule, test)),
+    });
+    ok('FIX-C-1 append-footer-on-truncated mutant seam applied',
+      truncatedFooterMutant.changed, truncatedFooterMutant.error);
+    ok('FIX-C-1 append-footer-on-truncated mutant module loaded',
+      truncatedFooterMutant.loaded, truncatedFooterMutant.error);
+    ok('MUTANT KILLED: truncated output cannot receive a completion footer',
+      truncatedFooterMutant.loaded && truncatedFooterMutant.survived === false,
+      JSON.stringify(truncatedFooterMutant));
+
+    const unknownFooterMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'suppress-answer-footer-when-truncation-unknown',
+      transform: (source) => source.replace(
+        '  const suppressAnswerFooter = truncated === true; // TRUNCATION_IS_STRICTLY_TRUE',
+        '  const suppressAnswerFooter = truncated !== false; // mutant: unknown means suppress'),
+      survives: (mutantModule) => (fixture.c1?.cases || [])
+        .every((test) => c1CasePasses(mutantModule, test)),
+    });
+    ok('FIX-C-1 suppress-footer-on-unknown mutant seam applied',
+      unknownFooterMutant.changed, unknownFooterMutant.error);
+    ok('FIX-C-1 suppress-footer-on-unknown mutant module loaded',
+      unknownFooterMutant.loaded, unknownFooterMutant.error);
+    ok('MUTANT KILLED: unknown truncation retains today\'s answer footer',
+      unknownFooterMutant.loaded && unknownFooterMutant.survived === false,
+      JSON.stringify(unknownFooterMutant));
+
     ok('A-2 fixture carries the literal regression, all quote styles, fallback, and controls',
       Array.isArray(fixture.a2?.cases) && fixture.a2.cases.length === 7);
     const a2CasePasses = (mod, test) => {
@@ -289,11 +341,109 @@ function verbatimMarkerCopies(files, markerSets) {
         }));
     }
 
+    const exportedMarkerCorpus = fixture.b2b?.exportedMarkerCorpus;
+    const exportedMarkerCases = exportedMarkerCorpus?.cases || [];
+    const withoutArabicDiacritics = (value) => String(value ?? '')
+      .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/gu, '');
+    const exportedMarkerCorpusPasses = (mod) => {
+      const observations = exportedMarkerCases.map((test) =>
+        mod.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(test.text)));
+      return observations.filter(Boolean).length === exportedMarkerCorpus.expectedBoundedHits
+        && observations.every((actual, index) => actual === exportedMarkerCases[index].expect);
+    };
+    ok('D-1 exported-marker witness carries all twenty deposited X-Ray answers',
+      exportedMarkerCases.length === 20
+        && exportedMarkerCorpus.expectedRawHits === 11
+        && exportedMarkerCorpus.expectedBoundedHits === 10);
+    ok('D-1 importer receives the bounded detector and observes ten hits, not eleven',
+      exportedMarkerCorpusPasses(module));
+    ok('D-1 optional conjunction is accepted while Arabic-letter adhesion is rejected',
+      exportedMarkerCases[12]?.expect === true
+        && exportedMarkerCases[19]?.expect === false
+        && module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(exportedMarkerCases[12]?.text))
+        && !module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(exportedMarkerCases[19]?.text)));
+
+    const d1 = fixture.d1;
+    const d1Test = (mod, text) => mod.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(text));
+    ok('D-1 records the measured 8-to-10 corpus delta and exactly two new deposited hits',
+      d1?.beforeHits === 8 && d1.afterHits === 10
+        && Array.isArray(d1.newHits) && d1.newHits.length === 2
+        && JSON.stringify(d1.newHits.map((test) => test.id))
+          === JSON.stringify(['xray-answer-04', 'xray-answer-17']));
+    ok('D-1 deposits the exact text of both newly detected answer-level witnesses',
+      d1.newHits.every((test) => d1Test(module, test.text))
+        && d1.newHits.every((test) => exportedMarkerCases
+          .some((candidate) => candidate.id === test.id && candidate.text === test.text && candidate.expect === true)));
+    for (const test of d1.positive || []) {
+      ok('D-1 ' + test.id + ': construct form is detected at the Arabic boundary',
+        d1Test(module, test.text));
+    }
+    for (const test of d1.negative || []) {
+      ok('D-1 ' + test.id + ': Arabic adhesion is not a khilaf marker',
+        !d1Test(module, test.text));
+    }
+
+    let priorHitCount = null;
+    const priorArticleMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'idafa-requires-definite-article-again',
+      transform: (source) => source.replace(
+        '(?:ال)?راجح|(?:ال)?جمهور',
+        'الراجح|الجمهور'),
+      survives: (mutantModule) => {
+        priorHitCount = exportedMarkerCases.filter((test) =>
+          d1Test(mutantModule, test.text)).length;
+        return exportedMarkerCorpusPasses(mutantModule);
+      },
+    });
+    ok('D-1 prior-article mutant seam applied and module loaded',
+      priorArticleMutant.changed && priorArticleMutant.loaded, priorArticleMutant.error);
+    ok('D-1 prior-article mutant reproduces the measured eight-hit baseline',
+      priorHitCount === d1.beforeHits, String(priorHitCount));
+    ok('MUTANT KILLED: construct-state khilaf nouns cannot require the article again',
+      priorArticleMutant.loaded && priorArticleMutant.survived === false,
+      JSON.stringify(priorArticleMutant));
+
+    const unboundedIdafaMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'idafa-loses-arabic-boundary',
+      transform: (source) => source.replace(
+        "  `(?<![\\\\p{Script=Arabic}\\\\p{M}])(?:[وف])?(?:${RAW_KHILAF_PROSE_MARKERS.source})(?![\\\\p{Script=Arabic}\\\\p{M}])`,",
+        "  `(?:${RAW_KHILAF_PROSE_MARKERS.source})`, // mutant: idafa has no Arabic boundary"),
+      survives: (mutantModule) => (d1.negative || []).every((test) => !d1Test(mutantModule, test.text)),
+    });
+    ok('D-1 unbounded-idafa mutant seam applied and module loaded',
+      unboundedIdafaMutant.changed && unboundedIdafaMutant.loaded, unboundedIdafaMutant.error);
+    ok('MUTANT KILLED: construct-state form cannot lose the Arabic boundary',
+      unboundedIdafaMutant.loaded && unboundedIdafaMutant.survived === false,
+      JSON.stringify(unboundedIdafaMutant));
+
+    let rawExportHitCount = null;
+    const rawExportMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'exports-raw-khilaf-vocabulary',
+      transform: (source) => source.replace(
+        'export const KHILAF_PROSE_MARKERS = new RegExp(',
+        'export const KHILAF_PROSE_MARKERS = RAW_KHILAF_PROSE_MARKERS; // mutant: raw export\nconst UNUSED_BOUNDED_KHILAF_PROSE_MARKERS = new RegExp('),
+      survives: (mutantModule) => {
+        rawExportHitCount = exportedMarkerCases.filter((test) =>
+          mutantModule.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(test.text))).length;
+        return exportedMarkerCorpusPasses(mutantModule);
+      },
+    });
+    ok('D-1 raw-export mutant seam applied and module loaded',
+      rawExportMutant.changed && rawExportMutant.loaded, rawExportMutant.error);
+    ok('D-1 raw-export mutant reproduces the measured eleventh hit',
+      rawExportHitCount === exportedMarkerCorpus.expectedRawHits, String(rawExportHitCount));
+    ok('MUTANT KILLED: exported khilaf prose surface cannot regress to raw vocabulary',
+      rawExportMutant.loaded && rawExportMutant.survived === false,
+      JSON.stringify(rawExportMutant));
+
     const narrowedProseMutant = await runMutant({
       sourceFile: REVIEWER,
       name: 'prose-trigger-narrows-again',
       transform: (source) => source.replace(
-        "  return BOUNDED_KHILAF_PROSE_MARKERS.test(withoutDiacritics); // MODEL_PROSE_KHILAF_BROAD_BOUNDED",
+        "  return KHILAF_PROSE_MARKERS.test(withoutDiacritics); // MODEL_PROSE_KHILAF_BROAD_BOUNDED",
         "  return KHILAF_SOURCE_MARKERS.test(normalizeArabic(sentence)); // mutant: prose narrows again"),
       survives: (mutantModule) => (fixture.b2b?.cases || [])
         .every((test) => b2bCasePasses(mutantModule, test)),
@@ -361,8 +511,8 @@ function verbatimMarkerCopies(files, markerSets) {
       sourceFile: REVIEWER,
       name: 'three-triggers-three-tails',
       transform: (source) => source.replace(
-        '  if (khilafTrigger && !output.some((chunk) => chunk.includes(KHILAF_TAIL.trim()))) {\n    notices.push(KHILAF_TAIL.trim());\n  }',
-        '  if (khilafFromSource) notices.push(KHILAF_TAIL.trim());\n  if (normalizedKhilafFromOpinions === true) notices.push(KHILAF_TAIL.trim());\n  if (khilafFromModelProse) notices.push(KHILAF_TAIL.trim()); // mutant: one tail per trigger'),
+        '    if (khilafTrigger && !output.some((chunk) => chunk.includes(KHILAF_TAIL.trim()))) {\n      notices.push(KHILAF_TAIL.trim());\n    }',
+        '    if (khilafFromSource) notices.push(KHILAF_TAIL.trim());\n    if (normalizedKhilafFromOpinions === true) notices.push(KHILAF_TAIL.trim());\n    if (khilafFromModelProse) notices.push(KHILAF_TAIL.trim()); // mutant: one tail per trigger'),
       survives: (mutantModule) => (fixture.b2b?.cases || [])
         .every((test) => b2bCasePasses(mutantModule, test)),
     });
@@ -448,6 +598,25 @@ function verbatimMarkerCopies(files, markerSets) {
       ok(test.id + ': detection leaves every deposited character in reader text',
         result.text.includes(test.input.text), result.text);
     }
+
+    const quantityMeasurement = fixture.b3a?.quantityMeasurement;
+    ok('FIX-C-2 records the answer-only quantity measurement and numeric retirement decision',
+      quantityMeasurement?.priorMixedBlocks === 230
+        && quantityMeasurement.priorAnswerBlocksAfterQuestionExclusion === 140
+        && quantityMeasurement.set2AnswerBlocks === 11
+        && quantityMeasurement.totalAnswerBlocks === 151
+        && quantityMeasurement.truePositives === 1
+        && quantityMeasurement.falsePositives === 3
+        && quantityMeasurement.falsePositives > quantityMeasurement.truePositives
+        && quantityMeasurement.decision === 'retired'
+        && Array.isArray(quantityMeasurement.falsePositiveIds)
+        && quantityMeasurement.falsePositiveIds.length === 3,
+      JSON.stringify(quantityMeasurement));
+    const quantityPositive = module.reviewAnswer(quantityMeasurement.positive.input);
+    ok('FIX-C-2 deposits the new real quantity hit while the rejected shape stays absent',
+      quantityPositive.verdict.selfContradiction?.detected === false
+        && quantityPositive.text.includes(quantityMeasurement.positive.input.text),
+      JSON.stringify(quantityPositive.verdict.selfContradiction));
 
     ok('B-3A fixture carries every mandatory differentiated negative and the struck quantity witness',
       Array.isArray(fixture.b3a?.negatives) && fixture.b3a.negatives.length === 5);

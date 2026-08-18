@@ -165,7 +165,7 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       'علمني صفة الصلاة كاملة',
       'كيف أصلي الفجر؟',
       'ما هي صفة الغسل من الجنابة؟',
-      'كيف أتيمم إذا لم أجد ماء؟',
+      'كيف أتيمم؟',
       'ما هي أذكار الصباح؟',
       'علمني أذكار النوم',
       'كم عدد ركعات صلاة الظهر وكيف أؤديها؟',
@@ -188,6 +188,22 @@ const read = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
       }
     }
     ok('every worship question above is silent under every class and rotation', true);
+
+    const CASE_QUALIFIED = [
+      'كيف يصلي المريض الذي لا يستطيع القيام؟',
+      'ما صفة صلاة الجنازة؟',
+      'اذكر لي مبطلات الصلاة.',
+      'هل يجوز أن أصلي جالسًا؟',
+      'هل تصح صلاتي إذا نسيت ركعة؟',
+      'ماذا يلزمني إذا نسيت ركعة من الصلاة؟',
+    ];
+    for (const q of CASE_QUALIFIED) {
+      ok('D-2 qualified case is not a frozen general description: «' + q + '»',
+        !RT.isFrozenWorshipQuestion(q));
+      ok('D-2 qualified case continues through the ruling path: «' + q + '»',
+        RT.REFERRAL_TAILS.includes(RT.referralTail(q, 'sharia_ruling', 0, REFERRED)));
+    }
+    ok('D-2 carries at least three independently derived negative witnesses', CASE_QUALIFIED.length >= 3);
   }
 
   // =========================================================================
