@@ -507,13 +507,13 @@
       "source": "sessions/EZIK-XRAY-CC-ANSWERS-2026-08-17.txt",
       "sourceSha256Prefix": "FC1198A6",
       "representation": "one marker-bearing excerpt, or an empty string, for each deposited answer",
-      "expectedRawHits": 9,
-      "expectedBoundedHits": 8,
+      "expectedRawHits": 11,
+      "expectedBoundedHits": 10,
       "cases": [
         { "id": "xray-answer-01", "text": "نعم، ترثه؛ فالمطلقة طلاقا رجعيا لا تزال", "expect": false },
         { "id": "xray-answer-02", "text": "ترثه، نعم — وهذا هو الحكم الفقهي المقرر", "expect": false },
         { "id": "xray-answer-03", "text": "الراجح", "expect": true },
-        { "id": "xray-answer-04", "text": "هذا الشخص لم يدرك الركوع مع الإمام، بل جاء بعده", "expect": false },
+        { "id": "xray-answer-04", "text": "إدراكُ الركعةِ عند جمهور أهل العلم إنما يكون بإدراك الركوع مع الإمام، فمن أدرك الإمام راكعًا وركع معه قبل أن يرفع الإمامُ رأسَه، فقد أدرك تلك الركعة كاملة، كما في حديث أبي بكرة رضي الله عنه حين دخل والنبي صلى الله عليه وسلم راكع فركع دون الصف ثم دبّ إلى الصف، فقال له النبي صلى الله عليه وسلم: «زادك الله حرصًا ولا تعد» ولم يأمره بقضاء تلك الركعة.", "expect": true },
         { "id": "xray-answer-05", "text": "لا ينتقض وضوؤك، ولا يجب عليك إعادته", "expect": false },
         { "id": "xray-answer-06", "text": "لا ينتقض وضوؤك في هذه الحال، ولا يجب عليك إعادته", "expect": false },
         { "id": "xray-answer-07", "text": "خلاف", "expect": true },
@@ -526,7 +526,7 @@
         { "id": "xray-answer-14", "text": "الراجح", "expect": true },
         { "id": "xray-answer-15", "text": "اختلف", "expect": true },
         { "id": "xray-answer-16", "text": "بعض أهل العلم", "expect": true },
-        { "id": "xray-answer-17", "text": "سأتحقق من هذه المسألة الدقيقة", "expect": false },
+        { "id": "xray-answer-17", "text": "في مثل هذه الحال، لا يجوزُ له المسحُ عليهما في الوضوءِ القادم؛ لأنّ الشرطَ المتّفقَ عليه عند جمهور أهل العلم هو كمالُ الطهارة قبل لبسِ كلا الخفّين، ولم يتحقّقْ ذلك هنا.", "expect": true },
         { "id": "xray-answer-18", "text": "سأتحقق من هذه المسألة الدقيقة", "expect": false },
         { "id": "xray-answer-19", "text": "يقطعها فورا يا مساعد، ولا يجوز له أن يكمل", "expect": false },
         { "id": "xray-answer-20", "text": "بخلاف", "expect": false }
@@ -617,6 +617,36 @@
         },
         "expect": { "tailCount": 0, "trigger": null, "fromSource": false, "fromOpinions": null, "fromModelProse": false, "opinionCount": null }
       }
+    ]
+  },
+  "d1": {
+    "source": "sessions/EZIK-XRAY-CC-ANSWERS-2026-08-17.txt",
+    "sourceSha256Prefix": "FC1198A6",
+    "beforeHits": 8,
+    "afterHits": 10,
+    "newHits": [
+      {
+        "id": "xray-answer-04",
+        "run": "Q12/run-2",
+        "text": "إدراكُ الركعةِ عند جمهور أهل العلم إنما يكون بإدراك الركوع مع الإمام، فمن أدرك الإمام راكعًا وركع معه قبل أن يرفع الإمامُ رأسَه، فقد أدرك تلك الركعة كاملة، كما في حديث أبي بكرة رضي الله عنه حين دخل والنبي صلى الله عليه وسلم راكع فركع دون الصف ثم دبّ إلى الصف، فقال له النبي صلى الله عليه وسلم: «زادك الله حرصًا ولا تعد» ولم يأمره بقضاء تلك الركعة."
+      },
+      {
+        "id": "xray-answer-17",
+        "run": "Q19/run-1",
+        "text": "في مثل هذه الحال، لا يجوزُ له المسحُ عليهما في الوضوءِ القادم؛ لأنّ الشرطَ المتّفقَ عليه عند جمهور أهل العلم هو كمالُ الطهارة قبل لبسِ كلا الخفّين، ولم يتحقّقْ ذلك هنا."
+      }
+    ],
+    "positive": [
+      { "id": "idafa-majority", "text": "جمهور الفقهاء" },
+      { "id": "idafa-preferred", "text": "راجح القولين" },
+      { "id": "waw-idafa", "text": "وجمهور الفقهاء" },
+      { "id": "fa-idafa", "text": "فجمهور الفقهاء" }
+    ],
+    "negative": [
+      { "id": "republic", "text": "جمهورية" },
+      { "id": "the-republic", "text": "الجمهورية" },
+      { "id": "other-attached-letter", "text": "بجمهور الفقهاء" },
+      { "id": "lexical-contrast", "text": "بخلاف المقيم" }
     ]
   },
   "b3a": {

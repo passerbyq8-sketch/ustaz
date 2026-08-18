@@ -351,17 +351,72 @@ function verbatimMarkerCopies(files, markerSets) {
       return observations.filter(Boolean).length === exportedMarkerCorpus.expectedBoundedHits
         && observations.every((actual, index) => actual === exportedMarkerCases[index].expect);
     };
-    ok('C-3 exported-marker witness carries all twenty deposited X-Ray answers',
+    ok('D-1 exported-marker witness carries all twenty deposited X-Ray answers',
       exportedMarkerCases.length === 20
-        && exportedMarkerCorpus.expectedRawHits === 9
-        && exportedMarkerCorpus.expectedBoundedHits === 8);
-    ok('C-3 importer receives the bounded detector and observes eight hits, not nine',
+        && exportedMarkerCorpus.expectedRawHits === 11
+        && exportedMarkerCorpus.expectedBoundedHits === 10);
+    ok('D-1 importer receives the bounded detector and observes ten hits, not eleven',
       exportedMarkerCorpusPasses(module));
-    ok('C-3 optional conjunction is accepted while Arabic-letter adhesion is rejected',
+    ok('D-1 optional conjunction is accepted while Arabic-letter adhesion is rejected',
       exportedMarkerCases[12]?.expect === true
         && exportedMarkerCases[19]?.expect === false
         && module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(exportedMarkerCases[12]?.text))
         && !module.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(exportedMarkerCases[19]?.text)));
+
+    const d1 = fixture.d1;
+    const d1Test = (mod, text) => mod.KHILAF_PROSE_MARKERS.test(withoutArabicDiacritics(text));
+    ok('D-1 records the measured 8-to-10 corpus delta and exactly two new deposited hits',
+      d1?.beforeHits === 8 && d1.afterHits === 10
+        && Array.isArray(d1.newHits) && d1.newHits.length === 2
+        && JSON.stringify(d1.newHits.map((test) => test.id))
+          === JSON.stringify(['xray-answer-04', 'xray-answer-17']));
+    ok('D-1 deposits the exact text of both newly detected answer-level witnesses',
+      d1.newHits.every((test) => d1Test(module, test.text))
+        && d1.newHits.every((test) => exportedMarkerCases
+          .some((candidate) => candidate.id === test.id && candidate.text === test.text && candidate.expect === true)));
+    for (const test of d1.positive || []) {
+      ok('D-1 ' + test.id + ': construct form is detected at the Arabic boundary',
+        d1Test(module, test.text));
+    }
+    for (const test of d1.negative || []) {
+      ok('D-1 ' + test.id + ': Arabic adhesion is not a khilaf marker',
+        !d1Test(module, test.text));
+    }
+
+    let priorHitCount = null;
+    const priorArticleMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'idafa-requires-definite-article-again',
+      transform: (source) => source.replace(
+        '(?:ال)?راجح|(?:ال)?جمهور',
+        'الراجح|الجمهور'),
+      survives: (mutantModule) => {
+        priorHitCount = exportedMarkerCases.filter((test) =>
+          d1Test(mutantModule, test.text)).length;
+        return exportedMarkerCorpusPasses(mutantModule);
+      },
+    });
+    ok('D-1 prior-article mutant seam applied and module loaded',
+      priorArticleMutant.changed && priorArticleMutant.loaded, priorArticleMutant.error);
+    ok('D-1 prior-article mutant reproduces the measured eight-hit baseline',
+      priorHitCount === d1.beforeHits, String(priorHitCount));
+    ok('MUTANT KILLED: construct-state khilaf nouns cannot require the article again',
+      priorArticleMutant.loaded && priorArticleMutant.survived === false,
+      JSON.stringify(priorArticleMutant));
+
+    const unboundedIdafaMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'idafa-loses-arabic-boundary',
+      transform: (source) => source.replace(
+        "  `(?<![\\\\p{Script=Arabic}\\\\p{M}])(?:[وف])?(?:${RAW_KHILAF_PROSE_MARKERS.source})(?![\\\\p{Script=Arabic}\\\\p{M}])`,",
+        "  `(?:${RAW_KHILAF_PROSE_MARKERS.source})`, // mutant: idafa has no Arabic boundary"),
+      survives: (mutantModule) => (d1.negative || []).every((test) => !d1Test(mutantModule, test.text)),
+    });
+    ok('D-1 unbounded-idafa mutant seam applied and module loaded',
+      unboundedIdafaMutant.changed && unboundedIdafaMutant.loaded, unboundedIdafaMutant.error);
+    ok('MUTANT KILLED: construct-state form cannot lose the Arabic boundary',
+      unboundedIdafaMutant.loaded && unboundedIdafaMutant.survived === false,
+      JSON.stringify(unboundedIdafaMutant));
 
     let rawExportHitCount = null;
     const rawExportMutant = await runMutant({
@@ -376,9 +431,9 @@ function verbatimMarkerCopies(files, markerSets) {
         return exportedMarkerCorpusPasses(mutantModule);
       },
     });
-    ok('C-3 raw-export mutant seam applied and module loaded',
+    ok('D-1 raw-export mutant seam applied and module loaded',
       rawExportMutant.changed && rawExportMutant.loaded, rawExportMutant.error);
-    ok('C-3 raw-export mutant reproduces the measured ninth hit',
+    ok('D-1 raw-export mutant reproduces the measured eleventh hit',
       rawExportHitCount === exportedMarkerCorpus.expectedRawHits, String(rawExportHitCount));
     ok('MUTANT KILLED: exported khilaf prose surface cannot regress to raw vocabulary',
       rawExportMutant.loaded && rawExportMutant.survived === false,
