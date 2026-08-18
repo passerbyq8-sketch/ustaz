@@ -1255,6 +1255,10 @@ export default async function handler(req, res) {
           band,
           mode: readerMode,
           lexicalRoute: effectiveRoute,
+          // S1/§١ — THE SECOND HALF OF THE DETERMINISTIC KEY. It is resolved above, before any
+          // model call, from the current turn's question alone; the loop needs it to decide
+          // whether to offer the fatwa corpus to a turn that never asks for a tool.
+          storedRuntime: storedContext.runtime,
           providerUrl: ANTHROPIC_URL,
           headers,
           signal: freeUpstream.signal,

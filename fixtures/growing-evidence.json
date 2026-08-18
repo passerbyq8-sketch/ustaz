@@ -1,0 +1,105 @@
+{
+  "note": "STREAM-P4 §١ — HANDMADE FIXTURES FOR THE GROWING EVIDENCE SET.\nThe recorded archive cannot serve this gate: its answers carry no evidence rows at all, so\nevery unit in it is judged against an empty set from first character to last and the question\nthe gate asks — \"does a row that arrives LATER change a unit that already went out?\" — cannot\neven be posed. These cases are built to pose it.\n\n`arrivesAtUnit` is the 1-based index of the unit whose citation first brings the row into the\nset. E_k is therefore every row with arrivesAtUnit <= k: the evidence in hand once unit k has\nbeen written. E_0 is the empty set the answer starts with.",
+  "cases": [
+    {
+      "id": "fiqh-late-row",
+      "domain": "fiqh",
+      "mode": "standard",
+      "sources": [],
+      "units": [
+        "والوضوء يرفع الحدث الأصغر ويشترط له الترتيب.",
+        "ذكر سعد الخثلان أن زكاة الأسهم تجب في قيمتها السوقية إذا كانت للتجارة.",
+        "قال ابن باز إن الدعاء بعد الأذان مستحب.",
+        "قال ابن باز إن صيام يوم عرفة لغير الحاج مستحب.",
+        "وصيام يوم عرفة لغير الحاج مستحب وهو من السنة المؤكدة.",
+        "والصلاة على النبي مستحبة في كل وقت."
+      ],
+      "unitNotes": [
+        "SHAPE ٤ — no attribution at all. This is the unit that goes out today, and the gate fails if it stops going out.",
+        "SHAPE ٢ — the row that supports this attribution is first cited in THIS sentence, so it is in hand when the unit is judged.",
+        "its own mas-ala: the row that supports it arrives with it. It is here so that the row of the NEXT unit is a real neighbour and not a stranger.",
+        "SHAPE ١ — the attribution here is supported by NOTHING in hand until unit 5. Under E_0..E_4 the reviewer strips the name; under E_5 it keeps it. Releasing it early is the defect this whole gate exists to catch.",
+        "SHAPE ٣ boundary — the sentence whose citation finally brings binbaz:1 in.",
+        "tail."
+      ],
+      "evidence": [
+        {
+          "arrivesAtUnit": 2,
+          "row": {
+            "id": "alkhathlan:1",
+            "scholar": "سعد الخثلان",
+            "url": "https://saadalkhathlan.com/fatwa/9",
+            "title": "زكاة الأسهم",
+            "snippet": "زكاة الأسهم تجب في قيمتها السوقية إذا كانت للتجارة وحال عليها الحول.",
+            "date": "2026-01-05"
+          }
+        },
+        {
+          "arrivesAtUnit": 3,
+          "row": {
+            "id": "binbaz:2",
+            "scholar": "ابن باز",
+            "url": "https://binbaz.org.sa/fatwas/2",
+            "title": "الدعاء بعد الأذان",
+            "snippet": "الدعاء بعد الأذان مستحب وقد ورد فيه ما يدل عليه.",
+            "date": "2026-01-02"
+          }
+        },
+        {
+          "arrivesAtUnit": 5,
+          "row": {
+            "id": "binbaz:1",
+            "scholar": "ابن باز",
+            "url": "https://binbaz.org.sa/fatwas/1",
+            "title": "صيام يوم عرفة لغير الحاج",
+            "snippet": "صيام يوم عرفة لغير الحاج مستحب وهو من السنة المؤكدة.",
+            "date": "2026-01-01"
+          }
+        }
+      ],
+      "expect": {
+        "streamedUnitsUnderEmptySet": 1,
+        "mustNotSupport": [
+          {
+            "unit": 4,
+            "evidenceId": "binbaz:2",
+            "why": "SHAPE ٣ — binbaz:2 is the same scholar on the same official host, and it carries the same stance («مستحب»), so authority and officialdom both pass. The ONLY thing that keeps it away from unit 4 is that it is about a neighbouring mas-ala. If it ever supported unit 4, a sentence about عرفة would go out crediting a page about الأذان, and it would go out one unit EARLY."
+          }
+        ]
+      }
+    },
+    {
+      "id": "general-late-dynamic-row",
+      "domain": "general",
+      "mode": "standard",
+      "sources": [],
+      "units": [
+        "والماء يغلي عند مئة درجة مئوية عند مستوى سطح البحر.",
+        "وسعر الذهب اليوم في السوق المحلية مرتفع.",
+        "والذهب معدن ثمين يستخرج من باطن الأرض."
+      ],
+      "unitNotes": [
+        "SHAPE ٤ — stable general knowledge, no dated source needed. Goes out today.",
+        "SHAPE ١ on the OTHER unsettled door. Under E_0..E_1 the whole sentence is REPLACED; under E_2 it is kept and a dated source tail is appended to it. Two different texts for one unit — the plainest possible «sent then replaced».",
+        "tail."
+      ],
+      "evidence": [
+        {
+          "arrivesAtUnit": 2,
+          "row": {
+            "id": "gold:1",
+            "scholar": "",
+            "url": "https://example.org/gold",
+            "title": "أسعار الذهب",
+            "snippet": "سعر الذهب اليوم في السوق المحلية مرتفع بحسب نشرة اليوم.",
+            "date": "2026-08-18"
+          }
+        }
+      ],
+      "expect": {
+        "streamedUnitsUnderEmptySet": 1,
+        "mustNotSupport": []
+      }
+    }
+  ]
+}
