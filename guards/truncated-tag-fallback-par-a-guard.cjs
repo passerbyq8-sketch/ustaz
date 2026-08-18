@@ -222,6 +222,105 @@ function runSuite(client, phase) {
     'the rescue must be opt-in, or every streaming caller inherits it');
 }
 
+// ── B3. §٤ (D) — THE CUT DOES NOT CROSS A LINE, AND «<» IS NOT A TAG BY ITSELF ──
+//
+// MEASURED IN A REAL BROWSER, on a tree whose SERVER side was already correct
+// (`tools/reader-round-measure.cjs`, this round). A reader asked for a zakat function. The server
+// delivered all eleven lines of it — §١ of this round is what made that true — and the page then
+// showed three of them and stopped in the middle of the fourth:
+//
+//   function calculateZakat(amount) {
+//   const nisab = 85 * 20; // مثال تقريبي…
+//   if (amount                                     ← and nothing after it, ever
+//
+// THE CAUSE IS THE ONE THIS GATE ALREADY NAMES ONE LAYER UP. Section C below records that
+// api/ask.js cut an unclosed `<source` to the end of the STRING while its two twins stop at the
+// tag's own boundary. `stripIncompleteTags` step ٢ had the same shape: no `m` flag, so its
+// character class swallows newlines and its anchor is the end of the whole message. The FIRST
+// «<» with no «>» after it anywhere therefore deletes everything that follows, and «less than»
+// in a line of code is exactly that.
+//
+// THE REPAIR IS STRUCTURAL AND IS TAKEN FROM THE RULE'S OWN STATED PURPOSE — «a «<» cut at the END
+// of the text, like `<ver`». Both halves of that sentence become code:
+//   the end of the LINE   — a stream that was cut has nothing after it, so there is no next line
+//   a LETTER after «<»    — `<ver` is a severed tag; `< nisab` is a space and then a noun
+//
+// AND NOTHING THE RULE USED TO CATCH IS LOST. A known tag opened and never closed — wherever it
+// sits, and however complete its name — is already cut by step ١ before this line is reached.
+// What is left for step ٢ is a tag whose NAME was severed, and that can only happen at the point
+// the stream stopped, which is the end of the last line.
+function codeSurvivesTheCut(client, phase) {
+  const parse = client.grab('parseRichMessage');
+  const tts = client.grab('formatForTTS');
+  const logFn = client.grab('formatForLog');
+  const strip = client.grab('stripIncompleteTags');
+
+  // The witness, from the browser round: unfenced code carrying a «less than», with Arabic prose
+  // after it — the arrangement that used to lose both of them.
+  const CODE_ANSWER = [
+    'نصاب الزكاة في المال هو ما يعادل ٨٥ جراما من الذهب.',
+    'function calculateZakat(amount) {',
+    '  const nisab = 85 * 20;',
+    '  if (amount < nisab) {',
+    '    return 0;',
+    '  }',
+    '  const zakat = amount * 0.025;',
+    '}',
+    'وهذا حساب تقريبي، والعبرة بسعر الذهب يوم وجوب الزكاة.',
+  ].join('\n');
+  const TAIL = ['return 0;', 'const zakat = amount * 0.025;'];
+  const survives = (text) => TAIL.every((line) => String(text || '').includes(line));
+
+  ok(phase + ': a «less than» in a line of code does not delete the rest of the answer',
+    survives(strip(CODE_ANSWER, { rescue: true })),
+    JSON.stringify(String(strip(CODE_ANSWER, { rescue: true })).slice(-90)));
+  // ALL FOUR READERS, because the cut sits below every one of them, and a repair proved on one
+  // proves nothing about the other three — this gate's own standing lesson.
+  ok(phase + ': ...and the screen keeps it', survives(renderedProse(parse, CODE_ANSWER)),
+    JSON.stringify(renderedProse(parse, CODE_ANSWER).slice(-90)));
+  // THE VOICE IS ASKED IN ITS OWN TERMS. It rewrites every digit into Arabic words, so
+  // «const zakat = amount * 0.025;» is not a string that can be looked for in what it
+  // produces. The property is the same one — nothing after the «less than» was deleted — and
+  // it is measured on the identifier from the last statement and on the closing sentence.
+  ok(phase + ': ...and the voice keeps it',
+    String(tts(CODE_ANSWER) || '').includes('calculateZakat')
+      && String(tts(CODE_ANSWER) || '').includes('يوم وجوب الزكاة'),
+    JSON.stringify(String(tts(CODE_ANSWER) || '').slice(-90)));
+  ok(phase + ': ...and the parents log keeps it', survives(logFn(CODE_ANSWER)),
+    JSON.stringify(String(logFn(CODE_ANSWER) || '').slice(-90)));
+  // ...and the sentence that closes the answer, which is the half a reader notices first.
+  ok(phase + ': ...and so does the Arabic sentence that closes the answer',
+    String(renderedProse(parse, CODE_ANSWER)).includes('يوم وجوب الزكاة'),
+    JSON.stringify(renderedProse(parse, CODE_ANSWER).slice(-60)));
+
+  // THE NEGATIVE WITNESS, AND IT IS THE WHOLE REASON THE RULE STILL EXISTS. A tag whose name the
+  // stream severed, at the end of the text, is still removed — and the prose before it still is not.
+  const SEVERED = 'الجواب يبدأ هنا.\nوهذا سطر ثان <ver';
+  ok(phase + ': a tag severed at the end of the stream is STILL cut',
+    !String(strip(SEVERED, { rescue: true })).includes('<ver'),
+    JSON.stringify(strip(SEVERED, { rescue: true })));
+  ok(phase + ': ...and the prose before it is kept',
+    String(strip(SEVERED, { rescue: true })).includes('وهذا سطر ثان'));
+  ok(phase + ': ...and no raw bracket reaches the screen, the voice or the log',
+    !/</u.test(renderedProse(parse, SEVERED)) && !/</u.test(String(tts(SEVERED) || ''))
+      && !/</u.test(String(logFn(SEVERED) || '')),
+    JSON.stringify([renderedProse(parse, SEVERED), tts(SEVERED), logFn(SEVERED)]));
+  ok(phase + ': ...and a longer severed tag at the end of the text is cut as well',
+    !String(strip('نص ثم <verse surah=', { rescue: true })).includes('<verse'));
+
+  // AND THE RULE IS THE FILE'S, not this gate's idea of it. BOTH places that carry the cut carry
+  // the corrected form: `rescueTruncated` runs over the same text and would put the defect
+  // straight back the moment the rescue is the path that runs.
+  const index = fs.readFileSync(INDEX, 'utf8');
+  // String.raw, because the two backslashes in this pattern are LITERAL characters in index.html;
+  // a quoted form would read them as escapes here and match nothing at all.
+  const CORRECTED = String.raw`<\/?[A-Za-z][^>\n]*$`;
+  ok(phase + ': both cuts in index.html stop at the end of their own line',
+    index.split(CORRECTED).length - 1 === 2, String(index.split(CORRECTED).length - 1));
+  ok(phase + ': ...and no line-crossing form is left anywhere in the file',
+    !index.includes('/<[^>]*$/'), 'a line-crossing cut is still in index.html');
+}
+
 // ── B2. §٤ — THE REVIEW MARK IS A LABEL, AND A LABEL IS NOT SPOKEN ──────────
 //
 // K-5 (XI-04) made 【…】 a badge on the SCREEN and took the brackets off the CLIPBOARD. The VOICE
@@ -448,6 +547,19 @@ function mutants() {
         return !logged.includes('【') && !logged.includes('】') && logged.includes('[' + label + ']');
       }),
     },
+    {
+      name: 'the-cut-crosses-a-line-again',
+      // §٤ (D) removed. `[^>]*` swallows newlines and `$` is the end of the message, so the first
+      // «less than» with no «greater than» after it anywhere deletes the rest of the answer.
+      // Single-line seam, for the CRLF/LF reason recorded on the mutants above.
+      apply: (s) => s.replace("  t = t.replace(/<\\/?[A-Za-z][^>\\n]*$/, '');",
+        "  t = t.replace(/<[^>]*$/, '');"),
+      check: (parse) => {
+        const CODE = 'function f() {\n  if (a < b) {\n    return 0;\n  }\n}\nوخاتمة الجواب.';
+        const shown = renderedProse(parse, CODE);
+        return shown.includes('return 0;') && shown.includes('وخاتمة الجواب');
+      },
+    },
   ];
 
   for (const c of cases) {
@@ -543,6 +655,7 @@ function serverStrip() {
     const liveClient = bootClient();
     runSuite(liveClient, 'live');
     reviewMarkSuite(liveClient, 'live');
+    codeSurvivesTheCut(liveClient, 'live');
     reviewMarkLogSuite(liveClient, 'live');
     serverStrip();
     if (process.argv.includes('--mutants')) mutants();

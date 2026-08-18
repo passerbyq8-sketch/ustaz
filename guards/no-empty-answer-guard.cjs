@@ -482,7 +482,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // collected is handed over, announcements included.
     const deliverMutant = await loopMutant('delivery-filter-removed',
       // §٢ made `answer` a `let` — the citation retry can replace it — and the seam moved with it.
-      (source) => source.replace('  let answer = deliverableText(collected);',
+      // §١/٣ (D) moved this seam again: the call now carries the array the losses are named into.
+      (source) => source.replace('  let answer = deliverableText(collected, deliveryNotes);',
         '  let answer = collected; // mutant: deliver everything that was collected'),
       async (twinModule) => {
         const turn = await driveScript(twinModule,
@@ -566,7 +567,11 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       (source) => source.replace(
         '  return TOOL_TOPIC_RE.test(folded) && TOOL_REPORT_RE.test(folded);',
         '  return TOOL_MENTION_RE.test(folded); // mutant: drop every mention of the search'),
-      keepsDisclosures);
+      // §٢ (D) RE-AIMED THIS PROBE. `NOT_ESTABLISHED_RE` now keeps both disclosures whatever
+      // these two tests say, so the widening no longer reaches them — it reaches the ordinary
+      // prose above instead, and that is what this mutant is now measured against.
+      async (twinModule) => keepsDisclosures(twinModule)
+        && ORDINARY_SEARCH_PROSE.every((s) => twinModule.deliverableText(s).trim() !== ''));
     ok('report-filter mutant seam applied', reportMutant.changed, reportMutant.error);
     ok('report-filter mutant module loaded successfully', reportMutant.loaded, reportMutant.error);
     ok('MUTANT KILLED: widening the drop to every mention of the search kills the disclosure the '
@@ -730,9 +735,18 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     const askSource = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
     ok('api/ask.js builds the free branch\'s cards through the capped rule',
       /registerOwnedCards\(pickReaderCards\(out\.cited, MAX_SOURCES,/u.test(askSource));
+    // §٣ (C) ADDED TWO NAMES TO THIS IMPORT and the pin moved with them rather than being loosened.
+    // Written as «every one of these four names is in the destructuring, and the specifier is the
+    // loop» instead of as one literal line: the literal broke the moment the list wrapped onto
+    // three lines, and a pin that has to be re-typed whenever a name is added is a pin that gets
+    // deleted. What it still forbids is the thing it was written for — a second copy of the card
+    // rule, or of the footer rule, living in the handler.
+    const freeBrainImport = /const \{([^}]*)\} = await import\('\.\.\/lib\/free-brain\/loop\.js'\);/u
+      .exec(askSource)?.[1] || '';
     ok('...and imports it from the loop rather than keeping a second copy',
-      /const \{ runFreeBrainTurn, pickReaderCards \} = await import\('\.\.\/lib\/free-brain\/loop\.js'\);/u
-        .test(askSource));
+      ['runFreeBrainTurn', 'pickReaderCards', 'encyclopediaTail', 'citedDeliveryLedger']
+        .every((name) => new RegExp('(?:^|[\\s,])' + name + '(?:[\\s,]|$)', 'u').test(freeBrainImport)),
+      freeBrainImport);
     ok('...and MAX_SOURCES is still the one constant, still three',
       /^const MAX_SOURCES = 3;$/mu.test(askSource));
 
@@ -1370,6 +1384,730 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('print-order mutant module loaded successfully', printOrderMutant.loaded, printOrderMutant.error);
     ok('MUTANT KILLED: the ledger cannot be printed before the retry row is in it',
       printOrderMutant.loaded && printOrderMutant.survived === false, JSON.stringify(printOrderMutant));
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // R. §١ (C) — MACHINE PROSE DOES NOT REACH THE READER IN ANY LANGUAGE
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // WHAT SECTIONS F AND F3 ABOVE PROVE, AND WHAT THEY CANNOT. Both are lists of ARABIC phrases,
+    // so both were blind to the two shapes the owner met on production on 17 August: an English
+    // sentence opening the answer, and the provider's own tool protocol delivered as text. «عايرْنا
+    // على سطحٍ وطبّقنا على سطحٍ آخر» — we calibrated on one surface and enforced on another.
+    //
+    // A SIXTH LIST OF ENGLISH PHRASES WOULD REPEAT THE MISTAKE ONE LANGUAGE LATER. So the two rules
+    // asserted here carry no vocabulary at all: one is about the SCRIPT of a line and one is about
+    // MARKUP. Everything below is therefore a property, and the negative witnesses are what stop a
+    // property from becoming a licence to delete.
+    const ENGLISH_ANNOUNCE = "I'll research each of these five questions in the authoritative sources.";
+    const PROTOCOL_HEAD = '<function_results>\n<result>\n<name>search_islamic_sources</name>\n'
+      + '<output>gold price today 82 usd per gram</output>\n</result>\n</function_results>';
+    // The shape a cut stream leaves: the container opened and no close ever arrived.
+    const PROTOCOL_CUT = '<function_results>\n<result>\n<name>search</name>\n<output>gold price today';
+
+    // R1 — THE POSITIVE PROPERTY, driven through a real turn rather than asserted on a string, so
+    // the rule is proved where it actually runs.
+    const englishTurn = await driveScript(loop,
+      (i) => (i === 0 ? withTool(ENGLISH_ANNOUNCE, 't0') : textPayload(LATE)));
+    ok('an English announcement of a move to a tool does not reach the reader',
+      !englishTurn.text.includes('research each of these'), englishTurn.text);
+    ok('...and the Arabic answer that followed it still does',
+      englishTurn.text.includes(LATE), englishTurn.text);
+    ok('...while the round ledger still records that the round CARRIED that prose',
+      englishTurn.roundLedger[0].textChars === ENGLISH_ANNOUNCE.length,
+      JSON.stringify(englishTurn.roundLedger));
+
+    // R2 — THE PROTOCOL, AT THE HEAD AND NOT AT THE HEAD, CLOSED AND CUT. «في أيِّ موضع».
+    const protocolGone = (mod, text) => {
+      const out = mod.deliverableText(text);
+      return !/<\/?(?:function_results|result|name|output)\b/u.test(out) && !out.includes('gold price today');
+    };
+    ok('a tool-protocol block that OPENS the answer is removed, payload and all',
+      protocolGone(loop, PROTOCOL_HEAD + '\nالجمع للمسافر جائز عند الحاجة.'),
+      loop.deliverableText(PROTOCOL_HEAD + '\nالجمع للمسافر جائز عند الحاجة.'));
+    ok('...and so is one in the MIDDLE of it — the ban is not about the head',
+      protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+    ok('...and one the stream cut mid-block, which has no close to match',
+      protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_CUT),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_CUT));
+    ok('...and the prose on both sides of a closed block survives it',
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.')
+        .includes('الجمع للمسافر جائز.')
+      && loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.')
+        .includes('وهذا هو الراجح'),
+      loop.deliverableText('الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+
+    // R3 — THE NEGATIVE WITNESSES §١ NAMES BY NAME. Without these the whole section blesses «drop
+    // every line with a Latin character in it», which is the third mutant it forbids.
+    const SCRIPT_KEEPERS = Object.freeze([
+      // an English TERM inside an Arabic sentence
+      'وهذا ما يسمّى في الدراساتِ المعاصرةِ Fiqh of Minorities، وله ضوابطُه.',
+      // a LINK inside an Arabic sentence
+      'راجعْ نصَّ الفتوى على https://binbaz.org.sa/fatwas/12345 ففيه التفصيل.',
+      // LATIN DIGITS inside an Arabic sentence
+      'ومدّةُ المسحِ للمقيمِ يومٌ وليلة، وللمسافرِ 3 أيّامٍ بلياليها.',
+      // an English UNIT twice over — the case a bare-majority threshold would have eaten
+      'نصابُ الزكاةِ في الذهبِ 85 gram، وفي الفضّةِ 595 gram.',
+      // a bare link on its own line: no letters at all, so it is never judged
+      'https://binbaz.org.sa/fatwas/12345',
+      // an Arabic line ending in a shell command — 11 Latin letters against 14 Arabic, and the
+      // highest-scoring line in the measured KEEP corpus at 0.440
+      'ويكتبُ في الطرفيّة: npm run gates',
+    ]);
+    const keepsScriptWitnesses = (mod) => SCRIPT_KEEPERS.every((line) => {
+      const out = mod.deliverableText(line);
+      return out.trim() !== '' && out.includes(line.slice(0, 12));
+    });
+    ok('an Arabic sentence carrying an English term, a link or a Latin number is delivered whole',
+      keepsScriptWitnesses(loop),
+      JSON.stringify(SCRIPT_KEEPERS.filter((l) => loop.deliverableText(l).trim() === '')));
+
+    // R4 — THE CODE FENCE. §١'s second negative witness is a code block the reader explicitly asked
+    // for. The distinction is made STRUCTURALLY — a fence is markdown's own mark for «this is not
+    // prose» — so no guess about the reader's intent is needed anywhere.
+    const FENCED = 'الشرحُ كما يلي:\n```js\nfunction add(a, b) { return a + b; }\nconst total = add(2, 3);\n```\nوهذا هو المطلوب.';
+    const keepsFence = (mod) => {
+      const out = mod.deliverableText(FENCED);
+      return out.includes('function add(a, b)') && out.includes('const total = add(2, 3);')
+        && out.includes('```js') && out.includes('وهذا هو المطلوب');
+    };
+    ok('a fenced code block the reader asked for survives the script rule, line for line',
+      keepsFence(loop), loop.deliverableText(FENCED));
+
+    // R5 — THE STANDING PROPERTY: nothing above unmade anything below. The six Arabic witnesses of
+    // the 17 August X-ray are still dropped, and a real answer written in a tool round is still
+    // delivered whole. §١'s third and fourth negative witnesses, re-asserted after the new rules.
+    ok('THE SIX ARABIC WITNESSES: still dropped after the two new rules',
+      loop.deliverableText(ANNOUNCE).trim() === '', loop.deliverableText(ANNOUNCE));
+    ok('...and a real answer written in a tool round is still delivered, whole',
+      await keepsRealAnswer(loop));
+    ok('...and the fourth class — prose reporting on the tool run — is still dropped',
+      dropsReports(loop));
+    ok('...and the disclosure the reader is owed still survives', keepsDisclosures(loop));
+
+    // R6 — THE BOUND IS DECLARED AND SITS INSIDE THE MEASURED GAP. §١: «حدُّ الغلبةِ يُقاسُ
+    // ويُعلَن». Recomputed here from the two corpora rather than read off the comment, so a
+    // constant edited without re-measuring fails instead of passing with a stale note beside it.
+    const shareOf = (line) => loop.latinScriptShare(line).share;
+    const MACHINE_CORPUS = Object.freeze([
+      ENGLISH_ANNOUNCE,
+      'Let me search for the most authoritative fatwa on this specific question.',
+      'Based on the search results above, here is what the scholars say:',
+    ]);
+    const judged = SCRIPT_KEEPERS.filter((l) => loop.latinScriptShare(l).letters >= 12);
+    const keepMax = Math.max(...judged.map(shareOf));
+    const dropMin = Math.min(...MACHINE_CORPUS.map(shareOf));
+    ok('the two corpora are separable at all — machine prose scores above every answer line',
+      dropMin > keepMax, JSON.stringify({ keepMax, dropMin }));
+    const declaredShare = Number(/^const LATIN_LINE_SHARE = ([0-9.]+);$/mu.exec(loopSource)?.[1]);
+    const declaredFloor = Number(/^const LATIN_LINE_FLOOR = ([0-9]+);$/mu.exec(loopSource)?.[1]);
+    ok('the threshold is a declared constant, not a literal buried in the test',
+      Number.isFinite(declaredShare) && Number.isFinite(declaredFloor),
+      JSON.stringify({ declaredShare, declaredFloor }));
+    ok('...and it sits strictly inside the measured gap, with room on both sides',
+      declaredShare > keepMax && declaredShare < dropMin,
+      JSON.stringify({ keepMax, declaredShare, dropMin }));
+    ok('...and the measurement that produced it is in the tree and runnable',
+      fs.existsSync(path.join(ROOT, 'tools', 'latin-line-measure.mjs')));
+
+    // R7 — M22: THE SCRIPT RULE CANCELLED. §١'s first named mutant.
+    const scriptMutant = await loopMutant('script-rule-cancelled',
+      (source) => source.replace("    if (isForeignScriptLine(line)) return '';",
+        '    // mutant: the script rule is gone — an English line is delivered as an answer'),
+      async (twinModule) => {
+        const turn = await driveScript(twinModule,
+          (i) => (i === 0 ? withTool(ENGLISH_ANNOUNCE, 't0') : textPayload(LATE)));
+        return typeof turn?.text === 'string' && !turn.text.includes('research each of these');
+      });
+    ok('script-rule mutant seam applied', scriptMutant.changed, scriptMutant.error);
+    ok('script-rule mutant module loaded successfully', scriptMutant.loaded, scriptMutant.error);
+    ok('MUTANT KILLED: an English announcement cannot be delivered by dropping the script rule',
+      scriptMutant.loaded && scriptMutant.survived === false, JSON.stringify(scriptMutant));
+
+    // R8 — M23: THE PROTOCOL BAN NARROWED TO THE HEAD OF THE ANSWER. §١'s second named mutant, and
+    // the reason the section above drives the block from three positions instead of one.
+    const headOnlyMutant = await loopMutant('protocol-ban-head-only',
+      (source) => source.replace("  let out = String(text ?? '');",
+        "  let out = String(text ?? '');\n"
+        + "  if (out.indexOf('<') > 0) return out; // mutant: only a block that OPENS the text is removed"),
+      async (twinModule) => protocolGone(twinModule, 'الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.'));
+    ok('head-only mutant seam applied', headOnlyMutant.changed, headOnlyMutant.error);
+    ok('head-only mutant module loaded successfully', headOnlyMutant.loaded, headOnlyMutant.error);
+    ok('MUTANT KILLED: a protocol block below the first line cannot be delivered',
+      headOnlyMutant.loaded && headOnlyMutant.survived === false, JSON.stringify(headOnlyMutant));
+
+    // R9 — M24: THE DROP WIDENED TO EVERY LINE CARRYING A LATIN CHARACTER. §١'s third named
+    // mutant, and the one the negative witnesses exist for.
+    const wideScriptMutant = await loopMutant('script-rule-by-presence',
+      (source) => source.replace('  if (measured.letters < LATIN_LINE_FLOOR) return false;',
+        '  return measured.latin > 0; // mutant: presence, not majority — and no floor either'),
+      keepsScriptWitnesses);
+    ok('wide-script mutant seam applied', wideScriptMutant.changed, wideScriptMutant.error);
+    ok('wide-script mutant module loaded successfully', wideScriptMutant.loaded, wideScriptMutant.error);
+    ok('MUTANT KILLED: a rule keyed on the PRESENCE of Latin deletes the answers it was meant to keep',
+      wideScriptMutant.loaded && wideScriptMutant.survived === false, JSON.stringify(wideScriptMutant));
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // S. §٢ (C) — THE READER IS TOLD THE ANSWER STOPPED SHORT
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // MEASURED LIVE: an answer cut IN THE MIDDLE OF A WORD arrived carrying the closing review mark,
+    // so it read as finished. The finish state existed on every provider payload and nothing on the
+    // path had ever read it.
+    //
+    // S1 — THE DERIVATION, AS A TABLE. The contract is «true إن انتهتْ آخرُ جولةِ نموذجٍ بغيرِ
+    // end_turn · false إن تمّت · null إن لم يُعرَفْ», so the test is the COMPLEMENT of end_turn and
+    // not a list of the two stop reasons anyone happens to remember.
+    for (const [stop, expected] of [
+      ['end_turn', false], ['max_tokens', true], ['tool_use', true],
+      ['refusal', true], ['pause_turn', true],
+      [null, null], [undefined, null], ['', null], [0, null], [{}, null],
+    ]) {
+      ok(`truncatedFrom(${JSON.stringify(stop)}) is ${JSON.stringify(expected)}`,
+        loop.truncatedFrom(stop) === expected, JSON.stringify(loop.truncatedFrom(stop)));
+    }
+
+    // S2 — AND IT IS READ OFF A REAL TURN. Three shapes, three answers, and none of them is a
+    // property of the text: the two `truncated` turns below deliver the SAME string.
+    const stopPayload = (text, stop) => ({ stop_reason: stop, content: [{ type: 'text', text }] });
+    const SHORT = 'نعم.';
+    const finishedTurn = await driveScript(loop, () => stopPayload(EARLY, 'end_turn'));
+    const cutTurn = await driveScript(loop, () => stopPayload(SHORT, 'max_tokens'));
+    const cutLongTurn = await driveScript(loop, () => stopPayload(EARLY, 'max_tokens'));
+    ok('a turn that ended on end_turn reports truncated:false',
+      finishedTurn.truncated === false && finishedTurn.deliveredStop === 'end_turn',
+      JSON.stringify([finishedTurn.truncated, finishedTurn.deliveredStop]));
+    ok('a turn that ended on max_tokens reports truncated:true — however SHORT its text',
+      cutTurn.truncated === true && cutTurn.deliveredStop === 'max_tokens',
+      JSON.stringify([cutTurn.truncated, cutTurn.deliveredStop, cutTurn.text.length]));
+    ok('...and however LONG it is, the same reason gives the same answer',
+      cutLongTurn.truncated === true, JSON.stringify([cutLongTurn.truncated, cutLongTurn.text.length]));
+    // THE PAIR THAT KILLS A LENGTH RULE, STATED AS ONE FACT: the SHORT cut turn and the LONG
+    // finished turn disagree in exactly the direction a length rule would get backwards.
+    ok('a short CUT answer and a long FINISHED answer are reported oppositely, which no length rule can do',
+      cutTurn.truncated === true && finishedTurn.truncated === false
+      && cutTurn.text.length < finishedTurn.text.length,
+      JSON.stringify([cutTurn.text.length, finishedTurn.text.length]));
+
+    // S3 — «null MEANS I DO NOT KNOW». Every provider call throws, so no round ever came back and
+    // there is no finish state to report. Reporting `false` here would tell the reader that an
+    // answer that does not exist is complete.
+    const noRoundTurn = await driveScript(loop,
+      () => Object.assign(new Error('upstream 529'), { status: 529 }));
+    ok('a turn in which no round came back reports truncated:null, not false',
+      noRoundTurn.truncated === null && noRoundTurn.deliveredStop === null,
+      JSON.stringify([noRoundTurn.truncated, noRoundTurn.deliveredStop]));
+
+    // S4 — IT CROSSES THE SEAM UNDER EXACTLY THAT NAME, and under the same normalisation the khilaf
+    // signal gets. Same recorder, same discipline: anything that is not literally true or false is
+    // `null`, because a truthy string quietly becoming `false` would tell the reviewer that a
+    // half-written answer is whole.
+    ok('the seam forwards `truncated` under exactly that name',
+      (await seamSaw({ ...base, truncated: true }))?.truncated === true);
+    ok('...and a genuine `false` is carried through as `false`',
+      (await seamSaw({ ...base, truncated: false }))?.truncated === false);
+    for (const [label, value] of [
+      ['absent', undefined], ['null', null], ['a truthy string', 'yes'], ['zero', 0], ['an empty string', ''],
+    ]) {
+      const saw = await seamSaw({ ...base, truncated: value });
+      ok(`...and ${label} crosses the seam as null, not as false`,
+        saw && saw.truncated === null, JSON.stringify(saw && saw.truncated));
+    }
+    // The loop hands it to the seam at the SAME call site as the khilaf signal — §٢/١'s «في الموضع
+    // نفسِه الذي تُمرَّرُ فيه إشارةُ الخلاف» — pinned as text, like every other field of that joint.
+    ok('the loop passes `truncated` into the one call to branch ب',
+      /^ {4}truncated,$/mu.test(loopSource));
+    ok('...and api/ask.js logs it beside the stop_reason it was derived from',
+      /^ {8}truncated: out\.truncated \?\? null,$/mu.test(askSource)
+      && /^ {8}deliveredStop: out\.deliveredStop \?\? null,$/mu.test(askSource));
+
+    // S5 — THE CLIENT SAYS IT, AND SAYS IT FROM THE SERVER'S SIGNAL. §٢/٢ gives the LINE to the
+    // client, beside the «كمّل» button that already exists. Held as source assertions because this
+    // guard runs no browser: what it can prove is that the marker is emitted only on `true`, that
+    // the client has a rendered line keyed on it, and that nothing anywhere derives it from the
+    // text. The last of those is the one that matters, and it is the reason for the `!` tests.
+    const indexSource = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    ok('api/ask.js appends the marker only when truncated is literally true',
+      /out\.truncated === true \? TRUNCATED_MARK : ''/u.test(askSource));
+    ok("...and the marker itself carries no prose — the wording is the client's",
+      /^const TRUNCATED_MARK = '\\n<incomplete\/>';$/mu.test(askSource));
+    ok('the client draws a line when, and only when, that marker is present',
+      /ezikAnswerIncomplete\(lastMsg\.content\)/u.test(indexSource)
+      && /const ezikAnswerIncomplete = \(t\) => typeof t === 'string' && EZIK_INCOMPLETE_TEST\.test\(t\);/u
+        .test(indexSource));
+    ok('...and the line has wording in BOTH interface languages, so neither reader is left guessing',
+      /'chat\.qa\.incomplete': '[^']+'/u.test(indexSource)
+      && (indexSource.match(/'chat\.qa\.incomplete':/gu) || []).length === 2);
+    ok('...and it is drawn beside the «كمّل» strip, under the same visibility rule',
+      /\{quickActionsVisible && ezikAnswerIncomplete\(lastMsg\.content\) && \(/u.test(indexSource));
+    ok('...and the marker never rides back up to the model as its own prose',
+      /content: ezikStripIncomplete\(m\.content\) \}/u.test(indexSource));
+    ok('...and it is stripped from every reader that is not the badge: screen, voice and the log',
+      /text = ezikStripIncomplete\(text\);/u.test(indexSource)
+      && (indexSource.match(/stripIncompleteTags\(ezikStripIncomplete\(text\), \{ rescue: true \}\)/gu) || [])
+        .length === 2);
+    // NO SURFACE DERIVES IT FROM THE TEXT. A client that guesses is the same lie told by us.
+    ok('no client rule keys the notice on the length or the last character of the answer',
+      !/ezikAnswerIncomplete[^\n]*\.length/u.test(indexSource));
+
+    // S6 — M25: `truncated` DERIVED FROM THE LENGTH. §٢/٣'s named mutant, and S2's short/long pair
+    // is what kills it: a four-character answer that really was cut must still report `true`.
+    const lengthMutant = await loopMutant('truncated-derived-from-length',
+      (source) => source.replace('  const truncated = truncatedFrom(deliveredStop);',
+        '  const truncated = answer.length >= 4000; // mutant: guessed from the size of the text'),
+      async (twinModule) => {
+        const cut = await driveScript(twinModule, () => stopPayload(SHORT, 'max_tokens'));
+        const done = await driveScript(twinModule, () => stopPayload(EARLY, 'end_turn'));
+        return cut.truncated === true && done.truncated === false;
+      });
+    ok('length-derived mutant seam applied', lengthMutant.changed, lengthMutant.error);
+    ok('length-derived mutant module loaded successfully', lengthMutant.loaded, lengthMutant.error);
+    ok('MUTANT KILLED: truncation cannot be guessed from the length of the answer',
+      lengthMutant.loaded && lengthMutant.survived === false, JSON.stringify(lengthMutant));
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // T. §٣ (C) — THE KUWAITI ENCYCLOPEDIA IS ATTRIBUTED, AND THE LOSS IS NAMED
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // THE DEFECT, AND IT IS VISIBLE IN THIS GUARD'S OWN FIXTURES. `citeTurn` above drives
+    // `search_sources`, which fills the evidence table from the in-process encyclopedia; those rows
+    // carry `url: ''` because the corpus is a local file with no page. `pickReaderCards` builds a
+    // card only `if (row && row.url)`. So a row could be retrieved, cited, survive the reviewer —
+    // and reach the reader as nothing whatever, with no line anywhere saying so.
+    const encTurn = await citeTurn(loop, RULING);
+    const encRows = (encTurn.cited || []).filter((r) => r && r.kind === 'encyclopedia');
+    ok('the driven turn really does rest on an encyclopedia row, so this section tests the real case',
+      encRows.length > 0, JSON.stringify((encTurn.cited || []).map((r) => [r.ref, r.kind, r.url])));
+    ok('...and that row has no page behind it, which is why it was never a card',
+      encRows.every((r) => !r.url), JSON.stringify(encRows.map((r) => r.url)));
+
+    // T1 — THE FOOTER. It names the encyclopedia, and the article when the row carries one.
+    const encTail = loop.encyclopediaTail(encTurn.cited);
+    ok('an answer that rests on the encyclopedia earns an attribution tail',
+      encTail.trim() !== '', JSON.stringify(encTail));
+    ok('...naming the encyclopedia by the publisher the row itself declares',
+      encTail.includes(encRows[0].publisher), JSON.stringify([encTail, encRows[0].publisher]));
+    // THE NEGATIVE WITNESS §٣ NAMES: an answer that did not rest on it gets NOTHING.
+    const noEncTail = (mod) => mod.encyclopediaTail(rows(3)) === ''
+      && mod.encyclopediaTail([]) === ''
+      && mod.encyclopediaTail(null) === '';
+    ok('THE NEGATIVE WITNESS: an answer that did not rest on the encyclopedia gets zero tail',
+      noEncTail(loop), JSON.stringify(loop.encyclopediaTail(rows(3))));
+
+    // T2 — IT IS A FOOTER AND NOT A CARD, so it costs no slot. Five pages and one encyclopedia row:
+    // three cards, and the tail beside them. §٣/٢, as a pair of numbers rather than a promise.
+    const mixedCited = [encRows[0], ...rows(5)];
+    ok('the tail does not consume a card slot — three pages still become three cards',
+      capped(loop, mixedCited).length === 3, JSON.stringify(capped(loop, mixedCited).length));
+    ok('...and the tail is still produced beside them',
+      loop.encyclopediaTail(mixedCited).trim() !== '');
+    ok('...and api/ask.js carries it as the writer\'s own reader suffix, not concatenated onto the text',
+      /finalizerContext\.readerSuffix = encyclopediaTail\(out\.cited\);/u.test(askSource));
+
+    // T3 — §٣/٣: EVERY CITED ROW THAT GAVE THE READER NOTHING IS NAMED WITH ITS REASON.
+    // «لا صمتَ بعدَ اليوم». One row per cited row, in order, and the three reasons the order names.
+    const dupPage = rows(1)[0];
+    const ledgerCited = [encRows[0], ...rows(4), dupPage];
+    const ledger = loop.citedDeliveryLedger(ledgerCited, 3, tagOf);
+    ok('the ledger reports one row per cited row and loses none of them',
+      ledger.length === ledgerCited.length, JSON.stringify(ledger));
+    ok('...the encyclopedia row is `footer`, which is a delivery and no longer a loss',
+      ledger[0].outcome === 'footer', JSON.stringify(ledger[0]));
+    ok('...a page past the ceiling is named `over_cap` and not merely absent',
+      ledger.some((r) => r.outcome === 'over_cap'), JSON.stringify(ledger));
+    ok('...a repeated page is named `duplicate`',
+      loop.citedDeliveryLedger([rows(1)[0], rows(1)[0]], 3, tagOf)[1].outcome === 'duplicate',
+      JSON.stringify(loop.citedDeliveryLedger([rows(1)[0], rows(1)[0]], 3, tagOf)));
+    ok('...a row with no page and no footer is named `no_url` rather than vanishing',
+      loop.citedDeliveryLedger([{ ref: 9, kind: 'fatwa', url: '' }], 3, tagOf)[0].outcome === 'no_url');
+    // AND THE SELECTION AND THE LEDGER AGREE. Two loops that can disagree are one loop and one lie.
+    ok('the ledger counts exactly as many cards as the selection returns',
+      ledger.filter((r) => r.outcome === 'card').length === capped(loop, ledgerCited).length,
+      JSON.stringify([ledger.filter((r) => r.outcome === 'card').length, capped(loop, ledgerCited).length]));
+    ok('...and the handler actually prints it, serialised, on its own line',
+      /console\.log\('\[free-brain\/cited-delivery\]', JSON\.stringify\(\{/u.test(askSource)
+      && /const delivery = citedDeliveryLedger\(out\.cited, MAX_SOURCES, buildFreeCard\);/u.test(askSource));
+
+    // T4 — M26: THE TAIL ATTACHED WITHOUT SUPPORT. §٣'s named mutant: «ومسخةٌ تُلحِقُ التذييلَ بلا
+    // استنادٍ تموت». An attribution that appears under an answer that never touched the source is
+    // an invented citation, which is the worst thing this application can do.
+    const tailMutant = await loopMutant('tail-without-support',
+      (source) => source.replace("  if (!rows.length) return '';",
+        "  if (!rows.length) rows.push({ publisher: 'X', title: 'X' }); // mutant: the tail rides on every answer"),
+      noEncTail);
+    ok('tail-without-support mutant seam applied', tailMutant.changed, tailMutant.error);
+    ok('tail-without-support mutant module loaded successfully', tailMutant.loaded, tailMutant.error);
+    ok('MUTANT KILLED: an attribution tail cannot be attached to an answer that did not rest on it',
+      tailMutant.loaded && tailMutant.survived === false, JSON.stringify(tailMutant));
+
+    // T5 — M27: THE SILENCE RESTORED. The ledger copies the selection's own `break`, and the rows
+    // past the ceiling disappear from the record exactly as they did before this item.
+    const silenceMutant = await loopMutant('cited-ledger-goes-silent-past-the-cap',
+      (source) => source.replace(
+        "    if (tags.length >= max) { out.push({ ...base, outcome: 'over_cap' }); continue; }",
+        '    if (tags.length >= max) break; // mutant: the rows past the ceiling are not recorded'),
+      async (twinModule) => twinModule.citedDeliveryLedger(ledgerCited, 3, tagOf).length === ledgerCited.length);
+    ok('cited-ledger silence mutant seam applied', silenceMutant.changed, silenceMutant.error);
+    ok('cited-ledger silence mutant module loaded successfully', silenceMutant.loaded, silenceMutant.error);
+    ok('MUTANT KILLED: a row dropped at the ceiling cannot go unrecorded',
+      silenceMutant.loaded && silenceMutant.survived === false, JSON.stringify(silenceMutant));
+
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // U. §١ (D) — CODE IS KNOWN BY ITS SHAPE, NOT BY ITS SHARE OF LATIN
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // MEASURED ON PREVIEW, 17 August. A reader who asked for a zakat function received JavaScript
+    // that does not parse: no `function` line, cut in the middle of the body, and with nothing
+    // anywhere saying a line had been taken out. EZIK-FIX-C-MERGE-PUBLISH-REPORT-2026-08-17.md
+    // §٣/٤ prints all eleven input lines with their Latin counts and shares beside the four the
+    // share rule deleted. The array below is that input, line for line.
+    //
+    // THE THRESHOLD DOES NOT MOVE, AND THAT IS ASSERTED RATHER THAN INTENDED. §١: «استبدالٌ لا
+    // معايرة». Raising the bound would keep `return 0;` and still delete
+    // `function calculateZakat(amount) {`; lowering it would start eating the answer lines R6
+    // measured the constant to protect. Both directions trade one defect for another, because
+    // the share is the wrong question to ask about a line of code.
+    ok('§١ THE THRESHOLD DID NOT MOVE — the repair is a replacement, not a calibration',
+      declaredShare === 0.75 && declaredFloor === 12,
+      JSON.stringify({ declaredShare, declaredFloor }));
+
+    // The fence markers, once: three backticks are markdown's own mark for «this is not prose».
+    const FENCE_TICKS = '```';
+
+    const ZAKAT_LINES = Object.freeze([
+      'function calculateZakat(amount) {',
+      '  const nisab = 85 * 20; // مثال تقريبي بوحدات الذهب، يُحدَّد فعليًا بسعر السوق',
+      '  if (amount < nisab) {',
+      '    return 0;',
+      '  }',
+      '  const zakat = amount * 0.025;',
+      '}',
+      '// مثال على الاستخدام',
+      'const money = 10000;',
+      'const zakat = calculateZakat(money);',
+      'console.log("زكاة المال المستحقة: " + zakat);',
+    ]);
+    const UNFENCED_ZAKAT = ZAKAT_LINES.join('\n');
+    // BYTE FOR BYTE, INDENTATION INCLUDED. §٣/١: «تُسلَّمُ كاملةً سطرًا سطرًا». A comparison that
+    // trimmed would pass on the second defect — the folded indent — while the first was repaired.
+    const deliversZakatWhole = (mod) => {
+      const out = mod.deliverableText(UNFENCED_ZAKAT).split('\n');
+      return out.length === ZAKAT_LINES.length && ZAKAT_LINES.every((line, i) => out[i] === line);
+    };
+    const parsesAsJs = (text) => { try { new Function(text); return true; } catch { return false; } };
+    ok('§٣/١ THE UNFENCED ZAKAT FUNCTION: all eleven lines are delivered, byte for byte',
+      deliversZakatWhole(loop),
+      JSON.stringify(loop.deliverableText(UNFENCED_ZAKAT).split('\n')
+        .map((line, i) => (line === ZAKAT_LINES[i] ? '.' : i))));
+    // ...and the property that makes the count mean something: it is a program, not a fragment.
+    ok('...and the input was valid JavaScript to begin with', parsesAsJs(UNFENCED_ZAKAT));
+    ok('...so what the reader receives is valid JavaScript too',
+      parsesAsJs(loop.deliverableText(UNFENCED_ZAKAT)), loop.deliverableText(UNFENCED_ZAKAT));
+
+    // §٣/٢ — THE SECOND DEFECT THE SAME REPORT MEASURED. Inside the fence the leading whitespace
+    // was folded to a single space, by a pass that ran over the whole text before anything knew
+    // where the fence was. The base tree preserved it, and this is the assertion that says so.
+    const INDENTED_FENCE = FENCE_TICKS + 'js\nfunction f() {\n  const a = 1;\n    return a;\n}\n' + FENCE_TICKS;
+    const keepsIndent = (mod) => {
+      const out = mod.deliverableText(INDENTED_FENCE);
+      return out.includes('\n  const a = 1;') && out.includes('\n    return a;');
+    };
+    ok('§٣/٢ fenced code keeps the leading whitespace the model wrote', keepsIndent(loop),
+      JSON.stringify(loop.deliverableText(INDENTED_FENCE)));
+
+    // A BLOCK IS JUDGED AS A BLOCK. §١: «سطرٌ واحدٌ يُعرَفُ كودًا يجعلُ جيرانَه المتّصلينَ به كودًا».
+    // A Python body carries no terminator on any line but its first, so a per-line rule alone
+    // delivers it with holes in it — which is the same defect one size smaller.
+    const PY_LINES = Object.freeze([
+      'def zakat(amount):',
+      '    nisab = 85 * 20',
+      '    if amount < nisab:',
+      '        return 0',
+      '    return amount * 0.025',
+    ]);
+    const PY_BODY = PY_LINES.join('\n');
+    const deliversPythonWhole = (mod) => {
+      const out = mod.deliverableText(PY_BODY).split('\n');
+      return out.length === PY_LINES.length && PY_LINES.every((line, i) => out[i] === line);
+    };
+    ok('a body with no statement terminators is delivered whole, line for line',
+      deliversPythonWhole(loop), JSON.stringify(loop.deliverableText(PY_BODY).split('\n')));
+    ok('...and exactly ONE of its lines is code on its own evidence — the rest is the spreading',
+      PY_LINES.filter(loop.isCodeShapedLine).length === 1
+        && loop.codeShapedLines(PY_LINES).every(Boolean),
+      JSON.stringify(PY_LINES.map(loop.isCodeShapedLine)));
+
+    // AND THE SPREADING DOES NOT WALK OUT OF THE BLOCK, which is the whole risk it carries: a
+    // rule that calls prose «code» exempts that prose from every filter above it.
+    const INTRO_BLOCK = Object.freeze([
+      'الشرحُ كما يلي:', 'function f() {', '  return 1;', '}', 'وهذا هو المطلوب.',
+    ]);
+    const introFlags = loop.codeShapedLines(INTRO_BLOCK);
+    ok('the spreading stops at the Arabic prose on both sides of the block',
+      introFlags[0] === false && introFlags[4] === false
+        && introFlags[1] && introFlags[2] && introFlags[3], JSON.stringify(introFlags));
+    // THE PROPERTY AND NOT A SAMPLE: neither measured corpus can be joined to a block. The KEEP
+    // corpus must not be swallowed by the exemption and the MACHINE corpus must not escape
+    // through it, and both are put directly under a block to find out.
+    const joinable = (line) => loop.codeShapedLines(['function f() {', line])[1];
+    ok('no line of the machine corpus can be joined to a block above it',
+      MACHINE_CORPUS.every((l) => joinable(l) === false),
+      JSON.stringify(MACHINE_CORPUS.filter(joinable)));
+    ok('...and no declared keeper can be either', SCRIPT_KEEPERS.every((l) => joinable(l) === false),
+      JSON.stringify(SCRIPT_KEEPERS.filter(joinable)));
+
+    // §١/٣ — AND IF A LINE OF A PROGRAMMATIC OUTPUT IS REMOVED ANYWAY, IT IS NAMED. The protocol
+    // ban still runs inside a fence and is still meant to (R2's declared cost), so a code line
+    // carrying the provider's markup is still removed. What changes is that it is no longer
+    // removed in silence — the third thing §٣/٤ of the report found missing.
+    const CODE_WITH_PROTOCOL = FENCE_TICKS + 'js\nconst url = "x";\n'
+      + 'const tag = "<function_results>y</function_results>";\nconst z = 2;\n' + FENCE_TICKS;
+    const namesWhatItLost = (mod) => {
+      const notes = [];
+      mod.deliverableText(CODE_WITH_PROTOCOL, notes);
+      return notes.some((n) => n.startsWith('code_line_dropped:'));
+    };
+    ok('§١/٣ a code line the protocol ban removes is NAMED, not dropped in silence',
+      namesWhatItLost(loop));
+    // ...and the negative half, without which «name everything» would pass by naming everything.
+    ok('...while a text that loses no code line names none', (() => {
+      const quiet = [];
+      loop.deliverableText(UNFENCED_ZAKAT, quiet);
+      return quiet.length === 0;
+    })());
+    ok('...and the loop forwards those names into `degraded`',
+      /for \(const note of deliveryNotes\) ctx\.degraded\.push\(note\);/u.test(loopSource));
+
+    // §٣/٣–٨ — THE STANDING NEGATIVES, RE-ASSERTED AFTER THE EXEMPTION. Every one of them was
+    // measured green before this item, and a rule that exempts «code» could undo any of them by
+    // calling prose code. Asserting them here is what makes this a repair and not a trade.
+    ok('§٣/٣ an Arabic sentence carrying an English term, a link or a Latin number still survives',
+      keepsScriptWitnesses(loop),
+      JSON.stringify(SCRIPT_KEEPERS.filter((l) => loop.deliverableText(l).trim() === '')));
+    const SIX_ARABIC = Object.freeze([
+      'سأبحث لك في فتاوى العلماء عن هذه المسألة تحديداً.',
+      'سأبحث لك في الفتاوى المتخصصة في هذه المسألة تحديداً.',
+      'سأتحقق من هذه المسألة الدقيقة.',
+      'هذه المسألة من دقائق أحكام الزكاة، وفيها تفصيل يستحق أن أستوثق منه لك.',
+      'سأتحقق لك من المسألة في فتاوى العلماء لأزيدك اطمئنانًا بالدليل.',
+    ]);
+    const dropsSixArabic = (mod) => SIX_ARABIC.every((l) => mod.deliverableText(l).trim() === '');
+    ok('§٣/٤ THE SIX ARABIC WITNESSES — five distinct lines over six answers — are still dropped',
+      dropsSixArabic(loop),
+      JSON.stringify(SIX_ARABIC.filter((l) => loop.deliverableText(l).trim() !== '')));
+    ok('§٣/٥ the English planning line is still dropped',
+      loop.deliverableText(ENGLISH_ANNOUNCE).trim() === '', loop.deliverableText(ENGLISH_ANNOUNCE));
+    ok('§٣/٦ tool-protocol blocks are still banned at the head, in the middle, and mid-cut',
+      protocolGone(loop, PROTOCOL_HEAD + '\nالجمع للمسافر جائز عند الحاجة.')
+        && protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_HEAD + '\nوهذا هو الراجح.')
+        && protocolGone(loop, 'الجمع للمسافر جائز.\n' + PROTOCOL_CUT));
+    ok('...and inside a code fence, which is a position and not an exemption',
+      protocolGone(loop, FENCE_TICKS + 'js\n' + PROTOCOL_HEAD + '\n' + FENCE_TICKS));
+    ok('§٣/٧ the disclosure the reader is owed still survives', keepsDisclosures(loop));
+    ok('§٣/٨ a real answer written in a tool round is still delivered, whole',
+      await keepsRealAnswer(loop));
+
+    // ── U-M28: THE EXEMPTION CANCELLED. §٣'s first two named mutants at one seam — the share
+    // rule decides for code again, so the unfenced block is torn exactly as it was on 17 August.
+    const shapeMutant = await loopMutant('code-shape-exemption-removed',
+      (source) => source.replace('    if (isCode[index]) return line;',
+        '    // mutant: the share rule decides for code too, exactly as it did on 17 August'),
+      deliversZakatWhole);
+    ok('code-shape mutant seam applied', shapeMutant.changed, shapeMutant.error);
+    ok('code-shape mutant module loaded successfully', shapeMutant.loaded, shapeMutant.error);
+    ok('MUTANT KILLED: an unfenced code line cannot be dropped by the share rule again',
+      shapeMutant.loaded && shapeMutant.survived === false, JSON.stringify(shapeMutant));
+
+    // ── U-M29: THE BLOCK SPREADING REMOVED. Every line answers for itself again, and a body
+    // whose only self-evident line is its first is delivered with holes in it.
+    const blockMutant = await loopMutant('code-block-spread-removed',
+      (source) => source.replace(
+        '    for (let up = index - 1; up >= 0 && joins(up); up -= 1) code[up] = true;\n'
+        + '    for (let down = index + 1; down < rows.length && joins(down); down += 1) code[down] = true;',
+        '    // mutant: every line answers for itself — a block with no terminators is torn again'),
+      deliversPythonWhole);
+    ok('block-spread mutant seam applied', blockMutant.changed, blockMutant.error);
+    ok('block-spread mutant module loaded successfully', blockMutant.loaded, blockMutant.error);
+    ok('MUTANT KILLED: a code block cannot be judged one line at a time',
+      blockMutant.loaded && blockMutant.survived === false, JSON.stringify(blockMutant));
+
+    // ── U-M30: THE SPREADING WIDENED TO EVERY NEIGHBOUR. The opposite over-reach, and the one
+    // that would quietly exempt the prose introducing the block — and a machine line with it.
+    const wideBlockMutant = await loopMutant('code-block-spread-unconditional',
+      (source) => source.replace(
+        '    && CODE_JOIN_RE.test(rows[index]);',
+        ';  // mutant: any non-blank neighbour joins, prose included'),
+      async (twinModule) => {
+        const flags = twinModule.codeShapedLines(INTRO_BLOCK);
+        return flags[0] === false && flags[4] === false;
+      });
+    ok('wide-spread mutant seam applied', wideBlockMutant.changed, wideBlockMutant.error);
+    ok('wide-spread mutant module loaded successfully', wideBlockMutant.loaded, wideBlockMutant.error);
+    ok('MUTANT KILLED: a block cannot spread into the prose that introduced it',
+      wideBlockMutant.loaded && wideBlockMutant.survived === false, JSON.stringify(wideBlockMutant));
+
+    // ── U-M31: THE FOLD PUT BACK OVER THE HEAD OF THE LINE. §٣'s third named mutant. One seam,
+    // because §١/٢ gave the fold one name and one definition for its three callers.
+    const foldMutant = await loopMutant('leading-indent-folded-again',
+      (source) => source.replace(
+        "const foldInnerRun = (whole, lead, rest) => lead + rest.replace(/[ \\t]{2,}/gu, ' ');",
+        "const foldInnerRun = (whole, lead, rest) => (lead + rest).replace(/[ \\t]{2,}/gu, ' ');"),
+      keepsIndent);
+    ok('indent-fold mutant seam applied', foldMutant.changed, foldMutant.error);
+    ok('indent-fold mutant module loaded successfully', foldMutant.loaded, foldMutant.error);
+    ok('MUTANT KILLED: the indentation inside a fence cannot be folded away again',
+      foldMutant.loaded && foldMutant.survived === false, JSON.stringify(foldMutant));
+
+    // ── U-M32: THE LOSS GOES SILENT AGAIN. §١/٣ as a mutant: the notes are collected and the
+    // caller is handed nothing, which is exactly what «فلا يُنزَعُ صامتًا» forbids.
+    const silentCodeMutant = await loopMutant('code-loss-unnamed',
+      (source) => source.replace('  if (Array.isArray(notes)) {',
+        '  if (!Array.isArray(notes) && false) { // mutant: the removal is silent again'),
+      namesWhatItLost);
+    ok('code-loss mutant seam applied', silentCodeMutant.changed, silentCodeMutant.error);
+    ok('code-loss mutant module loaded successfully', silentCodeMutant.loaded, silentCodeMutant.error);
+    ok('MUTANT KILLED: a line taken out of a programmatic output cannot go unnamed',
+      silentCodeMutant.loaded && silentCodeMutant.survived === false, JSON.stringify(silentCodeMutant));
+
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // V. §٢ (D) — PROSE IS KNOWN BY ITS SUBJECT, NOT BY ITS VOCABULARY
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // STILL REACHING THE READER ON PRODUCTION AFTER F3 SHIPPED, verbatim from the owner's order:
+    //
+    //   «النتيجةُ التي وردتْ تتحدّث عن… ولا تُجيبُ عن حالتِك بعينِها. فلنبحثِ المسألةَ بلفظٍ أدقّ.»
+    //
+    // TWO SENTENCES AND TWO SEPARATE FAILURES, and both are the same failure underneath.
+    //   the report half    — the topic list knew «النتائج التي وصلتني» and not «النتيجة التي
+    //                        وردت»: the SAME noun in the singular with the SAME relative clause
+    //   the announce half  — the verb list was spelled with أ, and «نبحث» is the same verb in the
+    //                        first person plural
+    //
+    // FOUR TIMES A LIST OF SPELLINGS HAS FAILED HERE — narrow Arabic, then English, then another
+    // Arabic form, then Codex's إضافة form — so §٢ forbids a fifth list. What is asserted below is
+    // therefore never «this phrase is now covered» but «this SHAPE is now covered»: the number,
+    // the definiteness and the person are generated, and the topic is a POSITION in the sentence.
+    const PROD_REPORT = 'النَّتيجةُ التي وردتْ تتحدّث عن حكم المسح عمومًا ولا تُجيبُ عن حالتِك بعينِها.';
+    const PROD_ANNOUNCE = 'فلنبحثِ المسألةَ بلفظٍ أدقّ.';
+    // The order elides the middle of the first sentence with «…». The filler above is declared and
+    // carries no ruling word, no digit and no citation, so nothing in it can rescue the sentence
+    // by accident — it is judged on its subject and its predicate alone.
+    ok('§٢ the production report sentence is judged a report on the tool run',
+      loop.isToolResultReport(PROD_REPORT));
+    ok('§٢ the cohortative «فلنبحث» is judged an announcement',
+      loop.isToolAnnouncement(PROD_ANNOUNCE));
+    const dropsProductionLine = (mod) => mod.deliverableText(PROD_REPORT + ' ' + PROD_ANNOUNCE).trim() === '';
+    ok('§٢ neither half of the production line reaches the reader', dropsProductionLine(loop),
+      loop.deliverableText(PROD_REPORT + ' ' + PROD_ANNOUNCE));
+
+    // THE SHAPE, AND NOT THE PHRASE. Each of these differs from a covered witness by exactly one
+    // grammatical feature — number, definiteness, the possessive, or the person of the verb — and
+    // every one of them is the kind of variation the four previous lists were blind to.
+    const SHAPE_VARIANTS = Object.freeze([
+      'النتيجة التي رجعت لم تعطني ما يخص مسألتك.',   // singular + definite, where the list had the plural
+      'نتيجة بحثي لا تفيد في هذه الحالة.',            // the possessive, where the list had the إضافة
+      'سنبحث لك في فتاوى العلماء عن هذه المسألة.',   // first person PLURAL future
+      'لنبحث المسألة بلفظ أدق.',                      // the cohortative without the فـ
+    ]);
+    const dropsShapeVariants = (mod) => SHAPE_VARIANTS.every((s) => mod.deliverableText(s).trim() === '');
+    ok('§٢ one grammatical feature away from a covered witness is still covered',
+      dropsShapeVariants(loop),
+      JSON.stringify(SHAPE_VARIANTS.filter((s) => loop.deliverableText(s).trim() !== '')));
+
+    // §٢'s «حدٌّ لا يُخرَق» — A SENTENCE SAYING THE INFORMATION DID NOT HOLD IS TRUE NEWS AND STAYS.
+    // The hard case is the one where the sentence would otherwise be dropped on both clauses: the
+    // subject IS the run and the predicate IS negated. Without the limit as its own first test,
+    // this one goes out with the class.
+    const LIMIT_WITNESS = 'نتيجة البحث لم تثبت هذه المعلومة، فلا يصح البناء عليها.';
+    const keepsTheLimit = (mod) => mod.deliverableText(LIMIT_WITNESS).includes('لم تثبت')
+      && mod.deliverableText(REVIEWER_SUBSTITUTE).includes('لم يصلني')
+      && mod.deliverableText(READER_DISCLOSURE).includes('لم أجد');
+    ok('§٢ THE LIMIT: a sentence whose subject IS the run still survives if it reports that the '
+      + 'information did not hold', keepsTheLimit(loop), loop.deliverableText(LIMIT_WITNESS));
+
+    // THE OVER-REACH THIS ITEM COULD HAVE BOUGHT, AS A PROPERTY. Every one of these is a sentence
+    // an answer legitimately contains, and each is one the widened rules pass close to: a ruling
+    // in the negative, a first-person-plural verb that is not a search, and a finding whose
+    // subject really is the result.
+    const NEAR_MISSES = Object.freeze([
+      'لا يجب على المسافر أن يصوم في السفر.',              // a RULING shaped like a negated predicate
+      'لا ينقض الوضوءَ مسُّ المرأةِ عند الجمهور.',           // …and another
+      'ولنعد إلى المسألة التي سألت عنها.',                 // «لن» + first person plural, and not a search
+      'ولنكمل الكلام على شروط المسح.',                     // …and another
+      'نتيجة البحث تتحدث عن حكم المسح على الخفين، وهو جائز بالسنة.', // a FINDING the result is about
+    ]);
+    const keepsNearMisses = (mod) => NEAR_MISSES.every((s) => mod.deliverableText(s).trim() !== '');
+    ok('§٢ the rulings, the non-search plurals and the findings next door are untouched',
+      keepsNearMisses(loop),
+      JSON.stringify(NEAR_MISSES.filter((s) => loop.deliverableText(s).trim() === '')));
+    // THE WITNESS ONLY THE SUBJECT-POSITION RULE SAVES. Its search noun sits behind «على», so it
+    // is an adjunct; its predicate is negated and reports; and it carries no ruling word, no digit
+    // and no citation. Nothing but the position keeps it, which is what makes it the measure of
+    // V-M36 — both disclosures are held by the limit above and cannot move whatever that rule says.
+    const ADJUNCT_WITNESS = 'الجواب مبني على نتائج البحث، وهو لا يكفي وحده دليلًا.';
+    const keepsTheAdjunct = (mod) => mod.deliverableText(ADJUNCT_WITNESS).trim() !== '';
+    ok('§٢ a search noun behind a preposition is an adjunct, and its sentence survives',
+      keepsTheAdjunct(loop), loop.deliverableText(ADJUNCT_WITNESS));
+    // ...and the standing safety list of F3, re-asserted after the widening.
+    const keepsOrdinarySearchProse = (mod) => ORDINARY_SEARCH_PROSE
+      .every((s) => mod.deliverableText(s).trim() !== '');
+    ok('§٢ ordinary prose that merely mentions the search is still untouched',
+      keepsOrdinarySearchProse(loop),
+      JSON.stringify(ORDINARY_SEARCH_PROSE.filter((s) => loop.deliverableText(s).trim() === '')));
+    ok('§٢ ...and the two measured fourth-class witnesses are still dropped', dropsReports(loop));
+
+    // ── V-M33: THE CLASS PUT BACK INSIDE A NAMED VOCABULARY. §٣'s fourth named mutant. The noun
+    // is pinned to the one spelling the previous list carried, so the singular walks through again.
+    const vocabMutant = await loopMutant('fourth-class-back-to-a-word-list',
+      (source) => source.replace(
+        "'(?:(?:ال)?(?:نتيجة|نتيجه|نتائج|حصيلة|مخرجات|بحث|بحوث)(?:ي|نا|ه|ها)?'",
+        "'(?:(?:ال)?(?:نتائج)(?:ي|نا|ه|ها)?' // mutant: the plural only, as the list had it"),
+      dropsProductionLine);
+    ok('vocabulary mutant seam applied', vocabMutant.changed, vocabMutant.error);
+    ok('vocabulary mutant module loaded successfully', vocabMutant.loaded, vocabMutant.error);
+    ok('MUTANT KILLED: pinning the topic to one spelling lets the singular through again',
+      vocabMutant.loaded && vocabMutant.survived === false, JSON.stringify(vocabMutant));
+
+    // ── V-M34: THE PERSON TAKEN BACK OUT OF THE VERB. The same mutant on the announcement half:
+    // first person singular only, which is exactly the state that shipped «فلنبحث» to production.
+    const personMutant = await loopMutant('promise-verb-singular-only',
+      // BOTH definitions, or the cohortative arm keeps the plural and the mutant survives on a
+      // technicality rather than on the property.
+      (source) => source.replace(
+        "const PROMISE_VERB = '[أن](?:' + PROMISE_ROOT + ')';",
+        "const PROMISE_VERB = 'أ(?:' + PROMISE_ROOT + ')'; // mutant: first person singular only")
+        .replace("const SEARCH_MOVE_VERB = '[أن](?:", "const SEARCH_MOVE_VERB = 'أ(?:"),
+      async (twinModule) => twinModule.deliverableText(PROD_ANNOUNCE).trim() === '');
+    ok('person mutant seam applied', personMutant.changed, personMutant.error);
+    ok('person mutant module loaded successfully', personMutant.loaded, personMutant.error);
+    ok('MUTANT KILLED: a verb list without the plural cannot see «فلنبحث»',
+      personMutant.loaded && personMutant.survived === false, JSON.stringify(personMutant));
+
+    // ── V-M35: THE «لم يثبتْ» SENTENCE DROPPED. §٣'s fifth named mutant, written as an inversion
+    // of the limit rather than as its removal — removing it changes nothing today, because the
+    // disclosures also fail the topic test, and a mutant that changes nothing proves nothing.
+    const limitMutant = await loopMutant('not-established-dropped',
+      (source) => source.replace(
+        '  if (NOT_ESTABLISHED_RE.test(folded)) return false;',
+        '  if (NOT_ESTABLISHED_RE.test(folded)) return true; // mutant: the true news goes out with the class'),
+      keepsTheLimit);
+    ok('limit mutant seam applied', limitMutant.changed, limitMutant.error);
+    ok('limit mutant module loaded successfully', limitMutant.loaded, limitMutant.error);
+    ok('MUTANT KILLED: the sentence telling the reader the information did not hold cannot be dropped',
+      limitMutant.loaded && limitMutant.survived === false, JSON.stringify(limitMutant));
+
+    // ── V-M36: THE PREPOSITION IGNORED, so an adjunct counts as a topic. This is the mutant the
+    // subject-position rule exists for: «في بحثي» would become «the search is what this is about»
+    // and the disclosure the reader is owed would go out with the class.
+    const adjunctMutant = await loopMutant('topic-ignores-subject-position',
+      (source) => source.replace("'(?:^|؛)[\\\\s«\"(\\\\[]*'", "'(?:^|[\\\\s؛])[\\\\s«\"(\\\\[]*'"),
+      keepsTheAdjunct);
+    ok('adjunct mutant seam applied', adjunctMutant.changed, adjunctMutant.error);
+    ok('adjunct mutant module loaded successfully', adjunctMutant.loaded, adjunctMutant.error);
+    ok('MUTANT KILLED: a search noun behind a preposition is an adjunct and not a topic',
+      adjunctMutant.loaded && adjunctMutant.survived === false, JSON.stringify(adjunctMutant));
 
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
