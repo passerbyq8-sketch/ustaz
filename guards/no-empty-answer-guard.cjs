@@ -567,7 +567,11 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       (source) => source.replace(
         '  return TOOL_TOPIC_RE.test(folded) && TOOL_REPORT_RE.test(folded);',
         '  return TOOL_MENTION_RE.test(folded); // mutant: drop every mention of the search'),
-      keepsDisclosures);
+      // §٢ (D) RE-AIMED THIS PROBE. `NOT_ESTABLISHED_RE` now keeps both disclosures whatever
+      // these two tests say, so the widening no longer reaches them — it reaches the ordinary
+      // prose above instead, and that is what this mutant is now measured against.
+      async (twinModule) => keepsDisclosures(twinModule)
+        && ORDINARY_SEARCH_PROSE.every((s) => twinModule.deliverableText(s).trim() !== ''));
     ok('report-filter mutant seam applied', reportMutant.changed, reportMutant.error);
     ok('report-filter mutant module loaded successfully', reportMutant.loaded, reportMutant.error);
     ok('MUTANT KILLED: widening the drop to every mention of the search kills the disclosure the '
@@ -1965,6 +1969,145 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('code-loss mutant module loaded successfully', silentCodeMutant.loaded, silentCodeMutant.error);
     ok('MUTANT KILLED: a line taken out of a programmatic output cannot go unnamed',
       silentCodeMutant.loaded && silentCodeMutant.survived === false, JSON.stringify(silentCodeMutant));
+
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // V. §٢ (D) — PROSE IS KNOWN BY ITS SUBJECT, NOT BY ITS VOCABULARY
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // STILL REACHING THE READER ON PRODUCTION AFTER F3 SHIPPED, verbatim from the owner's order:
+    //
+    //   «النتيجةُ التي وردتْ تتحدّث عن… ولا تُجيبُ عن حالتِك بعينِها. فلنبحثِ المسألةَ بلفظٍ أدقّ.»
+    //
+    // TWO SENTENCES AND TWO SEPARATE FAILURES, and both are the same failure underneath.
+    //   the report half    — the topic list knew «النتائج التي وصلتني» and not «النتيجة التي
+    //                        وردت»: the SAME noun in the singular with the SAME relative clause
+    //   the announce half  — the verb list was spelled with أ, and «نبحث» is the same verb in the
+    //                        first person plural
+    //
+    // FOUR TIMES A LIST OF SPELLINGS HAS FAILED HERE — narrow Arabic, then English, then another
+    // Arabic form, then Codex's إضافة form — so §٢ forbids a fifth list. What is asserted below is
+    // therefore never «this phrase is now covered» but «this SHAPE is now covered»: the number,
+    // the definiteness and the person are generated, and the topic is a POSITION in the sentence.
+    const PROD_REPORT = 'النَّتيجةُ التي وردتْ تتحدّث عن حكم المسح عمومًا ولا تُجيبُ عن حالتِك بعينِها.';
+    const PROD_ANNOUNCE = 'فلنبحثِ المسألةَ بلفظٍ أدقّ.';
+    // The order elides the middle of the first sentence with «…». The filler above is declared and
+    // carries no ruling word, no digit and no citation, so nothing in it can rescue the sentence
+    // by accident — it is judged on its subject and its predicate alone.
+    ok('§٢ the production report sentence is judged a report on the tool run',
+      loop.isToolResultReport(PROD_REPORT));
+    ok('§٢ the cohortative «فلنبحث» is judged an announcement',
+      loop.isToolAnnouncement(PROD_ANNOUNCE));
+    const dropsProductionLine = (mod) => mod.deliverableText(PROD_REPORT + ' ' + PROD_ANNOUNCE).trim() === '';
+    ok('§٢ neither half of the production line reaches the reader', dropsProductionLine(loop),
+      loop.deliverableText(PROD_REPORT + ' ' + PROD_ANNOUNCE));
+
+    // THE SHAPE, AND NOT THE PHRASE. Each of these differs from a covered witness by exactly one
+    // grammatical feature — number, definiteness, the possessive, or the person of the verb — and
+    // every one of them is the kind of variation the four previous lists were blind to.
+    const SHAPE_VARIANTS = Object.freeze([
+      'النتيجة التي رجعت لم تعطني ما يخص مسألتك.',   // singular + definite, where the list had the plural
+      'نتيجة بحثي لا تفيد في هذه الحالة.',            // the possessive, where the list had the إضافة
+      'سنبحث لك في فتاوى العلماء عن هذه المسألة.',   // first person PLURAL future
+      'لنبحث المسألة بلفظ أدق.',                      // the cohortative without the فـ
+    ]);
+    const dropsShapeVariants = (mod) => SHAPE_VARIANTS.every((s) => mod.deliverableText(s).trim() === '');
+    ok('§٢ one grammatical feature away from a covered witness is still covered',
+      dropsShapeVariants(loop),
+      JSON.stringify(SHAPE_VARIANTS.filter((s) => loop.deliverableText(s).trim() !== '')));
+
+    // §٢'s «حدٌّ لا يُخرَق» — A SENTENCE SAYING THE INFORMATION DID NOT HOLD IS TRUE NEWS AND STAYS.
+    // The hard case is the one where the sentence would otherwise be dropped on both clauses: the
+    // subject IS the run and the predicate IS negated. Without the limit as its own first test,
+    // this one goes out with the class.
+    const LIMIT_WITNESS = 'نتيجة البحث لم تثبت هذه المعلومة، فلا يصح البناء عليها.';
+    const keepsTheLimit = (mod) => mod.deliverableText(LIMIT_WITNESS).includes('لم تثبت')
+      && mod.deliverableText(REVIEWER_SUBSTITUTE).includes('لم يصلني')
+      && mod.deliverableText(READER_DISCLOSURE).includes('لم أجد');
+    ok('§٢ THE LIMIT: a sentence whose subject IS the run still survives if it reports that the '
+      + 'information did not hold', keepsTheLimit(loop), loop.deliverableText(LIMIT_WITNESS));
+
+    // THE OVER-REACH THIS ITEM COULD HAVE BOUGHT, AS A PROPERTY. Every one of these is a sentence
+    // an answer legitimately contains, and each is one the widened rules pass close to: a ruling
+    // in the negative, a first-person-plural verb that is not a search, and a finding whose
+    // subject really is the result.
+    const NEAR_MISSES = Object.freeze([
+      'لا يجب على المسافر أن يصوم في السفر.',              // a RULING shaped like a negated predicate
+      'لا ينقض الوضوءَ مسُّ المرأةِ عند الجمهور.',           // …and another
+      'ولنعد إلى المسألة التي سألت عنها.',                 // «لن» + first person plural, and not a search
+      'ولنكمل الكلام على شروط المسح.',                     // …and another
+      'نتيجة البحث تتحدث عن حكم المسح على الخفين، وهو جائز بالسنة.', // a FINDING the result is about
+    ]);
+    const keepsNearMisses = (mod) => NEAR_MISSES.every((s) => mod.deliverableText(s).trim() !== '');
+    ok('§٢ the rulings, the non-search plurals and the findings next door are untouched',
+      keepsNearMisses(loop),
+      JSON.stringify(NEAR_MISSES.filter((s) => loop.deliverableText(s).trim() === '')));
+    // THE WITNESS ONLY THE SUBJECT-POSITION RULE SAVES. Its search noun sits behind «على», so it
+    // is an adjunct; its predicate is negated and reports; and it carries no ruling word, no digit
+    // and no citation. Nothing but the position keeps it, which is what makes it the measure of
+    // V-M36 — both disclosures are held by the limit above and cannot move whatever that rule says.
+    const ADJUNCT_WITNESS = 'الجواب مبني على نتائج البحث، وهو لا يكفي وحده دليلًا.';
+    const keepsTheAdjunct = (mod) => mod.deliverableText(ADJUNCT_WITNESS).trim() !== '';
+    ok('§٢ a search noun behind a preposition is an adjunct, and its sentence survives',
+      keepsTheAdjunct(loop), loop.deliverableText(ADJUNCT_WITNESS));
+    // ...and the standing safety list of F3, re-asserted after the widening.
+    const keepsOrdinarySearchProse = (mod) => ORDINARY_SEARCH_PROSE
+      .every((s) => mod.deliverableText(s).trim() !== '');
+    ok('§٢ ordinary prose that merely mentions the search is still untouched',
+      keepsOrdinarySearchProse(loop),
+      JSON.stringify(ORDINARY_SEARCH_PROSE.filter((s) => loop.deliverableText(s).trim() === '')));
+    ok('§٢ ...and the two measured fourth-class witnesses are still dropped', dropsReports(loop));
+
+    // ── V-M33: THE CLASS PUT BACK INSIDE A NAMED VOCABULARY. §٣'s fourth named mutant. The noun
+    // is pinned to the one spelling the previous list carried, so the singular walks through again.
+    const vocabMutant = await loopMutant('fourth-class-back-to-a-word-list',
+      (source) => source.replace(
+        "'(?:(?:ال)?(?:نتيجة|نتيجه|نتائج|حصيلة|مخرجات|بحث|بحوث)(?:ي|نا|ه|ها)?'",
+        "'(?:(?:ال)?(?:نتائج)(?:ي|نا|ه|ها)?' // mutant: the plural only, as the list had it"),
+      dropsProductionLine);
+    ok('vocabulary mutant seam applied', vocabMutant.changed, vocabMutant.error);
+    ok('vocabulary mutant module loaded successfully', vocabMutant.loaded, vocabMutant.error);
+    ok('MUTANT KILLED: pinning the topic to one spelling lets the singular through again',
+      vocabMutant.loaded && vocabMutant.survived === false, JSON.stringify(vocabMutant));
+
+    // ── V-M34: THE PERSON TAKEN BACK OUT OF THE VERB. The same mutant on the announcement half:
+    // first person singular only, which is exactly the state that shipped «فلنبحث» to production.
+    const personMutant = await loopMutant('promise-verb-singular-only',
+      // BOTH definitions, or the cohortative arm keeps the plural and the mutant survives on a
+      // technicality rather than on the property.
+      (source) => source.replace(
+        "const PROMISE_VERB = '[أن](?:' + PROMISE_ROOT + ')';",
+        "const PROMISE_VERB = 'أ(?:' + PROMISE_ROOT + ')'; // mutant: first person singular only")
+        .replace("const SEARCH_MOVE_VERB = '[أن](?:", "const SEARCH_MOVE_VERB = 'أ(?:"),
+      async (twinModule) => twinModule.deliverableText(PROD_ANNOUNCE).trim() === '');
+    ok('person mutant seam applied', personMutant.changed, personMutant.error);
+    ok('person mutant module loaded successfully', personMutant.loaded, personMutant.error);
+    ok('MUTANT KILLED: a verb list without the plural cannot see «فلنبحث»',
+      personMutant.loaded && personMutant.survived === false, JSON.stringify(personMutant));
+
+    // ── V-M35: THE «لم يثبتْ» SENTENCE DROPPED. §٣'s fifth named mutant, written as an inversion
+    // of the limit rather than as its removal — removing it changes nothing today, because the
+    // disclosures also fail the topic test, and a mutant that changes nothing proves nothing.
+    const limitMutant = await loopMutant('not-established-dropped',
+      (source) => source.replace(
+        '  if (NOT_ESTABLISHED_RE.test(folded)) return false;',
+        '  if (NOT_ESTABLISHED_RE.test(folded)) return true; // mutant: the true news goes out with the class'),
+      keepsTheLimit);
+    ok('limit mutant seam applied', limitMutant.changed, limitMutant.error);
+    ok('limit mutant module loaded successfully', limitMutant.loaded, limitMutant.error);
+    ok('MUTANT KILLED: the sentence telling the reader the information did not hold cannot be dropped',
+      limitMutant.loaded && limitMutant.survived === false, JSON.stringify(limitMutant));
+
+    // ── V-M36: THE PREPOSITION IGNORED, so an adjunct counts as a topic. This is the mutant the
+    // subject-position rule exists for: «في بحثي» would become «the search is what this is about»
+    // and the disclosure the reader is owed would go out with the class.
+    const adjunctMutant = await loopMutant('topic-ignores-subject-position',
+      (source) => source.replace("'(?:^|؛)[\\\\s«\"(\\\\[]*'", "'(?:^|[\\\\s؛])[\\\\s«\"(\\\\[]*'"),
+      keepsTheAdjunct);
+    ok('adjunct mutant seam applied', adjunctMutant.changed, adjunctMutant.error);
+    ok('adjunct mutant module loaded successfully', adjunctMutant.loaded, adjunctMutant.error);
+    ok('MUTANT KILLED: a search noun behind a preposition is an adjunct and not a topic',
+      adjunctMutant.loaded && adjunctMutant.survived === false, JSON.stringify(adjunctMutant));
 
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
