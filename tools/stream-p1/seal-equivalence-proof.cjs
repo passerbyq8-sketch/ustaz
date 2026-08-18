@@ -169,10 +169,53 @@ function sourceSettings() {
   ];
 }
 
+/**
+ * ── RE-PINNED IN P5 §٢, AND HERE IS WHY IT HAD TO BE ─────────────────────────────────
+ *
+ * The P5 reference-number hold (`refDropWouldChange`, lib/sentence-stream.js) is tested
+ * BEFORE the lock-and-tidy clause, and the two overlap: both fold runs of spaces and both
+ * close a space before a full stop. On the recorded corpus that overlap is total, so the
+ * `ignore-tidy-reach` mutant — which removes `tidyWouldChange(unit)` and nothing else —
+ * stopped producing a single violation and read as MISSED. Its claim was still true; what
+ * was lost was the proof that the TIDY test in particular is load-bearing.
+ *
+ * The answer is to re-pin the mutant, not to retire it or to widen it until it passes.
+ * These three records isolate the transforms the tidy pass has and the reference pass does
+ * not, so the tidy test is the only thing that can hold them:
+ *
+ *   «؟.» collapsing to «.»          takhrij-lock.js:233
+ *   a line ending in «؟» or «,»     takhrij-lock.js:234
+ *   indentation around a newline    takhrij-lock.js:235
+ *
+ * The reference pass leaves all three alone — its INNER_RUN_RE deliberately PRESERVES
+ * leading indentation (loop.js:95-104) — so a tree with the tidy test removed streams them
+ * and the mutant is caught again.
+ */
+const TIDY_ONLY_RECORDS = [
+  {
+    id: 'p5-tidy-only:question-then-stop',
+    run: 'FIXTURE',
+    meta: { ms: 1000 },
+    text: 'وهل يجزئ ذلك عن الفرض ؟. نعم يجزئ عند جمهور أهل العلم. والله أعلم بالصواب.',
+  },
+  {
+    id: 'p5-tidy-only:line-ends-in-a-comma',
+    run: 'FIXTURE',
+    meta: { ms: 1000 },
+    text: 'الطهارة شرط لصحة الصلاة,\nومن صلى بغير طهارة أعاد صلاته. وهذا قول عامة الفقهاء.',
+  },
+  {
+    id: 'p5-tidy-only:indented-continuation',
+    run: 'FIXTURE',
+    meta: { ms: 1000 },
+    text: 'أركان الإسلام خمسة معلومة.\n    وأولها شهادة أن لا إله إلا الله. ثم تأتي بقية الأركان.',
+  },
+];
+
 async function runProof(streamHref, corpusPath, quiet) {
   const mod = await import(streamHref);
   const { createSentenceStream, reviewAndLock } = mod;
-  const corpus = JSON.parse(fs.readFileSync(corpusPath, 'utf8'));
+  const corpus = [...JSON.parse(fs.readFileSync(corpusPath, 'utf8')), ...TIDY_ONLY_RECORDS];
 
   const byLength = [...corpus].sort((a, b) => a.text.length - b.text.length);
   const charSet = new Set(byLength.slice(0, 20).map((r) => r.id));

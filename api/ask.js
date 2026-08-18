@@ -1000,6 +1000,66 @@ export default async function handler(req, res) {
     return res.end();
   };
 
+  // ── P5 §٣: THE SAME ANSWER, HANDED OVER AS A REAL MESSAGE ───────────────────
+  //
+  // `emitOnce` above opens with a delta and nothing else. lib/finalized-sse-writer.js's
+  // `trackEarlyLifecycle` wants message_start, then content_block_start, then deltas, so
+  // eligibility ends on the first frame and `earlyRelease` can never be consulted on any
+  // exit that uses it. That is the blocker STREAM-P4 §٢ measured and stopped on, and this
+  // is the door it named: ONE exit — the free brain's — delivers a whole message.
+  //
+  // ONE UNIT PER BURST, and the units are the reviewer's own, decided in the loop and
+  // handed here already proven to be prefixes of the text that ships (`unitsForDelivery`).
+  // Nothing here re-decides them; it declines them or writes them.
+  //
+  // NOT ONE BYTE LEAVES EARLIER THAN IT DOES TODAY, and that is deliberate rather than a
+  // shortfall. Without `options.earlyRelease` the writer holds every frame until `flush()`,
+  // so the finalizer still sees the whole answer before anything moves. Supplying an
+  // approval here would buy nothing — the loop has already returned, so all these frames
+  // are written back to back — while giving up the one property that makes this path safe:
+  // that the finalizer can still replace text nobody has read. The shape is what §٣ asks
+  // for; the timing is §٤'s to measure and a later phase's to earn.
+  //
+  // THE THREE DECLINES ARE ALL «DELIVER IT WHOLE», NEVER «DELIVER LESS»:
+  //   * no units            the flag is off, or the loop's own prefix check declined.
+  //   * a reader prefix     a server-owned lead is composed IN FRONT of the prose at
+  //                         flush (finalized-sse-writer.js:389), so a unit released here
+  //                         would not be the head of the answer. This is §٣/٥, built as a
+  //                         gap in front of the stream rather than a failure behind it.
+  //   * the seal moved it   the takhrij lock is applied to the finished text here, and the
+  //                         units were judged without the caller's page list. If the two
+  //                         disagree by one byte the units are not this answer's head.
+  const emitUnits = (text, units) => {
+    const list = Array.isArray(units) ? units.filter((u) => typeof u === 'string' && u) : [];
+    if (!list.length || finalizerContext.readerPrefix) return emitOnce(text);
+    const sealed = seal(text);
+    const head = list.join('\n');
+    if (!sealed.startsWith(head)) return emitOnce(text);
+    clearKeepAlive();
+    const frame = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+    frame({
+      type: 'message_start',
+      message: { id: 'server-finalized', type: 'message', role: 'assistant', content: [] },
+    });
+    frame({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } });
+    let sent = '';
+    for (const unit of list) {
+      // The reviewer joins its units with a single newline, so the separator belongs to the
+      // burst that follows rather than to the one that closed.
+      const piece = sent ? `\n${unit}` : unit;
+      frame({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: piece } });
+      sent += piece;
+    }
+    // Everything the units did not cover: the held tail and whatever is answer-level.
+    const remainder = sealed.slice(sent.length);
+    if (remainder) {
+      frame({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: remainder } });
+    }
+    frame({ type: 'content_block_stop', index: 0 });
+    frame({ type: 'message_stop' });
+    return res.end();
+  };
+
   try {
     // ── NARROW_SAFETY_TRIAGE (RFC v0.5-R2 §4) ──────────────────────────────
     //
@@ -1393,7 +1453,13 @@ export default async function handler(req, res) {
       // §٢ (C) — `=== true` and never a truthy test. `null` is «I do not know whether it finished»
       // and marking an answer incomplete on the strength of not knowing is the same invention as
       // the review mark on the half-written word, made in the other direction.
-      return emitOnce((out.text || FREE_BRAIN_EMPTY) + (out.truncated === true ? TRUNCATED_MARK : ''));
+      // P5 §٣ — the ONE exit that delivers a whole message. `emitUnits` falls back to
+      // `emitOnce` on every decline, so with STREAM_V1 off `out.readerUnits` is empty and
+      // this line does exactly what it did before, byte for byte.
+      return emitUnits(
+        (out.text || FREE_BRAIN_EMPTY) + (out.truncated === true ? TRUNCATED_MARK : ''),
+        out.readerUnits,
+      );
     }
 
     if (storedContext.runtime === 'STORED_FIQH') {
