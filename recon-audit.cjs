@@ -718,7 +718,15 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 87;   // 87th: standingnotice -- guards/standing-notice-band-guard.cjs. The standing
+  const GATES_EXPECTED = 88;   // 88th: telemetrytext -- guards/telemetry-text-guard.cjs. The handler
+                               //       printed the reader's own question on three lines: the planner's
+                               //       derived queries, the resolved topic, and twelve words claim-gate
+                               //       lifted verbatim out of the question. All three are deleted; the
+                               //       gate sweeps every console call on every api/ handler under two
+                               //       rules -- denied expressions, and an explicit allow-list of field
+                               //       names -- and kills four mutants: a restored field, a renamed one,
+                               //       one hidden inside an array, and an unreviewed name.
+                               // 87th: standingnotice -- guards/standing-notice-band-guard.cjs. The standing
                                //       notice under the composer carried «راجِعْ ما يهمُّك مع والديك» with NO
                                //       condition at all, so every adult reader was being sent to his parents.
                                //       The gate boots the shipped babel block, drives standingNoticeKey through

@@ -524,7 +524,11 @@ async function runSuite() {
         && miss.stored?.evidence.length === 0 && miss.stored.model === 0 && miss.cards.length === 0);
     }
     ok('all modes share query/evidence/relevance policy', new Set(modeRows.map((row) => JSON.stringify({
-      query: row.hit.stored.query, evidence: row.hit.stored.evidence,
+      // `query` USED TO BE THE WITNESS HERE AND IT IS NO LONGER PRINTED: the handler stopped
+      // logging the reader question. `candidates` replaces it rather than being dropped, because
+      // an assertion whose every term is `undefined` passes on any tree and proves nothing — and
+      // the candidate id list IS the query, observed through what it retrieved.
+      candidates: row.hit.stored.candidates, evidence: row.hit.stored.evidence,
     }))).size === 1);
     ok('standard modes retain Sonnet and authorised premium modes retain Opus',
       modeRows[0].hit.tier.model === 'claude-sonnet-5' && modeRows[1].hit.tier.model === 'claude-sonnet-5'
@@ -632,10 +636,10 @@ async function runSuite() {
     const m10out = await m10.runStoredFiqhTurn({ context: supportedContext, retrieve: async () => ({ records: [joinRecord] }), generate: async (request) => badTakhrijDraft(request.payload.evidence_pack, request.payload.current_question) });
     ok('MUTANT 10 KILLED: unsupported takhrij appears only when grounding output is bypassed', m10out.text.includes('رواه البخاري ومسلم'));
 
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 87; }
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 88; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 87-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 87-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 88-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 88-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

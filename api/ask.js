@@ -1360,12 +1360,23 @@ export default async function handler(req, res) {
         minuteMissing: destructive.length > 0 && redactions.length === 0,
         rows: redactions,
       }));
+      // ── THE QUESTION IS NOT AN OPERATIONAL FIELD ────────────────────────────
+      //
+      // `queries` USED TO SIT HERE, AND IT WAS THE USER SPEAKING. Each entry was a search string
+      // the planner derived from what the reader typed, so the platform log carried the subject of
+      // every question anybody asked — reworded, but the reader is still in it. The owner decision
+      // is that the question text is never recorded: not raw, not normalised, and not as a digest,
+      // because a digest of a short question is the question to anyone holding a wordlist.
+      //
+      // WHAT REPLACES IT IS NOTHING. There is no shortened form and no hash: the counts below
+      // already say how much was searched (`tools`, `providerCalls`, `retrieved`) and every
+      // numeric field an autopsy reads is untouched. What was lost is only the ability to read
+      // back WHAT was asked, which is the thing being given up on purpose.
       console.log('[free-brain/turn]', {
         domain: out.domain,
         rounds: out.rounds,
         modelCalls: out.modelCalls,
         tools: out.spend.map((s) => `${s.tool}:${s.results}`),
-        queries: out.spend.map((s) => s.query),
         providerCalls: out.spend.reduce((sum, s) => sum + s.providerCalls, 0),
         retrieved: out.evidence.length,
         cited: out.cited.map((row) => row.ref),
@@ -1450,13 +1461,15 @@ export default async function handler(req, res) {
       const cards = registerOwnedCards(storedOut.cards || []);
       finalizerContext.readerCards = cards;
       finalizerContext.readerCardPrefix = cards.length ? '\n\n' : '';
+      // `resolvedTopic`, `query` AND `queries` ARE GONE FROM THIS LINE, for the reason written
+      // over [free-brain/turn] above: all three were the reader question — the resolved topic is
+      // its subject and the two query fields are its rewording. The identifiers stay, because an
+      // opaque record id is not the question: `candidates`, `evidence` and `used` still say which
+      // rows were seen, kept and cited, and every call counter below is untouched.
       console.log(toLedger ? '[hybrid-deen]' : '[stored-deen]', {
         route: storedContext.runtime,
         domain: storedContext.resolvedDomain,
         resolvedScholar: storedContext.resolvedScholar ? storedContext.resolvedScholar.display : null,
-        resolvedTopic: storedContext.resolvedTopic,
-        query: storedOut.searchQuery,
-        queries: storedOut.searchQueries || (storedOut.searchQuery ? [storedOut.searchQuery] : []),
         candidates: storedOut.candidateRecordIds,
         evidence: storedOut.evidencePackIds,
         used: storedOut.validatedUsedEvidenceIds || storedOut.validatedUsedRecordIds,
@@ -3259,8 +3272,18 @@ export default async function handler(req, res) {
           console.warn('[claim] phrase probe threw:', e.message);
         }
       }
+      // THE THIRD SITE, FOUND BY SWEEPING RATHER THAN BY BEING TOLD ABOUT IT.
+      //
+      // `subject` PRINTED THE READER'S OWN WORDS. claim-gate builds it as `words.join(' ')` over
+      // the quoted span of the question, or over the twelve words following an introducing
+      // marker — so this line carried a verbatim, normalised fragment of what somebody typed,
+      // which is the one thing the owner ruled is never recorded. It is deleted, not shortened
+      // and not digested: twelve words of Arabic hash to something a wordlist reverses.
+      //
+      // `source` STAYS AND IS THE POINT OF THE LINE. It is a fixed vocabulary — quote, marker,
+      // anaphora or null — and it answers the operational question this log exists for (which
+      // detector fired) without saying what the reader asked about.
       console.log('[claim]', {
-        subject: claimSubject.subject || null,
         source: claimSubject.source,
         pages: retrievedPages.length,
         supporting: supporting.length,
