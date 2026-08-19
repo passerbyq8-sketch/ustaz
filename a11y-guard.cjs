@@ -560,7 +560,7 @@ function partD() {
     const m = t.match(/https?:\/\/([^\/"']+)/); if (m && hosts.indexOf(m[1]) === -1) hosts.push(m[1]);
   });
   eq('...and reaches no host it did not already reach',
-    hosts.filter((h) => ['unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'mushaf.almurabbi.app'].indexOf(h) === -1), []);
+    hosts.filter((h) => ['unpkg.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com', 'mushaf.almurabbi.app'].indexOf(h) === -1), []);
 
   // the boot script applies the preference before first paint
   ok('the preferences are applied before the first paint', /ezik_reading_prefs_v1/.test(html.slice(0, html.indexOf('</head>'))));

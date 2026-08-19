@@ -1787,7 +1787,10 @@ function partE() {
     scriptSourceProblems(srcs.filter((source) => !/\/react@/.test(source))).includes('missing:react'));
   ok('...and neither analytics script is among them',
     !srcs.some((u) => /_vercel\/(insights|speed-insights)/.test(String(u))), srcs.join(' || '));
-  const EXPECTED_HOSTS = ['unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'mushaf.almurabbi.app'];
+  // cdn.jsdelivr.net serves @babel/standalone -- same version, same SRI hash, same bytes as
+  // unpkg, which still serves react and react-dom. Declared, not widened: an undeclared host
+  // still fails this check.
+  const EXPECTED_HOSTS = ['unpkg.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com', 'mushaf.almurabbi.app'];
   const hosts = [];
   (html.match(/(?:src|href)=["']https?:\/\/([^\/"']+)/gi) || []).forEach((t) => {
     const h = (t.match(/https?:\/\/([^\/"']+)/) || [])[1];
