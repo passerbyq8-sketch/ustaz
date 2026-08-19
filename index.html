@@ -1223,7 +1223,15 @@ window.__ezikVendor = (function () {
   return load;
 })();
 </script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){try{navigator.serviceWorker.register('/sw.js').catch(function(){});}catch(e){}});}</script>
+<!-- S117 PERF. Registration still happens on `load`, but the install is handed to the idle
+     callback with a 5s backstop instead of firing inside it. Measured cold against live
+     ezik.app: `load` lands at ~1.42s and the first contentful paint at ~1.63s, so the worker
+     used to start its precache 210ms BEFORE the paint -- and that precache is 470KB (a second,
+     byte-identical copy of this document, mushaf-layout.json and the two large icons), every
+     one of which the first screen needs none of. Nothing about the four cache policies in
+     sw.js changes; only the moment the install begins. Offline readiness arrives a beat later
+     on the very first visit and is identical on every visit after it. -->
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){var go=function(){try{navigator.serviceWorker.register('/sw.js').catch(function(){});}catch(e){}};if(typeof requestIdleCallback==='function'){requestIdleCallback(go,{timeout:5000});}else{setTimeout(go,2000);}});}</script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef } = React;
