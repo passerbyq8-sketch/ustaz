@@ -19,7 +19,9 @@ const path = require('path');
 const http = require('http');
 const net = require('net');
 const crypto = require('crypto');
+const vm = require('vm');
 const { spawn } = require('child_process');
+const babelParser = require('@babel/parser');
 
 const REPO = __dirname;
 const QUEST = process.argv[2] || 'quest.html';
@@ -43,6 +45,55 @@ function eq(name, actual, expected) {
   return ok(name, a === e, 'expected ' + e + '\n        actual   ' + a);
 }
 const cps = (x) => Array.prototype.map.call(String(x == null ? '' : x), (c) => c.charCodeAt(0).toString(16)).join(' ');
+
+// ===========================================================================
+// P2. THE HADITH CARD LABEL — exercise the shipped label decision, not a copy.
+// ===========================================================================
+function partP2Labels() {
+  console.log('\n=== P2. THE HADITH CARD LABEL ===');
+  const html = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8');
+  const open = /<script[^>]*type=["']text\/babel["'][^>]*>/i.exec(html);
+  const raw = open ? html.slice(open.index + open[0].length,
+    html.indexOf('</script>', open.index + open[0].length)) : '';
+  let ast = null;
+  try { ast = raw ? babelParser.parse(raw, { sourceType: 'script', plugins: ['jsx'] }) : null; }
+  catch (e) { ok('the shipped app script parses for label inspection', false, e.message); }
+
+  let neutralSource = '', labelSource = '', cardSource = '';
+  for (const statement of ast?.program?.body || []) {
+    if (statement.type === 'VariableDeclaration') {
+      const declaration = statement.declarations.find((item) =>
+        item.id?.type === 'Identifier' && item.id.name === 'NEUTRAL_HADITH_LABEL' && item.init);
+      if (declaration) neutralSource = raw.slice(declaration.init.start, declaration.init.end);
+    }
+    if (statement.type === 'FunctionDeclaration' && statement.id?.name === 'HadithCard') {
+      cardSource = raw.slice(statement.start, statement.end);
+      for (const child of statement.body.body) {
+        if (child.type !== 'VariableDeclaration') continue;
+        const declaration = child.declarations.find((item) =>
+          item.id?.type === 'Identifier' && item.id.name === 'label' && item.init);
+        if (declaration) labelSource = raw.slice(declaration.init.start, declaration.init.end);
+      }
+    }
+  }
+
+  const extracted = ok('the shipped HadithCard exposes one inspectable label decision',
+    !!neutralSource && !!labelSource && !!cardSource);
+  if (!extracted) return;
+  const neutral = vm.runInNewContext('(' + neutralSource + ')');
+  const labelFor = (att) => vm.runInNewContext('(' + labelSource + ')', {
+    att, NEUTRAL_HADITH_LABEL: neutral,
+  });
+  eq('no surviving narrator or ruling gets the neutral label',
+    labelFor({ narrator: '', ruling: '' }), 'نص منقول');
+  eq('a surviving narrator gets the supported-hadith label',
+    labelFor({ narrator: 'البخاري', ruling: '' }), 'من السنة النبوية');
+  eq('a surviving ruling alone gets the supported-hadith label',
+    labelFor({ narrator: '', ruling: 'صحيح' }), 'من السنة النبوية');
+  ok('the badge renders only the decided label, never an interpolated narrator',
+    /<span>\{label\}<\/span>/.test(cardSource)
+      && !/<span>\{[^}]*att\.narrator/.test(cardSource));
+}
 
 // ===========================================================================
 // A. THE BANK IS SEALED — this part needs no browser.
@@ -416,6 +467,7 @@ async function partNarrow(theme) {
 // ===========================================================================
 (async function main() {
   console.log('=== quest-ux-guard (S100) — ' + QUEST + ' ===');
+  partP2Labels();
   partA();
   if (!CHROME) {
     ok('a browser is available to run the page in', false, 'Chrome was not found at ' + JSON.stringify(CHROME_CANDIDATES));
