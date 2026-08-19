@@ -301,7 +301,15 @@ const ASKS_IDENTITY = /لم أتبيّنْ أيَّ شيخٍ تقصد|لم يت�
     ok('genuine ambiguity fails closed before corpus/model without selecting a candidate',
       r.text === STORED.NO_STORED_EVIDENCE && r.systems.length === 0
         && r.stored?.corpusCalls === 0 && r.stored?.model === 0
-        && r.stored?.resolvedScholar === null && r.stored?.query === ''
+        && r.stored?.resolvedScholar === null
+        // `query === ''` used to stand here as the proof that no search was even composed.
+        // The handler no longer prints the query — it is the reader question reworded — so the
+        // same fact is read off what the missing query DID: no corpus call above, and not one
+        // candidate and not one evidence row below. Both arrays are type-checked rather than
+        // truthiness-checked, because `undefined?.length === 0` is false but `[].length === 0`
+        // and a missing field must not be able to pass this as an empty one.
+        && Array.isArray(r.stored?.candidates) && r.stored.candidates.length === 0
+        && Array.isArray(r.stored?.evidence) && r.stored.evidence.length === 0
         && !/خالد المصلح|خالد السبت|أكثر من عالِم/u.test(r.text),
       JSON.stringify({ stored: r.stored, systems: r.systems.length, text: r.text }));
     ok('...and does not demand a website', !/رابطَ موقعِه/.test(r.text));

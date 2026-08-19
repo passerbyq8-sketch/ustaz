@@ -440,5 +440,10 @@
     "name": "standingnotice",
     "script": "guards/standing-notice-band-guard.cjs",
     "args": "--mutants"
+  },
+  {
+    "name": "telemetrytext",
+    "script": "guards/telemetry-text-guard.cjs",
+    "args": ""
   }
 ]
