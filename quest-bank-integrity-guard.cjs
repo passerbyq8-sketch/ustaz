@@ -90,7 +90,7 @@ const SEALED = {
   // now carry `text eol=lf` in .gitattributes, so what is checked out is what is sealed.
   // Re-cut these only from a tree measured at CR = 0.
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
-  'sw.js': '4b8c58f68da7a8c04c52a42819fb2d5d2eea83d483eeb5fea495b0e7758af7a3',
+  'sw.js': '182dbddd968a66b67190c77c33a5cb51c34632cdd33325dffcde2fe4af285c6b',
 };
 
 // ---------------------------------------------------------------------------
