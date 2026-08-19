@@ -21,9 +21,13 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (mushaf/manifest/fonts).
 const CACHE = 'ezik-v1';
+// '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
+// '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
+// 298686 transferred bytes for a second copy of what '/' already holds. The network-first
+// branch below still cache.put()s the shell on every successful load, so the offline fallback
+// keeps working from the '/' entry.
 const CORE = [
   '/',
-  '/index.html',
   '/manifest.json',
   '/quran-uthmani.json',
   '/mushaf-layout.json',
@@ -74,7 +78,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
         }
         return res;
-      }).catch(() => caches.match(req).then((m) => m || caches.match('/index.html')))
+      }).catch(() => caches.match(req).then((m) => m || caches.match('/')))
     );
     return;
   }
@@ -94,7 +98,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
         }
         return res;
-      }).catch(() => caches.match(req).then((m) => m || (req.mode === 'navigate' ? caches.match('/index.html') : undefined)));
+      }).catch(() => caches.match(req).then((m) => m || (req.mode === 'navigate' ? caches.match('/') : undefined)));
     })
   );
 });
