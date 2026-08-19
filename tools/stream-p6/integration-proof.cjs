@@ -265,12 +265,12 @@ async function quiet(action) {
   try { return await action(); } finally { Object.assign(console, saved); }
 }
 
-function commonOptions({ stream = true, lexicalRoute = 'GEN' } = {}) {
+function commonOptions({ stream = true, lexicalRoute = 'GEN', band = 'adult' } = {}) {
   return {
     messages: [{ role: 'user', content: 'اختبار بنيوي محلي.' }],
     system: 'اختبار بنيوي محلي.',
     model: 'proof-model', maxTokens: 512, usePremium: false, effort: '',
-    band: 'adult', mode: 'standard', lexicalRoute,
+    band, mode: 'standard', lexicalRoute,
     providerUrl: PROVIDER, headers: {}, signal: undefined, dailyBudget: null,
     env: { STREAM_V1: stream ? 'on' : 'off' },
   };
@@ -341,6 +341,21 @@ function fiqhWithoutCardsPlan() {
       }),
     },
     { kind: 'json', payload: jsonPayload(TERMINAL.join('')) },
+  ];
+}
+
+function mixedWithoutCardsPlan() {
+  const noHit = 'zzzz-no-result-stream-proof';
+  return [
+    {
+      kind: 'json',
+      payload: toolPayload({ name: 'search_fatawa', input: { query: noHit }, id: 'mixed-tool-1' }),
+    },
+    {
+      kind: 'json',
+      payload: toolPayload({ name: 'search_live', input: { query: noHit }, id: 'mixed-tool-2' }),
+    },
+    { kind: 'sse', chunks: TERMINAL },
   ];
 }
 
@@ -591,6 +606,25 @@ async function main() {
   check(fiqhWithoutCards.out.degraded.some((note) => note.startsWith('stream_withheld:ruling_without_cards')),
     'empty-evidence fiqh withhold was not named');
 
+  // PART B BY CONSTRUCTION. General adult, general child, and mixed are all outside the literal
+  // fiqh domain, so an empty evidence table is not a body-streaming hold for any of them.
+  const childGeneral = await runCase(
+    live, makeDelivery, streamedFinishPlan(), { stream: true, lexicalRoute: 'GEN', band: 'child' },
+  );
+  const mixedWithoutCards = await runCase(
+    live, makeDelivery, mixedWithoutCardsPlan(), { stream: true, lexicalRoute: 'DEEN' },
+  );
+  check(childGeneral.out.domain === 'general' && childGeneral.early.writes > 0,
+    'child general body did not stream');
+  check(mixedWithoutCards.out.domain === 'mixed',
+    `mixed fixture resolved as ${mixedWithoutCards.out.domain}`);
+  check(mixedWithoutCards.out.evidence.length === 0,
+    'mixed empty-card fixture gained evidence');
+  check(mixedWithoutCards.early.writes > 0 && mixedWithoutCards.out.streamPrefixValid === true,
+    'mixed body was withheld without cards');
+  const nonFiqhBodyStreamed = [finish, childGeneral, mixedWithoutCards]
+    .filter((item) => item.early.writes > 0).length;
+
   // THE CUT. The stream dies mid-round; the accepted prefix becomes the head, the tools-removed
   // write finishes the answer, and the reader's bytes are still the beginning of it.
   const cut = await runCase(live, makeDelivery, [
@@ -677,7 +711,7 @@ async function main() {
   ));
   mutations.push(await mutation(
     'stream-past-the-card-test',
-    "    const roundRulingWithoutCards = roundDomain !== 'general' && table.rows.length === 0;",
+    "    const roundRulingWithoutCards = roundDomain === 'fiqh' && table.rows.length === 0;",
     '    const roundRulingWithoutCards = false;',
     async (module) => {
       const result = await runCase(
@@ -741,7 +775,9 @@ async function main() {
   for (const item of mutations) check(item.status === 'CAUGHT', `${item.name} was ${item.status}`);
   check(inverse.status === 'MISSED', `inverse control was ${inverse.status}, expected MISSED`);
 
-  const allCases = [finish, headOn, headOff, pin, citation, fiqhWithoutCards, cut];
+  const allCases = [
+    finish, headOn, headOff, pin, citation, fiqhWithoutCards, childGeneral, mixedWithoutCards, cut,
+  ];
   const integratedPrefixFailures = allCases.filter((item) => item.out.streamPrefixValid === false
     || item.out.degraded.some((entry) => entry === 'stream_violation:emitted-not-a-prefix')
     || item.delivery.rejects.some((entry) => entry.reason === 'not-a-prefix')).length;
@@ -763,6 +799,7 @@ async function main() {
   console.log(`CORPUS_PREFIX_COMPARISONS=${corpusPrefixComparisons}`);
   console.log(`EMITTED_NOT_PREFIX=${prefixFailures}`);
   console.log(`FIQH_STREAMED_WITHOUT_CARDS=${fiqhStreamedWithoutCards}`);
+  console.log(`NON_FIQH_BODY_STREAMED=${nonFiqhBodyStreamed}/3 CHILD_STREAMED=${childGeneral.early.writes > 0 ? 1 : 0}/1`);
   console.log(`PROTOCOL_PAYLOAD_EARLY=${protocol.acceptedPrefix.includes('حمولة محجوبة') ? 'YES' : 'NO'}`);
   console.log(`CODE_SHAPE_PRESERVED=${code.oracle.includes('value = maybe') ? 'YES' : 'NO'}`);
   for (const item of mutations) console.log(`MUTANT ${item.status.padEnd(7)} ${item.name}`);
