@@ -29,12 +29,40 @@ const CACHE = 'ezik-v1';
 const CORE = [
   '/',
   '/manifest.json',
-  '/quran-uthmani.json',
-  '/mushaf-layout.json',
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-512.png',
 ];
+
+// S117 PERF. THESE TWO ARE STILL CACHED -- JUST NOT INSIDE install. quran-uthmani.json
+// (338409 transferred) and mushaf-layout.json (151653) are 490062 bytes that no first screen
+// reads: the shell renders the conversation, and both files are only reached from the mushaf.
+// Precaching them in install put them in flight during the window the first paint was waiting
+// on. They now warm AFTER the boot goes idle, and they are never dropped -- offline readiness
+// for the mushaf arrives a beat later on the very first visit and is identical on every visit
+// after it.
+//
+// requestIdleCallback is a Window API; ServiceWorkerGlobalScope has no idle callback at all.
+// So the real idle signal comes from the page (a postMessage sent from ITS requestIdleCallback,
+// the same pattern as the registration in index.html), and the backstop half of that pattern --
+// the timeout -- lives here for any client that never posts, such as a page served from an
+// older cached build.
+const IDLE = [
+  '/quran-uthmani.json',
+  '/mushaf-layout.json',
+];
+const IDLE_BACKSTOP_MS = 1500;
+
+// Cache-match first: the page prefetches quran-uthmani.json on its own idle callback, and the
+// cache-first branch of fetch() below stores it. Re-adding it here would download 338KB twice.
+let warming = null;
+function warmIdle() {
+  if (warming) return warming;
+  warming = caches.open(CACHE).then((cache) => Promise.all(
+    IDLE.map((u) => cache.match(u).then((hit) => (hit ? null : cache.add(u).catch(() => {}))))
+  )).catch(() => {});
+  return warming;
+}
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -50,6 +78,14 @@ self.addEventListener('activate', (event) => {
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
+  // Not inside waitUntil: activation must not wait on half a megabyte. The page normally beats
+  // this by posting from its own idle callback; this only covers the clients that never do.
+  setTimeout(warmIdle, IDLE_BACKSTOP_MS);
+});
+
+// The page's idle signal. Anything else posted here is ignored.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.ezik === 'warm') event.waitUntil(warmIdle());
 });
 
 self.addEventListener('fetch', (event) => {
