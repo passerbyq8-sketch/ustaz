@@ -144,7 +144,7 @@ function answerShapeViolations(reply) {
 (async function main() {
   console.log('=== answer-shape-guard — the answer starts at the content and ends at the content ===');
 
-  let SP = null, RT = null, ASK = null, CORE = null, IMP = null, TAKH = null, EA = null;
+  let SP = null, RT = null, ASK = null, CORE = null, IMP = null, TAKH = null, EA = null, LOOP = null;
   try {
     SP = await esm('lib/system-prompt.js');
     RT = await esm('lib/policy/referral-tail.js');
@@ -152,11 +152,42 @@ function answerShapeViolations(reply) {
     IMP = await esm('lib/policy/impermissible-request.js');
     TAKH = await esm('lib/policy/takhrij-disclosure.js');
     EA = await esm('lib/empty-answer.js');
+    LOOP = await esm('lib/free-brain/loop.js');
     ASK = await esm('api/ask.js');
   } catch (e) {
     ok('the real modules load', false, e.message);
     console.log('\n=== ' + (checks - failures) + '/' + checks + ' — FAIL ===');
     process.exit(1);
+  }
+
+  // =========================================================================
+  console.log('\n=== A0. THE DELIVERED ANSWER ENDS AT ITS CONTENT ===');
+  {
+    const CONTENT = '\u{627}\u{644}\u{62C}\u{648}\u{627}\u{628} \u{64A}\u{628}\u{642}\u{649}.';
+    const CLOSING = '\u{646}\u{639}\u{645}.';
+    const OFFER = '\u{62A}\u{628}\u{63A}\u{649} \u{648}\u{627}\u{62D}\u{62F}\u{627} \u{622}\u{62E}\u{631}\u{61F}';
+    const delivered = (value) => LOOP.deliverableText(value, []);
+
+    eq('the measured final reader offer is removed', delivered(CONTENT + '\n\n' + OFFER), CONTENT);
+    eq('the same words stay when their block is not last',
+      delivered(CONTENT + '\n' + OFFER + '\n' + CLOSING), CONTENT + '\n' + OFFER + '\n' + CLOSING);
+    eq('an offer standing alone cannot erase the answer', delivered(OFFER), OFFER);
+    eq('a final question carrying a citation stays',
+      delivered(CONTENT + '\n[[1]] ' + OFFER), CONTENT + '\n[[1]] ' + OFFER);
+    eq('a final question carrying a card stays',
+      delivered(CONTENT + '\n<source>proof</source> ' + OFFER),
+      CONTENT + '\n<source>proof</source> ' + OFFER);
+    eq('a final question carrying an ayah wrapper stays',
+      delivered(CONTENT + '\n\u{FD3F}\u{646}\u{635}\u{FD3E} ' + OFFER),
+      CONTENT + '\n\u{FD3F}\u{646}\u{635}\u{FD3E} ' + OFFER);
+    eq('a final question carrying transmitted text stays',
+      delivered(CONTENT + '\n\u{AB}\u{646}\u{635}\u{BB} ' + OFFER),
+      CONTENT + '\n\u{AB}\u{646}\u{635}\u{BB} ' + OFFER);
+    eq('a legitimate final question without the reader-offer token stays',
+      delivered(CONTENT + '\n\u{647}\u{644} \u{647}\u{630}\u{627} \u{635}\u{62D}\u{64A}\u{62D}\u{61F}'),
+      CONTENT + '\n\u{647}\u{644} \u{647}\u{630}\u{627} \u{635}\u{62D}\u{64A}\u{62D}\u{61F}');
+    eq('an unclosed code fence protects its final line',
+      delivered('```text\n' + OFFER), '```text\n' + OFFER);
   }
 
   // =========================================================================
