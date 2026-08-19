@@ -1060,6 +1060,69 @@ export default async function handler(req, res) {
     return res.end();
   };
 
+  // P6: the same lifecycle as `emitUnits`, opened while the terminal provider call is still
+  // arriving.  Only units already approved by `createTerminalUnitStream` are written here; the
+  // held tail is appended after the loop returns and remains buffered until finalization.
+  const liveFreeBrainUnits = (() => {
+    let opened = false;
+    let sent = '';
+    let approved = '';
+    const frame = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+
+    const push = ({ piece, text }) => {
+      if (finalizerContext.readerPrefix || typeof res.armEarlyRelease !== 'function') return false;
+      if (text !== sent + piece) return false;
+      if (!opened) {
+        clearKeepAlive();
+        const armed = res.armEarlyRelease(() => approved);
+        if (!armed) return false;
+        if (!frame({
+          type: 'message_start',
+          message: { id: 'server-finalized', type: 'message', role: 'assistant', content: [] },
+        })) return false;
+        if (!frame({
+          type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' },
+        })) return false;
+        opened = true;
+      }
+      approved = text;
+      if (!frame({
+        type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: piece },
+      })) return false;
+      sent = text;
+      return true;
+    };
+
+    const finish = (text) => {
+      if (!opened) return null;
+      const sealed = seal(text);
+      if (sealed.startsWith(sent)) {
+        const remainder = sealed.slice(sent.length);
+        if (remainder) frame({
+          type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: remainder },
+        });
+      } else {
+        // Bytes already accepted cannot be replaced. Close the valid prefix instead of layering
+        // a second answer over it, and name the downstream seal divergence explicitly.
+        console.warn('[free-brain/stream] finalized text did not retain the emitted prefix');
+      }
+      frame({ type: 'content_block_stop', index: 0 });
+      frame({ type: 'message_stop' });
+      return res.end();
+    };
+
+    return {
+      push,
+      finish,
+      get opened() { return opened; },
+      get sent() { return sent; },
+    };
+  })();
+
+  const emitFreeBrain = (text, units) => (liveFreeBrainUnits.opened
+    ? liveFreeBrainUnits.finish(text)
+    : emitUnits(text, units));
+
   try {
     // ── NARROW_SAFETY_TRIAGE (RFC v0.5-R2 §4) ──────────────────────────────
     //
@@ -1319,6 +1382,7 @@ export default async function handler(req, res) {
           headers,
           signal: freeUpstream.signal,
           dailyBudget: paidSearchBudget,
+          onWriteUnit: (detail) => liveFreeBrainUnits.push(detail),
         });
       } finally {
         freeUpstream.cleanup();
@@ -1424,6 +1488,13 @@ export default async function handler(req, res) {
         domain: out.domain,
         rounds: out.rounds,
         modelCalls: out.modelCalls,
+        terminalWriteAdded: out.terminalWriteAdded === true,
+        terminalWriteMs: out.terminalWriteMs ?? null,
+        terminalWriteUsage: out.terminalWriteUsage ?? null,
+        streamedThisTurn: out.streamedThisTurn === true,
+        streamPrefixValid: out.streamPrefixValid !== false,
+        terminalStreamViolations: Array.isArray(out.terminalStreamViolations)
+          ? out.terminalStreamViolations.length : 0,
         tools: out.spend.map((s) => `${s.tool}:${s.results}`),
         queries: out.spend.map((s) => s.query),
         providerCalls: out.spend.reduce((sum, s) => sum + s.providerCalls, 0),
@@ -1456,7 +1527,7 @@ export default async function handler(req, res) {
       // P5 §٣ — the ONE exit that delivers a whole message. `emitUnits` falls back to
       // `emitOnce` on every decline, so with STREAM_V1 off `out.readerUnits` is empty and
       // this line does exactly what it did before, byte for byte.
-      return emitUnits(
+      return emitFreeBrain(
         (out.text || FREE_BRAIN_EMPTY) + (out.truncated === true ? TRUNCATED_MARK : ''),
         out.readerUnits,
       );
