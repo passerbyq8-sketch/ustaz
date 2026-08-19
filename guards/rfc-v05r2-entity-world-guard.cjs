@@ -461,12 +461,32 @@ async function main() {
         singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).length <= 1
         && singer.state.braveQueries.filter((q) => /خالد|عبدالرحمن/.test(q)).every(WORLD_ONLY),
         JSON.stringify(singer.state.braveQueries));
+      // ── THE WITNESS MOVED FROM THE PRINT TO THE PRODUCER ───────────────────
+      //
+      // This assertion used to read the query off the [stored-deen] log line. That line no
+      // longer carries one: the reader question is not recorded any more, and the stored query
+      // IS the question reworded. The check is not softened to match — it is rebuilt one layer
+      // down, on the two functions the handler itself composes to produce that query, with the
+      // same plan and the same route the handler passes them. A claim about a printed string
+      // became a claim about the code that produces it, which is the stronger of the two, and
+      // the emptiness test below is there so a builder that starts returning nothing cannot
+      // pass this by having no name in it.
+      const storedQueryFor = async (question) => {
+        const SD = await esm('lib/stored-deen.js');
+        const AP = await esm('lib/ask-plan.js');
+        const thread = [{ role: 'user', content: question }];
+        return String(SD.buildStoredSearchQuery(SD.resolveStoredContext(thread, {
+          currentPlan: AP.planAsk(thread), lexicalRoute: 'DEEN',
+        })) || '');
+      };
+      const singerStoredQuery = await storedQueryFor(Q_SINGER_TITLED);
       ok('...and the closed-corpus query carries only the actual fiqh topic',
-        /جمع|صلاتين|مسافر/u.test(String(singer.state.stored?.query || ''))
-          && !/خالد|عبدالرحمن/u.test(String(singer.state.stored?.query || ''))
+        /جمع|صلاتين|مسافر/u.test(singerStoredQuery)
+          && !/خالد|عبدالرحمن/u.test(singerStoredQuery)
           && singer.state.stored?.publicSearch === 0 && singer.state.stored?.publicFetch === 0
+          && singerStoredQuery.length > 0
           && singer.state.stored?.adapters === 0,
-        JSON.stringify(singer.state.stored));
+        JSON.stringify({ singerStoredQuery: singerStoredQuery.length, stored: singer.state.stored }));
       ok('the reader gets only the general stored ruling, with no false attribution',
         /لا يوجد في مصادري المخزنة نص منسوب لـخالد عبدالرحمن/u.test(singer.text)
           && /يجوز الجمع للمسافر بين الصلاتين/u.test(singer.text)
