@@ -409,3 +409,18 @@ data/transfer-fixtures/*.html -text
 # ...and the manifest itself IS ours, and is read as text.
 data/transfer-fixtures/manifest.json text eol=lf
 data/transfer-fixtures/a3-cases.json text eol=lf
+
+# lib/colon-preamble.js — the colon-preamble detector adopted in 30e0ad4, and the pin that was
+# missing from the same commit. It is the third file in this repository to arrive as a NEW module
+# that a guard reads and mutates as text while carrying no pin, and the first two both cost a
+# green gate: lib/route-classify.js was stored LF, pinned nowhere, and checked out with 320 CR, so
+# guards/stored-deen-sub-suite.cjs's routeMutant() missed every seam and takhrij stood at 84/87;
+# lib/finalized-sse-writer.js was stored LF, pinned nowhere, and checked out with 396 CR, so the
+# three-line template seam at takhrij-lock-guard.cjs:425 missed and a mutant that was never
+# applied was reported as a mutant that was killed. Both were baseline debt found only when
+# something else was fixed.
+# MEASURED here before the pin, on this machine (core.autocrlf=true): the blob is stored LF
+# (4,395 bytes, 83 lone LF, 0 CR) and a forced fresh checkout produced 4,478 bytes with 83 CR and
+# 0 lone LF. guards/takhrij-lock-guard.cjs imports this module and lib/takhrij-lock.js calls it on
+# every sealed answer, so the pin closes the disagreement before it can cost a third gate.
+lib/colon-preamble.js text eol=lf
