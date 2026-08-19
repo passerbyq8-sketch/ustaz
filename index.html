@@ -6759,7 +6759,23 @@ function App() {
   }, []);
 
   // تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
-  useEffect(() => { loadQuran().catch(() => {}); }, []);
+  useEffect(() => {
+    // S117 PERF. The prefetch stays; it no longer races the first paint. Measured cold against
+    // live ezik.app, THIS effect issued /quran-uthmani.json (338KB transferred, 1.41MB parsed)
+    // while React was still committing the first screen -- 24% of everything a cold visit
+    // downloads, in flight during the window the paint was waiting on. Nothing on the first
+    // screen reads __quranData: every consumer calls loadQuran() and awaits the same promise,
+    // so the request is now handed to the idle callback with a 3s backstop. Same URL, same
+    // cache entry, same "the first verse is already there"; only the moment it starts moved
+    // past the paint it was competing with. The service worker precaches the same file anyway.
+    const go = () => { loadQuran().catch(() => {}); };
+    if (typeof requestIdleCallback === 'function') {
+      const h = requestIdleCallback(go, { timeout: 3000 });
+      return () => { try { cancelIdleCallback(h); } catch (e) {} };
+    }
+    const t = setTimeout(go, 1200);
+    return () => clearTimeout(t);
+  }, []);
 
   // زر الرجوع (أندرويد/المتصفح) — خطأ ١٥: بلا هذا يُغلق التطبيق فوراً من أي شاشة فرعية.
   // خطأ ٤٦: داخل المصحف يقشر الرجوع طبقة واحدة (قارئ السورة ← منتقي السورة) بدل القفز إلى home، ثم يعيد دفع مدخل تاريخ كي لا تُخرج الضغطة التالية من التطبيق قبل بلوغ home.
