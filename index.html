@@ -1230,8 +1230,14 @@ window.__ezikVendor = (function () {
      byte-identical copy of this document, mushaf-layout.json and the two large icons), every
      one of which the first screen needs none of. Nothing about the four cache policies in
      sw.js changes; only the moment the install begins. Offline readiness arrives a beat later
-     on the very first visit and is identical on every visit after it. -->
-<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){var go=function(){try{navigator.serviceWorker.register('/sw.js').catch(function(){});}catch(e){}};if(typeof requestIdleCallback==='function'){requestIdleCallback(go,{timeout:5000});}else{setTimeout(go,2000);}});}</script>
+     on the very first visit and is identical on every visit after it.
+
+     The registration also hands the worker the page idle signal it cannot produce for itself:
+     ServiceWorkerGlobalScope has no requestIdleCallback, so the two heavy mushaf JSONs that
+     sw.js moved out of its install (490062 transferred bytes the first screen never reads) are
+     warmed when THIS page goes idle. sw.js keeps a timeout backstop for clients that never
+     post. Nothing is dropped from the cache -- the mushaf still opens offline after one visit. -->
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){var idle=function(fn,t,f){if(typeof requestIdleCallback==='function'){requestIdleCallback(fn,{timeout:t});}else{setTimeout(fn,f);}};var warm=function(reg){idle(function(){var w=(reg&&reg.active)||navigator.serviceWorker.controller;if(w){try{w.postMessage({ezik:'warm'});}catch(e){}}},3000,1500);};var go=function(){try{navigator.serviceWorker.register('/sw.js').then(warm,function(){});}catch(e){}};idle(go,5000,2000);});}</script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef } = React;
