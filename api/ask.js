@@ -1348,7 +1348,7 @@ export default async function handler(req, res) {
       // linkedom/Readability only if the model actually calls a web tool, and a turn that
       // answers a sum from memory must not pay for loading them.
       const {
-        runFreeBrainTurn, pickReaderCards, encyclopediaTail, citedDeliveryLedger,
+        runFreeBrainTurn, pickReaderCards, reviewerEvidence, encyclopediaTail, citedDeliveryLedger,
       } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
 
@@ -1407,7 +1407,20 @@ export default async function handler(req, res) {
       // constant exists. The selection rule, and why deduplication runs before the cut, are
       // written out in `pickReaderCards`; the constant stays here, where every other path reads it.
       const buildFreeCard = (row) => buildSourceTag({ url: row.url, title: row.title });
-      const cards = registerOwnedCards(pickReaderCards(out.cited, MAX_SOURCES, buildFreeCard));
+      const reviewSentences = Array.isArray(out.verdict?.sentences) ? out.verdict.sentences : [];
+      const explicitlyRejectedAttribution = reviewSentences.some((sentence) => sentence
+        && (sentence.action === 'kept-unsupported-attribution-marked'
+          || sentence.action === 'removed-unsupported-attribution'));
+      // A rejection action names no evidence row. It identifies a card only when one cited row
+      // remains, and even that row stays when the reviewer explicitly passed it elsewhere.
+      // Multiple rows are ambiguous, so the governing default there is KEEP.
+      const onlyCitedRow = out.cited.length === 1 ? out.cited[0] : null;
+      const onlyCitedRowPassed = onlyCitedRow && reviewSentences
+        .some((sentence) => sentence?.evidenceId === reviewerEvidence(onlyCitedRow).id);
+      const rejectedCardRow = explicitlyRejectedAttribution && onlyCitedRow && !onlyCitedRowPassed
+        ? onlyCitedRow : null;
+      const buildReviewedCard = (row) => row === rejectedCardRow ? null : buildFreeCard(row);
+      const cards = registerOwnedCards(pickReaderCards(out.cited, MAX_SOURCES, buildReviewedCard));
       finalizerContext.readerCards = cards;
       finalizerContext.readerCardPrefix = cards.length ? '\n\n' : '';
       // ── §٣ (C): THE ENCYCLOPEDIA IS ATTRIBUTED IN A LINE, NOT IN A CARD ────
