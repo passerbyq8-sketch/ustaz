@@ -91,7 +91,49 @@ const ALLOWED_FIELDS = [
   'source', 'sourceIds', 'sourcePolicy', 'sources', 'supporting', 'tools', 'topic', 'transfer',
   'truncated', 'turn', 'used', 'verdict',
 ];
-const ALLOWED = new Set(ALLOWED_FIELDS);
+// ── RULE B, CONTINUED: THE STREAMING TURN'S OWN COUNTERS ──────────────────────
+//
+// The streaming work gave [free-brain/turn] seven new keys. Each is reviewed here on its own
+// line, because a block approval of «the streaming fields» is exactly the thing Rule B exists to
+// prevent. Every one is built in lib/free-brain/loop.js out of the loop's OWN control state —
+// which branch ran, how long a write took, what the provider billed — and not one is derived
+// from, shortened from, or normalised out of anything the reader typed. The TYPE is named first
+// in each line because the type is half the argument: a boolean and a count cannot carry prose
+// whatever they are called, and that is a stronger claim than «this one looks harmless».
+const STREAM_FIELDS = [
+  // boolean — the loop pinned the head of the delivered answer to the round the reader already
+  // read. Set from `roundAccepted`, a decision about the loop's own rounds. Not round text.
+  'readerOwnsHead',
+  // boolean — the delivered text still begins with the bytes already sent. It is the RESULT of a
+  // startsWith between two strings; neither string is printed, only whether one prefixes the other.
+  'streamPrefixValid',
+  // boolean — this round was permitted to stream (flag on, round shape eligible). A statement
+  // about configuration, decided before any model output exists to be derived from.
+  'streamRoundEligible',
+  // count — `streamViolations.length`, never the array. Its elements are fixed `kind` codes
+  // ('unit-records-do-not-match-chunks', 'notice-behind-emitted'); api/ask.js prints the length
+  // alone, so not even that closed vocabulary reaches stdout.
+  'streamViolations',
+  // boolean — whether anything at all went on the wire this turn. One bit about the turn, and
+  // nothing about what the turn said.
+  'streamedThisTurn',
+  // number of milliseconds — wall time of the terminal write, `Date.now() - writeStartedAt`.
+  // A duration; there is no string in it to be reader text.
+  'terminalWriteMs',
+  // token counts — `{outTokens, inTokens, cacheWriteTokens, cacheReadTokens}` taken off the
+  // terminal write's ledger row. Provider billing integers. The four inner names are assembled in
+  // loop.js rather than in the log call, so what this key admits to the sweep is a name, not a
+  // payload, and the payload it names is four numbers.
+  'terminalWriteUsage',
+];
+
+// THE THREE NAMES THAT ARE DELIBERATELY NOT HERE. `terminalWriteAdded`, `terminalStreamEligible`
+// and `terminalStreamViolations` were printed by an earlier revision of the streaming work and
+// deleted by the current one. An allow-list carrying a dead name is an allow-list that would let
+// that name come back unreviewed, and Rule B's entire value is that a field nobody has read
+// fails. `queries` is absent in the other direction and for the same reason: its deletion is the
+// leak this gate was written for, and admitting it here would quietly undo the fix.
+const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────
