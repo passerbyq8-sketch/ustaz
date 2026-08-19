@@ -150,7 +150,7 @@ function toolPayload({ text = '', name = 'unknown_tool', input = {}, id = 'tool-
   };
 }
 
-function sseBody(chunks, { fail = false, stop = 'end_turn' } = {}) {
+function sseBody(chunks, { fail = false, stop = 'end_turn', tool = null } = {}) {
   const events = [
     {
       type: 'message_start',
@@ -168,12 +168,55 @@ function sseBody(chunks, { fail = false, stop = 'end_turn' } = {}) {
     })),
   ];
   if (fail) events.push({ type: 'error', error: { type: 'proof_cut', message: 'cut' } });
-  else events.push(
-    { type: 'content_block_stop', index: 0 },
-    { type: 'message_delta', delta: { stop_reason: stop }, usage: { output_tokens: 41 } },
-    { type: 'message_stop' },
-  );
+  else {
+    events.push({ type: 'content_block_stop', index: 0 });
+    // V3 streams the TOOL-BEARING call, so the fixture has to be able to end one on a tool call.
+    // The block is emitted the way the provider emits it — start, input deltas, stop — because
+    // `callProviderStream` reassembles the input from those deltas and a shortcut here would test
+    // a shape the provider never sends.
+    if (tool) {
+      events.push(
+        {
+          type: 'content_block_start',
+          index: 1,
+          content_block: { type: 'tool_use', id: tool.id || 'stream-tool-1', name: tool.name, input: {} },
+        },
+        {
+          type: 'content_block_delta',
+          index: 1,
+          delta: { type: 'input_json_delta', partial_json: JSON.stringify(tool.input || {}) },
+        },
+        { type: 'content_block_stop', index: 1 },
+      );
+    }
+    events.push(
+      { type: 'message_delta', delta: { stop_reason: tool ? 'tool_use' : stop }, usage: { output_tokens: 41 } },
+      { type: 'message_stop' },
+    );
+  }
   return events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join('');
+}
+
+/** The same message an `sse` item carries, in the body shape the plain transport returns. */
+function asJsonPayload(item) {
+  const text = (item.chunks || []).join('');
+  return {
+    id: 'proof-stream', type: 'message', role: 'assistant',
+    stop_reason: item.tool ? 'tool_use' : (item.stop || 'end_turn'),
+    content: [
+      ...(text ? [{ type: 'text', text }] : []),
+      ...(item.tool ? [{
+        type: 'tool_use',
+        id: item.tool.id || 'stream-tool-1',
+        name: item.tool.name,
+        input: item.tool.input || {},
+      }] : []),
+    ],
+    usage: {
+      input_tokens: 113, output_tokens: 41,
+      cache_creation_input_tokens: 0, cache_read_input_tokens: 0,
+    },
+  };
 }
 
 async function withProvider(plan, requests, action) {
@@ -190,7 +233,12 @@ async function withProvider(plan, requests, action) {
         status: 200, headers: { 'content-type': 'application/json' },
       });
     }
-    assert.equal(body.stream, true, 'stream fixture reached without stream enabled');
+    if (body.stream !== true) {
+      assert.ok(!item.fail, 'a cut fixture has no unstreamed equivalent');
+      return new Response(JSON.stringify(asJsonPayload(item)), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
     return new Response(sseBody(item.chunks, item), {
       status: 200, headers: { 'content-type': 'text/event-stream' },
     });
@@ -237,33 +285,66 @@ async function runCase(module, makeDelivery, plan, options = {}) {
   return { out, requests, callbacks, early, delivery, remaining: plan.length };
 }
 
-function noHeadPlan({ fail = false } = {}) {
-  return [
-    { kind: 'json', payload: jsonPayload('مسودة أولية مكتملة.') },
-    { kind: 'sse', chunks: fail ? TERMINAL.slice(0, 3) : TERMINAL, fail },
-  ];
+// ── V3 PLANS ────────────────────────────────────────────────────────────────
+// The streamed call is the TOOL-BEARING one, so a plan whose first item is a plain JSON body is
+// a plan describing V2. Each of these is stated twice over — once with the flag on and once with
+// it off — and the call COUNT is compared between the two, because «no extra call» is the whole
+// claim of this phase and a claim nobody counts is a claim nobody has.
+
+/** The ordinary shape: nothing written yet, the first round writes the answer and stops. */
+function streamedFinishPlan({ fail = false } = {}) {
+  return [{ kind: 'sse', chunks: fail ? TERMINAL.slice(0, 3) : TERMINAL, fail }];
 }
 
-function headPlan(extra = false) {
-  const plan = [
-    { kind: 'json', payload: toolPayload({ text: 'نص سابق من جولة الأدوات.' }) },
+/**
+ * The head case. Round one writes a TOOL ANNOUNCEMENT and calls a tool: the announcement is
+ * dropped by `deliverableText` before any unit can form, so nothing reaches the reader, and the
+ * round's prose still lands in `written`. Round two therefore finds a head and is withheld —
+ * which is the same gate V2 applied once after the loop, applied here per round.
+ */
+function headPlan() {
+  return [
+    {
+      kind: 'sse',
+      chunks: ['سأبحث لك في فتاوى العلماء عن هذه المسألة تحديداً.\n'],
+      tool: { name: 'unknown_tool', input: {} },
+    },
     { kind: 'json', payload: jsonPayload('النص الحالي الذي أنهى جولة الأدوات.') },
   ];
-  if (extra) plan.push({ kind: 'sse', chunks: TERMINAL });
-  return plan;
 }
 
-function citationPlan(withRetry = false) {
-  const plan = [
+/**
+ * The pin case. Round one writes REAL answer prose — it survives the announcement filter, so the
+ * reader accepts it — and then calls a tool. Round two restates it inside a longer answer, which
+ * is exactly the shape `joinRoundTexts` deletes by containment. Without the pin the delivered
+ * text no longer begins with what the reader was sent.
+ */
+const PIN_HEAD = 'الجمع للمسافر جائز عند الحاجة.\nوالقصر سنة مؤكدة في السفر.\nوهذا قول الجمهور.';
+const PIN_FULL = `ومقدمة زائدة تتقدم على الجواب.\n${PIN_HEAD}\nوخاتمة زائدة تتلوه.`;
+function pinPlan() {
+  return [
+    {
+      kind: 'sse',
+      chunks: PIN_HEAD.split('\n').map((line) => `${line}\n`),
+      tool: { name: 'unknown_tool', input: {} },
+    },
+    { kind: 'json', payload: jsonPayload(PIN_FULL) },
+  ];
+}
+
+/**
+ * The citation case. A DEEN route with an empty table is a ruling with no cards, so round one is
+ * withheld by the card test and runs unstreamed; the search fills the table, and round two — still
+ * head-free, now with rows — is streamed. The retry that would replace those bytes is suppressed.
+ */
+function citationPlan() {
+  return [
     {
       kind: 'json',
       payload: toolPayload({ name: 'search_sources', input: { query: 'الوضوء' } }),
     },
-    { kind: 'json', payload: jsonPayload('مسودة فقهية أولية بلا إحالة.') },
     { kind: 'sse', chunks: TERMINAL },
   ];
-  if (withRetry) plan.push({ kind: 'json', payload: jsonPayload('جواب بديل موثق. [[1]]') });
-  return plan;
 }
 
 function terminalOracle(createSentenceStream, module, raw, domain = 'general') {
@@ -370,38 +451,95 @@ async function main() {
   check(corpusPrefixFailures === 0,
     `corpus emitted-not-prefix failures ${corpusPrefixFailures}/${corpusPrefixComparisons}`);
 
-  const noHead = await runCase(live, makeDelivery, noHeadPlan(), { stream: true });
-  check(noHead.out.terminalWriteAdded === true, 'no-head turn did not add terminal write');
-  check(noHead.out.streamedThisTurn === true && noHead.early.text, 'no-head turn emitted no early unit');
-  check(noHead.out.streamPrefixValid === true && noHead.out.text.startsWith(noHead.early.text),
-    'no-head early text was not a final prefix');
-  check(noHead.requests.length === 2 && noHead.remaining === 0, 'no-head provider call count changed');
-  check(noHead.delivery.socket.text === noHead.out.text, 'no-head reader text differed at flush');
+  // ── §٢ (V3) — THE CALL COUNT IS THE CLAIM, SO IT IS COUNTED ON EVERY FIXTURE ──
+  // Each shape is run twice, flag on and flag off, and the number of provider requests must be
+  // the SAME. V2 failed exactly here, by one call, and no downstream check noticed.
+  const shapes = [
+    ['finish', streamedFinishPlan, { lexicalRoute: 'GEN' }],
+    ['head', headPlan, { lexicalRoute: 'GEN' }],
+    ['pin', pinPlan, { lexicalRoute: 'GEN' }],
+    ['citation', citationPlan, { lexicalRoute: 'DEEN' }],
+  ];
+  const runs = {};
+  for (const [name, plan, extra] of shapes) {
+    // eslint-disable-next-line no-await-in-loop
+    const on = await runCase(live, makeDelivery, plan(), { stream: true, ...extra });
+    // eslint-disable-next-line no-await-in-loop
+    const off = await runCase(live, makeDelivery, plan(), { stream: false, ...extra });
+    runs[name] = { on, off };
+    check(on.requests.length === off.requests.length,
+      `${name}: streaming added ${on.requests.length - off.requests.length} provider call(s)`);
+    check(on.remaining === 0 && off.remaining === 0, `${name}: provider plan was not consumed`);
+    check(on.out.modelCalls === off.out.modelCalls,
+      `${name}: modelCalls ${on.out.modelCalls} vs ${off.out.modelCalls}`);
+    process.stdout.write(
+      `SHAPE ${name.padEnd(9)} CALLS=${on.requests.length} (off ${off.requests.length}) `
+      + `STREAMED=${on.out.streamedThisTurn === true ? 'YES' : 'NO'} `
+      + `PINNED=${on.out.readerOwnsHead === true ? 'YES' : 'NO'}\n`,
+    );
+  }
 
-  const headOn = await runCase(live, makeDelivery, headPlan(), { stream: true });
-  const headOff = await runCase(live, makeDelivery, headPlan(), { stream: false });
-  check(headOn.early.writes === 0 && headOn.callbacks === 0, 'head gate released current bytes');
-  check(headOn.requests.length === 2 && headOn.out.terminalWriteAdded === false,
-    'head gate added a terminal call');
+  // THE ORDINARY TURN. One call, streamed, and the reader's early bytes survive to the end.
+  const finish = runs.finish.on;
+  check(finish.requests.length === 1, `finish turn made ${finish.requests.length} calls, expected 1`);
+  check(finish.out.streamedThisTurn === true && finish.early.text, 'finish turn emitted no early unit');
+  check(finish.out.streamPrefixValid === true && finish.out.text.startsWith(finish.early.text),
+    'finish early text was not a final prefix');
+  check(finish.delivery.socket.text === finish.out.text, 'finish reader text differed at flush');
+
+  // THE HEAD GATE. Round one wrote an announcement, so nothing left; round two found a head and
+  // was withheld under its own name, and the turn's bytes match the unstreamed run exactly.
+  const headOn = runs.head.on;
+  const headOff = runs.head.off;
+  check(headOn.early.writes === 0 && headOn.callbacks === 0, 'head fixture released bytes');
+  check(headOn.out.degraded.includes('stream_withheld:head_text'),
+    'head withhold was not named');
+  check(headOn.out.degraded.filter((note) => note === 'stream_withheld:head_text').length === 1,
+    'head withhold was named more than once');
   check(Buffer.from(headOn.delivery.socket.text).equals(Buffer.from(headOff.delivery.socket.text)),
     'head gate changed reader bytes');
-  check(JSON.stringify(headOn.requests) === JSON.stringify(headOff.requests),
+  // `stream` is the one key that MUST differ — it is the transport. Everything else is the
+  // conversation, and the conversation may not move because the transport did.
+  const withoutTransport = (list) => JSON.stringify(list.map(({ stream, ...rest }) => rest));
+  check(withoutTransport(headOn.requests) === withoutTransport(headOff.requests),
     'head gate changed provider requests');
 
-  const citation = await runCase(
-    live, makeDelivery, citationPlan(), { stream: true, lexicalRoute: 'DEEN' },
-  );
+  // THE PIN. The standing join deletes the streamed head by containment; the pin keeps it, and
+  // the delivered text still begins with what the reader was sent.
+  const pin = runs.pin.on;
+  check(pin.out.readerOwnsHead === true, 'pin fixture did not mark the head as the reader\'s');
+  check(pin.out.streamedThisTurn === true && pin.early.text, 'pin fixture streamed nothing');
+  check(pin.out.streamPrefixValid === true && pin.out.text.startsWith(pin.early.text),
+    'pin fixture did not retain the emitted prefix');
+  check(pin.out.degraded.some((note) => note.startsWith('head_pin_kept:')),
+    'the pin kept text and did not say how much');
+  check(live.joinRoundTexts([PIN_HEAD, PIN_FULL]) !== live.joinRoundTextsHeadPinned([PIN_HEAD, PIN_FULL]),
+    'the pinned join and the standing join agreed on the fixture the pin exists for');
+  check(live.joinRoundTexts([PIN_HEAD, PIN_FULL]) === PIN_FULL,
+    'the standing join no longer drops the contained head — the pin fixture proves nothing');
+
+  // THE CITATION RETRY. Round one is withheld by the card test, round two streams, the retry is
+  // suppressed rather than silently skipped.
+  const citation = runs.citation.on;
   check(citation.out.evidence.length > 0, 'citation fixture produced no real evidence rows');
   check(citation.out.streamedThisTurn === true && citation.early.text, 'citation fixture did not stream');
-  check(citation.requests.length === 3 && citation.remaining === 0, 'citation retry ran after reader bytes');
+  check(citation.out.degraded.some((note) => note.startsWith('stream_withheld:ruling_without_cards')),
+    'the card test was not named on the withheld round');
   check(citation.out.degraded.includes('citation_retry:suppressed_on_stream'),
     'citation retry suppression was not explicit');
 
-  const cut = await runCase(live, makeDelivery, noHeadPlan({ fail: true }), { stream: true });
-  check(cut.early.text && noHead.out.text.startsWith(cut.early.text),
-    'cut reader bytes were not a valid prefix of the complete answer');
+  // THE CUT. The stream dies mid-round; the accepted prefix becomes the head, the tools-removed
+  // write finishes the answer, and the reader's bytes are still the beginning of it.
+  const cut = await runCase(live, makeDelivery, [
+    { kind: 'sse', chunks: TERMINAL.slice(0, 3), fail: true },
+    { kind: 'json', payload: jsonPayload('جواب مكتمل بعد انقطاع البث.') },
+  ], { stream: true });
+  check(cut.early.text, 'cut fixture released nothing to cut');
   check(cut.out.streamPrefixValid === true && cut.out.text.startsWith(cut.early.text),
     'cut turn replaced its accepted prefix');
+  check(cut.out.readerOwnsHead === true, 'cut prefix was not pinned as the head');
+  check(cut.out.degraded.includes('stream_cut:provider_error_tool_phase'),
+    'the cut was not named');
 
   const protocolChunks = [
     `${SAFE_1}\n`, `${SAFE_2}\n`, '<output>\n',
@@ -456,12 +594,34 @@ async function main() {
   const mutations = [];
   mutations.push(await mutation(
     'remove-head-gate',
-    'const headFreeBeforeTerminal = finished ? headFreeAtFinish : written.length === 0;',
-    'const headFreeBeforeTerminal = true;',
+    'const roundHeadFree = written.length === 0;',
+    'const roundHeadFree = true;',
     async (module) => {
-      const result = await runCase(module, makeDelivery, headPlan(true), { stream: true });
+      const result = await runCase(module, makeDelivery, headPlan(), { stream: true });
       return result.early.writes > 0 || result.requests.length !== headOn.requests.length
         || result.delivery.socket.text !== headOn.delivery.socket.text;
+    },
+  ));
+  mutations.push(await mutation(
+    'drop-head-pin',
+    '      if (index === 0) return true;',
+    '      if (index === -1) return true;',
+    async (module) => {
+      const result = await runCase(module, makeDelivery, pinPlan(), { stream: true });
+      // The pin is what keeps the delivered text starting with the bytes the reader accepted.
+      return result.out.streamPrefixValid !== true
+        || !result.out.text.startsWith(result.early.text);
+    },
+  ));
+  mutations.push(await mutation(
+    'stream-past-the-card-test',
+    "    const roundRulingWithoutCards = roundDomain !== 'general' && table.rows.length === 0;",
+    '    const roundRulingWithoutCards = false;',
+    async (module) => {
+      const result = await runCase(
+        module, makeDelivery, citationPlan(), { stream: true, lexicalRoute: 'DEEN' },
+      );
+      return !result.out.degraded.some((note) => note.startsWith('stream_withheld:ruling_without_cards'));
     },
   ));
   mutations.push(await mutation(
@@ -469,10 +629,15 @@ async function main() {
     'const citationRetryGateOpen = !streamedThisTurn;',
     'const citationRetryGateOpen = true;',
     async (module) => {
+      // The retry object is IN the plan, so an open gate is caught by the extra call it makes
+      // and not by the plan running dry — a mutant that is caught by throwing proves nothing about
+      // the rule it was supposed to break.
       const result = await runCase(
-        module, makeDelivery, citationPlan(true), { stream: true, lexicalRoute: 'DEEN' },
+        module, makeDelivery,
+        [...citationPlan(), { kind: 'json', payload: jsonPayload('جواب بديل موثق. [[1]]') }],
+        { stream: true, lexicalRoute: 'DEEN' },
       );
-      return result.requests.length === 4
+      return result.requests.length === 3
         && (result.delivery.socket.text !== citation.delivery.socket.text
           || !result.out.text.startsWith(result.early.text));
     },
@@ -512,7 +677,7 @@ async function main() {
   for (const item of mutations) check(item.status === 'CAUGHT', `${item.name} was ${item.status}`);
   check(inverse.status === 'MISSED', `inverse control was ${inverse.status}, expected MISSED`);
 
-  const allCases = [noHead, headOn, headOff, citation, cut];
+  const allCases = [finish, headOn, headOff, pin, citation, cut];
   const integratedPrefixFailures = allCases.filter((item) => item.out.streamPrefixValid === false
     || item.out.degraded.some((entry) => entry === 'stream_violation:emitted-not-a-prefix')
     || item.delivery.rejects.some((entry) => entry.reason === 'not-a-prefix')).length;
@@ -524,10 +689,12 @@ async function main() {
     'wire observer did not cover every target write');
 
   console.log(`FLAG_OFF_BYTE_IDENTICAL=${flagOffSame}/${qualified.length}`);
-  console.log(`NO_HEAD_STREAMED=${noHead.out.streamedThisTurn ? 'YES' : 'NO'} CALLS=${noHead.requests.length}`);
+  console.log(`FINISH_STREAMED=${finish.out.streamedThisTurn ? 'YES' : 'NO'} CALLS=${finish.requests.length}`);
   console.log(`HEAD_EARLY_WRITES=${headOn.early.writes} HEAD_CALLS=${headOn.requests.length}`);
-  console.log(`CITE_RETRY_AFTER_STREAM=${citation.requests.length > 3 ? 'YES' : 'NO'} EVIDENCE=${citation.out.evidence.length}`);
-  console.log(`CUT_PREFIX_VALID=${cut.early.text && noHead.out.text.startsWith(cut.early.text) ? 'YES' : 'NO'}`);
+  console.log(`PIN_KEPT=${pin.out.degraded.find((note) => note.startsWith('head_pin_kept:')) || 'none'}`);
+  console.log(`CITE_RETRY_AFTER_STREAM=${citation.requests.length > 2 ? 'YES' : 'NO'} EVIDENCE=${citation.out.evidence.length}`);
+  console.log(`CUT_PREFIX_VALID=${cut.early.text && cut.out.text.startsWith(cut.early.text) ? 'YES' : 'NO'}`);
+  console.log(`EXTRA_CALLS_VS_FLAG_OFF=${shapes.reduce((sum, [name]) => sum + (runs[name].on.requests.length - runs[name].off.requests.length), 0)}`);
   console.log(`CORPUS_PREFIX_COMPARISONS=${corpusPrefixComparisons}`);
   console.log(`EMITTED_NOT_PREFIX=${prefixFailures}`);
   console.log(`PROTOCOL_PAYLOAD_EARLY=${protocol.acceptedPrefix.includes('حمولة محجوبة') ? 'YES' : 'NO'}`);

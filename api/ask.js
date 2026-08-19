@@ -1488,13 +1488,14 @@ export default async function handler(req, res) {
         domain: out.domain,
         rounds: out.rounds,
         modelCalls: out.modelCalls,
-        terminalWriteAdded: out.terminalWriteAdded === true,
         terminalWriteMs: out.terminalWriteMs ?? null,
         terminalWriteUsage: out.terminalWriteUsage ?? null,
+        streamRoundEligible: out.streamRoundEligible === true,
+        readerOwnsHead: out.readerOwnsHead === true,
         streamedThisTurn: out.streamedThisTurn === true,
         streamPrefixValid: out.streamPrefixValid !== false,
-        terminalStreamViolations: Array.isArray(out.terminalStreamViolations)
-          ? out.terminalStreamViolations.length : 0,
+        streamViolations: Array.isArray(out.streamViolations)
+          ? out.streamViolations.length : 0,
         tools: out.spend.map((s) => `${s.tool}:${s.results}`),
         queries: out.spend.map((s) => s.query),
         providerCalls: out.spend.reduce((sum, s) => sum + s.providerCalls, 0),

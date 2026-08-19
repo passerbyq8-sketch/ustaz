@@ -1370,8 +1370,12 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
         const stripped = source.replace(
           /\r?\n {2}console\.log\('\[free-brain\/round-ledger\]', JSON\.stringify\(roundLedger\)\);/u, '');
         if (stripped === source) return source; // seam moved — reported as «seam applied» FAIL
-        const moved = stripped.replace(/ {2}const collected = joinRoundTexts\(written\);/u,
-          "  console.log('[free-brain/round-ledger]', JSON.stringify(roundLedger)); // mutant: printed before the retry\n  const collected = joinRoundTexts(written);");
+        // P6-V3 re-pin: the join at the delivery boundary now CHOOSES between the standing join
+        // and the head-pinned one, so the seam this mutant moves the print above is that choice
+        // line. The mutant is unchanged in what it does — it still prints the ledger before the
+        // citation retry can add its row — and only the line it anchors on has moved.
+        const moved = stripped.replace(/ {2}const collected = readerOwnsHead \? joinRoundTextsHeadPinned\(written\) : joinRoundTexts\(written\);/u,
+          "  console.log('[free-brain/round-ledger]', JSON.stringify(roundLedger)); // mutant: printed before the retry\n  const collected = readerOwnsHead ? joinRoundTextsHeadPinned(written) : joinRoundTexts(written);");
         return moved === stripped ? source : moved;
       },
       async (twinModule) => {

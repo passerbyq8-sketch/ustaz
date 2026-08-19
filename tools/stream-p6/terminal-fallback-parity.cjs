@@ -238,14 +238,21 @@ const MUTANTS = [
     name: 'reguard-delivered-stop',
     claim: 'the tools-removed write adopts its own stop_reason when the flag is off',
     caught: true,
-    find: '      if (writeText || !terminalWriteAdded) deliveredStop = payload.stop_reason ?? null;',
-    replace: '      if (writeText && terminalWriteAdded) deliveredStop = payload.stop_reason ?? null;',
+    find: '      // UNCONDITIONAL, as on `origin/main`. V2 guarded it, and although the guard could not fire'
+      + '\n      // with the flag off — `terminalWriteAdded` was only ever set on the streaming path — the'
+      + '\n      // condition existed only to serve a call that no longer exists.'
+      + '\n      deliveredStop = payload.stop_reason ?? null;',
+    replace: '      const terminalWriteAdded = false;'
+      + '\n      if (writeText && terminalWriteAdded) deliveredStop = payload.stop_reason ?? null;',
   },
   {
     name: 'drop-delivered-stop',
     claim: 'the update is present at all on the fallback path',
     caught: true,
-    find: '      if (writeText || !terminalWriteAdded) deliveredStop = payload.stop_reason ?? null;',
+    find: '      // UNCONDITIONAL, as on `origin/main`. V2 guarded it, and although the guard could not fire'
+      + '\n      // with the flag off — `terminalWriteAdded` was only ever set on the streaming path — the'
+      + '\n      // condition existed only to serve a call that no longer exists.'
+      + '\n      deliveredStop = payload.stop_reason ?? null;',
     replace: '      if (false) deliveredStop = payload.stop_reason ?? null;',
   },
   {
@@ -254,8 +261,8 @@ const MUTANTS = [
     name: 'control-stream-only-line',
     claim: 'CONTROL — a streaming-only branch does not move a flag-off byte',
     caught: false,
-    find: "    ctx.degraded.push('stream_withheld:head_text');",
-    replace: "    ctx.degraded.push('stream_withheld:head_text_control_witness');",
+    find: "      ctx.degraded.push('stream_withheld:head_text');",
+    replace: "      ctx.degraded.push('stream_withheld:head_text_control_witness');",
   },
 ];
 
