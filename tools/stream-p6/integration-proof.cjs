@@ -228,7 +228,18 @@ async function withProvider(plan, requests, action) {
     const body = JSON.parse(String(init.body || '{}'));
     requests.push(body);
     if (item.kind === 'json') {
-      assert.equal(body.stream, false, 'non-stream fixture reached with stream enabled');
+      if (body.stream === true) {
+        const blocks = Array.isArray(item.payload?.content) ? item.payload.content : [];
+        const text = blocks.filter((block) => block?.type === 'text')
+          .map((block) => String(block.text || '')).join('');
+        const tool = blocks.find((block) => block?.type === 'tool_use') || null;
+        return new Response(sseBody(text ? [text] : [], {
+          stop: item.payload?.stop_reason || 'end_turn',
+          tool: tool ? { id: tool.id, name: tool.name, input: tool.input } : null,
+        }), {
+          status: 200, headers: { 'content-type': 'text/event-stream' },
+        });
+      }
       return new Response(JSON.stringify(item.payload), {
         status: 200, headers: { 'content-type': 'application/json' },
       });
@@ -313,6 +324,26 @@ function headPlan() {
   ];
 }
 
+// The recorded head shape is followed by a multi-unit answer.  A one-sentence synthetic answer
+// has no releasable unit before close and therefore cannot distinguish a live head from a buffer.
+function headStreamPlan() {
+  const plan = headPlan();
+  plan[1] = { kind: 'sse', chunks: TERMINAL };
+  return plan;
+}
+
+function fiqhWithoutCardsPlan() {
+  return [
+    {
+      kind: 'json',
+      payload: toolPayload({
+        text: `${SAFE_1}\n${SAFE_2}\n`, name: 'unknown_tool', input: {},
+      }),
+    },
+    { kind: 'json', payload: jsonPayload(TERMINAL.join('')) },
+  ];
+}
+
 /**
  * The pin case. Round one writes REAL answer prose — it survives the announcement filter, so the
  * reader accepts it — and then calls a tool. Round two restates it inside a longer answer, which
@@ -362,7 +393,7 @@ async function main() {
 
   const liveSource = fs.readFileSync(LOOP, 'utf8');
   const baselineSource = execFileSync(
-    'git', ['show', 'perf/stream-p1:lib/free-brain/loop.js'],
+    'git', ['show', 'origin/main:lib/free-brain/loop.js'],
     { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
   );
   const askSource = fs.readFileSync(ASK, 'utf8');
@@ -424,6 +455,26 @@ async function main() {
   check(qualified.length === 151, `flag-off qualifying corpus was ${qualified.length}, expected 151`);
   check(flagOffSame === qualified.length, `flag-off equivalence ${flagOffSame}/${qualified.length}`);
 
+  // The order's safety claim is final delivery, not merely the flag-off fallback. Replay every
+  // corpus answer as the same provider turn under both flags and compare the bytes after the real
+  // loop and the real finalized writer have both run.
+  let finalTextIdentical = 0;
+  for (const record of corpus) {
+    const chunks = String(record.text || '').match(/[\s\S]{1,31}/gu) || [];
+    // eslint-disable-next-line no-await-in-loop
+    const on = await runCase(live, makeDelivery, [{ kind: 'sse', chunks }], { stream: true });
+    // eslint-disable-next-line no-await-in-loop
+    const off = await runCase(live, makeDelivery, [{ kind: 'sse', chunks }], { stream: false });
+    const same = Buffer.from(on.out.text).equals(Buffer.from(off.out.text))
+      && Buffer.from(on.delivery.socket.text).equals(Buffer.from(off.delivery.socket.text))
+      && Buffer.from(on.delivery.socket.text).equals(Buffer.from(on.out.text))
+      && (!on.early.text || on.out.text.startsWith(on.early.text));
+    if (same) finalTextIdentical += 1;
+  }
+  check(corpus.length === 160, `final-text corpus was ${corpus.length}, expected 160`);
+  check(finalTextIdentical === corpus.length,
+    `final text identical ${finalTextIdentical}/${corpus.length}`);
+
   const corpusChunkers = [
     (text) => [text],
     (text) => text.match(/[\s\S]{1,17}/gu) || [],
@@ -456,7 +507,7 @@ async function main() {
   // the SAME. V2 failed exactly here, by one call, and no downstream check noticed.
   const shapes = [
     ['finish', streamedFinishPlan, { lexicalRoute: 'GEN' }],
-    ['head', headPlan, { lexicalRoute: 'GEN' }],
+    ['head', headStreamPlan, { lexicalRoute: 'GEN' }],
     ['pin', pinPlan, { lexicalRoute: 'GEN' }],
     ['citation', citationPlan, { lexicalRoute: 'DEEN' }],
   ];
@@ -487,17 +538,17 @@ async function main() {
     'finish early text was not a final prefix');
   check(finish.delivery.socket.text === finish.out.text, 'finish reader text differed at flush');
 
-  // THE HEAD GATE. Round one wrote an announcement, so nothing left; round two found a head and
-  // was withheld under its own name, and the turn's bytes match the unstreamed run exactly.
+  // PART A. Round one wrote an announcement that produces no reader unit. Round two continues the
+  // same cumulative prefix, so the prior head is no longer a reason to withhold visible bytes.
   const headOn = runs.head.on;
   const headOff = runs.head.off;
-  check(headOn.early.writes === 0 && headOn.callbacks === 0, 'head fixture released bytes');
-  check(headOn.out.degraded.includes('stream_withheld:head_text'),
-    'head withhold was not named');
-  check(headOn.out.degraded.filter((note) => note === 'stream_withheld:head_text').length === 1,
-    'head withhold was named more than once');
+  check(headOn.early.writes > 0 && headOn.callbacks > 0, 'head fixture released no bytes');
+  check(!headOn.out.degraded.includes('stream_withheld:head_text'),
+    'the removed head withhold still fired');
+  check(headOn.out.streamPrefixValid === true && headOn.out.text.startsWith(headOn.early.text),
+    'head fixture did not retain its emitted prefix');
   check(Buffer.from(headOn.delivery.socket.text).equals(Buffer.from(headOff.delivery.socket.text)),
-    'head gate changed reader bytes');
+    'head streaming changed final reader bytes');
   // `stream` is the one key that MUST differ — it is the transport. Everything else is the
   // conversation, and the conversation may not move because the transport did.
   const withoutTransport = (list) => JSON.stringify(list.map(({ stream, ...rest }) => rest));
@@ -527,6 +578,18 @@ async function main() {
     'the card test was not named on the withheld round');
   check(citation.out.degraded.includes('citation_retry:suppressed_on_stream'),
     'citation retry suppression was not explicit');
+
+  // THE FIQH NEGATIVE. No evidence row ever arrives, so neither the progress head nor the answer
+  // body may put one byte on the wire.
+  const fiqhWithoutCards = await runCase(
+    live, makeDelivery, fiqhWithoutCardsPlan(), { stream: true, lexicalRoute: 'DEEN' },
+  );
+  const fiqhStreamedWithoutCards = fiqhWithoutCards.early.writes > 0 ? 1 : 0;
+  check(fiqhWithoutCards.out.evidence.length === 0, 'empty-evidence fiqh fixture gained evidence');
+  check(fiqhStreamedWithoutCards === 0 && fiqhWithoutCards.callbacks === 0,
+    'fiqh streamed without cards');
+  check(fiqhWithoutCards.out.degraded.some((note) => note.startsWith('stream_withheld:ruling_without_cards')),
+    'empty-evidence fiqh withhold was not named');
 
   // THE CUT. The stream dies mid-round; the accepted prefix becomes the head, the tools-removed
   // write finishes the answer, and the reader's bytes are still the beginning of it.
@@ -593,13 +656,12 @@ async function main() {
 
   const mutations = [];
   mutations.push(await mutation(
-    'remove-head-gate',
-    'const roundHeadFree = written.length === 0;',
-    'const roundHeadFree = true;',
+    'revert-part-a-head-gate',
+    'const roundStreamEligible = streaming.enabled && !turnUnitsClosed && !roundRulingWithoutCards;',
+    'const roundStreamEligible = streaming.enabled && written.length === 0 && !turnUnitsClosed && !roundRulingWithoutCards;',
     async (module) => {
-      const result = await runCase(module, makeDelivery, headPlan(), { stream: true });
-      return result.early.writes > 0 || result.requests.length !== headOn.requests.length
-        || result.delivery.socket.text !== headOn.delivery.socket.text;
+      const result = await runCase(module, makeDelivery, headStreamPlan(), { stream: true });
+      return result.early.writes === 0 && headOn.early.writes > 0;
     },
   ));
   mutations.push(await mutation(
@@ -619,9 +681,9 @@ async function main() {
     '    const roundRulingWithoutCards = false;',
     async (module) => {
       const result = await runCase(
-        module, makeDelivery, citationPlan(), { stream: true, lexicalRoute: 'DEEN' },
+        module, makeDelivery, fiqhWithoutCardsPlan(), { stream: true, lexicalRoute: 'DEEN' },
       );
-      return !result.out.degraded.some((note) => note.startsWith('stream_withheld:ruling_without_cards'));
+      return result.early.writes > 0;
     },
   ));
   mutations.push(await mutation(
@@ -666,18 +728,20 @@ async function main() {
   // MISSED; it is deliberately excluded from the required caught-mutant count.
   const inverse = await mutation(
     'inverse-telemetry-only',
-    "ctx.degraded.push('stream_withheld:head_text');",
-    "ctx.degraded.push('stream_withheld:head_text:inverse');",
+    'cardWithholdNoted = true;',
+    'cardWithholdNoted = true; // inverse telemetry-only',
     async (module) => {
-      const result = await runCase(module, makeDelivery, headPlan(), { stream: true });
-      return result.delivery.socket.text !== headOn.delivery.socket.text
-        || result.requests.length !== headOn.requests.length;
+      const result = await runCase(
+        module, makeDelivery, fiqhWithoutCardsPlan(), { stream: true, lexicalRoute: 'DEEN' },
+      );
+      return result.delivery.socket.text !== fiqhWithoutCards.delivery.socket.text
+        || result.requests.length !== fiqhWithoutCards.requests.length;
     },
   );
   for (const item of mutations) check(item.status === 'CAUGHT', `${item.name} was ${item.status}`);
   check(inverse.status === 'MISSED', `inverse control was ${inverse.status}, expected MISSED`);
 
-  const allCases = [finish, headOn, headOff, pin, citation, cut];
+  const allCases = [finish, headOn, headOff, pin, citation, fiqhWithoutCards, cut];
   const integratedPrefixFailures = allCases.filter((item) => item.out.streamPrefixValid === false
     || item.out.degraded.some((entry) => entry === 'stream_violation:emitted-not-a-prefix')
     || item.delivery.rejects.some((entry) => entry.reason === 'not-a-prefix')).length;
@@ -689,6 +753,7 @@ async function main() {
     'wire observer did not cover every target write');
 
   console.log(`FLAG_OFF_BYTE_IDENTICAL=${flagOffSame}/${qualified.length}`);
+  console.log(`FINAL_TEXT_IDENTICAL=${finalTextIdentical}/${corpus.length}`);
   console.log(`FINISH_STREAMED=${finish.out.streamedThisTurn ? 'YES' : 'NO'} CALLS=${finish.requests.length}`);
   console.log(`HEAD_EARLY_WRITES=${headOn.early.writes} HEAD_CALLS=${headOn.requests.length}`);
   console.log(`PIN_KEPT=${pin.out.degraded.find((note) => note.startsWith('head_pin_kept:')) || 'none'}`);
@@ -697,9 +762,12 @@ async function main() {
   console.log(`EXTRA_CALLS_VS_FLAG_OFF=${shapes.reduce((sum, [name]) => sum + (runs[name].on.requests.length - runs[name].off.requests.length), 0)}`);
   console.log(`CORPUS_PREFIX_COMPARISONS=${corpusPrefixComparisons}`);
   console.log(`EMITTED_NOT_PREFIX=${prefixFailures}`);
+  console.log(`FIQH_STREAMED_WITHOUT_CARDS=${fiqhStreamedWithoutCards}`);
   console.log(`PROTOCOL_PAYLOAD_EARLY=${protocol.acceptedPrefix.includes('حمولة محجوبة') ? 'YES' : 'NO'}`);
   console.log(`CODE_SHAPE_PRESERVED=${code.oracle.includes('value = maybe') ? 'YES' : 'NO'}`);
   for (const item of mutations) console.log(`MUTANT ${item.status.padEnd(7)} ${item.name}`);
+  const orderedMutants = [mutations[0], mutations[2]];
+  console.log(`MUTANTS_CAUGHT=${orderedMutants.filter((item) => item.status === 'CAUGHT').length}/2`);
   console.log(`INVERSE ${inverse.status.padEnd(7)} ${inverse.name} (excluded)`);
   console.log(`WRITER_TARGET_WRITE_SITES=${(writerSource.match(/target\.write\(/gu) || []).length}`);
   console.log(`GATE=${failures.length ? 'FAIL' : 'PASS'}`);
