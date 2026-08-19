@@ -10645,13 +10645,16 @@ function SurahCard({ num, from, to, onPlaySurah, onStopAudio }) {
   );
 }
 
+const NEUTRAL_HADITH_LABEL = 'نص منقول';
+
 function HadithCard({ content, narrator, ruling }) {
   // خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
   const att = resolveHadithAttribution(narrator, ruling);
+  const label = (!att.narrator && !att.ruling) ? NEUTRAL_HADITH_LABEL : 'من السنة النبوية';
   return (
     <div style={s.hadithCard}>
       <div style={s.hadithCardLabel}>
-        <span>{att.narrator ? `رَوَى ${att.narrator}` : 'من السنة النبوية'}</span>
+        <span>{label}</span>
       </div>
       <div style={s.hadithText}>{content}</div>
       {att.ruling && <div style={s.hadithMeta}>{att.ruling}</div>}
