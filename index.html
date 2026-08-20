@@ -982,7 +982,12 @@
 
      The opacity is a variable because the reader owns it: --ezwm-o is written on the document
      root from the stored preference, and 0.5 is what it is when nothing was ever chosen. */
-  .ezwm{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:var(--ezwm-o,0.5);
+  /* Item 62. A REAL zero removes the element from the paint and from the network; the quiet
+     class is the optional retreat while a reply arrives, and it fades both ways so the mark
+     does not blink back at the end of every answer. */
+  :root[data-ezwm="off"] .ezwm{display:none}
+  .ezwm.is-quiet{opacity:0}
+  .ezwm{transition:opacity .35s ease;position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:var(--ezwm-o,0.5);
     background-image:url("/icon-watermark.png");background-repeat:no-repeat;background-position:50% 50%;
     background-size:clamp(120px,38%,200px)}
   /* ========================================================================
@@ -1577,10 +1582,13 @@ const EZ_I18N = {
     'settings.enter.sendsHint': 'Enter يُرسل، و Shift+Enter سطر جديد. ولا يُرسل أثناء تركيب الحروف.',
     'settings.enter.newlineHint': 'Enter سطر جديد، والإرسال بالزر. ولا يُرسل أثناء تركيب الحروف.',
     'settings.watermark': 'وضوح العلامة المائية',
+    'settings.watermark.none': 'بلا',
     'settings.watermark.light': 'خفيفة',
     'settings.watermark.medium': 'متوسطة',
     'settings.watermark.bold': 'قوية',
     'settings.watermark.fine': 'ضبط دقيق',
+    'settings.watermark.quiet': 'إخفاؤها أثناء ورود الرد',
+    'settings.watermark.quietHint': 'تختفي العلامة ما دام الرد يُكتب، ثم تعود كما كانت.',
     'chat.newConversation': '\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629',
     'chat.send': 'إرسال',
     'chat.stop': 'إيقاف',
@@ -1787,10 +1795,13 @@ const EZ_I18N = {
     'settings.enter.sendsHint': 'Enter sends, Shift+Enter makes a new line. It never sends while a word is being composed.',
     'settings.enter.newlineHint': 'Enter makes a new line, the button sends. It never sends while a word is being composed.',
     'settings.watermark': 'Watermark strength',
+    'settings.watermark.none': 'None',
     'settings.watermark.light': 'Light',
     'settings.watermark.medium': 'Medium',
     'settings.watermark.bold': 'Bold',
     'settings.watermark.fine': 'Fine adjustment',
+    'settings.watermark.quiet': 'Hide it while a reply arrives',
+    'settings.watermark.quietHint': 'The mark goes while the reply is being written, then comes back as it was.',
     'chat.newConversation': 'New conversation',
     'chat.send': 'Send',
     'chat.stop': 'Stop',
@@ -2136,9 +2147,16 @@ const EZIK_WM_DEFAULT = 0.5;
 // light / medium / bold, as the brief names them. The slider is the same number, finer.
 const EZIK_WM_PRESETS = [0.2, 0.5, 0.8];
 const EZIK_WM_MIN = 0.05;
+// ZERO IS A CHOICE, and it was not one. `0` fell into the `n < EZIK_WM_MIN` arm with every
+// other out-of-range number and came back as the DEFAULT -- measured: applyWatermarkOpacity(0)
+// returned 0.5 and wrote "0.5" to the key, so asking for no watermark set it to medium. It is
+// now legal, and it is the ONLY value below EZIK_WM_MIN that is: a hand-edited 0.03 is still
+// not a strength this app offers and still resolves to the default.
 const ezikWmClamp = (v) => {
   const n = typeof v === 'number' ? v : parseFloat(v);
-  if (!Number.isFinite(n) || n < EZIK_WM_MIN || n > 1) return EZIK_WM_DEFAULT;
+  if (!Number.isFinite(n)) return EZIK_WM_DEFAULT;
+  if (n === 0) return 0;
+  if (n < EZIK_WM_MIN || n > 1) return EZIK_WM_DEFAULT;
   return Math.round(n * 100) / 100;
 };
 const readWatermarkOpacity = () => {
@@ -2151,13 +2169,20 @@ const readWatermarkOpacity = () => {
 const applyWatermarkOpacity = (v) => {
   const n = ezikWmClamp(v);
   try { document.documentElement.style.setProperty('--ezwm-o', String(n)); } catch (e) {}
+  // «إزالةٌ تامّة» has to mean removed, not invisible. An element at opacity 0 is still in the
+  // tree and still FETCHES its background image -- a 365KB PNG for a mark the reader has just
+  // said they do not want. The attribute drives a display:none rule, so at zero the mark is
+  // not painted, not composited and not downloaded.
+  try { document.documentElement.setAttribute('data-ezwm', n === 0 ? 'off' : 'on'); } catch (e) {}
   try { localStorage.setItem(EZIK_WM_KEY, String(n)); } catch (e) {}
   return n;
 };
 (function () {
   try {
     if (localStorage.getItem(EZIK_WM_KEY) === null) return;      // never chosen -> the stylesheet answers
-    document.documentElement.style.setProperty('--ezwm-o', String(readWatermarkOpacity()));
+    const n0 = readWatermarkOpacity();
+    document.documentElement.style.setProperty('--ezwm-o', String(n0));
+    document.documentElement.setAttribute('data-ezwm', n0 === 0 ? 'off' : 'on');
   } catch (e) {}
 })();
 
@@ -2210,6 +2235,26 @@ const ezikEnterSends = (pref, isTouch) => {
   if (pref === 'send') return true;
   if (pref === 'newline') return false;
   return !isTouch;
+};
+
+// THE MARK STEPS BACK WHILE A REPLY IS ARRIVING -- AND ONLY IF ASKED. This is an OPTION and
+// not a behaviour: the default is off, so a device that never opens الإعدادات sees exactly
+// what it saw before. It is not a second opacity either -- the stored strength is untouched
+// and comes back the moment the reply is finished.
+const EZIK_WM_HIDE_KEY = 'ezik_watermark_autohide_v1';
+const EZIK_WM_HIDE_EVENT = 'ezik:watermark-autohide';
+const readWatermarkAutoHide = () => {
+  try { return localStorage.getItem(EZIK_WM_HIDE_KEY) === 'on'; } catch (e) { return false; }
+};
+const writeWatermarkAutoHide = (on) => {
+  try {
+    if (on) localStorage.setItem(EZIK_WM_HIDE_KEY, 'on');
+    else localStorage.removeItem(EZIK_WM_HIDE_KEY);
+  } catch (e) {}
+  // Announced for the reason item 65 measured: الإعدادات does not unmount the chat, so a
+  // switch that only wrote the key would not change anything until a reload.
+  try { window.dispatchEvent(new CustomEvent(EZIK_WM_HIDE_EVENT, { detail: !!on })); } catch (e) {}
+  return !!on;
 };
 
 const THEME_KEY = 'murabbi_theme_v1';
@@ -6837,6 +6882,12 @@ function App() {
   // the theme and the watermark already rely on, and no value is threaded between them.
   const [enterPref, setEnterPref] = useState(readEnterPref);
   const enterSends = ezikEnterSends(enterPref, inputIsTouch);
+  const [wmAutoHide, setWmAutoHide] = useState(readWatermarkAutoHide);
+  useEffect(() => {
+    const onWm = () => setWmAutoHide(readWatermarkAutoHide());
+    try { window.addEventListener(EZIK_WM_HIDE_EVENT, onWm); } catch (e) {}
+    return () => { try { window.removeEventListener(EZIK_WM_HIDE_EVENT, onWm); } catch (e) {} };
+  }, []);
   useEffect(() => {
     const onPref = () => setEnterPref(readEnterPref());
     try { window.addEventListener(EZIK_ENTER_EVENT, onPref); } catch (e) {}
@@ -9775,7 +9826,11 @@ function App() {
           inside this root's stacking context so it paints over the page colour and under every
           piece of chrome. The small crest that used to sit in the empty state is gone with it --
           the mark is the same mark, drawn once, large, and behind the whole conversation. */}
-      <div className="ezwm" aria-hidden="true" />
+      {/* Item 62: `is-quiet` is added ONLY while the reader asked for it AND a reply is
+          actually arriving. isLoading covers the wait before the first token and
+          streamingText covers the writing itself, so the mark is back the moment the answer
+          is finished -- it is a retreat, not a second stored strength. */}
+      <div className={'ezwm' + ((wmAutoHide && (isLoading || streamingText !== null)) ? ' is-quiet' : '')} aria-hidden="true" />
       {/* D85: the chat top bar carries exactly ONE control -- the drawer menu. The old home,
           call, speaker and lock buttons are gone. Per-reply audio already sits beneath every
           reply, so the header speaker was redundant; the other three moved into the drawer
@@ -11963,6 +12018,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // only ever changes through applyWatermarkOpacity, so what is on screen, what is on the
   // document root and what is in the store cannot disagree.
   const [wmOpacity, setWmOpacity] = useState(readWatermarkOpacity);
+  const [wmHide, setWmHide] = useState(readWatermarkAutoHide);
   // Read once at mount from the one reader, written through the one writer -- the watermark
   // rule exactly. The switch shows the RESOLVED behaviour, so an `auto` device shows the
   // state it is actually in rather than a third word the reader never chose.
@@ -12137,7 +12193,8 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             also what keeps it outside the region the visual-identity gate reads. */}
         <EzShellGroup title={ezT('settings.watermark')} hint={ezT('settings.savedOnDevice')}>
           <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.watermark')}>
-            {[[EZIK_WM_PRESETS[0], ezT('settings.watermark.light')],
+            {[[0, ezT('settings.watermark.none')],
+              [EZIK_WM_PRESETS[0], ezT('settings.watermark.light')],
               [EZIK_WM_PRESETS[1], ezT('settings.watermark.medium')],
               [EZIK_WM_PRESETS[2], ezT('settings.watermark.bold')]].map(([v, label]) => (
               <button
@@ -12154,6 +12211,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             ))}
           </div>
           <div style={s.a11yGroupLabel}>{ezT('settings.watermark.fine')}</div>
+          {/* The slider keeps its floor. Zero is not the bottom of a range -- it is a
+              different answer, and it has its own control above rather than an end of the
+              slider a thumb can land on by accident. */}
           <input
             type="range"
             min={EZIK_WM_MIN}
@@ -12165,6 +12225,24 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             className="ezik-focus"
             style={s.wmSlider}
           />
+          {/* THE OPTIONAL RETREAT. Off by default: the item asks for a choice, not a new
+              behaviour every reader is given. */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={wmHide ? 'true' : 'false'}
+            onClick={() => setWmHide(writeWatermarkAutoHide(!wmHide))}
+            className="ezik-focus"
+            style={s.a11ySwitchRow}
+          >
+            <span style={s.a11ySwitchText}>
+              <span style={s.a11ySwitchTitle}>{ezT('settings.watermark.quiet')}</span>
+              <span style={s.a11ySwitchHint}>{ezT('settings.watermark.quietHint')}</span>
+            </span>
+            <span style={{ ...s.a11ySwitch, ...(wmHide ? s.a11ySwitchOn : {}) }} aria-hidden="true">
+              <span style={{ ...s.a11yKnob, ...(wmHide ? s.a11yKnobOn : {}) }} />
+            </span>
+          </button>
         </EzShellGroup>
         {/* الخصوصية والذكاء الاصطناعي -- the consent decision, stated and reversible. It is NOT
             behind the PIN gate: a reader must be able to withdraw without an adult's code, and

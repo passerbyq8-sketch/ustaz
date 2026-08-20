@@ -2548,6 +2548,33 @@ eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
     /--answer-ink:#000000\}/.test(css) && /--answer-ink:var\(--a3-ink\)\}/.test(css));
   eq('N33: ...and it is declared in exactly those two places',
     (css.match(/--answer-ink:/g) || []).length, 2);
+  // Item 62. THE BACKGROUND HAS A REAL ZERO, and zero means removed. Before this, 0 fell into
+  // the same arm as every out-of-range number and came back as the DEFAULT -- asking for no
+  // watermark set it to medium. These pin the three things that made it real: 0 survives the
+  // clamp, the writer marks the document, and the mark is display:none rather than transparent
+  // (an element at opacity 0 still downloads its image).
+  ok('N33: zero is a legal watermark value, and the only one below the floor that is',
+    /if \(n === 0\) return 0;/.test(html)
+      && /if \(n < EZIK_WM_MIN \|\| n > 1\) return EZIK_WM_DEFAULT;/.test(html));
+  ok('N33: ...and zero REMOVES the mark rather than making it invisible',
+    /setAttribute\('data-ezwm', n === 0 \? 'off' : 'on'\)/.test(html)
+      && /:root\[data-ezwm="off"\] \.ezwm\{display:none\}/.test(css));
+  ok('N33: ...and the reader can reach it, as a named control and not a slider end',
+    /\[0, ezT\('settings.watermark.none'\)\]/.test(html)
+      && /min=\{EZIK_WM_MIN\}/.test(html));
+  ok('N33: ...and the default strength is untouched',
+    /const EZIK_WM_DEFAULT = 0\.5;/.test(html)
+      && /const EZIK_WM_PRESETS = \[0\.2, 0\.5, 0\.8\];/.test(html));
+  // ...and the retreat while a reply arrives is an OPTION, off unless asked for, and it is not
+  // a second stored strength: the class is the whole mechanism and the key is never written.
+  ok('N33: the watermark retreat is opt-in, and absent storage means off',
+    /localStorage\.getItem\(EZIK_WM_HIDE_KEY\) === 'on'/.test(html)
+      && /catch \(e\) \{ return false; \}/.test(html));
+  ok('N33: ...and it retreats only while a reply is actually arriving',
+    /wmAutoHide && \(isLoading \|\| streamingText !== null\)/.test(html)
+      && /\.ezwm\.is-quiet\{opacity:0\}/.test(css));
+  eq('N33: ...and it never writes the strength key, so the mark comes back as it was',
+    (html.match(/setItem\(EZIK_WM_KEY/g) || []).length, 1);
   ok('N33: ...and the animated turns still carry the class reduced motion switches off',
     (html.match(/className="ez-anim"/g) || []).length >= 4);
   // The empty menu SAYS it is empty.
