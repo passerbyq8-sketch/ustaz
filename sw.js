@@ -32,6 +32,7 @@ const CORE = [
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-512.png',
+  '/adhkar.json',
 ];
 
 // S117 PERF. THESE TWO ARE STILL CACHED -- JUST NOT INSIDE install. quran-uthmani.json
