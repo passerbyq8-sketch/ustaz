@@ -2391,7 +2391,12 @@ ok('N26: ...and the two deep tiers still need the token, via the SAME unlock she
   const notEnter = at("if (e.key !== 'Enter') return;");
   const composing = at('if (composingRef.current || e.nativeEvent?.isComposing');
   const shift = at('if (e.shiftKey) return;');
-  const touch = at('if (inputIsTouch) return;');
+  // Item 65 re-pinned this needle. It read, byte for byte:
+  //     const touch = at('if (inputIsTouch) return;');
+  // and the rule it stood for -- "a touch composer does not send on Enter" -- is now the
+  // DEFAULT of a stored preference rather than the only possibility, so the test in that
+  // slot is the resolved preference. The slot, and its position, are unchanged.
+  const touch = at('if (!enterSends) return;');
   // Searched FROM the touch test rather than by an absolute needle: index.html is CRLF, and a
   // needle carrying a bare \n silently matches nothing and reports the order as broken.
   const send = touch === -1 ? -1 : html.indexOf('sendMessage(input);', touch);
@@ -2410,8 +2415,24 @@ ok('N26: ...and the two deep tiers still need the token, via the SAME unlock she
     /e\.pointerType === 'touch' \|\| e\.pointerType === 'pen'/.test(html)
       && /matchMedia\('\(pointer: coarse\)'\)/.test(html)
       && !/innerWidth[^\n]{0,80}inputIsTouch/.test(html));
+  // Item 65: was /enterKeyHint=\{inputIsTouch \? 'enter' : 'send'\}/ -- the hint now follows the
+  // RESOLVED preference, which is the same thing whenever the preference is `auto`.
   ok('N27: ...and the key is labelled with whatever it is about to do',
-    /enterKeyHint=\{inputIsTouch \? 'enter' : 'send'\}/.test(chatSrc));
+    /enterKeyHint=\{enterSends \? 'send' : 'enter'\}/.test(chatSrc));
+  // ...and the preference is a preference, not a second rule about composition. It is read
+  // through ONE resolver, its default is the rule that shipped, and it sits BELOW the
+  // composition and Shift tests -- a preference that could reach above them would be able to
+  // send half a word from an IME, which is the defect test 2 exists to prevent.
+  ok('N27: ...the Enter preference resolves in one place, and defaults to the shipped rule',
+    /const ezikEnterSends = \(pref, isTouch\) => \{/.test(html)
+      && /if \(pref === 'send'\) return true;/.test(html)
+      && /if \(pref === 'newline'\) return false;/.test(html)
+      && /return !isTouch;/.test(html)
+      && /const EZIK_ENTER_AUTO = 'auto';/.test(html));
+  ok('N27: ...and the composer resolves it through that one function, not by re-deriving it',
+    /const enterSends = ezikEnterSends\(enterPref, inputIsTouch\);/.test(html));
+  ok('N27: ...and no preference is consulted before composition or Shift have been tested',
+    composing !== -1 && shift !== -1 && composing < touch && shift < touch);
 }
 ok('N27: ...and the textarea still grows only within its shipped bound',
   s.input && s.input.maxHeight === 200 && s.input.resize === 'none');

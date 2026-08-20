@@ -1560,6 +1560,10 @@ const EZ_I18N = {
     'language.chooseHint': 'يُحفظ على هذا الجهاز',
     'settings.language': 'اللغة',
     'settings.savedOnDevice': 'يُحفظ على هذا الجهاز',
+    'settings.enter': 'زر الإدخال',
+    'settings.enter.sends': 'Enter يُرسل الرسالة',
+    'settings.enter.sendsHint': 'Enter يُرسل، و Shift+Enter سطر جديد. ولا يُرسل أثناء تركيب الحروف.',
+    'settings.enter.newlineHint': 'Enter سطر جديد، والإرسال بالزر. ولا يُرسل أثناء تركيب الحروف.',
     'settings.watermark': 'وضوح العلامة المائية',
     'settings.watermark.light': 'خفيفة',
     'settings.watermark.medium': 'متوسطة',
@@ -1766,6 +1770,10 @@ const EZ_I18N = {
     'language.chooseHint': 'Saved on this device',
     'settings.language': 'Language',
     'settings.savedOnDevice': 'Saved on this device',
+    'settings.enter': 'The Enter key',
+    'settings.enter.sends': 'Enter sends the message',
+    'settings.enter.sendsHint': 'Enter sends, Shift+Enter makes a new line. It never sends while a word is being composed.',
+    'settings.enter.newlineHint': 'Enter makes a new line, the button sends. It never sends while a word is being composed.',
     'settings.watermark': 'Watermark strength',
     'settings.watermark.light': 'Light',
     'settings.watermark.medium': 'Medium',
@@ -2140,6 +2148,57 @@ const applyWatermarkOpacity = (v) => {
     document.documentElement.style.setProperty('--ezwm-o', String(readWatermarkOpacity()));
   } catch (e) {}
 })();
+
+// WHAT `Enter` DOES, AND IT IS THE READER'S TO SET. Same shape as the watermark above: one
+// key, one reader that refuses anything it does not recognise, one writer that is the only
+// thing to touch the key. It holds one of three words and nothing else -- no identifier, no
+// text, nothing about the reader -- and nothing in this file sends it anywhere.
+//
+// THE DEFAULT IS `auto`, AND `auto` IS TODAY'S RULE UNCHANGED: a touch composer writes a new
+// line and sends with the button, a pointer composer sends on Enter. So a device that has
+// never chosen behaves exactly as it did before this existed. The other two words are the
+// reader overriding that guess in one direction or the other, which is what the toggle does.
+//
+// IT IS NOT A SECOND RULE ABOUT COMPOSITION. An Enter that an IME is using to accept a
+// candidate never sends, in all three values -- that test sits above this one in the handler
+// and this preference is not consulted until it has passed.
+const EZIK_ENTER_KEY = 'ezik_enter_sends_v1';
+const EZIK_ENTER_AUTO = 'auto';
+const EZIK_ENTER_EVENT = 'ezik:enter-pref';
+const readEnterPref = () => {
+  try {
+    const raw = localStorage.getItem(EZIK_ENTER_KEY);
+    return (raw === 'send' || raw === 'newline') ? raw : EZIK_ENTER_AUTO;
+  } catch (e) { return EZIK_ENTER_AUTO; }
+};
+const writeEnterPref = (v) => {
+  const w = (v === 'send' || v === 'newline') ? v : EZIK_ENTER_AUTO;
+  try {
+    if (w === EZIK_ENTER_AUTO) localStorage.removeItem(EZIK_ENTER_KEY);
+    else localStorage.setItem(EZIK_ENTER_KEY, w);
+  } catch (e) {}
+  // ANNOUNCED, because the chat is NOT re-mounted when الإعدادات closes. That was measured on
+  // a real page: the switch wrote the key and the composer went on obeying the value it had
+  // read at mount. Every reader of this preference listens for this event, so what the switch
+  // says and what Enter does cannot drift apart for even one keystroke.
+  try { window.dispatchEvent(new CustomEvent(EZIK_ENTER_EVENT, { detail: w })); } catch (e) {}
+  return w;
+};
+// THE ONE RESOLVER, and every reader of this preference goes through it -- the handler, the
+// keyboard hint and the settings switch alike -- so what the key says, what the composer does
+// and what the corner key is labelled cannot disagree.
+// The same question the composer asks, asked where there is no composer to ask it of: الإعدادات
+// draws the switch before the chat is on screen. It is the media query ONLY -- never the window
+// width -- so this screen and the composer's opening value are the same value.
+const ezikComposerIsTouch = () => {
+  try { return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
+  catch (e) { return false; }
+};
+const ezikEnterSends = (pref, isTouch) => {
+  if (pref === 'send') return true;
+  if (pref === 'newline') return false;
+  return !isTouch;
+};
 
 const THEME_KEY = 'murabbi_theme_v1';
 const readStoredTheme = () => { try { const t = localStorage.getItem(THEME_KEY); return (t === 'dark' || t === 'light') ? t : 'light'; } catch (e) { return 'light'; } };
@@ -6761,6 +6820,16 @@ function App() {
     try { return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
     catch (e) { return false; }
   });
+  // The stored choice, read at mount. الإعدادات unmounts this tree while it is on screen, so
+  // coming back from the switch re-mounts the chat and re-reads the key -- the same lifecycle
+  // the theme and the watermark already rely on, and no value is threaded between them.
+  const [enterPref, setEnterPref] = useState(readEnterPref);
+  const enterSends = ezikEnterSends(enterPref, inputIsTouch);
+  useEffect(() => {
+    const onPref = () => setEnterPref(readEnterPref());
+    try { window.addEventListener(EZIK_ENTER_EVENT, onPref); } catch (e) {}
+    return () => { try { window.removeEventListener(EZIK_ENTER_EVENT, onPref); } catch (e) {} };
+  }, []);
   const recognitionRef = useRef(null);
   const transcriptRef = useRef('');
   const baseTextRef = useRef('');        // input snapshot when dictation (re)starts — new speech is appended after it
@@ -8879,10 +8948,11 @@ function App() {
   //     question that had been typed so far, which is the most-reported version of this defect
   //     and the reason this test comes before every other one.
   //  3. `Shift+Enter` IS A NEWLINE. Unchanged, on every device.
-  //  4. TOUCH SENDS WITH THE SEND BUTTON, NEVER WITH `Enter`. On a phone `Enter` is how a
+  //  4. AND THEN WHAT THE READER ASKED FOR. `enterSends` is the resolved preference, and its
   //     person writes a second line, and the button beside the field is how they send. The
   //     reverse — the shipped behaviour until now — costs a question every time somebody
-  //     reaches for a new paragraph.
+  //     reaches for a new paragraph. الإعدادات can now overrule the guess in either
+  //     direction; it cannot overrule tests 1..3, which run first and are not preferences.
   //
   // AND THE KEY IS LABELLED HONESTLY. `enterKeyHint` is what puts «send» or a return arrow on
   // the on-screen keyboard's corner key; leaving it saying «send» on a path where `Enter`
@@ -8892,7 +8962,7 @@ function App() {
     if (composingRef.current || e.nativeEvent?.isComposing
       || e.which === 229 || e.keyCode === 229) return;
     if (e.shiftKey) return;
-    if (inputIsTouch) return;
+    if (!enterSends) return;
     e.preventDefault();
     e.target.style.height = 'auto';
     sendMessage(input);
@@ -9884,7 +9954,7 @@ function App() {
           onBlur={() => setComposerFocused(false)}
           onCompositionStart={() => { composingRef.current = true; }}
           onCompositionEnd={() => { composingRef.current = false; }}
-          enterKeyHint={inputIsTouch ? 'enter' : 'send'}
+          enterKeyHint={enterSends ? 'send' : 'enter'}
           style={s.input}
           disabled={isLoading || isListening}
         />
@@ -11881,6 +11951,12 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // only ever changes through applyWatermarkOpacity, so what is on screen, what is on the
   // document root and what is in the store cannot disagree.
   const [wmOpacity, setWmOpacity] = useState(readWatermarkOpacity);
+  // Read once at mount from the one reader, written through the one writer -- the watermark
+  // rule exactly. The switch shows the RESOLVED behaviour, so an `auto` device shows the
+  // state it is actually in rather than a third word the reader never chose.
+  const [enterPref, setEnterPref] = useState(readEnterPref);
+  const enterIsTouch = ezikComposerIsTouch();
+  const enterSendsNow = ezikEnterSends(enterPref, enterIsTouch);
   const [pin1, setPin1] = useState('');
   const [pin2, setPin2] = useState('');
   const [pinMsg, setPinMsg] = useState('');
@@ -12015,6 +12091,28 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             </span>
           </button>
           <button type="button" onClick={onA11yReset} className="ez-a11y-opt" style={s.a11yReset}>{EZIK_A11Y_RESET}</button>
+        </EzShellGroup>
+        {/* WHAT `Enter` DOES. One switch over the one preference, and it writes an EXPLICIT
+            word: flipping it stores send/newline rather than leaving the device to be asked
+            again. The hint line states the rule in full, including the half that is not
+            negotiable -- an Enter the keyboard is using to finish a word never sends. */}
+        <EzShellGroup title={ezT('settings.enter')} hint={ezT('settings.savedOnDevice')}>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enterSendsNow ? 'true' : 'false'}
+            onClick={() => setEnterPref(writeEnterPref(enterSendsNow ? 'newline' : 'send'))}
+            className="ezik-focus"
+            style={s.a11ySwitchRow}
+          >
+            <span style={s.a11ySwitchText}>
+              <span style={s.a11ySwitchTitle}>{ezT('settings.enter.sends')}</span>
+              <span style={s.a11ySwitchHint}>{enterSendsNow ? ezT('settings.enter.sendsHint') : ezT('settings.enter.newlineHint')}</span>
+            </span>
+            <span style={{ ...s.a11ySwitch, ...(enterSendsNow ? s.a11ySwitchOn : {}) }} aria-hidden="true">
+              <span style={{ ...s.a11yKnob, ...(enterSendsNow ? s.a11yKnobOn : {}) }} />
+            </span>
+          </button>
         </EzShellGroup>
         {/* THE WATERMARK'S STRENGTH. Three presets and a fine slider over the SAME number, so
             there is one value and not two: a preset writes 0.2 / 0.5 / 0.8 and the slider writes
