@@ -44,6 +44,13 @@
  *   B10 sealed 13   -- sha256 of the eight quest-data files, the three scripture /
  *                      adhkar / layout files, the manifest and the service worker.
  *                      Unconditional: no git, no branch, no skip.
+ *   B11 sw policy   -- sw.js is EXECUTED in a vm with self/caches/fetch stubbed, and
+ *                      a synthetic FetchEvent is dispatched at it. Every same-origin
+ *                      data file must be served from the cache AND revalidated in the
+ *                      background; the read after a change must return the new bytes;
+ *                      a failed fetch must leave the stored copy intact and raise
+ *                      nothing at the page. B10 proves sw.js has not MOVED; B11 proves
+ *                      it still WORKS, which is the half item 80 was lost in.
  *
  * USAGE
  *   node quest-bank-integrity-guard.cjs --emit    > quest-data/bank-integrity-golden.json
@@ -53,6 +60,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const vm = require('vm');
 
 const BANK = 'quest-data/trivia-golden.json';
 const PROTECTED_CATS = ['quran', 'juz-amma', 'juz-tabarak', 'prayer'];
@@ -90,9 +98,118 @@ const SEALED = {
   // now carry `text eol=lf` in .gitattributes, so what is checked out is what is sealed.
   // Re-cut these only from a tree measured at CR = 0.
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
-  // Re-cut for the watermark: CORE gained '/icon-watermark.png' in the same commit that
-  // pointed .ezwm at it. Measured on this tree at CR = 0, as the note above requires.
-  'sw.js': '380ffa4065c639c4f1b7f199a96cdd5444eb1c96209f7a9aeab4412cfdf3861b',
+  // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
+  // every time, as the note above requires.
+  //   items 88 + 80 -- CACHE 'ezik-v1' -> 'ezik-v2' (so a returning reader stops being
+  //                    served the old build out of the old store), and the same-origin
+  //                    *.json class moved from cache-first to stale-while-revalidate.
+  //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
+  //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
+  'sw.js': '3e94dd964f8f9bf9183f1345261a9bf4b24ea1f160e17b5c11277da8506b05ac',
+};
+
+// ---------------------------------------------------------------------------
+// B11: THE SERVICE WORKER'S DATA-FILE POLICY, EXECUTED.
+//
+// B10 proves sw.js has not moved. It cannot prove sw.js still BEHAVES. Item 80
+// was exactly that gap: the data files were served cache-first with no
+// revalidation, so a changed adhkar.json stayed frozen on every phone that had
+// ever opened the app until a human remembered to bump the cache name below.
+// A seal would have happily blessed that forever.
+//
+// So B11 runs the worker. sw.js is evaluated in vm.runInContext with `self`,
+// `caches` and `fetch` domesticated -- the same technique the vendor-loading
+// guards in this repo already use -- and a synthetic FetchEvent is dispatched
+// at it. No browser, no network, no server: the assertions below are about what
+// the code DOES, and they are written against the worker's own selector rather
+// than against a line number, an index into the file, or a quoted source line.
+//
+// SW_CACHE is re-cut with the seal above, in the same commit, by whoever ships
+// a version bump. It is here so that a forgotten bump fails with a sentence
+// instead of with "sw.js MOVED".
+// ---------------------------------------------------------------------------
+const SW_FILE = 'sw.js';
+const SW_CACHE = 'ezik-v2';
+const SW_ORIGIN = 'https://ezik.app';
+// The data-file class item 80 governs, and one member of every class it must NOT
+// have touched. Named by request, because the worker selects by request.
+const SW_DATA_FILES = ['/adhkar.json', '/worship-display.json', '/manifest.json',
+  '/quran-uthmani.json', '/mushaf-layout.json'];
+
+function swRes(body, status) {
+  return {
+    status: status === undefined ? 200 : status,
+    type: 'basic',
+    _body: body,
+    clone() { return swRes(this._body, this.status); },
+    text() { return Promise.resolve(this._body); },
+  };
+}
+
+// Load sw.js into a domesticated global scope and hand back the levers a test needs.
+function swLoad(swPath, fetchImpl) {
+  const store = new Map();
+  const listeners = {};
+  const opened = [];
+  let fetchCalls = 0;
+  const keyOf = (r) => (typeof r === 'string' ? SW_ORIGIN + r : r.url);
+  const cacheOf = (n) => { if (!store.has(n)) store.set(n, new Map()); return store.get(n); };
+  const wrap = (n) => ({
+    match: (r) => Promise.resolve(cacheOf(n).get(keyOf(r))),
+    put: (r, res) => { cacheOf(n).set(keyOf(r), res); return Promise.resolve(); },
+    add: () => Promise.resolve(),
+    delete: (r) => Promise.resolve(cacheOf(n).delete(keyOf(r))),
+  });
+  const sandbox = {
+    URL: URL, Promise: Promise, setTimeout: setTimeout, clearTimeout: clearTimeout, console: console,
+    self: {
+      addEventListener: (t, f) => { listeners[t] = f; },
+      skipWaiting: () => {},
+      clients: { claim: () => Promise.resolve() },
+      location: { origin: SW_ORIGIN },
+    },
+    caches: {
+      open: (n) => { opened.push(n); return Promise.resolve(wrap(n)); },
+      match: (r) => {
+        for (const n of store.keys()) {
+          const h = cacheOf(n).get(keyOf(r));
+          if (h) return Promise.resolve(h);
+        }
+        return Promise.resolve(undefined);
+      },
+      keys: () => Promise.resolve(Array.from(store.keys())),
+      delete: (n) => Promise.resolve(store.delete(n)),
+    },
+    fetch: (r) => { fetchCalls++; return fetchImpl(r); },
+  };
+  vm.runInContext(fs.readFileSync(swPath, 'utf8'), vm.createContext(sandbox), { filename: swPath });
+  return {
+    hasFetchListener: () => typeof listeners.fetch === 'function',
+    opened: opened,
+    fetches: () => fetchCalls,
+    seed: (name, url, body) => cacheOf(name).set(SW_ORIGIN + url, swRes(body)),
+    peek: (name, url) => {
+      const h = cacheOf(name).get(SW_ORIGIN + url);
+      return h ? h._body : undefined;
+    },
+    dispatch: (url, mode) => {
+      let responded = null;
+      const waits = [];
+      listeners.fetch({
+        request: { url: SW_ORIGIN + url, method: 'GET', mode: mode || 'cors' },
+        respondWith: (p) => { responded = p; },
+        waitUntil: (p) => { waits.push(p); },
+      });
+      return { responded: responded, waits: waits };
+    },
+  };
+}
+
+const swSettle = (ps) => Promise.all(ps.map((p) => Promise.resolve(p).catch(() => undefined)));
+const swBody = async (p) => {
+  if (!p) return undefined;
+  const r = await Promise.resolve(p).catch(() => undefined);
+  return r ? await r.text() : undefined;
 };
 
 // ---------------------------------------------------------------------------
@@ -218,7 +335,7 @@ function emit() {
 }
 
 // ---------------------------------------------------------------------------
-function compare(goldenPath) {
+async function compare(goldenPath) {
   const d = load(BANK), g = load(goldenPath);
   let pass = 0, fail = 0;
   const ok = m => { pass++; console.log('  PASS ' + m); };
@@ -404,13 +521,111 @@ function compare(goldenPath) {
   if (sealed !== sealNames.length) no('B10', 'only ' + sealed + ' of ' + sealNames.length + ' sealed files were readable');
   if (!sealBad) ok('all ' + sealNames.length + ' sealed files are byte-for-byte unchanged');
 
+  // -- B11 the service worker's data-file policy, EXECUTED -----------------
+  console.log('\n-- B11 service worker: data files must revalidate (item 80) --');
+  const swPath = path.join(__dirname, SW_FILE);
+  if (!fs.existsSync(swPath)) {
+    no('B11', SW_FILE + ' is ABSENT -- the data-file policy cannot be executed');
+  } else {
+    // The cache name. Discovered by running the worker, not by reading a line.
+    const probe = swLoad(swPath, () => Promise.resolve(swRes('NET')));
+    if (!probe.hasFetchListener()) {
+      no('B11', SW_FILE + ' registered no fetch listener -- nothing to assert');
+    } else {
+      probe.dispatch(SW_DATA_FILES[0]);
+      await new Promise((r) => setTimeout(r, 0));
+      const name = probe.opened[0];
+      if (name === SW_CACHE) ok('service worker opens cache "' + SW_CACHE + '"');
+      else no('B11', 'service worker opens cache ' + JSON.stringify(name) + ' -- SW_CACHE says "'
+        + SW_CACHE + '". Re-cut both together, or the ship is invisible to every returning reader.');
+
+      // Every data file, one at a time. A class assertion that only ever ran on
+      // adhkar.json would not have caught worship-display.json.
+      let stale = 0, frozen = 0, fragile = 0;
+      for (const f of SW_DATA_FILES) {
+        // (1) a HIT is served from the cache AND a background fetch is issued.
+        const h = swLoad(swPath, () => Promise.resolve(swRes('NEW')));
+        h.seed(name, f, 'OLD');
+        const before = h.fetches();
+        const d1 = h.dispatch(f);
+        if (!d1.responded) { stale++; no('B11', f + ' is not handled by the worker at all'); continue; }
+        const b1 = await swBody(d1.responded);
+        if (b1 !== 'OLD') { stale++; no('B11', f + ' did not serve the STORED copy (got ' + JSON.stringify(b1) + ')'); }
+        if (h.fetches() - before !== 1) {
+          stale++;
+          no('B11', f + ' was served from the cache with NO revalidation fetch (' + (h.fetches() - before)
+            + '). This is item 80: a changed file stays frozen on every device until the cache name is bumped.');
+        }
+        if (!d1.waits.length) {
+          stale++;
+          no('B11', f + ' handed its revalidation to nothing -- the worker may be killed before the write lands');
+        }
+
+        // (2) the read AFTER the file changed returns the new bytes.
+        await swSettle(d1.waits);
+        if (h.peek(name, f) !== 'NEW') { frozen++; no('B11', f + ' revalidation never wrote the new bytes into the cache'); }
+        const b2 = await swBody(h.dispatch(f).responded);
+        if (b2 !== 'NEW') { frozen++; no('B11', f + ' still serves the old bytes after revalidation (' + JSON.stringify(b2) + ')'); }
+
+        // (3) a FAILED fetch keeps the stored copy and raises nothing at the page.
+        const hx = swLoad(swPath, () => Promise.reject(new Error('offline')));
+        hx.seed(name, f, 'OLD');
+        const d3 = hx.dispatch(f);
+        let raised = null;
+        await Promise.resolve(d3.responded).catch((e) => { raised = e; });
+        if (raised) { fragile++; no('B11', f + ' let a network failure reach the page: ' + raised.message); }
+        if (await swBody(d3.responded) !== 'OLD') { fragile++; no('B11', f + ' did not serve the stored copy while offline'); }
+        for (const w of d3.waits) {
+          await Promise.resolve(w).catch((e) => { fragile++; no('B11', f + ' revalidation promise rejected: ' + e.message); });
+        }
+        if (hx.peek(name, f) !== 'OLD') {
+          fragile++;
+          no('B11', f + ' LOST its stored copy to a failed fetch -- a reader with no network loses the file entirely');
+        }
+      }
+      if (!stale) ok('all ' + SW_DATA_FILES.length + ' data files are served from cache AND revalidated in the background');
+      if (!frozen) ok('all ' + SW_DATA_FILES.length + ' data files serve the NEW bytes on the read after a change');
+      if (!fragile) ok('all ' + SW_DATA_FILES.length + ' data files survive a dead network with the stored copy intact');
+
+      // The policies item 80 must NOT have moved. Without these, "revalidate
+      // everything" would pass B11 while doubling every asset request and
+      // unfreezing the quest bank the testers depend on being fresh.
+      let moved = 0;
+      const asset = swLoad(swPath, () => Promise.resolve(swRes('NEW')));
+      asset.seed(name, '/icon-192.png', 'OLDPNG');
+      const da = asset.dispatch('/icon-192.png');
+      if (await swBody(da.responded) !== 'OLDPNG' || asset.fetches() !== 0) {
+        moved++; no('B11', 'a content-stable asset is no longer cache-first (fetches=' + asset.fetches() + ')');
+      }
+      if (swLoad(swPath, () => Promise.resolve(swRes('x'))).dispatch('/api/chat').responded) {
+        moved++; no('B11', '/api/* is being intercepted -- a cached religious answer is a wrong answer');
+      }
+      if (swLoad(swPath, () => Promise.resolve(swRes('x'))).dispatch('/quest-data/trivia-golden.json').responded) {
+        moved++; no('B11', 'the .json branch swallowed /quest-data/ -- testers would be frozen on an old bank');
+      }
+      const shell = swLoad(swPath, () => Promise.resolve(swRes('SHELL')));
+      shell.seed(name, '/', 'OLDSHELL');
+      if (await swBody(shell.dispatch('/', 'navigate').responded) !== 'SHELL') {
+        moved++; no('B11', 'the app shell is no longer network-first');
+      }
+      if (!moved) ok('the four policies item 80 does not govern are untouched (asset / api / quest-data / shell)');
+    }
+  }
+
   console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  ' + pass + ' checks passed, ' + fail + ' failed.');
   process.exit(fail ? 1 : 0);
 }
 
 const mode = process.argv[2];
 if (mode === '--emit') emit();
-else if (mode === '--compare' && process.argv[3]) compare(process.argv[3]);
+else if (mode === '--compare' && process.argv[3]) {
+  // B11 executes the service worker, so compare() is async. A rejection here must
+  // be a loud non-zero exit, never a silent unhandled-rejection warning above a 0.
+  compare(process.argv[3]).catch((e) => {
+    console.log('  FAIL [B11] the guard itself threw: ' + (e && e.stack ? e.stack : e));
+    process.exit(1);
+  });
+}
 else {
   console.error('usage: node quest-bank-integrity-guard.cjs --emit    > quest-data/bank-integrity-golden.json');
   console.error('       node quest-bank-integrity-guard.cjs --compare quest-data/bank-integrity-golden.json');

@@ -1,12 +1,20 @@
-// Service worker for المربّي (step 6 / 6b). FOUR policies, in strict order:
+// Service worker for المربّي (step 6 / 6b). FIVE policies, in strict order:
 //   network-only: EVERY /api/* request -- never cached. A cached AI/fatwa reply is a stale
 //                 religious answer to a NEW question; a cached report is a report that never
 //                 arrives. Both are worse than no cache at all. (First condition in fetch.)
 //   network-first: the app shell -- navigations and the HTML entry points (/ and /index.html).
 //                 Always fetched fresh; the cached copy is only an offline fallback. This is why
 //                 a forgotten version bump can NO LONGER strand a user on a dead build (6b).
-//   cache-first : the two mushaf JSONs + manifest + the Google Fonts CSS/font files -- immutable
-//                 (the mushaf is fingerprint-locked by quran/layout-guard) or rarely changing.
+//   stale-while-revalidate: EVERY same-origin data file (*.json) -- adhkar.json,
+//                 worship-display.json, manifest.json and the two mushaf JSONs. The stored copy
+//                 is served IMMEDIATELY and a background fetch refreshes it for the NEXT read.
+//                 Item 80: cache-first with no revalidation froze a changed adhkar.json on every
+//                 phone that had ever opened the app until a human remembered to bump the cache
+//                 name -- the same 'human discipline is not a deploy mechanism' defect 6b fixed
+//                 for the shell. A FAILED background fetch changes NOTHING: the stored copy is
+//                 never dropped, so a reader with no network keeps the adhkar they already have.
+//   cache-first : the icons and the watermark + the Google Fonts CSS/font files -- immutable or
+//                 rarely changing, and none of them carries text that can go stale.
 //   ignored     : every other origin (everyayah.com recitation audio, the unpkg/cdnjs script
 //                 CDNs) -- left entirely to the network; the SW never intercepts them.
 //
@@ -19,8 +27,9 @@
 // file makes the browser install the new worker, `activate` deletes every non-matching cache,
 // and skipWaiting + clients.claim hand control to the new build IMMEDIATELY -- no tester left
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
-// regardless of the version; the bump refreshes the CACHE-FIRST assets (mushaf/manifest/fonts).
-const CACHE = 'ezik-v1';
+// regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
+// data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
+const CACHE = 'ezik-v2';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // 298686 transferred bytes for a second copy of what '/' already holds. The network-first
@@ -120,6 +129,37 @@ self.addEventListener('fetch', (event) => {
         }
         return res;
       }).catch(() => caches.match(req).then((m) => m || caches.match('/')))
+    );
+    return;
+  }
+
+  // STALE-WHILE-REVALIDATE for same-origin DATA files. Selected by what the request IS -- a
+  // same-origin '.json' -- not by a list this branch would have to be kept in step with. The
+  // stored copy answers the page at once; the network copy lands in the cache for the next read.
+  //
+  // The three properties this branch is required to have, in the order they are asserted by
+  // quest-bank-integrity-guard.cjs B11:
+  //   1. a cache HIT is served immediately AND a background fetch is issued;
+  //   2. the read AFTER the file changed on the server gets the new bytes;
+  //   3. a FAILED fetch leaves the stored copy intact and raises nothing at the page.
+  // (3) is an acceptance condition, not a nicety: this app is used with no network.
+  if (sameOrigin && url.pathname.endsWith('.json')) {
+    event.respondWith(
+      caches.open(CACHE).then((cache) => cache.match(req).then((hit) => {
+        // Never rejects and never deletes. A dead network resolves it to undefined and the
+        // stored copy stays exactly as it was.
+        const revalidate = fetch(req).then((res) => {
+          if (res && res.status === 200) cache.put(req, res.clone()).catch(() => {});
+          return res;
+        }).catch(() => undefined);
+        if (hit) {
+          // Keep the worker alive for the write, but do not make the page wait on it.
+          event.waitUntil(revalidate);
+          return hit;
+        }
+        // Cold cache: there is nothing stale to serve, so this read is the network read.
+        return revalidate;
+      }))
     );
     return;
   }
