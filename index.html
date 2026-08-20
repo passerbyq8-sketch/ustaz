@@ -479,21 +479,36 @@
   .ezist-wrap{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;
     padding:14px 12px calc(22px + env(safe-area-inset-bottom, 0px))}
   /* THE MASTHEAD, and the arch IS the signature radius -- 120px 120px 18px 18px under
-     istana_33. overflow:hidden so nothing inside it can ever paint outside it. */
+     istana_33. overflow:hidden so nothing inside it can ever paint outside it.
+
+     IT IS A STRIP NOW, not a hero. It was a centred column 30px+ of padding tall carrying a
+     40px emblem, a 26px name and a chip stacked under a rule -- roughly a third of a phone
+     screen before the first module card. Every WORD it showed it still shows, and every
+     element it drew it still draws; they are laid on ONE ROW instead of five stacked ones,
+     wrapping to a second row only when the width cannot hold them. The emblem, the rule and
+     the chip are the same three things at strip scale. */
   .ezist-masthead{position:relative;overflow:hidden;box-sizing:border-box;
     border-radius:var(--ez-radius-sig);background:var(--a3-ice);border:1px solid var(--a3-line);
-    padding:30px 18px 20px;text-align:center;margin-bottom:14px}
-  /* the tulip: two pseudo-elements and a leaf, all inside the masthead box. */
-  .ezist-tulip{position:relative;display:block;width:34px;height:40px;margin:0 auto 8px}
-  .ezist-tulip::before{content:"";position:absolute;left:50%;top:0;width:22px;height:25px;
-    margin-left:-11px;border:2px solid var(--a3-blue);border-radius:60% 60% 14% 14%}
-  .ezist-tulip::after{content:"";position:absolute;left:50%;top:25px;width:2px;height:13px;
+    padding:8px 14px;text-align:start;margin-bottom:12px;
+    display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+  /* the greeting line: the salutation and the name, one above the other, as one flex child --
+     so the row has three items and not four, and the name can ellipsis instead of pushing the
+     chip off the strip. */
+  .ezist-hello{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
+  /* the tulip: two pseudo-elements and a leaf, all inside the masthead box. Strip scale, and
+     the same three boxes -- no path, no image, no new colour. */
+  .ezist-tulip{position:relative;display:block;flex-shrink:0;width:20px;height:24px;margin:0}
+  .ezist-tulip::before{content:"";position:absolute;left:50%;top:0;width:14px;height:16px;
+    margin-left:-7px;border:2px solid var(--a3-blue);border-radius:60% 60% 14% 14%}
+  .ezist-tulip::after{content:"";position:absolute;left:50%;top:16px;width:2px;height:8px;
     margin-left:-1px;background:var(--a3-blue)}
-  .ezist-tulip-mark{position:absolute;left:50%;top:9px;width:8px;height:8px;margin-left:-4px;
+  .ezist-tulip-mark{position:absolute;left:50%;top:5px;width:5px;height:5px;margin-left:-2.5px;
     border-radius:50%;background:var(--a3-cyan)}
   .ezist-rule{height:1px;background:var(--a3-line);margin:9px 0}
-  .ezist-rule-short{width:44px;height:2px;background:var(--a3-blue);border-radius:2px;
-    margin:10px auto 0}
+  /* the short rule turned through 90 degrees: it separated the name from the chip when they
+     were stacked, and it separates them on the row for the same reason. */
+  .ezist-rule-short{flex-shrink:0;width:2px;height:22px;background:var(--a3-blue);
+    border-radius:2px;margin:0}
   .ezist-mosaic{display:grid;grid-template-columns:1fr;gap:12px}
   .ezist-mosaic>*{min-width:0}
   @media (min-width:600px){
@@ -508,7 +523,7 @@
     .ezist-mod,.ezist-feature{grid-column:span 2}
     .ezist-mod-fatwa{grid-column:span 4}
     .ezist-quran{grid-column:span 6}
-    .ezist-masthead{padding:44px 26px 28px}
+    .ezist-masthead{padding:10px 20px}
     .ezist-nav-inner{padding:6px 20px}
   }
 
@@ -4199,8 +4214,10 @@ function EzistMasthead({ name, g, onOpenAdhkar }) {
   return (
     <section className="ezist-masthead">
       <span className="ezist-tulip" aria-hidden="true"><span className="ezist-tulip-mark" /></span>
-      <div style={s.ezistSalam}>{EZH_SALAM}</div>
-      <h1 style={s.ezistName}>{EZH_HELLO} {name}</h1>
+      <div className="ezist-hello">
+        <div style={s.ezistSalam}>{EZH_SALAM}</div>
+        <h1 style={s.ezistName}>{EZH_HELLO} {name}</h1>
+      </div>
       <span className="ezist-rule-short" aria-hidden="true" />
       {tap ? (
         <button type="button" className="ezhome-focus" onClick={onOpenAdhkar} style={s.ezistPrompt} aria-label={g.text}>
@@ -14085,12 +14102,18 @@ const s = {
   ezistScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
   ezistNavBtn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },
   ezistNavOn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', cursor: 'default' },
-  ezistSalam: { fontSize: 13, fontWeight: 700, color: 'var(--a3-muted)', letterSpacing: '.2px' },
-  ezistName: { fontSize: 26, fontWeight: 800, color: 'var(--a3-ink)', margin: '4px 0 0', lineHeight: 1.4 },
-  ezistPrompt: { display: 'inline-flex', alignItems: 'center', gap: 10, minHeight: 44, marginTop: 14, padding: '10px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', textAlign: 'right', maxWidth: '100%' },
-  ezistPromptFlat: { display: 'inline-flex', alignItems: 'center', gap: 10, minHeight: 44, marginTop: 14, padding: '10px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', maxWidth: '100%' },
+  // THE GREETING STRIP. The words are the ones the app already picked and not one of them
+  // moved; what moved is their size and the space around them. The name gets an ellipsis
+  // because it now shares a row rather than owning a line.
+  ezistSalam: { fontSize: 11.5, fontWeight: 700, color: 'var(--a3-muted)', letterSpacing: '.2px', lineHeight: 1.4 },
+  ezistName: { fontSize: 17, fontWeight: 800, color: 'var(--a3-ink)', margin: 0, lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  // The prompt chip keeps its 44px tap target -- a strip is not a reason to shrink a thing a
+  // thumb has to hit -- and loses the 14px that pushed it away from the line above it, because
+  // there is no line above it any more.
+  ezistPrompt: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, marginTop: 0, padding: '6px 12px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', textAlign: 'right', maxWidth: '100%', flexShrink: 0 },
+  ezistPromptFlat: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, marginTop: 0, padding: '6px 12px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', maxWidth: '100%', flexShrink: 0 },
   ezistPromptIcon: { display: 'inline-flex', flexShrink: 0, color: 'var(--a3-blue)' },
-  ezistPromptText: { minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.6 },
+  ezistPromptText: { minWidth: 0, fontSize: 13, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   // the chat entry: a surface panel with one bounded accent affordance, never a filled slab.
   ezistAsk: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, width: '100%', minHeight: 76, padding: '14px 16px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezistAskGo: { width: 46, height: 46, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)' },
