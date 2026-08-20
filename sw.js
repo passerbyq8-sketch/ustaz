@@ -32,6 +32,10 @@ const CORE = [
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-512.png',
+  // The chat's watermark. Precached for the same reason the three icons above it are: it is
+  // painted on the first screen the app opens, and an offline reader that had never fetched
+  // it would meet an empty box behind the conversation.
+  '/icon-watermark.png',
   '/adhkar.json',
 ];
 

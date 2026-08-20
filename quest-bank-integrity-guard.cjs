@@ -90,7 +90,9 @@ const SEALED = {
   // now carry `text eol=lf` in .gitattributes, so what is checked out is what is sealed.
   // Re-cut these only from a tree measured at CR = 0.
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
-  'sw.js': '3e9a8bdcc8b154ae0231cae9ef0d8b34240d24c7d0da1af39000d7e0cde14561',
+  // Re-cut for the watermark: CORE gained '/icon-watermark.png' in the same commit that
+  // pointed .ezwm at it. Measured on this tree at CR = 0, as the note above requires.
+  'sw.js': '380ffa4065c639c4f1b7f199a96cdd5444eb1c96209f7a9aeab4412cfdf3861b',
 };
 
 // ---------------------------------------------------------------------------
