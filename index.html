@@ -4282,14 +4282,28 @@ let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf
 // THE VERSE IS A DISPLAY AND NOTHING ELSE. It is the same EzistQuranPanel, reading the same
 // getDailyVerse() and printing the same text verbatim; it carries no handler, no role and no
 // tabindex, and pressing it does nothing, deliberately.
+//
+// THE MENU BUTTON IS FIRST, and first is the RIGHT: the document lays out RTL (body carries
+// direction:rtl in the sheet, which outranks any dir attribute), so the leading edge of this
+// flex row is the right edge and the first child is what sits on it. The button used to be
+// second and therefore on the left, which is the trailing edge and the wrong side of an Arabic
+// bar. NOTHING ELSE MOVED: .ezist-nav-inner is the same space-between row, the verse still
+// takes the width the button leaves (flex:1 1 auto, min-width:0), and the verse itself -- its
+// component, its source, its text, its label and its rule -- is not touched by this.
+//
+// AND IT IS THE DOM ORDER, NOT `order` AND NOT `row-reverse`. Either of those would put the
+// button on the right while leaving it second in the tree, so what a screen reader announces
+// and what the tab ring visits would run against what the eye reads. The composition block
+// states that no `order` property is used anywhere in it and that tab order follows what is on
+// screen; moving the element is what keeps that true.
 function EzistTopNav({ onOpenMenu }) {
   return (
     <div className="ezist-nav">
       <div className="ezist-nav-inner">
-        <EzistQuranPanel />
         <button type="button" className="ezhome-focus" onClick={onOpenMenu} style={s.ezistNavBtn} aria-label={EZH_NAV_MENU}>
           {EZH_ICON_MENU}
         </button>
+        <EzistQuranPanel />
       </div>
     </div>
   );

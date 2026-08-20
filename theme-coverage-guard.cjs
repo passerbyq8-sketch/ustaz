@@ -906,13 +906,35 @@ ok('...bounded and centred rather than loose across the viewport',
 // handler at all, because it pointed at the screen already showing), chat, settings, and a
 // profile entry whose onClick was character for character the settings entry's. The bar now
 // carries the daily verse and one button, and those four actions live in the menu that button
-// opens -- where two of them already were. The check is not relaxed: it is the ordered shape,
-// asserted as itself, plus a sweep proving the removed names survive nowhere.
+// opens -- where two of them already were. The check is not relaxed: it is the shape itself,
+// asserted member by member and then ordered on its own line, plus a sweep proving the removed
+// names survive nowhere.
 {
   const NAV = IST.slice(IST.indexOf('function EzistTopNav'), IST.indexOf('function EzistMasthead'));
   ok('the bar was located as one unit', NAV.length > 200 && NAV.length < 3000, 'len=' + NAV.length);
+  // S119: this pinned the two in ONE order -- verse, then button -- and the order is precisely
+  // what item 58 changed, so an order-shaped regex would have had to be DELETED for the fix to
+  // land. It is narrowed to the members instead, and it did not lose bite: the inner block is
+  // cut out and must hold one button and one panel AND NOTHING ELSE, which is a stricter reading
+  // of 'exactly two' than the regex it replaces gave. What the order meant is asserted on its
+  // own two lines below, where it can say why it is the right and not the left.
+  const INNER = (NAV.match(/<div className="ezist-nav-inner">([\s\S]*?)\r?\n\s*<\/div>/) || [])[1] || '';
   ok('...carrying exactly two elements: the daily verse and the menu button',
-    /<div className="ezist-nav-inner">\s*\r?\n\s*<EzistQuranPanel \/>\s*\r?\n\s*<button /.test(NAV));
+    (INNER.match(/<button /g) || []).length === 1
+    && (INNER.match(/<EzistQuranPanel \/>/g) || []).length === 1
+    && INNER.replace(/<button [\s\S]*?<\/button>/, '').replace(/<EzistQuranPanel \/>/, '').trim() === '',
+    'the bar holds one button and one verse panel and no third thing');
+  // S119 -- AND THE BUTTON IS THE FIRST OF THE TWO. The document lays out RTL, so the first
+  // child of this row sits on the RIGHT. The button was second, and therefore on the left, which
+  // is the trailing edge and the wrong side of an Arabic bar; the owner asked for the right.
+  ok('...the menu button FIRST, so the RTL leading edge -- the right -- is where it sits',
+    INNER.indexOf('<button ') < INNER.indexOf('<EzistQuranPanel />'));
+  // ...and moved in the TREE. `order` or `row-reverse` would paint it on the right while leaving
+  // it second in the document, so the tab ring and the screen reader would run against the eye.
+  // The composition block promises no `order` anywhere in it; this is what holds that promise.
+  ok('...and moved in the tree, not faked with order or flex-direction',
+    !/\.ezist-nav(-inner)?\{(?:[^}]*[;{])?\s*(order|flex-direction):/.test(css)
+    && !/ezistNavBtn: \{(?:[^}]*[,{])?\s*order:/.test(html));
   eq('...and exactly one of them is a control', (NAV.match(/<button/g) || []).length, 1);
   ok('...whose handler is the menu opener it was handed, named «القائمة»',
     /onClick=\{onOpenMenu\}[\s\S]{0,120}aria-label=\{EZH_NAV_MENU\}/.test(NAV)
@@ -1003,8 +1025,15 @@ ok('the daily verse has its own bounded panel', /<EzistQuranPanel \/>/.test(IST)
 // itself did not change -- same component, same source, same verbatim text, asserted below as
 // before -- so what moved is where it is mounted and nothing else.
 eq('...drawn exactly once', (IST.match(/<EzistQuranPanel \/>/g) || []).length, 1);
+// S119: this pinned the panel to the line straight after the bar's opening tag, and that is an
+// ORDER pin, not a placement one: item 58 put the menu button on that line so the RTL leading
+// edge would carry it, and the verse moved down one. What this check is NAMED for is WHERE the
+// panel is mounted, so it is asserted as that and nothing more -- the ONE occurrence (counted
+// on the line above) falls inside EzistTopNav. It did not lose bite: a panel moved out of the
+// bar fails it, and the mosaic exclusion it carries is untouched.
 ok('...and that once is inside the top bar',
-  /<div className="ezist-nav-inner">\s*\r?\n\s*<EzistQuranPanel \/>/.test(IST)
+  IST.indexOf('<EzistQuranPanel />') > IST.indexOf('<div className="ezist-nav-inner">')
+  && IST.indexOf('<EzistQuranPanel />') < IST.indexOf('function EzistMasthead')
   && !/<EzistModuleCard key=\{m\.id\} m=\{m\} \/>\)\}\s*\r?\n\s*<EzistQuranPanel/.test(IST));
 ok('...as a DISPLAY: no handler, no role and no tabindex on it',
   !/<EzistQuranPanel[^>]*on[A-Z]/.test(IST)
