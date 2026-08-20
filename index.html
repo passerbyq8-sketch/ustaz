@@ -4891,11 +4891,60 @@ function adhkarDayKey(d) {
   const day = t.getDate();
   return String(y) + '-' + (m < 10 ? '0' : '') + String(m) + '-' + (day < 10 ? '0' : '') + String(day);
 }
-// The item's REAL repetition target, read off the stored item and never computed. A missing,
-// zero or unparseable repeat is one recitation -- the same reading V1 and DhikrCard take when
-// they show the meta line only for repeat > 1. Nothing here can invent a larger target.
+// THE COUNT THE DHIKR ITSELF STATES.
+//
+// The store's `repeat` field is right when it is there, and it is missing from items whose own
+// text ends by naming the number: «(سبع مرات)» on one and «(ثلاثَ مرَّاتٍ)» on another, while the
+// record says repeat:1. The counter then offered 0/1 for a dhikr the reader can see is said seven
+// times. That is the defect, and it is fixed by READING the text, not by editing adhkar.json --
+// the two copies of that file are compared byte for byte by a gate, and picking a number for a
+// religious text is not a decision this file gets to make.
+//
+// WHAT IT WILL MATCH, and it is deliberately narrow: a parenthesised group at the very END of the
+// text, containing exactly a number word and the word "مرة"/"مرات", with the diacritics stripped
+// first. Nothing else. A group followed by more parentheses does not match, which is how
+// «واتفل على يسارك (ثلاثاً)))» is left alone -- that three governs the spitting inside the hadith,
+// not the recitation of the dhikr. A group with extra words does not match either, so
+// «(مائةَ مرَّةٍ إذا أصبحَ)» falls back to its stored 100 rather than being re-read.
+//
+// MEASURED over the shipped adhkar.json, all 267 items: nine name a trailing count. Six of those
+// nine ALSO carry a stored repeat, and the number read from the text equals the stored number in
+// all six -- zero disagreements. The remaining three are the defect: ids 83 and 148 move from
+// 1 to 7, and id 130 from 1 to 3. No other item's target moves by one.
+const A2_TASHKEEL_RE = /[\u064B-\u0652\u0670\u06D6-\u06ED\u0640]/g;
+const A2_TAIL_PAREN_RE = /\(([^()]{1,30})\)\s*[.\u060C\u061B]?\s*$/;
+const A2_REPEAT_UNIT_RE = /^مر(?:ة|ات)$/;
+// Only words that name a number greater than one: a group that resolves to 1 is no instruction at
+// all, and this must never be able to LOWER a target.
+const A2_REPEAT_WORDS = {
+  'مرتين': 2,
+  'ثلاث': 3, 'ثلاثا': 3,
+  'أربع': 4, 'اربع': 4,
+  'خمس': 5, 'ست': 6, 'سبع': 7, 'ثمان': 8, 'تسع': 9,
+  'عشر': 10, 'عشرا': 10,
+  'مائة': 100, 'مئة': 100,
+};
+const adhkarTextRepeat = (text) => {
+  const t = String(text || '').replace(A2_TASHKEEL_RE, '');
+  const m = A2_TAIL_PAREN_RE.exec(t);
+  if (!m) return 0;
+  const parts = m[1].split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0] === 'مرتين' ? 2 : 0;
+  if (parts.length !== 2 || !A2_REPEAT_UNIT_RE.test(parts[1])) return 0;
+  const n = A2_REPEAT_WORDS[parts[0]];
+  return (n && n > 1) ? n : 0;
+};
+
+// The item's REAL repetition target. THE STORED NUMBER STILL WINS whenever it says anything at
+// all: a record that carries repeat:3 is answered with 3 and the text is not consulted. The text
+// is read only where the record is silent -- repeat missing, zero, unparseable or 1 -- and only
+// through the narrow reader above. A missing repeat with a silent text is one recitation, exactly
+// as before. Nothing here can invent a target the item does not state in one place or the other.
 const adhkarTarget = (d) => {
   const n = parseInt(d && d.repeat, 10);
+  if (Number.isFinite(n) && n > 1) return n;
+  const fromText = adhkarTextRepeat(d && d.text);
+  if (fromText > 1) return fromText;
   return (Number.isFinite(n) && n > 0) ? n : 1;
 };
 
@@ -5165,7 +5214,7 @@ function AdhkarScreenV1({ onBack }) {
 // list, db.byCat[id] for a category. No sort, no dedupe, no slice, no re-key, no mapping of
 // any field through anything. d.text is rendered as a text child exactly as V1 and DhikrCard
 // render it -- no markdown pass, no tashkeel pass, no age simplification, no truncation.
-// d.repeat is shown by the same a2Repeat() wording V1 uses and is never recomputed. The
+// the repetition target is shown by the same a2Repeat() wording V1 uses. The
 // audio element is built from d.audio and from nothing else.
 // ============================================================
 const A2_ICON_BEADS = (
@@ -5500,7 +5549,10 @@ function IstanaAdhkarReader(v) {
               <div className="ezia-read-panel">
                 <span style={s.eziaReadHead}>
                   <span style={s.eziaReadPos}>{toArabicDigits(v.idx + 1)} / {toArabicDigits(len)}</span>
-                  {d.repeat > 1 && <span style={s.eziaReadRepeat}>{a2Repeat(d.repeat)}</span>}
+                  {/* the SAME target the counter below counts to, so the line and the counter
+                      cannot say different numbers about one dhikr. The wording is a2Repeat's,
+                      unchanged -- only the number it is handed is now the resolved one. */}
+                  {v.target > 1 && <span style={s.eziaReadRepeat}>{a2Repeat(v.target)}</span>}
                 </span>
                 {/* the stored text, rendered as a text child. */}
                 <div style={s.eziaReadText}>{d.text}</div>
@@ -5515,6 +5567,22 @@ function IstanaAdhkarReader(v) {
                 })}
               </div>
               <div style={s.eziaNote} role="status" aria-live="polite">{v.note}</div>
+              {/* REACHING THE TARGET IS AN EVENT, so it is said in words and not only by a
+                  button changing colour. The strip appears when the count reaches the target and
+                  offers the next dhikr beside it -- the SAME v.onNext the dock's own forward
+                  control calls, so there is one way forward and not two. On the last item of a
+                  category there is nothing to offer, and only the completion is shown. Both
+                  strings are the screen's own: A2_DONE is the word the counter already switches
+                  to, A2_NEXT is the accessible name the forward control already carries. */}
+              {v.full && (
+                <div style={s.eziaDoneRow} role="status" aria-live="polite">
+                  <span style={s.eziaDoneMark} aria-hidden="true">{A2_ICON_CHECK}</span>
+                  <span>{A2_DONE} {toArabicDigits(v.target)} / {toArabicDigits(v.target)}</span>
+                  {v.idx < len - 1 && (
+                    <button type="button" className="adhkar2-focus" onClick={v.onNext} style={s.eziaDoneNext}>{A2_NEXT}</button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -14187,6 +14255,12 @@ const s = {
   eziaRailMarkNow: { background: 'var(--a3-blue)', width: 9, height: 9 },
   eziaRailMarkDone: { background: 'var(--a3-cyan)' },
   eziaNote: { minHeight: 20, textAlign: 'center', fontSize: 12.5, fontWeight: 600, color: 'var(--a3-blue)' },
+  // The completion strip. Ice under blue is exactly the pair eziaReadRepeat above it already
+  // uses, and blue under on-blue is the pair the counter button uses -- no new colour enters
+  // the screen and both palettes already answer for all four.
+  eziaDoneRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10, margin: '10px 0 0', padding: '8px 12px', borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 13, fontWeight: 800 },
+  eziaDoneMark: { display: 'inline-flex', flexShrink: 0, color: 'var(--a3-blue)' },
+  eziaDoneNext: { minHeight: 40, padding: '8px 16px', borderRadius: 999, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 800 },
   eziaDock: { flexShrink: 0, background: 'var(--a3-surface)', borderTop: '1px solid var(--a3-line)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' },
   eziaDockBtn: { width: 46, height: 46, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
   eziaDockBtnOn: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: '1px solid var(--a3-blue)' },
