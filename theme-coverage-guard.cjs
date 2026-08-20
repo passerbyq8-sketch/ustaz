@@ -2356,7 +2356,15 @@ ok('N22: the source card is still built from the segment\'s own site and url',
 ok('N22: ...through the ONE renderer, called by the chat sheet and nothing new',
   (html.split('function ezikRenderSegments').length - 1) === 1
   && ((html.match(/ezikRenderSegments\(/g) || []).length - 1) === 2
-  && /<div className="ezc-ans" style=\{\{ \.\.\.s\.assistantBubble[\s\S]{0,220}?ezikRenderSegments\(shownSegments, \{ tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio \}\)/.test(mbSrc));
+  // Item 86 re-pinned the context literal. It read:
+  //   ezikRenderSegments\(shownSegments, \{ tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio \}\)
+  // and the ayah star adds two keys to it. What this check is FOR is unchanged and is what it
+  // still pins: there is one renderer, it has exactly two callers, and the chat sheet reaches
+  // its cards only through it.
+  && /<div className="ezc-ans" style=\{\{ \.\.\.s\.assistantBubble[\s\S]{0,260}?ezikRenderSegments\(shownSegments, \{ tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio, onFavoriteAyah, ayahFavIds \}\)/.test(mbSrc));
+  ok('N22: ...and the ayah star is handed DOWN, never read from a store by the card',
+    /function VerseCard\(\{ surah, surahNum, ayah, onPlayVerse, onStopAudio, onFavorite, isFavorite \}\)/.test(html)
+      && !/function VerseCard[\s\S]{0,3000}?localStorage/.test(html));
 ok('N22: ...so nothing in the chat re-orders, filters or counts the sources',
   !/segments\.(sort|filter|slice|reverse)\(/.test(mbSrc) && !/seg\.type === 'source'/.test(mbSrc));
 
@@ -3089,12 +3097,56 @@ ok('P8: no second favourites store and no migration was introduced',
   && !/localStorage\.(setItem|getItem|removeItem)\(\s*'[^']*fav[^']*'/i.test(html),
   'a favourites key is being touched by a literal string somewhere');
 
+/* ---- P8b. ITEM 86: THREE KINDS IN ONE STORE ---------------------------- */
+// The store holds three kinds now. What must never happen is that adding them costs anybody a
+// favourite they already had, so the first two checks are about the OLD records, not the new.
+ok('P8b: a record with no kind is a reply, and that is the only migration there is',
+  /const ezikKindOf = \(f\) => ezikFavKind\(f && f\.kind\);/.test(html)
+  && /const EZIK_FAV_KIND_DEFAULT = 'reply';/.test(html)
+  && !/migrateFav|ezikMigrateFav|rewriteFav/i.test(html));
+ok('P8b: ...and a stored reply is not rewritten on read, so it round-trips byte for byte',
+  /if \(EZIK_FAV_KINDS\.indexOf\(r\.kind\) !== -1 && r\.kind !== EZIK_FAV_KIND_DEFAULT\) rec\.kind = r\.kind;/.test(html)
+  && /return \{ id: ezikFavId\(pk, chatId, idx, t\), pk: pk \|\| null, chatId: chatId \|\| null, idx: idx, at: Date\.now\(\), snippet: ezikFavSnippet\(t\), text: t \};/.test(html));
+eq('P8b: there are exactly three kinds', (function () {
+  const m = /const EZIK_FAV_KINDS = \[([^\]]*)\];/.exec(html);
+  return m ? m[1].split(',').length : 0;
+}()), 3);
+ok('P8b: a fatwa and an ayah carry their own identity, never a conversation position',
+  /function ezikFavRefId\(kind, pk, ref, text\)/.test(html)
+  && /const ezikAyahFavKey = \(surahNum, surahName, ayah\) =>/.test(html)
+  && /function ezikMakeFavOf\(kind, pk, ref, title, text\)/.test(html)
+  && /chatId: null, idx: -1,/.test(html));
+ok('P8b: ...and both new kinds are saved from a real control on their own screen',
+  /aria-label=\{saved \? ezT\('favorites.remove'\) : ezT\('favorites.addFatwa'\)\}/.test(html)
+  && /aria-label=\{isFavorite \? ezT\('favorites.remove'\) : ezT\('favorites.addAyah'\)\}/.test(html));
+ok('P8b: ...and the viewer sorts by kind, opening on everything',
+  /function EzikFavKindTabs\(\{ kind, onKind, counts \}\)/.test(html)
+  && /const \[favKind, setFavKind\] = useState\('all'\);/.test(html));
+// «الإحالة» to the OTHER store: adhkar_favorites_v1 is a different thing, and this item may not
+// merge it. The favourites block must not name it at all.
+ok('P8b: adhkar_favorites_v1 is NOT merged into the favourites store', (function () {
+  const a = html.indexOf('const EZIK_FAV_KINDS');
+  const b = html.indexOf('function ezikClearAllFavs');
+  const block = (a !== -1 && b > a) ? html.slice(a, b) : '';
+  return block.length > 500 && block.indexOf('ADHKAR_FAVORITES_KEY') === -1
+    && block.indexOf('adhkar_favorites_v1') === -1 && block.indexOf('readAdhkarFavorites') === -1;
+}()));
+
 /* ---- P9. the ORDER, and that this screen does not decide it ------------- */
 ok('P9: the newest-first order is the owner\'s single sort, unchanged',
   /const myFavs = React\.useMemo\(\s*\r?\n\s*\(\) => favs\.filter\(\(f\) => f\.pk === favPk\)\.sort\(\(a, b\) => \(b\.at \|\| 0\) - \(a\.at \|\| 0\)\),/.test(html));
+// Item 86 re-pinned this. It read:
+//   /const shownFavs = favResults === null \? myFavs : favResults;/
+// and the viewer now narrows by KIND before the search runs over what is left. The rule it
+// guards is untouched and is still pinned below: the search re-orders nothing, it only
+// annotates each record it kept with its hit.
 ok('P9: ...and the search keeps whatever order it was given',
-  /const shownFavs = favResults === null \? myFavs : favResults;/.test(html)
+  /const shownFavs = favResults === null \? kindFavs : favResults\.filter/.test(html)
+  && /const kindFavs = favKind === 'all' \? myFavs : myFavs\.filter\(\(f\) => ezikKindOf\(f\) === favKind\);/.test(html)
   && /out\.push\(Object\.assign\(\{\}, f, \{ hit: ezikSearchSnippet/.test(html));
+ok('P9: ...and the kind is a FILTER over that order, never a re-sort of it',
+  !/kindFavs[\s\S]{0,80}?\.(sort|reverse)\(/.test(html)
+  && /favResults\.filter\(\(f\) => favKind === 'all' \|\| ezikKindOf\(f\) === favKind\)/.test(html));
 eq('P9: the screen maps the records exactly once', (favCode.match(/items\.map\(/g) || []).length, 1);
 ok('P9: ...and re-orders, filters, slices or reverses nothing',
   !/items\.(sort|filter|slice|reverse|concat)\(/.test(favCode)
@@ -3128,9 +3180,13 @@ ok('P11: remove calls the shipped handler with that record\'s id, and says so',
 ok('P11: ...and it removes ONE record, never the list',
   !/onRemove\(\)/.test(favCode) && !/ezikClearAllFavs/.test(favCode)
   && (favCode.match(/onRemove\(/g) || []).length === 1);
+// Item 86 re-pinned the second term. It read `/\{alive \? \(/`, and a fatwa and an ayah never
+// came from a conversation -- offering either of them «المحادثة الأصلية محذوفة» would be a
+// false statement about a record that never had one. So the reply test comes FIRST and the
+// alive test is unchanged behind it. The rule for a REPLY is exactly what it was.
 ok('P11: opening the original is still offered only when the conversation exists',
   /const alive = !!f\.chatId && liveChatIds\.has\(f\.chatId\);/.test(favView)
-  && /\{alive \? \(/.test(favView)
+  && /\{ezikKindOf\(f\) !== 'reply' \? null : alive \? \(/.test(favView)
   && /onClick=\{\(\) => onOpenChat\(f\.chatId\)\} aria-label=\{EZIK_FAV_OPEN_CHAT\}/.test(favView));
 ok('P11: ...and when it is gone the card SAYS so instead of offering a dead button',
   /<span style=\{\{ \.\.\.s\.favBtn, \.\.\.s\.favBtnOff \}\}>\{EZIK_FAV_CHAT_GONE\}<\/span>/.test(favView));

@@ -1665,6 +1665,14 @@ const EZ_I18N = {
     'favorites.heading': 'الردود المفضلة',
     'favorites.add': 'أضف إلى المفضلة',
     'favorites.remove': 'إزالة من المفضلة',
+    'favorites.addFatwa': 'احفظ الفتوى',
+    'favorites.addAyah': 'احفظ الآية',
+    'favorites.saved': 'محفوظة',
+    'favorites.kindAria': 'نوع المحفوظات',
+    'favorites.kind.all': 'الكل',
+    'favorites.kind.reply': 'الردود',
+    'favorites.kind.fatwa': 'الفتاوى',
+    'favorites.kind.ayah': 'الآيات',
     'common.remove': 'إزالة',
     'favorites.openChat': 'افتح المحادثة الأصلية',
     'favorites.chatGone': 'المحادثة الأصلية محذوفة',
@@ -1870,6 +1878,14 @@ const EZ_I18N = {
     'favorites.heading': 'Saved replies',
     'favorites.add': 'Add to favourites',
     'favorites.remove': 'Remove from favourites',
+    'favorites.addFatwa': 'Save this fatwa',
+    'favorites.addAyah': 'Save this verse',
+    'favorites.saved': 'Saved',
+    'favorites.kindAria': 'Kind of saved item',
+    'favorites.kind.all': 'All',
+    'favorites.kind.reply': 'Replies',
+    'favorites.kind.fatwa': 'Fatwas',
+    'favorites.kind.ayah': 'Verses',
     'common.remove': 'Remove',
     'favorites.openChat': 'Open the original conversation',
     'favorites.chatGone': 'The original conversation was deleted',
@@ -4616,7 +4632,10 @@ function ezikFatwaPublicUrl(value) {
   } catch (e) { return ''; }
 }
 
-function EzikFatwaResult({ fatwa }) {
+// Item 86: the card can now be SAVED. It writes through the module-level store rather than
+// through the chat's state, because الفتاوى is not inside the chat and must not be handed the
+// chat's setter. The store announces on write, so المفضلة and the chat both re-read.
+function EzikFatwaResult({ fatwa, favPk }) {
   const content = (fatwa && fatwa.content) || {};
   const question = content.question || '';
   const answer = content.answer || content.answerExcerpt || '';
@@ -4629,6 +4648,20 @@ function EzikFatwaResult({ fatwa }) {
   // a published text, so it is never shown as one: it is labelled, its notice is
   // printed above the words, and the clip it came from is offered as the original.
   const isTranscript = content.type === 'auto_transcript_official_video';
+  // WHAT IS SAVED IS WHAT IS SHOWN: the question and the answer as this card has them, so a
+  // saved fatwa stays readable if the service is unreachable later -- the same reason a saved
+  // reply carries its own copy of the text.
+  const favText = (question ? question + '\n\n' : '') + answer;
+  const favRec = React.useMemo(
+    () => ezikMakeFavOf('fatwa', favPk, fatwa && fatwa.uid, fatwa && fatwa.title, favText),
+    [favPk, fatwa, favText]);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    const read = () => { try { setSaved(ezikReadFavs().some((f) => f.id === favRec.id)); } catch (e) {} };
+    read();
+    try { window.addEventListener(EZIK_FAVS_EVENT, read); } catch (e) {}
+    return () => { try { window.removeEventListener(EZIK_FAVS_EVENT, read); } catch (e) {} };
+  }, [favRec.id]);
   return (
     <article className="ezf-card">
       <header className="ezf-card-head">
@@ -4665,6 +4698,16 @@ function EzikFatwaResult({ fatwa }) {
           {isTranscript ? ezT('fatwa.watchVideo') : ezT('fatwa.source')}</a>
       ) : null}
       <div className="ezf-actions">
+        {/* Item 86: the one action on this card that is not disabled. It saves a FATWA, as a
+            fatwa -- not as a reply, and not into adhkar_favorites_v1, which is a different
+            store this screen never touches. */}
+        {favPk ? (
+        <button type="button" className="ezf-action ezik-focus"
+          aria-pressed={saved ? 'true' : 'false'}
+          aria-label={saved ? ezT('favorites.remove') : ezT('favorites.addFatwa')}
+          onClick={() => setSaved(ezikToggleFavRecord(favRec))}>
+          {saved ? ezT('favorites.saved') : ezT('favorites.addFatwa')}</button>
+        ) : null}
         {EZIK_FATWA_ACTIONS.map(([id, key]) => (
           <button key={id} type="button" className="ezf-action" disabled
             aria-disabled="true" title={ezT('fatwa.action.disabled')}>{ezT(key)}</button>
@@ -4715,7 +4758,7 @@ function writeCachedScholars(list) {
   try { localStorage.setItem(EZIK_FATWA_SCHOLARS_KEY, JSON.stringify(list)); } catch (e) {}
 }
 
-function FatwaScreen({ onBack }) {
+function FatwaScreen({ onBack, favPk }) {
   const [scholars, setScholars] = useState(
     () => readCachedScholars() || [{ id: 'binbaz', shortName: '' }]);
   // THE SCREEN OPENS ON EVERYTHING. "All fatwas" is the opening selection, so the first thing
@@ -4929,7 +4972,7 @@ function FatwaScreen({ onBack }) {
                 onClick={backToBrowse}>{ezT('fatwa.backToBrowse')}</button>
               {results.length ? (
                 <section className="ezf-results" aria-label={ezT('fatwa.searchAria')}>
-                  {results.map((fatwa) => <EzikFatwaResult key={fatwa.uid} fatwa={fatwa} />)}
+                  {results.map((fatwa) => <EzikFatwaResult key={fatwa.uid} fatwa={fatwa} favPk={favPk} />)}
                 </section>
               ) : null}
             </React.Fragment>
@@ -4948,7 +4991,7 @@ function FatwaScreen({ onBack }) {
                       {scholar === EZIK_FATWA_ALL && named
                         ? <span className="ezf-row-mark">{named}</span> : null}
                     </button>
-                    {isOpen ? <div className="ezf-open"><EzikFatwaResult fatwa={fatwa} /></div> : null}
+                    {isOpen ? <div className="ezf-open"><EzikFatwaResult fatwa={fatwa} favPk={favPk} /></div> : null}
                   </React.Fragment>
                 );
               })}
@@ -6373,6 +6416,25 @@ let EZIK_A11Y_RESET = ezT("a11y.reset");
 //   at      — when it was saved.
 //   snippet — a clean, tag-free line for the list.
 //   text    — the reply VERBATIM, which is what keeps it readable after its conversation is gone.
+// THE THREE KINDS. The store has held ONE kind since it shipped -- a whole assistant reply --
+// and its key still says so. The key does NOT change: renaming it would orphan every
+// favourite already on a device, and the one thing this item may not do is lose one.
+//
+// A record written before this item has no `kind`. It reads as 'reply', which is what it is.
+// That is the whole migration, and it is a read-time default rather than a rewrite: nothing
+// touches a stored record until the reader next changes something.
+//
+// «الإحالة» to adhkar_favorites_v1: THAT IS A DIFFERENT STORE AND IS NOT MERGED HERE. It
+// holds dhikr keys, it is written by the adhkar screens alone, and nothing in this block
+// reads it, writes it, counts it or shows it.
+const EZIK_FAV_KINDS = ['reply', 'fatwa', 'ayah'];
+const EZIK_FAV_KIND_DEFAULT = 'reply';
+const ezikFavKind = (k) => (EZIK_FAV_KINDS.indexOf(k) === -1 ? EZIK_FAV_KIND_DEFAULT : k);
+// THE kind of a record, and the only place that decides it. A record with no kind is a reply --
+// which is every reply ever saved, before this item and after it.
+const ezikKindOf = (f) => ezikFavKind(f && f.kind);
+const EZIK_FAVS_EVENT = 'ezik:favourites';
+
 const EZIK_FAVS_KEY = 'ezik_favorite_replies_v1';
 const EZIK_FAVS_MAX = 200;
 const EZIK_FAV_SNIPPET_MAX = 140;
@@ -6413,6 +6475,26 @@ function ezikFavId(pk, chatId, idx, text) {
   return String(pk || '') + '|' + String(chatId || '-') + '|' + String(idx) + '|' + ezikHashText(text);
 }
 
+// THE IDENTITY OF A SAVED FATWA OR AYAH. Not a position -- neither has one -- but the thing
+// itself: a fatwa is its uid on the source, an ayah is its surah:ayah. The profile leads, as
+// it does for a reply, so two children on one device can never share or remove a record; and
+// the KIND is in the id, so a fatwa and a reply can never collide even if a source uid ever
+// looked like a conversation id. The text hash rides along as the same verification term the
+// reply id uses: if what is at that reference is not what was saved, the star is not drawn.
+// AN AYAH'S REFERENCE, and the one function that builds it. The star on a card and the `ref`
+// on a stored record are the same string by construction; two spellings of it would light a
+// star for a verse that was never saved. Empty when the reference cannot be resolved, and an
+// empty reference is never saved and never matched.
+const ezikAyahFavKey = (surahNum, surahName, ayah) => {
+  const sn = resolveSurahNumber(surahName, surahNum);
+  const an = parseInt(ayah, 10);
+  return (sn && an >= 1) ? (String(sn) + ':' + String(an)) : '';
+};
+
+function ezikFavRefId(kind, pk, ref, text) {
+  return String(pk || '') + '|' + ezikFavKind(kind) + '|' + String(ref || '-') + '|' + ezikHashText(text);
+}
+
 // EVERY read is defensive, because this is a file on a device: it can be absent, it can be
 // truncated, it can be hand-edited, and a half-written record can be left behind. None of those
 // may reach the screen as an exception — the worst case is "no favourites".
@@ -6437,7 +6519,7 @@ function ezikReadFavs() {
     if (!text) continue;                                  // a record with no reply in it is not one
     if (typeof r.pk !== 'string' || !r.pk) continue;      // no owner: corrupt, and never shown
     if (typeof r.id !== 'string' || !r.id) continue;      // no identity: corrupt, cannot be rebuilt
-    out.push({
+    const rec = {
       id: r.id,
       pk: r.pk,
       chatId: (typeof r.chatId === 'string' && r.chatId) ? r.chatId : null,
@@ -6445,7 +6527,14 @@ function ezikReadFavs() {
       at: (typeof r.at === 'number' && isFinite(r.at)) ? r.at : 0,
       snippet: (typeof r.snippet === 'string' && r.snippet) ? r.snippet : ezikFavSnippet(text),
       text: text,
-    });
+    };
+    // ONLY IF THE RECORD HAS THEM. A reply has no kind, no title and no ref and never did;
+    // adding them here would rewrite a record on the next write of the list -- including a
+    // record belonging to ANOTHER profile, which is a disturbance no read should cause.
+    if (EZIK_FAV_KINDS.indexOf(r.kind) !== -1 && r.kind !== EZIK_FAV_KIND_DEFAULT) rec.kind = r.kind;
+    if (typeof r.title === 'string' && r.title) rec.title = r.title;
+    if (typeof r.ref === 'string' && r.ref) rec.ref = r.ref;
+    out.push(rec);
   }
   return out;
 }
@@ -6457,7 +6546,14 @@ function ezikReadFavs() {
 function ezikWriteFavs(list) {
   let l = (list || []).slice(0, EZIK_FAVS_MAX);
   for (;;) {
-    try { localStorage.setItem(EZIK_FAVS_KEY, JSON.stringify(l)); return l; } catch (e) {}
+    try {
+      localStorage.setItem(EZIK_FAVS_KEY, JSON.stringify(l));
+      // ANNOUNCED. A fatwa is saved from a screen the chat does not own, and the chat is NOT
+      // unmounted while that screen is up -- measured for item 65. Without this, a fatwa
+      // saved in الفتاوى would not appear in المفضلة until the app was reloaded.
+      try { window.dispatchEvent(new CustomEvent(EZIK_FAVS_EVENT)); } catch (e2) {}
+      return l;
+    } catch (e) {}
     if (!l.length) return null;
     l = l.slice(0, l.length - 1);
   }
@@ -6480,6 +6576,30 @@ function ezikFavSnippet(text) {
 function ezikMakeFav(text, pk, chatId, idx) {
   const t = String(text == null ? '' : text);
   return { id: ezikFavId(pk, chatId, idx, t), pk: pk || null, chatId: chatId || null, idx: idx, at: Date.now(), snippet: ezikFavSnippet(t), text: t };
+}
+
+// A FATWA OR AN AYAH, made the same way and stored in the same list. `title` is what the card
+// shows as its heading and `ref` is where it came from -- the two things a reply gets from its
+// conversation and these two have to carry themselves. Neither has a chatId or an idx, and
+// both are explicitly null/-1 rather than absent, so every record in the list has one shape.
+function ezikMakeFavOf(kind, pk, ref, title, text) {
+  const t = String(text == null ? '' : text);
+  return { id: ezikFavRefId(kind, pk, ref, t), kind: ezikFavKind(kind), pk: pk || null,
+    chatId: null, idx: -1, at: Date.now(), snippet: ezikFavSnippet(t), text: t,
+    title: String(title == null ? '' : title), ref: String(ref == null ? '' : ref) };
+}
+
+// THE TOGGLE ANY SCREEN CAN CALL. الفتاوى does not own the chat's state and must not be given
+// it, so it goes through the store the same way the chat does: read, toggle by id, write --
+// and the write announces, so every mounted screen re-reads. Returns whether it is now saved.
+function ezikToggleFavRecord(rec) {
+  if (!rec || !rec.id || !rec.pk || !rec.text) return false;
+  const cur = ezikReadFavs();
+  const exists = cur.some((f) => f.id === rec.id);
+  const next = exists ? cur.filter((f) => f.id !== rec.id) : [rec].concat(cur.filter((f) => f.id !== rec.id));
+  const written = ezikWriteFavs(next);
+  if (written === null) return exists;            // the store refused: nothing changed
+  return !exists;
 }
 
 // "Delete all my data" has to mean the favourites too.
@@ -7901,6 +8021,33 @@ function App() {
       : [ezikMakeFav(text, favPk, chatIdRef.current, idx)].concat(cur.filter((f) => f.id !== id)));
   };
   const removeFavorite = (id) => applyFavs(favsRef.current.filter((f) => f.id !== id));
+  // Item 86: THE AYAH STAR. A set of REFERENCES, not of ids -- a bubble knows which verse it is
+  // showing but not the hash of the canonical text, and asking it to hash one per render is the
+  // cost favIdSet was written to avoid. Rebuilt once per change, exactly like favIdSet.
+  const ayahFavIds = React.useMemo(() => {
+    const set = new Set();
+    for (let i = 0; i < myFavs.length; i++) if (ezikKindOf(myFavs[i]) === 'ayah' && myFavs[i].ref) set.add(myFavs[i].ref);
+    return set;
+  }, [myFavs]);
+  // The verse card hands up what it is showing -- including the CANONICAL text it fetched from
+  // the guarded mushaf, never the model's -- and this makes the record from it.
+  const toggleFavoriteAyah = (v) => {
+    const ref = ezikAyahFavKey(v && v.surahNum, v && v.surah, v && v.ayah);
+    const text = String((v && v.text) || '').trim();
+    if (!ref || !text) return;
+    const title = (v && v.surah) ? ('سورة ' + v.surah + '، آية ' + toArabicDigits(v.ayah)) : ref;
+    const rec = ezikMakeFavOf('ayah', favPk, ref, title, text);
+    const cur = favsRef.current;
+    const exists = cur.some((f) => f.id === rec.id);
+    applyFavs(exists ? cur.filter((f) => f.id !== rec.id) : [rec].concat(cur.filter((f) => f.id !== rec.id)));
+  };
+  // ...and the store may now be written from a screen this component does not own (الفتاوى), so
+  // it is re-read on the store's own announcement rather than only on this component's writes.
+  useEffect(() => {
+    const onFavs = () => { const l = ezikReadFavs(); favsRef.current = l; setFavs(l); };
+    try { window.addEventListener(EZIK_FAVS_EVENT, onFavs); } catch (e) {}
+    return () => { try { window.removeEventListener(EZIK_FAVS_EVENT, onFavs); } catch (e) {} };
+  }, []);
 
   // ============================================================
   // S98 — البحث (search), and where its cost is paid
@@ -7927,6 +8074,9 @@ function App() {
   };
   const [chatQuery, setChatQuery] = useState('');
   const [favQuery, setFavQuery] = useState('');
+  // Item 86: WHICH KIND THE VIEWER IS SHOWING. 'all' is the opening state, so the screen still
+  // opens on everything the reader has ever saved and the filter is a narrowing, never a wall.
+  const [favKind, setFavKind] = useState('all');
   // null means "no search is running" — the menu then shows its ordinary list, untouched.
   const chatResults = React.useMemo(() => {
     const q = ezikSearchQuery(chatQuery);
@@ -7938,7 +8088,16 @@ function App() {
     if (!q) return null;
     return ezikSearchFavs(myFavs, q);
   }, [favQuery, myFavs]);
-  const shownFavs = favResults === null ? myFavs : favResults;
+  // The kind narrows FIRST and the search runs over what is left, so a query and a kind mean
+  // "this word, among these" rather than two independent lists fighting over one screen.
+  const kindFavs = favKind === 'all' ? myFavs : myFavs.filter((f) => ezikKindOf(f) === favKind);
+  const shownFavs = favResults === null ? kindFavs : favResults.filter((f) => favKind === 'all' || ezikKindOf(f) === favKind);
+  // What each tab would hold, counted once for the whole screen rather than per tab.
+  const favCounts = React.useMemo(() => {
+    const c = { all: myFavs.length, reply: 0, fatwa: 0, ayah: 0 };
+    for (let i = 0; i < myFavs.length; i++) { const k = ezikKindOf(myFavs[i]); c[k] = (c[k] || 0) + 1; }
+    return c;
+  }, [myFavs]);
   // Which saved conversations still exist, computed ONCE for the whole favourites screen rather
   // than once per card — the screen asks it for every row.
   const liveChatIds = React.useMemo(() => {
@@ -9103,6 +9262,7 @@ function App() {
       toggleTashkeel: toggleTashkeel,
       quote: quoteReply,
       favorite: toggleFavoriteReply,
+      favoriteAyah: toggleFavoriteAyah,
       report: openReport,
       messages: messages,
     };
@@ -9115,6 +9275,7 @@ function App() {
   const cbToggleTashkeel = React.useCallback(() => bubbleFnRef.current.toggleTashkeel(), []);
   const cbQuote = React.useCallback((t) => bubbleFnRef.current.quote(t), []);
   const cbFavorite = React.useCallback((m, idx) => bubbleFnRef.current.favorite(m, idx), []);
+  const cbFavoriteAyah = React.useCallback((v) => bubbleFnRef.current.favoriteAyah(v), []);
   // The report needs the reply AND the question before it, which used to be closed over per bubble.
   // The index is a stable prop; the pair is looked up on the tap, off the current thread.
   const cbReport = React.useCallback((idx) => {
@@ -9758,7 +9919,7 @@ function App() {
   // in the app that still opens the gate.
   if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} onOpenControl={() => openEzikSheet('parentGate')} a11y={a11y} onA11y={setA11y} onA11yReset={resetA11y} aiConsent={aiConsent} aiConsentBy={aiConsentGrantedBy()} onWithdrawAI={declineAIConsent} onReviewAI={() => setAiConsentReview(true)} />;
   // S98: المفضلة. A sheet, opened from the chat's drawer, handed everything it draws.
-  if (screen === 'favorites') return <FavoritesScreen items={shownFavs} total={myFavs.length} query={favQuery} onQuery={setFavQuery} searching={favResults !== null} liveChatIds={liveChatIds} onBack={goEzikBack} onOpenChat={openFavoriteChat} onRemove={removeFavorite} age={profile?.age} tashkeel={tashkeelOn} />;
+  if (screen === 'favorites') return <FavoritesScreen items={shownFavs} total={myFavs.length} kind={favKind} onKind={setFavKind} counts={favCounts} query={favQuery} onQuery={setFavQuery} searching={favResults !== null} liveChatIds={liveChatIds} onBack={goEzikBack} onOpenChat={openFavoriteChat} onRemove={removeFavorite} age={profile?.age} tashkeel={tashkeelOn} />;
   // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
   // S90: the three call-screen exits resolve through goEzikBack like every other back control.
   // The DESTINATION is unchanged -- the table sends 'call' to the chat, which is its documented
@@ -9783,7 +9944,7 @@ function App() {
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={goEzikBack} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
-  if (screen === 'fatwa') return <FatwaScreen onBack={goEzikBack} />;
+  if (screen === 'fatwa') return <FatwaScreen onBack={goEzikBack} favPk={favPk} />;
 
   // Single-source capability flags for the chat UI. `directConvoAllowed` layers the parental lock
   // on top of the band: young is allowed unless the parent explicitly locked it; teen/adult always
@@ -9886,7 +10047,7 @@ function App() {
              that on every message in the thread, to locate one of them. */
           <React.Fragment key={i}>
             {i === pinnedAskIndex && <div ref={pinAnchorRef} aria-hidden="true" data-ezik-ask-pin="" />}
-            <MessageBubble index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} />
+            <MessageBubble index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} onFavoriteAyah={cbFavoriteAyah} ayahFavIds={ayahFavIds} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} />
           </React.Fragment>
         ))}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
@@ -10718,7 +10879,7 @@ const EzikMarkdown = React.memo(function EzikMarkdown({ text }) {
 // exact form of the prose site and counts the display sites of EzikMarkdown; keeping the shape
 // identical means this refactor moves the code without loosening a single thing that gate holds.
 function ezikRenderSegments(segments, ctx) {
-  const { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio } = (ctx || {});
+  const { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio, onFavoriteAyah, ayahFavIds } = (ctx || {});
   return (segments || []).map((seg, i) => {
     if (!seg) return null;   // S98: a folded-away prose segment, holding its index open
     if (seg.type === 'text') {
@@ -10733,7 +10894,8 @@ function ezikRenderSegments(segments, ctx) {
       return <div key={i} className="ez-prose" style={s.bubbleText}><EzikMarkdown text={tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)} /></div>;
     }
     if (seg.type === 'verse') {
-      return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio} />;
+      return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio}
+        onFavorite={onFavoriteAyah} isFavorite={!!(ayahFavIds && onFavoriteAyah && ayahFavIds.has(ezikAyahFavKey(seg.surahNum, seg.surah, seg.ayah)))} />;
     }
     if (seg.type === 'surah') {
       return <SurahCard key={i} num={seg.num} from={seg.from} to={seg.to} onPlaySurah={onPlaySurah} onStopAudio={onStopAudio} />;
@@ -10770,7 +10932,7 @@ function ezikRenderSegments(segments, ctx) {
 // identity the thread preserves across a re-render) or a callback App pins to one identity — so a
 // keystroke in the composer re-renders the composer and NOT the thread. See the note beside the
 // pinned callbacks in App for the measurement that made this necessary.
-const MessageBubble = React.memo(function MessageBubble({ message, index, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite, defaultOpen, foldEpoch }) {
+const MessageBubble = React.memo(function MessageBubble({ message, index, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite, onFavoriteAyah, ayahFavIds, defaultOpen, foldEpoch }) {
   const isUser = message.role === 'user';
   // S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's
   // composer state lives on App -- so a single keystroke re-parsed the whole thread. On a 120-turn
@@ -10851,7 +11013,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
           re-grouped; what changed is that the sheet is now the full width of a bounded column
           instead of 92% of an unbounded viewport. */}
       <div className="ezc-ans" style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {ezikRenderSegments(shownSegments, { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio })}
+        {ezikRenderSegments(shownSegments, { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio, onFavoriteAyah, ayahFavIds })}
         {/* S98: the toggle lives INSIDE the bubble, under the prose it governs, so it reads as
             part of the reply rather than as a fourth action button. It exists only when there is
             something folded away — a short reply never grows one. */}
@@ -10971,7 +11133,49 @@ function FavoriteReplyBody({ segments, age, tashkeel }) {
 // reader hears and the target a test clicks are both unchanged. The MASTHEAD is small and it is
 // useful -- it holds the one control this screen has. The CATALOGUE is .ezfav-cat in <style>: the
 // column count is the only thing the viewport decides, and every card keeps its own height.
-function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age, tashkeel, query, onQuery, searching, total }) {
+// Item 86: THE FOUR TABS, as their own component. A record now has a kind, and this is where the
+// reader uses it. «الكل» is the opening state, so المفضلة still opens on everything a reader has
+// ever saved and the filter is a narrowing, never a wall. A tab with nothing in it is still
+// shown, with its zero, rather than hidden -- a tab that appears only once it has content
+// teaches nothing about where a saved fatwa goes.
+//
+// It is a component and not an inline block for a plain reason: FavoritesScreen is read by two
+// guards that measure the DISTANCE from its opening line to the first card it draws, and a
+// twenty-line control spliced into the middle of it makes that screen look like it grew a
+// second job. It has not: this maps four constants and calls the handler it is given.
+// Item 86: WHAT A CARD SAYS IT IS. A reply says nothing -- it is what this screen has always
+// held and needs no label. A fatwa and an ayah say their kind and then their own heading: the
+// fatwa its title, the ayah its سورة/آية. That heading is the thing a reply gets from its
+// conversation, and these two have to carry for themselves.
+function EzikFavKindNote({ f }) {
+  const kind = ezikKindOf(f);
+  if (kind === 'reply') return null;
+  return (
+    <React.Fragment>
+      <div style={s.ezistMeta}>{ezT('favorites.kind.' + kind)}</div>
+      {(f.title || f.ref) ? <div style={s.favMeta}>{f.title || f.ref}</div> : null}
+    </React.Fragment>
+  );
+}
+function EzikFavKindTabs({ kind, onKind, counts }) {
+  return (
+      <div style={s.themeRow} role="radiogroup" aria-label={ezT('favorites.kindAria')}>
+        {[['all', ezT('favorites.kind.all')], ['reply', ezT('favorites.kind.reply')],
+          ['fatwa', ezT('favorites.kind.fatwa')], ['ayah', ezT('favorites.kind.ayah')]].map(([v, label]) => (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={kind === v ? 'true' : 'false'}
+            onClick={() => onKind(v)}
+            className="ezik-focus"
+            style={{ ...s.a11yOpt, ...(kind === v ? s.themeOptActive : {}) }}
+          >{label} {toArabicDigits((counts && counts[v]) || 0)}</button>
+        ))}
+      </div>
+  );
+}
+function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age, tashkeel, query, onQuery, searching, total, kind, onKind, counts }) {
   return (
     <div className="theme-dark ezhome ezfav" style={s.favScreen}>
       <div className="ezfav-rail">
@@ -10989,6 +11193,7 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
         {total > 0 && (
           <div className="ezfav-masthead">
             <span className="ezfav-crest" aria-hidden="true" />
+            <EzikFavKindTabs kind={kind} onKind={onKind} counts={counts} />
             <div className="ezfav-mast-field">
             <input
               type="search"
@@ -11022,6 +11227,7 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
                 <span className="ezfav-head-mark" aria-hidden="true" />
                 {when && <div style={s.favMeta}>{when}</div>}
               </div>
+                <EzikFavKindNote f={f} />
               <div className="ezfav-read">
               <FavoriteReplyBody segments={parsed.segments} age={age} tashkeel={tashkeel} />
               </div>
@@ -11035,8 +11241,11 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
                 </button>
                 {/* The original conversation. When it is gone the row SAYS so instead of
                     offering a button that would do nothing — and nothing here can throw on a
-                    missing conversation, because the only thing consulted is a Set of ids. */}
-                {alive ? (
+                    missing conversation, because the only thing consulted is a Set of ids.
+                    Item 86: a fatwa and an ayah never had a conversation, so they are offered
+                    neither the button nor the «المحادثة الأصلية محذوفة» line, which would be a
+                    false statement about a record that never came from one. */}
+                {ezikKindOf(f) !== 'reply' ? null : alive ? (
                   <button type="button" onClick={() => onOpenChat(f.chatId)} aria-label={EZIK_FAV_OPEN_CHAT} className="ezik-focus" style={s.favBtn}>
                     {EZIK_FAV_OPEN_CHAT}
                   </button>
@@ -11116,7 +11325,11 @@ function ReportModal({ onClose, onSubmit }) {
   );
 }
 
-function VerseCard({ surah, surahNum, ayah, onPlayVerse, onStopAudio }) {
+// Item 86: the ayah is savable in its own right. `onFavorite` and `isFavorite` are handed
+// DOWN, exactly as the reply star is -- this component reads no store and scans no list. The
+// controls simply do not render when no handler is given, which is what keeps the card inside
+// المفضلة itself from offering to save what is already saved.
+function VerseCard({ surah, surahNum, ayah, onPlayVerse, onStopAudio, onFavorite, isFavorite }) {
   const [playing, setPlaying] = useState(false);
   const [audioFailed, setAudioFailed] = useState(false);
   // نصّ الآية يأتي حصراً من المصحف الكنسي المُحمَّل، لا من النموذج.
@@ -11199,6 +11412,21 @@ function VerseCard({ surah, surahNum, ayah, onPlayVerse, onStopAudio }) {
           <div style={s.verseMeta}>
             {surahName && `سورة ${surahName}`}{surahName && ayah && '، '}{ayah && `آية ${ayah}`}
           </div>
+        )}
+        {onFavorite && textState === 'ok' && (
+          <button
+            type="button"
+            className="ezik-focus"
+            aria-pressed={isFavorite ? 'true' : 'false'}
+            aria-label={isFavorite ? ezT('favorites.remove') : ezT('favorites.addAyah')}
+            onClick={() => onFavorite({ surah: surahName, surahNum: sNum, ayah: aNum, text: verseText })}
+            style={{ ...s.versePlayBtn, opacity: isFavorite ? 1 : 0.75 }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 17.3l-5.4 3 1-6-4.4-4.3 6-.9L12 3.5l2.8 5.6 6 .9-4.4 4.3 1 6z" />
+            </svg>
+            <span>{isFavorite ? ezT('favorites.saved') : ezT('favorites.addAyah')}</span>
+          </button>
         )}
         {canPlay && (
           <button
