@@ -9369,8 +9369,19 @@ function App() {
   // profile entry pinned at the bottom. It used to have a second, duplicate control beside
   // it; that one is gone and the ONE row opens the account area the home screen opens.
   // The theme settings screen is phase C and is deliberately not built here.
+  //
+  // S118 -- THE TOKEN CARRIER, and it is not decoration: without it the menu is INVISIBLE on the
+  // home. MEASURED, on the first render of this lift: the panel and its scrim came up with no
+  // surface and no shadow and the home showed straight through the rows. The colours are not
+  // literals anywhere in this file -- .ezc-drawer paints var(--a3-surface) / var(--a3-line) /
+  // var(--a3-lift), and the scrim paints var(--ezc-scrim). --a3-* are declared on .ezhome and
+  // --ezc-scrim on .ezc, and while this markup lived inside the chat's return it sat inside BOTH.
+  // Rendered beside <Home/> it sits inside neither, so every one of those var() calls resolved to
+  // nothing. The two classes are named here, on ONE element, so the menu resolves the very same
+  // tokens from either screen and no value is written twice. It is a plain div: it creates no
+  // containing block, so the fixed positioning underneath it is untouched.
   const ezikDrawer = () => drawerOpen && (
-      <>
+      <div className="ezhome ezc">
         <div onClick={() => closeDrawerWith(null)} className="ezc-drawer-ov" />
         {/* S112: the panel is a side drawer on a phone and an INSET, bounded panel from a desk
             upward -- it never becomes a full-screen sheet over the conversation behind it. The
@@ -9518,7 +9529,7 @@ function App() {
             </button>
           </div>
         </div>
-      </>
+      </div>
   );
 
   // S115: the boot mark is a bounded arch instead of a 48px emoji. The animation, its keyframe,

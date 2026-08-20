@@ -919,6 +919,17 @@ ok('...bounded and centred rather than loose across the viewport',
     && /function EzistTopNav\(\{ onOpenMenu \}\)/.test(NAV));
   // THE MENU IT OPENS IS THE CHAT'S. Not a second drawer: the owner hands it App's own opener,
   // and App renders the one ezikDrawer() on the home branch as well as the chat's.
+  // S118: the menu paints ONLY tokens, and the two screens that draw it declare them on
+  // different elements -- --a3-* on .ezhome, --ezc-scrim on .ezc. Drawn beside <Home/> it is
+  // inside neither, and every var() resolves to nothing: a panel with no surface and a scrim
+  // with no dim, which is what the first render of the lift actually produced. The one element
+  // that names both classes is what makes the menu look the same from either screen.
+  ok('...and it carries the token carriers, or it paints nothing on the home',
+    /const ezikDrawer = \(\) => drawerOpen && \(\s*\r?\n\s*<div className="ezhome ezc">\s*\r?\n\s*<div onClick=\{\(\) => closeDrawerWith\(null\)\} className="ezc-drawer-ov" \/>/.test(html),
+    'the menu must sit inside .ezhome (for --a3-*) and .ezc (for --ezc-scrim)');
+  ok('...and neither token is written as a literal to work around that',
+    /\.ezc-drawer-ov\{[^}]*background:var\(--ezc-scrim\)\}/.test(css)
+    && /\.ezc-drawer\{[^}]*background:var\(--a3-surface\)/.test(css));
   ok('...and that opener is the app\'s ONE drawer, not a parallel one built for the home',
     /<Home profile=\{profile\} onOpenMenu=\{openDrawer\}/.test(html)
     && (html.match(/const ezikDrawer = \(\) => drawerOpen && \(/g) || []).length === 1
