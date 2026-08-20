@@ -6450,6 +6450,40 @@ function ezikSearchFavs(favs, q) {
   return out;
 }
 
+// ============================================================
+// THE REVEAL QUEUE -- how already-received text is PAINTED, and nothing else
+// ============================================================
+// THE DEFECT. The transport is honest: callAI accumulates text_delta into `full` and hands the
+// whole of it to onDelta on every event, append-only, never rewritten. What is not smooth is
+// what the SERVER emits -- a writing round produces a burst, then the round ends and nothing
+// arrives for a while, then the next burst. Painting each burst the instant it lands makes the
+// answer arrive in slabs with dead air between them.
+//
+// WHAT THIS IS. A paint queue in front of the state setter. Everything that has ARRIVED is held
+// in a ref; a ticker walks a cursor forward through it and paints the PREFIX up to the cursor.
+// The four promises, each of them a property of the arrangement and not of a test:
+//   * it can never show text that has not arrived -- the only thing it ever paints is
+//     arrived.slice(0, cursor), and the cursor is clamped to arrived.length on every push;
+//   * it can never reorder -- a prefix of an append-only string, walked forward only;
+//   * it can never change the final text, because the final text does not come through here at
+//     all: sendMessage pushes `reply` into messages, byte for byte as callAI returned it;
+//   * and when the answer completes, setStreamingText(null) stops the ticker in the same batch
+//     that pushes the finished reply -- so a queue still draining is flushed by being replaced
+//     with the whole of it, immediately, with nothing withdrawn.
+//
+// THE RATE. A tick every 28ms, moving an eighth of the backlog with a floor of two characters.
+// A share of the backlog rather than a fixed rate is what makes it read as continuous at both
+// ends: a 400-character burst drains in about a fifth of a second instead of trickling for six,
+// and a slow trickle still moves every tick instead of stalling. The floor is what guarantees
+// the cursor always advances, so the queue cannot livelock a byte short of the end.
+//
+// REDUCED MOTION SKIPS IT ENTIRELY. A reader who has asked for less movement is not asking for
+// a typewriter; ezikMotionReducedNow() -- the platform preference OR the app's own -- paints the
+// arrived text whole, exactly as the file did before this commit.
+const EZIK_REVEAL_MS = 28;
+const EZIK_REVEAL_DIVISOR = 8;
+const EZIK_REVEAL_MIN_STEP = 2;
+
 function App() {
   // S100: mounted here and not only in Settings, because the 'storage' event fires in the
   // tabs that did NOT make the change -- a tab sitting on the chat has to repaint too. The
@@ -6657,7 +6691,49 @@ function App() {
   const audioElRef = useRef(null);     // single gesture-unlocked element, REUSED for TTS (iOS autoplay)
   const audioDoneRef = useRef(null);    // current TTS playback resolver, so takeAudioFocus can cancel it cleanly
   const audioPlayTokenRef = useRef(0);  // invalidates stale pause/ended events on the reused element
-  const [streamingText, setStreamingText] = useState(null); // live streaming text (null = no stream in flight)
+  // The RAW setter is deliberately renamed: everything in this component calls setStreamingText
+  // below, which is the queue, and nothing outside these few lines paints the preview directly.
+  const [streamingText, setStreamingReveal] = useState(null); // live streaming text (null = no stream in flight)
+  const revealFullRef = useRef('');    // everything that has ARRIVED, append-only, never painted whole
+  const revealAtRef = useRef(0);       // how much of it is on screen
+  const revealTimerRef = useRef(null);
+  const revealStop = () => {
+    if (revealTimerRef.current === null) return;
+    try { clearInterval(revealTimerRef.current); } catch (e) {}
+    revealTimerRef.current = null;
+  };
+  const revealTick = () => {
+    const full = revealFullRef.current;
+    const backlog = full.length - revealAtRef.current;
+    if (backlog <= 0) { revealStop(); return; }
+    const step = Math.max(EZIK_REVEAL_MIN_STEP, Math.ceil(backlog / EZIK_REVEAL_DIVISOR));
+    revealAtRef.current = Math.min(full.length, revealAtRef.current + step);
+    setStreamingReveal(full.slice(0, revealAtRef.current));
+    if (revealAtRef.current >= full.length) revealStop();
+  };
+  // The one door. It takes exactly what the shipped setter took -- null to retire the preview,
+  // '' to arm it, and the cumulative text on every delta -- and it is the reason the delta
+  // handler, the abort path and the streaming transition below are all untouched.
+  const setStreamingText = (next) => {
+    if (typeof next !== 'string' || next === '') {
+      // null (retire / abort) and '' (arm): both empty the queue and paint immediately. This is
+      // also the flush: the completion calls setStreamingText(null) in the same batch that
+      // pushes the finished reply, so a half-drained queue is replaced by the whole answer.
+      revealStop();
+      revealFullRef.current = '';
+      revealAtRef.current = 0;
+      setStreamingReveal(next);
+      return;
+    }
+    revealFullRef.current = next;
+    // A cursor can never sit past what has arrived. It cannot happen with an append-only
+    // stream; it is clamped anyway, because "never show text that has not arrived" is the
+    // promise and a promise that depends on the transport is not one.
+    if (revealAtRef.current > next.length) revealAtRef.current = next.length;
+    if (ezikMotionReducedNow()) { revealStop(); revealAtRef.current = next.length; setStreamingReveal(next); return; }
+    if (revealTimerRef.current === null) revealTimerRef.current = setInterval(revealTick, EZIK_REVEAL_MS);
+  };
+  useEffect(() => revealStop, []);
   // TEXT path only: shows chat.searchingSources during the silent round-1 wait. The name is
   // historical — XI-02 made the string neutral, because the client cannot know that a search
   // is running and three of ten measured rounds carrying this hint returned no source at all.
