@@ -247,6 +247,29 @@ export function buildDepthInstruction(depth) {
   return '';
 }
 
+// THE CLOSED LIST OF DEPTH VALUES, and the one place body.depth is turned into a server value.
+//
+// IT IS THE CODE'S OWN VOCABULARY, not a new one invented here. MODE_PROFILES in
+// lib/stored-deen.js declares exactly these four ids and no others, and buildDepthInstruction
+// above answers to two of them; nothing else in the tree responds to a depth string. Anything
+// outside the list -- including a non-string -- resolves to undefined, which is the default
+// tier, SILENTLY: no error and no "you were downgraded" field, for the reason the tier lock
+// already gives below, that telling a prober which strings are interesting tells them what to
+// forge.
+//
+// A Set, DELIBERATELY, and not a plain object lookup. storedAnswerProfile() downstream reads
+// MODE_PROFILES[depth] || MODE_PROFILES.normal, and MEASURED on this tree
+// storedAnswerProfile('constructor') returns Object -- the constructor reached through the
+// prototype -- rather than a profile, so its maxTokens and claims come back undefined. An
+// object lookup here would carry that hole forward; Set.has() has no prototype to reach.
+//
+// EXPORTED so a guard can RUN it instead of reading this file for its list, which is the same
+// reason buildDepthInstruction above is exported.
+const DEPTH_ALLOWED = new Set(['brief', 'normal', 'deep', 'scholar']);
+export function readRequestedDepth(depth) {
+  return (typeof depth === 'string' && DEPTH_ALLOWED.has(depth)) ? depth : undefined;
+}
+
 // Ledger's outcome is server-owned: it comes from runEngine() through the awaited seam, never
 // from request data or model prose. Only its exact refusal enum is non-answer text; every other
 // value deliberately stays on the ordinary answer finalizer path.
@@ -727,7 +750,26 @@ export default async function handler(req, res) {
   // spend, so a revoked token must lose them the moment the owner revokes it -- not in up to
   // ninety days when its expiry catches up.
   const founderUnlocked = await hasUnrevokedFounderToken(req);
-  const effectiveDepth = founderUnlocked ? body.depth : undefined;
+  // DEPTH_FREE_TRIAL (owner's decision, 19 Aug 2026). The two deep tiers become everyone's, as a
+  // free trial, until a subscription exists. The call stays locked and is not touched here.
+  //
+  // THE LOCK LINE IS NOT DELETED, and that is the whole design. It reads
+  //     const effectiveDepth = founderUnlocked ? body.depth : undefined;
+  // and it is the ONLY filter body.depth has: delete it and depth becomes a string the client
+  // sends with no check at all, reaching the retrieval and the budget at :1577, :2553, :2846,
+  // :3182 and :3417. So what replaces it is a flag plus the closed list above:
+  //   OFF -- and unset means off, which is how this ships -- the rule is today's rule: a
+  //          founder's depth is honoured, everyone else's is dropped.
+  //   ON  -- everyone's depth is honoured, but only when it is one of the four the code knows.
+  // The founder path is untouched in both states. What changes when the flag is on is that a
+  // non-founder is now ALSO allowed to ask for a depth. The band gate below is no part of this
+  // and does not move: the instruction and the premium model stay adult-only in both states.
+  //
+  // Read per request rather than at module load, so flipping the variable takes effect on the
+  // next invocation without a code deploy -- which is what "the owner flips it" has to mean.
+  const depthFreeTrial = process.env.DEPTH_FREE_TRIAL === 'on';
+  const mayRequestDepth = founderUnlocked || depthFreeTrial;
+  const effectiveDepth = mayRequestDepth ? readRequestedDepth(body.depth) : undefined;
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (effectiveDepth === 'deep' || effectiveDepth === 'scholar') ? 'high' : 'medium';
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
@@ -759,7 +801,7 @@ export default async function handler(req, res) {
   const model = usePremium
     ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-5')
     : STANDARD_MODEL;
-  console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, usePremium, model });
+  console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, depthFreeTrial, usePremium, model });
   // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
   // deleted at parse time, so there is not even a value in scope to fall back to.
   const system = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
