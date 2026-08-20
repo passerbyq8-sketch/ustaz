@@ -584,13 +584,59 @@ ok('resume row does not use the bookmark ribbon glyph', resumeBlock.indexOf('M7 
 ok('resume row has its own glyph', /<path d="M3\.5 12a8\.5 8\.5 0 1 0/.test(resumeBlock));
 ok('bookmark row keeps the ribbon glyph', SRC.slice(iBookRow, iBookRow + 900).indexOf('M7 3h10') !== -1);
 
-// entering the mushaf must NOT auto-open the reader
+// ITEM 87 REVERSED THIS BLOCK'S RULE, and the block is NARROWED to the new one rather than
+// disabled. It stood under the heading "entering the mushaf must NOT auto-open the reader" and
+// its three checks read, byte for byte:
+//
+//   ok('nothing auto-selects on mount', !/useEffect\(\(\) => \{[^}]*setSelected\(/.test(msBody));
+//   ok('resume only fires from a tap', (msBody.match(/setSelected\(lastPage\.s\)/g) || []).length === 1);
+//   ok('openAt is still only set by a tap', msBody.indexOf('const [openAt, setOpenAt] = useState(null);') !== -1);
+//
+// The owner asked for the opposite: the mushaf opens where it was left. So these now assert THE
+// RESTORE AND ITS KEY -- and, just as importantly, the two things that keep the restore from
+// becoming a trap: it fires once per mount, and the index is still reachable in one tap.
 const ms = SRC.indexOf('function MushafScreen(');
 const msEnd = SRC.indexOf('function MemorizeScreen(', ms);
 const msBody = SRC.slice(ms, msEnd > ms ? msEnd : ms + 6000);
-ok('nothing auto-selects on mount', !/useEffect\(\(\) => \{[^}]*setSelected\(/.test(msBody));
-ok('resume only fires from a tap', (msBody.match(/setSelected\(lastPage\.s\)/g) || []).length === 1);
-ok('openAt is still only set by a tap', msBody.indexOf('const [openAt, setOpenAt] = useState(null);') !== -1);
+ok('the mushaf resumes on mount', /useEffect\(\(\) => \{[\s\S]{0,400}?setSelected\(lp\.s\);/.test(msBody));
+ok('...from the contracted key, through its one refusing reader',
+  /const lp = readMushafLastPage\(\);/.test(msBody)
+  && /if \(!lp\) return;/.test(msBody)
+  && /const MUSHAF_LAST_PAGE_KEY = 'mushaf_last_page_v1';/.test(SRC)
+  && /localStorage\.getItem\(MUSHAF_LAST_PAGE_KEY\)/.test(SRC));
+ok('...through the SAME door a tap uses, carrying the page on openAt',
+  /setOpenAt\(lp\);\s*\r?\n\s*setSelected\(lp\.s\);/.test(msBody)
+  && msBody.indexOf('const [openAt, setOpenAt] = useState(null);') !== -1);
+// ONCE. MushafScreen does not unmount when a surah is left -- only `selected` drops to null -- so
+// an effect without this guard re-opens the page the instant the exit control returns to the
+// index, and the index becomes unreachable. This is the check that would catch that.
+ok('...once per mount, so the index stays reachable',
+  /const autoResumedRef = useRef\(false\);/.test(msBody)
+  && /if \(autoResumedRef\.current\) return;\s*\r?\n\s*autoResumedRef\.current = true;/.test(msBody)
+  && /\}, \[\]\);/.test(msBody));
+// The label is built from code points: this guard is ASCII only, and an Arabic literal in it is
+// a mojibake report waiting to happen on a Windows terminal.
+ok('...and the way back to the index is one visible tap',
+  new RegExp('<button onClick=\\{onExit\\} className="ezmr-btn" style=\\{s\\.ezmrJump\\}>'
+    + '\u0627\u0644\u0633\u0648\u0631' + '</button>').test(SRC));
+// The resume ROW is kept beside the restore, not replaced by it: it is what the reader taps
+// after choosing to go back to the index.
+ok('...and the tap-to-resume row is still there beside it',
+  (msBody.match(/setSelected\(lastPage\.s\)/g) || []).length === 1);
+// THE DEAD NAME. `mushaf_pos_v1` is swept by "delete all my data" and is nothing else anywhere:
+// not read, not written, not the position this app keeps. Pinned at exactly one appearance, and
+// inside resetAll, so it can never be resurrected as a live key.
+// Counted as a STRING LITERAL and not as the word: the file now carries a comment explaining
+// why this name is dead, and a check that counted the word would be defeated by its own
+// documentation -- which is the same trap item 84 caught in theme-coverage.
+eq('the pre-bookmark name appears exactly once as a literal',
+  (SRC.match(/'mushaf_pos_v1'/g) || []).length, 1);
+ok('...and that one appearance is a removeItem inside the full wipe', (function () {
+  const at = SRC.indexOf("localStorage.removeItem('mushaf_pos_v1');");
+  const reset = SRC.indexOf('const resetAll = () => {');
+  const end = reset === -1 ? -1 : SRC.indexOf('\n  };', reset);
+  return at !== -1 && reset !== -1 && at > reset && at < end;
+}()));
 // RE-PINNED, ASSERTION KEPT. The exit handler was renamed leaveSurah -> ezikGoBack, which is not
 // what this check is about and which had left it red and silent. What it guards is the OPENING
 // rule: the reader opens from `selected` alone, and the resumed page is carried only when

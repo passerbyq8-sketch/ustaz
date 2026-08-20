@@ -9632,6 +9632,11 @@ function App() {
       ezikClearAllA11y();
       localStorage.removeItem('directConvoLocked');
       localStorage.removeItem(MUSHAF_BOOKMARK_KEY);
+      // ITEM 87: `mushaf_pos_v1` IS A DEAD NAME. This sweep is its ONLY appearance in the file
+      // and it is a CLEANUP, not a use: nothing reads it, nothing writes it, and the position
+      // this app keeps is mushaf_last_page_v1 and nothing else. The line stays exactly because
+      // it is the cleaning -- a device that still carries the pre-bookmark key is swept by
+      // "delete all my data" like everything else. It must never be resurrected as a live key.
       localStorage.removeItem('mushaf_pos_v1');   // Session 51 -- one-shot sweep of the pre-bookmark name
       // Session 82 -- the three device-local mushaf keys go with everything else. "Delete all
       // my data" has to mean the last page, the daily target and today's progress too.
@@ -14117,10 +14122,36 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   const clearBookmark = () => { try { localStorage.removeItem(MUSHAF_BOOKMARK_KEY); } catch (e) {} setBookmark(null); };
   // Session 82 -- the last page, alongside the bookmark and never instead of it. Its own
   // state, its own reader and its own opener; the bookmark two lines above is untouched.
-  // Reading it here does NOT open it: entering the mushaf still lands on the index, and the
-  // reader resumes by tapping a row -- one tap, chosen, never automatic.
+  //
+  // ITEM 87 REVERSED THE RULE ABOVE THIS LINE. It read: "Reading it here does NOT open it:
+  // entering the mushaf still lands on the index, and the reader resumes by tapping a row --
+  // one tap, chosen, never automatic." The owner asked for the opposite: a mushaf opens where
+  // it was left. The row is KEPT -- it is what the reader taps after choosing to go back to
+  // the index -- and the auto-open is added beside it, not in place of it.
   const [lastPage, setLastPage] = useState(readMushafLastPage);
   const openLastPage = () => { if (lastPage) { setOpenAt(lastPage); setSelected(lastPage.s); } };
+  // ITEM 87 -- THE MUSHAF OPENS WHERE IT WAS LEFT, and it opens there through the SAME door a
+  // tap uses: openAt carries the page and `selected` carries the surah, exactly as the resume
+  // row sets them. Nothing new decides what "the last page" is -- readMushafLastPage is the
+  // one reader of the one contracted key, mushaf_last_page_v1, and it refuses anything it does
+  // not recognise, so a damaged or absent record lands on the index as before.
+  //
+  // ONCE PER MOUNT, and the ref is the whole of that. MushafScreen does NOT unmount when the
+  // reader leaves a surah -- only `selected` drops to null -- so without this the effect would
+  // re-open the page the instant «السور» took them back to the index, and the index would be
+  // unreachable. Leaving the mushaf entirely and returning is a new mount, and resumes again.
+  //
+  // THE WAY BACK IS ONE TAP AND IT IS ALREADY THERE: the reader's own «السور» in the top rail
+  // calls onExit, which is the same route the hardware back button takes.
+  const autoResumedRef = useRef(false);
+  useEffect(() => {
+    if (autoResumedRef.current) return;
+    autoResumedRef.current = true;
+    const lp = readMushafLastPage();
+    if (!lp) return;
+    setOpenAt(lp);
+    setSelected(lp.s);
+  }, []);
   // خطأ ٤٦: `selected` (السورة المفتوحة) رُفعت إلى App لتُقشَر بزر الرجوع؛ تصل عبر props بلا تغيير سلوك
 
   useEffect(() => {
