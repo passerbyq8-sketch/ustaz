@@ -923,21 +923,39 @@
   .ezc-row.is-on{background:var(--a3-ice)}
   .ezc-row.is-pinned{border-inline-start:3px solid var(--a3-cyan)}
   /* ========================================================================
-     THE WATERMARK. It is the BRAND MARK -- the chevron -- and not the app-store tile.
-     /icon-512.png was here and was wrong for the job: that file is the LAUNCHER icon, a solid
-     blue rounded plate carrying a star and an open book, and it fills its canvas edge to edge
-     (measured: ink bounding box 512x512 out of 512x512). Behind a conversation it reads as a
-     large blue slab rather than as a mark. /icon-watermark.png is the chevron the launcher
-     icon's own foreground layer draws, cropped to its ink and to nothing else -- 260x260,
-     RGBA, 45.9% of it fully transparent -- so what paints behind the thread is the mark and
-     the page, with no plate between the two. It is in the service worker's precache list for
-     the same reason /icon-512.png was: icon.svg is in no list at all, and an offline reader
-     would meet an empty box.
+     THE WATERMARK. It is the APP ICON -- the one with the word عزك written inside the arch --
+     and it is neither the app-store tile nor the bare mark.
 
-     WHAT DID NOT MOVE. The element, and its inset, z-index, repeat, background-position and
-     background-size are the ones that shipped, so the mark occupies the same bounded box in
-     the same place; the opacity is still --ezwm-o, still 0.5 when nothing was chosen, and
-     still the one number the settings sheet writes.
+     TWO WRONG SOURCES CAME BEFORE THIS ONE, and both are worth naming so a third is not cut.
+     /icon-512.png was here first: that file is the LAUNCHER icon, a solid blue rounded plate
+     carrying a star and an open book, filling its canvas edge to edge (measured: ink bounding
+     box 512x512 out of 512x512), so behind a conversation it read as a slab and not as a mark.
+     It was replaced by a crop of android-icon-foreground.png, and that was wrong too: the
+     launcher icon's FOREGROUND LAYER is the bare chevron, so what painted behind the thread
+     was an arch with no word in it at all. The app's icon has the name written in it, and the
+     name is what the owner asked to see.
+
+     WHAT IS AT THIS PATH NOW. The icon itself: 904x904, RGBA, 75.5% of its pixels fully
+     transparent at alpha exactly 0, ink bounding box 828x891. They are the icon's own pixels --
+     the file was cut from the iOS icon the owner sent by lifting the white ground, undoing the
+     premultiply and cropping to the ink; nothing was redrawn, traced or recoloured.
+     THE iOS ICON ITSELF MAY NOT BE USED HERE: its PNG colour type is 2, it carries no alpha
+     channel at all, and it would paint an opaque white rectangle across the conversation.
+     The path did not change because the service worker precaches this URL by name and icon.svg
+     is in no list at all, so an offline reader would meet an empty box.
+
+     THE SIZE. It was min(70vw,58vh,560px), which laid ~515px of ink across an 860px panel --
+     three fifths of the width, which is a backdrop and not a watermark. It is now
+     clamp(120px,38%,200px): 38% of this element's own box, and this element is inset:0 in the
+     chat root, so the percentage IS the panel width on every width the panel does not cap. The
+     floor keeps it readable on a narrow phone; the ceiling is what binds on a desktop, where
+     38% would run away again. ONE value and not two: the second is `auto`, so the square image
+     stays square and no percentage is ever resolved against this box's HEIGHT.
+
+     WHAT DID NOT MOVE. The element, and its inset, z-index, repeat and background-position, so
+     the mark is centred in the same place it was; the opacity is still --ezwm-o, still 0.5 when
+     nothing was chosen, and still the one number the settings sheet writes. The source and the
+     scale are the whole of the change.
 
      IT IS NOT A .ezc RULE, and that is the whole of why it is written here rather than above:
      the chat block may not attach an image, a gradient or a repeat to anything it owns, and
@@ -954,7 +972,7 @@
      root from the stored preference, and 0.5 is what it is when nothing was ever chosen. */
   .ezwm{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:var(--ezwm-o,0.5);
     background-image:url("/icon-watermark.png");background-repeat:no-repeat;background-position:50% 50%;
-    background-size:min(70vw,58vh,560px) min(70vw,58vh,560px)}
+    background-size:clamp(120px,38%,200px)}
   /* ========================================================================
      THE SECTION SUGGESTIONS, above the composer, on an empty thread only.
 
