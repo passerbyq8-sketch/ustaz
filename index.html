@@ -913,6 +913,37 @@
     background-image:url("/icon-512.png");background-repeat:no-repeat;background-position:50% 50%;
     background-size:min(70vw,58vh,560px) min(70vw,58vh,560px)}
   /* ========================================================================
+     THE SECTION SUGGESTIONS, above the composer, on an empty thread only.
+
+     ONE LIST, TWO SHAPES. The same three entries are drawn as full-width cards while the
+     composer is not focused and as a scrolling row of pills while it is -- not two lists, not
+     two components, and nothing hidden with display:none: the container takes a class and the
+     rule below changes the axis. The third state is not a shape at all, it is absence: the
+     first typed character unmounts the whole thing.
+
+     Like the watermark, this is deliberately NOT a .ezc rule -- the chat's own block is a
+     frozen inventory and this is new furniture, so it carries its own prefix and cannot be
+     reached by any selector in that block. Every colour here is a token the sheet already
+     declares. Nothing animates, so there is nothing for reduced motion to switch off. */
+  .ezsug{display:flex;flex-direction:column;gap:8px;padding:2px 2px 8px;min-width:0}
+  .ezsug.is-row{flex-direction:row;gap:8px;overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:6px}
+  .ezsug.is-row::-webkit-scrollbar{width:0;height:0}
+  .ezsug-card{width:100%;box-sizing:border-box;min-height:56px;display:flex;align-items:center;
+    gap:10px;padding:10px 12px;border-radius:14px;background:var(--a3-ice);
+    border:1px solid var(--a3-line);color:var(--a3-ink);font-family:var(--ez-ui-font);
+    cursor:pointer;text-align:start}
+  .ezsug-body{display:flex;flex-direction:column;min-width:0;flex:1}
+  .ezsug-title{font-weight:800;font-size:14.5px;line-height:1.4;color:var(--a3-ink)}
+  .ezsug-sub{font-size:12px;line-height:1.5;color:var(--a3-muted);overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .ezsug-mark{flex-shrink:0;display:inline-flex;color:var(--a3-blue)}
+  .ezsug-go{flex-shrink:0;display:inline-flex;color:var(--a3-muted)}
+  .ezsug-pill{flex-shrink:0;min-height:40px;display:inline-flex;align-items:center;gap:7px;
+    padding:8px 14px;border-radius:999px;background:var(--a3-surface);
+    border:1px solid var(--a3-line);color:var(--a3-ink);font-family:var(--ez-ui-font);
+    font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer}
+  /* ========================================================================
      S113 -- THE ISTANA VOICE ROOM.
 
      The call screen was a navy-to-black gradient over the whole viewport with a 180px pulsing
@@ -6364,6 +6395,10 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  // THE COMPOSER'S FOCUS, and it exists for exactly one reason: the section suggestions below
+  // are stacked cards while the reader is not writing and a scrolling row of pills while they
+  // are. Nothing else reads it, it is never stored, and it is not part of any payload.
+  const [composerFocused, setComposerFocused] = useState(false);
   const [depthMode, setDepthMode] = useState('brief'); // 'brief' | 'detailed' | 'scholar' — adult-only 3-state cycle
   const SCHOLAR_ENABLED = true; // scholar (طالب العلم) = adult-only 3rd depth state; ENABLED. Set false to hide it (cycle -> brief/detailed only). Server accepts scholar regardless of this flag.
   const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
@@ -8557,6 +8592,33 @@ function App() {
   };
 
   // ============================================================
+  // THE SECTION SUGGESTIONS -- three ways out of an empty chat, above the composer
+  // ============================================================
+  // WHAT THEY ARE. Three of the app's own sections, each opened by the SAME handler the home
+  // screen uses for it: الفتاوى -> setScreen('fatwa'), رحلة الكنوز -> /quest.html, المصحف ->
+  // setScreen('mushaf'). No fourth entry: the brief allows a lessons section only if one already
+  // exists, and this app has no lessons section -- the five modules are memorize, adhkar,
+  // mushaf, treasure and fatwa, and none of them is that. The labels and the one-line
+  // descriptions are the module strings the home already shows, so they translate with the rest
+  // of the interface and no new wording enters the app.
+  //
+  // WHAT THEY ARE NOT. They send nothing, they do not touch the composer's text, and they are
+  // not a suggestion the MODEL made -- <suggestions> inside a reply is a different thing
+  // rendered elsewhere by MessageBubble, and this neither replaces nor imitates it.
+  const sectionSuggestions = [
+    { id: 'fatwa', label: EZH_FATWA, icon: EZH_ICON_FATWA, go: () => setScreen('fatwa') },
+    { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, go: () => { window.location.href = '/quest.html'; } },
+    { id: 'mushaf', label: EZH_MUSHAF, icon: EZH_ICON_MUSHAF, go: () => setScreen('mushaf') },
+  ];
+  // THE THIRD STATE IS ABSENCE. One expression decides it, and each term is a separate promise
+  // the brief makes: an empty thread (a conversation with anything in it keeps them hidden --
+  // and a stream implies a question, so messages is never empty during one), nothing being
+  // streamed, and NOT ONE typed character. Because it reads the live value of `input`, clearing
+  // the text brings them straight back, and because `composerFocused` only chooses the SHAPE,
+  // blurring an empty composer returns the stack rather than the row.
+  const sectionSuggestVisible = messages.length === 0 && streamingText === null && input.length === 0;
+
+  // ============================================================
   // S98 — الإجراءات السريعة والاقتباس (quick actions + quote)
   // ============================================================
   // A quick action IS a message. It goes through sendMessage above and nothing else, so the model
@@ -9240,11 +9302,13 @@ function App() {
       </div>
 
       <div ref={messagesAreaRef} onScroll={onMessagesScroll} className={'ezc-scroll' + (pinnedAskIndex == null ? '' : ' ezc-askpinned')} style={s.messagesArea}>
-        {/* S112 -- THE EMPTY STATE. A NEW thread shows this and nothing else: no old messages, no
-            history list, no suggestion cards, and no devotional text of any kind. It is drawn
-            INSIDE the transcript and centred in the space that is already there, so the composer
-            does not move and the screen never turns back into a second home. It is gone the moment
-            there is anything to read, including the first token of a stream. */}
+        {/* S112 -- THE EMPTY STATE. A NEW thread shows this and nothing else IN THE TRANSCRIPT:
+            no old messages, no history list, no card of any kind and no devotional text. It is
+            drawn INSIDE the transcript and centred in the space that is already there, so the
+            composer does not move and the screen never turns back into a second home. It is gone
+            the moment there is anything to read, including the first token of a stream.
+            The section suggestions added later are NOT here and are not part of this: they live
+            in the composer dock, below the transcript, and they carry no devotional text. */}
         {messages.length === 0 && streamingText === null && (
           <div className="ezc-empty">
             <div className="ezc-empty-title">{A2_BRAND}</div>
@@ -9343,6 +9407,37 @@ function App() {
           Shift+Enter contract are the ones that shipped. */}
       <div className="ezc-dock">
         <div className="ezc-dock-inner">
+      {/* ONE LIST, TWO SHAPES, and the shape is a class on the container -- the entries below are
+          mapped ONCE whichever state is on, so a card and a pill can never drift apart or offer
+          different destinations. Pressing one is a navigation and nothing else: no send, no
+          write to the composer, no request. onMouseDown is defaulted away so that pressing a
+          pill cannot blur the composer first, re-lay the strip as cards, and move the control
+          out from under the pointer before the click lands. */}
+      {sectionSuggestVisible && (
+        <div className={composerFocused ? 'ezsug is-row' : 'ezsug'} role="group" aria-label={ezT('navigation.menu')}>
+          {sectionSuggestions.map((sg) => (
+            <button
+              key={sg.id}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={sg.go}
+              className={composerFocused ? 'ezsug-pill ezik-focus' : 'ezsug-card ezik-focus'}
+              data-ezik-section-suggestion={sg.id}
+            >
+              <span className="ezsug-mark" aria-hidden="true">{sg.icon}</span>
+              {composerFocused ? <span>{sg.label}</span> : (
+                <>
+                  <span className="ezsug-body">
+                    <span className="ezsug-title">{sg.label}</span>
+                    <span className="ezsug-sub">{EZIST_SUB[sg.id]}</span>
+                  </span>
+                  <span className="ezsug-go" aria-hidden="true">{EZH_ICON_GO}</span>
+                </>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
       {voiceError && <div style={s.errorBanner}>{voiceError}</div>}
 
       {pendingImage && (
@@ -9367,6 +9462,8 @@ function App() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onComposerKeyDown}
           onPointerDown={onComposerPointerDown}
+          onFocus={() => setComposerFocused(true)}
+          onBlur={() => setComposerFocused(false)}
           onCompositionStart={() => { composingRef.current = true; }}
           onCompositionEnd={() => { composingRef.current = false; }}
           enterKeyHint={inputIsTouch ? 'enter' : 'send'}
