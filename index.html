@@ -1326,6 +1326,178 @@
 </style>
 </head>
 <body>
+<script id="ezik-diagnostic-catcher">
+(function () {
+  try {
+    var entries = [];
+    var panel = null;
+    var output = null;
+
+    function safeString(value) {
+      try {
+        if (value === null || typeof value === 'undefined') return '';
+        return String(value);
+      } catch (ignored) {
+        return '(unavailable)';
+      }
+    }
+
+    function read(object, name) {
+      try {
+        if (object === null || typeof object === 'undefined') return undefined;
+        return object[name];
+      } catch (ignored) {
+        return undefined;
+      }
+    }
+
+    function legacyCopy(text) {
+      var area = null;
+      try {
+        area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', 'readonly');
+        area.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+        (document.body || document.documentElement).appendChild(area);
+        area.focus();
+        area.select();
+        if (area.setSelectionRange) area.setSelectionRange(0, text.length);
+        var copied = document.execCommand('copy');
+        if (area.parentNode) area.parentNode.removeChild(area);
+        return !!copied;
+      } catch (ignored) {
+        try {
+          if (area && area.parentNode) area.parentNode.removeChild(area);
+        } catch (cleanupIgnored) {}
+        return false;
+      }
+    }
+
+    function copyAll() {
+      var text = '';
+      try {
+        text = output ? output.textContent : '';
+        var nav = window.navigator;
+        if (nav && nav.clipboard && typeof nav.clipboard.writeText === 'function') {
+          var operation = nav.clipboard.writeText(text);
+          if (operation && typeof operation.then === 'function') {
+            operation.then(function () {}, function () {
+              try { legacyCopy(text); } catch (ignored) {}
+            });
+          }
+        } else {
+          legacyCopy(text);
+        }
+      } catch (ignored) {
+        try { legacyCopy(text); } catch (copyIgnored) {}
+      }
+    }
+
+    function buildPanel() {
+      try {
+        var host = document.body || document.documentElement;
+        if (!host) return null;
+
+        panel = document.createElement('div');
+        panel.setAttribute('role', 'alert');
+        panel.setAttribute('dir', 'ltr');
+        panel.style.cssText = 'position:fixed;inset:0;top:0;right:0;bottom:0;left:0;z-index:2147483647;background:#0b0b0b;color:#eaeaea;font-family:monospace;font-size:13px;direction:ltr;text-align:left;padding:14px;overflow:auto;white-space:pre-wrap;box-sizing:border-box;';
+
+        var controls = document.createElement('div');
+        controls.style.cssText = 'direction:ltr;text-align:left;white-space:normal;margin:0 0 14px 0;';
+
+        var copyButton = document.createElement('button');
+        copyButton.type = 'button';
+        copyButton.appendChild(document.createTextNode('COPY'));
+        copyButton.style.cssText = 'font:13px monospace;margin:0 8px 0 0;padding:8px 12px;';
+        copyButton.onclick = function () {
+          try { copyAll(); } catch (ignored) {}
+        };
+
+        var reloadButton = document.createElement('button');
+        reloadButton.type = 'button';
+        reloadButton.appendChild(document.createTextNode('RELOAD'));
+        reloadButton.style.cssText = 'font:13px monospace;margin:0;padding:8px 12px;';
+        reloadButton.onclick = function () {
+          try { window.location.reload(); } catch (ignored) {}
+        };
+
+        output = document.createElement('div');
+        output.style.cssText = 'direction:ltr;text-align:left;white-space:pre-wrap;';
+        controls.appendChild(copyButton);
+        controls.appendChild(reloadButton);
+        panel.appendChild(controls);
+        panel.appendChild(output);
+        host.appendChild(panel);
+        return panel;
+      } catch (ignored) {
+        panel = null;
+        output = null;
+        return null;
+      }
+    }
+
+    function formatEntry(event, rejection) {
+      try {
+        var reason = rejection ? read(event, 'reason') : read(event, 'error');
+        var message = read(event, 'message');
+        if (!message) message = read(reason, 'message');
+        if (!message) message = safeString(reason);
+        if (!message) message = rejection ? 'Unhandled rejection' : 'Unknown error';
+
+        var filename = read(event, 'filename');
+        if (!filename) filename = read(reason, 'fileName');
+        if (!filename) filename = read(reason, 'sourceURL');
+        if (!filename) filename = '(unknown)';
+
+        var line = read(event, 'lineno');
+        if (line === null || typeof line === 'undefined') line = read(reason, 'lineNumber');
+        if (line === null || typeof line === 'undefined') line = 0;
+
+        var column = read(event, 'colno');
+        if (column === null || typeof column === 'undefined') column = read(reason, 'columnNumber');
+        if (column === null || typeof column === 'undefined') column = 0;
+
+        var stack = read(reason, 'stack');
+        if (!stack) stack = '(none)';
+
+        var nav = window.navigator;
+        var userAgent = read(nav, 'userAgent');
+        if (!userAgent) userAgent = '(unknown)';
+
+        var ratio = read(window, 'devicePixelRatio');
+        if (ratio === null || typeof ratio === 'undefined') ratio = '(unknown)';
+
+        return 'EZIK DIAGNOSTIC\n' +
+          'MESSAGE\n' + safeString(message) + '\n' +
+          'LOCATION\n' + safeString(filename) + ':' + safeString(line) + ':' + safeString(column) + '\n' +
+          'STACK\n' + safeString(stack) + '\n' +
+          'USER AGENT\n' + safeString(userAgent) + '\n' +
+          'VIEWPORT\n' + safeString(read(window, 'innerWidth')) + ' x ' + safeString(read(window, 'innerHeight')) + '\n' +
+          'DEVICE PIXEL RATIO\n' + safeString(ratio);
+      } catch (ignored) {
+        return 'EZIK DIAGNOSTIC\nMESSAGE\n(unavailable)\nLOCATION\n(unknown):0:0\nSTACK\n(none)\nUSER AGENT\n(unknown)\nVIEWPORT\n x \nDEVICE PIXEL RATIO\n(unknown)';
+      }
+    }
+
+    function report(event, rejection) {
+      try {
+        if (entries.length >= 20) return;
+        entries.push(formatEntry(event, rejection));
+        if (!panel) buildPanel();
+        if (output) output.textContent = entries.join('\n\n--------------------\n\n');
+      } catch (ignored) {}
+    }
+
+    window.addEventListener('error', function (event) {
+      try { report(event, false); } catch (ignored) {}
+    }, true);
+    window.addEventListener('unhandledrejection', function (event) {
+      try { report(event, true); } catch (ignored) {}
+    }, true);
+  } catch (ignored) {}
+}());
+</script>
 <div id="root"></div>
 
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z"></script>

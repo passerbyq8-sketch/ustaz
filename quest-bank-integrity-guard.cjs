@@ -109,7 +109,7 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': 'd9972aa1ea2fc843e47069db53c60832e383b1c608993fbce9bb513bc34cd9a3',
+  'sw.js': 'a3cadab4c9a65df307efc365ec2202d133e500484d0e407163d74a9efd2a80dc',
 };
 
 // ---------------------------------------------------------------------------
@@ -133,7 +133,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v3';
+const SW_CACHE = 'ezik-v4';
 const SW_ORIGIN = 'https://ezik.app';
 // The data-file class item 80 governs, and one member of every class it must NOT
 // have touched. Named by request, because the worker selects by request.
