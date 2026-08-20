@@ -2119,7 +2119,7 @@ async function hashPin(pin) {
 // SPEND_GATE_SHA256 = بصمة SHA-256 (٦٤ خانة hex) لرمز الدخول — لا يُخزَّن الرمز نفسه، تُقارَن البصمات فقط.
 // ٦٤ صفراً = القفل مُعطَّل تماماً: يعمل التطبيق كما هو اليوم بلا أي مطالبة في أي مكان.
 // لتفعيله: ضع بصمة رمزٍ حقيقي مكان الأصفار. نشرُ هذا الكوميت بالأصفار لا يقفل أحداً، ولا المالك.
-const SPEND_GATE_SHA256 = '0000000000000000000000000000000000000000000000000000000000000000'; // D86: disabled by its own documented kill switch -- no PIN wall at boot. Call/deep tiers stay walled by UnlockSheet + founder token; the day cap still counts server-side.
+const SPEND_GATE_SHA256 = '0000000000000000000000000000000000000000000000000000000000000000'; // D86: disabled by its own documented kill switch -- no PIN wall at boot. The CALL stays walled by UnlockSheet + founder token; item 84 lifted the client wall from the two deep tiers, which api/ask.js still judges server-side; the day cap still counts server-side.
 const SPEND_GATE_KEY = 'spend_gate_unlock';
 const SPEND_GATE_DISABLED = SPEND_GATE_SHA256 === '0'.repeat(64);
 function spendGateOpen() {
@@ -6966,10 +6966,14 @@ function App() {
   const [isCallMuted, setIsCallMuted] = useState(false);
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
-  // Unlock sheet (directive 82). `unlockAsk` remembers which locked tier was tapped so a
-  // successful PIN applies it immediately. `founderUnlocked` exists ONLY to force a re-render
-  // after unlocking -- every real gate re-reads hasFounderToken(), never this flag.
-  const [unlockAsk, setUnlockAsk] = useState(null);
+  // Item 84: `unlockAsk` stood here. It remembered which LOCKED depth tier had been tapped so
+  // a successful PIN could apply it, and it existed only for the lock this item lifted --
+  // with the lock gone nothing can set it, so the sheet it fed could never open again. It is
+  // removed rather than left as an unreachable branch that reads like a gate the chat still
+  // has. The chat therefore has no PIN surface at all now; the call screen keeps its own
+  // UnlockSheet on the same component, and الإعدادات keeps the change-PIN row for a founder.
+  // `founderUnlocked` STAYS: the call screen's sheet is its other caller. It exists ONLY to
+  // force a re-render after unlocking -- every real gate re-reads hasFounderToken(), never it.
   const [founderUnlocked, setFounderUnlocked] = useState(() => hasFounderToken());
   const [tashkeelOn, setTashkeelOn] = useState(() => { try { return localStorage.getItem('tashkeel_v1') === '1'; } catch (e) { return false; } });
   const toggleTashkeel = () => setTashkeelOn((v) => { const n = !v; try { localStorage.setItem('tashkeel_v1', n ? '1' : '0'); } catch (e) {} return n; });
@@ -8634,7 +8638,12 @@ function App() {
       // are TEXT-route (/api/ask) only.
       const __extra = {
         // depth: adult-only, non-'brief' -> server reads body.depth==='deep'/'scholar' for round-2 effort.
-        ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' && hasFounderToken() ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
+        // Item 84: `&& hasFounderToken()` was here and is gone. It meant the client refused to
+        // SEND a depth it had let the reader select, so the field never reached the one place
+        // that is allowed to judge it. api/ask.js is that place and is unchanged: it honours a
+        // depth only for a founder or under DEPTH_FREE_TRIAL, and drops it silently otherwise.
+        // The band gate stays -- this field is still adult-only and still never sent for brief.
+        ...(mode === 'chat' && endpoint === '/api/ask' && deriveCaps(p.age).band === 'adult' && depthMode !== 'brief' ? { depth: depthMode === 'scholar' ? 'scholar' : 'deep' } : {}),
         // band: so the server restricts RAG sources by age (khilaf-policy §6: under-18 is served
         // from the two tiers SITES_MINOR + SITES_MINOR_FALLBACK in lib/retrieve.js -- primary first,
         // fallback only when the primary comes back empty). Those two constants ARE the list; this
@@ -10034,8 +10043,8 @@ function App() {
           group paints at the RIGHT ([+] then the model selector) and the second at the LEFT
           (mic then live call). Nothing here is new machinery. The [+] drives the SAME two
           hidden file inputs and the SAME onPickImage that already shipped. The selector is the
-          SAME depthMode cycle and opens the SAME UnlockSheet through unlockAsk -- there is no
-          second PIN surface. The mic is the SAME startListening/stopListening, untouched. The
+          SAME depthMode cycle. Item 84 lifted the token requirement from it, so it no longer
+          opens an unlock sheet, and the chat now carries no PIN surface at all. The mic is the SAME startListening/stopListening, untouched. The
           call button only sets the screen: the EXISTING screen chain then applies the child
           barrier FIRST and the founder token SECOND, so a child gets the notice and is never
           offered the PIN sheet. */}
@@ -10082,15 +10091,26 @@ function App() {
           {/* Model selector. RENDERED FOR EVERY BAND so موجز is always available; the two deep
               tiers keep their EXISTING 18+ visibility -- a non-adult sees the chip fixed on
               موجز and cannot cycle into them. For an adult the cycle is byte-for-byte the
-              one that shipped, including the UnlockSheet hand-off through setUnlockAsk. */}
+              one that shipped, except that item 84 lifted the token requirement from it. */}
           <button
             onClick={() => {
               if (caps.band !== 'adult') return;                  // 18+ visibility on the deep tiers is unchanged
               const next = depthMode === 'brief' ? 'detailed' : depthMode === 'detailed' ? (SCHOLAR_ENABLED ? 'scholar' : 'brief') : 'brief';
-              // The two deep tiers additionally require the unlock token to be SELECTED. This is
-              // not the lock: api/ask.js drops an unearned depth server-side no matter what the
-              // UI does. It only stops a user selecting a tier that would silently do nothing.
-              if ((next === 'detailed' || next === 'scholar') && !hasFounderToken()) { setUnlockAsk(next); return; }
+              // THE CLIENT NO LONGER ASKS FOR THE TOKEN HERE. The removed line tested the two
+              // deep tier names against the founder token and handed off to the unlock sheet;
+              // it is quoted in the commit message and deliberately NOT here, because holding
+              // it byte for byte in a comment left theme-coverage matching this very block and
+              // reporting the gate as present after the gate was gone.
+              // The reason given for it was that it stopped a reader selecting a tier that would
+              // silently do nothing. That reason still stands, and it is now the owner's to
+              // weigh: with DEPTH_FREE_TRIAL off, api/ask.js still drops an unearned depth, so
+              // a non-founder selecting مفصّل gets the default tier and no notice. Lifting this
+              // is what makes the tiers SELECTABLE the moment the owner flips that flag, with
+              // no second deploy of this page.
+              //
+              // WHAT IS NOT LIFTED: the server lock, which is not in this file; the 18+ gate on
+              // the deep tiers, two lines above, which still returns for any non-adult; and the
+              // cycle itself, which still reaches these two tiers and no others.
               setDepthMode(next);
             }}
             disabled={isLoading || caps.band !== 'adult'}
@@ -10151,7 +10171,6 @@ function App() {
       {/* S118: the one menu, defined once above the screen ladder. */}
       {ezikDrawer()}
       {reportFor && <ReportModal onClose={() => setReportFor(null)} onSubmit={submitReport} />}
-      {unlockAsk && <UnlockSheet onUnlocked={() => { setFounderUnlocked(true); setDepthMode(unlockAsk); setUnlockAsk(null); }} onBack={() => setUnlockAsk(null)} />}
     </div>
   );
 }

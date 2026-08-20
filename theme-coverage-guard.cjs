@@ -2384,8 +2384,32 @@ ok('N26: the model chip cycles exactly the shipped three values',
 ok('N26: ...and a non-adult still cannot cycle at all',
   /if \(caps\.band !== 'adult'\) return;/.test(chatSrc)
   && /disabled=\{isLoading \|\| caps\.band !== 'adult'\}/.test(chatSrc));
-ok('N26: ...and the two deep tiers still need the token, via the SAME unlock sheet',
-  /if \(\(next === 'detailed' \|\| next === 'scholar'\) && !hasFounderToken\(\)\) \{ setUnlockAsk\(next\); return; \}/.test(chatSrc));
+// Item 84 NARROWED this check. It read, byte for byte:
+//     ok('N26: ...and the two deep tiers still need the token, via the SAME unlock sheet',
+//       /if \(\(next === 'detailed' \|\| next === 'scholar'\) && !hasFounderToken\(\)\) \{ setUnlockAsk\(next\); return; \}/.test(chatSrc));
+// and the owner lifted exactly that requirement, so it now describes something that is not
+// there. What replaces it is the rule the item DOES ask for: the list stays CLOSED to the two
+// named tiers and is not opened to any third thing.
+//
+// It is checked against LIVE code and never against the whole file. The removed line was first
+// quoted verbatim in a comment beside its own removal, and this check went on passing by
+// matching that comment -- a guard satisfiable by dead text is worse than no guard at all.
+ok('N26: ...and the client no longer asks for the token to select a tier',
+  !/if \(\(next === 'detailed' \|\| next === 'scholar'\) && !hasFounderToken\(\)\)/.test(chatSrc)
+  && chatSrc.indexOf('setUnlockAsk(') === -1);
+ok('N26: ...but the depth it sends is still ONLY one of the two named tiers',
+  /\{ depth: depthMode === 'scholar' \? 'scholar' : 'deep' \}/.test(html)
+  && /depthMode !== 'brief' \? \{ depth:/.test(html));
+ok('N26: ...and it is still adult-only, and still never sent for brief',
+  /deriveCaps\(p\.age\)\.band === 'adult' && depthMode !== 'brief'/.test(html));
+eq('N26: ...and no third depth value exists to be asked for',
+  Array.from(new Set((html.match(/depth: depthMode === '\w+' \? '\w+' : '\w+'/g) || []))).length, 1);
+// The SERVER lock is the lock, and this item did not touch it. Named here so that lifting the
+// client wall can never be mistaken for lifting the wall.
+ok('N26: ...and the server still judges the depth it is sent',
+  fs.existsSync(path.join(__dirname, 'api', 'ask.js'))
+  && /const effectiveDepth = mayRequestDepth \? readRequestedDepth\(body\.depth\) : undefined;/
+    .test(fs.readFileSync(path.join(__dirname, 'api', 'ask.js'), 'utf8')));
 
 /* ---- N27..N29. keyboard, names, and the way out of the drawer ---------- */
 // ---- N27. WHAT `Enter` DOES, AND IN WHICH ORDER --------------------------
