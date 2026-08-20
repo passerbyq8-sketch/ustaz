@@ -2527,6 +2527,17 @@ eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
     && /\.ezc-turn\.is-user\{align-items:flex-start\}/.test(css)
     && /\.ezc-turn\.is-ai\{align-items:stretch\}/.test(css)
     && s.messageBubble.maxWidth === '78%' && s.assistantBubble.maxWidth === '100%');
+  // Item 63. THE ANSWER'S INK IS ONE ROLE, said once and read twice. It used to be two
+  // declarations -- the bubble on --a3-ink, the prose inside it on --ink -- which resolved to
+  // the same colour in every theme and so could not be moved in one place. This pins the token,
+  // pins BOTH sites to it, and pins that only LIGHT carries a literal: dark still defers to the
+  // ink it always had, so a future theme cannot darken an answer that is already on a dark page.
+  ok('N33: the answer ink is one token, and both answer sites read it',
+    s.assistantBubble.color === 'var(--answer-ink)' && s.bubbleText.color === 'var(--answer-ink)');
+  ok('N33: ...black in light, and dark defers to the ink it already had',
+    /--answer-ink:#000000\}/.test(css) && /--answer-ink:var\(--a3-ink\)\}/.test(css));
+  eq('N33: ...and it is declared in exactly those two places',
+    (css.match(/--answer-ink:/g) || []).length, 2);
   ok('N33: ...and the animated turns still carry the class reduced motion switches off',
     (html.match(/className="ez-anim"/g) || []).length >= 4);
   // The empty menu SAYS it is empty.

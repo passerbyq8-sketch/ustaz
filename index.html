@@ -275,10 +275,22 @@
      whole of the addition. */
   .adhkar3,.ezhome{--a3-page:#F4F9FF;--a3-surface:#FFFFFF;--a3-line:#E1EAF9;--a3-ice:#DCEAFB;
     --a3-ink:#0B2455;--a3-muted:#5A6B8A;--a3-blue:#2454D7;--a3-navy:#0B2455;--a3-cyan:#20C7E8;
-    --a3-soft:#EEF4FE;--a3-shadow:0 2px 12px rgba(36,84,215,0.07);--a3-lift:0 8px 26px rgba(36,84,215,0.11)}
+    --a3-soft:#EEF4FE;--a3-shadow:0 2px 12px rgba(36,84,215,0.07);--a3-lift:0 8px 26px rgba(36,84,215,0.11);
+    /* THE ANSWER'S INK, and it is a role of its own for the reason the four splits above
+       exist: the answer is the one thing on this screen a reader reads for minutes at a
+       time, and it has to be able to darken without dragging every other use of the ink
+       with it. It was TWO separate declarations -- the bubble read --a3-ink and the prose
+       inside it read --ink -- which in this theme both resolve to --vt-ink, so the answer
+       had one colour said in two places and no way to move it in one. Now it has one name.
+       LIGHT IS THE ONLY VALUE THAT MOVES. Black, for the owner's reason: an answer read at
+       length on a white sheet. Every other rendering keeps exactly the ink it had, below. */
+    --answer-ink:#000000}
   :root[data-theme="dark"] .adhkar3,:root[data-theme="dark"] .ezhome{--a3-page:#0A1020;--a3-surface:#121A2C;--a3-line:#263554;--a3-ice:#1C2A45;
     --a3-ink:#E7EEFB;--a3-muted:#A2B2CE;--a3-blue:#6E9BFF;--a3-navy:#0A1020;--a3-cyan:#3FD6F5;
-    --a3-soft:#18233A;--a3-shadow:0 2px 12px rgba(0,0,0,0.34);--a3-lift:0 8px 26px rgba(0,0,0,0.42)}
+    --a3-soft:#18233A;--a3-shadow:0 2px 12px rgba(0,0,0,0.34);--a3-lift:0 8px 26px rgba(0,0,0,0.42);
+    /* dark keeps the ink it had, said as the token it had: --a3-ink is --vt-ink here, which
+       is what BOTH answer sites already resolved to. Nothing in dark moves by a byte. */
+    --answer-ink:var(--a3-ink)}
   /* The two things an inline style cannot express, both of them scoped to .ezhome-* class
      names that exist nowhere else in this file. The journey path is two balanced columns on
      a phone already (cards alternate around the route), so a wide display only needs the
@@ -14927,8 +14939,8 @@ const s = {
   // turn instead of being blanked out by it. color-mix keeps the colour a TOKEN -- there is no
   // literal here for a palette to fail to reach, and each mode mixes its own surface.
   userBubble: { background: 'color-mix(in srgb, var(--a3-ice) 78%, transparent)', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)', borderInlineStart: '3px solid var(--a3-blue)', borderRadius: 16, borderBottomRightRadius: 6, padding: '10px 14px', fontSize: 15 },
-  assistantBubble: { maxWidth: '100%', background: 'color-mix(in srgb, var(--a3-surface) 78%, transparent)', color: 'var(--a3-ink)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--a3-shadow)', border: '1px solid var(--a3-line)', fontSize: 15 },
-  bubbleText: { overflowWrap: 'anywhere', /* 13.4-b2 */ lineHeight: 1.85, fontSize: 15, color: 'var(--ink)' },
+  assistantBubble: { maxWidth: '100%', background: 'color-mix(in srgb, var(--a3-surface) 78%, transparent)', color: 'var(--answer-ink)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--a3-shadow)', border: '1px solid var(--a3-line)', fontSize: 15 },
+  bubbleText: { overflowWrap: 'anywhere', /* 13.4-b2 */ lineHeight: 1.85, fontSize: 15, color: 'var(--answer-ink)' },
   // S93: the Markdown blocks. Every colour is an EXISTING variable -- --ink, --muted, --line,
   // --tint, --red -- so both palettes already answer for them and no theme value is added,
   // changed or overridden. Sizes are relative to the bubble text they sit in.
