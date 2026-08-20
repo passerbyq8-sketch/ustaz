@@ -100,12 +100,16 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   item 93      -- a failed precache entry is counted and named instead of swallowed. B11
+  //                    gained the three item 93 checks in the SAME commit as this digest.
+  //   item 90      -- the two sealed mushaf files left the stale-while-revalidate class and
+  //                    returned to cache-first. B11 gained the ZERO-fetch half in the SAME commit.
   //   items 88 + 80 -- CACHE 'ezik-v1' -> 'ezik-v2' (so a returning reader stops being
   //                    served the old build out of the old store), and the same-origin
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': '3e94dd964f8f9bf9183f1345261a9bf4b24ea1f160e17b5c11277da8506b05ac',
+  'sw.js': '06a34b1b1a0dc4e07c58cbf727dfa8b56ac3ff0ef476e8bd9fe731f8d1f4b9ed',
 };
 
 // ---------------------------------------------------------------------------
@@ -133,8 +137,15 @@ const SW_CACHE = 'ezik-v2';
 const SW_ORIGIN = 'https://ezik.app';
 // The data-file class item 80 governs, and one member of every class it must NOT
 // have touched. Named by request, because the worker selects by request.
-const SW_DATA_FILES = ['/adhkar.json', '/worship-display.json', '/manifest.json',
-  '/quran-uthmani.json', '/mushaf-layout.json'];
+// ITEM 90 SPLIT THIS CLASS IN TWO, and each half is asserted for the OPPOSITE thing. The two
+// mushaf files are sealed by digest above, so the worker excludes them from revalidation by name
+// and serves them cache-first; the other three still revalidate. Asserting only the revalidating
+// half would let the exclusion widen until it swallowed adhkar.json, which is precisely the
+// freeze item 80 was raised to end. So: these three must issue exactly ONE background fetch, and
+// those two must issue ZERO.
+const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json'];
+const SW_SEALED_DATA = ['/quran-uthmani.json', '/mushaf-layout.json'];
+const SW_DATA_FILES = SW_REVALIDATED.concat(SW_SEALED_DATA);
 
 function swRes(body, status) {
   return {
@@ -147,7 +158,7 @@ function swRes(body, status) {
 }
 
 // Load sw.js into a domesticated global scope and hand back the levers a test needs.
-function swLoad(swPath, fetchImpl) {
+function swLoad(swPath, fetchImpl, failAdd) {
   const store = new Map();
   const listeners = {};
   const opened = [];
@@ -157,7 +168,11 @@ function swLoad(swPath, fetchImpl) {
   const wrap = (n) => ({
     match: (r) => Promise.resolve(cacheOf(n).get(keyOf(r))),
     put: (r, res) => { cacheOf(n).set(keyOf(r), res); return Promise.resolve(); },
-    add: () => Promise.resolve(),
+    // Item 93: the harness can make a named precache entry reject, which is the only way to ask
+    // the worker what it does with a failure it cannot prevent.
+    add: (u) => (failAdd && failAdd(u)
+      ? Promise.reject(new Error('QuotaExceededError (synthetic)'))
+      : Promise.resolve()),
     delete: (r) => Promise.resolve(cacheOf(n).delete(keyOf(r))),
   });
   const sandbox = {
@@ -191,6 +206,13 @@ function swLoad(swPath, fetchImpl) {
     peek: (name, url) => {
       const h = cacheOf(name).get(SW_ORIGIN + url);
       return h ? h._body : undefined;
+    },
+    self: sandbox.self,
+    install: () => {
+      const waits = [];
+      if (typeof listeners.install !== 'function') return { waits: waits, missing: true };
+      listeners.install({ waitUntil: (p) => { waits.push(p); } });
+      return { waits: waits, missing: false };
     },
     dispatch: (url, mode) => {
       let responded = null;
@@ -542,7 +564,7 @@ async function compare(goldenPath) {
       // Every data file, one at a time. A class assertion that only ever ran on
       // adhkar.json would not have caught worship-display.json.
       let stale = 0, frozen = 0, fragile = 0;
-      for (const f of SW_DATA_FILES) {
+      for (const f of SW_REVALIDATED) {
         // (1) a HIT is served from the cache AND a background fetch is issued.
         const h = swLoad(swPath, () => Promise.resolve(swRes('NEW')));
         h.seed(name, f, 'OLD');
@@ -583,9 +605,67 @@ async function compare(goldenPath) {
           no('B11', f + ' LOST its stored copy to a failed fetch -- a reader with no network loses the file entirely');
         }
       }
-      if (!stale) ok('all ' + SW_DATA_FILES.length + ' data files are served from cache AND revalidated in the background');
-      if (!frozen) ok('all ' + SW_DATA_FILES.length + ' data files serve the NEW bytes on the read after a change');
-      if (!fragile) ok('all ' + SW_DATA_FILES.length + ' data files survive a dead network with the stored copy intact');
+      if (!stale) ok('all ' + SW_REVALIDATED.length + ' revalidating data files are served from cache AND revalidated in the background');
+      if (!frozen) ok('all ' + SW_REVALIDATED.length + ' revalidating data files serve the NEW bytes on the read after a change');
+      if (!fragile) ok('all ' + SW_REVALIDATED.length + ' revalidating data files survive a dead network with the stored copy intact');
+
+      // ITEM 90: the excluded pair. Served from the store, and NEVER revalidated. A background
+      // fetch here is 2.4 MB of a reader's data spent on bytes a sha256 already guarantees.
+      let leaked = 0;
+      for (const f of SW_SEALED_DATA) {
+        const s = swLoad(swPath, () => Promise.resolve(swRes('NEW')));
+        s.seed(name, f, 'OLD');
+        const before = s.fetches();
+        const d = s.dispatch(f);
+        if (!d.responded) { leaked++; no('B11', f + ' is not handled by the worker at all'); continue; }
+        const b = await swBody(d.responded);
+        if (b !== 'OLD') { leaked++; no('B11', f + ' did not serve the STORED copy (got ' + JSON.stringify(b) + ')'); }
+        const spent = s.fetches() - before;
+        if (spent !== 0) {
+          leaked++;
+          no('B11', f + ' is sealed and excluded from revalidation, but the worker still issued '
+            + spent + ' background fetch(es). Item 90: that is a phone re-downloading bytes that\n'
+            + '        cannot have changed without breaking the seal above.');
+        }
+      }
+      if (!leaked) ok('both sealed mushaf files are served from cache with ZERO revalidation fetch (item 90)');
+
+      // ITEM 93: a precache entry that fails is COUNTED and NAMED. One CORE entry is made to
+      // reject; install must still settle, and the worker must afterwards be able to say which
+      // entry it lost. Silence here is how a reader ends up offline in front of a blank screen.
+      const VICTIM = '/adhkar.json';
+      const noisy = swLoad(swPath, () => Promise.resolve(swRes('NEW')), (u) => u === VICTIM);
+      const inst = noisy.install();
+      if (inst.missing) no('B11', SW_FILE + ' registered no install listener -- nothing to precache');
+      else {
+        let installRejected = null;
+        for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { installRejected = e; }); }
+        if (installRejected) {
+          no('B11', 'a failed precache entry REJECTED install (' + installRejected.message + '). The\n'
+            + '        worker never activates, so a phone with a full disk keeps the OLD build forever.');
+        } else ok('a failed precache entry does not reject install (item 93)');
+        const rec = noisy.self.ezikPrecacheFailures;
+        if (!rec || typeof rec.length !== 'number') {
+          no('B11', 'a failed precache entry is recorded NOWHERE -- install completes one entry\n'
+            + '        short with nothing counted and nothing logged. This is item 93.');
+        } else if (rec.length !== 1) {
+          no('B11', 'exactly one precache entry was made to fail; the worker counted ' + rec.length);
+        } else if (String(rec[0] && rec[0].url) !== VICTIM) {
+          no('B11', 'the failed entry was counted but not NAMED (got ' + JSON.stringify(rec[0])
+            + ', expected ' + VICTIM + ')');
+        } else ok('a failed precache entry raises the counter and records its name (item 93)');
+
+        // The control. Without it, a recorder that reports a failure unconditionally would pass
+        // every assertion above while measuring nothing.
+        const clean = swLoad(swPath, () => Promise.resolve(swRes('NEW')));
+        const ci = clean.install();
+        await swSettle(ci.waits);
+        const cleanRec = clean.self.ezikPrecacheFailures || [];
+        if (cleanRec.length !== 0) {
+          no('B11', 'a precache in which every entry stored still recorded ' + cleanRec.length
+            + ' failure(s) -- the counter is not measuring what it is named for');
+        } else ok('a precache with every entry storing records no failure (item 93 control)');
+      }
 
       // The policies item 80 must NOT have moved. Without these, "revalidate
       // everything" would pass B11 while doubling every asset request and

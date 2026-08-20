@@ -5,8 +5,8 @@
 //   network-first: the app shell -- navigations and the HTML entry points (/ and /index.html).
 //                 Always fetched fresh; the cached copy is only an offline fallback. This is why
 //                 a forgotten version bump can NO LONGER strand a user on a dead build (6b).
-//   stale-while-revalidate: EVERY same-origin data file (*.json) -- adhkar.json,
-//                 worship-display.json, manifest.json and the two mushaf JSONs. The stored copy
+//   stale-while-revalidate: every same-origin data file (*.json) EXCEPT the two sealed mushaf
+//                 files -- so adhkar.json, worship-display.json and manifest.json. The stored copy
 //                 is served IMMEDIATELY and a background fetch refreshes it for the NEXT read.
 //                 Item 80: cache-first with no revalidation froze a changed adhkar.json on every
 //                 phone that had ever opened the app until a human remembered to bump the cache
@@ -67,13 +67,47 @@ const IDLE = [
 ];
 const IDLE_BACKSTOP_MS = 1500;
 
+// ITEM 93. A FAILED PRECACHE ENTRY IS NO LONGER SWALLOWED WHOLE. `cache.add(u).catch(() => {})`
+// discarded the error and the fact of it together: install completed, the worker activated and
+// claimed the page, and the store was quietly short an entry. Nothing was counted, nothing was
+// logged, and the first person to find out was a reader who opened the app with no network and
+// met a blank where adhkar.json should have been.
+//
+// THIS RECORDS. IT DOES NOT RECOVER. No retry, no quota management, no recovery surface: each is
+// a decision with its own costs and none of them is this item. What changes is that the failure
+// can be SEEN -- counted, named with its reason, and queryable from the page.
+//
+// SUCCESS BEHAVIOUR IS UNCHANGED, DELIBERATELY. An entry that stores, stores exactly as before.
+// And install is still never REJECTED by a failure: rejecting it would strand a phone with a full
+// disk on the previous worker entirely, which is a worse outcome than the gap it would report.
+//
+// SCOPE, MEASURED AND STATED: this covers the two PRECACHE paths -- install (CORE) and warmIdle
+// (IDLE). The three `cache.put(...).catch(() => {})` in the fetch handlers below are deliberately
+// left alone: a failed runtime put leaves the previous copy in place and the very next read
+// retries it, whereas a failed precache entry is never attempted again. Recording those too would
+// also grow this array once per request on a dead network, which is the quota management this
+// item explicitly does not want.
+const precacheFailures = [];
+function addOrNote(cache, u) {
+  return cache.add(u).catch((e) => {
+    precacheFailures.push({ url: u, reason: (e && e.message) || String(e) });
+    // DevTools is the only channel a worker has to a human standing in front of the problem.
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[ezik sw] precache FAILED for ' + u + ': ' + ((e && e.message) || e)
+        + ' (' + precacheFailures.length + ' failed so far)');
+    }
+  });
+}
+// A live reference, not a copy, so anything holding it sees the current list.
+self.ezikPrecacheFailures = precacheFailures;
+
 // Cache-match first: the page prefetches quran-uthmani.json on its own idle callback, and the
 // cache-first branch of fetch() below stores it. Re-adding it here would download 338KB twice.
 let warming = null;
 function warmIdle() {
   if (warming) return warming;
   warming = caches.open(CACHE).then((cache) => Promise.all(
-    IDLE.map((u) => cache.match(u).then((hit) => (hit ? null : cache.add(u).catch(() => {}))))
+    IDLE.map((u) => cache.match(u).then((hit) => (hit ? null : addOrNote(cache, u))))
   )).catch(() => {});
   return warming;
 }
@@ -82,7 +116,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   // Add each entry independently so one missing file cannot abort the whole precache.
   event.waitUntil(
-    caches.open(CACHE).then((cache) => Promise.all(CORE.map((u) => cache.add(u).catch(() => {}))))
+    caches.open(CACHE).then((cache) => Promise.all(CORE.map((u) => addOrNote(cache, u))))
   );
 });
 
@@ -97,9 +131,16 @@ self.addEventListener('activate', (event) => {
   setTimeout(warmIdle, IDLE_BACKSTOP_MS);
 });
 
-// The page's idle signal. Anything else posted here is ignored.
+// The page's idle signal, and the item 93 precache report. Anything else posted here is ignored.
 self.addEventListener('message', (event) => {
   if (event.data && event.data.ezik === 'warm') event.waitUntil(warmIdle());
+  // Item 93: how many entries failed and which. Reporting only -- nothing is retried here.
+  if (event.data && event.data.ezik === 'precache-status') {
+    const reply = { ezik: 'precache-status', failed: precacheFailures.length, entries: precacheFailures.slice() };
+    const port = event.ports && event.ports[0];
+    if (port) port.postMessage(reply);
+    else if (event.source && event.source.postMessage) event.source.postMessage(reply);
+  }
 });
 
 self.addEventListener('fetch', (event) => {
@@ -143,7 +184,25 @@ self.addEventListener('fetch', (event) => {
   //   2. the read AFTER the file changed on the server gets the new bytes;
   //   3. a FAILED fetch leaves the stored copy intact and raises nothing at the page.
   // (3) is an acceptance condition, not a nicety: this app is used with no network.
-  if (sameOrigin && url.pathname.endsWith('.json')) {
+  //
+  // ITEM 90. THE TWO MUSHAF FILES ARE EXCLUDED FROM THIS BRANCH BY NAME, and fall through to the
+  // cache-first branch below -- which is where they sat before item 80 moved the whole *.json
+  // class to stale-while-revalidate. quran-uthmani.json (1412005 bytes) and mushaf-layout.json
+  // (996528) are 2408533 bytes that revalidation can only ever spend to re-download what is
+  // already stored: both are sealed by sha256 in quest-bank-integrity-guard.cjs, so neither can
+  // change without a deliberate re-cut of that seal. On a phone's data plan that is the whole
+  // cost of the policy and none of its benefit.
+  //
+  // THE PRICE, AND IT IS REAL: a cache-name bump is now the ONLY way these two are ever
+  // refreshed. Acceptable because every ship bumps it, and because a file that cannot change
+  // without breaking a seal has nothing to refresh to.
+  //
+  // The other three data files keep revalidating and are NOT touched: adhkar.json (177392) and
+  // worship-display.json (18132) change without ceremony, and manifest.json is 533 bytes.
+  // quest-bank-integrity-guard.cjs B11 asserts BOTH halves -- one background fetch for these
+  // three, zero for the two below -- so the exclusion cannot quietly widen to swallow adhkar.
+  const sealedMushaf = url.pathname === '/quran-uthmani.json' || url.pathname === '/mushaf-layout.json';
+  if (sameOrigin && url.pathname.endsWith('.json') && !sealedMushaf) {
     event.respondWith(
       caches.open(CACHE).then((cache) => cache.match(req).then((hit) => {
         // Never rejects and never deletes. A dead network resolves it to undefined and the
