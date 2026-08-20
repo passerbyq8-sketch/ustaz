@@ -56,6 +56,12 @@
     --black:#141414; --ink:#1A1A1A; --muted:#6E6E6E; --nav-off:#93A0B8;
     --white:#FFFFFF; --page:#F1F6FD; --line:#E5EBF5; --tint:#EDF1FA;
     --scholar:#6B4A2B; --radius-card:22px; --radius-btn:16px;
+    /* THE WATERMARK'S OPACITY, and the only reason it is a token rather than a number in the
+       .ezwm rule is that the reader is allowed to move it. It is a NUMBER, not a colour: no
+       palette answers for it, dark mode does not restate it, and 0.5 is what every device that
+       has never chosen gets. The stored preference is written onto the document root, where it
+       shadows this line for that device only. */
+    --ezwm-o:0.5;
     /* D88. Three tokens split roles that ONE token used to carry. Every light value below
        is byte-for-byte the value those sites already resolved to, so LIGHT RENDERS EXACTLY
        AS IT DID BEFORE THIS PHASE. Only the dark block gives them a second value.
@@ -774,7 +780,12 @@
        * no selector below can match html, body or :root -- every one is a .ezc- class, and
          .ezc- exists nowhere else in the file;
        * it draws no ::before / ::after, so nothing can be painted over the transcript by a
-         rule the reader cannot see. The empty-state crest is two real elements.
+         rule the reader cannot see.
+     THE WATERMARK is deliberately NOT one of these rules. It is the app's own icon behind the
+     conversation, and an image is exactly what this block may not attach -- so it is its own
+     class, .ezwm, declared under this block and never under a .ezc selector. It sits at
+     z-index:-1 inside the chat root's own stacking context, which is why it paints over the
+     page colour and under every piece of chrome without one of those pieces being positioned.
      The one ottoman note is a BORDER RADIUS on the two bounded bars -- an arch at the outer
      edge, kept to a curve and never an ornament.
 
@@ -835,11 +846,6 @@
      its own, so a new thread opens with the composer under the thumb and no dead band. */
   .ezc-empty{margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:14px;
     padding:24px 16px;text-align:center}
-  .ezc-crest{width:62px;height:74px;box-sizing:border-box;display:flex;align-items:center;
-    justify-content:center;border:2px solid var(--a3-blue);border-bottom-color:var(--a3-line);
-    border-radius:60% 60% 14% 14%;background:var(--a3-ice)}
-  .ezc-crest-in{width:16px;height:22px;box-sizing:border-box;border:2px solid var(--a3-cyan);
-    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
   .ezc-empty-title{font-family:var(--ez-ui-font);font-weight:800;font-size:21px;color:var(--a3-ink)}
   /* 4. THE COMPOSER DOCK -- bounded on the same measure as the transcript, in flow, so it
      can never cover the last reply. */
@@ -868,6 +874,29 @@
   .ezc-row{position:relative;border-radius:12px}
   .ezc-row.is-on{background:var(--a3-ice)}
   .ezc-row.is-pinned{border-inline-start:3px solid var(--a3-cyan)}
+  /* ========================================================================
+     THE WATERMARK. The app icon that ships in the manifest AND in the service worker's own
+     precache list -- /icon-512.png. icon.svg carries the identical artwork (measured: the same
+     blue plate, the same white star at the same place, the same open book) but is in neither
+     list, so an offline reader would meet an empty box; icon-maskable-512.png is the padded
+     variant, not the full mark. The 512px raster at a bounded 560px box is at or about 1:1.
+
+     IT IS NOT A .ezc RULE, and that is the whole of why it is written here rather than above:
+     the chat block may not attach an image, a gradient or a repeat to anything it owns, and
+     this is an image. It owns ONE element; that element is aria-hidden and pointer-events:none
+     and carries no text, no handler and no state.
+
+     WHY z-index:-1 AND NOT 0. The composer dock may not be positioned -- it is in flow, and a
+     positioned dock is the very defect that rule exists to catch -- so a watermark at z-index:0
+     would paint OVER it. The chat root is made a stacking context instead; a negative layer
+     inside one paints above that root's own background colour and below every in-flow piece of
+     chrome, without a single other element having to move.
+
+     The opacity is a variable because the reader owns it: --ezwm-o is written on the document
+     root from the stored preference, and 0.5 is what it is when nothing was ever chosen. */
+  .ezwm{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:var(--ezwm-o,0.5);
+    background-image:url("/icon-512.png");background-repeat:no-repeat;background-position:50% 50%;
+    background-size:min(70vw,58vh,560px) min(70vw,58vh,560px)}
   /* ========================================================================
      S113 -- THE ISTANA VOICE ROOM.
 
@@ -9111,6 +9140,12 @@ function App() {
 
   return (
     <div className="theme-dark ezhome ezc" style={s.chatContainer}>
+      {/* THE WATERMARK. One element, behind everything, reachable by nothing: aria-hidden so no
+          reader is told about it, pointer-events:none so no tap can land on it, and z-index:-1
+          inside this root's stacking context so it paints over the page colour and under every
+          piece of chrome. The small crest that used to sit in the empty state is gone with it --
+          the mark is the same mark, drawn once, large, and behind the whole conversation. */}
+      <div className="ezwm" aria-hidden="true" />
       {/* D85: the chat top bar carries exactly ONE control -- the drawer menu. The old home,
           call, speaker and lock buttons are gone. Per-reply audio already sits beneath every
           reply, so the header speaker was redundant; the other three moved into the drawer
@@ -9144,7 +9179,6 @@ function App() {
             there is anything to read, including the first token of a stream. */}
         {messages.length === 0 && streamingText === null && (
           <div className="ezc-empty">
-            <span className="ezc-crest" aria-hidden="true"><span className="ezc-crest-in" /></span>
             <div className="ezc-empty-title">{A2_BRAND}</div>
           </div>
         )}
@@ -14162,7 +14196,11 @@ const s = {
   // them is .ezc-rail in <style> and declares no colour of its own. Deleting the keys rather than
   // orphaning them is deliberate: a slab nobody can spread cannot come back by accident.
   // Every value left below is a token. There is not one literal colour on this screen any more.
-  chatContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)' },
+  // position + zIndex make this a STACKING CONTEXT, and nothing else asked for them: the
+  // watermark is a negative layer inside it, which is the one arrangement that puts an image
+  // over the page colour and under the rail, the transcript and the dock without positioning
+  // any of those three. Neither value paints anything.
+  chatContainer: { position: 'relative', zIndex: 0, height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)' },
   // ===== S98 — the reply controls, the favourites screen and the local search =====
   // Every value below is a token. Nothing here carries a literal colour, so the whole set moves
   // with data-theme=dark exactly as the surfaces they sit on do. Every tappable element is at
@@ -14282,8 +14320,11 @@ const s = {
   // objects onto .ezc-turn, so which side a turn stands on is a property of the turn and not
   // something a spread can silently flip.
   messageBubble: { maxWidth: '78%', padding: '12px 16px', borderRadius: 'var(--radius-card)', fontSize: 16, lineHeight: 1.7, wordWrap: 'break-word', whiteSpace: 'pre-wrap' },
-  userBubble: { background: 'var(--a3-ice)', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)', borderInlineStart: '3px solid var(--a3-blue)', borderRadius: 16, borderBottomRightRadius: 6, padding: '10px 14px', fontSize: 15 },
-  assistantBubble: { maxWidth: '100%', background: 'var(--a3-surface)', color: 'var(--a3-ink)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--a3-shadow)', border: '1px solid var(--a3-line)', fontSize: 15 },
+  // ~0.78 alpha on both bubbles, so the watermark behind the thread stays visible THROUGH a
+  // turn instead of being blanked out by it. color-mix keeps the colour a TOKEN -- there is no
+  // literal here for a palette to fail to reach, and each mode mixes its own surface.
+  userBubble: { background: 'color-mix(in srgb, var(--a3-ice) 78%, transparent)', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)', borderInlineStart: '3px solid var(--a3-blue)', borderRadius: 16, borderBottomRightRadius: 6, padding: '10px 14px', fontSize: 15 },
+  assistantBubble: { maxWidth: '100%', background: 'color-mix(in srgb, var(--a3-surface) 78%, transparent)', color: 'var(--a3-ink)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--a3-shadow)', border: '1px solid var(--a3-line)', fontSize: 15 },
   bubbleText: { overflowWrap: 'anywhere', /* 13.4-b2 */ lineHeight: 1.85, fontSize: 15, color: 'var(--ink)' },
   // S93: the Markdown blocks. Every colour is an EXISTING variable -- --ink, --muted, --line,
   // --tint, --red -- so both palettes already answer for them and no theme value is added,
