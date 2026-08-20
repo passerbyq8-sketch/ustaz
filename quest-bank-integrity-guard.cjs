@@ -100,6 +100,8 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   item 93      -- a failed precache entry is counted and named instead of swallowed. B11
+  //                    gained the three item 93 checks in the SAME commit as this digest.
   //   item 90      -- the two sealed mushaf files left the stale-while-revalidate class and
   //                    returned to cache-first. B11 gained the ZERO-fetch half in the SAME commit.
   //   items 88 + 80 -- CACHE 'ezik-v1' -> 'ezik-v2' (so a returning reader stops being
@@ -107,7 +109,7 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': '2676d4a9d03095ba4437e62952ceb3dd91176fe4ff58951984206f8c10ea938b',
+  'sw.js': '06a34b1b1a0dc4e07c58cbf727dfa8b56ac3ff0ef476e8bd9fe731f8d1f4b9ed',
 };
 
 // ---------------------------------------------------------------------------
@@ -156,7 +158,7 @@ function swRes(body, status) {
 }
 
 // Load sw.js into a domesticated global scope and hand back the levers a test needs.
-function swLoad(swPath, fetchImpl) {
+function swLoad(swPath, fetchImpl, failAdd) {
   const store = new Map();
   const listeners = {};
   const opened = [];
@@ -166,7 +168,11 @@ function swLoad(swPath, fetchImpl) {
   const wrap = (n) => ({
     match: (r) => Promise.resolve(cacheOf(n).get(keyOf(r))),
     put: (r, res) => { cacheOf(n).set(keyOf(r), res); return Promise.resolve(); },
-    add: () => Promise.resolve(),
+    // Item 93: the harness can make a named precache entry reject, which is the only way to ask
+    // the worker what it does with a failure it cannot prevent.
+    add: (u) => (failAdd && failAdd(u)
+      ? Promise.reject(new Error('QuotaExceededError (synthetic)'))
+      : Promise.resolve()),
     delete: (r) => Promise.resolve(cacheOf(n).delete(keyOf(r))),
   });
   const sandbox = {
@@ -200,6 +206,13 @@ function swLoad(swPath, fetchImpl) {
     peek: (name, url) => {
       const h = cacheOf(name).get(SW_ORIGIN + url);
       return h ? h._body : undefined;
+    },
+    self: sandbox.self,
+    install: () => {
+      const waits = [];
+      if (typeof listeners.install !== 'function') return { waits: waits, missing: true };
+      listeners.install({ waitUntil: (p) => { waits.push(p); } });
+      return { waits: waits, missing: false };
     },
     dispatch: (url, mode) => {
       let responded = null;
@@ -616,6 +629,43 @@ async function compare(goldenPath) {
         }
       }
       if (!leaked) ok('both sealed mushaf files are served from cache with ZERO revalidation fetch (item 90)');
+
+      // ITEM 93: a precache entry that fails is COUNTED and NAMED. One CORE entry is made to
+      // reject; install must still settle, and the worker must afterwards be able to say which
+      // entry it lost. Silence here is how a reader ends up offline in front of a blank screen.
+      const VICTIM = '/adhkar.json';
+      const noisy = swLoad(swPath, () => Promise.resolve(swRes('NEW')), (u) => u === VICTIM);
+      const inst = noisy.install();
+      if (inst.missing) no('B11', SW_FILE + ' registered no install listener -- nothing to precache');
+      else {
+        let installRejected = null;
+        for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { installRejected = e; }); }
+        if (installRejected) {
+          no('B11', 'a failed precache entry REJECTED install (' + installRejected.message + '). The\n'
+            + '        worker never activates, so a phone with a full disk keeps the OLD build forever.');
+        } else ok('a failed precache entry does not reject install (item 93)');
+        const rec = noisy.self.ezikPrecacheFailures;
+        if (!rec || typeof rec.length !== 'number') {
+          no('B11', 'a failed precache entry is recorded NOWHERE -- install completes one entry\n'
+            + '        short with nothing counted and nothing logged. This is item 93.');
+        } else if (rec.length !== 1) {
+          no('B11', 'exactly one precache entry was made to fail; the worker counted ' + rec.length);
+        } else if (String(rec[0] && rec[0].url) !== VICTIM) {
+          no('B11', 'the failed entry was counted but not NAMED (got ' + JSON.stringify(rec[0])
+            + ', expected ' + VICTIM + ')');
+        } else ok('a failed precache entry raises the counter and records its name (item 93)');
+
+        // The control. Without it, a recorder that reports a failure unconditionally would pass
+        // every assertion above while measuring nothing.
+        const clean = swLoad(swPath, () => Promise.resolve(swRes('NEW')));
+        const ci = clean.install();
+        await swSettle(ci.waits);
+        const cleanRec = clean.self.ezikPrecacheFailures || [];
+        if (cleanRec.length !== 0) {
+          no('B11', 'a precache in which every entry stored still recorded ' + cleanRec.length
+            + ' failure(s) -- the counter is not measuring what it is named for');
+        } else ok('a precache with every entry storing records no failure (item 93 control)');
+      }
 
       // The policies item 80 must NOT have moved. Without these, "revalidate
       // everything" would pass B11 while doubling every asset request and

@@ -67,13 +67,47 @@ const IDLE = [
 ];
 const IDLE_BACKSTOP_MS = 1500;
 
+// ITEM 93. A FAILED PRECACHE ENTRY IS NO LONGER SWALLOWED WHOLE. `cache.add(u).catch(() => {})`
+// discarded the error and the fact of it together: install completed, the worker activated and
+// claimed the page, and the store was quietly short an entry. Nothing was counted, nothing was
+// logged, and the first person to find out was a reader who opened the app with no network and
+// met a blank where adhkar.json should have been.
+//
+// THIS RECORDS. IT DOES NOT RECOVER. No retry, no quota management, no recovery surface: each is
+// a decision with its own costs and none of them is this item. What changes is that the failure
+// can be SEEN -- counted, named with its reason, and queryable from the page.
+//
+// SUCCESS BEHAVIOUR IS UNCHANGED, DELIBERATELY. An entry that stores, stores exactly as before.
+// And install is still never REJECTED by a failure: rejecting it would strand a phone with a full
+// disk on the previous worker entirely, which is a worse outcome than the gap it would report.
+//
+// SCOPE, MEASURED AND STATED: this covers the two PRECACHE paths -- install (CORE) and warmIdle
+// (IDLE). The three `cache.put(...).catch(() => {})` in the fetch handlers below are deliberately
+// left alone: a failed runtime put leaves the previous copy in place and the very next read
+// retries it, whereas a failed precache entry is never attempted again. Recording those too would
+// also grow this array once per request on a dead network, which is the quota management this
+// item explicitly does not want.
+const precacheFailures = [];
+function addOrNote(cache, u) {
+  return cache.add(u).catch((e) => {
+    precacheFailures.push({ url: u, reason: (e && e.message) || String(e) });
+    // DevTools is the only channel a worker has to a human standing in front of the problem.
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[ezik sw] precache FAILED for ' + u + ': ' + ((e && e.message) || e)
+        + ' (' + precacheFailures.length + ' failed so far)');
+    }
+  });
+}
+// A live reference, not a copy, so anything holding it sees the current list.
+self.ezikPrecacheFailures = precacheFailures;
+
 // Cache-match first: the page prefetches quran-uthmani.json on its own idle callback, and the
 // cache-first branch of fetch() below stores it. Re-adding it here would download 338KB twice.
 let warming = null;
 function warmIdle() {
   if (warming) return warming;
   warming = caches.open(CACHE).then((cache) => Promise.all(
-    IDLE.map((u) => cache.match(u).then((hit) => (hit ? null : cache.add(u).catch(() => {}))))
+    IDLE.map((u) => cache.match(u).then((hit) => (hit ? null : addOrNote(cache, u))))
   )).catch(() => {});
   return warming;
 }
@@ -82,7 +116,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   // Add each entry independently so one missing file cannot abort the whole precache.
   event.waitUntil(
-    caches.open(CACHE).then((cache) => Promise.all(CORE.map((u) => cache.add(u).catch(() => {}))))
+    caches.open(CACHE).then((cache) => Promise.all(CORE.map((u) => addOrNote(cache, u))))
   );
 });
 
@@ -97,9 +131,16 @@ self.addEventListener('activate', (event) => {
   setTimeout(warmIdle, IDLE_BACKSTOP_MS);
 });
 
-// The page's idle signal. Anything else posted here is ignored.
+// The page's idle signal, and the item 93 precache report. Anything else posted here is ignored.
 self.addEventListener('message', (event) => {
   if (event.data && event.data.ezik === 'warm') event.waitUntil(warmIdle());
+  // Item 93: how many entries failed and which. Reporting only -- nothing is retried here.
+  if (event.data && event.data.ezik === 'precache-status') {
+    const reply = { ezik: 'precache-status', failed: precacheFailures.length, entries: precacheFailures.slice() };
+    const port = event.ports && event.ports[0];
+    if (port) port.postMessage(reply);
+    else if (event.source && event.source.postMessage) event.source.postMessage(reply);
+  }
 });
 
 self.addEventListener('fetch', (event) => {
