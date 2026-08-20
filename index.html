@@ -1455,6 +1455,11 @@ const EZ_I18N = {
     'language.chooseHint': 'يُحفظ على هذا الجهاز',
     'settings.language': 'اللغة',
     'settings.savedOnDevice': 'يُحفظ على هذا الجهاز',
+    'settings.watermark': 'وضوح العلامة المائية',
+    'settings.watermark.light': 'خفيفة',
+    'settings.watermark.medium': 'متوسطة',
+    'settings.watermark.bold': 'قوية',
+    'settings.watermark.fine': 'ضبط دقيق',
     'chat.newConversation': '\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629',
     'chat.send': 'إرسال',
     'chat.stop': 'إيقاف',
@@ -1656,6 +1661,11 @@ const EZ_I18N = {
     'language.chooseHint': 'Saved on this device',
     'settings.language': 'Language',
     'settings.savedOnDevice': 'Saved on this device',
+    'settings.watermark': 'Watermark strength',
+    'settings.watermark.light': 'Light',
+    'settings.watermark.medium': 'Medium',
+    'settings.watermark.bold': 'Bold',
+    'settings.watermark.fine': 'Fine adjustment',
     'chat.newConversation': 'New conversation',
     'chat.send': 'Send',
     'chat.stop': 'Stop',
@@ -1985,6 +1995,47 @@ function spendGateOpen() {
 // D88 -- theme. One stored value, 'light' or 'dark', nothing else accepted. applyTheme is the
 // SAME code path the <head> boot script runs, so a toggle and a reload cannot disagree.
 // ============================================================
+// ============================================================
+// THE WATERMARK'S OPACITY -- one number, per device, and the same shape as the theme below it:
+// one key, one reader that refuses anything it does not recognise, one writer that is the ONLY
+// thing that touches the key. It holds a NUMBER between 0.05 and 1 and nothing else: no
+// identifier, no text, nothing about the reader, nothing that could be sent anywhere -- and
+// nothing in this file passes it to fetch, to a body, to a header or to a payload.
+//
+// THE DEFAULT LIVES IN THE STYLESHEET, not here: .ezwm reads var(--ezwm-o,0.5), so a device that
+// has never chosen carries no inline property at all and the CSS answers. This module writes the
+// property onto the document root ONLY when a real stored value exists, which is why clearing
+// storage returns the page to the stylesheet's own 0.5 rather than to a remembered number.
+const EZIK_WM_KEY = 'ezik_watermark_opacity_v1';
+const EZIK_WM_DEFAULT = 0.5;
+// light / medium / bold, as the brief names them. The slider is the same number, finer.
+const EZIK_WM_PRESETS = [0.2, 0.5, 0.8];
+const EZIK_WM_MIN = 0.05;
+const ezikWmClamp = (v) => {
+  const n = typeof v === 'number' ? v : parseFloat(v);
+  if (!Number.isFinite(n) || n < EZIK_WM_MIN || n > 1) return EZIK_WM_DEFAULT;
+  return Math.round(n * 100) / 100;
+};
+const readWatermarkOpacity = () => {
+  try { const raw = localStorage.getItem(EZIK_WM_KEY); return raw === null ? EZIK_WM_DEFAULT : ezikWmClamp(raw); }
+  catch (e) { return EZIK_WM_DEFAULT; }
+};
+// LIVE, and live is the whole point: the property is on <html>, so a chat mounted behind the
+// settings sheet re-paints the moment this runs, with no state threaded through any component
+// and no remount. It returns the value it settled on so a caller never has to re-read the store.
+const applyWatermarkOpacity = (v) => {
+  const n = ezikWmClamp(v);
+  try { document.documentElement.style.setProperty('--ezwm-o', String(n)); } catch (e) {}
+  try { localStorage.setItem(EZIK_WM_KEY, String(n)); } catch (e) {}
+  return n;
+};
+(function () {
+  try {
+    if (localStorage.getItem(EZIK_WM_KEY) === null) return;      // never chosen -> the stylesheet answers
+    document.documentElement.style.setProperty('--ezwm-o', String(readWatermarkOpacity()));
+  } catch (e) {}
+})();
+
 const THEME_KEY = 'murabbi_theme_v1';
 const readStoredTheme = () => { try { const t = localStorage.getItem(THEME_KEY); return (t === 'dark' || t === 'light') ? t : 'light'; } catch (e) { return 'light'; } };
 const applyTheme = (t) => {
@@ -11437,6 +11488,10 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // follows. It is a VISIBILITY rule, not the lock: api/unlock.js refuses a set-pin call that
   // arrives without a token no matter what this UI chooses to draw.
   const canSetPin = hasFounderToken();
+  // Read ONCE, at mount, from the one reader -- the same rule pin1/pin2 below follow. The value
+  // only ever changes through applyWatermarkOpacity, so what is on screen, what is on the
+  // document root and what is in the store cannot disagree.
+  const [wmOpacity, setWmOpacity] = useState(readWatermarkOpacity);
   const [pin1, setPin1] = useState('');
   const [pin2, setPin2] = useState('');
   const [pinMsg, setPinMsg] = useState('');
@@ -11571,6 +11626,46 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             </span>
           </button>
           <button type="button" onClick={onA11yReset} className="ez-a11y-opt" style={s.a11yReset}>{EZIK_A11Y_RESET}</button>
+        </EzShellGroup>
+        {/* THE WATERMARK'S STRENGTH. Three presets and a fine slider over the SAME number, so
+            there is one value and not two: a preset writes 0.2 / 0.5 / 0.8 and the slider writes
+            anything between; whichever moved last is what both controls then show. It is applied
+            LIVE by writing --ezwm-o on the document root, and persisted per device by the one
+            writer above -- this screen owns no copy of the value and reads the store once, at
+            mount, exactly as the sheet's other local state does. Nothing here is sent anywhere.
+            The buttons deliberately reuse the reading-preference option styling rather than
+            adding a colour of their own; the group sits AFTER the reading preferences, which is
+            also what keeps it outside the region the visual-identity gate reads. */}
+        <EzShellGroup title={ezT('settings.watermark')} hint={ezT('settings.savedOnDevice')}>
+          <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.watermark')}>
+            {[[EZIK_WM_PRESETS[0], ezT('settings.watermark.light')],
+              [EZIK_WM_PRESETS[1], ezT('settings.watermark.medium')],
+              [EZIK_WM_PRESETS[2], ezT('settings.watermark.bold')]].map(([v, label]) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                aria-checked={wmOpacity === v ? 'true' : 'false'}
+                onClick={() => setWmOpacity(applyWatermarkOpacity(v))}
+                className="ezik-focus"
+                style={{ ...s.a11yOpt, ...(wmOpacity === v ? s.themeOptActive : {}) }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div style={s.a11yGroupLabel}>{ezT('settings.watermark.fine')}</div>
+          <input
+            type="range"
+            min={EZIK_WM_MIN}
+            max={1}
+            step={0.01}
+            value={wmOpacity}
+            onChange={(e) => setWmOpacity(applyWatermarkOpacity(e.target.value))}
+            aria-label={ezT('settings.watermark.fine')}
+            className="ezik-focus"
+            style={s.wmSlider}
+          />
         </EzShellGroup>
         {/* الخصوصية والذكاء الاصطناعي -- the consent decision, stated and reversible. It is NOT
             behind the PIN gate: a reader must be able to withdraw without an adult's code, and
@@ -14297,6 +14392,9 @@ const s = {
   a11yKnob: { width: 22, height: 22, borderRadius: 999, background: 'var(--white)', marginInlineStart: 0, marginInlineEnd: 'auto' },
   a11yKnobOn: { marginInlineStart: 'auto', marginInlineEnd: 0, background: 'var(--on-accent)' },
   a11yReset: { width: '100%', minHeight: 44, marginTop: 14, padding: '11px 12px', borderRadius: 14, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--red)', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 600, cursor: 'pointer' },
+  // The slider carries no colour PAIR of its own -- accentColor tints the shipped native
+  // control from the identity's accent, and the track stays whatever the platform draws.
+  wmSlider: { width: '100%', margin: '2px 0 4px', accentColor: 'var(--red)', cursor: 'pointer' },
   themeRow: { display: 'flex', gap: 10 },
   themeOpt: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 10px', borderRadius: 14, border: '1px solid var(--line)', background: 'var(--tint)', color: 'var(--ink)', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' },
   themeOptActive: { border: '2px solid var(--red)', background: 'var(--red-soft)', color: 'var(--red)' },
