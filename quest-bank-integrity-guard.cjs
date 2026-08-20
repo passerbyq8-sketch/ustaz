@@ -100,12 +100,14 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   item 90      -- the two sealed mushaf files left the stale-while-revalidate class and
+  //                    returned to cache-first. B11 gained the ZERO-fetch half in the SAME commit.
   //   items 88 + 80 -- CACHE 'ezik-v1' -> 'ezik-v2' (so a returning reader stops being
   //                    served the old build out of the old store), and the same-origin
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': '3e94dd964f8f9bf9183f1345261a9bf4b24ea1f160e17b5c11277da8506b05ac',
+  'sw.js': '2676d4a9d03095ba4437e62952ceb3dd91176fe4ff58951984206f8c10ea938b',
 };
 
 // ---------------------------------------------------------------------------
@@ -133,8 +135,15 @@ const SW_CACHE = 'ezik-v2';
 const SW_ORIGIN = 'https://ezik.app';
 // The data-file class item 80 governs, and one member of every class it must NOT
 // have touched. Named by request, because the worker selects by request.
-const SW_DATA_FILES = ['/adhkar.json', '/worship-display.json', '/manifest.json',
-  '/quran-uthmani.json', '/mushaf-layout.json'];
+// ITEM 90 SPLIT THIS CLASS IN TWO, and each half is asserted for the OPPOSITE thing. The two
+// mushaf files are sealed by digest above, so the worker excludes them from revalidation by name
+// and serves them cache-first; the other three still revalidate. Asserting only the revalidating
+// half would let the exclusion widen until it swallowed adhkar.json, which is precisely the
+// freeze item 80 was raised to end. So: these three must issue exactly ONE background fetch, and
+// those two must issue ZERO.
+const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json'];
+const SW_SEALED_DATA = ['/quran-uthmani.json', '/mushaf-layout.json'];
+const SW_DATA_FILES = SW_REVALIDATED.concat(SW_SEALED_DATA);
 
 function swRes(body, status) {
   return {
@@ -542,7 +551,7 @@ async function compare(goldenPath) {
       // Every data file, one at a time. A class assertion that only ever ran on
       // adhkar.json would not have caught worship-display.json.
       let stale = 0, frozen = 0, fragile = 0;
-      for (const f of SW_DATA_FILES) {
+      for (const f of SW_REVALIDATED) {
         // (1) a HIT is served from the cache AND a background fetch is issued.
         const h = swLoad(swPath, () => Promise.resolve(swRes('NEW')));
         h.seed(name, f, 'OLD');
@@ -583,9 +592,30 @@ async function compare(goldenPath) {
           no('B11', f + ' LOST its stored copy to a failed fetch -- a reader with no network loses the file entirely');
         }
       }
-      if (!stale) ok('all ' + SW_DATA_FILES.length + ' data files are served from cache AND revalidated in the background');
-      if (!frozen) ok('all ' + SW_DATA_FILES.length + ' data files serve the NEW bytes on the read after a change');
-      if (!fragile) ok('all ' + SW_DATA_FILES.length + ' data files survive a dead network with the stored copy intact');
+      if (!stale) ok('all ' + SW_REVALIDATED.length + ' revalidating data files are served from cache AND revalidated in the background');
+      if (!frozen) ok('all ' + SW_REVALIDATED.length + ' revalidating data files serve the NEW bytes on the read after a change');
+      if (!fragile) ok('all ' + SW_REVALIDATED.length + ' revalidating data files survive a dead network with the stored copy intact');
+
+      // ITEM 90: the excluded pair. Served from the store, and NEVER revalidated. A background
+      // fetch here is 2.4 MB of a reader's data spent on bytes a sha256 already guarantees.
+      let leaked = 0;
+      for (const f of SW_SEALED_DATA) {
+        const s = swLoad(swPath, () => Promise.resolve(swRes('NEW')));
+        s.seed(name, f, 'OLD');
+        const before = s.fetches();
+        const d = s.dispatch(f);
+        if (!d.responded) { leaked++; no('B11', f + ' is not handled by the worker at all'); continue; }
+        const b = await swBody(d.responded);
+        if (b !== 'OLD') { leaked++; no('B11', f + ' did not serve the STORED copy (got ' + JSON.stringify(b) + ')'); }
+        const spent = s.fetches() - before;
+        if (spent !== 0) {
+          leaked++;
+          no('B11', f + ' is sealed and excluded from revalidation, but the worker still issued '
+            + spent + ' background fetch(es). Item 90: that is a phone re-downloading bytes that\n'
+            + '        cannot have changed without breaking the seal above.');
+        }
+      }
+      if (!leaked) ok('both sealed mushaf files are served from cache with ZERO revalidation fetch (item 90)');
 
       // The policies item 80 must NOT have moved. Without these, "revalidate
       // everything" would pass B11 while doubling every asset request and

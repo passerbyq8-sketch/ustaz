@@ -5,8 +5,8 @@
 //   network-first: the app shell -- navigations and the HTML entry points (/ and /index.html).
 //                 Always fetched fresh; the cached copy is only an offline fallback. This is why
 //                 a forgotten version bump can NO LONGER strand a user on a dead build (6b).
-//   stale-while-revalidate: EVERY same-origin data file (*.json) -- adhkar.json,
-//                 worship-display.json, manifest.json and the two mushaf JSONs. The stored copy
+//   stale-while-revalidate: every same-origin data file (*.json) EXCEPT the two sealed mushaf
+//                 files -- so adhkar.json, worship-display.json and manifest.json. The stored copy
 //                 is served IMMEDIATELY and a background fetch refreshes it for the NEXT read.
 //                 Item 80: cache-first with no revalidation froze a changed adhkar.json on every
 //                 phone that had ever opened the app until a human remembered to bump the cache
@@ -143,7 +143,25 @@ self.addEventListener('fetch', (event) => {
   //   2. the read AFTER the file changed on the server gets the new bytes;
   //   3. a FAILED fetch leaves the stored copy intact and raises nothing at the page.
   // (3) is an acceptance condition, not a nicety: this app is used with no network.
-  if (sameOrigin && url.pathname.endsWith('.json')) {
+  //
+  // ITEM 90. THE TWO MUSHAF FILES ARE EXCLUDED FROM THIS BRANCH BY NAME, and fall through to the
+  // cache-first branch below -- which is where they sat before item 80 moved the whole *.json
+  // class to stale-while-revalidate. quran-uthmani.json (1412005 bytes) and mushaf-layout.json
+  // (996528) are 2408533 bytes that revalidation can only ever spend to re-download what is
+  // already stored: both are sealed by sha256 in quest-bank-integrity-guard.cjs, so neither can
+  // change without a deliberate re-cut of that seal. On a phone's data plan that is the whole
+  // cost of the policy and none of its benefit.
+  //
+  // THE PRICE, AND IT IS REAL: a cache-name bump is now the ONLY way these two are ever
+  // refreshed. Acceptable because every ship bumps it, and because a file that cannot change
+  // without breaking a seal has nothing to refresh to.
+  //
+  // The other three data files keep revalidating and are NOT touched: adhkar.json (177392) and
+  // worship-display.json (18132) change without ceremony, and manifest.json is 533 bytes.
+  // quest-bank-integrity-guard.cjs B11 asserts BOTH halves -- one background fetch for these
+  // three, zero for the two below -- so the exclusion cannot quietly widen to swallow adhkar.
+  const sealedMushaf = url.pathname === '/quran-uthmani.json' || url.pathname === '/mushaf-layout.json';
+  if (sameOrigin && url.pathname.endsWith('.json') && !sealedMushaf) {
     event.respondWith(
       caches.open(CACHE).then((cache) => cache.match(req).then((hit) => {
         // Never rejects and never deletes. A dead network resolves it to undefined and the
