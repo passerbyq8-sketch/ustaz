@@ -1010,6 +1010,16 @@ eq('no card is pinned to a height its content cannot fill', tall, []);
 // screenshot could: a card wide enough that its one cluster of content sits against a single
 // edge with a void beside it. Two things prevent it -- the content is spread to both ends, and
 // there is ALWAYS something at the far end, the real reading or the chevron.
+// Item 64. ONE SPACING VALUE FOR THE MOSAIC, and one is the whole point: the mushaf card used
+// to declare '16px 18px' and a gap of 14 while its four neighbours declared '14px' and 12, so
+// the mushaf section carried more air around its content than any other -- measured at 430x932,
+// and it is the gap the owner reported. This pins the values EQUAL rather than pinning a number,
+// so the rhythm can be retuned later in one move and can never again drift apart card by card.
+eq('every module card declares the same inner spacing as the feature card',
+  [s.ezistCard.padding, s.ezistCard.gap], [s.ezistFeature.padding, s.ezistFeature.gap]);
+ok('...and the feature card still keeps its own SIZE and its own arch, which are not spacing',
+  s.ezistFeature.minHeight > s.ezistCard.minHeight
+    && s.ezistFeature.borderRadius === '40px 40px 18px 18px');
 for (const k of ['ezistCard', 'ezistFeature', 'ezistAsk']) {
   eq('a wide ' + k + ' spreads its content to both ends', (s[k] || {}).justifyContent, 'space-between');
 }

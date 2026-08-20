@@ -14600,7 +14600,12 @@ const s = {
   ezistCard_memorize: { borderRight: '3px solid var(--a3-blue)' },
   ezistCard_treasure: { background: 'var(--a3-ice)' },
   ezistCard_fatwa: { borderLeft: '3px solid var(--a3-cyan)' },
-  ezistFeature: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, width: '100%', minHeight: 104, padding: '16px 18px', borderRadius: '40px 40px 18px 18px', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
+  // Item 64: padding and gap are the MOSAIC'S values, not this card's own. Measured at 430x932
+  // before the change: every card declared 14px and a gap of 12 except this one, which declared
+  // '16px 18px' and 14 -- so the mushaf section carried 2px more air above and below its content
+  // than its four neighbours, which is the gap the owner reported. minHeight and the arched
+  // radius are SIZE and IDENTITY, not spacing, and are deliberately left as they were.
+  ezistFeature: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', minHeight: 104, padding: '14px', borderRadius: '40px 40px 18px 18px', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezistCardIcon: { width: 42, height: 42, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: 'var(--a3-ice)', color: 'var(--a3-blue)' },
   ezistFeatureIcon: { width: 50, height: 50, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)' },
   ezistCardBody: { display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: 1 },
