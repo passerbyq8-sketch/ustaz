@@ -564,8 +564,12 @@ function partC() {
   // form a future edit happens to leave behind, rather than silently finding nothing.
   const decoded = html.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
 
-  const drawerStart = decoded.indexOf('{drawerOpen && (');
-  const drawerEnd = decoded.indexOf('{reportFor &&', drawerStart);
+  // S118: the menu is no longer written inside the chat's return. It is ONE function defined
+  // above the screen ladder and called by the chat AND by the home -- openDrawer() from the home
+  // used to set state that nothing rendered. The claim this part makes is unchanged and is
+  // checked below by count: there is still exactly one of it in the page.
+  const drawerStart = decoded.indexOf('const ezikDrawer = () => drawerOpen && (');
+  const drawerEnd = decoded.indexOf('// S115: the boot mark', drawerStart);
   if (!ok('the side menu markup is where it was', drawerStart !== -1 && drawerEnd > drawerStart)) return;
   // Comments are not menu entries: strip the JSX comment blocks before counting, or a comment
   // that merely NAMES an entry would read as a second copy of it.
@@ -575,7 +579,12 @@ function partC() {
   eq('exactly one «محادثة جديدة» entry in the menu', countIn(drawer, 'محادثة جديدة'), 1);
   eq('exactly one «القائمة» entry in the menu', countIn(drawer, "'القائمة'"), 1);
   eq('exactly one «المحادثات» history section', countIn(drawer, "'المحادثات'"), 1);
-  eq('the menu itself is rendered once in the whole page', countIn(html, '{drawerOpen && ('), 1);
+  // S118: defined once, and the two screens that draw it call that one definition -- so "rendered
+  // once" is now two claims, and both are made: one definition, and one <div className="ezc-drawer">
+  // in the file. The number of CALL SITES is deliberately not pinned here; theme-coverage owns it.
+  eq('the menu itself is defined once in the whole page', countIn(html, 'const ezikDrawer = () => drawerOpen && ('), 1);
+  eq('...and there is one menu panel in the file, not one per screen',
+    countIn(html, '<div className="ezc-drawer" role="dialog" aria-modal="true">'), 1);
   eq('...and the history list is mapped once', countIn(html, 'chatList.map('), 1);
 
   // Every row carries the three actions, and delete asks first.
@@ -607,8 +616,13 @@ function partC() {
   ok('the boot no longer restores the legacy thread into the chat',
     !/const msgs = localStorage\.getItem\('messages'\);\s*\r?\n\s*if \(msgs\) setMessages/.test(html));
   ok('...it migrates it instead', html.indexOf('ezikMigrateLegacyThread(ezikProfileKey(p))') !== -1);
+  // S118: the explicit entry is no longer written inline at the home's render site -- the home's
+  // top bar has no chat control at all now. It is the menu's «محادثة جديدة» row, and the two
+  // things this string used to do are the two things startChatFromMenu does: reset, then land on
+  // the chat. Same claim, at the place the code now makes it true.
   ok('the explicit entry into the chat starts a new one',
-    html.indexOf("onOpenChat={() => { newChat(); setScreen('chat'); }}") !== -1);
+    html.indexOf("const startChatFromMenu = () => { newChat(); setScreen('chat'); };") !== -1
+    && html.indexOf('onClick={() => closeDrawerWith(startChatFromMenu)}') !== -1);
 
   // S94: THE HOME BUTTON MUST NOT CLOSE OVER A DEAD ZONE. `newChat` is a `const`, so its binding
   // only becomes usable when control actually reaches its line. `if (screen === 'home') return`
@@ -627,6 +641,17 @@ function partC() {
   const homeAt = code.indexOf("if (screen === 'home')");
   const firstScreenAt = code.search(/if \(screen === /);
   eq('«محادثة جديدة» is defined exactly once', countIn(code, 'const newChat = '), 1);
+  // S118: the SAME hazard, for the binding the home path now actually calls. The menu is drawn
+  // from the home as well as from the chat, so startChatFromMenu -- and the ezikDrawer that
+  // closes over it -- must both be initialised before the home return, or the first press of
+  // «محادثة جديدة» on the home throws exactly the way the FAB did in S94.
+  eq('startChatFromMenu is defined exactly once', countIn(code, 'const startChatFromMenu = '), 1);
+  ok('...and BEFORE the home screen returns, for the same reason',
+    code.indexOf('const startChatFromMenu = ') !== -1 && homeAt !== -1
+    && code.indexOf('const startChatFromMenu = ') < homeAt);
+  ok('...as is the menu that closes over it',
+    code.indexOf('const ezikDrawer = () => drawerOpen && (') !== -1 && homeAt !== -1
+    && code.indexOf('const ezikDrawer = () => drawerOpen && (') < homeAt);
   ok('newChat is defined BEFORE the home screen returns (else the home button is a TDZ throw)',
     newChatAt !== -1 && homeAt !== -1 && newChatAt < homeAt,
     'newChat at ' + newChatAt + ', `screen === \'home\'` return at ' + homeAt);

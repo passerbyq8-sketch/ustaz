@@ -67,6 +67,10 @@ const S = {
   // thing that silently stops matching after somebody retypes the file.
   OPEN_DRAWER: 'فتح القائمة الجانبية',
   SETTINGS_GEAR: 'الإعدادات',
+  // S118: the home's top bar no longer carries a settings icon -- it carries the daily verse and
+  // one menu button, and the settings entry is a row inside the menu that button opens. Both
+  // names below are real reader paths and both are walked.
+  HOME_MENU: 'القائمة',
   HOME_SETTINGS: 'الإعدادات',
 };
 
@@ -325,11 +329,17 @@ async function openSettings(c) {
     }
   }
   // Not on the chat (the withdrawal test starts inside the memorizer, which has no drawer):
-  // go home and use the home rail's settings control instead. Both routes are real reader paths.
+  // go home and take the home's own route. S118: that route is the bar's menu button and then
+  // the menu's settings row -- the bar's settings ICON is gone, and its action moved into that
+  // menu. Still a real reader path, and still ending on the same screen.
   if (!(await goHome(c))) return false;
-  const nav = driver(c.window).byLabel(S.HOME_SETTINGS);
-  if (!nav) return false;
-  await driver(c.window).click(nav);
+  const menu = driver(c.window).byLabel(S.HOME_MENU);
+  if (!menu) return false;
+  await driver(c.window).click(menu);
+  await tick(120);
+  const row = driver(c.window).byLabel(S.HOME_SETTINGS);
+  if (!row) return false;
+  await driver(c.window).click(row);
   await tick(150);
   return hasAr(driver(c.window).text(), S.SETTINGS_GROUP);
 }
