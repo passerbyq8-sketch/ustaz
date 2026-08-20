@@ -111,6 +111,31 @@ const plain = (v) => JSON.parse(JSON.stringify(v));
 // Codepoints, so a bidi terminal cannot reorder a diagnostic into a lie.
 const cps = (s) => Array.prototype.map.call(String(s == null ? '' : s), (c) => c.charCodeAt(0).toString(16)).join(' ');
 
+// A "reached no network" claim names ONE actor: this keystroke, this click. The recorder behind
+// c.net() is cumulative and page-wide, so its LENGTH answers a different question -- "did anything
+// on this page fetch?" -- and any request that merely LANDS inside the window makes the actor
+// answer for a request it never made.
+// MEASURED 2026-08-20 on a clean 52ee788, 6 runs of this guard: the app's own /quran-uthmani.json
+// load resolves a second time inside the favourites-search window in roughly one run in six, and
+// failed '...and reaches no network' with expected 1 / actual 2 while the search itself had
+// reached nothing at all. The counter was right; the sentence it was asked to prove was not.
+// So: the records are filtered by the fingerprint of the ACTOR'S OWN request, and the total length
+// is never read. What the actor did not send is not the actor's to answer for.
+// The price, stated plainly: a search that fetched a same-origin STATIC file -- a .json, an image --
+// would no longer trip these four. That path is held instead by the static assertions in part G,
+// which read the search implementation off the file and require it to call neither fetch() nor
+// callAI(). This narrows the claim to what it can honestly prove; it does not retire it.
+const APP_ENDPOINT = /\/api\//;
+const SEARCH_SHAPED = /[?&](?:q|query|search|term)=|\/search\b/i;
+function attributable(records, query) {
+  return records.map(String).filter((u) => {
+    if (APP_ENDPOINT.test(u)) return true;       // the app's own AI / retrieval endpoints
+    if (SEARCH_SHAPED.test(u)) return true;      // anything search-shaped, whoever serves it
+    if (!query) return false;
+    return u.indexOf(query) !== -1 || u.indexOf(encodeURIComponent(query)) !== -1;
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Extract + transform, exactly as runtime-gate does (same pinned-major rule).
 // ---------------------------------------------------------------------------
@@ -1403,9 +1428,8 @@ async function partFDrawer() {
   const d = driver(c.window);
   ok('the app mounts with ' + MANY + ' saved conversations', d.text().indexOf(S.DISCLAIMER) !== -1);
 
-  const netAtStart = c.net().length;
   await d.click(d.byLabel(S.MENU_OPEN), 'menu');
-  eq('opening the menu makes no network request', c.net().length, netAtStart);
+  eq('opening the menu makes no network request', attributable(c.net(), null), []);
   const box = d.all('input').filter((i) => i.getAttribute('type') === 'search')[0];
   if (!ok('the menu carries a search box', !!box)) return c;
   ok('...with an accessible name', !!box.getAttribute('aria-label'));
@@ -1413,7 +1437,7 @@ async function partFDrawer() {
   // 12 + 14) a BARE-ALIF, UNDIACRITISED query finds the diacritised conversation
   await d.type(box, S.S_BARE);
   await tick(60);
-  eq('searching makes no network request at all', c.net().length, netAtStart);
+  eq('searching makes no network request at all', attributable(c.net(), S.S_BARE), []);
   const resultRows = d.all('button').filter((b) => /محادثة 7/.test(String(b.textContent || '')));
   ok('an undiacritised query finds the diacritised conversation', resultRows.length === 1,
     'matched rows: ' + d.all('button').filter((b) => /محادثة \d/.test(String(b.textContent || ''))).length);
@@ -1437,7 +1461,7 @@ async function partFDrawer() {
   await tick(120);
   ok('opening a result closes the menu', d.text().indexOf(S.NEW_CHAT) === -1);
   ok('...and puts that conversation on screen', d.text().indexOf('سؤال 7 0') !== -1, cps(d.text().slice(0, 200)));
-  eq('...having made no network request for any of it', c.net().length, netAtStart);
+  eq('...having made no network request for any of it', attributable(c.net(), S.S_BARE), []);
 
   // 15) WHERE it opens is S97's contract and chat-history-guard part D measures it with a real
   // scroll recorder. linkedom has no layout, so a second measurement here would be theatre; what
@@ -1482,12 +1506,11 @@ async function partFFavs() {
   if (!ok('the favourites screen carries its own search box', !!box)) return c;
   ok('...with an accessible name', !!box.getAttribute('aria-label'));
 
-  const netAtStart = c.net().length;
   await d.type(box, S.W_TAIL);
   await tick(60);
   ok('searching the favourites narrows them to the match', d.text().indexOf(S.W_HEAD) !== -1 && d.text().indexOf(S.A_SHORT) === -1,
     cps(d.text().slice(0, 200)));
-  eq('...and reaches no network', c.net().length, netAtStart);
+  eq('...and reaches no network', attributable(c.net(), S.W_TAIL), []);
   await d.type(box, 'zzzzz');
   await tick(60);
   ok('a favourites query with no match says so', d.text().indexOf(S.SEARCH_NONE) !== -1, cps(d.text().slice(0, 200)));
