@@ -560,28 +560,52 @@ async function partD() {
       const kids = Array.prototype.slice.call(mosaic.children);
       eq('...with no empty cell left behind',
         kids.filter((e) => !String(e.textContent || '').trim() && !e.querySelector('svg')).length, 0);
-      ok('...and the four modules and the daily verse are all still in it',
+      // S118: the daily verse left this grid for the top bar, so it is measured THERE. The
+      // assertion is not weakened, it is moved with the thing it names: the verse must still be
+      // on the screen, drawn exactly once, and it must no longer be a cell of the mosaic.
+      ok('...and the four modules are all still in it',
         ['memorize', 'adhkar', 'mushaf', 'treasure']
-          .every((id) => !!mosaic.querySelector('[data-ezik-home-module="' + id + '"]'))
-        && !!mosaic.querySelector('.ezist-quran'), String(kids.length) + ' children');
+          .every((id) => !!mosaic.querySelector('[data-ezik-home-module="' + id + '"]')),
+        String(kids.length) + ' children');
+      eq('...and the daily verse is NOT one of its cells any more', mosaic.querySelectorAll('.ezist-quran').length, 0);
+      eq('...it is in the top bar, drawn exactly once on the screen', d.all('.ezist-quran').length, 1);
+      ok('...and the bar is where it is', !!d.all('.ezist-nav .ezist-quran')[0]);
     }
-    // The one entry that remains, driven for real.
-    const navChat = d.all('.ezist-nav button').filter((b) => (b.getAttribute('aria-label') || '') === 'عزك')[0];
-    if (ok('the top nav still carries the chat icon', !!navChat)) {
-      eq('...as a type="button"', navChat.getAttribute('type'), 'button');
-      ok('...drawn as an icon, with no text of its own', !String(navChat.textContent || '').trim() && !!navChat.querySelector('svg'));
+    // S118 -- THE BAR HOLDS TWO ELEMENTS AND NO THIRD, and this drives the one that is a
+    // control. It used to look for the chat icon by the accessible name «عزك»; that icon, the
+    // home button, the settings button, the profile button and the centred brand were all
+    // removed from the bar in the same commit, and their four actions moved into the menu the
+    // button below opens. Each is walked to its destination further down this part, so nothing
+    // is asserted to exist that is not also proved to WORK.
+    eq('the top bar carries exactly two elements', d.all('.ezist-nav-inner')[0].children.length, 2);
+    eq('...and exactly one of them is a control', d.all('.ezist-nav button').length, 1);
+    eq('...the daily verse being the other, and a display: no role', d.all('.ezist-nav .ezist-quran')[0].getAttribute('role'), null);
+    eq('...no tabindex', d.all('.ezist-nav .ezist-quran')[0].getAttribute('tabindex'), null);
+    eq('...and nothing clickable inside it', d.all('.ezist-nav .ezist-quran button, .ezist-nav .ezist-quran a').length, 0);
+    eq('the four controls the bar used to carry are gone from it',
+      d.all('.ezist-nav button').filter((b) => ['عزك', 'الرئيسية', 'الإعدادات', 'الحساب']
+        .indexOf(String(b.getAttribute('aria-label') || '')) !== -1).length, 0);
+    const navMenu = d.all('.ezist-nav button')[0];
+    if (ok('the top nav carries the menu button', !!navMenu)) {
+      eq('...as a type="button"', navMenu.getAttribute('type'), 'button');
+      eq('...named «القائمة»', navMenu.getAttribute('aria-label'), 'القائمة');
+      ok('...drawn as an icon, with no text of its own', !String(navMenu.textContent || '').trim() && !!navMenu.querySelector('svg'));
       const before = { chats: c.store.getItem('ezik_chats_v1'), net: c.net().length };
-      await d.click(navChat);
+      await d.click(navMenu);
       await tick(180);
-      ok('...and pressing it opens the chat', d.all('.ezc-dock').length === 1);
-      eq('...without sending a message', d.all('.ezc-turn').length, 0);
+      // THE CHAT'S OWN DRAWER, not a second one built for the home.
+      eq('...and pressing it opens the menu', d.all('.ezc-drawer').length, 1);
+      eq('...exactly one panel, not a parallel drawer', d.all('.ezc-drawer').length + d.all('.ezc-drawer-ov').length, 2);
       eq('...without filing a conversation', c.store.getItem('ezik_chats_v1'), before.chats);
       eq('...and without a request', c.net().length, before.net);
-      // back to the home for the rest of this part
-      await d.click(d.all('.ezc-rail button.ezc-icon')[0]);
-      await tick(120);
-      const h = d.all('button').filter((b) => String(b.textContent || '').trim() === 'القائمة')[0];
-      if (h) { await d.click(h); await tick(160); }
+      // and the menu carries the two entries the bar used to hold as icons
+      ok('...the menu offers the home entry the bar used to carry',
+        !!d.all('.ezc-drawer button').filter((b) => String(b.textContent || '').trim() === 'القائمة')[0]);
+      ok('...and the settings/account entry, by the name it always had',
+        !!d.all('.ezc-drawer button').filter((b) => String(b.getAttribute('aria-label') || '').indexOf('الإعدادات') === 0)[0]);
+      // close it again, so the rest of this part starts where it used to
+      await d.click(d.all('.ezc-drawer-ov')[0]);
+      await tick(140);
     }
     ok('...and the panel is gone from the source too, not merely unmounted',
       rawCode.indexOf('EzistAsk') === -1 && rawCode.indexOf('ezist-ask') === -1
@@ -590,24 +614,35 @@ async function partD() {
     // \\uXXXX escapes, so the source is read decoded — a raw search would find nothing and call
     // that a pass.
     const decoded = rawCode.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
-    const drawerSrc = decoded.slice(decoded.indexOf('{drawerOpen && ('), decoded.indexOf('{reportFor &&'));
-    ok('the side menu still offers «a new conversation», on the same handler',
-      /onClick=\{\(\) => closeDrawerWith\(newChat\)\}/.test(drawerSrc)
+    // S118: the menu is no longer written inside the chat's return -- it is one function above
+    // the screen ladder, called by the chat AND by the home, so it is sliced from that.
+    const drawerAt = decoded.indexOf('const ezikDrawer = () => drawerOpen && (');
+    const drawerSrc = drawerAt === -1 ? '' : decoded.slice(drawerAt, decoded.indexOf('// S115: the boot mark', drawerAt));
+    ok('the menu source was located', drawerSrc.length > 3000, 'len=' + drawerSrc.length);
+    // S118: the handler changed by exactly one thing and it is named here. It was
+    // closeDrawerWith(newChat), and newChat only RESETS the thread -- which was enough while
+    // this menu could be opened from the chat and from nowhere else. The home opens the same
+    // menu now, so the row had to land on the chat as well as reset it, or it would be a control
+    // that silently does nothing. newChat itself is untouched and is still what does the reset.
+    ok('the side menu still offers «a new conversation», on the app\'s one new-chat handler',
+      /onClick=\{\(\) => closeDrawerWith\(startChatFromMenu\)\}/.test(drawerSrc)
+      && /const startChatFromMenu = \(\) => \{ newChat\(\); setScreen\('chat'\); \};/.test(decoded)
+      && /const newChat = \(\) => \{ resetThread\(\); \};/.test(decoded)
       && drawerSrc.indexOf('محادثة جديدة') !== -1);
-    // Reached the way a reader reaches it: home -> chat -> the menu button on the chat's rail.
-    await d.click(d.all('.ezist-nav button')[1]);
+    // Reached the way a reader reaches it NOW: home -> the bar's menu button -> the row.
+    // Driven by the selector, never by an index into the bar's children.
+    await d.click(d.all('.ezist-nav button')[0]);
     await tick(160);
-    if (ok('...the chat is reachable from the home', d.all('.ezc-rail').length === 1)) {
-      await d.click(d.all('.ezc-rail button.ezc-icon')[0]);
-      await tick(140);
-      const newChat = d.all('button').filter((b) => /محادثة جديدة|New conversation/.test(String(b.textContent || '')))[0];
+    if (ok('...the menu is reachable from the home', d.all('.ezc-drawer').length === 1)) {
+      const newChat = d.all('.ezc-drawer button').filter((b) => /محادثة جديدة|New conversation/.test(String(b.textContent || '')))[0];
       if (ok('...and the entry is really on the screen', !!newChat, d.text().slice(0, 60))) {
         await d.click(newChat);
-        await tick(160);
-        ok('...and pressing it lands on a chat', d.all('.ezc-dock').length === 1);
+        await tick(200);
+        ok('...and pressing it lands on a chat, FROM THE HOME', d.all('.ezc-dock').length === 1);
+        eq('...on an empty one', d.all('.ezc-turn').length, 0);
       }
     }
-    // ...and back to the home, because the settings step below is reached from its top nav.
+    // ...and back to the home, because the settings step below starts there.
     await d.click(d.all('.ezc-rail button.ezc-icon')[0]);
     await tick(120);
     const back = d.all('button').filter((b) => String(b.textContent || '').trim() === 'القائمة')[0];
@@ -615,8 +650,16 @@ async function partD() {
     ok('the home is reachable again', d.all('.ezist-nav').length === 1);
   }
 
-  // Settings, through the app's own route.
-  await d.click(d.all('.ezist-nav button')[3] || d.all('.ezist-nav button')[2]);
+  // Settings, through the app's own route. S118: that route is no longer an icon in the top
+  // bar, so this no longer indexes into the bar's children -- `[3] || [2]` was a guess about
+  // an arrangement, and it would have gone on passing against whatever button happened to land
+  // at that position. The bar's ONE button opens the menu, and the menu's settings row is found
+  // by the accessible name it has carried since D88.
+  await d.click(d.all('.ezist-nav button')[0]);
+  await tick(160);
+  const setRow = d.all('.ezc-drawer button').filter((b) => String(b.getAttribute('aria-label') || '').indexOf('الإعدادات') === 0)[0];
+  if (!ok('the menu carries the settings entry', !!setRow, d.text().slice(0, 80))) throw new Error('no settings row');
+  await d.click(setRow);
   await tick(160);
   ok('settings was reached', d.all('.ezsh-group').length > 0, d.text().slice(0, 80));
   eq('...and THIS is where the control lives — exactly one', toggles(), 1);

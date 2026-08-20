@@ -902,10 +902,36 @@ ok('EzikIstanaHome is the ONLY reachable home', /return <EzikIstanaHome \{\.\.\.
 ok('it has a real TOP NAVIGATION bar', /<EzistTopNav /.test(IST) && /className="ezist-nav"/.test(IST));
 ok('...bounded and centred rather than loose across the viewport',
   /\.ezist-nav-inner\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css));
-ok('...carrying the four existing actions, each with its own handler',
-  /aria-label=\{EZH_NAV_HOME\}/.test(IST) && /onClick=\{onOpenChat\}[\s\S]{0,120}aria-label=\{EZH_BRAND\}/.test(IST)
-  && /onClick=\{onOpenSettings\}[\s\S]{0,120}aria-label=\{EZH_NAV_SET\}/.test(IST)
-  && /onClick=\{onOpenSettings\}[\s\S]{0,120}aria-label=\{EZH_ACCOUNT\}/.test(IST));
+// S118 -- TWO ELEMENTS AND NO THIRD. This asserted FOUR actions in the bar: home (which had no
+// handler at all, because it pointed at the screen already showing), chat, settings, and a
+// profile entry whose onClick was character for character the settings entry's. The bar now
+// carries the daily verse and one button, and those four actions live in the menu that button
+// opens -- where two of them already were. The check is not relaxed: it is the ordered shape,
+// asserted as itself, plus a sweep proving the removed names survive nowhere.
+{
+  const NAV = IST.slice(IST.indexOf('function EzistTopNav'), IST.indexOf('function EzistMasthead'));
+  ok('the bar was located as one unit', NAV.length > 200 && NAV.length < 3000, 'len=' + NAV.length);
+  ok('...carrying exactly two elements: the daily verse and the menu button',
+    /<div className="ezist-nav-inner">\s*\r?\n\s*<EzistQuranPanel \/>\s*\r?\n\s*<button /.test(NAV));
+  eq('...and exactly one of them is a control', (NAV.match(/<button/g) || []).length, 1);
+  ok('...whose handler is the menu opener it was handed, named «القائمة»',
+    /onClick=\{onOpenMenu\}[\s\S]{0,120}aria-label=\{EZH_NAV_MENU\}/.test(NAV)
+    && /function EzistTopNav\(\{ onOpenMenu \}\)/.test(NAV));
+  // THE MENU IT OPENS IS THE CHAT'S. Not a second drawer: the owner hands it App's own opener,
+  // and App renders the one ezikDrawer() on the home branch as well as the chat's.
+  ok('...and that opener is the app\'s ONE drawer, not a parallel one built for the home',
+    /<Home profile=\{profile\} onOpenMenu=\{openDrawer\}/.test(html)
+    && (html.match(/const ezikDrawer = \(\) => drawerOpen && \(/g) || []).length === 1
+    && (html.match(/\{ezikDrawer\(\)\}/g) || []).length === 2
+    && (html.match(/<div className="ezc-drawer" role="dialog" aria-modal="true">/g) || []).length === 1);
+  // The four removed names are GONE, not left behind as identifiers nothing renders.
+  ok('...and the four controls it dropped survive nowhere in the file',
+    !/EZH_ICON_NAV_HOME\b/.test(html.replace(/\/\/[^\n]*/g, ''))
+    && !/EZH_ICON_NAV_CHAT_LINE\b/.test(html.replace(/\/\/[^\n]*/g, ''))
+    && !/EZH_ICON_NAV_SET\b/.test(html.replace(/\/\/[^\n]*/g, ''))
+    && !/EZH_ICON_PROFILE\b/.test(html.replace(/\/\/[^\n]*/g, ''))
+    && !/className="ezist-nav-side"/.test(html) && !/className="ezist-brand"/.test(html));
+}
 // THE OLD BOTTOM DOCK IS NOT ON THIS HOME. EzHomeNav is what draws it, and it is not used here.
 ok('the legacy bottom dock is NOT presented on the istana home',
   !/<EzHomeNav/.test(IST) && !/s\.ezhNav\b/.test(IST) && !/s\.ezhFab\b/.test(IST),
@@ -962,6 +988,16 @@ ok('...and no module column is wide enough to strand its content on a desktop',
   'four modules at span 2 of six is 348px at the 1100px maximum; span 3 and span 4 measured empty');
 
 ok('the daily verse has its own bounded panel', /<EzistQuranPanel \/>/.test(IST) && /className="ezist-quran"/.test(IST));
+// S118: it is drawn ONCE, and in the top bar rather than as the mosaic's last cell. The panel
+// itself did not change -- same component, same source, same verbatim text, asserted below as
+// before -- so what moved is where it is mounted and nothing else.
+eq('...drawn exactly once', (IST.match(/<EzistQuranPanel \/>/g) || []).length, 1);
+ok('...and that once is inside the top bar',
+  /<div className="ezist-nav-inner">\s*\r?\n\s*<EzistQuranPanel \/>/.test(IST)
+  && !/<EzistModuleCard key=\{m\.id\} m=\{m\} \/>\)\}\s*\r?\n\s*<EzistQuranPanel/.test(IST));
+ok('...as a DISPLAY: no handler, no role and no tabindex on it',
+  !/<EzistQuranPanel[^>]*on[A-Z]/.test(IST)
+  && !/<section className="ezist-quran"[^>]*(role=|tabIndex=|onClick=)/.test(IST));
 ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
 ok('...and rendering the text verbatim', /<div style=\{s\.ezistQuranText\}>\{v\.text\}<\/div>/.test(IST),
   'the Quran text must be printed as it is read -- no transform, no slice, no ellipsis');
@@ -978,17 +1014,29 @@ ok('no mark is positioned over the Quran text',
 // has not changed: the composition must offer a way into the chat. It is now asserted as what it
 // means, so a future rearrangement is judged on the invariant and not on a class name.
 {
-  const opens = (IST.match(/onClick=\{(?:v\.)?onOpenChat\}/g) || []);
-  eq('the chat entry is part of the composition, exactly once', opens.length, 1);
-  ok('...and it is the icon in the top nav',
-    /function EzistTopNav\(\{ onOpenChat/.test(IST)
-    && /className="ezist-nav"[\s\S]*?onClick=\{onOpenChat\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
+  // S118 -- WHAT THIS CHECK PROTECTS HAS NOT CHANGED: the composition must offer a way into the
+  // chat. What changed is that the way is no longer a control on this screen's own chrome. The
+  // bar's menu button opens the app's ONE menu, and that menu's «محادثة جديدة» row is the app's
+  // ONE new-conversation entry -- it always was; S118 only made it navigate as well as reset, so
+  // it does from the home what it already did from the chat. Asserted as the route, end to end.
+  // Read with the prose taken out: the note that RECORDS the removal names the handler, and a
+  // scan that counted it would be answered by deleting the explanation rather than the defect.
+  const ISTCODE = IST.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/[^\n]*$/gm, ' ');
+  eq('the composition holds no chat handler of its own', (ISTCODE.match(/onOpenChat/g) || []).length, 0);
+  ok('...because the one way in is the menu the bar opens',
+    /function EzistTopNav\(\{ onOpenMenu \}\)/.test(IST)
+    && /className="ezist-nav"[\s\S]*?onClick=\{onOpenMenu\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
+  ok('...and that menu lands on the chat, through ONE handler that resets and navigates',
+    /const startChatFromMenu = \(\) => \{ newChat\(\); setScreen\('chat'\); \};/.test(html)
+    && (html.match(/closeDrawerWith\(startChatFromMenu\)/g) || []).length === 1
+    && html.indexOf('const newChat = () => { resetThread(); };') !== -1);
   // ...and the panel is GONE, not hidden and not faked: no element, no class, no CSS rule, and
   // no comment left behind carrying the strings this check used to look for.
   ok('...and the removed panel survives nowhere',
     !/EzistAsk/.test(html) && !/ezist-ask/.test(html) && !/ezist-ask/.test(css));
 }
-ok('...calling the existing callback unchanged', /onClick=\{onOpenChat\}/.test(IST));
+// S118: the callback the composition calls unchanged is the opener it is handed.
+ok('...calling the existing callback unchanged', /onClick=\{onOpenMenu\}/.test(IST));
 // not the legacy floating circle, and not a slab: a surface panel with one bounded accent box.
 ok('...as a surface panel, not a solid accent rectangle',
   /var\(--a3-surface\)/.test(String(s.ezistAsk.background)) && (s.ezistAskGo || {}).width === 46,
@@ -1028,7 +1076,14 @@ const notNum = ezistKeys.filter((k) => s[k].fontSize != null && typeof s[k].font
 eq('every istana font size is a number, so the text-size preference scales it', notNum, []);
 const moving = ezistKeys.filter((k) => s[k].animation || s[k].transition);
 eq('the istana home animates nothing, so reduced motion has nothing to switch off', moving, []);
-ok('...and its controls carry the shared focus ring class', (IST.match(/className="ezhome-focus/g) || []).length >= 5);
+// S118: this read ">= 5" while the bar held four buttons of its own. A floor is the wrong shape
+// for the claim -- it passes just as happily when a control is added WITHOUT the ring. It is now
+// the claim itself: every button the composition draws carries it, however many there are.
+// The module card builds its class as an expression, so the ring is matched by NAME and not by
+// the literal `className="` that precedes it on the other two.
+ok('...and its controls carry the shared focus ring class',
+  (IST.match(/ezhome-focus/g) || []).length === (IST.match(/<button/g) || []).length,
+  (IST.match(/ezhome-focus/g) || []).length + ' rings for ' + (IST.match(/<button/g) || []).length + ' buttons');
 
 /* ================== I. THE ISTANA ADHKAR CATALOGUE (S103) =================
  * The rejected screen was an overlapping stack followed by a grid of identical squares. Both
@@ -2037,7 +2092,13 @@ const mbSrc = (mbAt !== -1 && mbEnd > mbAt) ? html.slice(mbAt, mbEnd) : '';
 ok('the message bubble was located and bounded', mbSrc.length > 4000, 'len=' + mbSrc.length);
 // The chat's own rules, isolated the same way group H isolates the istana home's.
 const ezcRules = (css.match(/\.ezc[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []);
-const drawerSrc = chatSrc.slice(chatSrc.indexOf('{drawerOpen && ('), chatSrc.indexOf('{reportFor &&'));
+// S118: the menu is no longer written inside the chat's return. It is ONE function defined
+// above the screen ladder and called by the chat AND by the home, because openDrawer() from the
+// home used to set state that nothing rendered. It is still one panel, one overlay and one
+// conversation list -- asserted at the bar's own check in group H -- so it is sliced from where
+// it now lives rather than from the chat.
+const drawerAt = html.indexOf('const ezikDrawer = () => drawerOpen && (');
+const drawerSrc = drawerAt === -1 ? '' : html.slice(drawerAt, html.indexOf('// S115: the boot mark', drawerAt));
 // The chat's MARKUP, with its prose taken out. The notes in this region name the very things
 // the checks below forbid -- "the navy gradient slab that ran the full width" -- and a scan that
 // counted them would be answered by deleting the explanation rather than the defect.
@@ -2057,7 +2118,11 @@ const CHAT_ON_EZC =
   // rather than update it.
   && /<div ref=\{messagesAreaRef\} onScroll=\{onMessagesScroll\} className=\{'ezc-scroll' \+ \(pinnedAskIndex == null \? '' : ' ezc-askpinned'\)\}/.test(chatSrc)
   && /<div className="ezc-dock">/.test(chatSrc)
-  && /<div className="ezc-drawer" role="dialog" aria-modal="true">/.test(chatSrc);
+  // S118: the drawer is drawn BY the chat and is still exactly one element, but it is defined
+  // above the screen ladder now so that the home can draw the same one. Asserted against the
+  // slice that holds it, and against the chat actually calling it.
+  && /<div className="ezc-drawer" role="dialog" aria-modal="true">/.test(drawerSrc)
+  && /\{ezikDrawer\(\)\}/.test(chatSrc);
 ok('N1: the chat mounts on the ezc identity, in all four of its pieces', CHAT_ON_EZC);
 eq('N1: ...and THAT is why the inventory calls it istana', INDEX_SCREENS.chat.shell,
   CHAT_ON_EZC ? 'istana' : 'legacy');
@@ -2142,14 +2207,21 @@ ok('N6: ...and no ezc rule anywhere declares a viewport-wide box',
 
 /* ---- N10. a NEW chat is an EMPTY chat --------------------------------- */
 ok('N10: the reset is the shipped one, unchanged', html.indexOf('const newChat = () => { resetThread(); };') !== -1);
+// S118: the home's explicit entry is the menu's «محادثة جديدة» row now, and it does the same
+// two things this string used to do inline -- reset, then land on the chat.
 ok('N10: the explicit entry from home still starts a new one',
-  html.indexOf("onOpenChat={() => { newChat(); setScreen('chat'); }}") !== -1);
+  html.indexOf("const startChatFromMenu = () => { newChat(); setScreen('chat'); };") !== -1
+  && drawerSrc.indexOf('onClick={() => closeDrawerWith(startChatFromMenu)}') !== -1
+  && /<Home profile=\{profile\} onOpenMenu=\{openDrawer\}/.test(html));
 ok('N10: the boot lands on an EMPTY thread and opens no saved conversation',
   /chatIdRef\.current = null;\s*\r?\n\s*setChatId\(null\);\s*\r?\n\s*setMessages\(\[\]\);\s*\r?\n\s*setChatList\(ezikListChats\(ezikProfileKey\(p\)\)\);\s*\r?\n\s*setScreen\('chat'\);/.test(html));
 ok('N10: the welcome is shown ONLY while there is nothing to read',
   /\{messages\.length === 0 && streamingText === null && \(\s*\r?\n\s*<div className="ezc-empty">/.test(chatSrc));
+// S118: this compared two offsets inside the chat's return, which stopped meaning anything the
+// moment the menu was defined outside it. It is the same claim, said as containment: the list is
+// in the menu and it is not in the transcript.
 ok('N10: ...and the history is not drawn inside the thread',
-  chatSrc.indexOf('chatList.map(') > chatSrc.indexOf('{drawerOpen && ('),
+  drawerSrc.indexOf('chatList.map(') !== -1 && chatSrc.indexOf('chatList.map(') === -1,
   'the conversation list must be inside the drawer, never in the transcript');
 ok('N10: the empty state offers no new devotional text, only the app\'s own name',
   /<div className="ezc-empty-title">\{A2_BRAND\}<\/div>/.test(chatSrc));

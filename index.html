@@ -468,14 +468,26 @@
   .ezist-nav-inner{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;
     display:flex;align-items:center;justify-content:space-between;gap:10px;
     padding:6px 12px;min-height:56px}
-  .ezist-nav-side{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
-  .ezist-nav-side.is-end{justify-content:flex-end}
-  /* the brand is the dominant thing in the bar, and it is centred at every width. */
-  .ezist-brand{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;
-    font-family:var(--ez-ui-font);font-weight:800;font-size:18px;color:var(--a3-ink);
-    letter-spacing:.2px}
-  .ezist-brand-arch{width:16px;height:20px;flex-shrink:0;border:2px solid var(--a3-blue);
-    border-radius:60% 60% 12% 12%;border-bottom-color:transparent}
+  /* S118 -- THE BAR CARRIES THE VERSE NOW, and .ezist-nav-side / .ezist-brand went with the
+     four controls that used them; nothing else in the sheet reaches either class.
+
+     THE PANEL IS NOT RESTYLED, it is UNBOXED. Every rule below removes a piece of CARD chrome
+     -- the surface, the border, the shadow, the card's own corner and its card padding -- and
+     not one of them touches the verse: the label, the rule, the Amiri face, the 19px size, the
+     2.1 line height, the centring and the reference line are the panel's own inline styles and
+     are untouched, so the words render exactly as they did in the mosaic. It takes the width
+     the menu button leaves and no more, and min-width:0 lets it wrap rather than push.
+
+     THE FIVE !important ARE NOT DECORATION. The panel carries its card chrome as INLINE style
+     -- s.ezistQuran sets background, border, border-radius, box-shadow and padding on the
+     element itself -- and an inline property outranks any class rule that does not say this.
+     The alternative was a second variant of the component, and a variant is a second shape to
+     keep in step; five declarations that say 'no card here' are the smaller thing to own. The
+     panel is not forbidden !important by any rule in this file: only .ezmr-fb is. */
+  .ezist-nav .ezist-quran{flex:1 1 auto;min-width:0;
+    padding:2px 2px 4px !important;background:transparent !important;border:0 !important;
+    border-radius:0 !important;box-shadow:none !important}
+  .ezist-nav .ezist-quran .ezist-rule{margin:5px 0}
   .ezist-wrap{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;
     padding:14px 12px calc(22px + env(safe-area-inset-bottom, 0px))}
   /* THE MASTHEAD, and the arch IS the signature radius -- 120px 120px 18px 18px under
@@ -535,16 +547,15 @@
   .ezist-mosaic>*{min-width:0}
   @media (min-width:600px){
     .ezist-mosaic{grid-template-columns:repeat(2,1fr);gap:14px}
-    /* the new search section earns a full row at this width; the Quran remains full width. */
+    /* the new search section earns a full row at this width. (S118: the Quran panel had a
+       span here too; it is not a cell of this grid any more -- it is the top bar.) */
     .ezist-mod-fatwa{grid-column:span 2}
-    .ezist-quran{grid-column:span 2}
   }
   @media (min-width:1000px){
     .ezist-mosaic{grid-template-columns:repeat(6,1fr);gap:16px}
     /* three modules across, then treasure beside the wider fatwa search entry. */
     .ezist-mod,.ezist-feature{grid-column:span 2}
     .ezist-mod-fatwa{grid-column:span 4}
-    .ezist-quran{grid-column:span 6}
     .ezist-masthead{padding:10px 20px}
     .ezist-nav-inner{padding:6px 20px}
   }
@@ -1441,9 +1452,7 @@ function ezLangRelabel() {
   try {
     EZH_SALAM = ezT("home.salam");
     EZH_HELLO = ezT("home.hello");
-    EZH_ACCOUNT = ezT("navigation.account");
-    EZH_NAV_HOME = ezT("navigation.home");
-    EZH_NAV_SET = ezT("navigation.settings");
+    EZH_NAV_MENU = ezT("navigation.menu");
     EZH_MEMORIZE = ezT("module.memorize");
     EZH_ADHKAR = ezT("module.adhkar");
     EZH_MUSHAF = ezT("module.mushaf");
@@ -4131,10 +4140,14 @@ const getHomeGreeting = () => {
 // EZH_QUICK with the duplicated quick-access row it titled -- it has no other reader.)
 let EZH_SALAM = ezT("home.salam");   // "peace be upon you"
 let EZH_HELLO = ezT("home.hello");                            // "welcome, O"
-let EZH_ACCOUNT = ezT("navigation.account");                                             // "the account"
-let EZH_NAV_HOME = ezT("navigation.home");                             // "home"
-let EZH_NAV_SET = ezT("navigation.settings");                     // "settings"
-const EZH_BRAND    = '\u{0639}\u{0632}\u{0643}';                                                                     // the app's own name
+// S118: EZH_ACCOUNT, EZH_NAV_HOME, EZH_NAV_SET and EZH_BRAND stood here. The emptied top bar
+// was the only thing in the file that read any of them, and a reference sweep run after the
+// bar was rewritten found no second reader; they are removed rather than left behind as four
+// names nothing calls. THE WORDS DID NOT GO ANYWHERE -- the account, the home entry, the
+// settings entry and the app's own name are all still on screen, drawn by the menu the bar
+// now opens, which reads its own labels. The dictionary keys are untouched: navigation.account,
+// navigation.home and navigation.settings are still declared in both languages.
+let EZH_NAV_MENU = ezT("navigation.menu");                        // "the menu"
 let EZH_MEMORIZE = ezT("module.memorize");                                     // "the memorizer"
 let EZH_ADHKAR = ezT("module.adhkar");                                     // "the adhkar"
 let EZH_MUSHAF = ezT("module.mushaf");                                             // "the mushaf"
@@ -4167,23 +4180,20 @@ const EZH_ICON_SUN = (
 const EZH_ICON_MOON = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
 );
-const EZH_ICON_PROFILE = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
-);
-const EZH_ICON_NAV_HOME = (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
-);
+// S118: EZH_ICON_PROFILE, EZH_ICON_NAV_HOME, EZH_ICON_NAV_CHAT_LINE and EZH_ICON_NAV_SET stood
+// in this block. All four were drawn by the top bar and by nothing else; the menu that took
+// over their four actions draws its own paths inline, as it already did before this batch.
+// Removed rather than left as artwork nothing renders.
 // S101: the card affordance. It is what stops a module card from being an icon and a title
 // pushed against one edge with the rest of the card empty -- there is now always something at
 // the far end: the real reading when the module has one, and this chevron when it does not.
 const EZH_ICON_GO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
 );
-const EZH_ICON_NAV_CHAT_LINE = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" /></svg>
-);
-const EZH_ICON_NAV_SET = (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2" /></svg>
+// S118: the three bars. The SAME three lines the chat's own menu row already draws, at the
+// same stroke and the same cap -- no new artwork, no image, no data URI.
+const EZH_ICON_MENU = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
 
 // THE FIVE MODULES, preserving the existing order and appending the official fatwa search. S87:
@@ -4218,9 +4228,10 @@ function ezHomeModules(v) {
 // owns no navigation state, routes nothing, builds no module list and invents no progress. It
 // receives v.modules -- the owner's single array -- and maps it ONCE, in the array's own order,
 // so the reading order, the tab order and the data order are one order. Every handler is the
-// one it was handed: onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings,
+// one it was handed: onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenSettings,
 // onOpenTreasure and onOpenFatwa are called, never re-derived, so no destination and no history
-// behaviour moves.
+// behaviour moves. (S118: onOpenChat left this list with the bar that was its only caller --
+// the chat is entered from the menu onOpenMenu opens.)
 //
 // THE FIVE STRINGS BELOW are the only module chrome: one short descriptive line per module, so no
 // card is a large empty box with an icon in it. None of them is devotional text, none is read
@@ -4232,36 +4243,35 @@ let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "lea
 let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
 let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA };
 
-// THE TOP NAVIGATION. A real bounded bar, not the bottom dock moved upward: it is sticky, it
-// carries the safe-area inset, its inner row is centred at a maximum width so it never runs
-// loose across a desktop viewport, and the brand sits in the middle of it at every width. The
-// four actions are the SAME four the bottom dock and the greeting row offered -- home (the
-// screen already on show, so it carries no handler, exactly as before), chat, settings and the
-// profile entry -- and each one calls the handler it was handed.
-function EzistTopNav({ onOpenChat, onOpenSettings }) {
+// THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
+//
+// WHAT WAS HERE, and where each piece went. The bar carried five things: a home button that was
+// already on the screen it pointed at and so had no handler at all; a chat icon; the centred
+// brand; a settings icon; and a profile icon whose onClick was CHARACTER FOR CHARACTER the
+// settings icon's -- two controls, one destination. Not one of them is lost:
+//   home     -> the menu's «القائمة» row, which is what it always was
+//   chat     -> the menu's «محادثة جديدة» row, which now navigates as well as resets
+//   settings -> the menu's pinned row, already labelled «الإعدادات»
+//   profile  -> the SAME pinned row; it was the same destination before this batch
+//   brand    -> the menu's own head, which draws the identical mark and word
+// A function that disappears quietly is a defect, not a tidy-up, so each of the five was walked
+// to its destination and driven there before this bar was emptied.
+//
+// THE MENU IT OPENS IS THE CHAT'S MENU. Not a second drawer built for the home: App owns
+// drawerOpen, openDrawer and closeDrawerWith, and the panel is now rendered from one place that
+// both screens draw. There is one history entry, one search box, one conversation list.
+//
+// THE VERSE IS A DISPLAY AND NOTHING ELSE. It is the same EzistQuranPanel, reading the same
+// getDailyVerse() and printing the same text verbatim; it carries no handler, no role and no
+// tabindex, and pressing it does nothing, deliberately.
+function EzistTopNav({ onOpenMenu }) {
   return (
     <div className="ezist-nav">
       <div className="ezist-nav-inner">
-        <div className="ezist-nav-side">
-          <button type="button" className="ezhome-focus" style={s.ezistNavOn} aria-label={EZH_NAV_HOME} aria-current="page">
-            {EZH_ICON_NAV_HOME}
-          </button>
-          <button type="button" className="ezhome-focus" onClick={onOpenChat} style={s.ezistNavBtn} aria-label={EZH_BRAND}>
-            {EZH_ICON_NAV_CHAT_LINE}
-          </button>
-        </div>
-        <div className="ezist-brand">
-          <span className="ezist-brand-arch" aria-hidden="true" />
-          <span>{EZH_BRAND}</span>
-        </div>
-        <div className="ezist-nav-side is-end">
-          <button type="button" className="ezhome-focus" onClick={onOpenSettings} style={s.ezistNavBtn} aria-label={EZH_NAV_SET}>
-            {EZH_ICON_NAV_SET}
-          </button>
-          <button type="button" className="ezhome-focus" onClick={onOpenSettings} style={s.ezistNavBtn} aria-label={EZH_ACCOUNT}>
-            {EZH_ICON_PROFILE}
-          </button>
-        </div>
+        <EzistQuranPanel />
+        <button type="button" className="ezhome-focus" onClick={onOpenMenu} style={s.ezistNavBtn} aria-label={EZH_NAV_MENU}>
+          {EZH_ICON_MENU}
+        </button>
       </div>
     </div>
   );
@@ -4320,11 +4330,13 @@ function EzistModuleCard({ m }) {
   );
 }
 
-// THE CHAT ENTRY. There is ONE, and it is the small icon in the top nav (EzistTopNav, above):
-// it calls the same v.onOpenChat it always called. The large "ask Ezik" panel that used to sit at
-// the head of the mosaic is gone -- two controls on one screen doing the identical thing is a
-// choice the reader should not have to make, and the icon is the one that is also on every other
-// screen. Nothing replaced it in the grid; the module cards flow up into the track it held.
+// THE CHAT ENTRY. There is still exactly ONE, and it is no longer on this screen's chrome at
+// all: the bar's menu button opens the chat's own menu, and «محادثة جديدة» there is the entry.
+// That row was already the app's single new-conversation control; S118 only made it navigate as
+// well as reset, so it does from the home what it always did from the chat. The large "ask Ezik"
+// panel that used to sit at the head of the mosaic went in S117, for the reason that still
+// governs: two controls on one screen doing the identical thing is a choice the reader should
+// not have to make.
 
 // THE FEATURED QURAN PANEL. It reads getDailyVerse() -- the one source for the daily verse --
 // and renders {v.text} verbatim -- no transform, no tashkeel pass, no truncation, no ellipsis.
@@ -4351,13 +4363,15 @@ function EzikIstanaHome(v) {
   return (
     <div className="theme-dark ezhome" style={s.ezistContainer}>
       {/* S101-home-istana */}
-      <EzistTopNav onOpenChat={v.onOpenChat} onOpenSettings={v.onOpenSettings} />
+      <EzistTopNav onOpenMenu={v.onOpenMenu} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
+          {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
+              The panel itself did not change: same component, same getDailyVerse(), same text
+              printed verbatim. Only where it is drawn moved. */}
           <div className="ezist-mosaic">
             {mods.map((m) => <EzistModuleCard key={m.id} m={m} />)}
-            <EzistQuranPanel />
           </div>
         </div>
       </div>
@@ -4366,7 +4380,7 @@ function EzikIstanaHome(v) {
 }
 // ---- S101 ISTANA HOME END ----------------------------------------------------------------
 
-function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenSettings }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenSettings }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -4382,7 +4396,10 @@ function Home({ profile, onOpenChat, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     name: profile?.name,
     greeting: g,
     wird: wird,
-    onOpenChat: onOpenChat,
+    // S118: onOpenChat is gone from this object because the home no longer holds a chat
+    // control of its own. The chat is entered from the menu the bar opens, on the menu's own
+    // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
+    onOpenMenu: onOpenMenu,
     onOpenMemorize: onOpenMemorize,
     onOpenAdhkar: onOpenAdhkar,
     onOpenMushaf: onOpenMushaf,
@@ -7626,6 +7643,13 @@ function App() {
   // only initialised when control actually runs its line; an early return skips it entirely.
   // chat-history-guard.cjs pins this ordering.
   const newChat = () => { resetThread(); };
+  // S118: what «محادثة جديدة» calls. newChat only RESETS the thread, which was enough while the
+  // menu could be opened from the chat and from nowhere else -- the reader was already on the
+  // screen the reset applies to. The home opens the same menu now, and a row that emptied the
+  // thread and left the reader on the home screen would be a control that silently does nothing.
+  // So it resets AND lands on the chat. From the chat, setScreen('chat') is the screen already
+  // showing, so that path is byte-for-byte the behaviour it had.
+  const startChatFromMenu = () => { newChat(); setScreen('chat'); };
 
   // Open a saved conversation: the same stop-everything as a new chat, then the stored messages
   // become the thread and the chat adopts that conversation's id, so the next turn rewrites it
@@ -9330,6 +9354,173 @@ function App() {
       onBack={aiConsentDecided ? () => setAiConsentReview(false) : null}
     />
   );
+  // S118 -- ONE MENU, DRAWN BY TWO SCREENS. This block used to sit inside the chat's own
+  // return, below the `if (screen === ...)` ladder, so `openDrawer()` from anywhere else set
+  // state that nothing rendered. It is LIFTED, not copied: there is still exactly one panel,
+  // one overlay, one search box, one conversation list and one history entry, and every
+  // handler inside it is the handler it already was. The home's three-bar button and the
+  // chat's rail button call the same openDrawer.
+  //
+  // It is a function and not a value so that it is read at RENDER time: the returns below it
+  // each call it, and nothing above it has to know the drawer exists.
+  //
+  // D85: the drawer. Order is fixed: new chat, القائمة (the existing home screen -- the
+  // mushaf, the adhkar, the memorizer and the quest are all reached from there), then the
+  // profile entry pinned at the bottom. It used to have a second, duplicate control beside
+  // it; that one is gone and the ONE row opens the account area the home screen opens.
+  // The theme settings screen is phase C and is deliberately not built here.
+  const ezikDrawer = () => drawerOpen && (
+      <>
+        <div onClick={() => closeDrawerWith(null)} className="ezc-drawer-ov" />
+        {/* S112: the panel is a side drawer on a phone and an INSET, bounded panel from a desk
+            upward -- it never becomes a full-screen sheet over the conversation behind it. The
+            order of the entries, the handlers they call, the ids they carry and the store they
+            read are untouched; only the surface they sit on is new. */}
+        <div className="ezc-drawer" role="dialog" aria-modal="true">
+          <div className="ezc-drawer-head">
+            <span className="ezc-drawer-arch" aria-hidden="true" />
+            <span>{A2_BRAND}</span>
+          </div>
+          <div style={s.drawerTop}>
+            {/* S98: the search box. Local only — what is typed here is matched against the
+                conversations already on this device and is never sent anywhere. It is rendered
+                before the entries so it is the first thing under the thumb. */}
+            <div style={s.drawerSearchWrap}>
+              <input
+                type="search"
+                value={chatQuery}
+                onChange={(e) => setChatQuery(e.target.value)}
+                placeholder={EZIK_SEARCH_PH}
+                aria-label={EZIK_SEARCH_ARIA}
+                className="ezik-focus"
+                style={s.drawerSearch}
+              />
+            </div>
+            <button onClick={() => closeDrawerWith(startChatFromMenu)} style={s.drawerItem}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" />
+                <line x1="12" y1="8" x2="12" y2="14" />
+                <line x1="9" y1="11" x2="15" y2="11" />
+              </svg>
+              <span>{ezT('chat.newConversation') || '\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629'}</span>
+            </button>
+            <button onClick={() => closeDrawerWith(() => setScreen('home'))} style={s.drawerItem}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+              <span>{ezT('navigation.menu') || '\u0627\u0644\u0642\u0627\u0626\u0645\u0629'}</span>
+            </button>
+            {/* S98: \u00ab\u0627\u0644\u0645\u0641\u0636\u0644\u0629\u00bb. The count comes from state that was read once at mount, so
+                opening the menu reads no store and parses no JSON. */}
+            <button onClick={() => closeDrawerWith(() => openEzikSheet('favorites'))} style={s.drawerItem} className="ezik-focus">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 17.3l-5.4 3 1-6-4.4-4.3 6-.9L12 3.5l2.8 5.6 6 .9-4.4 4.3 1 6z" />
+              </svg>
+              <span style={{ flex: 1, minWidth: 0 }}>{EZIK_FAV_TITLE}</span>
+              {myFavs.length > 0 && <span style={s.drawerBadge}>{myFavs.length}</span>}
+            </button>
+            {/* S92: THE HISTORY. \u00ab\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629\u00bb stays the one and only new-chat entry -- this
+                section adds the saved conversations UNDER the existing items and duplicates
+                none of them. The order is the store's: pinned first, then the most recent.
+                S112: it is still the store's order and still ONE mapping of it -- a pinned
+                conversation is MARKED (.ezc-row.is-pinned) rather than moved into a second
+                list, so nothing here re-sorts, filters or slices what the store returned.
+                The section itself is absent while there is nothing to show; the empty line
+                below takes its place. */}
+            {/* S98: WHILE A SEARCH IS RUNNING the results replace the conversation list and
+                nothing else on the menu moves. Opening a result goes through the SAME
+                closeDrawerWith(openSavedChat) the ordinary row uses \u2014 so it spends the menu's
+                history entry and lands at the end of the conversation exactly as S97 requires,
+                with no second navigation path and no new scroll behaviour. */}
+            {chatResults !== null && (
+              <>
+                <div style={s.drawerSectionLabel}>{EZIK_SEARCH_RESULTS}</div>
+                {chatResults.length === 0 && <div style={s.drawerEmpty}>{EZIK_SEARCH_NONE}</div>}
+                {chatResults.map((r) => (
+                  <div key={r.id} className={r.id === chatId ? 'ezc-row is-on' : 'ezc-row'} style={s.drawerResultRow}>
+                    <button onClick={() => closeDrawerWith(() => openSavedChat(r.id))} style={s.drawerResultBtn} title={r.title} className="ezik-focus">
+                      <span style={s.drawerResultTitle}>{r.title}</span>
+                      {r.snippet && <span style={s.drawerSnippet}>{r.snippet}</span>}
+                      {r.at ? <span style={s.drawerResultDate}>{ezikShortDate(r.at)}</span> : null}
+                    </button>
+                  </div>
+                ))}
+              </>
+            )}
+            {chatResults === null && chatList.length > 0 && (
+              <>
+                <div style={s.drawerSectionLabel}>{'\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a'}</div>
+                {chatList.map((c) => (
+                  <div key={c.id} className={'ezc-row' + (c.id === chatId ? ' is-on' : '') + (c.pinned ? ' is-pinned' : '')} style={s.drawerChatRow}>
+                    {chatPendingDelete === c.id ? (
+                      /* The confirmation, and it replaces the row it belongs to rather than
+                         covering the menu -- so what is about to be deleted stays readable. */
+                      <>
+                        <span style={s.drawerConfirmText}>{'\u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629\u061f'}</span>
+                        <button onClick={() => deleteSavedChat(c.id)} style={s.drawerConfirmYes}>{'\u062d\u0630\u0641'}</button>
+                        <button onClick={() => setChatPendingDelete(null)} style={s.drawerConfirmNo}>{'\u0625\u0644\u063a\u0627\u0621'}</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => closeDrawerWith(() => openSavedChat(c.id))} style={s.drawerChatOpen} title={c.title}>
+                          {c.pinned && (
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                              <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
+                            </svg>
+                          )}
+                          <span style={s.drawerChatTitle}>{c.title}</span>
+                        </button>
+                        <button onClick={() => pinSavedChat(c.id)} style={s.drawerChatIcon} aria-label={c.pinned ? '\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u062b\u0628\u064a\u062a' : '\u062a\u062b\u0628\u064a\u062a'}>
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.pinned ? 'var(--red)' : 'var(--muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
+                          </svg>
+                        </button>
+                        <button onClick={() => setChatPendingDelete(c.id)} style={s.drawerChatIcon} aria-label={'\u062d\u0630\u0641'}>
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 14h10l1-14" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
+            {/* S112: and when there is nothing saved the menu SAYS so, instead of ending in a
+                blank space that reads as a list that failed to load. It is one line of the
+                store's own vocabulary; no row, no id and no write. */}
+            {chatResults === null && chatList.length === 0 && (
+              <div style={s.drawerEmpty}>{EZIK_CHATS_EMPTY}</div>
+            )}
+          </div>
+          {/* THE PINNED FOOTER, and it is ONE row now. It used to be two: the profile entry and,
+              beside it, a small round button drawn as a ringed disc with eight rays. MEASURED:
+              that button was not a theme toggle and touched no theme key -- its handler was
+              closeDrawerWith(() => openEzikSheet('settings')), character for character the
+              profile row's own handler, so the two controls opened the identical destination
+              and the reader had to choose between them for nothing. The second one is gone.
+  
+              THE ACCESSIBLE NAME MOVED WITH IT. «الإعدادات» was that button's aria-label, and
+              it is the name of what this row DOES -- it is the app's one door to the account
+              area. It now sits on the row that survived, which is why a reader (and every
+              guard that reaches settings by accessible name) still finds the entry exactly
+              where it was. The cost is stated rather than hidden: a screen reader announces
+              this row as «الإعدادات» and no longer reads the profile name, which stays on
+              screen for everyone who can see it. */}
+          <div style={s.drawerPinned}>
+            <button onClick={() => closeDrawerWith(() => openEzikSheet('settings'))} style={s.drawerProfile} aria-label={ezT('navigation.settings2')}>
+              <span style={s.drawerAvatar}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+              </span>
+              <span style={s.drawerProfileName}>{profile?.name}</span>
+            </button>
+          </div>
+        </div>
+      </>
+  );
+
   // S115: the boot mark is a bounded arch instead of a 48px emoji. The animation, its keyframe,
   // its duration and the style key that carries it are the ones that shipped, so reduced motion
   // behaves exactly as it did and no timer, wait or step was added to the boot.
@@ -9358,7 +9549,15 @@ function App() {
   // rule the app's own boot follows. Nothing is lost by it: the thread being left was filed at its
   // first question and is in the menu. The BACK path out of home also lands on the chat, and it
   // does not come through here, so returning from home never wipes the thread underneath it.
-  if (screen === 'home') return <Home profile={profile} onOpenChat={() => { newChat(); setScreen('chat'); }} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenSettings={() => openEzikSheet('settings')} />;
+  // S118: the home hands its bar the SAME openDrawer the chat's rail calls, and draws the SAME
+  // ezikDrawer() the chat draws -- one panel, one state, one history entry. It no longer takes
+  // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
+  if (screen === 'home') return (
+    <>
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenSettings={() => openEzikSheet('settings')} />
+      {ezikDrawer()}
+    </>
+  );
   // S87: the three sheets resolve their back through goEzikBack, which returns them to the screen
   // recorded when they were opened (home or the chat drawer) and to home when nothing valid was.
   // The gate still clears its own PIN field first -- that is its state, not navigation.
@@ -9769,162 +9968,8 @@ function App() {
       <div className="ezc-note">{ezT(standingNoticeKey(caps.band))}</div>
         </div>
       </div>
-      {/* D85: the drawer. Order is fixed: new chat, القائمة (the existing home screen -- the
-          mushaf, the adhkar, the memorizer and the quest are all reached from there), then the
-          profile entry pinned at the bottom. It used to have a second, duplicate control beside
-          it; that one is gone and the ONE row opens the account area the home screen opens.
-          The theme settings screen is phase C and is deliberately not built here. */}
-      {drawerOpen && (
-        <>
-          <div onClick={() => closeDrawerWith(null)} className="ezc-drawer-ov" />
-          {/* S112: the panel is a side drawer on a phone and an INSET, bounded panel from a desk
-              upward -- it never becomes a full-screen sheet over the conversation behind it. The
-              order of the entries, the handlers they call, the ids they carry and the store they
-              read are untouched; only the surface they sit on is new. */}
-          <div className="ezc-drawer" role="dialog" aria-modal="true">
-            <div className="ezc-drawer-head">
-              <span className="ezc-drawer-arch" aria-hidden="true" />
-              <span>{A2_BRAND}</span>
-            </div>
-            <div style={s.drawerTop}>
-              {/* S98: the search box. Local only — what is typed here is matched against the
-                  conversations already on this device and is never sent anywhere. It is rendered
-                  before the entries so it is the first thing under the thumb. */}
-              <div style={s.drawerSearchWrap}>
-                <input
-                  type="search"
-                  value={chatQuery}
-                  onChange={(e) => setChatQuery(e.target.value)}
-                  placeholder={EZIK_SEARCH_PH}
-                  aria-label={EZIK_SEARCH_ARIA}
-                  className="ezik-focus"
-                  style={s.drawerSearch}
-                />
-              </div>
-              <button onClick={() => closeDrawerWith(newChat)} style={s.drawerItem}>
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 11.5a8.5 8.5 0 0 1-11.8 7.8L3 21l1.7-6.2A8.5 8.5 0 1 1 21 11.5z" />
-                  <line x1="12" y1="8" x2="12" y2="14" />
-                  <line x1="9" y1="11" x2="15" y2="11" />
-                </svg>
-                <span>{ezT('chat.newConversation') || '\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629'}</span>
-              </button>
-              <button onClick={() => closeDrawerWith(() => setScreen('home'))} style={s.drawerItem}>
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-                <span>{ezT('navigation.menu') || '\u0627\u0644\u0642\u0627\u0626\u0645\u0629'}</span>
-              </button>
-              {/* S98: \u00ab\u0627\u0644\u0645\u0641\u0636\u0644\u0629\u00bb. The count comes from state that was read once at mount, so
-                  opening the menu reads no store and parses no JSON. */}
-              <button onClick={() => closeDrawerWith(() => openEzikSheet('favorites'))} style={s.drawerItem} className="ezik-focus">
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 17.3l-5.4 3 1-6-4.4-4.3 6-.9L12 3.5l2.8 5.6 6 .9-4.4 4.3 1 6z" />
-                </svg>
-                <span style={{ flex: 1, minWidth: 0 }}>{EZIK_FAV_TITLE}</span>
-                {myFavs.length > 0 && <span style={s.drawerBadge}>{myFavs.length}</span>}
-              </button>
-              {/* S92: THE HISTORY. \u00ab\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629\u00bb stays the one and only new-chat entry -- this
-                  section adds the saved conversations UNDER the existing items and duplicates
-                  none of them. The order is the store's: pinned first, then the most recent.
-                  S112: it is still the store's order and still ONE mapping of it -- a pinned
-                  conversation is MARKED (.ezc-row.is-pinned) rather than moved into a second
-                  list, so nothing here re-sorts, filters or slices what the store returned.
-                  The section itself is absent while there is nothing to show; the empty line
-                  below takes its place. */}
-              {/* S98: WHILE A SEARCH IS RUNNING the results replace the conversation list and
-                  nothing else on the menu moves. Opening a result goes through the SAME
-                  closeDrawerWith(openSavedChat) the ordinary row uses \u2014 so it spends the menu's
-                  history entry and lands at the end of the conversation exactly as S97 requires,
-                  with no second navigation path and no new scroll behaviour. */}
-              {chatResults !== null && (
-                <>
-                  <div style={s.drawerSectionLabel}>{EZIK_SEARCH_RESULTS}</div>
-                  {chatResults.length === 0 && <div style={s.drawerEmpty}>{EZIK_SEARCH_NONE}</div>}
-                  {chatResults.map((r) => (
-                    <div key={r.id} className={r.id === chatId ? 'ezc-row is-on' : 'ezc-row'} style={s.drawerResultRow}>
-                      <button onClick={() => closeDrawerWith(() => openSavedChat(r.id))} style={s.drawerResultBtn} title={r.title} className="ezik-focus">
-                        <span style={s.drawerResultTitle}>{r.title}</span>
-                        {r.snippet && <span style={s.drawerSnippet}>{r.snippet}</span>}
-                        {r.at ? <span style={s.drawerResultDate}>{ezikShortDate(r.at)}</span> : null}
-                      </button>
-                    </div>
-                  ))}
-                </>
-              )}
-              {chatResults === null && chatList.length > 0 && (
-                <>
-                  <div style={s.drawerSectionLabel}>{'\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0627\u062a'}</div>
-                  {chatList.map((c) => (
-                    <div key={c.id} className={'ezc-row' + (c.id === chatId ? ' is-on' : '') + (c.pinned ? ' is-pinned' : '')} style={s.drawerChatRow}>
-                      {chatPendingDelete === c.id ? (
-                        /* The confirmation, and it replaces the row it belongs to rather than
-                           covering the menu -- so what is about to be deleted stays readable. */
-                        <>
-                          <span style={s.drawerConfirmText}>{'\u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629\u061f'}</span>
-                          <button onClick={() => deleteSavedChat(c.id)} style={s.drawerConfirmYes}>{'\u062d\u0630\u0641'}</button>
-                          <button onClick={() => setChatPendingDelete(null)} style={s.drawerConfirmNo}>{'\u0625\u0644\u063a\u0627\u0621'}</button>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={() => closeDrawerWith(() => openSavedChat(c.id))} style={s.drawerChatOpen} title={c.title}>
-                            {c.pinned && (
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                                <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
-                              </svg>
-                            )}
-                            <span style={s.drawerChatTitle}>{c.title}</span>
-                          </button>
-                          <button onClick={() => pinSavedChat(c.id)} style={s.drawerChatIcon} aria-label={c.pinned ? '\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u062b\u0628\u064a\u062a' : '\u062a\u062b\u0628\u064a\u062a'}>
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.pinned ? 'var(--red)' : 'var(--muted)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
-                            </svg>
-                          </button>
-                          <button onClick={() => setChatPendingDelete(c.id)} style={s.drawerChatIcon} aria-label={'\u062d\u0630\u0641'}>
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 14h10l1-14" />
-                            </svg>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </>
-              )}
-              {/* S112: and when there is nothing saved the menu SAYS so, instead of ending in a
-                  blank space that reads as a list that failed to load. It is one line of the
-                  store's own vocabulary; no row, no id and no write. */}
-              {chatResults === null && chatList.length === 0 && (
-                <div style={s.drawerEmpty}>{EZIK_CHATS_EMPTY}</div>
-              )}
-            </div>
-            {/* THE PINNED FOOTER, and it is ONE row now. It used to be two: the profile entry and,
-                beside it, a small round button drawn as a ringed disc with eight rays. MEASURED:
-                that button was not a theme toggle and touched no theme key -- its handler was
-                closeDrawerWith(() => openEzikSheet('settings')), character for character the
-                profile row's own handler, so the two controls opened the identical destination
-                and the reader had to choose between them for nothing. The second one is gone.
-
-                THE ACCESSIBLE NAME MOVED WITH IT. «الإعدادات» was that button's aria-label, and
-                it is the name of what this row DOES -- it is the app's one door to the account
-                area. It now sits on the row that survived, which is why a reader (and every
-                guard that reaches settings by accessible name) still finds the entry exactly
-                where it was. The cost is stated rather than hidden: a screen reader announces
-                this row as «الإعدادات» and no longer reads the profile name, which stays on
-                screen for everyone who can see it. */}
-            <div style={s.drawerPinned}>
-              <button onClick={() => closeDrawerWith(() => openEzikSheet('settings'))} style={s.drawerProfile} aria-label={ezT('navigation.settings2')}>
-                <span style={s.drawerAvatar}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
-                </span>
-                <span style={s.drawerProfileName}>{profile?.name}</span>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      {/* S118: the one menu, defined once above the screen ladder. */}
+      {ezikDrawer()}
       {reportFor && <ReportModal onClose={() => setReportFor(null)} onSubmit={submitReport} />}
       {unlockAsk && <UnlockSheet onUnlocked={() => { setFounderUnlocked(true); setDepthMode(unlockAsk); setUnlockAsk(null); }} onBack={() => setUnlockAsk(null)} />}
     </div>
