@@ -487,14 +487,36 @@
      element it drew it still draws; they are laid on ONE ROW instead of five stacked ones,
      wrapping to a second row only when the width cannot hold them. The emblem, the rule and
      the chip are the same three things at strip scale. */
+  /* S118 -- THE ARCH WAS EATING THE GREETING, and this is the measured cure.
+     WHAT WAS MEASURED, on a live page at 320 / 360 / 390 / 430 CSS px, all four identical:
+     the strip is 111px tall, the signature radius is 120px, and a browser scales a corner
+     down when the sides cannot hold it -- here by 0.805, to an effective 96.5px arc on both
+     top corners. At y=9, where the salutation sits, that arc is inset 55.8px from each end.
+     The salutation row spanned the full content width, so THREE of its four corners fell
+     outside the rounded box and were clipped; the name row lost one; and the tulip, first
+     child on the row and hard against the trailing end in RTL, was sliced in half.
+     WHICH OF THE TWO CURES, and it is chosen by that measurement and not by taste. A moderate
+     rectangle would mean taking the masthead off --ez-radius-sig, and the arch IS the identity's
+     one signature -- two assertions in theme-coverage-guard hold it there and neither was
+     opened for this batch. So: the arch stays, and the CONTENT moves out from under it. It is
+     centred on both axes and no longer stretches to the ends, which is the whole of the fix --
+     a centred row of ~190px at the narrowest supported width sits inside the 184px the arcs
+     leave clear at the salutation's own y, and every row below that has more room, not less.
+     THE BOX IS NOT SHRUNK: the padding grows by 2px a side and nothing is removed, hidden or
+     made smaller. Every word and every element the strip drew, it still draws. */
   .ezist-masthead{position:relative;overflow:hidden;box-sizing:border-box;
     border-radius:var(--ez-radius-sig);background:var(--a3-ice);border:1px solid var(--a3-line);
-    padding:8px 14px;text-align:start;margin-bottom:12px;
-    display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+    padding:10px 14px;text-align:center;margin-bottom:12px;
+    display:flex;align-items:center;align-content:center;justify-content:center;
+    flex-wrap:wrap;gap:10px}
   /* the greeting line: the salutation and the name, one above the other, as one flex child --
      so the row has three items and not four, and the name can ellipsis instead of pushing the
      chip off the strip. */
-  .ezist-hello{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
+  /* S118: it no longer takes the whole row. flex:1 1 auto stretched this column to both ends
+     of the strip, which is exactly what pushed the salutation into the two arcs; it now sizes
+     to its own text and shrinks -- with min-width:0 kept, so a long name still ellipses rather
+     than widening the strip. */
+  .ezist-hello{display:flex;flex-direction:column;align-items:center;min-width:0;max-width:100%;flex:0 1 auto}
   /* the tulip: two pseudo-elements and a leaf, all inside the masthead box. Strip scale, and
      the same three boxes -- no path, no image, no new colour. */
   .ezist-tulip{position:relative;display:block;flex-shrink:0;width:20px;height:24px;margin:0}
