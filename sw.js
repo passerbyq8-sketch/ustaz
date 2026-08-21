@@ -462,6 +462,12 @@ self.addEventListener('message', (event) => {
         // ITEM 33: what the capped mushaf-page store did -- written, evicted, declined for
         // want of room, and rejected. Counters, not a list; see mushafState for why.
         mushaf: storageState.mushaf,
+        // A-4: the POLICY, beside the counters. A page that offers to download a whole juz
+        // has to do two things it cannot do from guesswork: state the eviction rule to the
+        // reader, and refuse to start when the disk cannot hold the juz while leaving this
+        // worker's own floor intact. Both numbers are READ FROM HERE rather than copied into
+        // the client, because a second copy of a ceiling is a ceiling that drifts.
+        mushafPolicy: { cap: MUSHAF_PAGE_CAP, minFree: MUSHAF_MIN_FREE },
       },
     };
     const port = event.ports && event.ports[0];

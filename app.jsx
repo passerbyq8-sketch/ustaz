@@ -1074,6 +1074,10 @@ for (const _name in SURAH_NUMBERS) { const _n = SURAH_NUMBERS[_name]; if (!SURAH
 
 // Revelation place per the standard Egyptian (1924) mushaf header classification.
 // These 28 surahs are Medinan (مدنية); all others are Meccan (مكية).
+// A-3: THE CANONICAL ORDER, ONCE. Every dropdown that offers the 114 offers them in the
+// mushaf order, built here and not re-derived per control -- so no control can sort, filter
+// or slice its way to a different catalogue than the one the memorizer already draws.
+const SURAH_ORDER = Array.from({ length: 114 }, (_, i) => i + 1);
 const MEDINAN_SURAHS = new Set([2,3,4,5,8,9,13,22,24,33,47,48,49,55,57,58,59,60,61,62,63,64,65,66,76,98,99,110]);
 const revelationLabel = (n) => MEDINAN_SURAHS.has(n) ? 'مدنية' : 'مكية';
 
@@ -1389,7 +1393,7 @@ const sliceHistoryForAPI = (messages) => {
 // ============================================================
 // Body-size budget — the client must measure what the server measures (item 1 / defects 44+45).
 // ============================================================
-// Mirror of the server's hard INPUT cap. MUST equal MAX_CHAT_BODY_BYTES in lib/ratelimit.js:239;
+// Mirror of the server's hard INPUT cap. MUST equal MAX_CHAT_BODY_BYTES in lib/ratelimit.js;
 // recon-audit.cjs FAILs if the two ever drift. The server 413s any POST body whose
 // Buffer.byteLength(JSON.stringify(body),'utf8') exceeds this, so the client sizes the body the
 // SAME way and trims/refuses BEFORE sending — the child never sees a silent 413.
@@ -1399,7 +1403,7 @@ const SERVER_MAX_CHAT_BODY_BYTES = 2 * 1024 * 1024;
 const CLIENT_BODY_HEADROOM = 64 * 1024;
 const CLIENT_BUDGET = SERVER_MAX_CHAT_BODY_BYTES - CLIENT_BODY_HEADROOM;
 
-// Size a candidate outgoing body EXACTLY as the server does (api/chat.js:30, api/ask.js:150):
+// Size a candidate outgoing body EXACTLY as the server does (api/ask.js, beside MAX_CHAT_BODY_BYTES):
 // Buffer.byteLength(JSON.stringify(body),'utf8'). TextEncoder yields identical UTF-8 byte counts.
 const bodyByteSize = (body) => new TextEncoder().encode(JSON.stringify(body)).length;
 
@@ -3479,6 +3483,14 @@ function EzikIstanaHome(v) {
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
+          {/* A-3: WHAT HE CHOSE, shown back to him on opening. It is a statement, not an
+              alarm: it names the choice and stops there. */}
+          <div style={s.ezistQuran}>
+            <div style={s.ezistCardTitle}>{DW_CARD_TITLE}</div>
+            {(v.dailyWirdLines || []).length
+              ? (v.dailyWirdLines || []).map((t, i) => <div key={i} style={s.ezistCardSub}>{t}</div>)
+              : <div style={s.ezistCardSub}>{DW_CARD_EMPTY}</div>}
+          </div>
           {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
               The panel itself did not change: same component, same getDailyVerse(), same text
               printed verbatim. Only where it is drawn moved. */}
@@ -3510,11 +3522,15 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // presentation components are handed the result. An empty string when the conversion could
   // not be made, so the masthead draws nothing rather than a wrong day.
   const hijri = hijriTodayLabel();
+  // A-3: the reader's own choices, read from the device the same way the wird above is. The
+  // card shows back what was chosen and claims nothing else -- no time, and no next occurrence.
+  const dailyWirdLinesToday = dailyWirdLines(readDailyWird(), wt);
   const view = {
     name: profile?.name,
     hijri: hijri,
     greeting: g,
     wird: wird,
+    dailyWirdLines: dailyWirdLinesToday,
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
     // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
@@ -4595,6 +4611,8 @@ function AdhkarScreenV2({ onBack }) {
   // ITEM 43-أ. The chain is browse state like the rest: this component owns it, reads it and
   // writes it, and the presentation below is handed the two numbers it draws.
   const [streak, setStreak] = useState(readAdhkarStreak);
+  // A-3: this screen owns its slice of the daily-wird record, like every other value here.
+  const [dailyWird, setDailyWird] = useState(readDailyWird);
   useEffect(() => {
     let alive = true;
     loadAdhkar().then((d) => { if (alive) setDb(d || { categories: [], byCat: {} }); })
@@ -4674,6 +4692,13 @@ function AdhkarScreenV2({ onBack }) {
     goal: streak.goal,
     run: adhkarRunAsOf(streak, adhkarDayKey()),
     onGoal: (n) => setStreak(writeAdhkarGoal(n)),
+    // A-3: the reader's daily dhikr. The title travels with the id so the home card can name
+    // it without loading the store a second time.
+    dailyCat: dailyWird.adhkar.cat,
+    onDailyCat: (id) => {
+      const hit = (cats || []).filter((c) => c.id === id)[0];
+      setDailyWird(writeDailyWird({ adhkar: { cat: hit ? hit.id : '', title: hit ? hit.title : '' } }));
+    },
   };
   // The whole of the style switch on this screen: which component receives the state above.
   // S103: the istana catalogue is the whole of the answer. Both legacy browse designs were
@@ -4775,7 +4800,7 @@ function IstanaAdhkarFeature({ c, st, onOpen }) {
   );
 }
 
-function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done, goal, run, onGoal }) {
+function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done, goal, run, onGoal, dailyCat, onDailyCat }) {
   // ITEM 43-أ. The ring is measured against the READER'S number now, not a constant. The
   // constant survives as the default that number starts from, and nothing else reads it.
   const shown = Math.min(done, goal);
@@ -4801,6 +4826,12 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
       </div>
       {/* the SAME search row, the same input, the same handler as before. */}
       {searchOpen && <A3Search query={query} setQuery={setQuery} />}
+      {/* A-3: the reader picks his own daily dhikr from the store's own categories. */}
+      <select value={dailyCat || ''} onChange={(e) => onDailyCat(e.target.value)}
+        aria-label={DW_ADHKAR_LABEL} style={s.memAyahSelect}>
+        <option value="">{DW_NONE}</option>
+        {(cats || []).map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+      </select>
       <div style={s.eziaScroll}>
         <div className="ezia-wrap">
           <section className="ezia-masthead">
@@ -11747,6 +11778,121 @@ function prayerNudgeOffset(prefs, key, step) {
   return writePrayerPrefs({ off: off });
 }
 
+// ============================================================
+// A-2 — جدول ثلاثين يومًا، محسوبًا على هذا الجهاز
+// ============================================================
+// WHAT THIS IS, AND WHAT IT IS NOT. It is a table of the next thirty civil days, each carrying
+// the six times and the Hijri date, generated from the SAME local computation the panel already
+// draws today's row from, with the reader's own per-prayer offsets already applied. It is not a
+// second method, not a second source, and not a download: prayerTimesFor() is the one calculator
+// and this calls it thirty times.
+//
+// ZERO NETWORK, AND THAT IS A PROPERTY OF THE CODE, NOT A PROMISE. Everything below is
+// arithmetic over three local date getters, the stored preferences and Intl. There is no fetch,
+// no image, no beacon and no model call on this path, and the guard added for this item asserts
+// exactly that over the source of these functions.
+//
+// IT PROMISES NOTHING IT CANNOT DO. There is no time field, no alarm, no sound and no message.
+// A table is a thing to LOOK AT; the moment it offered to tell the reader when a prayer had
+// come, it would be promising a notification engine that has not shipped.
+//
+// THE RENEWAL RULE IS DECLARED TO THE READER, not hidden in here: the table is rebuilt when
+// fewer than PRAYER_SCHEDULE_RENEW_AT of its days are still ahead, and the note under it says
+// so in words. It is ALSO rebuilt the moment any input it was computed from moves -- position,
+// time zone, method, Asr school, any per-prayer offset, or the Hijri offset -- because a table
+// computed from superseded settings is worse than no table: it is a wrong answer with a date on
+// it. That is what `stamp` is for.
+const PRAYER_SCHEDULE_KEY = 'ezik_prayer_schedule_v1';
+const PRAYER_SCHEDULE_DAYS = 30;      // how many days ahead one generation covers
+const PRAYER_SCHEDULE_RENEW_AT = 7;   // rebuild once fewer than this many of them are still ahead
+
+// The local civil day, three local getters and nothing else -- no UTC getter and no toISOString,
+// so a reader east of Greenwich keys their own day and not London's. Zero-padded, so the plain
+// string comparison below is a date comparison.
+function prayerDayKey(dt) {
+  const m = dt.getMonth() + 1, d = dt.getDate();
+  return String(dt.getFullYear()) + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+}
+// EVERY INPUT THE TABLE WAS COMPUTED FROM, IN ONE STRING. If any of them moves, the stored table
+// stops matching and is rebuilt. Position is rounded to ~100 m so that GPS jitter alone does not
+// throw the table away every time the panel opens.
+function prayerScheduleStamp(loc, prefs, tz) {
+  const off = [];
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+    const k = PRAYER_OFFSETTABLE[i];
+    off.push(k + ':' + (typeof prefs.off[k] === 'number' ? Math.trunc(prefs.off[k]) : 0));
+  }
+  return [Math.round(loc.lat * 1000) / 1000, Math.round(loc.lng * 1000) / 1000,
+    tz, prefs.method, prefs.asr, off.join(','), readHijriOffset()].join('|');
+}
+// Thirty rows from `startDt` forward. new Date(y, monthIndex, d + i) is what rolls the month and
+// the year over, so the last day of a 31-day month needs no special case here.
+function buildPrayerSchedule(startDt, loc, prefs, tz) {
+  const hOff = readHijriOffset();
+  const days = [];
+  for (let i = 0; i < PRAYER_SCHEDULE_DAYS; i++) {
+    const dt = new Date(startDt.getFullYear(), startDt.getMonth(), startDt.getDate() + i);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const t = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+    const row = { day: prayerDayKey(dt), hijri: hijriLabel(hijriForCivilDay(y, m, d, hOff)) };
+    for (let j = 0; j < PRAYER_KEYS.length; j++) row[PRAYER_KEYS[j]] = t[PRAYER_KEYS[j]];
+    days.push(row);
+  }
+  return days;
+}
+// A STORE THAT IS WRONG IN ANY WAY READS AS ABSENT, which rebuilds it. A half-validated table
+// would put times on a screen that nothing in this file computed.
+function readPrayerSchedule() {
+  let raw = null;
+  try { raw = localStorage.getItem(PRAYER_SCHEDULE_KEY); } catch (e) { return null; }
+  if (typeof raw !== 'string' || !raw) return null;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return null; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return null;
+  if (rec.v !== 1 || typeof rec.stamp !== 'string' || typeof rec.from !== 'string') return null;
+  if (!Array.isArray(rec.days) || rec.days.length !== PRAYER_SCHEDULE_DAYS) return null;
+  for (let i = 0; i < rec.days.length; i++) {
+    const r = rec.days[i];
+    if (!r || typeof r !== 'object' || Array.isArray(r)) return null;
+    if (typeof r.day !== 'string' || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(r.day)) return null;
+    for (let j = 0; j < PRAYER_KEYS.length; j++) {
+      const v = r[PRAYER_KEYS[j]];
+      if (v !== null && !(typeof v === 'number' && isFinite(v))) return null;
+    }
+  }
+  return rec;
+}
+// A DENIED WRITE IS NOT AN ERROR ON A SCREEN. The table is still returned and still drawn; it is
+// simply recomputed next time, which is the app as it was before this item.
+function writePrayerSchedule(rec) {
+  try { localStorage.setItem(PRAYER_SCHEDULE_KEY, JSON.stringify(rec)); } catch (e) {}
+  return rec;
+}
+function prayerScheduleRemaining(rec, todayKey) {
+  if (!rec || !Array.isArray(rec.days)) return 0;
+  let n = 0;
+  for (let i = 0; i < rec.days.length; i++) if (rec.days[i].day >= todayKey) n++;
+  return n;
+}
+// THE ONE ENTRY POINT. It answers with the table that is now in effect and says whether it had
+// to build one and why -- so the panel reports what actually happened rather than what it asked
+// for, the same discipline writePrayerPrefs() already keeps.
+function ensurePrayerSchedule(loc, prefs, now) {
+  const tz = -now.getTimezoneOffset();
+  const stamp = prayerScheduleStamp(loc, prefs, tz);
+  const todayKey = prayerDayKey(now);
+  const cur = readPrayerSchedule();
+  const remaining = prayerScheduleRemaining(cur, todayKey);
+  let why = null;
+  if (!cur) why = 'absent';
+  else if (cur.stamp !== stamp) why = 'inputs';
+  else if (remaining < PRAYER_SCHEDULE_RENEW_AT) why = 'short';
+  if (!why) return { rec: cur, built: false, why: null, remaining: remaining };
+  const rec = writePrayerSchedule({ v: 1, stamp: stamp, from: todayKey,
+    days: buildPrayerSchedule(now, loc, prefs, tz) });
+  return { rec: rec, built: true, why: why, remaining: prayerScheduleRemaining(rec, todayKey) };
+}
+
 const PRAYER_TITLE = 'مواقيت الصلاة';
 const PRAYER_SETTINGS_TITLE = 'الصلاة';
 const PRAYER_METHOD_LABEL = 'المنهج';
@@ -11754,12 +11900,26 @@ const PRAYER_ASR_LABEL = 'مذهب العصر';
 const PRAYER_OFFSET_LABEL = 'إزاحة يدويّة بالدقائق';
 const PRAYER_HINT = 'تُحسَب على هذا الجهاز من المنهج والإحداثيّات، بلا إنترنت. قابِلْها بتقويمك وعدِّلْ بالدقائق إن لزم.';
 const PRAYER_NONE = 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.';
+const PRAYER_SCHEDULE_TITLE = 'جدول ثلاثين يومًا';
+const PRAYER_SCHEDULE_SHOW = 'اعرض جدول ثلاثين يومًا';
+const PRAYER_SCHEDULE_HIDE = 'اطوِ الجدول';
+// The renewal rule, said in words, because a rule the reader cannot see is not a rule they can
+// rely on. No time field, no alarm, no sound: this sentence describes a table and nothing else.
+const PRAYER_SCHEDULE_NOTE = 'يُحسَب على هذا الجهاز لثلاثين يومًا قادمة، بلا إنترنت، ويُعاد توليده تلقائيًّا متى بقي أقلّ من سبعة أيّام، أو متى غيّرتَ المنهج أو الإزاحة أو الموضع.';
+// The sunrise is not a prayer time and takes no offset. Saying so is the difference between a
+// value the reader trusts as calibrated and one they know is the calculator's own.
+const PRAYER_SUNRISE_NOTE = 'الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.';
 const PRAYER_MINUS = '−';
 const PRAYER_PLUS = '+';
 
 function PrayerTimesPanel({ loc }) {
   const [prefs, setPrefs] = useState(readPrayerPrefs);
+  const [open, setOpen] = useState(false);
   const now = new Date();
+  // The table is derived, not fetched. It is recomputed only when an input it depends on moves,
+  // and ensurePrayerSchedule() is the one place that decides whether that means a rebuild.
+  const sched = React.useMemo(() => ensurePrayerSchedule(loc, prefs, new Date()),
+    [loc.lat, loc.lng, prefs.method, prefs.asr, JSON.stringify(prefs.off)]);
   const tz = -now.getTimezoneOffset();
   const t = prayerTimesFor(now.getFullYear(), now.getMonth() + 1, now.getDate(),
     loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
@@ -11786,6 +11946,19 @@ function PrayerTimesPanel({ loc }) {
           </span>
         </div>
       ))}
+      <div style={s.qiblaNote}>{PRAYER_SUNRISE_NOTE}</div>
+      <div style={s.a11yGroupLabel}>{PRAYER_SCHEDULE_TITLE}</div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open ? 'true' : 'false'}
+          className="ezik-focus" style={s.prayerOpt}>{open ? PRAYER_SCHEDULE_HIDE : PRAYER_SCHEDULE_SHOW}</button>
+      </div>
+      {open ? sched.rec.days.map((r) => (
+        <div key={r.day} style={s.prayerRow}>
+          <span style={s.prayerName}>{r.hijri}</span>
+          <span style={s.prayerTime}>{PRAYER_KEYS.map((k) => prayerClock(r[k])).join('  ·  ')}</span>
+        </div>
+      )) : null}
+      <div style={s.qiblaNote}>{PRAYER_SCHEDULE_NOTE}</div>
     </EzShellGroup>
   );
 }
@@ -13214,6 +13387,113 @@ const MUSHAF_SVG_ON = readMushafSvgFlag();
 // neighbours -- see prefetchMushafSvg below, which is the only prefetch in the reader
 // and stays two deep whichever renderer is running.
 const MADINA_IMG_KEY = 'madina_img_v1';   // device key. '0' = off, anything else = on
+// ============================================================
+// A-4 — حزمةُ العملِ بلا إنترنت: «نزِّلْ هذا الجزء»
+// ============================================================
+// IT RIDES THE MACHINE THAT IS ALREADY THERE AND REBUILDS NONE OF IT. sw.js has had, since
+// item 33, a mushaf-page store of its own (ezik-mushaf-pages-v1), a ceiling in pages, an
+// LRU eviction rule and an estimate before every write. Downloading a juz is therefore not a
+// new storage system: it is FETCHING the pages of that juz, which is exactly what the reader
+// turning to them would do, and letting the worker's own cache-first branch store each one.
+//
+// FOUR CONDITIONS, AND WITHOUT ANY ONE OF THEM THE BUTTON LIES TO THE READER:
+//
+//  1. AN ESTIMATE BEFORE IT STARTS. `need` is computed with the LARGEST page measured across
+//     the 604 shipped files, so it cannot under-estimate, and the test is not "does it fit"
+//     but "does it fit while leaving the worker's own floor intact" -- because below that
+//     floor the worker DECLINES to store, silently and by design. A button that began a
+//     download the worker would decline would show a progress bar for nothing.
+//     When the browser exposes no quota at all the download does NOT start: an estimate that
+//     could not be taken is not an estimate that passed, and the reader is told which it was.
+//
+//  2. A VISIBLE STATE WHILE IT RUNS: how many pages of how many.
+//
+//  3. EVERY FAILURE COUNTED AND SHOWN. There is no catch(()=>{}) on this path and no
+//     swallowed rejection. A page that would not fetch is counted; and because a page can
+//     fetch perfectly and still not be STORED, the worker's own counters are pulled when the
+//     run ends, so a download that succeeded into a full disk says so instead of claiming a
+//     juz is now offline when it is not.
+//
+//  4. THE EVICTION RULE, IN WORDS, from the worker's own cap -- not a second copy of it here.
+//
+// The store name is NOT touched by any of this, and neither is the ceiling.
+
+// Measured over the 604 shipped page files: mean 109,292 bytes, median 108,252, max 323,956.
+// The MAX is the one used, so a juz of unusually heavy pages cannot overrun the estimate.
+const JUZ_DL_PAGE_BYTES = 323956;
+const JUZ_DL_TIMEOUT_MS = 3000;
+
+// The pages of a juz, from the SHIPPED layout -- the same nav rows the index draws, so no
+// second table of juz boundaries exists in this file to disagree with the first.
+function juzPagesFor(jz) {
+  const rows = buildMushafNav();
+  if (!rows) return null;
+  const js = rows.filter((r) => r.k === 'j').slice().sort((a, b) => a.n - b.n);
+  if (js.length !== 30) return null;
+  let i = -1;
+  for (let k = 0; k < js.length; k++) if (js[k].n === jz) i = k;
+  if (i === -1) return null;
+  const from = js[i].p;
+  const to = i < 29 ? js[i + 1].p - 1 : MADINA_IMG_PAGES;
+  if (!(from >= 1) || !(to >= from) || to > MADINA_IMG_PAGES) return null;
+  const out = [];
+  for (let p = from; p <= to; p++) out.push(p);
+  return out;
+}
+// Which juz a page belongs to: the last juz that starts at or before it.
+function juzOfPage(p) {
+  const rows = buildMushafNav();
+  if (!rows) return 0;
+  let found = 0;
+  for (const r of rows) if (r.k === 'j' && r.p <= p && r.n > found) found = r.n;
+  return found;
+}
+
+// THE WORKER'S OWN NUMBERS, pulled on the channel item 93-B opened. Nothing here retypes the
+// cap or the floor. A worker that cannot be reached resolves to null -- which is NOT a
+// swallowed failure: the caller turns it into a refusal the reader can read.
+function swMushafReport() {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (v) => { if (!settled) { settled = true; resolve(v); } };
+    try {
+      const sw = navigator.serviceWorker;
+      if (!sw || !sw.controller || typeof MessageChannel !== 'function') { finish(null); return; }
+      const ch = new MessageChannel();
+      ch.port1.onmessage = (e) => finish((e && e.data) || null);
+      sw.controller.postMessage({ ezik: 'precache-status' }, [ch.port2]);
+      setTimeout(() => finish(null), JUZ_DL_TIMEOUT_MS);
+    } catch (e) { finish(null); }
+  });
+}
+// The device's free space, taken FRESH at the moment of the press.
+function juzFreeSpace() {
+  return new Promise((resolve) => {
+    try {
+      if (!navigator.storage || typeof navigator.storage.estimate !== 'function') { resolve(null); return; }
+      navigator.storage.estimate().then((e) => {
+        if (!e || typeof e.quota !== 'number' || typeof e.usage !== 'number') { resolve(null); return; }
+        resolve(e.quota - e.usage);
+      }, () => resolve(null));
+    } catch (e) { resolve(null); }
+  });
+}
+// CONDITION 1, as one pure decision so it can be driven by a guard without a browser.
+function juzRoomVerdict(policy, free, pageCount) {
+  if (!policy || typeof policy.cap !== 'number' || typeof policy.minFree !== 'number') {
+    return { ok: false, why: 'noworker' };
+  }
+  const need = pageCount * JUZ_DL_PAGE_BYTES;
+  if (typeof free !== 'number' || !isFinite(free)) {
+    return { ok: false, why: 'unmeasured', need: need, cap: policy.cap, minFree: policy.minFree };
+  }
+  if ((free - need) < policy.minFree) {
+    return { ok: false, why: 'nospace', need: need, free: free, cap: policy.cap, minFree: policy.minFree };
+  }
+  return { ok: true, why: 'room', need: need, free: free, cap: policy.cap, minFree: policy.minFree };
+}
+const juzMb = (n) => toArabicDigits(Math.max(1, Math.round(n / (1024 * 1024))));
+
 const MADINA_IMG_PAGES = 604;             // printed pages 1..604, and no other page
 // ITEM 33. The service worker keeps these pages in a store of their own and holds at most
 // this many, evicting the least recently used. The number is repeated here because a page
@@ -13699,6 +13979,119 @@ function writeMushafLastPage(pg, sr) {
 // The daily target: a decimal integer string, 1..604, and ABSENCE IS A REAL ANSWER. "No
 // target" is not a broken state to be repaired on the next read -- it is the state the
 // reader gets by default and the state the picker can return them to for good.
+// ============================================================
+// A-3 — طبقةُ الاختيار: ما يختارُه المستخدمُ لوردِه اليوميّ
+// ============================================================
+// THE OWNER'S RULE, IN HIS WORDS: "we do not restrict it -- the user decides it, from
+// everywhere". So each of the three modules offers a plain dropdown, the choice is stored on
+// the device, and the home screen shows back exactly what was chosen and nothing more.
+//
+// WHAT THIS RECORD DOES NOT HOLD, AND WHY IT MATTERS MORE THAN WHAT IT DOES. There is no time
+// in it. No hour, no minute, no "remind me at". A dropdown that asked for a time while nothing
+// in the app can ring is a PROMISE THE APP CANNOT KEEP -- the reader would set it, trust it,
+// and be failed silently by software that never intended to wake up. The time field is born on
+// the day notifications ship and not one hour before it. The guard for this item scans every
+// visible string of this layer and fails on any of the four words that make that promise.
+//
+// NO EXISTING KEY IS RENAMED AND NO DATA IS MIGRATED. The pages-per-day number stays where it
+// has always been -- mushaf_wird_target_v1, read and written by the mushaf's own helpers, with
+// its own progress strip still reading it. This record holds only what had nowhere to live:
+// which KIND of mushaf wird was chosen, which surah, which adhkar category, which surah to
+// memorise. One new key, named here and named in the report.
+const DAILY_WIRD_KEY = 'ezik_daily_wird_v1';
+const DAILY_WIRD_MODES = ['pages', 'surah'];
+
+// EVERY FIELD IS CHECKED, and anything unusable reads as "not chosen yet" -- which is the app
+// exactly as it was before this item, not an error on a child's screen.
+function readDailyWird() {
+  const out = { mushaf: { mode: '', surah: 0 }, adhkar: { cat: '', title: '' }, memorize: { surah: 0 } };
+  let raw = null;
+  try { raw = localStorage.getItem(DAILY_WIRD_KEY); } catch (e) { return out; }
+  if (typeof raw !== 'string' || !raw) return out;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return out; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  const m = rec.mushaf;
+  if (m && typeof m === 'object' && !Array.isArray(m)) {
+    if (typeof m.mode === 'string' && DAILY_WIRD_MODES.indexOf(m.mode) !== -1) out.mushaf.mode = m.mode;
+    const n = Number(m.surah);
+    // An integer, or nothing. Truncating 1.5 to 1 would turn a broken store into a CHOICE
+    // the reader never made, which is the one thing this record must never do.
+    if (typeof m.surah === 'number' && isFinite(n) && Math.trunc(n) === n && n >= 1 && n <= 114) out.mushaf.surah = n;
+  }
+  const a = rec.adhkar;
+  if (a && typeof a === 'object' && !Array.isArray(a)) {
+    if (typeof a.cat === 'string' && a.cat.length > 0 && a.cat.length <= 120) out.adhkar.cat = a.cat;
+    if (typeof a.title === 'string' && a.title.length <= 200) out.adhkar.title = a.title;
+  }
+  const z = rec.memorize;
+  if (z && typeof z === 'object' && !Array.isArray(z)) {
+    const n = Number(z.surah);
+    if (typeof z.surah === 'number' && isFinite(n) && Math.trunc(n) === n && n >= 1 && n <= 114) out.memorize.surah = n;
+  }
+  // A mushaf mode of 'surah' with no surah behind it is not a choice; it is half a write.
+  if (out.mushaf.mode === 'surah' && !out.mushaf.surah) { out.mushaf.mode = ''; }
+  return out;
+}
+// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for -- so a control can set its own
+// state from this return and cannot end up showing a choice that was never stored.
+function writeDailyWird(next) {
+  const cur = readDailyWird();
+  if (!next || typeof next !== 'object') return cur;
+  const rec = { mushaf: cur.mushaf, adhkar: cur.adhkar, memorize: cur.memorize };
+  if (next.mushaf && typeof next.mushaf === 'object') rec.mushaf = { mode: next.mushaf.mode, surah: next.mushaf.surah };
+  if (next.adhkar && typeof next.adhkar === 'object') rec.adhkar = { cat: next.adhkar.cat, title: next.adhkar.title };
+  if (next.memorize && typeof next.memorize === 'object') rec.memorize = { surah: next.memorize.surah };
+  try { localStorage.setItem(DAILY_WIRD_KEY, JSON.stringify(rec)); } catch (e) { return readDailyWird(); }
+  return readDailyWird();
+}
+// The card's lines, built from the record and the reader's OWN page target. Only what was
+// actually chosen produces a line: nothing here invents a goal the reader never set.
+function dailyWirdLines(dw, pageTarget) {
+  const out = [];
+  if (!dw) return out;
+  if (dw.mushaf.mode === 'surah' && dw.mushaf.surah) {
+    out.push(DW_LINE_MUSHAF + ' ' + DW_SURAH_WORD + ' ' + (SURAH_NAMES[dw.mushaf.surah] || ''));
+  } else if (dw.mushaf.mode === 'pages' && pageTarget) {
+    out.push(DW_LINE_MUSHAF + ' ' + toArabicDigits(pageTarget) + ' ' + DW_PAGES_WORD);
+  }
+  if (dw.adhkar.cat && dw.adhkar.title) out.push(DW_LINE_ADHKAR + ' ' + dw.adhkar.title);
+  if (dw.memorize.surah) out.push(DW_LINE_MEMORIZE + ' ' + DW_SURAH_WORD + ' ' + (SURAH_NAMES[dw.memorize.surah] || ''));
+  return out;
+}
+
+// THE VISIBLE TEXT OF THIS LAYER, all of it, in one place so the guard can scan one region.
+// Not one of these strings names a time, an alert, or anything that rings.
+const JD_TITLE = 'العملُ بلا إنترنت';
+const JD_BTN = 'نزِّلْ هذا الجزء';
+const JD_BUSY = 'ينزلُ الآن';
+const JD_NO_WORKER = 'لا يمكن التنزيل الآن: خدمةُ التخزين على هذا الجهاز غير عاملة.';
+const JD_UNMEASURED = 'لم يتيسّر قياسُ المساحة على هذا الجهاز، فلم يبدأِ التنزيل.';
+const JD_NOSPACE_A = 'المساحةُ لا تكفي: يحتاج هذا الجزء نحو ';
+const JD_NOSPACE_B = ' م.ب، والمتاح ';
+const JD_NOSPACE_C = ' م.ب، ولا بدّ من إبقاء ';
+const JD_NOSPACE_D = ' م.ب حرّة. لم يبدأِ التنزيل.';
+const JD_OF = ' من ';
+const JD_DONE = 'تمّ حفظُ الجزء على هذا الجهاز.';
+const JD_FAILED_A = 'أخفق ';
+const JD_FAILED_B = ' من الصفحات ولم تُحفَظ.';
+const JD_DECLINED_A = 'ولم تُحفَظ ';
+const JD_DECLINED_B = ' صفحة لضيق المساحة.';
+const JD_RULE_A = 'يحفظُ الجهازُ ';
+const JD_RULE_PLAIN = 'إذا امتلأ مخزنُ الصفحات حُذِفت الأقدمُ استعمالًا أوّلًا.';
+const JD_RULE_B = ' صفحةً من المصحف؛ فإذا امتلأ حُذِفت الأقدمُ استعمالًا أوّلًا.';
+const DW_CARD_TITLE = 'وِردي اليوم';
+const DW_CARD_EMPTY = 'لم تختر بعد. اختر من المصحف أو الأذكار أو المحفّظ.';
+const DW_LINE_MUSHAF = 'المصحف:';
+const DW_LINE_ADHKAR = 'الأذكار:';
+const DW_LINE_MEMORIZE = 'الحفظ:';
+const DW_SURAH_WORD = 'سورة';
+const DW_PAGES_WORD = 'صفحة في اليوم';
+const DW_NONE = 'بلا اختيار';
+const DW_MUSHAF_LABEL = 'اختر وردك من المصحف';
+const DW_ADHKAR_LABEL = 'اختر ذكرك اليوميّ';
+const DW_MEMORIZE_LABEL = 'اختر ما تحفظه';
+
 const WIRD_TARGET_KEY = 'mushaf_wird_target_v1';
 // Canonical decimal only. ' 5', '5 ', '5.0', '-5', '05', '', 'abc' and Arabic-Indic digits
 // as STORED text are all refused: the picker normalises before it writes, so anything
@@ -13888,6 +14281,85 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // component is the same on the loading render, the failed render and the reading render.
   const [wirdDay, setWirdDay] = useState(readWirdDay);
   const [wirdTarget, setWirdTarget] = useState(readWirdTarget);
+  // A-3: the reader's own choice of WHAT the mushaf wird is. The page count keeps living in
+  // its own key; this holds the kind, and the surah when a surah is what was chosen.
+  const [dailyWird, setDailyWird] = useState(readDailyWird);
+  // A-4: the offline package's whole state. null until the reader presses.
+  const [juzDl, setJuzDl] = useState(null);
+  // A-4: the worker's own ceiling, pulled when the panel opens so the eviction rule is on
+  // screen BEFORE the reader presses anything -- and never retyped from sw.js.
+  const [juzCap, setJuzCap] = useState(0);
+  useEffect(() => {
+    if (!picker) return undefined;
+    let alive = true;
+    swMushafReport().then((r) => {
+      const p = r && r.storage ? r.storage.mushafPolicy : null;
+      if (alive && p && typeof p.cap === 'number') setJuzCap(p.cap);
+    });
+    return () => { alive = false; };
+  }, [picker]);
+  const runJuzDownload = async () => {
+    if (juzDl && juzDl.phase === 'run') return;          // one press cannot become two runs
+    const jz = juzOfPage(page);
+    const pages = jz ? juzPagesFor(jz) : null;
+    if (!jz || !pages || !pages.length) { setJuzDl({ phase: 'fail', note: JD_NO_WORKER }); return; }
+    setJuzDl({ phase: 'check', juz: jz, total: pages.length, done: 0, failed: 0 });
+    // CONDITION 1 -- the estimate, before a single byte is fetched.
+    const report = await swMushafReport();
+    const policy = report && report.storage ? report.storage.mushafPolicy : null;
+    const free = await juzFreeSpace();
+    const verdict = juzRoomVerdict(policy, free, pages.length);
+    if (!verdict.ok) {
+      const note = verdict.why === 'noworker' ? JD_NO_WORKER
+        : verdict.why === 'unmeasured' ? JD_UNMEASURED
+        : (JD_NOSPACE_A + juzMb(verdict.need) + JD_NOSPACE_B + juzMb(verdict.free)
+           + JD_NOSPACE_C + juzMb(verdict.minFree) + JD_NOSPACE_D);
+      setJuzDl({ phase: 'fail', juz: jz, total: pages.length, done: 0, failed: 0, note: note, cap: verdict.cap });
+      return;
+    }
+    // CONDITION 2 + 3 -- a visible count as it goes, and every failure counted by name.
+    let done = 0, failed = 0;
+    for (let i = 0; i < pages.length; i++) {
+      const url = madinaImgUrl(pages[i]);
+      if (!url) { failed++; setJuzDl({ phase: 'run', juz: jz, total: pages.length, done: done, failed: failed, cap: verdict.cap }); continue; }
+      try {
+        const res = await fetch(url);
+        if (res && res.ok) done++; else failed++;
+      } catch (e) {
+        failed++;   // counted, never swallowed: this number reaches the reader below
+      }
+      setJuzDl({ phase: 'run', juz: jz, total: pages.length, done: done, failed: failed, cap: verdict.cap });
+    }
+    // A page can fetch perfectly and still not be STORED. Ask the worker what it actually
+    // wrote, so a full disk is reported rather than covered by a finished progress count.
+    const after = await swMushafReport();
+    const m = after && after.storage ? after.storage.mushaf : null;
+    const before = report && report.storage ? report.storage.mushaf : null;
+    const declined = (m && before && typeof m.skipped === 'number' && typeof before.skipped === 'number')
+      ? Math.max(0, m.skipped - before.skipped) : 0;
+    const storeFailed = (m && before && typeof m.failed === 'number' && typeof before.failed === 'number')
+      ? Math.max(0, m.failed - before.failed) : 0;
+    const bad = failed + storeFailed;
+    let note = bad ? (JD_FAILED_A + toArabicDigits(bad) + JD_FAILED_B) : JD_DONE;
+    if (declined) note = note + ' ' + JD_DECLINED_A + toArabicDigits(declined) + JD_DECLINED_B;
+    setJuzDl({ phase: (bad || declined) ? 'fail' : 'done', juz: jz, total: pages.length,
+      done: done, failed: bad, declined: declined, note: note, cap: verdict.cap });
+  };
+  const dailyWirdValue = dailyWird.mushaf.mode === 'surah' && dailyWird.mushaf.surah
+    ? ('surah:' + dailyWird.mushaf.surah)
+    : (dailyWird.mushaf.mode === 'pages' && wirdTarget ? ('pages:' + wirdTarget) : '');
+  const onDailyWirdPick = (raw) => {
+    const v = String(raw || '');
+    if (!v) { setDailyWird(writeDailyWird({ mushaf: { mode: '', surah: 0 } })); return; }
+    const bits = v.split(':');
+    const n = Math.trunc(Number(bits[1]));
+    if (bits[0] === 'pages' && isFinite(n) && n > 0) {
+      setTarget(n);                        // the EXISTING helper, writing the EXISTING key
+      setDailyWird(writeDailyWird({ mushaf: { mode: 'pages', surah: 0 } }));
+    } else if (bits[0] === 'surah' && isFinite(n) && n >= 1 && n <= 114) {
+      setDailyWird(writeDailyWird({ mushaf: { mode: 'surah', surah: n } }));
+    }
+  };
   const [picker, setPicker] = useState(false);
   const [pickerText, setPickerText] = useState('');
   // The measured height of the pager, taken off the pager itself rather than assumed from
@@ -14284,6 +14756,18 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
             <div style={s.wirdSheetTitle}>وردُ اليوم</div>
             <button onClick={() => setPicker(false)} aria-label="إغلاق" style={{ ...s.pgNavBtn, width: 36 }}>×</button>
           </div>
+          {/* A-3: one dropdown, both kinds of wird -- a number of pages a day, or a named
+              surah. No time is asked for anywhere on it. */}
+          <select value={dailyWirdValue} onChange={(e) => onDailyWirdPick(e.target.value)}
+            aria-label={DW_MUSHAF_LABEL} style={s.memAyahSelect}>
+            <option value="">{DW_NONE}</option>
+            {WIRD_TARGET_PRESETS.map((n) => (
+              <option key={'p' + n} value={'pages:' + n}>{toArabicDigits(n) + ' ' + DW_PAGES_WORD}</option>
+            ))}
+            {SURAH_ORDER.map((n) => (
+              <option key={'s' + n} value={'surah:' + n}>{DW_SURAH_WORD + ' ' + SURAH_NAMES[n]}</option>
+            ))}
+          </select>
           <div style={s.wirdChips}>
             {WIRD_TARGET_PRESETS.map((n) => (
               <button key={n} onClick={() => setTarget(n)} style={{ ...s.wirdChip, ...(wirdTarget === n ? s.wirdChipOn : {}) }}>{toArabicDigits(n)}</button>
@@ -14294,6 +14778,19 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
             <button onClick={pickerGo} style={{ ...s.wirdChip, ...s.wirdChipOn }}>تثبيت</button>
           </div>
           <button onClick={dropTarget} style={s.wirdNone}>بلا ورد</button>
+          {/* A-4: the offline package. Four conditions, all four visible on this panel. */}
+          <div style={s.a11yGroupLabel}>{JD_TITLE}</div>
+          <button type="button" onClick={runJuzDownload}
+            disabled={!!(juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check'))}
+            className="ezik-focus" style={s.wirdChip}>
+            {juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check') ? JD_BUSY : JD_BTN}
+          </button>
+          {juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check') ? (
+            <div style={s.wirdText}>{toArabicDigits(juzDl.done) + JD_OF + toArabicDigits(juzDl.total)}</div>
+          ) : null}
+          {juzDl && juzDl.note ? <div style={s.wirdText}>{juzDl.note}</div> : null}
+          <div style={s.wirdText}>{(juzCap || (juzDl && juzDl.cap))
+            ? (JD_RULE_A + toArabicDigits(juzCap || juzDl.cap) + JD_RULE_B) : JD_RULE_PLAIN}</div>
         </div>
       </div>
       )}
@@ -14480,6 +14977,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const [ready, setReady] = useState(!!__quranData); // true once the mushaf JSON is in memory
   const [counts, setCounts] = useState(null);        // { [surahNum]: ayahCount } — built once, single pass
   const [view, setView] = useState('picker');        // 'picker' | 'drill'
+  // A-3: what the reader has chosen to be memorising. It is a CHOICE, not a schedule.
+  const [dailyWird, setDailyWird] = useState(readDailyWird);
   const [selectedSurah, setSelectedSurah] = useState(null); // 1..114
   const [startAyah, setStartAyah] = useState(1);
   const [granularity, setGranularity] = useState('word'); // 'ayah' | 'word' (default word — one word per reveal)
@@ -14796,6 +15295,15 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
             );
           })}
         </div>
+        {/* A-3: the reader's own daily memorisation choice, stored on the device. */}
+        <select value={dailyWird.memorize.surah ? String(dailyWird.memorize.surah) : ''}
+          onChange={(e) => setDailyWird(writeDailyWird({ memorize: { surah: parseInt(e.target.value, 10) || 0 } }))}
+          aria-label={DW_MEMORIZE_LABEL} style={s.memAyahSelect}>
+          <option value="">{DW_NONE}</option>
+          {SURAH_ORDER.map((n) => (
+            <option key={n} value={n}>{DW_SURAH_WORD + ' ' + SURAH_NAMES[n]}</option>
+          ))}
+        </select>
         {/* the start bar: the SAME select, the same bounds, the same startDrill handler. */}
         {selectedSurah && (
           <div style={s.ezqStartBar}>

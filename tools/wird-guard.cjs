@@ -1912,6 +1912,493 @@ if (tLifted) {
 }
 
 
+
+// ---------------------------------------------------------------------------
+// N. ROUND 25 A-2 -- THE THIRTY-DAY TABLE, BUILT HERE AND RENEWED HERE
+// ---------------------------------------------------------------------------
+// Section M above proves the CALCULATOR. This section proves the TABLE built from it: that
+// it is thirty days long, that it starts today, that the reader's calibration reaches every
+// row of it, that the sunrise is the one time no offset may move, that it is built ONCE and
+// not on every open, that it renews itself at a declared threshold and whenever an input it
+// was computed from moves, that a corrupt store rebuilds instead of throwing, and that
+// nothing on the whole path is a request.
+//
+// IT IS RUN, NOT READ. Every claim below drives the lifted functions against a fake store and
+// a fake clock. A claim about a table is worth what the table it produced is worth.
+
+const N_CONSTS = ['PRAYER_SCHEDULE_KEY', 'PRAYER_SCHEDULE_DAYS', 'PRAYER_SCHEDULE_RENEW_AT'];
+const N_FNS = ['prayerDayKey', 'prayerScheduleStamp', 'buildPrayerSchedule',
+  'readPrayerSchedule', 'writePrayerSchedule', 'prayerScheduleRemaining', 'ensurePrayerSchedule'];
+
+const nConsts = {};
+const nFns = {};
+let nLifted = true;
+for (const n of N_CONSTS) { nConsts[n] = liftConst(n); if (!ok('A-2: lift const ' + n, !!nConsts[n])) nLifted = false; }
+for (const n of N_FNS) { nFns[n] = liftFunction(n); if (!ok('A-2: lift function ' + n, !!nFns[n])) nLifted = false; }
+
+if (nLifted && tLifted && hLifted) {
+  // ONE SANDBOX, THREE FAMILIES. The table needs the calculator (M) and the calendar (K), so
+  // all three are lifted into the same scope -- deduped, because two of the names are shared.
+  const seen = Object.create(null);
+  const NAMES = [];
+  const PIECES = [];
+  const addAll = (names, bag) => {
+    for (const n of names) {
+      if (seen[n]) continue;
+      seen[n] = true; NAMES.push(n); PIECES.push(bag[n]);
+    }
+  };
+  addAll(H_CONSTS, hConsts); addAll(T_CONSTS, tConsts); addAll(N_CONSTS, nConsts);
+  addAll(H_FNS, hFns); addAll(T_FNS, tFns); addAll(N_FNS, nFns);
+  const N_LIFTED = PIECES.join('\n\n');
+
+  ok('A-2: lifted block braces balance',
+    (N_LIFTED.match(/\{/g) || []).length === (N_LIFTED.match(/\}/g) || []).length);
+  ok('A-2: lifted block has no template literal', N_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+
+  const NS = (store) => new Function('localStorage', 'JSON', 'Object',
+    N_LIFTED + '\nreturn { ' + NAMES.join(', ') + ' };')(store, JSON, Object);
+
+  // KUWAIT CITY at UTC+3 -- the same place section M drives the calculator at.
+  const KLAT = 29.3759, KLNG = 47.9774;
+  const LOC = { lat: KLAT, lng: KLNG };
+  // A fake clock. getTimezoneOffset() is NEGATIVE east of Greenwich, so UTC+3 is -180.
+  const at = (y, m, d) => ({
+    getFullYear() { return y; }, getMonth() { return m - 1; }, getDate() { return d; },
+    getTimezoneOffset() { return -180; },
+  });
+  const prefsWith = (over) => {
+    const off = { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
+    const o = { method: 'kuwait', asr: 'standard', off: off };
+    if (over) for (const k in over) { if (k === 'off') { for (const j in over.off) off[j] = over.off[j]; } else o[k] = over[k]; }
+    return o;
+  };
+
+  /* ---- the key, and that it is a NEW one ---- */
+  const B0 = NS(memStore());
+  eq('A-2: the table has its own versioned key', B0.PRAYER_SCHEDULE_KEY, 'ezik_prayer_schedule_v1');
+  ok('A-2: ...and it is not the preferences key, so no existing store is renamed or migrated',
+    B0.PRAYER_SCHEDULE_KEY !== B0.PRAYER_PREFS_KEY && B0.PRAYER_SCHEDULE_KEY !== B0.HIJRI_OFFSET_KEY);
+  eq('A-2: thirty days ahead', B0.PRAYER_SCHEDULE_DAYS, 30);
+  ok('A-2: the renewal threshold is declared, positive and shorter than the table',
+    B0.PRAYER_SCHEDULE_RENEW_AT > 0 && B0.PRAYER_SCHEDULE_RENEW_AT < B0.PRAYER_SCHEDULE_DAYS);
+
+  /* ---- a fresh device builds one, and it starts today ---- */
+  const st1 = memStore();
+  const B1 = NS(st1);
+  const r1 = B1.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  ok('A-2: a fresh device builds the table', r1.built === true && r1.why === 'absent');
+  eq('A-2: ...of exactly thirty days', r1.rec.days.length, 30);
+  eq('A-2: ...beginning today', (r1.rec.days[0] || {}).day, '2026-08-22');
+  eq('A-2: ...and running to the thirtieth day', (r1.rec.days[r1.rec.days.length - 1] || {}).day, '2026-09-20');
+  ok('A-2: ...and it was actually stored on the device', st1.has('ezik_prayer_schedule_v1'));
+  ok('A-2: every row carries all six times and a Hijri date',
+    r1.rec.days.every((r) => typeof r.hijri === 'string' && r.hijri.length > 0
+      && B1.PRAYER_KEYS.every((k) => Object.prototype.hasOwnProperty.call(r, k))));
+
+  /* ---- it is built ONCE, not on every open ---- */
+  const r1b = B1.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  ok('A-2: opening it again the same day does NOT rebuild it', r1b.built === false && r1b.why === null);
+
+  /* ---- the calibration reaches every row ---- */
+  const st2 = memStore();
+  const B2 = NS(st2);
+  const base = B2.buildPrayerSchedule(at(2026, 8, 22), LOC, prefsWith(), 180);
+  const moved = B2.buildPrayerSchedule(at(2026, 8, 22), LOC, prefsWith({ off: { fajr: 7, isha: -5 } }), 180);
+  let fajrOk = 0, ishaOk = 0, sunMoved = 0;
+  const nRows = Math.min(base.length, moved.length);
+  for (let i = 0; i < nRows; i++) {
+    if (base[i].fajr !== null && moved[i].fajr - base[i].fajr === 7) fajrOk++;
+    if (base[i].isha !== null && moved[i].isha - base[i].isha === -5) ishaOk++;
+    if (base[i].sunrise !== moved[i].sunrise) sunMoved++;
+  }
+  eq('A-2: a +7 calibration moves the fajr of all thirty rows by exactly seven minutes', fajrOk, 30);
+  eq('A-2: a -5 calibration moves the isha of all thirty rows by exactly five minutes', ishaOk, 30);
+  eq('A-2: and NO offset moves the sunrise, on any of the thirty days', sunMoved, 0);
+
+  /* ---- it renews itself at the declared threshold ---- */
+  const st3 = memStore();
+  const B3 = NS(st3);
+  B3.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  const keep = B3.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 9, 14)); // 7 days still ahead
+  ok('A-2: with exactly the threshold left it is NOT rebuilt', keep.built === false && keep.remaining === 7);
+  const renew = B3.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 9, 15)); // 6 left, under the threshold
+  ok('A-2: one day later, under the threshold, it renews itself', renew.built === true && renew.why === 'short');
+  eq('A-2: ...and the renewed table starts that day', (renew.rec.days[0] || {}).day, '2026-09-15');
+  eq('A-2: ...and is thirty days long again', renew.rec.days.length, 30);
+
+  /* ---- any input that moves invalidates it ---- */
+  const drift = [
+    ['the method', (b) => b.ensurePrayerSchedule(LOC, prefsWith({ method: 'makkah' }), at(2026, 8, 22))],
+    ['the Asr school', (b) => b.ensurePrayerSchedule(LOC, prefsWith({ asr: 'hanafi' }), at(2026, 8, 22))],
+    ['a per-prayer offset', (b) => b.ensurePrayerSchedule(LOC, prefsWith({ off: { asr: 3 } }), at(2026, 8, 22))],
+    ['the position', (b) => b.ensurePrayerSchedule({ lat: 24.7136, lng: 46.6753 }, prefsWith(), at(2026, 8, 22))],
+  ];
+  for (const d of drift) {
+    const st = memStore();
+    const b = NS(st);
+    b.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+    const after = d[1](b);
+    ok('A-2: moving ' + d[0] + ' rebuilds the table rather than serving a superseded one',
+      after.built === true && after.why === 'inputs');
+  }
+  // The Hijri offset is an input too: it is what the date column is computed with.
+  const st4 = memStore();
+  const B4 = NS(st4);
+  B4.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  st4.setItem('ezik_hijri_offset_v1', '1');
+  const afterH = B4.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  ok('A-2: moving the Hijri offset rebuilds the table too', afterH.built === true && afterH.why === 'inputs');
+
+  /* ---- a broken store is rebuilt, never thrown ---- */
+  const bad = ['', 'not json', '{}', '[]', 'null', '{"v":2}',
+    '{"v":1,"stamp":"x","from":"2026-08-22","days":[]}'];
+  let rebuilt = 0, threw = 0;
+  for (const b of bad) {
+    const st = memStore();
+    st.setItem('ezik_prayer_schedule_v1', b);
+    try {
+      const r = NS(st).ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+      if (r.built === true && r.rec.days.length === 30) rebuilt++;
+    } catch (e) { threw++; }
+  }
+  eq('A-2: every shape of broken store is rebuilt', rebuilt, bad.length);
+  eq('A-2: ...and none of them throws at the reader', threw, 0);
+
+  /* ---- a store that denies every operation still draws a table ---- */
+  const deaf = {
+    getItem() { throw new Error('denied'); },
+    setItem() { throw new Error('denied'); },
+    removeItem() { throw new Error('denied'); },
+  };
+  let deafOk = false;
+  try {
+    const r = NS(deaf).ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+    deafOk = r.rec.days.length === 30;
+  } catch (e) { deafOk = false; }
+  ok('A-2: a storage that denies every operation still yields a thirty-day table', deafOk);
+
+  /* ---- ZERO NETWORK, asserted over the source of the path itself ---- */
+  ok('A-2: nothing on the table path is a request',
+    N_LIFTED.length > 0 && !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|WebSocket|new Image\(|navigator\.geolocation|\/api\//.test(N_LIFTED),
+    'the table path acquired a request');
+
+  /* ---- IT PROMISES NOTHING IT CANNOT DO ---- */
+  // The four words the round forbids in visible text, plus the two this item forbids by name,
+  // matched with the harakat stripped so an undotted spelling cannot walk past the scan.
+  const strip = (x) => String(x).replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+  const FORBIDDEN = [
+    ['tadhkir', '\u062A\u0630\u0643\u064A\u0631'],
+    ['tanbih', '\u062A\u0646\u0628\u064A\u0647'],
+    ['yudhakkiruk', '\u064A\u0630\u0643\u0631\u0643'],
+    ['nuallimuk', '\u0646\u0639\u0644\u0645\u0643'],
+    ['adhan', '\u0623\u0630\u0627\u0646'],
+    ['ishaar', '\u0625\u0634\u0639\u0627\u0631'],
+  ];
+  const SCHED_TEXT = ['PRAYER_SCHEDULE_TITLE', 'PRAYER_SCHEDULE_SHOW', 'PRAYER_SCHEDULE_HIDE',
+    'PRAYER_SCHEDULE_NOTE', 'PRAYER_SUNRISE_NOTE'].map((n) => liftConst(n)).join('\n');
+  ok('A-2: the table text was found to scan', SCHED_TEXT.length > 40);
+  for (const w of FORBIDDEN) {
+    ok('A-2: the table promises no ' + w[0], SCHED_TEXT.length > 40 && strip(SCHED_TEXT).indexOf(strip(w[1])) === -1);
+  }
+  ok('A-2: and the table offers no time field, so it cannot promise an hour it will not keep',
+    SRC.length > 0 && SRC.indexOf('type="time"') === -1 && SRC.indexOf("type: 'time'") === -1);
+
+  /* ---- the sunrise is DECLARED computed, not calibrated ---- */
+  const sunNote = liftConst('PRAYER_SUNRISE_NOTE') || '';
+  ok('A-2: the interface says in words that the sunrise is computed and takes no offset',
+    sunNote.length > 20 && strip(sunNote).indexOf(strip('\u0645\u064F\u0639\u0627\u064A\u064E\u0631')) !== -1);
+  ok('A-2: and the sunrise is absent from the offsettable list in the shipped source',
+    B0.PRAYER_OFFSETTABLE.indexOf('sunrise') === -1 && B0.PRAYER_KEYS.indexOf('sunrise') !== -1);
+}
+
+
+// ---------------------------------------------------------------------------
+// O. ROUND 25 A-3 -- THE SELECTION LAYER, AND THE PROMISE IT MUST NOT MAKE
+// ---------------------------------------------------------------------------
+// The reader chooses his own daily content in each of the three modules, the choice is kept
+// on the device, and the home screen shows it back. This section runs that record and then
+// enforces the constraint the round called the most dangerous one in it:
+//
+//   NO GIVING AND THEN TAKING AWAY. Not one visible string in the whole shipped client may
+//   say 'remind', 'alert', 'it will remind you' or 'we will let you know', and there may be
+//   no time field anywhere. A control that asks a child for an hour, when nothing in the
+//   application can ring at that hour, is a lie told by software -- and the child is the one
+//   who finds out. The hour is born the day notifications ship, and not before.
+//
+// The scan below is over the WHOLE client's visible text, not merely this layer's, and its
+// match count is printed so the number is read rather than trusted.
+
+const O_CONSTS = ['DAILY_WIRD_KEY', 'DAILY_WIRD_MODES', 'DW_LINE_MUSHAF', 'DW_LINE_ADHKAR',
+  'DW_LINE_MEMORIZE', 'DW_SURAH_WORD', 'DW_PAGES_WORD', 'DW_CARD_TITLE', 'DW_CARD_EMPTY',
+  'DW_MUSHAF_LABEL', 'DW_ADHKAR_LABEL', 'DW_MEMORIZE_LABEL', 'toArabicDigits', 'SURAH_ORDER'];
+const O_FNS = ['readDailyWird', 'writeDailyWird', 'dailyWirdLines'];
+
+const oConsts = {};
+const oFns = {};
+let oLifted = true;
+for (const n of O_CONSTS) { oConsts[n] = liftConst(n); if (!ok('A-3: lift const ' + n, !!oConsts[n])) oLifted = false; }
+for (const n of O_FNS) { oFns[n] = liftFunction(n); if (!ok('A-3: lift function ' + n, !!oFns[n])) oLifted = false; }
+
+if (oLifted) {
+  // SURAH_NAMES is built by a loop over the name table, so lifting its declaration would hand
+  // back an empty object. It is stubbed with ASCII names instead: what is under test here is
+  // that the line NAMES the chosen surah from that map, not what Arabic the map holds.
+  const O_LIFTED = O_CONSTS.map((n) => oConsts[n]).concat(O_FNS.map((n) => oFns[n])).join('\n\n')
+    + '\nconst SURAH_NAMES = { 1: "ALFATIHA", 2: "ALBAQARA", 114: "ALNAS" };';
+  ok('A-3: lifted block braces balance',
+    (O_LIFTED.match(/\{/g) || []).length === (O_LIFTED.match(/\}/g) || []).length);
+
+  const OS = (store) => new Function('localStorage', 'JSON', 'Object', 'Array',
+    O_LIFTED + '\nreturn { ' + O_CONSTS.concat(O_FNS).join(', ') + ', SURAH_NAMES };')(store, JSON, Object, Array);
+
+  /* ---- the key: new, versioned, and nobody else's ---- */
+  const D0 = OS(memStore());
+  eq('A-3: the selection record has its own versioned key', D0.DAILY_WIRD_KEY, 'ezik_daily_wird_v1');
+  ok('A-3: ...and it is none of the keys that already existed',
+    ['mushaf_wird_target_v1', 'mushaf_wird_day_v1', 'ezik_adhkar_streak_v1', 'ezik_prayer_prefs_v1',
+      'ezik_hijri_offset_v1', 'child_profile'].indexOf(D0.DAILY_WIRD_KEY) === -1);
+  eq('A-3: a mushaf wird is a page count or a surah, and nothing else', D0.DAILY_WIRD_MODES.join(','), 'pages,surah');
+  eq('A-3: the canonical 114 are offered in the mushaf order', D0.SURAH_ORDER.length, 114);
+  ok('A-3: ...beginning at al-Fatiha and ending at 114',
+    D0.SURAH_ORDER[0] === 1 && D0.SURAH_ORDER[113] === 114);
+
+  /* ---- NOTHING EXISTING IS RENAMED OR MIGRATED ---- */
+  const storeSrc = oFns.readDailyWird + '\n' + oFns.writeDailyWird;
+  const setItems = storeSrc.match(/setItem\(/g) || [];
+  const removeItems = storeSrc.match(/removeItem\(/g) || [];
+  eq('A-3: the selection store writes exactly one key', setItems.length, 1);
+  ok('A-3: ...and that key is its own', /setItem\(DAILY_WIRD_KEY/.test(storeSrc));
+  eq('A-3: ...and it deletes nothing, so no existing store is migrated away', removeItems.length, 0);
+  ok('A-3: the pre-existing page-count key is still the one the mushaf reads',
+    SRC.indexOf("const WIRD_TARGET_KEY = 'mushaf_wird_target_v1';") !== -1);
+
+  /* ---- a fresh device has chosen nothing ---- */
+  const fresh = OS(memStore()).readDailyWird();
+  ok('A-3: a fresh device has chosen nothing at all',
+    fresh.mushaf.mode === '' && fresh.mushaf.surah === 0 && fresh.adhkar.cat === ''
+    && fresh.memorize.surah === 0);
+
+  /* ---- each module's choice round-trips ---- */
+  const st1 = memStore();
+  const D1 = OS(st1);
+  const w1 = D1.writeDailyWird({ mushaf: { mode: 'surah', surah: 114 } });
+  eq('A-3: a chosen surah survives the round trip', w1.mushaf.surah, 114);
+  eq('A-3: ...as a surah wird, not a page wird', w1.mushaf.mode, 'surah');
+  const w2 = D1.writeDailyWird({ adhkar: { cat: 'morning', title: 'T' } });
+  eq('A-3: a chosen dhikr survives the round trip', w2.adhkar.cat, 'morning');
+  ok('A-3: ...and it keeps the surah already chosen in another module', w2.mushaf.surah === 114);
+  const w3 = D1.writeDailyWird({ memorize: { surah: 2 } });
+  eq('A-3: a chosen memorisation survives the round trip', w3.memorize.surah, 2);
+  ok('A-3: ...and all three choices stand together', w3.mushaf.surah === 114 && w3.adhkar.cat === 'morning');
+  ok('A-3: the choices are on the device and nowhere else', st1.has('ezik_daily_wird_v1'));
+
+  /* ---- half a choice is not a choice ---- */
+  const half = OS(memStore({ ezik_daily_wird_v1: '{"mushaf":{"mode":"surah","surah":0}}' })).readDailyWird();
+  eq('A-3: a surah wird with no surah behind it is refused', half.mushaf.mode, '');
+  const bad = ['0', '115', '-1', '1.5', '"x"', 'null'];
+  let refused = 0;
+  for (const v of bad) {
+    const r = OS(memStore({ ezik_daily_wird_v1: '{"memorize":{"surah":' + v + '}}' })).readDailyWird();
+    if (r.memorize.surah === 0) refused++;
+  }
+  eq('A-3: every surah number outside 1..114 is refused', refused, bad.length);
+
+  /* ---- a broken store is 'nothing chosen', never an exception ---- */
+  const broken = ['', 'not json', '[]', 'null', '3', '{"mushaf":5}', '{"adhkar":[]}'];
+  let quiet = 0, threw = 0;
+  for (const b of broken) {
+    try {
+      const r = OS(memStore({ ezik_daily_wird_v1: b })).readDailyWird();
+      if (r.mushaf.mode === '' && r.adhkar.cat === '' && r.memorize.surah === 0) quiet++;
+    } catch (e) { threw++; }
+  }
+  eq('A-3: every broken store reads as nothing chosen', quiet, broken.length);
+  eq('A-3: ...and none of them throws at the reader', threw, 0);
+  const deafD = { getItem() { throw new Error('no'); }, setItem() { throw new Error('no'); },
+    removeItem() { throw new Error('no'); } };
+  let deafOk = false;
+  try { const d = OS(deafD); d.writeDailyWird({ memorize: { surah: 2 } }); deafOk = d.readDailyWird().memorize.surah === 0; }
+  catch (e) { deafOk = false; }
+  ok('A-3: a storage that denies every operation neither throws nor invents a choice', deafOk);
+
+  /* ---- the card shows what was chosen, and only that ---- */
+  const D2 = OS(memStore());
+  eq('A-3: nothing chosen draws no lines', D2.dailyWirdLines(D2.readDailyWird(), null).length, 0);
+  const chose = { mushaf: { mode: 'surah', surah: 1 }, adhkar: { cat: 'c', title: 'DHIKR' }, memorize: { surah: 114 } };
+  const lines = D2.dailyWirdLines(chose, null);
+  eq('A-3: three choices draw three lines', lines.length, 3);
+  ok('A-3: the mushaf line names the chosen surah from SURAH_NAMES', lines[0].indexOf('ALFATIHA') !== -1);
+  ok('A-3: the dhikr line names the chosen category', lines[1].indexOf('DHIKR') !== -1);
+  ok('A-3: the memorisation line names its own surah', lines[2].indexOf('ALNAS') !== -1);
+  const pages = D2.dailyWirdLines({ mushaf: { mode: 'pages', surah: 0 }, adhkar: { cat: '', title: '' }, memorize: { surah: 0 } }, 5);
+  eq('A-3: a page wird draws one line', pages.length, 1);
+  const pagesNone = D2.dailyWirdLines({ mushaf: { mode: 'pages', surah: 0 }, adhkar: { cat: '', title: '' }, memorize: { surah: 0 } }, null);
+  eq('A-3: ...and with no page target stored it invents none', pagesNone.length, 0);
+
+  /* ---- one dropdown per module, and they are dropdowns ---- */
+  const selects = SRC.match(/<select/g) || [];
+  ok('A-3: the three modules each carry a dropdown',
+    (SRC.match(/aria-label=\{DW_MUSHAF_LABEL\}/g) || []).length === 1
+    && (SRC.match(/aria-label=\{DW_ADHKAR_LABEL\}/g) || []).length === 1
+    && (SRC.match(/aria-label=\{DW_MEMORIZE_LABEL\}/g) || []).length === 1);
+  ok('A-3: and each of the three is a real dropdown', selects.length >= 5);
+  ok('A-3: the home card is drawn from the stored choices, not from a second source',
+    SRC.indexOf('{DW_CARD_TITLE}') !== -1 && SRC.indexOf('v.dailyWirdLines') !== -1);
+
+  /* ================= THE BINDING SCAN ================= */
+  // Visible text only: comments are stripped first, because a word nobody is shown is not a
+  // promise made to anybody.
+  const visible = (function () {
+    const noC = SRC.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+    const AR = /[\u0600-\u06FF]/;
+    const out = [];
+    const re = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g;
+    let m;
+    while ((m = re.exec(noC)) !== null) {
+      const v = m[1] !== undefined ? m[1] : m[2];
+      if (v && AR.test(v)) out.push(v);
+    }
+    const jsxRe = />([^<>{}]*[\u0600-\u06FF][^<>{}]*)</g;
+    while ((m = jsxRe.exec(noC)) !== null) out.push(m[1]);
+    return out;
+  })();
+  const stripH = (x) => String(x).replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+  const PROMISE_WORDS = [
+    ['tadhkir', '\u062A\u0630\u0643\u064A\u0631'],
+    ['tanbih', '\u062A\u0646\u0628\u064A\u0647'],
+    ['yudhakkiruk', '\u064A\u0630\u0643\u0631\u0643'],
+    ['nuallimuk', '\u0646\u0639\u0644\u0645\u0643'],
+  ];
+  ok('A-3: the visible-text scan actually read the client', visible.length > 200);
+  let promiseHits = 0;
+  for (const w of PROMISE_WORDS) {
+    const n = visible.filter((t) => stripH(t).indexOf(stripH(w[1])) !== -1).length;
+    promiseHits += n;
+    ok('A-3: no visible string says ' + w[0] + ' (matches=' + n + ')', visible.length > 200 && n === 0);
+  }
+  console.log('  A-3 SCAN: visible Arabic strings=' + visible.length
+    + '  forbidden-word matches=' + promiseHits);
+  eq('A-3: THE COUNT THE ROUND REQUIRES TO BE ZERO', promiseHits, 0);
+  ok('A-3: and the client offers no time field anywhere',
+    SRC.length > 0 && SRC.indexOf('type="time"') === -1 && SRC.indexOf("type: 'time'") === -1
+    && SRC.indexOf("type='time'") === -1);
+}
+
+
+// ---------------------------------------------------------------------------
+// P. ROUND 25 A-4 -- THE OFFLINE PACKAGE, AND THE FOUR CONDITIONS IT STANDS ON
+// ---------------------------------------------------------------------------
+// The WORKER side of this item is B16 in quest-bank-integrity-guard.cjs: the published
+// ceiling, the floor, the store name, and the proof that the ceiling holds the largest juz
+// whole. (It lives there because the juz ranges come out of mushaf-layout.json, and THIS
+// guard opens no asset but the shipped client -- a rule this item does not get to weaken.)
+//
+// This is the PAGE side: the four conditions without any one of which the button lies.
+//   1. an estimate BEFORE the first byte, and a refusal that says why;
+//   2. a visible count while it runs;
+//   3. every failure counted and shown -- no swallowed rejection anywhere on the path;
+//   4. the eviction rule, in words, on the same panel.
+// The room decision is a PURE function on purpose, so every branch of condition 1 is driven
+// here with no browser, no disk and no worker.
+
+// The control is an arrow, not a `function` declaration, so it gets its own brace-matched
+// lift -- and a THROW when the anchor is gone, never a silent empty string that would make
+// every check below pass by reading nothing.
+function liftArrow(name) {
+  const sig = 'const ' + name + ' = async () => {';
+  const i = SRC.indexOf(sig);
+  if (i < 0) throw new Error('wird-guard A-4: ' + name + ' not found in the shipped client');
+  const open = SRC.indexOf('{', i + sig.length - 1);
+  let depth = 0;
+  for (let j = open; j < SRC.length; j++) {
+    if (SRC[j] === '{') depth++;
+    else if (SRC[j] === '}') { depth--; if (depth === 0) return SRC.slice(i, j + 1); }
+  }
+  throw new Error('wird-guard A-4: ' + name + ' has unbalanced braces');
+}
+
+const P_CONSTS = ['JUZ_DL_PAGE_BYTES', 'MADINA_IMG_PAGES'];
+const P_FNS = ['juzPagesFor', 'juzOfPage', 'juzRoomVerdict'];
+const pConsts = {};
+const pFns = {};
+let pLifted = true;
+for (const n of P_CONSTS) { pConsts[n] = liftConst(n); if (!ok('A-4: lift const ' + n, !!pConsts[n])) pLifted = false; }
+for (const n of P_FNS) { pFns[n] = liftFunction(n); if (!ok('A-4: lift function ' + n, !!pFns[n])) pLifted = false; }
+
+if (pLifted) {
+  const P_LIFTED = P_CONSTS.map((n) => pConsts[n]).concat([pFns.juzRoomVerdict]).join('\n\n');
+  const PS = new Function('Object',
+    P_LIFTED + '\nreturn { JUZ_DL_PAGE_BYTES, MADINA_IMG_PAGES, juzRoomVerdict };')(Object);
+
+  /* ---- CONDITION 1, every branch of it ---- */
+  const POL = { cap: 60, minFree: 50 * 1024 * 1024 };
+  const need23 = 23 * PS.JUZ_DL_PAGE_BYTES;
+  eq('A-4: with no worker to answer, the download does not start',
+    PS.juzRoomVerdict(null, 1e12, 23).why, 'noworker');
+  ok('A-4: ...and that is a refusal, not a silent pass', PS.juzRoomVerdict(null, 1e12, 23).ok === false);
+  eq('A-4: with the free space unmeasurable, the download does not start',
+    PS.juzRoomVerdict(POL, null, 23).why, 'unmeasured');
+  ok('A-4: ...because an estimate that could not be taken is not an estimate that passed',
+    PS.juzRoomVerdict(POL, null, 23).ok === false);
+  eq('A-4: one byte short of the worker\'s own floor, it does not start',
+    PS.juzRoomVerdict(POL, need23 + POL.minFree - 1, 23).why, 'nospace');
+  ok('A-4: exactly at the floor it starts', PS.juzRoomVerdict(POL, need23 + POL.minFree, 23).ok === true);
+  ok('A-4: the refusal carries the three numbers the reader is owed',
+    (function () {
+      const v = PS.juzRoomVerdict(POL, 1000, 23);
+      return v.need === need23 && v.free === 1000 && v.minFree === POL.minFree;
+    })());
+  ok('A-4: the need is the page count times the per-page estimate, never less',
+    PS.juzRoomVerdict(POL, 1e12, 23).need === 23 * PS.JUZ_DL_PAGE_BYTES);
+  eq('A-4: the printed book is still 604 pages', PS.MADINA_IMG_PAGES, 604);
+
+  /* ---- CONDITIONS 2, 3 and 4, in the control itself ---- */
+  let runSrc = '';
+  let threwByName = false;
+  try { runSrc = liftArrow('runJuzDownload'); } catch (e) { threwByName = true; }
+  ok('A-4: the download control was found in the shipped client', !threwByName && runSrc.length > 400);
+  if (runSrc.length > 400) {
+    const fetchAt = runSrc.indexOf('await fetch(');
+    const verdictAt = runSrc.indexOf('juzRoomVerdict(');
+    ok('A-4: CONDITION 1 -- the room is decided BEFORE the first page is fetched',
+      verdictAt !== -1 && fetchAt !== -1 && verdictAt < fetchAt);
+    ok('A-4: ...and a refused verdict returns without fetching anything',
+      /if \(!verdict\.ok\)[\s\S]*?return;/.test(runSrc));
+    ok('A-4: CONDITION 2 -- how many of how many is put on screen as it runs',
+      runSrc.indexOf('total: pages.length, done: done') !== -1);
+    ok('A-4: CONDITION 3 -- no swallowed rejection: there is no empty catch on the path',
+      !/catch\s*\([^)]*\)\s*\{\s*\}/.test(runSrc)
+      && !/catch\s*\(\s*\(\s*\)\s*=>\s*\{\s*\}\s*\)/.test(runSrc));
+    ok('A-4: ...and the one catch there is COUNTS the failure it caught',
+      /catch \(e\) \{[\s\S]{0,80}failed\+\+/.test(runSrc));
+    ok('A-4: ...and a page that fetched but was never STORED is reported too',
+      runSrc.indexOf('skipped') !== -1 && runSrc.indexOf('storeFailed') !== -1);
+    ok('A-4: ...and one press cannot become two runs',
+      runSrc.indexOf("juzDl.phase === 'run'") !== -1);
+  }
+  const ruleTail = liftConst('JD_RULE_B') || '';
+  const ruleHead = liftConst('JD_RULE_A') || '';
+  ok('A-4: CONDITION 4 -- the eviction rule is a real sentence, not a label',
+    ruleHead.length > 20 && ruleTail.length > 30);
+  // Same PANEL, not merely same file: the rule has to be in front of the reader where the
+  // button is, so the two are required to sit within a screenful of each other in the source.
+  ok('A-4: ...and it is rendered on the same panel as the button',
+    (function () {
+      const btn = SRC.lastIndexOf('JD_BUSY : JD_BTN');
+      const rule = SRC.lastIndexOf('JD_RULE_A + toArabicDigits(');
+      return btn !== -1 && rule !== -1 && rule > btn && (rule - btn) < 1200;
+    })());
+  ok('A-4: the ceiling in that sentence is the WORKER\'s, pulled, never retyped in the client',
+    SRC.indexOf('mushafPolicy') !== -1 && !/const JUZ_DL_CAP\b/.test(SRC));
+  // The storage is the WORKER's job and stays the worker's job: the page fetches, and the
+  // worker's own cache-first branch decides what is kept. A page that opened a cache itself
+  // would be a second store with no ceiling and no eviction rule behind it.
+  ok('A-4: the page opens no cache of its own -- storing stays with the worker',
+    SRC.length > 0 && SRC.indexOf('caches.open(') === -1 && SRC.indexOf('caches.match(') === -1
+    && SRC.indexOf('caches.delete(') === -1 && SRC.indexOf('caches.keys(') === -1);
+}
+
 function report() {
   const line = '-'.repeat(58);
   console.log(line);
