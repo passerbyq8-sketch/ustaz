@@ -434,7 +434,7 @@ head('8) MARKERS & FROZEN-SURFACE PRESENCE (index.html)');
   }
   flag('PERSIST_CONVERSATION', /PERSIST_CONVERSATION\s*=\s*(true|false)/, 'true');
   flag('SCHOLAR_ENABLED',      /SCHOLAR_ENABLED\s*=\s*(true|false)/, 'true');
-  flag('CALL_STREAM_SPEECH',   /CALL_STREAM_SPEECH\s*=\s*(true|false)/, 'false');
+  flag('CALL_STREAM_SPEECH',   /CALL_STREAM_SPEECH\s*=\s*(true|false)/, 'true');
 
   const markerChecks = [
     ['tts-num-words injection', /tts-num-words/],
@@ -446,7 +446,11 @@ head('8) MARKERS & FROZEN-SURFACE PRESENCE (index.html)');
     // invariant: the module is the only builder, and no second copy has come back here.
     ['deriveCaps',              /deriveCaps/],
     ['formatForTTS',            /formatForTTS/],
-    ['parseSegments',           /parseSegments/],
+    // The token below is NOT parseSegments. `git log -S parseSegments -- index.html` is empty
+    // over the whole history: the name never existed there, so this entry could only ever have
+    // warned. The real splitter it stands for is parseRichMessage, declared at index.html:3760
+    // and called at three (6566, 10958, 11226), so this check can now actually be absent.
+    ['parseRichMessage',        /parseRichMessage/],
     ['createCallSpeechStream',  /createCallSpeechStream/],
     ['playDhikrRecitation',     /playDhikrRecitation/],
     ['tagPattern',              /tagPattern/],

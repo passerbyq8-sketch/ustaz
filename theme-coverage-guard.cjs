@@ -319,6 +319,21 @@ function runBoot(src, stored) {
   return { theme: d.getAttribute('data-theme'), scheme: d.style.colorScheme, bg: d.style.background,
     bar: w.document.querySelector('meta[name="theme-color"]').getAttribute('content') };
 }
+const VT_LIGHT_PAGES = (() => {
+  const out = {};
+  const re = /:root\[data-ezik-visual-theme="([a-z0-9_]+)"\]\s*\{([\s\S]*?)\}/g;
+  let m;
+  while ((m = re.exec(css)) !== null) {
+    const p = /--vt-page:\s*(#[0-9A-Fa-f]{6})/.exec(m[2]);
+    if (p) out[m[1]] = p[1].toUpperCase();
+  }
+  return out;
+})();
+const VT_LIGHT_PAGE_VALUES = Object.keys(VT_LIGHT_PAGES).map((k) => VT_LIGHT_PAGES[k]);
+ok('F1: every identity declares a light --vt-page', VT_LIGHT_PAGE_VALUES.length > 0, JSON.stringify(VT_LIGHT_PAGES));
+eq('F1: ...and they all declare the SAME one, so one boot literal can be right for all of them',
+  VT_LIGHT_PAGE_VALUES.filter((v) => v !== VT_LIGHT_PAGE_VALUES[0]), []);
+const BOOT_LIGHT_PAGE = VT_LIGHT_PAGE_VALUES[0] || String(LIGHT['--page']);
 for (const stored of ['dark', 'light']) {
   const r = runBoot(html, stored);
   if (!ok('F1: the boot script is runnable for stored=' + stored, !!r)) continue;
@@ -326,7 +341,14 @@ for (const stored of ['dark', 'light']) {
   eq('F1: ...it sets the UA colorScheme to ' + stored, r.scheme, stored);
   // The inline paint is what covers the gap before the stylesheet arrives, so it must BE the
   // page colour of that theme -- otherwise the first frame is the wrong dark/light shade.
-  const expectPage = (stored === 'dark' ? DARK : LIGHT)['--page'];
+  // ITEM 95 NARROWS THE LIGHT HALF. It compared against --page of the :root palette, and
+  // that token has had NO READER since the visual identities landed: the mapping block
+  // overwrites --page with var(--vt-page), and the identity attribute is written by the
+  // very same boot script. So the old assertion pinned the first frame to a colour the app
+  // never paints, which is precisely how the root came to sit on a pale blue while every
+  // surface above it was white. It now compares against --vt-page, the value the app does
+  // paint. The DARK half is unchanged and still compares against the base palette.
+  const expectPage = (stored === 'dark') ? DARK['--page'] : BOOT_LIGHT_PAGE;
   const got = parseColor(String(r.bg).trim());
   ok('F1: ...and paints <html> with that theme\'s --page (' + expectPage + ')',
     got && hex(got).toLowerCase() === String(expectPage).toLowerCase(), 'painted ' + r.bg);
@@ -346,7 +368,8 @@ ok('F2: ...and repaints the root, so no stale inline colour survives a switch',
 const bootDark = /d\.style\.background=\(t==='dark'\?'(#[0-9A-Fa-f]{6})':'(#[0-9A-Fa-f]{6})'\)/.exec(html);
 if (ok('F2: the boot paint literals are readable', !!bootDark)) {
   eq('F2: boot dark paint == the dark --page token', bootDark[1].toUpperCase(), String(DARK['--page']).toUpperCase());
-  eq('F2: boot light paint == the light --page token', bootDark[2].toUpperCase(), String(LIGHT['--page']).toUpperCase());
+  eq('F2: boot light paint == the light page the identities actually paint',
+    bootDark[2].toUpperCase(), BOOT_LIGHT_PAGE.toUpperCase());
 }
 
 /* --- F3. the quest celebration scrim -------------------------------------
@@ -412,7 +435,10 @@ const VT_APPROVED = {
     '--vt-ink': '#123C37', '--vt-muted': '#5E716D', '--vt-accent': '#006B61', '--vt-accent2': '#C48A27',
     '--vt-line': '#D6E3DF', '--vt-radius': '18px', '--vt-radius-sig': '18px',
     '--vt-shadow': '0 16px 48px rgba(0,84,76,.10)' },
-  istana_33: { '--vt-page': '#FFFFFF', '--vt-surface': '#FFFDFC', '--vt-surface2': '#EEF6F7',
+  // ITEM 95: the approved surface for istana_33 in LIGHT is now pure white. This table is the
+  // specification and it is being changed deliberately, not relaxed: it still pins an exact
+  // value, and index.html is still wrong if it disagrees by one digit.
+  istana_33: { '--vt-page': '#FFFFFF', '--vt-surface': '#FFFFFF', '--vt-surface2': '#EEF6F7',
     '--vt-ink': '#10364E', '--vt-muted': '#647780', '--vt-accent': '#0B5F8E', '--vt-accent2': '#C43E38',
     '--vt-line': '#C8DDE2', '--vt-radius': '18px', '--vt-radius-sig': '120px 120px 18px 18px',
     '--vt-shadow': '0 18px 45px rgba(12,78,105,.12)' },
@@ -975,12 +1001,14 @@ ok('it has an OTTOMAN MASTHEAD', /<EzistMasthead /.test(IST) && /className="ezis
 ok('...whose arch IS the approved signature radius',
   /\.ezist-masthead\{[^}]*border-radius:var\(--ez-radius-sig\)/.test(css));
 eq('...which under istana_33 is the approved 120px arch', VT.light.istana_33['--vt-radius-sig'], '120px 120px 18px 18px');
-ok('it carries a bounded tulip emblem', /className="ezist-tulip"/.test(IST) && /\.ezist-tulip\{/.test(css));
-// The emblem is bounded by construction: its own selector cannot match a page root, and the
-// section that contains it clips.
-ok('...the emblem selectors cannot reach a page root',
-  !/(^|[,}])\s*(html|body|:root)[^{]*\.ezist-tulip/.test(css) && /\.ezist-masthead\{[^}]*overflow:hidden/.test(css));
-ok('...and it uses the identity accent, not a literal', /\.ezist-tulip::before\{[^}]*var\(--a3-blue\)/.test(css));
+ok('the masthead carries NO emblem -- item 100 removed the tulip at the owner\'s request',
+  !/className="ezist-tulip"/.test(IST) && !/\.ezist-tulip/.test(css));
+// The masthead is still the box that clips, which is what kept the emblem inside it and what
+// keeps everything else inside it now.
+ok('...and the masthead still clips, so nothing inside it can paint outside it',
+  /\.ezist-masthead\{[^}]*overflow:hidden/.test(css));
+ok('...and no .ezist-tulip selector survives anywhere in the sheet, with or without a literal colour',
+  (css.match(/\.ezist-tulip/g) || []).length === 0 && html.indexOf('ezist-tulip') === -1);
 ok('the greeting and the daily line are the ones the app already picked',
   /\{EZH_SALAM\}/.test(IST) && /\{EZH_HELLO\} \{name\}/.test(IST) && /\{g\.text\}/.test(IST));
 
@@ -2273,8 +2301,8 @@ ok('N10: the welcome is shown ONLY while there is nothing to read',
 ok('N10: ...and the history is not drawn inside the thread',
   drawerSrc.indexOf('chatList.map(') !== -1 && chatSrc.indexOf('chatList.map(') === -1,
   'the conversation list must be inside the drawer, never in the transcript');
-ok('N10: the empty state offers no new devotional text, only the app\'s own name',
-  /<div className="ezc-empty-title">\{A2_BRAND\}<\/div>/.test(chatSrc));
+ok('N10: the empty state carries no text at all -- item 94 took the name, and no devotional text ever stood here',
+  /<div className="ezc-empty"><\/div>/.test(chatSrc) && html.indexOf('ezc-empty-title') === -1);
 
 /* ---- N11..N13. the store: keys, pin, delete --------------------------- */
 ok('N11: the conversation keys are the shipped ones',
@@ -2574,8 +2602,19 @@ eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
   // the same colour in every theme and so could not be moved in one place. This pins the token,
   // pins BOTH sites to it, and pins that only LIGHT carries a literal: dark still defers to the
   // ink it always had, so a future theme cannot darken an answer that is already on a dark page.
-  ok('N33: the answer ink is one token, and both answer sites read it',
-    s.assistantBubble.color === 'var(--answer-ink)' && s.bubbleText.color === 'var(--answer-ink)');
+  ok('N33: the answer ink is one token, and every answer site reads it',
+    s.assistantBubble.color === 'var(--answer-ink)' && s.bubbleText.color === 'var(--answer-ink)'
+      && s.mdH1.color === 'var(--answer-ink)' && s.mdH2.color === 'var(--answer-ink)'
+      && s.mdH3.color === 'var(--answer-ink)',
+    'bubble=' + s.assistantBubble.color + ' prose=' + s.bubbleText.color
+      + ' h1=' + s.mdH1.color + ' h2=' + s.mdH2.color + ' h3=' + s.mdH3.color);
+  // ITEM 63 VERIFY. The measurement that produced this: on cfb73ca, in light, on a real
+  // markdown answer, the prose painted rgb(0,0,0) at 21.00:1 and a heading in the SAME answer
+  // painted rgb(16,54,78) at 12.65:1. The three heading styles were the last readers of --ink
+  // inside a reply, and this is what stops a fourth appearing: no style whose name begins mdH
+  // may read --ink again.
+  eq('N33: ...and no heading style inside an answer reads the general --ink any more',
+    Object.keys(s).filter((k) => /^mdH/.test(k) && String((s[k] || {}).color) === 'var(--ink)'), []);
   ok('N33: ...black in light, and dark defers to the ink it already had',
     /--answer-ink:#000000\}/.test(css) && /--answer-ink:var\(--a3-ink\)\}/.test(css));
   eq('N33: ...and it is declared in exactly those two places',
@@ -2613,10 +2652,15 @@ eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
   ok('N33: an empty history says so instead of ending in a blank space',
     /\{chatResults === null && chatList\.length === 0 && \(\s*\r?\n\s*<div style=\{s\.drawerEmpty\}>\{EZIK_CHATS_EMPTY\}<\/div>/.test(drawerSrc));
   // The rail says which conversation is open, and reads it rather than inventing it.
-  ok('N33: the rail title is the store\'s own, and the brand only when there is none',
+  // ITEM 94 (the rest of it): the brand fallback is GONE, so this is narrowed, not relaxed --
+  // it now demands the exact absence of a fallback, the conditional span, AND that the chat's
+  // own markup cannot name the brand at all, which the old form did not check.
+  ok('N33: the rail title is the store\'s own, and when there is no conversation there is no title',
     /const ezcOpenChat = chatId \? chatList\.find\(\(c\) => c\.id === chatId\) : null;/.test(html)
-    && /const ezcTitle = \(ezcOpenChat && ezcOpenChat\.title\) \? ezcOpenChat\.title : A2_BRAND;/.test(html)
-    && /<span className="ezc-brand-text">\{ezcTitle\}<\/span>/.test(chatSrc));
+    && /const ezcTitle = \(ezcOpenChat && ezcOpenChat\.title\) \? ezcOpenChat\.title : null;/.test(html)
+    && /\{ezcTitle \? <span className="ezc-brand-text">\{ezcTitle\}<\/span> : null\}/.test(chatSrc)
+    && chatSrc.indexOf('A2_BRAND') === -1
+    && /<span className="ezc-brand-arch" aria-hidden="true" \/>/.test(chatSrc));
 }
 
 /* ============ O. THE ISTANA VOICE ROOM (S113) ============================

@@ -19,10 +19,16 @@
      Three things are set here, in order of when they matter:
        colorScheme  -- the UA's own canvas/scrollbar/form default, honoured before CSS
        background   -- an inline paint on <html>, so the very first frame is already the right
-                       colour even if the stylesheet has not arrived
+                       colour even if the stylesheet has not arrived. ITEM 95: in LIGHT that
+                       colour is #FFFFFF. It was #F1F6FD, the pale blue --page of the base
+                       palette, and it stopped agreeing with the app the moment the visual
+                       identities landed and made --vt-page #FFFFFF in both of them: the
+                       stylesheet went white, this inline paint did not follow, and the root
+                       kept a blue that showed in overscroll, behind the system bars and for
+                       the whole of the first frame. Dark is untouched.
        data-theme   -- what the stylesheet keys off once it does arrive
      Fails to light, exactly as before. -->
-<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;d.style.background=(t==='dark'?'#0E1116':'#F1F6FD');var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();(function(){try{var v=localStorage.getItem('ezik_visual_theme_v2');if(v!=='istana_33'){v='istana_33';}document.documentElement.setAttribute('data-ezik-visual-theme',v);}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('murabbi_theme_v1');if(t!=='dark'&&t!=='light'){t='light';}var d=document.documentElement;d.setAttribute('data-theme',t);d.style.colorScheme=t;d.style.background=(t==='dark'?'#0E1116':'#FFFFFF');var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content',t==='dark'?'#0E1116':'#1D4ED8');}}catch(e){}})();(function(){try{var v=localStorage.getItem('ezik_visual_theme_v2');if(v!=='istana_33'){v='istana_33';}document.documentElement.setAttribute('data-ezik-visual-theme',v);}catch(e){}})();</script>
 <!-- S99: the reading preferences, applied BEFORE the first paint for the same reason the theme is.
      Read here and the interface draws once at the chosen size; read after React mounts and the
      user watches it resize. It reads the active profile's id from the profile the app already
@@ -371,7 +377,16 @@
     --vt-deep:#3FA898; --vt-soft:#16302B;
   }
   :root[data-ezik-visual-theme="istana_33"]{
-    --vt-page:#FFFFFF; --vt-surface:#FFFDFC; --vt-surface2:#EEF6F7;
+    /* ITEM 95 -- THE SURFACE IS PURE WHITE. It was #FFFDFC, a 0/2/3 warm cast that the
+       owner could see and this file could not defend: on a #FFFFFF page it is a fill nobody
+       can name and a second white nobody asked for. It is the ground of the top bar, the
+       cards, the rail, the composer dock and the drawer -- the whole of what «الخلفيّات»
+       means on the home, the chat and the menu -- so one value moves all of them at once.
+       --vt-surface2 (#EEF6F7) does NOT move: it is the pale blue-grey the owner kept, and
+       it is the tint on the mushaf card, the masthead and the composer field, not a
+       background pretending to be white. --vt-line #C8DDE2 is what draws every card and it
+       is untouched, so nothing loses its edge. */
+    --vt-page:#FFFFFF; --vt-surface:#FFFFFF; --vt-surface2:#EEF6F7;
     --vt-ink:#10364E; --vt-muted:#647780;
     --vt-accent:#0B5F8E; --vt-accent2:#C43E38;
     --vt-line:#C8DDE2;
@@ -485,7 +500,7 @@
 
      THE PANEL IS NOT RESTYLED, it is UNBOXED. Every rule below removes a piece of CARD chrome
      -- the surface, the border, the shadow, the card's own corner and its card padding -- and
-     not one of them touches the verse: the label, the rule, the Amiri face, the 19px size, the
+     not one of them touches the verse: the label, the Amiri face, the 19px size, the
      2.1 line height, the centring and the reference line are the panel's own inline styles and
      are untouched, so the words render exactly as they did in the mosaic. It takes the width
      the menu button leaves and no more, and min-width:0 lets it wrap rather than push.
@@ -499,7 +514,6 @@
   .ezist-nav .ezist-quran{flex:1 1 auto;min-width:0;
     padding:2px 2px 4px !important;background:transparent !important;border:0 !important;
     border-radius:0 !important;box-shadow:none !important}
-  .ezist-nav .ezist-quran .ezist-rule{margin:5px 0}
   .ezist-wrap{width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;
     padding:14px 12px calc(22px + env(safe-area-inset-bottom, 0px))}
   /* THE MASTHEAD, and the arch IS the signature radius -- 120px 120px 18px 18px under
@@ -541,16 +555,14 @@
      to its own text and shrinks -- with min-width:0 kept, so a long name still ellipses rather
      than widening the strip. */
   .ezist-hello{display:flex;flex-direction:column;align-items:center;min-width:0;max-width:100%;flex:0 1 auto}
-  /* the tulip: two pseudo-elements and a leaf, all inside the masthead box. Strip scale, and
-     the same three boxes -- no path, no image, no new colour. */
-  .ezist-tulip{position:relative;display:block;flex-shrink:0;width:20px;height:24px;margin:0}
-  .ezist-tulip::before{content:"";position:absolute;left:50%;top:0;width:14px;height:16px;
-    margin-left:-7px;border:2px solid var(--a3-blue);border-radius:60% 60% 14% 14%}
-  .ezist-tulip::after{content:"";position:absolute;left:50%;top:16px;width:2px;height:8px;
-    margin-left:-1px;background:var(--a3-blue)}
-  .ezist-tulip-mark{position:absolute;left:50%;top:5px;width:5px;height:5px;margin-left:-2.5px;
-    border-radius:50%;background:var(--a3-cyan)}
-  .ezist-rule{height:1px;background:var(--a3-line);margin:9px 0}
+  /* ITEM 100 -- THE TULIP STOOD HERE, four rules deep: a 20x24 span holding a bordered bud, a
+     2x8 stem and a 5px cyan bead. On the strip it sat at (342.22, 155.89), hard against the
+     leading (right) end of the row and immediately beside «مرحباً يا ...» -- which is what the
+     owner meant by «العلامة بجانب مرحبا», and it is removed.
+     THE OTHER TWO MARKS ON THE ROW ARE NOT IT AND ARE NOT TOUCHED: .ezist-rule-short is the
+     2x22 blue bar on the far side of the name, a separator and not a mark, and the arch of
+     .ezist-masthead itself is the identity signature that two assertions hold in place. The
+     greeting text and its size are untouched: 22.94px tall, the same face, the same weight. */
   /* the short rule turned through 90 degrees: it separated the name from the chip when they
      were stacked, and it separates them on the row for the same reason. */
   .ezist-rule-short{flex-shrink:0;width:2px;height:22px;background:var(--a3-blue);
@@ -906,7 +918,6 @@
      its own, so a new thread opens with the composer under the thumb and no dead band. */
   .ezc-empty{margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:14px;
     padding:24px 16px;text-align:center}
-  .ezc-empty-title{font-family:var(--ez-ui-font);font-weight:800;font-size:21px;color:var(--a3-ink)}
   /* 4. THE COMPOSER DOCK -- bounded on the same measure as the transcript, in flow, so it
      can never cover the last reply. */
   .ezc-dock{flex-shrink:0;display:flex;justify-content:center;box-sizing:border-box;
@@ -993,11 +1004,13 @@
   /* ========================================================================
      THE SECTION SUGGESTIONS, above the composer, on an empty thread only.
 
-     ONE LIST, TWO SHAPES. The same three entries are drawn as full-width cards while the
+     ONE LIST, TWO SHAPES. The same three entries are drawn as full-width ROWS while the
      composer is not focused and as a scrolling row of pills while it is -- not two lists, not
      two components, and nothing hidden with display:none: the container takes a class and the
      rule below changes the axis. The third state is not a shape at all, it is absence: the
-     first typed character unmounts the whole thing.
+     first typed character unmounts the whole thing. (ITEM 96 took the ground, the frame and
+     the corner off the first of those two shapes, so it is a line of text with a mark beside
+     it. The pill is not a rectangle, was never what the owner reported, and is untouched.)
 
      Like the watermark, this is deliberately NOT a .ezc rule -- the chat's own block is a
      frozen inventory and this is new furniture, so it carries its own prefix and cannot be
@@ -1007,9 +1020,34 @@
   .ezsug.is-row{flex-direction:row;gap:8px;overflow-x:auto;overflow-y:hidden;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:6px}
   .ezsug.is-row::-webkit-scrollbar{width:0;height:0}
-  .ezsug-card{width:100%;box-sizing:border-box;min-height:56px;display:flex;align-items:center;
-    gap:10px;padding:10px 12px;border-radius:14px;background:var(--a3-ice);
-    border:1px solid var(--a3-line);color:var(--a3-ink);font-family:var(--ez-ui-font);
+  /* ITEM 96 -- UNBOXED AND SHRUNK. What changes is the CARD; not the list, not the pill, not
+     one colour and not one typeface.
+     MEASURED at 430x932 dpr 2 on an empty thread, all three identical: 60.30px tall on a 56px
+     floor, 10px/12px of padding, a 14px corner, a filled --a3-ice ground and a 1px --a3-line
+     frame -- three filled rectangles stacked over the composer, 206.89px of a 932px screen.
+     THE GROUND, THE FRAME AND THE CORNER GO, so the entry reads as text with a mark beside it.
+     No colour is added or changed by that: the ink is still --a3-ink, the two marks are still
+     --a3-blue and --a3-muted, and `transparent` is not a palette value -- it is the absence of
+     one, which is what "no box" means.
+     56px -> 44px IS A FLOOR, NOT A HEIGHT. The content is 38.30px (a 20.30px title over an 18px
+     line) and what is actually cut is the padding, 10px -> 4px a side. The floor stays declared
+     because this is a TAP TARGET and 44px is the smallest one this app ships.
+     THE FONT IS NOT TOUCHED. The item allows a smaller face "if needed" and it is not needed --
+     the frames were the size, not the letters. 14.5px title and 12px sub, both unchanged. */
+  /* ITEM 96, THE REST OF IT -- THE WIDTH. ed6ee0d took the ground, the frame and the corner
+     off this entry and cut its padding, and it did all of that to a box still declared
+     width:100%. On a phone that box is 384px and the change reads. ON A DESK IT IS 858px:
+     measured at 1440x900, the three entries were 858.00 x 46.30 each, with the title at the
+     right-hand end and the chevron stranded 700px away at the other -- which is exactly the
+     «صفوف كبيرة بسهم» the owner photographed. The frame was gone and the ROW was still there,
+     because a full-bleed row is a big rectangle whether or not anything is painted inside it.
+     So the entry is sized by its own content now and aligned to the start of the column. It
+     is not a third shape: it is the same entry, the same class, the same gap, mark, title,
+     sub and chevron, the same 44px tap floor and the same 4px/2px padding -- one shape that
+     now looks the same on both viewports instead of one that only shrank on the small one. */
+  .ezsug-card{width:auto;align-self:flex-start;max-width:100%;box-sizing:border-box;min-height:44px;display:flex;align-items:center;
+    gap:10px;padding:4px 2px;border-radius:0;background:transparent;
+    border:0;color:var(--a3-ink);font-family:var(--ez-ui-font);
     cursor:pointer;text-align:start}
   .ezsug-body{display:flex;flex-direction:column;min-width:0;flex:1}
   .ezsug-title{font-weight:800;font-size:14.5px;line-height:1.4;color:var(--a3-ink)}
@@ -1905,22 +1943,7 @@ const EZ_I18N = {
     'home.verseOfDay': 'آية اليوم',
     'home.hadithOfDay2': '\u062D\u062F\u064A\u062B \u0627\u0644\u064A\u0648\u0645',
     'home.verseOfDay2': '\u0622\u064A\u0629 \u0627\u0644\u064A\u0648\u0645',
-    'home.greet.day.1': 'كيف أقدر أعينك اليوم؟',
-    'home.greet.day.2': 'على بركة الله، بماذا نبدأ؟',
-    'home.greet.day.3': 'اسألني عمّا يهمّك في دينك ودنياك.',
-    'home.greet.day.4': 'هل قرأتَ وردك اليوم؟',
-    'home.greet.day.5': 'أنا هنا متى احتجتَني.',
-    'home.greet.day.6': 'سلامٌ عليك، بماذا تحبّ أن نبدأ؟',
-    'home.greet.day.7': 'ما الذي تودّ أن تتعلّمه اليوم؟',
-    'home.greet.day.8': 'سؤالك الأول اليوم… بماذا يكون؟',
-    'home.greet.day.9': 'ماذا يشغل بالك اليوم؟',
-    'home.greet.day.10': 'هل من آيةٍ تودّ أن نتدبّرها؟',
-    'home.greet.day.11': 'أنا معك لنتعلّم سويًّا.',
-    'home.greet.day.12': 'ابدأ يومك بنيّةٍ طيّبة.',
-    'home.greet.day.13': 'سلْ، وسأجيبك بما ينفعك.',
-    'home.greet.day.14': 'علّمْ نفسك اليوم شيئًا جديدًا.',
-    'home.greet.day.15': 'كلُّ يومٍ فرصةٌ لتتعلّم.',
-    'home.greet.day.16': 'بماذا نبدأ رحلة اليوم؟',
+    'home.greet.dhikr': 'اذكرِ الله',
     'home.greet.morning.1': 'صباحك طاعة — هل قرأتَ أذكار الصباح؟',
     'home.greet.morning.2': 'بكّر بذكر الله، أذكار الصباح بانتظارك.',
     'home.greet.morning.3': 'افتتحْ يومك بأذكار الصباح.',
@@ -2117,22 +2140,7 @@ const EZ_I18N = {
     'home.verseOfDay': 'Verse of the day',
     'home.hadithOfDay2': 'Hadith of the day',
     'home.verseOfDay2': 'Verse of the day',
-    'home.greet.day.1': 'How can I help you today?',
-    'home.greet.day.2': 'In the name of God — where shall we begin?',
-    'home.greet.day.3': 'Ask me about anything that matters to you, in faith or in life.',
-    'home.greet.day.4': 'Have you read your wird today?',
-    'home.greet.day.5': 'I am here whenever you need me.',
-    'home.greet.day.6': 'Peace be upon you — what shall we start with?',
-    'home.greet.day.7': 'What would you like to learn today?',
-    'home.greet.day.8': 'Your first question today… what will it be?',
-    'home.greet.day.9': 'What is on your mind today?',
-    'home.greet.day.10': 'Is there a verse you would like us to reflect on?',
-    'home.greet.day.11': 'I am with you, so we can learn together.',
-    'home.greet.day.12': 'Begin your day with a good intention.',
-    'home.greet.day.13': 'Ask, and I will answer with what benefits you.',
-    'home.greet.day.14': 'Teach yourself something new today.',
-    'home.greet.day.15': 'Every day is a chance to learn.',
-    'home.greet.day.16': 'Where shall we begin today’s journey?',
+    'home.greet.dhikr': 'Remember God',
     'home.greet.morning.1': 'A morning of worship — have you read the morning adhkar?',
     'home.greet.morning.2': 'Start early with the remembrance of God; the morning adhkar are waiting.',
     'home.greet.morning.3': 'Open your day with the morning adhkar.',
@@ -2455,7 +2463,11 @@ const applyTheme = (t) => {
   // or the root keeps the colour it booted with and shows through wherever body does not reach
   // (overscroll, the area behind the system bars). Same two properties, same values, same order.
   try { document.documentElement.style.colorScheme = v; } catch (e) {}
-  try { document.documentElement.style.background = (v === 'dark') ? '#0E1116' : '#F1F6FD'; } catch (e) {}
+  try { document.documentElement.style.background = (v === 'dark') ? '#0E1116' : '#FFFFFF'; } catch (e) {}
+  // ITEM 95: the light value is #FFFFFF on both of the two lines above, and on the boot
+  // script at the top of the file. They are the ONE place the light background was not
+  // already white -- body reads var(--vt-page), which is #FFFFFF in both identities, and
+  // both screen roots measured rgb(255,255,255) before this change. Dark is untouched.
   try { const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', v === 'dark' ? '#0E1116' : '#1D4ED8'); } catch (e) {}
   try { localStorage.setItem(THEME_KEY, v); } catch (e) {}
   return v;
@@ -4399,24 +4411,11 @@ function useEzikVisualTheme() {
   return vtheme;
 }
 
-const HOME_GREETINGS_GENERAL = [
-    'home.greet.day.1',
-    'home.greet.day.2',
-    'home.greet.day.3',
-    'home.greet.day.4',
-    'home.greet.day.5',
-    'home.greet.day.6',
-    'home.greet.day.7',
-    'home.greet.day.8',
-    'home.greet.day.9',
-    'home.greet.day.10',
-    'home.greet.day.11',
-    'home.greet.day.12',
-    'home.greet.day.13',
-    'home.greet.day.14',
-    'home.greet.day.15',
-    'home.greet.day.16',
-  ];
+// ITEM 97 -- HOME_GREETINGS_GENERAL STOOD HERE, sixteen keys deep, and the day branch below
+// picked one of them by the day of the year. The owner’s reading of it: the two adhkar
+// windows are «ممتاز» and the rest of the day is idle. So the rest of the day now says
+// one thing and that thing LEADS SOMEWHERE, which a rotating pleasantry never did. The two
+// window lists below are untouched, byte for byte, and so is the picker they use.
 const HOME_GREETINGS_MORNING = [
     'home.greet.morning.1',
     'home.greet.morning.2',
@@ -4437,6 +4436,47 @@ const HOME_GREETINGS_EVENING = [
     'home.greet.evening.7',
     'home.greet.evening.8',
   ];
+// ITEM 97 -- THE DHIKR ITSELF, AND THE CYCLE THAT ORDERS IT.
+// The first reading of this item sent the press to the adhkar screen. THE OWNER REVOKED THAT:
+// the press must not leave this screen at all -- it hides the label, puts one short dhikr in
+// the same place, and puts the label back five seconds later. So the words have to be here.
+//
+// WHERE THE WORDS COME FROM. The owner named five and allowed more of the same kind FROM THE
+// APP'S OWN ADHKAR TEXT. The two added ones are in adhkar.json, verbatim, with the bracketing
+// and the repetition note the store carries around them removed and nothing else changed:
+// entry 241 and entry 91. The owner's own five are written the way HE wrote them. Nothing
+// devotional is composed, translated or re-ordered here.
+//
+// NOT A DICTIONARY KEY, deliberately. A dhikr is not interface text with an English
+// translation -- it is the same words in every language, and EZ_I18N holds no key whose two
+// halves are equal. The LABEL is interface text and stays a key with both halves.
+const HOME_DHIKR = [
+    '\u0633\u0628\u062D\u0627\u0646 \u0627\u0644\u0644\u0647',
+    '\u0627\u0644\u062D\u0645\u062F \u0644\u0644\u0647',
+    '\u0623\u0633\u062A\u063A\u0641\u0631 \u0627\u0644\u0644\u0647',
+    '\u0644\u0627 \u0625\u0644\u0647 \u0625\u0644\u0627 \u0627\u0644\u0644\u0647',
+    '\u0633\u0628\u062D\u0627\u0646 \u0631\u0628\u064A \u0627\u0644\u0639\u0638\u064A\u0645',
+    '\u0627\u0644\u0644\u0647 \u0623\u0643\u0628\u0631',
+    '\u0633\u0628\u062D\u0627\u0646 \u0627\u0644\u0644\u0647 \u0648\u0628\u062D\u0645\u062F\u0647',
+  ];
+// The label comes back after five seconds. Said once, read twice: the timer and the guard.
+const HOME_DHIKR_MS = 5000;
+// A COUNTER, not a random pick. Random repeats, and two identical presses in a row is exactly
+// the thing the owner named. It lives on the DEVICE and not in the component, so that leaving
+// the home screen and coming back cannot hand a reader the same dhikr twice running -- which a
+// counter that reset on mount would do.
+const EZIK_DHIKR_CYCLE_KEY = 'ezik_dhikr_cycle_v1';
+const nextDhikrSeq = () => {
+  let n = 0;
+  try {
+    const raw = parseInt(localStorage.getItem(EZIK_DHIKR_CYCLE_KEY), 10);
+    if (Number.isFinite(raw) && raw >= 0) n = raw;
+  } catch (e) {}
+  // wraps well below Number.MAX_SAFE_INTEGER and stays a small string in storage.
+  try { localStorage.setItem(EZIK_DHIKR_CYCLE_KEY, String((n + 1) % 1000000)); } catch (e) {}
+  return n;
+};
+
 const getHomeGreeting = () => {
   const now = new Date();
   const day = Math.floor((Date.now() - new Date(now.getFullYear(), 0, 0)) / 86400000);
@@ -4444,7 +4484,11 @@ const getHomeGreeting = () => {
   const pick = (arr) => arr[(day * 5) % arr.length];
   if (h >= 5 && h < 11) return { text: ezT(pick(HOME_GREETINGS_MORNING)), period: 'morning', tappable: true };
   if (h >= 16 && h < 19) return { text: ezT(pick(HOME_GREETINGS_EVENING)), period: 'evening', tappable: true };
-  return { text: ezT(pick(HOME_GREETINGS_GENERAL)), period: 'day', tappable: false };
+  // Outside the two windows: one line, the dhikr label, and it is TAPPABLE -- but pressing it
+  // does not navigate: the masthead swaps a dhikr into this same place and back. `period`
+  // stays 'day' so nothing that branches on the period moves, and the two window branches
+  // above return exactly what they returned before.
+  return { text: ezT('home.greet.dhikr'), period: 'day', tappable: true };
 };
 
 // ============================================================
@@ -4616,22 +4660,43 @@ function EzistTopNav({ onOpenMenu }) {
 // THE MASTHEAD. The arch is the approved signature radius and nothing else; the tulip is three
 // bounded boxes inside a 34x40 span inside a clipped section, so it cannot become a page motif.
 // The greeting and the daily line are the ones the app already picked -- getHomeGreeting() ran
-// once in the owner, and this draws its text. When that line leads somewhere it stays a button
-// to the same place it always led; when it does not, it is not a button at all.
+// once in the owner, and this draws its text. The two adhkar windows stay buttons to the
+// adhkar screen; the day line is a button too, and what it does is replace its own text.
 function EzistMasthead({ name, g, onOpenAdhkar }) {
   const tap = !!(g && g.tappable);
+  // ITEM 97 -- THE PRESS STAYS ON THIS SCREEN. The morning and evening lines are untouched:
+  // same string, same onOpenAdhkar, same rect. Only the DAY line is different, and what it
+  // does is replace itself -- the label out, one dhikr in, and the label back after five
+  // seconds. It navigates nowhere, so nothing here is handed a second destination.
+  const isDay = !!(g && g.period === 'day');
+  const [dhikr, setDhikr] = useState(null);          // null = the line is showing its label
+  // ONE TIMER, NEVER TWO. A press while a dhikr is up clears the timer it finds before it
+  // starts the next one, so the five seconds always belong to the LAST press. The unmount
+  // does the same, so a reader who leaves mid-dhikr leaves no timer behind to set state on a
+  // component that is gone.
+  const dhikrTimer = useRef(null);
+  useEffect(() => () => { if (dhikrTimer.current) clearTimeout(dhikrTimer.current); }, []);
+  const showNextDhikr = () => {
+    if (dhikrTimer.current) { clearTimeout(dhikrTimer.current); dhikrTimer.current = null; }
+    setDhikr(HOME_DHIKR[nextDhikrSeq() % HOME_DHIKR.length]);
+    dhikrTimer.current = setTimeout(() => { dhikrTimer.current = null; setDhikr(null); }, HOME_DHIKR_MS);
+  };
+  const go = isDay ? showNextDhikr : onOpenAdhkar;
+  // THE LINE ON SCREEN. One expression, so the button, its accessible name and its text can
+  // never disagree about what it is saying.
+  const line = (isDay && dhikr) ? dhikr : (g ? g.text : '');
   return (
     <section className="ezist-masthead">
-      <span className="ezist-tulip" aria-hidden="true"><span className="ezist-tulip-mark" /></span>
       <div className="ezist-hello">
         <div style={s.ezistSalam}>{EZH_SALAM}</div>
         <h1 style={s.ezistName}>{EZH_HELLO} {name}</h1>
       </div>
       <span className="ezist-rule-short" aria-hidden="true" />
       {tap ? (
-        <button type="button" className="ezhome-focus" onClick={onOpenAdhkar} style={s.ezistPrompt} aria-label={g.text}>
+        <button type="button" className="ezhome-focus" onClick={go}
+          style={isDay ? { ...s.ezistPrompt, ...s.ezistPromptDay } : s.ezistPrompt} aria-label={line}>
           <span style={s.ezistPromptIcon} aria-hidden="true">{g.period === 'morning' ? EZH_ICON_SUN : EZH_ICON_MOON}</span>
-          <span style={s.ezistPromptText}>{g.text}</span>
+          <span style={s.ezistPromptText}>{line}</span>
         </button>
       ) : (
         <div style={s.ezistPromptFlat}>
@@ -4676,8 +4741,13 @@ function EzistModuleCard({ m }) {
 
 // THE FEATURED QURAN PANEL. It reads getDailyVerse() -- the one source for the daily verse --
 // and renders {v.text} verbatim -- no transform, no tashkeel pass, no truncation, no ellipsis.
-// The two decorative marks are OUTSIDE the text block, above the rule and beside the label, so
+// The two decorative marks are OUTSIDE the text block, in the head row beside the label, so
 // nothing overlaps a letter of it. Nothing here touches mushaf page artwork.
+// ITEM 98: the 1px hairline that used to sit between that head row and the verse is gone --
+// «لا داعيَ له». It was .ezist-rule, one element and two rules in the sheet, and the
+// element was its only reader, so all three went together. The OTHER separator on this
+// screen, .ezist-rule-short -- the short vertical bar in the masthead -- is a different
+// class on a different element and is deliberately untouched.
 function EzistQuranPanel() {
   const v = getDailyVerse();
   const isHadith = v.surah === '\u062D\u062F\u064A\u062B';
@@ -4687,7 +4757,6 @@ function EzistQuranPanel() {
         <span style={s.ezistQuranDot} aria-hidden="true" />
         <span style={s.ezistQuranLabel}>{isHadith ? ezT('home.hadithOfDay2') : ezT('home.verseOfDay2')}</span>
       </div>
-      <div className="ezist-rule" aria-hidden="true" />
       <div style={s.ezistQuranText}>{v.text}</div>
       <div style={s.ezistQuranMeta}>{isHadith ? '\u0631\u0648\u0627\u0647 ' + v.ayah : '\u0633\u0648\u0631\u0629 ' + v.surah + '\u060C \u0622\u064A\u0629 ' + v.ayah}</div>
     </section>
@@ -5705,6 +5774,9 @@ function AdhkarScreenV2({ onBack }) {
     setStartAt(Number.isFinite(n) && n > 0 ? n : 0);
     setSelected(c);
   };
+  // ITEM 97 REVOKED -- a deep link stood here, and it is gone with the navigation that fed it.
+  // This screen has ONE way in again: its own front door, at the browse list, however it was
+  // reached. open(c, at) above is what the favourites list has always used and is untouched.
   // ===== closeAdhkarDetail -- THE ADHKAR'S OWN NESTED CLOSER =====
   // It closes the OPEN CATEGORY (with the item being read inside it) and reveals this browse
   // screen; it does not leave the adhkar, and only the browse screen's own back does that. It
@@ -10145,7 +10217,13 @@ function App() {
   // name while the thread is new and has no conversation yet. Nothing is invented here, nothing
   // is written, and no store is opened: chatList is state that refreshChatList already fills.
   const ezcOpenChat = chatId ? chatList.find((c) => c.id === chatId) : null;
-  const ezcTitle = (ezcOpenChat && ezcOpenChat.title) ? ezcOpenChat.title : A2_BRAND;
+  // ITEM 94, THE REST OF IT. This line used to fall back to the app's own name, so an empty
+  // chat carried «عزك» in the rail with the arch already beside it -- the same name twice,
+  // which is what item 94 took out of the transcript. There is no fallback now: with no
+  // conversation there is no title, and the span that would draw it is not rendered at all
+  // (not hidden -- absent). The moment a conversation exists the rail carries ITS title,
+  // exactly as before, read out of the store and never invented here.
+  const ezcTitle = (ezcOpenChat && ezcOpenChat.title) ? ezcOpenChat.title : null;
 
   // Report button (step 2b). Opens the flag modal for a given assistant reply, capturing the
   // user question that preceded it (messages[i-1]) for context. Client only -- POSTs to api/report.
@@ -10209,23 +10287,24 @@ function App() {
           </button>
           <span className="ezc-brand">
             <span className="ezc-brand-arch" aria-hidden="true" />
-            <span className="ezc-brand-text">{ezcTitle}</span>
+            {ezcTitle ? <span className="ezc-brand-text">{ezcTitle}</span> : null}
           </span>
         </div>
       </div>
 
       <div ref={messagesAreaRef} onScroll={onMessagesScroll} className={'ezc-scroll' + (pinnedAskIndex == null ? '' : ' ezc-askpinned')} style={s.messagesArea}>
         {/* S112 -- THE EMPTY STATE. A NEW thread shows this and nothing else IN THE TRANSCRIPT:
-            no old messages, no history list, no card of any kind and no devotional text. It is
-            drawn INSIDE the transcript and centred in the space that is already there, so the
+            no old messages, no history list, no card of any kind and no devotional text.
+            ITEM 94: and no WORD either. It drew the app’s own name in 21px above the
+            watermark, and the watermark behind the transcript already carries that name inside
+            its arch -- the same name twice on one empty screen is once too often. The block
+            itself stays exactly where it was, centred in the space that is already there, so the
             composer does not move and the screen never turns back into a second home. It is gone
             the moment there is anything to read, including the first token of a stream.
             The section suggestions added later are NOT here and are not part of this: they live
             in the composer dock, below the transcript, and they carry no devotional text. */}
         {messages.length === 0 && streamingText === null && (
-          <div className="ezc-empty">
-            <div className="ezc-empty-title">{A2_BRAND}</div>
-          </div>
+          <div className="ezc-empty"></div>
         )}
         {messages.map((m, i) => (
           /* STREAM-P4 §٣/١: a zero-height marker immediately BEFORE the pinned question, which
@@ -15127,6 +15206,16 @@ const s = {
   // thumb has to hit -- and loses the 14px that pushed it away from the line above it, because
   // there is no line above it any more.
   ezistPrompt: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, marginTop: 0, padding: '6px 12px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', textAlign: 'right', maxWidth: '100%', flexShrink: 0 },
+  // ITEM 97 -- THE FLOOR THAT STOPS THE PILL SHIVERING. Only the DAY line is given it, so the
+  // morning and evening pills keep s.ezistPrompt byte for byte. Measured on the real button in
+  // the real face (700 13px Noto Naskh Arabic), at 430x932 dpr 2, the button is:
+  //   94.88 for the label, 93.02 / 97.67 / 107.67 / 108.42 / 110.84 / 145.64 / 146.31 for the
+  //   seven dhikr in list order, and 157.75 for the English label.
+  // 158 is the smallest whole pixel at or above every one of them, so the pill is 158px wide
+  // in every state of both languages and no press moves an edge. justifyContent centres the
+  // icon and the words inside that floor; without it they would sit at the start of a box
+  // wider than they are. No colour, no face, no radius and no padding is touched.
+  ezistPromptDay: { minWidth: 158, justifyContent: 'center' },
   ezistPromptFlat: { display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, marginTop: 0, padding: '6px 12px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', maxWidth: '100%', flexShrink: 0 },
   ezistPromptIcon: { display: 'inline-flex', flexShrink: 0, color: 'var(--a3-blue)' },
   ezistPromptText: { minWidth: 0, fontSize: 13, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
@@ -15158,7 +15247,17 @@ const s = {
   ezistQuranHead: { display: 'flex', alignItems: 'center', gap: 8 },
   ezistQuranDot: { width: 8, height: 8, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-cyan)' },
   ezistQuranLabel: { fontSize: 12.5, fontWeight: 800, color: 'var(--a3-blue)', letterSpacing: '.2px' },
-  ezistQuranText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '8px 0 6px' },
+  // ITEM 99 -- THE TOP MARGIN, AND ONLY THE TOP MARGIN. Measured at 430x932 dpr 2 on cfb73ca:
+  // the verse box began 43.00px below the panel top and 14.00px below the label row. Item 64
+  // (spacing) did not touch this panel -- it moved the mosaic gap and the mushaf card, and
+  // nothing else -- so the gap the owner is still seeing is this one and it was measured, not
+  // assumed. Item 98 took 6.00px of it with the hairline; this takes the remaining 8.00px,
+  // which is the whole of what stood between the label row and the verse.
+  // WHAT IS NOT TOUCHED, and each deliberately: the 6px BELOW the verse, which separates it
+  // from its own reference line; the 2.1 line height, which is the Amiri face’s leading and is
+  // typography rather than spacing; and the panel’s own 2px top padding, which belongs to the
+  // top bar and not to the verse. This is the smallest edit that answers «ارفعها فوق».
+  ezistQuranText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '0 0 6px' },
   ezistQuranMeta: { color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 600, textAlign: 'center' },
 
   // The compact greeting row. A line profile icon in a white 44px button -- no face, no avatar.
@@ -15485,13 +15584,20 @@ const s = {
   userBubble: { background: 'color-mix(in srgb, var(--a3-ice) 78%, transparent)', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)', borderInlineStart: '3px solid var(--a3-blue)', borderRadius: 16, borderBottomRightRadius: 6, padding: '10px 14px', fontSize: 15 },
   assistantBubble: { maxWidth: '100%', background: 'color-mix(in srgb, var(--a3-surface) 78%, transparent)', color: 'var(--answer-ink)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--a3-shadow)', border: '1px solid var(--a3-line)', fontSize: 15 },
   bubbleText: { overflowWrap: 'anywhere', /* 13.4-b2 */ lineHeight: 1.85, fontSize: 15, color: 'var(--answer-ink)' },
-  // S93: the Markdown blocks. Every colour is an EXISTING variable -- --ink, --muted, --line,
-  // --tint, --red -- so both palettes already answer for them and no theme value is added,
-  // changed or overridden. Sizes are relative to the bubble text they sit in.
+  // S93: the Markdown blocks. Every colour is an EXISTING variable -- --answer-ink, --muted,
+  // --line, --tint, --red -- so both palettes already answer for them and no theme value is
+  // added, changed or overridden. Sizes are relative to the bubble text they sit in.
+  //
+  // ITEM 63, VERIFIED AND FINISHED. Item 63 gave the answer its own ink and set it to black in
+  // light, and MEASURED AFTERWARDS the prose was rgb(0,0,0) at 21.00:1 -- but a heading inside
+  // the same answer painted rgb(16,54,78) at 12.65:1, because these three lines read --ink and
+  // not the answer’s token. Every one of them is INSIDE the reply and nowhere else -- the only
+  // two callers of EzikMarkdown are the streaming preview and the reply prose -- so «أسود
+  // حقيقيًّا» has to include them, and moving them moves nothing outside an answer.
   mdP: { margin: 0 },
-  mdH1: { margin: '2px 0 2px', fontSize: 18, fontWeight: 700, lineHeight: 1.6, color: 'var(--ink)' },
-  mdH2: { margin: '2px 0 2px', fontSize: 16.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--ink)' },
-  mdH3: { margin: '2px 0 2px', fontSize: 15.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--ink)' },
+  mdH1: { margin: '2px 0 2px', fontSize: 18, fontWeight: 700, lineHeight: 1.6, color: 'var(--answer-ink)' },
+  mdH2: { margin: '2px 0 2px', fontSize: 16.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--answer-ink)' },
+  mdH3: { margin: '2px 0 2px', fontSize: 15.5, fontWeight: 700, lineHeight: 1.6, color: 'var(--answer-ink)' },
   mdHr: { border: 'none', borderTop: '1px solid var(--line)', margin: '10px 0' },
   mdUl: { margin: '2px 0', paddingInlineStart: 22, listStyleType: 'disc' },
   mdOl: { margin: '2px 0', paddingInlineStart: 22 },

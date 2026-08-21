@@ -470,20 +470,37 @@ function envSandbox(vars) {
         res.code === 200 && res.body && res.body.ok === true, JSON.stringify(res.body));
       liveRecord = store.map.get(pcRec(PDEV));
       const parsed = liveRecord ? JSON.parse(liveRecord) : null;
+      // The salt and the digest are pinned one line below to be EXACTLY 32 and 64 random hex
+      // characters, so a substring search across them measures arithmetic, not storage: a
+      // four-digit code lands inside 96 random hex chars about once in 718 runs (measured over
+      // 500,000 draws), and that -- not a code change -- is what turned this gate red. The leak
+      // this assertion came to catch is the code kept AS DATA, so it is looked for where such a
+      // value would land: everywhere in the record except those two proven-random fields.
+      const carrier = parsed
+        ? String(liveRecord).split(parsed.salt).join('').split(parsed.hash).join('')
+        : String(liveRecord);
       ok('B2: ...stored as scrypt over a RANDOM salt, never as the code and never as its sha256',
         !!parsed && parsed.alg === 'scrypt'
         && /^[0-9a-f]{32}$/.test(parsed.salt) && /^[0-9a-f]{64}$/.test(parsed.hash)
         && parsed.hash !== sha256hex(CODE)
-        && String(liveRecord).indexOf(CODE) === -1,
+        && carrier.indexOf(CODE) === -1,
         String(liveRecord));
     }
     {
       // Two devices, same code, must not produce the same digest -- that is what the salt buys,
       // and it is the difference between a stolen dump being a lookup table and being useless.
       const { store } = await pcPost({ body: { action: 'set', pin: CODE, deviceId: 'lockguard-parent-two' } });
-      const other = JSON.parse(store.map.get(pcRec('lockguard-parent-two')));
+      const otherRecord = store.map.get(pcRec('lockguard-parent-two'));
+      const other = JSON.parse(otherRecord);
       ok('B2: ...and the SAME code on another device yields a different digest',
         other.hash !== JSON.parse(liveRecord).hash && other.salt !== JSON.parse(liveRecord).salt);
+      // Closes the single hole the narrowing above opens: a salt or a digest DERIVED from the
+      // code would hide it inside the two fields that search now skips. Derivation is systematic
+      // -- it marks EVERY record -- while a hex collision is a 1-in-718 coin flip, so both
+      // records carrying the code at once is a certainty under a leak and 1 in ~515,000 by luck.
+      ok('B2: ...and the code is never inside BOTH records at once (a leak is systematic, a collision is not)',
+        !(String(liveRecord).indexOf(CODE) !== -1 && String(otherRecord).indexOf(CODE) !== -1),
+        'live=' + String(liveRecord) + '  other=' + String(otherRecord));
     }
     {
       const seed = {}; seed[pcRec(PDEV)] = liveRecord;
