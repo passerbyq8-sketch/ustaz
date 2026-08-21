@@ -552,6 +552,31 @@ async function runSuite() {
     harness.restore();
   }
 
+  console.log('\n--- E2. MODE REGISTRY LOOKUP ---');
+  // storedAnswerProfile() takes a caller-supplied string straight into a bracket read on the mode
+  // registry. The four named ids must answer with their own profile, and everything else must fall
+  // back to normal. The inherited members of Object.prototype are the inputs that used to break
+  // that rule: they are truthy, so they slipped past the || fallback and returned a non-profile
+  // whose maxTokens and claims are undefined.
+  const NAMED_PROFILES = { brief: [900, 1], normal: [1500, 2], deep: [3000, 3], scholar: [4096, 4] };
+  const INHERITED = ['constructor', '__proto__', 'toString', 'valueOf', 'hasOwnProperty',
+    'isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString'];
+  for (const [id, [maxTokens, claims]] of Object.entries(NAMED_PROFILES)) {
+    const profile = S.storedAnswerProfile(id);
+    ok('named mode ' + id + ' returns its own profile unchanged', profile && profile.id === id
+      && profile.maxTokens === maxTokens && profile.claims === claims, JSON.stringify(profile));
+  }
+  const normalProfile = S.storedAnswerProfile('normal');
+  for (const key of INHERITED) {
+    const profile = S.storedAnswerProfile(key);
+    ok('inherited key ' + key + ' cannot reach the prototype chain', profile === normalProfile,
+      'got ' + (typeof profile) + ': ' + JSON.stringify(profile && profile.id));
+  }
+  for (const odd of [undefined, null, '', 0, false, 'BRIEF', 'nope']) {
+    ok('unknown depth ' + JSON.stringify(odd) + ' falls back to normal',
+      S.storedAnswerProfile(odd) === normalProfile);
+  }
+
   console.log('\n--- F. REQUIRED MUTANTS ---');
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-stored-mutants-'));
   try {
@@ -666,6 +691,21 @@ async function runSuite() {
     const m15brief = await m15.runStoredFiqhTurn({ context: contextFor(S, R, A, JOIN), depth: 'brief', retrieve: duplicated, generate: async () => 'unrelated' });
     const m15scholar = await m15.runStoredFiqhTurn({ context: contextFor(S, R, A, JOIN), depth: 'scholar', retrieve: duplicated, generate: async () => 'unrelated' });
     ok('MUTANT 15 KILLED: mode-specific evidence policy breaks parity', JSON.stringify(m15brief.evidencePackIds) !== JSON.stringify(m15scholar.evidencePackIds));
+
+    // The seam is the null-prototype seal on the mode registry itself, not a check at the call
+    // site. Putting the plain object literal back is exactly the shape the defect had.
+    const m17 = await storedMutant(temp, 'mode-registry-prototype', (source) => source.replace(
+      'const MODE_PROFILES = Object.freeze(Object.assign(Object.create(null), {',
+      'const MODE_PROFILES = Object.freeze({',
+    ).replace('\n}));\n\nconst STOP', '\n});\n\nconst STOP'));
+    const m17normal = m17.storedAnswerProfile('normal');
+    const m17leaks = ['constructor', '__proto__', 'toString', 'valueOf', 'hasOwnProperty',
+      'isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString']
+      .filter((key) => m17.storedAnswerProfile(key) !== m17normal);
+    const m17named = ['brief', 'normal', 'deep', 'scholar']
+      .every((id) => m17.storedAnswerProfile(id).id === id);
+    ok('MUTANT 17 KILLED: an inheriting mode registry leaks Object.prototype into storedAnswerProfile',
+      m17leaks.length === 8 && m17named, JSON.stringify({ leaks: m17leaks, namedIntact: m17named }));
 
     const corpusClone = JSON.parse(JSON.stringify(beforeRecords));
     corpusClone.push({ id: 'MUTANT', part: 0, term: 'mutant', search: 'mutant', snippet: 'mutant' });
