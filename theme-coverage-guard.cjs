@@ -3689,5 +3689,64 @@ ok('T4: the pinPassRef breaker is still armed, still bounded at 8, and still ahe
 eq('T5: pinPassRef still appears at exactly its four code positions',
   (pinSrc.match(/pinPassRef\.current|const pinPassRef/g) || []).length, 5);
 
+
+/* ---- U. ITEM 44-أ: THE TEXT SCALE, AND THE READER THAT IS OUTSIDE IT ---- */
+// THESE CHECKS RUN THE SCALE PASS FOR REAL, so they must be LAST: `ezikEnsureScalableStyles`
+// rewrites the styles object IN PLACE, and every earlier section reads that object. Nothing may
+// be added below this block that reads `s`.
+//
+// The question they answer is not "is there a setting" but "does the multiplier stop where the
+// brief says it stops". MEASURED in Chrome at 430x932 before the exclusion existed: the reader's
+// own title rendered 15px / 17.1px / 19.2px across the three steps.
+eq('U1: the scale is exactly three steps, with the factors the boot script uses',
+  vm.runInContext('JSON.stringify(EZIK_FS_SCALES)', CTX), '{"normal":1,"large":1.14,"xlarge":1.28}');
+// The pre-paint script is what stops the page flashing at the default size and then jumping. It
+// carries its own copy of the table, so the two are compared rather than trusted.
+ok('U2: the pre-paint boot script carries the SAME table, so the choice is applied before the first frame',
+  /var S=\{normal:1,large:1\.14,xlarge:1\.28\};/.test(html)
+  && /localStorage\.getItem\('ezik_reading_prefs_v1'\)/.test(html)
+  && html.indexOf('var S={normal:1') < html.indexOf('<div id="root">'),
+  'the boot table is missing, disagrees, or no longer runs before #root');
+
+// THE DEFAULT IS THE OBJECT THAT SHIPPED. Nobody who never opens الإعدادات pays for this feature,
+// and that is a property of the styles object, not a claim: at the default size every size is
+// still a plain number and no calc() has been built.
+const fsOf = (k) => vm.runInContext('JSON.stringify(s.' + k + '.fontSize)', CTX);
+ok('U3: at the default step the styles object is untouched — every sampled size is still a number',
+  ['input', 'messageBubble', 'ezmrTitle', 'pgHeader', 'mushafName'].every((k) => /^\d/.test(JSON.parse(fsOf(k)) + '')),
+  ['input', 'messageBubble', 'ezmrTitle', 'pgHeader', 'mushafName'].map((k) => k + '=' + fsOf(k)).join(' '));
+
+// ...and now the pass runs, exactly as choosing a larger size runs it.
+vm.runInContext('ezikEnsureScalableStyles()', CTX);
+const scaled = (k) => { const v = fsOf(k); return v === undefined ? undefined : JSON.parse(v); };
+const isCalc = (v) => /^calc\(.*var\(--ez-fs/.test(String(v));
+ok('U4: after the pass the interface follows the one multiplier on :root',
+  isCalc(scaled('input')) && isCalc(scaled('messageBubble')),
+  'input=' + fsOf('input') + ' bubble=' + fsOf('messageBubble'));
+
+// THE READER'S SCOPE. Every size in the object scales — including the reader's own keys, which
+// is what a11y-guard requires — and the reader is taken out ONE LEVEL DOWN instead: its root
+// resets `--ez-fs` to 1, so every calc() inside it evaluates to the number that shipped. The
+// page fit divides by pgPage's element-child count and measures its rows, so nothing inside
+// that box may move when someone chooses larger text elsewhere.
+ok('U5: the reader keys scale like everything else — the exclusion is not a hole in the pass',
+  isCalc(scaled('ezmrTitle')) && isCalc(scaled('pgHeader')),
+  'ezmrTitle=' + fsOf('ezmrTitle') + ' pgHeader=' + fsOf('pgHeader'));
+eq('U6: ...and the reader root resets the multiplier, which is what actually excludes it',
+  /\.ezmr-scope\s*\{\s*--ez-fs:\s*1;?\s*\}/.test(css) ? 'reset present' : 'RESET MISSING',
+  'reset present');
+// The scope must sit on the reader's OWN root and nowhere else. On a child of pgPage it would
+// change that element's child count, which is the number the per-page fit divides by.
+eq('U7: the scope is declared exactly once, on PagedMushaf\'s root container',
+  (html.match(/className="ezmr-scope"/g) || []).length, 1);
+ok('U7: ...and that root is the container, not anything inside the page box',
+  /<div className="ezmr-scope" style=\{contSt\}>/.test(html),
+  'the scope moved off the reader container');
+// The exclusion is the READER, not everything that sounds like it. The surah index is a list of
+// names with no fit to break, and it is outside the scope on purpose.
+ok('U8: the surah INDEX is outside the scope and still grows',
+  isCalc(scaled('mushafName')) && !/ezmr-scope[^}]*mushaf/.test(css),
+  'mushafName=' + fsOf('mushafName'));
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

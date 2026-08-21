@@ -264,6 +264,14 @@
   /* S99 -- the keyboard focus ring, on every control this phase touches. Same token, same shape
      as the ring the adhkar screens and the S98 controls already use. */
   .ez-a11y-opt:focus-visible { outline: 3px solid var(--ez-focus); outline-offset: 2px; }
+  /* 44-أ -- THE READER IS OUTSIDE THE TEXT SCALE, and this one line is the whole exclusion.
+     Every size in the styles object becomes `calc(Npx * var(--ez-fs, 1))`; resetting the
+     custom property to 1 on the reader's root makes every one of those calcs inside it
+     evaluate to its original number. The page fit measures pgPage and its rows, so the reader
+     must not move when someone chooses larger text elsewhere -- and MEASURED, it does not:
+     `.ezmr-title` is 15px at «عادي», «كبير» and «أكبر» alike. It is a SCOPE and not a list, so
+     anything rendered inside the reader later is covered without being remembered. */
+  .ezmr-scope { --ez-fs: 1; }
   /* Session 85/86 -- the DUAL STYLE palette, and it is a SCOPED token set, not a global one:
      every declaration below lives on .adhkar3 and .ezhome, classes carried only by the four
      adhkar presentation components and the two home ones, so nothing outside them -- not the
@@ -14317,7 +14325,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const nb = idx.current.needBasmala;
 
   return (
-    <div style={contSt}>
+    <div className="ezmr-scope" style={contSt}>
       {/* S110 -- THE TOP READER RAIL. Same gate, same handlers, same accessible names: only the
           furniture changed. The bookmark keeps its two titles and its two aria-labels, and the
           way back is still the same text on the same onExit. The rollback reader (?madinaimg=0)
@@ -15971,10 +15979,20 @@ const s = {
 //   * a key that declares a NUMERIC width or height is a fixed-size control — a 44px round button,
 //     a 76px call button, a swatch. Growing the glyph inside a box that cannot grow is how a
 //     label escapes its button, so those keep their size.
-//   * the mushaf is not here at all. Its type size is COMPUTED per page in JS (PG_BASE_FS and the
-//     per-page fit) so that a line of the Uthmani text lands on its measured boundaries; scaling
-//     it from the outside would break the page layout the layout gate attests. It therefore keeps
-//     its own system, exactly as the brief requires.
+//   * THE READER IS EXCLUDED BY SCOPE, and the exclusion is stated rather than assumed. The
+//     Uthmani lines are built in JS at raw px (PG_BASE_FS and the per-page fit), so a page's
+//     TEXT was never reachable from this object -- but the page surface and the reader bar are
+//     ordinary style keys and they were being rewritten with the rest. MEASURED before the
+//     exclusion existed: `.ezmr-title` rendered 15px / 17.1px / 19.2px across the three steps.
+//     The fit divides by pgPage's element-child count and measures its rows, so anything that
+//     grows inside that box moves the boundary the layout gate attests.
+//
+//     THE EXCLUSION IS NOT A LIST OF KEYS. Every size here still becomes a calc() -- the reader
+//     is taken out one level down, by resetting `--ez-fs` to 1 on the reader's own root
+//     (`.ezmr-scope`), so every calc() inside it evaluates at its original number. A scope
+//     covers whatever is rendered inside it, including anything added later; a list of key
+//     names covers only what someone remembered to add to it. The surah INDEX is outside that
+//     scope and still scales, which is right: it is a list of names with no fit to break.
 // AND IT RUNS ONLY FOR SOMEONE WHO ASKED FOR IT. Measured, interleaved against 7e5c608: making
 // every size a calc() unconditionally cost +0.06 ms per keystroke in a 120-turn thread (0.41 ->
 // 0.47 ms amortised over a 200-keystroke burst, past the 0.1 ms clamp that makes a single-keystroke
