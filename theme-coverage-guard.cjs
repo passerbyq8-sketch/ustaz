@@ -35,7 +35,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const babel = require('@babel/core');
+const BB = require('./tools/babel-block.cjs');
 const { parseHTML } = require('linkedom');
 
 const INDEX = process.argv[2] || 'index.html';
@@ -175,17 +175,12 @@ const KNOWN_LIGHT = new Set(['memPlaceholder']);
 /* ---- read the shipped styles object -------------------------------------- */
 let CTX = null;   // S100: section G calls the shipped readers; it does not re-type them.
 function stylesObject(html) {
-  const m = /<script[^>]*type=["']text\/babel["'][^>]*>/i.exec(html);
-  if (!m) { console.log('FAIL: no text/babel block in ' + INDEX); process.exit(2); }
-  const raw = html.slice(m.index + m[0].length, html.indexOf('</script>', m.index + m[0].length));
-  const bs = (html.match(/<script[^>]*src=["']([^"']*@babel\/standalone[^"']*)["']/i) || [])[1] || '';
-  const major = parseInt((bs.match(/@babel\/standalone@(\d+)\./) || [])[1] || '8', 10);
+  let block;
+  try { block = BB.readBabelBlock({ file: INDEX, html: html }); }
+  catch (e) { console.error(e.message); process.exit(2); }
   let code;
   try {
-    code = babel.transformSync(raw, {
-      presets: [['@babel/preset-react', { runtime: major >= 8 ? 'automatic' : 'classic' }]],
-      filename: 'babel-block.jsx', sourceType: 'script', retainLines: true,
-    }).code;
+    code = BB.transformBabelBlock(block);
   } catch (e) { console.log('TRANSFORM ERROR (babel-gate should have caught this):\n' + e.message); process.exit(1); }
 
   const { window } = parseHTML('<!DOCTYPE html><html><body><div id="root"></div></body></html>');
