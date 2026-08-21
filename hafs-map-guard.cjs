@@ -28,6 +28,15 @@ const crypto = require('crypto');
 // ---------------------------------------------------------------------------
 const MAP_FILE = 'data/mushaf-hafs-map.json';
 const MAP_SHA256 = '1ba8e45a073b7d78863939201813d5a65aa2630fb87029f08c1bfd0b68c2d49c';
+// ITEM 115-ب. THIS ONE CANNOT BE CHECKED, AND HERE IS WHY. Every other constant in this block
+// is re-derived from a file in this repository. SOURCE_COMMIT is a commit in ANOTHER repository
+// -- the upstream the correspondence map was generated from. `git cat-file` does not resolve it
+// here (measured: it does not), no gate may reach the network, and the upstream is not vendored.
+// So it is DECLARED UNCHECKABLE rather than left looking like an assertion.
+//
+// What IS checked, and is not nothing: the map file carries this same id in its own _header, and
+// the comparison below fails if the two disagree. That pins the map to the attribution it ships
+// with. It cannot pin the attribution to the upstream, and no offline check ever could.
 const SOURCE_COMMIT = 'ae5786ab08597f8123575dec4e774f1eca195e0f';
 const MD_WORD_COUNT = 91451;
 const REDUCED_COUNT = 77432;
@@ -37,8 +46,16 @@ const POSITIONS = 77425;
 const MATCHES = 77424;
 
 // EXCEPTION 1 -- the SVG carries ONE md-word where mushaf-layout.json carries TWO slots.
-// Page 262, line 08. mushaf-layout.json is FROZEN and is not edited; the join lives here.
+// mushaf-layout.json is FROZEN and is not edited; the join lives here.
 const EXCEPTION_1_AYAH = '15:7';
+// ITEM 115-ب. "Page 262, line 08" used to be PROSE on the line above: a measurement of
+// mushaf-layout.json that nothing read, in a file whose every other number is re-derived. It is
+// two constants now, and the check further down recomputes both from the layout itself. The
+// layout being frozen is a reason to pin these, not a reason to leave them unchecked -- a frozen
+// file that someone unfreezes is exactly the case a written-down number stops being true.
+const EXCEPTION_1_PAGE = 262;
+const EXCEPTION_1_LINE = 8;
+const LAYOUT_FILE = 'mushaf-layout.json';
 
 // EXCEPTION 2 -- the single letter-level residual. A hamza ENCODING FORM, not a different
 // letter: ours carries the combining U+0654 ARABIC HAMZA ABOVE, theirs the standalone
@@ -252,6 +269,38 @@ if (diffAyahs.length !== 1 || diffAyahs[0].k !== EXCEPTION_1_AYAH) {
   fail('the sole disagreeing ayah must be ' + EXCEPTION_1_AYAH + ' (exception 1), by name');
   for (const d of diffAyahs) console.log('        got ' + d.k + '  ours=' + d.ours + ' theirs=' + d.theirs);
 } else ok('exception 1 is ' + EXCEPTION_1_AYAH + ' and is the only ayah disagreement');
+
+// ITEM 115-ب: where exception 1 SITS, recomputed rather than remembered. The layout names every
+// word slot as surah:ayah:word on a page and a line, so the page and line of the first word of
+// EXCEPTION_1_AYAH are a lookup, not a memory.
+{
+  let where = null;
+  try {
+    const layout = JSON.parse(read(LAYOUT_FILE).toString('utf8'));
+    outer:
+    for (const page of layout.p || []) {
+      for (const line of page.l || []) {
+        for (const slot of line.w || []) {
+          if (String(slot).indexOf(EXCEPTION_1_AYAH + ':') === 0) { where = { page: page.n, line: line.n }; break outer; }
+        }
+      }
+    }
+  } catch (e) {
+    fail('exception 1 position: ' + LAYOUT_FILE + ' could not be read (' + e.message + ')');
+  }
+  if (!where) {
+    fail('EXCEPTION 1 position: ' + EXCEPTION_1_AYAH + ' appears nowhere in ' + LAYOUT_FILE);
+  } else if (where.page !== EXCEPTION_1_PAGE) {
+    fail('EXCEPTION 1 page: ' + LAYOUT_FILE + ' puts ' + EXCEPTION_1_AYAH + ' on page '
+      + where.page + ', not the pinned ' + EXCEPTION_1_PAGE);
+  } else if (where.line !== EXCEPTION_1_LINE) {
+    fail('EXCEPTION 1 line: ' + LAYOUT_FILE + ' puts ' + EXCEPTION_1_AYAH + ' on page '
+      + where.page + ' line ' + where.line + ', not the pinned line ' + EXCEPTION_1_LINE);
+  } else {
+    ok('exception 1 sits where it is pinned: page ' + EXCEPTION_1_PAGE + ', line '
+      + EXCEPTION_1_LINE + ' (recomputed from ' + LAYOUT_FILE + ')');
+  }
+}
 
 // 5/6 ------------------------------------------- letter-skeleton comparison, every position
 let positions = 0, matches = 0;

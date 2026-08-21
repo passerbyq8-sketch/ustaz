@@ -953,6 +953,53 @@ head('15) CLIENT/SERVER BODY-CAP MIRROR');
 }
 
 /* ---------------------------------------------------------------- *
+ * 15B) COMMIT IDS QUOTED IN DOCUMENTATION  (item 115-ب)
+ * ---------------------------------------------------------------- */
+head('15B) COMMIT IDS QUOTED IN DOCUMENTATION');
+{
+  // WHY THIS EXISTS. Two documents attribute a behaviour to a commit id, and nothing read either
+  // one. A commit id in prose is the cheapest kind of claim to make and the easiest to leave
+  // dangling: history gets rewritten, a branch gets squashed, a behaviour moves to another file,
+  // and the sentence keeps naming a hash that resolves to nothing. Both are checked here.
+  //
+  // NOT A BLANKET SWEEP, DELIBERATELY. A blanket "every hex string in a .md must resolve" was
+  // measured first and is wrong: 16 of the 48 hex-ish tokens in this tree's documents are content
+  // fingerprints, not commits -- the twelve SHA-16 prefixes in golden-set-worship.md, and the
+  // upstream commit plus the md5 in MUSHAF-MADINA-ASSET-NOTICE.md, which belong to somebody else's
+  // repository and cannot resolve here by design. So the ids that are PRESENTED AS COMMITS OF THIS
+  // REPOSITORY are registered, and each is checked twice: it is still written where it is claimed
+  // to be, and it still names a commit.
+  const DOC_COMMITS = [
+    { file: 'docs/khilaf-policy.md', id: 'eb49517',
+      what: 'the commit that made the minor-band source ladder structural in lib/retrieve.js' },
+    { file: 'EZIK-RFC-V0.5-R2-FROZEN.md', id: '2046114a98f5d248672bc209914ec4baeff8a3d6',
+      what: 'the frozen historical baseline of the RFC v0.5-R2 rollout' },
+    { file: 'EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md', id: '2046114a98f5d248672bc209914ec4baeff8a3d6',
+      what: 'the same baseline, quoted as START_HEAD and START_ORIGIN' },
+  ];
+  if (!isRepo){
+    info('git is unavailable -- the ' + DOC_COMMITS.length + ' documented commit ids cannot be resolved');
+  } else {
+    let bad = 0;
+    for (const entry of DOC_COMMITS){
+      const body = read(entry.file);
+      if (body === null){ fail('documented commit id: ' + entry.file + ' is missing'); bad++; continue; }
+      if (body.indexOf(entry.id) === -1){
+        fail('documented commit id: ' + entry.file + ' no longer quotes ' + entry.id
+          + ' (' + entry.what + ') -- the registration outlived the sentence it guards');
+        bad++; continue;
+      }
+      if (git('cat-file -t ' + entry.id) === null){
+        fail('documented commit id: ' + entry.file + ' names ' + entry.id + ' (' + entry.what
+          + ') and it resolves to nothing in this repository');
+        bad++;
+      }
+    }
+    if (!bad) pass('every commit id quoted in documentation still resolves (' + DOC_COMMITS.length + ' ids)');
+  }
+}
+
+/* ---------------------------------------------------------------- *
  * 16) CURRENT IMPLEMENTATION-REPORT FACTS
  * ---------------------------------------------------------------- */
 head('16) CURRENT IMPLEMENTATION-REPORT FACTS');
