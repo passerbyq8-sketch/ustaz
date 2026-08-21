@@ -5403,6 +5403,27 @@ const ADHKAR_FAVORITES_KEY = 'adhkar_favorites_v1';
 const ADHKAR_USAGE_KEY = 'adhkar_usage_v1';
 const ADHKAR_DAILY_GOAL = 8;
 
+// ── ITEM 43-أ: THE ADHKAR CHAIN, AND THE NUMBER THE READER CHOSE ────────────────────────────
+// ONE new key, carrying its own version, holding three fields and nothing else:
+//
+//     ezik_adhkar_streak_v1 = { goal, last, run }
+//
+// `goal` is the reader's own daily number. `last` is the LOCAL day the goal was last met, and
+// `run` is how many consecutive local days ended on it. Today's completions are NOT stored here
+// -- they are already in adhkar_daily_progress_v1 and are counted off the real store, so there
+// is exactly one place a completion is recorded and this key can never disagree with it.
+//
+// DEVICE-LOCAL AND NOTHING ELSE. No request, no beacon, no model call, no notification: a
+// scheduled reminder needs the native shell and is not in this build, so nothing here promises
+// one and nothing in the interface hints at one.
+const ADHKAR_STREAK_KEY = 'ezik_adhkar_streak_v1';
+// A day's dhikr, not a mountain: one is a real day and twenty is already more than the whole of
+// the morning and evening portions together. A number outside the pair is refused on write and
+// ignored on read, so a hand-edited store cannot present a goal the screen would then draw.
+const ADHKAR_GOAL_MIN = 1;
+const ADHKAR_GOAL_MAX = 20;
+const ADHKAR_GOAL_PRESETS = [3, 5, 8, 12, 20];
+
 // The identifier, and it is deliberately (category id, position) rather than d.id: it is stable
 // for a given store, it is two integers, and it says nothing about what the item contains.
 const A2_ID_RE = /^[0-9]+:[0-9]+$/;
@@ -5528,6 +5549,82 @@ function adhkarCatDone(rec, catId, items) {
   }
   return done;
 }
+
+// The day BEFORE a 'YYYY-MM-DD' key, computed on the string alone. No second Date is built and
+// no timezone is consulted twice: the only date this file reads from the device is the one
+// adhkarDayKey already read, and «yesterday» is arithmetic over that answer.
+function adhkarPrevDayKey(key) {
+  if (typeof key !== 'string' || key.length !== 10) return '';
+  const y = parseInt(key.slice(0, 4), 10);
+  const m = parseInt(key.slice(5, 7), 10);
+  const d = parseInt(key.slice(8, 10), 10);
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return '';
+  if (m < 1 || m > 12 || d < 1 || d > 31) return '';
+  let py = y, pm = m, pd = d - 1;
+  if (pd === 0) {
+    pm = m - 1;
+    if (pm === 0) { pm = 12; py = y - 1; }
+    const leap = (py % 4 === 0 && py % 100 !== 0) || py % 400 === 0;
+    const LEN = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    pd = LEN[pm - 1];
+  }
+  return String(py) + '-' + (pm < 10 ? '0' : '') + String(pm) + '-' + (pd < 10 ? '0' : '') + String(pd);
+}
+// Anything that is not a well-formed record reads as the DEFAULT record -- a missing key, damaged
+// JSON, a goal outside its pair, a malformed date, a run that is not a positive integer, or a
+// storage that throws. A chain is never invented from a broken store, and a broken store is never
+// an error message either.
+function readAdhkarStreak() {
+  const empty = { goal: ADHKAR_DAILY_GOAL, last: '', run: 0 };
+  let raw = null;
+  try { raw = localStorage.getItem(ADHKAR_STREAK_KEY); } catch (e) { return empty; }
+  if (!raw) return empty;
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return empty; }
+  if (!o || typeof o !== 'object') return empty;
+  const goal = (Number.isInteger(o.goal) && o.goal >= ADHKAR_GOAL_MIN && o.goal <= ADHKAR_GOAL_MAX)
+    ? o.goal : ADHKAR_DAILY_GOAL;
+  const last = (typeof o.last === 'string' && o.last.length === 10 && adhkarPrevDayKey(o.last)) ? o.last : '';
+  const run = (last && Number.isInteger(o.run) && o.run > 0) ? o.run : 0;
+  return { goal: goal, last: last, run: run };
+}
+// THE RUN AS OF A GIVEN DAY. A chain whose last credited day is today, or yesterday, is still
+// standing -- yesterday's, because today's dhikr has simply not been done YET and a day is not
+// over until it is over. Anything older has lapsed and reads as 0.
+//
+// A LAPSE IS NOT A PUNISHMENT. It returns a number, not a warning: the screen draws 0 in the
+// same ink as any other number, with no red, no broken-chain icon and no sentence about what the
+// reader failed to do. The chain simply starts again the next time the goal is met.
+function adhkarRunAsOf(rec, today) {
+  if (!rec || !rec.run || !rec.last) return 0;
+  if (rec.last === today) return rec.run;
+  if (rec.last === adhkarPrevDayKey(today)) return rec.run;
+  return 0;
+}
+// The goal is the reader's. Out-of-range writes nothing and returns the record unchanged, so the
+// caller always renders a number the store would actually accept.
+function writeAdhkarGoal(n) {
+  const rec = readAdhkarStreak();
+  if (!Number.isInteger(n) || n < ADHKAR_GOAL_MIN || n > ADHKAR_GOAL_MAX) return rec;
+  const next = { goal: n, last: rec.last, run: rec.run };
+  try { localStorage.setItem(ADHKAR_STREAK_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+// THE ONLY WRITER OF THE CHAIN. It is handed today's real completion count and does nothing at
+// all until that count reaches the reader's own goal. A day already credited writes NOTHING, so
+// re-entering the screen, or completing a ninth dhikr after the eighth, cannot lengthen the
+// chain twice. localStorage only -- no request, no beacon, no reminder.
+function markAdhkarDayMet(done) {
+  const rec = readAdhkarStreak();
+  if (!Number.isInteger(done) || done < rec.goal) return rec;
+  const today = adhkarDayKey();
+  if (rec.last === today) return rec;
+  const run = (rec.run > 0 && rec.last === adhkarPrevDayKey(today)) ? rec.run + 1 : 1;
+  const next = { goal: rec.goal, last: today, run: run };
+  try { localStorage.setItem(ADHKAR_STREAK_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+
 function adhkarCompletedToday(rec, byCat) {
   if (!rec || !rec.n || !byCat) return 0;
   let done = 0;
@@ -5632,6 +5729,13 @@ function adhkarWindow(len, idx, size) {
 // None of these is devotional text. They are a card title, a section title, five control
 // labels and three status lines -- chrome, all of it, and none of it read from adhkar.json.
 // Glosses are on the right so the wording can be reviewed without decoding by hand.
+// ITEM 43-أ. The chain's own words. NEUTRAL BY CONSTRUCTION: there is no sentence here for a
+// chain that lapsed, because none is drawn -- the number simply reads zero and the invitation
+// below is the same invitation a first-time reader sees.
+const A3_CHAIN_TITLE = 'سلسلتك';                    // "your chain"
+const A3_CHAIN_DAYS  = 'يومًا متتاليًا';              // "consecutive days"
+const A3_CHAIN_START = 'تبدأ ببلوغ هدف اليوم';       // "it begins when today's goal is reached"
+const A3_GOAL_PICK   = 'هدف اليوم';                  // "today's goal"
 const A2_GOAL_TITLE  = '\u{0648}\u{0631}\u{062F}\u{0643} \u{0627}\u{0644}\u{064A}\u{0648}\u{0645}\u{064A}';                                  // "your daily wird"
 const A2_MOST_USED   = '\u{0627}\u{0644}\u{0623}\u{0643}\u{062B}\u{0631} \u{0627}\u{0633}\u{062A}\u{062E}\u{062F}\u{0627}\u{0645}\u{0627}\u{064B}'; // "the most used"
 const A2_FAV_ADD     = '\u{0623}\u{0636}\u{0641} \u{0625}\u{0644}\u{0649} \u{0627}\u{0644}\u{0645}\u{0641}\u{0636}\u{0644}\u{0629}';            // "add to favourites"
@@ -5798,6 +5902,9 @@ function AdhkarScreenV2({ onBack }) {
   const [prog, setProg] = useState(readAdhkarProgress);
   const [usage, setUsage] = useState(readAdhkarUsage);
   const [favs, setFavs] = useState(readAdhkarFavorites);
+  // ITEM 43-أ. The chain is browse state like the rest: this component owns it, reads it and
+  // writes it, and the presentation below is handed the two numbers it draws.
+  const [streak, setStreak] = useState(readAdhkarStreak);
   useEffect(() => {
     let alive = true;
     loadAdhkar().then((d) => { if (alive) setDb(d || { categories: [], byCat: {} }); })
@@ -5844,6 +5951,12 @@ function AdhkarScreenV2({ onBack }) {
   // COMPLETED means target reached, counted over distinct items, and capped for DISPLAY at the
   // goal -- min(done, 8) of 8. A ninth completion is real and is not shown as a ninth eighth.
   const done = adhkarCompletedToday(prog, db && db.byCat);
+  // ITEM 43-أ. THE ONE PLACE THE CHAIN IS CREDITED, and it is keyed on the real completion count
+  // rather than on a tap: whichever category the eighth dhikr was finished in, today is credited
+  // once here. markAdhkarDayMet refuses a day it has already credited, so this effect re-running
+  // -- on a re-render, on returning from a category, on a day that rolled over mid-session --
+  // cannot lengthen the chain a second time.
+  useEffect(() => { setStreak(markAdhkarDayMet(done)); }, [done]);
   // ONE view object, handed to whichever home is drawn. Both receive the same store, the same
   // filtered list, the same progress record and the same handlers -- there is nothing a home
   // component can compute that the other cannot, and nothing either of them may write.
@@ -5868,6 +5981,9 @@ function AdhkarScreenV2({ onBack }) {
     usage: usage,
     favs: favs,
     done: done,
+    goal: streak.goal,
+    run: adhkarRunAsOf(streak, adhkarDayKey()),
+    onGoal: (n) => setStreak(writeAdhkarGoal(n)),
   };
   // The whole of the style switch on this screen: which component receives the state above.
   // S103: the istana catalogue is the whole of the answer. Both legacy browse designs were
@@ -5969,11 +6085,13 @@ function IstanaAdhkarFeature({ c, st, onOpen }) {
   );
 }
 
-function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done }) {
-  const shown = Math.min(done, ADHKAR_DAILY_GOAL);
+function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done, goal, run, onGoal }) {
+  // ITEM 43-أ. The ring is measured against the READER'S number now, not a constant. The
+  // constant survives as the default that number starts from, and nothing else reads it.
+  const shown = Math.min(done, goal);
   // the real ring, unchanged: min(completions, goal) over the goal, and nothing else.
   const CIRC = 2 * Math.PI * 30;
-  const off = CIRC * (1 - (shown / ADHKAR_DAILY_GOAL));
+  const off = CIRC * (1 - (shown / goal));
   const featured = list.slice(0, EZIA_FEATURED);
   const rest = list.slice(EZIA_FEATURED);
   return (
@@ -5997,19 +6115,36 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
         <div className="ezia-wrap">
           <section className="ezia-masthead">
             <span style={s.eziaRingBox} role="progressbar" aria-label={A2_GOAL_TITLE}
-              aria-valuemin={0} aria-valuemax={ADHKAR_DAILY_GOAL} aria-valuenow={shown}>
+              aria-valuemin={0} aria-valuemax={goal} aria-valuenow={shown}>
               <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">
                 <circle cx="38" cy="38" r="30" fill="none" stroke="var(--a3-surface)" strokeWidth="7" />
                 <circle cx="38" cy="38" r="30" fill="none" stroke="var(--a3-blue)" strokeWidth="7" strokeLinecap="round"
                   strokeDasharray={CIRC} strokeDashoffset={off} transform="rotate(-90 38 38)" />
               </svg>
-              <span style={s.eziaRingNums}>{toArabicDigits(shown)} / {toArabicDigits(ADHKAR_DAILY_GOAL)}</span>
+              <span style={s.eziaRingNums}>{toArabicDigits(shown)} / {toArabicDigits(goal)}</span>
             </span>
             <span style={s.eziaMastText}>
               <span style={s.eziaMastTitle}>{A2_GOAL_TITLE}</span>
               <span style={s.eziaMastHint}>{A2_SOURCE}</span>
             </span>
           </section>
+            {/* ITEM 43-أ. The chain and the goal, on the masthead the ring already sits in.
+                The number is drawn the same way whether the chain stands or has lapsed. */}
+            <div style={s.eziaChainRow}>
+              <span style={s.eziaChainWord}>{A3_CHAIN_TITLE}</span>
+              <span style={s.eziaChainNum}>{toArabicDigits(run)}</span>
+              <span style={s.eziaChainWord}>{run > 0 ? A3_CHAIN_DAYS : A3_CHAIN_START}</span>
+            </div>
+            <div style={s.eziaGoalRow} role="group" aria-label={A3_GOAL_PICK}>
+              <span style={s.eziaGoalLabel}>{A3_GOAL_PICK}</span>
+              {ADHKAR_GOAL_PRESETS.map((n) => (
+                <button key={n} type="button" className="adhkar2-focus" onClick={() => onGoal(n)}
+                  aria-pressed={goal === n ? 'true' : 'false'}
+                  style={goal === n ? { ...s.eziaGoalChip, ...s.eziaGoalChipOn } : s.eziaGoalChip}>
+                  {toArabicDigits(n)}
+                </button>
+              ))}
+            </div>
           {cats === null ? (
             <div style={s.a3Empty}>...</div>
           ) : list.length === 0 ? (
@@ -15300,6 +15435,16 @@ const s = {
   eziaMastText: { display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, textAlign: 'right' },
   eziaMastTitle: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)' },
   eziaMastHint: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)' },
+  // ITEM 43-أ. The chain row and the goal chooser. Every colour is a token this screen already
+  // declares in both modes, so the row inherits dark exactly as the masthead above it does, and
+  // NOTHING here is red: a lapsed chain is drawn in the same ink as a standing one.
+  eziaChainRow: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 12 },
+  eziaChainNum: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)' },
+  eziaChainWord: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)' },
+  eziaGoalRow: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  eziaGoalLabel: { fontSize: 12.5, fontWeight: 700, color: 'var(--a3-muted)' },
+  eziaGoalChip: { minWidth: 44, minHeight: 44, padding: '0 12px', borderRadius: 14, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 14, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  eziaGoalChipOn: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: '1px solid var(--a3-blue)' },
   eziaSecTitle: { flexShrink: 0, fontSize: 13, fontWeight: 800, color: 'var(--a3-blue)', fontFamily: 'var(--ez-ui-font)' },
   // the catalogue card: a crest, an emblem row, the title, then the standing and the chevron.
   eziaCard: { position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8, width: '100%', minHeight: 132, padding: '32px 12px 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },

@@ -1268,8 +1268,52 @@ ok('...with the same brand-arch language as the home', /className="ezia-brand-ar
 ok('it has a bounded arched masthead', /className="ezia-masthead"/.test(IA)
   && /\.ezia-masthead\{[^}]*border-radius:var\(--ez-radius-sig\)/.test(css)
   && /\.ezia-masthead\{[^}]*overflow:hidden/.test(css));
-ok('...carrying the REAL daily ring, not a decorative one',
-  /role="progressbar"[\s\S]{0,200}?aria-valuenow=\{shown\}/.test(IA) && /Math\.min\(done, ADHKAR_DAILY_GOAL\)/.test(IA));
+okOn('...carrying the REAL daily ring, not a decorative one', [['IA', IA]],
+  /role="progressbar"[\s\S]{0,200}?aria-valuenow=\{shown\}/.test(IA) && /Math\.min\(done, goal\)/.test(IA));
+
+/* ---- I3-ب. ITEM 43-أ: THE CHAIN, AND THE NUMBER THE READER CHOSE ---------
+ * The ring used to be measured against a constant. It is measured against the reader's own
+ * goal now, and the constant survives only as the value that goal DEFAULTS to -- so a screen
+ * that quietly went back to the constant would be presenting a target nobody chose.
+ */
+okOn('43-أ: the ring is measured against the READER\'S goal, not a constant', [['IA', IA]],
+  /const shown = Math\.min\(done, goal\);/.test(IA)
+  && /\(shown \/ goal\)/.test(IA)
+  && /aria-valuemax=\{goal\}/.test(IA)
+  && !/ADHKAR_DAILY_GOAL/.test(IA),
+  'the fixed goal is back on this screen');
+// The chooser is a real group of real controls, and the pressed one says so.
+okOn('43-أ: the goal is chosen from the presets, in a labelled group', [['IA', IA]],
+  /role="group" aria-label=\{A3_GOAL_PICK\}/.test(IA)
+  && /ADHKAR_GOAL_PRESETS\.map/.test(IA)
+  && /aria-pressed=\{goal === n \? 'true' : 'false'\}/.test(IA)
+  && /onClick=\{\(\) => onGoal\(n\)\}/.test(IA));
+// A LAPSE IS NOT PUNISHED. The chain row draws a number and a word; there is no red anywhere in
+// its styles, and no second sentence for a chain that stopped -- the zero case is an INVITATION
+// (A3_CHAIN_START), which is also what a first-time reader sees.
+okOn('43-أ: the chain is drawn, and its number is the run', [['IA', IA]],
+  /\{toArabicDigits\(run\)\}/.test(IA) && /A3_CHAIN_TITLE/.test(IA));
+okOn('43-أ: ...and a chain that lapsed is neither red nor scolded', [['IA', IA]],
+  /run > 0 \? A3_CHAIN_DAYS : A3_CHAIN_START/.test(IA)
+  && !/A3_CHAIN_(?:LOST|BROKEN|MISSED|FAIL)/.test(IA),
+  'a second, worse sentence was added for the day the chain stopped');
+// Every chain style resolves to a token this screen declares in BOTH modes -- the group C
+// contrast sweep above already proves the pair, so this only proves they are TOKENS.
+for (const k of ['eziaChainNum', 'eziaChainWord', 'eziaGoalLabel', 'eziaGoalChip', 'eziaGoalChipOn']) {
+  ok('43-أ: ' + k + ' takes its colour from a token, not a literal',
+    !isColour(String((s[k] || {}).color || 'var(--x)'))
+    && !isColour(String((s[k] || {}).background || 'var(--x)')));
+}
+// ZERO NOTIFICATIONS. A scheduled reminder needs the native shell; it is not in this build, so
+// nothing may promise one -- not a permission request, not a Notification, not a scheduler, and
+// not a word of copy on this screen that implies the app will come and find the reader.
+ok('43-أ: nothing in the app asks for, schedules or sends a notification',
+  !/Notification\s*\(/.test(html)
+  && !/requestPermission\s*\(/.test(html)
+  && !/showTrigger|periodicSync|pushManager|serviceWorker\.ready[\s\S]{0,80}showNotification/.test(html),
+  'a notification path appeared -- item 43-أ ships zero of them');
+okOn('43-أ: ...and the chain says nothing about being reminded', [['IA', IA]],
+  !/A3_CHAIN_(?:REMIND|NOTIFY)/.test(IA));
 ok('featured groups are their own presentation', /<IstanaAdhkarFeature /.test(IA) && !!s.eziaFeature);
 ok('...and the rest are a responsive catalogue',
   /className="ezia-catalogue"/.test(IA) && /\.ezia-catalogue\{[^}]*display:grid/.test(css));
