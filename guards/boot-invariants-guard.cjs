@@ -144,23 +144,19 @@ if (catcherIdx !== -1) {
 /* =============================================================================================
  * THE SHIPPED BLOCK — LOCATED EXPLICITLY, NEVER FALLING BACK TO ''
  * =========================================================================================== */
-const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-const mOpen = openRe.exec(html);
-if (!mOpen) {
-  console.log('  FAIL [BOOT] the text/babel block could not be located, so neither the boundary nor');
-  console.log('       the pin breaker can be read. This is an explicit failure, not an empty region:');
-  console.log('       every check below would have been SATISFIED by emptiness.');
+// ITEM 32-b: the block is located in ONE place, ../tools/babel-block.cjs, which REQUIRES every
+// anchor and names the one it lost. The two exits this replaces said the same thing twice; the
+// rule they enforced -- an explicit failure, never an empty region every check below would be
+// satisfied by -- is now enforced for all fifteen readers at once.
+const BB = require('../tools/babel-block.cjs');
+let bbBlock;
+try { bbBlock = BB.readBabelBlock({ file: HTML_FILE, html: html }); }
+catch (e) {
+  console.log('  FAIL [BOOT] ' + e.message);
   console.log(NL + 'FAIL  ' + pass + ' checks passed, ' + (fail + 1) + ' failed.');
   process.exit(1);
 }
-const blockStart = mOpen.index + mOpen[0].length;
-const blockEnd = html.indexOf('</script>', blockStart);
-if (blockEnd === -1) {
-  console.log('  FAIL [BOOT] the text/babel block is never closed. Same rule: an explicit failure.');
-  console.log(NL + 'FAIL  ' + pass + ' checks passed, ' + (fail + 1) + ' failed.');
-  process.exit(1);
-}
-const code = html.slice(blockStart, blockEnd);
+const code = bbBlock.raw;
 
 let ast;
 try {

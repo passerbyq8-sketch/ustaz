@@ -15,15 +15,14 @@ const { parseHTML } = require('linkedom');
 const htmlFile = process.argv[2] || 'index.html';
 const html = fs.readFileSync(htmlFile, 'utf8');
 
-// --- Extract the text/babel block ---
-const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-const m = openRe.exec(html);
-if (!m) { console.error('No text/babel script block found in ' + htmlFile); process.exit(2); }
-const startBody = m.index + m[0].length;
-const closeIdx = html.indexOf('</script>', startBody);
-const rawCode = html.slice(startBody, closeIdx);
+// --- Extract the text/babel block, and settle the runtime, in ONE place (item 32-b) ---
+const BB = require('./tools/babel-block.cjs');
+let block;
+try { block = BB.readBabelBlock({ file: htmlFile, html: html }); }
+catch (e) { console.error(e.message); process.exit(2); }
+const rawCode = block.raw;
 // Line number in the HTML where the babel block body begins (for mapping errors)
-const lineOffset = html.slice(0, startBody).split('\n').length - 1;
+const lineOffset = block.lineOffset;
 
 // --- Determine the JSX runtime FAITHFULLY from the page's pinned Babel major ---
 // The browser runs whatever @babel/standalone the page loads, and preset-react's
@@ -35,21 +34,21 @@ const lineOffset = html.slice(0, startBody).split('\n').length - 1;
 // HTML, parse its pinned version, and mirror that major's genuine default — so the gate
 // reproduces exactly what the browser does. An UNPINNED url resolves to unpkg's latest
 // (currently 8.x), so we treat unpinned as automatic.
-const babelSrc = (html.match(/<script[^>]*src=["']([^"']*@babel\/standalone[^"']*)["']/i) || [])[1] || '';
-const verMatch = babelSrc.match(/@babel\/standalone@(\d+)\./);
-const babelMajor = verMatch ? parseInt(verMatch[1], 10) : 8; // unpinned => latest (8.x)
-const jsxRuntime = babelMajor >= 8 ? 'automatic' : 'classic';
+// ITEM 32-b. This was the ORIGINAL of the fork the other nine guards copied, including the
+// `: 8` that turned a missing CDN tag into a confident wrong answer. The decision now lives in
+// tools/babel-block.cjs and an unreadable version is a named error there, not a default here.
+// The line below still prints exactly what it printed: the tag, the major, and the runtime.
+const babelSrc = block.babelSrc;
+const babelMajor = block.babelMajor;
+const jsxRuntime = block.runtime;
 console.log(`Page loads @babel/standalone: ${babelSrc || '(unpinned)'} -> major ${babelMajor} -> preset-react default runtime "${jsxRuntime}"`);
 
 // --- Babel-transform (mirroring the page's Babel major default runtime) ---
 let transformed;
 try {
-  transformed = babel.transformSync(rawCode, {
-    presets: [['@babel/preset-react', { runtime: jsxRuntime }]],
-    filename: 'babel-block.jsx',
-    sourceType: 'script',
-    retainLines: true, // keep original line numbers so stack traces map back
-  }).code;
+  // ITEM 32-b: the same transform, from the same source of truth as every other guard.
+  // retainLines is kept so stack traces still map back to the HTML line.
+  transformed = BB.transformBabelBlock(block);
 } catch (e) {
   console.log('TRANSFORM ERROR (should have been caught by babel-gate):');
   console.log(e.message);

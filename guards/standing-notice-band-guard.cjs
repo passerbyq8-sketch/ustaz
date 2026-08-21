@@ -30,6 +30,8 @@ const path = require('path');
 const vm = require('vm');
 const babel = require('@babel/core');
 const { parseHTML } = require('linkedom');
+// ITEM 32-b: the one place the shipped block is cut and the JSX runtime is settled.
+const BB = require('../tools/babel-block.cjs');
 
 const ROOT = path.resolve(__dirname, '..');
 const INDEX = path.join(ROOT, 'index.html');
@@ -49,22 +51,16 @@ function ok(label, condition, detail) {
 // Same mechanics as guards/truncated-tag-fallback-par-a-guard.cjs, for the same reason.
 function bootClient(source) {
   const html = source === undefined ? fs.readFileSync(INDEX, 'utf8') : source;
-  const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-  const mOpen = openRe.exec(html);
-  if (!mOpen) throw new Error('no text/babel block in index.html');
-  const from = mOpen.index + mOpen[0].length;
-  const rawCode = html.slice(from, html.indexOf('</script>', from));
+  // ITEM 32-b: extraction and the runtime decision come from ../tools/babel-block.cjs. This
+  // guard boots MUTATED copies of the block too, so it hands the helper the source it holds
+  // rather than a path -- the anchors are required either way, and a mutant that removed the
+  // CDN tag now fails by name instead of transforming with the other runtime and passing.
+  const block = BB.readBabelBlock({ file: INDEX, html: html });
+  const rawCode = block.raw;
 
-  const babelSrc = (html.match(/<script[^>]*src=["']([^"']*@babel\/standalone[^"']*)["']/i) || [])[1] || '';
-  const verMatch = babelSrc.match(/@babel\/standalone@(\d+)\./);
-  const babelMajor = verMatch ? parseInt(verMatch[1], 10) : 8;
-  const jsxRuntime = babelMajor >= 8 ? 'automatic' : 'classic';
-
-  const transformed = babel.transformSync(rawCode, {
-    presets: [['@babel/preset-react', { runtime: jsxRuntime }]],
-    filename: 'babel-block.jsx',
-    configFile: false, babelrc: false,
-  }).code;
+  const transformed = BB.transformBabelBlock(block, {
+    retainLines: false, configFile: false, babelrc: false,
+  });
 
   const { window } = parseHTML('<!DOCTYPE html><html><body><div id="root"></div></body></html>');
   try { if (!window.TextDecoder) window.TextDecoder = TextDecoder; } catch (e) {}

@@ -87,19 +87,19 @@ const cps = (x) => Array.prototype.map.call(String(x == null ? '' : x),
   (c) => 'U+' + c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')).join(' ');
 
 /* ===================== the shipped block, transformed ===================== */
-const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-const mOpen = openRe.exec(html);
-if (!mOpen) { console.error('No text/babel script block found in ' + htmlFile); process.exit(2); }
-const rawCode = html.slice(mOpen.index + mOpen[0].length, html.indexOf('</script>', mOpen.index + mOpen[0].length));
-const babelSrc = (html.match(/<script[^>]*src=["']([^"']*@babel\/standalone[^"']*)["']/i) || [])[1] || '';
-const babelMajor = (babelSrc.match(/@babel\/standalone@(\d+)\./) || [])[1] || 8;
+// ITEM 32-b. The block is cut, and the JSX runtime settled, in ONE place: ../tools/babel-block.cjs.
+// This used to be a private copy of the same two regexes plus `: 8` -- a SILENT fallback that
+// let this gate keep transforming, with the wrong runtime, after the CDN tag it reads was
+// removed. The helper raises a named error instead. (Measured: the page pins 7.26.4, so the
+// runtime is `classic`; the fallback would have chosen `automatic`.)
+const BB = require('../tools/babel-block.cjs');
+let block;
+try { block = BB.readBabelBlock({ file: htmlFile, html: html }); }
+catch (e) { console.error(e.message); process.exit(2); }
+const rawCode = block.raw;
 let transformed;
-try {
-  transformed = babel.transformSync(rawCode, {
-    presets: [['@babel/preset-react', { runtime: Number(babelMajor) >= 8 ? 'automatic' : 'classic' }]],
-    filename: 'babel-block.jsx', sourceType: 'script', retainLines: true,
-  }).code;
-} catch (e) { console.log('TRANSFORM ERROR:\n' + e.message); process.exit(1); }
+try { transformed = BB.transformBabelBlock(block); }
+catch (e) { console.log('TRANSFORM ERROR:\n' + e.message); process.exit(1); }
 
 function makeStore(seed) {
   const data = Object.assign({}, seed || {});

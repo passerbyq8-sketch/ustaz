@@ -139,24 +139,23 @@ function attributable(records, query) {
 // ---------------------------------------------------------------------------
 // Extract + transform, exactly as runtime-gate does (same pinned-major rule).
 // ---------------------------------------------------------------------------
-const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-const mOpen = openRe.exec(html);
-if (!mOpen) { console.error('No text/babel script block found in ' + htmlFile); process.exit(2); }
-const rawCode = html.slice(mOpen.index + mOpen[0].length, html.indexOf('</script>', mOpen.index + mOpen[0].length));
+// ITEM 32-b. The block is cut, and the JSX runtime settled, in ONE place: tools/babel-block.cjs.
+// This used to be a private copy of the same two regexes plus `: 8` -- a SILENT fallback that
+// let this gate keep transforming, with the wrong runtime, after the CDN tag it reads was
+// removed. The helper raises a named error instead. (Measured: the page pins 7.26.4, so the
+// runtime is `classic`; the fallback would have chosen `automatic`.)
+const BB = require('./tools/babel-block.cjs');
+let block;
+try { block = BB.readBabelBlock({ file: htmlFile, html: html }); }
+catch (e) { console.error(e.message); process.exit(2); }
+const rawCode = block.raw;
 
-const babelSrc = (html.match(/<script[^>]*src=["']([^"']*@babel\/standalone[^"']*)["']/i) || [])[1] || '';
-const verMatch = babelSrc.match(/@babel\/standalone@(\d+)\./);
-const babelMajor = verMatch ? parseInt(verMatch[1], 10) : 8;
-const jsxRuntime = babelMajor >= 8 ? 'automatic' : 'classic';
-
+// ITEM 32-b: the runtime fork that stood here -- and its `: 8` fallback -- is now settled once,
+// in tools/babel-block.cjs, where a missing or unparseable @babel/standalone tag is a named
+// error rather than a confident wrong answer.
 let transformed;
 try {
-  transformed = babel.transformSync(rawCode, {
-    presets: [['@babel/preset-react', { runtime: jsxRuntime }]],
-    filename: 'babel-block.jsx',
-    sourceType: 'script',
-    retainLines: true,
-  }).code;
+  transformed = BB.transformBabelBlock(block);
 } catch (e) {
   console.log('TRANSFORM ERROR (should have been caught by babel-gate):\n' + e.message);
   process.exit(1);

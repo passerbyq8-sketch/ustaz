@@ -129,9 +129,13 @@ const cps = (x) => Array.prototype.map.call(String(x == null ? '' : x), (c) => c
 function partP2Labels() {
   console.log('\n=== P2. THE HADITH CARD LABEL ===');
   const html = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8');
-  const open = /<script[^>]*type=["']text\/babel["'][^>]*>/i.exec(html);
-  const raw = open ? html.slice(open.index + open[0].length,
-    html.indexOf('</script>', open.index + open[0].length)) : '';
+  // ITEM 32-b: located once, in ./tools/babel-block.cjs. The `open ? ... : ''` this replaces is
+  // the emptyable shape gate `vacuousassert` refuses -- a missing anchor produced an empty
+  // string, and the parse below then reported success over nothing at all.
+  const BB = require('./tools/babel-block.cjs');
+  let raw = '';
+  try { raw = BB.readBabelBlock({ file: path.join(REPO, 'index.html'), html: html }).raw; }
+  catch (e) { ok('the shipped app script was located for label inspection', false, e.message); }
   let ast = null;
   try { ast = raw ? babelParser.parse(raw, { sourceType: 'script', plugins: ['jsx'] }) : null; }
   catch (e) { ok('the shipped app script parses for label inspection', false, e.message); }

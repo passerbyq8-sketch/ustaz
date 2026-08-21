@@ -12,17 +12,15 @@ const OUT_FILE = path.join(OUT_DIR, 'babel-block.jsx');
 
 const html = fs.readFileSync('index.html', 'utf8');
 
-// Find the text/babel script block
-const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-const m = openRe.exec(html);
-if (!m) { console.error('No text/babel script found'); process.exit(2); }
-
-const startBody = m.index + m[0].length;
-const closeIdx = html.indexOf('</script>', startBody);
-const code = html.slice(startBody, closeIdx);
-
-// Line number where the babel block body starts in the HTML file
-const lineOffset = html.slice(0, startBody).split('\n').length - 1;
+// ITEM 32-b: the block is located in ONE place, tools/babel-block.cjs, and a missing anchor is
+// a named error rather than a silent empty string. This gate does not fork on the runtime, so
+// only the extraction moved; its transform below is unchanged.
+const BB = require('./tools/babel-block.cjs');
+let block;
+try { block = BB.readBabelBlock({ file: 'index.html', html: html }); }
+catch (e) { console.error(e.message); process.exit(2); }
+const code = block.raw;
+const lineOffset = block.lineOffset;
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 fs.writeFileSync(OUT_FILE, code);

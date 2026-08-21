@@ -60,24 +60,20 @@ const plain = (v) => JSON.parse(JSON.stringify(v));
 // ---------------------------------------------------------------------------
 // Extract + transform, exactly as runtime-gate does (same pinned-major rule).
 // ---------------------------------------------------------------------------
-const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-const m = openRe.exec(html);
-if (!m) { console.error('No text/babel script block found in ' + htmlFile); process.exit(2); }
-const rawCode = html.slice(m.index + m[0].length, html.indexOf('</script>', m.index + m[0].length));
-
-const babelSrc = (html.match(/<script[^>]*src=["']([^"']*@babel\/standalone[^"']*)["']/i) || [])[1] || '';
-const verMatch = babelSrc.match(/@babel\/standalone@(\d+)\./);
-const babelMajor = verMatch ? parseInt(verMatch[1], 10) : 8;
-const jsxRuntime = babelMajor >= 8 ? 'automatic' : 'classic';
+// ITEM 32-b. The block is cut, and the JSX runtime settled, in ONE place: tools/babel-block.cjs.
+// This used to be a private copy of the same two regexes plus `: 8` -- a SILENT fallback that
+// let this gate keep transforming, with the wrong runtime, after the CDN tag it reads was
+// removed. The helper raises a named error instead. (Measured: the page pins 7.26.4, so the
+// runtime is `classic`; the fallback would have chosen `automatic`.)
+const BB = require('./tools/babel-block.cjs');
+let block;
+try { block = BB.readBabelBlock({ file: htmlFile, html: html }); }
+catch (e) { console.error(e.message); process.exit(2); }
+const rawCode = block.raw;
 
 let transformed;
 try {
-  transformed = babel.transformSync(rawCode, {
-    presets: [['@babel/preset-react', { runtime: jsxRuntime }]],
-    filename: 'babel-block.jsx',
-    sourceType: 'script',
-    retainLines: true,
-  }).code;
+  transformed = BB.transformBabelBlock(block);
 } catch (e) {
   console.log('TRANSFORM ERROR (should have been caught by babel-gate):\n' + e.message);
   process.exit(1);
