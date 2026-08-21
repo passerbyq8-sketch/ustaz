@@ -17,6 +17,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const { fresh, runMutant, harness } = require('./output-reviewer-mutant-lib.cjs');
 const ROOT = path.resolve(__dirname, '..');
 const REVIEWER = path.join(ROOT, 'lib', 'output-reviewer.js');
@@ -29,6 +30,14 @@ const { ok, finish } = harness('attribution-on-output');
 // the thing it checks proves only that one copy equals itself.
 const EXPECTED_HOST_EXTRA = { aljasser: ['youtube.com', 'youtu.be', 'dr-mutlaq.com'] };
 const INSTITUTIONAL_KINDS = ['fatwa-portal', 'official-fatwa'];
+
+// A mutant of lib/fatwa-contract.js runs from a temp directory, so its relative imports have to
+// be rewritten to absolute URLs or the twin cannot load at all.
+function absolutize(source) {
+  const lib = path.join(ROOT, 'lib');
+  return source.replace(/from\s+([\x27"])(\.\/[^\x27"]+)\1/gu, (_all, quote, specifier) =>
+    `from ${quote}${pathToFileURL(path.resolve(lib, specifier)).href}${quote}`);
+}
 
 function fold(value) {
   return String(value ?? '')
@@ -259,6 +268,68 @@ const rejectsWrongScholar = (module) => {
     ok('word-boundary mutant module loaded successfully', wordMutant.loaded, wordMutant.error);
     ok('MUTANT KILLED: raw substring matching cannot keep 18/18',
       wordMutant.loaded && wordMutant.survived === false, JSON.stringify(wordMutant));
+
+    // ── F. THE CORRECTED NAMES (item 71) ──────────────────────────────────
+    // Two rows published a name the corpus does not support, and a name in lib/fatwa-contract.js
+    // is a KEY: resolveFatwaScholar() matches on `aliases` only. So the correction had to be a
+    // UNION — the corrected name must resolve, and the superseded name must go on resolving,
+    // because the fatwa service still returns it as `shortName` on every card it serves.
+    const contract = await fresh(path.join(ROOT, 'lib', 'fatwa-contract.js'), 'names-71');
+    const NAME_SUBJECTS = [
+      ['النجدي الأثري', 'alathary', 'superseded'],
+      ['محمد الحمود النجدي', 'alathary', 'corrected'],
+      ['محمد النجدي', 'alathary', 'corrected'],
+      ['الحمود النجدي', 'alathary', 'corrected'],
+      ['سعد الماجد', 'salmajed', 'superseded'],
+      ['سليمان الماجد', 'salmajed', 'corrected'],
+      ['سليمان بن عبدالله الماجد', 'salmajed', 'corrected'],
+      ['سليمان بن عبد الله الماجد', 'salmajed', 'corrected'],
+    ];
+    for (const [name, expected, kind] of NAME_SUBJECTS) {
+      const hit = contract.resolveFatwaScholar(name);
+      ok(`the ${kind} name «${name}» resolves to ${expected}`, !!hit && hit.id === expected,
+        'got ' + (hit ? hit.id : 'null'));
+    }
+    // The identifiers are load-bearing in served uids (`salmajed:fatwa:salmajed:6184`) and in the
+    // reviewer's `ids` prefixes. The aljasser ⟶ drmutlaq precedent is a silent empty dropdown.
+    for (const [id, canonicalId] of [['alathary', 'al-najdi-al-athary'], ['salmajed', 'saad-al-majed']]) {
+      const row = contract.FATWA_SCHOLARS.find((entry) => entry.id === id);
+      ok(`${id} keeps its identifiers while its display name moves`,
+        !!row && row.canonicalId === canonicalId, JSON.stringify(row && row.canonicalId));
+    }
+
+    // The corrected name, asserted over the SAME real published fatwa the fixture carries, is
+    // licensed by the same host. Nothing is harvested here: only the claim sentence is restated.
+    const CORRECTED = { alathary: 'محمد الحمود النجدي', salmajed: 'سليمان الماجد' };
+    for (const entry of eighteen.cases) {
+      const corrected = CORRECTED[entry.scholarId];
+      if (!corrected) continue;
+      const claim = entry.claim.replace(entry.name, corrected);
+      ok(`«${corrected}» is not the name in the claim yet`, claim !== entry.claim, entry.claim);
+      const out = module.reviewAnswer({ text: claim, evidence: [entry.evidence], domain: 'fiqh', mode: 'عادي' });
+      ok(`a real ${entry.scholarId} fatwa keeps its attribution under the corrected name «${corrected}»`,
+        out.annotations[0]?.action === 'kept-sourced-attribution' && out.text.includes(corrected),
+        (out.annotations[0]?.action || '?') + ' | ' + out.text.slice(0, 120));
+    }
+
+    // M5 — the correction written as a RENAME instead of a union: the superseded name is dropped
+    // from the contract. Every card the service still serves under it loses its attribution, which
+    // is the silent regression the union exists to prevent.
+    const CONTRACT_FILE = path.join(ROOT, 'lib', 'fatwa-contract.js');
+    const renameMutant = await runMutant({
+      sourceFile: CONTRACT_FILE,
+      name: 'corrected-names-written-as-a-rename',
+      transform: (source) => absolutize(source)
+        .replace("'سليمان الماجد', 'سعد الماجد', 'الماجد'", "'سليمان الماجد'")
+        .replace("'عبدالله النجدي الأثري', 'عبد الله النجدي الاثري', 'النجدي الأثري'", "'محمد الحمود النجدي'"),
+      survives: async (mutant) => ['سعد الماجد', 'النجدي الأثري']
+        .every((name) => mutant.resolveFatwaScholar(name) !== null),
+    });
+    ok('rename mutant seam applied', renameMutant.changed, renameMutant.error);
+    ok('rename mutant module loaded successfully', renameMutant.loaded, renameMutant.error);
+    ok('MUTANT KILLED: a rename instead of a union stops resolving the name the service still serves',
+      renameMutant.loaded && renameMutant.survived === false, JSON.stringify(renameMutant));
+
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

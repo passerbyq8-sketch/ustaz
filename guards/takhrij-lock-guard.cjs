@@ -29,6 +29,17 @@ const { spawnSync } = require('child_process');
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
+// Reads the stored-DEEN sub-suite total out of its own summary line and holds it to a floor.
+// Returns false when the line is absent, so a sub-suite that stopped printing its summary — or
+// died before reaching it — cannot pass this gate silently.
+function storedSubSuiteAtLeast(stdout, floor) {
+  const match = /stored-DEEN sub-suite: (\d+)\/(\d+) — (PASS|FAIL)/u.exec(String(stdout || ''));
+  if (!match) return false;
+  const passed = Number(match[1]);
+  const total = Number(match[2]);
+  return match[3] === 'PASS' && passed === total && total >= floor;
+}
+
 function ok(name, cond, detail) {
   checks++;
   if (cond) { console.log('  PASS  ' + name); return true; }
@@ -834,7 +845,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       if (storedSuite.stdout) process.stdout.write(storedSuite.stdout);
       if (storedSuite.stderr) process.stderr.write(storedSuite.stderr);
       ok('F-010 stored-DEEN sub-suite: grounded output, real takhrij lock and all mutants pass',
-        storedSuite.status === 0 && /stored-DEEN sub-suite: 85\/85 — PASS/u.test(storedSuite.stdout || ''),
+        // The sub-suite count is a FLOOR, not a ceiling. An exact pin turned every assertion added
+        // to the sub-suite into a failure of this gate, which is backwards: assertions may only
+        // grow. What must hold is that none were lost and none failed, so the printed total is read
+        // and held against the floor instead of matched literally.
+        storedSuite.status === 0 && storedSubSuiteAtLeast(storedSuite.stdout || '', 105),
         'status=' + storedSuite.status + (storedSuite.error ? ' error=' + storedSuite.error.message : ''));
 
       // A typed identity question is the live structured route where namedEntity is empty while a
