@@ -29,10 +29,10 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v9';
+const CACHE = 'ezik-v10';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
-// a second copy of the 1087357 bytes '/' already holds. The network-first branch below still
+// a second copy of the 1140964 bytes '/' already holds. The network-first branch below still
 // cache.put()s the shell on every successful load, so the offline fallback keeps working from
 // the '/' entry.
 //
@@ -72,12 +72,12 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 1087357 + icon-watermark.png 368386 + adhkar.json 177392
+//   /  (index.html) 1140964 + icon-watermark.png 368386 + adhkar.json 177392
 //   + icon-512.png 12893 + icon-maskable-512.png 5938 + icon-192.png 5053 + manifest.json 533
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS when
 // the constant has fallen below it, so a shell that grows cannot quietly leave the pre-check
 // reading a number that stopped being true.
-const CORE_BYTES = 1657552;
+const CORE_BYTES = 1711159;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
