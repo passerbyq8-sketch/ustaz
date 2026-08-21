@@ -113,6 +113,13 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   item 89-b    -- icon-watermark.png was re-packed LOSSLESSLY (373806 -> 368386 bytes; the
+  //                    decoded pixels are byte-identical, alpha included, on two independent
+  //                    decoders). The CORE_BYTES the worker declares fell with it, 1662972 ->
+  //                    1657552, written by `node tools/core-bytes.cjs --write`, and the comment
+  //                    table above that constant carries the same measurement. All three were
+  //                    re-cut in the SAME commit. CACHE is NOT touched: the store name is the
+  //                    merge round’s to bump.
   //   item 93-b    -- install ends by PUSHING its precache brief to every connected client
   //                    instead of leaving the record behind a request nobody makes. B13 below
   //                    was cut in the SAME commit as this digest. CACHE is NOT touched: the
@@ -134,7 +141,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': 'ba2c578f23abfb933279f0c6be4134f40e1399f5c891d1551ec6c2d4a2cba590',
+  'sw.js': 'c3ce9455d720f2aa170696d587b5041e108715550f538d153b96fe1ae58cd94b',
 };
 
 // ---------------------------------------------------------------------------
