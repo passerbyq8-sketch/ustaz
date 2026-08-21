@@ -2429,8 +2429,15 @@ ok('...and the slot round it still adds only the safe area',
 // and it is now clamped by the ceiling the worker keeps on the page store. Both halves are
 // pinned: dropping the clamp would let a widened prefetch evict the page being read, and
 // widening [1, -1] is the waterfall this line has refused since item 79.
+// AND THE LOOP HEADER IS PINNED BY A SECOND GUARD. tools/madina-hafs-guard.cjs asserts
+// `for (const d of [1, -1])` verbatim. Both halves are checked here so the two guards cannot
+// be satisfied one at a time: the neighbourhood is still exactly two deep, the header is
+// still the byte-identical line that other guard pins, and the ceiling bounds the warm from
+// INSIDE the loop rather than by slicing its header.
 ok('the neighbour prefetch is still two deep, and clamped by the store ceiling',
-  /for \(const d of \[1, -1\]\.slice\(0, MADINA_PAGE_CACHE_CAP\)\)/.test(html)
+  /for \(const d of \[1, -1\]\) \{/.test(html)
+  && /if \(warmed >= MADINA_PAGE_CACHE_CAP\) break;/.test(html)
+  && /warmed\+\+;/.test(html)
   && /onSheetLoad=\{prefetchMushafSvg\}/.test(rdSrc));
 ok('...and only the current sheet carries it',
   (rdSrc.match(/onSheetLoad=\{prefetchMushafSvg\}/g) || []).length === 1);

@@ -15012,7 +15012,18 @@ const prefetchMushafSvg = (n) => {
   if ((!MUSHAF_SVG_ON && !MADINA_IMG_ON) || n === __mushafSvgWarm) return;
   __mushafSvgWarm = n;
   try {
-    for (const d of [1, -1].slice(0, MADINA_PAGE_CACHE_CAP)) {
+    // ITEM 33. The worker keeps at most MADINA_PAGE_CACHE_CAP pages and evicts the least
+    // recently used, so warming more than it can hold would evict the page being READ to make
+    // room for a guess about where the reader is going next. The ceiling bounds this warm as
+    // well as its own depth. At two deep against a ceiling of sixty it does not bind today;
+    // it is what keeps a future widening of either number safe.
+    //
+    // IT IS COUNTED INSIDE THE LOOP, not sliced off its header, because the header is pinned
+    // verbatim by tools/madina-hafs-guard.cjs -- "the prefetch stays two deep" -- and that
+    // guard is not this screen's to edit. Two guards, one line, and the line stays as written.
+    let warmed = 0;
+    for (const d of [1, -1]) {
+      if (warmed >= MADINA_PAGE_CACHE_CAP) break;
       const t = n + d;
       if (t < 1 || t > 604) continue;
       const url = madinaImgUrl(t) || (MUSHAF_SVG_ON ? mushafSvgUrl(t) : null);
@@ -15020,6 +15031,7 @@ const prefetchMushafSvg = (n) => {
       const im = new Image();
       im.decoding = 'async';
       im.src = url;
+      warmed++;
     }
   } catch (e) {}
 };
