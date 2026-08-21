@@ -48,6 +48,127 @@ const CORE = [
   '/adhkar.json',
 ];
 
+// ---------------------------------------------------------------------------
+// ITEM 91-A. THE STORAGE QUOTA, MANAGED.
+//
+// MEASURED BEFORE: this worker had ZERO quota management. No estimate before the first write,
+// no persistence request, no eviction rule, no retry. Item 93 taught a failed cache.add to be
+// COUNTED and NAMED and stopped there deliberately -- it recorded, it did not recover. So on a
+// phone with a full disk the whole sequence was: install writes, every entry rejects, the
+// counter fills, activate sweeps the OLD store anyway, and the reader is left holding a new
+// cache that is empty and an old cache that is gone. Nothing made room and nothing tried again.
+//
+// FOUR THINGS CHANGE AND NOTHING ELSE DOES. An estimate before the first write; one request for
+// persistence whose refusal is not an error; a reason attached to every recorded failure; and an
+// eviction rule that deletes OLD stores -- never the current one -- and retries once. The
+// revalidation branch (item 80), the sealed-mushaf exclusion (item 90) and the rule that a dead
+// network never costs a reader the copy they already have are all untouched.
+// ---------------------------------------------------------------------------
+
+// The measured cost of CORE, byte for byte, at the commit that cut this constant:
+//   /  (index.html) 1059309 + icon-watermark.png 373806 + adhkar.json 177392
+//   + icon-512.png 12893 + icon-maskable-512.png 5938 + icon-192.png 5053 + manifest.json 533
+// quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS when
+// the constant has fallen below it, so a shell that grows cannot quietly leave the pre-check
+// reading a number that stopped being true.
+const CORE_BYTES = 1634924;
+// The safe margin: half again as much as CORE measures. The Cache API stores request and
+// response headers beside every body, a gzipped transfer is stored decompressed, and a constant
+// re-cut by hand always trails the files it describes by some amount.
+const CORE_NEED = CORE_BYTES + Math.floor(CORE_BYTES / 2);
+
+// What the app is allowed to ask this worker about its storage. Item 93 opened this channel with
+// a count and a list of names; 91-A adds WHY each entry failed and what was done about it.
+const storageState = {
+  persist: 'not-asked',       // granted | denied | unavailable | not-asked
+  estimate: 'not-taken',      // {quota,usage,free,need} | unavailable | not-taken
+  precacheSkipped: null,      // null | 'quota'   -- what INSTALL decided
+  activateRetry: 'none',      // none | done | still-full
+  evicted: 0,                 // old stores deleted to make room (never the current one)
+  retried: 0,                 // entries re-attempted after an eviction
+};
+// A live reference, not a copy, so anything holding it sees the current state.
+self.ezikStorage = storageState;
+
+// THREE REASONS, and the order matters. A full disk and a dead tunnel arrive as the same
+// cache.add rejection at a caller that does not look, and they ask for opposite responses: one
+// is recoverable by making room, the other only by waiting for a network. Matched on both name
+// and message, because QuotaExceededError carries its identity in the name while a storage
+// bucket failure carries it in the text.
+function failureReason(e) {
+  const name = (e && e.name) ? String(e.name) : '';
+  const msg = (e && e.message) ? String(e.message) : String(e);
+  const both = (name + ' ' + msg).toLowerCase();
+  if (both.indexOf('quota') !== -1 || both.indexOf('exceeded') !== -1
+    || both.indexOf('no space') !== -1 || both.indexOf('disk is full') !== -1) return 'quota';
+  if (both.indexOf('network') !== -1 || both.indexOf('fetch') !== -1
+    || both.indexOf('offline') !== -1 || both.indexOf('connection') !== -1) return 'network';
+  return 'other';
+}
+
+// ABSENCE IS NOT A FAILURE. An older browser has no navigator.storage at all; this resolves to
+// null and every caller below then behaves EXACTLY as this worker did before item 91-A -- it
+// writes. A quota check that turned an old browser into a worker which caches nothing would be a
+// far worse regression than the full disk it was added to handle.
+function storageEstimate() {
+  try {
+    if (typeof navigator === 'undefined' || !navigator.storage
+      || typeof navigator.storage.estimate !== 'function') return Promise.resolve(null);
+    return navigator.storage.estimate().then((e) => (e || null), () => null);
+  } catch (e) { return Promise.resolve(null); }
+}
+
+// TRUE means "write". An unknown quota is TRUE, deliberately -- see above.
+function roomForCore() {
+  return storageEstimate().then((est) => {
+    if (!est || typeof est.quota !== 'number' || typeof est.usage !== 'number') {
+      storageState.estimate = 'unavailable';
+      return true;
+    }
+    const free = est.quota - est.usage;
+    storageState.estimate = { quota: est.quota, usage: est.usage, free: free, need: CORE_NEED };
+    return free >= CORE_NEED;
+  });
+}
+
+// ONCE, and a refusal is not an error -- it is recorded and the worker carries on writing. Per
+// the Storage spec estimate() is exposed to workers but persist() is [Exposed=Window], so in a
+// real service worker this normally records "unavailable" and moves on, and the request that can
+// actually be granted has to be made by the page. That call belongs in index.html, which this
+// screen does not own; it is named in the report instead.
+let persistAsked = false;
+function askPersist() {
+  if (persistAsked) return Promise.resolve();
+  persistAsked = true;
+  try {
+    if (typeof navigator === 'undefined' || !navigator.storage
+      || typeof navigator.storage.persist !== 'function') {
+      storageState.persist = 'unavailable';
+      return Promise.resolve();
+    }
+    return navigator.storage.persist().then(
+      (granted) => { storageState.persist = granted ? 'granted' : 'denied'; },
+      () => { storageState.persist = 'denied'; }
+    );
+  } catch (e) { storageState.persist = 'unavailable'; return Promise.resolve(); }
+}
+
+// THE EVICTION RULE, AND ITS ONE ABSOLUTE: old stores go, the CURRENT store never does.
+// Deleting CACHE to make room for CACHE would throw away the entries that already landed in
+// exchange for the space to write them again, and would take the offline fallback down with it.
+// activate runs this same sweep -- but install runs BEFORE activate, so on a full disk the old
+// store is still sitting there occupying exactly the space the write is short of.
+function evictOld() {
+  return caches.keys()
+    .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    .then((done) => {
+      const n = done.filter(Boolean).length;
+      storageState.evicted += n;
+      return n;
+    })
+    .catch(() => 0);
+}
+
 // S117 PERF. THESE TWO ARE STILL CACHED -- JUST NOT INSIDE install. quran-uthmani.json
 // (338409 transferred) and mushaf-layout.json (151653) are 490062 bytes that no first screen
 // reads: the shell renders the conversation, and both files are only reached from the mushaf.
@@ -88,14 +209,29 @@ const IDLE_BACKSTOP_MS = 1500;
 // also grow this array once per request on a dead network, which is the quota management this
 // item explicitly does not want.
 const precacheFailures = [];
+// ITEM 91-A: reason is now the CATEGORY (quota | network | other) and the raw browser text moved
+// to error. Nothing read this channel yet, so the rename costs no reader; what it buys is a page
+// able to tell "your disk is full" from "you are offline" without parsing a browser's prose.
+function note(u, e, reason) {
+  precacheFailures.push({ url: u, reason: reason, error: (e && e.message) || String(e) });
+  // DevTools is the only channel a worker has to a human standing in front of the problem.
+  if (typeof console !== 'undefined' && console.warn) {
+    console.warn('[ezik sw] precache FAILED for ' + u + ' (' + reason + '): '
+      + ((e && e.message) || e) + ' (' + precacheFailures.length + ' failed so far)');
+  }
+}
 function addOrNote(cache, u) {
   return cache.add(u).catch((e) => {
-    precacheFailures.push({ url: u, reason: (e && e.message) || String(e) });
-    // DevTools is the only channel a worker has to a human standing in front of the problem.
-    if (typeof console !== 'undefined' && console.warn) {
-      console.warn('[ezik sw] precache FAILED for ' + u + ': ' + ((e && e.message) || e)
-        + ' (' + precacheFailures.length + ' failed so far)');
-    }
+    // ONLY a full disk is worth making room for. A dead network is recorded and left alone:
+    // deleting a reader's old store cannot conjure the bytes, it only costs them what they had.
+    const why = failureReason(e);
+    if (why !== 'quota') { note(u, e, why); return undefined; }
+    return evictOld().then(() => {
+      storageState.retried++;
+      // ONCE. A retry loop against a disk that is genuinely full is an install that never
+      // settles, which strands the reader on the previous worker -- item 93's worst outcome.
+      return cache.add(u).catch((e2) => note(u, e2, failureReason(e2)));
+    });
   });
 }
 // A live reference, not a copy, so anything holding it sees the current list.
@@ -112,11 +248,30 @@ function warmIdle() {
   return warming;
 }
 
+// The retry activate owns. Kept beside install because it writes the very same list.
+function precacheCore() {
+  return caches.open(CACHE).then((cache) => Promise.all(CORE.map((u) => addOrNote(cache, u))));
+}
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  // Add each entry independently so one missing file cannot abort the whole precache.
+  // ITEM 91-A: ask for persistence once, estimate, and only then write. Add each entry
+  // independently so one missing file cannot abort the whole precache.
   event.waitUntil(
-    caches.open(CACHE).then((cache) => Promise.all(CORE.map((u) => addOrNote(cache, u))))
+    askPersist().then(roomForCore).then((room) => {
+      if (!room) {
+        // NOTHING IS WRITTEN. Starting a precache into a store that provably cannot hold it
+        // buys one recorded failure per file and leaves the disk exactly as full as it was.
+        // The reason is recorded and readable; install still settles, so the worker activates.
+        storageState.precacheSkipped = 'quota';
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('[ezik sw] precache SKIPPED: needs ' + CORE_NEED + ' bytes, '
+            + (storageState.estimate && storageState.estimate.free) + ' free');
+        }
+        return undefined;
+      }
+      return precacheCore();
+    })
   );
 });
 
@@ -125,6 +280,18 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
+      // ITEM 91-A. The sweep above has just deleted the old stores -- which is precisely the
+      // space install was short of. Without this, a quota-skipped install would leave the reader
+      // holding nothing at all: the new store empty and the old one swept. Once, and only when
+      // install actually skipped; precacheSkipped is left as the record of what install did.
+      .then(() => {
+        if (storageState.precacheSkipped !== 'quota') return undefined;
+        return roomForCore().then((room) => {
+          if (!room) { storageState.activateRetry = 'still-full'; return undefined; }
+          storageState.activateRetry = 'done';
+          return precacheCore();
+        });
+      })
   );
   // Not inside waitUntil: activation must not wait on half a megabyte. The page normally beats
   // this by posting from its own idle callback; this only covers the clients that never do.
@@ -136,7 +303,21 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.ezik === 'warm') event.waitUntil(warmIdle());
   // Item 93: how many entries failed and which. Reporting only -- nothing is retried here.
   if (event.data && event.data.ezik === 'precache-status') {
-    const reply = { ezik: 'precache-status', failed: precacheFailures.length, entries: precacheFailures.slice() };
+    // ITEM 91-A: the count alone cannot tell a full disk from a dead tunnel, and the two ask
+    // opposite things of the reader. The storage record travels on the same channel.
+    const reply = {
+      ezik: 'precache-status',
+      failed: precacheFailures.length,
+      entries: precacheFailures.slice(),
+      storage: {
+        persist: storageState.persist,
+        estimate: storageState.estimate,
+        precacheSkipped: storageState.precacheSkipped,
+        activateRetry: storageState.activateRetry,
+        evicted: storageState.evicted,
+        retried: storageState.retried,
+      },
+    };
     const port = event.ports && event.ports[0];
     if (port) port.postMessage(reply);
     else if (event.source && event.source.postMessage) event.source.postMessage(reply);

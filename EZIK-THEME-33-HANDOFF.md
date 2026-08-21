@@ -94,7 +94,7 @@ ezik_chats_v1              فهرس المحادثات
 ezik_chat_v1_<id>          جسم كل محادثة
 ezik_favorite_replies_v1   الردود المفضلة
 ezik_reading_prefs_v1      تفضيلات القراءة
-parent_pin_hash            بصمة رمز لوحة الأهل
+parent_pin_hash            بذرةُ ترحيلٍ قديمةٌ لا غير — تُقرَأُ مرّةً ثمّ تُحذَف؛ والتحقّقُ من رمزِ الأهلِ صارَ في الخادمِ منذ ٧ أغسطس ٢٠٢٦، فلا بصمةَ محفوظةٌ هنا
 spend_gate_unlock          قفل الإنفاق
 mrb_device_v1              معرّف الجهاز
 mrb_founder_v1             رمز الفتح

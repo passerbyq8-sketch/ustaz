@@ -651,9 +651,17 @@ function envSandbox(vars) {
     // The end marker also appears ABOVE ParentGate (the spend gate's own comment block), so the
     // search for it must start from the component, not from the top of the file.
     const pgAt = html.indexOf('function ParentGate({');
-    const pg = html.slice(pgAt, html.indexOf('\n// قفل الإنفاق', pgAt));
+    // ITEM 106. THE ANCHOR IS REQUIRED FIRST. `html.slice(-1, n)` returns an EMPTY STRING when
+    // `function ParentGate({` has moved, and the assertion below is a negative check -- so the
+    // one check standing between the browser and a re-introduced parent-code verifier passed
+    // loudest at the exact moment it had stopped reading ParentGate at all.
+    const pgEnd = pgAt === -1 ? -1 : html.indexOf('\n// قفل الإنفاق', pgAt);
+    const pg = (pgAt !== -1 && pgEnd > pgAt) ? html.slice(pgAt, pgEnd) : '';
+    ok('B8: ParentGate was LOCATED before it was searched', pg.length > 200,
+      'function ParentGate({@' + pgAt + '  end@' + pgEnd + '  len=' + pg.length);
     ok('B8: the browser no longer compares anything for the parent code',
-      !/hashPin/.test(pg) && !/localStorage\.setItem\(\s*LEGACY_PIN_HASH_KEY/.test(html),
+      pg.length > 0 && !/hashPin/.test(pg)
+      && !/localStorage\.setItem\(\s*LEGACY_PIN_HASH_KEY/.test(html),
       'ParentGate must hold no verifier and write no digest');
     ok('B8: ...and the old key is READ once as a migration seed, then removed',
       /const LEGACY_PIN_HASH_KEY = 'parent_pin_hash';/.test(html)

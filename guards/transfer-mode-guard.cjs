@@ -620,9 +620,17 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
           ok('...and footer, navigation and language chrome are absent',
             iwCase.forbidden.every((token) => !iw.answer.includes(token)), iw.answer.slice(-300));
           const trimmed = T.prepareTransfer(iw.answer, { maxChars: 2400 });
+          // ITEM 106, reached through a TRUNCATOR rather than an anchor: prepareTransfer is the
+          // thing being measured, and any return shape it does not have collapses to '' here.
+          // The check below is `every(!includes)`, which an empty string satisfies for every
+          // token at once -- so a prepareTransfer that returned nothing would report the
+          // cleanest possible result. The text is now required to exist first.
           const trimmedText = typeof trimmed === 'string' ? trimmed : (trimmed && trimmed.text) || '';
+          ok('...and transfer preparation returned text at all', trimmedText.length > 0,
+            'prepareTransfer returned ' + typeof trimmed);
           ok('...and no forbidden chrome can reappear after transfer preparation',
-            iwCase.forbidden.every((token) => !trimmedText.includes(token)), trimmedText.slice(-300));
+            trimmedText.length > 0 && iwCase.forbidden.every((token) => !trimmedText.includes(token)),
+            trimmedText.slice(-300));
         }
         const barCase = a3.stage1.shAlbarrakHtml;
         const bar = pairOf(barCase.file);

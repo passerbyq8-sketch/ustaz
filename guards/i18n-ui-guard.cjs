@@ -248,11 +248,20 @@ async function partA() {
   eq('the page still loads exactly the three scripts it loads now', srcs.length, 3);
   ok('...and no analytics script is among them',
     !srcs.some((t) => /_vercel\/(insights|speed-insights)/.test(String(t))), srcs.join(' || '));
-  const i18nBlock = rawCode.slice(rawCode.indexOf('const EZ_LANG_KEY'), rawCode.indexOf('function EzLangControl'));
+  // ITEM 106. THE ANCHORS ARE REQUIRED BEFORE THE REGION IS SEARCHED. This cut used to run
+  // straight off two indexOf calls: move either anchor and indexOf returns -1, slice(-1, n)
+  // returns an EMPTY STRING, and both negative checks below are satisfied by emptiness. The
+  // two assertions passed at their loudest while reading nothing at all.
+  const i18nAt = rawCode.indexOf('const EZ_LANG_KEY');
+  const i18nEnd = rawCode.indexOf('function EzLangControl');
+  const i18nBlock = (i18nAt !== -1 && i18nEnd > i18nAt) ? rawCode.slice(i18nAt, i18nEnd) : '';
+  ok('the language layer was LOCATED before it was searched', i18nBlock.length > 200,
+    'const EZ_LANG_KEY@' + i18nAt + '  function EzLangControl@' + i18nEnd);
   ok('the language layer makes no network call',
-    !/\bfetch\s*\(|XMLHttpRequest|import\s*\(|EventSource|navigator\.sendBeacon/.test(i18nBlock));
+    i18nBlock.length > 0
+    && !/\bfetch\s*\(|XMLHttpRequest|import\s*\(|EventSource|navigator\.sendBeacon/.test(i18nBlock));
   ok('...and no dictionary is loaded from a URL',
-    !/https?:\/\//.test(i18nBlock));
+    i18nBlock.length > 0 && !/https?:\/\//.test(i18nBlock));
   // Five devDependencies, not four: @babel/parser was declared (D35) because classifier-guard.cjs
   // requires it directly and had been resolving on @babel/core's transitive copy. The count stays
   // exact, so a sanctioned declaration cannot become cover for an unsanctioned addition.
@@ -325,8 +334,17 @@ function partB() {
   const bootScript = (/<script>\(function\(\)\{try\{var K='ezik_ui_lang_v1'[\s\S]*?<\/script>/.exec(html) || [''])[0];
   eq('the boot script names navigator nowhere', (bootScript.match(/navigator/g) || []).length, 0);
   eq('...and names no language tag pattern either', (bootScript.match(/languages?\b/g) || []).length, 0);
-  const layer = rawCode.slice(rawCode.indexOf('const EZ_LANG_KEY'), rawCode.indexOf('function EzLangControl'));
-  eq('the language module names navigator nowhere', (layer.match(/navigator/g) || []).length, 0);
+  // ITEM 106, THIRD SHAPE: a negative check wearing a COUNT. `(layer.match(/navigator/g) || []).length
+  // === 0` is satisfied by an empty region exactly as `!/navigator/.test(layer)` would be, and it
+  // reads like a measurement rather than an absence check -- which is why the first sweep for
+  // this defect, written around `=== -1` and `!test`, walked straight past it.
+  const layerAt = rawCode.indexOf('const EZ_LANG_KEY');
+  const layerEnd = rawCode.indexOf('function EzLangControl');
+  const layer = (layerAt !== -1 && layerEnd > layerAt) ? rawCode.slice(layerAt, layerEnd) : '';
+  ok('the language module was LOCATED before it was counted', layer.length > 200,
+    'const EZ_LANG_KEY@' + layerAt + '  function EzLangControl@' + layerEnd);
+  eq('the language module names navigator nowhere',
+    layer.length > 0 ? (layer.match(/navigator/g) || []).length : -1, 0);
   eq('...and the device readers are gone, not dormant',
     [/function ezLangDevice/, /function ezLangFromTag/].filter((re) => re.test(rawCode)).length, 0);
   ok('...so the resolver is a stored choice, or Arabic, and nothing else',
@@ -399,7 +417,13 @@ async function partC() {
 
   // Logical properties only: a direction-specific rule would need a second block to serve ltr.
   const css = html.slice(html.indexOf('<style>'), html.indexOf('</style>'));
-  const langCss = css.slice(css.indexOf('.ezlang-wrap{'));
+  // ITEM 106: a ONE-ARGUMENT slice at a missing anchor is slice(-1), which returns the last
+  // CHARACTER of the stylesheet -- one byte that satisfies every negative check below exactly
+  // as an empty string would, and reads like a found region to anyone scanning the source.
+  const langCssAt = css.indexOf('.ezlang-wrap{');
+  const langCss = langCssAt === -1 ? '' : css.slice(langCssAt);
+  ok('the language CSS was LOCATED before it was searched', langCss.length > 100,
+    '.ezlang-wrap{@' + langCssAt + '  len=' + langCss.length);
   ok('the language CSS positions with logical inset, not a physical left/right',
     /inset-inline-(start|end)/.test(langCss) && !/(^|[;{])\s*(left|right)\s*:/m.test(langCss));
   // THE LAYOUT DIRECTION. body{direction:rtl} is declared in the shipped stylesheet, and a CSS
@@ -412,9 +436,9 @@ async function partC() {
   ok('...and the English document turns the layout with it',
     /:root\[data-ez-lang="en"\]\s*body\s*\{[^}]*direction:\s*ltr/.test(css));
   ok('...and declares no colour of its own — every value is an existing token',
-    !/#[0-9a-fA-F]{3,8}\b/.test(langCss.replace(/rgba\(0,0,0,[0-9.]+\)/g, '')));
+    langCss.length > 0 && !/#[0-9a-fA-F]{3,8}\b/.test(langCss.replace(/rgba\(0,0,0,[0-9.]+\)/g, '')));
   ok('...and names no bare element or universal selector',
-    !/(^|\})\s*(\*|div|button|span|body|input)\s*\{/.test(langCss));
+    langCss.length > 0 && !/(^|\})\s*(\*|div|button|span|body|input)\s*\{/.test(langCss));
 }
 
 /* ===================== D. THE CONTROLS =================================== */
@@ -669,10 +693,17 @@ async function partD() {
   eq('...showing the current choice', String(st.textContent || '').trim().replace(/[\u25BE\s]+$/, ''), S.AR);
 
   // It is ONE compact row, not a pair of full-width buttons.
-  const set = html.slice(html.indexOf('function SettingsSheet'), html.indexOf('function ParentDashboard'));
+  // ITEM 106: same two-anchor cut, same empty string, and the negative check below is the
+  // only one of the three assertions on `set` that emptiness would have satisfied.
+  const setAt = html.indexOf('function SettingsSheet');
+  const setEnd = html.indexOf('function ParentDashboard');
+  const set = (setAt !== -1 && setEnd > setAt) ? html.slice(setAt, setEnd) : '';
+  ok('SettingsSheet was LOCATED before it was searched', set.length > 200,
+    'function SettingsSheet@' + setAt + '  function ParentDashboard@' + setEnd);
   ok('the settings entry is one compact row', /<div className="ezlang-row"><EzLangControl variant="settings" \/><\/div>/.test(set));
   ok('...inside the shell every other setting uses', /<EzShellGroup title=\{ezT\('settings\.language'\)\}>/.test(set));
-  ok('...and it is no longer a radiogroup of full-width buttons', !/data-ez-lang-opt/.test(set));
+  ok('...and it is no longer a radiogroup of full-width buttons',
+    set.length > 0 && !/data-ez-lang-opt/.test(set));
   eq('...so the group draws exactly one control', d.all('.ezlang-row button').length, 1);
 
   await d.click(st);
