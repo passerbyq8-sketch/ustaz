@@ -32,6 +32,83 @@ const CHROME_CANDIDATES = [
 const CHROME = CHROME_CANDIDATES.filter((p) => fs.existsSync(p))[0];
 const PORT = 8981;
 
+// ---------------------------------------------------------------------------
+// ITEM 114. THE BROWSER INITIALISER, AND WHY IT HAS ITS OWN SECTION NOW.
+//
+// MEASURED: `Error: timeout: Page.enable` AFTER every static check had already passed, on 5 of 5
+// runs of the merged tree AND on 5 of 5 runs of origin/main itself, with the identical message.
+// A fault that reproduces at the same rate on the base it was compared against is not a merge
+// regression, and the message named the wrong thing besides: nothing was wrong with Page.enable,
+// with quest.html, or with any assertion below. What was wrong was the attach -- and the attach
+// had no deadline of its own, no way to tell a dead socket from a slow one, no check that the
+// websocket upgrade had actually been granted, and no second attempt.
+//
+// FOUR THINGS CHANGE, ALL OF THEM IN THE INITIALISER. Per-method protocol deadlines instead of
+// one flat minute; launch arguments that stop Chrome doing work no gate asked for; a target
+// lookup that waits for a page target instead of assuming the first entry is one; and ONE
+// retry -- announced on stdout, never silent.
+//
+// WHAT DOES NOT CHANGE, and this is the point of the item: not one assertion is relaxed, no gate
+// is disabled, and a crash is still a crash. The retry covers the ATTACH only; once the page is
+// driving, a failure is reported exactly as it was. And the final line distinguishes the two
+// outcomes it always could -- GUARD CRASHED versus FAILED: n of m -- so a retry that does not
+// help cannot be mistaken for a run that passed.
+// ---------------------------------------------------------------------------
+
+// Per method, because they are not the same kind of wait. Page.navigate is a network round trip
+// against a local server; Page.enable is a handshake that either happens at once or is not going
+// to happen at all, and giving it a minute only delays the diagnosis by a minute.
+const PROTOCOL_TIMEOUT_MS = {
+  'Page.enable': 15000,
+  'Runtime.enable': 15000,
+  'Network.enable': 15000,
+  'Emulation.setDeviceMetricsOverride': 15000,
+  'Page.navigate': 45000,
+  default: 60000,
+};
+const WS_HANDSHAKE_MS = 15000;
+const DEBUG_PORT_MS = 30000;
+const TARGET_WAIT_MS = 15000;
+// ONE. A second attempt distinguishes a browser that came up badly from a page that is broken;
+// a loop distinguishes nothing and turns a red gate into a slow green one.
+const ATTACH_ATTEMPTS = 2;
+
+// The flags, and what each is here for. Nothing here changes what the page IS -- no disabled
+// web platform features, no altered viewport, no relaxed security. They stop Chrome spending
+// the first seconds of its life on work this gate never asked for, which is the window the
+// attach was losing.
+const CHROME_ARGS = [
+  '--headless=new',
+  '--remote-debugging-port=0',
+  '--no-first-run',
+  '--no-default-browser-check',
+  '--hide-scrollbars',
+  '--mute-audio',
+  // Startup work with no bearing on a local page: the component updater fetches, the metrics
+  // pipeline uploads, translate and optimisation hints phone home, and the default apps and
+  // extensions are installed into a profile that is deleted a minute later.
+  '--disable-component-update',
+  '--disable-background-networking',
+  '--disable-default-apps',
+  '--disable-extensions',
+  '--disable-sync',
+  '--metrics-recording-only',
+  '--no-pings',
+  '--disable-features=Translate,MediaRouter,OptimizationHints,BackForwardCache',
+  // A headless window is never visible or focused, and Chrome throttles exactly those. The
+  // round below is driven by timers; throttling them is how a 150ms poll becomes a 45-second
+  // "quest.html never booted".
+  '--disable-background-timer-throttling',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+  '--disable-ipc-flooding-protection',
+  // Software rendering, deliberately. There is no GPU worth having in a headless run and the
+  // GPU process is one more thing that can fail to come up on a machine this gate has never
+  // seen. Nothing below measures paint.
+  '--disable-gpu',
+  '--disable-dev-shm-usage',
+];
+
 let failures = 0, checks = 0;
 function ok(name, cond, detail) {
   checks++;
@@ -137,18 +214,61 @@ class WS {
     const u = new URL(url);
     this.sock = net.connect(parseInt(u.port, 10), u.hostname);
     this.buf = Buffer.alloc(0); this.open = false; this.handlers = [];
+    // ITEM 114. WHAT THE SOCKET IS ALLOWED TO DO WHEN IT DIES.
+    //
+    // Before: the only error handler on this socket was the `reject` of `ready`, and it was
+    // installed for the lifetime of the object. Once ready had resolved that reject was a no-op,
+    // so a socket that died mid-session raised NOTHING -- every in-flight CDP call sat in
+    // `pending` until its own timer fired and reported "timeout: <method>". That is how a dead
+    // connection came back as `Error: timeout: Page.enable`: a sentence about the wrong thing,
+    // sixty seconds after the fact, with the real cause discarded.
+    //
+    // Now the cause is KEPT. `this.dead` holds whatever actually happened -- a refused connect,
+    // a reset, a close before the upgrade -- and CDP reads it instead of waiting out a timer.
+    // Nothing is swallowed and nothing is retried here; this only makes the failure say what it
+    // was, which is the whole of the diagnosis this gate never had.
+    this.dead = null;
+    this.onDead = [];
+    const die = (e) => {
+      if (this.dead) return;
+      this.dead = e instanceof Error ? e : new Error(String(e));
+      for (const f of this.onDead.splice(0)) { try { f(this.dead); } catch (_) {} }
+    };
     this.ready = new Promise((resolve, reject) => {
-      this.sock.on('error', reject);
+      // The handshake has its own deadline. Without one, a Chrome that accepted the TCP
+      // connection and then never answered left this promise pending forever and the whole
+      // gate hung with no output at all.
+      const to = setTimeout(() => { die(new Error('websocket handshake timed out after ' + WS_HANDSHAKE_MS + 'ms')); }, WS_HANDSHAKE_MS);
+      this.onDead.push((e) => { clearTimeout(to); reject(e); });
+      this.sock.on('error', die);
+      this.sock.on('close', () => die(new Error('devtools socket closed'
+        + (this.open ? ' mid-session' : ' before the websocket upgrade completed'))));
       this.sock.on('connect', () => {
         this.sock.write('GET ' + u.pathname + ' HTTP/1.1\r\nHost: ' + u.host + '\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n'
           + 'Sec-WebSocket-Key: ' + crypto.randomBytes(16).toString('base64') + '\r\nSec-WebSocket-Version: 13\r\n\r\n');
       });
       this.sock.on('data', (d) => {
         this.buf = Buffer.concat([this.buf, d]);
-        if (!this.open) { const i = this.buf.indexOf('\r\n\r\n'); if (i === -1) return; this.buf = this.buf.slice(i + 4); this.open = true; resolve(); }
+        if (!this.open) {
+          const i = this.buf.indexOf('\r\n\r\n');
+          if (i === -1) return;
+          // THE STATUS LINE IS READ. It never was. Any response at all -- 400, 403, 500, an
+          // upgrade Chrome refused because another client already held this target -- was
+          // treated as a successful upgrade, and the first frame sent into it went nowhere.
+          const head = this.buf.slice(0, i).toString('latin1');
+          const status = /^HTTP\/1\.\d (\d+)/.exec(head);
+          if (!status || status[1] !== '101') {
+            die(new Error('devtools refused the websocket upgrade: ' + head.split('\r\n')[0]));
+            return;
+          }
+          this.buf = this.buf.slice(i + 4); this.open = true; clearTimeout(to); resolve();
+        }
         this.drain();
       });
     });
+    // A rejection nobody is awaiting yet must not become an unhandled rejection and take the
+    // process down with a message that names neither the gate nor the cause.
+    this.ready.catch(() => {});
   }
   drain() {
     for (;;) {
@@ -184,9 +304,25 @@ class CDP {
   cmd(method, params) {
     const id = ++this.id;
     return new Promise((res, rej) => {
+      // ITEM 114: a socket that is already dead answers immediately, with the cause. Sending
+      // into it and then waiting out the full protocol timeout is how the real fault
+      // ("devtools socket closed before the websocket upgrade completed") was replaced by
+      // "timeout: Page.enable" a minute later.
+      if (this.ws.dead) { rej(new Error(method + ' on a dead devtools socket: ' + this.ws.dead.message)); return; }
       this.pending.set(id, { res, rej });
-      this.ws.send({ id, method, params: params || {} });
-      setTimeout(() => { if (this.pending.has(id)) { this.pending.delete(id); rej(new Error('timeout: ' + method)); } }, 60000);
+      this.ws.onDead.push((e) => {
+        if (this.pending.has(id)) { this.pending.delete(id); rej(new Error(method + ' aborted: ' + e.message)); }
+      });
+      try { this.ws.send({ id, method, params: params || {} }); }
+      catch (e) { this.pending.delete(id); rej(new Error(method + ' could not be sent: ' + e.message)); return; }
+      const to = PROTOCOL_TIMEOUT_MS[method] || PROTOCOL_TIMEOUT_MS.default;
+      setTimeout(() => {
+        if (this.pending.has(id)) {
+          this.pending.delete(id);
+          rej(new Error('timeout: ' + method + ' (' + to + 'ms, socket '
+            + (this.ws.open ? 'open' : 'never upgraded') + ')'));
+        }
+      }, to);
     });
   }
   async evaluate(expr) {
@@ -210,22 +346,89 @@ function serve() {
     srv.listen(PORT, '127.0.0.1', () => resolve(srv));
   });
 }
+// ITEM 114: the attach, once. Everything that can go wrong before the page is driving lives
+// here, so `page()` can try it again without re-running anything the round depends on.
+async function attachOnce(o) {
+  const userDir = path.join(require('os').tmpdir(), 'quest-guard-' + Math.floor(Math.random() * 1e9));
+  const proc = spawn(CHROME, CHROME_ARGS.concat(['--user-data-dir=' + userDir,
+    '--window-size=' + (o.width || 390) + ',' + (o.height || 780), 'about:blank']),
+    { stdio: ['ignore', 'ignore', 'pipe'] });
+  // Whatever this browser said on the way up, kept for the failure message. A Chrome that
+  // refuses to start prints the reason and then the old code threw "no debug port" over it.
+  let stderrTail = '';
+  const kill = () => {
+    try { proc.kill(); } catch (e) {}
+    try { fs.rmSync(userDir, { recursive: true, force: true }); } catch (e) {}
+  };
+  try {
+    let port = null;
+    await new Promise((res, rej) => {
+      let buf = '';
+      const to = setTimeout(() => rej(new Error('chrome printed no devtools port within '
+        + DEBUG_PORT_MS + 'ms' + (stderrTail ? '; last stderr: ' + stderrTail.slice(-300) : ''))), DEBUG_PORT_MS);
+      proc.on('error', (e) => { clearTimeout(to); rej(new Error('chrome would not start: ' + e.message)); });
+      proc.on('exit', (code) => { clearTimeout(to); rej(new Error('chrome exited with code ' + code
+        + ' before printing a devtools port' + (stderrTail ? '; last stderr: ' + stderrTail.slice(-300) : ''))); });
+      proc.stderr.on('data', (d) => {
+        buf += d.toString(); stderrTail = buf;
+        const m = buf.match(/ws:\/\/127\.0\.0\.1:(\d+)\//);
+        if (m && !port) { port = parseInt(m[1], 10); clearTimeout(to); res(); }
+      });
+    });
+
+    // WAIT for a page target instead of assuming /json/list already has one. The old code read
+    // the list once, filtered for type 'page' and indexed [0]; on a browser that had not yet
+    // created its first tab that is `undefined.webSocketDebuggerUrl`, and on one that had two
+    // it is whichever came back first.
+    let target = null;
+    const deadline = Date.now() + TARGET_WAIT_MS;
+    let lastList = '(never answered)';
+    for (;;) {
+      try {
+        const targets = await httpGetJson('http://127.0.0.1:' + port + '/json/list');
+        lastList = JSON.stringify((targets || []).map((t) => t.type));
+        target = (targets || []).filter((t) => t.type === 'page' && t.webSocketDebuggerUrl)[0] || null;
+      } catch (e) { lastList = 'list failed: ' + e.message; }
+      if (target) break;
+      if (Date.now() > deadline) {
+        throw new Error('no page target within ' + TARGET_WAIT_MS + 'ms (targets: ' + lastList + ')');
+      }
+      await new Promise((r) => setTimeout(r, 100));
+    }
+
+    const ws = new WS(target.webSocketDebuggerUrl);
+    await ws.ready;
+    const cdp = new CDP(ws);
+    await cdp.cmd('Page.enable'); await cdp.cmd('Runtime.enable'); await cdp.cmd('Network.enable');
+    return { proc, ws, cdp, userDir, kill };
+  } catch (e) {
+    kill();
+    throw e;
+  }
+}
+
 async function page(opts) {
   const o = opts || {};
-  const userDir = path.join(require('os').tmpdir(), 'quest-guard-' + Math.floor(Math.random() * 1e9));
-  const proc = spawn(CHROME, ['--headless=new', '--remote-debugging-port=0', '--user-data-dir=' + userDir,
-    '--no-first-run', '--no-default-browser-check', '--hide-scrollbars', '--mute-audio',
-    '--window-size=' + (o.width || 390) + ',' + (o.height || 780), 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
-  let port = null;
-  await new Promise((res, rej) => {
-    let buf = ''; const to = setTimeout(() => rej(new Error('no debug port')), 30000);
-    proc.stderr.on('data', (d) => { buf += d.toString(); const m = buf.match(/ws:\/\/127\.0\.0\.1:(\d+)\//); if (m && !port) { port = parseInt(m[1], 10); clearTimeout(to); res(); } });
-  });
-  const targets = await httpGetJson('http://127.0.0.1:' + port + '/json/list');
-  const ws = new WS(targets.filter((t) => t.type === 'page')[0].webSocketDebuggerUrl);
-  await ws.ready;
-  const cdp = new CDP(ws);
-  await cdp.cmd('Page.enable'); await cdp.cmd('Runtime.enable'); await cdp.cmd('Network.enable');
+  let attached = null, firstError = null;
+  for (let attempt = 1; attempt <= ATTACH_ATTEMPTS; attempt++) {
+    try { attached = await attachOnce(o); break; } catch (e) {
+      if (!firstError) firstError = e;
+      if (attempt === ATTACH_ATTEMPTS) {
+        // NOT SWALLOWED, AND NOT DEMOTED. Both attempts are named and the original cause is
+        // carried out; main() turns this into GUARD CRASHED and a non-zero exit.
+        const err = new Error('browser attach failed ' + ATTACH_ATTEMPTS + '/' + ATTACH_ATTEMPTS
+          + ' times. First: ' + firstError.message + ' | Last: ' + e.message);
+        err.stack = e.stack;
+        throw err;
+      }
+      // ANNOUNCED. A retry nobody can see in the output is a gate that quietly passes on the
+      // second try and tells no one it needed one.
+      console.log('  RETRY  browser attach attempt ' + attempt + '/' + ATTACH_ATTEMPTS
+        + ' failed: ' + e.message);
+      console.log('         retrying once — this line is the record that it happened.');
+    }
+  }
+  const { ws, cdp } = attached;
   const netLog = [], logs = [];
   ws.handlers.push((m) => {
     if (m.method === 'Network.requestWillBeSent') netLog.push(m.params.request.url);
@@ -234,7 +437,15 @@ async function page(opts) {
   });
   await cdp.cmd('Emulation.setDeviceMetricsOverride', { width: o.width || 390, height: o.height || 780, deviceScaleFactor: 2, mobile: true });
   if (o.theme) await cdp.cmd('Page.addScriptToEvaluateOnNewDocument', { source: "try{localStorage.setItem('murabbi_theme_v1','" + o.theme + "');}catch(e){}" });
-  const loaded = new Promise((r) => { ws.handlers.push((m) => { if (m.method === 'Page.loadEventFired') r(); }); });
+  // ITEM 114: the load event, with a deadline and a death notice. This await had neither, so a
+  // browser that died after Page.navigate hung the gate here with no message at all -- the one
+  // failure mode worse than a misleading one.
+  const loaded = new Promise((r, rej) => {
+    const to = setTimeout(() => rej(new Error('Page.loadEventFired never arrived within '
+      + PROTOCOL_TIMEOUT_MS['Page.navigate'] + 'ms')), PROTOCOL_TIMEOUT_MS['Page.navigate']);
+    ws.onDead.push((e) => { clearTimeout(to); rej(new Error('the page died before it loaded: ' + e.message)); });
+    ws.handlers.push((m) => { if (m.method === 'Page.loadEventFired') { clearTimeout(to); r(); } });
+  });
   await cdp.cmd('Page.navigate', { url: 'http://127.0.0.1:' + PORT + '/' + QUEST });
   await loaded;
   const t0 = Date.now();
@@ -248,7 +459,7 @@ async function page(opts) {
     await new Promise((r) => setTimeout(r, 150));
   }
   return { cdp, netLog, logs, run: (e) => cdp.evaluate(e),
-    close: async () => { ws.close(); proc.kill(); await new Promise((r) => setTimeout(r, 200)); try { fs.rmSync(userDir, { recursive: true, force: true }); } catch (e) {} } };
+    close: async () => { ws.close(); await new Promise((r) => setTimeout(r, 200)); attached.kill(); } };
 }
 
 // A round driven entirely through the page's own Round controller and real DOM clicks.
@@ -483,4 +694,14 @@ async function partNarrow(theme) {
   if (failures === 0) console.log('OK: ' + checks + '/' + checks + ' checks passed.');
   else console.log('FAILED: ' + failures + ' of ' + checks + ' checks failed.');
   process.exit(failures ? 1 : 0);
-})().catch((e) => { console.log('\nGUARD CRASHED: ' + String(e && e.stack ? e.stack : e)); process.exit(1); });
+})().catch((e) => {
+  // ITEM 114: A CRASH IS NOT A FAILED ASSERTION, and the last line has to say which happened.
+  // Both exit 1, so an exit code alone cannot tell them apart -- and the difference decides what
+  // to do next: a failed assertion is a claim about quest.html, a crash is the harness never
+  // getting far enough to make one. The tally is printed with it so that "GUARD CRASHED" after
+  // 40 green checks cannot be read as a run that mostly passed.
+  console.log('\nGUARD CRASHED (not an assertion failure) after ' + checks + ' check(s), '
+    + failures + ' of which had already failed.');
+  console.log(String(e && e.stack ? e.stack : e));
+  process.exit(1);
+});
