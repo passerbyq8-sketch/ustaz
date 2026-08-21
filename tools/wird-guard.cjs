@@ -53,6 +53,22 @@ function ok(name, cond, detail) {
 function eq(name, actual, expected) {
   return ok(name, actual === expected, 'expected ' + show(expected) + ', got ' + show(actual));
 }
+// ITEM 122. THE ANCHOR IS REQUIRED BY THE ASSERTION THAT READS IT, not by a neighbour.
+// An anchored cut that comes back empty satisfies every negative check written against it, so
+// a moved anchor turns a guard GREEN instead of red -- the one failure mode a guard must not
+// have. Both sites below already sat under an `if (ok(length > N))` precondition, which
+// protects the assertions written under it TODAY and says nothing about the one somebody adds
+// beneath it tomorrow. This binds the region to the check.
+function anchorLoss(anchors) {
+  const lost = anchors.filter((a) => !(typeof a[1] === 'string' && a[1].length)).map((a) => a[0]);
+  if (!lost.length) return null;
+  return 'ANCHOR LOST: ' + lost.join(', ') + ' -- that extraction returned 0 bytes, so the check '
+    + 'below read nothing. Fix the anchor in index.html; do not weaken the check.';
+}
+const okOn = (name, anchors, cond, detail) => {
+  const lost = anchorLoss(anchors);
+  return lost ? ok(name, false, lost) : ok(name, cond, detail);
+};
 function show(v) {
   if (v === null) return 'null';
   if (v === undefined) return 'undefined';
@@ -1554,7 +1570,7 @@ if (qLifted) {
       /removeEventListener\('deviceorientationabsolute', onEvent\)/.test(QPANEL)
       && /removeEventListener\('deviceorientation', onEvent\)/.test(QPANEL));
     for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'EventSource', 'new WebSocket', '/api/']) {
-      ok('108-a: the panel contains no ' + t, QPANEL.indexOf(t) === -1);
+        okOn('108-a: the panel contains no ' + t, [["QPANEL", QPANEL]], QPANEL.indexOf(t) === -1);
     }
   }
   for (const t of ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
@@ -1854,7 +1870,8 @@ if (tLifted) {
     'tile=' + TPANEL.length + ' settings=' + PSET.length)) {
     for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'EventSource', '/api/',
       'Audio', 'play(', 'Notification', 'requestPermission', 'setTimeout', 'setInterval']) {
-      ok('107: neither the times panel nor its Settings control contains ' + t,
+      okOn('107: neither the times panel nor its Settings control contains ' + t,
+        [["TPANEL", TPANEL], ["PSET", PSET]],
         TPANEL.indexOf(t) === -1 && PSET.indexOf(t) === -1);
     }
   }

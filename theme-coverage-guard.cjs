@@ -1102,7 +1102,7 @@ eq('...drawn exactly once', (IST.match(/<EzistQuranPanel \/>/g) || []).length, 1
 // panel is mounted, so it is asserted as that and nothing more -- the ONE occurrence (counted
 // on the line above) falls inside EzistTopNav. It did not lose bite: a panel moved out of the
 // bar fails it, and the mosaic exclusion it carries is untouched.
-ok('...and that once is inside the top bar',
+okOn('...and that once is inside the top bar', [["IST", IST]],
   IST.indexOf('<EzistQuranPanel />') > IST.indexOf('<div className="ezist-nav-inner">')
   && IST.indexOf('<EzistQuranPanel />') < IST.indexOf('function EzistMasthead')
   && !/<EzistModuleCard key=\{m\.id\} m=\{m\} \/>\)\}\s*\r?\n\s*<EzistQuranPanel/.test(IST));
@@ -1252,9 +1252,9 @@ ok('each category is rendered by exactly one map over each slice',
 ok('...and every rendered category carries its own store id',
   (IA.match(/data-ezia-cat=\{c\.id\}/g) || []).length === 2,
   'one on the featured card, one on the catalogue card -- counting these elements counts categories');
-ok('...opened through the owner\'s handler, never a local one',
+okOn('...opened through the owner\'s handler, never a local one', [["IA", IA]],
   (IA.match(/onClick=\{\(\) => onOpen\(c\)\}/g) || []).length === 2 && !/setSelected|bumpAdhkarUsage/.test(IA));
-ok('the standing comes from the shipped helper, not a recount',
+okOn('the standing comes from the shipped helper, not a recount', [["IA", IA]],
   (IA.match(/a3CatStanding\(prog, c, byCat\)/g) || []).length === 2 && !/adhkarCatDone\(/.test(IA));
 
 /* ---- I3. the structure the design calls for ----------------------------- */
@@ -1409,7 +1409,7 @@ ok('...and the completed mark is a stroke on a chip, not a trophy sticker',
 // the tab bar: same four tabs, same destinations, no emoji.
 ok('the navigation glyphs are stroked line icons', /const NAV_ICON = \{/.test(q.html) && /NAV_SVG\(/.test(q.html));
 const navBlock = q.html.slice(q.html.indexOf('function drawNav()'), q.html.indexOf('function drawNav()') + 1200);
-ok('...and the old emoji tab glyphs are gone from it',
+okOn('...and the old emoji tab glyphs are gone from it', [["navBlock", navBlock]],
   !/[\u{1F300}-\u{1FAFF}]/u.test(navBlock), 'an emoji remains in the tab bar');
 for (const [id, dest] of [['map', 'Screens.map'], ['challenge', 'Screens.challenges'], ['book', 'Screens.book'], ['me', 'Screens.profile']]) {
   ok('the ' + id + ' tab still goes to ' + dest, navBlock.indexOf('"' + id + '"') !== -1 && navBlock.indexOf(dest) !== -1);
@@ -1851,7 +1851,7 @@ ok('the live Madina image branch was located', madinaImg.length > 200 && madinaI
 ok('the page image carries the hook', /data-mushaf-page=\{page\.n\}/.test(madinaImg),
   'without it the live page has no handle at all and can only be guarded by absence');
 eq('...exactly once', (madinaImg.match(/data-mushaf-page=/g) || []).length, 1);
-ok('...bound to page.n and nothing else',
+okOn('...bound to page.n and nothing else', [["madinaImg", madinaImg]],
   !/data-mushaf-page=\{(?!page\.n\})/.test(madinaImg),
   'a constant, an index or a derived value would make the guard measure the wrong page');
 // IT MUST NOT BECOME A STYLING SURFACE.
@@ -1860,7 +1860,8 @@ ok('no CSS rule targets the hook', !/\[data-mushaf-page/.test(css),
 ok('...and no CSS targets the live image through its branch either',
   !/:root\[data-ezik-visual-theme\][^{]*img[^{]*\{/.test(css));
 // IT MUST NOT HAVE CHANGED WHAT THE ELEMENT IS.
-ok('the image still carries no class and no id', !/<img[^>]*data-mushaf-page[^>]*className/.test(madinaImg)
+okOn('the image still carries no class and no id', [["madinaImg", madinaImg]],
+  !/<img[^>]*data-mushaf-page[^>]*className/.test(madinaImg)
   && !/<img[^>]*data-mushaf-page[^>]*\sid=/.test(madinaImg));
 ok('the src is still the shipped page url', /src=\{madina\}/.test(madinaImg));
 ok('the style is still the shipped fill/contain pair',
@@ -3486,7 +3487,8 @@ okOn('P13: ...and the component navigates nowhere itself', [["favView", favView]
   // إزالة من المفضلة / افتح المحادثة الأصلية /
   // ابحث في الردود المفضلة
   const NAMES = ['EZIK_FAV_DEL', 'EZIK_FAV_OPEN_CHAT', 'EZIK_FAV_SEARCH_ARIA'];
-  eq('P14: every accessible name this screen shipped with is still on its control',
+  eqOn('P14: every accessible name this screen shipped with is still on its control',
+    [["favView", favView]],
     NAMES.filter((n) => favView.indexOf('aria-label={' + n + '}') === -1), []);
   ok('P14: ...and the two decorative marks declare themselves decoration',
     (favView.match(/aria-hidden="true"/g) || []).length >= 4);
