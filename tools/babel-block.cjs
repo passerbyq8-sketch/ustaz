@@ -28,10 +28,24 @@
 // depends on is REQUIRED. A missing open tag, an unterminated block, a missing CDN tag or a
 // version it cannot parse each raise a BabelBlockError that names itself. There is no default.
 //
-// WHAT THIS FILE DELIBERATELY DOES NOT DO. It does not touch index.html, it does not change the
-// three render-blocking tags, it adds nothing to sw.js's CORE and it changes no ignore list. Item
-// 32 -- actually removing the CDN link -- is a different item. This one only makes it possible to
-// do that in one place instead of fifteen.
+// ITEM 32 HAS NOW BEEN DONE, AND THIS IS WHERE THE DECISION WAS RE-MADE. The paragraph above
+// used to end "if the tag is gone for good, this decision has to be re-made once, here" -- and it
+// is gone for good. index.html no longer carries a text/babel block or an @babel/standalone tag:
+// it loads app.js, which tools/build-app.cjs compiles from app.jsx before the commit.
+//
+// So readBabelBlock() now has TWO shapes, and neither of them defaults:
+//   * a page that still carries the block is read exactly as before, CDN tag REQUIRED. Nothing
+//     in this repository is in that state any more; the path is kept because deleting it would
+//     make this file unable to say what it used to do, and because quest.html or a future page
+//     may still be.
+//   * a page that carries <script src="app.js"> is read from app.jsx, with the runtime taken
+//     from the pinned constant below. The pin is a MEASUREMENT, not a guess: it is the runtime
+//     the CDN tag settled on the day it was removed, recorded with the version it came from, and
+//     tools/build-app.cjs compiles the shipped bundle through this same value -- so a guard and
+//     the browser cannot diverge without the bundle changing too.
+// A page that carries NEITHER anchor is still an error that names itself. That is the property
+// item 32-b exists to protect and it is not weakened here: what is removed is the CDN tag, not
+// the refusal to guess.
 // ---------------------------------------------------------------------------------------------
 'use strict';
 
@@ -46,6 +60,21 @@ const OPEN_RE = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
 const CLOSE = '</script>';
 const CDN_RE = /<script[^>]*src=["']([^"']*@babel\/standalone[^"']*)["']/i;
 const VERSION_RE = /@babel\/standalone@(\d+)(?:\.(\d+))?(?:\.(\d+))?/;
+// ITEM 32. The second shape: the page loads the built bundle, and the JSX it was built from is a
+// file in the repository. Both anchors are REQUIRED together -- app.jsx without the tag would be
+// a source nothing ships, and the tag without app.jsx would be a bundle nothing can rebuild.
+const APP_SRC_RE = /<script[^>]*\ssrc=["']app\.js["'][^>]*>/i;
+const JSX_NAME = 'app.jsx';
+// THE RUNTIME, PINNED ONCE, WITH THE MEASUREMENT IT CAME FROM. The page pinned
+// @babel/standalone 7.26.4 until the commit that removed the tag; preset-react's default for
+// major 7 is classic, which emits React.createElement against the React global that vendor/
+// serves. Automatic would inject a react/jsx-runtime dependency -- an ESM import in a classic
+// <script> -- and the page would not boot at all. The value is stated rather than derived
+// because there is no longer a URL to derive it from, and a derivation with nothing to read is
+// the silent fallback this module was written to delete.
+const PINNED_BABEL_VERSION = '7.26.4';
+const PINNED_BABEL_MAJOR = 7;
+const PINNED_RUNTIME = 'classic';
 
 class BabelBlockError extends Error {
   constructor(message) { super(message); this.name = 'BabelBlockError'; }
@@ -71,9 +100,52 @@ function readBabelBlock(opts) {
 
   const mOpen = OPEN_RE.exec(html);
   if (!mOpen) {
-    throw new BabelBlockError('no <script type="text/babel"> block in ' + file
-      + '. Nothing was extracted, and nothing is being reported as extracted: a guard that '
-      + 'continued here would transform an empty string and pass every absence check in it.');
+    // ITEM 32. No block in the page. That is the SHIPPED state now, and it is only accepted
+    // when the page proves it loads the bundle instead -- and when the source that bundle is
+    // built from is on disk and non-empty. Any other combination is the same named error it
+    // has always been.
+    const mApp = APP_SRC_RE.exec(html);
+    if (!mApp) {
+      throw new BabelBlockError('no <script type="text/babel"> block in ' + file
+        + ' and no <script src="app.js"> either, so this page ships no JSX this can read. '
+        + 'Nothing was extracted, and nothing is being reported as extracted: a guard that '
+        + 'continued here would transform an empty string and pass every absence check in it.');
+    }
+    const jsxFile = path.join(path.dirname(path.resolve(file)), JSX_NAME);
+    let raw;
+    // A caller may HOLD the source instead of wanting it read: the two --mutants guards boot
+    // deliberately corrupted copies of the shipped JSX and need the block cut from the copy they
+    // hold, not from the file on disk. It is an explicit named option and not a guess -- an
+    // absent `jsx` still means "read app.jsx", and an empty one is refused below exactly as an
+    // empty file is, so a mutation that produced nothing cannot pass as a mutation that applied.
+    if (typeof o.jsx === 'string') raw = o.jsx;
+    else {
+      try { raw = fs.readFileSync(jsxFile, 'utf8'); }
+      catch (e) {
+        throw new BabelBlockError(file + ' loads app.js, but ' + JSX_NAME + ' is not beside it ('
+          + e.message + '). The bundle is a build product; the source it is built from is what a '
+          + 'guard must read, and a bundle whose source is missing cannot be rebuilt or checked.');
+      }
+    }
+    if (!raw.trim()) {
+      throw new BabelBlockError(jsxFile + ' is empty. An empty source satisfies every absence '
+        + 'check written against it, which is the one failure this module exists to prevent.');
+    }
+    return {
+      file: jsxFile,
+      html: html,
+      openTag: mApp[0],
+      from: 0,
+      to: raw.length,
+      raw: raw,
+      rawBytes: Buffer.byteLength(raw, 'utf8'),
+      // app.jsx line 1 is app.jsx line 1: a stack maps back to the source, not to an HTML offset.
+      lineOffset: 0,
+      babelSrc: '(none -- the page loads the built bundle app.js)',
+      babelMajor: PINNED_BABEL_MAJOR,
+      babelVersion: PINNED_BABEL_VERSION,
+      runtime: PINNED_RUNTIME,
+    };
   }
   const from = mOpen.index + mOpen[0].length;
   const to = html.indexOf(CLOSE, from);
@@ -164,5 +236,45 @@ function parseBabelBlock(block, options) {
     { sourceType: 'script', plugins: ['jsx'] }, opt));
 }
 
-module.exports = { readBabelBlock, transformBabelBlock, parseBabelBlock, BabelBlockError,
-  OPEN_RE: OPEN_RE, CDN_RE: CDN_RE, DEFAULT_HTML: DEFAULT_HTML };
+/**
+ * The whole source that reaches a browser, as one string: the document, plus the JSX it loads.
+ *
+ * WHY THIS EXISTS. Before item 32 those were the same file, and about twenty guards in this tree
+ * relied on it -- they read index.html and searched it for a component, a style key, a storage
+ * key, an event handler, a constant. Moving the block into app.jsx would have left every one of
+ * them searching the shell that LOADS the application for text that is now in the application.
+ * Not one of them would have failed loudly: a marker check goes to "token may differ", a splice
+ * by anchors returns nothing, and an absence check over nothing passes. That is the exact defect
+ * item 32-b was raised to end, arriving from the other side.
+ *
+ * So the answer is not to weaken those guards, and not to leave them reading the wrong file. It
+ * is to give them the thing they were always reading: the shipped client. A page that still
+ * inlines its JSX IS the shipped client and is returned unchanged; a page that loads app.js is
+ * returned with app.jsx appended. A page that does neither throws, through readBabelBlock, which
+ * requires every anchor and names the one it lost.
+ *
+ * WHAT IT IS NOT. It is not a substitute for reading index.html when index.html is the subject.
+ * A check on the document's own bytes, its tag count, its line endings or its size must keep
+ * reading the file. This is for checks whose subject is the APPLICATION.
+ *
+ * @param {object|string} [opts] a path, or { file, html }
+ * @returns {string}
+ * @throws {BabelBlockError} when the page ships no JSX this can find
+ */
+function readShippedClient(opts) {
+  const o = (typeof opts === 'string') ? { file: opts } : (opts || {});
+  const file = o.file || DEFAULT_HTML;
+  let html = o.html;
+  if (html === undefined) {
+    try { html = fs.readFileSync(file, 'utf8'); }
+    catch (e) { throw new BabelBlockError('cannot read ' + file + ': ' + e.message); }
+  }
+  if (OPEN_RE.test(html)) return html;
+  return html + '\n' + readBabelBlock({ file: file, html: html }).raw;
+}
+
+module.exports = { readBabelBlock, transformBabelBlock, parseBabelBlock, readShippedClient,
+  BabelBlockError,
+  OPEN_RE: OPEN_RE, CDN_RE: CDN_RE, DEFAULT_HTML: DEFAULT_HTML,
+  APP_SRC_RE: APP_SRC_RE, JSX_NAME: JSX_NAME,
+  PINNED_RUNTIME: PINNED_RUNTIME, PINNED_BABEL_VERSION: PINNED_BABEL_VERSION };

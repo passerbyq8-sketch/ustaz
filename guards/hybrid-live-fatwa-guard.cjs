@@ -815,7 +815,10 @@ async function runHybridGuard() {
     && safeFetchSource.includes('redirect-off-caller-scope'));
   ok('Brave Answers is absent; only Brave web search API is wired', retrieveSource.includes('api.search.brave.com/res/v1/web/search')
     && !/brave[^\n]{0,30}answers|api\.search\.brave\.com\/res\/v1\/answers/iu.test(retrieveSource));
-  const indexSource = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  // ITEM 32: the browser contract ships in app.jsx now; index.html only loads the bundle built
+  // from it. readShippedClient throws if the page ships no JSX it can find, so a missing source
+  // is a named failure and never an empty string every assertion below would be satisfied by.
+  const indexSource = require('../tools/babel-block.cjs').readShippedClient(path.join(ROOT, 'index.html'));
   const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
   ok('fatwa browser contract is same-origin and contains no second-service URL', indexSource.includes("const EZIK_FATWA_API_BASE = ''")
     && !indexSource.includes('https://ezik-fatwas.vercel.app'));

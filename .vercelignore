@@ -4,7 +4,8 @@
 # serverless function fetches at runtime.
 # NEVER add here: index.html, sw.js, manifest.json, adhkar.json (root),
 # quran-uthmani.json, mushaf-layout.json, icon-*.png, icon.svg, privacy.html,
-# delete.html, worship-display.json, api/**, lib/**, package.json, package-lock.json
+# delete.html, worship-display.json, api/**, lib/**, package.json, package-lock.json,
+# app.js, vendor/** (item 32: the page does not render without the last two)
 
 # build + guard scripts (run on the dev machine, never in production)
 worship-guard.cjs
@@ -40,4 +41,15 @@ spike/
 lib/data/adhkar.json
 .env*
 babel-block.jsx
-vendor/
+
+# ITEM 32. app.jsx is the SOURCE the shipped bundle is built from -- 1MB of JSX the browser
+# never reads, because tools/build-app.cjs compiles it into app.js before the commit. Build
+# time only, so it is excluded. app.js itself must NEVER be added here: it is the application.
+app.jsx
+
+# vendor/ IS NO LONGER EXCLUDED, and that line going was the point of item 32. React and
+# ReactDOM are served from this origin now (index.html loads vendor/react.umd.js and
+# vendor/react-dom.umd.js with an SRI hash cut over the local bytes) and sw.js precaches both.
+# Excluding the directory would deploy a page that loads two scripts the deployment does not
+# contain -- a 404 on each, and nothing renders at all. It belongs with index.html and sw.js
+# in the NEVER-ADD list at the top of this file.

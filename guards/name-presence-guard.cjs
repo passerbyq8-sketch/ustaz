@@ -760,7 +760,10 @@ const HUMAN_DIVINE_NAME_CASES = [
       body: { system: 'أنت عزك', age: 25, band: 'adult', messages: [{ role: 'user', content: text }] },
     });
     // Execute the parser shipped to the browser, not a more permissive test-only interpretation.
-    const clientHandlerBody = (read('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
+    // ITEM 32: the browser's parser ships in app.jsx and is compiled into app.js; index.html only
+    // loads the bundle. This reads the shipped client so the assertions below still execute the
+    // parser the reader runs, and not a more permissive test-only interpretation.
+    const clientHandlerBody = (require('../tools/babel-block.cjs').readShippedClient('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
     const clientVisibleFromRaw = clientHandlerBody && new Function('raw', `
       let full = '', streamError = null, onDelta = null;
       const handleEvent = (block) => {${clientHandlerBody}\n};

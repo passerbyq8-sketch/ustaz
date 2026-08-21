@@ -155,7 +155,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': '0910a1c2757a0d28af901d12b87f61b48222d018e30875ae5e0340922df7140e',
+  'sw.js': '40c534fe55db57311111a363948ead3818a287c6215cc3d37652b9cbc0443896',
 };
 
 // ---------------------------------------------------------------------------
@@ -179,7 +179,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v13';
+const SW_CACHE = 'ezik-v14';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
@@ -198,12 +198,18 @@ const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json
 // read back from the worker, because "everything the worker chose to write was written" is a
 // tautology: a CORE that quietly lost an entry would satisfy it. sw.js is sealed by digest
 // above, so this list and that list are re-cut together or not at all.
+// ITEM 32 ADDED THE LAST THREE. They are the files the first paint cannot happen without, and
+// they are on this origin for the first time: /app.js is index.html's JSX compiled ahead of the
+// commit, and the two /vendor bundles are the React the page used to fetch from unpkg. A CORE
+// that stored the shell and not the app is what made "offline boot is not possible" true.
 const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
-  '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json'];
+  '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
+  '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js'];
 // The files CORE names on disk, in the same order. B12 re-derives their byte sum and refuses a
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
-  'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json'];
+  'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json',
+  'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js'];
 const SW_SEALED_DATA = ['/quran-uthmani.json', '/mushaf-layout.json'];
 // ITEM 33. The store the 604 printed page scans live in, and the ceiling on it. Written out
 // here rather than read back out of sw.js for the same reason SW_CORE and SW_REPORT_TAG are:
@@ -1243,7 +1249,12 @@ async function compare(goldenPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 1158925, of: 'index.html' },
+      { n: 120617, of: 'index.html' },
+      // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
+      // byte table and each re-derived here from the file it names.
+      { n: 919385, of: 'app.js' },
+      { n: 131835, of: 'vendor/react-dom.umd.js' },
+      { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
       { n: 177392, of: 'adhkar.json' },
       { n: 12893, of: 'icon-512.png' },

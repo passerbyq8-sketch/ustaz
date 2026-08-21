@@ -1630,7 +1630,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // guard runs no browser: what it can prove is that the marker is emitted only on `true`, that
     // the client has a rendered line keyed on it, and that nothing anywhere derives it from the
     // text. The last of those is the one that matters, and it is the reason for the `!` tests.
-    const indexSource = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    // ITEM 32: the client is index.html + app.jsx since the JSX left the page.
+    const indexSource = require('../tools/babel-block.cjs').readShippedClient(path.join(ROOT, 'index.html'));
     ok('api/ask.js appends the marker only when truncated is literally true',
       /out\.truncated === true \? TRUNCATED_MARK : ''/u.test(askSource));
     ok("...and the marker itself carries no prose — the wording is the client's",

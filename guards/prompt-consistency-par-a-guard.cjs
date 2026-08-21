@@ -64,7 +64,10 @@ async function loadPrompt(file) {
 
 // The runtime band expression is the single source of truth for where "young" ends.
 function teenThresholdFromIndex() {
-  const src = fs.readFileSync(INDEX_FILE, 'utf8');
+  // ITEM 32: the band expression ships in app.jsx now; index.html only loads the bundle built
+  // from it. readShippedClient throws if the page ships no JSX it can find, so a missing source
+  // is a named failure and never a null that reads as 'the expression is gone'.
+  const src = require('../tools/babel-block.cjs').readShippedClient(INDEX_FILE);
   const m = /ageNum\s*>=\s*(\d+)\s*\?\s*'adult'\s*:\s*ageNum\s*>=\s*(\d+)\s*\?\s*'teen'\s*:\s*'young'/.exec(src);
   if (!m) return null;
   return { adult: Number(m[1]), teen: Number(m[2]) };

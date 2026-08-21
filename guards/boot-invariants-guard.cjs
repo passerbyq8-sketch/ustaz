@@ -137,7 +137,11 @@ if (catcherIdx !== -1) {
       'catcher at +' + catcherAt + ', ' + label + ' at +' + m2.index);
   };
   laterThan('the React runtime', /<script[^>]*react[^>]*>/i);
-  laterThan('the Babel transform', /<script[^>]*babel[^>]*>/i);
+  // ITEM 32. There is no Babel transform in the page to precede. What the catcher must now
+  // precede is the thing that replaced it and can fail in the same three ways -- a 404, an SRI
+  // mismatch, a syntax error: the compiled bundle. Moved, not dropped, and to a stricter anchor
+  // (an exact src) than the substring /babel/ it replaces.
+  laterThan('the app bundle', /<script[^>]*\ssrc=["']app\.js["'][^>]*>/i);
   laterThan('the root div', /<div[^>]+id\s*=\s*["']root["']/i);
 }
 

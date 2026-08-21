@@ -647,7 +647,8 @@ function envSandbox(vars) {
     }
 
     // ── the browser half ──────────────────────────────────────────────────────
-    const html = read('index.html');
+    // ITEM 32: the client is index.html + app.jsx since the JSX left the page.
+    const html = require('../tools/babel-block.cjs').readShippedClient('index.html');
     // The end marker also appears ABOVE ParentGate (the spend gate's own comment block), so the
     // search for it must start from the component, not from the top of the file.
     const pgAt = html.indexOf('function ParentGate({');

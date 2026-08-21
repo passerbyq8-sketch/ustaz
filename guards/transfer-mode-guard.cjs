@@ -825,7 +825,8 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
           socket: { remoteAddress: '127.0.0.1' }, on: () => {}, url: '/',
         });
         // Execute the exact handleEvent body shipped in index.html, not a test-only SSE parser.
-        const clientHandlerBody = (read('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
+        // ITEM 32: the parser ships in app.jsx now; index.html only loads the bundle built from it.
+        const clientHandlerBody = (require('../tools/babel-block.cjs').readShippedClient('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
         const clientVisibleFromRaw = clientHandlerBody && new Function('raw', `
           let full = '', streamError = null, onDelta = null;
           const handleEvent = (block) => {${clientHandlerBody}\n};

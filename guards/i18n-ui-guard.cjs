@@ -54,7 +54,12 @@ const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06
 // later, and it is where every gate's registration belongs: gates.json.
 const REPO = path.resolve(__dirname, '..');
 const htmlFile = process.argv[2] || 'index.html';
-const html = fs.readFileSync(path.join(REPO, htmlFile), 'utf8');
+// ITEM 32. The application source moved out of index.html into app.jsx, which
+// tools/build-app.cjs compiles into app.js before every commit. Everything this file
+// searches for is IN that source, so it reads the shipped client -- the document plus the
+// JSX it loads -- and not the shell alone. readShippedClient() throws if the page ships no
+// JSX it can find, so this can never quietly become a search over the wrong file.
+const html = require('../tools/babel-block.cjs').readShippedClient(path.join(REPO, htmlFile));
 
 // There was a BASE commit id pinned here, and part E measured every "unchanged" assertion
 // against it. It is gone, with its reasoning recorded at part E2: a fixed commit cannot anchor
@@ -245,7 +250,13 @@ async function partA() {
   // removed for the AI-consent release (both measured on page load, before the reader had
   // answered the consent screen). The exact count stays exact so "we dropped two" cannot become
   // "we dropped two and added one", and the companion check below names what must not come back.
+  // ITEM 32 KEPT IT AT THREE and changed all three: react and react-dom moved from unpkg to
+  // /vendor, and @babel/standalone was replaced by the bundle it used to produce in the reader's
+  // browser. The count is the same number about a different page, so the assertion beside it is
+  // what carries the change -- and it is stated positively, not by counting.
   eq('the page still loads exactly the three scripts it loads now', srcs.length, 3);
+  ok('...and every one of them is local to this origin',
+    srcs.length === 3 && !srcs.some((t) => /src=["']https?:/i.test(String(t))), srcs.join(' || '));
   ok('...and no analytics script is among them',
     !srcs.some((t) => /_vercel\/(insights|speed-insights)/.test(String(t))), srcs.join(' || '));
   // ITEM 106. THE ANCHORS ARE REQUIRED BEFORE THE REGION IS SEARCHED. This cut used to run
@@ -861,6 +872,11 @@ async function partE() {
   // the gate 'babel' asserts byte equality between the two on every run -- so this entry cannot
   // drift away from the page it is a copy of. The set is WIDENED BY ONE NAMED FILE, not relaxed:
   // a fifth file, or app.js disappearing, still fails here.
+  // ITEM 32 DID NOT MOVE index.html OUT OF THIS SET, and the attempt to say it had was caught
+  // here: the pre-paint language boot script stays in the <head>, where it has to be, because it
+  // sets lang/dir BEFORE the first paint and a bundle loaded at the end of <body> cannot. So the
+  // page still names the key, and app.js -- the compiled form of the JSX that also names it --
+  // joins it rather than replacing it. Exact in both directions still.
   eq('the interface-language key is named by exactly the two pages, the built bundle and this guard',
     scanned.filter((f) => slurp(f).indexOf(S.LANG_KEY) !== -1).sort(),
     ['app.js', 'guards/i18n-ui-guard.cjs', 'index.html', 'quest.html']);
