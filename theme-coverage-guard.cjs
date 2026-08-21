@@ -1309,9 +1309,18 @@ for (const k of ['eziaChainNum', 'eziaChainWord', 'eziaGoalLabel', 'eziaGoalChip
 // not a word of copy on this screen that implies the app will come and find the reader.
 ok('43-أ: nothing in the app asks for, schedules or sends a notification',
   !/Notification\s*\(/.test(html)
-  && !/requestPermission\s*\(/.test(html)
+  && !/Notification\.requestPermission/.test(html)
   && !/showTrigger|periodicSync|pushManager|serviceWorker\.ready[\s\S]{0,80}showNotification/.test(html),
   'a notification path appeared -- item 43-أ ships zero of them');
+// ITEM 108-أ brought a requestPermission into this file that is NOT a notification's: the
+// orientation sensor's, called from inside the qibla panel's own press. The blanket substring
+// sweep that used to stand here would now report a notification path that does not exist, so it
+// is replaced by a NAMED one -- every requestPermission CALL in the shipped file must be that
+// sensor's. That is a stronger statement than the sweep, not a relaxed one: a Notification
+// permission request would still fail it, and so would any third caller.
+eq('43-أ: ...and every requestPermission call in the file is the orientation sensor\'s',
+  (html.match(/[A-Za-z0-9_.$]*requestPermission\s*\(/g) || [])
+    .filter((x) => x !== 'DOE.requestPermission(').join(', '), '');
 okOn('43-أ: ...and the chain says nothing about being reminded', [['IA', IA]],
   !/A3_CHAIN_(?:REMIND|NOTIFY)/.test(IA));
 ok('featured groups are their own presentation', /<IstanaAdhkarFeature /.test(IA) && !!s.eziaFeature);
@@ -2684,12 +2693,13 @@ const shareEnd = shareAt === -1 ? -1 : html.indexOf('\nconst MessageListenButton
 const shareSrc = (shareAt !== -1) ? html.slice(shareAt, shareEnd === -1 ? shareAt + 2000 : shareEnd) : '';
 ok('42-أ: the share button was located', shareSrc.length > 200, 'len=' + shareSrc.length);
 
-okOn('42-أ: the reply rail carries the four permitted actions', [['mbSrc', mbSrc]],
+okOn('42-أ: the reply rail carries the five permitted actions', [['mbSrc', mbSrc]],
   /<MessageListenButton /.test(mbSrc)
   && /<CopyReplyButton /.test(mbSrc)
   && /<ShareReplyButton /.test(mbSrc)
+  && /<ExportPdfReplyButton /.test(mbSrc)
   && /onFavorite\(message, index\)/.test(mbSrc),
-  'one of the four permitted reply actions is no longer on the rail');
+  'one of the five permitted reply actions is no longer on the rail');
 
 // THE HARD LIMIT: ZERO MODEL CALL. The three banned actions are banned by name, and the rail is
 // proved to build no request of ANY kind. The brain freeze is not lifted by this item.
@@ -4184,6 +4194,142 @@ ok('W7: the drawer-row exception is declared, and it narrows only the width',
 ok('W6: the drawer toggle still paints at 40x40',
   /\.ezc-icon\{[^}]*width:40px;height:40px/.test(css.replace(/\s*\n\s*/g, '')),
   'the painted size of .ezc-icon moved — the item was supposed to leave it alone');
+
+/* ---- Y. ITEM 93-C: THE WORKER'S BRIEF NOW HAS A LISTENER --------------- */
+// THE SHAPE IS NOT RE-TYPED HERE. sw.js is READ -- never written by this screen -- and the two
+// fields the page branches on are asserted to be the two fields installSummary() writes. A
+// worker that renames `failed` fails here, rather than quietly ceasing to reach the reader.
+const SWJS = fs.readFileSync(path.join(path.dirname(path.resolve(INDEX)), 'sw.js'), 'utf8');
+const swTag = (SWJS.match(/const REPORT_TAG = '([^']+)';/) || [])[1] || '';
+ok('Y1: sw.js still declares the report tag', !!swTag, 'tag=' + JSON.stringify(swTag));
+eq('Y1: ...and the page listens for exactly that tag', evalIn('EZIK_SW_REPORT_TAG'), swTag);
+const swSummaryAt = SWJS.indexOf('function installSummary()');
+const swSummary = swSummaryAt === -1 ? '' : SWJS.slice(swSummaryAt, SWJS.indexOf('function announceInstall', swSummaryAt));
+okOn('Y1: ...and the fields it branches on are the fields the worker writes', [['swSummary', swSummary]],
+  /ezik: REPORT_TAG/.test(swSummary)
+  && /failed: precacheFailures\.length/.test(swSummary)
+  && /skipped: storageState\.precacheSkipped/.test(swSummary),
+  'installSummary no longer writes ezik/failed/skipped under those names');
+
+// DRIVEN, NOT READ. Every branch below is the shipped function executed against a literal
+// message; nothing here matches source text for behaviour.
+const swNotice = (code) => evalIn('ezikPrecacheNotice(' + code + ')');
+const SW_PARTIAL = evalIn('EZIK_SW_MSG_PARTIAL');
+const SW_NONE = evalIn('EZIK_SW_MSG_NONE');
+const swReport = (o) => JSON.stringify(Object.assign({ ezik: swTag, failed: 0, entries: [], skipped: null,
+  persist: 'granted', evicted: 0, retried: 0 }, o));
+
+ok('Y2: A HEALTHY INSTALL DRAWS NOTHING AT ALL', swNotice(swReport({})) === null);
+ok('Y2: ...and neither does one that merely evicted and retried its way to success',
+  swNotice(swReport({ evicted: 2, retried: 2 })) === null);
+ok('Y2: ...nor a brief carrying no count at all', swNotice(JSON.stringify({ ezik: swTag })) === null);
+ok('Y3: an install that lost entries says so', swNotice(swReport({ failed: 3,
+  entries: [{ url: '/adhkar.json', reason: 'quota' }] })) === SW_PARTIAL);
+ok('Y3: one lost entry is enough', swNotice(swReport({ failed: 1 })) === SW_PARTIAL);
+ok('Y3: a precache that never started says the OTHER thing', swNotice(swReport({ skipped: 'quota' })) === SW_NONE);
+ok('Y3: ...and that sentence wins even when entries also failed',
+  swNotice(swReport({ failed: 4, skipped: 'quota' })) === SW_NONE);
+ok('Y3: the two sentences are two sentences',
+  !!SW_PARTIAL && !!SW_NONE && SW_PARTIAL !== SW_NONE);
+// The reader is told what happened, not what the browser said. No URL, no reason word, no
+// exception name -- «TypeError: Failed to fetch» tells a child nothing they can act on.
+ok('Y4: neither sentence carries a URL, a reason word or browser text',
+  [SW_PARTIAL, SW_NONE].every((t) => !/https?:|\.json|\.png|Error|fetch|quota|network|undefined|\[object/i.test(String(t))));
+const NOT_OURS = ['null', 'undefined', '0', '""', '"' + swTag + '"', '[]',
+  JSON.stringify({ ezik: 'warm' }), JSON.stringify({ ezik: 'storage', failed: 9 }),
+  JSON.stringify({ failed: 9, skipped: 'quota' })];
+for (const code of NOT_OURS) {
+  ok('Y5: a message that is not the brief is ignored: ' + code, swNotice(code) === null);
+}
+// A count that is not a count may not become a banner.
+for (const bad of ['"3"', 'true', '{}', '[3]', 'NaN', 'Infinity', '-2']) {
+  ok('Y5: ...and a failed count of ' + bad + ' is not a failure',
+    swNotice('{"ezik":"' + swTag + '","failed":' + bad + ',"skipped":null}') === null);
+}
+
+const swNoteAt = html.indexOf('function EzikPrecacheNotice()');
+const swNoteEnd = html.indexOf('function EzShellGroup(', swNoteAt);
+const swNoteSrc = (swNoteAt !== -1 && swNoteEnd > swNoteAt) ? html.slice(swNoteAt, swNoteEnd) : '';
+okOn('Y6: ZERO RETRY, ZERO NETWORK, ZERO RECOVERY SURFACE', [['swNoteSrc', swNoteSrc]],
+  !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket/.test(swNoteSrc)
+  && !/\.register\(|\.update\(|\.unregister\(|skipWaiting|location\.reload/.test(swNoteSrc)
+  && !/setTimeout|setInterval/.test(swNoteSrc),
+  'the consumer grew a retry, a wire or a timer');
+eq('Y6: exactly one listener, and it is on the service worker container',
+  (html.match(/navigator\.serviceWorker\.addEventListener\('message'/g) || []).length, 1);
+okOn('Y7: the dismissal is spent for the SESSION, not merely for the mount', [['swNoteSrc', swNoteSrc]],
+  /let ezikSwNoticeSpent = false;/.test(html) && /ezikSwNoticeSpent = true;/.test(swNoteSrc)
+  && /if \(ezikSwNoticeSpent\) return;/.test(swNoteSrc),
+  'the once-per-session latch moved into component state');
+okOn('Y7: ...and the listener is removed when the notice unmounts', [['swNoteSrc', swNoteSrc]],
+  /removeEventListener\('message', onMessage\)/.test(swNoteSrc));
+ok('Y8: it is mounted, beside the app and under the same boundary',
+  /root\.render\(React\.createElement\(ErrorBoundary, null, React\.createElement\(App\), React\.createElement\(EzikPrecacheNotice\)\)\);/
+    .test(html));
+
+/* ---- Z. ITEM 42-B: THE REPLY EXPORTS ITSELF, WITH NO NEW MACHINE -------- */
+// THE MACHINE WAS MEASURED FIRST. Two things had to already be true before a button could be
+// hung on them, and both are asserted rather than remembered: html2pdf is declared in the LAZY
+// vendor map and is NOT a script tag on the boot path, and printAsPdf is the app's single PDF
+// path. A future change that promotes html2pdf back to a render-blocking script fails here.
+const vendAt = html.indexOf('window.__ezikVendor');
+ok('Z1: the lazy vendor loader is still what fetches html2pdf',
+  vendAt !== -1 && /html2pdf: \['https:\/\/[^']+html2pdf\.bundle\.min\.js'/.test(html),
+  'the lazy vendor map no longer declares html2pdf');
+ok('Z1: ...and html2pdf is on no <script src> in the document',
+  !/<script[^>]+src=["'][^"']*html2pdf/i.test(html),
+  'html2pdf came back as a boot-blocking script tag');
+eq('Z1: the app has exactly one PDF path', (html.match(/const printAsPdf = async /g) || []).length, 1);
+okOn('Z1: ...and it still awaits the lazy bundle and degrades to print()', [['html', html]],
+  /await window\.__ezikVendor\('html2pdf'\)/.test(html)
+  && /if \(!window\.html2pdf\) \{ document\.title = title; window\.print\(\); return; \}/.test(html));
+
+const pdfAt = html.indexOf('const ExportPdfReplyButton = ({ getText }) =>');
+const pdfEnd = pdfAt === -1 ? -1 : html.indexOf('const docToHtml = (md) =>', pdfAt);
+const pdfSrc = (pdfAt !== -1 && pdfEnd > pdfAt) ? html.slice(pdfAt, pdfEnd) : '';
+ok('Z2: the export button was located and bounded', pdfSrc.length > 400, 'len=' + pdfSrc.length);
+okOn('Z2: it exports THE REPLY, from the very payload the clipboard is handed', [['mbSrc', mbSrc]],
+  /<ExportPdfReplyButton getText=\{buildCopyText\} \/>/.test(mbSrc),
+  'the export button was given a second source of truth');
+okOn('Z2: ...and it prints it through the one PDF path, rendered by the one renderer',
+  [['pdfSrc', pdfSrc]],
+  /await printAsPdf\(EZIK_PDF_TITLE, docToHtml\(payload\)\)/.test(pdfSrc)
+  && /const payload = \(typeof getText === 'function'\) \? getText\(\) : ''/.test(pdfSrc),
+  'the export path stopped going through printAsPdf(docToHtml(...))');
+// The document card already exports with exactly this pair. Two callers, one machine.
+eq('Z2: ...which is the pair the document card already uses',
+  (html.match(/printAsPdf\([^)]*docToHtml\(/g) || []).length, 2);
+okOn('Z3: ZERO MODEL CALL AND ZERO REQUEST on the export path', [['pdfSrc', pdfSrc]],
+  !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket|\/api\//.test(pdfSrc),
+  'the export button acquired a request');
+okOn('Z3: ...and one press cannot become two files', [['pdfSrc', pdfSrc]],
+  /const busyRef = useRef\(false\);/.test(pdfSrc) && /if \(busyRef\.current\) return;/.test(pdfSrc));
+// 44x44 BY AREA, NOT BY SHAPE: it is a .ezc-acts button and it states no box of its own.
+okOn('Z4: the new control takes the rail hit area and changes no shape', [['pdfSrc', pdfSrc]],
+  /style=\{miniBtnStyle\}/.test(pdfSrc) && !/width:|height:|minWidth|minHeight/.test(pdfSrc),
+  'the export button started declaring its own box instead of taking the rail area');
+okOn('Z4: ...and the rail is the container the sheet gives 44x44 to', [['html', html]],
+  /\.ezc-icon, \.ezc-acts button, \.ezc-row button, \.ez-hit button \{ position: relative; \}/.test(css)
+  && /min-width: 44px; min-height: 44px;/.test(css));
+
+// ---- Z5. THE CARD-AS-IMAGE WAS NOT BUILT, AND THE REASON IS MEASURED -----
+// The item asked for the measurement, not the feature. There is no DOM rasteriser in this tree:
+// the only canvas in the application file is the UPLOAD downscaler, which draws an <img> element
+// and never a DOM subtree. The one rasteriser that exists at all is html2canvas, and it lives
+// inside html2pdf.bundle -- 906KB, lazily loaded, and precached by nothing. These checks keep
+// that statement true, so the decision cannot quietly reverse itself.
+eq('Z5: the application file holds exactly one canvas rasterisation, and it is the upload path',
+  (html.match(/toDataURL\(|canvas\.toBlob\(/g) || []).length, 1);
+ok('Z5: ...which draws an image element, not a DOM subtree',
+  /canvas\.getContext\('2d'\)\.drawImage\(img, 0, 0, w, h\)/.test(html));
+ok('Z5: no DOM-to-image library entered the tree',
+  !/dom-to-image|domtoimage|htmlToImage|html-to-image|satori/i.test(html));
+ok('Z5: ...and html2canvas is named as an OPTION and never constructed or called',
+  !/html2canvas\s*[.(]/.test(html) && /html2canvas: \{ scale: 2, useCORS: true \}/.test(html));
+// And the offline store still carries no vendor JavaScript at all, which is the other half of
+// the reason: a share card built on html2canvas would be a control that cannot work offline.
+ok('Z5: the offline CORE still precaches no vendor bundle',
+  !/html2pdf|mammoth|react[^"']*\.js/.test(SWJS.slice(SWJS.indexOf('const CORE = ['), SWJS.indexOf('];', SWJS.indexOf('const CORE = [')))));
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

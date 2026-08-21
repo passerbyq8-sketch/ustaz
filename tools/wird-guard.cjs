@@ -1033,11 +1033,829 @@ if (aLifted) {
 
   // ZERO NOTIFICATIONS, measured over the WHOLE application file. A scheduled reminder needs the
   // native shell, is not in this build, and may not be promised or prepared for anywhere.
+  // ITEM 108-a put an orientation-sensor requestPermission in this file. The claim being kept
+  // is about NOTIFICATIONS, so it is stated about notifications -- and the sweep that used to
+  // match any requestPermission is replaced by an exhaustive one that names the only caller the
+  // file is allowed to have. A Notification.requestPermission would fail both halves.
   ok('43-a: the application asks for no notification permission',
-    SRC.indexOf('Notification.requestPermission') === -1 && SRC.indexOf('requestPermission()') === -1);
+    SRC.indexOf('Notification.requestPermission') === -1);
+  eq('43-a: ...and every permission request in the file is the orientation sensor\'s',
+    (SRC.match(/[A-Za-z0-9_.$]*requestPermission\s*\(/g) || [])
+      .filter((x) => x !== 'DOE.requestPermission(').join(', '), '');
   ok('43-a: ...and constructs no Notification', !/new\s+Notification\s*\(/.test(SRC));
   ok('43-a: ...and schedules none through a service worker', SRC.indexOf('showNotification') === -1);
 }
+
+
+// ---------------------------------------------------------------------------
+// K. ITEM 109 -- THE HIJRI DATE, ON A CALENDAR NAMED IN THE SOURCE
+// ---------------------------------------------------------------------------
+// Everything below RUNS the shipped conversion. Nothing here matches its source text for a
+// behavioural claim: the block is lifted, executed against a fake store, a fake clock and --
+// this is the point -- a REMOVED Intl, so both calendars are exercised on the same machine.
+
+const H_CONSTS = ['HIJRI_CALENDAR', 'HIJRI_FALLBACK_CALENDAR', 'HIJRI_OFFSET_KEY',
+  'HIJRI_OFFSET_MIN', 'HIJRI_OFFSET_MAX', 'HIJRI_MONTHS', 'HIJRI_SUFFIX', 'toArabicDigits'];
+const H_FNS = ['hijriJdnFromCivil', 'hijriCivilFromJdn', 'hijriTabularFromJdn',
+  'hijriUmalquraFromJdn', 'hijriFromJdn', 'hijriForCivilDay',
+  'readHijriOffset', 'writeHijriOffset', 'hijriLabel', 'hijriTodayLabel'];
+
+const hConsts = {};
+const hFns = {};
+let hLifted = true;
+for (const n of H_CONSTS) { hConsts[n] = liftConst(n); if (!ok('109: lift const ' + n, !!hConsts[n])) hLifted = false; }
+for (const n of H_FNS) { hFns[n] = liftFunction(n); if (!ok('109: lift function ' + n, !!hFns[n])) hLifted = false; }
+
+if (hLifted) {
+  const H_LIFTED = H_CONSTS.map((n) => hConsts[n]).concat(H_FNS.map((n) => hFns[n])).join('\n\n');
+  ok('109: lifted block braces balance',
+    (H_LIFTED.match(/\{/g) || []).length === (H_LIFTED.match(/\}/g) || []).length);
+  ok('109: lifted block has no template literal', H_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+
+  // The sandbox takes Intl as a PARAMETER, so the fallback is reachable on an engine that has
+  // the real one. Passing undefined is what a browser without the tables looks like from inside.
+  const HI = (store, DateImpl) => new Function('localStorage', 'Date', 'Intl',
+    H_LIFTED + '\nreturn { ' + H_CONSTS.concat(H_FNS).join(', ') + ' };')(store, DateImpl || Date, Intl);
+  const HNO = (store, DateImpl) => new Function('localStorage', 'Date', 'Intl',
+    H_LIFTED + '\nreturn { ' + H_CONSTS.concat(H_FNS).join(', ') + ' };')(store, DateImpl || Date, undefined);
+
+  const BASE = HI(memStore());
+  eq('109: the offset key carries its version', BASE.HIJRI_OFFSET_KEY, 'ezik_hijri_offset_v1');
+  eq('109: the calendar is named in the source', BASE.HIJRI_CALENDAR, 'islamic-umalqura');
+  eq('109: ...and so is the arithmetical fallback', BASE.HIJRI_FALLBACK_CALENDAR, 'tabular-civil-IIa');
+  ok('109: the two names are two names', BASE.HIJRI_CALENDAR !== BASE.HIJRI_FALLBACK_CALENDAR);
+  eq('109: the offset floor', BASE.HIJRI_OFFSET_MIN, -2);
+  eq('109: the offset ceiling', BASE.HIJRI_OFFSET_MAX, 2);
+  eq('109: twelve month names, none empty', BASE.HIJRI_MONTHS.length, 12);
+  eq('109: ...and no two of them are the same',
+    new Set(BASE.HIJRI_MONTHS).size, 12);
+  eq('109: ...and not one is blank', BASE.HIJRI_MONTHS.filter((m) => !String(m).trim()).length, 0);
+
+  // ---- the day number is a day number, both ways --------------------------
+  (function jdnRoundTrip() {
+    const days = [[2026, 8, 21], [2026, 1, 1], [2026, 12, 31], [2024, 2, 28], [2024, 2, 29],
+      [2024, 3, 1], [2000, 2, 29], [1900, 2, 28], [1900, 3, 1], [2100, 2, 28], [1970, 1, 1]];
+    for (const [y, m, d] of days) {
+      const back = BASE.hijriCivilFromJdn(BASE.hijriJdnFromCivil(y, m, d));
+      ok('109: the civil day survives the round trip ' + y + '-' + m + '-' + d,
+        back.y === y && back.m === m && back.d === d, show(back));
+    }
+    // consecutive civil days are consecutive numbers, across a leap day and a year end
+    for (const [a, b] of [[[2024, 2, 28], [2024, 2, 29]], [[2024, 2, 29], [2024, 3, 1]],
+      [[2026, 12, 31], [2027, 1, 1]], [[1900, 2, 28], [1900, 3, 1]]]) {
+      eq('109: one day apart: ' + a.join('-') + ' -> ' + b.join('-'),
+        BASE.hijriJdnFromCivil(b[0], b[1], b[2]) - BASE.hijriJdnFromCivil(a[0], a[1], a[2]), 1);
+    }
+  })();
+
+  // ---- the named calendar answers, and it is the one that answers ---------
+  (function namedCalendar() {
+    const j = (y, m, d) => BASE.hijriJdnFromCivil(y, m, d);
+    const umq = BASE.hijriUmalquraFromJdn(j(2026, 8, 21));
+    if (!ok('109: this engine carries the named calendar', !!umq, 'Intl returned nothing')) return;
+    // MEASURED against the engine's own tables, at four dates twenty years apart.
+    const CASES = [[[2026, 8, 21], [1448, 3, 8]], [[2026, 9, 12], [1448, 4, 1]],
+      [[2026, 1, 1], [1447, 7, 12]], [[1990, 1, 1], [1410, 6, 3]]];
+    for (const [g, h] of CASES) {
+      const got = BASE.hijriFromJdn(j(g[0], g[1], g[2]));
+      ok('109: ' + g.join('-') + ' converts to ' + h.join('-'),
+        got.y === h[0] && got.m === h[1] && got.d === h[2], show(got));
+      eq('109: ...and it says which calendar said so', got.by, BASE.HIJRI_CALENDAR);
+    }
+    // THE FALLBACK IS A FALLBACK. Same dates, Intl removed: the arithmetical calendar answers,
+    // it names ITSELF, and it disagrees with the named one -- which is the whole reason the
+    // named one is preferred. A mutant that promotes the tabular rule to primary dies here.
+    const NO = HNO(memStore());
+    let disagreements = 0;
+    for (const [g, h] of CASES) {
+      const got = NO.hijriFromJdn(j(g[0], g[1], g[2]));
+      eq('109: without the tables, ' + g.join('-') + ' is answered by the arithmetical calendar',
+        got.by, NO.HIJRI_FALLBACK_CALENDAR);
+      if (!(got.y === h[0] && got.m === h[1] && got.d === h[2])) disagreements++;
+    }
+    ok('109: ...and the two calendars are not the same calendar', disagreements > 0,
+      'the arithmetical fallback agreed with Umm al-Qura on every measured date');
+  })();
+
+  // ---- AN ENGINE THAT SUBSTITUTES A DIFFERENT CALENDAR IS REFUSED --------
+  // Not every engine carries the Umm al-Qura tables, and the ones that do not do NOT throw --
+  // they quietly hand back islamic-civil, which is the arithmetical calendar this item exists to
+  // stop trusting. So the shipped reader is driven here against three counterfeit Intls: one
+  // that resolves to a different calendar, one that cannot say what it resolved to, and one that
+  // answers with a date no calendar could produce. Each must come back null, and null is what
+  // sends the app to its OWN named fallback rather than to a wrong day dressed as a right one.
+  (function refusesASubstitute() {
+    const partsOf = (y, m, d) => [{ type: 'month', value: String(m) }, { type: 'literal', value: '/' },
+      { type: 'day', value: String(d) }, { type: 'literal', value: '/' },
+      { type: 'year', value: String(y) }, { type: 'era', value: 'AH' }];
+    const fakeIntl = (calendar, parts, drop) => ({
+      DateTimeFormat: function () {
+        const o = { formatToParts: () => parts };
+        if (!drop) o.resolvedOptions = () => ({ calendar: calendar });
+        return o;
+      },
+    });
+    const H_SRC = H_LIFTED + '\nreturn { ' + H_CONSTS.concat(H_FNS).join(', ') + ' };';
+    const withIntl = (I) => new Function('localStorage', 'Date', 'Intl', H_SRC)(memStore(), Date, I);
+    const jdn = BASE.hijriJdnFromCivil(2026, 8, 21);
+
+    const sub = withIntl(fakeIntl('islamic-civil', partsOf(1448, 3, 7)));
+    eq('109: an engine that substitutes islamic-civil is refused', sub.hijriUmalquraFromJdn(jdn), null);
+    eq('109: ...so the app falls back to the calendar it NAMES as its fallback',
+      sub.hijriFromJdn(jdn).by, sub.HIJRI_FALLBACK_CALENDAR);
+
+    const mute = withIntl(fakeIntl('islamic-umalqura', partsOf(1448, 3, 8), true));
+    eq('109: an engine that cannot say which calendar it used is refused',
+      mute.hijriUmalquraFromJdn(jdn), null);
+
+    for (const bad of [[1448, 13, 8], [1448, 0, 8], [1448, 3, 0], [1448, 3, 31], [0, 3, 8]]) {
+      const weird = withIntl(fakeIntl('islamic-umalqura', partsOf(bad[0], bad[1], bad[2])));
+      eq('109: an impossible answer ' + bad.join('-') + ' is refused',
+        weird.hijriUmalquraFromJdn(jdn), null);
+    }
+    const none = withIntl(fakeIntl('islamic-umalqura', []));
+    eq('109: an answer with no fields at all is refused', none.hijriUmalquraFromJdn(jdn), null);
+    const thrower = withIntl({ DateTimeFormat: function () { throw new Error('no tables'); } });
+    eq('109: an engine that throws is refused rather than propagated',
+      thrower.hijriUmalquraFromJdn(jdn), null);
+    eq('109: ...and the date is still produced', typeof thrower.hijriFromJdn(jdn).y, 'number');
+  })();
+
+  // ---- IT IS RUN, DAY AFTER DAY, ACROSS EVERY BOUNDARY THERE IS -----------
+  (function walk() {
+    // 800 consecutive civil days from 2024-02-01: it crosses a Gregorian leap day, two Gregorian
+    // year ends, and roughly 27 Hijri month ends including at least one Hijri year end. Every
+    // step must advance the Hijri date by exactly one day.
+    const start = BASE.hijriJdnFromCivil(2024, 2, 1);
+    let prev = BASE.hijriFromJdn(start);
+    let months = 0, years = 0, bad = 0, badAt = '';
+    for (let i = 1; i < 800; i++) {
+      const cur = BASE.hijriFromJdn(start + i);
+      const sameMonth = cur.y === prev.y && cur.m === prev.m && cur.d === prev.d + 1;
+      const newMonth = cur.y === prev.y && cur.m === prev.m + 1 && cur.d === 1 && prev.d >= 29;
+      const newYear = cur.y === prev.y + 1 && cur.m === 1 && cur.d === 1 && prev.m === 12 && prev.d >= 29;
+      if (newMonth) months++;
+      if (newYear) years++;
+      if (!(sameMonth || newMonth || newYear)) { bad++; if (!badAt) badAt = show([prev, cur]); }
+      prev = cur;
+    }
+    ok('109: 800 consecutive days advance the Hijri date by exactly one, every time',
+      bad === 0, bad + ' bad steps, first ' + badAt);
+    ok('109: ...and the walk really crossed month ends', months >= 20, 'month rollovers: ' + months);
+    ok('109: ...and at least one year end', years >= 1, 'year rollovers: ' + years);
+    ok('109: ...and no month outside 1..12, no day outside 1..30', (function () {
+      for (let i = 0; i < 800; i++) {
+        const c = BASE.hijriFromJdn(start + i);
+        if (!(c.m >= 1 && c.m <= 12 && c.d >= 1 && c.d <= 30 && c.y > 1400)) return false;
+      }
+      return true;
+    })());
+  })();
+
+  // ---- THE OFFSET MOVES THE DAY BY WHAT IT SAYS, AND BY NO MORE -----------
+  (function offset() {
+    const at = (y, m, d, k) => BASE.hijriForCivilDay(y, m, d, k);
+    const jd = (y, m, d) => BASE.hijriJdnFromCivil(y, m, d);
+    for (const [y, m, d] of [[2026, 8, 21], [2026, 9, 11], [2026, 9, 12], [2027, 5, 17], [2024, 2, 29]]) {
+      for (const k of [-2, -1, 0, 1, 2]) {
+        const got = at(y, m, d, k);
+        const want = BASE.hijriFromJdn(jd(y, m, d) + k);
+        ok('109: an offset of ' + k + ' at ' + y + '-' + m + '-' + d + ' moves exactly ' + k + ' day(s)',
+          got.y === want.y && got.m === want.m && got.d === want.d, show([got, want]));
+        eq('109: ...and the record reports the offset it used', got.offset, k);
+      }
+    }
+    // A stored value beyond the pair CANNOT move the date beyond the pair.
+    for (const [k, want] of [[7, 2], [-7, -2], [100, 2], [-100, -2], [2.9, 2], [-2.9, -2]]) {
+      eq('109: an offset of ' + k + ' is clamped to ' + want, at(2026, 8, 21, k).offset, want);
+    }
+    for (const k of [null, undefined, NaN, 'x', {}, [], Infinity, -Infinity]) {
+      const got = at(2026, 8, 21, k);
+      const zero = at(2026, 8, 21, 0);
+      ok('109: an unusable offset ' + show(k) + ' behaves as zero',
+        got.offset === 0 && got.y === zero.y && got.m === zero.m && got.d === zero.d, show(got));
+    }
+    // The offset crosses a month end properly rather than inventing a 31st.
+    const ahead = at(2026, 9, 11, 1);
+    eq('109: an offset that crosses a Hijri month end rolls the month',
+      show([ahead.m, ahead.d]), show([4, 1]));
+  })();
+
+  // ---- A BROKEN KEY READS ZERO AND NEVER THROWS ---------------------------
+  (function store() {
+    const K = 'ezik_hijri_offset_v1';
+    eq('109: an empty store reads no offset', HI(memStore()).readHijriOffset(), 0);
+    const bad = ['', ' ', 'x', 'null', '{}', '[]', '3', '-3', '99', '1.5', 'NaN', 'Infinity',
+      '+1 ', 'true', '\u0661'];
+    for (const b of bad) {
+      const st = memStore(); st.setItem(K, b);
+      let threw = null, got = null;
+      try { got = HI(st).readHijriOffset(); } catch (e) { threw = e; }
+      ok('109: a stored ' + show(b) + ' reads as zero and does not throw',
+        threw === null && got === 0, threw ? 'threw' : show(got));
+    }
+    for (const g of [-2, -1, 0, 1, 2]) {
+      const st = memStore(); st.setItem(K, String(g));
+      eq('109: a stored ' + g + ' reads back', HI(st).readHijriOffset(), g);
+    }
+    ok('109: a storage that throws reads as zero rather than breaking the screen',
+      HI(throwingStore()).readHijriOffset() === 0);
+    // writing
+    for (const g of [-2, -1, 0, 1, 2]) {
+      const st = countingStore();
+      eq('109: writing ' + g + ' returns it', HI(st).writeHijriOffset(g), g);
+      eq('109: ...and writes exactly once', st.writes, 1);
+      eq('109: ...and stores the number as text', st.getItem(K), String(g));
+    }
+    for (const g of [3, -3, 99, 1.5, 'x', null, undefined, NaN]) {
+      const st = countingStore();
+      const r = HI(st).writeHijriOffset(g);
+      ok('109: writing ' + show(g) + ' is refused and nothing is stored', r === 0 && st.writes === 0, show(r));
+    }
+    ok('109: a storage that throws on write does not throw at the reader',
+      HI(throwingStore()).writeHijriOffset(1) === 0);
+    // reading never writes -- a default that persisted itself would be a write on first paint
+    const ro = countingStore();
+    HI(ro).readHijriOffset();
+    HI(ro).hijriTodayLabel();
+    eq('109: reading the date writes nothing at all', ro.writes, 0);
+  })();
+
+  // ---- THE LINE ON THE SCREEN --------------------------------------------
+  (function label() {
+    const AR = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+    const st = memStore();
+    const A = HI(st, fakeDate(2026, 8, 21));
+    const line = A.hijriTodayLabel();
+    ok('109: the line is drawn from the LOCAL day', !!line && line.length > 6, show(line));
+    ok('109: ...in Arabic-Indic digits', new RegExp('[' + AR + ']').test(line), show(line));
+    ok('109: ...with no Western digit left in it', !/[0-9]/.test(line), show(line));
+    ok('109: ...and it names the Hijri era', line.indexOf(A.HIJRI_SUFFIX) !== -1);
+    const h = A.hijriForCivilDay(2026, 8, 21, 0);
+    ok('109: ...and it carries the month name the conversion chose',
+      line.indexOf(A.HIJRI_MONTHS[h.m - 1]) !== -1);
+    // the offset really reaches the line
+    const st2 = memStore(); st2.setItem('ezik_hijri_offset_v1', '2');
+    const B = HI(st2, fakeDate(2026, 8, 21));
+    ok('109: a stored offset changes the line', B.hijriTodayLabel() !== line, show(B.hijriTodayLabel()));
+    ok('109: a record with no month draws nothing rather than a wrong date',
+      A.hijriLabel(null) === '' && A.hijriLabel({}) === '' && A.hijriLabel({ y: 1, m: 13, d: 1 }) === '');
+    ok('109: a storage that throws still yields a line rather than an exception',
+      typeof HI(throwingStore(), fakeDate(2026, 8, 21)).hijriTodayLabel() === 'string');
+  })();
+
+  // ---- IT NEVER LEAVES THE DEVICE, AND IT NEVER READS UTC -----------------
+  const H_IO = ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
+    'document.cookie', 'indexedDB', 'sessionStorage', 'Notification', '/api/'];
+  for (const t of H_IO) ok('109: the conversion contains no ' + t, H_LIFTED.indexOf(t) === -1);
+  ok('109: the conversion never uses a UTC getter', H_LIFTED.indexOf('getUTC') === -1);
+  ok('109: ...and never toISOString', H_LIFTED.indexOf('toISOString') === -1);
+  eq('109: every storage operation is wrapped in its own try',
+    (H_LIFTED.match(/try \{[^}]*(getItem|setItem)\(/g) || []).length,
+    (H_LIFTED.match(/localStorage\.(getItem|setItem)\(/g) || []).length);
+
+  const H_TOKENS = ['ezik_hijri_offset_v1'].concat(H_CONSTS.slice(0, 7)).concat(H_FNS);
+  let hLeaks = 0;
+  let hFirst = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const L = lines[i];
+    let touches = false;
+    for (const t of H_TOKENS) if (L.indexOf(t) !== -1) { touches = true; break; }
+    if (!touches) continue;
+    for (const t of REQUEST_TOKENS) {
+      if (L.indexOf(t) !== -1) { hLeaks++; if (!hFirst) hFirst = i + 1; }
+    }
+  }
+  ok('109: no Hijri token shares a line with a request token', hLeaks === 0, 'first at line ' + hFirst);
+
+  // ---- WHERE IT IS DRAWN, AND THAT IT IS NOT A NEW SCREEN -----------------
+  ok('109: the date is drawn on the home masthead, which already existed',
+    /\{hijri \? <div style=\{s\.ezistHijri\}>\{hijri\}<\/div> : null\}/.test(SRC));
+  ok('109: ...from a prop the OWNER read, not from a store the presentation opened',
+    /const hijri = hijriTodayLabel\(\);/.test(SRC)
+    && /<EzistMasthead name=\{v\.name\} g=\{v\.greeting\} hijri=\{v\.hijri\} onOpenAdhkar=\{v\.onOpenAdhkar\} \/>/.test(SRC));
+  ok('109: ...and no screen was added for it',
+    SRC.indexOf("screen === 'hijri'") === -1 && SRC.indexOf("setScreen('hijri')") === -1);
+  ok('109: the manual offset lives in Settings',
+    /<EzShellGroup title=\{HIJRI_SET_TITLE\} hint=\{HIJRI_SET_HINT\}>/.test(SRC)
+    && /<HijriOffsetControl \/>/.test(SRC));
+  ok('109: ...as a radiogroup over the five permitted values, and nothing wider',
+    /role="radiogroup" aria-label=\{HIJRI_SET_LABEL\}/.test(SRC)
+    && /for \(let v = HIJRI_OFFSET_MIN; v <= HIJRI_OFFSET_MAX; v\+\+\) opts\.push\(v\);/.test(SRC));
+  // NOTHING IS CLAIMED ABOUT A CALENDAR THAT WAS NOT IN HAND.
+  ok('109: no agreement with an external calendar is asserted anywhere in the app',
+    !/\u0645\u0637\u0627\u0628\u0642 \u0644\u062A\u0642\u0648\u064A\u0645/.test(SRC));
+}
+
+
+
+// ---------------------------------------------------------------------------
+// L. ITEM 108-a -- THE QIBLA: A KNOWN ANGLE FROM A KNOWN PLACE
+// ---------------------------------------------------------------------------
+// The bearing is RUN, against published values for six cities and two degenerate positions whose
+// answers are fixed by geometry rather than by a table. The heading reader is run against the
+// exact event shapes Chrome was MEASURED to deliver -- including the one that made this design
+// what it is: an event that arrives, is not absolute, and carries alpha === null.
+
+const Q_CONSTS = ['KAABA_LAT', 'KAABA_LNG', 'QIBLA_DEFAULT_LAT', 'QIBLA_DEFAULT_LNG',
+  'QIBLA_DEFAULT_PLACE', 'QIBLA_LOC_KEY', 'QIBLA_DIRS', 'toArabicDigits'];
+const Q_FNS = ['qiblaBearing', 'qiblaDirName', 'qiblaDegreeText', 'qiblaHeadingOf',
+  'qiblaNeedleAngle', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc'];
+
+const qConsts = {};
+const qFns = {};
+let qLifted = true;
+for (const n of Q_CONSTS) { qConsts[n] = liftConst(n); if (!ok('108-a: lift const ' + n, !!qConsts[n])) qLifted = false; }
+for (const n of Q_FNS) { qFns[n] = liftFunction(n); if (!ok('108-a: lift function ' + n, !!qFns[n])) qLifted = false; }
+
+if (qLifted) {
+  const Q_LIFTED = Q_CONSTS.map((n) => qConsts[n]).concat(Q_FNS.map((n) => qFns[n])).join('\n\n');
+  ok('108-a: lifted block braces balance',
+    (Q_LIFTED.match(/\{/g) || []).length === (Q_LIFTED.match(/\}/g) || []).length);
+  ok('108-a: lifted block has no template literal', Q_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+  const Q = (store) => new Function('localStorage', 'JSON',
+    Q_LIFTED + '\nreturn { ' + Q_CONSTS.concat(Q_FNS).join(', ') + ' };')(store, JSON);
+
+  const B = Q(memStore());
+  ok('108-a: the Kaaba is where the Kaaba is',
+    Math.abs(B.KAABA_LAT - 21.4225) < 0.002 && Math.abs(B.KAABA_LNG - 39.8262) < 0.002,
+    B.KAABA_LAT + ', ' + B.KAABA_LNG);
+  ok('108-a: the default position is Kuwait',
+    Math.abs(B.QIBLA_DEFAULT_LAT - 29.3759) < 0.05 && Math.abs(B.QIBLA_DEFAULT_LNG - 47.9774) < 0.05,
+    B.QIBLA_DEFAULT_LAT + ', ' + B.QIBLA_DEFAULT_LNG);
+  eq('108-a: the position key carries its version', B.QIBLA_LOC_KEY, 'ezik_qibla_loc_v1');
+  eq('108-a: eight named directions', B.QIBLA_DIRS.length, 8);
+  eq('108-a: ...and no two the same', new Set(B.QIBLA_DIRS).size, 8);
+
+  // ---- A KNOWN ANGLE FROM A KNOWN POSITION --------------------------------
+  (function known() {
+    // Published qibla bearings, to two decimals, at coordinates named beside each.
+    const CITIES = [
+      ['Kuwait City', 29.3759, 47.9774, 224.62],
+      ['Cairo', 30.0444, 31.2357, 136.14],
+      ['Istanbul', 41.0082, 28.9784, 151.62],
+      ['London', 51.5074, -0.1278, 118.99],
+      ['Jakarta', -6.2088, 106.8456, 295.15],
+      ['New York', 40.7128, -74.0060, 58.48],
+    ];
+    for (const [name, lat, lng, want] of CITIES) {
+      const got = B.qiblaBearing(lat, lng);
+      ok('108-a: the qibla from ' + name + ' is ' + want + ' degrees',
+        got !== null && Math.abs(got - want) < 0.05, show(got));
+    }
+    // GEOMETRY, not a table: due north of the Kaaba must be exactly 180, and the same point
+    // one degree of longitude east must be a great-circle bearing that is NOT exactly 270 --
+    // which is what separates this from a bearing drawn on a flat map.
+    const north = B.qiblaBearing(B.KAABA_LAT + 1, B.KAABA_LNG);
+    ok('108-a: due north of the Kaaba points exactly south', Math.abs(north - 180) < 0.001, show(north));
+    const east = B.qiblaBearing(B.KAABA_LAT, B.KAABA_LNG + 1);
+    ok('108-a: due east of it is a GREAT CIRCLE bearing, not a flat-map 270',
+      east > 270 && east < 271, show(east));
+    const south = B.qiblaBearing(B.KAABA_LAT - 1, B.KAABA_LNG);
+    ok('108-a: due south of the Kaaba points exactly north',
+      Math.abs(south) < 0.001 || Math.abs(south - 360) < 0.001, show(south));
+    // Nothing usable in, nothing out.
+    for (const bad of [[null, 0], [0, null], ['29', '47'], [NaN, 0], [0, Infinity],
+      [91, 0], [-91, 0], [0, 181], [0, -181], [undefined, undefined]]) {
+      eq('108-a: an impossible position yields no bearing: ' + show(bad),
+        B.qiblaBearing(bad[0], bad[1]), null);
+    }
+  })();
+
+  // ---- AND IT IS SAID IN WORDS, NOT ONLY IN DEGREES -----------------------
+  (function words() {
+    const D = B.QIBLA_DIRS;
+    const CASES = [[0, 0], [10, 0], [22.4, 0], [22.6, 1], [45, 1], [90, 2], [135, 3],
+      [180, 4], [225, 5], [270, 6], [315, 7], [337.6, 0], [359.9, 0], [360, 0]];
+    for (const [deg, i] of CASES) {
+      eq('108-a: ' + deg + ' degrees is direction ' + i, B.qiblaDirName(deg), D[i]);
+    }
+    for (const bad of [null, undefined, NaN, 'x', {}]) {
+      eq('108-a: an unusable bearing has no direction name: ' + show(bad), B.qiblaDirName(bad), '');
+    }
+    const AR = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+    const txt = B.qiblaDegreeText(224.62);
+    ok('108-a: the degree is written in Arabic-Indic digits',
+      new RegExp('^[' + AR + ']+\u066b[' + AR + ']$').test(txt), show(txt));
+    eq('108-a: an unusable bearing prints nothing', B.qiblaDegreeText(NaN), '');
+  })();
+
+  // ---- THE READING THAT IS NOT A READING ----------------------------------
+  (function heading() {
+    // MEASURED: Chrome 151 headless, secure origin, fired deviceorientation with
+    // absolute === false and alpha === null within two seconds, while
+    // 'ondeviceorientationabsolute' in window was TRUE. Feature detection said yes and there
+    // was no heading. This is the case that must return null.
+    eq('108-a: the measured Chrome event -- not absolute, alpha null -- is NOT a heading',
+      B.qiblaHeadingOf({ absolute: false, alpha: null }), null);
+    eq('108-a: a relative reading with a real alpha is still not a heading',
+      B.qiblaHeadingOf({ absolute: false, alpha: 120 }), null);
+    eq('108-a: an absolute reading with no alpha is not a heading',
+      B.qiblaHeadingOf({ absolute: true, alpha: null }), null);
+    eq('108-a: ...nor one whose alpha is a string', B.qiblaHeadingOf({ absolute: true, alpha: '90' }), null);
+    eq('108-a: an empty event is not a heading', B.qiblaHeadingOf({}), null);
+    eq('108-a: no event at all is not a heading', B.qiblaHeadingOf(null), null);
+    // An absolute alpha is counter-clockwise from north; a compass heading is clockwise.
+    eq('108-a: an absolute alpha of 0 is a heading of 0', B.qiblaHeadingOf({ absolute: true, alpha: 0 }), 0);
+    eq('108-a: an absolute alpha of 90 is a heading of 270', B.qiblaHeadingOf({ absolute: true, alpha: 90 }), 270);
+    eq('108-a: an absolute alpha of 270 is a heading of 90', B.qiblaHeadingOf({ absolute: true, alpha: 270 }), 90);
+    // Safari carries a true heading in its own field, and it wins.
+    eq('108-a: webkitCompassHeading is taken as the heading it is',
+      B.qiblaHeadingOf({ webkitCompassHeading: 33.5, absolute: false, alpha: null }), 33.5);
+    eq('108-a: ...and an out-of-range one is refused',
+      B.qiblaHeadingOf({ webkitCompassHeading: 900, absolute: false, alpha: null }), null);
+
+    // The needle turns by the difference, and by nothing else.
+    eq('108-a: a device facing north points the needle at the qibla', B.qiblaNeedleAngle(224.62, 0), 224.62);
+    eq('108-a: a device facing the qibla points the needle straight up', B.qiblaNeedleAngle(224.62, 224.62), 0);
+    eq('108-a: the turn wraps rather than going negative', B.qiblaNeedleAngle(10, 350), 20);
+    eq('108-a: no bearing, no needle', B.qiblaNeedleAngle(null, 0), null);
+    eq('108-a: no heading, no needle', B.qiblaNeedleAngle(10, null), null);
+  })();
+
+  // ---- THE POSITION IS DEVICE-LOCAL, AND ITS DEFAULT IS A DEFAULT ---------
+  (function loc() {
+    const K = 'ezik_qibla_loc_v1';
+    const d = Q(memStore()).readQiblaLoc();
+    ok('108-a: an empty store reads the Kuwait default, and SAYS it is the default',
+      d.by === 'default' && d.lat === B.QIBLA_DEFAULT_LAT && d.lng === B.QIBLA_DEFAULT_LNG, show(d));
+    const bad = ['', 'x', 'null', '7', '[]', '{}', '{"lat":29}', '{"lat":"29","lng":"47"}',
+      '{"lat":91,"lng":47}', '{"lat":29,"lng":181}', '{"lat":null,"lng":null}'];
+    for (const b of bad) {
+      const st = memStore(); st.setItem(K, b);
+      const r = Q(st).readQiblaLoc();
+      ok('108-a: a broken record falls back to the default: ' + show(b), r.by === 'default', show(r));
+    }
+    const st = countingStore();
+    const w = Q(st).writeQiblaLoc(25.2048, 55.2708);
+    ok('108-a: a real position is stored and reported as the device\'s',
+      w.by === 'device' && w.lat === 25.2048 && st.writes === 1, show(w));
+    const back = Q(st).readQiblaLoc();
+    ok('108-a: ...and reads back', back.by === 'device' && back.lat === 25.2048 && back.lng === 55.2708, show(back));
+    for (const p of [[91, 0], [0, 181], [NaN, 0], ['25', '55'], [null, null], [undefined, 0]]) {
+      const s2 = countingStore();
+      const r = Q(s2).writeQiblaLoc(p[0], p[1]);
+      ok('108-a: an impossible position is refused and nothing is stored: ' + show(p),
+        r.by === 'default' && s2.writes === 0, show(r));
+    }
+    const s3 = memStore(); s3.setItem(K, JSON.stringify({ lat: 25, lng: 55 }));
+    eq('108-a: clearing returns to the default', Q(s3).clearQiblaLoc().by, 'default');
+    ok('108-a: a storage that throws still yields the default rather than an exception',
+      Q(throwingStore()).readQiblaLoc().by === 'default');
+    ok('108-a: ...and a write into it does not throw either',
+      Q(throwingStore()).writeQiblaLoc(25, 55).by === 'default');
+    const ro = countingStore();
+    Q(ro).readQiblaLoc();
+    eq('108-a: reading the position writes nothing', ro.writes, 0);
+  })();
+
+  // ---- NOTHING HERE ASKS THE DEVICE ANYTHING UNTIL IT IS ASKED TO --------
+  // ITEM 107 gave the panel a destructured parameter, and a brace-counting lift stops at the
+  // FIRST brace it meets -- which is now the parameter list. So the panel is taken as an
+  // anchored cut between two function names, with the length precondition below standing as
+  // the guard against a cut that came back empty.
+  const qpAt = SRC.indexOf('function QiblaPanel(');
+  const qpEnd = qpAt === -1 ? -1 : SRC.indexOf('function PrayerSheet(', qpAt);
+  const QPANEL = (qpAt !== -1 && qpEnd > qpAt) ? SRC.slice(qpAt, qpEnd) : '';
+  if (ok('108-a: the panel was located', QPANEL.length > 800, 'len=' + QPANEL.length)) {
+    ok('108-a: THE NEEDLE EXISTS ONLY WHILE A HEADING DOES',
+      QPANEL.indexOf("compass === 'live' && needle !== null ?") !== -1
+      && (QPANEL.match(/<svg /g) || []).length === 1);
+    ok('108-a: ...and when it does not, the reader is told why rather than shown a still needle',
+      QPANEL.indexOf('QIBLA_COMPASS_NONE') !== -1);
+    ok('108-a: the position is never asked for at mount',
+      QPANEL.indexOf('getCurrentPosition') !== -1
+      && QPANEL.indexOf('useEffect') < QPANEL.indexOf('askLocation')
+      && !/useEffect\([^)]*getCurrentPosition/.test(QPANEL));
+    ok('108-a: ...and the only effect in the panel is the listener teardown',
+      (QPANEL.match(/useEffect\(/g) || []).length === 1
+      && /useEffect\(\(\) => \(\) => \{ if \(stopRef\.current\)/.test(QPANEL));
+    ok('108-a: the sensor is started from a press and from nowhere else',
+      /onClick=\{startCompass\}/.test(QPANEL)
+      && (QPANEL.match(/startCompass\(\)/g) || []).length === 0);
+    ok('108-a: ...and the permission request sits inside that press',
+      QPANEL.indexOf('const startCompass = () =>') < QPANEL.indexOf('DOE.requestPermission()'));
+    ok('108-a: the position is asked for from a press too',
+      /onClick=\{askLocation\}/.test(QPANEL) && (QPANEL.match(/askLocation\(\)/g) || []).length === 0);
+    ok('108-a: the listeners are removed when the panel goes',
+      /removeEventListener\('deviceorientationabsolute', onEvent\)/.test(QPANEL)
+      && /removeEventListener\('deviceorientation', onEvent\)/.test(QPANEL));
+    for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'EventSource', 'new WebSocket', '/api/']) {
+      ok('108-a: the panel contains no ' + t, QPANEL.indexOf(t) === -1);
+    }
+  }
+  for (const t of ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
+    'document.cookie', 'indexedDB', 'sessionStorage']) {
+    ok('108-a: the bearing helpers contain no ' + t, Q_LIFTED.indexOf(t) === -1);
+  }
+  // The whole app asks for a position exactly once, and it is this one.
+  eq('108-a: the application calls getCurrentPosition exactly once',
+    (SRC.match(/getCurrentPosition\(/g) || []).length, 1);
+  ok('108-a: it opens from the home, over the home, without adding a route',
+    /if \(prayerOpen\) return <PrayerSheet onClose=\{\(\) => setPrayerOpen\(false\)\} \/>;/.test(SRC)
+    && SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("screen === 'qibla'") === -1);
+  ok('108-a: ...and it is reached from a tile in the home\'s own module array',
+    /\{ id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v\.onOpenPrayer,   meta: null \}/.test(SRC));
+}
+
+
+
+// ---------------------------------------------------------------------------
+// M. ITEM 107 -- PRAYER TIMES, COMPUTED HERE AND NOT FETCHED
+// ---------------------------------------------------------------------------
+// The whole of this section RUNS the shipped calculator. It is lifted with the day-number
+// helper item 109 introduced, because the two share one definition of what a day is, and then
+// driven over a year of days, at seven methods, two madhhabs, both offset limits, the equator,
+// the far north and the far south.
+
+const T_CONSTS = ['PRAYER_PREFS_KEY', 'PRAYER_METHOD_DEFAULT', 'PRAYER_ASR_DEFAULT',
+  'PRAYER_OFFSET_MIN', 'PRAYER_OFFSET_MAX', 'PRAYER_KEYS', 'PRAYER_OFFSETTABLE',
+  'PRAYER_LABELS', 'PRAYER_ASR_LABELS', 'PRAYER_HORIZON', 'toArabicDigits'];
+const T_FNS = ['hijriJdnFromCivil', 'prayerMethodTable', 'prayerMethodIds', 'prayerMethodOf',
+  'prayerSunPosition', 'prayerSunAngleTime', 'prayerAsrAngle', 'prayerTimesFor', 'prayerClock',
+  'readPrayerPrefs', 'writePrayerPrefs', 'prayerNudgeOffset'];
+
+const tConsts = {};
+const tFns = {};
+let tLifted = true;
+for (const n of T_CONSTS) { tConsts[n] = liftConst(n); if (!ok('107: lift const ' + n, !!tConsts[n])) tLifted = false; }
+for (const n of T_FNS) { tFns[n] = liftFunction(n); if (!ok('107: lift function ' + n, !!tFns[n])) tLifted = false; }
+
+if (tLifted) {
+  const T_LIFTED = T_CONSTS.map((n) => tConsts[n]).concat(T_FNS.map((n) => tFns[n])).join('\n\n');
+  ok('107: lifted block braces balance',
+    (T_LIFTED.match(/\{/g) || []).length === (T_LIFTED.match(/\}/g) || []).length);
+  ok('107: lifted block has no template literal', T_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+  const T = (store) => new Function('localStorage', 'JSON', 'Object',
+    T_LIFTED + '\nreturn { ' + T_CONSTS.concat(T_FNS).join(', ') + ' };')(store, JSON, Object);
+  const B = T(memStore());
+
+  // KUWAIT CITY, the coordinates the app defaults to, at UTC+3.
+  const KW = [29.3759, 47.9774, 180];
+  const day = (y, m, d, method, asr, off) =>
+    B.prayerTimesFor(y, m, d, KW[0], KW[1], KW[2], method, asr || 'standard', off || null);
+
+  eq('107: the preferences key carries its version', B.PRAYER_PREFS_KEY, 'ezik_prayer_prefs_v1');
+  eq('107: six times are computed, the five and the sunrise', B.PRAYER_KEYS.length, 6);
+  eq('107: ...and the five prayers are the ones an offset may move', B.PRAYER_OFFSETTABLE.length, 5);
+  ok('107: the sunrise is computed but is not a prayer to be offset',
+    B.PRAYER_KEYS.indexOf('sunrise') !== -1 && B.PRAYER_OFFSETTABLE.indexOf('sunrise') === -1);
+  eq('107: every computed time has a label',
+    B.PRAYER_KEYS.filter((k) => !String(B.PRAYER_LABELS[k] || '').trim()).length, 0);
+
+  // ---- THE METHODS ARE WRITTEN OUT, WITH THEIR VALUES ---------------------
+  (function methods() {
+    const ids = B.prayerMethodIds();
+    ok('107: more than one method is offered', ids.length >= 5, show(ids));
+    ok('107: the default is one of them', ids.indexOf(B.PRAYER_METHOD_DEFAULT) !== -1);
+    eq('107: ...and the default is the one this app names for its own city', B.PRAYER_METHOD_DEFAULT, 'kuwait');
+    for (const id of ids) {
+      const M = B.prayerMethodOf(id);
+      ok('107: the method ' + id + ' carries a name', !!String(M.name || '').trim());
+      ok('107: ...a fajr angle inside the range anybody uses',
+        typeof M.fajr === 'number' && M.fajr >= 12 && M.fajr <= 21, id + ' fajr=' + show(M.fajr));
+      ok('107: ...and an isha rule that is EITHER an angle OR an interval, never both and never neither',
+        (M.ishaMin > 0 && M.isha === 0) || (M.ishaMin === 0 && M.isha >= 12 && M.isha <= 21),
+        id + ' isha=' + show(M.isha) + ' ishaMin=' + show(M.ishaMin));
+    }
+    // The two interval methods are the two that are actually defined that way.
+    eq('107: exactly the interval methods use an interval',
+      ids.filter((id) => B.prayerMethodOf(id).ishaMin > 0).sort().join(','), 'makkah,qatar');
+    eq('107: an unknown method falls back to the default rather than to nothing',
+      B.prayerMethodOf('no-such-method').name, B.prayerMethodOf(B.PRAYER_METHOD_DEFAULT).name);
+    // AND THE METHODS ARE NOT ALL THE SAME METHOD: a table that had quietly collapsed to one
+    // set of angles would pass every check above and be worthless.
+    const fajrs = new Set(ids.map((id) => day(2026, 8, 22, id).fajr));
+    ok('107: the methods really do produce different times', fajrs.size >= 3, show(Array.from(fajrs)));
+  })();
+
+  // ---- IT IS COMPUTED, AND THE ORDER NEVER BREAKS -------------------------
+  (function ordered() {
+    const ids = B.prayerMethodIds();
+    let bad = 0, badAt = '', n = 0;
+    for (const id of ids) {
+      for (const asr of ['standard', 'hanafi']) {
+        for (let i = 0; i < 365; i++) {
+          const c = (function (jdn) {
+            const a = jdn + 32044;
+            const b2 = Math.floor((4 * a + 3) / 146097);
+            const c2 = a - Math.floor((146097 * b2) / 4);
+            const dd = Math.floor((4 * c2 + 3) / 1461);
+            const e = c2 - Math.floor((1461 * dd) / 4);
+            const mi = Math.floor((5 * e + 2) / 153);
+            return { y: 100 * b2 + dd - 4800 + Math.floor(mi / 10), m: mi + 3 - 12 * Math.floor(mi / 10),
+              d: e - Math.floor((153 * mi + 2) / 5) + 1 };
+          })(B.hijriJdnFromCivil(2026, 1, 1) + i);
+          const t = day(c.y, c.m, c.d, id, asr);
+          n++;
+          const seq = [t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha];
+          if (seq.some((v) => v === null)) { bad++; if (!badAt) badAt = id + ' ' + asr + ' ' + show(c); continue; }
+          for (let k = 1; k < seq.length; k++) {
+            if (!(seq[k] > seq[k - 1])) { bad++; if (!badAt) badAt = id + ' ' + asr + ' ' + show(c) + ' ' + show(seq); break; }
+          }
+        }
+      }
+    }
+    ok('107: a full year at Kuwait, every method, both madhhabs: the order is always ascending',
+      bad === 0, n + ' days computed, ' + bad + ' bad, first ' + badAt);
+    ok('107: ...and that really was a full year of real computations', n === 365 * ids.length * 2, 'n=' + n);
+  })();
+
+  // ---- SOLAR NOON IS THE MIDDLE OF THE DAY --------------------------------
+  // The one check that measures the equation of time rather than merely carrying it. Sunrise and
+  // sunset are symmetric about solar noon, so dhuhr must sit within a minute of their midpoint --
+  // every day of the year, not on the days when the correction happens to be near zero. The
+  // correction swings sixteen minutes either way across a year, so a calculator that dropped it
+  // would keep every ordering property intact and fail only here.
+  (function solarNoon() {
+    let worst = 0, worstAt = '';
+    for (let i = 0; i < 365; i++) {
+      const c = (function (jdn) {
+        const a2 = jdn + 32044;
+        const b2 = Math.floor((4 * a2 + 3) / 146097);
+        const c2 = a2 - Math.floor((146097 * b2) / 4);
+        const dd = Math.floor((4 * c2 + 3) / 1461);
+        const e = c2 - Math.floor((1461 * dd) / 4);
+        const mi = Math.floor((5 * e + 2) / 153);
+        return { y: 100 * b2 + dd - 4800 + Math.floor(mi / 10), m: mi + 3 - 12 * Math.floor(mi / 10),
+          d: e - Math.floor((153 * mi + 2) / 5) + 1 };
+      })(B.hijriJdnFromCivil(2026, 1, 1) + i);
+      const x = day(c.y, c.m, c.d, 'kuwait', 'standard');
+      if (x.sunrise === null || x.maghrib === null || x.dhuhr === null) continue;
+      const gap = Math.abs(x.dhuhr - (x.sunrise + x.maghrib) / 2);
+      if (gap > worst) { worst = gap; worstAt = c.y + '-' + c.m + '-' + c.d + ' ' + show(x); }
+    }
+    ok('107: solar noon sits at the midpoint of sunrise and sunset, every day of the year',
+      worst <= 1, 'worst deviation ' + worst.toFixed(2) + ' minutes at ' + worstAt);
+    ok('107: ...and that really was measured across a year, not asserted on one day', worst >= 0);
+  })();
+
+  // ---- THE HANAFI ASR IS LATER, AND ONLY THE ASR MOVES --------------------
+  (function madhhab() {
+    // Twelve dates spread over a year, so this is a property of the rule and not of one day.
+    let later = 0, others = 0, n2 = 0;
+    for (let m = 1; m <= 12; m++) {
+      const A = day(2026, m, 15, 'kuwait', 'standard');
+      const H = day(2026, m, 15, 'kuwait', 'hanafi');
+      n2++;
+      if (H.asr > A.asr) later++;
+      for (const k of ['fajr', 'sunrise', 'dhuhr', 'maghrib', 'isha']) if (H[k] !== A[k]) others++;
+    }
+    eq('107: the Hanafi asr is later than the majority asr on every month of the year', later, n2);
+    eq('107: ...and nothing else moves with it', others, 0);
+  })();
+
+  // ---- WHERE THE SUN DOES NOT REACH THE ANGLE, THERE IS NO NUMBER --------
+  (function polar() {
+    // Tromso in midsummer: the sun never reaches 18 degrees below the horizon.
+    const t = B.prayerTimesFor(2026, 6, 21, 69.6, 18.95, 120, 'kuwait', 'standard', null);
+    ok('107: at a polar midsummer, fajr and isha are ABSENT rather than invented',
+      t.fajr === null && t.isha === null, show(t));
+    ok('107: ...and the noon that DOES exist is still given', typeof t.dhuhr === 'number');
+    // and it does not throw at either pole
+    for (const lat of [89.9, -89.9, 66.6, -66.6]) {
+      let threw = null;
+      try { B.prayerTimesFor(2026, 12, 21, lat, 0, 0, 'kuwait', 'standard', null); } catch (e) { threw = e; }
+      ok('107: latitude ' + lat + ' does not throw', threw === null);
+    }
+    // an impossible position yields six absences, not six zeros
+    for (const p of [[null, 0], [0, null], ['29', '47'], [NaN, 0], [91, 0], [0, 181]]) {
+      const r = B.prayerTimesFor(2026, 8, 22, p[0], p[1], 180, 'kuwait', 'standard', null);
+      ok('107: an impossible position yields no times at all: ' + show(p),
+        B.PRAYER_KEYS.every((k) => r[k] === null), show(r));
+    }
+  })();
+
+  // ---- THE OFFSET MOVES ITS OWN PRAYER, BY ITS OWN AMOUNT, AND NO MORE ---
+  (function offsets() {
+    const base = day(2026, 8, 22, 'kuwait', 'standard');
+    for (const k of B.PRAYER_OFFSETTABLE) {
+      for (const v of [-15, -7, -1, 1, 7, 15]) {
+        const off = {};
+        off[k] = v;
+        const t = day(2026, 8, 22, 'kuwait', 'standard', off);
+        eq('107: an offset of ' + v + ' moves ' + k + ' by exactly ' + v,
+          ((t[k] - base[k]) % 1440 + 1440) % 1440, ((v % 1440) + 1440) % 1440);
+        const moved = B.PRAYER_KEYS.filter((o) => t[o] !== base[o]);
+        eq('107: ...and moves nothing else', moved.join(','), k);
+      }
+    }
+    // beyond the pair, the calculation itself clamps -- a hand-edited store cannot move a
+    // prayer by an hour.
+    for (const [v, want] of [[60, 15], [-60, -15], [16, 15], [-16, -15]]) {
+      const off = { fajr: v };
+      const t = day(2026, 8, 22, 'kuwait', 'standard', off);
+      eq('107: a stored offset of ' + v + ' is clamped to ' + want,
+        ((t.fajr - base.fajr) % 1440 + 1440) % 1440, ((want % 1440) + 1440) % 1440);
+    }
+    for (const v of [null, undefined, NaN, '5', 1.5, {}, Infinity]) {
+      const off = { fajr: v };
+      const t = day(2026, 8, 22, 'kuwait', 'standard', off);
+      eq('107: an unusable offset ' + show(v) + ' moves nothing', t.fajr, base.fajr);
+    }
+    // an offset aimed at something that is not an offsettable prayer is ignored
+    const t2 = day(2026, 8, 22, 'kuwait', 'standard', { sunrise: 10, nonsense: 10 });
+    eq('107: the sunrise carries no offset', t2.sunrise, base.sunrise);
+  })();
+
+  // ---- THE CLOCK ----------------------------------------------------------
+  (function clock() {
+    const AR = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+    const has = (s2) => new RegExp('[' + AR + ']').test(s2);
+    ok('107: a time is written in Arabic-Indic digits', has(B.prayerClock(4 * 60 + 7)));
+    ok('107: ...with no Western digit', !/[0-9]/.test(B.prayerClock(4 * 60 + 7)));
+    eq('107: midnight is twelve, not zero', B.prayerClock(0).indexOf(B.toArabicDigits(12)), 0);
+    eq('107: noon is twelve too', B.prayerClock(720).indexOf(B.toArabicDigits(12)), 0);
+    ok('107: the morning and the evening are told apart',
+      B.prayerClock(4 * 60) !== B.prayerClock(16 * 60));
+    for (const bad of [null, undefined, NaN, 'x', {}]) {
+      eq('107: an absent time draws a dash, never a zero: ' + show(bad), B.prayerClock(bad), '\u2014');
+    }
+  })();
+
+  // ---- THE PREFERENCES ----------------------------------------------------
+  (function prefs() {
+    const K = 'ezik_prayer_prefs_v1';
+    const d = T(memStore()).readPrayerPrefs();
+    ok('107: an empty store reads the shipped defaults',
+      d.method === B.PRAYER_METHOD_DEFAULT && d.asr === B.PRAYER_ASR_DEFAULT
+      && B.PRAYER_OFFSETTABLE.every((k) => d.off[k] === 0), show(d));
+    const bad = ['', 'x', 'null', '7', '[]', '{"method":"nope"}', '{"asr":"maliki"}',
+      '{"off":5}', '{"off":{"fajr":"5"}}', '{"off":{"fajr":99}}', '{"off":{"fajr":1.5}}',
+      '{"method":7,"asr":7,"off":7}'];
+    for (const b of bad) {
+      const st = memStore(); st.setItem(K, b);
+      let threw = null, r = null;
+      try { r = T(st).readPrayerPrefs(); } catch (e) { threw = e; }
+      ok('107: a broken record reads as the defaults and does not throw: ' + show(b),
+        threw === null && r && r.method === B.PRAYER_METHOD_DEFAULT && r.asr === B.PRAYER_ASR_DEFAULT
+        && B.PRAYER_OFFSETTABLE.every((k) => r.off[k] === 0), threw ? 'threw' : show(r));
+    }
+    // a record that is PART good keeps the good part
+    const p1 = memStore(); p1.setItem(K, '{"method":"makkah","asr":"maliki","off":{"fajr":3,"asr":99}}');
+    const r1 = T(p1).readPrayerPrefs();
+    ok('107: a partly usable record keeps what is usable and defaults the rest',
+      r1.method === 'makkah' && r1.asr === B.PRAYER_ASR_DEFAULT && r1.off.fajr === 3 && r1.off.asr === 0, show(r1));
+    // writes
+    const w1 = countingStore();
+    eq('107: choosing a method stores it', T(w1).writePrayerPrefs({ method: 'egypt' }).method, 'egypt');
+    eq('107: ...with one write', w1.writes, 1);
+    eq('107: an unknown method is refused', T(countingStore()).writePrayerPrefs({ method: 'nope' }).method, B.PRAYER_METHOD_DEFAULT);
+    eq('107: an unknown madhhab is refused', T(countingStore()).writePrayerPrefs({ asr: 'maliki' }).asr, B.PRAYER_ASR_DEFAULT);
+    const w2 = countingStore();
+    T(w2).writePrayerPrefs({ method: 'makkah' });
+    const r2 = T(w2).writePrayerPrefs({ asr: 'hanafi' });
+    ok('107: a second choice does not erase the first', r2.method === 'makkah' && r2.asr === 'hanafi', show(r2));
+    // the nudge
+    const w3 = countingStore();
+    let p = T(w3).readPrayerPrefs();
+    for (let i = 0; i < 20; i++) p = T(w3).prayerNudgeOffset(p, 'asr', 1);
+    eq('107: nudging up stops at the ceiling', p.off.asr, B.PRAYER_OFFSET_MAX);
+    for (let i = 0; i < 40; i++) p = T(w3).prayerNudgeOffset(p, 'asr', -1);
+    eq('107: ...and down at the floor', p.off.asr, B.PRAYER_OFFSET_MIN);
+    eq('107: ...and the other prayers never moved', p.off.fajr, 0);
+    eq('107: a nudge on something that is not an offsettable prayer changes nothing',
+      T(w3).prayerNudgeOffset(p, 'sunrise', 5).off.asr, B.PRAYER_OFFSET_MIN);
+    ok('107: a storage that throws reads the defaults and does not throw',
+      T(throwingStore()).readPrayerPrefs().method === B.PRAYER_METHOD_DEFAULT);
+    ok('107: ...and a write into it does not throw either',
+      T(throwingStore()).writePrayerPrefs({ method: 'egypt' }).method === B.PRAYER_METHOD_DEFAULT);
+    const ro = countingStore();
+    T(ro).readPrayerPrefs();
+    eq('107: reading the preferences writes nothing', ro.writes, 0);
+  })();
+
+  // ---- ZERO WIRE, ZERO ADHAN, ZERO PROMISE OF ONE ------------------------
+  for (const t of ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
+    'document.cookie', 'indexedDB', 'sessionStorage', '/api/', 'aladhan', 'api.']) {
+    ok('107: the calculator contains no ' + t, T_LIFTED.indexOf(t) === -1);
+  }
+  const TPANEL_AT = SRC.indexOf('function PrayerTimesPanel(');
+  const TPANEL_END = TPANEL_AT === -1 ? -1 : SRC.indexOf('// ============================================================\n// ITEM 108', TPANEL_AT);
+  const TPANEL = (TPANEL_AT !== -1 && TPANEL_END > TPANEL_AT) ? SRC.slice(TPANEL_AT, TPANEL_END) : '';
+  if (ok('107: the times panel was located', TPANEL.length > 800, 'len=' + TPANEL.length)) {
+    for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'EventSource', '/api/',
+      'Audio', 'play(', 'Notification', 'requestPermission', 'setTimeout', 'setInterval']) {
+      ok('107: the times panel contains no ' + t, TPANEL.indexOf(t) === -1);
+    }
+  }
+  // The word is nowhere in the application file -- not in a string, not in a comment promising it.
+  ok('107: the application plays no adhan and constructs no audio for one',
+    SRC.indexOf('adhan') === -1 && SRC.indexOf('\u0623\u0630\u0627\u0646') === -1);
+  ok('107: ...and still asks for no notification permission',
+    SRC.indexOf('Notification.requestPermission') === -1);
+
+  // ---- WHERE IT LIVES -----------------------------------------------------
+  ok('107: the times are drawn in the same sheet as the qibla, from ONE position',
+    /<PrayerTimesPanel loc=\{loc\} \/>/.test(SRC)
+    && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} \/>/.test(SRC)
+    && (SRC.match(/useState\(readQiblaLoc\)/g) || []).length === 1);
+  ok('107: ...and still without adding a route',
+    SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("setScreen('prayer')") === -1);
+  ok('107: the default position is still Kuwait, and no prompt is raised to get one',
+    /const QIBLA_DEFAULT_LAT = 29\.3759;/.test(SRC));
+}
+
 
 function report() {
   const line = '-'.repeat(58);

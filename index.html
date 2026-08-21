@@ -3923,6 +3923,67 @@ const printAsPdf = async (title, bodyHtml) => {
 };
 
 // يحوّل محتوى المستند (فقرات، عناوين بـ# أو ##، نقاط بـ- أو •) إلى HTML للتصدير
+// ============================================================
+// ITEM 42-ب — THE REPLY, AS A PDF
+// ============================================================
+// THE MACHINE WAS MEASURED BEFORE IT WAS USED, and it was already here twice over:
+//   * printAsPdf() above -- the one PDF path in this app, which awaits window.__ezikVendor
+//     ('html2pdf') and falls back to window.print() when that never lands;
+//   * the lazy vendor map at the head of the document, where html2pdf.bundle (906KB) has sat
+//     since S97 precisely so that a session which never exports a PDF never pays for it.
+// So this item adds NO library, no <script> tag and not one byte to the boot path. What it adds
+// is a fifth button on a rail that already had four.
+//
+// THE SOURCE IS THE CLIPBOARD'S SOURCE. getText is buildCopyText -- the same serializeReply()
+// call the copy button and the share button hand over -- so there are not two serializers that
+// can drift, and the ayah, the hadith, the dhikr, the steps and the source chips come out of it
+// exactly as they go into the clipboard. docToHtml() is the SAME renderer the document card's
+// «تصدير PDF» already feeds printAsPdf, so the two PDFs are made the same way.
+//
+// ARABIC READS THE RIGHT WAY BECAUSE THE BROWSER SHAPES IT. html2pdf rasterises the DOM through
+// html2canvas, so the glyphs in the file are the glyphs the browser laid out -- joined, shaped
+// and right-to-left -- rather than a font-substituted re-run inside a PDF writer. printAsPdf
+// already sets direction rtl and textAlign right on the node it hands over; nothing here
+// re-states them, so the two export paths cannot disagree.
+//
+// ZERO MODEL CALL, ZERO REQUEST OF THIS APP'S OWN. The vendor bundle arrives from the cache or
+// from the lazy source it already had; the reply itself is text this device is holding.
+//
+// 44x44 BY AREA, NOT BY SHAPE (44-ج). It is a .ezc-acts button, and the sheet gives every one of
+// them a 44x44 ::before. It states no width and no height of its own, so nothing moved by a pixel.
+const EZIK_PDF_LABEL = 'PDF';
+const EZIK_PDF_ARIA = 'تصدير الردّ ملفَّ PDF';
+const EZIK_PDF_WAIT = '...';
+const EZIK_PDF_FAIL = 'تعذّرَ التصدير';
+const EZIK_PDF_TITLE = 'ردُّ عزك';
+
+const ExportPdfReplyButton = ({ getText }) => {
+  const [flash, setFlash] = useState('');
+  // ONE PRESS, ONE FILE. State alone could not promise it: two taps dispatched inside one task
+  // both read the value from before React committed the first. The ref flips synchronously.
+  const busyRef = useRef(false);
+  const doExport = async () => {
+    if (busyRef.current) return;
+    const payload = (typeof getText === 'function') ? getText() : '';
+    if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
+    busyRef.current = true;
+    setFlash('wait');
+    try {
+      await printAsPdf(EZIK_PDF_TITLE, docToHtml(payload));
+      setFlash('');
+    } catch (e) {
+      setFlash('fail');
+      setTimeout(() => setFlash(''), 1500);
+    }
+    busyRef.current = false;
+  };
+  return (
+    <button type="button" onClick={doExport} aria-label={EZIK_PDF_ARIA} className="ezik-focus" style={miniBtnStyle}>
+      {flash === 'wait' ? EZIK_PDF_WAIT : flash === 'fail' ? EZIK_PDF_FAIL : EZIK_PDF_LABEL}
+    </button>
+  );
+};
+
 const docToHtml = (md) => {
   const lines = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   const out = [];
@@ -4688,6 +4749,13 @@ const EZH_ICON_GO = (
 );
 // S118: the three bars. The SAME three lines the chat's own menu row already draws, at the
 // same stroke and the same cap -- no new artwork, no image, no data URI.
+// ITEM 108-أ: the qibla tile's mark. Same 24x24 box, same 1.8 stroke, same round caps as the
+// five marks beside it — a compass rose reduced to a circle, a needle and its pivot. No new
+// artwork file, no image, no data URI.
+const EZH_PRAYER = 'الصلاة والقبلة';
+const EZH_ICON_PRAYER = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z" /></svg>
+);
 const EZH_ICON_MENU = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
@@ -4707,6 +4775,7 @@ function ezHomeModules(v) {
     { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
+    { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
   ];
 }
 
@@ -4737,7 +4806,8 @@ let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
 let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
 let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
-let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA };
+let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
+let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, prayer: EZIST_SUB_PRAYER };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -4792,7 +4862,7 @@ function EzistTopNav({ onOpenMenu }) {
 // The greeting and the daily line are the ones the app already picked -- getHomeGreeting() ran
 // once in the owner, and this draws its text. The two adhkar windows stay buttons to the
 // adhkar screen; the day line is a button too, and what it does is replace its own text.
-function EzistMasthead({ name, g, onOpenAdhkar }) {
+function EzistMasthead({ name, g, hijri, onOpenAdhkar }) {
   const tap = !!(g && g.tappable);
   // ITEM 97 -- THE PRESS STAYS ON THIS SCREEN. The morning and evening lines are untouched:
   // same string, same onOpenAdhkar, same rect. Only the DAY line is different, and what it
@@ -4820,6 +4890,11 @@ function EzistMasthead({ name, g, onOpenAdhkar }) {
       <div className="ezist-hello">
         <div style={s.ezistSalam}>{EZH_SALAM}</div>
         <h1 style={s.ezistName}>{EZH_HELLO} {name}</h1>
+        {/* ITEM 109: the date, on the screen that already speaks about the day — MEASURED
+            first: this app displayed no date at all before this line, so there was no existing
+            place to join. It is a prop, not a read: the owner below reads the store, exactly as
+            it does for the wird, and this component keeps drawing only what it is handed. */}
+        {hijri ? <div style={s.ezistHijri}>{hijri}</div> : null}
       </div>
       <span className="ezist-rule-short" aria-hidden="true" />
       {tap ? (
@@ -4900,7 +4975,7 @@ function EzikIstanaHome(v) {
       <EzistTopNav onOpenMenu={v.onOpenMenu} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
-          <EzistMasthead name={v.name} g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
+          <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
           {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
               The panel itself did not change: same component, same getDailyVerse(), same text
               printed verbatim. Only where it is drawn moved. */}
@@ -4923,11 +4998,18 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // mushaf's own keys, so the numbers are ones the reader itself wrote; when no real daily
   // target is stored the line is absent rather than invented, and no other module on this
   // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
+  // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
+  const [prayerOpen, setPrayerOpen] = useState(false);
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
+  // ITEM 109: the same discipline as the wird above — the OWNER reads the device, the
+  // presentation components are handed the result. An empty string when the conversion could
+  // not be made, so the masthead draws nothing rather than a wrong day.
+  const hijri = hijriTodayLabel();
   const view = {
     name: profile?.name,
+    hijri: hijri,
     greeting: g,
     wird: wird,
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
@@ -4940,6 +5022,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenFatwa: onOpenFatwa,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
+    onOpenPrayer: () => setPrayerOpen(true),
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
   // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
@@ -4957,6 +5040,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // for it. The layout key is still read above and still stored: a device that saved "deck"
   // keeps "deck", is not migrated, and sees the deck again the moment it selects qibla_13.
   // qibla_13 is untouched by this batch and still chooses between the two components below.
+  if (prayerOpen) return <PrayerSheet onClose={() => setPrayerOpen(false)} />;
   return <EzikIstanaHome {...home} />;
 }
 
@@ -11674,6 +11758,10 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
         {/* ITEM 42-أ: SHARE. The same payload the clipboard gets, the same rail, the same
             44x44 hit area every .ezc-acts button already takes from 44-ج. It calls nothing. */}
         <ShareReplyButton getText={buildCopyText} />
+        {/* ITEM 42-ب: the same buildCopyText payload, rendered by the document card's own
+            docToHtml and printed by the app's one printAsPdf. No library, no request, no
+            second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
+        <ExportPdfReplyButton getText={buildCopyText} />
         {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}
@@ -12840,6 +12928,823 @@ function EzShell({ title, onBack, backLabel, actions, children }) {
 }
 // One group inside the shell: a heading, a bounded Iznik marker, the screen's own controls,
 // and the hint the screen already showed. `wide` is the only layout choice a tenant makes.
+// ============================================================
+// ITEM 107 — مواقيتُ الصلاة، حسابًا موضعيًّا
+// ============================================================
+// THE RULING THIS IMPLEMENTS: accuracy comes from THE METHOD AND THE COORDINATES, not from a
+// server. So there is no request, no key, no daily call ceiling and no day on which the times
+// stop arriving because a service went away. The whole calculation is a few dozen lines of
+// spherical trigonometry over the sun's position, and it works with the aeroplane switch on.
+//
+// THE ASTRONOMY. The sun's declination and the equation of time are taken from the standard
+// low-precision solar position (mean anomaly, mean longitude, ecliptic longitude, obliquity),
+// then each prayer is the hour angle at which the sun sits at that prayer's altitude:
+//     T(angle) = acos( (−sin(angle) − sin(decl)·sin(lat)) / (cos(decl)·cos(lat)) ) / 15
+// Fajr and sunrise are before solar noon, asr, maghrib and isha after it. Asr uses the shadow
+// rule rather than an altitude: the altitude at which an object's shadow is its own length plus
+// «factor» times its height — factor 1 for the majority, 2 for the Hanafi reckoning.
+// Every time is solved TWICE, the second pass evaluating the sun at the fraction of the day the
+// first pass produced, because the declination moves measurably between dawn and dusk.
+//
+// AND WHERE THE SUN NEVER REACHES THE ANGLE, THE ANSWER IS NOTHING. Above roughly 48° of
+// latitude in midsummer the acos argument leaves [−1, 1]; that prayer returns null and the row
+// is drawn as «—». A number invented for a latitude that cannot produce one would be worse than
+// an admission.
+//
+// THE METHODS ARE WRITTEN OUT, BY NAME AND BY VALUE, in prayerMethodTable() below. Nothing is
+// fetched and nothing is defaulted from a table living elsewhere.
+//
+// 🔴 NOTHING HERE IS CLAIMED TO MATCH THE KUWAITI AWQAF CALENDAR. The reference table was not in
+// hand. The default is «الكويت» because it is the method named for this app's own city — NOT
+// because it was compared against anything. The batch report prints thirty days at Kuwait City
+// coordinates for every method offered, so the owner can make that comparison and then choose.
+//
+// 🔴 ZERO ADHAN, ZERO NOTIFICATION, ZERO SOUND. A call at the right moment needs a scheduled
+// notification in a native shell; that rides with the store release (item 67). Nothing here
+// plays, schedules, or hints in the interface that it might.
+const PRAYER_PREFS_KEY = 'ezik_prayer_prefs_v1';
+const PRAYER_METHOD_DEFAULT = 'kuwait';
+const PRAYER_ASR_DEFAULT = 'standard';
+const PRAYER_OFFSET_MIN = -15;
+const PRAYER_OFFSET_MAX = 15;
+const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const PRAYER_OFFSETTABLE = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const PRAYER_LABELS = { fajr: 'الفجر', sunrise: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' };
+const PRAYER_ASR_LABELS = { standard: 'الجمهور (ظلُّ المثل)', hanafi: 'الحنفيّ (ظلُّ المثلين)' };
+const PRAYER_HORIZON = 0.833;
+
+// THE METHODS, each with the angles it is defined by. «ishaMin» above zero means that method
+// fixes isha as a fixed interval after maghrib instead of by an angle, which is what Umm al-Qura
+// and Qatar do; the angle is then unused and written as 0 rather than as a number that lies.
+function prayerMethodTable() {
+  return {
+    kuwait: { name: 'الكويت', fajr: 18, isha: 17.5, ishaMin: 0 },
+    mwl: { name: 'رابطة العالم الإسلاميّ', fajr: 18, isha: 17, ishaMin: 0 },
+    egypt: { name: 'الهيئة المصريّة العامّة للمساحة', fajr: 19.5, isha: 17.5, ishaMin: 0 },
+    makkah: { name: 'أمّ القرى', fajr: 18.5, isha: 0, ishaMin: 90 },
+    karachi: { name: 'جامعة العلوم الإسلاميّة بكراتشي', fajr: 18, isha: 18, ishaMin: 0 },
+    isna: { name: 'أمريكا الشماليّة (ISNA)', fajr: 15, isha: 15, ishaMin: 0 },
+    qatar: { name: 'قطر', fajr: 18, isha: 0, ishaMin: 90 },
+  };
+}
+function prayerMethodIds() {
+  const t = prayerMethodTable();
+  const out = [];
+  for (const k in t) if (Object.prototype.hasOwnProperty.call(t, k)) out.push(k);
+  return out;
+}
+function prayerMethodOf(id) {
+  const t = prayerMethodTable();
+  return Object.prototype.hasOwnProperty.call(t, id) ? t[id] : t[PRAYER_METHOD_DEFAULT];
+}
+
+// The sun, at a Julian date. Declination in degrees, equation of time in hours wrapped into
+// (−12, 12] so that a mean longitude near the wrap cannot produce a day-long error.
+function prayerSunPosition(jd) {
+  const R = Math.PI / 180;
+  const D = jd - 2451545.0;
+  const g = ((357.529 + 0.98560028 * D) % 360 + 360) % 360;
+  const q = ((280.459 + 0.98564736 * D) % 360 + 360) % 360;
+  const L = ((q + 1.915 * Math.sin(g * R) + 0.020 * Math.sin(2 * g * R)) % 360 + 360) % 360;
+  const e = 23.439 - 0.00000036 * D;
+  let ra = Math.atan2(Math.cos(e * R) * Math.sin(L * R), Math.cos(L * R)) / R / 15;
+  ra = ((ra % 24) + 24) % 24;
+  const decl = Math.asin(Math.sin(e * R) * Math.sin(L * R)) / R;
+  let eqt = q / 15 - ra;
+  eqt = ((eqt + 12) % 24 + 24) % 24 - 12;
+  return { decl: decl, eqt: eqt };
+}
+// Hours from solar noon at which the sun stands at «angle» below the horizon, or null where it
+// never does. The null is the whole high-latitude answer and it is deliberate.
+function prayerSunAngleTime(angle, decl, lat) {
+  const R = Math.PI / 180;
+  const den = Math.cos(decl * R) * Math.cos(lat * R);
+  if (den === 0) return null;
+  const c = (-Math.sin(angle * R) - Math.sin(decl * R) * Math.sin(lat * R)) / den;
+  if (!isFinite(c) || c > 1 || c < -1) return null;
+  return Math.acos(c) / R / 15;
+}
+// The shadow rule, expressed as the altitude it corresponds to.
+function prayerAsrAngle(factor, decl, lat) {
+  const R = Math.PI / 180;
+  return -Math.atan(1 / (factor + Math.tan(Math.abs(lat - decl) * R))) / R;
+}
+// EVERY TIME, IN MINUTES FROM LOCAL MIDNIGHT, or null. The offsets are applied here, each to its
+// own prayer and to nothing else, and each clamped on the way out as well as on the way in.
+function prayerTimesFor(y, m, d, lat, lng, tzMinutes, methodId, asrMode, offsets) {
+  const out = { fajr: null, sunrise: null, dhuhr: null, asr: null, maghrib: null, isha: null };
+  if (typeof lat !== 'number' || typeof lng !== 'number') return out;
+  if (!isFinite(lat) || !isFinite(lng)) return out;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return out;
+  const tz = (typeof tzMinutes === 'number' && isFinite(tzMinutes)) ? tzMinutes : 0;
+  const M = prayerMethodOf(methodId);
+  const factor = asrMode === 'hanafi' ? 2 : 1;
+  const jd0 = hijriJdnFromCivil(y, m, d) - 0.5 - lng / 360;
+  const shift = tz / 60 - lng / 15;
+  const at = (hours) => prayerSunPosition(jd0 + hours / 24);
+  // Two passes: the guess only has to be inside the right half of the day.
+  const solve = (angleAt, before, guess) => {
+    let t = guess;
+    for (let i = 0; i < 2; i++) {
+      const p = at(t);
+      const h = prayerSunAngleTime(angleAt(p.decl), p.decl, lat);
+      if (h === null) return null;
+      t = before ? (12 - p.eqt) - h : (12 - p.eqt) + h;
+    }
+    return t;
+  };
+  const noon = at(12);
+  const dhuhr = 12 - noon.eqt;
+  const fajr = solve(() => M.fajr, true, 5);
+  const sunrise = solve(() => PRAYER_HORIZON, true, 6);
+  const maghrib = solve(() => PRAYER_HORIZON, false, 18);
+  const asr = solve((decl) => prayerAsrAngle(factor, decl, lat), false, 15);
+  const isha = (M.ishaMin > 0)
+    ? (maghrib === null ? null : maghrib + M.ishaMin / 60)
+    : solve(() => M.isha, false, 19);
+  const raw = { fajr: fajr, sunrise: sunrise, dhuhr: dhuhr, asr: asr, maghrib: maghrib, isha: isha };
+  for (let i = 0; i < PRAYER_KEYS.length; i++) {
+    const k = PRAYER_KEYS[i];
+    if (raw[k] === null || !isFinite(raw[k])) { out[k] = null; continue; }
+    let off = 0;
+    if (offsets && PRAYER_OFFSETTABLE.indexOf(k) !== -1) {
+      const v = offsets[k];
+      if (typeof v === 'number' && isFinite(v) && Math.trunc(v) === v) {
+        off = v < PRAYER_OFFSET_MIN ? PRAYER_OFFSET_MIN : (v > PRAYER_OFFSET_MAX ? PRAYER_OFFSET_MAX : v);
+      }
+    }
+    const mins = Math.round((((raw[k] + shift) % 24) + 24) % 24 * 60) + off;
+    out[k] = ((mins % 1440) + 1440) % 1440;
+  }
+  return out;
+}
+// A twelve-hour clock in Arabic-Indic digits. Null draws an em dash, never a zero.
+function prayerClock(mins) {
+  if (typeof mins !== 'number' || !isFinite(mins)) return '—';
+  const t = ((Math.round(mins) % 1440) + 1440) % 1440;
+  const h24 = Math.floor(t / 60);
+  const mm = t % 60;
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  const two = mm < 10 ? '٠' + toArabicDigits(mm) : toArabicDigits(mm);
+  return toArabicDigits(h12) + ':' + two + ' ' + (h24 < 12 ? 'ص' : 'م');
+}
+// THE PREFERENCES. One record, every field checked, and a broken store reads as the shipped
+// defaults rather than as an exception on a screen.
+function readPrayerPrefs() {
+  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {} };
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out.off[PRAYER_OFFSETTABLE[i]] = 0;
+  let raw = null;
+  try { raw = localStorage.getItem(PRAYER_PREFS_KEY); } catch (e) { return out; }
+  if (typeof raw !== 'string' || !raw) return out;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return out; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  if (typeof rec.method === 'string' && prayerMethodIds().indexOf(rec.method) !== -1) out.method = rec.method;
+  if (rec.asr === 'hanafi' || rec.asr === 'standard') out.asr = rec.asr;
+  const o = rec.off;
+  if (o && typeof o === 'object' && !Array.isArray(o)) {
+    for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+      const k = PRAYER_OFFSETTABLE[i];
+      const v = o[k];
+      if (typeof v === 'number' && isFinite(v) && Math.trunc(v) === v
+        && v >= PRAYER_OFFSET_MIN && v <= PRAYER_OFFSET_MAX) out.off[k] = v;
+    }
+  }
+  return out;
+}
+function writePrayerPrefs(next) {
+  const cur = readPrayerPrefs();
+  if (!next || typeof next !== 'object') return cur;
+  const rec = { method: cur.method, asr: cur.asr, off: cur.off };
+  if (typeof next.method === 'string' && prayerMethodIds().indexOf(next.method) !== -1) rec.method = next.method;
+  if (next.asr === 'hanafi' || next.asr === 'standard') rec.asr = next.asr;
+  if (next.off && typeof next.off === 'object') {
+    for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+      const k = PRAYER_OFFSETTABLE[i];
+      const v = next.off[k];
+      if (typeof v === 'number' && isFinite(v) && Math.trunc(v) === v
+        && v >= PRAYER_OFFSET_MIN && v <= PRAYER_OFFSET_MAX) rec.off[k] = v;
+    }
+  }
+  try { localStorage.setItem(PRAYER_PREFS_KEY, JSON.stringify(rec)); } catch (e) { return readPrayerPrefs(); }
+  return rec;
+}
+// One prayer's offset moved by one step, clamped. It returns the WHOLE record, so the control
+// can set its state from what was actually stored rather than from what it asked for.
+function prayerNudgeOffset(prefs, key, step) {
+  const base = readPrayerPrefs();
+  const cur = (prefs && prefs.off && typeof prefs.off[key] === 'number') ? prefs.off[key] : base.off[key];
+  if (PRAYER_OFFSETTABLE.indexOf(key) === -1) return base;
+  let v = (typeof cur === 'number' && isFinite(cur) ? Math.trunc(cur) : 0) + (Math.trunc(Number(step)) || 0);
+  if (v < PRAYER_OFFSET_MIN) v = PRAYER_OFFSET_MIN;
+  if (v > PRAYER_OFFSET_MAX) v = PRAYER_OFFSET_MAX;
+  const off = {};
+  off[key] = v;
+  return writePrayerPrefs({ off: off });
+}
+
+const PRAYER_TITLE = 'مواقيت الصلاة';
+const PRAYER_METHOD_LABEL = 'المنهج';
+const PRAYER_ASR_LABEL = 'مذهب العصر';
+const PRAYER_OFFSET_LABEL = 'إزاحة يدويّة بالدقائق';
+const PRAYER_HINT = 'تُحسَب على هذا الجهاز من المنهج والإحداثيّات، بلا إنترنت. قابِلْها بتقويمك وعدِّلْ بالدقائق إن لزم.';
+const PRAYER_NONE = 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.';
+const PRAYER_MINUS = '−';
+const PRAYER_PLUS = '+';
+
+function PrayerTimesPanel({ loc }) {
+  const [prefs, setPrefs] = useState(readPrayerPrefs);
+  const now = new Date();
+  const tz = -now.getTimezoneOffset();
+  const t = prayerTimesFor(now.getFullYear(), now.getMonth() + 1, now.getDate(),
+    loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+  const anyMissing = PRAYER_KEYS.some((k) => t[k] === null);
+  return (
+    <EzShellGroup title={PRAYER_TITLE} hint={PRAYER_HINT}>
+      {PRAYER_KEYS.map((k) => (
+        <div key={k} style={s.prayerRow}>
+          <span style={s.prayerName}>{PRAYER_LABELS[k]}</span>
+          <span style={s.prayerTime}>{prayerClock(t[k])}</span>
+        </div>
+      ))}
+      {anyMissing ? <div style={s.qiblaNote}>{PRAYER_NONE}</div> : null}
+      <div style={s.a11yGroupLabel}>{PRAYER_METHOD_LABEL}</div>
+      <div style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_METHOD_LABEL}>
+        {prayerMethodIds().map((id) => (
+          <button key={id} type="button" role="radio" aria-checked={prefs.method === id ? 'true' : 'false'}
+            onClick={() => setPrefs(writePrayerPrefs({ method: id }))}
+            className="ezik-focus" style={prefs.method === id ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+            {prayerMethodOf(id).name}
+          </button>
+        ))}
+      </div>
+      <div style={s.a11yGroupLabel}>{PRAYER_ASR_LABEL}</div>
+      <div style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_ASR_LABEL}>
+        {['standard', 'hanafi'].map((mode) => (
+          <button key={mode} type="button" role="radio" aria-checked={prefs.asr === mode ? 'true' : 'false'}
+            onClick={() => setPrefs(writePrayerPrefs({ asr: mode }))}
+            className="ezik-focus" style={prefs.asr === mode ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+            {PRAYER_ASR_LABELS[mode]}
+          </button>
+        ))}
+      </div>
+      <div style={s.a11yGroupLabel}>{PRAYER_OFFSET_LABEL}</div>
+      {PRAYER_OFFSETTABLE.map((k) => (
+        <div key={k} style={s.prayerRow}>
+          <span style={s.prayerName}>{PRAYER_LABELS[k]}</span>
+          <span className="ez-hit" style={s.prayerStep}>
+            <button type="button" onClick={() => setPrefs(prayerNudgeOffset(prefs, k, -1))}
+              aria-label={PRAYER_LABELS[k] + ' ' + PRAYER_MINUS} className="ezik-focus" style={s.prayerStepBtn}>{PRAYER_MINUS}</button>
+            <span style={s.prayerOffVal}>{(prefs.off[k] > 0 ? PRAYER_PLUS : prefs.off[k] < 0 ? PRAYER_MINUS : '') + toArabicDigits(Math.abs(prefs.off[k]))}</span>
+            <button type="button" onClick={() => setPrefs(prayerNudgeOffset(prefs, k, 1))}
+              aria-label={PRAYER_LABELS[k] + ' ' + PRAYER_PLUS} className="ezik-focus" style={s.prayerStepBtn}>{PRAYER_PLUS}</button>
+          </span>
+        </div>
+      ))}
+    </EzShellGroup>
+  );
+}
+
+// ============================================================
+// ITEM 108-أ — اتّجاه القبلة
+// ============================================================
+// THE NUMBER. The initial bearing of the great circle from the reader to the Kaaba, which is the
+// direction a straight walk to Mecca starts in. It is not the bearing of a line on a flat map:
+// on a Mercator projection Kuwait would point south-west by a different angle, and the further
+// from the equator the reader is the worse that error becomes.
+//
+// MEASURED AGAINST PUBLISHED VALUES rather than trusted: Cairo 136.14°, Istanbul 151.62°,
+// London 118.99°, Jakarta 295.15°, New York 58.48°, Kuwait City 224.62°. Two degenerate cases
+// pin the formula's orientation from the other side — a point due north of the Kaaba answers
+// exactly 180.00, and a point due east answers 270.18 (a great circle, not a rhumb line).
+//
+// THE COMPASS IS THE HALF THAT HAD TO BE MEASURED, and the measurement changed the design.
+// Chrome 151 on Windows, on a secure origin, reports:
+//     DeviceOrientationEvent           = "function"
+//     'ondeviceorientationabsolute' in window = TRUE
+//     AbsoluteOrientationSensor        = "function"
+//     DeviceOrientationEvent.requestPermission = not a function
+//     webkitCompassHeading on prototype = FALSE
+//     event arriving within 2s: headless "relative:alpha=null" · headed "none"
+// So FEATURE DETECTION SAYS YES AND THERE IS NO HEADING. A screen that decided "the sensor
+// exists, draw a needle" from 'ondeviceorientationabsolute' in window would draw a needle that
+// never moves and is not pointing anywhere — the still needle that lies, which this item forbids
+// by name. Therefore the needle is drawn ONLY after a reading with a usable, absolute, numeric
+// heading has actually arrived. Until then the reader gets the degree and a sentence saying why
+// nothing is turning.
+//
+// iOS WAS NOT MEASURED — there is no device here, and this file states nothing about it that was
+// not measured. What the code does is the only shape that is correct either way: the sensor is
+// never started until the reader presses a button, and DeviceOrientationEvent.requestPermission
+// -- which does not exist on the engine measured above -- is called only from inside that press,
+// so a permission prompt raised there is raised from a gesture. A gesture requirement is
+// therefore satisfied if it exists and costs nothing if it does not.
+//
+// ZERO NETWORK. The bearing is arithmetic, the default coordinates are two numbers in this file,
+// and the device position — which is never asked for until the reader asks for it — comes from
+// the platform's own geolocation, not from a lookup service.
+const KAABA_LAT = 21.422487;
+const KAABA_LNG = 39.826206;
+const QIBLA_DEFAULT_LAT = 29.3759;
+const QIBLA_DEFAULT_LNG = 47.9774;
+const QIBLA_DEFAULT_PLACE = 'مدينة الكويت';
+const QIBLA_LOC_KEY = 'ezik_qibla_loc_v1';
+const QIBLA_DIRS = ['الشمال', 'الشمال الشرقيّ', 'الشرق', 'الجنوب الشرقيّ', 'الجنوب', 'الجنوب الغربيّ', 'الغرب', 'الشمال الغربيّ'];
+
+// Degrees clockwise from true north, 0 <= b < 360, or null when the position is not a position.
+function qiblaBearing(lat, lng) {
+  if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+  if (!isFinite(lat) || !isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  const R = Math.PI / 180;
+  const p1 = lat * R;
+  const p2 = KAABA_LAT * R;
+  const dl = (KAABA_LNG - lng) * R;
+  const y = Math.sin(dl) * Math.cos(p2);
+  const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+  if (x === 0 && y === 0) return null;
+  return ((Math.atan2(y, x) / R) + 360) % 360;
+}
+// The eight-point name, so the number is never the only thing said. The bands are 45° wide and
+// centred on their point, which is why the offset is 22.5 rather than 0.
+function qiblaDirName(deg) {
+  if (typeof deg !== 'number' || !isFinite(deg)) return '';
+  const i = Math.floor((((deg % 360) + 360) % 360 + 22.5) / 45) % 8;
+  return QIBLA_DIRS[i];
+}
+function qiblaDegreeText(deg) {
+  if (typeof deg !== 'number' || !isFinite(deg)) return '';
+  const one = Math.round((((deg % 360) + 360) % 360) * 10) / 10;
+  const whole = Math.floor(one);
+  const tenth = Math.round((one - whole) * 10);
+  return toArabicDigits(whole) + '٫' + toArabicDigits(tenth);
+}
+// A HEADING, OR NOTHING. Three refusals, and the middle one is the measured lesson: an event that
+// is not absolute is a relative gyroscope reading, and a relative reading pointed at a compass
+// rose is a lie with a needle on it.
+function qiblaHeadingOf(ev) {
+  if (!ev) return null;
+  const wk = ev.webkitCompassHeading;
+  if (typeof wk === 'number' && isFinite(wk) && wk >= 0 && wk <= 360) return ((wk % 360) + 360) % 360;
+  if (ev.absolute !== true) return null;
+  const a = ev.alpha;
+  if (typeof a !== 'number' || !isFinite(a)) return null;
+  return ((360 - (a % 360)) % 360 + 360) % 360;
+}
+// How far to turn the needle: the qibla, seen from a device that is itself pointing somewhere.
+function qiblaNeedleAngle(bearing, heading) {
+  if (typeof bearing !== 'number' || !isFinite(bearing)) return null;
+  if (typeof heading !== 'number' || !isFinite(heading)) return null;
+  return (((bearing - heading) % 360) + 360) % 360;
+}
+// THE POSITION. Default Kuwait, always readable, never written by a read. `by` says which it is,
+// so no line on the screen can call the default a measurement.
+function readQiblaLoc() {
+  let raw = null;
+  try { raw = localStorage.getItem(QIBLA_LOC_KEY); } catch (e) { raw = null; }
+  if (typeof raw === 'string' && raw) {
+    let rec = null;
+    try { rec = JSON.parse(raw); } catch (e) { rec = null; }
+    if (rec && typeof rec === 'object' && !Array.isArray(rec)
+      && typeof rec.lat === 'number' && typeof rec.lng === 'number'
+      && isFinite(rec.lat) && isFinite(rec.lng)
+      && rec.lat >= -90 && rec.lat <= 90 && rec.lng >= -180 && rec.lng <= 180) {
+      return { lat: rec.lat, lng: rec.lng, by: 'device' };
+    }
+  }
+  return { lat: QIBLA_DEFAULT_LAT, lng: QIBLA_DEFAULT_LNG, by: 'default' };
+}
+function writeQiblaLoc(lat, lng) {
+  if (typeof lat !== 'number' || typeof lng !== 'number') return readQiblaLoc();
+  if (!isFinite(lat) || !isFinite(lng)) return readQiblaLoc();
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return readQiblaLoc();
+  try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng })); }
+  catch (e) { return readQiblaLoc(); }
+  return { lat: lat, lng: lng, by: 'device' };
+}
+function clearQiblaLoc() {
+  try { localStorage.removeItem(QIBLA_LOC_KEY); } catch (e) {}
+  return readQiblaLoc();
+}
+
+const QIBLA_TITLE = 'القبلة';
+const QIBLA_SECTION = 'اتّجاه القبلة';
+const QIBLA_DEG_SUFFIX = 'درجةً عن الشمال';
+const QIBLA_TOWARD = 'نحوَ';
+const QIBLA_PLACE_LABEL = 'الموضع:';
+const QIBLA_PLACE_DEFAULT_NOTE = 'افتراضيّ';
+const QIBLA_DEVICE_PLACE = 'موقعُ هذا الجهاز';
+const QIBLA_USE_DEVICE = 'استخدمْ موقعَ هذا الجهاز';
+const QIBLA_USE_DEFAULT = 'عُدْ إلى الموضع الافتراضيّ';
+const QIBLA_LOC_ASKING = 'يُطلَبُ الإذنُ بالموقع الآن…';
+const QIBLA_LOC_DENIED = 'لم يُمنَحِ الإذنُ بالموقع، والموضعُ الافتراضيُّ باقٍ كما هو.';
+const QIBLA_COMPASS_START = 'شغِّلِ البوصلة';
+const QIBLA_COMPASS_WAIT = 'بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…';
+const QIBLA_COMPASS_NONE = 'لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.';
+const QIBLA_COMPASS_LIVE = 'البوصلةُ تدورُ مع الجهاز.';
+const QIBLA_BACK = 'رجوع';
+// ITEM 107: the sheet now holds both readings, so it is named for both. The tile that opens it
+// is renamed with it -- one tile, one sheet, one position.
+const PRAYER_SHEET_TITLE = 'الصلاة والقبلة';
+const QIBLA_NEEDLE_MS = 4000;
+
+function QiblaPanel({ loc, onLoc }) {
+  const setLoc = onLoc;
+  const [locState, setLocState] = useState('');
+  // 'off' before the reader asks; 'wait' while listening; 'live' once a real heading arrived;
+  // 'none' when the listening window closed with nothing usable in it.
+  const [compass, setCompass] = useState('off');
+  const [heading, setHeading] = useState(null);
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+
+  const bearing = qiblaBearing(loc.lat, loc.lng);
+
+  // EXPLICIT TOUCH, THEN THE PERMISSION. Nothing on this path runs at mount.
+  const askLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) { setLocState('denied'); return; }
+    setLocState('asking');
+    try {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const c = pos && pos.coords;
+        if (!c) { setLocState('denied'); return; }
+        setLoc(writeQiblaLoc(c.latitude, c.longitude));
+        setLocState('');
+      }, () => { setLocState('denied'); }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
+    } catch (e) { setLocState('denied'); }
+  };
+  const useDefault = () => { setLoc(clearQiblaLoc()); setLocState(''); };
+
+  const startCompass = () => {
+    if (compass === 'wait' || compass === 'live') return;
+    setCompass('wait');
+    const onEvent = (ev) => {
+      const h = qiblaHeadingOf(ev);
+      if (h === null) return;              // a reading with nothing in it is not a reading
+      setHeading(h);
+      setCompass('live');
+    };
+    let timer = null;
+    const attach = () => {
+      try {
+        window.addEventListener('deviceorientationabsolute', onEvent);
+        window.addEventListener('deviceorientation', onEvent);
+      } catch (e) { setCompass('none'); return; }
+      timer = setTimeout(() => { setCompass((c) => (c === 'live' ? c : 'none')); }, QIBLA_NEEDLE_MS);
+      stopRef.current = () => {
+        if (timer) { clearTimeout(timer); timer = null; }
+        try {
+          window.removeEventListener('deviceorientationabsolute', onEvent);
+          window.removeEventListener('deviceorientation', onEvent);
+        } catch (e) {}
+      };
+    };
+    // The gesture requirement, satisfied where it exists: this whole function runs inside the
+    // press, so a permission prompt raised here is raised from a user gesture.
+    const DOE = (typeof window !== 'undefined') ? window.DeviceOrientationEvent : null;
+    if (DOE && typeof DOE.requestPermission === 'function') {
+      let p = null;
+      try { p = DOE.requestPermission(); } catch (e) { setCompass('none'); return; }
+      if (p && typeof p.then === 'function') {
+        p.then((r) => { if (r === 'granted') attach(); else setCompass('none'); }, () => setCompass('none'));
+        return;
+      }
+      setCompass('none');
+      return;
+    }
+    attach();
+  };
+
+  const needle = qiblaNeedleAngle(bearing, heading);
+  const placeName = loc.by === 'device' ? QIBLA_DEVICE_PLACE : QIBLA_DEFAULT_PLACE;
+  return (
+    <EzShellGroup title={QIBLA_SECTION}>
+      {bearing === null ? null : (
+        <>
+          <div style={s.qiblaDeg}>{qiblaDegreeText(bearing)} {QIBLA_DEG_SUFFIX}</div>
+          <div style={s.qiblaDir}>{QIBLA_TOWARD} {qiblaDirName(bearing)}</div>
+        </>
+      )}
+      {/* THE DIAL EXISTS ONLY WHILE A HEADING DOES. There is no still needle on this screen. */}
+      {compass === 'live' && needle !== null ? (
+        <div style={s.qiblaDialWrap}>
+          <svg width="132" height="132" viewBox="0 0 100 100" role="img" aria-label={QIBLA_SECTION}>
+            <circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" strokeWidth="2" />
+            <g style={{ transform: 'rotate(' + needle + 'deg)', transformOrigin: '50px 50px' }}>
+              <path d="M50 8 L58 54 L50 48 L42 54 Z" fill="var(--red)" />
+              <circle cx="50" cy="50" r="4" fill="var(--ink)" />
+            </g>
+          </svg>
+        </div>
+      ) : null}
+      <div style={s.qiblaNote}>
+        {compass === 'live' ? QIBLA_COMPASS_LIVE
+          : compass === 'wait' ? QIBLA_COMPASS_WAIT
+            : compass === 'none' ? QIBLA_COMPASS_NONE : ''}
+      </div>
+      {compass === 'off' || compass === 'none' ? (
+        <button type="button" onClick={startCompass} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_START}</button>
+      ) : null}
+      <div style={s.qiblaPlace}>
+        {QIBLA_PLACE_LABEL} {placeName}{loc.by === 'device' ? '' : ' (' + QIBLA_PLACE_DEFAULT_NOTE + ')'}
+      </div>
+      {locState === 'asking' ? <div style={s.qiblaNote}>{QIBLA_LOC_ASKING}</div> : null}
+      {locState === 'denied' ? <div style={s.qiblaNote}>{QIBLA_LOC_DENIED}</div> : null}
+      {loc.by === 'device'
+        ? <button type="button" onClick={useDefault} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEFAULT}</button>
+        : <button type="button" onClick={askLocation} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEVICE}</button>}
+    </EzShellGroup>
+  );
+}
+
+// THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN. index.html's screen inventory is a
+// CROSS-FILE contract: theme-coverage-guard reads EZIK-THEME-33-HANDOFF.md and requires its
+// table and its Arabic screen count to match the set of `screen === '...'` branches in this
+// file. That document belongs to a different owner and is not this batch's to edit, so adding a
+// route would have broken a gate for a reason that has nothing to do with the qibla. It opens
+// from the home, over the home, on the home's own screen key, and its back button returns there.
+function PrayerSheet({ onClose }) {
+  // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
+  // so the place is state here and the controls that change it stay where item 108-أ put them.
+  const [loc, setLoc] = useState(readQiblaLoc);
+  return (
+    <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}>
+      <PrayerTimesPanel loc={loc} />
+      <QiblaPanel loc={loc} onLoc={setLoc} />
+    </EzShell>
+  );
+}
+
+// ============================================================
+// ITEM 109 — التاريخ الهجريّ، محسوبًا على تقويمٍ مسمًّى
+// ============================================================
+// THE FAULT: an arithmetical Hijri calendar drifts from the calendar people actually live by.
+// The tabular rule inserts its leap day on a 30-year cycle; a real calendar is fixed by a
+// decision about a crescent. Measured against Umm al-Qura across the dates below, the tabular
+// value ran 0 to 2 days early — which is exactly the size of error that makes a date line worse
+// than no date line at all.
+//
+// SO THE CONVERSION IS PINNED TO A CALENDAR THAT IS NAMED HERE BY ITS NAME. `islamic-umalqura`
+// is a real calendar with real tabulated month lengths, and it ships with the browser: this is
+// a local lookup through Intl, not a request. Two things are asserted before its answer is used:
+// the formatter must RESOLVE to that calendar (an engine that quietly substitutes islamic-civil
+// is refused rather than believed), and the fields must be a possible Hijri date.
+//
+// AND WHEN IT IS NOT THERE, THE FALLBACK IS NAMED TOO. `tabular-civil-IIa` is the arithmetical
+// calendar — civil epoch (JDN 1948440 = 1 Muharram 1 AH), leap years {2,5,7,10,13,16,18,21,24,
+// 26,29} of each 30-year cycle. It is the thing the item calls insufficient, so it is the
+// fallback and never the answer: every returned record carries `by`, so which calendar spoke is
+// never a guess.
+//
+// ZERO NETWORK. Intl is in the engine, the arithmetic is arithmetic, and the offset is one
+// number in localStorage. Nothing on this path fetches, and nothing on it is a model call.
+//
+// THE OFFSET IS THE READER'S, AND IT IS SMALL ON PURPOSE. −2..+2 days, default 0, stored under a
+// key that carries its version. It is applied to the CIVIL day before conversion — so a +1 that
+// crosses a Hijri month end rolls the month properly instead of producing a 31st — and it is
+// clamped on the way OUT as well as on the way in, so a hand-edited store cannot move the date
+// by a week.
+//
+// WHAT IS NOT CLAIMED. This is not asserted to match the Kuwaiti Ministry of Awqaf calendar. The
+// reference calendar was not in hand, so no agreement with it is claimed anywhere in this code,
+// this comment or the interface. The thirty-day table in the batch report exists to be checked
+// against it by hand.
+const HIJRI_CALENDAR = 'islamic-umalqura';
+const HIJRI_FALLBACK_CALENDAR = 'tabular-civil-IIa';
+const HIJRI_OFFSET_KEY = 'ezik_hijri_offset_v1';
+const HIJRI_OFFSET_MIN = -2;
+const HIJRI_OFFSET_MAX = 2;
+const HIJRI_MONTHS = ['المحرَّم', 'صفر', 'ربيع الأوّل', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان', 'رمضان', 'شوّال', 'ذو القعدة', 'ذو الحجّة'];
+const HIJRI_SUFFIX = 'هـ';
+
+// Julian Day Number for a proleptic-Gregorian civil date. Integer in, integer out, and it is the
+// ONLY place a calendar date becomes a number — the offset, the conversion and the inverse all
+// meet here, so they cannot disagree about what a day is.
+function hijriJdnFromCivil(y, m, d) {
+  const a = Math.floor((14 - m) / 12);
+  const yy = y + 4800 - a;
+  const mm = m + 12 * a - 3;
+  return d + Math.floor((153 * mm + 2) / 5) + 365 * yy
+    + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+}
+function hijriCivilFromJdn(jdn) {
+  const a = jdn + 32044;
+  const b = Math.floor((4 * a + 3) / 146097);
+  const c = a - Math.floor((146097 * b) / 4);
+  const dd = Math.floor((4 * c + 3) / 1461);
+  const e = c - Math.floor((1461 * dd) / 4);
+  const mi = Math.floor((5 * e + 2) / 153);
+  return {
+    y: 100 * b + dd - 4800 + Math.floor(mi / 10),
+    m: mi + 3 - 12 * Math.floor(mi / 10),
+    d: e - Math.floor((153 * mi + 2) / 5) + 1,
+  };
+}
+// THE ARITHMETICAL CALENDAR, and it is the fallback rather than the answer.
+function hijriTabularFromJdn(jdn) {
+  let l = jdn - 1948440 + 10632;
+  const n = Math.floor((l - 1) / 10631);
+  l = l - 10631 * n + 354;
+  const j = Math.floor((10985 - l) / 5316) * Math.floor((50 * l) / 17719)
+    + Math.floor(l / 5670) * Math.floor((43 * l) / 15238);
+  l = l - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50)
+    - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
+  const m = Math.floor((24 * l) / 709);
+  return { y: 30 * n + j - 30, m: m, d: l - Math.floor((709 * m) / 24) };
+}
+// Umm al-Qura, through the engine's own tables. It is handed a TIMESTAMP rather than a Date, so
+// this function needs no clock at all: noon UTC of the civil day the JDN names.
+function hijriUmalquraFromJdn(jdn) {
+  try {
+    if (typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') return null;
+    const fmt = new Intl.DateTimeFormat('en-u-ca-' + HIJRI_CALENDAR,
+      { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    if (typeof fmt.resolvedOptions !== 'function') return null;
+    if (fmt.resolvedOptions().calendar !== HIJRI_CALENDAR) return null;
+    if (typeof fmt.formatToParts !== 'function') return null;
+    const parts = fmt.formatToParts((jdn - 2440588) * 86400000 + 43200000);
+    let y = 0, m = 0, d = 0;
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      if (p.type === 'year') y = parseInt(String(p.value).replace(/[^0-9]/g, ''), 10);
+      else if (p.type === 'month') m = parseInt(String(p.value).replace(/[^0-9]/g, ''), 10);
+      else if (p.type === 'day') d = parseInt(String(p.value).replace(/[^0-9]/g, ''), 10);
+    }
+    if (!(y > 0 && m >= 1 && m <= 12 && d >= 1 && d <= 30)) return null;
+    return { y: y, m: m, d: d };
+  } catch (e) { return null; }
+}
+function hijriFromJdn(jdn) {
+  const named = hijriUmalquraFromJdn(jdn);
+  if (named) { named.by = HIJRI_CALENDAR; return named; }
+  const t = hijriTabularFromJdn(jdn);
+  t.by = HIJRI_FALLBACK_CALENDAR;
+  return t;
+}
+// THE OFFSET IS CLAMPED HERE TOO. Not only when it is written: a store edited by hand, or one
+// carrying a value from a future version, may not move the date further than the pair allows.
+function hijriForCivilDay(y, m, d, offset) {
+  let k = Math.trunc(Number(offset));
+  if (!isFinite(k)) k = 0;
+  if (k < HIJRI_OFFSET_MIN) k = HIJRI_OFFSET_MIN;
+  if (k > HIJRI_OFFSET_MAX) k = HIJRI_OFFSET_MAX;
+  const out = hijriFromJdn(hijriJdnFromCivil(y, m, d) + k);
+  out.offset = k;
+  return out;
+}
+// ANYTHING UNUSABLE READS AS ZERO AND NEVER THROWS. A storage that denies reads, a value that is
+// not a number, a number outside the pair — all of them are "no offset", which is the app as it
+// was before this item.
+function readHijriOffset() {
+  let raw = null;
+  try { raw = localStorage.getItem(HIJRI_OFFSET_KEY); } catch (e) { return 0; }
+  if (typeof raw !== 'string' || !/^-?[0-9]+$/.test(raw)) return 0;
+  const n = Number(raw);
+  if (n < HIJRI_OFFSET_MIN || n > HIJRI_OFFSET_MAX) return 0;
+  return n;
+}
+// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for. A refused value and a store that
+// denied the write both come back as the value the next read would give -- so the control can
+// set its own state from this return and cannot end up showing a choice that was not stored.
+function writeHijriOffset(n) {
+  if (typeof n !== 'number' || !isFinite(n) || Math.trunc(n) !== n
+    || n < HIJRI_OFFSET_MIN || n > HIJRI_OFFSET_MAX) return readHijriOffset();
+  try { localStorage.setItem(HIJRI_OFFSET_KEY, String(n)); } catch (e) { return readHijriOffset(); }
+  return n;
+}
+function hijriLabel(h) {
+  if (!h || !(h.m >= 1) || !(h.m <= 12)) return '';
+  return toArabicDigits(h.d) + ' ' + HIJRI_MONTHS[h.m - 1] + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
+}
+// The one place the clock is read. Three local getters and nothing else — no UTC getter and no
+// toISOString, so a reader east of Greenwich sees their own day and not London's.
+function hijriTodayLabel() {
+  try {
+    const now = new Date();
+    return hijriLabel(hijriForCivilDay(now.getFullYear(), now.getMonth() + 1, now.getDate(), readHijriOffset()));
+  } catch (e) { return ''; }
+}
+
+// THE OFFSET CONTROL, in Settings. It owns its own value: it is a device-local preference of the
+// same family as the wird target, it is read once when the sheet opens and written on the press,
+// and nothing above it has to carry it. Five buttons, one radiogroup, the shipped a11y row style.
+const HIJRI_SET_TITLE = 'التاريخ الهجريّ';
+const HIJRI_SET_LABEL = 'إزاحة يدويّة بالأيّام';
+const HIJRI_SET_HINT = 'يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.';
+const HIJRI_SET_NOW = 'اليوم عندك:';
+
+function HijriOffsetControl() {
+  const [off, setOff] = useState(() => readHijriOffset());
+  const choose = (v) => { setOff(writeHijriOffset(v)); };
+  const today = (() => {
+    try {
+      const now = new Date();
+      return hijriLabel(hijriForCivilDay(now.getFullYear(), now.getMonth() + 1, now.getDate(), off));
+    } catch (e) { return ''; }
+  })();
+  const opts = [];
+  for (let v = HIJRI_OFFSET_MIN; v <= HIJRI_OFFSET_MAX; v++) opts.push(v);
+  return (
+    <>
+      <div style={s.a11yGroupLabel}>{HIJRI_SET_LABEL}</div>
+      <div style={s.themeRow} role="radiogroup" aria-label={HIJRI_SET_LABEL}>
+        {opts.map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={off === v ? 'true' : 'false'}
+            onClick={() => choose(v)}
+            className="ezik-focus"
+            style={{ ...s.a11yOpt, ...(off === v ? s.themeOptActive : {}) }}
+          >
+            {v === 0 ? toArabicDigits(0) : (v > 0 ? '+' : '−') + toArabicDigits(Math.abs(v))}
+          </button>
+        ))}
+      </div>
+      <div style={s.hijriNow}>{HIJRI_SET_NOW} {today}</div>
+    </>
+  );
+}
+
+// ============================================================
+// ITEM 93-ج — THE CHANNEL THE WORKER OPENED NOW HAS A LISTENER
+// ============================================================
+// MEASURED FIRST, from sw.js, which is read here and written nowhere: at the end of install the
+// worker calls announceInstall(), which posts installSummary() to every connected client. The
+// shape is not assumed — it is the object literal in sw.js:
+//
+//   { ezik: 'precache-report', failed: <number>, entries: [{url, reason}],
+//     skipped: null | 'quota', persist, evicted, retried }
+//
+// «ezik» is the tag, «failed» is the count the worker itself says is "the only field a consumer
+// can branch on without parsing", and «skipped» separates "seven files failed" from "nothing was
+// even attempted because the disk could not hold CORE". Those two ask opposite things of the
+// reader, so they are the two sentences below and there is no third.
+//
+// WHAT THIS IS NOT, and each absence is a rule of the item rather than an omission:
+//   * no retry — nothing here re-registers, re-installs, or asks the worker to try again;
+//   * no network — this path has no fetch, no request and no model call of any kind;
+//   * no recovery surface — there is no "fix it" button, because there is nothing this page
+//     could press that would make room on a full disk;
+//   * no raw browser text — «entries[].reason» is a word this app chose ('quota' | 'network' |
+//     'other') and even that is not shown; a reader told "TypeError: Failed to fetch" has been
+//     told nothing they can act on, which is the very silence item 93 set out to end.
+//   * and a SUCCESSFUL brief draws nothing at all. The overwhelmingly common install is the
+//     healthy one, and a banner that appears on it would train the reader to dismiss the one
+//     that matters.
+//
+// ONCE PER SESSION. «ezikSwNoticeSpent» is module-level, not component state, so «حسنًا» closes
+// it for the tab and not merely for this mount: a worker that re-announces after an update, or a
+// second listener attached across a remount, cannot bring the same sentence back.
+const EZIK_SW_REPORT_TAG = 'precache-report';
+const EZIK_SW_MSG_PARTIAL = 'لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.';
+const EZIK_SW_MSG_NONE = 'لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.';
+const EZIK_SW_MSG_TAIL = 'والتطبيقُ يعملُ كما هو ما دامَ الإنترنتُ متّصلًا.';
+const EZIK_SW_OK = 'حسنًا';
+const EZIK_SW_ARIA = 'إشعارُ الحفظِ للعملِ بلا إنترنت';
+
+// PURE. It takes the message and returns the sentence to draw, or null for "draw nothing". No
+// storage, no clock, no DOM and no state — which is what lets the guard drive every branch of it
+// with a literal object rather than with a browser.
+function ezikPrecacheNotice(report) {
+  if (!report || typeof report !== 'object') return null;
+  if (report.ezik !== EZIK_SW_REPORT_TAG) return null;
+  if (report.skipped === 'quota') return EZIK_SW_MSG_NONE;
+  const failed = report.failed;
+  if (typeof failed !== 'number' || !isFinite(failed) || failed <= 0) return null;
+  return EZIK_SW_MSG_PARTIAL;
+}
+
+let ezikSwNoticeSpent = false;
+
+function EzikPrecacheNotice() {
+  const [text, setText] = useState(null);
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.serviceWorker) return undefined;
+    const onMessage = (e) => {
+      if (ezikSwNoticeSpent) return;
+      const line = ezikPrecacheNotice(e && e.data);
+      if (!line) return;
+      ezikSwNoticeSpent = true;
+      setText(line);
+    };
+    try { navigator.serviceWorker.addEventListener('message', onMessage); } catch (err) { return undefined; }
+    return () => {
+      try { navigator.serviceWorker.removeEventListener('message', onMessage); } catch (err) {}
+    };
+  }, []);
+  if (!text) return null;
+  return (
+    <div role="status" aria-label={EZIK_SW_ARIA} style={s.swNote}>
+      <span style={s.swNoteText}>{text} {EZIK_SW_MSG_TAIL}</span>
+      <span className="ez-hit" style={s.swNoteHit}>
+        <button type="button" onClick={() => setText(null)} className="ezik-focus" style={s.swNoteBtn}>{EZIK_SW_OK}</button>
+      </span>
+    </div>
+  );
+}
+
 function EzShellGroup({ title, hint, wide, children }) {
   return (
     <section className={wide ? 'ezsh-group is-wide' : 'ezsh-group'}>
@@ -13126,6 +14031,12 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         {/* الخصوصية والذكاء الاصطناعي -- the consent decision, stated and reversible. It is NOT
             behind the PIN gate: a reader must be able to withdraw without an adult's code, and
             Apple requires the withdrawal to be as reachable as the grant. */}
+        {/* ITEM 109: the manual offset, where the item asked for it — in Settings, beside the
+            other device-local preferences, saved under its own versioned key and defaulting
+            to zero so a reader who never opens it sees exactly what they saw before. */}
+        <EzShellGroup title={HIJRI_SET_TITLE} hint={HIJRI_SET_HINT}>
+          <HijriOffsetControl />
+        </EzShellGroup>
         <EzShellGroup title={EZ_AIS_TITLE}>
           <div style={s.aicStatusRow}>{aiConsent === EZ_AI_CONSENT_GRANTED ? EZ_AIS_ON : EZ_AIS_OFF}</div>
           {aiConsent === EZ_AI_CONSENT_GRANTED && (
@@ -15377,6 +16288,33 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 // الأنماط
 // ============================================================
 const s = {
+  // ITEM 107: the times table and its two choosers. Type and tokens only.
+  prayerRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)' },
+  prayerName: { fontSize: 15, lineHeight: 1.7, color: 'var(--ink)' },
+  prayerTime: { fontSize: 16, lineHeight: 1.7, fontWeight: 700, color: 'var(--ink)' },
+  prayerOptRow: { display: 'flex', flexWrap: 'wrap', gap: 6, margin: '2px 0 4px' },
+  prayerOpt: { background: 'none', border: '1px solid var(--line)', borderRadius: 10, padding: '6px 10px', fontSize: 13, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
+  prayerStep: { display: 'inline-flex', alignItems: 'center', gap: 8 },
+  prayerStepBtn: { background: 'none', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 10px', fontSize: 15, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
+  prayerOffVal: { minWidth: 28, textAlign: 'center', fontSize: 14, color: 'var(--muted)' },
+  // ITEM 108-أ: the qibla panel. Type and one dial, every colour a token.
+  qiblaDeg: { fontSize: 26, lineHeight: 1.4, fontWeight: 700, color: 'var(--ink)' },
+  qiblaDir: { marginTop: 2, fontSize: 15, lineHeight: 1.7, color: 'var(--ink)' },
+  qiblaDialWrap: { display: 'flex', justifyContent: 'center', padding: '10px 0' },
+  qiblaNote: { marginTop: 6, fontSize: 13, lineHeight: 1.8, color: 'var(--muted)' },
+  qiblaPlace: { marginTop: 10, fontSize: 14, lineHeight: 1.7, color: 'var(--ink)' },
+  qiblaBtn: { marginTop: 8, alignSelf: 'flex-start', background: 'none', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 14px', fontSize: 14, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
+  // ITEM 109: the Hijri line under the name, and the live preview in Settings. Type only —
+  // no box, no surface, no border, so the masthead's shape is untouched to the pixel.
+  ezistHijri: { marginTop: 6, fontSize: 13, lineHeight: 1.6, color: 'var(--a3-muted)', fontWeight: 500 },
+  hijriNow: { marginTop: 8, fontSize: 13, lineHeight: 1.7, color: 'var(--muted)' },
+  // ITEM 93-ج: the offline-store notice. Every colour is a token, so it follows the theme and
+  // the identity like everything else; it is a strip at the foot of the viewport rather than a
+  // modal, because it interrupts nothing and the reader may ignore it entirely.
+  swNote: { position: 'fixed', insetInlineStart: 12, insetInlineEnd: 12, insetBlockEnd: 12, zIndex: 60, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--warn-line)', background: 'var(--warn-bg)', color: 'var(--warn-ink)', boxShadow: 'var(--a3-lift)' },
+  swNoteText: { flex: '1 1 200px', minWidth: 0, fontSize: 13, lineHeight: 1.7 },
+  swNoteHit: { display: 'inline-flex', flexShrink: 0 },
+  swNoteBtn: { background: 'none', border: '1px solid var(--warn-line)', borderRadius: 8, padding: '4px 14px', fontSize: 13, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
   // S115: the boot mark keeps its key and its animation -- only the 48px emoji it used to size is
   // gone, so reduced motion, the keyframe and the duration are all untouched.
   loadingScreen: { minHeight: '100vh', background: 'var(--boot-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -16517,7 +17455,7 @@ ErrorBoundary.prototype.render = function () {
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(ErrorBoundary, null, React.createElement(App)));
+root.render(React.createElement(ErrorBoundary, null, React.createElement(App), React.createElement(EzikPrecacheNotice)));
 </script>
 <div id="print-area"></div>
 <!-- Vercel Web Analytics and Speed Insights were loaded here. They are REMOVED for this
