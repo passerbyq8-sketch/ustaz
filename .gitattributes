@@ -445,3 +445,8 @@ tools/prebuild-jsx.cjs text eol=lf
 # shift every line number it reports and every offset Babel hands it. Pinned for the same
 # reason as every gate above it.
 guards/vacuous-assertion-guard.cjs text eol=lf
+
+# guards/boot-invariants-guard.cjs (item 113) -- it counts the scripts between <body> and the
+# catcher and reads offsets out of index.html, which is pinned CRLF above. Its own endings are
+# nobody's measurement, so it is pinned LF like every gate beside it.
+guards/boot-invariants-guard.cjs text eol=lf

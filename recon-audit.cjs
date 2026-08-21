@@ -722,7 +722,21 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 89;   // 89th: vacuousassert -- guards/vacuous-assertion-guard.cjs. Items 106
+  const GATES_EXPECTED = 90;   // 90th: bootinvariants -- guards/boot-invariants-guard.cjs. Three
+                               //       properties of index.html were being re-verified BY HAND, in
+                               //       prose, at the end of order after order for weeks: the diagnostic
+                               //       catcher is the first script after <body>; ErrorBoundary is
+                               //       defined AND MOUNTED; pinPassRef is present at every one of its
+                               //       positions. A check rewritten from memory each time is a check
+                               //       that will be forgotten once, and the once is the only one that
+                               //       matters. The scripts between <body> and the catcher are COUNTED,
+                               //       so a benign insertion fails; the mount is read from the syntax
+                               //       tree, not from a substring a comment could satisfy; and the
+                               //       breaker is counted BY ROLE (one declaration, one increment, one
+                               //       ceiling, three resets) because line numbers move and roles do
+                               //       not. It READS index.html and never writes it: all three mutants
+                               //       were applied to a temporary copy outside the tree.
+                               // 89th: vacuousassert -- guards/vacuous-assertion-guard.cjs. Items 106
                                //       and 106-ب each repaired the same defect by hand: a region cut at
                                //       a literal anchor returns '' when the anchor moves, and '' satisfies
                                //       every negative assertion written over it, so the check prints PASS
