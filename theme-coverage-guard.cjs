@@ -4699,5 +4699,57 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     || /const card = ezikDrawReplyCard\(\{/.test(btnSrc),
     'the renderer is called somewhere other than the press handler');
 }
+
+/* ---------------------------------------------------------------------------------------------
+ * ZD. THE WRITE CAP: ONE NUMBER, MIRRORED ONCE, AND THE MIRROR IS POLICED HERE.  (round 25, A-1)
+ *
+ * WHY THIS EXISTS. The server refuses any POST body over MAX_CHAT_BODY_BYTES (lib/ratelimit.js).
+ * The client refuses or trims BEFORE sending, so a child never meets a silent 413 -- but only
+ * while the client's SERVER_MAX_CHAT_BODY_BYTES equals the server's number. Two literals in two
+ * files is a drift waiting to happen: the cap cannot be imported, because the client is a built
+ * bundle and lib/ratelimit.js is a server module the bundle never loads. So the mirror STAYS a
+ * mirror and this is the assertion that makes it unable to drift in silence.
+ *
+ * recon-audit section 15 makes the same comparison. That is deliberate, not duplication: recon
+ * is one gate, and a cap this cheap to mistype deserves a second reader that fails for its own
+ * reason. Neither is lowered by the other.
+ *
+ * IT THROWS, IT DOES NOT FALL BACK. If either file cannot be read, or the constant is renamed
+ * out from under the pattern, this raises by name. A guard that shrugged here would print PASS
+ * at the exact moment it stopped reading the number it exists to compare.
+ * --------------------------------------------------------------------------------------------- */
+{
+  const RATELIMIT = path.join(path.dirname(path.resolve(INDEX)), 'lib', 'ratelimit.js');
+  const rlSrc = fs.readFileSync(RATELIMIT, 'utf8'); // throws by name if the server module is gone
+
+  // Arithmetic over integer literals only -- '2 * 1024 * 1024' is read, an identifier is refused,
+  // so this can never evaluate something that depends on state.
+  const capOf = (label, src, re) => {
+    const m = src.match(re);
+    if (!m) throw new Error('theme-coverage ZD: ' + label + ' not found -- the write cap moved or was renamed, so the mirror can no longer be compared');
+    const expr = m[1].trim();
+    if (!/^[\d_*+\-/()\s]+$/.test(expr)) throw new Error('theme-coverage ZD: ' + label + ' is no longer an integer expression (' + expr + ')');
+    const v = Function('"use strict"; return (' + expr + ');')();
+    if (!Number.isFinite(v)) throw new Error('theme-coverage ZD: ' + label + ' did not evaluate to a finite number (' + expr + ')');
+    return v;
+  };
+
+  const serverCap = capOf('lib/ratelimit.js MAX_CHAT_BODY_BYTES', rlSrc,
+    /(?:^|\n)\s*export const MAX_CHAT_BODY_BYTES\s*=\s*([^;]+);/);
+  const clientCap = capOf('the shipped client SERVER_MAX_CHAT_BODY_BYTES', html,
+    /(?:^|\n)\s*const SERVER_MAX_CHAT_BODY_BYTES\s*=\s*([^;]+);/);
+
+  eq('ZD1: the client mirror equals the server write cap, byte for byte', clientCap, serverCap);
+  eq('ZD2: and the cap is still the 2 MiB both sides were sized for', serverCap, 2097152);
+
+  // A-1 also removed three dead file:line citations from the client (lib/ratelimit.js:239 for a
+  // constant that sits at 383; api/chat.js:30, which is a retired 410 tombstone that sizes
+  // nothing; api/ask.js:150, a prompt string, when the real check is ~700 lines later). Line
+  // numbers in prose rot on the next insertion and nothing reads them. Symbols do not rot.
+  ok('ZD3: the client cites the server by SYMBOL, never by line number',
+    html.length > 0 && !/[A-Za-z0-9_-]+\.js:[0-9]+/.test(html),
+    'a file:line citation came back into the shipped client; name the symbol instead');
+}
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

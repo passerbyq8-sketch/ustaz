@@ -1389,7 +1389,7 @@ const sliceHistoryForAPI = (messages) => {
 // ============================================================
 // Body-size budget — the client must measure what the server measures (item 1 / defects 44+45).
 // ============================================================
-// Mirror of the server's hard INPUT cap. MUST equal MAX_CHAT_BODY_BYTES in lib/ratelimit.js:239;
+// Mirror of the server's hard INPUT cap. MUST equal MAX_CHAT_BODY_BYTES in lib/ratelimit.js;
 // recon-audit.cjs FAILs if the two ever drift. The server 413s any POST body whose
 // Buffer.byteLength(JSON.stringify(body),'utf8') exceeds this, so the client sizes the body the
 // SAME way and trims/refuses BEFORE sending — the child never sees a silent 413.
@@ -1399,7 +1399,7 @@ const SERVER_MAX_CHAT_BODY_BYTES = 2 * 1024 * 1024;
 const CLIENT_BODY_HEADROOM = 64 * 1024;
 const CLIENT_BUDGET = SERVER_MAX_CHAT_BODY_BYTES - CLIENT_BODY_HEADROOM;
 
-// Size a candidate outgoing body EXACTLY as the server does (api/chat.js:30, api/ask.js:150):
+// Size a candidate outgoing body EXACTLY as the server does (api/ask.js, beside MAX_CHAT_BODY_BYTES):
 // Buffer.byteLength(JSON.stringify(body),'utf8'). TextEncoder yields identical UTF-8 byte counts.
 const bodyByteSize = (body) => new TextEncoder().encode(JSON.stringify(body)).length;
 
