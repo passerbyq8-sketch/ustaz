@@ -1026,28 +1026,84 @@ async function compare(goldenPath) {
       }
     }
 
-    // ---- The constant the pre-check is measured against must still be true on disk. ----
-    // A CORE_BYTES that has fallen below what CORE actually weighs is a pre-check reading a
-    // number that stopped being true: it would wave through a store too small to hold the files.
+    // ---- ITEM 112. CORE_BYTES IS DERIVED HERE, NOT REMEMBERED THERE. ------
+    //
+    // WHAT STOOD HERE. This block used to accept any CORE_BYTES that was GREATER THAN OR EQUAL
+    // TO what CORE weighs -- `Number(m[1]) < onDisk` was the only failure. That caught the shell
+    // growing and nothing else, and it was half a check in both directions:
+    //   * a file SHRINKING left the constant silently overstating CORE, so CORE_NEED (1.5x)
+    //     became stricter than the files justify and install could refuse to write on a phone
+    //     that had the room. Nothing anywhere went red.
+    //   * a constant cut by hand from the comment table beside it could be wrong from birth and
+    //     still pass, as long as it erred high.
+    // Merge round (b) of 2026-08-21 is the measured case: the branch declared 1634924, the merge
+    // weighed 1644371, and the 9447-byte difference was index.html growing on the other side.
+    // Neither branch was broken. A hand-copied measurement of seven files that two people edit
+    // cannot survive, so it is no longer copied: tools/core-bytes.cjs writes it, and this asserts
+    // it EXACTLY, in both directions, on every gate run.
+    //
+    // AND IT IS NOT THE TOOL'S OWN ARITHMETIC READ BACK. This parses CORE out of sw.js with its
+    // own reader and maps it to disk with its own rule; a bug shared with the tool would have to
+    // be written twice, in two files, in two shapes. The hand-written SW_CORE / SW_CORE_FILES
+    // above are then asserted AGAINST that parse, so the copy the rest of B12 drives cannot drift
+    // from the list the worker actually installs.
     {
-      let onDisk = 0, unreadable = [];
-      for (const f of SW_CORE_FILES) {
-        const p = path.join(__dirname, f);
-        if (!fs.existsSync(p)) { unreadable.push(f); continue; }
-        onDisk += fs.statSync(p).size;
-      }
       const src = fs.readFileSync(swPath, 'utf8');
-      const m = src.match(/CORE_BYTES\s*=\s*(\d+)/);
-      if (unreadable.length) {
-        no('B12', 'CORE names ' + unreadable.join(', ') + ', which is not on disk');
+      let parsed = null, parseError = null;
+      try {
+        const at = src.indexOf('const CORE = [');
+        if (at === -1) throw new Error('sw.js declares no `const CORE = [` array');
+        const open = src.indexOf('[', at);
+        const close = src.indexOf('];', open);
+        if (close === -1) throw new Error('the CORE array is never closed');
+        // CORE carries prose between its entries; a scan that did not strip it would collect a
+        // path quoted inside a sentence as though the worker precached it.
+        const body = src.slice(open + 1, close).replace(/\/\/[^\n]*/g, '');
+        parsed = [...body.matchAll(/'([^']*)'/g)].map((mm) => mm[1]);
+        if (!parsed.length) throw new Error('the CORE array holds no entries');
+      } catch (e) { parseError = e; }
+
+      if (parseError) {
+        no('B12', 'CORE could not be read out of ' + SW_FILE + ' (' + parseError.message + ').\n'
+          + '        Without the worker\'s own list there is nothing to weigh, and the constant\n'
+          + '        below becomes unfalsifiable rather than merely wrong.');
+      } else {
+        if (JSON.stringify(parsed) !== JSON.stringify(SW_CORE)) {
+          no('B12', 'SW_CORE is ' + JSON.stringify(SW_CORE) + ' but the worker precaches\n'
+            + '        ' + JSON.stringify(parsed) + '. Every B12 state above drives the FIRST list;\n'
+            + '        while they differ, this gate is asserting about a CORE nobody installs.');
+        } else ok('SW_CORE is still the list sw.js precaches (' + parsed.length + ' entries, read from the worker)');
+
+        const derived = parsed.map((u) => (u === '/' ? 'index.html' : u.replace(/^\//, '')));
+        if (JSON.stringify(derived) !== JSON.stringify(SW_CORE_FILES)) {
+          no('B12', 'CORE maps to ' + JSON.stringify(derived) + ' on disk, but SW_CORE_FILES says\n'
+            + '        ' + JSON.stringify(SW_CORE_FILES) + '. The byte sum below would then weigh\n'
+            + '        files the worker does not store -- a pre-check measured against the wrong\n'
+            + '        seven files fails nothing and protects nothing.');
+        } else ok('CORE maps onto the files SW_CORE_FILES names (\'/\' -> index.html, the rest by path)');
+
+        let onDisk = 0;
+        const unreadable = [];
+        for (const f of derived) {
+          const p = path.join(__dirname, f);
+          if (!fs.existsSync(p)) { unreadable.push(f); continue; }
+          onDisk += fs.statSync(p).size;
+        }
+        const m = src.match(/CORE_BYTES\s*=\s*(\d+)/);
+        if (unreadable.length) {
+          no('B12', 'CORE names ' + unreadable.join(', ') + ', which is not on disk');
+        } else if (!m) {
+          no('B12', 'sw.js declares no CORE_BYTES constant -- the pre-check has no measured size\n'
+            + '        to compare a quota against, so nothing pins it to the files it describes.');
+        } else if (Number(m[1]) !== onDisk) {
+          const drift = onDisk - Number(m[1]);
+          no('B12', 'CORE_BYTES = ' + m[1] + ' but CORE weighs ' + onDisk + ' bytes on disk ('
+            + (drift > 0 ? '+' : '') + drift + ').\n'
+            + '        The quota pre-check is measured against a number that stopped being true.\n'
+            + '        Repair it with `node tools/core-bytes.cjs --write` and re-cut the sw.js\n'
+            + '        digest in the SAME commit -- never by hand from the comment table.');
+        } else ok('CORE_BYTES (' + m[1] + ') equals the ' + onDisk + ' bytes CORE weighs on disk, exactly');
       }
-      if (!m) {
-        no('B12', 'sw.js declares no CORE_BYTES constant -- the pre-check has no measured size\n'
-          + '        to compare a quota against, so nothing pins it to the files it describes.');
-      } else if (Number(m[1]) < onDisk) {
-        no('B12', 'CORE_BYTES = ' + m[1] + ' but CORE weighs ' + onDisk + ' bytes on disk. The\n'
-          + '        pre-check is measuring against a number the files outgrew; re-cut it.');
-      } else ok('CORE_BYTES (' + m[1] + ') still covers the ' + onDisk + ' bytes CORE weighs on disk');
     }
   }
 
