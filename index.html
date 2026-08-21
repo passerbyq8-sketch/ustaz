@@ -12840,6 +12840,84 @@ function EzShell({ title, onBack, backLabel, actions, children }) {
 }
 // One group inside the shell: a heading, a bounded Iznik marker, the screen's own controls,
 // and the hint the screen already showed. `wide` is the only layout choice a tenant makes.
+// ============================================================
+// ITEM 93-ج — THE CHANNEL THE WORKER OPENED NOW HAS A LISTENER
+// ============================================================
+// MEASURED FIRST, from sw.js, which is read here and written nowhere: at the end of install the
+// worker calls announceInstall(), which posts installSummary() to every connected client. The
+// shape is not assumed — it is the object literal in sw.js:
+//
+//   { ezik: 'precache-report', failed: <number>, entries: [{url, reason}],
+//     skipped: null | 'quota', persist, evicted, retried }
+//
+// «ezik» is the tag, «failed» is the count the worker itself says is "the only field a consumer
+// can branch on without parsing", and «skipped» separates "seven files failed" from "nothing was
+// even attempted because the disk could not hold CORE". Those two ask opposite things of the
+// reader, so they are the two sentences below and there is no third.
+//
+// WHAT THIS IS NOT, and each absence is a rule of the item rather than an omission:
+//   * no retry — nothing here re-registers, re-installs, or asks the worker to try again;
+//   * no network — this path has no fetch, no request and no model call of any kind;
+//   * no recovery surface — there is no "fix it" button, because there is nothing this page
+//     could press that would make room on a full disk;
+//   * no raw browser text — «entries[].reason» is a word this app chose ('quota' | 'network' |
+//     'other') and even that is not shown; a reader told "TypeError: Failed to fetch" has been
+//     told nothing they can act on, which is the very silence item 93 set out to end.
+//   * and a SUCCESSFUL brief draws nothing at all. The overwhelmingly common install is the
+//     healthy one, and a banner that appears on it would train the reader to dismiss the one
+//     that matters.
+//
+// ONCE PER SESSION. «ezikSwNoticeSpent» is module-level, not component state, so «حسنًا» closes
+// it for the tab and not merely for this mount: a worker that re-announces after an update, or a
+// second listener attached across a remount, cannot bring the same sentence back.
+const EZIK_SW_REPORT_TAG = 'precache-report';
+const EZIK_SW_MSG_PARTIAL = 'لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.';
+const EZIK_SW_MSG_NONE = 'لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.';
+const EZIK_SW_MSG_TAIL = 'والتطبيقُ يعملُ كما هو ما دامَ الإنترنتُ متّصلًا.';
+const EZIK_SW_OK = 'حسنًا';
+const EZIK_SW_ARIA = 'إشعارُ الحفظِ للعملِ بلا إنترنت';
+
+// PURE. It takes the message and returns the sentence to draw, or null for "draw nothing". No
+// storage, no clock, no DOM and no state — which is what lets the guard drive every branch of it
+// with a literal object rather than with a browser.
+function ezikPrecacheNotice(report) {
+  if (!report || typeof report !== 'object') return null;
+  if (report.ezik !== EZIK_SW_REPORT_TAG) return null;
+  if (report.skipped === 'quota') return EZIK_SW_MSG_NONE;
+  const failed = report.failed;
+  if (typeof failed !== 'number' || !isFinite(failed) || failed <= 0) return null;
+  return EZIK_SW_MSG_PARTIAL;
+}
+
+let ezikSwNoticeSpent = false;
+
+function EzikPrecacheNotice() {
+  const [text, setText] = useState(null);
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.serviceWorker) return undefined;
+    const onMessage = (e) => {
+      if (ezikSwNoticeSpent) return;
+      const line = ezikPrecacheNotice(e && e.data);
+      if (!line) return;
+      ezikSwNoticeSpent = true;
+      setText(line);
+    };
+    try { navigator.serviceWorker.addEventListener('message', onMessage); } catch (err) { return undefined; }
+    return () => {
+      try { navigator.serviceWorker.removeEventListener('message', onMessage); } catch (err) {}
+    };
+  }, []);
+  if (!text) return null;
+  return (
+    <div role="status" aria-label={EZIK_SW_ARIA} style={s.swNote}>
+      <span style={s.swNoteText}>{text} {EZIK_SW_MSG_TAIL}</span>
+      <span className="ez-hit" style={s.swNoteHit}>
+        <button type="button" onClick={() => setText(null)} className="ezik-focus" style={s.swNoteBtn}>{EZIK_SW_OK}</button>
+      </span>
+    </div>
+  );
+}
+
 function EzShellGroup({ title, hint, wide, children }) {
   return (
     <section className={wide ? 'ezsh-group is-wide' : 'ezsh-group'}>
@@ -15377,6 +15455,13 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 // الأنماط
 // ============================================================
 const s = {
+  // ITEM 93-ج: the offline-store notice. Every colour is a token, so it follows the theme and
+  // the identity like everything else; it is a strip at the foot of the viewport rather than a
+  // modal, because it interrupts nothing and the reader may ignore it entirely.
+  swNote: { position: 'fixed', insetInlineStart: 12, insetInlineEnd: 12, insetBlockEnd: 12, zIndex: 60, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--warn-line)', background: 'var(--warn-bg)', color: 'var(--warn-ink)', boxShadow: 'var(--a3-lift)' },
+  swNoteText: { flex: '1 1 200px', minWidth: 0, fontSize: 13, lineHeight: 1.7 },
+  swNoteHit: { display: 'inline-flex', flexShrink: 0 },
+  swNoteBtn: { background: 'none', border: '1px solid var(--warn-line)', borderRadius: 8, padding: '4px 14px', fontSize: 13, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
   // S115: the boot mark keeps its key and its animation -- only the 48px emoji it used to size is
   // gone, so reduced motion, the keyframe and the duration are all untouched.
   loadingScreen: { minHeight: '100vh', background: 'var(--boot-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -16517,7 +16602,7 @@ ErrorBoundary.prototype.render = function () {
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(ErrorBoundary, null, React.createElement(App)));
+root.render(React.createElement(ErrorBoundary, null, React.createElement(App), React.createElement(EzikPrecacheNotice)));
 </script>
 <div id="print-area"></div>
 <!-- Vercel Web Analytics and Speed Insights were loaded here. They are REMOVED for this

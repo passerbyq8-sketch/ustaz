@@ -4185,5 +4185,77 @@ ok('W6: the drawer toggle still paints at 40x40',
   /\.ezc-icon\{[^}]*width:40px;height:40px/.test(css.replace(/\s*\n\s*/g, '')),
   'the painted size of .ezc-icon moved — the item was supposed to leave it alone');
 
+/* ---- Y. ITEM 93-C: THE WORKER'S BRIEF NOW HAS A LISTENER --------------- */
+// THE SHAPE IS NOT RE-TYPED HERE. sw.js is READ -- never written by this screen -- and the two
+// fields the page branches on are asserted to be the two fields installSummary() writes. A
+// worker that renames `failed` fails here, rather than quietly ceasing to reach the reader.
+const SWJS = fs.readFileSync(path.join(path.dirname(path.resolve(INDEX)), 'sw.js'), 'utf8');
+const swTag = (SWJS.match(/const REPORT_TAG = '([^']+)';/) || [])[1] || '';
+ok('Y1: sw.js still declares the report tag', !!swTag, 'tag=' + JSON.stringify(swTag));
+eq('Y1: ...and the page listens for exactly that tag', evalIn('EZIK_SW_REPORT_TAG'), swTag);
+const swSummaryAt = SWJS.indexOf('function installSummary()');
+const swSummary = swSummaryAt === -1 ? '' : SWJS.slice(swSummaryAt, SWJS.indexOf('function announceInstall', swSummaryAt));
+okOn('Y1: ...and the fields it branches on are the fields the worker writes', [['swSummary', swSummary]],
+  /ezik: REPORT_TAG/.test(swSummary)
+  && /failed: precacheFailures\.length/.test(swSummary)
+  && /skipped: storageState\.precacheSkipped/.test(swSummary),
+  'installSummary no longer writes ezik/failed/skipped under those names');
+
+// DRIVEN, NOT READ. Every branch below is the shipped function executed against a literal
+// message; nothing here matches source text for behaviour.
+const swNotice = (code) => evalIn('ezikPrecacheNotice(' + code + ')');
+const SW_PARTIAL = evalIn('EZIK_SW_MSG_PARTIAL');
+const SW_NONE = evalIn('EZIK_SW_MSG_NONE');
+const swReport = (o) => JSON.stringify(Object.assign({ ezik: swTag, failed: 0, entries: [], skipped: null,
+  persist: 'granted', evicted: 0, retried: 0 }, o));
+
+ok('Y2: A HEALTHY INSTALL DRAWS NOTHING AT ALL', swNotice(swReport({})) === null);
+ok('Y2: ...and neither does one that merely evicted and retried its way to success',
+  swNotice(swReport({ evicted: 2, retried: 2 })) === null);
+ok('Y2: ...nor a brief carrying no count at all', swNotice(JSON.stringify({ ezik: swTag })) === null);
+ok('Y3: an install that lost entries says so', swNotice(swReport({ failed: 3,
+  entries: [{ url: '/adhkar.json', reason: 'quota' }] })) === SW_PARTIAL);
+ok('Y3: one lost entry is enough', swNotice(swReport({ failed: 1 })) === SW_PARTIAL);
+ok('Y3: a precache that never started says the OTHER thing', swNotice(swReport({ skipped: 'quota' })) === SW_NONE);
+ok('Y3: ...and that sentence wins even when entries also failed',
+  swNotice(swReport({ failed: 4, skipped: 'quota' })) === SW_NONE);
+ok('Y3: the two sentences are two sentences',
+  !!SW_PARTIAL && !!SW_NONE && SW_PARTIAL !== SW_NONE);
+// The reader is told what happened, not what the browser said. No URL, no reason word, no
+// exception name -- «TypeError: Failed to fetch» tells a child nothing they can act on.
+ok('Y4: neither sentence carries a URL, a reason word or browser text',
+  [SW_PARTIAL, SW_NONE].every((t) => !/https?:|\.json|\.png|Error|fetch|quota|network|undefined|\[object/i.test(String(t))));
+const NOT_OURS = ['null', 'undefined', '0', '""', '"' + swTag + '"', '[]',
+  JSON.stringify({ ezik: 'warm' }), JSON.stringify({ ezik: 'storage', failed: 9 }),
+  JSON.stringify({ failed: 9, skipped: 'quota' })];
+for (const code of NOT_OURS) {
+  ok('Y5: a message that is not the brief is ignored: ' + code, swNotice(code) === null);
+}
+// A count that is not a count may not become a banner.
+for (const bad of ['"3"', 'true', '{}', '[3]', 'NaN', 'Infinity', '-2']) {
+  ok('Y5: ...and a failed count of ' + bad + ' is not a failure',
+    swNotice('{"ezik":"' + swTag + '","failed":' + bad + ',"skipped":null}') === null);
+}
+
+const swNoteAt = html.indexOf('function EzikPrecacheNotice()');
+const swNoteEnd = html.indexOf('function EzShellGroup(', swNoteAt);
+const swNoteSrc = (swNoteAt !== -1 && swNoteEnd > swNoteAt) ? html.slice(swNoteAt, swNoteEnd) : '';
+okOn('Y6: ZERO RETRY, ZERO NETWORK, ZERO RECOVERY SURFACE', [['swNoteSrc', swNoteSrc]],
+  !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket/.test(swNoteSrc)
+  && !/\.register\(|\.update\(|\.unregister\(|skipWaiting|location\.reload/.test(swNoteSrc)
+  && !/setTimeout|setInterval/.test(swNoteSrc),
+  'the consumer grew a retry, a wire or a timer');
+eq('Y6: exactly one listener, and it is on the service worker container',
+  (html.match(/navigator\.serviceWorker\.addEventListener\('message'/g) || []).length, 1);
+okOn('Y7: the dismissal is spent for the SESSION, not merely for the mount', [['swNoteSrc', swNoteSrc]],
+  /let ezikSwNoticeSpent = false;/.test(html) && /ezikSwNoticeSpent = true;/.test(swNoteSrc)
+  && /if \(ezikSwNoticeSpent\) return;/.test(swNoteSrc),
+  'the once-per-session latch moved into component state');
+okOn('Y7: ...and the listener is removed when the notice unmounts', [['swNoteSrc', swNoteSrc]],
+  /removeEventListener\('message', onMessage\)/.test(swNoteSrc));
+ok('Y8: it is mounted, beside the app and under the same boundary',
+  /root\.render\(React\.createElement\(ErrorBoundary, null, React\.createElement\(App\), React\.createElement\(EzikPrecacheNotice\)\)\);/
+    .test(html));
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
