@@ -1110,6 +1110,107 @@ okOn('...as a DISPLAY: no handler, no role and no tabindex on it', [["IST", IST]
   !/<EzistQuranPanel[^>]*on[A-Z]/.test(IST)
   && !/<section className="ezist-quran"[^>]*(role=|tabIndex=|onClick=)/.test(IST));
 ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
+
+/* ---- V. ITEM 120-A: THE DAILY VERSE COMES FROM THE SEALED MUSHAF ------- */
+// WHAT STOOD HERE: nothing. The card was fed by a 30-row array typed by hand into index.html,
+// and NOTHING compared a single character of it to the mushaf. Three of the thirty did not
+// match the verse they cited, and two of those were wrong WORDS, not wrong spelling -- 4:32
+// carried the wording of 33:40, and 12:64 opened with a waw where the verse has a fa.
+// Displayed Qur'anic text that nothing checks is the one thing in this application that cannot
+// be allowed to drift, and a seal on the mushaf file could never have caught it: the mushaf was
+// never wrong. What was wrong was a hand-written copy of it that nothing compared back.
+//
+// SO THE ROWS ARE COMPARED, EVERY RUN, CHARACTER FOR CHARACTER. Each ayah row must be a
+// VERBATIM substring of the sealed verse at the reference it names. An excerpt is allowed --
+// the card has always shown one -- but it must be an excerpt OF THOSE BYTES. The first
+// differing character fails this, names the reference, and prints both sides.
+{
+  const dvPath = path.join(path.dirname(path.resolve(INDEX)), 'assets/daily-verses.json');
+  const qPath = path.join(path.dirname(path.resolve(INDEX)), 'quran-uthmani.json');
+  const haveData = fs.existsSync(dvPath), haveQuran = fs.existsSync(qPath);
+  ok('DV1: the generated daily-verse file is on disk', haveData, dvPath);
+  ok('DV1: ...and the sealed mushaf it was generated from is too', haveQuran, qPath);
+  if (haveData && haveQuran) {
+    const DV = JSON.parse(fs.readFileSync(dvPath, 'utf8'));
+    const QU = JSON.parse(fs.readFileSync(qPath, 'utf8'));
+    // The generator recorded which mushaf it read. If that file is ever re-cut, this stops
+    // matching and the rows are regenerated rather than silently kept against a moved source.
+    // require()d here rather than at the top: `crypto` is already a name in this file, bound to
+    // the browser webcrypto shim the shipped block runs against, and shadowing that at module
+    // scope would hand the application code a Node module.
+    const qDigest = require('crypto').createHash('sha256').update(fs.readFileSync(qPath)).digest('hex');
+    eq('DV1: ...and the digest the generator recorded is that file', DV.source_sha256, qDigest);
+
+    // THE ARRAY IN THE SHIPPED BLOCK IS THAT FILE. Two copies of a table is one copy too many;
+    // this is the line that stops them parting.
+    let shipped = null;
+    try { shipped = evalIn('DAILY_VERSES'); } catch (e) { shipped = null; }
+    if (!ok('DV2: the shipped block still declares DAILY_VERSES', Array.isArray(shipped))) {
+      // nothing below can mean anything without it
+    } else {
+      eq('DV2: ...and it holds exactly as many rows as the generated file', shipped.length, DV.rows.length);
+      const drift = [];
+      for (let i = 0; i < Math.min(shipped.length, DV.rows.length); i++) {
+        const a = shipped[i], b = DV.rows[i];
+        if (a.text !== b.text || a.surah !== b.surah || a.ayah !== b.ayah
+          || String(a.ref) !== String(b.ref) || a.kind !== b.kind) drift.push(i + 1);
+      }
+      ok('DV2: ...and every row is that file row for row', drift.length === 0,
+        'rows that differ from assets/daily-verses.json: ' + drift.join(', ')
+        + '\n        Regenerate; do not hand-edit either side.');
+    }
+
+    // THE CLAIM ITSELF.
+    let bad = 0, checked = 0, carried = 0;
+    for (const r of DV.rows) {
+      if (r.kind !== 'ayah') { carried++; continue; }
+      checked++;
+      const verse = QU[r.ref];
+      if (verse === undefined) {
+        bad++;
+        ok('DV3: ' + r.ref + ' is a reference the sealed mushaf has', false,
+          'the row cites a verse that is not in quran-uthmani.json');
+        continue;
+      }
+      if (verse.indexOf(r.text) === -1) {
+        bad++;
+        let k = 0;
+        while (k < r.text.length && k < verse.length && r.text[k] === verse[k]) k++;
+        ok('DV3: ' + r.ref + ' is verbatim from the sealed mushaf', false,
+          'the row text is NOT a substring of the sealed verse.'
+          + '\n        first difference at character ' + k
+          + '\n        row    : ' + JSON.stringify(r.text)
+          + '\n        sealed : ' + JSON.stringify(verse)
+          + '\n        Qur\'anic text is COPIED from the sealed file, never typed and never fixed by hand.');
+      }
+    }
+    ok('DV3: every ayah row is verbatim from the sealed mushaf (' + checked + ' checked, '
+      + carried + ' non-Qur\'an row carried through)', bad === 0);
+
+    // The one row that is NOT scripture must stay visibly not-scripture: the card branches on
+    // surah === 'hadith' to change its label, so a row that lost that marker would be presented
+    // to the reader as a verse of the Qur'an.
+    const others = DV.rows.filter((r) => r.kind !== 'ayah');
+    ok('DV4: the non-Qur\'an row is marked as such and keeps the marker the card branches on',
+      others.length === 1 && others[0].surah === '\u062D\u062F\u064A\u062B'
+      && others[0].ref === undefined,
+      'the hadith row is ' + JSON.stringify(others));
+    ok('DV4: ...and it makes no claim on the sealed file',
+      others.every((r) => r.kind === 'other'));
+
+    // NO HAND-WRITTEN ARRAY SURVIVES. The block must say what it is.
+    ok('DV5: the shipped array declares itself generated',
+      /GENERATED -- DO NOT EDIT BY HAND/.test(html));
+    ok('DV5: ...and the rotation still takes a local day index, with no network and no model call',
+      /const getDailyVerse = \(\) => \{/.test(html)
+      && /DAILY_VERSES\[dayOfYear % DAILY_VERSES\.length\]/.test(html));
+    const rotAt = html.indexOf('const getDailyVerse');
+    const rot = rotAt === -1 ? '' : html.slice(rotAt, rotAt + 400);
+    okOn('DV5: ...and it reaches for nothing outside itself', [['rot', rot]],
+      !/fetch\(|XMLHttpRequest|\/api\/|await /.test(rot));
+  }
+}
+
 ok('...and rendering the text verbatim', /<div style=\{s\.ezistQuranText\}>\{v\.text\}<\/div>/.test(IST),
   'the Quran text must be printed as it is read -- no transform, no slice, no ellipsis');
 // no decorative mark may overlap the text: the marks live in the head row and the rule, both of
