@@ -886,7 +886,7 @@ async function partE() {
   // property of the file itself: no warning, no skip, and a full board still standing.
   const tcg = slurp('theme-coverage-guard.cjs');
   const tcgAssertions = (tcg.match(/^\s*(ok|eq)\(/gm) || []).length;
-  ok('the theme gate still runs a full board of assertions', tcgAssertions >= 854, tcgAssertions + ' assertions');
+  ok('the theme gate still runs a full board of assertions', tcgAssertions >= 880, tcgAssertions + ' assertions');
   ok('...and none of them was downgraded to a warning', tcg !== '' && !/\bwarn\(/.test(tcg));
   ok('...and none of them was downgraded to a skip', tcg !== '' && !/\bskip\(/.test(tcg));
 
