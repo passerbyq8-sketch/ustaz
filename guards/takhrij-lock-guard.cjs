@@ -707,7 +707,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const jr = (v) => ({ ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => v, text: async () => JSON.stringify(v) });
     const sourceUrl = 'https://islamqa.info/ar/answers/999999/a1-local';
     const originalFetch = globalThis.fetch, device = 'a1endpoint1234567', founder = DAY.founderTokenFor(device);
-    const clientHandlerBody = (read('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
+    // ITEM 32: the browser's parser ships in app.jsx and is compiled into app.js; index.html only
+    // loads the bundle. This reads the shipped client so the assertions below still execute the
+    // parser the reader runs, and not a more permissive test-only interpretation.
+    const clientHandlerBody = (require('../tools/babel-block.cjs').readShippedClient('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
     const clientVisibleFromRaw = clientHandlerBody && new Function('raw', `
       let full = '', streamError = null, onDelta = null;
       const handleEvent = (block) => {${clientHandlerBody}\n};

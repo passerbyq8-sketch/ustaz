@@ -101,9 +101,24 @@ function palette(block) {
   for (const m of block.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;}]+)/gi)) out[m[1]] = m[2].trim();
   return out;
 }
+// ITEM 32. TWO SUBJECTS, TWO SOURCES, ON PURPOSE. The stylesheet is a property of the DOCUMENT
+// and is cut from the document alone -- app.jsx has no <style> element and slicing a concatenation
+// for one would be a way to read the wrong thing. Everything else this guard asks (the runtime
+// switcher, the screens, the token users) is a property of the APPLICATION, which lives in
+// app.jsx since item 32, so `html` is the shipped client.
 function cssOf(file) {
   const h = fs.readFileSync(file, 'utf8');
-  return { html: h, css: stripComments(h.slice(h.indexOf('<style>'), h.indexOf('</style>'))) };
+  const BB = require('./tools/babel-block.cjs');
+  // AND quest.html IS ITS OWN CLIENT. It is a standalone vanilla page: it inlines its own script,
+  // loads no bundle and has no JSX, so concatenating anything onto it would be inventing a second
+  // source it does not have. The test is on the page's OWN anchors -- a block, or a built bundle
+  // -- so a page that grows one gets the same treatment automatically, and a page that carries a
+  // bundle whose source is missing still throws instead of being read short.
+  const isBundled = BB.OPEN_RE.test(h) || BB.APP_SRC_RE.test(h);
+  return {
+    html: isBundled ? BB.readShippedClient({ file: file, html: h }) : h,
+    css: stripComments(h.slice(h.indexOf('<style>'), h.indexOf('</style>'))),
+  };
 }
 
 /* ---- colour maths -------------------------------------------------------- */
@@ -2359,7 +2374,13 @@ const TAP_BLOCK = `  const onTap = (x, y) => {
     R.t = now; R.x = x; R.y = y;
     if (R.timer) clearTimeout(R.timer);
     R.timer = setTimeout(() => { R.timer = null; setChromeOn((v) => !v); }, MUSHAF_TAP_MS);
-  };`.replace(/\n/g, '\r\n');
+  };`;
+// ITEM 32. The .replace(/\n/g, '\r\n') that stood here is gone, and its absence is the whole
+// note: this block used to live inside index.html, which is CRLF-pinned, so a byte comparison
+// had to re-inject the CR. The application source is app.jsx now, which is LF -- the endings
+// the BROWSER always saw, because the HTML parser folds CRLF to LF before the tokeniser. The
+// comparison is byte-for-byte against the shipped bytes exactly as before; only the file it is
+// cut from changed, and with it the endings that file carries.
 ok('the tap-to-restore block is byte-identical', html.indexOf(TAP_BLOCK) !== -1);
 ok('...and its window is unchanged', /const MUSHAF_TAP_MS = 300;/.test(html));
 ok('the wird dwell is unchanged', /const WIRD_DWELL_MS = 8000;/.test(html));
@@ -4110,7 +4131,11 @@ eq('T8: pinLenRef appears at exactly its five code positions',
 console.log('\n=== V. THE PRE-BOOT DIAGNOSTIC CATCHER (item 103) ===');
 const bodyAt = html.indexOf('<body>');
 const catcherAt = html.indexOf('<script id="ezik-diagnostic-catcher">');
-const reactAt = html.indexOf('react.production.min.js');
+// ITEM 32: React is served from this origin now, so the anchor is the local path and not a
+// versioned CDN filename. Stricter: one exact path matches, where the old substring would have
+// matched that filename on any host.
+const reactAt = html.indexOf('vendor/react.umd.js');
+const bundleAt = html.indexOf('<script src="app.js">');
 const rootDivAt = html.indexOf('<div id="root">');
 ok('X1: the diagnostic catcher is still in the page', catcherAt !== -1);
 // FIRST, and proved as FIRST rather than merely as PRESENT: every other <script> must come
@@ -4119,9 +4144,13 @@ ok('X1: the diagnostic catcher is still in the page', catcherAt !== -1);
 const scriptsBetween = (bodyAt !== -1 && catcherAt !== -1)
   ? (html.slice(bodyAt, catcherAt).match(/<script\b/gi) || []).length : -1;
 eq('X2: no script at all stands between <body> and the catcher', scriptsBetween, 0);
-ok('X3: ...and the catcher runs BEFORE React, its DOM root and the Babel transform',
-  catcherAt !== -1 && reactAt !== -1 && rootDivAt !== -1
-  && catcherAt < reactAt && catcherAt < rootDivAt,
+// ITEM 32. The label used to name the Babel transform and the condition never checked it. There
+// is no transform in the page any more, and what replaced it -- the compiled bundle -- CAN fail
+// in the three ways the catcher exists to witness (a 404, an SRI mismatch, a syntax error). So
+// the third anchor is now real and it is checked.
+ok('X3: ...and the catcher runs BEFORE React, its DOM root and the app bundle',
+  catcherAt !== -1 && reactAt !== -1 && rootDivAt !== -1 && bundleAt !== -1
+  && catcherAt < reactAt && catcherAt < rootDivAt && catcherAt < bundleAt,
   'the catcher was moved below the boot it exists to witness');
 // A deferred or async catcher is a catcher that is not there when the failure happens.
 const catcherTag = catcherAt === -1 ? '' : html.slice(catcherAt, html.indexOf('>', catcherAt) + 1);
@@ -4545,8 +4574,20 @@ ok('Z5: ...and html2canvas is named as an OPTION and never constructed or called
   !/html2canvas\s*[.(]/.test(html) && /html2canvas: \{ scale: 2, useCORS: true \}/.test(html));
 // And the offline store still carries no vendor JavaScript at all, which is the other half of
 // the reason: a share card built on html2canvas would be a control that cannot work offline.
-ok('Z5: the offline CORE still precaches no vendor bundle',
-  !/html2pdf|mammoth|react[^"']*\.js/.test(SWJS.slice(SWJS.indexOf('const CORE = ['), SWJS.indexOf('];', SWJS.indexOf('const CORE = [')))));
+// ITEM 32 SPLIT THIS IN TWO, because half of it stopped being true and the other half is the
+// point. CORE precaches the two React bundles and app.js deliberately now -- that is what made
+// offline boot possible for the first time, and a check that forbade it would be forbidding the
+// feature. What must STILL never enter CORE is a DOCUMENT-TOOL bundle: html2pdf, mammoth and
+// any DOM-to-image library are fetched on first use and never otherwise, and precaching one
+// would put 1.5MB of a rasteriser in front of every reader who never exports anything.
+const SW_CORE_BLOCK = SWJS.slice(SWJS.indexOf('const CORE = ['), SWJS.indexOf('];', SWJS.indexOf('const CORE = [')));
+ok('Z5: the offline CORE still precaches no document-tool or DOM-to-image bundle',
+  SW_CORE_BLOCK.length > 100
+  && !/html2pdf|mammoth|html2canvas|dom-to-image|domtoimage/i.test(SW_CORE_BLOCK));
+ok('Z5: ...and it DOES precache the three files a first paint needs, which is why boot works offline',
+  SW_CORE_BLOCK.indexOf("'/app.js'") !== -1
+  && SW_CORE_BLOCK.indexOf("'/vendor/react.umd.js'") !== -1
+  && SW_CORE_BLOCK.indexOf("'/vendor/react-dom.umd.js'") !== -1);
 
 
 /* ---- ZC. ITEM 42-C: THE REPLY AS AN IMAGE, DRAWN NATIVELY --------------- */

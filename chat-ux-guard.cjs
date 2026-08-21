@@ -48,7 +48,12 @@ const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06
 
 
 const htmlFile = process.argv[2] || 'index.html';
-const html = fs.readFileSync(htmlFile, 'utf8');
+// ITEM 32. The application source moved out of index.html into app.jsx, which
+// tools/build-app.cjs compiles into app.js before every commit. Everything this file
+// searches for is IN that source, so it reads the shipped client -- the document plus the
+// JSX it loads -- and not the shell alone. readShippedClient() throws if the page ships no
+// JSX it can find, so this can never quietly become a search over the wrong file.
+const html = require('./tools/babel-block.cjs').readShippedClient(htmlFile);
 
 // ---------------------------------------------------------------------------
 // The Arabic this gate looks for, as codepoints.
@@ -1797,10 +1802,17 @@ function partE() {
 
   // no new dependency, no new CDN, no new host of any kind
   const srcs = (html.match(/<script[^>]*src=["']([^"']+)["']/gi) || []).map((t) => (t.match(/src=["']([^"']+)["']/) || [])[1]);
+  // ITEM 32. The three sources are the same three libraries, at exact LOCAL paths instead of
+  // versioned CDN URLs, and one of them is new: the page loads its own compiled bundle instead of
+  // shipping JSX and a compiler to compile it with. The patterns are ANCHORED (^...$) rather than
+  // substring-matched, so this is strictly narrower than what it replaces -- 'vendor/react.umd.js'
+  // matches and nothing else does, where the old '/react@<any>/umd/...' would have accepted any
+  // version from any host. The 'unexpected' arm below is unchanged and still rejects a source
+  // that is not on this list.
   const requiredScripts = [
-    ['react', /\/react@[^/]+\/umd\/react\.production\.min\.js(?:\?|$)/],
-    ['react-dom', /\/react-dom@[^/]+\/umd\/react-dom\.production\.min\.js(?:\?|$)/],
-    ['@babel/standalone', /\/@babel\/standalone@[^/]+\/babel\.min\.js(?:\?|$)/],
+    ['react', /^vendor\/react\.umd\.js$/],
+    ['react-dom', /^vendor\/react-dom\.umd\.js$/],
+    ['app bundle', /^app\.js$/],
   ];
   const scriptSourceProblems = (sources) => {
     const missing = requiredScripts.filter(([, re]) => !sources.some((source) => re.test(source)))
@@ -1811,19 +1823,25 @@ function partE() {
   };
   eq('the page loads the required script sources and no undeclared source', scriptSourceProblems(srcs), []);
   ok('counter-mutation: deleting a required script source is rejected',
-    scriptSourceProblems(srcs.filter((source) => !/\/react@/.test(source))).includes('missing:react'));
+    scriptSourceProblems(srcs.filter((source) => !/^vendor\/react\.umd\.js$/.test(source))).includes('missing:react'));
   ok('...and neither analytics script is among them',
     !srcs.some((u) => /_vercel\/(insights|speed-insights)/.test(String(u))), srcs.join(' || '));
-  // cdn.jsdelivr.net serves @babel/standalone -- same version, same SRI hash, same bytes as
-  // unpkg, which still serves react and react-dom. Declared, not widened: an undeclared host
-  // still fails this check.
-  const EXPECTED_HOSTS = ['unpkg.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com', 'mushaf.almurabbi.app'];
+  // ITEM 32. unpkg.com and cdn.jsdelivr.net are struck OFF this list rather than left on it as
+  // dead permission: the page reaches neither, and a list that still blessed them would go on
+  // passing the day one came back. Declared, not widened -- an undeclared host still fails -- and
+  // the two assertions after it state the removal positively so nothing here can pass by finding
+  // nothing.
+  const EXPECTED_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'mushaf.almurabbi.app'];
   const hosts = [];
   (html.match(/(?:src|href)=["']https?:\/\/([^\/"']+)/gi) || []).forEach((t) => {
     const h = (t.match(/https?:\/\/([^\/"']+)/) || [])[1];
     if (h && hosts.indexOf(h) === -1) hosts.push(h);
   });
   eq('...and reaches no host it did not already reach', hosts.filter((h) => EXPECTED_HOSTS.indexOf(h) === -1), []);
+  ok('...and not one script tag is fetched from another origin at all',
+    srcs.length > 0 && !srcs.some((u) => /^https?:/i.test(String(u))), srcs.join(' || '));
+  ok('...and @babel/standalone is nowhere in the page',
+    html.length > 0 && html.indexOf('@babel/standalone') === -1);
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
   const requiredPackages = {
     dependencies: ['@mozilla/readability', '@upstash/ratelimit', '@upstash/redis', 'linkedom', 'minisearch'],

@@ -135,14 +135,26 @@ function walk(dir, prefix = '') {
     globalThis.fetch = realFetch;
   }
 
-  const html = read('index.html');
+  // ITEM 32: the client is index.html + app.jsx since the JSX left the page.
+  const html = require('../tools/babel-block.cjs').readShippedClient('index.html');
   eq('the shipped client has no live chat/chat-fast selection', clientConsumerProblems(html), []);
 
   const literalCallers = walk(ROOT).filter((rel) =>
     !/^(?:api|guards|tools|docs)\//.test(rel)
       && /\.(?:js|cjs|mjs|html)$/.test(rel)
       && /(?:fetch|aiFetch)\s*\(\s*['"]\/api\/chat(?:-fast)?['"]/.test(read(rel)));
-  eq('every repository client reference is explained by the disabled index classifier', literalCallers, ['index.html']);
+  // ITEM 32. The second name is not a second caller. app.js is index.html's own JSX compiled
+  // ahead of time by tools/build-app.cjs; the gate 'babel' asserts the two are byte-equivalent on
+  // every run, so the bundle cannot come to say something the page does not. The set stays exact
+  // and both directions still bite: a third file fails here, and so does either of these two
+  // ceasing to be the only ones.
+  // ITEM 32. index.html drops out of this set on the commit that moved its JSX into app.jsx and
+  // its compiled form into app.js. The page itself no longer names /api/chat at all; the bundle
+  // it loads does, exactly once, and app.jsx is not scanned here because the filter takes .js,
+  // .cjs, .mjs and .html only. Exact in both directions still: a second file fails, and app.js
+  // ceasing to be a caller fails too.
+  eq('every repository client reference is explained by the disabled index classifier',
+    literalCallers, ['app.js']);
 
   const reopenedSource = sources[0].replace('return res.status(410).json({', 'return res.status(200).json({');
   const reopened = sourceAsHandler(reopenedSource);

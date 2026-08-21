@@ -50,12 +50,17 @@ function ok(label, condition, detail) {
 // ── Boot the shipped client block ───────────────────────────────────────────
 // Same mechanics as guards/truncated-tag-fallback-par-a-guard.cjs, for the same reason.
 function bootClient(source) {
-  const html = source === undefined ? fs.readFileSync(INDEX, 'utf8') : source;
+  // ITEM 32. `source`, when given, is a MUTATED copy of the shipped JSX -- app.jsx, where the
+  // application lives since the block left index.html. It used to be a mutated copy of the whole
+  // page, because the page WAS the application. The shell is read unmutated either way: the
+  // mutants below all rewrite application code, and a mutant that rewrote the shell would be
+  // testing something this gate does not boot.
+  const html = fs.readFileSync(INDEX, 'utf8');
   // ITEM 32-b: extraction and the runtime decision come from ../tools/babel-block.cjs. This
   // guard boots MUTATED copies of the block too, so it hands the helper the source it holds
   // rather than a path -- the anchors are required either way, and a mutant that removed the
   // CDN tag now fails by name instead of transforming with the other runtime and passing.
-  const block = BB.readBabelBlock({ file: INDEX, html: html });
+  const block = BB.readBabelBlock({ file: INDEX, html: html, jsx: source });
   const rawCode = block.raw;
 
   const transformed = BB.transformBabelBlock(block, {
@@ -165,7 +170,8 @@ function runSuite(client, label) {
 
   // The render site reads the function, not the raw key: a guard that only proved the function
   // exists would stay green while the page went on rendering the unconditional line.
-  const html = fs.readFileSync(INDEX, 'utf8');
+  // ITEM 32: the render site is in app.jsx now; index.html only loads the bundle built from it.
+  const html = BB.readShippedClient(INDEX);
   ok('the render site is conditioned, not hard-coded',
     /ezT\(standingNoticeKey\(caps\.band\)\)/u.test(html)
       && !/ezT\('chat\.standingNotice'\)/u.test(html));
@@ -177,7 +183,8 @@ function runSuite(client, label) {
 // index.html is CRLF in the working tree and LF in the object store.
 function mutants() {
   console.log('\n--- REQUIRED MUTANTS ---');
-  const original = fs.readFileSync(INDEX, 'utf8');
+  // ITEM 32: the seams these mutants move are in app.jsx.
+  const original = fs.readFileSync(path.join(ROOT, BB.JSX_NAME), 'utf8');
   const cases = [
     {
       name: 'unconditional-notice-again',

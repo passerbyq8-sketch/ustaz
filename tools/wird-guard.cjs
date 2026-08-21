@@ -86,7 +86,10 @@ function ascii(v) {
 
 // Line endings are normalised so that every `$`-anchored and literal-newline check below
 // means the same thing on a CRLF checkout as on an LF one.
-const SRC = fs.readFileSync(path.join(ROOT, APP), 'utf8').replace(/\r\n/g, '\n');
+// ITEM 32. Every helper this guard lifts is in app.jsx now; index.html only loads the bundle
+// built from it. readShippedClient hands back both, and throws if the page ships no JSX it can
+// find -- so an anchor that stops matching is still an anchor failure and never an empty read.
+const SRC = require('./babel-block.cjs').readShippedClient(path.join(ROOT, APP)).replace(/\r\n/g, '\n');
 
 // Brace matching from the function's opening brace. Every function lifted below is
 // verified to contain no brace inside a string or a regular expression, so a plain depth
@@ -812,8 +815,15 @@ eq('this guard embeds no Arabic text', arabicChars, 0);
 let nonAscii = 0;
 for (let i = 0; i < SELF.length; i++) if (SELF.charCodeAt(i) > 126) nonAscii++;
 eq('this guard is ASCII only', nonAscii, 0);
-ok('this guard opens no asset but index.html and itself',
-  (SELF.match(/readFileSync\(/g) || []).length === 2);
+// ITEM 32. ONE readFileSync here, not two: the shipped client is opened through
+// tools/babel-block.cjs, the only thing in this tree allowed to know that the client is two
+// files now. The intent is unchanged and still exact -- this guard reaches for no asset of its
+// own -- so it counts what it now has: one read of itself, and one named call to the helper.
+// A third read of anything, or a second path opened by hand, fails here.
+eq('this guard opens no asset but the shipped client and itself',
+  (SELF.match(/readFileSync\(/g) || []).length, 1);
+eq('...and it reaches the client through the shared helper, never by a path of its own',
+  (SELF.match(/readShippedClient\(/g) || []).length, 1);
 
 // ---------------------------------------------------------------------------
 

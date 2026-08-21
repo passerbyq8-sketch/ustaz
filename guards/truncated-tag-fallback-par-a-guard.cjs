@@ -44,12 +44,17 @@ function ok(label, cond, detail) {
 
 // ── Boot the shipped client block ───────────────────────────────────────────
 function bootClient(source) {
-  const html = source === undefined ? fs.readFileSync(INDEX, 'utf8') : source;
+  // ITEM 32. `source`, when given, is a MUTATED copy of the shipped JSX -- app.jsx, where the
+  // application lives since the block left index.html. It used to be a mutated copy of the whole
+  // page, because the page WAS the application. The shell is read unmutated either way: the
+  // mutants below all rewrite application code, and a mutant that rewrote the shell would be
+  // testing something this gate does not boot.
+  const html = fs.readFileSync(INDEX, 'utf8');
   // ITEM 32-b: extraction and the runtime decision come from ../tools/babel-block.cjs. This
   // guard boots MUTATED copies of the block too, so it hands the helper the source it holds
   // rather than a path -- the anchors are required either way, and a mutant that removed the
   // CDN tag now fails by name instead of transforming with the other runtime and passing.
-  const block = BB.readBabelBlock({ file: INDEX, html: html });
+  const block = BB.readBabelBlock({ file: INDEX, html: html, jsx: source });
   const rawCode = block.raw;
 
   const transformed = BB.transformBabelBlock(block, {
@@ -307,8 +312,9 @@ function codeSurvivesTheCut(client, phase) {
   // AND THE RULE IS THE FILE'S, not this gate's idea of it. BOTH places that carry the cut carry
   // the corrected form: `rescueTruncated` runs over the same text and would put the defect
   // straight back the moment the rescue is the path that runs.
-  const index = fs.readFileSync(INDEX, 'utf8');
-  // String.raw, because the two backslashes in this pattern are LITERAL characters in index.html;
+  // ITEM 32: both cuts live in app.jsx now; index.html only loads the bundle built from it.
+  const index = BB.readShippedClient(INDEX);
+  // String.raw, because the two backslashes in this pattern are LITERAL characters in the source;
   // a quoted form would read them as escapes here and match nothing at all.
   const CORRECTED = String.raw`<\/?[A-Za-z][^>\n]*$`;
   ok(phase + ': both cuts in index.html stop at the end of their own line',
@@ -463,7 +469,8 @@ function reviewMarkLogSuite(client, phase) {
       && !loggedCard.includes('【'), JSON.stringify(loggedCard.slice(0, 200)));
 
   // AND THE IDIOM IS THE SURFACE'S OWN, read out of the file rather than asserted about it.
-  const index = fs.readFileSync(INDEX, 'utf8');
+  // ITEM 32: the log idiom is in app.jsx now.
+  const index = BB.readShippedClient(INDEX);
   for (const form of ['` [المصدر: ${s}] `', '` [${ref}] `', '` [تلاوة سورة ${name}${rangePart}] `']) {
     ok(phase + ': the log already sets a label off with [ … ] — ' + form.slice(0, 22),
       index.includes(form.replace(/`/g, '')), form);
@@ -479,7 +486,8 @@ function reviewMarkLogSuite(client, phase) {
 // A mutation that does not change the source is a hard error, never a pass.
 function mutants() {
   console.log('\n--- C. REQUIRED MUTANTS ---');
-  const original = fs.readFileSync(INDEX, 'utf8');
+  // ITEM 32: the seams these mutants move are in app.jsx.
+  const original = fs.readFileSync(path.join(ROOT, BB.JSX_NAME), 'utf8');
 
   const cases = [
     {

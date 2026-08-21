@@ -41,7 +41,12 @@ const lineOffset = block.lineOffset;
 const babelSrc = block.babelSrc;
 const babelMajor = block.babelMajor;
 const jsxRuntime = block.runtime;
-console.log(`Page loads @babel/standalone: ${babelSrc || '(unpinned)'} -> major ${babelMajor} -> preset-react default runtime "${jsxRuntime}"`);
+// ITEM 32. There is no tag left to print. tools/babel-block.cjs now settles the runtime from a
+// pinned constant -- the value the tag settled on the day it was removed, recorded with the
+// version it came from -- and tools/build-app.cjs compiles the shipped bundle through that same
+// value, so this gate and the browser cannot diverge without app.js changing too. The line still
+// prints all three facts, and babelSrc still says where they came from.
+console.log(`JSX runtime source: ${babelSrc} -> major ${babelMajor} -> preset-react runtime "${jsxRuntime}"`);
 
 // --- Babel-transform (mirroring the page's Babel major default runtime) ---
 let transformed;

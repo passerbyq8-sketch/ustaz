@@ -400,7 +400,8 @@ function answerShapeViolations(reply) {
   // SPLICED OUT OF index.html AND RUN. A gate that grepped for the sentence would pass the day
   // someone re-introduced it under a different spelling.
   {
-    const html = read('index.html').replace(/\r\n/g, '\n');
+    // ITEM 32: the client is index.html + app.jsx since the JSX left the page.
+    const html = require('../tools/babel-block.cjs').readShippedClient('index.html').replace(/\r\n/g, '\n');
     const cut = (from, to) => {
       const a = html.indexOf(from);
       if (a < 0) return null;
@@ -534,7 +535,7 @@ function answerShapeViolations(reply) {
     ok('...and the old blind checklist question is gone',
       p.length > 0 && !/هَلْ أَنْهَيْتُ رَدِّي بِاقْتِرَاحَاتٍ لِلْمُتَابَعَة؟ → يَجِبُ/u.test(p));
     // The BUTTONS themselves are untouched — the owner kept them.
-    const html2 = read('index.html');
+    const html2 = require('../tools/babel-block.cjs').readShippedClient('index.html');
     ok('the <suggestions> printer is untouched — the buttons stay',
       /suggestions = items;/.test(html2) && /onSuggestionClick/.test(html2));
   }

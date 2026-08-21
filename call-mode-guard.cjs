@@ -1145,7 +1145,10 @@ function checkStructure(html) {
 
 // ===========================================================================
 (async () => {
-  const html = read(indexFile);
+  // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
+  let html = null;
+  try { html = require('./tools/babel-block.cjs').readShippedClient(indexFile); }
+  catch (e) { abort(e.message); }
   if (html === null) abort('cannot read ' + indexFile);
   info(indexFile + ' = ' + html.length + ' chars');
 

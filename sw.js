@@ -18,13 +18,22 @@
 //                 sweep them; bounded and evicted, so paging the book cannot fill a phone.
 //   cache-first : the icons and the watermark + the Google Fonts CSS/font files -- immutable or
 //                 rarely changing, and none of them carries text that can go stale.
-//   ignored     : every other origin (everyayah.com recitation audio, the unpkg/cdnjs script
-//                 CDNs) -- left entirely to the network; the SW never intercepts them.
+//   ignored     : every other origin (everyayah.com recitation audio, the cdnjs bundles that
+//                 html2pdf and mammoth are fetched from on first use) -- left entirely to the
+//                 network; the SW never intercepts them. unpkg and jsdelivr are no longer among
+//                 them: item 32 took React off unpkg and @babel/standalone off jsdelivr, and
+//                 the page reaches neither host at all.
 //
-// 🩸 OFFLINE BOOT IS NOT POSSIBLE while React/Babel/html2pdf/mammoth load from unpkg + cdnjs
-//    (cross-origin <script> tags in index.html). No service worker can make the app boot
-//    offline on its own. For true offline boot those libraries must be self-hosted from this
-//    origin. NOT done here -- out of scope for this step; flagged in the report.
+// OFFLINE BOOT IS POSSIBLE NOW, and this note is what it replaced. It used to read: "OFFLINE
+//    BOOT IS NOT POSSIBLE while React/Babel/html2pdf/mammoth load from unpkg + cdnjs
+//    (cross-origin <script> tags in index.html) ... for true offline boot those libraries must
+//    be self-hosted from this origin. NOT done here." Item 32 did it: the two React bundles are
+//    served from /vendor, @babel/standalone is gone entirely (the JSX is compiled before the
+//    commit, into /app.js), and all three are in CORE above. A reader who has visited once
+//    boots with no network.
+//    TWO CDN SCRIPTS REMAIN AND NEITHER BLOCKS A BOOT: html2pdf and mammoth are fetched from
+//    cdnjs the first time a reader exports a PDF or attaches a .docx, and never otherwise. An
+//    offline reader loses those two features and nothing else -- the app itself renders.
 //
 // The cache name carries a VERSION. Bump it on every ship (v1 -> v2 -> ...): the changed SW
 // file makes the browser install the new worker, `activate` deletes every non-matching cache,
@@ -32,10 +41,10 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v13';
+const CACHE = 'ezik-v14';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
-// a second copy of the 1158925 bytes '/' already holds. The network-first branch below still
+// a second copy of the 120617 bytes '/' already holds. The network-first branch below still
 // cache.put()s the shell on every successful load, so the offline fallback keeps working from
 // the '/' entry.
 //
@@ -55,6 +64,15 @@ const CORE = [
   // it would meet an empty box behind the conversation.
   '/icon-watermark.png',
   '/adhkar.json',
+  // ITEM 32. The three files the first paint cannot happen without, self-hosted from this origin
+  // since the three render-blocking CDN tags left index.html. They are here for the reason the
+  // note at the top of this file used to say was impossible: with React and the app bundle on
+  // the same origin, and precached, a reader who has visited once can now BOOT offline. Before
+  // this commit the shell was cached and the app it needed was not, so an offline reader met a
+  // page that loaded and then never rendered.
+  '/app.js',
+  '/vendor/react.umd.js',
+  '/vendor/react-dom.umd.js',
 ];
 
 // ---------------------------------------------------------------------------
@@ -75,8 +93,10 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 1158925 + icon-watermark.png 368386 + adhkar.json 177392
-//   + icon-512.png 12893 + icon-maskable-512.png 5938 + icon-192.png 5053 + manifest.json 533
+//   /  (index.html) 120617 + app.js 920790 + icon-watermark.png 368386
+//   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + icon-512.png 12893
+//   + vendor/react.umd.js 10751 + icon-maskable-512.png 5938 + icon-192.png 5053
+//   + manifest.json 533
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS when
 // the constant has fallen below it, so a shell that grows cannot quietly leave the pre-check
 // reading a number that stopped being true.
@@ -89,7 +109,7 @@ const CORE = [
 // the pre-check then reserves less room than CORE needs and install is merely pessimistic.
 // A constant that LEADS would let install start a precache that cannot finish, which is why
 // B12 fails downward only.
-const CORE_BYTES = 1729120;
+const CORE_BYTES = 1754188;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
@@ -693,7 +713,7 @@ self.addEventListener('fetch', (event) => {
 
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
 
-  // IGNORE every other origin (everyayah.com, unpkg, cdnjs). Do not intercept or cache.
+  // IGNORE every other origin (everyayah.com, cdnjs). Do not intercept or cache.
   if (!sameOrigin && !isFont) return;
 
   // CACHE-FIRST for same-origin static assets and the Google Fonts CSS/font files.

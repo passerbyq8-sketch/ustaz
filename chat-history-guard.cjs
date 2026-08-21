@@ -38,7 +38,12 @@ const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06
 
 
 const htmlFile = process.argv[2] || 'index.html';
-const html = fs.readFileSync(htmlFile, 'utf8');
+// ITEM 32. The application source moved out of index.html into app.jsx, which
+// tools/build-app.cjs compiles into app.js before every commit. Everything this file
+// searches for is IN that source, so it reads the shipped client -- the document plus the
+// JSX it loads -- and not the shell alone. readShippedClient() throws if the page ships no
+// JSX it can find, so this can never quietly become a search over the wrong file.
+const html = require('./tools/babel-block.cjs').readShippedClient(htmlFile);
 
 let failures = 0;
 let checks = 0;

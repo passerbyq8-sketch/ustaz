@@ -37,7 +37,12 @@ const { parseHTML } = require('linkedom');
 
 const REPO = path.resolve(__dirname, '..');
 const htmlFile = process.argv[2] || 'index.html';
-const html = fs.readFileSync(path.join(REPO, htmlFile), 'utf8');
+// ITEM 32. The application source moved out of index.html into app.jsx, which
+// tools/build-app.cjs compiles into app.js before every commit. Everything this file
+// searches for is IN that source, so it reads the shipped client -- the document plus the
+// JSX it loads -- and not the shell alone. readShippedClient() throws if the page ships no
+// JSX it can find, so this can never quietly become a search over the wrong file.
+const html = require('./babel-block.cjs').readShippedClient(path.join(REPO, htmlFile));
 
 const CONSENT_KEY = 'ezik_ai_consent_v1';
 const CONSENT_VERSION = '2026-08-06-1';

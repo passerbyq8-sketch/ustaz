@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "gates": "node tools/run-gates.cjs"
+    "gates": "node tools/run-gates.cjs",
+    "build": "node tools/build-app.cjs",
+    "verify:build": "node tools/build-app.cjs --check"
   },
   "repository": {
     "type": "git",

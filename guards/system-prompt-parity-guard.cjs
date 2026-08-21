@@ -469,7 +469,8 @@ const PINNED = [
   // every commit in between. The pinned fingerprints in (B) are what carry the prompt's identity
   // forward now that there is nothing left to compare against.
   {
-    const html = read('index.html');
+    // ITEM 32: the client is index.html + app.jsx since the JSX left the page.
+    const html = require('../tools/babel-block.cjs').readShippedClient('index.html');
     ok('index.html declares no buildSystemPrompt of its own',
       html.indexOf('const buildSystemPrompt = ') === -1,
       'a second copy of the builder is back in the client -- that is the drift this gate exists for');

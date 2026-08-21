@@ -29,6 +29,22 @@ function info(m){ console.log('  [INFO] ' + m); }
 function head(t){ console.log('\n=== ' + t + ' ==='); }
 
 function read(rel){ try { return fs.readFileSync(path.join(ROOT, rel), 'utf8'); } catch(e){ return null; } }
+// ITEM 32. THE CLIENT SOURCE IS TWO FILES NOW, AND EVERY CHECK THAT READS "THE PAGE" MUST READ
+// BOTH. index.html used to carry a 1MB <script type="text/babel"> block; it now carries
+// <script src="app.js">, and the JSX that block held lives in app.jsx, from which
+// tools/build-app.cjs compiles app.js before every commit (gate 'babel' fails on any drift).
+// So a check written as "index.html still declares X" is a check about the SHIPPED CLIENT, and
+// it must be given the shipped client, not the shell that loads it -- otherwise every marker in
+// section 8 below would have started reporting "token may differ" the day the block moved, and
+// the frozen-surface audit would have quietly stopped auditing anything.
+// This REFUSES to fall back: if app.jsx is missing, the caller is handed null and says so, so
+// the failure is "the source is gone", never "the marker is gone".
+function readClient(){
+  const shell = read('index.html');
+  const jsx = read('app.jsx');
+  if (shell === null || jsx === null) return null;
+  return shell + '\n' + jsx;
+}
 function readBuf(rel){ try { return fs.readFileSync(path.join(ROOT, rel)); } catch(e){ return null; } }
 function stat(rel){ try { return fs.statSync(path.join(ROOT, rel)); } catch(e){ return null; } }
 function git(args){
@@ -410,8 +426,24 @@ head('7) CDN PIN INTEGRITY (index.html)');
       if (verRe.test(u)) pass('pinned: ' + u);
       else warn('NOT version-pinned (supply-chain / breakage risk): ' + u);
     }
-    if (src.indexOf('@babel/standalone@7.26.4') !== -1) pass('babel standalone pinned to 7.26.4 (documented)');
-    else warn('did not find @babel/standalone@7.26.4 -- version may have moved');
+    // ITEM 32. This used to read "babel standalone pinned to 7.26.4". There is no @babel/standalone
+    // tag any more -- the JSX is compiled before the commit, into app.js -- so the pin that
+    // matters moved from a VERSION IN A URL to an SRI HASH OVER LOCAL BYTES, which is a stronger
+    // supply-chain statement and not a weaker one: a version pin trusts the CDN to keep serving
+    // the same bytes under the same name, a hash does not. The old check is inverted rather than
+    // deleted, so a re-introduced compiler tag fails here loudly instead of passing quietly.
+    if (src.indexOf('@babel/standalone') === -1) pass('no in-browser Babel: @babel/standalone is not loaded at all (item 32)');
+    else fail('@babel/standalone is back in index.html -- the JSX is compiled ahead of the commit now, and a page that also loads the compiler is transforming something no gate in this suite has run');
+    const localPinned = [
+      ['react', /<script[^>]*\ssrc=["']vendor\/react\.umd\.js["'][^>]*\sintegrity=["']sha384-[A-Za-z0-9+/=]+["']/],
+      ['react-dom', /<script[^>]*\ssrc=["']vendor\/react-dom\.umd\.js["'][^>]*\sintegrity=["']sha384-[A-Za-z0-9+/=]+["']/],
+    ];
+    for (const [name, re] of localPinned){
+      if (re.test(src)) pass('self-hosted and SRI-pinned: vendor/' + name);
+      else fail(name + ' is not loaded from vendor/ with an integrity= hash -- a self-hosted bundle with no hash is a file anyone with write access to the deployment can change silently');
+    }
+    if (/<script[^>]*\ssrc=["']app\.js["']/.test(src)) pass('the page loads the compiled bundle app.js');
+    else fail('index.html does not load app.js -- there is no compiled bundle and no text/babel block either, so the page ships no application at all');
     if (/mammoth[^"']*1\.11\.0/.test(src)) pass('mammoth pinned to 1.11.0 (documented)');
     else warn('did not find mammoth 1.11.0 -- version may have moved');
     if (/integrity\s*=/.test(src)) info('some SRI integrity= attributes present');
@@ -422,11 +454,16 @@ head('7) CDN PIN INTEGRITY (index.html)');
 /* ---------------------------------------------------------------- *
  * 8) KNOWN MARKERS & FROZEN-SURFACE PRESENCE (index.html)
  * ---------------------------------------------------------------- */
-head('8) MARKERS & FROZEN-SURFACE PRESENCE (index.html)');
+head('8) MARKERS & FROZEN-SURFACE PRESENCE (the shipped client)');
 {
-  const src = read('index.html') || '';
+  // ITEM 32: index.html + app.jsx, for the reason readClient() states. Every token below lives in
+  // the JSX, not in the shell, so reading index.html alone would turn all eleven into "token may
+  // differ" warnings on the commit that moved the block -- a frozen-surface audit that froze
+  // nothing while still printing a clean run.
+  const src = readClient();
+  if (src === null) fail('cannot read the shipped client (index.html + app.jsx) -- the markers below were NOT checked');
   function flag(name, re, expected){
-    const m = src.match(re);
+    const m = (src || '').match(re);
     if (!m) { warn(name + ': not found (token may differ or state changed)'); return; }
     const val = m[1];
     if (expected !== undefined && val !== expected) warn(name + ' = ' + val + '  (docs say ' + expected + ')');
@@ -456,11 +493,11 @@ head('8) MARKERS & FROZEN-SURFACE PRESENCE (index.html)');
     ['tagPattern',              /tagPattern/],
   ];
   for (const [label, re] of markerChecks){
-    if (re.test(src)) pass('present: ' + label);
+    if (src !== null && re.test(src)) pass('present: ' + label);
     else warn('NOT found: ' + label + '  (token may differ)');
   }
   // tag names inside tagPattern
-  const tp = src.match(/tagPattern\s*=\s*\/([^\n]+)/);
+  const tp = (src || '').match(/tagPattern\s*=\s*\/([^\n]+)/);
   if (tp) info('tagPattern line: ' + tp[1].slice(0,120));
 }
 
@@ -936,7 +973,8 @@ head('15) CLIENT/SERVER BODY-CAP MIRROR');
     catch (_) { return null; }
   };
   const grab = (rel, re, label) => {
-    const s = read(rel);
+    // ITEM 32: 'index.html' here means the shipped client, which is the shell plus app.jsx.
+    const s = rel === 'index.html' ? readClient() : read(rel);
     if (s === null) return { err: 'cannot read ' + rel };
     const m = s.match(re);
     if (!m) return { err: label + ' not found in ' + rel };

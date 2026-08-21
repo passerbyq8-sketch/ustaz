@@ -535,7 +535,8 @@ const deadStore = () => ({
 });
 
 try {
-  const html = fs.readFileSync(rel('index.html'), 'utf8');
+  // ITEM 32: the reader is in app.jsx now; index.html only loads the bundle built from it.
+  const html = require('./babel-block.cjs').readShippedClient(rel('index.html'));
   const checks = [
     ['the madinaimg flag name', /madinaimg/],
     ['the page asset path pattern', /assets\/madina-hafs\/page-/],
