@@ -4800,7 +4800,6 @@ function EzistQuranPanel() {
   return (
     <section className="ezist-quran" style={s.ezistQuran}>
       <div style={s.ezistQuranHead}>
-        <span style={s.ezistQuranDot} aria-hidden="true" />
         <span style={s.ezistQuranLabel}>{isHadith ? ezT('home.hadithOfDay2') : ezT('home.verseOfDay2')}</span>
       </div>
       <div style={s.ezistQuranText}>{v.text}</div>
@@ -15367,8 +15366,11 @@ const s = {
   ezistMeta: { flexShrink: 0, padding: '5px 10px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800 },
   // the featured Quran panel. The marks sit in the head row, never over the text.
   ezistQuran: { padding: '16px 18px 18px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
-  ezistQuranHead: { display: 'flex', alignItems: 'center', gap: 8 },
-  ezistQuranDot: { width: 8, height: 8, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-cyan)' },
+  // 105: the dot that used to lead this row is gone. `paddingInlineStart` is exactly what it
+  // occupied -- its own 8px plus the 8px gap it stood in -- so the title's leading edge stays
+  // at the pixel it has always been at. MEASURED before and after: 346. The `gap` is kept
+  // because it still describes the row, and is simply inert while one child is left.
+  ezistQuranHead: { display: 'flex', alignItems: 'center', gap: 8, paddingInlineStart: 16 },
   ezistQuranLabel: { fontSize: 12.5, fontWeight: 800, color: 'var(--a3-blue)', letterSpacing: '.2px' },
   // ITEM 99 -- THE TOP MARGIN, AND ONLY THE TOP MARGIN. Measured at 430x932 dpr 2 on cfb73ca:
   // the verse box began 43.00px below the panel top and 14.00px below the label row. Item 64

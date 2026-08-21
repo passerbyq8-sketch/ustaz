@@ -1082,8 +1082,26 @@ ok('...and rendering the text verbatim', /<div style=\{s\.ezistQuranText\}>\{v\.
 // no decorative mark may overlap the text: the marks live in the head row and the rule, both of
 // which are siblings of the text block, and nothing in this panel is absolutely positioned.
 ok('no mark is positioned over the Quran text',
-  !/ezistQuran(Text|Meta)[^}]*position: \'absolute\'/.test(html)
-  && /ezistQuranDot[^}]*background: \'var\(--a3-cyan\)\'/.test(html));
+  !/ezistQuran(Text|Meta)[^}]*position: \'absolute\'/.test(html));
+
+// ---- 105: THE DOT IS GONE, AND IT MAY NOT COME BACK ----
+// The second half of the check above used to assert that the dot EXISTED and was cyan. The
+// owner ruled it out: it was an unconditional span, aria-hidden, driven by no state, and
+// nothing in the app ever turned it off. So the assertion is inverted rather than deleted --
+// a removal with no guard behind it is a removal that comes back.
+ok('105: the verse panel header carries no decorative dot',
+  !/ezistQuranDot/.test(html),
+  'the dot returned — as a style key, a span, or both');
+ok('105: ...and the header row holds exactly one child, the title',
+  /<div style=\{s\.ezistQuranHead\}>\s*<span style=\{s\.ezistQuranLabel\}>[\s\S]*?<\/span>\s*<\/div>/.test(IST),
+  'something else was put back into the header row');
+// THE HEADER DID NOT MOVE. The dot occupied 8px and stood in the row's 8px gap; MEASURED at
+// 430x932, the title's leading edge (its RIGHT edge -- the page is RTL) was at 346 before and
+// is at 346 after, because those 16px went back as padding. Losing this line would slide the
+// title 16px without anything else looking wrong.
+ok('105: ...and the title still starts at the pixel it always did',
+  /ezistQuranHead: \{[^}]*paddingInlineStart: 16/.test(html),
+  'the 16px the dot and its gap occupied is no longer being held');
 
 // S117: this used to read `/<EzistAsk /.test(IST) && /className="ezhome-focus ezist-ask"/`, and
 // that pinned ONE element rather than the thing the check is named for. The home offered two ways
