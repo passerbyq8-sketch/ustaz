@@ -1414,6 +1414,32 @@
 (function () {
   try {
     var entries = [];
+    // ── ITEM 103: THE CATCHER STAYS, AND WHAT IT CATCHES IS NOW KEPT ────────────────────────
+    // THE ITEM WAS ORIGINALLY «REMOVE THE CATCHER ONCE WE ARE REASSURED», AND REMOVING IT WOULD
+    // HAVE BEEN WRONG. This script is the first thing after <body>: it is the ONLY thing in the
+    // page that can witness a failure BEFORE React exists -- a CDN that 404s, an SRI mismatch, a
+    // Babel transform that throws on the inline block, a syntax error in the app itself. The
+    // React error boundary cannot see any of that, because at that moment there is no React to
+    // catch with. So the catcher is pinned here instead of removed, and what it collects is kept
+    // where the boundary can reach it.
+    //
+    // A SMALL BOUNDED STORE IN MEMORY, AND NOTHING ELSE. No localStorage, no request, no beacon:
+    // a diagnostic that wrote itself to disk would outlive the fault it describes, and one that
+    // phoned home would be a network call made by the very code path that exists because the
+    // network may be broken. The bound is MAX_ENTRIES and it drops the NEWEST once full, which
+    // is deliberate: in a boot failure the first error is the cause and everything after it is
+    // an echo, so a full store keeps the root cause rather than the latest symptom.
+    var MAX_ENTRIES = 20;
+    try {
+      window.__ezikDiag = {
+        max: MAX_ENTRIES,
+        count: function () { try { return entries.length; } catch (ignored) { return 0; } },
+        list: function () { try { return entries.slice(0); } catch (ignored) { return []; } },
+        text: function () {
+          try { return entries.join('\n\n--------------------\n\n'); } catch (ignored) { return ''; }
+        }
+      };
+    } catch (ignored) {}
     var panel = null;
     var output = null;
 
@@ -1566,7 +1592,7 @@
 
     function report(event, rejection) {
       try {
-        if (entries.length >= 20) return;
+        if (entries.length >= MAX_ENTRIES) return;
         entries.push(formatEntry(event, rejection));
         if (!panel) buildPanel();
         if (output) output.textContent = entries.join('\n\n--------------------\n\n');
@@ -16400,11 +16426,36 @@ ErrorBoundary.prototype.legacyCopy = function (text) {
     return false;
   }
 };
+// ── ITEM 103: WHAT HAPPENED BEFORE REACT EXISTED, MADE COPYABLE ────────────────────────────
+// The boundary can only ever describe a failure it caught, and it catches nothing that happened
+// before it was mounted. Every boot failure -- the ones that matter most, because they leave a
+// blank page and no way to say what went wrong -- is therefore invisible to `errorParts` above.
+//
+// The pre-<body> catcher DID witness those, and it now keeps them (see `window.__ezikDiag`), so
+// «انسخ التفاصيل» carries them out with the React error instead of the React error alone. This
+// is the whole of the connection: the panel's own words, its retry button and its layout are
+// untouched -- only what the clipboard receives grows.
+//
+// It cannot throw and it cannot be required: a page where the catcher never ran, or where the
+// store was replaced by something else, simply contributes nothing and the copy behaves exactly
+// as it did before.
+ErrorBoundary.prototype.preBootDetails = function () {
+  try {
+    var diag = window.__ezikDiag;
+    if (!diag || typeof diag.text !== 'function') return '';
+    var body = diag.text();
+    if (!body) return '';
+    var n = typeof diag.count === 'function' ? diag.count() : 0;
+    return '\n\nPRE-BOOT DIAGNOSTIC (' + String(n) + ' of ' + String(diag.max) + ')\n' + body;
+  } catch (ignored) {
+    return '';
+  }
+};
 ErrorBoundary.prototype.copyDetails = function () {
   var parts = this.errorParts();
   var nav = window.navigator;
   var userAgent = nav && nav.userAgent ? String(nav.userAgent) : '';
-  var text = parts.message + '\n' + parts.stack + '\n' + userAgent;
+  var text = parts.message + '\n' + parts.stack + '\n' + userAgent + this.preBootDetails();
   try {
     if (nav && nav.clipboard && typeof nav.clipboard.writeText === 'function') {
       var operation = nav.clipboard.writeText(text);

@@ -3904,6 +3904,101 @@ eq('T8: pinLenRef appears at exactly its five code positions',
   (pinSrc.match(/pinLenRef\.current|const pinLenRef/g) || []).length, 5);
 
 
+/* ---- X. ITEM 103: THE DIAGNOSTIC CATCHER IS PINNED, AND CONNECTED --------
+ * The item as written was «remove the catcher once we are reassured». Removing it would have
+ * been wrong, and this section is the reason it is pinned instead.
+ *
+ * The catcher is the FIRST script after <body>, and that position is the whole of its value: it
+ * is the only thing in the page that can witness a failure BEFORE React exists -- a CDN that
+ * 404s, an SRI mismatch, a Babel transform that throws on the inline block, a syntax error in
+ * the app itself. The React error boundary cannot see any of those, because at that moment
+ * there is no React to catch with. Move the catcher below the React tags and the whole class of
+ * failure it exists for stops being recorded, silently, with nothing going red anywhere --
+ * which is exactly what these checks now prevent.
+ *
+ * NOTHING IN THIS TREE ASSERTED ANY OF IT BEFORE. The repository was swept for a check pinning
+ * the catcher or its position -- every .cjs, gates.json, every guard file -- and there was none,
+ * in this file or any other. This barrier is therefore new rather than moved, and no assertion
+ * had to be held out of scope.
+ */
+console.log('\n=== V. THE PRE-BOOT DIAGNOSTIC CATCHER (item 103) ===');
+const bodyAt = html.indexOf('<body>');
+const catcherAt = html.indexOf('<script id="ezik-diagnostic-catcher">');
+const reactAt = html.indexOf('react.production.min.js');
+const rootDivAt = html.indexOf('<div id="root">');
+ok('X1: the diagnostic catcher is still in the page', catcherAt !== -1);
+// FIRST, and proved as FIRST rather than merely as PRESENT: every other <script> must come
+// either before <body> (the head boot scripts) or after the catcher. Counted, so that a script
+// inserted between <body> and the catcher fails here even when it is harmless in itself.
+const scriptsBetween = (bodyAt !== -1 && catcherAt !== -1)
+  ? (html.slice(bodyAt, catcherAt).match(/<script\b/gi) || []).length : -1;
+eq('X2: no script at all stands between <body> and the catcher', scriptsBetween, 0);
+ok('X3: ...and the catcher runs BEFORE React, its DOM root and the Babel transform',
+  catcherAt !== -1 && reactAt !== -1 && rootDivAt !== -1
+  && catcherAt < reactAt && catcherAt < rootDivAt,
+  'the catcher was moved below the boot it exists to witness');
+// A deferred or async catcher is a catcher that is not there when the failure happens.
+const catcherTag = catcherAt === -1 ? '' : html.slice(catcherAt, html.indexOf('>', catcherAt) + 1);
+okOn('X4: the catcher is not deferred, async, or a module', [['catcherTag', catcherTag]],
+  !/\bdefer\b/.test(catcherTag) && !/\basync\b/.test(catcherTag) && !/type\s*=\s*["']module/.test(catcherTag),
+  'a deferred catcher cannot witness what happens before it runs');
+
+/* ---- X5..X7. what it catches is KEPT, in memory and nowhere else -------- */
+const catcherEnd = catcherAt === -1 ? -1 : html.indexOf('</script>', catcherAt);
+const catcherSrc = (catcherAt !== -1 && catcherEnd > catcherAt) ? html.slice(catcherAt, catcherEnd) : '';
+// Every check below reads the CODE, never the prose. The catcher explains in its own comments
+// that it uses no localStorage and no request -- and a check that read those comments would
+// fail on the very sentence that promises the thing it is checking.
+const catcherCode = catcherSrc.replace(/\/\/[^\n]*/g, ' ');
+ok('X5: the catcher body was located', catcherSrc.length > 2000, 'len=' + catcherSrc.length);
+okOn('X5: ...and it publishes a bounded store the rest of the page can read', [['catcherSrc', catcherSrc]],
+  /window\.__ezikDiag = \{/.test(catcherCode)
+  && /max: MAX_ENTRIES/.test(catcherCode)
+  && /count: function/.test(catcherCode)
+  && /text: function/.test(catcherCode),
+  'the pre-boot store is no longer published -- the boundary can reach nothing');
+okOn('X6: the store is BOUNDED, and by the same constant the recorder obeys', [['catcherSrc', catcherSrc]],
+  /var MAX_ENTRIES = \d+;/.test(catcherCode)
+  && /if \(entries\.length >= MAX_ENTRIES\) return;/.test(catcherCode),
+  'the store lost its bound, or the bound and the recorder disagree');
+// IN MEMORY AND NOWHERE ELSE. A diagnostic that wrote to disk would outlive the fault it
+// describes, and one that phoned home would be a request made by the very code path that exists
+// because requests fail.
+okOn('X7: the catcher persists nothing and sends nothing', [['catcherCode', catcherCode]],
+  !/localStorage|sessionStorage|indexedDB|document\.cookie/.test(catcherCode)
+  && !/fetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket/.test(catcherCode),
+  'the pre-boot catcher grew a store or a wire');
+
+/* ---- X8..X10. and the boundary now carries it out ----------------------- */
+const ebAt = html.indexOf('function ErrorBoundary(props)');
+const ebEnd = html.indexOf('const root = ReactDOM.createRoot', ebAt);
+const ebSrc = (ebAt !== -1 && ebEnd > ebAt) ? html.slice(ebAt, ebEnd) : '';
+ok('X8: the error boundary was located', ebSrc.length > 1000, 'len=' + ebSrc.length);
+okOn('X8: «copy the details» reads the pre-boot store, not the React error alone', [['ebSrc', ebSrc]],
+  /ErrorBoundary\.prototype\.preBootDetails = function/.test(ebSrc)
+  && /window\.__ezikDiag/.test(ebSrc)
+  && /\+ this\.preBootDetails\(\)/.test(ebSrc),
+  'the boundary is back to copying only what it caught itself');
+okOn('X9: ...and a page where the catcher never ran copies exactly as it did before', [['ebSrc', ebSrc]],
+  /if \(!diag \|\| typeof diag\.text !== 'function'\) return '';/.test(ebSrc)
+  && /catch \(ignored\) \{[\s\S]{0,40}return '';/.test(ebSrc),
+  'the pre-boot reader can now throw inside the copy handler');
+
+// THE PANEL ITSELF IS UNTOUCHED. Its three Arabic strings are pinned BY CODEPOINT, read out of
+// the render function's own escaped literals and compared as ASCII digits -- no Arabic is typed
+// here, so nothing in this check can reorder under bidi and then lie about what it names.
+const ebRenderAt = html.indexOf('ErrorBoundary.prototype.render = function ()');
+const ebRender = (ebRenderAt !== -1 && ebEnd > ebRenderAt) ? html.slice(ebRenderAt, ebEnd) : '';
+const ebArabic = (ebRender.match(/'(?:\\u[0-9a-f]{4})+'/gi) || []);
+eq('X10: the panel still carries exactly its three Arabic strings', ebArabic.length, 3);
+eq('X10: ...and not one codepoint of any of them moved',
+  ebArabic.map((s) => (s.match(/[0-9a-f]{4}/gi) || []).join(',')).join(' / '),
+  '062a,0639,0630,0651,0631,0020,0639,0631,0636,0020,0627,0644,0645,062d,0627,062f,062b,0629'
+  + ' / 0623,0639,062f,0020,0627,0644,0645,062d,0627,0648,0644,0629'
+  + ' / 0627,0646,0633,062e,0020,0627,0644,062a,0641,0627,0635,064a,0644');
+okOn('X10: ...and both buttons are still there, on their own handlers', [['ebSrc', ebSrc]],
+  /onClick: this\.retry/.test(ebSrc) && /onClick: this\.copyDetails/.test(ebSrc));
+
 /* ---- U. ITEM 44-أ: THE TEXT SCALE, AND THE READER THAT IS OUTSIDE IT ---- */
 // THESE CHECKS RUN THE SCALE PASS FOR REAL, so they must be LAST: `ezikEnsureScalableStyles`
 // rewrites the styles object IN PLACE, and every earlier section reads that object. Nothing may
