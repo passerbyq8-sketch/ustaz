@@ -51,6 +51,11 @@
  *                      a failed fetch must leave the stored copy intact and raise
  *                      nothing at the page. B10 proves sw.js has not MOVED; B11 proves
  *                      it still WORKS, which is the half item 80 was lost in.
+ *   B12 sw quota    -- the same worker, executed again under FOUR measured storage
+ *                      states: a wide quota, a quota too narrow to start, a disk that
+ *                      fills mid-write, and a browser with no navigator.storage at all.
+ *                      Asserted on what the worker DOES -- what it wrote, what it
+ *                      deleted, what it recorded -- never on its text. Item 91-A.
  *
  * USAGE
  *   node quest-bank-integrity-guard.cjs --emit    > quest-data/bank-integrity-golden.json
@@ -113,7 +118,11 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': 'c87a179f0d0010b07ce1ae6dada91b48f20052a90cdfd645f2857be9cf5d145f',
+  //   item 91-A     -- storage-quota management: an estimate before the first write, one
+  //                    persist() request, a reason on every recorded failure, and an eviction
+  //                    rule that drops OLD stores (never the current one) and retries once.
+  //                    B12 below was cut in the SAME commit as this digest.
+  'sw.js': 'dddd181b0c1e6b68bda385d7d2dfc10e3523da2d60f5ab719fea07f493eb6f47',
 };
 
 // ---------------------------------------------------------------------------
@@ -148,8 +157,52 @@ const SW_ORIGIN = 'https://ezik.app';
 // freeze item 80 was raised to end. So: these three must issue exactly ONE background fetch, and
 // those two must issue ZERO.
 const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json'];
+// ITEM 91-A. What CORE must contain after a precache in the SANE state. Written out rather than
+// read back from the worker, because "everything the worker chose to write was written" is a
+// tautology: a CORE that quietly lost an entry would satisfy it. sw.js is sealed by digest
+// above, so this list and that list are re-cut together or not at all.
+const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
+  '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json'];
+// The files CORE names on disk, in the same order. B12 re-derives their byte sum and refuses a
+// CORE_BYTES constant that has fallen below it.
+const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
+  'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json'];
 const SW_SEALED_DATA = ['/quran-uthmani.json', '/mushaf-layout.json'];
 const SW_DATA_FILES = SW_REVALIDATED.concat(SW_SEALED_DATA);
+
+// ITEM 91-A. The synthetic rejections the harness can hand a `cache.add`. A full disk and a
+// dead network must be told apart by the worker itself, so they arrive with the identities a
+// real browser gives them: QuotaExceededError carries its name, a failed fetch carries a
+// TypeError whose text names the fetch.
+function swAddError(kind) {
+  const e = new Error(kind === 'network'
+    ? 'Failed to fetch (synthetic)'
+    : 'QuotaExceededError: quota exceeded (synthetic)');
+  e.name = kind === 'network' ? 'TypeError' : 'QuotaExceededError';
+  return e;
+}
+
+// A domesticated navigator.storage. `estimate:false` / `persist:false` remove that method
+// entirely, which is how the old-browser state is expressed -- as an ABSENT function rather
+// than as one that returns something odd.
+function swNav(opts) {
+  const calls = { estimate: 0, persist: 0 };
+  const storage = {};
+  if (opts.estimate !== false) {
+    storage.estimate = () => {
+      calls.estimate++;
+      return Promise.resolve({ quota: opts.quota, usage: opts.usage });
+    };
+  }
+  if (opts.persist !== false) {
+    storage.persist = () => {
+      calls.persist++;
+      if (opts.persist === 'throws') return Promise.reject(new Error('not allowed'));
+      return Promise.resolve(opts.persist !== 'denied');
+    };
+  }
+  return { navigator: { storage: storage }, calls: calls };
+}
 
 function swRes(body, status) {
   return {
@@ -162,10 +215,14 @@ function swRes(body, status) {
 }
 
 // Load sw.js into a domesticated global scope and hand back the levers a test needs.
-function swLoad(swPath, fetchImpl, failAdd) {
+function swLoad(swPath, fetchImpl, failAdd, nav) {
   const store = new Map();
   const listeners = {};
   const opened = [];
+  // ITEM 91-A: what the worker DELETED and what it ATTEMPTED to add. Both are behaviour, and
+  // both are invisible to a harness whose `add` neither stores nor records.
+  const deleted = [];
+  const addCalls = [];
   let fetchCalls = 0;
   const keyOf = (r) => (typeof r === 'string' ? SW_ORIGIN + r : r.url);
   const cacheOf = (n) => { if (!store.has(n)) store.set(n, new Map()); return store.get(n); };
@@ -174,9 +231,17 @@ function swLoad(swPath, fetchImpl, failAdd) {
     put: (r, res) => { cacheOf(n).set(keyOf(r), res); return Promise.resolve(); },
     // Item 93: the harness can make a named precache entry reject, which is the only way to ask
     // the worker what it does with a failure it cannot prevent.
-    add: (u) => (failAdd && failAdd(u)
-      ? Promise.reject(new Error('QuotaExceededError (synthetic)'))
-      : Promise.resolve()),
+    // ITEM 91-A: `failAdd` is now handed the eviction log too, so a test can express "this
+    // write fails UNTIL room has been made" -- the only shape in which a retry can be
+    // distinguished from a write that was always going to succeed. A successful add now WRITES,
+    // because "was CORE actually stored" is the acceptance condition of the whole item.
+    add: (u) => {
+      addCalls.push(u);
+      const kind = failAdd && failAdd(u, { deleted: deleted.slice(), adds: addCalls.length });
+      if (kind) return Promise.reject(swAddError(kind === true ? 'quota' : String(kind)));
+      cacheOf(n).set(keyOf(u), swRes('ADDED ' + u));
+      return Promise.resolve();
+    },
     delete: (r) => Promise.resolve(cacheOf(n).delete(keyOf(r))),
   });
   const sandbox = {
@@ -188,7 +253,11 @@ function swLoad(swPath, fetchImpl, failAdd) {
       location: { origin: SW_ORIGIN },
     },
     caches: {
-      open: (n) => { opened.push(n); return Promise.resolve(wrap(n)); },
+      // A real caches.open() CREATES the cache, so caches.keys() lists it from that moment.
+      // Returning a lazy handle instead hid the current store from every keys() call until the
+      // first successful write -- and an eviction that deletes the current store is exactly what
+      // that window made invisible. B12 M2 escaped on this and nothing else.
+      open: (n) => { opened.push(n); cacheOf(n); return Promise.resolve(wrap(n)); },
       match: (r) => {
         for (const n of store.keys()) {
           const h = cacheOf(n).get(keyOf(r));
@@ -197,9 +266,12 @@ function swLoad(swPath, fetchImpl, failAdd) {
         return Promise.resolve(undefined);
       },
       keys: () => Promise.resolve(Array.from(store.keys())),
-      delete: (n) => Promise.resolve(store.delete(n)),
+      delete: (n) => { deleted.push(n); return Promise.resolve(store.delete(n)); },
     },
     fetch: (r) => { fetchCalls++; return fetchImpl(r); },
+    // ITEM 91-A. Left UNDEFINED unless a test supplies one: `typeof navigator === 'undefined'`
+    // then holds inside the worker, which is the old-browser state exactly as a phone has it.
+    navigator: nav,
   };
   vm.runInContext(fs.readFileSync(swPath, 'utf8'), vm.createContext(sandbox), { filename: swPath });
   return {
@@ -212,6 +284,19 @@ function swLoad(swPath, fetchImpl, failAdd) {
       return h ? h._body : undefined;
     },
     self: sandbox.self,
+    // ITEM 91-A levers.
+    storage: () => sandbox.self.ezikStorage,
+    deleted: () => deleted.slice(),
+    adds: () => addCalls.slice(),
+    stores: () => Array.from(store.keys()),
+    has: (name, url) => cacheOf(name).has(SW_ORIGIN + url),
+    seedStore: (name) => { cacheOf(name); },
+    activate: () => {
+      const waits = [];
+      if (typeof listeners.activate !== 'function') return { waits: waits, missing: true };
+      listeners.activate({ waitUntil: (p) => { waits.push(p); } });
+      return { waits: waits, missing: false };
+    },
     install: () => {
       const waits = [];
       if (typeof listeners.install !== 'function') return { waits: waits, missing: true };
@@ -232,6 +317,11 @@ function swLoad(swPath, fetchImpl, failAdd) {
 }
 
 const swSettle = (ps) => Promise.all(ps.map((p) => Promise.resolve(p).catch(() => undefined)));
+// The reason on the one record a B12 state produced, or a sentence naming what it found instead.
+// Never an empty string: a blank would satisfy every negative check that reads it.
+const mineReason = (rec) => (rec.length === 1 && rec[0] && rec[0].reason !== undefined
+  ? rec[0].reason
+  : '(' + rec.length + ' record(s), no single reason)');
 const swBody = async (p) => {
   if (!p) return undefined;
   const r = await Promise.resolve(p).catch(() => undefined);
@@ -693,6 +783,271 @@ async function compare(goldenPath) {
         moved++; no('B11', 'the app shell is no longer network-first');
       }
       if (!moved) ok('the four policies item 80 does not govern are untouched (asset / api / quest-data / shell)');
+    }
+  }
+
+  // -- B12 the service worker's storage quota, EXECUTED (item 91-A) --------
+  //
+  // Four states, and the worker is asked what it DID in each: what it wrote, what it deleted,
+  // what it recorded. Not one assertion below reads a line of sw.js. The states are the four
+  // a reader actually meets -- room to spare, no room before the first byte, room that runs out
+  // half way through, and a browser too old to have been asked.
+  console.log('\n-- B12 service worker: storage quota management (item 91-A) --');
+  if (!fs.existsSync(swPath)) {
+    no('B12', SW_FILE + ' is ABSENT -- the quota policy cannot be executed');
+  } else {
+    const OLD_STORE = 'ezik-v6';
+    const WIDE = { quota: 500 * 1024 * 1024, usage: 1024 * 1024 };
+    // Free space measured in kilobytes against a CORE measured in megabytes. Narrow by
+    // arithmetic, not by a number chosen to sit under a threshold this guard also owns.
+    const NARROW = { quota: 2 * 1024 * 1024, usage: 2 * 1024 * 1024 - 64 * 1024 };
+    const settle = async (r) => { await swSettle(r.waits); };
+
+    // ---- STATE 1: a wide quota. CORE is stored WHOLE, and persistence is asked for once. ----
+    {
+      const nav = swNav(WIDE);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator);
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      const st = h.storage();
+      if (inst.missing) no('B12', SW_FILE + ' registered no install listener');
+      else if (rejected) no('B12', 'a WIDE quota install rejected: ' + rejected.message);
+      else {
+        const name = h.opened[0];
+        const missing = SW_CORE.filter((u) => !h.has(name, u));
+        if (missing.length) {
+          no('B12', 'with room to spare the worker stored only ' + (SW_CORE.length - missing.length)
+            + ' of ' + SW_CORE.length + ' CORE entries; missing ' + missing.join(', ')
+            + '.\n        Item 91-A must not cost the sane case a single file.');
+        } else ok('a wide quota stores all ' + SW_CORE.length + ' CORE entries (91-A costs the sane case nothing)');
+        const rec = h.self.ezikPrecacheFailures || [];
+        if (rec.length) no('B12', 'a wide-quota install recorded ' + rec.length + ' failure(s)');
+        if (!st) {
+          no('B12', 'the worker exposes no storage record at all -- a page cannot tell a full\n'
+            + '        disk from a dead network, which is the whole of item 91-A part 3.');
+        } else {
+          if (nav.calls.estimate < 1) {
+            no('B12', 'navigator.storage.estimate() was NEVER called before the first write.\n'
+              + '        The worker writes into a store it has not measured -- item 91-A part 1.');
+          } else ok('the worker estimates the quota before it writes (' + nav.calls.estimate + ' call(s))');
+          if (nav.calls.persist !== 1) {
+            no('B12', 'navigator.storage.persist() was called ' + nav.calls.persist
+              + ' time(s); item 91-A part 2 says exactly once.');
+          } else if (st.persist !== 'granted') {
+            no('B12', 'persist() resolved TRUE and the worker recorded ' + JSON.stringify(st.persist));
+          } else ok('the worker asks for persistence exactly once and records the grant');
+          if (st.precacheSkipped !== null) {
+            no('B12', 'a wide quota still skipped the precache (' + JSON.stringify(st.precacheSkipped) + ')');
+          }
+          const est = st.estimate;
+          if (!est || typeof est.need !== 'number' || typeof est.free !== 'number') {
+            no('B12', 'the estimate was taken but not RECORDED (' + JSON.stringify(est) + ')');
+          } else if (est.need <= 0) {
+            no('B12', 'the worker needs ' + est.need + ' bytes for CORE -- a threshold of zero\n'
+              + '        is a pre-check that can never refuse anything.');
+          } else ok('the estimate is recorded with the need it was measured against (' + est.need + ' bytes)');
+        }
+      }
+    }
+
+    // ---- STATE 2: too narrow to start. NOTHING is written, and the reason is recorded. ----
+    {
+      const nav = swNav(NARROW);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator);
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      const st = h.storage();
+      if (rejected) {
+        no('B12', 'a NARROW quota REJECTED install (' + rejected.message + '). The worker never\n'
+          + '        activates, so the phone keeps the old build forever -- item 93 in reverse.');
+      } else ok('a quota too narrow for CORE still settles install (the worker activates)');
+      const attempted = h.adds();
+      if (attempted.length !== 0) {
+        no('B12', 'the worker began writing anyway: ' + attempted.length + ' cache.add call(s) into a\n'
+          + '        store measured too small to hold CORE. Item 91-A part 1 says the write does\n'
+          + '        not START -- otherwise the failure list fills with one entry per file and the\n'
+          + '        disk ends exactly as full as it began.');
+      } else ok('a quota too narrow for CORE writes NOTHING (no cache.add is attempted)');
+      if (!st || st.precacheSkipped !== 'quota') {
+        no('B12', 'the skipped precache recorded ' + JSON.stringify(st && st.precacheSkipped)
+          + ', not "quota". A silent skip is indistinguishable from a worker that did its job.');
+      } else ok('the skip is recorded as a quota decision, readable by the page');
+      const est = st && st.estimate;
+      if (!est || typeof est.free !== 'number' || typeof est.need !== 'number' || !(est.free < est.need)) {
+        no('B12', 'the refusal is not backed by a recorded measurement (' + JSON.stringify(est) + ')');
+      } else ok('the refusal carries its arithmetic: ' + est.free + ' free < ' + est.need + ' needed');
+      const rec = h.self.ezikPrecacheFailures || [];
+      if (rec.length !== 0) {
+        no('B12', 'the skipped precache still recorded ' + rec.length + ' per-entry failure(s) --\n'
+          + '        the skip is supposed to REPLACE that list, not populate it');
+      } else ok('a skipped precache records no per-file failures (one decision, not seven)');
+    }
+
+    // ---- STATE 3: the disk fills MID-WRITE. Old stores go, the current one never does. ----
+    {
+      const nav = swNav(WIDE);
+      // Fails every add until an eviction has happened, then stops failing. A retry that was
+      // never going to be needed proves nothing; this one only succeeds because room was made.
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')),
+        (u, ctx) => (ctx.deleted.length === 0 ? 'quota' : false), nav.navigator);
+      h.seedStore(OLD_STORE);
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      const st = h.storage();
+      const gone = h.deleted();
+      if (rejected) no('B12', 'a mid-write quota failure REJECTED install (' + rejected.message + ')');
+      else ok('a disk that fills mid-write still settles install');
+      if (gone.indexOf(SW_CACHE) !== -1) {
+        no('B12', 'the worker deleted its OWN store "' + SW_CACHE + '" to make room for it.\n'
+          + '        That trades the entries already written for the space to write them again,\n'
+          + '        and takes the offline fallback down with them.');
+      } else ok('the eviction never touches the current store "' + SW_CACHE + '"');
+      if (gone.indexOf(OLD_STORE) === -1) {
+        no('B12', 'a full disk did not evict the stale store "' + OLD_STORE + '" (deleted: '
+          + JSON.stringify(gone) + '). Item 91-A part 4: old stores go FIRST, and nothing else\n'
+          + '        on the device is the worker\'s to free.');
+      } else ok('a full disk evicts the stale store "' + OLD_STORE + '" first');
+      if (!st || !(st.evicted > 0)) no('B12', 'the eviction is not recorded (evicted=' + (st && st.evicted) + ')');
+      if (!st || !(st.retried > 0)) {
+        no('B12', 'nothing was retried after the eviction (retried=' + (st && st.retried) + ').\n'
+          + '        Making room and then not using it leaves the reader exactly where they were.');
+      } else ok('the entry is retried after the eviction (' + st.retried + ' retry/retries)');
+      const name = h.opened[0];
+      const stored = SW_CORE.filter((u) => h.has(name, u));
+      if (stored.length !== SW_CORE.length) {
+        no('B12', 'after evicting and retrying, only ' + stored.length + ' of ' + SW_CORE.length
+          + ' CORE entries landed');
+      } else ok('after the eviction the retry stores all ' + SW_CORE.length + ' CORE entries');
+    }
+
+    // ---- STATE 3b: the retry ALSO fails. Recorded ONCE, named, and with its reason. ----
+    {
+      const nav = swNav(WIDE);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')),
+        (u) => (u === '/adhkar.json' ? 'quota' : false), nav.navigator);
+      const inst = h.install();
+      for (const w of inst.waits) { await Promise.resolve(w).catch(() => {}); }
+      const rec = h.self.ezikPrecacheFailures || [];
+      const mine = rec.filter((r) => r && r.url === '/adhkar.json');
+      if (mine.length !== 1) {
+        no('B12', 'an entry that failed twice (write, then retry) was recorded ' + mine.length
+          + ' time(s); a page reading the count would see the same file twice.');
+      } else if (mine[0].reason !== 'quota') {
+        no('B12', 'a QuotaExceededError was filed under reason ' + JSON.stringify(mine[0].reason)
+          + '. Item 91-A part 3: the reason is what tells a full disk from a dead tunnel.');
+      } else ok('an entry whose retry also fails is recorded once, named, and reasoned "quota"');
+    }
+
+    // ---- STATE 3c: a NETWORK failure must not evict anything. ----
+    // The eviction rule is a response to a full disk. Firing it at a dead network would cost a
+    // reader the store they still have in exchange for bytes no deletion can produce.
+    {
+      const nav = swNav(WIDE);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')),
+        (u) => (u === '/adhkar.json' ? 'network' : false), nav.navigator);
+      h.seedStore(OLD_STORE);
+      const inst = h.install();
+      for (const w of inst.waits) { await Promise.resolve(w).catch(() => {}); }
+      const gone = h.deleted();
+      const rec = (h.self.ezikPrecacheFailures || []).filter((r) => r && r.url === '/adhkar.json');
+      if (gone.length !== 0) {
+        no('B12', 'a NETWORK failure evicted ' + JSON.stringify(gone) + '. Deleting a stale store\n'
+          + '        cannot conjure bytes off a dead network; it only costs the reader what they had.');
+      } else ok('a network failure evicts nothing (the eviction rule answers a full disk only)');
+      if (mineReason(rec) !== 'network') {
+        no('B12', 'a failed fetch was filed under reason ' + JSON.stringify(mineReason(rec))
+          + ' instead of "network" -- the two reasons ask opposite things of the reader.');
+      } else ok('a failed fetch is recorded with reason "network"');
+    }
+
+    // ---- STATE 4: no navigator.storage at all. The worker behaves as it did before 91-A. ----
+    // An old browser must not be turned into a worker that caches nothing by a quota check it
+    // cannot answer. This is the state that makes 'unknown' mean WRITE.
+    {
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, undefined);
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      const st = h.storage();
+      if (rejected) {
+        no('B12', 'a browser with no navigator.storage made install REJECT (' + rejected.message
+          + '). The quota check has to be optional or it is a new way to strand a phone.');
+      } else ok('a browser with no navigator.storage still settles install');
+      const name = h.opened[0];
+      const missing = SW_CORE.filter((u) => !h.has(name, u));
+      if (missing.length) {
+        no('B12', 'with no navigator.storage the worker stored only ' + (SW_CORE.length - missing.length)
+          + ' of ' + SW_CORE.length + ' CORE entries (missing ' + missing.join(', ') + ').\n'
+          + '        An unmeasurable quota must mean WRITE, exactly as before item 91-A.');
+      } else ok('with no navigator.storage all ' + SW_CORE.length + ' CORE entries are still stored');
+      if (!st || st.estimate !== 'unavailable' || st.persist !== 'unavailable') {
+        no('B12', 'the missing API was not recorded as unavailable (estimate='
+          + JSON.stringify(st && st.estimate) + ', persist=' + JSON.stringify(st && st.persist) + ')');
+      } else ok('the absent API is recorded as "unavailable", not as a failure');
+    }
+
+    // ---- STATE 2 -> activate: the sweep frees the space, and the retry uses it. ----
+    // Without this the quota skip would be a NEW way to strand a reader: install writes nothing,
+    // activate sweeps the old store, and the device is left holding neither.
+    {
+      let free = NARROW.quota - NARROW.usage;
+      const navigator = { storage: {
+        estimate: () => Promise.resolve({ quota: NARROW.quota, usage: NARROW.quota - free }),
+        persist: () => Promise.resolve(true),
+      } };
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, navigator);
+      h.seedStore(OLD_STORE);
+      const inst = h.install();
+      await swSettle(inst.waits);
+      // The sweep in activate is what frees the room, so the estimate it re-takes must see it.
+      free = WIDE.quota - WIDE.usage;
+      const act = h.activate();
+      if (act.missing) no('B12', SW_FILE + ' registered no activate listener');
+      else {
+        await swSettle(act.waits);
+        const st = h.storage();
+        const name = h.opened[0];
+        const stored = SW_CORE.filter((u) => h.has(name, u));
+        if (h.deleted().indexOf(SW_CACHE) !== -1) {
+          no('B12', 'activate deleted the CURRENT store "' + SW_CACHE + '"');
+        }
+        if (stored.length !== SW_CORE.length) {
+          no('B12', 'a quota-skipped install was never retried after activate swept the old\n'
+            + '        store: only ' + stored.length + ' of ' + SW_CORE.length + ' CORE entries are\n'
+            + '        present, so the reader holds an empty new cache and no old one.');
+        } else ok('a quota-skipped install is retried once activate has swept the old store');
+        if (!st || st.activateRetry !== 'done') {
+          no('B12', 'the post-activate retry is not recorded (activateRetry='
+            + JSON.stringify(st && st.activateRetry) + ')');
+        } else ok('the post-activate retry is recorded on the same channel');
+      }
+    }
+
+    // ---- The constant the pre-check is measured against must still be true on disk. ----
+    // A CORE_BYTES that has fallen below what CORE actually weighs is a pre-check reading a
+    // number that stopped being true: it would wave through a store too small to hold the files.
+    {
+      let onDisk = 0, unreadable = [];
+      for (const f of SW_CORE_FILES) {
+        const p = path.join(__dirname, f);
+        if (!fs.existsSync(p)) { unreadable.push(f); continue; }
+        onDisk += fs.statSync(p).size;
+      }
+      const src = fs.readFileSync(swPath, 'utf8');
+      const m = src.match(/CORE_BYTES\s*=\s*(\d+)/);
+      if (unreadable.length) {
+        no('B12', 'CORE names ' + unreadable.join(', ') + ', which is not on disk');
+      }
+      if (!m) {
+        no('B12', 'sw.js declares no CORE_BYTES constant -- the pre-check has no measured size\n'
+          + '        to compare a quota against, so nothing pins it to the files it describes.');
+      } else if (Number(m[1]) < onDisk) {
+        no('B12', 'CORE_BYTES = ' + m[1] + ' but CORE weighs ' + onDisk + ' bytes on disk. The\n'
+          + '        pre-check is measuring against a number the files outgrew; re-cut it.');
+      } else ok('CORE_BYTES (' + m[1] + ') still covers the ' + onDisk + ' bytes CORE weighs on disk');
     }
   }
 
