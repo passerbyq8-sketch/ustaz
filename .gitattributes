@@ -432,3 +432,10 @@ lib/colon-preamble.js text eol=lf
 # guard reads as text (lib/route-classify.js, lib/finalized-sse-writer.js, lib/colon-preamble.js),
 # and the pin is cheaper than the fourth.
 tools/core-bytes.cjs text eol=lf
+
+# tools/prebuild-jsx.cjs (item 32-a) -- reads the text/babel block out of index.html with the
+# same regex pair the fourteen coupled guards use, and index.html is pinned CRLF above. Pinning
+# the tool itself to LF keeps the reader and the read apart: the tool's own endings are nobody's
+# measurement, and a CRLF checkout of a file that carries regexes is the shape that has already
+# cost this repository three green gates.
+tools/prebuild-jsx.cjs text eol=lf
