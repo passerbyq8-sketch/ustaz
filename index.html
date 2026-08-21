@@ -903,6 +903,34 @@
     border:1px solid transparent;color:var(--a3-ink);cursor:pointer;font-family:inherit;line-height:1}
   .ezc-icon:hover{background:var(--a3-ice)}
   .ezc-icon:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  /* 44-ج -- THE FINGER GETS 44x44; THE EYE KEEPS THE SHAPE IT ALREADY HAD.
+     MEASURED at 430x932 with a coarse pointer, on the chat with a reply on it: 14 controls
+     were under 44x44 -- the drawer toggle at 40x40, the reply strip (listen 67.9x32, copy
+     37.3x31, quote 48.9x31, favourite 31x23, tashkeel 47x31, report 53x32), the five quick
+     actions at ~41 tall, and the drawer row's pin and delete at 32x32. Every one of them
+     failed on HEIGHT, which is what a thumb misses.
+
+     THE PAINTED BOX IS NOT TOUCHED. The hit area is an ::before centred on the control and
+     grown to the minimum -- `width:100%` keeps whatever the control already is, and the two
+     `min-*` only ever raise it. A control that is already big enough gets an overlay exactly
+     its own size, so this rule can be aimed at a whole container without auditing it first.
+     It paints nothing: no background, no border, no content.
+
+     AIMED AT THE FOUR CONTAINERS THAT HOLD THE SMALL CONTROLS, never at `button` globally:
+     a 44px floor under every button on the page would collide with the tightly packed rows
+     the onboarding and the settings screens use, and those controls are already large. */
+  .ezc-icon, .ezc-acts button, .ezc-row button, .ez-hit button { position: relative; }
+  .ezc-icon::before, .ezc-acts button::before, .ezc-row button::before, .ez-hit button::before {
+    content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 100%; height: 100%; min-width: 44px; min-height: 44px; }
+  /* THE ONE PLACE THE FULL 44 DOES NOT FIT, stated rather than quietly dropped. The drawer
+     row's pin and delete are 32px wide and sit 2px apart from each other and from the row
+     button beside them; MEASURED, giving each a 44px-wide area made them overlap by 10px and
+     steal one another's taps. They take the full 44 in HEIGHT -- the direction a thumb
+     actually misses -- and in width they take exactly the space that exists (32 + 1px a side).
+     Widening them further would mean MOVING them, and this item moves nothing: the shape stays
+     where it is, to the pixel. */
+  .ezc-row button::before { min-width: 34px; }
   /* 2. THE TRANSCRIPT. The measure is applied as the SCROLLER'S OWN PADDING -- no wrapper
      was inserted between the scroll container and the messages, so the S97 opening pin
      still measures and positions exactly the element it always did, and the ResizeObserver
@@ -10414,7 +10442,7 @@ function App() {
           <div style={s.incompleteNotice} role="status">{ezT('chat.qa.incomplete')}</div>
         )}
         {quickActionsVisible && (
-          <div style={s.quickRow} role="group" aria-label={ezT("chat.quickActions")}>
+          <div className="ez-hit" style={s.quickRow} role="group" aria-label={ezT("chat.quickActions")}>
             {EZIK_QUICK_ACTIONS.map((qa) => (
               <button
                 key={qa.key}

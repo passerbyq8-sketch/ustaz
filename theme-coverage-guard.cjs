@@ -2300,9 +2300,25 @@ ok('N6: ...and no ezc rule anywhere declares a viewport-wide box',
   eq('N9: not one ezc rule attaches an image, a gradient or a repeat', patterned, []);
   // `content:` only as a DECLARATION -- `justify-content:` is not one, and matching it would
   // have made this check unfailable-by-construction rather than true.
-  ok('N9: ...and none draws a pseudo-element over the transcript',
-    !/\.ezc[a-z0-9-]*[^{]*::(before|after)/.test(css)
-    && !ezcRules.some((r) => /[;{]\s*content\s*:/.test(r)));
+  // 44-ج: AN INVISIBLE PSEUDO-ELEMENT IS NOT A DRAWING. This check used to ask whether an ezc
+  // pseudo-element EXISTS, as a proxy for whether anything is painted over the transcript. The
+  // touch-target overlay is a ::before on .ezc-icon and on the buttons inside .ezc-acts and
+  // .ezc-row, and it paints nothing at all: no background, no border, no shadow, no image, and
+  // `content:""`. So the question is now asked directly rather than through the proxy — which
+  // makes it STRICTER about painting (a background on a pseudo-element is now named as such)
+  // and honest about an empty box that only catches a thumb.
+  const ezcPseudo = (css.match(/\.ezc[a-z0-9-]*[^{}]*::(?:before|after)[^{}]*\{[^}]*\}/g) || []);
+  const painting = ezcPseudo.filter((r) => /background|border(?!-radius)|box-shadow|outline|url\(|gradient|(^|[;{]\s*)color\s*:/.test(r));
+  eq('N9: ...and no pseudo-element PAINTS over the transcript', painting, []);
+  ok('N9: ...and any that exists is an empty box and nothing more',
+    // A rule that merely ADJUSTS an already-declared overlay carries no content of its own,
+    // and that is not a drawing either. What is forbidden is a pseudo-element that puts glyphs
+    // on screen, so the test is: if it declares content at all, that content is empty.
+    ezcPseudo.every((r) => !/content\s*:/.test(r) || /content:\s*""/.test(r)),
+    ezcPseudo.filter((r) => /content\s*:/.test(r) && !/content:\s*""/.test(r)).join(' | '));
+  // A `content:` on a real ezc rule is still forbidden outright: that would put glyphs on screen.
+  ok('N9: ...and no ezc rule of its own declares content',
+    !ezcRules.filter((r) => !/::(?:before|after)/.test(r)).some((r) => /[;{]\s*content\s*:/.test(r)));
   const litRules = ezcRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r) && !/--ezc-scrim/.test(r));
   eq('N9: ...and the only colour it states of its own is the modal scrim', litRules, []);
 }
@@ -3831,6 +3847,50 @@ ok('V10: the typing indicator is never marked as decoration',
 // attribute-match version of this rule cost +0.74 ms on opening the menu.
 ok('V11: reduced motion is still matched by CLASS, never by [style*=...]',
   !/\[style\*=/.test(cssCode));
+
+
+/* ---- W. ITEM 44-ج: THE TOUCH TARGETS, AND THE SHAPES THAT DID NOT MOVE ---- */
+// MEASURED at 430x932 with a coarse pointer, on a chat with a reply on it: 14 controls were under
+// 44x44 -- the drawer toggle at 40x40, the reply strip (favourite was the smallest at 31x23), the
+// five quick actions at ~41 tall, and the drawer row's pin and delete at 32x32. Every one of them
+// failed on HEIGHT.
+const hitRule = (css.match(/\.ezc-icon::before[\s\S]*?\}/) || [''])[0];
+ok('W1: the hit area is an overlay, and it only ever GROWS a control',
+  /min-width:\s*44px/.test(hitRule) && /min-height:\s*44px/.test(hitRule)
+  && /width:\s*100%/.test(hitRule) && /height:\s*100%/.test(hitRule),
+  'the 44px floor is gone, or it stopped following the control it sits on: ' + hitRule);
+// `width:100%` with `min-width:44px` is the whole trick: a control that is already big keeps its
+// own size, so the rule can be aimed at a container without auditing every button inside it.
+ok('W2: it is centred on the control, so a control grows in both directions and does not shift',
+  /left:\s*50%/.test(hitRule) && /top:\s*50%/.test(hitRule)
+  && /transform:\s*translate\(-50%,\s*-50%\)/.test(hitRule));
+// THE SHAPE IS NOT TOUCHED. The overlay paints nothing at all: it carries no background, no
+// border, no shadow and no content beyond the empty string that makes it exist.
+ok('W3: the overlay paints nothing — the visible shape is exactly what it was',
+  /content:\s*""/.test(hitRule)
+  && !/background/.test(hitRule) && !/border/.test(hitRule) && !/box-shadow/.test(hitRule));
+// AIMED, NOT SPRAYED. A 44px floor under every button on the page would grow controls that are
+// already large enough and push their neighbours' hit areas into each other.
+ok('W4: the rule names its containers and is never a bare `button`',
+  /\.ezc-acts button::before/.test(css) && /\.ezc-row button::before/.test(css)
+  && /\.ez-hit button::before/.test(css)
+  && !/(^|[,{}\s])button::before\s*\{/.test(css.replace(/\.[\w-]+ button::before/g, '')));
+ok('W5: the quick-action group carries the hit scope',
+  /className="ez-hit" style=\{s\.quickRow\} role="group"/.test(html));
+// The drawer toggle's PAINTED box is still the 40x40 it always was: the item grows the area a
+// finger gets, never the shape an eye sees.
+// THE ONE EXCEPTION, DECLARED RATHER THAN DISCOVERED. The drawer row's pin and delete are 32px
+// wide and sit 2px apart; MEASURED, a 44px-wide area for each overlapped the other by 10px and
+// stole its taps. They keep the full 44 in HEIGHT and take only the width that exists. This
+// check exists so the narrowing stays deliberate: it may narrow the WIDTH and nothing else.
+const rowExc = (css.match(/\.ezc-row button::before \{[^}]*\}/) || [''])[0];
+ok('W7: the drawer-row exception is declared, and it narrows only the width',
+  /min-width:\s*34px/.test(rowExc) && !/min-height/.test(rowExc) && !/height/.test(rowExc),
+  'the exception is missing, or it started shrinking the height too: ' + rowExc);
+
+ok('W6: the drawer toggle still paints at 40x40',
+  /\.ezc-icon\{[^}]*width:40px;height:40px/.test(css.replace(/\s*\n\s*/g, '')),
+  'the painted size of .ezc-icon moved — the item was supposed to leave it alone');
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
