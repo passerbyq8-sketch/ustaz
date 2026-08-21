@@ -8081,21 +8081,58 @@ function App() {
     const anchorTop = anchor.getBoundingClientRect().top
       - el.getBoundingClientRect().top + el.scrollTop;
 
-    // (1) ROOM. `scrollHeight` already includes whatever spacer is currently applied, so it is
-    // subtracted back out to get the height the turn ACTUALLY occupies below the question. The
-    // shortfall against one viewport is the room still needed, and it therefore shrinks to zero
-    // by itself as a long answer fills the screen. Nothing here is a fixed spacer.
+    // (1) ROOM. The shortfall against one viewport is the room still needed, and it therefore
+    // shrinks to zero by itself as a long answer fills the screen. Nothing here is a fixed spacer.
     //
-    // THE APPLIED HEIGHT IS READ OFF THE ELEMENT, NOT REMEMBERED. The first version of this kept
-    // it in a ref written at the moment `setAskPinPad` was called — that is, one commit BEFORE
-    // the DOM had it. A stream re-renders constantly, so a render landing in that gap measured
-    // `scrollHeight` without the spacer and subtracted a spacer that was already recorded: the
-    // shortfall came back inflated by exactly the pending height, the next pass corrected it in
-    // the other direction, and React stopped the page with «Maximum update depth exceeded»
-    // (#185). The DOM cannot disagree with itself, so it is what is asked.
-    const appliedPad = askPadElRef.current ? askPadElRef.current.offsetHeight : 0;
-    const naturalBelow = el.scrollHeight - appliedPad - anchorTop;
-    const need = Math.max(0, Math.ceil(el.clientHeight - naturalBelow));
+    // THE MEASUREMENT MUST NOT CONTAIN THE SPACER, AND SUBTRACTING IT BACK OUT DOES NOT ACHIEVE
+    // THAT. The previous version read `el.scrollHeight` and took `appliedPad` off it. MEASURED on
+    // a real phone (430x932, DPR 3, coarse pointer), that identity is false twice over:
+    //
+    //   · A spacer in a column flexbox brings a ROW GAP with it. `offsetHeight` is the spacer's
+    //     own box and knows nothing of that gap, so `scrollHeight - appliedPad` came back 14px
+    //     short — the gap — and the pin always needed a SECOND commit to correct itself. Measured
+    //     on a full transcript: 0 -> 553 -> 539, settling on the right number one frame late.
+    //
+    //   · Worse, `scrollHeight` never drops below `clientHeight`. While the transcript is shorter
+    //     than the viewport — which is EVERY first question in a new chat — it stays pinned at
+    //     714 no matter how tall the spacer grows, so subtracting the spacer from it removed a
+    //     height that was never added. `need` then came back larger by exactly `anchorTop` on
+    //     every pass and the effect walked away from its own answer: measured 14, 28, 42, 56, 70,
+    //     84, 98, 112, and only `pinPassRef` stopped it. The breaker was being spent on EVERY
+    //     TURN, and the question it was protecting was never pinned at all.
+    //
+    // So the room is measured from the DOM directly and the spacer is excluded by NOT BEING PART
+    // OF THE READING, rather than by arithmetic. The spacer sits immediately before the end
+    // sentinel, so whichever of the two is present marks the same place — the point where the
+    // real content stops — and the reading is identical whether the spacer is mounted or not.
+    // `need` is therefore a function of the layout alone and NOT of `askPinPad`: the effect can
+    // no longer disagree with its own output, and one write is all it can ever take.
+    //
+    // The gap is subtracted because mounting the spacer is what creates it: a spacer that would
+    // buy less room than its own gap costs is not worth mounting, and `need` correctly comes out
+    // 0 there instead of flickering the element in and out of the tree.
+    //
+    // The #185 HISTORY IS STILL WHY THIS IS READ AND NOT REMEMBERED. An earlier version kept the
+    // applied height in a ref written when `setAskPinPad` was called — one commit BEFORE the DOM
+    // had it — and a render landing in that gap measured a `scrollHeight` without the spacer while
+    // subtracting a spacer already recorded. React stopped the page with «Maximum update depth
+    // exceeded». Nothing below asks anything to remember a height.
+    const tail = askPadElRef.current || messagesEndRef.current;
+    if (!tail) return;
+    // The scroller carries its own bottom padding (.ezc-scroll), and that padding is real room
+    // below the content — `scrollHeight` counted it and a bare rect read does not, so it is
+    // put back explicitly rather than being lost in the change of instrument.
+    // THE VIEW IS ASKED THROUGH THE ELEMENT, AND ONLY IF IT ANSWERS. The guards mount this tree
+    // in linkedom, which has no `getComputedStyle` at all; a bare global call threw inside this
+    // layout effect and took the whole app down with it under every DOM guard. There is no
+    // layout in that environment either -- every rect is 0 -- so falling back to 0 gives the
+    // same answer it would have given anyway, and the browser path is unchanged.
+    const view = el.ownerDocument && el.ownerDocument.defaultView;
+    const cs = view && typeof view.getComputedStyle === 'function' ? view.getComputedStyle(el) : null;
+    const rowGap = cs ? (parseFloat(cs.rowGap) || 0) : 0;
+    const naturalBelow = tail.getBoundingClientRect().top - anchor.getBoundingClientRect().top
+      + (cs ? (parseFloat(cs.paddingBottom) || 0) : 0);
+    const need = Math.max(0, Math.ceil(el.clientHeight - naturalBelow - rowGap));
     // Compared against the RENDERED value, and with a pixel of tolerance, so sub-pixel layout
     // cannot start the same argument by a different route.
     if (Math.abs(need - askPinPad) > 1) {

@@ -3625,5 +3625,69 @@ ok('S1: and no substitute analytics tool took their place',
 // are dropped, which is precisely the drift this count exists to catch.
 eq('S1: the page loads exactly three scripts', (html.match(/<script[^>]*src=["'][^"']+["']/gi) || []).length, 3);
 
+
+/* ---- T. ITEM 102: THE ASK-PIN SETTLES BY ITSELF, AND THE BREAKER STILL SITS ABOVE IT ---- */
+// The pin's layout effect has no dependency list: it runs on EVERY render of the chat, so
+// whatever it computes must be a function of the LAYOUT ALONE. When it was a function of its own
+// previous output as well, the effect walked away from its own answer -- MEASURED in Chrome at
+// 430x932: `need` came back 14, 28, 42, 56, 70, 84, 98, 112 on eight consecutive passes of a
+// single turn, and only `pinPassRef` stopped it. That is what these checks stand over.
+//
+// They are deliberately TWO checks and not one. The first says the room is measured without the
+// spacer in the reading; the second says the breaker is still there anyway. A cure is not a
+// reason to take the fence down, so neither check is allowed to stand in for the other.
+const pinSrc = html.replace(/\r\n/g, '\n');
+const pinEffect = (pinSrc.match(
+  /const anchorTop = anchor\.getBoundingClientRect\(\)\.top[\s\S]*?pinScrollTopRef\.current = el\.scrollTop;/,
+) || [''])[0];
+// Every check below reads the CODE of that effect, never its prose: `pinCode` is the same
+// region with its line comments removed. Asserting against text that includes the comments
+// lets an explanation satisfy a check, and lets an honest explanation break one -- the first
+// draft of T2 failed on the word `scrollHeight` inside the comment that explains why
+// `scrollHeight` may not be used.
+const pinCode = pinEffect.replace(/\/\/[^\n]*/g, '');
+ok('T0: the ask-pin layout effect is still present and still measures from the anchor',
+  pinEffect.length > 0 && /el\.clientHeight/.test(pinEffect));
+
+// THE SETTLING RULE. The room is read off whichever element marks the end of the real content --
+// the spacer when it is mounted, the end sentinel when it is not. Those two sit at the SAME
+// place, so the reading does not change when the spacer appears, and `need` therefore cannot
+// depend on `askPinPad`.
+ok('T1: the room is measured from the content tail, not from the spacer that was applied',
+  /const tail = askPadElRef\.current \|\| messagesEndRef\.current;/.test(pinCode)
+  && /naturalBelow = tail\.getBoundingClientRect\(\)\.top/.test(pinCode),
+  'the tail reading is gone -- `need` can depend on its own output again');
+
+// AND IT MUST NOT GO BACK TO `scrollHeight`. That number never drops below `clientHeight`, so on
+// every first question in a new chat -- where the transcript is shorter than the viewport -- it
+// stays put no matter how tall the spacer grows, and subtracting the spacer from it removes a
+// height that was never added.
+ok('T2: the room measurement does not read el.scrollHeight',
+  !/scrollHeight/.test(pinCode.split('const need =')[0]),
+  'scrollHeight is back in the measurement -- it is clamped at clientHeight and cannot be used here');
+
+// THE GAP THE SPACER BRINGS WITH IT. The scroller is a column flexbox; mounting one more child
+// adds one more row gap, and `offsetHeight` knows nothing about it. Subtracting it is what makes
+// a spacer that would buy less room than its own gap costs come out as 0 instead of flickering.
+ok('T3: the row gap the spacer would introduce is taken off the room it must buy',
+  /const rowGap = [^;]*cs\.rowGap/.test(pinCode)
+  && /- naturalBelow - rowGap/.test(pinCode));
+
+// THE BREAKER, UNCHANGED AND STILL ABOVE THE WRITE. `pinPassRef` is a fence, not a cure: it is
+// what saved the product on the night of 20-21 August and it stays exactly where it was, with
+// the same bound, regardless of the settling rule above being correct.
+const bumpAt = pinCode.indexOf('pinPassRef.current += 1;');
+const boundAt = pinCode.indexOf('if (pinPassRef.current > 8) {');
+const writeAt = pinCode.indexOf('setAskPinPad(need);');
+ok('T4: the pinPassRef breaker is still armed, still bounded at 8, and still ahead of the write',
+  bumpAt !== -1 && boundAt !== -1 && writeAt !== -1
+  && bumpAt < boundAt && boundAt < writeAt
+  && /pinActiveRef\.current = false;\s*\n\s*setAskPinPad\(0\);/.test(pinCode),
+  'the breaker moved, changed bound, or stopped preceding the write');
+// The four places the counter lives, counted in the whole file so a silent deletion elsewhere
+// cannot leave the effect looking healthy on its own.
+eq('T5: pinPassRef still appears at exactly its four code positions',
+  (pinSrc.match(/pinPassRef\.current|const pinPassRef/g) || []).length, 5);
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
