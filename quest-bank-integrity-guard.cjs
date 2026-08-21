@@ -100,6 +100,10 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   item 22+104  -- CACHE 'ezik-v6' -> 'ezik-v7'. index.html is in CORE and item 22+104
+  //                    changed it (the wird strip now leaves the DOM with the chrome), so a
+  //                    returning reader must stop being served the old shell out of the old
+  //                    store. SW_CACHE below is re-cut in the SAME commit as this digest.
   //   item 93      -- a failed precache entry is counted and named instead of swallowed. B11
   //                    gained the three item 93 checks in the SAME commit as this digest.
   //   item 90      -- the two sealed mushaf files left the stale-while-revalidate class and
@@ -109,7 +113,7 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': '7536eb17a140fb419fcba23f575ff436cfe0282cfedd4b298a7efd3391b55de6',
+  'sw.js': 'c87a179f0d0010b07ce1ae6dada91b48f20052a90cdfd645f2857be9cf5d145f',
 };
 
 // ---------------------------------------------------------------------------
@@ -133,7 +137,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v6';
+const SW_CACHE = 'ezik-v7';
 const SW_ORIGIN = 'https://ezik.app';
 // The data-file class item 80 governs, and one member of every class it must NOT
 // have touched. Named by request, because the worker selects by request.
