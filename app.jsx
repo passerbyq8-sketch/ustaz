@@ -13387,6 +13387,113 @@ const MUSHAF_SVG_ON = readMushafSvgFlag();
 // neighbours -- see prefetchMushafSvg below, which is the only prefetch in the reader
 // and stays two deep whichever renderer is running.
 const MADINA_IMG_KEY = 'madina_img_v1';   // device key. '0' = off, anything else = on
+// ============================================================
+// A-4 — حزمةُ العملِ بلا إنترنت: «نزِّلْ هذا الجزء»
+// ============================================================
+// IT RIDES THE MACHINE THAT IS ALREADY THERE AND REBUILDS NONE OF IT. sw.js has had, since
+// item 33, a mushaf-page store of its own (ezik-mushaf-pages-v1), a ceiling in pages, an
+// LRU eviction rule and an estimate before every write. Downloading a juz is therefore not a
+// new storage system: it is FETCHING the pages of that juz, which is exactly what the reader
+// turning to them would do, and letting the worker's own cache-first branch store each one.
+//
+// FOUR CONDITIONS, AND WITHOUT ANY ONE OF THEM THE BUTTON LIES TO THE READER:
+//
+//  1. AN ESTIMATE BEFORE IT STARTS. `need` is computed with the LARGEST page measured across
+//     the 604 shipped files, so it cannot under-estimate, and the test is not "does it fit"
+//     but "does it fit while leaving the worker's own floor intact" -- because below that
+//     floor the worker DECLINES to store, silently and by design. A button that began a
+//     download the worker would decline would show a progress bar for nothing.
+//     When the browser exposes no quota at all the download does NOT start: an estimate that
+//     could not be taken is not an estimate that passed, and the reader is told which it was.
+//
+//  2. A VISIBLE STATE WHILE IT RUNS: how many pages of how many.
+//
+//  3. EVERY FAILURE COUNTED AND SHOWN. There is no catch(()=>{}) on this path and no
+//     swallowed rejection. A page that would not fetch is counted; and because a page can
+//     fetch perfectly and still not be STORED, the worker's own counters are pulled when the
+//     run ends, so a download that succeeded into a full disk says so instead of claiming a
+//     juz is now offline when it is not.
+//
+//  4. THE EVICTION RULE, IN WORDS, from the worker's own cap -- not a second copy of it here.
+//
+// The store name is NOT touched by any of this, and neither is the ceiling.
+
+// Measured over the 604 shipped page files: mean 109,292 bytes, median 108,252, max 323,956.
+// The MAX is the one used, so a juz of unusually heavy pages cannot overrun the estimate.
+const JUZ_DL_PAGE_BYTES = 323956;
+const JUZ_DL_TIMEOUT_MS = 3000;
+
+// The pages of a juz, from the SHIPPED layout -- the same nav rows the index draws, so no
+// second table of juz boundaries exists in this file to disagree with the first.
+function juzPagesFor(jz) {
+  const rows = buildMushafNav();
+  if (!rows) return null;
+  const js = rows.filter((r) => r.k === 'j').slice().sort((a, b) => a.n - b.n);
+  if (js.length !== 30) return null;
+  let i = -1;
+  for (let k = 0; k < js.length; k++) if (js[k].n === jz) i = k;
+  if (i === -1) return null;
+  const from = js[i].p;
+  const to = i < 29 ? js[i + 1].p - 1 : MADINA_IMG_PAGES;
+  if (!(from >= 1) || !(to >= from) || to > MADINA_IMG_PAGES) return null;
+  const out = [];
+  for (let p = from; p <= to; p++) out.push(p);
+  return out;
+}
+// Which juz a page belongs to: the last juz that starts at or before it.
+function juzOfPage(p) {
+  const rows = buildMushafNav();
+  if (!rows) return 0;
+  let found = 0;
+  for (const r of rows) if (r.k === 'j' && r.p <= p && r.n > found) found = r.n;
+  return found;
+}
+
+// THE WORKER'S OWN NUMBERS, pulled on the channel item 93-B opened. Nothing here retypes the
+// cap or the floor. A worker that cannot be reached resolves to null -- which is NOT a
+// swallowed failure: the caller turns it into a refusal the reader can read.
+function swMushafReport() {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (v) => { if (!settled) { settled = true; resolve(v); } };
+    try {
+      const sw = navigator.serviceWorker;
+      if (!sw || !sw.controller || typeof MessageChannel !== 'function') { finish(null); return; }
+      const ch = new MessageChannel();
+      ch.port1.onmessage = (e) => finish((e && e.data) || null);
+      sw.controller.postMessage({ ezik: 'precache-status' }, [ch.port2]);
+      setTimeout(() => finish(null), JUZ_DL_TIMEOUT_MS);
+    } catch (e) { finish(null); }
+  });
+}
+// The device's free space, taken FRESH at the moment of the press.
+function juzFreeSpace() {
+  return new Promise((resolve) => {
+    try {
+      if (!navigator.storage || typeof navigator.storage.estimate !== 'function') { resolve(null); return; }
+      navigator.storage.estimate().then((e) => {
+        if (!e || typeof e.quota !== 'number' || typeof e.usage !== 'number') { resolve(null); return; }
+        resolve(e.quota - e.usage);
+      }, () => resolve(null));
+    } catch (e) { resolve(null); }
+  });
+}
+// CONDITION 1, as one pure decision so it can be driven by a guard without a browser.
+function juzRoomVerdict(policy, free, pageCount) {
+  if (!policy || typeof policy.cap !== 'number' || typeof policy.minFree !== 'number') {
+    return { ok: false, why: 'noworker' };
+  }
+  const need = pageCount * JUZ_DL_PAGE_BYTES;
+  if (typeof free !== 'number' || !isFinite(free)) {
+    return { ok: false, why: 'unmeasured', need: need, cap: policy.cap, minFree: policy.minFree };
+  }
+  if ((free - need) < policy.minFree) {
+    return { ok: false, why: 'nospace', need: need, free: free, cap: policy.cap, minFree: policy.minFree };
+  }
+  return { ok: true, why: 'room', need: need, free: free, cap: policy.cap, minFree: policy.minFree };
+}
+const juzMb = (n) => toArabicDigits(Math.max(1, Math.round(n / (1024 * 1024))));
+
 const MADINA_IMG_PAGES = 604;             // printed pages 1..604, and no other page
 // ITEM 33. The service worker keeps these pages in a store of their own and holds at most
 // this many, evicting the least recently used. The number is repeated here because a page
@@ -13955,6 +14062,24 @@ function dailyWirdLines(dw, pageTarget) {
 
 // THE VISIBLE TEXT OF THIS LAYER, all of it, in one place so the guard can scan one region.
 // Not one of these strings names a time, an alert, or anything that rings.
+const JD_TITLE = 'العملُ بلا إنترنت';
+const JD_BTN = 'نزِّلْ هذا الجزء';
+const JD_BUSY = 'ينزلُ الآن';
+const JD_NO_WORKER = 'لا يمكن التنزيل الآن: خدمةُ التخزين على هذا الجهاز غير عاملة.';
+const JD_UNMEASURED = 'لم يتيسّر قياسُ المساحة على هذا الجهاز، فلم يبدأِ التنزيل.';
+const JD_NOSPACE_A = 'المساحةُ لا تكفي: يحتاج هذا الجزء نحو ';
+const JD_NOSPACE_B = ' م.ب، والمتاح ';
+const JD_NOSPACE_C = ' م.ب، ولا بدّ من إبقاء ';
+const JD_NOSPACE_D = ' م.ب حرّة. لم يبدأِ التنزيل.';
+const JD_OF = ' من ';
+const JD_DONE = 'تمّ حفظُ الجزء على هذا الجهاز.';
+const JD_FAILED_A = 'أخفق ';
+const JD_FAILED_B = ' من الصفحات ولم تُحفَظ.';
+const JD_DECLINED_A = 'ولم تُحفَظ ';
+const JD_DECLINED_B = ' صفحة لضيق المساحة.';
+const JD_RULE_A = 'يحفظُ الجهازُ ';
+const JD_RULE_PLAIN = 'إذا امتلأ مخزنُ الصفحات حُذِفت الأقدمُ استعمالًا أوّلًا.';
+const JD_RULE_B = ' صفحةً من المصحف؛ فإذا امتلأ حُذِفت الأقدمُ استعمالًا أوّلًا.';
 const DW_CARD_TITLE = 'وِردي اليوم';
 const DW_CARD_EMPTY = 'لم تختر بعد. اختر من المصحف أو الأذكار أو المحفّظ.';
 const DW_LINE_MUSHAF = 'المصحف:';
@@ -14159,6 +14284,67 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // A-3: the reader's own choice of WHAT the mushaf wird is. The page count keeps living in
   // its own key; this holds the kind, and the surah when a surah is what was chosen.
   const [dailyWird, setDailyWird] = useState(readDailyWird);
+  // A-4: the offline package's whole state. null until the reader presses.
+  const [juzDl, setJuzDl] = useState(null);
+  // A-4: the worker's own ceiling, pulled when the panel opens so the eviction rule is on
+  // screen BEFORE the reader presses anything -- and never retyped from sw.js.
+  const [juzCap, setJuzCap] = useState(0);
+  useEffect(() => {
+    if (!picker) return undefined;
+    let alive = true;
+    swMushafReport().then((r) => {
+      const p = r && r.storage ? r.storage.mushafPolicy : null;
+      if (alive && p && typeof p.cap === 'number') setJuzCap(p.cap);
+    });
+    return () => { alive = false; };
+  }, [picker]);
+  const runJuzDownload = async () => {
+    if (juzDl && juzDl.phase === 'run') return;          // one press cannot become two runs
+    const jz = juzOfPage(page);
+    const pages = jz ? juzPagesFor(jz) : null;
+    if (!jz || !pages || !pages.length) { setJuzDl({ phase: 'fail', note: JD_NO_WORKER }); return; }
+    setJuzDl({ phase: 'check', juz: jz, total: pages.length, done: 0, failed: 0 });
+    // CONDITION 1 -- the estimate, before a single byte is fetched.
+    const report = await swMushafReport();
+    const policy = report && report.storage ? report.storage.mushafPolicy : null;
+    const free = await juzFreeSpace();
+    const verdict = juzRoomVerdict(policy, free, pages.length);
+    if (!verdict.ok) {
+      const note = verdict.why === 'noworker' ? JD_NO_WORKER
+        : verdict.why === 'unmeasured' ? JD_UNMEASURED
+        : (JD_NOSPACE_A + juzMb(verdict.need) + JD_NOSPACE_B + juzMb(verdict.free)
+           + JD_NOSPACE_C + juzMb(verdict.minFree) + JD_NOSPACE_D);
+      setJuzDl({ phase: 'fail', juz: jz, total: pages.length, done: 0, failed: 0, note: note, cap: verdict.cap });
+      return;
+    }
+    // CONDITION 2 + 3 -- a visible count as it goes, and every failure counted by name.
+    let done = 0, failed = 0;
+    for (let i = 0; i < pages.length; i++) {
+      const url = madinaImgUrl(pages[i]);
+      if (!url) { failed++; setJuzDl({ phase: 'run', juz: jz, total: pages.length, done: done, failed: failed, cap: verdict.cap }); continue; }
+      try {
+        const res = await fetch(url);
+        if (res && res.ok) done++; else failed++;
+      } catch (e) {
+        failed++;   // counted, never swallowed: this number reaches the reader below
+      }
+      setJuzDl({ phase: 'run', juz: jz, total: pages.length, done: done, failed: failed, cap: verdict.cap });
+    }
+    // A page can fetch perfectly and still not be STORED. Ask the worker what it actually
+    // wrote, so a full disk is reported rather than covered by a finished progress count.
+    const after = await swMushafReport();
+    const m = after && after.storage ? after.storage.mushaf : null;
+    const before = report && report.storage ? report.storage.mushaf : null;
+    const declined = (m && before && typeof m.skipped === 'number' && typeof before.skipped === 'number')
+      ? Math.max(0, m.skipped - before.skipped) : 0;
+    const storeFailed = (m && before && typeof m.failed === 'number' && typeof before.failed === 'number')
+      ? Math.max(0, m.failed - before.failed) : 0;
+    const bad = failed + storeFailed;
+    let note = bad ? (JD_FAILED_A + toArabicDigits(bad) + JD_FAILED_B) : JD_DONE;
+    if (declined) note = note + ' ' + JD_DECLINED_A + toArabicDigits(declined) + JD_DECLINED_B;
+    setJuzDl({ phase: (bad || declined) ? 'fail' : 'done', juz: jz, total: pages.length,
+      done: done, failed: bad, declined: declined, note: note, cap: verdict.cap });
+  };
   const dailyWirdValue = dailyWird.mushaf.mode === 'surah' && dailyWird.mushaf.surah
     ? ('surah:' + dailyWird.mushaf.surah)
     : (dailyWird.mushaf.mode === 'pages' && wirdTarget ? ('pages:' + wirdTarget) : '');
@@ -14592,6 +14778,19 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
             <button onClick={pickerGo} style={{ ...s.wirdChip, ...s.wirdChipOn }}>تثبيت</button>
           </div>
           <button onClick={dropTarget} style={s.wirdNone}>بلا ورد</button>
+          {/* A-4: the offline package. Four conditions, all four visible on this panel. */}
+          <div style={s.a11yGroupLabel}>{JD_TITLE}</div>
+          <button type="button" onClick={runJuzDownload}
+            disabled={!!(juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check'))}
+            className="ezik-focus" style={s.wirdChip}>
+            {juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check') ? JD_BUSY : JD_BTN}
+          </button>
+          {juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check') ? (
+            <div style={s.wirdText}>{toArabicDigits(juzDl.done) + JD_OF + toArabicDigits(juzDl.total)}</div>
+          ) : null}
+          {juzDl && juzDl.note ? <div style={s.wirdText}>{juzDl.note}</div> : null}
+          <div style={s.wirdText}>{(juzCap || (juzDl && juzDl.cap))
+            ? (JD_RULE_A + toArabicDigits(juzCap || juzDl.cap) + JD_RULE_B) : JD_RULE_PLAIN}</div>
         </div>
       </div>
       )}

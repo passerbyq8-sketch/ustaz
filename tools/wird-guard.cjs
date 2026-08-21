@@ -2285,6 +2285,120 @@ if (oLifted) {
     && SRC.indexOf("type='time'") === -1);
 }
 
+
+// ---------------------------------------------------------------------------
+// P. ROUND 25 A-4 -- THE OFFLINE PACKAGE, AND THE FOUR CONDITIONS IT STANDS ON
+// ---------------------------------------------------------------------------
+// The WORKER side of this item is B16 in quest-bank-integrity-guard.cjs: the published
+// ceiling, the floor, the store name, and the proof that the ceiling holds the largest juz
+// whole. (It lives there because the juz ranges come out of mushaf-layout.json, and THIS
+// guard opens no asset but the shipped client -- a rule this item does not get to weaken.)
+//
+// This is the PAGE side: the four conditions without any one of which the button lies.
+//   1. an estimate BEFORE the first byte, and a refusal that says why;
+//   2. a visible count while it runs;
+//   3. every failure counted and shown -- no swallowed rejection anywhere on the path;
+//   4. the eviction rule, in words, on the same panel.
+// The room decision is a PURE function on purpose, so every branch of condition 1 is driven
+// here with no browser, no disk and no worker.
+
+// The control is an arrow, not a `function` declaration, so it gets its own brace-matched
+// lift -- and a THROW when the anchor is gone, never a silent empty string that would make
+// every check below pass by reading nothing.
+function liftArrow(name) {
+  const sig = 'const ' + name + ' = async () => {';
+  const i = SRC.indexOf(sig);
+  if (i < 0) throw new Error('wird-guard A-4: ' + name + ' not found in the shipped client');
+  const open = SRC.indexOf('{', i + sig.length - 1);
+  let depth = 0;
+  for (let j = open; j < SRC.length; j++) {
+    if (SRC[j] === '{') depth++;
+    else if (SRC[j] === '}') { depth--; if (depth === 0) return SRC.slice(i, j + 1); }
+  }
+  throw new Error('wird-guard A-4: ' + name + ' has unbalanced braces');
+}
+
+const P_CONSTS = ['JUZ_DL_PAGE_BYTES', 'MADINA_IMG_PAGES'];
+const P_FNS = ['juzPagesFor', 'juzOfPage', 'juzRoomVerdict'];
+const pConsts = {};
+const pFns = {};
+let pLifted = true;
+for (const n of P_CONSTS) { pConsts[n] = liftConst(n); if (!ok('A-4: lift const ' + n, !!pConsts[n])) pLifted = false; }
+for (const n of P_FNS) { pFns[n] = liftFunction(n); if (!ok('A-4: lift function ' + n, !!pFns[n])) pLifted = false; }
+
+if (pLifted) {
+  const P_LIFTED = P_CONSTS.map((n) => pConsts[n]).concat([pFns.juzRoomVerdict]).join('\n\n');
+  const PS = new Function('Object',
+    P_LIFTED + '\nreturn { JUZ_DL_PAGE_BYTES, MADINA_IMG_PAGES, juzRoomVerdict };')(Object);
+
+  /* ---- CONDITION 1, every branch of it ---- */
+  const POL = { cap: 60, minFree: 50 * 1024 * 1024 };
+  const need23 = 23 * PS.JUZ_DL_PAGE_BYTES;
+  eq('A-4: with no worker to answer, the download does not start',
+    PS.juzRoomVerdict(null, 1e12, 23).why, 'noworker');
+  ok('A-4: ...and that is a refusal, not a silent pass', PS.juzRoomVerdict(null, 1e12, 23).ok === false);
+  eq('A-4: with the free space unmeasurable, the download does not start',
+    PS.juzRoomVerdict(POL, null, 23).why, 'unmeasured');
+  ok('A-4: ...because an estimate that could not be taken is not an estimate that passed',
+    PS.juzRoomVerdict(POL, null, 23).ok === false);
+  eq('A-4: one byte short of the worker\'s own floor, it does not start',
+    PS.juzRoomVerdict(POL, need23 + POL.minFree - 1, 23).why, 'nospace');
+  ok('A-4: exactly at the floor it starts', PS.juzRoomVerdict(POL, need23 + POL.minFree, 23).ok === true);
+  ok('A-4: the refusal carries the three numbers the reader is owed',
+    (function () {
+      const v = PS.juzRoomVerdict(POL, 1000, 23);
+      return v.need === need23 && v.free === 1000 && v.minFree === POL.minFree;
+    })());
+  ok('A-4: the need is the page count times the per-page estimate, never less',
+    PS.juzRoomVerdict(POL, 1e12, 23).need === 23 * PS.JUZ_DL_PAGE_BYTES);
+  eq('A-4: the printed book is still 604 pages', PS.MADINA_IMG_PAGES, 604);
+
+  /* ---- CONDITIONS 2, 3 and 4, in the control itself ---- */
+  let runSrc = '';
+  let threwByName = false;
+  try { runSrc = liftArrow('runJuzDownload'); } catch (e) { threwByName = true; }
+  ok('A-4: the download control was found in the shipped client', !threwByName && runSrc.length > 400);
+  if (runSrc.length > 400) {
+    const fetchAt = runSrc.indexOf('await fetch(');
+    const verdictAt = runSrc.indexOf('juzRoomVerdict(');
+    ok('A-4: CONDITION 1 -- the room is decided BEFORE the first page is fetched',
+      verdictAt !== -1 && fetchAt !== -1 && verdictAt < fetchAt);
+    ok('A-4: ...and a refused verdict returns without fetching anything',
+      /if \(!verdict\.ok\)[\s\S]*?return;/.test(runSrc));
+    ok('A-4: CONDITION 2 -- how many of how many is put on screen as it runs',
+      runSrc.indexOf('total: pages.length, done: done') !== -1);
+    ok('A-4: CONDITION 3 -- no swallowed rejection: there is no empty catch on the path',
+      !/catch\s*\([^)]*\)\s*\{\s*\}/.test(runSrc)
+      && !/catch\s*\(\s*\(\s*\)\s*=>\s*\{\s*\}\s*\)/.test(runSrc));
+    ok('A-4: ...and the one catch there is COUNTS the failure it caught',
+      /catch \(e\) \{[\s\S]{0,80}failed\+\+/.test(runSrc));
+    ok('A-4: ...and a page that fetched but was never STORED is reported too',
+      runSrc.indexOf('skipped') !== -1 && runSrc.indexOf('storeFailed') !== -1);
+    ok('A-4: ...and one press cannot become two runs',
+      runSrc.indexOf("juzDl.phase === 'run'") !== -1);
+  }
+  const ruleTail = liftConst('JD_RULE_B') || '';
+  const ruleHead = liftConst('JD_RULE_A') || '';
+  ok('A-4: CONDITION 4 -- the eviction rule is a real sentence, not a label',
+    ruleHead.length > 20 && ruleTail.length > 30);
+  // Same PANEL, not merely same file: the rule has to be in front of the reader where the
+  // button is, so the two are required to sit within a screenful of each other in the source.
+  ok('A-4: ...and it is rendered on the same panel as the button',
+    (function () {
+      const btn = SRC.lastIndexOf('JD_BUSY : JD_BTN');
+      const rule = SRC.lastIndexOf('JD_RULE_A + toArabicDigits(');
+      return btn !== -1 && rule !== -1 && rule > btn && (rule - btn) < 1200;
+    })());
+  ok('A-4: the ceiling in that sentence is the WORKER\'s, pulled, never retyped in the client',
+    SRC.indexOf('mushafPolicy') !== -1 && !/const JUZ_DL_CAP\b/.test(SRC));
+  // The storage is the WORKER's job and stays the worker's job: the page fetches, and the
+  // worker's own cache-first branch decides what is kept. A page that opened a cache itself
+  // would be a second store with no ceiling and no eviction rule behind it.
+  ok('A-4: the page opens no cache of its own -- storing stays with the worker',
+    SRC.length > 0 && SRC.indexOf('caches.open(') === -1 && SRC.indexOf('caches.match(') === -1
+    && SRC.indexOf('caches.delete(') === -1 && SRC.indexOf('caches.keys(') === -1);
+}
+
 function report() {
   const line = '-'.repeat(58);
   console.log(line);

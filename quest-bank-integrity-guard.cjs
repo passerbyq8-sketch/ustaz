@@ -155,7 +155,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': 'a6e5ac4fc3d3bc54714a0c2d7387f153a583bebda36fc7c6b8a3aef6b8345476',
+  'sw.js': 'e432cd8ae4fce076f2d61ef03eb3d052e36444ebb86ba0f5d2aa3f0a1fd8840e',
 };
 
 // ---------------------------------------------------------------------------
@@ -404,6 +404,19 @@ function swLoad(swPath, fetchImpl, failAdd, nav, clientsOpt, failPut) {
       if (typeof listeners.install !== 'function') return { waits: waits, missing: true };
       listeners.install({ waitUntil: (p) => { waits.push(p); } });
       return { waits: waits, missing: false };
+    },
+    // A-4: the pull channel, driven. The worker answers 'precache-status' on the port the
+    // page hands it, and that reply is the ONLY place the page can learn the store's ceiling
+    // and its floor -- so it is behaviour, and it is tested rather than assumed.
+    message: (data) => {
+      if (typeof listeners.message !== 'function') return { missing: true, reply: null };
+      let reply = null;
+      listeners.message({
+        data: data,
+        ports: [{ postMessage: (m) => { reply = m; } }],
+        waitUntil: () => {},
+      });
+      return { missing: false, reply: reply };
     },
     dispatch: (url, mode) => {
       let responded = null;
@@ -1756,6 +1769,114 @@ async function compare(goldenPath) {
           + '. A full disk and a dead tunnel ask opposite things of the reader.');
       } else {
         ok('a rejected page write is counted and named on the item 93 channel, and costs no reader');
+      }
+    }
+  }
+
+  // -- B16 the offline package's contract with the page (round 25, A-4) ----
+  //
+  // The page offers "download this juz". It may only do that if it can state the eviction rule
+  // and refuse to start when the disk cannot hold the juz -- and BOTH numbers have to come from
+  // this worker, because a second copy of a ceiling is a ceiling that drifts. So the worker now
+  // publishes its policy on the channel item 93-B opened, and this asks it to.
+  //
+  // THE CONFLICT CHECK THE ROUND DEMANDED IS FIXED HERE AS AN ASSERTION rather than left as a
+  // measurement somebody took once: the ceiling is re-derived against the LARGEST juz in the
+  // shipped layout on every run. If a future edit lowers the cap under a juz, the button would
+  // start evicting the front of the juz while still downloading the back of it -- finishing at
+  // 100% with an incomplete juz on the device, which is the exact shape of lie this item bans.
+  console.log('\n-- B16 offline package: the policy the page is answered with (A-4) --');
+  if (!fs.existsSync(SW_FILE)) no('B16', SW_FILE + ' is ABSENT -- the policy cannot be read');
+  else {
+    const w = swLoad(SW_FILE, () => Promise.resolve(swRes('x')), null,
+      { storage: { estimate: () => Promise.resolve({ quota: 1e9, usage: 0 }) } }, null, null);
+    const m = w.message({ ezik: 'precache-status' });
+    if (m.missing) no('B16', 'the worker registered no message listener, so the page can ask it nothing');
+    else if (!m.reply || !m.reply.storage) no('B16', 'the pull channel answered without a storage record');
+    else {
+      const pol = m.reply.storage.mushafPolicy;
+      if (!pol || typeof pol.cap !== 'number' || typeof pol.minFree !== 'number') {
+        no('B16', 'the worker publishes no mushaf policy, so the page can only guess the ceiling '
+          + 'and the floor it must respect: ' + JSON.stringify(pol));
+      } else {
+        if (pol.cap === SW_MUSHAF_CAP) ok('the worker publishes its page ceiling (' + pol.cap + ') to the page');
+        else no('B16', 'the published ceiling is ' + pol.cap + ' but the worker enforces ' + SW_MUSHAF_CAP);
+        if (pol.minFree > 0) ok('...and the free-space floor it declines below (' + pol.minFree + ' bytes)');
+        else no('B16', 'the published floor is not a positive number of bytes: ' + pol.minFree);
+
+        // THE CAP AGAINST THE LARGEST JUZ, re-derived from the shipped layout every run.
+        let biggest = 0, biggestJuz = 0;
+        try {
+          const layout = JSON.parse(fs.readFileSync('mushaf-layout.json', 'utf8'));
+          const JUZ1 = { 1: '1:1', 2: '2:142', 3: '2:253', 4: '3:92', 5: '4:24', 6: '4:148',
+            7: '5:82', 8: '6:111', 9: '7:88', 10: '8:41', 11: '9:93', 12: '11:6', 13: '12:53',
+            14: '15:1', 15: '17:1', 16: '18:75', 17: '21:1', 18: '23:1', 19: '25:21', 20: '27:56',
+            21: '29:46', 22: '33:31', 23: '36:28', 24: '39:32', 25: '41:47', 26: '46:1',
+            27: '51:31', 28: '58:1', 29: '67:1', 30: '78:1' };
+          const wordPage = {};
+          for (const pg of layout.p) {
+            for (const ln of pg.l) {
+              if (ln.t !== 't' || !ln.w) continue;
+              for (const loc of ln.w) if (!(loc in wordPage)) wordPage[loc] = pg.n;
+            }
+          }
+          const total = layout.pages;
+          const start = {};
+          for (let j = 1; j <= 30; j++) start[j] = wordPage[JUZ1[j] + ':1'];
+          for (let j = 1; j <= 30; j++) {
+            const a = start[j];
+            const b = j < 30 ? start[j + 1] - 1 : total;
+            if (!a || !b) { biggest = 0; break; }
+            const n = b - a + 1;
+            if (n > biggest) { biggest = n; biggestJuz = j; }
+          }
+        } catch (e) { biggest = 0; }
+        if (!biggest) {
+          no('B16', 'the juz page ranges could not be derived from mushaf-layout.json, so the '
+            + 'ceiling could not be checked against a juz at all');
+        } else if (pol.cap < biggest) {
+          no('B16', 'THE CEILING IS UNDER A JUZ: the store holds ' + pol.cap + ' pages but juz '
+            + biggestJuz + ' is ' + biggest + ' pages. A download of it would evict its own '
+            + 'front while fetching its back and finish claiming a juz that is not there.');
+        } else {
+          ok('the ceiling (' + pol.cap + ' pages) holds the LARGEST juz (' + biggestJuz + ', '
+            + biggest + ' pages) whole');
+        }
+      }
+      // THE ESTIMATE MUST NOT BE ABLE TO UNDER-ESTIMATE. The page refuses to start a download
+      // it cannot fit, and it sizes the juz as pageCount x JUZ_DL_PAGE_BYTES. If that constant
+      // ever slips below the LARGEST page actually shipped, the refusal stops being safe: a juz
+      // of heavy pages would be waved through and then run the disk out mid-download.
+      let perPage = 0;
+      try {
+        const m = fs.readFileSync('app.jsx', 'utf8').match(/const JUZ_DL_PAGE_BYTES = ([0-9]+);/);
+        perPage = m ? Number(m[1]) : 0;
+      } catch (e) { perPage = 0; }
+      let maxPage = 0, pageFiles = 0;
+      try {
+        const dir = 'assets/madina-hafs';
+        for (const f of fs.readdirSync(dir)) {
+          if (!/^page-[0-9][0-9][0-9]\.webp$/.test(f)) continue;
+          pageFiles++;
+          const sz = fs.statSync(dir + '/' + f).size;
+          if (sz > maxPage) maxPage = sz;
+        }
+      } catch (e) { maxPage = 0; }
+      if (!perPage) no('B16', 'the page-size estimate JUZ_DL_PAGE_BYTES was not found in app.jsx');
+      else if (!pageFiles) no('B16', 'no shipped page files were found to measure the estimate against');
+      else if (perPage < maxPage) {
+        no('B16', 'the per-page estimate is ' + perPage + ' but the largest shipped page is '
+          + maxPage + ' -- the refusal can be waved through on a juz it cannot fit');
+      } else {
+        ok('the per-page estimate (' + perPage + ') is at least the largest of the ' + pageFiles
+          + ' shipped pages (' + maxPage + '), so it cannot under-estimate a juz');
+      }
+
+      // The store's name is what makes the pages survive a ship. A-4 must not have touched it.
+      if (fs.readFileSync(SW_FILE, 'utf8').indexOf("'" + SW_MUSHAF_CACHE + "'") !== -1) {
+        ok('the page store still carries its own unversioned name (' + SW_MUSHAF_CACHE + ')');
+      } else {
+        no('B16', 'the mushaf store name moved; every page a reader already paid for is orphaned');
       }
     }
   }
