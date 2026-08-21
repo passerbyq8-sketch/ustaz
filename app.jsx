@@ -4030,7 +4030,26 @@ const readAdhkarUiFlag = () => {
   // No parameter: the default is V2, and only a stored, well-formed refusal turns it off.
   try { return localStorage.getItem(ADHKAR_UI_V2_KEY) !== '0'; } catch (e) { return true; }
 };
-const ADHKAR_UI_V2_ON = readAdhkarUiFlag();
+// ITEM 32 (commit three) -- THE ROLLBACK IS RETIRED, and this one line is the whole of it.
+//
+// WHAT CHANGES FOR A READER. Nothing, unless that reader had typed ?adhkarui=0 at some point
+// on this device: V2 has been the default since session 84 and the parameter was the escape
+// hatch for it. The hatch is now shut, so a device carrying a stored '0' opens V2 like every
+// other device on its next visit.
+//
+// WHAT IS DELIBERATELY NOT DONE HERE. AdhkarScreenV1 is untouched, and so are readAdhkarUiFlag
+// and ADHKAR_UI_V2_KEY above -- deleting the screen a lever protected in the same commit that
+// shuts the lever leaves nothing to go back to if shutting it was wrong. The lever is shut
+// first and alone; the screen and the reader come out separately, or not at all.
+//
+// THE OTHER TWO LEVERS OF THIS SHAPE ARE STILL LIVE, ON PURPOSE. ?mushafsvg=0 and
+// ?madinaimg=0 both roll a QUR'AN RENDERER back on a device, and both are executed and
+// asserted by tools/madina-hafs-guard.cjs (its section 5a drives ten parameter and storage
+// cases through the madinaimg switch) and named at eight sites in theme-coverage-guard.cjs.
+// Shutting either one means re-cutting roughly twenty assertions to say the opposite of what
+// they say today, and taking a printed-mushaf rollback away from readers who chose it. That
+// is an owner's decision, not a build one, and it is recorded in BABEL-32-REPORT.md as open.
+const ADHKAR_UI_V2_ON = true;
 
 // Session 85 -- the royal-blue header pattern that used to live here is GONE with the band it
 // painted. Neither new design draws a large filled blue rectangle: both open with a compact
