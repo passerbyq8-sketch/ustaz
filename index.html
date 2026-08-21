@@ -4853,7 +4853,7 @@ function EzistTopNav({ onOpenMenu }) {
 // The greeting and the daily line are the ones the app already picked -- getHomeGreeting() ran
 // once in the owner, and this draws its text. The two adhkar windows stay buttons to the
 // adhkar screen; the day line is a button too, and what it does is replace its own text.
-function EzistMasthead({ name, g, onOpenAdhkar }) {
+function EzistMasthead({ name, g, hijri, onOpenAdhkar }) {
   const tap = !!(g && g.tappable);
   // ITEM 97 -- THE PRESS STAYS ON THIS SCREEN. The morning and evening lines are untouched:
   // same string, same onOpenAdhkar, same rect. Only the DAY line is different, and what it
@@ -4881,6 +4881,11 @@ function EzistMasthead({ name, g, onOpenAdhkar }) {
       <div className="ezist-hello">
         <div style={s.ezistSalam}>{EZH_SALAM}</div>
         <h1 style={s.ezistName}>{EZH_HELLO} {name}</h1>
+        {/* ITEM 109: the date, on the screen that already speaks about the day — MEASURED
+            first: this app displayed no date at all before this line, so there was no existing
+            place to join. It is a prop, not a read: the owner below reads the store, exactly as
+            it does for the wird, and this component keeps drawing only what it is handed. */}
+        {hijri ? <div style={s.ezistHijri}>{hijri}</div> : null}
       </div>
       <span className="ezist-rule-short" aria-hidden="true" />
       {tap ? (
@@ -4961,7 +4966,7 @@ function EzikIstanaHome(v) {
       <EzistTopNav onOpenMenu={v.onOpenMenu} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
-          <EzistMasthead name={v.name} g={v.greeting} onOpenAdhkar={v.onOpenAdhkar} />
+          <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
           {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
               The panel itself did not change: same component, same getDailyVerse(), same text
               printed verbatim. Only where it is drawn moved. */}
@@ -4987,8 +4992,13 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
+  // ITEM 109: the same discipline as the wird above — the OWNER reads the device, the
+  // presentation components are handed the result. An empty string when the conversion could
+  // not be made, so the masthead draws nothing rather than a wrong day.
+  const hijri = hijriTodayLabel();
   const view = {
     name: profile?.name,
+    hijri: hijri,
     greeting: g,
     wird: wird,
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
@@ -12906,6 +12916,198 @@ function EzShell({ title, onBack, backLabel, actions, children }) {
 // One group inside the shell: a heading, a bounded Iznik marker, the screen's own controls,
 // and the hint the screen already showed. `wide` is the only layout choice a tenant makes.
 // ============================================================
+// ITEM 109 — التاريخ الهجريّ، محسوبًا على تقويمٍ مسمًّى
+// ============================================================
+// THE FAULT: an arithmetical Hijri calendar drifts from the calendar people actually live by.
+// The tabular rule inserts its leap day on a 30-year cycle; a real calendar is fixed by a
+// decision about a crescent. Measured against Umm al-Qura across the dates below, the tabular
+// value ran 0 to 2 days early — which is exactly the size of error that makes a date line worse
+// than no date line at all.
+//
+// SO THE CONVERSION IS PINNED TO A CALENDAR THAT IS NAMED HERE BY ITS NAME. `islamic-umalqura`
+// is a real calendar with real tabulated month lengths, and it ships with the browser: this is
+// a local lookup through Intl, not a request. Two things are asserted before its answer is used:
+// the formatter must RESOLVE to that calendar (an engine that quietly substitutes islamic-civil
+// is refused rather than believed), and the fields must be a possible Hijri date.
+//
+// AND WHEN IT IS NOT THERE, THE FALLBACK IS NAMED TOO. `tabular-civil-IIa` is the arithmetical
+// calendar — civil epoch (JDN 1948440 = 1 Muharram 1 AH), leap years {2,5,7,10,13,16,18,21,24,
+// 26,29} of each 30-year cycle. It is the thing the item calls insufficient, so it is the
+// fallback and never the answer: every returned record carries `by`, so which calendar spoke is
+// never a guess.
+//
+// ZERO NETWORK. Intl is in the engine, the arithmetic is arithmetic, and the offset is one
+// number in localStorage. Nothing on this path fetches, and nothing on it is a model call.
+//
+// THE OFFSET IS THE READER'S, AND IT IS SMALL ON PURPOSE. −2..+2 days, default 0, stored under a
+// key that carries its version. It is applied to the CIVIL day before conversion — so a +1 that
+// crosses a Hijri month end rolls the month properly instead of producing a 31st — and it is
+// clamped on the way OUT as well as on the way in, so a hand-edited store cannot move the date
+// by a week.
+//
+// WHAT IS NOT CLAIMED. This is not asserted to match the Kuwaiti Ministry of Awqaf calendar. The
+// reference calendar was not in hand, so no agreement with it is claimed anywhere in this code,
+// this comment or the interface. The thirty-day table in the batch report exists to be checked
+// against it by hand.
+const HIJRI_CALENDAR = 'islamic-umalqura';
+const HIJRI_FALLBACK_CALENDAR = 'tabular-civil-IIa';
+const HIJRI_OFFSET_KEY = 'ezik_hijri_offset_v1';
+const HIJRI_OFFSET_MIN = -2;
+const HIJRI_OFFSET_MAX = 2;
+const HIJRI_MONTHS = ['المحرَّم', 'صفر', 'ربيع الأوّل', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان', 'رمضان', 'شوّال', 'ذو القعدة', 'ذو الحجّة'];
+const HIJRI_SUFFIX = 'هـ';
+
+// Julian Day Number for a proleptic-Gregorian civil date. Integer in, integer out, and it is the
+// ONLY place a calendar date becomes a number — the offset, the conversion and the inverse all
+// meet here, so they cannot disagree about what a day is.
+function hijriJdnFromCivil(y, m, d) {
+  const a = Math.floor((14 - m) / 12);
+  const yy = y + 4800 - a;
+  const mm = m + 12 * a - 3;
+  return d + Math.floor((153 * mm + 2) / 5) + 365 * yy
+    + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+}
+function hijriCivilFromJdn(jdn) {
+  const a = jdn + 32044;
+  const b = Math.floor((4 * a + 3) / 146097);
+  const c = a - Math.floor((146097 * b) / 4);
+  const dd = Math.floor((4 * c + 3) / 1461);
+  const e = c - Math.floor((1461 * dd) / 4);
+  const mi = Math.floor((5 * e + 2) / 153);
+  return {
+    y: 100 * b + dd - 4800 + Math.floor(mi / 10),
+    m: mi + 3 - 12 * Math.floor(mi / 10),
+    d: e - Math.floor((153 * mi + 2) / 5) + 1,
+  };
+}
+// THE ARITHMETICAL CALENDAR, and it is the fallback rather than the answer.
+function hijriTabularFromJdn(jdn) {
+  let l = jdn - 1948440 + 10632;
+  const n = Math.floor((l - 1) / 10631);
+  l = l - 10631 * n + 354;
+  const j = Math.floor((10985 - l) / 5316) * Math.floor((50 * l) / 17719)
+    + Math.floor(l / 5670) * Math.floor((43 * l) / 15238);
+  l = l - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50)
+    - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
+  const m = Math.floor((24 * l) / 709);
+  return { y: 30 * n + j - 30, m: m, d: l - Math.floor((709 * m) / 24) };
+}
+// Umm al-Qura, through the engine's own tables. It is handed a TIMESTAMP rather than a Date, so
+// this function needs no clock at all: noon UTC of the civil day the JDN names.
+function hijriUmalquraFromJdn(jdn) {
+  try {
+    if (typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') return null;
+    const fmt = new Intl.DateTimeFormat('en-u-ca-' + HIJRI_CALENDAR,
+      { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    if (typeof fmt.resolvedOptions !== 'function') return null;
+    if (fmt.resolvedOptions().calendar !== HIJRI_CALENDAR) return null;
+    if (typeof fmt.formatToParts !== 'function') return null;
+    const parts = fmt.formatToParts((jdn - 2440588) * 86400000 + 43200000);
+    let y = 0, m = 0, d = 0;
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      if (p.type === 'year') y = parseInt(String(p.value).replace(/[^0-9]/g, ''), 10);
+      else if (p.type === 'month') m = parseInt(String(p.value).replace(/[^0-9]/g, ''), 10);
+      else if (p.type === 'day') d = parseInt(String(p.value).replace(/[^0-9]/g, ''), 10);
+    }
+    if (!(y > 0 && m >= 1 && m <= 12 && d >= 1 && d <= 30)) return null;
+    return { y: y, m: m, d: d };
+  } catch (e) { return null; }
+}
+function hijriFromJdn(jdn) {
+  const named = hijriUmalquraFromJdn(jdn);
+  if (named) { named.by = HIJRI_CALENDAR; return named; }
+  const t = hijriTabularFromJdn(jdn);
+  t.by = HIJRI_FALLBACK_CALENDAR;
+  return t;
+}
+// THE OFFSET IS CLAMPED HERE TOO. Not only when it is written: a store edited by hand, or one
+// carrying a value from a future version, may not move the date further than the pair allows.
+function hijriForCivilDay(y, m, d, offset) {
+  let k = Math.trunc(Number(offset));
+  if (!isFinite(k)) k = 0;
+  if (k < HIJRI_OFFSET_MIN) k = HIJRI_OFFSET_MIN;
+  if (k > HIJRI_OFFSET_MAX) k = HIJRI_OFFSET_MAX;
+  const out = hijriFromJdn(hijriJdnFromCivil(y, m, d) + k);
+  out.offset = k;
+  return out;
+}
+// ANYTHING UNUSABLE READS AS ZERO AND NEVER THROWS. A storage that denies reads, a value that is
+// not a number, a number outside the pair — all of them are "no offset", which is the app as it
+// was before this item.
+function readHijriOffset() {
+  let raw = null;
+  try { raw = localStorage.getItem(HIJRI_OFFSET_KEY); } catch (e) { return 0; }
+  if (typeof raw !== 'string' || !/^-?[0-9]+$/.test(raw)) return 0;
+  const n = Number(raw);
+  if (n < HIJRI_OFFSET_MIN || n > HIJRI_OFFSET_MAX) return 0;
+  return n;
+}
+// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for. A refused value and a store that
+// denied the write both come back as the value the next read would give -- so the control can
+// set its own state from this return and cannot end up showing a choice that was not stored.
+function writeHijriOffset(n) {
+  if (typeof n !== 'number' || !isFinite(n) || Math.trunc(n) !== n
+    || n < HIJRI_OFFSET_MIN || n > HIJRI_OFFSET_MAX) return readHijriOffset();
+  try { localStorage.setItem(HIJRI_OFFSET_KEY, String(n)); } catch (e) { return readHijriOffset(); }
+  return n;
+}
+function hijriLabel(h) {
+  if (!h || !(h.m >= 1) || !(h.m <= 12)) return '';
+  return toArabicDigits(h.d) + ' ' + HIJRI_MONTHS[h.m - 1] + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
+}
+// The one place the clock is read. Three local getters and nothing else — no UTC getter and no
+// toISOString, so a reader east of Greenwich sees their own day and not London's.
+function hijriTodayLabel() {
+  try {
+    const now = new Date();
+    return hijriLabel(hijriForCivilDay(now.getFullYear(), now.getMonth() + 1, now.getDate(), readHijriOffset()));
+  } catch (e) { return ''; }
+}
+
+// THE OFFSET CONTROL, in Settings. It owns its own value: it is a device-local preference of the
+// same family as the wird target, it is read once when the sheet opens and written on the press,
+// and nothing above it has to carry it. Five buttons, one radiogroup, the shipped a11y row style.
+const HIJRI_SET_TITLE = 'التاريخ الهجريّ';
+const HIJRI_SET_LABEL = 'إزاحة يدويّة بالأيّام';
+const HIJRI_SET_HINT = 'يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.';
+const HIJRI_SET_NOW = 'اليوم عندك:';
+
+function HijriOffsetControl() {
+  const [off, setOff] = useState(() => readHijriOffset());
+  const choose = (v) => { setOff(writeHijriOffset(v)); };
+  const today = (() => {
+    try {
+      const now = new Date();
+      return hijriLabel(hijriForCivilDay(now.getFullYear(), now.getMonth() + 1, now.getDate(), off));
+    } catch (e) { return ''; }
+  })();
+  const opts = [];
+  for (let v = HIJRI_OFFSET_MIN; v <= HIJRI_OFFSET_MAX; v++) opts.push(v);
+  return (
+    <>
+      <div style={s.a11yGroupLabel}>{HIJRI_SET_LABEL}</div>
+      <div style={s.themeRow} role="radiogroup" aria-label={HIJRI_SET_LABEL}>
+        {opts.map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={off === v ? 'true' : 'false'}
+            onClick={() => choose(v)}
+            className="ezik-focus"
+            style={{ ...s.a11yOpt, ...(off === v ? s.themeOptActive : {}) }}
+          >
+            {v === 0 ? toArabicDigits(0) : (v > 0 ? '+' : '−') + toArabicDigits(Math.abs(v))}
+          </button>
+        ))}
+      </div>
+      <div style={s.hijriNow}>{HIJRI_SET_NOW} {today}</div>
+    </>
+  );
+}
+
+// ============================================================
 // ITEM 93-ج — THE CHANNEL THE WORKER OPENED NOW HAS A LISTENER
 // ============================================================
 // MEASURED FIRST, from sw.js, which is read here and written nowhere: at the end of install the
@@ -13269,6 +13471,12 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         {/* الخصوصية والذكاء الاصطناعي -- the consent decision, stated and reversible. It is NOT
             behind the PIN gate: a reader must be able to withdraw without an adult's code, and
             Apple requires the withdrawal to be as reachable as the grant. */}
+        {/* ITEM 109: the manual offset, where the item asked for it — in Settings, beside the
+            other device-local preferences, saved under its own versioned key and defaulting
+            to zero so a reader who never opens it sees exactly what they saw before. */}
+        <EzShellGroup title={HIJRI_SET_TITLE} hint={HIJRI_SET_HINT}>
+          <HijriOffsetControl />
+        </EzShellGroup>
         <EzShellGroup title={EZ_AIS_TITLE}>
           <div style={s.aicStatusRow}>{aiConsent === EZ_AI_CONSENT_GRANTED ? EZ_AIS_ON : EZ_AIS_OFF}</div>
           {aiConsent === EZ_AI_CONSENT_GRANTED && (
@@ -15520,6 +15728,10 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 // الأنماط
 // ============================================================
 const s = {
+  // ITEM 109: the Hijri line under the name, and the live preview in Settings. Type only —
+  // no box, no surface, no border, so the masthead's shape is untouched to the pixel.
+  ezistHijri: { marginTop: 6, fontSize: 13, lineHeight: 1.6, color: 'var(--a3-muted)', fontWeight: 500 },
+  hijriNow: { marginTop: 8, fontSize: 13, lineHeight: 1.7, color: 'var(--muted)' },
   // ITEM 93-ج: the offline-store notice. Every colour is a token, so it follows the theme and
   // the identity like everything else; it is a strip at the foot of the viewport rather than a
   // modal, because it interrupts nothing and the reader may ignore it entirely.

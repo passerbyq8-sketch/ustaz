@@ -1039,6 +1039,308 @@ if (aLifted) {
   ok('43-a: ...and schedules none through a service worker', SRC.indexOf('showNotification') === -1);
 }
 
+
+// ---------------------------------------------------------------------------
+// K. ITEM 109 -- THE HIJRI DATE, ON A CALENDAR NAMED IN THE SOURCE
+// ---------------------------------------------------------------------------
+// Everything below RUNS the shipped conversion. Nothing here matches its source text for a
+// behavioural claim: the block is lifted, executed against a fake store, a fake clock and --
+// this is the point -- a REMOVED Intl, so both calendars are exercised on the same machine.
+
+const H_CONSTS = ['HIJRI_CALENDAR', 'HIJRI_FALLBACK_CALENDAR', 'HIJRI_OFFSET_KEY',
+  'HIJRI_OFFSET_MIN', 'HIJRI_OFFSET_MAX', 'HIJRI_MONTHS', 'HIJRI_SUFFIX', 'toArabicDigits'];
+const H_FNS = ['hijriJdnFromCivil', 'hijriCivilFromJdn', 'hijriTabularFromJdn',
+  'hijriUmalquraFromJdn', 'hijriFromJdn', 'hijriForCivilDay',
+  'readHijriOffset', 'writeHijriOffset', 'hijriLabel', 'hijriTodayLabel'];
+
+const hConsts = {};
+const hFns = {};
+let hLifted = true;
+for (const n of H_CONSTS) { hConsts[n] = liftConst(n); if (!ok('109: lift const ' + n, !!hConsts[n])) hLifted = false; }
+for (const n of H_FNS) { hFns[n] = liftFunction(n); if (!ok('109: lift function ' + n, !!hFns[n])) hLifted = false; }
+
+if (hLifted) {
+  const H_LIFTED = H_CONSTS.map((n) => hConsts[n]).concat(H_FNS.map((n) => hFns[n])).join('\n\n');
+  ok('109: lifted block braces balance',
+    (H_LIFTED.match(/\{/g) || []).length === (H_LIFTED.match(/\}/g) || []).length);
+  ok('109: lifted block has no template literal', H_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+
+  // The sandbox takes Intl as a PARAMETER, so the fallback is reachable on an engine that has
+  // the real one. Passing undefined is what a browser without the tables looks like from inside.
+  const HI = (store, DateImpl) => new Function('localStorage', 'Date', 'Intl',
+    H_LIFTED + '\nreturn { ' + H_CONSTS.concat(H_FNS).join(', ') + ' };')(store, DateImpl || Date, Intl);
+  const HNO = (store, DateImpl) => new Function('localStorage', 'Date', 'Intl',
+    H_LIFTED + '\nreturn { ' + H_CONSTS.concat(H_FNS).join(', ') + ' };')(store, DateImpl || Date, undefined);
+
+  const BASE = HI(memStore());
+  eq('109: the offset key carries its version', BASE.HIJRI_OFFSET_KEY, 'ezik_hijri_offset_v1');
+  eq('109: the calendar is named in the source', BASE.HIJRI_CALENDAR, 'islamic-umalqura');
+  eq('109: ...and so is the arithmetical fallback', BASE.HIJRI_FALLBACK_CALENDAR, 'tabular-civil-IIa');
+  ok('109: the two names are two names', BASE.HIJRI_CALENDAR !== BASE.HIJRI_FALLBACK_CALENDAR);
+  eq('109: the offset floor', BASE.HIJRI_OFFSET_MIN, -2);
+  eq('109: the offset ceiling', BASE.HIJRI_OFFSET_MAX, 2);
+  eq('109: twelve month names, none empty', BASE.HIJRI_MONTHS.length, 12);
+  eq('109: ...and no two of them are the same',
+    new Set(BASE.HIJRI_MONTHS).size, 12);
+  eq('109: ...and not one is blank', BASE.HIJRI_MONTHS.filter((m) => !String(m).trim()).length, 0);
+
+  // ---- the day number is a day number, both ways --------------------------
+  (function jdnRoundTrip() {
+    const days = [[2026, 8, 21], [2026, 1, 1], [2026, 12, 31], [2024, 2, 28], [2024, 2, 29],
+      [2024, 3, 1], [2000, 2, 29], [1900, 2, 28], [1900, 3, 1], [2100, 2, 28], [1970, 1, 1]];
+    for (const [y, m, d] of days) {
+      const back = BASE.hijriCivilFromJdn(BASE.hijriJdnFromCivil(y, m, d));
+      ok('109: the civil day survives the round trip ' + y + '-' + m + '-' + d,
+        back.y === y && back.m === m && back.d === d, show(back));
+    }
+    // consecutive civil days are consecutive numbers, across a leap day and a year end
+    for (const [a, b] of [[[2024, 2, 28], [2024, 2, 29]], [[2024, 2, 29], [2024, 3, 1]],
+      [[2026, 12, 31], [2027, 1, 1]], [[1900, 2, 28], [1900, 3, 1]]]) {
+      eq('109: one day apart: ' + a.join('-') + ' -> ' + b.join('-'),
+        BASE.hijriJdnFromCivil(b[0], b[1], b[2]) - BASE.hijriJdnFromCivil(a[0], a[1], a[2]), 1);
+    }
+  })();
+
+  // ---- the named calendar answers, and it is the one that answers ---------
+  (function namedCalendar() {
+    const j = (y, m, d) => BASE.hijriJdnFromCivil(y, m, d);
+    const umq = BASE.hijriUmalquraFromJdn(j(2026, 8, 21));
+    if (!ok('109: this engine carries the named calendar', !!umq, 'Intl returned nothing')) return;
+    // MEASURED against the engine's own tables, at four dates twenty years apart.
+    const CASES = [[[2026, 8, 21], [1448, 3, 8]], [[2026, 9, 12], [1448, 4, 1]],
+      [[2026, 1, 1], [1447, 7, 12]], [[1990, 1, 1], [1410, 6, 3]]];
+    for (const [g, h] of CASES) {
+      const got = BASE.hijriFromJdn(j(g[0], g[1], g[2]));
+      ok('109: ' + g.join('-') + ' converts to ' + h.join('-'),
+        got.y === h[0] && got.m === h[1] && got.d === h[2], show(got));
+      eq('109: ...and it says which calendar said so', got.by, BASE.HIJRI_CALENDAR);
+    }
+    // THE FALLBACK IS A FALLBACK. Same dates, Intl removed: the arithmetical calendar answers,
+    // it names ITSELF, and it disagrees with the named one -- which is the whole reason the
+    // named one is preferred. A mutant that promotes the tabular rule to primary dies here.
+    const NO = HNO(memStore());
+    let disagreements = 0;
+    for (const [g, h] of CASES) {
+      const got = NO.hijriFromJdn(j(g[0], g[1], g[2]));
+      eq('109: without the tables, ' + g.join('-') + ' is answered by the arithmetical calendar',
+        got.by, NO.HIJRI_FALLBACK_CALENDAR);
+      if (!(got.y === h[0] && got.m === h[1] && got.d === h[2])) disagreements++;
+    }
+    ok('109: ...and the two calendars are not the same calendar', disagreements > 0,
+      'the arithmetical fallback agreed with Umm al-Qura on every measured date');
+  })();
+
+  // ---- AN ENGINE THAT SUBSTITUTES A DIFFERENT CALENDAR IS REFUSED --------
+  // Not every engine carries the Umm al-Qura tables, and the ones that do not do NOT throw --
+  // they quietly hand back islamic-civil, which is the arithmetical calendar this item exists to
+  // stop trusting. So the shipped reader is driven here against three counterfeit Intls: one
+  // that resolves to a different calendar, one that cannot say what it resolved to, and one that
+  // answers with a date no calendar could produce. Each must come back null, and null is what
+  // sends the app to its OWN named fallback rather than to a wrong day dressed as a right one.
+  (function refusesASubstitute() {
+    const partsOf = (y, m, d) => [{ type: 'month', value: String(m) }, { type: 'literal', value: '/' },
+      { type: 'day', value: String(d) }, { type: 'literal', value: '/' },
+      { type: 'year', value: String(y) }, { type: 'era', value: 'AH' }];
+    const fakeIntl = (calendar, parts, drop) => ({
+      DateTimeFormat: function () {
+        const o = { formatToParts: () => parts };
+        if (!drop) o.resolvedOptions = () => ({ calendar: calendar });
+        return o;
+      },
+    });
+    const H_SRC = H_LIFTED + '\nreturn { ' + H_CONSTS.concat(H_FNS).join(', ') + ' };';
+    const withIntl = (I) => new Function('localStorage', 'Date', 'Intl', H_SRC)(memStore(), Date, I);
+    const jdn = BASE.hijriJdnFromCivil(2026, 8, 21);
+
+    const sub = withIntl(fakeIntl('islamic-civil', partsOf(1448, 3, 7)));
+    eq('109: an engine that substitutes islamic-civil is refused', sub.hijriUmalquraFromJdn(jdn), null);
+    eq('109: ...so the app falls back to the calendar it NAMES as its fallback',
+      sub.hijriFromJdn(jdn).by, sub.HIJRI_FALLBACK_CALENDAR);
+
+    const mute = withIntl(fakeIntl('islamic-umalqura', partsOf(1448, 3, 8), true));
+    eq('109: an engine that cannot say which calendar it used is refused',
+      mute.hijriUmalquraFromJdn(jdn), null);
+
+    for (const bad of [[1448, 13, 8], [1448, 0, 8], [1448, 3, 0], [1448, 3, 31], [0, 3, 8]]) {
+      const weird = withIntl(fakeIntl('islamic-umalqura', partsOf(bad[0], bad[1], bad[2])));
+      eq('109: an impossible answer ' + bad.join('-') + ' is refused',
+        weird.hijriUmalquraFromJdn(jdn), null);
+    }
+    const none = withIntl(fakeIntl('islamic-umalqura', []));
+    eq('109: an answer with no fields at all is refused', none.hijriUmalquraFromJdn(jdn), null);
+    const thrower = withIntl({ DateTimeFormat: function () { throw new Error('no tables'); } });
+    eq('109: an engine that throws is refused rather than propagated',
+      thrower.hijriUmalquraFromJdn(jdn), null);
+    eq('109: ...and the date is still produced', typeof thrower.hijriFromJdn(jdn).y, 'number');
+  })();
+
+  // ---- IT IS RUN, DAY AFTER DAY, ACROSS EVERY BOUNDARY THERE IS -----------
+  (function walk() {
+    // 800 consecutive civil days from 2024-02-01: it crosses a Gregorian leap day, two Gregorian
+    // year ends, and roughly 27 Hijri month ends including at least one Hijri year end. Every
+    // step must advance the Hijri date by exactly one day.
+    const start = BASE.hijriJdnFromCivil(2024, 2, 1);
+    let prev = BASE.hijriFromJdn(start);
+    let months = 0, years = 0, bad = 0, badAt = '';
+    for (let i = 1; i < 800; i++) {
+      const cur = BASE.hijriFromJdn(start + i);
+      const sameMonth = cur.y === prev.y && cur.m === prev.m && cur.d === prev.d + 1;
+      const newMonth = cur.y === prev.y && cur.m === prev.m + 1 && cur.d === 1 && prev.d >= 29;
+      const newYear = cur.y === prev.y + 1 && cur.m === 1 && cur.d === 1 && prev.m === 12 && prev.d >= 29;
+      if (newMonth) months++;
+      if (newYear) years++;
+      if (!(sameMonth || newMonth || newYear)) { bad++; if (!badAt) badAt = show([prev, cur]); }
+      prev = cur;
+    }
+    ok('109: 800 consecutive days advance the Hijri date by exactly one, every time',
+      bad === 0, bad + ' bad steps, first ' + badAt);
+    ok('109: ...and the walk really crossed month ends', months >= 20, 'month rollovers: ' + months);
+    ok('109: ...and at least one year end', years >= 1, 'year rollovers: ' + years);
+    ok('109: ...and no month outside 1..12, no day outside 1..30', (function () {
+      for (let i = 0; i < 800; i++) {
+        const c = BASE.hijriFromJdn(start + i);
+        if (!(c.m >= 1 && c.m <= 12 && c.d >= 1 && c.d <= 30 && c.y > 1400)) return false;
+      }
+      return true;
+    })());
+  })();
+
+  // ---- THE OFFSET MOVES THE DAY BY WHAT IT SAYS, AND BY NO MORE -----------
+  (function offset() {
+    const at = (y, m, d, k) => BASE.hijriForCivilDay(y, m, d, k);
+    const jd = (y, m, d) => BASE.hijriJdnFromCivil(y, m, d);
+    for (const [y, m, d] of [[2026, 8, 21], [2026, 9, 11], [2026, 9, 12], [2027, 5, 17], [2024, 2, 29]]) {
+      for (const k of [-2, -1, 0, 1, 2]) {
+        const got = at(y, m, d, k);
+        const want = BASE.hijriFromJdn(jd(y, m, d) + k);
+        ok('109: an offset of ' + k + ' at ' + y + '-' + m + '-' + d + ' moves exactly ' + k + ' day(s)',
+          got.y === want.y && got.m === want.m && got.d === want.d, show([got, want]));
+        eq('109: ...and the record reports the offset it used', got.offset, k);
+      }
+    }
+    // A stored value beyond the pair CANNOT move the date beyond the pair.
+    for (const [k, want] of [[7, 2], [-7, -2], [100, 2], [-100, -2], [2.9, 2], [-2.9, -2]]) {
+      eq('109: an offset of ' + k + ' is clamped to ' + want, at(2026, 8, 21, k).offset, want);
+    }
+    for (const k of [null, undefined, NaN, 'x', {}, [], Infinity, -Infinity]) {
+      const got = at(2026, 8, 21, k);
+      const zero = at(2026, 8, 21, 0);
+      ok('109: an unusable offset ' + show(k) + ' behaves as zero',
+        got.offset === 0 && got.y === zero.y && got.m === zero.m && got.d === zero.d, show(got));
+    }
+    // The offset crosses a month end properly rather than inventing a 31st.
+    const ahead = at(2026, 9, 11, 1);
+    eq('109: an offset that crosses a Hijri month end rolls the month',
+      show([ahead.m, ahead.d]), show([4, 1]));
+  })();
+
+  // ---- A BROKEN KEY READS ZERO AND NEVER THROWS ---------------------------
+  (function store() {
+    const K = 'ezik_hijri_offset_v1';
+    eq('109: an empty store reads no offset', HI(memStore()).readHijriOffset(), 0);
+    const bad = ['', ' ', 'x', 'null', '{}', '[]', '3', '-3', '99', '1.5', 'NaN', 'Infinity',
+      '+1 ', 'true', '\u0661'];
+    for (const b of bad) {
+      const st = memStore(); st.setItem(K, b);
+      let threw = null, got = null;
+      try { got = HI(st).readHijriOffset(); } catch (e) { threw = e; }
+      ok('109: a stored ' + show(b) + ' reads as zero and does not throw',
+        threw === null && got === 0, threw ? 'threw' : show(got));
+    }
+    for (const g of [-2, -1, 0, 1, 2]) {
+      const st = memStore(); st.setItem(K, String(g));
+      eq('109: a stored ' + g + ' reads back', HI(st).readHijriOffset(), g);
+    }
+    ok('109: a storage that throws reads as zero rather than breaking the screen',
+      HI(throwingStore()).readHijriOffset() === 0);
+    // writing
+    for (const g of [-2, -1, 0, 1, 2]) {
+      const st = countingStore();
+      eq('109: writing ' + g + ' returns it', HI(st).writeHijriOffset(g), g);
+      eq('109: ...and writes exactly once', st.writes, 1);
+      eq('109: ...and stores the number as text', st.getItem(K), String(g));
+    }
+    for (const g of [3, -3, 99, 1.5, 'x', null, undefined, NaN]) {
+      const st = countingStore();
+      const r = HI(st).writeHijriOffset(g);
+      ok('109: writing ' + show(g) + ' is refused and nothing is stored', r === 0 && st.writes === 0, show(r));
+    }
+    ok('109: a storage that throws on write does not throw at the reader',
+      HI(throwingStore()).writeHijriOffset(1) === 0);
+    // reading never writes -- a default that persisted itself would be a write on first paint
+    const ro = countingStore();
+    HI(ro).readHijriOffset();
+    HI(ro).hijriTodayLabel();
+    eq('109: reading the date writes nothing at all', ro.writes, 0);
+  })();
+
+  // ---- THE LINE ON THE SCREEN --------------------------------------------
+  (function label() {
+    const AR = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+    const st = memStore();
+    const A = HI(st, fakeDate(2026, 8, 21));
+    const line = A.hijriTodayLabel();
+    ok('109: the line is drawn from the LOCAL day', !!line && line.length > 6, show(line));
+    ok('109: ...in Arabic-Indic digits', new RegExp('[' + AR + ']').test(line), show(line));
+    ok('109: ...with no Western digit left in it', !/[0-9]/.test(line), show(line));
+    ok('109: ...and it names the Hijri era', line.indexOf(A.HIJRI_SUFFIX) !== -1);
+    const h = A.hijriForCivilDay(2026, 8, 21, 0);
+    ok('109: ...and it carries the month name the conversion chose',
+      line.indexOf(A.HIJRI_MONTHS[h.m - 1]) !== -1);
+    // the offset really reaches the line
+    const st2 = memStore(); st2.setItem('ezik_hijri_offset_v1', '2');
+    const B = HI(st2, fakeDate(2026, 8, 21));
+    ok('109: a stored offset changes the line', B.hijriTodayLabel() !== line, show(B.hijriTodayLabel()));
+    ok('109: a record with no month draws nothing rather than a wrong date',
+      A.hijriLabel(null) === '' && A.hijriLabel({}) === '' && A.hijriLabel({ y: 1, m: 13, d: 1 }) === '');
+    ok('109: a storage that throws still yields a line rather than an exception',
+      typeof HI(throwingStore(), fakeDate(2026, 8, 21)).hijriTodayLabel() === 'string');
+  })();
+
+  // ---- IT NEVER LEAVES THE DEVICE, AND IT NEVER READS UTC -----------------
+  const H_IO = ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
+    'document.cookie', 'indexedDB', 'sessionStorage', 'Notification', '/api/'];
+  for (const t of H_IO) ok('109: the conversion contains no ' + t, H_LIFTED.indexOf(t) === -1);
+  ok('109: the conversion never uses a UTC getter', H_LIFTED.indexOf('getUTC') === -1);
+  ok('109: ...and never toISOString', H_LIFTED.indexOf('toISOString') === -1);
+  eq('109: every storage operation is wrapped in its own try',
+    (H_LIFTED.match(/try \{[^}]*(getItem|setItem)\(/g) || []).length,
+    (H_LIFTED.match(/localStorage\.(getItem|setItem)\(/g) || []).length);
+
+  const H_TOKENS = ['ezik_hijri_offset_v1'].concat(H_CONSTS.slice(0, 7)).concat(H_FNS);
+  let hLeaks = 0;
+  let hFirst = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const L = lines[i];
+    let touches = false;
+    for (const t of H_TOKENS) if (L.indexOf(t) !== -1) { touches = true; break; }
+    if (!touches) continue;
+    for (const t of REQUEST_TOKENS) {
+      if (L.indexOf(t) !== -1) { hLeaks++; if (!hFirst) hFirst = i + 1; }
+    }
+  }
+  ok('109: no Hijri token shares a line with a request token', hLeaks === 0, 'first at line ' + hFirst);
+
+  // ---- WHERE IT IS DRAWN, AND THAT IT IS NOT A NEW SCREEN -----------------
+  ok('109: the date is drawn on the home masthead, which already existed',
+    /\{hijri \? <div style=\{s\.ezistHijri\}>\{hijri\}<\/div> : null\}/.test(SRC));
+  ok('109: ...from a prop the OWNER read, not from a store the presentation opened',
+    /const hijri = hijriTodayLabel\(\);/.test(SRC)
+    && /<EzistMasthead name=\{v\.name\} g=\{v\.greeting\} hijri=\{v\.hijri\} onOpenAdhkar=\{v\.onOpenAdhkar\} \/>/.test(SRC));
+  ok('109: ...and no screen was added for it',
+    SRC.indexOf("screen === 'hijri'") === -1 && SRC.indexOf("setScreen('hijri')") === -1);
+  ok('109: the manual offset lives in Settings',
+    /<EzShellGroup title=\{HIJRI_SET_TITLE\} hint=\{HIJRI_SET_HINT\}>/.test(SRC)
+    && /<HijriOffsetControl \/>/.test(SRC));
+  ok('109: ...as a radiogroup over the five permitted values, and nothing wider',
+    /role="radiogroup" aria-label=\{HIJRI_SET_LABEL\}/.test(SRC)
+    && /for \(let v = HIJRI_OFFSET_MIN; v <= HIJRI_OFFSET_MAX; v\+\+\) opts\.push\(v\);/.test(SRC));
+  // NOTHING IS CLAIMED ABOUT A CALENDAR THAT WAS NOT IN HAND.
+  ok('109: no agreement with an external calendar is asserted anywhere in the app',
+    !/\u0645\u0637\u0627\u0628\u0642 \u0644\u062A\u0642\u0648\u064A\u0645/.test(SRC));
+}
+
+
 function report() {
   const line = '-'.repeat(58);
   console.log(line);
