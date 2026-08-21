@@ -6112,10 +6112,6 @@ function AdhkarScreenV2({ onBack }) {
     setUsage(readAdhkarUsage());
   };
   useEzikBackLayer(!!selected, closeAdhkarDetail);
-  // S91: the reader's own back presses the application back, which spends the entry this layer
-  // took when it opened and then runs closeAdhkarDetail through the registry -- the same closer,
-  // reached by the same route the device button uses.
-  if (selected) return <AdhkarCategoryV2 cat={selected} startAt={startAt} onBack={ezikGoBack} />;
   // COMPLETED means target reached, counted over distinct items, and capped for DISPLAY at the
   // goal -- min(done, 8) of 8. A ninth completion is real and is not shown as a ninth eighth.
   const done = adhkarCompletedToday(prog, db && db.byCat);
@@ -6125,6 +6121,10 @@ function AdhkarScreenV2({ onBack }) {
   // -- on a re-render, on returning from a category, on a day that rolled over mid-session --
   // cannot lengthen the chain a second time.
   useEffect(() => { setStreak(markAdhkarDayMet(done)); }, [done]);
+  // S91: the reader's own back presses the application back, which spends the entry this layer
+  // took when it opened and then runs closeAdhkarDetail through the registry -- the same closer,
+  // reached by the same route the device button uses.
+  if (selected) return <AdhkarCategoryV2 cat={selected} startAt={startAt} onBack={ezikGoBack} />;
   // ONE view object, handed to whichever home is drawn. Both receive the same store, the same
   // filtered list, the same progress record and the same handlers -- there is nothing a home
   // component can compute that the other cannot, and nothing either of them may write.
