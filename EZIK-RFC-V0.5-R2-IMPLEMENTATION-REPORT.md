@@ -87,9 +87,10 @@ Each was reproduced by driving the shipped modules before any of them was change
 ### B2 — «شلون أسوي ماسك للشفايف؟» (audience=young, age 7)
 
 * **File / function:** `api/ask.js` GEN branch; the only thing deciding a child's answer was
-  `buildSystemPrompt()` in `index.html:3095`.
+  `buildSystemPrompt()`, which then lived in the shipped `index.html` block.
+  **Item 115-ب, superseded pointer:** this used to read `index.html:3095`. That line number was true of the tree this section describes and is false of every tree since: `buildSystemPrompt` returns **zero** matches in `index.html` today, because D02ب moved the system prompt to `lib/system-prompt.js`, where the SERVER owns it. A line number into a file nothing pins is a pointer that goes stale in silence, so the pointer is now the module name.
 * **Old behaviour:** the question routes `GEN` (`mode='none'`), one streamed model call, and the
-  entire child policy is prompt text — including `index.html:3121-3122`, which instructs a deflect
+  entire child policy is prompt text — including the deflect instruction (then at `index.html:3121-3122`, a **superseded pointer**: those two lines carry unrelated Arabic upload-size text today, and the instruction itself lives in `lib/system-prompt.js`), which instructs a deflect
   to «اسألْ فيه أمَّكَ أو أباك» for anything reading as "grown-up world". There was **no
   server-side age policy at all**: `band` selected the retrieval allow-list and the depth
   instruction, and nothing else.
@@ -334,7 +335,7 @@ lib/ledger/source-policy.js` returns **empty**.
 
 ## K. Gates and tests
 
-All 88 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 90 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -354,14 +355,14 @@ retiredchat 0  guardhonesty 0
 promptconsistency 0 · truncatedtag 0 · explicitfailure 0 · scholarseparation 0
 cardorcontext 0
 reviewermatrix 0 · attributionoutput 0 · domaincontract 0 · noemptyanswer 0
-ladderorder 0 · taghonesty 0 · standingnotice 0 · telemetrytext 0
+ladderorder 0 · taghonesty 0 · standingnotice 0 · telemetrytext 0 · vacuousassert 0 · bootinvariants 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        88/88 PASS
-RECON              PASS=178 WARN=1 FAIL=0
+TOTAL_GATES        90/90 PASS
+RECON              PASS=181 WARN=1 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
@@ -404,6 +405,8 @@ is listed as such.
 ---
 
 ## L. Commits
+
+**These are historical per-commit records.** Every `gates N/N` and `recon N/N/N` below is the tally **at that commit**, not the tally now. The current gate count lives in §K and is the one `recon-audit.cjs` re-derives from `gates.json` on every run; if the two disagree, §K is the one that is enforced and this table is the one that is history. (Item 115-ب.)
 
 | Hash | Subject | Files | Tests passing before commit |
 |---|---|---|---|

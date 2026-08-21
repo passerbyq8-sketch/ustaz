@@ -44,13 +44,13 @@ const src = (() => { try { return fs.readFileSync(indexFile, 'utf8'); } catch (e
 if (src === null) { console.error('ABORT: cannot read ' + indexFile); process.exit(2); }
 
 // ---- extract the text/babel block ----
-const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-const om = openRe.exec(src);
-if (!om) { console.error('ABORT: no text/babel script block in ' + indexFile); process.exit(2); }
-const startBody = om.index + om[0].length;
-const closeIdx = src.indexOf('</script>', startBody);
-if (closeIdx === -1) { console.error('ABORT: unterminated text/babel block'); process.exit(2); }
-const block = src.slice(startBody, closeIdx);
+// ITEM 32-b: located once, in tools/babel-block.cjs, where both anchors are REQUIRED and a
+// lost one is a named error. The two ABORTs this replaces said the same thing twice.
+const BB = require('./tools/babel-block.cjs');
+let bbBlock;
+try { bbBlock = BB.readBabelBlock({ file: indexFile, html: src }); }
+catch (e) { console.error('ABORT: ' + e.message); process.exit(2); }
+const block = bbBlock.raw;
 
 // ---- parse to a tree (jsx enabled) ----
 let ast;

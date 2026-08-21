@@ -32,9 +32,15 @@
 const CACHE = 'ezik-v9';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
-// 298686 transferred bytes for a second copy of what '/' already holds. The network-first
-// branch below still cache.put()s the shell on every successful load, so the offline fallback
-// keeps working from the '/' entry.
+// a second copy of the 1087357 bytes '/' already holds. The network-first branch below still
+// cache.put()s the shell on every successful load, so the offline fallback keeps working from
+// the '/' entry.
+//
+// ITEM 115-ب. That figure used to be a TRANSFER size (298686 bytes), and a transfer size is a
+// number nothing in this repository can check: it depends on the CDN's encoder, its settings
+// and its version, none of which are in the tree. It had also stopped being true -- this shell
+// compresses to nothing near it today. So the figure is stated on DISK, where B14 below
+// re-measures it on every gate run and fails on any drift.
 const CORE = [
   '/',
   '/manifest.json',
@@ -66,12 +72,12 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 1087357 + icon-watermark.png 373806 + adhkar.json 177392
+//   /  (index.html) 1087357 + icon-watermark.png 368386 + adhkar.json 177392
 //   + icon-512.png 12893 + icon-maskable-512.png 5938 + icon-192.png 5053 + manifest.json 533
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS when
 // the constant has fallen below it, so a shell that grows cannot quietly leave the pre-check
 // reading a number that stopped being true.
-const CORE_BYTES = 1662972;
+const CORE_BYTES = 1657552;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
@@ -174,8 +180,10 @@ function evictOld() {
 }
 
 // S117 PERF. THESE TWO ARE STILL CACHED -- JUST NOT INSIDE install. quran-uthmani.json
-// (338409 transferred) and mushaf-layout.json (151653) are 490062 bytes that no first screen
+// (1412005 bytes) and mushaf-layout.json (996528) are 2408533 bytes that no first screen
 // reads: the shell renders the conversation, and both files are only reached from the mushaf.
+// (ITEM 115-ب: these were transfer sizes -- 338409 and 151653 -- which nothing offline can
+// verify and which had already gone stale. Stated on disk, and checked by B14.)
 // Precaching them in install put them in flight during the window the first paint was waiting
 // on. They now warm AFTER the boot goes idle, and they are never dropped -- offline readiness
 // for the mushaf arrives a beat later on the very first visit and is identical on every visit

@@ -87,19 +87,19 @@ const cps = (x) => Array.prototype.map.call(String(x == null ? '' : x),
   (c) => 'U+' + c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')).join(' ');
 
 /* ===================== the shipped block, transformed ===================== */
-const openRe = /<script[^>]*type=["']text\/babel["'][^>]*>/i;
-const mOpen = openRe.exec(html);
-if (!mOpen) { console.error('No text/babel script block found in ' + htmlFile); process.exit(2); }
-const rawCode = html.slice(mOpen.index + mOpen[0].length, html.indexOf('</script>', mOpen.index + mOpen[0].length));
-const babelSrc = (html.match(/<script[^>]*src=["']([^"']*@babel\/standalone[^"']*)["']/i) || [])[1] || '';
-const babelMajor = (babelSrc.match(/@babel\/standalone@(\d+)\./) || [])[1] || 8;
+// ITEM 32-b. The block is cut, and the JSX runtime settled, in ONE place: ../tools/babel-block.cjs.
+// This used to be a private copy of the same two regexes plus `: 8` -- a SILENT fallback that
+// let this gate keep transforming, with the wrong runtime, after the CDN tag it reads was
+// removed. The helper raises a named error instead. (Measured: the page pins 7.26.4, so the
+// runtime is `classic`; the fallback would have chosen `automatic`.)
+const BB = require('../tools/babel-block.cjs');
+let block;
+try { block = BB.readBabelBlock({ file: htmlFile, html: html }); }
+catch (e) { console.error(e.message); process.exit(2); }
+const rawCode = block.raw;
 let transformed;
-try {
-  transformed = babel.transformSync(rawCode, {
-    presets: [['@babel/preset-react', { runtime: Number(babelMajor) >= 8 ? 'automatic' : 'classic' }]],
-    filename: 'babel-block.jsx', sourceType: 'script', retainLines: true,
-  }).code;
-} catch (e) { console.log('TRANSFORM ERROR:\n' + e.message); process.exit(1); }
+try { transformed = BB.transformBabelBlock(block); }
+catch (e) { console.log('TRANSFORM ERROR:\n' + e.message); process.exit(1); }
 
 function makeStore(seed) {
   const data = Object.assign({}, seed || {});
@@ -332,8 +332,16 @@ function partB() {
   // The strongest form of the rule: the layer cannot consult the device, because it never names it.
   console.log('\n=== B2. THE DEVICE IS NOT AN INPUT ===');
   const bootScript = (/<script>\(function\(\)\{try\{var K='ezik_ui_lang_v1'[\s\S]*?<\/script>/.exec(html) || [''])[0];
-  eq('the boot script names navigator nowhere', (bootScript.match(/navigator/g) || []).length, 0);
-  eq('...and names no language tag pattern either', (bootScript.match(/languages?\b/g) || []).length, 0);
+  // ITEM 116. Item 106 repaired `layer` twelve lines below for exactly this shape and left these
+  // two standing: the regex above falls back to '', an empty string names navigator zero times,
+  // and both assertions pass at their loudest with the boot script gone. They were found by the
+  // gate rather than by a reader, because the `=== 0` an operator-shaped sweep looks for is not
+  // in the source at all -- eq() owns the comparison.
+  ok('the boot script was LOCATED before it was counted', bootScript.length > 100, 'len=' + bootScript.length);
+  eq('the boot script names navigator nowhere',
+    bootScript.length > 0 ? (bootScript.match(/navigator/g) || []).length : -1, 0);
+  eq('...and names no language tag pattern either',
+    bootScript.length > 0 ? (bootScript.match(/languages?\b/g) || []).length : -1, 0);
   // ITEM 106, THIRD SHAPE: a negative check wearing a COUNT. `(layer.match(/navigator/g) || []).length
   // === 0` is satisfied by an empty region exactly as `!/navigator/.test(layer)` would be, and it
   // reads like a measurement rather than an absence check -- which is why the first sweep for

@@ -113,6 +113,19 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   item 115-ب  -- the two TRANSFER sizes in the worker prose (298686 for the shell, 338409 and
+  //                    151653 for the mushaf pair) were numbers nothing in this tree could ever
+  //                    check -- they depend on the CDN encoder -- and had already gone stale. They
+  //                    are restated on disk. B14 below, cut in the SAME commit as this digest, now
+  //                    re-measures every size the prose states and refuses any integer of 500 or
+  //                    more that is registered nowhere. CACHE is NOT touched.
+  //   item 89-b    -- icon-watermark.png was re-packed LOSSLESSLY (373806 -> 368386 bytes; the
+  //                    decoded pixels are byte-identical, alpha included, on two independent
+  //                    decoders). The CORE_BYTES the worker declares fell with it, 1662972 ->
+  //                    1657552, written by `node tools/core-bytes.cjs --write`, and the comment
+  //                    table above that constant carries the same measurement. All three were
+  //                    re-cut in the SAME commit. CACHE is NOT touched: the store name is the
+  //                    merge round’s to bump.
   //   item 93-b    -- install ends by PUSHING its precache brief to every connected client
   //                    instead of leaving the record behind a request nobody makes. B13 below
   //                    was cut in the SAME commit as this digest. CACHE is NOT touched: the
@@ -134,7 +147,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': 'ba2c578f23abfb933279f0c6be4134f40e1399f5c891d1551ec6c2d4a2cba590',
+  'sw.js': '2e16f31bc6d0e347836de5735694a6fcee0928db303e994118af482ce6423dba',
 };
 
 // ---------------------------------------------------------------------------
@@ -1156,6 +1169,116 @@ async function compare(goldenPath) {
             + '        digest in the SAME commit -- never by hand from the comment table.');
         } else ok('CORE_BYTES (' + m[1] + ') equals the ' + onDisk + ' bytes CORE weighs on disk, exactly');
       }
+    }
+  }
+
+  // -- B14 EVERY NUMBER sw.js's PROSE STATES IS TRUE OF THE DISK (item 115-ب) ---
+  //
+  // WHAT STOOD HERE: nothing. B12 above re-derives ONE number, CORE_BYTES. The worker also states
+  // eleven other measurements in its comments -- the size of each CORE file, the two mushaf files,
+  // the three revalidating data files -- and not one of them was read by anything.
+  //
+  // The 2026-08-21 inventory measured the damage. The CORE table in the comment said index.html
+  // weighed 1059309 when it weighed 1068756, and the 9447-byte difference was the SAME drift that
+  // had stopped the merge round. Whoever re-cut the constant fixed the NUMBER and left the TABLE
+  // IT IS DERIVED FROM saying something else. A comment that lies is not a cosmetic defect here:
+  // it is the input the next person re-cuts CORE_BYTES from.
+  //
+  // So the prose is a contract. Each claim below names the file it measures; the size is read off
+  // the disk and compared exactly, in both directions. And COMPLETENESS is asserted too: any
+  // integer of 500 or more appearing in a sw.js comment which is not in this table -- or in the
+  // short list of things that are not measurements at all, each with its reason -- is a failure.
+  // A new number cannot enter the worker's prose without being registered here, which is the only
+  // way a table like this survives longer than one commit.
+  {
+    const swProseSrc = fs.readFileSync(path.join(__dirname, SW_FILE), 'utf8');
+    const swComments = swProseSrc.split(/\r?\n/)
+      .map((line) => { const c = line.indexOf('//'); return c === -1 ? '' : line.slice(c); })
+      .join('\n');
+
+    //  { n, of }           n is the byte size of that file on disk
+    //  { n, sum: [a, b] }  n is the byte sum of those files on disk
+    const SW_PROSE = [
+      { n: 1087357, of: 'index.html' },
+      { n: 368386, of: 'icon-watermark.png' },
+      { n: 177392, of: 'adhkar.json' },
+      { n: 12893, of: 'icon-512.png' },
+      { n: 5938, of: 'icon-maskable-512.png' },
+      { n: 5053, of: 'icon-192.png' },
+      { n: 533, of: 'manifest.json' },
+      { n: 1412005, of: 'quran-uthmani.json' },
+      { n: 996528, of: 'mushaf-layout.json' },
+      { n: 18132, of: 'worship-display.json' },
+      { n: 2408533, sum: ['quran-uthmani.json', 'mushaf-layout.json'] },
+    ];
+
+    // Integers in the prose that are NOT a measurement of a file, each with the reason it cannot
+    // be checked. This is item 115-ب's third column -- declared uncheckable, in writing, rather
+    // than left standing as something a reader would take for a fact.
+    const SW_PROSE_NOT_MEASUREMENTS = {
+      512: 'a fragment of the filenames icon-512.png and icon-maskable-512.png, not a size',
+      298686: 'a SUPERSEDED transfer size for the shell. A transfer size depends on the CDN encoder, '
+        + 'its settings and its version, none of which are in this tree, so nothing here can ever '
+        + 'check it. It survives in the prose only to record what was removed and why.',
+      338409: 'a SUPERSEDED transfer size for quran-uthmani.json -- same reason.',
+      151653: 'a SUPERSEDED transfer size for mushaf-layout.json -- same reason.',
+    };
+
+    let proseBad = 0;
+    for (const claim of SW_PROSE) {
+      const files = claim.sum || [claim.of];
+      const label = claim.sum ? claim.sum.join(' + ') : claim.of;
+      let total = 0;
+      let missing = null;
+      for (const name of files) {
+        const p = path.join(__dirname, name);
+        if (!fs.existsSync(p)) { missing = name; break; }
+        total += fs.statSync(p).size;
+      }
+      if (missing) {
+        proseBad++;
+        no('B14', label + ' is named in sw.js prose and ' + missing + ' is not on disk');
+        continue;
+      }
+      if (!new RegExp('\\b' + claim.n + '\\b').test(swComments)) {
+        proseBad++;
+        no('B14', 'sw.js prose no longer states ' + claim.n + ' for ' + label + '.\n'
+          + '        Either the sentence was rewritten and this table was not, or the measurement\n'
+          + '        was dropped from the worker while the table still claims it is there.');
+        continue;
+      }
+      if (total !== claim.n) {
+        proseBad++;
+        no('B14', 'sw.js prose says ' + label + ' is ' + claim.n + ' bytes; the disk says ' + total
+          + ' (' + (total > claim.n ? '+' : '') + (total - claim.n) + ').\n'
+          + '        A comment that states a size is what the next person re-cuts CORE_BYTES from,\n'
+          + '        so it is wrong in exactly the way the constant used to be.');
+      }
+    }
+    if (!proseBad) {
+      ok('every size sw.js states in prose is true of the disk (' + SW_PROSE.length + ' claims)');
+    }
+
+    // COMPLETENESS. A table of claims that does not know what it has missed goes quiet the first
+    // time somebody writes a new number into the worker.
+    const knownNumbers = new Set(SW_PROSE.map((c) => c.n));
+    const excusedNumbers = new Set(Object.keys(SW_PROSE_NOT_MEASUREMENTS).map(Number));
+    const unregistered = [];
+    for (const mm of swComments.matchAll(/\b(\d{3,})\b/g)) {
+      const v = Number(mm[1]);
+      if (v < 500) continue;
+      if (knownNumbers.has(v) || excusedNumbers.has(v)) continue;
+      if (unregistered.indexOf(v) === -1) unregistered.push(v);
+    }
+    if (unregistered.length) {
+      no('B14', 'sw.js prose states ' + unregistered.join(', ') + ' and nothing checks it.\n'
+        + '        Register each one in SW_PROSE with the file it measures, or in\n'
+        + '        SW_PROSE_NOT_MEASUREMENTS with the reason it cannot be checked. There is no\n'
+        + '        third option: a number in this worker that nothing re-measures is the defect\n'
+        + '        item 115-ب was raised to end.');
+    } else {
+      ok('no unregistered number of 500 or more survives in sw.js prose ('
+        + excusedNumbers.size + ' declared uncheckable, each with its reason)');
     }
   }
 

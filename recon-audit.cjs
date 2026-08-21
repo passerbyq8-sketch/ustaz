@@ -722,7 +722,32 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 88;   // 88th: telemetrytext -- guards/telemetry-text-guard.cjs. The handler
+  const GATES_EXPECTED = 90;   // 90th: bootinvariants -- guards/boot-invariants-guard.cjs. Three
+                               //       properties of index.html were being re-verified BY HAND, in
+                               //       prose, at the end of order after order for weeks: the diagnostic
+                               //       catcher is the first script after <body>; ErrorBoundary is
+                               //       defined AND MOUNTED; pinPassRef is present at every one of its
+                               //       positions. A check rewritten from memory each time is a check
+                               //       that will be forgotten once, and the once is the only one that
+                               //       matters. The scripts between <body> and the catcher are COUNTED,
+                               //       so a benign insertion fails; the mount is read from the syntax
+                               //       tree, not from a substring a comment could satisfy; and the
+                               //       breaker is counted BY ROLE (one declaration, one increment, one
+                               //       ceiling, three resets) because line numbers move and roles do
+                               //       not. It READS index.html and never writes it: all three mutants
+                               //       were applied to a temporary copy outside the tree.
+                               // 89th: vacuousassert -- guards/vacuous-assertion-guard.cjs. Items 106
+                               //       and 106-ب each repaired the same defect by hand: a region cut at
+                               //       a literal anchor returns '' when the anchor moves, and '' satisfies
+                               //       every negative assertion written over it, so the check prints PASS
+                               //       at its loudest while reading nothing. Eight sites in three guards,
+                               //       then sixty-four in one. Nothing stopped the next one being written.
+                               //       This gate parses all 144 .cjs files in scope with Babel -- not with a
+                               //       regular expression, which mis-measured this twice -- and fails on any
+                               //       (emptyable region x negative assertion) pair that is not protected
+                               //       inside its OWN condition and not in a named exception list. Six live
+                               //       sites in three guards were found and repaired in the same commit.
+                               // 88th: telemetrytext -- guards/telemetry-text-guard.cjs. The handler
                                //       printed the reader's own question on three lines: the planner's
                                //       derived queries, the resolved topic, and twelve words claim-gate
                                //       lifted verbatim out of the question. All three are deleted; the
@@ -925,6 +950,53 @@ head('15) CLIENT/SERVER BODY-CAP MIRROR');
   else if (server.v !== client.v) fail('body-cap mirror DRIFT: lib/ratelimit.js MAX_CHAT_BODY_BYTES=' + server.v +
     ' != index.html SERVER_MAX_CHAT_BODY_BYTES=' + client.v + ' -- the client no longer measures what the server enforces (re-sync the mirror)');
   else pass('body-cap mirror intact: client SERVER_MAX_CHAT_BODY_BYTES == server MAX_CHAT_BODY_BYTES == ' + server.v + ' bytes');
+}
+
+/* ---------------------------------------------------------------- *
+ * 15B) COMMIT IDS QUOTED IN DOCUMENTATION  (item 115-ب)
+ * ---------------------------------------------------------------- */
+head('15B) COMMIT IDS QUOTED IN DOCUMENTATION');
+{
+  // WHY THIS EXISTS. Two documents attribute a behaviour to a commit id, and nothing read either
+  // one. A commit id in prose is the cheapest kind of claim to make and the easiest to leave
+  // dangling: history gets rewritten, a branch gets squashed, a behaviour moves to another file,
+  // and the sentence keeps naming a hash that resolves to nothing. Both are checked here.
+  //
+  // NOT A BLANKET SWEEP, DELIBERATELY. A blanket "every hex string in a .md must resolve" was
+  // measured first and is wrong: 16 of the 48 hex-ish tokens in this tree's documents are content
+  // fingerprints, not commits -- the twelve SHA-16 prefixes in golden-set-worship.md, and the
+  // upstream commit plus the md5 in MUSHAF-MADINA-ASSET-NOTICE.md, which belong to somebody else's
+  // repository and cannot resolve here by design. So the ids that are PRESENTED AS COMMITS OF THIS
+  // REPOSITORY are registered, and each is checked twice: it is still written where it is claimed
+  // to be, and it still names a commit.
+  const DOC_COMMITS = [
+    { file: 'docs/khilaf-policy.md', id: 'eb49517',
+      what: 'the commit that made the minor-band source ladder structural in lib/retrieve.js' },
+    { file: 'EZIK-RFC-V0.5-R2-FROZEN.md', id: '2046114a98f5d248672bc209914ec4baeff8a3d6',
+      what: 'the frozen historical baseline of the RFC v0.5-R2 rollout' },
+    { file: 'EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md', id: '2046114a98f5d248672bc209914ec4baeff8a3d6',
+      what: 'the same baseline, quoted as START_HEAD and START_ORIGIN' },
+  ];
+  if (!isRepo){
+    info('git is unavailable -- the ' + DOC_COMMITS.length + ' documented commit ids cannot be resolved');
+  } else {
+    let bad = 0;
+    for (const entry of DOC_COMMITS){
+      const body = read(entry.file);
+      if (body === null){ fail('documented commit id: ' + entry.file + ' is missing'); bad++; continue; }
+      if (body.indexOf(entry.id) === -1){
+        fail('documented commit id: ' + entry.file + ' no longer quotes ' + entry.id
+          + ' (' + entry.what + ') -- the registration outlived the sentence it guards');
+        bad++; continue;
+      }
+      if (git('cat-file -t ' + entry.id) === null){
+        fail('documented commit id: ' + entry.file + ' names ' + entry.id + ' (' + entry.what
+          + ') and it resolves to nothing in this repository');
+        bad++;
+      }
+    }
+    if (!bad) pass('every commit id quoted in documentation still resolves (' + DOC_COMMITS.length + ' ids)');
+  }
 }
 
 /* ---------------------------------------------------------------- *

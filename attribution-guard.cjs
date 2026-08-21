@@ -656,9 +656,12 @@ const user = (t) => [{ role: 'user', content: t }];
   // An unrelated comment or refactor may move bytes; only a changed card property is a failure.
   {
     const idx = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8');
-    const open = /<script[^>]*type=["']text\/babel["'][^>]*>/i.exec(idx);
-    const raw = open ? idx.slice(open.index + open[0].length,
-      idx.indexOf('</script>', open.index + open[0].length)) : '';
+    // ITEM 32-b: located once, in ./tools/babel-block.cjs, where a missing anchor raises a named
+    // error instead of yielding '' -- the shape gate `vacuousassert` refuses.
+    const BB = require('./tools/babel-block.cjs');
+    let raw = '';
+    try { raw = BB.readBabelBlock({ file: path.join(REPO, 'index.html'), html: idx }).raw; }
+    catch (e) { ok('the shipped app script was located', false, e.message); }
     const ast = raw ? babelParser.parse(raw, { sourceType: 'script', plugins: ['jsx'] }) : null;
     const initializer = (name) => {
       for (const statement of ast?.program?.body || []) {

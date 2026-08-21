@@ -445,5 +445,15 @@
     "name": "telemetrytext",
     "script": "guards/telemetry-text-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "vacuousassert",
+    "script": "guards/vacuous-assertion-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "bootinvariants",
+    "script": "guards/boot-invariants-guard.cjs",
+    "args": "index.html"
   }
 ]
