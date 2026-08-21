@@ -4752,7 +4752,7 @@ const EZH_ICON_GO = (
 // ITEM 108-أ: the qibla tile's mark. Same 24x24 box, same 1.8 stroke, same round caps as the
 // five marks beside it — a compass rose reduced to a circle, a needle and its pivot. No new
 // artwork file, no image, no data URI.
-const EZH_PRAYER = 'القبلة';
+const EZH_PRAYER = 'الصلاة والقبلة';
 const EZH_ICON_PRAYER = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z" /></svg>
 );
@@ -4806,7 +4806,7 @@ let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
 let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
 let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
-let EZIST_SUB_PRAYER = 'اتّجاه القبلة، محسوباً على هذا الجهاز';
+let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
 let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, prayer: EZIST_SUB_PRAYER };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
@@ -12929,6 +12929,283 @@ function EzShell({ title, onBack, backLabel, actions, children }) {
 // One group inside the shell: a heading, a bounded Iznik marker, the screen's own controls,
 // and the hint the screen already showed. `wide` is the only layout choice a tenant makes.
 // ============================================================
+// ITEM 107 — مواقيتُ الصلاة، حسابًا موضعيًّا
+// ============================================================
+// THE RULING THIS IMPLEMENTS: accuracy comes from THE METHOD AND THE COORDINATES, not from a
+// server. So there is no request, no key, no daily call ceiling and no day on which the times
+// stop arriving because a service went away. The whole calculation is a few dozen lines of
+// spherical trigonometry over the sun's position, and it works with the aeroplane switch on.
+//
+// THE ASTRONOMY. The sun's declination and the equation of time are taken from the standard
+// low-precision solar position (mean anomaly, mean longitude, ecliptic longitude, obliquity),
+// then each prayer is the hour angle at which the sun sits at that prayer's altitude:
+//     T(angle) = acos( (−sin(angle) − sin(decl)·sin(lat)) / (cos(decl)·cos(lat)) ) / 15
+// Fajr and sunrise are before solar noon, asr, maghrib and isha after it. Asr uses the shadow
+// rule rather than an altitude: the altitude at which an object's shadow is its own length plus
+// «factor» times its height — factor 1 for the majority, 2 for the Hanafi reckoning.
+// Every time is solved TWICE, the second pass evaluating the sun at the fraction of the day the
+// first pass produced, because the declination moves measurably between dawn and dusk.
+//
+// AND WHERE THE SUN NEVER REACHES THE ANGLE, THE ANSWER IS NOTHING. Above roughly 48° of
+// latitude in midsummer the acos argument leaves [−1, 1]; that prayer returns null and the row
+// is drawn as «—». A number invented for a latitude that cannot produce one would be worse than
+// an admission.
+//
+// THE METHODS ARE WRITTEN OUT, BY NAME AND BY VALUE, in prayerMethodTable() below. Nothing is
+// fetched and nothing is defaulted from a table living elsewhere.
+//
+// 🔴 NOTHING HERE IS CLAIMED TO MATCH THE KUWAITI AWQAF CALENDAR. The reference table was not in
+// hand. The default is «الكويت» because it is the method named for this app's own city — NOT
+// because it was compared against anything. The batch report prints thirty days at Kuwait City
+// coordinates for every method offered, so the owner can make that comparison and then choose.
+//
+// 🔴 ZERO ADHAN, ZERO NOTIFICATION, ZERO SOUND. A call at the right moment needs a scheduled
+// notification in a native shell; that rides with the store release (item 67). Nothing here
+// plays, schedules, or hints in the interface that it might.
+const PRAYER_PREFS_KEY = 'ezik_prayer_prefs_v1';
+const PRAYER_METHOD_DEFAULT = 'kuwait';
+const PRAYER_ASR_DEFAULT = 'standard';
+const PRAYER_OFFSET_MIN = -15;
+const PRAYER_OFFSET_MAX = 15;
+const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const PRAYER_OFFSETTABLE = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const PRAYER_LABELS = { fajr: 'الفجر', sunrise: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' };
+const PRAYER_ASR_LABELS = { standard: 'الجمهور (ظلُّ المثل)', hanafi: 'الحنفيّ (ظلُّ المثلين)' };
+const PRAYER_HORIZON = 0.833;
+
+// THE METHODS, each with the angles it is defined by. «ishaMin» above zero means that method
+// fixes isha as a fixed interval after maghrib instead of by an angle, which is what Umm al-Qura
+// and Qatar do; the angle is then unused and written as 0 rather than as a number that lies.
+function prayerMethodTable() {
+  return {
+    kuwait: { name: 'الكويت', fajr: 18, isha: 17.5, ishaMin: 0 },
+    mwl: { name: 'رابطة العالم الإسلاميّ', fajr: 18, isha: 17, ishaMin: 0 },
+    egypt: { name: 'الهيئة المصريّة العامّة للمساحة', fajr: 19.5, isha: 17.5, ishaMin: 0 },
+    makkah: { name: 'أمّ القرى', fajr: 18.5, isha: 0, ishaMin: 90 },
+    karachi: { name: 'جامعة العلوم الإسلاميّة بكراتشي', fajr: 18, isha: 18, ishaMin: 0 },
+    isna: { name: 'أمريكا الشماليّة (ISNA)', fajr: 15, isha: 15, ishaMin: 0 },
+    qatar: { name: 'قطر', fajr: 18, isha: 0, ishaMin: 90 },
+  };
+}
+function prayerMethodIds() {
+  const t = prayerMethodTable();
+  const out = [];
+  for (const k in t) if (Object.prototype.hasOwnProperty.call(t, k)) out.push(k);
+  return out;
+}
+function prayerMethodOf(id) {
+  const t = prayerMethodTable();
+  return Object.prototype.hasOwnProperty.call(t, id) ? t[id] : t[PRAYER_METHOD_DEFAULT];
+}
+
+// The sun, at a Julian date. Declination in degrees, equation of time in hours wrapped into
+// (−12, 12] so that a mean longitude near the wrap cannot produce a day-long error.
+function prayerSunPosition(jd) {
+  const R = Math.PI / 180;
+  const D = jd - 2451545.0;
+  const g = ((357.529 + 0.98560028 * D) % 360 + 360) % 360;
+  const q = ((280.459 + 0.98564736 * D) % 360 + 360) % 360;
+  const L = ((q + 1.915 * Math.sin(g * R) + 0.020 * Math.sin(2 * g * R)) % 360 + 360) % 360;
+  const e = 23.439 - 0.00000036 * D;
+  let ra = Math.atan2(Math.cos(e * R) * Math.sin(L * R), Math.cos(L * R)) / R / 15;
+  ra = ((ra % 24) + 24) % 24;
+  const decl = Math.asin(Math.sin(e * R) * Math.sin(L * R)) / R;
+  let eqt = q / 15 - ra;
+  eqt = ((eqt + 12) % 24 + 24) % 24 - 12;
+  return { decl: decl, eqt: eqt };
+}
+// Hours from solar noon at which the sun stands at «angle» below the horizon, or null where it
+// never does. The null is the whole high-latitude answer and it is deliberate.
+function prayerSunAngleTime(angle, decl, lat) {
+  const R = Math.PI / 180;
+  const den = Math.cos(decl * R) * Math.cos(lat * R);
+  if (den === 0) return null;
+  const c = (-Math.sin(angle * R) - Math.sin(decl * R) * Math.sin(lat * R)) / den;
+  if (!isFinite(c) || c > 1 || c < -1) return null;
+  return Math.acos(c) / R / 15;
+}
+// The shadow rule, expressed as the altitude it corresponds to.
+function prayerAsrAngle(factor, decl, lat) {
+  const R = Math.PI / 180;
+  return -Math.atan(1 / (factor + Math.tan(Math.abs(lat - decl) * R))) / R;
+}
+// EVERY TIME, IN MINUTES FROM LOCAL MIDNIGHT, or null. The offsets are applied here, each to its
+// own prayer and to nothing else, and each clamped on the way out as well as on the way in.
+function prayerTimesFor(y, m, d, lat, lng, tzMinutes, methodId, asrMode, offsets) {
+  const out = { fajr: null, sunrise: null, dhuhr: null, asr: null, maghrib: null, isha: null };
+  if (typeof lat !== 'number' || typeof lng !== 'number') return out;
+  if (!isFinite(lat) || !isFinite(lng)) return out;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return out;
+  const tz = (typeof tzMinutes === 'number' && isFinite(tzMinutes)) ? tzMinutes : 0;
+  const M = prayerMethodOf(methodId);
+  const factor = asrMode === 'hanafi' ? 2 : 1;
+  const jd0 = hijriJdnFromCivil(y, m, d) - 0.5 - lng / 360;
+  const shift = tz / 60 - lng / 15;
+  const at = (hours) => prayerSunPosition(jd0 + hours / 24);
+  // Two passes: the guess only has to be inside the right half of the day.
+  const solve = (angleAt, before, guess) => {
+    let t = guess;
+    for (let i = 0; i < 2; i++) {
+      const p = at(t);
+      const h = prayerSunAngleTime(angleAt(p.decl), p.decl, lat);
+      if (h === null) return null;
+      t = before ? (12 - p.eqt) - h : (12 - p.eqt) + h;
+    }
+    return t;
+  };
+  const noon = at(12);
+  const dhuhr = 12 - noon.eqt;
+  const fajr = solve(() => M.fajr, true, 5);
+  const sunrise = solve(() => PRAYER_HORIZON, true, 6);
+  const maghrib = solve(() => PRAYER_HORIZON, false, 18);
+  const asr = solve((decl) => prayerAsrAngle(factor, decl, lat), false, 15);
+  const isha = (M.ishaMin > 0)
+    ? (maghrib === null ? null : maghrib + M.ishaMin / 60)
+    : solve(() => M.isha, false, 19);
+  const raw = { fajr: fajr, sunrise: sunrise, dhuhr: dhuhr, asr: asr, maghrib: maghrib, isha: isha };
+  for (let i = 0; i < PRAYER_KEYS.length; i++) {
+    const k = PRAYER_KEYS[i];
+    if (raw[k] === null || !isFinite(raw[k])) { out[k] = null; continue; }
+    let off = 0;
+    if (offsets && PRAYER_OFFSETTABLE.indexOf(k) !== -1) {
+      const v = offsets[k];
+      if (typeof v === 'number' && isFinite(v) && Math.trunc(v) === v) {
+        off = v < PRAYER_OFFSET_MIN ? PRAYER_OFFSET_MIN : (v > PRAYER_OFFSET_MAX ? PRAYER_OFFSET_MAX : v);
+      }
+    }
+    const mins = Math.round((((raw[k] + shift) % 24) + 24) % 24 * 60) + off;
+    out[k] = ((mins % 1440) + 1440) % 1440;
+  }
+  return out;
+}
+// A twelve-hour clock in Arabic-Indic digits. Null draws an em dash, never a zero.
+function prayerClock(mins) {
+  if (typeof mins !== 'number' || !isFinite(mins)) return '—';
+  const t = ((Math.round(mins) % 1440) + 1440) % 1440;
+  const h24 = Math.floor(t / 60);
+  const mm = t % 60;
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  const two = mm < 10 ? '٠' + toArabicDigits(mm) : toArabicDigits(mm);
+  return toArabicDigits(h12) + ':' + two + ' ' + (h24 < 12 ? 'ص' : 'م');
+}
+// THE PREFERENCES. One record, every field checked, and a broken store reads as the shipped
+// defaults rather than as an exception on a screen.
+function readPrayerPrefs() {
+  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {} };
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out.off[PRAYER_OFFSETTABLE[i]] = 0;
+  let raw = null;
+  try { raw = localStorage.getItem(PRAYER_PREFS_KEY); } catch (e) { return out; }
+  if (typeof raw !== 'string' || !raw) return out;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return out; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  if (typeof rec.method === 'string' && prayerMethodIds().indexOf(rec.method) !== -1) out.method = rec.method;
+  if (rec.asr === 'hanafi' || rec.asr === 'standard') out.asr = rec.asr;
+  const o = rec.off;
+  if (o && typeof o === 'object' && !Array.isArray(o)) {
+    for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+      const k = PRAYER_OFFSETTABLE[i];
+      const v = o[k];
+      if (typeof v === 'number' && isFinite(v) && Math.trunc(v) === v
+        && v >= PRAYER_OFFSET_MIN && v <= PRAYER_OFFSET_MAX) out.off[k] = v;
+    }
+  }
+  return out;
+}
+function writePrayerPrefs(next) {
+  const cur = readPrayerPrefs();
+  if (!next || typeof next !== 'object') return cur;
+  const rec = { method: cur.method, asr: cur.asr, off: cur.off };
+  if (typeof next.method === 'string' && prayerMethodIds().indexOf(next.method) !== -1) rec.method = next.method;
+  if (next.asr === 'hanafi' || next.asr === 'standard') rec.asr = next.asr;
+  if (next.off && typeof next.off === 'object') {
+    for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+      const k = PRAYER_OFFSETTABLE[i];
+      const v = next.off[k];
+      if (typeof v === 'number' && isFinite(v) && Math.trunc(v) === v
+        && v >= PRAYER_OFFSET_MIN && v <= PRAYER_OFFSET_MAX) rec.off[k] = v;
+    }
+  }
+  try { localStorage.setItem(PRAYER_PREFS_KEY, JSON.stringify(rec)); } catch (e) { return readPrayerPrefs(); }
+  return rec;
+}
+// One prayer's offset moved by one step, clamped. It returns the WHOLE record, so the control
+// can set its state from what was actually stored rather than from what it asked for.
+function prayerNudgeOffset(prefs, key, step) {
+  const base = readPrayerPrefs();
+  const cur = (prefs && prefs.off && typeof prefs.off[key] === 'number') ? prefs.off[key] : base.off[key];
+  if (PRAYER_OFFSETTABLE.indexOf(key) === -1) return base;
+  let v = (typeof cur === 'number' && isFinite(cur) ? Math.trunc(cur) : 0) + (Math.trunc(Number(step)) || 0);
+  if (v < PRAYER_OFFSET_MIN) v = PRAYER_OFFSET_MIN;
+  if (v > PRAYER_OFFSET_MAX) v = PRAYER_OFFSET_MAX;
+  const off = {};
+  off[key] = v;
+  return writePrayerPrefs({ off: off });
+}
+
+const PRAYER_TITLE = 'مواقيت الصلاة';
+const PRAYER_METHOD_LABEL = 'المنهج';
+const PRAYER_ASR_LABEL = 'مذهب العصر';
+const PRAYER_OFFSET_LABEL = 'إزاحة يدويّة بالدقائق';
+const PRAYER_HINT = 'تُحسَب على هذا الجهاز من المنهج والإحداثيّات، بلا إنترنت. قابِلْها بتقويمك وعدِّلْ بالدقائق إن لزم.';
+const PRAYER_NONE = 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.';
+const PRAYER_MINUS = '−';
+const PRAYER_PLUS = '+';
+
+function PrayerTimesPanel({ loc }) {
+  const [prefs, setPrefs] = useState(readPrayerPrefs);
+  const now = new Date();
+  const tz = -now.getTimezoneOffset();
+  const t = prayerTimesFor(now.getFullYear(), now.getMonth() + 1, now.getDate(),
+    loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+  const anyMissing = PRAYER_KEYS.some((k) => t[k] === null);
+  return (
+    <EzShellGroup title={PRAYER_TITLE} hint={PRAYER_HINT}>
+      {PRAYER_KEYS.map((k) => (
+        <div key={k} style={s.prayerRow}>
+          <span style={s.prayerName}>{PRAYER_LABELS[k]}</span>
+          <span style={s.prayerTime}>{prayerClock(t[k])}</span>
+        </div>
+      ))}
+      {anyMissing ? <div style={s.qiblaNote}>{PRAYER_NONE}</div> : null}
+      <div style={s.a11yGroupLabel}>{PRAYER_METHOD_LABEL}</div>
+      <div style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_METHOD_LABEL}>
+        {prayerMethodIds().map((id) => (
+          <button key={id} type="button" role="radio" aria-checked={prefs.method === id ? 'true' : 'false'}
+            onClick={() => setPrefs(writePrayerPrefs({ method: id }))}
+            className="ezik-focus" style={prefs.method === id ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+            {prayerMethodOf(id).name}
+          </button>
+        ))}
+      </div>
+      <div style={s.a11yGroupLabel}>{PRAYER_ASR_LABEL}</div>
+      <div style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_ASR_LABEL}>
+        {['standard', 'hanafi'].map((mode) => (
+          <button key={mode} type="button" role="radio" aria-checked={prefs.asr === mode ? 'true' : 'false'}
+            onClick={() => setPrefs(writePrayerPrefs({ asr: mode }))}
+            className="ezik-focus" style={prefs.asr === mode ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+            {PRAYER_ASR_LABELS[mode]}
+          </button>
+        ))}
+      </div>
+      <div style={s.a11yGroupLabel}>{PRAYER_OFFSET_LABEL}</div>
+      {PRAYER_OFFSETTABLE.map((k) => (
+        <div key={k} style={s.prayerRow}>
+          <span style={s.prayerName}>{PRAYER_LABELS[k]}</span>
+          <span className="ez-hit" style={s.prayerStep}>
+            <button type="button" onClick={() => setPrefs(prayerNudgeOffset(prefs, k, -1))}
+              aria-label={PRAYER_LABELS[k] + ' ' + PRAYER_MINUS} className="ezik-focus" style={s.prayerStepBtn}>{PRAYER_MINUS}</button>
+            <span style={s.prayerOffVal}>{(prefs.off[k] > 0 ? PRAYER_PLUS : prefs.off[k] < 0 ? PRAYER_MINUS : '') + toArabicDigits(Math.abs(prefs.off[k]))}</span>
+            <button type="button" onClick={() => setPrefs(prayerNudgeOffset(prefs, k, 1))}
+              aria-label={PRAYER_LABELS[k] + ' ' + PRAYER_PLUS} className="ezik-focus" style={s.prayerStepBtn}>{PRAYER_PLUS}</button>
+          </span>
+        </div>
+      ))}
+    </EzShellGroup>
+  );
+}
+
+// ============================================================
 // ITEM 108-أ — اتّجاه القبلة
 // ============================================================
 // THE NUMBER. The initial bearing of the great circle from the reader to the Kaaba, which is the
@@ -13066,10 +13343,13 @@ const QIBLA_COMPASS_WAIT = 'بانتظارِ قراءةٍ من حسّاسِ ال
 const QIBLA_COMPASS_NONE = 'لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.';
 const QIBLA_COMPASS_LIVE = 'البوصلةُ تدورُ مع الجهاز.';
 const QIBLA_BACK = 'رجوع';
+// ITEM 107: the sheet now holds both readings, so it is named for both. The tile that opens it
+// is renamed with it -- one tile, one sheet, one position.
+const PRAYER_SHEET_TITLE = 'الصلاة والقبلة';
 const QIBLA_NEEDLE_MS = 4000;
 
-function QiblaPanel() {
-  const [loc, setLoc] = useState(readQiblaLoc);
+function QiblaPanel({ loc, onLoc }) {
+  const setLoc = onLoc;
   const [locState, setLocState] = useState('');
   // 'off' before the reader asks; 'wait' while listening; 'live' once a real heading arrived;
   // 'none' when the listening window closed with nothing usable in it.
@@ -13184,9 +13464,13 @@ function QiblaPanel() {
 // route would have broken a gate for a reason that has nothing to do with the qibla. It opens
 // from the home, over the home, on the home's own screen key, and its back button returns there.
 function PrayerSheet({ onClose }) {
+  // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
+  // so the place is state here and the controls that change it stay where item 108-أ put them.
+  const [loc, setLoc] = useState(readQiblaLoc);
   return (
-    <EzShell title={QIBLA_TITLE} onBack={onClose} backLabel={QIBLA_BACK}>
-      <QiblaPanel />
+    <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}>
+      <PrayerTimesPanel loc={loc} />
+      <QiblaPanel loc={loc} onLoc={setLoc} />
     </EzShell>
   );
 }
@@ -16004,6 +16288,15 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 // الأنماط
 // ============================================================
 const s = {
+  // ITEM 107: the times table and its two choosers. Type and tokens only.
+  prayerRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--line)' },
+  prayerName: { fontSize: 15, lineHeight: 1.7, color: 'var(--ink)' },
+  prayerTime: { fontSize: 16, lineHeight: 1.7, fontWeight: 700, color: 'var(--ink)' },
+  prayerOptRow: { display: 'flex', flexWrap: 'wrap', gap: 6, margin: '2px 0 4px' },
+  prayerOpt: { background: 'none', border: '1px solid var(--line)', borderRadius: 10, padding: '6px 10px', fontSize: 13, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
+  prayerStep: { display: 'inline-flex', alignItems: 'center', gap: 8 },
+  prayerStepBtn: { background: 'none', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 10px', fontSize: 15, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
+  prayerOffVal: { minWidth: 28, textAlign: 'center', fontSize: 14, color: 'var(--muted)' },
   // ITEM 108-أ: the qibla panel. Type and one dial, every colour a token.
   qiblaDeg: { fontSize: 26, lineHeight: 1.4, fontWeight: 700, color: 'var(--ink)' },
   qiblaDir: { marginTop: 2, fontSize: 15, lineHeight: 1.7, color: 'var(--ink)' },

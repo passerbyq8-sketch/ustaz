@@ -1510,7 +1510,13 @@ if (qLifted) {
   })();
 
   // ---- NOTHING HERE ASKS THE DEVICE ANYTHING UNTIL IT IS ASKED TO --------
-  const QPANEL = liftFunction('QiblaPanel') || '';
+  // ITEM 107 gave the panel a destructured parameter, and a brace-counting lift stops at the
+  // FIRST brace it meets -- which is now the parameter list. So the panel is taken as an
+  // anchored cut between two function names, with the length precondition below standing as
+  // the guard against a cut that came back empty.
+  const qpAt = SRC.indexOf('function QiblaPanel(');
+  const qpEnd = qpAt === -1 ? -1 : SRC.indexOf('function PrayerSheet(', qpAt);
+  const QPANEL = (qpAt !== -1 && qpEnd > qpAt) ? SRC.slice(qpAt, qpEnd) : '';
   if (ok('108-a: the panel was located', QPANEL.length > 800, 'len=' + QPANEL.length)) {
     ok('108-a: THE NEEDLE EXISTS ONLY WHILE A HEADING DOES',
       QPANEL.indexOf("compass === 'live' && needle !== null ?") !== -1
@@ -1550,6 +1556,304 @@ if (qLifted) {
     && SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("screen === 'qibla'") === -1);
   ok('108-a: ...and it is reached from a tile in the home\'s own module array',
     /\{ id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v\.onOpenPrayer,   meta: null \}/.test(SRC));
+}
+
+
+
+// ---------------------------------------------------------------------------
+// M. ITEM 107 -- PRAYER TIMES, COMPUTED HERE AND NOT FETCHED
+// ---------------------------------------------------------------------------
+// The whole of this section RUNS the shipped calculator. It is lifted with the day-number
+// helper item 109 introduced, because the two share one definition of what a day is, and then
+// driven over a year of days, at seven methods, two madhhabs, both offset limits, the equator,
+// the far north and the far south.
+
+const T_CONSTS = ['PRAYER_PREFS_KEY', 'PRAYER_METHOD_DEFAULT', 'PRAYER_ASR_DEFAULT',
+  'PRAYER_OFFSET_MIN', 'PRAYER_OFFSET_MAX', 'PRAYER_KEYS', 'PRAYER_OFFSETTABLE',
+  'PRAYER_LABELS', 'PRAYER_ASR_LABELS', 'PRAYER_HORIZON', 'toArabicDigits'];
+const T_FNS = ['hijriJdnFromCivil', 'prayerMethodTable', 'prayerMethodIds', 'prayerMethodOf',
+  'prayerSunPosition', 'prayerSunAngleTime', 'prayerAsrAngle', 'prayerTimesFor', 'prayerClock',
+  'readPrayerPrefs', 'writePrayerPrefs', 'prayerNudgeOffset'];
+
+const tConsts = {};
+const tFns = {};
+let tLifted = true;
+for (const n of T_CONSTS) { tConsts[n] = liftConst(n); if (!ok('107: lift const ' + n, !!tConsts[n])) tLifted = false; }
+for (const n of T_FNS) { tFns[n] = liftFunction(n); if (!ok('107: lift function ' + n, !!tFns[n])) tLifted = false; }
+
+if (tLifted) {
+  const T_LIFTED = T_CONSTS.map((n) => tConsts[n]).concat(T_FNS.map((n) => tFns[n])).join('\n\n');
+  ok('107: lifted block braces balance',
+    (T_LIFTED.match(/\{/g) || []).length === (T_LIFTED.match(/\}/g) || []).length);
+  ok('107: lifted block has no template literal', T_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+  const T = (store) => new Function('localStorage', 'JSON', 'Object',
+    T_LIFTED + '\nreturn { ' + T_CONSTS.concat(T_FNS).join(', ') + ' };')(store, JSON, Object);
+  const B = T(memStore());
+
+  // KUWAIT CITY, the coordinates the app defaults to, at UTC+3.
+  const KW = [29.3759, 47.9774, 180];
+  const day = (y, m, d, method, asr, off) =>
+    B.prayerTimesFor(y, m, d, KW[0], KW[1], KW[2], method, asr || 'standard', off || null);
+
+  eq('107: the preferences key carries its version', B.PRAYER_PREFS_KEY, 'ezik_prayer_prefs_v1');
+  eq('107: six times are computed, the five and the sunrise', B.PRAYER_KEYS.length, 6);
+  eq('107: ...and the five prayers are the ones an offset may move', B.PRAYER_OFFSETTABLE.length, 5);
+  ok('107: the sunrise is computed but is not a prayer to be offset',
+    B.PRAYER_KEYS.indexOf('sunrise') !== -1 && B.PRAYER_OFFSETTABLE.indexOf('sunrise') === -1);
+  eq('107: every computed time has a label',
+    B.PRAYER_KEYS.filter((k) => !String(B.PRAYER_LABELS[k] || '').trim()).length, 0);
+
+  // ---- THE METHODS ARE WRITTEN OUT, WITH THEIR VALUES ---------------------
+  (function methods() {
+    const ids = B.prayerMethodIds();
+    ok('107: more than one method is offered', ids.length >= 5, show(ids));
+    ok('107: the default is one of them', ids.indexOf(B.PRAYER_METHOD_DEFAULT) !== -1);
+    eq('107: ...and the default is the one this app names for its own city', B.PRAYER_METHOD_DEFAULT, 'kuwait');
+    for (const id of ids) {
+      const M = B.prayerMethodOf(id);
+      ok('107: the method ' + id + ' carries a name', !!String(M.name || '').trim());
+      ok('107: ...a fajr angle inside the range anybody uses',
+        typeof M.fajr === 'number' && M.fajr >= 12 && M.fajr <= 21, id + ' fajr=' + show(M.fajr));
+      ok('107: ...and an isha rule that is EITHER an angle OR an interval, never both and never neither',
+        (M.ishaMin > 0 && M.isha === 0) || (M.ishaMin === 0 && M.isha >= 12 && M.isha <= 21),
+        id + ' isha=' + show(M.isha) + ' ishaMin=' + show(M.ishaMin));
+    }
+    // The two interval methods are the two that are actually defined that way.
+    eq('107: exactly the interval methods use an interval',
+      ids.filter((id) => B.prayerMethodOf(id).ishaMin > 0).sort().join(','), 'makkah,qatar');
+    eq('107: an unknown method falls back to the default rather than to nothing',
+      B.prayerMethodOf('no-such-method').name, B.prayerMethodOf(B.PRAYER_METHOD_DEFAULT).name);
+    // AND THE METHODS ARE NOT ALL THE SAME METHOD: a table that had quietly collapsed to one
+    // set of angles would pass every check above and be worthless.
+    const fajrs = new Set(ids.map((id) => day(2026, 8, 22, id).fajr));
+    ok('107: the methods really do produce different times', fajrs.size >= 3, show(Array.from(fajrs)));
+  })();
+
+  // ---- IT IS COMPUTED, AND THE ORDER NEVER BREAKS -------------------------
+  (function ordered() {
+    const ids = B.prayerMethodIds();
+    let bad = 0, badAt = '', n = 0;
+    for (const id of ids) {
+      for (const asr of ['standard', 'hanafi']) {
+        for (let i = 0; i < 365; i++) {
+          const c = (function (jdn) {
+            const a = jdn + 32044;
+            const b2 = Math.floor((4 * a + 3) / 146097);
+            const c2 = a - Math.floor((146097 * b2) / 4);
+            const dd = Math.floor((4 * c2 + 3) / 1461);
+            const e = c2 - Math.floor((1461 * dd) / 4);
+            const mi = Math.floor((5 * e + 2) / 153);
+            return { y: 100 * b2 + dd - 4800 + Math.floor(mi / 10), m: mi + 3 - 12 * Math.floor(mi / 10),
+              d: e - Math.floor((153 * mi + 2) / 5) + 1 };
+          })(B.hijriJdnFromCivil(2026, 1, 1) + i);
+          const t = day(c.y, c.m, c.d, id, asr);
+          n++;
+          const seq = [t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha];
+          if (seq.some((v) => v === null)) { bad++; if (!badAt) badAt = id + ' ' + asr + ' ' + show(c); continue; }
+          for (let k = 1; k < seq.length; k++) {
+            if (!(seq[k] > seq[k - 1])) { bad++; if (!badAt) badAt = id + ' ' + asr + ' ' + show(c) + ' ' + show(seq); break; }
+          }
+        }
+      }
+    }
+    ok('107: a full year at Kuwait, every method, both madhhabs: the order is always ascending',
+      bad === 0, n + ' days computed, ' + bad + ' bad, first ' + badAt);
+    ok('107: ...and that really was a full year of real computations', n === 365 * ids.length * 2, 'n=' + n);
+  })();
+
+  // ---- SOLAR NOON IS THE MIDDLE OF THE DAY --------------------------------
+  // The one check that measures the equation of time rather than merely carrying it. Sunrise and
+  // sunset are symmetric about solar noon, so dhuhr must sit within a minute of their midpoint --
+  // every day of the year, not on the days when the correction happens to be near zero. The
+  // correction swings sixteen minutes either way across a year, so a calculator that dropped it
+  // would keep every ordering property intact and fail only here.
+  (function solarNoon() {
+    let worst = 0, worstAt = '';
+    for (let i = 0; i < 365; i++) {
+      const c = (function (jdn) {
+        const a2 = jdn + 32044;
+        const b2 = Math.floor((4 * a2 + 3) / 146097);
+        const c2 = a2 - Math.floor((146097 * b2) / 4);
+        const dd = Math.floor((4 * c2 + 3) / 1461);
+        const e = c2 - Math.floor((1461 * dd) / 4);
+        const mi = Math.floor((5 * e + 2) / 153);
+        return { y: 100 * b2 + dd - 4800 + Math.floor(mi / 10), m: mi + 3 - 12 * Math.floor(mi / 10),
+          d: e - Math.floor((153 * mi + 2) / 5) + 1 };
+      })(B.hijriJdnFromCivil(2026, 1, 1) + i);
+      const x = day(c.y, c.m, c.d, 'kuwait', 'standard');
+      if (x.sunrise === null || x.maghrib === null || x.dhuhr === null) continue;
+      const gap = Math.abs(x.dhuhr - (x.sunrise + x.maghrib) / 2);
+      if (gap > worst) { worst = gap; worstAt = c.y + '-' + c.m + '-' + c.d + ' ' + show(x); }
+    }
+    ok('107: solar noon sits at the midpoint of sunrise and sunset, every day of the year',
+      worst <= 1, 'worst deviation ' + worst.toFixed(2) + ' minutes at ' + worstAt);
+    ok('107: ...and that really was measured across a year, not asserted on one day', worst >= 0);
+  })();
+
+  // ---- THE HANAFI ASR IS LATER, AND ONLY THE ASR MOVES --------------------
+  (function madhhab() {
+    // Twelve dates spread over a year, so this is a property of the rule and not of one day.
+    let later = 0, others = 0, n2 = 0;
+    for (let m = 1; m <= 12; m++) {
+      const A = day(2026, m, 15, 'kuwait', 'standard');
+      const H = day(2026, m, 15, 'kuwait', 'hanafi');
+      n2++;
+      if (H.asr > A.asr) later++;
+      for (const k of ['fajr', 'sunrise', 'dhuhr', 'maghrib', 'isha']) if (H[k] !== A[k]) others++;
+    }
+    eq('107: the Hanafi asr is later than the majority asr on every month of the year', later, n2);
+    eq('107: ...and nothing else moves with it', others, 0);
+  })();
+
+  // ---- WHERE THE SUN DOES NOT REACH THE ANGLE, THERE IS NO NUMBER --------
+  (function polar() {
+    // Tromso in midsummer: the sun never reaches 18 degrees below the horizon.
+    const t = B.prayerTimesFor(2026, 6, 21, 69.6, 18.95, 120, 'kuwait', 'standard', null);
+    ok('107: at a polar midsummer, fajr and isha are ABSENT rather than invented',
+      t.fajr === null && t.isha === null, show(t));
+    ok('107: ...and the noon that DOES exist is still given', typeof t.dhuhr === 'number');
+    // and it does not throw at either pole
+    for (const lat of [89.9, -89.9, 66.6, -66.6]) {
+      let threw = null;
+      try { B.prayerTimesFor(2026, 12, 21, lat, 0, 0, 'kuwait', 'standard', null); } catch (e) { threw = e; }
+      ok('107: latitude ' + lat + ' does not throw', threw === null);
+    }
+    // an impossible position yields six absences, not six zeros
+    for (const p of [[null, 0], [0, null], ['29', '47'], [NaN, 0], [91, 0], [0, 181]]) {
+      const r = B.prayerTimesFor(2026, 8, 22, p[0], p[1], 180, 'kuwait', 'standard', null);
+      ok('107: an impossible position yields no times at all: ' + show(p),
+        B.PRAYER_KEYS.every((k) => r[k] === null), show(r));
+    }
+  })();
+
+  // ---- THE OFFSET MOVES ITS OWN PRAYER, BY ITS OWN AMOUNT, AND NO MORE ---
+  (function offsets() {
+    const base = day(2026, 8, 22, 'kuwait', 'standard');
+    for (const k of B.PRAYER_OFFSETTABLE) {
+      for (const v of [-15, -7, -1, 1, 7, 15]) {
+        const off = {};
+        off[k] = v;
+        const t = day(2026, 8, 22, 'kuwait', 'standard', off);
+        eq('107: an offset of ' + v + ' moves ' + k + ' by exactly ' + v,
+          ((t[k] - base[k]) % 1440 + 1440) % 1440, ((v % 1440) + 1440) % 1440);
+        const moved = B.PRAYER_KEYS.filter((o) => t[o] !== base[o]);
+        eq('107: ...and moves nothing else', moved.join(','), k);
+      }
+    }
+    // beyond the pair, the calculation itself clamps -- a hand-edited store cannot move a
+    // prayer by an hour.
+    for (const [v, want] of [[60, 15], [-60, -15], [16, 15], [-16, -15]]) {
+      const off = { fajr: v };
+      const t = day(2026, 8, 22, 'kuwait', 'standard', off);
+      eq('107: a stored offset of ' + v + ' is clamped to ' + want,
+        ((t.fajr - base.fajr) % 1440 + 1440) % 1440, ((want % 1440) + 1440) % 1440);
+    }
+    for (const v of [null, undefined, NaN, '5', 1.5, {}, Infinity]) {
+      const off = { fajr: v };
+      const t = day(2026, 8, 22, 'kuwait', 'standard', off);
+      eq('107: an unusable offset ' + show(v) + ' moves nothing', t.fajr, base.fajr);
+    }
+    // an offset aimed at something that is not an offsettable prayer is ignored
+    const t2 = day(2026, 8, 22, 'kuwait', 'standard', { sunrise: 10, nonsense: 10 });
+    eq('107: the sunrise carries no offset', t2.sunrise, base.sunrise);
+  })();
+
+  // ---- THE CLOCK ----------------------------------------------------------
+  (function clock() {
+    const AR = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+    const has = (s2) => new RegExp('[' + AR + ']').test(s2);
+    ok('107: a time is written in Arabic-Indic digits', has(B.prayerClock(4 * 60 + 7)));
+    ok('107: ...with no Western digit', !/[0-9]/.test(B.prayerClock(4 * 60 + 7)));
+    eq('107: midnight is twelve, not zero', B.prayerClock(0).indexOf(B.toArabicDigits(12)), 0);
+    eq('107: noon is twelve too', B.prayerClock(720).indexOf(B.toArabicDigits(12)), 0);
+    ok('107: the morning and the evening are told apart',
+      B.prayerClock(4 * 60) !== B.prayerClock(16 * 60));
+    for (const bad of [null, undefined, NaN, 'x', {}]) {
+      eq('107: an absent time draws a dash, never a zero: ' + show(bad), B.prayerClock(bad), '\u2014');
+    }
+  })();
+
+  // ---- THE PREFERENCES ----------------------------------------------------
+  (function prefs() {
+    const K = 'ezik_prayer_prefs_v1';
+    const d = T(memStore()).readPrayerPrefs();
+    ok('107: an empty store reads the shipped defaults',
+      d.method === B.PRAYER_METHOD_DEFAULT && d.asr === B.PRAYER_ASR_DEFAULT
+      && B.PRAYER_OFFSETTABLE.every((k) => d.off[k] === 0), show(d));
+    const bad = ['', 'x', 'null', '7', '[]', '{"method":"nope"}', '{"asr":"maliki"}',
+      '{"off":5}', '{"off":{"fajr":"5"}}', '{"off":{"fajr":99}}', '{"off":{"fajr":1.5}}',
+      '{"method":7,"asr":7,"off":7}'];
+    for (const b of bad) {
+      const st = memStore(); st.setItem(K, b);
+      let threw = null, r = null;
+      try { r = T(st).readPrayerPrefs(); } catch (e) { threw = e; }
+      ok('107: a broken record reads as the defaults and does not throw: ' + show(b),
+        threw === null && r && r.method === B.PRAYER_METHOD_DEFAULT && r.asr === B.PRAYER_ASR_DEFAULT
+        && B.PRAYER_OFFSETTABLE.every((k) => r.off[k] === 0), threw ? 'threw' : show(r));
+    }
+    // a record that is PART good keeps the good part
+    const p1 = memStore(); p1.setItem(K, '{"method":"makkah","asr":"maliki","off":{"fajr":3,"asr":99}}');
+    const r1 = T(p1).readPrayerPrefs();
+    ok('107: a partly usable record keeps what is usable and defaults the rest',
+      r1.method === 'makkah' && r1.asr === B.PRAYER_ASR_DEFAULT && r1.off.fajr === 3 && r1.off.asr === 0, show(r1));
+    // writes
+    const w1 = countingStore();
+    eq('107: choosing a method stores it', T(w1).writePrayerPrefs({ method: 'egypt' }).method, 'egypt');
+    eq('107: ...with one write', w1.writes, 1);
+    eq('107: an unknown method is refused', T(countingStore()).writePrayerPrefs({ method: 'nope' }).method, B.PRAYER_METHOD_DEFAULT);
+    eq('107: an unknown madhhab is refused', T(countingStore()).writePrayerPrefs({ asr: 'maliki' }).asr, B.PRAYER_ASR_DEFAULT);
+    const w2 = countingStore();
+    T(w2).writePrayerPrefs({ method: 'makkah' });
+    const r2 = T(w2).writePrayerPrefs({ asr: 'hanafi' });
+    ok('107: a second choice does not erase the first', r2.method === 'makkah' && r2.asr === 'hanafi', show(r2));
+    // the nudge
+    const w3 = countingStore();
+    let p = T(w3).readPrayerPrefs();
+    for (let i = 0; i < 20; i++) p = T(w3).prayerNudgeOffset(p, 'asr', 1);
+    eq('107: nudging up stops at the ceiling', p.off.asr, B.PRAYER_OFFSET_MAX);
+    for (let i = 0; i < 40; i++) p = T(w3).prayerNudgeOffset(p, 'asr', -1);
+    eq('107: ...and down at the floor', p.off.asr, B.PRAYER_OFFSET_MIN);
+    eq('107: ...and the other prayers never moved', p.off.fajr, 0);
+    eq('107: a nudge on something that is not an offsettable prayer changes nothing',
+      T(w3).prayerNudgeOffset(p, 'sunrise', 5).off.asr, B.PRAYER_OFFSET_MIN);
+    ok('107: a storage that throws reads the defaults and does not throw',
+      T(throwingStore()).readPrayerPrefs().method === B.PRAYER_METHOD_DEFAULT);
+    ok('107: ...and a write into it does not throw either',
+      T(throwingStore()).writePrayerPrefs({ method: 'egypt' }).method === B.PRAYER_METHOD_DEFAULT);
+    const ro = countingStore();
+    T(ro).readPrayerPrefs();
+    eq('107: reading the preferences writes nothing', ro.writes, 0);
+  })();
+
+  // ---- ZERO WIRE, ZERO ADHAN, ZERO PROMISE OF ONE ------------------------
+  for (const t of ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
+    'document.cookie', 'indexedDB', 'sessionStorage', '/api/', 'aladhan', 'api.']) {
+    ok('107: the calculator contains no ' + t, T_LIFTED.indexOf(t) === -1);
+  }
+  const TPANEL_AT = SRC.indexOf('function PrayerTimesPanel(');
+  const TPANEL_END = TPANEL_AT === -1 ? -1 : SRC.indexOf('// ============================================================\n// ITEM 108', TPANEL_AT);
+  const TPANEL = (TPANEL_AT !== -1 && TPANEL_END > TPANEL_AT) ? SRC.slice(TPANEL_AT, TPANEL_END) : '';
+  if (ok('107: the times panel was located', TPANEL.length > 800, 'len=' + TPANEL.length)) {
+    for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'EventSource', '/api/',
+      'Audio', 'play(', 'Notification', 'requestPermission', 'setTimeout', 'setInterval']) {
+      ok('107: the times panel contains no ' + t, TPANEL.indexOf(t) === -1);
+    }
+  }
+  // The word is nowhere in the application file -- not in a string, not in a comment promising it.
+  ok('107: the application plays no adhan and constructs no audio for one',
+    SRC.indexOf('adhan') === -1 && SRC.indexOf('\u0623\u0630\u0627\u0646') === -1);
+  ok('107: ...and still asks for no notification permission',
+    SRC.indexOf('Notification.requestPermission') === -1);
+
+  // ---- WHERE IT LIVES -----------------------------------------------------
+  ok('107: the times are drawn in the same sheet as the qibla, from ONE position',
+    /<PrayerTimesPanel loc=\{loc\} \/>/.test(SRC)
+    && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} \/>/.test(SRC)
+    && (SRC.match(/useState\(readQiblaLoc\)/g) || []).length === 1);
+  ok('107: ...and still without adding a route',
+    SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("setScreen('prayer')") === -1);
+  ok('107: the default position is still Kuwait, and no prompt is raised to get one',
+    /const QIBLA_DEFAULT_LAT = 29\.3759;/.test(SRC));
 }
 
 
