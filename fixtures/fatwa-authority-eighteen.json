@@ -1,6 +1,7 @@
 {
   "schema": "ezik.fatwa-authority.eighteen.v1",
   "harvestedFrom": "https://ezik-fatwas.vercel.app",
+  "namesAreAsHarvested": "Every `name` and `evidence.scholar` below is the label the fatwa service returned when this file was harvested. They are NOT re-pointed when lib/fatwa-contract.js corrects a display name. Item 71 corrected two rows (alathary, salmajed); the superseded labels stay here on purpose, because the service still serves them as `shortName` on every card, and this fixture exists to prove those cards keep their attribution. Both the superseded and the corrected name resolve: the contract holds the union of the two, not a rename. Re-point these only when the service itself is updated and this file is re-harvested from it.",
   "cases": [
     {
       "scholarId": "binbaz",
