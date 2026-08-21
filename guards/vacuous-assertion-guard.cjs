@@ -84,22 +84,9 @@ function head(t) { console.log(NL + '=== ' + t + ' ==='); }
  * SCOPE
  * =========================================================================================== */
 
-// The three files this round may not touch by a single byte. They are being edited on a parallel
-// screen, so scanning them here would report findings nobody in this lane may repair, and would
-// re-fail on every byte the other lane writes. They are EXCLUDED and the exclusion is printed as
-// an open item on every run — not commented out, not silently dropped.
-//
-// index.html is not .cjs and so was never in this corpus; it is named here for completeness of
-// the record. theme-coverage-guard.cjs is the file item 106-ب repaired (64 pairs) and it already
-// carries okOn/eqOn, which this guard recognises. tools/wird-guard.cjs was measured CLEAN by item
-// 106 ("its four candidate sites are all anchor-required already").
-const OUT_OF_SCOPE_THIS_ROUND = [
-  ['theme-coverage-guard.cjs',
-    'owned by the parallel screen this round; repaired by item 106-ب with okOn/eqOn, re-measured 0 blind pairs'],
-  ['tools/wird-guard.cjs',
-    'owned by the parallel screen this round; measured clean by item 106 -- four candidate sites, all anchor-required'],
-];
-const OUT_OF_SCOPE = new Set(OUT_OF_SCOPE_THIS_ROUND.map((entry) => entry[0]));
+// Merge round 23 closed the temporary parallel-screen exclusion after both owned guards landed.
+// theme-coverage-guard.cjs and tools/wird-guard.cjs now belong to the ordinary corpus below; the
+// sweep must parse and judge them on every run just like every other .cjs file in the tree.
 
 // Named exceptions: a pair this guard reports, adjudicated and permitted, each with its reason.
 // Keyed 'path:line:binding'. An exception that no longer matches anything is itself a failure --
@@ -476,18 +463,14 @@ const corpus = listCjs(ROOT).sort();
 // floor is asserted rather than assumed. 145 .cjs files were tracked when this was written.
 ok('the sweep has a corpus to read (>= 140 .cjs files)', corpus.length >= 140, 'found ' + corpus.length);
 
-for (const [file, reason] of OUT_OF_SCOPE_THIS_ROUND) {
-  console.log('  SKIP ' + file + '  --  ' + reason);
-}
-ok('the out-of-scope list names exactly the two files it is allowed to name',
-  OUT_OF_SCOPE.size === 2 && OUT_OF_SCOPE.has('theme-coverage-guard.cjs') && OUT_OF_SCOPE.has('tools/wird-guard.cjs'));
+ok('the merged theme and wird guards are both in the sweep',
+  corpus.includes('theme-coverage-guard.cjs') && corpus.includes('tools/wird-guard.cjs'));
 
 const scanned = [];
 const parseFailures = [];
 const reported = [];
 const protectedPairs = [];
 for (const rel of corpus) {
-  if (OUT_OF_SCOPE.has(rel)) continue;
   let pairs;
   try { pairs = analyse(rel, fs.readFileSync(path.join(ROOT, rel), 'utf8')); }
   catch (e) { parseFailures.push(rel + ' :: ' + e.message); continue; }
@@ -525,12 +508,10 @@ const staleExceptions = Object.keys(EXCEPTIONS).filter((k) => !usedExceptions.ha
 ok('no exception outlives the thing it excuses', staleExceptions.length === 0, staleExceptions.join(', '));
 
 /* =============================================================================================
- * C. THE OPEN ITEM
+ * C. MERGE CLOSURE
  * =========================================================================================== */
-head('C. WHAT THIS ROUND DID NOT SWEEP');
-console.log('  OPEN ITEM. The two files above are excluded because a parallel screen owns them this');
-console.log('  round. Fold them into the scan in a later round by deleting their entries from');
-console.log('  OUT_OF_SCOPE_THIS_ROUND; nothing else in this file has to change.');
+head('C. MERGE CLOSURE');
+console.log('  CLOSED. theme-coverage-guard.cjs and tools/wird-guard.cjs are in the ordinary sweep.');
 
 console.log(NL + (fail === 0 ? 'PASS  ' : 'FAIL  ') + pass + ' checks passed, ' + fail + ' failed.');
 if (fail) { console.log('failing: ' + failures.join(' | ')); process.exit(1); }

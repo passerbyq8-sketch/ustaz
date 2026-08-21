@@ -1035,7 +1035,7 @@ head('16) CURRENT IMPLEMENTATION-REPORT FACTS');
       + summaryBeforeThisCheck.warn + '/' + summaryBeforeThisCheck.fail + ')');
   }
   if (problems.length) fail('implementation report drift: ' + problems.join('; '));
-  else info('implementation report matches gates.json, wird registration, and this recon summary');
+  else pass('implementation report matches gates.json, wird registration, and this recon summary');
 }
 
 /* ---------------------------------------------------------------- *

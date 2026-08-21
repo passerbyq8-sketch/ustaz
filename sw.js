@@ -32,7 +32,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v12';
+const CACHE = 'ezik-v13';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // a second copy of the 1158925 bytes '/' already holds. The network-first branch below still
@@ -89,7 +89,7 @@ const CORE = [
 // the pre-check then reserves less room than CORE needs and install is merely pessimistic.
 // A constant that LEADS would let install start a precache that cannot finish, which is why
 // B12 fails downward only.
-const CORE_BYTES = 1711855;
+const CORE_BYTES = 1729120;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
