@@ -7143,6 +7143,9 @@ function App() {
   // Live mirror of the state above, for the scroll handlers and the follow effect: those run
   // outside React's render and must not read a value a re-render has not delivered yet.
   const pinActiveRef = useRef(false);
+  // Circuit breaker for a device geometry whose rendered spacer never converges. It is reset
+  // for every turn and bounds the number of state-writing layout passes that turn may make.
+  const pinPassRef = useRef(0);
   // The room under the last turn that lets a SHORT answer still be pushed to the top. It is a
   // number of pixels, recomputed as the answer grows and collapsed to 0 when the turn ends, so
   // no gap is left behind for the reader to scroll through.
@@ -8024,6 +8027,12 @@ function App() {
     // Compared against the RENDERED value, and with a pixel of tolerance, so sub-pixel layout
     // cannot start the same argument by a different route.
     if (Math.abs(need - askPinPad) > 1) {
+      pinPassRef.current += 1;
+      if (pinPassRef.current > 8) {
+        pinActiveRef.current = false;
+        setAskPinPad(0);
+        return;
+      }
       setAskPinPad(need);
       // The spacer lands on the next commit, and this effect runs again then. Taking the
       // position now, against a height that is about to change, would pin to a stale number.
@@ -8043,6 +8052,7 @@ function App() {
     if (pinnedAskIndex == null) return;
     if (isLoading || streamingText !== null) return;
     pinActiveRef.current = false;
+    pinPassRef.current = 0;
     setAskPinPad(0);
     setPinnedAskIndex(null);
   }, [pinnedAskIndex, isLoading, streamingText]);
@@ -9234,6 +9244,7 @@ function App() {
     // «ومع كلِّ سؤالٍ جديدٍ في الصفحةِ نفسِها يتكرّرُ السلوك» — this runs on every send, so a
     // second question re-arms by pointing at its own index; there is no flag to get stuck.
     pinActiveRef.current = true;
+    pinPassRef.current = 0;
     pinScrollTopRef.current = -1;
     setAskPinPad(0);
     setPinnedAskIndex(updated.length - 1);
@@ -15846,8 +15857,133 @@ function ezikEnsureScalableStyles() {
   } catch (e) {}
 })();
 
+function ErrorBoundary(props) {
+  React.Component.call(this, props);
+  this.state = { error: null, componentStack: '' };
+  this.retry = this.retry.bind(this);
+  this.copyDetails = this.copyDetails.bind(this);
+}
+ErrorBoundary.prototype = Object.create(React.Component.prototype);
+ErrorBoundary.prototype.constructor = ErrorBoundary;
+ErrorBoundary.getDerivedStateFromError = function (error) {
+  return { error: error };
+};
+ErrorBoundary.prototype.componentDidCatch = function (error, info) {
+  this.setState({
+    error: error,
+    componentStack: info && info.componentStack ? info.componentStack : ''
+  });
+};
+ErrorBoundary.prototype.retry = function () {
+  this.setState({ error: null, componentStack: '' });
+};
+ErrorBoundary.prototype.errorParts = function () {
+  var error = this.state.error;
+  var message = '';
+  var stack = '';
+  try {
+    message = error && typeof error.message !== 'undefined' ? String(error.message) : String(error || '');
+  } catch (ignored) {
+    message = '(unavailable)';
+  }
+  try {
+    stack = error && error.stack ? String(error.stack) : '';
+  } catch (ignored) {
+    stack = '(unavailable)';
+  }
+  if (this.state.componentStack) {
+    stack += (stack ? '\n' : '') + String(this.state.componentStack);
+  }
+  return { message: message, stack: stack };
+};
+ErrorBoundary.prototype.legacyCopy = function (text) {
+  var area = null;
+  try {
+    area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', 'readonly');
+    area.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+    (document.body || document.documentElement).appendChild(area);
+    area.focus();
+    area.select();
+    if (area.setSelectionRange) area.setSelectionRange(0, text.length);
+    var copied = document.execCommand('copy');
+    if (area.parentNode) area.parentNode.removeChild(area);
+    return !!copied;
+  } catch (ignored) {
+    try {
+      if (area && area.parentNode) area.parentNode.removeChild(area);
+    } catch (cleanupIgnored) {}
+    return false;
+  }
+};
+ErrorBoundary.prototype.copyDetails = function () {
+  var parts = this.errorParts();
+  var nav = window.navigator;
+  var userAgent = nav && nav.userAgent ? String(nav.userAgent) : '';
+  var text = parts.message + '\n' + parts.stack + '\n' + userAgent;
+  try {
+    if (nav && nav.clipboard && typeof nav.clipboard.writeText === 'function') {
+      var operation = nav.clipboard.writeText(text);
+      if (operation && typeof operation.then === 'function') {
+        var self = this;
+        operation.then(function () {}, function () { self.legacyCopy(text); });
+      }
+    } else {
+      this.legacyCopy(text);
+    }
+  } catch (ignored) {
+    this.legacyCopy(text);
+  }
+};
+ErrorBoundary.prototype.render = function () {
+  if (!this.state.error) return this.props.children;
+  var parts = this.errorParts();
+  return React.createElement('main', {
+    role: 'alert',
+    dir: 'rtl',
+    style: {
+      minHeight: '100vh', height: '100dvh', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', padding: 24, background: 'var(--page)', color: 'var(--ink)',
+      fontFamily: 'var(--ez-ui-font)'
+    }
+  }, React.createElement('section', {
+    style: {
+      width: '100%', maxWidth: 680, padding: 24, borderRadius: 18,
+      border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)',
+      boxShadow: '0 12px 40px rgba(0,0,0,0.12)'
+    }
+  },
+  React.createElement('h1', { style: { margin: '0 0 20px', fontSize: 22, lineHeight: 1.5 } },
+    '\u062a\u0639\u0630\u0651\u0631\u0020\u0639\u0631\u0636\u0020\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629'),
+  React.createElement('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 10 } },
+    React.createElement('button', {
+      type: 'button', onClick: this.retry,
+      style: {
+        minHeight: 44, padding: '10px 16px', border: '1px solid var(--red)', borderRadius: 12,
+        background: 'var(--red)', color: 'var(--on-accent)', cursor: 'pointer', fontWeight: 700
+      }
+    }, '\u0623\u0639\u062f\u0020\u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629'),
+    React.createElement('button', {
+      type: 'button', onClick: this.copyDetails,
+      style: {
+        minHeight: 44, padding: '10px 16px', border: '1px solid var(--line)', borderRadius: 12,
+        background: 'var(--page)', color: 'var(--ink)', cursor: 'pointer', fontWeight: 700
+      }
+    }, '\u0627\u0646\u0633\u062e\u0020\u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644')),
+  React.createElement('pre', {
+    dir: 'ltr',
+    style: {
+      margin: '20px 0 0', padding: 12, borderRadius: 10, overflow: 'auto',
+      whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', textAlign: 'left',
+      background: 'var(--page)', color: 'var(--ink)', fontFamily: 'monospace', fontSize: 12,
+      lineHeight: 1.5
+    }
+  }, parts.message + '\n\n' + parts.stack)));
+};
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(React.createElement(ErrorBoundary, null, React.createElement(App)));
 </script>
 <div id="print-area"></div>
 <!-- Vercel Web Analytics and Speed Insights were loaded here. They are REMOVED for this
