@@ -1772,6 +1772,10 @@ function ezLangRelabel() {
     EZIK_FAV_SEARCH_ARIA = ezT("favorites.searchAria");
     EZIK_CHATS_EMPTY = ezT("chat.noConversations");
     EZIK_QUOTE_ARIA = ezT("chat.quoteAria");
+    EZIK_SHARE_LABEL = ezT("chat.share");
+    EZIK_SHARE_ARIA = ezT("chat.shareAria");
+    EZIK_SHARE_COPIED = ezT("common.copied");
+    EZIK_SHARE_FAIL = ezT("common.copyFailed");
     for (let i = 0; i < EZIK_QUICK_ACTIONS.length; i++) {
       EZIK_QUICK_ACTIONS[i] = { ...EZIK_QUICK_ACTIONS[i], label: ezT('chat.qa.' + EZIK_QUICK_ACTIONS[i].key) };
     }
@@ -1823,6 +1827,8 @@ const EZ_I18N = {
     'common.copy': 'نسخ',
     'common.copied': 'تم النسخ',
     'common.copyFailed': 'تعذّر النسخ',
+    'chat.share': 'مشاركة',
+    'chat.shareAria': 'مشاركة الرد',
     'common.of': '{a} من {b}',
     'navigation.home': '\u{0627}\u{0644}\u{0631}\u{0626}\u{064A}\u{0633}\u{064A}\u{0629}',
     'navigation.settings': '\u{0627}\u{0644}\u{0625}\u{0639}\u{062F}\u{0627}\u{062F}\u{0627}\u{062A}',
@@ -2029,6 +2035,8 @@ const EZ_I18N = {
     'common.copy': 'Copy',
     'common.copied': 'Copied',
     'common.copyFailed': 'Could not copy',
+    'chat.share': 'Share',
+    'chat.shareAria': 'Share this reply',
     'common.of': '{a} of {b}',
     'navigation.home': 'Home',
     'navigation.settings': 'Settings',
@@ -3736,43 +3744,93 @@ const miniBtnStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, bac
 //     not try the legacy path, so the button did nothing at all and said nothing at all. And on
 //     the legacy path it ignored execCommand's return value, so a REFUSED copy still flashed
 //     "copied" -- indistinguishable, to the owner, from a broken serializer.
+// ── ITEM 42-أ: THE ONE CLIPBOARD PATH, LIFTED OUT SO A SECOND ONE IS NEVER WRITTEN ─────────
+// This is the body that was inside CopyReplyButton, moved out unchanged and given a name. It is
+// lifted because the share button needs the SAME fallback: where `navigator.share` does not
+// exist -- every desktop browser, and a WebView without the permission -- sharing degrades to
+// copying, and it must degrade to THIS copy, with its legacy path and its honest return value,
+// rather than to a second implementation that would drift from it.
+//
+// It returns whether the write ACTUALLY happened. navigator.clipboard.writeText rejects in an
+// Android WebView, on an insecure origin, and without a user gesture; the legacy path is not a
+// relic but the only path that works where the Clipboard API is present and refuses. A refused
+// copy must never be reported as a copy.
+const ezikLegacyCopy = (payload) => {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = payload;
+    ta.setAttribute('readonly', '');               // keeps the mobile keyboard shut
+    ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0';
+    ta.style.width = '1px'; ta.style.height = '1px'; ta.style.padding = '0';
+    ta.style.border = 'none'; ta.style.outline = 'none'; ta.style.boxShadow = 'none';
+    ta.style.background = 'transparent'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { ta.setSelectionRange(0, String(payload).length); } catch (e) {}   // iOS needs the range
+    const done = document.execCommand('copy') === true;
+    document.body.removeChild(ta);
+    return done;
+  } catch (e) { return false; }
+};
+const ezikWriteClipboard = async (payload) => {
+  if (!payload) return false;
+  let wrote = false;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(payload);
+      wrote = true;
+    }
+  } catch (e) { wrote = false; }                   // a refusal is not the end -- fall through
+  if (!wrote) wrote = ezikLegacyCopy(payload);
+  return wrote;
+};
 const CopyReplyButton = ({ text, getText }) => {
   const [flash, setFlash] = useState('');            // '' | 'ok' | 'fail'
   if (!text) return null;
-  // The legacy path is not a relic: it is the ONLY path that works where the Clipboard API is
-  // present but refuses. Returns true only when the document actually reports the copy done.
-  const legacyCopy = (payload) => {
-    try {
-      const ta = document.createElement('textarea');
-      ta.value = payload;
-      ta.setAttribute('readonly', '');               // keeps the mobile keyboard shut
-      ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0';
-      ta.style.width = '1px'; ta.style.height = '1px'; ta.style.padding = '0';
-      ta.style.border = 'none'; ta.style.outline = 'none'; ta.style.boxShadow = 'none';
-      ta.style.background = 'transparent'; ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.focus(); ta.select();
-      try { ta.setSelectionRange(0, String(payload).length); } catch (e) {}   // iOS needs the range
-      const done = document.execCommand('copy') === true;
-      document.body.removeChild(ta);
-      return done;
-    } catch (e) { return false; }
-  };
   const doCopy = async () => {
     const payload = (typeof getText === 'function') ? getText() : text;
     if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
-    let wrote = false;
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(payload);
-        wrote = true;
-      }
-    } catch (e) { wrote = false; }                   // a refusal is not the end -- fall through
-    if (!wrote) wrote = legacyCopy(payload);
+    const wrote = await ezikWriteClipboard(payload);
     setFlash(wrote ? 'ok' : 'fail');                 // never claim a write that did not happen
     setTimeout(() => setFlash(''), 1500);
   };
-  return <button type="button" onClick={doCopy} aria-label={'\u0646\u0633\u062E'} style={miniBtnStyle}>{flash === 'ok' ? '\u062A\u0645 \u0627\u0644\u0646\u0633\u062E' : flash === 'fail' ? '\u062A\u0639\u0630\u0651\u0631\u064E \u0627\u0644\u0646\u0633\u062E' : '\u0646\u0633\u062E'}</button>;
+  return <button type="button" onClick={doCopy} aria-label={'نسخ'} style={miniBtnStyle}>{flash === 'ok' ? 'تم النسخ' : flash === 'fail' ? 'تعذّرَ النسخ' : 'نسخ'}</button>;
+};
+// ── ITEM 42-أ: SHARE. THE ONLY BUTTON THIS ITEM ADDS, AND IT CALLS NOTHING ─────────────────
+// It moves text that is ALREADY ON THE SCREEN. There is no request in it of any kind: no
+// summary, no regeneration, no model, no endpoint. The brain freeze is not lifted by this item
+// and nothing here needs it lifted.
+//
+// It hands over the SAME payload the clipboard gets -- `getText` is `buildCopyText`, the one
+// serializer the copy button already uses, with the cards serialized and no raw tag in it -- so
+// a shared reply carries exactly what a copied one does and no second serializer can drift.
+//
+// AND IT FALLS BACK TO COPYING. `navigator.share` does not exist on desktop browsers and is
+// refused in some WebViews. A button that vanished there would be a button the reader cannot
+// learn, so the control is always present and the fallback is the file's ONE clipboard path.
+// A share the reader CANCELS is not a failure: AbortError leaves the label alone.
+const ShareReplyButton = ({ getText }) => {
+  const [flash, setFlash] = useState('');            // '' | 'copied' | 'fail'
+  const say = (v) => { setFlash(v); setTimeout(() => setFlash(''), 1500); };
+  const doShare = async () => {
+    const payload = (typeof getText === 'function') ? getText() : '';
+    if (!payload) { say('fail'); return; }
+    try {
+      if (navigator.share) {
+        await navigator.share({ text: payload });
+        return;                                      // the platform sheet is its own feedback
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;      // the reader changed their mind
+      // anything else -- refused, unsupported scheme -- falls through to the clipboard
+    }
+    say(await ezikWriteClipboard(payload) ? 'copied' : 'fail');
+  };
+  return (
+    <button type="button" onClick={doShare} aria-label={EZIK_SHARE_ARIA} className="ezik-focus" style={miniBtnStyle}>
+      {flash === 'copied' ? EZIK_SHARE_COPIED : flash === 'fail' ? EZIK_SHARE_FAIL : EZIK_SHARE_LABEL}
+    </button>
+  );
 };// The Web Speech engine ends a session on every pause and the next one starts a fresh
 // transcript. Concatenating the two halves raw welded the last word of one onto the first
 // word of the next. Every seam goes through this joiner instead.
@@ -11142,6 +11200,12 @@ const ezikIsErrorReply = (t) => typeof t === 'string' && EZIK_ERROR_REPLIES.inde
 // leaves whatever the child had already typed exactly where it was.
 const EZIK_QUOTE_MAX = 500;
 const EZIK_QUOTE_LABEL = 'اقتباس';
+// ITEM 42-أ. The share control speaks through the SAME dictionary the rest of the rail does,
+// so a reader who switches the interface language switches this button with everything else.
+let EZIK_SHARE_LABEL = ezT("chat.share");
+let EZIK_SHARE_ARIA = ezT("chat.shareAria");
+let EZIK_SHARE_COPIED = ezT("common.copied");
+let EZIK_SHARE_FAIL = ezT("common.copyFailed");
 let EZIK_QUOTE_ARIA = ezT("chat.quoteAria");
 function ezikBuildQuote(clean) {
   let t = String(clean == null ? '' : clean).replace(/\s+/g, ' ').trim();
@@ -11581,6 +11645,9 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
         {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
             always exists, so the button can no longer vanish because a fetch had not landed. */}
         <CopyReplyButton text={String(message.content || '').trim()} getText={buildCopyText} />
+        {/* ITEM 42-أ: SHARE. The same payload the clipboard gets, the same rail, the same
+            44x44 hit area every .ezc-acts button already takes from 44-ج. It calls nothing. */}
+        <ShareReplyButton getText={buildCopyText} />
         {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}

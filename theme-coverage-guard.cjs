@@ -2666,6 +2666,77 @@ eqOn('N29: ...and no control inside it closes behind the resolver\'s back', [["d
   (drawerSrc.match(/setDrawerOpen\(false\)/g) || []).length, 0);
 ok('N29: ...the scrim included', /<div onClick=\{\(\) => closeDrawerWith\(null\)\} className="ezc-drawer-ov" \/>/.test(drawerSrc));
 
+/* ---- N29-ب. ITEM 42-أ: THE REPLY'S ACTION RAIL --------------------------
+ * MEASURED FIRST, THEN WIRED. Of the four permitted actions, three were already connected on the
+ * reply and one was not:
+ *
+ *     copy       CopyReplyButton              -- wired
+ *     favourite  the star, over ezik_favorite_replies_v1 -- wired
+ *     listen     MessageListenButton          -- wired, through the server voice route. NOT
+ *                                                 `speechSynthesis`, which appears NOWHERE in
+ *                                                 index.html. Recorded, not rebuilt.
+ *     share      -- NOT WIRED. It is the one control this item adds.
+ *
+ * A control that is already wired is not rebuilt, so the only new button here is share.
+ */
+const shareAt = html.indexOf('const ShareReplyButton = ({ getText }) =>');
+const shareEnd = shareAt === -1 ? -1 : html.indexOf('\nconst MessageListenButton', shareAt);
+const shareSrc = (shareAt !== -1) ? html.slice(shareAt, shareEnd === -1 ? shareAt + 2000 : shareEnd) : '';
+ok('42-أ: the share button was located', shareSrc.length > 200, 'len=' + shareSrc.length);
+
+okOn('42-أ: the reply rail carries the four permitted actions', [['mbSrc', mbSrc]],
+  /<MessageListenButton /.test(mbSrc)
+  && /<CopyReplyButton /.test(mbSrc)
+  && /<ShareReplyButton /.test(mbSrc)
+  && /onFavorite\(message, index\)/.test(mbSrc),
+  'one of the four permitted reply actions is no longer on the rail');
+
+// THE HARD LIMIT: ZERO MODEL CALL. The three banned actions are banned by name, and the rail is
+// proved to build no request of ANY kind. The brain freeze is not lifted by this item.
+okOn('42-أ: ...and none of them is a summary, a regeneration or a re-ask', [['mbSrc', mbSrc]],
+  !/onSummar|summarise|summarize|onRegenerat|regenerate|reAsk|askAgain|retryAnswer/i.test(mbSrc),
+  'a control that would call the brain appeared on the reply rail');
+okOn('42-أ: the reply rail builds no request at all', [['mbSrc', mbSrc]],
+  !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket/.test(mbSrc),
+  'the reply rail reached for the network');
+okOn('42-أ: ...and the share button itself calls nothing', [['shareSrc', shareSrc]],
+  !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|\/api\//.test(shareSrc),
+  'the share button acquired a request');
+
+// ONE SERIALIZER AND ONE CLIPBOARD. Share hands over exactly what copy hands over, and where the
+// platform sheet does not exist it degrades to the SAME clipboard path -- not to a second one.
+okOn('42-أ: share hands over the same text the copy button does', [['mbSrc', mbSrc]],
+  /<ShareReplyButton getText=\{buildCopyText\} \/>/.test(mbSrc)
+  && /<CopyReplyButton text=\{[^}]*\} getText=\{buildCopyText\} \/>/.test(mbSrc));
+okOn('42-أ: ...and degrades to the clipboard where there is no share sheet', [['shareSrc', shareSrc]],
+  /if \(navigator\.share\)/.test(shareSrc)
+  && /ezikWriteClipboard\(payload\)/.test(shareSrc));
+okOn('42-أ: ...and a share the reader CANCELS is not reported as a failure', [['shareSrc', shareSrc]],
+  /AbortError/.test(shareSrc));
+// The reply's copy and the reply's share are the only two callers, and they call the same one.
+eq('42-أ: the reply rail has exactly one clipboard path, used twice',
+  (html.match(/await ezikWriteClipboard\(payload\)/g) || []).length, 2);
+
+// 44x44 ON ALL FOUR, BY WIDENING THE AREA AND NOT THE SHAPE (44-ج). Every control on this rail
+// is a `.ezc-acts button`, so the floor is the rule already shipped -- which is exactly why the
+// new button needed no geometry of its own. The rule is asserted here so that a future edit
+// cannot narrow it and silently take the floor away from all four at once.
+ok('42-أ: the 44x44 floor still covers every control on the reply rail',
+  /\.ezc-acts button::before/.test(css)
+  && /\.ezc-acts button::before[^}]*min-width: ?44px/.test(css.replace(/\s+/g, ' '))
+  && /\.ezc-acts button::before[^}]*min-height: ?44px/.test(css.replace(/\s+/g, ' ')),
+  'the reply rail lost its 44px hit-area floor');
+ok('42-أ: ...and it is an overlay, so no painted shape was changed',
+  /\.ezc-acts button::before[^}]*width: ?100%/.test(css.replace(/\s+/g, ' '))
+  && /\.ezc-acts button::before[^}]*height: ?100%/.test(css.replace(/\s+/g, ' ')));
+
+// LISTEN IS RECORDED AS IT IS, NOT AS THE BRIEF ASSUMED. The browser speech engine is not in
+// this file; the listen button runs through the app's own voice route. This assertion states
+// the measured fact so that the report and the code cannot drift apart.
+ok('42-أ: speechSynthesis is genuinely absent from the application file',
+  html.indexOf('speechSynthesis') === -1 && html.indexOf('SpeechSynthesisUtterance') === -1,
+  'a browser speech path appeared -- the listen button inventory in the report is now stale');
+
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
 // The fatwa search moves the whole-screen count by one; chat remains one of the thirteen. This
 // later assertion deliberately repeats K2 so a stale downstream assumption fails visibly too.
