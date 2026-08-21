@@ -134,7 +134,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': '9d7e5781dda8d56ca020ef200fbe21db356bbaad9ff93cc8e7768b897c0d84bc',
+  'sw.js': 'ba2c578f23abfb933279f0c6be4134f40e1399f5c891d1551ec6c2d4a2cba590',
 };
 
 // ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v8';
+const SW_CACHE = 'ezik-v9';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
