@@ -456,3 +456,12 @@ guards/boot-invariants-guard.cjs text eol=lf
 # it now, and index.html is pinned CRLF above. Pinned LF for the same reason as every reader of a
 # CRLF file in this list: the tool's own endings are nobody's measurement.
 tools/babel-block.cjs text eol=lf
+
+# app.js + tools/build-app.cjs (item 32) -- the generated bundle and the tool that generates it.
+# app.js is COMPARED BYTE FOR BYTE against a fresh build by `npm run verify:build` and by the
+# gate `babel`, so a checkout that rewrote one ending would fail a gate on a machine that had
+# changed nothing -- the defect 40 shape, from the generated-file end. It is built from an
+# LF-normalised source and carries no CR at all; this pin is what keeps that true after a clone
+# with core.autocrlf=true. The builder is pinned for the same reason every tool beside it is.
+app.js                   text eol=lf
+tools/build-app.cjs      text eol=lf

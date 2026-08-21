@@ -852,11 +852,18 @@ async function partE() {
     scanned.length + ' files scanned, ' + serverTree.length + ' of them server-side');
 
   // Exact set equality, both directions -- the same discipline the authorisation block used, kept.
-  // A new file naming the key fails; and if one of the three stops naming it, that fails too,
+  // A new file naming the key fails; and if one of the four stops naming it, that fails too,
   // so this cannot rot into a check that passes because it stopped finding anything.
-  eq('the interface-language key is named by exactly the two pages and this guard',
+  //
+  // ITEM 32 ADDED THE FOURTH, AND IT IS NOT A NEW PLACE THE KEY IS DECIDED. app.js is the built
+  // bundle: index.html's own JSX, compiled ahead of time by tools/build-app.cjs instead of by
+  // @babel/standalone in the reader's browser. It names the key because index.html names it, and
+  // the gate 'babel' asserts byte equality between the two on every run -- so this entry cannot
+  // drift away from the page it is a copy of. The set is WIDENED BY ONE NAMED FILE, not relaxed:
+  // a fifth file, or app.js disappearing, still fails here.
+  eq('the interface-language key is named by exactly the two pages, the built bundle and this guard',
     scanned.filter((f) => slurp(f).indexOf(S.LANG_KEY) !== -1).sort(),
-    ['guards/i18n-ui-guard.cjs', 'index.html', 'quest.html']);
+    ['app.js', 'guards/i18n-ui-guard.cjs', 'index.html', 'quest.html']);
   eq('...and no server module reads the device language',
     serverTree.filter((f) => /navigator\s*\.\s*languages?/.test(slurp(f))), []);
   eq('...and no server module carries an interface dictionary',
