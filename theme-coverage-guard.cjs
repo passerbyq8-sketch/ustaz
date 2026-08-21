@@ -1102,7 +1102,7 @@ eq('...drawn exactly once', (IST.match(/<EzistQuranPanel \/>/g) || []).length, 1
 // panel is mounted, so it is asserted as that and nothing more -- the ONE occurrence (counted
 // on the line above) falls inside EzistTopNav. It did not lose bite: a panel moved out of the
 // bar fails it, and the mosaic exclusion it carries is untouched.
-ok('...and that once is inside the top bar',
+okOn('...and that once is inside the top bar', [["IST", IST]],
   IST.indexOf('<EzistQuranPanel />') > IST.indexOf('<div className="ezist-nav-inner">')
   && IST.indexOf('<EzistQuranPanel />') < IST.indexOf('function EzistMasthead')
   && !/<EzistModuleCard key=\{m\.id\} m=\{m\} \/>\)\}\s*\r?\n\s*<EzistQuranPanel/.test(IST));
@@ -1110,6 +1110,173 @@ okOn('...as a DISPLAY: no handler, no role and no tabindex on it', [["IST", IST]
   !/<EzistQuranPanel[^>]*on[A-Z]/.test(IST)
   && !/<section className="ezist-quran"[^>]*(role=|tabIndex=|onClick=)/.test(IST));
 ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
+
+/* ---- Q. ITEM 28: A QUR'ANIC SPAN IS NOT A «نص منقول» ---------------- */
+// MEASURED BEFORE: HadithCard printed «نص منقول» over whatever its tag carried whenever the
+// model sent no narrator and no ruling -- a verse of the Qur'an included. Nothing distinguished
+// scripture from a transmitted report, in the one card whose entire job is to say which it is.
+//
+// EVERY CHECK BELOW IS THE SHIPPED FUNCTION EXECUTED against a literal. Nothing here matches
+// source text for behaviour, because the question is what the card DECIDES, not how it reads.
+{
+  const ORN_O = '\uFD3F', ORN_C = '\uFD3E';
+  const call = (expr) => { try { return evalIn(expr); } catch (e) { return '(threw: ' + e.message + ')'; } };
+  const span = (inner) => JSON.stringify(ORN_O + inner + ORN_C);
+
+  ok('Q28-1: the scripture test is the app\'s OWN ornate-parenthesis contract, not a second one',
+    call('hasQuranicSpan(' + span('\u0625\u0650\u0646\u0651\u064E') + ')') === true
+    && call('QURAN_ORNATE_SPAN_RE.source') === call('QURAN_SPAN_RE.source'),
+    'the card now defines scripture differently from stripTashkeelOutsideQuran, which is two'
+    + '\n        answers to one question and the beginning of a drift');
+  ok('Q28-1: ...and ordinary transmitted prose is not scripture',
+    call('hasQuranicSpan("\u0642\u0627\u0644 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647")') === false);
+
+  // THE LABEL. The verse label must be the one the verse card already prints -- a second string
+  // meaning the same thing is how two surfaces start calling one thing two names.
+  eq('Q28-2: the verse label is the very string the verse card uses',
+    call('AYAH_CARD_LABEL'), '\u0642\u064E\u0627\u0644\u064E \u0627\u0644\u0644\u0647\u064F \u062A\u064E\u0639\u064E\u0627\u0644\u064E\u0649');
+  ok('Q28-2: ...and that string is what the verse card renders',
+    html.indexOf('<span>\u0642\u064E\u0627\u0644\u064E \u0627\u0644\u0644\u0647\u064F \u062A\u064E\u0639\u064E\u0627\u0644\u064E\u0649</span>') !== -1);
+  // AND THE NEUTRAL LABEL SURVIVES for what it was written for. Item 28 narrows this label; it
+  // does not delete it, and a hadith with no attribution must still say so.
+  eq('Q28-2: ...and the neutral label is still there for an unattributed REPORT',
+    call('NEUTRAL_HADITH_LABEL'), '\u0646\u0635 \u0645\u0646\u0642\u0648\u0644');
+
+  // THE REFERENCE IS READ, NEVER GUESSED.
+  const ref = (t) => JSON.stringify(call('readStatedAyahRef(' + t + ')'));
+  eq('Q28-3: a stated one-word reference is read',
+    ref(span('\u0623') + " + ' \u0633\u0648\u0631\u0629 \u0627\u0644\u0628\u0642\u0631\u0629\u060C \u0622\u064A\u0629 \u0661\u0665\u0663'"),
+    JSON.stringify({ surah: '\u0627\u0644\u0628\u0642\u0631\u0629', ayah: '\u0661\u0665\u0663' }));
+  eq('Q28-3: ...and a stated TWO-word surah name is read whole',
+    ref(span('\u0623') + " + ' \u0633\u0648\u0631\u0629 \u0622\u0644 \u0639\u0645\u0631\u0627\u0646\u060C \u0622\u064A\u0629 \u0661\u0667\u0663'"),
+    JSON.stringify({ surah: '\u0622\u0644 \u0639\u0645\u0631\u0627\u0646', ayah: '\u0661\u0667\u0663' }));
+  eq('Q28-3: a card that states NO reference gets none -- a citation is never invented',
+    ref(span('\u0623') + " + ' \u0628\u0644\u0627 \u0645\u0631\u062C\u0639'"), 'null');
+  eq('Q28-3: ...and a surah name the app does not know is not a reference',
+    ref(span('\u0623') + " + ' \u0633\u0648\u0631\u0629 \u0641\u0644\u0627\u0646\u060C \u0622\u064A\u0629 \u0663'"), 'null');
+  eq('Q28-3: ...and TWO different references in one card yield none rather than a guess',
+    ref(span('\u0623') + " + ' \u0633\u0648\u0631\u0629 \u0627\u0644\u0628\u0642\u0631\u0629 \u0661 \u0648\u0633\u0648\u0631\u0629 \u0627\u0644\u0646\u0633\u0627\u0621 \u0662'"), 'null');
+
+  // THE CARD ITSELF, read as source for its STRUCTURE only -- the decision above is driven.
+  const hcAt = html.indexOf('function HadithCard(');
+  const hc = hcAt === -1 ? '' : html.slice(hcAt, html.indexOf('\n}', hcAt));
+  okOn('Q28-4: the card asks whether its content is scripture before it labels it', [['hc', hc]],
+    /const quranic = hasQuranicSpan\(content\);/.test(hc)
+    && /if \(quranic\) label = AYAH_CARD_LABEL;/.test(hc));
+  okOn('Q28-4: ...and a verse is never given a hadith GRADING', [['hc', hc]],
+    /\{quranic[\s\S]*\? \(ayahRef &&[\s\S]*: \(att\.ruling &&/.test(hc),
+    'a ruling printed under a verse is a hadith\'s apparatus applied to the Qur\'an');
+  // THE DECISION THE OTHER GUARD OWNS MUST STAY INSPECTABLE. quest-ux-guard.cjs extracts this
+  // initialiser and evaluates it bound only to `att` and `NEUTRAL_HADITH_LABEL`; a scripture
+  // branch folded INTO it would throw there, and that guard is not this screen's to edit.
+  okOn('Q28-4: ...and the label initialiser stays evaluable on att alone', [['hc', hc]],
+    /let label = \(!att\.narrator && !att\.ruling\) \? NEUTRAL_HADITH_LABEL : '\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064A\u0629';/.test(hc)
+    && /<span>\{label\}<\/span>/.test(hc));
+
+  // NOT A RETRIEVAL, CLEANING OR MODEL CHANGE. The brain freeze holds.
+  okOn('Q28-5: the card reaches for no network, no model and no store', [['hc', hc]],
+    !/fetch\(|\/api\/|XMLHttpRequest|localStorage|loadQuran|getVerseText/.test(hc));
+}
+/* ---- V. ITEM 120-A: THE DAILY VERSE COMES FROM THE SEALED MUSHAF ------- */
+// WHAT STOOD HERE: nothing. The card was fed by a 30-row array typed by hand into index.html,
+// and NOTHING compared a single character of it to the mushaf. Three of the thirty did not
+// match the verse they cited, and two of those were wrong WORDS, not wrong spelling -- 4:32
+// carried the wording of 33:40, and 12:64 opened with a waw where the verse has a fa.
+// Displayed Qur'anic text that nothing checks is the one thing in this application that cannot
+// be allowed to drift, and a seal on the mushaf file could never have caught it: the mushaf was
+// never wrong. What was wrong was a hand-written copy of it that nothing compared back.
+//
+// SO THE ROWS ARE COMPARED, EVERY RUN, CHARACTER FOR CHARACTER. Each ayah row must be a
+// VERBATIM substring of the sealed verse at the reference it names. An excerpt is allowed --
+// the card has always shown one -- but it must be an excerpt OF THOSE BYTES. The first
+// differing character fails this, names the reference, and prints both sides.
+{
+  const dvPath = path.join(path.dirname(path.resolve(INDEX)), 'assets/daily-verses.json');
+  const qPath = path.join(path.dirname(path.resolve(INDEX)), 'quran-uthmani.json');
+  const haveData = fs.existsSync(dvPath), haveQuran = fs.existsSync(qPath);
+  ok('DV1: the generated daily-verse file is on disk', haveData, dvPath);
+  ok('DV1: ...and the sealed mushaf it was generated from is too', haveQuran, qPath);
+  if (haveData && haveQuran) {
+    const DV = JSON.parse(fs.readFileSync(dvPath, 'utf8'));
+    const QU = JSON.parse(fs.readFileSync(qPath, 'utf8'));
+    // The generator recorded which mushaf it read. If that file is ever re-cut, this stops
+    // matching and the rows are regenerated rather than silently kept against a moved source.
+    // require()d here rather than at the top: `crypto` is already a name in this file, bound to
+    // the browser webcrypto shim the shipped block runs against, and shadowing that at module
+    // scope would hand the application code a Node module.
+    const qDigest = require('crypto').createHash('sha256').update(fs.readFileSync(qPath)).digest('hex');
+    eq('DV1: ...and the digest the generator recorded is that file', DV.source_sha256, qDigest);
+
+    // THE ARRAY IN THE SHIPPED BLOCK IS THAT FILE. Two copies of a table is one copy too many;
+    // this is the line that stops them parting.
+    let shipped = null;
+    try { shipped = evalIn('DAILY_VERSES'); } catch (e) { shipped = null; }
+    if (!ok('DV2: the shipped block still declares DAILY_VERSES', Array.isArray(shipped))) {
+      // nothing below can mean anything without it
+    } else {
+      eq('DV2: ...and it holds exactly as many rows as the generated file', shipped.length, DV.rows.length);
+      const drift = [];
+      for (let i = 0; i < Math.min(shipped.length, DV.rows.length); i++) {
+        const a = shipped[i], b = DV.rows[i];
+        if (a.text !== b.text || a.surah !== b.surah || a.ayah !== b.ayah
+          || String(a.ref) !== String(b.ref) || a.kind !== b.kind) drift.push(i + 1);
+      }
+      ok('DV2: ...and every row is that file row for row', drift.length === 0,
+        'rows that differ from assets/daily-verses.json: ' + drift.join(', ')
+        + '\n        Regenerate; do not hand-edit either side.');
+    }
+
+    // THE CLAIM ITSELF.
+    let bad = 0, checked = 0, carried = 0;
+    for (const r of DV.rows) {
+      if (r.kind !== 'ayah') { carried++; continue; }
+      checked++;
+      const verse = QU[r.ref];
+      if (verse === undefined) {
+        bad++;
+        ok('DV3: ' + r.ref + ' is a reference the sealed mushaf has', false,
+          'the row cites a verse that is not in quran-uthmani.json');
+        continue;
+      }
+      if (verse.indexOf(r.text) === -1) {
+        bad++;
+        let k = 0;
+        while (k < r.text.length && k < verse.length && r.text[k] === verse[k]) k++;
+        ok('DV3: ' + r.ref + ' is verbatim from the sealed mushaf', false,
+          'the row text is NOT a substring of the sealed verse.'
+          + '\n        first difference at character ' + k
+          + '\n        row    : ' + JSON.stringify(r.text)
+          + '\n        sealed : ' + JSON.stringify(verse)
+          + '\n        Qur\'anic text is COPIED from the sealed file, never typed and never fixed by hand.');
+      }
+    }
+    ok('DV3: every ayah row is verbatim from the sealed mushaf (' + checked + ' checked, '
+      + carried + ' non-Qur\'an row carried through)', bad === 0);
+
+    // The one row that is NOT scripture must stay visibly not-scripture: the card branches on
+    // surah === 'hadith' to change its label, so a row that lost that marker would be presented
+    // to the reader as a verse of the Qur'an.
+    const others = DV.rows.filter((r) => r.kind !== 'ayah');
+    ok('DV4: the non-Qur\'an row is marked as such and keeps the marker the card branches on',
+      others.length === 1 && others[0].surah === '\u062D\u062F\u064A\u062B'
+      && others[0].ref === undefined,
+      'the hadith row is ' + JSON.stringify(others));
+    ok('DV4: ...and it makes no claim on the sealed file',
+      others.every((r) => r.kind === 'other'));
+
+    // NO HAND-WRITTEN ARRAY SURVIVES. The block must say what it is.
+    ok('DV5: the shipped array declares itself generated',
+      /GENERATED -- DO NOT EDIT BY HAND/.test(html));
+    ok('DV5: ...and the rotation still takes a local day index, with no network and no model call',
+      /const getDailyVerse = \(\) => \{/.test(html)
+      && /DAILY_VERSES\[dayOfYear % DAILY_VERSES\.length\]/.test(html));
+    const rotAt = html.indexOf('const getDailyVerse');
+    const rot = rotAt === -1 ? '' : html.slice(rotAt, rotAt + 400);
+    okOn('DV5: ...and it reaches for nothing outside itself', [['rot', rot]],
+      !/fetch\(|XMLHttpRequest|\/api\/|await /.test(rot));
+  }
+}
+
 ok('...and rendering the text verbatim', /<div style=\{s\.ezistQuranText\}>\{v\.text\}<\/div>/.test(IST),
   'the Quran text must be printed as it is read -- no transform, no slice, no ellipsis');
 // no decorative mark may overlap the text: the marks live in the head row and the rule, both of
@@ -1252,9 +1419,9 @@ ok('each category is rendered by exactly one map over each slice',
 ok('...and every rendered category carries its own store id',
   (IA.match(/data-ezia-cat=\{c\.id\}/g) || []).length === 2,
   'one on the featured card, one on the catalogue card -- counting these elements counts categories');
-ok('...opened through the owner\'s handler, never a local one',
+okOn('...opened through the owner\'s handler, never a local one', [["IA", IA]],
   (IA.match(/onClick=\{\(\) => onOpen\(c\)\}/g) || []).length === 2 && !/setSelected|bumpAdhkarUsage/.test(IA));
-ok('the standing comes from the shipped helper, not a recount',
+okOn('the standing comes from the shipped helper, not a recount', [["IA", IA]],
   (IA.match(/a3CatStanding\(prog, c, byCat\)/g) || []).length === 2 && !/adhkarCatDone\(/.test(IA));
 
 /* ---- I3. the structure the design calls for ----------------------------- */
@@ -1409,7 +1576,7 @@ ok('...and the completed mark is a stroke on a chip, not a trophy sticker',
 // the tab bar: same four tabs, same destinations, no emoji.
 ok('the navigation glyphs are stroked line icons', /const NAV_ICON = \{/.test(q.html) && /NAV_SVG\(/.test(q.html));
 const navBlock = q.html.slice(q.html.indexOf('function drawNav()'), q.html.indexOf('function drawNav()') + 1200);
-ok('...and the old emoji tab glyphs are gone from it',
+okOn('...and the old emoji tab glyphs are gone from it', [["navBlock", navBlock]],
   !/[\u{1F300}-\u{1FAFF}]/u.test(navBlock), 'an emoji remains in the tab bar');
 for (const [id, dest] of [['map', 'Screens.map'], ['challenge', 'Screens.challenges'], ['book', 'Screens.book'], ['me', 'Screens.profile']]) {
   ok('the ' + id + ' tab still goes to ' + dest, navBlock.indexOf('"' + id + '"') !== -1 && navBlock.indexOf(dest) !== -1);
@@ -1851,7 +2018,7 @@ ok('the live Madina image branch was located', madinaImg.length > 200 && madinaI
 ok('the page image carries the hook', /data-mushaf-page=\{page\.n\}/.test(madinaImg),
   'without it the live page has no handle at all and can only be guarded by absence');
 eq('...exactly once', (madinaImg.match(/data-mushaf-page=/g) || []).length, 1);
-ok('...bound to page.n and nothing else',
+okOn('...bound to page.n and nothing else', [["madinaImg", madinaImg]],
   !/data-mushaf-page=\{(?!page\.n\})/.test(madinaImg),
   'a constant, an index or a derived value would make the guard measure the wrong page');
 // IT MUST NOT BECOME A STYLING SURFACE.
@@ -1860,7 +2027,8 @@ ok('no CSS rule targets the hook', !/\[data-mushaf-page/.test(css),
 ok('...and no CSS targets the live image through its branch either',
   !/:root\[data-ezik-visual-theme\][^{]*img[^{]*\{/.test(css));
 // IT MUST NOT HAVE CHANGED WHAT THE ELEMENT IS.
-ok('the image still carries no class and no id', !/<img[^>]*data-mushaf-page[^>]*className/.test(madinaImg)
+okOn('the image still carries no class and no id', [["madinaImg", madinaImg]],
+  !/<img[^>]*data-mushaf-page[^>]*className/.test(madinaImg)
   && !/<img[^>]*data-mushaf-page[^>]*\sid=/.test(madinaImg));
 ok('the src is still the shipped page url', /src=\{madina\}/.test(madinaImg));
 ok('the style is still the shipped fill/contain pair',
@@ -2257,8 +2425,20 @@ ok('the desk behind the page is a flat token, never a pattern',
   && /const MADINA_DESK = 'var\(--madina-desk\)';/.test(html));
 ok('...and the slot round it still adds only the safe area',
   /const slotSt = MADINA_IMG_ON\s*\r?\n\s*\? \{ \.\.\.s\.pgSlot, padding: MADINA_SAFE_PAD \}/.test(rdSrc));
-ok('the neighbour prefetch is unchanged',
-  /for \(const d of \[1, -1\]\)/.test(html) && /onSheetLoad=\{prefetchMushafSvg\}/.test(rdSrc));
+// ITEM 33. The neighbourhood is STILL exactly two deep -- next and previous, never a third --
+// and it is now clamped by the ceiling the worker keeps on the page store. Both halves are
+// pinned: dropping the clamp would let a widened prefetch evict the page being read, and
+// widening [1, -1] is the waterfall this line has refused since item 79.
+// AND THE LOOP HEADER IS PINNED BY A SECOND GUARD. tools/madina-hafs-guard.cjs asserts
+// `for (const d of [1, -1])` verbatim. Both halves are checked here so the two guards cannot
+// be satisfied one at a time: the neighbourhood is still exactly two deep, the header is
+// still the byte-identical line that other guard pins, and the ceiling bounds the warm from
+// INSIDE the loop rather than by slicing its header.
+ok('the neighbour prefetch is still two deep, and clamped by the store ceiling',
+  /for \(const d of \[1, -1\]\) \{/.test(html)
+  && /if \(warmed >= MADINA_PAGE_CACHE_CAP\) break;/.test(html)
+  && /warmed\+\+;/.test(html)
+  && /onSheetLoad=\{prefetchMushafSvg\}/.test(rdSrc));
 ok('...and only the current sheet carries it',
   (rdSrc.match(/onSheetLoad=\{prefetchMushafSvg\}/g) || []).length === 1);
 
@@ -3481,7 +3661,8 @@ okOn('P13: ...and the component navigates nowhere itself', [["favView", favView]
   // إزالة من المفضلة / افتح المحادثة الأصلية /
   // ابحث في الردود المفضلة
   const NAMES = ['EZIK_FAV_DEL', 'EZIK_FAV_OPEN_CHAT', 'EZIK_FAV_SEARCH_ARIA'];
-  eq('P14: every accessible name this screen shipped with is still on its control',
+  eqOn('P14: every accessible name this screen shipped with is still on its control',
+    [["favView", favView]],
     NAMES.filter((n) => favView.indexOf('aria-label={' + n + '}') === -1), []);
   ok('P14: ...and the two decorative marks declare themselves decoration',
     (favView.match(/aria-hidden="true"/g) || []).length >= 4);
@@ -4208,6 +4389,26 @@ ok('W6: the drawer toggle still paints at 40x40',
 const SWJS = fs.readFileSync(path.join(path.dirname(path.resolve(INDEX)), 'sw.js'), 'utf8');
 const swTag = (SWJS.match(/const REPORT_TAG = '([^']+)';/) || [])[1] || '';
 ok('Y1: sw.js still declares the report tag', !!swTag, 'tag=' + JSON.stringify(swTag));
+
+// ITEM 33. THE PAGE CEILING IS WRITTEN IN TWO FILES AND MUST BE ONE NUMBER. The worker caps
+// the printed-mushaf store and evicts least-recently-used; the reader clamps its prefetch to
+// the same ceiling so warming a neighbour cannot evict the page being read. A page cannot
+// import a worker constant, so the number is repeated -- and a repeated number that nothing
+// compares is a number that drifts. Both are read here, from the two files, and compared.
+const swCap = Number((SWJS.match(/const MUSHAF_PAGE_CAP = (\d+);/) || [])[1]);
+ok('Y0: sw.js declares a printed-page ceiling', Number.isFinite(swCap) && swCap > 0, 'cap=' + swCap);
+eq('Y0: ...and the reader clamps its prefetch to the very same number', evalIn('MADINA_PAGE_CACHE_CAP'), swCap);
+const swMushafStore = (SWJS.match(/const MUSHAF_CACHE = '([^']+)';/) || [])[1] || '';
+const swShipStore = (SWJS.match(/const CACHE = '([^']+)';/) || [])[1] || '';
+ok('Y0: ...and the store those pages live in carries no shipment version',
+  // The shipment store is 'ezik-vN'. Stripping the trailing digits leaves the family prefix, and
+  // a page store that started with it would be swept by activate on the very next bump -- which
+  // is the defect item 33 closed. Asserted on the NAME because that is what the sweep matches on.
+  !!swMushafStore && swMushafStore !== swShipStore
+    && swMushafStore.indexOf(swShipStore.replace(/\d+$/, '')) !== 0,
+  'the page store is ' + JSON.stringify(swMushafStore) + ' and the shipment store is '
+  + JSON.stringify(swShipStore) + ' -- they share a family prefix, so a bump sweeps the pages');
+
 eq('Y1: ...and the page listens for exactly that tag', evalIn('EZIK_SW_REPORT_TAG'), swTag);
 const swSummaryAt = SWJS.indexOf('function installSummary()');
 const swSummary = swSummaryAt === -1 ? '' : SWJS.slice(swSummaryAt, SWJS.indexOf('function announceInstall', swSummaryAt));
@@ -4318,14 +4519,24 @@ okOn('Z4: ...and the rail is the container the sheet gives 44x44 to', [['html', 
   /\.ezc-icon, \.ezc-acts button, \.ezc-row button, \.ez-hit button \{ position: relative; \}/.test(css)
   && /min-width: 44px; min-height: 44px;/.test(css));
 
-// ---- Z5. THE CARD-AS-IMAGE WAS NOT BUILT, AND THE REASON IS MEASURED -----
-// The item asked for the measurement, not the feature. There is no DOM rasteriser in this tree:
-// the only canvas in the application file is the UPLOAD downscaler, which draws an <img> element
-// and never a DOM subtree. The one rasteriser that exists at all is html2canvas, and it lives
-// inside html2pdf.bundle -- 906KB, lazily loaded, and precached by nothing. These checks keep
-// that statement true, so the decision cannot quietly reverse itself.
-eq('Z5: the application file holds exactly one canvas rasterisation, and it is the upload path',
-  (html.match(/toDataURL\(|canvas\.toBlob\(/g) || []).length, 1);
+// ---- Z5. STILL NO DOM RASTERISER -- AND NOW THERE ARE EXACTLY TWO CANVASES -----
+// ITEM 42-B measured that a card-as-image did not exist and WHY: the only rasteriser reachable
+// from this tree is html2canvas, it lives inside the 906KB html2pdf bundle, and the offline
+// store precaches no vendor JavaScript at all. ITEM 42-C did not overturn that measurement --
+// it went around it. Nothing is RASTERISED; the card is DRAWN, and the browser shapes the
+// Arabic inside fillText, which is the whole reason a library looked necessary.
+//
+// SO THE COUNT MOVES FROM ONE TO TWO, AND BOTH ARE NAMED. This check was never about the
+// number: it is about no DOM subtree ever being rasterised. A third, unnamed canvas fails it,
+// and so does either of these two turning into a DOM rasteriser.
+eq('Z5: the application file holds exactly TWO canvas rasterisations, and both are named',
+  (html.match(/toDataURL\(|canvas\.toBlob\(/g) || []).length, 2);
+ok('Z5: ...one is the upload downscaler',
+  /canvas\.toBlob\(|canvas\.toDataURL\(/.test(html.slice(html.indexOf('drawImage(img, 0, 0, w, h)'), html.indexOf('drawImage(img, 0, 0, w, h)') + 600)));
+ok('Z5: ...and the other is the share card, which rasterises NO DOM -- it draws',
+  /return \{ url: canvas\.toDataURL\('image\/png'\)/.test(html)
+  && !/ezikDrawReplyCard[\s\S]{0,2600}?(drawImage|innerHTML|outerHTML|querySelector|getElementsBy)/.test(html),
+  'the share card started reading the DOM instead of drawing the card');
 ok('Z5: ...which draws an image element, not a DOM subtree',
   /canvas\.getContext\('2d'\)\.drawImage\(img, 0, 0, w, h\)/.test(html));
 ok('Z5: no DOM-to-image library entered the tree',
@@ -4337,5 +4548,115 @@ ok('Z5: ...and html2canvas is named as an OPTION and never constructed or called
 ok('Z5: the offline CORE still precaches no vendor bundle',
   !/html2pdf|mammoth|react[^"']*\.js/.test(SWJS.slice(SWJS.indexOf('const CORE = ['), SWJS.indexOf('];', SWJS.indexOf('const CORE = [')))));
 
+
+/* ---- ZC. ITEM 42-C: THE REPLY AS AN IMAGE, DRAWN NATIVELY --------------- */
+// EVERY BEHAVIOURAL CHECK BELOW EXECUTES THE SHIPPED RENDERER against a recording 2D context.
+// The geometry, the wrapping, the cut and what is written are therefore measured, not read.
+//
+// WHAT IS **NOT** PROVEN HERE, STATED PLAINLY: that the returned data URL decodes to a real,
+// non-empty PNG of 1080x1350. That needs a REAL canvas, and a real canvas needs a real browser.
+// The order for this round forbids any browser outside questux, so it is not run, and no claim
+// of a verified PNG is made. What IS proven: the renderer sizes the canvas to the declared
+// dimensions, asks that canvas for image/png, wraps against measured widths, marks its cut,
+// writes the mark, the source and the site, and touches no network.
+{
+  const drawn = [];
+  const fakeCtx = {
+    fillStyle: '', font: '', globalAlpha: 1, textAlign: '', textBaseline: '',
+    save() {}, restore() {}, fillRect() {},
+    // 20 units a character: enough that a long reply must wrap, and stable so the line count is
+    // arithmetic rather than a font's opinion.
+    measureText(t) { return { width: String(t).length * 20 }; },
+    fillText(t, x, y) { drawn.push({ t: String(t), x: x, y: y }); },
+  };
+  const fakeCanvas = {
+    width: 0, height: 0,
+    getContext() { return fakeCtx; },
+    toDataURL(type) { this.askedFor = type; return 'data:image/png;base64,ZHJhd24='; },
+  };
+  CTX.__ezikFakeCanvas = fakeCanvas;
+  CTX.__ezikCardText = '';
+  CTX.__ezikCardSource = '';
+  const draw = (text, source) => {
+    drawn.length = 0;
+    fakeCanvas.width = 0; fakeCanvas.height = 0; fakeCanvas.askedFor = null;
+    CTX.__ezikCardText = text; CTX.__ezikCardSource = source || '';
+    try {
+      return evalIn('ezikDrawReplyCard({ text: __ezikCardText, source: __ezikCardSource, canvas: __ezikFakeCanvas })');
+    } catch (e) { return { threw: e.message }; }
+  };
+  const wrote = (needle) => drawn.some((d) => d.t.indexOf(needle) !== -1);
+
+  const SHORT = '\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645';
+  const LONG = new Array(400).join('\u0643\u0644\u0645\u0629 ');
+
+  const r1 = draw(SHORT, 'example.com');
+  ok('ZC1: the shipped renderer runs with no browser, no network and no library',
+    !!r1 && !r1.threw, r1 && r1.threw);
+  eq('ZC1: ...and it sizes the canvas to the DECLARED width', fakeCanvas.width, 1080);
+  eq('ZC1: ...and to the DECLARED height', fakeCanvas.height, 1350);
+  eq('ZC1: ...and it asks that canvas for a PNG', fakeCanvas.askedFor, 'image/png');
+  ok('ZC1: ...and returns that data URL, with the dimensions it drew at',
+    !!r1 && /^data:image\/png;base64,/.test(String(r1.url)) && r1.w === 1080 && r1.h === 1350,
+    JSON.stringify(r1 && { url: String(r1.url).slice(0, 24), w: r1.w, h: r1.h }));
+
+  ok('ZC2: the watermark is DRAWN, never fetched -- no request can reach this path',
+    wrote(evalIn('EZIK_CARD_MARK')));
+  ok('ZC2: ...and the site line is always on the card', wrote(evalIn('EZIK_CARD_SITE')));
+  ok('ZC2: ...and the reply itself is on it', wrote('\u0627\u0644\u0633\u0644\u0627\u0645'));
+  ok('ZC2: the source line is drawn when the reply carries one', wrote('example.com'));
+  eq('ZC2: ...and a short reply is NOT marked as cut', r1 && r1.cut, false);
+
+  const r2 = draw(SHORT, '');
+  ok('ZC3: a reply that cites nothing gets NO source line rather than an invented one',
+    !wrote('example.com') && wrote(evalIn('EZIK_CARD_SITE')));
+
+  const r3 = draw(LONG, '');
+  ok('ZC4: a reply too long for the card IS CUT', !!r3 && r3.cut === true);
+  eq('ZC4: ...to exactly the declared number of lines', r3 && r3.lines, evalIn('EZIK_CARD_BODY_LINES'));
+  ok('ZC4: ...and the cut is SHOWN, not silent -- the mark is drawn',
+    wrote(evalIn('EZIK_CARD_CUT')));
+  ok('ZC4: ...and it is SAID, so no reader mistakes a short card for a whole answer',
+    wrote(evalIn('EZIK_CARD_CUT_NOTE')),
+    'the visible cut note is gone -- a silent truncation is exactly what this item forbids');
+  ok('ZC4: ...and every drawn body line fits the measured column',
+    drawn.filter((d) => d.t !== evalIn('EZIK_CARD_MARK')
+      && d.t !== evalIn('EZIK_CARD_SITE') && d.t !== evalIn('EZIK_CARD_CUT_NOTE'))
+      .every((d) => d.t.length * 20 <= (1080 - (evalIn('EZIK_CARD_PAD') * 2)) + (evalIn('EZIK_CARD_CUT').length * 20) + 20),
+    'a line was drawn wider than the column it was wrapped for');
+
+  // ---- the path, as shipped -------------------------------------------------
+  const cardAt = html.indexOf('const ezikDrawReplyCard = (opts) =>');
+  const cardSrc = cardAt === -1 ? '' : html.slice(cardAt, html.indexOf('const SaveReplyImageButton', cardAt));
+  const btnAt = html.indexOf('const SaveReplyImageButton = ');
+  const btnSrc = btnAt === -1 ? '' : html.slice(btnAt, html.indexOf('const docToHtml = (md) =>', btnAt));
+  okOn('ZC5: ZERO MODEL CALL AND ZERO REQUEST on the whole card path', [['cardSrc', cardSrc], ['btnSrc', btnSrc]],
+    !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket|\/api\/|new Image\(|\.src =/.test(cardSrc + btnSrc),
+    'the card path acquired a request, or started loading an image');
+  okOn('ZC5: ...and one press cannot become two files', [['btnSrc', btnSrc]],
+    /const busyRef = useRef\(false\);/.test(btnSrc) && /if \(busyRef\.current\) return;/.test(btnSrc));
+  okOn('ZC5: ...and the control takes the rail hit area and declares no box of its own', [['btnSrc', btnSrc]],
+    /style=\{miniBtnStyle\}/.test(btnSrc) && !/width:|height:|minWidth|minHeight/.test(btnSrc));
+  okOn('ZC5: the canvas seam is a TEST seam only -- the shipped control hands in none', [['btnSrc', btnSrc]],
+    /ezikDrawReplyCard\(\{/.test(btnSrc) && !/canvas:/.test(btnSrc),
+    'the shipped button started passing its own canvas, so the seam is no longer a seam');
+  ok('ZC6: it exports THE REPLY, from the very payload the clipboard and the PDF are handed',
+    /<SaveReplyImageButton getText=\{buildCopyText\} getSource=\{buildCardSource\} \/>/.test(html));
+  ok('ZC6: ...and the source footer is read where sources are ALREADY read, not in the chat sheet',
+    /const ezikCardSourceLine = \(segments\) => \{/.test(html)
+    && !/const buildCardSource = \(\) => segments\.filter/.test(html),
+    'the chat sheet started filtering the sources, which N22 forbids');
+
+  // ---- NOTHING WAS ADDED TO THE BOOT PATH OR TO THE OFFLINE STORE ----------
+  ok('ZC7: no new dependency, no CDN and no script tag entered the tree for this',
+    !/dom-to-image|domtoimage|html-to-image|htmlToImage|satori|canvas2image/i.test(html)
+    && (html.match(/<script[^>]+src=/gi) || []).length === 3);
+  ok('ZC7: ...and CORE gained nothing -- there is nothing to precache, because nothing is fetched',
+    !/ezik-reply|share-card|card\.js/.test(SWJS.slice(SWJS.indexOf('const CORE = ['), SWJS.indexOf('];', SWJS.indexOf('const CORE = [')))));
+  ok('ZC7: ...and not one line of it runs before the button is pressed',
+    !/ezikDrawReplyCard\(/.test(html.replace(/const ezikDrawReplyCard = \(opts\) => \{[\s\S]*?\n\};/, ''))
+    || /const card = ezikDrawReplyCard\(\{/.test(btnSrc),
+    'the renderer is called somewhere other than the press handler');
+}
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

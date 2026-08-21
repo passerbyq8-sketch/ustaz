@@ -1,4 +1,4 @@
-// Service worker for المربّي (step 6 / 6b). FIVE policies, in strict order:
+// Service worker for المربّي (step 6 / 6b). SIX policies, in strict order:
 //   network-only: EVERY /api/* request -- never cached. A cached AI/fatwa reply is a stale
 //                 religious answer to a NEW question; a cached report is a report that never
 //                 arrives. Both are worse than no cache at all. (First condition in fetch.)
@@ -13,6 +13,9 @@
 //                 name -- the same 'human discipline is not a deploy mechanism' defect 6b fixed
 //                 for the shell. A FAILED background fetch changes NOTHING: the stored copy is
 //                 never dropped, so a reader with no network keeps the adhkar they already have.
+//   cache-first, capped: the 604 printed mushaf pages, in a store of their OWN whose name
+//                 carries no version (item 33). Immutable scans, so a shipment must not
+//                 sweep them; bounded and evicted, so paging the book cannot fill a phone.
 //   cache-first : the icons and the watermark + the Google Fonts CSS/font files -- immutable or
 //                 rarely changing, and none of them carries text that can go stale.
 //   ignored     : every other origin (everyayah.com recitation audio, the unpkg/cdnjs script
@@ -32,7 +35,7 @@
 const CACHE = 'ezik-v12';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
-// a second copy of the 1141660 bytes '/' already holds. The network-first branch below still
+// a second copy of the 1158925 bytes '/' already holds. The network-first branch below still
 // cache.put()s the shell on every successful load, so the offline fallback keeps working from
 // the '/' entry.
 //
@@ -72,11 +75,20 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 1141660 + icon-watermark.png 368386 + adhkar.json 177392
+//   /  (index.html) 1158925 + icon-watermark.png 368386 + adhkar.json 177392
 //   + icon-512.png 12893 + icon-maskable-512.png 5938 + icon-192.png 5053 + manifest.json 533
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS when
 // the constant has fallen below it, so a shell that grows cannot quietly leave the pre-check
 // reading a number that stopped being true.
+// ITEM 33 / ITEM 112. The table above is measured and TRUE OF THE DISK. This CONSTANT is not:
+// it trails index.html by the bytes item 33 added to the reader. It is re-derived by
+// tools/core-bytes.cjs --write, and the MERGE ROUND is the only place that command may run --
+// item 112 owns it, and a screen that re-cuts it here would be re-cutting a number two other
+// screens are also moving. B12 below states the difference on every gate run, so it is
+// carried in the open rather than forgotten. A constant that TRAILS is the safe direction:
+// the pre-check then reserves less room than CORE needs and install is merely pessimistic.
+// A constant that LEADS would let install start a precache that cannot finish, which is why
+// B12 fails downward only.
 const CORE_BYTES = 1711855;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
@@ -374,7 +386,18 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      // ITEM 33. MUSHAF_CACHE IS EXEMPT FROM THE SWEEP, BY NAME. Every other store here is a
+      // superseded SHIPMENT and deleting it is the point of this line; the mushaf pages are
+      // not a shipment at all. Without this clause a version bump silently threw away every
+      // page the reader had downloaded, of files that cannot change -- which is the defect
+      // item 33 exists to close, and it lives in this filter and nowhere else.
+      //
+      // evictOld() above keeps the OPPOSITE rule deliberately: it sweeps everything but CACHE,
+      // the mushaf store included. Its whole contract is 'make room for the shell, once, on a
+      // disk that is genuinely full', and a reader who must choose between an app that opens
+      // offline and pages they can fetch again keeps the app. Two contracts, two filters, and
+      // the guard drives both so the asymmetry cannot become an accident.
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== MUSHAF_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
       // ITEM 91-A. The sweep above has just deleted the old stores -- which is precisely the
       // space install was short of. Without this, a quota-skipped install would leave the reader
@@ -416,6 +439,9 @@ self.addEventListener('message', (event) => {
         // 'unavailable' here means the push channel does not exist on this browser and the
         // pull channel is the only one there is.
         announced: storageState.announced,
+        // ITEM 33: what the capped mushaf-page store did -- written, evicted, declined for
+        // want of room, and rejected. Counters, not a list; see mushafState for why.
+        mushaf: storageState.mushaf,
       },
     };
     const port = event.ports && event.ports[0];
@@ -423,6 +449,134 @@ self.addEventListener('message', (event) => {
     else if (event.source && event.source.postMessage) event.source.postMessage(reply);
   }
 });
+
+// ---------------------------------------------------------------------------
+// ITEM 33. THE PRINTED MUSHAF PAGES GET A STORE OF THEIR OWN, WITH A CEILING.
+//
+// MEASURED BEFORE: this worker did not name assets/madina-hafs anywhere -- not the directory,
+// not the extension, not one path. The 604 page images therefore matched no branch above and
+// landed in the LAST one, the generic same-origin cache-first arm, which cache.put()s whatever
+// reaches it into CACHE. That single omission is three defects at once:
+//
+//   1. NO CEILING AND NO EVICTION. A reader who pages through the whole mushaf stores 66012516
+//      bytes -- the measured sum of the 604 files on disk, mean 109292 bytes a page -- into a
+//      store nothing bounds and nothing trims.
+//   2. NO ESTIMATE. The quota machinery item 91-A built is consulted before CORE and before
+//      nothing else in this file. These writes never asked whether there was room; they wrote
+//      until the browser refused, and the refusal went to a catch that discarded it.
+//   3. TIED TO THE SHIPMENT. CACHE carries the version and activate deletes every store whose
+//      name is not the current one, so every ship threw away every page the reader had already
+//      paid for -- of files that CANNOT change. A printed page of the Qur'an is not a build
+//      artefact, and re-downloading tens of megabytes of it once a ship is pure loss.
+//
+// FOUR THINGS CHANGE AND NOTHING ABOVE THIS LINE MOVES. A store whose name carries no version;
+// an explicit exemption in activate's sweep, so a bump cannot take it; a ceiling of
+// MUSHAF_PAGE_CAP pages with least-recently-used eviction; and an estimate before every write
+// which DECLINES rather than fails when the disk is nearly full.
+// ---------------------------------------------------------------------------
+
+// No version in this name, and that is the whole point: these files are immutable, so the one
+// reason to bump a store name -- the bytes behind it changed -- can never apply to them.
+const MUSHAF_CACHE = 'ezik-mushaf-pages-v1';
+// Matched on what the request IS, like every other branch in this worker: 'page-', three
+// digits, '.webp', under that one directory. No other asset can drift into this policy.
+const MUSHAF_PAGE_RE = /^\/assets\/madina-hafs\/page-\d{3}\.webp$/;
+// The ceiling, in PAGES -- about 6.5 MB at the measured mean. A reader's neighbourhood, not the
+// whole book. In pages rather than bytes because every page is within a few percent of every
+// other, and a byte ceiling would need a running total this worker cannot keep across the
+// restarts a service worker suffers constantly.
+const MUSHAF_PAGE_CAP = 60;
+// Below this much free space nothing is stored at all. Deliberately far above one page: a
+// worker that spends the last of a phone's disk caching scripture has cost the reader their
+// photographs to save them a download they can repeat.
+const MUSHAF_MIN_FREE = 50 * 1024 * 1024;
+
+// ITEM 33 + 93/93-B: this policy reports through the channel those items opened rather than
+// opening a second one -- and it reports COUNTERS, not a list. precacheFailures is an unbounded
+// array because a precache entry is attempted exactly once; a page store is attempted on every
+// read, so an array here would grow once per request on a dead disk, which is the growth item
+// 93's own scope note refuses. Nothing is swallowed: every rejection on this path lands in
+// mushafNote, and there is no catch(() => {}) anywhere in it.
+const mushafState = {
+  stored: 0,      // pages written
+  evicted: 0,     // pages dropped by the ceiling, least-recently-used first
+  skipped: 0,     // writes DECLINED by the estimate -- the reader still got the page
+  failed: 0,      // writes or deletes the browser rejected
+  reason: null,   // category of the LAST failure: quota | network | other
+};
+storageState.mushaf = mushafState;
+
+function mushafNote(p, e) {
+  mushafState.failed++;
+  mushafState.reason = failureReason(e);
+  if (typeof console !== 'undefined' && console.warn) {
+    console.warn('[ezik sw] mushaf page store FAILED for ' + p + ' (' + mushafState.reason
+      + '): ' + ((e && e.message) || e));
+  }
+}
+
+// LEAST-RECENTLY-USED, AND IT SURVIVES A RESTART. The Cache API keeps no metadata and a service
+// worker is killed and restarted constantly, so recency cannot live only in memory. cache.keys()
+// answers in INSERTION order, which is the only record the platform keeps; this seeds from it
+// once per worker lifetime and refines it in memory from there. Refreshing a hit by delete+put
+// would give an exactly persisted order at the cost of rewriting a whole page on every read --
+// a worse trade than an order exact within a session and approximate across one.
+let mushafOrder = null;   // pathnames, LEAST recently used FIRST
+
+function mushafSeed(cache) {
+  if (mushafOrder) return Promise.resolve(mushafOrder);
+  if (!cache || typeof cache.keys !== 'function') { mushafOrder = []; return Promise.resolve(mushafOrder); }
+  return cache.keys().then((reqs) => {
+    mushafOrder = (reqs || []).map((r) => {
+      try { return new URL(r.url).pathname; } catch (e) { return String(r && r.url); }
+    });
+    return mushafOrder;
+  }, (e) => { mushafNote('(keys)', e); mushafOrder = []; return mushafOrder; });
+}
+
+function mushafTouch(p) {
+  if (!mushafOrder) return;
+  const i = mushafOrder.indexOf(p);
+  if (i !== -1) mushafOrder.splice(i, 1);
+  mushafOrder.push(p);
+}
+
+// Room is made for ONE more BEFORE it is written, so the store never exceeds the ceiling even
+// for an instant -- and the oldest goes first, which is what makes this an eviction rule rather
+// than a refusal to store anything once the ceiling is reached.
+function mushafEvict(cache) {
+  const over = mushafOrder.length - (MUSHAF_PAGE_CAP - 1);
+  if (over <= 0) return Promise.resolve(0);
+  const doomed = mushafOrder.splice(0, over);
+  return Promise.all(doomed.map((p) => cache.delete(p).then(
+    (gone) => { if (gone) mushafState.evicted++; },
+    (e) => mushafNote(p, e)
+  ))).then(() => doomed.length);
+}
+
+// TRUE means 'write'. An unknown quota is TRUE for exactly the reason roomForCore gives: a
+// browser that reports nothing must behave as this worker did before there was a check at all.
+function mushafRoom() {
+  return storageEstimate().then((est) => {
+    if (!est || typeof est.quota !== 'number' || typeof est.usage !== 'number') return true;
+    return (est.quota - est.usage) >= MUSHAF_MIN_FREE;
+  });
+}
+
+// The reader ALREADY HAS THE PAGE by the time this runs -- it was answered from the network and
+// this is the write beside it. Nothing here can reach them, which is why a decline is silent to
+// the reader and loud in the record.
+function mushafStore(cache, p, req, res) {
+  return mushafRoom().then((room) => {
+    if (!room) { mushafState.skipped++; return undefined; }
+    return mushafSeed(cache)
+      .then(() => mushafEvict(cache))
+      .then(() => cache.put(req, res).then(
+        () => { mushafTouch(p); mushafState.stored++; },
+        (e) => mushafNote(p, e)
+      ));
+  });
+}
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
@@ -500,6 +654,39 @@ self.addEventListener('fetch', (event) => {
         // Cold cache: there is nothing stale to serve, so this read is the network read.
         return revalidate;
       }))
+    );
+    return;
+  }
+
+  // ITEM 33. CACHE-FIRST FOR THE PRINTED MUSHAF PAGES, IN THEIR OWN CAPPED STORE. This branch
+  // sits ABOVE the generic cache-first arm at the bottom of this handler because that arm is
+  // what used to catch these pages, and taking them away from it is the whole item.
+  //
+  // Cache-first with no revalidation, like the two sealed mushaf JSON files above and for the
+  // same reason: a scanned page of the printed mushaf cannot change. What is different is that
+  // there are 604 of them, so this arm also carries a ceiling, an eviction rule and an estimate.
+  if (sameOrigin && MUSHAF_PAGE_RE.test(url.pathname)) {
+    const page = url.pathname;
+    event.respondWith(
+      caches.open(MUSHAF_CACHE)
+        .then((cache) => mushafSeed(cache).then(() => cache.match(req)).then((hit) => {
+          if (hit) { mushafTouch(page); return hit; }
+          return fetch(req).then((res) => {
+            // The write is deliberately NOT on the path the reader waits on: the response is
+            // handed back the moment it arrives and the store happens beside it, so an estimate,
+            // an eviction and a put cannot add a frame to turning a page.
+            if (res && res.status === 200) {
+              event.waitUntil(mushafStore(cache, page, req, res.clone()));
+            }
+            return res;
+          },
+          // A DEAD NETWORK, not a failed store -- and this arm answers it exactly as the generic
+          // cache-first arm below did when it owned these requests: resolve to undefined, which
+          // is the network error the page would have met with no worker at all. The image element
+          // in the reader latches that as onError and re-renders on its SVG branch. Storage
+          // failures do NOT come through here; every one of them lands in mushafNote.
+          () => undefined);
+        }))
     );
     return;
   }
