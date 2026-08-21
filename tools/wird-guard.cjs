@@ -1336,12 +1336,25 @@ if (hLifted) {
     && /<EzistMasthead name=\{v\.name\} g=\{v\.greeting\} hijri=\{v\.hijri\} onOpenAdhkar=\{v\.onOpenAdhkar\} \/>/.test(SRC));
   ok('109: ...and no screen was added for it',
     SRC.indexOf("screen === 'hijri'") === -1 && SRC.indexOf("setScreen('hijri')") === -1);
-  ok('109: the manual offset lives in Settings',
-    /<EzShellGroup title=\{HIJRI_SET_TITLE\} hint=\{HIJRI_SET_HINT\}>/.test(SRC)
-    && /<HijriOffsetControl \/>/.test(SRC));
+  const settingsAt = SRC.indexOf('function SettingsSheet(');
+  const settingsEnd = settingsAt === -1 ? -1 : SRC.indexOf('function ParentDashboard(', settingsAt);
+  const settingsSource = (settingsAt !== -1 && settingsEnd > settingsAt)
+    ? SRC.slice(settingsAt, settingsEnd) : '';
+  const prayerGroupAt = settingsSource.indexOf('<EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>');
+  const prayerGroupEnd = prayerGroupAt === -1 ? -1 : settingsSource.indexOf('</EzShellGroup>', prayerGroupAt);
+  const prayerGroup = (prayerGroupAt !== -1 && prayerGroupEnd > prayerGroupAt)
+    ? settingsSource.slice(prayerGroupAt, prayerGroupEnd) : '';
+  ok('109: the manual offset moved intact into the final Prayer group in Settings',
+    settingsSource.length > 1000
+    && prayerGroup.indexOf('<HijriOffsetControl />') !== -1
+    && prayerGroup.indexOf('{HIJRI_SET_TITLE}') !== -1
+    && prayerGroup.indexOf('{HIJRI_SET_HINT}') !== -1
+    && settingsSource.lastIndexOf('<EzShellGroup ') === prayerGroupAt
+    && !/<EzShellGroup title=\{HIJRI_SET_TITLE\}/.test(settingsSource));
   ok('109: ...as a radiogroup over the five permitted values, and nothing wider',
     /role="radiogroup" aria-label=\{HIJRI_SET_LABEL\}/.test(SRC)
-    && /for \(let v = HIJRI_OFFSET_MIN; v <= HIJRI_OFFSET_MAX; v\+\+\) opts\.push\(v\);/.test(SRC));
+    && /for \(let v = HIJRI_OFFSET_MIN; v <= HIJRI_OFFSET_MAX; v\+\+\) opts\.push\(v\);/.test(SRC)
+    && /data-ezik-prayer-setting="hijri"[\s\S]{0,100}style=\{\{ \.\.\.s\.a11yOpt/.test(SRC));
   // NOTHING IS CLAIMED ABOUT A CALENDAR THAT WAS NOT IN HAND.
   ok('109: no agreement with an external calendar is asserted anywhere in the app',
     !/\u0645\u0637\u0627\u0628\u0642 \u0644\u062A\u0642\u0648\u064A\u0645/.test(SRC));
@@ -1606,7 +1619,7 @@ if (tLifted) {
   // ---- THE METHODS ARE WRITTEN OUT, WITH THEIR VALUES ---------------------
   (function methods() {
     const ids = B.prayerMethodIds();
-    ok('107: more than one method is offered', ids.length >= 5, show(ids));
+    eq('107: all seven named methods are still offered', ids.length, 7);
     ok('107: the default is one of them', ids.indexOf(B.PRAYER_METHOD_DEFAULT) !== -1);
     eq('107: ...and the default is the one this app names for its own city', B.PRAYER_METHOD_DEFAULT, 'kuwait');
     for (const id of ids) {
@@ -1831,12 +1844,18 @@ if (tLifted) {
     ok('107: the calculator contains no ' + t, T_LIFTED.indexOf(t) === -1);
   }
   const TPANEL_AT = SRC.indexOf('function PrayerTimesPanel(');
-  const TPANEL_END = TPANEL_AT === -1 ? -1 : SRC.indexOf('// ============================================================\n// ITEM 108', TPANEL_AT);
+  const TPANEL_END = TPANEL_AT === -1 ? -1 : SRC.indexOf('function PrayerSettingsControl(', TPANEL_AT);
   const TPANEL = (TPANEL_AT !== -1 && TPANEL_END > TPANEL_AT) ? SRC.slice(TPANEL_AT, TPANEL_END) : '';
-  if (ok('107: the times panel was located', TPANEL.length > 800, 'len=' + TPANEL.length)) {
+  const PSET_AT = SRC.indexOf('function PrayerSettingsControl(');
+  const PSET_END = PSET_AT === -1 ? -1 : SRC.indexOf('// ============================================================\n// ITEM 108', PSET_AT);
+  const PSET = (PSET_AT !== -1 && PSET_END > PSET_AT) ? SRC.slice(PSET_AT, PSET_END) : '';
+  if (ok('107: the times panel and its moved Settings control were both located',
+    TPANEL.length > 800 && PSET.length > 500,
+    'tile=' + TPANEL.length + ' settings=' + PSET.length)) {
     for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'EventSource', '/api/',
       'Audio', 'play(', 'Notification', 'requestPermission', 'setTimeout', 'setInterval']) {
-      ok('107: the times panel contains no ' + t, TPANEL.indexOf(t) === -1);
+      ok('107: neither the times panel nor its Settings control contains ' + t,
+        TPANEL.indexOf(t) === -1 && PSET.indexOf(t) === -1);
     }
   }
   // The word is nowhere in the application file -- not in a string, not in a comment promising it.
@@ -1846,10 +1865,19 @@ if (tLifted) {
     SRC.indexOf('Notification.requestPermission') === -1);
 
   // ---- WHERE IT LIVES -----------------------------------------------------
-  ok('107: the times are drawn in the same sheet as the qibla, from ONE position',
+  ok('107: readings and minute offsets stay on the tile; method, madhhab and prose live in Settings',
     /<PrayerTimesPanel loc=\{loc\} \/>/.test(SRC)
     && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} \/>/.test(SRC)
-    && (SRC.match(/useState\(readQiblaLoc\)/g) || []).length === 1);
+    && (SRC.match(/useState\(readQiblaLoc\)/g) || []).length === 1
+    && TPANEL.indexOf('PRAYER_KEYS.map') !== -1
+    && TPANEL.indexOf('PRAYER_OFFSETTABLE.map') !== -1
+    && TPANEL.indexOf('PRAYER_METHOD_LABEL') === -1
+    && TPANEL.indexOf('PRAYER_ASR_LABEL') === -1
+    && TPANEL.indexOf('PRAYER_HINT') === -1
+    && (PSET.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length === 2
+    && PSET.indexOf('data-ezik-prayer-setting="method"') !== -1
+    && PSET.indexOf('data-ezik-prayer-setting="asr"') !== -1
+    && /<EzShellGroup title=\{PRAYER_SETTINGS_TITLE\} hint=\{PRAYER_HINT\}>[\s\S]*?<PrayerSettingsControl \/>/.test(SRC));
   ok('107: ...and still without adding a route',
     SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("setScreen('prayer')") === -1);
   ok('107: the default position is still Kuwait, and no prompt is raised to get one',

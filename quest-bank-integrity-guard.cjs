@@ -147,7 +147,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': '541ae50494e3e473a0256cbf1189ab1dc62848395b9361bd8145ed71fc5bd74f',
+  'sw.js': '339095bb72751c7ee036094e316e8835cdb3c08c0bced766942797b2efa22ada',
 };
 
 // ---------------------------------------------------------------------------
@@ -171,7 +171,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v10';
+const SW_CACHE = 'ezik-v11';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
@@ -1199,7 +1199,7 @@ async function compare(goldenPath) {
     //  { n, of }           n is the byte size of that file on disk
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     const SW_PROSE = [
-      { n: 1140964, of: 'index.html' },
+      { n: 1141660, of: 'index.html' },
       { n: 368386, of: 'icon-watermark.png' },
       { n: 177392, of: 'adhkar.json' },
       { n: 12893, of: 'icon-512.png' },

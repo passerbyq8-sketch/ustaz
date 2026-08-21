@@ -13144,6 +13144,7 @@ function prayerNudgeOffset(prefs, key, step) {
 }
 
 const PRAYER_TITLE = 'مواقيت الصلاة';
+const PRAYER_SETTINGS_TITLE = 'الصلاة';
 const PRAYER_METHOD_LABEL = 'المنهج';
 const PRAYER_ASR_LABEL = 'مذهب العصر';
 const PRAYER_OFFSET_LABEL = 'إزاحة يدويّة بالدقائق';
@@ -13160,7 +13161,7 @@ function PrayerTimesPanel({ loc }) {
     loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
   const anyMissing = PRAYER_KEYS.some((k) => t[k] === null);
   return (
-    <EzShellGroup title={PRAYER_TITLE} hint={PRAYER_HINT}>
+    <EzShellGroup title={PRAYER_TITLE}>
       {PRAYER_KEYS.map((k) => (
         <div key={k} style={s.prayerRow}>
           <span style={s.prayerName}>{PRAYER_LABELS[k]}</span>
@@ -13168,26 +13169,6 @@ function PrayerTimesPanel({ loc }) {
         </div>
       ))}
       {anyMissing ? <div style={s.qiblaNote}>{PRAYER_NONE}</div> : null}
-      <div style={s.a11yGroupLabel}>{PRAYER_METHOD_LABEL}</div>
-      <div style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_METHOD_LABEL}>
-        {prayerMethodIds().map((id) => (
-          <button key={id} type="button" role="radio" aria-checked={prefs.method === id ? 'true' : 'false'}
-            onClick={() => setPrefs(writePrayerPrefs({ method: id }))}
-            className="ezik-focus" style={prefs.method === id ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
-            {prayerMethodOf(id).name}
-          </button>
-        ))}
-      </div>
-      <div style={s.a11yGroupLabel}>{PRAYER_ASR_LABEL}</div>
-      <div style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_ASR_LABEL}>
-        {['standard', 'hanafi'].map((mode) => (
-          <button key={mode} type="button" role="radio" aria-checked={prefs.asr === mode ? 'true' : 'false'}
-            onClick={() => setPrefs(writePrayerPrefs({ asr: mode }))}
-            className="ezik-focus" style={prefs.asr === mode ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
-            {PRAYER_ASR_LABELS[mode]}
-          </button>
-        ))}
-      </div>
       <div style={s.a11yGroupLabel}>{PRAYER_OFFSET_LABEL}</div>
       {PRAYER_OFFSETTABLE.map((k) => (
         <div key={k} style={s.prayerRow}>
@@ -13202,6 +13183,36 @@ function PrayerTimesPanel({ loc }) {
         </div>
       ))}
     </EzShellGroup>
+  );
+}
+
+// ITEM 121: preferences move as one intact unit. The storage record, option builders and
+// handlers above are unchanged; only this owner moved from the reading sheet to Settings.
+function PrayerSettingsControl() {
+  const [prefs, setPrefs] = useState(readPrayerPrefs);
+  return (
+    <>
+      <div style={s.a11yGroupLabel}>{PRAYER_METHOD_LABEL}</div>
+      <div className="ez-hit" style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_METHOD_LABEL}>
+        {prayerMethodIds().map((id) => (
+          <button key={id} type="button" role="radio" aria-checked={prefs.method === id ? 'true' : 'false'}
+            onClick={() => setPrefs(writePrayerPrefs({ method: id }))}
+            data-ezik-prayer-setting="method" className="ezik-focus" style={prefs.method === id ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+            {prayerMethodOf(id).name}
+          </button>
+        ))}
+      </div>
+      <div style={s.a11yGroupLabel}>{PRAYER_ASR_LABEL}</div>
+      <div className="ez-hit" style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_ASR_LABEL}>
+        {['standard', 'hanafi'].map((mode) => (
+          <button key={mode} type="button" role="radio" aria-checked={prefs.asr === mode ? 'true' : 'false'}
+            onClick={() => setPrefs(writePrayerPrefs({ asr: mode }))}
+            data-ezik-prayer-setting="asr" className="ezik-focus" style={prefs.asr === mode ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+            {PRAYER_ASR_LABELS[mode]}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -13655,6 +13666,7 @@ function HijriOffsetControl() {
             role="radio"
             aria-checked={off === v ? 'true' : 'false'}
             onClick={() => choose(v)}
+            data-ezik-prayer-setting="hijri"
             className="ezik-focus"
             style={{ ...s.a11yOpt, ...(off === v ? s.themeOptActive : {}) }}
           >
@@ -14031,12 +14043,6 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         {/* الخصوصية والذكاء الاصطناعي -- the consent decision, stated and reversible. It is NOT
             behind the PIN gate: a reader must be able to withdraw without an adult's code, and
             Apple requires the withdrawal to be as reachable as the grant. */}
-        {/* ITEM 109: the manual offset, where the item asked for it — in Settings, beside the
-            other device-local preferences, saved under its own versioned key and defaulting
-            to zero so a reader who never opens it sees exactly what they saw before. */}
-        <EzShellGroup title={HIJRI_SET_TITLE} hint={HIJRI_SET_HINT}>
-          <HijriOffsetControl />
-        </EzShellGroup>
         <EzShellGroup title={EZ_AIS_TITLE}>
           <div style={s.aicStatusRow}>{aiConsent === EZ_AI_CONSENT_GRANTED ? EZ_AIS_ON : EZ_AIS_OFF}</div>
           {aiConsent === EZ_AI_CONSENT_GRANTED && (
@@ -14073,6 +14079,17 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             style={{ ...s.settingsSaveBtn, opacity: (pinBusy || !pin1 || !pin2) ? 0.5 : 1 }}>{ezT('common.save')}</button>
         </EzShellGroup>
         )}
+        {/* ITEM 121: the prayer preferences are last, so every established Settings position
+            above remains where the reader learned it. The two stored records keep their keys. */}
+        <EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>
+          <PrayerSettingsControl />
+          <div style={s.ezshGroupHead}>
+            <span style={s.ezshGroupMark} aria-hidden="true" />
+            <div style={s.settingsLabel}>{HIJRI_SET_TITLE}</div>
+          </div>
+          <HijriOffsetControl />
+          <div style={s.settingsHint}>{HIJRI_SET_HINT}</div>
+        </EzShellGroup>
       </div>
     </EzShell>
   );

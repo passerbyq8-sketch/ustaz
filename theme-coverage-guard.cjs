@@ -4173,8 +4173,19 @@ ok('W4: the rule names its containers and is never a bare `button`',
   /\.ezc-acts button::before/.test(css) && /\.ezc-row button::before/.test(css)
   && /\.ez-hit button::before/.test(css)
   && !/(^|[,{}\s])button::before\s*\{/.test(css.replace(/\.[\w-]+ button::before/g, '')));
-ok('W5: the quick-action group carries the hit scope',
-  /className="ez-hit" style=\{s\.quickRow\} role="group"/.test(html));
+const prayerTouchAt = html.indexOf('function PrayerSettingsControl(');
+const prayerTouchEnd = prayerTouchAt === -1 ? -1 : html.indexOf('function QiblaPanel(', prayerTouchAt);
+const prayerTouch = (prayerTouchAt !== -1 && prayerTouchEnd > prayerTouchAt)
+  ? html.slice(prayerTouchAt, prayerTouchEnd) : '';
+ok('W5: every compact action group carries the non-painting 44px hit scope',
+  /className="ez-hit" style=\{s\.quickRow\} role="group"/.test(html)
+  && (prayerTouch.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length === 2
+  && /data-ezik-prayer-setting="hijri"[\s\S]{0,100}style=\{\{ \.\.\.s\.a11yOpt/.test(html)
+  && /a11yOpt:\s*\{[^}]*minHeight:\s*44/.test(html),
+  'prayer region=' + prayerTouch.length
+  + ' option scopes=' + (prayerTouch.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length
+  + ' hijri=' + /data-ezik-prayer-setting="hijri"[\s\S]{0,100}style=\{\{ \.\.\.s\.a11yOpt/.test(html)
+  + ' a11y44=' + /a11yOpt:\s*\{[^}]*minHeight:\s*44/.test(html));
 // The drawer toggle's PAINTED box is still the 40x40 it always was: the item grows the area a
 // finger gets, never the shape an eye sees.
 // THE ONE EXCEPTION, DECLARED RATHER THAN DISCOVERED. The drawer row's pin and delete are 32px
