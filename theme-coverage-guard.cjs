@@ -1111,6 +1111,72 @@ okOn('...as a DISPLAY: no handler, no role and no tabindex on it', [["IST", IST]
   && !/<section className="ezist-quran"[^>]*(role=|tabIndex=|onClick=)/.test(IST));
 ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
 
+/* ---- Q. ITEM 28: A QUR'ANIC SPAN IS NOT A «نص منقول» ---------------- */
+// MEASURED BEFORE: HadithCard printed «نص منقول» over whatever its tag carried whenever the
+// model sent no narrator and no ruling -- a verse of the Qur'an included. Nothing distinguished
+// scripture from a transmitted report, in the one card whose entire job is to say which it is.
+//
+// EVERY CHECK BELOW IS THE SHIPPED FUNCTION EXECUTED against a literal. Nothing here matches
+// source text for behaviour, because the question is what the card DECIDES, not how it reads.
+{
+  const ORN_O = '\uFD3F', ORN_C = '\uFD3E';
+  const call = (expr) => { try { return evalIn(expr); } catch (e) { return '(threw: ' + e.message + ')'; } };
+  const span = (inner) => JSON.stringify(ORN_O + inner + ORN_C);
+
+  ok('Q28-1: the scripture test is the app\'s OWN ornate-parenthesis contract, not a second one',
+    call('hasQuranicSpan(' + span('\u0625\u0650\u0646\u0651\u064E') + ')') === true
+    && call('QURAN_ORNATE_SPAN_RE.source') === call('QURAN_SPAN_RE.source'),
+    'the card now defines scripture differently from stripTashkeelOutsideQuran, which is two'
+    + '\n        answers to one question and the beginning of a drift');
+  ok('Q28-1: ...and ordinary transmitted prose is not scripture',
+    call('hasQuranicSpan("\u0642\u0627\u0644 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647")') === false);
+
+  // THE LABEL. The verse label must be the one the verse card already prints -- a second string
+  // meaning the same thing is how two surfaces start calling one thing two names.
+  eq('Q28-2: the verse label is the very string the verse card uses',
+    call('AYAH_CARD_LABEL'), '\u0642\u064E\u0627\u0644\u064E \u0627\u0644\u0644\u0647\u064F \u062A\u064E\u0639\u064E\u0627\u0644\u064E\u0649');
+  ok('Q28-2: ...and that string is what the verse card renders',
+    html.indexOf('<span>\u0642\u064E\u0627\u0644\u064E \u0627\u0644\u0644\u0647\u064F \u062A\u064E\u0639\u064E\u0627\u0644\u064E\u0649</span>') !== -1);
+  // AND THE NEUTRAL LABEL SURVIVES for what it was written for. Item 28 narrows this label; it
+  // does not delete it, and a hadith with no attribution must still say so.
+  eq('Q28-2: ...and the neutral label is still there for an unattributed REPORT',
+    call('NEUTRAL_HADITH_LABEL'), '\u0646\u0635 \u0645\u0646\u0642\u0648\u0644');
+
+  // THE REFERENCE IS READ, NEVER GUESSED.
+  const ref = (t) => JSON.stringify(call('readStatedAyahRef(' + t + ')'));
+  eq('Q28-3: a stated one-word reference is read',
+    ref(span('\u0623') + " + ' \u0633\u0648\u0631\u0629 \u0627\u0644\u0628\u0642\u0631\u0629\u060C \u0622\u064A\u0629 \u0661\u0665\u0663'"),
+    JSON.stringify({ surah: '\u0627\u0644\u0628\u0642\u0631\u0629', ayah: '\u0661\u0665\u0663' }));
+  eq('Q28-3: ...and a stated TWO-word surah name is read whole',
+    ref(span('\u0623') + " + ' \u0633\u0648\u0631\u0629 \u0622\u0644 \u0639\u0645\u0631\u0627\u0646\u060C \u0622\u064A\u0629 \u0661\u0667\u0663'"),
+    JSON.stringify({ surah: '\u0622\u0644 \u0639\u0645\u0631\u0627\u0646', ayah: '\u0661\u0667\u0663' }));
+  eq('Q28-3: a card that states NO reference gets none -- a citation is never invented',
+    ref(span('\u0623') + " + ' \u0628\u0644\u0627 \u0645\u0631\u062C\u0639'"), 'null');
+  eq('Q28-3: ...and a surah name the app does not know is not a reference',
+    ref(span('\u0623') + " + ' \u0633\u0648\u0631\u0629 \u0641\u0644\u0627\u0646\u060C \u0622\u064A\u0629 \u0663'"), 'null');
+  eq('Q28-3: ...and TWO different references in one card yield none rather than a guess',
+    ref(span('\u0623') + " + ' \u0633\u0648\u0631\u0629 \u0627\u0644\u0628\u0642\u0631\u0629 \u0661 \u0648\u0633\u0648\u0631\u0629 \u0627\u0644\u0646\u0633\u0627\u0621 \u0662'"), 'null');
+
+  // THE CARD ITSELF, read as source for its STRUCTURE only -- the decision above is driven.
+  const hcAt = html.indexOf('function HadithCard(');
+  const hc = hcAt === -1 ? '' : html.slice(hcAt, html.indexOf('\n}', hcAt));
+  okOn('Q28-4: the card asks whether its content is scripture before it labels it', [['hc', hc]],
+    /const quranic = hasQuranicSpan\(content\);/.test(hc)
+    && /if \(quranic\) label = AYAH_CARD_LABEL;/.test(hc));
+  okOn('Q28-4: ...and a verse is never given a hadith GRADING', [['hc', hc]],
+    /\{quranic[\s\S]*\? \(ayahRef &&[\s\S]*: \(att\.ruling &&/.test(hc),
+    'a ruling printed under a verse is a hadith\'s apparatus applied to the Qur\'an');
+  // THE DECISION THE OTHER GUARD OWNS MUST STAY INSPECTABLE. quest-ux-guard.cjs extracts this
+  // initialiser and evaluates it bound only to `att` and `NEUTRAL_HADITH_LABEL`; a scripture
+  // branch folded INTO it would throw there, and that guard is not this screen's to edit.
+  okOn('Q28-4: ...and the label initialiser stays evaluable on att alone', [['hc', hc]],
+    /let label = \(!att\.narrator && !att\.ruling\) \? NEUTRAL_HADITH_LABEL : '\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064A\u0629';/.test(hc)
+    && /<span>\{label\}<\/span>/.test(hc));
+
+  // NOT A RETRIEVAL, CLEANING OR MODEL CHANGE. The brain freeze holds.
+  okOn('Q28-5: the card reaches for no network, no model and no store', [['hc', hc]],
+    !/fetch\(|\/api\/|XMLHttpRequest|localStorage|loadQuran|getVerseText/.test(hc));
+}
 /* ---- V. ITEM 120-A: THE DAILY VERSE COMES FROM THE SEALED MUSHAF ------- */
 // WHAT STOOD HERE: nothing. The card was fed by a 30-row array typed by hand into index.html,
 // and NOTHING compared a single character of it to the mushaf. Three of the thirty did not

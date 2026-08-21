@@ -12279,19 +12279,75 @@ function SurahCard({ num, from, to, onPlaySurah, onStopAudio }) {
   );
 }
 
+// ============================================================
+// ITEM 28. A QUR'ANIC SPAN IS NOT A «نص منقول».
+// ============================================================
+// MEASURED BEFORE: HadithCard printed «نص منقول» over WHATEVER its tag carried whenever the
+// model sent no narrator and no ruling. A verse of the Qur'an that arrived inside a <hadith>
+// tag was therefore shown to a child as a "transmitted text" -- in the same conversation where
+// the app's own verse card calls those very words «قَالَ اللهُ تَعَالَى». The two labels are not
+// interchangeable, and on scripture one of them is simply wrong.
+//
+// THE TEST IS THE APP'S OWN, NOT A SECOND ONE. QURAN_SPAN_RE already declares, in its own
+// comment, that "anything between the ornate parentheses U+FD3F..U+FD3E is scripture and is
+// left byte-for-byte as it came" -- that is why the tashkeel stripper refuses to touch it.
+// This reads the SAME contract. It does not invent a second definition of what scripture is,
+// and it does not sniff at the words themselves.
+//
+// UI ONLY, AND DELIBERATELY SO. No retrieval, no cleaning, no classifier and no prompt is
+// touched: the tag arrives exactly as it did, the model is not consulted, and nothing here
+// can change WHICH text is shown. What changes is the label above it and the line beneath it.
+const QURAN_ORNATE_SPAN_RE = /\uFD3F[\s\S]*?\uFD3E/;
+const hasQuranicSpan = (t) => QURAN_ORNATE_SPAN_RE.test(String(t || ''));
+// The label a verse gets, and it is the one the verse card already uses -- not a new string,
+// so the two surfaces cannot drift into calling the same thing two names.
+const AYAH_CARD_LABEL = 'قَالَ اللهُ تَعَالَى';
+// THE REFERENCE IS READ, NEVER GUESSED. It counts only when the content STATES it as
+// «سورة <name> ... <number>» and <name> is a surah the app already knows (SURAH_NUMBERS, the
+// same map the recitation link is built from). Anything else -- no reference, an unknown name,
+// or two different references in one card -- yields null, and the card then shows the label
+// with NO reference line. A citation invented under a verse would be worse than none.
+const readStatedAyahRef = (t) => {
+  const src = String(t || '');
+  const found = [];
+  const re = /سورة\s+([^\s،,:()\[\]\uFD3E\uFD3F]+(?:\s+[^\s،,:()\[\]\uFD3E\uFD3F]+)?)\s*[،,:]?\s*(?:الآية|آية)?\s*[:\s]*([٠-٩0-9]+)/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    let name = m[1];
+    if (SURAH_NUMBERS[name] === undefined) {
+      // «سورة آل عمران، آية ١٧٣» captures two words; «سورة البقرة» captures one. Try the
+      // shorter reading before giving up, so a two-word name does not swallow the next word.
+      name = name.split(/\s+/)[0];
+      if (SURAH_NUMBERS[name] === undefined) continue;
+    }
+    found.push({ surah: name, ayah: m[2] });
+  }
+  if (!found.length) return null;
+  const first = found[0];
+  if (found.some((f) => f.surah !== first.surah || f.ayah !== first.ayah)) return null;
+  return first;
+};
 const NEUTRAL_HADITH_LABEL = 'نص منقول';
 
 function HadithCard({ content, narrator, ruling }) {
   // خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
   const att = resolveHadithAttribution(narrator, ruling);
-  const label = (!att.narrator && !att.ruling) ? NEUTRAL_HADITH_LABEL : 'من السنة النبوية';
+  let label = (!att.narrator && !att.ruling) ? NEUTRAL_HADITH_LABEL : 'من السنة النبوية';
+  // ITEM 28. Scripture first, and it outranks the attribution entirely: a verse carries no
+  // narrator and takes no grading, so a ruling printed under one would be a hadith's apparatus
+  // applied to the Qur'an. The reference replaces it, and only if the content stated one.
+  const quranic = hasQuranicSpan(content);
+  const ayahRef = quranic ? readStatedAyahRef(content) : null;
+  if (quranic) label = AYAH_CARD_LABEL;
   return (
     <div style={s.hadithCard}>
       <div style={s.hadithCardLabel}>
         <span>{label}</span>
       </div>
       <div style={s.hadithText}>{content}</div>
-      {att.ruling && <div style={s.hadithMeta}>{att.ruling}</div>}
+      {quranic
+        ? (ayahRef && <div style={s.hadithMeta}>{`سورة ${ayahRef.surah}، آية ${ayahRef.ayah}`}</div>)
+        : (att.ruling && <div style={s.hadithMeta}>{att.ruling}</div>)}
     </div>
   );
 }
