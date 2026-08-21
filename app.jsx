@@ -11747,6 +11747,121 @@ function prayerNudgeOffset(prefs, key, step) {
   return writePrayerPrefs({ off: off });
 }
 
+// ============================================================
+// A-2 — جدول ثلاثين يومًا، محسوبًا على هذا الجهاز
+// ============================================================
+// WHAT THIS IS, AND WHAT IT IS NOT. It is a table of the next thirty civil days, each carrying
+// the six times and the Hijri date, generated from the SAME local computation the panel already
+// draws today's row from, with the reader's own per-prayer offsets already applied. It is not a
+// second method, not a second source, and not a download: prayerTimesFor() is the one calculator
+// and this calls it thirty times.
+//
+// ZERO NETWORK, AND THAT IS A PROPERTY OF THE CODE, NOT A PROMISE. Everything below is
+// arithmetic over three local date getters, the stored preferences and Intl. There is no fetch,
+// no image, no beacon and no model call on this path, and the guard added for this item asserts
+// exactly that over the source of these functions.
+//
+// IT PROMISES NOTHING IT CANNOT DO. There is no time field, no alarm, no sound and no message.
+// A table is a thing to LOOK AT; the moment it offered to tell the reader when a prayer had
+// come, it would be promising a notification engine that has not shipped.
+//
+// THE RENEWAL RULE IS DECLARED TO THE READER, not hidden in here: the table is rebuilt when
+// fewer than PRAYER_SCHEDULE_RENEW_AT of its days are still ahead, and the note under it says
+// so in words. It is ALSO rebuilt the moment any input it was computed from moves -- position,
+// time zone, method, Asr school, any per-prayer offset, or the Hijri offset -- because a table
+// computed from superseded settings is worse than no table: it is a wrong answer with a date on
+// it. That is what `stamp` is for.
+const PRAYER_SCHEDULE_KEY = 'ezik_prayer_schedule_v1';
+const PRAYER_SCHEDULE_DAYS = 30;      // how many days ahead one generation covers
+const PRAYER_SCHEDULE_RENEW_AT = 7;   // rebuild once fewer than this many of them are still ahead
+
+// The local civil day, three local getters and nothing else -- no UTC getter and no toISOString,
+// so a reader east of Greenwich keys their own day and not London's. Zero-padded, so the plain
+// string comparison below is a date comparison.
+function prayerDayKey(dt) {
+  const m = dt.getMonth() + 1, d = dt.getDate();
+  return String(dt.getFullYear()) + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+}
+// EVERY INPUT THE TABLE WAS COMPUTED FROM, IN ONE STRING. If any of them moves, the stored table
+// stops matching and is rebuilt. Position is rounded to ~100 m so that GPS jitter alone does not
+// throw the table away every time the panel opens.
+function prayerScheduleStamp(loc, prefs, tz) {
+  const off = [];
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+    const k = PRAYER_OFFSETTABLE[i];
+    off.push(k + ':' + (typeof prefs.off[k] === 'number' ? Math.trunc(prefs.off[k]) : 0));
+  }
+  return [Math.round(loc.lat * 1000) / 1000, Math.round(loc.lng * 1000) / 1000,
+    tz, prefs.method, prefs.asr, off.join(','), readHijriOffset()].join('|');
+}
+// Thirty rows from `startDt` forward. new Date(y, monthIndex, d + i) is what rolls the month and
+// the year over, so the last day of a 31-day month needs no special case here.
+function buildPrayerSchedule(startDt, loc, prefs, tz) {
+  const hOff = readHijriOffset();
+  const days = [];
+  for (let i = 0; i < PRAYER_SCHEDULE_DAYS; i++) {
+    const dt = new Date(startDt.getFullYear(), startDt.getMonth(), startDt.getDate() + i);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const t = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+    const row = { day: prayerDayKey(dt), hijri: hijriLabel(hijriForCivilDay(y, m, d, hOff)) };
+    for (let j = 0; j < PRAYER_KEYS.length; j++) row[PRAYER_KEYS[j]] = t[PRAYER_KEYS[j]];
+    days.push(row);
+  }
+  return days;
+}
+// A STORE THAT IS WRONG IN ANY WAY READS AS ABSENT, which rebuilds it. A half-validated table
+// would put times on a screen that nothing in this file computed.
+function readPrayerSchedule() {
+  let raw = null;
+  try { raw = localStorage.getItem(PRAYER_SCHEDULE_KEY); } catch (e) { return null; }
+  if (typeof raw !== 'string' || !raw) return null;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return null; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return null;
+  if (rec.v !== 1 || typeof rec.stamp !== 'string' || typeof rec.from !== 'string') return null;
+  if (!Array.isArray(rec.days) || rec.days.length !== PRAYER_SCHEDULE_DAYS) return null;
+  for (let i = 0; i < rec.days.length; i++) {
+    const r = rec.days[i];
+    if (!r || typeof r !== 'object' || Array.isArray(r)) return null;
+    if (typeof r.day !== 'string' || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(r.day)) return null;
+    for (let j = 0; j < PRAYER_KEYS.length; j++) {
+      const v = r[PRAYER_KEYS[j]];
+      if (v !== null && !(typeof v === 'number' && isFinite(v))) return null;
+    }
+  }
+  return rec;
+}
+// A DENIED WRITE IS NOT AN ERROR ON A SCREEN. The table is still returned and still drawn; it is
+// simply recomputed next time, which is the app as it was before this item.
+function writePrayerSchedule(rec) {
+  try { localStorage.setItem(PRAYER_SCHEDULE_KEY, JSON.stringify(rec)); } catch (e) {}
+  return rec;
+}
+function prayerScheduleRemaining(rec, todayKey) {
+  if (!rec || !Array.isArray(rec.days)) return 0;
+  let n = 0;
+  for (let i = 0; i < rec.days.length; i++) if (rec.days[i].day >= todayKey) n++;
+  return n;
+}
+// THE ONE ENTRY POINT. It answers with the table that is now in effect and says whether it had
+// to build one and why -- so the panel reports what actually happened rather than what it asked
+// for, the same discipline writePrayerPrefs() already keeps.
+function ensurePrayerSchedule(loc, prefs, now) {
+  const tz = -now.getTimezoneOffset();
+  const stamp = prayerScheduleStamp(loc, prefs, tz);
+  const todayKey = prayerDayKey(now);
+  const cur = readPrayerSchedule();
+  const remaining = prayerScheduleRemaining(cur, todayKey);
+  let why = null;
+  if (!cur) why = 'absent';
+  else if (cur.stamp !== stamp) why = 'inputs';
+  else if (remaining < PRAYER_SCHEDULE_RENEW_AT) why = 'short';
+  if (!why) return { rec: cur, built: false, why: null, remaining: remaining };
+  const rec = writePrayerSchedule({ v: 1, stamp: stamp, from: todayKey,
+    days: buildPrayerSchedule(now, loc, prefs, tz) });
+  return { rec: rec, built: true, why: why, remaining: prayerScheduleRemaining(rec, todayKey) };
+}
+
 const PRAYER_TITLE = 'مواقيت الصلاة';
 const PRAYER_SETTINGS_TITLE = 'الصلاة';
 const PRAYER_METHOD_LABEL = 'المنهج';
@@ -11754,12 +11869,26 @@ const PRAYER_ASR_LABEL = 'مذهب العصر';
 const PRAYER_OFFSET_LABEL = 'إزاحة يدويّة بالدقائق';
 const PRAYER_HINT = 'تُحسَب على هذا الجهاز من المنهج والإحداثيّات، بلا إنترنت. قابِلْها بتقويمك وعدِّلْ بالدقائق إن لزم.';
 const PRAYER_NONE = 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.';
+const PRAYER_SCHEDULE_TITLE = 'جدول ثلاثين يومًا';
+const PRAYER_SCHEDULE_SHOW = 'اعرض جدول ثلاثين يومًا';
+const PRAYER_SCHEDULE_HIDE = 'اطوِ الجدول';
+// The renewal rule, said in words, because a rule the reader cannot see is not a rule they can
+// rely on. No time field, no alarm, no sound: this sentence describes a table and nothing else.
+const PRAYER_SCHEDULE_NOTE = 'يُحسَب على هذا الجهاز لثلاثين يومًا قادمة، بلا إنترنت، ويُعاد توليده تلقائيًّا متى بقي أقلّ من سبعة أيّام، أو متى غيّرتَ المنهج أو الإزاحة أو الموضع.';
+// The sunrise is not a prayer time and takes no offset. Saying so is the difference between a
+// value the reader trusts as calibrated and one they know is the calculator's own.
+const PRAYER_SUNRISE_NOTE = 'الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.';
 const PRAYER_MINUS = '−';
 const PRAYER_PLUS = '+';
 
 function PrayerTimesPanel({ loc }) {
   const [prefs, setPrefs] = useState(readPrayerPrefs);
+  const [open, setOpen] = useState(false);
   const now = new Date();
+  // The table is derived, not fetched. It is recomputed only when an input it depends on moves,
+  // and ensurePrayerSchedule() is the one place that decides whether that means a rebuild.
+  const sched = React.useMemo(() => ensurePrayerSchedule(loc, prefs, new Date()),
+    [loc.lat, loc.lng, prefs.method, prefs.asr, JSON.stringify(prefs.off)]);
   const tz = -now.getTimezoneOffset();
   const t = prayerTimesFor(now.getFullYear(), now.getMonth() + 1, now.getDate(),
     loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
@@ -11786,6 +11915,19 @@ function PrayerTimesPanel({ loc }) {
           </span>
         </div>
       ))}
+      <div style={s.qiblaNote}>{PRAYER_SUNRISE_NOTE}</div>
+      <div style={s.a11yGroupLabel}>{PRAYER_SCHEDULE_TITLE}</div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open ? 'true' : 'false'}
+          className="ezik-focus" style={s.prayerOpt}>{open ? PRAYER_SCHEDULE_HIDE : PRAYER_SCHEDULE_SHOW}</button>
+      </div>
+      {open ? sched.rec.days.map((r) => (
+        <div key={r.day} style={s.prayerRow}>
+          <span style={s.prayerName}>{r.hijri}</span>
+          <span style={s.prayerTime}>{PRAYER_KEYS.map((k) => prayerClock(r[k])).join('  ·  ')}</span>
+        </div>
+      )) : null}
+      <div style={s.qiblaNote}>{PRAYER_SCHEDULE_NOTE}</div>
     </EzShellGroup>
   );
 }

@@ -1912,6 +1912,206 @@ if (tLifted) {
 }
 
 
+
+// ---------------------------------------------------------------------------
+// N. ROUND 25 A-2 -- THE THIRTY-DAY TABLE, BUILT HERE AND RENEWED HERE
+// ---------------------------------------------------------------------------
+// Section M above proves the CALCULATOR. This section proves the TABLE built from it: that
+// it is thirty days long, that it starts today, that the reader's calibration reaches every
+// row of it, that the sunrise is the one time no offset may move, that it is built ONCE and
+// not on every open, that it renews itself at a declared threshold and whenever an input it
+// was computed from moves, that a corrupt store rebuilds instead of throwing, and that
+// nothing on the whole path is a request.
+//
+// IT IS RUN, NOT READ. Every claim below drives the lifted functions against a fake store and
+// a fake clock. A claim about a table is worth what the table it produced is worth.
+
+const N_CONSTS = ['PRAYER_SCHEDULE_KEY', 'PRAYER_SCHEDULE_DAYS', 'PRAYER_SCHEDULE_RENEW_AT'];
+const N_FNS = ['prayerDayKey', 'prayerScheduleStamp', 'buildPrayerSchedule',
+  'readPrayerSchedule', 'writePrayerSchedule', 'prayerScheduleRemaining', 'ensurePrayerSchedule'];
+
+const nConsts = {};
+const nFns = {};
+let nLifted = true;
+for (const n of N_CONSTS) { nConsts[n] = liftConst(n); if (!ok('A-2: lift const ' + n, !!nConsts[n])) nLifted = false; }
+for (const n of N_FNS) { nFns[n] = liftFunction(n); if (!ok('A-2: lift function ' + n, !!nFns[n])) nLifted = false; }
+
+if (nLifted && tLifted && hLifted) {
+  // ONE SANDBOX, THREE FAMILIES. The table needs the calculator (M) and the calendar (K), so
+  // all three are lifted into the same scope -- deduped, because two of the names are shared.
+  const seen = Object.create(null);
+  const NAMES = [];
+  const PIECES = [];
+  const addAll = (names, bag) => {
+    for (const n of names) {
+      if (seen[n]) continue;
+      seen[n] = true; NAMES.push(n); PIECES.push(bag[n]);
+    }
+  };
+  addAll(H_CONSTS, hConsts); addAll(T_CONSTS, tConsts); addAll(N_CONSTS, nConsts);
+  addAll(H_FNS, hFns); addAll(T_FNS, tFns); addAll(N_FNS, nFns);
+  const N_LIFTED = PIECES.join('\n\n');
+
+  ok('A-2: lifted block braces balance',
+    (N_LIFTED.match(/\{/g) || []).length === (N_LIFTED.match(/\}/g) || []).length);
+  ok('A-2: lifted block has no template literal', N_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+
+  const NS = (store) => new Function('localStorage', 'JSON', 'Object',
+    N_LIFTED + '\nreturn { ' + NAMES.join(', ') + ' };')(store, JSON, Object);
+
+  // KUWAIT CITY at UTC+3 -- the same place section M drives the calculator at.
+  const KLAT = 29.3759, KLNG = 47.9774;
+  const LOC = { lat: KLAT, lng: KLNG };
+  // A fake clock. getTimezoneOffset() is NEGATIVE east of Greenwich, so UTC+3 is -180.
+  const at = (y, m, d) => ({
+    getFullYear() { return y; }, getMonth() { return m - 1; }, getDate() { return d; },
+    getTimezoneOffset() { return -180; },
+  });
+  const prefsWith = (over) => {
+    const off = { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
+    const o = { method: 'kuwait', asr: 'standard', off: off };
+    if (over) for (const k in over) { if (k === 'off') { for (const j in over.off) off[j] = over.off[j]; } else o[k] = over[k]; }
+    return o;
+  };
+
+  /* ---- the key, and that it is a NEW one ---- */
+  const B0 = NS(memStore());
+  eq('A-2: the table has its own versioned key', B0.PRAYER_SCHEDULE_KEY, 'ezik_prayer_schedule_v1');
+  ok('A-2: ...and it is not the preferences key, so no existing store is renamed or migrated',
+    B0.PRAYER_SCHEDULE_KEY !== B0.PRAYER_PREFS_KEY && B0.PRAYER_SCHEDULE_KEY !== B0.HIJRI_OFFSET_KEY);
+  eq('A-2: thirty days ahead', B0.PRAYER_SCHEDULE_DAYS, 30);
+  ok('A-2: the renewal threshold is declared, positive and shorter than the table',
+    B0.PRAYER_SCHEDULE_RENEW_AT > 0 && B0.PRAYER_SCHEDULE_RENEW_AT < B0.PRAYER_SCHEDULE_DAYS);
+
+  /* ---- a fresh device builds one, and it starts today ---- */
+  const st1 = memStore();
+  const B1 = NS(st1);
+  const r1 = B1.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  ok('A-2: a fresh device builds the table', r1.built === true && r1.why === 'absent');
+  eq('A-2: ...of exactly thirty days', r1.rec.days.length, 30);
+  eq('A-2: ...beginning today', (r1.rec.days[0] || {}).day, '2026-08-22');
+  eq('A-2: ...and running to the thirtieth day', (r1.rec.days[r1.rec.days.length - 1] || {}).day, '2026-09-20');
+  ok('A-2: ...and it was actually stored on the device', st1.has('ezik_prayer_schedule_v1'));
+  ok('A-2: every row carries all six times and a Hijri date',
+    r1.rec.days.every((r) => typeof r.hijri === 'string' && r.hijri.length > 0
+      && B1.PRAYER_KEYS.every((k) => Object.prototype.hasOwnProperty.call(r, k))));
+
+  /* ---- it is built ONCE, not on every open ---- */
+  const r1b = B1.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  ok('A-2: opening it again the same day does NOT rebuild it', r1b.built === false && r1b.why === null);
+
+  /* ---- the calibration reaches every row ---- */
+  const st2 = memStore();
+  const B2 = NS(st2);
+  const base = B2.buildPrayerSchedule(at(2026, 8, 22), LOC, prefsWith(), 180);
+  const moved = B2.buildPrayerSchedule(at(2026, 8, 22), LOC, prefsWith({ off: { fajr: 7, isha: -5 } }), 180);
+  let fajrOk = 0, ishaOk = 0, sunMoved = 0;
+  const nRows = Math.min(base.length, moved.length);
+  for (let i = 0; i < nRows; i++) {
+    if (base[i].fajr !== null && moved[i].fajr - base[i].fajr === 7) fajrOk++;
+    if (base[i].isha !== null && moved[i].isha - base[i].isha === -5) ishaOk++;
+    if (base[i].sunrise !== moved[i].sunrise) sunMoved++;
+  }
+  eq('A-2: a +7 calibration moves the fajr of all thirty rows by exactly seven minutes', fajrOk, 30);
+  eq('A-2: a -5 calibration moves the isha of all thirty rows by exactly five minutes', ishaOk, 30);
+  eq('A-2: and NO offset moves the sunrise, on any of the thirty days', sunMoved, 0);
+
+  /* ---- it renews itself at the declared threshold ---- */
+  const st3 = memStore();
+  const B3 = NS(st3);
+  B3.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  const keep = B3.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 9, 14)); // 7 days still ahead
+  ok('A-2: with exactly the threshold left it is NOT rebuilt', keep.built === false && keep.remaining === 7);
+  const renew = B3.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 9, 15)); // 6 left, under the threshold
+  ok('A-2: one day later, under the threshold, it renews itself', renew.built === true && renew.why === 'short');
+  eq('A-2: ...and the renewed table starts that day', (renew.rec.days[0] || {}).day, '2026-09-15');
+  eq('A-2: ...and is thirty days long again', renew.rec.days.length, 30);
+
+  /* ---- any input that moves invalidates it ---- */
+  const drift = [
+    ['the method', (b) => b.ensurePrayerSchedule(LOC, prefsWith({ method: 'makkah' }), at(2026, 8, 22))],
+    ['the Asr school', (b) => b.ensurePrayerSchedule(LOC, prefsWith({ asr: 'hanafi' }), at(2026, 8, 22))],
+    ['a per-prayer offset', (b) => b.ensurePrayerSchedule(LOC, prefsWith({ off: { asr: 3 } }), at(2026, 8, 22))],
+    ['the position', (b) => b.ensurePrayerSchedule({ lat: 24.7136, lng: 46.6753 }, prefsWith(), at(2026, 8, 22))],
+  ];
+  for (const d of drift) {
+    const st = memStore();
+    const b = NS(st);
+    b.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+    const after = d[1](b);
+    ok('A-2: moving ' + d[0] + ' rebuilds the table rather than serving a superseded one',
+      after.built === true && after.why === 'inputs');
+  }
+  // The Hijri offset is an input too: it is what the date column is computed with.
+  const st4 = memStore();
+  const B4 = NS(st4);
+  B4.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  st4.setItem('ezik_hijri_offset_v1', '1');
+  const afterH = B4.ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+  ok('A-2: moving the Hijri offset rebuilds the table too', afterH.built === true && afterH.why === 'inputs');
+
+  /* ---- a broken store is rebuilt, never thrown ---- */
+  const bad = ['', 'not json', '{}', '[]', 'null', '{"v":2}',
+    '{"v":1,"stamp":"x","from":"2026-08-22","days":[]}'];
+  let rebuilt = 0, threw = 0;
+  for (const b of bad) {
+    const st = memStore();
+    st.setItem('ezik_prayer_schedule_v1', b);
+    try {
+      const r = NS(st).ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+      if (r.built === true && r.rec.days.length === 30) rebuilt++;
+    } catch (e) { threw++; }
+  }
+  eq('A-2: every shape of broken store is rebuilt', rebuilt, bad.length);
+  eq('A-2: ...and none of them throws at the reader', threw, 0);
+
+  /* ---- a store that denies every operation still draws a table ---- */
+  const deaf = {
+    getItem() { throw new Error('denied'); },
+    setItem() { throw new Error('denied'); },
+    removeItem() { throw new Error('denied'); },
+  };
+  let deafOk = false;
+  try {
+    const r = NS(deaf).ensurePrayerSchedule(LOC, prefsWith(), at(2026, 8, 22));
+    deafOk = r.rec.days.length === 30;
+  } catch (e) { deafOk = false; }
+  ok('A-2: a storage that denies every operation still yields a thirty-day table', deafOk);
+
+  /* ---- ZERO NETWORK, asserted over the source of the path itself ---- */
+  ok('A-2: nothing on the table path is a request',
+    N_LIFTED.length > 0 && !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|WebSocket|new Image\(|navigator\.geolocation|\/api\//.test(N_LIFTED),
+    'the table path acquired a request');
+
+  /* ---- IT PROMISES NOTHING IT CANNOT DO ---- */
+  // The four words the round forbids in visible text, plus the two this item forbids by name,
+  // matched with the harakat stripped so an undotted spelling cannot walk past the scan.
+  const strip = (x) => String(x).replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+  const FORBIDDEN = [
+    ['tadhkir', '\u062A\u0630\u0643\u064A\u0631'],
+    ['tanbih', '\u062A\u0646\u0628\u064A\u0647'],
+    ['yudhakkiruk', '\u064A\u0630\u0643\u0631\u0643'],
+    ['nuallimuk', '\u0646\u0639\u0644\u0645\u0643'],
+    ['adhan', '\u0623\u0630\u0627\u0646'],
+    ['ishaar', '\u0625\u0634\u0639\u0627\u0631'],
+  ];
+  const SCHED_TEXT = ['PRAYER_SCHEDULE_TITLE', 'PRAYER_SCHEDULE_SHOW', 'PRAYER_SCHEDULE_HIDE',
+    'PRAYER_SCHEDULE_NOTE', 'PRAYER_SUNRISE_NOTE'].map((n) => liftConst(n)).join('\n');
+  ok('A-2: the table text was found to scan', SCHED_TEXT.length > 40);
+  for (const w of FORBIDDEN) {
+    ok('A-2: the table promises no ' + w[0], SCHED_TEXT.length > 40 && strip(SCHED_TEXT).indexOf(strip(w[1])) === -1);
+  }
+  ok('A-2: and the table offers no time field, so it cannot promise an hour it will not keep',
+    SRC.length > 0 && SRC.indexOf('type="time"') === -1 && SRC.indexOf("type: 'time'") === -1);
+
+  /* ---- the sunrise is DECLARED computed, not calibrated ---- */
+  const sunNote = liftConst('PRAYER_SUNRISE_NOTE') || '';
+  ok('A-2: the interface says in words that the sunrise is computed and takes no offset',
+    sunNote.length > 20 && strip(sunNote).indexOf(strip('\u0645\u064F\u0639\u0627\u064A\u064E\u0631')) !== -1);
+  ok('A-2: and the sunrise is absent from the offsettable list in the shipped source',
+    B0.PRAYER_OFFSETTABLE.indexOf('sunrise') === -1 && B0.PRAYER_KEYS.indexOf('sunrise') !== -1);
+}
+
 function report() {
   const line = '-'.repeat(58);
   console.log(line);
