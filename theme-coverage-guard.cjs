@@ -3748,5 +3748,89 @@ ok('U8: the surah INDEX is outside the scope and still grows',
   isCalc(scaled('mushafName')) && !/ezmr-scope[^}]*mushaf/.test(css),
   'mushafName=' + fsOf('mushafName'));
 
+
+/* ---- V. ITEM 44-ب: REDUCED MOTION, AND THE TWO TRIGGERS THAT MUST AGREE ---- */
+// A comment that closes twice is not a comment. The S99 note carried a `*/` in the middle of it,
+// so the paragraph after it sat in the stylesheet as raw text; the parser recovers by swallowing
+// everything up to the next block, and the rule immediately below was eaten. MEASURED in Chrome:
+// only 3 of the 4 reduced-motion rules reached document.styleSheets.
+//
+// This check is deliberately about ALL comments and not about that one: the failure mode is the
+// class of defect, not the instance.
+eq('V1: every comment in the stylesheet opens and closes exactly once',
+  (css.match(/\/\*/g) || []).length, (css.match(/\*\//g) || []).length);
+
+// THE PLATFORM SETTING AND THE SWITCH STILL THE SAME THINGS. Either alone is enough, and neither
+// is a lesser version of the other: a reader whose phone says «reduce motion» and who never opens
+// الإعدادات must get the same stillness as one who found the switch. MEASURED before this item: a
+// `.ez-anim` element reported animationName `fadeIn` under the platform setting, `none` under the
+// switch.
+const mediaBlock = (css.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n  \}/) || [''])[0];
+ok('V2: the platform query is present and is not empty', mediaBlock.length > 0);
+// ONE LIST OF WHAT REDUCED MOTION MEANS, AND BOTH TRIGGERS ARRIVE AT IT.
+// Nothing is added to the @media block: chat-ux-guard requires every selector in it to name an
+// S98 class, because a blanket rule there would freeze the mushaf page turn. So the platform
+// reader is given the rest through the SAME attribute the switch uses, and the list of what is
+// stilled exists once. Two lists would drift; this cannot.
+ok('V3: the @media block is left scoped to the S98 classes, as chat-ux-guard requires',
+  mediaBlock.length > 0
+  && (mediaBlock.match(/^\s*([^{}@\n][^{}\n]*)\{/gm) || []).every((sel) => /\.ezik-/.test(sel)),
+  'a selector that is not an S98 class was put into the platform query');
+for (const [what, re] of [
+  ['the decorative fades (.ez-anim)', /:root\[data-ez-motion="reduce"\] \.ez-anim\s*\{[^}]*animation:\s*none\s*!important/],
+  ['the watermark cross-fade (.ezwm)', /:root\[data-ez-motion="reduce"\] \.ezwm\s*\{[^}]*transition:\s*none\s*!important/],
+  ['smooth scrolling', /:root\[data-ez-motion="reduce"\]\s*\{[^}]*scroll-behavior:\s*auto\s*!important/],
+]) {
+  ok('V4: the one list stills ' + what, re.test(css), 'the attribute rules no longer cover it');
+}
+// AND THE ATTRIBUTE IS SET FROM EITHER SOURCE. This is the whole of 44-ب: before it, the
+// attribute meant «this reader found the switch», and a reader whose PHONE says «reduce motion»
+// got only the two S98 surfaces. MEASURED then: a `.ez-anim` element reported animationName
+// `fadeIn` under the platform setting and `none` under the switch.
+ok('V5: the attribute is set from EITHER the switch or the platform, not the switch alone',
+  /ezikMotionReduced\(p\.reduceMotion\)\) el\.setAttribute\('data-ez-motion', 'reduce'\)/.test(html),
+  'ezikApplyA11y went back to reading only the local preference');
+// The pre-paint script is what stops a reader who is owed stillness from seeing one animated
+// frame first. Its stored-preferences path returns early when there is no record -- which is
+// exactly the reader who never opened الإعدادات -- so the platform question is asked ABOVE it.
+ok('V6: the pre-paint script asks the platform before it can return early',
+  html.indexOf("var D=document.documentElement;try{if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){D.setAttribute('data-ez-motion','reduce');}}catch(e){}") !== -1
+  && html.indexOf('var D=document.documentElement;try{if(window.matchMedia') < html.indexOf("if(!r||typeof r!=='object'){return;}"),
+  'the platform question is missing from the boot script, or it sits after the early return');
+ok('V7: and the attribute follows the OS if it changes while the app is open',
+  /ezMq\.addEventListener\('change', ezSyncMotion\)/.test(html));
+
+// WHAT MUST KEEP MOVING, and why a blanket rule is never written here. The mushaf page turn
+// resolves a promise on animationend and its slide lands on transitionend; freezing either hangs
+// that screen. The typing dots are a loading indicator, and item 13's typing flow is CONTENT
+// ARRIVING rather than decoration.
+// A BARE `*` IS THE DANGER; A SCOPED ONE IS THE POINT. `.ezik-panel *` is exactly what these
+// rules are supposed to say, so the test cannot be a substring search for `*{`: it reads each
+// rule's selector list and asks whether any single selector IS the universal one. Comments are
+// stripped first for the same reason T2 strips them — the note above these rules quotes the
+// very pattern it warns against, and a check that reads prose is a check that lies.
+const cssCode = stripComments(css);
+const blanketKill = (prop) => {
+  const re = /([^{}]+)\{([^}]*)\}/g;
+  let m;
+  while ((m = re.exec(cssCode)) !== null) {
+    const sels = m[1].split(',').map((x) => x.trim()).filter(Boolean);
+    if (!sels.some((x) => x === '*')) continue;
+    if (new RegExp(prop + ':\\s*none').test(m[2])) return sels.join(',') + ' {' + m[2].trim() + '}';
+  }
+  return null;
+};
+ok('V8: no blanket animation kill — the mushaf page turn still resolves on animationend',
+  !blanketKill('animation'), String(blanketKill('animation')));
+ok('V9: no blanket transition kill — the page slide still lands on transitionend',
+  !blanketKill('transition'), String(blanketKill('transition')));
+ok('V10: the typing indicator is never marked as decoration',
+  /@keyframes typing/.test(cssCode) && !/\.ez-anim[^{]*\{[^}]*typing/.test(cssCode)
+  && !/typing[^{]*\{[^}]*animation:\s*none/.test(cssCode));
+// `ez-anim` is a marked list of four places, not a substring search over inline styles: the
+// attribute-match version of this rule cost +0.74 ms on opening the menu.
+ok('V11: reduced motion is still matched by CLASS, never by [style*=...]',
+  !/\[style\*=/.test(cssCode));
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

@@ -33,7 +33,7 @@
      Read here and the interface draws once at the chosen size; read after React mounts and the
      user watches it resize. It reads the active profile's id from the profile the app already
      stores, touches nothing else, and every failure path leaves the defaults in place. -->
-<script>(function(){try{var p=null;try{p=JSON.parse(localStorage.getItem('child_profile')||'null');}catch(e){}var pk=(p&&typeof p.pid==='string'&&p.pid)?p.pid:'anon';var m=null;try{m=JSON.parse(localStorage.getItem('ezik_reading_prefs_v1')||'null');}catch(e){}var r=(m&&typeof m==='object'&&!Array.isArray(m))?m[pk]:null;if(!r||typeof r!=='object'){return;}var S={normal:1,large:1.14,xlarge:1.28};var f=(typeof r.fontSize==='string'&&S[r.fontSize])?r.fontSize:'normal';var d=document.documentElement;d.style.setProperty('--ez-fs',String(S[f]));d.setAttribute('data-ez-fs',f);if(r.reading===true){d.setAttribute('data-ez-read','1');}if(r.reduceMotion===true){d.setAttribute('data-ez-motion','reduce');}}catch(e){}})();</script>
+<script>(function(){try{var D=document.documentElement;try{if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){D.setAttribute('data-ez-motion','reduce');}}catch(e){}var p=null;try{p=JSON.parse(localStorage.getItem('child_profile')||'null');}catch(e){}var pk=(p&&typeof p.pid==='string'&&p.pid)?p.pid:'anon';var m=null;try{m=JSON.parse(localStorage.getItem('ezik_reading_prefs_v1')||'null');}catch(e){}var r=(m&&typeof m==='object'&&!Array.isArray(m))?m[pk]:null;if(!r||typeof r!=='object'){return;}var S={normal:1,large:1.14,xlarge:1.28};var f=(typeof r.fontSize==='string'&&S[r.fontSize])?r.fontSize:'normal';var d=document.documentElement;d.style.setProperty('--ez-fs',String(S[f]));d.setAttribute('data-ez-fs',f);if(r.reading===true){d.setAttribute('data-ez-read','1');}if(r.reduceMotion===true){d.setAttribute('data-ez-motion','reduce');}}catch(e){}})();</script>
 <!-- S116 UI LANGUAGE BOOT. Interface language only -- it never reaches the model, the answer,
      the sources or any devotional text. Read before the first paint for the same reason the
      theme is: <html lang/dir> decided after React mounts is a visible re-layout.
@@ -234,6 +234,12 @@
      the flip-scheduler). Nothing outside these two classes is touched. */
   @media (prefers-reduced-motion: reduce) {
     .ezik-focus, .ezik-focus *, .ezik-panel, .ezik-panel * { animation: none !important; transition: none !important; }
+    /* 44-ب: NOTHING IS ADDED TO THIS BLOCK, and that is a decision rather than an omission.
+       chat-ux-guard requires every selector inside it to name an S98 class, because a blanket
+       rule here would freeze the mushaf page turn (it resolves a promise on animationend). The
+       platform reader is given the rest of the stillness through `data-ez-motion` instead --
+       see ezikApplyA11y -- so there is ONE list of what reduced motion means and both triggers
+       arrive at it, rather than two lists drifting apart. */
   }
   /* S99 -- READING MODE. It opens the lines up and nothing else: no colour moves, no element is
      hidden, no card or source or button is touched, and the text itself is not altered by a single
@@ -248,7 +254,8 @@
      either one alone is enough. Both stop at DECORATION: the typing dots keep animating, because
      a loading indicator that stands still is a broken loading indicator, and the mushaf page turn
      keeps its animation because it resolves a promise on animationend and freezing it would hang
-     that screen forever. */
+     that screen forever.
+
      A CLASS, NOT AN ATTRIBUTE MATCH. The first version of this rule selected the animated
      elements with [style*="fadeIn"], which forces the style engine to substring-search the inline
      style attribute of EVERY element on every recalculation. Measured, interleaved: it cost
@@ -257,6 +264,9 @@
      the cost went with it. */
   :root[data-ez-motion="reduce"] { scroll-behavior: auto !important; }
   :root[data-ez-motion="reduce"] .ez-anim { animation: none !important; }
+  /* The watermark cross-fades its opacity. It is the only CSS transition in the file that is
+     pure decoration, and neither trigger was stopping it. */
+  :root[data-ez-motion="reduce"] .ezwm { transition: none !important; }
   :root[data-ez-motion="reduce"] .ezik-focus,
   :root[data-ez-motion="reduce"] .ezik-focus *,
   :root[data-ez-motion="reduce"] .ezik-panel,
@@ -6612,6 +6622,9 @@ function ezikClearAllA11y() { try { localStorage.removeItem(EZIK_A11Y_KEY); } ca
 // THE ONE PLACE THE PREFERENCES BECOME VISIBLE. Three attributes and one custom property on the
 // root element; every rule and every scaled size reads them from there. Called on load and on
 // each change, and never from a render path.
+// The local half of the answer, remembered so the listener below can re-ask the whole question
+// without going back to the store for a profile key it has no business knowing.
+let ezikLocalMotionPref = false;
 function ezikApplyA11y(prefs) {
   const p = prefs || EZIK_A11Y_DEFAULTS;
   try {
@@ -6620,9 +6633,31 @@ function ezikApplyA11y(prefs) {
     el.style.setProperty('--ez-fs', String(scale));
     el.setAttribute('data-ez-fs', p.fontSize || 'normal');
     if (p.reading) el.setAttribute('data-ez-read', '1'); else el.removeAttribute('data-ez-read');
-    if (p.reduceMotion) el.setAttribute('data-ez-motion', 'reduce'); else el.removeAttribute('data-ez-motion');
+    // EITHER SOURCE, ONE ATTRIBUTE. `data-ez-motion` is what every reduced-motion rule reads,
+    // and it now means «this reader is owed stillness» rather than «this reader found the
+    // switch». MEASURED before this: a `.ez-anim` element under the PLATFORM setting still
+    // reported animationName `fadeIn`, because the @media block covered only the two S98
+    // surfaces while the switch covered the fades, the watermark and the smooth scroll too.
+    ezikLocalMotionPref = !!p.reduceMotion;
+    if (ezikMotionReduced(p.reduceMotion)) el.setAttribute('data-ez-motion', 'reduce');
+    else el.removeAttribute('data-ez-motion');
   } catch (e) {}
 }
+// THE OS CAN CHANGE ITS MIND WHILE THE APP IS OPEN. The rules read the attribute, so the
+// attribute is re-synced when the platform query flips. Nothing subscribes to this and no
+// component re-renders: one attribute on one element, which is where the answer already lives.
+try {
+  const ezMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const ezSyncMotion = () => {
+    try {
+      const el = document.documentElement;
+      if (ezikMotionReduced(ezikLocalMotionPref)) el.setAttribute('data-ez-motion', 'reduce');
+      else el.removeAttribute('data-ez-motion');
+    } catch (e) {}
+  };
+  if (ezMq.addEventListener) ezMq.addEventListener('change', ezSyncMotion);
+  else if (ezMq.addListener) ezMq.addListener(ezSyncMotion);
+} catch (e) {}
 // Does the app owe this user stillness? EITHER the local preference OR the platform one. The
 // platform is asked through matchMedia at the moment of the question, never cached, so turning it
 // on in the OS settings takes effect without a reload.
