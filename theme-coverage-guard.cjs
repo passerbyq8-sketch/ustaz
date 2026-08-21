@@ -2257,8 +2257,13 @@ ok('the desk behind the page is a flat token, never a pattern',
   && /const MADINA_DESK = 'var\(--madina-desk\)';/.test(html));
 ok('...and the slot round it still adds only the safe area',
   /const slotSt = MADINA_IMG_ON\s*\r?\n\s*\? \{ \.\.\.s\.pgSlot, padding: MADINA_SAFE_PAD \}/.test(rdSrc));
-ok('the neighbour prefetch is unchanged',
-  /for \(const d of \[1, -1\]\)/.test(html) && /onSheetLoad=\{prefetchMushafSvg\}/.test(rdSrc));
+// ITEM 33. The neighbourhood is STILL exactly two deep -- next and previous, never a third --
+// and it is now clamped by the ceiling the worker keeps on the page store. Both halves are
+// pinned: dropping the clamp would let a widened prefetch evict the page being read, and
+// widening [1, -1] is the waterfall this line has refused since item 79.
+ok('the neighbour prefetch is still two deep, and clamped by the store ceiling',
+  /for \(const d of \[1, -1\]\.slice\(0, MADINA_PAGE_CACHE_CAP\)\)/.test(html)
+  && /onSheetLoad=\{prefetchMushafSvg\}/.test(rdSrc));
 ok('...and only the current sheet carries it',
   (rdSrc.match(/onSheetLoad=\{prefetchMushafSvg\}/g) || []).length === 1);
 
@@ -4208,6 +4213,26 @@ ok('W6: the drawer toggle still paints at 40x40',
 const SWJS = fs.readFileSync(path.join(path.dirname(path.resolve(INDEX)), 'sw.js'), 'utf8');
 const swTag = (SWJS.match(/const REPORT_TAG = '([^']+)';/) || [])[1] || '';
 ok('Y1: sw.js still declares the report tag', !!swTag, 'tag=' + JSON.stringify(swTag));
+
+// ITEM 33. THE PAGE CEILING IS WRITTEN IN TWO FILES AND MUST BE ONE NUMBER. The worker caps
+// the printed-mushaf store and evicts least-recently-used; the reader clamps its prefetch to
+// the same ceiling so warming a neighbour cannot evict the page being read. A page cannot
+// import a worker constant, so the number is repeated -- and a repeated number that nothing
+// compares is a number that drifts. Both are read here, from the two files, and compared.
+const swCap = Number((SWJS.match(/const MUSHAF_PAGE_CAP = (\d+);/) || [])[1]);
+ok('Y0: sw.js declares a printed-page ceiling', Number.isFinite(swCap) && swCap > 0, 'cap=' + swCap);
+eq('Y0: ...and the reader clamps its prefetch to the very same number', evalIn('MADINA_PAGE_CACHE_CAP'), swCap);
+const swMushafStore = (SWJS.match(/const MUSHAF_CACHE = '([^']+)';/) || [])[1] || '';
+const swShipStore = (SWJS.match(/const CACHE = '([^']+)';/) || [])[1] || '';
+ok('Y0: ...and the store those pages live in carries no shipment version',
+  // The shipment store is 'ezik-vN'. Stripping the trailing digits leaves the family prefix, and
+  // a page store that started with it would be swept by activate on the very next bump -- which
+  // is the defect item 33 closed. Asserted on the NAME because that is what the sweep matches on.
+  !!swMushafStore && swMushafStore !== swShipStore
+    && swMushafStore.indexOf(swShipStore.replace(/\d+$/, '')) !== 0,
+  'the page store is ' + JSON.stringify(swMushafStore) + ' and the shipment store is '
+  + JSON.stringify(swShipStore) + ' -- they share a family prefix, so a bump sweeps the pages');
+
 eq('Y1: ...and the page listens for exactly that tag', evalIn('EZIK_SW_REPORT_TAG'), swTag);
 const swSummaryAt = SWJS.indexOf('function installSummary()');
 const swSummary = swSummaryAt === -1 ? '' : SWJS.slice(swSummaryAt, SWJS.indexOf('function announceInstall', swSummaryAt));

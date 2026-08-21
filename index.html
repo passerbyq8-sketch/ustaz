@@ -14611,6 +14611,13 @@ const MUSHAF_SVG_ON = readMushafSvgFlag();
 // and stays two deep whichever renderer is running.
 const MADINA_IMG_KEY = 'madina_img_v1';   // device key. '0' = off, anything else = on
 const MADINA_IMG_PAGES = 604;             // printed pages 1..604, and no other page
+// ITEM 33. The service worker keeps these pages in a store of their own and holds at most
+// this many, evicting the least recently used. The number is repeated here because a page
+// cannot read a worker's constants, and theme-coverage-guard.cjs asserts the two are equal,
+// so the repetition cannot drift into a lie. The prefetch below is bounded by it: warming
+// more pages than the store can hold would evict the reader's current neighbourhood to make
+// room for a guess about where they are going next.
+const MADINA_PAGE_CACHE_CAP = 60;
 // Root-absolute, like the icons and the manifest: the app is served from '/' and nothing
 // rewrites it, so this path is the file itself and never a route.
 //
@@ -14744,7 +14751,7 @@ const prefetchMushafSvg = (n) => {
   if ((!MUSHAF_SVG_ON && !MADINA_IMG_ON) || n === __mushafSvgWarm) return;
   __mushafSvgWarm = n;
   try {
-    for (const d of [1, -1]) {
+    for (const d of [1, -1].slice(0, MADINA_PAGE_CACHE_CAP)) {
       const t = n + d;
       if (t < 1 || t > 604) continue;
       const url = madinaImgUrl(t) || (MUSHAF_SVG_ON ? mushafSvgUrl(t) : null);

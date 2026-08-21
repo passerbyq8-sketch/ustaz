@@ -113,6 +113,14 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   item 33      -- the 604 printed page scans left the generic cache-first arm for a store of
+  //                    their OWN, 'ezik-mushaf-pages-v1', which carries no version and which
+  //                    activate's sweep now exempts BY NAME -- so a ship no longer throws away
+  //                    tens of megabytes of files that cannot change. The arm is capped at
+  //                    SW_MUSHAF_CAP pages with least-recently-used eviction and an estimate
+  //                    before every write. B15 below and SW_MUSHAF_CACHE were cut in the SAME
+  //                    commit as this digest. CACHE is NOT touched: the store name is the merge
+  //                    round's to bump, and this item adds a SECOND store rather than bumping it.
   //   item 115-ب  -- the two TRANSFER sizes in the worker prose (298686 for the shell, 338409 and
   //                    151653 for the mushaf pair) were numbers nothing in this tree could ever
   //                    check -- they depend on the CDN encoder -- and had already gone stale. They
@@ -147,7 +155,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': '339095bb72751c7ee036094e316e8835cdb3c08c0bced766942797b2efa22ada',
+  'sw.js': 'cf1e9e3ff70ef13c9e69f4fc2ae75618d078043427abffbd285eb8afd2eaf518',
 };
 
 // ---------------------------------------------------------------------------
@@ -197,6 +205,16 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json'];
 const SW_SEALED_DATA = ['/quran-uthmani.json', '/mushaf-layout.json'];
+// ITEM 33. The store the 604 printed page scans live in, and the ceiling on it. Written out
+// here rather than read back out of sw.js for the same reason SW_CORE and SW_REPORT_TAG are:
+// "the worker capped it at whatever the worker calls the cap" is a tautology that a cap
+// silently raised to 10000 would satisfy. sw.js is sealed by digest above, so this pair and
+// that pair are re-cut together or not at all.
+const SW_MUSHAF_CACHE = 'ezik-mushaf-pages-v1';
+const SW_MUSHAF_CAP = 60;
+// The URL is COMPUTED, exactly as index.html computes it: 604 literal paths would be a table
+// nobody reads and a second place for the naming scheme to drift.
+const swPageUrl = (n) => '/assets/madina-hafs/page-' + String(n).padStart(3, '0') + '.webp';
 const SW_DATA_FILES = SW_REVALIDATED.concat(SW_SEALED_DATA);
 
 // ITEM 91-A. The synthetic rejections the harness can hand a `cache.add`. A full disk and a
@@ -275,7 +293,11 @@ function swClients(opts) {
 }
 
 // Load sw.js into a domesticated global scope and hand back the levers a test needs.
-function swLoad(swPath, fetchImpl, failAdd, nav, clientsOpt) {
+// ITEM 33 added the last two parameters. `failPut` makes a runtime cache.put reject, which is
+// the only way to ask the worker what it does with a page write it cannot prevent failing --
+// the question item 93 asked of PRECACHE entries and never asked of these. cache.keys() had to
+// become real because the page store's least-recently-used order is seeded from it.
+function swLoad(swPath, fetchImpl, failAdd, nav, clientsOpt, failPut) {
   const store = new Map();
   const listeners = {};
   const opened = [];
@@ -289,7 +311,16 @@ function swLoad(swPath, fetchImpl, failAdd, nav, clientsOpt) {
   const cacheOf = (n) => { if (!store.has(n)) store.set(n, new Map()); return store.get(n); };
   const wrap = (n) => ({
     match: (r) => Promise.resolve(cacheOf(n).get(keyOf(r))),
-    put: (r, res) => { cacheOf(n).set(keyOf(r), res); return Promise.resolve(); },
+    put: (r, res) => {
+      const kind = failPut && failPut(keyOf(r));
+      if (kind) return Promise.reject(swAddError(kind === true ? 'quota' : String(kind)));
+      cacheOf(n).set(keyOf(r), res);
+      return Promise.resolve();
+    },
+    // A real cache.keys() answers in INSERTION order, and the page store's eviction order is
+    // seeded from exactly that. A Map preserves insertion order, so this is the real contract
+    // and not an approximation of it.
+    keys: () => Promise.resolve(Array.from(cacheOf(n).keys()).map((u) => ({ url: u }))),
     // Item 93: the harness can make a named precache entry reject, which is the only way to ask
     // the worker what it does with a failure it cannot prevent.
     // ITEM 91-A: `failAdd` is now handed the eviction log too, so a test can express "this
@@ -1196,10 +1227,23 @@ async function compare(goldenPath) {
       .map((line) => { const c = line.indexOf('//'); return c === -1 ? '' : line.slice(c); })
       .join('\n');
 
+    // ITEM 33 added a third claim shape. The 604 page scans are not one file and not a short
+    // list of them -- naming all 604 here would be a table nobody can read -- so the claim names
+    // the DIRECTORY and the number is derived by counting and summing whatever is in it.
+    const MUSHAF_DIR = 'assets/madina-hafs';
+    const MUSHAF_PAGE_FILE = /^page-\d{3}\.webp$/;
+    const mushafPageSizes = () => {
+      const dir = path.join(__dirname, MUSHAF_DIR);
+      if (!fs.existsSync(dir)) return null;
+      return fs.readdirSync(dir).filter((f) => MUSHAF_PAGE_FILE.test(f)).sort()
+        .map((f) => fs.statSync(path.join(dir, f)).size);
+    };
+
     //  { n, of }           n is the byte size of that file on disk
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
+    //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 1141660, of: 'index.html' },
+      { n: 1142245, of: 'index.html' },
       { n: 368386, of: 'icon-watermark.png' },
       { n: 177392, of: 'adhkar.json' },
       { n: 12893, of: 'icon-512.png' },
@@ -1210,6 +1254,10 @@ async function compare(goldenPath) {
       { n: 996528, of: 'mushaf-layout.json' },
       { n: 18132, of: 'worship-display.json' },
       { n: 2408533, sum: ['quran-uthmani.json', 'mushaf-layout.json'] },
+      // ITEM 33. The three the page-cap prose states, each re-derived from the directory.
+      { n: 604, dir: 'count' },
+      { n: 66012516, dir: 'sum' },
+      { n: 109292, dir: 'mean' },
     ];
 
     // Integers in the prose that are NOT a measurement of a file, each with the reason it cannot
@@ -1226,10 +1274,21 @@ async function compare(goldenPath) {
 
     let proseBad = 0;
     for (const claim of SW_PROSE) {
-      const files = claim.sum || [claim.of];
-      const label = claim.sum ? claim.sum.join(' + ') : claim.of;
+      const files = claim.dir ? [] : (claim.sum || [claim.of]);
+      let label = claim.dir ? (MUSHAF_DIR + ' ' + claim.dir)
+        : (claim.sum ? claim.sum.join(' + ') : claim.of);
       let total = 0;
       let missing = null;
+      if (claim.dir) {
+        const sizes = mushafPageSizes();
+        if (!sizes || !sizes.length) missing = MUSHAF_DIR;
+        else {
+          const sum = sizes.reduce((a, b) => a + b, 0);
+          total = claim.dir === 'count' ? sizes.length
+            : claim.dir === 'sum' ? sum
+              : Math.floor(sum / sizes.length);
+        }
+      }
       for (const name of files) {
         const p = path.join(__dirname, name);
         if (!fs.existsSync(p)) { missing = name; break; }
@@ -1495,6 +1554,198 @@ async function compare(goldenPath) {
         no('B13', 'the skipped install reported ' + reports[0].failed + ' per-entry failure(s); the\n'
           + '        skip REPLACES that list, and a page shown seven failures would hunt seven files.');
       } else ok('a quota-skipped install still reports, and reports the skip rather than seven failures');
+    }
+  }
+
+  // -- B15 the 604 printed mushaf pages: their OWN store, capped (item 33) ---
+  //
+  // MEASURED BEFORE: sw.js named assets/madina-hafs nowhere at all, so every one of the 604 page
+  // scans fell through to the generic same-origin cache-first arm and was written into CACHE --
+  // unbounded, un-evicted, never estimated, and swept by activate on every version bump.
+  //
+  // B10 seals sw.js, and a seal would have blessed that forever. So this section RUNS the worker,
+  // the same way B11 does, and asks it what it DOES with a page request. Three things are
+  // asserted because three separate defects were measured, and each of them is a state the
+  // harness drives rather than a line of source anybody quotes.
+  console.log('\n-- B15 service worker: the printed mushaf pages are capped (item 33) --');
+  if (!fs.existsSync(swPath)) {
+    no('B15', SW_FILE + ' is ABSENT -- the mushaf page policy cannot be executed');
+  } else {
+    // Room for everything, so nothing below is passing only because an estimate declined.
+    const WIDE15 = { quota: 4096 * 1024 * 1024, usage: 1024 * 1024 };
+    // Less free than MUSHAF_MIN_FREE, and deliberately not zero: the state this drives is
+    // "there is room for the page and it must still not be taken", not "the disk is full".
+    const TIGHT15 = { quota: 100 * 1024 * 1024, usage: 80 * 1024 * 1024 };
+
+    // (1) A PAGE GOES TO THE DEDICATED STORE, NOT THE SHIPMENT STORE.
+    {
+      const nav = swNav(WIDE15);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('PAGE')), null, nav.navigator);
+      const d = h.dispatch(swPageUrl(1));
+      const body = await swBody(d.responded);
+      await swSettle(d.waits);
+      if (!d.responded) {
+        no('B15', swPageUrl(1) + ' is not handled by the worker at all -- it still falls through\n'
+          + '        to the generic cache-first arm, which is the whole defect item 33 measured.');
+      } else if (body !== 'PAGE') {
+        no('B15', 'the page was not served from the network on a cold store (got '
+          + JSON.stringify(body) + ')');
+      } else if (!h.has(SW_MUSHAF_CACHE, swPageUrl(1))) {
+        no('B15', 'the page was NOT stored in ' + JSON.stringify(SW_MUSHAF_CACHE) + '. The stores\n'
+          + '        the worker opened were ' + JSON.stringify(h.stores()) + '.');
+      } else if (h.has(SW_CACHE, swPageUrl(1))) {
+        no('B15', 'the page was ALSO written into ' + JSON.stringify(SW_CACHE) + '. A copy in the\n'
+          + '        shipment store is swept on the next bump and is exactly the megabytes item 33\n'
+          + '        exists to stop re-downloading.');
+      } else {
+        ok('a printed page is stored in "' + SW_MUSHAF_CACHE + '", not in the shipment store');
+      }
+      // Cache-first, and it must not revalidate: a scan of a printed page cannot change.
+      const h2 = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator);
+      h2.seedStore(SW_MUSHAF_CACHE);
+      h2.seed(SW_MUSHAF_CACHE, swPageUrl(1), 'STORED');
+      const before2 = h2.fetches();
+      const d2 = h2.dispatch(swPageUrl(1));
+      const body2 = await swBody(d2.responded);
+      await swSettle(d2.waits);
+      if (body2 !== 'STORED') {
+        no('B15', 'a stored page was not served from the store (got ' + JSON.stringify(body2) + ')');
+      } else if (h2.fetches() !== before2) {
+        no('B15', 'a stored page still issued ' + (h2.fetches() - before2) + ' network fetch(es).\n'
+          + '        These files are sealed scans; revalidation can only ever spend a reader\'s\n'
+          + '        data plan to re-download bytes that cannot have changed.');
+      } else {
+        ok('...and a stored page is served from it with ZERO revalidation fetches');
+      }
+    }
+
+    // (2) PAGE 61 EVICTS PAGE 1. The ceiling holds and the OLDEST is what goes.
+    {
+      const nav = swNav(WIDE15);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('PAGE')), null, nav.navigator);
+      for (let n = 1; n <= SW_MUSHAF_CAP + 1; n++) {
+        const d = h.dispatch(swPageUrl(n));
+        await swBody(d.responded);
+        await swSettle(d.waits);
+      }
+      const held = [];
+      for (let n = 1; n <= SW_MUSHAF_CAP + 1; n++) if (h.has(SW_MUSHAF_CACHE, swPageUrl(n))) held.push(n);
+      if (held.length > SW_MUSHAF_CAP) {
+        no('B15', 'after reading ' + (SW_MUSHAF_CAP + 1) + ' pages the store holds ' + held.length
+          + '. The ceiling is ' + SW_MUSHAF_CAP + ' pages; a store that only grows is the state\n'
+          + '        measured before item 33, where paging the whole book wrote 66012516 bytes.');
+      } else if (held.length < SW_MUSHAF_CAP) {
+        no('B15', 'the store holds only ' + held.length + ' of ' + SW_MUSHAF_CAP + ' pages.\n'
+          + '        An eviction rule that evicts more than it must is a reader re-downloading\n'
+          + '        pages they already had; the ceiling is a ceiling, not a target.');
+      } else if (held.indexOf(1) !== -1) {
+        no('B15', 'page 1 survived and the store is full -- so the ceiling dropped something\n'
+          + '        other than the LEAST RECENTLY USED entry. Held: ' + JSON.stringify(held));
+      } else if (held.indexOf(SW_MUSHAF_CAP + 1) === -1) {
+        no('B15', 'page ' + (SW_MUSHAF_CAP + 1) + ' -- the one just read -- is not in the store.\n'
+          + '        A full store that refuses the NEW page instead of evicting the oldest has\n'
+          + '        frozen the reader out of exactly the page they are looking at.');
+      } else {
+        ok('page ' + (SW_MUSHAF_CAP + 1) + ' evicts page 1: the store holds ' + SW_MUSHAF_CAP
+          + ' pages, least-recently-used first out');
+      }
+      // The record must say so. A silent eviction is indistinguishable from a silent failure.
+      const st = h.storage();
+      const ms = st && st.mushaf;
+      if (!ms || ms.evicted < 1) {
+        no('B15', 'the eviction was not recorded (mushaf=' + JSON.stringify(ms) + '). Item 93 and\n'
+          + '        93-b opened a channel precisely so a store that quietly loses entries cannot.');
+      } else if (ms.failed !== 0) {
+        no('B15', 'the run recorded ' + ms.failed + ' storage failure(s) on a healthy disk: '
+          + JSON.stringify(ms.reason));
+      } else {
+        ok('...and the eviction is counted on the item 93 channel, with zero failures');
+      }
+    }
+
+    // (3) A VERSION BUMP MUST NOT TAKE THE PAGES. The whole point of the separate store.
+    {
+      const nav = swNav(WIDE15);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator);
+      // The state a bump leaves behind: the PREVIOUS shipment store, still full, beside the
+      // page store. The worker's own CACHE is the new one.
+      const STALE = 'ezik-v0-superseded';
+      h.seed(STALE, '/', 'OLD SHELL');
+      h.seed(SW_MUSHAF_CACHE, swPageUrl(7), 'PAGE 7');
+      const act = h.activate();
+      if (act.missing) {
+        no('B15', SW_FILE + ' registered no activate listener -- the sweep cannot be executed');
+      } else {
+        await swSettle(act.waits);
+        const gone = !h.has(STALE, '/') || h.stores().indexOf(STALE) === -1;
+        if (!gone) {
+          no('B15', 'activate did NOT delete the superseded shipment store ' + JSON.stringify(STALE)
+            + '.\n        The sweep is why a bump reaches a returning reader at all; item 33 narrows\n'
+            + '        it by one name and must not disarm it.');
+        } else if (h.stores().indexOf(SW_MUSHAF_CACHE) === -1 || !h.has(SW_MUSHAF_CACHE, swPageUrl(7))) {
+          no('B15', 'activate DELETED ' + JSON.stringify(SW_MUSHAF_CACHE) + ' along with the\n'
+            + '        superseded store. That is the defect item 33 exists to close: every ship threw\n'
+            + '        away every page the reader had downloaded, of files that cannot change.\n'
+            + '        Deleted: ' + JSON.stringify(h.deleted()));
+        } else {
+          ok('a version bump sweeps the superseded store and LEAVES "' + SW_MUSHAF_CACHE + '" intact');
+        }
+      }
+    }
+
+    // (4) NEARLY FULL DISK: the reader still gets the page, and nothing is written.
+    {
+      const nav = swNav(TIGHT15);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('PAGE')), null, nav.navigator);
+      let raised = null;
+      const d = h.dispatch(swPageUrl(3));
+      const body = await swBody(d.responded).catch((e) => { raised = e; return undefined; });
+      for (const w of d.waits) await Promise.resolve(w).catch((e) => { raised = e; });
+      const st = h.storage();
+      const ms = st && st.mushaf;
+      if (raised) {
+        no('B15', 'a nearly-full disk raised an error at the page: ' + raised.message
+          + '.\n        The reader asked for a page of the Qur\'an, not for a storage report.');
+      } else if (body !== 'PAGE') {
+        no('B15', 'a nearly-full disk cost the reader the page itself (got ' + JSON.stringify(body)
+          + '). The estimate governs the WRITE; the read is not its business.');
+      } else if (h.has(SW_MUSHAF_CACHE, swPageUrl(3))) {
+        no('B15', 'the page was stored anyway on a disk with less free space than the floor.\n'
+          + '        An estimate that does not change what happens is not a check.');
+      } else if (!ms || ms.skipped !== 1) {
+        no('B15', 'the declined write was not recorded (mushaf=' + JSON.stringify(ms) + ').');
+      } else if (nav.calls.estimate < 1) {
+        no('B15', 'navigator.storage.estimate() was never called -- the decision was taken\n'
+          + '        without ever asking the browser how much room there is.');
+      } else {
+        ok('a nearly-full disk still serves the page, stores nothing, raises nothing, and says so');
+      }
+    }
+
+    // (5) NOTHING IS SWALLOWED. A rejected write is counted and given a reason.
+    {
+      const nav = swNav(WIDE15);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('PAGE')), null, nav.navigator,
+        undefined, () => 'quota');
+      let raised = null;
+      const d = h.dispatch(swPageUrl(9));
+      const body = await swBody(d.responded).catch((e) => { raised = e; return undefined; });
+      for (const w of d.waits) await Promise.resolve(w).catch((e) => { raised = e; });
+      const ms = h.storage() && h.storage().mushaf;
+      if (raised) {
+        no('B15', 'a rejected cache write reached the page as an error: ' + raised.message);
+      } else if (body !== 'PAGE') {
+        no('B15', 'a rejected cache write cost the reader the page (got ' + JSON.stringify(body) + ')');
+      } else if (!ms || ms.failed !== 1) {
+        no('B15', 'a rejected page write was SWALLOWED (mushaf=' + JSON.stringify(ms) + ').\n'
+          + '        `catch(() => {})` on this path is the defect item 93 was raised to end, and a\n'
+          + '        page store is the one place in this worker it had never been closed.');
+      } else if (ms.reason !== 'quota') {
+        no('B15', 'the rejected write was recorded with reason ' + JSON.stringify(ms.reason)
+          + '. A full disk and a dead tunnel ask opposite things of the reader.');
+      } else {
+        ok('a rejected page write is counted and named on the item 93 channel, and costs no reader');
+      }
     }
   }
 
