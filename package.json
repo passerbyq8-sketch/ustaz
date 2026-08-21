@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "gates": "node tools/run-gates.cjs",
-    "build": "node tools/build-app.cjs",
+    "build:app": "node tools/build-app.cjs",
     "verify:build": "node tools/build-app.cjs --check"
   },
   "repository": {
