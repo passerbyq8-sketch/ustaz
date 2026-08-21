@@ -8,6 +8,8 @@
 # app.js, vendor/** (item 32: the page does not render without the last two)
 
 # build + guard scripts (run on the dev machine, never in production)
+tools/
+guards/
 worship-guard.cjs
 quran-guard.cjs
 layout-guard.cjs
