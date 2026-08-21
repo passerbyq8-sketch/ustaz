@@ -1033,8 +1033,15 @@ if (aLifted) {
 
   // ZERO NOTIFICATIONS, measured over the WHOLE application file. A scheduled reminder needs the
   // native shell, is not in this build, and may not be promised or prepared for anywhere.
+  // ITEM 108-a put an orientation-sensor requestPermission in this file. The claim being kept
+  // is about NOTIFICATIONS, so it is stated about notifications -- and the sweep that used to
+  // match any requestPermission is replaced by an exhaustive one that names the only caller the
+  // file is allowed to have. A Notification.requestPermission would fail both halves.
   ok('43-a: the application asks for no notification permission',
-    SRC.indexOf('Notification.requestPermission') === -1 && SRC.indexOf('requestPermission()') === -1);
+    SRC.indexOf('Notification.requestPermission') === -1);
+  eq('43-a: ...and every permission request in the file is the orientation sensor\'s',
+    (SRC.match(/[A-Za-z0-9_.$]*requestPermission\s*\(/g) || [])
+      .filter((x) => x !== 'DOE.requestPermission(').join(', '), '');
   ok('43-a: ...and constructs no Notification', !/new\s+Notification\s*\(/.test(SRC));
   ok('43-a: ...and schedules none through a service worker', SRC.indexOf('showNotification') === -1);
 }
@@ -1338,6 +1345,211 @@ if (hLifted) {
   // NOTHING IS CLAIMED ABOUT A CALENDAR THAT WAS NOT IN HAND.
   ok('109: no agreement with an external calendar is asserted anywhere in the app',
     !/\u0645\u0637\u0627\u0628\u0642 \u0644\u062A\u0642\u0648\u064A\u0645/.test(SRC));
+}
+
+
+
+// ---------------------------------------------------------------------------
+// L. ITEM 108-a -- THE QIBLA: A KNOWN ANGLE FROM A KNOWN PLACE
+// ---------------------------------------------------------------------------
+// The bearing is RUN, against published values for six cities and two degenerate positions whose
+// answers are fixed by geometry rather than by a table. The heading reader is run against the
+// exact event shapes Chrome was MEASURED to deliver -- including the one that made this design
+// what it is: an event that arrives, is not absolute, and carries alpha === null.
+
+const Q_CONSTS = ['KAABA_LAT', 'KAABA_LNG', 'QIBLA_DEFAULT_LAT', 'QIBLA_DEFAULT_LNG',
+  'QIBLA_DEFAULT_PLACE', 'QIBLA_LOC_KEY', 'QIBLA_DIRS', 'toArabicDigits'];
+const Q_FNS = ['qiblaBearing', 'qiblaDirName', 'qiblaDegreeText', 'qiblaHeadingOf',
+  'qiblaNeedleAngle', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc'];
+
+const qConsts = {};
+const qFns = {};
+let qLifted = true;
+for (const n of Q_CONSTS) { qConsts[n] = liftConst(n); if (!ok('108-a: lift const ' + n, !!qConsts[n])) qLifted = false; }
+for (const n of Q_FNS) { qFns[n] = liftFunction(n); if (!ok('108-a: lift function ' + n, !!qFns[n])) qLifted = false; }
+
+if (qLifted) {
+  const Q_LIFTED = Q_CONSTS.map((n) => qConsts[n]).concat(Q_FNS.map((n) => qFns[n])).join('\n\n');
+  ok('108-a: lifted block braces balance',
+    (Q_LIFTED.match(/\{/g) || []).length === (Q_LIFTED.match(/\}/g) || []).length);
+  ok('108-a: lifted block has no template literal', Q_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+  const Q = (store) => new Function('localStorage', 'JSON',
+    Q_LIFTED + '\nreturn { ' + Q_CONSTS.concat(Q_FNS).join(', ') + ' };')(store, JSON);
+
+  const B = Q(memStore());
+  ok('108-a: the Kaaba is where the Kaaba is',
+    Math.abs(B.KAABA_LAT - 21.4225) < 0.002 && Math.abs(B.KAABA_LNG - 39.8262) < 0.002,
+    B.KAABA_LAT + ', ' + B.KAABA_LNG);
+  ok('108-a: the default position is Kuwait',
+    Math.abs(B.QIBLA_DEFAULT_LAT - 29.3759) < 0.05 && Math.abs(B.QIBLA_DEFAULT_LNG - 47.9774) < 0.05,
+    B.QIBLA_DEFAULT_LAT + ', ' + B.QIBLA_DEFAULT_LNG);
+  eq('108-a: the position key carries its version', B.QIBLA_LOC_KEY, 'ezik_qibla_loc_v1');
+  eq('108-a: eight named directions', B.QIBLA_DIRS.length, 8);
+  eq('108-a: ...and no two the same', new Set(B.QIBLA_DIRS).size, 8);
+
+  // ---- A KNOWN ANGLE FROM A KNOWN POSITION --------------------------------
+  (function known() {
+    // Published qibla bearings, to two decimals, at coordinates named beside each.
+    const CITIES = [
+      ['Kuwait City', 29.3759, 47.9774, 224.62],
+      ['Cairo', 30.0444, 31.2357, 136.14],
+      ['Istanbul', 41.0082, 28.9784, 151.62],
+      ['London', 51.5074, -0.1278, 118.99],
+      ['Jakarta', -6.2088, 106.8456, 295.15],
+      ['New York', 40.7128, -74.0060, 58.48],
+    ];
+    for (const [name, lat, lng, want] of CITIES) {
+      const got = B.qiblaBearing(lat, lng);
+      ok('108-a: the qibla from ' + name + ' is ' + want + ' degrees',
+        got !== null && Math.abs(got - want) < 0.05, show(got));
+    }
+    // GEOMETRY, not a table: due north of the Kaaba must be exactly 180, and the same point
+    // one degree of longitude east must be a great-circle bearing that is NOT exactly 270 --
+    // which is what separates this from a bearing drawn on a flat map.
+    const north = B.qiblaBearing(B.KAABA_LAT + 1, B.KAABA_LNG);
+    ok('108-a: due north of the Kaaba points exactly south', Math.abs(north - 180) < 0.001, show(north));
+    const east = B.qiblaBearing(B.KAABA_LAT, B.KAABA_LNG + 1);
+    ok('108-a: due east of it is a GREAT CIRCLE bearing, not a flat-map 270',
+      east > 270 && east < 271, show(east));
+    const south = B.qiblaBearing(B.KAABA_LAT - 1, B.KAABA_LNG);
+    ok('108-a: due south of the Kaaba points exactly north',
+      Math.abs(south) < 0.001 || Math.abs(south - 360) < 0.001, show(south));
+    // Nothing usable in, nothing out.
+    for (const bad of [[null, 0], [0, null], ['29', '47'], [NaN, 0], [0, Infinity],
+      [91, 0], [-91, 0], [0, 181], [0, -181], [undefined, undefined]]) {
+      eq('108-a: an impossible position yields no bearing: ' + show(bad),
+        B.qiblaBearing(bad[0], bad[1]), null);
+    }
+  })();
+
+  // ---- AND IT IS SAID IN WORDS, NOT ONLY IN DEGREES -----------------------
+  (function words() {
+    const D = B.QIBLA_DIRS;
+    const CASES = [[0, 0], [10, 0], [22.4, 0], [22.6, 1], [45, 1], [90, 2], [135, 3],
+      [180, 4], [225, 5], [270, 6], [315, 7], [337.6, 0], [359.9, 0], [360, 0]];
+    for (const [deg, i] of CASES) {
+      eq('108-a: ' + deg + ' degrees is direction ' + i, B.qiblaDirName(deg), D[i]);
+    }
+    for (const bad of [null, undefined, NaN, 'x', {}]) {
+      eq('108-a: an unusable bearing has no direction name: ' + show(bad), B.qiblaDirName(bad), '');
+    }
+    const AR = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+    const txt = B.qiblaDegreeText(224.62);
+    ok('108-a: the degree is written in Arabic-Indic digits',
+      new RegExp('^[' + AR + ']+\u066b[' + AR + ']$').test(txt), show(txt));
+    eq('108-a: an unusable bearing prints nothing', B.qiblaDegreeText(NaN), '');
+  })();
+
+  // ---- THE READING THAT IS NOT A READING ----------------------------------
+  (function heading() {
+    // MEASURED: Chrome 151 headless, secure origin, fired deviceorientation with
+    // absolute === false and alpha === null within two seconds, while
+    // 'ondeviceorientationabsolute' in window was TRUE. Feature detection said yes and there
+    // was no heading. This is the case that must return null.
+    eq('108-a: the measured Chrome event -- not absolute, alpha null -- is NOT a heading',
+      B.qiblaHeadingOf({ absolute: false, alpha: null }), null);
+    eq('108-a: a relative reading with a real alpha is still not a heading',
+      B.qiblaHeadingOf({ absolute: false, alpha: 120 }), null);
+    eq('108-a: an absolute reading with no alpha is not a heading',
+      B.qiblaHeadingOf({ absolute: true, alpha: null }), null);
+    eq('108-a: ...nor one whose alpha is a string', B.qiblaHeadingOf({ absolute: true, alpha: '90' }), null);
+    eq('108-a: an empty event is not a heading', B.qiblaHeadingOf({}), null);
+    eq('108-a: no event at all is not a heading', B.qiblaHeadingOf(null), null);
+    // An absolute alpha is counter-clockwise from north; a compass heading is clockwise.
+    eq('108-a: an absolute alpha of 0 is a heading of 0', B.qiblaHeadingOf({ absolute: true, alpha: 0 }), 0);
+    eq('108-a: an absolute alpha of 90 is a heading of 270', B.qiblaHeadingOf({ absolute: true, alpha: 90 }), 270);
+    eq('108-a: an absolute alpha of 270 is a heading of 90', B.qiblaHeadingOf({ absolute: true, alpha: 270 }), 90);
+    // Safari carries a true heading in its own field, and it wins.
+    eq('108-a: webkitCompassHeading is taken as the heading it is',
+      B.qiblaHeadingOf({ webkitCompassHeading: 33.5, absolute: false, alpha: null }), 33.5);
+    eq('108-a: ...and an out-of-range one is refused',
+      B.qiblaHeadingOf({ webkitCompassHeading: 900, absolute: false, alpha: null }), null);
+
+    // The needle turns by the difference, and by nothing else.
+    eq('108-a: a device facing north points the needle at the qibla', B.qiblaNeedleAngle(224.62, 0), 224.62);
+    eq('108-a: a device facing the qibla points the needle straight up', B.qiblaNeedleAngle(224.62, 224.62), 0);
+    eq('108-a: the turn wraps rather than going negative', B.qiblaNeedleAngle(10, 350), 20);
+    eq('108-a: no bearing, no needle', B.qiblaNeedleAngle(null, 0), null);
+    eq('108-a: no heading, no needle', B.qiblaNeedleAngle(10, null), null);
+  })();
+
+  // ---- THE POSITION IS DEVICE-LOCAL, AND ITS DEFAULT IS A DEFAULT ---------
+  (function loc() {
+    const K = 'ezik_qibla_loc_v1';
+    const d = Q(memStore()).readQiblaLoc();
+    ok('108-a: an empty store reads the Kuwait default, and SAYS it is the default',
+      d.by === 'default' && d.lat === B.QIBLA_DEFAULT_LAT && d.lng === B.QIBLA_DEFAULT_LNG, show(d));
+    const bad = ['', 'x', 'null', '7', '[]', '{}', '{"lat":29}', '{"lat":"29","lng":"47"}',
+      '{"lat":91,"lng":47}', '{"lat":29,"lng":181}', '{"lat":null,"lng":null}'];
+    for (const b of bad) {
+      const st = memStore(); st.setItem(K, b);
+      const r = Q(st).readQiblaLoc();
+      ok('108-a: a broken record falls back to the default: ' + show(b), r.by === 'default', show(r));
+    }
+    const st = countingStore();
+    const w = Q(st).writeQiblaLoc(25.2048, 55.2708);
+    ok('108-a: a real position is stored and reported as the device\'s',
+      w.by === 'device' && w.lat === 25.2048 && st.writes === 1, show(w));
+    const back = Q(st).readQiblaLoc();
+    ok('108-a: ...and reads back', back.by === 'device' && back.lat === 25.2048 && back.lng === 55.2708, show(back));
+    for (const p of [[91, 0], [0, 181], [NaN, 0], ['25', '55'], [null, null], [undefined, 0]]) {
+      const s2 = countingStore();
+      const r = Q(s2).writeQiblaLoc(p[0], p[1]);
+      ok('108-a: an impossible position is refused and nothing is stored: ' + show(p),
+        r.by === 'default' && s2.writes === 0, show(r));
+    }
+    const s3 = memStore(); s3.setItem(K, JSON.stringify({ lat: 25, lng: 55 }));
+    eq('108-a: clearing returns to the default', Q(s3).clearQiblaLoc().by, 'default');
+    ok('108-a: a storage that throws still yields the default rather than an exception',
+      Q(throwingStore()).readQiblaLoc().by === 'default');
+    ok('108-a: ...and a write into it does not throw either',
+      Q(throwingStore()).writeQiblaLoc(25, 55).by === 'default');
+    const ro = countingStore();
+    Q(ro).readQiblaLoc();
+    eq('108-a: reading the position writes nothing', ro.writes, 0);
+  })();
+
+  // ---- NOTHING HERE ASKS THE DEVICE ANYTHING UNTIL IT IS ASKED TO --------
+  const QPANEL = liftFunction('QiblaPanel') || '';
+  if (ok('108-a: the panel was located', QPANEL.length > 800, 'len=' + QPANEL.length)) {
+    ok('108-a: THE NEEDLE EXISTS ONLY WHILE A HEADING DOES',
+      QPANEL.indexOf("compass === 'live' && needle !== null ?") !== -1
+      && (QPANEL.match(/<svg /g) || []).length === 1);
+    ok('108-a: ...and when it does not, the reader is told why rather than shown a still needle',
+      QPANEL.indexOf('QIBLA_COMPASS_NONE') !== -1);
+    ok('108-a: the position is never asked for at mount',
+      QPANEL.indexOf('getCurrentPosition') !== -1
+      && QPANEL.indexOf('useEffect') < QPANEL.indexOf('askLocation')
+      && !/useEffect\([^)]*getCurrentPosition/.test(QPANEL));
+    ok('108-a: ...and the only effect in the panel is the listener teardown',
+      (QPANEL.match(/useEffect\(/g) || []).length === 1
+      && /useEffect\(\(\) => \(\) => \{ if \(stopRef\.current\)/.test(QPANEL));
+    ok('108-a: the sensor is started from a press and from nowhere else',
+      /onClick=\{startCompass\}/.test(QPANEL)
+      && (QPANEL.match(/startCompass\(\)/g) || []).length === 0);
+    ok('108-a: ...and the permission request sits inside that press',
+      QPANEL.indexOf('const startCompass = () =>') < QPANEL.indexOf('DOE.requestPermission()'));
+    ok('108-a: the position is asked for from a press too',
+      /onClick=\{askLocation\}/.test(QPANEL) && (QPANEL.match(/askLocation\(\)/g) || []).length === 0);
+    ok('108-a: the listeners are removed when the panel goes',
+      /removeEventListener\('deviceorientationabsolute', onEvent\)/.test(QPANEL)
+      && /removeEventListener\('deviceorientation', onEvent\)/.test(QPANEL));
+    for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'EventSource', 'new WebSocket', '/api/']) {
+      ok('108-a: the panel contains no ' + t, QPANEL.indexOf(t) === -1);
+    }
+  }
+  for (const t of ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
+    'document.cookie', 'indexedDB', 'sessionStorage']) {
+    ok('108-a: the bearing helpers contain no ' + t, Q_LIFTED.indexOf(t) === -1);
+  }
+  // The whole app asks for a position exactly once, and it is this one.
+  eq('108-a: the application calls getCurrentPosition exactly once',
+    (SRC.match(/getCurrentPosition\(/g) || []).length, 1);
+  ok('108-a: it opens from the home, over the home, without adding a route',
+    /if \(prayerOpen\) return <PrayerSheet onClose=\{\(\) => setPrayerOpen\(false\)\} \/>;/.test(SRC)
+    && SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("screen === 'qibla'") === -1);
+  ok('108-a: ...and it is reached from a tile in the home\'s own module array',
+    /\{ id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v\.onOpenPrayer,   meta: null \}/.test(SRC));
 }
 
 

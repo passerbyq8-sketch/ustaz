@@ -1309,9 +1309,18 @@ for (const k of ['eziaChainNum', 'eziaChainWord', 'eziaGoalLabel', 'eziaGoalChip
 // not a word of copy on this screen that implies the app will come and find the reader.
 ok('43-أ: nothing in the app asks for, schedules or sends a notification',
   !/Notification\s*\(/.test(html)
-  && !/requestPermission\s*\(/.test(html)
+  && !/Notification\.requestPermission/.test(html)
   && !/showTrigger|periodicSync|pushManager|serviceWorker\.ready[\s\S]{0,80}showNotification/.test(html),
   'a notification path appeared -- item 43-أ ships zero of them');
+// ITEM 108-أ brought a requestPermission into this file that is NOT a notification's: the
+// orientation sensor's, called from inside the qibla panel's own press. The blanket substring
+// sweep that used to stand here would now report a notification path that does not exist, so it
+// is replaced by a NAMED one -- every requestPermission CALL in the shipped file must be that
+// sensor's. That is a stronger statement than the sweep, not a relaxed one: a Notification
+// permission request would still fail it, and so would any third caller.
+eq('43-أ: ...and every requestPermission call in the file is the orientation sensor\'s',
+  (html.match(/[A-Za-z0-9_.$]*requestPermission\s*\(/g) || [])
+    .filter((x) => x !== 'DOE.requestPermission(').join(', '), '');
 okOn('43-أ: ...and the chain says nothing about being reminded', [['IA', IA]],
   !/A3_CHAIN_(?:REMIND|NOTIFY)/.test(IA));
 ok('featured groups are their own presentation', /<IstanaAdhkarFeature /.test(IA) && !!s.eziaFeature);
