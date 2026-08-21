@@ -7288,6 +7288,11 @@ function App() {
   // Circuit breaker for a device geometry whose rendered spacer never converges. It is reset
   // for every turn and bounds the number of state-writing layout passes that turn may make.
   const pinPassRef = useRef(0);
+  // ITEM 102-ب. The streamed length the PREVIOUS pin pass measured, so a pass can tell «the
+  // answer grew» from «nothing changed and I am writing anyway». -1 is «no stream in flight»,
+  // which is also where a finished turn leaves it, so the first pass of the next turn reads as
+  // a change and starts that turn's count from zero.
+  const pinLenRef = useRef(-1);
   // The room under the last turn that lets a SHORT answer still be pushed to the top. It is a
   // number of pixels, recomputed as the answer grows and collapsed to 0 when the turn ends, so
   // no gap is left behind for the reader to scroll through.
@@ -8151,6 +8156,29 @@ function App() {
     const anchorTop = anchor.getBoundingClientRect().top
       - el.getBoundingClientRect().top + el.scrollTop;
 
+    // ── ITEM 102-ب: THE BREAKER NOW COUNTS STUCKNESS, NOT WORK ───────────────────────────
+    // MEASURED before this block existed, in Chrome at 430x932 driven by real touches:
+    // `pinPassRef` had already reached 9 at 504 VISIBLE CHARACTERS of a 6,697-character answer
+    // -- one write per ~72 streamed characters. The breaker at 8 was therefore being spent in
+    // the MIDDLE of most ordinary Ezik answers, not on the rare device whose spacer never
+    // converges: it fires, the pin is disarmed, `askPinPad` collapses to 0, and the question it
+    // exists to hold drifts away exactly while the answer is still arriving.
+    //
+    // A WRITE THAT FOLLOWS NEW CONTENT IS NOT A SYMPTOM. The answer grew, the room underneath it
+    // genuinely changed, and re-pinning is the entire job of this effect -- which is why it has
+    // no dependency list. The pathology the breaker was put here for is the opposite one:
+    // passes that keep writing while the content STANDS STILL. So the count is cleared whenever
+    // the streamed text has a different length from the one the previous pass saw, and what is
+    // left counted is only CONSECUTIVE writes with NO content change -- the defect itself.
+    //
+    // THE BREAKER BELOW IS UNTOUCHED: same bound, same disarm, same collapse to 0. This does not
+    // raise its ceiling and does not remove it. It stops charging it for work that was asked for.
+    const streamLen = streamingText == null ? -1 : streamingText.length;
+    if (streamLen !== pinLenRef.current) {
+      pinLenRef.current = streamLen;
+      pinPassRef.current = 0;
+    }
+
     // (1) ROOM. The shortfall against one viewport is the room still needed, and it therefore
     // shrinks to zero by itself as a long answer fills the screen. Nothing here is a fixed spacer.
     //
@@ -8232,6 +8260,7 @@ function App() {
     if (isLoading || streamingText !== null) return;
     pinActiveRef.current = false;
     pinPassRef.current = 0;
+    pinLenRef.current = -1;
     setAskPinPad(0);
     setPinnedAskIndex(null);
   }, [pinnedAskIndex, isLoading, streamingText]);
@@ -9424,6 +9453,7 @@ function App() {
     // second question re-arms by pointing at its own index; there is no flag to get stuck.
     pinActiveRef.current = true;
     pinPassRef.current = 0;
+    pinLenRef.current = -1;
     pinScrollTopRef.current = -1;
     setAskPinPad(0);
     setPinnedAskIndex(updated.length - 1);

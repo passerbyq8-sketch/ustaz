@@ -3720,8 +3720,35 @@ ok('T4: the pinPassRef breaker is still armed, still bounded at 8, and still ahe
   'the breaker moved, changed bound, or stopped preceding the write');
 // The four places the counter lives, counted in the whole file so a silent deletion elsewhere
 // cannot leave the effect looking healthy on its own.
-eq('T5: pinPassRef still appears at exactly its four code positions',
-  (pinSrc.match(/pinPassRef\.current|const pinPassRef/g) || []).length, 5);
+eq('T5: pinPassRef still appears at exactly its five code positions',
+  (pinSrc.match(/pinPassRef\.current|const pinPassRef/g) || []).length, 6);
+
+// ITEM 102-ب. THE COUNT IS CLEARED BY REAL CONTENT CHANGE, so the breaker can only ever count
+// CONSECUTIVE writes that changed nothing -- which is the only thing it was ever meant to stop.
+// MEASURED before the clearing existed: `pinPassRef` stood at 9 by 504 visible characters of a
+// 6,697-character answer (a write per ~72 streamed characters), so the fence was being spent in
+// the middle of ordinary answers and the pin it protects was disarmed mid-stream.
+//
+// Read BY NAME and never by line number: every commit moves the lines under this file.
+ok('T6: the pin pass count is cleared whenever the streamed length changed since the last pass',
+  /const streamLen = streamingText == null \? -1 : streamingText\.length;/.test(pinCode)
+  && /if \(streamLen !== pinLenRef\.current\) \{\s+pinLenRef\.current = streamLen;\s+pinPassRef\.current = 0;\s+\}/.test(pinCode),
+  'the clearing is gone -- the breaker is charged again for every write a growing answer asks for');
+
+// AND IT MUST SIT ABOVE THE BREAKER. A clearing that ran AFTER the bump would zero the very pass
+// it was meant to judge; one that ran after the bound would never be reached once the breaker
+// had fired. Ordering is the whole contract, so it is asserted as an ordering.
+const clearAt = pinCode.indexOf('pinLenRef.current = streamLen;');
+ok('T7: ...and the clearing happens BEFORE the breaker is charged and before it is tested',
+  clearAt !== -1 && bumpAt !== -1 && boundAt !== -1
+  && clearAt < bumpAt && bumpAt < boundAt,
+  'the clearing moved below the breaker, where it can no longer stop it being spent on real work');
+
+// The reading itself lives at exactly five places: declared once, compared and rewritten inside
+// the pass, and returned to -1 at BOTH the point that disarms the pin and the point that re-arms
+// it. A turn can therefore never inherit the previous turn's reading and start already counted.
+eq('T8: pinLenRef appears at exactly its five code positions',
+  (pinSrc.match(/pinLenRef\.current|const pinLenRef/g) || []).length, 5);
 
 
 /* ---- U. ITEM 44-أ: THE TEXT SCALE, AND THE READER THAT IS OUTSIDE IT ---- */
