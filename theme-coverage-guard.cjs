@@ -51,6 +51,44 @@ function ok(name, cond, detail) {
 }
 const eq = (name, a, b) => ok(name, String(a) === String(b), 'expected ' + b + '\n        actual   ' + a);
 
+/* ── 106-ب. THE BLIND NEGATIVE CHECK, AND WHY IT NEEDED A PRECONDITION ─────────────────────
+ * Every source reading below is an ANCHORED CUT: find the opening literal, find the closing one,
+ * slice between them. When either anchor moves in index.html the cut does not throw -- it comes
+ * back ''. And '' SATISFIES EVERY NEGATIVE CHECK WRITTEN OVER IT:
+ *
+ *     !/x/.test('')                       is true
+ *     ''.indexOf('x') === -1              is true
+ *     (''.match(/x/g) || []).length === 0 is true
+ *     (''.match(/x/g) || [])              equals []
+ *
+ * so the assertion prints PASS while looking at nothing at all. That is the one failure mode a
+ * guard may not have: it goes quiet exactly when the thing it guards has moved.
+ *
+ * MEASURED, NOT ASSUMED. Each of the 35 emptyable extractions in this file was forced to '' in
+ * turn and the whole suite re-run against a healthy tree. 78 (assertion, anchor) pairs across 64
+ * assertions still passed with their anchor gone. Those 64 calls are the ones rewritten to use
+ * the two helpers below; nothing else was touched.
+ *
+ * THE FIX IS A PRECONDITION, NOT A STRONGER CHECK. Each assertion keeps its own condition byte
+ * for byte. What changes is that a lost anchor is now reported as an explicit, NAMED failure
+ * before that condition is ever consulted -- so «the anchor moved» can no longer be mistaken for
+ * «the property still holds».
+ */
+function anchorLoss(anchors) {
+  const lost = anchors.filter((a) => !(typeof a[1] === 'string' && a[1].length)).map((a) => a[0]);
+  if (!lost.length) return null;
+  return 'ANCHOR LOST: ' + lost.join(', ') + ' -- that extraction returned 0 bytes, so the check '
+    + 'below read nothing. Fix the anchor in index.html; do not weaken the check.';
+}
+const okOn = (name, anchors, cond, detail) => {
+  const lost = anchorLoss(anchors);
+  return lost ? ok(name, false, lost) : ok(name, cond, detail);
+};
+const eqOn = (name, anchors, a, b) => {
+  const lost = anchorLoss(anchors);
+  return lost ? ok(name, false, lost) : eq(name, a, b);
+};
+
 /* -------------------------------------------------------------------------
  * Palette parsing. Comments are stripped FIRST -- the stylesheet's own prose
  * names tokens ("--madina-desk: the surface the sheet lies on"), and a
@@ -708,8 +746,8 @@ ok('the Settings screen was located', vtSetStart !== -1 && settingsRegion.length
 ok('Settings still offers both colour modes',
   /<Opt value="light"/.test(settingsRegion) && /<Opt value="dark"/.test(settingsRegion));
 // JOURNEY AND DECK APPEAR NOWHERE.
-ok('Settings shows no Journey control', !/Journey|JOURNEY|journey/.test(settingsRegion));
-ok('Settings shows no Deck control', !/Deck|DECK|deck/.test(settingsRegion));
+okOn('Settings shows no Journey control', [["settingsRegion", settingsRegion]], !/Journey|JOURNEY|journey/.test(settingsRegion));
+okOn('Settings shows no Deck control', [["settingsRegion", settingsRegion]], !/Deck|DECK|deck/.test(settingsRegion));
 ok('...and the whole file offers no layout chooser', !/StyleOpt/.test(html));
 // THE ACTIVE DESIGN IS STATED.
 ok('Settings names the active application design', /\{EZ_VT_ISTANA\}/.test(settingsRegion));
@@ -719,10 +757,10 @@ ok('qibla_13 appears only as a disabled upcoming line',
   /\{EZ_VT_QIBLA\}/.test(settingsRegion) && /aria-disabled="true"/.test(settingsRegion));
 const qibIdx = settingsRegion.indexOf('{EZ_VT_QIBLA}');
 const qibRow = qibIdx === -1 ? '' : settingsRegion.slice(Math.max(0, qibIdx - 400), qibIdx + 200);
-ok('...with no radio role', !/role="radio"/.test(qibRow));
-ok('...with no checked state', !/aria-checked/.test(qibRow));
-ok('...with no click handler', !/onClick/.test(qibRow));
-ok('...and it is not a button, so it cannot be tabbed to', !/<button/.test(qibRow));
+okOn('...with no radio role', [["qibRow", qibRow]], !/role="radio"/.test(qibRow));
+okOn('...with no checked state', [["qibRow", qibRow]], !/aria-checked/.test(qibRow));
+okOn('...with no click handler', [["qibRow", qibRow]], !/onClick/.test(qibRow));
+okOn('...and it is not a button, so it cannot be tabbed to', [["qibRow", qibRow]], !/<button/.test(qibRow));
 // and nothing anywhere can write it, because the value does not exist in the code.
 // scoped to the APP BLOCK: the id is still a selector in <style>, which is the groundwork the
 // next batch needs. What must not exist is a value the code can read, write or compare.
@@ -917,7 +955,7 @@ ok('EzikIstanaHome exists', /function EzikIstanaHome\(/.test(IST));
 ok('the owner renders it unconditionally', /return <EzikIstanaHome \{\.\.\.home\} \/>;/.test(html));
 // The legacy homes must not be CONSTRUCTED for istana: the istana return has to come first.
 ok('there is no legacy switch left to be reached', html.indexOf('EZIK_UI_STYLE_DECK ?') === -1);
-ok('neither legacy home is rendered inside the istana component',
+okOn('neither legacy home is rendered inside the istana component', [["IST", IST]],
   !/<EzikDeckHome/.test(IST) && !/<EzikJourneyHome/.test(IST));
 // ...and qibla_13 still gets exactly what it had before this batch.
 // S102: there is no other home to route to. EzikIstanaHome is the whole of the answer.
@@ -992,7 +1030,7 @@ ok('...bounded and centred rather than loose across the viewport',
     && !/className="ezist-nav-side"/.test(html) && !/className="ezist-brand"/.test(html));
 }
 // THE OLD BOTTOM DOCK IS NOT ON THIS HOME. EzHomeNav is what draws it, and it is not used here.
-ok('the legacy bottom dock is NOT presented on the istana home',
+okOn('the legacy bottom dock is NOT presented on the istana home', [["IST", IST]],
   !/<EzHomeNav/.test(IST) && !/s\.ezhNav\b/.test(IST) && !/s\.ezhFab\b/.test(IST),
   'EzHomeNav / ezhNav / ezhFab must not appear inside the istana home');
 ok('...and the component that drew it no longer exists at all', html.indexOf('function EzHomeNav') === -1);
@@ -1001,7 +1039,7 @@ ok('it has an OTTOMAN MASTHEAD', /<EzistMasthead /.test(IST) && /className="ezis
 ok('...whose arch IS the approved signature radius',
   /\.ezist-masthead\{[^}]*border-radius:var\(--ez-radius-sig\)/.test(css));
 eq('...which under istana_33 is the approved 120px arch', VT.light.istana_33['--vt-radius-sig'], '120px 120px 18px 18px');
-ok('the masthead carries NO emblem -- item 100 removed the tulip at the owner\'s request',
+okOn('the masthead carries NO emblem -- item 100 removed the tulip at the owner\'s request', [["IST", IST]],
   !/className="ezist-tulip"/.test(IST) && !/\.ezist-tulip/.test(css));
 // The masthead is still the box that clips, which is what kept the emblem inside it and what
 // keeps everything else inside it now.
@@ -1073,7 +1111,7 @@ ok('...and that once is inside the top bar',
   IST.indexOf('<EzistQuranPanel />') > IST.indexOf('<div className="ezist-nav-inner">')
   && IST.indexOf('<EzistQuranPanel />') < IST.indexOf('function EzistMasthead')
   && !/<EzistModuleCard key=\{m\.id\} m=\{m\} \/>\)\}\s*\r?\n\s*<EzistQuranPanel/.test(IST));
-ok('...as a DISPLAY: no handler, no role and no tabindex on it',
+okOn('...as a DISPLAY: no handler, no role and no tabindex on it', [["IST", IST]],
   !/<EzistQuranPanel[^>]*on[A-Z]/.test(IST)
   && !/<section className="ezist-quran"[^>]*(role=|tabIndex=|onClick=)/.test(IST));
 ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
@@ -1118,7 +1156,7 @@ ok('105: ...and the title still starts at the pixel it always did',
   // Read with the prose taken out: the note that RECORDS the removal names the handler, and a
   // scan that counted it would be answered by deleting the explanation rather than the defect.
   const ISTCODE = IST.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/[^\n]*$/gm, ' ');
-  eq('the composition holds no chat handler of its own', (ISTCODE.match(/onOpenChat/g) || []).length, 0);
+  eqOn('the composition holds no chat handler of its own', [["IST", IST]], (ISTCODE.match(/onOpenChat/g) || []).length, 0);
   ok('...because the one way in is the menu the bar opens',
     /function EzistTopNav\(\{ onOpenMenu \}\)/.test(IST)
     && /className="ezist-nav"[\s\S]*?onClick=\{onOpenMenu\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
@@ -1177,7 +1215,7 @@ eq('the istana home animates nothing, so reduced motion has nothing to switch of
 // the claim itself: every button the composition draws carries it, however many there are.
 // The module card builds its class as an expression, so the ring is matched by NAME and not by
 // the literal `className="` that precedes it on the other two.
-ok('...and its controls carry the shared focus ring class',
+okOn('...and its controls carry the shared focus ring class', [["IST", IST]],
   (IST.match(/ezhome-focus/g) || []).length === (IST.match(/<button/g) || []).length,
   (IST.match(/ezhome-focus/g) || []).length + ' rings for ' + (IST.match(/<button/g) || []).length + ' buttons');
 
@@ -1212,7 +1250,7 @@ ok('...and neither owner branches: the return is unconditional',
 // source, so featured.length + rest.length === list.length by construction.
 ok('the featured head and the catalogue tail are slices of the one array',
   /const featured = list\.slice\(0, EZIA_FEATURED\);/.test(IA) && /const rest = list\.slice\(EZIA_FEATURED\);/.test(IA));
-ok('...and nothing re-orders, ranks or filters them here',
+okOn('...and nothing re-orders, ranks or filters them here', [["IA", IA]],
   !/\.sort\(|\.filter\(|adhkarMostUsed/.test(IA));
 ok('each category is rendered by exactly one map over each slice',
   (IA.match(/featured\.map\(/g) || []).length === 1 && (IA.match(/rest\.map\(/g) || []).length === 1);
@@ -1230,8 +1268,52 @@ ok('...with the same brand-arch language as the home', /className="ezia-brand-ar
 ok('it has a bounded arched masthead', /className="ezia-masthead"/.test(IA)
   && /\.ezia-masthead\{[^}]*border-radius:var\(--ez-radius-sig\)/.test(css)
   && /\.ezia-masthead\{[^}]*overflow:hidden/.test(css));
-ok('...carrying the REAL daily ring, not a decorative one',
-  /role="progressbar"[\s\S]{0,200}?aria-valuenow=\{shown\}/.test(IA) && /Math\.min\(done, ADHKAR_DAILY_GOAL\)/.test(IA));
+okOn('...carrying the REAL daily ring, not a decorative one', [['IA', IA]],
+  /role="progressbar"[\s\S]{0,200}?aria-valuenow=\{shown\}/.test(IA) && /Math\.min\(done, goal\)/.test(IA));
+
+/* ---- I3-ب. ITEM 43-أ: THE CHAIN, AND THE NUMBER THE READER CHOSE ---------
+ * The ring used to be measured against a constant. It is measured against the reader's own
+ * goal now, and the constant survives only as the value that goal DEFAULTS to -- so a screen
+ * that quietly went back to the constant would be presenting a target nobody chose.
+ */
+okOn('43-أ: the ring is measured against the READER\'S goal, not a constant', [['IA', IA]],
+  /const shown = Math\.min\(done, goal\);/.test(IA)
+  && /\(shown \/ goal\)/.test(IA)
+  && /aria-valuemax=\{goal\}/.test(IA)
+  && !/ADHKAR_DAILY_GOAL/.test(IA),
+  'the fixed goal is back on this screen');
+// The chooser is a real group of real controls, and the pressed one says so.
+okOn('43-أ: the goal is chosen from the presets, in a labelled group', [['IA', IA]],
+  /role="group" aria-label=\{A3_GOAL_PICK\}/.test(IA)
+  && /ADHKAR_GOAL_PRESETS\.map/.test(IA)
+  && /aria-pressed=\{goal === n \? 'true' : 'false'\}/.test(IA)
+  && /onClick=\{\(\) => onGoal\(n\)\}/.test(IA));
+// A LAPSE IS NOT PUNISHED. The chain row draws a number and a word; there is no red anywhere in
+// its styles, and no second sentence for a chain that stopped -- the zero case is an INVITATION
+// (A3_CHAIN_START), which is also what a first-time reader sees.
+okOn('43-أ: the chain is drawn, and its number is the run', [['IA', IA]],
+  /\{toArabicDigits\(run\)\}/.test(IA) && /A3_CHAIN_TITLE/.test(IA));
+okOn('43-أ: ...and a chain that lapsed is neither red nor scolded', [['IA', IA]],
+  /run > 0 \? A3_CHAIN_DAYS : A3_CHAIN_START/.test(IA)
+  && !/A3_CHAIN_(?:LOST|BROKEN|MISSED|FAIL)/.test(IA),
+  'a second, worse sentence was added for the day the chain stopped');
+// Every chain style resolves to a token this screen declares in BOTH modes -- the group C
+// contrast sweep above already proves the pair, so this only proves they are TOKENS.
+for (const k of ['eziaChainNum', 'eziaChainWord', 'eziaGoalLabel', 'eziaGoalChip', 'eziaGoalChipOn']) {
+  ok('43-أ: ' + k + ' takes its colour from a token, not a literal',
+    !isColour(String((s[k] || {}).color || 'var(--x)'))
+    && !isColour(String((s[k] || {}).background || 'var(--x)')));
+}
+// ZERO NOTIFICATIONS. A scheduled reminder needs the native shell; it is not in this build, so
+// nothing may promise one -- not a permission request, not a Notification, not a scheduler, and
+// not a word of copy on this screen that implies the app will come and find the reader.
+ok('43-أ: nothing in the app asks for, schedules or sends a notification',
+  !/Notification\s*\(/.test(html)
+  && !/requestPermission\s*\(/.test(html)
+  && !/showTrigger|periodicSync|pushManager|serviceWorker\.ready[\s\S]{0,80}showNotification/.test(html),
+  'a notification path appeared -- item 43-أ ships zero of them');
+okOn('43-أ: ...and the chain says nothing about being reminded', [['IA', IA]],
+  !/A3_CHAIN_(?:REMIND|NOTIFY)/.test(IA));
 ok('featured groups are their own presentation', /<IstanaAdhkarFeature /.test(IA) && !!s.eziaFeature);
 ok('...and the rest are a responsive catalogue',
   /className="ezia-catalogue"/.test(IA) && /\.ezia-catalogue\{[^}]*display:grid/.test(css));
@@ -1582,7 +1664,7 @@ ok('K3: the empty screen contains the scholar selector and search control',
   /<select id="ezf-scholar"/.test(fatwaFormSrc)
   && /<input className="ezhome-focus ezf-input" type="search"/.test(fatwaFormSrc)
   && /<button type="submit" className="ezhome-focus ezf-submit"/.test(fatwaFormSrc));
-ok('K3: ...without a title, helper copy or suggestions',
+okOn('K3: ...without a title, helper copy or suggestions', [["fatwaFormSrc", fatwaFormSrc]],
   !/<h[1-6]\b/.test(fatwaFormSrc) && !/suggest/i.test(fatwaFormSrc));
 ok('K3: scholar choices show a name only, never a record count',
   /<option key=\{item\.id\} value=\{item\.id\}>\{item\.shortName \|\| ezT\('fatwa\.defaultScholar'\)\}<\/option>/.test(fatwaFormSrc));
@@ -1592,7 +1674,7 @@ ok('K3: scholar choices show a name only, never a record count',
 ok('K3: fatwa retrieval is GET-only and asks for the complete official record',
   /method:\s*'GET'/.test(fatwaSrc) && /view:\s*'full'/.test(fatwaSrc)
   && /\/api\/v1\/fatwas\/search\?/.test(fatwaSrc));
-ok('K3: ...and no model or write endpoint is reachable from the fatwa feature',
+okOn('K3: ...and no model or write endpoint is reachable from the fatwa feature', [["fatwaSrc", fatwaSrc]],
   !/\/api\/(?:ask|chat)\b/.test(fatwaSrc) && !/method:\s*'POST'/.test(fatwaSrc));
 ok('K3: every result keeps its official evidence attached',
   /<p className="ezf-copy">\{question\}<\/p>/.test(fatwaSrc)
@@ -1640,21 +1722,21 @@ ok('its picker renders through the shared shell',
 ok('...with the screen\'s OWN exit handler, not a new one', /onBack=\{onExit\}/.test(memSrc));
 // THE LEGACY NAVY HEADER IS NOT REACHABLE FROM THE PICKER.
 const pickerSrc = memSrc.slice(memSrc.indexOf('<EzShell title={MEM.TITLE}'), memSrc.indexOf('// ---------- DRILL ----------'));
-ok('the picker draws no legacy header or container',
+okOn('the picker draws no legacy header or container', [["memSrc", memSrc]],
   !/s\.memHeader/.test(pickerSrc) && !/s\.memContainer/.test(pickerSrc) && !/s\.memTitle/.test(pickerSrc),
   'memHeader is the full-width navy strip the review rejected');
 
 /* ---- L1. the canonical 114, once, in order ------------------------------ */
 ok('the catalogue maps the canonical range exactly once',
   (pickerSrc.match(/Array\.from\(\{ length: 114 \}, \(_, i\) => i \+ 1\)\.map\(/g) || []).length === 1);
-ok('...and nothing re-orders, filters or slices it',
+okOn('...and nothing re-orders, filters or slices it', [["memSrc", memSrc]],
   !/\.sort\(|\.filter\(|\.slice\(|\.reverse\(/.test(pickerSrc));
 ok('...and each card carries its own surah number', /data-ezq-surah=\{n\}/.test(pickerSrc));
 // the metadata comes from the shipped sources, and none of it is written down here.
 ok('the name comes from SURAH_NAMES', /\{SURAH_NAMES\[n\]\}/.test(pickerSrc));
 ok('the ayah count comes from the single-pass tally', /counts\[n\] \? \(toArabicDigits\(counts\[n\]\)/.test(pickerSrc));
 ok('the Meccan/Medinan word comes from revelationLabel', /\{revelationLabel\(n\)\}/.test(pickerSrc));
-ok('no surah metadata is hardcoded in the catalogue',
+okOn('no surah metadata is hardcoded in the catalogue', [["memSrc", memSrc]],
   !/\bMakkiy|\bMadaniy|\[\s*'\u0627\u0644\u0641\u0627\u062A\u062D\u0629'/.test(pickerSrc));
 
 /* ---- L2. the layout the review asked for -------------------------------- */
@@ -1695,14 +1777,14 @@ ok('the drill renders through the shared shell',
   /<EzShell title=\{MEM\.TITLE\} onBack=\{ezikGoBack\} backLabel=\{MEM\.BACK_BTN\}>/.test(drillSrc));
 ok('...and closes it', /<\/EzShell>/.test(drillSrc));
 // NO LEGACY STRUCTURE ANYWHERE IN THE MEMORISATION SCREEN.
-ok('no memContainer/memHeader/memTitle/memSubBar remains in memorize',
+okOn('no memContainer/memHeader/memTitle/memSubBar remains in memorize', [["memSrc", memSrc]],
   !/s\.memContainer|s\.memHeader|s\.memTitle\b|s\.memSubBar/.test(memSrc),
   'these are the full-width navy presentation the review rejected');
 ok('...while the mushaf screen still has its own, untouched', /s\.memContainer/.test(html));
 // BACK GOES TO THE IMMEDIATE PARENT, NOT TO CHAT.
 ok('the drill back is the application back, which lands on the picker',
   /onBack=\{ezikGoBack\}/.test(drillSrc) && /useEzikBackLayer\(view === 'drill', leaveDrill\)/.test(memSrc));
-ok('...and no back path in memorize routes to the chat',
+okOn('...and no back path in memorize routes to the chat', [["memSrc", memSrc]],
   !/onBack=\{[^}]*setScreen\(.chat.\)/.test(memSrc) && !/backLabel[\s\S]{0,80}setScreen\(.chat.\)/.test(memSrc));
 ok('the change-surah control still leaves by the same door', /onClick=\{ezikGoBack\} style=\{s\.ezqDrillChange\}/.test(drillSrc));
 
@@ -1744,7 +1826,7 @@ ok('...and no ezq rule draws a pseudo-element into the reading bounds',
   !/\.ezq-read[^{]*::(before|after)/.test(css));
 ok('the verse text is still read straight from the store',
   /getVerseText\(selectedSurah, adnanAyah \|\| startAyah\)/.test(memSrc));
-ok('...with no transform, slice or ellipsis over it',
+okOn('...with no transform, slice or ellipsis over it', [["memSrc", memSrc]],
   !/getVerseText\([^)]*\)\s*\.(slice|substring|replace|normalize)/.test(memSrc));
 
 
@@ -1805,7 +1887,7 @@ const idxSrc = mushSrc.slice(mushSrc.lastIndexOf('  return ('));
 ok('the index renders through the shared shell',
   /<EzShell title=\{[^}]*\} onBack=\{leaveScreen\}/.test(idxSrc));
 ok('...with the screen own back handler', /onBack={leaveScreen}/.test(idxSrc));
-ok('the legacy navy header is gone from the index',
+okOn('the legacy navy header is gone from the index', [["mushSrc", mushSrc]],
   !/s\.memHeader|s\.memTitle\b|s\.memContainer/.test(idxSrc));
 ok('the surah list is the bounded catalogue', /className="ezq-cat"/.test(idxSrc));
 ok('...2 cols mobile, 3 at 600, 4 at 1000 -- and never more',
@@ -1822,13 +1904,13 @@ eq('the index maps the surah rows exactly once',
 eq('...and the juz rows exactly once',
   idxSrc.split('juzRows.map(').length - 1, 1);
 ok('...both lists come from the one owner array', /const navRows = nav \|\| MUSHAF_NAV_FALLBACK;/.test(mushSrc));
-ok('...and nothing sorts, filters, slices or reverses it',
+okOn('...and nothing sorts, filters, slices or reverses it', [["mushSrc", mushSrc]],
   !/\.sort\(|\.filter\(|\.slice\(|\.reverse\(/.test(idxSrc));
 // S110 -- THE SEPARATION ITSELF. Everything below fails the moment the juz are put back inside
 // the surah grid, given the surah grid's columns, or allowed to span it.
 ok('the juz live in their OWN grid class, not the catalogue',
   /className="ezm-juzgrid"/.test(idxSrc));
-ok('...and the juz section never carries .ezq-cat',
+okOn('...and the juz section never carries .ezq-cat', [["mushSrc", mushSrc]],
   !/className="ezq-cat ezm-juz|className="ezm-juz(grid)? ezq-cat|className="ezq-cat[^"]*ezm-/.test(idxSrc));
 ok('.ezm-juzgrid is a real, independent grid',
   /\.ezm-juzgrid\{[^}]*display:grid/.test(css));
@@ -1866,7 +1948,7 @@ ok('the juz handler is unchanged',
 ok('the name comes from SURAH_NAMES', idxSrc.indexOf('{SURAH_NAMES[r.n]}') !== -1);
 ok('the revelation label comes from revelationLabel', idxSrc.indexOf('{revelationLabel(r.n)}') !== -1);
 ok('the ayah count comes from the single-pass tally', idxSrc.indexOf('counts[r.n] ? counts[r.n] : 0') !== -1);
-ok('no surah metadata is hardcoded in the index',
+okOn('no surah metadata is hardcoded in the index', [["mushSrc", mushSrc]],
   !/\[\s*'\u0627\u0644\u0641\u0627\u062A\u062D\u0629'/.test(idxSrc));
 // THE READER IS UNTOUCHED.
 ok('the reader still opens through the same door',
@@ -1973,10 +2055,10 @@ ok('no chrome rule draws a pseudo-element over anything',
   !/\.ezmr-[^:]*::(before|after)/.test(css));
 
 /* ---- M2. the legacy reader chrome is gone from the shipped reader ------- */
-ok('the navy slab header is gone from the shipped rail', !/s\.memHeader|headSt/.test(railSrc));
-ok('...and so are its title and its slab button', !/s\.memTitle|s\.memBackBtn/.test(railSrc));
-ok('the full-width white pager is gone from the shipped dock', !/s\.pgBar\b|barSt/.test(dockSrc));
-ok('...and so are its slab nav buttons', !/s\.pgNavBtn|s\.pgNavOff/.test(dockSrc));
+okOn('the navy slab header is gone from the shipped rail', [["railSrc", railSrc]], !/s\.memHeader|headSt/.test(railSrc));
+okOn('...and so are its title and its slab button', [["railSrc", railSrc]], !/s\.memTitle|s\.memBackBtn/.test(railSrc));
+okOn('the full-width white pager is gone from the shipped dock', [["dockSrc", dockSrc]], !/s\.pgBar\b|barSt/.test(dockSrc));
+okOn('...and so are its slab nav buttons', [["dockSrc", dockSrc]], !/s\.pgNavBtn|s\.pgNavOff/.test(dockSrc));
 eq('the reader hands each in-flow bar exactly one style',
   (rdSrc.match(/style=\{headSt\}/g) || []).length + (rdSrc.match(/style=\{barSt\}/g) || []).length, 2);
 ok('the loading render no longer wears the navy slab either',
@@ -1999,9 +2081,9 @@ eq('...nor a top/left/right/bottom that would lift either out of the column',
     .filter((p) => s.memHeaderFb[p] !== undefined || s.pgBarFb[p] !== undefined), []);
 ok('...and are still the column\'s own children', /<div className="ezhome" style=\{headSt\}>/.test(rdSrc)
   && /<div ref=\{barRef\} className="ezhome" style=\{barSt\}>/.test(rdSrc));
-ok('the rollback reader draws NO navy anywhere',
+okOn('the rollback reader draws NO navy anywhere', [["fbDock", fbDock], ["fbRail", fbRail]],
   !/s\.memHeader\b|s\.memTitle\b|s\.memBackBtn\b/.test(fbRail) && !/s\.memHeader\b/.test(fbDock));
-ok('...and no legacy pager presentation either',
+okOn('...and no legacy pager presentation either', [["fbDock", fbDock]],
   !/s\.pgBar\b|s\.pgNavBtn\b|s\.pgNavOff\b|s\.pgMeta\b/.test(fbDock));
 ok('the rollback branch reads the istana objects', /: s\.memHeaderFb;/.test(rdSrc) && /: s\.pgBarFb;/.test(rdSrc));
 ok('...which carry no gradient and no literal colour',
@@ -2160,7 +2242,7 @@ ok('the image keeps fill on a portrait phone', /objectFit: 'fill'/.test(html) &&
 ok('...and contain everywhere else', /MADINA_IMG_ST_FIT = \{ \.\.\.MADINA_IMG_ST, objectFit: 'contain', margin: 'auto' \}/.test(html));
 const imgSt = (html.match(/const MADINA_IMG_ST = \{([^}]*)\}/) || [])[1] || '';
 for (const prop of ['transform', 'filter', 'opacity', 'mixBlendMode', 'border', 'background', 'objectPosition'])
-  ok('the page image declares no ' + prop + ' of its own', imgSt.indexOf(prop) === -1);
+  okOn('the page image declares no ' + prop + ' of its own', [["imgSt", imgSt]], imgSt.indexOf(prop) === -1);
 ok('the page hook is still the positive handle, exactly once',
   (html.match(/data-mushaf-page=\{page\.n\}/g) || []).length === 1);
 ok('...and STILL no CSS rule anywhere targets it', !/\[data-mushaf-page/.test(css));
@@ -2252,10 +2334,10 @@ ok('N1: no ezc selector can match html, body or :root',
   !ezcRules.some((r) => /(^|[,\s])(html|body|:root)[\s,{]/.test(r.split('{')[0])));
 
 /* ---- N2. the legacy navy header is GONE, keys and all ------------------- */
-ok('N2: the chat draws no navy masthead', !/s\.header\b/.test(chatSrc) && !/s\.settingsBtn\b/.test(chatSrc));
+okOn('N2: the chat draws no navy masthead', [["chatSrc", chatSrc]], !/s\.header\b/.test(chatSrc) && !/s\.settingsBtn\b/.test(chatSrc));
 ok('N2: ...and the keys that painted it no longer exist',
   !('header' in s) && !('settingsBtn' in s) && !('headerTitle' in s) && !('avatar' in s));
-ok('N2: no gradient is spread anywhere in the chat body', !/gradient/.test(chatCode));
+okOn('N2: no gradient is spread anywhere in the chat body', [["chatSrc", chatSrc]], !/gradient/.test(chatCode));
 ok('N2: ...nor by any object the chat draws from',
   ['chatContainer', 'messagesArea', 'messageBubble', 'userBubble', 'assistantBubble', 'inputBar',
     'input', 'sendBtn', 'micBtn', 'toolBtn', 'toolBar', 'quickRow', 'quickBtn', 'drawerTop',
@@ -2356,7 +2438,7 @@ ok('N10: the welcome is shown ONLY while there is nothing to read',
 // S118: this compared two offsets inside the chat's return, which stopped meaning anything the
 // moment the menu was defined outside it. It is the same claim, said as containment: the list is
 // in the menu and it is not in the transcript.
-ok('N10: ...and the history is not drawn inside the thread',
+okOn('N10: ...and the history is not drawn inside the thread', [["chatSrc", chatSrc]],
   drawerSrc.indexOf('chatList.map(') !== -1 && chatSrc.indexOf('chatList.map(') === -1,
   'the conversation list must be inside the drawer, never in the transcript');
 ok('N10: the empty state carries no text at all -- item 94 took the name, and no devotional text ever stood here',
@@ -2374,7 +2456,7 @@ ok('N11: ...read and written by the shipped readers and writers',
 ok('N12: a row still pins through the shipped handler',
   drawerSrc.indexOf('onClick={() => pinSavedChat(c.id)}') !== -1
   && html.indexOf('const pinSavedChat = (id) => { ezikToggleChatPin(id); refreshChatList(); };') !== -1);
-ok('N12: ...and pinning is a MARK on the store\'s own order, not a second list',
+okOn('N12: ...and pinning is a MARK on the store\'s own order, not a second list', [["chatSrc", chatSrc]],
   /className=\{'ezc-row' \+ \(c\.id === chatId \? ' is-on' : ''\) \+ \(c\.pinned \? ' is-pinned' : ''\)\}/.test(drawerSrc)
   && (html.match(/chatList\.map\(/g) || []).length === 1
   && !/chatList\.(sort|filter|slice|reverse)\(/.test(chatSrc));
@@ -2451,7 +2533,7 @@ ok('N22: ...through the ONE renderer, called by the chat sheet and nothing new',
   ok('N22: ...and the ayah star is handed DOWN, never read from a store by the card',
     /function VerseCard\(\{ surah, surahNum, ayah, onPlayVerse, onStopAudio, onFavorite, isFavorite \}\)/.test(html)
       && !/function VerseCard[\s\S]{0,3000}?localStorage/.test(html));
-ok('N22: ...so nothing in the chat re-orders, filters or counts the sources',
+okOn('N22: ...so nothing in the chat re-orders, filters or counts the sources', [["mbSrc", mbSrc]],
   !/segments\.(sort|filter|slice|reverse)\(/.test(mbSrc) && !/seg\.type === 'source'/.test(mbSrc));
 
 /* ---- N23..N26. attachment, voice, call, model -------------------------- */
@@ -2488,7 +2570,7 @@ ok('N26: ...and a non-adult still cannot cycle at all',
 // It is checked against LIVE code and never against the whole file. The removed line was first
 // quoted verbatim in a comment beside its own removal, and this check went on passing by
 // matching that comment -- a guard satisfiable by dead text is worse than no guard at all.
-ok('N26: ...and the client no longer asks for the token to select a tier',
+okOn('N26: ...and the client no longer asks for the token to select a tier', [["chatSrc", chatSrc]],
   !/if \(\(next === 'detailed' \|\| next === 'scholar'\) && !hasFounderToken\(\)\)/.test(chatSrc)
   && chatSrc.indexOf('setUnlockAsk(') === -1);
 ok('N26: ...but the depth it sends is still ONLY one of the two named tiers',
@@ -2580,9 +2662,80 @@ ok('N27: ...and the textarea still grows only within its shipped bound',
 ok('N29: the drawer is still a real back layer',
   /useEzikBackLayer\(drawerOpen, \(\) => \{/.test(html)
   && html.indexOf('const closeDrawerWith = (fn) =>') !== -1);
-eq('N29: ...and no control inside it closes behind the resolver\'s back',
+eqOn('N29: ...and no control inside it closes behind the resolver\'s back', [["drawerSrc", drawerSrc]],
   (drawerSrc.match(/setDrawerOpen\(false\)/g) || []).length, 0);
 ok('N29: ...the scrim included', /<div onClick=\{\(\) => closeDrawerWith\(null\)\} className="ezc-drawer-ov" \/>/.test(drawerSrc));
+
+/* ---- N29-ب. ITEM 42-أ: THE REPLY'S ACTION RAIL --------------------------
+ * MEASURED FIRST, THEN WIRED. Of the four permitted actions, three were already connected on the
+ * reply and one was not:
+ *
+ *     copy       CopyReplyButton              -- wired
+ *     favourite  the star, over ezik_favorite_replies_v1 -- wired
+ *     listen     MessageListenButton          -- wired, through the server voice route. NOT
+ *                                                 `speechSynthesis`, which appears NOWHERE in
+ *                                                 index.html. Recorded, not rebuilt.
+ *     share      -- NOT WIRED. It is the one control this item adds.
+ *
+ * A control that is already wired is not rebuilt, so the only new button here is share.
+ */
+const shareAt = html.indexOf('const ShareReplyButton = ({ getText }) =>');
+const shareEnd = shareAt === -1 ? -1 : html.indexOf('\nconst MessageListenButton', shareAt);
+const shareSrc = (shareAt !== -1) ? html.slice(shareAt, shareEnd === -1 ? shareAt + 2000 : shareEnd) : '';
+ok('42-أ: the share button was located', shareSrc.length > 200, 'len=' + shareSrc.length);
+
+okOn('42-أ: the reply rail carries the four permitted actions', [['mbSrc', mbSrc]],
+  /<MessageListenButton /.test(mbSrc)
+  && /<CopyReplyButton /.test(mbSrc)
+  && /<ShareReplyButton /.test(mbSrc)
+  && /onFavorite\(message, index\)/.test(mbSrc),
+  'one of the four permitted reply actions is no longer on the rail');
+
+// THE HARD LIMIT: ZERO MODEL CALL. The three banned actions are banned by name, and the rail is
+// proved to build no request of ANY kind. The brain freeze is not lifted by this item.
+okOn('42-أ: ...and none of them is a summary, a regeneration or a re-ask', [['mbSrc', mbSrc]],
+  !/onSummar|summarise|summarize|onRegenerat|regenerate|reAsk|askAgain|retryAnswer/i.test(mbSrc),
+  'a control that would call the brain appeared on the reply rail');
+okOn('42-أ: the reply rail builds no request at all', [['mbSrc', mbSrc]],
+  !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket/.test(mbSrc),
+  'the reply rail reached for the network');
+okOn('42-أ: ...and the share button itself calls nothing', [['shareSrc', shareSrc]],
+  !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|\/api\//.test(shareSrc),
+  'the share button acquired a request');
+
+// ONE SERIALIZER AND ONE CLIPBOARD. Share hands over exactly what copy hands over, and where the
+// platform sheet does not exist it degrades to the SAME clipboard path -- not to a second one.
+okOn('42-أ: share hands over the same text the copy button does', [['mbSrc', mbSrc]],
+  /<ShareReplyButton getText=\{buildCopyText\} \/>/.test(mbSrc)
+  && /<CopyReplyButton text=\{[^}]*\} getText=\{buildCopyText\} \/>/.test(mbSrc));
+okOn('42-أ: ...and degrades to the clipboard where there is no share sheet', [['shareSrc', shareSrc]],
+  /if \(navigator\.share\)/.test(shareSrc)
+  && /ezikWriteClipboard\(payload\)/.test(shareSrc));
+okOn('42-أ: ...and a share the reader CANCELS is not reported as a failure', [['shareSrc', shareSrc]],
+  /AbortError/.test(shareSrc));
+// The reply's copy and the reply's share are the only two callers, and they call the same one.
+eq('42-أ: the reply rail has exactly one clipboard path, used twice',
+  (html.match(/await ezikWriteClipboard\(payload\)/g) || []).length, 2);
+
+// 44x44 ON ALL FOUR, BY WIDENING THE AREA AND NOT THE SHAPE (44-ج). Every control on this rail
+// is a `.ezc-acts button`, so the floor is the rule already shipped -- which is exactly why the
+// new button needed no geometry of its own. The rule is asserted here so that a future edit
+// cannot narrow it and silently take the floor away from all four at once.
+ok('42-أ: the 44x44 floor still covers every control on the reply rail',
+  /\.ezc-acts button::before/.test(css)
+  && /\.ezc-acts button::before[^}]*min-width: ?44px/.test(css.replace(/\s+/g, ' '))
+  && /\.ezc-acts button::before[^}]*min-height: ?44px/.test(css.replace(/\s+/g, ' ')),
+  'the reply rail lost its 44px hit-area floor');
+ok('42-أ: ...and it is an overlay, so no painted shape was changed',
+  /\.ezc-acts button::before[^}]*width: ?100%/.test(css.replace(/\s+/g, ' '))
+  && /\.ezc-acts button::before[^}]*height: ?100%/.test(css.replace(/\s+/g, ' ')));
+
+// LISTEN IS RECORDED AS IT IS, NOT AS THE BRIEF ASSUMED. The browser speech engine is not in
+// this file; the listen button runs through the app's own voice route. This assertion states
+// the measured fact so that the report and the code cannot drift apart.
+ok('42-أ: speechSynthesis is genuinely absent from the application file',
+  html.indexOf('speechSynthesis') === -1 && html.indexOf('SpeechSynthesisUtterance') === -1,
+  'a browser speech path appeared -- the listen button inventory in the report is now stale');
 
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
 // The fatwa search moves the whole-screen count by one; chat remains one of the thirteen. This
@@ -2597,7 +2750,7 @@ eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
   // S113 note: the call screen has an identity of its own now (.ezcall-, group O). This check is
   // unchanged and still means what it always meant -- the CHAT's vocabulary may not leak into it,
   // so a shared class can never make two screens drift together by accident.
-  ok('N31: ...and the chat identity does not leak into it -- no ezc- class reaches it',
+  okOn('N31: ...and the chat identity does not leak into it -- no ezc- class reaches it', [["callSrc", callSrc]],
     !/ezc-/.test(callSrc) && !/className="theme-dark ezhome ezc"/.test(callSrc));
 }
 {
@@ -2775,7 +2928,7 @@ ok('O1: no ezcall selector can match html, body or :root',
 }
 
 /* ---- O2. the dark room and its white-on-navy captions are GONE ---------- */
-ok('O2: the call screen paints no gradient anywhere', !/gradient/.test(callCode));
+okOn('O2: the call screen paints no gradient anywhere', [["callView", callView]], !/gradient/.test(callCode));
 const CALL_STYLE_KEYS = ['callContainer', 'callAvatarWrap', 'callRing', 'callAvatar', 'callStatusLabel',
   'callSubLabel', 'callHint', 'callErrorBanner', 'callControls', 'callMuteBtn', 'callEndBtn', 'callBtnLabel'];
 eq('O2: ...nor does any object it draws from',
@@ -2820,7 +2973,7 @@ ok('O4: the hint line is DRAWN ONLY WHEN IT HAS SOMETHING TO SAY -- no dead band
   const rest = callCode
     .replace(/const hint = callState === 'listening' && heard \? heard : \(isMuted \? CALL_TXT\.MUTED_HINT : ''\);/, ' ')
     .replace(/function CallScreen\(\{[^}]*\}\)/, ' ');
-  ok('O4: ...and the condition that decides it is the SHIPPED one, so nothing hidden is revealed',
+  okOn('O4: ...and the condition that decides it is the SHIPPED one, so nothing hidden is revealed', [["callView", callView]],
     !/\bheard\b/.test(rest), 'the interim transcript is read somewhere else as well');
 }
 ok('O5: the state title is the REAL state, rendered from callState',
@@ -2892,7 +3045,7 @@ ok('O9: the screen is still entered by setting the screen, and by nothing else',
   ok('O10: ...and their ORDER is untouched: spend, then child voice, then the token, then the screen',
     spendAt < childAt && childAt < tokenAt && tokenAt < renderAt,
     [spendAt, childAt, tokenAt, renderAt].join(' < '));
-  ok('O10: none of them moved INSIDE the component, where it could be drawn around',
+  okOn('O10: none of them moved INSIDE the component, where it could be drawn around', [["callView", callView]],
     !/childVoiceBlocked|hasFounderToken|spendGateOpenState/.test(callView));
   ok('O10: the mic itself is held shut by the same two guards, in the same order',
     /if \(childVoiceBlocked\(\)\) return; \/\/ غ‑٣/.test(callFx)
@@ -3005,10 +3158,10 @@ ok('O14: no transcript store was invented by this batch',
 /* ---- O16..O18. back, and the two things not to invent ------------------ */
 ok('O16: back is the screen\'s own exit, and it resolves through the registry',
   /onExit=\{goEzikBack\} \/>;/.test(html) && /if \(cur === 'call'\) return 'chat';/.test(html));
-ok('O16: ...and the component itself navigates nowhere -- it only calls onExit',
+okOn('O16: ...and the component itself navigates nowhere -- it only calls onExit', [["callView", callView]],
   !/setScreen\(/.test(callCode) && !/goEzikBack/.test(callCode) && !/history\.(back|go)\(/.test(callCode));
-ok('O17: no retry control was invented', !/retry|إعادة المحاولة/i.test(callCode));
-ok('O17: ...and no cancel control either',
+okOn('O17: no retry control was invented', [["callView", callView]], !/retry|إعادة المحاولة/i.test(callCode));
+okOn('O17: ...and no cancel control either', [["callView", callView]],
   !/إلغاء/.test(callCode));
 ok('O18: reduced motion is still decided in JS, from the platform query',
   /const reduceMotion = \(typeof window !== 'undefined' && window\.matchMedia\)\s*\r?\n\s*\? window\.matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches : false;/.test(callView)
@@ -3046,7 +3199,7 @@ ok('O18: ...and no ezcall selector was smuggled into the reduced-motion block',
 }
 ok('O20: the call entry inside the chat is untouched',
   /\{directConvoAllowed && \(\s*\r?\n\s*<button\s*\r?\n\s*onClick=\{\(\) => setScreen\('call'\)\}\s*\r?\n\s*disabled=\{isLoading \|\| isListening\}/.test(html));
-ok('O20: ...and the chat still owns its own identity, not this one',
+okOn('O20: ...and the chat still owns its own identity, not this one', [["chatSrc", chatSrc]],
   html.indexOf('<div className="theme-dark ezhome ezc" style={s.chatContainer}>') !== -1
   && !/ezcall/.test(chatSrc));
 
@@ -3099,7 +3252,7 @@ ok('P1: no ezfav selector can match html, body or :root',
 }
 
 /* ---- P2. the legacy strip header is gone from HERE, and only from here -- */
-ok('P2: the screen no longer borrows the parent dashboard\'s strip header',
+okOn('P2: the screen no longer borrows the parent dashboard\'s strip header', [["favView", favView]],
   !/s\.dashboardHeader/.test(favView) && !/s\.dashboardTitle/.test(favView) && !/s\.backBtn/.test(favView));
 // S115: the parents' panel was the OTHER screen that drew that strip, and it has its own bounded
 // rail now. So the three keys are gone from the file entirely, and this check flipped from "they
@@ -3107,7 +3260,7 @@ ok('P2: the screen no longer borrows the parent dashboard\'s strip header',
 ok('P2: ...and the strip they drew is gone from the whole file, its last tenant with it',
   !('dashboardHeader' in s) && !('dashboardTitle' in s) && !('backBtn' in s)
   && !/s\.dashboardHeader|s\.dashboardTitle|s\.backBtn/.test(html));
-ok('P2: no gradient is spread anywhere on this screen', !/gradient/.test(favCode));
+okOn('P2: no gradient is spread anywhere on this screen', [["favView", favView]], !/gradient/.test(favCode));
 const FAV_STYLE_KEYS = ['favScreen', 'favBody', 'favCard', 'favMeta', 'favText', 'favRow', 'favBtn', 'favBtnOff'];
 eq('P2: ...nor by any object it draws from',
   FAV_STYLE_KEYS.filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))), []);
@@ -3161,7 +3314,7 @@ ok('P5: no ezfav rule declares a viewport-wide box or a sideways scroll',
     && !ezfavRules.some((r) => /[;{]\s*content\s*:/.test(r)));
   const litRules = ezfavRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r));
   eq('P7: ...and the screen states no colour of its own at all, in CSS', litRules, []);
-  eq('P7: ...nor in its markup', (favCode.match(/(#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\))/g) || []), []);
+  eqOn('P7: ...nor in its markup', [["favView", favView]], (favCode.match(/(#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\))/g) || []), []);
   eq('P7: every style key it draws from still exists', FAV_STYLE_KEYS.filter((k) => !s[k]), []);
   const litKeys = [];
   for (const k of FAV_STYLE_KEYS) for (const p of Object.keys(s[k] || {})) {
@@ -3190,7 +3343,7 @@ ok('P8: the record shape is unchanged -- id, pk, chatId, idx, at, snippet, text'
   /return \{ id: ezikFavId\(pk, chatId, idx, t\), pk: pk \|\| null, chatId: chatId \|\| null, idx: idx, at: Date\.now\(\), snippet: ezikFavSnippet\(t\), text: t \};/.test(html));
 ok('P8: ...and the identity is still the POSITION, not the text',
   /function ezikFavId\(pk, chatId, idx, text\) \{\s*\r?\n\s*return String\(pk \|\| ''\) \+ '\|' \+ String\(chatId \|\| '-'\) \+ '\|' \+ String\(idx\) \+ '\|' \+ ezikHashText\(text\);/.test(html));
-ok('P8: the screen itself touches no store at all',
+okOn('P8: the screen itself touches no store at all', [["favView", favView]],
   favCode.indexOf('localStorage') === -1 && favCode.indexOf('ezikReadFavs') === -1
   && favCode.indexOf('ezikWriteFavs') === -1 && favCode.indexOf('EZIK_FAVS_KEY') === -1
   && favCode.indexOf('JSON.parse') === -1);
@@ -3250,7 +3403,7 @@ ok('P9: ...and the kind is a FILTER over that order, never a re-sort of it',
   !/kindFavs[\s\S]{0,80}?\.(sort|reverse)\(/.test(html)
   && /favResults\.filter\(\(f\) => favKind === 'all' \|\| ezikKindOf\(f\) === favKind\)/.test(html));
 eq('P9: the screen maps the records exactly once', (favCode.match(/items\.map\(/g) || []).length, 1);
-ok('P9: ...and re-orders, filters, slices or reverses nothing',
+okOn('P9: ...and re-orders, filters, slices or reverses nothing', [["favView", favView]],
   !/items\.(sort|filter|slice|reverse|concat)\(/.test(favCode)
   && !/\.sort\(|\.reverse\(/.test(favCode));
 ok('P9: ...and every card is keyed by the record\'s OWN id',
@@ -3271,7 +3424,7 @@ ok('P10: ...and the fold is the shipped one, so nothing is truncated permanently
 ok('P10: no rule on this screen clamps, truncates or ellipsises a saved reply',
   !/\.ezfav-(read|card|cat)[^{]*\{[^}]*(text-overflow|line-clamp|max-height)/.test(css)
   && !/textOverflow|WebkitLineClamp|maxHeight/.test(JSON.stringify([s.favCard, s.favText, s.favBody])));
-ok('P10: ...and the text handed to the renderer is the record\'s own, unaltered',
+okOn('P10: ...and the text handed to the renderer is the record\'s own, unaltered', [["favView", favView]],
   !/f\.text\.(slice|substr|substring|replace)\(/.test(favCode));
 
 /* ---- P11. the actions, all three of them -------------------------------- */
@@ -3310,14 +3463,14 @@ ok('P12: a search that matches nothing says so, separately from an empty store',
 // Every string this screen draws comes from a named constant or from the record itself. A quoted
 // Arabic literal in the markup would be a sentence somebody wrote here, which is the thing the
 // review forbade -- and no seeded record may have come along with the redesign either.
-ok('P12: no invented text and no seeded record reached the screen',
+okOn('P12: no invented text and no seeded record reached the screen', [["favView", favView]],
   !/lorem|sample|demo|dummy/i.test(favCode)
   && !/['"][؀-ۿ]/.test(favCode)
   && !/\{\s*id:\s*['"]/.test(favCode));
 ok('P13: the screen is still a SHEET, so its back returns to whatever opened it',
   /const EZIK_SHEET_SCREENS = \['parentGate', 'parentDashboard', 'settings', 'favorites'\];/.test(html)
   && /if \(screen === 'favorites'\) return <FavoritesScreen [^>]*onBack=\{goEzikBack\}/.test(html));
-ok('P13: ...and the component navigates nowhere itself',
+okOn('P13: ...and the component navigates nowhere itself', [["favView", favView]],
   !/setScreen\(/.test(favCode) && !/goEzikBack/.test(favCode) && !/history\.(back|go)\(/.test(favCode));
 {
   // إزالة من المفضلة / افتح المحادثة الأصلية /
@@ -3333,11 +3486,11 @@ ok('P13: ...and the component navigates nowhere itself',
 }
 
 /* ---- P15..P17. the blast radius --------------------------------------- */
-ok('P15: the conversation store is untouched by this screen',
+okOn('P15: the conversation store is untouched by this screen', [["favView", favView]],
   favCode.indexOf('EZIK_CHATS_KEY') === -1 && favCode.indexOf('EZIK_CHAT_PREFIX') === -1
   && favCode.indexOf('ezikSaveChat') === -1 && favCode.indexOf('ezikDeleteChat') === -1);
-ok('P15: ...and so is every endpoint', !/fetch\(|\/api\//.test(favCode));
-ok('P16: the chat and the call keep their own identities, not this one',
+okOn('P15: ...and so is every endpoint', [["favView", favView]], !/fetch\(|\/api\//.test(favCode));
+okOn('P16: the chat and the call keep their own identities, not this one', [["callView", callView], ["chatSrc", chatSrc]],
   !/ezfav/.test(chatSrc) && !/ezfav/.test(callView)
   && html.indexOf('<div className="theme-dark ezhome ezc" style={s.chatContainer}>') !== -1
   && html.indexOf('<div className="theme-dark ezhome ezcall" style={s.callContainer}>') !== -1);
@@ -3403,9 +3556,9 @@ for (const v of ['ezload', 'ezonb', 'ezgate', 'ezparent']) {
 /* ---- Q2. no legacy chrome and no literal colour is left on any of them ---- */
 {
   const all = [onbSrc, pgSrc, sgSrc, cvSrc, usSrc, pdSrc].map(qstrip).join('\n');
-  eq('Q2: none of the seven states a colour of its own',
+  eqOn('Q2: none of the seven states a colour of its own', [["cvSrc", cvSrc], ["onbSrc", onbSrc], ["pdSrc", pdSrc], ["pgSrc", pgSrc], ["sgSrc", sgSrc], ["usSrc", usSrc]],
     (all.match(/(#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\))/g) || []), []);
-  ok('Q2: ...and none of them paints a gradient', !/gradient/.test(all));
+  okOn('Q2: ...and none of them paints a gradient', [["cvSrc", cvSrc], ["onbSrc", onbSrc], ["pdSrc", pdSrc], ["pgSrc", pgSrc], ["sgSrc", sgSrc], ["usSrc", usSrc]], !/gradient/.test(all));
   const KEYS = ['loadingScreen', 'loadingSpinner', 'onboardingContainer', 'onboardingCard', 'bigEmoji',
     'onboardingTitle', 'onboardingSubtitle', 'onboardingInput', 'primaryBtn', 'secondaryBtn',
     'welcomeContainer', 'welcomeInner', 'welcomeCard', 'welcomeLogoSquare', 'welcomeTitle',
@@ -3452,7 +3605,7 @@ ok('Q4: the routing that follows it is untouched',
   html.indexOf("if (screen === 'onboarding') return <Onboarding onStart={startChat} />;") !== -1
   && /const startChat = async \(name, age, gender\) => \{/.test(html)
   && /localStorage\.setItem\('child_profile', JSON\.stringify\(p\)\);/.test(html));
-ok('Q4: ...and the welcome writes nothing itself',
+okOn('Q4: ...and the welcome writes nothing itself', [["onbSrc", onbSrc]],
   !/localStorage|fetch\(/.test(qstrip(onbSrc)));
 
 /* ---- Q5. the PIN gate: verification, creation, errors, lock -------------- */
@@ -3464,7 +3617,7 @@ ok('Q4: ...and the welcome writes nothing itself',
 // that actually matters. The behaviour under test (four digits, matching confirmation, the
 // adult challenge, the shipped wording) is asserted unchanged, because none of it moved.
 // The mechanism itself is driven end to end by gate `lockpackage`; this stays a source pin.
-ok('Q5: the browser holds NO verifier for the parent code any more',
+okOn('Q5: the browser holds NO verifier for the parent code any more', [["pgSrc", pgSrc]],
   !/hashPin/.test(pgSrc) && !/=== stored/.test(pgSrc),
   'a client-side compare means the secret and the judge are both in the reader’s hands');
 ok('Q5: ...it asks the server instead, for all three questions',
@@ -3500,7 +3653,7 @@ ok('Q5: the old key is read as a migration seed and never written again',
     spendAt !== -1 && childAt !== -1 && tokenAt !== -1 && callAt2 !== -1);
   ok('Q6: ...in the shipped ORDER: spend, child voice, token, screen',
     spendAt < childAt && childAt < tokenAt && tokenAt < callAt2);
-  ok('Q6: no barrier grew a way past itself',
+  okOn('Q6: no barrier grew a way past itself', [["cvSrc", cvSrc], ["sgSrc", sgSrc], ["usSrc", usSrc]],
     !/onSkip|bypass|skipGate/i.test(sgSrc + cvSrc + usSrc));
   ok('Q6: the spend gate still compares a hash and never stores the code',
     /if \(\(await hashPin\(code\)\) === SPEND_GATE_SHA256\) \{ onUnlock\(\); return; \}/.test(sgSrc)
@@ -3520,7 +3673,7 @@ ok('Q5: the old key is read as a migration seed and never written again',
 }
 
 /* ---- Q7. the parents' panel shows what it always showed ------------------ */
-ok('Q7: the panel still reads the SAVED history, handed down, and opens no store itself',
+okOn('Q7: the panel still reads the SAVED history, handed down, and opens no store itself', [["pdSrc", pdSrc]],
   /<ParentDashboard profile=\{profile\} messages=\{ezikProfileTranscript\(ezikProfileKey\(profileRef\.current\)\)\}/.test(html)
   && !/localStorage|fetch\(/.test(qstrip(pdSrc)));
 ok('Q7: ...and every row it shipped with is still drawn',
@@ -3720,9 +3873,131 @@ ok('T4: the pinPassRef breaker is still armed, still bounded at 8, and still ahe
   'the breaker moved, changed bound, or stopped preceding the write');
 // The four places the counter lives, counted in the whole file so a silent deletion elsewhere
 // cannot leave the effect looking healthy on its own.
-eq('T5: pinPassRef still appears at exactly its four code positions',
-  (pinSrc.match(/pinPassRef\.current|const pinPassRef/g) || []).length, 5);
+eq('T5: pinPassRef still appears at exactly its five code positions',
+  (pinSrc.match(/pinPassRef\.current|const pinPassRef/g) || []).length, 6);
 
+// ITEM 102-ب. THE COUNT IS CLEARED BY REAL CONTENT CHANGE, so the breaker can only ever count
+// CONSECUTIVE writes that changed nothing -- which is the only thing it was ever meant to stop.
+// MEASURED before the clearing existed: `pinPassRef` stood at 9 by 504 visible characters of a
+// 6,697-character answer (a write per ~72 streamed characters), so the fence was being spent in
+// the middle of ordinary answers and the pin it protects was disarmed mid-stream.
+//
+// Read BY NAME and never by line number: every commit moves the lines under this file.
+ok('T6: the pin pass count is cleared whenever the streamed length changed since the last pass',
+  /const streamLen = streamingText == null \? -1 : streamingText\.length;/.test(pinCode)
+  && /if \(streamLen !== pinLenRef\.current\) \{\s+pinLenRef\.current = streamLen;\s+pinPassRef\.current = 0;\s+\}/.test(pinCode),
+  'the clearing is gone -- the breaker is charged again for every write a growing answer asks for');
+
+// AND IT MUST SIT ABOVE THE BREAKER. A clearing that ran AFTER the bump would zero the very pass
+// it was meant to judge; one that ran after the bound would never be reached once the breaker
+// had fired. Ordering is the whole contract, so it is asserted as an ordering.
+const clearAt = pinCode.indexOf('pinLenRef.current = streamLen;');
+ok('T7: ...and the clearing happens BEFORE the breaker is charged and before it is tested',
+  clearAt !== -1 && bumpAt !== -1 && boundAt !== -1
+  && clearAt < bumpAt && bumpAt < boundAt,
+  'the clearing moved below the breaker, where it can no longer stop it being spent on real work');
+
+// The reading itself lives at exactly five places: declared once, compared and rewritten inside
+// the pass, and returned to -1 at BOTH the point that disarms the pin and the point that re-arms
+// it. A turn can therefore never inherit the previous turn's reading and start already counted.
+eq('T8: pinLenRef appears at exactly its five code positions',
+  (pinSrc.match(/pinLenRef\.current|const pinLenRef/g) || []).length, 5);
+
+
+/* ---- X. ITEM 103: THE DIAGNOSTIC CATCHER IS PINNED, AND CONNECTED --------
+ * The item as written was «remove the catcher once we are reassured». Removing it would have
+ * been wrong, and this section is the reason it is pinned instead.
+ *
+ * The catcher is the FIRST script after <body>, and that position is the whole of its value: it
+ * is the only thing in the page that can witness a failure BEFORE React exists -- a CDN that
+ * 404s, an SRI mismatch, a Babel transform that throws on the inline block, a syntax error in
+ * the app itself. The React error boundary cannot see any of those, because at that moment
+ * there is no React to catch with. Move the catcher below the React tags and the whole class of
+ * failure it exists for stops being recorded, silently, with nothing going red anywhere --
+ * which is exactly what these checks now prevent.
+ *
+ * NOTHING IN THIS TREE ASSERTED ANY OF IT BEFORE. The repository was swept for a check pinning
+ * the catcher or its position -- every .cjs, gates.json, every guard file -- and there was none,
+ * in this file or any other. This barrier is therefore new rather than moved, and no assertion
+ * had to be held out of scope.
+ */
+console.log('\n=== V. THE PRE-BOOT DIAGNOSTIC CATCHER (item 103) ===');
+const bodyAt = html.indexOf('<body>');
+const catcherAt = html.indexOf('<script id="ezik-diagnostic-catcher">');
+const reactAt = html.indexOf('react.production.min.js');
+const rootDivAt = html.indexOf('<div id="root">');
+ok('X1: the diagnostic catcher is still in the page', catcherAt !== -1);
+// FIRST, and proved as FIRST rather than merely as PRESENT: every other <script> must come
+// either before <body> (the head boot scripts) or after the catcher. Counted, so that a script
+// inserted between <body> and the catcher fails here even when it is harmless in itself.
+const scriptsBetween = (bodyAt !== -1 && catcherAt !== -1)
+  ? (html.slice(bodyAt, catcherAt).match(/<script\b/gi) || []).length : -1;
+eq('X2: no script at all stands between <body> and the catcher', scriptsBetween, 0);
+ok('X3: ...and the catcher runs BEFORE React, its DOM root and the Babel transform',
+  catcherAt !== -1 && reactAt !== -1 && rootDivAt !== -1
+  && catcherAt < reactAt && catcherAt < rootDivAt,
+  'the catcher was moved below the boot it exists to witness');
+// A deferred or async catcher is a catcher that is not there when the failure happens.
+const catcherTag = catcherAt === -1 ? '' : html.slice(catcherAt, html.indexOf('>', catcherAt) + 1);
+okOn('X4: the catcher is not deferred, async, or a module', [['catcherTag', catcherTag]],
+  !/\bdefer\b/.test(catcherTag) && !/\basync\b/.test(catcherTag) && !/type\s*=\s*["']module/.test(catcherTag),
+  'a deferred catcher cannot witness what happens before it runs');
+
+/* ---- X5..X7. what it catches is KEPT, in memory and nowhere else -------- */
+const catcherEnd = catcherAt === -1 ? -1 : html.indexOf('</script>', catcherAt);
+const catcherSrc = (catcherAt !== -1 && catcherEnd > catcherAt) ? html.slice(catcherAt, catcherEnd) : '';
+// Every check below reads the CODE, never the prose. The catcher explains in its own comments
+// that it uses no localStorage and no request -- and a check that read those comments would
+// fail on the very sentence that promises the thing it is checking.
+const catcherCode = catcherSrc.replace(/\/\/[^\n]*/g, ' ');
+ok('X5: the catcher body was located', catcherSrc.length > 2000, 'len=' + catcherSrc.length);
+okOn('X5: ...and it publishes a bounded store the rest of the page can read', [['catcherSrc', catcherSrc]],
+  /window\.__ezikDiag = \{/.test(catcherCode)
+  && /max: MAX_ENTRIES/.test(catcherCode)
+  && /count: function/.test(catcherCode)
+  && /text: function/.test(catcherCode),
+  'the pre-boot store is no longer published -- the boundary can reach nothing');
+okOn('X6: the store is BOUNDED, and by the same constant the recorder obeys', [['catcherSrc', catcherSrc]],
+  /var MAX_ENTRIES = \d+;/.test(catcherCode)
+  && /if \(entries\.length >= MAX_ENTRIES\) return;/.test(catcherCode),
+  'the store lost its bound, or the bound and the recorder disagree');
+// IN MEMORY AND NOWHERE ELSE. A diagnostic that wrote to disk would outlive the fault it
+// describes, and one that phoned home would be a request made by the very code path that exists
+// because requests fail.
+okOn('X7: the catcher persists nothing and sends nothing', [['catcherCode', catcherCode]],
+  !/localStorage|sessionStorage|indexedDB|document\.cookie/.test(catcherCode)
+  && !/fetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket/.test(catcherCode),
+  'the pre-boot catcher grew a store or a wire');
+
+/* ---- X8..X10. and the boundary now carries it out ----------------------- */
+const ebAt = html.indexOf('function ErrorBoundary(props)');
+const ebEnd = html.indexOf('const root = ReactDOM.createRoot', ebAt);
+const ebSrc = (ebAt !== -1 && ebEnd > ebAt) ? html.slice(ebAt, ebEnd) : '';
+ok('X8: the error boundary was located', ebSrc.length > 1000, 'len=' + ebSrc.length);
+okOn('X8: «copy the details» reads the pre-boot store, not the React error alone', [['ebSrc', ebSrc]],
+  /ErrorBoundary\.prototype\.preBootDetails = function/.test(ebSrc)
+  && /window\.__ezikDiag/.test(ebSrc)
+  && /\+ this\.preBootDetails\(\)/.test(ebSrc),
+  'the boundary is back to copying only what it caught itself');
+okOn('X9: ...and a page where the catcher never ran copies exactly as it did before', [['ebSrc', ebSrc]],
+  /if \(!diag \|\| typeof diag\.text !== 'function'\) return '';/.test(ebSrc)
+  && /catch \(ignored\) \{[\s\S]{0,40}return '';/.test(ebSrc),
+  'the pre-boot reader can now throw inside the copy handler');
+
+// THE PANEL ITSELF IS UNTOUCHED. Its three Arabic strings are pinned BY CODEPOINT, read out of
+// the render function's own escaped literals and compared as ASCII digits -- no Arabic is typed
+// here, so nothing in this check can reorder under bidi and then lie about what it names.
+const ebRenderAt = html.indexOf('ErrorBoundary.prototype.render = function ()');
+const ebRender = (ebRenderAt !== -1 && ebEnd > ebRenderAt) ? html.slice(ebRenderAt, ebEnd) : '';
+const ebArabic = (ebRender.match(/'(?:\\u[0-9a-f]{4})+'/gi) || []);
+eq('X10: the panel still carries exactly its three Arabic strings', ebArabic.length, 3);
+eq('X10: ...and not one codepoint of any of them moved',
+  ebArabic.map((s) => (s.match(/[0-9a-f]{4}/gi) || []).join(',')).join(' / '),
+  '062a,0639,0630,0651,0631,0020,0639,0631,0636,0020,0627,0644,0645,062d,0627,062f,062b,0629'
+  + ' / 0623,0639,062f,0020,0627,0644,0645,062d,0627,0648,0644,0629'
+  + ' / 0627,0646,0633,062e,0020,0627,0644,062a,0641,0627,0635,064a,0644');
+okOn('X10: ...and both buttons are still there, on their own handlers', [['ebSrc', ebSrc]],
+  /onClick: this\.retry/.test(ebSrc) && /onClick: this\.copyDetails/.test(ebSrc));
 
 /* ---- U. ITEM 44-أ: THE TEXT SCALE, AND THE READER THAT IS OUTSIDE IT ---- */
 // THESE CHECKS RUN THE SCALE PASS FOR REAL, so they must be LAST: `ezikEnsureScalableStyles`

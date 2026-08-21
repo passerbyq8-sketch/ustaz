@@ -1414,6 +1414,32 @@
 (function () {
   try {
     var entries = [];
+    // ── ITEM 103: THE CATCHER STAYS, AND WHAT IT CATCHES IS NOW KEPT ────────────────────────
+    // THE ITEM WAS ORIGINALLY «REMOVE THE CATCHER ONCE WE ARE REASSURED», AND REMOVING IT WOULD
+    // HAVE BEEN WRONG. This script is the first thing after <body>: it is the ONLY thing in the
+    // page that can witness a failure BEFORE React exists -- a CDN that 404s, an SRI mismatch, a
+    // Babel transform that throws on the inline block, a syntax error in the app itself. The
+    // React error boundary cannot see any of that, because at that moment there is no React to
+    // catch with. So the catcher is pinned here instead of removed, and what it collects is kept
+    // where the boundary can reach it.
+    //
+    // A SMALL BOUNDED STORE IN MEMORY, AND NOTHING ELSE. No localStorage, no request, no beacon:
+    // a diagnostic that wrote itself to disk would outlive the fault it describes, and one that
+    // phoned home would be a network call made by the very code path that exists because the
+    // network may be broken. The bound is MAX_ENTRIES and it drops the NEWEST once full, which
+    // is deliberate: in a boot failure the first error is the cause and everything after it is
+    // an echo, so a full store keeps the root cause rather than the latest symptom.
+    var MAX_ENTRIES = 20;
+    try {
+      window.__ezikDiag = {
+        max: MAX_ENTRIES,
+        count: function () { try { return entries.length; } catch (ignored) { return 0; } },
+        list: function () { try { return entries.slice(0); } catch (ignored) { return []; } },
+        text: function () {
+          try { return entries.join('\n\n--------------------\n\n'); } catch (ignored) { return ''; }
+        }
+      };
+    } catch (ignored) {}
     var panel = null;
     var output = null;
 
@@ -1566,7 +1592,7 @@
 
     function report(event, rejection) {
       try {
-        if (entries.length >= 20) return;
+        if (entries.length >= MAX_ENTRIES) return;
         entries.push(formatEntry(event, rejection));
         if (!panel) buildPanel();
         if (output) output.textContent = entries.join('\n\n--------------------\n\n');
@@ -1772,6 +1798,10 @@ function ezLangRelabel() {
     EZIK_FAV_SEARCH_ARIA = ezT("favorites.searchAria");
     EZIK_CHATS_EMPTY = ezT("chat.noConversations");
     EZIK_QUOTE_ARIA = ezT("chat.quoteAria");
+    EZIK_SHARE_LABEL = ezT("chat.share");
+    EZIK_SHARE_ARIA = ezT("chat.shareAria");
+    EZIK_SHARE_COPIED = ezT("common.copied");
+    EZIK_SHARE_FAIL = ezT("common.copyFailed");
     for (let i = 0; i < EZIK_QUICK_ACTIONS.length; i++) {
       EZIK_QUICK_ACTIONS[i] = { ...EZIK_QUICK_ACTIONS[i], label: ezT('chat.qa.' + EZIK_QUICK_ACTIONS[i].key) };
     }
@@ -1823,6 +1853,8 @@ const EZ_I18N = {
     'common.copy': 'نسخ',
     'common.copied': 'تم النسخ',
     'common.copyFailed': 'تعذّر النسخ',
+    'chat.share': 'مشاركة',
+    'chat.shareAria': 'مشاركة الرد',
     'common.of': '{a} من {b}',
     'navigation.home': '\u{0627}\u{0644}\u{0631}\u{0626}\u{064A}\u{0633}\u{064A}\u{0629}',
     'navigation.settings': '\u{0627}\u{0644}\u{0625}\u{0639}\u{062F}\u{0627}\u{062F}\u{0627}\u{062A}',
@@ -2029,6 +2061,8 @@ const EZ_I18N = {
     'common.copy': 'Copy',
     'common.copied': 'Copied',
     'common.copyFailed': 'Could not copy',
+    'chat.share': 'Share',
+    'chat.shareAria': 'Share this reply',
     'common.of': '{a} of {b}',
     'navigation.home': 'Home',
     'navigation.settings': 'Settings',
@@ -3736,43 +3770,93 @@ const miniBtnStyle = { display: 'inline-flex', alignItems: 'center', gap: 5, bac
 //     not try the legacy path, so the button did nothing at all and said nothing at all. And on
 //     the legacy path it ignored execCommand's return value, so a REFUSED copy still flashed
 //     "copied" -- indistinguishable, to the owner, from a broken serializer.
+// ── ITEM 42-أ: THE ONE CLIPBOARD PATH, LIFTED OUT SO A SECOND ONE IS NEVER WRITTEN ─────────
+// This is the body that was inside CopyReplyButton, moved out unchanged and given a name. It is
+// lifted because the share button needs the SAME fallback: where `navigator.share` does not
+// exist -- every desktop browser, and a WebView without the permission -- sharing degrades to
+// copying, and it must degrade to THIS copy, with its legacy path and its honest return value,
+// rather than to a second implementation that would drift from it.
+//
+// It returns whether the write ACTUALLY happened. navigator.clipboard.writeText rejects in an
+// Android WebView, on an insecure origin, and without a user gesture; the legacy path is not a
+// relic but the only path that works where the Clipboard API is present and refuses. A refused
+// copy must never be reported as a copy.
+const ezikLegacyCopy = (payload) => {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = payload;
+    ta.setAttribute('readonly', '');               // keeps the mobile keyboard shut
+    ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0';
+    ta.style.width = '1px'; ta.style.height = '1px'; ta.style.padding = '0';
+    ta.style.border = 'none'; ta.style.outline = 'none'; ta.style.boxShadow = 'none';
+    ta.style.background = 'transparent'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { ta.setSelectionRange(0, String(payload).length); } catch (e) {}   // iOS needs the range
+    const done = document.execCommand('copy') === true;
+    document.body.removeChild(ta);
+    return done;
+  } catch (e) { return false; }
+};
+const ezikWriteClipboard = async (payload) => {
+  if (!payload) return false;
+  let wrote = false;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(payload);
+      wrote = true;
+    }
+  } catch (e) { wrote = false; }                   // a refusal is not the end -- fall through
+  if (!wrote) wrote = ezikLegacyCopy(payload);
+  return wrote;
+};
 const CopyReplyButton = ({ text, getText }) => {
   const [flash, setFlash] = useState('');            // '' | 'ok' | 'fail'
   if (!text) return null;
-  // The legacy path is not a relic: it is the ONLY path that works where the Clipboard API is
-  // present but refuses. Returns true only when the document actually reports the copy done.
-  const legacyCopy = (payload) => {
-    try {
-      const ta = document.createElement('textarea');
-      ta.value = payload;
-      ta.setAttribute('readonly', '');               // keeps the mobile keyboard shut
-      ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0';
-      ta.style.width = '1px'; ta.style.height = '1px'; ta.style.padding = '0';
-      ta.style.border = 'none'; ta.style.outline = 'none'; ta.style.boxShadow = 'none';
-      ta.style.background = 'transparent'; ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.focus(); ta.select();
-      try { ta.setSelectionRange(0, String(payload).length); } catch (e) {}   // iOS needs the range
-      const done = document.execCommand('copy') === true;
-      document.body.removeChild(ta);
-      return done;
-    } catch (e) { return false; }
-  };
   const doCopy = async () => {
     const payload = (typeof getText === 'function') ? getText() : text;
     if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
-    let wrote = false;
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(payload);
-        wrote = true;
-      }
-    } catch (e) { wrote = false; }                   // a refusal is not the end -- fall through
-    if (!wrote) wrote = legacyCopy(payload);
+    const wrote = await ezikWriteClipboard(payload);
     setFlash(wrote ? 'ok' : 'fail');                 // never claim a write that did not happen
     setTimeout(() => setFlash(''), 1500);
   };
-  return <button type="button" onClick={doCopy} aria-label={'\u0646\u0633\u062E'} style={miniBtnStyle}>{flash === 'ok' ? '\u062A\u0645 \u0627\u0644\u0646\u0633\u062E' : flash === 'fail' ? '\u062A\u0639\u0630\u0651\u0631\u064E \u0627\u0644\u0646\u0633\u062E' : '\u0646\u0633\u062E'}</button>;
+  return <button type="button" onClick={doCopy} aria-label={'نسخ'} style={miniBtnStyle}>{flash === 'ok' ? 'تم النسخ' : flash === 'fail' ? 'تعذّرَ النسخ' : 'نسخ'}</button>;
+};
+// ── ITEM 42-أ: SHARE. THE ONLY BUTTON THIS ITEM ADDS, AND IT CALLS NOTHING ─────────────────
+// It moves text that is ALREADY ON THE SCREEN. There is no request in it of any kind: no
+// summary, no regeneration, no model, no endpoint. The brain freeze is not lifted by this item
+// and nothing here needs it lifted.
+//
+// It hands over the SAME payload the clipboard gets -- `getText` is `buildCopyText`, the one
+// serializer the copy button already uses, with the cards serialized and no raw tag in it -- so
+// a shared reply carries exactly what a copied one does and no second serializer can drift.
+//
+// AND IT FALLS BACK TO COPYING. `navigator.share` does not exist on desktop browsers and is
+// refused in some WebViews. A button that vanished there would be a button the reader cannot
+// learn, so the control is always present and the fallback is the file's ONE clipboard path.
+// A share the reader CANCELS is not a failure: AbortError leaves the label alone.
+const ShareReplyButton = ({ getText }) => {
+  const [flash, setFlash] = useState('');            // '' | 'copied' | 'fail'
+  const say = (v) => { setFlash(v); setTimeout(() => setFlash(''), 1500); };
+  const doShare = async () => {
+    const payload = (typeof getText === 'function') ? getText() : '';
+    if (!payload) { say('fail'); return; }
+    try {
+      if (navigator.share) {
+        await navigator.share({ text: payload });
+        return;                                      // the platform sheet is its own feedback
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;      // the reader changed their mind
+      // anything else -- refused, unsupported scheme -- falls through to the clipboard
+    }
+    say(await ezikWriteClipboard(payload) ? 'copied' : 'fail');
+  };
+  return (
+    <button type="button" onClick={doShare} aria-label={EZIK_SHARE_ARIA} className="ezik-focus" style={miniBtnStyle}>
+      {flash === 'copied' ? EZIK_SHARE_COPIED : flash === 'fail' ? EZIK_SHARE_FAIL : EZIK_SHARE_LABEL}
+    </button>
+  );
 };// The Web Speech engine ends a session on every pause and the next one starts a fresh
 // transcript. Concatenating the two halves raw welded the last word of one onto the first
 // word of the next. Every seam goes through this joiner instead.
@@ -5403,6 +5487,27 @@ const ADHKAR_FAVORITES_KEY = 'adhkar_favorites_v1';
 const ADHKAR_USAGE_KEY = 'adhkar_usage_v1';
 const ADHKAR_DAILY_GOAL = 8;
 
+// ── ITEM 43-أ: THE ADHKAR CHAIN, AND THE NUMBER THE READER CHOSE ────────────────────────────
+// ONE new key, carrying its own version, holding three fields and nothing else:
+//
+//     ezik_adhkar_streak_v1 = { goal, last, run }
+//
+// `goal` is the reader's own daily number. `last` is the LOCAL day the goal was last met, and
+// `run` is how many consecutive local days ended on it. Today's completions are NOT stored here
+// -- they are already in adhkar_daily_progress_v1 and are counted off the real store, so there
+// is exactly one place a completion is recorded and this key can never disagree with it.
+//
+// DEVICE-LOCAL AND NOTHING ELSE. No request, no beacon, no model call, no notification: a
+// scheduled reminder needs the native shell and is not in this build, so nothing here promises
+// one and nothing in the interface hints at one.
+const ADHKAR_STREAK_KEY = 'ezik_adhkar_streak_v1';
+// A day's dhikr, not a mountain: one is a real day and twenty is already more than the whole of
+// the morning and evening portions together. A number outside the pair is refused on write and
+// ignored on read, so a hand-edited store cannot present a goal the screen would then draw.
+const ADHKAR_GOAL_MIN = 1;
+const ADHKAR_GOAL_MAX = 20;
+const ADHKAR_GOAL_PRESETS = [3, 5, 8, 12, 20];
+
 // The identifier, and it is deliberately (category id, position) rather than d.id: it is stable
 // for a given store, it is two integers, and it says nothing about what the item contains.
 const A2_ID_RE = /^[0-9]+:[0-9]+$/;
@@ -5528,6 +5633,82 @@ function adhkarCatDone(rec, catId, items) {
   }
   return done;
 }
+
+// The day BEFORE a 'YYYY-MM-DD' key, computed on the string alone. No second Date is built and
+// no timezone is consulted twice: the only date this file reads from the device is the one
+// adhkarDayKey already read, and «yesterday» is arithmetic over that answer.
+function adhkarPrevDayKey(key) {
+  if (typeof key !== 'string' || key.length !== 10) return '';
+  const y = parseInt(key.slice(0, 4), 10);
+  const m = parseInt(key.slice(5, 7), 10);
+  const d = parseInt(key.slice(8, 10), 10);
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return '';
+  if (m < 1 || m > 12 || d < 1 || d > 31) return '';
+  let py = y, pm = m, pd = d - 1;
+  if (pd === 0) {
+    pm = m - 1;
+    if (pm === 0) { pm = 12; py = y - 1; }
+    const leap = (py % 4 === 0 && py % 100 !== 0) || py % 400 === 0;
+    const LEN = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    pd = LEN[pm - 1];
+  }
+  return String(py) + '-' + (pm < 10 ? '0' : '') + String(pm) + '-' + (pd < 10 ? '0' : '') + String(pd);
+}
+// Anything that is not a well-formed record reads as the DEFAULT record -- a missing key, damaged
+// JSON, a goal outside its pair, a malformed date, a run that is not a positive integer, or a
+// storage that throws. A chain is never invented from a broken store, and a broken store is never
+// an error message either.
+function readAdhkarStreak() {
+  const empty = { goal: ADHKAR_DAILY_GOAL, last: '', run: 0 };
+  let raw = null;
+  try { raw = localStorage.getItem(ADHKAR_STREAK_KEY); } catch (e) { return empty; }
+  if (!raw) return empty;
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return empty; }
+  if (!o || typeof o !== 'object') return empty;
+  const goal = (Number.isInteger(o.goal) && o.goal >= ADHKAR_GOAL_MIN && o.goal <= ADHKAR_GOAL_MAX)
+    ? o.goal : ADHKAR_DAILY_GOAL;
+  const last = (typeof o.last === 'string' && o.last.length === 10 && adhkarPrevDayKey(o.last)) ? o.last : '';
+  const run = (last && Number.isInteger(o.run) && o.run > 0) ? o.run : 0;
+  return { goal: goal, last: last, run: run };
+}
+// THE RUN AS OF A GIVEN DAY. A chain whose last credited day is today, or yesterday, is still
+// standing -- yesterday's, because today's dhikr has simply not been done YET and a day is not
+// over until it is over. Anything older has lapsed and reads as 0.
+//
+// A LAPSE IS NOT A PUNISHMENT. It returns a number, not a warning: the screen draws 0 in the
+// same ink as any other number, with no red, no broken-chain icon and no sentence about what the
+// reader failed to do. The chain simply starts again the next time the goal is met.
+function adhkarRunAsOf(rec, today) {
+  if (!rec || !rec.run || !rec.last) return 0;
+  if (rec.last === today) return rec.run;
+  if (rec.last === adhkarPrevDayKey(today)) return rec.run;
+  return 0;
+}
+// The goal is the reader's. Out-of-range writes nothing and returns the record unchanged, so the
+// caller always renders a number the store would actually accept.
+function writeAdhkarGoal(n) {
+  const rec = readAdhkarStreak();
+  if (!Number.isInteger(n) || n < ADHKAR_GOAL_MIN || n > ADHKAR_GOAL_MAX) return rec;
+  const next = { goal: n, last: rec.last, run: rec.run };
+  try { localStorage.setItem(ADHKAR_STREAK_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+// THE ONLY WRITER OF THE CHAIN. It is handed today's real completion count and does nothing at
+// all until that count reaches the reader's own goal. A day already credited writes NOTHING, so
+// re-entering the screen, or completing a ninth dhikr after the eighth, cannot lengthen the
+// chain twice. localStorage only -- no request, no beacon, no reminder.
+function markAdhkarDayMet(done) {
+  const rec = readAdhkarStreak();
+  if (!Number.isInteger(done) || done < rec.goal) return rec;
+  const today = adhkarDayKey();
+  if (rec.last === today) return rec;
+  const run = (rec.run > 0 && rec.last === adhkarPrevDayKey(today)) ? rec.run + 1 : 1;
+  const next = { goal: rec.goal, last: today, run: run };
+  try { localStorage.setItem(ADHKAR_STREAK_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+
 function adhkarCompletedToday(rec, byCat) {
   if (!rec || !rec.n || !byCat) return 0;
   let done = 0;
@@ -5632,6 +5813,13 @@ function adhkarWindow(len, idx, size) {
 // None of these is devotional text. They are a card title, a section title, five control
 // labels and three status lines -- chrome, all of it, and none of it read from adhkar.json.
 // Glosses are on the right so the wording can be reviewed without decoding by hand.
+// ITEM 43-أ. The chain's own words. NEUTRAL BY CONSTRUCTION: there is no sentence here for a
+// chain that lapsed, because none is drawn -- the number simply reads zero and the invitation
+// below is the same invitation a first-time reader sees.
+const A3_CHAIN_TITLE = 'سلسلتك';                    // "your chain"
+const A3_CHAIN_DAYS  = 'يومًا متتاليًا';              // "consecutive days"
+const A3_CHAIN_START = 'تبدأ ببلوغ هدف اليوم';       // "it begins when today's goal is reached"
+const A3_GOAL_PICK   = 'هدف اليوم';                  // "today's goal"
 const A2_GOAL_TITLE  = '\u{0648}\u{0631}\u{062F}\u{0643} \u{0627}\u{0644}\u{064A}\u{0648}\u{0645}\u{064A}';                                  // "your daily wird"
 const A2_MOST_USED   = '\u{0627}\u{0644}\u{0623}\u{0643}\u{062B}\u{0631} \u{0627}\u{0633}\u{062A}\u{062E}\u{062F}\u{0627}\u{0645}\u{0627}\u{064B}'; // "the most used"
 const A2_FAV_ADD     = '\u{0623}\u{0636}\u{0641} \u{0625}\u{0644}\u{0649} \u{0627}\u{0644}\u{0645}\u{0641}\u{0636}\u{0644}\u{0629}';            // "add to favourites"
@@ -5798,6 +5986,9 @@ function AdhkarScreenV2({ onBack }) {
   const [prog, setProg] = useState(readAdhkarProgress);
   const [usage, setUsage] = useState(readAdhkarUsage);
   const [favs, setFavs] = useState(readAdhkarFavorites);
+  // ITEM 43-أ. The chain is browse state like the rest: this component owns it, reads it and
+  // writes it, and the presentation below is handed the two numbers it draws.
+  const [streak, setStreak] = useState(readAdhkarStreak);
   useEffect(() => {
     let alive = true;
     loadAdhkar().then((d) => { if (alive) setDb(d || { categories: [], byCat: {} }); })
@@ -5844,6 +6035,12 @@ function AdhkarScreenV2({ onBack }) {
   // COMPLETED means target reached, counted over distinct items, and capped for DISPLAY at the
   // goal -- min(done, 8) of 8. A ninth completion is real and is not shown as a ninth eighth.
   const done = adhkarCompletedToday(prog, db && db.byCat);
+  // ITEM 43-أ. THE ONE PLACE THE CHAIN IS CREDITED, and it is keyed on the real completion count
+  // rather than on a tap: whichever category the eighth dhikr was finished in, today is credited
+  // once here. markAdhkarDayMet refuses a day it has already credited, so this effect re-running
+  // -- on a re-render, on returning from a category, on a day that rolled over mid-session --
+  // cannot lengthen the chain a second time.
+  useEffect(() => { setStreak(markAdhkarDayMet(done)); }, [done]);
   // ONE view object, handed to whichever home is drawn. Both receive the same store, the same
   // filtered list, the same progress record and the same handlers -- there is nothing a home
   // component can compute that the other cannot, and nothing either of them may write.
@@ -5868,6 +6065,9 @@ function AdhkarScreenV2({ onBack }) {
     usage: usage,
     favs: favs,
     done: done,
+    goal: streak.goal,
+    run: adhkarRunAsOf(streak, adhkarDayKey()),
+    onGoal: (n) => setStreak(writeAdhkarGoal(n)),
   };
   // The whole of the style switch on this screen: which component receives the state above.
   // S103: the istana catalogue is the whole of the answer. Both legacy browse designs were
@@ -5969,11 +6169,13 @@ function IstanaAdhkarFeature({ c, st, onOpen }) {
   );
 }
 
-function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done }) {
-  const shown = Math.min(done, ADHKAR_DAILY_GOAL);
+function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done, goal, run, onGoal }) {
+  // ITEM 43-أ. The ring is measured against the READER'S number now, not a constant. The
+  // constant survives as the default that number starts from, and nothing else reads it.
+  const shown = Math.min(done, goal);
   // the real ring, unchanged: min(completions, goal) over the goal, and nothing else.
   const CIRC = 2 * Math.PI * 30;
-  const off = CIRC * (1 - (shown / ADHKAR_DAILY_GOAL));
+  const off = CIRC * (1 - (shown / goal));
   const featured = list.slice(0, EZIA_FEATURED);
   const rest = list.slice(EZIA_FEATURED);
   return (
@@ -5997,19 +6199,36 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
         <div className="ezia-wrap">
           <section className="ezia-masthead">
             <span style={s.eziaRingBox} role="progressbar" aria-label={A2_GOAL_TITLE}
-              aria-valuemin={0} aria-valuemax={ADHKAR_DAILY_GOAL} aria-valuenow={shown}>
+              aria-valuemin={0} aria-valuemax={goal} aria-valuenow={shown}>
               <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">
                 <circle cx="38" cy="38" r="30" fill="none" stroke="var(--a3-surface)" strokeWidth="7" />
                 <circle cx="38" cy="38" r="30" fill="none" stroke="var(--a3-blue)" strokeWidth="7" strokeLinecap="round"
                   strokeDasharray={CIRC} strokeDashoffset={off} transform="rotate(-90 38 38)" />
               </svg>
-              <span style={s.eziaRingNums}>{toArabicDigits(shown)} / {toArabicDigits(ADHKAR_DAILY_GOAL)}</span>
+              <span style={s.eziaRingNums}>{toArabicDigits(shown)} / {toArabicDigits(goal)}</span>
             </span>
             <span style={s.eziaMastText}>
               <span style={s.eziaMastTitle}>{A2_GOAL_TITLE}</span>
               <span style={s.eziaMastHint}>{A2_SOURCE}</span>
             </span>
           </section>
+            {/* ITEM 43-أ. The chain and the goal, on the masthead the ring already sits in.
+                The number is drawn the same way whether the chain stands or has lapsed. */}
+            <div style={s.eziaChainRow}>
+              <span style={s.eziaChainWord}>{A3_CHAIN_TITLE}</span>
+              <span style={s.eziaChainNum}>{toArabicDigits(run)}</span>
+              <span style={s.eziaChainWord}>{run > 0 ? A3_CHAIN_DAYS : A3_CHAIN_START}</span>
+            </div>
+            <div style={s.eziaGoalRow} role="group" aria-label={A3_GOAL_PICK}>
+              <span style={s.eziaGoalLabel}>{A3_GOAL_PICK}</span>
+              {ADHKAR_GOAL_PRESETS.map((n) => (
+                <button key={n} type="button" className="adhkar2-focus" onClick={() => onGoal(n)}
+                  aria-pressed={goal === n ? 'true' : 'false'}
+                  style={goal === n ? { ...s.eziaGoalChip, ...s.eziaGoalChipOn } : s.eziaGoalChip}>
+                  {toArabicDigits(n)}
+                </button>
+              ))}
+            </div>
           {cats === null ? (
             <div style={s.a3Empty}>...</div>
           ) : list.length === 0 ? (
@@ -7288,6 +7507,11 @@ function App() {
   // Circuit breaker for a device geometry whose rendered spacer never converges. It is reset
   // for every turn and bounds the number of state-writing layout passes that turn may make.
   const pinPassRef = useRef(0);
+  // ITEM 102-ب. The streamed length the PREVIOUS pin pass measured, so a pass can tell «the
+  // answer grew» from «nothing changed and I am writing anyway». -1 is «no stream in flight»,
+  // which is also where a finished turn leaves it, so the first pass of the next turn reads as
+  // a change and starts that turn's count from zero.
+  const pinLenRef = useRef(-1);
   // The room under the last turn that lets a SHORT answer still be pushed to the top. It is a
   // number of pixels, recomputed as the answer grows and collapsed to 0 when the turn ends, so
   // no gap is left behind for the reader to scroll through.
@@ -8151,6 +8375,29 @@ function App() {
     const anchorTop = anchor.getBoundingClientRect().top
       - el.getBoundingClientRect().top + el.scrollTop;
 
+    // ── ITEM 102-ب: THE BREAKER NOW COUNTS STUCKNESS, NOT WORK ───────────────────────────
+    // MEASURED before this block existed, in Chrome at 430x932 driven by real touches:
+    // `pinPassRef` had already reached 9 at 504 VISIBLE CHARACTERS of a 6,697-character answer
+    // -- one write per ~72 streamed characters. The breaker at 8 was therefore being spent in
+    // the MIDDLE of most ordinary Ezik answers, not on the rare device whose spacer never
+    // converges: it fires, the pin is disarmed, `askPinPad` collapses to 0, and the question it
+    // exists to hold drifts away exactly while the answer is still arriving.
+    //
+    // A WRITE THAT FOLLOWS NEW CONTENT IS NOT A SYMPTOM. The answer grew, the room underneath it
+    // genuinely changed, and re-pinning is the entire job of this effect -- which is why it has
+    // no dependency list. The pathology the breaker was put here for is the opposite one:
+    // passes that keep writing while the content STANDS STILL. So the count is cleared whenever
+    // the streamed text has a different length from the one the previous pass saw, and what is
+    // left counted is only CONSECUTIVE writes with NO content change -- the defect itself.
+    //
+    // THE BREAKER BELOW IS UNTOUCHED: same bound, same disarm, same collapse to 0. This does not
+    // raise its ceiling and does not remove it. It stops charging it for work that was asked for.
+    const streamLen = streamingText == null ? -1 : streamingText.length;
+    if (streamLen !== pinLenRef.current) {
+      pinLenRef.current = streamLen;
+      pinPassRef.current = 0;
+    }
+
     // (1) ROOM. The shortfall against one viewport is the room still needed, and it therefore
     // shrinks to zero by itself as a long answer fills the screen. Nothing here is a fixed spacer.
     //
@@ -8232,6 +8479,7 @@ function App() {
     if (isLoading || streamingText !== null) return;
     pinActiveRef.current = false;
     pinPassRef.current = 0;
+    pinLenRef.current = -1;
     setAskPinPad(0);
     setPinnedAskIndex(null);
   }, [pinnedAskIndex, isLoading, streamingText]);
@@ -9424,6 +9672,7 @@ function App() {
     // second question re-arms by pointing at its own index; there is no flag to get stuck.
     pinActiveRef.current = true;
     pinPassRef.current = 0;
+    pinLenRef.current = -1;
     pinScrollTopRef.current = -1;
     setAskPinPad(0);
     setPinnedAskIndex(updated.length - 1);
@@ -10977,6 +11226,12 @@ const ezikIsErrorReply = (t) => typeof t === 'string' && EZIK_ERROR_REPLIES.inde
 // leaves whatever the child had already typed exactly where it was.
 const EZIK_QUOTE_MAX = 500;
 const EZIK_QUOTE_LABEL = 'اقتباس';
+// ITEM 42-أ. The share control speaks through the SAME dictionary the rest of the rail does,
+// so a reader who switches the interface language switches this button with everything else.
+let EZIK_SHARE_LABEL = ezT("chat.share");
+let EZIK_SHARE_ARIA = ezT("chat.shareAria");
+let EZIK_SHARE_COPIED = ezT("common.copied");
+let EZIK_SHARE_FAIL = ezT("common.copyFailed");
 let EZIK_QUOTE_ARIA = ezT("chat.quoteAria");
 function ezikBuildQuote(clean) {
   let t = String(clean == null ? '' : clean).replace(/\s+/g, ' ').trim();
@@ -11416,6 +11671,9 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
         {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
             always exists, so the button can no longer vanish because a fetch had not landed. */}
         <CopyReplyButton text={String(message.content || '').trim()} getText={buildCopyText} />
+        {/* ITEM 42-أ: SHARE. The same payload the clipboard gets, the same rail, the same
+            44x44 hit area every .ezc-acts button already takes from 44-ج. It calls nothing. */}
+        <ShareReplyButton getText={buildCopyText} />
         {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}
@@ -15270,6 +15528,16 @@ const s = {
   eziaMastText: { display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, textAlign: 'right' },
   eziaMastTitle: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)' },
   eziaMastHint: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)' },
+  // ITEM 43-أ. The chain row and the goal chooser. Every colour is a token this screen already
+  // declares in both modes, so the row inherits dark exactly as the masthead above it does, and
+  // NOTHING here is red: a lapsed chain is drawn in the same ink as a standing one.
+  eziaChainRow: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 12 },
+  eziaChainNum: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)' },
+  eziaChainWord: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)' },
+  eziaGoalRow: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  eziaGoalLabel: { fontSize: 12.5, fontWeight: 700, color: 'var(--a3-muted)' },
+  eziaGoalChip: { minWidth: 44, minHeight: 44, padding: '0 12px', borderRadius: 14, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 14, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  eziaGoalChipOn: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: '1px solid var(--a3-blue)' },
   eziaSecTitle: { flexShrink: 0, fontSize: 13, fontWeight: 800, color: 'var(--a3-blue)', fontFamily: 'var(--ez-ui-font)' },
   // the catalogue card: a crest, an emblem row, the title, then the standing and the chevron.
   eziaCard: { position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8, width: '100%', minHeight: 132, padding: '32px 12px 12px', borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
@@ -16158,11 +16426,36 @@ ErrorBoundary.prototype.legacyCopy = function (text) {
     return false;
   }
 };
+// ── ITEM 103: WHAT HAPPENED BEFORE REACT EXISTED, MADE COPYABLE ────────────────────────────
+// The boundary can only ever describe a failure it caught, and it catches nothing that happened
+// before it was mounted. Every boot failure -- the ones that matter most, because they leave a
+// blank page and no way to say what went wrong -- is therefore invisible to `errorParts` above.
+//
+// The pre-<body> catcher DID witness those, and it now keeps them (see `window.__ezikDiag`), so
+// «انسخ التفاصيل» carries them out with the React error instead of the React error alone. This
+// is the whole of the connection: the panel's own words, its retry button and its layout are
+// untouched -- only what the clipboard receives grows.
+//
+// It cannot throw and it cannot be required: a page where the catcher never ran, or where the
+// store was replaced by something else, simply contributes nothing and the copy behaves exactly
+// as it did before.
+ErrorBoundary.prototype.preBootDetails = function () {
+  try {
+    var diag = window.__ezikDiag;
+    if (!diag || typeof diag.text !== 'function') return '';
+    var body = diag.text();
+    if (!body) return '';
+    var n = typeof diag.count === 'function' ? diag.count() : 0;
+    return '\n\nPRE-BOOT DIAGNOSTIC (' + String(n) + ' of ' + String(diag.max) + ')\n' + body;
+  } catch (ignored) {
+    return '';
+  }
+};
 ErrorBoundary.prototype.copyDetails = function () {
   var parts = this.errorParts();
   var nav = window.navigator;
   var userAgent = nav && nav.userAgent ? String(nav.userAgent) : '';
-  var text = parts.message + '\n' + parts.stack + '\n' + userAgent;
+  var text = parts.message + '\n' + parts.stack + '\n' + userAgent + this.preBootDetails();
   try {
     if (nav && nav.clipboard && typeof nav.clipboard.writeText === 'function') {
       var operation = nav.clipboard.writeText(text);

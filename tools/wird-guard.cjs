@@ -6,7 +6,11 @@
  * None of them may ever leave the device, none of them may throw at a reader, and none
  * of them may disturb the manual bookmark, the renderer or the reading viewport.
  *
- * This guard does two things and nothing else:
+ * Item 43-a added a fourth device-local key to the same family -- the adhkar chain and the
+ * reader's own daily goal (ezik_adhkar_streak_v1) -- and section J below gives it the same
+ * treatment, in its own lifted block so that none of the wird's own counts change meaning.
+ *
+ * This guard does three things and nothing else:
  *
  *   1. It LIFTS the pure storage/date helpers out of index.html by brace matching and
  *      EXECUTES them against fake localStorage objects -- an empty one, a seeded one, a
@@ -18,6 +22,10 @@
  *      departure WITH the chrome, its gate on the image flag, the survival of the
  *      bookmark identifiers, the three new removals in resetAll, and the total absence
  *      of the new keys from every request-building line in the file.
+ *
+ *   3. It EXECUTES the adhkar chain helpers the same way (section J): the local-day
+ *      rollover, the goal bounds, the single credit per day, and the absence of any
+ *      notification path anywhere in the application file.
  *
  * It never decodes, prints or embeds Quran text, and all of its output is ASCII.
  *
@@ -792,6 +800,244 @@ ok('this guard opens no asset but index.html and itself',
   (SELF.match(/readFileSync\(/g) || []).length === 2);
 
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// J. ITEM 43-a -- THE ADHKAR CHAIN AND THE READER'S OWN GOAL
+//
+// The same treatment the wird gets, for the same reason: these helpers decide what a reader is
+// told about their own devotion, so they are EXECUTED here against fake stores and a fake local
+// calendar rather than read as text. They are lifted into their OWN block, so that every count
+// this file already makes about the wird's lifted helpers keeps meaning what it meant.
+//
+// The behaviour under test is the ROLLOVER, which is the whole of the design: there is no timer
+// and no midnight listener anywhere. A chain whose last credited day is neither today nor
+// yesterday simply reads as zero the next time it is read, and starts again at one.
+// ---------------------------------------------------------------------------
+
+const A_CONSTS = ['ADHKAR_STREAK_KEY', 'ADHKAR_DAILY_GOAL', 'ADHKAR_GOAL_MIN', 'ADHKAR_GOAL_MAX', 'ADHKAR_GOAL_PRESETS'];
+const A_FNS = ['adhkarDayKey', 'adhkarPrevDayKey', 'readAdhkarStreak', 'adhkarRunAsOf', 'writeAdhkarGoal', 'markAdhkarDayMet'];
+
+const aConsts = {};
+const aFns = {};
+let aLifted = true;
+for (const n of A_CONSTS) { aConsts[n] = liftConst(n); if (!ok('43-a: lift const ' + n, !!aConsts[n])) aLifted = false; }
+for (const n of A_FNS) { aFns[n] = liftFunction(n); if (!ok('43-a: lift function ' + n, !!aFns[n])) aLifted = false; }
+
+if (aLifted) {
+  const A_LIFTED = A_CONSTS.map((n) => aConsts[n]).concat(A_FNS.map((n) => aFns[n])).join('\n\n');
+  ok('43-a: lifted block braces balance',
+    (A_LIFTED.match(/\{/g) || []).length === (A_LIFTED.match(/\}/g) || []).length);
+  ok('43-a: lifted block has no template literal', A_LIFTED.indexOf(String.fromCharCode(96)) === -1);
+
+  // One sandbox builder, exactly like api() above but over the chain's own block.
+  const A = (store, DateImpl) => new Function('localStorage', 'Date',
+    A_LIFTED + '\nreturn { ' + A_CONSTS.concat(A_FNS).join(', ') + ' };')(store, DateImpl || Date);
+
+  const K = 'ezik_adhkar_streak_v1';
+  const BASE = A(memStore());
+  eq('43-a: the chain key carries its version', BASE.ADHKAR_STREAK_KEY, K);
+  eq('43-a: the goal floor', BASE.ADHKAR_GOAL_MIN, 1);
+  eq('43-a: the goal ceiling', BASE.ADHKAR_GOAL_MAX, 20);
+  ok('43-a: the floor is below the ceiling', BASE.ADHKAR_GOAL_MIN < BASE.ADHKAR_GOAL_MAX);
+  ok('43-a: the default goal lies inside the pair',
+    BASE.ADHKAR_DAILY_GOAL >= BASE.ADHKAR_GOAL_MIN && BASE.ADHKAR_DAILY_GOAL <= BASE.ADHKAR_GOAL_MAX);
+  ok('43-a: every preset lies inside the pair too',
+    BASE.ADHKAR_GOAL_PRESETS.length > 0 && BASE.ADHKAR_GOAL_PRESETS.every((n) =>
+      Number.isInteger(n) && n >= BASE.ADHKAR_GOAL_MIN && n <= BASE.ADHKAR_GOAL_MAX));
+
+  // ---- the day BEFORE, computed on the string and on nothing else ----------
+  (function prevDay() {
+    const P = BASE.adhkarPrevDayKey;
+    const cases = [
+      ['2026-08-21', '2026-08-20'], ['2026-08-01', '2026-07-31'], ['2026-01-01', '2025-12-31'],
+      ['2026-03-01', '2026-02-28'], ['2024-03-01', '2024-02-29'], ['2000-03-01', '2000-02-29'],
+      ['1900-03-01', '1900-02-28'], ['2026-05-01', '2026-04-30'], ['2026-12-31', '2026-12-30'],
+    ];
+    for (const c of cases) eq('43-a: the day before ' + c[0], P(c[0]), c[1]);
+    const bad = ['', 'x', '2026-8-1', '20260801', null, undefined, 5, '2026-13-01', '2026-00-10', '2026-05-00', '2026-05-32'];
+    for (const b of bad) eq('43-a: a malformed key has no predecessor: ' + show(b), P(b), '');
+  })();
+
+  // ---- ANYTHING BROKEN READS AS THE DEFAULT, and never as a chain ----------
+  (function readsClean() {
+    const isDefault = (r) => !!r && r.goal === 8 && r.last === '' && r.run === 0;
+    ok('43-a: a missing key reads as the default record', isDefault(A(memStore()).readAdhkarStreak()));
+    const bad = {
+      'not json': 'zzz',
+      'json null': 'null',
+      'json number': '7',
+      'json array': '[1]',
+      'no fields': '{}',
+      'last malformed': '{"goal":5,"last":"2026-8-1","run":3}',
+      'last number': '{"goal":5,"last":20260821,"run":3}',
+      'run zero': '{"goal":5,"last":"2026-08-21","run":0}',
+      'run negative': '{"goal":5,"last":"2026-08-21","run":-4}',
+      'run float': '{"goal":5,"last":"2026-08-21","run":1.5}',
+      'run without last': '{"goal":5,"run":9}',
+    };
+    for (const label in bad) {
+      const store = memStore();
+      store.setItem(K, bad[label]);
+      const r = A(store).readAdhkarStreak();
+      ok('43-a: a broken record never invents a chain: ' + label, r.run === 0, show(r));
+    }
+    const g1 = memStore(); g1.setItem(K, '{"goal":99,"last":"2026-08-21","run":3}');
+    eq('43-a: an out-of-range goal falls back to the default', A(g1).readAdhkarStreak().goal, 8);
+    const g2 = memStore(); g2.setItem(K, '{"goal":5,"last":"2026-08-21","run":-1}');
+    eq('43-a: a broken run does not take a good goal down with it', A(g2).readAdhkarStreak().goal, 5);
+    // THE OTHER DIRECTION, and it is deliberate: a goal outside the pair is replaced by the
+    // default, and the chain the reader ALREADY EARNED survives that replacement untouched. A
+    // number nobody can choose through the interface must not be able to erase days of dhikr.
+    const badGoals = {
+      'goal 0': '{"goal":0,"last":"2026-08-21","run":3}',
+      'goal 21': '{"goal":21,"last":"2026-08-21","run":3}',
+      'goal float': '{"goal":2.5,"last":"2026-08-21","run":3}',
+      'goal string': '{"goal":"5","last":"2026-08-21","run":3}',
+    };
+    for (const label in badGoals) {
+      const st = memStore(); st.setItem(K, badGoals[label]);
+      const r = A(st).readAdhkarStreak();
+      ok('43-a: an unusable goal falls back and the earned chain survives: ' + label,
+        r.goal === 8 && r.run === 3 && r.last === '2026-08-21', show(r));
+    }
+    ok('43-a: a storage that throws still reads as the default', isDefault(A(throwingStore()).readAdhkarStreak()));
+  })();
+
+  // ---- THE ROLLOVER: today, yesterday, and anything older ------------------
+  (function rollover() {
+    const NOW = fakeDate(2026, 8, 21);
+    const T = '2026-08-21', Y = '2026-08-20', OLD = '2026-08-19';
+    const runAsOf = (last, n) => {
+      const st = memStore();
+      st.setItem(K, JSON.stringify({ goal: 3, last: last, run: n }));
+      const box = A(st, NOW);
+      return box.adhkarRunAsOf(box.readAdhkarStreak(), T);
+    };
+    eq('43-a: a chain credited TODAY stands', runAsOf(T, 4), 4);
+    eq('43-a: a chain credited YESTERDAY still stands -- today is not over yet', runAsOf(Y, 4), 4);
+    eq('43-a: a chain older than yesterday reads as zero -- THE RESET', runAsOf(OLD, 4), 0);
+    eq('43-a: ...and a chain a year old reads as zero too', runAsOf('2025-08-21', 40), 0);
+    eq('43-a: ...and a record with no last day has no chain', runAsOf('', 4), 0);
+
+    // The reset costs the reader nothing else: the goal they chose is still theirs.
+    const st = countingStore();
+    st.setItem(K, JSON.stringify({ goal: 3, last: OLD, run: 4 }));
+    st.writes = 0;
+    const box = A(st, NOW);
+    eq('43-a: the reset does not take the reader goal with it', box.readAdhkarStreak().goal, 3);
+    box.adhkarRunAsOf(box.readAdhkarStreak(), T);
+    eq('43-a: and reading a lapsed chain writes nothing at all', st.writes, 0);
+  })();
+
+  // ---- CREDITING A DAY -----------------------------------------------------
+  (function credit() {
+    const NOW = fakeDate(2026, 8, 21);
+    const T = '2026-08-21', Y = '2026-08-20', OLD = '2026-08-19';
+    const seeded = (rec) => {
+      const st = countingStore();
+      if (rec) st.setItem(K, JSON.stringify(rec));
+      st.writes = 0;
+      return st;
+    };
+
+    let st = seeded({ goal: 3, last: '', run: 0 });
+    let r = A(st, NOW).markAdhkarDayMet(2);
+    ok('43-a: below the goal nothing is credited and nothing is written',
+      r.run === 0 && st.writes === 0, show(r));
+
+    st = seeded({ goal: 3, last: '', run: 0 });
+    r = A(st, NOW).markAdhkarDayMet(3);
+    ok('43-a: reaching the goal starts the chain at one',
+      r.run === 1 && r.last === T && st.writes === 1, show(r));
+
+    st = seeded({ goal: 3, last: T, run: 5 });
+    r = A(st, NOW).markAdhkarDayMet(9);
+    ok('43-a: a day already credited is never credited twice',
+      r.run === 5 && st.writes === 0, show(r));
+
+    st = seeded({ goal: 3, last: Y, run: 5 });
+    r = A(st, NOW).markAdhkarDayMet(3);
+    ok('43-a: a chain continued from yesterday grows by exactly one',
+      r.run === 6 && r.last === T && st.writes === 1, show(r));
+
+    st = seeded({ goal: 3, last: OLD, run: 5 });
+    r = A(st, NOW).markAdhkarDayMet(3);
+    ok('43-a: a lapsed chain starts again at one, not at six',
+      r.run === 1 && r.last === T, show(r));
+
+    st = seeded({ goal: 3, last: '', run: 0 });
+    const box = A(st, NOW);
+    box.markAdhkarDayMet(3);
+    box.markAdhkarDayMet(4);
+    box.markAdhkarDayMet(50);
+    eq('43-a: three completions past the goal are still one write', st.writes, 1);
+    eq('43-a: crediting preserves the goal the reader chose', A(st, NOW).readAdhkarStreak().goal, 3);
+
+    const bads = [null, undefined, '3', 2.5, NaN, -1];
+    for (const b of bads) {
+      const s2 = seeded({ goal: 1, last: '', run: 0 });
+      const rr = A(s2, NOW).markAdhkarDayMet(b);
+      ok('43-a: a completion count of ' + show(b) + ' credits nothing', rr.run === 0 && s2.writes === 0, show(rr));
+    }
+    ok('43-a: a storage that throws still credits without throwing',
+      A(throwingStore(), NOW).markAdhkarDayMet(99).run >= 0);
+  })();
+
+  // ---- THE GOAL IS THE READER'S, WITHIN A PAIR -----------------------------
+  (function goal() {
+    for (const n of [1, 3, 8, 20]) {
+      const st = countingStore();
+      const r = A(st).writeAdhkarGoal(n);
+      ok('43-a: the goal ' + n + ' is accepted and stored', r.goal === n && st.writes === 1, show(r));
+    }
+    for (const n of [0, -1, 21, 100, 2.5, '5', null, undefined, NaN]) {
+      const st = countingStore();
+      const r = A(st).writeAdhkarGoal(n);
+      ok('43-a: the goal ' + show(n) + ' is refused and nothing is written',
+        r.goal === 8 && st.writes === 0, show(r));
+    }
+    const st = countingStore();
+    st.setItem(K, JSON.stringify({ goal: 3, last: '2026-08-20', run: 7 }));
+    st.writes = 0;
+    const r = A(st).writeAdhkarGoal(12);
+    ok('43-a: changing the goal keeps the chain that was already earned',
+      r.goal === 12 && r.last === '2026-08-20' && r.run === 7, show(r));
+  })();
+
+  // ---- IT NEVER LEAVES THE DEVICE, AND IT PROMISES NO REMINDER -------------
+  const A_IO = ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
+    'document.cookie', 'indexedDB', 'sessionStorage', 'Notification', 'requestPermission', 'showNotification'];
+  for (const t of A_IO) ok('43-a: the chain helpers contain no ' + t, A_LIFTED.indexOf(t) === -1);
+  eq('43-a: the chain helpers touch only localStorage',
+    (A_LIFTED.match(/localStorage\./g) || []).length,
+    (A_LIFTED.match(/localStorage\.(getItem|setItem)\(/g) || []).length);
+  eq('43-a: every storage operation is wrapped in its own try',
+    (A_LIFTED.match(/try \{[^}]*(getItem|setItem)\(/g) || []).length,
+    (A_LIFTED.match(/localStorage\.(getItem|setItem)\(/g) || []).length);
+  ok('43-a: the chain never uses a UTC getter', A_LIFTED.indexOf('getUTC') === -1);
+  ok('43-a: ...and never toISOString', A_LIFTED.indexOf('toISOString') === -1);
+
+  const A_TOKENS = [K].concat(A_CONSTS).concat(A_FNS);
+  let aLeaks = 0;
+  let aFirst = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const L = lines[i];
+    let touches = false;
+    for (const t of A_TOKENS) if (L.indexOf(t) !== -1) { touches = true; break; }
+    if (!touches) continue;
+    for (const t of REQUEST_TOKENS) {
+      if (L.indexOf(t) !== -1) { aLeaks++; if (!aFirst) aFirst = i + 1; }
+    }
+  }
+  ok('43-a: no chain token shares a line with a request token', aLeaks === 0, 'first at line ' + aFirst);
+
+  // ZERO NOTIFICATIONS, measured over the WHOLE application file. A scheduled reminder needs the
+  // native shell, is not in this build, and may not be promised or prepared for anywhere.
+  ok('43-a: the application asks for no notification permission',
+    SRC.indexOf('Notification.requestPermission') === -1 && SRC.indexOf('requestPermission()') === -1);
+  ok('43-a: ...and constructs no Notification', !/new\s+Notification\s*\(/.test(SRC));
+  ok('43-a: ...and schedules none through a service worker', SRC.indexOf('showNotification') === -1);
+}
 
 function report() {
   const line = '-'.repeat(58);
