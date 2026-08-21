@@ -4512,14 +4512,24 @@ okOn('Z4: ...and the rail is the container the sheet gives 44x44 to', [['html', 
   /\.ezc-icon, \.ezc-acts button, \.ezc-row button, \.ez-hit button \{ position: relative; \}/.test(css)
   && /min-width: 44px; min-height: 44px;/.test(css));
 
-// ---- Z5. THE CARD-AS-IMAGE WAS NOT BUILT, AND THE REASON IS MEASURED -----
-// The item asked for the measurement, not the feature. There is no DOM rasteriser in this tree:
-// the only canvas in the application file is the UPLOAD downscaler, which draws an <img> element
-// and never a DOM subtree. The one rasteriser that exists at all is html2canvas, and it lives
-// inside html2pdf.bundle -- 906KB, lazily loaded, and precached by nothing. These checks keep
-// that statement true, so the decision cannot quietly reverse itself.
-eq('Z5: the application file holds exactly one canvas rasterisation, and it is the upload path',
-  (html.match(/toDataURL\(|canvas\.toBlob\(/g) || []).length, 1);
+// ---- Z5. STILL NO DOM RASTERISER -- AND NOW THERE ARE EXACTLY TWO CANVASES -----
+// ITEM 42-B measured that a card-as-image did not exist and WHY: the only rasteriser reachable
+// from this tree is html2canvas, it lives inside the 906KB html2pdf bundle, and the offline
+// store precaches no vendor JavaScript at all. ITEM 42-C did not overturn that measurement --
+// it went around it. Nothing is RASTERISED; the card is DRAWN, and the browser shapes the
+// Arabic inside fillText, which is the whole reason a library looked necessary.
+//
+// SO THE COUNT MOVES FROM ONE TO TWO, AND BOTH ARE NAMED. This check was never about the
+// number: it is about no DOM subtree ever being rasterised. A third, unnamed canvas fails it,
+// and so does either of these two turning into a DOM rasteriser.
+eq('Z5: the application file holds exactly TWO canvas rasterisations, and both are named',
+  (html.match(/toDataURL\(|canvas\.toBlob\(/g) || []).length, 2);
+ok('Z5: ...one is the upload downscaler',
+  /canvas\.toBlob\(|canvas\.toDataURL\(/.test(html.slice(html.indexOf('drawImage(img, 0, 0, w, h)'), html.indexOf('drawImage(img, 0, 0, w, h)') + 600)));
+ok('Z5: ...and the other is the share card, which rasterises NO DOM -- it draws',
+  /return \{ url: canvas\.toDataURL\('image\/png'\)/.test(html)
+  && !/ezikDrawReplyCard[\s\S]{0,2600}?(drawImage|innerHTML|outerHTML|querySelector|getElementsBy)/.test(html),
+  'the share card started reading the DOM instead of drawing the card');
 ok('Z5: ...which draws an image element, not a DOM subtree',
   /canvas\.getContext\('2d'\)\.drawImage\(img, 0, 0, w, h\)/.test(html));
 ok('Z5: no DOM-to-image library entered the tree',
@@ -4531,5 +4541,115 @@ ok('Z5: ...and html2canvas is named as an OPTION and never constructed or called
 ok('Z5: the offline CORE still precaches no vendor bundle',
   !/html2pdf|mammoth|react[^"']*\.js/.test(SWJS.slice(SWJS.indexOf('const CORE = ['), SWJS.indexOf('];', SWJS.indexOf('const CORE = [')))));
 
+
+/* ---- ZC. ITEM 42-C: THE REPLY AS AN IMAGE, DRAWN NATIVELY --------------- */
+// EVERY BEHAVIOURAL CHECK BELOW EXECUTES THE SHIPPED RENDERER against a recording 2D context.
+// The geometry, the wrapping, the cut and what is written are therefore measured, not read.
+//
+// WHAT IS **NOT** PROVEN HERE, STATED PLAINLY: that the returned data URL decodes to a real,
+// non-empty PNG of 1080x1350. That needs a REAL canvas, and a real canvas needs a real browser.
+// The order for this round forbids any browser outside questux, so it is not run, and no claim
+// of a verified PNG is made. What IS proven: the renderer sizes the canvas to the declared
+// dimensions, asks that canvas for image/png, wraps against measured widths, marks its cut,
+// writes the mark, the source and the site, and touches no network.
+{
+  const drawn = [];
+  const fakeCtx = {
+    fillStyle: '', font: '', globalAlpha: 1, textAlign: '', textBaseline: '',
+    save() {}, restore() {}, fillRect() {},
+    // 20 units a character: enough that a long reply must wrap, and stable so the line count is
+    // arithmetic rather than a font's opinion.
+    measureText(t) { return { width: String(t).length * 20 }; },
+    fillText(t, x, y) { drawn.push({ t: String(t), x: x, y: y }); },
+  };
+  const fakeCanvas = {
+    width: 0, height: 0,
+    getContext() { return fakeCtx; },
+    toDataURL(type) { this.askedFor = type; return 'data:image/png;base64,ZHJhd24='; },
+  };
+  CTX.__ezikFakeCanvas = fakeCanvas;
+  CTX.__ezikCardText = '';
+  CTX.__ezikCardSource = '';
+  const draw = (text, source) => {
+    drawn.length = 0;
+    fakeCanvas.width = 0; fakeCanvas.height = 0; fakeCanvas.askedFor = null;
+    CTX.__ezikCardText = text; CTX.__ezikCardSource = source || '';
+    try {
+      return evalIn('ezikDrawReplyCard({ text: __ezikCardText, source: __ezikCardSource, canvas: __ezikFakeCanvas })');
+    } catch (e) { return { threw: e.message }; }
+  };
+  const wrote = (needle) => drawn.some((d) => d.t.indexOf(needle) !== -1);
+
+  const SHORT = '\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645';
+  const LONG = new Array(400).join('\u0643\u0644\u0645\u0629 ');
+
+  const r1 = draw(SHORT, 'example.com');
+  ok('ZC1: the shipped renderer runs with no browser, no network and no library',
+    !!r1 && !r1.threw, r1 && r1.threw);
+  eq('ZC1: ...and it sizes the canvas to the DECLARED width', fakeCanvas.width, 1080);
+  eq('ZC1: ...and to the DECLARED height', fakeCanvas.height, 1350);
+  eq('ZC1: ...and it asks that canvas for a PNG', fakeCanvas.askedFor, 'image/png');
+  ok('ZC1: ...and returns that data URL, with the dimensions it drew at',
+    !!r1 && /^data:image\/png;base64,/.test(String(r1.url)) && r1.w === 1080 && r1.h === 1350,
+    JSON.stringify(r1 && { url: String(r1.url).slice(0, 24), w: r1.w, h: r1.h }));
+
+  ok('ZC2: the watermark is DRAWN, never fetched -- no request can reach this path',
+    wrote(evalIn('EZIK_CARD_MARK')));
+  ok('ZC2: ...and the site line is always on the card', wrote(evalIn('EZIK_CARD_SITE')));
+  ok('ZC2: ...and the reply itself is on it', wrote('\u0627\u0644\u0633\u0644\u0627\u0645'));
+  ok('ZC2: the source line is drawn when the reply carries one', wrote('example.com'));
+  eq('ZC2: ...and a short reply is NOT marked as cut', r1 && r1.cut, false);
+
+  const r2 = draw(SHORT, '');
+  ok('ZC3: a reply that cites nothing gets NO source line rather than an invented one',
+    !wrote('example.com') && wrote(evalIn('EZIK_CARD_SITE')));
+
+  const r3 = draw(LONG, '');
+  ok('ZC4: a reply too long for the card IS CUT', !!r3 && r3.cut === true);
+  eq('ZC4: ...to exactly the declared number of lines', r3 && r3.lines, evalIn('EZIK_CARD_BODY_LINES'));
+  ok('ZC4: ...and the cut is SHOWN, not silent -- the mark is drawn',
+    wrote(evalIn('EZIK_CARD_CUT')));
+  ok('ZC4: ...and it is SAID, so no reader mistakes a short card for a whole answer',
+    wrote(evalIn('EZIK_CARD_CUT_NOTE')),
+    'the visible cut note is gone -- a silent truncation is exactly what this item forbids');
+  ok('ZC4: ...and every drawn body line fits the measured column',
+    drawn.filter((d) => d.t !== evalIn('EZIK_CARD_MARK')
+      && d.t !== evalIn('EZIK_CARD_SITE') && d.t !== evalIn('EZIK_CARD_CUT_NOTE'))
+      .every((d) => d.t.length * 20 <= (1080 - (evalIn('EZIK_CARD_PAD') * 2)) + (evalIn('EZIK_CARD_CUT').length * 20) + 20),
+    'a line was drawn wider than the column it was wrapped for');
+
+  // ---- the path, as shipped -------------------------------------------------
+  const cardAt = html.indexOf('const ezikDrawReplyCard = (opts) =>');
+  const cardSrc = cardAt === -1 ? '' : html.slice(cardAt, html.indexOf('const SaveReplyImageButton', cardAt));
+  const btnAt = html.indexOf('const SaveReplyImageButton = ');
+  const btnSrc = btnAt === -1 ? '' : html.slice(btnAt, html.indexOf('const docToHtml = (md) =>', btnAt));
+  okOn('ZC5: ZERO MODEL CALL AND ZERO REQUEST on the whole card path', [['cardSrc', cardSrc], ['btnSrc', btnSrc]],
+    !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket|\/api\/|new Image\(|\.src =/.test(cardSrc + btnSrc),
+    'the card path acquired a request, or started loading an image');
+  okOn('ZC5: ...and one press cannot become two files', [['btnSrc', btnSrc]],
+    /const busyRef = useRef\(false\);/.test(btnSrc) && /if \(busyRef\.current\) return;/.test(btnSrc));
+  okOn('ZC5: ...and the control takes the rail hit area and declares no box of its own', [['btnSrc', btnSrc]],
+    /style=\{miniBtnStyle\}/.test(btnSrc) && !/width:|height:|minWidth|minHeight/.test(btnSrc));
+  okOn('ZC5: the canvas seam is a TEST seam only -- the shipped control hands in none', [['btnSrc', btnSrc]],
+    /ezikDrawReplyCard\(\{/.test(btnSrc) && !/canvas:/.test(btnSrc),
+    'the shipped button started passing its own canvas, so the seam is no longer a seam');
+  ok('ZC6: it exports THE REPLY, from the very payload the clipboard and the PDF are handed',
+    /<SaveReplyImageButton getText=\{buildCopyText\} getSource=\{buildCardSource\} \/>/.test(html));
+  ok('ZC6: ...and the source footer is read where sources are ALREADY read, not in the chat sheet',
+    /const ezikCardSourceLine = \(segments\) => \{/.test(html)
+    && !/const buildCardSource = \(\) => segments\.filter/.test(html),
+    'the chat sheet started filtering the sources, which N22 forbids');
+
+  // ---- NOTHING WAS ADDED TO THE BOOT PATH OR TO THE OFFLINE STORE ----------
+  ok('ZC7: no new dependency, no CDN and no script tag entered the tree for this',
+    !/dom-to-image|domtoimage|html-to-image|htmlToImage|satori|canvas2image/i.test(html)
+    && (html.match(/<script[^>]+src=/gi) || []).length === 3);
+  ok('ZC7: ...and CORE gained nothing -- there is nothing to precache, because nothing is fetched',
+    !/ezik-reply|share-card|card\.js/.test(SWJS.slice(SWJS.indexOf('const CORE = ['), SWJS.indexOf('];', SWJS.indexOf('const CORE = [')))));
+  ok('ZC7: ...and not one line of it runs before the button is pressed',
+    !/ezikDrawReplyCard\(/.test(html.replace(/const ezikDrawReplyCard = \(opts\) => \{[\s\S]*?\n\};/, ''))
+    || /const card = ezikDrawReplyCard\(\{/.test(btnSrc),
+    'the renderer is called somewhere other than the press handler');
+}
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

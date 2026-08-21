@@ -4010,6 +4010,159 @@ const ExportPdfReplyButton = ({ getText }) => {
   );
 };
 
+// ============================================================
+// ITEM 42-C. THE REPLY AS AN IMAGE — DRAWN, NOT RASTERISED.
+// ============================================================
+// ITEM 42-B MEASURED WHY THIS DID NOT EXIST: the only DOM rasteriser reachable from this tree is
+// html2canvas, it lives inside the 906KB html2pdf bundle, and the offline store precaches no
+// vendor JavaScript at all. A share card built on it would be a control that does not work
+// offline and costs three quarters of a megabyte the first time it is pressed. That measurement
+// still stands, and the Z5 checks in theme-coverage-guard.cjs still hold it in place.
+//
+// SO NOTHING IS RASTERISED. The card is DRAWN: the browser shapes and joins Arabic inside
+// fillText by itself, which is the whole reason a library was thought to be needed. No new
+// dependency, no CDN, no <script>, and nothing added to CORE.
+//
+// ZERO BYTES OF WORK AT BOOT. Everything below is a declaration; not one line executes until the
+// button is pressed. There is no module to fetch, no font to load, no canvas allocated and no
+// image decoded until then -- and because nothing is fetched, there is nothing for the offline
+// store to hold, which is why CORE does not change.
+//
+// ZERO NETWORK AND ZERO MODEL CALL. The card draws WHAT IS ALREADY ON SCREEN. The watermark is
+// DRAWN as the wordmark rather than fetched as icon-watermark.png, deliberately: an image would
+// be a request, and this path is required to make none. The source line is whatever the reply
+// already carries; if it carries none, none is drawn.
+const EZIK_CARD_W = 1080;
+const EZIK_CARD_H = 1350;
+const EZIK_CARD_PAD = 84;
+const EZIK_CARD_BODY_SIZE = 40;
+const EZIK_CARD_LINE = 62;
+// The card is a fixed size, so the text it can hold is a fixed number of lines. A longer reply
+// is CUT, and the cut is SHOWN -- see EZIK_CARD_CUT and EZIK_CARD_CUT_NOTE. A silent truncation
+// would hand the reader a card that looks like a whole answer and is not one.
+const EZIK_CARD_BODY_LINES = 13;
+const EZIK_CARD_CUT = '…';
+const EZIK_CARD_CUT_NOTE = 'النَّصُّ مُقتطَعٌ — تَمَامُهُ في التطبيق';
+const EZIK_CARD_SITE = 'ezik.app';
+const EZIK_CARD_MARK = 'عزك';
+const EZIK_CARD_LABEL = 'صورة';
+const EZIK_CARD_ARIA = 'حفظ الردّ صورة';
+const EZIK_CARD_WAIT = '...';
+const EZIK_CARD_FAIL = 'تعذَّرَ الحفظ';
+const EZIK_CARD_FILE = 'ezik-reply.png';
+
+// Greedy wrap against the REAL measured width of the REAL font, which is the only wrap that can
+// be right: Arabic glyph widths depend on shaping and no character count approximates them.
+const ezikCardWrap = (ctx, text, maxWidth) => {
+  const out = [];
+  for (const para of String(text || '').replace(/\r\n?/g, '\n').split('\n')) {
+    const words = para.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) continue;
+    let line = '';
+    for (const w of words) {
+      const next = line ? line + ' ' + w : w;
+      if (line && ctx.measureText(next).width > maxWidth) { out.push(line); line = w; }
+      else line = next;
+    }
+    if (line) out.push(line);
+  }
+  return out;
+};
+
+// THE SEAM IS THE CANVAS, and it is the only one. A guard hands in a recording context so the
+// card's geometry, its wrapping and its cut can be driven without a browser; the button below
+// hands in nothing and takes document.createElement, which is asserted.
+const ezikDrawReplyCard = (opts) => {
+  const o = opts || {};
+  const canvas = o.canvas || document.createElement('canvas');
+  canvas.width = EZIK_CARD_W;
+  canvas.height = EZIK_CARD_H;
+  const ctx = canvas.getContext('2d');
+  const inner = EZIK_CARD_W - (EZIK_CARD_PAD * 2);
+
+  ctx.fillStyle = '#0E1512';
+  ctx.fillRect(0, 0, EZIK_CARD_W, EZIK_CARD_H);
+
+  // The watermark: the wordmark, large, faint, behind everything. Drawn, never fetched.
+  ctx.save();
+  ctx.globalAlpha = 0.07;
+  ctx.fillStyle = '#EAF3EE';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '700 420px system-ui, sans-serif';
+  ctx.fillText(EZIK_CARD_MARK, EZIK_CARD_W / 2, EZIK_CARD_H / 2);
+  ctx.restore();
+
+  // The reply, wrapped and right-aligned, because the card is Arabic.
+  ctx.fillStyle = '#EAF3EE';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = '400 ' + EZIK_CARD_BODY_SIZE + 'px system-ui, sans-serif';
+  const all = ezikCardWrap(ctx, o.text, inner);
+  const cut = all.length > EZIK_CARD_BODY_LINES;
+  const lines = cut ? all.slice(0, EZIK_CARD_BODY_LINES) : all;
+  if (cut) lines[lines.length - 1] = lines[lines.length - 1] + ' ' + EZIK_CARD_CUT;
+  let y = EZIK_CARD_PAD + EZIK_CARD_LINE;
+  for (const line of lines) {
+    ctx.fillText(line, EZIK_CARD_W - EZIK_CARD_PAD, y);
+    y += EZIK_CARD_LINE;
+  }
+  // THE CUT IS SAID, not merely marked with an ellipsis a reader can mistake for the author's.
+  if (cut) {
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    ctx.font = '400 30px system-ui, sans-serif';
+    ctx.fillText(EZIK_CARD_CUT_NOTE, EZIK_CARD_W - EZIK_CARD_PAD, y + 14);
+    ctx.restore();
+  }
+
+  // The source line, only if the reply carries one. Nothing is invented under a reply.
+  const foot = EZIK_CARD_H - EZIK_CARD_PAD;
+  if (o.source) {
+    ctx.save();
+    ctx.globalAlpha = 0.8;
+    ctx.font = '400 28px system-ui, sans-serif';
+    ctx.fillText(String(o.source), EZIK_CARD_W - EZIK_CARD_PAD, foot - 46);
+    ctx.restore();
+  }
+  ctx.font = '600 30px system-ui, sans-serif';
+  ctx.fillText(EZIK_CARD_SITE, EZIK_CARD_W - EZIK_CARD_PAD, foot);
+
+  return { url: canvas.toDataURL('image/png'), cut: cut, lines: lines.length, w: EZIK_CARD_W, h: EZIK_CARD_H };
+};
+
+const SaveReplyImageButton = ({ getText, getSource }) => {
+  const [flash, setFlash] = useState('');
+  // ONE PRESS, ONE FILE -- the same ref latch the PDF control uses, and for the same reason.
+  const busyRef = useRef(false);
+  const doSave = () => {
+    if (busyRef.current) return;
+    const payload = (typeof getText === 'function') ? getText() : '';
+    if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
+    busyRef.current = true;
+    try {
+      const card = ezikDrawReplyCard({
+        text: payload,
+        source: (typeof getSource === 'function') ? getSource() : '',
+      });
+      const a = document.createElement('a');
+      a.href = card.url;
+      a.download = EZIK_CARD_FILE;
+      a.click();
+      setFlash('');
+    } catch (e) {
+      setFlash('fail');
+      setTimeout(() => setFlash(''), 1500);
+    }
+    busyRef.current = false;
+  };
+  return (
+    <button type="button" onClick={doSave} aria-label={EZIK_CARD_ARIA} className="ezik-focus" style={miniBtnStyle}>
+      {flash === 'wait' ? EZIK_CARD_WAIT : flash === 'fail' ? EZIK_CARD_FAIL : EZIK_CARD_LABEL}
+    </button>
+  );
+};
+
 const docToHtml = (md) => {
   const lines = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   const out = [];
@@ -11196,6 +11349,27 @@ const REPLY_SERIALIZERS = {
   notice: (sg) => [sg.label, sg.content].map((x) => String(x || '').trim()).filter(Boolean).join(' '),
   document: (sg) => REPLY_LINE([sg.title || '\u0645\u0633\u062A\u0646\u062F', toPlainText(sg.content)]),
 };
+// ITEM 42-C. THE SHARE CARD'S SOURCE FOOTER, and it lives HERE for a reason.
+//
+// The host is derived EXACTLY as REPLY_WRITERS.source above derives it -- the site field, and
+// the url hostname only when the site field is empty -- so the footer on the image and the
+// line in the copied text can never name the reply's sources two different ways.
+//
+// It is module-level, not a helper inside MessageBubble, because N22 asserts that the chat
+// sheet itself never re-orders, filters or counts the sources. That invariant is older than
+// this item and is not being relaxed to fit it: the ORDER is the reply's own, nothing is
+// dropped, nothing is de-duplicated, and a reply that cites nothing yields the empty string,
+// which draws no footer at all rather than an invented one.
+const ezikCardSourceLine = (segments) => {
+  const names = [];
+  for (const sg of (segments || [])) {
+    if (!sg || sg.type !== 'source') continue;
+    let host = (sg.site || '').trim();
+    if (!host && sg.url) { try { host = new URL(sg.url).hostname.replace(/^www\./, ''); } catch (e) { host = ''; } }
+    if (host) names.push(host);
+  }
+  return names.join('  ·  ');
+};
 // Every type MessageBubble can render must have an entry above. A new card added to the renderer
 // without one lands here and is announced -- loudly, and visibly in the copied text -- instead of
 // vanishing from the clipboard the way every card did before this directive.
@@ -11737,6 +11911,10 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
   // D90: the clipboard carries EVERY rendered block, in display order. D91: it is built on the
   // TAP, not here, because the stores the cards read are still filling while this runs.
   const buildCopyText = () => serializeReply(segments, { tashkeel, band: deriveCaps(age).band });
+  // ITEM 42-C: the card is handed the source footer by the module-level reader below, beside
+  // the writer that already renders sources into the copy payload. THIS component does not
+  // filter, re-order or count them -- N22 pins that, and a share card is no reason to weaken it.
+  const buildCardSource = () => ezikCardSourceLine(segments);
   // S98: the fold decides only what is DRAWN. buildCopyText above, the listen button below and
   // every export path all read `segments` / message.content — the WHOLE reply — so a folded reply
   // is copied, spoken and exported in full.
@@ -11788,6 +11966,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
             docToHtml and printed by the app's one printAsPdf. No library, no request, no
             second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
         <ExportPdfReplyButton getText={buildCopyText} />
+        <SaveReplyImageButton getText={buildCopyText} getSource={buildCardSource} />
         {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}

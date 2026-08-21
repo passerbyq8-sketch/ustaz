@@ -155,7 +155,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': '13134bf645cb1af94d0000327bc45a355772e0763df63beb9935fcdb60800cb6',
+  'sw.js': '4013fb1f75573b66d360ceae7c34d0a4eab0985b9d6bcf37a554198f5a87f6b5',
 };
 
 // ---------------------------------------------------------------------------
@@ -1243,7 +1243,7 @@ async function compare(goldenPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 1149603, of: 'index.html' },
+      { n: 1158133, of: 'index.html' },
       { n: 368386, of: 'icon-watermark.png' },
       { n: 177392, of: 'adhkar.json' },
       { n: 12893, of: 'icon-512.png' },
