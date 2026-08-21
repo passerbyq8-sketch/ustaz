@@ -1082,8 +1082,26 @@ ok('...and rendering the text verbatim', /<div style=\{s\.ezistQuranText\}>\{v\.
 // no decorative mark may overlap the text: the marks live in the head row and the rule, both of
 // which are siblings of the text block, and nothing in this panel is absolutely positioned.
 ok('no mark is positioned over the Quran text',
-  !/ezistQuran(Text|Meta)[^}]*position: \'absolute\'/.test(html)
-  && /ezistQuranDot[^}]*background: \'var\(--a3-cyan\)\'/.test(html));
+  !/ezistQuran(Text|Meta)[^}]*position: \'absolute\'/.test(html));
+
+// ---- 105: THE DOT IS GONE, AND IT MAY NOT COME BACK ----
+// The second half of the check above used to assert that the dot EXISTED and was cyan. The
+// owner ruled it out: it was an unconditional span, aria-hidden, driven by no state, and
+// nothing in the app ever turned it off. So the assertion is inverted rather than deleted --
+// a removal with no guard behind it is a removal that comes back.
+ok('105: the verse panel header carries no decorative dot',
+  !/ezistQuranDot/.test(html),
+  'the dot returned — as a style key, a span, or both');
+ok('105: ...and the header row holds exactly one child, the title',
+  /<div style=\{s\.ezistQuranHead\}>\s*<span style=\{s\.ezistQuranLabel\}>[\s\S]*?<\/span>\s*<\/div>/.test(IST),
+  'something else was put back into the header row');
+// THE HEADER DID NOT MOVE. The dot occupied 8px and stood in the row's 8px gap; MEASURED at
+// 430x932, the title's leading edge (its RIGHT edge -- the page is RTL) was at 346 before and
+// is at 346 after, because those 16px went back as padding. Losing this line would slide the
+// title 16px without anything else looking wrong.
+ok('105: ...and the title still starts at the pixel it always did',
+  /ezistQuranHead: \{[^}]*paddingInlineStart: 16/.test(html),
+  'the 16px the dot and its gap occupied is no longer being held');
 
 // S117: this used to read `/<EzistAsk /.test(IST) && /className="ezhome-focus ezist-ask"/`, and
 // that pinned ONE element rather than the thing the check is named for. The home offered two ways
@@ -2300,9 +2318,25 @@ ok('N6: ...and no ezc rule anywhere declares a viewport-wide box',
   eq('N9: not one ezc rule attaches an image, a gradient or a repeat', patterned, []);
   // `content:` only as a DECLARATION -- `justify-content:` is not one, and matching it would
   // have made this check unfailable-by-construction rather than true.
-  ok('N9: ...and none draws a pseudo-element over the transcript',
-    !/\.ezc[a-z0-9-]*[^{]*::(before|after)/.test(css)
-    && !ezcRules.some((r) => /[;{]\s*content\s*:/.test(r)));
+  // 44-ج: AN INVISIBLE PSEUDO-ELEMENT IS NOT A DRAWING. This check used to ask whether an ezc
+  // pseudo-element EXISTS, as a proxy for whether anything is painted over the transcript. The
+  // touch-target overlay is a ::before on .ezc-icon and on the buttons inside .ezc-acts and
+  // .ezc-row, and it paints nothing at all: no background, no border, no shadow, no image, and
+  // `content:""`. So the question is now asked directly rather than through the proxy — which
+  // makes it STRICTER about painting (a background on a pseudo-element is now named as such)
+  // and honest about an empty box that only catches a thumb.
+  const ezcPseudo = (css.match(/\.ezc[a-z0-9-]*[^{}]*::(?:before|after)[^{}]*\{[^}]*\}/g) || []);
+  const painting = ezcPseudo.filter((r) => /background|border(?!-radius)|box-shadow|outline|url\(|gradient|(^|[;{]\s*)color\s*:/.test(r));
+  eq('N9: ...and no pseudo-element PAINTS over the transcript', painting, []);
+  ok('N9: ...and any that exists is an empty box and nothing more',
+    // A rule that merely ADJUSTS an already-declared overlay carries no content of its own,
+    // and that is not a drawing either. What is forbidden is a pseudo-element that puts glyphs
+    // on screen, so the test is: if it declares content at all, that content is empty.
+    ezcPseudo.every((r) => !/content\s*:/.test(r) || /content:\s*""/.test(r)),
+    ezcPseudo.filter((r) => /content\s*:/.test(r) && !/content:\s*""/.test(r)).join(' | '));
+  // A `content:` on a real ezc rule is still forbidden outright: that would put glyphs on screen.
+  ok('N9: ...and no ezc rule of its own declares content',
+    !ezcRules.filter((r) => !/::(?:before|after)/.test(r)).some((r) => /[;{]\s*content\s*:/.test(r)));
   const litRules = ezcRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r) && !/--ezc-scrim/.test(r));
   eq('N9: ...and the only colour it states of its own is the modal scrim', litRules, []);
 }
@@ -3624,6 +3658,257 @@ ok('S1: and no substitute analytics tool took their place',
 // EXACTLY three, never "three or fewer": a <= would let a fourth script arrive the day two others
 // are dropped, which is precisely the drift this count exists to catch.
 eq('S1: the page loads exactly three scripts', (html.match(/<script[^>]*src=["'][^"']+["']/gi) || []).length, 3);
+
+
+/* ---- T. ITEM 102: THE ASK-PIN SETTLES BY ITSELF, AND THE BREAKER STILL SITS ABOVE IT ---- */
+// The pin's layout effect has no dependency list: it runs on EVERY render of the chat, so
+// whatever it computes must be a function of the LAYOUT ALONE. When it was a function of its own
+// previous output as well, the effect walked away from its own answer -- MEASURED in Chrome at
+// 430x932: `need` came back 14, 28, 42, 56, 70, 84, 98, 112 on eight consecutive passes of a
+// single turn, and only `pinPassRef` stopped it. That is what these checks stand over.
+//
+// They are deliberately TWO checks and not one. The first says the room is measured without the
+// spacer in the reading; the second says the breaker is still there anyway. A cure is not a
+// reason to take the fence down, so neither check is allowed to stand in for the other.
+const pinSrc = html.replace(/\r\n/g, '\n');
+const pinEffect = (pinSrc.match(
+  /const anchorTop = anchor\.getBoundingClientRect\(\)\.top[\s\S]*?pinScrollTopRef\.current = el\.scrollTop;/,
+) || [''])[0];
+// Every check below reads the CODE of that effect, never its prose: `pinCode` is the same
+// region with its line comments removed. Asserting against text that includes the comments
+// lets an explanation satisfy a check, and lets an honest explanation break one -- the first
+// draft of T2 failed on the word `scrollHeight` inside the comment that explains why
+// `scrollHeight` may not be used.
+const pinCode = pinEffect.replace(/\/\/[^\n]*/g, '');
+ok('T0: the ask-pin layout effect is still present and still measures from the anchor',
+  pinEffect.length > 0 && /el\.clientHeight/.test(pinEffect));
+
+// THE SETTLING RULE. The room is read off whichever element marks the end of the real content --
+// the spacer when it is mounted, the end sentinel when it is not. Those two sit at the SAME
+// place, so the reading does not change when the spacer appears, and `need` therefore cannot
+// depend on `askPinPad`.
+ok('T1: the room is measured from the content tail, not from the spacer that was applied',
+  /const tail = askPadElRef\.current \|\| messagesEndRef\.current;/.test(pinCode)
+  && /naturalBelow = tail\.getBoundingClientRect\(\)\.top/.test(pinCode),
+  'the tail reading is gone -- `need` can depend on its own output again');
+
+// AND IT MUST NOT GO BACK TO `scrollHeight`. That number never drops below `clientHeight`, so on
+// every first question in a new chat -- where the transcript is shorter than the viewport -- it
+// stays put no matter how tall the spacer grows, and subtracting the spacer from it removes a
+// height that was never added.
+ok('T2: the room measurement does not read el.scrollHeight',
+  !/scrollHeight/.test(pinCode.split('const need =')[0]),
+  'scrollHeight is back in the measurement -- it is clamped at clientHeight and cannot be used here');
+
+// THE GAP THE SPACER BRINGS WITH IT. The scroller is a column flexbox; mounting one more child
+// adds one more row gap, and `offsetHeight` knows nothing about it. Subtracting it is what makes
+// a spacer that would buy less room than its own gap costs come out as 0 instead of flickering.
+ok('T3: the row gap the spacer would introduce is taken off the room it must buy',
+  /const rowGap = [^;]*cs\.rowGap/.test(pinCode)
+  && /- naturalBelow - rowGap/.test(pinCode));
+
+// THE BREAKER, UNCHANGED AND STILL ABOVE THE WRITE. `pinPassRef` is a fence, not a cure: it is
+// what saved the product on the night of 20-21 August and it stays exactly where it was, with
+// the same bound, regardless of the settling rule above being correct.
+const bumpAt = pinCode.indexOf('pinPassRef.current += 1;');
+const boundAt = pinCode.indexOf('if (pinPassRef.current > 8) {');
+const writeAt = pinCode.indexOf('setAskPinPad(need);');
+ok('T4: the pinPassRef breaker is still armed, still bounded at 8, and still ahead of the write',
+  bumpAt !== -1 && boundAt !== -1 && writeAt !== -1
+  && bumpAt < boundAt && boundAt < writeAt
+  && /pinActiveRef\.current = false;\s*\n\s*setAskPinPad\(0\);/.test(pinCode),
+  'the breaker moved, changed bound, or stopped preceding the write');
+// The four places the counter lives, counted in the whole file so a silent deletion elsewhere
+// cannot leave the effect looking healthy on its own.
+eq('T5: pinPassRef still appears at exactly its four code positions',
+  (pinSrc.match(/pinPassRef\.current|const pinPassRef/g) || []).length, 5);
+
+
+/* ---- U. ITEM 44-أ: THE TEXT SCALE, AND THE READER THAT IS OUTSIDE IT ---- */
+// THESE CHECKS RUN THE SCALE PASS FOR REAL, so they must be LAST: `ezikEnsureScalableStyles`
+// rewrites the styles object IN PLACE, and every earlier section reads that object. Nothing may
+// be added below this block that reads `s`.
+//
+// The question they answer is not "is there a setting" but "does the multiplier stop where the
+// brief says it stops". MEASURED in Chrome at 430x932 before the exclusion existed: the reader's
+// own title rendered 15px / 17.1px / 19.2px across the three steps.
+eq('U1: the scale is exactly three steps, with the factors the boot script uses',
+  vm.runInContext('JSON.stringify(EZIK_FS_SCALES)', CTX), '{"normal":1,"large":1.14,"xlarge":1.28}');
+// The pre-paint script is what stops the page flashing at the default size and then jumping. It
+// carries its own copy of the table, so the two are compared rather than trusted.
+ok('U2: the pre-paint boot script carries the SAME table, so the choice is applied before the first frame',
+  /var S=\{normal:1,large:1\.14,xlarge:1\.28\};/.test(html)
+  && /localStorage\.getItem\('ezik_reading_prefs_v1'\)/.test(html)
+  && html.indexOf('var S={normal:1') < html.indexOf('<div id="root">'),
+  'the boot table is missing, disagrees, or no longer runs before #root');
+
+// THE DEFAULT IS THE OBJECT THAT SHIPPED. Nobody who never opens الإعدادات pays for this feature,
+// and that is a property of the styles object, not a claim: at the default size every size is
+// still a plain number and no calc() has been built.
+const fsOf = (k) => vm.runInContext('JSON.stringify(s.' + k + '.fontSize)', CTX);
+ok('U3: at the default step the styles object is untouched — every sampled size is still a number',
+  ['input', 'messageBubble', 'ezmrTitle', 'pgHeader', 'mushafName'].every((k) => /^\d/.test(JSON.parse(fsOf(k)) + '')),
+  ['input', 'messageBubble', 'ezmrTitle', 'pgHeader', 'mushafName'].map((k) => k + '=' + fsOf(k)).join(' '));
+
+// ...and now the pass runs, exactly as choosing a larger size runs it.
+vm.runInContext('ezikEnsureScalableStyles()', CTX);
+const scaled = (k) => { const v = fsOf(k); return v === undefined ? undefined : JSON.parse(v); };
+const isCalc = (v) => /^calc\(.*var\(--ez-fs/.test(String(v));
+ok('U4: after the pass the interface follows the one multiplier on :root',
+  isCalc(scaled('input')) && isCalc(scaled('messageBubble')),
+  'input=' + fsOf('input') + ' bubble=' + fsOf('messageBubble'));
+
+// THE READER'S SCOPE. Every size in the object scales — including the reader's own keys, which
+// is what a11y-guard requires — and the reader is taken out ONE LEVEL DOWN instead: its root
+// resets `--ez-fs` to 1, so every calc() inside it evaluates to the number that shipped. The
+// page fit divides by pgPage's element-child count and measures its rows, so nothing inside
+// that box may move when someone chooses larger text elsewhere.
+ok('U5: the reader keys scale like everything else — the exclusion is not a hole in the pass',
+  isCalc(scaled('ezmrTitle')) && isCalc(scaled('pgHeader')),
+  'ezmrTitle=' + fsOf('ezmrTitle') + ' pgHeader=' + fsOf('pgHeader'));
+eq('U6: ...and the reader root resets the multiplier, which is what actually excludes it',
+  /\.ezmr-scope\s*\{\s*--ez-fs:\s*1;?\s*\}/.test(css) ? 'reset present' : 'RESET MISSING',
+  'reset present');
+// The scope must sit on the reader's OWN root and nowhere else. On a child of pgPage it would
+// change that element's child count, which is the number the per-page fit divides by.
+eq('U7: the scope is declared exactly once, on PagedMushaf\'s root container',
+  (html.match(/className="ezmr-scope"/g) || []).length, 1);
+ok('U7: ...and that root is the container, not anything inside the page box',
+  /<div className="ezmr-scope" style=\{contSt\}>/.test(html),
+  'the scope moved off the reader container');
+// The exclusion is the READER, not everything that sounds like it. The surah index is a list of
+// names with no fit to break, and it is outside the scope on purpose.
+ok('U8: the surah INDEX is outside the scope and still grows',
+  isCalc(scaled('mushafName')) && !/ezmr-scope[^}]*mushaf/.test(css),
+  'mushafName=' + fsOf('mushafName'));
+
+
+/* ---- V. ITEM 44-ب: REDUCED MOTION, AND THE TWO TRIGGERS THAT MUST AGREE ---- */
+// A comment that closes twice is not a comment. The S99 note carried a `*/` in the middle of it,
+// so the paragraph after it sat in the stylesheet as raw text; the parser recovers by swallowing
+// everything up to the next block, and the rule immediately below was eaten. MEASURED in Chrome:
+// only 3 of the 4 reduced-motion rules reached document.styleSheets.
+//
+// This check is deliberately about ALL comments and not about that one: the failure mode is the
+// class of defect, not the instance.
+eq('V1: every comment in the stylesheet opens and closes exactly once',
+  (css.match(/\/\*/g) || []).length, (css.match(/\*\//g) || []).length);
+
+// THE PLATFORM SETTING AND THE SWITCH STILL THE SAME THINGS. Either alone is enough, and neither
+// is a lesser version of the other: a reader whose phone says «reduce motion» and who never opens
+// الإعدادات must get the same stillness as one who found the switch. MEASURED before this item: a
+// `.ez-anim` element reported animationName `fadeIn` under the platform setting, `none` under the
+// switch.
+const mediaBlock = (css.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n  \}/) || [''])[0];
+ok('V2: the platform query is present and is not empty', mediaBlock.length > 0);
+// ONE LIST OF WHAT REDUCED MOTION MEANS, AND BOTH TRIGGERS ARRIVE AT IT.
+// Nothing is added to the @media block: chat-ux-guard requires every selector in it to name an
+// S98 class, because a blanket rule there would freeze the mushaf page turn. So the platform
+// reader is given the rest through the SAME attribute the switch uses, and the list of what is
+// stilled exists once. Two lists would drift; this cannot.
+ok('V3: the @media block is left scoped to the S98 classes, as chat-ux-guard requires',
+  mediaBlock.length > 0
+  && (mediaBlock.match(/^\s*([^{}@\n][^{}\n]*)\{/gm) || []).every((sel) => /\.ezik-/.test(sel)),
+  'a selector that is not an S98 class was put into the platform query');
+for (const [what, re] of [
+  ['the decorative fades (.ez-anim)', /:root\[data-ez-motion="reduce"\] \.ez-anim\s*\{[^}]*animation:\s*none\s*!important/],
+  ['the watermark cross-fade (.ezwm)', /:root\[data-ez-motion="reduce"\] \.ezwm\s*\{[^}]*transition:\s*none\s*!important/],
+  ['smooth scrolling', /:root\[data-ez-motion="reduce"\]\s*\{[^}]*scroll-behavior:\s*auto\s*!important/],
+]) {
+  ok('V4: the one list stills ' + what, re.test(css), 'the attribute rules no longer cover it');
+}
+// AND THE ATTRIBUTE IS SET FROM EITHER SOURCE. This is the whole of 44-ب: before it, the
+// attribute meant «this reader found the switch», and a reader whose PHONE says «reduce motion»
+// got only the two S98 surfaces. MEASURED then: a `.ez-anim` element reported animationName
+// `fadeIn` under the platform setting and `none` under the switch.
+ok('V5: the attribute is set from EITHER the switch or the platform, not the switch alone',
+  /ezikMotionReduced\(p\.reduceMotion\)\) el\.setAttribute\('data-ez-motion', 'reduce'\)/.test(html),
+  'ezikApplyA11y went back to reading only the local preference');
+// The pre-paint script is what stops a reader who is owed stillness from seeing one animated
+// frame first. Its stored-preferences path returns early when there is no record -- which is
+// exactly the reader who never opened الإعدادات -- so the platform question is asked ABOVE it.
+ok('V6: the pre-paint script asks the platform before it can return early',
+  html.indexOf("var D=document.documentElement;try{if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){D.setAttribute('data-ez-motion','reduce');}}catch(e){}") !== -1
+  && html.indexOf('var D=document.documentElement;try{if(window.matchMedia') < html.indexOf("if(!r||typeof r!=='object'){return;}"),
+  'the platform question is missing from the boot script, or it sits after the early return');
+ok('V7: and the attribute follows the OS if it changes while the app is open',
+  /ezMq\.addEventListener\('change', ezSyncMotion\)/.test(html));
+
+// WHAT MUST KEEP MOVING, and why a blanket rule is never written here. The mushaf page turn
+// resolves a promise on animationend and its slide lands on transitionend; freezing either hangs
+// that screen. The typing dots are a loading indicator, and item 13's typing flow is CONTENT
+// ARRIVING rather than decoration.
+// A BARE `*` IS THE DANGER; A SCOPED ONE IS THE POINT. `.ezik-panel *` is exactly what these
+// rules are supposed to say, so the test cannot be a substring search for `*{`: it reads each
+// rule's selector list and asks whether any single selector IS the universal one. Comments are
+// stripped first for the same reason T2 strips them — the note above these rules quotes the
+// very pattern it warns against, and a check that reads prose is a check that lies.
+const cssCode = stripComments(css);
+const blanketKill = (prop) => {
+  const re = /([^{}]+)\{([^}]*)\}/g;
+  let m;
+  while ((m = re.exec(cssCode)) !== null) {
+    const sels = m[1].split(',').map((x) => x.trim()).filter(Boolean);
+    if (!sels.some((x) => x === '*')) continue;
+    if (new RegExp(prop + ':\\s*none').test(m[2])) return sels.join(',') + ' {' + m[2].trim() + '}';
+  }
+  return null;
+};
+ok('V8: no blanket animation kill — the mushaf page turn still resolves on animationend',
+  !blanketKill('animation'), String(blanketKill('animation')));
+ok('V9: no blanket transition kill — the page slide still lands on transitionend',
+  !blanketKill('transition'), String(blanketKill('transition')));
+ok('V10: the typing indicator is never marked as decoration',
+  /@keyframes typing/.test(cssCode) && !/\.ez-anim[^{]*\{[^}]*typing/.test(cssCode)
+  && !/typing[^{]*\{[^}]*animation:\s*none/.test(cssCode));
+// `ez-anim` is a marked list of four places, not a substring search over inline styles: the
+// attribute-match version of this rule cost +0.74 ms on opening the menu.
+ok('V11: reduced motion is still matched by CLASS, never by [style*=...]',
+  !/\[style\*=/.test(cssCode));
+
+
+/* ---- W. ITEM 44-ج: THE TOUCH TARGETS, AND THE SHAPES THAT DID NOT MOVE ---- */
+// MEASURED at 430x932 with a coarse pointer, on a chat with a reply on it: 14 controls were under
+// 44x44 -- the drawer toggle at 40x40, the reply strip (favourite was the smallest at 31x23), the
+// five quick actions at ~41 tall, and the drawer row's pin and delete at 32x32. Every one of them
+// failed on HEIGHT.
+const hitRule = (css.match(/\.ezc-icon::before[\s\S]*?\}/) || [''])[0];
+ok('W1: the hit area is an overlay, and it only ever GROWS a control',
+  /min-width:\s*44px/.test(hitRule) && /min-height:\s*44px/.test(hitRule)
+  && /width:\s*100%/.test(hitRule) && /height:\s*100%/.test(hitRule),
+  'the 44px floor is gone, or it stopped following the control it sits on: ' + hitRule);
+// `width:100%` with `min-width:44px` is the whole trick: a control that is already big keeps its
+// own size, so the rule can be aimed at a container without auditing every button inside it.
+ok('W2: it is centred on the control, so a control grows in both directions and does not shift',
+  /left:\s*50%/.test(hitRule) && /top:\s*50%/.test(hitRule)
+  && /transform:\s*translate\(-50%,\s*-50%\)/.test(hitRule));
+// THE SHAPE IS NOT TOUCHED. The overlay paints nothing at all: it carries no background, no
+// border, no shadow and no content beyond the empty string that makes it exist.
+ok('W3: the overlay paints nothing — the visible shape is exactly what it was',
+  /content:\s*""/.test(hitRule)
+  && !/background/.test(hitRule) && !/border/.test(hitRule) && !/box-shadow/.test(hitRule));
+// AIMED, NOT SPRAYED. A 44px floor under every button on the page would grow controls that are
+// already large enough and push their neighbours' hit areas into each other.
+ok('W4: the rule names its containers and is never a bare `button`',
+  /\.ezc-acts button::before/.test(css) && /\.ezc-row button::before/.test(css)
+  && /\.ez-hit button::before/.test(css)
+  && !/(^|[,{}\s])button::before\s*\{/.test(css.replace(/\.[\w-]+ button::before/g, '')));
+ok('W5: the quick-action group carries the hit scope',
+  /className="ez-hit" style=\{s\.quickRow\} role="group"/.test(html));
+// The drawer toggle's PAINTED box is still the 40x40 it always was: the item grows the area a
+// finger gets, never the shape an eye sees.
+// THE ONE EXCEPTION, DECLARED RATHER THAN DISCOVERED. The drawer row's pin and delete are 32px
+// wide and sit 2px apart; MEASURED, a 44px-wide area for each overlapped the other by 10px and
+// stole its taps. They keep the full 44 in HEIGHT and take only the width that exists. This
+// check exists so the narrowing stays deliberate: it may narrow the WIDTH and nothing else.
+const rowExc = (css.match(/\.ezc-row button::before \{[^}]*\}/) || [''])[0];
+ok('W7: the drawer-row exception is declared, and it narrows only the width',
+  /min-width:\s*34px/.test(rowExc) && !/min-height/.test(rowExc) && !/height/.test(rowExc),
+  'the exception is missing, or it started shrinking the height too: ' + rowExc);
+
+ok('W6: the drawer toggle still paints at 40x40',
+  /\.ezc-icon\{[^}]*width:40px;height:40px/.test(css.replace(/\s*\n\s*/g, '')),
+  'the painted size of .ezc-icon moved — the item was supposed to leave it alone');
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

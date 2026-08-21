@@ -33,7 +33,7 @@
      Read here and the interface draws once at the chosen size; read after React mounts and the
      user watches it resize. It reads the active profile's id from the profile the app already
      stores, touches nothing else, and every failure path leaves the defaults in place. -->
-<script>(function(){try{var p=null;try{p=JSON.parse(localStorage.getItem('child_profile')||'null');}catch(e){}var pk=(p&&typeof p.pid==='string'&&p.pid)?p.pid:'anon';var m=null;try{m=JSON.parse(localStorage.getItem('ezik_reading_prefs_v1')||'null');}catch(e){}var r=(m&&typeof m==='object'&&!Array.isArray(m))?m[pk]:null;if(!r||typeof r!=='object'){return;}var S={normal:1,large:1.14,xlarge:1.28};var f=(typeof r.fontSize==='string'&&S[r.fontSize])?r.fontSize:'normal';var d=document.documentElement;d.style.setProperty('--ez-fs',String(S[f]));d.setAttribute('data-ez-fs',f);if(r.reading===true){d.setAttribute('data-ez-read','1');}if(r.reduceMotion===true){d.setAttribute('data-ez-motion','reduce');}}catch(e){}})();</script>
+<script>(function(){try{var D=document.documentElement;try{if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){D.setAttribute('data-ez-motion','reduce');}}catch(e){}var p=null;try{p=JSON.parse(localStorage.getItem('child_profile')||'null');}catch(e){}var pk=(p&&typeof p.pid==='string'&&p.pid)?p.pid:'anon';var m=null;try{m=JSON.parse(localStorage.getItem('ezik_reading_prefs_v1')||'null');}catch(e){}var r=(m&&typeof m==='object'&&!Array.isArray(m))?m[pk]:null;if(!r||typeof r!=='object'){return;}var S={normal:1,large:1.14,xlarge:1.28};var f=(typeof r.fontSize==='string'&&S[r.fontSize])?r.fontSize:'normal';var d=document.documentElement;d.style.setProperty('--ez-fs',String(S[f]));d.setAttribute('data-ez-fs',f);if(r.reading===true){d.setAttribute('data-ez-read','1');}if(r.reduceMotion===true){d.setAttribute('data-ez-motion','reduce');}}catch(e){}})();</script>
 <!-- S116 UI LANGUAGE BOOT. Interface language only -- it never reaches the model, the answer,
      the sources or any devotional text. Read before the first paint for the same reason the
      theme is: <html lang/dir> decided after React mounts is a visible re-layout.
@@ -234,6 +234,12 @@
      the flip-scheduler). Nothing outside these two classes is touched. */
   @media (prefers-reduced-motion: reduce) {
     .ezik-focus, .ezik-focus *, .ezik-panel, .ezik-panel * { animation: none !important; transition: none !important; }
+    /* 44-ب: NOTHING IS ADDED TO THIS BLOCK, and that is a decision rather than an omission.
+       chat-ux-guard requires every selector inside it to name an S98 class, because a blanket
+       rule here would freeze the mushaf page turn (it resolves a promise on animationend). The
+       platform reader is given the rest of the stillness through `data-ez-motion` instead --
+       see ezikApplyA11y -- so there is ONE list of what reduced motion means and both triggers
+       arrive at it, rather than two lists drifting apart. */
   }
   /* S99 -- READING MODE. It opens the lines up and nothing else: no colour moves, no element is
      hidden, no card or source or button is touched, and the text itself is not altered by a single
@@ -248,7 +254,8 @@
      either one alone is enough. Both stop at DECORATION: the typing dots keep animating, because
      a loading indicator that stands still is a broken loading indicator, and the mushaf page turn
      keeps its animation because it resolves a promise on animationend and freezing it would hang
-     that screen forever. */
+     that screen forever.
+
      A CLASS, NOT AN ATTRIBUTE MATCH. The first version of this rule selected the animated
      elements with [style*="fadeIn"], which forces the style engine to substring-search the inline
      style attribute of EVERY element on every recalculation. Measured, interleaved: it cost
@@ -257,6 +264,9 @@
      the cost went with it. */
   :root[data-ez-motion="reduce"] { scroll-behavior: auto !important; }
   :root[data-ez-motion="reduce"] .ez-anim { animation: none !important; }
+  /* The watermark cross-fades its opacity. It is the only CSS transition in the file that is
+     pure decoration, and neither trigger was stopping it. */
+  :root[data-ez-motion="reduce"] .ezwm { transition: none !important; }
   :root[data-ez-motion="reduce"] .ezik-focus,
   :root[data-ez-motion="reduce"] .ezik-focus *,
   :root[data-ez-motion="reduce"] .ezik-panel,
@@ -264,6 +274,14 @@
   /* S99 -- the keyboard focus ring, on every control this phase touches. Same token, same shape
      as the ring the adhkar screens and the S98 controls already use. */
   .ez-a11y-opt:focus-visible { outline: 3px solid var(--ez-focus); outline-offset: 2px; }
+  /* 44-أ -- THE READER IS OUTSIDE THE TEXT SCALE, and this one line is the whole exclusion.
+     Every size in the styles object becomes `calc(Npx * var(--ez-fs, 1))`; resetting the
+     custom property to 1 on the reader's root makes every one of those calcs inside it
+     evaluate to its original number. The page fit measures pgPage and its rows, so the reader
+     must not move when someone chooses larger text elsewhere -- and MEASURED, it does not:
+     `.ezmr-title` is 15px at «عادي», «كبير» and «أكبر» alike. It is a SCOPE and not a list, so
+     anything rendered inside the reader later is covered without being remembered. */
+  .ezmr-scope { --ez-fs: 1; }
   /* Session 85/86 -- the DUAL STYLE palette, and it is a SCOPED token set, not a global one:
      every declaration below lives on .adhkar3 and .ezhome, classes carried only by the four
      adhkar presentation components and the two home ones, so nothing outside them -- not the
@@ -885,6 +903,34 @@
     border:1px solid transparent;color:var(--a3-ink);cursor:pointer;font-family:inherit;line-height:1}
   .ezc-icon:hover{background:var(--a3-ice)}
   .ezc-icon:focus-visible{outline:3px solid var(--ez-focus);outline-offset:2px}
+  /* 44-ج -- THE FINGER GETS 44x44; THE EYE KEEPS THE SHAPE IT ALREADY HAD.
+     MEASURED at 430x932 with a coarse pointer, on the chat with a reply on it: 14 controls
+     were under 44x44 -- the drawer toggle at 40x40, the reply strip (listen 67.9x32, copy
+     37.3x31, quote 48.9x31, favourite 31x23, tashkeel 47x31, report 53x32), the five quick
+     actions at ~41 tall, and the drawer row's pin and delete at 32x32. Every one of them
+     failed on HEIGHT, which is what a thumb misses.
+
+     THE PAINTED BOX IS NOT TOUCHED. The hit area is an ::before centred on the control and
+     grown to the minimum -- `width:100%` keeps whatever the control already is, and the two
+     `min-*` only ever raise it. A control that is already big enough gets an overlay exactly
+     its own size, so this rule can be aimed at a whole container without auditing it first.
+     It paints nothing: no background, no border, no content.
+
+     AIMED AT THE FOUR CONTAINERS THAT HOLD THE SMALL CONTROLS, never at `button` globally:
+     a 44px floor under every button on the page would collide with the tightly packed rows
+     the onboarding and the settings screens use, and those controls are already large. */
+  .ezc-icon, .ezc-acts button, .ezc-row button, .ez-hit button { position: relative; }
+  .ezc-icon::before, .ezc-acts button::before, .ezc-row button::before, .ez-hit button::before {
+    content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 100%; height: 100%; min-width: 44px; min-height: 44px; }
+  /* THE ONE PLACE THE FULL 44 DOES NOT FIT, stated rather than quietly dropped. The drawer
+     row's pin and delete are 32px wide and sit 2px apart from each other and from the row
+     button beside them; MEASURED, giving each a 44px-wide area made them overlap by 10px and
+     steal one another's taps. They take the full 44 in HEIGHT -- the direction a thumb
+     actually misses -- and in width they take exactly the space that exists (32 + 1px a side).
+     Widening them further would mean MOVING them, and this item moves nothing: the shape stays
+     where it is, to the pixel. */
+  .ezc-row button::before { min-width: 34px; }
   /* 2. THE TRANSCRIPT. The measure is applied as the SCROLLER'S OWN PADDING -- no wrapper
      was inserted between the scroll container and the messages, so the S97 opening pin
      still measures and positions exactly the element it always did, and the ResizeObserver
@@ -4754,7 +4800,6 @@ function EzistQuranPanel() {
   return (
     <section className="ezist-quran" style={s.ezistQuran}>
       <div style={s.ezistQuranHead}>
-        <span style={s.ezistQuranDot} aria-hidden="true" />
         <span style={s.ezistQuranLabel}>{isHadith ? ezT('home.hadithOfDay2') : ezT('home.verseOfDay2')}</span>
       </div>
       <div style={s.ezistQuranText}>{v.text}</div>
@@ -6604,6 +6649,9 @@ function ezikClearAllA11y() { try { localStorage.removeItem(EZIK_A11Y_KEY); } ca
 // THE ONE PLACE THE PREFERENCES BECOME VISIBLE. Three attributes and one custom property on the
 // root element; every rule and every scaled size reads them from there. Called on load and on
 // each change, and never from a render path.
+// The local half of the answer, remembered so the listener below can re-ask the whole question
+// without going back to the store for a profile key it has no business knowing.
+let ezikLocalMotionPref = false;
 function ezikApplyA11y(prefs) {
   const p = prefs || EZIK_A11Y_DEFAULTS;
   try {
@@ -6612,9 +6660,31 @@ function ezikApplyA11y(prefs) {
     el.style.setProperty('--ez-fs', String(scale));
     el.setAttribute('data-ez-fs', p.fontSize || 'normal');
     if (p.reading) el.setAttribute('data-ez-read', '1'); else el.removeAttribute('data-ez-read');
-    if (p.reduceMotion) el.setAttribute('data-ez-motion', 'reduce'); else el.removeAttribute('data-ez-motion');
+    // EITHER SOURCE, ONE ATTRIBUTE. `data-ez-motion` is what every reduced-motion rule reads,
+    // and it now means «this reader is owed stillness» rather than «this reader found the
+    // switch». MEASURED before this: a `.ez-anim` element under the PLATFORM setting still
+    // reported animationName `fadeIn`, because the @media block covered only the two S98
+    // surfaces while the switch covered the fades, the watermark and the smooth scroll too.
+    ezikLocalMotionPref = !!p.reduceMotion;
+    if (ezikMotionReduced(p.reduceMotion)) el.setAttribute('data-ez-motion', 'reduce');
+    else el.removeAttribute('data-ez-motion');
   } catch (e) {}
 }
+// THE OS CAN CHANGE ITS MIND WHILE THE APP IS OPEN. The rules read the attribute, so the
+// attribute is re-synced when the platform query flips. Nothing subscribes to this and no
+// component re-renders: one attribute on one element, which is where the answer already lives.
+try {
+  const ezMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const ezSyncMotion = () => {
+    try {
+      const el = document.documentElement;
+      if (ezikMotionReduced(ezikLocalMotionPref)) el.setAttribute('data-ez-motion', 'reduce');
+      else el.removeAttribute('data-ez-motion');
+    } catch (e) {}
+  };
+  if (ezMq.addEventListener) ezMq.addEventListener('change', ezSyncMotion);
+  else if (ezMq.addListener) ezMq.addListener(ezSyncMotion);
+} catch (e) {}
 // Does the app owe this user stillness? EITHER the local preference OR the platform one. The
 // platform is asked through matchMedia at the moment of the question, never cached, so turning it
 // on in the OS settings takes effect without a reload.
@@ -8081,21 +8151,58 @@ function App() {
     const anchorTop = anchor.getBoundingClientRect().top
       - el.getBoundingClientRect().top + el.scrollTop;
 
-    // (1) ROOM. `scrollHeight` already includes whatever spacer is currently applied, so it is
-    // subtracted back out to get the height the turn ACTUALLY occupies below the question. The
-    // shortfall against one viewport is the room still needed, and it therefore shrinks to zero
-    // by itself as a long answer fills the screen. Nothing here is a fixed spacer.
+    // (1) ROOM. The shortfall against one viewport is the room still needed, and it therefore
+    // shrinks to zero by itself as a long answer fills the screen. Nothing here is a fixed spacer.
     //
-    // THE APPLIED HEIGHT IS READ OFF THE ELEMENT, NOT REMEMBERED. The first version of this kept
-    // it in a ref written at the moment `setAskPinPad` was called — that is, one commit BEFORE
-    // the DOM had it. A stream re-renders constantly, so a render landing in that gap measured
-    // `scrollHeight` without the spacer and subtracted a spacer that was already recorded: the
-    // shortfall came back inflated by exactly the pending height, the next pass corrected it in
-    // the other direction, and React stopped the page with «Maximum update depth exceeded»
-    // (#185). The DOM cannot disagree with itself, so it is what is asked.
-    const appliedPad = askPadElRef.current ? askPadElRef.current.offsetHeight : 0;
-    const naturalBelow = el.scrollHeight - appliedPad - anchorTop;
-    const need = Math.max(0, Math.ceil(el.clientHeight - naturalBelow));
+    // THE MEASUREMENT MUST NOT CONTAIN THE SPACER, AND SUBTRACTING IT BACK OUT DOES NOT ACHIEVE
+    // THAT. The previous version read `el.scrollHeight` and took `appliedPad` off it. MEASURED on
+    // a real phone (430x932, DPR 3, coarse pointer), that identity is false twice over:
+    //
+    //   · A spacer in a column flexbox brings a ROW GAP with it. `offsetHeight` is the spacer's
+    //     own box and knows nothing of that gap, so `scrollHeight - appliedPad` came back 14px
+    //     short — the gap — and the pin always needed a SECOND commit to correct itself. Measured
+    //     on a full transcript: 0 -> 553 -> 539, settling on the right number one frame late.
+    //
+    //   · Worse, `scrollHeight` never drops below `clientHeight`. While the transcript is shorter
+    //     than the viewport — which is EVERY first question in a new chat — it stays pinned at
+    //     714 no matter how tall the spacer grows, so subtracting the spacer from it removed a
+    //     height that was never added. `need` then came back larger by exactly `anchorTop` on
+    //     every pass and the effect walked away from its own answer: measured 14, 28, 42, 56, 70,
+    //     84, 98, 112, and only `pinPassRef` stopped it. The breaker was being spent on EVERY
+    //     TURN, and the question it was protecting was never pinned at all.
+    //
+    // So the room is measured from the DOM directly and the spacer is excluded by NOT BEING PART
+    // OF THE READING, rather than by arithmetic. The spacer sits immediately before the end
+    // sentinel, so whichever of the two is present marks the same place — the point where the
+    // real content stops — and the reading is identical whether the spacer is mounted or not.
+    // `need` is therefore a function of the layout alone and NOT of `askPinPad`: the effect can
+    // no longer disagree with its own output, and one write is all it can ever take.
+    //
+    // The gap is subtracted because mounting the spacer is what creates it: a spacer that would
+    // buy less room than its own gap costs is not worth mounting, and `need` correctly comes out
+    // 0 there instead of flickering the element in and out of the tree.
+    //
+    // The #185 HISTORY IS STILL WHY THIS IS READ AND NOT REMEMBERED. An earlier version kept the
+    // applied height in a ref written when `setAskPinPad` was called — one commit BEFORE the DOM
+    // had it — and a render landing in that gap measured a `scrollHeight` without the spacer while
+    // subtracting a spacer already recorded. React stopped the page with «Maximum update depth
+    // exceeded». Nothing below asks anything to remember a height.
+    const tail = askPadElRef.current || messagesEndRef.current;
+    if (!tail) return;
+    // The scroller carries its own bottom padding (.ezc-scroll), and that padding is real room
+    // below the content — `scrollHeight` counted it and a bare rect read does not, so it is
+    // put back explicitly rather than being lost in the change of instrument.
+    // THE VIEW IS ASKED THROUGH THE ELEMENT, AND ONLY IF IT ANSWERS. The guards mount this tree
+    // in linkedom, which has no `getComputedStyle` at all; a bare global call threw inside this
+    // layout effect and took the whole app down with it under every DOM guard. There is no
+    // layout in that environment either -- every rect is 0 -- so falling back to 0 gives the
+    // same answer it would have given anyway, and the browser path is unchanged.
+    const view = el.ownerDocument && el.ownerDocument.defaultView;
+    const cs = view && typeof view.getComputedStyle === 'function' ? view.getComputedStyle(el) : null;
+    const rowGap = cs ? (parseFloat(cs.rowGap) || 0) : 0;
+    const naturalBelow = tail.getBoundingClientRect().top - anchor.getBoundingClientRect().top
+      + (cs ? (parseFloat(cs.paddingBottom) || 0) : 0);
+    const need = Math.max(0, Math.ceil(el.clientHeight - naturalBelow - rowGap));
     // Compared against the RENDERED value, and with a pixel of tolerance, so sub-pixel layout
     // cannot start the same argument by a different route.
     if (Math.abs(need - askPinPad) > 1) {
@@ -10334,7 +10441,7 @@ function App() {
           <div style={s.incompleteNotice} role="status">{ezT('chat.qa.incomplete')}</div>
         )}
         {quickActionsVisible && (
-          <div style={s.quickRow} role="group" aria-label={ezT("chat.quickActions")}>
+          <div className="ez-hit" style={s.quickRow} role="group" aria-label={ezT("chat.quickActions")}>
             {EZIK_QUICK_ACTIONS.map((qa) => (
               <button
                 key={qa.key}
@@ -14280,7 +14387,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const nb = idx.current.needBasmala;
 
   return (
-    <div style={contSt}>
+    <div className="ezmr-scope" style={contSt}>
       {/* S110 -- THE TOP READER RAIL. Same gate, same handlers, same accessible names: only the
           furniture changed. The bookmark keeps its two titles and its two aria-labels, and the
           way back is still the same text on the same onExit. The rollback reader (?madinaimg=0)
@@ -15259,8 +15366,11 @@ const s = {
   ezistMeta: { flexShrink: 0, padding: '5px 10px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800 },
   // the featured Quran panel. The marks sit in the head row, never over the text.
   ezistQuran: { padding: '16px 18px 18px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
-  ezistQuranHead: { display: 'flex', alignItems: 'center', gap: 8 },
-  ezistQuranDot: { width: 8, height: 8, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-cyan)' },
+  // 105: the dot that used to lead this row is gone. `paddingInlineStart` is exactly what it
+  // occupied -- its own 8px plus the 8px gap it stood in -- so the title's leading edge stays
+  // at the pixel it has always been at. MEASURED before and after: 346. The `gap` is kept
+  // because it still describes the row, and is simply inert while one child is left.
+  ezistQuranHead: { display: 'flex', alignItems: 'center', gap: 8, paddingInlineStart: 16 },
   ezistQuranLabel: { fontSize: 12.5, fontWeight: 800, color: 'var(--a3-blue)', letterSpacing: '.2px' },
   // ITEM 99 -- THE TOP MARGIN, AND ONLY THE TOP MARGIN. Measured at 430x932 dpr 2 on cfb73ca:
   // the verse box began 43.00px below the panel top and 14.00px below the label row. Item 64
@@ -15934,10 +16044,20 @@ const s = {
 //   * a key that declares a NUMERIC width or height is a fixed-size control — a 44px round button,
 //     a 76px call button, a swatch. Growing the glyph inside a box that cannot grow is how a
 //     label escapes its button, so those keep their size.
-//   * the mushaf is not here at all. Its type size is COMPUTED per page in JS (PG_BASE_FS and the
-//     per-page fit) so that a line of the Uthmani text lands on its measured boundaries; scaling
-//     it from the outside would break the page layout the layout gate attests. It therefore keeps
-//     its own system, exactly as the brief requires.
+//   * THE READER IS EXCLUDED BY SCOPE, and the exclusion is stated rather than assumed. The
+//     Uthmani lines are built in JS at raw px (PG_BASE_FS and the per-page fit), so a page's
+//     TEXT was never reachable from this object -- but the page surface and the reader bar are
+//     ordinary style keys and they were being rewritten with the rest. MEASURED before the
+//     exclusion existed: `.ezmr-title` rendered 15px / 17.1px / 19.2px across the three steps.
+//     The fit divides by pgPage's element-child count and measures its rows, so anything that
+//     grows inside that box moves the boundary the layout gate attests.
+//
+//     THE EXCLUSION IS NOT A LIST OF KEYS. Every size here still becomes a calc() -- the reader
+//     is taken out one level down, by resetting `--ez-fs` to 1 on the reader's own root
+//     (`.ezmr-scope`), so every calc() inside it evaluates at its original number. A scope
+//     covers whatever is rendered inside it, including anything added later; a list of key
+//     names covers only what someone remembered to add to it. The surah INDEX is outside that
+//     scope and still scales, which is right: it is a list of names with no fit to break.
 // AND IT RUNS ONLY FOR SOMEONE WHO ASKED FOR IT. Measured, interleaved against 7e5c608: making
 // every size a calc() unconditionally cost +0.06 ms per keystroke in a 120-turn thread (0.41 ->
 // 0.47 ms amortised over a 200-keystroke burst, past the 0.1 ms clamp that makes a single-keystroke
