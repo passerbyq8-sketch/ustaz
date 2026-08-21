@@ -2091,9 +2091,33 @@ const TAP_BLOCK = `  const onTap = (x, y) => {
 ok('the tap-to-restore block is byte-identical', html.indexOf(TAP_BLOCK) !== -1);
 ok('...and its window is unchanged', /const MUSHAF_TAP_MS = 300;/.test(html));
 ok('the wird dwell is unchanged', /const WIRD_DWELL_MS = 8000;/.test(html));
-ok('the wird strip still outlives the chrome',
-  /const wirdBottomMost = !chromeOn \|\| !\(barH > 0\);/.test(rdSrc)
-  && !/\{chromeOn && MADINA_IMG_ON && \(\s*\n\s*<div style=\{wirdSt\}/.test(rdSrc));
+// ITEM 22+104 -- RE-CUT ONTO THE OPPOSITE CONTRACT, and kept as an assertion rather than
+// dropped. The owner ruled that the wird is the FIRST thing that should leave the eye while
+// reading, so the strip is gated on `chromeOn` and is ABSENT FROM THE DOM in reading mode.
+// What this check is FOR has not changed: that the reader's chrome and the wird strip move
+// together under ONE rule instead of drifting apart. Only the rule flipped, and both halves
+// are stated positively now -- the position no longer names `chromeOn` (that branch became
+// unreachable the moment the render gate took it), and the render gate does name it, with
+// MADINA_IMG_ON still FIRST so ?madinaimg=0 keeps rolling the strip back on its own.
+//
+// rdSrc is '' when the reader region cannot be found, and '' satisfies every negative test
+// written against it -- so the region is asserted FOUND before anything is concluded from it.
+ok('the reader region was found (an empty slice must not pass as agreement)', rdSrc.length > 0);
+ok('the wird strip now leaves WITH the chrome',
+  /const wirdBottomMost = !\(barH > 0\);/.test(rdSrc)
+  && /\{MADINA_IMG_ON && chromeOn && \(\s*\n\s*<div style=\{wirdSt\}/.test(rdSrc));
+// ...AND THE COUNT DOES NOT LEAVE WITH IT. Gating the strip on `chromeOn` is one keystroke
+// away from gating the DWELL on it too, which would credit a reader nothing for exactly the
+// session this item exists to protect. The dwell effect must name `chromeOn` nowhere -- not
+// in a condition, not in its dependency array -- and must still credit the page it is on.
+{
+  const dStart = rdSrc.indexOf('const arm = () => {');
+  const dEnd = dStart < 0 ? -1 : rdSrc.indexOf('}, [state, page]);', dStart);
+  const dwell = dStart >= 0 && dEnd > dStart ? rdSrc.slice(dStart, dEnd) : '';
+  ok('...and the wird COUNT does not leave with it', dwell.length > 0
+    && dwell.indexOf('chromeOn') === -1
+    && dwell.indexOf('setWirdDay(markWirdPageRead(page))') !== -1);
+}
 ok('back from the reader is still the index, never the chat',
   /if \(selected\) return <PagedMushaf startSurah=\{selected\} startPage=\{[^}]*\} onExit=\{ezikGoBack\} \/>;/.test(html)
   && /useEzikBackLayer\(selected != null, leaveSurah\);/.test(html));

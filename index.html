@@ -14225,14 +14225,27 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // Absolute, a sibling of the header, the viewport and the pager, and NEVER a flex child of
   // the column: it therefore consumes zero layout height and the page is measured against
   // exactly the box it was measured against before this existed. Showing or hiding the
-  // chrome MOVES the strip -- it does not resize or move the page, because nothing here is
-  // in the page's box at all.
+  // chrome ADDS OR REMOVES the strip -- it does not resize or move the page, because
+  // nothing here is in the page's box at all.
+  //
+  // ITEM 22+104 -- THE STRIP LEAVES WITH THE CHROME. It used to outlive it, on the stated
+  // reasoning that knowing how much of your wird is left was the one thing worth keeping on
+  // an otherwise bare page. The owner has overruled that reasoning by name: the wird is the
+  // FIRST thing that should go from the eye while reading. So the strip is gated on
+  // `chromeOn` at its render site and is ABSENT FROM THE DOM in reading mode -- not faded,
+  // not hidden, not present at zero height. Gone.
+  //
+  // THE COUNT DOES NOT STOP WITH IT. The dwell timer is keyed on [state, page] and names
+  // `chromeOn` nowhere, so the page being read is credited whether or not anything is drawn
+  // to say so. Hiding the chrome hides the REPORTING of the wird, never the counting of it.
   //
   // Where it sits: directly above the pager when the pager is on screen (barH is measured,
-  // never assumed), and on the bottom safe-area edge when the chrome is hidden. The strip
-  // itself does not hide with the chrome -- knowing how much of your wird is left is the
-  // one thing worth keeping on an otherwise bare page.
-  const wirdBottomMost = !chromeOn || !(barH > 0);
+  // never assumed), and on the bottom safe-area edge when that measurement is 0. `chromeOn`
+  // is no longer a term in the position: the strip renders only WITH the chrome, so the
+  // branch that put it on the bottom edge for a HIDDEN chrome is unreachable and is gone.
+  // At a visible chrome the value is what it always was, which is why the position is
+  // unchanged byte for byte on every frame the strip is actually drawn.
+  const wirdBottomMost = !(barH > 0);
   const wirdSt = {
     ...s.wirdWrap,
     bottom: wirdBottomMost ? 0 : barH,
@@ -14329,10 +14342,12 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
         </div>
       </div>
       ))}
-      {/* 82 -- the wird strip. Gated on MADINA_IMG_ON alone, so ?madinaimg=0 rolls it back
-          with the reader it belongs to and the fallback renderers are byte for byte what
-          they were. Gated on the flag and NOT on chromeOn: the strip outlives the chrome. */}
-      {MADINA_IMG_ON && (
+      {/* 82 -- the wird strip. MADINA_IMG_ON is still the FIRST term, so ?madinaimg=0 rolls
+          it back with the reader it belongs to and the fallback renderers are byte for byte
+          what they were. ITEM 22+104: `chromeOn` is the second term, so reading mode carries
+          no strip in the DOM at all. The dwell timer is gated on NEITHER -- the page goes on
+          counting towards the wird while the strip that reports it is gone. */}
+      {MADINA_IMG_ON && chromeOn && (
       <div style={wirdSt}>
         <button onClick={() => setPicker(true)} aria-label="وردُ اليوم" style={s.wirdBtn}>
           {wirdTarget ? (

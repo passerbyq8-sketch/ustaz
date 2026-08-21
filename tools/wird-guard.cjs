@@ -15,7 +15,7 @@
  *
  *   2. It asserts, against the source text, the things that are structural rather than
  *      behavioural: the dwell constant, the presets, the strip's overlay nature, its
- *      independence from the chrome, its gate on the image flag, the survival of the
+ *      departure WITH the chrome, its gate on the image flag, the survival of the
  *      bookmark identifiers, the three new removals in resetAll, and the total absence
  *      of the new keys from every request-building line in the file.
  *
@@ -458,7 +458,12 @@ ok('strip carries no flex child properties', !/wirdWrap: \{[^}]*\bflex:/.test(SR
 ok('strip has no height of its own', !/wirdWrap: \{[^}]*\bheight:/.test(SRC));
 ok('strip style spreads the absolute wrapper', /const wirdSt = \{\s*\.\.\.s\.wirdWrap,/.test(SRC));
 ok('strip bottom follows the measured pager', /bottom: wirdBottomMost \? 0 : barH,/.test(SRC));
-ok('strip falls back to bottom 0', /const wirdBottomMost = !chromeOn \|\| !\(barH > 0\);/.test(SRC));
+ok('strip falls back to bottom 0', /const wirdBottomMost = !\(barH > 0\);/.test(SRC));
+// ITEM 22+104: and `chromeOn` is no longer a term in the POSITION at all. The strip renders
+// only with the chrome now, so a `!chromeOn ||` here would be dead source dressed as a
+// branch -- and, worse, the shape someone would reach for while trying to bring the strip
+// back into reading mode by the back door. Asserted absent rather than merely not-required.
+ok('strip position carries no chromeOn term', !/const wirdBottomMost = [^;]*chromeOn/.test(SRC));
 ok('measurement failure leaves the strip bottom-most', /if \(state !== 'ok' \|\| !chromeOn\) return;/.test(SRC));
 ok('pager height is measured, not assumed', /const el = barRef\.current; h = \(el && el\.offsetHeight\) \|\| 0;/.test(SRC));
 ok('pager height failure falls back to 0', /catch \(e\) \{ h = 0; \}/.test(SRC));
@@ -486,7 +491,7 @@ ok('reading viewport keeps flex 1', /^  pgViewport: \{[^}]*\bflex: 1\b/m.test(SR
 ok('madina sheet keeps flex 1', /const MADINA_SHEET_ST = \{ flex: 1, minHeight: 0, width: '100%'/.test(SRC));
 ok('container is still the relative overlay host', /const contSt = MADINA_IMG_ON \? \{ \.\.\.s\.memContainer, position: 'relative' \} : s\.memContainer;/.test(SRC));
 
-// the strip is a SIBLING of header, viewport and pager, and outlives the chrome
+// the strip is a SIBLING of header, viewport and pager, and leaves with the chrome
 // RE-PINNED for the same reason: the header carries a className now. The check is about the
 // ORDER of the siblings, not about which attributes each one lists, so it matches the element
 // by the style that identifies it and tolerates anything else on the tag.
@@ -501,9 +506,51 @@ ok('strip is rendered', iStrip > 0);
 ok('strip is a sibling after header, viewport and pager',
   iHead > 0 && iView > iHead && iBar > iView && iStrip > iBarLast,
   JSON.stringify({ iHead, iView, iBar, iBarLast, iStrip }));
-ok('strip is gated by MADINA_IMG_ON', /\{MADINA_IMG_ON && \(\s*<div style=\{wirdSt\}>/.test(SRC));
-ok('strip is NOT gated by chromeOn', !/\{chromeOn && \(\s*<div style=\{wirdSt\}>/.test(SRC));
-ok('strip render gate mentions no chromeOn', region('{MADINA_IMG_ON && (\n      <div style={wirdSt}>', 40).indexOf('chromeOn') === -1);
+// ITEM 22+104 -- THE STRIP LEAVES WITH THE CHROME, and the three assertions that used to say
+// the exact opposite are re-cut here. None is disabled and none is dropped: each still pins
+// the render gate, and the gate it pins is now the two-term one.
+//
+// MADINA_IMG_ON IS STILL ASSERTED TO BE FIRST, because the rollback contract did not change:
+// ?madinaimg=0 must take the strip away with the reader it belongs to. A gate written
+// `chromeOn && MADINA_IMG_ON` would satisfy a naive 'mentions both' check while leaving the
+// flag deciding nothing on its own, so the order is part of the assertion.
+//
+// AND THE ANCHOR IS REQUIRED TO BE FOUND. The third check here used to call region() and
+// compare the result against '' -- which is precisely what region() returns when its anchor
+// has MOVED. It therefore passed loudest at the moment it had stopped looking at anything.
+// A missing anchor is now a failure with a sentence on it.
+ok('strip is gated by MADINA_IMG_ON, and it is the FIRST term',
+  /\{MADINA_IMG_ON && chromeOn && \(\s*<div style=\{wirdSt\}>/.test(SRC));
+ok('strip IS gated by chromeOn -- absent from the DOM in reading mode',
+  /&& chromeOn && \(\s*<div style=\{wirdSt\}>/.test(SRC));
+{
+  const gate = '{MADINA_IMG_ON && chromeOn && (';
+  const at = SRC.indexOf(gate);
+  const strip = at < 0 ? -1 : SRC.indexOf('<div style={wirdSt}>', at);
+  ok('strip render gate anchor is FOUND, not silently absent', at > 0, 'region anchor missing');
+  ok('...and it is the gate on the strip itself, not some other flag site',
+    strip > at && strip - at < 60, JSON.stringify({ at: at, strip: strip }));
+}
+// ...and the departure is by ABSENCE, not by paint. opacity/visibility/display on the
+// wrapper would leave the node in the tree and satisfy nobody's reading of the item.
+ok('strip is not merely painted out',
+  !/wirdWrap: \{[^}]*\b(?:opacity|visibility)\b/.test(SRC));
+
+// ...AND THE COUNT DOES NOT LEAVE WITH IT. This is the half of the new contract that is
+// easiest to break by accident: gating the strip on `chromeOn` is one keystroke away from
+// gating the DWELL on it too, and a reader in reading mode would then be credited nothing
+// for exactly the session this item exists to protect. The dwell effect must name `chromeOn`
+// NOWHERE -- not in a condition, not in a dependency array -- and must still credit the page.
+{
+  const dStart = SRC.indexOf('const arm = () => {');
+  ok('dwell effect is FOUND', dStart > 0, 'arm() anchor missing');
+  const dEnd = dStart < 0 ? -1 : SRC.indexOf('}, [state, page]);', dStart);
+  ok('dwell effect closes on the [state, page] dependency array', dEnd > dStart);
+  const dwell = dStart > 0 && dEnd > dStart ? SRC.slice(dStart, dEnd) : '';
+  ok('dwell body names chromeOn NOWHERE', dwell.length > 0 && dwell.indexOf('chromeOn') === -1);
+  ok('dwell still credits the page it is sitting on',
+    dwell.indexOf('setWirdDay(markWirdPageRead(page))') !== -1);
+}
 ok('picker is gated by MADINA_IMG_ON too', /\{MADINA_IMG_ON && picker && \(/.test(SRC));
 // rollback: the flag is read from ?madinaimg and is false on '0', so both gates go dark
 ok('image flag reader untouched', /const readMadinaImgFlag = \(\) => \{/.test(SRC));
