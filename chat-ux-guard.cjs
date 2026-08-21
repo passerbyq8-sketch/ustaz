@@ -1702,9 +1702,14 @@ function partE() {
   const mbEnd = decoded.indexOf('\n// =====', mbStart);
   const mbBody = (mbStart !== -1 && mbEnd > mbStart) ? decoded.slice(mbStart, mbEnd) : '';
   ok('MessageBubble\'s body was located for inspection', mbBody.length > 500, 'len=' + mbBody.length);
-  ok('...and it touches no store at all', mbBody.indexOf('localStorage') === -1, 'localStorage inside MessageBubble');
-  ok('...and never reads the favourites list', mbBody.indexOf('ezikReadFavs') === -1 && mbBody.indexOf('EZIK_FAVS_KEY') === -1);
-  ok('...and never parses JSON', mbBody.indexOf('JSON.parse') === -1);
+  // ITEM 116. The LOCATED assertion above is not protection for the three below it: a moved anchor
+  // turns one line red and leaves these three printing PASS over an empty string, which satisfies
+  // every `=== -1` ever written. Each carries its own precondition so it falls on its own.
+  ok('...and it touches no store at all',
+    mbBody.length > 0 && mbBody.indexOf('localStorage') === -1, 'localStorage inside MessageBubble');
+  ok('...and never reads the favourites list',
+    mbBody.length > 0 && mbBody.indexOf('ezikReadFavs') === -1 && mbBody.indexOf('EZIK_FAVS_KEY') === -1);
+  ok('...and never parses JSON', mbBody.length > 0 && mbBody.indexOf('JSON.parse') === -1);
   ok('the lookup a bubble is answered from is a Set built once',
     /const favIdSet = React\.useMemo\(\(\) => \{[\s\S]{0,300}?new Set\(\)[\s\S]{0,300}?\}, \[myFavs\]\);/.test(decoded));
 

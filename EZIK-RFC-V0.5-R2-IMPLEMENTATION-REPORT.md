@@ -334,7 +334,7 @@ lib/ledger/source-policy.js` returns **empty**.
 
 ## K. Gates and tests
 
-All 88 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 89 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -354,14 +354,14 @@ retiredchat 0  guardhonesty 0
 promptconsistency 0 · truncatedtag 0 · explicitfailure 0 · scholarseparation 0
 cardorcontext 0
 reviewermatrix 0 · attributionoutput 0 · domaincontract 0 · noemptyanswer 0
-ladderorder 0 · taghonesty 0 · standingnotice 0 · telemetrytext 0
+ladderorder 0 · taghonesty 0 · standingnotice 0 · telemetrytext 0 · vacuousassert 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        88/88 PASS
-RECON              PASS=178 WARN=1 FAIL=0
+TOTAL_GATES        89/89 PASS
+RECON              PASS=179 WARN=1 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

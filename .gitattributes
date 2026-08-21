@@ -439,3 +439,9 @@ tools/core-bytes.cjs text eol=lf
 # measurement, and a CRLF checkout of a file that carries regexes is the shape that has already
 # cost this repository three green gates.
 tools/prebuild-jsx.cjs text eol=lf
+
+# guards/vacuous-assertion-guard.cjs (item 116) -- the gate that refuses an assertion which is
+# satisfied by an empty region. It parses every .cjs file in the tree, so a CRLF checkout would
+# shift every line number it reports and every offset Babel hands it. Pinned for the same
+# reason as every gate above it.
+guards/vacuous-assertion-guard.cjs text eol=lf

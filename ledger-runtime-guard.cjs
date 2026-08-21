@@ -352,8 +352,11 @@ async function main() {
     ok('the ledger branch logs a [ledger] line', !!line, 'no line found');
     ok('...carrying only counts, an outcome and a trace id',
       /outcome/.test(line) && /traceId/.test(line) && /spent\./.test(line), line.slice(0, 200));
+    // ITEM 116: the note above says these eight pass vacuously on a miss and leans on the
+    // existence check to make that visible. It does not: that check fails alone and these eight
+    // still print PASS. Each now carries the precondition itself.
     for (const forbidden of ['question', 'messages', 'body.', 'text', 'answer', 'device', 'founder', 'ip']) {
-      ok('...and never «' + forbidden + '»', !line.includes(forbidden), line.slice(0, 200));
+      ok('...and never «' + forbidden + '»', line.length > 0 && !line.includes(forbidden), line.slice(0, 200));
     }
     // AND NOT FROM THE HANDLER ANY MORE. If it comes back to api/ask.js it comes back to the far
     // side of res.end(), where it is unreadable — so its absence there is part of the contract.

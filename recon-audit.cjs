@@ -722,7 +722,18 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 88;   // 88th: telemetrytext -- guards/telemetry-text-guard.cjs. The handler
+  const GATES_EXPECTED = 89;   // 89th: vacuousassert -- guards/vacuous-assertion-guard.cjs. Items 106
+                               //       and 106-ب each repaired the same defect by hand: a region cut at
+                               //       a literal anchor returns '' when the anchor moves, and '' satisfies
+                               //       every negative assertion written over it, so the check prints PASS
+                               //       at its loudest while reading nothing. Eight sites in three guards,
+                               //       then sixty-four in one. Nothing stopped the next one being written.
+                               //       This gate parses all 144 .cjs files in scope with Babel -- not with a
+                               //       regular expression, which mis-measured this twice -- and fails on any
+                               //       (emptyable region x negative assertion) pair that is not protected
+                               //       inside its OWN condition and not in a named exception list. Six live
+                               //       sites in three guards were found and repaired in the same commit.
+                               // 88th: telemetrytext -- guards/telemetry-text-guard.cjs. The handler
                                //       printed the reader's own question on three lines: the planner's
                                //       derived queries, the resolved topic, and twelve words claim-gate
                                //       lifted verbatim out of the question. All three are deleted; the

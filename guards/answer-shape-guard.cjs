@@ -528,8 +528,11 @@ function answerShapeViolations(reply) {
       /الاقتراحاتُ بحسبِ المقام لا بحكمِ العادة/u.test(p));
     ok('...and leaving them out is named as CORRECT, not as a shortfall',
       /ترْكُها حينئذٍ هو الصواب، لا نقصٌ في الرد/u.test(p));
+    // ITEM 116: `p` falls back to '' when the prompt key is renamed, and '' contains no blind
+    // checklist question either -- so this one absence check would pass while reading nothing
+    // even though every positive check above it went red. It carries its own precondition.
     ok('...and the old blind checklist question is gone',
-      !/هَلْ أَنْهَيْتُ رَدِّي بِاقْتِرَاحَاتٍ لِلْمُتَابَعَة؟ → يَجِبُ/u.test(p));
+      p.length > 0 && !/هَلْ أَنْهَيْتُ رَدِّي بِاقْتِرَاحَاتٍ لِلْمُتَابَعَة؟ → يَجِبُ/u.test(p));
     // The BUTTONS themselves are untouched — the owner kept them.
     const html2 = read('index.html');
     ok('the <suggestions> printer is untouched — the buttons stay',
