@@ -29,7 +29,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v7';
+const CACHE = 'ezik-v8';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // 298686 transferred bytes for a second copy of what '/' already holds. The network-first
@@ -71,7 +71,7 @@ const CORE = [
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS when
 // the constant has fallen below it, so a shell that grows cannot quietly leave the pre-check
 // reading a number that stopped being true.
-const CORE_BYTES = 1634924;
+const CORE_BYTES = 1644371;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.

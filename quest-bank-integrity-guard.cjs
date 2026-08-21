@@ -122,7 +122,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': 'dddd181b0c1e6b68bda385d7d2dfc10e3523da2d60f5ab719fea07f493eb6f47',
+  'sw.js': '0d9a746d77650b5c2c9fa49130f8ec3e0d158225fb7db099d8faa128590084b0',
 };
 
 // ---------------------------------------------------------------------------
@@ -146,7 +146,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v7';
+const SW_CACHE = 'ezik-v8';
 const SW_ORIGIN = 'https://ezik.app';
 // The data-file class item 80 governs, and one member of every class it must NOT
 // have touched. Named by request, because the worker selects by request.
