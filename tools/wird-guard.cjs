@@ -2112,6 +2112,179 @@ if (nLifted && tLifted && hLifted) {
     B0.PRAYER_OFFSETTABLE.indexOf('sunrise') === -1 && B0.PRAYER_KEYS.indexOf('sunrise') !== -1);
 }
 
+
+// ---------------------------------------------------------------------------
+// O. ROUND 25 A-3 -- THE SELECTION LAYER, AND THE PROMISE IT MUST NOT MAKE
+// ---------------------------------------------------------------------------
+// The reader chooses his own daily content in each of the three modules, the choice is kept
+// on the device, and the home screen shows it back. This section runs that record and then
+// enforces the constraint the round called the most dangerous one in it:
+//
+//   NO GIVING AND THEN TAKING AWAY. Not one visible string in the whole shipped client may
+//   say 'remind', 'alert', 'it will remind you' or 'we will let you know', and there may be
+//   no time field anywhere. A control that asks a child for an hour, when nothing in the
+//   application can ring at that hour, is a lie told by software -- and the child is the one
+//   who finds out. The hour is born the day notifications ship, and not before.
+//
+// The scan below is over the WHOLE client's visible text, not merely this layer's, and its
+// match count is printed so the number is read rather than trusted.
+
+const O_CONSTS = ['DAILY_WIRD_KEY', 'DAILY_WIRD_MODES', 'DW_LINE_MUSHAF', 'DW_LINE_ADHKAR',
+  'DW_LINE_MEMORIZE', 'DW_SURAH_WORD', 'DW_PAGES_WORD', 'DW_CARD_TITLE', 'DW_CARD_EMPTY',
+  'DW_MUSHAF_LABEL', 'DW_ADHKAR_LABEL', 'DW_MEMORIZE_LABEL', 'toArabicDigits', 'SURAH_ORDER'];
+const O_FNS = ['readDailyWird', 'writeDailyWird', 'dailyWirdLines'];
+
+const oConsts = {};
+const oFns = {};
+let oLifted = true;
+for (const n of O_CONSTS) { oConsts[n] = liftConst(n); if (!ok('A-3: lift const ' + n, !!oConsts[n])) oLifted = false; }
+for (const n of O_FNS) { oFns[n] = liftFunction(n); if (!ok('A-3: lift function ' + n, !!oFns[n])) oLifted = false; }
+
+if (oLifted) {
+  // SURAH_NAMES is built by a loop over the name table, so lifting its declaration would hand
+  // back an empty object. It is stubbed with ASCII names instead: what is under test here is
+  // that the line NAMES the chosen surah from that map, not what Arabic the map holds.
+  const O_LIFTED = O_CONSTS.map((n) => oConsts[n]).concat(O_FNS.map((n) => oFns[n])).join('\n\n')
+    + '\nconst SURAH_NAMES = { 1: "ALFATIHA", 2: "ALBAQARA", 114: "ALNAS" };';
+  ok('A-3: lifted block braces balance',
+    (O_LIFTED.match(/\{/g) || []).length === (O_LIFTED.match(/\}/g) || []).length);
+
+  const OS = (store) => new Function('localStorage', 'JSON', 'Object', 'Array',
+    O_LIFTED + '\nreturn { ' + O_CONSTS.concat(O_FNS).join(', ') + ', SURAH_NAMES };')(store, JSON, Object, Array);
+
+  /* ---- the key: new, versioned, and nobody else's ---- */
+  const D0 = OS(memStore());
+  eq('A-3: the selection record has its own versioned key', D0.DAILY_WIRD_KEY, 'ezik_daily_wird_v1');
+  ok('A-3: ...and it is none of the keys that already existed',
+    ['mushaf_wird_target_v1', 'mushaf_wird_day_v1', 'ezik_adhkar_streak_v1', 'ezik_prayer_prefs_v1',
+      'ezik_hijri_offset_v1', 'child_profile'].indexOf(D0.DAILY_WIRD_KEY) === -1);
+  eq('A-3: a mushaf wird is a page count or a surah, and nothing else', D0.DAILY_WIRD_MODES.join(','), 'pages,surah');
+  eq('A-3: the canonical 114 are offered in the mushaf order', D0.SURAH_ORDER.length, 114);
+  ok('A-3: ...beginning at al-Fatiha and ending at 114',
+    D0.SURAH_ORDER[0] === 1 && D0.SURAH_ORDER[113] === 114);
+
+  /* ---- NOTHING EXISTING IS RENAMED OR MIGRATED ---- */
+  const storeSrc = oFns.readDailyWird + '\n' + oFns.writeDailyWird;
+  const setItems = storeSrc.match(/setItem\(/g) || [];
+  const removeItems = storeSrc.match(/removeItem\(/g) || [];
+  eq('A-3: the selection store writes exactly one key', setItems.length, 1);
+  ok('A-3: ...and that key is its own', /setItem\(DAILY_WIRD_KEY/.test(storeSrc));
+  eq('A-3: ...and it deletes nothing, so no existing store is migrated away', removeItems.length, 0);
+  ok('A-3: the pre-existing page-count key is still the one the mushaf reads',
+    SRC.indexOf("const WIRD_TARGET_KEY = 'mushaf_wird_target_v1';") !== -1);
+
+  /* ---- a fresh device has chosen nothing ---- */
+  const fresh = OS(memStore()).readDailyWird();
+  ok('A-3: a fresh device has chosen nothing at all',
+    fresh.mushaf.mode === '' && fresh.mushaf.surah === 0 && fresh.adhkar.cat === ''
+    && fresh.memorize.surah === 0);
+
+  /* ---- each module's choice round-trips ---- */
+  const st1 = memStore();
+  const D1 = OS(st1);
+  const w1 = D1.writeDailyWird({ mushaf: { mode: 'surah', surah: 114 } });
+  eq('A-3: a chosen surah survives the round trip', w1.mushaf.surah, 114);
+  eq('A-3: ...as a surah wird, not a page wird', w1.mushaf.mode, 'surah');
+  const w2 = D1.writeDailyWird({ adhkar: { cat: 'morning', title: 'T' } });
+  eq('A-3: a chosen dhikr survives the round trip', w2.adhkar.cat, 'morning');
+  ok('A-3: ...and it keeps the surah already chosen in another module', w2.mushaf.surah === 114);
+  const w3 = D1.writeDailyWird({ memorize: { surah: 2 } });
+  eq('A-3: a chosen memorisation survives the round trip', w3.memorize.surah, 2);
+  ok('A-3: ...and all three choices stand together', w3.mushaf.surah === 114 && w3.adhkar.cat === 'morning');
+  ok('A-3: the choices are on the device and nowhere else', st1.has('ezik_daily_wird_v1'));
+
+  /* ---- half a choice is not a choice ---- */
+  const half = OS(memStore({ ezik_daily_wird_v1: '{"mushaf":{"mode":"surah","surah":0}}' })).readDailyWird();
+  eq('A-3: a surah wird with no surah behind it is refused', half.mushaf.mode, '');
+  const bad = ['0', '115', '-1', '1.5', '"x"', 'null'];
+  let refused = 0;
+  for (const v of bad) {
+    const r = OS(memStore({ ezik_daily_wird_v1: '{"memorize":{"surah":' + v + '}}' })).readDailyWird();
+    if (r.memorize.surah === 0) refused++;
+  }
+  eq('A-3: every surah number outside 1..114 is refused', refused, bad.length);
+
+  /* ---- a broken store is 'nothing chosen', never an exception ---- */
+  const broken = ['', 'not json', '[]', 'null', '3', '{"mushaf":5}', '{"adhkar":[]}'];
+  let quiet = 0, threw = 0;
+  for (const b of broken) {
+    try {
+      const r = OS(memStore({ ezik_daily_wird_v1: b })).readDailyWird();
+      if (r.mushaf.mode === '' && r.adhkar.cat === '' && r.memorize.surah === 0) quiet++;
+    } catch (e) { threw++; }
+  }
+  eq('A-3: every broken store reads as nothing chosen', quiet, broken.length);
+  eq('A-3: ...and none of them throws at the reader', threw, 0);
+  const deafD = { getItem() { throw new Error('no'); }, setItem() { throw new Error('no'); },
+    removeItem() { throw new Error('no'); } };
+  let deafOk = false;
+  try { const d = OS(deafD); d.writeDailyWird({ memorize: { surah: 2 } }); deafOk = d.readDailyWird().memorize.surah === 0; }
+  catch (e) { deafOk = false; }
+  ok('A-3: a storage that denies every operation neither throws nor invents a choice', deafOk);
+
+  /* ---- the card shows what was chosen, and only that ---- */
+  const D2 = OS(memStore());
+  eq('A-3: nothing chosen draws no lines', D2.dailyWirdLines(D2.readDailyWird(), null).length, 0);
+  const chose = { mushaf: { mode: 'surah', surah: 1 }, adhkar: { cat: 'c', title: 'DHIKR' }, memorize: { surah: 114 } };
+  const lines = D2.dailyWirdLines(chose, null);
+  eq('A-3: three choices draw three lines', lines.length, 3);
+  ok('A-3: the mushaf line names the chosen surah from SURAH_NAMES', lines[0].indexOf('ALFATIHA') !== -1);
+  ok('A-3: the dhikr line names the chosen category', lines[1].indexOf('DHIKR') !== -1);
+  ok('A-3: the memorisation line names its own surah', lines[2].indexOf('ALNAS') !== -1);
+  const pages = D2.dailyWirdLines({ mushaf: { mode: 'pages', surah: 0 }, adhkar: { cat: '', title: '' }, memorize: { surah: 0 } }, 5);
+  eq('A-3: a page wird draws one line', pages.length, 1);
+  const pagesNone = D2.dailyWirdLines({ mushaf: { mode: 'pages', surah: 0 }, adhkar: { cat: '', title: '' }, memorize: { surah: 0 } }, null);
+  eq('A-3: ...and with no page target stored it invents none', pagesNone.length, 0);
+
+  /* ---- one dropdown per module, and they are dropdowns ---- */
+  const selects = SRC.match(/<select/g) || [];
+  ok('A-3: the three modules each carry a dropdown',
+    (SRC.match(/aria-label=\{DW_MUSHAF_LABEL\}/g) || []).length === 1
+    && (SRC.match(/aria-label=\{DW_ADHKAR_LABEL\}/g) || []).length === 1
+    && (SRC.match(/aria-label=\{DW_MEMORIZE_LABEL\}/g) || []).length === 1);
+  ok('A-3: and each of the three is a real dropdown', selects.length >= 5);
+  ok('A-3: the home card is drawn from the stored choices, not from a second source',
+    SRC.indexOf('{DW_CARD_TITLE}') !== -1 && SRC.indexOf('v.dailyWirdLines') !== -1);
+
+  /* ================= THE BINDING SCAN ================= */
+  // Visible text only: comments are stripped first, because a word nobody is shown is not a
+  // promise made to anybody.
+  const visible = (function () {
+    const noC = SRC.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+    const AR = /[\u0600-\u06FF]/;
+    const out = [];
+    const re = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g;
+    let m;
+    while ((m = re.exec(noC)) !== null) {
+      const v = m[1] !== undefined ? m[1] : m[2];
+      if (v && AR.test(v)) out.push(v);
+    }
+    const jsxRe = />([^<>{}]*[\u0600-\u06FF][^<>{}]*)</g;
+    while ((m = jsxRe.exec(noC)) !== null) out.push(m[1]);
+    return out;
+  })();
+  const stripH = (x) => String(x).replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+  const PROMISE_WORDS = [
+    ['tadhkir', '\u062A\u0630\u0643\u064A\u0631'],
+    ['tanbih', '\u062A\u0646\u0628\u064A\u0647'],
+    ['yudhakkiruk', '\u064A\u0630\u0643\u0631\u0643'],
+    ['nuallimuk', '\u0646\u0639\u0644\u0645\u0643'],
+  ];
+  ok('A-3: the visible-text scan actually read the client', visible.length > 200);
+  let promiseHits = 0;
+  for (const w of PROMISE_WORDS) {
+    const n = visible.filter((t) => stripH(t).indexOf(stripH(w[1])) !== -1).length;
+    promiseHits += n;
+    ok('A-3: no visible string says ' + w[0] + ' (matches=' + n + ')', visible.length > 200 && n === 0);
+  }
+  console.log('  A-3 SCAN: visible Arabic strings=' + visible.length
+    + '  forbidden-word matches=' + promiseHits);
+  eq('A-3: THE COUNT THE ROUND REQUIRES TO BE ZERO', promiseHits, 0);
+  ok('A-3: and the client offers no time field anywhere',
+    SRC.length > 0 && SRC.indexOf('type="time"') === -1 && SRC.indexOf("type: 'time'") === -1
+    && SRC.indexOf("type='time'") === -1);
+}
+
 function report() {
   const line = '-'.repeat(58);
   console.log(line);

@@ -1074,6 +1074,10 @@ for (const _name in SURAH_NUMBERS) { const _n = SURAH_NUMBERS[_name]; if (!SURAH
 
 // Revelation place per the standard Egyptian (1924) mushaf header classification.
 // These 28 surahs are Medinan (مدنية); all others are Meccan (مكية).
+// A-3: THE CANONICAL ORDER, ONCE. Every dropdown that offers the 114 offers them in the
+// mushaf order, built here and not re-derived per control -- so no control can sort, filter
+// or slice its way to a different catalogue than the one the memorizer already draws.
+const SURAH_ORDER = Array.from({ length: 114 }, (_, i) => i + 1);
 const MEDINAN_SURAHS = new Set([2,3,4,5,8,9,13,22,24,33,47,48,49,55,57,58,59,60,61,62,63,64,65,66,76,98,99,110]);
 const revelationLabel = (n) => MEDINAN_SURAHS.has(n) ? 'مدنية' : 'مكية';
 
@@ -3479,6 +3483,14 @@ function EzikIstanaHome(v) {
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
+          {/* A-3: WHAT HE CHOSE, shown back to him on opening. It is a statement, not an
+              alarm: it names the choice and stops there. */}
+          <div style={s.ezistQuran}>
+            <div style={s.ezistCardTitle}>{DW_CARD_TITLE}</div>
+            {(v.dailyWirdLines || []).length
+              ? (v.dailyWirdLines || []).map((t, i) => <div key={i} style={s.ezistCardSub}>{t}</div>)
+              : <div style={s.ezistCardSub}>{DW_CARD_EMPTY}</div>}
+          </div>
           {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
               The panel itself did not change: same component, same getDailyVerse(), same text
               printed verbatim. Only where it is drawn moved. */}
@@ -3510,11 +3522,15 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // presentation components are handed the result. An empty string when the conversion could
   // not be made, so the masthead draws nothing rather than a wrong day.
   const hijri = hijriTodayLabel();
+  // A-3: the reader's own choices, read from the device the same way the wird above is. The
+  // card shows back what was chosen and claims nothing else -- no time, and no next occurrence.
+  const dailyWirdLinesToday = dailyWirdLines(readDailyWird(), wt);
   const view = {
     name: profile?.name,
     hijri: hijri,
     greeting: g,
     wird: wird,
+    dailyWirdLines: dailyWirdLinesToday,
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
     // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
@@ -4595,6 +4611,8 @@ function AdhkarScreenV2({ onBack }) {
   // ITEM 43-أ. The chain is browse state like the rest: this component owns it, reads it and
   // writes it, and the presentation below is handed the two numbers it draws.
   const [streak, setStreak] = useState(readAdhkarStreak);
+  // A-3: this screen owns its slice of the daily-wird record, like every other value here.
+  const [dailyWird, setDailyWird] = useState(readDailyWird);
   useEffect(() => {
     let alive = true;
     loadAdhkar().then((d) => { if (alive) setDb(d || { categories: [], byCat: {} }); })
@@ -4674,6 +4692,13 @@ function AdhkarScreenV2({ onBack }) {
     goal: streak.goal,
     run: adhkarRunAsOf(streak, adhkarDayKey()),
     onGoal: (n) => setStreak(writeAdhkarGoal(n)),
+    // A-3: the reader's daily dhikr. The title travels with the id so the home card can name
+    // it without loading the store a second time.
+    dailyCat: dailyWird.adhkar.cat,
+    onDailyCat: (id) => {
+      const hit = (cats || []).filter((c) => c.id === id)[0];
+      setDailyWird(writeDailyWird({ adhkar: { cat: hit ? hit.id : '', title: hit ? hit.title : '' } }));
+    },
   };
   // The whole of the style switch on this screen: which component receives the state above.
   // S103: the istana catalogue is the whole of the answer. Both legacy browse designs were
@@ -4775,7 +4800,7 @@ function IstanaAdhkarFeature({ c, st, onOpen }) {
   );
 }
 
-function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done, goal, run, onGoal }) {
+function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done, goal, run, onGoal, dailyCat, onDailyCat }) {
   // ITEM 43-أ. The ring is measured against the READER'S number now, not a constant. The
   // constant survives as the default that number starts from, and nothing else reads it.
   const shown = Math.min(done, goal);
@@ -4801,6 +4826,12 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
       </div>
       {/* the SAME search row, the same input, the same handler as before. */}
       {searchOpen && <A3Search query={query} setQuery={setQuery} />}
+      {/* A-3: the reader picks his own daily dhikr from the store's own categories. */}
+      <select value={dailyCat || ''} onChange={(e) => onDailyCat(e.target.value)}
+        aria-label={DW_ADHKAR_LABEL} style={s.memAyahSelect}>
+        <option value="">{DW_NONE}</option>
+        {(cats || []).map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+      </select>
       <div style={s.eziaScroll}>
         <div className="ezia-wrap">
           <section className="ezia-masthead">
@@ -13841,6 +13872,101 @@ function writeMushafLastPage(pg, sr) {
 // The daily target: a decimal integer string, 1..604, and ABSENCE IS A REAL ANSWER. "No
 // target" is not a broken state to be repaired on the next read -- it is the state the
 // reader gets by default and the state the picker can return them to for good.
+// ============================================================
+// A-3 — طبقةُ الاختيار: ما يختارُه المستخدمُ لوردِه اليوميّ
+// ============================================================
+// THE OWNER'S RULE, IN HIS WORDS: "we do not restrict it -- the user decides it, from
+// everywhere". So each of the three modules offers a plain dropdown, the choice is stored on
+// the device, and the home screen shows back exactly what was chosen and nothing more.
+//
+// WHAT THIS RECORD DOES NOT HOLD, AND WHY IT MATTERS MORE THAN WHAT IT DOES. There is no time
+// in it. No hour, no minute, no "remind me at". A dropdown that asked for a time while nothing
+// in the app can ring is a PROMISE THE APP CANNOT KEEP -- the reader would set it, trust it,
+// and be failed silently by software that never intended to wake up. The time field is born on
+// the day notifications ship and not one hour before it. The guard for this item scans every
+// visible string of this layer and fails on any of the four words that make that promise.
+//
+// NO EXISTING KEY IS RENAMED AND NO DATA IS MIGRATED. The pages-per-day number stays where it
+// has always been -- mushaf_wird_target_v1, read and written by the mushaf's own helpers, with
+// its own progress strip still reading it. This record holds only what had nowhere to live:
+// which KIND of mushaf wird was chosen, which surah, which adhkar category, which surah to
+// memorise. One new key, named here and named in the report.
+const DAILY_WIRD_KEY = 'ezik_daily_wird_v1';
+const DAILY_WIRD_MODES = ['pages', 'surah'];
+
+// EVERY FIELD IS CHECKED, and anything unusable reads as "not chosen yet" -- which is the app
+// exactly as it was before this item, not an error on a child's screen.
+function readDailyWird() {
+  const out = { mushaf: { mode: '', surah: 0 }, adhkar: { cat: '', title: '' }, memorize: { surah: 0 } };
+  let raw = null;
+  try { raw = localStorage.getItem(DAILY_WIRD_KEY); } catch (e) { return out; }
+  if (typeof raw !== 'string' || !raw) return out;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return out; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  const m = rec.mushaf;
+  if (m && typeof m === 'object' && !Array.isArray(m)) {
+    if (typeof m.mode === 'string' && DAILY_WIRD_MODES.indexOf(m.mode) !== -1) out.mushaf.mode = m.mode;
+    const n = Number(m.surah);
+    // An integer, or nothing. Truncating 1.5 to 1 would turn a broken store into a CHOICE
+    // the reader never made, which is the one thing this record must never do.
+    if (typeof m.surah === 'number' && isFinite(n) && Math.trunc(n) === n && n >= 1 && n <= 114) out.mushaf.surah = n;
+  }
+  const a = rec.adhkar;
+  if (a && typeof a === 'object' && !Array.isArray(a)) {
+    if (typeof a.cat === 'string' && a.cat.length > 0 && a.cat.length <= 120) out.adhkar.cat = a.cat;
+    if (typeof a.title === 'string' && a.title.length <= 200) out.adhkar.title = a.title;
+  }
+  const z = rec.memorize;
+  if (z && typeof z === 'object' && !Array.isArray(z)) {
+    const n = Number(z.surah);
+    if (typeof z.surah === 'number' && isFinite(n) && Math.trunc(n) === n && n >= 1 && n <= 114) out.memorize.surah = n;
+  }
+  // A mushaf mode of 'surah' with no surah behind it is not a choice; it is half a write.
+  if (out.mushaf.mode === 'surah' && !out.mushaf.surah) { out.mushaf.mode = ''; }
+  return out;
+}
+// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for -- so a control can set its own
+// state from this return and cannot end up showing a choice that was never stored.
+function writeDailyWird(next) {
+  const cur = readDailyWird();
+  if (!next || typeof next !== 'object') return cur;
+  const rec = { mushaf: cur.mushaf, adhkar: cur.adhkar, memorize: cur.memorize };
+  if (next.mushaf && typeof next.mushaf === 'object') rec.mushaf = { mode: next.mushaf.mode, surah: next.mushaf.surah };
+  if (next.adhkar && typeof next.adhkar === 'object') rec.adhkar = { cat: next.adhkar.cat, title: next.adhkar.title };
+  if (next.memorize && typeof next.memorize === 'object') rec.memorize = { surah: next.memorize.surah };
+  try { localStorage.setItem(DAILY_WIRD_KEY, JSON.stringify(rec)); } catch (e) { return readDailyWird(); }
+  return readDailyWird();
+}
+// The card's lines, built from the record and the reader's OWN page target. Only what was
+// actually chosen produces a line: nothing here invents a goal the reader never set.
+function dailyWirdLines(dw, pageTarget) {
+  const out = [];
+  if (!dw) return out;
+  if (dw.mushaf.mode === 'surah' && dw.mushaf.surah) {
+    out.push(DW_LINE_MUSHAF + ' ' + DW_SURAH_WORD + ' ' + (SURAH_NAMES[dw.mushaf.surah] || ''));
+  } else if (dw.mushaf.mode === 'pages' && pageTarget) {
+    out.push(DW_LINE_MUSHAF + ' ' + toArabicDigits(pageTarget) + ' ' + DW_PAGES_WORD);
+  }
+  if (dw.adhkar.cat && dw.adhkar.title) out.push(DW_LINE_ADHKAR + ' ' + dw.adhkar.title);
+  if (dw.memorize.surah) out.push(DW_LINE_MEMORIZE + ' ' + DW_SURAH_WORD + ' ' + (SURAH_NAMES[dw.memorize.surah] || ''));
+  return out;
+}
+
+// THE VISIBLE TEXT OF THIS LAYER, all of it, in one place so the guard can scan one region.
+// Not one of these strings names a time, an alert, or anything that rings.
+const DW_CARD_TITLE = 'وِردي اليوم';
+const DW_CARD_EMPTY = 'لم تختر بعد. اختر من المصحف أو الأذكار أو المحفّظ.';
+const DW_LINE_MUSHAF = 'المصحف:';
+const DW_LINE_ADHKAR = 'الأذكار:';
+const DW_LINE_MEMORIZE = 'الحفظ:';
+const DW_SURAH_WORD = 'سورة';
+const DW_PAGES_WORD = 'صفحة في اليوم';
+const DW_NONE = 'بلا اختيار';
+const DW_MUSHAF_LABEL = 'اختر وردك من المصحف';
+const DW_ADHKAR_LABEL = 'اختر ذكرك اليوميّ';
+const DW_MEMORIZE_LABEL = 'اختر ما تحفظه';
+
 const WIRD_TARGET_KEY = 'mushaf_wird_target_v1';
 // Canonical decimal only. ' 5', '5 ', '5.0', '-5', '05', '', 'abc' and Arabic-Indic digits
 // as STORED text are all refused: the picker normalises before it writes, so anything
@@ -14030,6 +14156,24 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // component is the same on the loading render, the failed render and the reading render.
   const [wirdDay, setWirdDay] = useState(readWirdDay);
   const [wirdTarget, setWirdTarget] = useState(readWirdTarget);
+  // A-3: the reader's own choice of WHAT the mushaf wird is. The page count keeps living in
+  // its own key; this holds the kind, and the surah when a surah is what was chosen.
+  const [dailyWird, setDailyWird] = useState(readDailyWird);
+  const dailyWirdValue = dailyWird.mushaf.mode === 'surah' && dailyWird.mushaf.surah
+    ? ('surah:' + dailyWird.mushaf.surah)
+    : (dailyWird.mushaf.mode === 'pages' && wirdTarget ? ('pages:' + wirdTarget) : '');
+  const onDailyWirdPick = (raw) => {
+    const v = String(raw || '');
+    if (!v) { setDailyWird(writeDailyWird({ mushaf: { mode: '', surah: 0 } })); return; }
+    const bits = v.split(':');
+    const n = Math.trunc(Number(bits[1]));
+    if (bits[0] === 'pages' && isFinite(n) && n > 0) {
+      setTarget(n);                        // the EXISTING helper, writing the EXISTING key
+      setDailyWird(writeDailyWird({ mushaf: { mode: 'pages', surah: 0 } }));
+    } else if (bits[0] === 'surah' && isFinite(n) && n >= 1 && n <= 114) {
+      setDailyWird(writeDailyWird({ mushaf: { mode: 'surah', surah: n } }));
+    }
+  };
   const [picker, setPicker] = useState(false);
   const [pickerText, setPickerText] = useState('');
   // The measured height of the pager, taken off the pager itself rather than assumed from
@@ -14426,6 +14570,18 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
             <div style={s.wirdSheetTitle}>وردُ اليوم</div>
             <button onClick={() => setPicker(false)} aria-label="إغلاق" style={{ ...s.pgNavBtn, width: 36 }}>×</button>
           </div>
+          {/* A-3: one dropdown, both kinds of wird -- a number of pages a day, or a named
+              surah. No time is asked for anywhere on it. */}
+          <select value={dailyWirdValue} onChange={(e) => onDailyWirdPick(e.target.value)}
+            aria-label={DW_MUSHAF_LABEL} style={s.memAyahSelect}>
+            <option value="">{DW_NONE}</option>
+            {WIRD_TARGET_PRESETS.map((n) => (
+              <option key={'p' + n} value={'pages:' + n}>{toArabicDigits(n) + ' ' + DW_PAGES_WORD}</option>
+            ))}
+            {SURAH_ORDER.map((n) => (
+              <option key={'s' + n} value={'surah:' + n}>{DW_SURAH_WORD + ' ' + SURAH_NAMES[n]}</option>
+            ))}
+          </select>
           <div style={s.wirdChips}>
             {WIRD_TARGET_PRESETS.map((n) => (
               <button key={n} onClick={() => setTarget(n)} style={{ ...s.wirdChip, ...(wirdTarget === n ? s.wirdChipOn : {}) }}>{toArabicDigits(n)}</button>
@@ -14622,6 +14778,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const [ready, setReady] = useState(!!__quranData); // true once the mushaf JSON is in memory
   const [counts, setCounts] = useState(null);        // { [surahNum]: ayahCount } — built once, single pass
   const [view, setView] = useState('picker');        // 'picker' | 'drill'
+  // A-3: what the reader has chosen to be memorising. It is a CHOICE, not a schedule.
+  const [dailyWird, setDailyWird] = useState(readDailyWird);
   const [selectedSurah, setSelectedSurah] = useState(null); // 1..114
   const [startAyah, setStartAyah] = useState(1);
   const [granularity, setGranularity] = useState('word'); // 'ayah' | 'word' (default word — one word per reveal)
@@ -14938,6 +15096,15 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
             );
           })}
         </div>
+        {/* A-3: the reader's own daily memorisation choice, stored on the device. */}
+        <select value={dailyWird.memorize.surah ? String(dailyWird.memorize.surah) : ''}
+          onChange={(e) => setDailyWird(writeDailyWird({ memorize: { surah: parseInt(e.target.value, 10) || 0 } }))}
+          aria-label={DW_MEMORIZE_LABEL} style={s.memAyahSelect}>
+          <option value="">{DW_NONE}</option>
+          {SURAH_ORDER.map((n) => (
+            <option key={n} value={n}>{DW_SURAH_WORD + ' ' + SURAH_NAMES[n]}</option>
+          ))}
+        </select>
         {/* the start bar: the SAME select, the same bounds, the same startDrill handler. */}
         {selectedSurah && (
           <div style={s.ezqStartBar}>
