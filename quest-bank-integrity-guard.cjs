@@ -56,6 +56,14 @@
  *                      fills mid-write, and a browser with no navigator.storage at all.
  *                      Asserted on what the worker DOES -- what it wrote, what it
  *                      deleted, what it recorded -- never on its text. Item 91-A.
+ *                      It also re-derives CORE_BYTES from the CORE list sw.js itself
+ *                      declares and refuses ANY deviation, in either direction, so the
+ *                      quota pre-check cannot go on measuring against a number the files
+ *                      outgrew or shrank away from. Item 112.
+ *   B13 sw report   -- the same worker again, asked what it SENT at the end of install:
+ *                      a clean install, one entry down, several entries down, and NOBODY
+ *                      LISTENING -- plus a browser with no clients.matchAll, a client that
+ *                      throws, and the quota skip. Item 93-b.
  *
  * USAGE
  *   node quest-bank-integrity-guard.cjs --emit    > quest-data/bank-integrity-golden.json
@@ -105,6 +113,10 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   item 93-b    -- install ends by PUSHING its precache brief to every connected client
+  //                    instead of leaving the record behind a request nobody makes. B13 below
+  //                    was cut in the SAME commit as this digest. CACHE is NOT touched: the
+  //                    store name is a ship decision and the merge round owns the bump.
   //   item 22+104  -- CACHE 'ezik-v6' -> 'ezik-v7'. index.html is in CORE and item 22+104
   //                    changed it (the wird strip now leaves the DOM with the chrome), so a
   //                    returning reader must stop being served the old shell out of the old
@@ -122,7 +134,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': '0d9a746d77650b5c2c9fa49130f8ec3e0d158225fb7db099d8faa128590084b0',
+  'sw.js': '9d7e5781dda8d56ca020ef200fbe21db356bbaad9ff93cc8e7768b897c0d84bc',
 };
 
 // ---------------------------------------------------------------------------
@@ -148,6 +160,10 @@ const SEALED = {
 const SW_FILE = 'sw.js';
 const SW_CACHE = 'ezik-v8';
 const SW_ORIGIN = 'https://ezik.app';
+// ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
+// rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
+// tautology: a renamed tag would satisfy it while every listener in the app went deaf.
+const SW_REPORT_TAG = 'precache-report';
 // The data-file class item 80 governs, and one member of every class it must NOT
 // have touched. Named by request, because the worker selects by request.
 // ITEM 90 SPLIT THIS CLASS IN TWO, and each half is asserted for the OPPOSITE thing. The two
@@ -214,8 +230,39 @@ function swRes(body, status) {
   };
 }
 
+// ITEM 93-B. A domesticated `self.clients`. The worker reaches the page through matchAll +
+// postMessage, so both have to be levers a test can move: how many pages are listening (0 is a
+// real state, and the commonest one on a first install), whether one of them throws on
+// postMessage, and whether the browser exposes matchAll at all.
+function swClients(opts) {
+  const o = opts || {};
+  const posted = [];
+  const calls = [];
+  const count = typeof o.count === 'number' ? o.count : 1;
+  const clients = { claim: () => Promise.resolve() };
+  if (o.matchAll !== false) {
+    clients.matchAll = (arg) => {
+      calls.push(arg || null);
+      if (o.matchAll === 'rejects') return Promise.reject(new Error('no clients (synthetic)'));
+      const list = [];
+      for (let i = 0; i < count; i++) {
+        const id = 'c' + i;
+        list.push({
+          id: id,
+          postMessage: (m) => {
+            if (o.throwsOn === id) throw new Error('client is gone (synthetic)');
+            posted.push({ client: id, message: m });
+          },
+        });
+      }
+      return Promise.resolve(list);
+    };
+  }
+  return { clients: clients, posted: posted, calls: calls };
+}
+
 // Load sw.js into a domesticated global scope and hand back the levers a test needs.
-function swLoad(swPath, fetchImpl, failAdd, nav) {
+function swLoad(swPath, fetchImpl, failAdd, nav, clientsOpt) {
   const store = new Map();
   const listeners = {};
   const opened = [];
@@ -223,6 +270,7 @@ function swLoad(swPath, fetchImpl, failAdd, nav) {
   // both are invisible to a harness whose `add` neither stores nor records.
   const deleted = [];
   const addCalls = [];
+  const clientHarness = swClients(clientsOpt);
   let fetchCalls = 0;
   const keyOf = (r) => (typeof r === 'string' ? SW_ORIGIN + r : r.url);
   const cacheOf = (n) => { if (!store.has(n)) store.set(n, new Map()); return store.get(n); };
@@ -249,7 +297,7 @@ function swLoad(swPath, fetchImpl, failAdd, nav) {
     self: {
       addEventListener: (t, f) => { listeners[t] = f; },
       skipWaiting: () => {},
-      clients: { claim: () => Promise.resolve() },
+      clients: clientHarness.clients,
       location: { origin: SW_ORIGIN },
     },
     caches: {
@@ -284,6 +332,10 @@ function swLoad(swPath, fetchImpl, failAdd, nav) {
       return h ? h._body : undefined;
     },
     self: sandbox.self,
+    // ITEM 93-B levers: what the worker HANDED the pages, and what it asked for when it looked
+    // them up. Both are behaviour; neither is visible in the cache or the storage record.
+    posted: () => clientHarness.posted.slice(),
+    matchAllCalls: () => clientHarness.calls.slice(),
     // ITEM 91-A levers.
     storage: () => sandbox.self.ezikStorage,
     deleted: () => deleted.slice(),
@@ -1104,6 +1156,222 @@ async function compare(goldenPath) {
             + '        digest in the SAME commit -- never by hand from the comment table.');
         } else ok('CORE_BYTES (' + m[1] + ') equals the ' + onDisk + ' bytes CORE weighs on disk, exactly');
       }
+    }
+  }
+
+  // -- B13 the service worker's END-OF-INSTALL REPORT, EXECUTED (item 93-b) --
+  //
+  // Item 93 made a failed precache entry countable and nameable; 91-A gave it a reason. Both
+  // left the record behind a REQUEST, so a page learns its offline store is short an entry only
+  // if it thinks to ask -- and the readers who never ask are exactly the ones who meet the gap
+  // with no network. 93-b pushes the brief at the end of install instead.
+  //
+  // FOUR STATES, and the worker is asked what it SENT in each: a clean install, one entry down,
+  // several entries down, and NOBODY LISTENING. The fourth is the one that decides whether this
+  // is a feature or a new way to strand a phone: the first install of a new worker routinely
+  // runs before any page is controlled, so an empty client list is the healthiest install there
+  // is and must cost nothing at all.
+  console.log('\n-- B13 service worker: the end-of-install report (item 93-b) --');
+  if (!fs.existsSync(swPath)) {
+    no('B13', SW_FILE + ' is ABSENT -- the report channel cannot be executed');
+  } else {
+    const WIDE13 = { quota: 500 * 1024 * 1024, usage: 1024 * 1024 };
+    const NARROW13 = { quota: 2 * 1024 * 1024, usage: 2 * 1024 * 1024 - 64 * 1024 };
+    const reportsOf = (h) => h.posted().map((p) => p.message).filter((m) => m && m.ezik === SW_REPORT_TAG);
+
+    // ---- STATE 1: everything stored. The page is told so, unasked. ----------
+    {
+      const nav = swNav(WIDE13);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator, { count: 1 });
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      if (rejected) no('B13', 'a clean install REJECTED once it had a report to send: ' + rejected.message);
+      const reports = reportsOf(h);
+      if (reports.length !== 1) {
+        no('B13', 'a clean install sent ' + reports.length + ' report(s) to 1 listening client.\n'
+          + '        Item 93-b is the PUSH: a record that still has to be asked for is item 93,\n'
+          + '        and item 93 is the state a reader already meets with no network.');
+      } else {
+        const r = reports[0];
+        if (r.failed !== 0 || (r.entries && r.entries.length !== 0)) {
+          no('B13', 'a clean install reported ' + r.failed + ' failure(s) and '
+            + JSON.stringify(r.entries) + '. A report that cries on a healthy install is a report\n'
+            + '        the page learns to ignore before the first real one arrives.');
+        } else ok('a clean install hands every client a report saying nothing failed');
+        if (r.skipped !== null) {
+          no('B13', 'a clean install reported skipped=' + JSON.stringify(r.skipped));
+        } else ok('...and it carries what install DECIDED, not only what it counted');
+        const st = h.storage();
+        if (!st || st.announced !== 1) {
+          no('B13', 'the announcement is not recorded (announced=' + JSON.stringify(st && st.announced)
+            + '). A page that asks must be able to tell "nothing failed" from "you were never told".');
+        } else ok('the number of clients told is recorded on the storage channel');
+        const calls = h.matchAllCalls();
+        if (!calls.length || !calls[0] || calls[0].includeUncontrolled !== true) {
+          no('B13', 'clients were looked up as ' + JSON.stringify(calls[0]) + '. On a FIRST install\n'
+            + '        nothing is controlled yet, so without includeUncontrolled the page that just\n'
+            + '        registered this worker -- the one that wants the brief -- is never found.');
+        } else ok('the lookup includes uncontrolled clients (the first install has no controlled page)');
+      }
+      const missing = SW_CORE.filter((u) => !h.has(h.opened[0], u));
+      if (missing.length) no('B13', 'the report cost the precache ' + missing.length + ' entr(y/ies)');
+    }
+
+    // ---- STATE 2: one entry fails. It is named, with its reason. ------------
+    {
+      const nav = swNav(WIDE13);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')),
+        (u) => (u === '/adhkar.json' ? 'network' : false), nav.navigator, { count: 1 });
+      const inst = h.install();
+      for (const w of inst.waits) { await Promise.resolve(w).catch(() => {}); }
+      const reports = reportsOf(h);
+      if (reports.length !== 1) {
+        no('B13', 'an install with one failed entry sent ' + reports.length + ' report(s)');
+      } else {
+        const r = reports[0];
+        if (r.failed !== 1 || !Array.isArray(r.entries) || r.entries.length !== 1) {
+          no('B13', 'one entry failed and the report said failed=' + r.failed + ', entries='
+            + JSON.stringify(r.entries));
+        } else if (r.entries[0].url !== '/adhkar.json') {
+          no('B13', 'the failed entry was counted but not NAMED (' + JSON.stringify(r.entries[0]) + ').\n'
+            + '        A count with no name tells a page that something is missing and not what.');
+        } else if (r.entries[0].reason !== 'network') {
+          no('B13', 'a failed fetch reached the page as reason ' + JSON.stringify(r.entries[0].reason)
+            + '. "Your disk is full" and "you are offline" ask opposite things of a reader.');
+        } else ok('a single failed entry reaches the page named and reasoned ("/adhkar.json", network)');
+      }
+    }
+
+    // ---- STATE 3: several entries fail. ALL of them travel. -----------------
+    // A report that carried only the first would be indistinguishable from a report of one
+    // failure, and the difference is whether the store is short a file or short a shelf.
+    {
+      const nav = swNav(WIDE13);
+      const down = ['/adhkar.json', '/icon-watermark.png', '/manifest.json'];
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')),
+        (u) => (down.indexOf(u) !== -1 ? 'network' : false), nav.navigator, { count: 1 });
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      if (rejected) no('B13', 'three failed entries REJECTED install: ' + rejected.message);
+      const reports = reportsOf(h);
+      const r = reports[0];
+      if (reports.length !== 1 || !r) {
+        no('B13', 'an install with three failed entries sent ' + reports.length + ' report(s)');
+      } else if (r.failed !== down.length) {
+        no('B13', 'three entries failed and the report counted ' + r.failed);
+      } else {
+        const named = (r.entries || []).map((e) => e.url).sort();
+        if (JSON.stringify(named) !== JSON.stringify(down.slice().sort())) {
+          no('B13', 'three entries failed and the report named ' + JSON.stringify(named)
+            + '. Truncating the list makes "one file missing" and "three files missing" the same\n'
+            + '        message at the page.');
+        } else ok('every failed entry travels, not just the first (3 of 3 named)');
+        const stored = SW_CORE.filter((u) => h.has(h.opened[0], u));
+        if (stored.length !== SW_CORE.length - down.length) {
+          no('B13', 'the report disagrees with the store: ' + stored.length + ' of '
+            + SW_CORE.length + ' entries present against ' + r.failed + ' reported failures');
+        } else ok('...and the report matches what the store actually holds');
+      }
+    }
+
+    // ---- STATE 4: NOBODY IS LISTENING. The install is untouched. ------------
+    // This is the normal first install, not an error state. If it costs anything -- a rejection,
+    // an unstored entry, a recorded failure -- then 93-b has bought observability by making the
+    // healthy case worse, which is a straight loss.
+    {
+      const nav = swNav(WIDE13);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator, { count: 0 });
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      if (rejected) {
+        no('B13', 'an install with NO client rejected (' + rejected.message + '). The first install\n'
+          + '        of a new worker routinely runs before any page is controlled; refusing it\n'
+          + '        because nobody was listening strands the phone on the previous worker.');
+      } else ok('an install with no client at all still settles (the worker activates)');
+      const missing = SW_CORE.filter((u) => !h.has(h.opened[0], u));
+      if (missing.length) {
+        no('B13', 'with no client listening the worker stored only ' + (SW_CORE.length - missing.length)
+          + ' of ' + SW_CORE.length + ' CORE entries. The report must cost the precache nothing.');
+      } else ok('...and all ' + SW_CORE.length + ' CORE entries are still stored');
+      if (h.posted().length !== 0) no('B13', 'a report was posted to a client list that was empty');
+      const rec = h.self.ezikPrecacheFailures || [];
+      if (rec.length !== 0) {
+        no('B13', 'an empty client list was recorded as ' + rec.length + ' precache failure(s).\n'
+          + '        Nobody listening is not a precache problem and must not read as one.');
+      } else ok('...and "nobody listening" is not recorded as a failure');
+      const st = h.storage();
+      if (!st || st.announced !== 0) {
+        no('B13', 'an empty audience was recorded as ' + JSON.stringify(st && st.announced)
+          + ' rather than 0 -- a page reading this cannot tell "nobody was there" from "we never tried".');
+      } else ok('an empty audience is recorded as 0, distinctly from "unavailable"');
+    }
+
+    // ---- STATE 4b: the browser exposes no clients.matchAll at all. ----------
+    {
+      const nav = swNav(WIDE13);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator, { matchAll: false });
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      const st = h.storage();
+      if (rejected) {
+        no('B13', 'a browser with no clients.matchAll made install REJECT (' + rejected.message
+          + '). The push channel has to be optional or it is a new way to strand a phone.');
+      } else ok('a browser with no clients.matchAll still settles install');
+      const missing = SW_CORE.filter((u) => !h.has(h.opened[0], u));
+      if (missing.length) no('B13', 'a missing clients API cost the precache ' + missing.length + ' entr(y/ies)');
+      else ok('...and stores all ' + SW_CORE.length + ' CORE entries');
+      if (!st || st.announced !== 'unavailable') {
+        no('B13', 'the absent channel was recorded as ' + JSON.stringify(st && st.announced)
+          + ', not "unavailable" -- so a page cannot tell a silent worker from a mute browser.');
+      } else ok('the absent channel is recorded as "unavailable", not as a failure');
+    }
+
+    // ---- STATE 4c: one client throws on postMessage. The others still get it. ----
+    {
+      const nav = swNav(WIDE13);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator,
+        { count: 3, throwsOn: 'c1' });
+      const inst = h.install();
+      let rejected = null;
+      for (const w of inst.waits) { await Promise.resolve(w).catch((e) => { rejected = e; }); }
+      if (rejected) no('B13', 'one dead client REJECTED install: ' + rejected.message);
+      const got = h.posted().map((p) => p.client).sort();
+      if (JSON.stringify(got) !== JSON.stringify(['c0', 'c2'])) {
+        no('B13', 'with one client throwing, the report reached ' + JSON.stringify(got)
+          + ' instead of ["c0","c2"]. A page that navigated away mid-install must not cost the\n'
+          + '        pages still open their copy.');
+      } else ok('a client that throws on postMessage costs only itself the report');
+      const st = h.storage();
+      if (!st || st.announced !== 2) {
+        no('B13', 'the announcement count is ' + JSON.stringify(st && st.announced)
+          + ' where 2 of 3 clients were actually reached -- the record must count deliveries,\n'
+          + '        not attempts, or it reports a page as told when it was not.');
+      } else ok('...and the record counts deliveries, not attempts (2 of 3)');
+    }
+
+    // ---- STATE 5: the QUOTA SKIP announces too. -----------------------------
+    // The skip is the state a reader most needs told about -- nothing was written at all -- and
+    // it produces zero per-entry failures, so a report gated on `failed > 0` would be silent in
+    // exactly the case it exists for.
+    {
+      const nav = swNav(NARROW13);
+      const h = swLoad(swPath, () => Promise.resolve(swRes('NET')), null, nav.navigator, { count: 1 });
+      const inst = h.install();
+      for (const w of inst.waits) { await Promise.resolve(w).catch(() => {}); }
+      const reports = reportsOf(h);
+      if (reports.length !== 1) {
+        no('B13', 'a quota-skipped install sent ' + reports.length + ' report(s). Nothing was\n'
+          + '        written at all, which is the one outcome a reader cannot afford not to hear.');
+      } else if (reports[0].skipped !== 'quota') {
+        no('B13', 'the skipped install reported skipped=' + JSON.stringify(reports[0].skipped));
+      } else if (reports[0].failed !== 0) {
+        no('B13', 'the skipped install reported ' + reports[0].failed + ' per-entry failure(s); the\n'
+          + '        skip REPLACES that list, and a page shown seven failures would hunt seven files.');
+      } else ok('a quota-skipped install still reports, and reports the skip rather than seven failures');
     }
   }
 
