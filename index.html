@@ -3923,6 +3923,67 @@ const printAsPdf = async (title, bodyHtml) => {
 };
 
 // يحوّل محتوى المستند (فقرات، عناوين بـ# أو ##، نقاط بـ- أو •) إلى HTML للتصدير
+// ============================================================
+// ITEM 42-ب — THE REPLY, AS A PDF
+// ============================================================
+// THE MACHINE WAS MEASURED BEFORE IT WAS USED, and it was already here twice over:
+//   * printAsPdf() above -- the one PDF path in this app, which awaits window.__ezikVendor
+//     ('html2pdf') and falls back to window.print() when that never lands;
+//   * the lazy vendor map at the head of the document, where html2pdf.bundle (906KB) has sat
+//     since S97 precisely so that a session which never exports a PDF never pays for it.
+// So this item adds NO library, no <script> tag and not one byte to the boot path. What it adds
+// is a fifth button on a rail that already had four.
+//
+// THE SOURCE IS THE CLIPBOARD'S SOURCE. getText is buildCopyText -- the same serializeReply()
+// call the copy button and the share button hand over -- so there are not two serializers that
+// can drift, and the ayah, the hadith, the dhikr, the steps and the source chips come out of it
+// exactly as they go into the clipboard. docToHtml() is the SAME renderer the document card's
+// «تصدير PDF» already feeds printAsPdf, so the two PDFs are made the same way.
+//
+// ARABIC READS THE RIGHT WAY BECAUSE THE BROWSER SHAPES IT. html2pdf rasterises the DOM through
+// html2canvas, so the glyphs in the file are the glyphs the browser laid out -- joined, shaped
+// and right-to-left -- rather than a font-substituted re-run inside a PDF writer. printAsPdf
+// already sets direction rtl and textAlign right on the node it hands over; nothing here
+// re-states them, so the two export paths cannot disagree.
+//
+// ZERO MODEL CALL, ZERO REQUEST OF THIS APP'S OWN. The vendor bundle arrives from the cache or
+// from the lazy source it already had; the reply itself is text this device is holding.
+//
+// 44x44 BY AREA, NOT BY SHAPE (44-ج). It is a .ezc-acts button, and the sheet gives every one of
+// them a 44x44 ::before. It states no width and no height of its own, so nothing moved by a pixel.
+const EZIK_PDF_LABEL = 'PDF';
+const EZIK_PDF_ARIA = 'تصدير الردّ ملفَّ PDF';
+const EZIK_PDF_WAIT = '...';
+const EZIK_PDF_FAIL = 'تعذّرَ التصدير';
+const EZIK_PDF_TITLE = 'ردُّ عزك';
+
+const ExportPdfReplyButton = ({ getText }) => {
+  const [flash, setFlash] = useState('');
+  // ONE PRESS, ONE FILE. State alone could not promise it: two taps dispatched inside one task
+  // both read the value from before React committed the first. The ref flips synchronously.
+  const busyRef = useRef(false);
+  const doExport = async () => {
+    if (busyRef.current) return;
+    const payload = (typeof getText === 'function') ? getText() : '';
+    if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
+    busyRef.current = true;
+    setFlash('wait');
+    try {
+      await printAsPdf(EZIK_PDF_TITLE, docToHtml(payload));
+      setFlash('');
+    } catch (e) {
+      setFlash('fail');
+      setTimeout(() => setFlash(''), 1500);
+    }
+    busyRef.current = false;
+  };
+  return (
+    <button type="button" onClick={doExport} aria-label={EZIK_PDF_ARIA} className="ezik-focus" style={miniBtnStyle}>
+      {flash === 'wait' ? EZIK_PDF_WAIT : flash === 'fail' ? EZIK_PDF_FAIL : EZIK_PDF_LABEL}
+    </button>
+  );
+};
+
 const docToHtml = (md) => {
   const lines = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   const out = [];
@@ -11674,6 +11735,10 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
         {/* ITEM 42-أ: SHARE. The same payload the clipboard gets, the same rail, the same
             44x44 hit area every .ezc-acts button already takes from 44-ج. It calls nothing. */}
         <ShareReplyButton getText={buildCopyText} />
+        {/* ITEM 42-ب: the same buildCopyText payload, rendered by the document card's own
+            docToHtml and printed by the app's one printAsPdf. No library, no request, no
+            second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
+        <ExportPdfReplyButton getText={buildCopyText} />
         {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}

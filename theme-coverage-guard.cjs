@@ -2684,12 +2684,13 @@ const shareEnd = shareAt === -1 ? -1 : html.indexOf('\nconst MessageListenButton
 const shareSrc = (shareAt !== -1) ? html.slice(shareAt, shareEnd === -1 ? shareAt + 2000 : shareEnd) : '';
 ok('42-أ: the share button was located', shareSrc.length > 200, 'len=' + shareSrc.length);
 
-okOn('42-أ: the reply rail carries the four permitted actions', [['mbSrc', mbSrc]],
+okOn('42-أ: the reply rail carries the five permitted actions', [['mbSrc', mbSrc]],
   /<MessageListenButton /.test(mbSrc)
   && /<CopyReplyButton /.test(mbSrc)
   && /<ShareReplyButton /.test(mbSrc)
+  && /<ExportPdfReplyButton /.test(mbSrc)
   && /onFavorite\(message, index\)/.test(mbSrc),
-  'one of the four permitted reply actions is no longer on the rail');
+  'one of the five permitted reply actions is no longer on the rail');
 
 // THE HARD LIMIT: ZERO MODEL CALL. The three banned actions are banned by name, and the rail is
 // proved to build no request of ANY kind. The brain freeze is not lifted by this item.
@@ -4256,6 +4257,70 @@ okOn('Y7: ...and the listener is removed when the notice unmounts', [['swNoteSrc
 ok('Y8: it is mounted, beside the app and under the same boundary',
   /root\.render\(React\.createElement\(ErrorBoundary, null, React\.createElement\(App\), React\.createElement\(EzikPrecacheNotice\)\)\);/
     .test(html));
+
+/* ---- Z. ITEM 42-B: THE REPLY EXPORTS ITSELF, WITH NO NEW MACHINE -------- */
+// THE MACHINE WAS MEASURED FIRST. Two things had to already be true before a button could be
+// hung on them, and both are asserted rather than remembered: html2pdf is declared in the LAZY
+// vendor map and is NOT a script tag on the boot path, and printAsPdf is the app's single PDF
+// path. A future change that promotes html2pdf back to a render-blocking script fails here.
+const vendAt = html.indexOf('window.__ezikVendor');
+ok('Z1: the lazy vendor loader is still what fetches html2pdf',
+  vendAt !== -1 && /html2pdf: \['https:\/\/[^']+html2pdf\.bundle\.min\.js'/.test(html),
+  'the lazy vendor map no longer declares html2pdf');
+ok('Z1: ...and html2pdf is on no <script src> in the document',
+  !/<script[^>]+src=["'][^"']*html2pdf/i.test(html),
+  'html2pdf came back as a boot-blocking script tag');
+eq('Z1: the app has exactly one PDF path', (html.match(/const printAsPdf = async /g) || []).length, 1);
+okOn('Z1: ...and it still awaits the lazy bundle and degrades to print()', [['html', html]],
+  /await window\.__ezikVendor\('html2pdf'\)/.test(html)
+  && /if \(!window\.html2pdf\) \{ document\.title = title; window\.print\(\); return; \}/.test(html));
+
+const pdfAt = html.indexOf('const ExportPdfReplyButton = ({ getText }) =>');
+const pdfEnd = pdfAt === -1 ? -1 : html.indexOf('const docToHtml = (md) =>', pdfAt);
+const pdfSrc = (pdfAt !== -1 && pdfEnd > pdfAt) ? html.slice(pdfAt, pdfEnd) : '';
+ok('Z2: the export button was located and bounded', pdfSrc.length > 400, 'len=' + pdfSrc.length);
+okOn('Z2: it exports THE REPLY, from the very payload the clipboard is handed', [['mbSrc', mbSrc]],
+  /<ExportPdfReplyButton getText=\{buildCopyText\} \/>/.test(mbSrc),
+  'the export button was given a second source of truth');
+okOn('Z2: ...and it prints it through the one PDF path, rendered by the one renderer',
+  [['pdfSrc', pdfSrc]],
+  /await printAsPdf\(EZIK_PDF_TITLE, docToHtml\(payload\)\)/.test(pdfSrc)
+  && /const payload = \(typeof getText === 'function'\) \? getText\(\) : ''/.test(pdfSrc),
+  'the export path stopped going through printAsPdf(docToHtml(...))');
+// The document card already exports with exactly this pair. Two callers, one machine.
+eq('Z2: ...which is the pair the document card already uses',
+  (html.match(/printAsPdf\([^)]*docToHtml\(/g) || []).length, 2);
+okOn('Z3: ZERO MODEL CALL AND ZERO REQUEST on the export path', [['pdfSrc', pdfSrc]],
+  !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket|\/api\//.test(pdfSrc),
+  'the export button acquired a request');
+okOn('Z3: ...and one press cannot become two files', [['pdfSrc', pdfSrc]],
+  /const busyRef = useRef\(false\);/.test(pdfSrc) && /if \(busyRef\.current\) return;/.test(pdfSrc));
+// 44x44 BY AREA, NOT BY SHAPE: it is a .ezc-acts button and it states no box of its own.
+okOn('Z4: the new control takes the rail hit area and changes no shape', [['pdfSrc', pdfSrc]],
+  /style=\{miniBtnStyle\}/.test(pdfSrc) && !/width:|height:|minWidth|minHeight/.test(pdfSrc),
+  'the export button started declaring its own box instead of taking the rail area');
+okOn('Z4: ...and the rail is the container the sheet gives 44x44 to', [['html', html]],
+  /\.ezc-icon, \.ezc-acts button, \.ezc-row button, \.ez-hit button \{ position: relative; \}/.test(css)
+  && /min-width: 44px; min-height: 44px;/.test(css));
+
+// ---- Z5. THE CARD-AS-IMAGE WAS NOT BUILT, AND THE REASON IS MEASURED -----
+// The item asked for the measurement, not the feature. There is no DOM rasteriser in this tree:
+// the only canvas in the application file is the UPLOAD downscaler, which draws an <img> element
+// and never a DOM subtree. The one rasteriser that exists at all is html2canvas, and it lives
+// inside html2pdf.bundle -- 906KB, lazily loaded, and precached by nothing. These checks keep
+// that statement true, so the decision cannot quietly reverse itself.
+eq('Z5: the application file holds exactly one canvas rasterisation, and it is the upload path',
+  (html.match(/toDataURL\(|canvas\.toBlob\(/g) || []).length, 1);
+ok('Z5: ...which draws an image element, not a DOM subtree',
+  /canvas\.getContext\('2d'\)\.drawImage\(img, 0, 0, w, h\)/.test(html));
+ok('Z5: no DOM-to-image library entered the tree',
+  !/dom-to-image|domtoimage|htmlToImage|html-to-image|satori/i.test(html));
+ok('Z5: ...and html2canvas is named as an OPTION and never constructed or called',
+  !/html2canvas\s*[.(]/.test(html) && /html2canvas: \{ scale: 2, useCORS: true \}/.test(html));
+// And the offline store still carries no vendor JavaScript at all, which is the other half of
+// the reason: a share card built on html2canvas would be a control that cannot work offline.
+ok('Z5: the offline CORE still precaches no vendor bundle',
+  !/html2pdf|mammoth|react[^"']*\.js/.test(SWJS.slice(SWJS.indexOf('const CORE = ['), SWJS.indexOf('];', SWJS.indexOf('const CORE = [')))));
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
