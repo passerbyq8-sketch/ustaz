@@ -86,6 +86,10 @@ const storageState = {
   activateRetry: 'none',      // none | done | still-full
   evicted: 0,                 // old stores deleted to make room (never the current one)
   retried: 0,                 // entries re-attempted after an eviction
+  // ITEM 93-B: how the end-of-install brief went out. A number is how many clients were handed
+  // it (0 is a real, expected answer -- see announceInstall); 'unavailable' means this browser
+  // gives a worker no way to reach a page at all.
+  announced: 'not-sent',      // 'not-sent' | 'unavailable' | <number of clients posted to>
 };
 // A live reference, not a copy, so anything holding it sees the current state.
 self.ezikStorage = storageState;
@@ -253,6 +257,84 @@ function precacheCore() {
   return caches.open(CACHE).then((cache) => Promise.all(CORE.map((u) => addOrNote(cache, u))));
 }
 
+// ---------------------------------------------------------------------------
+// ITEM 93-B. THE CHANNEL IS PUSHED, NOT ONLY PULLED.
+//
+// MEASURED BEFORE: item 93 counted every failed precache entry and named it, and 91-A added the
+// reason and what was done about it -- and then left the whole record sitting behind a REQUEST.
+// A page learns that its offline store is short an entry only if it thinks to ask, and the only
+// people who think to ask are the ones already standing over a broken install. Every reader who
+// does not ask meets the gap for the first time with no network, in front of a blank where
+// adhkar.json should have been. A record nobody reads is the same silence item 93 set out to end,
+// moved one step later.
+//
+// SO INSTALL ENDS BY HANDING THE BRIEF OUT. One postMessage per connected client, at the end of
+// install, whether or not anybody asked.
+//
+// THIS OPENS A CHANNEL. IT BUILDS NOTHING ON TOP OF ONE. There is no recovery surface, no retry,
+// no banner and no byte of index.html in this item -- the consumer belongs to the screen that
+// owns the page, and shipping half of it here would put a message on a channel with a listener
+// that does not exist yet. What is asserted is that the message goes out, that it names what
+// failed and why, and that a worker with nobody listening installs exactly as it always did.
+//
+// FOUR THINGS MUST NOT HAPPEN, and each is a state the guard drives:
+//   1. install must not reject because the report could not be delivered;
+//   2. NO CLIENT AT ALL is the normal case, not an error -- the first install of a new worker
+//      routinely runs before any page is controlled, and a worker that treated an empty client
+//      list as a failure would report a failure on the healthiest install there is;
+//   3. one client whose postMessage throws must not cost the other clients their copy;
+//   4. a browser that exposes no clients.matchAll must record that and carry on.
+const REPORT_TAG = 'precache-report';
+function installSummary() {
+  return {
+    ezik: REPORT_TAG,
+    // The count first, because it is the only field a consumer can branch on without parsing.
+    failed: precacheFailures.length,
+    // url + reason only. The raw browser text stays behind the pull channel: it is a debugging
+    // aid, it is the one field whose shape no spec fixes, and a page that shows a reader
+    // "TypeError: Failed to fetch" has told them nothing they can act on.
+    entries: precacheFailures.map((f) => ({ url: f.url, reason: f.reason })),
+    // What INSTALL decided, so a page can tell "seven entries failed" from "nothing was even
+    // attempted because the disk could not hold CORE". They ask opposite things of the reader.
+    skipped: storageState.precacheSkipped,
+    persist: storageState.persist,
+    evicted: storageState.evicted,
+    retried: storageState.retried,
+  };
+}
+function announceInstall() {
+  const report = installSummary();
+  // DevTools stays the channel to a human standing in front of the problem; the page is the
+  // channel to the reader. Only a report with something in it is worth a line.
+  if (report.failed && typeof console !== 'undefined' && console.warn) {
+    console.warn('[ezik sw] install finished with ' + report.failed + ' precache failure(s): '
+      + report.entries.map((e) => e.url + ' (' + e.reason + ')').join(', '));
+  }
+  try {
+    if (!self.clients || typeof self.clients.matchAll !== 'function') {
+      storageState.announced = 'unavailable';
+      return Promise.resolve();
+    }
+    // includeUncontrolled, because on a FIRST install nothing is controlled yet and the page
+    // that just registered this worker is exactly the one that wants the brief.
+    return self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then((list) => {
+      const clients = list || [];
+      let sent = 0;
+      for (const c of clients) {
+        // Per client, so a page that has navigated away mid-install cannot take the others'
+        // copy with it. A throw here is that page's problem and nobody else's.
+        try {
+          if (c && typeof c.postMessage === 'function') { c.postMessage(report); sent++; }
+        } catch (e) { /* one dead client, not a failed install */ }
+      }
+      storageState.announced = sent;
+    }, () => { storageState.announced = 'unavailable'; });
+  } catch (e) {
+    storageState.announced = 'unavailable';
+    return Promise.resolve();
+  }
+}
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   // ITEM 91-A: ask for persistence once, estimate, and only then write. Add each entry
@@ -272,6 +354,12 @@ self.addEventListener('install', (event) => {
       }
       return precacheCore();
     })
+      // ITEM 93-B. BOTH ARMS ANNOUNCE. The skip path is the one a reader most needs told about
+      // -- nothing was written at all -- so a report that only fired after a successful precache
+      // would be silent in exactly the state it exists for. And a rejection is re-thrown AFTER
+      // the brief goes out rather than swallowed: install has never rejected here by design, and
+      // turning the report into a new way to hide one would be its own defect.
+      .then(announceInstall, (e) => announceInstall().then(() => { throw e; }))
   );
 });
 
@@ -316,6 +404,10 @@ self.addEventListener('message', (event) => {
         activateRetry: storageState.activateRetry,
         evicted: storageState.evicted,
         retried: storageState.retried,
+        // ITEM 93-B: so a page that asks can also tell whether it should have been TOLD --
+        // 'unavailable' here means the push channel does not exist on this browser and the
+        // pull channel is the only one there is.
+        announced: storageState.announced,
       },
     };
     const port = event.ports && event.ports[0];

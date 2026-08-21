@@ -424,3 +424,18 @@ data/transfer-fixtures/a3-cases.json text eol=lf
 # 0 lone LF. guards/takhrij-lock-guard.cjs imports this module and lib/takhrij-lock.js calls it on
 # every sealed answer, so the pin closes the disagreement before it can cost a third gate.
 lib/colon-preamble.js text eol=lf
+
+# tools/core-bytes.cjs (item 112) -- the tool that derives sw.js's CORE_BYTES from the CORE list
+# and rewrites it. It PARSES sw.js as text and matches on `const CORE = [`, and sw.js itself is
+# pinned LF above because its sha256 seal is cut on LF bytes. A CRLF checkout of the tool costs
+# nothing on its own, but this repository has already paid for three unpinned modules that a
+# guard reads as text (lib/route-classify.js, lib/finalized-sse-writer.js, lib/colon-preamble.js),
+# and the pin is cheaper than the fourth.
+tools/core-bytes.cjs text eol=lf
+
+# tools/prebuild-jsx.cjs (item 32-a) -- reads the text/babel block out of index.html with the
+# same regex pair the fourteen coupled guards use, and index.html is pinned CRLF above. Pinning
+# the tool itself to LF keeps the reader and the read apart: the tool's own endings are nobody's
+# measurement, and a CRLF checkout of a file that carries regexes is the shape that has already
+# cost this repository three green gates.
+tools/prebuild-jsx.cjs text eol=lf
