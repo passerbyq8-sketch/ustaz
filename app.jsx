@@ -14289,6 +14289,8 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // A-4: the worker's own ceiling, pulled when the panel opens so the eviction rule is on
   // screen BEFORE the reader presses anything -- and never retyped from sw.js.
   const [juzCap, setJuzCap] = useState(0);
+  const [picker, setPicker] = useState(false);
+  const [pickerText, setPickerText] = useState('');
   useEffect(() => {
     if (!picker) return undefined;
     let alive = true;
@@ -14360,8 +14362,6 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
       setDailyWird(writeDailyWird({ mushaf: { mode: 'surah', surah: n } }));
     }
   };
-  const [picker, setPicker] = useState(false);
-  const [pickerText, setPickerText] = useState('');
   // The measured height of the pager, taken off the pager itself rather than assumed from
   // its style object -- padding, safe area and font all feed it and none of them are ours to
   // predict. barSt is untouched; this is a ref at the use site and nothing more.
