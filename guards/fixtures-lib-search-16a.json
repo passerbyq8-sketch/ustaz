@@ -1,0 +1,142 @@
+{
+  "_note": "Local fixtures shaped after the measured /search contract. Zero network, zero real token: the agent that wrote them has no library token. Page numbers and volumes are deliberately odd values (7301/7302/9407) so a leak of a stripped page into a rendered card is unmistakable in a substring assertion.",
+
+  "hit_page_citable": {
+    "atom_id": "atom-000191",
+    "author": "ابن قدامة المقدسي",
+    "book_title": "المغني",
+    "hadith_no": null,
+    "heading_kind": "bab",
+    "heading_path": ["كتاب الطهارة", "باب المياه"],
+    "matn_chars": 412,
+    "matn_spans": [[0, 412]],
+    "numbering": "print",
+    "page_citable": true,
+    "page_end": 7302,
+    "page_start": 7301,
+    "score": 12.5,
+    "subject_id": "taharah",
+    "text": "الماءُ الطهورُ هو الباقي على أصلِ خِلقتِه.",
+    "truncated": false,
+    "volume": 9407
+  },
+
+  "hit_not_citable": {
+    "atom_id": "atom-000774",
+    "author": "ابن تيمية",
+    "book_title": "مجموع الفتاوى",
+    "hadith_no": null,
+    "heading_kind": "fasl",
+    "heading_path": ["كتاب الصلاة", "فصل في السهو"],
+    "matn_chars": 260,
+    "matn_spans": [[0, 260]],
+    "numbering": "none",
+    "page_citable": false,
+    "page_end": 7302,
+    "page_start": 7301,
+    "score": 9.25,
+    "subject_id": "salah",
+    "text": "سجودُ السهوِ يجبرُ ما نقصَ من الصلاة.",
+    "truncated": false,
+    "volume": 9407
+  },
+
+  "hit_truncated": {
+    "atom_id": "atom-001203",
+    "author": "البخاري",
+    "book_title": "صحيح البخاري",
+    "hadith_no": "2947",
+    "heading_kind": "bab",
+    "heading_path": ["كتاب الجهاد", "باب الدعاء"],
+    "matn_chars": 5000,
+    "matn_spans": [[0, 5000]],
+    "numbering": "print",
+    "page_citable": true,
+    "page_end": 8115,
+    "page_start": 8115,
+    "score": 15.75,
+    "subject_id": "jihad",
+    "text": "إنّما الأعمالُ بالنيّاتِ وإنّما لكلِّ امرئٍ ما نوى",
+    "truncated": true,
+    "volume": 4
+  },
+
+  "response_ok": {
+    "index_version": "2026-08-19T00:00:00Z",
+    "took_ms": 41,
+    "queue_ms": 3,
+    "candidates_examined": 1840,
+    "candidates_truncated": false,
+    "refused": false,
+    "refused_reason": null,
+    "degraded_reason": null,
+    "estimated_postings": 9120,
+    "hits_dropped": 0,
+    "hits": []
+  },
+
+  "response_refused": {
+    "index_version": "2026-08-19T00:00:00Z",
+    "took_ms": 6,
+    "queue_ms": 1,
+    "candidates_examined": 0,
+    "candidates_truncated": false,
+    "refused": true,
+    "refused_reason": "estimated_postings_exceed_ceiling",
+    "degraded_reason": null,
+    "estimated_postings": 8400000,
+    "hits_dropped": 0,
+    "hits": []
+  },
+
+  "response_degraded": {
+    "index_version": "2026-08-19T00:00:00Z",
+    "took_ms": 302,
+    "queue_ms": 18,
+    "candidates_examined": 74000,
+    "candidates_truncated": true,
+    "refused": false,
+    "refused_reason": null,
+    "degraded_reason": "over_budget",
+    "estimated_postings": 610000,
+    "hits_dropped": 37,
+    "hits": []
+  },
+
+  "response_with_unknown_fields": {
+    "index_version": "2026-08-19T00:00:00Z",
+    "took_ms": 44,
+    "queue_ms": 2,
+    "candidates_examined": 120,
+    "candidates_truncated": false,
+    "refused": false,
+    "refused_reason": null,
+    "degraded_reason": null,
+    "estimated_postings": 500,
+    "hits_dropped": 0,
+    "shard_host": "internal-shard-04.lib.internal",
+    "server_token_hint": "tk-fix-9",
+    "hits": [
+      {
+        "atom_id": "atom-000191",
+        "author": "ابن قدامة المقدسي",
+        "book_id": "MGH-01",
+        "book_title": "المغني",
+        "heading_kind": "bab",
+        "heading_path": ["كتاب الطهارة"],
+        "internal_offset": 918273,
+        "matn_chars": 412,
+        "matn_spans": [[0, 412]],
+        "numbering": "print",
+        "page_citable": true,
+        "page_end": 7302,
+        "page_start": 7301,
+        "score": 12.5,
+        "subject_id": "taharah",
+        "text": "الماءُ الطهورُ هو الباقي على أصلِ خِلقتِه.",
+        "truncated": false,
+        "volume": 9407
+      }
+    ]
+  }
+}

@@ -3263,6 +3263,12 @@ const EZH_PRAYER = 'الصلاة والقبلة';
 const EZH_ICON_PRAYER = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z" /></svg>
 );
+// ITEM 16-ب: the library tile. Same 24x24 box, same 1.8 stroke and same round caps as the six
+// marks beside it -- three upright volumes on a shelf. No new artwork file, no image, no data URI.
+const EZH_LIBRARY = 'المكتبة';
+const EZH_ICON_LIBRARY = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h4v16H4z" /><path d="M10 4h4v16h-4z" /><path d="M16 6l3.5.8L17 20l-3.5-.8z" /></svg>
+);
 const EZH_ICON_MENU = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
@@ -3283,6 +3289,7 @@ function ezHomeModules(v) {
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
+    { id: 'library',  label: EZH_LIBRARY,  icon: EZH_ICON_LIBRARY,  onClick: v.onOpenLibrary,  meta: null },
   ];
 }
 
@@ -3314,7 +3321,8 @@ let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wir
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
 let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
 let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
-let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, prayer: EZIST_SUB_PRAYER };
+let EZIST_SUB_LIBRARY = 'بحثٌ في نصوص المكتبة، بمصادرها';
+let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -3515,6 +3523,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
   // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
   const [prayerOpen, setPrayerOpen] = useState(false);
+  // ITEM 16-ب: the library sheet, on the same terms as the prayer sheet above. Not a route.
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -3542,6 +3552,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
+    onOpenLibrary: () => setLibraryOpen(true),
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
   // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
@@ -3560,6 +3571,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // keeps "deck", is not migrated, and sees the deck again the moment it selects qibla_13.
   // qibla_13 is untouched by this batch and still chooses between the two components below.
   if (prayerOpen) return <PrayerSheet onClose={() => setPrayerOpen(false)} />;
+  if (libraryOpen) return <LibrarySheet onClose={() => setLibraryOpen(false)} />;
   return <EzikIstanaHome {...home} />;
 }
 
@@ -12273,6 +12285,225 @@ function PrayerSheet({ onClose }) {
 }
 
 // ============================================================
+// ITEM 16-ب — البحث في المكتبة، ووصل بطاقة المصدر
+// ============================================================
+// ONE ADDRESS, AND IT IS THIS REPOSITORY'S OWN FUNCTION. /search on the library service is
+// token-gated, and a token that reaches app.js reaches every reader of the bundle, permanently:
+// a shipped secret cannot be un-shipped. So this screen speaks to /api/lib-search and to nothing
+// else, and the service host appears nowhere in this file. The function holds the token, makes
+// the one call, and hands back the whitelisted fields. The browser holds nothing.
+//
+// THE CARD IS BUILT ON THE SERVER, AND THIS SCREEN DRAWS DATA. The first cut of this sheet
+// imported lib/lib-source-card.js into the browser so the card could be built here from the
+// module that owns the rule. That was wrong, and the reason is offline: lib/ is the SERVER half
+// of this repository and it is not in the service worker's CORE, so a page that reaches for it
+// at runtime is a page that breaks the moment the network does. The rule still lives in exactly
+// one place -- api/lib-search.js imports the module on the server, where a plain module
+// dependency is ordinary -- and what crosses the wire is the finished card.
+//
+// SO THERE IS NOTHING HERE TO GET WRONG. This file composes no attribution, reads no page field,
+// and holds no copy of a sentence the module owns: it draws `hit.source_card.line` as it
+// arrived, and whichever of `refused_text` / `empty_text` / `degraded_text` arrived with it --
+// the server sends at most one, by an ordered rule this file mirrors. A field that did not come is a
+// field that is not drawn -- never a substitute invented on this side of the wire, because a
+// substitute is how one hit ends up attributed two different ways.
+const EZLIB_ROUTE = '/api/lib-search';
+const EZLIB_LIMIT = 10;
+const EZLIB_MAX_Q = 180;
+
+// SCREEN CHROME, AND NOT ONE SENTENCE OF IT REPORTS AN OUTCOME. A title, a heading, a hint, a
+// placeholder, two button labels and a progress word. Everything that says what HAPPENED to a
+// search -- the refusal, the shortfall, the two failures -- is text the server sent.
+const EZLIB_TITLE = 'المكتبة';
+const EZLIB_BACK = 'رجوع';
+const EZLIB_GROUP = 'البحث في المكتبة';
+const EZLIB_HINT = 'يُبحَث في نصوص المكتبة، ويُذكَر مصدر كل نتيجة كما ورد.';
+const EZLIB_PLACEHOLDER = 'اكتب ما تبحث عنه';
+const EZLIB_ARIA = 'البحث في المكتبة';
+const EZLIB_BUTTON = 'ابحث';
+const EZLIB_RESULTS = 'النتائج';
+const EZLIB_LOADING = 'يجري البحث…';
+const EZLIB_RETRY = 'أعد المحاولة';
+
+// THE STATES, DECIDED IN ONE PURE FUNCTION, so a guard can drive every one of them with a
+// recorded answer and no browser and no network. It returns the NAME of the response field that
+// supplies the sentence and never a sentence -- which is what keeps every word of an outcome on
+// the server side and lets a guard prove the mapping against a real payload.
+const EZLIB_STATE_OK = 'ok';
+const EZLIB_STATE_EMPTY = 'empty';
+const EZLIB_STATE_REFUSED = 'refused';
+const EZLIB_STATE_DEGRADED = 'degraded';
+const EZLIB_STATE_UNAVAILABLE = 'unavailable';
+const EZLIB_STATE_UPSTREAM = 'upstream';
+
+// `textFrom` is a field name on the payload. 'error' is the one indirection: the function's two
+// failure bodies carry their sentence at error.message rather than at the top level.
+const EZLIB_TEXT_FROM_ERROR = 'error';
+
+function ezLibViewState(outcome) {
+  // A dead network and an unreadable answer are the same thing to a reader: nothing came back,
+  // and it is worth trying again.
+  const dead = { kind: EZLIB_STATE_UPSTREAM, textFrom: EZLIB_TEXT_FROM_ERROR, showHits: false, retry: true };
+  if (!outcome || typeof outcome !== 'object') return dead;
+  if (outcome.status === 503) {
+    return { kind: EZLIB_STATE_UNAVAILABLE, textFrom: EZLIB_TEXT_FROM_ERROR, showHits: false, retry: false };
+  }
+  if (outcome.status !== 200) return dead;
+  const payload = outcome.payload;
+  if (!payload || typeof payload !== 'object') return dead;
+  // The postings ceiling working as designed. A sentence, not an error screen and not a fault
+  // colour -- and the sentence is the module's, carried here by the server.
+  if (payload.refused === true) {
+    return { kind: EZLIB_STATE_REFUSED, textFrom: 'refused_text', showHits: false, retry: false };
+  }
+  const hits = Array.isArray(payload.hits) ? payload.hits : [];
+  // THE ORDER HERE IS THE SERVER'S ORDER, and it has to be. api/lib-search.js chooses which
+  // ONE of the three sentences to send by an ordered rule -- refused, then degraded, then
+  // empty -- so a view that classified the same body differently would name a field the server
+  // deliberately did not send and draw no sentence at all.
+  //
+  // Cut short at the budget ceiling. What came back IS shown, and the shortfall is said out
+  // loud rather than left for the reader not to notice -- and this branch sits ABOVE the empty
+  // one even when nothing came back at all. "No result for this search" is a claim of absence,
+  // and a search that stopped early did not read enough of the index to make it; a truncated
+  // search reports that it was truncated whether it returned ten hits or none.
+  if (payload.degraded_reason) {
+    return { kind: EZLIB_STATE_DEGRADED, textFrom: 'degraded_text', showHits: true, retry: false };
+  }
+  // The search ran to completion and matched nothing. Only here is the absence earned.
+  if (!hits.length) {
+    return { kind: EZLIB_STATE_EMPTY, textFrom: 'empty_text', showHits: false, retry: false };
+  }
+  return { kind: EZLIB_STATE_OK, textFrom: null, showHits: true, retry: false };
+}
+
+// EVERY SENTENCE THIS RETURNS CAME OVER THE WIRE. The state names a field; if the field is not
+// there, or is not a string, the answer is the empty string and the screen draws nothing. There
+// is no branch in this function that produces a word of its own.
+function ezLibSentence(state, payload) {
+  if (!state || !state.textFrom) return '';
+  if (!payload || typeof payload !== 'object') return '';
+  if (state.textFrom === EZLIB_TEXT_FROM_ERROR) {
+    const error = payload.error;
+    return (error && typeof error.message === 'string') ? error.message : '';
+  }
+  const value = payload[state.textFrom];
+  return typeof value === 'string' ? value : '';
+}
+
+// The card line, taken off the hit and never assembled. A hit whose card did not arrive is a hit
+// this screen cannot attribute, and an unattributed quotation is the one thing this round exists
+// to prevent -- so it is dropped rather than drawn bare.
+function ezLibCardLine(hit) {
+  const card = hit && hit.source_card;
+  return (card && typeof card.line === 'string' && card.line) ? card.line : '';
+}
+
+// The one call, and it is made on submit and on retry -- never on mount, and never on boot.
+async function ezLibSearchCall(q, signal) {
+  let response;
+  try {
+    response = await fetch(EZLIB_ROUTE, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ q: q, limit: EZLIB_LIMIT }),
+      signal: signal,
+    });
+  } catch (e) { return { status: 0, payload: null }; }
+  let payload = null;
+  try { payload = await response.json(); } catch (e) {}
+  return { status: response.status, payload: payload };
+}
+
+// ONE HIT: the matn as it arrived, and beneath it the ONE line the server rendered. This
+// component composes nothing. It does not read page_start, page_end, volume, book_title, author
+// or heading_path, and it carries no branch on page_citable -- that decision was made once, in
+// lib/lib-source-card.js, on the server, and making it twice is how two copies come to disagree.
+function EzLibHit({ text, card }) {
+  return (
+    <article style={s.ezlibHit}>
+      <div style={s.ezlibText} dir="rtl">{text}</div>
+      <div style={s.ezlibCard} dir="rtl">{card}</div>
+    </article>
+  );
+}
+
+// THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN -- the same reason PrayerSheet is one.
+// index.html's screen inventory is a CROSS-FILE contract: theme-coverage-guard reads
+// EZIK-THEME-33-HANDOFF.md and requires its table and its Arabic screen count to match the set
+// of screen === '...' branches in this file. That document is not this batch's to edit, so a
+// route would have reddened a gate for a reason having nothing to do with the library. It opens
+// from the home, over the home, on the home's own screen key, and its back button returns there.
+function LibrarySheet({ onClose }) {
+  const [query, setQuery] = useState('');
+  const [state, setState] = useState(null);
+  const [payload, setPayload] = useState(null);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const request = useRef(null);
+  const lastQuery = useRef('');
+
+  useEffect(() => () => { if (request.current) request.current.abort(); }, []);
+
+  const run = async (fixed) => {
+    const term = String(fixed == null ? query : fixed).trim();
+    if (!term || loading) return;
+    if (request.current) request.current.abort();
+    const controller = new AbortController();
+    request.current = controller;
+    lastQuery.current = term;
+    setLoading(true);
+    setState(null);
+    setPayload(null);
+    setRows([]);
+    const outcome = await ezLibSearchCall(term.slice(0, EZLIB_MAX_Q), controller.signal);
+    // A stale controller means a newer search or an unmount overtook this one. Its answer is
+    // dropped rather than painted over the newer one.
+    if (request.current !== controller) return;
+    const next = ezLibViewState(outcome);
+    const hits = (next.showHits && outcome.payload && Array.isArray(outcome.payload.hits)) ? outcome.payload.hits : [];
+    setRows(hits.map((hit, i) => ({
+      key: (hit && hit.atom_id != null) ? String(hit.atom_id) : ('row' + i),
+      text: (hit && typeof hit.text === 'string') ? hit.text : '',
+      card: ezLibCardLine(hit),
+    })).filter((row) => row.card));
+    setPayload(outcome.payload);
+    setState(next);
+    request.current = null;
+    setLoading(false);
+  };
+
+  const sentence = ezLibSentence(state, payload);
+  return (
+    <EzShell title={EZLIB_TITLE} onBack={onClose} backLabel={EZLIB_BACK}>
+      <EzShellGroup title={EZLIB_GROUP} hint={EZLIB_HINT}>
+        <form role="search" style={s.ezlibForm} onSubmit={(e) => { e.preventDefault(); run(); }}>
+          <input className="ezhome-focus" type="search" dir="rtl" required maxLength={EZLIB_MAX_Q}
+            value={query} onChange={(e) => setQuery(e.target.value)} style={s.ezlibInput}
+            placeholder={EZLIB_PLACEHOLDER} aria-label={EZLIB_ARIA} />
+          <button type="submit" className="ezhome-focus" style={s.ezlibBtn}
+            disabled={loading}>{EZLIB_BUTTON}</button>
+        </form>
+        {/* Every one of these is role=status and carries the muted colour: the refusal and the
+            shortfall are the ceiling working, not a fault, and neither gets a fault colour. */}
+        {loading ? <div style={s.ezlibNote} role="status" aria-live="polite">{EZLIB_LOADING}</div> : null}
+        {!loading && sentence ? <div style={s.ezlibNote} role="status" aria-live="polite">{sentence}</div> : null}
+        {!loading && state && state.retry ? (
+          <button type="button" className="ezhome-focus" style={s.qiblaBtn}
+            onClick={() => run(lastQuery.current)}>{EZLIB_RETRY}</button>
+        ) : null}
+      </EzShellGroup>
+      {rows.length ? (
+        <EzShellGroup title={EZLIB_RESULTS} wide>
+          {rows.map((r) => <EzLibHit key={r.key} text={r.text} card={r.card} />)}
+        </EzShellGroup>
+      ) : null}
+    </EzShell>
+  );
+}
+
+
+// ============================================================
 // ITEM 109 — التاريخ الهجريّ، محسوبًا على تقويمٍ مسمًّى
 // ============================================================
 // THE FAULT: an arithmetical Hijri calendar drifts from the calendar people actually live by.
@@ -15461,6 +15692,16 @@ const s = {
   qiblaNote: { marginTop: 6, fontSize: 13, lineHeight: 1.8, color: 'var(--muted)' },
   qiblaPlace: { marginTop: 10, fontSize: 14, lineHeight: 1.7, color: 'var(--ink)' },
   qiblaBtn: { marginTop: 8, alignSelf: 'flex-start', background: 'none', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 14px', fontSize: 14, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
+  // ITEM 16-ب. `flex: 'none'` on the button is the lesson the daily-dhikr dropdown taught in
+  // round 26: a control whose parent is a flex container and which declares no flex of its own
+  // is sized by the parent, and the height written beside it is never used.
+  ezlibForm: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
+  ezlibInput: { flex: 1, minWidth: 0, height: 40, borderRadius: 12, border: '2px solid var(--line)', background: 'var(--page)', color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 15, padding: '0 10px' },
+  ezlibBtn: { flex: 'none', height: 40, borderRadius: 12, border: '1px solid var(--line)', background: 'none', color: 'inherit', fontFamily: 'inherit', fontSize: 14, padding: '0 16px', cursor: 'pointer' },
+  ezlibNote: { marginTop: 6, fontSize: 13, lineHeight: 1.8, color: 'var(--muted)' },
+  ezlibHit: { display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 0', borderBottom: '1px solid var(--a3-line)' },
+  ezlibText: { fontSize: 15, lineHeight: 1.9, color: 'var(--ink)' },
+  ezlibCard: { fontSize: 13, lineHeight: 1.8, color: 'var(--muted)' },
   // ITEM 109: the Hijri line under the name, and the live preview in Settings. Type only —
   // no box, no surface, no border, so the masthead's shape is untouched to the pixel.
   ezistHijri: { marginTop: 6, fontSize: 13, lineHeight: 1.6, color: 'var(--a3-muted)', fontWeight: 500 },
