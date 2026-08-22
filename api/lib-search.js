@@ -37,9 +37,9 @@
 //
 // ITEM 16-ب AMENDS THAT SENTENCE. The eleven and the seventeen still pass through untouched,
 // and none of them is replaced -- but this function now ADDS three names of its own, and they
-// are the only three: source_card on every hit, and refused_text / degraded_text on the body
-// when their state applies. All three are declared by name below so a guard can prove the
-// additions are exactly those. They exist because the browser must not build a card: doing that
+// are the only four: source_card on every hit, and exactly one of refused_text / empty_text /
+// degraded_text on the body, chosen by the ordered rule at the foot of shapeSearchResponse.
+// All four are declared by name below so a guard can prove the additions are exactly those. They exist because the browser must not build a card: doing that
 // meant fetching lib/ at runtime, and lib/ is not in the service worker CORE.
 //
 // This round is purely additive: nothing in the answer path calls this endpoint yet.
@@ -51,7 +51,7 @@
 import {
   RESPONSE_FIELDS, HIT_FIELDS,
   buildSourceCard, renderSourceCard,
-  REFUSED_TEXT, DEGRADED_TEXT
+  REFUSED_TEXT, DEGRADED_TEXT, EMPTY_TEXT
 } from '../lib/lib-source-card.js';
 
 const SEARCH_URL = 'https://lib.ezik.app/search';
@@ -61,7 +61,7 @@ const SEARCH_URL = 'https://lib.ezik.app/search';
 // top of them this function writes ONE field per hit and TWO on the body, all three named here
 // so a guard can assert the additions are exactly these and no others crept in.
 export const ADDED_HIT_FIELD = 'source_card';
-export const ADDED_RESPONSE_FIELDS = Object.freeze(['refused_text', 'degraded_text']);
+export const ADDED_RESPONSE_FIELDS = Object.freeze(['refused_text', 'degraded_text', 'empty_text']);
 
 // The three keys a card may never carry when the hit is not page-citable. Named here for the
 // fail-safe below -- NOT for a second decision: buildSourceCard makes that decision, once.
@@ -140,11 +140,30 @@ export function shapeSearchResponse(payload) {
   } else {
     delete out.hits;
   }
-  // THE TWO SENTENCES THE MODULE OWNS, travelling with the state they belong to and only then.
-  // They are written from the module's own constants, so the browser never holds a copy of
-  // either -- which is the whole reason the refusal and the shortfall read the same everywhere.
-  if (payload && payload.refused === true) out.refused_text = REFUSED_TEXT;
-  if (payload && payload.degraded_reason) out.degraded_text = DEGRADED_TEXT;
+  // THE THREE SENTENCES THE MODULE OWNS, and EXACTLY ONE OF THEM AT MOST. They are written
+  // from the module's own constants, so the browser never holds a copy of any of them -- which
+  // is the whole reason a refusal, a shortfall and an empty result read the same everywhere.
+  //
+  // THE ORDER IS THE CONTRACT, not an accident of how the ifs fell out:
+  //   refused          -> refused_text, ALONE. The ceiling stopped the search; there is nothing
+  //                       to say about results that were never gathered.
+  //   no hits          -> empty_text, ALONE. The search ran and matched nothing, and that is
+  //                       what a reader needs to hear -- including when the budget also ran
+  //                       short, because "cut off at the ceiling" describes results and there
+  //                       are none to describe.
+  //   hits + degraded  -> degraded_text. Results ARE shown and the shortfall is said with them.
+  //   hits, no shortfall -> none of the three. Nothing happened that needs a sentence.
+  //
+  // empty_text therefore NEVER travels with a hit and NEVER travels with refused_text. A body
+  // carrying both would be telling a reader two different things about the same search.
+  const shownHits = Array.isArray(out.hits) ? out.hits : [];
+  if (payload && payload.refused === true) {
+    out.refused_text = REFUSED_TEXT;
+  } else if (!shownHits.length) {
+    out.empty_text = EMPTY_TEXT;
+  } else if (payload && payload.degraded_reason) {
+    out.degraded_text = DEGRADED_TEXT;
+  }
   return out;
 }
 

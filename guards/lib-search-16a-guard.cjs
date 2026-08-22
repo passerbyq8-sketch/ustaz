@@ -246,8 +246,8 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('every top-level key is one of the eleven, or one of the two this repo adds by name',
     Object.keys(shaped).every((key) => RESPONSE_FIELDS.includes(key)
       || api.ADDED_RESPONSE_FIELDS.includes(key)), Object.keys(shaped).join(','));
-  check('...and the two it may add are exactly refused_text and degraded_text',
-    api.ADDED_RESPONSE_FIELDS.slice().sort().join(',') === 'degraded_text,refused_text',
+  check('...and the three it may add are exactly refused_text, degraded_text and empty_text',
+    api.ADDED_RESPONSE_FIELDS.slice().sort().join(',') === 'degraded_text,empty_text,refused_text',
     api.ADDED_RESPONSE_FIELDS.join(','));
   check('an unknown top-level field is dropped in silence', !('shard_host' in shaped));
   check('every hit key is one of the seventeen, or the one field this repo adds by name',
@@ -433,8 +433,8 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('...and the view draws exactly that, byte for byte',
     view.ezLibSentence(states.degraded, degradedBody) === cardMod.DEGRADED_TEXT);
   check('...and refused_text was NOT put on a degraded body', !('refused_text' in degradedBody));
-  check('...and neither sentence rides on an ordinary 200',
-    !('refused_text' in okBody) && !('degraded_text' in okBody));
+  check('...and not one of the three rides on an ordinary 200 with hits',
+    !('refused_text' in okBody) && !('degraded_text' in okBody) && !('empty_text' in okBody));
 
   // 3. 503 -- no token. Neutral, and it names no environment variable.
   check('503 is a neutral state, not an error state', states.unavailable.kind === 'unavailable');
@@ -463,8 +463,8 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   // and the ordinary cases
   check('a plain 200 with hits shows them', states.ok.kind === 'ok' && states.ok.showHits === true);
   check('a plain 200 with no hits is not an error', states.empty.kind === 'empty');
-  check('...and it names no field, so no sentence is invented for it',
-    states.empty.textFrom === null && view.ezLibSentence(states.empty, emptyBody) === '');
+  check('...and it names the field the server fills for it',
+    states.empty.textFrom === 'empty_text', String(states.empty.textFrom));
 
   // ── F4. ZERO PAGE CLAIM, SHAPED ON THE SERVER ───────────────────────────────
   // The not-citable fixture CARRIES a page: volume 9407, pages 7301-7302. Those three
@@ -589,6 +589,97 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   const built = require(path.join(REPO, 'tools/build-app.cjs')).check();
   check('app.js is exactly what app.jsx builds', built.ok, built.reason);
   check('...and the sheet really is in it', APPJS.includes('LibrarySheet'));
+
+
+  // ── F8. THE EMPTY SENTENCE, AND THE ORDER THAT PICKS IT ─────────────────────
+  // A search that ran and matched nothing used to draw NOTHING, because the view was
+  // forbidden to write a sentence and the server sent none. An empty box that could equally
+  // mean "never sent" is a silent failure, so the sentence became a field like its two
+  // sisters. What is measured here is the ORDER: the server sends AT MOST ONE of the three,
+  // and empty_text never travels with a hit and never with refused_text.
+  console.log('\n=== F8. THE EMPTY SENTENCE ===');
+
+  const SENTENCE_FIELDS = ['refused_text', 'degraded_text', 'empty_text'];
+  const sentencesOn = (body) => SENTENCE_FIELDS.filter((f) => f in body);
+  const hit1 = FIXTURES.hit_page_citable;
+  const rowRefused = api.shapeSearchResponse(FIXTURES.response_refused);
+  const rowDegraded = api.shapeSearchResponse(Object.assign({}, FIXTURES.response_degraded,
+    { hits: [hit1] }));
+  const rowEmpty = api.shapeSearchResponse(FIXTURES.response_ok);
+  const rowHits = api.shapeSearchResponse(Object.assign({}, FIXTURES.response_ok, { hits: [hit1] }));
+
+  // 1. zero hits, not refused -> empty_text, and it is the module's own constant byte for byte
+  check('zero hits and not refused: empty_text is there', 'empty_text' in rowEmpty);
+  check('...and it is the module\'s EMPTY_TEXT, byte for byte',
+    rowEmpty.empty_text === cardMod.EMPTY_TEXT, ascii(String(rowEmpty.empty_text)));
+  check('...ALONE: no other sentence rides with it',
+    sentencesOn(rowEmpty).join(',') === 'empty_text', sentencesOn(rowEmpty).join(','));
+
+  // 2. hits present -> empty_text absent
+  check('hits present: empty_text is absent', !('empty_text' in rowHits));
+  check('...and so is every other sentence, because nothing needed saying',
+    sentencesOn(rowHits).length === 0, sentencesOn(rowHits).join(','));
+  check('degraded WITH hits: the shortfall is said and empty_text is absent',
+    sentencesOn(rowDegraded).join(',') === 'degraded_text', sentencesOn(rowDegraded).join(','));
+
+  // 3. refused -> empty_text absent, refused_text present
+  check('refused: refused_text is there and empty_text is not',
+    sentencesOn(rowRefused).join(',') === 'refused_text', sentencesOn(rowRefused).join(','));
+  // and refused BEATS empty even when the refusal came back with no hits at all
+  const rowRefusedNoHits = api.shapeSearchResponse(Object.assign({}, FIXTURES.response_refused,
+    { hits: [] }));
+  check('...and a refusal with no hits is still a refusal, not an empty result',
+    sentencesOn(rowRefusedNoHits).join(',') === 'refused_text',
+    sentencesOn(rowRefusedNoHits).join(','));
+  // a shortfall that returned nothing describes nothing: the reader is told there is no result
+  const rowDegradedNoHits = api.shapeSearchResponse(FIXTURES.response_degraded);
+  check('...and a shortfall that returned nothing says "no result", not "truncated"',
+    sentencesOn(rowDegradedNoHits).join(',') === 'empty_text',
+    sentencesOn(rowDegradedNoHits).join(','));
+  check('AT MOST ONE sentence on every body measured in this section',
+    [rowRefused, rowDegraded, rowEmpty, rowHits, rowRefusedNoHits, rowDegradedNoHits]
+      .every((b) => sentencesOn(b).length <= 1));
+
+  // 4. the text is nowhere in the client
+  check('the module sentence ' + JSON.stringify(ascii(cardMod.EMPTY_TEXT)) + ' is NOT written in app.jsx',
+    !APPJSX.includes(cardMod.EMPTY_TEXT));
+  check('...nor in the bundle the browser loads', !APPJS.includes(cardMod.EMPTY_TEXT));
+  check('...and the view names the field instead', VIEW.includes("'empty_text'"));
+
+  // THE VIEW MUST AGREE WITH THE SERVER ABOUT WHICH ONE IS COMING. If the view classified a
+  // body differently from the function that built it, it would look up a field the server
+  // deliberately did not send and draw nothing -- which is the very defect this item closes.
+  const SERVER_PICK = (body) => sentencesOn(body)[0] || null;
+  for (const [name, body] of [['refused', rowRefused], ['degraded', rowDegraded],
+    ['empty', rowEmpty], ['hits', rowHits], ['degraded-no-hits', rowDegradedNoHits]]) {
+    const st = view.ezLibViewState({ status: 200, payload: body });
+    check('the view asks for the same field the server sent (' + name + ')',
+      (st.textFrom || null) === SERVER_PICK(body),
+      'view wants ' + st.textFrom + ', server sent ' + SERVER_PICK(body));
+    check('...and draws it, or draws nothing when there was nothing (' + name + ')',
+      view.ezLibSentence(st, body) === (SERVER_PICK(body) ? body[SERVER_PICK(body)] : ''));
+  }
+
+  // THE MUTANT: make the server send empty_text ALONGSIDE hits.
+  const EMUT_FROM = "  } else if (!shownHits.length) {";
+  const EMUT_TO = "  } else if (true) {";
+  const emptyMutantSrc = apiLf.replace(EMUT_FROM, EMUT_TO);
+  check('the empty-text mutant is a real mutation, not a no-op',
+    emptyMutantSrc !== apiLf && emptyMutantSrc.includes('} else if (true) {'),
+    'mutation did not change the source');
+  const emptyMutantResolved = emptyMutantSrc.replace("} from '../lib/lib-source-card.js';",
+    "} from '" + ('file://' + path.join(REPO, 'lib/lib-source-card.js').replace(/\\/g, '/')) + "';");
+  const emptyMutantApi = await import('data:text/javascript;base64,'
+    + Buffer.from(emptyMutantResolved, 'utf8').toString('base64'));
+  const emptyMutantBody = emptyMutantApi.shapeSearchResponse(
+    Object.assign({}, FIXTURES.response_ok, { hits: [hit1] }));
+  check('THE GUARD BITES: the mutated server puts empty_text on a body that HAS hits',
+    ('empty_text' in emptyMutantBody) && Array.isArray(emptyMutantBody.hits)
+    && emptyMutantBody.hits.length > 0,
+    'the mutant sent ' + sentencesOn(emptyMutantBody).join(',') + ' with '
+    + (emptyMutantBody.hits || []).length + ' hits and the assertion still passed');
+  check('...and the real function, re-read after the mutation, is unchanged',
+    fs.readFileSync(path.join(REPO, 'api/lib-search.js'), 'utf8') === apiSrc);
 
   // ── G. THE SHEET, RENDERED ──────────────────────────────────────────────────
   // Section F proves the DECISION is right. This one proves there is a screen: the
@@ -734,6 +825,15 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('a hit whose card did not arrive is NOT drawn bare',
     !cardless.includes(FIXTURES.hit_not_citable.text),
     ascii(cardless.slice(0, 240)));
+
+  // AND THE EMPTY SEARCH IS NOT A BLANK SCREEN ANY MORE. This is the defect item 16-ب-ج
+  // closes: a reader could not tell "searched, found nothing" from "never sent".
+  const emptyScreen = await ask('السهو', { status: 200, payload: rowEmpty });
+  check('SCREEN empty: the module\'s EMPTY_TEXT is on it, carried by the server',
+    emptyScreen.includes(cardMod.EMPTY_TEXT), ascii(emptyScreen.slice(0, 240)));
+  check('...and no result is drawn beside it', !emptyScreen.includes(FIXTURES.hit_page_citable.book_title));
+  check('...and a body with hits shows no such sentence',
+    !(await ask('السهو', { status: 200, payload: okBody })).includes(cardMod.EMPTY_TEXT));
 
   check('every call the screen made went to this repo\'s own route, by POST',
     gNet.length > 0 && gNet.every((c) => c.url === '/api/lib-search' && c.method === 'POST'),
