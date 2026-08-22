@@ -4826,9 +4826,18 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
       </div>
       {/* the SAME search row, the same input, the same handler as before. */}
       {searchOpen && <A3Search query={query} setQuery={setQuery} />}
-      {/* A-3: the reader picks his own daily dhikr from the store's own categories. */}
+      {/* A-3: the reader picks his own daily dhikr from the store's own categories.
+          `flex: none` is not decoration. s.memAyahSelect was written for the memorizer's start
+          BAR -- a ROW flex container, where its `flex: 1` fills the row's width -- and it carries
+          that shorthand's `flex-basis: 0%` with it. THIS parent is s.eziaContainer: a flex
+          COLUMN with a definite `height: 100dvh`, so the same shorthand grows along the VERTICAL
+          main axis and the `height: 40` beside it is never used. Measured in Chrome at 430x932,
+          this one control rendered 439.5px tall -- an open list, not a dropdown -- against 40px
+          in the memorizer, whose parent is an ordinary block. `none` is `0 0 auto`: no growth, no
+          shrink, and the flex base size falls back to the height already declared here. Nothing
+          about the value, the option order or the stored record moves. */}
       <select value={dailyCat || ''} onChange={(e) => onDailyCat(e.target.value)}
-        aria-label={DW_ADHKAR_LABEL} style={s.memAyahSelect}>
+        aria-label={DW_ADHKAR_LABEL} style={{ ...s.memAyahSelect, flex: 'none' }}>
         <option value="">{DW_NONE}</option>
         {(cats || []).map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
       </select>
