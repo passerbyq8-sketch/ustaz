@@ -3768,7 +3768,7 @@ const[loc,setLoc]=useState(readQiblaLoc);return/*#__PURE__*/React.createElement(
 // and the copy that drifts would be this one. So the module is imported.
 //
 // HOW, given that this is a classic script. tools/babel-block.cjs pins sourceType to 'script',
-// so an import DECLARATION cannot be parsed in this file at all. A dynamic import() is an
+// so a static module DECLARATION cannot be parsed in this file at all. A dynamic module call is an
 // expression, not a declaration: it parses, it survives the transform unchanged (measured), and
 // it is served to the browser by the same static path that already delivers vendor/react.umd.js
 // to the page. MEASURED, headless, over this tree: /lib/lib-source-card.js imports, and all
@@ -3785,7 +3785,7 @@ const EZLIB_ROUTE='/api/lib-search';const EZLIB_CARD_MODULE='/lib/lib-source-car
 const EZLIB_UNAVAILABLE='البحث في المكتبة غير متاح هنا.';// 502, or a network that never answered. It differs from the line above in one way only: this
 // one can be tried again.
 const EZLIB_UPSTREAM='تعذر الوصول إلى المكتبة الآن.';const EZLIB_RETRY='أعد المحاولة';// THE STATES, DECIDED IN ONE PURE FUNCTION, so a guard can drive every one of them with a
-// fixture and no browser and no network. It returns the NAME of the module export that supplies
+// recorded answer and no browser and no network. It returns the NAME of the module export that supplies
 // the sentence and never the sentence itself -- which is what keeps the card's words in the
 // module and lets a guard prove the mapping against the real file rather than against a copy.
 const EZLIB_STATE_OK='ok';const EZLIB_STATE_EMPTY='empty';const EZLIB_STATE_REFUSED='refused';const EZLIB_STATE_DEGRADED='degraded';const EZLIB_STATE_UNAVAILABLE='unavailable';const EZLIB_STATE_UPSTREAM='upstream';function ezLibViewState(outcome){// A dead network and an unreadable answer are the same thing to a reader: nothing came back,
@@ -3798,7 +3798,7 @@ if(payload.degraded_reason)return{kind:EZLIB_STATE_DEGRADED,textFrom:'DEGRADED_T
 // off it by the name the state carries. A state naming a text the module does not export draws
 // NO sentence at all rather than one this file invented to fill the gap.
 function ezLibSentence(state,mod){if(!state)return'';if(state.kind===EZLIB_STATE_UNAVAILABLE)return EZLIB_UNAVAILABLE;if(state.kind===EZLIB_STATE_UPSTREAM)return EZLIB_UPSTREAM;if(state.kind===EZLIB_STATE_EMPTY)return EZLIB_NONE;if(state.textFrom&&mod&&typeof mod[state.textFrom]==='string')return mod[state.textFrom];return'';}// The one call, and it is made on submit and on retry -- never on mount, and never on boot.
-async function ezLibSearchCall(q,signal){let response;try{response=await fetch(EZLIB_ROUTE,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:q,limit:EZLIB_LIMIT}),signal:signal});}catch(e){return{status:0,payload:null};}let payload=null;try{payload=await response.json();}catch(e){}return{status:response.status,payload:payload};}// ONE import for the life of the page, and the promise IS the cache -- opening the sheet a
+async function ezLibSearchCall(q,signal){let response;try{response=await fetch(EZLIB_ROUTE,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:q,limit:EZLIB_LIMIT}),signal:signal});}catch(e){return{status:0,payload:null};}let payload=null;try{payload=await response.json();}catch(e){}return{status:response.status,payload:payload};}// ONE module load for the life of the page, and the promise IS the cache -- opening the sheet a
 // second time does not fetch it again. When it does not resolve, no hit is drawn at all: a hit
 // without its card is an unattributed quotation, and this file has no second way to attribute
 // one.
