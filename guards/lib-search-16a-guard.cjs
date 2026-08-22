@@ -1,4 +1,10 @@
 // guards/lib-search-16a-guard.cjs — item 16-A: the library search function and the source card.
+// EXTENDED BY ITEM 16-ب (section F). The view that was wired onto this function is measured
+// here rather than in a guard of its own: the assertion item 16-ب exists to protect is that
+// the VIEW and the CARD agree, and a second file could only ever compare a copy. Section F
+// reads app.jsx and the bundle built from it, evaluates the view's own pure state function as
+// it is written, and drives it against the real lib/lib-source-card.js and these same
+// fixtures. Still no network, still no token, and still not registered in gates.json.
 //
 // ══ WHAT THIS GUARD IS FOR ═══════════════════════════════════════════════════
 // Item 16-A adds one server function (api/lib-search.js) and one pure builder
@@ -33,6 +39,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
+const BB = require('../tools/babel-block.cjs');
 
 const REPO = path.resolve(__dirname, '..');
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
@@ -271,6 +279,366 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('an unreachable service is 502 to the client', unreachable.res.statusCode === 502, 'got ' + unreachable.res.statusCode);
   check('the unreachable error text does not reach the client',
     !serialize(unreachable.res.body).includes('ECONNREFUSED') && !serialize(unreachable.res.body).includes('lib.ezik.app'));
+
+
+  // ── F. ITEM 16-ب: THE VIEW THAT WAS WIRED ONTO THIS FUNCTION ────────────────
+  // Item 16-ب adds one sheet to app.jsx and nothing else. Everything below is measured
+  // against the SHIPPED SOURCE -- app.jsx, and the bundle tools/build-app.cjs emits from
+  // it -- and against the REAL lib/lib-source-card.js. No browser, no network, no token.
+  console.log('\n=== F. 16-B: THE VIEW ===');
+
+  const APPJSX = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+  const APPJS = fs.readFileSync(path.join(REPO, 'app.js'), 'utf8');
+
+  // The library block, cut out of app.jsx by its own two ends. Every assertion about
+  // "the view" below is scoped to THESE bytes, so a page number legitimately printed by
+  // the mushaf on the other side of the file cannot make this section pass or fail.
+  const BLOCK_OPEN = "const EZLIB_ROUTE = '/api/lib-search';";
+  const BLOCK_SHUT = 'function LibrarySheet({ onClose }) {';
+  const blockFrom = APPJSX.indexOf(BLOCK_OPEN);
+  const sheetFrom = APPJSX.indexOf(BLOCK_SHUT);
+  const sheetTo = APPJSX.indexOf('\n}\n', sheetFrom);
+  check('the library block is in app.jsx exactly once',
+    blockFrom !== -1 && sheetFrom !== -1 && sheetTo !== -1 &&
+    APPJSX.indexOf(BLOCK_OPEN, blockFrom + 1) === -1 &&
+    APPJSX.indexOf(BLOCK_SHUT, sheetFrom + 1) === -1);
+  const VIEW = APPJSX.slice(blockFrom, sheetTo + 3);
+
+  // ── F1. the token's host is not in the client, at all ───────────────────────
+  const LIB_HOST = ['lib', 'ezik', 'app'].join('.');
+  const hostInJsx = (APPJSX.match(new RegExp(LIB_HOST.replace(/\./g, '\\.'), 'g')) || []).length;
+  const hostInJs = (APPJS.match(new RegExp(LIB_HOST.replace(/\./g, '\\.'), 'g')) || []).length;
+  check('LIB_HOST_IN_APPJSX = 0', hostInJsx === 0, 'found ' + hostInJsx);
+  check('...and 0 in the bundle the browser actually loads', hostInJs === 0, 'found ' + hostInJs);
+  check('the client speaks to this repo\'s own function and to nothing else',
+    (APPJSX.match(/'\/api\/lib-search'/g) || []).length === 1);
+  check('...and no token literal reached the client',
+    !APPJSX.includes('SEARCH_API_TOKEN') && !APPJS.includes('SEARCH_API_TOKEN'));
+
+  // ── F2. zero card text in app.jsx ───────────────────────────────────────────
+  // The module owns three sentences and four connectors. Not one of the seven may be
+  // written in the view: a view that writes its own would attribute the same hit two
+  // ways, and the copy that drifts would be the view's.
+  const cardMod = await esm('lib/lib-source-card.js');
+  const OWNED = [cardMod.REFUSED_TEXT, cardMod.DEGRADED_TEXT, cardMod.TRUNCATED_TAG];
+  for (const owned of OWNED) {
+    check('the module sentence ' + JSON.stringify(ascii(owned)) + ' is NOT written in app.jsx',
+      !APPJSX.includes(owned));
+  }
+  check('the view names the module exports rather than quoting them',
+    VIEW.includes("'REFUSED_TEXT'") && VIEW.includes("'DEGRADED_TEXT'"));
+  check('...and every name it uses is really exported by the module',
+    ['REFUSED_TEXT', 'DEGRADED_TEXT'].every((name) => typeof cardMod[name] === 'string'));
+  check('the view imports the module by path, once',
+    (VIEW.match(/import\(EZLIB_CARD_MODULE\)/g) || []).length === 1 &&
+    VIEW.includes("const EZLIB_CARD_MODULE = '/lib/lib-source-card.js';"));
+  check('...and the file it names is on disk',
+    fs.existsSync(path.join(REPO, 'lib/lib-source-card.js')));
+
+  // ── F3. the four states the order names, driven through the shipped code ────
+  // ezLibViewState and ezLibSentence are cut out of app.jsx and evaluated as they are
+  // written -- not reimplemented here. A change to either in the view changes what this
+  // section measures.
+  const pureFrom = APPJSX.indexOf(BLOCK_OPEN);
+  const pureTo = APPJSX.indexOf('// The one call, and it is made on submit');
+  check('the pure half of the view carries no JSX', pureTo > pureFrom &&
+    !/<[A-Za-z]/.test(APPJSX.slice(pureFrom, pureTo)));
+  const view = vm.runInNewContext(
+    APPJSX.slice(pureFrom, pureTo) + '\n;({ ezLibViewState: ezLibViewState, ezLibSentence: ezLibSentence });',
+    {}, { filename: 'app.jsx#library' });
+
+  const okBody = Object.assign({}, FIXTURES.response_ok,
+    { hits: [FIXTURES.hit_page_citable, FIXTURES.hit_not_citable] });
+  const degradedBody = Object.assign({}, FIXTURES.response_degraded,
+    { hits: [FIXTURES.hit_page_citable] });
+
+  const states = {
+    refused: view.ezLibViewState({ status: 200, payload: FIXTURES.response_refused }),
+    degraded: view.ezLibViewState({ status: 200, payload: degradedBody }),
+    unavailable: view.ezLibViewState({ status: 503, payload: { ok: false } }),
+    upstream: view.ezLibViewState({ status: 502, payload: { ok: false } }),
+    offline: view.ezLibViewState({ status: 0, payload: null }),
+    ok: view.ezLibViewState({ status: 200, payload: okBody }),
+  };
+
+  // 1. refused -- a calm sentence, the MODULE's sentence, and no error surface.
+  check('refused: true is its own state', states.refused.kind === 'refused', states.refused.kind);
+  check('...and its sentence is the module\'s REFUSED_TEXT, byte for byte',
+    view.ezLibSentence(states.refused, cardMod) === cardMod.REFUSED_TEXT);
+  check('...and it offers no retry, because the ceiling is not a fault', states.refused.retry === false);
+
+  // 2. degraded -- results ARE shown, and the shortfall is said out loud.
+  check('degraded_reason is its own state', states.degraded.kind === 'degraded', states.degraded.kind);
+  check('...and the results are still shown', states.degraded.showHits === true);
+  check('...and the shortfall is the module\'s DEGRADED_TEXT, byte for byte',
+    view.ezLibSentence(states.degraded, cardMod) === cardMod.DEGRADED_TEXT);
+
+  // 3. 503 -- no token. Neutral, and it names no environment variable.
+  check('503 is a neutral state, not an error state', states.unavailable.kind === 'unavailable');
+  const unavailableText = view.ezLibSentence(states.unavailable, cardMod);
+  check('...and its sentence names no environment variable',
+    !/[A-Z][A-Z0-9_]{6,}/.test(unavailableText) && !unavailableText.includes('TOKEN'),
+    unavailableText);
+  check('...and it offers no retry, because retrying cannot add a token',
+    states.unavailable.retry === false);
+
+  // 4. 502 / a dead network -- neutral, and retryable.
+  check('502 is neutral and retryable', states.upstream.kind === 'upstream' && states.upstream.retry === true);
+  check('a network that never answered lands in the same state',
+    states.offline.kind === 'upstream' && states.offline.retry === true);
+  check('...and neither names an environment variable or a host',
+    !view.ezLibSentence(states.upstream, cardMod).includes(LIB_HOST) &&
+    !/[A-Z][A-Z0-9_]{6,}/.test(view.ezLibSentence(states.upstream, cardMod)));
+  check('a malformed 200 is treated as a dead answer, not as zero results',
+    view.ezLibViewState({ status: 200, payload: null }).kind === 'upstream');
+
+  // and the ordinary case still works
+  check('a plain 200 with hits shows them', states.ok.kind === 'ok' && states.ok.showHits === true);
+  check('a plain 200 with no hits is not an error',
+    view.ezLibViewState({ status: 200, payload: FIXTURES.response_ok }).kind === 'empty');
+
+  // ── F4. ZERO PAGE CLAIM, AND THE MUTANT THAT PROVES THE ASSERTION BITES ─────
+  // The not-citable fixture CARRIES a page: volume 9407, pages 7301-7302. Those three
+  // numbers are what a leak would look like, so they are what is searched for.
+  const LEAK = [FIXTURES.hit_not_citable.volume, FIXTURES.hit_not_citable.page_start,
+    FIXTURES.hit_not_citable.page_end].map(String);
+  const leaks = (line) => LEAK.filter((n) => String(line).includes(n));
+
+  const drawn = okBody.hits.map((hit) => cardMod.renderSourceCard(cardMod.buildSourceCard(hit)));
+  const notCitableLine = drawn[1];
+  check('the not-citable fixture really does carry a page to leak',
+    FIXTURES.hit_not_citable.page_citable === false && FIXTURES.hit_not_citable.page_start != null);
+  check('PAGE_SHOWN_WHEN_NOT_CITABLE = 0', leaks(notCitableLine).length === 0,
+    'leaked ' + leaks(notCitableLine).join(','));
+  check('...and the chapter path is named instead, so the card is not merely emptied',
+    notCitableLine.includes(FIXTURES.hit_not_citable.heading_path[1]));
+  check('...while a citable hit still gets its page',
+    drawn[0].includes(String(FIXTURES.hit_page_citable.page_start)));
+
+  // The view is not allowed to reach for a page field on its own, either.
+  for (const field of ['page_start', 'page_end', 'volume', 'page_citable']) {
+    check('the view never reads hit.' + field, !new RegExp('\\.' + field + '\\b').test(VIEW));
+  }
+
+  // THE MUTANT. lib/lib-source-card.js is mutated IN MEMORY so its not-citable branch
+  // carries the page after all, and the same assertion is run against it. If the mutant
+  // passes, the assertion above was measuring nothing.
+  const cardSrc = fs.readFileSync(path.join(REPO, 'lib/lib-source-card.js'), 'utf8');
+  const MUT_FROM = "    // No volume, no page_start, no page_end";
+  const MUT_TO = "    carry(card, hit, 'volume');\n    carry(card, hit, 'page_start');\n    carry(card, hit, 'page_end');\n"
+    + "    card.page_citable = true;\n" + MUT_FROM;
+  const mutantSrc = cardSrc.replace(MUT_FROM, MUT_TO);
+  check('the mutant is a real mutation, not a no-op',
+    mutantSrc !== cardSrc && mutantSrc.length > cardSrc.length,
+    'mutation did not change the source');
+  const mutant = await import('data:text/javascript;base64,' + Buffer.from(mutantSrc, 'utf8').toString('base64'));
+  const mutantLine = mutant.renderSourceCard(mutant.buildSourceCard(FIXTURES.hit_not_citable));
+  check('THE GUARD BITES: the mutated card leaks the page, and the assertion catches it',
+    leaks(mutantLine).length > 0,
+    'the mutant printed "' + ascii(mutantLine) + '" and the page assertion still passed');
+  check('...and the real module, re-read after the mutation, is unchanged',
+    fs.readFileSync(path.join(REPO, 'lib/lib-source-card.js'), 'utf8') === cardSrc);
+
+  // A second mutant, on the OTHER side of the seam: a view that composes its own line.
+  const viewMutant = VIEW.replace('{card ? <div style={s.ezlibCard}',
+    '{hit.page_start}{cardMod ? <div style={s.ezlibCard}');
+  check('the view mutant is a real mutation, not a no-op', viewMutant !== VIEW);
+  check('THE GUARD BITES: a view that reaches for a page field is caught',
+    /\.page_start\b/.test(viewMutant));
+
+  // ── F5. ZERO CALLS ON BOOT ──────────────────────────────────────────────────
+  // Measured on the syntax tree of the shipped source, not by reading it. The route is
+  // reached through exactly one function, that function is called from exactly one
+  // place, and that place is inside the sheet -- which does not exist until a reader
+  // opens it.
+  const ast = BB.parseBabelBlock({ raw: APPJSX, runtime: 'classic' });
+  const callSites = [];
+  let sheetDepthNames = [];
+  (function walk(node, stack) {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) { for (const n of node) walk(n, stack); return; }
+    if (!node.type) return;
+    const named = (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression')
+      && node.id && node.id.name;
+    const varFn = node.type === 'VariableDeclarator' && node.id && node.id.name
+      && node.init && /Function/.test(node.init.type) && node.id.name;
+    const here = named || varFn ? stack.concat([named || varFn]) : stack;
+    if (node.type === 'CallExpression' && node.callee && node.callee.name === 'ezLibSearchCall') {
+      callSites.push(here.slice());
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'loc' || key === 'leadingComments' || key === 'trailingComments') continue;
+      walk(node[key], here);
+    }
+  })(ast.program, []);
+  check('the route is reached through exactly one call site', callSites.length === 1,
+    'found ' + callSites.length);
+  const chain = callSites[0] || [];
+  check('CALLS_ON_BOOT = 0: that call site is inside the sheet, not at module scope',
+    chain.includes('LibrarySheet') && chain.includes('run'), chain.join(' > '));
+  check('...and the sheet is only rendered behind a reader\'s tap',
+    /libraryOpen \? <LibrarySheet|if \(libraryOpen\) return <LibrarySheet/.test(APPJSX) &&
+    APPJSX.includes('onOpenLibrary: () => setLibraryOpen(true)'));
+  // The two mentions outside the block are the section's own prose. What must not exist
+  // outside it is a REFERENCE: no other code may hold the address or the call.
+  const OUTSIDE = APPJSX.slice(0, blockFrom) + APPJSX.slice(sheetTo + 3);
+  check('...and no code outside the library block reaches the route',
+    !OUTSIDE.includes('EZLIB_ROUTE') && !OUTSIDE.includes('ezLibSearchCall') &&
+    !OUTSIDE.includes("'/api/lib-search'"));
+
+  // ── F6. the bundle on disk is what this source builds ───────────────────────
+  const built = require(path.join(REPO, 'tools/build-app.cjs')).check();
+  check('app.js is exactly what app.jsx builds', built.ok, built.reason);
+  check('...and the sheet really is in it', APPJS.includes('LibrarySheet'));
+
+  // ── G. THE SHEET, RENDERED ──────────────────────────────────────────────────
+  // Section F proves the DECISION is right. This one proves there is a screen: the
+  // shipped bundle is booted in a linkedom document with the vendored React, the sheet
+  // is mounted on its own, and each of the four states is driven through the component's
+  // own handlers with a stubbed /api/lib-search. Still zero network and zero token --
+  // every answer below comes from the fixtures in this directory.
+  console.log('\n=== G. THE SHEET, RENDERED ===');
+
+  const { parseHTML } = require(path.join(REPO, 'node_modules', 'linkedom'));
+  const gNet = [];
+  let gNext = { status: 200, payload: null };
+
+  const { window: gWin } = parseHTML('<!DOCTYPE html><html><body><div id="root"></div></body></html>');
+  gWin.self = gWin; gWin.window = gWin; gWin.globalThis = gWin;
+  gWin.matchMedia = (q) => ({ matches: false, media: String(q), addListener() {}, removeListener() {},
+    addEventListener() {}, removeEventListener() {} });
+  gWin.scrollTo = () => {};
+  const gEP = gWin.Element && gWin.Element.prototype;
+  if (gEP && !gEP.scrollIntoView) gEP.scrollIntoView = function () {};
+  const gData = {};
+  gWin.localStorage = { getItem: (k) => (k in gData ? gData[k] : null), setItem: (k, v) => { gData[k] = String(v); },
+    removeItem: (k) => { delete gData[k]; }, clear: () => { for (const k in gData) delete gData[k]; } };
+  gWin.AbortController = AbortController;
+  // The ONE seam. Nothing in this section reaches a network: every answer is a fixture.
+  gWin.fetch = function (u, init) {
+    gNet.push({ url: String(u), method: (init && init.method) || 'GET', body: init && init.body });
+    if (gNext instanceof Error) return Promise.reject(gNext);
+    return Promise.resolve({
+      ok: gNext.status >= 200 && gNext.status < 300,
+      status: gNext.status,
+      headers: { get: () => null },
+      json: () => Promise.resolve(gNext.payload),
+    });
+  };
+  global.window = gWin; global.document = gWin.document;
+  try { Object.defineProperty(global, 'navigator', { value: gWin.navigator, configurable: true }); } catch (e) {}
+
+  const gCtx = vm.createContext(gWin);
+  for (const umd of ['react.umd.js', 'react-dom.umd.js']) {
+    vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', umd), 'utf8'), gCtx, { filename: umd });
+  }
+  // The bundle mounts the whole app on load. The real createRoot is kept aside and replaced
+  // with a stub so that boot mounts nothing; the sheet is then mounted on its own, below.
+  vm.runInContext('__realCreateRoot = ReactDOM.createRoot; ReactDOM.createRoot = function () '
+    + '{ return { render: function () {}, unmount: function () {} }; };', gCtx);
+  gWin.console.error = () => {};
+
+  const gBlock = BB.readBabelBlock();
+  const gCode = BB.transformBabelBlock(
+    { raw: gBlock.raw.replace(/\r\n/g, '\n'), runtime: gBlock.runtime },
+    { retainLines: false, configFile: false, babelrc: false });
+  let gBooted = true;
+  try { vm.runInContext(gCode, gCtx, { filename: 'app.jsx' }); }
+  catch (e) { gBooted = false; console.log('        ' + ascii(String(e && e.message || e))); }
+  check('the shipped bundle boots', gBooted);
+
+  // There is no ESM loader inside a vm, so the ONE function that imports the card module is
+  // replaced with a resolved promise for the REAL module -- the same object a browser gets
+  // from /lib/lib-source-card.js. Nothing else about the sheet is stubbed.
+  vm.runInContext('ezLibCardModule = function () { return __cardModule; };', gCtx);
+  gWin.__cardModule = Promise.resolve(cardMod);
+
+  const gTick = (ms) => new Promise((r) => setTimeout(r, ms || 30));
+  const gHost = gWin.document.getElementById('root');
+  const Sheet = vm.runInContext('LibrarySheet', gCtx);
+  check('the sheet component is in the shipped bundle', typeof Sheet === 'function');
+
+  const gRoot = gWin.__realCreateRoot(gHost);
+  gRoot.render(gWin.React.createElement(Sheet, { onClose: () => {} }));
+  await gTick(80);
+  const gInput = gHost.querySelector('input[type="search"]');
+  const gForm = gHost.querySelector('form');
+  check('the sheet renders a search field and a form', !!gInput && !!gForm,
+    gHost.innerHTML.slice(0, 160));
+  // THE SHEET IS OPEN AND NOTHING HAS BEEN TYPED. Opening it fetches the card module; it must
+  // not have fetched the route.
+  check('CALLS_ON_BOOT = 0, measured on a rendered sheet with nothing typed',
+    gNet.filter((c) => String(c.url).indexOf('/api/lib-search') !== -1).length === 0,
+    JSON.stringify(gNet));
+
+  // linkedom delivers a dispatched click through React's delegation, but not a dispatched
+  // 'input' or 'submit'. So the component's OWN handlers are taken off the props React attached
+  // to the real nodes and invoked directly: what runs is the shipped onChange and the shipped
+  // onSubmit, not a reimplementation of either.
+  const propsOf = (el) => el[Object.keys(el).filter((k) => k.indexOf('__reactProps$') === 0)[0]];
+  check('the shipped handlers are reachable on the rendered nodes',
+    !!(propsOf(gInput) && propsOf(gInput).onChange && propsOf(gForm) && propsOf(gForm).onSubmit));
+  const ask = async (term, next) => {
+    gNext = next;
+    propsOf(gInput).onChange({ target: { value: term } });
+    await gTick(25);
+    propsOf(gForm).onSubmit({ preventDefault: () => {} });
+    for (let i = 0; i < 60; i++) { await gTick(15); if (!gHost.textContent.includes('يجري')) break; }
+    await gTick(40);
+    return gHost.textContent;
+  };
+
+  let screen = await ask('السهو', { status: 200, payload: FIXTURES.response_refused });
+  check('SCREEN refused: the module\'s own sentence is on it', screen.includes(cardMod.REFUSED_TEXT),
+    ascii(screen.slice(0, 240)));
+
+  screen = await ask('الصلاة', { status: 200, payload: degradedBody });
+  check('SCREEN degraded: the shortfall is on it', screen.includes(cardMod.DEGRADED_TEXT));
+  check('...and the results are on it too, not withheld',
+    screen.includes(FIXTURES.hit_page_citable.book_title));
+
+  screen = await ask('الزكاة', { status: 503, payload: { ok: false, error: { code: 'x', message: 'y' } } });
+  check('SCREEN 503: neutral, and no environment variable is named',
+    screen.includes('غير متاح هنا') && !/[A-Z][A-Z0-9_]{6,}/.test(screen), ascii(screen.slice(0, 240)));
+
+  screen = await ask('الحج', { status: 502, payload: { ok: false, error: { code: 'x', message: 'y' } } });
+  check('SCREEN 502: neutral, and a retry is offered',
+    screen.includes('تعذر الوصول') && screen.includes('أعد المحاولة'));
+
+  screen = await ask('الصوم', new Error('network down'));
+  check('SCREEN offline: the same neutral sentence and the same retry',
+    screen.includes('تعذر الوصول') && screen.includes('أعد المحاولة'));
+
+  screen = await ask('السهو', { status: 200, payload: okBody });
+  check('SCREEN ok: both hits are drawn',
+    screen.includes(FIXTURES.hit_page_citable.book_title) && screen.includes(FIXTURES.hit_not_citable.book_title));
+  check('...and the citable hit shows its page',
+    screen.includes('ص ' + FIXTURES.hit_page_citable.page_start));
+
+  // THE TWO FIXTURES CARRY THE SAME VOLUME AND THE SAME PAGES (9407, 7301-7302), so a screen
+  // holding both cannot tell a legitimate page from a leaked one. The not-citable hit is drawn
+  // ALONE: on THIS screen, every one of those three numbers would be a leak.
+  const alone = await ask('السهو',
+    { status: 200, payload: Object.assign({}, FIXTURES.response_ok, { hits: [FIXTURES.hit_not_citable] }) });
+  check('PAGE_SHOWN_WHEN_NOT_CITABLE = 0, ON THE RENDERED SCREEN',
+    LEAK.every((n) => !alone.includes(n)), 'leaked ' + LEAK.filter((n) => alone.includes(n)).join(','));
+  check('...and the chapter path is on the screen instead',
+    alone.includes(FIXTURES.hit_not_citable.heading_path[1]));
+  check('...and the matn is on it, so the card was not simply dropped',
+    alone.includes(FIXTURES.hit_not_citable.text));
+
+  check('every call the screen made went to this repo\'s own route, by POST',
+    gNet.length > 0 && gNet.every((c) => c.url === '/api/lib-search' && c.method === 'POST'),
+    JSON.stringify(gNet.map((c) => c.url + ' ' + c.method)));
+  check('...carrying q and limit 10, and nothing else',
+    gNet.every((c) => {
+      try {
+        const b = JSON.parse(c.body);
+        return typeof b.q === 'string' && b.limit === 10 && Object.keys(b).sort().join(',') === 'limit,q';
+      } catch (e) { return false; }
+    }));
+  check('...and no token, and no service host, ever left the browser',
+    !gNet.some((c) => String(c.body || '').includes(LIB_HOST) || String(c.url).includes(LIB_HOST)));
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' - FAIL ===' : ' - PASS ==='));
   process.exit(failures ? 1 : 0);

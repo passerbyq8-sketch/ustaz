@@ -1032,14 +1032,16 @@ const EZH_ICON_GO=/*#__PURE__*/React.createElement("svg",{width:"18",height:"18"
 // ITEM 108-أ: the qibla tile's mark. Same 24x24 box, same 1.8 stroke, same round caps as the
 // five marks beside it — a compass rose reduced to a circle, a needle and its pivot. No new
 // artwork file, no image, no data URI.
-const EZH_PRAYER='الصلاة والقبلة';const EZH_ICON_PRAYER=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("circle",{cx:"12",cy:"12",r:"9"}),/*#__PURE__*/React.createElement("path",{d:"M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z"}));const EZH_ICON_MENU=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("line",{x1:"3",y1:"6",x2:"21",y2:"6"}),/*#__PURE__*/React.createElement("line",{x1:"3",y1:"12",x2:"21",y2:"12"}),/*#__PURE__*/React.createElement("line",{x1:"3",y1:"18",x2:"21",y2:"18"}));// THE FIVE MODULES, preserving the existing order and appending the official fatwa search. S87:
+const EZH_PRAYER='الصلاة والقبلة';const EZH_ICON_PRAYER=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("circle",{cx:"12",cy:"12",r:"9"}),/*#__PURE__*/React.createElement("path",{d:"M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z"}));// ITEM 16-ب: the library tile. Same 24x24 box, same 1.8 stroke and same round caps as the six
+// marks beside it -- three upright volumes on a shelf. No new artwork file, no image, no data URI.
+const EZH_LIBRARY='المكتبة';const EZH_ICON_LIBRARY=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("path",{d:"M4 4h4v16H4z"}),/*#__PURE__*/React.createElement("path",{d:"M10 4h4v16h-4z"}),/*#__PURE__*/React.createElement("path",{d:"M16 6l3.5.8L17 20l-3.5-.8z"}));const EZH_ICON_MENU=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("line",{x1:"3",y1:"6",x2:"21",y2:"6"}),/*#__PURE__*/React.createElement("line",{x1:"3",y1:"12",x2:"21",y2:"12"}),/*#__PURE__*/React.createElement("line",{x1:"3",y1:"18",x2:"21",y2:"18"}));// THE FIVE MODULES, preserving the existing order and appending the official fatwa search. S87:
 // this builder is now
 // called in EXACTLY ONE PLACE -- the Home owner below -- and the resulting array is handed to
 // whichever style draws it as `v.modules`. A presentation component may not build, extend,
 // reorder or re-render this list; it maps it once. Each descriptor carries the stable `id` that
 // becomes data-ezik-home-module on the one element that renders it, so counting those elements
 // counts the modules. `meta` is a genuine local reading or it is null.
-function ezHomeModules(v){const wird=v.wird?toArabicDigits(v.wird.done)+' / '+toArabicDigits(v.wird.target):null;return[{id:'memorize',label:EZH_MEMORIZE,icon:EZH_ICON_MEMORIZE,onClick:v.onOpenMemorize,meta:null},{id:'adhkar',label:EZH_ADHKAR,icon:EZH_ICON_ADHKAR,onClick:v.onOpenAdhkar,meta:null},{id:'mushaf',label:EZH_MUSHAF,icon:EZH_ICON_MUSHAF,onClick:v.onOpenMushaf,meta:wird},{id:'treasure',label:EZH_TREASURE,icon:EZH_ICON_TREASURE,onClick:v.onOpenTreasure,meta:null},{id:'fatwa',label:EZH_FATWA,icon:EZH_ICON_FATWA,onClick:v.onOpenFatwa,meta:null},{id:'prayer',label:EZH_PRAYER,icon:EZH_ICON_PRAYER,onClick:v.onOpenPrayer,meta:null}];}// ---- S101 ISTANA HOME START --------------------------------------------------------------
+function ezHomeModules(v){const wird=v.wird?toArabicDigits(v.wird.done)+' / '+toArabicDigits(v.wird.target):null;return[{id:'memorize',label:EZH_MEMORIZE,icon:EZH_ICON_MEMORIZE,onClick:v.onOpenMemorize,meta:null},{id:'adhkar',label:EZH_ADHKAR,icon:EZH_ICON_ADHKAR,onClick:v.onOpenAdhkar,meta:null},{id:'mushaf',label:EZH_MUSHAF,icon:EZH_ICON_MUSHAF,onClick:v.onOpenMushaf,meta:wird},{id:'treasure',label:EZH_TREASURE,icon:EZH_ICON_TREASURE,onClick:v.onOpenTreasure,meta:null},{id:'fatwa',label:EZH_FATWA,icon:EZH_ICON_FATWA,onClick:v.onOpenFatwa,meta:null},{id:'prayer',label:EZH_PRAYER,icon:EZH_ICON_PRAYER,onClick:v.onOpenPrayer,meta:null},{id:'library',label:EZH_LIBRARY,icon:EZH_ICON_LIBRARY,onClick:v.onOpenLibrary,meta:null}];}// ---- S101 ISTANA HOME START --------------------------------------------------------------
 // THE ISTANA_33 HOME. A DEDICATED STRUCTURE, not the journey/deck layout in other colours.
 //
 // What this is NOT: it is not a third value of ezik_ui_style_v1. That key keeps its two words,
@@ -1065,7 +1067,7 @@ let EZIST_SUB_MEMORIZE=ezT("module.memorize.sub");// "memorise and review"
 let EZIST_SUB_ADHKAR=ezT("module.adhkar.sub");// "morning and evening adhkar"
 let EZIST_SUB_MUSHAF=ezT("module.mushaf.sub");// "read, and follow your wird"
 let EZIST_SUB_TREASURE=ezT("module.treasure.sub");// "learn through play"
-let EZIST_SUB_FATWA=ezT("module.fatwa.sub");let EZIST_SUB_PRAYER='المواقيت والقبلة، محسوبةً على هذا الجهاز';let EZIST_SUB={memorize:EZIST_SUB_MEMORIZE,adhkar:EZIST_SUB_ADHKAR,mushaf:EZIST_SUB_MUSHAF,treasure:EZIST_SUB_TREASURE,fatwa:EZIST_SUB_FATWA,prayer:EZIST_SUB_PRAYER};// THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
+let EZIST_SUB_FATWA=ezT("module.fatwa.sub");let EZIST_SUB_PRAYER='المواقيت والقبلة، محسوبةً على هذا الجهاز';let EZIST_SUB_LIBRARY='بحثٌ في نصوص المكتبة، بمصادرها';let EZIST_SUB={memorize:EZIST_SUB_MEMORIZE,adhkar:EZIST_SUB_ADHKAR,mushaf:EZIST_SUB_MUSHAF,treasure:EZIST_SUB_TREASURE,fatwa:EZIST_SUB_FATWA,prayer:EZIST_SUB_PRAYER,library:EZIST_SUB_LIBRARY};// THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
 // WHAT WAS HERE, and where each piece went. The bar carried five things: a home button that was
 // already on the screen it pointed at and so had no handler at all; a chat icon; the centred
@@ -1148,7 +1150,8 @@ const g=getHomeGreeting();// GENUINE local progress, or nothing at all. These ar
 // target is stored the line is absent rather than invented, and no other module on this
 // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
 // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
-const[prayerOpen,setPrayerOpen]=useState(false);const wt=readWirdTarget();const wd=readWirdDay();const wird=wt&&wd&&Array.isArray(wd.pages)?{done:Math.min(wd.pages.length,wt),target:wt}:null;// ITEM 109: the same discipline as the wird above — the OWNER reads the device, the
+const[prayerOpen,setPrayerOpen]=useState(false);// ITEM 16-ب: the library sheet, on the same terms as the prayer sheet above. Not a route.
+const[libraryOpen,setLibraryOpen]=useState(false);const wt=readWirdTarget();const wd=readWirdDay();const wird=wt&&wd&&Array.isArray(wd.pages)?{done:Math.min(wd.pages.length,wt),target:wt}:null;// ITEM 109: the same discipline as the wird above — the OWNER reads the device, the
 // presentation components are handed the result. An empty string when the conversion could
 // not be made, so the masthead draws nothing rather than a wrong day.
 const hijri=hijriTodayLabel();// A-3: the reader's own choices, read from the device the same way the wird above is. The
@@ -1156,7 +1159,7 @@ const hijri=hijriTodayLabel();// A-3: the reader's own choices, read from the de
 const dailyWirdLinesToday=dailyWirdLines(readDailyWird(),wt);const view={name:profile?.name,hijri:hijri,greeting:g,wird:wird,dailyWirdLines:dailyWirdLinesToday,// S118: onOpenChat is gone from this object because the home no longer holds a chat
 // control of its own. The chat is entered from the menu the bar opens, on the menu's own
 // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
-onOpenMenu:onOpenMenu,onOpenMemorize:onOpenMemorize,onOpenAdhkar:onOpenAdhkar,onOpenMushaf:onOpenMushaf,onOpenFatwa:onOpenFatwa,onOpenSettings:onOpenSettings,onOpenTreasure:()=>{window.location.href='/quest.html';},onOpenPrayer:()=>setPrayerOpen(true)};// S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
+onOpenMenu:onOpenMenu,onOpenMemorize:onOpenMemorize,onOpenAdhkar:onOpenAdhkar,onOpenMushaf:onOpenMushaf,onOpenFatwa:onOpenFatwa,onOpenSettings:onOpenSettings,onOpenTreasure:()=>{window.location.href='/quest.html';},onOpenPrayer:()=>setPrayerOpen(true),onOpenLibrary:()=>setLibraryOpen(true)};// S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
 // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
 // element per module, whichever style is on -- there is no second collection to fall out of
 // sync with this one, and no second callback bound to the same action.
@@ -1171,7 +1174,7 @@ const home={...view,modules:ezHomeModules(view)};// S102 -- ONE DESIGN. The jour
 // for it. The layout key is still read above and still stored: a device that saved "deck"
 // keeps "deck", is not migrated, and sees the deck again the moment it selects qibla_13.
 // qibla_13 is untouched by this batch and still chooses between the two components below.
-if(prayerOpen)return/*#__PURE__*/React.createElement(PrayerSheet,{onClose:()=>setPrayerOpen(false)});return/*#__PURE__*/React.createElement(EzikIstanaHome,home);}// ============================================================
+if(prayerOpen)return/*#__PURE__*/React.createElement(PrayerSheet,{onClose:()=>setPrayerOpen(false)});if(libraryOpen)return/*#__PURE__*/React.createElement(LibrarySheet,{onClose:()=>setLibraryOpen(false)});return/*#__PURE__*/React.createElement(EzikIstanaHome,home);}// ============================================================
 // OFFICIAL FATWA SEARCH -- READ ONLY
 // ============================================================
 // The browser speaks only to Ezik's own /api/v1 contract. vercel.json rewrites that path to
@@ -3749,6 +3752,74 @@ const DOE=typeof window!=='undefined'?window.DeviceOrientationEvent:null;if(DOE&
 function PrayerSheet({onClose}){// ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
 // so the place is state here and the controls that change it stay where item 108-أ put them.
 const[loc,setLoc]=useState(readQiblaLoc);return/*#__PURE__*/React.createElement(EzShell,{title:PRAYER_SHEET_TITLE,onBack:onClose,backLabel:QIBLA_BACK},/*#__PURE__*/React.createElement(PrayerTimesPanel,{loc:loc}),/*#__PURE__*/React.createElement(QiblaPanel,{loc:loc,onLoc:setLoc}));}// ============================================================
+// ITEM 16-ب — البحث في المكتبة، ووصل بطاقة المصدر
+// ============================================================
+// ONE ADDRESS, AND IT IS THIS REPOSITORY'S OWN FUNCTION. /search on the library service is
+// token-gated, and a token that reaches app.js reaches every reader of the bundle, permanently:
+// a shipped secret cannot be un-shipped. So this screen speaks to /api/lib-search and to nothing
+// else, and the service host appears nowhere in this file. The function holds the token, makes
+// the one call, and hands back the whitelisted fields. The browser holds nothing.
+//
+// AND THE CARD IS IMPORTED, NOT WRITTEN HERE. lib/lib-source-card.js decides what a source card
+// may say, and its sharp edge is the page: on a hit whose page_citable is not exactly true it
+// names the book, the author and the chapter path and NAMES NO PAGE -- even when the hit carries
+// page_start and volume, which 21.8% of them do. If this screen composed its own line, the same
+// hit would be attributed two different ways depending on which file a reader was looking at,
+// and the copy that drifts would be this one. So the module is imported.
+//
+// HOW, given that this is a classic script. tools/babel-block.cjs pins sourceType to 'script',
+// so an import DECLARATION cannot be parsed in this file at all. A dynamic import() is an
+// expression, not a declaration: it parses, it survives the transform unchanged (measured), and
+// it is served to the browser by the same static path that already delivers vendor/react.umd.js
+// to the page. MEASURED, headless, over this tree: /lib/lib-source-card.js imports, and all
+// seven of its exports arrive.
+//
+// NOT ONE SENTENCE OF THE CARD IS IN THIS FILE. The two texts the module owns -- the refusal and
+// the shortfall -- are read off the imported module BY NAME, and the truncation mark is appended
+// by the module's own renderer. What is written below is screen chrome: a heading, a
+// placeholder, a button, and the two neutral sentences for the two failures the module says
+// nothing about.
+const EZLIB_ROUTE='/api/lib-search';const EZLIB_CARD_MODULE='/lib/lib-source-card.js';const EZLIB_LIMIT=10;const EZLIB_MAX_Q=180;const EZLIB_TITLE='المكتبة';const EZLIB_BACK='رجوع';const EZLIB_GROUP='البحث في المكتبة';const EZLIB_HINT='يُبحَث في نصوص المكتبة، ويُذكَر مصدر كل نتيجة كما ورد.';const EZLIB_PLACEHOLDER='اكتب ما تبحث عنه';const EZLIB_ARIA='البحث في المكتبة';const EZLIB_BUTTON='ابحث';const EZLIB_RESULTS='النتائج';const EZLIB_LOADING='يجري البحث…';const EZLIB_NONE='لا نتيجة لهذا البحث.';// 503 -- the function has no token, which is the state of every preview. The reader is told the
+// search is not available HERE and nothing further: naming the configuration would point a
+// stranger straight at the gate, and it would mean nothing to a reader.
+const EZLIB_UNAVAILABLE='البحث في المكتبة غير متاح هنا.';// 502, or a network that never answered. It differs from the line above in one way only: this
+// one can be tried again.
+const EZLIB_UPSTREAM='تعذر الوصول إلى المكتبة الآن.';const EZLIB_RETRY='أعد المحاولة';// THE STATES, DECIDED IN ONE PURE FUNCTION, so a guard can drive every one of them with a
+// fixture and no browser and no network. It returns the NAME of the module export that supplies
+// the sentence and never the sentence itself -- which is what keeps the card's words in the
+// module and lets a guard prove the mapping against the real file rather than against a copy.
+const EZLIB_STATE_OK='ok';const EZLIB_STATE_EMPTY='empty';const EZLIB_STATE_REFUSED='refused';const EZLIB_STATE_DEGRADED='degraded';const EZLIB_STATE_UNAVAILABLE='unavailable';const EZLIB_STATE_UPSTREAM='upstream';function ezLibViewState(outcome){// A dead network and an unreadable answer are the same thing to a reader: nothing came back,
+// and it is worth trying again.
+const dead={kind:EZLIB_STATE_UPSTREAM,textFrom:null,showHits:false,retry:true};if(!outcome||typeof outcome!=='object')return dead;if(outcome.status===503)return{kind:EZLIB_STATE_UNAVAILABLE,textFrom:null,showHits:false,retry:false};if(outcome.status!==200)return dead;const payload=outcome.payload;if(!payload||typeof payload!=='object')return dead;// The postings ceiling working as designed. A sentence, not an error screen and not a fault
+// colour -- and the sentence is the module's own.
+if(payload.refused===true)return{kind:EZLIB_STATE_REFUSED,textFrom:'REFUSED_TEXT',showHits:false,retry:false};const hits=Array.isArray(payload.hits)?payload.hits:[];// Cut short at the budget ceiling. What came back IS shown, and the shortfall is said out loud
+// rather than left for the reader not to notice.
+if(payload.degraded_reason)return{kind:EZLIB_STATE_DEGRADED,textFrom:'DEGRADED_TEXT',showHits:true,retry:false};if(!hits.length)return{kind:EZLIB_STATE_EMPTY,textFrom:null,showHits:false,retry:false};return{kind:EZLIB_STATE_OK,textFrom:null,showHits:true,retry:false};}// Two of the sentences are this screen's own; the other two belong to the module and are read
+// off it by the name the state carries. A state naming a text the module does not export draws
+// NO sentence at all rather than one this file invented to fill the gap.
+function ezLibSentence(state,mod){if(!state)return'';if(state.kind===EZLIB_STATE_UNAVAILABLE)return EZLIB_UNAVAILABLE;if(state.kind===EZLIB_STATE_UPSTREAM)return EZLIB_UPSTREAM;if(state.kind===EZLIB_STATE_EMPTY)return EZLIB_NONE;if(state.textFrom&&mod&&typeof mod[state.textFrom]==='string')return mod[state.textFrom];return'';}// The one call, and it is made on submit and on retry -- never on mount, and never on boot.
+async function ezLibSearchCall(q,signal){let response;try{response=await fetch(EZLIB_ROUTE,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:q,limit:EZLIB_LIMIT}),signal:signal});}catch(e){return{status:0,payload:null};}let payload=null;try{payload=await response.json();}catch(e){}return{status:response.status,payload:payload};}// ONE import for the life of the page, and the promise IS the cache -- opening the sheet a
+// second time does not fetch it again. When it does not resolve, no hit is drawn at all: a hit
+// without its card is an unattributed quotation, and this file has no second way to attribute
+// one.
+let ezLibCardModulePromise=null;function ezLibCardModule(){if(!ezLibCardModulePromise)ezLibCardModulePromise=import(EZLIB_CARD_MODULE);return ezLibCardModulePromise;}// ONE HIT: the matn as it arrived, and beneath it the ONE line renderSourceCard produced. This
+// component composes nothing. It does not read page_start, page_end, volume, book_title, author
+// or heading_path, and it carries no branch on page_citable -- the module already made that
+// decision, and making it twice is how two copies come to disagree.
+function EzLibHit({text,card}){return/*#__PURE__*/React.createElement("article",{style:s.ezlibHit},/*#__PURE__*/React.createElement("div",{style:s.ezlibText,dir:"rtl"},text),card?/*#__PURE__*/React.createElement("div",{style:s.ezlibCard,dir:"rtl"},card):null);}// THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN -- the same reason PrayerSheet is one.
+// index.html's screen inventory is a CROSS-FILE contract: theme-coverage-guard reads
+// EZIK-THEME-33-HANDOFF.md and requires its table and its Arabic screen count to match the set
+// of screen === '...' branches in this file. That document is not this batch's to edit, so a
+// route would have reddened a gate for a reason having nothing to do with the library. It opens
+// from the home, over the home, on the home's own screen key, and its back button returns there.
+function LibrarySheet({onClose}){const[query,setQuery]=useState('');const[state,setState]=useState(null);const[rows,setRows]=useState([]);const[loading,setLoading]=useState(false);const[mod,setMod]=useState(null);const request=useRef(null);const lastQuery=useRef('');// The card module is fetched when the SHEET opens -- a reader's tap, not the app's boot -- so
+// the first result never waits on it. /api/lib-search is not touched here, and is not touched
+// by anything that runs before a reader asks for a search.
+useEffect(()=>{let alive=true;ezLibCardModule().then(m=>{if(alive)setMod(m);}).catch(()=>{});return()=>{alive=false;};},[]);useEffect(()=>()=>{if(request.current)request.current.abort();},[]);const run=async fixed=>{const term=String(fixed==null?query:fixed).trim();if(!term||loading)return;if(request.current)request.current.abort();const controller=new AbortController();request.current=controller;lastQuery.current=term;setLoading(true);setState(null);setRows([]);// THE MODULE BEFORE THE ROUTE. No hit is ever held without the card that attributes it, so
+// when the module is not here the search is not made at all and the neutral sentence stands.
+let card=mod;if(!card){try{card=await ezLibCardModule();}catch(e){if(request.current!==controller)return;request.current=null;setLoading(false);setState(ezLibViewState(null));return;}if(request.current!==controller)return;setMod(card);}const outcome=await ezLibSearchCall(term.slice(0,EZLIB_MAX_Q),controller.signal);// A stale controller means a newer search or an unmount overtook this one. Its answer is
+// dropped rather than painted over the newer one.
+if(request.current!==controller)return;const next=ezLibViewState(outcome);const hits=next.showHits&&outcome.payload&&Array.isArray(outcome.payload.hits)?outcome.payload.hits:[];setRows(hits.map((hit,i)=>({key:hit&&hit.atom_id!=null?String(hit.atom_id):'row'+i,text:hit&&typeof hit.text==='string'?hit.text:'',card:card.renderSourceCard(card.buildSourceCard(hit))})));setState(next);request.current=null;setLoading(false);};const sentence=ezLibSentence(state,mod);return/*#__PURE__*/React.createElement(EzShell,{title:EZLIB_TITLE,onBack:onClose,backLabel:EZLIB_BACK},/*#__PURE__*/React.createElement(EzShellGroup,{title:EZLIB_GROUP,hint:EZLIB_HINT},/*#__PURE__*/React.createElement("form",{role:"search",style:s.ezlibForm,onSubmit:e=>{e.preventDefault();run();}},/*#__PURE__*/React.createElement("input",{className:"ezhome-focus",type:"search",dir:"rtl",required:true,maxLength:EZLIB_MAX_Q,value:query,onChange:e=>setQuery(e.target.value),style:s.ezlibInput,placeholder:EZLIB_PLACEHOLDER,"aria-label":EZLIB_ARIA}),/*#__PURE__*/React.createElement("button",{type:"submit",className:"ezhome-focus",style:s.ezlibBtn,disabled:loading},EZLIB_BUTTON)),loading?/*#__PURE__*/React.createElement("div",{style:s.ezlibNote,role:"status","aria-live":"polite"},EZLIB_LOADING):null,!loading&&sentence?/*#__PURE__*/React.createElement("div",{style:s.ezlibNote,role:"status","aria-live":"polite"},sentence):null,!loading&&state&&state.retry?/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",style:s.qiblaBtn,onClick:()=>run(lastQuery.current)},EZLIB_RETRY):null),rows.length?/*#__PURE__*/React.createElement(EzShellGroup,{title:EZLIB_RESULTS,wide:true},rows.map(r=>/*#__PURE__*/React.createElement(EzLibHit,{key:r.key,text:r.text,card:r.card}))):null);}// ============================================================
 // ITEM 109 — التاريخ الهجريّ، محسوبًا على تقويمٍ مسمًّى
 // ============================================================
 // THE FAULT: an arithmetical Hijri calendar drifts from the calendar people actually live by.
@@ -4701,7 +4772,10 @@ const displayWords=(getVerseText(selectedSurah,reciteAyah||startAyah)||'').split
 // ============================================================
 const s={// ITEM 107: the times table and its two choosers. Type and tokens only.
 prayerRow:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,padding:'7px 0',borderBottom:'1px solid var(--line)'},prayerName:{fontSize:15,lineHeight:1.7,color:'var(--ink)'},prayerTime:{fontSize:16,lineHeight:1.7,fontWeight:700,color:'var(--ink)'},prayerOptRow:{display:'flex',flexWrap:'wrap',gap:6,margin:'2px 0 4px'},prayerOpt:{background:'none',border:'1px solid var(--line)',borderRadius:10,padding:'6px 10px',fontSize:13,fontFamily:'inherit',color:'inherit',cursor:'pointer'},prayerStep:{display:'inline-flex',alignItems:'center',gap:8},prayerStepBtn:{background:'none',border:'1px solid var(--line)',borderRadius:8,padding:'2px 10px',fontSize:15,fontFamily:'inherit',color:'inherit',cursor:'pointer'},prayerOffVal:{minWidth:28,textAlign:'center',fontSize:14,color:'var(--muted)'},// ITEM 108-أ: the qibla panel. Type and one dial, every colour a token.
-qiblaDeg:{fontSize:26,lineHeight:1.4,fontWeight:700,color:'var(--ink)'},qiblaDir:{marginTop:2,fontSize:15,lineHeight:1.7,color:'var(--ink)'},qiblaDialWrap:{display:'flex',justifyContent:'center',padding:'10px 0'},qiblaNote:{marginTop:6,fontSize:13,lineHeight:1.8,color:'var(--muted)'},qiblaPlace:{marginTop:10,fontSize:14,lineHeight:1.7,color:'var(--ink)'},qiblaBtn:{marginTop:8,alignSelf:'flex-start',background:'none',border:'1px solid var(--line)',borderRadius:10,padding:'8px 14px',fontSize:14,fontFamily:'inherit',color:'inherit',cursor:'pointer'},// ITEM 109: the Hijri line under the name, and the live preview in Settings. Type only —
+qiblaDeg:{fontSize:26,lineHeight:1.4,fontWeight:700,color:'var(--ink)'},qiblaDir:{marginTop:2,fontSize:15,lineHeight:1.7,color:'var(--ink)'},qiblaDialWrap:{display:'flex',justifyContent:'center',padding:'10px 0'},qiblaNote:{marginTop:6,fontSize:13,lineHeight:1.8,color:'var(--muted)'},qiblaPlace:{marginTop:10,fontSize:14,lineHeight:1.7,color:'var(--ink)'},qiblaBtn:{marginTop:8,alignSelf:'flex-start',background:'none',border:'1px solid var(--line)',borderRadius:10,padding:'8px 14px',fontSize:14,fontFamily:'inherit',color:'inherit',cursor:'pointer'},// ITEM 16-ب. `flex: 'none'` on the button is the lesson the daily-dhikr dropdown taught in
+// round 26: a control whose parent is a flex container and which declares no flex of its own
+// is sized by the parent, and the height written beside it is never used.
+ezlibForm:{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'},ezlibInput:{flex:1,minWidth:0,height:40,borderRadius:12,border:'2px solid var(--line)',background:'var(--page)',color:'var(--ink)',fontFamily:'var(--ez-ui-font)',fontSize:15,padding:'0 10px'},ezlibBtn:{flex:'none',height:40,borderRadius:12,border:'1px solid var(--line)',background:'none',color:'inherit',fontFamily:'inherit',fontSize:14,padding:'0 16px',cursor:'pointer'},ezlibNote:{marginTop:6,fontSize:13,lineHeight:1.8,color:'var(--muted)'},ezlibHit:{display:'flex',flexDirection:'column',gap:6,padding:'10px 0',borderBottom:'1px solid var(--a3-line)'},ezlibText:{fontSize:15,lineHeight:1.9,color:'var(--ink)'},ezlibCard:{fontSize:13,lineHeight:1.8,color:'var(--muted)'},// ITEM 109: the Hijri line under the name, and the live preview in Settings. Type only —
 // no box, no surface, no border, so the masthead's shape is untouched to the pixel.
 ezistHijri:{marginTop:6,fontSize:13,lineHeight:1.6,color:'var(--a3-muted)',fontWeight:500},hijriNow:{marginTop:8,fontSize:13,lineHeight:1.7,color:'var(--muted)'},// ITEM 93-ج: the offline-store notice. Every colour is a token, so it follows the theme and
 // the identity like everything else; it is a strip at the foot of the viewport rather than a
