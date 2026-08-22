@@ -35,11 +35,37 @@
 // builder and this whitelist cannot drift apart, and neither of them knows a field
 // called `book_id`.
 //
+// ITEM 16-ب AMENDS THAT SENTENCE. The eleven and the seventeen still pass through untouched,
+// and none of them is replaced -- but this function now ADDS three names of its own, and they
+// are the only three: source_card on every hit, and refused_text / degraded_text on the body
+// when their state applies. All three are declared by name below so a guard can prove the
+// additions are exactly those. They exist because the browser must not build a card: doing that
+// meant fetching lib/ at runtime, and lib/ is not in the service worker CORE.
+//
 // This round is purely additive: nothing in the answer path calls this endpoint yet.
 
-import { RESPONSE_FIELDS, HIT_FIELDS } from '../lib/lib-source-card.js';
+// ITEM 16-ب, THE CORRECTION. The card used to be built in the browser, which meant the page
+// fetching lib/lib-source-card.js at runtime -- and lib/ is the SERVER half: it is not in the
+// service worker's CORE, so that page broke with no network. The card is built HERE now, on the
+// path that already imports this module, and the browser draws what it is handed.
+import {
+  RESPONSE_FIELDS, HIT_FIELDS,
+  buildSourceCard, renderSourceCard,
+  REFUSED_TEXT, DEGRADED_TEXT
+} from '../lib/lib-source-card.js';
 
 const SEARCH_URL = 'https://lib.ezik.app/search';
+
+// WHAT THIS FUNCTION ADDS TO THE MEASURED CONTRACT, AND IT IS ALL IT ADDS. The service sends
+// eleven fields and seventeen per hit; those pass through untouched and none is replaced. On
+// top of them this function writes ONE field per hit and TWO on the body, all three named here
+// so a guard can assert the additions are exactly these and no others crept in.
+export const ADDED_HIT_FIELD = 'source_card';
+export const ADDED_RESPONSE_FIELDS = Object.freeze(['refused_text', 'degraded_text']);
+
+// The three keys a card may never carry when the hit is not page-citable. Named here for the
+// fail-safe below -- NOT for a second decision: buildSourceCard makes that decision, once.
+const PAGE_KEYS = ['volume', 'page_start', 'page_end'];
 
 // Measured at server.mjs:365 and server.mjs:165-166. Do not "tidy" either of these.
 const AUTH_HEADER_NAME = 'authorization';
@@ -94,10 +120,31 @@ export function shapeSearchResponse(payload) {
   // `hits` was copied by name above; replace it with the per-hit whitelist, and drop
   // it entirely if it came back as something other than a list.
   if (Array.isArray(payload?.hits)) {
-    out.hits = payload.hits.map((hit) => pickFields(hit, HIT_FIELDS));
+    out.hits = payload.hits.map((hit) => {
+      // THE WHITELIST RUNS FIRST, and the card is built from its OUTPUT rather than from the
+      // raw hit. So a field the service invented cannot reach a card even indirectly.
+      const shaped = pickFields(hit, HIT_FIELDS);
+      const card = buildSourceCard(shaped);
+      if (card) {
+        // THE FAIL-SAFE, AND IT IS NOT A SECOND DECISION. buildSourceCard already strips the
+        // page from a hit whose page_citable is not exactly true -- that rule lives there and
+        // nowhere else. This only refuses to SEND a card that came back carrying one anyway:
+        // an absent card is honest, a citation a reader cannot look up is not.
+        const leaks = card.page_citable !== true && PAGE_KEYS.some((key) => key in card);
+        // The card AND the single line it renders to, together, so the browser composes
+        // nothing and cannot attribute the same hit a second way.
+        if (!leaks) shaped[ADDED_HIT_FIELD] = { ...card, line: renderSourceCard(card) };
+      }
+      return shaped;
+    });
   } else {
     delete out.hits;
   }
+  // THE TWO SENTENCES THE MODULE OWNS, travelling with the state they belong to and only then.
+  // They are written from the module's own constants, so the browser never holds a copy of
+  // either -- which is the whole reason the refusal and the shortfall read the same everywhere.
+  if (payload && payload.refused === true) out.refused_text = REFUSED_TEXT;
+  if (payload && payload.degraded_reason) out.degraded_text = DEGRADED_TEXT;
   return out;
 }
 

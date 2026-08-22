@@ -3760,66 +3760,54 @@ const[loc,setLoc]=useState(readQiblaLoc);return/*#__PURE__*/React.createElement(
 // else, and the service host appears nowhere in this file. The function holds the token, makes
 // the one call, and hands back the whitelisted fields. The browser holds nothing.
 //
-// AND THE CARD IS IMPORTED, NOT WRITTEN HERE. lib/lib-source-card.js decides what a source card
-// may say, and its sharp edge is the page: on a hit whose page_citable is not exactly true it
-// names the book, the author and the chapter path and NAMES NO PAGE -- even when the hit carries
-// page_start and volume, which 21.8% of them do. If this screen composed its own line, the same
-// hit would be attributed two different ways depending on which file a reader was looking at,
-// and the copy that drifts would be this one. So the module is imported.
+// THE CARD IS BUILT ON THE SERVER, AND THIS SCREEN DRAWS DATA. The first cut of this sheet
+// imported lib/lib-source-card.js into the browser so the card could be built here from the
+// module that owns the rule. That was wrong, and the reason is offline: lib/ is the SERVER half
+// of this repository and it is not in the service worker's CORE, so a page that reaches for it
+// at runtime is a page that breaks the moment the network does. The rule still lives in exactly
+// one place -- api/lib-search.js imports the module on the server, where a plain module
+// dependency is ordinary -- and what crosses the wire is the finished card.
 //
-// HOW, given that this is a classic script. tools/babel-block.cjs pins sourceType to 'script',
-// so a static module DECLARATION cannot be parsed in this file at all. A dynamic module call is an
-// expression, not a declaration: it parses, it survives the transform unchanged (measured), and
-// it is served to the browser by the same static path that already delivers vendor/react.umd.js
-// to the page. MEASURED, headless, over this tree: /lib/lib-source-card.js imports, and all
-// seven of its exports arrive.
-//
-// NOT ONE SENTENCE OF THE CARD IS IN THIS FILE. The two texts the module owns -- the refusal and
-// the shortfall -- are read off the imported module BY NAME, and the truncation mark is appended
-// by the module's own renderer. What is written below is screen chrome: a heading, a
-// placeholder, a button, and the two neutral sentences for the two failures the module says
-// nothing about.
-const EZLIB_ROUTE='/api/lib-search';const EZLIB_CARD_MODULE='/lib/lib-source-card.js';const EZLIB_LIMIT=10;const EZLIB_MAX_Q=180;const EZLIB_TITLE='المكتبة';const EZLIB_BACK='رجوع';const EZLIB_GROUP='البحث في المكتبة';const EZLIB_HINT='يُبحَث في نصوص المكتبة، ويُذكَر مصدر كل نتيجة كما ورد.';const EZLIB_PLACEHOLDER='اكتب ما تبحث عنه';const EZLIB_ARIA='البحث في المكتبة';const EZLIB_BUTTON='ابحث';const EZLIB_RESULTS='النتائج';const EZLIB_LOADING='يجري البحث…';const EZLIB_NONE='لا نتيجة لهذا البحث.';// 503 -- the function has no token, which is the state of every preview. The reader is told the
-// search is not available HERE and nothing further: naming the configuration would point a
-// stranger straight at the gate, and it would mean nothing to a reader.
-const EZLIB_UNAVAILABLE='البحث في المكتبة غير متاح هنا.';// 502, or a network that never answered. It differs from the line above in one way only: this
-// one can be tried again.
-const EZLIB_UPSTREAM='تعذر الوصول إلى المكتبة الآن.';const EZLIB_RETRY='أعد المحاولة';// THE STATES, DECIDED IN ONE PURE FUNCTION, so a guard can drive every one of them with a
-// recorded answer and no browser and no network. It returns the NAME of the module export that supplies
-// the sentence and never the sentence itself -- which is what keeps the card's words in the
-// module and lets a guard prove the mapping against the real file rather than against a copy.
-const EZLIB_STATE_OK='ok';const EZLIB_STATE_EMPTY='empty';const EZLIB_STATE_REFUSED='refused';const EZLIB_STATE_DEGRADED='degraded';const EZLIB_STATE_UNAVAILABLE='unavailable';const EZLIB_STATE_UPSTREAM='upstream';function ezLibViewState(outcome){// A dead network and an unreadable answer are the same thing to a reader: nothing came back,
+// SO THERE IS NOTHING HERE TO GET WRONG. This file composes no attribution, reads no page field,
+// and holds no copy of a sentence the module owns: it draws `hit.source_card.line` as it
+// arrived, and `refused_text` / `degraded_text` as they arrived. A field that did not come is a
+// field that is not drawn -- never a substitute invented on this side of the wire, because a
+// substitute is how one hit ends up attributed two different ways.
+const EZLIB_ROUTE='/api/lib-search';const EZLIB_LIMIT=10;const EZLIB_MAX_Q=180;// SCREEN CHROME, AND NOT ONE SENTENCE OF IT REPORTS AN OUTCOME. A title, a heading, a hint, a
+// placeholder, two button labels and a progress word. Everything that says what HAPPENED to a
+// search -- the refusal, the shortfall, the two failures -- is text the server sent.
+const EZLIB_TITLE='المكتبة';const EZLIB_BACK='رجوع';const EZLIB_GROUP='البحث في المكتبة';const EZLIB_HINT='يُبحَث في نصوص المكتبة، ويُذكَر مصدر كل نتيجة كما ورد.';const EZLIB_PLACEHOLDER='اكتب ما تبحث عنه';const EZLIB_ARIA='البحث في المكتبة';const EZLIB_BUTTON='ابحث';const EZLIB_RESULTS='النتائج';const EZLIB_LOADING='يجري البحث…';const EZLIB_RETRY='أعد المحاولة';// THE STATES, DECIDED IN ONE PURE FUNCTION, so a guard can drive every one of them with a
+// recorded answer and no browser and no network. It returns the NAME of the response field that
+// supplies the sentence and never a sentence -- which is what keeps every word of an outcome on
+// the server side and lets a guard prove the mapping against a real payload.
+const EZLIB_STATE_OK='ok';const EZLIB_STATE_EMPTY='empty';const EZLIB_STATE_REFUSED='refused';const EZLIB_STATE_DEGRADED='degraded';const EZLIB_STATE_UNAVAILABLE='unavailable';const EZLIB_STATE_UPSTREAM='upstream';// `textFrom` is a field name on the payload. 'error' is the one indirection: the function's two
+// failure bodies carry their sentence at error.message rather than at the top level.
+const EZLIB_TEXT_FROM_ERROR='error';function ezLibViewState(outcome){// A dead network and an unreadable answer are the same thing to a reader: nothing came back,
 // and it is worth trying again.
-const dead={kind:EZLIB_STATE_UPSTREAM,textFrom:null,showHits:false,retry:true};if(!outcome||typeof outcome!=='object')return dead;if(outcome.status===503)return{kind:EZLIB_STATE_UNAVAILABLE,textFrom:null,showHits:false,retry:false};if(outcome.status!==200)return dead;const payload=outcome.payload;if(!payload||typeof payload!=='object')return dead;// The postings ceiling working as designed. A sentence, not an error screen and not a fault
-// colour -- and the sentence is the module's own.
-if(payload.refused===true)return{kind:EZLIB_STATE_REFUSED,textFrom:'REFUSED_TEXT',showHits:false,retry:false};const hits=Array.isArray(payload.hits)?payload.hits:[];// Cut short at the budget ceiling. What came back IS shown, and the shortfall is said out loud
+const dead={kind:EZLIB_STATE_UPSTREAM,textFrom:EZLIB_TEXT_FROM_ERROR,showHits:false,retry:true};if(!outcome||typeof outcome!=='object')return dead;if(outcome.status===503){return{kind:EZLIB_STATE_UNAVAILABLE,textFrom:EZLIB_TEXT_FROM_ERROR,showHits:false,retry:false};}if(outcome.status!==200)return dead;const payload=outcome.payload;if(!payload||typeof payload!=='object')return dead;// The postings ceiling working as designed. A sentence, not an error screen and not a fault
+// colour -- and the sentence is the module's, carried here by the server.
+if(payload.refused===true){return{kind:EZLIB_STATE_REFUSED,textFrom:'refused_text',showHits:false,retry:false};}const hits=Array.isArray(payload.hits)?payload.hits:[];// Cut short at the budget ceiling. What came back IS shown, and the shortfall is said out loud
 // rather than left for the reader not to notice.
-if(payload.degraded_reason)return{kind:EZLIB_STATE_DEGRADED,textFrom:'DEGRADED_TEXT',showHits:true,retry:false};if(!hits.length)return{kind:EZLIB_STATE_EMPTY,textFrom:null,showHits:false,retry:false};return{kind:EZLIB_STATE_OK,textFrom:null,showHits:true,retry:false};}// Two of the sentences are this screen's own; the other two belong to the module and are read
-// off it by the name the state carries. A state naming a text the module does not export draws
-// NO sentence at all rather than one this file invented to fill the gap.
-function ezLibSentence(state,mod){if(!state)return'';if(state.kind===EZLIB_STATE_UNAVAILABLE)return EZLIB_UNAVAILABLE;if(state.kind===EZLIB_STATE_UPSTREAM)return EZLIB_UPSTREAM;if(state.kind===EZLIB_STATE_EMPTY)return EZLIB_NONE;if(state.textFrom&&mod&&typeof mod[state.textFrom]==='string')return mod[state.textFrom];return'';}// The one call, and it is made on submit and on retry -- never on mount, and never on boot.
-async function ezLibSearchCall(q,signal){let response;try{response=await fetch(EZLIB_ROUTE,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:q,limit:EZLIB_LIMIT}),signal:signal});}catch(e){return{status:0,payload:null};}let payload=null;try{payload=await response.json();}catch(e){}return{status:response.status,payload:payload};}// ONE module load for the life of the page, and the promise IS the cache -- opening the sheet a
-// second time does not fetch it again. When it does not resolve, no hit is drawn at all: a hit
-// without its card is an unattributed quotation, and this file has no second way to attribute
-// one.
-let ezLibCardModulePromise=null;function ezLibCardModule(){if(!ezLibCardModulePromise)ezLibCardModulePromise=import(EZLIB_CARD_MODULE);return ezLibCardModulePromise;}// ONE HIT: the matn as it arrived, and beneath it the ONE line renderSourceCard produced. This
+if(payload.degraded_reason){return{kind:EZLIB_STATE_DEGRADED,textFrom:'degraded_text',showHits:true,retry:false};}if(!hits.length)return{kind:EZLIB_STATE_EMPTY,textFrom:null,showHits:false,retry:false};return{kind:EZLIB_STATE_OK,textFrom:null,showHits:true,retry:false};}// EVERY SENTENCE THIS RETURNS CAME OVER THE WIRE. The state names a field; if the field is not
+// there, or is not a string, the answer is the empty string and the screen draws nothing. There
+// is no branch in this function that produces a word of its own.
+function ezLibSentence(state,payload){if(!state||!state.textFrom)return'';if(!payload||typeof payload!=='object')return'';if(state.textFrom===EZLIB_TEXT_FROM_ERROR){const error=payload.error;return error&&typeof error.message==='string'?error.message:'';}const value=payload[state.textFrom];return typeof value==='string'?value:'';}// The card line, taken off the hit and never assembled. A hit whose card did not arrive is a hit
+// this screen cannot attribute, and an unattributed quotation is the one thing this round exists
+// to prevent -- so it is dropped rather than drawn bare.
+function ezLibCardLine(hit){const card=hit&&hit.source_card;return card&&typeof card.line==='string'&&card.line?card.line:'';}// The one call, and it is made on submit and on retry -- never on mount, and never on boot.
+async function ezLibSearchCall(q,signal){let response;try{response=await fetch(EZLIB_ROUTE,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:q,limit:EZLIB_LIMIT}),signal:signal});}catch(e){return{status:0,payload:null};}let payload=null;try{payload=await response.json();}catch(e){}return{status:response.status,payload:payload};}// ONE HIT: the matn as it arrived, and beneath it the ONE line the server rendered. This
 // component composes nothing. It does not read page_start, page_end, volume, book_title, author
-// or heading_path, and it carries no branch on page_citable -- the module already made that
-// decision, and making it twice is how two copies come to disagree.
-function EzLibHit({text,card}){return/*#__PURE__*/React.createElement("article",{style:s.ezlibHit},/*#__PURE__*/React.createElement("div",{style:s.ezlibText,dir:"rtl"},text),card?/*#__PURE__*/React.createElement("div",{style:s.ezlibCard,dir:"rtl"},card):null);}// THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN -- the same reason PrayerSheet is one.
+// or heading_path, and it carries no branch on page_citable -- that decision was made once, in
+// lib/lib-source-card.js, on the server, and making it twice is how two copies come to disagree.
+function EzLibHit({text,card}){return/*#__PURE__*/React.createElement("article",{style:s.ezlibHit},/*#__PURE__*/React.createElement("div",{style:s.ezlibText,dir:"rtl"},text),/*#__PURE__*/React.createElement("div",{style:s.ezlibCard,dir:"rtl"},card));}// THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN -- the same reason PrayerSheet is one.
 // index.html's screen inventory is a CROSS-FILE contract: theme-coverage-guard reads
 // EZIK-THEME-33-HANDOFF.md and requires its table and its Arabic screen count to match the set
 // of screen === '...' branches in this file. That document is not this batch's to edit, so a
 // route would have reddened a gate for a reason having nothing to do with the library. It opens
 // from the home, over the home, on the home's own screen key, and its back button returns there.
-function LibrarySheet({onClose}){const[query,setQuery]=useState('');const[state,setState]=useState(null);const[rows,setRows]=useState([]);const[loading,setLoading]=useState(false);const[mod,setMod]=useState(null);const request=useRef(null);const lastQuery=useRef('');// The card module is fetched when the SHEET opens -- a reader's tap, not the app's boot -- so
-// the first result never waits on it. /api/lib-search is not touched here, and is not touched
-// by anything that runs before a reader asks for a search.
-useEffect(()=>{let alive=true;ezLibCardModule().then(m=>{if(alive)setMod(m);}).catch(()=>{});return()=>{alive=false;};},[]);useEffect(()=>()=>{if(request.current)request.current.abort();},[]);const run=async fixed=>{const term=String(fixed==null?query:fixed).trim();if(!term||loading)return;if(request.current)request.current.abort();const controller=new AbortController();request.current=controller;lastQuery.current=term;setLoading(true);setState(null);setRows([]);// THE MODULE BEFORE THE ROUTE. No hit is ever held without the card that attributes it, so
-// when the module is not here the search is not made at all and the neutral sentence stands.
-let card=mod;if(!card){try{card=await ezLibCardModule();}catch(e){if(request.current!==controller)return;request.current=null;setLoading(false);setState(ezLibViewState(null));return;}if(request.current!==controller)return;setMod(card);}const outcome=await ezLibSearchCall(term.slice(0,EZLIB_MAX_Q),controller.signal);// A stale controller means a newer search or an unmount overtook this one. Its answer is
+function LibrarySheet({onClose}){const[query,setQuery]=useState('');const[state,setState]=useState(null);const[payload,setPayload]=useState(null);const[rows,setRows]=useState([]);const[loading,setLoading]=useState(false);const request=useRef(null);const lastQuery=useRef('');useEffect(()=>()=>{if(request.current)request.current.abort();},[]);const run=async fixed=>{const term=String(fixed==null?query:fixed).trim();if(!term||loading)return;if(request.current)request.current.abort();const controller=new AbortController();request.current=controller;lastQuery.current=term;setLoading(true);setState(null);setPayload(null);setRows([]);const outcome=await ezLibSearchCall(term.slice(0,EZLIB_MAX_Q),controller.signal);// A stale controller means a newer search or an unmount overtook this one. Its answer is
 // dropped rather than painted over the newer one.
-if(request.current!==controller)return;const next=ezLibViewState(outcome);const hits=next.showHits&&outcome.payload&&Array.isArray(outcome.payload.hits)?outcome.payload.hits:[];setRows(hits.map((hit,i)=>({key:hit&&hit.atom_id!=null?String(hit.atom_id):'row'+i,text:hit&&typeof hit.text==='string'?hit.text:'',card:card.renderSourceCard(card.buildSourceCard(hit))})));setState(next);request.current=null;setLoading(false);};const sentence=ezLibSentence(state,mod);return/*#__PURE__*/React.createElement(EzShell,{title:EZLIB_TITLE,onBack:onClose,backLabel:EZLIB_BACK},/*#__PURE__*/React.createElement(EzShellGroup,{title:EZLIB_GROUP,hint:EZLIB_HINT},/*#__PURE__*/React.createElement("form",{role:"search",style:s.ezlibForm,onSubmit:e=>{e.preventDefault();run();}},/*#__PURE__*/React.createElement("input",{className:"ezhome-focus",type:"search",dir:"rtl",required:true,maxLength:EZLIB_MAX_Q,value:query,onChange:e=>setQuery(e.target.value),style:s.ezlibInput,placeholder:EZLIB_PLACEHOLDER,"aria-label":EZLIB_ARIA}),/*#__PURE__*/React.createElement("button",{type:"submit",className:"ezhome-focus",style:s.ezlibBtn,disabled:loading},EZLIB_BUTTON)),loading?/*#__PURE__*/React.createElement("div",{style:s.ezlibNote,role:"status","aria-live":"polite"},EZLIB_LOADING):null,!loading&&sentence?/*#__PURE__*/React.createElement("div",{style:s.ezlibNote,role:"status","aria-live":"polite"},sentence):null,!loading&&state&&state.retry?/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",style:s.qiblaBtn,onClick:()=>run(lastQuery.current)},EZLIB_RETRY):null),rows.length?/*#__PURE__*/React.createElement(EzShellGroup,{title:EZLIB_RESULTS,wide:true},rows.map(r=>/*#__PURE__*/React.createElement(EzLibHit,{key:r.key,text:r.text,card:r.card}))):null);}// ============================================================
+if(request.current!==controller)return;const next=ezLibViewState(outcome);const hits=next.showHits&&outcome.payload&&Array.isArray(outcome.payload.hits)?outcome.payload.hits:[];setRows(hits.map((hit,i)=>({key:hit&&hit.atom_id!=null?String(hit.atom_id):'row'+i,text:hit&&typeof hit.text==='string'?hit.text:'',card:ezLibCardLine(hit)})).filter(row=>row.card));setPayload(outcome.payload);setState(next);request.current=null;setLoading(false);};const sentence=ezLibSentence(state,payload);return/*#__PURE__*/React.createElement(EzShell,{title:EZLIB_TITLE,onBack:onClose,backLabel:EZLIB_BACK},/*#__PURE__*/React.createElement(EzShellGroup,{title:EZLIB_GROUP,hint:EZLIB_HINT},/*#__PURE__*/React.createElement("form",{role:"search",style:s.ezlibForm,onSubmit:e=>{e.preventDefault();run();}},/*#__PURE__*/React.createElement("input",{className:"ezhome-focus",type:"search",dir:"rtl",required:true,maxLength:EZLIB_MAX_Q,value:query,onChange:e=>setQuery(e.target.value),style:s.ezlibInput,placeholder:EZLIB_PLACEHOLDER,"aria-label":EZLIB_ARIA}),/*#__PURE__*/React.createElement("button",{type:"submit",className:"ezhome-focus",style:s.ezlibBtn,disabled:loading},EZLIB_BUTTON)),loading?/*#__PURE__*/React.createElement("div",{style:s.ezlibNote,role:"status","aria-live":"polite"},EZLIB_LOADING):null,!loading&&sentence?/*#__PURE__*/React.createElement("div",{style:s.ezlibNote,role:"status","aria-live":"polite"},sentence):null,!loading&&state&&state.retry?/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",style:s.qiblaBtn,onClick:()=>run(lastQuery.current)},EZLIB_RETRY):null),rows.length?/*#__PURE__*/React.createElement(EzShellGroup,{title:EZLIB_RESULTS,wide:true},rows.map(r=>/*#__PURE__*/React.createElement(EzLibHit,{key:r.key,text:r.text,card:r.card}))):null);}// ============================================================
 // ITEM 109 — التاريخ الهجريّ، محسوبًا على تقويمٍ مسمًّى
 // ============================================================
 // THE FAULT: an arithmetical Hijri calendar drifts from the calendar people actually live by.
