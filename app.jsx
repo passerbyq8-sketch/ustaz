@@ -12358,18 +12358,21 @@ function ezLibViewState(outcome) {
   }
   const hits = Array.isArray(payload.hits) ? payload.hits : [];
   // THE ORDER HERE IS THE SERVER'S ORDER, and it has to be. api/lib-search.js chooses which
-  // ONE of the three sentences to send by an ordered rule -- refused, then empty, then
-  // degraded -- so a view that classified the same body differently would name a field the
-  // server deliberately did not send and draw no sentence at all. The empty branch is above
-  // the degraded branch for that reason: a search that matched nothing has no results for a
-  // shortfall to describe, and the server says so rather than reporting a truncation of none.
-  if (!hits.length) {
-    return { kind: EZLIB_STATE_EMPTY, textFrom: 'empty_text', showHits: false, retry: false };
-  }
-  // Cut short at the budget ceiling. What came back IS shown, and the shortfall is said out loud
-  // rather than left for the reader not to notice.
+  // ONE of the three sentences to send by an ordered rule -- refused, then degraded, then
+  // empty -- so a view that classified the same body differently would name a field the server
+  // deliberately did not send and draw no sentence at all.
+  //
+  // Cut short at the budget ceiling. What came back IS shown, and the shortfall is said out
+  // loud rather than left for the reader not to notice -- and this branch sits ABOVE the empty
+  // one even when nothing came back at all. "No result for this search" is a claim of absence,
+  // and a search that stopped early did not read enough of the index to make it; a truncated
+  // search reports that it was truncated whether it returned ten hits or none.
   if (payload.degraded_reason) {
     return { kind: EZLIB_STATE_DEGRADED, textFrom: 'degraded_text', showHits: true, retry: false };
+  }
+  // The search ran to completion and matched nothing. Only here is the absence earned.
+  if (!hits.length) {
+    return { kind: EZLIB_STATE_EMPTY, textFrom: 'empty_text', showHits: false, retry: false };
   }
   return { kind: EZLIB_STATE_OK, textFrom: null, showHits: true, retry: false };
 }

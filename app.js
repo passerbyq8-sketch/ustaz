@@ -3788,14 +3788,17 @@ const EZLIB_TEXT_FROM_ERROR='error';function ezLibViewState(outcome){// A dead n
 const dead={kind:EZLIB_STATE_UPSTREAM,textFrom:EZLIB_TEXT_FROM_ERROR,showHits:false,retry:true};if(!outcome||typeof outcome!=='object')return dead;if(outcome.status===503){return{kind:EZLIB_STATE_UNAVAILABLE,textFrom:EZLIB_TEXT_FROM_ERROR,showHits:false,retry:false};}if(outcome.status!==200)return dead;const payload=outcome.payload;if(!payload||typeof payload!=='object')return dead;// The postings ceiling working as designed. A sentence, not an error screen and not a fault
 // colour -- and the sentence is the module's, carried here by the server.
 if(payload.refused===true){return{kind:EZLIB_STATE_REFUSED,textFrom:'refused_text',showHits:false,retry:false};}const hits=Array.isArray(payload.hits)?payload.hits:[];// THE ORDER HERE IS THE SERVER'S ORDER, and it has to be. api/lib-search.js chooses which
-// ONE of the three sentences to send by an ordered rule -- refused, then empty, then
-// degraded -- so a view that classified the same body differently would name a field the
-// server deliberately did not send and draw no sentence at all. The empty branch is above
-// the degraded branch for that reason: a search that matched nothing has no results for a
-// shortfall to describe, and the server says so rather than reporting a truncation of none.
-if(!hits.length){return{kind:EZLIB_STATE_EMPTY,textFrom:'empty_text',showHits:false,retry:false};}// Cut short at the budget ceiling. What came back IS shown, and the shortfall is said out loud
-// rather than left for the reader not to notice.
-if(payload.degraded_reason){return{kind:EZLIB_STATE_DEGRADED,textFrom:'degraded_text',showHits:true,retry:false};}return{kind:EZLIB_STATE_OK,textFrom:null,showHits:true,retry:false};}// EVERY SENTENCE THIS RETURNS CAME OVER THE WIRE. The state names a field; if the field is not
+// ONE of the three sentences to send by an ordered rule -- refused, then degraded, then
+// empty -- so a view that classified the same body differently would name a field the server
+// deliberately did not send and draw no sentence at all.
+//
+// Cut short at the budget ceiling. What came back IS shown, and the shortfall is said out
+// loud rather than left for the reader not to notice -- and this branch sits ABOVE the empty
+// one even when nothing came back at all. "No result for this search" is a claim of absence,
+// and a search that stopped early did not read enough of the index to make it; a truncated
+// search reports that it was truncated whether it returned ten hits or none.
+if(payload.degraded_reason){return{kind:EZLIB_STATE_DEGRADED,textFrom:'degraded_text',showHits:true,retry:false};}// The search ran to completion and matched nothing. Only here is the absence earned.
+if(!hits.length){return{kind:EZLIB_STATE_EMPTY,textFrom:'empty_text',showHits:false,retry:false};}return{kind:EZLIB_STATE_OK,textFrom:null,showHits:true,retry:false};}// EVERY SENTENCE THIS RETURNS CAME OVER THE WIRE. The state names a field; if the field is not
 // there, or is not a string, the answer is the empty string and the screen draws nothing. There
 // is no branch in this function that produces a word of its own.
 function ezLibSentence(state,payload){if(!state||!state.textFrom)return'';if(!payload||typeof payload!=='object')return'';if(state.textFrom===EZLIB_TEXT_FROM_ERROR){const error=payload.error;return error&&typeof error.message==='string'?error.message:'';}const value=payload[state.textFrom];return typeof value==='string'?value:'';}// The card line, taken off the hit and never assembled. A hit whose card did not arrive is a hit

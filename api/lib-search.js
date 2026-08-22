@@ -145,24 +145,31 @@ export function shapeSearchResponse(payload) {
   // is the whole reason a refusal, a shortfall and an empty result read the same everywhere.
   //
   // THE ORDER IS THE CONTRACT, not an accident of how the ifs fell out:
-  //   refused          -> refused_text, ALONE. The ceiling stopped the search; there is nothing
-  //                       to say about results that were never gathered.
-  //   no hits          -> empty_text, ALONE. The search ran and matched nothing, and that is
-  //                       what a reader needs to hear -- including when the budget also ran
-  //                       short, because "cut off at the ceiling" describes results and there
-  //                       are none to describe.
-  //   hits + degraded  -> degraded_text. Results ARE shown and the shortfall is said with them.
-  //   hits, no shortfall -> none of the three. Nothing happened that needs a sentence.
+  //   refused            -> refused_text, ALONE. The ceiling stopped the search; there is
+  //                         nothing to say about results that were never gathered.
+  //   degraded_reason    -> degraded_text, ALONE, WITH HITS OR WITHOUT THEM.
+  //   no hits            -> empty_text, ALONE.
+  //   hits, nothing else -> none of the three. Nothing happened that needs a sentence.
   //
-  // empty_text therefore NEVER travels with a hit and NEVER travels with refused_text. A body
-  // carrying both would be telling a reader two different things about the same search.
+  // WHY degraded OUTRANKS empty, WHICH IS THE ONE ORDERING THAT IS NOT OBVIOUS. "There is no
+  // result for this search" is a CLAIM OF ABSENCE, and a search cut short at the budget
+  // ceiling did not read enough of the index to earn it: it stopped early and reported what it
+  // had, which was nothing YET. Saying "no result" there is a negative with no evidence behind
+  // it -- and this answer goes to someone asking about their religion, where an unfounded "it
+  // is not there" is worse than an admission that the search was cut off. So empty_text is
+  // sent ONLY when the search actually completed, and a truncated search says it was truncated
+  // whether it came back with ten hits or none.
+  //
+  // empty_text therefore NEVER travels with a hit, NEVER with refused_text, and NEVER with a
+  // degraded_reason. A body carrying two of these would tell a reader two different things
+  // about one search.
   const shownHits = Array.isArray(out.hits) ? out.hits : [];
   if (payload && payload.refused === true) {
     out.refused_text = REFUSED_TEXT;
-  } else if (!shownHits.length) {
-    out.empty_text = EMPTY_TEXT;
   } else if (payload && payload.degraded_reason) {
     out.degraded_text = DEGRADED_TEXT;
+  } else if (!shownHits.length) {
+    out.empty_text = EMPTY_TEXT;
   }
   return out;
 }

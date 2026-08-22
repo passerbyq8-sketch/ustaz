@@ -631,13 +631,39 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('...and a refusal with no hits is still a refusal, not an empty result',
     sentencesOn(rowRefusedNoHits).join(',') === 'refused_text',
     sentencesOn(rowRefusedNoHits).join(','));
-  // a shortfall that returned nothing describes nothing: the reader is told there is no result
+  // A SHORTFALL THAT RETURNED NOTHING IS STILL A SHORTFALL, and this is the ordering that is
+  // not obvious. "No result for this search" is a CLAIM OF ABSENCE; a search cut short at the
+  // budget ceiling did not read enough of the index to earn it. Claiming it anyway is a
+  // negative with no evidence behind it, put in front of someone asking about their religion.
   const rowDegradedNoHits = api.shapeSearchResponse(FIXTURES.response_degraded);
-  check('...and a shortfall that returned nothing says "no result", not "truncated"',
-    sentencesOn(rowDegradedNoHits).join(',') === 'empty_text',
+  check('a shortfall that returned NOTHING says "truncated", never "no result"',
+    sentencesOn(rowDegradedNoHits).join(',') === 'degraded_text',
     sentencesOn(rowDegradedNoHits).join(','));
+  check('...so empty_text is absent from it', !('empty_text' in rowDegradedNoHits));
+  check('...and it really did come back with zero hits, so the case is the real one',
+    Array.isArray(rowDegradedNoHits.hits) ? rowDegradedNoHits.hits.length === 0 : true);
+  // EMPTY_TEXT IS NEVER SENT WHILE A SHORTFALL IS ON THE BODY. Named on its own, and driven
+  // over every shape a degraded answer can take rather than over the one that happened to be
+  // to hand: no hits, one hit, many hits, and a hits key that never arrived at all.
+  const DEGRADED_SHAPES = [
+    ['no hits', Object.assign({}, FIXTURES.response_degraded, { hits: [] })],
+    ['one hit', Object.assign({}, FIXTURES.response_degraded, { hits: [hit1] })],
+    ['two hits', Object.assign({}, FIXTURES.response_degraded,
+      { hits: [hit1, FIXTURES.hit_not_citable] })],
+    ['no hits key at all', (() => { const b = Object.assign({}, FIXTURES.response_degraded);
+      delete b.hits; return b; })()],
+  ];
+  for (const [shape, body] of DEGRADED_SHAPES) {
+    const shaped = api.shapeSearchResponse(body);
+    check('empty_text is NEVER sent while degraded_reason is present (' + shape + ')',
+      !('empty_text' in shaped), sentencesOn(shaped).join(','));
+    check('...and the shortfall IS said instead (' + shape + ')',
+      shaped.degraded_text === cardMod.DEGRADED_TEXT, sentencesOn(shaped).join(','));
+  }
+
   check('AT MOST ONE sentence on every body measured in this section',
     [rowRefused, rowDegraded, rowEmpty, rowHits, rowRefusedNoHits, rowDegradedNoHits]
+      .concat(DEGRADED_SHAPES.map(([, b]) => api.shapeSearchResponse(b)))
       .every((b) => sentencesOn(b).length <= 1));
 
   // 4. the text is nowhere in the client
@@ -650,8 +676,17 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   // body differently from the function that built it, it would look up a field the server
   // deliberately did not send and draw nothing -- which is the very defect this item closes.
   const SERVER_PICK = (body) => sentencesOn(body)[0] || null;
-  for (const [name, body] of [['refused', rowRefused], ['degraded', rowDegraded],
-    ['empty', rowEmpty], ['hits', rowHits], ['degraded-no-hits', rowDegradedNoHits]]) {
+  // ROW BY ROW OF THE FINAL PRECEDENCE TABLE, plus the two edges it settles. Each row asks the
+  // same two questions: does the view want the field the server actually sent, and does it
+  // draw it. A view that disagreed with the server about which sentence is coming would look
+  // up a field that is not there and draw nothing -- the silent blank this item exists to end.
+  for (const [name, body] of [['row 1 refused', rowRefused],
+    ['row 1 edge refused+hits', api.shapeSearchResponse(
+      Object.assign({}, FIXTURES.response_refused, { hits: [hit1] }))],
+    ['row 2 degraded with hits', rowDegraded],
+    ['row 2 edge degraded no hits', rowDegradedNoHits],
+    ['row 3 empty', rowEmpty],
+    ['row 4 hits only', rowHits]]) {
     const st = view.ezLibViewState({ status: 200, payload: body });
     check('the view asks for the same field the server sent (' + name + ')',
       (st.textFrom || null) === SERVER_PICK(body),
