@@ -304,5 +304,210 @@ GUARD_EXIT_LASTEXITCODE=0
 
 ---
 
-REPORT_PAYLOAD_BYTES=18052
-REPORT_SHA8=9f5ab789
+## ٩ · ذيلٌ مؤرَّخ — ٢٣ أغسطس ٢٠٢٦ · تعديلُ الأمرِ ورفعُ الحمراء
+
+المالكُ أذِنَ بتعديلٍ على أمرِ ٢٤-ج: فتحُ `.gitattributes` **لغرضٍ واحدٍ لا غير** — تثبيتُ `eol=lf` للملفّاتِ التي أضافَتْها هذه الجولةُ والتي نسختُها على القرصِ تحملُ `CR` بينما blobُها في git لا يحملُ شيئًا.
+
+### ٩-١ · القياسُ أوّلًا — كلُّ ملفٍّ مسَّتْه (ب) أو (ج)
+
+`CR` على القرصِ مقابلَ `CR` في الـblob، جنبًا إلى جنب. `ADDED` أضافَتْه الجولةُ، و`modif` كانَ موجودًا فعُدِّل:
+
+```
+file                                                origin  diskCR  blobCR  diskB     blobB    mismatch
+------------------------------------------------------------------------------------------------------------
+.gitattributes                                      modif   0       0       29633     29633
+EZIK-CC-LESSONS-BROWSE-UI-24C-REPORT-2026-08-23.md  ADDED   333     0       25914     25581    <== MISMATCH
+EZIK-CX-LESSONS-BROWSE-PROXY-24C-B-REPORT-2026-08-23.md ADDED 929     0       49824     48895    <== MISMATCH
+EZIK-CX-LESSONS-BROWSE-PROXY-24C-REPORT-2026-08-23.md ADDED 310     0       18051     17741    <== MISMATCH
+EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md           modif   0       0       34473     34473
+api/lessons-browse.js                               ADDED   206     0       6915      6709     <== MISMATCH
+app.js                                              modif   0       0       989166    989166
+app.jsx                                             modif   0       0       1101363   1101363
+gates.json                                          modif   0       0       9726      9726
+guards/fixtures-lessons-browse.json                 ADDED   61      0       1793      1732     <== MISMATCH
+guards/lessons-browse-guard.cjs                     ADDED   0       0       22049     22049
+guards/lessons-search-guard.cjs                     modif   0       0       83828     83828
+guards/stored-deen-sub-suite.cjs                    modif   738     0       46327     45589    <== MISMATCH
+quest-bank-integrity-guard.cjs                      modif   0       0       114858    114858
+recon-audit.cjs                                     modif   0       0       71907     71907
+sw.js                                               modif   0       0       42994     42994
+
+MISMATCHES=6
+```
+
+**ستُّ حالاتٍ، خمسٌ منها أضافَتْها هذه الجولةُ وواحدةٌ سابقةٌ عليها:**
+
+| # | الملفّ | `CR` قرص | `CR` blob | أصلُه | داخلَ نطاقِ التعديل؟ |
+|---|---|---|---|---|---|
+| ١ | `api/lessons-browse.js` | `206` | `0` | ADDED | ✅ نعم — وهي المعلومةُ سلفًا |
+| ٢ | `guards/fixtures-lessons-browse.json` | `61` | `0` | ADDED | ✅ نعم |
+| ٣ | `EZIK-CX-LESSONS-BROWSE-PROXY-24C-REPORT-2026-08-23.md` | `310` | `0` | ADDED | ✅ نعم |
+| ٤ | `EZIK-CX-LESSONS-BROWSE-PROXY-24C-B-REPORT-2026-08-23.md` | `929` | `0` | ADDED | ✅ نعم |
+| ٥ | `EZIK-CC-LESSONS-BROWSE-UI-24C-REPORT-2026-08-23.md` | `333` | `0` | ADDED | ✅ نعم |
+| ٦ | `guards/stored-deen-sub-suite.cjs` | `738` | `0` | **modif** | ❌ **لا** — سابقٌ على الجولةِ، عدَّلَتْه (ب) ولم تُضِفْه |
+
+**و`app.js` و`app.jsx` كلاهما `CR=0` على القرصِ** — فلا خطرَ على مساميرِ `CORE_BYTES` التي قُطِعَتْ في §٢، إذ هي مقيسةٌ على قرصٍ بلا `CR` أصلًا. ولو كانَ أحدُهما مختلًّا لكانَ تطبيعُه يُغيِّرُ حجمَ `app.js` ويُحمِّرُ `bankintegrity` فورًا؛ وهذا لم يقع.
+
+### ٩-٢ · لماذا التطبيعُ يُصلحُ الأختامَ ولا يكسرُها
+
+التقاريرُ الثلاثةُ مختومةٌ ذاتيًّا بـ`REPORT_SHA8`، وتقريرُ (ج) **ينصُّ صراحةً** أنّ حمولتَه «بترميزِ `UTF-8` وبنهاياتِ أسطرِ `LF`». فأُعيدَ حسابُ الأختامِ الثلاثةِ على بايتاتِ الـblob (وهي `LF`) قبلَ لمسِ شيء:
+
+```
+EZIK-CC-LESSONS-BROWSE-UI-24C-REPORT   stated=c61e716a  LF-blob=c61e716a  *** MATCH ***
+EZIK-CX-LESSONS-BROWSE-PROXY-24C-B     stated=d7f096af  LF-blob=d7f096af  *** MATCH ***
+EZIK-CX-LESSONS-BROWSE-PROXY-24C       stated=ba97aa3a  LF-blob=ba97aa3a  *** MATCH ***
+```
+
+فالأختامُ قُطِعَتْ على `LF`، **والنسخةُ المحوَّلةُ إلى `CRLF` هي الحالُ المكسورة** لا العكس. فالتطبيعُ يُعيدُها إلى ما خُتِمَتْ عليه.
+
+### ٩-٣ · الأسطرُ المضافةُ إلى `.gitattributes`
+
+خمسةُ أسطرٍ وكتلةُ تعليقٍ تشرحُ العلّة، بالصيغةِ والترتيبِ اللذَينِ تتّبعُهما المداخلُ القائمةُ (المصدرُ، ثمّ الفيكستشر، ثمّ التقاريرُ المختومة — كما في كتلةِ `fiqhindex`):
+
+```
+# lessonsbrowse is an offline proxy-contract guard. Its own source was pinned when the gate
+# landed, but the files it READS were not: api/lessons-browse.js checked out with 206 CR while
+# git stored it at 0, so the M1 mutation anchor -- which spans a newline -- matched nothing and
+# the mutant came back a no-op. Pin the proxy it mutates, its fixture, and the three self-sealed
+# round reports, whose REPORT_SHA8 payloads are defined over LF bytes and verify only on LF.
+api/lessons-browse.js text eol=lf
+guards/fixtures-lessons-browse.json text eol=lf
+EZIK-CX-LESSONS-BROWSE-PROXY-24C-REPORT-2026-08-23.md text eol=lf
+EZIK-CX-LESSONS-BROWSE-PROXY-24C-B-REPORT-2026-08-23.md text eol=lf
+EZIK-CC-LESSONS-BROWSE-UI-24C-REPORT-2026-08-23.md text eol=lf
+```
+
+**ولم يُضَفْ سطرٌ لـ`guards/stored-deen-sub-suite.cjs`** رغمَ أنّ قياسَه يُظهرُ الخللَ نفسَه (`738 CR`): التعديلُ أذِنَ بـ«الملفّاتِ التي أضافَتْها هذه الجولة»، وهذا الملفُّ سابقٌ عليها. **مُبلَّغٌ للمالكِ ولم يُمَسّ.**
+
+### ٩-٤ · التطبيعُ — `CR` قبلَ وبعد
+
+أُسقِطَتِ النسخُ العاملةُ ثمّ أُعيدَ سحبُها تحتَ السماتِ الجديدة (`git checkout --`، خروج `0`):
+
+| الملفّ | `CR` قبل | بايتات قبل | `CR` بعد | بايتات بعد |
+|---|---|---|---|---|
+| `api/lessons-browse.js` | `206` | `6915` | **`0`** | **`6709`** |
+| `guards/fixtures-lessons-browse.json` | `61` | `1793` | **`0`** | **`1732`** |
+| `EZIK-CX-LESSONS-BROWSE-PROXY-24C-REPORT-…md` | `310` | `18051` | **`0`** | **`17741`** |
+| `EZIK-CX-LESSONS-BROWSE-PROXY-24C-B-REPORT-…md` | `929` | `49824` | **`0`** | **`48895`** |
+| `EZIK-CC-LESSONS-BROWSE-UI-24C-REPORT-…md` | `333` | `25914` | **`0`** | **`25581`** |
+
+وكلُّ حجمٍ «بعد» يساوي حجمَ blobِه في الجدولِ أعلاه بالضبط — فالقرصُ صارَ نسخةَ git حرفًا بحرف.
+
+### ٩-٥ · البرهانُ أنّ لا blob تحرّك
+
+```
+$ git status --porcelain
+ M .gitattributes
+
+$ git diff --cached --name-only
+.gitattributes
+CACHED_FILE_COUNT=1
+
+$ git diff --cached --stat
+ .gitattributes | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+$ git diff --name-only          # تغييراتٌ غيرُ مُدرَجة
+UNSTAGED_COUNT=0
+```
+
+**ملفٌّ واحدٌ في الفهرسِ لا غير، و`+11` سطرًا إدراجًا لا حذفًا، وصفرُ تغييرٍ غيرِ مُدرَج.** الخمسةُ المطبَّعةُ لم تظهرْ في الفهرسِ أصلًا لأنّ blobَها كانَ `LF` من قبلُ: التطبيعُ غيّرَ القرصَ وحدَه.
+
+الإيداع: `git commit .gitattributes` باسمٍ صريح ⟹ **`85a5d10`** · ملفٌّ واحدٌ · `+11` · `LASTEXITCODE=0`.
+
+### ٩-٦ · البوّاباتُ الثلاثُ بعدَ الرقعة
+
+**١) `node tools/build-app.cjs --check`**
+
+```
+built     989166 bytes  ef0d81adc80748d002d7306de5be369a49c8b4331a790c8d075c004804e4a43e
+on disk   989166 bytes  ef0d81adc80748d002d7306de5be369a49c8b4331a790c8d075c004804e4a43e
+OK: app.js is exactly what this source builds
+LASTEXITCODE=0
+```
+
+**٢) `node tools/run-gates.cjs`**
+
+```
+lessonsbrowse        EXIT=0  (68ms)
+
+=== SUITE: 93/93 EXIT=0 ===
+recon:    SUMMARY   PASS=185   WARN=1   FAIL=0
+tree after: 0 dirty path(s)
+
+REAL_PROCESS_EXIT_LASTEXITCODE=0
+
+summary.json:  passed = 93
+               failed = ''
+               total  = 93
+               non-zero gates: 0
+```
+
+**واللافتةُ هذه المرّةَ صادقةٌ — ولم أصدّقْها وحدَها**: خروجُ العمليّةِ الحقيقيُّ `0`، و`failed` سلسلةٌ فارغةٌ، وصفرُ بوّابةٍ بخروجٍ غيرِ صفريّ. الثلاثةُ متوافقة.
+
+**٣) `node recon-audit.cjs`**
+
+```
+ SUMMARY   PASS=185   WARN=1   FAIL=0
+LASTEXITCODE=0
+```
+
+و`WARN`ُ الواحدُ هو `LONGEST_CARD_CHARS` المعروفُ نفسُه — طُبِعَ ولم يُصلَحْ، ولم يتغيّرْ عددُ التأكيداتِ (`185`) عمّا كانَ قبلَ الرقعة.
+
+### ٩-٧ · الحارسُ نفسُه، والأختامُ
+
+`node guards/lessons-browse-guard.cjs` في الشجرةِ الأمّ:
+
+```
+  PASS  M1 snippet pass-through is a real source mutation
+  PASS  M1 snippet pass-through is killed by the contract assertion
+  PASS  M2 fourth accepted level is a real source mutation
+  PASS  M2 fourth accepted level is killed by the contract assertion
+  PASS  at least two mutants were created and every one was killed
+  PASS  the API file on disk is unchanged after in-memory mutation
+
+MUTANTS_KILLED=2/2
+ASSERTIONS=81/81
+=== PASS ===
+GUARD_LASTEXITCODE=0
+```
+
+`78/81 ⟶ 81/81` و`1/2 ⟶ 2/2`. والأختامُ الذاتيّةُ الثلاثةُ صارتْ تتحقّقُ **على القرصِ** بعدَ أن كانتْ لا تتحقّقُ إلّا في git:
+
+```
+EZIK-CC-LESSONS-BROWSE-UI-24C-REPORT   stated=c61e716a onDisk=c61e716a  VERIFIES
+EZIK-CX-LESSONS-BROWSE-PROXY-24C-B     stated=d7f096af onDisk=d7f096af  VERIFIES
+EZIK-CX-LESSONS-BROWSE-PROXY-24C       stated=ba97aa3a onDisk=ba97aa3a  VERIFIES
+```
+
+### ٩-٨ · ما لم يتغيّرْ
+
+لا أرضيّةَ خُفِضَتْ · لا تأكيدَ نُزِعَ (`81` كما كانَ مطلوبًا، و`185` في `recon` كما كانت) · لا ملفَّ استُثنيَ · لا منطقَ حارسٍ مُسّ. و`index.html` و`app.jsx` و`app.js` و`api/**` و`guards/**` **لم يتحرّكْ منها blob واحد** — والبرهانُ §٩-٥. الإيداعُ الوحيدُ في هذا الذيلِ رقعةُ `.gitattributes` وحدَها.
+**ولا `git push` ولا نشرَ.**
+
+### ٩-٩ · ما لم أقِسْه في هذا الذيل — بعلّتِه
+
+1. **لم أتحقّقْ أنّ `guards/stored-deen-sub-suite.cjs` سليمٌ رغمَ `738 CR`.** بوّابتُه خضراءُ اليومَ، لكنّي لم أفحصْ هل يحملُ حارسُها مرساةً عابرةً لسطرٍ كمرساةِ `M1`. **العلّة:** خارجَ نطاقِ التعديلِ المأذونِ (ملفٌّ لم تُضِفْه هذه الجولة). **مُبلَّغٌ، ويستحقُّ أمرًا خاصًّا به.**
+2. **هذا التقريرُ نفسُه (`EZIK-CC-MERGE-24C-REPORT-…md`) غيرُ مثبَّتٍ بـ`eol=lf`.** قياسُه الآنَ `CR=0` على القرصِ و`0` في الـblob، **فلا مطابقةَ لشرطِ التعديل** ولم أُضِفْ له سطرًا. لكنّ git حذَّرَ حرفيًّا: `LF will be replaced by CRLF the next time Git touches it` — فإذا وقعَ ذلك انكسرَ `REPORT_SHA8` أدناه بالضبطِ كما انكسرَتْ أختامُ الثلاثةِ. **مُبلَّغٌ للمالك، ولم أتصرّفْ**: التعديلُ أذِنَ بإيداعِ `.gitattributes` مرّةً واحدةً ولملفّاتٍ يُظهرُ قياسُها الخللَ، وهذا لا يُظهرُه بعد.
+3. **لم أمسحِ الشجرةَ كلَّها بحثًا عن انقسامِ `CRLF/LF`** — قِستُ ستّةَ عشرَ ملفًّا مسَّتْها هذه الجولةُ وحدَها. **العلّة:** التعديلُ حدَّدَ النطاقَ بملفّاتِ الجولة.
+4. **لم أفتحْ متصفّحًا** — كما في §٦؛ لا شيءَ في هذا الذيلِ يغيّرُ ذلك.
+5. **لم أُعِدْ تشغيلَ `questux` ثلاثًا بعدَ الرقعة.** شغّلَها الطقمُ مرّةً وخرجَتْ `EXIT=0` ضمنَ الـ٩٣. **العلّة:** التعديلُ طلبَ ثلاثةَ أوامرَ بعينِها، وثلاثيّةُ `questux` كانت لحسمِ نسبةِ الحمرةِ إلى البيئةِ وقد حُسِمَتْ في §٤.
+
+### ٩-١٠ · خلاصةُ الذيل
+
+| الشيء | قبلَ الذيل | بعدَه |
+|---|---|---|
+| `run-gates` | ٩٢/٩٣ · خروج `1` | **٩٣/٩٣ · خروج `0`** |
+| `summary.json` | `passed=92 failed=lessonsbrowse` | **`passed=93 failed=''`** |
+| `lessonsbrowse` | `78/81` · `1/2` طافر | **`81/81` · `2/2`** |
+| `build-app --check` | `OK` · `0` | `OK` · `0` |
+| `recon-audit` | `FAIL=0 WARN=1` · `0` | `FAIL=0 WARN=1` · `0` |
+| `git status` | صفرُ سطر | صفرُ سطر |
+| blobs متحرّكة | — | **`.gitattributes` وحدَه** |
+
+`HEAD = 85a5d10e018db33f130913f155f5c63cfb8dfb26` · و`origin/main` ما يزالُ `a332cb3b`. الجولةُ كلُّها محلّيّةٌ، ولا دفعَ ولا نشر.
+
+---
+
+REPORT_PAYLOAD_BYTES=31901
+REPORT_SHA8=8538f78c
