@@ -36,6 +36,9 @@
 //   5. THE INTERFACE, AS ITEM 24-A BUILT IT: index.html, quest.html and sw.js still name
 //      nothing of this round, and app.jsx draws exactly three fields through one cancellable
 //      POST (this assertion PROVED AN ABSENCE until item 24-A -- see the note at section 5)
+//   5B. THE LESSONS SECTION (item 24-B): one screen key, one navigation entry, the same
+//      three-field whitelist proved by set equality, a cancellable call, and the three
+//      states a screen owes a reader that a tail card does not
 //   6. ZERO change to the four library-search files -- fingerprints taken before and after
 //   7. the token appears in no output on any error path
 //
@@ -525,6 +528,221 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   for (const marker of ['/api/lessons-search', 'ezikLessonRows', 'EzikLessonCards', 'noopener noreferrer']) {
     check('the built bundle carries ' + marker, appJs.indexOf(marker) !== -1);
   }
+
+  // == 5B. THE LESSONS SECTION, AS ITEM 24-B BUILT IT ========================================
+  //
+  // Item 24-A wired the tail CARD. Item 24-B adds the SECTION -- a screen the reader chooses,
+  // with a search box, a list of links and nothing else. The two share a route and a ruling
+  // («بحثٌ فقط») and share no code: the card's block is capped at three rows and eight
+  // seconds, the screen's at ten and twelve, and each carries its own whitelist written out by
+  // hand. Section 5 above is untouched by this one, and this one never reads the card's block.
+  console.log('\n=== 5B. THE LESSONS SECTION: ONE SCREEN, THREE FIELDS, THREE STATES ===');
+
+  // -- the screen's block, cut out by its own sentinels ------------------------------------
+  const SCREEN_START = '// ITEM 24-B -- THE LESSONS SECTION';
+  const SCREEN_END = '// ITEM 24-B -- END OF THE LESSONS SECTION';
+  const screenFrom = appJsx.indexOf(SCREEN_START);
+  const screenTo = appJsx.indexOf(SCREEN_END);
+  check('the lessons section is present and bounded by its own sentinels',
+    screenFrom !== -1 && screenTo > screenFrom, 'from=' + screenFrom + ' to=' + screenTo);
+  const screenCode = stripComments(appJsx.slice(screenFrom, screenTo));
+  check('the section is a real block of code, not a comment', screenCode.length > 2000,
+    String(screenCode.length));
+  // The two blocks must not overlap: every assertion below would otherwise be reading item
+  // 24-A's card and calling it the screen.
+  check('the section and the tail card are two separate regions of the file',
+    screenTo < drawFrom || screenFrom > drawTo,
+    'screen=' + screenFrom + '..' + screenTo + ' card=' + drawFrom + '..' + drawTo);
+
+  // -- 5B-1. THE ORDER'S FIRST DEMAND: registered, and ONE way in ---------------------------
+  check('the app renders the screen on its own key',
+    /if \(screen === 'lessons'\) return <LessonsScreen onBack=\{goEzikBack\} \/>;/.test(appJsx));
+  check('...and that key is compared in exactly one place',
+    (appJsx.match(/screen === 'lessons'/g) || []).length === 1,
+    String((appJsx.match(/screen === 'lessons'/g) || []).length));
+  check('the home offers exactly one lessons module row',
+    (appJsx.match(/\{ id: 'lessons',/g) || []).length === 1,
+    String((appJsx.match(/\{ id: 'lessons',/g) || []).length));
+  check('...and exactly one handler sends the reader there',
+    (appJsx.match(/setScreen\('lessons'\)/g) || []).length === 1,
+    String((appJsx.match(/setScreen\('lessons'\)/g) || []).length));
+  check('the row is built in the ONE module array, beside the fatwa row it is modelled on',
+    /\{ id: 'fatwa',[^\n]*\n\s*\{ id: 'lessons',/.test(appJsx));
+  // THE REGISTERS. 'lessons' belongs to NEITHER, and that is the same answer 'fatwa' gets:
+  // ezikBackTarget is an exception table, not a directory, and its final fall-through («Every
+  // feature section: home, never the chat») is what routes both. A third register, or either
+  // screen appearing in one of these two, is what this catches.
+  const registerOf = (name) => {
+    const m = appJsx.match(new RegExp('const ' + name + ' = \\[([^\\]]*)\\]'));
+    return m ? m[1].split(',').map((x) => x.trim().replace(/^'|'$/g, '')).filter(Boolean) : null;
+  };
+  const roots = registerOf('EZIK_ROOT_SCREENS');
+  const sheets = registerOf('EZIK_SHEET_SCREENS');
+  check('both screen registers were read', Array.isArray(roots) && Array.isArray(sheets),
+    JSON.stringify(roots) + ' / ' + JSON.stringify(sheets));
+  check('lessons is in neither register -- exactly as fatwa is in neither',
+    roots.indexOf('lessons') === -1 && sheets.indexOf('lessons') === -1
+    && roots.indexOf('fatwa') === -1 && sheets.indexOf('fatwa') === -1,
+    'roots=' + roots.join(',') + ' sheets=' + sheets.join(','));
+  check('...and the fall-through that routes them both is still there',
+    /\/\/ Every feature section: home, never the chat\.\s*\n\s*return 'home';/.test(appJsx));
+  // The interface words are in the dictionary, on BOTH sides, not written into the screen.
+  const LESSON_KEYS = ['module.lessons', 'module.lessons.sub', 'lessons.searchPlaceholder',
+    'lessons.searchAria', 'lessons.searchButton', 'lessons.minChars', 'lessons.loading',
+    'lessons.empty', 'lessons.error', 'lessons.retry', 'lessons.resultsAria'];
+  const missingKeys = LESSON_KEYS.filter((k) =>
+    (appJsx.match(new RegExp("'" + k.replace(/\./g, '\\.') + "':", 'g')) || []).length !== 2);
+  check('every one of the ' + LESSON_KEYS.length + ' interface strings is declared in BOTH dictionaries',
+    missingKeys.length === 0, missingKeys.join(','));
+  check('the screen reads its words through ezT and carries no bare sentence',
+    screenCode.indexOf("ezT('module.lessons')") !== -1
+    && screenCode.indexOf("ezT('lessons.empty')") !== -1);
+
+  // -- 5B-2. THE ORDER'S SECOND DEMAND: three fields, by SET EQUALITY -----------------------
+  const screenProps = [...new Set([...screenCode.matchAll(/hit\.([A-Za-z_][A-Za-z0-9_]*)/g)]
+    .map((m) => m[1]))].sort();
+  check('the screen reads exactly title, scholar_id and url off a hit -- no fourth',
+    screenProps.join(',') === 'scholar_id,title,url', screenProps.join(','));
+  check('the three are all drawn: the title, the scholar under it, the url as the href',
+    /style=\{s\.lsnItemTitle\}>\{row\.title\}/.test(screenCode)
+    && /style=\{s\.lsnItemScholar\}>\{row\.scholar\}/.test(screenCode)
+    && /href=\{row\.url\}/.test(screenCode));
+  check('the link leaves the app safely: target _blank with rel noopener noreferrer',
+    screenCode.indexOf('target="_blank"') !== -1
+    && screenCode.indexOf('rel="noopener noreferrer"') !== -1);
+  const screenLeaked = FORBIDDEN_IN_DRAW.filter((word) => screenCode.indexOf(word) !== -1);
+  check('no dropped or undrawn field is even named in the section', screenLeaked.length === 0,
+    screenLeaked.join(','));
+  const screenEnumerated = ENUMERATORS.filter((word) => screenCode.indexOf(word) !== -1);
+  check('the whitelist is written out, never enumerated', screenEnumerated.length === 0,
+    screenEnumerated.join(','));
+  // MUTANT 1. A reader that takes the snippet.
+  const leakMutant = screenCode.replace('const scholar =', 'const snippet = hit.snippet; const scholar =');
+  check('MUTANT 1 is a real mutation, not a no-op', leakMutant !== screenCode);
+  const leakMutantProps = [...new Set([...leakMutant.matchAll(/hit\.([A-Za-z_][A-Za-z0-9_]*)/g)]
+    .map((m) => m[1]))].sort();
+  check('THE GUARD BITES: a section that took the snippet fails the set AND the word list',
+    leakMutantProps.join(',') !== 'scholar_id,title,url'
+    && FORBIDDEN_IN_DRAW.some((word) => leakMutant.indexOf(word) !== -1),
+    leakMutantProps.join(','));
+
+  // -- 5B-3. THE ORDER'S THIRD DEMAND: AbortController on the screen's call path ------------
+  check('an AbortController is created and its signal is handed to fetch',
+    screenCode.indexOf('new AbortController()') !== -1
+    && screenCode.indexOf('controller.signal') !== -1
+    && /signal,/.test(screenCode));
+  check('...and a second search aborts the first before it starts',
+    /if \(lessonsAbortRef\.current\) \{ try \{ lessonsAbortRef\.current\.abort\(\); \}/.test(screenCode));
+  check('...and a result that lands after a newer search is dropped, not drawn',
+    /if \(lessonsAbortRef\.current !== controller\) return;/.test(screenCode));
+  check('...and leaving the screen mid-request cuts it',
+    /useEffect\(\(\) => \(\) => \{[\s\S]{0,160}?lessonsAbortRef\.current\.abort\(\)/.test(screenCode));
+  check('the screen gives up at twelve seconds, and says so in one named constant',
+    /const EZIK_LESSONS_SCREEN_TIMEOUT_MS = 12000;/.test(appJsx)
+    && screenCode.indexOf('EZIK_LESSONS_SCREEN_TIMEOUT_MS') !== -1);
+  // MUTANT 2. The abort taken out of the call path.
+  const abortMutant = screenCode.split('const controller = new AbortController();').join('const controller = { signal: null, abort: function () {} };');
+  check('MUTANT 2 is a real mutation, not a no-op', abortMutant !== screenCode);
+  check('THE GUARD BITES: a section with no AbortController fails the first abort check',
+    abortMutant.indexOf('new AbortController()') === -1);
+
+  // -- 5B-4. THE THREE STATES. A SCREEN DOES NOT GO SILENT THE WAY A CARD DOES --------------
+  // The tail card of item 24-A draws NOTHING on every failure, and that is right for a bonus
+  // under an answer already read. A reader who pressed a search button is owed a sentence, so
+  // this screen distinguishes the empty shelf from the failed request -- which is why the call
+  // returns a discriminated outcome rather than a bare list.
+  check('the outcome tells an empty shelf from a failed request',
+    /return \{ ok: false, rows: \[\] \};/.test(screenCode)
+    && /return \{ ok: true, rows: ezikLessonsScreenRows/.test(screenCode));
+  check('STATE 1 of 3 -- running: a loading indicator in the file\'s own dots',
+    /state === EZIK_LESSONS_LOADING \?/.test(screenCode)
+    && screenCode.indexOf("ezT('lessons.loading')") !== -1
+    && /style=\{s\.dot\}/.test(screenCode));
+  check('STATE 2 of 3 -- no results: one line from the dictionary',
+    /state === EZIK_LESSONS_DONE && rows\.length === 0 \?/.test(screenCode)
+    && screenCode.indexOf("ezT('lessons.empty')") !== -1);
+  check('STATE 3 of 3 -- failure: one short line AND a way to try again',
+    /state === EZIK_LESSONS_FAILED \?/.test(screenCode)
+    && screenCode.indexOf("ezT('lessons.error')") !== -1
+    && screenCode.indexOf("ezT('lessons.retry')") !== -1);
+  check('...and the retry re-runs the query that failed, not whatever is in the box now',
+    /onClick=\{\(\) => runLessonsSearch\(lastQueryRef\.current\)\}/.test(screenCode));
+  // The screen never receives the function's error BODY -- it reads the status code and
+  // nothing else -- so the only 'error' token in the whole section must be its own dictionary
+  // key. COUNTED, not merely searched for: a second occurrence would mean an error path grew
+  // somewhere in here, which is the thing this demand exists to forbid.
+  check('...and no upstream message can reach the reader: the one error it names is its own key',
+    screenCode.indexOf('statusText') === -1
+    && !/payload\.error|error\.message|error\.code/.test(screenCode)
+    && !/\{\s*(?:e|err)\s*\}/.test(screenCode)
+    && (screenCode.match(/\.error/g) || []).length === 1
+    && screenCode.indexOf("ezT('lessons.error')") !== -1,
+    (screenCode.match(/\.error/g) || []).join(','));
+  // ONE state value drives every branch, and the shape is pinned PER NAME rather than by a
+  // total: LOADING twice (the indicator, and the button that must not be pressed while it
+  // runs), DONE twice (the empty shelf and the list), FAILED once. IDLE is tested NOWHERE --
+  // before the first search the result area draws nothing at all, which is the opening state
+  // expressed as an absence rather than as a branch.
+  const stateTests = (name) => (screenCode.match(new RegExp('state === ' + name, 'g')) || []).length;
+  check('one state value drives every branch: 2 loading, 2 done, 1 failed, and idle draws nothing',
+    stateTests('EZIK_LESSONS_LOADING') === 2 && stateTests('EZIK_LESSONS_DONE') === 2
+    && stateTests('EZIK_LESSONS_FAILED') === 1 && stateTests('EZIK_LESSONS_IDLE') === 0,
+    'loading=' + stateTests('EZIK_LESSONS_LOADING') + ' done=' + stateTests('EZIK_LESSONS_DONE')
+    + ' failed=' + stateTests('EZIK_LESSONS_FAILED') + ' idle=' + stateTests('EZIK_LESSONS_IDLE'));
+  // MUTANT 3. The empty state deleted -- the shape where a reader gets a blank screen and no
+  // word at all, which is exactly the failure this demand exists to prevent.
+  const stateMutant = screenCode.split("ezT('lessons.empty')").join("''");
+  check('MUTANT 3 is a real mutation, not a no-op', stateMutant !== screenCode);
+  check('THE GUARD BITES: a section with no empty-result line fails STATE 2',
+    stateMutant.indexOf("ezT('lessons.empty')") === -1);
+
+  // -- 5B-5. THE FLOOR, THE CEILING, AND WHAT THE SERVER WILL NOT ACCEPT --------------------
+  check('below three characters after trimming, no request leaves the screen',
+    /const EZIK_LESSONS_SCREEN_MIN_Q = 3;/.test(appJsx)
+    && (screenCode.match(/< EZIK_LESSONS_SCREEN_MIN_Q\) return/g) || []).length === 2,
+    String((screenCode.match(/< EZIK_LESSONS_SCREEN_MIN_Q\) return/g) || []).length));
+  check('...and the button cannot be pressed below the floor either',
+    /disabled=\{state === EZIK_LESSONS_LOADING \|\| trimmed\.length < EZIK_LESSONS_SCREEN_MIN_Q\}/.test(screenCode));
+  check('the screen asks for the service ceiling of ten and no more',
+    /const EZIK_LESSONS_SCREEN_LIMIT = 10;/.test(appJsx)
+    && /limit: EZIK_LESSONS_SCREEN_LIMIT/.test(screenCode));
+  // NO PAGER, NO FILTER -- and it is the SERVER that says so. api/lessons-search.js reads two
+  // body fields and no third, so a control bound to any other name would send something the
+  // function drops on the floor. This is asserted against the function's own source.
+  const apiBodyReads = [...new Set([...apiSrc.matchAll(/body\.([A-Za-z_][A-Za-z0-9_]*)/g)]
+    .map((m) => m[1]))].sort();
+  check('the function accepts exactly q and limit -- no offset, page, scholar or kind',
+    apiBodyReads.join(',') === 'limit,q', apiBodyReads.join(','));
+  check('...so the screen sends exactly those two and invents no third',
+    /JSON\.stringify\(\{ q: query, limit: EZIK_LESSONS_SCREEN_LIMIT \}\)/.test(screenCode));
+  const PAGER_WORDS = ['offset', 'page', 'pageSize', 'nextPage', 'loadMore', 'hasMore'];
+  const invented = PAGER_WORDS.filter((w) => new RegExp('\\b' + w + '\\b').test(screenCode));
+  check('no pager and no filter was invented for a parameter the server cannot read',
+    invented.length === 0, invented.join(','));
+
+  // -- 5B-6. THE TWO CALLERS OF THE ROUTE, COUNTED TOGETHER ---------------------------------
+  // Section 5 counts the CARD's call site through the card's own constant. Since item 24-B
+  // there are two callers of the route in the interface, and this is where that whole number
+  // is stated -- so a third one cannot appear without a check going red somewhere.
+  const routeCallers = (appJsx.match(/fetch\(EZIK_LESSONS_(?:SCREEN_)?ENDPOINT/g) || []);
+  check('the interface calls the lessons route from exactly two places: the card and the screen',
+    routeCallers.length === 2, routeCallers.join(' '));
+  check('...and neither of them names the upstream service directly',
+    appJsx.indexOf('lib.ezik.app/lessons') === -1);
+  check('the two blocks keep their own ceilings: three for the card, ten for the screen',
+    /const EZIK_LESSONS_MAX = 3;/.test(appJsx)
+    && /const EZIK_LESSONS_SCREEN_LIMIT = 10;/.test(appJsx));
+  check('...and their own patience: eight seconds for the card, twelve for the screen',
+    /const EZIK_LESSONS_TIMEOUT_MS = 8000;/.test(appJsx)
+    && /const EZIK_LESSONS_SCREEN_TIMEOUT_MS = 12000;/.test(appJsx));
+  // The bundle is COMPACTED, so the source's spacing is not in it: the comparison ships as
+  // screen==='lessons'. Matched on a pattern rather than on the source line, or this would be
+  // a check that passed only by an accident of formatting.
+  check('the built bundle carries the section, not just the source',
+    appJs.indexOf('LessonsScreen') !== -1 && appJs.indexOf('ezikLessonsScreenRows') !== -1
+    && /screen\s*===\s*'lessons'/.test(appJs));
+  check('...and the file on disk is unchanged after all of section 5B',
+    readRepo('app.jsx').length === appJsx.length);
 
   // == 6. THE FOUR LIBRARY-SEARCH FILES ARE UNTOUCHED ========================================
   console.log('\n=== 6. THE FOUR LIBRARY-SEARCH FILES, BEFORE AND AFTER ===');

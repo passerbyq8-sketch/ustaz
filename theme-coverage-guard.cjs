@@ -1651,6 +1651,13 @@ const INDEX_SCREENS = {
   onboarding:      { render: 'Onboarding / Welcome -> .ezonb card', shell: 'istana' },
   home:            { render: 'Home -> EzikIstanaHome', shell: 'istana' },
   fatwa:           { render: 'FatwaScreen -> .ezf shell + official result cards', shell: 'istana' },
+  // ITEM 24-B: the lessons section. It is classified istana because K4 below passes, not
+  // because this line says so. Unlike the fatwa screen it declares NO vocabulary of its own:
+  // index.html was out of bounds for the round that built it, so it mounts on the SHARED
+  // EzShell -- the same shell الإعدادات, المحفّظ and the mushaf index already use -- and takes
+  // the identity from .ezhome through it. That is why its `render` names a shell and not a
+  // prefix, and why the handoff table lists it with the shell rather than with an .ez*-* set.
+  lessons:         { render: 'LessonsScreen -> EzShell + lesson link list', shell: 'istana' },
   // S112: the chat body moved onto its own istana structure -- .ezc-rail / .ezc-scroll /
   // .ezc-dock / .ezc-drawer. It is classified istana because the checks in group N pass, not
   // because someone edited this line; N1 asserts that binding directly.
@@ -1754,10 +1761,12 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('every index screen is istana after this commit', idxIstana.length, 13);
+eq('every index screen is istana after this commit', idxIstana.length, 14);
 eq('...and NONE is left legacy', idxLegacy.length, 0);
-eq('...and the set is exactly the thirteen', idxIstana.slice().sort().join(','),
-  'adhkar,call,chat,fatwa,favorites,home,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
+// ITEM 24-B added the fourteenth by name. The list is spelled out rather than counted so
+// that a screen appearing or vanishing has to be read by a person, not absorbed by a number.
+eq('...and the set is exactly the fourteen', idxIstana.slice().sort().join(','),
+  'adhkar,call,chat,fatwa,favorites,home,lessons,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
 eq('...and the three interstitials are still three', Object.keys(INDEX_INTERSTITIALS).length, 3);
 // S115: the barriers moved WITH this batch, so the check flipped from "still legacy" to "all
 // three, and by name". A fourth appearing here would fail the reachability check above first.
@@ -1825,6 +1834,31 @@ const FATWA_ON_EZF =
 ok('K3: the fatwa screen mounts on its own identity inside the shared shell', FATWA_ON_EZF);
 eq('K3: ...and THAT is why the inventory calls it istana', INDEX_SCREENS.fatwa.shell,
   FATWA_ON_EZF ? 'istana' : 'legacy');
+/* ---- K4. the lessons classification is earned by its shipped screen ----- */
+// The same discipline K3 applies to the fatwa screen, asked of the screen that copied it.
+// The bound is its own sentinels, so this cannot drift into reading a neighbour.
+const lessonsAt = html.indexOf('// ITEM 24-B -- THE LESSONS SECTION');
+const lessonsEnd = html.indexOf('// ITEM 24-B -- END OF THE LESSONS SECTION');
+const lessonsSrc = (lessonsAt !== -1 && lessonsEnd > lessonsAt) ? html.slice(lessonsAt, lessonsEnd) : '';
+ok('K4: the lessons feature was located and bounded',
+  lessonsSrc.length > 3000 && lessonsSrc.length < 14000, 'len=' + lessonsSrc.length);
+// It mounts on the SHARED shell rather than on a vocabulary of its own, so the binding that
+// earns the classification is the EzShell call with a title, a back handler and a back label
+// -- exactly the binding that earns it for settings and for the memorise picker.
+const LESSONS_ON_SHELL =
+  /<EzShell title=\{ezT\('module\.lessons'\)\} onBack=\{onBack\} backLabel=\{A2_BACK\}>/.test(lessonsSrc)
+  && /function LessonsScreen\(\{ onBack \}\)/.test(lessonsSrc);
+ok('K4: the lessons screen mounts on the shared istana shell', LESSONS_ON_SHELL);
+eq('K4: ...and THAT is why the inventory calls it istana', INDEX_SCREENS.lessons.shell,
+  LESSONS_ON_SHELL ? 'istana' : 'legacy');
+// A screen that took the shell and then painted over it with literals would be istana in the
+// table and something else on the glass. Every colour it names must be a token.
+eq('K4: not one colour in the lessons section is a literal',
+  (lessonsSrc.match(/(?:background|color|border)[^,;\n]*?#[0-9a-fA-F]{3,8}/g) || []), []);
+ok('K4: ...and it declares no stylesheet vocabulary of its own',
+  (css.match(/\.lsn[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []).length === 0,
+  'the section is drawn from the s-object, so index.html gains no .lsn* rules');
+
 ok('K3: the fatwa identity declares its own bounded rule set', ezfRules.length > 20,
   'found ' + ezfRules.length);
 ok('K3: ...and no selector in it can match html, body or :root',
@@ -2946,8 +2980,8 @@ ok('42-أ: speechSynthesis is genuinely absent from the application file',
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
 // The fatwa search moves the whole-screen count by one; chat remains one of the thirteen. This
 // later assertion deliberately repeats K2 so a stale downstream assumption fails visibly too.
-eq('N30: the index inventory reads exactly 13 istana / 0 legacy / 3 interstitials',
-  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '13/0/3');
+eq('N30: the index inventory reads exactly 14 istana / 0 legacy / 3 interstitials',
+  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '14/0/3');
 eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
 {
   const callAt = html.indexOf('function CallScreen(');
