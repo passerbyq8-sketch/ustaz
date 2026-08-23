@@ -496,3 +496,10 @@ guards/lessons-search-guard.cjs text eol=lf
 guards/fixtures-lessons-search.json text eol=lf
 api/lessons-search.js text eol=lf
 lib/lessons-source-card.js text eol=lf
+
+# EZIK-CC-LESSONS-CALL-REPORT-2026-08-23.md -- the round report, and the ONE report in this
+# tree that seals itself: its last two lines carry PAYLOAD_BYTES and PAYLOAD_SHA256 over every
+# byte before them, cut on LF. A clone with core.autocrlf=true would rewrite those bytes and the
+# digest would be false of the file carrying it. The earlier EZIK-CC-* reports are unpinned
+# because none of them makes a claim about its own bytes; this one does.
+EZIK-CC-LESSONS-CALL-REPORT-2026-08-23.md text eol=lf
