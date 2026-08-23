@@ -483,3 +483,23 @@ tools/build-app.cjs      text eol=lf
 # rule applies for the same reason; it is LF because the build normalises to LF before Babel.
 vendor/*.js              -text
 app.jsx                  text eol=lf
+
+# guards/lessons-search-guard.cjs + its fixture + the two modules it drives (the lessons call,
+# gate `lessonssearch`). The gate script itself is pinned because recon-audit item 14 FAILS any
+# gate that is not; the other three are pinned for the reason every reader-of-text in this list
+# is: the guard reads api/lessons-search.js and lib/lessons-source-card.js RAW and mutates them
+# at LITERAL ANCHORS to prove its own assertions can fail, and an anchor written with LF endings
+# matches nothing in a CRLF checkout -- which is the shape that has already cost this repository
+# three green gates. The fixture is byte-compared through JSON.parse and carries Arabic display
+# names, so it is pinned beside the guard that reads it.
+guards/lessons-search-guard.cjs text eol=lf
+guards/fixtures-lessons-search.json text eol=lf
+api/lessons-search.js text eol=lf
+lib/lessons-source-card.js text eol=lf
+
+# EZIK-CC-LESSONS-CALL-REPORT-2026-08-23.md -- the round report, and the ONE report in this
+# tree that seals itself: its last two lines carry PAYLOAD_BYTES and PAYLOAD_SHA256 over every
+# byte before them, cut on LF. A clone with core.autocrlf=true would rewrite those bytes and the
+# digest would be false of the file carrying it. The earlier EZIK-CC-* reports are unpinned
+# because none of them makes a claim about its own bytes; this one does.
+EZIK-CC-LESSONS-CALL-REPORT-2026-08-23.md text eol=lf
