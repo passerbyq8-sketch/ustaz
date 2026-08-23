@@ -18,9 +18,12 @@
 //      screen is the interface's business, and this round has no interface.
 //
 // == WHAT THIS GUARD IS FOR ====================================================
-// This round adds one server function (api/lessons-search.js) and one pure builder
-// (lib/lessons-source-card.js). Neither is wired into any answer path and neither is named
-// anywhere in the interface. This guard proves the seven assertions the order names, WITHOUT A
+// Item 150 added one server function (api/lessons-search.js) and one pure builder
+// (lib/lessons-source-card.js), and deliberately wired neither into any answer path. ITEM 24-A
+// WIRED THE INTERFACE: app.jsx now calls the function after a settled reply and draws a card
+// of three fields under the answer. Sections 1-4, 6 and 7 are unchanged and still hold the
+// server side; section 5 changed from proving an absence to proving that one shape, and the
+// note there says why. This guard proves the seven assertions the order names, WITHOUT A
 // NETWORK CALL and without a real token -- the agent that wrote it has neither. It stubs
 // `globalThis.fetch`, which is the single seam every outbound call in this repo passes through,
 // and drives the real exported handler against local fixtures shaped after the measured
@@ -30,7 +33,9 @@
 //   2. the card carries the four named fields and no fifth -- keys counted against the list
 //   3. the card invents nothing when a field is absent
 //   4. a `content_type` outside the eleven is an absence
-//   5. ZERO mention of the service address or of either new file inside index.html
+//   5. THE INTERFACE, AS ITEM 24-A BUILT IT: index.html, quest.html and sw.js still name
+//      nothing of this round, and app.jsx draws exactly three fields through one cancellable
+//      POST (this assertion PROVED AN ABSENCE until item 24-A -- see the note at section 5)
 //   6. ZERO change to the four library-search files -- fingerprints taken before and after
 //   7. the token appears in no output on any error path
 //
@@ -167,7 +172,7 @@ const serialize = (value) => JSON.stringify(value ?? null);
 const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
 
 (async function main() {
-  console.log('=== lessons-search-guard -- the lessons call, with no interface ===');
+  console.log('=== lessons-search-guard -- the lessons call, and the card it draws ===');
 
   // == ASSERTION 6, FIRST HALF. The four library-search files, before anything runs. ==========
   const beforeShas = COMPREHENSIVE.map((rel) => ({ rel, sha: shaOf(rel), bytes: fs.statSync(path.join(REPO, rel)).size }));
@@ -343,8 +348,21 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('...and the real builder, re-read after the second mutation, is still unchanged',
     readRepo('lib/lessons-source-card.js') === cardSrc);
 
-  // == 5. NO INTERFACE. ZERO MENTION IN index.html ===========================================
-  console.log('\n=== 5. THIS ROUND HAS NO INTERFACE ===');
+  // == 5. THE INTERFACE, AND EXACTLY THE ONE THE ORDER NAMES =================================
+  //
+  // WHAT THIS SECTION USED TO PROVE, AND WHY IT NO LONGER CAN. Item 150 shipped the server
+  // function with NO INTERFACE ON PURPOSE, and this section proved that absence: five files
+  // named nothing of the round. ITEM 24-A BUILT THE INTERFACE, so the absence is now false BY
+  // ORDER and a check that still asserted it would be red for the one reason a red must never
+  // mean -- the work being done. Nothing here was removed to make room: the absence is proved
+  // for every file that still has one (index.html, quest.html, sw.js), and for the two files
+  // that now name the round it is replaced by a SHAPE, which is a stronger statement than the
+  // absence was. The order's three demands are checks 5c-1, 5c-2 and 5c-4 below.
+  console.log('\n=== 5. THE INTERFACE: ONE CALL, THREE FIELDS, ONE ABORT ===');
+
+  // -- 5a. the three files that still name nothing ------------------------------------------
+  // index.html carries no application source since round 28 -- the page loads app.js -- so a
+  // mention here would mean a second, hand-written path to the same service.
   const indexHtml = readRepo('index.html');
   check('index.html was actually read', indexHtml.length > 100000, String(indexHtml.length));
   for (const name of NEW_NAMES) {
@@ -352,18 +370,161 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   }
   check('index.html does not mention the lessons service address',
     indexHtml.indexOf('lib.ezik.app/lessons') === -1 && indexHtml.length > 0);
-  // The page's own script was lifted out of index.html in round 28; the same rule has to hold
-  // for the source it moved to and for the bundle built from it, or "no interface" would be a
-  // statement about one file rather than about the interface.
-  for (const rel of ['app.jsx', 'app.js', 'quest.html']) {
-    const src = readRepo(rel);
-    check(rel + ' was actually read', src.length > 1000, String(src.length));
-    check(rel + ' mentions none of the new names',
-      src.length > 1000 && NEW_NAMES.every((name) => src.indexOf(name) === -1),
-      NEW_NAMES.filter((name) => src.indexOf(name) !== -1).join(','));
-  }
+  const questHtml = readRepo('quest.html');
+  check('quest.html was actually read', questHtml.length > 1000, String(questHtml.length));
+  check('quest.html mentions none of the new names',
+    NEW_NAMES.every((name) => questHtml.indexOf(name) === -1),
+    NEW_NAMES.filter((name) => questHtml.indexOf(name) !== -1).join(','));
   check('no interface file was added to the service worker CORE either',
     readRepo('sw.js').indexOf('lessons') === -1);
+  // The client never speaks to the service directly: the token is the whole gate and it lives in
+  // api/lessons-search.js. The interface calls the FUNCTION, never the upstream address.
+  const appJsx = readRepo('app.jsx');
+  check('app.jsx was actually read', appJsx.length > 100000, String(appJsx.length));
+  check('app.jsx never names the lessons service address itself',
+    appJsx.indexOf('lib.ezik.app/lessons') === -1);
+
+  // -- 5b. the two blocks the wiring lives in, cut out by their own markers -------------------
+  // Comments are stripped before any absence is asserted: this round's prose NAMES the seven
+  // fields it refuses to draw, and a check that read the prose would call that a violation.
+  const stripComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .split('\n').filter((line) => !/^\s*\/\//.test(line)).join('\n');
+  const DRAW_START = '// ITEM 24-A -- RELATED LESSONS, UNDER A SETTLED REPLY';
+  const DRAW_END = 'const MessageBubble = React.memo(';
+  const drawFrom = appJsx.indexOf(DRAW_START);
+  const drawTo = appJsx.indexOf(DRAW_END);
+  check('the draw block is present and bounded, above the bubble that renders it',
+    drawFrom !== -1 && drawTo > drawFrom, 'from=' + drawFrom + ' to=' + drawTo);
+  const drawCode = stripComments(appJsx.slice(drawFrom, drawTo));
+  check('the draw block is a real block of code, not a comment', drawCode.length > 600,
+    String(drawCode.length));
+
+  const CALL_START = '  const [lessonRows, setLessonRows] = useState(null);';
+  const CALL_MID = '  const startLessonsSearch = (q, seq) => {';
+  const callFrom = appJsx.indexOf(CALL_START);
+  const callMid = appJsx.indexOf(CALL_MID);
+  const callTo = callMid === -1 ? -1 : appJsx.indexOf('\n  };\n', callMid);
+  check('the call block is present and bounded, inside the chat screen',
+    callFrom !== -1 && callMid > callFrom && callTo > callMid,
+    'from=' + callFrom + ' mid=' + callMid + ' to=' + callTo);
+  const callCode = stripComments(appJsx.slice(callFrom, callTo));
+  check('the call block is a real block of code, not a comment', callCode.length > 400,
+    String(callCode.length));
+
+  // -- 5c-1. THE ORDER'S FIRST DEMAND: the route is called, and it is called with POST --------
+  check('the draw block names the function route',
+    drawCode.indexOf('/api/lessons-search') !== -1);
+  check('...and calls it with POST', /method:\s*'POST'/.test(drawCode));
+  check('...sending the question as `q` in a JSON body',
+    /JSON\.stringify\(\{\s*q:/.test(drawCode));
+  check('...and there is exactly one call site in the whole of app.jsx',
+    (appJsx.match(/fetch\(EZIK_LESSONS_ENDPOINT/g) || []).length === 1,
+    String((appJsx.match(/fetch\(EZIK_LESSONS_ENDPOINT/g) || []).length));
+
+  // -- 5c-2. THE ORDER'S SECOND DEMAND: three fields, no fourth, and no text field ------------
+  // Set equality over the properties actually read off a hit -- not a search for three names.
+  // A fourth field added to the reader fails here even if the three are still present, and a
+  // text field added to the SERVICE cannot reach a screen through a reader that enumerates
+  // nothing.
+  const readProps = [...new Set([...drawCode.matchAll(/hit\.([A-Za-z_][A-Za-z0-9_]*)/g)]
+    .map((m) => m[1]))].sort();
+  check('the reader reads exactly title, scholar_id and url off a hit -- no fourth',
+    readProps.join(',') === 'scholar_id,title,url', readProps.join(','));
+  check('the three are all drawn: the title, the scholar under it, the url as the href',
+    /style=\{s\.lessonsTitle\}>\{row\.title\}/.test(drawCode)
+    && /style=\{s\.lessonsScholar\}>\{row\.scholar\}/.test(drawCode)
+    && /href=\{row\.url\}/.test(drawCode));
+  check('the link leaves the app safely: target _blank with rel noopener noreferrer',
+    drawCode.indexOf('target="_blank"') !== -1
+    && drawCode.indexOf('rel="noopener noreferrer"') !== -1);
+  // `snippet` first, because it is the field the server deletes at its own edge and the one a
+  // future service is most likely to send back under another name. Then the six fields the
+  // contract DOES send and this screen refuses: score, unit_id, tier, usage, citation_allowed,
+  // content_type. citation_allowed=0 and usage=search_only on the measured sample -- the link is
+  // the end of it, so none of the six may be read, and no quote or excerpt may be drawn.
+  const FORBIDDEN_IN_DRAW = ['snippet', 'excerpt', 'matn', 'score', 'unit_id', 'tier',
+    'usage', 'citation_allowed', 'content_type'];
+  const leaked = FORBIDDEN_IN_DRAW.filter((word) => drawCode.indexOf(word) !== -1);
+  check('no dropped or undrawn field is even named in the draw block', leaked.length === 0,
+    leaked.join(','));
+  // The whitelist has to be WRITTEN, not derived: an enumerating reader would draw a text field
+  // the day the service grows one, without a person ever having typed its name.
+  const ENUMERATORS = ['Object.keys', 'Object.entries', 'Object.values', 'for (const k in',
+    'for (let k in', 'JSON.stringify(hit'];
+  const enumerated = ENUMERATORS.filter((word) => drawCode.indexOf(word) !== -1);
+  check('the whitelist is written out, never enumerated', enumerated.length === 0,
+    enumerated.join(','));
+  // THE PREDICATE BITES. The same two tests, run against a block that DOES leak, so a pass
+  // above is a statement about the file rather than about a test that can no longer fail.
+  const leakyDraw = drawCode.replace('const scholar =', 'const snippet = hit.snippet; const scholar =');
+  check('the leak mutant is a real mutation, not a no-op', leakyDraw !== drawCode);
+  const leakyProps = [...new Set([...leakyDraw.matchAll(/hit\.([A-Za-z_][A-Za-z0-9_]*)/g)]
+    .map((m) => m[1]))].sort();
+  check('THE GUARD BITES: a reader that took the snippet fails both the set and the word list',
+    leakyProps.join(',') !== 'scholar_id,title,url'
+    && FORBIDDEN_IN_DRAW.some((word) => leakyDraw.indexOf(word) !== -1),
+    leakyProps.join(','));
+  check('...and the real block, re-read after the mutation, is unchanged',
+    stripComments(readRepo('app.jsx').slice(drawFrom, drawTo)) === drawCode);
+
+  // -- 5c-3. the ceiling of three, the floor of three characters, the eight-second cut --------
+  check('the display ceiling is three cards of the ten the service returns',
+    /const EZIK_LESSONS_MAX = 3;/.test(appJsx) && /rows\.length >= EZIK_LESSONS_MAX/.test(drawCode));
+  check('a question shorter than three characters after trimming makes no call at all',
+    /const EZIK_LESSONS_MIN_Q = 3;/.test(appJsx)
+    && /query\.length < EZIK_LESSONS_MIN_Q\) return \[\];/.test(drawCode)
+    && /query\.length < EZIK_LESSONS_MIN_Q\) return;/.test(callCode));
+  check('the client gives up at eight seconds',
+    /const EZIK_LESSONS_TIMEOUT_MS = 8000;/.test(appJsx)
+    && callCode.indexOf('EZIK_LESSONS_TIMEOUT_MS') !== -1);
+  // SILENT FAILURE. Every path that is not a 200 with a usable list returns an empty list, and
+  // an empty list draws null -- no message, no empty frame, no spinner left standing.
+  check('a status other than 200 returns nothing to draw',
+    /r\.status !== 200\) return \[\];/.test(drawCode));
+  check('a throw on any part of the call returns nothing to draw',
+    /catch \(e\) \{\s*return \[\];/.test(drawCode));
+  check('an empty list draws null rather than a heading over nothing',
+    /rows\.length === 0\) return null;/.test(drawCode));
+  check('nothing is drawn unless a row survived the whitelist',
+    /if \(rows && rows\.length\) setLessonRows\(rows\);/.test(callCode));
+
+  // -- 5c-4. THE ORDER'S THIRD DEMAND: AbortController on the call path ----------------------
+  check('an AbortController is created for the call and its signal is passed to fetch',
+    callCode.indexOf('new AbortController()') !== -1
+    && callCode.indexOf('controller.signal') !== -1
+    && /signal,/.test(drawCode));
+  check('a new question aborts the pending call and wipes the card in the same breath',
+    /lessonsAbortRef\.current\.abort\(\)/.test(callCode)
+    && /setLessonRows\(null\);/.test(callCode));
+  check('...and the reset runs at the START of every send, beside the stream abort',
+    /if \(abortRef\.current\) abortRef\.current\.abort\(\);[\s\S]{0,400}?resetLessons\(\);/.test(appJsx));
+  // A LATE LANDING IS DROPPED, NOT DRAWN. The abort covers the call that is still open; the
+  // generation covers the one whose promise already resolved and is a microtask from setState.
+  check('a result that lands after a newer question is dropped by generation',
+    /lessonsSeqRef\.current \+= 1;/.test(callCode)
+    && /lessonsSeqRef\.current !== seq\) return;/.test(callCode));
+
+  // -- 5d. the seam: after the answer, never awaited, and only under the newest reply ---------
+  const fireIdx = appJsx.indexOf('startLessonsSearch(text, lessonsSeq);');
+  const commitIdx = appJsx.indexOf('    markStreamedOpen(final.length - 1);');
+  check('the search is fired only after the reply has been committed to the thread',
+    fireIdx !== -1 && commitIdx !== -1 && fireIdx > commitIdx, 'fire=' + fireIdx + ' commit=' + commitIdx);
+  check('...and it is never awaited, so it cannot delay a character of the answer',
+    appJsx.indexOf('await startLessonsSearch') === -1);
+  check('the card is handed to the newest bubble and to no other',
+    /lessonRows=\{i === messages\.length - 1 \? lessonRows : null\}/.test(appJsx));
+  check('the bubble renders the card at its tail and fetches nothing itself',
+    /<EzikLessonCards rows=\{lessonRows\} \/>/.test(appJsx));
+
+  // -- 5e. the built bundle is the one this source builds ------------------------------------
+  // Gate `babel` proves app.js === build(app.jsx) byte for byte. This is the cheaper half of
+  // the same statement, kept here so a stale bundle cannot pass a guard whose subject is the
+  // interface: a reader is served app.js, not app.jsx.
+  const appJs = readRepo('app.js');
+  check('app.js was actually read', appJs.length > 100000, String(appJs.length));
+  for (const marker of ['/api/lessons-search', 'ezikLessonRows', 'EzikLessonCards', 'noopener noreferrer']) {
+    check('the built bundle carries ' + marker, appJs.indexOf(marker) !== -1);
+  }
 
   // == 6. THE FOUR LIBRARY-SEARCH FILES ARE UNTOUCHED ========================================
   console.log('\n=== 6. THE FOUR LIBRARY-SEARCH FILES, BEFORE AND AFTER ===');

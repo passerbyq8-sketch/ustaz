@@ -219,6 +219,11 @@ const EZ_I18N = {
     'chat.listen': 'استمع للرد',
     'chat.stopAudio': 'إيقاف الصوت',
     'chat.report': 'بلّغ عن هذا الردّ',
+    // ITEM 24-A: the heading of the related-lessons list under a settled reply. It names
+    // the list and promises nothing about its contents -- the list itself is a title, a
+    // scholar's name and an outward link, and the card is not drawn at all when there is
+    // nothing to draw.
+    'chat.lessons': 'دروسٌ ذاتُ صلة',
     'chat.noConversations': 'لا شيء محفوظٌ بعد — أول سؤالٍ تكتبه يُحفَظ هنا.',
     'favorites.empty': 'لا توجد ردود محفوظة بعد. اضغط النجمة تحت أي رد لتحفظه هنا.',
     'errors.network': 'تعذّر الاتصال',
@@ -419,6 +424,7 @@ const EZ_I18N = {
     'chat.listen': 'Listen to the reply',
     'chat.stopAudio': 'Stop the audio',
     'chat.report': 'Report this reply',
+    'chat.lessons': 'Related lessons',
     'chat.noConversations': 'Nothing is saved yet — the first question you write is kept here.',
     'favorites.empty': 'Nothing is saved yet. Press the star under any reply to keep it here.',
     'errors.network': 'Could not connect',
@@ -6261,6 +6267,36 @@ function App() {
   const [searchingSources, setSearchingSources] = useState(false);
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
   const searchTimerRef = useRef(null);    // delayed trigger for the "searching sources…" hint (client-side, time-based)
+  // ITEM 24-A: the related-lessons card under the newest reply. `lessonRows` is what is DRAWN
+  // -- already reduced to three whitelisted fields -- and it is null whenever there is nothing.
+  // `lessonsAbortRef` holds the in-flight call so a new question can cut it, and `lessonsSeqRef`
+  // is the generation a landing result must still match: a reply that arrives after the reader
+  // has asked something else is dropped rather than drawn over the new answer.
+  const [lessonRows, setLessonRows] = useState(null);
+  const lessonsAbortRef = useRef(null);
+  const lessonsSeqRef = useRef(0);
+  // Called at the START of every question: the card goes at once, the pending call is aborted,
+  // and the generation moves on so a late landing can recognise itself as stale.
+  const resetLessons = () => {
+    lessonsSeqRef.current += 1;
+    if (lessonsAbortRef.current) { try { lessonsAbortRef.current.abort(); } catch (e) {} lessonsAbortRef.current = null; }
+    setLessonRows(null);
+  };
+  // Called AFTER the answer is on the screen, and never awaited by the send path -- it cannot
+  // delay a single character of the reply, the stream, or the paint that follows it.
+  const startLessonsSearch = (q, seq) => {
+    const query = typeof q === 'string' ? q.trim() : '';
+    if (query.length < EZIK_LESSONS_MIN_Q) return;
+    const controller = new AbortController();
+    lessonsAbortRef.current = controller;
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_LESSONS_TIMEOUT_MS);
+    ezikFetchLessonRows(query, controller.signal).then((rows) => {
+      clearTimeout(timer);
+      if (lessonsSeqRef.current !== seq) return; // a newer question owns the screen
+      lessonsAbortRef.current = null;
+      if (rows && rows.length) setLessonRows(rows);
+    });
+  };
 
   // ===== Live voice-call mode (Layer 2) — dedicated recognition + one-turn loop, isolated from the dictation mic =====
   const callRecognitionRef = useRef(null); // dedicated SpeechRecognition for call mode (NOT the dictation instance)
@@ -8290,6 +8326,11 @@ function App() {
     cancelAudio();
     // Abort any in-flight stream cleanly (ties into the cancellation discipline).
     if (abortRef.current) abortRef.current.abort();
+    // ITEM 24-A: the lessons card belongs to the question that produced it. A new question
+    // wipes it in the same breath as the stream it aborts, so no card outlives the answer it
+    // was drawn under and no late arrival lands on top of a different one.
+    resetLessons();
+    const lessonsSeq = lessonsSeqRef.current;
     let attachBlock = null;
     if (pendingImage) {
       if (pendingImage.kind === 'pdf') {
@@ -8379,6 +8420,10 @@ function App() {
     saveMessages(final);
     setIsLoading(false);
     if (voiceMode) speakReply(reply); // audio runs on the final full text — not during the stream
+    // ITEM 24-A: LAST, AND UNAWAITED. The answer is committed, painted and (in voice mode)
+    // already speaking before this line runs, and nothing below waits on it. `text` is the
+    // reader's question exactly as it was typed.
+    startLessonsSearch(text, lessonsSeq);
   };
 
   // ============================================================
@@ -9317,7 +9362,7 @@ function App() {
              that on every message in the thread, to locate one of them. */
           <React.Fragment key={i}>
             {i === pinnedAskIndex && <div ref={pinAnchorRef} aria-hidden="true" data-ezik-ask-pin="" />}
-            <MessageBubble index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} onFavoriteAyah={cbFavoriteAyah} ayahFavIds={ayahFavIds} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} />
+            <MessageBubble index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} onFavoriteAyah={cbFavoriteAyah} ayahFavIds={ayahFavIds} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} lessonRows={i === messages.length - 1 ? lessonRows : null} />
           </React.Fragment>
         ))}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
@@ -10229,7 +10274,104 @@ function ezikRenderSegments(segments, ctx) {
 // identity the thread preserves across a re-render) or a callback App pins to one identity — so a
 // keystroke in the composer re-renders the composer and NOT the thread. See the note beside the
 // pinned callbacks in App for the measurement that made this necessary.
-const MessageBubble = React.memo(function MessageBubble({ message, index, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite, onFavoriteAyah, ayahFavIds, defaultOpen, foldEpoch }) {
+// ============================================================
+// ITEM 24-A -- RELATED LESSONS, UNDER A SETTLED REPLY
+// ============================================================
+// WHAT THE SERVER SENDS AND WHAT THIS DRAWS ARE NOT THE SAME LIST. /api/lessons-search
+// answers 200 with `{ "hits": [ ... ] }` -- no `ok` field -- and every hit carries NINE
+// fields: unit_id, scholar_id, title, url, tier, usage, citation_allowed, content_type,
+// score. There is NO TEXT FIELD AT ALL: the server deletes `snippet` at its own edge
+// (lib/lessons-source-card.js, DROPPED_HIT_FIELD) and that deletion is a closed decision
+// there, not a display choice here.
+//
+// THREE FIELDS REACH THE SCREEN, AND THE WHITELIST IS WRITTEN OUT BY HAND ON PURPOSE:
+// title, scholar_id, url. If the service grows a text field tomorrow -- a snippet, a body,
+// an excerpt -- this reader does not see it, because it reads three named properties and
+// never enumerates an object. There is no Object.keys here and no field-driven render, so
+// no field can arrive on a reader's screen without a person writing its name in this file.
+//
+// `scholar_id` IS NOT AN IDENTIFIER. It is the scholar's Arabic display name; it is printed,
+// never joined on, slugged or looked up.
+//
+// `citation_allowed = 0` and `usage = search_only` on the measured sample: the LINK IS THE
+// END OF IT. No quote, no excerpt, no copy button, no "original text" button -- and score,
+// unit_id and tier are read by nobody and shown to nobody.
+const EZIK_LESSONS_ENDPOINT = '/api/lessons-search';
+// Three of the ten the service will return. The other seven are fetched and dropped here.
+const EZIK_LESSONS_MAX = 3;
+// Below three characters after trimming there is no call at all.
+const EZIK_LESSONS_MIN_Q = 3;
+// Eight seconds, and then the AbortController below cuts the call and nothing is drawn. The
+// server's own ceiling on the upstream is 12s, so this client gives up FIRST and on purpose:
+// a card that lands long after the answer was read is worse than no card.
+const EZIK_LESSONS_TIMEOUT_MS = 8000;
+
+// THE WHITELIST, as a function. Takes whatever came back and returns at most three plain rows
+// of three strings. A hit with no title or no http(s) url is dropped rather than drawn empty.
+function ezikLessonRows(hits) {
+  if (!Array.isArray(hits)) return [];
+  const rows = [];
+  for (const hit of hits) {
+    if (rows.length >= EZIK_LESSONS_MAX) break;
+    if (!hit || typeof hit !== 'object') continue;
+    const title = typeof hit.title === 'string' ? hit.title.trim() : '';
+    const url = typeof hit.url === 'string' ? hit.url.trim() : '';
+    const scholar = typeof hit.scholar_id === 'string' ? hit.scholar_id.trim() : '';
+    if (!title || !/^https?:\/\//i.test(url)) continue;
+    rows.push({ title, url, scholar });
+  }
+  return rows;
+}
+
+// THE CALL. Silent on every failure -- a non-200, an unreadable body, an empty or missing
+// `hits`, a cut connection, or the eight-second abort all return an empty list, and an empty
+// list draws nothing. There is no error line, no empty frame and no spinner left behind,
+// because this runs AFTER the answer is already on the screen and has nothing to say to a
+// reader who is already reading.
+async function ezikFetchLessonRows(q, signal) {
+  const query = typeof q === 'string' ? q.trim() : '';
+  if (query.length < EZIK_LESSONS_MIN_Q) return [];
+  try {
+    const r = await fetch(EZIK_LESSONS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q: query }),
+      signal,
+    });
+    if (r.status !== 200) return [];
+    const payload = await r.json();
+    return ezikLessonRows(payload && payload.hits);
+  } catch (e) {
+    return [];
+  }
+}
+
+// THE CARD. Three fields, one link each, and null when there is nothing -- never a heading
+// standing over an empty box. The link leaves the app, so it carries target="_blank" with
+// rel="noopener noreferrer" on every row.
+function EzikLessonCards({ rows }) {
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  return (
+    <div className="ezik-lessons" style={s.lessonsBox}>
+      <div style={s.lessonsHead}>{ezT('chat.lessons')}</div>
+      {rows.map((row, i) => (
+        <a
+          key={i}
+          href={row.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ezik-focus"
+          style={s.lessonsItem}
+        >
+          <span style={s.lessonsTitle}>{row.title}</span>
+          {row.scholar ? <span style={s.lessonsScholar}>{row.scholar}</span> : null}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+const MessageBubble = React.memo(function MessageBubble({ message, index, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite, onFavoriteAyah, ayahFavIds, defaultOpen, foldEpoch, lessonRows }) {
   const isUser = message.role === 'user';
   // S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's
   // composer state lives on App -- so a single keystroke re-parsed the whole thread. On a 120-turn
@@ -10388,6 +10530,11 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
           ))}
         </div>
       )}
+      {/* ITEM 24-A: the tail of the assistant turn. `lessonRows` is handed DOWN, already
+          whitelisted to three fields and capped at three rows -- this component fetches
+          nothing, holds no state of its own about it and is null for every turn but the
+          newest, so an old thread carries no card under any of its answers. */}
+      <EzikLessonCards rows={lessonRows} />
     </div>
   );
 });
@@ -16143,6 +16290,15 @@ const s = {
   // ===== اقتراحات بعد رد الأستاذ =====
   suggestionsInline: { display: 'flex', flexWrap: 'wrap', gap: 6, paddingRight: 4 },
   suggestionChipSmall: { background: 'var(--white)', border: '1px solid var(--line)', color: 'var(--red)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  // ITEM 24-A. Existing tokens only -- --tint, --line, --red, --muted, --answer-ink -- so both
+  // palettes already answer for every colour here and no theme value is added or overridden.
+  // direction is stated because the rows are links whose text is Arabic, and the file states it
+  // inline wherever a block has to read right-to-left regardless of the document.
+  lessonsBox: { direction: 'rtl', display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 12px', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 12 },
+  lessonsHead: { fontSize: 12.5, fontWeight: 700, color: 'var(--red)' },
+  lessonsItem: { display: 'flex', flexDirection: 'column', gap: 2, minHeight: 44, justifyContent: 'center', padding: '6px 8px', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 10, textDecoration: 'none', color: 'var(--answer-ink)' },
+  lessonsTitle: { fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, overflowWrap: 'anywhere' },
+  lessonsScholar: { fontSize: 12, color: 'var(--muted)' },
 
   // ===== شريط الإدخال =====
   // S112: the dock owns the surface, the border and the safe area now (.ezc-dock-inner), so the
