@@ -10,8 +10,8 @@ const { pathToFileURL } = require('url');
 
 const ROOT = path.join(__dirname, '..');
 const CORPUS = path.join(ROOT, 'lib', 'data', 'fiqh-search.json.gz');
-const EXPECTED_HASH = '6482d677ebf09cc5627a172ee77114587046edeb95529092cb644e42e00d13a2';
-const EXPECTED_RECORDS = 3070;
+const EXPECTED_HASH = 'c094d1267110224794a123858d062d1ab068aa3735d7422887154c6dc1111993';
+const EXPECTED_RECORDS = 3045;
 const NO_EVIDENCE = 'لا يوجد في المصادر المخزنة لدي الآن نص كافٍ للإجابة عن هذا السؤال.';
 const EXPECTED_GATES = JSON.parse(fs.readFileSync(path.join(ROOT, 'gates.json'), 'utf8')).map((gate) => gate.name);
 
