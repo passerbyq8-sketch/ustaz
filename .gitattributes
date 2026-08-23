@@ -510,3 +510,14 @@ guards/fiqh-index-guard.cjs text eol=lf
 guards/fixtures-fiqh-index.json text eol=lf
 EZIK-CX-B-FIQH-INDEX-144-REPORT-2026-08-23.md text eol=lf
 guards/lessons-browse-guard.cjs text eol=lf
+
+# lessonsbrowse is an offline proxy-contract guard. Its own source was pinned when the gate
+# landed, but the files it READS were not: api/lessons-browse.js checked out with 206 CR while
+# git stored it at 0, so the M1 mutation anchor -- which spans a newline -- matched nothing and
+# the mutant came back a no-op. Pin the proxy it mutates, its fixture, and the three self-sealed
+# round reports, whose REPORT_SHA8 payloads are defined over LF bytes and verify only on LF.
+api/lessons-browse.js text eol=lf
+guards/fixtures-lessons-browse.json text eol=lf
+EZIK-CX-LESSONS-BROWSE-PROXY-24C-REPORT-2026-08-23.md text eol=lf
+EZIK-CX-LESSONS-BROWSE-PROXY-24C-B-REPORT-2026-08-23.md text eol=lf
+EZIK-CC-LESSONS-BROWSE-UI-24C-REPORT-2026-08-23.md text eol=lf
