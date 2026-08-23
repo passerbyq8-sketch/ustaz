@@ -10,8 +10,8 @@ const { pathToFileURL } = require('url');
 
 const ROOT = path.join(__dirname, '..');
 const CORPUS = path.join(ROOT, 'lib', 'data', 'fiqh-search.json.gz');
-const EXPECTED_HASH = '6482d677ebf09cc5627a172ee77114587046edeb95529092cb644e42e00d13a2';
-const EXPECTED_RECORDS = 3070;
+const EXPECTED_HASH = 'c094d1267110224794a123858d062d1ab068aa3735d7422887154c6dc1111993';
+const EXPECTED_RECORDS = 3045;
 const NO_EVIDENCE = 'لا يوجد في المصادر المخزنة لدي الآن نص كافٍ للإجابة عن هذا السؤال.';
 const EXPECTED_GATES = JSON.parse(fs.readFileSync(path.join(ROOT, 'gates.json'), 'utf8')).map((gate) => gate.name);
 
@@ -661,10 +661,10 @@ async function runSuite() {
     const m10out = await m10.runStoredFiqhTurn({ context: supportedContext, retrieve: async () => ({ records: [joinRecord] }), generate: async (request) => badTakhrijDraft(request.payload.evidence_pack, request.payload.current_question) });
     ok('MUTANT 10 KILLED: unsupported takhrij appears only when grounding output is bypassed', m10out.text.includes('رواه البخاري ومسلم'));
 
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 91; }
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 92; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 91-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 91-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 92-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 92-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",
