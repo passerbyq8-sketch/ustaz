@@ -2951,9 +2951,10 @@ startLessonsSearch(text,lessonsSeq);};// =======================================
 // ============================================================
 // WHAT THEY ARE. Three of the app's own sections, each opened by the SAME handler the home
 // screen uses for it: الفتاوى -> setScreen('fatwa'), رحلة الكنوز -> /quest.html, المصحف ->
-// setScreen('mushaf'). No fourth entry: the brief allows a lessons section only if one already
-// exists, and this app has no lessons section -- the five modules are memorize, adhkar,
-// mushaf, treasure and fatwa, and none of them is that. The labels and the one-line
+// setScreen('mushaf'). No fourth entry here yet: the brief allows a lessons section only if
+// one already exists, and since item 24-B one does -- LessonsScreen, reached from the home
+// card whose id is lessons. The seven modules are memorize, adhkar, mushaf, treasure, fatwa,
+// lessons and prayer, and one of them IS that. The labels and the one-line
 // descriptions are the module strings the home already shows, so they translate with the rest
 // of the interface and no new wording enters the app.
 //
