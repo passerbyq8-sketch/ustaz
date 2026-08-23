@@ -9072,12 +9072,16 @@ function App() {
   };
 
   // ============================================================
-  // THE SECTION SUGGESTIONS -- three ways out of an empty chat, above the composer
+  // THE SECTION SUGGESTIONS -- four ways out of an empty chat, above the composer
   // ============================================================
-  // WHAT THEY ARE. Three of the app's own sections, each opened by the SAME handler the home
+  // WHAT THEY ARE. Four of the app's own sections, each opened by the SAME handler the home
   // screen uses for it: الفتاوى -> setScreen('fatwa'), رحلة الكنوز -> /quest.html, المصحف ->
-  // setScreen('mushaf'). No fourth entry here yet: the brief allows a lessons section only if
-  // one already exists, and since item 24-B one does -- LessonsScreen, reached from the home
+  // setScreen('mushaf'), and the lessons section by the same handler its home card uses. That
+  // call is written in the entry below and never here: 5B-1 of the lessons guard accounts for
+  // every occurrence of it in the file by name, and a mention in prose is not a route. The
+  // fourth entry is item B of this round, added on the owner's order -- the brief allows one
+  // only if a lessons section already exists, and since item 24-B one does -- LessonsScreen,
+  // reached from the home
   // card whose id is lessons. The seven modules are memorize, adhkar, mushaf, treasure, fatwa,
   // lessons and prayer, and one of them IS that. The labels and the one-line
   // descriptions are the module strings the home already shows, so they translate with the rest
@@ -9090,6 +9094,7 @@ function App() {
     { id: 'fatwa', label: EZH_FATWA, icon: EZH_ICON_FATWA, go: () => setScreen('fatwa') },
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, go: () => { window.location.href = '/quest.html'; } },
     { id: 'mushaf', label: EZH_MUSHAF, icon: EZH_ICON_MUSHAF, go: () => setScreen('mushaf') },
+    { id: 'lessons', label: EZH_LESSONS, icon: EZH_ICON_LESSONS, go: () => setScreen('lessons') },
   ];
   // THE THIRD STATE IS ABSENCE. One expression decides it, and each term is a separate promise
   // the brief makes: an empty thread (a conversation with anything in it keeps them hidden --
