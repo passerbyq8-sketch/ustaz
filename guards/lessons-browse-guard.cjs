@@ -226,9 +226,9 @@ function exactShapedResponse(api, level, value) {
   const consoleCalls = scan.consoleCalls(apiSrc);
   check('the source contains the expected coded log calls',
     consoleCalls.length >= 5 && consoleCalls.every((call) => call.balanced), String(consoleCalls.length));
-  check('every log call carries a fixed code',
+  check('every log call carries a fixed reason code',
     consoleCalls.length >= 5
-      && consoleCalls.every((call) => /\bcode\s*:/.test(scan.expressionText(call.text))));
+      && consoleCalls.every((call) => /\breason\s*:/.test(scan.expressionText(call.text))));
   check('no log call reads an exception message or exception binding',
     consoleCalls.length >= 5
       && consoleCalls.every((call) => !/(?:error|exception)(?:\?\.)?\.message|\berror\b|\bexception\b/i
@@ -401,9 +401,9 @@ function exactShapedResponse(api, level, value) {
       && !serialize(run.res.body).includes('lib.ezik.app')));
   check('the missing-token log is a code, not an exception message',
     noToken.logs.length === 1 && noToken.logs[0].includes('SEARCH_API_TOKEN_MISSING'));
-  check('every upstream log contains a code and no planted exception text',
+  check('every upstream log contains a fixed reason code and no planted exception text',
     upstreamRuns.every((run) => run.logs.length === 1
-      && run.logs[0].includes('code') && !run.logs[0].includes(THROW_MARKER)));
+      && run.logs[0].includes('reason') && !run.logs[0].includes(THROW_MARKER)));
 
   console.log('\n=== E. MUTATION PROOF ===');
   const snippetAnchor = "  carry(out, row, 'count');\n  return out;";

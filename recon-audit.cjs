@@ -759,7 +759,10 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 92;   // 92nd: fiqhindex -- guards/fiqh-index-guard.cjs. The compressed
+  const GATES_EXPECTED = 93;   // 93rd: lessonsbrowse -- guards/lessons-browse-guard.cjs. The
+                               //       server-only lessons browse edge, its three exact response
+                               //       whitelists, fixed failure classes and two killed mutants.
+                               // 92nd: fiqhindex -- guards/fiqh-index-guard.cjs. The compressed
                                //       fiqh term index is data-only: 25 measured printed-edition
                                //       references are absent, 20 named real terms remain, and three
                                //       in-memory mutants prove the count, key and shape assertions bite.

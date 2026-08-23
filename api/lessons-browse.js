@@ -156,7 +156,7 @@ export default async function handler(req, res) {
 
   const token = process.env.SEARCH_API_TOKEN;
   if (typeof token !== 'string' || token.length === 0) {
-    console.warn('[lessons-browse] unavailable', { code: 'SEARCH_API_TOKEN_MISSING' });
+    console.warn('[lessons-browse] unavailable', { reason: 'SEARCH_API_TOKEN_MISSING' });
     return res.status(503).json(UNAVAILABLE_BODY);
   }
 
@@ -174,22 +174,22 @@ export default async function handler(req, res) {
       body: JSON.stringify(buildUpstreamBody(level, body))
     });
   } catch {
-    console.warn('[lessons-browse] upstream unreachable', { code: 'FETCH_FAILED' });
+    console.warn('[lessons-browse] upstream unreachable', { reason: 'FETCH_FAILED' });
     return res.status(502).json(UPSTREAM_BODY);
   }
 
   if (response.status === 401) {
-    console.warn('[lessons-browse] upstream rejected credentials', { code: 'UPSTREAM_UNAUTHORIZED' });
+    console.warn('[lessons-browse] upstream rejected credentials', { reason: 'UPSTREAM_UNAUTHORIZED' });
     return res.status(502).json(UPSTREAM_BODY);
   }
   if (!response.ok) {
-    console.warn('[lessons-browse] upstream unavailable', { code: 'UPSTREAM_STATUS' });
+    console.warn('[lessons-browse] upstream unavailable', { reason: 'UPSTREAM_STATUS' });
     return res.status(502).json(UPSTREAM_BODY);
   }
 
   const declared = Number(response.headers?.get?.('content-length') || 0);
   if (declared > MAX_BYTES) {
-    console.warn('[lessons-browse] upstream body unreadable', { code: 'BODY_TOO_LARGE' });
+    console.warn('[lessons-browse] upstream body unreadable', { reason: 'BODY_TOO_LARGE' });
     return res.status(502).json(UPSTREAM_BODY);
   }
 
@@ -197,7 +197,7 @@ export default async function handler(req, res) {
   try {
     payload = await response.json();
   } catch {
-    console.warn('[lessons-browse] upstream body unreadable', { code: 'BODY_UNREADABLE' });
+    console.warn('[lessons-browse] upstream body unreadable', { reason: 'BODY_UNREADABLE' });
     return res.status(502).json(UPSTREAM_BODY);
   }
 
