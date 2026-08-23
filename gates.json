@@ -455,5 +455,10 @@
     "name": "bootinvariants",
     "script": "guards/boot-invariants-guard.cjs",
     "args": "index.html"
+  },
+  {
+    "name": "lessonssearch",
+    "script": "guards/lessons-search-guard.cjs",
+    "args": ""
   }
 ]

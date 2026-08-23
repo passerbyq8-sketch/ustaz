@@ -759,7 +759,23 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 90;   // 90th: bootinvariants -- guards/boot-invariants-guard.cjs. Three
+  const GATES_EXPECTED = 91;   // 91st: lessonssearch -- guards/lessons-search-guard.cjs. The lessons
+                               //       search service call, added with NO INTERFACE by owner's order.
+                               //       Three properties of its contract are the reason it has a gate at
+                               //       all, and none of them is visible in the code that would break
+                               //       them: `scholar_id` is the scholar's Arabic DISPLAY NAME and not
+                               //       an identifier, so anything that joins or looks up on it is built
+                               //       on nothing; `snippet` -- the lesson text -- is deleted at the
+                               //       edge of the tree and must not reappear even when the service
+                               //       sends a filled one, which is the 2.4% case a hand test never
+                               //       draws; and a `content_type` outside the eleven measured kinds is
+                               //       an ABSENCE, not a twelfth kind. The gate drives the real handler
+                               //       against local fixtures with a stubbed fetch and no token, and
+                               //       carries three mutants so none of the three can be quietly
+                               //       reversed. It also asserts the round stayed headless: zero
+                               //       mention of the service or either new module in index.html,
+                               //       app.jsx, app.js or quest.html.
+                               // 90th: bootinvariants -- guards/boot-invariants-guard.cjs. Three
                                //       properties of index.html were being re-verified BY HAND, in
                                //       prose, at the end of order after order for weeks: the diagnostic
                                //       catcher is the first script after <body>; ErrorBoundary is

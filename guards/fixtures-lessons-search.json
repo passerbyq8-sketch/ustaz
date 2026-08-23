@@ -1,0 +1,92 @@
+{
+  "_note": "Local fixtures shaped after the measured /lessons/search contract. Zero network, zero real token: the agent that wrote them has no service token. Every text value is DELIBERATELY ARTIFICIAL -- no lesson text of any kind appears here, by order. The snippet values are Latin marker strings so that a leak of a stripped snippet into a returned hit is unmistakable in a substring assertion, and the scores are odd values (5507/5508/5509) for the same reason.",
+
+  "_scholar_id_note": "scholar_id is NOT an identifier -- it is the scholar's Arabic display name. The values below are obvious placeholders, not real people, so nothing here can be mistaken for a record of a real scholar.",
+
+  "hit_snippet_filled": {
+    "unit_id": "unit-fixture-0001",
+    "scholar_id": "شيخٌ مصطنعٌ ألف",
+    "title": "عنوانٌ مصطنعٌ ألف",
+    "url": "https://example.invalid/fixture/alpha",
+    "tier": "primary",
+    "usage": "reference",
+    "citation_allowed": true,
+    "content_type": "lesson",
+    "snippet": "SNIPPET-FIXTURE-FILLED-DO-NOT-DISPLAY",
+    "score": 5507
+  },
+
+  "hit_snippet_empty": {
+    "unit_id": "unit-fixture-0002",
+    "scholar_id": "شيخٌ مصطنعٌ باء",
+    "title": "عنوانٌ مصطنعٌ باء",
+    "url": "https://example.invalid/fixture/beta",
+    "tier": "secondary",
+    "usage": "background",
+    "citation_allowed": false,
+    "content_type": "fatwa",
+    "snippet": "",
+    "score": 5508
+  },
+
+  "hit_missing_fields": {
+    "unit_id": "unit-fixture-0003",
+    "title": "عنوانٌ مصطنعٌ جيم",
+    "tier": "secondary",
+    "usage": "background",
+    "citation_allowed": false,
+    "snippet": "SNIPPET-FIXTURE-FILLED-DO-NOT-DISPLAY",
+    "score": 5509
+  },
+
+  "hit_unknown_content_type": {
+    "unit_id": "unit-fixture-0004",
+    "scholar_id": "شيخٌ مصطنعٌ دال",
+    "title": "عنوانٌ مصطنعٌ دال",
+    "url": "https://example.invalid/fixture/delta",
+    "tier": "primary",
+    "usage": "reference",
+    "citation_allowed": true,
+    "content_type": "khutbah_series",
+    "snippet": "",
+    "score": 5510
+  },
+
+  "hit_nonstring_content_type": {
+    "unit_id": "unit-fixture-0005",
+    "scholar_id": "شيخٌ مصطنعٌ هاء",
+    "title": "عنوانٌ مصطنعٌ هاء",
+    "url": "https://example.invalid/fixture/epsilon",
+    "tier": "primary",
+    "usage": "reference",
+    "citation_allowed": true,
+    "content_type": 11,
+    "snippet": "",
+    "score": 5511
+  },
+
+  "response_empty": {
+    "hits": []
+  },
+
+  "response_with_unknown_fields": {
+    "shard_host": "internal-shard-04.lessons.invalid",
+    "server_token_hint": "tk-lsn-7",
+    "hits": [
+      {
+        "unit_id": "unit-fixture-0006",
+        "scholar_id": "شيخٌ مصطنعٌ واو",
+        "title": "عنوانٌ مصطنعٌ واو",
+        "url": "https://example.invalid/fixture/zeta",
+        "tier": "primary",
+        "usage": "reference",
+        "citation_allowed": true,
+        "content_type": "lecture",
+        "snippet": "SNIPPET-FIXTURE-FILLED-DO-NOT-DISPLAY",
+        "score": 5512,
+        "internal_offset": 918273,
+        "lesson_body": "SNIPPET-FIXTURE-FILLED-DO-NOT-DISPLAY"
+      }
+    ]
+  }
+}

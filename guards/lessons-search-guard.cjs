@@ -1,0 +1,515 @@
+// guards/lessons-search-guard.cjs -- the lessons search function and the lesson source card.
+//
+// == THREE TRAPS IN THE MEASURED CONTRACT, WRITTEN AT THE HEAD BY ORDER =========
+//
+//   1. `scholar_id` IS NOT AN IDENTIFIER. It is the scholar's Arabic display name; the service
+//      names the field that way for historical reasons inside its own contract. Anyone who
+//      treats it as a key -- joins on it, slugs it, looks it up in a table -- has built on
+//      something that was never there.
+//
+//   2. `snippet` IS NEVER READ, NEVER PASSED, NEVER STORED. The service sends it empty in 97.6%
+//      of hits and filled in 2.4%, and the owner's ruling is that lesson text is not displayed
+//      at all. api/lessons-search.js is the edge of the tree and the field is deleted THERE. The
+//      first assertion of this guard exists to prove that deletion against a service that sends
+//      a FILLED one.
+//
+//   3. `content_type` IS ONE OF ELEVEN MEASURED KINDS. A value outside the eleven is treated as
+//      an ABSENCE, not as a twelfth kind, and it is never translated here: wording a kind for a
+//      screen is the interface's business, and this round has no interface.
+//
+// == WHAT THIS GUARD IS FOR ====================================================
+// This round adds one server function (api/lessons-search.js) and one pure builder
+// (lib/lessons-source-card.js). Neither is wired into any answer path and neither is named
+// anywhere in the interface. This guard proves the seven assertions the order names, WITHOUT A
+// NETWORK CALL and without a real token -- the agent that wrote it has neither. It stubs
+// `globalThis.fetch`, which is the single seam every outbound call in this repo passes through,
+// and drives the real exported handler against local fixtures shaped after the measured
+// contract.
+//
+//   1. the function returns no `snippet`, EVEN WHEN THE SERVICE SENDS A FILLED ONE
+//   2. the card carries the four named fields and no fifth -- keys counted against the list
+//   3. the card invents nothing when a field is absent
+//   4. a `content_type` outside the eleven is an absence
+//   5. ZERO mention of the service address or of either new file inside index.html
+//   6. ZERO change to the four library-search files -- fingerprints taken before and after
+//   7. the token appears in no output on any error path
+//
+// Each of 1, 3 and 4 carries a MUTANT: the real source is mutated in memory, the mutation is
+// proved to have changed the source (a no-op mutant reports a false PASS), the mutated module is
+// driven, and the assertion is shown to bite. The file on disk is re-read afterwards and proved
+// unchanged.
+//
+// The fixture token is `tk-lsn-7`: deliberately under sixteen characters, because the repo's
+// recon secret scanner treats a 16+ character token-shaped literal as a real leaked credential
+// and would red a gate over a test fixture.
+//
+// Output is ASCII only, by order.
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const scan = require('./telemetry-scan-lib.cjs');
+
+const REPO = path.resolve(__dirname, '..');
+const fileUrl = (rel) => 'file://' + path.join(REPO, rel).replace(/\\/g, '/');
+const esm = (rel) => import(fileUrl(rel));
+const readRepo = (rel) => fs.readFileSync(path.join(REPO, rel), 'utf8');
+const sha256 = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
+const shaOf = (rel) => sha256(fs.readFileSync(path.join(REPO, rel)));
+
+const FIXTURES = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures-lessons-search.json'), 'utf8'));
+
+// A token that is not a token: short enough that the secret scanner reads it as the fixture it
+// is, distinctive enough that a substring search for it is meaningful.
+const FIXTURE_TOKEN = 'tk-lsn-7';
+
+// The marker planted in every fixture snippet. Latin, shouted, and impossible to mistake for
+// lesson text -- which is the point: no lesson text appears in this round at all.
+const SNIPPET_MARKER = 'SNIPPET-FIXTURE-FILLED-DO-NOT-DISPLAY';
+
+// The four files of the library-search round. This round reads them as a model and changes not
+// one byte of any of them.
+const COMPREHENSIVE = Object.freeze([
+  'api/lib-search.js',
+  'lib/lib-source-card.js',
+  'guards/lib-search-16a-guard.cjs',
+  'guards/fixtures-lib-search-16a.json'
+]);
+
+// The names this round introduces. None of them may appear in the interface.
+const NEW_NAMES = Object.freeze(['lessons/search', 'lessons-search', 'lessons-source-card']);
+
+let checks = 0;
+let failures = 0;
+const ascii = (value) => String(value).replace(/[^\x20-\x7E]/g, '?');
+function check(name, condition, detail) {
+  checks += 1;
+  if (condition) {
+    console.log('  PASS  ' + name);
+    return true;
+  }
+  failures += 1;
+  console.log('  FAIL  ' + name + (detail ? '\n        ' + ascii(detail) : ''));
+  return false;
+}
+
+// -- a response object shaped like the one Vercel hands a function ---------------
+function makeRes() {
+  const res = { statusCode: null, body: null, headers: {} };
+  res.status = (code) => { res.statusCode = code; return res; };
+  res.json = (body) => { res.body = body; return res; };
+  res.send = (body) => { res.body = body; return res; };
+  res.setHeader = (key, value) => { res.headers[key] = value; return res; };
+  res.end = () => res;
+  return res;
+}
+
+// -- drive the real handler with a stubbed fetch and a captured console ----------
+// Returns everything an assertion could want: the response, every outbound call with its
+// headers and body, and every line the function logged.
+async function drive(handler, { body, method = 'POST', token = FIXTURE_TOKEN, upstream }) {
+  const calls = [];
+  const logs = [];
+  const realFetch = globalThis.fetch;
+  const realWarn = console.warn;
+  const realError = console.error;
+  const hadToken = Object.prototype.hasOwnProperty.call(process.env, 'SEARCH_API_TOKEN');
+  const priorToken = process.env.SEARCH_API_TOKEN;
+
+  if (token === null) delete process.env.SEARCH_API_TOKEN;
+  else process.env.SEARCH_API_TOKEN = token;
+
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), init });
+    const reply = typeof upstream === 'function' ? upstream(calls.length) : upstream;
+    if (reply instanceof Error) throw reply;
+    const payload = reply?.payload;
+    return {
+      status: reply?.status ?? 200,
+      ok: (reply?.status ?? 200) >= 200 && (reply?.status ?? 200) < 300,
+      headers: { get: () => null },
+      json: async () => {
+        if (reply && reply.unreadable) throw new Error('Unexpected token in JSON');
+        return payload;
+      }
+    };
+  };
+  console.warn = (...args) => { logs.push(args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')); };
+  console.error = console.warn;
+
+  const res = makeRes();
+  try {
+    await handler({ method, body, query: {}, headers: {} }, res);
+  } finally {
+    globalThis.fetch = realFetch;
+    console.warn = realWarn;
+    console.error = realError;
+    if (hadToken) process.env.SEARCH_API_TOKEN = priorToken;
+    else delete process.env.SEARCH_API_TOKEN;
+  }
+  return { res, calls, logs };
+}
+
+// Load a mutated copy of a repo module without writing it to disk. The import specifier is
+// rewritten to an absolute file:// URL because a data: module has no base to resolve '../' from.
+async function loadMutant(source, specifierMap) {
+  let resolved = source;
+  const SQ = String.fromCharCode(39);
+  for (const [from, rel] of Object.entries(specifierMap)) {
+    resolved = resolved.split(from).join(SQ + fileUrl(rel) + SQ);
+  }
+  return import('data:text/javascript;base64,' + Buffer.from(resolved, 'utf8').toString('base64'));
+}
+
+const serialize = (value) => JSON.stringify(value ?? null);
+const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
+
+(async function main() {
+  console.log('=== lessons-search-guard -- the lessons call, with no interface ===');
+
+  // == ASSERTION 6, FIRST HALF. The four library-search files, before anything runs. ==========
+  const beforeShas = COMPREHENSIVE.map((rel) => ({ rel, sha: shaOf(rel), bytes: fs.statSync(path.join(REPO, rel)).size }));
+
+  const cardMod = await esm('lib/lessons-source-card.js');
+  const api = await esm('api/lessons-search.js');
+  const handler = api.default;
+  const { buildLessonCard, isKnownContentType, HIT_FIELDS, CARD_FIELDS, CARD_FORBIDDEN_FIELDS,
+    CONTENT_TYPES, DROPPED_HIT_FIELD } = cardMod;
+
+  const apiSrc = readRepo('api/lessons-search.js');
+  const cardSrc = readRepo('lib/lessons-source-card.js');
+
+  // == A. THE CONTRACT IS THE MEASURED ONE, NOT A REMEMBERED ONE =============================
+  console.log('\n=== A. THE MEASURED CONTRACT ===');
+  check('a lessons hit carries exactly 10 fields', HIT_FIELDS.length === 10, 'got ' + HIT_FIELDS.length);
+  check('...and they are the ten measured names, in the measured order',
+    HIT_FIELDS.join(',') === 'unit_id,scholar_id,title,url,tier,usage,citation_allowed,content_type,snippet,score',
+    HIT_FIELDS.join(','));
+  check('content_type has exactly 11 measured kinds', CONTENT_TYPES.length === 11, 'got ' + CONTENT_TYPES.length);
+  check('...and they are the eleven measured kinds',
+    CONTENT_TYPES.slice().sort().join(',')
+      === 'audio,benefit,clip,discussion,explanation,fatwa,lecture,lesson,live,sermon,video',
+    CONTENT_TYPES.join(','));
+  check('the field deleted at the edge of the tree is named snippet', DROPPED_HIT_FIELD === 'snippet',
+    String(DROPPED_HIT_FIELD));
+  check('the nine returned names are the ten less snippet',
+    api.RETURNED_HIT_FIELDS.length === 9 && !api.RETURNED_HIT_FIELDS.includes('snippet')
+      && HIT_FIELDS.filter((f) => f !== 'snippet').join(',') === api.RETURNED_HIT_FIELDS.join(','),
+    api.RETURNED_HIT_FIELDS.join(','));
+  check('the function adds nothing of its own to the hit',
+    api.RETURNED_HIT_FIELDS.every((f) => HIT_FIELDS.includes(f)), api.RETURNED_HIT_FIELDS.join(','));
+  check('scholar_id is documented as a display name, not an identifier',
+    apiSrc.includes('NOT AN IDENTIFIER') && apiSrc.includes('display name')
+      && cardSrc.includes('NOT AN IDENTIFIER') && cardSrc.includes('display name'));
+
+  // == 1. THE SNIPPET IS NEVER RETURNED, EVEN WHEN THE SERVICE SENDS A FILLED ONE =============
+  console.log('\n=== 1. NO SNIPPET REACHES THE CLIENT, EVEN FILLED ===');
+  const filledPayload = { hits: [FIXTURES.hit_snippet_filled, FIXTURES.hit_snippet_empty, FIXTURES.hit_missing_fields] };
+  check('the fixture really does carry a FILLED snippet - the strip is not measuring nothing',
+    FIXTURES.hit_snippet_filled.snippet === SNIPPET_MARKER && SNIPPET_MARKER.length > 0);
+  check('...and a second fixture carries an EMPTY one, which is the 97.6% case',
+    FIXTURES.hit_snippet_empty.snippet === '');
+  const filled = await drive(handler, { body: { q: 'q-fixture', limit: 5 }, upstream: { status: 200, payload: filledPayload } });
+  check('status is 200', filled.res.statusCode === 200, 'got ' + filled.res.statusCode);
+  check('three hits came back', Array.isArray(filled.res.body.hits) && filled.res.body.hits.length === 3,
+    String((filled.res.body.hits || []).length));
+  check('NO hit carries a key named snippet',
+    filled.res.body.hits.length === 3 && filled.res.body.hits.every((hit) => !('snippet' in hit)),
+    filled.res.body.hits.map((h) => Object.keys(h).join('+')).join(' | '));
+  check('the filled snippet text appears nowhere in the response body',
+    !serialize(filled.res.body).includes(SNIPPET_MARKER));
+  check('...nor anywhere in the logs', !filled.logs.join(' ').includes(SNIPPET_MARKER));
+  check('every other measured field DID survive - this is a strip, not a truncation',
+    api.RETURNED_HIT_FIELDS.every((f) => (FIXTURES.hit_snippet_filled[f] !== undefined)
+      ? (f in filled.res.body.hits[0]) : true),
+    Object.keys(filled.res.body.hits[0]).join(','));
+  check('an unmeasured hit field is dropped in silence', !('internal_offset' in filled.res.body.hits[0]));
+
+  // THE MUTANT: let snippet through the whitelist.
+  const SMUT_FROM = "HIT_FIELDS.filter((f) => f !== DROPPED_HIT_FIELD)";
+  const SMUT_TO = "HIT_FIELDS.filter((f) => true)";
+  const snippetMutantSrc = apiSrc.split(SMUT_FROM).join(SMUT_TO);
+  check('the snippet mutant is a real mutation, not a no-op',
+    snippetMutantSrc !== apiSrc && snippetMutantSrc.includes(SMUT_TO),
+    'the anchor ' + SMUT_FROM + ' matched nothing');
+  const snippetMutant = await loadMutant(snippetMutantSrc, { "'../lib/lessons-source-card.js'": 'lib/lessons-source-card.js' });
+  const mutantBody = snippetMutant.shapeSearchResponse(filledPayload);
+  check('THE GUARD BITES: the mutated function returns the filled snippet',
+    ('snippet' in mutantBody.hits[0]) && serialize(mutantBody).includes(SNIPPET_MARKER),
+    'the mutant returned ' + Object.keys(mutantBody.hits[0]).join(',') + ' and the assertion still passed');
+  check('...and the real function, re-read after the mutation, is unchanged',
+    readRepo('api/lessons-search.js') === apiSrc);
+
+  // == 2. THE CARD CARRIES THE FOUR NAMED FIELDS AND NO FIFTH ================================
+  console.log('\n=== 2. THE CARD IS FOUR FIELDS, COUNTED AGAINST THE LIST ===');
+  check('the declared card list is exactly the four named fields',
+    CARD_FIELDS.join(',') === 'title,scholar_id,url,content_type', CARD_FIELDS.join(','));
+  check('the declared forbidden list is exactly the six named fields',
+    CARD_FORBIDDEN_FIELDS.slice().sort().join(',') === 'citation_allowed,score,snippet,tier,unit_id,usage',
+    CARD_FORBIDDEN_FIELDS.join(','));
+  const fullCard = buildLessonCard(FIXTURES.hit_snippet_filled);
+  check('the card was built', fullCard !== null && typeof fullCard === 'object');
+  check('the card keys, counted and compared to the list letter for letter',
+    Object.keys(fullCard).sort().join(',') === CARD_FIELDS.slice().sort().join(','),
+    Object.keys(fullCard).join(','));
+  check('the card key COUNT is four', Object.keys(fullCard).length === 4, String(Object.keys(fullCard).length));
+  for (const forbidden of CARD_FORBIDDEN_FIELDS) {
+    check('the card carries no ' + forbidden,
+      !(forbidden in fullCard) && FIXTURES.hit_snippet_filled[forbidden] !== undefined,
+      'the hit did carry it: ' + serialize(FIXTURES.hit_snippet_filled[forbidden]));
+  }
+  check('the snippet text is nowhere in the card', !serialize(fullCard).includes(SNIPPET_MARKER));
+  check('the score is nowhere in the card', !serialize(fullCard).includes('5507'));
+  check('scholar_id on the card is the display name the hit carried, unaltered',
+    fullCard.scholar_id === FIXTURES.hit_snippet_filled.scholar_id
+      && typeof fullCard.scholar_id === 'string' && fullCard.scholar_id.length > 0);
+  check('the card is built from the hit and never from a snippet the card cannot see',
+    !cardSrc.includes("carry(card, hit, 'snippet')") && cardSrc.includes("carry(card, hit, 'title')"));
+
+  // == 3. AN ABSENT FIELD STAYS ABSENT -- THE CARD INVENTS NOTHING ============================
+  console.log('\n=== 3. ABSENCE IS CARRIED ACROSS AS ABSENCE ===');
+  const gaps = FIXTURES.hit_missing_fields;
+  check('the fixture really is missing scholar_id, url and content_type',
+    !('scholar_id' in gaps) && !('url' in gaps) && !('content_type' in gaps));
+  check('...and really does carry a title, so the builder is not simply failing',
+    typeof gaps.title === 'string' && gaps.title.length > 0);
+  const gapCard = buildLessonCard(gaps);
+  check('the card carries the title it was given', gapCard.title === gaps.title);
+  check('the card has NO scholar_id key at all', !('scholar_id' in gapCard), Object.keys(gapCard).join(','));
+  check('the card has NO url key at all', !('url' in gapCard), Object.keys(gapCard).join(','));
+  check('the card has NO content_type key at all', !('content_type' in gapCard), Object.keys(gapCard).join(','));
+  check('nothing was substituted for the missing values - no empty string, no null, no placeholder',
+    Object.values(gapCard).every((v) => v !== '' && v !== null && v !== undefined),
+    serialize(gapCard));
+  check('a null value is an absence too, not a value',
+    !('url' in buildLessonCard({ title: 'T', url: null })));
+  check('a hit that is not an object yields no card at all',
+    buildLessonCard(null) === null && buildLessonCard('x') === null && buildLessonCard(undefined) === null);
+
+  // THE MUTANT: fill the gap with an empty string instead of leaving it absent.
+  const IMUT_FROM = "  carry(card, hit, 'url');";
+  const IMUT_TO = "  card.url = has(hit, 'url') ? hit.url : '';";
+  const inventMutantSrc = cardSrc.split(IMUT_FROM).join(IMUT_TO);
+  check('the invention mutant is a real mutation, not a no-op',
+    inventMutantSrc !== cardSrc && inventMutantSrc.includes(IMUT_TO),
+    'the anchor matched nothing');
+  const inventMutant = await loadMutant(inventMutantSrc, {});
+  const inventedCard = inventMutant.buildLessonCard(gaps);
+  check('THE GUARD BITES: the mutated builder invents a url the hit never carried',
+    ('url' in inventedCard) && inventedCard.url === '',
+    'the mutant produced ' + serialize(inventedCard) + ' and the assertion still passed');
+  check('...and the real builder, re-read after the mutation, is unchanged',
+    readRepo('lib/lessons-source-card.js') === cardSrc);
+
+  // == 4. A CONTENT_TYPE OUTSIDE THE ELEVEN IS AN ABSENCE ====================================
+  console.log('\n=== 4. AN UNMEASURED CONTENT_TYPE IS AN ABSENCE, NOT A TWELFTH KIND ===');
+  for (const kind of CONTENT_TYPES) {
+    check('a measured kind is recognised: ' + kind, isKnownContentType(kind) === true);
+  }
+  const strange = FIXTURES.hit_unknown_content_type;
+  check('the fixture kind is genuinely outside the eleven',
+    typeof strange.content_type === 'string' && strange.content_type.length > 0
+      && !CONTENT_TYPES.includes(strange.content_type), String(strange.content_type));
+  const strangeCard = buildLessonCard(strange);
+  check('the unmeasured kind produces NO content_type key on the card',
+    !('content_type' in strangeCard), Object.keys(strangeCard).join(','));
+  check('...and the unmeasured kind name is nowhere in the card',
+    !serialize(strangeCard).includes(strange.content_type));
+  check('...while the rest of the card is still built', strangeCard.title === strange.title
+    && strangeCard.url === strange.url && strangeCard.scholar_id === strange.scholar_id);
+  const nonString = buildLessonCard(FIXTURES.hit_nonstring_content_type);
+  check('a non-string content_type is an absence too',
+    !('content_type' in nonString) && FIXTURES.hit_nonstring_content_type.content_type === 11,
+    Object.keys(nonString).join(','));
+  check('a measured kind DOES reach the card - the rule is a filter, not a deletion',
+    buildLessonCard(FIXTURES.hit_snippet_filled).content_type === 'lesson');
+  check('no Arabic wording is attached to any kind in either new module',
+    CONTENT_TYPES.every((k) => !new RegExp(k + "\\s*:\\s*['\"]").test(cardSrc))
+      && !/CONTENT_TYPE_LABELS|KIND_LABELS/.test(cardSrc + apiSrc));
+
+  // THE MUTANT: carry content_type through without checking it against the eleven.
+  const CMUT_FROM = "  if (isKnownContentType(hit && hit.content_type)) card.content_type = hit.content_type;";
+  const CMUT_TO = "  carry(card, hit, 'content_type');";
+  const kindMutantSrc = cardSrc.split(CMUT_FROM).join(CMUT_TO);
+  check('the content_type mutant is a real mutation, not a no-op',
+    kindMutantSrc !== cardSrc && kindMutantSrc.includes(CMUT_TO), 'the anchor matched nothing');
+  const kindMutant = await loadMutant(kindMutantSrc, {});
+  const kindMutantCard = kindMutant.buildLessonCard(strange);
+  check('THE GUARD BITES: the mutated builder repeats a kind this repo cannot vouch for',
+    kindMutantCard.content_type === strange.content_type,
+    'the mutant produced ' + serialize(kindMutantCard) + ' and the assertion still passed');
+  check('...and the real builder, re-read after the second mutation, is still unchanged',
+    readRepo('lib/lessons-source-card.js') === cardSrc);
+
+  // == 5. NO INTERFACE. ZERO MENTION IN index.html ===========================================
+  console.log('\n=== 5. THIS ROUND HAS NO INTERFACE ===');
+  const indexHtml = readRepo('index.html');
+  check('index.html was actually read', indexHtml.length > 100000, String(indexHtml.length));
+  for (const name of NEW_NAMES) {
+    check('index.html does not mention ' + name, indexHtml.indexOf(name) === -1 && indexHtml.length > 0);
+  }
+  check('index.html does not mention the lessons service address',
+    indexHtml.indexOf('lib.ezik.app/lessons') === -1 && indexHtml.length > 0);
+  // The page's own script was lifted out of index.html in round 28; the same rule has to hold
+  // for the source it moved to and for the bundle built from it, or "no interface" would be a
+  // statement about one file rather than about the interface.
+  for (const rel of ['app.jsx', 'app.js', 'quest.html']) {
+    const src = readRepo(rel);
+    check(rel + ' was actually read', src.length > 1000, String(src.length));
+    check(rel + ' mentions none of the new names',
+      src.length > 1000 && NEW_NAMES.every((name) => src.indexOf(name) === -1),
+      NEW_NAMES.filter((name) => src.indexOf(name) !== -1).join(','));
+  }
+  check('no interface file was added to the service worker CORE either',
+    readRepo('sw.js').indexOf('lessons') === -1);
+
+  // == 6. THE FOUR LIBRARY-SEARCH FILES ARE UNTOUCHED ========================================
+  console.log('\n=== 6. THE FOUR LIBRARY-SEARCH FILES, BEFORE AND AFTER ===');
+  const afterShas = COMPREHENSIVE.map((rel) => ({ rel, sha: shaOf(rel), bytes: fs.statSync(path.join(REPO, rel)).size }));
+  check('four files were measured', beforeShas.length === 4 && afterShas.length === 4);
+  for (let i = 0; i < COMPREHENSIVE.length; i += 1) {
+    const b = beforeShas[i];
+    const a = afterShas[i];
+    console.log('        ' + b.rel + '  before ' + b.sha.slice(0, 16) + ' (' + b.bytes + ')'
+      + '  after ' + a.sha.slice(0, 16) + ' (' + a.bytes + ')');
+    check(b.rel + ' is byte-identical before and after this guard run',
+      b.sha === a.sha && b.bytes === a.bytes, b.sha + ' -> ' + a.sha);
+  }
+  check('none of the four was amended to know about this round',
+    COMPREHENSIVE.every((rel) => {
+      const src = readRepo(rel);
+      return src.length > 0 && NEW_NAMES.every((name) => src.indexOf(name) === -1);
+    }));
+  // The four are NAMED in this round's prose -- they are the model it was written from, and a
+  // reader has to be able to find them. What must not exist is a dependency: an import, a
+  // require, or a read. So the check is over the import graph, not over the words.
+  const importsOf = (src) => Array.from(src.matchAll(/(?:^|\n)\s*import[^\n]*from\s*['"]([^'"]+)['"]/g)).map((m) => m[1]);
+  check('this round imports exactly one module, and it is its own card builder',
+    importsOf(apiSrc).join(',') === '../lib/lessons-source-card.js', importsOf(apiSrc).join(','));
+  check('the card builder imports nothing at all', importsOf(cardSrc).length === 0,
+    importsOf(cardSrc).join(','));
+  check('neither new module requires or reads any of the four',
+    COMPREHENSIVE.every((rel) => {
+      const base = rel.split('/').pop();
+      return !new RegExp("require\\([^)]*" + base.replace('.', '\\.') + "|readFileSync\\([^)]*" + base.replace('.', '\\.'))
+        .test(apiSrc + cardSrc);
+    }));
+
+  // == 7. THE TOKEN APPEARS IN NO OUTPUT, ON ANY PATH ========================================
+  console.log('\n=== 7. THE TOKEN IS IN NO OUTPUT ON ANY ERROR PATH ===');
+  const okRun = await drive(handler, { body: { q: 'q-fixture', limit: 3 },
+    upstream: { status: 200, payload: FIXTURES.response_with_unknown_fields } });
+  const noToken = await drive(handler, { body: { q: 'q-fixture' }, token: null,
+    upstream: { status: 200, payload: FIXTURES.response_empty } });
+  const rejected = await drive(handler, { body: { q: 'q-fixture' },
+    upstream: { status: 401, payload: { error: 'unauthorized' } } });
+  const errored = await drive(handler, { body: { q: 'q-fixture' },
+    upstream: { status: 500, payload: { error: 'boom' } } });
+  const unreachable = await drive(handler, { body: { q: 'q-fixture' },
+    upstream: new Error('connect ECONNREFUSED lib.ezik.app') });
+  const unreadable = await drive(handler, { body: { q: 'q-fixture' }, upstream: { status: 200, unreadable: true } });
+  const notPost = await drive(handler, { method: 'GET', body: { q: 'q-fixture' },
+    upstream: { status: 200, payload: FIXTURES.response_empty } });
+  const noQ = await drive(handler, { body: { limit: 5 }, upstream: { status: 200, payload: FIXTURES.response_empty } });
+  const runs = { okRun, noToken, rejected, errored, unreachable, unreadable, notPost, noQ };
+
+  check('every error path answered', Object.values(runs).every((r) => typeof r.res.statusCode === 'number'),
+    Object.entries(runs).map(([k, r]) => k + '=' + r.res.statusCode).join(' '));
+  check('the token is in no response body',
+    Object.values(runs).every((r) => !mentionsToken(r.res.body)));
+  check('the token is in no response header',
+    Object.values(runs).every((r) => !mentionsToken(r.res.headers)));
+  check('the token is in no log line',
+    Object.values(runs).every((r) => !r.logs.join(' ').includes(FIXTURE_TOKEN)),
+    Object.entries(runs).filter(([, r]) => r.logs.join(' ').includes(FIXTURE_TOKEN)).map(([k]) => k).join(','));
+  check('an unreachable service is 502 and the transport error text does not reach the client',
+    unreachable.res.statusCode === 502 && !serialize(unreachable.res.body).includes('ECONNREFUSED'),
+    serialize(unreachable.res.body));
+  // The run-time checks above prove the token was in no line these paths actually printed. This
+  // one proves it STRUCTURALLY, for every path including ones no fixture reaches: the token
+  // binding, the header name and the scheme word are not read by any console call in the file.
+  // The sweep is the repo's own (guards/telemetry-scan-lib.cjs), and the positive precondition
+  // on the same binding is what stops this passing because it read nothing.
+  const apiConsoleCalls = scan.consoleCalls(apiSrc);
+  check('the console sweep found the function log lines',
+    apiConsoleCalls.length >= 5 && apiConsoleCalls.every((c) => c.balanced), String(apiConsoleCalls.length));
+  check('no console call in the function reads the token, the auth header or the scheme word',
+    apiConsoleCalls.length >= 5
+      && apiConsoleCalls.every((c) => !/\btoken\b|\bauthorization\b|\bBearer\b|AUTH_/i.test(scan.expressionText(c.text))),
+    apiConsoleCalls.filter((c) => /\btoken\b|\bauthorization\b|\bBearer\b|AUTH_/i.test(scan.expressionText(c.text)))
+      .map((c) => 'L' + c.line).join(','));
+  check('the card builder prints nothing at all', scan.consoleCalls(cardSrc).length === 0,
+    String(scan.consoleCalls(cardSrc).length));
+  check('the token planted in an extra service field is dropped, not forwarded',
+    FIXTURES.response_with_unknown_fields.server_token_hint === FIXTURE_TOKEN
+      && !mentionsToken(okRun.res.body));
+  check('no response body names the environment variable',
+    Object.values(runs).every((r) => !serialize(r.res.body).includes('SEARCH_API_TOKEN')));
+  check('no response body names the service host',
+    Object.values(runs).every((r) => !serialize(r.res.body).includes('lib.ezik.app')));
+  check('neither new source file contains a token literal',
+    !apiSrc.includes(FIXTURE_TOKEN) && !cardSrc.includes(FIXTURE_TOKEN));
+  check('the missing-token reason is in the server log instead of the client body',
+    noToken.res.statusCode === 503 && noToken.calls.length === 0
+      && noToken.logs.some((line) => line.includes('search_api_token_missing')),
+    noToken.logs.join(' | '));
+
+  // == B. THE WIRE: METHOD, HEADER, BODY, CEILING ============================================
+  console.log('\n=== B. THE CALL ON THE WIRE ===');
+  const sent = okRun.calls[0];
+  check('the call goes to the measured lessons endpoint',
+    sent.url === 'https://lib.ezik.app/lessons/search', sent.url);
+  check('the method is POST', sent.init.method === 'POST');
+  check('the header name is authorization',
+    Object.keys(sent.init.headers).some((k) => k.toLowerCase() === 'authorization'),
+    Object.keys(sent.init.headers).join(','));
+  check('the value is the token behind the exact prefix "Bearer "',
+    sent.init.headers.authorization === 'Bearer ' + FIXTURE_TOKEN,
+    ascii(String(sent.init.headers.authorization)));
+  const sentBody = JSON.parse(sent.init.body);
+  check('the request body carries q and limit only',
+    Object.keys(sentBody).sort().join(',') === 'limit,q', Object.keys(sentBody).join(','));
+  check('limit is honoured', sentBody.limit === 3);
+  check('the service ceiling of ten is never exceeded',
+    api.normalizeLimit(500) === 10 && api.normalizeLimit(11) === 10 && api.normalizeLimit(10) === 10);
+  check('limit defaults to 10', api.normalizeLimit(undefined) === 10 && api.normalizeLimit('nonsense') === 10);
+  check('limit is an integer', api.normalizeLimit(4.9) === 4);
+  check('a non-POST method is 405 and never reaches the service',
+    notPost.res.statusCode === 405 && notPost.calls.length === 0, 'got ' + notPost.res.statusCode);
+  check('a request with no q is 400 and never reaches the service',
+    noQ.res.statusCode === 400 && noQ.calls.length === 0, 'got ' + noQ.res.statusCode);
+  check('a 401 earns exactly ONE outbound call - no retry without the token',
+    rejected.res.statusCode === 502 && rejected.calls.length === 1, 'calls=' + rejected.calls.length);
+  check('a 500 is 502 to the client', errored.res.statusCode === 502, 'got ' + errored.res.statusCode);
+  check('an unreadable body is 502 to the client', unreadable.res.statusCode === 502,
+    'got ' + unreadable.res.statusCode);
+
+  // == C. THE SHAPE THAT REACHES THE CLIENT ==================================================
+  console.log('\n=== C. NINE FIELDS PER HIT, NOTHING ADDED ===');
+  const shaped = okRun.res.body;
+  check('every top-level key is a measured one',
+    Object.keys(shaped).every((key) => api.RESPONSE_FIELDS.includes(key)), Object.keys(shaped).join(','));
+  check('an unmeasured top-level field is dropped in silence', !('shard_host' in shaped));
+  check('every hit key is one of the nine returned names',
+    shaped.hits[0] && Object.keys(shaped.hits[0]).every((key) => api.RETURNED_HIT_FIELDS.includes(key)),
+    Object.keys(shaped.hits[0] || {}).join(','));
+  check('the function adds no field of its own - no card, no sentence',
+    shaped.hits[0] && !('source_card' in shaped.hits[0]) && !('refused_text' in shaped)
+      && !('degraded_text' in shaped) && !('empty_text' in shaped),
+    Object.keys(shaped.hits[0] || {}).join(','));
+  check('an invented body field is dropped', shaped.hits[0] && !('lesson_body' in shaped.hits[0]));
+  check('a hits key that is not a list is dropped rather than passed on',
+    !('hits' in api.shapeSearchResponse({ hits: 'not-a-list' })));
+  check('an empty result is an empty list, not an invented sentence',
+    Array.isArray(api.shapeSearchResponse(FIXTURES.response_empty).hits)
+      && api.shapeSearchResponse(FIXTURES.response_empty).hits.length === 0
+      && Object.keys(api.shapeSearchResponse(FIXTURES.response_empty)).join(',') === 'hits');
+  check('the response carries a no-store cache header',
+    String(okRun.res.headers['Cache-Control'] || '').includes('no-store'),
+    serialize(okRun.res.headers));
+
+  console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' - FAIL ===' : ' - PASS ==='));
+  process.exit(failures ? 1 : 0);
+})().catch((e) => { console.error(e); process.exit(1); });
