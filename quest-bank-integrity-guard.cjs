@@ -113,6 +113,16 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-23   -- items 24-A and 24-B put the lessons route in the interface: first the tail
+  //                    card under a settled reply, then the section of its own. app.js grew
+  //                    947845 -> 955775 -> 968689 across the two merge rounds, so CORE_BYTES and
+  //                    the byte table above it were re-cut from the disk both times, by
+  //                    tools/core-bytes.cjs --write. CACHE moved ezik-v19 -> v20 -> v21: index.html
+  //                    is in CORE and the bundle under it changed, so a returning reader must stop
+  //                    being served the old shell out of the old store. SW_CACHE and the SW_PROSE
+  //                    mirror were re-cut in the SAME commit each time. This line is the one the
+  //                    24-A merge round owed and did not write: its order allowed the four values
+  //                    and the seal only, so the seal moved with no word here saying why.
   //   item 33      -- the 604 printed page scans left the generic cache-first arm for a store of
   //                    their OWN, 'ezik-mushaf-pages-v1', which carries no version and which
   //                    activate's sweep now exempts BY NAME -- so a ship no longer throws away
@@ -155,7 +165,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': 'b21c1c8fbc90939692fa4c48bd995d0b6e842b1f6aabbe61b2c73038269f3b87',
+  'sw.js': 'c268b2f352d2697f410b13e7dc58bfc09b5dbd11a788b5295b553a5d3f125082',
 };
 
 // ---------------------------------------------------------------------------
@@ -179,7 +189,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v20';
+const SW_CACHE = 'ezik-v21';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
@@ -1265,7 +1275,7 @@ async function compare(goldenPath) {
       { n: 120617, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 955775, of: 'app.js' },
+      { n: 968689, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
