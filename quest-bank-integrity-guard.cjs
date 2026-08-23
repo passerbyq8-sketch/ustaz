@@ -113,6 +113,18 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-23   -- the CC cleanup round, item B: the lessons section became the FOURTH way
+  //                    out of an empty chat, appended to sectionSuggestions, and 5B-1 of the
+  //                    lessons guard stopped COUNTING the two lessons routes and started
+  //                    ACCOUNTING for them by name. The entry lives in app.jsx, so app.js grew
+  //                    989660 -> 990041 (+381) under a shell that did not move, and CORE_BYTES
+  //                    followed 1823058 -> 1823439, re-cut from the disk by
+  //                    tools/core-bytes.cjs --write. CACHE is NOT touched: it moved ezik-v22 ->
+  //                    ezik-v23 in the round above and nothing has shipped under v23 -- it is
+  //                    absent from origin/main, measured this round -- so raising it twice
+  //                    would burn a store name for a single ship. The SW_PROSE mirror and the
+  //                    byte table above sw.js CORE_BYTES were re-cut in THIS commit, and the
+  //                    seal below AFTER all of them.
   //   2026-08-23   -- the CC cleanup round: a comment above sectionSuggestions that denied the
   //                    lessons section, and ezLangRelabel deleting the prayer and library
   //                    descriptions on every language switch. Both live in app.jsx, so app.js
@@ -186,7 +198,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': 'cf2601708013fa8b4bb9648cdbfed7beb7120f19d7b95f2a2b44806ae8c27dc1',
+  'sw.js': 'd3cc95e567044874a516bcee54192ef61d25aec054726857dfd8194b7da16571',
 };
 
 // ---------------------------------------------------------------------------
@@ -1296,7 +1308,7 @@ async function compare(goldenPath) {
       { n: 120617, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 989660, of: 'app.js' },
+      { n: 990041, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
