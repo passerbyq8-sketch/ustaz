@@ -25,7 +25,7 @@
 
 ## شاشات إستانة ٣٣ — القائمة الكاملة
 
-### index.html — ١٣ شاشة، صفر legacy
+### index.html — ١٤ شاشة، صفر legacy
 
 | الشاشة | المفردات |
 |---|---|
@@ -33,6 +33,7 @@
 | onboarding | `.ezonb-*` |
 | home | `.ezist-*` |
 | fatwa | `.ezf-*` |
+| lessons | `EzShell` المشترك |
 | chat | `.ezc-*` |
 | parentGate | `.ezgate-*` |
 | parentDashboard | `.ezparent-*` |
