@@ -565,12 +565,60 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('...and that key is compared in exactly one place',
     (appJsx.match(/screen === 'lessons'/g) || []).length === 1,
     String((appJsx.match(/screen === 'lessons'/g) || []).length));
-  check('the home offers exactly one lessons module row',
-    (appJsx.match(/\{ id: 'lessons',/g) || []).length === 1,
-    String((appJsx.match(/\{ id: 'lessons',/g) || []).length));
-  check('...and exactly one handler sends the reader there',
-    (appJsx.match(/setScreen\('lessons'\)/g) || []).length === 1,
-    String((appJsx.match(/setScreen\('lessons'\)/g) || []).length));
+  // -- THE SLICES THE LESSONS ROUTES ARE ALLOWED TO LIVE IN --------------------------------
+  // Measured 2026-08-23 by READING the code, not by matching a pattern across the file: the
+  // home module array is the literal ezHomeModules(v) returns (app.jsx L3361-L3369); the
+  // section suggestions are the `sectionSuggestions` literal (L9089-L9093); and the home CARD
+  // does not call setScreen itself -- its row carries `onClick: v.onOpenLessons` and the one
+  // <Home> element wires that prop, so the card's route lives in the `screen === 'home'` return
+  // block (L9855-L9860). Each opening token below occurs EXACTLY once in the file and
+  // sliceBetween returns null if that stops being true; the closer is the first terminator
+  // after it. A boundary that stops matching fails the next check rather than silently cutting
+  // the wrong region and calling it clean.
+  const sliceBetween = (openTok, closeTok) => {
+    const a = appJsx.indexOf(openTok);
+    if (a === -1 || appJsx.indexOf(openTok, a + 1) !== -1) return null;
+    const b = appJsx.indexOf(closeTok, a + openTok.length);
+    if (b === -1) return null;
+    return appJsx.slice(a, b + closeTok.length);
+  };
+  const homeModulesSlice = sliceBetween('function ezHomeModules(v) {', '\n  ];');
+  const sectionSuggestSlice = sliceBetween('const sectionSuggestions = [', '\n  ];');
+  const homeRenderSlice = sliceBetween("if (screen === 'home') return (", '\n  );');
+  check('the three slices that account for the lessons routes were each cut from a unique boundary',
+    Boolean(homeModulesSlice && sectionSuggestSlice && homeRenderSlice),
+    'modules=' + (homeModulesSlice || 'NULL').length + ' suggestions='
+    + (sectionSuggestSlice || 'NULL').length + ' homeRender=' + (homeRenderSlice || 'NULL').length);
+  // (1) THE ROW, counted INSIDE the home module array and nowhere else. A lessons row added to
+  // some other array is no longer counted as this one, and no longer hides this one's absence.
+  check('the home module array holds exactly one lessons row, counted inside that array alone',
+    (String(homeModulesSlice).match(/\{ id: 'lessons',/g) || []).length === 1,
+    String((String(homeModulesSlice).match(/\{ id: 'lessons',/g) || []).length));
+  // (2) THE ROUTES, BY NAME. Until item B there was one way into the screen and a bare `=== 1`
+  // said so. The owner has since ordered a second, deliberate entry point, and a count cannot
+  // express two legitimate routes without also blessing a third. The count is therefore
+  // replaced by an ACCOUNTING: every route is named here with the slice it must live in, and
+  // no call may exist that this list does not account for. The invariant is not "one call
+  // exists" -- it is that NO ROUTE INTO THE LESSONS SCREEN EXISTS THAT IS NOT ACCOUNTED FOR BY
+  // NAME. The second route is `required: false` because the guard ships one commit ahead of the
+  // entry: it must pass both before the entry lands and after, and fail on anything else.
+  const LESSONS_ROUTES = [
+    { name: 'the home module card handler, wired on the one <Home> element',
+      slice: homeRenderSlice, required: true },
+    { name: 'the section-suggestions entry',
+      slice: sectionSuggestSlice, required: false },
+  ];
+  const routeCounts = LESSONS_ROUTES.map(
+    (r) => (String(r.slice).match(/setScreen\('lessons'\)/g) || []).length);
+  const routeReport = LESSONS_ROUTES.map((r, i) => r.name + '=' + routeCounts[i]).join('; ');
+  const accountedCalls = routeCounts.reduce((a, b) => a + b, 0);
+  const totalCalls = (appJsx.match(/setScreen\('lessons'\)/g) || []).length;
+  check('each named lessons route holds at most one call, and the required route holds its own',
+    routeCounts.every((n, i) => n <= 1 && (!LESSONS_ROUTES[i].required || n === 1)),
+    routeReport);
+  check('...and NO call into the lessons screen exists that the named routes do not account for',
+    totalCalls === accountedCalls,
+    'in file=' + totalCalls + ' accounted by name=' + accountedCalls + ' (' + routeReport + ')');
   check('the row is built in the ONE module array, beside the fatwa row it is modelled on',
     /\{ id: 'fatwa',[^\n]*\n\s*\{ id: 'lessons',/.test(appJsx));
   // THE REGISTERS. 'lessons' belongs to NEITHER, and that is the same answer 'fatwa' gets:
