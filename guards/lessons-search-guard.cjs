@@ -39,6 +39,11 @@
 //   5B. THE LESSONS SECTION (item 24-B): one screen key, one navigation entry, the same
 //      three-field whitelist proved by set equality, a cancellable call, and the three
 //      states a screen owes a reader that a tail card does not
+//   5C. THE BROWSE PANE (item 24-C): the same section grown a second tab -- scholar, then
+//      series, then lessons -- with a written whitelist per LEVEL proved by set equality
+//      against fixtures that carry the body fields, the loose-lessons bucket proved last, a
+//      cancellable call with a generation behind it, a one-rung ladder and a pager whose ends
+//      are disabled rather than hidden
 //   6. ZERO change to the four library-search files -- fingerprints taken before and after
 //   7. the token appears in no output on any error path
 //
@@ -742,6 +747,375 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
     appJs.indexOf('LessonsScreen') !== -1 && appJs.indexOf('ezikLessonsScreenRows') !== -1
     && /screen\s*===\s*'lessons'/.test(appJs));
   check('...and the file on disk is unchanged after all of section 5B',
+    readRepo('app.jsx').length === appJsx.length);
+
+  // == 5C. THE BROWSE PANE, AS ITEM 24-C BUILT IT ============================================
+  //
+  // Item 24-B shipped ONE pane: a box, a button, ten links. Item 24-C puts a second beside it
+  // -- scholar, then series, then lessons -- and the two share a screen, a shell and a ruling
+  // and share no code at all. That separation is not decoration: the search route reads two
+  // body fields and has no page, so the words a pager is built from are FORBIDDEN inside item
+  // 24-B's sentinels, and section 5B above enforces exactly that. The browse pane therefore
+  // lives in its own bounded region of the same file, and this section reads that region.
+  //
+  // WHAT IS PROVED HERE AND WHAT IS NOT. The three whitelists, the request bodies and the
+  // ordering of the loose-lessons bucket are proved BEHAVIOURALLY: the functions are cut out of
+  // app.jsx -- none of them contains a scrap of JSX, so they are plain JavaScript -- evaluated,
+  // and driven against local fixtures shaped after the contract in the order. NOTHING HERE
+  // TOUCHES A NETWORK: /api/lessons-browse is another agent's file and was not in this tree
+  // when this was written, so no claim is made about it. The interface's side of the contract
+  // is what this section can measure, and it is all it claims.
+  console.log('\n=== 5C. THE BROWSE PANE: THREE LEVELS, THREE WHITELISTS, ONE LADDER ===');
+
+  const BROWSE_START = '// ITEM 24-C -- THE LESSONS BROWSE PANE';
+  const BROWSE_END = '// ITEM 24-C -- END OF THE LESSONS BROWSE PANE';
+  const browseFrom = appJsx.indexOf(BROWSE_START);
+  const browseTo = appJsx.indexOf(BROWSE_END);
+  check('the browse pane is present and bounded by its own sentinels',
+    browseFrom !== -1 && browseTo > browseFrom, 'from=' + browseFrom + ' to=' + browseTo);
+  const browseCode = stripComments(appJsx.slice(browseFrom, browseTo));
+  check('the pane is a real block of code, not a comment', browseCode.length > 3000,
+    String(browseCode.length));
+  // THREE REGIONS, NOT TWO. The tail card, the search section and the browse pane are three
+  // separate stretches of one file; if any two of them overlapped, every assertion in 5, 5B or
+  // 5C would be reading a neighbour and calling it its subject.
+  check('the pane, the search section and the tail card are three separate regions',
+    browseTo < screenFrom && screenTo < drawFrom,
+    'browse=' + browseFrom + '..' + browseTo + ' screen=' + screenFrom + '..' + screenTo
+    + ' card=' + drawFrom + '..' + drawTo);
+
+  // -- 5C-1. THE THREE LEVELS GO DOWN ONE ROUTE, AND IT IS THE BROWSE ROUTE ------------------
+  check('the browse route is named once, as a constant, and it is the contract path',
+    /const EZIK_LESSONS_BROWSE_ROUTE = '\/api\/lessons-browse';/.test(appJsx)
+    && (appJsx.match(/const EZIK_LESSONS_BROWSE_ROUTE =/g) || []).length === 1);
+  check('...and the pane calls fetch exactly once, on that constant',
+    (browseCode.match(/fetch\(/g) || []).length === 1
+    && /fetch\(EZIK_LESSONS_BROWSE_ROUTE, \{/.test(browseCode),
+    String((browseCode.match(/fetch\(/g) || []).length));
+  check('...and it is a POST carrying a JSON body, as the contract states',
+    /method: 'POST'/.test(browseCode) && /'Content-Type': 'application\/json'/.test(browseCode)
+    && /body: JSON\.stringify\(request\)/.test(browseCode));
+  check('the browse pane never reaches for the SEARCH route of item 24-A or 24-B',
+    browseCode.indexOf('EZIK_LESSONS_SCREEN_ENDPOINT') === -1
+    && browseCode.indexOf('EZIK_LESSONS_ENDPOINT') === -1);
+  check('the three level words are the contract\'s own three, each named once as a constant',
+    /const EZIK_BROWSE_SCHOLARS = 'scholars';/.test(appJsx)
+    && /const EZIK_BROWSE_SERIES = 'series';/.test(appJsx)
+    && /const EZIK_BROWSE_LESSONS = 'lessons';/.test(appJsx));
+
+  // THE FUNCTIONS, CUT OUT AND RUN. A top-level `function name(` down to the closing brace in
+  // column zero -- the file's own shape, and it throws by name rather than returning something
+  // short if the shape ever changes.
+  const cutFn = (src, name) => {
+    const at = src.indexOf('\nfunction ' + name + '(');
+    if (at === -1) throw new Error('5C: no top-level function named ' + name + ' in app.jsx');
+    const end = src.indexOf('\n}\n', at);
+    if (end === -1) throw new Error('5C: unterminated function ' + name + ' in app.jsx');
+    return src.slice(at + 1, end + 3);
+  };
+  const cutConst = (src, name) => {
+    const m = src.match(new RegExp('^const ' + name + " = '[^']*';$", 'm'));
+    if (!m) throw new Error('5C: no top-level constant named ' + name + ' in app.jsx');
+    return m[0] + '\n';
+  };
+  const BROWSE_FNS = ['ezikBrowseCount', 'ezikBrowsePageNo', 'ezikBrowseScholarRows',
+    'ezikBrowseSeriesRows', 'ezikBrowseLessonRows', 'ezikBrowseRequest'];
+  const browseUnitSrc = ['EZIK_BROWSE_SCHOLARS', 'EZIK_BROWSE_SERIES', 'EZIK_BROWSE_LESSONS']
+    .map((n) => cutConst(appJsx, n)).join('')
+    + BROWSE_FNS.map((n) => cutFn(appJsx, n)).join('\n');
+  const loadBrowse = (src) => new Function(src + '\nreturn {'
+    + BROWSE_FNS.map((n) => n + ': ' + n).join(', ') + '};')();
+  const B = loadBrowse(browseUnitSrc);
+  check('all six browse functions were cut out of app.jsx and evaluated',
+    BROWSE_FNS.every((n) => typeof B[n] === 'function'),
+    BROWSE_FNS.map((n) => n + '=' + typeof B[n]).join(' '));
+
+  // -- 5C-2. THE REQUEST BODY, WRITTEN OUT PER LEVEL, PROVED BY SET EQUALITY -----------------
+  // A level that sent a field the server does not read would be sending it into a void; a level
+  // that omitted one the server needs would ask the wrong question. Both are set equality.
+  const keysOf = (o) => Object.keys(o).sort().join(',');
+  const reqScholars = B.ezikBrowseRequest('scholars', 'SHAYKH', 'SILSILA', 4);
+  const reqSeries = B.ezikBrowseRequest('series', 'SHAYKH', 'SILSILA', 4);
+  const reqLessons = B.ezikBrowseRequest('lessons', 'SHAYKH', 'SILSILA', 4);
+  check('LEVEL 1 asks for the scholars with the level and NOTHING else -- no page at all',
+    keysOf(reqScholars) === 'level' && reqScholars.level === 'scholars', keysOf(reqScholars));
+  check('LEVEL 2 asks for a scholar\'s series with the level, the scholar and the page',
+    keysOf(reqSeries) === 'level,page,scholar_id' && reqSeries.level === 'series'
+    && reqSeries.scholar_id === 'SHAYKH' && reqSeries.page === 4, keysOf(reqSeries));
+  check('LEVEL 3 asks for a series\' lessons with the level, the scholar, the series and the page',
+    keysOf(reqLessons) === 'level,page,scholar_id,series' && reqLessons.level === 'lessons'
+    && reqLessons.series === 'SILSILA' && reqLessons.page === 4, keysOf(reqLessons));
+  check('no level invents a field of its own -- limit, q, offset, kind or sort',
+    [reqScholars, reqSeries, reqLessons].every((r) =>
+      ['limit', 'q', 'offset', 'kind', 'sort', 'content_type'].every((k) =>
+        !Object.prototype.hasOwnProperty.call(r, k))));
+
+  // -- 5C-3. THE THREE WHITELISTS, BY SET EQUALITY, WITH THE BODY FIELDS PRESENT ON THE WIRE --
+  // Every fixture row below carries the fields the interface must never take: the snippet the
+  // service fills in one hit of forty, and the classification, scoring and usage fields beside
+  // it. If a whitelist enumerated its row instead of naming its fields, they would come out the
+  // other side. THE MARKER IS THE SAME ONE SECTION 1 PLANTS, so a leak anywhere in this file
+  // looks the same and is impossible to mistake for lesson text.
+  const BODY_FIELDS = {
+    snippet: SNIPPET_MARKER,
+    excerpt: SNIPPET_MARKER,
+    matn: SNIPPET_MARKER,
+    content_type: 'lecture',
+    score: 0.91,
+    tier: 'a',
+    usage: 'full',
+    citation_allowed: true,
+  };
+  const withBody = (row) => Object.assign({}, BODY_FIELDS, row);
+  const FIX_SCHOLARS = [
+    withBody({ scholar_id: 'ابن عثيمين', count: 4210 }),
+    withBody({ scholar_id: 'ابن باز', count: 3117 }),
+    withBody({ scholar_id: '   ', count: 9 }),
+    withBody({ count: 5 }),
+    null,
+    'not an object',
+  ];
+  const FIX_SERIES = [
+    withBody({ series: '', count: 88 }),
+    withBody({ series: 'شرح الأربعين النووية', count: 42 }),
+    withBody({ series: 'شرح بلوغ المرام', count: 17 }),
+    null,
+  ];
+  const FIX_LESSONS = [
+    withBody({ unit_id: 'u-1', title: 'الدرس الأول', url: 'https://example.org/a' }),
+    withBody({ unit_id: 'u-2', title: 'الدرس الثاني', url: 'https://example.org/b' }),
+    withBody({ unit_id: 'u-3', title: '', url: 'https://example.org/c' }),
+    withBody({ unit_id: 'u-4', title: 'بلا رابط', url: 'javascript:alert(1)' }),
+    withBody({ unit_id: 'u-5', title: 'بلا رابط أصلا' }),
+    null,
+  ];
+  const shapeOf = (rows) => [...new Set(rows.reduce((acc, r) => acc.concat(Object.keys(r)), []))]
+    .sort().join(',');
+  const outScholars = B.ezikBrowseScholarRows(FIX_SCHOLARS);
+  const outSeries = B.ezikBrowseSeriesRows(FIX_SERIES);
+  const outLessons = B.ezikBrowseLessonRows(FIX_LESSONS);
+  check('LEVEL 1 keeps exactly a name and a count -- no third property',
+    shapeOf(outScholars) === 'count,scholar', shapeOf(outScholars));
+  check('...and drops the nameless and the blank-named rather than drawing an empty control',
+    outScholars.length === 2 && outScholars[0].scholar === 'ابن عثيمين'
+    && outScholars[0].count === 4210, String(outScholars.length));
+  check('LEVEL 2 keeps exactly a series, a count and the bucket flag -- no fourth property',
+    shapeOf(outSeries) === 'count,misc,series', shapeOf(outSeries));
+  check('LEVEL 3 keeps exactly an identity, a title and a url -- no fourth property',
+    shapeOf(outLessons) === 'title,unit,url', shapeOf(outLessons));
+  check('...and drops a titleless row, a non-http url and a missing url alike',
+    outLessons.length === 2 && outLessons[0].url === 'https://example.org/a',
+    String(outLessons.length) + ' ' + JSON.stringify(outLessons.map((r) => r.unit)));
+  const drained = JSON.stringify([outScholars, outSeries, outLessons]);
+  check('NOT ONE BODY FIELD SURVIVES ANY OF THE THREE LEVELS',
+    Object.keys(BODY_FIELDS).every((k) => drained.indexOf(k) === -1)
+    && drained.indexOf(SNIPPET_MARKER) === -1,
+    Object.keys(BODY_FIELDS).filter((k) => drained.indexOf(k) !== -1).join(','));
+  // AND THE WHITELISTS ARE WRITTEN, NOT DERIVED. An enumerating reader would pass the test above
+  // today and fail it the day the service grows a field nobody here has heard of.
+  const browseEnumerated = ENUMERATORS.concat(['Object.assign', 'JSON.parse(JSON.stringify'])
+    .filter((word) => browseCode.indexOf(word) !== -1);
+  check('every one of the three whitelists is written out, never enumerated',
+    browseEnumerated.length === 0, browseEnumerated.join(','));
+  const browseReads = [...new Set([...browseCode.matchAll(/row\.([A-Za-z_][A-Za-z0-9_]*)/g)]
+    .map((m) => m[1]))].sort().join(',');
+  check('the pane reads exactly the six named fields of the three contract rows off a row',
+    browseReads === 'count,misc,scholar,scholar_id,series,title,unit,unit_id,url', browseReads);
+  const browseLeaked = FORBIDDEN_IN_DRAW.filter((word) =>
+    word !== 'unit_id' && browseCode.indexOf(word) !== -1);
+  check('no body field is even NAMED in the pane -- unit_id excepted, and it is never drawn',
+    browseLeaked.length === 0, browseLeaked.join(','));
+  check('...and unit_id is read for identity alone: it reaches a key and no drawn element',
+    /key=\{row\.unit \|\| i\}/.test(browseCode)
+    && (browseCode.match(/row\.unit\b/g) || []).length === 1,
+    String((browseCode.match(/row\.unit\b/g) || []).length));
+
+  // -- 5C-4. THE LOOSE-LESSONS BUCKET IS LAST, ALWAYS ---------------------------------------
+  // The fixture puts it FIRST on the wire on purpose: an implementation that simply drew what
+  // the server sent would pass a test whose fixture already had it at the end.
+  check('the bucket is the EMPTY series and is recognised as a shelf, not as a broken row',
+    outSeries.length === 3 && outSeries.filter((r) => r.misc).length === 1,
+    JSON.stringify(outSeries.map((r) => r.series)));
+  check('THE BUCKET IS DRAWN LAST even when the server sends it first',
+    outSeries[outSeries.length - 1].misc === true && outSeries[0].misc === false
+    && outSeries[outSeries.length - 1].count === 88,
+    outSeries.map((r) => (r.misc ? 'MISC' : 'named')).join(' '));
+  check('...and it is given a word at the draw, because the wire has none for it',
+    /row\.misc \? ezT\('lessons\.miscSeries'\) : row\.series/.test(browseCode));
+
+  // -- 5C-5. AbortController ON THE BROWSE PATH ---------------------------------------------
+  // Two mechanisms, and neither is enough alone: the abort cuts the WIRE, and the generation
+  // drops the answer that was already on its way back when the reader moved, which no abort can
+  // recall. The cleanup of the one effect is what stepping between levels and leaving the
+  // screen both run, so one line covers both demands the order makes.
+  check('an AbortController is created and its signal is handed to fetch',
+    browseCode.indexOf('new AbortController()') !== -1
+    && browseCode.indexOf('controller.signal') !== -1
+    && /ezikBrowseFetch\(ezikBrowseRequest\([^)]*\), controller\.signal\)/.test(browseCode));
+  check('...and the effect that asks is cleaned up, which is what cuts a pending request',
+    /return \(\) => \{\s*clearTimeout\(timer\);\s*try \{ controller\.abort\(\); \} catch \(e\) \{\}\s*\};/
+      .test(browseCode));
+  check('...and every move between levels is a dependency of that effect, so every move cuts it',
+    /\}, \[level, scholar, series, pageNo, attempt\]\);/.test(browseCode));
+  check('...and a landing from an older generation is dropped, not drawn',
+    /browseGenRef\.current \+= 1;/.test(browseCode)
+    && /const generation = browseGenRef\.current;/.test(browseCode)
+    && /if \(browseGenRef\.current !== generation\) return;/.test(browseCode));
+  check('the pane gives up at twelve seconds, and says so in one named constant',
+    /const EZIK_BROWSE_TIMEOUT_MS = 12000;/.test(appJsx)
+    && /setTimeout\(\(\) => \{ try \{ controller\.abort\(\); \} catch \(e\) \{\} \}, EZIK_BROWSE_TIMEOUT_MS\);/
+      .test(browseCode));
+
+  // -- 5C-6. THE THREE STATES, ON EVERY LEVEL ------------------------------------------------
+  // One state value drives all three levels, so a reader gets the same three answers whether
+  // they are looking at scholars, at series or at lessons. There is no idle: the pane asks the
+  // moment it mounts, so nobody is shown a browse screen that has not tried.
+  check('the outcome tells an empty shelf from a failed request',
+    /return \{ ok: false, payload: null \};/.test(browseCode)
+    && /return \{ ok: true, payload:/.test(browseCode));
+  check('STATE 1 of 3 -- loading: the file\'s own dots and one line from the dictionary',
+    /state === EZIK_BROWSE_LOADING \?/.test(browseCode)
+    && browseCode.indexOf("ezT('lessons.browseLoading')") !== -1
+    && /style=\{s\.dot\}/.test(browseCode));
+  check('STATE 2 of 3 -- no results: one line from the dictionary',
+    /state === EZIK_BROWSE_READY && rows\.length === 0 \?/.test(browseCode)
+    && browseCode.indexOf("ezT('lessons.browseEmpty')") !== -1);
+  check('STATE 3 of 3 -- failure: one short line AND a way to try again',
+    /state === EZIK_BROWSE_FAILED \?/.test(browseCode)
+    && browseCode.indexOf("ezT('lessons.browseError')") !== -1
+    && browseCode.indexOf("ezT('lessons.browseRetry')") !== -1);
+  check('...and the retry re-runs the level the reader is on, through the one effect',
+    /onClick=\{\(\) => setAttempt\(attempt \+ 1\)\}/.test(browseCode));
+  check('...and no upstream message can reach the reader: the pane keeps no error text at all',
+    browseCode.indexOf('statusText') === -1
+    && !/payload\.error|error\.message|error\.code/.test(browseCode)
+    && (browseCode.match(/\.error/g) || []).length === 0);
+  const browseStateTests = (name) =>
+    (browseCode.match(new RegExp('state === ' + name, 'g')) || []).length;
+  check('one state value drives every level: loading once, failed once, ready on six branches',
+    browseStateTests('EZIK_BROWSE_LOADING') === 1 && browseStateTests('EZIK_BROWSE_FAILED') === 1
+    && browseStateTests('EZIK_BROWSE_READY') === 6,
+    'loading=' + browseStateTests('EZIK_BROWSE_LOADING')
+    + ' ready=' + browseStateTests('EZIK_BROWSE_READY')
+    + ' failed=' + browseStateTests('EZIK_BROWSE_FAILED'));
+
+  // -- 5C-7. THE LADDER IS ONE RUNG, AND THE PAGER'S ENDS ARE DISABLED, NOT HIDDEN -----------
+  check('the section offers the back press to the pane BEFORE it goes home',
+    /const step = browseBackRef\.current;/.test(screenCode)
+    && /if \(tab === EZIK_LESSONS_TAB_BROWSE && step && step\(\) === true\) return;/.test(screenCode)
+    && /onHome\(\);/.test(screenCode));
+  check('...and the pane parks its rung on every render and clears it when it goes',
+    /backRef\.current = ezikBrowseStepBack;/.test(browseCode)
+    && /return \(\) => \{ backRef\.current = null; \};/.test(browseCode));
+  check('LESSONS falls back to SERIES -- one rung, never two',
+    /if \(level === EZIK_BROWSE_LESSONS\) \{[\s\S]{0,160}?setLevel\(EZIK_BROWSE_SERIES\);[\s\S]{0,40}?return true;/
+      .test(browseCode));
+  check('SERIES falls back to SCHOLARS -- one rung, never two',
+    /if \(level === EZIK_BROWSE_SERIES\) \{[\s\S]{0,160}?setLevel\(EZIK_BROWSE_SCHOLARS\);[\s\S]{0,40}?return true;/
+      .test(browseCode));
+  check('...and SCHOLARS is the floor: the press is declined and the section takes it home',
+    /return false;\s*\};/.test(browseCode)
+    && browseCode.indexOf('setLevel(EZIK_BROWSE_LESSONS)') !== -1
+    && (browseCode.match(/return true;/g) || []).length === 2,
+    String((browseCode.match(/return true;/g) || []).length));
+  check('the pager names the page and the total, from the dictionary, with no free text',
+    browseCode.indexOf("ezT('lessons.pageOf', { n: ezikBrowseNum(pageNo), of: ezikBrowseNum(pages) })") !== -1
+    && browseCode.indexOf("ezT('lessons.pagePrev')") !== -1
+    && browseCode.indexOf("ezT('lessons.pageNext')") !== -1);
+  check('BOTH ENDS ARE DISABLED, NOT HIDDEN: the two controls are drawn together, then disabled',
+    /disabled=\{pageNo <= 1\}/.test(browseCode) && /disabled=\{pageNo >= pages\}/.test(browseCode)
+    && (browseCode.match(/<nav style=\{s\.lsbPager\}/g) || []).length === 1
+    && !/pages > 1 \?/.test(browseCode));
+  check('...and the scholars level has no pager at all, because the contract sends it whole',
+    /level !== EZIK_BROWSE_SCHOLARS \?/.test(browseCode)
+    && /setPages\(level === EZIK_BROWSE_SCHOLARS \? 1 : ezikBrowsePageNo\(body\.pages\)\);/
+      .test(browseCode));
+
+  // -- 5C-8. THE WORDS ARE IN THE DICTIONARY, IN BOTH HALVES ---------------------------------
+  const BROWSE_KEYS = ['lessons.tabBrowse', 'lessons.tabSearch', 'lessons.tabsAria',
+    'lessons.scholarsTitle', 'lessons.scholarsAria', 'lessons.seriesAria', 'lessons.lessonsAria',
+    'lessons.miscSeries', 'lessons.countLessons', 'lessons.browseLoading', 'lessons.browseEmpty',
+    'lessons.browseError', 'lessons.browseRetry', 'lessons.pagerAria', 'lessons.pagePrev',
+    'lessons.pageNext', 'lessons.pageOf'];
+  const browseMissing = BROWSE_KEYS.filter((k) =>
+    (appJsx.match(new RegExp("'" + k.replace(/\./g, '\\.') + "':", 'g')) || []).length !== 2);
+  check('every one of the ' + BROWSE_KEYS.length + ' browse strings is declared in BOTH dictionaries',
+    browseMissing.length === 0, browseMissing.join(','));
+  // ZERO FREE TEXT, PROVED TWICE. First: after the comments come off, NOT ONE ARABIC CHARACTER
+  // is left in the pane. Every Arabic word it draws is a key looked up at render, so a sentence
+  // typed into the JSX would survive stripping and show up here. Second: every quoted literal
+  // that IS left is either a dictionary key or one of the technical words named below -- so a
+  // sentence typed in English, which the first test cannot see, fails the second.
+  check('not one Arabic character survives in the pane: every word it draws is a lookup',
+    !/[؀-ۿ]/.test(browseCode),
+    (browseCode.match(/[؀-ۿ]+/g) || []).length + ' run(s)');
+  const BROWSE_TECHNICAL = ['', '/api/lessons-browse', 'scholars', 'series', 'lessons',
+    'loading', 'ready', 'failed', 'ar', 'string', 'object', 'number', 'POST', 'Content-Type',
+    'application/json', '0.2s', '0.4s'];
+  const BROWSE_ATTRS = ['button', 'status', 'polite', 'alert', 'ezhome-focus', '_blank',
+    'noopener noreferrer'];
+  const literalsIn = (code, quote) => [...new Set(
+    [...code.matchAll(new RegExp(quote + '([^' + quote + '\\n]*)' + quote, 'g'))].map((m) => m[1]))];
+  const strayQuoted = literalsIn(browseCode, "'")
+    .filter((v) => v.indexOf('lessons.') !== 0 && BROWSE_TECHNICAL.indexOf(v) === -1);
+  check('every quoted word in the pane is a dictionary key or a named technical value',
+    strayQuoted.length === 0, strayQuoted.join(' | '));
+  const strayAttrs = literalsIn(browseCode, '"').filter((v) => BROWSE_ATTRS.indexOf(v) === -1);
+  check('...and every attribute value in it is one of the seven the markup needs',
+    strayAttrs.length === 0, strayAttrs.join(' | '));
+  check('the tab bar itself is two dictionary words, and the search pane is unchanged beside it',
+    screenCode.indexOf("ezT('lessons.tabBrowse')") !== -1
+    && screenCode.indexOf("ezT('lessons.tabSearch')") !== -1
+    && /const EZIK_LESSONS_TAB_BROWSE = 'browse';/.test(appJsx)
+    && /const EZIK_LESSONS_TAB_SEARCH = 'search';/.test(appJsx));
+  check('the built bundle carries the pane, not just the source',
+    appJs.indexOf('LessonsBrowsePane') !== -1 && appJs.indexOf('ezikBrowseSeriesRows') !== -1
+    && appJs.indexOf('/api/lessons-browse') !== -1);
+
+  // -- 5C-9. FOUR MUTANTS. EVERY ONE IS PROVED A REAL MUTATION FIRST -------------------------
+  // A no-op mutant reports a false PASS: the assertion below it bites the ORIGINAL and the run
+  // reads green. So each mutation is shown to have changed the source before it is driven.
+  //
+  // MUTANT 4. A lessons reader that passes the row through instead of naming its fields --
+  // exactly what an enumerating whitelist looks like from the outside.
+  const enumMutantSrc = browseUnitSrc.replace(
+    'out.push({ unit: unit, title: title, url: url });', 'out.push(row);');
+  check('MUTANT 4 is a real mutation, not a no-op', enumMutantSrc !== browseUnitSrc);
+  const enumOut = JSON.stringify(loadBrowse(enumMutantSrc).ezikBrowseLessonRows(FIX_LESSONS));
+  check('THE GUARD BITES: a pane that passed the row through leaks every body field',
+    enumOut.indexOf(SNIPPET_MARKER) !== -1
+    && Object.keys(BODY_FIELDS).every((k) => enumOut.indexOf(k) !== -1));
+  //
+  // MUTANT 5. The bucket concatenated at the FRONT. The fixture already sends it first, so a
+  // pane that merely drew what it was given would look identical -- which is why the check that
+  // bites is about position and not about presence.
+  const orderMutantSrc = browseUnitSrc.replace(
+    'return named.concat(loose);', 'return loose.concat(named);');
+  check('MUTANT 5 is a real mutation, not a no-op', orderMutantSrc !== browseUnitSrc);
+  const orderOut = loadBrowse(orderMutantSrc).ezikBrowseSeriesRows(FIX_SERIES);
+  check('THE GUARD BITES: a pane that drew the bucket first fails the last-place check',
+    orderOut.length === 3 && orderOut[orderOut.length - 1].misc === false
+    && orderOut[0].misc === true,
+    orderOut.map((r) => (r.misc ? 'MISC' : 'named')).join(' '));
+  //
+  // MUTANT 6. The abort taken out of the browse path.
+  const browseAbortMutant = browseCode
+    .split('const controller = new AbortController();')
+    .join('const controller = { signal: null, abort: function () {} };');
+  check('MUTANT 6 is a real mutation, not a no-op', browseAbortMutant !== browseCode);
+  check('THE GUARD BITES: a pane with no AbortController fails the first abort check',
+    browseAbortMutant.indexOf('new AbortController()') === -1);
+  //
+  // MUTANT 7. A ladder that jumps two rungs: the lessons level falling straight back to the
+  // scholars, which is the shape the order forbids by name.
+  const ladderMutant = browseCode.replace(
+    'if (level === EZIK_BROWSE_LESSONS) {\n      setSeries(\'\');\n      setPageNo(1);\n      setLevel(EZIK_BROWSE_SERIES);',
+    'if (level === EZIK_BROWSE_LESSONS) {\n      setSeries(\'\');\n      setPageNo(1);\n      setLevel(EZIK_BROWSE_SCHOLARS);');
+  check('MUTANT 7 is a real mutation, not a no-op', ladderMutant !== browseCode);
+  check('THE GUARD BITES: a ladder that skipped the series level fails the one-rung check',
+    !/if \(level === EZIK_BROWSE_LESSONS\) \{[\s\S]{0,160}?setLevel\(EZIK_BROWSE_SERIES\);[\s\S]{0,40}?return true;/
+      .test(ladderMutant));
+  check('...and app.jsx on disk is unchanged after all of section 5C',
     readRepo('app.jsx').length === appJsx.length);
 
   // == 6. THE FOUR LIBRARY-SEARCH FILES ARE UNTOUCHED ========================================

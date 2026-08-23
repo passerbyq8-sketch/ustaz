@@ -239,6 +239,26 @@ const EZ_I18N = {
     'lessons.error': 'تعذّرَ البحثُ الآنَ.',
     'lessons.retry': 'أعِدِ المحاولة',
     'lessons.resultsAria': 'نتائجُ البحثِ في الدروس',
+    // ITEM 24-C: the browse pane. Two tabs, three levels, a pager, and the bucket the wire has
+    // no name for -- an empty `series` is a real shelf and needs a word here, because an empty
+    // button is not a thing a reader can be asked to press.
+    'lessons.tabBrowse': 'تصفُّح',
+    'lessons.tabSearch': 'بحث',
+    'lessons.tabsAria': 'تصفُّحُ الدروسِ أو البحثُ فيها',
+    'lessons.scholarsTitle': 'المشايخ',
+    'lessons.scholarsAria': 'قائمةُ المشايخ',
+    'lessons.seriesAria': 'سلاسلُ الشيخ',
+    'lessons.lessonsAria': 'دروسُ السلسلة',
+    'lessons.miscSeries': 'دروسٌ متفرّقة',
+    'lessons.countLessons': '{n} درسًا',
+    'lessons.browseLoading': 'يُحمِّلُ الآنَ…',
+    'lessons.browseEmpty': 'لا شيءَ هنا.',
+    'lessons.browseError': 'تعذّرَ التحميلُ الآنَ.',
+    'lessons.browseRetry': 'أعِدِ المحاولة',
+    'lessons.pagerAria': 'تنقُّلُ الصفحات',
+    'lessons.pagePrev': 'السابق',
+    'lessons.pageNext': 'التالي',
+    'lessons.pageOf': 'صفحةُ {n} من {of}',
     'chat.noConversations': 'لا شيء محفوظٌ بعد — أول سؤالٍ تكتبه يُحفَظ هنا.',
     'favorites.empty': 'لا توجد ردود محفوظة بعد. اضغط النجمة تحت أي رد لتحفظه هنا.',
     'errors.network': 'تعذّر الاتصال',
@@ -451,6 +471,23 @@ const EZ_I18N = {
     'lessons.error': 'The search could not run just now.',
     'lessons.retry': 'Try again',
     'lessons.resultsAria': 'Lesson search results',
+    'lessons.tabBrowse': 'Browse',
+    'lessons.tabSearch': 'Search',
+    'lessons.tabsAria': 'Browse the lessons or search them',
+    'lessons.scholarsTitle': 'Scholars',
+    'lessons.scholarsAria': 'The list of scholars',
+    'lessons.seriesAria': 'The scholar’s series',
+    'lessons.lessonsAria': 'The lessons of the series',
+    'lessons.miscSeries': 'Assorted lessons',
+    'lessons.countLessons': '{n} lessons',
+    'lessons.browseLoading': 'Loading…',
+    'lessons.browseEmpty': 'Nothing here.',
+    'lessons.browseError': 'This could not load just now.',
+    'lessons.browseRetry': 'Try again',
+    'lessons.pagerAria': 'Page navigation',
+    'lessons.pagePrev': 'Previous',
+    'lessons.pageNext': 'Next',
+    'lessons.pageOf': 'Page {n} of {of}',
     'chat.noConversations': 'Nothing is saved yet — the first question you write is kept here.',
     'favorites.empty': 'Nothing is saved yet. Press the star under any reply to keep it here.',
     'errors.network': 'Could not connect',
@@ -3609,6 +3646,328 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
 }
 
 // ============================================================
+// ITEM 24-C -- THE LESSONS BROWSE PANE
+// ============================================================
+// WHY IT SITS OUTSIDE THE SENTINELS OF ITEM 24-B AND NOT INSIDE THEM. Two guards cut that
+// section out of this file by its two comment lines and then measure what lies between them:
+// one bounds the section's LENGTH, the other forbids the very words a pager is built from --
+// and it is right to forbid them there, because the SEARCH route reads two body fields and has
+// no page, so a control bound to one would send something the server drops on the floor.
+// Browsing is a different route with a different contract, so it is a different block. Nothing
+// written here is read by either of those two measurements, and nothing measured there moves
+// because this exists.
+//
+// AND FOR THE SAME REASON IT SITS ABOVE THE FATWA FEATURE RATHER THAN BELOW IT: that feature is
+// read as ONE SLICE, from a locator comment to a banner, and its length is bounded. This block
+// opens before that slice opens, and it spells the locator nowhere -- naming it in a comment
+// here would move the slice's start to this line and swallow the whole section.
+//
+// THE OWNER'S RULING SURVIVES THE CHANGE OF ROUTE. «بحثٌ فقط» was never a statement about the
+// wire; it was a statement about lesson TEXT, and there is none here either. A scholar's name,
+// a series' name, a lesson's title and an outward link is the entire vocabulary of these three
+// levels, and every one of the three whitelists below is written out by hand. A field the
+// service grows tomorrow cannot reach a reader without a person typing its name in this file.
+//
+// `scholar_id` IS NOT AN IDENTIFIER here any more than it is on the search screen: it is the
+// scholar's Arabic display name. It is printed, and it is sent back up as the parameter that
+// selects the scholar, because that is what the contract asks for. It is never slugged, never
+// joined on and never looked up in a table.
+const EZIK_LESSONS_BROWSE_ROUTE = '/api/lessons-browse';
+// Twelve seconds, the same patience the search screen has, for the same reason: this is a place
+// the reader CHOSE to be and is watching.
+const EZIK_BROWSE_TIMEOUT_MS = 12000;
+// THE THREE LEVELS. The value is the wire's own word for the level, so the request body carries
+// the constant rather than a literal typed twice.
+const EZIK_BROWSE_SCHOLARS = 'scholars';
+const EZIK_BROWSE_SERIES = 'series';
+const EZIK_BROWSE_LESSONS = 'lessons';
+// THE THREE STATES of the result area. There is no idle: the pane asks the moment it mounts, so
+// a reader never sees a browse screen that has not tried.
+const EZIK_BROWSE_LOADING = 'loading';
+const EZIK_BROWSE_READY = 'ready';
+const EZIK_BROWSE_FAILED = 'failed';
+
+// A count is a count. Anything that is not a finite number at or above zero is nothing, not a
+// guess and not NaN drawn onto the glass.
+function ezikBrowseCount(value) {
+  return (typeof value === 'number' && isFinite(value) && value >= 0) ? Math.floor(value) : 0;
+}
+// A page number is at least one. The server states both numbers; a body that states neither
+// leaves a single page, which is the honest reading of "there is no more".
+function ezikBrowsePageNo(value) {
+  return (typeof value === 'number' && isFinite(value) && value >= 1) ? Math.floor(value) : 1;
+}
+// Digits follow the reader's language rather than the file's. The rest of the app writes
+// Arabic-Indic digits unconditionally because the rest of the app predates the second half of
+// the dictionary; a number drawn beside an English word must not.
+function ezikBrowseNum(value) {
+  return ezLangGet() === 'ar' ? toArabicDigits(value) : String(value);
+}
+
+// WHITELIST 1 of 3 -- THE SCHOLARS. Two named properties and no third. A row without a name is
+// dropped rather than drawn as an empty button a reader could press.
+function ezikBrowseScholarRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  const out = [];
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue;
+    const scholar = typeof row.scholar_id === 'string' ? row.scholar_id.trim() : '';
+    if (!scholar) continue;
+    out.push({ scholar: scholar, count: ezikBrowseCount(row.count) });
+  }
+  return out;
+}
+
+// WHITELIST 2 of 3 -- THE SERIES. Two named properties and no third. THE EMPTY `series` IS NOT
+// A BROKEN ROW: it is the bucket every lesson that belongs to no series falls into, so it is
+// kept, marked, and given a name from the dictionary at the draw. And it is moved to the END of
+// the list here rather than at the draw, so the rule holds for whoever reads this list next: a
+// named series always sorts before the bucket, and the bucket is always last on the page.
+function ezikBrowseSeriesRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  const named = [];
+  const loose = [];
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue;
+    const series = typeof row.series === 'string' ? row.series.trim() : '';
+    const entry = { series: series, count: ezikBrowseCount(row.count), misc: series === '' };
+    if (entry.misc) loose.push(entry); else named.push(entry);
+  }
+  return named.concat(loose);
+}
+
+// WHITELIST 3 of 3 -- THE LESSONS. Three named properties and no fourth. `unit_id` is read for
+// one purpose only -- it is the row's identity in the list -- and is never drawn. A row without
+// a title or without an http(s) url is dropped rather than drawn as a dead link.
+function ezikBrowseLessonRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  const out = [];
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue;
+    const unit = typeof row.unit_id === 'string' ? row.unit_id.trim() : '';
+    const title = typeof row.title === 'string' ? row.title.trim() : '';
+    const url = typeof row.url === 'string' ? row.url.trim() : '';
+    if (!title || !/^https?:\/\//i.test(url)) continue;
+    out.push({ unit: unit, title: title, url: url });
+  }
+  return out;
+}
+
+// THE REQUEST BODY, WRITTEN OUT PER LEVEL. The scholars level takes no parameter at all and no
+// page: there is one list of scholars and the order asks for it whole. The other two carry the
+// selection that got the reader there and the page they are on, and nothing else -- a field
+// invented here would be a field the server drops.
+function ezikBrowseRequest(level, scholar, series, pageNo) {
+  if (level === EZIK_BROWSE_SCHOLARS) return { level: EZIK_BROWSE_SCHOLARS };
+  if (level === EZIK_BROWSE_SERIES) {
+    return { level: EZIK_BROWSE_SERIES, scholar_id: scholar, page: pageNo };
+  }
+  return { level: EZIK_BROWSE_LESSONS, scholar_id: scholar, series: series, page: pageNo };
+}
+
+// THE CALL. Like the search screen and unlike the tail card, this one must be able to TELL a
+// failure from an empty shelf, so the outcome is discriminated rather than a bare list. A
+// status other than 200, an unreadable body, a cut connection and the twelve-second abort are
+// all one failure with one sentence; the upstream's own words never reach it and there is
+// nothing here that could print one.
+async function ezikBrowseFetch(request, signal) {
+  try {
+    const response = await fetch(EZIK_LESSONS_BROWSE_ROUTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+      signal,
+    });
+    if (response.status !== 200) return { ok: false, payload: null };
+    const payload = await response.json();
+    return { ok: true, payload: (payload && typeof payload === 'object') ? payload : {} };
+  } catch (e) {
+    return { ok: false, payload: null };
+  }
+}
+
+// THE PANE. It draws inside the section's shell and declares none of its own -- no colour, no
+// font, no structure. `backRef` is how it lends the shell's back button its own ladder: the
+// section calls what this pane parks there, and a true answer means "I took that press".
+function LessonsBrowsePane({ backRef }) {
+  const [level, setLevel] = useState(EZIK_BROWSE_SCHOLARS);
+  const [scholar, setScholar] = useState('');
+  const [series, setSeries] = useState('');
+  const [pageNo, setPageNo] = useState(1);
+  const [attempt, setAttempt] = useState(0);
+  const [state, setState] = useState(EZIK_BROWSE_LOADING);
+  const [rows, setRows] = useState([]);
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  // The in-flight request, and the generation that owns the pane. The abort covers the wire;
+  // the generation covers the answer that was already on its way back when the reader moved,
+  // which no abort can recall. Both are needed and neither is enough alone.
+  const browseAbortRef = useRef(null);
+  const browseGenRef = useRef(0);
+
+  // ONE EFFECT ASKS, AND EVERY MOVE IS A DEPENDENCY OF IT: choosing a scholar, choosing a
+  // series, turning a page and pressing «أعِدِ المحاولة» all reach the wire down this one path.
+  // Its cleanup runs on every one of those moves AND on unmount, so a pending request is cut by
+  // stepping between levels and by leaving the screen alike.
+  useEffect(() => {
+    const controller = new AbortController();
+    browseAbortRef.current = controller;
+    browseGenRef.current += 1;
+    const generation = browseGenRef.current;
+    setState(EZIK_BROWSE_LOADING);
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_BROWSE_TIMEOUT_MS);
+    ezikBrowseFetch(ezikBrowseRequest(level, scholar, series, pageNo), controller.signal).then((outcome) => {
+      clearTimeout(timer);
+      if (browseGenRef.current !== generation) return; // a later move owns the pane
+      browseAbortRef.current = null;
+      if (!outcome.ok) {
+        setRows([]);
+        setPages(1);
+        setTotal(0);
+        setState(EZIK_BROWSE_FAILED);
+        return;
+      }
+      const body = outcome.payload || {};
+      if (level === EZIK_BROWSE_SCHOLARS) setRows(ezikBrowseScholarRows(body.rows));
+      else if (level === EZIK_BROWSE_SERIES) setRows(ezikBrowseSeriesRows(body.rows));
+      else setRows(ezikBrowseLessonRows(body.rows));
+      setPages(level === EZIK_BROWSE_SCHOLARS ? 1 : ezikBrowsePageNo(body.pages));
+      setTotal(ezikBrowseCount(body.total));
+      setState(EZIK_BROWSE_READY);
+    });
+    return () => {
+      clearTimeout(timer);
+      try { controller.abort(); } catch (e) {}
+    };
+  }, [level, scholar, series, pageNo, attempt]);
+
+  // THE LADDER, ONE RUNG AT A TIME. Lessons fall back to the series of the same scholar, series
+  // fall back to the scholars, and the scholars are the floor -- there the pane declines the
+  // press and the section takes the reader home. Nothing here skips a rung.
+  const ezikBrowseStepBack = () => {
+    if (level === EZIK_BROWSE_LESSONS) {
+      setSeries('');
+      setPageNo(1);
+      setLevel(EZIK_BROWSE_SERIES);
+      return true;
+    }
+    if (level === EZIK_BROWSE_SERIES) {
+      setScholar('');
+      setPageNo(1);
+      setLevel(EZIK_BROWSE_SCHOLARS);
+      return true;
+    }
+    return false;
+  };
+  // Parked on every render, so the section always calls the rung the reader is actually on, and
+  // cleared on unmount, so a section whose pane has gone cannot call a dead closure.
+  useEffect(() => {
+    backRef.current = ezikBrowseStepBack;
+    return () => { backRef.current = null; };
+  });
+
+  const heading = level === EZIK_BROWSE_SCHOLARS
+    ? ezT('lessons.scholarsTitle')
+    : (level === EZIK_BROWSE_SERIES
+      ? scholar
+      : (series || ezT('lessons.miscSeries')));
+
+  return (
+    <div style={s.lsbPane}>
+      <div style={s.lsbHead}>
+        <span style={s.lsbHeadName}>{heading}</span>
+        {state === EZIK_BROWSE_READY && total > 0
+          ? <span style={s.lsbHeadCount}>{ezT('lessons.countLessons', { n: ezikBrowseNum(total) })}</span>
+          : null}
+      </div>
+      {/* STATE 1 of 3: the level is loading. The section's own dots, not a new indicator. */}
+      {state === EZIK_BROWSE_LOADING ? (
+        <div role="status" aria-live="polite" style={s.lsnNote}>
+          <span style={s.dot}>●</span>
+          <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+          <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+          <span>{ezT('lessons.browseLoading')}</span>
+        </div>
+      ) : null}
+      {/* STATE 2 of 3: it loaded and the shelf is empty. */}
+      {state === EZIK_BROWSE_READY && rows.length === 0 ? (
+        <div role="status" style={s.lsnNote}>{ezT('lessons.browseEmpty')}</div>
+      ) : null}
+      {/* STATE 3 of 3: it did not load. One line from the dictionary and a way to try again --
+          never the server's own words, which this pane never receives. */}
+      {state === EZIK_BROWSE_FAILED ? (
+        <div role="alert" style={s.lsnError}>
+          <span>{ezT('lessons.browseError')}</span>
+          <button type="button" className="ezhome-focus" style={s.lsnRetry}
+            onClick={() => setAttempt(attempt + 1)}>{ezT('lessons.browseRetry')}</button>
+        </div>
+      ) : null}
+      {/* LEVEL 1. Every scholar and the size of his shelf, in the order the server sent -- which
+          the contract states is by count, descending -- and on one page. */}
+      {state === EZIK_BROWSE_READY && rows.length > 0 && level === EZIK_BROWSE_SCHOLARS ? (
+        <section style={s.lsnList} aria-label={ezT('lessons.scholarsAria')}>
+          {rows.map((row, i) => (
+            <button key={i} type="button" className="ezhome-focus" style={s.lsbRow}
+              onClick={() => { setScholar(row.scholar); setSeries(''); setPageNo(1); setLevel(EZIK_BROWSE_SERIES); }}>
+              <span style={s.lsnItemTitle}>{row.scholar}</span>
+              <span style={s.lsnItemScholar}>{ezT('lessons.countLessons', { n: ezikBrowseNum(row.count) })}</span>
+            </button>
+          ))}
+        </section>
+      ) : null}
+      {/* LEVEL 2. The scholar's series, ten to a page, and the loose-lessons bucket last. Its
+          name comes from the dictionary because the server has no name for it: it is an empty
+          string on the wire, and an empty button is not a thing a reader can be asked to press. */}
+      {state === EZIK_BROWSE_READY && rows.length > 0 && level === EZIK_BROWSE_SERIES ? (
+        <section style={s.lsnList} aria-label={ezT('lessons.seriesAria')}>
+          {rows.map((row, i) => (
+            <button key={i} type="button" className="ezhome-focus" style={s.lsbRow}
+              onClick={() => { setSeries(row.series); setPageNo(1); setLevel(EZIK_BROWSE_LESSONS); }}>
+              <span style={s.lsnItemTitle}>{row.misc ? ezT('lessons.miscSeries') : row.series}</span>
+              <span style={s.lsnItemScholar}>{ezT('lessons.countLessons', { n: ezikBrowseNum(row.count) })}</span>
+            </button>
+          ))}
+        </section>
+      ) : null}
+      {/* LEVEL 3. The titles, ten to a page. Pressing one LEAVES the app for the scholar's own
+          page -- there is no lesson body on this side of the wire to open instead. */}
+      {state === EZIK_BROWSE_READY && rows.length > 0 && level === EZIK_BROWSE_LESSONS ? (
+        <section style={s.lsnList} aria-label={ezT('lessons.lessonsAria')}>
+          {rows.map((row, i) => (
+            <a
+              key={row.unit || i}
+              href={row.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ezhome-focus"
+              style={s.lsnItem}
+            >
+              <span style={s.lsnItemTitle}>{row.title}</span>
+            </a>
+          ))}
+        </section>
+      ) : null}
+      {/* THE PAGER. Drawn on the two levels the server pages and on neither end hidden: at the
+          first page and at the last the control that cannot move is DISABLED, so the shape of
+          the list never changes under the reader's thumb. The scholars level has no pager at
+          all, because the contract sends that level whole. */}
+      {state === EZIK_BROWSE_READY && rows.length > 0 && level !== EZIK_BROWSE_SCHOLARS ? (
+        <nav style={s.lsbPager} aria-label={ezT('lessons.pagerAria')}>
+          <button type="button" className="ezhome-focus" style={s.lsbPageBtn}
+            disabled={pageNo <= 1} onClick={() => setPageNo(pageNo - 1)}>{ezT('lessons.pagePrev')}</button>
+          <span role="status" style={s.lsbPageOf}>
+            {ezT('lessons.pageOf', { n: ezikBrowseNum(pageNo), of: ezikBrowseNum(pages) })}
+          </span>
+          <button type="button" className="ezhome-focus" style={s.lsbPageBtn}
+            disabled={pageNo >= pages} onClick={() => setPageNo(pageNo + 1)}>{ezT('lessons.pageNext')}</button>
+        </nav>
+      ) : null}
+    </div>
+  );
+}
+// ITEM 24-C -- END OF THE LESSONS BROWSE PANE
+
+// ============================================================
 // ITEM 24-B -- THE LESSONS SECTION
 // ============================================================
 // WHY IT SITS HERE AND NOT INSIDE THE FATWA BLOCK. theme-coverage-guard K3 reads the fatwa
@@ -3690,10 +4049,29 @@ async function ezikLessonsScreenSearch(q, signal) {
   }
 }
 
+// THE TWO TABS. Item 24-B shipped one pane -- a box and a list of links. Item 24-C puts a
+// second one beside it, and the search pane below is untouched to the letter: the same state,
+// the same call, the same three states, the same ten rows and the same floor of three
+// characters. The tab a reader is on does not reach the wire; it only decides which pane draws.
+const EZIK_LESSONS_TAB_BROWSE = 'browse';
+const EZIK_LESSONS_TAB_SEARCH = 'search';
+
 // THE SCREEN. It mounts on EzShell -- the shared istana shell that الإعدادات, المحفّظ and the
 // mushaf index already use -- so it takes the app's identity, its dark palette and its back
-// bar without declaring a colour, a font or a new structure of its own.
+// bar without declaring a colour, a font or a new structure of its own. This is the name the
+// router renders and the name the screen inventory carries; it hands the section its way home
+// and nothing else, so the ladder below can own the shell's back button without the router
+// ever having to learn that levels exist.
 function LessonsScreen({ onBack }) {
+  return <LessonsSection onHome={onBack} />;
+}
+
+// THE SECTION. Two panes under one shell and one back button between them.
+function LessonsSection({ onHome }) {
+  // Browsing opens first: a reader who has typed nothing yet still has something to read.
+  const [tab, setTab] = useState(EZIK_LESSONS_TAB_BROWSE);
+  // What the browse pane parks here is the rung it is standing on -- see item 24-C above.
+  const browseBackRef = useRef(null);
   const [query, setQuery] = useState('');
   const [state, setState] = useState(EZIK_LESSONS_IDLE);
   const [rows, setRows] = useState([]);
@@ -3728,8 +4106,20 @@ function LessonsScreen({ onBack }) {
     if (lessonsAbortRef.current) { try { lessonsAbortRef.current.abort(); } catch (e) {} }
   }, []);
 
-  return (
-    <EzShell title={ezT('module.lessons')} onBack={onBack} backLabel={A2_BACK}>
+  // THE BACK BUTTON IS ONE STEP AND NEVER TWO. The shell's back is offered to the browse pane
+  // first; the pane answers true when it took the press for a rung of its own ladder, and only
+  // a press it declines -- the scholars level, or the search tab, where there is no ladder --
+  // reaches the home the router handed down.
+  const onBack = () => {
+    const step = browseBackRef.current;
+    if (tab === EZIK_LESSONS_TAB_BROWSE && step && step() === true) return;
+    onHome();
+  };
+
+  // The search pane, exactly as item 24-B wrote it, lifted into a value so that a tab can
+  // choose it. Not a line of it changed.
+  const searchPane = (
+    <React.Fragment>
       <form role="search" style={s.lsnForm} onSubmit={(event) => { event.preventDefault(); runLessonsSearch(query); }}>
         <input
           className="ezhome-focus"
@@ -3791,6 +4181,31 @@ function LessonsScreen({ onBack }) {
           ))}
         </section>
       ) : null}
+    </React.Fragment>
+  );
+
+  return (
+    <EzShell title={ezT('module.lessons')} onBack={onBack} backLabel={A2_BACK}>
+      <div role="tablist" aria-label={ezT('lessons.tabsAria')} style={s.lsbTabs}>
+        <button type="button" role="tab" id="lsn-tab-browse" aria-controls="lsn-pane-browse"
+          aria-selected={tab === EZIK_LESSONS_TAB_BROWSE} className="ezhome-focus"
+          style={tab === EZIK_LESSONS_TAB_BROWSE ? s.lsbTabOn : s.lsbTab}
+          onClick={() => setTab(EZIK_LESSONS_TAB_BROWSE)}>{ezT('lessons.tabBrowse')}</button>
+        <button type="button" role="tab" id="lsn-tab-search" aria-controls="lsn-pane-search"
+          aria-selected={tab === EZIK_LESSONS_TAB_SEARCH} className="ezhome-focus"
+          style={tab === EZIK_LESSONS_TAB_SEARCH ? s.lsbTabOn : s.lsbTab}
+          onClick={() => setTab(EZIK_LESSONS_TAB_SEARCH)}>{ezT('lessons.tabSearch')}</button>
+      </div>
+      {/* The pane that is not chosen is not mounted, so its pending request is cut by the same
+          cleanup that cuts it when the reader leaves the screen altogether. */}
+      <div role="tabpanel" id="lsn-pane-browse" aria-labelledby="lsn-tab-browse"
+        hidden={tab !== EZIK_LESSONS_TAB_BROWSE}>
+        {tab === EZIK_LESSONS_TAB_BROWSE ? <LessonsBrowsePane backRef={browseBackRef} /> : null}
+      </div>
+      <div role="tabpanel" id="lsn-pane-search" aria-labelledby="lsn-tab-search"
+        hidden={tab !== EZIK_LESSONS_TAB_SEARCH}>
+        {tab === EZIK_LESSONS_TAB_SEARCH ? searchPane : null}
+      </div>
     </EzShell>
   );
 }
@@ -16542,6 +16957,20 @@ const s = {
   lsnItem: { display: 'flex', flexDirection: 'column', gap: 3, minHeight: 44, justifyContent: 'center', padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', textDecoration: 'none' },
   lsnItemTitle: { fontSize: 15, fontWeight: 500, lineHeight: 1.7, overflowWrap: 'anywhere' },
   lsnItemScholar: { fontSize: 13, color: 'var(--a3-muted)' },
+  // ITEM 24-C. The browse pane. The same rule the section above it keeps: every colour is an
+  // existing --a3-* token, the set EzShell puts in scope through .ezhome, so the pane adds no
+  // theme value, overrides none, and index.html gains not one rule for it.
+  lsbTabs: { display: 'flex', gap: 8, marginBottom: 12 },
+  lsbTab: { flex: '1 1 0', minWidth: 0, minHeight: 44, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-muted)', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
+  lsbTabOn: { flex: '1 1 0', minWidth: 0, minHeight: 44, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
+  lsbPane: { display: 'flex', flexDirection: 'column', gap: 10 },
+  lsbHead: { display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', padding: '2px 2px 4px' },
+  lsbHeadName: { fontSize: 16, fontWeight: 700, color: 'var(--a3-ink)', overflowWrap: 'anywhere' },
+  lsbHeadCount: { fontSize: 13, color: 'var(--a3-muted)' },
+  lsbRow: { display: 'flex', flexDirection: 'column', gap: 3, minHeight: 44, justifyContent: 'center', padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', textAlign: 'start', fontFamily: 'inherit', cursor: 'pointer' },
+  lsbPager: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 4 },
+  lsbPageBtn: { minHeight: 44, padding: '10px 16px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
+  lsbPageOf: { fontSize: 13.5, color: 'var(--a3-muted)' },
 
   // ===== شريط الإدخال =====
   // S112: the dock owns the surface, the border and the safe area now (.ezc-dock-inner), so the
