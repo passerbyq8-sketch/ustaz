@@ -1,0 +1,61 @@
+{
+  "_note": "Offline artificial replies for all three /lessons/browse levels. The forbidden marker must never reach a shaped response.",
+  "forbidden_marker": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+  "scholars": {
+    "rows": [
+      {
+        "scholar_id": "Scholar Fixture A",
+        "count": 7,
+        "snippet": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "quote_text": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "body": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "internal_rank": 901
+      }
+    ],
+    "total": 1,
+    "page": 91,
+    "pages": 92,
+    "internal_cursor": "cursor-scholar",
+    "body": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS"
+  },
+  "series": {
+    "rows": [
+      {
+        "series": "Series Fixture A",
+        "count": 5,
+        "snippet": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "quote_text": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "body": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "internal_rank": 902
+      },
+      {
+        "series": "",
+        "count": 2,
+        "snippet": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS"
+      }
+    ],
+    "total": 2,
+    "page": 2,
+    "pages": 4,
+    "internal_cursor": "cursor-series",
+    "body": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS"
+  },
+  "lessons": {
+    "rows": [
+      {
+        "unit_id": "unit-fixture-0001",
+        "title": "Lesson Fixture A",
+        "url": "https://example.invalid/lesson/a",
+        "snippet": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "quote_text": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "body": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS",
+        "internal_rank": 903
+      }
+    ],
+    "total": 1,
+    "page": 3,
+    "pages": 6,
+    "internal_cursor": "cursor-lessons",
+    "body": "LESSON-TEXT-FIXTURE-MUST-NOT-PASS"
+  }
+}
