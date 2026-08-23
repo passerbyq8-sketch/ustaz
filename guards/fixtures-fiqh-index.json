@@ -1,0 +1,140 @@
+{
+  "expected_entry_count": 3045,
+  "top_level_shape": "array",
+  "removed_keys": [
+    "F00248",
+    "F00249",
+    "F00250",
+    "F00251",
+    "F00252",
+    "F00253",
+    "F00254",
+    "F00255",
+    "F00256",
+    "F00257",
+    "F00258",
+    "F00259",
+    "F00260",
+    "F00261",
+    "F00262",
+    "F00263",
+    "F00264",
+    "F00931",
+    "F00932",
+    "F01108",
+    "F01109",
+    "F01976",
+    "F02542",
+    "F02867",
+    "F02933"
+  ],
+  "removed_text_b64": {
+    "F00248": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDMzOS4=",
+    "F00249": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDMyOQ==",
+    "F00250": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDMzMi4=",
+    "F00251": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDMzMy4=",
+    "F00252": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDMzMy4=",
+    "F00253": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDMzNC4=",
+    "F00254": "2YXZhiDYotir2KfYsdmHOiDCq9iq2YHYs9mK2LEg2KfZhNmF2YjYt9ijwrsu",
+    "F00255": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDMzOC4=",
+    "F00256": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDM1Mi4=",
+    "F00257": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDM1NC4=",
+    "F00258": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDM1Ni4=",
+    "F00259": "2KfZhNil2LXYp9io2KkgMlwxNjDYjCDYp9mE2KfYs9iq2YrYudin2KggMlw3MDbYjCDZiNi32KjZgtin2Kog2KfYqNmGINiz2LnYryA2XDM2KS4=",
+    "F00260": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDM0OS4=",
+    "F00261": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAyINi1IDQyMy4=",
+    "F00262": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDM0NC4=",
+    "F00263": "KNin2YTYpdi12KfYqNipIDJcMjQ02Iwg2YjYt9io2YLYp9iqINin2YTZg9io2LHZiSAzXDQ2MtiMINmI2KfZhNin2LPYqtmK2LnYp9ioIDJcNzc5KS4=",
+    "F00264": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDM1OS4=",
+    "F00931": "2KrZgtiv2YXYqiDYsdis2YXYqtmHINmB2Yog2KwgMiDYtSA0MDIu",
+    "F00932": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCAxINi1IDM0MS4=",
+    "F01108": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCA0INi1IDMyMi4=",
+    "F01109": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrCA0INi1IDMyMy4=",
+    "F01976": "2YjZjtiu2Y7Yp9mE2Y7ZgdmOINmB2ZDZiiDYsNmO2YTZkNmD2Y4g2KfZhNiv2ZHZjtio2Y/ZiNiz2ZDZitmR2Y8g2YXZkNmG2Y4g2KfZhNmS2K3ZjtmG2Y7ZgdmQ2YrZkdmO2KnZkNiM",
+    "F02542": "2YjZjtmE2ZDZhNiq2ZHZjtmB2ZLYtdmQ2YrZhNmQOiDYsdmOOiDYp9mE2ZLZhdmP2YTZktit2Y7ZgtmPINin2YTYo9mS2Y/YtdmP2YjZhNmQ2YrZkdmPLg==",
+    "F02867": "2KrZgtiv2YXYqiDYqtix2KzZhdiq2Ycg2YHZiiDYrDEg2LUzNjAu",
+    "F02933": "2YLZjtin2YTZjiDYp9mE2ZLZgtmP2LHZkti32Y/YqNmQ2YrZkdmPOiDZh9mO2LDZkNmH2ZAg2KfZhNii2ZLZitmO2KnZjyAo2YrZjti52ZLZhtmQ2Yog2KfZhNii2ZLZitmO2KnZjg=="
+  },
+  "sample_terms": [
+    {
+      "id": "F00001",
+      "term": "\u0623\u064e\u0626\u0650\u0645\u0651\u064e\u0629\u064c"
+    },
+    {
+      "id": "F00132",
+      "term": "\u0627\u062e\u0652\u062a\u0650\u0637\u064e\u0627\u0637\u064c"
+    },
+    {
+      "id": "F00277",
+      "term": "\u0627\u0633\u0652\u062a\u0650\u0641\u0652\u062a\u064e\u0627\u062d"
+    },
+    {
+      "id": "F00421",
+      "term": "\u0625\u0650\u0641\u064e\u0627\u0636\u064e\u0629\u064c"
+    },
+    {
+      "id": "F00558",
+      "term": "\u0623\u064e\u0646\u0652\u0642\u064e\u0627\u0636\u064c"
+    },
+    {
+      "id": "F00722",
+      "term": "\u0628\u064e\u064a\u0652\u0639\u064f \u0627\u0644\u0652\u062d\u064e\u0627\u0636\u0650\u0631\u0650 \u0644\u0650\u0644\u0652\u0628\u064e\u0627\u062f\u0650\u064a"
+    },
+    {
+      "id": "F00878",
+      "term": "\u062a\u064e\u0630\u064e\u0643\u0651\u064f\u0631\u064c"
+    },
+    {
+      "id": "F01024",
+      "term": "\u062a\u064e\u0642\u0652\u0628\u0650\u064a\u0644\u064c"
+    },
+    {
+      "id": "F01164",
+      "term": "\u062c\u064e\u0644\u0652\u062f\u064c"
+    },
+    {
+      "id": "F01309",
+      "term": "\u062e\u064e\u0628\u064e\u062b\u064c"
+    },
+    {
+      "id": "F01474",
+      "term": "\u0630\u064e\u0648\u0652\u062f\u064c"
+    },
+    {
+      "id": "F01606",
+      "term": "\u0633\u064e\u0627\u0626\u0650\u0645\u064e\u0629\u064c"
+    },
+    {
+      "id": "F01759",
+      "term": "\u0634\u064e\u0643\u0651\u064c"
+    },
+    {
+      "id": "F01959",
+      "term": "\u0639\u064e\u0627\u0634\u064f\u0648\u0631\u064e\u0627\u0621\u064f"
+    },
+    {
+      "id": "F02113",
+      "term": "\u0639\u0650\u064a\u064e\u0627\u062f\u064e\u0629"
+    },
+    {
+      "id": "F02276",
+      "term": "\u0642\u064e\u062a\u0652\u0644\u064c \u0639\u064e\u0645\u0652\u062f\u064c"
+    },
+    {
+      "id": "F02444",
+      "term": "\u0644\u0650\u0639\u064e\u0627\u0646\u064c"
+    },
+    {
+      "id": "F02605",
+      "term": "\u0645\u064f\u0631\u064f\u0648\u0631\u064c"
+    },
+    {
+      "id": "F02791",
+      "term": "\u0645\u064f\u0644\u0652\u062a\u064e\u0632\u064e\u0645\u064c"
+    },
+    {
+      "id": "F02947",
+      "term": "\u0646\u064e\u0642\u0650\u064a\u0639\u064e\u0629\u064c"
+    }
+  ]
+}

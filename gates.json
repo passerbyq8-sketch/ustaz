@@ -460,5 +460,10 @@
     "name": "lessonssearch",
     "script": "guards/lessons-search-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "fiqhindex",
+    "script": "guards/fiqh-index-guard.cjs",
+    "args": ""
   }
 ]

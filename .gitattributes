@@ -503,3 +503,9 @@ lib/lessons-source-card.js text eol=lf
 # digest would be false of the file carrying it. The earlier EZIK-CC-* reports are unpinned
 # because none of them makes a claim about its own bytes; this one does.
 EZIK-CC-LESSONS-CALL-REPORT-2026-08-23.md text eol=lf
+
+# fiqhindex is an offline gzip/JSON guard. Pin its source, its Arabic-bearing fixture and the
+# self-sealed round report so checkout line-ending conversion cannot change their audit bytes.
+guards/fiqh-index-guard.cjs text eol=lf
+guards/fixtures-fiqh-index.json text eol=lf
+EZIK-CX-B-FIQH-INDEX-144-REPORT-2026-08-23.md text eol=lf
