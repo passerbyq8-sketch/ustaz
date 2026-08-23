@@ -99,12 +99,14 @@ function ezLangRelabel() {
     EZH_MUSHAF = ezT("module.mushaf");
     EZH_TREASURE = ezT("module.treasure");
     EZH_FATWA = ezT("module.fatwa");
+    EZH_LESSONS = ezT("module.lessons");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
     EZIST_SUB_ADHKAR = ezT("module.adhkar.sub");
     EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
     EZIST_SUB_FATWA = ezT("module.fatwa.sub");
-    EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA };
+    EZIST_SUB_LESSONS = ezT("module.lessons.sub");
+    EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -224,6 +226,19 @@ const EZ_I18N = {
     // scholar's name and an outward link, and the card is not drawn at all when there is
     // nothing to draw.
     'chat.lessons': 'دروسٌ ذاتُ صلة',
+    // ITEM 24-B: the lessons section. The title is the module's own name, so the home card
+    // and the screen it opens cannot drift apart -- they read the same key.
+    'module.lessons': 'الدروس',
+    'module.lessons.sub': 'بحثٌ في دروسِ العلماء',
+    'lessons.searchPlaceholder': 'ابحثْ في الدروس…',
+    'lessons.searchAria': 'البحثُ في الدروس',
+    'lessons.searchButton': 'ابحثْ',
+    'lessons.minChars': 'اكتبْ ثلاثةَ محارفَ فأكثرَ.',
+    'lessons.loading': 'يبحثُ في الدروس…',
+    'lessons.empty': 'لا نتائجَ لهذا البحث.',
+    'lessons.error': 'تعذّرَ البحثُ الآنَ.',
+    'lessons.retry': 'أعِدِ المحاولة',
+    'lessons.resultsAria': 'نتائجُ البحثِ في الدروس',
     'chat.noConversations': 'لا شيء محفوظٌ بعد — أول سؤالٍ تكتبه يُحفَظ هنا.',
     'favorites.empty': 'لا توجد ردود محفوظة بعد. اضغط النجمة تحت أي رد لتحفظه هنا.',
     'errors.network': 'تعذّر الاتصال',
@@ -425,6 +440,17 @@ const EZ_I18N = {
     'chat.stopAudio': 'Stop the audio',
     'chat.report': 'Report this reply',
     'chat.lessons': 'Related lessons',
+    'module.lessons': 'Lessons',
+    'module.lessons.sub': 'Search the scholars’ lessons',
+    'lessons.searchPlaceholder': 'Search the lessons…',
+    'lessons.searchAria': 'Search the lessons',
+    'lessons.searchButton': 'Search',
+    'lessons.minChars': 'Type three characters or more.',
+    'lessons.loading': 'Searching the lessons…',
+    'lessons.empty': 'No results for this search.',
+    'lessons.error': 'The search could not run just now.',
+    'lessons.retry': 'Try again',
+    'lessons.resultsAria': 'Lesson search results',
     'chat.noConversations': 'Nothing is saved yet — the first question you write is kept here.',
     'favorites.empty': 'Nothing is saved yet. Press the star under any reply to keep it here.',
     'errors.network': 'Could not connect',
@@ -3223,6 +3249,9 @@ let EZH_ADHKAR = ezT("module.adhkar");                                     // "t
 let EZH_MUSHAF = ezT("module.mushaf");                                             // "the mushaf"
 let EZH_TREASURE = ezT("module.treasure");     // "the treasure journey"
 let EZH_FATWA = ezT("module.fatwa");
+// ITEM 24-B: the lessons module reads its name from the dictionary exactly as the five
+// beside it do, so the home card and the screen title can never disagree.
+let EZH_LESSONS = ezT("module.lessons");
 
 // THE REAL MODULE ICONS. Every path below is the path the home screen already drew, moved here
 // unchanged and re-stroked in currentColor so it can sit on a soft chip instead of inside a
@@ -3241,6 +3270,12 @@ const EZH_ICON_TREASURE = (
 );
 const EZH_ICON_FATWA = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 3h10l4 4v14H5z" /><path d="M15 3v5h4" /><circle cx="10" cy="13" r="3" /><path d="M12.2 15.2L15 18" /></svg>
+);
+// ITEM 24-B: the lessons mark. Same 24x24 box, same 1.8 stroke and the same round caps as the
+// five marks beside it -- a teaching board on its stand, so it reads as neither the book
+// (mushaf) nor the document (fatwa). No new artwork file, no image, no data URI.
+const EZH_ICON_LESSONS = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 9h10" /><path d="M7 12h6" /><path d="M12 16v4" /><path d="M8 20h8" /></svg>
 );
 // The callout, the profile entry and the three navigation icons -- the same paths as before,
 // drawn as LINE icons on white. There is no face and no avatar image in either style.
@@ -3288,6 +3323,7 @@ function ezHomeModules(v) {
     { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
+    { id: 'lessons',  label: EZH_LESSONS,  icon: EZH_ICON_LESSONS,  onClick: v.onOpenLessons,  meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
   ];
 }
@@ -3319,9 +3355,10 @@ let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
 let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
 let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
+let EZIST_SUB_LESSONS = ezT("module.lessons.sub");
 let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
 let EZIST_SUB_LIBRARY = 'بحثٌ في نصوص المكتبة، بمصادرها';
-let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -3511,7 +3548,7 @@ function EzikIstanaHome(v) {
 }
 // ---- S101 ISTANA HOME END ----------------------------------------------------------------
 
-function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenSettings }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenSettings }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -3546,6 +3583,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenAdhkar: onOpenAdhkar,
     onOpenMushaf: onOpenMushaf,
     onOpenFatwa: onOpenFatwa,
+    onOpenLessons: onOpenLessons,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
@@ -3569,6 +3607,194 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   if (prayerOpen) return <PrayerSheet onClose={() => setPrayerOpen(false)} />;
   return <EzikIstanaHome {...home} />;
 }
+
+// ============================================================
+// ITEM 24-B -- THE LESSONS SECTION
+// ============================================================
+// WHY IT SITS HERE AND NOT INSIDE THE FATWA BLOCK. theme-coverage-guard K3 reads the fatwa
+// feature as ONE SLICE -- from the declaration of its API-base constant to the adhkar banner
+// -- and bounds that slice’s length. This block is placed BEFORE that slice opens, so the
+// sibling it is modelled on stays exactly as long as it was. For the same reason nothing here
+// may QUOTE the locator K3 opens on: a comment carrying it would move the slice to this line
+// and swallow the whole section. It is named in prose above and spelled nowhere.
+//
+// WHAT THE READER GETS: a search box and a list of links. Nothing else, and that is the
+// owner's ruling, not a limit of the wire: «بحثٌ فقط».
+//
+// NO PAGER AND NO FILTER, AND THAT IS MEASURED, NOT ASSUMED. api/lessons-search.js reads
+// exactly two fields off the request body -- `q` and `limit` -- and nothing else: no offset,
+// no page, no scholar, no content_type. `limit` is capped at LIMIT_MAX = 10 in that file and
+// again at MAX_LIMIT = 10 in the service behind it. With a ceiling and no offset there is no
+// second page to ask for, so this screen asks for the ten it can have and draws them. A
+// "more" button here would be a control that cannot do anything.
+//
+// THREE FIELDS REACH THE SCREEN AND THE LIST IS WRITTEN OUT BY HAND: title, scholar_id, url.
+// The service sends nine per hit and the server already deleted the tenth (`snippet`) at its
+// own edge. Nothing here enumerates an object, so a text field added to the service tomorrow
+// cannot arrive on a reader's screen without a person writing its name in this file.
+//
+// `scholar_id` IS NOT AN IDENTIFIER -- it is the scholar's Arabic display name. It is printed,
+// never joined on, slugged or looked up.
+const EZIK_LESSONS_SCREEN_ENDPOINT = '/api/lessons-search';
+// The service ceiling, asked for in full. Ten is the most that can ever come back.
+const EZIK_LESSONS_SCREEN_LIMIT = 10;
+// Below three characters after trimming, no request leaves the screen.
+const EZIK_LESSONS_SCREEN_MIN_Q = 3;
+// Twelve seconds. This screen is a place the reader CHOSE to be and is watching, so it waits
+// longer than the tail card of item 24-A does (eight); the card is a bonus beneath an answer
+// that is already read, and a late card is worse than none.
+const EZIK_LESSONS_SCREEN_TIMEOUT_MS = 12000;
+// The four states of the result area, named rather than spelled at each site.
+const EZIK_LESSONS_IDLE = 'idle';
+const EZIK_LESSONS_LOADING = 'loading';
+const EZIK_LESSONS_DONE = 'done';
+const EZIK_LESSONS_FAILED = 'failed';
+
+// THE WHITELIST. Three named properties per hit and no fourth; a hit without a title or
+// without an http(s) url is dropped rather than drawn as an empty row.
+function ezikLessonsScreenRows(hits) {
+  if (!Array.isArray(hits)) return [];
+  const rows = [];
+  for (const hit of hits) {
+    if (rows.length >= EZIK_LESSONS_SCREEN_LIMIT) break;
+    if (!hit || typeof hit !== 'object') continue;
+    const title = typeof hit.title === 'string' ? hit.title.trim() : '';
+    const url = typeof hit.url === 'string' ? hit.url.trim() : '';
+    const scholar = typeof hit.scholar_id === 'string' ? hit.scholar_id.trim() : '';
+    if (!title || !/^https?:\/\//i.test(url)) continue;
+    rows.push({ title, url, scholar });
+  }
+  return rows;
+}
+
+// THE CALL. Unlike the tail card, this screen must be able to TELL a failure from an empty
+// shelf -- a reader who pressed a button is owed an answer either way -- so the outcome is a
+// discriminated result rather than a bare list. `ok:false` covers every failure alike: a
+// status other than 200, an unreadable body, a cut connection and the twelve-second abort.
+// The upstream error text never reaches it, and there is nothing here that could print one.
+async function ezikLessonsScreenSearch(q, signal) {
+  const query = typeof q === 'string' ? q.trim() : '';
+  if (query.length < EZIK_LESSONS_SCREEN_MIN_Q) return { ok: false, rows: [] };
+  try {
+    const response = await fetch(EZIK_LESSONS_SCREEN_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q: query, limit: EZIK_LESSONS_SCREEN_LIMIT }),
+      signal,
+    });
+    if (response.status !== 200) return { ok: false, rows: [] };
+    const payload = await response.json();
+    return { ok: true, rows: ezikLessonsScreenRows(payload && payload.hits) };
+  } catch (e) {
+    return { ok: false, rows: [] };
+  }
+}
+
+// THE SCREEN. It mounts on EzShell -- the shared istana shell that الإعدادات, المحفّظ and the
+// mushaf index already use -- so it takes the app's identity, its dark palette and its back
+// bar without declaring a colour, a font or a new structure of its own.
+function LessonsScreen({ onBack }) {
+  const [query, setQuery] = useState('');
+  const [state, setState] = useState(EZIK_LESSONS_IDLE);
+  const [rows, setRows] = useState([]);
+  // The in-flight request, so a second search cuts the first instead of racing it.
+  const lessonsAbortRef = useRef(null);
+  // What «أعِدِ المحاولة» re-runs: the query that failed, not whatever is in the box now.
+  const lastQueryRef = useRef('');
+  const trimmed = query.trim();
+  const tooShort = trimmed.length > 0 && trimmed.length < EZIK_LESSONS_SCREEN_MIN_Q;
+
+  const runLessonsSearch = (raw) => {
+    const q = typeof raw === 'string' ? raw.trim() : '';
+    if (q.length < EZIK_LESSONS_SCREEN_MIN_Q) return;
+    if (lessonsAbortRef.current) { try { lessonsAbortRef.current.abort(); } catch (e) {} }
+    const controller = new AbortController();
+    lessonsAbortRef.current = controller;
+    lastQueryRef.current = q;
+    setState(EZIK_LESSONS_LOADING);
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_LESSONS_SCREEN_TIMEOUT_MS);
+    ezikLessonsScreenSearch(q, controller.signal).then((outcome) => {
+      clearTimeout(timer);
+      if (lessonsAbortRef.current !== controller) return; // a newer search owns the screen
+      lessonsAbortRef.current = null;
+      if (!outcome.ok) { setRows([]); setState(EZIK_LESSONS_FAILED); return; }
+      setRows(outcome.rows);
+      setState(EZIK_LESSONS_DONE);
+    });
+  };
+
+  // Leaving the screen mid-request cuts it; nothing is left to settle into a dead component.
+  useEffect(() => () => {
+    if (lessonsAbortRef.current) { try { lessonsAbortRef.current.abort(); } catch (e) {} }
+  }, []);
+
+  return (
+    <EzShell title={ezT('module.lessons')} onBack={onBack} backLabel={A2_BACK}>
+      <form role="search" style={s.lsnForm} onSubmit={(event) => { event.preventDefault(); runLessonsSearch(query); }}>
+        <input
+          className="ezhome-focus"
+          type="search"
+          dir="auto"
+          required
+          maxLength="180"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={ezT('lessons.searchPlaceholder')}
+          aria-label={ezT('lessons.searchAria')}
+          style={s.lsnInput}
+        />
+        <button
+          type="submit"
+          className="ezhome-focus"
+          disabled={state === EZIK_LESSONS_LOADING || trimmed.length < EZIK_LESSONS_SCREEN_MIN_Q}
+          style={s.lsnSubmit}
+        >{ezT('lessons.searchButton')}</button>
+      </form>
+      {/* The floor, said out loud rather than as a button that is dead for no stated reason. */}
+      {tooShort ? <div role="status" style={s.lsnNote}>{ezT('lessons.minChars')}</div> : null}
+      {/* STATE 1 of 3: the search is running. */}
+      {state === EZIK_LESSONS_LOADING ? (
+        <div role="status" aria-live="polite" style={s.lsnNote}>
+          <span style={s.dot}>●</span>
+          <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+          <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+          <span>{ezT('lessons.loading')}</span>
+        </div>
+      ) : null}
+      {/* STATE 2 of 3: the search ran and the shelf is empty. */}
+      {state === EZIK_LESSONS_DONE && rows.length === 0 ? (
+        <div role="status" style={s.lsnNote}>{ezT('lessons.empty')}</div>
+      ) : null}
+      {/* STATE 3 of 3: it did not run. One short line from the dictionary and a way to try
+          again -- never the server's own words, which this screen never receives. */}
+      {state === EZIK_LESSONS_FAILED ? (
+        <div role="alert" style={s.lsnError}>
+          <span>{ezT('lessons.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.lsnRetry}
+            onClick={() => runLessonsSearch(lastQueryRef.current)}>{ezT('lessons.retry')}</button>
+        </div>
+      ) : null}
+      {state === EZIK_LESSONS_DONE && rows.length > 0 ? (
+        <section style={s.lsnList} aria-label={ezT('lessons.resultsAria')}>
+          {rows.map((row, i) => (
+            <a
+              key={i}
+              href={row.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ezhome-focus"
+              style={s.lsnItem}
+            >
+              <span style={s.lsnItemTitle}>{row.title}</span>
+              {row.scholar ? <span style={s.lsnItemScholar}>{row.scholar}</span> : null}
+            </a>
+          ))}
+        </section>
+      ) : null}
+    </EzShell>
+  );
+}
+// ITEM 24-B -- END OF THE LESSONS SECTION
 
 // ============================================================
 // OFFICIAL FATWA SEARCH -- READ ONLY
@@ -9208,7 +9434,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenSettings={() => openEzikSheet('settings')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenSettings={() => openEzikSheet('settings')} />
       {ezikDrawer()}
     </>
   );
@@ -9253,6 +9479,11 @@ function App() {
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
   if (screen === 'fatwa') return <FatwaScreen onBack={goEzikBack} favPk={favPk} />;
+  // ITEM 24-B: a feature section, so it is in NEITHER screen register -- exactly like the
+  // fatwa line above it. ezikBackTarget's final fall-through («Every feature section: home,
+  // never the chat») already gives it its back destination, and a third register is what
+  // that fall-through exists to make unnecessary.
+  if (screen === 'lessons') return <LessonsScreen onBack={goEzikBack} />;
 
   // Single-source capability flags for the chat UI. `directConvoAllowed` layers the parental lock
   // on top of the band: young is allowed unless the parent explicitly locked it; teen/adult always
@@ -16299,6 +16530,18 @@ const s = {
   lessonsItem: { display: 'flex', flexDirection: 'column', gap: 2, minHeight: 44, justifyContent: 'center', padding: '6px 8px', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 10, textDecoration: 'none', color: 'var(--answer-ink)' },
   lessonsTitle: { fontSize: 13.5, fontWeight: 500, lineHeight: 1.6, overflowWrap: 'anywhere' },
   lessonsScholar: { fontSize: 12, color: 'var(--muted)' },
+  // ITEM 24-B. The lessons SECTION. Every colour is an existing --a3-* token, the set EzShell
+  // puts in scope through .ezhome, so this screen adds no theme value and overrides none.
+  lsnForm: { display: 'flex', gap: 8, alignItems: 'stretch', flexWrap: 'wrap', marginBottom: 12 },
+  lsnInput: { flex: '1 1 200px', minWidth: 0, minHeight: 44, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit' },
+  lsnSubmit: { minHeight: 44, padding: '10px 18px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
+  lsnNote: { display: 'flex', alignItems: 'center', gap: 6, padding: '10px 2px', color: 'var(--a3-muted)', fontSize: 14 },
+  lsnError: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 14 },
+  lsnRetry: { minHeight: 44, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 14, fontFamily: 'inherit', cursor: 'pointer' },
+  lsnList: { display: 'flex', flexDirection: 'column', gap: 8 },
+  lsnItem: { display: 'flex', flexDirection: 'column', gap: 3, minHeight: 44, justifyContent: 'center', padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', textDecoration: 'none' },
+  lsnItemTitle: { fontSize: 15, fontWeight: 500, lineHeight: 1.7, overflowWrap: 'anywhere' },
+  lsnItemScholar: { fontSize: 13, color: 'var(--a3-muted)' },
 
   // ===== شريط الإدخال =====
   // S112: the dock owns the surface, the border and the safe area now (.ezc-dock-inner), so the
