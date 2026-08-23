@@ -106,7 +106,11 @@ function ezLangRelabel() {
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
     EZIST_SUB_FATWA = ezT("module.fatwa.sub");
     EZIST_SUB_LESSONS = ezT("module.lessons.sub");
-    EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS };
+    // The two entries below are NOT relabelled -- EZIST_SUB_PRAYER and EZIST_SUB_LIBRARY are
+    // plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
+    // replacement, so an id left out of it is not left at its old wording: it is deleted, and
+    // the prayer card lost its second line on the first language switch of every session.
+    EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
