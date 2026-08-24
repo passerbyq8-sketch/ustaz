@@ -3729,8 +3729,17 @@ function ezWidgetDefaults() {
 // missing key, damaged JSON, an array where an object belongs, another version, a missing list,
 // or a storage that throws. An id in the store that this build does not know is IGNORED -- not an
 // error, not a reset -- so a device that saw a later build keeps the arrangement of the widgets
-// this build does have. A known id the store never mentioned is appended in its default place,
-// which is what lets a new widget arrive without wiping what the reader already arranged.
+// this build does have.
+//
+// 🔴 AND A KNOWN ID THE STORE NEVER MENTIONED TAKES ITS REGISTERED STATE, NOT "VISIBLE". This was
+// measured wrong first and the live proof caught it: appending a missing id to 'order' alone left
+// it OUT of 'hidden', so a record that named none of them -- {"v":1,"order":[],"hidden":[]} --
+// drew all three. Read forward, that is the whole failure mode of shipping a fourth widget later:
+// every reader who had ever arranged their home would find it on their screen unbidden, because
+// their stored record could not possibly mention it. An id nobody has ruled on has not been
+// shown; it is registered, and its row says what it is. So the sweep below carries 'shown'
+// across with the id, and MENTIONED means named in EITHER list -- an id the reader hid without
+// ordering is a ruling too, and it is kept.
 function readHomeWidgets() {
   const def = ezWidgetDefaults();
   const known = ezWidgetIds();
@@ -3742,6 +3751,7 @@ function readHomeWidgets() {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return def;
   if (o.v !== EZWID_V) return def;
   if (!Array.isArray(o.order) || !Array.isArray(o.hidden)) return def;
+  const mentioned = ezWidgetMentioned(o.order, o.hidden, known);
   const order = [];
   for (let i = 0; i < o.order.length; i++) {
     const id = o.order[i];
@@ -3750,9 +3760,6 @@ function readHomeWidgets() {
     if (order.indexOf(id) !== -1) continue;
     order.push(id);
   }
-  for (let i = 0; i < def.order.length; i++) {
-    if (order.indexOf(def.order[i]) === -1) order.push(def.order[i]);
-  }
   const hidden = [];
   for (let i = 0; i < o.hidden.length; i++) {
     const id = o.hidden[i];
@@ -3760,7 +3767,36 @@ function readHomeWidgets() {
     if (known.indexOf(id) === -1) continue;
     if (hidden.indexOf(id) === -1) hidden.push(id);
   }
+  ezWidgetAdmitUnmentioned(order, hidden, mentioned, def);
   return { v: EZWID_V, order: order, hidden: hidden };
+}
+
+// THE ONE PLACE THAT DECIDES WHAT "THE READER HAS NOT RULED ON THIS" MEANS, so the store reader
+// and the panel's normaliser cannot come to two different answers about the same record.
+function ezWidgetMentioned(order, hidden, known) {
+  const seen = [];
+  const take = (list) => {
+    if (!Array.isArray(list)) return;
+    for (let i = 0; i < list.length; i++) {
+      const id = list[i];
+      if (typeof id !== 'string' || known.indexOf(id) === -1) continue;
+      if (seen.indexOf(id) === -1) seen.push(id);
+    }
+  };
+  take(order); take(hidden);
+  return seen;
+}
+// Appends, IN PLACE and in the register's own order, every registered id the record did not rule
+// on -- into 'order' at its default position, and into 'hidden' when the register says it is not
+// shown. A default record has ruled on nothing, so this is also what makes an absent key and a
+// damaged key produce the identical screen.
+function ezWidgetAdmitUnmentioned(order, hidden, mentioned, def) {
+  for (let i = 0; i < def.order.length; i++) {
+    const id = def.order[i];
+    if (mentioned.indexOf(id) !== -1) continue;
+    if (order.indexOf(id) === -1) order.push(id);
+    if (def.hidden.indexOf(id) !== -1 && hidden.indexOf(id) === -1) hidden.push(id);
+  }
 }
 
 // THE ONLY WRITER, and it REPORTS. A full store, a private window that refuses, a storage that
@@ -3827,21 +3863,20 @@ function readHomeWidgetsShape(state) {
   const def = ezWidgetDefaults();
   if (!state || typeof state !== 'object' || Array.isArray(state)) return def;
   const known = ezWidgetIds();
+  const osrc = Array.isArray(state.order) ? state.order : def.order;
+  const hsrc = Array.isArray(state.hidden) ? state.hidden : def.hidden;
+  const mentioned = ezWidgetMentioned(osrc, hsrc, known);
   const order = [];
-  const src = Array.isArray(state.order) ? state.order : def.order;
-  for (let i = 0; i < src.length; i++) {
-    if (known.indexOf(src[i]) === -1 || order.indexOf(src[i]) !== -1) continue;
-    order.push(src[i]);
-  }
-  for (let i = 0; i < def.order.length; i++) {
-    if (order.indexOf(def.order[i]) === -1) order.push(def.order[i]);
+  for (let i = 0; i < osrc.length; i++) {
+    if (known.indexOf(osrc[i]) === -1 || order.indexOf(osrc[i]) !== -1) continue;
+    order.push(osrc[i]);
   }
   const hidden = [];
-  const hsrc = Array.isArray(state.hidden) ? state.hidden : def.hidden;
   for (let i = 0; i < hsrc.length; i++) {
     if (known.indexOf(hsrc[i]) === -1 || hidden.indexOf(hsrc[i]) !== -1) continue;
     hidden.push(hsrc[i]);
   }
+  ezWidgetAdmitUnmentioned(order, hidden, mentioned, def);
   return { v: EZWID_V, order: order, hidden: hidden };
 }
 
