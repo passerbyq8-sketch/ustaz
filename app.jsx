@@ -445,6 +445,30 @@ const EZ_I18N = {
     'onboarding.yearError': 'اكتب سنةَ ميلادك بأربعة أرقام — مثل ٢٠١٥',
     'onboarding.name': 'الاسم',
     'onboarding.birthYear': 'سنة الميلاد — مثال ٢٠١٥',
+    'khatmah.title': 'الختمة',
+    'khatmah.progress': '{n} من {of} صفحة',
+    'khatmah.left': 'بقِيَت {n} صفحة',
+    'khatmah.leftDays': 'نحوَ {n} يومًا على وردك اليوميّ',
+    'khatmah.none': 'لم تبدأْ بعد. علِّمْ أوّلَ صفحةٍ تقرؤها.',
+    'khatmah.mark': 'علِّمْ هذه الصفحة',
+    'khatmah.marked': 'صفحةٌ معلَّمة — اضغطْ للتراجع',
+    'khatmah.markAria': 'علِّمْ هذه الصفحةَ مقروءةً في ختمتك',
+    'khatmah.complete': 'تمّتِ الختمة. تقبّلَ اللهُ منك.',
+    'khatmah.startNew': 'ابدأْ ختمةً جديدة',
+    'khatmah.count': 'ختماتُك: {n}',
+    'khatmah.saveFailed': 'لم يُحفَظْ هذا على الجهاز، وهو قائمٌ في هذه الجلسة وحدَها.',
+    'khatmah.marksTitle': 'علامتاك',
+    'khatmah.markSlot': 'العلامة {n}',
+    'khatmah.markPlace': 'ضعْها هنا',
+    'khatmah.markGo': 'صفحة {n}',
+    'khatmah.markClear': 'امسحْها',
+    'khatmah.markEmpty': 'فارغة',
+    'khatmah.markName': 'سَمِّ العلامة {n}',
+    'khatmah.labelNone': 'بلا اسم',
+    'khatmah.labelWird': 'وِردي',
+    'khatmah.labelHifz': 'حفظي',
+    'khatmah.labelTadabbur': 'تدبُّري',
+    'khatmah.labelMuraja': 'مراجعتي',
   },
   en: {
     'common.close': 'Close',
@@ -705,6 +729,30 @@ const EZ_I18N = {
     'onboarding.yearError': 'Write your birth year as four digits — for example 2015',
     'onboarding.name': 'Name',
     'onboarding.birthYear': 'Year of birth — for example 2015',
+    'khatmah.title': 'Khatmah',
+    'khatmah.progress': '{n} of {of} pages',
+    'khatmah.left': '{n} pages to go',
+    'khatmah.leftDays': 'About {n} days at your daily wird',
+    'khatmah.none': 'Not started yet. Mark the first page you read.',
+    'khatmah.mark': 'Mark this page read',
+    'khatmah.marked': 'Page marked — tap to undo',
+    'khatmah.markAria': 'Mark this page read in your khatmah',
+    'khatmah.complete': 'The khatmah is complete. May God accept it from you.',
+    'khatmah.startNew': 'Start a new khatmah',
+    'khatmah.count': 'Khatmahs completed: {n}',
+    'khatmah.saveFailed': 'This was not saved on the device; it holds for this session alone.',
+    'khatmah.marksTitle': 'Your two marks',
+    'khatmah.markSlot': 'Mark {n}',
+    'khatmah.markPlace': 'Place it here',
+    'khatmah.markGo': 'Page {n}',
+    'khatmah.markClear': 'Clear it',
+    'khatmah.markEmpty': 'Empty',
+    'khatmah.markName': 'Name mark {n}',
+    'khatmah.labelNone': 'Unnamed',
+    'khatmah.labelWird': 'My wird',
+    'khatmah.labelHifz': 'My memorising',
+    'khatmah.labelTadabbur': 'My reflection',
+    'khatmah.labelMuraja': 'My revision',
   },
 };
 
@@ -10355,6 +10403,9 @@ function App() {
       // Session 82 -- the three device-local mushaf keys go with everything else. "Delete all
       // my data" has to mean the last page, the daily target and today's progress too.
       localStorage.removeItem(MUSHAF_LAST_PAGE_KEY);
+      // The khatmah goes with everything else: "delete all my data" must not leave a
+      // reading record behind for whoever sets this device up next.
+      localStorage.removeItem(KHATMAH_KEY);
       localStorage.removeItem(WIRD_TARGET_KEY);
       localStorage.removeItem(WIRD_DAY_KEY);
       // Session 84 -- the three device-local adhkar keys, added to this list and to nothing
@@ -15788,6 +15839,300 @@ function wirdNormalizeDigits(v) {
   return String(v == null ? '' : v).replace(/\s+/g, '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
 }
 
+// ---------------------------------------------------------------------------
+// THE KHATMAH, AND THE TWO MARKS.
+//
+// ZERO NETWORK, ZERO MODEL, ZERO TOKEN. Nothing below fetches, posts, beacons or reads a
+// credential. It is localStorage and arithmetic, and every line of it works with the radio
+// off. That is not an optimisation: a reader's own count of what they have read is theirs,
+// and it never leaves the device that holds it.
+//
+// WHAT IT REFUSES TO DO, AND WHY THAT IS THE WHOLE FEATURE. It does NOT credit a page
+// because the reader passed over it. The daily wird above is credited by a dwell timer and
+// that is the right rule THERE -- eight unbroken seconds on a sheet is reading, and a day's
+// wird is a small claim. A KHATMAH is a claim about the whole book, and a claim assembled
+// out of a timer is a claim the reader never made. So the one and only writer of the page
+// set below is a control the reader presses, and swiping, dragging, jumping, prefetching
+// and the dwell timer itself reach it from nowhere. A false khatmah is worse than no
+// khatmah, so this is a line of honesty and not a choice of interaction.
+//
+// THE KEY INVENTS NO PATTERN. It is ONE versioned key holding a MAP FROM PROFILE KEY TO
+// RECORD -- character for character the shape ezik_reading_prefs_v1 already ships with. The
+// profile key is ezikProfileKey's, which is the minted pid on the profile object, and its
+// own fallback 'anon' IS the device-global record a device with no valid profile gets. No
+// name is ever a key or a value here. Nothing in a record is anything but an integer or one
+// of the four fixed label identifiers declared below -- no Quran text, no reader's name, no
+// personal datum of any kind, new or old.
+const KHATMAH_KEY = 'ezik_khatmah_v1';
+// TWO, and the number lives here rather than being spelt out at three use sites.
+const KHATMAH_MARKS = 2;
+// The names a mark may carry are IDENTIFIERS, not text the reader types. Two reasons, and
+// both are requirements of this round rather than taste. First, the record is contracted to
+// hold numbers and identifiers alone, and a free text field is the one door through which a
+// personal datum could walk into it. Second, this interface is bilingual from its first
+// commit: an identifier is drawn in the language being read in, and a typed Arabic word
+// could only ever be shown back in Arabic.
+const KHATMAH_LABEL_IDS = ['wird', 'hifz', 'tadabbur', 'muraja'];
+// A damaged record must not be able to print an absurd number at a reader.
+const KHATMAH_DONE_MAX = 100000;
+
+// THE LENGTH OF THE BOOK IS NOT WRITTEN HERE. It is the layout file's own fact, read off the
+// layout already in memory, so this and the reader can never come to disagree about how long
+// the Quran is -- a number typed here would be a second source of truth with nothing keeping
+// it honest. Before the layout lands the answer is 0, and every caller below reads 0 as "not
+// known yet": never as "no pages", and never as a licence to guess.
+function khatmahTotalPages() {
+  try {
+    const d = __layoutData;
+    const n = (d && Array.isArray(d.p)) ? d.p.length : 0;
+    return (Number.isInteger(n) && n > 0) ? n : 0;
+  } catch (e) { return 0; }
+}
+
+// Digits follow the interface language: Arabic-Indic in Arabic, Latin in English. The same
+// number either way, and nothing else in the file changes shape.
+function khatmahNum(n) {
+  return ezLangGet() === 'ar' ? toArabicDigits(n) : String(n);
+}
+
+// WHOSE RECORD THIS IS. Read from the stored profile rather than taken as a prop, because
+// the reader component's props are pinned by a guard and widening them is not this round's
+// business. ezikProfileKey answers 'anon' for a device with no profile, a profile with no
+// id, or a store that will not open -- and that answer IS the device-global record the round
+// asks for, so there is no second key and no second code path for it.
+function khatmahProfileKey() {
+  let raw = null;
+  try { raw = localStorage.getItem('child_profile'); } catch (e) { return 'anon'; }
+  if (typeof raw !== 'string' || !raw) return 'anon';
+  let p = null;
+  try { p = JSON.parse(raw); } catch (e) { return 'anon'; }
+  return ezikProfileKey(p);
+}
+
+function khatmahEmpty() { return { p: [], c: 0, m: [null, null] }; }
+
+// The whole map, and every doubt answers with an empty map: a store that throws on getItem,
+// a missing key, text that is not JSON, JSON that is not an object, an array. Read and parse
+// are wrapped SEPARATELY so a storage that throws is answered before JSON is asked anything.
+function readKhatmahAll() {
+  let raw = null;
+  try { raw = localStorage.getItem(KHATMAH_KEY); } catch (e) { return {}; }
+  if (typeof raw !== 'string' || !raw) return {};
+  let map = null;
+  try { map = JSON.parse(raw); } catch (e) { return {}; }
+  if (!map || typeof map !== 'object' || Array.isArray(map)) return {};
+  return map;
+}
+
+// One mark, validated field by field. Anything unusable is NO MARK rather than a repaired
+// one: half a mark is not something to draw a reader a button for.
+function khatmahReadMark(raw, total) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  if (!Number.isInteger(raw.p) || raw.p < 1) return null;
+  if (total > 0 && raw.p > total) return null;
+  if (!Number.isInteger(raw.s) || raw.s < 1 || raw.s > 114) return null;
+  const l = (typeof raw.l === 'string' && KHATMAH_LABEL_IDS.indexOf(raw.l) !== -1) ? raw.l : '';
+  return { p: raw.p, s: raw.s, l: l };
+}
+
+// ONE PROFILE'S RECORD, and a damaged store lands on the opening state rather than on an
+// error panel. Pages are filtered, range-checked against the LAYOUT (never against a number
+// typed here) and de-duplicated on the way out, so the count can only ever be the number of
+// distinct real pages and can never exceed the length of the book.
+function readKhatmah(pk) {
+  const total = khatmahTotalPages();
+  const out = khatmahEmpty();
+  const map = readKhatmahAll();
+  const rec = map ? map[pk] : null;
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  if (Array.isArray(rec.p)) {
+    const seen = Object.create(null);
+    for (const v of rec.p) {
+      if (!Number.isInteger(v) || v < 1) continue;
+      if (total > 0 && v > total) continue;
+      if (seen[v]) continue;
+      seen[v] = 1;
+      out.p.push(v);
+    }
+  }
+  if (Number.isInteger(rec.c) && rec.c >= 0 && rec.c <= KHATMAH_DONE_MAX) out.c = rec.c;
+  if (Array.isArray(rec.m)) {
+    for (let i = 0; i < KHATMAH_MARKS; i++) out.m[i] = khatmahReadMark(rec.m[i], total);
+  }
+  return out;
+}
+
+// THE WRITE SAYS WHETHER IT LANDED, and it is never swallowed. A private window, a full
+// quota or a store the browser has switched off all return false here, and the panel below
+// draws a line saying the change holds for this session alone -- the same answer the home
+// arranger already gives for the same failure. Silence would be the app claiming a
+// persistence it does not have.
+function writeKhatmah(pk, rec) {
+  if (!pk || !rec) return false;
+  const map = readKhatmahAll();
+  map[pk] = { p: rec.p, c: rec.c, m: rec.m };
+  try { localStorage.setItem(KHATMAH_KEY, JSON.stringify(map)); return true; } catch (e) { return false; }
+}
+
+// Every mutation goes through here, so exactly one place decides what the component's state
+// becomes after a write. On success the state is RE-READ FROM THE STORE rather than assumed,
+// so what is drawn is what was actually kept; on failure the previous record is returned
+// untouched, so the screen never shows a change the device refused.
+function khatmahCommit(pk, prev, next) {
+  const ok = writeKhatmah(pk, next);
+  return { rec: ok ? readKhatmah(pk) : prev, ok: ok };
+}
+
+// THE ONE EXPLICIT ACT. Pressing on a page that is not counted counts it; pressing again on
+// a page that is counted takes it back, because a reader who marked by accident must be able
+// to say so. Nothing else in the file calls this.
+function khatmahTogglePage(pk, rec, pg) {
+  const total = khatmahTotalPages();
+  if (!Number.isInteger(pg) || pg < 1) return { rec: rec, ok: true };
+  if (total > 0 && pg > total) return { rec: rec, ok: true };
+  const at = rec.p.indexOf(pg);
+  const pages = at === -1 ? rec.p.concat([pg]) : rec.p.slice(0, at).concat(rec.p.slice(at + 1));
+  return khatmahCommit(pk, rec, { p: pages, c: rec.c, m: rec.m });
+}
+
+// COMPLETE IS A MEASUREMENT, not a flag that could drift out of step with the pages. It is
+// false while the layout is unknown, because "0 of 0" is not a finished book.
+function khatmahComplete(rec, total) {
+  return total > 0 && rec.p.length >= total;
+}
+
+// THE NEW KHATMAH IS THE READER'S ACT AND NOTHING ELSE'S. No path in this file calls this
+// from an effect, a timer, or the moment the last page is marked: reaching the end draws an
+// acknowledgement and stops there, and the book reopens when the reader says so. The tally
+// of finished khatmahs survives the clearing, which is the whole point of keeping a tally.
+function khatmahStartNew(pk, rec, total) {
+  if (!khatmahComplete(rec, total)) return { rec: rec, ok: true };
+  const c = rec.c < KHATMAH_DONE_MAX ? rec.c + 1 : rec.c;
+  return khatmahCommit(pk, rec, { p: [], c: c, m: rec.m });
+}
+
+// The two marks. Placing overwrites the slot, clearing empties it, naming sets one of the
+// four identifiers or clears the name -- and none of the three touches the page set, the
+// last page, or the manual bookmark the mushaf has always had.
+function khatmahPlaceMark(pk, rec, i, pg, sr) {
+  if (!Number.isInteger(i) || i < 0 || i >= KHATMAH_MARKS) return { rec: rec, ok: true };
+  const kept = rec.m[i];
+  const next = khatmahReadMark({ p: pg, s: sr, l: kept ? kept.l : '' }, khatmahTotalPages());
+  if (!next) return { rec: rec, ok: true };
+  const marks = rec.m.slice();
+  marks[i] = next;
+  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks });
+}
+function khatmahClearMark(pk, rec, i) {
+  if (!Number.isInteger(i) || i < 0 || i >= KHATMAH_MARKS) return { rec: rec, ok: true };
+  const marks = rec.m.slice();
+  marks[i] = null;
+  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks });
+}
+function khatmahNameMark(pk, rec, i, label) {
+  if (!Number.isInteger(i) || i < 0 || i >= KHATMAH_MARKS) return { rec: rec, ok: true };
+  const cur = rec.m[i];
+  if (!cur) return { rec: rec, ok: true };
+  const l = (typeof label === 'string' && KHATMAH_LABEL_IDS.indexOf(label) !== -1) ? label : '';
+  const marks = rec.m.slice();
+  marks[i] = { p: cur.p, s: cur.s, l: l };
+  return khatmahCommit(pk, rec, { p: rec.p, c: rec.c, m: marks });
+}
+
+// The word a label id is drawn as, in the language in use. An id that is not one of the four
+// -- which is what an unnamed mark carries -- draws the "unnamed" word rather than nothing,
+// so the naming control always reads as a control with a current value.
+const KHATMAH_LABEL_T = { wird: 'khatmah.labelWird', hifz: 'khatmah.labelHifz',
+  tadabbur: 'khatmah.labelTadabbur', muraja: 'khatmah.labelMuraja' };
+function khatmahLabelText(l) {
+  return ezT(Object.prototype.hasOwnProperty.call(KHATMAH_LABEL_T, l) ? KHATMAH_LABEL_T[l] : 'khatmah.labelNone');
+}
+
+// HOW LONG IS LEFT, IN THE READER'S OWN TERMS -- and this is where the khatmah BUILDS ON the
+// daily wird rather than beside it. The pages-a-day number is not asked for a second time
+// and no second target is stored: it is mushaf_wird_target_v1, the very key the wird picker
+// on this same panel writes, and the estimate exists only when the reader has actually
+// chosen a page wird. Choose a surah instead, or choose nothing, and no day count is
+// invented -- the same refusal to guess the wird strip itself already makes.
+function khatmahDaysLeft(rec, total, target) {
+  if (!(total > 0) || !Number.isInteger(target) || target < 1) return 0;
+  const left = total - rec.p.length;
+  if (left <= 0) return 0;
+  return Math.ceil(left / target);
+}
+
+// THE PANEL, AND IT HOLDS NO HOOKS AT ALL -- every value it draws arrives as a prop and every
+// act it offers is the parent's handler -- so it has no hook order to get wrong and its
+// single return cannot land before one. React #300 took the adhkar screen down once; a
+// component with nothing to be inconsistent about cannot repeat it.
+function KhatmahPanel(v) {
+  const rec = v.rec;
+  const total = v.total;
+  const done = rec.p.length;
+  const left = total > 0 ? Math.max(0, total - done) : 0;
+  const complete = khatmahComplete(rec, total);
+  const days = khatmahDaysLeft(rec, total, v.target);
+  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+  return (
+    <div style={s.khWrap}>
+      <div style={s.khHead}>
+        <span style={s.wirdSheetTitle}>{ezT('khatmah.title')}</span>
+        <span style={s.khCount}>{ezT('khatmah.count', { n: khatmahNum(rec.c) })}</span>
+      </div>
+      <span style={s.wirdTrack}><span style={{ ...s.wirdFill, width: pct + '%' }} /></span>
+      <div style={s.wirdText}>{total > 0
+        ? ezT('khatmah.progress', { n: khatmahNum(done), of: khatmahNum(total) })
+        : ezT('khatmah.none')}</div>
+      {total > 0 && !complete && <div style={s.khMuted}>{ezT('khatmah.left', { n: khatmahNum(left) })}</div>}
+      {days > 0 && <div style={s.khMuted}>{ezT('khatmah.leftDays', { n: khatmahNum(days) })}</div>}
+      {complete && <div style={s.khDone}>{ezT('khatmah.complete')}</div>}
+      {complete && (
+        <button type="button" onClick={v.onStartNew} className="ezik-focus"
+          style={{ ...s.khMark, ...s.wirdChipOn }}>{ezT('khatmah.startNew')}</button>
+      )}
+      {v.onToggle && (
+        <button type="button" onClick={v.onToggle} aria-label={ezT('khatmah.markAria')}
+          aria-pressed={v.pageMarked ? 'true' : 'false'} className="ezik-focus"
+          style={v.pageMarked ? { ...s.khMark, ...s.wirdChipOn } : s.khMark}>
+          {v.pageMarked ? ezT('khatmah.marked') : ezT('khatmah.mark')}
+        </button>
+      )}
+      <div style={s.a11yGroupLabel}>{ezT('khatmah.marksTitle')}</div>
+      {rec.m.map((mk, i) => (
+        <div key={'khm' + i} style={s.khMarkRow}>
+          <span style={s.khMuted}>{ezT('khatmah.markSlot', { n: khatmahNum(i + 1) })}</span>
+          {mk ? (
+            <React.Fragment>
+              <button type="button" onClick={() => v.onGo(i)} className="ezik-focus" style={s.khGo}>
+                {ezT('khatmah.markGo', { n: khatmahNum(mk.p) })} · {khatmahLabelText(mk.l)}
+              </button>
+              <select value={mk.l} onChange={(e) => v.onName(i, e.target.value)}
+                aria-label={ezT('khatmah.markName', { n: khatmahNum(i + 1) })} style={s.khSelect}>
+                <option value="">{ezT('khatmah.labelNone')}</option>
+                {KHATMAH_LABEL_IDS.map((id) => (
+                  <option key={id} value={id}>{khatmahLabelText(id)}</option>
+                ))}
+              </select>
+              <button type="button" onClick={() => v.onClear(i)} className="ezik-focus" style={s.wirdNone}>
+                {ezT('khatmah.markClear')}
+              </button>
+            </React.Fragment>
+          ) : (
+            <span style={s.khMuted}>{ezT('khatmah.markEmpty')}</span>
+          )}
+          {v.onPlace && (
+            <button type="button" onClick={() => v.onPlace(i)} className="ezik-focus" style={s.wirdChip}>
+              {ezT('khatmah.markPlace')}
+            </button>
+          )}
+        </div>
+      ))}
+      {v.saved === false && <div style={s.khFail}>{ezT('khatmah.saveFailed')}</div>}
+    </div>
+  );
+}
+
+
 // القارئ المُصفَّح — صفحةٌ لكلّ شاشة، ٦٠٤ صفحة، بأسطر مصحف المدينة.
 // الاتّجاه: المصحفُ يُقلب من اليسار إلى اليمين، فجرُّ الورقة يميناً يكشف التالية.
 function PagedMushaf({ startSurah, startPage, onExit }) {
@@ -15898,6 +16243,19 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // A-3: the reader's own choice of WHAT the mushaf wird is. The page count keeps living in
   // its own key; this holds the kind, and the surah when a surah is what was chosen.
   const [dailyWird, setDailyWird] = useState(readDailyWird);
+  // THE KHATMAH. Three pieces of state, and every one of them is declared HERE, among this
+  // component's other hooks and ABOVE the `state !== 'ok'` return -- so the hook order is
+  // identical on the loading render, the failed render and the reading render, exactly as
+  // the wird's three are. Nothing below is conditional and nothing returns before them.
+  const [khPk] = useState(khatmahProfileKey);
+  const [khRec, setKhRec] = useState(khatmahEmpty);
+  // Whether the LAST write landed. It starts true because nothing has been attempted yet;
+  // false is only ever written by a store that actually refused, and the panel says so.
+  const [khSaved, setKhSaved] = useState(true);
+  // Read once the layout is in memory and not before: the length of the book is what a page
+  // number is checked against, and `state` turns 'ok' in the very effect that awaits the
+  // layout, so this is the first moment the answer can be the right one.
+  useEffect(() => { if (state === 'ok') setKhRec(readKhatmah(khPk)); }, [state, khPk]);
   // A-4: the offline package's whole state. null until the reader presses.
   const [juzDl, setJuzDl] = useState(null);
   // A-4: the worker's own ceiling, pulled when the panel opens so the eviction rule is on
@@ -16093,6 +16451,21 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const jumpTo = (n) => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setDrag(0); setAnim(false); setSlide(0); setPage(n); if (n !== page) readerTurnedPage(); };   /* 77 -- jumping to the page you are already on is not a page change */
   // التطبيع: تُقبل الأرقامُ الهنديّة واللاتينيّة معاً. وما بقي بعد نزع الفراغ وليس رقماً — تُردُّ الخانةُ كلُّها.
   const jumpGo = () => { const raw = String(jump == null ? '' : jump).replace(/\s+/g, '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)); setJump(null); if (!/^[0-9]+$/.test(raw)) return; const n = parseInt(raw, 10); if (n >= 1 && n <= 604) jumpTo(n); };
+  // THE KHATMAH'S HANDLERS. Every one of them is a reader's press: there is no effect, no
+  // timer and no page-change path in this file that reaches any of them. khApply is the one
+  // place the returned record and the returned verdict are taken, so a refused write can
+  // never leave the screen showing a change the device did not keep.
+  const khTotal = khatmahTotalPages();
+  const khMarked = khRec.p.indexOf(page) !== -1;
+  const khApply = (r) => { setKhRec(r.rec); setKhSaved(r.ok); };
+  const khToggle = () => khApply(khatmahTogglePage(khPk, khRec, page));
+  const khNew = () => khApply(khatmahStartNew(khPk, khRec, khTotal));
+  const khPlace = (i) => khApply(khatmahPlaceMark(khPk, khRec, i, page, startSurah));
+  const khClear = (i) => khApply(khatmahClearMark(khPk, khRec, i));
+  const khName = (i, l) => khApply(khatmahNameMark(khPk, khRec, i, l));
+  // One press back to a mark, through the SAME jump the page box performs -- and the panel
+  // closes behind it, so the reader lands on the page rather than on a sheet over it.
+  const khGoMark = (i) => { const mk = khRec.m[i]; if (!mk) return; setPicker(false); jumpTo(mk.p); };
   // 75/E -- one tap recalls the chrome, two taps zoom. A single tap therefore waits out the
   // double-tap window before it acts: without that wait, the first tap of every double tap
   // would flash the chrome on and then off again. MUSHAF_TAP_MS is the whole price of telling
@@ -16361,6 +16734,14 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
             <span style={s.wirdText}>اليوم {toArabicDigits(wirdDone)} · حدّد وردك</span>
           )}
         </button>
+        {/* THE ONE EXPLICIT ACT, on the reader's own row. It is a press and nothing else:
+            no swipe, no dwell and no page turn reaches khToggle. aria-pressed carries the
+            state to a reader who cannot see the fill. */}
+        <button type="button" onClick={khToggle} aria-label={ezT('khatmah.markAria')}
+          aria-pressed={khMarked ? 'true' : 'false'}
+          style={khMarked ? { ...s.khPill, ...s.khPillOn } : s.khPill}>
+          <span style={s.khPillTxt}>{khMarked ? ezT('khatmah.marked') : ezT('khatmah.mark')}</span>
+        </button>
       </div>
       )}
       {MADINA_IMG_ON && picker && (
@@ -16405,6 +16786,12 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
           {juzDl && juzDl.note ? <div style={s.wirdText}>{juzDl.note}</div> : null}
           <div style={s.wirdText}>{(juzCap || (juzDl && juzDl.cap))
             ? (JD_RULE_A + toArabicDigits(juzCap || juzDl.cap) + JD_RULE_B) : JD_RULE_PLAIN}</div>
+          {/* The khatmah shares the wird's own panel rather than opening a second one: the
+              page-a-day target it estimates from is the very target chosen three controls
+              above it, and the reader should see both halves of their reading in one place. */}
+          <KhatmahPanel rec={khRec} total={khTotal} target={wirdTarget} saved={khSaved}
+            pageMarked={khMarked} onToggle={khToggle} onStartNew={khNew}
+            onPlace={khPlace} onClear={khClear} onName={khName} onGo={khGoMark} />
         </div>
       </div>
       )}
@@ -16433,6 +16820,13 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // it was left. The row is KEPT -- it is what the reader taps after choosing to go back to
   // the index -- and the auto-open is added beside it, not in place of it.
   const [lastPage, setLastPage] = useState(readMushafLastPage);
+  // The khatmah's two marks, on the index. Its own state and its own reader, beside the
+  // bookmark and the last page and never instead of either. `nav` joins the dependency list
+  // below because it is this screen's proof that the layout has landed, and the length of
+  // the book is what a stored page is checked against.
+  const [khPk] = useState(khatmahProfileKey);
+  const [khRec, setKhRec] = useState(khatmahEmpty);
+  const khGoMark = (i) => { const mk = khRec.m[i]; if (!mk) return; setOpenAt({ p: mk.p, s: mk.s }); setSelected(mk.s); };
   const openLastPage = () => { if (lastPage) { setOpenAt(lastPage); setSelected(lastPage.s); } };
   // ITEM 87 -- THE MUSHAF OPENS WHERE IT WAS LEFT, and it opens there through the SAME door a
   // tap uses: openAt carries the page and `selected` carries the surah, exactly as the resume
@@ -16490,6 +16884,9 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // 82 -- the same lifecycle for the last page, in its own effect so the bookmark's is left
   // exactly as it was. Coming back from the reader is precisely when this has just moved.
   useEffect(() => { if (selected == null) setLastPage(readMushafLastPage()); }, [selected]);
+  // Same lifecycle as the two rows above, in its own effect so neither of theirs is touched:
+  // coming back from the reader is exactly when this has just moved.
+  useEffect(() => { if (selected == null) setKhRec(readKhatmah(khPk)); }, [selected, khPk, nav]);
 
   // Leaving the screen must silence a running recitation.
   useEffect(() => () => { if (onStopAudio) onStopAudio(); }, []);
@@ -16544,6 +16941,20 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
           </div>
         )}
         </section>
+        )}
+        {/* The two marks, in a section of their own BELOW the masthead rather than inside it:
+            the masthead is a one-row flex strip and a third and fourth row do not belong in
+            it. Same door as every other row here -- setOpenAt plus setSelected. */}
+        {khRec.m.some(Boolean) && (
+          <React.Fragment>
+            <h2 className="ezm-sec">{ezT('khatmah.marksTitle')}</h2>
+            {khRec.m.map((mk, i) => (mk ? (
+              <button key={'khi' + i} onClick={() => khGoMark(i)} style={s.mushafRow}>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--red-deep)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M4 4h16v16l-8-5-8 5z" /></svg>
+                <div style={s.mushafName}>{khatmahLabelText(mk.l)} · {ezT('khatmah.markGo', { n: khatmahNum(mk.p) })}</div>
+              </button>
+            ) : null))}
+          </React.Fragment>
         )}
         {!ready && <div style={s.mushafHint}>جارٍ تحميل المصحف…</div>}
         {/* S110 -- the juz, in a DENSER grid of their own above the surahs: .ezm-juzgrid is not
@@ -17961,7 +18372,7 @@ const s = {
   // supplied at the use site, and nothing here has any layout height in the reading column.
   // pointerEvents on the wrapper is 'none' so the strip's margins never eat a swipe; the
   // button itself takes them back, so only the pill is tappable.
-  wirdWrap: { position: 'absolute', left: 0, right: 0, zIndex: 5, display: 'flex', justifyContent: 'center', pointerEvents: 'none', paddingTop: 6, paddingLeft: 'calc(14px + env(safe-area-inset-left, 0px))', paddingRight: 'calc(14px + env(safe-area-inset-right, 0px))', boxSizing: 'border-box' },
+  wirdWrap: { position: 'absolute', left: 0, right: 0, zIndex: 5, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 8, pointerEvents: 'none', paddingTop: 6, paddingLeft: 'calc(14px + env(safe-area-inset-left, 0px))', paddingRight: 'calc(14px + env(safe-area-inset-right, 0px))', boxSizing: 'border-box' },
   wirdBtn: { pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 8, maxWidth: '100%', minWidth: 0, background: 'var(--wird-pill)', border: '1px solid var(--line)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 1px 6px rgba(0,0,0,0.10)' },
   wirdText: { fontSize: 12.5, fontWeight: 700, color: 'var(--accent-ink)', whiteSpace: 'nowrap' },
   wirdTrack: { width: 72, height: 4, borderRadius: 999, background: 'var(--tint)', overflow: 'hidden', flexShrink: 0, display: 'block' },
@@ -17975,6 +18386,19 @@ const s = {
   wirdChipOn: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red-deep)' },
   wirdFree: { display: 'flex', alignItems: 'center', gap: 8 },
   wirdNone: { height: 36, borderRadius: 10, background: 'none', color: 'var(--muted)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'inherit' },
+  khWrap: { display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12, borderTop: '1px solid var(--line)' },
+  khHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  khCount: { fontSize: 12.5, fontWeight: 700, color: 'var(--muted)' },
+  khMuted: { fontSize: 12.5, fontWeight: 600, color: 'var(--muted)' },
+  khDone: { fontSize: 14, fontWeight: 800, color: 'var(--accent-ink)' },
+  khFail: { fontSize: 12.5, fontWeight: 600, color: 'var(--red-deep)' },
+  khMark: { minHeight: 44, borderRadius: 12, background: 'var(--tint)', color: 'var(--accent-ink)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', padding: '0 14px' },
+  khMarkRow: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  khGo: { minHeight: 36, borderRadius: 10, background: 'var(--tint)', color: 'var(--accent-ink)', border: '1px solid var(--line)', cursor: 'pointer', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit', padding: '0 10px' },
+  khPill: { pointerEvents: 'auto', display: 'flex', alignItems: 'center', minHeight: 36, maxWidth: '100%', minWidth: 0, background: 'var(--wird-pill)', border: '1px solid var(--line)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--accent-ink)', boxShadow: '0 1px 6px rgba(0,0,0,0.10)' },
+  khPillOn: { background: 'var(--red)', color: 'var(--on-accent)', borderColor: 'var(--red-deep)' },
+  khPillTxt: { fontSize: 12.5, fontWeight: 700, color: 'inherit', whiteSpace: 'nowrap' },
+  khSelect: { minHeight: 36, borderRadius: 10, background: 'var(--white)', color: 'var(--ink)', border: '1px solid var(--line)', fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit', padding: '0 8px' },
   memContainer: { height: '100vh', height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--page)', direction: 'rtl' },
   memHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%)', borderBottom: '1px solid rgba(255,255,255,0.15)' },
   memTitle: { fontSize: 18, fontWeight: 800, color: 'var(--on-accent)', letterSpacing: '0.3px' },
