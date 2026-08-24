@@ -1245,6 +1245,265 @@ const alignRecite = (expected, heard) => {
   return states;
 };
 
+// ============================================================
+// المُطبِّعُ الذكيّ للتمييزِ الأحمر — الرسمُ مقابلَ النطق
+// ============================================================
+// THE ONE WORD. Red marking is OFF. Flip this to true and the memorizer's «سمِّعني» starts
+// colouring a wrong word red; leave it false and the screen behaves exactly as it does today --
+// alignRecite decides, and every 'mismatch' it returns is shown black. Nothing else in this file
+// reads it, and nothing below it runs while it is false.
+const MEM_RED_FLAGGING = false;
+//
+// WHY A SECOND MATCHER AT ALL. normalizeForRecite compares on WORD IDENTITY after deleting every
+// mark, and that is why red had to be switched off: it deletes U+0670 as if it were decoration,
+// so ٱلرَّحْمَـٰنِ becomes «الرحمن» -- which is right -- and أَعْطَيْنَـٰكَ becomes «اعطينك», which no
+// recogniser will ever return, because the alef IS pronounced. Every such word came back red on a
+// child who had recited it perfectly.
+//
+// THE OBSERVATION THIS IS BUILT ON. The Uthmani mushaf already WRITES DOWN every place its rasm
+// and its recitation part company -- that is what the small marks are for. U+0670 is an alef that
+// is said and not drawn; U+06E5/U+06E6 are the و and ي of the pronoun ه that are said and not
+// drawn; U+06DF/U+06E0 sit over a letter that is drawn and not said; ٱ is an alef that is dropped
+// when the word is joined to what came before it. So the divergence does not have to be guessed
+// at. It is read off the text, one mark at a time.
+//
+// SO THE EXPECTED WORD IS NOT A STRING, IT IS A PATTERN. recitePattern turns one word of the rasm
+// into a list of positions, each carrying the characters it will accept and whether it may be
+// ABSENT from what was heard. The child's word is folded to the same alphabet and scored against
+// the pattern. What that buys, and what it deliberately does not:
+//   * ذَٰلِكَ accepts «ذلك» AND «ذالك» -- both are the same word, so both are green.
+//   * قَالَ does NOT accept «قل». There is a real alef in the rasm, no mark says it is optional,
+//     and «قال» and «قل» are two different words. A rule that folded them together would be
+//     erasing meaning rather than orthography, and it is refused here on purpose.
+const RECITE_RED_HAMZAT = 'اءوي';   // what a bare hamza may be heard as
+const RECITE_RED_DAGGER = 'ٰ';                      // ٰ  الألف الخنجرية
+const RECITE_RED_SMALL_WAW = 'ۥ';                   // ۥ  واو الصلة
+const RECITE_RED_SMALL_YA = 'ۦ';                    // ۦ  ياء الصلة
+const RECITE_RED_SMALL_HIGH_YA = 'ۧ';               // ۧ
+const RECITE_RED_HAMZA_ABOVE = 'ٔ';                 // ٔ   همزة على غير كرسيّ
+const RECITE_RED_SILENT = '۟۠';                // ۟ ۠  حرفٌ مرسومٌ لا يُنطَق
+// Marks with no bearing on which LETTERS are heard: harakat, tanwin, shadda, sukun, the maddah
+// sign, tatweel, the pause and ornament marks, and the small assimilation letters. U+0670,
+// U+0654, U+06DF, U+06E0 and U+06E5..U+06E7 are excluded here because each is handled above.
+const RECITE_RED_DROP = /[ؐ-ًؚ-ٕٓ-ٟـۖ-۞ۡ-ۤۨ-ۭ]/;
+
+// What ONE letter of the rasm may be heard as. Every entry folds an ORTHOGRAPHIC choice and never
+// a meaning: the hamza's seat is a spelling convention, ة/ه/ت is the pause, ى/ي/ا is one long a.
+const reciteRedAccepts = (ch) => {
+  switch (ch) {
+    case 'ا': case 'أ': case 'إ': case 'آ': case 'ٱ': case 'ء':
+      return 'اء';                             // ا أ إ آ ٱ ء
+    case 'ؤ': return 'واء';          // ؤ  — its seat is a waw
+    case 'ئ': return 'ياء';          // ئ  — its seat is a ya
+    case 'ة': return 'هت';                // ة  — ha in pause, ta in continuation
+    case 'ى': return 'يا';                // ى  — one long a, written either way
+    default: return ch;
+  }
+};
+
+// One word of the rasm -> [{ c: accepted characters, o: may be absent }]. Nothing here reads a
+// dictionary and nothing here carries a word list: every position comes from a character the
+// mushaf itself put on the page.
+const recitePattern = (word) => {
+  const raw = String(word || '');
+  const out = [];
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    // ۟ ۠ — the letter BEFORE this mark is drawn and not said (ألف واو الجماعة، الألف الساكتة).
+    if (RECITE_RED_SILENT.indexOf(ch) !== -1) { if (out.length) out[out.length - 1].o = true; continue; }
+    if (ch === RECITE_RED_DAGGER) {
+      const prev = out.length ? out[out.length - 1] : null;
+      const prevRaw = prev ? prev.r : '';
+      // ى + ٰ is ONE long a, and the ى already accepts both spellings of it. A second position
+      // here would demand «علاي» for عَلَىٰ and redden «على».
+      if (prevRaw === 'ى') continue;
+      // A و or ي carrying the dagger may be the rasm's own letter and no sound at all
+      // (ٱلصَّلَوٰةَ is said «الصلاة»), so it becomes optional and the alef takes its place.
+      if (prevRaw === 'و' || prevRaw === 'ي') prev.o = true;
+      out.push({ c: 'ا', o: true, r: RECITE_RED_DAGGER });
+      continue;
+    }
+    if (ch === RECITE_RED_SMALL_WAW) { out.push({ c: 'و', o: true, r: ch }); continue; }
+    if (ch === RECITE_RED_SMALL_YA || ch === RECITE_RED_SMALL_HIGH_YA) { out.push({ c: 'ي', o: true, r: ch }); continue; }
+    if (ch === RECITE_RED_HAMZA_ABOVE) { out.push({ c: RECITE_RED_HAMZAT, o: true, r: ch }); continue; }
+    if (RECITE_RED_DROP.test(ch)) continue;
+    // ألفُ التنوين: drawn after ـً, and silent the moment the word is joined to the next one.
+    // ذَهَبًا is «ذهبا» when you stop on it and «ذهب» when you carry on, and both are the word.
+    if (ch === 'ا' && raw[i - 1] === 'ً') { out.push({ c: 'ا', o: true, r: ch, base: true, at: i }); continue; }
+    // ٱ is the only base letter that is optional on its own: joined to the word before it, the
+    // hamza of wasl is not pronounced at all.
+    out.push({ c: reciteRedAccepts(ch), o: ch === 'ٱ', r: ch, base: true, at: i });
+  }
+  // الوقفُ والوصل. The word's LAST letter is the one the pause reshapes, and it reshapes it in two
+  // ways at once, so both are settled here rather than inside the loop:
+  //   ة ⟷ ه ⟷ ت    the tied ta is heard as a ha in pause and as an open ta in continuation.
+  //   إشباعُ الحركة   the case vowel is a SOUND the rasm gives no letter to, and a recogniser
+  //                  writes the sound it hears: ـَ→ا, ـُ→و, ـِ→ي. Optional, because stopping on
+  //                  the word drops it altogether -- «رَبِّ» is heard as «رب» and as «ربي».
+  let last = -1;
+  for (let k = out.length - 1; k >= 0; k--) if (out[k].base) { last = k; break; }
+  if (last !== -1) {
+    const r = out[last].r;
+    if (r === 'ة' || r === 'ه' || r === 'ت') out[last].c = 'هت';
+    // ...and a BARE hamza at the end of the word is optional. It is the letter a recogniser
+    // drops most often -- شَآءَ comes back «شا», شَىْءٍ comes back «شي» -- and the long vowel in
+    // front of it is still carrying the word. Only the SEATLESS one: أ إ ؤ ئ keep their seat
+    // letter, which is what a reader would type, so those stay required.
+    if (r === 'ء') out[last].o = true;
+    const tail = raw.slice(out[last].at + 1);
+    const sat = /[ًَ]/.test(tail) ? 'ا'
+      : /[ٌُ]/.test(tail) ? 'و'
+        : /[ٍِ]/.test(tail) ? 'ي' : '';
+    // Always its own position, never folded into the letter before it. Measured: folding it
+    // away whenever that letter already accepted the same character reddened «هيا» for هِىَ
+    // and «شاءا» for شَآءَ -- two sounds were being asked to share one slot.
+    if (sat) out.push({ c: sat, o: true, r: 'sat' });
+  }
+  return out;
+};
+
+// The child's side. Modern ar-SA orthography, folded to the alphabet the patterns accept: marks
+// go, every hamza keeps its SEAT (ؤ→و, ئ→ي) so a pattern position can meet it, ة→ه, ى→ي. This is
+// NOT normalizeForRecite: that one deletes U+0670 and then compares character for character, and
+// it still serves the flag-off path below, unchanged.
+const normalizeHeardRed = (str) => (str || '')
+  .replace(/[ؐ-ًؚ-ٰٟۖ-ۭـ]/g, '')
+  .replace(/[أإآٱء]/g, 'ا')
+  .replace(/ؤ/g, 'و')
+  .replace(/ئ/g, 'ي')
+  .replace(/ة/g, 'ه')
+  .replace(/ى/g, 'ي')
+  .replace(/\s+/g, ' ')
+  .trim();
+const tokenizeHeardRed = (str) => normalizeHeardRed(str).split(/\s+/).filter(Boolean);
+// The pattern list for one verse, on the SAME token rule tokenizeForRecite uses -- split on
+// whitespace, drop what normalizes to nothing -- so index k means the same word on both paths.
+const patternsForVerse = (text) => String(text || '').split(/\s+/).filter((w) => normalizeHeardRed(w)).map(recitePattern);
+
+// Levenshtein over a pattern: dropping an OPTIONAL position is free, and a position matches any
+// of the characters it accepts. Same 0..1 scale wordSim returns, so a threshold means the same
+// thing on both paths.
+const redWordSim = (pat, heard) => {
+  const m = pat.length, n = heard.length;
+  if (m === 0 && n === 0) return 1;
+  let prev = new Float64Array(n + 1);
+  for (let j = 0; j <= n; j++) prev[j] = j;
+  for (let i = 1; i <= m; i++) {
+    const el = pat[i - 1];
+    const skip = el.o ? 0 : 1;
+    const cur = new Float64Array(n + 1);
+    cur[0] = prev[0] + skip;
+    for (let j = 1; j <= n; j++) {
+      const hit = el.c.indexOf(heard[j - 1]) !== -1 ? 0 : 1;
+      cur[j] = Math.min(prev[j] + skip, cur[j - 1] + 1, prev[j - 1] + hit);
+    }
+    prev = cur;
+  }
+  const denom = Math.max(m, n);
+  return denom === 0 ? 1 : 1 - prev[n] / denom;
+};
+
+// The same bar as the flag-off path: a heard word this close to the expected one counts correct.
+const RECITE_RED_THRESHOLD = 0.8;
+// A red sits on the slip and does not spread to its neighbours. An unmatched run longer than this
+// is a GAP in what was heard -- a pause the recogniser swallowed, a segment lost across one of its
+// restarts -- and not a run of wrong words, so it stays dim. One or two missing words is still a
+// slip and still reddens.
+const RECITE_RED_MAX_RUN = 2;
+
+// كلمةٌ في الرسمِ تُنطَقُ كلمتَين (يَـٰٓأَيُّهَا ⟵ «يا أيها»): the PATTERN splits, and each half must
+// stand on its own. Gluing the two heard words together and scoring the whole would let an
+// INSERTED word ride in on its neighbour.
+const redSplitsInTwo = (pat, h1, h2) => {
+  for (let s = 1; s < pat.length; s++) {
+    if (redWordSim(pat.slice(0, s), h1) >= RECITE_RED_THRESHOLD
+      && redWordSim(pat.slice(s), h2) >= RECITE_RED_THRESHOLD) return true;
+  }
+  return false;
+};
+// وكلمتانِ تُنطَقانِ كلمةً: the HEARD word splits, and each half must stand on its own. Scoring the
+// joined pair as one string was MEASURED to hide a dropped word -- رَبِّ ٱلْعَـٰلَمِينَ heard as
+// «العالمين» alone scored exactly 0.800 and claimed both, so a missing word came back green.
+const redJoinsInTwo = (pa, pb, h) => {
+  for (let s = 1; s < h.length; s++) {
+    if (redWordSim(pa, h.slice(0, s)) >= RECITE_RED_THRESHOLD
+      && redWordSim(pb, h.slice(s)) >= RECITE_RED_THRESHOLD) return true;
+  }
+  return false;
+};
+
+// The same three states alignRecite returns, and the same bias: 'pending' is never red. What is
+// added is the word-boundary move in both directions and the run cap above.
+const alignReciteRed = (pats, heard) => {
+  const m = pats.length, n = heard.length;
+  if (m === 0) return [];
+  const c1 = new Map(), c2 = new Map(), c3 = new Map();
+  const one = (i, j) => { const k = i + ',' + j; let v = c1.get(k); if (v === undefined) { v = redWordSim(pats[i], heard[j]) >= RECITE_RED_THRESHOLD; c1.set(k, v); } return v; };
+  const split = (i, j) => { const k = i + ',' + j; let v = c2.get(k); if (v === undefined) { v = redSplitsInTwo(pats[i], heard[j], heard[j + 1]); c2.set(k, v); } return v; };
+  const join = (i, j) => { const k = i + ',' + j; let v = c3.get(k); if (v === undefined) { v = redJoinsInTwo(pats[i], pats[i + 1], heard[j]); c3.set(k, v); } return v; };
+  // dp[i][j] = the most EXPECTED words claimable from expected[i..], heard[j..]
+  const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+  for (let i = m - 1; i >= 0; i--) {
+    for (let j = n - 1; j >= 0; j--) {
+      let best = dp[i + 1][j] > dp[i][j + 1] ? dp[i + 1][j] : dp[i][j + 1];
+      if (one(i, j) && dp[i + 1][j + 1] + 1 > best) best = dp[i + 1][j + 1] + 1;
+      if (j + 2 <= n && split(i, j) && dp[i + 1][j + 2] + 1 > best) best = dp[i + 1][j + 2] + 1;
+      if (i + 2 <= m && join(i, j) && dp[i + 2][j + 1] + 2 > best) best = dp[i + 2][j + 1] + 2;
+      dp[i][j] = best;
+    }
+  }
+  const matched = new Array(m).fill(false);
+  const claimed = new Array(m).fill(-1);   // which heard word claimed this one, when exactly one did
+  let i = 0, j = 0;
+  while (i < m && j < n) {
+    const best = dp[i][j];
+    if (one(i, j) && dp[i + 1][j + 1] + 1 === best) { matched[i] = true; claimed[i] = j; i++; j++; continue; }
+    if (j + 2 <= n && split(i, j) && dp[i + 1][j + 2] + 1 === best) { matched[i] = true; i++; j += 2; continue; }
+    if (i + 2 <= m && join(i, j) && dp[i + 2][j + 1] + 2 === best) { matched[i] = true; matched[i + 1] = true; i += 2; j++; continue; }
+    if (dp[i + 1][j] >= dp[i][j + 1]) i++; else j++;
+  }
+  // A GAP THAT ONE NEAR-TWIN TORE IN HALF. Measured three times over: a silence swallowed
+  // مَا فِى ٱلسَّمَـٰوَٰتِ وَمَا فِى and the one surviving «في» claimed the wrong فى in the middle of the
+  // hole; it swallowed the opening of 4:59 and «وأطيعوا» claimed أَطِيعُوا۟ at 0.857; it swallowed
+  // the opening of 5:3 and «ولحم» claimed وَٱلدَّمُ at 0.833. Each time the claim cut ONE run into
+  // two short ones, and short runs redden. A word claimed with NOTHING matched on either side of
+  // it is standing alone, so the leniency that carries a word along inside a recitation is not
+  // available to it: it has to be EXACT under its own pattern, or it is not evidence that the
+  // child said it there. Dropping such a claim closes the hole back into one run, which the cap
+  // below then leaves dim. It can only ever REMOVE red -- it pushes furthest backwards, never on.
+  // TWO WAYS A LONE CLAIM FAILS TO BE EVIDENCE, and both were measured, not reasoned:
+  //   it is not EXACT      -- «وأطيعوا» took أَطِيعُوا۟ at 0.857, «ولحم» took وَٱلدَّمُ at 0.833;
+  //   it is TOO COMMON     -- 4:149 says أَوْ twice and 6:63 says مَن twice, so the one surviving
+  //                          «أو» and «من» took the earlier of the two, exactly, and reddened the
+  //                          words in between. A two- or three-letter word standing alone is not
+  //                          evidence of WHERE the child is, however exactly it matches.
+  for (let k = 1; k < m - 1; k++) {
+    if (!matched[k] || matched[k - 1] || matched[k + 1] || claimed[k] === -1) continue;
+    let letters = 0;
+    for (let t = 0; t < pats[k].length; t++) if (!pats[k][t].o) letters++;
+    if (letters <= 3 || redWordSim(pats[k], heard[claimed[k]]) < 1) matched[k] = false;
+  }
+  const leftoverHeard = n - j;                // heard words spoken past the last thing that aligned
+  let furthest = -1;
+  for (let k = 0; k < m; k++) if (matched[k]) furthest = k;
+  // 'pending' -- at or after the furthest match -- is never red: silence and a slow pace show dim.
+  // The one word that may still redden at the tail is one the child demonstrably went PAST:
+  // unmatched, with heard words left over after the last alignment. Stopping early leaves nothing
+  // over, so a child who is simply still thinking keeps the dim.
+  const states = new Array(m);
+  for (let k = 0; k < m; k++) {
+    states[k] = matched[k] ? 'matched'
+      : (k < furthest || (leftoverHeard > 0 && furthest >= 0)) ? 'mismatch' : 'pending';
+  }
+  for (let k = 0; k < m;) {
+    if (states[k] !== 'mismatch') { k++; continue; }
+    let e = k; while (e < m && states[e] === 'mismatch') e++;
+    if (e - k > RECITE_RED_MAX_RUN) for (let t = k; t < e; t++) states[t] = 'pending';
+    k = e;
+  }
+  return states;
+};
+
 // Reused verbatim from the chat/call mic's not-supported message (line ~1526) — not new copy.
 const RECITE_NO_SR = '🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.';
 
@@ -17188,13 +17447,20 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     // (robust to ar-SA cumulative re-segmentation; no mic teardown).
     const buildExpected = (toAyah) => {
       const tokens = [];
+      const pats = [];
       let curOffset = 0, curLen = 0;
       for (let a = startAyah; a <= toAyah; a++) {
-        const at = tokenizeForRecite(getVerseText(selectedSurah, a) || '');
+        const verse = getVerseText(selectedSurah, a) || '';
+        const at = tokenizeForRecite(verse);
+        // The red path needs the rasm itself, not the flattened token: its marks are the
+        // whole signal. patternsForVerse splits on the same rule tokenizeForRecite does, so
+        // pats[k] is the same word as tokens[k] and one offset serves both.
+        const ap = MEM_RED_FLAGGING ? patternsForVerse(verse) : null;
         if (a === toAyah) { curOffset = tokens.length; curLen = at.length; }
         for (let t = 0; t < at.length; t++) tokens.push(at[t]);
+        if (ap) for (let t = 0; t < ap.length; t++) pats.push(ap[t]);
       }
-      return { tokens, curOffset, curLen };
+      return { tokens, pats, curOffset, curLen };
     };
     const rec = ezNewRecognition();
     if (!rec) { setReciteErr(hasValidAIConsent() ? RECITE_NO_SR : EZ_SPEECH_NO_CONSENT); return; }
@@ -17220,13 +17486,17 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       // Match FULL cumulative heard vs FULL cumulative expected (up to the current ayah), then
       // display + completion-check only the CURRENT ayah's slice of states.
       const cur = reciteAyahRef.current || startAyah;
-      const { tokens, curOffset, curLen } = buildExpected(cur);
-      const fullStates = alignRecite(tokens, tokenizeForRecite(reciteHeardRef.current));
+      const { tokens, pats, curOffset, curLen } = buildExpected(cur);
+      // ONE WORD, TWO PATHS. MEM_RED_FLAGGING is false, so what runs is exactly what ran
+      // before it existed: alignRecite over the flattened tokens, and every 'mismatch' it
+      // returns reinterpreted as reached/black -- red never renders and a tashkeel or madd slip
+      // cannot block progression. Flip the constant and the rasm-aware matcher decides instead,
+      // and its 'mismatch' is shown as itself. 'pending' (not-yet-reached) gates advance on both.
+      const fullStates = MEM_RED_FLAGGING
+        ? alignReciteRed(pats, tokenizeHeardRed(reciteHeardRef.current))
+        : alignRecite(tokens, tokenizeForRecite(reciteHeardRef.current));
       const currentSlice = fullStates.slice(curOffset, curOffset + curLen);
-      // TEMP (error-flagging disabled): treat 'mismatch' as reached/black so red never renders and a
-      // tashkeel/madd slip can't block progression. 'pending' (not-yet-reached) still gates advance.
-      // alignRecite is untouched — we only reinterpret its output here. Revisit when tashkeel/madd is handled.
-      const shown = currentSlice.map((x) => (x === 'mismatch' ? 'matched' : x));
+      const shown = MEM_RED_FLAGGING ? currentSlice : currentSlice.map((x) => (x === 'mismatch' ? 'matched' : x));
       const allMatched = shown.length > 0 && shown.every((x) => x === 'matched');
       if (allMatched && cur < surahCount) {
         // Auto-advance. Set the ref synchronously so a rapid follow-up onresult can't re-advance the
