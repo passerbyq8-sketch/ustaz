@@ -3582,12 +3582,235 @@ function EzikIstanaHome(v) {
           <div className="ezist-mosaic">
             {mods.map((m) => <EzistModuleCard key={m.id} m={m} />)}
           </div>
+          {/* THE READER'S OWN REGION, after the modules and before nothing. With the shipped
+              default it renders null, so the tree above it and the tree below it are the tree
+              that was here before the region existed. */}
+          <EzikHomeWidgetArea widgets={v.widgets}
+            nav={{ onOpenAdhkar: v.onOpenAdhkar, onOpenPrayer: v.onOpenPrayer }} />
         </div>
       </div>
     </div>
   );
 }
 // ---- S101 ISTANA HOME END ----------------------------------------------------------------
+
+
+// ============================================================
+// THE HOME THE READER ARRANGES -- THE FRAMEWORK
+// ============================================================
+// WHAT THIS IS. A register of home widgets, a single stored arrangement, and the region that
+// draws it. It is the frame only: this commit registers NO widget, so ezWidgetVisible() returns
+// an empty list, the region renders null, and the home is byte for byte the home that was here
+// before it. Each widget lands in its own commit after this one and adds its own row.
+//
+// 🔴 THE DEFAULT IS THE SCREEN THAT IS ALREADY THERE. Every row a later commit registers carries
+// shown:false, so a reader who never opens the arranging panel sees exactly what they saw
+// yesterday -- the same elements in the same order. That is the order's own red line, and it is
+// the reason default visibility is a FIELD of the register rather than an assumption: a widget
+// that wants to be on by default would have to say so in its row, in a commit whose diff shows
+// it, and would have to answer for the screen it moved.
+//
+// ONE NEW KEY AND NO OTHER. ezik_home_widgets_v1 holds { v, order, hidden } and nothing else. No
+// existing key is read for this, written for this, renamed or migrated: the prayer preferences,
+// the hijri offset, the qibla position, the adhkar chain and the adhkar progress all keep their
+// own names and their own values, and the widgets that read them read them THROUGH THE FUNCTIONS
+// THAT ALREADY OWN THEM rather than opening the store a second time.
+//
+// ZERO NETWORK, ZERO MODEL, ZERO ENVIRONMENT. Nothing on this path fetches, and nothing on it is
+// a model call. The whole of it is localStorage and arithmetic.
+const EZWID_KEY = 'ezik_home_widgets_v1';
+const EZWID_V = 1;
+
+// THE REGISTER. One row per widget, and the row is the whole of what the frame knows about it:
+//
+//   id     a stable identifier, the one thing that is written into storage and the one thing
+//          that survives a reordering, a rename of the component or a change of wording;
+//   title  a DICTIONARY KEY, never a sentence -- which is what makes the widget bilingual from
+//          the day it is born instead of Arabic first and translated afterwards;
+//   order  its default position, written as a number rather than left to the array index, so a
+//          row can be moved in this file without moving anybody's screen;
+//   shown  whether it is drawn before the reader has said anything at all;
+//   draw   the function that renders it, handed the navigation handlers the owner already holds.
+//
+// A widget is registered by adding its row here and nowhere else. There is no second list.
+function ezWidgetRegistry() {
+  return [
+  ];
+}
+
+function ezWidgetIds() {
+  return ezWidgetRegistry().map((w) => w.id);
+}
+function ezWidgetById(id) {
+  const reg = ezWidgetRegistry();
+  for (let i = 0; i < reg.length; i++) if (reg[i].id === id) return reg[i];
+  return null;
+}
+// THE DEFAULT ARRANGEMENT, derived from the register and from nothing else, so it cannot drift
+// away from it. A row added above is in the default the moment it is added.
+function ezWidgetDefaults() {
+  const reg = ezWidgetRegistry().slice().sort((a, b) => a.order - b.order);
+  return {
+    v: EZWID_V,
+    order: reg.map((w) => w.id),
+    hidden: reg.filter((w) => !w.shown).map((w) => w.id),
+  };
+}
+
+// THE READER. Anything that is not a well-formed record of THIS version reads as the default: a
+// missing key, damaged JSON, an array where an object belongs, another version, a missing list,
+// or a storage that throws. An id in the store that this build does not know is IGNORED -- not an
+// error, not a reset -- so a device that saw a later build keeps the arrangement of the widgets
+// this build does have. A known id the store never mentioned is appended in its default place,
+// which is what lets a new widget arrive without wiping what the reader already arranged.
+function readHomeWidgets() {
+  const def = ezWidgetDefaults();
+  const known = ezWidgetIds();
+  let raw = null;
+  try { raw = localStorage.getItem(EZWID_KEY); } catch (e) { return def; }
+  if (typeof raw !== 'string' || !raw) return def;
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return def; }
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return def;
+  if (o.v !== EZWID_V) return def;
+  if (!Array.isArray(o.order) || !Array.isArray(o.hidden)) return def;
+  const order = [];
+  for (let i = 0; i < o.order.length; i++) {
+    const id = o.order[i];
+    if (typeof id !== 'string') continue;
+    if (known.indexOf(id) === -1) continue;
+    if (order.indexOf(id) !== -1) continue;
+    order.push(id);
+  }
+  for (let i = 0; i < def.order.length; i++) {
+    if (order.indexOf(def.order[i]) === -1) order.push(def.order[i]);
+  }
+  const hidden = [];
+  for (let i = 0; i < o.hidden.length; i++) {
+    const id = o.hidden[i];
+    if (typeof id !== 'string') continue;
+    if (known.indexOf(id) === -1) continue;
+    if (hidden.indexOf(id) === -1) hidden.push(id);
+  }
+  return { v: EZWID_V, order: order, hidden: hidden };
+}
+
+// THE ONLY WRITER, and it REPORTS. A full store, a private window that refuses, a storage that
+// throws -- each returns false, and the panel says so on the channel item 93-ج opened rather
+// than pretending the choice was kept. Nothing here is swallowed.
+function writeHomeWidgets(state) {
+  const known = ezWidgetIds();
+  const order = [];
+  const src = (state && Array.isArray(state.order)) ? state.order : [];
+  for (let i = 0; i < src.length; i++) {
+    const id = src[i];
+    if (known.indexOf(id) === -1 || order.indexOf(id) !== -1) continue;
+    order.push(id);
+  }
+  const hidden = [];
+  const hsrc = (state && Array.isArray(state.hidden)) ? state.hidden : [];
+  for (let i = 0; i < hsrc.length; i++) {
+    const id = hsrc[i];
+    if (known.indexOf(id) === -1 || hidden.indexOf(id) !== -1) continue;
+    hidden.push(id);
+  }
+  try { localStorage.setItem(EZWID_KEY, JSON.stringify({ v: EZWID_V, order: order, hidden: hidden })); }
+  catch (e) { return false; }
+  return true;
+}
+
+// THE VISIBLE LIST, in the reader's own order. A row the store names but this build does not
+// register is dropped here as well as on the way in, so a stale id can never reach a renderer.
+function ezWidgetVisible(state) {
+  const out = [];
+  const order = (state && Array.isArray(state.order)) ? state.order : [];
+  const hidden = (state && Array.isArray(state.hidden)) ? state.hidden : [];
+  for (let i = 0; i < order.length; i++) {
+    if (hidden.indexOf(order[i]) !== -1) continue;
+    const w = ezWidgetById(order[i]);
+    if (w) out.push(w);
+  }
+  return out;
+}
+
+// THE TWO MUTATIONS, PURE. They take a record and return a new one; they touch no storage and no
+// component state, which is what lets a guard drive every branch of them with a literal.
+function ezWidgetToggle(state, id) {
+  const cur = readHomeWidgetsShape(state);
+  if (ezWidgetIds().indexOf(id) === -1) return cur;
+  const hidden = cur.hidden.slice();
+  const at = hidden.indexOf(id);
+  if (at === -1) hidden.push(id); else hidden.splice(at, 1);
+  return { v: EZWID_V, order: cur.order.slice(), hidden: hidden };
+}
+function ezWidgetMove(state, id, delta) {
+  const cur = readHomeWidgetsShape(state);
+  const order = cur.order.slice();
+  const at = order.indexOf(id);
+  if (at === -1) return cur;
+  const to = at + (delta < 0 ? -1 : 1);
+  if (to < 0 || to >= order.length) return cur;
+  const tmp = order[to]; order[to] = order[at]; order[at] = tmp;
+  return { v: EZWID_V, order: order, hidden: cur.hidden.slice() };
+}
+// A record handed in from anywhere is normalised to the shape the two above rely on, so neither
+// of them has to guess whether it was given a record, a fragment or nothing at all.
+function readHomeWidgetsShape(state) {
+  const def = ezWidgetDefaults();
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return def;
+  const known = ezWidgetIds();
+  const order = [];
+  const src = Array.isArray(state.order) ? state.order : def.order;
+  for (let i = 0; i < src.length; i++) {
+    if (known.indexOf(src[i]) === -1 || order.indexOf(src[i]) !== -1) continue;
+    order.push(src[i]);
+  }
+  for (let i = 0; i < def.order.length; i++) {
+    if (order.indexOf(def.order[i]) === -1) order.push(def.order[i]);
+  }
+  const hidden = [];
+  const hsrc = Array.isArray(state.hidden) ? state.hidden : def.hidden;
+  for (let i = 0; i < hsrc.length; i++) {
+    if (known.indexOf(hsrc[i]) === -1 || hidden.indexOf(hsrc[i]) !== -1) continue;
+    hidden.push(hsrc[i]);
+  }
+  return { v: EZWID_V, order: order, hidden: hidden };
+}
+
+// THE SHELL every widget is drawn in, so three widgets are one design and not three. The head is
+// a 44px row carrying the title and, when the widget leads somewhere, ONE control that goes
+// there. NO HOOKS AT ALL, so there is no hook order to get wrong here.
+function EzWidgetShell({ title, openLabel, onOpen, children }) {
+  return (
+    <section style={s.ezwidCard}>
+      <div style={s.ezwidHead}>
+        <span style={s.ezwidTitle}>{title}</span>
+        {onOpen ? (
+          <span className="ez-hit">
+            <button type="button" onClick={onOpen} className="ezhome-focus" style={s.ezwidOpen}>{openLabel}</button>
+          </span>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+// THE REGION. It maps the reader's list ONCE, in the reader's own order, so the reading order,
+// the tab order and the stored order are one order. An empty list draws NOTHING -- not an empty
+// box, not a placeholder and not a promise -- which is what makes the default screen the screen
+// that was already there. NO HOOKS: the arrangement is the owner's state, handed down.
+function EzikHomeWidgetArea({ widgets, nav }) {
+  const list = ezWidgetVisible(widgets);
+  if (!list.length) return null;
+  return (
+    <div style={s.ezwidStack}>
+      {list.map((w) => (
+        <div key={w.id} data-ezik-home-widget={w.id}>{w.draw(nav)}</div>
+      ))}
+    </div>
+  );
+}
 
 function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenSettings }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
@@ -3600,6 +3823,10 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
   // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
   const [prayerOpen, setPrayerOpen] = useState(false);
+  // THE ARRANGEMENT IS THE OWNER'S, read from the device once on mount exactly as the wird and
+  // the hijri date above are. The presentation component below is handed the result and never
+  // opens the store itself.
+  const [widgets, setWidgets] = useState(readHomeWidgets);
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -3628,6 +3855,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
+    widgets: widgets,
+    onWidgets: setWidgets,
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
   // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
@@ -16551,6 +16780,19 @@ const s = {
   // top bar and not to the verse. This is the smallest edit that answers «ارفعها فوق».
   ezistQuranText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '0 0 6px' },
   ezistQuranMeta: { color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 600, textAlign: 'center' },
+  ezwidStack: { display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 },
+  ezwidCard: { padding: '14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', color: 'var(--a3-ink)' },
+  ezwidHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 44 },
+  ezwidTitle: { fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezwidOpen: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44, padding: '6px 12px', borderRadius: 999, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezwidRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--a3-line)' },
+  ezwidName: { fontSize: 13.5, fontWeight: 600, color: 'var(--a3-muted)' },
+  ezwidValue: { fontSize: 14.5, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezwidNote: { marginTop: 8, fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', lineHeight: 1.6 },
+  ezwidNum: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)' },
+  ezwidNumRow: { display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  ezwidVerseText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '10px 0 6px' },
+  ezwidVerseMeta: { color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 600, textAlign: 'center' },
 
   // The compact greeting row. A line profile icon in a white 44px button -- no face, no avatar.
   // THE CALLOUT that replaced the banner: a short white row, a line icon on a soft chip and a
