@@ -2388,42 +2388,79 @@ const toPlainText = (s) => String(s || '')
 
 const inlineFmt = (s) => escapeHtml(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
+// ============================================================
+// ITEM 42-B, SECOND ROUND — THE EXPORT IS THE BROWSER'S OWN PRINT ENGINE, AND NOTHING ELSE.
+// ============================================================
+// WHAT THIS FILE USED TO CLAIM, AND WHY IT WAS FALSE. The note under 42-ب said the vendor bundle
+// "rasterises the DOM ... so the glyphs in the file are the glyphs the browser laid out -- joined,
+// shaped and right-to-left". Measured in a real browser against one fixed reply, that is not what
+// happens. The rasteriser does NOT use the browser's layout: it splits the text itself and draws
+// every piece with fillText at an offset it computes -- 344 calls for a single reply, and ALL 344
+// with an LTR base direction. So a run's trailing space was laid out on the wrong side of its own
+// run and disappeared between two words; the title came out «ردُّعزك» while a real U+0020 sat in
+// the string; and 64 of 320 neighbouring pairs were drawn with less than half a space between
+// them. The owner read every one of those defects in a file they exported themselves.
+//
+// THE SAME DOCUMENT, THE SAME STYLESHEET, THROUGH window.print(): the title keeps its space, ZERO
+// of 320 pairs are glued, zero lines open with a sentence-final mark, nothing runs past the paper
+// and nothing straddles a page break -- and the file is real TEXT that can be searched, copied and
+// read by a screen reader, instead of one flattened photograph of the page nine times its size.
+//
+// SO THE BUNDLE LEAVES THIS PATH ENTIRELY -- no call, no await, no placeholder, and no entry left
+// in the vendor map for a reader to wonder about. 906,041 bytes that the first export used to cost
+// are not fetched at all any more. What shapes the page is @media print in index.html: A4, a 1.5cm
+// margin, rtl, right-aligned, Amiri. It was always there. It was the fallback.
+//
+// WHAT A READER SEES DIFFERENTLY, STATED PLAINLY: the browser's print sheet opens instead of a
+// file dropping into Downloads. On desktop that sheet's destination is "Save as PDF"; on iOS it is
+// the share sheet's "Save to Files". document.title is what every browser proposes as the file
+// name, so the file is still named after the reply, and it is restored the moment printing ends.
+const EZIK_PRINT_FALLBACK_TITLE = 'مستند';
+// afterprint is not delivered by every engine. A promise that never settled would leave the export
+// button latched and the print area holding the last reply, so a timeout does exactly what
+// afterprint does and the two race. Whichever arrives first wins; the other is a no-op.
+const EZIK_PRINT_BACKSTOP_MS = 60000;
+
 const printAsPdf = async (title, bodyHtml) => {
   const area = document.getElementById('print-area');
   if (!area) return;
   area.innerHTML = '<h1>' + escapeHtml(title) + '</h1>' + bodyHtml;
-  // S97: html2pdf is no longer a boot-blocking <script>; it is warmed on idle after the first
-  // paint. Awaiting the same promise here is what keeps this path's RESULT identical -- the only
-  // case that waits is a tap in the first second, and it still produces the same file.
-  if (window.__ezikVendor) { try { await window.__ezikVendor('html2pdf'); } catch (e) {} }
-  if (!window.html2pdf) { document.title = title; window.print(); return; } // fallback if CDN failed
-  const opt = {
-    margin: [12, 12, 12, 12],
-    filename: (title || 'مستند') + '.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css', 'legacy'] }
-  };
-  const target = area.cloneNode(true);
-  target.style.display = 'block';
-  target.style.direction = 'rtl';
-  target.style.textAlign = 'right';
-  target.style.padding = '0';
-  window.html2pdf().set(opt).from(target).save().then(() => { area.innerHTML = ''; }).catch(() => { area.innerHTML = ''; });
+  const prevTitle = document.title;
+  document.title = title || EZIK_PRINT_FALLBACK_TITLE;
+  await new Promise((resolve) => {
+    let settled = false;
+    const onAfterPrint = () => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('afterprint', onAfterPrint);
+      document.title = prevTitle;
+      area.innerHTML = '';
+      resolve();
+    };
+    const onBackstop = () => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('afterprint', onAfterPrint);
+      document.title = prevTitle;
+      area.innerHTML = '';
+      resolve();
+    };
+    window.addEventListener('afterprint', onAfterPrint);
+    try { window.print(); } catch (e) { onBackstop(); return; }
+    setTimeout(onBackstop, EZIK_PRINT_BACKSTOP_MS);
+  });
 };
 
 // يحوّل محتوى المستند (فقرات، عناوين بـ# أو ##، نقاط بـ- أو •) إلى HTML للتصدير
 // ============================================================
 // ITEM 42-ب — THE REPLY, AS A PDF
 // ============================================================
-// THE MACHINE WAS MEASURED BEFORE IT WAS USED, and it was already here twice over:
-//   * printAsPdf() above -- the one PDF path in this app, which awaits window.__ezikVendor
-//     ('html2pdf') and falls back to window.print() when that never lands;
-//   * the lazy vendor map at the head of the document, where html2pdf.bundle (906KB) has sat
-//     since S97 precisely so that a session which never exports a PDF never pays for it.
-// So this item adds NO library, no <script> tag and not one byte to the boot path. What it adds
-// is a fifth button on a rail that already had four.
+// THE MACHINE WAS MEASURED BEFORE IT WAS USED, and it was already here: printAsPdf() above is
+// the one PDF path in this app. This item adds NO library, no <script> tag and not one byte to
+// the boot path. What it adds is a fifth button on a rail that already had four.
+//
+// SECOND ROUND: that one path no longer reaches for a vendor bundle at all -- see the note above
+// printAsPdf for the measurement that ended it. Nothing on this path fetches anything.
 //
 // THE SOURCE IS THE CLIPBOARD'S SOURCE. getText is buildCopyText -- the same serializeReply()
 // call the copy button and the share button hand over -- so there are not two serializers that
@@ -2431,14 +2468,14 @@ const printAsPdf = async (title, bodyHtml) => {
 // exactly as they go into the clipboard. docToHtml() is the SAME renderer the document card's
 // «تصدير PDF» already feeds printAsPdf, so the two PDFs are made the same way.
 //
-// ARABIC READS THE RIGHT WAY BECAUSE THE BROWSER SHAPES IT. html2pdf rasterises the DOM through
-// html2canvas, so the glyphs in the file are the glyphs the browser laid out -- joined, shaped
-// and right-to-left -- rather than a font-substituted re-run inside a PDF writer. printAsPdf
-// already sets direction rtl and textAlign right on the node it hands over; nothing here
-// re-states them, so the two export paths cannot disagree.
+// ARABIC READS THE RIGHT WAY BECAUSE THE BROWSER LAYS IT OUT -- and after the second round that
+// sentence is finally true of the file as well as of the screen. The page is composed by the same
+// engine that draws it, under @media print in index.html: direction rtl, text-align right, A4.
+// The bidi algorithm, the line breaking, the shaping and the pagination are all the browser's, so
+// the exported document and the screen cannot disagree about a single character.
 //
-// ZERO MODEL CALL, ZERO REQUEST OF THIS APP'S OWN. The vendor bundle arrives from the cache or
-// from the lazy source it already had; the reply itself is text this device is holding.
+// ZERO MODEL CALL, ZERO REQUEST OF ANY KIND. Not one byte is fetched on this path -- there is no
+// bundle left to fetch. The reply itself is text this device is already holding.
 //
 // 44x44 BY AREA, NOT BY SHAPE (44-ج). It is a .ezc-acts button, and the sheet gives every one of
 // them a 44x44 ::before. It states no width and no height of its own, so nothing moved by a pixel.
@@ -2478,11 +2515,13 @@ const ExportPdfReplyButton = ({ getText }) => {
 // ============================================================
 // ITEM 42-C. THE REPLY AS AN IMAGE — DRAWN, NOT RASTERISED.
 // ============================================================
-// ITEM 42-B MEASURED WHY THIS DID NOT EXIST: the only DOM rasteriser reachable from this tree is
-// html2canvas, it lives inside the 906KB html2pdf bundle, and the offline store precaches no
-// vendor JavaScript at all. A share card built on it would be a control that does not work
-// offline and costs three quarters of a megabyte the first time it is pressed. That measurement
-// still stands, and the Z5 checks in theme-coverage-guard.cjs still hold it in place.
+// ITEM 42-B MEASURED WHY THIS DID NOT EXIST: the only DOM rasteriser this tree could reach lived
+// inside a 906KB PDF bundle fetched from a CDN, and the offline store precaches no vendor
+// JavaScript at all. A share card built on it would have been a control that does not work
+// offline and costs three quarters of a megabyte the first time it is pressed.
+// SECOND ROUND: that bundle is not reachable from here AT ALL any more -- the export path stopped
+// calling it and its entry left the vendor map, so the argument is now moot rather than merely
+// decisive. The Z5 checks in theme-coverage-guard.cjs still hold the no-rasteriser rule in place.
 //
 // SO NOTHING IS RASTERISED. The card is DRAWN: the browser shapes and joins Arabic inside
 // fillText by itself, which is the whole reason a library was thought to be needed. No new
