@@ -223,10 +223,14 @@
   .doc-rendered th,.doc-rendered td{border:1px solid var(--line);padding:5px 8px;text-align:right}
   .doc-rendered th{background:var(--tint);color:var(--accent-ink)}
   /* Session 84 -- Adhkar UI V2. Exactly two things an inline style cannot express: a media
-     query and :focus-visible. Both selectors are NEW class names used only by the two V2
-     components, so ?adhkarui=0 (the S13.3-A screen, which carries neither class) renders
-     byte-identically with these rules present. The grid is 2 columns on a phone and steps to
-     3 then 4 on wider displays -- never more, so a tile never shrinks to a chip on a desktop. */
+     query and :focus-visible. Both selectors were new class names when this was written, and
+     measured on this tree on 2026-08-24 they are no longer alike: .adhkar2-focus is carried
+     by five components at thirteen sites -- the card, the feature card, the browse screen,
+     the reader and the audio button -- while .adhkar2-grid is carried by NONE. That rule and the
+     adhkar2Tile key it lays out are both leftovers with no user in the shipped source. The
+     S13.3-A screen carries neither class, and it is not reached at all any more: ITEM 32 shut
+     ?adhkarui. The rule below steps 2 columns on a phone to 3 and then 4 on wider displays,
+     and never further. */
   .adhkar2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   @media (min-width:600px){.adhkar2-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
   @media (min-width:900px){.adhkar2-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
