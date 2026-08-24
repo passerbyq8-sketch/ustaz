@@ -428,6 +428,16 @@ const EZ_I18N = {
     'widget.verse.hadithTitle': 'حديث اليوم',
     'widget.verse.surah': 'سورة {surah}، آية {ayah}',
     'widget.verse.narrated': 'رواه {by}',
+    'home.arrange.open': 'رتّبْ رئيسيّتك',
+    'home.arrange.close': 'أغلقْ الترتيب',
+    'home.arrange.title': 'ترتيب الرئيسيّة',
+    'home.arrange.hint': 'اختر ما يظهر على رئيسيّتك وبأيِّ ترتيب. يُحفَظُ على هذا الجهاز وحدَه.',
+    'home.arrange.show': 'أظهِرْ',
+    'home.arrange.hide': 'أخفِ',
+    'home.arrange.up': 'أعلى',
+    'home.arrange.down': 'أسفل',
+    'home.arrange.reset': 'أعِدِ الافتراضيّ',
+    'home.arrange.saveFailed': 'لم يُحفَظِ الاختيارُ على هذا الجهاز، وهو قائمٌ في هذه الجلسة وحدَها.',
     'onboarding.welcome': 'أهلاً بك',
     'onboarding.male': 'ذكر',
     'onboarding.female': 'أنثى',
@@ -678,6 +688,16 @@ const EZ_I18N = {
     'widget.verse.hadithTitle': 'Hadith of the day',
     'widget.verse.surah': 'Surah {surah}, ayah {ayah}',
     'widget.verse.narrated': 'Narrated by {by}',
+    'home.arrange.open': 'Arrange your home',
+    'home.arrange.close': 'Close arranging',
+    'home.arrange.title': 'Arranging the home',
+    'home.arrange.hint': 'Choose what appears on your home and in what order. It is kept on this device alone.',
+    'home.arrange.show': 'Show',
+    'home.arrange.hide': 'Hide',
+    'home.arrange.up': 'Up',
+    'home.arrange.down': 'Down',
+    'home.arrange.reset': 'Restore the default',
+    'home.arrange.saveFailed': 'The choice was not saved on this device; it holds for this session alone.',
     'onboarding.welcome': 'Welcome',
     'onboarding.male': 'Boy',
     'onboarding.female': 'Girl',
@@ -3629,7 +3649,8 @@ function EzikIstanaHome(v) {
           {/* THE READER'S OWN REGION, after the modules and before nothing. With the shipped
               default it renders null, so the tree above it and the tree below it are the tree
               that was here before the region existed. */}
-          <EzikHomeWidgetArea widgets={v.widgets}
+          <EzikHomeWidgetArea widgets={v.widgets} onWidgets={v.onWidgets}
+            arrangeOpen={v.arrangeOpen} onArrange={v.onArrange}
             nav={{ onOpenAdhkar: v.onOpenAdhkar, onOpenPrayer: v.onOpenPrayer }} />
         </div>
       </div>
@@ -3958,19 +3979,105 @@ function EzWidgetVerse() {
   );
 }
 
+// THE ARRANGING PANEL. Buttons, and deliberately NOT drag and drop: a drag target is not a 44px
+// touch target, dragging inside a scrolling column fights the scroll on a phone, and every one of
+// show, hide, up and down is a thing a keyboard and a screen reader already know how to do. There
+// is no pointer gesture anywhere on this panel.
+//
+// IT LISTS WHAT IS REGISTERED AND NOTHING ELSE. There is no row for a widget that does not exist,
+// no space held open for one, and no word about one that might arrive. A reader is shown what is
+// here.
+//
+// THE WRITE IS REPORTED. writeHomeWidgets() returns false on a storage that refuses -- a full
+// disk, a private window, a browser with site data blocked -- and the panel says so on the
+// surface item 93-ج opened for exactly this kind of news. The choice still takes effect for the
+// session, because refusing to obey the reader as well as failing to remember them would be two
+// failures instead of one.
+//
+// 🔴 THE HOOKS FINISH FIRST. useEzLang and useState, in that order, at the top of the body, and
+// the single return is below both of them. Defect 123 (React #300) is what this rule is for.
+function EzikHomeArrange({ widgets, onWidgets, onClose }) {
+  useEzLang();
+  const [saveFailed, setSaveFailed] = useState(false);
+  const state = readHomeWidgetsShape(widgets);
+  const rows = state.order.map((id) => ezWidgetById(id)).filter(Boolean);
+  // ONE PLACE APPLIES A CHANGE, so the store and the screen can never be given different records.
+  const apply = (next) => { setSaveFailed(!writeHomeWidgets(next)); onWidgets(next); };
+  return (
+    <section style={s.ezwidPanel} aria-label={ezT('home.arrange.title')}>
+      <div style={s.ezwidHead}>
+        <span style={s.ezwidTitle}>{ezT('home.arrange.title')}</span>
+        <span className="ez-hit">
+          <button type="button" onClick={onClose} className="ezhome-focus" style={s.ezwidOpen}>{ezT('home.arrange.close')}</button>
+        </span>
+      </div>
+      <div style={s.ezwidNote}>{ezT('home.arrange.hint')}</div>
+      {rows.map((w, i) => {
+        const hidden = state.hidden.indexOf(w.id) !== -1;
+        const title = ezT(w.title);
+        const showHide = hidden ? ezT('home.arrange.show') : ezT('home.arrange.hide');
+        return (
+          <div key={w.id} style={s.ezwidPanelRow}>
+            <span style={s.ezwidPanelName}>{title}</span>
+            <span className="ez-hit" style={s.ezwidPanelActs}>
+              <button type="button" onClick={() => apply(ezWidgetToggle(state, w.id))}
+                aria-pressed={hidden ? 'false' : 'true'} aria-label={showHide + ' ' + title}
+                className="ezhome-focus" style={hidden ? s.ezwidActOff : s.ezwidAct}>{showHide}</button>
+              <button type="button" onClick={() => apply(ezWidgetMove(state, w.id, -1))} disabled={i === 0}
+                aria-label={ezT('home.arrange.up') + ' ' + title}
+                className="ezhome-focus" style={i === 0 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.up')}</button>
+              <button type="button" onClick={() => apply(ezWidgetMove(state, w.id, 1))} disabled={i === rows.length - 1}
+                aria-label={ezT('home.arrange.down') + ' ' + title}
+                className="ezhome-focus" style={i === rows.length - 1 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.down')}</button>
+            </span>
+          </div>
+        );
+      })}
+      <span className="ez-hit">
+        <button type="button" onClick={() => apply(ezWidgetDefaults())} className="ezhome-focus" style={s.ezwidReset}>{ezT('home.arrange.reset')}</button>
+      </span>
+      {saveFailed ? (
+        <div role="status" style={s.swNote}>
+          <span style={s.swNoteText}>{ezT('home.arrange.saveFailed')}</span>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 // THE REGION. It maps the reader's list ONCE, in the reader's own order, so the reading order,
 // the tab order and the stored order are one order. An empty list draws NOTHING -- not an empty
-// box, not a placeholder and not a promise -- which is what makes the default screen the screen
-// that was already there. NO HOOKS: the arrangement is the owner's state, handed down.
-function EzikHomeWidgetArea({ widgets, nav }) {
+// box, not a placeholder and not a promise -- which, with every row registered shown:false, is
+// what makes the default screen the screen that was already there.
+//
+// THE ONE CONTROL IS LAST, and being last is load-bearing: it is APPENDED to the home rather than
+// inserted into it, so every element that was on this screen before keeps its exact position and
+// its exact neighbours. The arrangement itself is the owner's state, handed down; this component
+// stores nothing.
+//
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT.
+function EzikHomeWidgetArea({ widgets, nav, arrangeOpen, onArrange, onWidgets }) {
+  useEzLang();
   const list = ezWidgetVisible(widgets);
-  if (!list.length) return null;
   return (
-    <div style={s.ezwidStack}>
-      {list.map((w) => (
-        <div key={w.id} data-ezik-home-widget={w.id}>{w.draw(nav)}</div>
-      ))}
-    </div>
+    <>
+      {list.length ? (
+        <div style={s.ezwidStack}>
+          {list.map((w) => (
+            <div key={w.id} data-ezik-home-widget={w.id}>{w.draw(nav)}</div>
+          ))}
+        </div>
+      ) : null}
+      <div style={s.ezwidBar}>
+        <button type="button" onClick={() => onArrange(!arrangeOpen)}
+          aria-expanded={arrangeOpen ? 'true' : 'false'} className="ezhome-focus" style={s.ezwidBarBtn}>
+          {arrangeOpen ? ezT('home.arrange.close') : ezT('home.arrange.open')}
+        </button>
+      </div>
+      {arrangeOpen ? (
+        <EzikHomeArrange widgets={widgets} onWidgets={onWidgets} onClose={() => onArrange(false)} />
+      ) : null}
+    </>
   );
 }
 
@@ -3989,6 +4096,10 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // the hijri date above are. The presentation component below is handed the result and never
   // opens the store itself.
   const [widgets, setWidgets] = useState(readHomeWidgets);
+  // Local to this screen and NOT a route: the panel opens over the home, on the home's own screen
+  // key, exactly as the prayer sheet above does and for the same reason -- the screen inventory is
+  // a cross-file contract and a fourth route would move a document this batch does not own.
+  const [arrangeOpen, setArrangeOpen] = useState(false);
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -4019,6 +4130,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenPrayer: () => setPrayerOpen(true),
     widgets: widgets,
     onWidgets: setWidgets,
+    arrangeOpen: arrangeOpen,
+    onArrange: setArrangeOpen,
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
   // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
@@ -16955,6 +17068,15 @@ const s = {
   ezwidNumRow: { display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   ezwidVerseText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '10px 0 6px' },
   ezwidVerseMeta: { color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 600, textAlign: 'center' },
+  ezwidBar: { display: 'flex', justifyContent: 'flex-start', marginTop: 14 },
+  ezwidBarBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '6px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezwidPanel: { marginTop: 14, padding: '14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', color: 'var(--a3-ink)' },
+  ezwidPanelRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '8px 0', borderBottom: '1px solid var(--a3-line)' },
+  ezwidPanelName: { flex: '1 1 120px', minWidth: 0, fontSize: 14, fontWeight: 700, color: 'var(--a3-ink)' },
+  ezwidPanelActs: { display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 },
+  ezwidAct: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezwidActOff: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'transparent', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezwidReset: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, marginTop: 12, padding: '6px 16px', borderRadius: 999, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
 
   // The compact greeting row. A line profile icon in a white 44px button -- no face, no avatar.
   // THE CALLOUT that replaced the banner: a short white row, a line icon on a soft chip and a
