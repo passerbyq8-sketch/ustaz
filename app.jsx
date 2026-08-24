@@ -424,6 +424,10 @@ const EZ_I18N = {
     'widget.adhkar.goal': 'هدفُ اليوم: {n}',
     'widget.adhkar.met': 'بلغتَ هدفَ اليومِ اليوم.',
     'widget.adhkar.notMet': 'لم يُبلَغْ هدفُ اليومِ بعد.',
+    'widget.verse.title': 'آية اليوم',
+    'widget.verse.hadithTitle': 'حديث اليوم',
+    'widget.verse.surah': 'سورة {surah}، آية {ayah}',
+    'widget.verse.narrated': 'رواه {by}',
     'onboarding.welcome': 'أهلاً بك',
     'onboarding.male': 'ذكر',
     'onboarding.female': 'أنثى',
@@ -670,6 +674,10 @@ const EZ_I18N = {
     'widget.adhkar.goal': 'Goal for today: {n}',
     'widget.adhkar.met': 'You reached the goal for today.',
     'widget.adhkar.notMet': 'The goal for today has not been reached yet.',
+    'widget.verse.title': 'Verse of the day',
+    'widget.verse.hadithTitle': 'Hadith of the day',
+    'widget.verse.surah': 'Surah {surah}, ayah {ayah}',
+    'widget.verse.narrated': 'Narrated by {by}',
     'onboarding.welcome': 'Welcome',
     'onboarding.male': 'Boy',
     'onboarding.female': 'Girl',
@@ -3673,6 +3681,7 @@ function ezWidgetRegistry() {
   return [
     { id: 'prayer', title: 'widget.prayer.title', order: 1, shown: false, draw: (nav) => <EzWidgetPrayer nav={nav} /> },
     { id: 'adhkar', title: 'widget.adhkar.title', order: 2, shown: false, draw: (nav) => <EzWidgetAdhkar nav={nav} /> },
+    { id: 'verse', title: 'widget.verse.title', order: 3, shown: false, draw: () => <EzWidgetVerse /> },
   ];
 }
 
@@ -3914,6 +3923,37 @@ function EzWidgetAdhkar({ nav }) {
       </div>
       <div style={s.ezwidNote}>{ezT('widget.adhkar.goal', { n: toArabicDigits(rec.goal) })}</div>
       <div style={s.ezwidNote}>{met ? ezT('widget.adhkar.met') : ezT('widget.adhkar.notMet')}</div>
+    </EzWidgetShell>
+  );
+}
+
+// THE DAILY-VERSE WIDGET -- ITEMS 56 AND 120-أ, THE SAME SOURCE AND THE SAME VERBATIM TEXT.
+//
+// IT READS getDailyVerse(), which is the app's ONE source for the daily verse, and prints
+// {v.text} verbatim: no transform, no tashkeel pass, no truncation and no ellipsis, exactly as
+// the panel in the top bar does. DAILY_VERSES is an array in this file, so the reading is an
+// index into memory -- it works with no internet and it is RUNTIME_READS=0, which was measured
+// before this widget existed and is not turned into a live file read here.
+//
+// IT IS NOT A SECOND COPY OF THE BAR'S PANEL. EzistQuranPanel stays exactly where item 118 put
+// it, drawn exactly once, and this widget does not render it, does not carry its class and does
+// not move it. Two elements can show one reading; what would be wrong is two READINGS.
+//
+// A DISPLAY AND NOTHING ELSE, on the bar panel's own terms: no handler is passed to the shell,
+// so no control is drawn, and pressing it does nothing -- deliberately.
+//
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT.
+function EzWidgetVerse() {
+  useEzLang();
+  const v = getDailyVerse();
+  const isHadith = v.surah === '\u062D\u062F\u064A\u062B';
+  return (
+    <EzWidgetShell title={isHadith ? ezT('widget.verse.hadithTitle') : ezT('widget.verse.title')}>
+      <div style={s.ezwidVerseText}>{v.text}</div>
+      <div style={s.ezwidVerseMeta}>
+        {isHadith ? ezT('widget.verse.narrated', { by: v.ayah })
+          : ezT('widget.verse.surah', { surah: v.surah, ayah: v.ayah })}
+      </div>
     </EzWidgetShell>
   );
 }
