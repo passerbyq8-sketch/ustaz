@@ -5471,16 +5471,23 @@ function FatwaScreen({ onBack, favPk }) {
 // ============================================================
 // EZIK ADHKAR UI V2 -- the premium Arabic RTL redesign of the adhkar browse screen.
 // ------------------------------------------------------------
-// THE SWITCH, and it has the same shape as MADINA_IMG_ON below: the parameter ANSWERS
-// rather than merely writing, so an explicit '1' or '0' returns straight from the URL and
-// never consults storage at all. A stale key, a value some other build wrote, a quota-full
-// setItem or a storage that throws cannot make ?adhkarui=0 keep V2 on or ?adhkarui=1 keep
-// it off. The write is still attempted, in its own try/catch, so the answer survives the
-// next visit without the parameter -- but the write failing changes nothing about THIS visit.
+// THE SWITCH AS SESSION 84 BUILT IT -- AND IT IS RETIRED. ITEM 32 shut it: ADHKAR_UI_V2_ON
+// below is a fixed true, readAdhkarUiFlag has no caller anywhere in this file, and no
+// ?adhkarui value changes what any device opens. The function below is still WRITTEN the
+// way MADINA_IMG_ON is written -- the parameter ANSWERS rather than merely writing, so an
+// explicit '1' or '0' returns straight from the URL and never consults storage at all, and
+// a stale key, a value some other build wrote, a quota-full setItem or a storage that
+// throws cannot override it -- but nothing calls it, so what follows describes the shape of
+// the code and not a behaviour any reader can reach:
 //
 //   no adhkarui parameter -> V2   (unless this device stored an explicit refusal)
 //   ?adhkarui=1           -> V2
 //   ?adhkarui=0           -> V1   (the S13.3-A screen, immediate rollback, sticks on device)
+//
+// THOSE THREE LINES ARE SESSION 84's OWN TABLE, LEFT WORD FOR WORD ON PURPOSE. They are what
+// readAdhkarUiFlag would return if it were ever called again; today nothing calls it, so no
+// device takes any of the three. Rewriting the table would erase the record rather than keep
+// it -- this paragraph is the correction, and the table is left standing as what was true.
 //
 // V1 IS NOT EDITED. AdhkarScreenV1 below is the previous component with its name changed and
 // not one other byte touched, so the rollback path is the old screen itself and not a
@@ -5519,12 +5526,18 @@ const readAdhkarUiFlag = () => {
 // first and alone; the screen and the reader come out separately, or not at all.
 //
 // THE OTHER TWO LEVERS OF THIS SHAPE ARE STILL LIVE, ON PURPOSE. ?mushafsvg=0 and
-// ?madinaimg=0 both roll a QUR'AN RENDERER back on a device, and both are executed and
-// asserted by tools/madina-hafs-guard.cjs (its section 5a drives ten parameter and storage
-// cases through the madinaimg switch) and named at eight sites in theme-coverage-guard.cjs.
-// Shutting either one means re-cutting roughly twenty assertions to say the opposite of what
-// they say today, and taking a printed-mushaf rollback away from readers who chose it. That
-// is an owner's decision, not a build one, and it is recorded in BABEL-32-REPORT.md as open.
+// ?madinaimg=0 both roll a QUR'AN RENDERER back on a device, and tools/madina-hafs-guard.cjs
+// holds both -- but NOT in the same way, and only one of them is executed. Its section 5a
+// lifts readMadinaImgFlag out of the shipped client and runs it against 16 environments: 12
+// parameter-and-storage pairs, 3 with a storage that throws, and 1 window carrying no
+// location at all. The mushafsvg lever is asserted by SOURCE SHAPE instead -- one pattern
+// over the switch and one over the flag name -- and nothing executes it. The two constants
+// are then named at 8 executable sites in theme-coverage-guard.cjs, and at 2 more inside its
+// own comments. Every count in this paragraph was measured on this tree on 2026-08-24.
+// Shutting either lever means re-cutting those assertions to say the opposite of what they
+// say today, and taking a printed-mushaf rollback away from readers who chose it. That is an
+// owner's decision, not a build one. BABEL-32-REPORT.md, which this used to name as the place
+// that decision was recorded as open, is not a file in this tree -- so it is recorded here.
 const ADHKAR_UI_V2_ON = true;
 
 // Session 85 -- the royal-blue header pattern that used to live here is GONE with the band it
@@ -6592,8 +6605,10 @@ function A3AudioBtn({ d, playing, onAudio, style, styleOn }) {
   );
 }
 
-// The one place the flag is spent. App still renders <AdhkarScreen onBack=... /> and knows
-// nothing about either version, so ?adhkarui=0 changes this line's answer and nothing else.
+// The one place the constant is spent. App still renders <AdhkarScreen onBack=... /> and
+// knows nothing about either version. ITEM 32: ADHKAR_UI_V2_ON is a fixed true above and the
+// reader of ?adhkarui has no caller, so this line answers V2 on every device, and the V1 arm
+// is kept without being reached.
 function AdhkarScreen({ onBack }) {
   return ADHKAR_UI_V2_ON ? <AdhkarScreenV2 onBack={onBack} /> : <AdhkarScreenV1 onBack={onBack} />;
 }
@@ -15014,8 +15029,14 @@ const mushafSvgUrl = (n) => MUSHAF_SVG_ORIGIN + '/pages/' + String(n).padStart(3
 // THE DEFAULT IS ON, and only an explicit refusal turns it off. The test is against '0'
 // rather than for '1', so all three ways of holding no answer -- an absent key, a value
 // we do not recognise, and a storage that throws -- land on the official page. No input
-// produces a blank screen, and the one input that produces the text reader is the one a
-// person typed on purpose.
+// produces a blank screen.
+// TWO THINGS THIS SWITCH DOES NOT DO, both read off this tree on 2026-08-24. It does not
+// ANSWER from the URL the way MADINA_IMG_ON below does: the parameter is only WRITTEN to
+// storage here and the answer is read back OUT of storage, so on a device whose storage
+// throws -- private mode, a full quota, a blocked origin -- the write is swallowed, the read
+// throws too, and ?mushafsvg=0 leaves the default ON for that visit. And it does not reach
+// the text reader on its own: MushafSheet tests the printed Madina page FIRST, so while
+// MADINA_IMG_ON is true, ?mushafsvg=0 alone changes nothing the reader sees.
 const readMushafSvgFlag = () => {
   try {
     const p = new URLSearchParams(window.location.search).get('mushafsvg');
@@ -15325,12 +15346,16 @@ const prefetchMushafSvg = (n) => {
 };
 
 // One sheet of the reader. This is the ONLY place that decides which renderer runs, and it
-// is the fallback too. Two ways back to the current reader, and both return the identical
-// element with the identical four props:
-//   • the flag is off  -> MUSHAF_SVG_ON is false, first branch, no image is ever created
-//   • the image failed  -> onError latches `broke`, and the next render takes that branch
-// Offline, 404, origin down, decode failure: all of them arrive as onError, and all of them
-// land on the reader that ships today. The reader never shows a blank or a broken image.
+// is the fallback too. The chain below is THREE renderers deep, not two, and the printed
+// Madina page is at the head of it -- the 78 and 81 notes inside MushafSheet describe the
+// order the branches are actually written in. Two ways reach the verified TEXT page, and
+// both return the identical element with the identical four props:
+//   • the flag is off  -> MUSHAF_SVG_ON is false. That is the SECOND test and not the
+//     first: the printed page is tested before it, so while MADINA_IMG_ON is true an image
+//     element IS created and this test is never reached.
+//   • the SVG failed  -> onError latches `broke`, and the next render takes that branch
+// Offline, 404, origin down, decode failure: each renderer's own onError latch hands the
+// sheet down to the next one. The reader never shows a blank or a broken image.
 // `broke` is per-sheet state and the key at the call site is page + epoch, so a page that
 // failed once gets a fresh attempt when it is paged back to -- one bad response does not
 // poison the session.
@@ -17809,12 +17834,16 @@ const s = {
   adhkarRowTitle: { flex: 1, fontSize: 16, fontWeight: 700, color: 'var(--ink)' },
   adhkarCount: { minWidth: 28, height: 24, padding: '0 8px', borderRadius: 999, background: 'var(--red-soft)', color: 'var(--red)', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   adhkarEmpty: { textAlign: 'center', color: 'var(--muted)', fontSize: 15, padding: '32px 0' },
-  // Session 84 - Adhkar UI V2 (ADHKAR_UI_V2_ON). ADDITIVE: every key below is new and not one
-  // key above it changed, so ?adhkarui=0 renders the S13.3-A screen out of its own untouched
-  // style keys. Colours are tokens, so V2 follows the palette rather than pinning hexes. The
-  // only literals are rgba(255,255,255,a) -- white at a fraction, sitting ON the accent band --
-  // and the shadow rgba(18,50,122,a), which is --red-deep at a fraction. Neither has a token,
-  // and both are written the same way by homeHero, the chat header and the drawer already.
+  // Session 84 - Adhkar UI V2 (ADHKAR_UI_V2_ON). ADDITIVE, as that session left it: every key
+  // below was new and not one key above it changed, so the S13.3-A screen went on rendering
+  // out of its own untouched style keys. ITEM 32 then shut the parameter that reached it: the
+  // V1 keys above are all still here, and the screen that names them is no longer reached.
+  // Colours are tokens, so V2 follows the palette rather than pinning hexes. The only literals
+  // are rgba(255,255,255,a) -- white at a fraction, on the accent-FILLED counter, since session
+  // 85 took the accent band away -- and the shadow rgba(18,50,122,a), which is --red-deep at a
+  // fraction. Neither has a token. Measured on this tree on 2026-08-24: the keys below carry
+  // five such literals in three distinct values and not one hex value, and outside them that
+  // white-at-a-fraction shape is written only by the memorizer's header and its back button.
   adhkar2Container: { display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--page)' },
   // Session 85. THE ROYAL-BLUE BAND AND ITS TWELVE KEYS ARE REMOVED -- header, head row, head
   // text, round back button, brand, title, small title, subtitle, seal, search wrap, search

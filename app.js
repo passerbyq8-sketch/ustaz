@@ -1668,16 +1668,23 @@ const runBrowse=async page=>{if(browseRequest.current)browseRequest.current.abor
 const backToBrowse=()=>{if(searchRequest.current)searchRequest.current.abort();searchRequest.current=null;setResults([]);setPagination(null);setSearched(false);setFailed(false);setLoading(false);};let status=null;let statusFailed=false;if(searched){if(loading)status=ezT('fatwa.loading');else if(failed){status=ezT('fatwa.error');statusFailed=true;}else if(pagination&&pagination.total===0)status=ezT('fatwa.none');else if(pagination&&pagination.total>0){status=ezT('fatwa.summary',{total:ezikFatwaNumber(pagination.total),page:ezikFatwaNumber(pagination.page),pages:ezikFatwaNumber(pagination.totalPages)});}}else if(browseLoading)status=ezT('fatwa.browseLoading');else if(browseFailed){status=ezT('fatwa.error');statusFailed=true;}else if(browsePages&&browsePages.total===0)status=ezT('fatwa.browseEmpty');else if(browsePages){status=ezT('fatwa.browseSummary',{total:ezikFatwaNumber(browsePages.total),page:ezikFatwaNumber(browsePages.page),pages:ezikFatwaNumber(browsePages.totalPages)});}return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome ezf",style:s.ezfContainer},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav"},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-inner"},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-side"},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onBack,style:s.ezshNavBtn,"aria-label":ezT('common.back')},A2_ICON_BACK)),/*#__PURE__*/React.createElement("span",{"aria-hidden":"true"}),/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-side is-end"}))),/*#__PURE__*/React.createElement("div",{style:s.ezshScroll},/*#__PURE__*/React.createElement("main",{className:"ezf-wrap"},/*#__PURE__*/React.createElement("form",{className:"ezf-controls",role:"search",onSubmit:event=>{event.preventDefault();runSearch(1);}},/*#__PURE__*/React.createElement("label",{className:"ezf-field",htmlFor:"ezf-scholar"},/*#__PURE__*/React.createElement("span",{className:"ezf-label"},ezT('fatwa.scholarLabel')),/*#__PURE__*/React.createElement("select",{id:"ezf-scholar",className:"ezhome-focus ezf-select",value:scholar,onChange:selectScholar},/*#__PURE__*/React.createElement("option",{value:EZIK_FATWA_ALL},ezT('fatwa.allScholars')),scholars.map(item=>/*#__PURE__*/React.createElement("option",{key:item.id,value:item.id},item.shortName||ezT('fatwa.defaultScholar'))))),/*#__PURE__*/React.createElement("div",{className:"ezf-search"},/*#__PURE__*/React.createElement("input",{className:"ezhome-focus ezf-input",type:"search",dir:"auto",required:true,maxLength:"180",value:query,onChange:event=>setQuery(event.target.value),placeholder:ezT('fatwa.searchPlaceholder'),"aria-label":ezT('fatwa.searchAria')}),/*#__PURE__*/React.createElement("button",{type:"submit",className:"ezhome-focus ezf-submit",disabled:loading},ezT('fatwa.searchButton')))),status?/*#__PURE__*/React.createElement("div",{className:'ezf-status'+(statusFailed?' is-error':''),role:statusFailed?'alert':'status',"aria-live":"polite"},status):null,searched?/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus ezf-back",onClick:backToBrowse},ezT('fatwa.backToBrowse')),results.length?/*#__PURE__*/React.createElement("section",{className:"ezf-results","aria-label":ezT('fatwa.searchAria')},results.map(fatwa=>/*#__PURE__*/React.createElement(EzikFatwaResult,{key:fatwa.uid,fatwa:fatwa,favPk:favPk}))):null):browsing.length?/*#__PURE__*/React.createElement("section",{className:"ezf-list","aria-label":ezT('fatwa.browseAria')},browsing.map(fatwa=>{const isOpen=openUid===fatwa.uid;const named=fatwa.scholar&&(fatwa.scholar.shortName||fatwa.scholar.name)||'';return/*#__PURE__*/React.createElement(React.Fragment,{key:fatwa.uid},/*#__PURE__*/React.createElement("button",{type:"button","aria-expanded":isOpen,className:'ezhome-focus ezf-row'+(isOpen?' is-open':''),title:isOpen?ezT('fatwa.closeFatwa'):ezT('fatwa.openFatwa'),onClick:()=>setOpenUid(isOpen?'':fatwa.uid)},/*#__PURE__*/React.createElement("span",{className:"ezf-row-title"},fatwa.title),scholar===EZIK_FATWA_ALL&&named?/*#__PURE__*/React.createElement("span",{className:"ezf-row-mark"},named):null),isOpen?/*#__PURE__*/React.createElement("div",{className:"ezf-open"},/*#__PURE__*/React.createElement(EzikFatwaResult,{fatwa:fatwa,favPk:favPk})):null);})):null,searched&&pagination&&pagination.totalPages>1?/*#__PURE__*/React.createElement("nav",{className:"ezf-pager","aria-label":ezT('fatwa.page',{page:ezikFatwaNumber(pagination.page),pages:ezikFatwaNumber(pagination.totalPages)})},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus ezf-page-btn",disabled:loading||!pagination.hasPrevious,onClick:()=>runSearch(pagination.page-1,lastQuery)},ezT('fatwa.previous')),/*#__PURE__*/React.createElement("span",{className:"ezf-page-text"},ezT('fatwa.page',{page:ezikFatwaNumber(pagination.page),pages:ezikFatwaNumber(pagination.totalPages)})),/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus ezf-page-btn",disabled:loading||!pagination.hasNext,onClick:()=>runSearch(pagination.page+1,lastQuery)},ezT('fatwa.next'))):null,!searched&&browsePages&&browsePages.totalPages>1?/*#__PURE__*/React.createElement("nav",{className:"ezf-pager","aria-label":ezT('fatwa.page',{page:ezikFatwaNumber(browsePages.page),pages:ezikFatwaNumber(browsePages.totalPages)})},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus ezf-page-btn",disabled:browseLoading||!browsePages.hasPrevious,onClick:()=>runBrowse(browsePages.page-1)},ezT('fatwa.previous')),/*#__PURE__*/React.createElement("span",{className:"ezf-page-text"},ezT('fatwa.page',{page:ezikFatwaNumber(browsePages.page),pages:ezikFatwaNumber(browsePages.totalPages)})),/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus ezf-page-btn",disabled:browseLoading||!browsePages.hasNext,onClick:()=>runBrowse(browsePages.page+1)},ezT('fatwa.next'))):null)));}// ============================================================
 // EZIK ADHKAR UI V2 -- the premium Arabic RTL redesign of the adhkar browse screen.
 // ------------------------------------------------------------
-// THE SWITCH, and it has the same shape as MADINA_IMG_ON below: the parameter ANSWERS
-// rather than merely writing, so an explicit '1' or '0' returns straight from the URL and
-// never consults storage at all. A stale key, a value some other build wrote, a quota-full
-// setItem or a storage that throws cannot make ?adhkarui=0 keep V2 on or ?adhkarui=1 keep
-// it off. The write is still attempted, in its own try/catch, so the answer survives the
-// next visit without the parameter -- but the write failing changes nothing about THIS visit.
+// THE SWITCH AS SESSION 84 BUILT IT -- AND IT IS RETIRED. ITEM 32 shut it: ADHKAR_UI_V2_ON
+// below is a fixed true, readAdhkarUiFlag has no caller anywhere in this file, and no
+// ?adhkarui value changes what any device opens. The function below is still WRITTEN the
+// way MADINA_IMG_ON is written -- the parameter ANSWERS rather than merely writing, so an
+// explicit '1' or '0' returns straight from the URL and never consults storage at all, and
+// a stale key, a value some other build wrote, a quota-full setItem or a storage that
+// throws cannot override it -- but nothing calls it, so what follows describes the shape of
+// the code and not a behaviour any reader can reach:
 //
 //   no adhkarui parameter -> V2   (unless this device stored an explicit refusal)
 //   ?adhkarui=1           -> V2
 //   ?adhkarui=0           -> V1   (the S13.3-A screen, immediate rollback, sticks on device)
+//
+// THOSE THREE LINES ARE SESSION 84's OWN TABLE, LEFT WORD FOR WORD ON PURPOSE. They are what
+// readAdhkarUiFlag would return if it were ever called again; today nothing calls it, so no
+// device takes any of the three. Rewriting the table would erase the record rather than keep
+// it -- this paragraph is the correction, and the table is left standing as what was true.
 //
 // V1 IS NOT EDITED. AdhkarScreenV1 below is the previous component with its name changed and
 // not one other byte touched, so the rollback path is the old screen itself and not a
@@ -1707,12 +1714,18 @@ try{return localStorage.getItem(ADHKAR_UI_V2_KEY)!=='0';}catch(e){return true;}}
 // first and alone; the screen and the reader come out separately, or not at all.
 //
 // THE OTHER TWO LEVERS OF THIS SHAPE ARE STILL LIVE, ON PURPOSE. ?mushafsvg=0 and
-// ?madinaimg=0 both roll a QUR'AN RENDERER back on a device, and both are executed and
-// asserted by tools/madina-hafs-guard.cjs (its section 5a drives ten parameter and storage
-// cases through the madinaimg switch) and named at eight sites in theme-coverage-guard.cjs.
-// Shutting either one means re-cutting roughly twenty assertions to say the opposite of what
-// they say today, and taking a printed-mushaf rollback away from readers who chose it. That
-// is an owner's decision, not a build one, and it is recorded in BABEL-32-REPORT.md as open.
+// ?madinaimg=0 both roll a QUR'AN RENDERER back on a device, and tools/madina-hafs-guard.cjs
+// holds both -- but NOT in the same way, and only one of them is executed. Its section 5a
+// lifts readMadinaImgFlag out of the shipped client and runs it against 16 environments: 12
+// parameter-and-storage pairs, 3 with a storage that throws, and 1 window carrying no
+// location at all. The mushafsvg lever is asserted by SOURCE SHAPE instead -- one pattern
+// over the switch and one over the flag name -- and nothing executes it. The two constants
+// are then named at 8 executable sites in theme-coverage-guard.cjs, and at 2 more inside its
+// own comments. Every count in this paragraph was measured on this tree on 2026-08-24.
+// Shutting either lever means re-cutting those assertions to say the opposite of what they
+// say today, and taking a printed-mushaf rollback away from readers who chose it. That is an
+// owner's decision, not a build one. BABEL-32-REPORT.md, which this used to name as the place
+// that decision was recorded as open, is not a file in this tree -- so it is recorded here.
 const ADHKAR_UI_V2_ON=true;// Session 85 -- the royal-blue header pattern that used to live here is GONE with the band it
 // painted. Neither new design draws a large filled blue rectangle: both open with a compact
 // pure-white top row, so there is no gradient stack, no lattice and no band left to build.
@@ -2028,8 +2041,10 @@ onCount:()=>{if(!full)setProg(bumpAdhkarCount(cat.id,idx,target));},onFav:()=>se
 return/*#__PURE__*/React.createElement(IstanaAdhkarReader,view);}// The audio control, shared by both readers so the contract cannot drift between them: it is
 // RENDERED ONLY when the loaded item genuinely carries d.audio, and it is the same toggle in
 // both designs. No item without a recitation ever shows a listen button.
-function A3AudioBtn({d,playing,onAudio,style,styleOn}){if(!d||!d.audio)return null;return/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onAudio,style:playing?{...style,...styleOn}:style,"aria-label":playing?A2_STOP:A2_LISTEN},playing?/*#__PURE__*/React.createElement(PauseIcon,{size:16}):/*#__PURE__*/React.createElement(PlayIcon,{size:16}));}// The one place the flag is spent. App still renders <AdhkarScreen onBack=... /> and knows
-// nothing about either version, so ?adhkarui=0 changes this line's answer and nothing else.
+function A3AudioBtn({d,playing,onAudio,style,styleOn}){if(!d||!d.audio)return null;return/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onAudio,style:playing?{...style,...styleOn}:style,"aria-label":playing?A2_STOP:A2_LISTEN},playing?/*#__PURE__*/React.createElement(PauseIcon,{size:16}):/*#__PURE__*/React.createElement(PlayIcon,{size:16}));}// The one place the constant is spent. App still renders <AdhkarScreen onBack=... /> and
+// knows nothing about either version. ITEM 32: ADHKAR_UI_V2_ON is a fixed true above and the
+// reader of ?adhkarui has no caller, so this line answers V2 on every device, and the V1 arm
+// is kept without being reached.
 function AdhkarScreen({onBack}){return ADHKAR_UI_V2_ON?/*#__PURE__*/React.createElement(AdhkarScreenV2,{onBack:onBack}):/*#__PURE__*/React.createElement(AdhkarScreenV1,{onBack:onBack});}// ============================================================
 // SESSION 87 -- ONE BACK HIERARCHY FOR THE WHOLE APPLICATION.
 // ------------------------------------------------------------
@@ -4585,8 +4600,14 @@ const mushafSvgUrl=n=>MUSHAF_SVG_ORIGIN+'/pages/'+String(n).padStart(3,'0')+'.sv
 // THE DEFAULT IS ON, and only an explicit refusal turns it off. The test is against '0'
 // rather than for '1', so all three ways of holding no answer -- an absent key, a value
 // we do not recognise, and a storage that throws -- land on the official page. No input
-// produces a blank screen, and the one input that produces the text reader is the one a
-// person typed on purpose.
+// produces a blank screen.
+// TWO THINGS THIS SWITCH DOES NOT DO, both read off this tree on 2026-08-24. It does not
+// ANSWER from the URL the way MADINA_IMG_ON below does: the parameter is only WRITTEN to
+// storage here and the answer is read back OUT of storage, so on a device whose storage
+// throws -- private mode, a full quota, a blocked origin -- the write is swallowed, the read
+// throws too, and ?mushafsvg=0 leaves the default ON for that visit. And it does not reach
+// the text reader on its own: MushafSheet tests the printed Madina page FIRST, so while
+// MADINA_IMG_ON is true, ?mushafsvg=0 alone changes nothing the reader sees.
 const readMushafSvgFlag=()=>{try{const p=new URLSearchParams(window.location.search).get('mushafsvg');if(p==='1'||p==='0')localStorage.setItem(MUSHAF_SVG_KEY,p);}catch(e){}try{return localStorage.getItem(MUSHAF_SVG_KEY)!=='0';}catch(e){return true;}};const MUSHAF_SVG_ON=readMushafSvgFlag();/* 14.7 */// Session 79 -- THE WHOLE MUSHAF: the real printed Madina page, as a page image, on
 // every printed page 1 to 604.
 // ---------------------------------------------------------------------------
@@ -4758,12 +4779,16 @@ let __mushafSvgWarm=0;const prefetchMushafSvg=n=>{if(!MUSHAF_SVG_ON&&!MADINA_IMG
 // verbatim by tools/madina-hafs-guard.cjs -- "the prefetch stays two deep" -- and that
 // guard is not this screen's to edit. Two guards, one line, and the line stays as written.
 let warmed=0;for(const d of[1,-1]){if(warmed>=MADINA_PAGE_CACHE_CAP)break;const t=n+d;if(t<1||t>604)continue;const url=madinaImgUrl(t)||(MUSHAF_SVG_ON?mushafSvgUrl(t):null);if(!url)continue;const im=new Image();im.decoding='async';im.src=url;warmed++;}}catch(e){}};// One sheet of the reader. This is the ONLY place that decides which renderer runs, and it
-// is the fallback too. Two ways back to the current reader, and both return the identical
-// element with the identical four props:
-//   • the flag is off  -> MUSHAF_SVG_ON is false, first branch, no image is ever created
-//   • the image failed  -> onError latches `broke`, and the next render takes that branch
-// Offline, 404, origin down, decode failure: all of them arrive as onError, and all of them
-// land on the reader that ships today. The reader never shows a blank or a broken image.
+// is the fallback too. The chain below is THREE renderers deep, not two, and the printed
+// Madina page is at the head of it -- the 78 and 81 notes inside MushafSheet describe the
+// order the branches are actually written in. Two ways reach the verified TEXT page, and
+// both return the identical element with the identical four props:
+//   • the flag is off  -> MUSHAF_SVG_ON is false. That is the SECOND test and not the
+//     first: the printed page is tested before it, so while MADINA_IMG_ON is true an image
+//     element IS created and this test is never reached.
+//   • the SVG failed  -> onError latches `broke`, and the next render takes that branch
+// Offline, 404, origin down, decode failure: each renderer's own onError latch hands the
+// sheet down to the next one. The reader never shows a blank or a broken image.
 // `broke` is per-sheet state and the key at the call site is page + epoch, so a page that
 // failed once gets a fresh attempt when it is paged back to -- one bad response does not
 // poison the session.
@@ -5474,12 +5499,16 @@ ezistQuranText:{color:'var(--a3-ink)',fontSize:19,lineHeight:2.1,textAlign:'cent
 // duplicated quick row they dressed. Nothing else in this file referenced them.
 // THE BOTTOM BAR: pure white, 44px floors, and the safe-area inset so it clears a home bar.
 // Session 13.3-A - Adhkar browse screen (Boubyan). Reuses DhikrCard for content/audio.
-adhkarContainer:{display:'flex',flexDirection:'column',height:'100dvh',background:'var(--page)'},adhkarHeader:{display:'flex',alignItems:'center',gap:12,padding:'14px 16px',background:'var(--white)',borderBottom:'1px solid var(--line)'},adhkarBackBtn:{height:36,padding:'0 14px',borderRadius:'var(--radius-btn)',background:'var(--white)',color:'var(--ink)',border:'1px solid var(--line)',cursor:'pointer',fontSize:14,fontWeight:600,fontFamily:'var(--ez-ui-font)',flexShrink:0},adhkarTitle:{flex:1,textAlign:'center',fontSize:18,fontWeight:800,color:'var(--ink)'},adhkarScroll:{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch',padding:'16px 16px 24px',boxSizing:'border-box'},adhkarList:{display:'flex',flexDirection:'column',gap:10},adhkarRow:{display:'flex',alignItems:'center',gap:12,padding:'14px 16px',borderRadius:'var(--radius-card)',background:'var(--white)',border:'1px solid var(--line)',cursor:'pointer',width:'100%',textAlign:'right',fontFamily:'var(--ez-ui-font)'},adhkarRowTitle:{flex:1,fontSize:16,fontWeight:700,color:'var(--ink)'},adhkarCount:{minWidth:28,height:24,padding:'0 8px',borderRadius:999,background:'var(--red-soft)',color:'var(--red)',fontSize:13,fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0},adhkarEmpty:{textAlign:'center',color:'var(--muted)',fontSize:15,padding:'32px 0'},// Session 84 - Adhkar UI V2 (ADHKAR_UI_V2_ON). ADDITIVE: every key below is new and not one
-// key above it changed, so ?adhkarui=0 renders the S13.3-A screen out of its own untouched
-// style keys. Colours are tokens, so V2 follows the palette rather than pinning hexes. The
-// only literals are rgba(255,255,255,a) -- white at a fraction, sitting ON the accent band --
-// and the shadow rgba(18,50,122,a), which is --red-deep at a fraction. Neither has a token,
-// and both are written the same way by homeHero, the chat header and the drawer already.
+adhkarContainer:{display:'flex',flexDirection:'column',height:'100dvh',background:'var(--page)'},adhkarHeader:{display:'flex',alignItems:'center',gap:12,padding:'14px 16px',background:'var(--white)',borderBottom:'1px solid var(--line)'},adhkarBackBtn:{height:36,padding:'0 14px',borderRadius:'var(--radius-btn)',background:'var(--white)',color:'var(--ink)',border:'1px solid var(--line)',cursor:'pointer',fontSize:14,fontWeight:600,fontFamily:'var(--ez-ui-font)',flexShrink:0},adhkarTitle:{flex:1,textAlign:'center',fontSize:18,fontWeight:800,color:'var(--ink)'},adhkarScroll:{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch',padding:'16px 16px 24px',boxSizing:'border-box'},adhkarList:{display:'flex',flexDirection:'column',gap:10},adhkarRow:{display:'flex',alignItems:'center',gap:12,padding:'14px 16px',borderRadius:'var(--radius-card)',background:'var(--white)',border:'1px solid var(--line)',cursor:'pointer',width:'100%',textAlign:'right',fontFamily:'var(--ez-ui-font)'},adhkarRowTitle:{flex:1,fontSize:16,fontWeight:700,color:'var(--ink)'},adhkarCount:{minWidth:28,height:24,padding:'0 8px',borderRadius:999,background:'var(--red-soft)',color:'var(--red)',fontSize:13,fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0},adhkarEmpty:{textAlign:'center',color:'var(--muted)',fontSize:15,padding:'32px 0'},// Session 84 - Adhkar UI V2 (ADHKAR_UI_V2_ON). ADDITIVE, as that session left it: every key
+// below was new and not one key above it changed, so the S13.3-A screen went on rendering
+// out of its own untouched style keys. ITEM 32 then shut the parameter that reached it: the
+// V1 keys above are all still here, and the screen that names them is no longer reached.
+// Colours are tokens, so V2 follows the palette rather than pinning hexes. The only literals
+// are rgba(255,255,255,a) -- white at a fraction, on the accent-FILLED counter, since session
+// 85 took the accent band away -- and the shadow rgba(18,50,122,a), which is --red-deep at a
+// fraction. Neither has a token. Measured on this tree on 2026-08-24: the keys below carry
+// five such literals in three distinct values and not one hex value, and outside them that
+// white-at-a-fraction shape is written only by the memorizer's header and its back button.
 adhkar2Container:{display:'flex',flexDirection:'column',height:'100dvh',background:'var(--page)'},// Session 85. THE ROYAL-BLUE BAND AND ITS TWELVE KEYS ARE REMOVED -- header, head row, head
 // text, round back button, brand, title, small title, subtitle, seal, search wrap, search
 // icon and search input all existed only to dress a large filled blue rectangle that neither
