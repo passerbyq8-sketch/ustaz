@@ -2502,10 +2502,33 @@ const EZIK_CARD_H = 1350;
 const EZIK_CARD_PAD = 84;
 const EZIK_CARD_BODY_SIZE = 40;
 const EZIK_CARD_LINE = 62;
-// The card is a fixed size, so the text it can hold is a fixed number of lines. A longer reply
-// is CUT, and the cut is SHOWN -- see EZIK_CARD_CUT and EZIK_CARD_CUT_NOTE. A silent truncation
-// would hand the reader a card that looks like a whole answer and is not one.
-const EZIK_CARD_BODY_LINES = 13;
+// The three offsets the footer is built from. They were three bare numbers inside the draw
+// call; they are named here because the LINE BUDGET below is derived from them, and a budget
+// derived from one number while the drawing uses another is the drift this file spends most of
+// its comments avoiding.
+const EZIK_CARD_SOURCE_RISE = 46;   // the source line sits this far above the site line
+const EZIK_CARD_NOTE_DROP = 14;     // the cut note sits this far below the slot after the body
+const EZIK_CARD_FOOT_GAP = 40;      // clear air between the last body line and the footer block
+// The card is a fixed size, so the text it can hold is a fixed number of lines -- but that
+// number is ARITHMETIC, not a preference.
+//
+// ITEM 42, MEASURED. It used to be the literal 13, and 13 was three lines short of what the card
+// holds: the last body baseline landed at 890 of a 1350-high card whose footer does not begin
+// until 1220, so a cut reply was drawn with 330 unused pixels under it -- close to a quarter of
+// the card -- and the reader was told the text was cut while a fifth of the space it could have
+// filled stood empty. Rendered in a real browser at 1080x1350 the body filled 80.6% of its own
+// region and 580 characters of a 1122-character reply were dropped.
+//
+// So the budget is computed from the geometry the card is actually drawn with, at the WORST
+// case: a reply that carries a source line AND is cut, which is the arrangement that leaves the
+// least room. Every lighter arrangement then has room to spare rather than less, so no reply can
+// ever be drawn over its own footer. Change EZIK_CARD_H, _PAD, _LINE or any offset above and
+// this follows on its own.
+const EZIK_CARD_BODY_LINES = Math.max(1, Math.floor(
+  ((EZIK_CARD_H - EZIK_CARD_PAD - EZIK_CARD_SOURCE_RISE - EZIK_CARD_FOOT_GAP
+    - (EZIK_CARD_LINE + EZIK_CARD_NOTE_DROP))            // the slot the cut note occupies
+    - (EZIK_CARD_PAD + EZIK_CARD_LINE))                  // the first baseline
+  / EZIK_CARD_LINE) + 1);
 const EZIK_CARD_CUT = '…';
 const EZIK_CARD_CUT_NOTE = 'النَّصُّ مُقتطَعٌ — تَمَامُهُ في التطبيق';
 const EZIK_CARD_SITE = 'ezik.app';
@@ -2543,14 +2566,35 @@ const ezikDrawReplyCard = (opts) => {
   canvas.width = EZIK_CARD_W;
   canvas.height = EZIK_CARD_H;
   const ctx = canvas.getContext('2d');
+  // ITEM 42, MEASURED IN A REAL BROWSER. A canvas built with createElement is not in the
+  // document, so its 2D context resolved `direction` to LTR -- and fillText runs the Unicode
+  // bidirectional algorithm with THAT as the paragraph direction. Every neutral character at
+  // the end of an Arabic sentence therefore took the paragraph's direction instead of the
+  // text's, and was drawn at the far right: seven of seven sentence-ending marks landed at the
+  // START of their line ('.الفتوى المسندة فيها'), and the list markers '1.' '2.' '3.' were
+  // thrown to the opposite end of their lines.
+  //
+  // ONE DECLARATION FIXES ALL OF IT, and it is the platform's own lever rather than a hand-
+  // written reordering: the algorithm is the browser's, the text is untouched, and not one
+  // character of the reply moves in the string. textAlign stays 'right', which is PHYSICAL and
+  // so is unaffected by this; only the base direction the algorithm resolves neutrals against
+  // changes. It is set once, before anything is drawn, so the watermark, the body, the cut note
+  // and the footer are all laid out the same way.
+  ctx.direction = 'rtl';
   const inner = EZIK_CARD_W - (EZIK_CARD_PAD * 2);
 
   ctx.fillStyle = '#0E1512';
   ctx.fillRect(0, 0, EZIK_CARD_W, EZIK_CARD_H);
 
   // The watermark: the wordmark, large, faint, behind everything. Drawn, never fetched.
+  // ITEM 42: 0.07 was measured against the card it sits on -- 30 of 255 levels above the
+  // background at its strongest, across 77827 pixels of the band the reply is written in, which
+  // is a shape the eye reads as a second word behind the first. Halved to 0.035, it is still
+  // there and it stops competing with the sentence on top of it. Moving it out of the text block
+  // was the other option in the order and is not available any more: the line budget above now
+  // fills the card, so there is no empty band left to move it into.
   ctx.save();
-  ctx.globalAlpha = 0.07;
+  ctx.globalAlpha = 0.035;
   ctx.fillStyle = '#EAF3EE';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -2577,7 +2621,7 @@ const ezikDrawReplyCard = (opts) => {
     ctx.save();
     ctx.globalAlpha = 0.75;
     ctx.font = '400 30px system-ui, sans-serif';
-    ctx.fillText(EZIK_CARD_CUT_NOTE, EZIK_CARD_W - EZIK_CARD_PAD, y + 14);
+    ctx.fillText(EZIK_CARD_CUT_NOTE, EZIK_CARD_W - EZIK_CARD_PAD, y + EZIK_CARD_NOTE_DROP);
     ctx.restore();
   }
 
@@ -2587,7 +2631,7 @@ const ezikDrawReplyCard = (opts) => {
     ctx.save();
     ctx.globalAlpha = 0.8;
     ctx.font = '400 28px system-ui, sans-serif';
-    ctx.fillText(String(o.source), EZIK_CARD_W - EZIK_CARD_PAD, foot - 46);
+    ctx.fillText(String(o.source), EZIK_CARD_W - EZIK_CARD_PAD, foot - EZIK_CARD_SOURCE_RISE);
     ctx.restore();
   }
   ctx.font = '600 30px system-ui, sans-serif';
@@ -2628,6 +2672,26 @@ const SaveReplyImageButton = ({ getText, getSource }) => {
   );
 };
 
+// ITEM 42-ب, MEASURED. A source line's url reaches this renderer exactly as the answer carries
+// it, and a fatwa url is percent-encoded Arabic: one reply put 56 `%XX` escapes on the page as
+// four unbroken lines of `%D9%85%D8%B0...`. That is not a link a reader can read, and because a
+// percent-escaped run carries no break opportunity at all it also cannot wrap -- so it runs past
+// the edge of the paper.
+//
+// SO IT IS SHOWN DECODED, AND ONLY SHOWN. This is a RENDERING, not an edit: serializeReply is
+// untouched, so the clipboard, the share text, the voice and the share card all still carry the
+// url byte for byte as the answer wrote it. Nothing here is fed back into a message. The decode
+// is attempted and the original is kept whenever it fails, because a malformed escape must
+// print as itself rather than throw the whole export away.
+const EZIK_BARE_URL = /^https?:\/\/\S+$/;
+const ezikReadableUrl = (u) => {
+  try {
+    const d = decodeURI(u);
+    // decodeURI leaves %XX that decodeURI must not touch; finish the job on those, still safely.
+    return d.replace(/(?:%[0-9A-Fa-f]{2})+/g, (m) => { try { return decodeURIComponent(m); } catch (e) { return m; } });
+  } catch (e) { return u; }
+};
+
 const docToHtml = (md) => {
   const lines = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   const out = [];
@@ -2662,6 +2726,10 @@ const docToHtml = (md) => {
       while (i < lines.length && /^\d+[.)]\s+/.test(lines[i].trim())) { items.push('<li>' + inlineFmt(lines[i].trim().replace(/^\d+[.)]\s+/, '')) + '</li>'); i++; }
       out.push('<ol>' + items.join('') + '</ol>'); continue;
     }
+    // A line that is nothing but a url is the reply's own reference. It is printed readable and
+    // on a paragraph that is allowed to break anywhere, so it can neither be unreadable nor run
+    // off the page. inlineFmt still does the escaping -- no tag is built from raw input here.
+    if (EZIK_BARE_URL.test(t)) { out.push('<p class="doc-url">' + inlineFmt(ezikReadableUrl(t)) + '</p>'); i++; continue; }
     out.push('<p>' + inlineFmt(t) + '</p>'); i++;
   }
   return out.join('\n');

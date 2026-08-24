@@ -1350,6 +1350,12 @@
   #print-area h3{font-size:13pt;color:#12327A;margin:10pt 0 4pt}
   #print-area h4{font-size:12pt;color:#12327A;margin:8pt 0 4pt}
   #print-area p{margin:6pt 0}
+  /* ITEM 42-ب, MEASURED: a percent-escaped fatwa url carries no break opportunity, so it was
+     drawn past the right edge of the paper. These two let any run break where it must -- they
+     change nothing for ordinary Arabic prose, which has spaces to break at. .doc-url is the
+     class docToHtml puts on a line that is nothing but a link. */
+  #print-area p,#print-area li,#print-area td,#print-area th{overflow-wrap:anywhere}
+  #print-area .doc-url{word-break:break-all;direction:ltr;text-align:right;unicode-bidi:isolate}
   #print-area ul,#print-area ol{margin:6pt 1.2em 6pt 0;padding:0}
   #print-area li{margin:3pt 0}
   #print-area strong{font-weight:700}
