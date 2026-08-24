@@ -416,6 +416,14 @@ const EZ_I18N = {
     'widget.prayer.asr': 'العصر',
     'widget.prayer.maghrib': 'المغرب',
     'widget.prayer.isha': 'العشاء',
+    'widget.adhkar.title': 'الأذكار',
+    'widget.adhkar.open': 'افتحْ الأذكار',
+    'widget.adhkar.chain': 'سلسلتك',
+    'widget.adhkar.days': 'يومًا متتاليًا',
+    'widget.adhkar.start': 'تبدأ ببلوغ هدف اليوم',
+    'widget.adhkar.goal': 'هدفُ اليوم: {n}',
+    'widget.adhkar.met': 'بلغتَ هدفَ اليومِ اليوم.',
+    'widget.adhkar.notMet': 'لم يُبلَغْ هدفُ اليومِ بعد.',
     'onboarding.welcome': 'أهلاً بك',
     'onboarding.male': 'ذكر',
     'onboarding.female': 'أنثى',
@@ -654,6 +662,14 @@ const EZ_I18N = {
     'widget.prayer.asr': 'Asr',
     'widget.prayer.maghrib': 'Maghrib',
     'widget.prayer.isha': 'Isha',
+    'widget.adhkar.title': 'Adhkar',
+    'widget.adhkar.open': 'Open adhkar',
+    'widget.adhkar.chain': 'Your chain',
+    'widget.adhkar.days': 'consecutive days',
+    'widget.adhkar.start': 'it begins when the goal for today is reached',
+    'widget.adhkar.goal': 'Goal for today: {n}',
+    'widget.adhkar.met': 'You reached the goal for today.',
+    'widget.adhkar.notMet': 'The goal for today has not been reached yet.',
     'onboarding.welcome': 'Welcome',
     'onboarding.male': 'Boy',
     'onboarding.female': 'Girl',
@@ -3656,6 +3672,7 @@ const EZWID_V = 1;
 function ezWidgetRegistry() {
   return [
     { id: 'prayer', title: 'widget.prayer.title', order: 1, shown: false, draw: (nav) => <EzWidgetPrayer nav={nav} /> },
+    { id: 'adhkar', title: 'widget.adhkar.title', order: 2, shown: false, draw: (nav) => <EzWidgetAdhkar nav={nav} /> },
   ];
 }
 
@@ -3858,6 +3875,45 @@ function EzWidgetPrayer({ nav }) {
       ))}
       {missing ? <div style={s.ezwidNote}>{ezT('widget.prayer.none')}</div> : null}
       <div style={s.ezwidNote}>{ezT('widget.prayer.note')}</div>
+    </EzWidgetShell>
+  );
+}
+
+// THE ADHKAR WIDGET -- ITEMS 12 AND 43-أ, READ AND NOT RECOUNTED.
+//
+// 🔴 ONE COUNTER IN THE APP, NOT TWO. The adhkar screen counts completions off
+// adhkar_daily_progress_v1 against the real items, and markAdhkarDayMet() -- its ONE writer --
+// credits the day in ezik_adhkar_streak_v1 when that count reaches the reader's own goal. This
+// widget reads THAT record and nothing else: the chain through adhkarRunAsOf(), the goal off the
+// same record, and whether today is already credited off rec.last, which is the very field that
+// one writer sets. It does not open the progress key, does not resolve an item against a target,
+// and therefore cannot arrive at a number the screen would disagree with. A second count would
+// have needed adhkar.json, which is a read this screen is not allowed to make.
+//
+// AND IT WRITES NOTHING. Reading the chain does not credit a day, does not lengthen a run and
+// does not touch the goal. Opening the screen is the only thing on this card that changes
+// anything, and what it changes is which screen is showing.
+//
+// A LAPSED CHAIN IS A NUMBER, NOT A REPROACH -- the same ruling item 43-أ made for the screen.
+// Zero is drawn in the same ink as any other number, with no warning beside it.
+//
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT. Defect 123 again.
+function EzWidgetAdhkar({ nav }) {
+  useEzLang();
+  const rec = readAdhkarStreak();
+  const today = adhkarDayKey();
+  const run = adhkarRunAsOf(rec, today);
+  const met = rec.last === today;
+  return (
+    <EzWidgetShell title={ezT('widget.adhkar.title')} openLabel={ezT('widget.adhkar.open')}
+      onOpen={nav ? nav.onOpenAdhkar : null}>
+      <div style={s.ezwidNumRow}>
+        <span style={s.ezwidName}>{ezT('widget.adhkar.chain')}</span>
+        <span style={s.ezwidNum}>{toArabicDigits(run)}</span>
+        <span style={s.ezwidName}>{run > 0 ? ezT('widget.adhkar.days') : ezT('widget.adhkar.start')}</span>
+      </div>
+      <div style={s.ezwidNote}>{ezT('widget.adhkar.goal', { n: toArabicDigits(rec.goal) })}</div>
+      <div style={s.ezwidNote}>{met ? ezT('widget.adhkar.met') : ezT('widget.adhkar.notMet')}</div>
     </EzWidgetShell>
   );
 }
