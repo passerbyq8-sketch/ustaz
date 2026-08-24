@@ -18,11 +18,13 @@
 //                 sweep them; bounded and evicted, so paging the book cannot fill a phone.
 //   cache-first : the icons and the watermark + the Google Fonts CSS/font files -- immutable or
 //                 rarely changing, and none of them carries text that can go stale.
-//   ignored     : every other origin (everyayah.com recitation audio, the cdnjs bundles that
-//                 html2pdf and mammoth are fetched from on first use) -- left entirely to the
-//                 network; the SW never intercepts them. unpkg and jsdelivr are no longer among
-//                 them: item 32 took React off unpkg and @babel/standalone off jsdelivr, and
-//                 the page reaches neither host at all.
+//   ignored     : every other origin (everyayah.com recitation audio, the one cdnjs bundle that
+//                 mammoth is fetched from when a reader attaches a .docx) -- left entirely to
+//                 the network; the SW never intercepts them. unpkg and jsdelivr are no longer
+//                 among them: item 32 took React off unpkg and @babel/standalone off jsdelivr,
+//                 and the page reaches neither host at all. ITEM 42-B took the PDF bundle off
+//                 cdnjs as well -- the export is the browser's own print engine now and fetches
+//                 nothing -- so ONE bundle is named here where two used to be.
 //
 // OFFLINE BOOT IS POSSIBLE NOW, and this note is what it replaced. It used to read: "OFFLINE
 //    BOOT IS NOT POSSIBLE while React/Babel/html2pdf/mammoth load from unpkg + cdnjs
@@ -31,9 +33,17 @@
 //    served from /vendor, @babel/standalone is gone entirely (the JSX is compiled before the
 //    commit, into /app.js), and all three are in CORE above. A reader who has visited once
 //    boots with no network.
-//    TWO CDN SCRIPTS REMAIN AND NEITHER BLOCKS A BOOT: html2pdf and mammoth are fetched from
-//    cdnjs the first time a reader exports a PDF or attaches a .docx, and never otherwise. An
-//    offline reader loses those two features and nothing else -- the app itself renders.
+//    ONE CDN SCRIPT REMAINS AND IT DOES NOT BLOCK A BOOT: mammoth is fetched from cdnjs the
+//    first time a reader attaches a .docx, and never otherwise. An offline reader loses that
+//    one feature and nothing else -- the app itself renders.
+//    IT USED TO BE TWO. Item 42-B measured the PDF bundle drawing every run of Arabic with a
+//    left-to-right base direction -- words glued together, the title glued to itself, and a
+//    flattened image of the page instead of text -- and took it out of the tree entirely. The
+//    export is window.print() now: it composes the document with the browser's own print engine
+//    under @media print, fetches NOTHING, and therefore works with no network at all. That is
+//    one fewer third-party origin this worker has to ignore, and one more feature that survives
+//    going offline. The line above this one still quotes the note as it read before item 32;
+//    that quotation is a record and is left exactly as it was.
 //
 // The cache name carries a VERSION. Bump it on every ship (v1 -> v2 -> ...): the changed SW
 // file makes the browser install the new worker, `activate` deletes every non-matching cache,
@@ -41,10 +51,10 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v24';
+const CACHE = 'ezik-v25';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
-// a second copy of the 121979 bytes '/' already holds. The network-first branch below still
+// a second copy of the 122568 bytes '/' already holds. The network-first branch below still
 // cache.put()s the shell on every successful load, so the offline fallback keeps working from
 // the '/' entry.
 //
@@ -93,7 +103,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 121979 + app.js 1019495 + icon-watermark.png 368386
+//   /  (index.html) 122568 + app.js 1026796 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + icon-maskable-512.png 5938 + icon-192.png 5053
 //   + manifest.json 533
@@ -109,7 +119,7 @@ const CORE = [
 // the pre-check then reserves less room than CORE needs and install is merely pessimistic.
 // A constant that LEADS would let install start a precache that cannot finish, which is why
 // B12 fails downward only.
-const CORE_BYTES = 1854255;
+const CORE_BYTES = 1862145;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
