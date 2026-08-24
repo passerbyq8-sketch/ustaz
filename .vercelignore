@@ -55,3 +55,30 @@ app.jsx
 # Excluding the directory would deploy a page that loads two scripts the deployment does not
 # contain -- a 404 on each, and nothing renders at all. It belongs with index.html and sw.js
 # in the NEVER-ADD list at the top of this file.
+
+# ROUND REPORTS, ORDERS AND OPERATING DOCUMENTS. Measured on 2026-08-24 at HEAD 3695694:
+# TWENTY-EIGHT tracked .md files survived every rule above, so they were uploaded and served
+# from ezik.app -- 589882 bytes of round reports, one of them the 45079-byte report the merge
+# round that found this had itself just committed. NOTHING FETCHES THEM: index.html, app.jsx,
+# sw.js and api/** were searched for all twenty-eight names, and the only two hits are `//`
+# COMMENTS which survive into the shipped bundle (app.js:4126 and app.js:4452) naming
+# EZIK-THEME-33-HANDOFF.md and MUSHAF-MADINA-ASSET-NOTICE.md as documents that OTHER files
+# read. Those readers are theme-coverage-guard.cjs, tools/madina-hafs-guard.cjs and
+# recon-audit.cjs, and every one of them reads the REPOSITORY, not the deployment. That is
+# exactly why this is an exclusion from the upload and NOT a deletion from git: both files
+# stay tracked, and both guards go on reading them.
+#
+# THE PATTERNS ARE CUT FROM THE MEASURED NAMES, not from a guess at what a report is called.
+# Twenty-seven of the twenty-eight begin `EZIK-`; the twenty-eighth is named outright; and
+# ORDER-*.md matches ZERO tracked files today -- it is here so an order committed by a later
+# round does not ship while nobody is looking. Measured against the whole tracked set: no .md
+# BELOW the root matches either pattern (docs/khilaf-policy.md is already excluded by docs/),
+# so neither line is anchored to the root and neither over-reaches.
+#
+# AND NOTHING HERE MAY SWALLOW A PUBLIC PAGE. index.html, about.html, privacy.html,
+# support.html, delete.html, robots.txt and sitemap.xml are HTML, XML and plain text; the
+# three patterns below match .md and nothing else. Add them to the NEVER-ADD list at the top
+# of this file before you widen anything here.
+EZIK-*.md
+MUSHAF-MADINA-ASSET-NOTICE.md
+ORDER-*.md
