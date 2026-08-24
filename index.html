@@ -1350,6 +1350,12 @@
   #print-area h3{font-size:13pt;color:#12327A;margin:10pt 0 4pt}
   #print-area h4{font-size:12pt;color:#12327A;margin:8pt 0 4pt}
   #print-area p{margin:6pt 0}
+  /* ITEM 42-ب, MEASURED: a percent-escaped fatwa url carries no break opportunity, so it was
+     drawn past the right edge of the paper. These two let any run break where it must -- they
+     change nothing for ordinary Arabic prose, which has spaces to break at. .doc-url is the
+     class docToHtml puts on a line that is nothing but a link. */
+  #print-area p,#print-area li,#print-area td,#print-area th{overflow-wrap:anywhere}
+  #print-area .doc-url{word-break:break-all;direction:ltr;text-align:right;unicode-bidi:isolate}
   #print-area ul,#print-area ol{margin:6pt 1.2em 6pt 0;padding:0}
   #print-area li{margin:3pt 0}
   #print-area strong{font-weight:700}
@@ -1625,29 +1631,31 @@
 
 <script src="vendor/react.umd.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z"></script>
 <script src="vendor/react-dom.umd.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1"></script>
-<!-- S97 PERF. html2pdf.bundle (906KB) and mammoth.browser (636KB) used to sit RIGHT HERE as two
-     render-blocking <script> tags, and nothing on the first screen touches either of them:
-     html2pdf is reached only by «تصدير PDF» inside a document card, and mammoth only by attaching
-     a .docx. Measured cold on a 4x-throttled mobile profile with the network taken out of the
-     picture entirely, parsing and executing those two bundles cost 813ms and 204ms BEFORE
-     DOMContentLoaded could fire -- a quarter of the whole boot -- and on real mobile data they
-     also put 1.5MB in front of the first paint.
-     Each is now fetched the first time its own feature is actually used, and never otherwise, so
-     a session that never exports a PDF never pays for html2pdf at all. Both call sites await this
-     same promise before their existing checks, so the OUTPUT is unchanged -- the same PDF, the
-     same extracted text; only the first use of each tool waits for its download.
+<!-- S97 PERF. Two document-tool bundles used to sit RIGHT HERE as render-blocking <script> tags,
+     and nothing on the first screen touches either of them. Measured cold on a 4x-throttled
+     mobile profile with the network taken out of the picture entirely, parsing and executing them
+     cost 813ms and 204ms BEFORE DOMContentLoaded could fire -- a quarter of the whole boot -- and
+     on real mobile data they also put 1.5MB in front of the first paint.
+     Each was moved to a fetch on the first use of its own feature, and never otherwise.
      An eager warm-on-idle was measured first and REJECTED: parsing 1.5MB right after the first
      paint landed inside the user's first interactions and cost +37% on closing the side menu and
      +28% on back, which is a worse trade than a one-time wait on a deliberate, rare export.
-     The URLs, the SRI hashes and the crossorigin mode are byte-for-byte the ones the tags carried,
-     so the supply-chain pin is unchanged -- recon-audit reads these literals. A load failure
-     resolves null, which lands on the same `!window.html2pdf` / `!window.mammoth` fallbacks that
-     already existed for a dead CDN. -->
+
+     ITEM 42-B, SECOND ROUND: ONE OF THE TWO IS GONE ALTOGETHER. The 906,041-byte PDF bundle was
+     removed from the map above, because the export path stopped calling it: measured against one
+     fixed reply it drew all 344 of its text runs with an LTR base direction, glueing 64 of 320
+     neighbouring word pairs and the document title with it, and it produced a flattened image of
+     the page rather than text. printAsPdf now composes the document with the browser's own print
+     engine under @media print, which lays Arabic out correctly and yields a real text file. So
+     this map holds ONE entry, the .docx reader, and a reader who exports a PDF now downloads
+     nothing at all. Nothing else in this block changed: the remaining URL, its SRI hash and the
+     crossorigin mode are byte-for-byte what the tag carried, and recon-audit reads that literal.
+     A load failure still resolves null, which lands on the `!window.mammoth` fallback that already
+     existed for a dead CDN. -->
 <script>
 window.__ezikVendor = (function () {
   var pending = {};
   var SRC = {
-    html2pdf: ['https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js', 'sha384-aBc0BOllaGWrQx51DYt978St/L7B+21jzNGc4N/jnGD0NxGwj8S/ftRgW0AkXIak'],
     mammoth: ['https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.11.0/mammoth.browser.min.js', 'sha384-t9eMqh3OtJXZhvLtmol8r2+23t6vg1GDo1UeyP55BEQdCI67GW2u8Nso+Yzo5m9r']
   };
   function load(name) {

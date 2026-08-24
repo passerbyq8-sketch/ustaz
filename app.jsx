@@ -2388,42 +2388,79 @@ const toPlainText = (s) => String(s || '')
 
 const inlineFmt = (s) => escapeHtml(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
+// ============================================================
+// ITEM 42-B, SECOND ROUND — THE EXPORT IS THE BROWSER'S OWN PRINT ENGINE, AND NOTHING ELSE.
+// ============================================================
+// WHAT THIS FILE USED TO CLAIM, AND WHY IT WAS FALSE. The note under 42-ب said the vendor bundle
+// "rasterises the DOM ... so the glyphs in the file are the glyphs the browser laid out -- joined,
+// shaped and right-to-left". Measured in a real browser against one fixed reply, that is not what
+// happens. The rasteriser does NOT use the browser's layout: it splits the text itself and draws
+// every piece with fillText at an offset it computes -- 344 calls for a single reply, and ALL 344
+// with an LTR base direction. So a run's trailing space was laid out on the wrong side of its own
+// run and disappeared between two words; the title came out «ردُّعزك» while a real U+0020 sat in
+// the string; and 64 of 320 neighbouring pairs were drawn with less than half a space between
+// them. The owner read every one of those defects in a file they exported themselves.
+//
+// THE SAME DOCUMENT, THE SAME STYLESHEET, THROUGH window.print(): the title keeps its space, ZERO
+// of 320 pairs are glued, zero lines open with a sentence-final mark, nothing runs past the paper
+// and nothing straddles a page break -- and the file is real TEXT that can be searched, copied and
+// read by a screen reader, instead of one flattened photograph of the page nine times its size.
+//
+// SO THE BUNDLE LEAVES THIS PATH ENTIRELY -- no call, no await, no placeholder, and no entry left
+// in the vendor map for a reader to wonder about. 906,041 bytes that the first export used to cost
+// are not fetched at all any more. What shapes the page is @media print in index.html: A4, a 1.5cm
+// margin, rtl, right-aligned, Amiri. It was always there. It was the fallback.
+//
+// WHAT A READER SEES DIFFERENTLY, STATED PLAINLY: the browser's print sheet opens instead of a
+// file dropping into Downloads. On desktop that sheet's destination is "Save as PDF"; on iOS it is
+// the share sheet's "Save to Files". document.title is what every browser proposes as the file
+// name, so the file is still named after the reply, and it is restored the moment printing ends.
+const EZIK_PRINT_FALLBACK_TITLE = 'مستند';
+// afterprint is not delivered by every engine. A promise that never settled would leave the export
+// button latched and the print area holding the last reply, so a timeout does exactly what
+// afterprint does and the two race. Whichever arrives first wins; the other is a no-op.
+const EZIK_PRINT_BACKSTOP_MS = 60000;
+
 const printAsPdf = async (title, bodyHtml) => {
   const area = document.getElementById('print-area');
   if (!area) return;
   area.innerHTML = '<h1>' + escapeHtml(title) + '</h1>' + bodyHtml;
-  // S97: html2pdf is no longer a boot-blocking <script>; it is warmed on idle after the first
-  // paint. Awaiting the same promise here is what keeps this path's RESULT identical -- the only
-  // case that waits is a tap in the first second, and it still produces the same file.
-  if (window.__ezikVendor) { try { await window.__ezikVendor('html2pdf'); } catch (e) {} }
-  if (!window.html2pdf) { document.title = title; window.print(); return; } // fallback if CDN failed
-  const opt = {
-    margin: [12, 12, 12, 12],
-    filename: (title || 'مستند') + '.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css', 'legacy'] }
-  };
-  const target = area.cloneNode(true);
-  target.style.display = 'block';
-  target.style.direction = 'rtl';
-  target.style.textAlign = 'right';
-  target.style.padding = '0';
-  window.html2pdf().set(opt).from(target).save().then(() => { area.innerHTML = ''; }).catch(() => { area.innerHTML = ''; });
+  const prevTitle = document.title;
+  document.title = title || EZIK_PRINT_FALLBACK_TITLE;
+  await new Promise((resolve) => {
+    let settled = false;
+    const onAfterPrint = () => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('afterprint', onAfterPrint);
+      document.title = prevTitle;
+      area.innerHTML = '';
+      resolve();
+    };
+    const onBackstop = () => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('afterprint', onAfterPrint);
+      document.title = prevTitle;
+      area.innerHTML = '';
+      resolve();
+    };
+    window.addEventListener('afterprint', onAfterPrint);
+    try { window.print(); } catch (e) { onBackstop(); return; }
+    setTimeout(onBackstop, EZIK_PRINT_BACKSTOP_MS);
+  });
 };
 
 // يحوّل محتوى المستند (فقرات، عناوين بـ# أو ##، نقاط بـ- أو •) إلى HTML للتصدير
 // ============================================================
 // ITEM 42-ب — THE REPLY, AS A PDF
 // ============================================================
-// THE MACHINE WAS MEASURED BEFORE IT WAS USED, and it was already here twice over:
-//   * printAsPdf() above -- the one PDF path in this app, which awaits window.__ezikVendor
-//     ('html2pdf') and falls back to window.print() when that never lands;
-//   * the lazy vendor map at the head of the document, where html2pdf.bundle (906KB) has sat
-//     since S97 precisely so that a session which never exports a PDF never pays for it.
-// So this item adds NO library, no <script> tag and not one byte to the boot path. What it adds
-// is a fifth button on a rail that already had four.
+// THE MACHINE WAS MEASURED BEFORE IT WAS USED, and it was already here: printAsPdf() above is
+// the one PDF path in this app. This item adds NO library, no <script> tag and not one byte to
+// the boot path. What it adds is a fifth button on a rail that already had four.
+//
+// SECOND ROUND: that one path no longer reaches for a vendor bundle at all -- see the note above
+// printAsPdf for the measurement that ended it. Nothing on this path fetches anything.
 //
 // THE SOURCE IS THE CLIPBOARD'S SOURCE. getText is buildCopyText -- the same serializeReply()
 // call the copy button and the share button hand over -- so there are not two serializers that
@@ -2431,14 +2468,14 @@ const printAsPdf = async (title, bodyHtml) => {
 // exactly as they go into the clipboard. docToHtml() is the SAME renderer the document card's
 // «تصدير PDF» already feeds printAsPdf, so the two PDFs are made the same way.
 //
-// ARABIC READS THE RIGHT WAY BECAUSE THE BROWSER SHAPES IT. html2pdf rasterises the DOM through
-// html2canvas, so the glyphs in the file are the glyphs the browser laid out -- joined, shaped
-// and right-to-left -- rather than a font-substituted re-run inside a PDF writer. printAsPdf
-// already sets direction rtl and textAlign right on the node it hands over; nothing here
-// re-states them, so the two export paths cannot disagree.
+// ARABIC READS THE RIGHT WAY BECAUSE THE BROWSER LAYS IT OUT -- and after the second round that
+// sentence is finally true of the file as well as of the screen. The page is composed by the same
+// engine that draws it, under @media print in index.html: direction rtl, text-align right, A4.
+// The bidi algorithm, the line breaking, the shaping and the pagination are all the browser's, so
+// the exported document and the screen cannot disagree about a single character.
 //
-// ZERO MODEL CALL, ZERO REQUEST OF THIS APP'S OWN. The vendor bundle arrives from the cache or
-// from the lazy source it already had; the reply itself is text this device is holding.
+// ZERO MODEL CALL, ZERO REQUEST OF ANY KIND. Not one byte is fetched on this path -- there is no
+// bundle left to fetch. The reply itself is text this device is already holding.
 //
 // 44x44 BY AREA, NOT BY SHAPE (44-ج). It is a .ezc-acts button, and the sheet gives every one of
 // them a 44x44 ::before. It states no width and no height of its own, so nothing moved by a pixel.
@@ -2478,11 +2515,13 @@ const ExportPdfReplyButton = ({ getText }) => {
 // ============================================================
 // ITEM 42-C. THE REPLY AS AN IMAGE — DRAWN, NOT RASTERISED.
 // ============================================================
-// ITEM 42-B MEASURED WHY THIS DID NOT EXIST: the only DOM rasteriser reachable from this tree is
-// html2canvas, it lives inside the 906KB html2pdf bundle, and the offline store precaches no
-// vendor JavaScript at all. A share card built on it would be a control that does not work
-// offline and costs three quarters of a megabyte the first time it is pressed. That measurement
-// still stands, and the Z5 checks in theme-coverage-guard.cjs still hold it in place.
+// ITEM 42-B MEASURED WHY THIS DID NOT EXIST: the only DOM rasteriser this tree could reach lived
+// inside a 906KB PDF bundle fetched from a CDN, and the offline store precaches no vendor
+// JavaScript at all. A share card built on it would have been a control that does not work
+// offline and costs three quarters of a megabyte the first time it is pressed.
+// SECOND ROUND: that bundle is not reachable from here AT ALL any more -- the export path stopped
+// calling it and its entry left the vendor map, so the argument is now moot rather than merely
+// decisive. The Z5 checks in theme-coverage-guard.cjs still hold the no-rasteriser rule in place.
 //
 // SO NOTHING IS RASTERISED. The card is DRAWN: the browser shapes and joins Arabic inside
 // fillText by itself, which is the whole reason a library was thought to be needed. No new
@@ -2502,10 +2541,33 @@ const EZIK_CARD_H = 1350;
 const EZIK_CARD_PAD = 84;
 const EZIK_CARD_BODY_SIZE = 40;
 const EZIK_CARD_LINE = 62;
-// The card is a fixed size, so the text it can hold is a fixed number of lines. A longer reply
-// is CUT, and the cut is SHOWN -- see EZIK_CARD_CUT and EZIK_CARD_CUT_NOTE. A silent truncation
-// would hand the reader a card that looks like a whole answer and is not one.
-const EZIK_CARD_BODY_LINES = 13;
+// The three offsets the footer is built from. They were three bare numbers inside the draw
+// call; they are named here because the LINE BUDGET below is derived from them, and a budget
+// derived from one number while the drawing uses another is the drift this file spends most of
+// its comments avoiding.
+const EZIK_CARD_SOURCE_RISE = 46;   // the source line sits this far above the site line
+const EZIK_CARD_NOTE_DROP = 14;     // the cut note sits this far below the slot after the body
+const EZIK_CARD_FOOT_GAP = 40;      // clear air between the last body line and the footer block
+// The card is a fixed size, so the text it can hold is a fixed number of lines -- but that
+// number is ARITHMETIC, not a preference.
+//
+// ITEM 42, MEASURED. It used to be the literal 13, and 13 was three lines short of what the card
+// holds: the last body baseline landed at 890 of a 1350-high card whose footer does not begin
+// until 1220, so a cut reply was drawn with 330 unused pixels under it -- close to a quarter of
+// the card -- and the reader was told the text was cut while a fifth of the space it could have
+// filled stood empty. Rendered in a real browser at 1080x1350 the body filled 80.6% of its own
+// region and 580 characters of a 1122-character reply were dropped.
+//
+// So the budget is computed from the geometry the card is actually drawn with, at the WORST
+// case: a reply that carries a source line AND is cut, which is the arrangement that leaves the
+// least room. Every lighter arrangement then has room to spare rather than less, so no reply can
+// ever be drawn over its own footer. Change EZIK_CARD_H, _PAD, _LINE or any offset above and
+// this follows on its own.
+const EZIK_CARD_BODY_LINES = Math.max(1, Math.floor(
+  ((EZIK_CARD_H - EZIK_CARD_PAD - EZIK_CARD_SOURCE_RISE - EZIK_CARD_FOOT_GAP
+    - (EZIK_CARD_LINE + EZIK_CARD_NOTE_DROP))            // the slot the cut note occupies
+    - (EZIK_CARD_PAD + EZIK_CARD_LINE))                  // the first baseline
+  / EZIK_CARD_LINE) + 1);
 const EZIK_CARD_CUT = '…';
 const EZIK_CARD_CUT_NOTE = 'النَّصُّ مُقتطَعٌ — تَمَامُهُ في التطبيق';
 const EZIK_CARD_SITE = 'ezik.app';
@@ -2543,14 +2605,35 @@ const ezikDrawReplyCard = (opts) => {
   canvas.width = EZIK_CARD_W;
   canvas.height = EZIK_CARD_H;
   const ctx = canvas.getContext('2d');
+  // ITEM 42, MEASURED IN A REAL BROWSER. A canvas built with createElement is not in the
+  // document, so its 2D context resolved `direction` to LTR -- and fillText runs the Unicode
+  // bidirectional algorithm with THAT as the paragraph direction. Every neutral character at
+  // the end of an Arabic sentence therefore took the paragraph's direction instead of the
+  // text's, and was drawn at the far right: seven of seven sentence-ending marks landed at the
+  // START of their line ('.الفتوى المسندة فيها'), and the list markers '1.' '2.' '3.' were
+  // thrown to the opposite end of their lines.
+  //
+  // ONE DECLARATION FIXES ALL OF IT, and it is the platform's own lever rather than a hand-
+  // written reordering: the algorithm is the browser's, the text is untouched, and not one
+  // character of the reply moves in the string. textAlign stays 'right', which is PHYSICAL and
+  // so is unaffected by this; only the base direction the algorithm resolves neutrals against
+  // changes. It is set once, before anything is drawn, so the watermark, the body, the cut note
+  // and the footer are all laid out the same way.
+  ctx.direction = 'rtl';
   const inner = EZIK_CARD_W - (EZIK_CARD_PAD * 2);
 
   ctx.fillStyle = '#0E1512';
   ctx.fillRect(0, 0, EZIK_CARD_W, EZIK_CARD_H);
 
   // The watermark: the wordmark, large, faint, behind everything. Drawn, never fetched.
+  // ITEM 42: 0.07 was measured against the card it sits on -- 30 of 255 levels above the
+  // background at its strongest, across 77827 pixels of the band the reply is written in, which
+  // is a shape the eye reads as a second word behind the first. Halved to 0.035, it is still
+  // there and it stops competing with the sentence on top of it. Moving it out of the text block
+  // was the other option in the order and is not available any more: the line budget above now
+  // fills the card, so there is no empty band left to move it into.
   ctx.save();
-  ctx.globalAlpha = 0.07;
+  ctx.globalAlpha = 0.035;
   ctx.fillStyle = '#EAF3EE';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -2577,7 +2660,7 @@ const ezikDrawReplyCard = (opts) => {
     ctx.save();
     ctx.globalAlpha = 0.75;
     ctx.font = '400 30px system-ui, sans-serif';
-    ctx.fillText(EZIK_CARD_CUT_NOTE, EZIK_CARD_W - EZIK_CARD_PAD, y + 14);
+    ctx.fillText(EZIK_CARD_CUT_NOTE, EZIK_CARD_W - EZIK_CARD_PAD, y + EZIK_CARD_NOTE_DROP);
     ctx.restore();
   }
 
@@ -2587,7 +2670,7 @@ const ezikDrawReplyCard = (opts) => {
     ctx.save();
     ctx.globalAlpha = 0.8;
     ctx.font = '400 28px system-ui, sans-serif';
-    ctx.fillText(String(o.source), EZIK_CARD_W - EZIK_CARD_PAD, foot - 46);
+    ctx.fillText(String(o.source), EZIK_CARD_W - EZIK_CARD_PAD, foot - EZIK_CARD_SOURCE_RISE);
     ctx.restore();
   }
   ctx.font = '600 30px system-ui, sans-serif';
@@ -2628,6 +2711,26 @@ const SaveReplyImageButton = ({ getText, getSource }) => {
   );
 };
 
+// ITEM 42-ب, MEASURED. A source line's url reaches this renderer exactly as the answer carries
+// it, and a fatwa url is percent-encoded Arabic: one reply put 56 `%XX` escapes on the page as
+// four unbroken lines of `%D9%85%D8%B0...`. That is not a link a reader can read, and because a
+// percent-escaped run carries no break opportunity at all it also cannot wrap -- so it runs past
+// the edge of the paper.
+//
+// SO IT IS SHOWN DECODED, AND ONLY SHOWN. This is a RENDERING, not an edit: serializeReply is
+// untouched, so the clipboard, the share text, the voice and the share card all still carry the
+// url byte for byte as the answer wrote it. Nothing here is fed back into a message. The decode
+// is attempted and the original is kept whenever it fails, because a malformed escape must
+// print as itself rather than throw the whole export away.
+const EZIK_BARE_URL = /^https?:\/\/\S+$/;
+const ezikReadableUrl = (u) => {
+  try {
+    const d = decodeURI(u);
+    // decodeURI leaves %XX that decodeURI must not touch; finish the job on those, still safely.
+    return d.replace(/(?:%[0-9A-Fa-f]{2})+/g, (m) => { try { return decodeURIComponent(m); } catch (e) { return m; } });
+  } catch (e) { return u; }
+};
+
 const docToHtml = (md) => {
   const lines = String(md || '').replace(/\r\n?/g, '\n').split('\n');
   const out = [];
@@ -2662,6 +2765,10 @@ const docToHtml = (md) => {
       while (i < lines.length && /^\d+[.)]\s+/.test(lines[i].trim())) { items.push('<li>' + inlineFmt(lines[i].trim().replace(/^\d+[.)]\s+/, '')) + '</li>'); i++; }
       out.push('<ol>' + items.join('') + '</ol>'); continue;
     }
+    // A line that is nothing but a url is the reply's own reference. It is printed readable and
+    // on a paragraph that is allowed to break anywhere, so it can neither be unreadable nor run
+    // off the page. inlineFmt still does the escaping -- no tag is built from raw input here.
+    if (EZIK_BARE_URL.test(t)) { out.push('<p class="doc-url">' + inlineFmt(ezikReadableUrl(t)) + '</p>'); i++; continue; }
     out.push('<p>' + inlineFmt(t) + '</p>'); i++;
   }
   return out.join('\n');

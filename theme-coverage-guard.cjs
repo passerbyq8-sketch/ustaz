@@ -4538,21 +4538,108 @@ ok('Y8: it is mounted, beside the app and under the same boundary',
     .test(html));
 
 /* ---- Z. ITEM 42-B: THE REPLY EXPORTS ITSELF, WITH NO NEW MACHINE -------- */
-// THE MACHINE WAS MEASURED FIRST. Two things had to already be true before a button could be
-// hung on them, and both are asserted rather than remembered: html2pdf is declared in the LAZY
-// vendor map and is NOT a script tag on the boot path, and printAsPdf is the app's single PDF
-// path. A future change that promotes html2pdf back to a render-blocking script fails here.
+// WHAT THIS BLOCK USED TO ASSERT, AND WHICH PART OF IT IS GONE.
+//
+// It pinned THREE things at once, and they were tangled together:
+//   (a) no heavy document bundle loads at boot          -- true, kept, and widened below;
+//   (b) no DOM rasteriser is ever constructed or called -- true, kept, and widened below;
+//   (c) html2pdf IS the export path -- the vendor map had to declare it, printAsPdf had to
+//       `await window.__ezikVendor('html2pdf')`, and the html2canvas option object had to be
+//       present in the source.
+//
+// (c) WAS MEASURED AND IS FALSE AS AN ENGINEERING CHOICE. On 2026-08-24 the shipped export was
+// driven in a real browser against one fixed reply, with every fillText it made recorded: the
+// rasteriser drew ALL 344 of its runs with an LTR base direction, so 64 of 320 neighbouring word
+// pairs were drawn less than half a space apart, and the document title came out «ردُّعزك» while
+// a real U+0020 sat untouched in the string. It also emitted a flattened photograph of the page.
+// The same document, the same stylesheet, through the browser's own print engine: ZERO glued
+// pairs, zero lines opening with a sentence-final mark, nothing past the paper edge, nothing
+// straddling a page break -- and a real text file a fifth of the size.
+//
+// So (c) is dropped. THE OWNER ORDERED IT DROPPED, in writing and in the open
+// (ORDER-PDF-PATH-42B.md, §2-2), and this note is here so nobody has to guess later why a pin
+// went. (a) and (b) are not relaxed by one character: both are re-stated below over a WIDER set
+// of names than they covered before.
+//
+// AND THE REPLACEMENT IS ACCOUNTING, NOT A DENYLIST. A list of forbidden tools only ever catches
+// the tools somebody thought of. Z1-A collects every call printAsPdf makes and compares the SET
+// to a declared set, so a path nobody here anticipated fails BY ITS OWN NAME rather than slipping
+// past a pattern that was not written with it in mind.
+
+// ---- Z1-A. THE EXPORT PATH, ACCOUNTED FOR BY NAME -------------------------
+const printAt = html.indexOf('const printAsPdf = async ');
+const printEnd = printAt === -1 ? -1 : html.indexOf('\n};', printAt);
+const printSrc = (printAt !== -1 && printEnd > printAt) ? html.slice(printAt, printEnd + 3) : '';
+ok('Z1-A: the one PDF path was located and bounded', printSrc.length > 300, 'len=' + printSrc.length);
+
+// Every call the export makes, by name. Add a line here to add a call -- and say why.
+const EXPORT_CALLS = [
+  'document.getElementById',    // the print area the document is written into
+  'escapeHtml',                 // the title, escaped before it is written
+  'Promise',                    // the latch that lets one press produce one document
+  'window.addEventListener',    // afterprint
+  'window.removeEventListener', // ...and its removal, so a second export cannot fire the first
+  'window.print',               // THE EXPORT. The browser's own engine, and the only one.
+  'setTimeout',                 // the backstop, for engines that never deliver afterprint
+  'onBackstop',                 // ...called directly when print() throws
+  'resolve',                    // settles the latch
+];
+{
+  const body = printSrc.replace(/\/\/[^\n]*/g, '');
+  // Language keywords that are followed by '(' and are not calls. `async` is in the list because
+  // the declaration itself reads `= async (title, bodyHtml) =>`; it is a keyword, not a tool.
+  const KEYWORDS = new Set(['if', 'for', 'while', 'switch', 'catch', 'return', 'function',
+    'typeof', 'await', 'new', 'else', 'do', 'try', 'async', 'void', 'delete', 'yield']);
+  const called = [];
+  for (const m of body.matchAll(/([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*\(/g)) {
+    const name = m[1];
+    if (KEYWORDS.has(name)) continue;
+    if (called.indexOf(name) === -1) called.push(name);
+  }
+  const declared = new Set(EXPORT_CALLS);
+  const unnamed = called.filter((c) => !declared.has(c));
+  const missing = EXPORT_CALLS.filter((c) => called.indexOf(c) === -1);
+  ok('Z1-A: ...and every call it makes is one this guard names',
+    unnamed.length === 0,
+    'the export path calls ' + unnamed.join(', ') + ' -- which is not in EXPORT_CALLS. An export '
+    + 'mechanism that is not named here has not been reviewed. Add it with the reason it is there, '
+    + 'or take it out of the export path.');
+  ok('Z1-A: ...and every call this guard names is still made',
+    missing.length === 0,
+    'EXPORT_CALLS declares ' + missing.join(', ') + ', which the export path no longer calls -- '
+    + 'the table has gone stale, which is how a guard stops guarding.');
+  ok('Z1-A: ...and the export IS the browser print engine',
+    called.indexOf('window.print') !== -1,
+    'printAsPdf no longer calls window.print() -- something else is producing the document');
+}
+// (b), WIDENED. Not one of these may be named ANYWHERE on the export path -- not called, not
+// awaited, not held as an option object, not left as a placeholder.
+const EXPORT_FORBIDDEN = /html2pdf|html2canvas|jspdf|dom-?to-?image|domtoimage|html-?to-?image|satori|__ezikVendor|toDataURL|toBlob|getContext/i;
+ok('Z1-A: ...and no bundle, rasteriser or canvas is named on that path at all',
+  printSrc.length > 0 && !EXPORT_FORBIDDEN.test(printSrc),
+  'the export path names a rasteriser or a vendor bundle again');
+
+// ---- Z1-B. NOTHING HEAVY LOADS AT BOOT (kept, and widened) ----------------
 const vendAt = html.indexOf('window.__ezikVendor');
-ok('Z1: the lazy vendor loader is still what fetches html2pdf',
-  vendAt !== -1 && /html2pdf: \['https:\/\/[^']+html2pdf\.bundle\.min\.js'/.test(html),
-  'the lazy vendor map no longer declares html2pdf');
-ok('Z1: ...and html2pdf is on no <script src> in the document',
-  !/<script[^>]+src=["'][^"']*html2pdf/i.test(html),
-  'html2pdf came back as a boot-blocking script tag');
+ok('Z1-B: the lazy vendor loader is still the only place a third-party bundle is named',
+  vendAt !== -1, 'the lazy vendor loader is gone -- a bundle could be loading anywhere now');
+ok('Z1-B: ...and NO document bundle is a <script src> on the boot path',
+  !/<script[^>]+src=["'][^"']*(html2pdf|html2canvas|mammoth|jspdf|dom-to-image|domtoimage|satori)/i.test(html),
+  'a heavy document bundle came back as a boot-blocking script tag');
+// The vendor map, accounted for by name as well. The PDF bundle left it in this round; a bundle
+// that comes back, under any name, fails here rather than being noticed by nobody.
+{
+  const mapAt = vendAt === -1 ? -1 : html.indexOf('var SRC = {', vendAt);
+  const mapSrc = mapAt === -1 ? '' : html.slice(mapAt, html.indexOf('};', mapAt));
+  const VENDOR_ENTRIES = ['mammoth'];        // the .docx reader, and nothing else
+  const entries = [...mapSrc.matchAll(/^\s*([A-Za-z_$][\w$]*)\s*:/gm)].map((m) => m[1]);
+  ok('Z1-B: the lazy vendor map declares exactly the bundles this guard names',
+    mapSrc.length > 40 && entries.length === VENDOR_ENTRIES.length
+    && entries.every((e) => VENDOR_ENTRIES.indexOf(e) !== -1),
+    'the vendor map declares [' + entries.join(', ') + '] and this guard names ['
+    + VENDOR_ENTRIES.join(', ') + ']');
+}
 eq('Z1: the app has exactly one PDF path', (html.match(/const printAsPdf = async /g) || []).length, 1);
-okOn('Z1: ...and it still awaits the lazy bundle and degrades to print()', [['html', html]],
-  /await window\.__ezikVendor\('html2pdf'\)/.test(html)
-  && /if \(!window\.html2pdf\) \{ document\.title = title; window\.print\(\); return; \}/.test(html));
 
 const pdfAt = html.indexOf('const ExportPdfReplyButton = ({ getText }) =>');
 const pdfEnd = pdfAt === -1 ? -1 : html.indexOf('const docToHtml = (md) =>', pdfAt);
@@ -4604,8 +4691,15 @@ ok('Z5: ...which draws an image element, not a DOM subtree',
   /canvas\.getContext\('2d'\)\.drawImage\(img, 0, 0, w, h\)/.test(html));
 ok('Z5: no DOM-to-image library entered the tree',
   !/dom-to-image|domtoimage|htmlToImage|html-to-image|satori/i.test(html));
-ok('Z5: ...and html2canvas is named as an OPTION and never constructed or called',
-  !/html2canvas\s*[.(]/.test(html) && /html2canvas: \{ scale: 2, useCORS: true \}/.test(html));
+// SPLIT IN THIS ROUND. This used to assert two things with one `&&`: that html2canvas is never
+// constructed or called (the harm) AND that its option object is present in the source (which was
+// half of the primacy pin dropped at the head of this block). The first half is kept and widened
+// to every DOM rasteriser this tree knows the name of; the second half is gone, because there is
+// no option object any more -- the export does not reach for a rasteriser at all.
+ok('Z5: ...and NO DOM rasteriser is ever constructed or called anywhere in the client',
+  !/html2canvas\s*[.(]/.test(html) && !/html2pdf\s*[.(]/.test(html)
+  && !/\b(domtoimage|htmlToImage|satori)\s*[.(]/.test(html),
+  'a DOM rasteriser is being constructed or called');
 // And the offline store still carries no vendor JavaScript at all, which is the other half of
 // the reason: a share card built on html2canvas would be a control that cannot work offline.
 // ITEM 32 SPLIT THIS IN TWO, because half of it stopped being true and the other half is the
