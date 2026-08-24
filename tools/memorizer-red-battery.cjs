@@ -352,6 +352,49 @@ const FOREIGN = ['الناس', 'كتاب', 'محمد', 'شجرة', 'الجبل']
   }
 }
 
+// ---- CATEGORY 5 · WHAT THE SCREEN ACTUALLY RUNS ----
+// Everything above is one ayah against one recitation. The screen is not: buildExpected
+// concatenates every ayah from the start of the range up to the current one and aligns the WHOLE
+// cumulative heard stream against it, then slices out the current ayah's states. So the alignment
+// the child sees runs over dozens or hundreds of words, where a word has many more wrong places
+// it could latch onto. These pairs are that shape.
+{
+  let n = 0;
+  for (let sura = 1; sura <= 114 && n < 90; sura++) {
+    let ayat = [];
+    for (let a = 1; a <= 300; a++) { const t = QURAN[sura + ':' + a]; if (!t) break; ayat.push(t); }
+    if (ayat.length < 4) continue;
+    const span = Math.min(ayat.length, 3 + (n % 6));
+    const verse = { key: sura + ':1-' + span, verse: ayat.slice(0, span).join(' '), words: [] };
+    verse.words = verse.verse.split(/\s+/).filter((w) => normalizeHeardRed(w));
+    if (verse.words.length < 6) continue;
+    const modern = verse.words.map(r21Modern);
+    const maddy = verse.words.map(r22ModernMadd);
+    add(5, 'C1-CUMULATIVE-PLAIN', verse, modern, null, span + ' ayat run together');
+    add(5, 'C2-CUMULATIVE-MADD', verse, maddy, null, span + ' ayat run together');
+    // ...and the same run with ONE real slip somewhere in the middle of it.
+    const i = 2 + (n % (modern.length - 4));
+    add(5, 'C3-CUMULATIVE-ONE-SLIP', verse, modern.filter((_, t) => t !== i), [i], 'one word dropped mid-run');
+    // E5 · a word replaced by its NEAR TWIN from the same run -- the hardest substitution there is,
+    //      because the alignment can plausibly claim either copy.
+    //      TWO THINGS THE TWIN HAS TO BE, and both were learned by getting them wrong:
+    //      it must not be the SAME STRING -- 69:1 says ٱلْحَآقَّةُ three times, so "another word of
+    //      similar length" handed back الحاقه itself and the battery reported a no-op mutation as
+    //      an escape; and it must actually be BELOW the bar -- 58:1 offered الله for وَٱللَّهُ, one
+    //      letter in six = 0.833, which is the documented leniency of §2-4 and not a matcher fault.
+    //      A derivation that demands the matcher beat its own inherited threshold is not a test.
+    const twin = modern.slice();
+    const other = modern.findIndex((w, t) => t !== i && w.length >= 4
+      && Math.abs(w.length - modern[i].length) <= 1
+      && w !== modern[i]
+      && redWordSim(recitePattern(verse.words[i]), normalizeHeardRed(w)) < RECITE_RED_THRESHOLD);
+    if (other !== -1) { twin[i] = modern[other]; add(5, 'E5-REPLACED-BY-A-TWIN', verse, twin, [i], 'replaced with another word of the same run'); }
+    // E6 · TWO adjacent words dropped -- still a slip, still inside the run cap, still must redden.
+    add(5, 'E6-TWO-WORDS-DROPPED', verse, modern.filter((_, t) => t !== i && t !== i + 1), [i, i + 1]);
+    n++;
+  }
+}
+
 /* ---------------------------------------------------------------------------------------------
  * 4. RUN
  * ------------------------------------------------------------------------------------------- */
@@ -404,8 +447,8 @@ console.log('  SPREAD      ' + spreadPairs + '/' + redPairs + '  = ' + pct(sprea
   + '   (red reaching a word that was not the slip)');
 
 console.log('\n-- by category --');
-const CATNAME = { 1: 'مطابقٌ تامًّا', 2: 'رسمٌ يختلف · نطقٌ واحد', 3: 'خطأٌ حقيقيّ', 4: 'عيبٌ في التعرّفِ على الكلام' };
-for (const c of [1, 2, 3, 4]) {
+const CATNAME = { 1: 'مطابقٌ تامًّا', 2: 'رسمٌ يختلف · نطقٌ واحد', 3: 'خطأٌ حقيقيّ', 4: 'عيبٌ في التعرّفِ على الكلام', 5: 'آياتٌ متتابعةٌ كما تجري في الشاشة' };
+for (const c of [1, 2, 3, 4, 5]) {
   const b = byCat.get(c); if (!b) continue;
   console.log('  ' + c + '. ' + CATNAME[c].padEnd(26) + ' pairs ' + String(b.n).padStart(4)
     + '   falseRed ' + String(b.falseRed).padStart(3) + '   escaped ' + String(b.escaped).padStart(3) + '   offByOne ' + String(b.near || 0).padStart(3)
