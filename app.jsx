@@ -406,6 +406,16 @@ const EZ_I18N = {
     'home.greet.evening.6': 'أذكار المساء تحفظك في ليلتك.',
     'home.greet.evening.7': 'طابَ مساؤك — أذكار المساء بانتظارك.',
     'home.greet.evening.8': 'اختم يومك بحصنٍ من الأذكار.',
+    'widget.prayer.title': 'مواقيت الصلاة',
+    'widget.prayer.open': 'افتحْ الصلاة والقبلة',
+    'widget.prayer.note': 'محسوبةٌ على هذا الجهاز، بلا إنترنت.',
+    'widget.prayer.none': 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.',
+    'widget.prayer.fajr': 'الفجر',
+    'widget.prayer.sunrise': 'الشروق',
+    'widget.prayer.dhuhr': 'الظهر',
+    'widget.prayer.asr': 'العصر',
+    'widget.prayer.maghrib': 'المغرب',
+    'widget.prayer.isha': 'العشاء',
     'onboarding.welcome': 'أهلاً بك',
     'onboarding.male': 'ذكر',
     'onboarding.female': 'أنثى',
@@ -634,6 +644,16 @@ const EZ_I18N = {
     'home.greet.evening.6': 'The evening adhkar will keep you through your night.',
     'home.greet.evening.7': 'A good evening to you — the evening adhkar are waiting.',
     'home.greet.evening.8': 'Seal your day with a fortress of adhkar.',
+    'widget.prayer.title': 'Prayer times',
+    'widget.prayer.open': 'Open prayer and qibla',
+    'widget.prayer.note': 'Calculated on this device, with no internet.',
+    'widget.prayer.none': 'The twilight does not reach this angle at this place today.',
+    'widget.prayer.fajr': 'Fajr',
+    'widget.prayer.sunrise': 'Sunrise',
+    'widget.prayer.dhuhr': 'Dhuhr',
+    'widget.prayer.asr': 'Asr',
+    'widget.prayer.maghrib': 'Maghrib',
+    'widget.prayer.isha': 'Isha',
     'onboarding.welcome': 'Welcome',
     'onboarding.male': 'Boy',
     'onboarding.female': 'Girl',
@@ -3635,6 +3655,7 @@ const EZWID_V = 1;
 // A widget is registered by adding its row here and nowhere else. There is no second list.
 function ezWidgetRegistry() {
   return [
+    { id: 'prayer', title: 'widget.prayer.title', order: 1, shown: false, draw: (nav) => <EzWidgetPrayer nav={nav} /> },
   ];
 }
 
@@ -3793,6 +3814,51 @@ function EzWidgetShell({ title, openLabel, onOpen, children }) {
       </div>
       {children}
     </section>
+  );
+}
+
+// THE PRAYER-TIMES WIDGET -- ITEMS 107, 121 AND 119 REUSED, NOT REWRITTEN.
+//
+// EVERY NUMBER ON IT COMES OUT OF THE FUNCTIONS THAT ALREADY OWN THEM. The position is
+// readQiblaLoc(), the method, the asr school and the manual offsets are readPrayerPrefs(), the
+// arithmetic is prayerTimesFor() and the twelve-hour Arabic-Indic clock is prayerClock(). Not one
+// of those is re-typed here, and not one of their keys is opened directly: ezik_qibla_loc_v1 and
+// ezik_prayer_prefs_v1 keep their names, their values and their single readers.
+//
+// ZERO NEW NETWORK REQUEST, and it is not a promise -- it is the shape of the path. The sun's
+// position is arithmetic over a Julian date, the position is a stored pair of numbers, and the
+// preferences are a stored record. There is nothing on this path that could fetch.
+//
+// NO SECOND OPINION ABOUT THE DAY. It builds one Date, asks it for the year, the month, the day
+// and the offset from UTC, and hands all four to the one calculator, so the widget and the sheet
+// cannot disagree about what today is or where it is.
+//
+// 🔴 ONE HOOK, AND IT IS THE FIRST STATEMENT IN THE BODY. There is no return above it and no
+// branch above it. This is defect 123 (React #300) -- the one that took the adhkar screen down on
+// real readers -- and the rule that answers it is not "be careful", it is "the hooks finish
+// before anything can return".
+function EzWidgetPrayer({ nav }) {
+  useEzLang();
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  const now = new Date();
+  const t = prayerTimesFor(now.getFullYear(), now.getMonth() + 1, now.getDate(),
+    loc.lat, loc.lng, -now.getTimezoneOffset(), prefs.method, prefs.asr, prefs.off);
+  // A time that could not be computed at this latitude draws an em dash through prayerClock and
+  // is SAID rather than left as a dash the reader has to interpret.
+  const missing = PRAYER_KEYS.some((k) => t[k] === null);
+  return (
+    <EzWidgetShell title={ezT('widget.prayer.title')} openLabel={ezT('widget.prayer.open')}
+      onOpen={nav ? nav.onOpenPrayer : null}>
+      {PRAYER_KEYS.map((k) => (
+        <div key={k} style={s.ezwidRow}>
+          <span style={s.ezwidName}>{ezT('widget.prayer.' + k)}</span>
+          <span style={s.ezwidValue}>{prayerClock(t[k])}</span>
+        </div>
+      ))}
+      {missing ? <div style={s.ezwidNote}>{ezT('widget.prayer.none')}</div> : null}
+      <div style={s.ezwidNote}>{ezT('widget.prayer.note')}</div>
+    </EzWidgetShell>
   );
 }
 
