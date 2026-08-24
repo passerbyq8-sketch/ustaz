@@ -16729,7 +16729,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
       <div ref={barRef} className="ezhome ezmr-dockwrap">
         <div className="ezmr-bar">
           <button onClick={() => commit(-1)} disabled={page <= 1} className="ezmr-btn" style={s.ezmrNav}>›</button>
-          <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" className="ezmr-btn" style={s.ezmrJump}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
+          <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" className="ezmr-btn" style={s.ezmrJump}></button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
           <button onClick={() => commit(1)} disabled={page >= 604} className="ezmr-btn" style={s.ezmrNav}>‹</button>
         </div>
       </div>
@@ -16737,7 +16737,7 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
       <div ref={barRef} className="ezhome" style={barSt}>
         <div className="ezmr-fb-inner">
           <button onClick={() => commit(-1)} disabled={page <= 1} className="ezmr-fb-btn" style={s.pgNavBtnFb}>›</button>
-          <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" className="ezmr-fb-btn" style={{ ...s.pgMetaFb, ...s.pgJumpBtn }}>صفحة {toArabicDigits(page)} من ٦٠٤</button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
+          <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" className="ezmr-fb-btn" style={{ ...s.pgMetaFb, ...s.pgJumpBtn }}></button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
           <button onClick={() => commit(1)} disabled={page >= 604} className="ezmr-fb-btn" style={s.pgNavBtnFb}>‹</button>
         </div>
       </div>

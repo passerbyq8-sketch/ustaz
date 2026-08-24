@@ -262,7 +262,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': '0d8ebee775a216214489ddbb51fab62c4735ce3fbea577ac10ea01cce814cb5e',
+  'sw.js': '9eb0ce380f7dfad3933ff7fc68d03c12ede0d0862856011d971b594112bad4a9',
 };
 
 // ---------------------------------------------------------------------------
@@ -1372,7 +1372,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1060060, of: 'app.js' },
+      { n: 1059964, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
