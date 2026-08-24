@@ -4616,7 +4616,7 @@ const EXPORT_CALLS = [
 // awaited, not held as an option object, not left as a placeholder.
 const EXPORT_FORBIDDEN = /html2pdf|html2canvas|jspdf|dom-?to-?image|domtoimage|html-?to-?image|satori|__ezikVendor|toDataURL|toBlob|getContext/i;
 ok('Z1-A: ...and no bundle, rasteriser or canvas is named on that path at all',
-  printSrc !== '' && !EXPORT_FORBIDDEN.test(printSrc),
+  printSrc.length > 0 && !EXPORT_FORBIDDEN.test(printSrc),
   'the export path names a rasteriser or a vendor bundle again');
 
 // ---- Z1-B. NOTHING HEAVY LOADS AT BOOT (kept, and widened) ----------------
