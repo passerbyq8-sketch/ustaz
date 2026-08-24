@@ -406,6 +406,38 @@ const EZ_I18N = {
     'home.greet.evening.6': 'أذكار المساء تحفظك في ليلتك.',
     'home.greet.evening.7': 'طابَ مساؤك — أذكار المساء بانتظارك.',
     'home.greet.evening.8': 'اختم يومك بحصنٍ من الأذكار.',
+    'widget.prayer.title': 'مواقيت الصلاة',
+    'widget.prayer.open': 'افتحْ الصلاة والقبلة',
+    'widget.prayer.note': 'محسوبةٌ على هذا الجهاز، بلا إنترنت.',
+    'widget.prayer.none': 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.',
+    'widget.prayer.fajr': 'الفجر',
+    'widget.prayer.sunrise': 'الشروق',
+    'widget.prayer.dhuhr': 'الظهر',
+    'widget.prayer.asr': 'العصر',
+    'widget.prayer.maghrib': 'المغرب',
+    'widget.prayer.isha': 'العشاء',
+    'widget.adhkar.title': 'الأذكار',
+    'widget.adhkar.open': 'افتحْ الأذكار',
+    'widget.adhkar.chain': 'سلسلتك',
+    'widget.adhkar.days': 'يومًا متتاليًا',
+    'widget.adhkar.start': 'تبدأ ببلوغ هدف اليوم',
+    'widget.adhkar.goal': 'هدفُ اليوم: {n}',
+    'widget.adhkar.met': 'بلغتَ هدفَ اليومِ اليوم.',
+    'widget.adhkar.notMet': 'لم يُبلَغْ هدفُ اليومِ بعد.',
+    'widget.verse.title': 'آية اليوم',
+    'widget.verse.hadithTitle': 'حديث اليوم',
+    'widget.verse.surah': 'سورة {surah}، آية {ayah}',
+    'widget.verse.narrated': 'رواه {by}',
+    'home.arrange.open': 'رتّبْ رئيسيّتك',
+    'home.arrange.close': 'أغلقْ الترتيب',
+    'home.arrange.title': 'ترتيب الرئيسيّة',
+    'home.arrange.hint': 'اختر ما يظهر على رئيسيّتك وبأيِّ ترتيب. يُحفَظُ على هذا الجهاز وحدَه.',
+    'home.arrange.show': 'أظهِرْ',
+    'home.arrange.hide': 'أخفِ',
+    'home.arrange.up': 'أعلى',
+    'home.arrange.down': 'أسفل',
+    'home.arrange.reset': 'أعِدِ الافتراضيّ',
+    'home.arrange.saveFailed': 'لم يُحفَظِ الاختيارُ على هذا الجهاز، وهو قائمٌ في هذه الجلسة وحدَها.',
     'onboarding.welcome': 'أهلاً بك',
     'onboarding.male': 'ذكر',
     'onboarding.female': 'أنثى',
@@ -634,6 +666,38 @@ const EZ_I18N = {
     'home.greet.evening.6': 'The evening adhkar will keep you through your night.',
     'home.greet.evening.7': 'A good evening to you — the evening adhkar are waiting.',
     'home.greet.evening.8': 'Seal your day with a fortress of adhkar.',
+    'widget.prayer.title': 'Prayer times',
+    'widget.prayer.open': 'Open prayer and qibla',
+    'widget.prayer.note': 'Calculated on this device, with no internet.',
+    'widget.prayer.none': 'The twilight does not reach this angle at this place today.',
+    'widget.prayer.fajr': 'Fajr',
+    'widget.prayer.sunrise': 'Sunrise',
+    'widget.prayer.dhuhr': 'Dhuhr',
+    'widget.prayer.asr': 'Asr',
+    'widget.prayer.maghrib': 'Maghrib',
+    'widget.prayer.isha': 'Isha',
+    'widget.adhkar.title': 'Adhkar',
+    'widget.adhkar.open': 'Open adhkar',
+    'widget.adhkar.chain': 'Your chain',
+    'widget.adhkar.days': 'consecutive days',
+    'widget.adhkar.start': 'it begins when the goal for today is reached',
+    'widget.adhkar.goal': 'Goal for today: {n}',
+    'widget.adhkar.met': 'You reached the goal for today.',
+    'widget.adhkar.notMet': 'The goal for today has not been reached yet.',
+    'widget.verse.title': 'Verse of the day',
+    'widget.verse.hadithTitle': 'Hadith of the day',
+    'widget.verse.surah': 'Surah {surah}, ayah {ayah}',
+    'widget.verse.narrated': 'Narrated by {by}',
+    'home.arrange.open': 'Arrange your home',
+    'home.arrange.close': 'Close arranging',
+    'home.arrange.title': 'Arranging the home',
+    'home.arrange.hint': 'Choose what appears on your home and in what order. It is kept on this device alone.',
+    'home.arrange.show': 'Show',
+    'home.arrange.hide': 'Hide',
+    'home.arrange.up': 'Up',
+    'home.arrange.down': 'Down',
+    'home.arrange.reset': 'Restore the default',
+    'home.arrange.saveFailed': 'The choice was not saved on this device; it holds for this session alone.',
     'onboarding.welcome': 'Welcome',
     'onboarding.male': 'Boy',
     'onboarding.female': 'Girl',
@@ -3582,12 +3646,475 @@ function EzikIstanaHome(v) {
           <div className="ezist-mosaic">
             {mods.map((m) => <EzistModuleCard key={m.id} m={m} />)}
           </div>
+          {/* THE READER'S OWN REGION, after the modules and before nothing. With the shipped
+              default it renders null, so the tree above it and the tree below it are the tree
+              that was here before the region existed. */}
+          <EzikHomeWidgetArea widgets={v.widgets} onWidgets={v.onWidgets}
+            arrangeOpen={v.arrangeOpen} onArrange={v.onArrange}
+            nav={{ onOpenAdhkar: v.onOpenAdhkar, onOpenPrayer: v.onOpenPrayer }} />
         </div>
       </div>
     </div>
   );
 }
 // ---- S101 ISTANA HOME END ----------------------------------------------------------------
+
+
+// ============================================================
+// THE HOME THE READER ARRANGES -- THE FRAMEWORK
+// ============================================================
+// WHAT THIS IS. A register of home widgets, a single stored arrangement, and the region that
+// draws it. It is the frame only: this commit registers NO widget, so ezWidgetVisible() returns
+// an empty list, the region renders null, and the home is byte for byte the home that was here
+// before it. Each widget lands in its own commit after this one and adds its own row.
+//
+// 🔴 THE DEFAULT IS THE SCREEN THAT IS ALREADY THERE. Every row a later commit registers carries
+// shown:false, so a reader who never opens the arranging panel sees exactly what they saw
+// yesterday -- the same elements in the same order. That is the order's own red line, and it is
+// the reason default visibility is a FIELD of the register rather than an assumption: a widget
+// that wants to be on by default would have to say so in its row, in a commit whose diff shows
+// it, and would have to answer for the screen it moved.
+//
+// ONE NEW KEY AND NO OTHER. ezik_home_widgets_v1 holds { v, order, hidden } and nothing else. No
+// existing key is read for this, written for this, renamed or migrated: the prayer preferences,
+// the hijri offset, the qibla position, the adhkar chain and the adhkar progress all keep their
+// own names and their own values, and the widgets that read them read them THROUGH THE FUNCTIONS
+// THAT ALREADY OWN THEM rather than opening the store a second time.
+//
+// ZERO NETWORK, ZERO MODEL, ZERO ENVIRONMENT. Nothing on this path fetches, and nothing on it is
+// a model call. The whole of it is localStorage and arithmetic.
+const EZWID_KEY = 'ezik_home_widgets_v1';
+const EZWID_V = 1;
+
+// THE REGISTER. One row per widget, and the row is the whole of what the frame knows about it:
+//
+//   id     a stable identifier, the one thing that is written into storage and the one thing
+//          that survives a reordering, a rename of the component or a change of wording;
+//   title  a DICTIONARY KEY, never a sentence -- which is what makes the widget bilingual from
+//          the day it is born instead of Arabic first and translated afterwards;
+//   order  its default position, written as a number rather than left to the array index, so a
+//          row can be moved in this file without moving anybody's screen;
+//   shown  whether it is drawn before the reader has said anything at all;
+//   draw   the function that renders it, handed the navigation handlers the owner already holds.
+//
+// A widget is registered by adding its row here and nowhere else. There is no second list.
+function ezWidgetRegistry() {
+  return [
+    { id: 'prayer', title: 'widget.prayer.title', order: 1, shown: false, draw: (nav) => <EzWidgetPrayer nav={nav} /> },
+    { id: 'adhkar', title: 'widget.adhkar.title', order: 2, shown: false, draw: (nav) => <EzWidgetAdhkar nav={nav} /> },
+    { id: 'verse', title: 'widget.verse.title', order: 3, shown: false, draw: () => <EzWidgetVerse /> },
+  ];
+}
+
+function ezWidgetIds() {
+  return ezWidgetRegistry().map((w) => w.id);
+}
+function ezWidgetById(id) {
+  const reg = ezWidgetRegistry();
+  for (let i = 0; i < reg.length; i++) if (reg[i].id === id) return reg[i];
+  return null;
+}
+// THE DEFAULT ARRANGEMENT, derived from the register and from nothing else, so it cannot drift
+// away from it. A row added above is in the default the moment it is added.
+function ezWidgetDefaults() {
+  const reg = ezWidgetRegistry().slice().sort((a, b) => a.order - b.order);
+  return {
+    v: EZWID_V,
+    order: reg.map((w) => w.id),
+    hidden: reg.filter((w) => !w.shown).map((w) => w.id),
+  };
+}
+
+// THE READER. Anything that is not a well-formed record of THIS version reads as the default: a
+// missing key, damaged JSON, an array where an object belongs, another version, a missing list,
+// or a storage that throws. An id in the store that this build does not know is IGNORED -- not an
+// error, not a reset -- so a device that saw a later build keeps the arrangement of the widgets
+// this build does have.
+//
+// 🔴 AND A KNOWN ID THE STORE NEVER MENTIONED TAKES ITS REGISTERED STATE, NOT "VISIBLE". This was
+// measured wrong first and the live proof caught it: appending a missing id to 'order' alone left
+// it OUT of 'hidden', so a record that named none of them -- {"v":1,"order":[],"hidden":[]} --
+// drew all three. Read forward, that is the whole failure mode of shipping a fourth widget later:
+// every reader who had ever arranged their home would find it on their screen unbidden, because
+// their stored record could not possibly mention it. An id nobody has ruled on has not been
+// shown; it is registered, and its row says what it is. So the sweep below carries 'shown'
+// across with the id, and MENTIONED means named in EITHER list -- an id the reader hid without
+// ordering is a ruling too, and it is kept.
+function readHomeWidgets() {
+  const def = ezWidgetDefaults();
+  const known = ezWidgetIds();
+  let raw = null;
+  try { raw = localStorage.getItem(EZWID_KEY); } catch (e) { return def; }
+  if (typeof raw !== 'string' || !raw) return def;
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return def; }
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return def;
+  if (o.v !== EZWID_V) return def;
+  if (!Array.isArray(o.order) || !Array.isArray(o.hidden)) return def;
+  const mentioned = ezWidgetMentioned(o.order, o.hidden, known);
+  const order = [];
+  for (let i = 0; i < o.order.length; i++) {
+    const id = o.order[i];
+    if (typeof id !== 'string') continue;
+    if (known.indexOf(id) === -1) continue;
+    if (order.indexOf(id) !== -1) continue;
+    order.push(id);
+  }
+  const hidden = [];
+  for (let i = 0; i < o.hidden.length; i++) {
+    const id = o.hidden[i];
+    if (typeof id !== 'string') continue;
+    if (known.indexOf(id) === -1) continue;
+    if (hidden.indexOf(id) === -1) hidden.push(id);
+  }
+  ezWidgetAdmitUnmentioned(order, hidden, mentioned, def);
+  return { v: EZWID_V, order: order, hidden: hidden };
+}
+
+// THE ONE PLACE THAT DECIDES WHAT "THE READER HAS NOT RULED ON THIS" MEANS, so the store reader
+// and the panel's normaliser cannot come to two different answers about the same record.
+function ezWidgetMentioned(order, hidden, known) {
+  const seen = [];
+  const take = (list) => {
+    if (!Array.isArray(list)) return;
+    for (let i = 0; i < list.length; i++) {
+      const id = list[i];
+      if (typeof id !== 'string' || known.indexOf(id) === -1) continue;
+      if (seen.indexOf(id) === -1) seen.push(id);
+    }
+  };
+  take(order); take(hidden);
+  return seen;
+}
+// Appends, IN PLACE and in the register's own order, every registered id the record did not rule
+// on -- into 'order' at its default position, and into 'hidden' when the register says it is not
+// shown. A default record has ruled on nothing, so this is also what makes an absent key and a
+// damaged key produce the identical screen.
+function ezWidgetAdmitUnmentioned(order, hidden, mentioned, def) {
+  for (let i = 0; i < def.order.length; i++) {
+    const id = def.order[i];
+    if (mentioned.indexOf(id) !== -1) continue;
+    if (order.indexOf(id) === -1) order.push(id);
+    if (def.hidden.indexOf(id) !== -1 && hidden.indexOf(id) === -1) hidden.push(id);
+  }
+}
+
+// THE ONLY WRITER, and it REPORTS. A full store, a private window that refuses, a storage that
+// throws -- each returns false, and the panel says so on the channel item 93-ج opened rather
+// than pretending the choice was kept. Nothing here is swallowed.
+function writeHomeWidgets(state) {
+  const known = ezWidgetIds();
+  const order = [];
+  const src = (state && Array.isArray(state.order)) ? state.order : [];
+  for (let i = 0; i < src.length; i++) {
+    const id = src[i];
+    if (known.indexOf(id) === -1 || order.indexOf(id) !== -1) continue;
+    order.push(id);
+  }
+  const hidden = [];
+  const hsrc = (state && Array.isArray(state.hidden)) ? state.hidden : [];
+  for (let i = 0; i < hsrc.length; i++) {
+    const id = hsrc[i];
+    if (known.indexOf(id) === -1 || hidden.indexOf(id) !== -1) continue;
+    hidden.push(id);
+  }
+  try { localStorage.setItem(EZWID_KEY, JSON.stringify({ v: EZWID_V, order: order, hidden: hidden })); }
+  catch (e) { return false; }
+  return true;
+}
+
+// THE VISIBLE LIST, in the reader's own order. A row the store names but this build does not
+// register is dropped here as well as on the way in, so a stale id can never reach a renderer.
+function ezWidgetVisible(state) {
+  const out = [];
+  const order = (state && Array.isArray(state.order)) ? state.order : [];
+  const hidden = (state && Array.isArray(state.hidden)) ? state.hidden : [];
+  for (let i = 0; i < order.length; i++) {
+    if (hidden.indexOf(order[i]) !== -1) continue;
+    const w = ezWidgetById(order[i]);
+    if (w) out.push(w);
+  }
+  return out;
+}
+
+// THE TWO MUTATIONS, PURE. They take a record and return a new one; they touch no storage and no
+// component state, which is what lets a guard drive every branch of them with a literal.
+function ezWidgetToggle(state, id) {
+  const cur = readHomeWidgetsShape(state);
+  if (ezWidgetIds().indexOf(id) === -1) return cur;
+  const hidden = cur.hidden.slice();
+  const at = hidden.indexOf(id);
+  if (at === -1) hidden.push(id); else hidden.splice(at, 1);
+  return { v: EZWID_V, order: cur.order.slice(), hidden: hidden };
+}
+function ezWidgetMove(state, id, delta) {
+  const cur = readHomeWidgetsShape(state);
+  const order = cur.order.slice();
+  const at = order.indexOf(id);
+  if (at === -1) return cur;
+  const to = at + (delta < 0 ? -1 : 1);
+  if (to < 0 || to >= order.length) return cur;
+  const tmp = order[to]; order[to] = order[at]; order[at] = tmp;
+  return { v: EZWID_V, order: order, hidden: cur.hidden.slice() };
+}
+// A record handed in from anywhere is normalised to the shape the two above rely on, so neither
+// of them has to guess whether it was given a record, a fragment or nothing at all.
+function readHomeWidgetsShape(state) {
+  const def = ezWidgetDefaults();
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return def;
+  const known = ezWidgetIds();
+  const osrc = Array.isArray(state.order) ? state.order : def.order;
+  const hsrc = Array.isArray(state.hidden) ? state.hidden : def.hidden;
+  const mentioned = ezWidgetMentioned(osrc, hsrc, known);
+  const order = [];
+  for (let i = 0; i < osrc.length; i++) {
+    if (known.indexOf(osrc[i]) === -1 || order.indexOf(osrc[i]) !== -1) continue;
+    order.push(osrc[i]);
+  }
+  const hidden = [];
+  for (let i = 0; i < hsrc.length; i++) {
+    if (known.indexOf(hsrc[i]) === -1 || hidden.indexOf(hsrc[i]) !== -1) continue;
+    hidden.push(hsrc[i]);
+  }
+  ezWidgetAdmitUnmentioned(order, hidden, mentioned, def);
+  return { v: EZWID_V, order: order, hidden: hidden };
+}
+
+// THE SHELL every widget is drawn in, so three widgets are one design and not three. The head is
+// a 44px row carrying the title and, when the widget leads somewhere, ONE control that goes
+// there. NO HOOKS AT ALL, so there is no hook order to get wrong here.
+function EzWidgetShell({ title, openLabel, onOpen, children }) {
+  return (
+    <section style={s.ezwidCard}>
+      <div style={s.ezwidHead}>
+        <span style={s.ezwidTitle}>{title}</span>
+        {onOpen ? (
+          <span className="ez-hit">
+            <button type="button" onClick={onOpen} className="ezhome-focus" style={s.ezwidOpen}>{openLabel}</button>
+          </span>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+// THE PRAYER-TIMES WIDGET -- ITEMS 107, 121 AND 119 REUSED, NOT REWRITTEN.
+//
+// EVERY NUMBER ON IT COMES OUT OF THE FUNCTIONS THAT ALREADY OWN THEM. The position is
+// readQiblaLoc(), the method, the asr school and the manual offsets are readPrayerPrefs(), the
+// arithmetic is prayerTimesFor() and the twelve-hour Arabic-Indic clock is prayerClock(). Not one
+// of those is re-typed here, and not one of their keys is opened directly: ezik_qibla_loc_v1 and
+// ezik_prayer_prefs_v1 keep their names, their values and their single readers.
+//
+// ZERO NEW NETWORK REQUEST, and it is not a promise -- it is the shape of the path. The sun's
+// position is arithmetic over a Julian date, the position is a stored pair of numbers, and the
+// preferences are a stored record. There is nothing on this path that could fetch.
+//
+// NO SECOND OPINION ABOUT THE DAY. It builds one Date, asks it for the year, the month, the day
+// and the offset from UTC, and hands all four to the one calculator, so the widget and the sheet
+// cannot disagree about what today is or where it is.
+//
+// 🔴 ONE HOOK, AND IT IS THE FIRST STATEMENT IN THE BODY. There is no return above it and no
+// branch above it. This is defect 123 (React #300) -- the one that took the adhkar screen down on
+// real readers -- and the rule that answers it is not "be careful", it is "the hooks finish
+// before anything can return".
+function EzWidgetPrayer({ nav }) {
+  useEzLang();
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  const now = new Date();
+  const t = prayerTimesFor(now.getFullYear(), now.getMonth() + 1, now.getDate(),
+    loc.lat, loc.lng, -now.getTimezoneOffset(), prefs.method, prefs.asr, prefs.off);
+  // A time that could not be computed at this latitude draws an em dash through prayerClock and
+  // is SAID rather than left as a dash the reader has to interpret.
+  const missing = PRAYER_KEYS.some((k) => t[k] === null);
+  return (
+    <EzWidgetShell title={ezT('widget.prayer.title')} openLabel={ezT('widget.prayer.open')}
+      onOpen={nav ? nav.onOpenPrayer : null}>
+      {PRAYER_KEYS.map((k) => (
+        <div key={k} style={s.ezwidRow}>
+          <span style={s.ezwidName}>{ezT('widget.prayer.' + k)}</span>
+          <span style={s.ezwidValue}>{prayerClock(t[k])}</span>
+        </div>
+      ))}
+      {missing ? <div style={s.ezwidNote}>{ezT('widget.prayer.none')}</div> : null}
+      <div style={s.ezwidNote}>{ezT('widget.prayer.note')}</div>
+    </EzWidgetShell>
+  );
+}
+
+// THE ADHKAR WIDGET -- ITEMS 12 AND 43-أ, READ AND NOT RECOUNTED.
+//
+// 🔴 ONE COUNTER IN THE APP, NOT TWO. The adhkar screen counts completions off
+// adhkar_daily_progress_v1 against the real items, and markAdhkarDayMet() -- its ONE writer --
+// credits the day in ezik_adhkar_streak_v1 when that count reaches the reader's own goal. This
+// widget reads THAT record and nothing else: the chain through adhkarRunAsOf(), the goal off the
+// same record, and whether today is already credited off rec.last, which is the very field that
+// one writer sets. It does not open the progress key, does not resolve an item against a target,
+// and therefore cannot arrive at a number the screen would disagree with. A second count would
+// have needed adhkar.json, which is a read this screen is not allowed to make.
+//
+// AND IT WRITES NOTHING. Reading the chain does not credit a day, does not lengthen a run and
+// does not touch the goal. Opening the screen is the only thing on this card that changes
+// anything, and what it changes is which screen is showing.
+//
+// A LAPSED CHAIN IS A NUMBER, NOT A REPROACH -- the same ruling item 43-أ made for the screen.
+// Zero is drawn in the same ink as any other number, with no warning beside it.
+//
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT. Defect 123 again.
+function EzWidgetAdhkar({ nav }) {
+  useEzLang();
+  const rec = readAdhkarStreak();
+  const today = adhkarDayKey();
+  const run = adhkarRunAsOf(rec, today);
+  const met = rec.last === today;
+  return (
+    <EzWidgetShell title={ezT('widget.adhkar.title')} openLabel={ezT('widget.adhkar.open')}
+      onOpen={nav ? nav.onOpenAdhkar : null}>
+      <div style={s.ezwidNumRow}>
+        <span style={s.ezwidName}>{ezT('widget.adhkar.chain')}</span>
+        <span style={s.ezwidNum}>{toArabicDigits(run)}</span>
+        <span style={s.ezwidName}>{run > 0 ? ezT('widget.adhkar.days') : ezT('widget.adhkar.start')}</span>
+      </div>
+      <div style={s.ezwidNote}>{ezT('widget.adhkar.goal', { n: toArabicDigits(rec.goal) })}</div>
+      <div style={s.ezwidNote}>{met ? ezT('widget.adhkar.met') : ezT('widget.adhkar.notMet')}</div>
+    </EzWidgetShell>
+  );
+}
+
+// THE DAILY-VERSE WIDGET -- ITEMS 56 AND 120-أ, THE SAME SOURCE AND THE SAME VERBATIM TEXT.
+//
+// IT READS getDailyVerse(), which is the app's ONE source for the daily verse, and prints
+// {v.text} verbatim: no transform, no tashkeel pass, no truncation and no ellipsis, exactly as
+// the panel in the top bar does. DAILY_VERSES is an array in this file, so the reading is an
+// index into memory -- it works with no internet and it is RUNTIME_READS=0, which was measured
+// before this widget existed and is not turned into a live file read here.
+//
+// IT IS NOT A SECOND COPY OF THE BAR'S PANEL. EzistQuranPanel stays exactly where item 118 put
+// it, drawn exactly once, and this widget does not render it, does not carry its class and does
+// not move it. Two elements can show one reading; what would be wrong is two READINGS.
+//
+// A DISPLAY AND NOTHING ELSE, on the bar panel's own terms: no handler is passed to the shell,
+// so no control is drawn, and pressing it does nothing -- deliberately.
+//
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT.
+function EzWidgetVerse() {
+  useEzLang();
+  const v = getDailyVerse();
+  const isHadith = v.surah === '\u062D\u062F\u064A\u062B';
+  return (
+    <EzWidgetShell title={isHadith ? ezT('widget.verse.hadithTitle') : ezT('widget.verse.title')}>
+      <div style={s.ezwidVerseText}>{v.text}</div>
+      <div style={s.ezwidVerseMeta}>
+        {isHadith ? ezT('widget.verse.narrated', { by: v.ayah })
+          : ezT('widget.verse.surah', { surah: v.surah, ayah: v.ayah })}
+      </div>
+    </EzWidgetShell>
+  );
+}
+
+// THE ARRANGING PANEL. Buttons, and deliberately NOT drag and drop: a drag target is not a 44px
+// touch target, dragging inside a scrolling column fights the scroll on a phone, and every one of
+// show, hide, up and down is a thing a keyboard and a screen reader already know how to do. There
+// is no pointer gesture anywhere on this panel.
+//
+// IT LISTS WHAT IS REGISTERED AND NOTHING ELSE. There is no row for a widget that does not exist,
+// no space held open for one, and no word about one that might arrive. A reader is shown what is
+// here.
+//
+// THE WRITE IS REPORTED. writeHomeWidgets() returns false on a storage that refuses -- a full
+// disk, a private window, a browser with site data blocked -- and the panel says so on the
+// surface item 93-ج opened for exactly this kind of news. The choice still takes effect for the
+// session, because refusing to obey the reader as well as failing to remember them would be two
+// failures instead of one.
+//
+// 🔴 THE HOOKS FINISH FIRST. useEzLang and useState, in that order, at the top of the body, and
+// the single return is below both of them. Defect 123 (React #300) is what this rule is for.
+function EzikHomeArrange({ widgets, onWidgets, onClose }) {
+  useEzLang();
+  const [saveFailed, setSaveFailed] = useState(false);
+  const state = readHomeWidgetsShape(widgets);
+  const rows = state.order.map((id) => ezWidgetById(id)).filter(Boolean);
+  // ONE PLACE APPLIES A CHANGE, so the store and the screen can never be given different records.
+  const apply = (next) => { setSaveFailed(!writeHomeWidgets(next)); onWidgets(next); };
+  return (
+    <section style={s.ezwidPanel} aria-label={ezT('home.arrange.title')}>
+      <div style={s.ezwidHead}>
+        <span style={s.ezwidTitle}>{ezT('home.arrange.title')}</span>
+        <span className="ez-hit">
+          <button type="button" onClick={onClose} className="ezhome-focus" style={s.ezwidOpen}>{ezT('home.arrange.close')}</button>
+        </span>
+      </div>
+      <div style={s.ezwidNote}>{ezT('home.arrange.hint')}</div>
+      {rows.map((w, i) => {
+        const hidden = state.hidden.indexOf(w.id) !== -1;
+        const title = ezT(w.title);
+        const showHide = hidden ? ezT('home.arrange.show') : ezT('home.arrange.hide');
+        return (
+          <div key={w.id} style={s.ezwidPanelRow}>
+            <span style={s.ezwidPanelName}>{title}</span>
+            <span className="ez-hit" style={s.ezwidPanelActs}>
+              <button type="button" onClick={() => apply(ezWidgetToggle(state, w.id))}
+                aria-pressed={hidden ? 'false' : 'true'} aria-label={showHide + ' ' + title}
+                className="ezhome-focus" style={hidden ? s.ezwidActOff : s.ezwidAct}>{showHide}</button>
+              <button type="button" onClick={() => apply(ezWidgetMove(state, w.id, -1))} disabled={i === 0}
+                aria-label={ezT('home.arrange.up') + ' ' + title}
+                className="ezhome-focus" style={i === 0 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.up')}</button>
+              <button type="button" onClick={() => apply(ezWidgetMove(state, w.id, 1))} disabled={i === rows.length - 1}
+                aria-label={ezT('home.arrange.down') + ' ' + title}
+                className="ezhome-focus" style={i === rows.length - 1 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.down')}</button>
+            </span>
+          </div>
+        );
+      })}
+      <span className="ez-hit">
+        <button type="button" onClick={() => apply(ezWidgetDefaults())} className="ezhome-focus" style={s.ezwidReset}>{ezT('home.arrange.reset')}</button>
+      </span>
+      {saveFailed ? (
+        <div role="status" style={s.swNote}>
+          <span style={s.swNoteText}>{ezT('home.arrange.saveFailed')}</span>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+// THE REGION. It maps the reader's list ONCE, in the reader's own order, so the reading order,
+// the tab order and the stored order are one order. An empty list draws NOTHING -- not an empty
+// box, not a placeholder and not a promise -- which, with every row registered shown:false, is
+// what makes the default screen the screen that was already there.
+//
+// THE ONE CONTROL IS LAST, and being last is load-bearing: it is APPENDED to the home rather than
+// inserted into it, so every element that was on this screen before keeps its exact position and
+// its exact neighbours. The arrangement itself is the owner's state, handed down; this component
+// stores nothing.
+//
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT.
+function EzikHomeWidgetArea({ widgets, nav, arrangeOpen, onArrange, onWidgets }) {
+  useEzLang();
+  const list = ezWidgetVisible(widgets);
+  return (
+    <>
+      {list.length ? (
+        <div style={s.ezwidStack}>
+          {list.map((w) => (
+            <div key={w.id} data-ezik-home-widget={w.id}>{w.draw(nav)}</div>
+          ))}
+        </div>
+      ) : null}
+      <div style={s.ezwidBar}>
+        <button type="button" onClick={() => onArrange(!arrangeOpen)}
+          aria-expanded={arrangeOpen ? 'true' : 'false'} className="ezhome-focus" style={s.ezwidBarBtn}>
+          {arrangeOpen ? ezT('home.arrange.close') : ezT('home.arrange.open')}
+        </button>
+      </div>
+      {arrangeOpen ? (
+        <EzikHomeArrange widgets={widgets} onWidgets={onWidgets} onClose={() => onArrange(false)} />
+      ) : null}
+    </>
+  );
+}
 
 function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenSettings }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
@@ -3600,6 +4127,14 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
   // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
   const [prayerOpen, setPrayerOpen] = useState(false);
+  // THE ARRANGEMENT IS THE OWNER'S, read from the device once on mount exactly as the wird and
+  // the hijri date above are. The presentation component below is handed the result and never
+  // opens the store itself.
+  const [widgets, setWidgets] = useState(readHomeWidgets);
+  // Local to this screen and NOT a route: the panel opens over the home, on the home's own screen
+  // key, exactly as the prayer sheet above does and for the same reason -- the screen inventory is
+  // a cross-file contract and a fourth route would move a document this batch does not own.
+  const [arrangeOpen, setArrangeOpen] = useState(false);
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -3628,6 +4163,10 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
+    widgets: widgets,
+    onWidgets: setWidgets,
+    arrangeOpen: arrangeOpen,
+    onArrange: setArrangeOpen,
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
   // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
@@ -16551,6 +17090,28 @@ const s = {
   // top bar and not to the verse. This is the smallest edit that answers «ارفعها فوق».
   ezistQuranText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '0 0 6px' },
   ezistQuranMeta: { color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 600, textAlign: 'center' },
+  ezwidStack: { display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 },
+  ezwidCard: { padding: '14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', color: 'var(--a3-ink)' },
+  ezwidHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 44 },
+  ezwidTitle: { fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezwidOpen: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44, padding: '6px 12px', borderRadius: 999, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezwidRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '7px 0', borderBottom: '1px solid var(--a3-line)' },
+  ezwidName: { fontSize: 13.5, fontWeight: 600, color: 'var(--a3-muted)' },
+  ezwidValue: { fontSize: 14.5, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezwidNote: { marginTop: 8, fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', lineHeight: 1.6 },
+  ezwidNum: { fontSize: 19, fontWeight: 800, color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)' },
+  ezwidNumRow: { display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  ezwidVerseText: { color: 'var(--a3-ink)', fontSize: 19, lineHeight: 2.1, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '10px 0 6px' },
+  ezwidVerseMeta: { color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 600, textAlign: 'center' },
+  ezwidBar: { display: 'flex', justifyContent: 'flex-start', marginTop: 14 },
+  ezwidBarBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '6px 16px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezwidPanel: { marginTop: 14, padding: '14px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', color: 'var(--a3-ink)' },
+  ezwidPanelRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '8px 0', borderBottom: '1px solid var(--a3-line)' },
+  ezwidPanelName: { flex: '1 1 120px', minWidth: 0, fontSize: 14, fontWeight: 700, color: 'var(--a3-ink)' },
+  ezwidPanelActs: { display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 },
+  ezwidAct: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezwidActOff: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'transparent', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezwidReset: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, marginTop: 12, padding: '6px 16px', borderRadius: 999, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
 
   // The compact greeting row. A line profile icon in a white 44px button -- no face, no avatar.
   // THE CALLOUT that replaced the banner: a short white row, a line icon on a soft chip and a
