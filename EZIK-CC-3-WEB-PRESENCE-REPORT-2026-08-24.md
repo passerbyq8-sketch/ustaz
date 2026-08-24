@@ -28,10 +28,11 @@ C:\Users\passe\AppData\Local\Temp\claude\C--Users-passe-projects-ustaz\148fdae1-
 | `merge-base HEAD origin/main` | — | `d4ebc70dfe0dd4bd76282d6fa9ec4c31bbeb8e65` | ✅ صفرُ انحرافٍ |
 | الفرع | `feat/web-presence-20260824` | `feat/web-presence-20260824` | ✅ |
 
-### الإيداعاتُ الأربعةُ وما مسَّ كلٌّ منها
+### الإيداعاتُ وما مسَّ كلٌّ منها
 
 ```
 $ git --no-pager log --oneline d4ebc70..HEAD
+7eb2381 docs: the web-presence report (items 70 + 69 + 68)
 e240adb fix: the root canonical is relative, so no guard sees a new host
 c9c53e9 seo: sitemap, robots and a canonical on every static page (item 68)
 2d24ea8 seo: the head tags on the root document (item 68, section 3-4)
@@ -44,6 +45,9 @@ bd40f39 feat: about.html -- the static landing page (items 69 + 70)
 | `2d24ea8` | `index.html` (+١٣ سطرًا، كلُّها في `<head>`) | ٦٨ · §٣-٤ |
 | `c9c53e9` | `robots.txt` · `sitemap.xml` · `privacy.html` · `support.html` · `delete.html` (٨ أسطرٍ مضافةٍ جملةً) | ٦٨ · §٣-٣ |
 | `e240adb` | `index.html` (سطرٌ واحدٌ بُدِّل) | إصلاحُ حمرةِ بوّابتَين — §٤-٦ أدناه |
+| `7eb2381` وما بعدَه | هذا التقريرُ وحدَه | §٦ من الأمر |
+
+**الأربعةُ الأُوَلُ وحدَها تمسُّ ما يُشحَنُ**؛ وما بعدَها يمسُّ هذا التقريرَ لا غيرَه، فلا يُغيِّرُ رقمًا من أرقامِ §٤ ولا ختمَ §٨.
 
 `git add` جاءَ بأسماءٍ صريحةٍ في كلِّ مرّةٍ، ولا `git add .` في أيِّ نداء. والشجرةُ نظيفةٌ الآن (`0 dirty path(s)` بشهادةِ مشغّلِ البوّاباتِ نفسِه).
 
