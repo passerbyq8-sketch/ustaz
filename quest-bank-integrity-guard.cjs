@@ -113,6 +113,21 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-24   -- merge round 27: item 42-C, the share card's own attribution. The card was
+  //                    handed serializeReply's TEXT and a footer string, and the source paragraph
+  //                    and the notice are the LAST two things that text carries -- so a fixed line
+  //                    budget cut them off first and the card went out with a bare domain where
+  //                    its source belonged. The tail is reserved BEFORE the body is measured now,
+  //                    the height became a floor of 1350 with a ceiling of 2700 instead of a
+  //                    size, and the two paragraphs are MOVED out of the body rather than drawn
+  //                    twice. It all lives in app.jsx, and index.html was NOT touched this round,
+  //                    so ONE core number moved: app.js 1026796 -> 1035264 (+8468), and
+  //                    CORE_BYTES followed 1862145 -> 1870613 (+8468), re-cut from the disk by
+  //                    tools/core-bytes.cjs --write. CACHE moved v25 -> ezik-v26: the bundle a
+  //                    returning reader boots is precached in CORE and it changed. The index.html
+  //                    figure in the byte table is UNCHANGED and was left alone -- only the app.js
+  //                    one moved, with its SW_PROSE mirror, in THIS commit, and the seal below
+  //                    AFTER both.
   //   2026-08-24   -- merge round 26: item 42, both halves. The share CARD had its bidi fixed
   //                    (its canvas resolved direction to LTR, so every sentence-final mark was
   //                    drawn at the START of an Arabic line) and its line budget derived from
@@ -121,7 +136,7 @@ const SEALED = {
   //                    and the export also took six lines of print stylesheet, so BOTH CORE
   //                    numbers moved: app.js 1019495 -> 1026796 (+7301), index.html 121979 ->
   //                    122568 (+589), and CORE_BYTES followed 1854255 -> 1862145 (+7890), re-cut
-  //                    from the disk by tools/core-bytes.cjs --write. CACHE moved v24 -> ezik-v25:
+  //                    from the disk by tools/core-bytes.cjs --write. CACHE moved v24 -> v25:
   //                    the shell and the bundle are both in CORE and both changed.
   //                    AND THIS ROUND ALSO REPAIRED sw.js's OWN PROSE, which the round that
   //                    caused the drift was forbidden to touch: two present-tense notes said a
@@ -232,7 +247,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': 'c61fb85b9440f87778e9396e54d718a622a16ec1d9de53b7f8a9d91fd14df0e1',
+  'sw.js': '0abe61983beaa14c6c0b5c4982196dab55271527f5bdeeef1b9b3d344f389877',
 };
 
 // ---------------------------------------------------------------------------
@@ -256,7 +271,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v25';
+const SW_CACHE = 'ezik-v26';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
@@ -1342,7 +1357,7 @@ async function compare(goldenPath) {
       { n: 122568, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1026796, of: 'app.js' },
+      { n: 1035264, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
