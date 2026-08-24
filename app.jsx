@@ -2537,7 +2537,12 @@ const ExportPdfReplyButton = ({ getText }) => {
 // be a request, and this path is required to make none. The source line is whatever the reply
 // already carries; if it carries none, none is drawn.
 const EZIK_CARD_W = 1080;
-const EZIK_CARD_H = 1350;
+// ITEM 42-C, THE OWNER'S CALL. The height was the literal 1350 and the reply was cut to fit it.
+// It is a FLOOR now: the card grows by as much as the reply needs, up to a ceiling, and a reply
+// past the ceiling is still cut and still says so. The width does not move -- a share card that
+// changes shape is a different card.
+const EZIK_CARD_H_MIN = 1350;
+const EZIK_CARD_H_MAX = 2700;
 const EZIK_CARD_PAD = 84;
 const EZIK_CARD_BODY_SIZE = 40;
 const EZIK_CARD_LINE = 62;
@@ -2545,9 +2550,22 @@ const EZIK_CARD_LINE = 62;
 // call; they are named here because the LINE BUDGET below is derived from them, and a budget
 // derived from one number while the drawing uses another is the drift this file spends most of
 // its comments avoiding.
-const EZIK_CARD_SOURCE_RISE = 46;   // the source line sits this far above the site line
+const EZIK_CARD_SOURCE_RISE = 46;   // the links line sits this far above the site line
 const EZIK_CARD_NOTE_DROP = 14;     // the cut note sits this far below the slot after the body
-const EZIK_CARD_FOOT_GAP = 40;      // clear air between the last body line and the footer block
+const EZIK_CARD_FOOT_GAP = 40;      // clear air between the last body line and the tail block
+// ITEM 42-C. THE TAIL: the attribution, the notice, the links and the site line. Its height is
+// reserved BEFORE the body is measured, and the body takes what is left -- never the other way
+// round. Measured on the owner's own «أركان الإيمان» card: the attribution and the notice are the
+// LAST things serializeReply writes, so a fixed line budget cut them off first, and the card went
+// out carrying a bare domain where its source ought to be.
+const EZIK_CARD_SITE_SIZE = 30;     // the site line's own slot, measured from the bottom padding
+const EZIK_CARD_ATTR_SIZE = 28;     // the reply's source line, in the reply's own words
+const EZIK_CARD_ATTR_LINE = 40;
+const EZIK_CARD_ATTR_GAP = 26;      // between the body block and the attribution
+const EZIK_CARD_NOTICE_SIZE = 26;   // the reply's own notice, in the reply's own words
+const EZIK_CARD_NOTICE_LINE = 36;
+const EZIK_CARD_NOTICE_GAP = 22;
+const EZIK_CARD_LINKS_LABEL = 'روابط';
 // The card is a fixed size, so the text it can hold is a fixed number of lines -- but that
 // number is ARITHMETIC, not a preference.
 //
@@ -2558,13 +2576,14 @@ const EZIK_CARD_FOOT_GAP = 40;      // clear air between the last body line and 
 // filled stood empty. Rendered in a real browser at 1080x1350 the body filled 80.6% of its own
 // region and 580 characters of a 1122-character reply were dropped.
 //
-// So the budget is computed from the geometry the card is actually drawn with, at the WORST
-// case: a reply that carries a source line AND is cut, which is the arrangement that leaves the
-// least room. Every lighter arrangement then has room to spare rather than less, so no reply can
-// ever be drawn over its own footer. Change EZIK_CARD_H, _PAD, _LINE or any offset above and
-// this follows on its own.
+// ITEM 42-C. THE HEIGHT IS NOT FIXED ANY MORE, so this is no longer "what the card holds" -- it
+// is THE MOST the card can ever hold: the body a reply gets at the CEILING when its tail is the
+// site line alone. A reply that carries an attribution, a notice or links gets less than this,
+// because that tail is reserved first; a reply shorter than this is never cut at all, because the
+// card grows to it instead. It is the only line budget that is a constant, and it is the one a
+// cut is measured against.
 const EZIK_CARD_BODY_LINES = Math.max(1, Math.floor(
-  ((EZIK_CARD_H - EZIK_CARD_PAD - EZIK_CARD_SOURCE_RISE - EZIK_CARD_FOOT_GAP
+  ((EZIK_CARD_H_MAX - EZIK_CARD_PAD - EZIK_CARD_SITE_SIZE - EZIK_CARD_FOOT_GAP
     - (EZIK_CARD_LINE + EZIK_CARD_NOTE_DROP))            // the slot the cut note occupies
     - (EZIK_CARD_PAD + EZIK_CARD_LINE))                  // the first baseline
   / EZIK_CARD_LINE) + 1);
@@ -2596,6 +2615,68 @@ const ezikCardWrap = (ctx, text, maxWidth) => {
   return out;
 };
 
+// ITEM 42-C. THE TAIL, BUILT BEFORE THE BODY IS MEASURED.
+//
+// Every entry is one drawn line with the STEP that separates it from the line above, so the sum
+// of the steps IS the tail's height and the two can never disagree. It is built top-down and
+// drawn top-down from a baseline the height computation hands back, which is why the last step
+// lands exactly on the bottom padding no matter how many entries there are.
+//
+// NOTHING HERE IS INVENTED. The attribution is the source segment's own words and the notice is
+// the notice segment's own words; a reply that carries neither gets neither, and no stand-in
+// sentence is written under a reply that did not say it.
+//
+// WHAT `o.source` MAY BE, and why it is two things. A caller that has only a list of hosts hands
+// in a STRING and gets exactly the footer line this card has always drawn -- that is the shape
+// the canvas seam's fixtures use and it is unchanged. The app hands in the reply's whole
+// attribution: { links, attribution, notice }, all three read off the SAME segments the source
+// footer has always been read from. There is still one source of truth and it is still the one
+// the clipboard and the PDF are handed; what moved is how much of it the card is told.
+const ezikCardParts = (source) => {
+  if (source && typeof source === 'object') {
+    return {
+      links: String(source.links == null ? '' : source.links).trim(),
+      attribution: String(source.attribution == null ? '' : source.attribution).trim(),
+      notice: String(source.notice == null ? '' : source.notice).trim(),
+    };
+  }
+  return { links: String(source == null ? '' : source).trim(), attribution: '', notice: '' };
+};
+
+const ezikCardTail = (ctx, o, inner) => {
+  const parts = ezikCardParts(o.source);
+  const wrapAt = (text, size) => {
+    const s = String(text == null ? '' : text).trim();
+    if (!s) return [];
+    ctx.font = '400 ' + size + 'px system-ui, sans-serif';
+    return ezikCardWrap(ctx, s, inner);
+  };
+  const items = [];
+  for (const [i, t] of wrapAt(parts.attribution, EZIK_CARD_ATTR_SIZE).entries()) {
+    items.push({ t: t, size: EZIK_CARD_ATTR_SIZE, weight: '600', alpha: 0.95,
+      step: i === 0 ? EZIK_CARD_ATTR_GAP + EZIK_CARD_ATTR_LINE : EZIK_CARD_ATTR_LINE });
+  }
+  for (const [i, t] of wrapAt(parts.notice, EZIK_CARD_NOTICE_SIZE).entries()) {
+    items.push({ t: t, size: EZIK_CARD_NOTICE_SIZE, weight: '400', alpha: 0.7,
+      step: i === 0 ? EZIK_CARD_NOTICE_GAP + EZIK_CARD_NOTICE_LINE : EZIK_CARD_NOTICE_LINE });
+  }
+  // THE LINKS ARE LABELLED AS LINKS. A bare domain printed where a reader looks for a source is a
+  // claim that a site said something it may never have said: the card carried «binbaz.org.sa»
+  // alone while the reply's own «… — مادة: …» had been cut off the bottom. The two are separated
+  // now -- the attribution above states the source in the reply's words, and this line says only
+  // that these addresses were cited.
+  const links = parts.links;
+  if (links) {
+    items.push({ t: EZIK_CARD_LINKS_LABEL + ': ' + links, size: 28, weight: '400', alpha: 0.8,
+      step: EZIK_CARD_SOURCE_RISE });
+  }
+  items.push({ t: EZIK_CARD_SITE, size: EZIK_CARD_SITE_SIZE, weight: '600', alpha: 1,
+    step: EZIK_CARD_SITE_SIZE });
+  let h = 0;
+  for (const it of items) h += it.step;
+  return { items: items, h: h };
+};
+
 // THE SEAM IS THE CANVAS, and it is the only one. A guard hands in a recording context so the
 // card's geometry, its wrapping and its cut can be driven without a browser; the button below
 // hands in nothing and takes document.createElement, which is asserted.
@@ -2603,7 +2684,38 @@ const ezikDrawReplyCard = (opts) => {
   const o = opts || {};
   const canvas = o.canvas || document.createElement('canvas');
   canvas.width = EZIK_CARD_W;
-  canvas.height = EZIK_CARD_H;
+  const ctx0 = canvas.getContext('2d');
+  ctx0.direction = 'rtl';
+  const innerW = EZIK_CARD_W - (EZIK_CARD_PAD * 2);
+  // THE ORDER IS THE WHOLE POINT: the tail first, then the body against what is left.
+  const tail = ezikCardTail(ctx0, o, innerW);
+  // ...AND THE BODY DOES NOT DRAW WHAT THE TAIL RESERVES. The source paragraph and the notice are
+  // IN o.text -- they are the last two things serializeReply writes -- so once the card stopped
+  // cutting them off they were drawn twice, once inline and once in the reserved block. This
+  // MOVES them rather than dropping them: the match is on the serializer's own paragraph, byte
+  // for byte, which is the only way to be sure the paragraph removed is the paragraph re-drawn.
+  // A paragraph that does not match exactly is left in the body untouched.
+  const parts0 = ezikCardParts(o.source);
+  const reserved = (parts0.attribution + '\n\n' + parts0.notice)
+    .split('\n\n').map((p) => p.trim()).filter(Boolean);
+  const bodyText = String(o.text == null ? '' : o.text)
+    .replace(/\r\n?/g, '\n')
+    .split('\n\n')
+    .filter((p) => reserved.indexOf(p.trim()) === -1)
+    .join('\n\n');
+  ctx0.font = '400 ' + EZIK_CARD_BODY_SIZE + 'px system-ui, sans-serif';
+  const allLines = ezikCardWrap(ctx0, bodyText, innerW);
+  const firstBaseline = EZIK_CARD_PAD + EZIK_CARD_LINE;
+  // What the card would have to be to hold the whole reply, with nothing cut.
+  const wanted = firstBaseline + Math.max(0, allLines.length - 1) * EZIK_CARD_LINE
+    + EZIK_CARD_FOOT_GAP + tail.h + EZIK_CARD_PAD;
+  const fits = wanted <= EZIK_CARD_H_MAX;
+  const cardH = fits ? Math.max(EZIK_CARD_H_MIN, wanted) : EZIK_CARD_H_MAX;
+  // At the ceiling the cut note takes a slot of its own, and the body gets the remainder.
+  const lastAllowed = cardH - EZIK_CARD_PAD - tail.h - EZIK_CARD_FOOT_GAP
+    - (fits ? 0 : (EZIK_CARD_LINE + EZIK_CARD_NOTE_DROP));
+  const budget = Math.max(1, Math.floor((lastAllowed - firstBaseline) / EZIK_CARD_LINE) + 1);
+  canvas.height = cardH;
   const ctx = canvas.getContext('2d');
   // ITEM 42, MEASURED IN A REAL BROWSER. A canvas built with createElement is not in the
   // document, so its 2D context resolved `direction` to LTR -- and fillText runs the Unicode
@@ -2620,10 +2732,10 @@ const ezikDrawReplyCard = (opts) => {
   // changes. It is set once, before anything is drawn, so the watermark, the body, the cut note
   // and the footer are all laid out the same way.
   ctx.direction = 'rtl';
-  const inner = EZIK_CARD_W - (EZIK_CARD_PAD * 2);
+  const inner = innerW;
 
   ctx.fillStyle = '#0E1512';
-  ctx.fillRect(0, 0, EZIK_CARD_W, EZIK_CARD_H);
+  ctx.fillRect(0, 0, EZIK_CARD_W, cardH);
 
   // The watermark: the wordmark, large, faint, behind everything. Drawn, never fetched.
   // ITEM 42: 0.07 was measured against the card it sits on -- 30 of 255 levels above the
@@ -2638,7 +2750,7 @@ const ezikDrawReplyCard = (opts) => {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = '700 420px system-ui, sans-serif';
-  ctx.fillText(EZIK_CARD_MARK, EZIK_CARD_W / 2, EZIK_CARD_H / 2);
+  ctx.fillText(EZIK_CARD_MARK, EZIK_CARD_W / 2, cardH / 2);
   ctx.restore();
 
   // The reply, wrapped and right-aligned, because the card is Arabic.
@@ -2646,11 +2758,11 @@ const ezikDrawReplyCard = (opts) => {
   ctx.textAlign = 'right';
   ctx.textBaseline = 'alphabetic';
   ctx.font = '400 ' + EZIK_CARD_BODY_SIZE + 'px system-ui, sans-serif';
-  const all = ezikCardWrap(ctx, o.text, inner);
-  const cut = all.length > EZIK_CARD_BODY_LINES;
-  const lines = cut ? all.slice(0, EZIK_CARD_BODY_LINES) : all;
+  const all = allLines;   // already stripped of what the tail carries
+  const cut = all.length > budget;
+  const lines = cut ? all.slice(0, budget) : all;
   if (cut) lines[lines.length - 1] = lines[lines.length - 1] + ' ' + EZIK_CARD_CUT;
-  let y = EZIK_CARD_PAD + EZIK_CARD_LINE;
+  let y = firstBaseline;
   for (const line of lines) {
     ctx.fillText(line, EZIK_CARD_W - EZIK_CARD_PAD, y);
     y += EZIK_CARD_LINE;
@@ -2664,19 +2776,21 @@ const ezikDrawReplyCard = (opts) => {
     ctx.restore();
   }
 
-  // The source line, only if the reply carries one. Nothing is invented under a reply.
-  const foot = EZIK_CARD_H - EZIK_CARD_PAD;
-  if (o.source) {
+  // THE TAIL, drawn from the baseline the height reserved for it. The steps sum to tail.h, so the
+  // last one lands on EZIK_CARD_PAD above the bottom edge whatever the tail holds -- and because
+  // the body's budget was computed against the same tail.h, the two cannot meet.
+  let ty = cardH - EZIK_CARD_PAD - tail.h;
+  for (const it of tail.items) {
+    ty += it.step;
     ctx.save();
-    ctx.globalAlpha = 0.8;
-    ctx.font = '400 28px system-ui, sans-serif';
-    ctx.fillText(String(o.source), EZIK_CARD_W - EZIK_CARD_PAD, foot - EZIK_CARD_SOURCE_RISE);
+    ctx.globalAlpha = it.alpha;
+    ctx.font = it.weight + ' ' + it.size + 'px system-ui, sans-serif';
+    ctx.fillText(it.t, EZIK_CARD_W - EZIK_CARD_PAD, ty);
     ctx.restore();
   }
-  ctx.font = '600 30px system-ui, sans-serif';
-  ctx.fillText(EZIK_CARD_SITE, EZIK_CARD_W - EZIK_CARD_PAD, foot);
 
-  return { url: canvas.toDataURL('image/png'), cut: cut, lines: lines.length, w: EZIK_CARD_W, h: EZIK_CARD_H };
+  return { url: canvas.toDataURL('image/png'), cut: cut, lines: lines.length,
+    w: EZIK_CARD_W, h: cardH };
 };
 
 const SaveReplyImageButton = ({ getText, getSource }) => {
@@ -11101,6 +11215,37 @@ const ezikCardSourceLine = (segments) => {
   }
   return names.join('  ·  ');
 };
+// ITEM 42-C. THE CARD'S ATTRIBUTION BLOCK AND ITS NOTICE BLOCK.
+//
+// WHY THESE EXIST. The card is handed serializeReply's TEXT, and the source paragraph and the
+// notice are the last two things that text carries -- so a fixed line budget cut them off before
+// they could be drawn. Measured on the owner's own «أركان الإيمان» reply: 16 of 26 lines were
+// drawn, both were among the 10 that were not, and the card went out with a bare domain in the
+// footer standing where its source should have been. A domain is not an attribution: it says a
+// site was cited, not that the site said this.
+//
+// THEY RETURN THE SERIALIZER'S OWN PARAGRAPHS, BYTE FOR BYTE, because REPLY_SERIALIZERS is what
+// they CALL. Nothing in it is changed, extended or shadowed -- the clipboard, the share text, the
+// voice and the PDF are what they were. And byte-identity is load-bearing rather than tidy: the
+// card moves these paragraphs out of the body and into a reserved block, and an exact string is
+// the only way to move a paragraph and be certain it was the same one.
+//
+// A reply with no source segment yields '', and '' draws nothing at all. No stand-in sentence is
+// ever written under a reply that did not say it.
+const ezikCardBlockOf = (segments, type) => {
+  const out = [];
+  for (const sg of (segments || [])) {
+    if (!sg || sg.type !== type) continue;
+    const fn = REPLY_SERIALIZERS[type];
+    if (!fn) continue;
+    const piece = String(fn(sg, {}) || '').trim();
+    if (piece) out.push(piece);
+  }
+  return out.join('\n\n');
+};
+const ezikCardAttributionBlock = (segments) => ezikCardBlockOf(segments, 'source');
+const ezikCardNoticeBlock = (segments) => ezikCardBlockOf(segments, 'notice');
+
 // Every type MessageBubble can render must have an entry above. A new card added to the renderer
 // without one lands here and is announced -- loudly, and visibly in the copied text -- instead of
 // vanishing from the clipboard the way every card did before this directive.
@@ -11742,7 +11887,17 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
   // ITEM 42-C: the card is handed the source footer by the module-level reader below, beside
   // the writer that already renders sources into the copy payload. THIS component does not
   // filter, re-order or count them -- N22 pins that, and a share card is no reason to weaken it.
-  const buildCardSource = () => ezikCardSourceLine(segments);
+  // ITEM 42-C. THE CARD'S SOURCE IS NOW THE REPLY'S WHOLE ATTRIBUTION, not the host list alone:
+  // the links, the source paragraph in the reply's own words, and the reply's own notice. All
+  // three come from THESE segments -- the same ones the bubble draws and the same ones
+  // ezikCardSourceLine has always read -- so the card still has exactly one source of truth, and
+  // it is still the one the clipboard and the PDF are handed. Nothing is filtered here; N22's
+  // rule that this sheet never re-orders or drops a source is untouched.
+  const buildCardSource = () => ({
+    links: ezikCardSourceLine(segments),
+    attribution: ezikCardAttributionBlock(segments),
+    notice: ezikCardNoticeBlock(segments),
+  });
   // S98: the fold decides only what is DRAWN. buildCopyText above, the listen button below and
   // every export path all read `segments` / message.content — the WHOLE reply — so a folded reply
   // is copied, spoken and exported in full.
