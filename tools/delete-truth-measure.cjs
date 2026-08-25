@@ -201,10 +201,21 @@ const makeHarness = new Function('env', HARNESS);
 // ---------------------------------------------------------------------------
 const KEY_CONST = /_(KEY|PREFIX)(_[A-Z0-9]+)?$/;
 
+// A _KEY THAT IS NOT A PLACE IN THE STORE, each with the reason it is not one. This is the third
+// column item 115-ب established for sw.js's prose, in the one place this tool needed it: the
+// suffix rule above is a heuristic, and app.jsx is free to name a key of some OTHER dictionary
+// the same way. There is no silent third option -- a name that ends in _KEY is a storage key, or
+// it is excused HERE in writing, and an excuse that is wrong fails immediately below.
+const NOT_A_STORAGE_KEY = {
+  ADHAN_BODY_KEY: 'a key into the interface dictionary, not into the store -- it names the'
+    + ' sentence the notification body is written from, and nothing ever hands it to localStorage',
+};
+
 /** `const X_KEY = 'literal'` at the top level -> the literal. */
 const namedKeys = new Map();
 for (const [name, decl] of TOP) {
   if (!KEY_CONST.test(name)) continue;
+  if (Object.prototype.hasOwnProperty.call(NOT_A_STORAGE_KEY, name)) continue;
   const init = decl.node.init;
   if (init && init.type === 'StringLiteral') namedKeys.set(name, init.value);
 }
@@ -219,6 +230,18 @@ walk(ast.program, (n) => {
   if (['getItem', 'setItem', 'removeItem'].indexOf(c.property.name) === -1) return;
   const a = n.arguments[0];
   if (a && a.type === 'StringLiteral') literalKeys.add(a.value);
+});
+
+/** Every identifier handed straight to localStorage anywhere in the file. */
+const byConstant = new Set();
+walk(ast.program, (n) => {
+  if (n.type !== 'CallExpression') return;
+  const c = n.callee;
+  if (c.type !== 'MemberExpression' || c.computed) return;
+  if (!(c.object.type === 'Identifier' && c.object.name === 'localStorage')) return;
+  if (['getItem', 'setItem', 'removeItem'].indexOf(c.property.name) === -1) return;
+  const a = n.arguments[0];
+  if (a && a.type === 'Identifier') byConstant.add(a.name);
 });
 
 const PREFIXES = new Set();
@@ -311,6 +334,14 @@ const MUST_GO_NEW = [
 // What must be standing afterwards, and the reason each one is allowed to stand.
 const MUST_STAY = [
   { c: 'HIJRI_OFFSET_KEY',
+    why: 'delete.html promises it in neither language; erasing it would widen the button' },
+  // ITEM 67. THE SAME RULE AS THE HIJRI OFFSET, BY THE SAME OWNER'S REASONING. delete.html
+  // names four things it erases and two it keeps, and the reminder switch is in neither list.
+  // Erasing it would widen the button beyond its own page -- and it would do it in the most
+  // expensive direction available: a reader who had granted the system permission and turned
+  // the reminder on would find it silently off, with the permission still granted, and no
+  // sentence anywhere that had warned them. The page is not touched to make room for it.
+  { c: 'PRAYER_NOTIFY_KEY',
     why: 'delete.html promises it in neither language; erasing it would widen the button' },
   { c: 'LEGACY_PIN_HASH_KEY',
     why: 'delete.html:95 / :139 -- the digest of the parental lock code is named as remaining' },
@@ -459,6 +490,30 @@ run('every key app.jsx knows is classified -- must go, or must stay, and never n
     + 'name -- an expectation about a key nobody writes proves nothing');
   return ALL_KEYS.size + ' keys read out of app.jsx; ' + GO.size + ' must go, ' + STAY.size
     + ' must stay, 0 unclassified';
+});
+
+run('...and every name excused from that roster really is a key into something else', () => {
+  const names = Object.keys(NOT_A_STORAGE_KEY);
+  is(names.length > 0, 'the excuse roster is empty -- delete this case with it');
+  for (const name of names) {
+    const decl = TOP.get(name);
+    is(!!decl, 'app.jsx no longer declares ' + name + ', so the excuse for it is scenery');
+    const init = decl.node.init;
+    is(!!init && init.type === 'StringLiteral',
+      name + ' is no longer a plain string constant, and the excuse for it no longer describes it');
+    // THE EXCUSE IS CHECKED, NOT TAKEN. A name excused from the storage roster must never be
+    // handed to the store -- by its own constant or by its literal. The moment it is, it IS a
+    // storage key, the excuse is false, and this case is the thing that says so.
+    is(!literalKeys.has(init.value),
+      name + ' is excused as "not a storage key", but its literal "' + init.value + '" is handed'
+      + ' straight to localStorage somewhere in app.jsx');
+    is(!byConstant.has(name),
+      name + ' is excused as "not a storage key", but app.jsx hands it to localStorage by name');
+    is(String(NOT_A_STORAGE_KEY[name]).trim().length > 20,
+      name + ' is excused with no reason worth reading');
+  }
+  return names.length + ' excused name(s), each still declared, each with a reason, none of them'
+    + ' reaching the store';
 });
 
 // ---- 1. The four the page already promised. -------------------------------------------------

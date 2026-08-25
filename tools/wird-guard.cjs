@@ -2316,15 +2316,67 @@ if (oLifted) {
     ['nuallimuk', '\u0646\u0639\u0644\u0645\u0643'],
   ];
   ok('A-3: the visible-text scan actually read the client', visible.length > 200);
+  // ITEM 67 NARROWED THIS BAN -- ONE OF ITS FOUR WORDS, AND ONLY INSIDE ONE NAMED SET OF LINES.
+  //
+  // WHY THE BAN EXISTED. Round 25 A-3 forbade these four words in visible text because the
+  // client could not keep any of the promises they make: nothing in this application reminded
+  // anybody of anything, there was no time field, no alarm and no notification. A screen saying
+  // "tadhkir" would have been a promise with nothing behind it, and this repository counts that
+  // as a lie whether or not anybody complains about it.
+  //
+  // WHAT CHANGED. Item 67 built the thing the word names. murabbi-shell schedules real system
+  // notifications; the web half hands it the five prayers of the next seven local days with
+  // absolute timestamps and text already written in the reader's language; and the reader now has
+  // a switch which asks the system for permission and turns the whole of it on or off. The word
+  // is no longer a promise this client cannot keep. It is the NAME of something it ships.
+  //
+  // SO THE BAN DOES NOT BECOME A PERMISSION. It becomes an EXACT ALLOWANCE -- the same shape item
+  // 67 gave gate 107's ban on the latin type name -- and everything the ban ever stood in for is
+  // now asserted DIRECTLY instead of through a word:
+  //
+  //   * the other three words are still forbidden outright, everywhere, with no exception;
+  //   * this one is allowed ONLY inside the values of the switch's own dictionary keys, and the
+  //     count of visible strings carrying it ANYWHERE else must be zero -- a second one fails,
+  //     including one added to a panel, a tile or a settings row;
+  //   * and the promise is CHECKED rather than trusted. The switch has to exist, be drawn only
+  //     behind the shell bridge, default to off, gate the feed, and raise the system prompt from
+  //     the reader's press and from nowhere else. The day any of that stops being true the word
+  //     goes back to being a promise with nothing behind it, and these fail before the scan does.
+  const NOTIFY_LINES = new Set();
+  {
+    const re = /'(prayer\.notify\.[a-z]+)': '((?:[^'\\]|\\.)*)'/g;
+    let m;
+    while ((m = re.exec(SRC)) !== null) NOTIFY_LINES.add(m[2]);
+  }
+  ok('A-3: the switch\'s own lines were found to scan (' + NOTIFY_LINES.size + ')', NOTIFY_LINES.size >= 12);
+  const ALLOWED_IN = 'tadhkir';
   let promiseHits = 0;
   for (const w of PROMISE_WORDS) {
-    const n = visible.filter((t) => stripH(t).indexOf(stripH(w[1])) !== -1).length;
-    promiseHits += n;
-    ok('A-3: no visible string says ' + w[0] + ' (matches=' + n + ')', visible.length > 200 && n === 0);
+    const hits = visible.filter((t) => stripH(t).indexOf(stripH(w[1])) !== -1);
+    const stray = w[0] === ALLOWED_IN ? hits.filter((t) => !NOTIFY_LINES.has(t)) : hits;
+    promiseHits += stray.length;
+    ok('A-3: no visible string says ' + w[0] + ' outside the switch it names (matches=' + hits.length
+      + ', outside=' + stray.length + ')', visible.length > 200 && stray.length === 0);
   }
   console.log('  A-3 SCAN: visible Arabic strings=' + visible.length
-    + '  forbidden-word matches=' + promiseHits);
+    + '  forbidden-word matches outside the switch=' + promiseHits);
   eq('A-3: THE COUNT THE ROUND REQUIRES TO BE ZERO', promiseHits, 0);
+  // ---- AND THE ONE ALLOWANCE IS BACKED, LINE BY LINE ----
+  ok('A-3: the word names a switch that exists',
+    SRC.indexOf('function PrayerNotifyToggle() {') !== -1
+    && (SRC.match(/<PrayerNotifyToggle \/>/g) || []).length === 1);
+  ok('A-3: ...which is drawn only where there is an engine behind it, and nowhere else',
+    /function PrayerNotifyToggle\(\) \{[\s\S]{0,2000}?if \(!ezikSchedBridge\(\)\) return null;/.test(SRC));
+  ok('A-3: ...whose store defaults to off, with exactly one value that means on',
+    /const PRAYER_NOTIFY_ON = '[a-z]+';/.test(SRC)
+    && SRC.indexOf('return localStorage.getItem(PRAYER_NOTIFY_KEY) === PRAYER_NOTIFY_ON;') !== -1);
+  ok('A-3: ...and nothing at all is scheduled until the reader turns it on',
+    SRC.indexOf('if (!readPrayerNotify()) return [];') !== -1);
+  ok('A-3: ...and the system permission is asked for from the press and from nowhere else',
+    (SRC.match(/ezikNotifyAsk\(\)/g) || []).length === 2);
+  ok('A-3: ...and turning it off cancels rather than merely forgetting',
+    (SRC.match(/ezikNotifyStop\(\)/g) || []).length === 2
+    && SRC.indexOf('op: SHELL_SCHED_CANCEL_OP,') !== -1);
   ok('A-3: and the client offers no time field anywhere',
     SRC.length > 0 && SRC.indexOf('type="time"') === -1 && SRC.indexOf("type: 'time'") === -1
     && SRC.indexOf("type='time'") === -1);

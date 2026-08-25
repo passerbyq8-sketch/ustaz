@@ -417,6 +417,13 @@ const EZ_I18N = {
     'widget.prayer.maghrib': 'المغرب',
     'widget.prayer.isha': 'العشاء',
     'prayer.due': 'حانَ وقتُ صلاةِ {name}.',
+    'prayer.notify.label': 'تذكيرُ مواقيتِ الصلاة',
+    'prayer.notify.on': 'مُشغَّل',
+    'prayer.notify.off': 'مطفأ',
+    'prayer.notify.asking': 'يُطلَبُ إذنُ التذكيرِ منَ النِّظامِ الآن…',
+    'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
+    'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
+    'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ لـ{n} منَ الأيّامِ القادمة، وتُجَدَّدُ كلَّما فُتِحَ التطبيق.',
     'widget.adhkar.title': 'الأذكار',
     'widget.adhkar.open': 'افتحْ الأذكار',
     'widget.adhkar.chain': 'سلسلتك',
@@ -702,6 +709,13 @@ const EZ_I18N = {
     'widget.prayer.maghrib': 'Maghrib',
     'widget.prayer.isha': 'Isha',
     'prayer.due': 'It is time for the {name} prayer.',
+    'prayer.notify.label': 'Prayer time reminders',
+    'prayer.notify.on': 'On',
+    'prayer.notify.off': 'Off',
+    'prayer.notify.asking': 'Asking the system for permission now…',
+    'prayer.notify.denied': 'Reminders are blocked in your system settings.',
+    'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
+    'prayer.notify.note': 'Scheduled on this device for the next {n} days, and renewed whenever the app is opened.',
     'widget.adhkar.title': 'Adhkar',
     'widget.adhkar.open': 'Open adhkar',
     'widget.adhkar.chain': 'Your chain',
@@ -13888,6 +13902,96 @@ const PRAYER_SUNRISE_NOTE = 'الشروق محسوبٌ لا مُعايَر؛ ل�
 const PRAYER_MINUS = '−';
 const PRAYER_PLUS = '+';
 
+// ITEM 67 — THE SWITCH, AND IT IS DRAWN ONLY WHERE IT CAN DO SOMETHING.
+//
+// NO SHELL, NO CONTROL. In a browser tab there is no engine behind this bridge, and a switch
+// that stores a preference nothing will ever read is a promise with nothing behind it. `null`
+// here is not a disabled control with an explanation beside it; it is no control at all, and a
+// reader of the web page is told about no feature the web page does not have.
+//
+// 🔴 AND `enable` LEAVES THIS FILE FROM THE PRESS BELOW AND FROM NOWHERE ELSE. Not from a mount,
+// not from a return to the foreground, not from a language change, not from any arming. That is
+// the shell's own rule for the one operation that raises a system prompt, and the schedule
+// payload measure holds this file to a single call site for it, outside every effect.
+//
+// IT LIVES BESIDE THE TIMES IT IS ABOUT. No new screen, no new route, no new section of the
+// settings: the reader who is looking at today's six moments is the reader deciding whether to
+// be told when five of them arrive.
+function PrayerNotifyToggle() {
+  const [on, setOn] = useState(readPrayerNotify);
+  // '' until the reader touches it, then one of three quiet lines: the prompt is up, the system
+  // refused, or nothing answered at all. None of the three retries by itself, and none of them
+  // is an error screen.
+  const [said, setSaid] = useState('');
+  // The listener's own detach, parked where the next press, the deadline and the unmount can all
+  // reach the same one -- so no listener outlives the press that made it, and an answer arriving
+  // after its deadline finds nothing listening and writes nothing.
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  if (!ezikSchedBridge()) return null;
+
+  const release = () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } };
+
+  const turnOn = () => {
+    release();
+    setSaid('asking');
+    let timer = null;
+    const stop = () => {
+      if (timer) { clearTimeout(timer); timer = null; }
+      try { window.removeEventListener(SHELL_SCHED_CHANNEL, onAnswer); } catch (e) {}
+      stopRef.current = null;
+    };
+    const onAnswer = (ev) => {
+      const granted = ezikNotifyAnswer(ev && ev.detail);
+      if (granted === null) return;          // not an answer to this press: keep listening
+      stop();
+      // A REFUSAL IS A LAWFUL ANSWER AND NOT A FAULT. The switch goes back to off, the store is
+      // written to match it, and the reader is told once where the decision now lives. Nothing
+      // is asked again -- not by this press, and not by any later moment the reader did not
+      // choose.
+      if (!granted) { setOn(writePrayerNotify(false)); setSaid('denied'); return; }
+      setOn(writePrayerNotify(true));
+      setSaid('');
+      ezikSchedArm();
+    };
+    try { window.addEventListener(SHELL_SCHED_CHANNEL, onAnswer); }
+    catch (e) { setSaid('silent'); return; }
+    timer = setTimeout(() => { stop(); setSaid('silent'); }, PRAYER_NOTIFY_WAIT_MS);
+    stopRef.current = stop;
+    if (!ezikNotifyAsk()) { stop(); setSaid('silent'); }
+  };
+
+  // THE STORE IS WRITTEN BEFORE THE MESSAGE GOES. Whatever the bridge does with the cancellation,
+  // the feed above is already answering every later trigger with an empty list, so a reader who
+  // turned it off is off even on a bridge that refused to carry the word.
+  const turnOff = () => {
+    release();
+    setSaid('');
+    setOn(writePrayerNotify(false));
+    ezikNotifyStop();
+  };
+
+  const press = () => { if (on) turnOff(); else turnOn(); };
+
+  return (
+    <>
+      <div style={s.a11yGroupLabel}>{ezT('prayer.notify.label')}</div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" role="switch" aria-checked={on ? 'true' : 'false'}
+          aria-label={ezT('prayer.notify.label')} onClick={press}
+          data-ezik-prayer-notify="switch" className="ezik-focus"
+          style={on ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+          {on ? ezT('prayer.notify.on') : ezT('prayer.notify.off')}
+        </button>
+      </div>
+      {said === 'asking' ? <div style={s.qiblaNote}>{ezT('prayer.notify.asking')}</div> : null}
+      {said === 'denied' ? <div style={s.qiblaNote}>{ezT('prayer.notify.denied')}</div> : null}
+      {said === 'silent' ? <div style={s.qiblaNote}>{ezT('prayer.notify.silent')}</div> : null}
+      <div style={s.qiblaNote}>{ezT('prayer.notify.note', { n: ezikBrowseNum(ADHAN_WINDOW_DAYS) })}</div>
+    </>
+  );
+}
+
 function PrayerTimesPanel({ loc }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
   useEzikSchedWatch();
@@ -13925,6 +14029,7 @@ function PrayerTimesPanel({ loc }) {
         </div>
       ))}
       <div style={s.qiblaNote}>{PRAYER_SUNRISE_NOTE}</div>
+      <PrayerNotifyToggle />
       <div style={s.a11yGroupLabel}>{PRAYER_SCHEDULE_TITLE}</div>
       <div className="ez-hit" style={s.prayerOptRow}>
         <button type="button" onClick={() => setOpen(!open)} aria-expanded={open ? 'true' : 'false'}
@@ -14179,6 +14284,15 @@ const SHELL_SCHED_CHANNEL = 'ezik-scheduler';
 const SHELL_SCHED_VERSION = 1;
 const SHELL_SCHED_OP = 'schedule';
 const SHELL_SCHED_REARM_OP = 'rearm-request';
+// THE THREE WORDS THE READER'S OWN SWITCH SPEAKS. `enable` is the one operation in the whole
+// contract that can raise a system prompt on the far side, and the shell says so of itself: it
+// is reached from the reader's gesture and from nothing else. `cancel` is its opposite -- the
+// far side ends holding nothing at all. `result` is the shape every answer comes back in, and
+// it carries `inReplyTo`, so the answer to one operation cannot be read as the answer to
+// another.
+const SHELL_SCHED_ENABLE_OP = 'enable';
+const SHELL_SCHED_CANCEL_OP = 'cancel';
+const SHELL_SCHED_RESULT_OP = 'result';
 
 // The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
 // not consulted here either, for the reason written out at ezikShellBridge above.
@@ -14274,6 +14388,86 @@ function ezikSchedSend(items, nowMs) {
   catch (e) { return { sent: false, reason: 'bridge-refused', items: count, dropped: built.dropped }; }
   ezikSchedLastSent = print;
   return { sent: true, reason: null, items: count, dropped: built.dropped };
+}
+
+// ============================================================
+// ITEM 67 — THE READER'S OWN SWITCH: WHAT DECIDES WHETHER ANY OF THIS RUNS AT ALL
+// ============================================================
+// ONE KEY, DEFAULT OFF, AND OFF BY CONSTRUCTION RATHER THAN BY A VALUE WRITTEN AT FIRST RUN.
+// There is exactly one string that means "on". A store this key was never written to reads as
+// off, and so does a store holding anything else at all -- a truncated write, a restored backup,
+// a value some other version of this application left behind, a storage that throws on the
+// getter itself. A reminder is a promise to interrupt somebody's day, and the only reading of a
+// damaged store that is safe to act on is the one that interrupts nobody.
+const PRAYER_NOTIFY_KEY = 'ezik_prayer_notify_v1';
+const PRAYER_NOTIFY_ON = 'on';
+// How long the switch waits for the shell to answer the one message it sends. A system prompt is
+// standing in front of the reader for most of that window, so this is generous rather than tight;
+// what it guards against is not a slow reader but an answer that never comes at all.
+const PRAYER_NOTIFY_WAIT_MS = 20000;
+
+function readPrayerNotify() {
+  try { return localStorage.getItem(PRAYER_NOTIFY_KEY) === PRAYER_NOTIFY_ON; }
+  catch (e) { return false; }
+}
+
+// It answers with what is NOW STORED rather than with what it was asked to store, so no caller
+// ever paints a switch from the assumption that its own write landed.
+function writePrayerNotify(on) {
+  try {
+    if (on) localStorage.setItem(PRAYER_NOTIFY_KEY, PRAYER_NOTIFY_ON);
+    else localStorage.removeItem(PRAYER_NOTIFY_KEY);
+  } catch (e) {}
+  return readPrayerNotify();
+}
+
+// THE GESTURE, AND THE ONLY MESSAGE THIS FILE SENDS THAT CAN RAISE A SYSTEM PROMPT. It is a
+// separate sender from ezikSchedSend deliberately: that one is a fingerprinted rebuild which may
+// lawfully decide to say nothing, and a button whose message is deduplicated away is a button
+// that does nothing. This one carries NO items -- the permission is asked for first and the
+// arming follows the answer -- and it either posts or reports that it could not.
+function ezikNotifyAsk() {
+  const bridge = ezikSchedBridge();
+  if (!bridge) return false;
+  try {
+    bridge.postMessage(JSON.stringify({
+      channel: SHELL_SCHED_CHANNEL, v: SHELL_SCHED_VERSION, op: SHELL_SCHED_ENABLE_OP,
+    }));
+  } catch (e) { return false; }
+  return true;
+}
+
+// THE OPPOSITE, AND IT MOVES THE FINGERPRINT WITH IT. Without that second-to-last line the pipe
+// would still believe it had last sent a full week: the next trigger -- the day turning, the
+// application returning to the front -- would rebuild to an empty list, find it different from
+// what it remembers, and post a second cancellation dressed as a schedule. One press, one
+// message, and every later trigger recognises the far side as already empty.
+function ezikNotifyStop() {
+  const bridge = ezikSchedBridge();
+  if (!bridge) return false;
+  try {
+    bridge.postMessage(JSON.stringify({
+      channel: SHELL_SCHED_CHANNEL, v: SHELL_SCHED_VERSION, op: SHELL_SCHED_CANCEL_OP,
+    }));
+  } catch (e) { return false; }
+  ezikSchedLastSent = SHELL_SCHED_EMPTY;
+  return true;
+}
+
+// THE ANSWER, READ AND NOT INTERPRETED. `true` granted, `false` refused, and `null` for anything
+// that is not an answer to this press: another operation's result, another channel's traffic, a
+// contract version this end does not speak, a message that is not an object at all.
+//
+// 🔴 AND NULL IS NOT REFUSAL. A message this end could not read must leave the switch exactly
+// where the reader left it. Treating the unreadable as a refusal would turn a stray message on
+// the channel into a silent revocation of something the reader had already been granted.
+function ezikNotifyAnswer(detail) {
+  if (!detail || typeof detail !== 'object') return null;
+  if (detail.channel !== SHELL_SCHED_CHANNEL) return null;
+  if (detail.v !== SHELL_SCHED_VERSION) return null;
+  if (detail.op !== SHELL_SCHED_RESULT_OP) return null;
+  if (detail.inReplyTo !== SHELL_SCHED_ENABLE_OP) return null;
+  return detail.ok === true;
 }
 
 // ============================================================
@@ -14373,6 +14567,13 @@ function ezikAdhanItems(now) {
 // stays silent because an empty payload matches the fingerprint it starts on, and the report for
 // this round names all three feeds as open rather than pretending any of them shipped.
 function ezikSchedItems() {
+  // THE SWITCH IS THE GATE, AND IT IS READ HERE RATHER THAN AT THE PRESS. Every trigger in this
+  // file passes through this one function -- the page opening, the application returning, the day
+  // turning, the language moving, the position or the preferences changing -- so a reader who
+  // turned the reminder off is answered by all of them at once, with a list that is empty because
+  // nothing was BUILT rather than because everything was filtered afterwards. Off costs no
+  // calculation, reads no position, and reaches no calculator.
+  if (!readPrayerNotify()) return [];
   return ezikAdhanItems(new Date());
 }
 

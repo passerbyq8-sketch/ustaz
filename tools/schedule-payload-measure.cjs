@@ -32,6 +32,15 @@
 // path that reaches for any of them fails LOUDLY here rather than being discovered on a device.
 // "Zero console output when there is no shell" is therefore not observed, it is enforced.
 //
+// AND SINCE THIS ROUND IT ALSO MEASURES THE SWITCH THAT DECIDES WHETHER ANY OF IT RUNS. That
+// half is a COMPONENT, and a component that is never rendered cannot be asked what it drew --
+// which is half of what has to be proved here: that there is no control at all in a browser tab,
+// that a refusal puts the switch back where it was on the SCREEN as well as in the store, and
+// that the one operation which can raise a system prompt leaves this file from the reader's press
+// and from nowhere else. So the lifted block is compiled through @babel/core and rendered against
+// a React written in this file: createElement records a tree instead of touching a DOM, and the
+// three hooks are a slot array. There is still no browser here, and still nothing to install.
+//
 // Usage:  node tools/schedule-payload-measure.cjs
 // Exit:   0 when every case holds; 1 with the failing cases named.
 'use strict';
@@ -42,6 +51,8 @@ const path = require('path');
 const REPO = path.join(__dirname, '..');
 const SRC = path.join(REPO, 'app.jsx');
 const parser = require(path.join(REPO, 'node_modules', '@babel', 'parser'));
+const babel = require(path.join(REPO, 'node_modules', '@babel', 'core'));
+const PRESET_REACT = path.join(REPO, 'node_modules', '@babel', 'preset-react');
 
 const source = fs.readFileSync(SRC, 'utf8');
 const ast = parser.parse(source, { sourceType: 'script', plugins: ['jsx'] });
@@ -178,15 +189,71 @@ const CLOSURE = resolveClosure(ROOT_NODES);
 
 const LIFTED = CLOSURE.order.map((e) => e[1].emit).join('\n');
 
+// ---------------------------------------------------------------------------
+// THE SWITCH -- A SECOND SET OF ROOTS, LIFTED INTO THE SAME MODULE STATE.
+// ---------------------------------------------------------------------------
+// WHY IT IS A SECOND SET AND NOT SIX MORE ENTRIES IN THE FIRST. LIFTED is the subject of the
+// static claims at the end of this file, and one of them is that nothing on the ARMING path
+// writes to the store. The switch writes -- that is the whole of what it is for -- so folding it
+// into the same string would have turned a true claim about the arming path into a false one
+// about a different path, which is precisely the shape of stale test this file spends its length
+// avoiding. The two closures are therefore resolved SEPARATELY and evaluated TOGETHER: the claims
+// stay about what they were always about, and the module state the two share -- the fingerprint
+// of the last payload sent -- is one variable, exactly as it is in the browser.
+const SWITCH_ROOTS = ['readPrayerNotify', 'writePrayerNotify', 'ezikNotifyAsk', 'ezikNotifyStop',
+  'ezikNotifyAnswer', 'PrayerNotifyToggle'];
+const ALL_CLOSURE = resolveClosure(ROOT_NODES.concat(SWITCH_ROOTS.map((n) => topFunction(n))));
+
+// The names the SWITCH needs that the arming path did not: it is a component, so it has state and
+// a handle. Asserted in BOTH directions, for the same reason ENV_NAMES is.
+const SWITCH_ENV_NAMES = ['useState', 'useRef'];
+{
+  const known = ENV_NAMES.concat(SWITCH_ENV_NAMES);
+  const extra = Array.from(ALL_CLOSURE.outside).filter((n) => known.indexOf(n) === -1);
+  const missing = SWITCH_ENV_NAMES.filter((n) => !ALL_CLOSURE.outside.has(n));
+  if (extra.length) {
+    throw new Error('the switch now closes over ' + extra.join(', ') + ' -- names this harness '
+      + 'does not supply. Add them to SWITCH_ENV_NAMES and give each one a fake.');
+  }
+  if (missing.length) {
+    throw new Error('the switch no longer uses ' + missing.join(', ') + ' -- the harness is faking '
+      + 'something the code stopped asking for, which is how a stale test starts.');
+  }
+}
+
+const PIPE_NAMES = new Set(CLOSURE.order.map((e) => e[0]));
+const SWITCH_ONLY = ALL_CLOSURE.order.filter((e) => !PIPE_NAMES.has(e[0]));
+const SWITCH_LIFTED = SWITCH_ONLY.map((e) => e[1].emit).join(String.fromCharCode(10));
+const ALL_LIFTED = ALL_CLOSURE.order.map((e) => e[1].emit).join(String.fromCharCode(10));
+
 const HARNESS = ['"use strict";']
-  .concat(ENV_NAMES.map((n) => 'const ' + n + ' = env.' + n + ';'))
-  .concat([LIFTED])
-  .concat(['return { ' + ROOTS.map((n) => n + ': ' + n).join(', ')
+  .concat(ENV_NAMES.concat(SWITCH_ENV_NAMES).map((n) => 'const ' + n + ' = env.' + n + ';'))
+  .concat(['const React = env.React;'])
+  .concat([ALL_LIFTED])
+  .concat(['return { ' + ROOTS.concat(SWITCH_ROOTS).map((n) => n + ': ' + n).join(', ')
     + ', peekLastSent: function () { return ezikSchedLastSent; }'
-    + ', SHELL_SCHED_EMPTY: SHELL_SCHED_EMPTY };'])
+    + ', SHELL_SCHED_EMPTY: SHELL_SCHED_EMPTY'
+    // The dictionary and the language subscription are exported for the cases, not for the code:
+    // what the switch DRAWS is a lookup, and the language moving is one of the triggers the feed
+    // has to stay silent through while the switch is off.
+    + ', ezT: ezT, EZ_I18N: EZ_I18N, EZ_LANG_SUBS: EZ_LANG_SUBS };'])
   .join('\n');
 
-const makeHarness = new Function('env', HARNESS);
+// THE ONE PLACE THIS TOOL COMPILES ANYTHING, and the CLASSIC runtime is a HARNESS choice rather
+// than a claim about the shipped bundle: tools/babel-block.cjs owns that decision and
+// tools/build-app.cjs compiles through it. Classic emits React.createElement against a React this
+// file supplies, which is what makes the drawn tree readable here. The tree a component RETURNS
+// is the same tree under either runtime, and the tree is what every case below reads.
+const HARNESS_JS = babel.transformSync(HARNESS, {
+  configFile: false,
+  babelrc: false,
+  compact: false,
+  sourceType: 'script',
+  parserOpts: { allowReturnOutsideFunction: true },
+  presets: [[PRESET_REACT, { runtime: 'classic' }]],
+}).code;
+
+const makeHarness = new Function('env', HARNESS_JS);
 
 // ---------------------------------------------------------------------------
 // THE PROTOCOL WORDS -- read from their declarations, never spelled here.
@@ -205,6 +272,25 @@ const CHANNEL = literalOf('SHELL_SCHED_CHANNEL', 'StringLiteral');
 const OP = literalOf('SHELL_SCHED_OP', 'StringLiteral');
 const REARM_OP = literalOf('SHELL_SCHED_REARM_OP', 'StringLiteral');
 const VERSION = literalOf('SHELL_SCHED_VERSION', 'NumericLiteral');
+const ENABLE_OP = literalOf('SHELL_SCHED_ENABLE_OP', 'StringLiteral');
+const CANCEL_OP = literalOf('SHELL_SCHED_CANCEL_OP', 'StringLiteral');
+const RESULT_OP = literalOf('SHELL_SCHED_RESULT_OP', 'StringLiteral');
+
+// AND THE STORES, EACH BY THE CONSTANT app.jsx BINDS IT TO. Not one storage key is spelled in
+// this file: a second copy of a key in a second file is the drift this repository spends its
+// guards preventing, and a case that seeds the wrong string measures a reader nobody is.
+const NOTIFY_KEY = literalOf('PRAYER_NOTIFY_KEY', 'StringLiteral');
+const NOTIFY_ON = literalOf('PRAYER_NOTIFY_ON', 'StringLiteral');
+const NOTIFY_WAIT_MS = literalOf('PRAYER_NOTIFY_WAIT_MS', 'NumericLiteral');
+const QIBLA_KEY = literalOf('QIBLA_LOC_KEY', 'StringLiteral');
+const PREFS_KEY = literalOf('PRAYER_PREFS_KEY', 'StringLiteral');
+
+/** A seeded store in which the reader has already turned the reminder on. */
+function switchOn(extra) {
+  const store = Object.assign({}, extra || {});
+  store[NOTIFY_KEY] = NOTIFY_ON;
+  return store;
+}
 
 // ---------------------------------------------------------------------------
 // THE FAKES. Everything that is not the pipe throws when touched.
@@ -222,6 +308,7 @@ function trap(what) {
 /** A window with, or without, a shell bridge on it. Records every post. */
 function makeEnv(opts) {
   const o = opts || {};
+  const store = Object.assign({}, o.store || {});
   const posts = [];
   const listeners = new Map();
   const timers = [];
@@ -280,11 +367,15 @@ function makeEnv(opts) {
     // their prayer preferences. Every write is recorded rather than forbidden, so the claim
     // "arming creates no store for a reader who never opened the panel" is measured and not
     // asserted: `writes` must be empty after any number of arms.
+    // A REAL STORE THAT REALLY STORES, and every write is RECORDED as well as kept. Recording
+    // alone was enough while nothing on this path wrote; the switch does, and a fake that
+    // swallowed the write would let "the store says off after a refusal" pass on a store that
+    // never says anything at all.
     localStorage: {
-      getItem(k) { return Object.prototype.hasOwnProperty.call(o.store || {}, k) ? o.store[k] : null; },
-      setItem(k, v) { env.writes.push(['set', k, v]); },
-      removeItem(k) { env.writes.push(['remove', k]); },
-      clear() { env.writes.push(['clear']); },
+      getItem(k) { return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null; },
+      setItem(k, v) { env.writes.push(['set', k, String(v)]); store[k] = String(v); },
+      removeItem(k) { env.writes.push(['remove', k]); delete store[k]; },
+      clear() { env.writes.push(['clear']); for (const k of Object.keys(store)) delete store[k]; },
     },
     // Everything below is scenery only in the sense that it must never be used.
     console: trap('console'),
@@ -294,6 +385,7 @@ function makeEnv(opts) {
     Notification: trap('Notification'),
     writes: [],
     effects: [],
+    store: store,
     posts: posts,
     listeners: listeners,
     docListeners: docListeners,
@@ -302,10 +394,128 @@ function makeEnv(opts) {
   return env;
 }
 
+// ---------------------------------------------------------------------------
+// A REACT SMALL ENOUGH TO READ, because the switch is a component.
+// ---------------------------------------------------------------------------
+// WHAT THIS IS AND IS NOT. It is not a re-implementation of React and it does not try to be: it
+// is `createElement` recording the tree a component RETURNED, plus three hooks backed by a slot
+// array. That is exactly the surface the switch uses and not one call more, and everything the
+// cases below ask -- what was drawn, what the button carried, what happened when it was pressed,
+// what was drawn after -- is answered out of that tree.
+//
+// THE ALTERNATIVE WAS WORSE. Rendering through the real React would need a DOM, and a DOM here
+// would mean a component whose "screen" nobody could read without a second library to query it.
+// The claim being measured is not "React renders": it is that a refusal leaves the switch off on
+// the screen, and that a browser tab is shown no switch at all.
+function ezikReact(env) {
+  const state = { live: null };
+  env.React = {
+    Fragment: { fragment: true },
+    createElement: function (type, props) {
+      const flat = [];
+      const push = (c) => {
+        if (Array.isArray(c)) { c.forEach(push); return; }
+        if (c === null || c === undefined || c === false || c === true) return;
+        flat.push(c);
+      };
+      for (let i = 2; i < arguments.length; i++) push(arguments[i]);
+      return { type: type, props: props || {}, children: flat };
+    },
+  };
+  env.useState = function (initial) {
+    const inst = state.live;
+    if (!inst) throw new Error('useState was called outside a render');
+    const i = inst.cursor++;
+    if (inst.slots.length <= i) inst.slots[i] = { v: typeof initial === 'function' ? initial() : initial };
+    const slot = inst.slots[i];
+    return [slot.v, function (next) {
+      slot.v = typeof next === 'function' ? next(slot.v) : next;
+      inst.render();
+    }];
+  };
+  env.useRef = function (initial) {
+    const inst = state.live;
+    if (!inst) throw new Error('useRef was called outside a render');
+    const i = inst.cursor++;
+    if (inst.slots.length <= i) inst.slots[i] = { current: initial };
+    return inst.slots[i];
+  };
+  return {
+    // env.useEffect above RECORDS rather than runs, because the pipe's two hooks are driven by
+    // hand. A component that is being rendered needs the other behaviour, so this runs what the
+    // FIRST render recorded and keeps every teardown it handed back -- which is what React does
+    // with an effect carrying an empty dependency array.
+    mount: function (Component) {
+      const inst = { slots: [], cursor: 0, tree: null, renders: 0, cleanups: [] };
+      inst.render = function () {
+        const before = env.effects.length;
+        inst.cursor = 0;
+        inst.renders++;
+        const prev = state.live;
+        state.live = inst;
+        try { inst.tree = Component(); } finally { state.live = prev; }
+        if (inst.renders === 1) {
+          for (let i = before; i < env.effects.length; i++) {
+            const t = env.effects[i].fn();
+            if (typeof t === 'function') inst.cleanups.push(t);
+          }
+        }
+        return inst.tree;
+      };
+      inst.unmount = function () {
+        while (inst.cleanups.length) inst.cleanups.pop()();
+      };
+      inst.render();
+      return inst;
+    },
+  };
+}
+
+/** Every element in a drawn tree, in document order. */
+function nodesIn(tree) {
+  const out = [];
+  const visit = (n) => {
+    if (!n || typeof n !== 'object') return;
+    out.push(n);
+    (n.children || []).forEach(visit);
+  };
+  visit(tree);
+  return out;
+}
+
+/** Every piece of text a drawn tree would put on the screen. */
+function textsIn(tree) {
+  const out = [];
+  const visit = (n) => {
+    if (typeof n === 'string' || typeof n === 'number') { out.push(String(n)); return; }
+    if (!n || typeof n !== 'object') return;
+    (n.children || []).forEach(visit);
+  };
+  visit(tree);
+  return out;
+}
+
+const buttonsIn = (tree) => nodesIn(tree).filter((n) => n.type === 'button');
+
+/** Deliver one message on the shell's channel, exactly as the shell's injection does. */
+function fireShell(env, detail) {
+  for (const fn of (env.listeners.get(CHANNEL) || []).slice()) fn({ detail: detail });
+}
+
+/** Every wake signal the root subscribes to, fired once each. */
+function wakeAll(env) {
+  for (const name of ['pageshow', 'focus', 'storage']) {
+    for (const fn of (env.listeners.get(name) || []).slice()) fn();
+  }
+  for (const fn of (env.docListeners.get('visibilitychange') || []).slice()) fn();
+  fireShell(env, { channel: CHANNEL, v: VERSION, op: REARM_OP });
+}
+
 /** A fresh pipe with a fresh module state -- ezikSchedLastSent starts over every time. */
 function fresh(opts) {
   const env = makeEnv(opts);
-  return { env: env, h: makeHarness(env) };
+  const react = ezikReact(env);
+  return { env: env, react: react, h: makeHarness(env) };
 }
 
 // ---------------------------------------------------------------------------
@@ -690,7 +900,9 @@ run('the text arrives ready, in the reader\'s language, and never composed by th
 });
 
 run('ARMING WRITES NOTHING -- a reader who never opened the panel gets no new store', () => {
-  const { h, env } = fresh();
+  // SEEDED ON, or this case would be measuring a feed that is switched off and therefore builds
+  // nothing at all -- which writes nothing for a reason that has nothing to do with the claim.
+  const { h, env } = fresh({ store: switchOn() });
   h.ezikSchedArm();
   h.ezikSchedArm();
   h.ezikSchedArm();
@@ -701,7 +913,8 @@ run('ARMING WRITES NOTHING -- a reader who never opened the panel gets no new st
 run('a prayer the calculator cannot place is carried through as silence, not as a guess', () => {
   // A latitude where the twilight never reaches the angle: prayerTimesFor answers null for some
   // of the six, and a null must become NO notification rather than a fabricated one.
-  const { h } = fresh({ store: { ezik_qibla_loc_v1: JSON.stringify({ lat: 78.2, lng: 15.6 }) } });
+  const polar = {}; polar[QIBLA_KEY] = JSON.stringify({ lat: 78.2, lng: 15.6 });
+  const { h } = fresh({ store: polar });
   const items = h.ezikAdhanItems(new Date(NOW));
   is(items.length < 5 * DAYS, 'the polar case produced a full roster: ' + items.length);
   for (const it of items) is(Number.isFinite(it.at), 'a non-finite moment survived: ' + it.id);
@@ -711,10 +924,10 @@ run('a prayer the calculator cannot place is carried through as silence, not as 
 run('the reader\'s own position and preferences are what it schedules', () => {
   const a = fresh().h.ezikAdhanItems(new Date(NOW));
   // A different place, and a different school of Asr, must move the moments.
-  const b = fresh({ store: { ezik_qibla_loc_v1: JSON.stringify({ lat: 51.5, lng: -0.12 }) } })
-    .h.ezikAdhanItems(new Date(NOW));
-  const c = fresh({ store: { ezik_prayer_prefs_v1: JSON.stringify({ asr: 'hanafi' }) } })
-    .h.ezikAdhanItems(new Date(NOW));
+  const elsewhere = {}; elsewhere[QIBLA_KEY] = JSON.stringify({ lat: 51.5, lng: -0.12 });
+  const hanafi = {}; hanafi[PREFS_KEY] = JSON.stringify({ asr: 'hanafi' });
+  const b = fresh({ store: elsewhere }).h.ezikAdhanItems(new Date(NOW));
+  const c = fresh({ store: hanafi }).h.ezikAdhanItems(new Date(NOW));
   is(a[0].at !== b[0].at, 'a different position produced the same first moment');
   const asrA = a.filter((x) => x.id.indexOf(':asr:') !== -1)[0];
   const asrC = c.filter((x) => x.id.indexOf(':asr:') !== -1)[0];
@@ -790,7 +1003,8 @@ run('the day timer releases the event loop wherever a platform lets it, so no ha
 });
 
 run('the shell\'s re-arm request is answered, and a message that is not it is ignored', () => {
-  const { h, env } = fresh();
+  // SEEDED ON: the mount must have something to arm before "the mount posted once" means anything.
+  const { h, env } = fresh({ store: switchOn() });
   h.useEzikSchedRoot();
   env.effects[0].fn();
   const fire = (detail) => { for (const fn of (env.listeners.get(CHANNEL) || [])) fn({ detail: detail }); };
@@ -887,6 +1101,443 @@ run('the pipe reads its own bridge and never the one the location press is held 
   return 'its own three-line test; 0 userAgent reads';
 });
 
+// -- 12. ITEM 67 -- THE READER'S SWITCH -------------------------------------
+//
+// Everything below this line is about ONE question: does any of the above run, and who decided.
+// The cases are ordered the way the reader meets them -- a store that has never been written, a
+// press, an answer, a refusal, a silence, a second press -- and every one of them drives the real
+// component through the small React above rather than asserting about its source.
+
+// THE KEYS THE SWITCH CAN SHOW, READ OUT OF THE SWITCH. Not one of them is spelled here, and a
+// key BUILT at run time rather than written makes this throw: a lookup composed from a variable
+// is a line no gate can hold to both halves of the dictionary.
+const SWITCH_TEXT_KEYS = [];
+walk(topFunction('PrayerNotifyToggle'), (n) => {
+  if (n.type !== 'CallExpression' || n.callee.type !== 'Identifier' || n.callee.name !== 'ezT') return;
+  const a = n.arguments[0];
+  if (!a || a.type !== 'StringLiteral') {
+    throw new Error('the switch composes a dictionary key rather than writing it, so no tool can '
+      + 'hold the text it shows to both halves of the dictionary');
+  }
+  if (SWITCH_TEXT_KEYS.indexOf(a.value) === -1) SWITCH_TEXT_KEYS.push(a.value);
+});
+function keyEndingIn(suffix) {
+  const hit = SWITCH_TEXT_KEYS.filter((k) => k.length > suffix.length
+    && k.slice(-suffix.length) === suffix);
+  if (hit.length !== 1) {
+    throw new Error('the switch no longer has exactly one dictionary key ending in "' + suffix
+      + '" (' + hit.length + ' found among ' + SWITCH_TEXT_KEYS.join(', ') + ')');
+  }
+  return hit[0];
+}
+const K_LABEL = keyEndingIn('.label');
+const K_ON = keyEndingIn('.on');
+const K_OFF = keyEndingIn('.off');
+const K_ASKING = keyEndingIn('.asking');
+const K_DENIED = keyEndingIn('.denied');
+const K_SILENT = keyEndingIn('.silent');
+
+/** The switch, mounted and ready to be pressed, plus everything that watched it. */
+function switchScene(opts) {
+  const sc = fresh(opts);
+  sc.inst = sc.react.mount(sc.h.PrayerNotifyToggle);
+  sc.button = () => buttonsIn(sc.inst.tree)[0];
+  sc.said = () => textsIn(sc.inst.tree);
+  return sc;
+}
+
+/** The shell answering the one operation that raises a system prompt. */
+function answerEnable(env, ok) {
+  fireShell(env, {
+    channel: CHANNEL, v: VERSION, op: RESULT_OP, inReplyTo: ENABLE_OP, requestId: null,
+    ok: ok,
+    reason: ok ? null : 'permission-denied',
+    permission: { granted: ok, status: ok ? 'granted' : 'denied', canAskAgain: !ok },
+    scheduled: 0, pending: 0,
+  });
+}
+
+run('a store that was never written to reads OFF, and so does a store holding anything else', () => {
+  is(fresh().h.readPrayerNotify() === false, 'an untouched store reads as on');
+  const damaged = ['', 'off', 'ON', 'On', '1', 'true', 'yes', ' ' + NOTIFY_ON, NOTIFY_ON + ' ',
+    NOTIFY_ON + NOTIFY_ON, '{}', 'null'];
+  for (const bad of damaged) {
+    const store = {};
+    store[NOTIFY_KEY] = bad;
+    is(fresh({ store: store }).h.readPrayerNotify() === false,
+      'a store holding ' + JSON.stringify(bad) + ' reads as ON');
+  }
+  is(fresh({ store: switchOn() }).h.readPrayerNotify() === true,
+    'the one value that means on does not read as on');
+  // AND READING IT WRITES NOTHING. A defaulted read that repairs the store is a read that turns a
+  // damaged value into a decision nobody made.
+  const g = fresh();
+  g.h.readPrayerNotify();
+  g.h.readPrayerNotify();
+  eq(g.env.writes, [], 'stores written by reading the switch');
+  return damaged.length + ' damaged values + an absent one all read off; exactly 1 reads on; 0 writes';
+});
+
+run('OFF: the feed builds nothing and the pipe says nothing, through every trigger there is', () => {
+  const { h, env } = fresh();
+  eq(h.ezikSchedItems(), [], 'the items the feed offers with the switch off');
+  h.ezikSchedArm();
+  h.ezikSchedArm();
+  h.useEzikSchedRoot();
+  const teardown = env.effects[0].fn();
+  wakeAll(env);                                            // opened, returned, another tab, re-arm
+  for (const fn of Array.from(h.EZ_LANG_SUBS)) fn();       // the reader changed language
+  env.timers.filter(Boolean)[0].fn();                      // the local day turned
+  h.useEzikSchedWatch();
+  env.effects[env.effects.length - 1].fn();                // the position or the preferences moved
+  eq(env.posts.length, 0, 'posts made with the switch off');
+  eq(env.writes, [], 'stores written with the switch off');
+  teardown();
+  return '0 items, 0 posts across 9 triggers, 0 writes';
+});
+
+run('ON: the payload is the one proved before there was a switch -- nothing added, nothing taken', () => {
+  const { h, env } = fresh({ store: switchOn() });
+  const items = h.ezikSchedItems();
+  eq(items.length, 5 * DAYS, 'items the gated feed offers');
+  for (const it of items) {
+    eq(Object.keys(it).sort(), ['at', 'body', 'id', 'title', 'type'], 'the fields of ' + it.id);
+    eq(it.type, ADHAN, 'the type of ' + it.id);
+  }
+  const r = h.ezikSchedArm();
+  eq(r.sent, true, 'sent');
+  eq(env.posts.length, 1, 'posts');
+  const msg = JSON.parse(env.posts[0]);
+  eq(Object.keys(msg), ['channel', 'v', 'op', 'items'], 'the envelope');
+  eq(msg.op, OP, 'the operation an arm still uses');
+  // THE ONLY THING BETWEEN THE FEED AND THE WIRE IS THE PIPE'S OWN RULE ABOUT THE PAST: an arm
+  // reads the real clock, and today's prayers that have already been and gone are dropped by the
+  // sender exactly as they were before this switch existed. Nothing ELSE may be lost, and the
+  // count is asserted against what the feed offered minus what the pipe counted -- never against
+  // a number this file would have to keep in step with the hour it happens to run at.
+  for (const k of Object.keys(r.dropped)) {
+    if (k === 'past') continue;
+    eq(r.dropped[k], 0, 'items the pipe dropped as ' + k);
+  }
+  eq(msg.items.length, items.length - r.dropped.past, 'items on the wire');
+  is(r.dropped.past <= 5, r.dropped.past + ' items were dropped as past -- more than one day of them');
+  is(msg.items.length >= 5 * (DAYS - 1), 'only ' + msg.items.length + ' items reached the wire');
+  eq(env.writes, [], 'stores written while arming');
+  // AND THE GATE IS THE WHOLE OF THE CHANGE. The feed is the early return and the call that was
+  // always there, so "the same payload" is not merely the same count: it is the same builder,
+  // reached by the same one line, with nothing filtering or reshaping what it hands back.
+  // Asserted on the STATEMENTS rather than on the text, so that the prose around them is free to
+  // say whatever it needs to: exactly two, the guard and the return the feed always ended in.
+  const statements = topFunction('ezikSchedItems').body.body;
+  eq(statements.length, 2, 'statements in the gated feed');
+  is(statements[0].type === 'IfStatement' && !statements[0].alternate,
+    'the gate is no longer a single guard with nothing on its other side');
+  eq(text(statements[0]), 'if (!readPrayerNotify()) return [];', 'the guard');
+  eq(text(statements[1]), 'return ezikAdhanItems(new Date());',
+    'the statement the feed ends in, whole and unwrapped');
+  return (5 * DAYS) + ' items, 1 post, 0 writes; the gate is one early return and nothing else';
+});
+
+run('the operation that raises a system prompt has ONE call site, and it is not in an effect', () => {
+  const sites = [];
+  walk(ast.program, (n) => {
+    if (n.type !== 'CallExpression' || n.callee.type !== 'Identifier') return;
+    if (n.callee.name !== 'ezikNotifyAsk') return;
+    sites.push(n);
+  });
+  eq(sites.length, 1, 'call sites of the sender that raises the system prompt');
+  // ...and a second sender cannot be built beside it without being seen: the word itself is
+  // written into a message in exactly one place.
+  const builds = [];
+  walk(ast.program, (n) => {
+    if (n.type !== 'ObjectProperty' || n.computed) return;
+    if ((n.key.name || n.key.value) !== 'op') return;
+    if (n.value.type !== 'Identifier' || n.value.name !== 'SHELL_SCHED_ENABLE_OP') return;
+    builds.push(startLine(n));
+  });
+  eq(builds.length, 1, 'places where a message is built with the enable operation');
+  // NOT INSIDE ANY EFFECT. Every useEffect in the whole file is bracketed and the call site is
+  // checked against all of them, rather than against the two effects this path happens to own.
+  const effects = [];
+  walk(ast.program, (n) => {
+    if (n.type !== 'CallExpression' || n.callee.type !== 'Identifier') return;
+    if (n.callee.name !== 'useEffect') return;
+    effects.push([n.start, n.end]);
+  });
+  is(effects.length > 5, 'this file registers ' + effects.length + ' effects -- too few to be believed');
+  const swallowed = effects.filter((r) => sites[0].start >= r[0] && sites[0].end <= r[1]);
+  eq(swallowed.length, 0, 'effects the one call site sits inside');
+  // AND THE FUNCTION IT SITS IN IS THE SWITCH ITSELF.
+  const owner = (line) => {
+    let best = null;
+    for (const [name, decl] of TOP) {
+      if (decl.kind !== 'fn') continue;
+      if (line >= startLine(decl.node) && line <= endLine(decl.node)) best = name;
+    }
+    return best;
+  };
+  eq(owner(startLine(sites[0])), 'PrayerNotifyToggle', 'the function the enable sender is called from');
+  // MEASURED, NOT ONLY READ: mounting the switch -- with the store off AND with it already on --
+  // and then firing every wake signal there is sends nothing at all.
+  for (const store of [{}, switchOn()]) {
+    const sc = switchScene({ store: store });
+    wakeAll(sc.env);
+    eq(sc.env.posts.length, 0, 'messages sent by mounting the switch on a store of '
+      + JSON.stringify(Object.keys(store)));
+  }
+  return '1 call site at app.jsx:' + startLine(sites[0]) + ' in PrayerNotifyToggle, inside 0 of '
+    + effects.length + ' effects; 2 mounts + 10 wake signals, 0 messages';
+});
+
+run('the press sends the enable operation, once, carrying no payload with it', () => {
+  const sc = switchScene();
+  eq(sc.button().props['aria-checked'], 'false', 'the switch before the press');
+  sc.button().props.onClick();
+  eq(sc.env.posts.length, 1, 'messages sent by the press');
+  const msg = JSON.parse(sc.env.posts[0]);
+  eq(Object.keys(msg).sort(), ['channel', 'op', 'v'], 'the fields of the message the press sent');
+  eq(msg.channel, CHANNEL, 'the channel');
+  eq(msg.v, VERSION, 'the contract version');
+  eq(msg.op, ENABLE_OP, 'the operation');
+  // NOTHING IS STORED BY THE ASKING. The store moves when the ANSWER arrives and not before, so a
+  // reader who walked away from the system prompt is not left holding a stored yes.
+  eq(sc.env.writes, [], 'stores written by the press itself');
+  eq(sc.h.readPrayerNotify(), false, 'the store while the prompt is still up');
+  eq(sc.button().props['aria-checked'], 'false', 'the switch while the prompt is still up');
+  is(sc.said().indexOf(sc.h.ezT(K_ASKING)) !== -1, 'the reader is told nothing while the prompt is up');
+  return '1 message: {channel, v, op} and no items; 0 writes until the answer';
+});
+
+run('GRANTED: the store says on, the switch says on, and the week is armed at once', () => {
+  const sc = switchScene();
+  sc.button().props.onClick();
+  answerEnable(sc.env, true);
+  eq(sc.h.readPrayerNotify(), true, 'the store after the permission was granted');
+  eq(sc.env.store[NOTIFY_KEY], NOTIFY_ON, 'the value in the store');
+  eq(sc.button().props['aria-checked'], 'true', 'the switch after the permission was granted');
+  is(sc.said().indexOf(sc.h.ezT(K_ON)) !== -1, 'the switch does not read as on');
+  is(sc.said().indexOf(sc.h.ezT(K_ASKING)) === -1, 'the asking line is still on the screen');
+  is(sc.said().indexOf(sc.h.ezT(K_DENIED)) === -1, 'a refusal line appeared on a granted permission');
+  // TWO messages: the gesture, and then the week it unlocked.
+  eq(sc.env.posts.length, 2, 'messages after the answer');
+  const armed = JSON.parse(sc.env.posts[1]);
+  eq(armed.op, OP, 'the operation of the second message');
+  // A week of them, less whatever of TODAY has already passed on the real clock this arm read.
+  is(armed.items.length >= 5 * (DAYS - 1) && armed.items.length <= 5 * DAYS,
+    armed.items.length + ' items were armed the moment the permission arrived');
+  // ONE key written, and it is the switch.
+  eq(sc.env.writes.map((w) => w[0] + ' ' + w[1]), ['set ' + NOTIFY_KEY], 'the stores written');
+  // AND THE DEADLINE IS RELEASED: nothing fires later to undo what has just succeeded.
+  eq(sc.env.timers.filter(Boolean).length, 0, 'timers still standing after the answer');
+  return '2 messages (' + ENABLE_OP + ' then ' + OP + ' x ' + (5 * DAYS)
+    + '), 1 key written, 0 timers left';
+});
+
+run('REFUSED: the switch goes back to off, the store says off, and nothing is asked again', () => {
+  const sc = switchScene();
+  sc.button().props.onClick();
+  answerEnable(sc.env, false);
+  eq(sc.button().props['aria-checked'], 'false', 'the switch after the refusal');
+  eq(sc.h.readPrayerNotify(), false, 'the store after the refusal');
+  is(!Object.prototype.hasOwnProperty.call(sc.env.store, NOTIFY_KEY),
+    'a refusal left a value behind in the store');
+  // ONE quiet line, and it is the refusal's -- not the asking line, and not a second sentence.
+  const said = sc.said();
+  is(said.indexOf(sc.h.ezT(K_DENIED)) !== -1, 'the reader is not told the system refused');
+  is(said.indexOf(sc.h.ezT(K_ASKING)) === -1, 'the asking line survived the refusal');
+  is(said.indexOf(sc.h.ezT(K_SILENT)) === -1, 'the silence line appeared on an answered refusal');
+  is(said.indexOf(sc.h.ezT(K_OFF)) !== -1, 'the switch does not read as off');
+  // ZERO AUTOMATIC RETRY. Every trigger, the deadline, a second copy of the refusal, and a grant
+  // arriving late on a press that is over -- none of it may send or store anything.
+  const after = sc.env.posts.length;
+  eq(after, 1, 'messages sent up to and including the refusal');
+  wakeAll(sc.env);
+  for (const fn of Array.from(sc.h.EZ_LANG_SUBS)) fn();
+  for (const t of sc.env.timers.filter(Boolean)) t.fn();
+  answerEnable(sc.env, false);
+  answerEnable(sc.env, true);
+  eq(sc.env.posts.length, after, 'messages sent after the refusal');
+  eq(sc.h.readPrayerNotify(), false, 'the store after a grant arrived for a press that had ended');
+  eq(sc.button().props['aria-checked'], 'false',
+    'the switch after a grant arrived for a press that had ended');
+  return '1 message total; refused -> off in the store and on the screen; 0 retries, every trigger';
+});
+
+run('a message that is not the answer to this press is not an answer', () => {
+  const sc = switchScene();
+  sc.button().props.onClick();
+  const impostors = [
+    null, undefined, 'text', 42, [],
+    {},
+    { channel: CHANNEL },
+    { channel: 'other', v: VERSION, op: RESULT_OP, inReplyTo: ENABLE_OP, ok: false },
+    { channel: CHANNEL, v: VERSION + 1, op: RESULT_OP, inReplyTo: ENABLE_OP, ok: false },
+    { channel: CHANNEL, v: VERSION, op: 'error', reason: 'unsupported-version', ok: false },
+    { channel: CHANNEL, v: VERSION, op: RESULT_OP, inReplyTo: OP, ok: false },
+    { channel: CHANNEL, v: VERSION, op: RESULT_OP, inReplyTo: CANCEL_OP, ok: true },
+    { channel: CHANNEL, v: VERSION, op: REARM_OP },
+  ];
+  for (const d of impostors) {
+    eq(sc.h.ezikNotifyAnswer(d), null, 'what this end reads out of ' + JSON.stringify(d));
+    fireShell(sc.env, d);
+  }
+  // The press is still open, the switch is still where the reader left it, nothing was stored.
+  is(sc.said().indexOf(sc.h.ezT(K_ASKING)) !== -1, 'a message that was not an answer ended the press');
+  eq(sc.h.readPrayerNotify(), false,
+    'the store after ' + impostors.length + ' messages that are not answers');
+  eq(sc.env.writes, [], 'stores written by messages that are not answers');
+  // ...and the real one still lands afterwards.
+  answerEnable(sc.env, true);
+  eq(sc.button().props['aria-checked'], 'true', 'the switch after the real answer finally arrived');
+  return impostors.length + ' impostors read as "not mine"; the real answer still lands';
+});
+
+run('NO ANSWER AT ALL: the deadline says so in its own words and leaves the switch off', () => {
+  const sc = switchScene();
+  sc.button().props.onClick();
+  const waiting = sc.env.timers.filter(Boolean);
+  eq(waiting.length, 1, 'deadlines armed by the press');
+  eq(waiting[0].ms, NOTIFY_WAIT_MS, 'the deadline the press armed');
+  waiting[0].fn();
+  eq(sc.button().props['aria-checked'], 'false', 'the switch after nothing answered');
+  eq(sc.h.readPrayerNotify(), false, 'the store after nothing answered');
+  const said = sc.said();
+  is(said.indexOf(sc.h.ezT(K_SILENT)) !== -1, 'the reader is not told that nothing answered');
+  is(said.indexOf(sc.h.ezT(K_DENIED)) === -1, 'a silence was reported to the reader as a refusal');
+  // AND THE LISTENER IS GONE: an answer arriving after its deadline writes nothing.
+  eq((sc.env.listeners.get(CHANNEL) || []).length, 0, 'listeners left behind by the deadline');
+  answerEnable(sc.env, true);
+  eq(sc.h.readPrayerNotify(), false, 'the store after a late grant');
+  eq(sc.env.posts.length, 1, 'messages after a late grant');
+  return 'deadline ' + NOTIFY_WAIT_MS + 'ms -> off, its own line, 0 listeners, a late answer lands nowhere';
+});
+
+run('TURNED OFF: one cancellation, and not one trigger arms anything afterwards', () => {
+  const sc = switchScene({ store: switchOn() });
+  eq(sc.button().props['aria-checked'], 'true', 'the switch of a store that already says on');
+  sc.h.ezikSchedArm();
+  eq(sc.env.posts.length, 1, 'messages after the arm this press is about to cancel');
+  sc.button().props.onClick();
+  eq(sc.env.posts.length, 2, 'messages after the press');
+  const msg = JSON.parse(sc.env.posts[1]);
+  eq(Object.keys(msg).sort(), ['channel', 'op', 'v'], 'the fields of the cancellation');
+  eq(msg.op, CANCEL_OP, 'the operation the press sent');
+  eq(sc.h.readPrayerNotify(), false, 'the store after the press');
+  eq(sc.button().props['aria-checked'], 'false', 'the switch after the press');
+  eq(sc.h.ezikSchedItems(), [], 'the items the feed offers afterwards');
+  eq(sc.env.writes.map((w) => w[0] + ' ' + w[1]), ['remove ' + NOTIFY_KEY], 'the stores written');
+  // EVERY TRIGGER, TWICE OVER. An empty rebuild would be a second cancellation dressed as a
+  // schedule, so the fingerprint has to have moved with the cancellation and not only the store.
+  sc.h.useEzikSchedRoot();
+  const teardown = sc.env.effects[sc.env.effects.length - 1].fn();
+  wakeAll(sc.env);
+  for (const fn of Array.from(sc.h.EZ_LANG_SUBS)) fn();
+  for (const t of sc.env.timers.filter(Boolean)) t.fn();
+  wakeAll(sc.env);
+  eq(sc.env.posts.length, 2, 'messages after the cancellation and every trigger there is');
+  eq(sc.h.peekLastSent(), sc.h.SHELL_SCHED_EMPTY, 'what the pipe believes the far side is holding');
+  teardown();
+  return '1 arm + 1 cancellation = 2 messages; 0 more across every trigger, twice';
+});
+
+run('WITHOUT A SHELL: no switch is drawn at all, and nothing is sent or stored', () => {
+  for (const store of [{}, switchOn()]) {
+    for (const bridge of [undefined, {}, { postMessage: 1 }, null, 'yes', 0]) {
+      const opts = { store: store };
+      if (bridge === undefined) opts.shell = false;
+      else opts.bridge = bridge;
+      const sc = switchScene(opts);
+      eq(sc.inst.tree, null, 'what the switch drew with a bridge shaped ' + JSON.stringify(bridge));
+      eq(buttonsIn(sc.inst.tree).length, 0, 'buttons drawn');
+      eq(sc.env.posts.length, 0, 'messages sent');
+      eq(sc.env.writes, [], 'stores written');
+      // A COMPONENT THAT RETURNED NULL, NOT ONE THAT THREW BEFORE REACT SAW IT: its state exists.
+      is(sc.inst.slots.length >= 3, 'the switch returned before its own state existed');
+      // ...and its two senders refuse on their own, so nothing downstream can post either.
+      is(sc.h.ezikNotifyAsk() === false, 'the enable sender posted without a bridge');
+      is(sc.h.ezikNotifyStop() === false, 'the cancel sender posted without a bridge');
+      eq(sc.env.posts.length, 0, 'messages sent by the two senders without a bridge');
+    }
+  }
+  // The console in this harness THROWS on any property access, so reaching this line at all is
+  // the proof that nothing on the whole path wrote to it.
+  return '2 stores x 6 non-bridges: 0 drawn, 0 messages, 0 writes, 0 console touches';
+});
+
+run('unmounting releases the listener and the deadline the press created', () => {
+  const sc = switchScene();
+  sc.button().props.onClick();
+  eq((sc.env.listeners.get(CHANNEL) || []).length, 1, 'listeners while the press is open');
+  eq(sc.env.timers.filter(Boolean).length, 1, 'deadlines while the press is open');
+  sc.inst.unmount();
+  eq((sc.env.listeners.get(CHANNEL) || []).length, 0, 'listeners after the panel went away');
+  eq(sc.env.timers.filter(Boolean).length, 0, 'deadlines after the panel went away');
+  // And a second press replaces the first rather than stacking on it.
+  const two = switchScene();
+  two.button().props.onClick();
+  two.button().props.onClick();
+  two.button().props.onClick();
+  eq((two.env.listeners.get(CHANNEL) || []).length, 1, 'listeners after three presses');
+  eq(two.env.timers.filter(Boolean).length, 1, 'deadlines after three presses');
+  return '1 press -> 1 listener + 1 deadline, both released on unmount; 3 presses -> still 1 of each';
+});
+
+run('every line the switch can show is a key in BOTH halves of the dictionary', () => {
+  const h = fresh().h;
+  is(SWITCH_TEXT_KEYS.length >= 6,
+    'the switch shows ' + SWITCH_TEXT_KEYS.length + ' texts -- too few to be believed');
+  for (const k of SWITCH_TEXT_KEYS) {
+    for (const lang of ['ar', 'en']) {
+      const half = h.EZ_I18N[lang];
+      is(Object.prototype.hasOwnProperty.call(half, k), k + ' is missing from the ' + lang + ' dictionary');
+      is(typeof half[k] === 'string' && half[k].trim().length > 0, k + ' is empty in ' + lang);
+    }
+    // A key that reaches the screen raw is a developer's problem on a reader's screen.
+    is(h.ezT(k).indexOf(k) === -1, k + ' renders as its own key');
+  }
+  // AND THE SWITCH SAYS NOTHING THE DICTIONARY DOES NOT: everything it draws is a lookup, so no
+  // string literal reaches the tree from the component itself. A line carrying a {placeholder} is
+  // matched by its LITERAL SEGMENTS in order rather than whole -- the substitution is the point of
+  // such a line, and a drawn text that still carries a brace has not been substituted at all.
+  const fromDictionary = (drawn) => SWITCH_TEXT_KEYS.some((k) => {
+    const parts = h.EZ_I18N.ar[k].split(/\{[A-Za-z0-9_]+\}/);
+    let at = 0;
+    for (const p of parts) {
+      if (p === '') continue;
+      const i = drawn.indexOf(p, at);
+      if (i === -1) return false;
+      at = i + p.length;
+    }
+    return true;
+  });
+  const sc = switchScene();
+  const drawn = sc.said();
+  is(drawn.length >= 3, 'the switch drew ' + drawn.length + ' lines -- too few to be believed');
+  for (const t of drawn) {
+    is(fromDictionary(t), 'the switch drew "' + t + '", which is not one of its dictionary lines');
+    is(t.indexOf('{') === -1, 'the switch drew an unsubstituted placeholder: "' + t + '"');
+  }
+  is(drawn.indexOf(h.ezT(K_LABEL)) !== -1, 'the switch draws no label at all');
+  return SWITCH_TEXT_KEYS.length + ' keys x 2 languages, 0 missing, 0 empty, 0 raw keys; '
+    + drawn.length + ' lines drawn, every one of them a filled dictionary line';
+});
+
+run('the switch writes ONE key, and every other store in the application is untouched', () => {
+  const seeded = switchOn();
+  seeded[QIBLA_KEY] = JSON.stringify({ lat: 29.38, lng: 47.98 });
+  seeded[PREFS_KEY] = JSON.stringify({ asr: 'hanafi' });
+  const sc = switchScene({ store: seeded });
+  sc.button().props.onClick();                      // off
+  sc.button().props.onClick();                      // and asking to go on again
+  answerEnable(sc.env, true);
+  const touched = Array.from(new Set(sc.env.writes.map((w) => w[1])));
+  eq(touched, [NOTIFY_KEY], 'the stores the switch wrote to');
+  eq(sc.env.store[QIBLA_KEY], seeded[QIBLA_KEY], 'the saved position after two presses');
+  eq(sc.env.store[PREFS_KEY], seeded[PREFS_KEY], 'the prayer preferences after two presses');
+  return '2 presses + 1 grant -> 1 key touched, ' + (Object.keys(seeded).length - 1)
+    + ' left exactly as they were';
+});
+
 // ---------------------------------------------------------------------------
 // REPORT.
 // ---------------------------------------------------------------------------
@@ -899,6 +1550,14 @@ console.log('closure: ' + CLOSURE.order.length + ' top-level names, '
 console.log('words:   channel=' + JSON.stringify(CHANNEL) + '  v=' + VERSION
   + '  op=' + JSON.stringify(OP) + '  rearm=' + JSON.stringify(REARM_OP)
   + '   (all read from their declarations)');
+console.log('switch:  ' + SWITCH_ROOTS.map((n) => n + '@' + startLine(topFunction(n))).join('  '));
+console.log('         ' + SWITCH_ONLY.length + ' further top-level names, '
+  + SWITCH_LIFTED.split(String.fromCharCode(10)).length + ' lines, compiled through preset-react');
+console.log('         key=' + JSON.stringify(NOTIFY_KEY) + '  on=' + JSON.stringify(NOTIFY_ON)
+  + '  wait=' + NOTIFY_WAIT_MS + 'ms  ops=' + JSON.stringify(ENABLE_OP) + '/'
+  + JSON.stringify(CANCEL_OP) + '/' + JSON.stringify(RESULT_OP)
+  + '   (all read from their declarations)');
+console.log('         lines it can show: ' + SWITCH_TEXT_KEYS.join('  '));
 console.log('');
 
 {
