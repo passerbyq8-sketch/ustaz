@@ -131,11 +131,12 @@ const LANGUAGE = new Set(['Array', 'Object', 'JSON', 'String', 'Number', 'Boolea
 // What the harness stands in for. Asserted in BOTH directions below: a name the pipe starts using
 // that nothing here supplies is a tool measuring code that cannot run, and a name faked here that
 // the pipe stopped using is a tool carrying scenery for a scene that has been struck.
-const ENV_NAMES = ['window', 'document', 'setTimeout', 'clearTimeout', 'useEffect'];
+const ENV_NAMES = ['window', 'document', 'setTimeout', 'clearTimeout', 'useEffect', 'localStorage'];
 
 // THE PIPE, BY NAME. Every one of these must exist or extraction throws.
 const ROOTS = ['ezikSchedBridge', 'ezikSchedRoute', 'ezikSchedPayload', 'ezikSchedSend',
-  'ezikSchedItems', 'ezikSchedArm', 'useEzikSchedRoot', 'useEzikSchedWatch'];
+  'ezikSchedItems', 'ezikSchedArm', 'useEzikSchedRoot', 'useEzikSchedWatch',
+  'ezikAdhanItems'];
 const ROOT_NODES = ROOTS.map((n) => topFunction(n));
 
 /** Pull the whole top-level closure of a set of roots, in source order, and name what is left. */
@@ -275,13 +276,23 @@ function makeEnv(opts) {
       if (i !== -1) timers[i] = null;
     },
     useEffect(fn, deps) { env.effects.push({ fn: fn, deps: deps }); },
+    // A REAL STORE, because the feed legitimately READS one -- the reader's saved position and
+    // their prayer preferences. Every write is recorded rather than forbidden, so the claim
+    // "arming creates no store for a reader who never opened the panel" is measured and not
+    // asserted: `writes` must be empty after any number of arms.
+    localStorage: {
+      getItem(k) { return Object.prototype.hasOwnProperty.call(o.store || {}, k) ? o.store[k] : null; },
+      setItem(k, v) { env.writes.push(['set', k, v]); },
+      removeItem(k) { env.writes.push(['remove', k]); },
+      clear() { env.writes.push(['clear']); },
+    },
     // Everything below is scenery only in the sense that it must never be used.
     console: trap('console'),
     fetch: trap('fetch'),
     XMLHttpRequest: trap('XMLHttpRequest'),
     navigator: trap('navigator'),
-    localStorage: trap('localStorage'),
     Notification: trap('Notification'),
+    writes: [],
     effects: [],
     posts: posts,
     listeners: listeners,
@@ -597,14 +608,148 @@ run('a destination is carried verbatim; a malformed one costs the destination, n
   return '1 destination kept and trimmed; 4 dropped; 5 notifications intact';
 });
 
-// -- 9. WHAT RIDES THE PIPE TODAY -------------------------------------------
-run('the feed is empty today, and the pipe is therefore silent in a shell as well as in a tab', () => {
+// -- 9. ITEM 67 -- THE ONE FEED THAT RIDES THE PIPE --------------------------
+const DAYS = literalOf('ADHAN_WINDOW_DAYS', 'NumericLiteral');
+const ADHAN = literalOf('ADHAN_TYPE', 'StringLiteral');
+
+run('the feed offers the five prayers of each of the window\'s days, and no sunrise', () => {
+  const { h } = fresh();
+  const items = h.ezikAdhanItems(new Date(NOW));
+  eq(items.length, 5 * DAYS, 'items the feed offered');
+  for (const it of items) eq(it.type, ADHAN, 'the type of ' + it.id);
+  const kinds = Array.from(new Set(items.map((x) => x.id.split(':')[1]))).sort();
+  eq(kinds, ['asr', 'dhuhr', 'fajr', 'isha', 'maghrib'], 'the prayers offered');
+  // The sunrise is a computed moment, not a prayer, and must not be one of them.
+  is(kinds.indexOf('sunrise') === -1, 'the sunrise is being scheduled as a prayer');
+  const days = Array.from(new Set(items.map((x) => x.id.split(':')[2])));
+  eq(days.length, DAYS, 'distinct local days covered');
+  return DAYS + ' days x 5 prayers = ' + items.length + ', sunrise excluded by name';
+});
+
+run('every moment it offers is absolute, in the future of its own day, and strictly increasing', () => {
+  const { h } = fresh();
+  const items = h.ezikAdhanItems(new Date(NOW));
+  const sorted = items.map((x) => x.at).slice().sort((a, b) => a - b);
+  eq(items.map((x) => x.at), sorted, 'the order the feed emits');
+  for (const it of items) {
+    is(Number.isInteger(it.at) && it.at > 1000000000000, 'not an absolute instant: ' + it.at);
+    // The moment must land on the local day its own key names -- this is the whole point of
+    // rebuilding the wall clock rather than adding minutes to a midnight timestamp.
+    const d = new Date(it.at);
+    const key = String(d.getFullYear()) + '-'
+      + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    eq(key, it.id.split(':')[2], 'the local day ' + it.id + ' actually lands on');
+  }
+  // And the whole span sits inside the window the far side accepts.
+  const span = items[items.length - 1].at - items[0].at;
+  is(span < DAYS * 24 * 3600000, 'the feed spans ' + span + 'ms, which is beyond its own window');
+  return items.length + ' moments, each on the local day its key names, span '
+    + Math.round(span / 3600000) + 'h';
+});
+
+run('the instant is REBUILT from the local wall clock, never added to a midnight stamp', () => {
+  // 🔴 WHY THIS CLAIM IS HELD STATICALLY AND NOT ONLY BY RUNNING IT. The two constructions --
+  // `new Date(y, m-1, d, hh, mm)` and `new Date(y, m-1, d).getTime() + mins*60000` -- give the
+  // SAME answer in every zone that has no daylight saving, and this repository's machine sits in
+  // one (Asia/Kuwait, UTC+3, no transition). A runtime case here therefore cannot tell them
+  // apart, and a case that cannot fail proves nothing. The distinction is real only across a
+  // transition, so it is asserted where it is always visible: in the source.
+  const body = text(topFunction('ezikAdhanItems'));
+  is(/new Date\(y, m - 1, d, Math\.floor\(mins \/ 60\), mins % 60, 0, 0\)\.getTime\(\)/.test(body),
+    'the instant is no longer built from the local wall clock of its own day');
+  is(!/getTime\(\)\s*\+\s*(mins|[a-z]*\s*\*\s*60000)/.test(body),
+    'an offset is being ADDED to a timestamp -- that slides by an hour across a daylight change');
+  // The zone offset is taken for each day, from noon, so the reading cannot land in the
+  // changeover hour itself.
+  is(/getTimezoneOffset\(\)/.test(body) && /12, 0, 0, 0/.test(body),
+    'the zone offset is no longer read per day at noon');
+  // And the invariant that DOES hold in every zone: each moment reads back as exactly the hour
+  // and minute its own day's calculation named.
+  const { h } = fresh();
+  const items = h.ezikAdhanItems(new Date(NOW));
+  for (const it of items) {
+    const d = new Date(it.at);
+    is(d.getSeconds() === 0 && d.getMilliseconds() === 0,
+      it.id + ' does not land on a whole minute: ' + d.toString());
+  }
+  return items.length + ' moments on whole minutes; the wall-clock construction asserted in source';
+});
+
+run('the text arrives ready, in the reader\'s language, and never composed by the far side', () => {
+  const { h } = fresh();
+  const items = h.ezikAdhanItems(new Date(NOW));
+  for (const it of items) {
+    is(typeof it.title === 'string' && it.title.trim().length > 0, 'an empty title on ' + it.id);
+    is(typeof it.body === 'string' && it.body.trim().length > 0, 'an empty body on ' + it.id);
+    is(it.body.indexOf('{name}') === -1, 'an unsubstituted placeholder survived in ' + it.id);
+    is(it.body.indexOf(it.title) !== -1, 'the body of ' + it.id + ' does not name its prayer');
+  }
+  // Five distinct names, so the five notifications are not five copies of one sentence.
+  eq(new Set(items.map((x) => x.title)).size, 5, 'distinct prayer names');
+  return '5 names, ' + items.length + ' bodies, 0 empty, 0 placeholders left standing';
+});
+
+run('ARMING WRITES NOTHING -- a reader who never opened the panel gets no new store', () => {
   const { h, env } = fresh();
-  eq(h.ezikSchedItems(), [], 'what the feed offers');
-  const r = h.ezikSchedArm();
-  eq(r.sent, false, 'sent');
-  eq(env.posts.length, 0, 'posts');
-  return 'zero feeds -> zero posts, in a shell that is present and answering';
+  h.ezikSchedArm();
+  h.ezikSchedArm();
+  h.ezikSchedArm();
+  eq(env.writes, [], 'stores written while arming');
+  return '3 arms, 0 writes: the feed reads the position and the preferences and calls no builder that stores';
+});
+
+run('a prayer the calculator cannot place is carried through as silence, not as a guess', () => {
+  // A latitude where the twilight never reaches the angle: prayerTimesFor answers null for some
+  // of the six, and a null must become NO notification rather than a fabricated one.
+  const { h } = fresh({ store: { ezik_qibla_loc_v1: JSON.stringify({ lat: 78.2, lng: 15.6 }) } });
+  const items = h.ezikAdhanItems(new Date(NOW));
+  is(items.length < 5 * DAYS, 'the polar case produced a full roster: ' + items.length);
+  for (const it of items) is(Number.isFinite(it.at), 'a non-finite moment survived: ' + it.id);
+  return 'at 78.2N the feed offers ' + items.length + ' of ' + (5 * DAYS) + ', and no invented moment';
+});
+
+run('the reader\'s own position and preferences are what it schedules', () => {
+  const a = fresh().h.ezikAdhanItems(new Date(NOW));
+  // A different place, and a different school of Asr, must move the moments.
+  const b = fresh({ store: { ezik_qibla_loc_v1: JSON.stringify({ lat: 51.5, lng: -0.12 }) } })
+    .h.ezikAdhanItems(new Date(NOW));
+  const c = fresh({ store: { ezik_prayer_prefs_v1: JSON.stringify({ asr: 'hanafi' }) } })
+    .h.ezikAdhanItems(new Date(NOW));
+  is(a[0].at !== b[0].at, 'a different position produced the same first moment');
+  const asrA = a.filter((x) => x.id.indexOf(':asr:') !== -1)[0];
+  const asrC = c.filter((x) => x.id.indexOf(':asr:') !== -1)[0];
+  is(asrA.at !== asrC.at, 'the Hanafi shadow rule did not move the Asr');
+  // ...and the prayers it does NOT govern stay exactly where they were.
+  const fajrA = a.filter((x) => x.id.indexOf(':fajr:') !== -1)[0];
+  const fajrC = c.filter((x) => x.id.indexOf(':fajr:') !== -1)[0];
+  eq(fajrC.at, fajrA.at, 'the Fajr under a changed Asr school');
+  return 'position moves everything; the Asr school moves the Asr and nothing else';
+});
+
+run('the type is the shell\'s own, written once, and the id is the shell\'s own shape', () => {
+  const { h } = fresh();
+  const items = h.ezikAdhanItems(new Date(NOW));
+  for (const it of items) {
+    is(/^[a-z]+:[a-z]+:[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(it.id), 'a malformed key: ' + it.id);
+    is(it.id.indexOf(ADHAN + ':') === 0, 'a key that does not lead with its type: ' + it.id);
+  }
+  // A stable key is the far side's only defence against a double notification across two arms.
+  eq(new Set(items.map((x) => x.id)).size, items.length, 'distinct keys');
+  // And no destination is sent: this client has no listener for one yet, and the contract says
+  // a notification without one opens the application as it is.
+  for (const it of items) {
+    is(!Object.prototype.hasOwnProperty.call(it, 'route'), it.id + ' carries a destination');
+  }
+  return items.length + ' keys of the form "{type}:{prayer}:{day}", 0 destinations';
+});
+
+run('the same day armed twice is the same payload, so the far side rebuilds nothing', () => {
+  const { h, env } = fresh();
+  const now = new Date(NOW);
+  h.ezikSchedSend(h.ezikAdhanItems(now), NOW);
+  h.ezikSchedSend(h.ezikAdhanItems(now), NOW);
+  eq(env.posts.length, 1, 'posts for two arms of the same day');
+  return '2 arms, 1 post';
 });
 
 // -- 10. THE TRIGGERS -------------------------------------------------------
@@ -649,19 +794,22 @@ run('the shell\'s re-arm request is answered, and a message that is not it is ig
   h.useEzikSchedRoot();
   env.effects[0].fn();
   const fire = (detail) => { for (const fn of (env.listeners.get(CHANNEL) || [])) fn({ detail: detail }); };
-  // None of these is a re-arm request, and none of them may be treated as one.
-  const armed = [];
+  // The mount armed once. Nothing below may cause a SECOND post, because none of it is a re-arm
+  // request -- and the arm that is refused by the fingerprint is indistinguishable from the arm
+  // that never happened, which is why this counts posts and not calls.
+  const afterMount = env.posts.length;
+  eq(afterMount, 1, 'posts made by the mount itself');
   for (const d of [null, undefined, 'text', {}, { op: REARM_OP }, { channel: CHANNEL },
     { channel: 'other', op: REARM_OP }, { channel: CHANNEL, op: 'result' }]) {
     fire(d);
-    armed.push(env.posts.length);
   }
-  eq(armed[armed.length - 1], 0, 'posts made from messages that are not a re-arm request');
-  // And the real one is answered: it reaches the arm, which is silent today only because the
-  // feed is empty. The proof that it RAN is that it is the same call the mount made.
+  eq(env.posts.length, afterMount, 'posts after eight messages that are not a re-arm request');
+  // The real one is accepted. It rebuilds the same payload for the same clock, so the
+  // fingerprint refuses the post -- which is the correct behaviour and is proved separately.
+  // What is proved HERE is that it is not rejected as an impostor before it reaches the arm.
   fire({ channel: CHANNEL, op: REARM_OP });
-  eq(env.posts.length, 0, 'posts (the feed is empty today)');
-  return '8 impostor messages ignored; the real one accepted';
+  eq(env.posts.length, afterMount, 'posts after the real re-arm request (same day, same payload)');
+  return '8 impostor messages ignored; the real one accepted and deduplicated';
 });
 
 run('the watcher arms after every render of its caller, with no dependency array', () => {
@@ -698,11 +846,20 @@ run('the root is mounted in App and the watcher in the panel that owns both inpu
 // -- 11. STATIC CLAIMS ABOUT THE WHOLE PATH ---------------------------------
 run('nothing on this path is a request, a sound, a permission or a console line', () => {
   for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
-    'document.cookie', 'indexedDB', 'sessionStorage', 'localStorage', '/api/', 'console.',
-    'requestPermission', 'new Audio', 'navigator.', 'alert(', 'confirm(']) {
+    'document.cookie', 'indexedDB', 'sessionStorage', '/api/', 'console.',
+    'requestPermission', 'new Audio', '.play(', 'navigator.', 'alert(', 'confirm(']) {
     is(LIFTED.indexOf(t) === -1, 'the schedule pipe contains ' + t);
   }
-  return '17 forbidden constructs, 0 present across ' + LIFTED.split('\n').length + ' lifted lines';
+  // `localStorage` IS on this path now and legitimately so: the feed reads the reader's saved
+  // position and preferences. What it may never do is WRITE -- arming must not create a store
+  // for a reader who never opened the panel it belongs to. Asserted here in the source, and
+  // measured above by counting writes through a real fake store.
+  for (const t of ['localStorage.setItem', 'localStorage.removeItem', 'localStorage.clear']) {
+    is(LIFTED.indexOf(t) === -1, 'the schedule pipe contains ' + t);
+  }
+  is(LIFTED.indexOf('localStorage.getItem') !== -1, 'the feed no longer reads the reader\'s own stores');
+  return '17 forbidden constructs + 3 store writes, 0 present across '
+    + LIFTED.split('\n').length + ' lifted lines; reads present, writes absent';
 });
 
 run('the pipe posts from exactly one place, and it is the sender', () => {
@@ -760,6 +917,36 @@ console.log('');
   } else {
     console.log('  (nothing was posted: sent=' + r.sent + ' reason=' + r.reason
       + ' items=' + r.items + ' dropped=' + JSON.stringify(r.dropped) + ')');
+  }
+  console.log('');
+}
+
+{
+  // AND THE REAL ONE -- item 67, built from the reader's stored position and preferences, as the
+  // shell actually receives it. Printed head and tail rather than whole: thirty-five items is a
+  // page of JSON, and what the owner needs to SEE is the shape, the language and the span.
+  const { h, env } = fresh();
+  const now = new Date(NOW);
+  const r = h.ezikSchedSend(h.ezikAdhanItems(now), NOW);
+  if (env.posts.length === 1) {
+    const msg = JSON.parse(env.posts[0]);
+    const show = (x) => '    ' + JSON.stringify(x);
+    console.log('the real item-67 payload (now = ' + NOW + ' = ' + now.toString().slice(0, 24)
+      + '), ' + msg.items.length + ' items, ' + r.dropped.past + ' dropped as past:');
+    console.log('  { "channel": ' + JSON.stringify(msg.channel) + ', "v": ' + msg.v
+      + ', "op": ' + JSON.stringify(msg.op) + ', "items": [');
+    console.log(show(msg.items[0]) + ',');
+    console.log(show(msg.items[1]) + ',');
+    console.log('    ... ' + (msg.items.length - 3) + ' more ...');
+    console.log(show(msg.items[msg.items.length - 1]));
+    console.log('  ] }');
+    const span = msg.items[msg.items.length - 1].at - msg.items[0].at;
+    console.log('  span: ' + (Math.round(span / 3600000 * 10) / 10) + ' hours ('
+      + (Math.round(span / 86400000 * 10) / 10) + ' days), bytes on the wire: '
+      + Buffer.byteLength(env.posts[0], 'utf8'));
+  } else {
+    console.log('the real item-67 payload: NOTHING WAS POSTED (sent=' + r.sent
+      + ' reason=' + r.reason + ' items=' + r.items + ')');
   }
   console.log('');
 }

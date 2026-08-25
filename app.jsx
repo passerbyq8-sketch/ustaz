@@ -416,6 +416,7 @@ const EZ_I18N = {
     'widget.prayer.asr': 'العصر',
     'widget.prayer.maghrib': 'المغرب',
     'widget.prayer.isha': 'العشاء',
+    'prayer.due': 'حانَ وقتُ صلاةِ {name}.',
     'widget.adhkar.title': 'الأذكار',
     'widget.adhkar.open': 'افتحْ الأذكار',
     'widget.adhkar.chain': 'سلسلتك',
@@ -700,6 +701,7 @@ const EZ_I18N = {
     'widget.prayer.asr': 'Asr',
     'widget.prayer.maghrib': 'Maghrib',
     'widget.prayer.isha': 'Isha',
+    'prayer.due': 'It is time for the {name} prayer.',
     'widget.adhkar.title': 'Adhkar',
     'widget.adhkar.open': 'Open adhkar',
     'widget.adhkar.chain': 'Your chain',
@@ -14274,6 +14276,93 @@ function ezikSchedSend(items, nowMs) {
   return { sent: true, reason: null, items: count, dropped: built.dropped };
 }
 
+// ============================================================
+// ITEM 67 — الصلاةُ في وقتِها: THE ONE FEED THAT HAS AN ANCHOR
+// ============================================================
+// THE TIMES ARE NOT COMPUTED AGAIN HERE. prayerTimesFor() is the one calculator in this file and
+// this feed calls it, exactly as the panel and the thirty-day table already do. A second
+// arithmetic for the same six moments is two sources that disagree by a minute, which is the one
+// failure this whole design exists to prevent -- it is why the shell computes nothing at all.
+//
+// AND IT DELIBERATELY DOES NOT CALL ensurePrayerSchedule(). That function WRITES: it rebuilds and
+// stores the thirty-day table. This runs at the root, for every reader, including one who has
+// never opened the prayer sheet -- and arming a notification must not quietly create a store for
+// a reader who never asked for the feature it belongs to. prayerTimesFor() writes nothing, and
+// the loop below is bounded by the window rather than by that table's thirty days.
+//
+// THE WINDOW IS THE CONTRACT'S, MIRRORED IN THE SAFE DIRECTION. The shell refuses anything beyond
+// seven days (`WINDOW_DAYS`, refused as `beyondWindow`) and caps at sixty (`MAX_SCHEDULED`),
+// both in murabbi-shell src/scheduler/core. Five prayers over seven days is thirty-five, which
+// clears both. The number is
+// mirrored here rather than derived, and the asymmetry is deliberate: if the shell ever WIDENS
+// its window this end simply sends less than it could, which costs coverage and breaks nothing.
+// Sending more than the far side accepts is the direction that fails, and this end cannot.
+//
+// THE SUNRISE IS NOT A PRAYER AND IS NOT HERE. It is filtered out of PRAYER_KEYS by name rather
+// than by a second hand-written list, so the day it moves, this moves with it.
+//
+// TEXT ARRIVES READY OR IT DOES NOT ARRIVE. The shell composes nothing and translates nothing; a
+// title or body that came back empty is dropped by the pipe and counted, never invented.
+//
+// AND NO DESTINATION IS SENT. `route` is optional in the contract and a notification without one
+// is explicitly correct there: the press opens the application as it is. Sending a destination
+// this client has no listener for would be a promise about a screen, and the round that teaches
+// this app to answer `op:'open'` is not this one.
+
+/**
+ * The shell's frozen notification type -- `TYPES` in murabbi-shell src/scheduler/core. An item typed
+ * anything else is refused there and counted `unknownType`. This is the ONE place the word is
+ * written in this client, and tools/wird-guard.cjs holds it to exactly that.
+ */
+const ADHAN_TYPE = 'adhan';
+const ADHAN_WINDOW_DAYS = 7;
+const ADHAN_KEYS = PRAYER_KEYS.filter((k) => k !== 'sunrise');
+const ADHAN_BODY_KEY = 'prayer.due';
+
+/**
+ * The five prayers of the next seven local days, as ABSOLUTE epoch milliseconds.
+ *
+ * The conversion is the only interesting line: prayerTimesFor() answers in MINUTES FROM LOCAL
+ * MIDNIGHT, and `new Date(y, m - 1, d, hh, mm)` is what turns that back into a real instant --
+ * it builds the LOCAL WALL CLOCK of that day, so a day on the far side of a daylight-saving
+ * change lands on the clock the reader will actually be reading. Adding minutes to a midnight
+ * timestamp would not: it would slide by an hour across that boundary.
+ *
+ * The zone offset is likewise taken FOR EACH DAY rather than once for the week, from noon of that
+ * day so the reading cannot fall inside the changeover hour itself. Same calculator, better
+ * argument -- not a second calculation.
+ */
+function ezikAdhanItems(now) {
+  const items = [];
+  if (!(now instanceof Date) || !isFinite(now.getTime())) return items;
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
+    const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const tz = -(new Date(y, m - 1, d, 12, 0, 0, 0).getTimezoneOffset());
+    const t = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+    for (let j = 0; j < ADHAN_KEYS.length; j++) {
+      const k = ADHAN_KEYS[j];
+      const mins = t[k];
+      // A prayer the calculator could not place at this latitude is NOT a notification. `null` is
+      // the real answer there and it is carried through as silence rather than as a guess.
+      if (typeof mins !== 'number' || !isFinite(mins)) continue;
+      const at = new Date(y, m - 1, d, Math.floor(mins / 60), mins % 60, 0, 0).getTime();
+      if (!isFinite(at)) continue;
+      const title = ezT('widget.prayer.' + k);
+      items.push({
+        id: ADHAN_TYPE + ':' + k + ':' + prayerDayKey(dt),
+        type: ADHAN_TYPE,
+        at: at,
+        title: title,
+        body: ezT(ADHAN_BODY_KEY, { name: title }),
+      });
+    }
+  }
+  return items;
+}
+
 // WHAT RIDES THE PIPE TODAY: NOTHING, AND THAT IS THE STATE OF THE ROUND RATHER THAN AN OVERSIGHT.
 // The pipe is the first half of this round; the feeds are the second. Of the three feeds only one
 // has an anchor in this client to ride from -- the prayer times, which are computed here already.
@@ -14284,7 +14373,7 @@ function ezikSchedSend(items, nowMs) {
 // stays silent because an empty payload matches the fingerprint it starts on, and the report for
 // this round names all three feeds as open rather than pretending any of them shipped.
 function ezikSchedItems() {
-  return [];
+  return ezikAdhanItems(new Date());
 }
 
 // THE ARM. It rebuilds the WHOLE payload -- never a difference, never an addition -- and hands it
@@ -14301,6 +14390,12 @@ function ezikSchedArm() {
 //                                    sends for exactly this and for no other reason, plus the
 //                                    browser's own three signals for the same event;
 //   * ANOTHER TAB WROTE A STORE   -- `storage`, which fires in the tabs that did NOT write;
+//   * THE READER CHANGED LANGUAGE -- the title and body are TEXT, and text that crossed the
+//                                    bridge in the language the reader has just left is a
+//                                    notification in the wrong language for up to a week. This
+//                                    subscribes to the same EZ_LANG_SUBS the interface itself
+//                                    redraws from, so there is one source for "the language
+//                                    moved" and not a second copy of the idea;
 //   * THE LOCAL DAY TURNED        -- a timer set for the next local midnight and re-set from
 //                                    inside itself, so a page left open for a week arms once a
 //                                    day. Five seconds past the hour, not on it, so a clock that
@@ -14336,10 +14431,12 @@ function useEzikSchedRoot() {
       window.addEventListener('storage', wake);
       document.addEventListener('visibilitychange', wake);
     } catch (e) { return undefined; }
+    EZ_LANG_SUBS.add(wake);
     ezikSchedArm();
     atMidnight();
     return () => {
       if (midnight) { clearTimeout(midnight); midnight = null; }
+      EZ_LANG_SUBS.delete(wake);
       try {
         window.removeEventListener(SHELL_SCHED_CHANNEL, onShell);
         window.removeEventListener('pageshow', wake);

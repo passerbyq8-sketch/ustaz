@@ -142,6 +142,28 @@ const SEALED = {
   //                    above to survive the sweep. SW_CACHE below is re-cut in the SAME commit
   //                    as this digest -- it is the only mirror, re-checked by grep across the
   //                    tree -- and the digest AFTER both. app.js / app.jsx untouched here.
+  //   2026-08-25   -- item 67, the call at its time: the ONE feed that had an anchor rides the
+  //                    pipe the commit before this one built. app.jsx gained ezikAdhanItems():
+  //                    the five prayers of the next seven local days, taken from prayerTimesFor()
+  //                    -- the one calculator already in this file -- and converted from MINUTES
+  //                    FROM LOCAL MIDNIGHT into absolute epoch milliseconds by rebuilding the
+  //                    local WALL CLOCK of each day, so a day across a daylight change lands on
+  //                    the clock the reader reads. It calls no builder that STORES: arming must
+  //                    not create a store for a reader who never opened the prayer sheet, and
+  //                    that is measured by counting writes through a fake, not asserted. One
+  //                    dictionary key in both languages ('prayer.due'); the sunrise is filtered
+  //                    out by name because it is not a prayer. app.js was rebuilt from that
+  //                    source 1095406 -> 1100763 (+5357), and app.js IS in CORE, so the ritual
+  //                    ran in this commit and in this order: `npm run build:app` regenerated the
+  //                    bundle, `node tools/core-bytes.cjs --write` re-cut CORE_BYTES 1931071 ->
+  //                    1936428, the app.js figure in the byte table above that constant and its
+  //                    SW_PROSE mirror below both followed 1095406 -> 1100763, and THIS digest
+  //                    was cut last, after all of them. sw.js is 44266 bytes before and after,
+  //                    CR = 0. CACHE is NOT touched: the store name stays ezik-v32, because
+  //                    lifting it is a ship decision and not a work step. tools/wird-guard.cjs
+  //                    (gate 107) was NARROWED in the same commit -- its whole-file ban on the
+  //                    latin type name became an exact allowance of one declaration plus two new
+  //                    checks it never had, so its assertion count went UP 1122 -> 1124.
   //   2026-08-25   -- the schedule pipe, the web half. app.jsx gained the web end of the shell's
   //                    notification contract: one place that builds a schedule message with
   //                    ABSOLUTE epoch-millisecond timestamps, drops anything already past, sends
@@ -375,7 +397,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': '9360dbc91fda595ce039fc6179dc96fe43e6557bbe0c47e2b0062baa18a2581b',
+  'sw.js': '344c06dc0f3d4e22324c3ad9c9c0b950559ea58c3c87bf3074fd9c9d1e23b388',
 };
 
 // ---------------------------------------------------------------------------
@@ -1485,7 +1507,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1095406, of: 'app.js' },
+      { n: 1100763, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
