@@ -113,6 +113,30 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-25   -- the store lift for the location round. CACHE ezik-v30 -> ezik-v31, and
+  //                    unlike round 29 below the file that forced it IS in CORE: app.js, which
+  //                    the location commit rebuilt 1076271 -> 1081237. So this bump is not about
+  //                    a page the fetch handler happens to store -- it is about the shipped
+  //                    bundle itself, and the reason is MEASURED rather than assumed. sw.js was
+  //                    driven in a vm with a stub CacheStorage recording every match, put, add
+  //                    and delete: install add()s '/app.js' into CACHE as one of the ten CORE
+  //                    entries, and a GET of it on a WORKING network is then answered out of the
+  //                    store with ZERO network calls, because same-origin static assets land in
+  //                    the generic cache-first arm (sw.js:741) which returns the hit and never
+  //                    revalidates. A returning reader therefore keeps the OLD bundle for as
+  //                    long as the store keeps its name -- not merely while offline, which is
+  //                    the weaker claim round 29 could make about a network-first page. With
+  //                    CACHE lifted, activate's sweep (sw.js:434) deletes exactly ezik-v30 and
+  //                    spares ezik-mushaf-pages-v1, and install repopulates with the new bundle.
+  //                    The control was run too: without the lift, activate deletes nothing and
+  //                    the old bundle is still served on a live network. NOTHING ELSE MOVED --
+  //                    CORE_BYTES stays 1916902 (sw.js is not in CORE and no CORE file's size
+  //                    changed in this commit; re-measured by tools/core-bytes.cjs: MATCH), and
+  //                    no byte-table or SW_PROSE figure moved, since 'ezik-v30' and 'ezik-v31'
+  //                    are both eight characters and sw.js did not change length. MUSHAF_CACHE
+  //                    stays ezik-mushaf-pages-v1, unversioned by design (item 33). SW_CACHE
+  //                    below is re-cut in the SAME commit as this digest, and the digest AFTER
+  //                    both.
   //   2026-08-25   -- merge round 29: the privacy-truth correction. privacy.html and delete.html
   //                    were the only files merged, and NEITHER is in CORE -- so CORE_BYTES did
   //                    NOT move (1911936, re-measured by tools/core-bytes.cjs and MATCH) and no
@@ -287,7 +311,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': '57978f4cbde286b713e44dd5cf886bf247f55f1e4bab6390763d6668bc550ee3',
+  'sw.js': '5fded26cda9b7de9788cfc55a1dc68e1df1b07d2d14f930fc6e976f6a0e20dba',
 };
 
 // ---------------------------------------------------------------------------
@@ -311,7 +335,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v30';
+const SW_CACHE = 'ezik-v31';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
