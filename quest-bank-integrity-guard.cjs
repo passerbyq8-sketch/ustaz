@@ -113,6 +113,24 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-25   -- the delete-page truth round. app.jsx gained FOUR localStorage removals in
+  //                    resetAll -- the AI-consent record, the saved qibla position, the prayer
+  //                    preferences and the schedule derived from them -- because delete.html has
+  //                    promised all four in both languages since it shipped and the code kept
+  //                    only some of them. The PAGE was not touched: the promise was already the
+  //                    right one, so the code moved to it. app.js was rebuilt from that source
+  //                    1081237 -> 1082779 (+1542), and app.js IS in CORE, so three things moved
+  //                    in this commit and in this order: `npm run build:app` regenerated the
+  //                    bundle, `node tools/core-bytes.cjs --write` re-cut CORE_BYTES 1916902 ->
+  //                    1918444, the app.js figure in the byte table above that constant and its
+  //                    SW_PROSE mirror below both followed 1081237 -> 1082779, and THIS digest
+  //                    was cut last, after all of them. sw.js did not change LENGTH -- 44266
+  //                    bytes before and after, CR = 0 -- because both figures kept their digit
+  //                    count; only their values moved. CACHE is NOT touched here: the store name
+  //                    is a ship decision and it gets its own commit, ezik-v31 -> ezik-v32,
+  //                    directly after this one. tools/delete-truth-measure.cjs is added in the
+  //                    same commit and holds the four removals, the twenty that already
+  //                    happened, and the three keys the page promises SURVIVE.
   //   2026-08-25   -- the store lift for the location round. CACHE ezik-v30 -> ezik-v31, and
   //                    unlike round 29 below the file that forced it IS in CORE: app.js, which
   //                    the location commit rebuilt 1076271 -> 1081237. So this bump is not about
@@ -311,7 +329,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': '5fded26cda9b7de9788cfc55a1dc68e1df1b07d2d14f930fc6e976f6a0e20dba',
+  'sw.js': '0ead72866fa10abe2d51bc1ab8b7fa407b06433cbe62f2019f652a10b0c0ca7f',
 };
 
 // ---------------------------------------------------------------------------
@@ -1421,7 +1439,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1081237, of: 'app.js' },
+      { n: 1082779, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
