@@ -10717,6 +10717,24 @@ function App() {
       try { localStorage.removeItem(EZIK_VISUAL_THEME_KEY_V1); } catch (e) {}
       applyEzikVisualTheme(EZIK_VISUAL_THEME_DEFAULT);
       try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: EZIK_VISUAL_THEME_DEFAULT })); } catch (e) {}
+      // S119 -- THE PAGE ALREADY PROMISED THESE FOUR; the code simply did not keep the promise.
+      // delete.html:94 / :138 say this button erases «قرارُ موافقة الذكاء الاصطناعيّ ورقمُ نسخته»
+      // / "the AI-consent decision and its version number". One key holds both, so one removal
+      // keeps that whole clause. The consent screen therefore shows again after a reset -- which
+      // is the RIGHT outcome of "delete all my data", not a regression to guard against.
+      try { localStorage.removeItem(EZ_AI_CONSENT_KEY); } catch (e) {}
+      // delete.html:94 / :138 -- «الموضعُ المحفوظُ للقبلةِ ومواقيتِ الصلاة» / "the position saved
+      // for the qibla and the prayer times". That clause is one promise over three keys: the saved
+      // position, the prayer preferences read beside it, and the schedule DERIVED from both. The
+      // derived table goes too, because a schedule outliving the settings it was computed from is
+      // a wrong answer with a date on it -- and it is the previous reader's answer at that.
+      // clearQiblaLoc() is NOT this: that is the "back to default" button and keeps its meaning.
+      try { localStorage.removeItem(QIBLA_LOC_KEY); } catch (e) {}
+      try { localStorage.removeItem(PRAYER_PREFS_KEY); } catch (e) {}
+      try { localStorage.removeItem(PRAYER_SCHEDULE_KEY); } catch (e) {}
+      // HIJRI_OFFSET_KEY IS DELIBERATELY ABSENT. delete.html promises it nowhere, in neither
+      // language, and erasing what was never promised widens this button rather than repairs it.
+      // It stays until a sentence on that page asks for it.
       setDirectConvoLocked(false);
       setProfile(null);
       voiceProfileRef.current = null;           // غ‑٣: حذفُ البيانات يُعيد الحاجزَ إلى المقفول
