@@ -544,3 +544,10 @@ EZIK-CC-LESSONS-BROWSE-UI-24C-REPORT-2026-08-23.md text eol=lf
 # parser and evaluates their source verbatim, and this machine checks out with core.autocrlf=true.
 # A CR the tool carried but app.jsx did not would move every offset it reads.
 tools/schedule-payload-measure.cjs text eol=lf
+
+# tools/save-bridge-measure.cjs (the save pipe, the web half) -- pinned for the reason every
+# tool beside it is pinned: it lifts functions out of app.jsx BY BYTE OFFSET from the parser and
+# evaluates their source verbatim, and this machine checks out with core.autocrlf=true. A CR the
+# tool carried but app.jsx did not would move every offset it reads -- and this one also MUTATES
+# that lifted source by exact string, which a stray CR would silently stop matching.
+tools/save-bridge-measure.cjs text eol=lf

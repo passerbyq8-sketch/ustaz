@@ -424,6 +424,15 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ لـ{n} منَ الأيّامِ القادمة، وتُجَدَّدُ كلَّما فُتِحَ التطبيق.',
+    // THE SIX LINES THE SAVE PIPE CAN SHOW. Five answer the shell's five named reasons; the
+    // sixth answers everything else, so no contract word ever reaches a reader's screen.
+    'save.tooLarge': 'الملفُّ أكبرُ من أن يُحفَظَ على هذا الجهاز.',
+    'save.unsupportedType': 'هذا النوعُ من الملفّاتِ لا يُحفَظُ هنا.',
+    'save.badPayload': 'تعذَّرَ تجهيزُ الملفِّ للحفظ.',
+    'save.writeFailed': 'تعذَّرَتْ كتابةُ الملفِّ على الجهاز.',
+    'save.shareUnavailable': 'لا سبيلَ إلى المشاركةِ على هذا الجهاز.',
+    'save.failed': 'لم يتِمَّ الحفظ.',
+
     'widget.adhkar.title': 'الأذكار',
     'widget.adhkar.open': 'افتحْ الأذكار',
     'widget.adhkar.chain': 'سلسلتك',
@@ -716,6 +725,15 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for the next {n} days, and renewed whenever the app is opened.',
+    // THE SIX LINES THE SAVE PIPE CAN SHOW. Five answer the shell's five named reasons; the
+    // sixth answers everything else, so no contract word ever reaches a reader's screen.
+    'save.tooLarge': 'The file is too large to save on this device.',
+    'save.unsupportedType': 'This kind of file cannot be saved here.',
+    'save.badPayload': 'The file could not be prepared for saving.',
+    'save.writeFailed': 'The file could not be written to this device.',
+    'save.shareUnavailable': 'There is no way to share on this device.',
+    'save.failed': 'The file was not saved.',
+
     'widget.adhkar.title': 'Adhkar',
     'widget.adhkar.open': 'Open adhkar',
     'widget.adhkar.chain': 'Your chain',
@@ -2691,18 +2709,256 @@ const ShareReplyButton = ({ getText }) => {
 const joinSpeech = (a, b) => { const l = a || ''; const r = b || ''; if (!l) return r; if (!r) return l; return (/\s$/.test(l) || /^\s/.test(r)) ? l + r : l + ' ' + r; };
 const stripAllTashkeel = (s) => (s || '').replace(/[ً-ْٰ]/g, '');
 
+// ============================================================
+// THE SAVE PIPE — أنبوبُ الحفظِ إلى الغلاف
+// ============================================================
+// WHAT THIS IS. A browser tab saves a file by clicking an <a download>, and that is the only way
+// this file has ever saved anything. The native shell hosting this page cannot: an anchor click
+// inside a WebView reaches no place a reader can find the file again, so a download in the shell
+// has to be handed to the platform instead. murabbi-shell ships that handler, its contract is one
+// request message and one window event, and this block is the web end of it and the ONLY place in
+// this file that speaks it.
+//
+// ONE MESSAGE, SEVEN FIELDS, BUILT IN ONE PLACE. ezikDlMessage() below is the single place a
+// download request is constructed and ezikDlAsk() is the single place one is posted. Neither
+// press builds a message of its own, so there is no second serialiser to drift and a field the
+// shell would refuse is refused here once rather than in two copies.
+//
+// NO SHELL MEANS NOTHING CHANGES AT ALL. A browser tab has no window.ReactNativeWebView, and on
+// that path both presses do exactly what they did before this block existed: the same anchor, the
+// same click, the same filename, the same bytes -- and NOT ONE MESSAGE POSTED, not one listener
+// attached, not one new line drawn. A tab is not a broken shell; it is a tab.
+//
+// 🔴 AND THERE IS NO DEADLINE ON THIS PATH, DELIBERATELY. The shell answers only after the reader
+// has closed or cancelled the platform's share sheet, and that sheet can stand in front of them
+// for minutes. A timer that called the request failed would therefore be telling the reader a lie
+// about a save still open in front of their eyes. Nothing in this block calls setTimeout, and
+// neither shell branch below does either. What ends the wait is the shell's answer, the next
+// press, or the component going away.
+//
+// AND CANCELLING IS NOT FAILING. Most platforms report a share sheet the reader dismissed as a
+// success, so `ok:true` is carried through as silence rather than dressed up as "saved" -- this
+// end does not know which of the two happened and does not claim to.
+//
+// IT CARRIES ITS OWN BRIDGE ACCESSOR, for the reason ezikSchedBridge already carries one:
+// tools/location-bridge-measure.cjs holds ezikShellBridge to exactly three reference sites, and
+// borrowing that name here would make a correct proof false about a path it does not describe.
+const SHELL_DL_REQUEST = 'ezik:download:request';
+const SHELL_DL_RESULT = 'ezik:download:result';
+// 🔴 A STRING, AND NOT THE NUMBER. The shell's validator compares this field against the string
+// "1" and answers `bad-payload` for the number 1. That is the whole reason the version is a named
+// constant here instead of a literal typed twice.
+const SHELL_DL_V = '1';
+// The six types the shell writes, and nothing else reaches it. The far side derives the file's
+// EXTENSION from this field, which is why no filename sent below carries one.
+const SHELL_DL_MIMES = ['image/png', 'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/html', 'text/plain', 'application/pdf'];
+// FOUR MEBIBYTES, CHECKED ON THIS SIDE TOO. The shell refuses anything larger and answers
+// `too-large`. This end refuses it as well and posts nothing, because carrying four megabytes
+// across the bridge to be handed straight back is a cost paid for an answer already known.
+const SHELL_DL_MAX_BYTES = 4 * 1024 * 1024;
+// The five reasons the shell can name, each mapped to the line the reader is shown. A SIXTH --
+// a word from a shell newer than this page, an empty string, no reason at all -- is not printed:
+// it falls to the general line, because a raw contract word on a reader's screen is a developer's
+// note leaking into an application.
+const SHELL_DL_LINES = {
+  'too-large': 'save.tooLarge',
+  'unsupported-type': 'save.unsupportedType',
+  'bad-payload': 'save.badPayload',
+  'write-failed': 'save.writeFailed',
+  'share-unavailable': 'save.shareUnavailable',
+};
+const SHELL_DL_LINE_OTHER = 'save.failed';
+// A name for a file whose own name survived nothing. It is not an extension and never becomes one.
+const SHELL_DL_NAME_FALLBACK = 'ezik';
+
+// The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
+// not consulted here either, for the reason written out at ezikShellBridge above.
+function ezikDlBridge() {
+  if (typeof window === 'undefined') return null;
+  const b = window.ReactNativeWebView;
+  if (!b || typeof b.postMessage !== 'function') return null;
+  return b;
+}
+
+// THE READER'S LINE FOR AN ANSWER, AND NEVER THE ANSWER ITSELF. Anything outside the five is the
+// general line. There is no branch anywhere below this that can put a reason code on a screen.
+function ezikDlLine(reason) {
+  const key = (typeof reason === 'string'
+    && Object.prototype.hasOwnProperty.call(SHELL_DL_LINES, reason))
+    ? SHELL_DL_LINES[reason] : SHELL_DL_LINE_OTHER;
+  return ezT(key);
+}
+
+// THE RAW BYTE COUNT A base64 STRING STANDS FOR, or -1 when the string is not base64 the shell
+// will take. Validator and measurement in one function, on purpose: `size` is the length BEFORE
+// encoding, the shell re-derives it from `b64` and refuses a mismatch, so the only honest way to
+// fill that field is to compute it from the very characters being sent.
+//
+// The one expression is four refusals at once: `+` and `/` are the standard alphabet, so
+// base64url's `-` and `_` fail it; no whitespace is admitted, so a newline some wrapper inserted
+// fails it; `=` is allowed only at the end; and the multiple-of-four test catches a truncation.
+function ezikDlRawBytes(b64) {
+  if (typeof b64 !== 'string' || b64.length === 0) return -1;
+  if (b64.length % 4 !== 0) return -1;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(b64)) return -1;
+  const pad = b64.charAt(b64.length - 1) === '=' ? (b64.charAt(b64.length - 2) === '=' ? 2 : 1) : 0;
+  return (b64.length / 4) * 3 - pad;
+}
+
+// A data: URL cut into the two things the message needs. The prefix is removed THROUGH THE COMMA:
+// `data:image/png;base64,` left on the front is not base64 at all, and it is the mistake the far
+// side answers `bad-payload` for.
+function ezikDlSplitDataUrl(url) {
+  if (typeof url !== 'string') return null;
+  const comma = url.indexOf(',');
+  if (comma === -1) return null;
+  const head = url.slice(0, comma);
+  if (head.slice(0, 5) !== 'data:') return null;
+  if (head.slice(-7) !== ';base64') return null;      // a data: URL that is not base64 is not ours
+  return { mime: head.slice(5, head.length - 7), b64: url.slice(comma + 1) };
+}
+
+// THE NAME, WITHOUT ITS EXTENSION. The shell appends one derived from `mime`, so `ezik-reply.png`
+// sent as a name lands on the reader's device as `ezik-reply.png.png`. Path separators go for the
+// same reason a filename is not a path.
+function ezikDlName(raw) {
+  const t = String(raw == null ? '' : raw)
+    .replace(/[\\/:*?"<>|]+/g, ' ').trim()
+    .replace(/\.[A-Za-z0-9]{1,8}$/, '').trim();
+  return t || SHELL_DL_NAME_FALLBACK;
+}
+
+// A FRESH IDENTITY FOR EVERY PRESS. The shell echoes it back and the listener matches on it, and
+// that is what makes the answer to an earlier press unreadable as the answer to this one. The
+// counter is what guarantees uniqueness; the clock only separates a visit from the next visit.
+let ezikDlSeq = 0;
+function ezikDlId() {
+  ezikDlSeq += 1;
+  return 'dl-' + ezikDlSeq + '-' + Date.now();
+}
+
+// 🔴 THE ONE PLACE A DOWNLOAD REQUEST IS BUILT. Every field is written out BY NAME from something
+// measured, never forwarded from an object a caller happened to be holding, so what crosses the
+// bridge is what this function built and nothing that rode along beside it.
+//
+// `declaredBytes` is a SECOND, INDEPENDENT count of the same file -- a Blob's own `size` where a
+// Blob was built, and null where there is none to ask. When it is present and disagrees with what
+// the encoding says, NOTHING IS SENT: two counts that differ mean this end got the encoding
+// wrong, and `size` would then carry a number this side could not stand behind.
+function ezikDlMessage(mime, b64, declaredBytes, filename, id) {
+  if (typeof id !== 'string' || !id) return { msg: null, reason: 'bad-payload' };
+  if (typeof mime !== 'string' || SHELL_DL_MIMES.indexOf(mime) === -1) {
+    return { msg: null, reason: 'unsupported-type' };
+  }
+  const size = ezikDlRawBytes(b64);
+  if (size < 0) return { msg: null, reason: 'bad-payload' };
+  if (typeof declaredBytes === 'number' && declaredBytes !== size) {
+    return { msg: null, reason: 'bad-payload' };
+  }
+  if (size > SHELL_DL_MAX_BYTES) return { msg: null, reason: 'too-large' };
+  return {
+    msg: {
+      type: SHELL_DL_REQUEST, id: id, v: SHELL_DL_V, mime: mime,
+      size: size, b64: b64, filename: ezikDlName(filename),
+    },
+    reason: null,
+  };
+}
+
+// THE ASK, AND THE WHOLE LIFETIME OF ONE PRESS. It posts AT MOST ONE message and answers the
+// caller EXACTLY ONCE -- with null when the shell reported the file written, and with the
+// reader's own line when it did not. It returns the detach the caller parks for the next press
+// and for unmount, or null when the press is already over and nothing is left listening.
+//
+// A REPLY CARRYING ANOTHER id IS NOT AN ANSWER AND IS NOT A REFUSAL. It is ignored and the
+// listener stays exactly where it is, because the press that reply belongs to is not this one.
+function ezikDlAsk(bridge, mime, b64, declaredBytes, filename, onDone) {
+  const id = ezikDlId();
+  const built = ezikDlMessage(mime, b64, declaredBytes, filename, id);
+  if (!built.msg) { onDone(ezikDlLine(built.reason)); return null; }
+  let done = false;
+  const stop = () => {
+    if (done) return;
+    done = true;
+    try { window.removeEventListener(SHELL_DL_RESULT, onResult); } catch (e) {}
+  };
+  const onResult = (ev) => {
+    const d = ev && ev.detail;
+    if (!d || typeof d !== 'object') return;      // not an answer at all: keep listening
+    if (d.type !== SHELL_DL_RESULT) return;
+    if (d.v !== SHELL_DL_V) return;
+    if (d.id !== id) return;                      // another press's answer: not mine
+    stop();
+    onDone(d.ok === true ? null : ezikDlLine(d.reason));
+  };
+  try { window.addEventListener(SHELL_DL_RESULT, onResult); }
+  catch (e) { onDone(ezikDlLine('write-failed')); return null; }
+  try { bridge.postMessage(JSON.stringify(built.msg)); }
+  catch (e) { stop(); onDone(ezikDlLine('write-failed')); return null; }
+  return stop;
+}
+
+// THE TWO SOURCES, EACH OPENED IN ONE PLACE. A picture arrives from the canvas already encoded as
+// a data: URL; a document is a string this file has just built. Neither adapter constructs a
+// message -- both hand their two measured parts to the builder above.
+function ezikDlFromDataUrl(bridge, dataUrl, filename, onDone) {
+  const cut = ezikDlSplitDataUrl(dataUrl);
+  if (!cut) { onDone(ezikDlLine('bad-payload')); return null; }
+  return ezikDlAsk(bridge, cut.mime, cut.b64, null, filename, onDone);
+}
+
+// THE UTF-8 BYTES OF A STRING, base64-encoded, or null when this engine cannot do it. The chunk
+// is what keeps a megabyte of document from being spread across one call's argument list.
+function ezikDlB64Text(text) {
+  if (typeof TextEncoder === 'undefined' || typeof btoa !== 'function') return null;
+  let bytes = null;
+  try { bytes = new TextEncoder().encode(String(text)); } catch (e) { return null; }
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  }
+  try { return { b64: btoa(bin), bytes: bytes.length }; } catch (e) { return null; }
+}
+
+function ezikDlFromText(bridge, text, mime, declaredBytes, filename, onDone) {
+  const enc = ezikDlB64Text(text);
+  if (!enc) { onDone(ezikDlLine('bad-payload')); return null; }
+  return ezikDlAsk(bridge, mime, enc.b64, declaredBytes, filename, onDone);
+}
+
 // تصدير محتوى HTML كملفّ Word (.doc): Word/Docs يعرضان العربيّة RTL بأنفسهما،
 // فنتخطّى مشكلة تشكيل العربيّة في توليد PDF داخل المتصفّح. (نمط تنزيل قياسيّ عبر <a download>)
-const downloadAsWord = (filename, title, bodyHtml) => {
+// THE TYPE THIS EXPORT ACTUALLY BUILDS, read from here by everything that has to name it. It is
+// `application/msword` and not the wordprocessingml type beside it in SHELL_DL_MIMES: what the
+// builder writes is an HTML document Word opens, not an OOXML package. Measured, not assumed.
+const EZIK_WORD_MIME = 'application/msword';
+
+// THE DOCUMENT IS BUILT HERE AND DELIVERED BELOW, and the split is the whole point: the shell
+// path sends the VERY BYTES the browser path would have written, rather than a second rendering
+// of the same document that could quietly differ from it. The Blob is built on both paths
+// because its own `size` is the independent second count the request's `size` is checked against.
+const ezikWordDoc = (filename, title, bodyHtml) => {
   const html = '\ufeff<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
     + '<head><meta charset="utf-8"><title>' + title + '</title>'
     + '<style>@page{size:A4;margin:2cm} body{font-family:"Arial","Amiri",serif;direction:rtl;text-align:right;line-height:1.9;font-size:14pt;color:#222} h1{color:#12327A;font-size:20pt} h2{color:#12327A;font-size:15pt} h3{color:#12327A;font-size:13pt} h4{color:#12327A;font-size:12pt} ul,ol{margin-right:1em} strong{font-weight:bold} table{border-collapse:collapse;width:100%;margin:8pt 0} th,td{border:1px solid #999;padding:4pt 8pt;text-align:right} th{background:#EDF1FA;color:#12327A}</style>'
     + '</head><body dir="rtl" lang="ar">' + bodyHtml + '</body></html>';
-  const blob = new Blob([html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
+  return {
+    html: html,
+    blob: new Blob([html], { type: EZIK_WORD_MIME }),
+    name: /\.doc$/.test(filename) ? filename : filename + '.doc',
+  };
+};
+
+// THE BROWSER'S OWN DELIVERY, UNCHANGED. The same anchor, the same href, the same download name,
+// the same click, the same revoke a second later. Nothing on this path knows a shell exists.
+const downloadAsWord = (filename, title, bodyHtml) => {
+  const doc = ezikWordDoc(filename, title, bodyHtml);
+  const url = URL.createObjectURL(doc.blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = /\.doc$/.test(filename) ? filename : filename + '.doc';
+  a.download = doc.name;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3132,6 +3388,15 @@ const ezikDrawReplyCard = (opts) => {
 
 const SaveReplyImageButton = ({ getText, getSource }) => {
   const [flash, setFlash] = useState('');
+  // THE SHELL'S ANSWER, IN THE READER'S OWN WORDS, AND IT STAYS UNTIL THE NEXT PRESS. It is not
+  // a flash: the platform's share sheet can stand in front of the reader for minutes, so a line
+  // that erased itself on a timer would be gone before there was anything for it to say. In a
+  // browser this state never leaves '' and no element is drawn for it at all.
+  const [said, setSaid] = useState('');
+  // The listener's own detach, parked where the next press and the unmount below reach the same
+  // one -- so no listener outlives the press that made it.
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
   // ONE PRESS, ONE FILE -- the same ref latch the PDF control uses, and for the same reason.
   const busyRef = useRef(false);
   const doSave = () => {
@@ -3144,11 +3409,25 @@ const SaveReplyImageButton = ({ getText, getSource }) => {
         text: payload,
         source: (typeof getSource === 'function') ? getSource() : '',
       });
-      const a = document.createElement('a');
-      a.href = card.url;
-      a.download = EZIK_CARD_FILE;
-      a.click();
-      setFlash('');
+      // ONE DOOR, TWO DELIVERIES BEHIND IT. Which one is decided on the bridge's presence and
+      // nowhere else, and when there is no bridge the four lines below are the ones that were
+      // always here -- the same anchor, the same data: URL, the same filename, the same click.
+      const bridge = ezikDlBridge();
+      if (bridge) {
+        if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+        setSaid('');
+        setFlash('');
+        stopRef.current = ezikDlFromDataUrl(bridge, card.url, EZIK_CARD_FILE, (line) => {
+          stopRef.current = null;
+          setSaid(line || '');
+        });
+      } else {
+        const a = document.createElement('a');
+        a.href = card.url;
+        a.download = EZIK_CARD_FILE;
+        a.click();
+        setFlash('');
+      }
     } catch (e) {
       setFlash('fail');
       setTimeout(() => setFlash(''), 1500);
@@ -3156,9 +3435,12 @@ const SaveReplyImageButton = ({ getText, getSource }) => {
     busyRef.current = false;
   };
   return (
-    <button type="button" onClick={doSave} aria-label={EZIK_CARD_ARIA} className="ezik-focus" style={miniBtnStyle}>
-      {flash === 'wait' ? EZIK_CARD_WAIT : flash === 'fail' ? EZIK_CARD_FAIL : EZIK_CARD_LABEL}
-    </button>
+    <>
+      <button type="button" onClick={doSave} aria-label={EZIK_CARD_ARIA} className="ezik-focus" style={miniBtnStyle}>
+        {flash === 'wait' ? EZIK_CARD_WAIT : flash === 'fail' ? EZIK_CARD_FAIL : EZIK_CARD_LABEL}
+      </button>
+      {said ? <div style={s.qiblaNote}>{said}</div> : null}
+    </>
   );
 };
 
@@ -13081,7 +13363,30 @@ function BoardCard({ content }) {
 }
 
 function DocumentCard({ title, content, age }) {
-  const exportDoc = () => downloadAsWord(title || 'مستند', title || 'مستند', '<h1>' + escapeHtml(title || 'مستند') + '</h1>' + docToHtml(content));
+  // THE SHELL'S ANSWER, in the reader's own words, on the same terms as the reply card's: it
+  // stays until the next press, and in a browser it is never anything but ''.
+  const [said, setSaid] = useState('');
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  // ONE DOOR, TWO DELIVERIES. The name and the body are computed ONCE and both paths are handed
+  // the same two strings, so the document the shell writes cannot differ from the one the
+  // browser would have written. With no bridge this is the single call it always was.
+  const exportDoc = () => {
+    const name = title || 'مستند';
+    const body = '<h1>' + escapeHtml(name) + '</h1>' + docToHtml(content);
+    const bridge = ezikDlBridge();
+    if (bridge) {
+      if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+      setSaid('');
+      const doc = ezikWordDoc(name, name, body);
+      stopRef.current = ezikDlFromText(bridge, doc.html, EZIK_WORD_MIME, doc.blob.size, name, (line) => {
+        stopRef.current = null;
+        setSaid(line || '');
+      });
+      return;
+    }
+    downloadAsWord(name, name, body);
+  };
   const exportPdf = () => printAsPdf(title || 'مستند', docToHtml(content));
   const canExport = deriveCaps(age).export;
   return (
@@ -13097,6 +13402,7 @@ function DocumentCard({ title, content, age }) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-4"/></svg>
         PDF
       </button>
+      {said ? <div style={s.qiblaNote}>{said}</div> : null}
       </>)}
     </div>
   );

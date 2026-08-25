@@ -759,7 +759,21 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 93;   // 93rd: lessonsbrowse -- guards/lessons-browse-guard.cjs. The
+  const GATES_EXPECTED = 97;   // 97th: savebridge -- tools/save-bridge-measure.cjs. 94th-97th
+                               //       landed together, and the reason is a MEASUREMENT rather
+                               //       than tidiness: tools/delete-truth-measure.cjs stood RED on
+                               //       main for a whole round and nobody saw it, because it was
+                               //       run by hand. A proof nothing runs is a proof of nothing.
+                               //       So the four seam measures joined the roster the suite
+                               //       executes: locationbridge (the location handshake),
+                               //       deletetruth (what the delete page promises against what it
+                               //       erases), schedulepayload (the notification pipe) and
+                               //       savebridge (the download handshake -- seven fields, the
+                               //       string "1", raw byte counts, and the deliberate absence of
+                               //       any deadline). Every one of them lifts real source out of
+                               //       app.jsx through @babel/parser and kills its own mutants;
+                               //       none of them touches the network, a browser or a device.
+                               // 93rd: lessonsbrowse -- guards/lessons-browse-guard.cjs. The
                                //       server-only lessons browse edge, its three exact response
                                //       whitelists, fixed failure classes and two killed mutants.
                                // 92nd: fiqhindex -- guards/fiqh-index-guard.cjs. The compressed
