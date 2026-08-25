@@ -113,6 +113,20 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-25   -- merge round 29: the privacy-truth correction. privacy.html and delete.html
+  //                    were the only files merged, and NEITHER is in CORE -- so CORE_BYTES did
+  //                    NOT move (1911936, re-measured by tools/core-bytes.cjs and MATCH) and no
+  //                    byte table or SW_PROSE figure moved with it. CACHE moved ezik-v29 ->
+  //                    ezik-v30 all the same, and the reason is MEASURED rather than assumed:
+  //                    the fetch handler was driven in a vm with a stub CacheStorage, and both
+  //                    pages are written into CACHE by the network-first arm on every successful
+  //                    navigation even though neither is precached -- so a reader with a dead
+  //                    network is served the OLD legal text out of the old store, and a
+  //                    non-navigate GET of either path falls through to the generic cache-first
+  //                    arm and is served the old text with a working network and no
+  //                    revalidation. activate() sweeps every store but CACHE and MUSHAF_CACHE,
+  //                    so the bump is what actually drops those copies. SW_CACHE below is
+  //                    re-cut in the SAME commit as this digest, and the digest AFTER both.
   //   2026-08-24   -- merge round 28: the khatmah tracker and the 36-B prose correction. A
   //                    completion of the whole book is now credited ONLY by a control the reader
   //                    presses -- the eight-second dwell timer that credits the daily wird reaches
@@ -262,7 +276,7 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': '6d9b8a2b09ca91837bcb2260342e9a5c9707bb460cd7fc3d76d25332704728ea',
+  'sw.js': 'e6862f1c18951574c8c5a918d702d233ff7e41c1b123253093da262c8882863b',
 };
 
 // ---------------------------------------------------------------------------
@@ -286,7 +300,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v29';
+const SW_CACHE = 'ezik-v30';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
