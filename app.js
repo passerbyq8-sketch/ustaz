@@ -234,11 +234,22 @@ const alignRecite=(expected,heard)=>{const m=expected.length,n=heard.length;if(m
 const dp=Array.from({length:m+1},()=>new Int32Array(n+1));for(let i=m-1;i>=0;i--){for(let j=n-1;j>=0;j--){dp[i][j]=close(expected[i],heard[j])?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);}}const matched=new Array(m).fill(false);let i=0,j=0;while(i<m&&j<n){if(close(expected[i],heard[j])){matched[i]=true;i++;j++;}else if(dp[i+1][j]>=dp[i][j+1])i++;else j++;}let furthest=-1;for(let k=0;k<m;k++)if(matched[k])furthest=k;const states=new Array(m);for(let k=0;k<m;k++)states[k]=matched[k]?'matched':k<furthest?'mismatch':'pending';return states;};// ============================================================
 // المُطبِّعُ الذكيّ للتمييزِ الأحمر — الرسمُ مقابلَ النطق
 // ============================================================
-// THE ONE WORD. Red marking is OFF. Flip this to true and the memorizer's «سمِّعني» starts
-// colouring a wrong word red; leave it false and the screen behaves exactly as it does today --
-// alignRecite decides, and every 'mismatch' it returns is shown black. Nothing else in this file
-// reads it, and nothing below it runs while it is false.
-const MEM_RED_FLAGGING=false;//
+// THE SWITCH. Red marking is OFF for everyone, and `?memred=1` turns it on FOR THAT VISIT.
+// With it off the screen behaves exactly as it did before this matcher existed: alignRecite
+// decides, every 'mismatch' it returns is shown black, and nothing below this line runs at all.
+//
+// IT DOES NOT WRITE ANYTHING DOWN, and that is the one way it differs from the three switches
+// this file already has (adhkarui, madinaimg, mushafsvg). Those persist the answer to
+// localStorage so it survives the next visit without the parameter. This one must NOT: a reader
+// who tries the red marking once and closes the tab has to get the old screen back by opening
+// the app normally, not by remembering to append ?memred=0. A switch that can redden a child's
+// recitation is a switch that has to expire on its own, and the URL is the only thing holding it.
+//
+// Every failure answers FALSE. No window, no location, a storage-blocked origin, a URL the
+// platform refuses to parse -- each one throws, and each one lands on the default, because the
+// default is the safe direction: a missed slip costs a child nothing, a false red costs them
+// the belief that they recited it wrong.
+const readMemRedFlag=()=>{try{return new URLSearchParams(window.location.search).get('memred')==='1';}catch(e){return false;}};const MEM_RED_FLAGGING=readMemRedFlag();//
 // WHY A SECOND MATCHER AT ALL. normalizeForRecite compares on WORD IDENTITY after deleting every
 // mark, and that is why red had to be switched off: it deletes U+0670 as if it were decoration,
 // so ٱلرَّحْمَـٰنِ becomes «الرحمن» -- which is right -- and أَعْطَيْنَـٰكَ becomes «اعطينك», which no

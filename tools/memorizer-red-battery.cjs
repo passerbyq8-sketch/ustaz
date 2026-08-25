@@ -60,7 +60,7 @@ function initializer(name) {
 const sandbox = {};
 vm.createContext(sandbox);
 const HOISTED = [
-  'MEM_RED_FLAGGING', 'RECITE_RED_HAMZAT', 'RECITE_RED_DAGGER', 'RECITE_RED_SMALL_WAW',
+  'readMemRedFlag', 'MEM_RED_FLAGGING', 'RECITE_RED_HAMZAT', 'RECITE_RED_DAGGER', 'RECITE_RED_SMALL_WAW',
   'RECITE_RED_SMALL_YA', 'RECITE_RED_SMALL_HIGH_YA', 'RECITE_RED_HAMZA_ABOVE',
   'RECITE_RED_SILENT', 'RECITE_RED_DROP', 'reciteRedAccepts', 'recitePattern',
   'normalizeHeardRed', 'tokenizeHeardRed', 'patternsForVerse', 'redWordSim',
@@ -578,9 +578,47 @@ inv('no correct recitation was reddened', falseRedPairs === 0, falseRedPairs + '
       + redVerses + ' verses reddened (' + redWords + ' words)', redVerses === 0, firstBad);
   }
 }
-inv('the shipped flag is still off', sandbox.MEM_RED_FLAGGING === false,
-  'MEM_RED_FLAGGING is ' + sandbox.MEM_RED_FLAGGING + ' -- the app would redden words tonight');
-inv('the red path is never reached while the flag is off', /MEM_RED_FLAGGING$/.test('MEM_RED_FLAGGING')
+// THE SWITCH, EXECUTED. Not read off the source -- run, against every shape of window a real
+// browser can hand it. A switch that is merely GREPPED for is a switch nobody has tried.
+{
+  const drive = (win) => {
+    const ctx = { URLSearchParams };
+    if (win !== undefined) ctx.window = win;
+    vm.createContext(ctx);
+    return vm.runInContext('(' + initializer('readMemRedFlag') + ')()', ctx);
+  };
+  const CASES = [
+    ['no parameter at all', { location: { search: '' } }, false],
+    ['?memred=1', { location: { search: '?memred=1' } }, true],
+    ['?memred=0', { location: { search: '?memred=0' } }, false],
+    ['?memred=true', { location: { search: '?memred=true' } }, false],
+    ['?memred= (empty)', { location: { search: '?memred=' } }, false],
+    ['?memred=1 beside other parameters', { location: { search: '?a=2&memred=1&b=3' } }, true],
+    ['?memred=11', { location: { search: '?memred=11' } }, false],
+    ['?MEMRED=1 (the name is case sensitive)', { location: { search: '?MEMRED=1' } }, false],
+    ['a different parameter entirely', { location: { search: '?madinaimg=1' } }, false],
+    ['no window object', undefined, false],
+    ['a window with no location', {}, false],
+    ['a location that throws when read', { get location() { throw new Error('blocked origin'); } }, false],
+  ];
+  let bad = 0, worst = null;
+  for (const [label, win, want] of CASES) {
+    let got;
+    try { got = drive(win); } catch (e) { got = 'THREW: ' + e.message; }
+    if (got !== want) { bad++; if (!worst) worst = label + ' answered ' + got + ', wanted ' + want; }
+  }
+  inv('the ?memred switch answers correctly in all ' + CASES.length + ' shapes, and every failure answers false', bad === 0, worst);
+}
+// AND THE DEFAULT IS OFF. This battery runs with no window at all, so the constant the module
+// evaluated to is the one every reader who does not type the parameter gets.
+inv('the shipped default is off -- a reader who does not ask for it cannot be reddened',
+  sandbox.MEM_RED_FLAGGING === false,
+  'MEM_RED_FLAGGING evaluated to ' + sandbox.MEM_RED_FLAGGING + ' with no URL -- the app would redden by default');
+// The switch must not survive the visit. localStorage would make one curious tap permanent.
+inv('the switch writes nothing down',
+  !/localStorage/.test(initializer('readMemRedFlag')),
+  'readMemRedFlag touches localStorage -- ?memred=1 would outlive the tab that asked for it');
+inv('the red path is never reached unless the switch is on', /MEM_RED_FLAGGING$/.test('MEM_RED_FLAGGING')
   && raw.indexOf('MEM_RED_FLAGGING\n        ? alignReciteRed(') !== -1
   && raw.indexOf('const shown = MEM_RED_FLAGGING ? currentSlice :') !== -1,
   'the call site no longer guards both the alignment and the shown state on the one constant');

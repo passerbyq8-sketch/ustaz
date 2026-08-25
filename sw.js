@@ -103,7 +103,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 122884 + app.js 1075306 + icon-watermark.png 368386
+//   /  (index.html) 122884 + app.js 1076271 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + icon-maskable-512.png 5938 + icon-192.png 5053
 //   + manifest.json 533
@@ -119,7 +119,7 @@ const CORE = [
 // the pre-check then reserves less room than CORE needs and install is merely pessimistic.
 // A constant that LEADS would let install start a precache that cannot finish, which is why
 // B12 fails downward only.
-const CORE_BYTES = 1910971;
+const CORE_BYTES = 1911936;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
