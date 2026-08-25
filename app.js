@@ -2499,7 +2499,9 @@ const EZIK_REVEAL_MS=28;const EZIK_REVEAL_DIVISOR=8;const EZIK_REVEAL_MIN_STEP=2
 // hook owns no screen state and renders nothing; it keeps <html> honest.
 // S116: the interface language, subscribed at the root. App owns every screen, so a switch
 // made anywhere redraws all of them at once -- no reload, no route change, no lost thread.
-const uiLang=useEzLang();useEzikVisualTheme();const[screen,setScreen]=useState('loading');const[selectedSurah,setSelectedSurah]=useState(null);// خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
+const uiLang=useEzLang();// 67 / 43-b / 47-b: the schedule pipe, armed at the root. It owns no screen state and renders
+// nothing; a reader who never opens the prayer sheet still has a day that needs arming.
+useEzikSchedRoot();useEzikVisualTheme();const[screen,setScreen]=useState('loading');const[selectedSurah,setSelectedSurah]=useState(null);// خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
 const[profile,setProfile]=useState(null);const[messages,setMessages]=useState([]);const[input,setInput]=useState('');// THE COMPOSER'S FOCUS, and it exists for exactly one reason: the section suggestions below
 // are stacked cards while the reader is not writing and a scrolling row of pills while they
 // are. Nothing else reads it, it is never stored, and it is not part of any payload.
@@ -4374,7 +4376,8 @@ function ensurePrayerSchedule(loc,prefs,now){const tz=-now.getTimezoneOffset();c
 // rely on. No time field, no alarm, no sound: this sentence describes a table and nothing else.
 const PRAYER_SCHEDULE_NOTE='يُحسَب على هذا الجهاز لثلاثين يومًا قادمة، بلا إنترنت، ويُعاد توليده تلقائيًّا متى بقي أقلّ من سبعة أيّام، أو متى غيّرتَ المنهج أو الإزاحة أو الموضع.';// The sunrise is not a prayer time and takes no offset. Saying so is the difference between a
 // value the reader trusts as calibrated and one they know is the calculator's own.
-const PRAYER_SUNRISE_NOTE='الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.';const PRAYER_MINUS='−';const PRAYER_PLUS='+';function PrayerTimesPanel({loc}){const[prefs,setPrefs]=useState(readPrayerPrefs);const[open,setOpen]=useState(false);const now=new Date();// The table is derived, not fetched. It is recomputed only when an input it depends on moves,
+const PRAYER_SUNRISE_NOTE='الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.';const PRAYER_MINUS='−';const PRAYER_PLUS='+';function PrayerTimesPanel({loc}){// The position and the preferences both move HERE, so the pipe is re-armed from here.
+useEzikSchedWatch();const[prefs,setPrefs]=useState(readPrayerPrefs);const[open,setOpen]=useState(false);const now=new Date();// The table is derived, not fetched. It is recomputed only when an input it depends on moves,
 // and ensurePrayerSchedule() is the one place that decides whether that means a rebuild.
 const sched=React.useMemo(()=>ensurePrayerSchedule(loc,prefs,new Date()),[loc.lat,loc.lng,prefs.method,prefs.asr,JSON.stringify(prefs.off)]);const tz=-now.getTimezoneOffset();const t=prayerTimesFor(now.getFullYear(),now.getMonth()+1,now.getDate(),loc.lat,loc.lng,tz,prefs.method,prefs.asr,prefs.off);const anyMissing=PRAYER_KEYS.some(k=>t[k]===null);return/*#__PURE__*/React.createElement(EzShellGroup,{title:PRAYER_TITLE},PRAYER_KEYS.map(k=>/*#__PURE__*/React.createElement("div",{key:k,style:s.prayerRow},/*#__PURE__*/React.createElement("span",{style:s.prayerName},PRAYER_LABELS[k]),/*#__PURE__*/React.createElement("span",{style:s.prayerTime},prayerClock(t[k])))),anyMissing?/*#__PURE__*/React.createElement("div",{style:s.qiblaNote},PRAYER_NONE):null,/*#__PURE__*/React.createElement("div",{style:s.a11yGroupLabel},PRAYER_OFFSET_LABEL),PRAYER_OFFSETTABLE.map(k=>/*#__PURE__*/React.createElement("div",{key:k,style:s.prayerRow},/*#__PURE__*/React.createElement("span",{style:s.prayerName},PRAYER_LABELS[k]),/*#__PURE__*/React.createElement("span",{className:"ez-hit",style:s.prayerStep},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>setPrefs(prayerNudgeOffset(prefs,k,-1)),"aria-label":PRAYER_LABELS[k]+' '+PRAYER_MINUS,className:"ezik-focus",style:s.prayerStepBtn},PRAYER_MINUS),/*#__PURE__*/React.createElement("span",{style:s.prayerOffVal},(prefs.off[k]>0?PRAYER_PLUS:prefs.off[k]<0?PRAYER_MINUS:'')+toArabicDigits(Math.abs(prefs.off[k]))),/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>setPrefs(prayerNudgeOffset(prefs,k,1)),"aria-label":PRAYER_LABELS[k]+' '+PRAYER_PLUS,className:"ezik-focus",style:s.prayerStepBtn},PRAYER_PLUS)))),/*#__PURE__*/React.createElement("div",{style:s.qiblaNote},PRAYER_SUNRISE_NOTE),/*#__PURE__*/React.createElement("div",{style:s.a11yGroupLabel},PRAYER_SCHEDULE_TITLE),/*#__PURE__*/React.createElement("div",{className:"ez-hit",style:s.prayerOptRow},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>setOpen(!open),"aria-expanded":open?'true':'false',className:"ezik-focus",style:s.prayerOpt},open?PRAYER_SCHEDULE_HIDE:PRAYER_SCHEDULE_SHOW)),open?sched.rec.days.map(r=>/*#__PURE__*/React.createElement("div",{key:r.day,style:s.prayerRow},/*#__PURE__*/React.createElement("span",{style:s.prayerName},r.hijri),/*#__PURE__*/React.createElement("span",{style:s.prayerTime},PRAYER_KEYS.map(k=>prayerClock(r[k])).join('  ·  ')))):null,/*#__PURE__*/React.createElement("div",{style:s.qiblaNote},PRAYER_SCHEDULE_NOTE));}// ITEM 121: preferences move as one intact unit. The storage record, option builders and
 // handlers above are unchanged; only this owner moved from the reading sheet to Settings.
@@ -4448,7 +4451,109 @@ const SHELL_LOC_TIMEOUT_MS=10000;// THE ONE PLACE lon BECOMES lng, AND THERE IS 
 // Returns {lat, lng} only for a well-formed ok:true result. ok:false -- a refusal, no position,
 // a platform error -- returns null, and so does anything malformed: both are answered the same
 // way by the caller, which is the way the browser path already answers a refusal.
-function shellLocResultCoords(detail){if(!detail||typeof detail!=='object')return null;if(detail.type!==SHELL_LOC_RESULT)return null;if(detail.ok!==true)return null;const lat=detail.lat;const lng=detail.lon;if(typeof lat!=='number'||typeof lng!=='number')return null;if(!isFinite(lat)||!isFinite(lng))return null;return{lat:lat,lng:lng};}const QIBLA_TITLE='القبلة';const QIBLA_SECTION='اتّجاه القبلة';const QIBLA_DEG_SUFFIX='درجةً عن الشمال';const QIBLA_TOWARD='نحوَ';const QIBLA_PLACE_LABEL='الموضع:';const QIBLA_PLACE_DEFAULT_NOTE='افتراضيّ';const QIBLA_DEVICE_PLACE='موقعُ هذا الجهاز';const QIBLA_USE_DEVICE='استخدمْ موقعَ هذا الجهاز';const QIBLA_USE_DEFAULT='عُدْ إلى الموضع الافتراضيّ';const QIBLA_LOC_ASKING='يُطلَبُ الإذنُ بالموقع الآن…';const QIBLA_LOC_DENIED='لم يُمنَحِ الإذنُ بالموقع، والموضعُ الافتراضيُّ باقٍ كما هو.';const QIBLA_COMPASS_START='شغِّلِ البوصلة';const QIBLA_COMPASS_WAIT='بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…';const QIBLA_COMPASS_NONE='لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.';const QIBLA_COMPASS_LIVE='البوصلةُ تدورُ مع الجهاز.';const QIBLA_BACK='رجوع';// ITEM 107: the sheet now holds both readings, so it is named for both. The tile that opens it
+function shellLocResultCoords(detail){if(!detail||typeof detail!=='object')return null;if(detail.type!==SHELL_LOC_RESULT)return null;if(detail.ok!==true)return null;const lat=detail.lat;const lng=detail.lon;if(typeof lat!=='number'||typeof lng!=='number')return null;if(!isFinite(lat)||!isFinite(lng))return null;return{lat:lat,lng:lng};}// ============================================================
+// THE SCHEDULE PIPE — أنبوبُ الجدولةِ إلى الغلاف
+// ============================================================
+// WHAT THIS IS. murabbi-shell ships a notification engine that COMPUTES NOTHING. It takes a list
+// of items, each carrying an ABSOLUTE epoch-millisecond timestamp and text already written in the
+// reader's language, and it fires them. Its contract is SCHEDULER-CONTRACT.md in that repository
+// and its implementation is src/scheduler/core.js there: one logical channel, one version number,
+// four operations, three item types, a seven-day window and a sixty-item cap. This block is the
+// web end of that contract and the ONLY place in this file that speaks it.
+//
+// ABSOLUTE IS THE ONLY TENSE IT SPEAKS. No "in twenty minutes", no local hour string, no offset
+// from anything the far side would have to interpret: one number, milliseconds since the epoch,
+// which names the same instant on both sides of the bridge whatever either side believes the time
+// zone to be. That is not a style choice -- the shell's normaliser refuses anything else, and a
+// second clock on the far side is exactly the second source this whole design exists to avoid.
+//
+// A TIME THAT HAS ALREADY PASSED IS NOT SENT. The shell would refuse it too and count it, but a
+// payload that has to be corrected on the far side is a payload this side got wrong. It is
+// dropped here, counted here by name, and the count is handed back to the caller.
+//
+// NO SHELL MEANS SILENCE, AND SILENCE MEANS SILENCE. A browser tab has no
+// window.ReactNativeWebView, so nothing is posted, nothing is thrown, and NOTHING IS WRITTEN TO
+// THE CONSOLE. The caller is told `sent: false` with a reason, and the page behaves exactly as it
+// did before this block existed. A tab is not a broken shell; it is a tab.
+//
+// THE SAME PAYLOAD IS NEVER SENT TWICE. `schedule` is an ATOMIC REBUILD on the far side: it wipes
+// everything pending and builds the whole list again. Re-sending an identical list is therefore
+// not merely wasted, it is the far side tearing down and rebuilding the same notifications for no
+// reason. The fingerprint is the serialised message itself, which is the only comparison that
+// needs no second opinion about what "the same payload" means.
+//
+// AND IT CARRIES ITS OWN BRIDGE ACCESSOR, DELIBERATELY. ezikShellBridge() above is held by
+// tools/location-bridge-measure.cjs to exactly three reference sites -- the press and the two
+// functions behind it -- because the location request must never run at boot. THIS path is the
+// opposite by design: it arms itself when the page opens, because a reader who never opens the
+// prayer sheet still has a day that needs arming. Reusing that name would make that tool's claim
+// false about a path it does not describe, so this path carries its own copy of the same
+// three-line test rather than weakening a proof that is correct.
+const SHELL_SCHED_CHANNEL='ezik-scheduler';const SHELL_SCHED_VERSION=1;const SHELL_SCHED_OP='schedule';const SHELL_SCHED_REARM_OP='rearm-request';// The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
+// not consulted here either, for the reason written out at ezikShellBridge above.
+function ezikSchedBridge(){if(typeof window==='undefined')return null;const b=window.ReactNativeWebView;if(!b||typeof b.postMessage!=='function')return null;return b;}// A DESTINATION IS CARRIED, NEVER INTERPRETED -- the shell says the same of it: an opaque string
+// stored in the notification and handed back verbatim when the reader presses it. This end judges
+// its SHAPE and deliberately NOT its length: the shell owns that number, and an over-long one
+// costs the destination and not the notification, which is a lawful outcome it counts. Mirroring
+// the number here would be a second copy of a limit with one owner.
+function ezikSchedRoute(raw){if(typeof raw!=='string')return null;const t=raw.trim();if(!t)return null;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);if(c<32||c===127)return null;}return t;}// THE ONE PLACE A SCHEDULE MESSAGE IS BUILT, AND THE WHITELIST IS THE POINT. Every field of every
+// item is copied out BY NAME. Nothing a caller happens to be holding -- a `lng`, a `lat`, a whole
+// stored position record -- can ride along into the payload, because the payload is CONSTRUCTED
+// rather than forwarded. What crosses the bridge is what this function built, field for field.
+//
+// A CLOCK THIS FUNCTION CANNOT READ DROPS EVERYTHING. A `nowMs` that is not a finite number is
+// not treated as "no lower bound"; it is treated as a bound nothing can clear. An unusable clock
+// must send no notification, never an unchecked one.
+function ezikSchedPayload(items,nowMs){const dropped={notAnObject:0,badTime:0,past:0,missingType:0,missingText:0,duplicateId:0};const now=typeof nowMs==='number'&&isFinite(nowMs)?nowMs:Infinity;const list=Array.isArray(items)?items:[];const seen=new Set();const out=[];for(let i=0;i<list.length;i++){const it=list[i];if(!it||typeof it!=='object'||Array.isArray(it)){dropped.notAnObject++;continue;}const at=it.at;// Absolute, whole, and a real instant. A fractional millisecond is not a bad time on the far
+// side, but it is a time this end did not mean, and it would make the fingerprint depend on
+// arithmetic noise rather than on the payload.
+if(typeof at!=='number'||!isFinite(at)||Math.trunc(at)!==at||at<=0){dropped.badTime++;continue;}if(at<=now){dropped.past++;continue;}if(typeof it.type!=='string'||!it.type.trim()){dropped.missingType++;continue;}if(typeof it.title!=='string'||!it.title.trim()){dropped.missingText++;continue;}if(typeof it.body!=='string'||!it.body.trim()){dropped.missingText++;continue;}const type=it.type.trim();// A stable key, derived when it is not given. Deriving a key is not composing text.
+const id=typeof it.id==='string'&&it.id.trim()?it.id.trim():type+':'+at;if(seen.has(id)){dropped.duplicateId++;continue;}seen.add(id);const rec={id:id,type:type,at:at,title:it.title.trim(),body:it.body.trim()};const route=ezikSchedRoute(it.route);if(route!==null)rec.route=route;out.push(rec);}// NEAREST FIRST, and the tie broken by the key so that the same list always prints the same
+// bytes -- a fingerprint that depends on input order is not a fingerprint. The shell cuts the
+// FARTHEST when its cap is reached, so an ascending list is the list whose losses are the ones
+// with time left to be armed again.
+out.sort((a,b)=>a.at===b.at?a.id<b.id?-1:a.id>b.id?1:0:a.at-b.at);return{message:{channel:SHELL_SCHED_CHANNEL,v:SHELL_SCHED_VERSION,op:SHELL_SCHED_OP,items:out},dropped:dropped};}// THE FINGERPRINT OF A PAYLOAD THAT CARRIES NOTHING, and what "last sent" starts as. A page that
+// opens with nothing to arm says nothing to the shell at all. The first payload that carries
+// something differs from this and goes. And a later return to nothing differs AGAIN and is sent --
+// which is how "the reader turned everything off" reaches the far side, because an atomic rebuild
+// from an empty list is precisely a cancel.
+const SHELL_SCHED_EMPTY=JSON.stringify(ezikSchedPayload([],0).message);let ezikSchedLastSent=SHELL_SCHED_EMPTY;// THE SEND. It answers with what HAPPENED rather than with what was intended -- sent or not, and
+// when not, why not -- so a caller reports the truth. It writes nothing to the console in any
+// branch and throws in none of them.
+function ezikSchedSend(items,nowMs){const built=ezikSchedPayload(items,nowMs);const count=built.message.items.length;const bridge=ezikSchedBridge();if(!bridge)return{sent:false,reason:'no-shell',items:count,dropped:built.dropped};const print=JSON.stringify(built.message);if(print===ezikSchedLastSent)return{sent:false,reason:'unchanged',items:count,dropped:built.dropped};try{bridge.postMessage(print);}catch(e){return{sent:false,reason:'bridge-refused',items:count,dropped:built.dropped};}ezikSchedLastSent=print;return{sent:true,reason:null,items:count,dropped:built.dropped};}// WHAT RIDES THE PIPE TODAY: NOTHING, AND THAT IS THE STATE OF THE ROUND RATHER THAN AN OVERSIGHT.
+// The pipe is the first half of this round; the feeds are the second. Of the three feeds only one
+// has an anchor in this client to ride from -- the prayer times, which are computed here already.
+// The other two have NONE: there is no reminder-time setting anywhere in this file, for the
+// adhkar and wird portion or for the daily content, and the layer that holds those choices says
+// in its own words why it has no time field in it. Inventing one here would be inventing a
+// screen, a key and a default the owner never chose. So this returns an empty list, the pipe
+// stays silent because an empty payload matches the fingerprint it starts on, and the report for
+// this round names all three feeds as open rather than pretending any of them shipped.
+function ezikSchedItems(){return[];}// THE ARM. It rebuilds the WHOLE payload -- never a difference, never an addition -- and hands it
+// to the pipe, which decides whether anything actually goes.
+function ezikSchedArm(){return ezikSchedSend(ezikSchedItems(),Date.now());}// THE ROOT TRIGGERS. Mounted once, at the top of App, because a reader who never opens the prayer
+// sheet still has a day that needs arming.
+//
+//   * THE PAGE OPENED             -- the effect body itself, once;
+//   * THE APPLICATION CAME BACK   -- the shell's own `rearm-request`, which is the message it
+//                                    sends for exactly this and for no other reason, plus the
+//                                    browser's own three signals for the same event;
+//   * ANOTHER TAB WROTE A STORE   -- `storage`, which fires in the tabs that did NOT write;
+//   * THE LOCAL DAY TURNED        -- a timer set for the next local midnight and re-set from
+//                                    inside itself, so a page left open for a week arms once a
+//                                    day. Five seconds past the hour, not on it, so a clock that
+//                                    is a moment fast cannot fire on the day that is ending.
+function useEzikSchedRoot(){useEffect(()=>{if(typeof window==='undefined')return undefined;let midnight=null;const wake=()=>{ezikSchedArm();};const onShell=ev=>{const d=ev&&ev.detail;if(!d||typeof d!=='object')return;if(d.channel!==SHELL_SCHED_CHANNEL||d.op!==SHELL_SCHED_REARM_OP)return;ezikSchedArm();};const atMidnight=()=>{const n=new Date();const next=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,5,0);let wait=next.getTime()-n.getTime();if(!isFinite(wait)||wait<1000)wait=1000;midnight=setTimeout(()=>{ezikSchedArm();atMidnight();},wait);// 🔴 A TIMER MUST NOT HOLD A HARNESS OPEN, and this is not theoretical: runtime-gate.cjs
+// mounts this very tree under node and then waits for the event loop to DRAIN before it
+// reports. A handle for tomorrow midnight keeps that process alive until tomorrow, so the
+// gate hangs rather than fails -- which is worse than failing. In a browser setTimeout
+// returns a number, this guard finds no unref on it, and nothing at all changes.
+if(midnight&&typeof midnight.unref==='function')midnight.unref();};try{window.addEventListener(SHELL_SCHED_CHANNEL,onShell);window.addEventListener('pageshow',wake);window.addEventListener('focus',wake);window.addEventListener('storage',wake);document.addEventListener('visibilitychange',wake);}catch(e){return undefined;}ezikSchedArm();atMidnight();return()=>{if(midnight){clearTimeout(midnight);midnight=null;}try{window.removeEventListener(SHELL_SCHED_CHANNEL,onShell);window.removeEventListener('pageshow',wake);window.removeEventListener('focus',wake);window.removeEventListener('storage',wake);document.removeEventListener('visibilitychange',wake);}catch(e){}};},[]);}// THE TWO REMAINING TRIGGERS -- the position moved, the preferences moved -- and they are ONE
+// line, because the component that owns both re-renders when either of them does. The effect
+// carries NO dependency array on purpose: it runs after every render of its caller, and the
+// fingerprint above makes a redundant arm free. That is cheaper and more honest than a second
+// copy of the list of things a payload is computed from.
+function useEzikSchedWatch(){useEffect(()=>{ezikSchedArm();});}const QIBLA_TITLE='القبلة';const QIBLA_SECTION='اتّجاه القبلة';const QIBLA_DEG_SUFFIX='درجةً عن الشمال';const QIBLA_TOWARD='نحوَ';const QIBLA_PLACE_LABEL='الموضع:';const QIBLA_PLACE_DEFAULT_NOTE='افتراضيّ';const QIBLA_DEVICE_PLACE='موقعُ هذا الجهاز';const QIBLA_USE_DEVICE='استخدمْ موقعَ هذا الجهاز';const QIBLA_USE_DEFAULT='عُدْ إلى الموضع الافتراضيّ';const QIBLA_LOC_ASKING='يُطلَبُ الإذنُ بالموقع الآن…';const QIBLA_LOC_DENIED='لم يُمنَحِ الإذنُ بالموقع، والموضعُ الافتراضيُّ باقٍ كما هو.';const QIBLA_COMPASS_START='شغِّلِ البوصلة';const QIBLA_COMPASS_WAIT='بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…';const QIBLA_COMPASS_NONE='لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.';const QIBLA_COMPASS_LIVE='البوصلةُ تدورُ مع الجهاز.';const QIBLA_BACK='رجوع';// ITEM 107: the sheet now holds both readings, so it is named for both. The tile that opens it
 // is renamed with it -- one tile, one sheet, one position.
 const PRAYER_SHEET_TITLE='الصلاة والقبلة';const QIBLA_NEEDLE_MS=4000;function QiblaPanel({loc,onLoc}){const setLoc=onLoc;const[locState,setLocState]=useState('');// 'off' before the reader asks; 'wait' while listening; 'live' once a real heading arrived;
 // 'none' when the listening window closed with nothing usable in it.

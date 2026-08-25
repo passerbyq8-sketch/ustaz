@@ -142,6 +142,23 @@ const SEALED = {
   //                    above to survive the sweep. SW_CACHE below is re-cut in the SAME commit
   //                    as this digest -- it is the only mirror, re-checked by grep across the
   //                    tree -- and the digest AFTER both. app.js / app.jsx untouched here.
+  //   2026-08-25   -- the schedule pipe, the web half. app.jsx gained the web end of the shell's
+  //                    notification contract: one place that builds a schedule message with
+  //                    ABSOLUTE epoch-millisecond timestamps, drops anything already past, sends
+  //                    nothing at all when window.ReactNativeWebView is absent, and never sends
+  //                    the same payload twice. NOTHING RIDES IT YET -- the feed returns an empty
+  //                    list, so the pipe is silent in a shell as well as in a tab. app.js was
+  //                    rebuilt from that source 1082779 -> 1095406 (+12627), and app.js IS in
+  //                    CORE, so the ritual ran in this commit and in this order: `npm run
+  //                    build:app` regenerated the bundle, `node tools/core-bytes.cjs --write`
+  //                    re-cut CORE_BYTES 1918444 -> 1931071, the app.js figure in the byte table
+  //                    above that constant and its SW_PROSE mirror below both followed 1082779
+  //                    -> 1095406, and THIS digest was cut last, after all of them. sw.js is
+  //                    44266 bytes before and after, CR = 0: every figure kept its digit count
+  //                    and only its value moved. CACHE is NOT touched: the store name stays
+  //                    ezik-v32, because lifting it is a ship decision and not a work step.
+  //                    tools/schedule-payload-measure.cjs is added in the same commit and lifts
+  //                    the pipe out of app.jsx with @babel/parser to hold it to all of the above.
   //   2026-08-25   -- the delete-page truth round. app.jsx gained FOUR localStorage removals in
   //                    resetAll -- the AI-consent record, the saved qibla position, the prayer
   //                    preferences and the schedule derived from them -- because delete.html has
@@ -358,7 +375,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': '4dc758485da7a9b069070ad27bf93ea7fc805222590d5a442ba17920d81388b7',
+  'sw.js': '9360dbc91fda595ce039fc6179dc96fe43e6557bbe0c47e2b0062baa18a2581b',
 };
 
 // ---------------------------------------------------------------------------
@@ -1468,7 +1485,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1082779, of: 'app.js' },
+      { n: 1095406, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
