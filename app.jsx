@@ -14068,6 +14068,50 @@ function clearQiblaLoc() {
   return readQiblaLoc();
 }
 
+// THE SHELL, AND THE ONLY HONEST TEST FOR IT. The native shell injects window.ReactNativeWebView
+// into the page it hosts; a browser tab has no such object. That injected bridge is therefore the
+// whole test, and navigator.userAgent is deliberately not consulted anywhere on this path -- a UA
+// string is something the reader can change and the shell does not own, so a UA sniff would send
+// a plain browser down the shell path and leave the reader pressing a button nothing answers.
+// Returns the bridge itself (so the caller cannot re-read a different window) or null.
+function ezikShellBridge() {
+  if (typeof window === 'undefined') return null;
+  const b = window.ReactNativeWebView;
+  if (!b || typeof b.postMessage !== 'function') return null;
+  return b;
+}
+// THE TWO-MESSAGE CONTRACT, AS THE SHELL HALF SHIPPED IT. The web asks by posting the request
+// through the bridge; the shell answers by dispatching a window event of this name whose payload
+// is in .detail. Both names are literals of the shell's choosing and neither may drift.
+const SHELL_LOC_REQUEST = 'ezik:location:request';
+const SHELL_LOC_RESULT = 'ezik:location:result';
+// THE WEB OWNS THE CLOCK. The shell waits for the platform without a deadline of its own, on
+// purpose, so the deadline lives here -- and it is the same 10000 the browser path already hands
+// to getCurrentPosition, because the reader is waiting on one button either way.
+const SHELL_LOC_TIMEOUT_MS = 10000;
+
+// THE ONE PLACE lon BECOMES lng, AND THERE IS NO SECOND ONE. The shell says `lon` and every other
+// line in this file says `lng`; the rename happens here so the shell's object is never handed to
+// writeQiblaLoc raw and no caller has to remember which vocabulary it is holding.
+//
+// NO SECOND ROUNDING. The shell already cuts each coordinate to two decimals (~1.1 km) before it
+// sends it, and that is the precision the store listing declares. Nothing here rounds again and
+// nothing here demands better; the numbers are passed through as they arrived.
+//
+// Returns {lat, lng} only for a well-formed ok:true result. ok:false -- a refusal, no position,
+// a platform error -- returns null, and so does anything malformed: both are answered the same
+// way by the caller, which is the way the browser path already answers a refusal.
+function shellLocResultCoords(detail) {
+  if (!detail || typeof detail !== 'object') return null;
+  if (detail.type !== SHELL_LOC_RESULT) return null;
+  if (detail.ok !== true) return null;
+  const lat = detail.lat;
+  const lng = detail.lon;
+  if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+  if (!isFinite(lat) || !isFinite(lng)) return null;
+  return { lat: lat, lng: lng };
+}
+
 const QIBLA_TITLE = 'القبلة';
 const QIBLA_SECTION = 'اتّجاه القبلة';
 const QIBLA_DEG_SUFFIX = 'درجةً عن الشمال';
@@ -14097,12 +14141,55 @@ function QiblaPanel({ loc, onLoc }) {
   const [compass, setCompass] = useState('off');
   const [heading, setHeading] = useState(null);
   const stopRef = useRef(null);
-  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  // The shell listener's detach, parked where a later press, the deadline, and the unmount below
+  // can all reach the same one. It rides the compass's teardown rather than adding a second
+  // effect beside it: this panel goes away once, so one effect should be what answers that.
+  const locStopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; } }, []);
 
   const bearing = qiblaBearing(loc.lat, loc.lng);
 
+  // THE SHELL ARM OF THE ONE BUTTON. Attached inside the press and nowhere else, and one shot:
+  // the first result detaches it, the timeout detaches it, unmount detaches it, and a second press
+  // detaches whatever the first press left before it attaches its own. So no listener outlives the
+  // press that made it, and a result that arrives after its deadline finds nothing listening and
+  // writes nothing -- the stale position that would otherwise overwrite a fresh one never lands.
+  const askLocationViaShell = (bridge) => {
+    if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
+    setLocState('asking');
+    let timer = null;
+    const stopListening = () => {
+      if (timer) { clearTimeout(timer); timer = null; }
+      try { window.removeEventListener(SHELL_LOC_RESULT, onResult); } catch (e) {}
+      locStopRef.current = null;
+    };
+    const onResult = (ev) => {
+      const coords = shellLocResultCoords(ev && ev.detail);
+      stopListening();
+      // ok:false IS A LAWFUL ANSWER, NOT A FAULT. A refusal ends exactly where the browser's own
+      // refusal ends today: the same one line of prose, the default position still standing. No
+      // error screen, no silence, nothing thrown.
+      if (!coords) { setLocState('denied'); return; }
+      setLoc(writeQiblaLoc(coords.lat, coords.lng));
+      setLocState('');
+    };
+    try { window.addEventListener(SHELL_LOC_RESULT, onResult); }
+    catch (e) { setLocState('denied'); return; }
+    timer = setTimeout(() => { stopListening(); setLocState('denied'); }, SHELL_LOC_TIMEOUT_MS);
+    locStopRef.current = stopListening;
+    try { bridge.postMessage(JSON.stringify({ type: SHELL_LOC_REQUEST })); }
+    catch (e) { stopListening(); setLocState('denied'); }
+  };
+
   // EXPLICIT TOUCH, THEN THE PERMISSION. Nothing on this path runs at mount.
+  //
+  // ONE DOOR, TWO SOURCES BEHIND IT. This is the same button the reader already presses; the only
+  // thing that changed is that the answer may now come from the shell instead of the tab. Which
+  // one is decided here, on the bridge's presence, and nowhere else -- and when there is no shell
+  // the lines below are the ones that were always here, unchanged down to the timeout.
   const askLocation = () => {
+    const bridge = ezikShellBridge();
+    if (bridge) { askLocationViaShell(bridge); return; }
     if (typeof navigator === 'undefined' || !navigator.geolocation) { setLocState('denied'); return; }
     setLocState('asking');
     try {
