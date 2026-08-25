@@ -470,5 +470,25 @@
     "name": "lessonsbrowse",
     "script": "guards/lessons-browse-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "locationbridge",
+    "script": "tools/location-bridge-measure.cjs",
+    "args": ""
+  },
+  {
+    "name": "deletetruth",
+    "script": "tools/delete-truth-measure.cjs",
+    "args": ""
+  },
+  {
+    "name": "schedulepayload",
+    "script": "tools/schedule-payload-measure.cjs",
+    "args": ""
+  },
+  {
+    "name": "savebridge",
+    "script": "tools/save-bridge-measure.cjs",
+    "args": ""
   }
 ]
