@@ -113,6 +113,35 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-25   -- the store lift for the delete-page truth round. CACHE ezik-v31 ->
+  //                    ezik-v32. MEASURED FIRST, because the bump is only justified if a
+  //                    returning reader is actually being served the old bytes, and the file
+  //                    that forces it IS in CORE: app.js, which the commit below rebuilt
+  //                    1081237 -> 1082779 when resetAll gained the four erasures delete.html
+  //                    had already promised. sw.js was driven in a vm with a stub CacheStorage
+  //                    recording every match, put, add and delete, and a fetch that COUNTS its
+  //                    calls: install add()s 10 CORE entries into the store and '/app.js' is
+  //                    one of them, and a GET of it on a WORKING network is then answered out
+  //                    of the store with ZERO network calls -- same-origin static assets match
+  //                    no earlier branch and land in the generic cache-first arm (sw.js:741),
+  //                    which returns the hit and never revalidates. So a returning reader keeps
+  //                    the OLD bundle -- and with it the OLD resetAll, the one that did not keep
+  //                    the page's promise -- for as long as the store keeps its name, not merely
+  //                    while offline. With CACHE lifted, activate's sweep (sw.js:434) deletes
+  //                    exactly ezik-v31 and spares ezik-mushaf-pages-v1, and install repopulates
+  //                    with the new bundle. THE CONTROL WAS RUN TOO: without the lift, activate
+  //                    deletes nothing and the old bundle is still served on a live network.
+  //                    The bump is the thing that drops it. NOTHING ELSE MOVED -- CORE_BYTES
+  //                    stays 1918444 (sw.js is not in CORE and no CORE file's size changed in
+  //                    THIS commit; app.js was rebuilt in the commit below and CORE_BYTES was
+  //                    re-cut there, with it; re-measured by tools/core-bytes.cjs: MATCH), and
+  //                    no byte-table or SW_PROSE figure moved, since 'ezik-v31' and 'ezik-v32'
+  //                    are both eight characters and sw.js did not change length: 44266 bytes
+  //                    before and after, CR = 0, as the note above requires. MUSHAF_CACHE stays
+  //                    ezik-mushaf-pages-v1, unversioned by design (item 33), and measured
+  //                    above to survive the sweep. SW_CACHE below is re-cut in the SAME commit
+  //                    as this digest -- it is the only mirror, re-checked by grep across the
+  //                    tree -- and the digest AFTER both. app.js / app.jsx untouched here.
   //   2026-08-25   -- the delete-page truth round. app.jsx gained FOUR localStorage removals in
   //                    resetAll -- the AI-consent record, the saved qibla position, the prayer
   //                    preferences and the schedule derived from them -- because delete.html has
@@ -329,7 +358,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': '0ead72866fa10abe2d51bc1ab8b7fa407b06433cbe62f2019f652a10b0c0ca7f',
+  'sw.js': '4dc758485da7a9b069070ad27bf93ea7fc805222590d5a442ba17920d81388b7',
 };
 
 // ---------------------------------------------------------------------------
@@ -353,7 +382,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v31';
+const SW_CACHE = 'ezik-v32';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
