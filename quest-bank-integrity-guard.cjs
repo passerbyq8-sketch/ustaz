@@ -113,6 +113,39 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-25   -- item 67, the second half: the READER'S SWITCH, and the path from the press
+  //                    to the first scheduled reminder. app.jsx gained one storage key
+  //                    (ezik_prayer_notify_v1), default OFF and off by construction rather than by
+  //                    a value written at first run -- exactly one string means on and every other
+  //                    reading of that slot, including a storage that throws, is off. ezikSchedItems
+  //                    is gated on it, so a reader who has not asked builds nothing and the pipe
+  //                    stays silent through all nine of its triggers. The switch is drawn inside the
+  //                    prayer times panel and ONLY inside the shell: no bridge, no control, because a
+  //                    stored preference no engine will read is a promise with nothing behind it. The
+  //                    `enable` operation -- the one thing in the contract that can raise a system
+  //                    prompt -- has a single call site, inside the press, outside every effect; a
+  //                    refusal returns the switch to off in the store and on the screen with one
+  //                    quiet line and no automatic retry; turning it off sends `cancel` once and
+  //                    moves the pipe's fingerprint with it, so no later trigger posts an empty
+  //                    rebuild dressed as a schedule. Seven dictionary keys in both languages.
+  //                    app.js was rebuilt from that source 1100763 -> 1111212 (+10449), and app.js IS
+  //                    in CORE, so the ritual ran in this commit and in this order: `npm run
+  //                    build:app` regenerated the bundle, `node tools/core-bytes.cjs --write` re-cut
+  //                    CORE_BYTES 1936428 -> 1946877, the app.js figure in the byte table above that
+  //                    constant and its SW_PROSE mirror below both followed 1100763 -> 1111212, and
+  //                    THIS digest was cut last, after all of them. sw.js is 44266 bytes before and
+  //                    after, CR = 0: both figures kept their digit count and only their values
+  //                    moved. CACHE is NOT touched: the store name stays ezik-v32, because lifting
+  //                    it is a ship decision and not a work step. tools/wird-guard.cjs (gate 107) is
+  //                    NOT touched either -- the switch is named and worded to clear its ban rather
+  //                    than the ban widened to clear the switch, and the component is declared
+  //                    OUTSIDE the panel slice that gate scans for timers and permissions.
+  //                    tools/schedule-payload-measure.cjs grew from 37 cases to 51: it now compiles
+  //                    the lifted block through @babel/core and renders the switch against a small
+  //                    React, so what is drawn is measured and not asserted. Five mutants were run
+  //                    against it -- enable sent from an effect, a refusal leaving the switch on, an
+  //                    off that cancels nothing, a gate removed, and the switch drawn without a
+  //                    shell -- and all five went red; app.jsx came back byte for byte after each.
   //   2026-08-25   -- the store lift for the delete-page truth round. CACHE ezik-v31 ->
   //                    ezik-v32. MEASURED FIRST, because the bump is only justified if a
   //                    returning reader is actually being served the old bytes, and the file
@@ -397,7 +430,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': '344c06dc0f3d4e22324c3ad9c9c0b950559ea58c3c87bf3074fd9c9d1e23b388',
+  'sw.js': 'ee817dd2fc548977d7558f191330449bd3043b9dd81dcb867ef6326607d3ba45',
 };
 
 // ---------------------------------------------------------------------------
@@ -1507,7 +1540,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1100763, of: 'app.js' },
+      { n: 1111212, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
