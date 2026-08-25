@@ -466,6 +466,13 @@ tools/babel-block.cjs text eol=lf
 app.js                   text eol=lf
 tools/build-app.cjs      text eol=lf
 
+# tools/location-bridge-measure.cjs (location, web half) -- pinned for the reason every tool
+# beside it is pinned. It lifts function source out of app.jsx by byte offset and evaluates it,
+# and app.jsx is itself pinned to LF below; a checkout that rewrote THIS file's endings would not
+# change what it measures, but a tool that reports on line endings while carrying CR of its own
+# is the defect 40 shape one layer up. Pinned by name, like the rest.
+tools/location-bridge-measure.cjs text eol=lf
+
 # vendor/*.js + app.jsx (item 32) -- MEASURED, and this is defect 40 in its most expensive form.
 # index.html now loads vendor/react.umd.js and vendor/react-dom.umd.js with an SRI hash, and a
 # hash is cut over BYTES. Both files are stored in git as LF (10751 and 131835 bytes) and both
