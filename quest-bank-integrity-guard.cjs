@@ -113,6 +113,33 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-25   -- THE SAVE PIPE: the web half of the shell's download handler. app.jsx gained
+  //                    ONE place that builds a download request and ONE that posts it -- seven
+  //                    fields, `v` the STRING "1" and never the number, `b64` standard-alphabet
+  //                    with the data: prefix cut through the comma and no whitespace in it, and
+  //                    `size` the RAW byte count re-derived from the very characters sent rather
+  //                    than guessed. The four-mebibyte limit is mirrored on this side so an
+  //                    oversized file is never carried across to be handed back. There is NO
+  //                    DEADLINE on the path, deliberately and provably: the shell answers only
+  //                    after the reader closes the platform share sheet, which can take minutes,
+  //                    so a timer that failed the request would be a lie about a save still open.
+  //                    Without the bridge both presses are byte-identical to what they were: the
+  //                    same anchor, the same download name, the same blob, zero messages and zero
+  //                    new lines drawn. Six dictionary keys in both languages carry the shell's
+  //                    five reasons and a general sixth, so no contract word reaches a screen.
+  //                    app.js was rebuilt from that source 1111212 -> 1126907 (+15695), and app.js
+  //                    IS in CORE, so the ritual ran in this commit and in this order: `npm run
+  //                    build:app` regenerated the bundle, `node tools/core-bytes.cjs --write`
+  //                    re-cut CORE_BYTES 1946877 -> 1962572, the app.js figure in the byte table
+  //                    above that constant and its SW_PROSE mirror below both followed 1111212 ->
+  //                    1126907, and THIS digest was cut last, after all of them. sw.js is 44266
+  //                    bytes before and after, CR = 0: both figures kept their digit count and
+  //                    only their values moved. CACHE is NOT touched: the store name stays
+  //                    ezik-v32, because lifting it is a ship decision and not a work step.
+  //                    tools/save-bridge-measure.cjs is the new proof -- 34 cases and six mutants,
+  //                    every one of them killed. Three of those cases RENDER both seats through a
+  //                    small React and count NODES, because "nothing changed in the browser" is a
+  //                    claim about a tree and a claim about a tree is not proved by one about a press.
   //   2026-08-25   -- item 67, the second half: the READER'S SWITCH, and the path from the press
   //                    to the first scheduled reminder. app.jsx gained one storage key
   //                    (ezik_prayer_notify_v1), default OFF and off by construction rather than by
@@ -430,7 +457,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': 'ee817dd2fc548977d7558f191330449bd3043b9dd81dcb867ef6326607d3ba45',
+  'sw.js': 'e33fe4e2d89e7102f363c3112ce32bb80c7bb647355ac61f3626f66d4cadeca9',
 };
 
 // ---------------------------------------------------------------------------
@@ -1540,7 +1567,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1111212, of: 'app.js' },
+      { n: 1126907, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
