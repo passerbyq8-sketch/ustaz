@@ -103,23 +103,27 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 122884 + app.js 1076271 + icon-watermark.png 368386
+//   /  (index.html) 122884 + app.js 1081237 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + icon-maskable-512.png 5938 + icon-192.png 5053
 //   + manifest.json 533
-// quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS when
-// the constant has fallen below it, so a shell that grows cannot quietly leave the pre-check
-// reading a number that stopped being true.
-// ITEM 33 / ITEM 112. The table above is measured and TRUE OF THE DISK. This CONSTANT is not:
-// it trails index.html by the bytes item 33 added to the reader. It is re-derived by
-// tools/core-bytes.cjs --write, and the MERGE ROUND is the only place that command may run --
-// item 112 owns it, and a screen that re-cuts it here would be re-cutting a number two other
-// screens are also moving. B12 below states the difference on every gate run, so it is
-// carried in the open rather than forgotten. A constant that TRAILS is the safe direction:
-// the pre-check then reserves less room than CORE needs and install is merely pessimistic.
-// A constant that LEADS would let install start a precache that cannot finish, which is why
-// B12 fails downward only.
-const CORE_BYTES = 1911936;
+// quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS on any
+// deviation, so a shell that grows cannot quietly leave the pre-check reading a number that
+// stopped being true.
+// ITEM 33 / ITEM 112. The table above and this CONSTANT are both measured and both TRUE OF THE
+// DISK -- and the second half of that sentence is newer than it looks. This number used to be
+// allowed to TRAIL, on the reasoning that a pre-check reserving too little room only makes
+// install pessimistic while one reserving too much could refuse a phone that had the space, so
+// B12 failed downward only. Item 112 ended the allowance in BOTH directions: a CORE file that
+// SHRANK left the constant overstating CORE, CORE_NEED (1.5x) became stricter than the files
+// justified, and nothing anywhere went red. B12 now re-derives the sum on every gate run and
+// fails on any difference either way.
+// SO IT IS NOT A NUMBER ANY ONE ROUND OWNS. It is re-cut by `node tools/core-bytes.cjs --write`
+// and never by hand from the table above, and whoever moves a file that CORE names re-cuts this
+// constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
+// commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
+// a ship decision and the merge round owns the bump.
+const CORE_BYTES = 1916902;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.

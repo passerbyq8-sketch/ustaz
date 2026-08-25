@@ -276,7 +276,18 @@ const SEALED = {
   //                    persist() request, a reason on every recorded failure, and an eviction
   //                    rule that drops OLD stores (never the current one) and retries once.
   //                    B12 below was cut in the SAME commit as this digest.
-  'sw.js': 'e6862f1c18951574c8c5a918d702d233ff7e41c1b123253093da262c8882863b',
+  //   location web   -- the qibla button gained a second source behind it (the native shell's
+  //                    bridge, when the page is inside the shell), so app.jsx grew and the app.js
+  //                    it builds followed 1076271 -> 1081237 (+4966). app.js is in CORE, so three
+  //                    numbers moved with it and all three are re-cut in the SAME commit as this
+  //                    digest: CORE_BYTES 1911936 -> 1916902 by `node tools/core-bytes.cjs
+  //                    --write`, the byte table above that constant, and SW_PROSE below. The
+  //                    worker's own behaviour did not change -- what changed inside sw.js is one
+  //                    integer and the prose around it, and that prose was ALSO corrected: it
+  //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
+  //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
+  //                    store name is a ship decision and the merge round owns the bump.
+  'sw.js': '57978f4cbde286b713e44dd5cf886bf247f55f1e4bab6390763d6668bc550ee3',
 };
 
 // ---------------------------------------------------------------------------
@@ -1386,7 +1397,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1076271, of: 'app.js' },
+      { n: 1081237, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
