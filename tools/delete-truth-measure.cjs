@@ -318,8 +318,11 @@ const MUST_GO_ALREADY = [
   { c: 'EZIK_VISUAL_THEME_KEY_V1' },
 ];
 
-// What delete.html:94 and :138 promise and the code did NOT keep until this round. Each is mapped
-// to the clause of the page that asks for it.
+// What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is
+// mapped to the clause of the page that asks for it. The list is not frozen at the four it opened
+// with: a key added to app.jsx later that this page already promises belongs HERE, beside the
+// sentence that promises it, rather than in the roster above -- which is a record of what this
+// button was already doing and would be a lie about anything new.
 const MUST_GO_NEW = [
   { c: 'EZ_AI_CONSENT_KEY',
     clause: 'the AI-consent decision and its version number' },
@@ -329,6 +332,15 @@ const MUST_GO_NEW = [
     clause: 'the position saved for the qibla and the prayer times -- the prayer settings' },
   { c: 'PRAYER_SCHEDULE_KEY',
     clause: 'the position saved for the qibla and the prayer times -- the table derived from both' },
+  // THE SIGN-IN SESSION, ADDED WITH THE SEAM THAT WRITES IT. delete.html:94 / :138 say everything
+  // is wiped immediately -- and then :95 / :139 name exactly ONE thing that remains afterwards,
+  // the digest of the parental lock code. A session key left standing would quietly have made
+  // that one thing two, and it would have done it in the worst direction available: a reader who
+  // pressed "delete all my data" and handed the device on would have handed their signed-in
+  // address on with it. So "delete all my data" means SIGNED OUT ON THIS DEVICE, and the page
+  // keeps its promise without a letter of it being edited.
+  { c: 'AUTH_SESSION_KEY',
+    clause: 'everything is wiped immediately -- and exactly ONE thing is named as remaining' },
 ];
 
 // What must be standing afterwards, and the reason each one is allowed to stand.
@@ -517,7 +529,7 @@ run('...and every name excused from that roster really is a key into something e
 });
 
 // ---- 1. The four the page already promised. -------------------------------------------------
-run('the four the page promised and the code did not keep are gone, each by name', () => {
+run('the keys the page promises and the code did not keep are gone, each by name', () => {
   const r = press();
   const lines = [];
   for (const item of GONE_NEW) {
@@ -527,7 +539,7 @@ run('the four the page promised and the code did not keep are gone, each by name
       + item.clause + '"');
     lines.push(item.key);
   }
-  return lines.join(' · ') + ' -- all 4 gone';
+  return lines.join(' · ') + ' -- all ' + lines.length + ' gone';
 });
 
 // ---- 2. The control: what was not promised is not touched. ----------------------------------
@@ -616,8 +628,9 @@ run('answering yes still does the rest of what it did: state, screen, repaint', 
 });
 
 // ---- The lines themselves: named constants, not a second literal. ---------------------------
-run('the four new removals use the named constant, never a second string literal', () => {
-  const wanted = ['EZ_AI_CONSENT_KEY', 'QIBLA_LOC_KEY', 'PRAYER_PREFS_KEY', 'PRAYER_SCHEDULE_KEY'];
+run('the new removals use the named constant, never a second string literal', () => {
+  const wanted = ['EZ_AI_CONSENT_KEY', 'QIBLA_LOC_KEY', 'PRAYER_PREFS_KEY', 'PRAYER_SCHEDULE_KEY',
+    'AUTH_SESSION_KEY'];
   const removed = [];
   walk(V_RESET.init, (n) => {
     if (n.type !== 'CallExpression') return;

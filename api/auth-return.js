@@ -1,5 +1,11 @@
 // api/auth-return.js
-// GET /api/auth-return?code=...&state=...   -- the redirect_uri registered with the provider.
+// GET or POST /api/auth-return  (code, state)  -- the redirect_uri registered with the provider.
+//
+// BOTH VERBS, THROUGH ONE READER, AND NOT A BRANCH NAMED AFTER A PROVIDER. Apple requires
+// `response_mode=form_post` the moment `email` is in scope -- it is -- so Apple delivers this
+// redirect as a form POST while Google delivers it as a GET. That is the `responseMode` field in
+// the provider table (lib/auth/oidc.js) and `paramsOf` below, which reads the body on a POST and
+// the query on a GET. Nothing downstream of that line knows which provider it is serving.
 //
 // THE PROVIDER'S CODE STOPS HERE. It is exchanged on this server, against our client secret,
 // and what continues to the device is a TICKET: 32 random bytes naming a record that lives sixty
@@ -55,6 +61,27 @@ export const TICKET_RECORD_VERSION = 1;
 function scalar(v) { return Array.isArray(v) ? v[0] : v; }
 
 /**
+ * THE PARAMETERS, WHEREVER THE VERB PUT THEM. A GET carries them in the query; a form POST carries
+ * them in the body. The body arrives already parsed on this platform, but a raw string is handled
+ * too rather than assumed away -- a route that only works when something upstream happened to
+ * parse for it is a route with an undeclared dependency.
+ */
+function paramsOf(req) {
+  if (req.method !== 'POST') {
+    return (req.query && typeof req.query === 'object') ? req.query : {};
+  }
+  const body = req.body;
+  if (typeof body === 'string') {
+    const out = {};
+    for (const [k, v] of new URLSearchParams(body).entries()) {
+      if (!Object.prototype.hasOwnProperty.call(out, k)) out[k] = v;
+    }
+    return out;
+  }
+  return (body && typeof body === 'object') ? body : {};
+}
+
+/**
  * 302 to the app. `state` rides along on BOTH branches so the page can match the answer to the
  * press it made -- exactly as the contract requires the web half to do -- and a failure carries
  * a code and never a value.
@@ -71,49 +98,65 @@ function toApp(res, params) {
 
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    return res.status(204).end();
+  }
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'method-not-allowed' });
+  }
 
   // Fails CLOSED. This is the leg that spends OUR credentials at the provider; see the note on
   // AUTH_FAIL_OPEN in lib/ratelimit.js for why this family is the one that refuses.
   const rl = await checkAuthLimit(clientAddress(req, 'unknown'));
   if (!rl.ok) return res.status(429).json({ ok: false, error: 'auth-rate-limited' });
 
-  const query = (req.query && typeof req.query === 'object') ? req.query : {};
+  const query = paramsOf(req);
   const state = typeof scalar(query.state) === 'string' ? scalar(query.state) : '';
   const code = typeof scalar(query.code) === 'string' ? scalar(query.code) : '';
 
   if (!state) return toApp(res, { error: 'auth-state-missing' });
 
   // The reader pressed "cancel" at the provider, or the provider refused. Its `error` value is
-  // NOT echoed -- it is provider-controlled text arriving in a URL we are about to build.
-  if (typeof scalar(query.error) === 'string' && scalar(query.error).length > 0) {
-    return toApp(res, { error: 'auth-provider-denied', state });
-  }
+  // NOT echoed -- it is provider-controlled text arriving in a URL we are about to build. It is
+  // JUDGED here and ANSWERED below the consume, because the answer has to carry the PAGE's state
+  // and the page's state lives in the record. A denial ends the flow either way, so spending the
+  // record on this branch is right as well as convenient: nothing is left for a replay to find.
+  const denied = typeof scalar(query.error) === 'string' && scalar(query.error).length > 0;
 
   // CONSUMED ONCE, ATOMICALLY. A replay of this exact URL finds nothing: the read and the delete
   // are one script (lib/auth/store.js TAKE_ONCE_SCRIPT), so two simultaneous deliveries cannot
   // both see the record. An expired state is the same answer as a spent one.
   const record = await takeOnce(stateKey(state));
-  if (!record || typeof record !== 'object') return toApp(res, { error: 'auth-state-invalid', state });
-  if (!code) return toApp(res, { error: 'auth-code-missing', state });
+
+  // THE STATE HANDED BACK IS THE PAGE'S OWN, NOT OURS. `state` above is the opaque value that
+  // travelled to the provider; the page never saw it and cannot match it against the press it is
+  // waiting on. What the page minted and put on the start URL comes back under the same name --
+  // and when there is no record to read it out of (a replay, an expiry, a state nobody minted)
+  // the opaque one is echoed instead, so an answer is never shaped differently from before.
+  const echo = (record && typeof record.clientState === 'string' && record.clientState)
+    ? record.clientState : state;
+
+  if (denied) return toApp(res, { error: 'auth-provider-denied', state: echo });
+  if (!record || typeof record !== 'object') return toApp(res, { error: 'auth-state-invalid', state: echo });
+  if (!code) return toApp(res, { error: 'auth-code-missing', state: echo });
 
   const conf = providerConfig(record.provider, process.env);
-  if (!conf.ok) return toApp(res, { error: conf.code, state });
+  if (!conf.ok) return toApp(res, { error: conf.code, state: echo });
   const cfg = conf.cfg;
 
   // THE EXCHANGE. The verifier comes out of the state record -- it never travelled with the
   // reader -- and the client secret never leaves this process.
   const exchanged = await exchangeCode(cfg, { code, codeVerifier: record.codeVerifier });
-  if (!exchanged.ok) return toApp(res, { error: exchanged.code, state });
+  if (!exchanged.ok) return toApp(res, { error: exchanged.code, state: echo });
 
   const jwks = await fetchJwks(cfg);
-  if (!jwks.ok) return toApp(res, { error: jwks.code, state });
+  if (!jwks.ok) return toApp(res, { error: jwks.code, state: echo });
 
   // Signature, issuer, audience, expiry, nonce. The nonce is the one that ties this token to
   // the start WE minted; without it any valid token for this client would be accepted here.
   const verified = verifyIdToken(cfg, exchanged.idToken, { keys: jwks.keys, nonce: record.nonce });
-  if (!verified.ok) return toApp(res, { error: verified.code, state });
+  if (!verified.ok) return toApp(res, { error: verified.code, state: echo });
 
   const claims = verified.claims;
 
@@ -125,7 +168,7 @@ export default async function handler(req, res) {
     email: claims.email,
     emailVerified: claims.emailVerified,
   });
-  if (!account.ok) return toApp(res, { error: account.code, state });
+  if (!account.ok) return toApp(res, { error: account.code, state: echo });
 
   // The seam between two providers, and it opens on a PROVED address only. An unverified sign-in
   // reaches this line and writes nothing -- it still has its own account.
@@ -139,7 +182,7 @@ export default async function handler(req, res) {
     deviceId: typeof record.deviceId === 'string' ? record.deviceId : '',
     createdAt: Date.now(),
   }, TICKET_TTL_SECONDS);
-  if (!written) return toApp(res, { error: 'auth-store-unavailable', state });
+  if (!written) return toApp(res, { error: 'auth-store-unavailable', state: echo });
 
-  return toApp(res, { ticket, state });
+  return toApp(res, { ticket, state: echo });
 }

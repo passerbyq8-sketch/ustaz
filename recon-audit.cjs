@@ -759,7 +759,28 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 98;   // 98th: authserver -- tools/auth-server-measure.cjs. The server
+  const GATES_EXPECTED = 99;   // 99th: authbridge -- tools/auth-bridge-measure.cjs. The web
+                               //       half of the same sign-in, and the half that lives in
+                               //       app.jsx: the shell's four-field request, the string "1"
+                               //       that must not become a number, the one-shot listener
+                               //       matched on the press's own id, the contract's five
+                               //       refusal reasons sorted into three treatments (silence for
+                               //       a dismissal, a programming fault for a message the shell
+                               //       refused, a reader's own gesture for a device that could
+                               //       not open the sheet), the fate of a SIXTH reason nobody
+                               //       has heard of, the client state minted per press and never
+                               //       stored, and the DELIBERATE ABSENCE of any deadline -- the
+                               //       one place a timer is an error rather than an omission.
+                               //       It lifts the seam and the SettingsSheet row out of app.jsx
+                               //       through @babel/parser, compiles them with the page's own
+                               //       Babel, and renders the row against a recording React, a
+                               //       window with a real listener registry and a clock it will
+                               //       not let run. Six mutants die: a deadline armed, the id
+                               //       match removed, the version made a number, the client-state
+                               //       comparison dropped, a dismissal drawn as a red line, and
+                               //       the button drawn outside the shell. No browser, no device,
+                               //       no network, and not one byte written to the tree.
+                               // 98th: authserver -- tools/auth-server-measure.cjs. The server
                                //       half of reader sign-in: three routes (auth-start,
                                //       auth-return, auth-exchange) and the three modules under
                                //       lib/auth/. It lifts all six files out of the tree through

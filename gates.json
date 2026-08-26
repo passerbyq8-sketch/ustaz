@@ -495,5 +495,10 @@
     "name": "authserver",
     "script": "tools/auth-server-measure.cjs",
     "args": ""
+  },
+  {
+    "name": "authbridge",
+    "script": "tools/auth-bridge-measure.cjs",
+    "args": ""
   }
 ]
