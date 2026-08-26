@@ -480,6 +480,12 @@ function run(name, fn) {
   try { results.push({ name: name, ok: true, detail: fn() || '' }); }
   catch (e) { results.push({ name: name, ok: false, detail: e.message }); }
 }
+
+/** The same, for a case that has to await a store. Same array, same counting, same report. */
+async function runAsync(name, fn) {
+  try { results.push({ name: name, ok: true, detail: (await fn()) || '' }); }
+  catch (e) { results.push({ name: name, ok: false, detail: e.message }); }
+}
 function eq(actual, expected, what) {
   const a = JSON.stringify(actual);
   const b = JSON.stringify(expected);
@@ -681,8 +687,466 @@ run('delete.html still carries both promises this tool measures against', () => 
 });
 
 // ---------------------------------------------------------------------------
+// THE CONTROL ITSELF -- drawn only for a live session, and never a one-press delete.
+// ---------------------------------------------------------------------------
+// These read the real EzikSignInRow out of app.jsx through the same parser the rest of this file
+// uses. They are STRUCTURAL, and that is stated rather than glossed: the row is a React component
+// with hooks, and mounting one needs the React harness tools/auth-bridge-measure.cjs already
+// builds -- which is where "what the row draws after a sign-in" is pinned, totally, including the
+// negative that the control which actually deletes is NOT on screen until the reader arms it.
+// What is measured HERE is the shape those two presses have in the source: which branch each
+// control lives in, that `armed` opens false, that the first press reaches no network, and that
+// the device key is cleared only after the server said the account is gone.
+
+const FN_ROW = topFunction('EzikSignInRow');
+
+/** Every `X ? ... : ...` inside the row whose test is the bare identifier NAME. */
+function branchOn(name) {
+  const found = [];
+  walk(FN_ROW, (n) => {
+    if (n.type !== 'ConditionalExpression') return;
+    if (n.test.type === 'Identifier' && n.test.name === name) found.push(n);
+  });
+  return found;
+}
+
+run('the delete control is drawn ONLY where a live session already is', () => {
+  const on = branchOn('session');
+  eq(on.length, 1, 'the number of `session ? ... : ...` branches in the row');
+  const yes = text(on[0].consequent);
+  const no = text(on[0].alternate);
+  is(yes.indexOf("'auth.delete'") !== -1, 'the delete control is not inside the signed-in branch');
+  is(no.indexOf('auth.delete') === -1,
+    'a reader with NO session is offered a control for deleting an account they do not have');
+  return 'inside the session branch at app.jsx:' + startLine(on[0]) + ', absent from the other';
+});
+
+run('deleting takes TWO presses -- the control that deletes lives behind `armed`', () => {
+  let init = null;
+  walk(FN_ROW, (n) => {
+    if (n.type !== 'VariableDeclarator' || n.id.type !== 'ArrayPattern') return;
+    const first = n.id.elements[0];
+    if (first && first.type === 'Identifier' && first.name === 'armed') init = n.init;
+  });
+  is(!!init, 'EzikSignInRow no longer holds an `armed` state');
+  eq(text(init), 'useState(false)',
+    'the initial value of `armed` -- anything else opens the row already armed');
+
+  const on = branchOn('armed');
+  eq(on.length, 1, 'the number of `armed ? ... : ...` branches in the row');
+  const yes = text(on[0].consequent);
+  const no = text(on[0].alternate);
+  is(yes.indexOf('auth.deleteConfirm') !== -1, 'the confirm control is not behind `armed`');
+  is(no.indexOf('auth.deleteConfirm') === -1,
+    'the control that ACTUALLY deletes is drawn before the reader armed it -- a one-press delete');
+  is(yes.indexOf('auth.deleteTitle') !== -1 && yes.indexOf('auth.deleteBody') !== -1,
+    'the second step does not show the sentence that says what is about to be lost');
+
+  // And the FIRST press is only a press. It reaches nothing.
+  const ask = text(innerConst('EzikSignInRow', 'askDelete').init);
+  is(ask.indexOf('ezikAuthDelete') === -1 && ask.indexOf('fetch') === -1,
+    'the first press already calls the server, so the confirmation is decoration');
+  return '`armed` opens false; step one draws the sentence, step two draws the delete';
+});
+
+run('the device is signed out only AFTER the server said the account is gone', () => {
+  const calls = [];
+  walk(ast.program, (n) => {
+    if (n.type === 'CallExpression' && n.callee.type === 'Identifier'
+      && n.callee.name === 'ezikAuthDelete') calls.push(n);
+  });
+  eq(calls.length, 1, 'call sites of ezikAuthDelete in app.jsx');
+
+  const body = text(innerConst('EzikSignInRow', 'confirmDelete').init);
+  is(body.indexOf('ezikAuthDelete(') !== -1, 'the one call site is not inside confirmDelete');
+  const refuse = body.indexOf('if (!ok)');
+  const clear = body.indexOf('clearAuthSession()');
+  is(refuse !== -1, 'confirmDelete no longer refuses a falsy answer');
+  is(clear !== -1, 'confirmDelete no longer clears the local session key');
+  is(refuse < clear,
+    'the local key is cleared before the refusal is read -- a reader whose delete FAILED would be '
+    + 'signed out of an account that is still standing, with no way back to the button');
+  is(body.indexOf('auth.deleteFailed') !== -1, 'a failed delete tells the reader nothing');
+  is(body.indexOf('setSession(null)') !== -1, 'the row does not return to the signed-out state');
+  return '1 call site, inside confirmDelete; refusal read at ' + refuse + ', key cleared at ' + clear;
+});
+
+run('the six sentences exist in BOTH languages, none empty, none untranslated', () => {
+  const keys = ['auth.delete', 'auth.deleteTitle', 'auth.deleteBody', 'auth.deleteConfirm',
+    'auth.deleteDone', 'auth.deleteFailed'];
+  const lens = [];
+  for (const k of keys) {
+    const re = new RegExp("'" + k.replace(/\./g, '\\.') + "': '([^']*)'", 'g');
+    const vals = [];
+    let m;
+    while ((m = re.exec(source)) !== null) vals.push(m[1]);
+    eq(vals.length, 2, 'dictionary entries for ' + k + ' (one per language)');
+    is(vals[0].trim() !== '' && vals[1].trim() !== '', k + ' is empty in one half');
+    is(vals[0] !== vals[1], k + ' was never translated');
+    lens.push(k + ':' + vals[0].length);
+  }
+  // The consequence sentence is the one that has to carry three facts -- what goes, what does
+  // NOT go, and what remains. A placeholder cannot be that sentence.
+  const body = source.match(/'auth\.deleteBody': '([^']*)'/)[1];
+  is(body.length > 100, 'the Arabic consequence sentence is ' + body.length
+    + ' characters -- too short to say what is erased, what is kept and what remains');
+  return lens.join(' · ');
+});
+
+// ===========================================================================
+// THE SECOND HALF: "DELETE MY ACCOUNT" -- the server erasure, measured the same way.
+// ===========================================================================
+// WHY IT LIVES IN THIS FILE. The button above is a LOCAL erasure: it clears this device and
+// touches no server. api/auth-delete.js is the other one -- it erases the account, the
+// verified-email index and the session from the store, and touches nothing on the device. The
+// two are the whole truth of "what is deleted when a reader asks to be deleted", they are read
+// by the same person off the same page, and a tool that measured one and not the other would be
+// answering half of the only question that matters. Registering a second gate for the other
+// half would have cost six files and split that answer across two reports.
+//
+// IT DRIVES THE REAL ROUTE, NOT A DESCRIPTION OF IT. api/auth-delete.js is read from disk, its
+// import statements -- and only those -- are rewritten so an ES module can be evaluated here,
+// and every other byte is the shipped byte. lib/auth/account.js, lib/auth/store.js,
+// lib/daycap.js and lib/attempts.js are imported FOR REAL. The single fake is lib/ratelimit.js,
+// which builds an Upstash client at module scope and, being the one family that fails CLOSED,
+// would answer 429 to every request on a machine with no credentials -- so the throttle is
+// stood in for, and the case that it refuses when it cannot count is asserted against the stub.
+//
+// THE STORE IS A MAP THIS TOOL FULLY CONTROLS, reached through __setAuthStoreForTest -- the seam
+// lib/auth/store.js already publishes for exactly this. So "the three keys are gone" is a fact
+// read back out of the store, not a line of source that says it deletes them.
+
+const nodeUrl = require('url');
+
+/** A Redis the tool owns: enough of the surface lib/auth/store.js actually uses, and no more. */
+function fakeRedis(opts) {
+  const o = opts || {};
+  const map = new Map();
+  const touched = [];
+  return {
+    map: map,
+    touched: touched,
+    async get(k) {
+      touched.push(k);
+      if (o.failGet && o.failGet(k)) throw new Error('the store cannot be read');
+      return map.has(k) ? map.get(k) : null;
+    },
+    async set(k, v, so) {
+      touched.push(k);
+      if (o.failSet && o.failSet(k)) throw new Error('the store cannot be written');
+      if (so && so.nx && map.has(k)) return null;
+      map.set(k, String(v));
+      return 'OK';
+    },
+    async del(k) {
+      touched.push(k);
+      if (o.failDel && o.failDel(k)) throw new Error('the store refuses to delete');
+      map.delete(k);
+      return 1;
+    },
+    async expire(k) { touched.push(k); return 1; },
+    async eval() { return null; },
+  };
+}
+
+/** The response object a Vercel handler is handed, recorded rather than sent. */
+function fakeRes() {
+  const r = {
+    statusCode: 0, body: null, ended: false, headers: {},
+    setHeader(k, v) { r.headers[String(k).toLowerCase()] = v; },
+    status(c) { r.statusCode = c; return r; },
+    json(b) { r.body = b; r.ended = true; return r; },
+    end() { r.ended = true; return r; },
+  };
+  return r;
+}
+
+/**
+ * The route, lifted. Imports become `__dep()` lookups and the default export becomes a return;
+ * a form this does not know THROWS rather than being skipped, because an unhandled statement
+ * would leave a name undefined and the failure would surface far from its cause.
+ */
+function liftRoute(rel, dep) {
+  const src = fs.readFileSync(path.join(REPO, rel), 'utf8');
+  const tree = parser.parse(src, { sourceType: 'module' });
+  const edits = [];
+  let defaultName = null;
+  for (const node of tree.program.body) {
+    if (node.type === 'ImportDeclaration') {
+      const names = node.specifiers.map((sp) => {
+        if (sp.type !== 'ImportSpecifier') {
+          throw new Error(rel + ': a default or namespace import is not handled by this tool');
+        }
+        return sp.imported.name === sp.local.name
+          ? sp.local.name : sp.imported.name + ': ' + sp.local.name;
+      });
+      edits.push({ start: node.start, end: node.end,
+        text: 'const { ' + names.join(', ') + ' } = __dep(' + JSON.stringify(node.source.value) + ');' });
+    } else if (node.type === 'ExportDefaultDeclaration') {
+      if (!node.declaration.id) throw new Error(rel + ': the default export has no name');
+      defaultName = node.declaration.id.name;
+      edits.push({ start: node.start, end: node.declaration.start, text: '' });
+    } else if (node.type.indexOf('Export') === 0) {
+      throw new Error(rel + ': ' + node.type + ' is not handled by this tool');
+    }
+  }
+  if (!defaultName) throw new Error(rel + ' has no default export');
+  let out = src;
+  edits.sort((a, b) => b.start - a.start);
+  for (const e of edits) out = out.slice(0, e.start) + e.text + out.slice(e.end);
+  return new Function('__dep', '"use strict";' + out + ';return ' + defaultName + ';')(dep);
+}
+
+const ROUTE = 'api/auth-delete.js';
+const ROUTE_SRC = fs.readFileSync(path.join(REPO, ROUTE), 'utf8');
+
+let STORE = null, ACCOUNT = null, DAYCAP = null, ATTEMPTS = null;
+
+const FX = {
+  provider: 'a-provider',
+  sub: '1234567890',
+  email: 'Reader@Example.com',
+  device: 'device-abcdefgh',
+  parentKey: 'pc:v1:rec:device-abcdefgh',
+};
+
+/** A store holding one account, its index entry, its session -- and a parental record beside them. */
+async function seed(opts) {
+  const o = opts || {};
+  const redis = fakeRedis(o);
+  STORE.__setAuthStoreForTest(redis);
+
+  const key = STORE.accountKey(FX.provider, FX.sub);
+  const sessionId = 'session-fixture';
+  const idxKey = STORE.emailIndexKey(ACCOUNT.emailDigest(FX.email));
+
+  redis.map.set(key, JSON.stringify({
+    v: 1, provider: FX.provider, sub: FX.sub, email: FX.email, emailVerified: true,
+    createdAt: 1, lastSeenAt: 2,
+  }));
+  redis.map.set(idxKey, JSON.stringify({
+    v: 1, accountKey: o.indexPointsAt || key, createdAt: 1,
+  }));
+  if (!o.noSession) {
+    redis.map.set(STORE.sessionKey(sessionId), JSON.stringify({
+      accountKey: key, createdAt: 1, expiresAt: o.expiredAt || (Date.now() + 60000),
+    }));
+  }
+  redis.map.set(FX.parentKey, 'the digest of the parental lock code');
+
+  redis.touched.length = 0;              // the seeding is not part of what the route touched
+  return { redis: redis, key: key, idxKey: idxKey, sessionId: sessionId };
+}
+
+/** One call of the real route over that store. */
+async function callRoute(scene, opts) {
+  const o = opts || {};
+  const cors = [];
+  const dep = (spec) => {
+    if (spec === '../lib/ratelimit.js') {
+      return {
+        applyCorsOrigin: () => { cors.push(1); },
+        checkAuthLimit: async () => ({ ok: o.throttleOk !== false }),
+      };
+    }
+    if (spec === '../lib/attempts.js') return ATTEMPTS;
+    if (spec === '../lib/daycap.js') return DAYCAP;
+    if (spec === '../lib/auth/account.js') return ACCOUNT;
+    throw new Error(ROUTE + ' now imports ' + spec + ' -- this tool supplies no such module, so '
+      + 'it would have been evaluated as undefined and failed somewhere else entirely.');
+  };
+  const handler = liftRoute(ROUTE, dep);
+  const headers = Object.prototype.hasOwnProperty.call(o, 'headers')
+    ? o.headers : { 'x-murabbi-device': FX.device };
+  const req = {
+    method: o.method || 'POST',
+    headers: headers,
+    body: Object.prototype.hasOwnProperty.call(o, 'body')
+      ? o.body : { session: scene ? scene.sessionId : 'nothing' },
+  };
+  const res = fakeRes();
+  await handler(req, res);
+  return { res: res, cors: cors.length };
+}
+
+const gone = (scene, k) => !scene.redis.map.has(k);
+
+// ---------------------------------------------------------------------------
+// THE CASES -- the server half.
+// ---------------------------------------------------------------------------
+async function serverCases() {
+  const load = (...bits) => import(nodeUrl.pathToFileURL(path.join(REPO, ...bits)).href);
+  STORE = await load('lib', 'auth', 'store.js');
+  ACCOUNT = await load('lib', 'auth', 'account.js');
+  DAYCAP = await load('lib', 'daycap.js');
+  ATTEMPTS = await load('lib', 'attempts.js');
+
+  // ---- THE ERASURE ITSELF: three keys, each named, each read back out of the store. --------
+  await runAsync('the account, the email index and the session are ALL THREE erased, by name', async () => {
+    const s = await seed({});
+    const r = await callRoute(s, {});
+    eq(r.res.statusCode, 200, 'the status of a good delete');
+    eq(r.res.body, { ok: true }, 'the body of a good delete');
+    is(gone(s, s.key), 'the ACCOUNT RECORD survived the delete: ' + s.key);
+    is(gone(s, s.idxKey), 'the EMAIL INDEX survived the delete: ' + s.idxKey
+      + ' -- an index entry left behind is an arrow to a dead account, and the next sign-in that '
+      + 'proves the same address welds a live reader onto a ghost.');
+    is(gone(s, STORE.sessionKey(s.sessionId)),
+      'the SESSION survived the delete -- an erased account with ninety days of live session is '
+      + 'the contradiction ruling 3 exists to prevent.');
+    return 'account + index + session, all three gone';
+  });
+
+  await runAsync('the parental lock digest is NOT touched -- it is the parent record, not the account', async () => {
+    const s = await seed({});
+    await callRoute(s, {});
+    is(s.redis.map.has(FX.parentKey), 'pc: was erased by an account delete');
+    const pc = s.redis.touched.filter((k) => String(k).indexOf('pc:') === 0);
+    eq(pc, [], 'pc: keys this route touched at all');
+    return FX.parentKey + ' standing; 0 pc: keys read or written';
+  });
+
+  await runAsync('zero new store families: every key the route touched is one of the three', async () => {
+    const s = await seed({});
+    await callRoute(s, {});
+    const allowed = [STORE.ACCOUNT_PREFIX, STORE.EMAIL_INDEX_PREFIX, STORE.SESSION_PREFIX];
+    const strays = s.redis.touched.filter((k) => !allowed.some((p) => String(k).indexOf(p) === 0));
+    eq(Array.from(new Set(strays)), [], 'keys outside the three declared families');
+    is(!/process\.env/.test(ROUTE_SRC), ROUTE + ' reads an environment variable');
+    return s.redis.touched.length + ' key touches, all inside ' + allowed.join(' / ')
+      + '; 0 environment variables';
+  });
+
+  // ---- THE DIGEST COMES FROM THE RECORD, NEVER FROM THE CALLER. ---------------------------
+  await runAsync('the index is found through the record OWN address, not through the body', async () => {
+    const s = await seed({});
+    // A body carrying an address, a provider and a subject that all name someone else. Not one
+    // of them is read, so the delete still lands on the account the SESSION names.
+    const r = await callRoute(s, {
+      body: { session: s.sessionId, email: 'someone-else@example.com',
+        provider: 'another-provider', sub: '999', accountKey: 'acct:v1:x:y' },
+    });
+    eq(r.res.statusCode, 200, 'the status');
+    is(gone(s, s.idxKey), 'the index derived from the RECORD address was not removed');
+    for (const word of ['body.email', 'body.provider', 'body.sub', 'body.accountKey']) {
+      is(ROUTE_SRC.indexOf(word) === -1, ROUTE + ' reads ' + word + ' out of the request body');
+    }
+    return 'a body naming another account changed nothing; 0 identity fields read from it';
+  });
+
+  await runAsync('an index entry pointing at ANOTHER LIVE account is left exactly where it is', async () => {
+    // The index is written NX and keeps naming the FIRST account that proved an address, so a
+    // second account can carry the same address while the entry names the first. Tearing it out
+    // would be a delete that took a living reader's seam with it.
+    const other = 'acct:v1:another-provider:5555';
+    const s = await seed({ indexPointsAt: other });
+    const r = await callRoute(s, {});
+    eq(r.res.statusCode, 200, 'the status');
+    is(gone(s, s.key), 'the account record survived');
+    is(s.redis.map.has(s.idxKey),
+      'the index entry was removed even though it names ' + other + ' -- a live account just lost '
+      + 'the seam it signs in through');
+    eq(JSON.parse(s.redis.map.get(s.idxKey)).accountKey, other, 'what the entry still points at');
+    return 'record gone, session gone, the other account entry untouched';
+  });
+
+  // ---- NO ORACLE: every non-delete answers identically. -----------------------------------
+  await runAsync('a dead session and an already-deleted account give the IDENTICAL answer', async () => {
+    const dead = await seed({ noSession: true });
+    const a = await callRoute(dead, {});
+
+    const ghost = await seed({});
+    ghost.redis.map.delete(ghost.key);            // the account is already gone
+    const b = await callRoute(ghost, {});
+
+    const expired = await seed({ expiredAt: Date.now() - 1000 });
+    const c = await callRoute(expired, {});
+
+    eq(a.res.statusCode, 401, 'the status for a session that never existed');
+    eq([b.res.statusCode, c.res.statusCode], [401, 401], 'the statuses for the ghost and the expired');
+    eq([b.res.body, c.res.body], [a.res.body, a.res.body],
+      'the bodies -- any difference is an oracle for "is there an account behind this key"');
+    is(a.res.body.ok !== true, 'a refusal was dressed as a success');
+    return 'three different truths, one answer: ' + a.res.statusCode + ' ' + JSON.stringify(a.res.body);
+  });
+
+  // ---- FAIL CLOSED: a store that refuses is never reported as a delete. --------------------
+  await runAsync('a store that refuses a delete is a NAMED 503, never { ok: true }', async () => {
+    const lines = [];
+    for (const target of ['index', 'account']) {
+      const prefix = target === 'index' ? STORE.EMAIL_INDEX_PREFIX : STORE.ACCOUNT_PREFIX;
+      const s = await seed({ failDel: (k) => String(k).indexOf(prefix) === 0 });
+      const r = await callRoute(s, {});
+      is(r.res.body.ok !== true, 'the route claimed a delete the store refused (' + target + ')');
+      eq(r.res.statusCode, 503, 'the status when the store refuses the ' + target + ' delete');
+      lines.push(target + ' -> 503 ' + r.res.body.error);
+    }
+    // And when the index refuses, the RECORD IS STILL THERE -- which is what makes a retry able
+    // to derive the address again. This is the whole reason the index goes first.
+    const s = await seed({ failDel: (k) => String(k).indexOf(STORE.EMAIL_INDEX_PREFIX) === 0 });
+    await callRoute(s, {});
+    is(s.redis.map.has(s.key),
+      'the account record was deleted even though its index could not be -- the address is now '
+      + 'unrecoverable and the arrow is stranded');
+    return lines.join(' · ') + ' · record retained for the retry';
+  });
+
+  await runAsync('a store that cannot be READ refuses, and erases nothing', async () => {
+    const s = await seed({ failGet: () => true });
+    const r = await callRoute(s, {});
+    is(r.res.body.ok !== true, 'an unreadable store was reported as a delete');
+    eq(r.res.statusCode, 401, 'the status when the session cannot be read');
+    is(s.redis.map.has(s.key) && s.redis.map.has(s.idxKey), 'keys went missing on an unreadable store');
+    return '401, and every seeded key still standing';
+  });
+
+  await runAsync('the throttle refuses when it cannot count, and the route stops there', async () => {
+    const s = await seed({});
+    const r = await callRoute(s, { throttleOk: false });
+    eq(r.res.statusCode, 429, 'the status when the throttle refuses');
+    eq(s.redis.touched, [], 'store keys touched after the throttle refused');
+    is(s.redis.map.has(s.key), 'the account was deleted despite the throttle refusing');
+    return '429, 0 store reads, 0 erasures';
+  });
+
+  // ---- THE SHAPE OF THE DOOR. -------------------------------------------------------------
+  await runAsync('only POST, the device header is required, and a missing session is a 400', async () => {
+    const s = await seed({});
+    const get = await callRoute(s, { method: 'GET' });
+    eq(get.res.statusCode, 405, 'the status for GET');
+    const options = await callRoute(s, { method: 'OPTIONS' });
+    eq(options.res.statusCode, 204, 'the status for the preflight');
+    is(String(options.res.headers['access-control-allow-headers'] || '').indexOf(DAYCAP.DEVICE_HEADER) !== -1,
+      'the preflight does not advertise the device header');
+    const noSession = await callRoute(s, { body: {} });
+    eq(noSession.res.statusCode, 400, 'the status with no session in the body');
+    const noDevice = await callRoute(s, { headers: {} });
+    eq(noDevice.res.statusCode, 400, 'the status with no device header');
+    const badDevice = await callRoute(s, { headers: { 'x-murabbi-device': 'a:b' } });
+    eq(badDevice.res.statusCode, 400, 'the status with a malformed device header');
+    is(s.redis.map.has(s.key), 'a refused request still erased the account');
+    return '405 / 204 / 400 / 400 / 400, and nothing erased by any of them';
+  });
+
+  await runAsync('the route reuses revokeSession -- the call lib/auth/account.js was waiting for', async () => {
+    const account = fs.readFileSync(path.join(REPO, 'lib', 'auth', 'account.js'), 'utf8');
+    const compound = account.slice(account.indexOf('export async function deleteAccount'));
+    is(compound.length > 100, 'lib/auth/account.js no longer declares deleteAccount');
+    is(/revokeSession\(/.test(compound), 'deleteAccount no longer revokes through revokeSession');
+    is(typeof ACCOUNT.deleteAccount === 'function', 'lib/auth/account.js exports no deleteAccount');
+    // The compound delete refuses a call with no session rather than half-deleting.
+    const s = await seed({});
+    const bad = await ACCOUNT.deleteAccount(s.key, '');
+    eq(bad.ok, false, 'deleteAccount with no session id');
+    is(s.redis.map.has(s.key), 'deleteAccount erased the record before it checked its arguments');
+    return 'revokeSession called from deleteAccount; a session-less call erases nothing';
+  });
+}
+
+// ---------------------------------------------------------------------------
 // REPORT.
 // ---------------------------------------------------------------------------
+async function report() {
 console.log('=== "delete all my data" -- measured against delete.html ===');
 console.log('source:  app.jsx  ' + Buffer.byteLength(source, 'utf8') + ' bytes, '
   + source.split('\n').length + ' lines');
@@ -720,3 +1184,8 @@ if (failed) {
   for (const r of results) { if (!r.ok) console.log('   * ' + r.name + ': ' + r.detail); }
 }
 process.exit(failed ? 1 : 0);
+}
+
+serverCases()
+  .then(report)
+  .catch((e) => { console.log('[FAIL] the server half could not run: ' + (e && e.stack || e)); process.exit(1); });
