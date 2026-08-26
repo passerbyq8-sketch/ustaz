@@ -504,7 +504,19 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': 'f90db007281e1a7c3c3fce9c1ccbf047b334751ecf9ffd19d49f80433aa5712a',
+  //   adhkar groups -- the adhkar reader gained a group standing line, a remembered position, a
+  //                    bead card that spends one repetition per tap, and a first door chosen by
+  //                    the clock -- all behind ?adhkargroups=1 and all OFF by default. app.jsx
+  //                    grew and the app.js it builds followed 1147830 -> 1159809 (+11979).
+  //                    app.js is in CORE, so three numbers moved with it and all three are
+  //                    re-cut in the SAME commit as this digest: CORE_BYTES 1983495 -> 1995474
+  //                    by tools/core-bytes.cjs --write, the app.js figure in the byte table
+  //                    above that constant, and its SW_PROSE mirror below. THIS digest was cut
+  //                    LAST, after both sw.js edits. The worker own behaviour did not change:
+  //                    what moved inside sw.js is one integer and one figure in prose. CACHE is
+  //                    NOT touched -- the store name is a ship decision the merge round owns,
+  //                    and this branch is a preview that ships nothing.
+  'sw.js': '1a43349203e720ee18b4bdfeb359acc942f37b27ebf529b766d37483ff8540c7',
 };
 
 // ---------------------------------------------------------------------------
@@ -1614,7 +1626,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1147830, of: 'app.js' },
+      { n: 1159809, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
