@@ -100,6 +100,7 @@ const C_V = topConst('SHELL_AUTH_V');
 const C_ORIGIN = topConst('SHELL_AUTH_ORIGIN');
 const C_START_PATH = topConst('SHELL_AUTH_START_PATH');
 const C_EXCH_PATH = topConst('SHELL_AUTH_EXCHANGE_PATH');
+const C_DELETE_PATH = topConst('SHELL_AUTH_DELETE_PATH');
 const C_PROVIDER = topConst('SHELL_AUTH_PROVIDER');
 const C_SCHEME = topConst('SHELL_AUTH_RETURN_SCHEME');
 const C_QUIET = topConst('SHELL_AUTH_QUIET');
@@ -120,6 +121,7 @@ const FN_MSG = topFunction('ezikAuthMessage');
 const FN_ASK = topFunction('ezikAuthAsk');
 const FN_PARAMS = topFunction('ezikAuthReturnParams');
 const FN_EXCHANGE = topFunction('ezikAuthExchange');
+const FN_DELETE = topFunction('ezikAuthDelete');
 const C_SESSION_KEY = topConst('AUTH_SESSION_KEY');
 const FN_READ_SESSION = topFunction('readAuthSession');
 const FN_WRITE_SESSION = topFunction('writeAuthSession');
@@ -153,11 +155,11 @@ const HARNESS_PARTS = [
   text(C_I18N),
   text(FN_T),
   text(C_REQ), text(C_RES), text(C_V), text(C_ORIGIN), text(C_START_PATH), text(C_EXCH_PATH),
-  text(C_PROVIDER), text(C_SCHEME),
+  text(C_PROVIDER), text(C_SCHEME), text(C_DELETE_PATH),
   text(C_QUIET), text(C_FAULT), text(C_RETRY), text(C_CLASSES), text(C_LINES), text(C_OTHER),
   text(FN_BRIDGE), text(FN_REASON), text(FN_CLASS), text(FN_LINE), text(FN_CS),
   text(C_SEQ), text(FN_ID), text(FN_START_URL), text(FN_MSG), text(FN_ASK), text(FN_PARAMS),
-  text(FN_EXCHANGE),
+  text(FN_EXCHANGE), text(FN_DELETE),
   text(C_SESSION_KEY), text(FN_READ_SESSION), text(FN_WRITE_SESSION), text(FN_CLEAR_SESSION),
   text(FN_ROW),
   'return {',
@@ -167,6 +169,7 @@ const HARNESS_PARTS = [
   '  ezikAuthClientState: ezikAuthClientState, ezikAuthStartUrl: ezikAuthStartUrl,',
   '  ezikAuthMessage: ezikAuthMessage, ezikAuthAsk: ezikAuthAsk,',
   '  ezikAuthReturnParams: ezikAuthReturnParams, ezikAuthExchange: ezikAuthExchange,',
+  '  ezikAuthDelete: ezikAuthDelete, SHELL_AUTH_DELETE_PATH: SHELL_AUTH_DELETE_PATH,',
   '  readAuthSession: readAuthSession, writeAuthSession: writeAuthSession,',
   '  clearAuthSession: clearAuthSession,',
   '  SHELL_AUTH_REQUEST: SHELL_AUTH_REQUEST, SHELL_AUTH_RESULT: SHELL_AUTH_RESULT,',
@@ -714,8 +717,15 @@ run('after a successful sign-in the ADDRESS is shown and nothing else is', async
   is(drawn.indexOf(CONTRACT.EZ_I18N.ar['auth.signIn']) === -1, 'the sign-in offer is still drawn');
   is(drawn.indexOf(FIXTURE.session) === -1, 'the SESSION KEY was drawn on the screen');
   is(drawn.indexOf(FIXTURE.provider) === -1, 'the provider name was drawn');
-  eq(drawn, FIXTURE.email + CONTRACT.EZ_I18N.ar['auth.signOut'], 'everything the row draws');
-  return 'address + sign-out, and literally nothing else';
+  // ITEM: the delete control joined this row, and this assertion stays TOTAL rather than
+  // being loosened into a contains-check: the whole point of it is that a badge, a rank or a
+  // ceiling cannot appear here unnoticed. The row draws three things and they are named.
+  is(drawn.indexOf(CONTRACT.EZ_I18N.ar['auth.delete']) !== -1, 'the delete control was not drawn');
+  is(drawn.indexOf(CONTRACT.EZ_I18N.ar['auth.deleteConfirm']) === -1,
+    'the control that ACTUALLY deletes is on screen before the reader armed it -- one press');
+  eq(drawn, FIXTURE.email + CONTRACT.EZ_I18N.ar['auth.signOut'] + CONTRACT.EZ_I18N.ar['auth.delete'],
+    'everything the row draws');
+  return 'address + sign-out + delete, and literally nothing else';
 });
 
 run('signing out removes the key locally and calls nothing', async () => {

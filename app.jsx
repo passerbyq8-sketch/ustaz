@@ -443,6 +443,12 @@ const EZ_I18N = {
     'auth.stateMismatch': 'عادَ الدخولُ بجوابٍ لا يخصُّ هذه المحاولة.',
     'auth.refused': 'لم يتِمَّ الدخول.',
     'auth.exchangeFailed': 'تعذَّرَ إتمامُ الدخول. حاوِلْ مرَّةً أخرى.',
+    'auth.delete': 'حذفُ الحساب',
+    'auth.deleteTitle': 'حذفُ حسابِك نهائيًّا؟',
+    'auth.deleteBody': 'يُحذَفُ حسابُك وبريدُك من خوادمِنا، وتُغلَقُ جلستُك. ولا تُحذَفُ محادثاتُك المحفوظةُ على هذا الجهاز — لمحوِها استعملْ «احذفْ بياناتي». ورمزُ قفلِ الوالدَينِ يبقى.',
+    'auth.deleteConfirm': 'احذفْ حسابي',
+    'auth.deleteDone': 'حُذِفَ حسابُك.',
+    'auth.deleteFailed': 'تعذّرَ الحذفُ الآن. حاولْ مرّةً أخرى.',
 
     'widget.adhkar.title': 'الأذكار',
     'widget.adhkar.open': 'افتحْ الأذكار',
@@ -755,6 +761,12 @@ const EZ_I18N = {
     'auth.stateMismatch': 'Sign-in came back with an answer that does not belong to this attempt.',
     'auth.refused': 'Sign-in did not complete.',
     'auth.exchangeFailed': 'Sign-in could not be completed. Try again.',
+    'auth.delete': 'Delete account',
+    'auth.deleteTitle': 'Delete your account permanently?',
+    'auth.deleteBody': 'Your account and your address are erased from our servers, and your session is closed. Your conversations saved on this device are NOT erased -- to wipe those, use “Delete my data”. And the parental lock code remains.',
+    'auth.deleteConfirm': 'Delete my account',
+    'auth.deleteDone': 'Your account has been deleted.',
+    'auth.deleteFailed': 'The deletion could not be completed now. Try again.',
 
     'widget.adhkar.title': 'Adhkar',
     'widget.adhkar.open': 'Open adhkar',
@@ -14762,6 +14774,7 @@ const SHELL_AUTH_V = '1';
 const SHELL_AUTH_ORIGIN = 'https://ezik.app';
 const SHELL_AUTH_START_PATH = '/api/auth-start';
 const SHELL_AUTH_EXCHANGE_PATH = '/api/auth-exchange';
+const SHELL_AUTH_DELETE_PATH = '/api/auth-delete';
 const SHELL_AUTH_PROVIDER = 'google';
 // The scheme the shell returns on. Judged here, never built here -- the shell owns the value.
 const SHELL_AUTH_RETURN_SCHEME = 'ezik:';
@@ -14918,6 +14931,27 @@ async function ezikAuthExchange(ticket) {
       provider: typeof d.provider === 'string' ? d.provider : '',
     };
   } catch (e) { return null; }
+}
+
+// THE DOOR OUT. One field goes up -- the session -- and it is the whole of what the server is
+// told: the account it names is resolved from the key itself, so this page never sends a
+// provider, a subject or an address, and could not delete anyone else's account if it tried.
+// It carries x-murabbi-device through capHeaders() the way the exchange above does.
+//
+// TRUE ONLY ON A REAL 200. A network that never answered, a 503 from a store that refused one
+// of the three deletes, a body that is not { ok: true } -- all of them return false, and the
+// caller shows the failure line rather than telling a reader they have been forgotten when
+// they have not. That is the one lie this control must never tell.
+async function ezikAuthDelete(session) {
+  try {
+    const r = await fetch(SHELL_AUTH_ORIGIN + SHELL_AUTH_DELETE_PATH, {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, capHeaders()),
+      body: JSON.stringify({ session: session }),
+    });
+    const d = await r.json();
+    return !!(r.ok && d && d.ok === true);
+  } catch (e) { return false; }
 }
 
 // THE ONE STORED KEY ON THIS WHOLE PATH, AND IT IS CLASSIFIED `MUST_GO`. "Delete all my data"
@@ -15727,6 +15761,14 @@ function EzikSignInRow() {
   const [session, setSession] = useState(readAuthSession);
   const [busy, setBusy] = useState(false);
   const [line, setLine] = useState('');
+  // THE SECOND STEP, AND IT IS A STATE RATHER THAN A confirm(). `armed` is false until the
+  // reader has pressed the delete control ONCE and read the sentence it opens; only then is
+  // the control that actually deletes on the screen at all. One press can never delete an
+  // account. `done` is the notice left behind afterwards, and it is deliberately not `line`:
+  // that one is painted in the error colour, and "your account has been deleted" is not an
+  // error.
+  const [armed, setArmed] = useState(false);
+  const [done, setDone] = useState(false);
   // The press's own state and the teardown for its listener. Both refs: neither is drawn, and the
   // client state must not outlive the press it belongs to.
   const csRef = useRef('');
@@ -15780,6 +15822,32 @@ function EzikSignInRow() {
     csRef.current = '';
     setSession(null);
     setLine('');
+    setArmed(false);
+  };
+
+  // THE TWO STEPS. Arming only opens the sentence; it deletes nothing and calls nothing.
+  const askDelete = () => { setArmed(true); setLine(''); setDone(false); };
+  const cancelDelete = () => { setArmed(false); setLine(''); };
+
+  // AND THE DEVICE ONLY FOLLOWS A SERVER THAT SAID YES. The local key is cleared AFTER the
+  // route answered { ok: true } and never before it -- clearing first would sign the reader
+  // out of an account that is still standing and leave them no way back to the button. On a
+  // refusal nothing local changes and the failure line is shown, so a retry is still possible.
+  const confirmDelete = () => {
+    if (busy) return;
+    const held = session;
+    if (!held || typeof held.session !== 'string' || !held.session) return;
+    setBusy(true);
+    setLine('');
+    ezikAuthDelete(held.session).then((ok) => {
+      if (!ok) { settle(ezT('auth.deleteFailed')); return; }
+      clearAuthSession();
+      csRef.current = '';
+      setSession(null);
+      setArmed(false);
+      setDone(true);
+      settle('');
+    });
   };
 
   return (
@@ -15788,10 +15856,23 @@ function EzikSignInRow() {
         ? (<>
             <div style={s.settingsHint}>{session.email}</div>
             <button type="button" onClick={signOut} style={s.settingsSaveBtn}>{ezT('auth.signOut')}</button>
+            {/* THE DELETE CONTROL IS DRAWN ONLY INSIDE THIS BRANCH -- the branch that exists
+                only when there is a live session. A reader who is not signed in is never
+                shown a control for deleting an account they do not have. */}
+            {armed
+              ? (<>
+                  <div style={s.settingsLabel}>{ezT('auth.deleteTitle')}</div>
+                  <div style={s.settingsHint}>{ezT('auth.deleteBody')}</div>
+                  <button type="button" onClick={confirmDelete} disabled={busy}
+                    style={{ ...s.dangerBtn, opacity: busy ? 0.5 : 1 }}>{ezT('auth.deleteConfirm')}</button>
+                  <button type="button" onClick={cancelDelete} style={s.settingsSaveBtn}>{ezT('common.cancel')}</button>
+                </>)
+              : (<button type="button" onClick={askDelete} style={s.dangerBtn}>{ezT('auth.delete')}</button>)}
           </>)
         : (<button type="button" onClick={press} disabled={busy}
             style={{ ...s.settingsSaveBtn, opacity: busy ? 0.5 : 1 }}>{ezT('auth.signIn')}</button>)}
       {line ? <div style={s.settingsMsg}>{line}</div> : null}
+      {done ? <div style={s.settingsHint}>{ezT('auth.deleteDone')}</div> : null}
     </EzShellGroup>
   );
 }

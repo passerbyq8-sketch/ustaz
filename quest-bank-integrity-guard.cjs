@@ -113,6 +113,30 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-26   -- THE DOOR OUT: deleting the account from inside the app, which Apple
+  //                    requires of anything that creates one and which the sign-in round
+  //                    shipped without. api/auth-delete.js is new and is the ONLY caller of
+  //                    lib/auth/account.js deleteAccount(), which performs THREE erasures in a
+  //                    fixed order: the verified-email index FIRST -- and only when the entry
+  //                    names this very account, because the index is written NX and may still
+  //                    name a different, living one -- then the account record, then the
+  //                    session through revokeSession(), which had been loaded since sign-in
+  //                    landed with no caller. The index goes first so a failure there leaves
+  //                    the record standing and the address still derivable for a retry. The
+  //                    account is known from the SESSION ALONE: no provider, no subject and no
+  //                    address is read from the body, so the route cannot be aimed at anyone
+  //                    else's account. A dead session, an expired one, an unreadable store and
+  //                    an account already gone all answer 401 with the SAME code, so nothing
+  //                    here is an oracle for whether an account exists. ZERO new store keys and
+  //                    ZERO new environment variables; `pc:` is neither read nor written.
+  //                    app.jsx gained the two-press control inside EzikSignInRow, drawn only
+  //                    where a live session already is, and twelve dictionary entries. app.js
+  //                    was rebuilt from that source 1143467 -> 1147830 (+4363), CORE_BYTES was
+  //                    re-cut 1979132 -> 1983495 by tools/core-bytes.cjs --write, the app.js
+  //                    figure in the byte table above CORE_BYTES and the SW_PROSE mirror below
+  //                    both followed 1143467 -> 1147830, and THIS digest was cut last, after
+  //                    all of them. sw.js is 44266 bytes before and after: only two numbers in
+  //                    it moved. CACHE is NOT touched -- the store name is the merge round's.
   //   2026-08-26   -- THE SIGN-IN BRIDGE: the web half of the shell's auth handshake. app.jsx
   //                    gained ONE place that builds a sign-in request and ONE that posts it --
   //                    four fields, `v` the STRING "1" and never the number, and a `url` that is
@@ -480,7 +504,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': '096451a1a104b2face00c5fcd4e78f17cd09ac6edea137539674786bf24379a4',
+  'sw.js': 'f90db007281e1a7c3c3fce9c1ccbf047b334751ecf9ffd19d49f80433aa5712a',
 };
 
 // ---------------------------------------------------------------------------
@@ -1590,7 +1614,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1143467, of: 'app.js' },
+      { n: 1147830, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
