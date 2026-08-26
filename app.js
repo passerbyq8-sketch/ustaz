@@ -423,7 +423,28 @@ const ADHKAR_SPLIT_URL='/adhkar-split-27.json';let __splitData=null;let __splitP
 // AND THE DOORS TAKE CATEGORY 27's PLACE IN THE ORDER, not the end of the list. splice() at the
 // index the source category occupies is the whole of that: the catalogue keeps the store's own
 // order everywhere else, and the two doors appear where the one they replace used to be.
-function applyAdhkarSplit(db,split){if(!db||!split||!Array.isArray(split.doors)||split.doors.length===0)return db;const srcId=parseInt(split.sourceCategoryId,10);if(!Number.isFinite(srcId))return db;const cats=(db.categories||[]).slice();const at=cats.findIndex(c=>parseInt(c&&c.id,10)===srcId);if(at===-1)return db;const byCat=Object.assign({},db.byCat);const doors=[];for(const door of split.doors){if(!door||typeof door.key!=='string'||!door.key||!Array.isArray(door.items))return db;const items=[];for(const it of door.items){const row=it&&db.byId?db.byId[it.id]:null;if(!row)continue;items.push(typeof it.text==='string'&&it.text?Object.assign({},row,{text:it.text}):row);}if(items.length===0)return db;byCat[door.key]=items;doors.push({id:door.key,title:String(door.title||''),count:items.length});}cats.splice(at,1,...doors);return{byId:db.byId,byCat:byCat,categories:cats};}// ONE LOOKUP FOR BOTH KINDS OF DOOR. A category from adhkar.json is numbered and a door from the
+function applyAdhkarSplit(db,split){if(!db||!split||!Array.isArray(split.doors)||split.doors.length===0)return db;const srcId=parseInt(split.sourceCategoryId,10);if(!Number.isFinite(srcId))return db;const cats=(db.categories||[]).slice();const at=cats.findIndex(c=>parseInt(c&&c.id,10)===srcId);if(at===-1)return db;const byCat=Object.assign({},db.byCat);const doors=[];for(const door of split.doors){if(!door||typeof door.key!=='string'||!door.key||!Array.isArray(door.items))return db;const items=[];for(const it of door.items){const row=it&&db.byId?db.byId[it.id]:null;if(!row)continue;items.push(typeof it.text==='string'&&it.text?Object.assign({},row,{text:it.text}):row);}if(items.length===0)return db;byCat[door.key]=items;doors.push({id:door.key,title:String(door.title||''),count:items.length});}cats.splice(at,1,...doors);return{byId:db.byId,byCat:byCat,categories:cats};}// THE HEART THAT WAS LIT BEFORE THE SPLIT, AND IS STILL LIT AFTER IT -- BY READING ONLY.
+//
+// THE DEFECT THIS CLOSES, measured and written up in the split report: a favourite is stored as
+// '<category>:<position>', so one saved in category 27 reads '27:5'. The doors are named, so a
+// heart lit in a door is 'adhkar_sabah:0'. With the doors shipped, category 27 is not on the
+// index -- and a reader's own favourite became unreachable: still in storage, still intact, but
+// with no screen left that could show it lit.
+//
+// SO THE OLD ENTRY IS RESOLVED THROUGH THE DATA rather than rewritten. '27:5' names a POSITION
+// in the source category; that position names a ROW; that row has an id; and the id is what the
+// two doors share with the category they came from. Matching on it lights the same dhikr in its
+// new door.
+//
+// 🔴 NOT ONE BYTE IS WRITTEN. adhkar_favorites_v1 is read and never touched here: nothing is
+// migrated, nothing is renamed, nothing is deleted, and turning the switch off restores every
+// entry to exactly the screen that wrote it. What a reader favourites TODAY in a door is
+// written under that door's own key, as it already was.
+//
+// AND IT IS SCOPED TO THE SPLIT'S OWN SOURCE, not to favourites in general: only the category
+// the split file names is resolved this way, so two unrelated categories that happen to share a
+// dhikr do not start lighting each other's hearts.
+function adhkarLegacyFavIds(favs,byCat,sourceCatId){const out={};if(!Array.isArray(favs)||sourceCatId===null||sourceCatId===undefined)return out;const items=adhkarItemsFor(byCat,sourceCatId);if(!items.length)return out;const pre=String(sourceCatId)+':';for(const f of favs){if(typeof f!=='string'||f.indexOf(pre)!==0)continue;const i=parseInt(f.slice(pre.length),10);const row=Number.isInteger(i)&&i>=0&&i<items.length?items[i]:null;if(row&&row.id!==undefined)out[row.id]=true;}return out;}// ONE LOOKUP FOR BOTH KINDS OF DOOR. A category from adhkar.json is numbered and a door from the
 // split file is named, so the map is asked by the id AS GIVEN first and by its number second.
 // The second arm is the shipped behaviour, unchanged, and it is what every numeric category
 // still takes -- nothing about them goes through the first.
@@ -2158,7 +2179,20 @@ const A3_WINDOW=7;function adhkarWindow(len,idx,size){const n=Math.max(0,parseIn
 // screen that shipped, and no stored byte on any device can put them in the other one. Every
 // failure -- no window, no location, a URL the platform refuses to parse -- answers FALSE,
 // because the default direction here is the screen that is already true of production.
-const readAdhkarGroupsFlag=()=>{try{return new URLSearchParams(window.location.search).get('adhkargroups')==='1';}catch(e){return false;}};const ADHKAR_GROUPS_ON=readAdhkarGroupsFlag();// THE REMEMBERED POSITION, AND IT IS ITS OWN KEY. adhkar_daily_progress_v1 is THE COUNTER and
+// 🔴 RAISED FOR EVERYONE. The owner reviewed the two doors on the preview -- 23 and 21 -- and
+// ordered them shipped, so the default flips: no parameter now means the doors, and the reader
+// gets them without typing anything.
+//
+// AND ?adhkargroups=0 IS STILL THE WAY BACK. It is a rollback that costs a query string and no
+// deploy at all: the reader, or the owner, appends it and category 27 opens whole with its 24
+// exactly as it did before any of this work. That is the safety property this switch was built
+// for, and raising the default does not spend it.
+//
+// IT STILL WRITES NOTHING DOWN. The answer comes from the URL and from nowhere else, so neither
+// arm can stick to a device or outlive the tab it was typed in -- and every failure (no window,
+// no location, a URL the platform refuses to parse) now answers TRUE, because the safe default
+// is no longer "the old screen" but "the screen the owner approved".
+const readAdhkarGroupsFlag=()=>{try{return new URLSearchParams(window.location.search).get('adhkargroups')!=='0';}catch(e){return true;}};const ADHKAR_GROUPS_ON=readAdhkarGroupsFlag();// THE REMEMBERED POSITION, AND IT IS ITS OWN KEY. adhkar_daily_progress_v1 is THE COUNTER and
 // not one line below touches it: it keeps its name, its shape, its day scope and its single
 // writer, so a reader carrying a count today still carries exactly that count after this work.
 // A position is not devotion performed -- it is where a reader's eye stopped -- so it is stored
@@ -2391,7 +2425,10 @@ function AdhkarCategoryV2({cat,startAt,onBack}){// Session 85. THE LOGIC BELOW I
 // S102: the layout key is gone; there is nothing left to branch on here either.
 const[items,setItems]=useState(null);const[idx,setIdx]=useState(0);// the item being read, 0-based
 const[prog,setProg]=useState(readAdhkarProgress);const[favs,setFavs]=useState(readAdhkarFavorites);const[note,setNote]=useState('');// share feedback, announced politely
-const audioRef=useRef(null);const[playingId,setPlayingId]=useState(null);useEffect(()=>{let alive=true;// The opening position is CLAMPED to the real list: a saved favourite opens at its own
+// The ids favourited under the split's SOURCE category, resolved once when the store lands.
+// Empty for every category that is not a door of the split, and empty when nothing old is
+// favourited -- so the ordinary path is the one that shipped.
+const[legacyFavIds,setLegacyFavIds]=useState({});const audioRef=useRef(null);const[playingId,setPlayingId]=useState(null);useEffect(()=>{let alive=true;// The opening position is CLAMPED to the real list: a saved favourite opens at its own
 // item, and anything that does not name one of this category's positions opens at the
 // first. No index outside the store's own list can be reached from here.
 const at=list=>{const n=parseInt(startAt,10);if(!list.length)return 0;if(Number.isFinite(n)&&n>=1)return Math.min(n,list.length-1);// THE REMEMBERED POSITION IS CONSULTED LAST, and only behind the switch. A caller that
@@ -2403,7 +2440,10 @@ const at=list=>{const n=parseInt(startAt,10);if(!list.length)return 0;if(Number.
 if(!ADHKAR_GROUPS_ON)return 0;const saved=adhkarPlaceOf(readAdhkarPlace(),cat.id);return saved>0?Math.min(saved,list.length-1):0;};// The SAME pair the browse screen loads, resolved the SAME way -- a door opened from the
 // catalogue and a door opened by the clock therefore hold identical items, and a numeric
 // category still resolves through adhkarItemsFor's second arm exactly as it always did.
-Promise.all([loadAdhkar(),ADHKAR_GROUPS_ON?loadAdhkarSplit().catch(()=>null):Promise.resolve(null)]).then(([db,sp])=>{if(!alive)return;const store=sp?applyAdhkarSplit(db,sp):db;const list=adhkarItemsFor(store&&store.byCat,cat.id);setItems(list);setIdx(at(list));}).catch(()=>{if(alive){setItems([]);setIdx(0);}});return()=>{alive=false;};},[cat.id]);useEffect(()=>()=>{if(audioRef.current){audioRef.current.pause();audioRef.current=null;}},[]);// The place is written where the position CHANGES and nowhere else -- one effect, one writer,
+Promise.all([loadAdhkar(),ADHKAR_GROUPS_ON?loadAdhkarSplit().catch(()=>null):Promise.resolve(null)]).then(([db,sp])=>{if(!alive)return;const store=sp?applyAdhkarSplit(db,sp):db;const list=adhkarItemsFor(store&&store.byCat,cat.id);setItems(list);setIdx(at(list));// Only a DOOR of this split asks the question, and it asks it of the store the split
+// came from -- applyAdhkarSplit leaves the source category in byCat untouched, which is
+// what makes '27:5' still resolvable after 27 has left the index.
+setLegacyFavIds(sp&&String(cat.id)!==String(sp.sourceCategoryId)&&list.length?adhkarLegacyFavIds(readAdhkarFavorites(),store&&store.byCat,sp.sourceCategoryId):{});}).catch(()=>{if(alive){setItems([]);setIdx(0);}});return()=>{alive=false;};},[cat.id]);useEffect(()=>()=>{if(audioRef.current){audioRef.current.pause();audioRef.current=null;}},[]);// The place is written where the position CHANGES and nowhere else -- one effect, one writer,
 // and it is silent with the switch off, so a reader who never asked for this never has the key
 // written to their device at all. It waits for a real list: a category still loading has no
 // position to record, and recording 0 for it would overwrite a real saved place with a zero.
@@ -2418,7 +2458,10 @@ const go=n=>{if(!items||items.length===0)return;const next=Math.min(items.length
 // favourites or usage state, which never enter any payload anywhere in this file.
 const onShare=()=>{const cur=items&&items[idx]||null;const text=cur&&typeof cur.text==='string'?cur.text:'';if(!text)return;const fail=e=>{if(e&&e.name==='AbortError'){setNote('');return;}setNote(A2_SHARE_FAIL);};try{if(navigator.share){navigator.share({text:text}).then(()=>setNote(A2_SHARE_OK)).catch(fail);return;}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(()=>setNote(A2_COPY_OK)).catch(fail);return;}}catch(e){setNote(A2_SHARE_FAIL);return;}setNote(A2_SHARE_FAIL);};const d=items&&items[idx]||null;const target=adhkarTarget(d);// Clamped for DISPLAY as well as on write, so a stored count larger than a target that has
 // since changed still reads as "target of target" and never as more than the target.
-const count=Math.min(adhkarCountOf(prog,cat.id,idx),target);const full=count>=target;const fkey=adhkarItemKey(cat.id,idx);const isFav=favs.indexOf(fkey)!==-1;const catDone=items?adhkarCatDone(prog,cat.id,items):0;// ONE INCREMENT, AND BOTH ROUTES REACH IT THROUGH THIS. The dock button and the bead card
+const count=Math.min(adhkarCountOf(prog,cat.id,idx),target);const full=count>=target;const fkey=adhkarItemKey(cat.id,idx);// Lit by this door's own entry, or by the entry the reader made before the split existed.
+// The first is a live toggle; the second is a reading, and §3 of the order is explicit that
+// it stays one.
+const isFav=favs.indexOf(fkey)!==-1||!!(d&&legacyFavIds[d.id]);const catDone=items?adhkarCatDone(prog,cat.id,items):0;// ONE INCREMENT, AND BOTH ROUTES REACH IT THROUGH THIS. The dock button and the bead card
 // below are two ways to spend one repetition, not two counters: bumpAdhkarCount still has a
 // single call site, the cap still lives at it, and the bead therefore cannot count something
 // the button would have refused.

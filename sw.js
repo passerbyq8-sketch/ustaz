@@ -74,6 +74,11 @@ const CORE = [
   // it would meet an empty box behind the conversation.
   '/icon-watermark.png',
   '/adhkar.json',
+  // The owner's split of category 27 into the morning and the evening doors. It is here for
+  // the reason adhkar.json is: the adhkar screen cannot draw those two doors without it, and a
+  // reader who has visited once must find them offline rather than falling back to the single
+  // undivided group. It is 7182 bytes -- the smallest entry in CORE after manifest.json.
+  '/adhkar-split-27.json',
   // ITEM 32. The three files the first paint cannot happen without, self-hosted from this origin
   // since the three render-blocking CDN tags left index.html. They are here for the reason the
   // note at the top of this file used to say was impossible: with React and the app bundle on
@@ -103,10 +108,10 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 122884 + app.js 1167264 + icon-watermark.png 368386
+//   /  (index.html) 122884 + app.js 1171036 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + icon-512.png 12893
-//   + vendor/react.umd.js 10751 + icon-maskable-512.png 5938 + icon-192.png 5053
-//   + manifest.json 533
+//   + vendor/react.umd.js 10751 + adhkar-split-27.json 7182 + icon-maskable-512.png 5938
+//   + icon-192.png 5053 + manifest.json 533
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS on any
 // deviation, so a shell that grows cannot quietly leave the pre-check reading a number that
 // stopped being true.
@@ -123,7 +128,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 2002929;
+const CORE_BYTES = 2013883;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
