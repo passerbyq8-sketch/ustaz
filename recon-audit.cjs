@@ -759,7 +759,25 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 97;   // 97th: savebridge -- tools/save-bridge-measure.cjs. 94th-97th
+  const GATES_EXPECTED = 98;   // 98th: authserver -- tools/auth-server-measure.cjs. The server
+                               //       half of reader sign-in: three routes (auth-start,
+                               //       auth-return, auth-exchange) and the three modules under
+                               //       lib/auth/. It lifts all six files out of the tree through
+                               //       @babel/parser -- rewriting ONLY their import and export
+                               //       statements so an ES module can be evaluated here -- and
+                               //       runs them against an in-memory store, a fake provider
+                               //       that signs id_tokens with an RSA key generated in memory,
+                               //       and a clock the tool moves. So a replayed state, an
+                               //       expired ticket, a foreign signature, a mismatched nonce
+                               //       and a device that did not start the flow are all measured
+                               //       refusals rather than intentions. Six mutants die: the
+                               //       state delete dropped, the nonce check dropped,
+                               //       `email_verified` believed whenever it is a string, a sixth
+                               //       field written into the account record, the redirect_uri
+                               //       built from the Host header, and the sign-in throttle made
+                               //       to fail open. No network, no browser, no device, and not
+                               //       one byte written to the tree.
+                               // 97th: savebridge -- tools/save-bridge-measure.cjs. 94th-97th
                                //       landed together, and the reason is a MEASUREMENT rather
                                //       than tidiness: tools/delete-truth-measure.cjs stood RED on
                                //       main for a whole round and nobody saw it, because it was
