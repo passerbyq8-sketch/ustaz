@@ -490,5 +490,10 @@
     "name": "savebridge",
     "script": "tools/save-bridge-measure.cjs",
     "args": ""
+  },
+  {
+    "name": "authserver",
+    "script": "tools/auth-server-measure.cjs",
+    "args": ""
   }
 ]

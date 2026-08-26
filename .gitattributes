@@ -551,3 +551,20 @@ tools/schedule-payload-measure.cjs text eol=lf
 # tool carried but app.jsx did not would move every offset it reads -- and this one also MUTATES
 # that lifted source by exact string, which a stray CR would silently stop matching.
 tools/save-bridge-measure.cjs text eol=lf
+
+# tools/auth-server-measure.cjs (the sign-in server) -- pinned for the reason every tool beside
+# it is pinned, and one more. It lifts six ES modules out of the tree BY BYTE OFFSET from the
+# parser and evaluates their source verbatim, and this machine checks out with
+# core.autocrlf=true; a CR the tool carried but the module did not would move every offset it
+# reads. It also MUTATES that lifted source by exact multi-line string -- the redirect_uri mutant
+# spans four lines -- which a stray CR would silently stop matching, turning a killed mutant into
+# a "line to mutate is gone". THE SIX FILES IT READS ARE PINNED TOO, for the reason recorded
+# above api/lessons-browse.js: pinning the tool and not its subjects is exactly the divergence
+# that made that gate's mutant come back a silent no-op.
+tools/auth-server-measure.cjs text eol=lf
+lib/auth/store.js text eol=lf
+lib/auth/oidc.js text eol=lf
+lib/auth/account.js text eol=lf
+api/auth-start.js text eol=lf
+api/auth-return.js text eol=lf
+api/auth-exchange.js text eol=lf
