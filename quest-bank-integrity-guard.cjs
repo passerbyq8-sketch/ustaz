@@ -507,16 +507,16 @@ const SEALED = {
   //   adhkar groups -- the adhkar reader gained a group standing line, a remembered position, a
   //                    bead card that spends one repetition per tap, and a first door chosen by
   //                    the clock -- all behind ?adhkargroups=1 and all OFF by default. app.jsx
-  //                    grew and the app.js it builds followed 1147830 -> 1159809 (+11979).
+  //                    grew and the app.js it builds followed 1147830 -> 1160295 (+12465).
   //                    app.js is in CORE, so three numbers moved with it and all three are
-  //                    re-cut in the SAME commit as this digest: CORE_BYTES 1983495 -> 1995474
+  //                    re-cut in the SAME commit as this digest: CORE_BYTES 1983495 -> 1995960
   //                    by tools/core-bytes.cjs --write, the app.js figure in the byte table
   //                    above that constant, and its SW_PROSE mirror below. THIS digest was cut
   //                    LAST, after both sw.js edits. The worker own behaviour did not change:
   //                    what moved inside sw.js is one integer and one figure in prose. CACHE is
   //                    NOT touched -- the store name is a ship decision the merge round owns,
   //                    and this branch is a preview that ships nothing.
-  'sw.js': '1a43349203e720ee18b4bdfeb359acc942f37b27ebf529b766d37483ff8540c7',
+  'sw.js': '181c750e8c02d67be78a53f1c73db80c5a92ddd5dbd1101321c5bcfc12186f62',
 };
 
 // ---------------------------------------------------------------------------
@@ -1626,7 +1626,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1159809, of: 'app.js' },
+      { n: 1160295, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

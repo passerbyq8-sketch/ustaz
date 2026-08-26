@@ -11242,6 +11242,12 @@ function App() {
       localStorage.removeItem(ADHKAR_PROGRESS_KEY);
       localStorage.removeItem(ADHKAR_FAVORITES_KEY);
       localStorage.removeItem(ADHKAR_USAGE_KEY);
+      // THE REMEMBERED POSITION GOES WITH THEM, on exactly the terms the three above go on.
+      // A place inside a group is a reading record, and "delete all my data" must not hand it
+      // to whoever sets this device up next. It is removed unconditionally -- not only when the
+      // switch that writes it is on -- because a device that once carried the switch still
+      // carries the key afterwards, and a sweep that asked about a URL parameter would miss it.
+      localStorage.removeItem(ADHKAR_PLACE_KEY);
       // Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
       // home screen and the adhkar screens together. Removing it is enough: the reader is total,
       // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the

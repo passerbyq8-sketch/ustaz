@@ -3822,7 +3822,12 @@ localStorage.removeItem(MUSHAF_LAST_PAGE_KEY);// The khatmah goes with everythin
 localStorage.removeItem(KHATMAH_KEY);localStorage.removeItem(WIRD_TARGET_KEY);localStorage.removeItem(WIRD_DAY_KEY);// Session 84 -- the three device-local adhkar keys, added to this list and to nothing
 // else. "Delete all my data" has to mean today's counters, the favourite identifiers
 // and the per-category open counts too. Three removals; no other reset behaviour moves.
-localStorage.removeItem(ADHKAR_PROGRESS_KEY);localStorage.removeItem(ADHKAR_FAVORITES_KEY);localStorage.removeItem(ADHKAR_USAGE_KEY);// Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
+localStorage.removeItem(ADHKAR_PROGRESS_KEY);localStorage.removeItem(ADHKAR_FAVORITES_KEY);localStorage.removeItem(ADHKAR_USAGE_KEY);// THE REMEMBERED POSITION GOES WITH THEM, on exactly the terms the three above go on.
+// A place inside a group is a reading record, and "delete all my data" must not hand it
+// to whoever sets this device up next. It is removed unconditionally -- not only when the
+// switch that writes it is on -- because a device that once carried the switch still
+// carries the key afterwards, and a sweep that asked about a URL parameter would miss it.
+localStorage.removeItem(ADHKAR_PLACE_KEY);// Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
 // home screen and the adhkar screens together. Removing it is enough: the reader is total,
 // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the
 // adhkar browse, the adhkar reader and the settings row -- to re-read now rather than at
