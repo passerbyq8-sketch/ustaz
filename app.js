@@ -387,7 +387,47 @@ const getVerseText=(sNum,aNum)=>{if(!__quranData||!(sNum>=1)||!(aNum>=1))return 
 // adhkar.json المجلوب من حصن المسلم، لا من النموذج — كالآيات تماماً.
 // ============================================================
 let __adhkarData=null;// { byId: {id -> dhikr}, byCat: {catId -> [dhikr]} }
-let __adhkarPromise=null;const loadAdhkar=()=>{if(__adhkarData)return Promise.resolve(__adhkarData);if(!__adhkarPromise){__adhkarPromise=Promise.resolve().then(()=>fetch('/adhkar.json')).then(r=>{if(!r.ok)throw new Error('adhkar fetch '+r.status);return r.json();}).then(raw=>{const byId={},byCat={};(raw.adhkar||[]).forEach(d=>{byId[d.id]=d;(byCat[d.categoryId]=byCat[d.categoryId]||[]).push(d);});__adhkarData={byId,byCat,categories:raw.categories||[]};return __adhkarData;}).catch(e=>{__adhkarPromise=null;throw e;});}return __adhkarPromise;};// worship-display.json — the CLIENT-rendered worship text. Loaded once (same shape as
+let __adhkarPromise=null;const loadAdhkar=()=>{if(__adhkarData)return Promise.resolve(__adhkarData);if(!__adhkarPromise){__adhkarPromise=Promise.resolve().then(()=>fetch('/adhkar.json')).then(r=>{if(!r.ok)throw new Error('adhkar fetch '+r.status);return r.json();}).then(raw=>{const byId={},byCat={};(raw.adhkar||[]).forEach(d=>{byId[d.id]=d;(byCat[d.categoryId]=byCat[d.categoryId]||[]).push(d);});__adhkarData={byId,byCat,categories:raw.categories||[]};return __adhkarData;}).catch(e=>{__adhkarPromise=null;throw e;});}return __adhkarPromise;};// ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
+// adhkar-split-27.json is the OWNER'S OWN FILE: authored in chat, approved by the owner, and
+// dropped into the tree sealed. NOTHING BELOW EDITS IT, REWRITES IT OR NORMALISES IT -- it is
+// fetched, parsed and read, exactly as adhkar.json is.
+//
+// WHY A SECOND FILE AND NOT AN EDIT TO adhkar.json. hisnmuslim ships the morning and the evening
+// as ONE category of 24 -- id 27, «أذكار الصباح والمساء» -- and the reader wants two doors. The
+// two are not a partition: 18 of the 24 belong to BOTH doors, and six of them are WORDED
+// differently in the evening than in the morning. So the split cannot be done by moving rows
+// between groups, and adhkar.json is left byte-identical: this file is a PRESENTATION layer over
+// it, and every field but the wording is still read from the source row by id.
+//
+// THE ROOT COPY IS A BYTE COPY. Like adhkar.json, the client fetches this from the origin root,
+// so the tree carries the same pair the twins guard already describes for adhkar.json: the
+// authored copy under lib/data and a byte-identical copy at the root that ships. The root copy
+// was made with fs.copyFileSync and not one byte of it was authored here.
+//
+// IT IS NOT IN THE WORKER'S CORE. adhkar.json is precached and this is not, so the two doors
+// cost ONE network fetch on a cold start and are unavailable offline -- and that is why every
+// failure below falls back to the UNSPLIT store rather than to an empty screen. A reader with no
+// network sees category 27 exactly as it ships today, which is the same thing the switch being
+// off shows them. Adding an entry to CORE is a worker decision and belongs to whoever ships.
+const ADHKAR_SPLIT_URL='/adhkar-split-27.json';let __splitData=null;let __splitPromise=null;const loadAdhkarSplit=()=>{if(__splitData)return Promise.resolve(__splitData);if(!__splitPromise){__splitPromise=Promise.resolve().then(()=>fetch(ADHKAR_SPLIT_URL)).then(r=>{if(!r.ok)throw new Error('adhkar split fetch '+r.status);return r.json();}).then(raw=>{__splitData=raw;return __splitData;}).catch(e=>{__splitPromise=null;throw e;});}return __splitPromise;};// THE RESOLUTION, AND IT IS THE WHOLE OF THE POLICY. One pure function, no state, no storage.
+//
+//   * the door's ITEMS are the split file's own array, IN THE SPLIT FILE'S OWN ORDER
+//   * each item is the adhkar.json ROW for that id -- so repeat, audio and id keep coming from
+//     the source and from nowhere else
+//   * the wording is overridden ONLY where the split item carries its own text. That is the one field the
+//     owner's file may speak about, and it speaks about exactly twelve items (six per door).
+//   * the source row is COPIED, never mutated: Object.assign builds a new object, so the store
+//     adhkar.json parsed is the same store afterwards and the chat card reading it sees no change
+//   * an id the source does not have is DROPPED rather than rendered as a hole
+//
+// AND THE DOORS TAKE CATEGORY 27's PLACE IN THE ORDER, not the end of the list. splice() at the
+// index the source category occupies is the whole of that: the catalogue keeps the store's own
+// order everywhere else, and the two doors appear where the one they replace used to be.
+function applyAdhkarSplit(db,split){if(!db||!split||!Array.isArray(split.doors)||split.doors.length===0)return db;const srcId=parseInt(split.sourceCategoryId,10);if(!Number.isFinite(srcId))return db;const cats=(db.categories||[]).slice();const at=cats.findIndex(c=>parseInt(c&&c.id,10)===srcId);if(at===-1)return db;const byCat=Object.assign({},db.byCat);const doors=[];for(const door of split.doors){if(!door||typeof door.key!=='string'||!door.key||!Array.isArray(door.items))return db;const items=[];for(const it of door.items){const row=it&&db.byId?db.byId[it.id]:null;if(!row)continue;items.push(typeof it.text==='string'&&it.text?Object.assign({},row,{text:it.text}):row);}if(items.length===0)return db;byCat[door.key]=items;doors.push({id:door.key,title:String(door.title||''),count:items.length});}cats.splice(at,1,...doors);return{byId:db.byId,byCat:byCat,categories:cats};}// ONE LOOKUP FOR BOTH KINDS OF DOOR. A category from adhkar.json is numbered and a door from the
+// split file is named, so the map is asked by the id AS GIVEN first and by its number second.
+// The second arm is the shipped behaviour, unchanged, and it is what every numeric category
+// still takes -- nothing about them goes through the first.
+const adhkarItemsFor=(byCat,catId)=>{if(!byCat)return[];const direct=byCat[catId];if(Array.isArray(direct))return direct;const n=parseInt(catId,10);return Number.isFinite(n)&&Array.isArray(byCat[n])?byCat[n]:[];};// worship-display.json — the CLIENT-rendered worship text. Loaded once (same shape as
 // loadAdhkar). GENERATED from worship-golden.json by build-worship-display.cjs; never the model.
 let __worshipData=null;// { cells: { "id:band" -> { rawHash, band, chars, text } } }
 let __worshipPromise=null;const loadWorship=()=>{if(__worshipData)return Promise.resolve(__worshipData);if(!__worshipPromise){__worshipPromise=Promise.resolve().then(()=>fetch('/worship-display.json')).then(r=>{if(!r.ok)throw new Error('worship fetch '+r.status);return r.json();}).then(raw=>{__worshipData=raw;return __worshipData;}).catch(e=>{__worshipPromise=null;throw e;});}return __worshipPromise;};const resolveWorshipTags=async(text,band)=>{if(!text||text.indexOf('<worship')===-1)return text;let data=null;try{data=await loadWorship();}catch(e){data=null;}const arm=band==='adult'||band==='teen'?'adult':'young';return text.replace(/<worship([^>]*)>[\s\S]*?<\/worship>/g,(_w,attrs)=>{const m=attrs.match(/id=["']([^"']+)["']/);const cell=m&&data&&data.cells&&data.cells[m[1]+':'+arm];const canonical=cell&&typeof cell.text==='string'&&cell.text.trim()?cell.text:ezT('errors.generic');return' '+canonical+' ';});};// كل أذكار بابٍ بعددِ التكرار والصوت، أو [] (لا يقع أبداً على نصّ النموذج)
@@ -2002,7 +2042,21 @@ const ADHKAR_STREAK_KEY='ezik_adhkar_streak_v1';// A day's dhikr, not a mountain
 // ignored on read, so a hand-edited store cannot present a goal the screen would then draw.
 const ADHKAR_GOAL_MIN=1;const ADHKAR_GOAL_MAX=20;const ADHKAR_GOAL_PRESETS=[3,5,8,12,20];// The identifier, and it is deliberately (category id, position) rather than d.id: it is stable
 // for a given store, it is two integers, and it says nothing about what the item contains.
-const A2_ID_RE=/^[0-9]+:[0-9]+$/;const adhkarItemKey=(catId,i)=>String(catId)+':'+String(i);// DEVICE-LOCAL day, not toISOString: the day a reader lives by is their own midnight. Same
+// THE IDENTIFIER, WIDENED ON THE LEFT ONLY -- and this is the one change in this round that
+// touches a stored shape, so it is written out in full.
+//
+// It was /^[0-9]+:[0-9]+$/ because a category was always a number out of adhkar.json. A door out
+// of the split file is NAMED (adhkar_sabah), so the left half is now a name-or-number and the
+// right half is still, strictly, an index.
+//
+// 🔴 NOTHING ANY DEVICE ALREADY HOLDS IS INVALIDATED. [0-9] is a subset of [A-Za-z0-9_], so
+// every key ever written -- '27:0' and its kind -- still matches, still reads back, still
+// counts. The class is deliberately NOT '.' or '[^:]': it admits exactly what a door key and a
+// category number can be, so a hand-edited store still cannot smuggle a colon, a space or a
+// path into the identifier the UI then presents as devotion performed.
+const A2_ID_RE=/^[A-Za-z0-9_]+:[0-9]+$/;// The same widening, for the two records that are keyed by the CATEGORY alone rather than by
+// (category, position): the per-door open counts and the remembered place.
+const A2_CAT_RE=/^[A-Za-z0-9_]+$/;const adhkarItemKey=(catId,i)=>String(catId)+':'+String(i);// DEVICE-LOCAL day, not toISOString: the day a reader lives by is their own midnight. Same
 // reasoning, and the same three getters, as wirdDayKey -- and its OWN function, so the mushaf
 // wird keeps every byte of its behaviour whatever happens here.
 function adhkarDayKey(d){const t=d||new Date();const y=t.getFullYear();const m=t.getMonth()+1;const day=t.getDate();return String(y)+'-'+(m<10?'0':'')+String(m)+'-'+(day<10?'0':'')+String(day);}// THE COUNT THE DHIKR ITSELF STATES.
@@ -2072,7 +2126,7 @@ function readAdhkarFavorites(){let raw=null;try{raw=localStorage.getItem(ADHKAR_
 // else -- not on render, not on search, not on scroll. It never leaves the device, and the home
 // screen shows the section only when the map already has a real entry, so a fresh install sees
 // no most-used strip rather than a fabricated one.
-function readAdhkarUsage(){let raw=null;try{raw=localStorage.getItem(ADHKAR_USAGE_KEY);}catch(e){return{};}if(!raw)return{};let o=null;try{o=JSON.parse(raw);}catch(e){return{};}if(!o||typeof o!=='object'||Array.isArray(o))return{};const out={};for(const k of Object.keys(o)){if(!/^[0-9]+$/.test(k))continue;const v=o[k];if(!Number.isInteger(v)||v<1)continue;out[k]=v;}return out;}function bumpAdhkarUsage(catId){const cur=readAdhkarUsage();const k=String(catId);if(!/^[0-9]+$/.test(k))return cur;const next=Object.assign({},cur);next[k]=(next[k]||0)+1;try{localStorage.setItem(ADHKAR_USAGE_KEY,JSON.stringify(next));}catch(e){}return next;}// Most-used, resolved against the REAL category list: a stored id with no category is skipped,
+function readAdhkarUsage(){let raw=null;try{raw=localStorage.getItem(ADHKAR_USAGE_KEY);}catch(e){return{};}if(!raw)return{};let o=null;try{o=JSON.parse(raw);}catch(e){return{};}if(!o||typeof o!=='object'||Array.isArray(o))return{};const out={};for(const k of Object.keys(o)){if(!A2_CAT_RE.test(k))continue;const v=o[k];if(!Number.isInteger(v)||v<1)continue;out[k]=v;}return out;}function bumpAdhkarUsage(catId){const cur=readAdhkarUsage();const k=String(catId);if(!A2_CAT_RE.test(k))return cur;const next=Object.assign({},cur);next[k]=(next[k]||0)+1;try{localStorage.setItem(ADHKAR_USAGE_KEY,JSON.stringify(next));}catch(e){}return next;}// Most-used, resolved against the REAL category list: a stored id with no category is skipped,
 // and a category with no stored count never appears. Ties keep the store's own order because
 // Array#sort is stable, so the strip cannot reorder itself between two equal counts.
 // Session 86 -- THE ADHKAR-ONLY DESIGN KEY IS GONE. adhkar_design_v1 was never deployed, so
@@ -2116,11 +2170,11 @@ const readAdhkarGroupsFlag=()=>{try{return new URLSearchParams(window.location.s
 // than at the first. { '<catId>': index }, non-negative integers only, and anything that is not
 // that -- damaged JSON, an array, a fractional index, a category id that is not digits -- reads
 // as the empty record rather than as a position.
-const ADHKAR_PLACE_KEY='adhkar_place_v1';function readAdhkarPlace(){let raw=null;try{raw=localStorage.getItem(ADHKAR_PLACE_KEY);}catch(e){return{};}if(!raw)return{};let o=null;try{o=JSON.parse(raw);}catch(e){return{};}if(!o||typeof o!=='object'||Array.isArray(o))return{};const out={};for(const k of Object.keys(o)){if(!/^[0-9]+$/.test(k))continue;const v=o[k];if(!Number.isInteger(v)||v<0)continue;out[k]=v;}return out;}// The ONLY writer of the place key. It refuses anything that is not a real position, and it
+const ADHKAR_PLACE_KEY='adhkar_place_v1';function readAdhkarPlace(){let raw=null;try{raw=localStorage.getItem(ADHKAR_PLACE_KEY);}catch(e){return{};}if(!raw)return{};let o=null;try{o=JSON.parse(raw);}catch(e){return{};}if(!o||typeof o!=='object'||Array.isArray(o))return{};const out={};for(const k of Object.keys(o)){if(!A2_CAT_RE.test(k))continue;const v=o[k];if(!Number.isInteger(v)||v<0)continue;out[k]=v;}return out;}// The ONLY writer of the place key. It refuses anything that is not a real position, and it
 // refuses a write that would change nothing, so returning to a category the reader is already
 // standing in does not touch storage at all. Every READER of this value clamps it against the
 // real list before it is used, so a store hand-edited to say 900 still opens at the last item.
-function writeAdhkarPlace(catId,i){const cur=readAdhkarPlace();const k=String(catId);const n=parseInt(i,10);if(!/^[0-9]+$/.test(k)||!Number.isInteger(n)||n<0)return cur;if(cur[k]===n)return cur;const next=Object.assign({},cur);next[k]=n;try{localStorage.setItem(ADHKAR_PLACE_KEY,JSON.stringify(next));}catch(e){}return next;}const adhkarPlaceOf=(rec,catId)=>{const v=rec&&rec[String(catId)];return Number.isInteger(v)&&v>0?v:0;};// THE FIRST DOOR, CHOSEN BY THE DEVICE'S OWN CLOCK -- and chosen OUT OF THE DATA, never out of a
+function writeAdhkarPlace(catId,i){const cur=readAdhkarPlace();const k=String(catId);const n=parseInt(i,10);if(!A2_CAT_RE.test(k)||!Number.isInteger(n)||n<0)return cur;if(cur[k]===n)return cur;const next=Object.assign({},cur);next[k]=n;try{localStorage.setItem(ADHKAR_PLACE_KEY,JSON.stringify(next));}catch(e){}return next;}const adhkarPlaceOf=(rec,catId)=>{const v=rec&&rec[String(catId)];return Number.isInteger(v)&&v>0?v:0;};// THE FIRST DOOR, CHOSEN BY THE DEVICE'S OWN CLOCK -- and chosen OUT OF THE DATA, never out of a
 // hardcoded id. Before noon the morning word is looked for, from noon onward the evening word,
 // and the answer is the first category in the store's OWN ORDER whose OWN TITLE carries it. A
 // store that renames or reorders its categories moves this answer rather than breaking it, and
@@ -2221,7 +2275,13 @@ const A2_ICON_HEART_ON=/*#__PURE__*/React.createElement("svg",{width:"18",height
 const[db,setDb]=useState(null);const[query,setQuery]=useState('');const[searchOpen,setSearchOpen]=useState(false);const[selected,setSelected]=useState(null);const[startAt,setStartAt]=useState(0);const[prog,setProg]=useState(readAdhkarProgress);const[usage,setUsage]=useState(readAdhkarUsage);const[favs,setFavs]=useState(readAdhkarFavorites);// ITEM 43-أ. The chain is browse state like the rest: this component owns it, reads it and
 // writes it, and the presentation below is handed the two numbers it draws.
 const[streak,setStreak]=useState(readAdhkarStreak);// A-3: this screen owns its slice of the daily-wird record, like every other value here.
-const[dailyWird,setDailyWird]=useState(readDailyWird);useEffect(()=>{let alive=true;loadAdhkar().then(d=>{if(alive)setDb(d||{categories:[],byCat:{}});}).catch(()=>{if(alive)setDb({categories:[],byCat:{}});});return()=>{alive=false;};},[]);// THE CLOCK'S FIRST DOOR, and it is opened ONCE. The ref spends itself on the first pass that
+const[dailyWird,setDailyWird]=useState(readDailyWird);useEffect(()=>{let alive=true;// BOTH STORES, AND THE SPLIT ONE IS ALLOWED TO FAIL. adhkar.json is what the screen needs;
+// the split file is what turns one of its categories into two doors. So the split fetch is
+// caught to null and the screen falls back to the UNSPLIT store -- a reader offline, or on a
+// deployment that does not carry the file, sees category 27 exactly as it ships rather than
+// an empty catalogue. The split is asked for ONLY behind the switch, so a reader with the
+// switch off does not pay a request for a file their screen will not read.
+Promise.all([loadAdhkar(),ADHKAR_GROUPS_ON?loadAdhkarSplit().catch(()=>null):Promise.resolve(null)]).then(([d,sp])=>{if(!alive)return;const store=d||{byId:{},categories:[],byCat:{}};setDb(sp?applyAdhkarSplit(store,sp):store);}).catch(()=>{if(alive)setDb({byId:{},categories:[],byCat:{}});});return()=>{alive=false;};},[]);// THE CLOCK'S FIRST DOOR, and it is opened ONCE. The ref spends itself on the first pass that
 // sees a real store, so backing out to the catalogue and standing there does not re-open the
 // door under the reader's hand, and neither does a re-render or a day that rolls over. The
 // catalogue is what the door opens ON TOP OF -- the reader's back returns to it through the
@@ -2282,7 +2342,7 @@ return/*#__PURE__*/React.createElement(IstanaAdhkarBrowse,view);}// ============
 // placeholder in either design, so a query typed under one layout filters exactly as it did.
 function A3Search({query,setQuery}){return/*#__PURE__*/React.createElement("div",{style:s.a3SearchRow},/*#__PURE__*/React.createElement("span",{style:s.a3SearchIcon},A2_ICON_SEARCH),/*#__PURE__*/React.createElement("input",{value:query,onChange:e=>setQuery(e.target.value),placeholder:A2_SEARCH,style:s.a3SearchInput,"aria-label":A2_SEARCH}));}// Real per-category standing, read off the SAME progress record the counter writes. A category
 // the store does not resolve reports zero of zero and is drawn as untouched -- never as begun.
-function a3CatStanding(prog,cat,byCat){const items=byCat?byCat[parseInt(cat.id,10)]:null;const total=Array.isArray(items)?items.length:0;const done=total?adhkarCatDone(prog,cat.id,items):0;return{total:total,done:done,full:total>0&&done>=total,started:done>0};}// ---- S103 ISTANA ADHKAR START -------------------------------------------------------------
+function a3CatStanding(prog,cat,byCat){const items=adhkarItemsFor(byCat,cat.id);const total=items.length;const done=total?adhkarCatDone(prog,cat.id,items):0;return{total:total,done:done,full:total>0&&done>=total,started:done>0};}// ---- S103 ISTANA ADHKAR START -------------------------------------------------------------
 // THE ISTANA ADHKAR CATALOGUE. It replaces both legacy browse designs, which are deleted in
 // this same commit: the overlapping stack and the grid of identical squares are gone.
 //
@@ -2340,7 +2400,10 @@ const at=list=>{const n=parseInt(startAt,10);if(!list.length)return 0;if(Number.
 // dhikr, because this line is the only thing that could have moved them and it does not
 // run. The saved value is clamped against the real list like every other index here, so
 // a category that shrank opens at its last item rather than past its end.
-if(!ADHKAR_GROUPS_ON)return 0;const saved=adhkarPlaceOf(readAdhkarPlace(),cat.id);return saved>0?Math.min(saved,list.length-1):0;};loadAdhkar().then(db=>{if(alive){const list=db.byCat&&db.byCat[parseInt(cat.id,10)]||[];setItems(list);setIdx(at(list));}}).catch(()=>{if(alive){setItems([]);setIdx(0);}});return()=>{alive=false;};},[cat.id]);useEffect(()=>()=>{if(audioRef.current){audioRef.current.pause();audioRef.current=null;}},[]);// The place is written where the position CHANGES and nowhere else -- one effect, one writer,
+if(!ADHKAR_GROUPS_ON)return 0;const saved=adhkarPlaceOf(readAdhkarPlace(),cat.id);return saved>0?Math.min(saved,list.length-1):0;};// The SAME pair the browse screen loads, resolved the SAME way -- a door opened from the
+// catalogue and a door opened by the clock therefore hold identical items, and a numeric
+// category still resolves through adhkarItemsFor's second arm exactly as it always did.
+Promise.all([loadAdhkar(),ADHKAR_GROUPS_ON?loadAdhkarSplit().catch(()=>null):Promise.resolve(null)]).then(([db,sp])=>{if(!alive)return;const store=sp?applyAdhkarSplit(db,sp):db;const list=adhkarItemsFor(store&&store.byCat,cat.id);setItems(list);setIdx(at(list));}).catch(()=>{if(alive){setItems([]);setIdx(0);}});return()=>{alive=false;};},[cat.id]);useEffect(()=>()=>{if(audioRef.current){audioRef.current.pause();audioRef.current=null;}},[]);// The place is written where the position CHANGES and nowhere else -- one effect, one writer,
 // and it is silent with the switch off, so a reader who never asked for this never has the key
 // written to their device at all. It waits for a real list: a category still loading has no
 // position to record, and recording 0 for it would overwrite a real saved place with a zero.

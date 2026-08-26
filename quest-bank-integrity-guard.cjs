@@ -516,7 +516,23 @@ const SEALED = {
   //                    what moved inside sw.js is one integer and one figure in prose. CACHE is
   //                    NOT touched -- the store name is a ship decision the merge round owns,
   //                    and this branch is a preview that ships nothing.
-  'sw.js': '181c750e8c02d67be78a53f1c73db80c5a92ddd5dbd1101321c5bcfc12186f62',
+  //   adhkar split  -- category 27 opens as TWO doors instead of one. The owner's own file,
+  //                    adhkar-split-27.json, assigns the twenty-four adhkar of the morning and
+  //                    evening group to a morning door of 23 and an evening door of 21, and
+  //                    carries its own wording for the six that are said differently after
+  //                    noon. adhkar.json is NOT edited -- it is byte-identical, and repeat,
+  //                    audio and id still come from its rows by id. The client fetches the
+  //                    split from a byte copy at the root, made with fs.copyFileSync; that
+  //                    file is NOT in CORE, so it is not precached and every failure to load
+  //                    it falls back to the unsplit screen. app.jsx grew and app.js followed
+  //                    1160295 -> 1167264 (+6969). app.js is in CORE, so three numbers moved
+  //                    with it and all three are re-cut in the SAME commit as this digest:
+  //                    CORE_BYTES 1995960 -> 2002929 by tools/core-bytes.cjs --write, the
+  //                    app.js figure in the byte table above that constant, and its SW_PROSE
+  //                    mirror below. THIS digest was cut LAST, after both sw.js edits. The
+  //                    worker itself did not change: one integer and one figure in prose.
+  //                    CACHE is NOT touched -- this branch is a preview and ships nothing.
+  'sw.js': '014b1108b83b95bdd81afb6716eb25ac1246cc608d45049f3e348656cc1b488f',
 };
 
 // ---------------------------------------------------------------------------
@@ -1626,7 +1642,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1160295, of: 'app.js' },
+      { n: 1167264, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

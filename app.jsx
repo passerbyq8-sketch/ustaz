@@ -1658,6 +1658,96 @@ const loadAdhkar = () => {
   }
   return __adhkarPromise;
 };
+// ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
+// adhkar-split-27.json is the OWNER'S OWN FILE: authored in chat, approved by the owner, and
+// dropped into the tree sealed. NOTHING BELOW EDITS IT, REWRITES IT OR NORMALISES IT -- it is
+// fetched, parsed and read, exactly as adhkar.json is.
+//
+// WHY A SECOND FILE AND NOT AN EDIT TO adhkar.json. hisnmuslim ships the morning and the evening
+// as ONE category of 24 -- id 27, «أذكار الصباح والمساء» -- and the reader wants two doors. The
+// two are not a partition: 18 of the 24 belong to BOTH doors, and six of them are WORDED
+// differently in the evening than in the morning. So the split cannot be done by moving rows
+// between groups, and adhkar.json is left byte-identical: this file is a PRESENTATION layer over
+// it, and every field but the wording is still read from the source row by id.
+//
+// THE ROOT COPY IS A BYTE COPY. Like adhkar.json, the client fetches this from the origin root,
+// so the tree carries the same pair the twins guard already describes for adhkar.json: the
+// authored copy under lib/data and a byte-identical copy at the root that ships. The root copy
+// was made with fs.copyFileSync and not one byte of it was authored here.
+//
+// IT IS NOT IN THE WORKER'S CORE. adhkar.json is precached and this is not, so the two doors
+// cost ONE network fetch on a cold start and are unavailable offline -- and that is why every
+// failure below falls back to the UNSPLIT store rather than to an empty screen. A reader with no
+// network sees category 27 exactly as it ships today, which is the same thing the switch being
+// off shows them. Adding an entry to CORE is a worker decision and belongs to whoever ships.
+const ADHKAR_SPLIT_URL = '/adhkar-split-27.json';
+let __splitData = null;
+let __splitPromise = null;
+const loadAdhkarSplit = () => {
+  if (__splitData) return Promise.resolve(__splitData);
+  if (!__splitPromise) {
+    __splitPromise = Promise.resolve()
+      .then(() => fetch(ADHKAR_SPLIT_URL))
+      .then((r) => { if (!r.ok) throw new Error('adhkar split fetch ' + r.status); return r.json(); })
+      .then((raw) => { __splitData = raw; return __splitData; })
+      .catch((e) => { __splitPromise = null; throw e; });
+  }
+  return __splitPromise;
+};
+
+// THE RESOLUTION, AND IT IS THE WHOLE OF THE POLICY. One pure function, no state, no storage.
+//
+//   * the door's ITEMS are the split file's own array, IN THE SPLIT FILE'S OWN ORDER
+//   * each item is the adhkar.json ROW for that id -- so repeat, audio and id keep coming from
+//     the source and from nowhere else
+//   * the wording is overridden ONLY where the split item carries its own text. That is the one field the
+//     owner's file may speak about, and it speaks about exactly twelve items (six per door).
+//   * the source row is COPIED, never mutated: Object.assign builds a new object, so the store
+//     adhkar.json parsed is the same store afterwards and the chat card reading it sees no change
+//   * an id the source does not have is DROPPED rather than rendered as a hole
+//
+// AND THE DOORS TAKE CATEGORY 27's PLACE IN THE ORDER, not the end of the list. splice() at the
+// index the source category occupies is the whole of that: the catalogue keeps the store's own
+// order everywhere else, and the two doors appear where the one they replace used to be.
+function applyAdhkarSplit(db, split) {
+  if (!db || !split || !Array.isArray(split.doors) || split.doors.length === 0) return db;
+  const srcId = parseInt(split.sourceCategoryId, 10);
+  if (!Number.isFinite(srcId)) return db;
+  const cats = (db.categories || []).slice();
+  const at = cats.findIndex((c) => parseInt(c && c.id, 10) === srcId);
+  if (at === -1) return db;
+  const byCat = Object.assign({}, db.byCat);
+  const doors = [];
+  for (const door of split.doors) {
+    if (!door || typeof door.key !== 'string' || !door.key || !Array.isArray(door.items)) return db;
+    const items = [];
+    for (const it of door.items) {
+      const row = it && db.byId ? db.byId[it.id] : null;
+      if (!row) continue;
+      items.push((typeof it.text === 'string' && it.text)
+        ? Object.assign({}, row, { text: it.text })
+        : row);
+    }
+    if (items.length === 0) return db;
+    byCat[door.key] = items;
+    doors.push({ id: door.key, title: String(door.title || ''), count: items.length });
+  }
+  cats.splice(at, 1, ...doors);
+  return { byId: db.byId, byCat: byCat, categories: cats };
+}
+
+// ONE LOOKUP FOR BOTH KINDS OF DOOR. A category from adhkar.json is numbered and a door from the
+// split file is named, so the map is asked by the id AS GIVEN first and by its number second.
+// The second arm is the shipped behaviour, unchanged, and it is what every numeric category
+// still takes -- nothing about them goes through the first.
+const adhkarItemsFor = (byCat, catId) => {
+  if (!byCat) return [];
+  const direct = byCat[catId];
+  if (Array.isArray(direct)) return direct;
+  const n = parseInt(catId, 10);
+  return (Number.isFinite(n) && Array.isArray(byCat[n])) ? byCat[n] : [];
+};
+
 // worship-display.json — the CLIENT-rendered worship text. Loaded once (same shape as
 // loadAdhkar). GENERATED from worship-golden.json by build-worship-display.cjs; never the model.
 let __worshipData = null;     // { cells: { "id:band" -> { rawHash, band, chars, text } } }
@@ -6210,7 +6300,22 @@ const ADHKAR_GOAL_PRESETS = [3, 5, 8, 12, 20];
 
 // The identifier, and it is deliberately (category id, position) rather than d.id: it is stable
 // for a given store, it is two integers, and it says nothing about what the item contains.
-const A2_ID_RE = /^[0-9]+:[0-9]+$/;
+// THE IDENTIFIER, WIDENED ON THE LEFT ONLY -- and this is the one change in this round that
+// touches a stored shape, so it is written out in full.
+//
+// It was /^[0-9]+:[0-9]+$/ because a category was always a number out of adhkar.json. A door out
+// of the split file is NAMED (adhkar_sabah), so the left half is now a name-or-number and the
+// right half is still, strictly, an index.
+//
+// 🔴 NOTHING ANY DEVICE ALREADY HOLDS IS INVALIDATED. [0-9] is a subset of [A-Za-z0-9_], so
+// every key ever written -- '27:0' and its kind -- still matches, still reads back, still
+// counts. The class is deliberately NOT '.' or '[^:]': it admits exactly what a door key and a
+// category number can be, so a hand-edited store still cannot smuggle a colon, a space or a
+// path into the identifier the UI then presents as devotion performed.
+const A2_ID_RE = /^[A-Za-z0-9_]+:[0-9]+$/;
+// The same widening, for the two records that are keyed by the CATEGORY alone rather than by
+// (category, position): the per-door open counts and the remembered place.
+const A2_CAT_RE = /^[A-Za-z0-9_]+$/;
 const adhkarItemKey = (catId, i) => String(catId) + ':' + String(i);
 // DEVICE-LOCAL day, not toISOString: the day a reader lives by is their own midnight. Same
 // reasoning, and the same three getters, as wirdDayKey -- and its OWN function, so the mushaf
@@ -6463,7 +6568,7 @@ function readAdhkarUsage() {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return {};
   const out = {};
   for (const k of Object.keys(o)) {
-    if (!/^[0-9]+$/.test(k)) continue;
+    if (!A2_CAT_RE.test(k)) continue;
     const v = o[k];
     if (!Number.isInteger(v) || v < 1) continue;
     out[k] = v;
@@ -6473,7 +6578,7 @@ function readAdhkarUsage() {
 function bumpAdhkarUsage(catId) {
   const cur = readAdhkarUsage();
   const k = String(catId);
-  if (!/^[0-9]+$/.test(k)) return cur;
+  if (!A2_CAT_RE.test(k)) return cur;
   const next = Object.assign({}, cur);
   next[k] = (next[k] || 0) + 1;
   try { localStorage.setItem(ADHKAR_USAGE_KEY, JSON.stringify(next)); } catch (e) {}
@@ -6552,7 +6657,7 @@ function readAdhkarPlace() {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return {};
   const out = {};
   for (const k of Object.keys(o)) {
-    if (!/^[0-9]+$/.test(k)) continue;
+    if (!A2_CAT_RE.test(k)) continue;
     const v = o[k];
     if (!Number.isInteger(v) || v < 0) continue;
     out[k] = v;
@@ -6567,7 +6672,7 @@ function writeAdhkarPlace(catId, i) {
   const cur = readAdhkarPlace();
   const k = String(catId);
   const n = parseInt(i, 10);
-  if (!/^[0-9]+$/.test(k) || !Number.isInteger(n) || n < 0) return cur;
+  if (!A2_CAT_RE.test(k) || !Number.isInteger(n) || n < 0) return cur;
   if (cur[k] === n) return cur;
   const next = Object.assign({}, cur);
   next[k] = n;
@@ -6796,8 +6901,20 @@ function AdhkarScreenV2({ onBack }) {
   const [dailyWird, setDailyWird] = useState(readDailyWird);
   useEffect(() => {
     let alive = true;
-    loadAdhkar().then((d) => { if (alive) setDb(d || { categories: [], byCat: {} }); })
-      .catch(() => { if (alive) setDb({ categories: [], byCat: {} }); });
+    // BOTH STORES, AND THE SPLIT ONE IS ALLOWED TO FAIL. adhkar.json is what the screen needs;
+    // the split file is what turns one of its categories into two doors. So the split fetch is
+    // caught to null and the screen falls back to the UNSPLIT store -- a reader offline, or on a
+    // deployment that does not carry the file, sees category 27 exactly as it ships rather than
+    // an empty catalogue. The split is asked for ONLY behind the switch, so a reader with the
+    // switch off does not pay a request for a file their screen will not read.
+    Promise.all([
+      loadAdhkar(),
+      ADHKAR_GROUPS_ON ? loadAdhkarSplit().catch(() => null) : Promise.resolve(null),
+    ]).then(([d, sp]) => {
+      if (!alive) return;
+      const store = d || { byId: {}, categories: [], byCat: {} };
+      setDb(sp ? applyAdhkarSplit(store, sp) : store);
+    }).catch(() => { if (alive) setDb({ byId: {}, categories: [], byCat: {} }); });
     return () => { alive = false; };
   }, []);
   // THE CLOCK'S FIRST DOOR, and it is opened ONCE. The ref spends itself on the first pass that
@@ -6930,8 +7047,8 @@ function A3Search({ query, setQuery }) {
 // Real per-category standing, read off the SAME progress record the counter writes. A category
 // the store does not resolve reports zero of zero and is drawn as untouched -- never as begun.
 function a3CatStanding(prog, cat, byCat) {
-  const items = byCat ? byCat[parseInt(cat.id, 10)] : null;
-  const total = Array.isArray(items) ? items.length : 0;
+  const items = adhkarItemsFor(byCat, cat.id);
+  const total = items.length;
   const done = total ? adhkarCatDone(prog, cat.id, items) : 0;
   return { total: total, done: done, full: total > 0 && done >= total, started: done > 0 };
 }
@@ -7293,8 +7410,19 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
       const saved = adhkarPlaceOf(readAdhkarPlace(), cat.id);
       return saved > 0 ? Math.min(saved, list.length - 1) : 0;
     };
-    loadAdhkar()
-      .then((db) => { if (alive) { const list = (db.byCat && db.byCat[parseInt(cat.id, 10)]) || []; setItems(list); setIdx(at(list)); } })
+    // The SAME pair the browse screen loads, resolved the SAME way -- a door opened from the
+    // catalogue and a door opened by the clock therefore hold identical items, and a numeric
+    // category still resolves through adhkarItemsFor's second arm exactly as it always did.
+    Promise.all([
+      loadAdhkar(),
+      ADHKAR_GROUPS_ON ? loadAdhkarSplit().catch(() => null) : Promise.resolve(null),
+    ])
+      .then(([db, sp]) => {
+        if (!alive) return;
+        const store = sp ? applyAdhkarSplit(db, sp) : db;
+        const list = adhkarItemsFor(store && store.byCat, cat.id);
+        setItems(list); setIdx(at(list));
+      })
       .catch(() => { if (alive) { setItems([]); setIdx(0); } });
     return () => { alive = false; };
   }, [cat.id]);
