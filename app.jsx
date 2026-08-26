@@ -1658,6 +1658,132 @@ const loadAdhkar = () => {
   }
   return __adhkarPromise;
 };
+// ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
+// adhkar-split-27.json is the OWNER'S OWN FILE: authored in chat, approved by the owner, and
+// dropped into the tree sealed. NOTHING BELOW EDITS IT, REWRITES IT OR NORMALISES IT -- it is
+// fetched, parsed and read, exactly as adhkar.json is.
+//
+// WHY A SECOND FILE AND NOT AN EDIT TO adhkar.json. hisnmuslim ships the morning and the evening
+// as ONE category of 24 -- id 27, «أذكار الصباح والمساء» -- and the reader wants two doors. The
+// two are not a partition: 18 of the 24 belong to BOTH doors, and six of them are WORDED
+// differently in the evening than in the morning. So the split cannot be done by moving rows
+// between groups, and adhkar.json is left byte-identical: this file is a PRESENTATION layer over
+// it, and every field but the wording is still read from the source row by id.
+//
+// THE ROOT COPY IS A BYTE COPY. Like adhkar.json, the client fetches this from the origin root,
+// so the tree carries the same pair the twins guard already describes for adhkar.json: the
+// authored copy under lib/data and a byte-identical copy at the root that ships. The root copy
+// was made with fs.copyFileSync and not one byte of it was authored here.
+//
+// IT IS NOT IN THE WORKER'S CORE. adhkar.json is precached and this is not, so the two doors
+// cost ONE network fetch on a cold start and are unavailable offline -- and that is why every
+// failure below falls back to the UNSPLIT store rather than to an empty screen. A reader with no
+// network sees category 27 exactly as it ships today, which is the same thing the switch being
+// off shows them. Adding an entry to CORE is a worker decision and belongs to whoever ships.
+const ADHKAR_SPLIT_URL = '/adhkar-split-27.json';
+let __splitData = null;
+let __splitPromise = null;
+const loadAdhkarSplit = () => {
+  if (__splitData) return Promise.resolve(__splitData);
+  if (!__splitPromise) {
+    __splitPromise = Promise.resolve()
+      .then(() => fetch(ADHKAR_SPLIT_URL))
+      .then((r) => { if (!r.ok) throw new Error('adhkar split fetch ' + r.status); return r.json(); })
+      .then((raw) => { __splitData = raw; return __splitData; })
+      .catch((e) => { __splitPromise = null; throw e; });
+  }
+  return __splitPromise;
+};
+
+// THE RESOLUTION, AND IT IS THE WHOLE OF THE POLICY. One pure function, no state, no storage.
+//
+//   * the door's ITEMS are the split file's own array, IN THE SPLIT FILE'S OWN ORDER
+//   * each item is the adhkar.json ROW for that id -- so repeat, audio and id keep coming from
+//     the source and from nowhere else
+//   * the wording is overridden ONLY where the split item carries its own text. That is the one field the
+//     owner's file may speak about, and it speaks about exactly twelve items (six per door).
+//   * the source row is COPIED, never mutated: Object.assign builds a new object, so the store
+//     adhkar.json parsed is the same store afterwards and the chat card reading it sees no change
+//   * an id the source does not have is DROPPED rather than rendered as a hole
+//
+// AND THE DOORS TAKE CATEGORY 27's PLACE IN THE ORDER, not the end of the list. splice() at the
+// index the source category occupies is the whole of that: the catalogue keeps the store's own
+// order everywhere else, and the two doors appear where the one they replace used to be.
+function applyAdhkarSplit(db, split) {
+  if (!db || !split || !Array.isArray(split.doors) || split.doors.length === 0) return db;
+  const srcId = parseInt(split.sourceCategoryId, 10);
+  if (!Number.isFinite(srcId)) return db;
+  const cats = (db.categories || []).slice();
+  const at = cats.findIndex((c) => parseInt(c && c.id, 10) === srcId);
+  if (at === -1) return db;
+  const byCat = Object.assign({}, db.byCat);
+  const doors = [];
+  for (const door of split.doors) {
+    if (!door || typeof door.key !== 'string' || !door.key || !Array.isArray(door.items)) return db;
+    const items = [];
+    for (const it of door.items) {
+      const row = it && db.byId ? db.byId[it.id] : null;
+      if (!row) continue;
+      items.push((typeof it.text === 'string' && it.text)
+        ? Object.assign({}, row, { text: it.text })
+        : row);
+    }
+    if (items.length === 0) return db;
+    byCat[door.key] = items;
+    doors.push({ id: door.key, title: String(door.title || ''), count: items.length });
+  }
+  cats.splice(at, 1, ...doors);
+  return { byId: db.byId, byCat: byCat, categories: cats };
+}
+
+// THE HEART THAT WAS LIT BEFORE THE SPLIT, AND IS STILL LIT AFTER IT -- BY READING ONLY.
+//
+// THE DEFECT THIS CLOSES, measured and written up in the split report: a favourite is stored as
+// '<category>:<position>', so one saved in category 27 reads '27:5'. The doors are named, so a
+// heart lit in a door is 'adhkar_sabah:0'. With the doors shipped, category 27 is not on the
+// index -- and a reader's own favourite became unreachable: still in storage, still intact, but
+// with no screen left that could show it lit.
+//
+// SO THE OLD ENTRY IS RESOLVED THROUGH THE DATA rather than rewritten. '27:5' names a POSITION
+// in the source category; that position names a ROW; that row has an id; and the id is what the
+// two doors share with the category they came from. Matching on it lights the same dhikr in its
+// new door.
+//
+// 🔴 NOT ONE BYTE IS WRITTEN. adhkar_favorites_v1 is read and never touched here: nothing is
+// migrated, nothing is renamed, nothing is deleted, and turning the switch off restores every
+// entry to exactly the screen that wrote it. What a reader favourites TODAY in a door is
+// written under that door's own key, as it already was.
+//
+// AND IT IS SCOPED TO THE SPLIT'S OWN SOURCE, not to favourites in general: only the category
+// the split file names is resolved this way, so two unrelated categories that happen to share a
+// dhikr do not start lighting each other's hearts.
+function adhkarLegacyFavIds(favs, byCat, sourceCatId) {
+  const out = {};
+  if (!Array.isArray(favs) || sourceCatId === null || sourceCatId === undefined) return out;
+  const items = adhkarItemsFor(byCat, sourceCatId);
+  if (!items.length) return out;
+  const pre = String(sourceCatId) + ':';
+  for (const f of favs) {
+    if (typeof f !== 'string' || f.indexOf(pre) !== 0) continue;
+    const i = parseInt(f.slice(pre.length), 10);
+    const row = (Number.isInteger(i) && i >= 0 && i < items.length) ? items[i] : null;
+    if (row && row.id !== undefined) out[row.id] = true;
+  }
+  return out;
+}
+
+// ONE LOOKUP FOR BOTH KINDS OF DOOR. A category from adhkar.json is numbered and a door from the
+// split file is named, so the map is asked by the id AS GIVEN first and by its number second.
+// The second arm is the shipped behaviour, unchanged, and it is what every numeric category
+// still takes -- nothing about them goes through the first.
+const adhkarItemsFor = (byCat, catId) => {
+  if (!byCat) return [];
+  const direct = byCat[catId];
+  if (Array.isArray(direct)) return direct;
+  const n = parseInt(catId, 10);
+  return (Number.isFinite(n) && Array.isArray(byCat[n])) ? byCat[n] : [];
+};
+
 // worship-display.json — the CLIENT-rendered worship text. Loaded once (same shape as
 // loadAdhkar). GENERATED from worship-golden.json by build-worship-display.cjs; never the model.
 let __worshipData = null;     // { cells: { "id:band" -> { rawHash, band, chars, text } } }
@@ -6210,7 +6336,22 @@ const ADHKAR_GOAL_PRESETS = [3, 5, 8, 12, 20];
 
 // The identifier, and it is deliberately (category id, position) rather than d.id: it is stable
 // for a given store, it is two integers, and it says nothing about what the item contains.
-const A2_ID_RE = /^[0-9]+:[0-9]+$/;
+// THE IDENTIFIER, WIDENED ON THE LEFT ONLY -- and this is the one change in this round that
+// touches a stored shape, so it is written out in full.
+//
+// It was /^[0-9]+:[0-9]+$/ because a category was always a number out of adhkar.json. A door out
+// of the split file is NAMED (adhkar_sabah), so the left half is now a name-or-number and the
+// right half is still, strictly, an index.
+//
+// 🔴 NOTHING ANY DEVICE ALREADY HOLDS IS INVALIDATED. [0-9] is a subset of [A-Za-z0-9_], so
+// every key ever written -- '27:0' and its kind -- still matches, still reads back, still
+// counts. The class is deliberately NOT '.' or '[^:]': it admits exactly what a door key and a
+// category number can be, so a hand-edited store still cannot smuggle a colon, a space or a
+// path into the identifier the UI then presents as devotion performed.
+const A2_ID_RE = /^[A-Za-z0-9_]+:[0-9]+$/;
+// The same widening, for the two records that are keyed by the CATEGORY alone rather than by
+// (category, position): the per-door open counts and the remembered place.
+const A2_CAT_RE = /^[A-Za-z0-9_]+$/;
 const adhkarItemKey = (catId, i) => String(catId) + ':' + String(i);
 // DEVICE-LOCAL day, not toISOString: the day a reader lives by is their own midnight. Same
 // reasoning, and the same three getters, as wirdDayKey -- and its OWN function, so the mushaf
@@ -6463,7 +6604,7 @@ function readAdhkarUsage() {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return {};
   const out = {};
   for (const k of Object.keys(o)) {
-    if (!/^[0-9]+$/.test(k)) continue;
+    if (!A2_CAT_RE.test(k)) continue;
     const v = o[k];
     if (!Number.isInteger(v) || v < 1) continue;
     out[k] = v;
@@ -6473,7 +6614,7 @@ function readAdhkarUsage() {
 function bumpAdhkarUsage(catId) {
   const cur = readAdhkarUsage();
   const k = String(catId);
-  if (!/^[0-9]+$/.test(k)) return cur;
+  if (!A2_CAT_RE.test(k)) return cur;
   const next = Object.assign({}, cur);
   next[k] = (next[k] || 0) + 1;
   try { localStorage.setItem(ADHKAR_USAGE_KEY, JSON.stringify(next)); } catch (e) {}
@@ -6506,6 +6647,122 @@ function adhkarWindow(len, idx, size) {
   for (let i = 0; i < w; i++) out.push(start + i);
   return out;
 }
+
+// ── THE GROUP DOORS -- ?adhkargroups=1, AND IT IS OFF FOR EVERYONE ──────────────
+// WHAT WAS ALREADY TRUE BEFORE THIS SWITCH, recorded because it is the whole reason the switch
+// is small. The adhkar have opened as a catalogue of INDEPENDENT DOORS since session 103: every
+// category adhkar.json declares is its own card on the browse screen, carrying that category's
+// own title and its own count, and opening one hands the whole screen to that category's adhkar
+// and nothing else. The long single list this work was raised against is already gone.
+//
+// SO WHAT THIS SWITCH ADDS IS THE FOUR THINGS THAT CATALOGUE DOES NOT DO: a standing line for
+// the group being read, a remembered position inside it, a bead card that spends one dhikr by a
+// tap anywhere on it and then carries the reader onward, and a first door chosen by the device's
+// own clock.
+//
+// IT IS OFF UNTIL THE PARAMETER SAYS OTHERWISE, and it is written the way ?memred is written
+// rather than the way ?adhkarui was: it ANSWERS FROM THE URL AND WRITES NOTHING DOWN. A reader
+// who opens the preview link gets the new reading; a reader who opens the app normally gets the
+// screen that shipped, and no stored byte on any device can put them in the other one. Every
+// failure -- no window, no location, a URL the platform refuses to parse -- answers FALSE,
+// because the default direction here is the screen that is already true of production.
+// 🔴 RAISED FOR EVERYONE. The owner reviewed the two doors on the preview -- 23 and 21 -- and
+// ordered them shipped, so the default flips: no parameter now means the doors, and the reader
+// gets them without typing anything.
+//
+// AND ?adhkargroups=0 IS STILL THE WAY BACK. It is a rollback that costs a query string and no
+// deploy at all: the reader, or the owner, appends it and category 27 opens whole with its 24
+// exactly as it did before any of this work. That is the safety property this switch was built
+// for, and raising the default does not spend it.
+//
+// IT STILL WRITES NOTHING DOWN. The answer comes from the URL and from nowhere else, so neither
+// arm can stick to a device or outlive the tab it was typed in -- and every failure (no window,
+// no location, a URL the platform refuses to parse) now answers TRUE, because the safe default
+// is no longer "the old screen" but "the screen the owner approved".
+const readAdhkarGroupsFlag = () => {
+  try { return new URLSearchParams(window.location.search).get('adhkargroups') !== '0'; } catch (e) { return true; }
+};
+const ADHKAR_GROUPS_ON = readAdhkarGroupsFlag();
+
+// THE REMEMBERED POSITION, AND IT IS ITS OWN KEY. adhkar_daily_progress_v1 is THE COUNTER and
+// not one line below touches it: it keeps its name, its shape, its day scope and its single
+// writer, so a reader carrying a count today still carries exactly that count after this work.
+// A position is not devotion performed -- it is where a reader's eye stopped -- so it is stored
+// apart, under a key of its own, and clearing either one cannot disturb the other.
+//
+// NOT DAY-SCOPED, deliberately. The counter resets at the reader's own midnight because a
+// repetition belongs to a day; a place in a long category does not, and a reader who stopped at
+// the eleventh dhikr on Monday evening should resume at the eleventh on Tuesday morning rather
+// than at the first. { '<catId>': index }, non-negative integers only, and anything that is not
+// that -- damaged JSON, an array, a fractional index, a category id that is not digits -- reads
+// as the empty record rather than as a position.
+const ADHKAR_PLACE_KEY = 'adhkar_place_v1';
+function readAdhkarPlace() {
+  let raw = null;
+  try { raw = localStorage.getItem(ADHKAR_PLACE_KEY); } catch (e) { return {}; }
+  if (!raw) return {};
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return {}; }
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return {};
+  const out = {};
+  for (const k of Object.keys(o)) {
+    if (!A2_CAT_RE.test(k)) continue;
+    const v = o[k];
+    if (!Number.isInteger(v) || v < 0) continue;
+    out[k] = v;
+  }
+  return out;
+}
+// The ONLY writer of the place key. It refuses anything that is not a real position, and it
+// refuses a write that would change nothing, so returning to a category the reader is already
+// standing in does not touch storage at all. Every READER of this value clamps it against the
+// real list before it is used, so a store hand-edited to say 900 still opens at the last item.
+function writeAdhkarPlace(catId, i) {
+  const cur = readAdhkarPlace();
+  const k = String(catId);
+  const n = parseInt(i, 10);
+  if (!A2_CAT_RE.test(k) || !Number.isInteger(n) || n < 0) return cur;
+  if (cur[k] === n) return cur;
+  const next = Object.assign({}, cur);
+  next[k] = n;
+  try { localStorage.setItem(ADHKAR_PLACE_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+const adhkarPlaceOf = (rec, catId) => {
+  const v = rec && rec[String(catId)];
+  return Number.isInteger(v) && v > 0 ? v : 0;
+};
+
+// THE FIRST DOOR, CHOSEN BY THE DEVICE'S OWN CLOCK -- and chosen OUT OF THE DATA, never out of a
+// hardcoded id. Before noon the morning word is looked for, from noon onward the evening word,
+// and the answer is the first category in the store's OWN ORDER whose OWN TITLE carries it. A
+// store that renames or reorders its categories moves this answer rather than breaking it, and
+// a store that carries neither word answers null and opens nothing.
+//
+// 🔴 WHAT THE DATA ACTUALLY SAYS, written here because it surprises. hisnmuslim ships the
+// morning and the evening as ONE category -- أذكار الصباح والمساء, twenty-four
+// adhkar -- and NOT as two. Both arms below therefore resolve to that same single door.
+// Splitting it would mean inventing a grouping the source does not make and moving adhkar out
+// of the group the source put them in, which is exactly what this round is forbidden to do. So
+// the clock picks the door that EXISTS; it does not manufacture a second one. Whether that
+// category should become two is a DATA decision and it belongs to the owner, not to this
+// function.
+const A3G_MORNING = 'الصباح';   // "the morning"
+const A3G_EVENING = 'المساء';   // "the evening"
+function adhkarTimeDoor(cats, now) {
+  if (!Array.isArray(cats) || cats.length === 0) return null;
+  let h = -1;
+  try { h = (now || new Date()).getHours(); } catch (e) { return null; }
+  if (!Number.isInteger(h) || h < 0 || h > 23) return null;
+  const word = h < 12 ? A3G_MORNING : A3G_EVENING;
+  return cats.filter((c) => String((c && c.title) || '').indexOf(word) !== -1)[0] || null;
+}
+
+// Two chrome strings, escaped for the same reason every string in the block below is escaped.
+// Neither is devotional text: one is the word between two numbers, the other names what a tap
+// has left to spend.
+const A3G_OF     = 'من';                                         // "of"
+const A3G_REMAIN = 'المتبقي'; // "the remaining"
 
 // NEW V2 CHROME STRINGS, and every one is written as \u{...} code-point escapes on purpose:
 // an escape sequence cannot be silently reflowed, reshaped, normalised or truncated by an
@@ -6693,10 +6950,46 @@ function AdhkarScreenV2({ onBack }) {
   const [dailyWird, setDailyWird] = useState(readDailyWird);
   useEffect(() => {
     let alive = true;
-    loadAdhkar().then((d) => { if (alive) setDb(d || { categories: [], byCat: {} }); })
-      .catch(() => { if (alive) setDb({ categories: [], byCat: {} }); });
+    // BOTH STORES, AND THE SPLIT ONE IS ALLOWED TO FAIL. adhkar.json is what the screen needs;
+    // the split file is what turns one of its categories into two doors. So the split fetch is
+    // caught to null and the screen falls back to the UNSPLIT store -- a reader offline, or on a
+    // deployment that does not carry the file, sees category 27 exactly as it ships rather than
+    // an empty catalogue. The split is asked for ONLY behind the switch, so a reader with the
+    // switch off does not pay a request for a file their screen will not read.
+    Promise.all([
+      loadAdhkar(),
+      ADHKAR_GROUPS_ON ? loadAdhkarSplit().catch(() => null) : Promise.resolve(null),
+    ]).then(([d, sp]) => {
+      if (!alive) return;
+      const store = d || { byId: {}, categories: [], byCat: {} };
+      setDb(sp ? applyAdhkarSplit(store, sp) : store);
+    }).catch(() => { if (alive) setDb({ byId: {}, categories: [], byCat: {} }); });
     return () => { alive = false; };
   }, []);
+  // THE CLOCK'S FIRST DOOR, and it is opened ONCE. The ref spends itself on the first pass that
+  // sees a real store, so backing out to the catalogue and standing there does not re-open the
+  // door under the reader's hand, and neither does a re-render or a day that rolls over. The
+  // catalogue is what the door opens ON TOP OF -- the reader's back returns to it through the
+  // same closer every other exit uses -- so the index stays open for manual navigation exactly
+  // as the order requires, and nothing here is a redirect away from it.
+  //
+  // IT DOES NOT BUMP THE USAGE MAP. adhkar_usage_v1 records the doors A READER opened; a door
+  // the clock opened is not one of them, and counting it would put a number in that record that
+  // no one performed. open() stays the reader's own way in and is untouched, so it is still the
+  // only usage write in the app.
+  //
+  // IT PASSES NO START POSITION. The category resolves its own remembered place below, which is
+  // the same answer by the same reader -- naming it twice would be two sources for one number.
+  const autoDoor = useRef(false);
+  useEffect(() => {
+    if (!ADHKAR_GROUPS_ON || autoDoor.current) return;
+    if (!db || !Array.isArray(db.categories) || db.categories.length === 0) return;
+    autoDoor.current = true;
+    const hit = adhkarTimeDoor(db.categories);
+    if (!hit) return;
+    setStartAt(0);
+    setSelected(hit);
+  }, [db]);
   const cats = db ? (db.categories || []) : null;
   // Same filter as V1: normalise both sides, substring, and an empty query keeps EVERY
   // category in the store's own order. Nothing is ranked and nothing is hidden.
@@ -6803,8 +7096,8 @@ function A3Search({ query, setQuery }) {
 // Real per-category standing, read off the SAME progress record the counter writes. A category
 // the store does not resolve reports zero of zero and is drawn as untouched -- never as begun.
 function a3CatStanding(prog, cat, byCat) {
-  const items = byCat ? byCat[parseInt(cat.id, 10)] : null;
-  const total = Array.isArray(items) ? items.length : 0;
+  const items = adhkarItemsFor(byCat, cat.id);
+  const total = items.length;
   const done = total ? adhkarCatDone(prog, cat.id, items) : 0;
   return { total: total, done: done, full: total > 0 && done >= total, started: done > 0 };
 }
@@ -6988,6 +7281,28 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
 // counter, and onward. The dhikr text is still {d.text} -- a text child, no pass over it -- the
 // counts are still v.count/v.target, the position is still the real index over the real length,
 // and the live region is still in the tree from the first render.
+// THE PANEL'S CHILDREN, WRITTEN ONCE. Both shapes below mount the SAME nodes -- the position
+// line, the repetition badge, the stored text as a text child, the attribution -- so the
+// reading with the switch on and the reading with it off cannot drift apart in anything but
+// the wrapper around them. It is called as a function rather than mounted as a component on
+// purpose: no element is added to the tree, so the switch changes the wrapper and NOTHING else.
+function A3GPanelBody(v, d, len) {
+  return (
+    <>
+                <span style={s.eziaReadHead}>
+                  <span style={s.eziaReadPos}>{toArabicDigits(v.idx + 1)} / {toArabicDigits(len)}</span>
+                  {/* the SAME target the counter below counts to, so the line and the counter
+                      cannot say different numbers about one dhikr. The wording is a2Repeat's,
+                      unchanged -- only the number it is handed is now the resolved one. */}
+                  {v.target > 1 && <span style={s.eziaReadRepeat}>{a2Repeat(v.target)}</span>}
+                </span>
+                {/* the stored text, rendered as a text child. */}
+                <div style={s.eziaReadText}>{d.text}</div>
+                <div style={s.eziaReadSource}>{A2_SOURCE}</div>
+    </>
+  );
+}
+
 function IstanaAdhkarReader(v) {
   const items = v.items;
   const d = v.d;
@@ -7010,6 +7325,20 @@ function IstanaAdhkarReader(v) {
           </button>
         </div>
       </div>
+      {/* THE GROUP'S OWN STANDING, in a bar and in words: how many of THIS category's adhkar
+          are finished today, out of how many the category holds. Both numbers are ones already
+          resolved above -- v.catDone is adhkarCatDone over the real items, len is the real
+          length -- so this line cannot state a number the counter disagrees with, and it is
+          drawn only when there is a real list for it to be a fraction of. */}
+      {v.groups && items !== null && len > 0 && (
+        <div style={s.eziaGroupBar} role="progressbar" aria-label={v.cat.title}
+          aria-valuemin={0} aria-valuemax={len} aria-valuenow={v.catDone}>
+          <span style={s.eziaGroupTrack} aria-hidden="true">
+            <span style={{ ...s.eziaGroupFill, width: Math.round((v.catDone / len) * 100) + '%' }} />
+          </span>
+          <span style={s.eziaGroupNums}>{toArabicDigits(v.catDone)} {A3G_OF} {toArabicDigits(len)}</span>
+        </div>
+      )}
       <div style={s.eziaReadOuter}>
         {items === null ? (
           <div style={s.a3Empty}>...</div>
@@ -7018,18 +7347,28 @@ function IstanaAdhkarReader(v) {
         ) : (
           <div style={s.eziaReadScroll}>
             <div className="ezia-read-wrap">
-              <div className="ezia-read-panel">
-                <span style={s.eziaReadHead}>
-                  <span style={s.eziaReadPos}>{toArabicDigits(v.idx + 1)} / {toArabicDigits(len)}</span>
-                  {/* the SAME target the counter below counts to, so the line and the counter
-                      cannot say different numbers about one dhikr. The wording is a2Repeat's,
-                      unchanged -- only the number it is handed is now the resolved one. */}
-                  {v.target > 1 && <span style={s.eziaReadRepeat}>{a2Repeat(v.target)}</span>}
-                </span>
-                {/* the stored text, rendered as a text child. */}
-                <div style={s.eziaReadText}>{d.text}</div>
-                <div style={s.eziaReadSource}>{A2_SOURCE}</div>
-              </div>
+              {/* THE BEAD. With the switch OFF this is the panel that shipped -- a <div>, and
+                  nothing about it answers a tap. With it ON the same children are mounted
+                  inside a button whose WHOLE SURFACE is the counter, and the number under them
+                  is what a tap still has left to spend: it starts at the item's own target and
+                  it goes DOWN, which is how a hand counts beads.
+                  🔴 THE STORED RECORD STILL GOES UP, under the same key, capped at the same
+                  target by the same single writer. The descent is a READING of target minus
+                  count, not a second counter -- there is no key, no shape and no stored byte
+                  that differs between the two shapes. */}
+              {v.groups ? (
+                <button type="button" className="ezia-read-panel adhkar2-focus" onClick={v.onBead}
+                  style={s.eziaBead}
+                  aria-label={A3G_REMAIN + ' ' + toArabicDigits(Math.max(0, v.target - v.count))}>
+                  {A3GPanelBody(v, d, len)}
+                  <span style={s.eziaBeadFoot}>
+                    <span style={s.eziaBeadNum}>{toArabicDigits(Math.max(0, v.target - v.count))}</span>
+                    <span style={s.eziaBeadWord}>{A3G_REMAIN}</span>
+                  </span>
+                </button>
+              ) : (
+                <div className="ezia-read-panel">{A3GPanelBody(v, d, len)}</div>
+              )}
               {/* the position rail, a bounded row under the panel rather than a screen edge. */}
               <div style={s.eziaRail} role="progressbar" aria-label={v.cat.title}
                 aria-valuemin={1} aria-valuemax={len} aria-valuenow={v.idx + 1}>
@@ -7099,6 +7438,10 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   const [prog, setProg] = useState(readAdhkarProgress);
   const [favs, setFavs] = useState(readAdhkarFavorites);
   const [note, setNote] = useState('');                    // share feedback, announced politely
+  // The ids favourited under the split's SOURCE category, resolved once when the store lands.
+  // Empty for every category that is not a door of the split, and empty when nothing old is
+  // favourited -- so the ordinary path is the one that shipped.
+  const [legacyFavIds, setLegacyFavIds] = useState({});
   const audioRef = useRef(null);
   const [playingId, setPlayingId] = useState(null);
   useEffect(() => {
@@ -7108,15 +7451,49 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
     // first. No index outside the store's own list can be reached from here.
     const at = (list) => {
       const n = parseInt(startAt, 10);
-      if (!list.length || !Number.isFinite(n) || n < 1) return 0;
-      return Math.min(n, list.length - 1);
+      if (!list.length) return 0;
+      if (Number.isFinite(n) && n >= 1) return Math.min(n, list.length - 1);
+      // THE REMEMBERED POSITION IS CONSULTED LAST, and only behind the switch. A caller that
+      // named a position still wins -- the favourites list opens at its own item exactly as it
+      // always has -- and a reader with the switch off still opens every category at its first
+      // dhikr, because this line is the only thing that could have moved them and it does not
+      // run. The saved value is clamped against the real list like every other index here, so
+      // a category that shrank opens at its last item rather than past its end.
+      if (!ADHKAR_GROUPS_ON) return 0;
+      const saved = adhkarPlaceOf(readAdhkarPlace(), cat.id);
+      return saved > 0 ? Math.min(saved, list.length - 1) : 0;
     };
-    loadAdhkar()
-      .then((db) => { if (alive) { const list = (db.byCat && db.byCat[parseInt(cat.id, 10)]) || []; setItems(list); setIdx(at(list)); } })
+    // The SAME pair the browse screen loads, resolved the SAME way -- a door opened from the
+    // catalogue and a door opened by the clock therefore hold identical items, and a numeric
+    // category still resolves through adhkarItemsFor's second arm exactly as it always did.
+    Promise.all([
+      loadAdhkar(),
+      ADHKAR_GROUPS_ON ? loadAdhkarSplit().catch(() => null) : Promise.resolve(null),
+    ])
+      .then(([db, sp]) => {
+        if (!alive) return;
+        const store = sp ? applyAdhkarSplit(db, sp) : db;
+        const list = adhkarItemsFor(store && store.byCat, cat.id);
+        setItems(list); setIdx(at(list));
+        // Only a DOOR of this split asks the question, and it asks it of the store the split
+        // came from -- applyAdhkarSplit leaves the source category in byCat untouched, which is
+        // what makes '27:5' still resolvable after 27 has left the index.
+        setLegacyFavIds((sp && String(cat.id) !== String(sp.sourceCategoryId) && list.length)
+          ? adhkarLegacyFavIds(readAdhkarFavorites(), store && store.byCat, sp.sourceCategoryId)
+          : {});
+      })
       .catch(() => { if (alive) { setItems([]); setIdx(0); } });
     return () => { alive = false; };
   }, [cat.id]);
   useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
+  // The place is written where the position CHANGES and nowhere else -- one effect, one writer,
+  // and it is silent with the switch off, so a reader who never asked for this never has the key
+  // written to their device at all. It waits for a real list: a category still loading has no
+  // position to record, and recording 0 for it would overwrite a real saved place with a zero.
+  useEffect(() => {
+    if (!ADHKAR_GROUPS_ON || !items || items.length === 0) return;
+    writeAdhkarPlace(cat.id, idx);
+  }, [cat.id, idx, items]);
   // UNCHANGED audio contract -- DhikrCard's, code point for code point: one Audio at a time, a
   // second tap stops, ended/error clear the state, and the element is built from d.audio and
   // from nothing else. The control is rendered only when d.audio exists, so there is never a
@@ -7164,8 +7541,16 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   const count = Math.min(adhkarCountOf(prog, cat.id, idx), target);
   const full = count >= target;
   const fkey = adhkarItemKey(cat.id, idx);
-  const isFav = favs.indexOf(fkey) !== -1;
+  // Lit by this door's own entry, or by the entry the reader made before the split existed.
+  // The first is a live toggle; the second is a reading, and §3 of the order is explicit that
+  // it stays one.
+  const isFav = favs.indexOf(fkey) !== -1 || !!(d && legacyFavIds[d.id]);
   const catDone = items ? adhkarCatDone(prog, cat.id, items) : 0;
+  // ONE INCREMENT, AND BOTH ROUTES REACH IT THROUGH THIS. The dock button and the bead card
+  // below are two ways to spend one repetition, not two counters: bumpAdhkarCount still has a
+  // single call site, the cap still lives at it, and the bead therefore cannot count something
+  // the button would have refused.
+  const countUp = () => { if (!full) setProg(bumpAdhkarCount(cat.id, idx, target)); };
   // ONE view object again. Every value in it was resolved above out of the store or out of the
   // progress record; every handler in it is one of this component's own. The two readers get
   // the same object and differ only in how they draw it.
@@ -7187,7 +7572,17 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
     onNext: () => go(idx + 1),
     // One press, one increment, and the press is refused at the target -- the cap lives here,
     // in the single call site of bumpAdhkarCount, and no reader can raise it.
-    onCount: () => { if (!full) setProg(bumpAdhkarCount(cat.id, idx, target)); },
+    onCount: countUp,
+    // THE BEAD. The same single increment, reached by a tap anywhere on the card instead of by
+    // the dock button. What the bead ADDS is the move: the tap that spends the last repetition
+    // carries the reader to the next dhikr, and a tap on a dhikr already finished carries them
+    // on without counting anything at all. On the last dhikr of a category there is nowhere to
+    // go and go() refuses, so the reader is left standing on a finished card rather than being
+    // thrown out of the group.
+    onBead: () => { if (full) { go(idx + 1); return; } countUp(); if (count + 1 >= target) go(idx + 1); },
+    // Which shape the reader below draws. It is the switch and nothing else -- no stored value,
+    // no second key, no per-category state.
+    groups: ADHKAR_GROUPS_ON,
     onFav: () => setFavs(toggleAdhkarFavorite(fkey)),
     onShare: onShare,
     onAudio: () => { if (d) toggle(d); },
@@ -11037,6 +11432,12 @@ function App() {
       localStorage.removeItem(ADHKAR_PROGRESS_KEY);
       localStorage.removeItem(ADHKAR_FAVORITES_KEY);
       localStorage.removeItem(ADHKAR_USAGE_KEY);
+      // THE REMEMBERED POSITION GOES WITH THEM, on exactly the terms the three above go on.
+      // A place inside a group is a reading record, and "delete all my data" must not hand it
+      // to whoever sets this device up next. It is removed unconditionally -- not only when the
+      // switch that writes it is on -- because a device that once carried the switch still
+      // carries the key afterwards, and a sweep that asked about a URL parameter would miss it.
+      localStorage.removeItem(ADHKAR_PLACE_KEY);
       // Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
       // home screen and the adhkar screens together. Removing it is enough: the reader is total,
       // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the
@@ -19360,6 +19761,18 @@ const s = {
   eziaCountBtnDone: { background: 'var(--a3-cyan)', color: 'var(--a3-navy)', cursor: 'default' },
   eziaCountNums: { fontSize: 15, fontWeight: 800 },
   eziaCountLabel: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 700 },
+  // The group standing and the bead. NOT ONE NEW COLOUR AND NOT ONE NEW FONT: line is the track
+  // the position rail already draws itself on, blue on it is the pair eziaReadPos already uses,
+  // and the bead takes its surface, its border and its radius from the .ezia-read-panel class
+  // the shipped panel is drawn with -- so the two shapes sit in the same box.
+  eziaGroupBar: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 760, margin: '0 auto', boxSizing: 'border-box', padding: '8px 12px 0' },
+  eziaGroupTrack: { flex: 1, minWidth: 0, height: 6, borderRadius: 999, background: 'var(--a3-line)', overflow: 'hidden' },
+  eziaGroupFill: { display: 'block', height: '100%', borderRadius: 999, background: 'var(--a3-blue)' },
+  eziaGroupNums: { flexShrink: 0, fontSize: 12.5, fontWeight: 800, color: 'var(--a3-blue)' },
+  eziaBead: { display: 'block', width: '100%', cursor: 'pointer', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', textAlign: 'center' },
+  eziaBeadFoot: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 10 },
+  eziaBeadNum: { fontSize: 34, fontWeight: 800, lineHeight: 1.1, color: 'var(--a3-blue)' },
+  eziaBeadWord: { fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
 
   ezistScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
   ezistNavBtn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },

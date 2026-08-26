@@ -504,7 +504,52 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': 'f90db007281e1a7c3c3fce9c1ccbf047b334751ecf9ffd19d49f80433aa5712a',
+  //   adhkar groups -- the adhkar reader gained a group standing line, a remembered position, a
+  //                    bead card that spends one repetition per tap, and a first door chosen by
+  //                    the clock -- all behind ?adhkargroups=1 and all OFF by default. app.jsx
+  //                    grew and the app.js it builds followed 1147830 -> 1160295 (+12465).
+  //                    app.js is in CORE, so three numbers moved with it and all three are
+  //                    re-cut in the SAME commit as this digest: CORE_BYTES 1983495 -> 1995960
+  //                    by tools/core-bytes.cjs --write, the app.js figure in the byte table
+  //                    above that constant, and its SW_PROSE mirror below. THIS digest was cut
+  //                    LAST, after both sw.js edits. The worker own behaviour did not change:
+  //                    what moved inside sw.js is one integer and one figure in prose. CACHE is
+  //                    NOT touched -- the store name is a ship decision the merge round owns,
+  //                    and this branch is a preview that ships nothing.
+  //   adhkar split  -- category 27 opens as TWO doors instead of one. The owner's own file,
+  //                    adhkar-split-27.json, assigns the twenty-four adhkar of the morning and
+  //                    evening group to a morning door of 23 and an evening door of 21, and
+  //                    carries its own wording for the six that are said differently after
+  //                    noon. adhkar.json is NOT edited -- it is byte-identical, and repeat,
+  //                    audio and id still come from its rows by id. The client fetches the
+  //                    split from a byte copy at the root, made with fs.copyFileSync; that
+  //                    file is NOT in CORE, so it is not precached and every failure to load
+  //                    it falls back to the unsplit screen. app.jsx grew and app.js followed
+  //                    1160295 -> 1167264 (+6969). app.js is in CORE, so three numbers moved
+  //                    with it and all three are re-cut in the SAME commit as this digest:
+  //                    CORE_BYTES 1995960 -> 2002929 by tools/core-bytes.cjs --write, the
+  //                    app.js figure in the byte table above that constant, and its SW_PROSE
+  //                    mirror below. THIS digest was cut LAST, after both sw.js edits. The
+  //                    worker itself did not change: one integer and one figure in prose.
+  //                    CACHE is NOT touched -- this branch is a preview and ships nothing.
+  //   adhkar ship   -- the two doors go to every reader. FOUR things move and the digest is cut
+  //                    after all of them. (1) PRECACHE: adhkar-split-27.json joins CORE beside
+  //                    adhkar.json, so the doors survive a cold offline boot instead of falling
+  //                    back to the undivided group; its revalidation needed no line, because the
+  //                    fetch handler already moves every same-origin *.json but the two sealed
+  //                    mushaf files to stale-while-revalidate. (2) The twins guard is WIDENED to
+  //                    compare the split pair as well -- same checks, same order, no new gate,
+  //                    roster still 99. (3) A favourite saved as 27:<position> is resolved
+  //                    through the data to a dhikr id and lights that dhikr in its new door --
+  //                    READ ONLY, nothing migrated or renamed. (4) The switch default is RAISED:
+  //                    no parameter means the doors, and ?adhkargroups=0 is the rollback that
+  //                    costs no deploy. app.jsx grew and app.js followed 1167264 -> 1171036
+  //                    (+3772). CORE_BYTES 2002929 -> 2013883 = that delta plus the 7182 the new
+  //                    CORE entry weighs. The byte table above the constant gained a term for it
+  //                    and its SW_PROSE mirror gained the figure, so B14 can check it. CACHE is
+  //                    NOT bumped and does not need to be: install rewrites every CORE entry
+  //                    into the same store, which is measured, not assumed.
+  'sw.js': '5bd20328b477ac49a36f357141546a577bd03bb6f908295730aa568d005051e8',
 };
 
 // ---------------------------------------------------------------------------
@@ -553,11 +598,12 @@ const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json
 // that stored the shell and not the app is what made "offline boot is not possible" true.
 const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
+  '/adhkar-split-27.json',
   '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js'];
 // The files CORE names on disk, in the same order. B12 re-derives their byte sum and refuses a
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
-  'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json',
+  'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json', 'adhkar-split-27.json',
   'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js'];
 const SW_SEALED_DATA = ['/quran-uthmani.json', '/mushaf-layout.json'];
 // ITEM 33. The store the 604 printed page scans live in, and the ceiling on it. Written out
@@ -1614,11 +1660,13 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1147830, of: 'app.js' },
+      { n: 1171036, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
       { n: 177392, of: 'adhkar.json' },
+      // The owner's split of category 27, precached beside adhkar.json since the ship round.
+      { n: 7182, of: 'adhkar-split-27.json' },
       { n: 12893, of: 'icon-512.png' },
       { n: 5938, of: 'icon-maskable-512.png' },
       { n: 5053, of: 'icon-192.png' },
