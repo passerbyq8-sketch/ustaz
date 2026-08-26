@@ -11,6 +11,14 @@ referral-golden.json     text eol=lf
 adhkar.json              text eol=lf
 lib/data/adhkar.json     text eol=lf
 
+# The owner's split of category 27, and its byte copy at the root that ships. Neither is
+# compared by a guard today, so nothing goes red without these -- but the ORDER that introduced
+# the file pins its fingerprint (56C0FC1A) as the proof it was never edited, and a fresh clone
+# with core.autocrlf=true would rewrite the line endings and make that proof read false about a
+# file whose content nobody touched. Pinned so the fingerprint means the same thing everywhere.
+adhkar-split-27.json          text eol=lf
+lib/data/adhkar-split-27.json text eol=lf
+
 # recon-audit requires bare-LF = 0 inside index.html. Pure CRLF, on every machine.
 index.html               text eol=crlf
 
