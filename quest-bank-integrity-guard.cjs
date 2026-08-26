@@ -113,6 +113,29 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-26   -- THE SIGN-IN BRIDGE: the web half of the shell's auth handshake. app.jsx
+  //                    gained ONE place that builds a sign-in request and ONE that posts it --
+  //                    four fields, `v` the STRING "1" and never the number, and a `url` that is
+  //                    always OUR /api/auth-start on ezik.app because the shell refuses to open
+  //                    anything else. The contract's five refusal reasons are sorted into THREE
+  //                    treatments -- a dismissal is silence and no red line, a message the shell
+  //                    judged malformed is a programming fault that is never retried on its own,
+  //                    and a device that could not open the sheet waits for the reader's own
+  //                    gesture -- and a SIXTH reason nobody has heard of takes the last of those.
+  //                    There is NO DEADLINE on the path, deliberately and provably: closing the
+  //                    sheet IS the answer, so a timer would fire while a reader was still typing
+  //                    a password and release the button under them. A client state is minted per
+  //                    press with crypto.getRandomValues, kept in memory and NEVER stored, and a
+  //                    return that does not carry it back is refused before its ticket is read.
+  //                    The row draws ZERO nodes outside the shell. ONE key is stored -- the
+  //                    session -- and resetAll erases it, so delete.html's promise that exactly
+  //                    one thing remains stays true without a letter of that page being edited.
+  //                    app.js was rebuilt from that source 1126907 -> 1143467 (+16560), CORE_BYTES
+  //                    was re-cut 1962572 -> 1979132 by tools/core-bytes.cjs --write, the app.js
+  //                    figure in the byte table above CORE_BYTES and the SW_PROSE mirror below
+  //                    both followed 1126907 -> 1143467, and THIS digest was cut last, after all
+  //                    of them. sw.js is 44266 bytes before and after: only two numbers in it
+  //                    moved. CACHE is NOT touched -- the store name is the merge round's.
   //   2026-08-25   -- THE SAVE PIPE: the web half of the shell's download handler. app.jsx gained
   //                    ONE place that builds a download request and ONE that posts it -- seven
   //                    fields, `v` the STRING "1" and never the number, `b64` standard-alphabet
@@ -457,7 +480,7 @@ const SEALED = {
   //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
   //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
-  'sw.js': 'e33fe4e2d89e7102f363c3112ce32bb80c7bb647355ac61f3626f66d4cadeca9',
+  'sw.js': '096451a1a104b2face00c5fcd4e78f17cd09ac6edea137539674786bf24379a4',
 };
 
 // ---------------------------------------------------------------------------
@@ -1567,7 +1590,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1126907, of: 'app.js' },
+      { n: 1143467, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

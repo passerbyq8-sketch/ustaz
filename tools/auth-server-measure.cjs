@@ -1268,18 +1268,29 @@ run('every exit from the return leg lands on ezik://auth/return', async () => {
   return cases.length + 1 + ' failure branches, all of them redirect home';
 });
 
-run('the three routes refuse the wrong method and answer the preflight', async () => {
+// api/auth-return.js NOW ACCEPTS BOTH GET AND POST, and this case says so by name rather than
+// by having been loosened. Apple requires response_mode=form_post while `email` is in scope, so
+// its redirect arrives as a form POST; Google's arrives as a GET. Every verb OUTSIDE each route's
+// own list is still refused, which is a wider check than the single wrong verb this case used to
+// try -- a route that answered PUT would now be caught here too.
+run('the three routes refuse every wrong method and answer the preflight', async () => {
   const g = buildGraph({});
-  for (const [name, mod, good] of [['auth-start', g.start, 'GET'], ['auth-return', g.ret, 'GET'],
-    ['auth-exchange', g.exchange, 'POST']]) {
-    const wrong = fakeRes();
-    await mod.default(fakeReq({ method: good === 'GET' ? 'POST' : 'GET' }), wrong);
-    eq(wrong.statusCode, 405, name + ' on the wrong method');
+  const VERBS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+  let refusals = 0;
+  for (const [name, mod, allowed] of [['auth-start', g.start, ['GET']],
+    ['auth-return', g.ret, ['GET', 'POST']], ['auth-exchange', g.exchange, ['POST']]]) {
+    for (const verb of VERBS) {
+      if (allowed.indexOf(verb) !== -1) continue;
+      const wrong = fakeRes();
+      await mod.default(fakeReq({ method: verb }), wrong);
+      eq(wrong.statusCode, 405, name + ' on ' + verb);
+      refusals++;
+    }
     const pre = fakeRes();
     await mod.default(fakeReq({ method: 'OPTIONS' }), pre);
     eq(pre.statusCode, 204, name + ' on OPTIONS');
   }
-  return '3 routes: 405 on the wrong verb, 204 on the preflight';
+  return '3 routes: ' + refusals + ' verbs refused with 405, 3 preflights answered 204';
 });
 
 run('a store that cannot be written stops the flow rather than half-finishing it', async () => {
@@ -1323,6 +1334,143 @@ run('zero new store variables, and no read of process.env outside a known list',
   for (const name of seen) is(allowed.has(name), 'an unexpected environment variable is read: ' + name);
   is(seen.has('KV_REST_API_URL') && seen.has('KV_REST_API_TOKEN'), 'the store variables are not the existing two');
   return Array.from(seen).sort().join(' · ');
+});
+
+/* -- THE PAGE'S OWN STATE, CARRIED AND HANDED BACK ------------------------- */
+
+run('the page\'s own state is recorded on the start and handed back as `state`', async () => {
+  const g = buildGraph({});
+  const started = await legStart(g, { query: { cs: 'page-state-1' } });
+  const state = started.params.get('state');
+  const record = stateRecordOf(g, state);
+  eq(record.clientState, 'page-state-1', 'the page state on the record');
+  is(state !== 'page-state-1', 'the opaque state and the page state are one value -- they must not be');
+  is(started.params.get('cs') === null, 'the page state was forwarded to the PROVIDER');
+
+  g.provider.idToken = g.signer.sign({}, claimsFor(g, record.nonce));
+  const returned = await legReturn(g, { query: { code: FIXTURE.code, state } });
+  eq(returned.params.get('state'), 'page-state-1', 'the state the app is handed back');
+  is(!!returned.params.get('ticket'), 'a ticket was not minted on a good return');
+  return 'cs recorded, never forwarded, echoed back as state';
+});
+
+run('a page that sends no `cs` is answered exactly as it was before, with the opaque state', async () => {
+  const g = buildGraph({});
+  const started = await legStart(g);
+  const state = started.params.get('state');
+  eq(stateRecordOf(g, state).clientState, '', 'the page state when the page sent none');
+  g.provider.idToken = g.signer.sign({}, claimsFor(g, stateRecordOf(g, state).nonce));
+  const returned = await legReturn(g, { query: { code: FIXTURE.code, state } });
+  eq(returned.params.get('state'), state, 'the echo when there is no page state to hand back');
+  return 'no cs -> the opaque state is echoed, unchanged behaviour';
+});
+
+run('a `cs` that is not an opaque token is dropped rather than carried into a URL', async () => {
+  const g = buildGraph({});
+  for (const bad of ['a b', 'x'.repeat(129), '<script>', 'a=1&b=2', '']) {
+    const started = await legStart(g, { query: { cs: bad } });
+    eq(stateRecordOf(g, started.params.get('state')).clientState, '',
+      'a cs of ' + JSON.stringify(bad.slice(0, 20)) + ' was recorded');
+  }
+  // ...and one that IS opaque is kept whole.
+  const ok = await legStart(g, { query: { cs: 'A-_09azAZ' } });
+  eq(stateRecordOf(g, ok.params.get('state')).clientState, 'A-_09azAZ', 'a well-formed cs');
+  return '5 malformed values dropped, 1 well-formed value kept';
+});
+
+run('a CANCELLED sign-in comes back carrying the page\'s state, and spends the record', async () => {
+  const g = buildGraph({});
+  const started = await legStart(g, { query: { cs: 'page-state-2' } });
+  const state = started.params.get('state');
+  const denied = await legReturn(g, { query: { state, error: 'access_denied' } });
+  eq(denied.params.get('error'), 'auth-provider-denied', 'the refusal code');
+  eq(denied.params.get('state'), 'page-state-2', 'the state a cancelled sign-in carries');
+  eq(g.store.rawGet(g.storeMod.stateKey(state)), null, 'the state record after a cancellation');
+  eq(g.provider.calls.length, 0, 'the provider was called for a sign-in the reader cancelled');
+  // The provider's own words still never reach the URL we build.
+  const g2 = buildGraph({});
+  const s2 = await legStart(g2, { query: { cs: 'page-state-3' } });
+  const hostile = await legReturn(g2, {
+    query: { state: s2.params.get('state'), error: '<script>alert(1)</script>' },
+  });
+  eq(hostile.params.get('error'), 'auth-provider-denied', "the provider's text was echoed");
+  return 'denied + page state + record spent + 0 provider calls';
+});
+
+/* -- APPLE: response_mode IS DATA, AND THE RETURN LEG READS A BODY ---------- */
+
+run('R12 apple carries response_mode as a FIELD, and an absent field means `query`', async () => {
+  const g = buildGraph({});
+  const P = g.oidc.PROVIDERS;
+  eq(P.apple.responseMode, 'form_post', "apple's response mode");
+  eq(P.google.responseMode, 'query', "google's response mode");
+
+  const parts = { state: 's', nonce: 'n', codeChallenge: 'c' };
+  const withId = (row) => Object.assign({}, row, { clientId: 'cid-9001' });
+  const goog = new URL(g.oidc.buildAuthorizeUrl(withId(P.google), parts));
+  eq(goog.searchParams.get('response_mode'), null,
+    'the DEFAULT was sent to google -- a parameter added to a live request to buy nothing');
+  const appl = new URL(g.oidc.buildAuthorizeUrl(withId(P.apple), parts));
+  eq(appl.searchParams.get('response_mode'), 'form_post', 'the mode apple requires while email is in scope');
+
+  // ABSENCE means query: a provider row that never grew the field takes google's path exactly.
+  const bare = withId(P.google);
+  delete bare.responseMode;
+  const bareUrl = new URL(g.oidc.buildAuthorizeUrl(bare, parts));
+  eq(bareUrl.searchParams.get('response_mode'), null, 'a row without the field sent one anyway');
+  eq(bareUrl.toString(), goog.toString(), 'an absent field and an explicit default disagree');
+  return 'form_post for apple only; absent === query; google unchanged';
+});
+
+run('api/auth-return reads its parameters from the BODY on a POST and the QUERY on a GET', async () => {
+  const g = buildGraph({});
+  const started = await legStart(g, { query: { cs: 'page-state-4' } });
+  const state = started.params.get('state');
+  const record = stateRecordOf(g, state);
+  g.provider.idToken = g.signer.sign({}, claimsFor(g, record.nonce));
+
+  // A form POST, the shape Apple actually delivers -- and a raw urlencoded body too, because a
+  // route that only works when something upstream parsed for it has an undeclared dependency.
+  const res = fakeRes();
+  await g.ret.default(fakeReq({ method: 'POST', body: { code: FIXTURE.code, state } }), res);
+  eq(res.statusCode, 302, 'the status for a form POST');
+  const back = new URL(locationOf(res));
+  eq(back.searchParams.get('state'), 'page-state-4', 'the state read out of the body');
+  is(!!back.searchParams.get('ticket'), 'a ticket was not minted from a form POST');
+
+  const g2 = buildGraph({});
+  const s2 = await legStart(g2, { query: { cs: 'page-state-5' } });
+  const st2 = s2.params.get('state');
+  g2.provider.idToken = g2.signer.sign({}, claimsFor(g2, stateRecordOf(g2, st2).nonce));
+  const res2 = fakeRes();
+  await g2.ret.default(fakeReq({
+    method: 'POST',
+    body: 'code=' + encodeURIComponent(FIXTURE.code) + '&state=' + encodeURIComponent(st2),
+  }), res2);
+  eq(res2.statusCode, 302, 'the status for a raw urlencoded body');
+  is(!!new URL(locationOf(res2)).searchParams.get('ticket'), 'a ticket from a raw urlencoded body');
+
+  // And the query is NOT read on a POST: one reader, one source, no accidental second door.
+  const g3 = buildGraph({});
+  const res3 = fakeRes();
+  await g3.ret.default(fakeReq({ method: 'POST', query: { state: 'from-the-query' }, body: {} }), res3);
+  eq(new URL(locationOf(res3)).searchParams.get('error'), 'auth-state-missing',
+    'the query was read on a POST');
+  return 'POST reads the body (parsed and raw); GET reads the query; no second door';
+});
+
+run('SCOPES: the request asks for what is kept and nothing more -- no `profile`', async () => {
+  const g = buildGraph({});
+  for (const name of CONTRACT.PROVIDERS) {
+    const scope = g.oidc.PROVIDERS[name].scope;
+    eq(scope, 'openid email', 'the scope for ' + name);
+    is(scope.split(' ').indexOf('profile') === -1,
+      name + ' asks for `profile` -- a name and a picture nothing in this tree stores');
+  }
+  // And the wire agrees with the table.
+  const started = await legStart(g);
+  eq(started.params.get('scope'), 'openid email', 'the scope on the authorize URL');
+  return CONTRACT.PROVIDERS.length + ' providers, both "openid email", 0 ask for profile';
 });
 
 // ---------------------------------------------------------------------------

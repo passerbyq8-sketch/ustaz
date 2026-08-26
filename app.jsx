@@ -432,6 +432,17 @@ const EZ_I18N = {
     'save.writeFailed': 'تعذَّرَتْ كتابةُ الملفِّ على الجهاز.',
     'save.shareUnavailable': 'لا سبيلَ إلى المشاركةِ على هذا الجهاز.',
     'save.failed': 'لم يتِمَّ الحفظ.',
+    'auth.groupTitle': 'الحساب',
+    'auth.signIn': 'تسجيل الدخول بحساب Google',
+    'auth.signOut': 'خروج',
+    'auth.badPayload': 'تعذَّرَ تجهيزُ طلبِ الدخول.',
+    'auth.badUrl': 'وجهةُ الدخولِ غيرُ مقبولة.',
+    'auth.unsupported': 'لا سبيلَ إلى فتحِ صفحةِ الدخولِ على هذا الجهاز. افتحْ ezik.app في المتصفِّح.',
+    'auth.browserFailed': 'تعذَّرَ فتحُ صفحةِ الدخول. حاوِلْ مرَّةً أخرى.',
+    'auth.badReturn': 'عادَ الدخولُ بجوابٍ غيرِ مفهوم.',
+    'auth.stateMismatch': 'عادَ الدخولُ بجوابٍ لا يخصُّ هذه المحاولة.',
+    'auth.refused': 'لم يتِمَّ الدخول.',
+    'auth.exchangeFailed': 'تعذَّرَ إتمامُ الدخول. حاوِلْ مرَّةً أخرى.',
 
     'widget.adhkar.title': 'الأذكار',
     'widget.adhkar.open': 'افتحْ الأذكار',
@@ -733,6 +744,17 @@ const EZ_I18N = {
     'save.writeFailed': 'The file could not be written to this device.',
     'save.shareUnavailable': 'There is no way to share on this device.',
     'save.failed': 'The file was not saved.',
+    'auth.groupTitle': 'Account',
+    'auth.signIn': 'Sign in with Google',
+    'auth.signOut': 'Sign out',
+    'auth.badPayload': 'The sign-in request could not be prepared.',
+    'auth.badUrl': 'The sign-in destination was refused.',
+    'auth.unsupported': 'This device cannot open the sign-in page. Open ezik.app in a browser.',
+    'auth.browserFailed': 'The sign-in page could not be opened. Try again.',
+    'auth.badReturn': 'Sign-in came back with an answer that could not be read.',
+    'auth.stateMismatch': 'Sign-in came back with an answer that does not belong to this attempt.',
+    'auth.refused': 'Sign-in did not complete.',
+    'auth.exchangeFailed': 'Sign-in could not be completed. Try again.',
 
     'widget.adhkar.title': 'Adhkar',
     'widget.adhkar.open': 'Open adhkar',
@@ -11033,6 +11055,11 @@ function App() {
       try { localStorage.removeItem(QIBLA_LOC_KEY); } catch (e) {}
       try { localStorage.removeItem(PRAYER_PREFS_KEY); } catch (e) {}
       try { localStorage.removeItem(PRAYER_SCHEDULE_KEY); } catch (e) {}
+      // THE SIGN-IN SESSION. delete.html:94 / :138 promise everything is wiped, and :95 / :139
+      // name exactly ONE thing that remains afterwards -- the digest of the parental code. A
+      // session left standing here would quietly have made it two, so "delete all my data"
+      // means SIGNED OUT ON THIS DEVICE and the page keeps its promise without being edited.
+      try { localStorage.removeItem(AUTH_SESSION_KEY); } catch (e) {}
       // HIJRI_OFFSET_KEY IS DELIBERATELY ABSENT. delete.html promises it nowhere, in neither
       // language, and erasing what was never promised widens this button rather than repairs it.
       // It stays until a sentence on that page asks for it.
@@ -14696,6 +14723,224 @@ function ezikSchedSend(items, nowMs) {
   return { sent: true, reason: null, items: count, dropped: built.dropped };
 }
 
+
+// ============================================================
+// SIGN-IN -- THE WEB HALF OF THE SHELL'S AUTH BRIDGE
+// ============================================================
+// THE SHELL OWNS THE SHEET AND THIS PAGE OWNS NOTHING ELSE. murabbi-shell/AUTH-CONTRACT.md gives
+// the web half exactly one move: post a request carrying four fields, and wait for one answer.
+// The shell opens that URL in a system authentication sheet, watches for `ezik://auth/return`,
+// and hands the URL back BYTE FOR BYTE -- it does not parse it, it does not know what a ticket
+// is, and its own proof asserts that `ezik://auth/return?a=1` returns unchanged. Reading the
+// query is therefore this end's job and only this end's job.
+//
+// WHY THE URL POSTED IS OURS AND NEVER GOOGLE'S. The shell refuses to open anything that is not
+// https on ezik.app or www.ezik.app, matched on the whole host. So the page cannot hand it a
+// provider URL even if it wanted to; it hands it /api/auth-start, and the server redirects.
+//
+// AND IT CARRIES ITS OWN BRIDGE ACCESSOR, DELIBERATELY -- the same reason written out above
+// ezikSchedBridge(). tools/location-bridge-measure.cjs holds ezikShellBridge() to exactly three
+// reference sites, and a fourth would make a correct proof false about a path it does not
+// describe. This is the same three-line test, not a different one.
+//
+// THERE IS NO DEADLINE ON THIS PATH, AND ITS ABSENCE IS THE CONTRACT ITSELF. The location bridge
+// carries SHELL_LOC_TIMEOUT_MS because the platform there can genuinely never answer. Here the
+// far side is a sheet the reader is looking at, and closing it IS an answer -- `dismissed`,
+// delivered at once. A deadline would therefore fire while a reader was still typing their
+// password at Google, release the button under them, and leave a second press racing a first
+// answer that is still on its way. So the button stays disabled until an answer arrives, and the
+// reader's own gesture is what produces that answer. tools/auth-bridge-measure.cjs kills a
+// mutant that adds one.
+const SHELL_AUTH_REQUEST = 'ezik:auth:request';
+const SHELL_AUTH_RESULT = 'ezik:auth:result';
+// THE STRING "1", NOT THE NUMBER 1. The shell compares it with ===, so a number is `bad-payload`.
+// A constant here rather than a literal typed twice, exactly as SHELL_DL_V is.
+const SHELL_AUTH_V = '1';
+// The one origin the shell will open and the two routes on it. Written whole rather than built
+// from location.origin: a page served from a preview alias must still send the reader to the host
+// the provider console has registered, and that host is not ours to vary at run time.
+const SHELL_AUTH_ORIGIN = 'https://ezik.app';
+const SHELL_AUTH_START_PATH = '/api/auth-start';
+const SHELL_AUTH_EXCHANGE_PATH = '/api/auth-exchange';
+const SHELL_AUTH_PROVIDER = 'google';
+// The scheme the shell returns on. Judged here, never built here -- the shell owns the value.
+const SHELL_AUTH_RETURN_SCHEME = 'ezik:';
+// THE FIVE REASONS THE CONTRACT NAMES, SORTED INTO THREE TREATMENTS -- because one line for five
+// reasons is a developer's word on a reader's screen, and five lines with one behaviour behind
+// them is five ways of saying the same shrug.
+//
+//   quiet -- `dismissed`. The reader closed the sheet. That is not a failure and gets NO red line
+//            at all: the offer is simply standing again, exactly as it was before the press.
+//   fault -- `bad-payload` / `bad-url`. The shell judged OUR message and refused it. That is a
+//            defect in this file, not something the reader did, so it is never retried on its own
+//            -- a loop retrying a message the far side has already called malformed is a loop
+//            that cannot terminate.
+//   retry -- `unsupported` and `browser-failed`. The device could not open the sheet. The reader
+//            may press again, BY THEIR OWN GESTURE and never automatically; `unsupported` names
+//            the way round it (a browser) in its own LINE rather than in its own class.
+const SHELL_AUTH_QUIET = 'quiet';
+const SHELL_AUTH_FAULT = 'fault';
+const SHELL_AUTH_RETRY = 'retry';
+const SHELL_AUTH_CLASSES = {
+  'dismissed': SHELL_AUTH_QUIET,
+  'bad-payload': SHELL_AUTH_FAULT,
+  'bad-url': SHELL_AUTH_FAULT,
+  'unsupported': SHELL_AUTH_RETRY,
+  'browser-failed': SHELL_AUTH_RETRY,
+};
+const SHELL_AUTH_LINES = {
+  'bad-payload': 'auth.badPayload',
+  'bad-url': 'auth.badUrl',
+  'unsupported': 'auth.unsupported',
+  'browser-failed': 'auth.browserFailed',
+};
+// A SIXTH REASON -- a word from a shell newer than this page, an empty string, no reason at all --
+// IS TREATED AS `browser-failed`, in class and in line together. It is the only one of the five
+// whose meaning survives being wrong: "we could not open it, press again if you like". Falling to
+// `quiet` would swallow a real failure in silence, and falling to `fault` would tell a reader
+// their device is broken because we met a word we did not know.
+const SHELL_AUTH_REASON_OTHER = 'browser-failed';
+
+function ezikAuthBridge() {
+  if (typeof window === 'undefined') return null;
+  const b = window.ReactNativeWebView;
+  if (!b || typeof b.postMessage !== 'function') return null;
+  return b;
+}
+
+/** The reason as the contract knows it, or the sixth-reason fallback. One resolver, two readers. */
+function ezikAuthReason(reason) {
+  return Object.prototype.hasOwnProperty.call(SHELL_AUTH_CLASSES, reason)
+    ? reason : SHELL_AUTH_REASON_OTHER;
+}
+function ezikAuthClass(reason) { return SHELL_AUTH_CLASSES[ezikAuthReason(reason)]; }
+/** The line a reader is shown, or '' when the class is quiet -- silence is a value here. */
+function ezikAuthLine(reason) {
+  const r = ezikAuthReason(reason);
+  if (SHELL_AUTH_CLASSES[r] === SHELL_AUTH_QUIET) return '';
+  return ezT(SHELL_AUTH_LINES[r]);
+}
+
+// THE PAGE'S OWN STATE, MINTED PER PRESS AND HELD IN MEMORY. The server has its own opaque
+// `state` that travels to Google; this is a SECOND value that never leaves our two ends.
+// auth-start records it, auth-return hands it back as `state`, and the answer is refused unless
+// it matches the press that is waiting for one.
+//
+// IT IS NEVER STORED. A value written to localStorage is a value that outlives the press it
+// belongs to and can be read back by anything else running on this origin. It lives in a ref for
+// the life of one press and dies with the component.
+function ezikAuthClientState() {
+  const a = new Uint8Array(16);
+  crypto.getRandomValues(a);
+  let out = '';
+  for (let i = 0; i < a.length; i++) out += ('0' + a[i].toString(16)).slice(-2);
+  return out;
+}
+
+let ezikAuthSeq = 0;
+function ezikAuthId() {
+  ezikAuthSeq += 1;
+  return 'au-' + ezikAuthSeq + '-' + Date.now();
+}
+
+/** The start URL, built here because the page is the only end that knows its own device id. */
+function ezikAuthStartUrl(clientState, deviceId) {
+  const u = new URL(SHELL_AUTH_ORIGIN + SHELL_AUTH_START_PATH);
+  u.searchParams.set('provider', SHELL_AUTH_PROVIDER);
+  u.searchParams.set('cs', clientState);
+  // A top-level navigation cannot carry x-murabbi-device, so the start leg takes the device as a
+  // query parameter. The BINDING is enforced at /api/auth-exchange, which is a fetch and does
+  // carry the header; this is only how the value reaches the record.
+  if (deviceId) u.searchParams.set('device', deviceId);
+  return u.toString();
+}
+
+// THE ONE PLACE AN AUTH REQUEST IS BUILT. Four fields, each written out by name, never spread from
+// an object a caller happened to be holding -- so a field added elsewhere cannot ride across the
+// bridge by accident, and a field the contract names cannot quietly go missing.
+function ezikAuthMessage(url, id) {
+  return { type: SHELL_AUTH_REQUEST, v: SHELL_AUTH_V, id: id, url: url };
+}
+
+// THE ONE-SHOT LISTENER, MATCHED ON THIS PRESS'S OWN id -- the same shape as ezikDlAsk, where this
+// pattern already shipped. A reply carrying another id is not an answer and is not a refusal: it
+// is ignored and the listener stays exactly where it is, because the press that reply belongs to
+// is not this one. NO TIMER IS ARMED HERE OR ANYWHERE BELOW IT.
+function ezikAuthAsk(bridge, url, onDone) {
+  const id = ezikAuthId();
+  let done = false;
+  const stop = () => {
+    if (done) return;
+    done = true;
+    try { window.removeEventListener(SHELL_AUTH_RESULT, onResult); } catch (e) {}
+  };
+  const onResult = (ev) => {
+    const d = ev && ev.detail;
+    if (!d || typeof d !== 'object') return;      // not an answer at all: keep listening
+    if (d.type !== SHELL_AUTH_RESULT) return;
+    if (d.v !== SHELL_AUTH_V) return;
+    if (d.id !== id) return;                      // another press's answer: not mine
+    stop();
+    onDone(d);
+  };
+  try { window.addEventListener(SHELL_AUTH_RESULT, onResult); }
+  catch (e) { onDone({ ok: false, reason: 'browser-failed' }); return null; }
+  try { bridge.postMessage(JSON.stringify(ezikAuthMessage(url, id))); }
+  catch (e) { stop(); onDone({ ok: false, reason: 'browser-failed' }); return null; }
+  return stop;
+}
+
+/** The returned URL's query, or null when it is not the destination we sent the reader to. */
+function ezikAuthReturnParams(url) {
+  if (typeof url !== 'string' || !url) return null;
+  let u = null;
+  try { u = new URL(url); } catch (e) { return null; }
+  if (u.protocol !== SHELL_AUTH_RETURN_SCHEME) return null;
+  return u.searchParams;
+}
+
+// THE LAST LEG. A fetch from this page, so it carries x-murabbi-device the way every capped
+// request does -- and that header is what /api/auth-exchange compares with the device the flow
+// started on. Four fields come back; the three kept are named one at a time, so a fifth added to
+// that response later cannot arrive in the store by accident.
+async function ezikAuthExchange(ticket) {
+  try {
+    const r = await fetch(SHELL_AUTH_ORIGIN + SHELL_AUTH_EXCHANGE_PATH, {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, capHeaders()),
+      body: JSON.stringify({ ticket: ticket }),
+    });
+    const d = await r.json();
+    if (!r.ok || !d || d.ok !== true || typeof d.session !== 'string' || !d.session) return null;
+    return {
+      session: d.session,
+      email: typeof d.email === 'string' ? d.email : '',
+      provider: typeof d.provider === 'string' ? d.provider : '',
+    };
+  } catch (e) { return null; }
+}
+
+// THE ONE STORED KEY ON THIS WHOLE PATH, AND IT IS CLASSIFIED `MUST_GO`. "Delete all my data"
+// means SIGNED OUT ON THIS DEVICE, so resetAll removes it beside everything else -- see
+// tools/delete-truth-measure.cjs. That is what keeps delete.html true without editing a letter of
+// it: that page names exactly ONE thing that remains afterwards, the digest of the parental code,
+// and a session left standing here would silently have made it two.
+const AUTH_SESSION_KEY = 'ezik_auth_session_v1';
+function readAuthSession() {
+  try {
+    const raw = localStorage.getItem(AUTH_SESSION_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (!o || typeof o !== 'object' || typeof o.session !== 'string' || !o.session) return null;
+    return o;
+  } catch (e) { return null; }
+}
+function writeAuthSession(o) {
+  try { localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(o)); } catch (e) {}
+}
+function clearAuthSession() {
+  try { localStorage.removeItem(AUTH_SESSION_KEY); } catch (e) {}
+}
 // ============================================================
 // ITEM 67 — THE READER'S OWN SWITCH: WHAT DECIDES WHETHER ANY OF THIS RUNS AT ALL
 // ============================================================
@@ -15463,6 +15708,94 @@ const EZ_AIS_WITHDRAW = 'سحب الموافقة وإيقاف ميزات الذ�
 const EZ_AIS_REVIEW = 'مراجعة الموافقة وتشغيل ميزات الذكاء الاصطناعي';
 const EZ_AIS_KEEP = 'سحب الموافقة يوقف الإرسال المستقبليّ فوراً، ولا يحذف محادثاتك المحفوظة على هذا الجهاز.';
 
+// THE SIGN-IN ROW. IT IS DRAWN IN THE SHELL AND NOWHERE ELSE, and that is the whole of the rule:
+// a browser tab has no window.ReactNativeWebView, so there is nothing on the far side to answer a
+// press, and a control that nothing answers is worse than no control at all. The browser is its
+// own path and its own item, after the release. Returning null rather than hiding with CSS means
+// a tab draws ZERO nodes for this feature rather than an invisible one.
+//
+// IT SITS WHERE THE PARENTAL CONTROLS AND THE UNLOCK PIN ALREADY SIT -- SettingsSheet, beneath
+// them -- because that is the seat this application already gave to "who is allowed to do what".
+// A new screen for one button would be a place the reader has to be taught.
+//
+// AND AFTER A SUCCESSFUL SIGN-IN IT SHOWS THE ADDRESS AND NOTHING ELSE. No name, no picture, no
+// rank, no ceiling: signing in BUYS NOTHING today, and a badge would promise something this round
+// does not deliver. Nothing else could be drawn even if we wanted to -- no name and no picture was
+// ever carried as far as the account record, and /api/auth-exchange returns four fields.
+function EzikSignInRow() {
+  const bridge = ezikAuthBridge();
+  const [session, setSession] = useState(readAuthSession);
+  const [busy, setBusy] = useState(false);
+  const [line, setLine] = useState('');
+  // The press's own state and the teardown for its listener. Both refs: neither is drawn, and the
+  // client state must not outlive the press it belongs to.
+  const csRef = useRef('');
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  if (!bridge) return null;
+
+  // EVERY FAILURE BRANCH RELEASES THE BUTTON THROUGH HERE. There is no timer, so this is the ONLY
+  // thing that can ever release it -- which is why it is one function rather than a line repeated
+  // at six exits, where the seventh exit added later is the one that forgets.
+  const settle = (msg) => { setBusy(false); setLine(msg); };
+
+  const finish = (d) => {
+    stopRef.current = null;
+    if (!d || d.ok !== true) {
+      // `dismissed` IS SILENCE. The class decides that, and the line is empty for exactly that
+      // one reason -- so a reader who changed their mind is shown nothing red for changing it.
+      settle(ezikAuthLine(d && d.reason));
+      return;
+    }
+    const p = ezikAuthReturnParams(d.url);
+    if (!p) { settle(ezT('auth.badReturn')); return; }
+    // THE STATE COMPARISON, CHECKED BEFORE THE ERROR AND BEFORE THE TICKET. An answer we cannot
+    // tie to the press that is waiting is not an answer at all, whatever else it happens to
+    // carry, so nothing further in the URL is read until this holds.
+    if (p.get('state') !== csRef.current) { settle(ezT('auth.stateMismatch')); return; }
+    if (p.get('error')) { settle(ezT('auth.refused')); return; }
+    const ticket = p.get('ticket');
+    if (!ticket) { settle(ezT('auth.badReturn')); return; }
+    ezikAuthExchange(ticket).then((got) => {
+      if (!got) { settle(ezT('auth.exchangeFailed')); return; }
+      writeAuthSession(got);
+      setSession(got);
+      settle('');
+    });
+  };
+
+  const press = () => {
+    if (busy) return;
+    setBusy(true);
+    setLine('');
+    csRef.current = ezikAuthClientState();
+    stopRef.current = ezikAuthAsk(bridge, ezikAuthStartUrl(csRef.current, getDeviceId()), finish);
+  };
+
+  // "Sign out" is a LOCAL erasure and deliberately not a call. The session key on the server
+  // expires on its own and revoking it is a separate lever; what a reader means by this button is
+  // "not on this device any more", which is exactly and only what it does.
+  const signOut = () => {
+    clearAuthSession();
+    csRef.current = '';
+    setSession(null);
+    setLine('');
+  };
+
+  return (
+    <EzShellGroup title={ezT('auth.groupTitle')}>
+      {session
+        ? (<>
+            <div style={s.settingsHint}>{session.email}</div>
+            <button type="button" onClick={signOut} style={s.settingsSaveBtn}>{ezT('auth.signOut')}</button>
+          </>)
+        : (<button type="button" onClick={press} disabled={busy}
+            style={{ ...s.settingsSaveBtn, opacity: busy ? 0.5 : 1 }}>{ezT('auth.signIn')}</button>)}
+      {line ? <div style={s.settingsMsg}>{line}</div> : null}
+    </EzShellGroup>
+  );
+}
+
 function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, onA11yReset, aiConsent, aiConsentBy, onWithdrawAI, onReviewAI }) {
   // S90 -- التحكم. The single row that leads to the parental area, and the ONLY thing left in
   // the app that opens the PIN gate. Everything above it -- the theme/dark choice and the
@@ -15748,6 +16081,10 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             style={{ ...s.settingsSaveBtn, opacity: (pinBusy || !pin1 || !pin2) ? 0.5 : 1 }}>{ezT('common.save')}</button>
         </EzShellGroup>
         )}
+        {/* THE SIGN-IN ROW, IN THE SEAT THE PARENTAL CONTROLS AND THE PIN ALREADY HOLD. It
+            draws nothing at all outside the shell -- the component itself decides that, so
+            there is no second copy of the bridge test here to drift from the one inside it. */}
+        <EzikSignInRow />
         {/* ITEM 121: the prayer preferences are last, so every established Settings position
             above remains where the reader learned it. The two stored records keep their keys. */}
         <EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>

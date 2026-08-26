@@ -1,5 +1,5 @@
 // api/auth-start.js
-// GET /api/auth-start?provider=google&device=<deviceId>
+// GET /api/auth-start?provider=google&device=<deviceId>&cs=<clientState>
 //
 // THE FIRST OF THE THREE, AND THE REASON THE OTHER TWO CAN EXIST. The shell's contract
 // (murabbi-shell/AUTH-CONTRACT.md) refuses to open any URL that is not `https` on `ezik.app` or
@@ -51,6 +51,25 @@ export const STATE_RECORD_VERSION = 1;
  * one recorded here. So a state started on one device cannot be redeemed on another, which is
  * the property; the query on this leg is only how the value gets in.
  */
+/**
+ * THE PAGE'S OWN STATE, CARRIED THROUGH UNREAD AND HANDED BACK BY api/auth-return.js AS `state`.
+ *
+ * There are two states on this path and they are not the same thing. Ours travels to the provider
+ * and back and is what api/auth-return.js consumes; the page never sees it and so cannot match it.
+ * THIS one is minted by the page for the press the reader just made, kept in memory there and
+ * never stored, and it is what lets the page refuse an answer belonging to a different press.
+ *
+ * It is never interpreted here. Its SHAPE is judged and nothing else -- an opaque token this
+ * server hands back exactly as it arrived, or an empty string. Judging the shape is not
+ * interpretation: it stops an over-long or exotic value from riding into a URL we build.
+ */
+function pageState(req) {
+  const q = (req && req.query) || {};
+  const raw = Array.isArray(q.cs) ? q.cs[0] : q.cs;
+  if (typeof raw !== 'string' || raw.length === 0 || raw.length > 128) return '';
+  return /^[A-Za-z0-9_-]+$/.test(raw) ? raw : '';
+}
+
 function startDevice(req) {
   const headers = (req && req.headers) || {};
   const fromHeader = safeId(headers[DEVICE_HEADER]);
@@ -90,6 +109,7 @@ export default async function handler(req, res) {
     nonce,
     codeVerifier,
     deviceId: startDevice(req) || '',
+    clientState: pageState(req),
     createdAt: Date.now(),
   }, STATE_TTL_SECONDS);
 

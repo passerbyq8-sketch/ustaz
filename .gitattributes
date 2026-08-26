@@ -562,6 +562,15 @@ tools/save-bridge-measure.cjs text eol=lf
 # above api/lessons-browse.js: pinning the tool and not its subjects is exactly the divergence
 # that made that gate's mutant come back a silent no-op.
 tools/auth-server-measure.cjs text eol=lf
+
+# tools/auth-bridge-measure.cjs (the sign-in seam, the web half) -- pinned for the reason every
+# tool beside it is pinned: it lifts functions and constants out of app.jsx BY BYTE OFFSET from
+# the parser and evaluates their source verbatim, and this machine checks out with
+# core.autocrlf=true. A CR the tool carried but app.jsx did not would move every offset it reads
+# -- and this one also MUTATES that lifted source by exact string, which a stray CR would
+# silently stop matching, turning a killed mutant into a "line to mutate is gone". app.jsx is
+# already pinned above for tools/save-bridge-measure.cjs, which reads it the same way.
+tools/auth-bridge-measure.cjs text eol=lf
 lib/auth/store.js text eol=lf
 lib/auth/oidc.js text eol=lf
 lib/auth/account.js text eol=lf
