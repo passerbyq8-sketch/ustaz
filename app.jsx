@@ -17080,15 +17080,15 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
 // lockout, an expired record and an unreachable store are four different facts, and only the
 // endpoint knows which of them just happened.
 const EZ_PC_TITLE = 'رمز لوحة الأهل';
-const EZ_PC_SET = 'مضبوطٌ على هذا الجهاز، ويُطلَب عند فتح لوحة الأهل.';
-const EZ_PC_NONE = 'لا رمز على هذا الجهاز الآن. سيُطلَب ضبطُ رمزٍ جديدٍ عند فتح لوحة الأهل.';
+const EZ_PC_SET = 'مضبوطٌ لهذا الجهاز، ويُطلَب عند فتح لوحة الأهل.';
+const EZ_PC_NONE = 'لا رمز لهذا الجهاز الآن. سيُطلَب ضبطُ رمزٍ جديدٍ عند فتح لوحة الأهل.';
 const EZ_PC_DELETE = 'حذف رمز لوحة الأهل';
 const EZ_PC_ARMED = 'أدخِلِ الرمزَ نفسَه لتأكيد حذفه.';
 const EZ_PC_CONFIRM = 'تأكيد الحذف';
 const EZ_PC_FAILED = 'تعذّر الحذف الآن. جرّب بعد قليل.';
 // Shown by ParentGate, not by this card: by the time it is true there is no code to draw a card
 // about. It lives here beside the rest of the code's own vocabulary.
-const EZ_PC_EXPIRED = 'انتهت مدّة الرمز السابق بعد اثني عشر شهراً من ضبطه. اختر رمزاً جديداً.';
+const EZ_PC_EXPIRED = 'انتهت مدّة الرمز السابق بعد اثني عشر شهرًا من ضبطه. اختر رمزاً جديدًا.';
 function ParentCodeCard() {
   const [armed, setArmed] = useState(false);
   const [code, setCode] = useState('');

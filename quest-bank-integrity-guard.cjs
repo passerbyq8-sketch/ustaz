@@ -575,13 +575,13 @@ const SEALED = {
   //                    nothing to the device. The AI-consent record gained the profile id it was
   //                    given for, so a second child on one tablet is asked in their own right --
   //                    same key, same delete roster entry, no new storage anywhere.
-  //                    app.jsx grew and app.js followed 1193820 -> 1200997 (+7177), and
-  //                    CORE_BYTES 2036667 -> 2043844 is exactly that delta -- no CORE entry was
+  //                    app.jsx grew and app.js followed 1193820 -> 1200987 (+7167), and
+  //                    CORE_BYTES 2036667 -> 2043834 is exactly that delta -- no CORE entry was
   //                    added or removed this round. The byte table above the constant and its
   //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
   //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
   //                    install rewrites every CORE entry into the same store.
-  'sw.js': '0072e3093cea7c71cd6390fd7e213120f1d36d93fdf9ada8c946e9d2f71add17',
+  'sw.js': '9dd9fc5ffa32c11d75036dbdabe8c008a9bb4ece120b372a1d0def64ce0f04f0',
 };
 
 // ---------------------------------------------------------------------------
@@ -1692,7 +1692,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1200997, of: 'app.js' },
+      { n: 1200987, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
