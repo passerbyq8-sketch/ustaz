@@ -365,6 +365,21 @@ const MUST_GO_NEW = [
   // keeps its promise without a letter of it being edited.
   { c: 'AUTH_SESSION_KEY',
     clause: 'everything is wiped immediately -- and exactly ONE thing is named as remaining' },
+  // THE ENTRY DECISION -- the key that remembers this device answered the first screen, by
+  // signing in or by taking the guest door. It sits HERE, and it sits here by this list's own
+  // rule rather than in spite of it: MUST_GO_NEW maps an erasure to a CLAUSE of delete.html, and
+  // delete.html:94 / :139 now name this answer in both languages, in the same ' · ' sentence and
+  // the same shape as the four items that were always beside it. The citation below is a sentence
+  // a reader can find on the page, and the last case in this file reads it there, in both halves.
+  //
+  // AND IT IS ERASED RATHER THAN KEPT, WHICH IS THE OPPOSITE CALL FROM PRAYER_NOTIFY_KEY. That
+  // one is a PERMISSION, and erasing it would leave the permission granted with the switch
+  // silently off. This one is the answer to a question, and a device whose data has been deleted
+  // must ASK that question again rather than hand the next reader a decision somebody else made.
+  // Left behind, "delete all my data" would return the device to half a first open: no profile,
+  // no session, and a screen that never asks.
+  { c: 'ENTRY_CHOICE_KEY',
+    clause: 'your answer on the entry screen' },
 ];
 
 // What must be standing afterwards, and the reason each one is allowed to stand.
@@ -700,7 +715,15 @@ run('delete.html still carries both promises this tool measures against', () => 
   const english = 'the AI-consent decision and its version number';
   const arabicLoc = 'الموضعُ المحفوظُ للقبلةِ ومواقيتِ الصلاة';
   const englishLoc = 'the position saved for the qibla and the prayer times';
-  for (const s of [arabic, english, arabicLoc, englishLoc]) {
+  // AND THE ENTRY DECISION, WHICH IS WHY ENTRY_CHOICE_KEY MAY BE CITED IN MUST_GO_NEW AT ALL. A
+  // clause quoted there that the page does not carry is a false citation, and these two lines are
+  // what would catch one -- in EITHER language, because that promise is made in both or it is not
+  // made. They are written out beside the four above, in the same shape, for the same reason the
+  // header gives for every expectation in this file: a promise read back out of the page it is
+  // measuring would agree with any page, including a page that promised nothing.
+  const arabicEntry = 'جوابُك على شاشةِ الدخول';
+  const englishEntry = 'your answer on the entry screen';
+  for (const s of [arabic, english, arabicLoc, englishLoc, arabicEntry, englishEntry]) {
     is(page.indexOf(s) !== -1,
       'delete.html no longer says "' + s + '" -- either the page was weakened to fit the code, '
       + 'which is the wrong repair, or this tool measures against a sentence nobody makes.');

@@ -488,6 +488,64 @@ async function partD0() {
   eq('...declaring its menu closed', t.getAttribute('aria-expanded'), 'false');
   eq('...and reading the language in use', String(t.textContent || '').trim(), S.AR);
 
+  // ===== THE LOGIN-FIRST ORDER PUT A STEP IN FRONT OF THIS CARD =====
+  // The language control asserted above is drawn ABOVE the step rather than inside one, which is
+  // why every line before this point still holds on a device that has answered nothing. What the
+  // card asks FIRST is now the entry decision, so the name and the year are reached through it.
+  //
+  // AND THE ORDER'S OWN REQUIREMENTS ARE MEASURED HERE, on the real mount, because this is the
+  // one gate that drives the first run with a document under it. They are: nothing is asked
+  // before the entry screen; the guest door is on that screen and reachable in ONE press with
+  // nothing to search for; and the warning about the wird and the conversations is beside it.
+  //
+  // THE PROVIDER DOORS ARE NOT DRAWN HERE, AND THIS IS THE GATE THAT SAYS SO. There is no
+  // window.ReactNativeWebView under this mount, which is what a browser tab is, and app.jsx
+  // reads exactly that through ezikAuthBridge() before deciding whether the two doors exist.
+  // api/auth-return.js answers on a scheme only the native shell receives, so on the web the
+  // doors could never open -- and two dead controls are the first thing the reader would meet.
+  // What stands in their seat instead is the sentence that says where signing in happens, and
+  // that is asserted below too: the requirement is "hidden", not "hidden and a hole left".
+  //
+  // IT MEASURES THE WEB HALF ONLY, DELIBERATELY, AND SAYS SO. The shell half -- the same two
+  // doors, live -- is not reachable from here without inventing a window.ReactNativeWebView,
+  // and a bridge this file made up would prove that this file can make one up. tools/auth-
+  // bridge-measure.cjs owns the seam behind the doors and keeps its own mutants over it.
+  {
+    const label = (b) => String(b.textContent || '').trim();
+    const held = (b) => !!(b && (b.hasAttribute('disabled') || b.disabled === true));
+    const btn = (key) => d.all('.ezonb-card button')
+      .filter((b) => label(b) === String(c.grab("ezT('" + key + "')")))[0];
+
+    eq('🔴 NOTHING is asked before the entry screen -- not a name, not a year', d.all('input').length, 0);
+    const guest = btn('entry.guest');
+    ok('the entry screen offers the guest door, inside the card, by its own name', !!guest);
+    ok('...and it is LIVE in a browser tab', !!guest && !held(guest));
+    ok('...with the warning about the wird and the conversations drawn beside it',
+      d.text().indexOf(String(c.grab("ezT('entry.guestWarn')"))) !== -1);
+    const google = btn('entry.google'), apple = btn('entry.apple');
+    ok('🔴 ...and NEITHER provider door is drawn in a browser tab, where they could not open',
+      !google && !apple);
+    // A door removed is only removed if nothing of it is left behind: not the label somewhere
+    // else in the card, not an empty control keeping its place. So the doors are counted, and
+    // the count is the guest door and nothing beside it.
+    ok('...leaving the guest door the only door on the entry screen, and no empty one beside it',
+      d.all('.ezonb-card button').filter((b) => !b.hasAttribute('data-ez-lang-toggle')).length === 1
+      && d.text().indexOf(String(c.grab("ezT('entry.google')"))) === -1
+      && d.text().indexOf(String(c.grab("ezT('entry.apple')"))) === -1);
+    ok('...with where signing in DOES happen said out loud in their seat, not a gap',
+      d.text().indexOf(String(c.grab("ezT('entry.inApp')"))) !== -1);
+    eq('...and no profile exists yet', c.store.getItem('child_profile'), null);
+
+    // ONE PRESS, WHICH IS THE WHOLE REQUIREMENT: a reviewer reaches the application in one.
+    await d.click(guest);
+    await tick(90);
+    eq('one press on the guest door records the answer', c.store.getItem('ezik_entry_v1'), 'guest');
+    eq('...and creates no profile even so', c.store.getItem('child_profile'), null);
+    eq('...and the card did not become a second card', d.all('.ezonb-card').length, 1);
+    ok('...and the language control came through the step still attached',
+      !!d.all('button[data-ez-lang-toggle]')[0]);
+  }
+
   // Type into the card first: a language switch may not cost the reader what they typed.
   const inputs = d.all('input');
   eq('the card asks for a name and a year', inputs.length, 2);

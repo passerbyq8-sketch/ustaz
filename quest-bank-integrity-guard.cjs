@@ -599,7 +599,18 @@ const SEALED = {
   //                    that delta. The worker byte table and SW_PROSE mirror below both followed,
   //                    and THIS digest is re-cut last. CACHE is NOT bumped: install rewrites
   //                    every CORE entry into the same store.
-  'sw.js': 'fadfe252d013b41267363c0ff26bc147fb361f2d8a0a9be62565923e43d0b6a5',
+  // LOGIN FIRST + THE GUEST DOOR (2026-08-27, feat/login-first-20260827). THE FIRST SCREEN A
+  //                    DEVICE MEETS IS NOW THE ENTRY SCREEN: two provider doors and a guest door
+  //                    beside them, with the wird/conversations warning drawn on it, and the name
+  //                    and year moved BEHIND that answer and made optional. One new device key,
+  //                    ezik_entry_v1, on the erase roster. No route, no screen and no cache name
+  //                    moved -- Onboarding gained a step, it did not become two components.
+  //                    app.jsx grew and app.js followed 1205975 -> 1216868 (+10893),
+  //                    and CORE_BYTES 2048822 -> 2059715 is exactly that delta. The
+  //                    worker byte table and SW_PROSE mirror below both followed, and THIS digest
+  //                    is re-cut last. CACHE is NOT bumped: install rewrites every CORE entry
+  //                    into the same store.
+  'sw.js': 'a702681438386267dc2fa0fceda4854400338ee0196cbc8ea60d79153a79896d',
 };
 
 // ---------------------------------------------------------------------------
@@ -1710,7 +1721,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1205975, of: 'app.js' },
+      { n: 1216868, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
