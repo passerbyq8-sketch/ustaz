@@ -292,9 +292,14 @@ const CHAT_IDS = ['c_alpha', 'c_beta'];
 // THE EXPECTATIONS -- written out, not derived. See the header.
 // ---------------------------------------------------------------------------
 
-// What this button already erased before this round, and must still erase. Not one of these is
-// new; every one is a line that was in resetAll yesterday. If a name drops out of this set the
-// tool goes red, which is the whole point: no silent regression behind a new repair.
+// WHAT THIS BUTTON ERASES, AND MUST GO ON ERASING. If a name drops out of this set the tool goes
+// red, which is the whole point: no silent regression behind a new repair.
+//
+// It opened as "what it already erased yesterday", and every entry but the last two was that. A
+// key born on the same day as the erasure that takes it belongs here too: the list below MUST_GO
+// is the one that maps an erasure to a CLAUSE OF delete.html, and a key that page has never
+// mentioned would be a false citation there. What makes an entry lawful here is that the button
+// erases it and is asserted to keep erasing it -- not the date it was added.
 const MUST_GO_ALREADY = [
   { lit: 'child_profile' },              // the name, birth year and gender
   { c: 'EZIK_CHATS_KEY' },               // the index of saved conversations
@@ -317,6 +322,24 @@ const MUST_GO_ALREADY = [
   { c: 'EZIK_UI_STYLE_KEY_DEAD' },       // the obsolete layout key
   { c: 'EZIK_VISUAL_THEME_KEY' },
   { c: 'EZIK_VISUAL_THEME_KEY_V1' },
+  // ITEMS 43-b / 47-b -- THE HOURS THE READER CHOSE TO BE INTERRUPTED AT.
+  //
+  // 🔴 AND IT IS THE OPPOSITE DECISION FROM PRAYER_NOTIFY_KEY BELOW, DELIBERATELY, BY THE OWNER'S
+  // OWN RULE FOR THIS ROUND: "any new device key is entered on the delete-my-data roster and is
+  // wiped with it -- as was done with adhkar_place_v1; a key that is not wiped is a deletetruth
+  // gate that is red with justification."
+  //
+  // THE TWO CASES ARE NOT THE SAME CASE, WHICH IS WHY BOTH READINGS ARE RIGHT. PRAYER_NOTIFY_KEY
+  // is a PERMISSION the reader granted the system; erasing it would leave that permission granted
+  // and the switch silently off, with no sentence anywhere warning them. This record is not a
+  // permission. It is four hours of somebody's day -- when they rise, when they read, when they
+  // sit with their wird -- and that is a record of a person, of exactly the kind the page's own
+  // promise is about. Leaving it behind would hand the next owner of the device a phone that
+  // rings at six in the morning for somebody who has gone.
+  //
+  // ONE REMOVAL TAKES ALL FOUR, because all four live in one record. And the switches come back
+  // as they ship -- off -- which is the right outcome of "delete all my data", not a regression.
+  { c: 'REMINDERS_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is

@@ -424,6 +424,30 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ لـ{n} منَ الأيّامِ القادمة، وتُجَدَّدُ كلَّما فُتِحَ التطبيق.',
+    // ITEMS 43-ب / 47-ب -- تذكيراتُ العبادة. Four independent reminders, each off until the reader
+    // says otherwise. Every one of these lines is chrome; none of it is devotional text.
+    'reminders.title': 'تذكيراتُ العبادة',
+    'reminders.hint': 'يُحفَظُ على هذا الجهازِ وحدَه، وكلُ تذكيرٍ مطفأٌ حتّى تُشعِلَهُ بنفسِك.',
+    'reminders.sabah': 'أذكارُ الصباح',
+    'reminders.masaa': 'أذكارُ المساء',
+    'reminders.wird': 'الوِردُ اليوميّ',
+    'reminders.daily': 'المحتوى اليوميّ',
+    'reminders.on': 'مُشغَّل',
+    'reminders.off': 'مطفأ',
+    'reminders.count': 'عددُ المرّاتِ في اليوم: {n}',
+    'reminders.more': 'مرّةٌ أكثر',
+    'reminders.less': 'مرّةٌ أقلّ',
+    'reminders.slot': 'وقتُ المرّةِ {n}',
+    'reminders.one': 'الوقت',
+    'reminders.window': 'تُجدوَلُ على هذا الجهازِ لـ{n} منَ الأيّامِ القادمة، وتُجَدَّدُ كلَّما فُتِحَ التطبيق.',
+    'reminders.noShell': 'التذكيرُ يرنُّ في تطبيقِ عزك منَ المتجرِ وحدَه. وفي المتصفّحِ يُحفَظُ اختيارُك ولا يرنُّ شيءٌ.',
+    'reminders.asking': 'يُطلَبُ إذنُ التذكيرِ منَ النِّظامِ الآن…',
+    'reminders.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
+    'reminders.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
+    'reminders.body.sabah': 'وقتُ أذكارِ الصباح.',
+    'reminders.body.masaa': 'وقتُ أذكارِ المساء.',
+    'reminders.body.wird': 'وقتُ وِردِكَ اليوميّ.',
+    'reminders.body.daily': 'محتوى اليومِ في انتظارِك.',
     // THE SIX LINES THE SAVE PIPE CAN SHOW. Five answer the shell's five named reasons; the
     // sixth answers everything else, so no contract word ever reaches a reader's screen.
     'save.tooLarge': 'الملفُّ أكبرُ من أن يُحفَظَ على هذا الجهاز.',
@@ -445,7 +469,7 @@ const EZ_I18N = {
     'auth.exchangeFailed': 'تعذَّرَ إتمامُ الدخول. حاوِلْ مرَّةً أخرى.',
     'auth.delete': 'حذفُ الحساب',
     'auth.deleteTitle': 'حذفُ حسابِك نهائيًّا؟',
-    'auth.deleteBody': 'يُحذَفُ حسابُك وبريدُك من خوادمِنا، وتُغلَقُ جلستُك. ولا تُحذَفُ محادثاتُك المحفوظةُ على هذا الجهاز — لمحوِها استعملْ «احذفْ بياناتي». ورمزُ قفلِ الوالدَينِ يبقى.',
+    'auth.deleteBody': 'يُحذَفُ حسابُك وبريدُك من خوادمِنا، وتُغلَقُ جلستُك. ولا تُحذَفُ محادثاتُك المحفوظةُ على هذا الجهاز — لمحوِها استعملْ زرَّ «حذف كل البيانات وإعادة البدء» في لوحةِ الأهل. ورمزُ قفلِ الوالدَينِ يبقى.',
     'auth.deleteConfirm': 'احذفْ حسابي',
     'auth.deleteDone': 'حُذِفَ حسابُك.',
     'auth.deleteFailed': 'تعذّرَ الحذفُ الآن. حاولْ مرّةً أخرى.',
@@ -742,6 +766,29 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for the next {n} days, and renewed whenever the app is opened.',
+    // ITEMS 43-b / 47-b -- the four reminders, in the second language the dictionary carries.
+    'reminders.title': 'Worship reminders',
+    'reminders.hint': 'Kept on this device alone, and every reminder is off until you turn it on.',
+    'reminders.sabah': 'Morning adhkar',
+    'reminders.masaa': 'Evening adhkar',
+    'reminders.wird': 'The daily wird',
+    'reminders.daily': 'The daily content',
+    'reminders.on': 'On',
+    'reminders.off': 'Off',
+    'reminders.count': 'Times a day: {n}',
+    'reminders.more': 'One more',
+    'reminders.less': 'One fewer',
+    'reminders.slot': 'Time {n}',
+    'reminders.one': 'Time',
+    'reminders.window': 'Scheduled on this device for the next {n} days, and renewed whenever the app is opened.',
+    'reminders.noShell': 'Reminders ring in the Ezik app from the store. In a browser your choice is saved and nothing rings.',
+    'reminders.asking': 'Asking the system for permission now…',
+    'reminders.denied': 'Reminders are blocked in your system settings.',
+    'reminders.silent': 'No answer came back, and the reminder is still off.',
+    'reminders.body.sabah': 'Time for the morning adhkar.',
+    'reminders.body.masaa': 'Time for the evening adhkar.',
+    'reminders.body.wird': 'Time for your daily wird.',
+    'reminders.body.daily': 'Today\u2019s content is waiting for you.',
     // THE SIX LINES THE SAVE PIPE CAN SHOW. Five answer the shell's five named reasons; the
     // sixth answers everything else, so no contract word ever reaches a reader's screen.
     'save.tooLarge': 'The file is too large to save on this device.',
@@ -763,7 +810,7 @@ const EZ_I18N = {
     'auth.exchangeFailed': 'Sign-in could not be completed. Try again.',
     'auth.delete': 'Delete account',
     'auth.deleteTitle': 'Delete your account permanently?',
-    'auth.deleteBody': 'Your account and your address are erased from our servers, and your session is closed. Your conversations saved on this device are NOT erased -- to wipe those, use “Delete my data”. And the parental lock code remains.',
+    'auth.deleteBody': 'Your account and your address are erased from our servers, and your session is closed. Your conversations saved on this device are NOT erased -- to wipe those, use the «حذف كل البيانات وإعادة البدء» button in the parents’ dashboard. And the parental lock code remains.',
     'auth.deleteConfirm': 'Delete my account',
     'auth.deleteDone': 'Your account has been deleted.',
     'auth.deleteFailed': 'The deletion could not be completed now. Try again.',
@@ -6648,7 +6695,7 @@ function adhkarWindow(len, idx, size) {
   return out;
 }
 
-// ── THE GROUP DOORS -- ?adhkargroups=1, AND IT IS OFF FOR EVERYONE ──────────────
+// ── THE GROUP DOORS -- ON FOR EVERYONE SINCE 8665d66, ?adhkargroups=0 THE WAY BACK ──
 // WHAT WAS ALREADY TRUE BEFORE THIS SWITCH, recorded because it is the whole reason the switch
 // is small. The adhkar have opened as a catalogue of INDEPENDENT DOORS since session 103: every
 // category adhkar.json declares is its own card on the browse screen, carrying that category's
@@ -11438,6 +11485,13 @@ function App() {
       // switch that writes it is on -- because a device that once carried the switch still
       // carries the key afterwards, and a sweep that asked about a URL parameter would miss it.
       localStorage.removeItem(ADHKAR_PLACE_KEY);
+      // ITEMS 43-ب / 47-ب -- THE REMINDER TIMES, ON EXACTLY THE TERMS THE POSITION ABOVE GOES ON.
+      // The hours a reader chose to be interrupted at are a record of that reader and of nobody
+      // else, and "delete all my data" must not hand them to whoever sets this device up next --
+      // still less leave a phone ringing at seven in the morning for a person who has gone. It is
+      // removed unconditionally, and one removal takes all four reminders because all four live
+      // in one record.
+      localStorage.removeItem(REMINDERS_KEY);
       // Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
       // home screen and the adhkar screens together. Removing it is enough: the reader is total,
       // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the
@@ -14681,16 +14735,14 @@ function PrayerNotifyToggle() {
   const turnOn = () => {
     release();
     setSaid('asking');
-    let timer = null;
-    const stop = () => {
-      if (timer) { clearTimeout(timer); timer = null; }
-      try { window.removeEventListener(SHELL_SCHED_CHANNEL, onAnswer); } catch (e) {}
+    // THE SAME PRESS, THROUGH THE ONE SENDER. Every branch this switch ever had is still here
+    // and still worded by this switch: the listener, the deadline and the message that could
+    // not be sent all now live in ezikNotifyRequest, and what comes back is the answer alone.
+    const stop = ezikNotifyRequest((granted) => {
       stopRef.current = null;
-    };
-    const onAnswer = (ev) => {
-      const granted = ezikNotifyAnswer(ev && ev.detail);
-      if (granted === null) return;          // not an answer to this press: keep listening
-      stop();
+      // A DEADLINE IS NOT A REFUSAL. `null` means nothing answered on the channel at all, and
+      // it leaves the store exactly where the reader left it.
+      if (granted === null) { setSaid('silent'); return; }
       // A REFUSAL IS A LAWFUL ANSWER AND NOT A FAULT. The switch goes back to off, the store is
       // written to match it, and the reader is told once where the decision now lives. Nothing
       // is asked again -- not by this press, and not by any later moment the reader did not
@@ -14699,12 +14751,9 @@ function PrayerNotifyToggle() {
       setOn(writePrayerNotify(true));
       setSaid('');
       ezikSchedArm();
-    };
-    try { window.addEventListener(SHELL_SCHED_CHANNEL, onAnswer); }
-    catch (e) { setSaid('silent'); return; }
-    timer = setTimeout(() => { stop(); setSaid('silent'); }, PRAYER_NOTIFY_WAIT_MS);
+    });
+    if (!stop) { setSaid('silent'); return; }
     stopRef.current = stop;
-    if (!ezikNotifyAsk()) { stop(); setSaid('silent'); }
   };
 
   // THE STORE IS WRITTEN BEFORE THE MESSAGE GOES. Whatever the bridge does with the cancellation,
@@ -15440,6 +15489,39 @@ function ezikNotifyStop() {
   return true;
 }
 
+
+// THE GESTURE ITSELF, LIFTED OUT OF THE SWITCH SO A SECOND SWITCH CAN REACH IT WITHOUT A
+// SECOND CALL SITE. ezikNotifyAsk() is the ONE message in this file that can raise a system
+// prompt, and tools/schedule-payload-measure.cjs holds it to a single call expression outside
+// every effect. Items 43-b / 47-b add a second control that legitimately needs the same
+// permission -- the reminders the reader sets their own times for -- and the way to give it
+// that without weakening the proof is to move the ONE call site here rather than to copy it.
+//
+// IT IS REACHED FROM A PRESS AND FROM NOWHERE ELSE. There is no effect on this path, no timer
+// that calls it, and no caller that is not a click handler; the measure asserts all three.
+//
+// ONE ANSWER, THREE SHAPES, AND THE CALLER WORDS ALL OF THEM. `true` granted, `false` refused,
+// and `null` for a deadline that expired with nothing on the channel -- which is NOT a refusal
+// and must never be reported as one. The return value is the detach, or null when the message
+// never left at all, so a caller can never park a listener that was never registered.
+function ezikNotifyRequest(onAnswer) {
+  let timer = null;
+  const stop = () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+    try { window.removeEventListener(SHELL_SCHED_CHANNEL, listen); } catch (e) {}
+  };
+  const listen = (ev) => {
+    const granted = ezikNotifyAnswer(ev && ev.detail);
+    if (granted === null) return;          // not an answer to this press: keep listening
+    stop();
+    onAnswer(granted);
+  };
+  try { window.addEventListener(SHELL_SCHED_CHANNEL, listen); }
+  catch (e) { return null; }
+  timer = setTimeout(() => { stop(); onAnswer(null); }, PRAYER_NOTIFY_WAIT_MS);
+  if (!ezikNotifyAsk()) { stop(); return null; }
+  return stop;
+}
 // THE ANSWER, READ AND NOT INTERPRETED. `true` granted, `false` refused, and `null` for anything
 // that is not an answer to this press: another operation's result, another channel's traffic, a
 // contract version this end does not speak, a message that is not an object at all.
@@ -15543,24 +15625,194 @@ function ezikAdhanItems(now) {
   return items;
 }
 
-// WHAT RIDES THE PIPE TODAY: NOTHING, AND THAT IS THE STATE OF THE ROUND RATHER THAN AN OVERSIGHT.
-// The pipe is the first half of this round; the feeds are the second. Of the three feeds only one
-// has an anchor in this client to ride from -- the prayer times, which are computed here already.
-// The other two have NONE: there is no reminder-time setting anywhere in this file, for the
-// adhkar and wird portion or for the daily content, and the layer that holds those choices says
-// in its own words why it has no time field in it. Inventing one here would be inventing a
-// screen, a key and a default the owner never chose. So this returns an empty list, the pipe
-// stays silent because an empty payload matches the fingerprint it starts on, and the report for
-// this round names all three feeds as open rather than pretending any of them shipped.
-function ezikSchedItems() {
-  // THE SWITCH IS THE GATE, AND IT IS READ HERE RATHER THAN AT THE PRESS. Every trigger in this
-  // file passes through this one function -- the page opening, the application returning, the day
-  // turning, the language moving, the position or the preferences changing -- so a reader who
-  // turned the reminder off is answered by all of them at once, with a list that is empty because
-  // nothing was BUILT rather than because everything was filtered afterwards. Off costs no
-  // calculation, reads no position, and reaches no calculator.
+// ============================================================
+// ITEMS 43-ب / 47-ب — THE READER'S OWN TIMES: أوقاتُ التذكيرِ التي يضبطُها القارئ
+// ============================================================
+// WHAT CHANGED SINCE THE COMMENT ABOVE ezikSchedItems WAS WRITTEN. That comment said the pipe
+// carried nothing but the prayers because "there is no reminder-time setting anywhere in this
+// file, for the adhkar and wird portion or for the daily content", and that inventing one
+// would be inventing a screen, a key and a default the owner never chose. The owner has now
+// chosen all three, in his own words: the reader sets the time and the number of times.
+//
+// 🔴 AND THE HONEST HALF, WRITTEN HERE RATHER THAN ONLY IN A REPORT. A browser tab has no
+// window.ReactNativeWebView, so ezikSchedSend answers `no-shell` and NOTHING RINGS -- not with
+// the tab open, and certainly not with it closed. The engine that survives a closed app is
+// murabbi-shell's, and it is reached only from the application the stores ship. So this layer
+// STORES A CHOICE and HANDS IT TO A PIPE; it does not build a second engine beside the one
+// that exists, and the settings screen says so to the reader in its own line.
+//
+// FOUR FEEDS, DECLARED ONCE. Every property a feed has -- the type the shell will accept, the
+// destination it carries, the two dictionary keys its text comes from, its default hour and
+// whether the reader may ask for more than one of it -- is written on ONE row here, so there
+// is no second list anywhere that a fifth reminder could be added to and forgotten in.
+//
+// THE TYPE IS THE SHELL'S AND NOT OURS. murabbi-shell freezes TYPES to three words and refuses
+// anything else as `unknownType`. The adhkar doors are 'adhkar'; the wird and the daily content
+// are both 'daily', which is the only word left that describes either of them. They are told
+// apart by their ids and by their destinations, never by a fourth word the far side would drop.
+//
+// AND THE DESTINATIONS ARE CARRIED, NOT ACTED ON -- yet. `route` is an opaque string the shell
+// stores in the notification and hands back verbatim on a press (buildOpenPayload, op:'open').
+// This client still registers no listener for that message: item 97 revoked the adhkar deep
+// link with the navigation that fed it, and re-cutting one is not this round's work. So the
+// morning reminder POINTS AT adhkar_sabah and the evening one at adhkar_masaa, which is what
+// the order asks of them, and the round that teaches this app to answer op:'open' is still
+// ahead. Nothing here promises the reader a screen.
+const REMINDERS_KEY = 'ezik_reminders_v1';
+// The ceiling on "how many times a day", and it is a SMALL number on purpose. The shell caps
+// the whole application at sixty pending notifications and cuts the FARTHEST when it is
+// reached; five prayers plus two doors plus three wirds plus three dailies is thirteen a day,
+// which fills sixty in four and a half days of a seven-day window. Four is worse than three
+// and buys the reader nothing they asked for.
+const REMINDER_MAX_TIMES = 3;
+// ONE ROW PER REMINDER. `many` is the whole of "where a count is right": the two adhkar doors
+// are a time each and not a count, exactly as the order words it.
+const REMINDER_FEEDS = [
+  { id: 'sabah', type: 'adhkar', route: 'adhkar_sabah', label: 'reminders.sabah',
+    body: 'reminders.body.sabah', at: '06:00', many: false },
+  { id: 'masaa', type: 'adhkar', route: 'adhkar_masaa', label: 'reminders.masaa',
+    body: 'reminders.body.masaa', at: '17:00', many: false },
+  { id: 'wird', type: 'daily', route: 'mushaf', label: 'reminders.wird',
+    body: 'reminders.body.wird', at: '20:00', many: true },
+  { id: 'daily', type: 'daily', route: 'home', label: 'reminders.daily',
+    body: 'reminders.body.daily', at: '09:00', many: true },
+];
+
+/**
+ * A time of day, or nothing. 'HH:MM', twenty-four hours, both halves padded -- the one shape
+ * an <input type="time"> hands back and the one shape this file will read. A string that is
+ * nearly right is not nearly a time: 9:5, 24:00 and 07:60 are each refused whole, because a
+ * reminder built from a repaired guess would ring at an hour nobody chose.
+ */
+function reminderTimeOk(t) {
+  if (typeof t !== 'string' || t.length !== 5 || t.charAt(2) !== ':') return false;
+  const h = t.slice(0, 2), m = t.slice(3);
+  if (!/^[0-9][0-9]$/.test(h) || !/^[0-9][0-9]$/.test(m)) return false;
+  return Number(h) <= 23 && Number(m) <= 59;
+}
+
+/**
+ * WHAT THE READER CHOSE, OR THE DEFAULT NOBODY IS INTERRUPTED BY.
+ *
+ * OFF BY CONSTRUCTION, exactly as PRAYER_NOTIFY_KEY is off by construction. A store this key
+ * was never written to, a damaged JSON, an array, a record whose times are all unusable, a
+ * storage that throws on the getter itself: every one of them reads as four reminders, all
+ * off, each holding the hour it would start from IF the reader ever turned it on. There is
+ * exactly one value that means on -- the boolean true -- so a truncated write or some other
+ * version of this application cannot light one by accident.
+ *
+ * A TIME IS KEPT ONLY IF IT PARSES, and duplicates inside one feed are dropped rather than
+ * scheduled twice. A record whose times ALL failed is not a choice and is not honoured: that
+ * feed falls back to its own default, off.
+ */
+function readReminders() {
+  const out = {};
+  for (let i = 0; i < REMINDER_FEEDS.length; i++) {
+    const f = REMINDER_FEEDS[i];
+    out[f.id] = { on: false, times: [f.at] };
+  }
+  let raw = null;
+  try { raw = localStorage.getItem(REMINDERS_KEY); } catch (e) { return out; }
+  if (typeof raw !== 'string' || !raw) return out;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return out; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  for (let i = 0; i < REMINDER_FEEDS.length; i++) {
+    const f = REMINDER_FEEDS[i];
+    const got = rec[f.id];
+    if (!got || typeof got !== 'object' || Array.isArray(got)) continue;
+    const cap = f.many ? REMINDER_MAX_TIMES : 1;
+    const list = Array.isArray(got.times) ? got.times : [];
+    const times = [];
+    for (let j = 0; j < list.length && times.length < cap; j++) {
+      const t = list[j];
+      if (reminderTimeOk(t) && times.indexOf(t) === -1) times.push(t);
+    }
+    if (times.length === 0) continue;
+    out[f.id] = { on: got.on === true, times: times };
+  }
+  return out;
+}
+
+// It answers with what is NOW STORED rather than with what it was asked to store -- the rule
+// writePrayerNotify already follows -- so no control ever paints itself from the assumption
+// that its own write landed.
+function writeReminders(next) {
+  try { localStorage.setItem(REMINDERS_KEY, JSON.stringify(next)); } catch (e) {}
+  return readReminders();
+}
+
+/**
+ * The reminders the reader has lit, as ABSOLUTE epoch milliseconds, over the same seven-day
+ * window the prayers use.
+ *
+ * THE CONVERSION IS THE SAME ONE ezikAdhanItems MAKES, and for the same reason: new Date(y,
+ * m - 1, d, hh, mm) builds the LOCAL WALL CLOCK of that day, so a reminder set for seven in
+ * the morning is seven in the morning on the far side of a daylight-saving change too. Adding
+ * minutes to a midnight timestamp would slide it by an hour across that boundary.
+ *
+ * IT WRITES NOTHING. This runs at the root for every reader, including one who has never
+ * opened the settings screen, so it reads its store and creates none -- the rule the prayer
+ * feed is held to by tools/schedule-payload-measure.cjs and the rule this one is held to now.
+ */
+function ezikReminderItems(now) {
+  const items = [];
+  if (!(now instanceof Date) || !isFinite(now.getTime())) return items;
+  const rec = readReminders();
+  for (let f = 0; f < REMINDER_FEEDS.length; f++) {
+    const feed = REMINDER_FEEDS[f];
+    const got = rec[feed.id];
+    if (!got || got.on !== true) continue;
+    // TEXT ARRIVES READY OR IT DOES NOT ARRIVE -- the shell composes nothing and translates
+    // nothing. Both lines are read once per feed rather than once per item: the same words
+    // seven times over are the same words.
+    const title = ezT(feed.label);
+    const body = ezT(feed.body);
+    for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
+      const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+      for (let j = 0; j < got.times.length; j++) {
+        const t = got.times[j];
+        const at = new Date(y, m - 1, d, Number(t.slice(0, 2)), Number(t.slice(3)), 0, 0).getTime();
+        if (!isFinite(at)) continue;
+        items.push({
+          id: feed.type + ':' + feed.id + ':' + t + ':' + prayerDayKey(dt),
+          type: feed.type,
+          at: at,
+          title: title,
+          body: body,
+          route: feed.route,
+        });
+      }
+    }
+  }
+  return items;
+}
+
+// THE PRAYERS, BEHIND THE SWITCH THAT HAS ALWAYS GATED THEM. This is the function ezikSchedItems
+// used to BE, moved down one level and not changed by a character: the same guard, the same
+// return, the same builder. It is its own function now only because the reminders below it are
+// gated by their OWN switches and must not be silenced by this one.
+function ezikAdhanFeed() {
   if (!readPrayerNotify()) return [];
   return ezikAdhanItems(new Date());
+}
+// WHAT RIDES THE PIPE TODAY: THE PRAYERS, AND THE FOUR REMINDERS THE READER SET THE TIMES FOR.
+// All three feeds the round opened are now closed. Each arrives through its OWN switch, and the
+// two halves are joined here and nowhere else.
+//
+// THE SWITCHES ARE THE GATES, AND THEY ARE READ HERE RATHER THAN AT THE PRESS. Every trigger in
+// this file passes through this one function -- the page opening, the application returning, the
+// day turning, the language moving, the position or the preferences changing -- so a reader who
+// turned something off is answered by all of them at once, with a list that is shorter because
+// nothing was BUILT rather than because something was filtered afterwards. Off costs no
+// calculation, reads no position, and reaches no calculator.
+//
+// AND THE TWO GATES ARE INDEPENDENT. The prayer switch silences the prayers and nothing else;
+// each reminder silences itself and nothing else. A reader who wants the morning adhkar without
+// five prayer notifications a day gets exactly that, which is the whole point of four switches.
+function ezikSchedItems() {
+  return ezikAdhanFeed().concat(ezikReminderItems(new Date()));
 }
 
 // THE ARM. It rebuilds the WHOLE payload -- never a difference, never an addition -- and hands it
@@ -16278,6 +16530,175 @@ function EzikSignInRow() {
   );
 }
 
+// ============================================================
+// ITEMS 43-ب / 47-ب -- THE REMINDER SETTINGS, INSIDE THE SETTINGS THAT ALREADY EXIST
+// ============================================================
+// IT IS A GROUP AND NOT A SCREEN. The order asks for a piece inside the settings the reader
+// already knows, so this is one EzShellGroup among the eight above it -- no route, no back
+// button, no entry in the theme-coverage roster, and nothing anybody has to be taught to find.
+//
+// AND IT IS DRAWN IN A BROWSER TOO, WHICH IS THE ONE PLACE IT DIFFERS FROM PrayerNotifyToggle.
+// That switch returns null without a bridge, and rightly: it is a control the shell answers or
+// nobody does. This group is a CHOICE, and a choice is worth storing on the day it is made even
+// where it cannot yet ring -- the owner reviews it on a preview in a browser, and a reader who
+// sets their times in a tab finds them already set the first time they open the application
+// from the store. What a browser gets INSTEAD of silence is a sentence saying so, in its own
+// line, above the switches rather than below them.
+//
+// EVERY WRITE GOES THROUGH writeReminders AND EVERY PAINT FROM WHAT IT RETURNS, so the screen
+// can never show a choice the device did not keep. And every write is followed by ezikSchedArm:
+// the pipe rebuilds the WHOLE payload, so turning one reminder off is the same operation as
+// turning one on, and the far side is never asked to reconcile a difference.
+function EzikReminderSettings() {
+  const [rec, setRec] = useState(readReminders);
+  // '' until the reader touches a switch that needs permission, then one of three quiet lines.
+  // None of the three retries by itself and none of them is an error screen -- the wording
+  // PrayerNotifyToggle settled on, reused rather than reinvented.
+  const [said, setSaid] = useState('');
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  const shell = !!ezikSchedBridge();
+
+  const release = () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } };
+
+  // THE ONE WRITER THIS COMPONENT HAS. It builds the whole record by name -- never a spread of
+  // whatever the previous read happened to be holding -- so a field some other version of this
+  // application left in the store cannot ride back out through this screen.
+  const save = (id, patch) => {
+    const next = {};
+    for (let i = 0; i < REMINDER_FEEDS.length; i++) {
+      const f = REMINDER_FEEDS[i];
+      const cur = rec[f.id] || { on: false, times: [f.at] };
+      const use = f.id === id ? patch : cur;
+      next[f.id] = { on: use.on === true, times: use.times.slice() };
+    }
+    setRec(writeReminders(next));
+    ezikSchedArm();
+  };
+
+  // TURNING ONE ON. Without a shell there is nothing to ask and nothing that could ring, so the
+  // choice is simply stored -- refusing to store it would lose the reader's decision to punish
+  // a browser for being one. With a shell the system is asked first and the store follows the
+  // ANSWER, never the intention: a refusal leaves the switch where it was, and so does silence.
+  const turnOn = (f, cur) => {
+    if (!shell) { save(f.id, { on: true, times: cur.times }); return; }
+    release();
+    setSaid('asking');
+    const stop = ezikNotifyRequest((granted) => {
+      stopRef.current = null;
+      if (granted === null) { setSaid('silent'); return; }
+      if (!granted) { setSaid('denied'); return; }
+      setSaid('');
+      save(f.id, { on: true, times: cur.times });
+    });
+    if (!stop) { setSaid('silent'); return; }
+    stopRef.current = stop;
+  };
+
+  // TURNING ONE OFF NEVER CANCELS THE CHANNEL. ezikNotifyStop() would end the prayer reminders
+  // too, which no reader asked for by switching off their evening adhkar. The store is written,
+  // the pipe rebuilds without this feed, and if that leaves nothing at all the rebuild IS the
+  // cancellation -- which is exactly how the pipe documents an empty payload.
+  const press = (f) => {
+    const cur = rec[f.id] || { on: false, times: [f.at] };
+    if (cur.on) { release(); setSaid(''); save(f.id, { on: false, times: cur.times }); return; }
+    turnOn(f, cur);
+  };
+
+  const setTime = (f, at, value) => {
+    const cur = rec[f.id] || { on: false, times: [f.at] };
+    if (!reminderTimeOk(value)) return;
+    const times = cur.times.slice();
+    if (at < 0 || at >= times.length) return;
+    times[at] = value;
+    save(f.id, { on: cur.on, times: times });
+  };
+
+  // THE COUNT, AND IT MOVES BY ONE. A new slot starts from the feed's own default hour rather
+  // than from a copy of the slot above it, because two reminders at the same minute are one
+  // reminder the reader paid for twice -- readReminders drops the duplicate and the screen would
+  // then show a count the store does not hold.
+  const setCount = (f, n) => {
+    const cur = rec[f.id] || { on: false, times: [f.at] };
+    if (n < 1 || n > REMINDER_MAX_TIMES || n === cur.times.length) return;
+    const times = cur.times.slice(0, n);
+    while (times.length < n) {
+      let t = f.at;
+      let bump = 0;
+      while (times.indexOf(t) !== -1 && bump < 24) {
+        bump += 1;
+        t = (bump < 10 ? '0' : '') + bump + f.at.slice(2);
+      }
+      times.push(t);
+    }
+    save(f.id, { on: cur.on, times: times });
+  };
+
+  return (
+    <EzShellGroup title={ezT('reminders.title')} hint={ezT('reminders.hint')}>
+      {shell ? null : <div style={s.settingsHint}>{ezT('reminders.noShell')}</div>}
+      {REMINDER_FEEDS.map((f) => {
+        const cur = rec[f.id] || { on: false, times: [f.at] };
+        return (
+          <div key={f.id}>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={cur.on ? 'true' : 'false'}
+              aria-label={ezT(f.label)}
+              data-ezik-reminder={f.id}
+              onClick={() => press(f)}
+              className="ezik-focus"
+              style={s.a11ySwitchRow}
+            >
+              <span style={s.a11ySwitchText}>
+                <span style={s.a11ySwitchTitle}>{ezT(f.label)}</span>
+                <span style={s.a11ySwitchHint}>{cur.on ? ezT('reminders.on') : ezT('reminders.off')}</span>
+              </span>
+              <span style={{ ...s.a11ySwitch, ...(cur.on ? s.a11ySwitchOn : {}) }} aria-hidden="true">
+                <span style={{ ...s.a11yKnob, ...(cur.on ? s.a11yKnobOn : {}) }} />
+              </span>
+            </button>
+            {cur.on && f.many ? (
+              <div style={s.remRow}>
+                <span style={s.remSlotLabel}>{ezT('reminders.count', { n: ezikBrowseNum(cur.times.length) })}</span>
+                <button type="button" className="ezik-focus"
+                  aria-label={ezT('reminders.less')}
+                  disabled={cur.times.length <= 1}
+                  onClick={() => setCount(f, cur.times.length - 1)}
+                  style={cur.times.length <= 1 ? { ...s.remCount, ...s.remCountOff } : s.remCount}>{'\u2212'}</button>
+                <button type="button" className="ezik-focus"
+                  aria-label={ezT('reminders.more')}
+                  disabled={cur.times.length >= REMINDER_MAX_TIMES}
+                  onClick={() => setCount(f, cur.times.length + 1)}
+                  style={cur.times.length >= REMINDER_MAX_TIMES ? { ...s.remCount, ...s.remCountOff } : s.remCount}>{String.fromCharCode(43)}</button>
+              </div>
+            ) : null}
+            {cur.on ? cur.times.map((t, i) => (
+              <div key={f.id + ':' + i} style={s.remRow}>
+                <span style={s.remSlotLabel}>
+                  {f.many ? ezT('reminders.slot', { n: ezikBrowseNum(i + 1) }) : ezT('reminders.one')}
+                </span>
+                <input
+                  type="time"
+                  value={t}
+                  aria-label={ezT(f.label) + ' \u2014 ' + (f.many ? ezT('reminders.slot', { n: ezikBrowseNum(i + 1) }) : ezT('reminders.one'))}
+                  onChange={(e) => setTime(f, i, e.target.value)}
+                  className="ezik-focus"
+                  style={s.remTime}
+                />
+              </div>
+            )) : null}
+          </div>
+        );
+      })}
+      {said === 'asking' ? <div style={s.qiblaNote}>{ezT('reminders.asking')}</div> : null}
+      {said === 'denied' ? <div style={s.qiblaNote}>{ezT('reminders.denied')}</div> : null}
+      {said === 'silent' ? <div style={s.qiblaNote}>{ezT('reminders.silent')}</div> : null}
+      <div style={s.qiblaNote}>{ezT('reminders.window', { n: ezikBrowseNum(ADHAN_WINDOW_DAYS) })}</div>
+    </EzShellGroup>
+  );
+}
 function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, onA11yReset, aiConsent, aiConsentBy, onWithdrawAI, onReviewAI }) {
   // S90 -- التحكم. The single row that leads to the parental area, and the ONLY thing left in
   // the app that opens the PIN gate. Everything above it -- the theme/dark choice and the
@@ -16567,6 +16988,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             draws nothing at all outside the shell -- the component itself decides that, so
             there is no second copy of the bridge test here to drift from the one inside it. */}
         <EzikSignInRow />
+        {/* ITEMS 43-ب / 47-ب -- the four reminders, above the prayer preferences so that
+            every established Settings position stays exactly where the reader learned it. */}
+        <EzikReminderSettings />
         {/* ITEM 121: the prayer preferences are last, so every established Settings position
             above remains where the reader learned it. The two stored records keep their keys. */}
         <EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>
@@ -19542,6 +19966,11 @@ const s = {
   qiblaDir: { marginTop: 2, fontSize: 15, lineHeight: 1.7, color: 'var(--ink)' },
   qiblaDialWrap: { display: 'flex', justifyContent: 'center', padding: '10px 0' },
   qiblaNote: { marginTop: 6, fontSize: 13, lineHeight: 1.8, color: 'var(--muted)' },
+  remRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 },
+  remSlotLabel: { flexShrink: 0, minWidth: 92, fontSize: 12.5, color: 'var(--muted)' },
+  remTime: { flex: 1, minWidth: 0, minHeight: 44, boxSizing: 'border-box', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--line)', background: 'var(--tint)', color: 'var(--ink)', fontFamily: 'inherit', fontSize: 15, direction: 'ltr', textAlign: 'center' },
+  remCount: { flexShrink: 0, minHeight: 44, minWidth: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 14px', borderRadius: 12, border: '1px solid var(--line)', background: 'var(--tint)', color: 'var(--ink)', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, cursor: 'pointer' },
+  remCountOff: { opacity: 0.45, cursor: 'default' },
   qiblaPlace: { marginTop: 10, fontSize: 14, lineHeight: 1.7, color: 'var(--ink)' },
   qiblaBtn: { marginTop: 8, alignSelf: 'flex-start', background: 'none', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 14px', fontSize: 14, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer' },
   // ITEM 109: the Hijri line under the name, and the live preview in Settings. Type only —
