@@ -473,6 +473,18 @@ const EZ_I18N = {
     'auth.deleteConfirm': 'احذفْ حسابي',
     'auth.deleteDone': 'حُذِفَ حسابُك.',
     'auth.deleteFailed': 'تعذّرَ الحذفُ الآن. حاولْ مرّةً أخرى.',
+    // THE ENTRY SCREEN -- the first thing a device that has never been set up is shown.
+    // 'entry.guestWarn' IS THE OWNER'S OWN SENTENCE, undiacriticised on purpose: it is quoted
+    // from the order and not rewritten, because what it warns about -- the wird and the
+    // conversations -- is the whole reason the door beside it is worth reading before pressing.
+    'entry.sub': 'سجِّلْ دخولَك ليبقى وردُك ومحادثاتُك على حسابِك في أيِّ جهاز.',
+    'entry.google': 'المتابعة مع Google',
+    'entry.apple': 'المتابعة مع Apple',
+    'entry.guest': 'متابعة كضيف',
+    'entry.guestWarn': 'في حال عدم التسجيل ستفقد وردك ومحادثاتك.',
+    'entry.inApp': 'تسجيلُ الدخولِ يتِمُّ داخلَ التطبيق. والمتابعةُ كضيفٍ تعملُ هنا كاملةً.',
+    'entry.skip': 'تخطّي',
+    'entry.optional': 'اختياريّةٌ كلُّها — تستطيعُ تخطّيَها والدخولَ الآن.',
 
     'widget.adhkar.title': 'الأذكار',
     'widget.adhkar.open': 'افتحْ الأذكار',
@@ -814,6 +826,14 @@ const EZ_I18N = {
     'auth.deleteConfirm': 'Delete my account',
     'auth.deleteDone': 'Your account has been deleted.',
     'auth.deleteFailed': 'The deletion could not be completed now. Try again.',
+    'entry.sub': 'Sign in and your wird and your conversations stay with your account on any device.',
+    'entry.google': 'Continue with Google',
+    'entry.apple': 'Continue with Apple',
+    'entry.guest': 'Continue as a guest',
+    'entry.guestWarn': 'If you do not sign in you will lose your wird and your conversations.',
+    'entry.inApp': 'Signing in happens inside the app. Continuing as a guest works fully here.',
+    'entry.skip': 'Skip',
+    'entry.optional': 'All of it is optional -- you can skip it and go in now.',
 
     'widget.adhkar.title': 'Adhkar',
     'widget.adhkar.open': 'Open adhkar',
@@ -11553,6 +11573,14 @@ function App() {
       // session left standing here would quietly have made it two, so "delete all my data"
       // means SIGNED OUT ON THIS DEVICE and the page keeps its promise without being edited.
       try { localStorage.removeItem(AUTH_SESSION_KEY); } catch (e) {}
+      // AND THE ENTRY DECISION WITH IT. This is the key that remembers the reader answered the
+      // first screen -- signed in, or came in as a guest -- and leaving it behind would make
+      // "delete all my data" return the device to HALF a first open: no profile, no session, and
+      // a screen that never asks again. Removed here, the next open is a genuine first open, and
+      // whoever sets this device up next is asked the question rather than inheriting an answer
+      // somebody else gave. It is classified MUST_GO in tools/delete-truth-measure.cjs, which is
+      // the roster this line is entered on.
+      try { localStorage.removeItem(ENTRY_CHOICE_KEY); } catch (e) {}
       // HIJRI_OFFSET_KEY IS DELIBERATELY ABSENT. delete.html promises it nowhere, in neither
       // language, and erasing what was never promised widens this button rather than repairs it.
       // It stays until a sentence on that page asks for it.
@@ -14184,11 +14212,101 @@ function UnlockSheet({ onUnlocked, onBack }) {
   );
 }
 
+// ============================================================
+// THE ENTRY DECISION -- ONE KEY, WRITTEN ONCE, READ AT THE FIRST PAINT
+// ============================================================
+// The order this round implements says the sign-in comes FIRST and the guest door stands beside
+// it. That turns one question into a state a device can be in, and a state a device can be in is
+// a key. This is that key, and it is the only one this round adds.
+//
+// WHY IT IS NOT DERIVED FROM THE SESSION ALONE. A reader who took the guest door has no session
+// and never will, and asking them the same question at every open is exactly what the order
+// forbids. A reader who signed in and closed the application before the name screen has a session
+// and no profile -- they ANSWERED, and they are not asked again either.
+//
+// WHY child_profile IS READ HERE TOO, AND IT IS THE IMPORTANT ONE. Everybody already on ezik.app
+// has a profile and has never seen this screen. Reading the new key alone would put a sign-in
+// screen in front of every one of them on the morning this ships, for a decision they made long
+// ago by using the application. A PROFILE IS AN ANSWER, so they are never asked.
+//
+// IT IS ON THE ERASE ROSTER. resetAll removes it and tools/delete-truth-measure.cjs classifies it
+// MUST_GO, so "delete all my data" returns the device to a FIRST open rather than to half of one.
+const ENTRY_CHOICE_KEY = 'ezik_entry_v1';
+const ENTRY_ACCOUNT = 'account';
+const ENTRY_GUEST = 'guest';
+function readEntryChoice() {
+  try { return localStorage.getItem(ENTRY_CHOICE_KEY) || ''; } catch (e) { return ''; }
+}
+function writeEntryChoice(v) {
+  try { localStorage.setItem(ENTRY_CHOICE_KEY, v); } catch (e) {}
+}
+/** Has this device answered the entry screen -- by the key, by a session, or by a profile? */
+function ezikEntryAnswered() {
+  if (readEntryChoice()) return true;
+  if (readAuthSession()) return true;
+  try { return !!localStorage.getItem('child_profile'); } catch (e) { return false; }
+}
+// THE AGE A READER WHO SKIPPED THE NAME SCREEN IS TREATED AS. The order names it: an adult above
+// eighteen unless the reader changes it. deriveCaps() calls eighteen and over 'adult', so 19 is
+// the smallest number that is BOTH inside that band and literally above eighteen. It is stored as
+// a birth year like every other profile, so the account ages instead of freezing at one number.
+const ONBOARDING_DEFAULT_AGE = 19;
+
 function Onboarding({ onStart }) {
   const uiLang = useEzLang();
+  // ===== TWO STEPS, ONE CARD, ONE ROUTE =====
+  // Not a new screen: the screen that was already here, with a step in front of it.
+  // `screen === 'onboarding'` still routes here, the card is still .ezonb-card, and the back
+  // table, the theme roster and the boot effect are untouched. A device that has ALREADY answered
+  // opens on step two -- read once, in the lazy initialiser, so the first paint is already the
+  // right step and nobody watches the entry screen flash past on their way somewhere else.
+  const [step, setStep] = useState(() => (ezikEntryAnswered() ? 'profile' : 'entry'));
   const [name, setName] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [gender, setGender] = useState(null);
+  // ===== STEP ONE: THE TWO DOORS, AND THE THIRD ONE =====
+  // THE PRESS IS THE SEAM THAT ALREADY SHIPPED, NOT A SECOND SIGN-IN. The bridge accessor, the
+  // client state, the start URL, the one-shot listener, the return reader, the exchange and the
+  // session write are the ones Settings has used since the seam landed; what is new is WHERE they
+  // are offered and WHICH provider for. And the ladder below is deliberately NOT shared with
+  // EzikSignInRow: tools/auth-bridge-measure.cjs mutant م٤ finds the client-state comparison by
+  // its EXACT line inside the source it lifts, and reports itself unapplied if that line is not
+  // there and unique. The repetition is the price of a proof that can still go red.
+  const bridge = ezikAuthBridge();
+  const [busy, setBusy] = useState(false);
+  const [line, setLine] = useState('');
+  const csRef = useRef('');
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  // The ONE place an answer is WRITTEN, for both doors that write one -- a profile made before
+  // this screen existed is the third way of having answered, and it needs no write. One act, one name.
+  const enter = (choice) => { writeEntryChoice(choice); setStep('profile'); };
+  const signIn = (provider) => {
+    if (busy || !bridge) return;
+    setBusy(true);
+    setLine('');
+    csRef.current = ezikAuthClientState();
+    stopRef.current = ezikAuthAsk(bridge, ezikAuthStartUrl(csRef.current, getDeviceId(), provider), (d) => {
+      stopRef.current = null;
+      const settle = (msg) => { setBusy(false); setLine(msg); };
+      // `dismissed` is silence here for the reason it is silence in Settings: a reader who closed
+      // the sheet changed their mind, and the three doors are simply standing again behind it.
+      if (!d || d.ok !== true) { settle(ezikAuthLine(d && d.reason)); return; }
+      const p = ezikAuthReturnParams(d.url);
+      if (!p) { settle(ezT('auth.badReturn')); return; }
+      if (p.get('state') !== csRef.current) { settle(ezT('auth.stateMismatch')); return; }
+      if (p.get('error')) { settle(ezT('auth.refused')); return; }
+      const ticket = p.get('ticket');
+      if (!ticket) { settle(ezT('auth.badReturn')); return; }
+      ezikAuthExchange(ticket).then((got) => {
+        if (!got) { settle(ezT('auth.exchangeFailed')); return; }
+        writeAuthSession(got);
+        setBusy(false);
+        enter(ENTRY_ACCOUNT);
+      });
+    });
+  };
+  // ===== STEP TWO: THE NAME AND THE YEAR, AND NOTHING ON IT IS REQUIRED =====
   const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
   // Neutral age screen (step 4a): we ask the BIRTH YEAR — a fact with no "right" answer —
   // never "are you an adult?". Age is DERIVED from it and passed on unchanged; the band
@@ -14197,7 +14315,10 @@ function Onboarding({ onStart }) {
   const yearNum = parseInt(toLatinDigits(birthYear), 10);
   const derivedAge = CUR_YEAR - yearNum;
   const ageValid = Number.isInteger(yearNum) && derivedAge >= 4 && derivedAge <= 99;
-  const canStart = !!(name.trim() && gender && ageValid);
+  // THE ONE THING THAT CAN HOLD THIS BUTTON IS A YEAR TYPED AND WRONG, so a typo is fixed rather
+  // than silently aged. An EMPTY year is not wrong -- it is declining to say, which the default
+  // answers. Name and address are no longer conditions at all, and the skip stands regardless.
+  const canStart = !(birthYear.trim() && !ageValid);
   // D92: the parental gate is NOT an entry condition for anyone. Onboarding hands the derived
   // age straight to startChat -- no arithmetic at boot, on the chat, or for a teen/adult profile
   // at any point. The gate itself is untouched and still stands at the one real boundary a child
@@ -14205,24 +14326,54 @@ function Onboarding({ onStart }) {
   const requestStart = (n) => {
     onStart(name, n, gender);
   };
-  const submit = () => { if (canStart) requestStart(derivedAge); };
+  const submit = () => { if (canStart) requestStart(ageValid ? derivedAge : ONBOARDING_DEFAULT_AGE); };
+  // SKIPPING IS STARTING WITH WHATEVER IS FILLED IN, written as that: the SAME requestStart, so
+  // this card still hands the profile over through one call and one only. A reader who typed a
+  // name and then pressed skip KEEPS the name -- skip means "do not make me finish", never
+  // "throw away what I already said". What is left empty stays empty, and an empty name is what
+  // safeName() on the server turns into the neutral address it already uses for anyone who never
+  // gave one.
+  const skip = () => { requestStart(ONBOARDING_DEFAULT_AGE); };
   return (
     <div className="theme-dark ezhome ezonb" style={s.welcomeContainer}>
       <div style={s.welcomeInner}>
         <div className="ezonb-card" style={s.welcomeCard}>
         {/* S13.1b-welcome-single
             S115: the 88px red square became a bounded arch holding the SAME mark. Every field,
-            every choice, their order, their validation and the single onStart call below are
-            byte-for-byte the ones that shipped. */}
+            every choice and their order are the ones that shipped, and so is the single onStart
+            call below -- the login-first order moved WHAT IS REQUIRED, not what is asked. */}
         {/* S116 -- the language choice, and this is the ONLY screen outside Settings that
             offers it. A reader who has not made a profile yet can switch before typing a
             thing; once the profile exists this card is never shown again, and Settings is
-            where the choice lives from then on. */}
+            where the choice lives from then on.
+            IT SITS ABOVE THE STEP AND NOT INSIDE ONE, so a reader who cannot read the entry
+            screen can still turn it round, and so it keeps its identity across the step. */}
         <EzLangControl variant="onboarding" />
         <div className="ezonb-crest" style={s.welcomeLogoSquare}>
           <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--a3-blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
         </div>
         <div style={s.welcomeTitle}>عزك</div>
+        {step === 'entry' ? (<>
+          <div style={s.welcomeGreeting}>{ezT('entry.sub')}</div>
+          {/* THE TWO PROVIDER DOORS. LIVE inside the application, where the shell opens the
+              sign-in sheet; DISABLED in a browser tab with the reason said out loud beneath them,
+              because api/auth-return.js answers on a scheme only the shell receives. Drawn either
+              way: a door a reader cannot see is a door they cannot ask about. */}
+          <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[0])} disabled={!bridge || busy}
+            style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: (!bridge || busy) ? 0.45 : 1 }}>{ezT('entry.google')}</button>
+          <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[1])} disabled={!bridge || busy}
+            style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: (!bridge || busy) ? 0.45 : 1 }}>{ezT('entry.apple')}</button>
+          {!bridge && <div style={s.welcomeSubtitle}>{ezT('entry.inApp')}</div>}
+          {line ? <div className="ezgate-err">{line}</div> : null}
+          {/* THE GUEST DOOR. Apple 5.1.1(v) refuses an account wall on an application whose
+              content works without an account, and ours does -- the mushaf, the adhkar and the
+              fatwas have never asked who is reading. One press, same card, nothing to search for.
+              THE WARNING IS ABOVE IT AND NOT BEHIND IT: the order asks for a notice that is read
+              and passed and NOT a wall, so reading it is the step and the press is the passing. */}
+          <div style={s.welcomeSubtitle}>{ezT('entry.guestWarn')}</div>
+          <button type="button" onClick={() => enter(ENTRY_GUEST)}
+            style={{ ...s.welcomePrimaryBtn, background: 'var(--a3-ice)', color: 'var(--a3-ink)' }}>{ezT('entry.guest')}</button>
+        </>) : (<>
         <div style={s.welcomeGreeting}>{ezT('onboarding.welcome')}</div>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم" {...(uiLang === 'ar' ? null : { placeholder: ezT('onboarding.name') })} style={s.welcomeInput} autoFocus />
         <div className="ezonb-row">
@@ -14231,7 +14382,13 @@ function Onboarding({ onStart }) {
         </div>
         <input value={birthYear} onChange={(e) => setBirthYear(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="سنة الميلاد — مثال ٢٠١٥" {...(uiLang === 'ar' ? null : { placeholder: ezT('onboarding.birthYear') })} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
         {birthYear.trim() && !ageValid && <div className="ezgate-err">{ezT('onboarding.yearError')}</div>}
+        <div style={s.welcomeSubtitle}>{ezT('entry.optional')}</div>
         <button onClick={submit} disabled={!canStart} className="welcome-primary" style={{ ...s.welcomePrimaryBtn, opacity: canStart ? 1 : 0.4 }}>{ezT('onboarding.start')}</button>
+        {/* THE VISIBLE WAY PAST. It is never disabled, not even while the year line says the year
+            is wrong: a reader who will not correct a typo is a reader the order says may go in
+            anyway, and a skip that greys out beside a red line is a wall wearing a skip's name. */}
+        <button type="button" onClick={skip} style={s.secondaryBtn}>{ezT('entry.skip')}</button>
+        </>)}
         </div>
       </div>
     </div>
@@ -15309,6 +15466,20 @@ const SHELL_AUTH_START_PATH = '/api/auth-start';
 const SHELL_AUTH_EXCHANGE_PATH = '/api/auth-exchange';
 const SHELL_AUTH_DELETE_PATH = '/api/auth-delete';
 const SHELL_AUTH_PROVIDER = 'google';
+// THE SECOND PROVIDER, AND IT IS NOT A SECOND SIGN-IN. lib/auth/oidc.js has held a TWO-ROW
+// PROVIDERS table since this seam shipped -- google and apple, identical field for field, which
+// tools/auth-server-measure.cjs holds them to -- and api/auth-start.js has always read the name
+// off the query rather than off a branch. So the page was the only end that knew one name, and
+// this is that end catching up with data the other end already had. Nothing about the handshake,
+// the state, the PKCE or the return moves: one query parameter takes a different value.
+//
+// APPLE IS NOT OPTIONAL HERE, IT IS THE RULE. Apple 4.8 requires an equivalent private sign-in
+// option wherever a third-party one is offered, and the entry screen offers Google. The row in
+// Settings still offers Google alone and is untouched, deliberately: see the comment on it.
+const SHELL_AUTH_PROVIDER_APPLE = 'apple';
+// The order the two doors are drawn in, read once from here so the screen cannot disagree with
+// the table above about how many there are.
+const SHELL_AUTH_PROVIDERS = Object.freeze([SHELL_AUTH_PROVIDER, SHELL_AUTH_PROVIDER_APPLE]);
 // The scheme the shell returns on. Judged here, never built here -- the shell owns the value.
 const SHELL_AUTH_RETURN_SCHEME = 'ezik:';
 // THE FIVE REASONS THE CONTRACT NAMES, SORTED INTO THREE TREATMENTS -- because one line for five
@@ -15390,9 +15561,12 @@ function ezikAuthId() {
 }
 
 /** The start URL, built here because the page is the only end that knows its own device id. */
-function ezikAuthStartUrl(clientState, deviceId) {
+function ezikAuthStartUrl(clientState, deviceId, provider) {
   const u = new URL(SHELL_AUTH_ORIGIN + SHELL_AUTH_START_PATH);
-  u.searchParams.set('provider', SHELL_AUTH_PROVIDER);
+  // ABSENT MEANS GOOGLE, so the caller that has always passed two arguments still means what it
+  // meant. The name is never built here and never comes from a reader: it is one of the two
+  // frozen above, and api/auth-start.js refuses anything that is not on its own list anyway.
+  u.searchParams.set('provider', provider || SHELL_AUTH_PROVIDER);
   u.searchParams.set('cs', clientState);
   // A top-level navigation cannot carry x-murabbi-device, so the start leg takes the device as a
   // query parameter. The BINDING is enforced at /api/auth-exchange, which is a fetch and does

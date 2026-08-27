@@ -340,6 +340,21 @@ const MUST_GO_ALREADY = [
   // ONE REMOVAL TAKES ALL FOUR, because all four live in one record. And the switches come back
   // as they ship -- off -- which is the right outcome of "delete all my data", not a regression.
   { c: 'REMINDERS_KEY' },
+  // THE ENTRY DECISION -- the key that remembers this device answered the first screen, by
+  // signing in or by taking the guest door. It is entered HERE and not in MUST_GO_NEW below by
+  // that list's own rule: MUST_GO_NEW maps an erasure to a CLAUSE of delete.html, and delete.html
+  // does not mention this key in either language. Citing a sentence that does not exist would be
+  // a false citation, so it belongs in the roster that records what the button erases and must go
+  // on erasing, whatever the date the entry was added.
+  //
+  // AND IT IS ERASED RATHER THAN KEPT, WHICH IS THE OPPOSITE CALL FROM PRAYER_NOTIFY_KEY. That
+  // one is a PERMISSION, and erasing it would leave the permission granted with the switch
+  // silently off. This one is the answer to a question, and a device whose data has been deleted
+  // must ASK that question again rather than hand the next reader a decision somebody else made.
+  // Left behind, "delete all my data" would return the device to half a first open: no profile,
+  // no session, and a screen that never asks. It also keeps this file's own rule for a new device
+  // key -- it goes on the roster and is wiped with it, as adhkar_place_v1 was.
+  { c: 'ENTRY_CHOICE_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is

@@ -3837,8 +3837,14 @@ ok('Q3: the boot page is still painted from the boot token',
     iName !== -1 && iMale > iName && iFemale > iMale && iYear > iFemale && iGo > iYear,
     [iName, iMale, iFemale, iYear, iGo].join(' < '));
 }
+// THE YEAR IS VALIDATED EXACTLY AS IT WAS, AND IT IS NOW THE ONLY THING THAT CAN HOLD THE
+// BUTTON. The login-first order made every field on this card optional -- the reader may skip it
+// whole -- so requiring a name and a chosen form of address to get past it is the condition that
+// had to go. What did NOT go is the arithmetic: a year that is typed and outside 4..99 is still
+// wrong, still says so, and still holds the primary button, because a typo is worth one correction
+// and «تخطّي» stands beside it for a reader who would rather not make it. Both halves are pinned.
 ok('Q4: ...validated the same way', /const ageValid = Number\.isInteger\(yearNum\) && derivedAge >= 4 && derivedAge <= 99;/.test(onbSrc)
-  && /const canStart = !!\(name\.trim\(\) && gender && ageValid\);/.test(onbSrc));
+  && /const canStart = !\(birthYear\.trim\(\) && !ageValid\);/.test(onbSrc));
 ok('Q4: ...and it still hands the profile to the SAME single call',
   /const requestStart = \(n\) => \{\s*\r?\n\s*onStart\(name, n, gender\);/.test(onbSrc)
   && (qstrip(onbSrc).match(/onStart\(/g) || []).length === 1);
@@ -3846,8 +3852,13 @@ ok('Q4: the routing that follows it is untouched',
   html.indexOf("if (screen === 'onboarding') return <Onboarding onStart={startChat} />;") !== -1
   && /const startChat = async \(name, age, gender\) => \{/.test(html)
   && /localStorage\.setItem\('child_profile', JSON\.stringify\(p\)\);/.test(html));
-okOn('Q4: ...and the welcome writes nothing itself', [["onbSrc", onbSrc]],
-  !/localStorage|fetch\(/.test(qstrip(onbSrc)));
+// IT STILL REACHES NO STORE AND NO NETWORK BY HAND. What changed is that the card now has one
+// thing of its own to remember -- that the reader answered the entry screen -- and the assertion
+// is widened to say so EXACTLY rather than left reading "nothing" while something is written.
+// No localStorage call and no fetch of its own, and precisely ONE call to the one named writer.
+okOn('Q4: ...and the welcome writes nothing itself but the entry decision', [["onbSrc", onbSrc]],
+  !/localStorage|fetch\(/.test(qstrip(onbSrc))
+  && (qstrip(onbSrc).match(/writeEntryChoice\(/g) || []).length === 1);
 
 /* ---- Q5. the PIN gate: verification, creation, errors, lock -------------- */
 // D12 MOVED THE JUDGE, NOT THE GATE. Until then these lines pinned a browser-side compare:
