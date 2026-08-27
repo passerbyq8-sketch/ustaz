@@ -102,6 +102,7 @@ const C_TMO = topConst('SHELL_LOC_TIMEOUT_MS');
 const V_ASK = innerConst('QiblaPanel', 'askLocation');
 const V_VIA = innerConst('QiblaPanel', 'askLocationViaShell');
 const FN_HEADING = topFunction('shellHeadingOf');
+const FN_NEEDLE_VISUAL = topFunction('qiblaNeedleVisual');
 const FN_HEADING_SEND = topFunction('sendShellHeadingCommand');
 const C_HEADING_START = topConst('SHELL_HEADING_START');
 const C_HEADING_STOP = topConst('SHELL_HEADING_STOP');
@@ -163,8 +164,10 @@ const HEADING_HARNESS = [
   text(C_HEADING_RESULT),
   text(C_HEADING_STATUSES),
   text(FN_HEADING),
+  text(FN_NEEDLE_VISUAL),
   text(FN_HEADING_SEND),
-  'return { shellHeadingOf: shellHeadingOf, sendShellHeadingCommand: sendShellHeadingCommand,',
+  'return { shellHeadingOf: shellHeadingOf, qiblaNeedleVisual: qiblaNeedleVisual,',
+  '  sendShellHeadingCommand: sendShellHeadingCommand,',
   '  SHELL_HEADING_START: SHELL_HEADING_START, SHELL_HEADING_STOP: SHELL_HEADING_STOP,',
   '  SHELL_HEADING_RESULT: SHELL_HEADING_RESULT, SHELL_HEADING_STATUSES: SHELL_HEADING_STATUSES };',
 ].join('\n');
@@ -576,6 +579,22 @@ run('true north wins, -1 falls back to magnetic, and accuracy never classifies i
   is(text(FN_HEADING).indexOf('accuracy') === -1,
     'shellHeadingOf reads accuracy even though the shell owns calibration');
   return 'true 17; -1 -> magnetic 231; 360 -> 0; no accuracy read';
+});
+
+run('calibration marks the arrow itself as untrusted, while ready removes that marker', () => {
+  const calibration = headingHarness.qiblaNeedleVisual('calibration-needed');
+  const ready = headingHarness.qiblaNeedleVisual('ready');
+  eq(calibration, {
+    fill: 'none', stroke: 'var(--red)', strokeWidth: 3, strokeDasharray: '6 4', untrusted: 'true',
+  }, 'calibration arrow visual');
+  is(Object.prototype.hasOwnProperty.call(calibration, 'untrusted'),
+    'the calibration arrow has no untrusted marker');
+  is(!Object.prototype.hasOwnProperty.call(ready, 'untrusted'),
+    'the ready arrow still carries the untrusted marker');
+  eq(ready, { fill: 'var(--red)' }, 'ready arrow visual');
+  is(text(FN_QIBLA_PANEL).indexOf('data-ezik-heading-untrusted={needleVisual.untrusted}') !== -1,
+    'the marker is not wired to the arrow path');
+  return 'calibration = hollow dashed + marker; ready = original solid path + no marker';
 });
 
 run('all five shell statuses remain distinct, and status -- not accuracy -- is the judgment', () => {

@@ -1416,7 +1416,7 @@ const Q_CONSTS = ['KAABA_LAT', 'KAABA_LNG', 'QIBLA_DEFAULT_LAT', 'QIBLA_DEFAULT_
   'SHELL_HEADING_START', 'SHELL_HEADING_STOP', 'SHELL_HEADING_RESULT', 'SHELL_HEADING_STATUSES'];
 const Q_FNS = ['qiblaBearing', 'qiblaDirName', 'qiblaDegreeText', 'qiblaHeadingOf',
   'qiblaNeedleAngle', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc',
-  'shellHeadingOf', 'sendShellHeadingCommand'];
+  'shellHeadingOf', 'qiblaNeedleVisual', 'sendShellHeadingCommand'];
 
 const qConsts = {};
 const qFns = {};
@@ -1552,6 +1552,17 @@ if (qLifted) {
       && ['ready', 'calibration-needed', 'sensor-unavailable', 'permission-denied', 'heading-error']
         .every((status) => B.SHELL_HEADING_STATUSES.indexOf(status) !== -1));
 
+    const calibrationVisual = B.qiblaNeedleVisual('calibration-needed');
+    const readyVisual = B.qiblaNeedleVisual('ready');
+    eq('108-b: calibration puts the untrusted marker on the arrow', calibrationVisual.untrusted, 'true');
+    ok('108-b: calibration is visibly untrusted without a color-only signal',
+      calibrationVisual.fill === 'none' && calibrationVisual.stroke === 'var(--red)'
+      && calibrationVisual.strokeWidth > 0 && calibrationVisual.strokeDasharray === '6 4');
+    ok('108-b: ready removes the untrusted marker from the arrow',
+      !Object.prototype.hasOwnProperty.call(readyVisual, 'untrusted'));
+    ok('108-b: ready keeps the original solid arrow',
+      readyVisual.fill === 'var(--red)' && Object.keys(readyVisual).length === 1);
+
     // The needle turns by the difference, and by nothing else.
     eq('108-a: a device facing north points the needle at the qibla', B.qiblaNeedleAngle(224.62, 0), 224.62);
     eq('108-a: a device facing the qibla points the needle straight up', B.qiblaNeedleAngle(224.62, 224.62), 0);
@@ -1620,6 +1631,10 @@ if (qLifted) {
       && ['QIBLA_COMPASS_LIVE', 'QIBLA_COMPASS_CALIBRATION', 'QIBLA_COMPASS_SENSOR_UNAVAILABLE',
         'QIBLA_COMPASS_PERMISSION_DENIED', 'QIBLA_COMPASS_HEADING_ERROR']
         .every((name) => QPANEL.indexOf(name) !== -1));
+    ok('108-b: the calibration marker is carried by the arrow path itself',
+      QPANEL.indexOf('const needleVisual = qiblaNeedleVisual(compass);') !== -1
+      && QPANEL.indexOf('data-ezik-heading-untrusted={needleVisual.untrusted}') !== -1
+      && QPANEL.indexOf('strokeDasharray={needleVisual.strokeDasharray}') !== -1);
     ok('108-a: the position is never asked for at mount',
       QPANEL.indexOf('getCurrentPosition') !== -1
       && QPANEL.indexOf('useEffect') < QPANEL.indexOf('askLocation')
