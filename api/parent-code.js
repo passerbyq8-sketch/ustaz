@@ -37,6 +37,37 @@
 // strong as the create path, never weaker, and both are strictly stronger afterwards, because
 // from the enrolment onward the only thing that opens the panel is knowledge of the code.
 //
+// ── AN AGE, AND A WAY OUT (this round) ───────────────────────────────────────
+// TWO THINGS THE RECORD DID NOT HAVE. It had no age, so a code set once stood for ever; and it
+// had no exit, so the only way out of a forgotten code was an email to us. Both are added HERE,
+// on the server, because the record is here -- no device key holds the code and none gains one.
+//
+// THE AGE. A record now carries `setAt`, the instant it was written, and CODE_MAX_AGE_MS after
+// that instant the code is EXPIRED. Expiry is judged in this file rather than left to a store
+// TTL, and the reason is the interface: a TTL makes an expired code indistinguishable from a
+// code that was never set, and the parent would be shown a blank create form with no account of
+// why the code they remember stopped working. The record therefore OUTLIVES the credential, and
+// the endpoint can say "it expired" because the expired record is still there to be read.
+//
+// AN EXPIRED RECORD IS EXACTLY A DEVICE WITH NO CODE, for authority. `status` reports
+// hasCode:false (plus expired:true, which is the sentence the screen needs), `set` overwrites
+// it, and `verify` refuses it. That is not a weakening: this file's own model already says a
+// device with no record is in create mode, "where anyone reaching the screen may set the code".
+// Expiry moves a device INTO that state deliberately, and the app's arithmetic adult barrier
+// still stands in front of the create form for a child-band profile.
+//
+// A RECORD FROM BEFORE THIS ROUND HAS NO `setAt`, and it is NOT treated as expired. We do not
+// know when it was set, and guessing "long ago" would silently throw every existing parent out
+// of their own panel on the day this deploys. It is stamped instead, best-effort, on its next
+// successful verify -- so its twelve months run from the first time we could honestly start
+// counting. A stamp that fails to write changes no answer: the code was right and the parent
+// goes in.
+//
+// THE WAY OUT IS `delete`, AND IT IS GUARDED BY THE CODE ITSELF. Same scrypt comparison as
+// verify, in the same request, under the same two-dimension limiter -- a delete that did not ask
+// for the code would be a lock anyone could pick by pressing a button. On success the record is
+// removed and this device is back to having no code.
+//
 // ── FAIL-CLOSED, EVERYWHERE ──────────────────────────────────────────────────
 // A store we cannot READ is not an empty store, and an empty store is create mode. So an
 // unreadable record answers "unavailable" and the browser keeps showing the verify form; a
@@ -72,6 +103,22 @@ const scryptHash = (code, saltHex) =>
 
 const recordKey = (deviceId) => `${ATTEMPT_NS}:rec:${deviceId}`;
 
+// TWELVE MONTHS, WRITTEN AS 365 DAYS AND SAID SO. Calendar months would make the answer depend
+// on which month the code was set in, and a credential whose life is 365 days on one device and
+// 366 on another is a rule nobody can state to a parent. A leap day inside the year costs the
+// code one day of its life; that is the whole of the imprecision, and it is the cheap side.
+const CODE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
+
+// A record with no `setAt` is a record from before this field existed: NOT expired, and stamped
+// on its next successful verify. See the header. A `setAt` that is not a finite number is the
+// same case -- an unreadable age is never a reason to revoke a code that still verifies.
+function recordExpired(rec, nowMs) {
+  if (!rec) return false;
+  const at = rec.setAt;
+  if (typeof at !== 'number' || !isFinite(at) || at <= 0) return false;
+  return (nowMs - at) >= CODE_MAX_AGE_MS;
+}
+
 // Defined once. A wrong code, a device with no record and an unusable device id all return the
 // SAME refusal, so probing cannot learn which part it got wrong. The wording is the wording the
 // browser has always shown for these situations -- D12 moved the judgment, not the words.
@@ -79,6 +126,11 @@ export const PARENT_MESSAGES = {
   'parent-refused': '\u0631\u0645\u0632 \u062E\u0627\u0637\u0626',
   'parent-weak': '\u0627\u062E\u062A\u0631 \u0664 \u0623\u0631\u0642\u0627\u0645 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644',
   'parent-save-failed': '\u062A\u0639\u0630\u0651\u0631 \u0627\u0644\u062D\u0641\u0638',
+  // "The code's term has ended. Choose a new code." A SEPARATE sentence from the refusal on
+  // purpose: this is the one situation where telling the parent exactly what happened costs
+  // nothing -- status already reports it for free -- and where the ordinary refusal would be a
+  // lie, because the code they typed was very likely the right one.
+  'parent-expired': '\u0627\u0646\u062A\u0647\u062A \u0645\u062F\u0651\u0629 \u0627\u0644\u0631\u0645\u0632. \u0627\u062E\u062A\u0631 \u0631\u0645\u0632\u064B\u0627 \u062C\u062F\u064A\u062F\u064B\u0627',
   // Imported, not restated: this lockout is the LIMITER's, and api/unlock.js shows the same two
   // lines for the same two situations. One mechanism must not describe itself in two ways.
   'parent-locked': ATTEMPT_MESSAGES.locked,
@@ -105,6 +157,8 @@ async function loadRecord(deviceId) {
     const raw = await client().get(recordKey(deviceId));
     if (raw === null || raw === undefined || raw === '') return { ok: true, rec: null };
     const rec = typeof raw === 'string' ? JSON.parse(raw) : raw;   // Upstash may return it parsed
+    // `setAt` is deliberately NOT part of usability. A record whose age is missing or malformed
+    // is still a record whose code verifies; recordExpired() reads it and answers "not expired".
     const usable = rec && typeof rec.salt === 'string' && typeof rec.hash === 'string'
       && /^[0-9a-f]{32}$/.test(rec.salt) && /^[0-9a-f]{64}$/.test(rec.hash);
     return { ok: true, rec: usable ? rec : null };
@@ -117,12 +171,40 @@ async function loadRecord(deviceId) {
 
 // true only when the write is CONFIRMED. Telling a parent their code was saved when it was not
 // would lock them out of their own panel on the next visit.
-async function storeRecord(deviceId, saltHex, hashHex) {
+async function storeRecord(deviceId, saltHex, hashHex, setAtMs) {
   try {
-    await client().set(recordKey(deviceId), JSON.stringify({ v: 1, alg: 'scrypt', salt: saltHex, hash: hashHex }));
+    await client().set(recordKey(deviceId), JSON.stringify({
+      v: 1, alg: 'scrypt', salt: saltHex, hash: hashHex, setAt: setAtMs,
+    }));
     return true;
   } catch (e) {
     console.warn('[parent-code] record write failed, fail-CLOSED:', e && e.message ? e.message : e);
+    return false;
+  }
+}
+
+// BEST-EFFORT, AND IT CHANGES NO ANSWER. Only ever called after a code has already verified, and
+// only for a record that predates `setAt`. It rewrites the SAME salt and the SAME digest --
+// nothing about the credential moves -- so a failure here costs the record nothing but its age,
+// and the next successful verify tries again.
+async function stampRecord(deviceId, rec, nowMs) {
+  try {
+    await client().set(recordKey(deviceId), JSON.stringify({
+      v: 1, alg: 'scrypt', salt: rec.salt, hash: rec.hash, setAt: nowMs,
+    }));
+  } catch (e) {
+    console.warn('[parent-code] age stamp failed, ignored:', e && e.message ? e.message : e);
+  }
+}
+
+// true only when the removal is CONFIRMED. Telling a parent the code is gone while it is still
+// standing is the same lie as telling them it was saved when it was not, pointed the other way.
+async function dropRecord(deviceId) {
+  try {
+    await client().del(recordKey(deviceId));
+    return true;
+  } catch (e) {
+    console.warn('[parent-code] record delete failed, fail-CLOSED:', e && e.message ? e.message : e);
     return false;
   }
 }
@@ -148,6 +230,10 @@ export default async function handler(req, res) {
 
   const action = body && typeof body.action === 'string' ? body.action : 'verify';
 
+  // ONE clock, read once, for every judgment in this request. Two reads of Date.now() could put
+  // `status` and `verify` on opposite sides of the expiry instant inside a single round trip.
+  const now = Date.now();
+
   // STATUS COSTS NOTHING. The browser probes this every time the gate screen opens, so charging
   // it an attempt would mean opening the panel screen five times locks a parent out of their own
   // panel without a single code ever being typed. It answers only "does this device have a
@@ -155,10 +241,16 @@ export default async function handler(req, res) {
   if (action === 'status') {
     const store = await loadRecord(deviceId);
     if (!store.ok) return unavailable();
-    return res.status(200).json({ hasCode: !!store.rec });
+    // TWO FIELDS, AND hasCode STILL MEANS "CAN THIS CODE OPEN THE PANEL". An expired record
+    // answers hasCode:false, so a client that never learned about `expired` -- a cached bundle,
+    // an older shell -- lands in create mode, which is the correct destination. `expired` is
+    // additive: it only lets a client that DOES know say why, instead of showing a parent a
+    // blank create form and letting them think their code was never saved.
+    const expired = recordExpired(store.rec, now);
+    return res.status(200).json({ hasCode: !!store.rec && !expired, expired });
   }
 
-  if (action !== 'verify' && action !== 'set') return refuse();
+  if (action !== 'verify' && action !== 'set' && action !== 'delete') return refuse();
 
   // Check before comparing, but consume only after a failed credential decision. The atomic
   // consume below remains authoritative if concurrent requests both pass this read-only check.
@@ -187,12 +279,15 @@ export default async function handler(req, res) {
   const store = await loadRecord(deviceId);
   if (!store.ok) return unavailable();
   const rec = store.rec;
+  const expired = recordExpired(rec, now);
   const supplied = typeof (body && body.pin) === 'string' ? body.pin : '';
 
   // ============================================================
-  // SET -- only onto a device that has NO code. This endpoint never overwrites one: changing a
-  // code you cannot produce is indistinguishable from taking a panel that is not yours. A device
-  // that already has a record gets the ordinary refusal, which tells a prober nothing.
+  // SET -- only onto a device that has no LIVE code. It never overwrites one that still
+  // verifies: changing a code you cannot produce is indistinguishable from taking a panel that
+  // is not yours. A device holding a live record gets the ordinary refusal, which tells a prober
+  // nothing. A device whose record has EXPIRED is a device with no code, and is written over --
+  // see the line that says so below, and the header.
   // ============================================================
   if (action === 'set') {
     const shapeOk = CODE_SHAPE.test(supplied);
@@ -200,9 +295,13 @@ export default async function handler(req, res) {
     // caller aiming at an occupied device costs the same as a real first-time save.
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = scryptHash(shapeOk ? supplied : '0000', salt).toString('hex');
-    if (rec) return failedAttempt(401, 'parent-refused', PARENT_MESSAGES['parent-refused']);
+    // `rec && !expired` rather than `rec`: an EXPIRED record is not a code, so setting over it
+    // is the create path, not an overwrite of somebody's credential. It is the same authority a
+    // device with no record has ever had here, and it is the whole of "the parent is asked to
+    // set it again" -- there would be nothing to ask if the answer could not be written down.
+    if (rec && !expired) return failedAttempt(401, 'parent-refused', PARENT_MESSAGES['parent-refused']);
     if (!shapeOk) return failedAttempt(400, 'parent-weak', PARENT_MESSAGES['parent-weak']);
-    if (!(await storeRecord(deviceId, salt, hash))) {
+    if (!(await storeRecord(deviceId, salt, hash, now))) {
       return res.status(429).json({ error: 'parent-save-failed', message: PARENT_MESSAGES['parent-save-failed'] });
     }
     // No code, no hash, no salt in the body. Only that it happened.
@@ -217,7 +316,11 @@ export default async function handler(req, res) {
   // ============================================================
   const suppliedScrypt = scryptHash(supplied, (rec && rec.salt) || DUMMY_SALT);
   const recHash = Buffer.from((rec && rec.hash) || '0'.repeat(64), 'hex');
-  const storedOk = !!rec && crypto.timingSafeEqual(suppliedScrypt, recHash);
+  // THE COMPARISON RUNS WHETHER THE RECORD IS EXPIRED OR NOT, and the expiry is folded in
+  // AFTERWARDS rather than short-circuiting above it. An expired device must cost the same
+  // scrypt as a live one, or the response time answers a question the code never should.
+  const codeMatches = !!rec && crypto.timingSafeEqual(suppliedScrypt, recHash);
+  const storedOk = codeMatches && !expired;
 
   // The migration half. The digest the browser has been holding since before this endpoint
   // existed, checked in constant time against the digest of what was just typed -- so the device
@@ -231,7 +334,38 @@ export default async function handler(req, res) {
   const legacyOk = !rec && legacyShaped && supplied.length > 0
     && crypto.timingSafeEqual(suppliedSha, legacyBuf);
 
-  if (storedOk) return res.status(200).json({ ok: true });
+  // ============================================================
+  // DELETE -- the way out, and the code is the key to it. Nothing here is reachable without a
+  // comparison that already succeeded, so this is `verify` plus one confirmed removal. A store
+  // that will not confirm the removal answers "unavailable": a parent told their code is gone
+  // while it is still standing would hand the device on believing the panel was open.
+  // ============================================================
+  if (action === 'delete') {
+    if (!storedOk) {
+      if (rec && expired && codeMatches) {
+        return res.status(401).json({ error: 'parent-expired', message: PARENT_MESSAGES['parent-expired'] });
+      }
+      return failedAttempt(401, 'parent-refused', PARENT_MESSAGES['parent-refused']);
+    }
+    if (!(await dropRecord(deviceId))) return unavailable();
+    return res.status(200).json({ ok: true, deleted: true });
+  }
+
+  if (storedOk) {
+    // The age of a record written before `setAt` existed, started from the first instant we can
+    // honestly count from. Best-effort and awaited only so the next `status` in the same session
+    // reads the stamped record; a failure is logged inside and changes nothing here.
+    if (rec.setAt === undefined) await stampRecord(deviceId, rec, now);
+    return res.status(200).json({ ok: true });
+  }
+
+  // A CODE THAT MATCHED A RECORD THAT HAS EXPIRED. It is not a wrong code and is not charged as
+  // one: no comparison was lost, and the form that could have succeeded is no longer on screen
+  // for a client that read `status`. It is named rather than refused, because the parent typed
+  // the code they remember and deserves to be told why it stopped opening the panel.
+  if (rec && expired && codeMatches) {
+    return res.status(401).json({ error: 'parent-expired', message: PARENT_MESSAGES['parent-expired'] });
+  }
 
   if (legacyOk) {
     // Enrol, and only then admit. If the write cannot be confirmed we refuse rather than let
@@ -239,7 +373,7 @@ export default async function handler(req, res) {
     // write would throw away the only credential this device still has.
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = scryptHash(supplied, salt).toString('hex');
-    if (!(await storeRecord(deviceId, salt, hash))) return unavailable();
+    if (!(await storeRecord(deviceId, salt, hash, now))) return unavailable();
     return res.status(200).json({ ok: true, migrated: true });
   }
 

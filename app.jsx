@@ -423,7 +423,7 @@ const EZ_I18N = {
     'prayer.notify.asking': 'يُطلَبُ إذنُ التذكيرِ منَ النِّظامِ الآن…',
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
-    'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ لـ{n} منَ الأيّامِ القادمة، وتُجَدَّدُ كلَّما فُتِحَ التطبيق.',
+    'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
     // ITEMS 43-ب / 47-ب -- تذكيراتُ العبادة. Four independent reminders, each off until the reader
     // says otherwise. Every one of these lines is chrome; none of it is devotional text.
     'reminders.title': 'تذكيراتُ العبادة',
@@ -439,7 +439,7 @@ const EZ_I18N = {
     'reminders.less': 'مرّةٌ أقلّ',
     'reminders.slot': 'وقتُ المرّةِ {n}',
     'reminders.one': 'الوقت',
-    'reminders.window': 'تُجدوَلُ على هذا الجهازِ لـ{n} منَ الأيّامِ القادمة، وتُجَدَّدُ كلَّما فُتِحَ التطبيق.',
+    'reminders.window': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
     'reminders.noShell': 'التذكيرُ يرنُّ في تطبيقِ عزك منَ المتجرِ وحدَه. وفي المتصفّحِ يُحفَظُ اختيارُك ولا يرنُّ شيءٌ.',
     'reminders.asking': 'يُطلَبُ إذنُ التذكيرِ منَ النِّظامِ الآن…',
     'reminders.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
@@ -469,7 +469,7 @@ const EZ_I18N = {
     'auth.exchangeFailed': 'تعذَّرَ إتمامُ الدخول. حاوِلْ مرَّةً أخرى.',
     'auth.delete': 'حذفُ الحساب',
     'auth.deleteTitle': 'حذفُ حسابِك نهائيًّا؟',
-    'auth.deleteBody': 'يُحذَفُ حسابُك وبريدُك من خوادمِنا، وتُغلَقُ جلستُك. ولا تُحذَفُ محادثاتُك المحفوظةُ على هذا الجهاز — لمحوِها استعملْ زرَّ «حذف كل البيانات وإعادة البدء» في لوحةِ الأهل. ورمزُ قفلِ الوالدَينِ يبقى.',
+    'auth.deleteBody': 'يُحذَفُ حسابُك وبريدُك من خوادمِنا، وتُغلَقُ جلستُك. ولا تُحذَفُ محادثاتُك المحفوظةُ على هذا الجهاز — لمحوِها استعملْ زرَّ «حذف كل البيانات» في لوحةِ الأهل. ورمزُ قفلِ الوالدَينِ يبقى.',
     'auth.deleteConfirm': 'احذفْ حسابي',
     'auth.deleteDone': 'حُذِفَ حسابُك.',
     'auth.deleteFailed': 'تعذّرَ الحذفُ الآن. حاولْ مرّةً أخرى.',
@@ -765,7 +765,7 @@ const EZ_I18N = {
     'prayer.notify.asking': 'Asking the system for permission now…',
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
-    'prayer.notify.note': 'Scheduled on this device for the next {n} days, and renewed whenever the app is opened.',
+    'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
     // ITEMS 43-b / 47-b -- the four reminders, in the second language the dictionary carries.
     'reminders.title': 'Worship reminders',
     'reminders.hint': 'Kept on this device alone, and every reminder is off until you turn it on.',
@@ -780,7 +780,7 @@ const EZ_I18N = {
     'reminders.less': 'One fewer',
     'reminders.slot': 'Time {n}',
     'reminders.one': 'Time',
-    'reminders.window': 'Scheduled on this device for the next {n} days, and renewed whenever the app is opened.',
+    'reminders.window': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
     'reminders.noShell': 'Reminders ring in the Ezik app from the store. In a browser your choice is saved and nothing rings.',
     'reminders.asking': 'Asking the system for permission now…',
     'reminders.denied': 'Reminders are blocked in your system settings.',
@@ -810,7 +810,7 @@ const EZ_I18N = {
     'auth.exchangeFailed': 'Sign-in could not be completed. Try again.',
     'auth.delete': 'Delete account',
     'auth.deleteTitle': 'Delete your account permanently?',
-    'auth.deleteBody': 'Your account and your address are erased from our servers, and your session is closed. Your conversations saved on this device are NOT erased -- to wipe those, use the «حذف كل البيانات وإعادة البدء» button in the parents’ dashboard. And the parental lock code remains.',
+    'auth.deleteBody': 'Your account and your address are erased from our servers, and your session is closed. Your conversations saved on this device are NOT erased -- to wipe those, use the «حذف كل البيانات» button in the parents’ dashboard. And the parental lock code remains.',
     'auth.deleteConfirm': 'Delete my account',
     'auth.deleteDone': 'Your account has been deleted.',
     'auth.deleteFailed': 'The deletion could not be completed now. Try again.',
@@ -2342,7 +2342,31 @@ const EZ_AI_CONSENT_HEADER = 'x-ezik-ai-consent';
 const EZ_AI_CONSENT_GRANTED = 'granted';
 const EZ_AI_CONSENT_DECLINED = 'declined';
 
-// The stored record, or null. Never throws.
+// WHOSE ANSWER THIS IS. Until this round the record answered for the DEVICE, and that was wrong
+// in exactly one direction: a second child profile created on a tablet whose first profile had
+// already consented was never asked. Nobody had spoken for the second child, and the app behaved
+// as though somebody had. So the record now carries the profile id it was given for, and it
+// counts for that profile alone.
+//
+// THE PID IS READ FROM THE STORE, NOT PASSED IN, and that is deliberate: hasValidAIConsent() is
+// called at the instant of every send, from a dozen places that hold no profile object, and a
+// pid threaded through all of them would be a dozen chances to hold a stale one. There is one
+// profile per device and one place it lives; this reads that place.
+//
+// FAIL-CLOSED, ON BOTH SIDES OF THE COMPARISON. A record with no pid -- every record written
+// before this round -- matches nothing, so a profile that predates this change is ASKED ONCE at
+// its first use rather than assumed to have consented. And a device with no readable profile
+// yields no pid, so nothing matches there either.
+const aiConsentPid = () => {
+  try {
+    const raw = localStorage.getItem('child_profile');
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    return (p && typeof p.pid === 'string' && p.pid) ? p.pid : null;
+  } catch (e) { return null; }
+};
+
+// The stored record FOR THE PROFILE IN FRONT OF US, or null. Never throws.
 const readAIConsent = () => {
   try {
     const raw = localStorage.getItem(EZ_AI_CONSENT_KEY);
@@ -2351,6 +2375,11 @@ const readAIConsent = () => {
     if (!v || typeof v !== 'object') return null;
     if (v.status !== EZ_AI_CONSENT_GRANTED && v.status !== EZ_AI_CONSENT_DECLINED) return null;
     if (typeof v.version !== 'string' || !v.version) return null;
+    // Both halves must be a non-empty string AND equal. `undefined === null` is false and
+    // `undefined === undefined` is true, so the typeof check is what keeps a record with no pid
+    // from matching a device with no profile.
+    const mine = aiConsentPid();
+    if (typeof v.pid !== 'string' || !v.pid || !mine || v.pid !== mine) return null;
     return v;
   } catch (e) { return null; }
 };
@@ -2383,6 +2412,9 @@ const writeAIConsent = (status, by) => {
   const rec = {
     status: status === EZ_AI_CONSENT_GRANTED ? EZ_AI_CONSENT_GRANTED : EZ_AI_CONSENT_DECLINED,
     version: EZ_AI_CONSENT_VERSION,
+    // Stamped at the moment of the answer, from the same reader the checks use. An answer given
+    // for one child is not an answer given for the next one to hold the device.
+    pid: aiConsentPid(),
     grantedBy: by === 'guardian' ? 'guardian' : 'user',
     at: new Date().toISOString(),
   };
@@ -6707,12 +6739,6 @@ function adhkarWindow(len, idx, size) {
 // tap anywhere on it and then carries the reader onward, and a first door chosen by the device's
 // own clock.
 //
-// IT IS OFF UNTIL THE PARAMETER SAYS OTHERWISE, and it is written the way ?memred is written
-// rather than the way ?adhkarui was: it ANSWERS FROM THE URL AND WRITES NOTHING DOWN. A reader
-// who opens the preview link gets the new reading; a reader who opens the app normally gets the
-// screen that shipped, and no stored byte on any device can put them in the other one. Every
-// failure -- no window, no location, a URL the platform refuses to parse -- answers FALSE,
-// because the default direction here is the screen that is already true of production.
 // 🔴 RAISED FOR EVERYONE. The owner reviewed the two doors on the preview -- 23 and 21 -- and
 // ordered them shipped, so the default flips: no parameter now means the doors, and the reader
 // gets them without typing anything.
@@ -11542,10 +11568,14 @@ function App() {
   };
 
   // THE CONSENT SCREEN (Apple 5.1.1(i) / 5.1.2(i)). Shown to anyone who has not answered THIS
-  // version of the disclosure, and again on demand from Settings ("review the choice"). Keyed on
-  // the independent consent record, NOT on profile age, so an existing profiled reader sees it too
-  // and nobody is wiped or forced to re-onboard. Gated on `profile` so it lands at the END of
-  // onboarding, never over the onboarding form itself.
+  // version of the disclosure FOR THIS PROFILE, and again on demand from Settings ("review the
+  // choice"). Keyed on the independent consent record, NOT on profile age, so an existing
+  // profiled reader sees it too and nobody is wiped or forced to re-onboard. Gated on `profile`
+  // so it lands at the END of onboarding, never over the onboarding form itself -- which is also
+  // what makes it the ONE-TIME CONSENT A NEW CHILD PROFILE IS CREATED BEHIND: the create handler
+  // sets the profile and the screen, this branch sits above every screen, and the record it reads
+  // carries the pid that handler just minted. A brand-new profile has no matching record, so the
+  // parent answers before the profile can be used, whatever the device answered for anybody else.
   //
   // Showing this screen sends NOTHING. It is drawn from strings in this file; no request of any
   // kind is issued by rendering it, and the boot greeting is already refused by callAI's own
@@ -14212,6 +14242,12 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
   // 'probing' يُعرَضُ كوضعِ تحقُّق: فشلٌ آمنٌ للإغلاق. تعذُّرُ سؤالِ الخادمِ لا يفتحُ بابَ الإنشاءِ أبدًا،
   // وإلا لكان قطعُ الشبكةِ طريقًا إلى وضعِ رمزٍ جديدٍ فوقَ لوحةِ أهلٍ قائمة.
   const [mode, setMode] = useState('probing');            // 'probing' | 'verify' | 'create'
+  // D12-B: the server reports a THIRD state now -- a record that exists and has expired. It
+  // arrives as hasCode:false (so an unaware client still lands in create mode, which is the
+  // right destination) plus expired:true, which is the only thing that lets this screen say why
+  // a code the parent still remembers stopped opening the panel. Without it they would meet a
+  // blank create form and conclude the code was never saved.
+  const [wasExpired, setWasExpired] = useState(false);
   const [adultOk, setAdultOk] = useState(false);
   const [challenge] = useState(() => ({ a: 2 + Math.floor(Math.random() * 8), b: 2 + Math.floor(Math.random() * 8) })); // single digit, same as the welcome gate
   const [confirmPin, setConfirmPin] = useState('');
@@ -14226,6 +14262,9 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
         const r = await parentCodeCall({ action: 'status' });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d && typeof d.hasCode === 'boolean') serverHas = d.hasCode;
+        // Read only when it is exactly true. A field a stale deployment does not send is absent,
+        // not false, and an absent field must never draw a sentence about an expiry.
+        if (r.ok && d && d.expired === true && alive) setWasExpired(true);
       } catch (e) {}
       // سجلٌّ في الخادمِ ⇐ البصمةُ القديمةُ لا معنى لها بعدَ اليوم، فتُمحى هنا لا بعدَ نجاحٍ فقط.
       if (serverHas === true) clearLegacyParentHash();
@@ -14278,6 +14317,8 @@ function ParentGate({ pinInput, setPinInput, pinError, setPinError, onSuccess, o
         <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>🔒</span></div>
         <div style={s.onboardingTitle}>{hasPin ? 'لوحة الأهل' : 'إنشاء رمز لوحة الأهل'}</div>
         <div style={s.onboardingSubtitle}>{hasPin ? 'أدخل رمز الدخول' : 'اختر رمزاً من ٤ أرقام على الأقل — لن يُعرض، فاحفظه في مكان آمن'}</div>
+        {/* Drawn ONLY in create mode: in verify mode there is a live code and nothing expired. */}
+        {!hasPin && wasExpired && <div style={s.pcExpired}>{EZ_PC_EXPIRED}</div>}
         <input type="password" inputMode="numeric" value={pinInput} onChange={(e) => setPinInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && hasPin && verify()} placeholder="••••" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? 'var(--a3-cyan)' : 'var(--a3-line)' }} autoFocus />
         {!hasPin && <input type="password" inputMode="numeric" value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && create()} placeholder="أعد الرمز" style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', borderColor: pinError ? 'var(--a3-cyan)' : 'var(--a3-line)' }} />}
         {pinError && <div className="ezgate-err">{errMsg}</div>}
@@ -17021,6 +17062,78 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   );
 }
 
+// ============================================================
+// THE PARENTAL CODE, AND THE WAY OUT OF IT.
+// ============================================================
+// WHY THE CODE IS ASKED FOR AGAIN, ON A SCREEN ONLY THE CODE OPENS. A second entry proves
+// nothing new about WHO is holding the device -- it proves something about INTENT. This is the
+// one control that ends the barrier itself, and it is two deliberate steps for exactly the
+// reason "delete all my data" is two: a control that removes a parent's own lock must not be
+// reachable by one stray tap on a phone a child is holding.
+//
+// NOTHING ABOUT THE CODE IS KEPT ON THE DEVICE BY THIS CARD, and that is the whole shape of it.
+// The typed code is POSTed once and dropped; no digest, no timestamp, no flag reaches
+// localStorage, and this file gains no storage key at all. The record is the server's and this
+// card only asks it questions -- `gone` is component state and dies with the screen.
+//
+// THE SERVER OWNS THE WORDING OF A FAILURE, as it does in ParentGate. A wrong code, a day
+// lockout, an expired record and an unreachable store are four different facts, and only the
+// endpoint knows which of them just happened.
+const EZ_PC_TITLE = 'رمز لوحة الأهل';
+const EZ_PC_SET = 'مضبوطٌ على هذا الجهاز، ويُطلَب عند فتح لوحة الأهل.';
+const EZ_PC_NONE = 'لا رمز على هذا الجهاز الآن. سيُطلَب ضبطُ رمزٍ جديدٍ عند فتح لوحة الأهل.';
+const EZ_PC_DELETE = 'حذف رمز لوحة الأهل';
+const EZ_PC_ARMED = 'أدخِلِ الرمزَ نفسَه لتأكيد حذفه.';
+const EZ_PC_CONFIRM = 'تأكيد الحذف';
+const EZ_PC_FAILED = 'تعذّر الحذف الآن. جرّب بعد قليل.';
+// Shown by ParentGate, not by this card: by the time it is true there is no code to draw a card
+// about. It lives here beside the rest of the code's own vocabulary.
+const EZ_PC_EXPIRED = 'انتهت مدّة الرمز السابق بعد اثني عشر شهراً من ضبطه. اختر رمزاً جديداً.';
+function ParentCodeCard() {
+  const [armed, setArmed] = useState(false);
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [gone, setGone] = useState(false);
+  const submit = async () => {
+    if (busy || !code) return;
+    setBusy(true); setErr('');
+    try {
+      const r = await parentCodeCall({ action: 'delete', pin: code });
+      const d = await r.json().catch(() => ({}));
+      setBusy(false); setCode('');
+      if (r.ok && d && d.ok) { setGone(true); setArmed(false); return; }
+      setErr((d && d.message) || EZ_PC_FAILED);
+    } catch (e) {
+      // A dropped connection carries no server sentence, and blaming the parent for a wrong code
+      // when the request never arrived is a lie about what they typed.
+      setBusy(false); setCode(''); setErr(EZ_PC_FAILED);
+    }
+  };
+  const disarm = () => { setArmed(false); setCode(''); setErr(''); };
+  return (
+    <div style={s.dashboardCard}>
+      <div className="ezparent-head"><span className="ezparent-mark" aria-hidden="true" /><div style={s.dashboardLabel}>{EZ_PC_TITLE}</div></div>
+      <div style={s.dashboardValue}>{gone ? EZ_PC_NONE : EZ_PC_SET}</div>
+      {gone ? null : armed ? (
+        <div style={s.pcArmed}>
+          <div style={s.pcHint}>{EZ_PC_ARMED}</div>
+          <input type="password" inputMode="numeric" value={code} aria-label={EZ_PC_DELETE}
+            onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()}
+            placeholder="••••" className="ezik-focus" autoFocus
+            style={{ ...s.onboardingInput, textAlign: 'center', letterSpacing: '0.5em', marginBottom: 0 }} />
+          {err ? <div className="ezgate-err">{err}</div> : null}
+          <button type="button" onClick={submit} disabled={busy || !code}
+            style={{ ...s.dangerBtn, opacity: (busy || !code) ? 0.5 : 1 }}>{EZ_PC_CONFIRM}</button>
+          <button type="button" onClick={disarm} style={s.secondaryBtn}>{A2_BACK}</button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setArmed(true)} style={s.dangerBtn}>{EZ_PC_DELETE}</button>
+      )}
+    </div>
+  );
+}
+
 function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked, onToggleDirectConvo }) {
   // The direct-conversation lock is only meaningful for young accounts (teen/adult are never
   // parent-gated for it), so the toggle is shown only for young. profile is already in scope.
@@ -17079,9 +17192,10 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
             )}
           </div>
         </div>
+        <ParentCodeCard />
         <button onClick={onReset} style={s.dangerBtn}>
           <ResetIcon size={16} color="var(--red-lift)" />
-          <span style={{ marginRight: 8 }}>حذف كل البيانات وإعادة البدء</span>
+          <span style={{ marginRight: 8 }}>حذف كل البيانات</span>
         </button>
        </div>
       </div>
@@ -20778,6 +20892,10 @@ const s = {
   logRole: { fontWeight: 700, color: 'var(--a3-ink)', fontSize: 13, marginBottom: 6 },
   logContent: { color: 'var(--a3-ink)', lineHeight: 1.6, whiteSpace: 'pre-wrap' },
   logTime: { fontSize: 11, color: 'var(--a3-muted)', marginTop: 6 },
+  // The armed half of ParentCodeCard, and the line ParentGate draws after an expiry.
+  pcArmed: { marginTop: 12 },
+  pcHint: { fontSize: 13.5, color: 'var(--a3-muted)', lineHeight: 1.9, marginBottom: 10 },
+  pcExpired: { fontSize: 14, color: 'var(--a3-muted)', lineHeight: 1.9, marginBottom: 14, textAlign: 'center' },
   dangerBtn: { width: '100%', padding: 14, background: 'transparent', color: 'var(--red-lift)', border: '1px solid var(--red-lift)', borderRadius: '20px 20px 14px 14px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
 
   // ===== Live call screen (Layer 1 — UI only) =====
