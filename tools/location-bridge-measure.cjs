@@ -101,6 +101,25 @@ const C_RES = topConst('SHELL_LOC_RESULT');
 const C_TMO = topConst('SHELL_LOC_TIMEOUT_MS');
 const V_ASK = innerConst('QiblaPanel', 'askLocation');
 const V_VIA = innerConst('QiblaPanel', 'askLocationViaShell');
+const FN_HEADING = topFunction('shellHeadingOf');
+const FN_HEADING_SEND = topFunction('sendShellHeadingCommand');
+const C_HEADING_START = topConst('SHELL_HEADING_START');
+const C_HEADING_STOP = topConst('SHELL_HEADING_STOP');
+const C_HEADING_RESULT = topConst('SHELL_HEADING_RESULT');
+const C_HEADING_STATUSES = topConst('SHELL_HEADING_STATUSES');
+const V_HEADING_RESULT = innerConst('QiblaPanel', 'onHeadingResult');
+const V_HEADING_RETRY = innerConst('QiblaPanel', 'retryShellHeading');
+const V_BROWSER_COMPASS = innerConst('QiblaPanel', 'startCompass');
+const FN_QIBLA_PANEL = topFunction('QiblaPanel');
+
+const HEADING_UI_NAMES = [
+  'QIBLA_COMPASS_LIVE',
+  'QIBLA_COMPASS_CALIBRATION',
+  'QIBLA_COMPASS_SENSOR_UNAVAILABLE',
+  'QIBLA_COMPASS_PERMISSION_DENIED',
+  'QIBLA_COMPASS_HEADING_ERROR',
+];
+const HEADING_UI_CONSTS = HEADING_UI_NAMES.map((name) => topConst(name));
 
 // The real writeQiblaLoc is WRAPPED rather than replaced. The recorder proves the argument order;
 // the real body underneath proves the value actually lands in storage in a shape readQiblaLoc
@@ -134,6 +153,40 @@ const HARNESS = [
 ].join('\n');
 
 const makeHarness = new Function('env', HARNESS);
+
+// The heading helpers and the real event handler need no React renderer. State setters are
+// recorders, the bridge is injected, and the exact functions are lifted from app.jsx.
+const HEADING_HARNESS = [
+  '"use strict";',
+  text(C_HEADING_START),
+  text(C_HEADING_STOP),
+  text(C_HEADING_RESULT),
+  text(C_HEADING_STATUSES),
+  text(FN_HEADING),
+  text(FN_HEADING_SEND),
+  'return { shellHeadingOf: shellHeadingOf, sendShellHeadingCommand: sendShellHeadingCommand,',
+  '  SHELL_HEADING_START: SHELL_HEADING_START, SHELL_HEADING_STOP: SHELL_HEADING_STOP,',
+  '  SHELL_HEADING_RESULT: SHELL_HEADING_RESULT, SHELL_HEADING_STATUSES: SHELL_HEADING_STATUSES };',
+].join('\n');
+const makeHeadingHarness = new Function(HEADING_HARNESS);
+const headingHarness = makeHeadingHarness();
+
+const HEADING_EVENT_HARNESS = [
+  '"use strict";',
+  'const setHeading = env.setHeading;',
+  'const setCompass = env.setCompass;',
+  text(C_HEADING_RESULT),
+  text(C_HEADING_STATUSES),
+  text(FN_HEADING),
+  'const ' + text(V_HEADING_RESULT) + ';',
+  'return onHeadingResult;',
+].join('\n');
+const makeHeadingEventHandler = new Function('env', HEADING_EVENT_HARNESS);
+
+const HEADING_UI_HARNESS = HEADING_UI_CONSTS.map((node) => text(node)).concat([
+  'return [' + HEADING_UI_NAMES.join(', ') + '];',
+]).join('\n');
+const headingUiTexts = new Function(HEADING_UI_HARNESS)();
 
 // ---------------------------------------------------------------------------
 // THE FAKES.
@@ -269,6 +322,15 @@ const LON = 39.83;
 const okResult = () => ({
   type: 'ezik:location:result', ok: true, lat: LAT, lon: LON, source: 'last-known', error: null,
 });
+const headingResult = (status, overrides) => Object.assign({
+  type: 'ezik:heading:result',
+  ok: status === 'ready',
+  status: status,
+  magHeading: status === 'ready' || status === 'calibration-needed' ? 230 : null,
+  trueHeading: status === 'ready' || status === 'calibration-needed' ? 224 : null,
+  accuracy: status === 'ready' ? 3 : status === 'calibration-needed' ? 1 : null,
+  error: status === 'ready' || status === 'calibration-needed' ? null : status,
+}, overrides || {});
 
 run('shell present: one request posted, and geolocation is never touched', () => {
   const s = scene({ shell: 'recording', geo: 'trap', label: 'the shell path' });
@@ -472,10 +534,130 @@ run('the detector reads the bridge, never the user agent', () => {
 });
 
 // ---------------------------------------------------------------------------
+// HEADING -- the stream handshake and five shell statuses, without a browser or phone.
+// ---------------------------------------------------------------------------
+run('heading commands are the two one-field messages, and no bridge means no message', () => {
+  const sent = [];
+  const bridge = recordingBridge(sent);
+  is(headingHarness.sendShellHeadingCommand(bridge, headingHarness.SHELL_HEADING_START),
+    'the start command was refused');
+  is(headingHarness.sendShellHeadingCommand(bridge, headingHarness.SHELL_HEADING_STOP),
+    'the stop command was refused');
+  eq(sent.map((raw) => JSON.parse(raw)), [
+    { type: 'ezik:heading:start' },
+    { type: 'ezik:heading:stop' },
+  ], 'heading commands posted');
+  const before = sent.length;
+  is(!headingHarness.sendShellHeadingCommand(null, headingHarness.SHELL_HEADING_START),
+    'an absent bridge claimed to send start');
+  is(!headingHarness.sendShellHeadingCommand(bridge, 'ezik:heading:other'),
+    'an unknown heading command was accepted');
+  eq(sent.length, before, 'messages added by absent bridge or unknown command');
+  is(!headingHarness.sendShellHeadingCommand(throwingBridge(), headingHarness.SHELL_HEADING_START),
+    'a throwing bridge claimed success');
+  return 'start + stop exact; absent/throwing bridge and unknown command send nothing';
+});
+
+run('true north wins, -1 falls back to magnetic, and accuracy never classifies in the web', () => {
+  eq(headingHarness.shellHeadingOf(headingResult('ready', {
+    trueHeading: 17, magHeading: 231, accuracy: 0,
+  })), 17, 'valid true heading');
+  eq(headingHarness.shellHeadingOf(headingResult('ready', {
+    trueHeading: -1, magHeading: 231, accuracy: 3,
+  })), 231, 'magnetic fallback for trueHeading -1');
+  eq(headingHarness.shellHeadingOf(headingResult('calibration-needed', {
+    trueHeading: 360, magHeading: 40, accuracy: 3,
+  })), 0, 'normalised true heading');
+  eq(headingHarness.shellHeadingOf(headingResult('ready', {
+    trueHeading: NaN, magHeading: Infinity,
+  })), null, 'two invalid headings');
+  eq(headingHarness.shellHeadingOf({ type: 'something:else', trueHeading: 17, magHeading: 20 }),
+    null, 'wrong result type');
+  is(text(FN_HEADING).indexOf('accuracy') === -1,
+    'shellHeadingOf reads accuracy even though the shell owns calibration');
+  return 'true 17; -1 -> magnetic 231; 360 -> 0; no accuracy read';
+});
+
+run('all five shell statuses remain distinct, and status -- not accuracy -- is the judgment', () => {
+  const cases = [
+    ['ready', headingResult('ready', { accuracy: 0 }), [224], ['ready']],
+    ['calibration-needed', headingResult('calibration-needed', { accuracy: 3 }), [224], ['calibration-needed']],
+    ['sensor-unavailable', headingResult('sensor-unavailable'), [null], ['sensor-unavailable']],
+    ['permission-denied', headingResult('permission-denied'), [null], ['permission-denied']],
+    ['heading-error', headingResult('heading-error'), [null], ['heading-error']],
+  ];
+  for (const c of cases) {
+    const headings = [];
+    const states = [];
+    const onResult = makeHeadingEventHandler({
+      setHeading: (v) => { headings.push(v); },
+      setCompass: (v) => { states.push(v); },
+    });
+    onResult({ detail: c[1] });
+    eq(headings, c[2], 'heading updates for ' + c[0]);
+    eq(states, c[3], 'compass states for ' + c[0]);
+  }
+  is(text(V_HEADING_RESULT).indexOf('.status') !== -1, 'the result handler never reads status');
+  is(text(V_HEADING_RESULT).indexOf('accuracy') === -1,
+    'the result handler reclassifies from accuracy');
+  eq(new Set(headingUiTexts).size, 5, 'distinct visible texts for the five shell statuses');
+  is(headingUiTexts.every((s) => typeof s === 'string' && s.length > 20),
+    'a shell status has no substantive visible text');
+  return 'ready trusts accuracy 0; calibration trusts accuracy 3; 5 unique states and texts';
+});
+
+run('the panel owns one shell stream: start on mount, stop and detach on unmount, retry on error', () => {
+  const panel = text(FN_QIBLA_PANEL);
+  const effects = [];
+  walk(FN_QIBLA_PANEL, (n) => {
+    if (n.type === 'CallExpression' && n.callee.type === 'Identifier' && n.callee.name === 'useEffect') {
+      effects.push(text(n));
+    }
+  });
+  eq(effects.length, 1, 'effects in QiblaPanel');
+  const effect = effects[0];
+  is(effect.indexOf('const bridge = headingBridgeRef.current || null') !== -1
+    && effect.indexOf('if (bridge)') !== -1,
+  'the heading effect is not guarded by the captured bridge');
+  is(effect.indexOf('addEventListener(SHELL_HEADING_RESULT, onHeadingResult)') !== -1
+    && effect.indexOf('sendShellHeadingCommand(bridge, SHELL_HEADING_START)') !== -1,
+  'mount does not attach then start the heading stream');
+  is(effect.indexOf('removeEventListener(SHELL_HEADING_RESULT, onHeadingResult)') !== -1
+    && effect.indexOf('sendShellHeadingCommand(bridge, SHELL_HEADING_STOP)') !== -1,
+  'unmount does not detach then stop the heading stream');
+  const retry = text(V_HEADING_RETRY);
+  is(retry.indexOf("setCompass('wait')") !== -1
+    && retry.indexOf('sendShellHeadingCommand(bridge, SHELL_HEADING_START)') !== -1,
+  'heading-error has no real retry command');
+  is(panel.indexOf('onClick={retryShellHeading}') !== -1
+    && panel.indexOf("compass === 'heading-error'") !== -1,
+  'the retry command is not reachable from heading-error');
+  return '1 effect; guarded attach/start; detach/stop; reachable retry';
+});
+
+run('no bridge keeps the existing DeviceOrientation path and never wraps it in shell failure prose', () => {
+  const panel = text(FN_QIBLA_PANEL);
+  const browser = text(V_BROWSER_COMPASS);
+  is(browser.indexOf("addEventListener('deviceorientationabsolute', onEvent)") !== -1
+    && browser.indexOf("addEventListener('deviceorientation', onEvent)") !== -1
+    && browser.indexOf('DOE.requestPermission()') !== -1,
+  'the existing browser orientation path is not intact');
+  is(browser.indexOf('SHELL_HEADING_') === -1 && browser.indexOf('ezikShellBridge') === -1,
+    'the browser orientation function was coupled to the shell');
+  is(panel.indexOf("useState(headingBridgeRef.current ? 'wait' : 'off')") !== -1
+    && panel.indexOf("compass === 'off' || compass === 'none'") !== -1
+    && panel.indexOf('onClick={startCompass}') !== -1,
+  'an absent bridge no longer reaches the old off/none button path');
+  is(panel.indexOf('QIBLA_COMPASS_NONE') !== -1,
+    'the existing browser failure sentence was removed');
+  return 'DeviceOrientation + permission press intact; absent bridge starts off and keeps its button';
+});
+
+// ---------------------------------------------------------------------------
 // SILENCE AT BOOT -- a static proof, because it is a static claim: the press is the only caller.
 // ---------------------------------------------------------------------------
 run('nothing on this path runs before the press', () => {
-  const NAMES = ['askLocation', 'askLocationViaShell', 'ezikShellBridge'];
+  const NAMES = ['askLocation', 'askLocationViaShell'];
   const askRange = [startLine(V_ASK), endLine(V_ASK)];
   const viaRange = [startLine(V_VIA), endLine(V_VIA)];
   const sites = [];
@@ -494,7 +676,8 @@ run('nothing on this path runs before the press', () => {
       st.name + ' is referenced at app.jsx:' + st.line + ' from a ' + st.parent
       + ' -- neither the button nor the two functions behind it');
   }
-  // And no effect anywhere in the file mentions any of them, nor the request message itself.
+  // And no effect anywhere in the file mentions either location function or request. The shared
+  // bridge detector is deliberately allowed in the qibla heading effect added by item 108-b.
   let effectHit = null;
   walk(ast.program, (n) => {
     if (n.type !== 'CallExpression') return;
@@ -505,7 +688,7 @@ run('nothing on this path runs before the press', () => {
     }
   });
   is(!effectHit, 'a boot-time caller exists: ' + effectHit);
-  return sites.length + ' reference site(s), all inside the press or on the button: '
+  return sites.length + ' location reference site(s), all inside the press or on the button: '
     + sites.map((x) => x.name + '@' + x.line + ':' + x.parent).join(', ');
 });
 

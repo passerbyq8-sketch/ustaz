@@ -1412,9 +1412,11 @@ if (hLifted) {
 // what it is: an event that arrives, is not absolute, and carries alpha === null.
 
 const Q_CONSTS = ['KAABA_LAT', 'KAABA_LNG', 'QIBLA_DEFAULT_LAT', 'QIBLA_DEFAULT_LNG',
-  'QIBLA_DEFAULT_PLACE', 'QIBLA_LOC_KEY', 'QIBLA_DIRS', 'toArabicDigits'];
+  'QIBLA_DEFAULT_PLACE', 'QIBLA_LOC_KEY', 'QIBLA_DIRS', 'toArabicDigits',
+  'SHELL_HEADING_START', 'SHELL_HEADING_STOP', 'SHELL_HEADING_RESULT', 'SHELL_HEADING_STATUSES'];
 const Q_FNS = ['qiblaBearing', 'qiblaDirName', 'qiblaDegreeText', 'qiblaHeadingOf',
-  'qiblaNeedleAngle', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc'];
+  'qiblaNeedleAngle', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc',
+  'shellHeadingOf', 'sendShellHeadingCommand'];
 
 const qConsts = {};
 const qFns = {};
@@ -1519,6 +1521,37 @@ if (qLifted) {
     eq('108-a: ...and an out-of-range one is refused',
       B.qiblaHeadingOf({ webkitCompassHeading: 900, absolute: false, alpha: null }), null);
 
+    // The native stream names TRUE north explicitly. It wins when Expo supplies it; Expo's -1
+    // sentinel is not a direction and therefore falls back to the magnetic heading. Accuracy is
+    // deliberately absent from this selection: the shell's status owns calibration judgment.
+    const shell = { type: B.SHELL_HEADING_RESULT, ok: true, status: 'ready',
+      magHeading: 231, trueHeading: 17, accuracy: 0, error: null };
+    eq('108-b: the shell true heading wins over its magnetic heading', B.shellHeadingOf(shell), 17);
+    eq('108-b: Expo trueHeading -1 falls back to magnetic heading',
+      B.shellHeadingOf({ ...shell, trueHeading: -1 }), 231);
+    eq('108-b: a full-circle shell heading is normalized to north',
+      B.shellHeadingOf({ ...shell, trueHeading: 360 }), 0);
+    eq('108-b: shell accuracy does not change the selected heading',
+      B.shellHeadingOf({ ...shell, accuracy: 3 }), B.shellHeadingOf({ ...shell, accuracy: 0 }));
+    eq('108-b: a shell result with neither heading has no needle',
+      B.shellHeadingOf({ ...shell, trueHeading: -1, magHeading: null }), null);
+    eq('108-b: a message of another type is not a heading',
+      B.shellHeadingOf({ ...shell, type: 'ezik:heading:other' }), null);
+
+    const posted = [];
+    const bridge = { postMessage: (message) => posted.push(message) };
+    ok('108-b: the shell heading stream accepts its start command',
+      B.sendShellHeadingCommand(bridge, B.SHELL_HEADING_START));
+    ok('108-b: the shell heading stream accepts its stop command',
+      B.sendShellHeadingCommand(bridge, B.SHELL_HEADING_STOP));
+    eq('108-b: start is exactly one type field', posted[0], JSON.stringify({ type: 'ezik:heading:start' }));
+    eq('108-b: stop is exactly one type field', posted[1], JSON.stringify({ type: 'ezik:heading:stop' }));
+    eq('108-b: no bridge means no heading command', B.sendShellHeadingCommand(null, B.SHELL_HEADING_START), false);
+    ok('108-b: the five shell judgments remain five distinct statuses',
+      B.SHELL_HEADING_STATUSES.length === 5 && new Set(B.SHELL_HEADING_STATUSES).size === 5
+      && ['ready', 'calibration-needed', 'sensor-unavailable', 'permission-denied', 'heading-error']
+        .every((status) => B.SHELL_HEADING_STATUSES.indexOf(status) !== -1));
+
     // The needle turns by the difference, and by nothing else.
     eq('108-a: a device facing north points the needle at the qibla', B.qiblaNeedleAngle(224.62, 0), 224.62);
     eq('108-a: a device facing the qibla points the needle straight up', B.qiblaNeedleAngle(224.62, 224.62), 0);
@@ -1563,7 +1596,7 @@ if (qLifted) {
     eq('108-a: reading the position writes nothing', ro.writes, 0);
   })();
 
-  // ---- NOTHING HERE ASKS THE DEVICE ANYTHING UNTIL IT IS ASKED TO --------
+  // ---- ONE STREAM IN THE SHELL; THE OLD PRESS-ONLY SENSOR IN A BROWSER ----
   // ITEM 107 gave the panel a destructured parameter, and a brace-counting lift stops at the
   // FIRST brace it meets -- which is now the parameter list. So the panel is taken as an
   // anchored cut between two function names, with the length precondition below standing as
@@ -1573,18 +1606,35 @@ if (qLifted) {
   const QPANEL = (qpAt !== -1 && qpEnd > qpAt) ? SRC.slice(qpAt, qpEnd) : '';
   if (ok('108-a: the panel was located', QPANEL.length > 800, 'len=' + QPANEL.length)) {
     ok('108-a: THE NEEDLE EXISTS ONLY WHILE A HEADING DOES',
-      QPANEL.indexOf("compass === 'live' && needle !== null ?") !== -1
+      QPANEL.indexOf("(compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && needle !== null ?") !== -1
       && (QPANEL.match(/<svg /g) || []).length === 1);
     ok('108-a: ...and when it does not, the reader is told why rather than shown a still needle',
       QPANEL.indexOf('QIBLA_COMPASS_NONE') !== -1);
+    ok('108-b: the panel trusts the shell status and never derives one from accuracy',
+      QPANEL.indexOf('const status = detail.status;') !== -1
+      && QPANEL.indexOf('setCompass(status);') !== -1
+      && QPANEL.indexOf('detail.accuracy') === -1);
+    ok('108-b: all five shell statuses have distinct UI branches',
+      ['ready', 'calibration-needed', 'sensor-unavailable', 'permission-denied', 'heading-error']
+        .every((status) => QPANEL.indexOf("compass === '" + status + "'") !== -1)
+      && ['QIBLA_COMPASS_LIVE', 'QIBLA_COMPASS_CALIBRATION', 'QIBLA_COMPASS_SENSOR_UNAVAILABLE',
+        'QIBLA_COMPASS_PERMISSION_DENIED', 'QIBLA_COMPASS_HEADING_ERROR']
+        .every((name) => QPANEL.indexOf(name) !== -1));
     ok('108-a: the position is never asked for at mount',
       QPANEL.indexOf('getCurrentPosition') !== -1
       && QPANEL.indexOf('useEffect') < QPANEL.indexOf('askLocation')
       && !/useEffect\([^)]*getCurrentPosition/.test(QPANEL));
-    ok('108-a: ...and the only effect in the panel is the listener teardown',
+    ok('108-b: the panel owns one heading stream effect, from start through stop and detach',
       (QPANEL.match(/useEffect\(/g) || []).length === 1
-      && /useEffect\(\(\) => \(\) => \{ if \(stopRef\.current\)/.test(QPANEL));
-    ok('108-a: the sensor is started from a press and from nowhere else',
+      && /addEventListener\(SHELL_HEADING_RESULT, onHeadingResult\)/.test(QPANEL)
+      && /removeEventListener\(SHELL_HEADING_RESULT, onHeadingResult\)/.test(QPANEL)
+      && /sendShellHeadingCommand\(bridge, SHELL_HEADING_START\)/.test(QPANEL)
+      && /sendShellHeadingCommand\(bridge, SHELL_HEADING_STOP\)/.test(QPANEL));
+    ok('108-b: bridge presence selects shell-only heading; bridge absence keeps the browser path',
+      /headingBridgeRef\.current = ezikShellBridge\(\) \|\| false/.test(QPANEL)
+      && /useState\(headingBridgeRef\.current \? 'wait' : 'off'\)/.test(QPANEL)
+      && /const DOE = \(typeof window !== 'undefined'\) \? window\.DeviceOrientationEvent : null/.test(QPANEL));
+    ok('108-a: the browser sensor is started from a press and from nowhere else',
       /onClick=\{startCompass\}/.test(QPANEL)
       && (QPANEL.match(/startCompass\(\)/g) || []).length === 0);
     ok('108-a: ...and the permission request sits inside that press',
@@ -1594,6 +1644,8 @@ if (qLifted) {
     ok('108-a: the listeners are removed when the panel goes',
       /removeEventListener\('deviceorientationabsolute', onEvent\)/.test(QPANEL)
       && /removeEventListener\('deviceorientation', onEvent\)/.test(QPANEL));
+    ok('108-b: only a shell read fault offers the shell retry',
+      /compass === 'heading-error'[\s\S]{0,180}onClick=\{retryShellHeading\}/.test(QPANEL));
     for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'EventSource', 'new WebSocket', '/api/']) {
         okOn('108-a: the panel contains no ' + t, [["QPANEL", QPANEL]], QPANEL.indexOf(t) === -1);
     }
