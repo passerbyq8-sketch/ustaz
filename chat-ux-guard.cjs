@@ -44,7 +44,12 @@ const { parseHTML } = require('linkedom');
 // the chat has to answer it first -- exactly as a real reader does. The refusal path is proved
 // separately in tools/ai-consent-probe.cjs. Note that the old 'disclosureAck' key is kept in
 // these seeds and is NOT what opens the app: it is not consent and is no longer read.
-const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06-1', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+// SINCE THE PARENTAL-GATE ROUND THE CONSENT RECORD BELONGS TO A PROFILE, so this seed is built
+// from the pid of the profile it is seeded beside rather than from a constant. A record whose pid
+// does not match the seeded profile is NOT consent -- which is the right behaviour, and is exactly
+// why it has to be threaded here: without it the app opens on the consent screen and every case
+// below would be measuring the wrong screen while reporting green on the right one.
+const AI_CONSENT_SEED = (pid) => JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: pid, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
 
 
 const htmlFile = process.argv[2] || 'index.html';
@@ -404,7 +409,7 @@ const PROFILE = { name: 'سلمى', age: 30, gender: 'female', birthYear: 1996, 
 // ===========================================================================
 function partA() {
   console.log('\n=== A. THE FOLD, AS ARITHMETIC (the shipped pure functions) ===');
-  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED } });
+  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(PROFILE.pid) } });
   const foldSegments = c.grab('ezikFoldSegments');
   const foldCut = c.grab('ezikFoldCut');
   const proseLen = c.grab('ezikProseLength');
@@ -620,7 +625,7 @@ const CHAT_SHORT = 'C-SHORT';
 function seedChats() {
   return {
     child_profile: JSON.stringify(PROFILE),
-    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(PROFILE.pid),
     tashkeel_v1: '1',
     ezik_chats_v1: JSON.stringify([
       { id: CHAT_LONG, pk: PROFILE.pid, title: S.Q_USER, pinned: false, at: 2000 },
@@ -1080,7 +1085,7 @@ const TWIN_A = 'TW-A';
 const TWIN_B = 'TW-B';
 const PROFILE_B = { name: 'خالد', age: 30, gender: 'male', birthYear: 1996, pid: 'PID-B', createdAt: '2026-01-01T00:00:00.000Z' };
 function seedTwins(profile) {
-  const seed = { child_profile: JSON.stringify(profile), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED };
+  const seed = { child_profile: JSON.stringify(profile), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(profile.pid) };
   const body = [
     { role: 'user', content: S.Q_USER },
     { role: 'assistant', content: longReply() },      // BYTE-IDENTICAL in both conversations
@@ -1257,7 +1262,7 @@ function sseStream(text, chunks) {
 
 async function partGStreaming() {
   console.log('\n=== G. A STREAMED REPLY DOES NOT SHRINK WHEN IT SETTLES ===');
-  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED }, mount: true });
+  const c = buildContext({ seed: { child_profile: JSON.stringify(PROFILE), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(PROFILE.pid) }, mount: true });
   await tick(400);
   if (c.err()) { ok('the app mounts on an empty thread', false, String(c.err())); return; }
   const d = driver(c.window);
@@ -1403,7 +1408,7 @@ const MANY = 42;
 function seedManyChats() {
   const seed = {
     child_profile: JSON.stringify(PROFILE),
-    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(PROFILE.pid),
   };
   const index = [];
   for (let i = 0; i < MANY; i++) {

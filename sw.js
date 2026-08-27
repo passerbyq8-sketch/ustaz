@@ -108,7 +108,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 122884 + app.js 1193820 + icon-watermark.png 368386
+//   /  (index.html) 122884 + app.js 1200997 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + adhkar-split-27.json 7182 + icon-maskable-512.png 5938
 //   + icon-192.png 5053 + manifest.json 533
@@ -128,7 +128,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 2036667;
+const CORE_BYTES = 2043844;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.

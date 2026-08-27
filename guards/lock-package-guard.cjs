@@ -841,7 +841,7 @@ function envSandbox(vars) {
       ok('B8: ...and it sends the typed code with that request, so the code guards its own removal',
         /action: 'delete', pin: code/.test(card));
       ok('B8: ...and it writes NOTHING to the device -- no key is invented for the code',
-        !/localStorage/.test(card));
+        card.length > 0 && !/localStorage/.test(card));
       ok('B8: ...and the control is behind an ARMED step, never one stray tap',
         /useState\(false\)/.test(card) && /armed \?/.test(card) && /setArmed\(true\)/.test(card));
       ok('B8: ...and the dashboard actually draws it',
