@@ -15078,6 +15078,37 @@ function shellLocResultCoords(detail) {
   return { lat: lat, lng: lng };
 }
 
+// ITEM 108-ب. THE HEADING HANDSHAKE. Unlike the one-shot location request above, this result is a
+// stream: the panel starts it once while it is on screen and stops it when the panel goes. The
+// shell owns the status classification; the web reads `status` and never re-derives it from
+// `accuracy`. There is no second bridge detector: both seams use ezikShellBridge().
+const SHELL_HEADING_START = 'ezik:heading:start';
+const SHELL_HEADING_STOP = 'ezik:heading:stop';
+const SHELL_HEADING_RESULT = 'ezik:heading:result';
+const SHELL_HEADING_STATUSES = ['ready', 'calibration-needed', 'sensor-unavailable', 'permission-denied', 'heading-error'];
+
+// Qibla bearing is clockwise from TRUE north (qiblaBearing above). Expo may publish -1 for an
+// unavailable trueHeading, so a valid true heading wins and the magnetic heading is the named
+// fallback. No accuracy threshold appears here: calibration remains the shell's judgment.
+function shellHeadingOf(detail) {
+  if (!detail || typeof detail !== 'object' || detail.type !== SHELL_HEADING_RESULT) return null;
+  const trueHeading = detail.trueHeading;
+  if (typeof trueHeading === 'number' && isFinite(trueHeading) && trueHeading >= 0 && trueHeading <= 360) {
+    return ((trueHeading % 360) + 360) % 360;
+  }
+  const magHeading = detail.magHeading;
+  if (typeof magHeading === 'number' && isFinite(magHeading) && magHeading >= 0 && magHeading <= 360) {
+    return ((magHeading % 360) + 360) % 360;
+  }
+  return null;
+}
+
+function sendShellHeadingCommand(bridge, type) {
+  if (!bridge || (type !== SHELL_HEADING_START && type !== SHELL_HEADING_STOP)) return false;
+  try { bridge.postMessage(JSON.stringify({ type: type })); return true; }
+  catch (e) { return false; }
+}
+
 // ============================================================
 // THE SCHEDULE PIPE — أنبوبُ الجدولةِ إلى الغلاف
 // ============================================================
@@ -15952,6 +15983,11 @@ const QIBLA_COMPASS_START = 'شغِّلِ البوصلة';
 const QIBLA_COMPASS_WAIT = 'بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…';
 const QIBLA_COMPASS_NONE = 'لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.';
 const QIBLA_COMPASS_LIVE = 'البوصلةُ تدورُ مع الجهاز.';
+const QIBLA_COMPASS_CALIBRATION = 'السهمُ يدورُ، لكنَّ معايرةَ حسّاسِ الاتّجاهِ ناقصة. حرِّكِ الجهازَ ببطءٍ على شكلِ الرقم ٨ حتّى تتحسّنَ المعايرة.';
+const QIBLA_COMPASS_SENSOR_UNAVAILABLE = 'لا يحتوي هذا الجهازُ على حسّاسِ اتّجاهٍ متاح؛ تبقى درجةُ القبلةِ المعروضةُ أعلاه.';
+const QIBLA_COMPASS_PERMISSION_DENIED = 'إذنُ الموقعِ مرفوض. افتحْ إعداداتِ الجهازِ الخاصّةَ بتطبيقِ عزك وامنحْ إذنَ الموقع، ثم عُدْ إلى هذه الشاشة.';
+const QIBLA_COMPASS_HEADING_ERROR = 'تعذّرتْ قراءةُ اتّجاهِ الجهازِ بسببِ عطبٍ طارئ. أعِدِ المحاولة.';
+const QIBLA_COMPASS_RETRY = 'أعِدِ المحاولة';
 const QIBLA_BACK = 'رجوع';
 // ITEM 107: the sheet now holds both readings, so it is named for both. The tile that opens it
 // is renamed with it -- one tile, one sheet, one position.
@@ -15961,16 +15997,51 @@ const QIBLA_NEEDLE_MS = 4000;
 function QiblaPanel({ loc, onLoc }) {
   const setLoc = onLoc;
   const [locState, setLocState] = useState('');
-  // 'off' before the reader asks; 'wait' while listening; 'live' once a real heading arrived;
-  // 'none' when the listening window closed with nothing usable in it.
-  const [compass, setCompass] = useState('off');
+  // The bridge is captured once for this mounted panel. In a browser it is false, so the four
+  // old DeviceOrientation states and their exact path remain: off, wait, live, none. In the shell
+  // the state is the shell's status verbatim, preceded only by wait while the first event arrives.
+  const headingBridgeRef = useRef(undefined);
+  if (headingBridgeRef.current === undefined) headingBridgeRef.current = ezikShellBridge() || false;
+  const [compass, setCompass] = useState(headingBridgeRef.current ? 'wait' : 'off');
   const [heading, setHeading] = useState(null);
   const stopRef = useRef(null);
   // The shell listener's detach, parked where a later press, the deadline, and the unmount below
   // can all reach the same one. It rides the compass's teardown rather than adding a second
   // effect beside it: this panel goes away once, so one effect should be what answers that.
   const locStopRef = useRef(null);
-  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; } }, []);
+  useEffect(() => {
+    const bridge = headingBridgeRef.current || null;
+    if (bridge) {
+      const onHeadingResult = (ev) => {
+        const detail = ev && ev.detail;
+        if (!detail || typeof detail !== 'object' || detail.type !== SHELL_HEADING_RESULT) return;
+        const status = detail.status;
+        if (SHELL_HEADING_STATUSES.indexOf(status) === -1) return;
+        if (status === 'ready' || status === 'calibration-needed') {
+          const nextHeading = shellHeadingOf(detail);
+          if (nextHeading === null) { setHeading(null); setCompass('heading-error'); return; }
+          setHeading(nextHeading);
+        } else {
+          setHeading(null);
+        }
+        setCompass(status);
+      };
+      try {
+        window.addEventListener(SHELL_HEADING_RESULT, onHeadingResult);
+        stopRef.current = () => {
+          try { window.removeEventListener(SHELL_HEADING_RESULT, onHeadingResult); } catch (e) {}
+          sendShellHeadingCommand(bridge, SHELL_HEADING_STOP);
+        };
+        if (!sendShellHeadingCommand(bridge, SHELL_HEADING_START)) setCompass('heading-error');
+      } catch (e) {
+        setCompass('heading-error');
+      }
+    }
+    return () => {
+      if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+      if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
+    };
+  }, []);
 
   const bearing = qiblaBearing(loc.lat, loc.lng);
 
@@ -16068,6 +16139,14 @@ function QiblaPanel({ loc, onLoc }) {
     attach();
   };
 
+  const retryShellHeading = () => {
+    const bridge = headingBridgeRef.current || null;
+    if (!bridge) return;
+    setHeading(null);
+    setCompass('wait');
+    if (!sendShellHeadingCommand(bridge, SHELL_HEADING_START)) setCompass('heading-error');
+  };
+
   const needle = qiblaNeedleAngle(bearing, heading);
   const placeName = loc.by === 'device' ? QIBLA_DEVICE_PLACE : QIBLA_DEFAULT_PLACE;
   return (
@@ -16079,7 +16158,7 @@ function QiblaPanel({ loc, onLoc }) {
         </>
       )}
       {/* THE DIAL EXISTS ONLY WHILE A HEADING DOES. There is no still needle on this screen. */}
-      {compass === 'live' && needle !== null ? (
+      {(compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && needle !== null ? (
         <div style={s.qiblaDialWrap}>
           <svg width="132" height="132" viewBox="0 0 100 100" role="img" aria-label={QIBLA_SECTION}>
             <circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" strokeWidth="2" />
@@ -16091,12 +16170,19 @@ function QiblaPanel({ loc, onLoc }) {
         </div>
       ) : null}
       <div style={s.qiblaNote}>
-        {compass === 'live' ? QIBLA_COMPASS_LIVE
+        {compass === 'live' || compass === 'ready' ? QIBLA_COMPASS_LIVE
+          : compass === 'calibration-needed' ? QIBLA_COMPASS_CALIBRATION
+            : compass === 'sensor-unavailable' ? QIBLA_COMPASS_SENSOR_UNAVAILABLE
+              : compass === 'permission-denied' ? QIBLA_COMPASS_PERMISSION_DENIED
+                : compass === 'heading-error' ? QIBLA_COMPASS_HEADING_ERROR
           : compass === 'wait' ? QIBLA_COMPASS_WAIT
             : compass === 'none' ? QIBLA_COMPASS_NONE : ''}
       </div>
       {compass === 'off' || compass === 'none' ? (
         <button type="button" onClick={startCompass} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_START}</button>
+      ) : null}
+      {compass === 'heading-error' ? (
+        <button type="button" onClick={retryShellHeading} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_RETRY}</button>
       ) : null}
       <div style={s.qiblaPlace}>
         {QIBLA_PLACE_LABEL} {placeName}{loc.by === 'device' ? '' : ' (' + QIBLA_PLACE_DEFAULT_NOTE + ')'}

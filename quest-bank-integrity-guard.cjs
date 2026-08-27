@@ -581,7 +581,16 @@ const SEALED = {
   //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
   //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
   //                    install rewrites every CORE entry into the same store.
-  'sw.js': '9dd9fc5ffa32c11d75036dbdabe8c008a9bb4ece120b372a1d0def64ce0f04f0',
+  // QIBLA HEADING STREAM (2026-08-27, feat/qibla-heading-20260827). THE WEB ASKS WHILE THE PANEL
+  //                    LIVES. The native bridge is detected by the existing detector, receives
+  //                    one start and one stop, and supplies five statuses without the web
+  //                    reclassifying accuracy. Without that bridge, the browser orientation path
+  //                    is unchanged. app.jsx grew and app.js followed 1200987 -> 1205284 (+4297),
+  //                    and CORE_BYTES 2043834 -> 2048131 is exactly that delta -- no CORE entry
+  //                    was added or removed. The worker byte table and SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
+  //                    rewrites every CORE entry into the same store.
+  'sw.js': '2f2edb5096ebb256edc2adf2eb19e726bb905073f5969da7e9435d9ffb8c809c',
 };
 
 // ---------------------------------------------------------------------------
@@ -1692,7 +1701,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1200987, of: 'app.js' },
+      { n: 1205284, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
