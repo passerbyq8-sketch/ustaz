@@ -147,7 +147,11 @@ const ENV_NAMES = ['window', 'document', 'setTimeout', 'clearTimeout', 'useEffec
 // THE PIPE, BY NAME. Every one of these must exist or extraction throws.
 const ROOTS = ['ezikSchedBridge', 'ezikSchedRoute', 'ezikSchedPayload', 'ezikSchedSend',
   'ezikSchedItems', 'ezikSchedArm', 'useEzikSchedRoot', 'useEzikSchedWatch',
-  'ezikAdhanItems'];
+  'ezikAdhanItems',
+  // ITEMS 43-b / 47-b. The prayers moved down one level into a feed of their own and three
+  // functions joined them: the reminders the reader sets the times for, the store those times
+  // live in, and the shape check that decides whether a stored string is a time at all.
+  'ezikAdhanFeed', 'ezikReminderItems', 'readReminders', 'reminderTimeOk'];
 const ROOT_NODES = ROOTS.map((n) => topFunction(n));
 
 /** Pull the whole top-level closure of a set of roots, in source order, and name what is left. */
@@ -284,6 +288,37 @@ const NOTIFY_ON = literalOf('PRAYER_NOTIFY_ON', 'StringLiteral');
 const NOTIFY_WAIT_MS = literalOf('PRAYER_NOTIFY_WAIT_MS', 'NumericLiteral');
 const QIBLA_KEY = literalOf('QIBLA_LOC_KEY', 'StringLiteral');
 const PREFS_KEY = literalOf('PRAYER_PREFS_KEY', 'StringLiteral');
+// ITEMS 43-b / 47-b -- the one record all four reminders live in, and the ceiling on how many
+// times a day the reader may ask for. Both read from their declarations for the same reason
+// every key above is: a second copy in a second file is the drift these guards exist to stop.
+const REMINDERS_KEY = literalOf('REMINDERS_KEY', 'StringLiteral');
+const REMINDER_MAX = literalOf('REMINDER_MAX_TIMES', 'NumericLiteral');
+
+/** The four feeds as app.jsx declares them, read out of REMINDER_FEEDS rather than retyped. */
+const REMINDER_FEEDS = (function () {
+  const decl = TOP.get('REMINDER_FEEDS');
+  if (!decl || decl.kind !== 'const' || !decl.node.init || decl.node.init.type !== 'ArrayExpression') {
+    throw new Error('app.jsx no longer declares REMINDER_FEEDS as an array literal');
+  }
+  return decl.node.init.elements.map((el) => {
+    if (!el || el.type !== 'ObjectExpression') throw new Error('a feed row is not an object literal');
+    const row = {};
+    for (const p of el.properties) {
+      if (p.type !== 'ObjectProperty' || p.computed) throw new Error('a feed row carries a computed key');
+      row[p.key.name || p.key.value] = p.value.value;
+    }
+    return row;
+  });
+})();
+
+/** A seeded store in which the reader has lit one reminder at the times given. */
+function remindersOn(id, times, extra) {
+  const rec = {};
+  for (const f of REMINDER_FEEDS) rec[f.id] = { on: f.id === id, times: (f.id === id ? times : [f.at]) };
+  const store = Object.assign({}, extra || {});
+  store[REMINDERS_KEY] = JSON.stringify(rec);
+  return store;
+}
 
 /** A seeded store in which the reader has already turned the reminder on. */
 function switchOn(extra) {
@@ -1057,6 +1092,185 @@ run('the root is mounted in App and the watcher in the panel that owns both inpu
   return where.join(', ');
 });
 
+
+// -- 9b. ITEMS 43-ب / 47-ب -- THE FOUR REMINDERS THE READER SETS THE TIMES FOR ---------
+// The prayers ride the pipe off an anchor this client already computes. These ride off a STORE,
+// which is the whole difference and the whole risk: a record written by some other version of
+// this application, a restored backup, a truncated write or a reader who has simply never
+// touched the screen must all end in the same place -- nobody interrupted.
+
+run('the reminders are off by construction: an absent store, and every damaged one there is', () => {
+  const damaged = [
+    undefined, '', 'null', 'true', '7', '[]', '[{"on":true}]', '{', '{"sabah":true}',
+    JSON.stringify({ sabah: { on: true } }),                              // on, but no times at all
+    JSON.stringify({ sabah: { on: true, times: [] } }),                   // on, and an empty list
+    JSON.stringify({ sabah: { on: true, times: ['24:00'] } }),            // on, and not an hour
+    JSON.stringify({ sabah: { on: true, times: ['7:05'] } }),             // on, and not padded
+    JSON.stringify({ sabah: { on: true, times: ['07:60'] } }),            // on, and not a minute
+    JSON.stringify({ sabah: { on: true, times: [604] } }),                // on, and not a string
+    JSON.stringify({ sabah: { on: 'true', times: ['07:00'] } }),          // the word, not the boolean
+    JSON.stringify({ sabah: { on: 1, times: ['07:00'] } }),               // the number, not the boolean
+  ];
+  let lit = 0;
+  for (const raw of damaged) {
+    const store = {};
+    if (raw !== undefined) store[REMINDERS_KEY] = raw;
+    const { h } = fresh({ store: store });
+    const rec = h.readReminders();
+    eq(Object.keys(rec).sort(), REMINDER_FEEDS.map((f) => f.id).sort(), 'the feeds a store of ' + raw + ' reads as');
+    for (const f of REMINDER_FEEDS) if (rec[f.id].on) lit += 1;
+    eq(h.ezikReminderItems(new Date(NOW)), [], 'the items a store of ' + raw + ' offers');
+  }
+  // ...AND A STORAGE THAT THROWS ON THE GETTER ITSELF IS THE SAME ANSWER, NOT AN EXCEPTION.
+  const deaf = fresh();
+  deaf.env.localStorage.getItem = () => { throw new Error('denied'); };
+  eq(deaf.h.ezikReminderItems(new Date(NOW)), [], 'the items a storage that denies every read offers');
+  eq(lit, 0, 'reminders lit by a damaged store');
+  return damaged.length + ' damaged or absent stores + 1 that throws: 0 reminders lit, 0 items';
+});
+
+run('a lit reminder rides the window once a day, absolute, ascending, and pointed at its door', () => {
+  for (const f of REMINDER_FEEDS) {
+    const { h, env } = fresh({ store: remindersOn(f.id, [f.at]) });
+    const items = h.ezikReminderItems(new Date(NOW));
+    eq(items.length, DAYS, 'items ' + f.id + ' offered');
+    const ids = new Set();
+    for (const it of items) {
+      eq(Object.keys(it).sort(), ['at', 'body', 'id', 'route', 'title', 'type'], 'the fields of ' + it.id);
+      eq(it.type, f.type, 'the type of ' + it.id);
+      eq(it.route, f.route, 'the destination of ' + it.id);
+      is(typeof it.at === 'number' && isFinite(it.at) && Math.trunc(it.at) === it.at && it.at > 0,
+        'the instant of ' + it.id + ' is not a whole absolute millisecond');
+      const d = new Date(it.at);
+      eq((d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes(),
+        f.at, 'the local wall clock ' + it.id + ' lands on');
+      is(it.title.length > 0 && it.body.length > 0, 'empty text on ' + it.id);
+      is(!ids.has(it.id), 'two items share the id ' + it.id);
+      ids.add(it.id);
+    }
+    eq(env.writes, [], 'stores written by building the ' + f.id + ' reminder');
+  }
+  // ...AND THE TYPE IS ONE OF THE THREE THE SHELL WILL ACCEPT. murabbi-shell freezes TYPES and
+  // refuses anything else as `unknownType`, so a fourth word invented here would be a reminder
+  // that is built, sent, counted as delivered and never seen by anybody.
+  const types = Array.from(new Set(REMINDER_FEEDS.map((f) => f.type))).sort();
+  for (const t of types) is([ADHAN, 'daily', 'adhkar'].indexOf(t) !== -1, 'the shell refuses the type ' + t);
+  return REMINDER_FEEDS.length + ' feeds x ' + DAYS + ' days, every field whitelisted, 0 writes';
+});
+
+run('the two adhkar reminders point at the two doors and never at the group they came from', () => {
+  const doors = REMINDER_FEEDS.filter((f) => f.type === 'adhkar').map((f) => f.route).sort();
+  eq(doors, ['adhkar_masaa', 'adhkar_sabah'], 'the destinations the adhkar reminders carry');
+  // ...AND THE DESTINATION SURVIVES THE PIPE. ezikSchedRoute judges the SHAPE of a route and a
+  // door key that failed it would be dropped silently -- the notification would still fire, at
+  // the right minute, pointing nowhere.
+  const { h } = fresh({ store: remindersOn('sabah', ['06:00']) });
+  const built = h.ezikSchedPayload(h.ezikReminderItems(new Date(NOW)), 0);
+  eq(built.dropped.past, 0, 'reminders the pipe dropped as past against a floor of zero');
+  eq(built.message.items.length, DAYS, 'reminders that reached the wire');
+  for (const it of built.message.items) {
+    eq(it.route, 'adhkar_sabah', 'the destination the pipe carried for ' + it.id);
+  }
+  // AND NOT THE GROUP THE SPLIT CAME FROM: '27' is what a reminder must never name, because the
+  // doors are what shipped and the group is what they replaced.
+  for (const f of REMINDER_FEEDS) {
+    is(String(f.route).indexOf('27') === -1, 'the ' + f.id + ' reminder names category 27');
+  }
+  return 'adhkar_sabah + adhkar_masaa, ' + DAYS + ' each through the pipe, 0 routes dropped';
+});
+
+run('a count is offered where the order allows one, a single time where it does not', () => {
+  for (const f of REMINDER_FEEDS) {
+    const cap = f.many ? REMINDER_MAX : 1;
+    const asked = ['05:00', '11:30', '19:45', '23:15'];
+    const { h } = fresh({ store: remindersOn(f.id, asked) });
+    const rec = h.readReminders();
+    eq(rec[f.id].times.length, cap, 'times ' + f.id + ' kept of ' + asked.length + ' asked for');
+    eq(rec[f.id].times, asked.slice(0, cap), 'the times ' + f.id + ' kept');
+    eq(h.ezikReminderItems(new Date(NOW)).length, cap * DAYS, 'items ' + f.id + ' offered');
+  }
+  // ...AND THE SAME MINUTE TWICE IS ONE REMINDER, NOT TWO. A duplicate would reach the pipe as a
+  // duplicate id and be counted `duplicateId` there; it is dropped where the reader's own record
+  // is read, so the screen and the store cannot disagree about how many were chosen.
+  const { h } = fresh({ store: remindersOn('wird', ['20:00', '20:00', '21:00']) });
+  eq(h.readReminders().wird.times, ['20:00', '21:00'], 'the times a doubled record keeps');
+  return REMINDER_FEEDS.filter((f) => f.many).length + ' feeds take a count up to ' + REMINDER_MAX
+    + ', ' + REMINDER_FEEDS.filter((f) => !f.many).length + ' take one time; duplicates dropped';
+});
+
+run('the four switches are independent, and so is the prayer switch above them', () => {
+  // ONE LIT, AND ONLY ITS OWN ITEMS RIDE.
+  const one = fresh({ store: remindersOn('masaa', ['17:30']) });
+  const items = one.h.ezikSchedItems();
+  eq(items.length, DAYS, 'items with one reminder lit and the prayer switch off');
+  for (const it of items) eq(it.route, 'adhkar_masaa', 'the destination of ' + it.id);
+  // THE PRAYER SWITCH ON AND EVERY REMINDER OFF -- the payload proved before any of this existed.
+  const prayers = fresh({ store: switchOn() });
+  eq(prayers.h.ezikSchedItems().length, 5 * DAYS, 'items with the prayer switch on and no reminder');
+  // BOTH, AND THE TOTAL IS THE SUM. Neither gate reaches across at the other.
+  const both = fresh({ store: remindersOn('masaa', ['17:30'], switchOn()) });
+  eq(both.h.ezikSchedItems().length, 5 * DAYS + DAYS, 'items with both lit');
+  // NEITHER, AND THE PIPE SAYS NOTHING AT ALL THROUGH EVERY TRIGGER THERE IS.
+  const none = fresh();
+  eq(none.h.ezikSchedItems(), [], 'items with nothing lit');
+  none.h.useEzikSchedRoot();
+  const teardown = none.env.effects[0].fn();
+  wakeAll(none.env);
+  for (const fn of Array.from(none.h.EZ_LANG_SUBS)) fn();
+  none.env.timers.filter(Boolean)[0].fn();
+  teardown();
+  eq(none.env.posts.length, 0, 'posts with nothing lit');
+  eq(none.env.writes, [], 'stores written with nothing lit');
+  return '1 lit = ' + DAYS + '; prayers = ' + (5 * DAYS) + '; both = ' + (5 * DAYS + DAYS)
+    + '; neither = 0 items, 0 posts, 0 writes';
+});
+
+run('turning a reminder off is a rebuild and never a cancellation of the whole channel', () => {
+  // THE READER HAS THE PRAYERS AND ONE REMINDER; THE REMINDER GOES; THE PRAYERS STAY. This is the
+  // one behaviour a shared channel makes easy to get wrong -- ezikNotifyStop() would have ended
+  // both, and no reader asked for that by switching off their evening adhkar.
+  const sc = fresh({ store: remindersOn('masaa', ['17:30'], switchOn()) });
+  const armed = sc.h.ezikSchedArm();
+  eq(armed.sent, true, 'the first arm');
+  const withBoth = JSON.parse(sc.env.posts[0]).items.filter((x) => x.type === 'adhkar').length;
+  is(withBoth > 0, 'the reminder never reached the wire to begin with');
+  // The reader turns it off: the store is rewritten and the SAME arm runs again.
+  const rec = JSON.parse(sc.env.store[REMINDERS_KEY]);
+  rec.masaa.on = false;
+  sc.env.store[REMINDERS_KEY] = JSON.stringify(rec);
+  const again = sc.h.ezikSchedArm();
+  eq(again.sent, true, 'the arm after the reminder was turned off');
+  const after = JSON.parse(sc.env.posts[1]);
+  eq(after.op, OP, 'the operation an arm still uses after a reminder was turned off');
+  eq(after.items.filter((x) => x.type === 'adhkar').length, 0, 'reminders left on the wire');
+  is(after.items.filter((x) => x.type === ADHAN).length > 0, 'the prayers went with the reminder');
+  // AND NO CANCELLATION WAS SENT. Two arms, two messages, and neither of them is a cancel.
+  eq(sc.env.posts.length, 2, 'messages sent across both arms');
+  for (const p of sc.env.posts) {
+    is(JSON.parse(p).op !== CANCEL_OP, 'a reminder going off cancelled the whole channel');
+  }
+  return '2 arms, 2 rebuilds, 0 cancellations; the prayers survived the reminder';
+});
+
+run('every line the reminders can show is a key in BOTH halves of the dictionary', () => {
+  const { h } = fresh();
+  const keys = [];
+  for (const f of REMINDER_FEEDS) { keys.push(f.label); keys.push(f.body); }
+  for (const k of ['reminders.title', 'reminders.hint', 'reminders.on', 'reminders.off',
+    'reminders.count', 'reminders.more', 'reminders.less', 'reminders.slot', 'reminders.one',
+    'reminders.window', 'reminders.noShell', 'reminders.asking', 'reminders.denied',
+    'reminders.silent']) keys.push(k);
+  let checked = 0;
+  for (const lang of ['ar', 'en']) {
+    for (const k of keys) {
+      const v = h.EZ_I18N[lang][k];
+      is(typeof v === 'string' && v.trim().length > 0, 'the ' + lang + ' dictionary has no ' + k);
+      is(v !== k, 'the ' + lang + ' dictionary answers ' + k + ' with the key itself');
+      checked += 1;
+    }
+  }
+  return checked + ' lines across 2 languages, 0 missing, 0 empty, 0 raw keys';
+});
 // -- 11. STATIC CLAIMS ABOUT THE WHOLE PATH ---------------------------------
 run('nothing on this path is a request, a sound, a permission or a console line', () => {
   for (const t of ['fetch(', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
@@ -1228,14 +1442,27 @@ run('ON: the payload is the one proved before there was a switch -- nothing adde
   // reached by the same one line, with nothing filtering or reshaping what it hands back.
   // Asserted on the STATEMENTS rather than on the text, so that the prose around them is free to
   // say whatever it needs to: exactly two, the guard and the return the feed always ended in.
-  const statements = topFunction('ezikSchedItems').body.body;
-  eq(statements.length, 2, 'statements in the gated feed');
+  //
+  // 🔴 ITEMS 43-b / 47-b MOVED THIS PIN DOWN ONE LEVEL AND DID NOT SPEND IT. The two statements
+  // this case has always held are still two statements and still those two -- they now live in
+  // ezikAdhanFeed, which exists for one reason: the reminders added beside the prayers are gated
+  // by their OWN switches and must not be silenced by the prayer switch. Pinning the prayers
+  // where they now are is the same proof about the same code; pinning ezikSchedItems to two
+  // statements would have been a proof that the reminders do not exist.
+  const statements = topFunction('ezikAdhanFeed').body.body;
+  eq(statements.length, 2, 'statements in the gated prayer feed');
   is(statements[0].type === 'IfStatement' && !statements[0].alternate,
     'the gate is no longer a single guard with nothing on its other side');
   eq(text(statements[0]), 'if (!readPrayerNotify()) return [];', 'the guard');
   eq(text(statements[1]), 'return ezikAdhanItems(new Date());',
     'the statement the feed ends in, whole and unwrapped');
-  return (5 * DAYS) + ' items, 1 post, 0 writes; the gate is one early return and nothing else';
+  // ...AND THE JOIN ABOVE IT IS ONE STATEMENT THAT HIDES NOTHING. A filter, a slice or a sort
+  // between the two feeds and the pipe would be a place a reminder could be lost silently.
+  const joined = topFunction('ezikSchedItems').body.body;
+  eq(joined.length, 1, 'statements in the join');
+  eq(text(joined[0]), 'return ezikAdhanFeed().concat(ezikReminderItems(new Date()));',
+    'the one statement the two feeds are joined by');
+  return (5 * DAYS) + ' items, 1 post, 0 writes; the prayer gate is one early return, the join one concat';
 });
 
 run('the operation that raises a system prompt has ONE call site, and it is not in an effect', () => {
@@ -1267,7 +1494,14 @@ run('the operation that raises a system prompt has ONE call site, and it is not 
   is(effects.length > 5, 'this file registers ' + effects.length + ' effects -- too few to be believed');
   const swallowed = effects.filter((r) => sites[0].start >= r[0] && sites[0].end <= r[1]);
   eq(swallowed.length, 0, 'effects the one call site sits inside');
-  // AND THE FUNCTION IT SITS IN IS THE SWITCH ITSELF.
+  // AND THE FUNCTION IT SITS IN IS THE ONE SENDER.
+  //
+  // 🔴 ITEMS 43-b / 47-b. This used to name PrayerNotifyToggle, because that switch was the only
+  // control in the application that needed the permission. A second control needs it now -- the
+  // reminders the reader sets their own times for -- and there were two ways to give it: copy
+  // the call, or move it. Copying it would have retired this whole case, so it moved: the ask,
+  // the listener and the deadline are ezikNotifyRequest, and BOTH switches reach the far side
+  // through that one function. The count above is unchanged and unweakened.
   const owner = (line) => {
     let best = null;
     for (const [name, decl] of TOP) {
@@ -1276,7 +1510,24 @@ run('the operation that raises a system prompt has ONE call site, and it is not 
     }
     return best;
   };
-  eq(owner(startLine(sites[0])), 'PrayerNotifyToggle', 'the function the enable sender is called from');
+  const SENDER = 'ezikNotifyRequest';
+  eq(owner(startLine(sites[0])), SENDER, 'the function the enable sender is called from');
+  // ...AND EVERY CALLER OF THAT ONE SENDER IS A SWITCH, NOT AN EFFECT. This is the assertion
+  // the move COST and therefore the assertion the move has to buy back: a call site behind one
+  // indirection is only as safe as the things that reach the indirection.
+  const callers = [];
+  walk(ast.program, (n) => {
+    if (n.type !== 'CallExpression' || n.callee.type !== 'Identifier') return;
+    if (n.callee.name !== SENDER) return;
+    callers.push(n);
+  });
+  is(callers.length >= 2, 'only ' + callers.length + ' caller(s) of the one sender -- the move bought nothing');
+  eq(callers.map((n) => owner(startLine(n))).sort(),
+    ['EzikReminderSettings', 'PrayerNotifyToggle'], 'the functions that reach the one sender');
+  for (const c of callers) {
+    eq(effects.filter((r) => c.start >= r[0] && c.end <= r[1]).length, 0,
+      'effects the call in ' + owner(startLine(c)) + ' sits inside');
+  }
   // MEASURED, NOT ONLY READ: mounting the switch -- with the store off AND with it already on --
   // and then firing every wake signal there is sends nothing at all.
   for (const store of [{}, switchOn()]) {

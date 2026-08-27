@@ -549,7 +549,21 @@ const SEALED = {
   //                    and its SW_PROSE mirror gained the figure, so B14 can check it. CACHE is
   //                    NOT bumped and does not need to be: install rewrites every CORE entry
   //                    into the same store, which is measured, not assumed.
-  'sw.js': '5bd20328b477ac49a36f357141546a577bd03bb6f908295730aa568d005051e8',
+  // ITEMS 43-b / 47-b (2026-08-27, feat/reminder-settings-20260826). THE REMINDER SETTINGS.
+  //                    A group inside the Settings screen carrying four independent reminders --
+  //                    the morning adhkar door, the evening adhkar door, the daily wird and the
+  //                    daily content -- each with a switch, a time the reader picks, and (for the
+  //                    two where a count is right) up to three times a day. All four default OFF.
+  //                    The feed joins the prayers through ezikSchedItems and every item carries a
+  //                    route naming its destination; the shell fires them and a browser tab does
+  //                    not, which the screen says to the reader in its own line.
+  //                    app.jsx grew and app.js followed 1171036 -> 1193820 (+22784), and
+  //                    CORE_BYTES 2013883 -> 2036667 is exactly that delta -- no CORE entry was
+  //                    added or removed this round. The byte table above the constant and its
+  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
+  //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
+  //                    install rewrites every CORE entry into the same store.
+  'sw.js': 'c6f6d26e9ae736a81c84d8e409f82d00278452833567fa76ba7e176ed963573e',
 };
 
 // ---------------------------------------------------------------------------
@@ -1660,7 +1674,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1171036, of: 'app.js' },
+      { n: 1193820, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

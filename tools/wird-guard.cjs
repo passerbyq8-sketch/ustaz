@@ -39,6 +39,9 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const APP = 'index.html';
+// ITEMS 43-b / 47-b -- the three ways a time field can be spelled in this client, written ONCE
+// because A-2 and A-3 both scan for them and two copies of a list is two lists that drift.
+const TIME_FIELD = ['type="time"', "type: 'time'", "type='time'"];
 
 let pass = 0;
 let fail = 0;
@@ -90,6 +93,18 @@ function ascii(v) {
 // built from it. readShippedClient hands back both, and throws if the page ships no JSX it can
 // find -- so an anchor that stops matching is still an anchor failure and never an empty read.
 const SRC = require('./babel-block.cjs').readShippedClient(path.join(ROOT, APP)).replace(/\r\n/g, '\n');
+// ITEMS 43-b / 47-b -- THE SAME CLIENT WITH ITS PROSE REMOVED, cut once and shared.
+//
+// Several checks below ask what the client OFFERS or DOES: whether it offers a time field,
+// whether it asks the system for a permission, whether it cancels a channel. A COMMENT does
+// none of those things. Counting the raw file made a paragraph explaining a rule
+// indistinguishable from a second breach of it -- a check that punishes the one thing it
+// should reward, and one that a guard whose whole subject is honest prose cannot afford.
+//
+// THE SCANS OVER VISIBLE TEXT ARE NOT MOVED TO THIS. Those already strip comments themselves,
+// for the same reason and by the same two expressions; what changes here is only that the
+// checks about BEHAVIOUR now get the same courtesy.
+const SRC_CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
 
 // Brace matching from the function's opening brace. Every function lifted below is
 // verified to contain no brace inside a string or a regular expression, so a plain depth
@@ -2146,8 +2161,40 @@ if (nLifted && tLifted && hLifted) {
   for (const w of FORBIDDEN) {
     ok('A-2: the table promises no ' + w[0], SCHED_TEXT.length > 40 && strip(SCHED_TEXT).indexOf(strip(w[1])) === -1);
   }
-  ok('A-2: and the table offers no time field, so it cannot promise an hour it will not keep',
-    SRC.length > 0 && SRC.indexOf('type="time"') === -1 && SRC.indexOf("type: 'time'") === -1);
+  // !! ITEMS 43-b / 47-b NARROWED THIS BAN TO THE THING IT WAS EVER ABOUT: THE TABLE.
+  //
+  // WHY THE BAN EXISTED. Round 25 forbade a time field ANYWHERE in the client because nothing in
+  // the client could ring: a reader who set an hour would have been failed silently by software
+  // that never intended to wake up. The layer holding the wird choice says so in its own words --
+  // "the time field is born on the day notifications ship and not one hour before it".
+  //
+  // WHAT CHANGED. That day came. Item 67 shipped the engine -- murabbi-shell fires real system
+  // notifications off absolute timestamps this client computes -- and items 43-b / 47-b ship the
+  // screen the reader sets the hours on. A time field is no longer a promise this client cannot
+  // keep.
+  //
+  // AND THE BAN DOES NOT BECOME A PERMISSION. What THIS case is about is the thirty-day PRAYER
+  // TABLE, whose times are COMPUTED and must never become times a reader picks. So the scan
+  // narrows to the table, its Settings control, the table's own visible text and the whole lifted
+  // table path -- four places, each named, where it is stricter than a whole-file substring could
+  // be. The whole-file half moves to A-3, where the allowance is named and BACKED line by line.
+  //
+  // The two slices are re-derived here rather than borrowed from the 107 block, which is a scope
+  // of its own: a check that silently read an empty string would pass on every tree, which is the
+  // exact failure these guards exist to prevent.
+  {
+    const T_AT = SRC_CODE.indexOf('function PrayerTimesPanel(');
+    const T_END = T_AT === -1 ? -1 : SRC_CODE.indexOf('function PrayerSettingsControl(', T_AT);
+    const T = (T_AT !== -1 && T_END > T_AT) ? SRC_CODE.slice(T_AT, T_END) : '';
+    const P_AT = SRC_CODE.indexOf('function PrayerSettingsControl(');
+    const P_END = P_AT === -1 ? -1 : SRC_CODE.indexOf('const KAABA_LAT', P_AT);
+    const P = (P_AT !== -1 && P_END > P_AT) ? SRC_CODE.slice(P_AT, P_END) : '';
+    const noTime = (blob) => TIME_FIELD.every((t) => blob.indexOf(t) === -1);
+    ok('A-2: and the table offers no time field, so it cannot promise an hour it will not keep',
+      T.length > 800 && P.length > 500
+      && noTime(T) && noTime(P) && noTime(SCHED_TEXT) && noTime(N_LIFTED),
+      'panel=' + T.length + ' settings=' + P.length);
+  }
 
   /* ---- the sunrise is DECLARED computed, not calibrated ---- */
   const sunNote = liftConst('PRAYER_SUNRISE_NOTE') || '';
@@ -2342,13 +2389,20 @@ if (oLifted) {
   //     behind the shell bridge, default to off, gate the feed, and raise the system prompt from
   //     the reader's press and from nowhere else. The day any of that stops being true the word
   //     goes back to being a promise with nothing behind it, and these fail before the scan does.
+  // !! ITEMS 43-b / 47-b -- A SECOND SWITCH, SO A SECOND PREFIX, AND NOT ONE LETTER MORE.
+  // Item 67 allowed the word inside the values of `prayer.notify.*` and nowhere else at all. The
+  // four reminders a reader now sets their own times for are the same kind of thing by exactly the
+  // same reasoning: they NAME an engine that exists rather than promise one that does not. So
+  // `reminders.*` joins it. Both prefixes are read out of the dictionary as it stands rather than
+  // retyped, the count outside them must still be zero, and everything the ban stood in for is
+  // asserted directly for the new switch below exactly as it already is for the old.
   const NOTIFY_LINES = new Set();
   {
-    const re = /'(prayer\.notify\.[a-z]+)': '((?:[^'\\]|\\.)*)'/g;
+    const re = /'((?:prayer\.notify|reminders)\.[a-zA-Z.]+)': '((?:[^'\\]|\\.)*)'/g;
     let m;
     while ((m = re.exec(SRC)) !== null) NOTIFY_LINES.add(m[2]);
   }
-  ok('A-3: the switch\'s own lines were found to scan (' + NOTIFY_LINES.size + ')', NOTIFY_LINES.size >= 12);
+  ok('A-3: the switches\' own lines were found to scan (' + NOTIFY_LINES.size + ')', NOTIFY_LINES.size >= 30);
   const ALLOWED_IN = 'tadhkir';
   let promiseHits = 0;
   for (const w of PROMISE_WORDS) {
@@ -2372,14 +2426,57 @@ if (oLifted) {
     && SRC.indexOf('return localStorage.getItem(PRAYER_NOTIFY_KEY) === PRAYER_NOTIFY_ON;') !== -1);
   ok('A-3: ...and nothing at all is scheduled until the reader turns it on',
     SRC.indexOf('if (!readPrayerNotify()) return [];') !== -1);
+  // !! THE TWO COUNTS ARE TAKEN ON CODE, NOT ON CODE PLUS PROSE. They read "the permission is
+  // asked for from the press and from nowhere else" and "turning it off cancels rather than
+  // merely forgetting" -- and a COMMENT naming either function does neither. Counting the raw
+  // file made a paragraph explaining the rule indistinguishable from a second breach of it, which
+  // is a check that punishes the one thing it should reward. Comments are stripped first; the
+  // numbers, the labels and the direction of both assertions are exactly what they were.
+  const CODE = SRC_CODE;
   ok('A-3: ...and the system permission is asked for from the press and from nowhere else',
-    (SRC.match(/ezikNotifyAsk\(\)/g) || []).length === 2);
+    (CODE.match(/ezikNotifyAsk\(\)/g) || []).length === 2);
   ok('A-3: ...and turning it off cancels rather than merely forgetting',
-    (SRC.match(/ezikNotifyStop\(\)/g) || []).length === 2
-    && SRC.indexOf('op: SHELL_SCHED_CANCEL_OP,') !== -1);
-  ok('A-3: and the client offers no time field anywhere',
-    SRC.length > 0 && SRC.indexOf('type="time"') === -1 && SRC.indexOf("type: 'time'") === -1
-    && SRC.indexOf("type='time'") === -1);
+    (CODE.match(/ezikNotifyStop\(\)/g) || []).length === 2
+    && CODE.indexOf('op: SHELL_SCHED_CANCEL_OP,') !== -1);
+
+  // ---- ITEMS 43-b / 47-b: THE SECOND SWITCH, BACKED THE WAY THE FIRST ONE IS ----
+  //
+  // The time field is the whole of what round 25 forbade, so it is allowed in exactly ONE
+  // component and the count anywhere else in the client must be zero. And, exactly as with the
+  // word above, the allowance is CHECKED rather than trusted: the reminders have to exist, be
+  // reachable from the settings the reader already knows, default to off, gate their own feed,
+  // reach the system prompt through the one shared sender rather than a copy of it, leave the
+  // channel the prayers ride alone when one of them is switched off, and go with "delete all my
+  // data". The day any of that stops being true the field goes back to being a promise with
+  // nothing behind it, and these fail before the scan does.
+  {
+    const CMP = 'function EzikReminderSettings() {';
+    const at = CODE.indexOf(CMP);
+    const end = at === -1 ? -1 : CODE.indexOf('\nfunction SettingsSheet(', at);
+    const REM = (at !== -1 && end > at) ? CODE.slice(at, end) : '';
+    ok('A-3: the time field names a screen that exists, reached from the settings that do',
+      REM.length > 1500 && (CODE.match(/<EzikReminderSettings \/>/g) || []).length === 1,
+      'component=' + REM.length);
+    const count = (blob, t) => { let n = 0, i = -1; while ((i = blob.indexOf(t, i + 1)) !== -1) n++; return n; };
+    let inside = 0, outside = 0;
+    for (const t of TIME_FIELD) { inside += count(REM, t); outside += count(CODE, t) - count(REM, t); }
+    ok('A-3: ...and the client offers a time field THERE and nowhere else (inside=' + inside
+      + ', outside=' + outside + ')', inside > 0 && outside === 0);
+    ok('A-3: ...whose store defaults to off, with exactly one value that means on',
+      /const REMINDERS_KEY = '[a-z_0-9]+';/.test(SRC)
+      && REM.indexOf('readReminders') !== -1
+      && SRC.indexOf('out[f.id] = { on: got.on === true, times: times };') !== -1
+      && SRC.indexOf('out[f.id] = { on: false, times: [f.at] };') !== -1);
+    ok('A-3: ...and nothing at all is scheduled until the reader turns one on',
+      SRC.indexOf('if (!got || got.on !== true) continue;') !== -1
+      && SRC.indexOf('return ezikAdhanFeed().concat(ezikReminderItems(new Date()));') !== -1);
+    ok('A-3: ...and it asks the system through the one sender both switches share',
+      REM.indexOf('ezikNotifyRequest(') !== -1 && REM.indexOf('SHELL_SCHED_ENABLE_OP') === -1);
+    ok('A-3: ...and turning one off never cancels the channel the prayers ride on',
+      REM.indexOf('ezikNotifyStop') === -1 && REM.indexOf('ezikSchedArm()') !== -1);
+    ok('A-3: ...and the hours a reader chose go with "delete all my data"',
+      SRC.indexOf('localStorage.removeItem(REMINDERS_KEY);') !== -1);
+  }
 }
 
 
