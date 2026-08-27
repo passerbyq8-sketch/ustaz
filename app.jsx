@@ -15004,6 +15004,17 @@ function qiblaNeedleAngle(bearing, heading) {
   if (typeof heading !== 'number' || !isFinite(heading)) return null;
   return (((bearing - heading) % 360) + 360) % 360;
 }
+// Calibration does not stop the direction stream, but its arrow must look provisional without
+// asking the reader to remember the warning below it. Ready/live keeps the original solid path;
+// calibration alone gets a hollow dashed outline and carries the marker on the arrow itself.
+function qiblaNeedleVisual(compass) {
+  if (compass === 'calibration-needed') {
+    return {
+      fill: 'none', stroke: 'var(--red)', strokeWidth: 3, strokeDasharray: '6 4', untrusted: 'true',
+    };
+  }
+  return { fill: 'var(--red)' };
+}
 // THE POSITION. Default Kuwait, always readable, never written by a read. `by` says which it is,
 // so no line on the screen can call the default a measurement.
 function readQiblaLoc() {
@@ -16148,6 +16159,7 @@ function QiblaPanel({ loc, onLoc }) {
   };
 
   const needle = qiblaNeedleAngle(bearing, heading);
+  const needleVisual = qiblaNeedleVisual(compass);
   const placeName = loc.by === 'device' ? QIBLA_DEVICE_PLACE : QIBLA_DEFAULT_PLACE;
   return (
     <EzShellGroup title={QIBLA_SECTION}>
@@ -16163,7 +16175,10 @@ function QiblaPanel({ loc, onLoc }) {
           <svg width="132" height="132" viewBox="0 0 100 100" role="img" aria-label={QIBLA_SECTION}>
             <circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" strokeWidth="2" />
             <g style={{ transform: 'rotate(' + needle + 'deg)', transformOrigin: '50px 50px' }}>
-              <path d="M50 8 L58 54 L50 48 L42 54 Z" fill="var(--red)" />
+              <path d="M50 8 L58 54 L50 48 L42 54 Z"
+                fill={needleVisual.fill} stroke={needleVisual.stroke}
+                strokeWidth={needleVisual.strokeWidth} strokeDasharray={needleVisual.strokeDasharray}
+                data-ezik-heading-untrusted={needleVisual.untrusted} />
               <circle cx="50" cy="50" r="4" fill="var(--ink)" />
             </g>
           </svg>

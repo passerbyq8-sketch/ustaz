@@ -590,7 +590,16 @@ const SEALED = {
   //                    was added or removed. The worker byte table and SW_PROSE mirror below both
   //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
   //                    rewrites every CORE entry into the same store.
-  'sw.js': '2f2edb5096ebb256edc2adf2eb19e726bb905073f5969da7e9435d9ffb8c809c',
+  // QIBLA CALIBRATION ARROW (2026-08-27, feat/qibla-heading-20260827). THE OWNER KEEPS THE
+  //                    CALIBRATION STREAM MOVING, but its arrow now carries the judgment: it is
+  //                    hollow and dashed, with a calibration-only marker, while ready/live keeps
+  //                    the original solid path and no marker. No text, bearing, state branch,
+  //                    key, cache name, or CORE entry moved. app.jsx grew and app.js followed
+  //                    1205284 -> 1205975 (+691), and CORE_BYTES 2048131 -> 2048822 is exactly
+  //                    that delta. The worker byte table and SW_PROSE mirror below both followed,
+  //                    and THIS digest is re-cut last. CACHE is NOT bumped: install rewrites
+  //                    every CORE entry into the same store.
+  'sw.js': 'fadfe252d013b41267363c0ff26bc147fb361f2d8a0a9be62565923e43d0b6a5',
 };
 
 // ---------------------------------------------------------------------------
@@ -1701,7 +1710,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1205284, of: 'app.js' },
+      { n: 1205975, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
