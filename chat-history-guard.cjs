@@ -34,7 +34,12 @@ const { parseHTML } = require('linkedom');
 // the chat has to answer it first -- exactly as a real reader does. The refusal path is proved
 // separately in tools/ai-consent-probe.cjs. Note that the old 'disclosureAck' key is kept in
 // these seeds and is NOT what opens the app: it is not consent and is no longer read.
-const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06-1', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+// SINCE THE PARENTAL-GATE ROUND THE CONSENT RECORD BELONGS TO A PROFILE, so this seed is built
+// from the pid of the profile it is seeded beside rather than from a constant. A record whose pid
+// does not match the seeded profile is NOT consent -- which is the right behaviour, and is exactly
+// why it has to be threaded here: without it the app opens on the consent screen and every case
+// below would be measuring the wrong screen while reporting green on the right one.
+const AI_CONSENT_SEED = (pid) => JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: pid, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
 
 
 const htmlFile = process.argv[2] || 'index.html';
@@ -436,7 +441,7 @@ const bootDone = new Promise((resolve) => {
   const profile = { name: 'سلمى', age: 9, gender: 'female', birthYear: 2017, pid: 'PID-SALMA', createdAt: '2026-01-01T00:00:00.000Z' };
   const seed = {
     child_profile: JSON.stringify(profile),
-    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(profile.pid),
     ezik_chats_v1: JSON.stringify([{ id: 'C1', pk: 'PID-SALMA', title: savedQuestion, pinned: false, at: 1000 }]),
     ezik_chat_v1_C1: JSON.stringify([{ role: 'user', content: savedQuestion }, { role: 'assistant', content: 'جوابٌ محفوظ' }]),
     messages: JSON.stringify([{ role: 'user', content: legacyQuestion }, { role: 'assistant', content: 'جوابٌ قديم' }]),
@@ -731,7 +736,7 @@ function seedConversations() {
   }
   return {
     child_profile: JSON.stringify({ name: 'سلمى', age: 9, gender: 'female', birthYear: 2017, pid: 'PID-S', createdAt: '2026-01-01T00:00:00.000Z' }),
-    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED('PID-S'),
     murabbi_theme_v1: 'light',
     ezik_chats_v1: JSON.stringify([
       { id: 'LONG', pk: 'PID-S', title: Q_LONG, pinned: false, at: 3000 },

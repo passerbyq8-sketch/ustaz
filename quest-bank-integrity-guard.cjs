@@ -563,7 +563,25 @@ const SEALED = {
   //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
   //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
   //                    install rewrites every CORE entry into the same store.
-  'sw.js': 'c6f6d26e9ae736a81c84d8e409f82d00278452833567fa76ba7e176ed963573e',
+  // PARENTAL GATE + CHILD AI CONSENT (2026-08-27, feat/parental-gate-20260827). THE CODE KEEPS
+  //                    ITS PLACE AND GAINS TWO THINGS. D12 stands -- the parent code is judged on
+  //                    the server and no device key holds it -- so the erratum that ordered it
+  //                    onto the device was withdrawn and NOTHING here moved storage. What the
+  //                    server record gained is an age (`setAt`, 365 days, judged in the endpoint
+  //                    rather than by a store TTL so an expired code can be NAMED instead of
+  //                    looking like a code that never existed) and a way out (`delete`, guarded
+  //                    by the code itself under the same limiter as verify). On the client that
+  //                    is ParentCodeCard on the parents' dashboard, behind an armed step, writing
+  //                    nothing to the device. The AI-consent record gained the profile id it was
+  //                    given for, so a second child on one tablet is asked in their own right --
+  //                    same key, same delete roster entry, no new storage anywhere.
+  //                    app.jsx grew and app.js followed 1193820 -> 1200987 (+7167), and
+  //                    CORE_BYTES 2036667 -> 2043834 is exactly that delta -- no CORE entry was
+  //                    added or removed this round. The byte table above the constant and its
+  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
+  //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
+  //                    install rewrites every CORE entry into the same store.
+  'sw.js': '9dd9fc5ffa32c11d75036dbdabe8c008a9bb4ece120b372a1d0def64ce0f04f0',
 };
 
 // ---------------------------------------------------------------------------
@@ -1674,7 +1692,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1193820, of: 'app.js' },
+      { n: 1200987, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

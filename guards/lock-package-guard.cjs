@@ -426,6 +426,9 @@ function envSandbox(vars) {
     // ══════════════════════════════════════════════════════════════════════════
 
     const parent = PC.default;
+    // The instant this guard began. Every setAt it asserts must fall between here and now,
+    // which is what makes "a real clock reading" a claim rather than a shrug.
+    const GUARD_STARTED = Date.now();
     const PDEV = 'lockguard-parent-device';
     const CODE = '4821';
     const sha256hex = (s) => crypto.createHash('sha256').update(String(s), 'utf8').digest('hex');
@@ -476,8 +479,15 @@ function envSandbox(vars) {
       // 500,000 draws), and that -- not a code change -- is what turned this gate red. The leak
       // this assertion came to catch is the code kept AS DATA, so it is looked for where such a
       // value would land: everywhere in the record except those two proven-random fields.
+      // `setAt` JOINS THE TWO FIELDS THIS SEARCH ALREADY SKIPS, and for a stronger reason than
+      // either: a 13-digit epoch-millisecond integer contains a given 4-digit run about one time
+      // in a thousand, so leaving it in the haystack would red this gate for ten seconds at a
+      // stretch, at unpredictable intervals, with no code change behind it -- and a gate that
+      // cries wolf is a gate nobody reads. Each skipped field is pinned to a shape below that
+      // the code cannot occupy, so the search is narrowed only over ground already covered.
       const carrier = parsed
         ? String(liveRecord).split(parsed.salt).join('').split(parsed.hash).join('')
+          .split(String(parsed.setAt)).join('')
         : String(liveRecord);
       ok('B2: ...stored as scrypt over a RANDOM salt, never as the code and never as its sha256',
         !!parsed && parsed.alg === 'scrypt'
@@ -485,6 +495,13 @@ function envSandbox(vars) {
         && parsed.hash !== sha256hex(CODE)
         && carrier.indexOf(CODE) === -1,
         String(liveRecord));
+      // The third skipped field, pinned: a whole millisecond instant, no earlier than the moment
+      // this guard started and no later than now. A `setAt` that could be mistaken for a code
+      // would have to be four digits long, and this says it is thirteen and a real clock reading.
+      ok('B2: ...and the age it carries is a real instant, stamped when the code was set',
+        !!parsed && Number.isInteger(parsed.setAt)
+        && parsed.setAt >= GUARD_STARTED && parsed.setAt <= Date.now(),
+        'setAt=' + (parsed && parsed.setAt) + ' started=' + GUARD_STARTED);
     }
     {
       // Two devices, same code, must not produce the same digest -- that is what the salt buys,
@@ -646,6 +663,140 @@ function envSandbox(vars) {
         JSON.stringify({ codes, dev: store.map.get(pcDev(PDEV)), ip: store.map.get(pcIp(IP_A)) }));
     }
 
+    console.log('\n=== B10. the code has an AGE, and the endpoint judges it ===');
+    // A record's age is a field, so a test can hand the endpoint any age it likes. YEAR is one
+    // millisecond short of the limit and YEAR_PLUS is one past it, which is the only pair that
+    // measures a boundary rather than a neighbourhood.
+    const aged = (ms) => {
+      const r = JSON.parse(liveRecord);
+      r.setAt = Date.now() - ms;
+      return JSON.stringify(r);
+    };
+    const YEAR = 365 * 24 * 60 * 60 * 1000;
+    {
+      const seed = {}; seed[pcRec(PDEV)] = aged(YEAR - 60000);
+      const { res } = await pcPost({ seed, body: { action: 'verify', pin: CODE } });
+      ok('B10: a code one minute short of a year still opens the panel',
+        res.code === 200 && res.body && res.body.ok === true, 'code=' + res.code);
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = aged(YEAR + 60000);
+      const { res, store } = await pcPost({ seed, body: { action: 'verify', pin: CODE } });
+      ok('B10: ...and one minute past a year does not, even though the code is RIGHT',
+        res.code === 401 && res.body && res.body.error === 'parent-expired', 'code=' + res.code);
+      // Not a wrong code, so not charged as one: no comparison was lost.
+      ok('B10: ...and an expired code spends no attempt on either dimension',
+        store.map.get(pcDev(PDEV)) === undefined && store.map.get(pcIp(IP_A)) === undefined,
+        'dev=' + store.map.get(pcDev(PDEV)) + ' ip=' + store.map.get(pcIp(IP_A)));
+      // The whole reason expiry is judged here rather than by a store TTL: a TTL deletes the
+      // record, and a deleted record cannot tell the screen that a code ever existed.
+      ok('B10: ...and the RECORD SURVIVES its expiry, so the screen can say what happened',
+        store.map.get(pcRec(PDEV)) !== undefined);
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = aged(YEAR + 60000);
+      const { res } = await pcPost({ seed, body: { action: 'status' } });
+      ok('B10: status reports an expired device as hasCode:false AND expired:true',
+        res.code === 200 && res.body && res.body.hasCode === false && res.body.expired === true,
+        JSON.stringify(res.body));
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const { res } = await pcPost({ seed, body: { action: 'status' } });
+      ok('B10: ...and a live one as hasCode:true AND expired:false',
+        res.code === 200 && res.body && res.body.hasCode === true && res.body.expired === false,
+        JSON.stringify(res.body));
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = aged(YEAR + 60000);
+      const { res, store } = await pcPost({ seed, body: { action: 'set', pin: '5150' } });
+      const rec = store.map.get(pcRec(PDEV));
+      ok('B10: an EXPIRED record is written over -- "set it again" needs somewhere to write',
+        res.code === 200 && res.body && res.body.ok === true
+        && rec !== liveRecord && JSON.parse(rec).setAt >= GUARD_STARTED, 'code=' + res.code);
+      const after = (await pcPostWithStore(store, { body: { action: 'verify', pin: '5150' } })).res;
+      ok('B10: ...and the NEW code opens the panel afterwards',
+        after.code === 200 && after.body && after.body.ok === true, 'code=' + after.code);
+    }
+    {
+      // A record from before `setAt` existed. It is not expired -- we do not know when it was
+      // set, and guessing "long ago" would throw every existing parent out on deploy day.
+      const legacyShape = JSON.stringify({ v: 1, alg: 'scrypt', salt: JSON.parse(liveRecord).salt, hash: JSON.parse(liveRecord).hash });
+      const seed = {}; seed[pcRec(PDEV)] = legacyShape;
+      const { res, store } = await pcPost({ seed, body: { action: 'verify', pin: CODE } });
+      ok('B10: a record with NO age is NOT expired', res.code === 200 && res.body && res.body.ok === true,
+        'code=' + res.code);
+      const stamped = JSON.parse(store.map.get(pcRec(PDEV)));
+      ok('B10: ...and it is STAMPED on that verify, so its year starts from a known instant',
+        Number.isInteger(stamped.setAt) && stamped.setAt >= GUARD_STARTED
+        && stamped.salt === JSON.parse(liveRecord).salt && stamped.hash === JSON.parse(liveRecord).hash,
+        JSON.stringify(stamped));
+    }
+
+    console.log('\n=== B11. the way OUT, and the code is the key to it ===');
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const { res, store } = await pcPost({ seed, body: { action: 'delete', pin: '9999' } });
+      ok('B11: a WRONG code deletes nothing',
+        res.code === 401 && res.body && res.body.error === 'parent-refused'
+        && store.map.get(pcRec(PDEV)) === liveRecord, 'code=' + res.code);
+      ok('B11: ...and it spends an attempt, exactly as a wrong verify does',
+        store.map.get(pcDev(PDEV)) === 1 && store.map.get(pcIp(IP_A)) === 1,
+        'dev=' + store.map.get(pcDev(PDEV)) + ' ip=' + store.map.get(pcIp(IP_A)));
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord; seed[pcDev(PDEV)] = 5;
+      const { res, store } = await pcPost({ seed, body: { action: 'delete', pin: CODE } });
+      ok('B11: ...and the delete path is under the SAME limiter as verify',
+        res.code === 429 && res.body && res.body.error === 'parent-locked'
+        && store.map.get(pcRec(PDEV)) === liveRecord, 'code=' + res.code);
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const { res, store } = await pcPost({ seed, body: { action: 'delete', pin: CODE } });
+      ok('B11: the RIGHT code removes the record',
+        res.code === 200 && res.body && res.body.ok === true && res.body.deleted === true
+        && store.map.get(pcRec(PDEV)) === undefined, 'code=' + res.code);
+      const after = (await pcPostWithStore(store, { body: { action: 'status' } })).res;
+      ok('B11: ...and status afterwards reads as NO CODE SET',
+        after.code === 200 && after.body && after.body.hasCode === false
+        && after.body.expired === false, JSON.stringify(after.body));
+      const reset = (await pcPostWithStore(store, { body: { action: 'set', pin: '3141' } })).res;
+      ok('B11: ...so a fresh code can be set on the device again',
+        reset.code === 200 && reset.body && reset.body.ok === true, 'code=' + reset.code);
+    }
+    {
+      const { res, store } = await pcPost({ body: { action: 'delete', pin: CODE, deviceId: 'lockguard-nothing-here' } });
+      ok('B11: deleting on a device with no record is the ordinary refusal, never a success',
+        res.code === 401 && res.body && res.body.error === 'parent-refused'
+        && store.map.get(pcRec('lockguard-nothing-here')) === undefined, 'code=' + res.code);
+    }
+    {
+      // A store that will not confirm the removal must not be reported as a removal: a parent
+      // told the code is gone while it still stands hands the device on believing it is open.
+      const seed = {}; seed[pcRec(PDEV)] = liveRecord;
+      const store = fakeRedis(seed);
+      const orig = store.del;
+      store.del = async () => { throw new Error('store double: delete refused'); };
+      const { res } = await pcPostWithStore(store, { body: { action: 'delete', pin: CODE } });
+      store.del = orig;
+      ok('B11: an UNCONFIRMED removal fails CLOSED and says so',
+        res.code === 429 && res.body && res.body.error === 'parent-unavailable'
+        && store.map.get(pcRec(PDEV)) === liveRecord, 'code=' + res.code);
+    }
+    {
+      const seed = {}; seed[pcRec(PDEV)] = aged(YEAR + 60000);
+      const { res, store } = await pcPost({ seed, body: { action: 'delete', pin: CODE } });
+      ok('B11: an EXPIRED code is named rather than silently refused on the delete path too',
+        res.code === 401 && res.body && res.body.error === 'parent-expired'
+        && store.map.get(pcDev(PDEV)) === undefined, 'code=' + res.code);
+    }
+    {
+      const { res } = await pcPost({ body: { action: 'wipe', pin: CODE } });
+      ok('B11: ...and no OTHER verb was opened up alongside it',
+        res.code === 401 && res.body && res.body.error === 'parent-refused', 'code=' + res.code);
+    }
+
     // ── the browser half ──────────────────────────────────────────────────────
     // ITEM 32: the client is index.html + app.jsx since the JSX left the page.
     const html = require('../tools/babel-block.cjs').readShippedClient('index.html');
@@ -674,6 +825,28 @@ function envSandbox(vars) {
     ok('B8: ...and an unknown status falls CLOSED to the verify form',
       /serverHas !== false/.test(pg),
       'anything other than a clear "no code here" must not offer the create form');
+    ok('B8: ...and it reads the expiry the server now reports',
+      /d\.expired === true/.test(pg) && /wasExpired/.test(pg),
+      'the create form must be able to say the previous code expired, not just appear blank');
+    {
+      // The card that ends the lock. It is NOT inside ParentGate -- it lives on the dashboard
+      // behind it -- so it is searched for in the whole client, by the call only it makes.
+      const cardAt = html.indexOf('function ParentCodeCard(');
+      const cardEnd = cardAt === -1 ? -1 : html.indexOf('\nfunction ParentDashboard(', cardAt);
+      const card = (cardAt !== -1 && cardEnd > cardAt) ? html.slice(cardAt, cardEnd) : '';
+      ok('B8: ParentCodeCard was LOCATED before it was searched', card.length > 200,
+        'function ParentCodeCard(@' + cardAt + '  end@' + cardEnd + '  len=' + card.length);
+      ok('B8: ...and it asks the SERVER to delete, holding no verifier of its own',
+        /action: 'delete'/.test(card) && /parentCodeCall/.test(card) && !/hashPin/.test(card));
+      ok('B8: ...and it sends the typed code with that request, so the code guards its own removal',
+        /action: 'delete', pin: code/.test(card));
+      ok('B8: ...and it writes NOTHING to the device -- no key is invented for the code',
+        card.length > 0 && !/localStorage/.test(card));
+      ok('B8: ...and the control is behind an ARMED step, never one stray tap',
+        /useState\(false\)/.test(card) && /armed \?/.test(card) && /setArmed\(true\)/.test(card));
+      ok('B8: ...and the dashboard actually draws it',
+        html.indexOf('<ParentCodeCard />') !== -1);
+    }
     ok('B8: the spend gate still owns hashPin, untouched',
       /if \(\(await hashPin\(code\)\) === SPEND_GATE_SHA256\) \{ onUnlock\(\); return; \}/.test(html));
 

@@ -30,7 +30,12 @@ const { parseHTML } = require('linkedom');
 // the chat has to answer it first -- exactly as a real reader does. The refusal path is proved
 // separately in tools/ai-consent-probe.cjs. Note that the old 'disclosureAck' key is kept in
 // these seeds and is NOT what opens the app: it is not consent and is no longer read.
-const AI_CONSENT_SEED = JSON.stringify({ status: 'granted', version: '2026-08-06-1', grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+// SINCE THE PARENTAL-GATE ROUND THE CONSENT RECORD BELONGS TO A PROFILE, so this seed is built
+// from the pid of the profile it is seeded beside rather than from a constant. A record whose pid
+// does not match the seeded profile is NOT consent -- which is the right behaviour, and is exactly
+// why it has to be threaded here: without it the app opens on the consent screen and every case
+// below would be measuring the wrong screen while reporting green on the right one.
+const AI_CONSENT_SEED = (pid) => JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: pid, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
 
 
 const htmlFile = process.argv[2] || 'index.html';
@@ -371,7 +376,7 @@ function partB() {
 // ===========================================================================
 async function partC() {
   console.log('\n=== C. THE SCREEN (the settings card, driven by real clicks) ===');
-  const seed = { child_profile: JSON.stringify(PROFILE_A), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED };
+  const seed = { child_profile: JSON.stringify(PROFILE_A), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(PROFILE_A.pid) };
   const c = buildContext({ seed: seed, mount: true });
   await tick(400);
   if (c.err()) { ok('the app mounts', false, String(c.err())); return; }
@@ -446,7 +451,7 @@ async function partCTwoProfiles() {
   console.log('\n--- two profiles on one device ---');
   const prefs = {}; prefs[PROFILE_A.pid] = { fontSize: 'xlarge', reading: true, reduceMotion: true };
   const seed = {
-    child_profile: JSON.stringify(PROFILE_B), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED,
+    child_profile: JSON.stringify(PROFILE_B), disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(PROFILE_B.pid),
     ezik_reading_prefs_v1: JSON.stringify(prefs),
   };
   const c = buildContext({ seed: seed, mount: true });

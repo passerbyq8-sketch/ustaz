@@ -354,9 +354,94 @@ async function openSettings(c) {
 // leave no data anywhere and are the whole point of the local mode.
 const offDevice = (c) => c.net().filter((r) => /^https?:/i.test(r.url) || AI_ROUTES.some((p) => r.url.indexOf(p) === 0));
 
-const PROFILE = (age) => JSON.stringify({ name: 'Probe', age, gender: 'male' });
-const granted = (by) => JSON.stringify({ status: 'granted', version: CONSENT_VERSION, grantedBy: by || 'user', at: '2026-08-06T00:00:00.000Z' });
-const declined = () => JSON.stringify({ status: 'declined', version: CONSENT_VERSION, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+// THE CONSENT RECORD IS KEYED ON A PROFILE ID SINCE THE PARENTAL-GATE ROUND. The fixtures carry
+// one so that every case above and below this line keeps measuring what it came to measure --
+// and `pid` is a parameter on both record builders rather than a constant, because part M below
+// needs a record belonging to SOMEBODY ELSE, and a record belonging to nobody at all.
+const PROBE_PID = 'probe-pid-1';
+const OTHER_PID = 'probe-pid-2';
+const PROFILE = (age, pid) => JSON.stringify({ name: 'Probe', age, gender: 'male', pid: pid === undefined ? PROBE_PID : pid });
+const record = (status, by, pid) => {
+  const r = { status, version: CONSENT_VERSION, grantedBy: by || 'user', at: '2026-08-06T00:00:00.000Z' };
+  // `null` asks for a record with NO pid at all -- the shape every record on every device had
+  // before this change. It is not the same thing as a record whose pid is empty.
+  if (pid !== null) r.pid = pid === undefined ? PROBE_PID : pid;
+  return JSON.stringify(r);
+};
+const granted = (by, pid) => record('granted', by || 'user', pid);
+const declined = (pid) => record('declined', 'user', pid);
+
+/* ============= M. THE ANSWER BELONGS TO A PROFILE, NOT A DEVICE ========== */
+// Until the parental-gate round the consent record answered for the whole device, which was
+// wrong in exactly one direction: a SECOND child profile on a tablet whose first profile had
+// already consented was never asked, and the app behaved as though somebody had spoken for a
+// child nobody had spoken for. These five cases are that direction, closed.
+async function partM() {
+  head('M. PER PROFILE -- one child\'s answer is not another child\'s answer');
+
+  {
+    // The shape every record had before this change: granted, current version, and no pid.
+    const c = buildContext({ seed: { child_profile: PROFILE(30), [CONSENT_KEY]: granted('user', null) }, mount: true });
+    await tick(120);
+    eq('a record with NO pid does not count as consent', c.grab('hasValidAIConsent()'), false);
+    ok('...and the profile that predates the change is ASKED, once, at first use',
+      !!driver(c.window).byText(S.AGREE), cps(S.AGREE));
+    eq('...and nothing was sent while it was being asked', c.aiNet().map((r) => r.url), []);
+  }
+  {
+    // The second child on a device the first child's parent already answered for.
+    const c = buildContext({ seed: { child_profile: PROFILE(30), [CONSENT_KEY]: granted('user', OTHER_PID) }, mount: true });
+    await tick(120);
+    eq('a record belonging to ANOTHER profile does not count', c.grab('hasValidAIConsent()'), false);
+    ok('...and the new profile is asked in its own right',
+      !!driver(c.window).byText(S.AGREE), cps(S.AGREE));
+  }
+  {
+    // ...and the rule does not lock anybody out of their own answer.
+    const c = buildContext({ seed: { child_profile: PROFILE(30), [CONSENT_KEY]: granted('user') }, mount: true });
+    await tick(120);
+    eq('a record belonging to THIS profile counts, exactly as before', c.grab('hasValidAIConsent()'), true);
+    ok('...and the screen does not come back to ask again',
+      !driver(c.window).byText(S.AGREE), 'the agree button must be absent');
+  }
+  {
+    // A REFUSAL is an answer too, and it is one child's refusal.
+    const c = buildContext({ seed: { child_profile: PROFILE(30), [CONSENT_KEY]: declined(OTHER_PID) }, mount: true });
+    await tick(120);
+    ok('another profile\'s REFUSAL is not this profile\'s answer either',
+      !!driver(c.window).byText(S.AGREE), cps(S.AGREE));
+  }
+  {
+    // And what gets written down carries the profile it was given for.
+    const c = buildContext({ seed: { child_profile: PROFILE(30) }, mount: true });
+    await tick(120);
+    const d = driver(c.window);
+    await d.click(d.byText(S.AGREE));
+    await tick(150);
+    const rec = JSON.parse(c.store.getItem(CONSENT_KEY) || 'null');
+    eq('the answer is written down against the profile that gave it', rec && rec.pid, PROBE_PID);
+    eq('...and it is the profile in the store, not a guess', rec && rec.pid,
+      JSON.parse(c.store.getItem('child_profile')).pid);
+  }
+  {
+    const c = buildContext({ seed: { child_profile: PROFILE(30) }, mount: true });
+    await tick(120);
+    const d = driver(c.window);
+    await d.click(d.byText(S.DECLINE));
+    await tick(150);
+    const rec = JSON.parse(c.store.getItem(CONSENT_KEY) || 'null');
+    eq('a refusal is written down against that profile too', rec && rec.pid, PROBE_PID);
+    eq('...and it is still recorded as a real answer', rec && rec.status, 'declined');
+  }
+  {
+    // THE STORAGE COST OF ALL OF THIS IS ZERO NEW KEYS, which is what keeps the delete roster
+    // and delete.html true without either of them being touched.
+    const src = html;
+    ok('no second storage key was invented for the profile dimension',
+      src.indexOf('ezik_ai_consent_v2') === -1 && src.indexOf('ai_consent_pid') === -1,
+      'the pid rides inside the record under the key the page already names');
+  }
+}
 
 /* ===================== A. A BRAND-NEW READER ============================= */
 async function partA() {
@@ -1123,6 +1208,7 @@ function partK() {
   await partF();
   partG();
   await partH();
+  await partM();
   partI();
   partL();
   await partJ();
