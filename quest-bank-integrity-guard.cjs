@@ -557,13 +557,13 @@ const SEALED = {
   //                    The feed joins the prayers through ezikSchedItems and every item carries a
   //                    route naming its destination; the shell fires them and a browser tab does
   //                    not, which the screen says to the reader in its own line.
-  //                    app.jsx grew and app.js followed 1171036 -> 1192940 (+21904), and
-  //                    CORE_BYTES 2013883 -> 2035787 is exactly that delta -- no CORE entry was
+  //                    app.jsx grew and app.js followed 1171036 -> 1193820 (+22784), and
+  //                    CORE_BYTES 2013883 -> 2036667 is exactly that delta -- no CORE entry was
   //                    added or removed this round. The byte table above the constant and its
   //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
   //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
   //                    install rewrites every CORE entry into the same store.
-  'sw.js': '301238cfc5ccf0af598bcae586b7f77268b8ac352d0676364c29570f02fb6273',
+  'sw.js': 'c6f6d26e9ae736a81c84d8e409f82d00278452833567fa76ba7e176ed963573e',
 };
 
 // ---------------------------------------------------------------------------
@@ -1674,7 +1674,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1192940, of: 'app.js' },
+      { n: 1193820, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

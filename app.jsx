@@ -16614,21 +16614,35 @@ function EzikReminderSettings() {
     save(f.id, { on: cur.on, times: times });
   };
 
-  // THE COUNT, AND IT MOVES BY ONE. A new slot starts from the feed's own default hour rather
-  // than from a copy of the slot above it, because two reminders at the same minute are one
-  // reminder the reader paid for twice -- readReminders drops the duplicate and the screen would
-  // then show a count the store does not hold.
+  // THE COUNT, AND IT MOVES BY ONE. Dropping a slot takes the LAST one, so a reader lowering the
+  // count keeps the times they set first.
+  //
+  // A NEW SLOT STEPS FORWARD FROM THE FEED'S OWN HOUR, an hour at a time, and this is the whole
+  // of why it is not simply the default repeated: two reminders at the same minute are ONE
+  // reminder the reader paid for twice -- readReminders drops the duplicate, and the screen would
+  // then be showing a count the store does not hold.
+  //
+  // 🔴 AND IT STEPS FROM THAT HOUR RATHER THAN FROM MIDNIGHT, which is not a detail. An earlier
+  // cut of this counted 01:00, 02:00 upward, so a reader who asked for a second daily wird was
+  // handed one at one in the morning -- measured on the preview, and a default nobody would ever
+  // have chosen. Stepping from the feed's own hour offers 21:00 and 22:00 beside a 20:00 wird:
+  // still a default, but one in the part of the day the reminder is about. It wraps at midnight
+  // rather than running past 23, and it gives up after a full turn of the clock instead of
+  // looping, because a feed whose every hour is taken has nothing left to offer.
   const setCount = (f, n) => {
     const cur = rec[f.id] || { on: false, times: [f.at] };
     if (n < 1 || n > REMINDER_MAX_TIMES || n === cur.times.length) return;
     const times = cur.times.slice(0, n);
+    const base = Number(f.at.slice(0, 2));
     while (times.length < n) {
       let t = f.at;
-      let bump = 0;
-      while (times.indexOf(t) !== -1 && bump < 24) {
-        bump += 1;
-        t = (bump < 10 ? '0' : '') + bump + f.at.slice(2);
+      let step = 0;
+      while (times.indexOf(t) !== -1 && step < 24) {
+        step += 1;
+        const h = (base + step) % 24;
+        t = (h < 10 ? '0' : '') + h + f.at.slice(2);
       }
+      if (times.indexOf(t) !== -1) break;
       times.push(t);
     }
     save(f.id, { on: cur.on, times: times });
