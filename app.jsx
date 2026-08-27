@@ -14355,15 +14355,30 @@ function Onboarding({ onStart }) {
         <div style={s.welcomeTitle}>عزك</div>
         {step === 'entry' ? (<>
           <div style={s.welcomeGreeting}>{ezT('entry.sub')}</div>
-          {/* THE TWO PROVIDER DOORS. LIVE inside the application, where the shell opens the
-              sign-in sheet; DISABLED in a browser tab with the reason said out loud beneath them,
-              because api/auth-return.js answers on a scheme only the shell receives. Drawn either
-              way: a door a reader cannot see is a door they cannot ask about. */}
-          <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[0])} disabled={!bridge || busy}
-            style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: (!bridge || busy) ? 0.45 : 1 }}>{ezT('entry.google')}</button>
-          <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[1])} disabled={!bridge || busy}
-            style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: (!bridge || busy) ? 0.45 : 1 }}>{ezT('entry.apple')}</button>
-          {!bridge && <div style={s.welcomeSubtitle}>{ezT('entry.inApp')}</div>}
+          {/* THE TWO PROVIDER DOORS, AND THE SEAM THAT DECIDES WHETHER THEY EXIST AT ALL.
+              LIVE inside the application, where the shell opens the sign-in sheet and the doors
+              are exactly what they were. NOT DRAWN in a browser tab: api/auth-return.js answers
+              on a scheme only the native shell receives, so a door drawn there could never open,
+              and two dead controls are the FIRST thing a reader meets on the web. Held-but-drawn
+              was the earlier reading of "a door a reader cannot see is a door they cannot ask
+              about"; the owner has ruled the other way for the web, and the sentence below still
+              says out loud where signing in happens, so nothing has become unaskable.
+
+              THE SEPARATOR IS THE ONE THIS FILE ALREADY DRAWS, AND IT IS A CAPABILITY RATHER THAN
+              A USER AGENT. `bridge` above is ezikAuthBridge(): the injected
+              window.ReactNativeWebView and its postMessage, or null. It is the same accessor,
+              read at the same one call site this component already had, that makes EzikSignInRow
+              return null in a tab. navigator.userAgent is consulted here no more than it is there.
+
+              AND NOTHING IS LEFT STANDING WHERE THEY WERE. The two are replaced in the tab by the
+              sentence that used to sit beneath them -- one for the other, in the same seat -- so
+              the card closes on a subtitle and a live door, never on a gap or an empty box. */}
+          {bridge ? (<>
+            <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[0])} disabled={busy}
+              style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.google')}</button>
+            <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[1])} disabled={busy}
+              style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.apple')}</button>
+          </>) : <div style={s.welcomeSubtitle}>{ezT('entry.inApp')}</div>}
           {line ? <div className="ezgate-err">{line}</div> : null}
           {/* THE GUEST DOOR. Apple 5.1.1(v) refuses an account wall on an application whose
               content works without an account, and ours does -- the mushaf, the adhkar and the

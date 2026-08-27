@@ -496,10 +496,20 @@ async function partD0() {
   // AND THE ORDER'S OWN REQUIREMENTS ARE MEASURED HERE, on the real mount, because this is the
   // one gate that drives the first run with a document under it. They are: nothing is asked
   // before the entry screen; the guest door is on that screen and reachable in ONE press with
-  // nothing to search for; the warning about the wird and the conversations is beside it; and
-  // both provider doors are drawn. The provider doors are HELD in a browser tab -- api/auth-
-  // return.js answers on a scheme only the native shell receives -- and that is asserted too,
-  // because a door that cannot open must not look like one that can.
+  // nothing to search for; and the warning about the wird and the conversations is beside it.
+  //
+  // THE PROVIDER DOORS ARE NOT DRAWN HERE, AND THIS IS THE GATE THAT SAYS SO. There is no
+  // window.ReactNativeWebView under this mount, which is what a browser tab is, and app.jsx
+  // reads exactly that through ezikAuthBridge() before deciding whether the two doors exist.
+  // api/auth-return.js answers on a scheme only the native shell receives, so on the web the
+  // doors could never open -- and two dead controls are the first thing the reader would meet.
+  // What stands in their seat instead is the sentence that says where signing in happens, and
+  // that is asserted below too: the requirement is "hidden", not "hidden and a hole left".
+  //
+  // IT MEASURES THE WEB HALF ONLY, DELIBERATELY, AND SAYS SO. The shell half -- the same two
+  // doors, live -- is not reachable from here without inventing a window.ReactNativeWebView,
+  // and a bridge this file made up would prove that this file can make one up. tools/auth-
+  // bridge-measure.cjs owns the seam behind the doors and keeps its own mutants over it.
   {
     const label = (b) => String(b.textContent || '').trim();
     const held = (b) => !!(b && (b.hasAttribute('disabled') || b.disabled === true));
@@ -513,10 +523,16 @@ async function partD0() {
     ok('...with the warning about the wird and the conversations drawn beside it',
       d.text().indexOf(String(c.grab("ezT('entry.guestWarn')"))) !== -1);
     const google = btn('entry.google'), apple = btn('entry.apple');
-    ok('...and BOTH provider doors are drawn, Google and Apple', !!google && !!apple);
-    ok('...held in a browser tab, where the return scheme cannot come back',
-      held(google) && held(apple));
-    ok('...with the reason for that said out loud rather than left to be guessed',
+    ok('🔴 ...and NEITHER provider door is drawn in a browser tab, where they could not open',
+      !google && !apple);
+    // A door removed is only removed if nothing of it is left behind: not the label somewhere
+    // else in the card, not an empty control keeping its place. So the doors are counted, and
+    // the count is the guest door and nothing beside it.
+    ok('...leaving the guest door the only door on the entry screen, and no empty one beside it',
+      d.all('.ezonb-card button').filter((b) => !b.hasAttribute('data-ez-lang-toggle')).length === 1
+      && d.text().indexOf(String(c.grab("ezT('entry.google')"))) === -1
+      && d.text().indexOf(String(c.grab("ezT('entry.apple')"))) === -1);
+    ok('...with where signing in DOES happen said out loud in their seat, not a gap',
       d.text().indexOf(String(c.grab("ezT('entry.inApp')"))) !== -1);
     eq('...and no profile exists yet', c.store.getItem('child_profile'), null);
 
