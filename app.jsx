@@ -17056,6 +17056,23 @@ function EzikSignInRow() {
   const stopRef = useRef(null);
   useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
   if (!bridge) return null;
+  // AND THE SAME DECLARATION THAT TAKES THE TWO DOORS OFF THE ENTRY SCREEN TAKES THIS ROW WITH
+  // THEM. Apple 4.8 is a rule about what is OFFERED, and this row offers the very thing the
+  // entry card was made to stop offering -- one Google door, standing alone, on the platform
+  // whose own door is shut. Hiding it there and leaving it here would have moved the exposure
+  // into Settings rather than closed it.
+  //
+  // IT IS THE SAME FUNCTION AND NOT A SECOND READING OF THE FLAG. ezikShellHidesSocialSignIn()
+  // is the one place that decides what a declaration is -- the literal `true` and nothing else --
+  // and a copy of that test here would be a copy that eventually disagrees with it.
+  //
+  // AND `!session` IS THE HALF THAT MATTERS. What is withdrawn is the INVITATION, never the
+  // account: a reader who is already signed in -- through the native Apple door on that very
+  // platform, which is the whole reason a session can exist while this flag stands -- keeps the
+  // address, the sign-out and the delete control. Withdrawing those would sign nobody out and
+  // would only take away the one screen that says what is held and the one control that ends it.
+  // The two live in one row today, so the row is split HERE, by the state that tells them apart.
+  if (!session && ezikShellHidesSocialSignIn()) return null;
 
   // EVERY FAILURE BRANCH RELEASES THE BUTTON THROUGH HERE. There is no timer, so this is the ONLY
   // thing that can ever release it -- which is why it is one function rather than a line repeated
@@ -17630,8 +17647,10 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         </EzShellGroup>
         )}
         {/* THE SIGN-IN ROW, IN THE SEAT THE PARENTAL CONTROLS AND THE PIN ALREADY HOLD. It
-            draws nothing at all outside the shell -- the component itself decides that, so
-            there is no second copy of the bridge test here to drift from the one inside it. */}
+            draws nothing at all outside the shell, and nothing inside a shell that declared the
+            hide flag while no session is held -- the component itself decides both, so there is
+            no second copy of the bridge test or of the flag test here to drift from the ones
+            inside it. */}
         <EzikSignInRow />
         {/* ITEMS 43-ب / 47-ب -- the four reminders, above the prayer preferences so that
             every established Settings position stays exactly where the reader learned it. */}

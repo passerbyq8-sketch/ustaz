@@ -5594,7 +5594,23 @@ function EzikSignInRow(){const bridge=ezikAuthBridge();const[session,setSession]
 // error.
 const[armed,setArmed]=useState(false);const[done,setDone]=useState(false);// The press's own state and the teardown for its listener. Both refs: neither is drawn, and the
 // client state must not outlive the press it belongs to.
-const csRef=useRef('');const stopRef=useRef(null);useEffect(()=>()=>{if(stopRef.current){stopRef.current();stopRef.current=null;}},[]);if(!bridge)return null;// EVERY FAILURE BRANCH RELEASES THE BUTTON THROUGH HERE. There is no timer, so this is the ONLY
+const csRef=useRef('');const stopRef=useRef(null);useEffect(()=>()=>{if(stopRef.current){stopRef.current();stopRef.current=null;}},[]);if(!bridge)return null;// AND THE SAME DECLARATION THAT TAKES THE TWO DOORS OFF THE ENTRY SCREEN TAKES THIS ROW WITH
+// THEM. Apple 4.8 is a rule about what is OFFERED, and this row offers the very thing the
+// entry card was made to stop offering -- one Google door, standing alone, on the platform
+// whose own door is shut. Hiding it there and leaving it here would have moved the exposure
+// into Settings rather than closed it.
+//
+// IT IS THE SAME FUNCTION AND NOT A SECOND READING OF THE FLAG. ezikShellHidesSocialSignIn()
+// is the one place that decides what a declaration is -- the literal `true` and nothing else --
+// and a copy of that test here would be a copy that eventually disagrees with it.
+//
+// AND `!session` IS THE HALF THAT MATTERS. What is withdrawn is the INVITATION, never the
+// account: a reader who is already signed in -- through the native Apple door on that very
+// platform, which is the whole reason a session can exist while this flag stands -- keeps the
+// address, the sign-out and the delete control. Withdrawing those would sign nobody out and
+// would only take away the one screen that says what is held and the one control that ends it.
+// The two live in one row today, so the row is split HERE, by the state that tells them apart.
+if(!session&&ezikShellHidesSocialSignIn())return null;// EVERY FAILURE BRANCH RELEASES THE BUTTON THROUGH HERE. There is no timer, so this is the ONLY
 // thing that can ever release it -- which is why it is one function rather than a line repeated
 // at six exits, where the seventh exit added later is the one that forgets.
 const settle=msg=>{setBusy(false);setLine(msg);};const finish=d=>{stopRef.current=null;if(!d||d.ok!==true){// `dismissed` IS SILENCE. The class decides that, and the line is empty for exactly that

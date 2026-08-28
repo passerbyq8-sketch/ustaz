@@ -776,6 +776,71 @@ run('OUTSIDE THE SHELL THE ROW DRAWS NOTHING AT ALL -- not a hidden node, none',
   return '0 nodes in a tab, ' + countNodes(nodesOf(m2.tree())) + ' in the shell';
 });
 
+run('the shell can ask for the settings row to go, and it goes whole -- account kept', () => {
+  // THE SAME DECLARATION THE ENTRY CARD READS, SET THE SAME WAY: on the window before the page
+  // draws. What is asserted here is a COUNT OF NODES and not the absence of a label, because a
+  // row that draws an empty group is still a row a reviewer can photograph.
+  const flag = CONTRACT.SHELL_HIDE_SOCIAL_FLAG;
+  const ar = CONTRACT.EZ_I18N.ar;
+
+  // 1 -- DECLARED, IN THE SHELL, NO SESSION: zero social sign-in rows in Settings.
+  const hidden = scene({});
+  hidden.win[flag] = true;
+  const mh = mountRow(hidden);
+  eq(mh.tree(), null, 'what the row returns under the declaration');
+  eq(countNodes(nodesOf(mh.tree())), 0, 'nodes drawn in Settings under the declaration');
+  is(textOf(nodesOf(mh.tree())).indexOf(ar['auth.signIn']) === -1,
+    'the Google label survived the declaration in Settings');
+
+  // 2 -- NOT DECLARED, IN THE SHELL: the row is there, as the default, with its offer.
+  const shown = scene({});
+  const ms = mountRow(shown);
+  is(countNodes(nodesOf(ms.tree())) > 0, 'the row drew nothing without the declaration');
+  is(textOf(nodesOf(ms.tree())).indexOf(ar['auth.signIn']) !== -1,
+    'the sign-in offer is missing when nothing was declared');
+  // AND EVERY VALUE THAT IS NOT THE LITERAL true IS NOT A DECLARATION. The flag test is
+  // ezikShellHidesSocialSignIn() and this row inherits its strictness rather than restating it.
+  for (const junk of ['true', 1, {}, [], 'yes']) {
+    const loose = scene({});
+    loose.win[flag] = junk;
+    is(countNodes(nodesOf(mountRow(loose).tree())) > 0,
+      'the row went away for a flag set to ' + JSON.stringify(junk) + ' -- not a declaration');
+  }
+
+  // 3 -- A BROWSER TAB IS UNAFFECTED IN BOTH DIRECTIONS. It drew nothing before the flag existed
+  // and draws nothing now; the switch must not have become a second bridge.
+  for (const declared of [false, true]) {
+    const tab = scene({ shell: false });
+    if (declared) tab.win[flag] = true;
+    eq(countNodes(nodesOf(mountRow(tab).tree())), 0, 'nodes in a tab, declared=' + declared);
+  }
+
+  // 4 -- THE ACCOUNT IS NOT THE INVITATION. A session handed over by the native door stands on
+  // the very platform that declares this flag, so the address, the sign-out and the delete
+  // control must all survive it. This is the half the order forbids hiding.
+  const held = scene({});
+  held.win[flag] = true;
+  held.storage.setItem(CONTRACT.AUTH_SESSION_KEY, JSON.stringify({
+    session: FIXTURE.session, email: FIXTURE.email, provider: 'apple',
+  }));
+  const mk = mountRow(held);
+  const kept = textOf(nodesOf(mk.tree()));
+  is(kept.indexOf(FIXTURE.email) !== -1, 'the address was hidden from a reader who IS signed in');
+  is(kept.indexOf(ar['auth.signOut']) !== -1, 'the sign-out control was hidden');
+  is(kept.indexOf(ar['auth.delete']) !== -1, 'the delete control was hidden');
+  is(kept.indexOf(ar['auth.signIn']) === -1, 'the sign-in offer is drawn beside a live session');
+
+  // 5 -- AND THE ROW READS THE ONE FUNCTION RATHER THAN THE FLAG. A direct window read here
+  // would be a second definition of "declared" that drifts from ezikShellHidesSocialSignIn().
+  const rowSrc = text(FN_ROW);
+  is(rowSrc.indexOf('ezikShellHidesSocialSignIn()') !== -1,
+    'the row no longer asks ezikShellHidesSocialSignIn()');
+  is(rowSrc.indexOf('SHELL_HIDE_SOCIAL_FLAG') === -1 && rowSrc.indexOf(flag) === -1,
+    'the row reads the flag off the window itself instead of through the one function');
+
+  return '0 nodes declared, row present undeclared, 0 in a tab either way, account kept';
+});
+
 run('after a successful sign-in the ADDRESS is shown and nothing else is', async () => {
   const p = press({});
   const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
@@ -1253,6 +1318,16 @@ mutant('م٩ the hide flag accepts anything truthy',
       'the string \'true\' took both doors away');
   });
 
+mutant('م١١ the settings row goes back to reading the bridge alone',
+  '  if (!session && ezikShellHidesSocialSignIn()) return null;', '  if (false) return null;',
+  (f) => {
+    const scn = scene({});
+    scn.win['EZIK_SHELL_HIDE_SOCIAL_SIGNIN'] = true;
+    const m = mountRow(scn, f);
+    eq(countNodes(nodesOf(m.tree())), 0,
+      'nodes drawn in Settings under the declaration');
+  });
+
 /** The same mutation discipline, over the entry card's own lift. */
 function mutantEntry(name, from, to, killedBy) {
   const at = HARNESS_ENTRY_JSX.indexOf(from);
@@ -1279,7 +1354,7 @@ mutantEntry('م١٠ the entry card goes back to reading the bridge alone',
   });
 
 run('every mutant was applied and every one of them was killed', () => {
-  is(mutants.length >= 10, 'only ' + mutants.length + ' mutants -- the floor is ten');
+  is(mutants.length >= 11, 'only ' + mutants.length + ' mutants -- the floor is eleven');
   const notApplied = mutants.filter((m) => !m.applied).map((m) => m.name + ': ' + m.note);
   eq(notApplied, [], 'mutants that could not be applied');
   const survivors = mutants.filter((m) => !m.killed).map((m) => m.name + ': ' + m.note);
