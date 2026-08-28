@@ -754,7 +754,10 @@ async function partH() {
   ok('...and browser/OS speech recognition', /Browser or operating-system speech-recognition services/.test(priv));
   const del = fs.readFileSync(path.join(REPO, 'delete.html'), 'utf8');
   ok('delete.html explains withdrawal, in Arabic', del.indexOf(S.SETTINGS_GROUP) !== -1);
-  ok('...and in English', /Withdraw consent to share data with AI services/.test(del));
+  // RE-CUT 2026-08-28: the section is headed "Withdrawing consent ..." now that it sits fifth
+  // rather than first, so the gerund is admitted beside the imperative. The phrase is otherwise
+  // unchanged and still has to be on the page word for word -- this widens the tense, not the test.
+  ok('...and in English', /Withdraw(?:ing)? consent to share data with AI services/.test(del));
   const sup = fs.readFileSync(path.join(REPO, 'support.html'), 'utf8');
   ok('support.html explains withdrawal, in Arabic', sup.indexOf(S.SETTINGS_GROUP) !== -1);
   ok('...and in English', /withdraw consent to share data with the AI services/i.test(sup));

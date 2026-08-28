@@ -126,6 +126,40 @@ const C_SESSION_KEY = topConst('AUTH_SESSION_KEY');
 const FN_READ_SESSION = topFunction('readAuthSession');
 const FN_WRITE_SESSION = topFunction('writeAuthSession');
 const FN_CLEAR_SESSION = topFunction('clearAuthSession');
+// THE FIFTH CHANNEL AND THE FLAG THAT TAKES THE TWO DOORS AWAY. Both are lifted by name for the
+// same reason everything above them is: a rename or a deletion must make this tool THROW rather
+// than quietly measure an older idea of the file.
+const C_PROVIDER_APPLE = topConst('SHELL_AUTH_PROVIDER_APPLE');
+const C_PROVIDERS = topConst('SHELL_AUTH_PROVIDERS');
+const C_SESSION_CH = topConst('SHELL_AUTH_SESSION');
+const FN_SESSION_OF = topFunction('ezikNativeSessionOf');
+const C_SUBS = topConst('EZIK_NATIVE_AUTH_SUBS');
+const FN_RECEIVE = topFunction('ezikNativeAuthReceive');
+// THE SIXTH CHANNEL. Lifted by name like everything above it, so a rename or a deletion makes
+// this tool THROW rather than quietly measure a page that no longer asks the shell for Apple.
+const C_APPLE_START = topConst('SHELL_AUTH_APPLE_START');
+const FN_APPLE_MSG = topFunction('ezikNativeAppleMessage');
+const C_NO_ANSWER = topConst('SHELL_AUTH_NO_ANSWER');
+const C_OUTCOMES = topConst('SHELL_AUTH_OUTCOMES');
+const C_OUTCOME_LINES = topConst('SHELL_AUTH_OUTCOME_LINES');
+const FN_OUTCOME_LINE = topFunction('ezikNativeOutcomeLine');
+const FN_OUTCOME_OF = topFunction('ezikNativeOutcomeOf');
+const C_APPLE_WAIT = topConst('SHELL_AUTH_APPLE_WAIT_MS');
+const FN_APPLE_ASK = topFunction('ezikNativeAppleAsk');
+const C_HIDE_FLAG = topConst('SHELL_HIDE_SOCIAL_FLAG');
+const FN_HIDES = topFunction('ezikShellHidesSocialSignIn');
+const FN_DOORS = topFunction('ezikEntryDoors');
+// THE ENTRY CARD ITSELF. The two doors are DRAWN there and nowhere else, so a proof about
+// whether they exist has to mount the card rather than read the function that decides.
+const C_ENTRY_KEY = topConst('ENTRY_CHOICE_KEY');
+const C_ENTRY_ACCOUNT = topConst('ENTRY_ACCOUNT');
+const C_ENTRY_GUEST = topConst('ENTRY_GUEST');
+const FN_READ_ENTRY = topFunction('readEntryChoice');
+const FN_WRITE_ENTRY = topFunction('writeEntryChoice');
+const FN_ENTRY_ANSWERED = topFunction('ezikEntryAnswered');
+const C_DEFAULT_AGE = topConst('ONBOARDING_DEFAULT_AGE');
+const FN_NATIVE_ENTRY = topFunction('useEzikNativeAuthEntry');
+const FN_ONBOARDING = topFunction('Onboarding');
 const FN_ROW = topFunction('EzikSignInRow');
 const FN_SETTINGS = topFunction('SettingsSheet');
 
@@ -150,6 +184,8 @@ const HARNESS_PARTS = [
   'const useEffect = env.useEffect;',
   'const s = env.s;',
   'const EzShellGroup = env.EzShellGroup;',
+  'const useEzLang = env.useEzLang;',
+  'const EzLangControl = env.EzLangControl;',
   'let EZ_LANG = env.lang;',
   text(C_FALLBACK),
   text(C_I18N),
@@ -161,6 +197,12 @@ const HARNESS_PARTS = [
   text(C_SEQ), text(FN_ID), text(FN_START_URL), text(FN_MSG), text(FN_ASK), text(FN_PARAMS),
   text(FN_EXCHANGE), text(FN_DELETE),
   text(C_SESSION_KEY), text(FN_READ_SESSION), text(FN_WRITE_SESSION), text(FN_CLEAR_SESSION),
+  text(C_PROVIDER_APPLE), text(C_PROVIDERS), text(C_SESSION_CH), text(FN_SESSION_OF),
+  text(C_SUBS), text(FN_RECEIVE),
+  text(C_APPLE_START), text(FN_APPLE_MSG), text(C_NO_ANSWER), text(C_OUTCOMES),
+  text(C_OUTCOME_LINES), text(FN_OUTCOME_LINE), text(FN_OUTCOME_OF), text(C_APPLE_WAIT),
+  text(FN_APPLE_ASK),
+  text(C_HIDE_FLAG), text(FN_HIDES), text(FN_DOORS),
   text(FN_ROW),
   'return {',
   '  EzikSignInRow: EzikSignInRow,',
@@ -172,6 +214,17 @@ const HARNESS_PARTS = [
   '  ezikAuthDelete: ezikAuthDelete, SHELL_AUTH_DELETE_PATH: SHELL_AUTH_DELETE_PATH,',
   '  readAuthSession: readAuthSession, writeAuthSession: writeAuthSession,',
   '  clearAuthSession: clearAuthSession,',
+  '  SHELL_AUTH_SESSION: SHELL_AUTH_SESSION, SHELL_AUTH_PROVIDERS: SHELL_AUTH_PROVIDERS,',
+  '  ezikNativeSessionOf: ezikNativeSessionOf, ezikNativeAuthReceive: ezikNativeAuthReceive,',
+  '  EZIK_NATIVE_AUTH_SUBS: EZIK_NATIVE_AUTH_SUBS,',
+  '  SHELL_AUTH_APPLE_START: SHELL_AUTH_APPLE_START,',
+  '  ezikNativeAppleMessage: ezikNativeAppleMessage,',
+  '  SHELL_AUTH_NO_ANSWER: SHELL_AUTH_NO_ANSWER, SHELL_AUTH_OUTCOMES: SHELL_AUTH_OUTCOMES,',
+  '  SHELL_AUTH_OUTCOME_LINES: SHELL_AUTH_OUTCOME_LINES,',
+  '  ezikNativeOutcomeLine: ezikNativeOutcomeLine, ezikNativeOutcomeOf: ezikNativeOutcomeOf,',
+  '  SHELL_AUTH_APPLE_WAIT_MS: SHELL_AUTH_APPLE_WAIT_MS, ezikNativeAppleAsk: ezikNativeAppleAsk,',
+  '  SHELL_HIDE_SOCIAL_FLAG: SHELL_HIDE_SOCIAL_FLAG,',
+  '  ezikShellHidesSocialSignIn: ezikShellHidesSocialSignIn, ezikEntryDoors: ezikEntryDoors,',
   '  SHELL_AUTH_REQUEST: SHELL_AUTH_REQUEST, SHELL_AUTH_RESULT: SHELL_AUTH_RESULT,',
   '  SHELL_AUTH_V: SHELL_AUTH_V, SHELL_AUTH_ORIGIN: SHELL_AUTH_ORIGIN,',
   '  SHELL_AUTH_START_PATH: SHELL_AUTH_START_PATH, SHELL_AUTH_PROVIDER: SHELL_AUTH_PROVIDER,',
@@ -185,6 +238,28 @@ const HARNESS_PARTS = [
 ];
 const HARNESS_JSX = HARNESS_PARTS.join('\n');
 
+// THE SECOND LIFT: the same parts, plus the entry card and the four things only it stands on.
+// It is a SEPARATE substrate on purpose. Onboarding repeats the sign-in ladder rather than
+// sharing it, exactly so that mutant م٤ can find the client-state comparison by its own line;
+// putting both copies into one lift would make that line ambiguous and disarm the mutant
+// silently. So the mutants above keep the harness they have always had, and the card gets its
+// own -- and mutantEntry() below mutates THIS one.
+const HARNESS_ENTRY_PARTS = (function () {
+  const parts = HARNESS_PARTS.slice();
+  const at = parts.indexOf('return {');
+  if (at === -1) throw new Error('the lift no longer ends in a return block');
+  parts.splice(at, 0,
+    text(C_ENTRY_KEY), text(C_ENTRY_ACCOUNT), text(C_ENTRY_GUEST),
+    text(FN_READ_ENTRY), text(FN_WRITE_ENTRY), text(FN_ENTRY_ANSWERED),
+    text(C_DEFAULT_AGE), text(FN_NATIVE_ENTRY), text(FN_ONBOARDING));
+  parts.splice(parts.indexOf('return {') + 1, 0,
+    '  Onboarding: Onboarding, ENTRY_CHOICE_KEY: ENTRY_CHOICE_KEY,',
+    '  ENTRY_ACCOUNT: ENTRY_ACCOUNT, ENTRY_GUEST: ENTRY_GUEST,',
+    '  readEntryChoice: readEntryChoice, ezikEntryAnswered: ezikEntryAnswered,');
+  return parts;
+}());
+const HARNESS_ENTRY_JSX = HARNESS_ENTRY_PARTS.join('\n');
+
 /** The lifted seam, compiled through the page's own Babel with the classic runtime. */
 function compile(jsx) {
   return babel.transformSync(jsx, {
@@ -197,6 +272,7 @@ function compile(jsx) {
   }).code;
 }
 const HARNESS = compile(HARNESS_JSX);
+const HARNESS_ENTRY = compile(HARNESS_ENTRY_JSX);
 
 // ---------------------------------------------------------------------------
 // THE FAKES.
@@ -242,6 +318,14 @@ function fakeClock() {
     clearTimeout: (id) => { timers.delete(id); },
     pending: () => timers.size,
     delays: () => Array.from(timers.values()).map((t) => t.ms),
+    // THE DEADLINE, MADE TO EXPIRE ON DEMAND. Nothing here costs wall-clock: the test decides
+    // when sixty seconds have passed, which is the only way a sixty-second case can be run at
+    // all. Every armed timer fires once and is dropped, exactly as a real one would be.
+    fire: () => {
+      const due = Array.from(timers.keys());
+      for (const id of due) { const t = timers.get(id); timers.delete(id); t.fn(); }
+      return due.length;
+    },
   };
 }
 
@@ -281,6 +365,16 @@ function fakeFetch(plan) {
   return fn;
 }
 
+// THE CLOCK, PINNED AND CONSTRUCTIBLE. `new Date()` answers one fixed instant and `Date.now()`
+// answers the same number, so nothing measured here moves with the day this file is run.
+const FIXED_NOW = 1756000000000;
+const FIXED_DATE = (function () {
+  const Real = Date;
+  function EzikDate() { return new Real(FIXED_NOW); }
+  EzikDate.now = () => FIXED_NOW;
+  return EzikDate;
+}());
+
 const FRAGMENT = { fragment: true };
 
 /**
@@ -288,7 +382,7 @@ const FRAGMENT = { fragment: true };
  * hooks keep their cells across re-renders, and a state setter renders again. What it CANNOT do
  * is exactly what nothing here needs -- a DOM, a scheduler, a reconciler.
  */
-function mountRow(scn, factory) {
+function mountRow(scn, factory, pick, props) {
   const env = scn.env;
   const cells = [];
   const teardowns = [];
@@ -330,8 +424,9 @@ function mountRow(scn, factory) {
   // out of env at evaluation time -- a module built before they were installed would be holding
   // undefined and would fail at the first render rather than measure anything.
   const mod = (factory || makeSeam)(env);
-  const Component = mod.EzikSignInRow;
-  function render() { cursor = 0; renders++; tree = Component({}); }
+  const Component = pick ? pick(mod) : mod.EzikSignInRow;
+  const given = props || {};
+  function render() { cursor = 0; renders++; tree = Component(given); }
   render();
   return {
     mod: mod,
@@ -365,6 +460,7 @@ function findTags(list, tag, out) {
 }
 
 const makeSeam = new Function('env', HARNESS);
+const makeEntry = new Function('env', HARNESS_ENTRY);
 
 /** One scene: a window, a store, a clock, a fetch plan, and everything to inspect afterwards. */
 function scene(opts) {
@@ -383,13 +479,17 @@ function scene(opts) {
     fetch: fetchFn,
     setTimeout: clock.setTimeout,
     clearTimeout: clock.clearTimeout,
-    Date: { now: () => 1756000000000 },
+    Date: FIXED_DATE,
     URL: URL,
     capHeaders: () => ({ 'x-murabbi-device': FIXTURE.device }),
     getDeviceId: () => FIXTURE.device,
     lang: o.lang || 'ar',
     s: new Proxy({}, { get: () => ({}) }),
     EzShellGroup: function EzShellGroup(props) { return props.children; },
+    // The language control is a SCREEN of its own and belongs to the i18n gate; what this file
+    // needs from it is that the card can be drawn, so it is a stub that draws nothing.
+    useEzLang: () => (o.lang || 'ar'),
+    EzLangControl: function EzLangControl() { return null; },
   };
   return { env: env, win: win, sent: sent, clock: clock, storage: storage, fetch: fetchFn };
 }
@@ -705,6 +805,71 @@ run('OUTSIDE THE SHELL THE ROW DRAWS NOTHING AT ALL -- not a hidden node, none',
   return '0 nodes in a tab, ' + countNodes(nodesOf(m2.tree())) + ' in the shell';
 });
 
+run('the shell can ask for the settings row to go, and it goes whole -- account kept', () => {
+  // THE SAME DECLARATION THE ENTRY CARD READS, SET THE SAME WAY: on the window before the page
+  // draws. What is asserted here is a COUNT OF NODES and not the absence of a label, because a
+  // row that draws an empty group is still a row a reviewer can photograph.
+  const flag = CONTRACT.SHELL_HIDE_SOCIAL_FLAG;
+  const ar = CONTRACT.EZ_I18N.ar;
+
+  // 1 -- DECLARED, IN THE SHELL, NO SESSION: zero social sign-in rows in Settings.
+  const hidden = scene({});
+  hidden.win[flag] = true;
+  const mh = mountRow(hidden);
+  eq(mh.tree(), null, 'what the row returns under the declaration');
+  eq(countNodes(nodesOf(mh.tree())), 0, 'nodes drawn in Settings under the declaration');
+  is(textOf(nodesOf(mh.tree())).indexOf(ar['auth.signIn']) === -1,
+    'the Google label survived the declaration in Settings');
+
+  // 2 -- NOT DECLARED, IN THE SHELL: the row is there, as the default, with its offer.
+  const shown = scene({});
+  const ms = mountRow(shown);
+  is(countNodes(nodesOf(ms.tree())) > 0, 'the row drew nothing without the declaration');
+  is(textOf(nodesOf(ms.tree())).indexOf(ar['auth.signIn']) !== -1,
+    'the sign-in offer is missing when nothing was declared');
+  // AND EVERY VALUE THAT IS NOT THE LITERAL true IS NOT A DECLARATION. The flag test is
+  // ezikShellHidesSocialSignIn() and this row inherits its strictness rather than restating it.
+  for (const junk of ['true', 1, {}, [], 'yes']) {
+    const loose = scene({});
+    loose.win[flag] = junk;
+    is(countNodes(nodesOf(mountRow(loose).tree())) > 0,
+      'the row went away for a flag set to ' + JSON.stringify(junk) + ' -- not a declaration');
+  }
+
+  // 3 -- A BROWSER TAB IS UNAFFECTED IN BOTH DIRECTIONS. It drew nothing before the flag existed
+  // and draws nothing now; the switch must not have become a second bridge.
+  for (const declared of [false, true]) {
+    const tab = scene({ shell: false });
+    if (declared) tab.win[flag] = true;
+    eq(countNodes(nodesOf(mountRow(tab).tree())), 0, 'nodes in a tab, declared=' + declared);
+  }
+
+  // 4 -- THE ACCOUNT IS NOT THE INVITATION. A session handed over by the native door stands on
+  // the very platform that declares this flag, so the address, the sign-out and the delete
+  // control must all survive it. This is the half the order forbids hiding.
+  const held = scene({});
+  held.win[flag] = true;
+  held.storage.setItem(CONTRACT.AUTH_SESSION_KEY, JSON.stringify({
+    session: FIXTURE.session, email: FIXTURE.email, provider: 'apple',
+  }));
+  const mk = mountRow(held);
+  const kept = textOf(nodesOf(mk.tree()));
+  is(kept.indexOf(FIXTURE.email) !== -1, 'the address was hidden from a reader who IS signed in');
+  is(kept.indexOf(ar['auth.signOut']) !== -1, 'the sign-out control was hidden');
+  is(kept.indexOf(ar['auth.delete']) !== -1, 'the delete control was hidden');
+  is(kept.indexOf(ar['auth.signIn']) === -1, 'the sign-in offer is drawn beside a live session');
+
+  // 5 -- AND THE ROW READS THE ONE FUNCTION RATHER THAN THE FLAG. A direct window read here
+  // would be a second definition of "declared" that drifts from ezikShellHidesSocialSignIn().
+  const rowSrc = text(FN_ROW);
+  is(rowSrc.indexOf('ezikShellHidesSocialSignIn()') !== -1,
+    'the row no longer asks ezikShellHidesSocialSignIn()');
+  is(rowSrc.indexOf('SHELL_HIDE_SOCIAL_FLAG') === -1 && rowSrc.indexOf(flag) === -1,
+    'the row reads the flag off the window itself instead of through the one function');
+
+  return '0 nodes declared, row present undeclared, 0 in a tab either way, account kept';
+});
+
 run('after a successful sign-in the ADDRESS is shown and nothing else is', async () => {
   const p = press({});
   const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
@@ -824,6 +989,499 @@ run('the session key is the ONLY key this seam stores, and it is classified MUST
   return '1 key: AUTH_SESSION_KEY  ·  removed by resetAll  ·  MUST_GO with a clause';
 });
 
+/**
+ * The lifted module over one scene, for the cases that are pure functions rather than a
+ * component. Nothing here needs React, so nothing here installs one -- and a case that
+ * silently needed one would fail rather than pass.
+ */
+function build(scn, factory) {
+  return (factory || new Function('env', HARNESS))(scn.env);
+}
+
+// ---------------------------------------------------------------------------
+// THE FIFTH CHANNEL -- a session handed over by the shell.
+// ---------------------------------------------------------------------------
+run('the fifth channel writes the handed-over session through the one writer', () => {
+  const scn = scene({});
+  const mod = build(scn);
+  const good = {
+    type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: true,
+    session: FIXTURE.session, email: FIXTURE.email, provider: 'apple',
+  };
+  is(mod.ezikNativeAuthReceive(good) === true, 'a valid payload from a shell was refused');
+  // THE ONE KEY, IN THE ONE SHAPE. Read back through the file's own reader, so a write that
+  // landed in a shape readAuthSession will not take would fail here rather than pass.
+  eq(mod.readAuthSession(),
+    { session: FIXTURE.session, email: FIXTURE.email, provider: 'apple' },
+    'what the fifth channel stored');
+  eq(Object.keys(JSON.parse(scn.storage.getItem(mod.AUTH_SESSION_KEY))).sort(),
+    ['email', 'provider', 'session'], 'the fields stored');
+  // AND NO SECOND KEY: the store holds exactly what the two existing doors would have left.
+  eq(scn.storage.keys(), [mod.AUTH_SESSION_KEY], 'keys written by the fifth channel');
+  return 'session written to ' + mod.AUTH_SESSION_KEY + ', 3 fields, 1 key';
+});
+
+run('a payload from a foreign origin is refused, and writes nothing at all', () => {
+  // THE ORIGIN TEST IS THE BRIDGE, which is what it is on all four channels beside this one.
+  // The identical event, dispatched on a page with no shell behind it -- a browser tab, an
+  // extension, a bookmarklet -- has no shell that could have sent it.
+  const tab = scene({ shell: false });
+  const mod = build(tab);
+  const good = {
+    type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: true,
+    session: FIXTURE.session, email: FIXTURE.email, provider: 'apple',
+  };
+  eq(mod.ezikNativeSessionOf(good), null, 'what a browser tab made of a valid payload');
+  is(mod.ezikNativeAuthReceive(good) === false, 'a browser tab accepted a handed-over session');
+  eq(tab.storage.keys(), [], 'keys a browser tab wrote');
+  // And a bridge-shaped object that is not a bridge is not one either.
+  for (const shape of [{}, { postMessage: 1 }, { postMessage: null }]) {
+    const fake = scene({ shell: false });
+    fake.win.ReactNativeWebView = shape;
+    const m2 = build(fake);
+    eq(m2.ezikNativeSessionOf(good), null, 'accepted through ' + JSON.stringify(shape));
+  }
+  return 'no bridge and 3 non-bridges: 0 sessions written';
+});
+
+run('every malformed shape is refused whole, and none of them writes half a session', () => {
+  const scn = scene({});
+  const mod = build(scn);
+  const base = () => ({
+    type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: true,
+    session: FIXTURE.session, email: FIXTURE.email, provider: 'apple',
+  });
+  const bad = [];
+  bad.push(['no payload at all', null]);
+  bad.push(['a string', 'session']);
+  bad.push(['an array', [base()]]);
+  bad.push(['another channel', Object.assign(base(), { type: 'ezik:auth:result' })]);
+  bad.push(['the version as the NUMBER 1', Object.assign(base(), { v: 1 })]);
+  bad.push(['a version this page does not speak', Object.assign(base(), { v: '2' })]);
+  bad.push(['ok absent', (function () { const o = base(); delete o.ok; return o; }())]);
+  bad.push(['ok false', Object.assign(base(), { ok: false })]);
+  bad.push(['session absent', (function () { const o = base(); delete o.session; return o; }())]);
+  bad.push(['session empty', Object.assign(base(), { session: '' })]);
+  bad.push(['session not a string', Object.assign(base(), { session: 42 })]);
+  bad.push(['a provider nobody holds', Object.assign(base(), { provider: 'facebook' })]);
+  bad.push(['no provider', (function () { const o = base(); delete o.provider; return o; }())]);
+  for (const [what, payload] of bad) {
+    eq(mod.ezikNativeSessionOf(payload), null, 'refused: ' + what);
+    is(mod.ezikNativeAuthReceive(payload) === false, 'received: ' + what);
+  }
+  eq(scn.storage.keys(), [], 'keys written by ' + bad.length + ' malformed payloads');
+  // AND THE ONE FIELD THAT MAY BE MISSING IS THE ADDRESS, normalised the way the exchange
+  // already normalises it -- an account with no verified address is a lawful account.
+  const noEmail = base();
+  delete noEmail.email;
+  eq(mod.ezikNativeSessionOf(noEmail), { session: FIXTURE.session, email: '', provider: 'apple' },
+    'a payload with no address');
+  // BOTH names lib/auth/oidc.js holds are taken, and they are read from the file's own list.
+  for (const name of mod.SHELL_AUTH_PROVIDERS) {
+    is(mod.ezikNativeSessionOf(Object.assign(base(), { provider: name })) !== null,
+      'refused the provider ' + name + ', which the page itself names');
+  }
+  return bad.length + ' malformed payloads refused, 0 keys written, '
+    + mod.SHELL_AUTH_PROVIDERS.length + ' providers accepted';
+});
+
+run('whoever is listening is told, and only after the session is already stored', () => {
+  const scn = scene({});
+  const mod = build(scn);
+  const seen = [];
+  const sub = (got) => { seen.push([got.provider, mod.readAuthSession() !== null]); };
+  mod.EZIK_NATIVE_AUTH_SUBS.add(sub);
+  mod.ezikNativeAuthReceive({
+    type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: true,
+    session: FIXTURE.session, email: '', provider: 'apple',
+  });
+  eq(seen, [['apple', true]], 'what the subscriber saw');
+  // A SUBSCRIBER THAT THROWS COSTS NOTHING. The session is already written by then, and one
+  // broken listener must not take the others down with it.
+  mod.EZIK_NATIVE_AUTH_SUBS.add(() => { throw new Error('a listener threw'); });
+  const after = [];
+  mod.EZIK_NATIVE_AUTH_SUBS.add(() => { after.push(1); });
+  mod.ezikNativeAuthReceive({
+    type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: true,
+    session: 'sess-99', email: '', provider: 'google',
+  });
+  eq(after, [1], 'listeners reached past the one that threw');
+  eq(mod.readAuthSession().session, 'sess-99', 'the session stored past the throw');
+  return '1 subscriber told after the write; a throwing listener costs nothing';
+});
+
+// ---------------------------------------------------------------------------
+// THE FLAG -- both provider doors, off the entry screen, on the shell's word.
+// ---------------------------------------------------------------------------
+run('the doors are drawn by default, and only the literal true takes them away', () => {
+  const scn = scene({});
+  const mod = build(scn);
+  const bridge = scn.win.ReactNativeWebView;
+  is(mod.ezikShellHidesSocialSignIn() === false, 'an undeclared flag hid the doors');
+  is(mod.ezikEntryDoors(bridge) === true, 'the doors were not drawn with a shell and no flag');
+  // NOT INFERRED. Every one of these is a value that is truthy, or nearly a declaration, and
+  // not one of them is the declaration -- a switch that can be turned on by accident will be.
+  for (const v of ['true', 'yes', 1, {}, [], 'false', 0, null, undefined]) {
+    scn.win[mod.SHELL_HIDE_SOCIAL_FLAG] = v;
+    is(mod.ezikShellHidesSocialSignIn() === false,
+      'a non-boolean ' + JSON.stringify(v) + ' declared the flag');
+    is(mod.ezikEntryDoors(bridge) === true, 'the doors went on ' + JSON.stringify(v));
+  }
+  scn.win[mod.SHELL_HIDE_SOCIAL_FLAG] = true;
+  is(mod.ezikShellHidesSocialSignIn() === true, 'the literal true did not declare the flag');
+  is(mod.ezikEntryDoors(bridge) === false, 'the doors survived the declaration');
+  // AND THE FLAG IS NOT A SHELL. Declared or not, a browser tab has no doors either way, so
+  // the four other contracts -- every one of which tests the bridge and not this -- are
+  // untouched by whichever way it is set.
+  const tab = scene({ shell: false });
+  const tabMod = build(tab);
+  is(tabMod.ezikEntryDoors(null) === false, 'a tab drew the doors');
+  tab.win[tabMod.SHELL_HIDE_SOCIAL_FLAG] = true;
+  is(tabMod.ezikEntryDoors(null) === false, 'a tab drew the doors with the flag declared');
+  return '9 near-declarations refused; the literal true accepted; a tab unaffected either way';
+});
+
+// ---------------------------------------------------------------------------
+// THE ENTRY CARD -- the two doors, drawn or taken away, with the guest door standing.
+// ---------------------------------------------------------------------------
+
+/** The entry card, mounted. `onStart` is never reached by any case here and throws if it is. */
+function mountEntry(scn, factory) {
+  return mountRow(scn, factory || makeEntry, (m) => m.Onboarding,
+    { onStart: () => { throw new Error('the entry step called onStart'); } });
+}
+/** Every button on the card, by the text it actually draws. */
+function buttonsOf(tree) {
+  return nodesOf(tree).reduce(function walk(acc, n) {
+    if (n.tag === 'button') acc.push(textOf(n.children || []));
+    (n.children || []).reduce(walk, acc);
+    return acc;
+  }, []);
+}
+
+run('inside the shell the entry card draws both doors, with the guest door beside them', () => {
+  const scn = scene({});
+  const m = mountEntry(scn);
+  const drawn = buttonsOf(m.tree());
+  const ar = m.mod.EZ_I18N.ar;
+  eq(drawn, [ar['entry.google'], ar['entry.apple'], ar['entry.guest']],
+    'the buttons on the entry card inside the shell');
+  is(textOf(nodesOf(m.tree())).indexOf(ar['entry.inApp']) === -1,
+    'the browser sentence is drawn inside the shell, where it is false');
+  return '3 buttons: google, apple, guest';
+});
+
+run('the shell can ask for both doors to go, and only the guest door is left', () => {
+  const scn = scene({});
+  // DECLARED BEFORE THE CARD IS DRAWN, which is the contract: the shell sets it on the window
+  // before this page's own script runs.
+  scn.win['EZIK_SHELL_HIDE_SOCIAL_SIGNIN'] = true;
+  const m = mountEntry(scn);
+  const ar = m.mod.EZ_I18N.ar;
+  const drawn = buttonsOf(m.tree());
+  eq(drawn, [ar['entry.guest']], 'the buttons left after the declaration');
+  // A DOOR REMOVED IS ONLY REMOVED IF NOTHING OF IT IS LEFT: not the label somewhere else on
+  // the card, and not the browser sentence standing in a seat that is not its own.
+  const text = textOf(nodesOf(m.tree()));
+  is(text.indexOf(ar['entry.google']) === -1, 'the Google label survived the declaration');
+  is(text.indexOf(ar['entry.apple']) === -1, 'the Apple label survived the declaration');
+  is(text.indexOf(ar['entry.inApp']) === -1, 'the browser sentence took the doors\' seat');
+  is(text.indexOf(ar['entry.guestWarn']) !== -1, 'the guest warning went with the doors');
+  return '1 button: guest, with its warning; 0 provider labels anywhere on the card';
+});
+
+run('a browser tab is unaffected by the declaration, in both directions', () => {
+  // THE FLAG IS NOT A BRIDGE. A tab never drew the doors and still does not; the sentence that
+  // stands in their seat there is still the sentence. This is the case that says the switch
+  // cannot reach anything the four other contracts read.
+  for (const declared of [false, true]) {
+    const tab = scene({ shell: false });
+    if (declared) tab.win['EZIK_SHELL_HIDE_SOCIAL_SIGNIN'] = true;
+    const m = mountEntry(tab);
+    const ar = m.mod.EZ_I18N.ar;
+    eq(buttonsOf(m.tree()), [ar['entry.guest']], 'buttons in a tab, declared=' + declared);
+    is(textOf(nodesOf(m.tree())).indexOf(ar['entry.inApp']) !== -1,
+      'the browser sentence went missing in a tab, declared=' + declared);
+  }
+  return 'a tab draws 1 button and the sentence, declared or not';
+});
+
+run('a session handed over by the shell moves the card off the question it answered', () => {
+  const scn = scene({});
+  const m = mountEntry(scn);
+  const ar = m.mod.EZ_I18N.ar;
+  eq(buttonsOf(m.tree()), [ar['entry.google'], ar['entry.apple'], ar['entry.guest']],
+    'the card before the session lands');
+  // THE SHELL SPEAKS FIRST, and the card is not the thing listening -- the root is. What the
+  // card subscribes to is the fact that a session was written.
+  is(m.mod.ezikNativeAuthReceive({
+    type: m.mod.SHELL_AUTH_SESSION, v: m.mod.SHELL_AUTH_V, ok: true,
+    session: FIXTURE.session, email: FIXTURE.email, provider: 'apple',
+  }) === true, 'the handed-over session was refused');
+  eq(m.mod.readAuthSession().session, FIXTURE.session, 'the session stored');
+  const after = buttonsOf(m.tree());
+  is(after.indexOf(ar['entry.google']) === -1 && after.indexOf(ar['entry.apple']) === -1,
+    'the card is still asking a question that has been answered: ' + JSON.stringify(after));
+  is(textOf(nodesOf(m.tree())).indexOf(ar['onboarding.welcome']) !== -1,
+    'the card did not move to the step behind the entry screen');
+  // AND A REFUSED PAYLOAD MOVES NOTHING -- the control that proves the case above is real.
+  const still = scene({});
+  const m2 = mountEntry(still);
+  is(m2.mod.ezikNativeAuthReceive({
+    type: m2.mod.SHELL_AUTH_SESSION, v: m2.mod.SHELL_AUTH_V, ok: true,
+    session: '', email: '', provider: 'apple',
+  }) === false, 'an empty session was accepted');
+  eq(buttonsOf(m2.tree()),
+    [m2.mod.EZ_I18N.ar['entry.google'], m2.mod.EZ_I18N.ar['entry.apple'], m2.mod.EZ_I18N.ar['entry.guest']],
+    'the card after a refused payload');
+  return 'a valid session advances the card; a refused one leaves all three doors standing';
+});
+
+
+// ---------------------------------------------------------------------------
+// THE SIXTH CHANNEL -- the Apple door asked for natively, from the entry card.
+// ---------------------------------------------------------------------------
+
+/** The Apple door on the card, by the text written on it -- never by its position. */
+function appleBtn(m) {
+  const label = m.mod.EZ_I18N.ar['entry.apple'];
+  return findTags(nodesOf(m.tree()), 'button')
+    .filter((b) => textOf(b.children || []) === label)[0] || null;
+}
+function googleBtn(m) {
+  const label = m.mod.EZ_I18N.ar['entry.google'];
+  return findTags(nodesOf(m.tree()), 'button')
+    .filter((b) => textOf(b.children || []) === label)[0] || null;
+}
+/** Press it the way a browser would: a disabled control does not deliver a click. */
+function pressApple(m) {
+  const b = appleBtn(m);
+  if (!b) throw new Error('the card drew no Apple door to press');
+  if (b.props.disabled) return false;
+  b.props.onClick();
+  return true;
+}
+/** The line the card is showing, or '' -- the seat entry errors already used. */
+function cardLine(m) {
+  const errs = nodesOf(m.tree()).reduce(function walk(acc, n) {
+    if (n.props && n.props.className === 'ezgate-err') acc.push(textOf(n.children || []));
+    (n.children || []).reduce(walk, acc);
+    return acc;
+  }, []);
+  return errs;
+}
+/**
+ * What the shell says, said the way the application actually hears it: the window event that
+ * ezikNativeAppleAsk is listening for, AND the root listener's own call -- because
+ * useEzikNativeAuthRoot is mounted by App, not by this card, and a case that dispatched only the
+ * event would be measuring a page with half its wiring missing.
+ */
+function shellSays(m, scn, payload) {
+  scn.win.dispatch(m.mod.SHELL_AUTH_SESSION, payload);
+  m.mod.ezikNativeAuthReceive(payload);
+}
+function okPayload(m, over) {
+  return Object.assign({
+    type: m.mod.SHELL_AUTH_SESSION, v: m.mod.SHELL_AUTH_V, ok: true,
+    session: FIXTURE.session, email: FIXTURE.email, provider: 'apple',
+  }, over || {});
+}
+function failPayload(m, outcome) {
+  return { type: m.mod.SHELL_AUTH_SESSION, v: m.mod.SHELL_AUTH_V, ok: false, outcome: outcome };
+}
+
+run('the Apple door posts ONE native request and never opens the web path', () => {
+  const scn = scene({});
+  const m = mountEntry(scn);
+  eq(scn.sent.length, 0, 'messages posted before the press');
+  is(pressApple(m) === true, 'the Apple door refused the first press');
+  eq(scn.sent.length, 1, 'messages posted for one press');
+  const msg = JSON.parse(scn.sent[0]);
+  eq(Object.keys(msg).sort(), ['type', 'v'], 'the fields on the wire -- two, and no third');
+  eq(msg.type, m.mod.SHELL_AUTH_APPLE_START, 'the message type');
+  eq(msg.type, 'ezik:auth:apple-start', 'the type, against the contract as written');
+  is(typeof msg.v === 'string', 'v crossed as ' + typeof msg.v + ', not a string');
+  eq(msg.v, '1', 'the version on the wire');
+  is(msg.id === undefined && msg.requestId === undefined, 'an id was invented at this end');
+  // AND NOT ONE STEP OF THE WEB LADDER RAN: no client state minted, no start URL built, no
+  // listener on the web result channel, no fetch. This is the half the round exists to close.
+  eq(scn.fetch.calls.length, 0, 'requests made by the native press');
+  eq(scn.win.live(CONTRACT.SHELL_AUTH_RESULT), 0, 'web-result listeners armed by the native press');
+  eq(scn.storage.keys(), [], 'keys written by the press');
+  // The press is held, and it is held where this screen already held presses.
+  is(appleBtn(m).props.disabled === true, 'the Apple door is still pressable after the press');
+  eq(cardLine(m), [], 'lines shown for a press that has not been answered');
+  return '1 message {type,v}, v="1" string, 0 web listeners, 0 fetches, button held';
+});
+
+run('two presses in a row post ONE message, not two', () => {
+  const scn = scene({});
+  const m = mountEntry(scn);
+  is(pressApple(m) === true, 'the first press did not land');
+  is(pressApple(m) === false, 'the SECOND press landed -- the door was not held');
+  eq(scn.sent.length, 1, 'messages posted for two presses');
+  // And the disable is real rather than decorative: the handler refuses too, so a click that
+  // reached it anyway -- a synthetic one, a stale closure -- still cannot post a second sheet.
+  appleBtn(m).props.onClick();
+  eq(scn.sent.length, 1, 'messages after the handler was called directly while busy');
+  return '2 presses + 1 forced call -> 1 message';
+});
+
+run('ok:true is written exactly as it is today, and email:"" is a lawful address', () => {
+  for (const email of [FIXTURE.email, '']) {
+    const scn = scene({});
+    const m = mountEntry(scn);
+    pressApple(m);
+    shellSays(m, scn, okPayload(m, { email: email }));
+    eq(scn.storage.keys(), [CONTRACT.AUTH_SESSION_KEY], 'keys after ok:true, email=' + JSON.stringify(email));
+    const held = JSON.parse(scn.storage.getItem(CONTRACT.AUTH_SESSION_KEY));
+    eq(held.session, FIXTURE.session, 'the session stored');
+    eq(held.email, email, 'the address stored');
+    eq(held.provider, 'apple', 'the provider stored');
+    // The card moved off the question, the press was released, and the deadline was disarmed.
+    is(appleBtn(m) === null, 'the card is still asking a question that has been answered');
+    eq(scn.clock.pending(), 0, 'timers still armed after the session landed');
+    eq(cardLine(m), [], 'lines shown after a successful sign-in');
+  }
+  return 'session written for both addresses, card advanced, 0 timers left armed';
+});
+
+run('all SEVEN outcomes write no session and give the door back', () => {
+  const seven = ['canceled', 'unavailable', 'rejected', 'throttled', 'server-down', 'client-bug', 'failed'];
+  eq(seven, CONTRACT.SHELL_AUTH_OUTCOMES.slice(), 'the seven, against the list the page itself holds');
+  const lines = [];
+  for (const outcome of seven) {
+    const scn = scene({});
+    const m = mountEntry(scn);
+    pressApple(m);
+    shellSays(m, scn, failPayload(m, outcome));
+    eq(scn.storage.keys(), [], 'keys written by outcome ' + outcome);
+    is(appleBtn(m) !== null, 'the card advanced on outcome ' + outcome);
+    is(appleBtn(m).props.disabled === false, 'the door is still held after outcome ' + outcome);
+    eq(scn.clock.pending(), 0, 'timers left armed after outcome ' + outcome);
+    // The listener is gone too: a second refusal cannot move a card that already answered.
+    eq(scn.win.live(CONTRACT.SHELL_AUTH_SESSION), 0, 'listeners left after outcome ' + outcome);
+    lines.push(outcome + '=' + cardLine(m).length);
+  }
+  return '7 outcomes, 0 sessions, 7 doors released  ·  ' + lines.join(' ');
+});
+
+run('canceled says NOTHING, and the other six say one thing each', () => {
+  const scn0 = scene({});
+  const m0 = mountEntry(scn0);
+  pressApple(m0);
+  shellSays(m0, scn0, failPayload(m0, 'canceled'));
+  eq(cardLine(m0), [], 'lines shown after the reader closed the sheet themselves');
+
+  const said = {};
+  for (const outcome of ['unavailable', 'rejected', 'throttled', 'server-down', 'client-bug', 'failed']) {
+    const scn = scene({});
+    const m = mountEntry(scn);
+    pressApple(m);
+    shellSays(m, scn, failPayload(m, outcome));
+    const shown = cardLine(m);
+    eq(shown.length, 1, 'lines shown for outcome ' + outcome);
+    is(shown[0].length > 0, 'an EMPTY line was drawn for outcome ' + outcome);
+    said[outcome] = shown[0];
+  }
+  // THE THREE THE ORDER GROUPS TOGETHER SAY THE SAME THING, and the three that stand alone do
+  // not. This is the assertion that a table of seven distinct keys would pass and a table that
+  // quietly collapsed to one message would fail.
+  eq(said.rejected, said.failed, 'rejected and failed say different things');
+  eq(said['client-bug'], said.failed, 'client-bug and failed say different things');
+  is(said.unavailable !== said.failed, 'unavailable says the same as failed');
+  is(said.throttled !== said.failed, 'throttled says the same as failed');
+  is(said['server-down'] !== said.failed, 'server-down says the same as failed');
+  is(said.unavailable !== said.throttled && said.throttled !== said['server-down'],
+    'two of the three standalone outcomes share a line');
+  // AND EVERY ONE OF THEM CAME THROUGH THE DICTIONARY, never a string typed at the call site.
+  const ar = CONTRACT.EZ_I18N.ar;
+  const known = Object.keys(ar).map((k) => ar[k]);
+  for (const outcome of Object.keys(said)) {
+    is(known.indexOf(said[outcome]) !== -1,
+      'the line for ' + outcome + ' is not in the dictionary: ' + JSON.stringify(said[outcome]));
+  }
+  return 'canceled: 0 lines  ·  6 outcomes: 1 line each, 4 distinct, all from the dictionary';
+});
+
+run('silence is answered by the deadline, and the deadline is sixty seconds', () => {
+  const scn = scene({});
+  const m = mountEntry(scn);
+  pressApple(m);
+  eq(scn.clock.pending(), 1, 'deadlines armed by the native press');
+  eq(scn.clock.delays(), [CONTRACT.SHELL_AUTH_APPLE_WAIT_MS], 'the delay armed');
+  eq(CONTRACT.SHELL_AUTH_APPLE_WAIT_MS, 60000, 'the deadline the order names');
+  // Nothing comes back at all -- one of the five cases the shell drops without answering.
+  is(appleBtn(m).props.disabled === true, 'the door was released before the deadline expired');
+  eq(cardLine(m), [], 'a line was shown before the deadline expired');
+  eq(scn.clock.fire(), 1, 'timers that fired');
+  is(appleBtn(m).props.disabled === false, 'the door is still held after the deadline expired');
+  eq(cardLine(m).length, 1, 'lines shown after the deadline expired');
+  eq(scn.storage.keys(), [], 'keys written by a deadline');
+  eq(scn.win.live(CONTRACT.SHELL_AUTH_SESSION), 0, 'listeners left behind by a deadline');
+  return '60000ms armed, fired, door released, 1 line, 0 keys, 0 listeners';
+});
+
+run('a session that arrives AFTER the deadline is still written', () => {
+  const scn = scene({});
+  const m = mountEntry(scn);
+  pressApple(m);
+  eq(scn.clock.fire(), 1, 'the deadline fired');
+  eq(cardLine(m).length, 1, 'the reader was told the attempt timed out');
+  is(appleBtn(m) !== null, 'the card advanced on a deadline');
+  // AND THE SHELL SPEAKS ANYWAY, sixty-one seconds late. The root listener never stopped
+  // listening, so the answer is not lost -- being late is not the same as being wrong.
+  shellSays(m, scn, okPayload(m));
+  eq(scn.storage.keys(), [CONTRACT.AUTH_SESSION_KEY], 'keys after a late ok:true');
+  eq(JSON.parse(scn.storage.getItem(CONTRACT.AUTH_SESSION_KEY)).session, FIXTURE.session,
+    'the session stored by a late answer');
+  is(appleBtn(m) === null, 'the card stayed on the question a late session answered');
+  return 'deadline fired, late ok:true still written, card still advanced';
+});
+
+run('the outcome reader refuses everything the contract does not carry', () => {
+  const scn = scene({});
+  const mod = build(scn);
+  const good = { type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: false, outcome: 'failed' };
+  eq(mod.ezikNativeOutcomeOf(good), 'failed', 'a refusal the contract names');
+  const bad = [
+    [Object.assign({}, good, { type: 'ezik:auth:result' }), 'another channel'],
+    [Object.assign({}, good, { v: 1 }), 'the version as a number'],
+    [Object.assign({}, good, { v: '2' }), 'a version this end does not speak'],
+    [Object.assign({}, good, { ok: true }), 'ok:true -- that is the other reader\'s business'],
+    [Object.assign({}, good, { ok: 'false' }), 'ok as the STRING false'],
+    [Object.assign({}, good, { outcome: 'no-answer' }), 'the deadline name, which never crosses'],
+    [Object.assign({}, good, { outcome: 'nope' }), 'an outcome nobody named'],
+    [Object.assign({}, good, { outcome: 7 }), 'an outcome that is not a string'],
+    [{}, 'an empty object'], [null, 'null'], ['failed', 'a bare string'], [[good], 'an array'],
+  ];
+  for (const [payload, what] of bad) {
+    eq(mod.ezikNativeOutcomeOf(payload), null, 'refused: ' + what);
+  }
+  // AND A BROWSER TAB READS NOTHING ON THIS CHANNEL EITHER -- the same first guard as the fifth.
+  const tab = scene({ shell: false });
+  eq(build(tab).ezikNativeOutcomeOf(good), null, 'what a browser tab made of a refusal');
+  // The two readers never both answer the same payload: one is for sessions, one for refusals.
+  is(mod.ezikNativeSessionOf(good) === null, 'the session reader accepted a refusal');
+  return bad.length + ' malformed refusals refused, tab refused, the two readers disjoint';
+});
+
+run('the Google door is untouched -- still the web ladder, still its own press', () => {
+  const scn = scene({});
+  const m = mountEntry(scn);
+  const g = googleBtn(m);
+  is(g !== null, 'the Google door is gone from the card');
+  g.props.onClick();
+  eq(scn.sent.length, 1, 'messages posted by the Google press');
+  const msg = JSON.parse(scn.sent[0]);
+  eq(msg.type, CONTRACT.SHELL_AUTH_REQUEST, 'the Google press posted ' + msg.type);
+  eq(Object.keys(msg).sort(), ['id', 'type', 'url', 'v'], 'the Google message still carries four fields');
+  is(new URL(msg.url).searchParams.get('provider') === 'google', 'the provider on the Google URL');
+  eq(scn.clock.pending(), 0, 'the Google press armed a deadline');
+  eq(scn.win.live(CONTRACT.SHELL_AUTH_RESULT), 1, 'the Google press did not arm its web listener');
+  return 'google -> ' + msg.type + ', 4 fields, 0 timers, 1 web listener';
+});
+
 // ---------------------------------------------------------------------------
 // THE MUTANTS -- the same lifted source with one line changed, each of which must be KILLED.
 // ---------------------------------------------------------------------------
@@ -899,8 +1557,136 @@ mutant('م٦ the button is drawn outside the shell as well',
     eq(countNodes(nodesOf(m.tree())), 0, 'nodes drawn in a browser tab');
   });
 
+// م٧ ANCHORS ON THE FUNCTION SIGNATURE AND NOT ON THE GUARD ALONE. ezikNativeOutcomeOf opens
+// with the SAME first line -- it is the same first question asked by the second reader on this
+// channel -- so the bare guard stopped being unique the moment the sixth channel landed, and
+// this mutant reported itself unapplied rather than passing. Naming the function it belongs to
+// is what makes it unambiguous again, and it stays that way however many readers are added.
+mutant('م٧ the origin test on the fifth channel is dropped',
+  'function ezikNativeSessionOf(detail) {\n  if (!ezikAuthBridge()) return null;',
+  'function ezikNativeSessionOf(detail) {\n  if (false) return null;',
+  (f) => {
+    const tab = scene({ shell: false });
+    const mod = build(tab, f);
+    mod.ezikNativeAuthReceive({
+      type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: true,
+      session: FIXTURE.session, email: '', provider: 'apple',
+    });
+    eq(tab.storage.keys(), [], 'keys a browser tab wrote');
+  });
+
+mutant('م٨ the fifth channel stops requiring a session',
+  "  if (typeof detail.session !== 'string' || !detail.session) return null;",
+  '  if (false) return null;',
+  (f) => {
+    const scn = scene({});
+    const mod = build(scn, f);
+    mod.ezikNativeAuthReceive({
+      type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: true, email: '', provider: 'apple',
+    });
+    eq(scn.storage.keys(), [], 'keys written for a payload carrying no session');
+  });
+
+mutant('م٩ the hide flag accepts anything truthy',
+  '  return window[SHELL_HIDE_SOCIAL_FLAG] === true;',
+  '  return !!window[SHELL_HIDE_SOCIAL_FLAG];',
+  (f) => {
+    const scn = scene({});
+    const mod = build(scn, f);
+    scn.win[mod.SHELL_HIDE_SOCIAL_FLAG] = 'true';
+    is(mod.ezikEntryDoors(scn.win.ReactNativeWebView) === true,
+      'the string \'true\' took both doors away');
+  });
+
+mutant('م١١ the settings row goes back to reading the bridge alone',
+  '  if (!session && ezikShellHidesSocialSignIn()) return null;', '  if (false) return null;',
+  (f) => {
+    const scn = scene({});
+    scn.win['EZIK_SHELL_HIDE_SOCIAL_SIGNIN'] = true;
+    const m = mountRow(scn, f);
+    eq(countNodes(nodesOf(m.tree())), 0,
+      'nodes drawn in Settings under the declaration');
+  });
+
+/** The same mutation discipline, over the entry card's own lift. */
+function mutantEntry(name, from, to, killedBy) {
+  const at = HARNESS_ENTRY_JSX.indexOf(from);
+  if (at === -1) { mutants.push({ name: name, applied: false, killed: false, note: 'the line to mutate is gone: ' + from }); return; }
+  if (HARNESS_ENTRY_JSX.indexOf(from, at + 1) !== -1) { mutants.push({ name: name, applied: false, killed: false, note: 'the line to mutate is not unique' }); return; }
+  const src = HARNESS_ENTRY_JSX.slice(0, at) + to + HARNESS_ENTRY_JSX.slice(at + from.length);
+  let factory = null;
+  try { factory = new Function('env', compile(src)); }
+  catch (e) { mutants.push({ name: name, applied: true, killed: false, note: 'the mutant does not compile: ' + e.message }); return; }
+  let died = null;
+  try { killedBy(factory); }
+  catch (e) { died = e.message; }
+  mutants.push({ name: name, applied: true, killed: died !== null, note: died || 'SURVIVED -- no case above bites it' });
+}
+
+mutantEntry('م١٠ the entry card goes back to reading the bridge alone',
+  '          {ezikEntryDoors(bridge) ? (<>', '          {bridge ? (<>',
+  (f) => {
+    const scn = scene({});
+    scn.win['EZIK_SHELL_HIDE_SOCIAL_SIGNIN'] = true;
+    const m = mountEntry(scn, f);
+    const ar = m.mod.EZ_I18N.ar;
+    eq(buttonsOf(m.tree()), [ar['entry.guest']], 'the buttons left after the declaration');
+  });
+
+
+mutantEntry('م١٢ the native request sends v as the NUMBER 1',
+  '  return { type: SHELL_AUTH_APPLE_START, v: SHELL_AUTH_V };',
+  '  return { type: SHELL_AUTH_APPLE_START, v: 1 };',
+  (f) => {
+    const scn = scene({});
+    const m = mountEntry(scn, f);
+    pressApple(m);
+    const msg = JSON.parse(scn.sent[0]);
+    is(typeof msg.v === 'string', 'v crossed the sixth channel as a ' + typeof msg.v);
+  });
+
+mutantEntry('م١٣ the ok === true guard is taken off the session reader',
+  '  if (detail.ok !== true) return null;', '  if (false) return null;',
+  (f) => {
+    // A HOSTILE PAYLOAD, AND THE ONLY ONE THIS MUTANT CAN BE CAUGHT BY: a refusal that also
+    // carries a session. The contract's own failure shape has four fields and no session, so
+    // dropping the guard alone would write nothing and the mutant would survive unbitten. What
+    // the guard actually defends against is a message that says it FAILED and hands over a key
+    // anyway -- and that must never reach the store.
+    const scn = scene({});
+    const mod = build(scn, f);
+    mod.ezikNativeAuthReceive({
+      type: mod.SHELL_AUTH_SESSION, v: mod.SHELL_AUTH_V, ok: false, outcome: 'failed',
+      session: FIXTURE.session, email: FIXTURE.email, provider: 'apple',
+    });
+    eq(scn.storage.keys(), [], 'keys written by a payload that said it FAILED');
+  });
+
+mutantEntry('م١٤ the Apple door stops being disabled while a sheet is open',
+  '            <button type="button" onClick={appleSignIn} disabled={busy}',
+  '            <button type="button" onClick={appleSignIn} disabled={false}',
+  (f) => {
+    const scn = scene({});
+    const m = mountEntry(scn, f);
+    pressApple(m);
+    is(appleBtn(m).props.disabled === true, 'the Apple door is still pressable after the press');
+  });
+
+mutantEntry('م١٥ the busy guard is taken off the native press',
+  '  const appleSignIn = () => {\n    if (busy || !bridge) return;',
+  '  const appleSignIn = () => {\n    if (!bridge) return;',
+  (f) => {
+    // The disable above and this guard are two locks on one door. م١٤ proves the visible one is
+    // there; this proves the one that actually holds when a click reaches the handler anyway.
+    const scn = scene({});
+    const m = mountEntry(scn, f);
+    pressApple(m);
+    appleBtn(m).props.onClick();
+    eq(scn.sent.length, 1, 'messages posted after a second call while a sheet was open');
+  });
+
 run('every mutant was applied and every one of them was killed', () => {
-  is(mutants.length >= 6, 'only ' + mutants.length + ' mutants -- the floor is six');
+  is(mutants.length >= 15, 'only ' + mutants.length + ' mutants -- the floor is fifteen');
   const notApplied = mutants.filter((m) => !m.applied).map((m) => m.name + ': ' + m.note);
   eq(notApplied, [], 'mutants that could not be applied');
   const survivors = mutants.filter((m) => !m.killed).map((m) => m.name + ': ' + m.note);
@@ -923,6 +1709,10 @@ run('every mutant was applied and every one of them was killed', () => {
   console.log('lifted:  ezikAuthAsk@' + startLine(FN_ASK) + '  ezikAuthMessage@' + startLine(FN_MSG)
     + '  ezikAuthClientState@' + startLine(FN_CS) + '  EzikSignInRow@' + startLine(FN_ROW)
     + '  SettingsSheet@' + startLine(FN_SETTINGS));
+  console.log('sixth:   ' + CONTRACT.SHELL_AUTH_APPLE_START + '  v='
+    + JSON.stringify(CONTRACT.SHELL_AUTH_V) + '  outcomes=' + CONTRACT.SHELL_AUTH_OUTCOMES.length
+    + '  deadline=' + CONTRACT.SHELL_AUTH_APPLE_WAIT_MS + 'ms'
+    + '  ezikNativeAppleAsk@' + startLine(FN_APPLE_ASK));
   console.log('contract: ' + CONTRACT.SHELL_AUTH_REQUEST + ' -> ' + CONTRACT.SHELL_AUTH_RESULT
     + '  v=' + JSON.stringify(CONTRACT.SHELL_AUTH_V) + ' (' + typeof CONTRACT.SHELL_AUTH_V + ')'
     + '  reasons=' + Object.keys(CONTRACT.SHELL_AUTH_CLASSES).length

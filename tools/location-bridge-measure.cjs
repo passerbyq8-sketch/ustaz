@@ -133,6 +133,7 @@ const HARNESS = [
   'const setTimeout = env.setTimeout;',
   'const clearTimeout = env.clearTimeout;',
   'const locStopRef = env.locStopRef;',
+  'const retryShellHeading = env.retryShellHeading;',
   'const setLoc = env.setLoc;',
   'const setLocState = env.setLocState;',
   text(C_KEY),
@@ -154,6 +155,9 @@ const HARNESS = [
 ].join('\n');
 
 const makeHarness = new Function('env', HARNESS);
+/** The same lift, from a mutated copy of the same source. A mutant that cannot be built is
+ *  a mutant that proves nothing, so the caller compares the two texts before it gets here. */
+const makeMutant = (src) => new Function('env', src);
 
 // The heading helpers and the real event handler need no React renderer. State setters are
 // recorders, the bridge is injected, and the exact functions are lifted from app.jsx.
@@ -276,6 +280,7 @@ function scene(opts) {
   const states = [];
   const locs = [];
   const writes = [];
+  const rearms = [];
   const clock = fakeClock();
 
   let bridge = null;
@@ -298,10 +303,14 @@ function scene(opts) {
     setLoc: (v) => { locs.push(v); },
     setLocState: (v) => { states.push(v); },
     writes: writes,
+    // THE RE-ARM, RECORDED RATHER THAN RE-IMPLEMENTED. The real retryShellHeading() lives in
+    // QiblaPanel and closes over its state; the fact this file can measure is the CALL.
+    retryShellHeading: () => { rearms.push('start'); },
   };
   return {
-    h: makeHarness(env), env: env, win: win, clock: clock,
-    sent: sent, geoCalls: geoCalls, states: states, locs: locs, writes: writes,
+    h: (o.harness ? makeMutant(o.harness) : makeHarness)(env),
+    env: env, win: win, clock: clock,
+    sent: sent, geoCalls: geoCalls, states: states, locs: locs, writes: writes, rearms: rearms,
   };
 }
 
@@ -711,6 +720,44 @@ run('nothing on this path runs before the press', () => {
     + sites.map((x) => x.name + '@' + x.line + ':' + x.parent).join(', ');
 });
 
+run('a granted position re-arms the heading, and a refusal does not', () => {
+  // WHY THIS CASE EXISTS. The shell answers ezik:heading:start out of the LOCATION permission --
+  // its own refusal line says exactly that, in the words the reader is shown. On a first-ever
+  // visit that permission has never been granted, so the ONE start this panel sends, in its one
+  // mount effect, is refused; and the panel had no second start in it. That is why the compass
+  // came up on the second visit and never on the first. The press that GRANTS the permission is
+  // the moment to ask again.
+  const ok = scene({ shell: 'recording', geo: 'trap', label: 'the shell path' });
+  ok.h.askLocation();
+  ok.win.dispatch('ezik:location:result', okResult());
+  eq(ok.rearms, ['start'], 're-arms after a granted position');
+  eq(ok.writes, [[LAT, LON]], 'the position written beside the re-arm');
+  eq(ok.states, ['asking', ''], 'locState after a granted position');
+
+  // A REFUSAL IS NOT A GRANT. ok:false ends exactly where it always ended -- one line, and the
+  // default position still standing -- and asking for a heading there would be asking again for
+  // a permission the reader has just declined.
+  const no = scene({ shell: 'recording', geo: 'trap', label: 'the shell path' });
+  no.h.askLocation();
+  no.win.dispatch('ezik:location:result',
+    { type: 'ezik:location:result', ok: false, lat: null, lon: null, error: 'denied' });
+  eq(no.rearms, [], 're-arms after a refusal');
+  eq(no.states, ['asking', 'denied'], 'locState after a refusal');
+
+  // AND THE MUTANT, BUILT FROM THE SAME LIFTED SOURCE WITH THAT ONE LINE TAKEN OUT. It is the
+  // tree as it stood before this round. If it still re-arms, this case is measuring nothing.
+  const original = text(V_VIA);
+  const stripped = original.replace(/\n\s*retryShellHeading\(\);/, '');
+  is(stripped !== original, 'the mutant changed nothing -- the re-arm call was not found');
+  const mutantSrc = HARNESS.replace(original, stripped);
+  is(mutantSrc !== HARNESS, 'the mutant harness is byte-identical to the real one');
+  const dead = scene({ shell: 'recording', geo: 'trap', label: 'the mutant', harness: mutantSrc });
+  dead.h.askLocation();
+  dead.win.dispatch('ezik:location:result', okResult());
+  eq(dead.writes, [[LAT, LON]], 'the mutant stopped writing the position too -- wrong mutation');
+  eq(dead.rearms, [], 'MUTANT SURVIVED: the panel re-armed without the re-arm line');
+  return '1 re-arm on a grant, 0 on a refusal, and the pre-fix mutant re-armed 0 times';
+});
 run('the request is posted from one place, and the shell object is never passed on raw', () => {
   let posts = 0;
   walk(ast.program, (n) => {
