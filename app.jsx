@@ -475,6 +475,9 @@ const EZ_I18N = {
     'auth.deleteConfirm': 'احذفْ حسابي',
     'auth.deleteDone': 'حُذِفَ حسابُك.',
     'auth.deleteFailed': 'تعذّرَ الحذفُ الآن. حاولْ مرّةً أخرى.',
+    'auth.nativeUnavailable': 'الدخولُ بحسابِ آبلَ غيرُ متاحٍ على هذا الجهاز.',
+    'auth.nativeThrottled': 'محاولاتٌ كثيرةٌ. انتظرْ قليلًا ثمّ أعِدِ المحاولة.',
+    'auth.nativeServerDown': 'الخدمةُ غيرُ متاحةٍ الآن. حاولْ بعدَ قليل.',
     // THE ENTRY SCREEN -- the first thing a device that has never been set up is shown.
     // 'entry.guestWarn' IS THE OWNER'S OWN SENTENCE, undiacriticised on purpose: it is quoted
     // from the order and not rewritten, because what it warns about -- the wird and the
@@ -830,6 +833,9 @@ const EZ_I18N = {
     'auth.deleteConfirm': 'Delete my account',
     'auth.deleteDone': 'Your account has been deleted.',
     'auth.deleteFailed': 'The deletion could not be completed now. Try again.',
+    'auth.nativeUnavailable': 'Signing in with Apple is not available on this device.',
+    'auth.nativeThrottled': 'Too many attempts. Wait a moment and try again.',
+    'auth.nativeServerDown': 'The service is unavailable right now. Try again shortly.',
     'entry.sub': 'Sign in and your wird and your conversations stay with your account on any device.',
     'entry.google': 'Continue with Google',
     'entry.apple': 'Continue with Apple',
@@ -14284,8 +14290,25 @@ function Onboarding({ onStart }) {
   const [line, setLine] = useState('');
   const csRef = useRef('');
   const stopRef = useRef(null);
-  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
-  useEzikNativeAuthEntry(() => setStep('profile'));
+  // THE NATIVE PRESS'S OWN DETACH, kept apart from the web one because the two presses are
+  // apart: one holds a listener with no timer, the other a listener WITH one, and a single
+  // ref would make releasing either of them release the wrong thing.
+  const nativeRef = useRef(null);
+  useEffect(() => () => {
+    if (stopRef.current) { stopRef.current(); stopRef.current = null; }
+    if (nativeRef.current) { nativeRef.current(); nativeRef.current = null; }
+  }, []);
+  // A SESSION LANDING ENDS THE NATIVE WAIT TOO, and this is the only line added inside the
+  // ok:true path rather than around it: the root listener still writes the session and the
+  // card still moves to the profile step, exactly as before. What is new is that the
+  // deadline and the press are released on the way, so a timer cannot fire sixty seconds
+  // later under a reader who is already through -- and a reply that arrives AFTER the
+  // deadline expired still lands here, because the root listener never stopped listening.
+  useEzikNativeAuthEntry(() => {
+    if (nativeRef.current) { nativeRef.current(); nativeRef.current = null; }
+    setBusy(false);
+    setStep('profile');
+  });
   // The ONE place an answer is WRITTEN, for both doors that write one -- a profile made before
   // this screen existed is the third way of having answered, and it needs no write. One act, one name.
   const enter = (choice) => { writeEntryChoice(choice); setStep('profile'); };
@@ -14313,6 +14336,27 @@ function Onboarding({ onStart }) {
         enter(ENTRY_ACCOUNT);
       });
     });
+  };
+  // APPLE GOES TO THE SHELL AND GOOGLE GOES TO THE WEB, AND THE TWO ARE NOT ONE FUNCTION.
+  // They share `busy` and `line` -- the disable and the message seat this screen already had
+  // -- and nothing else. Merging them would put a branch inside the web ladder above, whose
+  // lines a mutant finds by their exact text; the repetition is the price of a live proof.
+  //
+  // AND THE WEB PATH IS NOT OPENED HERE AT ALL. No client state is minted, no start URL is
+  // built, ezikAuthAsk is not called: the reader never reaches a browser, which is the whole
+  // point of the round.
+  const appleSignIn = () => {
+    if (busy || !bridge) return;
+    setBusy(true);
+    setLine('');
+    nativeRef.current = ezikNativeAppleAsk(bridge, (outcome) => {
+      nativeRef.current = null;
+      setBusy(false);
+      setLine(ezikNativeOutcomeLine(outcome));
+    });
+    // THE MESSAGE NEVER LEFT. Nothing is pending, so the press must not be either -- this is
+    // the one release the callback above can never perform, because it is never called.
+    if (!nativeRef.current) { setBusy(false); setLine(ezT('auth.exchangeFailed')); }
   };
   // ===== STEP TWO: THE NAME AND THE YEAR, AND NOTHING ON IT IS REQUIRED =====
   const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
@@ -14382,7 +14426,7 @@ function Onboarding({ onStart }) {
           {ezikEntryDoors(bridge) ? (<>
             <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[0])} disabled={busy}
               style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.google')}</button>
-            <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[1])} disabled={busy}
+            <button type="button" onClick={appleSignIn} disabled={busy}
               style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.apple')}</button>
           </>) : bridge ? null : <div style={s.welcomeSubtitle}>{ezT('entry.inApp')}</div>}
           {line ? <div className="ezgate-err">{line}</div> : null}
@@ -15802,6 +15846,123 @@ function useEzikNativeAuthEntry(onSession) {
     EZIK_NATIVE_AUTH_SUBS.add(onSession);
     return () => { EZIK_NATIVE_AUTH_SUBS.delete(onSession); };
   });
+}
+
+
+// ============================================================
+// THE SIXTH CHANNEL -- THE APPLE DOOR, ASKED FOR NATIVELY
+// ============================================================
+// WHY IT EXISTS AT ALL. The WEB door for Apple is shut in Apple's own console, and nothing
+// written on this side opens it. The shell can raise the system sheet, so inside the shell the
+// press stops asking for a browser and asks the shell instead. GOOGLE IS UNTOUCHED and still
+// goes the web way: this is one provider's route changing, not a second sign-in.
+//
+// ONE SHEET AT A TIME, AND THE SHELL OWNS THAT LATCH -- WHICH IS WHY THERE IS NO id HERE. The
+// far side refuses a second sheet while one is open, so a reply can only ever belong to the
+// press that is waiting. An id invented at this end would be a protocol only this end speaks,
+// and matching on it would drop the very answers it was added to catch.
+const SHELL_AUTH_APPLE_START = 'ezik:auth:apple-start';
+
+// TWO FIELDS AND NO THIRD, BUILT HERE RATHER THAN AT THE CALL. The shell validates the type and
+// the version and nothing else, and this end sends nothing else -- a field that rides across by
+// accident is a field the far side was never asked to ignore. And `v` is the STRING '1': the
+// number 1 is refused at the shell, so the constant is shared with the fifth channel rather
+// than retyped as a literal that could drift into a number.
+function ezikNativeAppleMessage() {
+  return { type: SHELL_AUTH_APPLE_START, v: SHELL_AUTH_V };
+}
+
+// THE SEVEN OUTCOMES THE SHELL NAMES, AND THE LINE EACH IS WORTH. `canceled` maps to the EMPTY
+// STRING and that is the whole of its treatment: a reader who dismissed the sheet chose that,
+// and a red line under a choice is an accusation. It is the same silence `dismissed` already
+// gets on the web path, and it is decided by this table rather than at the call site, so the
+// eighth outcome added later cannot be the one that forgets.
+//
+// AND `no-answer` IS NOT ONE OF THE SEVEN. It never crosses the bridge -- it is what THIS end
+// calls the deadline expiring -- so it is kept out of SHELL_AUTH_OUTCOMES deliberately, and a
+// payload claiming it is refused exactly like any other name the contract does not carry.
+const SHELL_AUTH_NO_ANSWER = 'no-answer';
+const SHELL_AUTH_OUTCOMES = Object.freeze([
+  'canceled', 'unavailable', 'rejected', 'throttled', 'server-down', 'client-bug', 'failed',
+]);
+const SHELL_AUTH_OUTCOME_LINES = Object.freeze({
+  canceled: '',
+  unavailable: 'auth.nativeUnavailable',
+  rejected: 'auth.exchangeFailed',
+  throttled: 'auth.nativeThrottled',
+  'server-down': 'auth.nativeServerDown',
+  'client-bug': 'auth.exchangeFailed',
+  failed: 'auth.exchangeFailed',
+  'no-answer': 'auth.exchangeFailed',
+});
+/** The sentence a reader is shown for an outcome, or '' when that outcome is a quiet one. */
+function ezikNativeOutcomeLine(outcome) {
+  const key = SHELL_AUTH_OUTCOME_LINES[outcome];
+  return key ? ezT(key) : '';
+}
+
+/**
+ * The REFUSAL the shell handed over, or null.
+ *
+ * IT IS A SIBLING OF ezikNativeSessionOf AND DELIBERATELY NOT A WIDENING OF IT. That function's
+ * answer is a session or nothing; three cases in tools/auth-bridge-measure.cjs compare it by
+ * DEEP EQUALITY, and -- the part that matters -- ezikNativeAuthReceive writes whatever it
+ * returns straight into the store. A second shape coming out of it would be a refusal one
+ * missing guard away from being saved as a session. Two readers on one channel, each answering
+ * one question, is the cheaper of the two by a wide margin.
+ *
+ * The guards are the same guards in the same order, up to the one that differs: ok must be
+ * exactly false, and the outcome must be a name the contract carries.
+ */
+function ezikNativeOutcomeOf(detail) {
+  if (!ezikAuthBridge()) return null;
+  if (!detail || typeof detail !== 'object' || Array.isArray(detail)) return null;
+  if (detail.type !== SHELL_AUTH_SESSION) return null;
+  if (detail.v !== SHELL_AUTH_V) return null;
+  if (detail.ok !== false) return null;
+  if (typeof detail.outcome !== 'string') return null;
+  if (SHELL_AUTH_OUTCOMES.indexOf(detail.outcome) === -1) return null;
+  return detail.outcome;
+}
+
+// HOW LONG THIS END WAITS, AND WHY IT WAITS AT ALL. The shell drops the request WITHOUT
+// answering in five cases -- wrong type, wrong version, Android, a sheet already open, Apple
+// unavailable on the device -- so silence is a real answer on this channel and a deadline is
+// the only thing that can end the wait. That is the one difference from the web path, which
+// arms no timer anywhere and is proved not to. Sixty seconds because a human is reading a
+// system sheet inside that window: generous on purpose, the way PRAYER_NOTIFY_WAIT_MS is.
+const SHELL_AUTH_APPLE_WAIT_MS = 60000;
+
+/**
+ * Ask the shell for the native sheet. THE SHAPE IS ezikNotifyRequest's, which is this file's
+ * idiom for "post one message, listen once, give up after a deadline": a detach that clears the
+ * timer, a listener that ignores anything that is not an answer, and null returned when the
+ * message never left -- so no caller can park a listener it never registered.
+ *
+ * SUCCESS IS NOT ITS BUSINESS. `ok:true` is written by useEzikNativeAuthRoot, which has been
+ * mounted for the life of the application since the fifth channel landed and already does it.
+ * This one watches only for the refusals that root listener drops on the floor, and it is
+ * stopped by the caller when a session lands -- so a deadline can never fire under a reader
+ * who is already through.
+ */
+function ezikNativeAppleAsk(bridge, onOutcome) {
+  let timer = null;
+  const stop = () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+    try { window.removeEventListener(SHELL_AUTH_SESSION, listen); } catch (e) {}
+  };
+  const listen = (ev) => {
+    const outcome = ezikNativeOutcomeOf(ev && ev.detail);
+    if (outcome === null) return;        // a success, or not an answer at all: keep listening
+    stop();
+    onOutcome(outcome);
+  };
+  try { window.addEventListener(SHELL_AUTH_SESSION, listen); }
+  catch (e) { return null; }
+  timer = setTimeout(() => { stop(); onOutcome(SHELL_AUTH_NO_ANSWER); }, SHELL_AUTH_APPLE_WAIT_MS);
+  try { bridge.postMessage(JSON.stringify(ezikNativeAppleMessage())); }
+  catch (e) { stop(); return null; }
+  return stop;
 }
 
 // ============================================================
