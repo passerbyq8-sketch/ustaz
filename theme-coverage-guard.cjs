@@ -3755,9 +3755,24 @@ const cvSrc = cut('function ChildVoiceNotice({', '\n// ONE PIN sheet');
 const usSrc = cut('function UnlockSheet({', '\nfunction Onboarding(');
 const pdSrc = cut('function ParentDashboard({', '\n// ====');
 const qstrip = (x) => x.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+// THE CEILING IS PER SCREEN NOW, AND ONBOARDING'S IS ITS OWN. This is a LOCATOR check, in the
+// same sense K3 spells out above: it proves each slice caught one screen rather than the whole
+// file or nothing at all. It is NOT a budget, and it has to follow the feature -- so when a
+// screen legitimately grows, the ceiling for THAT screen moves and the other five keep theirs.
+// A blanket raise would have loosened the locator for five screens that did not change, which
+// is the opposite of what a locator is for.
+//
+// 2026-08-28: the entry card's Apple door stopped walking the web ladder and now asks the shell
+// for the native sheet (the sixth channel). That added a press, a second detach ref and their
+// reasoning -- ~2.1k characters -- to a screen that was already at 11947 of 12000. Every
+// assertion below this line is what actually bounds the onboarding screen, and not one of
+// them moved.
+const LOCATOR_MAX = { onboarding: 16000 };
 for (const [n, src] of [['onboarding', onbSrc], ['parent gate', pgSrc], ['spend gate', sgSrc],
   ['child voice notice', cvSrc], ['unlock sheet', usSrc], ['parent dashboard', pdSrc]]) {
-  ok('the ' + n + ' was located and bounded', src.length > 400 && src.length < 12000, 'len=' + src.length);
+  const max = LOCATOR_MAX[n] || 12000;
+  ok('the ' + n + ' was located and bounded', src.length > 400 && src.length < max,
+    'len=' + src.length + ' max=' + max);
 }
 const ezRules = (name) => (css.match(new RegExp('\\.' + name + '[a-z0-9-]*(?:[^{}]*)\\{[^}]*\\}', 'g')) || []);
 
