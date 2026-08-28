@@ -420,7 +420,13 @@ const APPLE = 'apple';   // the name the shell sends in the body; never a branch
 
 function sha256hex(s) { return nodeCrypto.createHash('sha256').update(String(s), 'utf8').digest('hex'); }
 
-/** Claims a real native sheet would carry, plus whatever the case overrides. */
+/**
+ * Claims a real native sheet would carry, plus whatever the case overrides.
+ *
+ * THE `nonce` CLAIM IS THE RAW VALUE, because that is what the provider returns: it echoes the
+ * nonce the app handed the sheet, verbatim, and never hashes it. A fixture that hashed here would
+ * be a mirror of a wrong belief in the route rather than a measurement of the provider.
+ */
 function nativeClaims(g, over) {
   const now = Math.floor(g.clock.now() / 1000);
   return Object.assign({
@@ -429,7 +435,7 @@ function nativeClaims(g, over) {
     sub: FIXTURE.sub,
     exp: now + 600,
     iat: now,
-    nonce: sha256hex(FIXTURE.rawNonce),
+    nonce: FIXTURE.rawNonce,
     email: FIXTURE.email,
     email_verified: 'true',
   }, over || {});
@@ -502,7 +508,7 @@ run('C3 the right audience, the WRONG SIGNATURE (a key nobody published) -- IS R
   return 'HTTP 401 auth-idtoken-signature · REFUSED';
 });
 
-run('C4 a valid token whose rawNonce does not match the digest in it -- IS REFUSED', async () => {
+run('C4 a valid token whose rawNonce does not match the claim in it -- IS REFUSED', async () => {
   const g = buildGraph({});
   const token = g.signer.sign({}, nativeClaims(g));
   const res = await post(g, {
@@ -515,15 +521,18 @@ run('C4 a valid token whose rawNonce does not match the digest in it -- IS REFUS
   return 'HTTP 401 auth-idtoken-nonce · REFUSED';
 });
 
-/* -- THE NONCE IS A DIGEST, AND THE RAW VALUE IS NEVER COMPARED --------------- */
+/* -- THE NONCE IS THE RAW VALUE, AND A DIGEST IS NOT IT ----------------------- */
 
-run('N1 a token carrying the RAW nonce instead of its digest is refused', async () => {
+run('N1 a token carrying the DIGEST of the nonce instead of the raw value is refused', async () => {
+  // THE CASE THAT KEEPS THE DEFECT FROM COMING BACK IN SILENCE. A route that hashes the body's
+  // nonce before comparing would take this token and refuse C1 -- the exact inversion that was
+  // shipped, and the exact inversion a mirror-shaped fixture would have gone on certifying.
   const g = buildGraph({});
-  const token = g.signer.sign({}, nativeClaims(g, { nonce: FIXTURE.rawNonce }));
+  const token = g.signer.sign({}, nativeClaims(g, { nonce: sha256hex(FIXTURE.rawNonce) }));
   const res = await post(g, { provider: APPLE, identityToken: token, rawNonce: FIXTURE.rawNonce });
-  eq(res.statusCode, 401, 'the status for a raw-nonce token');
+  eq(res.statusCode, 401, 'the status for a digest-nonce token');
   eq(res.body.error, 'auth-idtoken-nonce', 'the refusal code');
-  return 'a plain-text nonce claim is not accepted: 401 auth-idtoken-nonce';
+  return 'a hashed nonce claim is not accepted: 401 auth-idtoken-nonce';
 });
 
 run('N2 a token with NO nonce claim at all is refused', async () => {
@@ -537,7 +546,7 @@ run('N2 a token with NO nonce claim at all is refused', async () => {
   return 'an absent nonce claim is a refusal, not a skip';
 });
 
-run('N3 the digest the route computes is sha256(rawNonce) in lower-case hex', async () => {
+run('N3 the kept nonceDigest helper is still sha256(rawNonce) in lower-case hex', async () => {
   const g = buildGraph({});
   const digest = g.native.nonceDigest(FIXTURE.rawNonce);
   eq(digest, sha256hex(FIXTURE.rawNonce), 'the digest');
@@ -915,7 +924,7 @@ run('Z1 the four controls did NOT all pass -- one accepted, three refused', asyn
   console.log('    C1  aud=app.ezik.tutor,  signature good, nonce matching   ->  HTTP ' + VERDICTS.C1 + '  ACCEPTED');
   console.log('    C2  aud=app.WRONG.tutor, everything else identical        ->  HTTP ' + VERDICTS.C2 + '  REFUSED');
   console.log('    C3  aud=app.ezik.tutor,  signature forged                 ->  HTTP ' + VERDICTS.C3 + '  REFUSED');
-  console.log('    C4  aud=app.ezik.tutor,  rawNonce does not match digest   ->  HTTP ' + VERDICTS.C4 + '  REFUSED');
+  console.log('    C4  aud=app.ezik.tutor,  rawNonce does not match claim    ->  HTTP ' + VERDICTS.C4 + '  REFUSED');
   console.log('');
   console.log(failed === 0
     ? 'OK: ' + results.length + '/' + results.length + ' checks passed.'

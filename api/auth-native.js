@@ -16,11 +16,12 @@
 // same code: the same key fetch, the same verifier, the same account writer, the same email seam
 // and the same session minter that api/auth-exchange.js calls.
 //
-// 🔑 THE NONCE IS A DIGEST, NOT A STRING. Apple puts the SHA-256 of the raw nonce -- HEX, lower
-// case -- into the token's `nonce` claim, never the nonce itself. So the raw value the app chose
-// arrives in the body and is HASHED HERE before the comparison; the token's claim is never
-// compared with a string the caller sent. A token whose claim is absent fails that comparison like
-// any other mismatch, which is why the absent case needs no branch of its own.
+// 🔑 THE NONCE IS COMPARED RAW. Apple returns the `nonce` claim EXACTLY as the app handed it to
+// the native sheet -- verbatim, never hashed. Hashing is the Firebase convention, in which the
+// CLIENT hashes before the request and posts the raw value to its own server; Apple is no party
+// to it. So the raw value the app chose arrives in the body and IS the comparand -- the token's
+// claim is compared with the string the caller sent. A token whose claim is absent fails that
+// comparison like any other mismatch, which is why the absent case needs no branch of its own.
 //
 // 🔴 THE SESSION IS MINTED, NOT A TICKET. The web path hands the device a sixty-second ticket
 // because its middle leg is a REDIRECT -- the value has to survive a trip through the operating
@@ -75,11 +76,11 @@ function bounded(v, min, max) {
 }
 
 /**
- * THE PROVIDER'S CLAIM, AS THE PROVIDER WRITES IT: sha256 of the raw nonce, hexadecimal.
+ * KEPT FOR A COMING HARDENING, AND NOT ON THE COMPARISON PATH: sha256 of a nonce, hexadecimal.
  *
- * Lower case and unpadded, which is what `digest('hex')` produces and what the provider sends.
- * The comparison itself happens inside verifyIdToken against `expected.nonce`, so this path has
- * exactly one nonce rule and it is the one the web path is already measured against.
+ * The day the shell hashes the nonce before `signInAsync` and posts the raw value beside it, the
+ * comparison below returns to a digest and this is the function it returns to. Lower case and
+ * unpadded, which is what `digest('hex')` produces. Exported because the probe imports it.
  */
 export function nonceDigest(rawNonce) {
   return crypto.createHash('sha256').update(String(rawNonce), 'utf8').digest('hex');
@@ -121,11 +122,11 @@ export default async function handler(req, res) {
   if (!jwks.ok) return res.status(503).json({ ok: false, error: jwks.code });
 
   // SIGNATURE, ISSUER, AUDIENCE, EXPIRY, ISSUED-AT, NONCE -- in that order, all of them required,
-  // and every one of them inside the SAME verifier the web path is measured on. The only value
-  // this route computes for itself is the digest, because only this route knows the raw nonce.
+  // and every one of them inside the SAME verifier the web path is measured on. The nonce goes in
+  // exactly as the body carried it, because that is the value the provider put in the claim.
   const verified = verifyIdToken(cfg, identityToken, {
     keys: jwks.keys,
-    nonce: nonceDigest(rawNonce),
+    nonce: rawNonce,
   });
   if (!verified.ok) return res.status(401).json({ ok: false, error: verified.code });
 
