@@ -448,6 +448,8 @@ const EZ_I18N = {
     'reminders.body.masaa': 'وقتُ أذكارِ المساء.',
     'reminders.body.wird': 'وقتُ وِردِكَ اليوميّ.',
     'reminders.body.daily': 'محتوى اليومِ في انتظارِك.',
+    'reminders.probe': 'افحصْ حالَ الجدولةِ الآن',
+    'reminders.probe.busy': 'يُسألُ التطبيقُ عن جدولِه…',
     // THE SIX LINES THE SAVE PIPE CAN SHOW. Five answer the shell's five named reasons; the
     // sixth answers everything else, so no contract word ever reaches a reader's screen.
     'save.tooLarge': 'الملفُّ أكبرُ من أن يُحفَظَ على هذا الجهاز.',
@@ -797,6 +799,8 @@ const EZ_I18N = {
     'reminders.asking': 'Asking the system for permission now…',
     'reminders.denied': 'Reminders are blocked in your system settings.',
     'reminders.silent': 'No answer came back, and the reminder is still off.',
+    'reminders.probe': 'Check the schedule now',
+    'reminders.probe.busy': 'Asking the app about its schedule…',
     'reminders.body.sabah': 'Time for the morning adhkar.',
     'reminders.body.masaa': 'Time for the evening adhkar.',
     'reminders.body.wird': 'Time for your daily wird.',
@@ -8558,6 +8562,9 @@ function App() {
   // 67 / 43-b / 47-b: the schedule pipe, armed at the root. It owns no screen state and renders
   // nothing; a reader who never opens the prayer sheet still has a day that needs arming.
   useEzikSchedRoot();
+  // THE FIFTH CHANNEL, LISTENED FOR AT THE ROOT. The shell speaks first on it, so there is no
+  // press and no one screen to hang it on; it owns no screen state and renders nothing.
+  useEzikNativeAuthRoot();
   useEzikVisualTheme();
   const [screen, setScreen] = useState('loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
@@ -14278,6 +14285,7 @@ function Onboarding({ onStart }) {
   const csRef = useRef('');
   const stopRef = useRef(null);
   useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  useEzikNativeAuthEntry(() => setStep('profile'));
   // The ONE place an answer is WRITTEN, for both doors that write one -- a profile made before
   // this screen existed is the third way of having answered, and it needs no write. One act, one name.
   const enter = (choice) => { writeEntryChoice(choice); setStep('profile'); };
@@ -14364,21 +14372,19 @@ function Onboarding({ onStart }) {
               about"; the owner has ruled the other way for the web, and the sentence below still
               says out loud where signing in happens, so nothing has become unaskable.
 
-              THE SEPARATOR IS THE ONE THIS FILE ALREADY DRAWS, AND IT IS A CAPABILITY RATHER THAN
-              A USER AGENT. `bridge` above is ezikAuthBridge(): the injected
-              window.ReactNativeWebView and its postMessage, or null. It is the same accessor,
-              read at the same one call site this component already had, that makes EzikSignInRow
-              return null in a tab. navigator.userAgent is consulted here no more than it is there.
-
-              AND NOTHING IS LEFT STANDING WHERE THEY WERE. The two are replaced in the tab by the
-              sentence that used to sit beneath them -- one for the other, in the same seat -- so
-              the card closes on a subtitle and a live door, never on a gap or an empty box. */}
-          {bridge ? (<>
+              THE TEST IS A CAPABILITY AND NEVER A USER AGENT. `bridge` is ezikAuthBridge(): the
+              injected window.ReactNativeWebView, or null -- the accessor that makes EzikSignInRow
+              return null in a tab. In the tab the two are replaced by the sentence that used to
+              sit beneath them, so the card never closes on a gap. AND THE SHELL MAY ASK FOR THEM
+              TO GO: ezikEntryDoors() reads the declaration documented over it -- how iOS keeps
+              Apple 4.8 while its own door is shut. Then NOTHING stands here: inside the app that
+              sentence would be false, and the guest door below carries the reader in alone. */}
+          {ezikEntryDoors(bridge) ? (<>
             <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[0])} disabled={busy}
               style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.google')}</button>
             <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[1])} disabled={busy}
               style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.apple')}</button>
-          </>) : <div style={s.welcomeSubtitle}>{ezT('entry.inApp')}</div>}
+          </>) : bridge ? null : <div style={s.welcomeSubtitle}>{ezT('entry.inApp')}</div>}
           {line ? <div className="ezgate-err">{line}</div> : null}
           {/* THE GUEST DOOR. Apple 5.1.1(v) refuses an account wall on an application whose
               content works without an account, and ours does -- the mushaf, the adhkar and the
@@ -15697,6 +15703,138 @@ function writeAuthSession(o) {
 function clearAuthSession() {
   try { localStorage.removeItem(AUTH_SESSION_KEY); } catch (e) {}
 }
+
+// ============================================================
+// THE FIFTH CHANNEL -- الجلسةُ تصلُ جاهزةً من الغلاف
+// ============================================================
+// WHAT THIS IS AND WHY IT IS FIFTH. The shell and this page speak over exactly four logical
+// channels today -- `auth`, `download`, `heading` and `location` -- and every one of them begins
+// with a REQUEST this page made, answered by an event carrying that request's own id. This is the
+// first channel that runs the other way: THE SHELL SPEAKS FIRST. Apple's native sign-in sheet
+// lives in the shell, because the shell is the only end that can raise it; the shell posts the
+// identity token to /api/auth-native, and what comes back is a finished session in the shape
+// api/auth-exchange.js already returns -- { ok, session, email, provider }. The shell stores no
+// session and reads none: it is a pipe. THIS page is the end that holds a session, so this is the
+// end that must be handed one.
+//
+// AND IT IS NOT A SECOND STORE. The session is written through writeAuthSession() -- the SAME
+// function both existing doors write through, into the SAME key, in the SAME shape. There is no
+// second key, no second storage path and no second copy of what a session looks like, so
+// resetAll(), delete.html and tools/delete-truth-measure.cjs go on being right about this path
+// without a letter changing in any of them.
+//
+// THE GUARD IS THE FOUR CHANNELS' OWN GUARD AND NOT A WEAKER ONE. Three refusals, in this order:
+//
+//   ORIGIN -- ezikAuthBridge() must answer. The injected window.ReactNativeWebView IS the
+//             provenance test on this seam and always has been: a page with no shell behind it
+//             has no shell that could have handed it a session. So the identical event dispatched
+//             in a browser tab writes NOTHING, and that refusal costs no branch of its own.
+//   NAME   -- `type` is this channel's own literal and `v` is the string "1", compared with ===
+//             exactly as SHELL_AUTH_V is compared everywhere else on this seam. The number 1 is
+//             not this contract, and neither is a version from a shell newer than this page.
+//   SHAPE  -- ok === true, a non-empty `session` string, and a `provider` that is one of the two
+//             names lib/auth/oidc.js actually holds. A payload missing any of the three is not a
+//             half-session to be repaired: it is refused whole and nothing is written.
+//
+// `email` is the one field allowed to be absent, and it is normalised to '' -- which is what
+// ezikAuthExchange() already does to the same field for the same reason: an account with no
+// verified address is a lawful account, and '' is how this file has always spelt that.
+const SHELL_AUTH_SESSION = 'ezik:auth:session';
+
+/**
+ * The session the shell handed over, or null. It writes nothing and throws in no branch: the
+ * caller is told what arrived, and a message that is not one is refused in silence exactly as
+ * every other malformed message on every other channel is.
+ */
+function ezikNativeSessionOf(detail) {
+  if (!ezikAuthBridge()) return null;
+  if (!detail || typeof detail !== 'object' || Array.isArray(detail)) return null;
+  if (detail.type !== SHELL_AUTH_SESSION) return null;
+  if (detail.v !== SHELL_AUTH_V) return null;
+  if (detail.ok !== true) return null;
+  if (typeof detail.session !== 'string' || !detail.session) return null;
+  const provider = typeof detail.provider === 'string' ? detail.provider : '';
+  if (SHELL_AUTH_PROVIDERS.indexOf(provider) === -1) return null;
+  return {
+    session: detail.session,
+    email: typeof detail.email === 'string' ? detail.email : '',
+    provider: provider,
+  };
+}
+
+// WHO IS TOLD, AND WHY IT IS A SET RATHER THAN A PROP. A session can land while the reader is
+// looking at the entry card, at Settings, or at a screen that owns none of this -- the shell
+// chooses the moment, not this file. A subscriber set is already how this file answers "something
+// moved that no component owns" (EZ_LANG_SUBS), so this is that pattern rather than a second idea
+// standing beside it.
+const EZIK_NATIVE_AUTH_SUBS = new Set();
+
+/** Judge, WRITE, then tell whoever is listening. Answers whether a session was actually written. */
+function ezikNativeAuthReceive(detail) {
+  const got = ezikNativeSessionOf(detail);
+  if (!got) return false;
+  writeAuthSession(got);
+  EZIK_NATIVE_AUTH_SUBS.forEach((fn) => { try { fn(got); } catch (e) {} });
+  return true;
+}
+
+// THE ONE LISTENER, MOUNTED AT THE ROOT. The shell speaks first, so there is no press to hang this
+// on and no one screen that is certainly open when it does. It attaches once for the life of the
+// application, sends nothing, and writes nothing at boot.
+function useEzikNativeAuthRoot() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onSession = (ev) => { ezikNativeAuthReceive(ev && ev.detail); };
+    try { window.addEventListener(SHELL_AUTH_SESSION, onSession); }
+    catch (e) { return undefined; }
+    return () => {
+      try { window.removeEventListener(SHELL_AUTH_SESSION, onSession); } catch (e) {}
+    };
+  }, []);
+}
+
+// AND THE ONE SCREEN THAT HAS TO MOVE WHEN IT LANDS. A session arriving while the reader is still
+// being asked to sign in leaves them looking at a question that has already been answered. The
+// subscription carries NO dependency array on purpose: the set is keyed on function identity, so
+// each render swaps its own closure in and the handler can never be a stale one.
+function useEzikNativeAuthEntry(onSession) {
+  useEffect(() => {
+    EZIK_NATIVE_AUTH_SUBS.add(onSession);
+    return () => { EZIK_NATIVE_AUTH_SUBS.delete(onSession); };
+  });
+}
+
+// ============================================================
+// THE FLAG THAT TAKES BOTH PROVIDER DOORS OFF THE ENTRY SCREEN -- مفتاحُ الرجعة
+// ============================================================
+// WHY IT CANNOT LIVE IN THE SHELL, WHICH IS THE WHOLE REASON IT LIVES HERE. The entry screen
+// draws its two doors on ONE condition: window.ReactNativeWebView exists. That same object is
+// what the schedule pipe, the location request, the heading stream and the download channel each
+// test before they speak, so withholding it in the shell would silence four contracts in order to
+// hide two buttons. The switch therefore has to be a SECOND declaration that this one decision
+// reads and nothing else does.
+//
+// THE RULE BEHIND IT. Apple 4.8 requires "Sign in with Apple" wherever another third-party
+// sign-in is offered. While the Apple door cannot be opened, the lawful alternative is not a
+// Google door standing on its own: it is NO third-party door at all on that platform -- and the
+// guest door that 5.1.1(v) already put on this screen carries the reader in without one.
+//
+// DECLARED, NEVER INFERRED, AND OFF BY CONSTRUCTION. The default is the two doors DRAWN, exactly
+// as they are drawn today; the flag is a boolean the shell sets on `window` before this page's own
+// script runs, and only the literal `true` counts. A string 'true', the number 1, an object --
+// none of them is a declaration, because a switch that can be turned on by accident is a switch
+// that eventually will be. navigator.userAgent is not consulted here for the reason it is not
+// consulted anywhere else on this seam: the platform is something the SHELL knows, and this page
+// is only ever told.
+const SHELL_HIDE_SOCIAL_FLAG = 'EZIK_SHELL_HIDE_SOCIAL_SIGNIN';
+function ezikShellHidesSocialSignIn() {
+  if (typeof window === 'undefined') return false;
+  return window[SHELL_HIDE_SOCIAL_FLAG] === true;
+}
+/** The doors exist when a shell can open them and that shell has not asked for them to go. */
+function ezikEntryDoors(bridge) {
+  return !!bridge && !ezikShellHidesSocialSignIn();
+}
 // ============================================================
 // ITEM 67 — THE READER'S OWN SWITCH: WHAT DECIDES WHETHER ANY OF THIS RUNS AT ALL
 // ============================================================
@@ -16093,6 +16231,108 @@ function ezikSchedArm() {
   return ezikSchedSend(ezikSchedItems(), Date.now());
 }
 
+
+// ============================================================
+// THE SCHEDULE PROBE -- ماذا يحملُ الغلافُ الآن، بأرقامِه
+// ============================================================
+// WHY A PROBE EXISTS AT ALL, AND WHY IT IS A CONTROL RATHER THAN A LOG. When a reminder does
+// not ring there are exactly four places the silence can live: this page never built the item,
+// this page never sent it, the far side refused it, or the far side took it and the system did
+// not fire it. From inside the application every one of those looks identical -- a phone that
+// stayed quiet. The contract already carries the numbers that tell them apart: murabbi-shell
+// src/scheduler/core.js answers `status` with the permission, the PENDING COUNT, the cap, the
+// ceiling and the window, and answers `schedule` with how many items it RECEIVED, how many it
+// actually SCHEDULED, and a named counter for every one it dropped. Nothing in this client ever
+// asked for them, so nobody could read them. This asks.
+//
+// IT PRINTS WHAT CAME BACK, NOT A VERDICT ABOUT IT. The reply is shown as it arrived, field for
+// field. A probe that summarised would be a second opinion about the very thing in doubt.
+//
+// AND IT IS NOT A SECOND PIPE. It builds its payload through ezikSchedPayload() -- the one
+// builder -- and it moves the pipe's own fingerprint back to empty afterwards, so the next
+// ordinary arm is guaranteed to send rather than to recognise itself as already sent.
+//
+// THE ONE OPERATION IT WILL NEVER SEND IS `enable`. That is the only message in the whole
+// contract that can raise a system prompt, it has exactly one call site in this file, and
+// tools/schedule-payload-measure.cjs holds it there. A diagnostic must not become a second door
+// to a permission dialog.
+const SHELL_SCHED_STATUS_OP = 'status';
+// The same generous window the reader's own switch waits, and for the same reason: what it
+// guards against is not a slow answer but an answer that never comes at all.
+const SCHED_PROBE_WAIT_MS = PRAYER_NOTIFY_WAIT_MS;
+
+// A FRESH IDENTITY PER PRESS, echoed back by the far side in `requestId` -- which core.js reads
+// off the message and copies into every reply. It is what makes one answer unreadable as
+// another's, exactly as the download and auth channels are matched on their own ids.
+let ezikSchedProbeSeq = 0;
+function ezikSchedProbeId() {
+  ezikSchedProbeSeq += 1;
+  return 'sp-' + ezikSchedProbeSeq + '-' + Date.now();
+}
+
+/** The reply to THIS press and this operation, or null for anything else on the channel. */
+function ezikSchedProbeReply(detail, op, id) {
+  if (!detail || typeof detail !== 'object') return null;
+  if (detail.channel !== SHELL_SCHED_CHANNEL) return null;
+  if (detail.v !== SHELL_SCHED_VERSION) return null;
+  if (detail.op !== SHELL_SCHED_RESULT_OP) return null;
+  if (detail.inReplyTo !== op) return null;
+  if (detail.requestId !== id) return null;
+  return detail;
+}
+
+// ONE ASK, ONE ANSWER, AND A DEADLINE THAT IS ITSELF A RESULT. A far side that never answers is
+// a fact about the far side, so the timeout reports `no-answer` rather than nothing.
+function ezikSchedProbeAsk(op, extra, onDone) {
+  const bridge = ezikSchedBridge();
+  if (!bridge) { onDone({ probe: op, error: 'no-shell' }); return null; }
+  const id = ezikSchedProbeId();
+  let timer = null;
+  const stop = () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+    try { window.removeEventListener(SHELL_SCHED_CHANNEL, listen); } catch (e) {}
+  };
+  const listen = (ev) => {
+    const got = ezikSchedProbeReply(ev && ev.detail, op, id);
+    if (!got) return;
+    stop();
+    onDone(got);
+  };
+  try { window.addEventListener(SHELL_SCHED_CHANNEL, listen); }
+  catch (e) { onDone({ probe: op, error: 'no-listener' }); return null; }
+  timer = setTimeout(() => { stop(); onDone({ probe: op, error: 'no-answer' }); }, SCHED_PROBE_WAIT_MS);
+  const msg = { channel: SHELL_SCHED_CHANNEL, v: SHELL_SCHED_VERSION, op: op, requestId: id };
+  // The one field any operation here adds, written out BY NAME rather than spread, so nothing
+  // a caller happened to be holding can ride across the bridge beside it.
+  if (extra && Array.isArray(extra.items)) msg.items = extra.items;
+  try { bridge.postMessage(JSON.stringify(msg)); }
+  catch (e) { stop(); onDone({ probe: op, error: 'bridge-refused' }); return null; }
+  return stop;
+}
+
+// WHAT THIS END BELIEVES, BEFORE THE FAR SIDE IS ASKED ANYTHING. The same builder the pipe uses,
+// so the numbers printed are the numbers that would be sent -- not a second count of them.
+function ezikSchedProbeLocal(nowMs) {
+  const built = ezikSchedPayload(ezikSchedItems(), nowMs);
+  const items = built.message.items;
+  const next = [];
+  for (let i = 0; i < items.length && i < 5; i++) {
+    const d = new Date(items[i].at);
+    next.push({
+      id: items[i].id,
+      at: items[i].at,
+      local: isFinite(d.getTime()) ? d.toString() : 'unreadable',
+    });
+  }
+  return {
+    prayerSwitch: readPrayerNotify(),
+    reminders: readReminders(),
+    built: items.length,
+    dropped: built.dropped,
+    nextFive: next,
+  };
+}
+
 // THE ROOT TRIGGERS. Mounted once, at the top of App, because a reader who never opens the prayer
 // sheet still has a day that needs arming.
 //
@@ -16268,6 +16508,17 @@ function QiblaPanel({ loc, onLoc }) {
       if (!coords) { setLocState('denied'); return; }
       setLoc(writeQiblaLoc(coords.lat, coords.lng));
       setLocState('');
+      // 🔴 AND THE HEADING IS RE-ARMED FROM HERE, WHICH IS THE WHOLE OF THE FIRST-VISIT FIX.
+      // The shell answers `ezik:heading:start` out of the LOCATION permission -- its own refusal
+      // line says exactly that in QIBLA_COMPASS_PERMISSION_DENIED -- and on a first-ever open
+      // that permission has never been granted. So the ONE start this panel sends, in its one
+      // mount effect, is answered `permission-denied`, and the panel is finished for that visit:
+      // no dial, no control, no second start. The way out the reader was left with was to LEAVE
+      // THE SCREEN AND COME BACK -- which is literally what the sentence they are shown tells
+      // them to do, and it is why the compass has always worked on the second visit and never on
+      // the first. The press that has just granted that very permission is the moment to ask
+      // again, so it asks again, on the same visit, through the one sender that already exists.
+      retryShellHeading();
     };
     try { window.addEventListener(SHELL_LOC_RESULT, onResult); }
     catch (e) { setLocState('denied'); return; }
@@ -16415,6 +16666,52 @@ function PrayerSheet({ onClose }) {
       <PrayerTimesPanel loc={loc} />
       <QiblaPanel loc={loc} onLoc={setLoc} />
     </EzShell>
+  );
+}
+
+// THE CONTROL. It is drawn only where a shell can answer it, it sends no `enable`, and it says
+// out loud that pressing it re-arms the schedule -- because `schedule` is an atomic rebuild on
+// the far side and a probe that pretended otherwise would be lying about what it just did.
+function EzikSchedProbe() {
+  const [out, setOut] = useState('');
+  const [busy, setBusy] = useState(false);
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  const press = () => {
+    if (busy) return;
+    setBusy(true);
+    const now = Date.now();
+    const local = ezikSchedProbeLocal(now);
+    const lines = { web: local };
+    setOut(JSON.stringify(lines, null, 1));
+    stopRef.current = ezikSchedProbeAsk(SHELL_SCHED_STATUS_OP, null, (status) => {
+      stopRef.current = null;
+      lines.status = status;
+      setOut(JSON.stringify(lines, null, 1));
+      const payload = ezikSchedPayload(ezikSchedItems(), Date.now());
+      stopRef.current = ezikSchedProbeAsk(SHELL_SCHED_OP, { items: payload.message.items }, (sched) => {
+        stopRef.current = null;
+        lines.schedule = sched;
+        // The pipe must not now believe the far side is holding what IT last sent, so the
+        // fingerprint goes back to empty and the next ordinary arm is guaranteed to speak.
+        ezikSchedLastSent = SHELL_SCHED_EMPTY;
+        setOut(JSON.stringify(lines, null, 1));
+        setBusy(false);
+      });
+      if (!stopRef.current) setBusy(false);
+    });
+    if (!stopRef.current) setBusy(false);
+  };
+  return (
+    <>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" onClick={press} disabled={busy}
+          data-ezik-sched-probe="run" className="ezik-focus"
+          style={{ ...s.prayerOpt, opacity: busy ? 0.5 : 1 }}>{ezT('reminders.probe')}</button>
+      </div>
+      {busy ? <div style={s.qiblaNote}>{ezT('reminders.probe.busy')}</div> : null}
+      {out ? <pre data-ezik-sched-probe="out" style={s.probeOut}>{out}</pre> : null}
+    </>
   );
 }
 
@@ -16982,6 +17279,9 @@ function EzikReminderSettings() {
   return (
     <EzShellGroup title={ezT('reminders.title')} hint={ezT('reminders.hint')}>
       {shell ? null : <div style={s.settingsHint}>{ezT('reminders.noShell')}</div>}
+      {/* THE PROBE, DRAWN ONLY WHERE SOMETHING CAN ANSWER IT. In a browser tab there is no far
+          side to ask, so the control is not offered rather than offered and dead. */}
+      {shell ? <EzikSchedProbe /> : null}
       {REMINDER_FEEDS.map((f) => {
         const cur = rec[f.id] || { on: false, times: [f.at] };
         return (
@@ -20384,6 +20684,12 @@ const s = {
   qiblaDir: { marginTop: 2, fontSize: 15, lineHeight: 1.7, color: 'var(--ink)' },
   qiblaDialWrap: { display: 'flex', justifyContent: 'center', padding: '10px 0' },
   qiblaNote: { marginTop: 6, fontSize: 13, lineHeight: 1.8, color: 'var(--muted)' },
+  // The probe printout. LTR and monospaced on purpose: what it shows is a contract reply, not
+  // prose, and a JSON object reflowed right-to-left is a JSON object nobody can read back.
+  probeOut: { marginTop: 8, padding: 10, borderRadius: 8, background: 'var(--page)',
+    color: 'var(--ink)', fontFamily: 'monospace', fontSize: 11, lineHeight: 1.6,
+    direction: 'ltr', textAlign: 'left', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere',
+    overflowX: 'auto' },
   remRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 },
   remSlotLabel: { flexShrink: 0, minWidth: 92, fontSize: 12.5, color: 'var(--muted)' },
   remTime: { flex: 1, minWidth: 0, minHeight: 44, boxSizing: 'border-box', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--line)', background: 'var(--tint)', color: 'var(--ink)', fontFamily: 'inherit', fontSize: 15, direction: 'ltr', textAlign: 'center' },

@@ -610,7 +610,18 @@ const SEALED = {
   //                    worker byte table and SW_PROSE mirror below both followed, and THIS digest
   //                    is re-cut last. CACHE is NOT bumped: install rewrites every CORE entry
   //                    into the same store.
-  'sw.js': '30cf787e2b8d4d8ceb87e79aba91d8b2a758460aa7c978991de70d996e1ed00c',
+  // THE WEB-SHELL SEAM (2026-08-28, feat/web-shell-seam-20260828). THREE CHANGES IN app.jsx AND
+  //                    NOT ONE IN THE WORKER ITSELF beyond its byte table: a FIFTH shell channel
+  //                    that hands this page a finished session (written through the existing
+  //                    writeAuthSession, no new key), a shell-declared flag that takes both
+  //                    provider doors off the entry screen while the guest door stays, and the
+  //                    qibla panel re-arming the heading stream when the location permission it
+  //                    needs is granted. app.js followed 1216884 -> 1232987 (+16103), and
+  //                    CORE_BYTES 2059731 -> 2075834 is exactly that delta. The worker byte
+  //                    table and the SW_PROSE mirror below both followed, and THIS digest is
+  //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
+  //                    the same store.
+  'sw.js': '8ff3aecd8e6abad870526cec566414a6b3dbb3c8f921c97bea46762de24d430c',
 };
 
 // ---------------------------------------------------------------------------
@@ -1721,7 +1732,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1216884, of: 'app.js' },
+      { n: 1232987, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
