@@ -20,7 +20,7 @@ const SALAH_ADULT_TEXT_HASH = '7687019965bf142259cdc7660af8c32a211cdb1455f5f479f
 // Re-cut in semantic round B after CLAIMS_AUDIT/د's production-smoke values were copied into the
 // formerly-null production field. The seal is on the whole file, so it changes whenever the
 // fixture does -- which is the point: no one edits this fixture without the seal saying so.
-const X021_FIXTURE_HASH = '2740b32014c481f4b7ebb0fe5ba6eddfa9f03f777573bc967ff5fba6fc214cde';
+const X021_FIXTURE_HASH = 'af39f7a0c755f3275e491a815dee49a5790fae574181f8ab622f10686dc34b77';
 const D2_CASE_QUESTIONS = Object.freeze([
   'كيف يصلي المريض الذي لا يستطيع القيام؟',
   'ما كيفية صلاة الخوف عند اشتداد القتال؟',
