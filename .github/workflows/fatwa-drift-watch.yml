@@ -1,0 +1,26 @@
+# Daily drift watch for the fatwa contract (item 3).
+# The 99 gates in gates.json are offline by design, so none of them can see the
+# live fatwa service. This schedule is the only thing that calls it every day.
+# --selftest runs the mirror test too: if the comparison goes blind, the run fails
+# even when there is no real drift. A red run is the scream.
+name: fatwa-drift-watch
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compare the pinned contract with the live service
+        run: node tools/fatwa-drift-watch.cjs --selftest
