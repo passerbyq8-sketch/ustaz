@@ -2654,6 +2654,7 @@ const getDailyVerse = () => {
 const KNOWN_TAG_NAMES = Object.freeze([
   'verse', 'surah', 'hadith', 'steps', 'suggestions',
   'board', 'document', 'source', 'dhikr', 'worship',
+  'lesson',
 ]);
 const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 // سجلُّ الإنقاذ: كلُّ مرّةٍ أفرغ فيها التنظيفُ نصًّا خادميًّا غيرَ فارغٍ فأُنقِذ بدلَ أن يُمحى.
@@ -3967,6 +3968,18 @@ const parseRichMessage = (text, viewerAge) => {
         site: siteMatch ? siteMatch[1] : '',
         url: urlMatch ? urlMatch[1] : '',
       });
+    } else if (tagName === 'lesson') {
+      // البندُ ٧: الدرسُ إسنادٌ لا متن — عنوانٌ وشيخٌ ورابط، ولا مقتطفَ ولا نصَّ درسٍ ألبتّة.
+      // والسمتانِ تُقرآنِ بقراءةِ `source` نفسِها حرفًا: التقاطٌ من نصِّ السماتِ بلا فكِّ ترميزٍ
+      // زائد، والهروبُ عندَ العرضِ هروبُ JSX نفسُه — لا نصَّ خامًا يُحقَنُ في شجرةٍ ألبتّة.
+      const scholarMatch = attrsStr.match(/scholar=["']([^"']+)["']/);
+      const lessonUrlMatch = attrsStr.match(/url=["']([^"']+)["']/);
+      segments.push({
+        type: 'lesson',
+        scholar: scholarMatch ? scholarMatch[1] : '',
+        url: lessonUrlMatch ? lessonUrlMatch[1] : '',
+        title: content,
+      });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
         .map(l => l.trim())
@@ -4020,6 +4033,9 @@ const formatForTTS = (text) => {
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
   t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' ');
+  // والدرسُ كالمصدرِ سواءً بسواء: بطاقةُ إسنادٍ تُنقَر، لا جملةٌ من الجواب — فلا يُنطَقُ وسمُه
+  // ولا عنوانُه ولا اسمُ شيخِه ولا رابطُه. الوسمُ ومحتواه معًا، بقاعدةِ المصدرِ نفسِها حرفًا.
+  t = t.replace(/<lesson[^>]*>[\s\S]*?<\/lesson>/g, ' ');
   // إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
   // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
   t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
@@ -4135,7 +4151,7 @@ const formatForTTS = (text) => {
       return ' ' + (fp === null ? iw : iw + ' فاصلة ' + _dbd(fp)) + ' ';
     });
   }
-  t = t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document)\b/gi, ' ');
+  t = t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document|lesson)\b/gi, ' ');
   // تنظيف الفراغات
   t = t.replace(/\s+/g, ' ').trim();
   for (const { token, url } of protectedUrls) t = t.split(token).join(url);
@@ -4156,6 +4172,12 @@ const formatForLog = (text) => {
   t = t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g, (_, title) => {
     const s = (title || '').trim();
     return s ? ` [المصدر: ${s}] ` : ' ';
+  });
+  // والدرسُ كالمصدرِ في هذا السطحِ حرفًا: عنوانُه يبقى نصًّا مقروءًا للأهل (للتحقّق)، ورابطُه
+  // يسقُط — لا URL خامّ في سجلِّ الوالدَين، ولا وسمٌ خامّ. والسمةُ لا تُقرأ، كما لا يُقرأ site.
+  t = t.replace(/<lesson[^>]*>([\s\S]*?)<\/lesson>/g, (_, title) => {
+    const s = (title || '').trim();
+    return s ? ` [الدرس: ${s}] ` : ' ';
   });
   // الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
   // نعرض المرجع فقط. نتجاهل أيّ نصّ بداخل الوسم تماماً (قد يرسله النموذج خطأً).
@@ -4246,6 +4268,7 @@ const formatForStreamPreview = (text) => {
   t = t.replace(/<hadith[^>]*>[\s\S]*?<\/hadith>/g, ' ');
   t = t.replace(/<steps[^>]*>[\s\S]*?<\/steps>/g, ' ');
   t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' '); // hide the source chip (tag + inner title) while streaming
+  t = t.replace(/<lesson[^>]*>[\s\S]*?<\/lesson>/g, ' '); // hide the lesson card (tag + inner title) while streaming
   t = t.replace(/<\/?[a-z][^>]*>/gi, ' '); // any remaining tag
   // S93: horizontal whitespace collapses, NEWLINES SURVIVE. They used to be flattened with
   // everything else, which was harmless while the preview was one run of plain text — but the
@@ -12443,6 +12466,23 @@ const REPLY_SERIALIZERS = {
     // and the chip's own href is the only place it exists on screen.
     return REPLY_LINE([text ? label + ' \u2014 ' + text : label, sg.url || '']);
   },
+  // ITEM 7. THE LESSON, COPIED AS IT IS SEEN. The https test below is LessonCard's own test,
+  // written out again here for the reason REPLY_SERIALIZERS.source's host derivation is written
+  // out again in ezikCardSourceLine: a tag the card refuses to draw must not put a line in the
+  // clipboard either, or the copy button stops being equal to the screen (D90/D91).
+  // THE SEPARATOR IS A LINE BREAK AND NOT source's dash, and that follows source's convention
+  // rather than departing from it: the source chip prints its two fields on ONE line, so they
+  // are joined with one; the lesson card prints title and scholar on TWO, so they are two.
+  // And there is no body line at any point -- a lesson has no text to copy.
+  lesson: (sg) => {
+    const url = String(sg.url == null ? '' : sg.url).trim();
+    if (!/^https:\/\//i.test(url)) return '';
+    return REPLY_LINE([
+      String(sg.title == null ? '' : sg.title).trim(),
+      String(sg.scholar == null ? '' : sg.scholar).trim(),
+      url,
+    ]);
+  },
   // The heading comes from the ANSWER (the tag's title), or there is no heading at all. It used
   // to be one fixed sentence printed above every list -- see readStepsTitle for what that cost.
   steps: (sg) => REPLY_LINE(((sg.title || '').trim() ? [(sg.title || '').trim()] : []).concat(
@@ -12955,6 +12995,9 @@ function ezikRenderSegments(segments, ctx) {
     }
     if (seg.type === 'source') {
       return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
+    }
+    if (seg.type === 'lesson') {
+      return <LessonCard key={i} scholar={seg.scholar} url={seg.url} title={seg.title} />;
     }
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
@@ -13825,6 +13868,30 @@ function SourceCard({ site, url, content }) {
         onPass={() => { setGate(null); try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} }}
         onCancel={() => setGate(null)} />}
     </>
+  );
+}
+
+// بطاقةُ الدرس (البندُ ٧): إسنادٌ إلى درسٍ عندَ شيخِه — عنوانُ الدرسِ واسمُ الشيخِ ورابطٌ يفتحُ
+// صفحةَ الدرسِ في تبويبٍ جديد. ولا متنَ لها ألبتّة: لا مقتطفَ ولا نصَّ ولا ملخّصًا ولا رقمَ
+// ترتيبٍ ولا دوّارةً ولا حالةَ خطأ — الدرسُ إسنادٌ لا متن (citation_allowed = 0 · usage = search_only).
+//
+// وهي متمايزةٌ بالنظرِ عن شريحةِ المصدرِ فوقَها عمدًا: تلك شريحةٌ دائريّةٌ في سطرٍ واحدٍ تنتهي
+// بسهم، وهذه كتلةٌ عنوانُها بارزٌ في سطرِه واسمُ الشيخِ تحتَه — لأنّ الدرسَ جنسٌ آخر: ليس فتوى
+// ولا صفحةَ مصدرٍ نُقِل عنها الجواب، فلا يُظَنُّ منها. والاتّجاهُ يُترَك كما يتركُه SourceCard:
+// للمستندِ لا للبطاقة.
+//
+// دالّةُ عرضٍ نقيّة: بلا حالةٍ داخليّةٍ ولا useEffect ولا نداءٍ شبكيّ ألبتّة.
+function LessonCard({ scholar, url, title }) {
+  const href = String(url == null ? '' : url).trim();
+  // https حصرًا. وبلا رابطٍ صالحٍ لا يُرسَمُ شيء: لا بطاقةٌ فارغةٌ ولا نصٌّ عارٍ.
+  if (!/^https:\/\//i.test(href)) return null;
+  const name = String(title == null ? '' : title).trim();
+  const by = String(scholar == null ? '' : scholar).trim();
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="ezik-focus" style={s.lessonCard}>
+      <span style={s.lessonCardTitle}>{name}</span>
+      {by ? <span style={s.lessonCardScholar}>{by}</span> : null}
+    </a>
   );
 }
 
@@ -21683,6 +21750,14 @@ const s = {
   sourceChipSite: { display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontWeight: 600, flexShrink: 0 },
   sourceChipText: { minWidth: 0, /* 13.4-b2 */ color: 'var(--ink)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   sourceChipArrow: { color: 'var(--red)', fontWeight: 700, flexShrink: 0, fontSize: 13 },
+
+  // ===== بطاقةُ الدرس (البندُ ٧) =====
+  // كتلةٌ لا شريحة، عمدًا، كي لا تُظَنَّ بطاقةَ مصدر. وبالرموزِ القائمةِ وحدَها -- --tint و--line
+  // و--answer-ink و--muted -- فلا تُضيفُ قيمةَ سمةٍ ولا تتجاوزُ واحدة، والصفُّ مضغوطٌ يحتملُ
+  // التكرارَ مرّتَينِ أو ثلاثًا في الجوابِ الواحدِ بلا ضجيج.
+  lessonCard: { display: 'flex', flexDirection: 'column', gap: 2, alignSelf: 'flex-start', maxWidth: '100%', minHeight: 44, justifyContent: 'center', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 12, padding: '8px 12px', fontFamily: 'var(--ez-ui-font)', color: 'var(--answer-ink)', textDecoration: 'none', boxSizing: 'border-box' },
+  lessonCardTitle: { fontSize: 14, fontWeight: 600, lineHeight: 1.7, overflowWrap: 'anywhere', color: 'var(--answer-ink)' },
+  lessonCardScholar: { fontSize: 12, fontWeight: 500, color: 'var(--muted)' },
 
   // ===== شارةُ الوسم (XI-04) =====
   // A footnote, not a pill: its body is a whole sentence, so it wraps and it is not clipped. It

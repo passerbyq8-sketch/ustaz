@@ -500,5 +500,10 @@
     "name": "authbridge",
     "script": "tools/auth-bridge-measure.cjs",
     "args": ""
+  },
+  {
+    "name": "lessontag",
+    "script": "guards/lesson-tag-guard.cjs",
+    "args": "--selftest"
   }
 ]

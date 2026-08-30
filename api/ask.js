@@ -1391,6 +1391,7 @@ export default async function handler(req, res) {
       // answers a sum from memory must not pay for loading them.
       const {
         runFreeBrainTurn, pickReaderCards, reviewerEvidence, encyclopediaTail, citedDeliveryLedger,
+        splitCitedLessons, pickLessonCards,
       } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
 
@@ -1462,7 +1463,8 @@ export default async function handler(req, res) {
       const rejectedCardRow = explicitlyRejectedAttribution && onlyCitedRow && !onlyCitedRowPassed
         ? onlyCitedRow : null;
       const buildReviewedCard = (row) => row === rejectedCardRow ? null : buildFreeCard(row);
-      const cards = registerOwnedCards(pickReaderCards(out.cited, MAX_SOURCES, buildReviewedCard));
+      const citedSplit = splitCitedLessons(out.cited);
+      const cards = registerOwnedCards(pickReaderCards(citedSplit.pages, MAX_SOURCES, buildReviewedCard));
       finalizerContext.readerCards = cards;
       finalizerContext.readerCardPrefix = cards.length ? '\n\n' : '';
       // ── §٣ (C): THE ENCYCLOPEDIA IS ATTRIBUTED IN A LINE, NOT IN A CARD ────
@@ -1482,7 +1484,37 @@ export default async function handler(req, res) {
       // over rows it selects by `row.url`; an encyclopedia row has none and was never a candidate.
       // §٣/٢ is therefore a property of which field each side reads, not a subtraction anybody has
       // to remember to perform.
-      finalizerContext.readerSuffix = encyclopediaTail(out.cited);
+      // LESSONS RIDE A TAIL, NEVER A CARD SLOT.
+      // A lesson row carries a URL, so pickReaderCards above would have taken it and displaced
+      // a published fatwa from one of the three slots. It carries NO text at any layer
+      // (citation_allowed = 0, usage = search_only): it is an ISNAD, never a matn, so it gets
+      // its own tag rather than a source card the reader would mistake for one.
+      const MAX_LESSON_TAGS = 3;
+      const buildLessonTag = (row) => {
+        // buildSourceTag is the ONLY url gate: https-only, host shape, userinfo, hostile chars.
+        const card = buildSourceTag({ url: row.url, title: row.title });
+        if (!card || !card.tag) return null;
+        const scholar = String(row.publisher == null ? "" : row.publisher)
+          .replace(/[<>"]/g, " ")
+          .replace(/\u0027/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 120)
+          .trim();
+        const title = String(row.title == null ? "" : row.title)
+          .replace(/[<>]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, SOURCE_TITLE_MAX)
+          .trim();
+        if (!scholar || !title) return null;
+        return { url: card.url, host: card.host, tag: `<lesson scholar="${scholar}" url="${card.url}">${title}</lesson>` };
+      };
+      const lessonTags = pickLessonCards(citedSplit.lessons, MAX_LESSON_TAGS, buildLessonTag);
+      const lessonSuffix = lessonTags.length ? "\n\n" + lessonTags.map((row) => row.tag).join("\n") : "";
+      // APPENDED, never assigned over: encyclopediaTail owns this field first.
+      const encTail = encyclopediaTail(out.cited);
+      finalizerContext.readerSuffix = (typeof encTail === "string" ? encTail : "") + lessonSuffix;
       // ── §٣/٣ (C): THE SILENT LOSS, ENDED ──────────────────────────────────
       // One line per cited row with the reason it did or did not reach the reader. Serialised
       // rather than handed over as an object, for the reason [free-brain/redactions] below states:
