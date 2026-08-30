@@ -8854,6 +8854,13 @@ function App() {
   const [lessonRows, setLessonRows] = useState(null);
   const lessonsAbortRef = useRef(null);
   const lessonsSeqRef = useRef(0);
+  // ITEM 7/P1: the assistant turn a lessons call belongs to, captured when that turn is built.
+  // The rows are attached to THAT message object by identity, so an answer keeps its own list
+  // for the rest of the conversation and a late landing can never be drawn under a different
+  // one. `cid` is the conversation it was asked in: `saveMessages` files under the CURRENT chat
+  // id, so a reader who has since opened another conversation must not have this turn's array
+  // written over theirs.
+  const lessonsTurnRef = useRef(null);
   // Called at the START of every question: the card goes at once, the pending call is aborted,
   // and the generation moves on so a late landing can recognise itself as stale.
   const resetLessons = () => {
@@ -8866,6 +8873,10 @@ function App() {
   const startLessonsSearch = (q, seq) => {
     const query = typeof q === 'string' ? q.trim() : '';
     if (query.length < EZIK_LESSONS_MIN_Q) return;
+    // Read ONCE, here, not at the landing: the turn this call belongs to is the one that was on
+    // the screen when it was fired, whatever has happened by the time it comes back.
+    const turn = lessonsTurnRef.current;
+    const aiMsg = turn ? turn.msg : null;
     const controller = new AbortController();
     lessonsAbortRef.current = controller;
     const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_LESSONS_TIMEOUT_MS);
@@ -8873,7 +8884,10 @@ function App() {
       clearTimeout(timer);
       if (lessonsSeqRef.current !== seq) return; // a newer question owns the screen
       lessonsAbortRef.current = null;
-      if (rows && rows.length) setLessonRows(rows);
+      if (rows && rows.length) setMessages((prev) => prev.map((mm) => (mm === aiMsg ? { ...mm, lessonRows: rows } : mm)));
+      // What is stored must match what is on screen. Same identity test, and only while the
+      // reader is still inside the conversation that asked -- see the ref's note above.
+      if (rows && rows.length && turn && chatIdRef.current === turn.cid) saveMessages(turn.msgs.map((mm) => (mm === aiMsg ? { ...mm, lessonRows: rows } : mm)));
     });
   };
 
@@ -11038,6 +11052,7 @@ function App() {
     // ITEM 24-A: LAST, AND UNAWAITED. The answer is committed, painted and (in voice mode)
     // already speaking before this line runs, and nothing below waits on it. `text` is the
     // reader's question exactly as it was typed.
+    lessonsTurnRef.current = { msg: aiMsg, msgs: final, cid: chatIdRef.current };
     startLessonsSearch(text, lessonsSeq);
   };
 
@@ -12039,7 +12054,7 @@ function App() {
              that on every message in the thread, to locate one of them. */
           <React.Fragment key={i}>
             {i === pinnedAskIndex && <div ref={pinAnchorRef} aria-hidden="true" data-ezik-ask-pin="" />}
-            <MessageBubble index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} onFavoriteAyah={cbFavoriteAyah} ayahFavIds={ayahFavIds} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} lessonRows={i === messages.length - 1 ? lessonRows : null} />
+            <MessageBubble index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} onFavoriteAyah={cbFavoriteAyah} ayahFavIds={ayahFavIds} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} lessonRows={m && m.lessonRows ? m.lessonRows : null} />
           </React.Fragment>
         ))}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not

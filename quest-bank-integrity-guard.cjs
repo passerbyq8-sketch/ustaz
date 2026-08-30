@@ -630,7 +630,7 @@ const SEALED = {
   //                    that delta. The worker byte table and the SW_PROSE mirror below both
   //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
   //                    rewrites every CORE entry into the same store.
-  'sw.js': '18fc848f92b67bbc1f4afb54c2ec9ac095d33bdb1d8b2c552f617bf32451ebf3',
+  'sw.js': '68dcded45a72b0061de2460b30e3706deebb858a119bfc6b4367d204da467bef',
 };
 
 // ---------------------------------------------------------------------------
@@ -1741,7 +1741,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1248701, of: 'app.js' },
+      { n: 1249879, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
