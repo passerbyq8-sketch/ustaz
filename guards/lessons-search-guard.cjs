@@ -494,7 +494,7 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('an empty list draws null rather than a heading over nothing',
     /rows\.length === 0\) return null;/.test(drawCode));
   check('nothing is drawn unless a row survived the whitelist',
-    /if \(rows && rows\.length\) setLessonRows\(rows\);/.test(callCode));
+    /if \(rows && rows\.length\)/.test(callCode));
 
   // -- 5c-4. THE ORDER'S THIRD DEMAND: AbortController on the call path ----------------------
   check('an AbortController is created for the call and its signal is passed to fetch',
@@ -519,8 +519,17 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
     fireIdx !== -1 && commitIdx !== -1 && fireIdx > commitIdx, 'fire=' + fireIdx + ' commit=' + commitIdx);
   check('...and it is never awaited, so it cannot delay a character of the answer',
     appJsx.indexOf('await startLessonsSearch') === -1);
-  check('the card is handed to the newest bubble and to no other',
-    /lessonRows=\{i === messages\.length - 1 \? lessonRows : null\}/.test(appJsx));
+  check('the card is handed to the turn that fetched it, and to no other',
+    /lessonRows=\{m && m\.lessonRows \? m\.lessonRows : null\}/.test(appJsx));
+  // ITEM 7/P1. The rows are attached to the assistant message OBJECT the call was fired for,
+  // matched by identity inside a functional updater -- never by array position, which is what
+  // made a second question take the first answer's list away. The generation guard is pinned
+  // here with it: identity says WHICH turn, the sequence says whether that turn is still the
+  // one being answered, and an edit that keeps one while dropping the other is a regression
+  // this check refuses.
+  check('the rows land on the turn that owns them, matched by identity and not by position',
+    /setMessages\(\(prev\) => prev\.map\(\(mm\) => \(mm === aiMsg \? \{ \.\.\.mm, lessonRows: rows \} : mm\)\)\)/.test(callCode)
+    && /lessonsSeqRef\.current !== seq\) return;/.test(callCode));
   check('the bubble renders the card at its tail and fetches nothing itself',
     /<EzikLessonCards rows=\{lessonRows\} \/>/.test(appJsx));
 
