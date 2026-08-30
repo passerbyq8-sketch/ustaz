@@ -827,9 +827,11 @@ const SET_CTRL = [
   ['PIN change', /onClick=\{savePin\}/, /autoComplete="new-password"/],
 ];
 for (const [name, a, b] of SET_CTRL) ok('Settings keeps its ' + name + ' control', a.test(html) && b.test(html));
-// four: the font-size radios share one className in a map, plus the two switches and reset.
+// FIVE now: the font-size radios share one className in a map, the two switches, reset -- and
+// the form-of-address pair that Apple 4.0.0 moved off the first-run card into Settings, which is
+// a radiogroup like the font-size one and is drawn from the same className for the same reason.
 ok('...and the a11y controls are still keyboard-reachable buttons with the focus ring',
-  (html.match(/className="ez-a11y-opt"/g) || []).length === 4 && /\.ez-a11y-opt:focus-visible/.test(css));
+  (html.match(/className="ez-a11y-opt"/g) || []).length === 5 && /\.ez-a11y-opt:focus-visible/.test(css));
 ok('the theme control still writes the SAME key with the SAME two values',
   /localStorage\.setItem\(THEME_KEY, v\)/.test(html) && /t === 'dark' \|\| t === 'light'/.test(html));
 ok('the accessibility preferences are still profile-scoped',
@@ -3754,6 +3756,12 @@ const sgSrc = cut('function SpendGate({', '\n// D88 -- the settings sheet');
 const cvSrc = cut('function ChildVoiceNotice({', '\n// ONE PIN sheet');
 const usSrc = cut('function UnlockSheet({', '\nfunction Onboarding(');
 const pdSrc = cut('function ParentDashboard({', '\n// ====');
+// APPLE 4.0.0: Q4 reads Settings as well as the entry card now, because the three fields it
+// used to find on the card are in Settings, and a check that only looked at the card could
+// not tell 'moved' from 'deleted'. It is NOT a seventh member of the group above: it has no
+// length window, no colour rule and no mount pattern here -- those belong to the screens this
+// group is about, and Settings is measured as a screen by gate i18nui and by S105's own block.
+const setSrc = cut('function SettingsSheet({', '\nfunction ParentDashboard(');
 const qstrip = (x) => x.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
 // THE CEILING IS PER SCREEN NOW, AND ONBOARDING'S IS ITS OWN. This is a LOCATOR check, in the
 // same sense K3 spells out above: it proves each slice caught one screen rather than the whole
@@ -3840,29 +3848,65 @@ ok('Q3: the boot page is still painted from the boot token',
   /loadingScreen: \{ minHeight: '100vh', background: 'var\(--boot-bg\)'/.test(html));
 
 /* ---- Q4. the first run is the first run ---------------------------------- */
-// Measured on the MARKUP, in the order the reader meets it -- name, then the two choices, then
-// the year. Reading order and tab order are the same thing here, and this is what pins both.
+// APPLE 4.0.0 TOOK THE SECOND STEP OFF THIS SCREEN, AND Q4 FOLLOWED IT RATHER THAN BEING
+// DELETED. Submission e931435e-f171-4da4-b476-c33fd5dde452 was refused because a reader who
+// had just signed in with Apple was then asked for a name and a year. What used to be pinned
+// here -- the name, the two choices and the year, in that order, with the year's arithmetic
+// behind them -- is pinned in the two blocks below instead: the ENTRY CARD asks none of it,
+// and SETTINGS asks all of it, in the same order, judged by the same arithmetic. A check that
+// only said "the card no longer asks" would pass just as loudly on a tree where the three
+// fields had been deleted outright, which is the other way to fail this order.
 {
-  const iName = onbSrc.indexOf('placeholder="الاسم"');
-  const iMale = onbSrc.indexOf("setGender('male')");
-  const iFemale = onbSrc.indexOf("setGender('female')");
-  const iYear = onbSrc.indexOf('placeholder="سنة الميلاد');
-  const iGo = onbSrc.indexOf('onClick={submit} disabled={!canStart}');
-  ok('Q4: the welcome still asks the same three things, in the same order',
+  const gone = (needle) => onbSrc.indexOf(needle) === -1;
+  ok('Q4: the entry card asks for nothing -- no field, and none of the three by name',
+    !/<input/.test(onbSrc) && gone("setGender(")
+    && gone('placeholder="الاسم"') && gone("ezT('onboarding.name')")
+    && gone('placeholder="سنة الميلاد') && gone("ezT('onboarding.birthYear')"),
+    'len=' + onbSrc.length);
+  // A STEP REMOVED IS ONLY REMOVED IF NOTHING OF IT IS LEFT BEHIND: not the skip that let a
+  // reader past it, not the validation that could hold them on it, and not the state that
+  // decided which half of it they were looking at.
+  ok('Q4: ...and nothing of the step it lost is still standing on it',
+    gone('canStart') && gone('ageValid') && gone('setStep(') && gone("'profile'")
+    && !/ezT\('entry\.skip'\)/.test(html) && !/ezT\('entry\.optional'\)/.test(html));
+  // AND THE DECISION ENTERS THE APPLICATION, which is the whole of the repair: one press, one
+  // call, and the default age the owner ruled for behind it.
+  ok('Q4: ...and it still hands the profile over through the SAME single call',
+    /const requestStart = \(nm\) => \{/.test(onbSrc)
+    && /onStart\(typeof nm === 'string' \? nm : '', ONBOARDING_DEFAULT_AGE, null\);/.test(onbSrc)
+    && (qstrip(onbSrc).match(/onStart\(/g) || []).length === 1);
+}
+{
+  // THE THREE FIELDS, WHERE THEY WENT. Measured on the markup, in the order the reader meets
+  // them -- name, then the two choices, then the year -- exactly as this block measured them
+  // on the first-run card before the order moved them. Reading order and tab order are the
+  // same thing here, and this is what pins both.
+  ok('Q4: SettingsSheet was located before it was searched', setSrc.length > 2000,
+    'len=' + setSrc.length);
+  const iName = setSrc.indexOf("placeholder={ezT('onboarding.name')}");
+  const iMale = setSrc.indexOf("ezT('onboarding.male')");
+  const iFemale = setSrc.indexOf("ezT('onboarding.female')");
+  const iYear = setSrc.indexOf("placeholder={ezT('onboarding.birthYear')}");
+  const iGo = setSrc.indexOf("onClick={savePf} disabled={!pfYearOk}");
+  ok('Q4: Settings asks the same three things, in the same order',
     iName !== -1 && iMale > iName && iFemale > iMale && iYear > iFemale && iGo > iYear,
     [iName, iMale, iFemale, iYear, iGo].join(' < '));
+  // THE YEAR IS VALIDATED EXACTLY AS IT WAS. A year that is typed and outside 4..99 is still
+  // wrong, still says so, and still holds the button it stands beside -- what changed is that
+  // the button is now SAVE and not the way into the application, so a typo cannot keep anybody
+  // out of anything. An EMPTY year is not wrong: it is declining to say, and the saver answers
+  // it with ONBOARDING_DEFAULT_AGE, the adult above eighteen the owner ruled for.
+  ok('Q4: ...and the year is judged by the same arithmetic, in both places that judge it',
+    /const pfYearOk = !\(pfYear\.trim\(\) && !\(Number\.isInteger\(pfYearNum\) && pfDerived >= 4 && pfDerived <= 99\)\);/.test(setSrc)
+    && /if \(!Number\.isInteger\(yr\) \|\| derived < 4 \|\| derived > 99\) return false;/.test(html)
+    && /const year = typed \? yr : \(new Date\(\)\.getFullYear\(\) - ONBOARDING_DEFAULT_AGE\);/.test(html));
+  // AND IT EDITS THE PROFILE RATHER THAN MINTING A SECOND ONE: the pid a reader's saved
+  // conversations are filed under must survive a rename, so the saver spreads the record it
+  // was handed and never calls ezikMintId().
+  ok('Q4: ...and saving edits the profile that exists instead of minting a new one',
+    /const p = \{ \.\.\.base, name: String\(name \|\| ''\)\.trim\(\), gender: gender \|\| null,/.test(html)
+    && !/const saveProfileFields[\s\S]{0,1200}ezikMintId\(\)/.test(html));
 }
-// THE YEAR IS VALIDATED EXACTLY AS IT WAS, AND IT IS NOW THE ONLY THING THAT CAN HOLD THE
-// BUTTON. The login-first order made every field on this card optional -- the reader may skip it
-// whole -- so requiring a name and a chosen form of address to get past it is the condition that
-// had to go. What did NOT go is the arithmetic: a year that is typed and outside 4..99 is still
-// wrong, still says so, and still holds the primary button, because a typo is worth one correction
-// and «تخطّي» stands beside it for a reader who would rather not make it. Both halves are pinned.
-ok('Q4: ...validated the same way', /const ageValid = Number\.isInteger\(yearNum\) && derivedAge >= 4 && derivedAge <= 99;/.test(onbSrc)
-  && /const canStart = !\(birthYear\.trim\(\) && !ageValid\);/.test(onbSrc));
-ok('Q4: ...and it still hands the profile to the SAME single call',
-  /const requestStart = \(n\) => \{\s*\r?\n\s*onStart\(name, n, gender\);/.test(onbSrc)
-  && (qstrip(onbSrc).match(/onStart\(/g) || []).length === 1);
 ok('Q4: the routing that follows it is untouched',
   html.indexOf("if (screen === 'onboarding') return <Onboarding onStart={startChat} />;") !== -1
   && /const startChat = async \(name, age, gender\) => \{/.test(html)

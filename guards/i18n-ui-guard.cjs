@@ -488,15 +488,19 @@ async function partD0() {
   eq('...declaring its menu closed', t.getAttribute('aria-expanded'), 'false');
   eq('...and reading the language in use', String(t.textContent || '').trim(), S.AR);
 
-  // ===== THE LOGIN-FIRST ORDER PUT A STEP IN FRONT OF THIS CARD =====
-  // The language control asserted above is drawn ABOVE the step rather than inside one, which is
-  // why every line before this point still holds on a device that has answered nothing. What the
-  // card asks FIRST is now the entry decision, so the name and the year are reached through it.
+  // ===== APPLE 4.0.0 TOOK THE SECOND STEP AWAY, AND THE CARD IS THE ENTRY DECISION ALONE =====
+  // Submission e931435e-f171-4da4-b476-c33fd5dde452 was refused because a reader who had just
+  // signed in with Apple was then asked for a name and a year -- values Authentication Services
+  // already hands the application. So the step behind this card is GONE: the entry decision is
+  // the whole of the first run, and making it puts the reader in the application. The name, the
+  // form of address and the year did not go with it; they are in Settings, optional, and D1
+  // below drives them there. The language control asserted above is unaffected -- it was always
+  // drawn above the step rather than inside one.
   //
   // AND THE ORDER'S OWN REQUIREMENTS ARE MEASURED HERE, on the real mount, because this is the
-  // one gate that drives the first run with a document under it. They are: nothing is asked
-  // before the entry screen; the guest door is on that screen and reachable in ONE press with
-  // nothing to search for; and the warning about the wird and the conversations is beside it.
+  // one gate that drives the first run with a document under it. They are: nothing is asked at
+  // all; the guest door is on that screen and reachable in ONE press with nothing to search
+  // for; and the warning about the wird and the conversations is beside it.
   //
   // THE PROVIDER DOORS ARE NOT DRAWN HERE, AND THIS IS THE GATE THAT SAYS SO. There is no
   // window.ReactNativeWebView under this mount, which is what a browser tab is, and app.jsx
@@ -510,13 +514,15 @@ async function partD0() {
   // doors, live -- is not reachable from here without inventing a window.ReactNativeWebView,
   // and a bridge this file made up would prove that this file can make one up. tools/auth-
   // bridge-measure.cjs owns the seam behind the doors and keeps its own mutants over it.
+  const label = (b) => String(b.textContent || '').trim();
+  const held = (b) => !!(b && (b.hasAttribute('disabled') || b.disabled === true));
+  const btn = (key) => d.all('.ezonb-card button')
+    .filter((b) => label(b) === String(c.grab("ezT('" + key + "')")))[0];
   {
-    const label = (b) => String(b.textContent || '').trim();
-    const held = (b) => !!(b && (b.hasAttribute('disabled') || b.disabled === true));
-    const btn = (key) => d.all('.ezonb-card button')
-      .filter((b) => label(b) === String(c.grab("ezT('" + key + "')")))[0];
-
-    eq('🔴 NOTHING is asked before the entry screen -- not a name, not a year', d.all('input').length, 0);
+    eq('🔴 NOTHING is asked on the first run -- not a name, not a year, not anything',
+      d.all('input').length, 0);
+    ok('🔴 ...and the fields that were asked for are not merely hidden: no control of any kind',
+      d.all('select').length === 0 && d.all('textarea').length === 0);
     const guest = btn('entry.guest');
     ok('the entry screen offers the guest door, inside the card, by its own name', !!guest);
     ok('...and it is LIVE in a browser tab', !!guest && !held(guest));
@@ -534,55 +540,15 @@ async function partD0() {
       && d.text().indexOf(String(c.grab("ezT('entry.apple')"))) === -1);
     ok('...with where signing in DOES happen said out loud in their seat, not a gap',
       d.text().indexOf(String(c.grab("ezT('entry.inApp')"))) !== -1);
+    // THE SKIP AND THE OPTIONAL LINE WENT WITH THE STEP, in the dictionary as well as on the
+    // screen: a string that is still declared is a string a later edit can put back by accident.
+    eq('...and the step\'s own two sentences are gone from BOTH dictionaries',
+      [c.grab("ezT('entry.skip')"), c.grab("ezT('entry.optional')")], ['', '']);
     eq('...and no profile exists yet', c.store.getItem('child_profile'), null);
-
-    // ONE PRESS, WHICH IS THE WHOLE REQUIREMENT: a reviewer reaches the application in one.
-    await d.click(guest);
-    await tick(90);
-    eq('one press on the guest door records the answer', c.store.getItem('ezik_entry_v1'), 'guest');
-    eq('...and creates no profile even so', c.store.getItem('child_profile'), null);
-    eq('...and the card did not become a second card', d.all('.ezonb-card').length, 1);
-    ok('...and the language control came through the step still attached',
-      !!d.all('button[data-ez-lang-toggle]')[0]);
   }
 
-  // Type into the card first: a language switch may not cost the reader what they typed.
-  const inputs = d.all('input');
-  eq('the card asks for a name and a year', inputs.length, 2);
-  const nameEl = inputs[0], yearEl = inputs[1];
-  // TYPING, THE WAY REACT CAN SEE IT — the same delivery chat-ux-guard documents and uses.
-  // The DOM value is moved through the PROTOTYPE setter so React's value tracker is not advanced
-  // (assigning el.value advances it, and React then drops the event as a keystroke it already
-  // knows about); and because React's ChangeEventPlugin does not fire under linkedom at all, the
-  // component's OWN registered onChange is then called with the node as its target. That is the
-  // shipped handler, not a re-implementation — only the delivery differs.
-  const type = async (el, v) => {
-    if (!el) throw new Error('nothing to type into');
-    let wrote = false;
-    try {
-      const desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value');
-      if (desc && typeof desc.set === 'function') { desc.set.call(el, v); wrote = true; }
-    } catch (e) {}
-    if (!wrote) el.value = v;
-    el.dispatchEvent(new w.Event('input', { bubbles: true }));
-    await tick(30);
-    const key = Object.keys(el).filter((k) => k.indexOf('__reactProps$') === 0)[0];
-    const props = key ? el[key] : null;
-    if (props && typeof props.onChange === 'function') {
-      props.onChange({ target: el, currentTarget: el, preventDefault() {}, stopPropagation() {} });
-      await tick(30);
-    }
-  };
-  await type(nameEl, 'Sami');
-  await type(yearEl, '2015');
-  // Proving the typing landed BEFORE the switch, so "the values survived" cannot pass vacuously
-  // on a harness that never delivered them.
-  eq('the name reached the card', d.all('input')[0].value, 'Sami');
-  eq('the year reached the card', d.all('input')[1].value, '2015');
-  const male = d.all('.ezonb-row button')[0];
-  await d.click(male);
-  await tick(40);
-
+  // The language switch is driven on THIS card, before the one press that leaves it: what the
+  // switch may not cost is now the card itself, since there is nothing typed left to lose.
   const beforeStore = JSON.stringify(c.store._dump());
   const beforeNet = c.net().length;
 
@@ -601,14 +567,12 @@ async function partD0() {
   await tick(90);
   eq('choosing English applies it at once', c.grab('ezLangGet()'), 'en');
   eq('...and turns the document round', w.document.documentElement.getAttribute('dir'), 'ltr');
-  ok('...and the CARD is in English now', d.text().indexOf('Welcome') !== -1, d.text().slice(0, 60));
-  ok('...including its start button', d.all('button').some((b) => String(b.textContent || '').trim() === 'Start'));
-  eq('...the name survived the switch', d.all('input')[0].value, 'Sami');
-  eq('...the year survived the switch', d.all('input')[1].value, '2015');
-  ok('...and the gender choice survived it',
-    d.all('.ezonb-row button').some((b) => /var\(--accent-fill\)/.test(b.getAttribute('style') || '')));
+  ok('...and the CARD is in English now', d.text().indexOf('Continue as a guest') !== -1, d.text().slice(0, 60));
+  ok('...including the warning that stands over the door',
+    d.text().indexOf('you will lose your wird') !== -1);
   eq('...no profile was created', c.store.getItem('child_profile'), null);
   eq('...the screen did not move', d.all('.ezonb-card').length, 1);
+  eq('...and it still asks for nothing', d.all('input').length, 0);
   eq('...and not one network request was made', c.net().length, beforeNet);
   eq('...the only thing written is the language itself',
     Object.keys(JSON.parse(beforeStore)).concat([S.LANG_KEY]).sort().filter((k, i, a) => a.indexOf(k) === i),
@@ -620,7 +584,25 @@ async function partD0() {
   await tick(90);
   eq('and back to Arabic, immediately', c.grab('ezLangGet()'), 'ar');
   eq('...rtl again', w.document.documentElement.getAttribute('dir'), 'rtl');
-  eq('...with the typed values still there', [d.all('input')[0].value, d.all('input')[1].value], ['Sami', '2015']);
+  eq('...with the card still standing and still asking nothing',
+    [d.all('.ezonb-card').length, d.all('input').length], [1, 0]);
+
+  // ===== ONE PRESS, WHICH IS THE WHOLE REQUIREMENT: A REVIEWER REACHES THE APPLICATION IN ONE.
+  // This is the case Apple's refusal is about, driven end to end. Before this round the press
+  // recorded the answer and handed the reader a second screen asking for a name and a year;
+  // now it records the answer, mints the profile ITSELF and the first-run card is gone.
+  await d.click(btn('entry.guest'));
+  await tick(120);
+  eq('one press on the guest door records the answer', c.store.getItem('ezik_entry_v1'), 'guest');
+  eq('🔴 ...and the first-run card is GONE -- no second screen behind it', d.all('.ezonb-card').length, 0);
+  const made = JSON.parse(c.store.getItem('child_profile') || 'null');
+  ok('...because the press created the profile itself', !!made, JSON.stringify(made));
+  eq('...with no name, because no name was asked for', made && made.name, '');
+  eq('...and no form of address either', made && made.gender, null);
+  eq('...and the adult default the owner ruled for, not a child band',
+    made && made.age, plain(c.grab('ONBOARDING_DEFAULT_AGE')));
+  ok('...and a birth year behind it, so the account ages instead of freezing',
+    !!(made && Number.isInteger(made.birthYear) && new Date().getFullYear() - made.birthYear === made.age));
 }
 
 /* D1. AFTER THE PROFILE EXISTS.
@@ -787,6 +769,98 @@ async function partD() {
   ok('...and it is no longer a radiogroup of full-width buttons',
     set.length > 0 && !/data-ez-lang-opt/.test(set));
   eq('...so the group draws exactly one control', d.all('.ezlang-row button').length, 1);
+
+  // ===== APPLE 4.0.0 -- THE THREE FIELDS, WHERE THEY WENT, DRIVEN FOR REAL =====
+  // D0 proves the first run asks NOTHING. This proves the other half of the same order, and it
+  // is the half that stops "remove the screen" from meaning "delete the fields": the name, the
+  // form of address and the year are HERE, optional, seeded from the account, and they work.
+  // It runs on the profile seeded at the head of this part, so what is measured is an EDIT of
+  // an account that exists -- pid and all -- and never a second account being minted.
+  //
+  // TYPING, THE WAY REACT CAN SEE IT — the same delivery chat-ux-guard documents and uses. The
+  // DOM value is moved through the PROTOTYPE setter so React's value tracker is not advanced
+  // (assigning el.value advances it, and React then drops the event as a keystroke it already
+  // knows about); and because React's ChangeEventPlugin does not fire under linkedom at all,
+  // the component's OWN registered onChange is then called with the node as its target. That is
+  // the shipped handler, not a re-implementation — only the delivery differs.
+  const typeInto = async (el, v) => {
+    if (!el) throw new Error('nothing to type into');
+    let wrote = false;
+    try {
+      const desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value');
+      if (desc && typeof desc.set === 'function') { desc.set.call(el, v); wrote = true; }
+    } catch (e) {}
+    if (!wrote) el.value = v;
+    el.dispatchEvent(new w.Event('input', { bubbles: true }));
+    await tick(30);
+    const key = Object.keys(el).filter((k) => k.indexOf('__reactProps$') === 0)[0];
+    const props = key ? el[key] : null;
+    if (props && typeof props.onChange === 'function') {
+      props.onChange({ target: el, currentTarget: el, preventDefault() {}, stopPropagation() {} });
+      await tick(30);
+    }
+  };
+  {
+    const title = String(c.grab("ezT('settings.profile')"));
+    const group = d.all('.ezsh-group').filter((g) => String(g.textContent || '').indexOf(title) !== -1)[0];
+    if (!ok('Settings carries the group the first-run card handed its three fields to', !!group,
+      d.text().slice(0, 120))) throw new Error('no profile group in Settings');
+    const q = (sel) => Array.prototype.slice.call(group.querySelectorAll(sel));
+    const fields = q('input');
+    eq('...and it asks for a name and a year, exactly the two the card asked for', fields.length, 2);
+    const radios = q('button[role="radio"]');
+    eq('...with the two forms of address between them, as a radiogroup', radios.length, 2);
+    eq('...seeded from the account rather than blank', [fields[0].value, fields[1].value], ['Noor', '1996']);
+    eq('...and the form of address it already holds is the one marked',
+      radios.map((b) => b.getAttribute('aria-checked')), ['true', 'false']);
+    const save = () => q('button').filter((b) =>
+      String(b.textContent || '').trim() === String(c.grab("ezT('settings.profileSave')")))[0];
+    ok('...and a save control that is live to begin with', !!save() && !save().hasAttribute('disabled'));
+
+    // A YEAR THAT IS TYPED AND WRONG STILL SAYS SO, AND STILL HOLDS ITS BUTTON -- the first-run
+    // card's one refusal, kept, on a button that is now SAVE and no longer the way into the
+    // application. A typo can cost a save; it can no longer cost anybody the app.
+    await typeInto(fields[1], '1200');
+    ok('a year outside 4..99 is refused, in words', d.text().indexOf(String(c.grab("ezT('onboarding.yearError')"))) !== -1);
+    ok('...and it holds the save button', !!save() && save().hasAttribute('disabled'));
+    eq('...and nothing was written while it was wrong',
+      JSON.parse(c.store.getItem('child_profile')).birthYear, 1996);
+
+    // AND THE THREE ARE WRITTEN, TOGETHER, ONTO THE ACCOUNT THAT ALREADY EXISTS.
+    await typeInto(fields[0], 'Sami');
+    await typeInto(fields[1], '2000');
+    await d.click(q('button[role="radio"]')[1]);
+    await tick(40);
+    await d.click(save());
+    await tick(120);
+    const saved = JSON.parse(c.store.getItem('child_profile'));
+    eq('the name reached the account', saved.name, 'Sami');
+    eq('...the form of address with it', saved.gender, 'female');
+    eq('...and the year', saved.birthYear, 2000);
+    eq('...with the age DERIVED from it, as it always was',
+      saved.age, new Date().getFullYear() - 2000);
+    eq('🔴 ...on the SAME account -- the pid a reader\'s conversations are filed under survived',
+      [saved.pid, saved.createdAt], ['I18N-D1', '2026-01-01T00:00:00.000Z']);
+    ok('...and the reader is told it was saved',
+      d.text().indexOf(String(c.grab("ezT('settings.profileSaved')"))) !== -1);
+
+    // AN EMPTY YEAR IS NOT A REFUSAL: it is declining to say, and the answer is the adult the
+    // owner ruled for on 25 August -- which is the same answer a reader who never opens this
+    // group gets from the entry card.
+    await typeInto(d.all('.ezsh-group').filter((g) => String(g.textContent || '').indexOf(title) !== -1)[0].querySelectorAll('input')[1], '');
+    await tick(40);
+    const save2 = d.all('.ezsh-group').filter((g) => String(g.textContent || '').indexOf(title) !== -1)[0]
+      .querySelectorAll('button');
+    await d.click(Array.prototype.slice.call(save2).filter((b) =>
+      String(b.textContent || '').trim() === String(c.grab("ezT('settings.profileSave')")))[0]);
+    await tick(120);
+    const cleared = JSON.parse(c.store.getItem('child_profile'));
+    eq('an empty year returns the account to the adult default',
+      cleared.age, plain(c.grab('ONBOARDING_DEFAULT_AGE')));
+    eq('...and to the birth year behind it, so it goes on ageing',
+      cleared.birthYear, new Date().getFullYear() - plain(c.grab('ONBOARDING_DEFAULT_AGE')));
+    eq('...and it is still the same account', cleared.pid, 'I18N-D1');
+  }
 
   await d.click(st);
   await tick(60);

@@ -254,6 +254,7 @@ const HARNESS_ENTRY_PARTS = (function () {
     text(C_DEFAULT_AGE), text(FN_NATIVE_ENTRY), text(FN_ONBOARDING));
   parts.splice(parts.indexOf('return {') + 1, 0,
     '  Onboarding: Onboarding, ENTRY_CHOICE_KEY: ENTRY_CHOICE_KEY,',
+    '  ONBOARDING_DEFAULT_AGE: ONBOARDING_DEFAULT_AGE,',
     '  ENTRY_ACCOUNT: ENTRY_ACCOUNT, ENTRY_GUEST: ENTRY_GUEST,',
     '  readEntryChoice: readEntryChoice, ezikEntryAnswered: ezikEntryAnswered,');
   return parts;
@@ -1011,11 +1012,17 @@ run('the fifth channel writes the handed-over session through the one writer', (
   is(mod.ezikNativeAuthReceive(good) === true, 'a valid payload from a shell was refused');
   // THE ONE KEY, IN THE ONE SHAPE. Read back through the file's own reader, so a write that
   // landed in a shape readAuthSession will not take would fail here rather than pass.
+  // `name` IS THE FOURTH FIELD AND IT IS ALWAYS PRESENT, '' when the shell sent none -- which
+  // is every payload it sends today. Apple hands the display name over in the credential on
+  // the FIRST authorisation only, and this seam is the one road it could travel: the identity
+  // token does not carry it and lib/auth/oidc.js drops every claim but three on purpose. So
+  // the field is read here rather than asked for on a screen, which is what Apple 4.0.0 and
+  // submission e931435e-f171-4da4-b476-c33fd5dde452 are about.
   eq(mod.readAuthSession(),
-    { session: FIXTURE.session, email: FIXTURE.email, provider: 'apple' },
+    { session: FIXTURE.session, email: FIXTURE.email, provider: 'apple', name: '' },
     'what the fifth channel stored');
   eq(Object.keys(JSON.parse(scn.storage.getItem(mod.AUTH_SESSION_KEY))).sort(),
-    ['email', 'provider', 'session'], 'the fields stored');
+    ['email', 'name', 'provider', 'session'], 'the fields stored');
   // AND NO SECOND KEY: the store holds exactly what the two existing doors would have left.
   eq(scn.storage.keys(), [mod.AUTH_SESSION_KEY], 'keys written by the fifth channel');
   return 'session written to ' + mod.AUTH_SESSION_KEY + ', 3 fields, 1 key';
@@ -1070,12 +1077,21 @@ run('every malformed shape is refused whole, and none of them writes half a sess
     is(mod.ezikNativeAuthReceive(payload) === false, 'received: ' + what);
   }
   eq(scn.storage.keys(), [], 'keys written by ' + bad.length + ' malformed payloads');
-  // AND THE ONE FIELD THAT MAY BE MISSING IS THE ADDRESS, normalised the way the exchange
-  // already normalises it -- an account with no verified address is a lawful account.
+  // AND THE TWO FIELDS THAT MAY BE MISSING ARE THE ADDRESS AND THE NAME, both normalised the
+  // way the exchange already normalises the address -- an account with no verified address is
+  // a lawful account, and a credential that carried no display name is a lawful credential.
   const noEmail = base();
   delete noEmail.email;
-  eq(mod.ezikNativeSessionOf(noEmail), { session: FIXTURE.session, email: '', provider: 'apple' },
+  eq(mod.ezikNativeSessionOf(noEmail),
+    { session: FIXTURE.session, email: '', provider: 'apple', name: '' },
     'a payload with no address');
+  // AND A NAME THAT IS SENT IS KEPT, whole, so it can be consumed without a question being
+  // asked. A non-string is not a name and is normalised away like an absent one.
+  eq(mod.ezikNativeSessionOf(Object.assign(base(), { name: 'Sami' })),
+    { session: FIXTURE.session, email: FIXTURE.email, provider: 'apple', name: 'Sami' },
+    'a payload carrying the name Apple sent once');
+  eq(mod.ezikNativeSessionOf(Object.assign(base(), { name: 7 })).name, '',
+    'a name that is not a string');
   // BOTH names lib/auth/oidc.js holds are taken, and they are read from the file's own list.
   for (const name of mod.SHELL_AUTH_PROVIDERS) {
     is(mod.ezikNativeSessionOf(Object.assign(base(), { provider: name })) !== null,
@@ -1145,10 +1161,16 @@ run('the doors are drawn by default, and only the literal true takes them away',
 // THE ENTRY CARD -- the two doors, drawn or taken away, with the guest door standing.
 // ---------------------------------------------------------------------------
 
-/** The entry card, mounted. `onStart` is never reached by any case here and throws if it is. */
-function mountEntry(scn, factory) {
+/**
+ * The entry card, mounted. `onStart` IS reached now -- that is the whole of the Apple 4.0.0
+ * repair: an entry decision goes straight into the application instead of into a second
+ * screen asking for a name and a year. A case that wants to see what was handed over passes
+ * its own recorder; every other case gets one that throws, so a card that enters when nothing
+ * was decided still fails loudly.
+ */
+function mountEntry(scn, factory, onStart) {
   return mountRow(scn, factory || makeEntry, (m) => m.Onboarding,
-    { onStart: () => { throw new Error('the entry step called onStart'); } });
+    { onStart: onStart || (() => { throw new Error('the entry card entered with nothing decided'); }) });
 }
 /** Every button on the card, by the text it actually draws. */
 function buttonsOf(tree) {
@@ -1206,9 +1228,10 @@ run('a browser tab is unaffected by the declaration, in both directions', () => 
   return 'a tab draws 1 button and the sentence, declared or not';
 });
 
-run('a session handed over by the shell moves the card off the question it answered', () => {
+run('a session handed over by the shell puts the reader IN, and asks nothing on the way', () => {
   const scn = scene({});
-  const m = mountEntry(scn);
+  const started = [];
+  const m = mountEntry(scn, null, (...a) => { started.push(a); });
   const ar = m.mod.EZ_I18N.ar;
   eq(buttonsOf(m.tree()), [ar['entry.google'], ar['entry.apple'], ar['entry.guest']],
     'the card before the session lands');
@@ -1222,8 +1245,23 @@ run('a session handed over by the shell moves the card off the question it answe
   const after = buttonsOf(m.tree());
   is(after.indexOf(ar['entry.google']) === -1 && after.indexOf(ar['entry.apple']) === -1,
     'the card is still asking a question that has been answered: ' + JSON.stringify(after));
-  is(textOf(nodesOf(m.tree())).indexOf(ar['onboarding.welcome']) !== -1,
-    'the card did not move to the step behind the entry screen');
+  // 🔴 APPLE 4.0.0. THIS IS THE REFUSAL, MEASURED. Submission e931435e-f171-4da4-b476-
+  // c33fd5dde452 was refused because the card behind this one asked a reader who had just
+  // signed in with Apple for a name and a year. There is no card behind this one now: the
+  // session IS the answer, so the card draws NOTHING and hands the profile straight over.
+  eq(countNodes(nodesOf(m.tree())), 0, 'nodes the card drew after the session landed');
+  eq(started.length, 1, 'calls into the application after one session');
+  eq(started[0], ['', m.mod.ONBOARDING_DEFAULT_AGE, null],
+    'what the card handed over: a name it never asked for, the adult default, no gender');
+  // AND A NAME THE SHELL SENT IS CONSUMED RATHER THAN ASKED FOR.
+  const named = scene({});
+  const namedStarts = [];
+  const mn = mountEntry(named, null, (...a) => { namedStarts.push(a); });
+  is(mn.mod.ezikNativeAuthReceive({
+    type: mn.mod.SHELL_AUTH_SESSION, v: mn.mod.SHELL_AUTH_V, ok: true,
+    session: FIXTURE.session, email: FIXTURE.email, provider: 'apple', name: 'Sami',
+  }) === true, 'the named session was refused');
+  eq(namedStarts[0] && namedStarts[0][0], 'Sami', 'the name Apple sent, consumed without a question');
   // AND A REFUSED PAYLOAD MOVES NOTHING -- the control that proves the case above is real.
   const still = scene({});
   const m2 = mountEntry(still);
@@ -1624,7 +1662,7 @@ function mutantEntry(name, from, to, killedBy) {
 }
 
 mutantEntry('م١٠ the entry card goes back to reading the bridge alone',
-  '          {ezikEntryDoors(bridge) ? (<>', '          {bridge ? (<>',
+  '        {ezikEntryDoors(bridge) ? (<>', '        {bridge ? (<>',
   (f) => {
     const scn = scene({});
     scn.win['EZIK_SHELL_HIDE_SOCIAL_SIGNIN'] = true;
@@ -1663,8 +1701,8 @@ mutantEntry('م١٣ the ok === true guard is taken off the session reader',
   });
 
 mutantEntry('م١٤ the Apple door stops being disabled while a sheet is open',
-  '            <button type="button" onClick={appleSignIn} disabled={busy}',
-  '            <button type="button" onClick={appleSignIn} disabled={false}',
+  '          <button type="button" onClick={appleSignIn} disabled={busy}',
+  '          <button type="button" onClick={appleSignIn} disabled={false}',
   (f) => {
     const scn = scene({});
     const m = mountEntry(scn, f);

@@ -195,6 +195,11 @@ const EZ_I18N = {
     'language.chooseHint': 'يُحفظ على هذا الجهاز',
     'settings.language': 'اللغة',
     'settings.savedOnDevice': 'يُحفظ على هذا الجهاز',
+    'settings.profile': 'ملفُّك',
+    'settings.profileHint': 'اختياريٌّ كلُّه. بلا سنةِ ميلادٍ يُعامَلُ الحسابُ معاملةَ بالغٍ فوقَ الثامنةَ عشرة، ويُحفظُ على هذا الجهاز.',
+    'settings.profileSave': 'احفظْ',
+    'settings.profileSaved': 'حُفِظ.',
+    'settings.profileSaveFailed': 'لم يُحفظْ على هذا الجهاز، وهو قائمٌ في هذه الجلسةِ وحدَها.',
     'settings.enter': 'زر الإدخال',
     'settings.enter.sends': 'Enter يُرسل الرسالة',
     'settings.enter.sendsHint': 'Enter يُرسل، و Shift+Enter سطر جديد. ولا يُرسل أثناء تركيب الحروف.',
@@ -488,8 +493,6 @@ const EZ_I18N = {
     'entry.guest': 'متابعة كضيف',
     'entry.guestWarn': 'في حال عدم التسجيل ستفقد وردك ومحادثاتك.',
     'entry.inApp': 'تسجيلُ الدخولِ يتِمُّ داخلَ التطبيق. والمتابعةُ كضيفٍ تعملُ هنا كاملةً.',
-    'entry.skip': 'تخطّي',
-    'entry.optional': 'اختياريّةٌ كلُّها — تستطيعُ تخطّيَها والدخولَ الآن.',
 
     'widget.adhkar.title': 'الأذكار',
     'widget.adhkar.open': 'افتحْ الأذكار',
@@ -513,10 +516,8 @@ const EZ_I18N = {
     'home.arrange.down': 'أسفل',
     'home.arrange.reset': 'أعِدِ الافتراضيّ',
     'home.arrange.saveFailed': 'لم يُحفَظِ الاختيارُ على هذا الجهاز، وهو قائمٌ في هذه الجلسة وحدَها.',
-    'onboarding.welcome': 'أهلاً بك',
     'onboarding.male': 'ذكر',
     'onboarding.female': 'أنثى',
-    'onboarding.start': 'ابدأ',
     'onboarding.yearError': 'اكتب سنةَ ميلادك بأربعة أرقام — مثل ٢٠١٥',
     'onboarding.name': 'الاسم',
     'onboarding.birthYear': 'سنة الميلاد — مثال ٢٠١٥',
@@ -572,6 +573,11 @@ const EZ_I18N = {
     'language.chooseHint': 'Saved on this device',
     'settings.language': 'Language',
     'settings.savedOnDevice': 'Saved on this device',
+    'settings.profile': 'Your profile',
+    'settings.profileHint': 'All of it is optional. With no year of birth the account is treated as an adult over eighteen, and what you write here is kept on this device.',
+    'settings.profileSave': 'Save',
+    'settings.profileSaved': 'Saved.',
+    'settings.profileSaveFailed': 'This was not saved on the device; it holds for this session alone.',
     'settings.enter': 'The Enter key',
     'settings.enter.sends': 'Enter sends the message',
     'settings.enter.sendsHint': 'Enter sends, Shift+Enter makes a new line. It never sends while a word is being composed.',
@@ -842,8 +848,6 @@ const EZ_I18N = {
     'entry.guest': 'Continue as a guest',
     'entry.guestWarn': 'If you do not sign in you will lose your wird and your conversations.',
     'entry.inApp': 'Signing in happens inside the app. Continuing as a guest works fully here.',
-    'entry.skip': 'Skip',
-    'entry.optional': 'All of it is optional -- you can skip it and go in now.',
 
     'widget.adhkar.title': 'Adhkar',
     'widget.adhkar.open': 'Open adhkar',
@@ -867,10 +871,8 @@ const EZ_I18N = {
     'home.arrange.down': 'Down',
     'home.arrange.reset': 'Restore the default',
     'home.arrange.saveFailed': 'The choice was not saved on this device; it holds for this session alone.',
-    'onboarding.welcome': 'Welcome',
     'onboarding.male': 'Boy',
     'onboarding.female': 'Girl',
-    'onboarding.start': 'Start',
     'onboarding.yearError': 'Write your birth year as four digits — for example 2015',
     'onboarding.name': 'Name',
     'onboarding.birthYear': 'Year of birth — for example 2015',
@@ -10596,6 +10598,42 @@ function App() {
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) {}
   };
 
+  // ===== THE NAME, THE FORM OF ADDRESS AND THE YEAR, AFTER THE SCREEN THAT ASKED FOR THEM =====
+  // APPLE 4.0.0 removed the card that asked; it did NOT remove the three fields, and this is
+  // where they went. Every reader reaches them -- guest and account alike -- from Settings, at
+  // any time, as often as they like. What this must never do is what the old card did once and
+  // for all: it EDITS the profile that exists rather than minting a second one, so the pid,
+  // the saved conversations filed under it and the creation date all survive a rename.
+  //
+  // THE YEAR IS THE ONLY THING JUDGED, and it is judged by the arithmetic the first-run card
+  // used, character for character: a year that resolves to an age outside 4..99 is a typo and
+  // is refused, and an EMPTY year is not a typo -- it is declining to say, which returns the
+  // account to ONBOARDING_DEFAULT_AGE, the adult above eighteen the owner ruled for on
+  // 25 August. `age` stays the DERIVED value the boot loader recomputes from birthYear on
+  // every open, so an account still ages on its own from here exactly as it did from there.
+  //
+  // It answers TRUE only when something was actually written, so the sheet can say so rather
+  // than claim a save that a full store refused.
+  const saveProfileFields = (name, gender, birthYear) => {
+    const base = profileRef.current;
+    if (!base) return false;
+    const raw = ezikLatinDigits(birthYear).trim();
+    const yr = parseInt(raw, 10);
+    const typed = raw.length > 0;
+    if (typed) {
+      const derived = new Date().getFullYear() - yr;
+      if (!Number.isInteger(yr) || derived < 4 || derived > 99) return false;
+    }
+    const year = typed ? yr : (new Date().getFullYear() - ONBOARDING_DEFAULT_AGE);
+    const p = { ...base, name: String(name || '').trim(), gender: gender || null,
+      birthYear: year, age: new Date().getFullYear() - year };
+    profileRef.current = p;
+    voiceProfileRef.current = p;               // غ‑٣: مرآةُ حاجزِ الصوت — تُكتب مع profileRef دائماً
+    setProfile(p);
+    try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) { return false; }
+    return true;
+  };
+
   const callAI = async (history, p, { onDelta, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
     if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
     // بلا موافقةٍ صريحةٍ سارية: لا سؤال، ولا تصنيف، ولا تحيّةَ إقلاع. يُقرأ المخزنُ هنا لا رايةٌ
@@ -11859,7 +11897,7 @@ function App() {
   // immediately and with no PIN. The parental screen it used to stand in front of has not moved
   // an inch or lost its lock: it is reached from the التحكم row inside, which is the only thing
   // in the app that still opens the gate.
-  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} onOpenControl={() => openEzikSheet('parentGate')} a11y={a11y} onA11y={setA11y} onA11yReset={resetA11y} aiConsent={aiConsent} aiConsentBy={aiConsentGrantedBy()} onWithdrawAI={declineAIConsent} onReviewAI={() => setAiConsentReview(true)} />;
+  if (screen === 'settings') return <SettingsSheet theme={theme} onTheme={chooseTheme} onBack={goEzikBack} onOpenControl={() => openEzikSheet('parentGate')} a11y={a11y} onA11y={setA11y} onA11yReset={resetA11y} aiConsent={aiConsent} aiConsentBy={aiConsentGrantedBy()} onWithdrawAI={declineAIConsent} onReviewAI={() => setAiConsentReview(true)} profile={profile} onSaveProfile={saveProfileFields} />;
   // S98: المفضلة. A sheet, opened from the chat's drawer, handed everything it draws.
   if (screen === 'favorites') return <FavoritesScreen items={shownFavs} total={myFavs.length} kind={favKind} onKind={setFavKind} counts={favCounts} query={favQuery} onQuery={setFavQuery} searching={favResults !== null} liveChatIds={liveChatIds} onBack={goEzikBack} onOpenChat={openFavoriteChat} onRemove={removeFavorite} age={profile?.age} tashkeel={tashkeelOn} />;
   // غ‑٣: ملفُّ طفلٍ (أو ملفٌّ يتعذّر تحديدُه) لا يدخل شاشةَ المكالمة — يُعرَض التنبيهُ ومعه طريقُ رجوع.
@@ -14264,20 +14302,35 @@ function ezikEntryAnswered() {
 // the smallest number that is BOTH inside that band and literally above eighteen. It is stored as
 // a birth year like every other profile, so the account ages instead of freezing at one number.
 const ONBOARDING_DEFAULT_AGE = 19;
+// ARABIC-INDIC AND EASTERN-ARABIC DIGITS READ AS DIGITS. This is the first-run card’s own
+// converter, unchanged and moved: a reader typing ٢٠١٥ on an Arabic keyboard meant 2015, and
+// parseInt does not. It is module scope now because the field moved to Settings while the
+// judgement of it stayed with the profile, and one converter serving both is what keeps the
+// line the sheet draws in red and the value the saver refuses the same value.
+function ezikLatinDigits(str) {
+  return String(str || '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+}
 
 function Onboarding({ onStart }) {
-  const uiLang = useEzLang();
-  // ===== TWO STEPS, ONE CARD, ONE ROUTE =====
-  // Not a new screen: the screen that was already here, with a step in front of it.
+  useEzLang();
+  // ===== ONE STEP, ONE CARD, ONE ROUTE =====
+  // APPLE 4.0.0 TOOK THE SECOND STEP AWAY, AND WHAT IS LEFT HERE IS THE ENTRY DECISION ALONE.
+  // Submission e931435e-f171-4da4-b476-c33fd5dde452 (1.0.1 build 11) was refused because a
+  // reader who had just signed in with Apple was then asked for a name and a year -- values
+  // Authentication Services already hands the application. So NOTHING is asked after a
+  // sign-in, and nothing is asked instead of one either: the moment the entry decision is
+  // made -- Google, Apple or guest -- the reader is IN the application.
+  //
+  // THE NAME AND THE YEAR DID NOT DIE WITH THE STEP. They moved to Settings, where they are
+  // optional, editable at any time and reachable by everybody -- guest and account alike --
+  // which is the only reading of "remove the interstitial screen" that does not also delete
+  // two fields. What a reader who never opens Settings gets is ONBOARDING_DEFAULT_AGE, an
+  // adult above eighteen, which is the owner's ruling of 25 August written as a number.
+  //
   // `screen === 'onboarding'` still routes here, the card is still .ezonb-card, and the back
-  // table, the theme roster and the boot effect are untouched. A device that has ALREADY answered
-  // opens on step two -- read once, in the lazy initialiser, so the first paint is already the
-  // right step and nobody watches the entry screen flash past on their way somewhere else.
-  const [step, setStep] = useState(() => (ezikEntryAnswered() ? 'profile' : 'entry'));
-  const [name, setName] = useState('');
-  const [birthYear, setBirthYear] = useState('');
-  const [gender, setGender] = useState(null);
-  // ===== STEP ONE: THE TWO DOORS, AND THE THIRD ONE =====
+  // table, the theme roster and the boot effect are untouched.
+  const [done, setDone] = useState(false);
+  // ===== THE TWO DOORS, AND THE THIRD ONE =====
   // THE PRESS IS THE SEAM THAT ALREADY SHIPPED, NOT A SECOND SIGN-IN. The bridge accessor, the
   // client state, the start URL, the one-shot listener, the return reader, the exchange and the
   // session write are the ones Settings has used since the seam landed; what is new is WHERE they
@@ -14298,20 +14351,53 @@ function Onboarding({ onStart }) {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     if (nativeRef.current) { nativeRef.current(); nativeRef.current = null; }
   }, []);
-  // A SESSION LANDING ENDS THE NATIVE WAIT TOO, and this is the only line added inside the
-  // ok:true path rather than around it: the root listener still writes the session and the
-  // card still moves to the profile step, exactly as before. What is new is that the
-  // deadline and the press are released on the way, so a timer cannot fire sixty seconds
-  // later under a reader who is already through -- and a reply that arrives AFTER the
-  // deadline expired still lands here, because the root listener never stopped listening.
-  useEzikNativeAuthEntry(() => {
-    if (nativeRef.current) { nativeRef.current(); nativeRef.current = null; }
-    setBusy(false);
-    setStep('profile');
-  });
+  // THE ONE PLACE THIS CARD HANDS A PROFILE OVER, and it is still ONE call to onStart -- the
+  // property the theme guard pins, kept through the removal rather than in spite of it. It
+  // fires AT MOST ONCE: `doneRef` is a ref and not the state below it because a session that
+  // lands twice, or a session that lands on a card already entering, must not mint a second
+  // profile over the first one, and a closure reading state would read the stale value.
+  // The name is whatever arrived WITH the credential and was never asked for; '' is what
+  // safeName() on the server already turns into the neutral address it uses for anyone who
+  // never gave one. The age is the default and the gender is unstated -- both are Settings'
+  // to change afterwards, and neither is a question standing between a reader and the app.
+  const doneRef = useRef(false);
+  const requestStart = (nm) => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    setDone(true);
+    onStart(typeof nm === 'string' ? nm : '', ONBOARDING_DEFAULT_AGE, null);
+  };
   // The ONE place an answer is WRITTEN, for both doors that write one -- a profile made before
   // this screen existed is the third way of having answered, and it needs no write. One act, one name.
-  const enter = (choice) => { writeEntryChoice(choice); setStep('profile'); };
+  const enter = (choice) => { writeEntryChoice(choice); requestStart(''); };
+  // A DEVICE THAT ALREADY ANSWERED IS NOT ASKED AGAIN, and before this round it was not: the
+  // card opened on the step behind the entry screen. That step is gone, so the same fact now
+  // means "go straight in". It is read ONCE, in the ref's initialiser, so the first paint is
+  // already the right one and nobody watches the doors flash past on their way somewhere else.
+  // Who is in that state: a reader who signed in on an older build and closed the application
+  // before the name screen, and a reader who took the guest door there. Nothing is written for
+  // them -- they answered already, and the answer is still in the store.
+  const answeredRef = useRef(ezikEntryAnswered());
+  useEffect(() => { if (answeredRef.current) requestStart(''); }, []);
+  // A SESSION LANDING IS THE ANSWER ITSELF, so it enters the application rather than moving the
+  // card to a question. The deadline and the press are released on the way, so a timer cannot
+  // fire sixty seconds later under a reader who is already through -- and a reply that arrives
+  // AFTER the deadline expired still lands here, because the root listener never stopped
+  // listening. NOTHING IS WRITTEN TO THE ENTRY KEY on this path and nothing ever was: a session
+  // IS an answer to ezikEntryAnswered(), so writing a second record of the same fact would only
+  // give "delete all my data" a second thing to miss.
+  //
+  // AND THE NAME APPLE SENDS IS CONSUMED HERE, IF IT SENDS ONE. Apple hands the display name to
+  // the shell in the credential ON THE FIRST AUTHORISATION ONLY, never again; the identity token
+  // does not carry it and lib/auth/oidc.js drops every claim but three on purpose, so the seam
+  // is the only road it could travel. A payload that carries one enters with it and the reader
+  // is never asked; a payload that does not enters with '' -- which is every payload the shell
+  // sends today, and this end is ready for the day it sends more.
+  useEzikNativeAuthEntry((got) => {
+    if (nativeRef.current) { nativeRef.current(); nativeRef.current = null; }
+    setBusy(false);
+    requestStart(got && typeof got.name === 'string' ? got.name : '');
+  });
   const signIn = (provider) => {
     if (busy || !bridge) return;
     setBusy(true);
@@ -14358,102 +14444,58 @@ function Onboarding({ onStart }) {
     // the one release the callback above can never perform, because it is never called.
     if (!nativeRef.current) { setBusy(false); setLine(ezT('auth.exchangeFailed')); }
   };
-  // ===== STEP TWO: THE NAME AND THE YEAR, AND NOTHING ON IT IS REQUIRED =====
-  const toLatinDigits = (str) => String(str || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-  // Neutral age screen (step 4a): we ask the BIRTH YEAR — a fact with no "right" answer —
-  // never "are you an adult?". Age is DERIVED from it and passed on unchanged; the band
-  // thresholds and profile shape stay untouched (startChat re-derives the same birthYear).
-  const CUR_YEAR = new Date().getFullYear();
-  const yearNum = parseInt(toLatinDigits(birthYear), 10);
-  const derivedAge = CUR_YEAR - yearNum;
-  const ageValid = Number.isInteger(yearNum) && derivedAge >= 4 && derivedAge <= 99;
-  // THE ONE THING THAT CAN HOLD THIS BUTTON IS A YEAR TYPED AND WRONG, so a typo is fixed rather
-  // than silently aged. An EMPTY year is not wrong -- it is declining to say, which the default
-  // answers. Name and address are no longer conditions at all, and the skip stands regardless.
-  const canStart = !(birthYear.trim() && !ageValid);
-  // D92: the parental gate is NOT an entry condition for anyone. Onboarding hands the derived
-  // age straight to startChat -- no arithmetic at boot, on the chat, or for a teen/adult profile
-  // at any point. The gate itself is untouched and still stands at the one real boundary a child
-  // profile can cross: an external URL leaving the app (see SourceCard).
-  const requestStart = (n) => {
-    onStart(name, n, gender);
-  };
-  const submit = () => { if (canStart) requestStart(ageValid ? derivedAge : ONBOARDING_DEFAULT_AGE); };
-  // SKIPPING IS STARTING WITH WHATEVER IS FILLED IN, written as that: the SAME requestStart, so
-  // this card still hands the profile over through one call and one only. A reader who typed a
-  // name and then pressed skip KEEPS the name -- skip means "do not make me finish", never
-  // "throw away what I already said". What is left empty stays empty, and an empty name is what
-  // safeName() on the server turns into the neutral address it already uses for anyone who never
-  // gave one.
-  const skip = () => { requestStart(ONBOARDING_DEFAULT_AGE); };
+  // THE CARD IS GONE THE INSTANT THE DECISION IS MADE. App unmounts this screen on the same
+  // commit -- startChat sets the profile and the screen together -- so this is belt and braces
+  // rather than the mechanism: what it forbids is a frame in which the doors are still drawn
+  // under a reader who has already gone through one of them.
+  if (done) return null;
   return (
     <div className="theme-dark ezhome ezonb" style={s.welcomeContainer}>
       <div style={s.welcomeInner}>
         <div className="ezonb-card" style={s.welcomeCard}>
         {/* S13.1b-welcome-single
-            S115: the 88px red square became a bounded arch holding the SAME mark. Every field,
-            every choice and their order are the ones that shipped, and so is the single onStart
-            call below -- the login-first order moved WHAT IS REQUIRED, not what is asked. */}
+            S115: the 88px red square became a bounded arch holding the SAME mark. */}
         {/* S116 -- the language choice, and this is the ONLY screen outside Settings that
-            offers it. A reader who has not made a profile yet can switch before typing a
-            thing; once the profile exists this card is never shown again, and Settings is
-            where the choice lives from then on.
-            IT SITS ABOVE THE STEP AND NOT INSIDE ONE, so a reader who cannot read the entry
-            screen can still turn it round, and so it keeps its identity across the step. */}
+            offers it. A reader who has not answered yet can switch before pressing a thing;
+            once the answer exists this card is never shown again, and Settings is where the
+            choice lives from then on. */}
         <EzLangControl variant="onboarding" />
         <div className="ezonb-crest" style={s.welcomeLogoSquare}>
           <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--a3-blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
         </div>
         <div style={s.welcomeTitle}>عزك</div>
-        {step === 'entry' ? (<>
-          <div style={s.welcomeGreeting}>{ezT('entry.sub')}</div>
-          {/* THE TWO PROVIDER DOORS, AND THE SEAM THAT DECIDES WHETHER THEY EXIST AT ALL.
-              LIVE inside the application, where the shell opens the sign-in sheet and the doors
-              are exactly what they were. NOT DRAWN in a browser tab: api/auth-return.js answers
-              on a scheme only the native shell receives, so a door drawn there could never open,
-              and two dead controls are the FIRST thing a reader meets on the web. Held-but-drawn
-              was the earlier reading of "a door a reader cannot see is a door they cannot ask
-              about"; the owner has ruled the other way for the web, and the sentence below still
-              says out loud where signing in happens, so nothing has become unaskable.
+        <div style={s.welcomeGreeting}>{ezT('entry.sub')}</div>
+        {/* THE TWO PROVIDER DOORS, AND THE SEAM THAT DECIDES WHETHER THEY EXIST AT ALL.
+            LIVE inside the application, where the shell opens the sign-in sheet and the doors
+            are exactly what they were. NOT DRAWN in a browser tab: api/auth-return.js answers
+            on a scheme only the native shell receives, so a door drawn there could never open,
+            and two dead controls are the FIRST thing a reader meets on the web. Held-but-drawn
+            was the earlier reading of "a door a reader cannot see is a door they cannot ask
+            about"; the owner has ruled the other way for the web, and the sentence below still
+            says out loud where signing in happens, so nothing has become unaskable.
 
-              THE TEST IS A CAPABILITY AND NEVER A USER AGENT. `bridge` is ezikAuthBridge(): the
-              injected window.ReactNativeWebView, or null -- the accessor that makes EzikSignInRow
-              return null in a tab. In the tab the two are replaced by the sentence that used to
-              sit beneath them, so the card never closes on a gap. AND THE SHELL MAY ASK FOR THEM
-              TO GO: ezikEntryDoors() reads the declaration documented over it -- how iOS keeps
-              Apple 4.8 while its own door is shut. Then NOTHING stands here: inside the app that
-              sentence would be false, and the guest door below carries the reader in alone. */}
-          {ezikEntryDoors(bridge) ? (<>
-            <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[0])} disabled={busy}
-              style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.google')}</button>
-            <button type="button" onClick={appleSignIn} disabled={busy}
-              style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.apple')}</button>
-          </>) : bridge ? null : <div style={s.welcomeSubtitle}>{ezT('entry.inApp')}</div>}
-          {line ? <div className="ezgate-err">{line}</div> : null}
-          {/* THE GUEST DOOR. Apple 5.1.1(v) refuses an account wall on an application whose
-              content works without an account, and ours does -- the mushaf, the adhkar and the
-              fatwas have never asked who is reading. One press, same card, nothing to search for.
-              THE WARNING IS ABOVE IT AND NOT BEHIND IT: the order asks for a notice that is read
-              and passed and NOT a wall, so reading it is the step and the press is the passing. */}
-          <div style={s.welcomeSubtitle}>{ezT('entry.guestWarn')}</div>
-          <button type="button" onClick={() => enter(ENTRY_GUEST)}
-            style={{ ...s.welcomePrimaryBtn, background: 'var(--a3-ice)', color: 'var(--a3-ink)' }}>{ezT('entry.guest')}</button>
-        </>) : (<>
-        <div style={s.welcomeGreeting}>{ezT('onboarding.welcome')}</div>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم" {...(uiLang === 'ar' ? null : { placeholder: ezT('onboarding.name') })} style={s.welcomeInput} autoFocus />
-        <div className="ezonb-row">
-          <button onClick={() => setGender('male')} style={{ ...s.welcomePrimaryBtn, background: gender === 'male' ? 'var(--accent-fill)' : 'var(--a3-ice)', color: gender ==='male' ? 'var(--on-accent)' : 'var(--a3-ink)' }}>{ezT('onboarding.male')}</button>
-          <button onClick={() => setGender('female')} style={{ ...s.welcomePrimaryBtn, background: gender === 'female' ? 'var(--accent-fill)' : 'var(--a3-ice)', color: gender ==='female' ? 'var(--on-accent)' : 'var(--a3-ink)' }}>{ezT('onboarding.female')}</button>
-        </div>
-        <input value={birthYear} onChange={(e) => setBirthYear(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} placeholder="سنة الميلاد — مثال ٢٠١٥" {...(uiLang === 'ar' ? null : { placeholder: ezT('onboarding.birthYear') })} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
-        {birthYear.trim() && !ageValid && <div className="ezgate-err">{ezT('onboarding.yearError')}</div>}
-        <div style={s.welcomeSubtitle}>{ezT('entry.optional')}</div>
-        <button onClick={submit} disabled={!canStart} className="welcome-primary" style={{ ...s.welcomePrimaryBtn, opacity: canStart ? 1 : 0.4 }}>{ezT('onboarding.start')}</button>
-        {/* THE VISIBLE WAY PAST. It is never disabled, not even while the year line says the year
-            is wrong: a reader who will not correct a typo is a reader the order says may go in
-            anyway, and a skip that greys out beside a red line is a wall wearing a skip's name. */}
-        <button type="button" onClick={skip} style={s.secondaryBtn}>{ezT('entry.skip')}</button>
-        </>)}
+            THE TEST IS A CAPABILITY AND NEVER A USER AGENT. `bridge` is ezikAuthBridge(): the
+            injected window.ReactNativeWebView, or null -- the accessor that makes EzikSignInRow
+            return null in a tab. In the tab the two are replaced by the sentence that used to
+            sit beneath them, so the card never closes on a gap. AND THE SHELL MAY ASK FOR THEM
+            TO GO: ezikEntryDoors() reads the declaration documented over it -- how iOS keeps
+            Apple 4.8 while its own door is shut. Then NOTHING stands here: inside the app that
+            sentence would be false, and the guest door below carries the reader in alone. */}
+        {ezikEntryDoors(bridge) ? (<>
+          <button type="button" onClick={() => signIn(SHELL_AUTH_PROVIDERS[0])} disabled={busy}
+            style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.google')}</button>
+          <button type="button" onClick={appleSignIn} disabled={busy}
+            style={{ ...s.welcomePrimaryBtn, marginBottom: 10, opacity: busy ? 0.45 : 1 }}>{ezT('entry.apple')}</button>
+        </>) : bridge ? null : <div style={s.welcomeSubtitle}>{ezT('entry.inApp')}</div>}
+        {line ? <div className="ezgate-err">{line}</div> : null}
+        {/* THE GUEST DOOR. Apple 5.1.1(v) refuses an account wall on an application whose
+            content works without an account, and ours does -- the mushaf, the adhkar and the
+            fatwas have never asked who is reading. One press, same card, nothing to search for.
+            THE WARNING IS ABOVE IT AND NOT BEHIND IT: the order asks for a notice that is read
+            and passed and NOT a wall, so reading it is the step and the press is the passing. */}
+        <div style={s.welcomeSubtitle}>{ezT('entry.guestWarn')}</div>
+        <button type="button" onClick={() => enter(ENTRY_GUEST)}
+          style={{ ...s.welcomePrimaryBtn, background: 'var(--a3-ice)', color: 'var(--a3-ink)' }}>{ezT('entry.guest')}</button>
         </div>
       </div>
     </div>
@@ -15780,9 +15822,19 @@ function clearAuthSession() {
 //             names lib/auth/oidc.js actually holds. A payload missing any of the three is not a
 //             half-session to be repaired: it is refused whole and nothing is written.
 //
-// `email` is the one field allowed to be absent, and it is normalised to '' -- which is what
-// ezikAuthExchange() already does to the same field for the same reason: an account with no
-// verified address is a lawful account, and '' is how this file has always spelt that.
+// `email` and `name` are the two fields allowed to be absent, and both are normalised to ''
+// -- which is what ezikAuthExchange() already does to the address for the same reason: an
+// account with no verified address is a lawful account, and '' is how this file has always
+// spelt that.
+//
+// WHY `name` IS READ AT ALL, WHEN NOTHING SENDS ONE TODAY. Apple hands the display name to
+// the shell in the credential ON THE FIRST AUTHORISATION ONLY and never again; it is not a
+// claim in the identity token, and lib/auth/oidc.js deliberately drops every claim but three,
+// so the server could not return it even if it wanted to. This seam is therefore the ONE road
+// a name could ever travel, and reading it here is what makes 'consume what Apple sends,
+// never ask for it again' true the day the shell forwards one. It is refused exactly as the
+// address is -- a non-string is '' -- and it is not a fourth condition: a payload without a
+// name is a lawful payload and always was.
 const SHELL_AUTH_SESSION = 'ezik:auth:session';
 
 /**
@@ -15803,6 +15855,7 @@ function ezikNativeSessionOf(detail) {
     session: detail.session,
     email: typeof detail.email === 'string' ? detail.email : '',
     provider: provider,
+    name: typeof detail.name === 'string' ? detail.name : '',
   };
 }
 
@@ -17522,7 +17575,7 @@ function EzikReminderSettings() {
     </EzShellGroup>
   );
 }
-function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, onA11yReset, aiConsent, aiConsentBy, onWithdrawAI, onReviewAI }) {
+function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, onA11yReset, aiConsent, aiConsentBy, onWithdrawAI, onReviewAI, profile, onSaveProfile }) {
   // S90 -- التحكم. The single row that leads to the parental area, and the ONLY thing left in
   // the app that opens the PIN gate. Everything above it -- the theme/dark choice and the
   // interface style -- is reached without a PIN, which is the whole point of this screen: a
@@ -17549,6 +17602,23 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const [enterPref, setEnterPref] = useState(readEnterPref);
   const enterIsTouch = ezikComposerIsTouch();
   const enterSendsNow = ezikEnterSends(enterPref, enterIsTouch);
+  // ===== APPLE 4.0.0 -- THE THREE FIELDS THE FIRST-RUN CARD USED TO ASK FOR =====
+  // Read ONCE, at mount, from the profile this sheet was handed -- the rule the watermark, the
+  // Enter preference and the reading preferences above all follow. The judgement of the year is
+  // the first-run card's arithmetic verbatim (4..99 derived from the year typed), and it holds
+  // the SAVE button and nothing else: a reader who types nothing saves nothing wrong, and an
+  // empty year returns the account to the adult default rather than being a refusal.
+  const [pfName, setPfName] = useState(() => String((profile && profile.name) || ''));
+  const [pfGender, setPfGender] = useState(() => (profile && profile.gender) || null);
+  const [pfYear, setPfYear] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
+  const [pfMsg, setPfMsg] = useState('');
+  const pfYearNum = parseInt(ezikLatinDigits(pfYear).trim(), 10);
+  const pfDerived = new Date().getFullYear() - pfYearNum;
+  const pfYearOk = !(pfYear.trim() && !(Number.isInteger(pfYearNum) && pfDerived >= 4 && pfDerived <= 99));
+  const savePf = () => {
+    if (!pfYearOk) return;
+    setPfMsg(onSaveProfile(pfName, pfGender, pfYear) ? ezT('settings.profileSaved') : ezT('settings.profileSaveFailed'));
+  };
   const [pin1, setPin1] = useState('');
   const [pin2, setPin2] = useState('');
   const [pinMsg, setPinMsg] = useState('');
@@ -17599,6 +17669,41 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           names as before; what changed is that they sit in bounded groups inside the shared
           shell instead of five full-width slabs. Not one control was simplified away. */}
       <div className="ezsh-grid">
+        {/* APPLE 4.0.0 -- THE NAME, THE FORM OF ADDRESS AND THE YEAR, IN THE ONE PLACE THEY ARE
+            NOW ASKED FOR: here, where nothing is standing in front of a reader waiting for an
+            answer. The card that used to ask them after a sign-in is gone (see Onboarding);
+            these are the SAME three fields, in the SAME order the card drew them, with the SAME
+            arithmetic behind the year -- what changed is that they are optional in the sense
+            that costs nothing to leave alone, rather than optional behind a «تخطّي» button.
+            THEY ARE SEEDED FROM THE PROFILE, once, at mount: a reader opening this group sees
+            what the account actually holds, and a save that leaves the year alone leaves the
+            year alone. Empty is a lawful answer for all three. */}
+        <EzShellGroup title={ezT('settings.profile')} hint={ezT('settings.profileHint')}>
+          <input value={pfName} onChange={(e) => { setPfName(e.target.value); setPfMsg(''); }}
+            placeholder={ezT('onboarding.name')} aria-label={ezT('onboarding.name')} style={s.welcomeInput} />
+          <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.profile')}>
+            {[['male', ezT('onboarding.male')], ['female', ezT('onboarding.female')]].map(([v, label]) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                aria-checked={pfGender === v ? 'true' : 'false'}
+                onClick={() => { setPfGender(pfGender === v ? null : v); setPfMsg(''); }}
+                className="ez-a11y-opt"
+                style={{ ...s.a11yOpt, ...(pfGender === v ? s.themeOptActive : {}) }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); setPfMsg(''); }}
+            placeholder={ezT('onboarding.birthYear')} aria-label={ezT('onboarding.birthYear')}
+            type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
+          {pfYear.trim() && !pfYearOk && <div className="ezgate-err">{ezT('onboarding.yearError')}</div>}
+          <button type="button" onClick={savePf} disabled={!pfYearOk}
+            style={{ ...s.welcomePrimaryBtn, opacity: pfYearOk ? 1 : 0.4 }}>{ezT('settings.profileSave')}</button>
+          {pfMsg ? <div style={s.a11ySwitchHint}>{pfMsg}</div> : null}
+        </EzShellGroup>
         <EzShellGroup title={A_APPEARANCE} hint={ezT('settings.savedOnDevice')}>
           <div style={s.themeRow}>
             <Opt value="light" label={ezT('settings.themeLight')} />
