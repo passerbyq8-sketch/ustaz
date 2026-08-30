@@ -621,7 +621,16 @@ const SEALED = {
   //                    table and the SW_PROSE mirror below both followed, and THIS digest is
   //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
   //                    the same store.
-  'sw.js': '0403b9f0a88e1db60dce1484d38a305c592412bf77c7dc7bec993774f48ff1b6',
+  // APPLE 4.0.0 (2026-08-30, fix/apple-400-onboard-remove-20260830). ONE CHANGE IN app.jsx AND
+  //                    NOT ONE IN THE WORKER ITSELF beyond its byte table: submission e931435e-
+  //                    f171-4da4-b476-c33fd5dde452 was refused for asking a name and a year
+  //                    after Sign in with Apple, so the step behind the entry card is gone and
+  //                    the three fields it asked for moved into Settings. app.js followed
+  //                    1242855 -> 1248701 (+5846), and CORE_BYTES 2085702 -> 2091548 is exactly
+  //                    that delta. The worker byte table and the SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
+  //                    rewrites every CORE entry into the same store.
+  'sw.js': '18fc848f92b67bbc1f4afb54c2ec9ac095d33bdb1d8b2c552f617bf32451ebf3',
 };
 
 // ---------------------------------------------------------------------------
@@ -1732,7 +1741,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1242855, of: 'app.js' },
+      { n: 1248701, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
