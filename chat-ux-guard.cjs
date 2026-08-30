@@ -543,6 +543,7 @@ function partA() {
   const EXPECTED_TAGS = [
     'verse', 'surah', 'hadith', 'steps', 'suggestions',
     'board', 'document', 'source', 'dhikr', 'worship',
+    'lesson',
   ];
   const tagRegistryProblems = (names) => {
     const list = Array.isArray(names) ? names : [];
@@ -573,6 +574,7 @@ function partA() {
     source: '<source site="مثال" url="https://example.invalid">عنوان</source>',
     dhikr: '<dhikr id="morning-1"></dhikr>',
     worship: '<worship id="salah"></worship>',
+    lesson: '<lesson scholar="Shaykh" url="https://example.invalid">Dars</lesson>',
   };
   for (const tag of EXPECTED_TAGS) {
     const parsedTag = plain(parse(tagFixtures[tag], 30));

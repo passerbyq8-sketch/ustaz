@@ -113,6 +113,21 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-08-30   -- ITEM 7 TRACK 1: THE LESSONS REACH THE BRAIN. api/ask.js now splits the
+  //                    cited rows BEFORE the three card slots are filled, so a lesson row --
+  //                    which carries a URL and would otherwise have taken one of them -- rides
+  //                    a tail instead, APPENDED to the encyclopedia tail rather than written
+  //                    over it. A lesson carries no text at any layer, so it is an isnad and
+  //                    never a matn, and the tail is its own <lesson> tag. app.jsx gained that
+  //                    tag on all seven client surfaces and LOST the old client-side lessons
+  //                    card (item 24-A) whole; the lessons BROWSE screen (24-B and 24-C) is
+  //                    byte-for-byte untouched. app.js was rebuilt from that source 1248701 ->
+  //                    1246355 (-2346), CORE_BYTES was re-cut 2091548 -> 2089202 by
+  //                    tools/core-bytes.cjs --write, the app.js figure in the byte table above
+  //                    CORE_BYTES and the SW_PROSE mirror below both followed 1248701 ->
+  //                    1246355, and THIS digest was cut last, after all of them. sw.js is 44695
+  //                    bytes before and after: only two numbers in it moved. CACHE is NOT
+  //                    touched: the store name belongs to the merge round.
   //   2026-08-26   -- THE DOOR OUT: deleting the account from inside the app, which Apple
   //                    requires of anything that creates one and which the sign-in round
   //                    shipped without. api/auth-delete.js is new and is the ONLY caller of
@@ -630,7 +645,7 @@ const SEALED = {
   //                    that delta. The worker byte table and the SW_PROSE mirror below both
   //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
   //                    rewrites every CORE entry into the same store.
-  'sw.js': '18fc848f92b67bbc1f4afb54c2ec9ac095d33bdb1d8b2c552f617bf32451ebf3',
+  'sw.js': '38ae92e98bbd6aced76a1767814d7366e0ca196a4f2c77c2efac880e2120272d',
 };
 
 // ---------------------------------------------------------------------------
@@ -1741,7 +1756,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1248701, of: 'app.js' },
+      { n: 1246355, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

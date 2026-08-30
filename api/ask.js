@@ -1495,7 +1495,7 @@ export default async function handler(req, res) {
         const card = buildSourceTag({ url: row.url, title: row.title });
         if (!card || !card.tag) return null;
         const scholar = String(row.publisher == null ? "" : row.publisher)
-          .replace(/[<>"]/g, " ")
+          .replace(/[<>\u0022]/g, " ")
           .replace(/\u0027/g, " ")
           .replace(/\s+/g, " ")
           .trim()

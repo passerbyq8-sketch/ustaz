@@ -197,6 +197,7 @@ guards/shipped-reality-guard.cjs text eol=lf
 guards/page-match-guard.cjs text eol=lf
 lib/page-match.js text eol=lf
 guards/takhrij-lock-guard.cjs text eol=lf
+guards/lesson-tag-guard.cjs text eol=lf
 lib/takhrij-lock.js text eol=lf
 # The same defect as lib/route-classify.js below, found by fixing that one: with the route seam
 # repaired, gate takhrij went 84/87 -> 85/87 and uncovered two more assertions of its own that had

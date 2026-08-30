@@ -759,7 +759,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 99;   // 99th: authbridge -- tools/auth-bridge-measure.cjs. The web
+  const GATES_EXPECTED = 100;  // 100th: lessontag -- guards/lesson-tag-guard.cjs (2026-08-30),
                                //       half of the same sign-in, and the half that lives in
                                //       app.jsx: the shell's four-field request, the string "1"
                                //       that must not become a number, the one-shot listener

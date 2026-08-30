@@ -405,11 +405,11 @@ function mirrorMutant(source) {
   const call = 'pickReaderCards(citedSplit.pages,';
   const hits = literalIndexes(masked, call);
   if (hits.length !== 1) return { applied: false, source };
-  const token = 'citedSplit.pages';
-  const tokenIndex = hits[0] + 'pickReaderCards('.length;
+  const NEEDLE = 'citedSplit.pages';
+  const needleAt = hits[0] + 'pickReaderCards('.length;
   return {
     applied: true,
-    source: source.slice(0, tokenIndex) + 'out.cited' + source.slice(tokenIndex + token.length),
+    source: source.slice(0, needleAt) + 'out.cited' + source.slice(needleAt + NEEDLE.length),
   };
 }
 

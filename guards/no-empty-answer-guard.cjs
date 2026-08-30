@@ -734,7 +734,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // defect itself, which is exactly the shape XC-13 was.
     const askSource = fs.readFileSync(path.join(ROOT, 'api', 'ask.js'), 'utf8');
     ok('api/ask.js builds the free branch\'s cards through the capped rule',
-      /registerOwnedCards\(pickReaderCards\(out\.cited, MAX_SOURCES,/u.test(askSource));
+      /registerOwnedCards\(pickReaderCards\(citedSplit\.pages, MAX_SOURCES,/u.test(askSource)
+      && /const citedSplit = splitCitedLessons\(out\.cited\);/u.test(askSource));
     // §٣ (C) ADDED TWO NAMES TO THIS IMPORT and the pin moved with them rather than being loosened.
     // Written as «every one of these four names is in the destructuring, and the specifier is the
     // loop» instead of as one literal line: the literal broke the moment the list wrapped onto
@@ -1707,7 +1708,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('...and the tail is still produced beside them',
       loop.encyclopediaTail(mixedCited).trim() !== '');
     ok('...and api/ask.js carries it as the writer\'s own reader suffix, not concatenated onto the text',
-      /finalizerContext\.readerSuffix = encyclopediaTail\(out\.cited\);/u.test(askSource));
+      /const encTail = encyclopediaTail\(out\.cited\);/u.test(askSource)
+      && /finalizerContext\.readerSuffix = \(typeof encTail === "string" \? encTail : ""\) \+ lessonSuffix;/u.test(askSource));
 
     // T3 — §٣/٣: EVERY CITED ROW THAT GAVE THE READER NOTHING IS NAMED WITH ITS REASON.
     // «لا صمتَ بعدَ اليوم». One row per cited row, in order, and the three reasons the order names.
