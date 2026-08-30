@@ -585,3 +585,13 @@ lib/auth/account.js text eol=lf
 api/auth-start.js text eol=lf
 api/auth-return.js text eol=lf
 api/auth-exchange.js text eol=lf
+
+# lib/lib-contract.js -- the fixed origin and measured limits of the library service.
+# It carries no network call of its own, but the adapter beside it and the guards both
+# read it as text, which is the shape every module pinned above arrived through.
+lib/lib-contract.js text eol=lf
+
+# lib/lib-service.js -- the library adapter. Same reason as lib/fatwa-service.js above:
+# a guard reads it as text and plants mutants at literal anchors, and an anchor written
+# with LF matches nothing in a CRLF checkout.
+lib/lib-service.js text eol=lf
