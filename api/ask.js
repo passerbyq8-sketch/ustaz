@@ -770,6 +770,19 @@ export default async function handler(req, res) {
   const depthFreeTrial = process.env.DEPTH_FREE_TRIAL === 'on';
   const mayRequestDepth = founderUnlocked || depthFreeTrial;
   const effectiveDepth = mayRequestDepth ? readRequestedDepth(body.depth) : undefined;
+  // SHAMELA_BRAIN (item 7, path 3). The library adapter reads no environment of its own:
+  // this caller reads both variables and hands them down, which is what lets a guard drive
+  // the adapter with a fixture and no process at all.
+  //
+  // Eligibility is built on readRequestedDepth(body.depth) and NOT on effectiveDepth. The
+  // latter is undefined for everyone without a founder token unless DEPTH_FREE_TRIAL is on,
+  // so building on it would switch the library off for the public the day that trial ends.
+  // Absence of depth is brief -- and absence is also what a child sends and what a voice
+  // call sends -- so absence fails closed: no library call.
+  const libRequestedDepth = readRequestedDepth(body.depth);
+  const libDepthEligible = libRequestedDepth === 'deep' || libRequestedDepth === 'scholar';
+  const libFlagValue = process.env.SHAMELA_BRAIN;
+  const libToken = process.env.SEARCH_API_TOKEN;
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (effectiveDepth === 'deep' || effectiveDepth === 'scholar') ? 'high' : 'medium';
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
@@ -1617,6 +1630,12 @@ export default async function handler(req, res) {
           context: storedContext,
           band,
           depth: band === 'adult' ? effectiveDepth : 'brief',
+          // The flag and the token travel with the turn because the adapter reads no environment.
+          // An ineligible turn hands down a false flag, and the adapter refuses before it builds
+          // any request.
+          libEligible: libDepthEligible && band === 'adult',
+          libFlagValue,
+          libToken,
           model,
           maxTokens,
           usePremium,
