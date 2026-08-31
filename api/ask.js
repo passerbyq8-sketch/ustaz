@@ -1750,6 +1750,9 @@ export default async function handler(req, res) {
         budgetReason: storedOut.diagnostics?.budget?.lastReason || null,
         budgetEnvironment: storedOut.diagnostics?.budget?.environment || null,
         elapsedMs: storedOut.elapsedMs || null,
+        libReason: storedOut.libReason || null,
+        libAttempts: storedOut.libAttempts === undefined ? null : storedOut.libAttempts,
+        libRecords: storedOut.libRecordCount === undefined ? null : storedOut.libRecordCount,
       });
       return emitOnce(storedOut.text || NO_STORED_EVIDENCE);
     }

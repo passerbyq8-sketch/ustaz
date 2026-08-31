@@ -78,7 +78,7 @@ const ALLOWED_FIELDS = [
   'action', 'adapters', 'ageFloorOutcome', 'band', 'braveSearch', 'budgetEnvironment',
   'budgetReason', 'candidates', 'card', 'cards', 'carried', 'citationRetries', 'cited',
   'contentModes', 'corpusCalls', 'count', 'degraded', 'deliveredStop', 'destructive', 'domain',
-  'dropWhole', 'dropped', 'droppedSentences', 'duplicate', 'elapsedMs', 'emitted', 'enabled',
+  'dropWhole', 'dropped', 'droppedSentences', 'duplicate', 'elapsedMs', 'emitted', 'enabled', 'libAttempts', 'libReason', 'libRecords',
   'entity', 'evidence', 'fatwaScholars', 'fatwaSearch', 'fatwaStatus', 'fatwaTotal', 'flag',
   'flips', 'footer', 'found', 'hasDescriptor', 'host', 'hosts', 'ibnBazTotal', 'id',
   'injectionMarkers', 'intent', 'judged', 'kept', 'khilafFromOpinions', 'kind', 'lexicalRoute',
