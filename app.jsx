@@ -2684,6 +2684,29 @@ const EZIK_INCOMPLETE_TEST = /<incomplete\s*\/?>/i;
 const ezikStripIncomplete = (t) => String(t == null ? '' : t).replace(EZIK_INCOMPLETE_STRIP, '');
 const ezikAnswerIncomplete = (t) => typeof t === 'string' && EZIK_INCOMPLETE_TEST.test(t);
 
+// SH-6B — `<libsrc book="..." author="..." v="4" p="210-212"/>`: the same shape, the same rules, and
+// for a reason of its own. api/ask.js appends it — once, at the very end, never twice — when and only
+// when a Shamela library paragraph entered the model pack that wrote the answer. book is always there,
+// author usually, v and p sometimes, a url never.
+//
+// IT IS A CARRIER, NOT CONTENT. When the reader then asks «من أيِّ كتابٍ أخذتَ هذا», the server reads
+// the marker off the PREVIOUS assistant turn — it comes back inside `messages` — and names the book
+// that was actually read. Without the carrier the server would have to retrieve again and name
+// whatever came back second, which is a different book wearing the first one's answer. That is false
+// attribution, and false attribution is the one thing this file is not allowed to help produce.
+//
+// So, as with `<incomplete/>`: NOT in `KNOWN_TAG_NAMES` — `stripIncompleteTags` cuts from the first
+// unclosed known tag to the end of the text, and a self-closing marker reads to it exactly like that,
+// so listing it would delete the answer in order to hide the mark. And stripped BY NAME in the same
+// readers, for the same reason: `toPlainText` and `formatForStreamPreview` already take every angle
+// bracket, the display/voice/log readers do not.
+//
+// AND STRIPPED AT DISPLAY AND VOICE ONLY. It must survive into the message object, into `saveMessages`,
+// and back out to the server on the next turn — that is the whole of its purpose. The one reader it is
+// deliberately NOT taken out of is `fitMessagesToBudget`, which is not a reader at all but the wire.
+const EZIK_LIBSRC_STRIP = /<libsrc\b[^>]*\/?>/gi;
+const ezikStripLibSrc = (t) => String(t == null ? '' : t).replace(EZIK_LIBSRC_STRIP, '');
+
 // تعقيمٌ آمنٌ للنصِّ الذي كان سيُمحى بالكامل: تُنزَع الأقواسُ الزاويّةُ وما بينها، ويبقى النثر.
 //
 // الحذفُ بمدى الوسمِ لا بذيلِ النصّ (أ-٦/١). كان سطرُ الآيةِ والسورةِ يحذفُ من الوسمِ إلى آخرِ
@@ -3895,7 +3918,8 @@ const parseRichMessage = (text, viewerAge) => {
   }
   // §٢ (C): علامةُ «لم يكتمل» تُقرأ في شريطِ الإجراءات لا في فقاعةِ الجواب، فتُنزَع هنا أوّلاً —
   // قبل `stripIncompleteTags`، لأنّها لو بقيت لبَدَت له وسماً مفتوحاً بلا إغلاق.
-  text = ezikStripIncomplete(text);
+  // SH-6B: وشارةُ الكتاب كذلك — حاملةٌ للخادم لا سطرٌ للقارئ، فلا تُعرَض ولا تُحلَّل، وتُنزَع هنا لا في التخزين.
+  text = ezikStripLibSrc(ezikStripIncomplete(text));
   // نُنظّف الترميز الناقص قبل التحليل كي لا يظهر "<verse surah=..." كنصّ خام للطفل
   text = stripIncompleteTags(text, { rescue: true });
   const segments = [];
@@ -4015,7 +4039,8 @@ const formatForTTS = (text) => {
   // §٢ (C): العلامةُ لا تُنطَق. هي شارةٌ عن الجواب لا جملةٌ منه، كوسمِ المراجعةِ سواءً بسواء.
   // وقبلَ `stripIncompleteTags` لأنّها لو بقيت لعُدَّت وسماً مقطوعاً فحُذِف ما بعدها.
   // نحذف أي وسم ناقص/بقايا "<...>" قبل أي معالجة كي لا يصل ترميز خام إلى ElevenLabs
-  let t = stripIncompleteTags(ezikStripIncomplete(text), { rescue: true });
+  // SH-6B: وشارةُ الكتاب لا تُنطَق كذلك — لا اسمَ كتابٍ ولا مؤلِّفٍ ولا رقمَ صفحةٍ في الصوت.
+  let t = stripIncompleteTags(ezikStripLibSrc(ezikStripIncomplete(text)), { rescue: true });
   // إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
@@ -4150,7 +4175,8 @@ const formatForLog = (text) => {
   if (!text) return '';
   // §٢ (C): والسجلُّ كذلك — الشارةُ للشاشةِ لا لِنصِّ السجلّ، ونزعُها هنا قبلَ التنظيفِ العامّ.
   // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
-  let t = stripIncompleteTags(ezikStripIncomplete(text), { rescue: true });
+  // SH-6B: وشارةُ الكتاب كذلك — ترميزٌ خامٌّ لا يُعرَض، والسجلُّ عرضٌ محضٌ لا تخزين.
+  let t = stripIncompleteTags(ezikStripLibSrc(ezikStripIncomplete(text)), { rescue: true });
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // المصدر: نُبقي عنوانه نصّاً مقروءاً في سجلّ الأهل (للتحقّق) ونُسقِط الرابط — لا نعرض URL خاماً
   t = t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g, (_, title) => {
