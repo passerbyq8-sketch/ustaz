@@ -3919,7 +3919,8 @@ const parseRichMessage = (text, viewerAge) => {
   // §٢ (C): علامةُ «لم يكتمل» تُقرأ في شريطِ الإجراءات لا في فقاعةِ الجواب، فتُنزَع هنا أوّلاً —
   // قبل `stripIncompleteTags`، لأنّها لو بقيت لبَدَت له وسماً مفتوحاً بلا إغلاق.
   // SH-6B: وشارةُ الكتاب كذلك — حاملةٌ للخادم لا سطرٌ للقارئ، فلا تُعرَض ولا تُحلَّل، وتُنزَع هنا لا في التخزين.
-  text = ezikStripLibSrc(ezikStripIncomplete(text));
+  text = ezikStripIncomplete(text);
+  text = ezikStripLibSrc(text);
   // نُنظّف الترميز الناقص قبل التحليل كي لا يظهر "<verse surah=..." كنصّ خام للطفل
   text = stripIncompleteTags(text, { rescue: true });
   const segments = [];
@@ -4040,7 +4041,8 @@ const formatForTTS = (text) => {
   // وقبلَ `stripIncompleteTags` لأنّها لو بقيت لعُدَّت وسماً مقطوعاً فحُذِف ما بعدها.
   // نحذف أي وسم ناقص/بقايا "<...>" قبل أي معالجة كي لا يصل ترميز خام إلى ElevenLabs
   // SH-6B: وشارةُ الكتاب لا تُنطَق كذلك — لا اسمَ كتابٍ ولا مؤلِّفٍ ولا رقمَ صفحةٍ في الصوت.
-  let t = stripIncompleteTags(ezikStripLibSrc(ezikStripIncomplete(text)), { rescue: true });
+  let t = stripIncompleteTags(ezikStripIncomplete(text), { rescue: true });
+  t = ezikStripLibSrc(t);
   // إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
@@ -4176,7 +4178,8 @@ const formatForLog = (text) => {
   // §٢ (C): والسجلُّ كذلك — الشارةُ للشاشةِ لا لِنصِّ السجلّ، ونزعُها هنا قبلَ التنظيفِ العامّ.
   // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
   // SH-6B: وشارةُ الكتاب كذلك — ترميزٌ خامٌّ لا يُعرَض، والسجلُّ عرضٌ محضٌ لا تخزين.
-  let t = stripIncompleteTags(ezikStripLibSrc(ezikStripIncomplete(text)), { rescue: true });
+  let t = stripIncompleteTags(ezikStripIncomplete(text), { rescue: true });
+  t = ezikStripLibSrc(t);
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // المصدر: نُبقي عنوانه نصّاً مقروءاً في سجلّ الأهل (للتحقّق) ونُسقِط الرابط — لا نعرض URL خاماً
   t = t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g, (_, title) => {

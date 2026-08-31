@@ -113,12 +113,15 @@ import {
   runStoredFiqhTurn,
 } from '../lib/stored-deen.js';
 import { runClosedDeenTurn } from '../lib/closed-deen.js';
+import { isProvenanceQuestion, wantsProvenanceDetail, provenanceLine } from '../lib/lib-contract.js';
 // جولة «الاستعادة»، الفرع أ. Only the SWITCH is imported at module top — it is three environment
 // reads and no I/O. The loop, the tools and the instruction are imported lazily inside the branch,
 // so a deployment with FREE_BRAIN_V1 off never loads a byte of them.
 import { freeBrainDecision } from '../lib/free-brain/flag.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+// SH-6: the one sentence that precedes a named book. Consulted, not quoted.
+const LIB_PROVENANCE_LEAD = 'اطلعت فيها على: ';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
 // Two sentences, no greeting and no preamble, like every other class (ب) constant in this app.
 const FREE_BRAIN_EMPTY = 'تعذَّر توليدُ الجوابِ الآن. أعِدْ إرسالَ سؤالِك من فضلك.';
@@ -1244,6 +1247,46 @@ export default async function handler(req, res) {
         topic: hazard, band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION,
       });
       return emitOnce(WARM_TEMPLATES.SAFETY_REDIRECT);
+    }
+
+    // .. SH-6 . THE ATTRIBUTION TURN, ANSWERED FROM THE MARKER AND NOTHING ELSE ..
+    //
+    // The reader asks where a paragraph came from. The book is read off the <libsrc/> marker
+    // the previous answer carried back inside `messages` -- NOT from a fresh retrieval, which
+    // could name a book that was never the source. That is false attribution, and preventing it
+    // is the whole reason this item exists.
+    //
+    // AND IT CLAIMS ONLY WHAT IS TRUE. While X-020 stands the library reaches the model as
+    // context and is never quoted in the prose, so the wording says the book was CONSULTED.
+    //
+    // Placed AFTER the hazard gate and before every retrieval: safety precedes everything, and
+    // an answer already in hand needs no engine. The attribute readers are three fixed regexps
+    // rather than one built from a string, because a built one carries quoting into a place
+    // that cannot be read at a glance.
+    const LIB_MARK_RE = /<libsrc\b([^>]*)\/?>/i;
+    const LIB_AT_BOOK = /book="([^"]*)"/i;
+    const LIB_AT_AUTHOR = /author="([^"]*)"/i;
+    const LIB_AT_VOL = /v="([^"]*)"/i;
+    const LIB_AT_PAGE = /p="([^"]*)"/i;
+    const priorTurns = (body.messages || []).filter((m) => m && m.role === 'assistant');
+    const priorText = priorTurns.length ? String(priorTurns[priorTurns.length - 1].content || '') : '';
+    const libMark = LIB_MARK_RE.exec(priorText);
+    if (libMark && isProvenanceQuestion(questionText)) {
+      const attrs = libMark[1] || '';
+      const grab = (re) => { const m = re.exec(attrs); return m ? m[1] : ''; };
+      const pages = grab(LIB_AT_PAGE).split('-');
+      const wantsDetail = wantsProvenanceDetail(questionText);
+      const line = provenanceLine({
+        book_title: grab(LIB_AT_BOOK),
+        author: grab(LIB_AT_AUTHOR),
+        volume: grab(LIB_AT_VOL),
+        page_start: pages[0] || '',
+        page_end: pages[1] || pages[0] || '',
+      }, wantsDetail);
+      if (line) {
+        console.log('[sh6/provenance]', { detail: wantsDetail });
+        return emitOnce(LIB_PROVENANCE_LEAD + line);
+      }
     }
 
     // ── AGE_ACCESS_POLICY, AFTER IR_BUILD AND BEFORE THE ROUTE ─────────────
