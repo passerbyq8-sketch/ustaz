@@ -752,7 +752,27 @@ const EZIK_TAG_RESCUES=[];// ===================================================
 //
 // TWO REGEXPS AND NOT ONE: `.test()` on a /g regexp carries `lastIndex` between calls, so the same
 // constant used for both would answer TRUE and FALSE alternately on the identical string.
-const EZIK_INCOMPLETE_STRIP=/<incomplete\s*\/?>/gi;const EZIK_INCOMPLETE_TEST=/<incomplete\s*\/?>/i;const ezikStripIncomplete=t=>String(t==null?'':t).replace(EZIK_INCOMPLETE_STRIP,'');const ezikAnswerIncomplete=t=>typeof t==='string'&&EZIK_INCOMPLETE_TEST.test(t);// تعقيمٌ آمنٌ للنصِّ الذي كان سيُمحى بالكامل: تُنزَع الأقواسُ الزاويّةُ وما بينها، ويبقى النثر.
+const EZIK_INCOMPLETE_STRIP=/<incomplete\s*\/?>/gi;const EZIK_INCOMPLETE_TEST=/<incomplete\s*\/?>/i;const ezikStripIncomplete=t=>String(t==null?'':t).replace(EZIK_INCOMPLETE_STRIP,'');const ezikAnswerIncomplete=t=>typeof t==='string'&&EZIK_INCOMPLETE_TEST.test(t);// SH-6B — `<libsrc book="..." author="..." v="4" p="210-212"/>`: the same shape, the same rules, and
+// for a reason of its own. api/ask.js appends it — once, at the very end, never twice — when and only
+// when a Shamela library paragraph entered the model pack that wrote the answer. book is always there,
+// author usually, v and p sometimes, a url never.
+//
+// IT IS A CARRIER, NOT CONTENT. When the reader then asks «من أيِّ كتابٍ أخذتَ هذا», the server reads
+// the marker off the PREVIOUS assistant turn — it comes back inside `messages` — and names the book
+// that was actually read. Without the carrier the server would have to retrieve again and name
+// whatever came back second, which is a different book wearing the first one's answer. That is false
+// attribution, and false attribution is the one thing this file is not allowed to help produce.
+//
+// So, as with `<incomplete/>`: NOT in `KNOWN_TAG_NAMES` — `stripIncompleteTags` cuts from the first
+// unclosed known tag to the end of the text, and a self-closing marker reads to it exactly like that,
+// so listing it would delete the answer in order to hide the mark. And stripped BY NAME in the same
+// readers, for the same reason: `toPlainText` and `formatForStreamPreview` already take every angle
+// bracket, the display/voice/log readers do not.
+//
+// AND STRIPPED AT DISPLAY AND VOICE ONLY. It must survive into the message object, into `saveMessages`,
+// and back out to the server on the next turn — that is the whole of its purpose. The one reader it is
+// deliberately NOT taken out of is `fitMessagesToBudget`, which is not a reader at all but the wire.
+const EZIK_LIBSRC_STRIP=/<libsrc\b[^>]*\/?>/gi;const ezikStripLibSrc=t=>String(t==null?'':t).replace(EZIK_LIBSRC_STRIP,'');// تعقيمٌ آمنٌ للنصِّ الذي كان سيُمحى بالكامل: تُنزَع الأقواسُ الزاويّةُ وما بينها، ويبقى النثر.
 //
 // الحذفُ بمدى الوسمِ لا بذيلِ النصّ (أ-٦/١). كان سطرُ الآيةِ والسورةِ يحذفُ من الوسمِ إلى آخرِ
 // النصِّ كلِّه، فجوابٌ من ١٣٠ حرفًا فيه ٥٥ حرفَ نثرٍ بعدَ آيةٍ مقطوعةٍ كان يصلُ صفرًا: العرضُ
@@ -1269,7 +1289,8 @@ function showChildVoiceNotice(setMsg){try{setMsg(CHILD_VOICE_NOTICE);setTimeout(
 const EZIK_NOTICE_RE=/【([^】\n]{1,80})】/u;const EZIK_NOTICE_ALL=/【([^】\n]{1,80})】/gu;const ezikLiftNotices=segments=>{const out=[];(segments||[]).forEach(seg=>{if(!seg||seg.type!=='text'||!EZIK_NOTICE_RE.test(seg.content||'')){out.push(seg);return;}const prose=[];const notices=[];String(seg.content).split('\n').forEach(line=>{if(!EZIK_NOTICE_RE.test(line)){prose.push(line);return;}const labels=[];const stripped=line.replace(EZIK_NOTICE_ALL,(all,label)=>{labels.push(label.trim());return'';}).replace(/[ \t]{2,}/g,' ').trim();const opensLine=/^\s*【/.test(line);labels.forEach((label,i)=>notices.push({type:'notice',label,content:opensLine&&i===0?stripped:''}));if(!opensLine&&stripped)prose.push(stripped);});const kept=prose.join('\n').replace(/\n{3,}/g,'\n\n').trim();if(kept)out.push({type:'text',content:kept});notices.forEach(notice=>out.push(notice));});return out;};const parseRichMessage=(text,viewerAge)=>{// Tolerate a <document> whose </document> never arrived (stream/token cutoff): close it so it still renders as a card.
 {const _d=text.search(/<document\b[^>]*>/);if(_d!==-1&&text.indexOf('</document>',_d)===-1)text=text+'</document>';}if(!text||typeof text!=='string'){return{segments:[{type:'text',content:text||''}],suggestions:[]};}// §٢ (C): علامةُ «لم يكتمل» تُقرأ في شريطِ الإجراءات لا في فقاعةِ الجواب، فتُنزَع هنا أوّلاً —
 // قبل `stripIncompleteTags`، لأنّها لو بقيت لبَدَت له وسماً مفتوحاً بلا إغلاق.
-text=ezikStripIncomplete(text);// نُنظّف الترميز الناقص قبل التحليل كي لا يظهر "<verse surah=..." كنصّ خام للطفل
+// SH-6B: وشارةُ الكتاب كذلك — حاملةٌ للخادم لا سطرٌ للقارئ، فلا تُعرَض ولا تُحلَّل، وتُنزَع هنا لا في التخزين.
+text=ezikStripIncomplete(text);text=ezikStripLibSrc(text);// نُنظّف الترميز الناقص قبل التحليل كي لا يظهر "<verse surah=..." كنصّ خام للطفل
 text=stripIncompleteTags(text,{rescue:true});const segments=[];let suggestions=[];let remaining=text;// أنماط الوسوم
 const tagPattern=new RegExp(`<(${KNOWN_TAGS})([^>]*)>([\\s\\S]*?)</\\1>`,'g');let lastIndex=0;let match;while((match=tagPattern.exec(text))!==null){// إضافة النص العادي قبل الوسم
 if(match.index>lastIndex){const plainText=text.slice(lastIndex,match.index).trim();if(plainText)segments.push({type:'text',content:plainText});}const tagName=match[1];const attrsStr=match[2]||'';const content=(match[3]||'').trim();if(tagName==='verse'){const surahMatch=attrsStr.match(/surah=["']([^"']+)["']/);const surahNumMatch=attrsStr.match(/surah_num=["']([^"']+)["']/);const ayahMatch=attrsStr.match(/ayah=["']([^"']+)["']/);segments.push({type:'verse',content,surah:surahMatch?surahMatch[1]:'',surahNum:surahNumMatch?surahNumMatch[1]:'',ayah:ayahMatch?ayahMatch[1]:''});}else if(tagName==='surah'){// سورة كاملة أو مدًى متّصل — بطاقة واحدة، نصّ متّصل، زرّ تلاوة واحد
@@ -1283,7 +1304,8 @@ return{segments:ezikLiftNotices(segments),suggestions};};// ====================
 const formatForTTS=text=>{if(!text)return'';// §٢ (C): العلامةُ لا تُنطَق. هي شارةٌ عن الجواب لا جملةٌ منه، كوسمِ المراجعةِ سواءً بسواء.
 // وقبلَ `stripIncompleteTags` لأنّها لو بقيت لعُدَّت وسماً مقطوعاً فحُذِف ما بعدها.
 // نحذف أي وسم ناقص/بقايا "<...>" قبل أي معالجة كي لا يصل ترميز خام إلى ElevenLabs
-let t=stripIncompleteTags(ezikStripIncomplete(text),{rescue:true});// إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
+// SH-6B: وشارةُ الكتاب لا تُنطَق كذلك — لا اسمَ كتابٍ ولا مؤلِّفٍ ولا رقمَ صفحةٍ في الصوت.
+let t=stripIncompleteTags(ezikStripIncomplete(text),{rescue:true});t=ezikStripLibSrc(t);// إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
 t=t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g,'');// إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
 t=t.replace(/<source[^>]*>[\s\S]*?<\/source>/g,' ');// إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
 // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
@@ -1328,7 +1350,8 @@ t=t.replace(/\s+/g,' ').trim();for(const{token,url}of protectedUrls)t=t.split(to
 // الصوت يحذف الآية (يسمعها الطفل من القارئ)، أما الأهل فيجب أن يَرَوا نصّها في السجلّ.
 const formatForLog=text=>{if(!text)return'';// §٢ (C): والسجلُّ كذلك — الشارةُ للشاشةِ لا لِنصِّ السجلّ، ونزعُها هنا قبلَ التنظيفِ العامّ.
 // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
-let t=stripIncompleteTags(ezikStripIncomplete(text),{rescue:true});t=t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g,'');// المصدر: نُبقي عنوانه نصّاً مقروءاً في سجلّ الأهل (للتحقّق) ونُسقِط الرابط — لا نعرض URL خاماً
+// SH-6B: وشارةُ الكتاب كذلك — ترميزٌ خامٌّ لا يُعرَض، والسجلُّ عرضٌ محضٌ لا تخزين.
+let t=stripIncompleteTags(ezikStripIncomplete(text),{rescue:true});t=ezikStripLibSrc(t);t=t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g,'');// المصدر: نُبقي عنوانه نصّاً مقروءاً في سجلّ الأهل (للتحقّق) ونُسقِط الرابط — لا نعرض URL خاماً
 t=t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g,(_,title)=>{const s=(title||'').trim();return s?` [المصدر: ${s}] `:' ';});// الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
 // نعرض المرجع فقط. نتجاهل أيّ نصّ بداخل الوسم تماماً (قد يرسله النموذج خطأً).
 t=t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g,(_,attrs)=>{const sNum=resolveSurahNumber((attrs.match(/surah=["']([^"']+)["']/)||[])[1],(attrs.match(/surah_num=["']([^"']+)["']/)||[])[1]);const aNum=parseInt((attrs.match(/ayah=["']([^"']+)["']/)||[])[1],10);const name=sNum?SURAH_NAMES[sNum]:'';const ref=[name&&`سورة ${name}`,aNum>=1&&`آية ${aNum}`].filter(Boolean).join('، ');const canon=sNum&&aNum>=1?getVerseText(sNum,aNum):null;return canon?` «${canon}»${ref?` (${ref})`:''} `:ref?` [${ref}] `:' ';});// السورة: مرجعٌ مختصرٌ للأهل (الاسم + المدى إن كان جزئياً) — لا نصّ خام

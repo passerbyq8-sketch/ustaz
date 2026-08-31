@@ -697,6 +697,8 @@ const user = (t) => [{ role: 'user', content: t }];
     sandbox.EZIK_INCOMPLETE_STRIP = vm.runInNewContext('(' + initializer('EZIK_INCOMPLETE_STRIP') + ')', sandbox);
     sandbox.EZIK_INCOMPLETE_TEST = vm.runInNewContext('(' + initializer('EZIK_INCOMPLETE_TEST') + ')', sandbox);
     sandbox.ezikStripIncomplete = vm.runInNewContext('(' + initializer('ezikStripIncomplete') + ')', sandbox);
+    sandbox.EZIK_LIBSRC_STRIP = vm.runInNewContext('(' + initializer('EZIK_LIBSRC_STRIP') + ')', sandbox);
+    sandbox.ezikStripLibSrc = vm.runInNewContext('(' + initializer('ezikStripLibSrc') + ')', sandbox);
     const clientFunction = (name) => {
       const source = initializer(name);
       ok('the client exposes ' + name + ' as a structural unit', !!source);

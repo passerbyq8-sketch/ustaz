@@ -1284,7 +1284,6 @@ export default async function handler(req, res) {
         page_end: pages[1] || pages[0] || '',
       }, wantsDetail);
       if (line) {
-        console.log('[sh6/provenance]', { detail: wantsDetail });
         return emitOnce(LIB_PROVENANCE_LEAD + line);
       }
     }
