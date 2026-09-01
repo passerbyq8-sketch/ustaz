@@ -1,7 +1,7 @@
 'use strict';
 // tools/fatwa-drift-watch.cjs -- the drift watch for the fatwa contract (item 3).
 //
-// Why a tool and not a gate: all 99 gates in gates.json are offline by design, and
+// Why a tool and not a gate: all 100 gates in gates.json are offline by design, and
 // source-liveness-guard.cjs asserts of itself that it makes no network request.
 // That invariant is why a pinned number could sit wrong for twenty days:
 // hybrid-live-fatwa-guard.cjs:827 compares fatwaContractTotals() with numbers
