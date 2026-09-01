@@ -759,7 +759,25 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 99;   // 99th: authbridge -- tools/auth-bridge-measure.cjs. The web
+  const GATES_EXPECTED = 100;  // 100th: libbook -- guards/lib-book-contract-guard.cjs. The
+                               //       library/book contract, in four proofs and no network: a
+                               //       BRIEF turn is offered no search_library on any provider
+                               //       round (read off the wire, with the runner refusing on the
+                               //       flag and the token independently and the fetch seam
+                               //       COUNTED rather than assumed); a book row carries url: ''
+                               //       and pickBookCards builds a chip from it where
+                               //       pickReaderCards keeps nothing; a dead library costs the
+                               //       chip and never the turn, across a throw, a 503 and a body
+                               //       that is not JSON; and an atom whose title, author, volume
+                               //       and page arrive WITHOUT a matn becomes no record, no ref,
+                               //       no marker and no chip -- the discriminating field is
+                               //       `text` on the service hit and the refusal is one line in
+                               //       lib/lib-service.js. Two mutants die: a url filter over
+                               //       book rows, and that refusal removed. The input is the
+                               //       recorded /search wire shape from item 16-A, injected at
+                               //       the outermost seam, so the fixture is not cut to the
+                               //       shape of the code it measures.
+                               // 99th: authbridge -- tools/auth-bridge-measure.cjs. The web
                                //       half of the same sign-in, and the half that lives in
                                //       app.jsx: the shell's four-field request, the string "1"
                                //       that must not become a number, the one-shot listener

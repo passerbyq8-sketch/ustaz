@@ -585,3 +585,14 @@ lib/auth/account.js text eol=lf
 api/auth-start.js text eol=lf
 api/auth-return.js text eol=lf
 api/auth-exchange.js text eol=lf
+
+# guards/lib-book-contract-guard.cjs (the library/book contract, gate `libbook`) -- pinned first
+# because recon requires a `text eol=lf` line for EVERY script named in gates.json, and second
+# because this guard MUTATES lifted source by exact string: it plants a url filter into
+# lib/free-brain/loop.js and removes the textless refusal from lib/lib-service.js, both by
+# literal substring. It already normalises CRLF out of the source it cuts -- lib/lib-service.js
+# is CRLF in this working tree while loop.js is LF -- but a CR inside the GUARD itself would
+# still move the byte offsets of nothing and change the seams of everything, so it is pinned on
+# the same principle as the tools above: a machine checking out with core.autocrlf=true must get
+# the same file this one measured.
+guards/lib-book-contract-guard.cjs text eol=lf
