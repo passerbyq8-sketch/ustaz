@@ -450,7 +450,7 @@ function partA() {
   eq('...because the length counted is the prose alone', proseLen(cardHeavy), 40);
 
   // --- EVERY card survives the fold ------------------------------------------
-  const CARD_TYPES = ['verse', 'surah', 'hadith', 'source', 'dhikr', 'worship', 'steps', 'board', 'document'];
+  const CARD_TYPES = ['verse', 'surah', 'hadith', 'source', 'dhikr', 'worship', 'steps', 'board', 'document', 'book'];
   const mixed = [{ type: 'text', content: 'p'.repeat(MIN + 500) }]
     .concat(CARD_TYPES.map((t) => ({ type: t, content: t, items: [t], id: t, catId: t, num: '1', title: t })));
   const foldedMixed = foldSegments(mixed, MIN, HEAD);
@@ -542,7 +542,9 @@ function partA() {
   // --- F-124: one governing registry for every shipped rich-message tag ----------------------
   const EXPECTED_TAGS = [
     'verse', 'surah', 'hadith', 'steps', 'suggestions',
-    'board', 'document', 'source', 'dhikr', 'worship',
+    // ع-٤٩ — 'book' is the library attribution chip. Server-owned (api/ask.js buildBookTag), never
+    // written by the model, and it opens nothing: no link, no host, no arrow.
+    'board', 'document', 'source', 'dhikr', 'worship', 'book',
   ];
   const tagRegistryProblems = (names) => {
     const list = Array.isArray(names) ? names : [];
@@ -573,6 +575,7 @@ function partA() {
     source: '<source site="مثال" url="https://example.invalid">عنوان</source>',
     dhikr: '<dhikr id="morning-1"></dhikr>',
     worship: '<worship id="salah"></worship>',
+    book: '<book author="ابن قدامة" ref="ج1 · ص2">المغني</book>',
   };
   for (const tag of EXPECTED_TAGS) {
     const parsedTag = plain(parse(tagFixtures[tag], 30));

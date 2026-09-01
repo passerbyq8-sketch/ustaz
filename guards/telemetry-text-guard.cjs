@@ -75,7 +75,10 @@ const DENIED_SOURCES = [
 // Every field name a delivery path may print. Opaque identifiers, counts, flags, and fixed
 // vocabularies only. A name arriving here without a reason is the failure this list exists for.
 const ALLOWED_FIELDS = [
-  'action', 'adapters', 'ageFloorOutcome', 'band', 'braveSearch', 'budgetEnvironment',
+  // ع-٤٩ — 'books' is a COUNT: `bookCards.length` on [free-brain/cited-delivery], the number of
+  // library attribution chips one reply drew. An integer beside the existing 'cards'; there is no
+  // string in it, and nothing about it is derived from anything the reader typed.
+  'action', 'adapters', 'ageFloorOutcome', 'band', 'books', 'braveSearch', 'budgetEnvironment',
   'budgetReason', 'candidates', 'card', 'cards', 'carried', 'citationRetries', 'cited',
   'contentModes', 'corpusCalls', 'count', 'degraded', 'deliveredStop', 'destructive', 'domain',
   'dropWhole', 'dropped', 'droppedSentences', 'duplicate', 'elapsedMs', 'emitted', 'enabled',

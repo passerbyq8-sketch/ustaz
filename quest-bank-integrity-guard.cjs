@@ -630,7 +630,16 @@ const SEALED = {
   //                    that delta. The worker byte table and the SW_PROSE mirror below both
   //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
   //                    rewrites every CORE entry into the same store.
-  'sw.js': '68dcded45a72b0061de2460b30e3706deebb858a119bfc6b4367d204da467bef',
+  // THE LIBRARY BOOK CARD (2026-09-01, feat/item7-library-freebrain-20260901). ONE CHANGE IN THE
+  //                    WORKER ITSELF BEYOND ITS BYTE TABLE: none. `lib_book` atoms reached the
+  //                    answer and no card was ever built for them — the tool existed in one file,
+  //                    the client knew nothing of it — so the server now builds a `<book>` chip
+  //                    from the rows the delivered text cited and the client draws it. app.jsx
+  //                    grew and app.js followed 1249879 -> 1253566 (+3687), and CORE_BYTES
+  //                    2092726 -> 2096413 is exactly that delta. The worker byte table and the
+  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last. CACHE
+  //                    is NOT bumped: install rewrites every CORE entry into the same store.
+  'sw.js': 'd779eeeb869fb415554d0fb1fdd61aa4f09106a6885de4d95b0f9c8d28fcce69',
 };
 
 // ---------------------------------------------------------------------------
@@ -1741,7 +1750,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1249879, of: 'app.js' },
+      { n: 1253566, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

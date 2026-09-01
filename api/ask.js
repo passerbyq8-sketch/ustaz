@@ -550,6 +550,38 @@ export function buildSourceTag(src) {
   return { url, host, tag: `<source site="${host}" url="${url}">${title || host}</source>` };
 }
 
+// ── ع-٤٩: THE BOOK CHIP, AND WHY IT IS NOT A `<source>` ─────────────────────
+//
+// A book is attribution, not navigation. `buildSourceTag` above REFUSES anything without an https
+// URL, and a library atom has no URL at all by design (lib/free-brain/tools.js) — so every book
+// this application quoted reached the reader as nothing whatever. That is the defect this builds.
+//
+// WHAT IT MAY CARRY, AND THE LIST IS CLOSED: the book's name, its author, and the volume/page —
+// and the locator only ever arrives already gated (lib/lib-service.js drops it unless the service
+// called the page citable, and lib/free-brain/tools.js drops it again when the numbering is
+// automatic). NO LINK, NO HOST, NO OPEN-ARROW, and never the name of the corpus the atom sits in:
+// the reader is told the book and the author, which is what a citation is.
+//
+// NOTHING IS DERIVED. An absent author yields no attribute, an absent locator yields no attribute,
+// and an absent book title yields NO CARD — a chip that could not name its book would be a
+// citation of nothing. The same grammar `buildSourceTag` satisfies is satisfied here, for the
+// same reason: the client parses these tags back out with `([^>]*)` and `["']([^"']+)["']`, so a
+// quote or an angle bracket inside an attribute would truncate the card silently.
+export function buildBookTag(row) {
+  const attr = (value) => String(value == null ? '' : value)
+    .replace(/["'<>]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, SOURCE_TITLE_MAX)
+    .trim();
+  const title = attr(row && row.bookTitle);
+  if (!title) return dropCard('book-without-title', row && row.recordId);
+  const author = attr(row && row.author);
+  const where = attr(row && row.locator);
+  const attrs = (author ? ` author="${author}"` : '') + (where ? ` ref="${where}"` : '');
+  return { tag: `<book${attrs}>${title}</book>` };
+}
+
 // Hard ceiling on cards in one reply. Three is the number of distinct rulings/references
 // a compound question is allowed to rest on; past that a reply stops citing and starts
 // listing. Also the cap on retrieval angles below, so the two can never disagree.
@@ -1404,7 +1436,8 @@ export default async function handler(req, res) {
       // linkedom/Readability only if the model actually calls a web tool, and a turn that
       // answers a sum from memory must not pay for loading them.
       const {
-        runFreeBrainTurn, pickReaderCards, reviewerEvidence, encyclopediaTail, citedDeliveryLedger,
+        runFreeBrainTurn, pickReaderCards, pickBookCards, reviewerEvidence, encyclopediaTail,
+        citedDeliveryLedger,
       } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
 
@@ -1483,8 +1516,21 @@ export default async function handler(req, res) {
         ? onlyCitedRow : null;
       const buildReviewedCard = (row) => row === rejectedCardRow ? null : buildFreeCard(row);
       const cards = registerOwnedCards(pickReaderCards(out.cited, MAX_SOURCES, buildReviewedCard));
-      finalizerContext.readerCards = cards;
-      finalizerContext.readerCardPrefix = cards.length ? '\n\n' : '';
+      // ── ع-٤٩: AND THE BOOKS, WHICH THAT SELECTION CANNOT SEE ───────────────
+      //
+      // `pickReaderCards` keeps a row only `if (row.url)`, and a library atom carries none — so a
+      // book could be searched, quoted, cited, survive the reviewer, and reach the reader as
+      // NOTHING AT ALL. Measured on 1 September 2026: `lib_book` appeared once in the whole tree
+      // and zero times in the client. It is the encyclopedia's silent loss over again, and it is
+      // answered the same way: its own selection, over rows the DELIVERED text cited.
+      //
+      // IT DOES NOT SPEND A PAGE SLOT. MAX_SOURCES caps external PAGES a reply may display; a book
+      // chip displays no page and opens nothing. It is reused as the ceiling here because «past
+      // three a reply stops citing and starts listing» is just as true of books, but the two lists
+      // are counted apart, so three fatwa pages and two books is three cards and two chips.
+      const bookCards = registerOwnedCards(pickBookCards(out.cited, MAX_SOURCES, buildBookTag));
+      finalizerContext.readerCards = [...cards, ...bookCards];
+      finalizerContext.readerCardPrefix = finalizerContext.readerCards.length ? '\n\n' : '';
       // ── §٣ (C): THE ENCYCLOPEDIA IS ATTRIBUTED IN A LINE, NOT IN A CARD ────
       //
       // The owner's decision: a row taken from the Kuwaiti fiqh encyclopedia earns a footer saying
@@ -1512,6 +1558,8 @@ export default async function handler(req, res) {
       console.log('[free-brain/cited-delivery]', JSON.stringify({
         cited: delivery.length,
         cards: cards.length,
+        // ع-٤٩ — book chips are counted apart from page cards, because they are capped apart.
+        books: bookCards.length,
         // The three §٣/٣ names, counted, so a regression is one number and not a scan of the rows.
         noUrl: delivery.filter((r) => r.outcome === 'no_url').length,
         duplicate: delivery.filter((r) => r.outcome === 'duplicate').length,

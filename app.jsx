@@ -2653,7 +2653,10 @@ const getDailyVerse = () => {
 // ترميز خام إلى الطفل (عرض) ولا إلى ElevenLabs (صوت). مستقلّ تماماً عن max_tokens.
 const KNOWN_TAG_NAMES = Object.freeze([
   'verse', 'surah', 'hadith', 'steps', 'suggestions',
-  'board', 'document', 'source', 'dhikr', 'worship',
+  // ع-٤٩ — 'book' is the LIBRARY attribution chip. The server owns it (api/ask.js buildBookTag);
+  // the model never writes one. It is listed here so an answer cut mid-chip is cleaned like every
+  // other card instead of leaking «<book author=» to the screen and to ElevenLabs.
+  'board', 'document', 'source', 'dhikr', 'worship', 'book',
 ]);
 const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 // سجلُّ الإنقاذ: كلُّ مرّةٍ أفرغ فيها التنظيفُ نصًّا خادميًّا غيرَ فارغٍ فأُنقِذ بدلَ أن يُمحى.
@@ -3967,6 +3970,18 @@ const parseRichMessage = (text, viewerAge) => {
         site: siteMatch ? siteMatch[1] : '',
         url: urlMatch ? urlMatch[1] : '',
       });
+    } else if (tagName === 'book') {
+      // ع-٤٩ — الكتابُ والمؤلِّفُ لا غير. لا رابطَ ولا نطاقَ ولا سهمَ فتح: هذه بطاقةُ إسنادٍ لا
+      // بابُ تصفُّح. والموضعُ (`ref`) يصلُ مغربلًا من الخادم — إن لم تصحَّ الصفحةُ لم يُرسَل أصلًا،
+      // فلا يُبنى هنا بديلٌ عنه ولا يُخمَّن.
+      const authorMatch = attrsStr.match(/author=["']([^"']+)["']/);
+      const refMatch = attrsStr.match(/ref=["']([^"']+)["']/);
+      segments.push({
+        type: 'book',
+        title: content,
+        author: authorMatch ? authorMatch[1] : '',
+        where: refMatch ? refMatch[1] : '',
+      });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
         .map(l => l.trim())
@@ -4020,6 +4035,8 @@ const formatForTTS = (text) => {
   t = t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g, '');
   // إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
   t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' ');
+  // ع-٤٩ — وبطاقةُ الكتابِ كذلك: شارةُ إسنادٍ مرئيّةٌ لا جملةٌ تُنطَق، فتُصمَت كبطاقةِ المصدرِ سواء.
+  t = t.replace(/<book[^>]*>[\s\S]*?<\/book>/g, ' ');
   // إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
   // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
   t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
@@ -4135,7 +4152,7 @@ const formatForTTS = (text) => {
       return ' ' + (fp === null ? iw : iw + ' فاصلة ' + _dbd(fp)) + ' ';
     });
   }
-  t = t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document)\b/gi, ' ');
+  t = t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document|book)\b/gi, ' ');
   // تنظيف الفراغات
   t = t.replace(/\s+/g, ' ').trim();
   for (const { token, url } of protectedUrls) t = t.split(token).join(url);
@@ -4156,6 +4173,14 @@ const formatForLog = (text) => {
   t = t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g, (_, title) => {
     const s = (title || '').trim();
     return s ? ` [المصدر: ${s}] ` : ' ';
+  });
+  // ع-٤٩ — الكتابُ يُكتَبُ للأهلِ نصًّا كالمصدرِ سواء: هذا هو السطرُ الذي يتحقّقُ منه الوالدُ.
+  t = t.replace(/<book([^>]*)>([\s\S]*?)<\/book>/g, (_, attrs, name) => {
+    const am = attrs.match(/author=["']([^"']+)["']/);
+    const rm = attrs.match(/ref=["']([^"']+)["']/);
+    const line = [(name || '').trim(), am ? am[1].trim() : '', rm ? rm[1].trim() : '']
+      .filter(Boolean).join(' \u2014 ');
+    return line ? ` [الكتاب: ${line}] ` : ' ';
   });
   // الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
   // نعرض المرجع فقط. نتجاهل أيّ نصّ بداخل الوسم تماماً (قد يرسله النموذج خطأً).
@@ -4246,6 +4271,7 @@ const formatForStreamPreview = (text) => {
   t = t.replace(/<hadith[^>]*>[\s\S]*?<\/hadith>/g, ' ');
   t = t.replace(/<steps[^>]*>[\s\S]*?<\/steps>/g, ' ');
   t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' '); // hide the source chip (tag + inner title) while streaming
+  t = t.replace(/<book[^>]*>[\s\S]*?<\/book>/g, ' ');     // ع-٤٩ — and the book chip, for the same reason
   t = t.replace(/<\/?[a-z][^>]*>/gi, ' '); // any remaining tag
   // S93: horizontal whitespace collapses, NEWLINES SURVIVE. They used to be flattened with
   // everything else, which was harmless while the preview was one run of plain text — but the
@@ -8413,7 +8439,7 @@ function ezikShortDate(at) {
 // normalized one; without it the two strings have different lengths (diacritics were dropped) and
 // every snippet would be shifted by however many harakat preceded the match.
 const EZIK_SNIPPET_RADIUS = 45;
-const EZIK_CARD_TAG_RE = /<\/?(?:verse|surah|hadith|steps|suggestions|board|document|source|dhikr|worship)\b[^>]*>/gi;
+const EZIK_CARD_TAG_RE = /<\/?(?:verse|surah|hadith|steps|suggestions|board|document|source|dhikr|worship|book)\b[^>]*>/gi;
 
 // The searchable form of a reply: the card MARKUP goes, the words inside the cards stay — so a
 // hadith or a source's own text is findable, and no tag can ever surface in a snippet.
@@ -10452,7 +10478,7 @@ function App() {
     const feed = (full) => {
       if (!isCurrent() || hitTag) return;
       const safe = stripIncompleteTags(full);                 // drops any incomplete trailing tag
-      const tm = /<(verse|surah|hadith|steps|suggestions|source|dhikr|worship)[\s>\/]/.exec(safe);
+      const tm = /<(verse|surah|hadith|steps|suggestions|source|dhikr|worship|book)[\s>\/]/.exec(safe);
       const firstTag = tm ? tm.index : safe.length;           // prose is streamable only BEFORE the first tag
       const region = safe.slice(consumedLen, firstTag);       // tag-free prose not yet spoken
       const cut = tm ? region.length : lastSentenceCut(region); // tag present -> flush prose up to it; else complete sentences only
@@ -12458,6 +12484,11 @@ const REPLY_SERIALIZERS = {
     // and the chip's own href is the only place it exists on screen.
     return REPLY_LINE([text ? label + ' \u2014 ' + text : label, sg.url || '']);
   },
+  // ع-٤٩ — the copied reply names the book and the author, and no URL, because there is none.
+  // The parts are joined on one line rather than through REPLY_LINE: a book, its author and its
+  // page are ONE citation, and three lines would read as three sources.
+  book: (sg) => [String(sg.title || '').trim(), String(sg.author || '').trim(), String(sg.where || '').trim()]
+    .filter(Boolean).join(' \u2014 '),
   // The heading comes from the ANSWER (the tag's title), or there is no heading at all. It used
   // to be one fixed sentence printed above every list -- see readStepsTitle for what that cost.
   steps: (sg) => REPLY_LINE(((sg.title || '').trim() ? [(sg.title || '').trim()] : []).concat(
@@ -12970,6 +13001,9 @@ function ezikRenderSegments(segments, ctx) {
     }
     if (seg.type === 'source') {
       return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
+    }
+    if (seg.type === 'book') {
+      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} />;
     }
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
@@ -13840,6 +13874,31 @@ function SourceCard({ site, url, content }) {
         onPass={() => { setGate(null); try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} }}
         onCancel={() => setGate(null)} />}
     </>
+  );
+}
+
+// ع-٤٩ — بطاقةُ الكتاب: اسمُ الكتابِ ومؤلِّفُه، والموضعُ إن صحّ. لا رابطَ ولا نطاقَ ولا سهمَ فتح.
+//
+// IT BORROWS SourceCard's CHIP STYLES AND ADDS NOT ONE OF ITS OWN. Same shape, same tokens, same
+// place in the reply — so the two read as one family — and the DIFFERENCE is exactly what the two
+// things are: the source chip is the app's only external navigation and ends in an arrow; this one
+// opens nothing at all, so it has no <a>, no href, no parental gate and no arrow to draw.
+//
+// NOTHING IS INVENTED HERE EITHER. A missing author draws no author, a missing locator draws no
+// locator, and a card with no book name draws NOTHING — the server refuses to build one
+// (api/ask.js buildBookTag), and a chip that could not name its book would be a citation of
+// nothing. The volume and page are printed exactly as they arrived; this file never composes one.
+function BookCard({ title, author, where }) {
+  const name = String(title || '').trim();
+  if (!name) return null;
+  const by = String(author || '').trim();
+  const at = String(where || '').trim();
+  return (
+    <div style={s.sourceChip}>
+      <span style={s.sourceChipSite}>{name}</span>
+      {by ? <span style={s.sourceChipText}>{by}</span> : null}
+      {at ? <span style={s.sourceChipText}>{at}</span> : null}
+    </div>
   );
 }
 
