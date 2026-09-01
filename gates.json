@@ -500,5 +500,10 @@
     "name": "authbridge",
     "script": "tools/auth-bridge-measure.cjs",
     "args": ""
+  },
+  {
+    "name": "libbook",
+    "script": "guards/lib-book-contract-guard.cjs",
+    "args": ""
   }
 ]
