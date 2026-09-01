@@ -2663,6 +2663,38 @@ const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 // يبقى في الذاكرة للعميل وللحارس؛ لا يُرسَل إلى أيِّ خادم.
 const EZIK_TAG_RESCUES = [];
 
+// ع-٤٩/د١ — فكُّ نصِّ الذرّةِ الذي وصل مُرمَّزًا في وسمِ الكتاب.
+//
+// WHY THE PASSAGE ARRIVES ENCODED AT ALL. The tag grammar below reads attributes with
+// `["']([^"']+)["']` inside a `([^>]*)` run, and a real passage of fiqh carries the guillemet,
+// the straight quote, the apostrophe and -- where the corpus marks an editorial insertion --
+// angle brackets. Any one of them truncates the card silently. api/ask.js therefore base64s the
+// matn, which is [A-Za-z0-9+/=] and nothing else, and this undoes exactly that and NOTHING
+// more: no trim, no collapse, no strip. The passage the reader sees is the passage that
+// arrived, character for character, because anything else would be this app quoting a book in
+// words the book did not use.
+//
+// A BROKEN ENCODING YIELDS THE EMPTY STRING, and the empty string draws no touch and no panel
+// (BookCard). That is the same direction of the unknown the rest of this card takes: what did
+// not arrive is not claimed.
+function ezikDecodeMatn(encoded) {
+  const raw = String(encoded == null ? '' : encoded);
+  if (!raw) return '';
+  try {
+    const binary = atob(raw);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  } catch (error) {
+    return '';
+  }
+}
+
+// النصُّ المعروضُ نُقِصَ عمّا في الكتاب — تُقالُ للقارئِ ولا تُلصَقُ بالنصّ.
+const BOOK_MATN_CUT_NOTE = '… بقيّةُ النصِّ لم تصلْ';
+// الكلمةُ التي يلمسُها القارئُ ليرى النصّ.
+const BOOK_MATN_LABEL = 'النصّ';
+
 // ============================================================
 // §٢ (C) — «هذا الجوابُ لم يكتملْ»: العلامةُ التي يرسلُها الخادم، والقراءةُ التي يقرؤها العميل
 // ============================================================
@@ -3976,11 +4008,18 @@ const parseRichMessage = (text, viewerAge) => {
       // فلا يُبنى هنا بديلٌ عنه ولا يُخمَّن.
       const authorMatch = attrsStr.match(/author=["']([^"']+)["']/);
       const refMatch = attrsStr.match(/ref=["']([^"']+)["']/);
+      // ع-٤٩/د١ — والمتنُ يصلُ في البطاقةِ نفسِها، لا في وسمٍ ثانٍ ولا في نداءٍ ثانٍ.
+      // `cut` is the server's word for «this is not all of it» and it is carried APART from the
+      // passage on purpose: a mark appended to the text would make the text no longer the text.
+      const matnMatch = attrsStr.match(/matn=["']([^"']+)["']/);
+      const cutMatch = attrsStr.match(/cut=["']([^"']+)["']/);
       segments.push({
         type: 'book',
         title: content,
         author: authorMatch ? authorMatch[1] : '',
         where: refMatch ? refMatch[1] : '',
+        text: matnMatch ? ezikDecodeMatn(matnMatch[1]) : '',
+        cut: !!cutMatch,
       });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
@@ -13003,7 +13042,7 @@ function ezikRenderSegments(segments, ctx) {
       return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
     }
     if (seg.type === 'book') {
-      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} />;
+      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} />;
     }
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
@@ -13888,16 +13927,63 @@ function SourceCard({ site, url, content }) {
 // locator, and a card with no book name draws NOTHING — the server refuses to build one
 // (api/ask.js buildBookTag), and a chip that could not name its book would be a citation of
 // nothing. The volume and page are printed exactly as they arrived; this file never composes one.
-function BookCard({ title, author, where }) {
+// ع-٤٩/د١ — واللمسُ يُظهِرُ نصَّ الذرّةِ المذكورةِ لا أكثر.
+//
+// THE CHIP IS UNCHANGED WHEN THERE IS NOTHING TO SHOW, and that is the first rule here: an atom
+// that reached us without a matn draws NO button, NO hint and NO empty space -- it is the same
+// three fields in the same div it has been. A control that opened onto nothing would be this
+// card claiming to hold a passage it never received.
+//
+// WHAT THE PANEL SHOWS IS THE PASSAGE AND NOTHING ELSE. `{matn}` is the sole child of its own
+// element: no prefix, no suffix, no ellipsis welded on, no re-wrap. The cut note -- shown when
+// the server says the passage is not the whole of what the book holds -- is a SIBLING element:
+// a sentence to the reader, not a character added to a quotation.
+//
+// AND ITS HEADING NAMES ONLY WHAT THE CHIP ALREADY NAMED. `at` is the locator that survived
+// both gates upstream (lib/lib-service.js drops it unless the service called the page citable,
+// lib/free-brain/tools.js drops it again when the numbering is automatic). When the chip shows
+// no place, the panel shows no place: a passage under a page number the card itself refused to
+// print would be a citation this app invented.
+function BookCard({ title, author, where, text, cut }) {
+  const [matnOpen, setMatnOpen] = useState(false);
   const name = String(title || '').trim();
   if (!name) return null;
   const by = String(author || '').trim();
   const at = String(where || '').trim();
+  const matn = typeof text === 'string' ? text : '';
+  if (!matn) {
+    return (
+      <div style={s.sourceChip}>
+        <span style={s.sourceChipSite}>{name}</span>
+        {by ? <span style={s.sourceChipText}>{by}</span> : null}
+        {at ? <span style={s.sourceChipText}>{at}</span> : null}
+      </div>
+    );
+  }
   return (
-    <div style={s.sourceChip}>
-      <span style={s.sourceChipSite}>{name}</span>
-      {by ? <span style={s.sourceChipText}>{by}</span> : null}
-      {at ? <span style={s.sourceChipText}>{at}</span> : null}
+    <div style={s.bookCardWrap}>
+      <button
+        type="button"
+        style={{ ...s.sourceChip, ...s.bookChipButton }}
+        aria-expanded={matnOpen}
+        onClick={() => setMatnOpen((wasOpen) => !wasOpen)}
+      >
+        <span style={s.sourceChipSite}>{name}</span>
+        {by ? <span style={s.sourceChipText}>{by}</span> : null}
+        {at ? <span style={s.sourceChipText}>{at}</span> : null}
+        <span style={s.bookMatnToggle}>{BOOK_MATN_LABEL}</span>
+        <span style={s.sourceChipArrow} aria-hidden="true">{matnOpen ? '⌃' : '⌄'}</span>
+      </button>
+      {matnOpen ? (
+        <div style={s.bookMatn}>
+          <div style={s.bookMatnHead}>
+            <span style={s.bookMatnBook}>{name}</span>
+            {at ? <span style={s.bookMatnWhere}>{at}</span> : null}
+          </div>
+          <div style={s.bookMatnText}>{matn}</div>
+          {cut ? <div style={s.bookMatnCut}>{BOOK_MATN_CUT_NOTE}</div> : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -21757,6 +21843,20 @@ const s = {
   sourceChipSite: { display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontWeight: 600, flexShrink: 0 },
   sourceChipText: { minWidth: 0, /* 13.4-b2 */ color: 'var(--ink)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   sourceChipArrow: { color: 'var(--red)', fontWeight: 700, flexShrink: 0, fontSize: 13 },
+
+  // ===== ع-٤٩/د١: نصُّ الذرّةِ تحتَ بطاقةِ الكتاب =====
+  // Same tokens as the chip and as reviewNotice above, so it inverts with the theme and owns no
+  // colour of its own. The matn WRAPS and is never clipped -- sourceChipText's ellipsis is right
+  // for a one-line author and wrong for a paragraph.
+  bookCardWrap: { display: 'flex', flexDirection: 'column', gap: 6, alignSelf: 'flex-start', maxWidth: '100%', minWidth: 0 },
+  bookChipButton: { cursor: 'pointer', textAlign: 'inherit', fontSize: 12.5, fontWeight: 500, fontFamily: 'var(--ez-ui-font)' },
+  bookMatnToggle: { color: 'var(--red)', fontWeight: 600, flexShrink: 0 },
+  bookMatn: { background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 12, padding: '10px 12px', maxWidth: '100%', boxSizing: 'border-box' },
+  bookMatnHead: { display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 6, marginBottom: 6, fontSize: 12, fontFamily: 'var(--ez-ui-font)' },
+  bookMatnBook: { color: 'var(--red)', fontWeight: 600 },
+  bookMatnWhere: { color: 'var(--muted)', fontWeight: 500 },
+  bookMatnText: { color: 'var(--ink)', fontSize: 14.5, lineHeight: 1.9, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' },
+  bookMatnCut: { marginTop: 6, color: 'var(--muted)', fontSize: 12, fontFamily: 'var(--ez-ui-font)' },
 
   // ===== شارةُ الوسم (XI-04) =====
   // A footnote, not a pill: its body is a whole sentence, so it wraps and it is not clipped. It

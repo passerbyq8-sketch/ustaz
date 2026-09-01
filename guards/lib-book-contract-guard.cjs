@@ -151,8 +151,135 @@ async function mutantModule(temp, rel, name, mutate, probe) {
   return import(pathToFileURL(file).href + '?v=' + Date.now() + '-' + name);
 }
 
+// ── THE CLIENT, BOOTED ONCE, OVER THE SERVER'S OWN STRINGS ──────────────────
+//
+// WHY A REAL DOM AND NOT A REGEX. B6/B7 above compile the client's own expressions out of app.jsx
+// and parse a tag with them. That is enough to prove the tag is PARSEABLE and it is not enough for
+// anything section E claims: «the reader sees the passage that arrived», «a textless atom draws no
+// control», «the cut is said out loud» are claims about rendered output, and the only honest way to
+// read rendered output is to render it. So the shipped JSX is transformed the way index.html's own
+// bundle is, evaluated in a vm over a linkedom document with the vendored React, and the three
+// pieces this piece touched -- `parseRichMessage`, `ezikRenderSegments`, `BookCard` -- are taken
+// from that context by name. A mutant in ANY of the three fails here; none of them is re-typed.
+//
+// `ReactDOM.createRoot` is stubbed FIRST and the real one kept aside, because app.jsx self-mounts
+// on evaluation and a mounted application is a second thing rendering into this document.
+function bootClient() {
+  const { parseHTML } = require('linkedom');
+  const BB = require(path.join(REPO, 'tools', 'babel-block.cjs'));
+  const vm = require('vm');
+  const INDEX = path.join(REPO, 'index.html');
+  const block = BB.readBabelBlock({
+    file: INDEX, html: fs.readFileSync(INDEX, 'utf8'), jsx: read('app.jsx'),
+  });
+  const transformed = BB.transformBabelBlock(block, {
+    retainLines: false, configFile: false, babelrc: false,
+  });
+
+  const { window } = parseHTML('<!DOCTYPE html><html><body><div id="root"></div></body></html>');
+  // Five globals linkedom does not ship that the bundle reaches for on evaluation. `atob` is the
+  // one this piece added: without it `ezikDecodeMatn` takes its catch and every passage becomes
+  // the empty string -- which would make E2 pass for the wrong reason and E1 fail for a reason
+  // that is not in the tree.
+  for (const pair of [['TextDecoder', TextDecoder], ['TextEncoder', TextEncoder],
+    ['AbortController', AbortController], ['atob', atob]]) {
+    try { if (!window[pair[0]]) window[pair[0]] = pair[1]; } catch (error) { /* getter-only */ }
+  }
+  try { window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} }); } catch (error) {}
+  try { window.localStorage = { getItem: () => null, setItem() {}, removeItem() {} }; } catch (error) {}
+  try { window.self = window; } catch (error) {}
+  try { window.globalThis = window; } catch (error) {}
+  global.window = window; global.document = window.document; global.navigator = window.navigator;
+
+  const ctx = vm.createContext(window);
+  for (const file of ['react.umd.js', 'react-dom.umd.js']) {
+    vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', file), 'utf8'), ctx, { filename: file });
+  }
+  vm.runInContext('var __realCreateRoot = ReactDOM.createRoot;'
+    + ' ReactDOM.createRoot = function () { return { render: function () {}, unmount: function () {} }; };', ctx);
+  window.console.error = () => {};
+  window.addEventListener('error', () => {});
+  vm.runInContext(transformed, ctx, { filename: 'babel-block.jsx' });
+
+  const grab = (expr) => {
+    try { return vm.runInContext('(' + expr + ')', ctx, { filename: 'lib-book-guard-api' }); }
+    catch (error) { return undefined; }
+  };
+
+  // The reply is parsed and rendered by the client's OWN two functions, in the order the bubble
+  // uses them. flushSync is what makes a press observable in the same tick.
+  vm.runInContext(`
+    function __ezikShow(replyText) {
+      var host = document.createElement('div');
+      document.body.appendChild(host);
+      var parsed = parseRichMessage(replyText, 30);
+      var kids = ezikRenderSegments(parsed.segments, { tashkeel: false, age: 30 });
+      var root = __realCreateRoot(host);
+      ReactDOM.flushSync(function () {
+        root.render(React.createElement(React.Fragment, null, kids));
+      });
+      return host;
+    }
+    function __ezikPress(el) {
+      ReactDOM.flushSync(function () {
+        el.dispatchEvent(new window.Event('click', { bubbles: true }));
+      });
+    }
+  `, ctx);
+  const showRaw = grab('__ezikShow');
+  const press = grab('__ezikPress');
+
+  const show = (replyText) => {
+    const host = showRaw(replyText);
+    const all = () => Array.prototype.slice.call(host.querySelectorAll('*'));
+    const buttonsOf = () => Array.prototype.slice.call(host.querySelectorAll('button'));
+    const expandedOf = () => all().filter((el) => el.getAttribute('aria-expanded') === 'true');
+    // The panel is the button's own sibling and its second child is the passage. Read positionally
+    // rather than by style, so a re-skin does not turn into a false failure and a re-ORDER does.
+    const matnEl = () => {
+      const open = expandedOf()[0];
+      if (!open || !open.nextElementSibling) return null;
+      return open.nextElementSibling.children[1] || null;
+    };
+    const probe = {
+      buttons: buttonsOf().length,
+      chips: parseSegmentsOf(replyText).filter((seg) => seg.type === 'book').length,
+      wasFoldedBeforeFirstTouch: expandedOf().length === 0,
+      get panels() { return expandedOf().length; },
+      allText: () => String(host.textContent || ''),
+      hasText: (needle) => String(host.textContent || '').indexOf(needle) !== -1,
+      matn: () => { const el = matnEl(); return el ? String(el.textContent || '') : ''; },
+      exact: (expected) => {
+        const el = matnEl();
+        return !!el && el.childElementCount === 0 && String(el.textContent) === expected;
+      },
+      open: () => { const b = buttonsOf()[0]; if (b) press(b); },
+      close: () => { const b = buttonsOf()[0]; if (b) press(b); },
+    };
+    return probe;
+  };
+  const parseSegmentsOf = (replyText) => {
+    const parsed = grab('parseRichMessage')(replyText, 30);
+    return JSON.parse(JSON.stringify(parsed.segments || []));
+  };
+
+  return { grab, show };
+}
+
 async function main() {
   console.log('=== lib-book-contract -- piece 5: the library and the book card ===');
+
+  // ع-٤٩/د١ — THE GLOBAL FETCH IS POISONED FOR THE WHOLE RUN, NOT COUNTED AFTERWARDS.
+  // The header of this file says a drive that reached a real host would be a defect in it.
+  // That was asserted of the INJECTED seam (A5) and merely assumed of the global one. It is
+  // now the same kind of fact: every provider stub below saves and restores whatever it finds
+  // here, so this is what is installed between drives, under the client boot and under every
+  // render. E6 reads the counter at the end; E6b shows the counter can move.
+  const poisoned = { calls: 0 };
+  globalThis.fetch = async (target) => {
+    poisoned.calls += 1;
+    throw new Error('lib-book-guard: a real network call was attempted to ' + String(target));
+  };
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ezik-libbook-'));
 
   const ask = await quiet(() => esm('api/ask.js'));
@@ -435,6 +562,266 @@ async function main() {
         && without.records.length === 0,
       JSON.stringify({ mutant: leaked.records.length, real: without.records.length }));
   }
+
+  // ==========================================================================
+  section('E. THE MATN THE ANSWER RESTED ON REACHES THE READER, AND ONLY IT');
+  // ==========================================================================
+  // WHAT THIS SECTION MEASURES THAT THE FOUR ABOVE DO NOT. B proves a book row becomes a chip. It
+  // says nothing about the PASSAGE the answer actually leaned on, which as of piece 5 reached the
+  // row (lib/free-brain/tools.js writes `text`) and died at the tag (api/ask.js buildBookTag read
+  // three fields and not that one). So every claim here is a claim about rendered output, and it
+  // is observed by rendering: the server's own tag, through the client's own parser, into the
+  // client's own component, in a real DOM. Nothing below reads a source file for a verdict.
+  //
+  // THE TAGS ARE BUILT FIRST AND THE CLIENT IS BOOTED AFTER, deliberately. Booting the client
+  // assigns global.window/document, and every ESM mutant this section needs is a SERVER module
+  // that has no business being imported into a process that looks like a browser. So all six
+  // server drives happen first, each one reduced to the one string that crosses the wire, and the
+  // DOM is opened once, at the end, over strings.
+
+  const contract = await esm('lib/lib-contract.js');
+  const CEILING = contract.LIB_MAX_CHARS_PER_HIT_DEFAULT;
+
+  // ── the measured ceiling, asserted rather than assumed ─────────────────────
+  // lib/lib-service.js sends no `max_chars_per_hit`, so the service answers at its DEFAULT, and
+  // lib/free-brain/tools.js clips a row at the same number under the name SNIPPET_CHARS. That
+  // agreement is what makes 1200 the number that binds; LIB_MAX_CHARS_PER_HIT_CEILING caps a
+  // request parameter this tree never sends, so it is not the ceiling anything actually meets.
+  const toolsSource = read('lib/free-brain/tools.js');
+  const snippet = Number((/const SNIPPET_CHARS = (\d+);/.exec(toolsSource) || [])[1]);
+  ok('E0  the carried ceiling is the measured one: the row clip and the service default agree',
+    Number.isFinite(CEILING) && snippet === CEILING
+      && read('lib/lib-service.js').indexOf('max_chars_per_hit') !== -1
+      && askSource.indexOf('LIB_MAX_CHARS_PER_HIT_DEFAULT') !== -1,
+    JSON.stringify({ ceiling: CEILING, snippetChars: snippet }));
+
+  // ── the six strings, each the whole of what its drive puts on the wire ─────
+  const citedRow = cited[0];
+  const realTag = tag;
+
+  // E1's mutant: buildBookTag stops carrying the passage. This is the tree as it stood at
+  // 768305f, so the mutant is not a hypothetical -- it is the defect this piece closes.
+  const askNoMatn = await mutantModule(temp, 'api/ask.js', 'book-drops-matn', (src) => src.replace(
+    '  const matnAttrs = carried ? ` matn="${carried}"` + (cut ? \' cut="1"\' : \'\') : \'\';',
+    '  const matnAttrs = \'\';  // mutant-drops-matn',
+  ), 'const matnAttrs = \'\';  // mutant-drops-matn').then((mod) => ({ mod }), (error) => ({ error }));
+
+  // E2's mutant: the emptiness test goes, so a passage that is nothing at all still earns an
+  // attribute -- and therefore a control the reader can press onto nothing.
+  const askEmptyMatn = await mutantModule(temp, 'api/ask.js', 'book-carries-empty', (src) => src.replace(
+    '  const carried = kept.trim() ? Buffer.from(kept, \'utf8\').toString(\'base64\') : \'\';',
+    '  const carried = Buffer.from(kept || \' \', \'utf8\').toString(\'base64\');  // mutant-empty-matn',
+  ), 'mutant-empty-matn').then((mod) => ({ mod }), (error) => ({ error }));
+
+  // E3's mutant: the ceiling goes. A caller handing in more than the service can send would then
+  // have all of it carried, and -- because the cut is measured by the slice -- carried in silence.
+  const askNoCeiling = await mutantModule(temp, 'api/ask.js', 'book-no-ceiling', (src) => src.replace(
+    '  const kept = matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);',
+    '  const kept = matn;  // mutant-no-ceiling',
+  ), 'const kept = matn;  // mutant-no-ceiling').then((mod) => ({ mod }), (error) => ({ error }));
+
+  // E5's mutant: the second half of the locator gate goes, so an automatically numbered atom
+  // gets a printed page again -- and the panel would head a passage with a page nobody can open.
+  const toolsAutoPage = await mutantModule(temp, 'lib/free-brain/tools.js', 'auto-gets-a-page', (src) => src.replace(
+    "    const citable = prov.page_citable === true && prov.numbering !== 'auto';",
+    "    const citable = prov.page_citable === true;  // mutant-auto-page",
+  ), 'mutant-auto-page').then((mod) => ({ mod }), (error) => ({ error }));
+
+  const mutantsBuilt = [askNoMatn, askEmptyMatn, askNoCeiling, toolsAutoPage];
+  ok('E-pre all four section-E mutants reached disk and imported',
+    mutantsBuilt.every((m) => !m.error),
+    mutantsBuilt.map((m) => (m.error ? m.error.message : 'ok')).join(' | '));
+
+  const noMatnTag = askNoMatn.mod ? String(askNoMatn.mod.buildBookTag(citedRow).tag) : 'NO-TAG';
+
+  // A row whose passage is EMPTY -- the shape E2 is about, handed straight to the builder.
+  const emptyRow = Object.assign({}, citedRow, { text: '' });
+  const emptyRealTag = String(ask.buildBookTag(emptyRow).tag);
+  const emptyMutantTag = askEmptyMatn.mod ? String(askEmptyMatn.mod.buildBookTag(emptyRow).tag) : 'NO-TAG';
+
+  // A passage LONGER than the measured ceiling. Built from one repeated letter so that a count of
+  // characters is a count of the passage and not of anything the fixture happens to contain.
+  const LONG = 'ح'.repeat(CEILING + 250);
+  const longRow = Object.assign({}, citedRow, { text: LONG });
+  const longTag = String(ask.buildBookTag(longRow).tag);
+  const longNoCeilingTag = askNoCeiling.mod ? String(askNoCeiling.mod.buildBookTag(longRow).tag) : 'NO-TAG';
+
+  // A THIRD RECORDED HIT, AND THE ONE THAT MAKES «no silent cut» MEAN SOMETHING WIDER. The
+  // service can cut a passage before we ever see it and says so in `truncated`; that is a
+  // different cut from ours and the SAME fact to a reader. lib/lib-service.js records it,
+  // lib/free-brain/tools.js now carries it onto the row as `matnCut`, and the card must wear
+  // the mark even though nothing on this side removed a character.
+  const truncHit = FIXTURES.hit_truncated;
+  const truncCtx = ctx({ libFlagValue: 'on', libToken: FIXTURE_TOKEN, fetchImpl: libServing(truncHit) });
+  const truncOut = await quiet(() => tools.runTool('search_library', { query: 'q' }, truncCtx));
+  const truncRow = truncOut.added[0];
+  const truncTag = truncRow ? String(ask.buildBookTag(truncRow).tag) : 'NO-TAG';
+
+  // The same recorded hit with ONE field changed: the numbering becomes automatic, which is the
+  // condition under which the chip already refuses to print a place.
+  const autoHit = Object.assign({}, HIT, { numbering: 'auto' });
+  const autoCtx = ctx({ libFlagValue: 'on', libToken: FIXTURE_TOKEN, fetchImpl: libServing(autoHit) });
+  const autoOut = await quiet(() => tools.runTool('search_library', { query: 'q' }, autoCtx));
+  const autoRow = autoOut.added[0];
+  const autoTag = autoRow ? String(ask.buildBookTag(autoRow).tag) : 'NO-TAG';
+
+  let autoMutantTag = 'NO-TAG';
+  if (toolsAutoPage.mod) {
+    const mutCtx = ctx({ libFlagValue: 'on', libToken: FIXTURE_TOKEN, fetchImpl: libServing(autoHit) });
+    mutCtx.table = toolsAutoPage.mod.createEvidenceTable();
+    const mutOut = await quiet(() => toolsAutoPage.mod.runTool('search_library', { query: 'q' }, mutCtx));
+    if (mutOut.added[0]) autoMutantTag = String(ask.buildBookTag(mutOut.added[0]).tag);
+  }
+
+  // E4: the brief turn, and the same turn with the offer forced open.
+  const briefBook = loop.pickBookCards(brief.out ? brief.out.cited : [], 3, ask.buildBookTag);
+  const loopAlwaysOffers = await mutantModule(temp, 'lib/free-brain/loop.js', 'always-offers-library',
+    (src) => src.replace(
+      "  const libOffered = libEligible === true && libFlagValue === 'on' && libToken !== '';",
+      '  const libOffered = true;  // mutant-always-offers',
+    ), 'const libOffered = true;  // mutant-always-offers').then((mod) => ({ mod }), (error) => ({ error }));
+
+  let briefMutantOffered = [];
+  if (loopAlwaysOffers.mod) {
+    const stub = providerStub([TEXT_ROUND('جواب.')]);
+    try {
+      await quiet(() => loopAlwaysOffers.mod.runFreeBrainTurn(Object.assign(
+        {}, TURN_BASE, OFF, { fetchImpl: libServing(HIT) },
+      )));
+    } finally { briefMutantOffered = stub.offered; stub.restore(); }
+  }
+
+  // ── the client, booted once, over those strings ────────────────────────────
+  const client = await quiet(() => bootClient());
+
+  const showFor = (serverTag) => client.show(
+    'جوابٌ قصير.\n\n' + serverTag,
+  );
+
+  // ---- E1 --------------------------------------------------------------------
+  const shownReal = showFor(realTag);
+  shownReal.open();
+  ok('E1  a cited atom WITH a matn: the touch opens, and what it opens is the passage that arrived',
+    shownReal.buttons === 1
+      && shownReal.exact(citedRow.text)
+      && citedRow.text === HIT.text,
+    ascii(JSON.stringify({ buttons: shownReal.buttons, shown: shownReal.matn(), arrived: citedRow.text })));
+
+  ok('E1b ...and it was FOLDED until it was touched, and folds again when it is touched twice',
+    shownReal.wasFoldedBeforeFirstTouch && (shownReal.close(), !shownReal.hasText(citedRow.text)),
+    ascii(JSON.stringify({ folded: shownReal.wasFoldedBeforeFirstTouch })));
+
+  const shownNoMatn = showFor(noMatnTag);
+  ok('E1c MUTANT KILLED: buildBookTag stops carrying the passage and the reader loses the touch',
+    shownNoMatn.buttons === 0 && !shownNoMatn.hasText(citedRow.text) && shownReal.buttons === 1,
+    ascii(JSON.stringify({ mutantButtons: shownNoMatn.buttons, realButtons: shownReal.buttons })));
+
+  // ---- E2 --------------------------------------------------------------------
+  // The recorded hit minus one field, carried all the way to a screen.
+  const shownTextless = showFor(bareTurn.out.text);
+  const shownEmptyReal = showFor(emptyRealTag);
+  ok('E2  an atom with NO `text` reaches the reader as no chip, no touch and no empty space',
+    bareTurn.out.cited.length === 0
+      && shownTextless.buttons === 0 && shownTextless.chips === 0
+      && shownEmptyReal.buttons === 0 && shownEmptyReal.panels === 0,
+    ascii(JSON.stringify({
+      textlessButtons: shownTextless.buttons, textlessChips: shownTextless.chips,
+      emptyRowButtons: shownEmptyReal.buttons, emptyRowPanels: shownEmptyReal.panels,
+    })));
+
+  const shownEmptyMutant = showFor(emptyMutantTag);
+  ok('E2b MUTANT KILLED: carrying an empty passage anyway puts a control over nothing',
+    shownEmptyMutant.buttons === 1 && shownEmptyReal.buttons === 0,
+    ascii(JSON.stringify({ mutantButtons: shownEmptyMutant.buttons, realButtons: shownEmptyReal.buttons })));
+
+  // ---- E3 --------------------------------------------------------------------
+  const shownLong = showFor(longTag);
+  shownLong.open();
+  const cutNote = client.grab('BOOK_MATN_CUT_NOTE');
+  ok('E3  a passage past the measured ceiling is cut AT it, and the cut is said out loud',
+    shownLong.matn().length === CEILING
+      && shownLong.matn() === LONG.slice(0, CEILING)
+      && typeof cutNote === 'string' && cutNote.length > 0
+      && shownLong.hasText(cutNote)
+      && shownLong.matn().indexOf(cutNote) === -1,
+    ascii(JSON.stringify({ shown: shownLong.matn().length, ceiling: CEILING, sent: LONG.length })));
+
+  const shownLongNoCeiling = showFor(longNoCeilingTag);
+  shownLongNoCeiling.open();
+  ok('E3b MUTANT KILLED: without the ceiling the whole passage rides, and rides in silence',
+    shownLongNoCeiling.matn().length === LONG.length
+      && !shownLongNoCeiling.hasText(cutNote)
+      && shownLong.matn().length === CEILING,
+    ascii(JSON.stringify({ mutant: shownLongNoCeiling.matn().length, real: shownLong.matn().length })));
+
+  const shownTrunc = showFor(truncTag);
+  shownTrunc.open();
+  ok('E3c a passage the SERVICE cut wears the mark too, though nothing on this side cut it',
+    !!truncRow && truncHit.truncated === true
+      && truncRow.text.length < CEILING
+      && shownTrunc.exact(truncRow.text)
+      && shownTrunc.hasText(cutNote),
+    ascii(JSON.stringify({
+      serviceSaidTruncated: truncHit.truncated, weCut: truncRow && truncRow.text.length >= CEILING,
+      markShown: shownTrunc.hasText(cutNote),
+    })));
+
+  // ---- E4 --------------------------------------------------------------------
+  const shownBrief = showFor(brief.out.text);
+  ok('E4  a brief turn shows zero book chips and zero passage, exactly as it did before this piece',
+    briefBook.length === 0 && shownBrief.chips === 0 && shownBrief.buttons === 0
+      && shownBrief.panels === 0 && brief.out.text.indexOf('<book') === -1,
+    ascii(JSON.stringify({ cards: briefBook.length, chips: shownBrief.chips })));
+
+  ok('E4b MUTANT KILLED: forcing the offer open puts search_library on a brief turn\'s wire',
+    !loopAlwaysOffers.error
+      && briefMutantOffered.length > 0
+      && briefMutantOffered.every((names) => names.includes('search_library'))
+      && brief.offered.every((names) => !names.includes('search_library')),
+    JSON.stringify({ mutant: briefMutantOffered[0] || [], real: brief.offered[0] || [] }));
+
+  // ---- E5 --------------------------------------------------------------------
+  const shownAuto = showFor(autoTag);
+  shownAuto.open();
+  const DIGITS = [String(HIT.volume), String(HIT.page_start), String(HIT.page_end)];
+  ok('E5  an automatically numbered atom shows its passage under NO page it refused to print',
+    !!autoRow && shownAuto.buttons === 1
+      && shownAuto.exact(autoRow.text)
+      && DIGITS.every((d) => !shownAuto.allText().includes(d))
+      && !/ref=/.test(autoTag),
+    ascii(JSON.stringify({ tag: autoTag, shown: shownAuto.allText().slice(0, 120) })));
+
+  const shownAutoMutant = showFor(autoMutantTag);
+  shownAutoMutant.open();
+  ok('E5b MUTANT KILLED: dropping the automatic-numbering half heads the passage with a page',
+    autoMutantTag !== 'NO-TAG'
+      && DIGITS.some((d) => shownAutoMutant.allText().includes(d))
+      && DIGITS.every((d) => !shownAuto.allText().includes(d)),
+    ascii(JSON.stringify({ mutantTag: autoMutantTag })));
+
+  // ---- E6 --------------------------------------------------------------------
+  // The poison was installed before section A and has been under every drive since, the client
+  // boot and every render included. A guard that reached a real host would have thrown by now.
+  ok('E6  the whole guard ran with globalThis.fetch poisoned and never once touched it',
+    poisoned.calls === 0, 'poisoned fetch invoked ' + poisoned.calls + ' time(s)');
+
+  const toolsGlobalFetch = await mutantModule(temp, 'lib/free-brain/tools.js', 'library-uses-global-fetch',
+    (src) => src.replace(
+      '      fetchImpl: ctx.fetchImpl,\n      signal: ctx.signal,',
+      '      fetchImpl: undefined,  // mutant-global-fetch\n      signal: ctx.signal,',
+    ), 'mutant-global-fetch').then((mod) => ({ mod }), (error) => ({ error }));
+  let poisonReached = -1;
+  if (toolsGlobalFetch.mod) {
+    const before = poisoned.calls;
+    const leakCtx = ctx({ libFlagValue: 'on', libToken: FIXTURE_TOKEN, fetchImpl: libServing(HIT) });
+    leakCtx.table = toolsGlobalFetch.mod.createEvidenceTable();
+    await quiet(() => toolsGlobalFetch.mod.runTool('search_library', { query: 'q' }, leakCtx));
+    poisonReached = poisoned.calls - before;
+    poisoned.calls = before;   // the mutant's reach is measured, not carried into E6's own claim
+  }
+  ok('E6b MUTANT KILLED: bypassing the injected seam sends the library at the real global fetch',
+    poisonReached === 1, 'poisoned fetch reached ' + poisonReached + ' time(s) by the mutant');
+
 
   try { fs.rmSync(temp, { recursive: true, force: true }); } catch (error) { /* scratch only */ }
 

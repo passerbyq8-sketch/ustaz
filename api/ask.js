@@ -116,6 +116,11 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // جولة «الاستعادة»، الفرع أ. Only the SWITCH is imported at module top — it is three environment
 // reads and no I/O. The loop, the tools and the instruction are imported lazily inside the branch,
 // so a deployment with FREE_BRAIN_V1 off never loads a byte of them.
+// ع-٤٩/د١ — THE CEILING ON A CARRIED PASSAGE IS READ, NEVER RETYPED. lib/lib-service.js sends no
+// `max_chars_per_hit`, so the service answers at its DEFAULT, and lib/free-brain/tools.js clips a
+// row at the same 1200 under the name SNIPPET_CHARS. That number is the one that actually binds
+// what arrives; LIB_MAX_CHARS_PER_HIT_CEILING caps a request parameter this tree never sends.
+import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision } from '../lib/free-brain/flag.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
@@ -579,7 +584,27 @@ export function buildBookTag(row) {
   const author = attr(row && row.author);
   const where = attr(row && row.locator);
   const attrs = (author ? ` author="${author}"` : '') + (where ? ` ref="${where}"` : '');
-  return { tag: `<book${attrs}>${title}</book>` };
+  // ع-٤٩/د١ — THE MATN RIDES ON THE CARD, BASE64, AND THE ENCODING IS NOT DECORATION.
+  //
+  // The client parses these tags back out with `([^>]*)` for the attributes and
+  // `["']([^"']+)["']` for one of them, and a real passage of fiqh carries « », ", ' and — when
+  // the corpus quotes a bracketed insertion — < and >. `attr` above answers that by REPLACING
+  // those characters with spaces and collapsing runs, which is exactly right for a book title and
+  // exactly wrong here: this piece's whole contract is that the reader sees the passage AS IT
+  // ARRIVED, letter for letter, and a cleaned passage is a rewritten one. Base64 emits only
+  // [A-Za-z0-9+/=] — provably no quote, no angle bracket, no whitespace — so the grammar above is
+  // satisfied without touching a character of the text, and the client decodes back to the same
+  // bytes. NO SECOND TAG AND NO SECOND ROUTE: it is an attribute of the card it belongs to.
+  //
+  // AND IT CANNOT EXCEED THE MEASURED CEILING, whatever a caller hands in. `cut` is true when
+  // THIS slice dropped something or when the row already knew it was holding a cut passage
+  // (lib/free-brain/tools.js), because a silent truncation is the defect either way.
+  const matn = typeof (row && row.text) === 'string' ? row.text : '';
+  const kept = matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);
+  const carried = kept.trim() ? Buffer.from(kept, 'utf8').toString('base64') : '';
+  const cut = kept.length < matn.length || (row && row.matnCut === true);
+  const matnAttrs = carried ? ` matn="${carried}"` + (cut ? ' cut="1"' : '') : '';
+  return { tag: `<book${attrs}${matnAttrs}>${title}</book>` };
 }
 
 // Hard ceiling on cards in one reply. Three is the number of distinct rulings/references

@@ -630,6 +630,18 @@ const SEALED = {
   //                    that delta. The worker byte table and the SW_PROSE mirror below both
   //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
   //                    rewrites every CORE entry into the same store.
+  // THE BOOK CARD OPENS ONTO ITS MATN (2026-09-01, feat/item7-library-freebrain-20260901,
+  //                    piece 9 / degree 1). AGAIN NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE
+  //                    TABLE. The chip built by the round below named a book and a page and
+  //                    could not show one word of what the answer rested on: the passage reached
+  //                    the row (lib/free-brain/tools.js) and died at the tag, which read three
+  //                    fields and not that one. It now rides on the SAME tag, base64 so that a
+  //                    quotation full of guillemets cannot truncate the card, and a touch opens
+  //                    it under the chip. app.js followed 1253566 -> 1259367 (+5801) and
+  //                    CORE_BYTES 2096413 -> 2102214 is exactly that delta. The worker byte
+  //                    table and the SW_PROSE mirror below both followed, and THIS digest is
+  //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
+  //                    the same store.
   // THE LIBRARY BOOK CARD (2026-09-01, feat/item7-library-freebrain-20260901). ONE CHANGE IN THE
   //                    WORKER ITSELF BEYOND ITS BYTE TABLE: none. `lib_book` atoms reached the
   //                    answer and no card was ever built for them — the tool existed in one file,
@@ -639,7 +651,7 @@ const SEALED = {
   //                    2092726 -> 2096413 is exactly that delta. The worker byte table and the
   //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last. CACHE
   //                    is NOT bumped: install rewrites every CORE entry into the same store.
-  'sw.js': 'd779eeeb869fb415554d0fb1fdd61aa4f09106a6885de4d95b0f9c8d28fcce69',
+  'sw.js': '3c6845fba620ce61eb50ecc0bd47036e38629f11cbc6e8b938120d051e71e252',
 };
 
 // ---------------------------------------------------------------------------
@@ -1750,7 +1762,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1253566, of: 'app.js' },
+      { n: 1259367, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
