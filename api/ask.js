@@ -772,6 +772,20 @@ export default async function handler(req, res) {
   const effectiveDepth = mayRequestDepth ? readRequestedDepth(body.depth) : undefined;
   // depth: undefined/'normal' = brief (default), 'deep' = مفصّل, 'scholar' = طالب العلم
   const round2Effort = (effectiveDepth === 'deep' || effectiveDepth === 'scholar') ? 'high' : 'medium';
+  // -- THE LIBRARY'S KEYS, READ HERE AND NOWHERE ELSE --------------------------
+  // lib/lib-service.js and lib/free-brain/tools.js read no environment of their own, so the flag
+  // value and the token are read here and handed down, exactly as the safety contract requires.
+  //
+  // ELIGIBILITY IS BUILT ON readRequestedDepth(body.depth) AND NOT ON effectiveDepth. MEASURED on
+  // preview traffic, 2026-09-01: ten turns logged requestedDepth 'deep' with effectiveDepth
+  // undefined on the same turn, because effectiveDepth is gated by founderUnlocked and
+  // DEPTH_FREE_TRIAL. Reading the wrong one would silence the library for every reader who is not
+  // the owner, which is the opposite of what the depth rule says.
+  const libRequestedDepth = readRequestedDepth(body.depth);
+  const libDepthEligible = libRequestedDepth === 'deep' || libRequestedDepth === 'scholar';
+  const libFlagValue = String(process.env.SHAMELA_BRAIN || '').trim().toLowerCase();
+  const libToken = String(process.env.SEARCH_API_TOKEN || '').trim();
+
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
   // garbled age to young, so retrieve() fails CLOSED to the minor list (NOT adult).
   //
@@ -1428,6 +1442,12 @@ export default async function handler(req, res) {
           headers,
           signal: freeUpstream.signal,
           dailyBudget: paidSearchBudget,
+          // The library rides the same two conditions everywhere: a non-brief depth AND an adult
+          // band. Handing down an empty flag and an empty token for anyone else means the tool is
+          // neither offered nor callable, with no second rule to keep in step.
+          libEligible: libDepthEligible && band === 'adult',
+          libFlagValue: (libDepthEligible && band === 'adult') ? libFlagValue : '',
+          libToken: (libDepthEligible && band === 'adult') ? libToken : '',
           onWriteUnit: (detail) => liveFreeBrainUnits.push(detail),
         });
       } finally {
