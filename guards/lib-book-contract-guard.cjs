@@ -823,6 +823,191 @@ async function main() {
     poisonReached === 1, 'poisoned fetch reached ' + poisonReached + ' time(s) by the mutant');
 
 
+
+  // ==========================================================================
+  section('F. A NAME SURVIVES WHEN A BOOK IN THIS TURN\'S HANDS WAS WRITTEN BY THE MAN');
+  // ==========================================================================
+  //
+  // THE DEFECT THIS SECTION PINS. lib/output-reviewer.js strips an attribution unless the name
+  // resolves to one of the twenty-one registry rows -- `officialSourceFor` opens with
+  // `if (!rule) return false` -- so a sentence crediting ابن قدامة while holding his own page
+  // of المغني lost the credit, and a sentence crediting a man nobody published had nothing to
+  // strip and kept a fabricated one. The rule under test now has a second licence: a library
+  // atom whose AUTHOR is the man named, supporting the sentence.
+  //
+  // THE ROWS ARE BUILT BY HAND HERE, ON PURPOSE, AND THE MATN IS NOT. Sections A-E drive the
+  // recorded service wire; this section is about a decision taken four modules downstream of it,
+  // and the eight rows below differ from each other by ONE field each -- author, kind, matn --
+  // which is exactly what a recorded wire cannot be made to vary. Zero network and zero token:
+  // nothing here is fetched. But the passage itself is READ OFF the fixture rather than retyped,
+  // so a matn that stopped supporting its own sentence would still be caught here.
+  //
+  // AND THEY GO THROUGH THE REAL `reviewerEvidence`. The reviewer never sees a row; it sees what
+  // lib/free-brain/loop.js hands it. Building the reviewer's input by hand would have hidden the
+  // two fields this piece added and made F-Me and F-Mf unkillable.
+
+  const reviewer = await esm('lib/output-reviewer.js');
+  const MATN = HIT.text;
+  const NAMED = "ابن قدامة المقدسي";
+  const CLAIM = "قال " + NAMED + ': ' + MATN;
+  const UNRELATED = "صلاةُ الجماعةِ واجبةٌ على الرجالِ في المسجدِ.";
+
+  const bookRow = (over) => Object.assign({
+    kind: 'lib_book', title: "المغني", url: '', publisher: NAMED,
+    text: MATN, recordId: 'lib:' + HIT.atom_id, bookTitle: "المغني",
+    author: NAMED, locator: '', matnCut: false, ref: 1,
+  }, over);
+
+  // The one registry scholar this section needs, read out of the reviewer's own export rather
+  // than retyped -- a guard that hard-codes a host proves only that its own copy equals itself.
+  const rule = reviewer.REVIEW_AUTHORITY_SOURCES.find((r) => r.canonical === "ابن باز");
+  const fatwaRow = (over) => Object.assign({
+    kind: 'fatwa', title: "حكم الماء الطهور",
+    url: 'https://' + (rule ? rule.hosts[0] : 'missing.invalid') + '/fatwas/1234',
+    publisher: rule ? rule.canonical : '', text: MATN,
+    scholarId: 'binbaz', recordId: '1234', ref: 1, retrievedAt: '2026-08-01',
+  }, over);
+
+  // KEEP / STRIP is read off the reviewer's own annotation and its own tag, never off a substring
+  // search for the name: `generalizeAttribution` can leave a name standing in a sentence it also
+  // marked, and «the name is still in the text» would have called that a keep.
+  const STRIP_TAG = reviewer.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+  const verdict = (RV, LP, text, rows) => {
+    const out = RV.reviewAnswer({ text, evidence: rows.map(LP.reviewerEvidence), domain: 'fiqh' });
+    const kept = out.annotations.some((a) => a.action === 'kept-sourced-attribution');
+    const stripped = out.text.indexOf(STRIP_TAG) !== -1;
+    return kept ? 'KEEP' : (stripped ? 'STRIP' : 'NEITHER');
+  };
+
+  const ROWS = [
+    ['F1  a book whose author IS the man named, and the matn supports the sentence -> the name stands',
+      CLAIM, [bookRow({})], 'KEEP'],
+    ['F2  the same sentence over a book by SOMEONE ELSE -> the name comes off',
+      CLAIM, [bookRow({ author: "النووي الدمشقي", publisher: "النووي الدمشقي" })], 'STRIP'],
+    ['F3  a book atom the service sent with NO author -> the name comes off',
+      CLAIM, [bookRow({ author: '', publisher: '' })], 'STRIP'],
+    ['F4  a row that is NOT a book atom, carrying a matching `author` -> the name comes off',
+      CLAIM, [bookRow({ kind: 'live_result', url: 'https://blog.invalid/x' })], 'STRIP'],
+    ['F5  a registry scholar on his own domain -> unchanged, the name stands',
+      "قال " + rule.canonical + ': ' + MATN, [fatwaRow({})], 'KEEP'],
+    ['F6  the same scholar on a mirror host -> unchanged, the name comes off',
+      "قال " + rule.canonical + ': ' + MATN,
+      [fatwaRow({ url: 'https://mirror.invalid/f/1', scholarId: 'mirror', recordId: '9' })], 'STRIP'],
+    ['F7  the author matches but the matn does not support the sentence -> the name comes off',
+      "قال " + NAMED + ': ' + UNRELATED, [bookRow({})], 'STRIP'],
+    ['F8  a one-word name over a one-word author -> the name comes off',
+      "قال " + "أحمد" + ': ' + MATN,
+      [bookRow({ author: "أحمد", publisher: "أحمد" })], 'STRIP'],
+  ];
+
+  ok('F0  the book kind is ONE string in two files -- reviewer and loop agree byte for byte',
+    (function () {
+      // lib/output-reviewer.js is pure by contract: guards/output-reviewer-mutant-lib.cjs copies
+      // THAT FILE ALONE into a temp directory, so a relative import there makes every mutant twin
+      // fail to resolve and seven guards assert `mutant.loaded`. The constant is therefore
+      // declared in both files and pinned HERE instead of imported across.
+      const a = /const LIB_BOOK_KIND = '([^']+)'/.exec(read('lib/output-reviewer.js'));
+      const b = /const LIB_BOOK_KIND = '([^']+)'/.exec(read('lib/free-brain/loop.js'));
+      return !!a && !!b && a[1] === b[1] && a[1] === 'lib_book';
+    })(), 'the two declarations of LIB_BOOK_KIND differ');
+
+  const base = {};
+  for (const [label, text, rows, want] of ROWS) {
+    const got = verdict(reviewer, loop, text, rows);
+    base[label.slice(0, 2)] = got;
+    ok(label, got === want, 'want=' + want + ' got=' + got);
+  }
+
+  // -- the mutants -----------------------------------------------------------
+  //
+  // Each one removes ONE line of the new licence and names the row that has to notice. A mutant
+  // that flips nothing is a hole in this section, not a pass, so every claim below is written as
+  // «this row flipped», never as «the guard still ran».
+  const flip = async (rel, name, mutate, probe, which, text, rows, wasWant) => {
+    const twin = await mutantModule(temp, rel, name, mutate, probe)
+      .then((mod) => ({ mod }), (error) => ({ error }));
+    if (twin.error) return { got: 'LOAD-FAILED', detail: twin.error.message };
+    const RV = rel === 'lib/output-reviewer.js' ? twin.mod : reviewer;
+    const LP = rel === 'lib/free-brain/loop.js' ? twin.mod : loop;
+    return { got: verdict(RV, LP, text, rows), detail: which + ' was ' + wasWant };
+  };
+
+  const F1 = ROWS[0]; const F3 = ROWS[2]; const F4 = ROWS[3]; const F7 = ROWS[6]; const F8 = ROWS[7];
+
+  const mA = await flip('lib/output-reviewer.js', 'attr-no-kind',
+    (s) => s.replace('    if (item.kind !== LIB_BOOK_KIND) return false;',
+      '    if (false) return false;  // mutant-attr-no-kind'),
+    'mutant-attr-no-kind', 'F4', F4[1], F4[2], 'STRIP');
+  ok('F-Ma MUTANT KILLED: without the `kind` test the licence leaks to any row with an author',
+    mA.got === 'KEEP', 'F4 got ' + mA.got + ' | ' + (mA.detail || ''));
+
+  // F-Mb0 IS NOT A MUTANT, IT IS THE REASON THE NEXT ONE HAS TWO LINES IN IT. Removing
+  // `if (!author) return false;` on its own flips NOTHING: `containsWholeWords` refuses an empty
+  // haystack and an empty needle itself, and '' never equals a non-empty claim. The emptiness is
+  // defended by the SHAPE of the match and not by that line, so a one-line mutant of it would
+  // have been a hole reported as a pass. F-Mb below says what the line does defend against.
+  const mB0 = await flip('lib/output-reviewer.js', 'attr-no-empty-author-alone',
+    (s) => s.replace('    if (!author) return false;',
+      '    if (false) return false;  // mutant-attr-empty-author-alone'),
+    'mutant-attr-empty-author-alone', 'F3', F3[1], F3[2], 'STRIP');
+  ok('F-Mb0 the empty-author line ALONE carries no verdict -- an empty name matches nothing anyway',
+    mB0.got === 'STRIP', 'F3 got ' + mB0.got + ' | ' + (mB0.detail || ''));
+
+  // AND F-Mb IS TWO LINES BECAUSE NO ONE LINE THERE CAN BE KILLED. Measured: the empty-author
+  // test is unkillable on its own AND unkillable together with `containsWholeWords`' own empty
+  // guard -- ` ${''} ` is TWO spaces, and a normalised name is single-spaced and trimmed, so an
+  // empty author matches nothing under whole-word containment however many guards are removed.
+  // What the line actually defends against is the raw `includes` this file used to use before
+  // «عبدالعزيز آل الشيخ» was found inside «عبدالعزيز الراجحي», under which '' is inside
+  // every string there is. So the mutant restores that older idiom and takes the line out, and
+  // the pair flips F3. Stated plainly rather than dressed up: a ONE-line mutant of that test
+  // would flip nothing, and this guard says so out loud in F-Mb0 above.
+  const mB = await flip('lib/output-reviewer.js', 'attr-raw-contains-no-empty-guard',
+    (s) => s
+      .replace('    if (!author) return false;',
+        '    if (false) return false;  // mutant-attr-empty-author')
+      .replace([
+        '    const named = author === claimed',
+        '      || containsWholeWords(author, claimed)',
+        '      || containsWholeWords(claimed, author);',
+      ].join('\n'),
+        '    const named = author === claimed || author.includes(claimed)'
+        + ' || claimed.includes(author);  // mutant-attr-raw-contains'),
+    'mutant-attr-raw-contains', 'F3', F3[1], F3[2], 'STRIP');
+  ok('F-Mb MUTANT KILLED: drop the empty test and the whole-word rule and an authorless atom'
+    + ' licenses every name',
+    mB.got === 'KEEP', 'F3 got ' + mB.got + ' | ' + (mB.detail || ''));
+
+  const mC = await flip('lib/output-reviewer.js', 'attr-no-support',
+    (s) => s.replace('    return named && supportsSentence(sentence, item);',
+      '    return named;  // mutant-attr-no-support'),
+    'mutant-attr-no-support', 'F7', F7[1], F7[2], 'STRIP');
+  ok('F-Mc MUTANT KILLED: without `supportsSentence` a name on the shelf licenses any sentence',
+    mC.got === 'KEEP', 'F7 got ' + mC.got + ' | ' + (mC.detail || ''));
+
+  const mD = await flip('lib/output-reviewer.js', 'attr-no-floor',
+    (s) => s.replace("  if (claimed.split(' ').filter(Boolean).length < 2) return null;",
+      '  if (false) return null;  // mutant-attr-no-floor'),
+    'mutant-attr-no-floor', 'F8', F8[1], F8[2], 'STRIP');
+  ok('F-Md MUTANT KILLED: without the two-word floor one word licenses every author sharing it',
+    mD.got === 'KEEP', 'F8 got ' + mD.got + ' | ' + (mD.detail || ''));
+
+  const mE = await flip('lib/free-brain/loop.js', 'evidence-drops-kind',
+    (s) => s.replace("    kind: row.kind === LIB_BOOK_KIND ? row.kind : '',",
+      "    kind: '',  // mutant-evidence-no-kind"),
+    'mutant-evidence-no-kind', 'F1', F1[1], F1[2], 'KEEP');
+  ok('F-Me MUTANT KILLED: a reviewer not told the row is a book strips the author off his own page',
+    mE.got === 'STRIP', 'F1 got ' + mE.got + ' | ' + (mE.detail || ''));
+
+  const mF = await flip('lib/output-reviewer.js', 'view-drops-author',
+    (s) => s.replace("    author: evidenceField(item, ['author']),",
+      "    author: '',  // mutant-view-no-author"),
+    'mutant-view-no-author', 'F1', F1[1], F1[2], 'KEEP');
+  ok('F-Mf MUTANT KILLED: an author dropped on the way into the view strips the man from his book',
+    mF.got === 'STRIP', 'F1 got ' + mF.got + ' | ' + (mF.detail || ''));
+
+  ok('F9  the whole of section F ran with globalThis.fetch still poisoned',
+    poisoned.calls === 0, 'poisoned fetch invoked ' + poisoned.calls + ' time(s)');
   try { fs.rmSync(temp, { recursive: true, force: true }); } catch (error) { /* scratch only */ }
 
   console.log('\n=== lib-book-contract: ' + (checks - failures) + '/' + checks
