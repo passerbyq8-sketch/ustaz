@@ -605,3 +605,4 @@ guards/lib-book-contract-guard.cjs text eol=lf
 # comparisons do not expect. Same principle as the guard above: a machine checking out with
 # core.autocrlf=true must get the same file this one measured.
 guards/attribution-capture-widen-guard.cjs text eol=lf
+guards/attribution-truth-guard.cjs text eol=lf

@@ -661,7 +661,7 @@ async function runSuite() {
     const m10out = await m10.runStoredFiqhTurn({ context: supportedContext, retrieve: async () => ({ records: [joinRecord] }), generate: async (request) => badTakhrijDraft(request.payload.evidence_pack, request.payload.current_question) });
     ok('MUTANT 10 KILLED: unsupported takhrij appears only when grounding output is bypassed', m10out.text.includes('رواه البخاري ومسلم'));
 
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 101; }
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 102; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
     ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 101-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
     ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 101-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
