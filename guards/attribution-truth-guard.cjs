@@ -212,6 +212,51 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       REG.activeSources().map((source) => source.domain).sort());
   }
 
+  // =========================================================================
+  console.log('\n=== E. THE REMAINDER MUST KEEP ITS HEAD \u2014 A-81/a ===');
+  {
+    // The judge (removalBreaksSentence) strips \u00ab\u0625\u0646\u00bb, \u00ab\u0623\u0646\u00bb and \u00ab\u0628\u0623\u0646\u00bb off the claim so its start-anchored
+    // test lands on the first real word. The reader must not receive that copy: after a colon \u00ab\u0625\u0646\u00bb
+    // is the conditional that heads the quoted ruling, and cutting it handed the owner \u00ab\u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628\u2026\u00bb,
+    // a verb with nothing before it. \u00ab\u0623\u0646\u00bb / \u00ab\u0628\u0623\u0646\u00bb are subordinators a sentence cannot stand on, and
+    // they still leave. Four checks, each read off the delivered text.
+
+    // 1. The exact sentence the owner measured (A2), verbatim.
+    const A2 = '\u0648\u0627\u0644\u0634\u064a\u062e \u0645\u062d\u0645\u062f \u0628\u0646 \u0635\u0627\u0644\u062d \u0627\u0644\u0639\u062b\u064a\u0645\u064a\u0646 \u0631\u062d\u0645\u0647 \u0627\u0644\u0644\u0647 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628 \u2014 \u0643\u0635\u0648\u0645 \u0639\u0631\u0641\u0629 \u0623\u0648 \u0639\u0627\u0634\u0648\u0631\u0627\u0621 \u0623\u0648 \u064a\u0648\u0645 \u0645\u0646 \u0623\u064a\u0627\u0645 \u0627\u0644\u0628\u064a\u0636 \u0623\u0648 \u0642\u0636\u0627\u0621 \u0623\u0648 \u0643\u0641\u0627\u0631\u0629 \u0623\u0648 \u0635\u064a\u0627\u0645 \u062f\u0627\u0648\u062f \u0641\u0648\u0627\u0641\u0642 \u0627\u0644\u0633\u0628\u062a \u2014 \u0641\u0644\u0627 \u0628\u0623\u0633 \u0628\u0647 \u0648\u0644\u0627 \u0643\u0631\u0627\u0647\u0629\u061b \u0648\u0625\u0646 \u0623\u0641\u0631\u062f\u0647 \u062a\u0639\u0638\u064a\u0645\u0627 \u0644\u0647 \u0645\u0646 \u063a\u064a\u0631 \u0633\u0628\u0628 \u0641\u0647\u0630\u0627 \u0645\u0648\u0636\u0639 \u0627\u0644\u0646\u0647\u064a.';
+    const A2_HEAD = '\u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628';
+    const A2_NAME = '\u0627\u0644\u0639\u062b\u064a\u0645\u064a\u0646';
+    const a2 = verdict(REV, A2, []);
+    ok('E1 \u00b7 the A2 sentence \u2192 removed, the delivered text opens on \u00ab\u0625\u0646 \u0635\u0627\u0645\u0647\u00bb, and the name is gone',
+      a2.action === REMOVED && a2.text.indexOf(A2_HEAD) === 0 && a2.text.indexOf(A2_NAME) < 0,
+      'action=' + JSON.stringify(a2.action) + ' text=' + JSON.stringify(a2.text.slice(0, 60)));
+
+    // 2. A B-shaped input \u2014 name first, joined fa, colon, unquoted prose \u2014 is removed and the prose
+    //    after the colon reaches the reader whole. This is the byte-identity line for B/C/G.
+    const B_PROSE = '\u0627\u0644\u0623\u0645\u0631 \u0641\u064a \u0647\u0630\u0627 \u0648\u0627\u0633\u0639 \u0648\u0644\u0627 \u062d\u0631\u062c \u0641\u064a\u0647';
+    const b = verdict(REV, '\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629 \u0641\u0642\u0627\u0644: ' + B_PROSE, []);
+    ok('E2 \u00b7 B-shape (name first, joined fa, colon, prose) \u2192 removed, and the remaining prose is intact',
+      b.action === REMOVED && b.text.indexOf(B_PROSE) === 0 && b.text.indexOf('\u0642\u062f\u0627\u0645\u0629') < 0,
+      'action=' + JSON.stringify(b.action) + ' text=' + JSON.stringify(b.text.slice(0, 60)));
+
+    // 3. \u00ab\u0623\u0646\u00bb and \u00ab\u0628\u0623\u0646\u00bb after the colon are still taken off the delivered text.
+    const AN_PROSE = '\u0627\u0644\u0623\u0645\u0631 \u0641\u064a \u0647\u0630\u0627 \u0648\u0627\u0633\u0639';
+    const an = verdict(REV, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629: \u0623\u0646 ' + AN_PROSE, []);
+    const bian = verdict(REV, '\u0623\u0641\u062a\u0649 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629: \u0628\u0623\u0646 ' + AN_PROSE, []);
+    ok('E3 \u00b7 \u00ab\u0623\u0646\u00bb and \u00ab\u0628\u0623\u0646\u00bb are still stripped from the delivered text',
+      an.action === REMOVED && an.text.indexOf(AN_PROSE) === 0
+        && bian.action === REMOVED && bian.text.indexOf(AN_PROSE) === 0,
+      'an=' + JSON.stringify(an.text.slice(0, 40)) + ' bian=' + JSON.stringify(bian.text.slice(0, 40)));
+
+    // 4. A hadith matn is never removed. Only the matn is pinned here: measured on 2026-09-02 the
+    //    frame \u00ab\u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0642\u0627\u0644:\u00bb is itself read as an unsupported credit and cut, which
+    //    is recorded as an incidental defect and deliberately not asserted either way.
+    const MATN = '\u00ab\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a\u00bb';
+    const h = verdict(REV, '\u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0642\u0627\u0644: ' + MATN, []);
+    ok('E4 \u00b7 \u00ab\u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0642\u0627\u0644: \u00ab\u2026\u00bb\u00bb \u2192 the hadith matn is never removed',
+      h.text.indexOf(MATN) >= 0,
+      'action=' + JSON.stringify(h.action) + ' text=' + JSON.stringify(h.text.slice(0, 60)));
+  }
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
