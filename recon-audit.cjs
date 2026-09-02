@@ -759,7 +759,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 101;  // 101st: attrwiden -- guards/attribution-capture-widen-guard.cjs. The
+  const GATES_EXPECTED = 102;  // 101st: attrwiden -- guards/attribution-capture-widen-guard.cjs. The
                                //       attribution capture in lib/output-reviewer.js reads a name
                                //       whether it stands before its verb or after it, and whether
                                //       or not it is vowelled. Two lists that had drifted apart

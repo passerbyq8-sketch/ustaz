@@ -510,5 +510,10 @@
     "name": "attrwiden",
     "script": "guards/attribution-capture-widen-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "attrtruth",
+    "script": "guards/attribution-truth-guard.cjs",
+    "args": ""
   }
 ]

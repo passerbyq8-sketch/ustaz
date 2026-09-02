@@ -260,15 +260,38 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
     // before it. Read out of the file rather than typed here, so the two can never drift into
     // agreeing with this guard while disagreeing with each other.
     const FRAME_OPEN = '(?<frame>(?:';
+    const FRAME_TAG = '(?<frame>';
     const lead = patterns[0] || '';
     const leadVerbs = lead.slice(lead.indexOf(FRAME_OPEN) + FRAME_OPEN.length,
       lead.indexOf(')', lead.indexOf(FRAME_OPEN) + FRAME_OPEN.length));
-    const TAIL_OPEN = '{1,55}?)\\s+(?:';
+    // THE NAME-FIRST TAIL CARRIES TWO ALLOWANCES THE CUE-FIRST HEAD DOES NOT. A conjunction may
+    // be written JOINED to the verb, and any letter of the verb may carry a haraka. Both are
+    // spelled into the seventh pattern on purpose, and neither may change the LIST: read with
+    // those two allowances normalised away, the verbs must still be the cue-first seven,
+    // character for character. The conjunction group is SLICED OUT OF THE FIRST PATTERN rather
+    // than written here, so this guard cannot drift into agreeing with itself.
+    const MARKS = '\\p{M}*';
+    const NAME_BOUND = '{1,55}?)\\s+';
+    const conjAt = lead.indexOf(FRAME_TAG) - 9;
+    const CONJ_GROUP = conjAt >= 0 ? lead.slice(conjAt, conjAt + 9) : '';
+    ok('the leading-conjunction group is where this guard slices it from',
+      CONJ_GROUP.startsWith('(?:[') && CONJ_GROUP.endsWith('])?'), JSON.stringify(CONJ_GROUP));
     const last = patterns[6] || '';
-    const tailVerbs = last.slice(last.indexOf(TAIL_OPEN) + TAIL_OPEN.length,
-      last.indexOf(')', last.indexOf(TAIL_OPEN) + TAIL_OPEN.length));
+    const boundAt = last.indexOf(NAME_BOUND);
+    const afterBound = boundAt < 0 ? '' : last.slice(boundAt + NAME_BOUND.length);
+    const carriesConj = CONJ_GROUP.length === 9 && afterBound.startsWith(CONJ_GROUP);
+    const verbOpen = (carriesConj ? CONJ_GROUP : '') + '(?:';
+    const closeAt = afterBound.indexOf(')', verbOpen.length);
+    const tailRaw = afterBound.startsWith(verbOpen) && closeAt > 0
+      ? afterBound.slice(verbOpen.length, closeAt) : '';
+    const tailVerbs = tailRaw.split(MARKS).join('');
+    ok('the seventh pattern reaches a conjunction written joined to its verb', carriesConj,
+      'expected the tail to open on ' + JSON.stringify(CONJ_GROUP));
+    eq('...and every one of those verbs carries the haraka allowance',
+      tailRaw.split('|').filter((v) => !v.endsWith(MARKS)), []);
     eq('the cue-first list is seven verbs long', leadVerbs.split('|').length, 7);
-    eq('...and the name-first list is the same list, verbatim', tailVerbs, leadVerbs);
+    eq('...and the name-first list is the same list, verbatim once both allowances are normalised',
+      tailVerbs, leadVerbs);
   }
 
   console.log('\n' + (failures === 0
