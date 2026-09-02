@@ -759,7 +759,31 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 100;  // 100th: libbook -- guards/lib-book-contract-guard.cjs. The
+  const GATES_EXPECTED = 101;  // 101st: attrwiden -- guards/attribution-capture-widen-guard.cjs. The
+                               //       attribution capture in lib/output-reviewer.js reads a name
+                               //       whether it stands before its verb or after it, and whether
+                               //       or not it is vowelled. Two lists that had drifted apart
+                               //       inside one file are equalised -- the name-first pattern took
+                               //       four of the seven verbs the six cue-first patterns take, so
+                               //       a name in front of its own verb matched nothing at all --
+                               //       and \p{M} enters the name class, which had stopped dead on
+                               //       the first haraka because Arabic combining marks are
+                               //       Script=Inherited and not Script=Arabic. The class widens and
+                               //       the TEXT is left alone: detectAttribution returns offsets
+                               //       its caller cuts the ORIGINAL sentence with, so stripping
+                               //       marks before matching would move every offset and cut the
+                               //       wrong character. Four sections: the door opened, and the
+                               //       name comes back vowels and all; it did not open falsely, and
+                               //       an adverbial «at the time of wudu» is still nobody being
+                               //       credited, vowelled or bare; all 49 aliases over 196
+                               //       shape/vowelling combinations resolve exactly as the registry
+                               //       resolves them, with two pre-existing mismatches pinned as
+                               //       still-broken rather than excused; and the shape is
+                               //       fingerprinted -- seven patterns, no more, every name class
+                               //       widened in its tail, and no name may begin on a floating
+                               //       vowel. Three mutants die: the class narrowed again, the verb
+                               //       list reverted, and \p{M} smuggled into the leading character.
+                               // 100th: libbook -- guards/lib-book-contract-guard.cjs. The
                                //       library/book contract, in four proofs and no network: a
                                //       BRIEF turn is offered no search_library on any provider
                                //       round (read off the wire, with the runner refusing on the
