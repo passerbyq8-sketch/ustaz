@@ -505,5 +505,10 @@
     "name": "libbook",
     "script": "guards/lib-book-contract-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "attrwiden",
+    "script": "guards/attribution-capture-widen-guard.cjs",
+    "args": ""
   }
 ]

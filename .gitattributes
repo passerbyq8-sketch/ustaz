@@ -596,3 +596,12 @@ api/auth-exchange.js text eol=lf
 # the same principle as the tools above: a machine checking out with core.autocrlf=true must get
 # the same file this one measured.
 guards/lib-book-contract-guard.cjs text eol=lf
+
+# guards/attribution-capture-widen-guard.cjs (the wider attribution capture, gate `attrwiden`)
+# -- pinned first because recon requires a `text eol=lf` line for EVERY script named in
+# gates.json, and second because this guard is ABOUT byte-level Arabic. Its witnesses carry
+# combining marks, and section D compares the name character class in lib/output-reviewer.js
+# as literal source text -- a CR anywhere in this file would be one more character the
+# comparisons do not expect. Same principle as the guard above: a machine checking out with
+# core.autocrlf=true must get the same file this one measured.
+guards/attribution-capture-widen-guard.cjs text eol=lf
