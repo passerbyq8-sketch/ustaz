@@ -257,6 +257,47 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       'action=' + JSON.stringify(h.action) + ' text=' + JSON.stringify(h.text.slice(0, 60)));
   }
 
+  // =========================================================================
+  console.log('\n=== F. THE PROPHET\u2019S FRAME IS NEVER AN UNSUPPORTED CREDIT \u2014 M1 night 2, task 1 ===');
+  {
+    // Measured 2026-09-02 (section E, check 4, recorded but not asserted): \u00ab\u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645
+    // \u0642\u0627\u0644: \u00ab\u2026\u00bb\u00bb was read as a credit to a scholar named \u00ab\u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645\u00bb, the
+    // ascription was cut, and the matn went out stamped as the machine's understanding. The
+    // invariant: a frame that names the Prophet, peace be upon him, is NEVER
+    // removed-unsupported-attribution; the ascription and the matn both reach the reader.
+    // One check per spelling, in both frame shapes (\u00ab\u0642\u0627\u0644 X:\u00bb and \u00ab\u0623\u0646 X \u0642\u0627\u0644:\u00bb). What
+    // answer-level notice the sentence then carries belongs to the takhrij contract and is not
+    // asserted here either way.
+    const MATN_F = '\u00ab\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a\u00bb';
+    const SPELLINGS = [
+      ['\u0627\u0644\u0646\u0628\u064a', '\u0627\u0644\u0646\u0628\u064a'],
+      ['\u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647', '\u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647'],
+      ['\u0627\u0644\u0631\u0633\u0648\u0644', '\u0627\u0644\u0631\u0633\u0648\u0644'],
+      ['\u0645\u062d\u0645\u062f \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645', '\u0645\u062d\u0645\u062f \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645'],
+      ['\u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645', '\u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645'],
+      ['\u0639\u0644\u064a\u0647 \u0627\u0644\u0635\u0644\u0627\u0629 \u0648\u0627\u0644\u0633\u0644\u0627\u0645', '\u0639\u0644\u064a\u0647 \u0627\u0644\u0635\u0644\u0627\u0629 \u0648\u0627\u0644\u0633\u0644\u0627\u0645'],
+      ['\u0635\u0644\u0639\u0645', '\u0635\u0644\u0639\u0645'],
+    ];
+    let n = 0;
+    for (const [spelling, needle] of SPELLINGS) {
+      n += 1;
+      const verbFirst = verdict(REV, '\u0642\u0627\u0644 ' + spelling + ': ' + MATN_F, []);
+      const nameFirst = verdict(REV, '\u0623\u0646 ' + spelling + ' \u0642\u0627\u0644: ' + MATN_F, []);
+      const holds = (o) => o.action !== REMOVED && o.text.indexOf(needle) >= 0 && o.text.indexOf(MATN_F) >= 0;
+      ok('F' + n + ' \u00b7 \u00ab' + spelling + '\u00bb \u2192 never removed; the ascription and the matn both reach the reader',
+        holds(verbFirst) && holds(nameFirst),
+        'verb-first action=' + JSON.stringify(verbFirst.action) + ' text=' + JSON.stringify(verbFirst.text.slice(0, 80))
+          + '\n        name-first action=' + JSON.stringify(nameFirst.action) + ' text=' + JSON.stringify(nameFirst.text.slice(0, 80)));
+    }
+    // The exemption is the Prophet's frame and nothing wider: a scholar credited in the SAME
+    // sentence is still judged, and with no evidence in hand his credit still goes.
+    const mixed = verdict(REV, '\u0648\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632: \u0625\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0642\u0627\u0644 ' + MATN_F, []);
+    ok('F8 \u00b7 a scholar credit beside the Prophet\u2019s frame is still judged (\u0627\u0628\u0646 \u0628\u0627\u0632 removed, the hadith kept)',
+      mixed.action === REMOVED && mixed.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') < 0
+        && mixed.text.indexOf('\u0627\u0644\u0646\u0628\u064a') >= 0 && mixed.text.indexOf(MATN_F) >= 0,
+      'action=' + JSON.stringify(mixed.action) + ' text=' + JSON.stringify(mixed.text.slice(0, 80)));
+  }
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
