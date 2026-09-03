@@ -1449,6 +1449,64 @@ export default async function handler(req, res) {
     // pass a child's weather question needs, all of which §٦ freezes. Reserving it here means a
     // young or teen reader on a benign topic gets byte-for-byte what they get today, and the
     // free brain never becomes the reason a child's protection changed.
+    // ── E75 · WHO THE READER ASKED ABOUT, CARRIED PAST THE TWO EARLY EXITS ──
+    //
+    // MEASURED, and it is the whole mechanism of the defect. planAsk() settles the requested
+    // authority at :944, above everything here. But every consumer of that identity —
+    // `plan.attributionMode === 'namedScholarOpinion'` at :2656, `plan.requestedAuthorityId` at
+    // :2765, :2813, :2917, :3009, :3011 and :3685 — sits BELOW the two exits that answer most
+    // readers: the free brain's at :1694 and the stored path's at :1786. The identity is
+    // therefore computed and thrown away on both, and an answer about a different man breaks no
+    // rule that is ever consulted. This carries it across that line and nothing more.
+    //
+    // THE GATE IS `attributionMode`, NOT `attribution.attributed`, and that is the
+    // over-blocking red line rather than a preference. The lexical capture fires on prose it has
+    // no business firing on, and all three shapes were measured on this tree:
+    //
+    //   «ذكر لي صديقي أن ابن عثيمين… فما حكم صيام يوم عرفة؟»  captured «لي صديقي»
+    //   «قرأت في كتاب لابن باز عن الصلاة… كيف أعلّم ابني الوضوء؟»  captured «الصلاه»
+    //   «ما حكم صيام يوم عرفة؟»                                  captured nothing
+    //
+    // The first two carry `attribution.attributed: true`. `attributionMode` is that same
+    // capture AFTER the entity IR's veto, and it is 'none' for all three while staying
+    // 'namedScholarOpinion' for a resolved man, an ambiguous one and an unregistered one alike.
+    // A question that merely mentions a scholar therefore carries no identity past this line.
+    //
+    // NOTHING READS THIS YET. It is built, carried and logged; the consumer is a later commit's.
+    const requestedIdentity = (() => {
+      if (plan.attributionMode !== 'namedScholarOpinion') return null;
+      const name = String(plan.namedEntity || '').trim();
+      if (!name) return null;
+      // THREE STATES AND NO FOURTH. 'unresolved' is not «no identity»: it is «a man was asked
+      // about and no registry knew him», which is the shape the worst measured case had — the
+      // answer reported an absence about somebody else entirely. Folding it into null here would
+      // drop exactly the case this order exists for.
+      const status = plan.requestedAuthorityId ? 'resolved'
+        : plan.scholarCandidates.length > 1 ? 'ambiguous' : 'unresolved';
+      // The candidates as the READER would be shown them. ambiguousScholarPrompt owns the
+      // id -> display-name mapping (the roster's or the registry's, whichever resolved him), so
+      // the names are read back off it rather than resolved a second time by a copy that can
+      // drift from the first. The '- ' bullets are that function's own output shape.
+      const candidates = status === 'ambiguous'
+        ? ambiguousScholarPrompt(plan.scholarCandidates).split('\n')
+          .filter((line) => line.startsWith('- '))
+          .map((line) => line.slice(2).trim())
+          .filter(Boolean)
+        : [];
+      return Object.freeze({
+        id: String(plan.requestedAuthorityId || ''),
+        name,
+        status,
+        candidates: Object.freeze(candidates),
+        officialDomain: String(plan.officialDomain || ''),
+      });
+    })();
+    // NOT LOGGED, AND THAT IS THE POINT OF gate `telemetrytext`. The first draft of this printed
+    // the resolution status and whether an id was found. Neither is the question's text, and both
+    // were still refused — the gate allow-lists PRINTED FIELD NAMES one at a time, by review, so
+    // that the next field nobody thought about is refused too. Widening that list to watch
+    // plumbing nothing reads yet would spend the guard's whole value on a convenience.
+
     const freeBrain = freeBrainDecision();
     const childBenignReserved = ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
       && (audienceBand === 'young' || audienceBand === 'teen');
@@ -1507,6 +1565,8 @@ export default async function handler(req, res) {
           libFlagValue: (libDepthEligible && band === 'adult') ? libFlagValue : '',
           libToken: (libDepthEligible && band === 'adult') ? libToken : '',
           onWriteUnit: (detail) => liveFreeBrainUnits.push(detail),
+          // E75 — carried, not read. The loop hands it to the reviewer and nothing else.
+          requestedIdentity,
         });
       } finally {
         freeUpstream.cleanup();
@@ -1700,6 +1760,10 @@ export default async function handler(req, res) {
     if (storedContext.runtime === 'STORED_FIQH') {
       finalizerContext.fallbackText = NO_STORED_EVIDENCE;
       finalizerContext.allowWireOwnedCards = false;
+      // E75 — the same identity, on the other early exit. MEASURED: this path invokes no
+      // reviewer at all, so there is no reviewer context object here to carry it into;
+      // finalizerContext is what survives to this exit's emit boundary. Nothing reads it.
+      finalizerContext.requestedIdentity = requestedIdentity;
       // The legacy plan may legitimately carry an anaphoric identity for its own paths. It is not
       // evidence for this one, so the stored path starts a fresh consistency context.
       finalizerContext.consistencyContext = null;
