@@ -77,6 +77,23 @@ const nameFirst = (name) => name + ' ' + SAID + THAT_IT_IS_ALLOWED;
 const NAME_CLASS = '(?<name>[\\p{Script=Arabic}][\\p{Script=Arabic}\\p{M}\\s]{1,55}?)';
 const NAME_STARTS_ON_A_MARK = '(?<name>[\\p{Script=Arabic}\\p{M}]';
 
+// ── ع-٧٤/أ · THE CUE-FIRST NAME IS BOUNDED IN WORDS AND STOPS ON A VERB ─────
+// The first two patterns read the CUE first, so everything after the cue is a candidate name and
+// the old class ran on for up to 55 characters across spaces. MEASURED on the owner's sentence:
+// «قال ابن باز يحرم حلق اللحية، لأنه استئصال…» captured «ابن باز يحرم حلق اللحية» — the RULING
+// swallowed into the name — and removing that left «لأنه…», a causal clause with nothing before
+// it, so the fifth door kept the whole credit and marked it instead. The reader kept the name.
+//
+// So the cue-first class takes at most five further WORDS, lazily, and no word may be one of the
+// stop verbs. It is pinned as literal source text, like NAME_CLASS, because it is a fingerprint
+// of the file. The other five patterns keep NAME_CLASS: they are the ones whose right-hand side
+// is already anchored on a ruling word or on the verb itself.
+const CUE_STOP_VERBS = ['يحرم', 'يجوز', 'يجب', 'يكره', 'يستحب', 'يصح', 'يبطل',
+  'قال', 'ذكر', 'أفتى', 'أجاب', 'يرى', 'تقول', 'قالت'];
+const CUE_STOP = '(?:' + CUE_STOP_VERBS.join('|') + ')(?![\\p{Script=Arabic}\\p{M}])';
+const CUE_FIRST_NAME_CLASS = '(?<name>[\\p{Script=Arabic}][\\p{Script=Arabic}\\p{M}]*'
+  + '(?:\\s+(?!' + CUE_STOP + ')[\\p{Script=Arabic}][\\p{Script=Arabic}\\p{M}]*){0,5}?)';
+
 // ── TWO MISMATCHES THAT PREDATE THIS PIECE, PINNED SO THEY CANNOT BE MISREAD AS ITS DOING ──
 // Both were measured on f8701c4 BEFORE the name class was widened, and both survive it
 // unchanged. Neither is a diacritic defect and neither is fixed here — widening the door
@@ -255,8 +272,24 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
       patterns.length, 7);
     eq('...and every entry is a single unicode regex literal',
       patterns.filter((p) => !(p.startsWith('/') && p.endsWith('/u,'))), []);
-    eq('every pattern captures a name, and captures it with the widened class',
-      patterns.filter((p) => !p.includes(NAME_CLASS)).length, 0);
+    // TWO CHECKS WHERE THERE WAS ONE, AND NEITHER IS WEAKER THAN THE CHECK IT SPLITS. The first
+    // two patterns must carry the bounded lazy class; the other five must still carry the old one.
+    // Asserting only "one of the two" would let a pattern drift between them unnoticed.
+    eq('the two cue-first patterns carry the bounded lazy name class',
+      patterns.slice(0, 2).filter((p) => !p.includes(CUE_FIRST_NAME_CLASS)).length, 0);
+    eq('...and the other five still carry the widened class, unchanged',
+      patterns.slice(2).filter((p) => !p.includes(NAME_CLASS)).length, 0);
+    // (4) THE BOUND MUST STAY LAZY AND THE STOP LIST MUST STAY WHOLE. A greedy {0,5} eats the
+    // ruling again the moment a name is short; a stop list missing a verb does the same for that
+    // verb. Both are asserted on the source text, so neither can be relaxed silently.
+    eq('the cue-first bound is lazy — «?» follows {0,5} in both patterns',
+      patterns.slice(0, 2).filter((p) => !p.includes('{0,5}?')).length, 0);
+    eq('...and no cue-first pattern carries a greedy bound',
+      patterns.slice(0, 2).filter((p) => /\{0,5\}(?!\?)/u.test(p)).length, 0);
+    eq('the stop list is exactly the fourteen verbs this guard names, in order',
+      patterns.slice(0, 2).filter((p) => !p.includes(CUE_STOP)).length, 0);
+    eq('...and every stop verb is checked as a whole word',
+      CUE_STOP.includes('(?![\\p{Script=Arabic}\\p{M}])'), true);
     eq('the first six carry the frame group that lets the credit be cut without touching the claim',
       patterns.slice(0, 6).filter((p) => !p.includes('(?<frame>')).length, 0);
     // Recorded, not assumed: the seventh carries `frame` too, and its frame OPENS with the

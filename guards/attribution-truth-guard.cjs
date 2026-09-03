@@ -305,13 +305,42 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     // credit through the four doors (none fired) and the reader received \u00ab\u0644\u0623\u0646\u0647 \u0627\u0633\u062a\u0626\u0635\u0627\u0644 \u2026\u00bb \u2014 a
     // causal clause with nothing before it. The fifth door: a remainder that opens on a
     // particle that cannot begin a sentence breaks the sentence, so the credit is KEPT and the
-    // sentence marked. Two checks: the owner's sentence, and A2 \u2014 whose remainder opens on the
-    // conditional \u00ab\u0625\u0646\u00bb, which heads a complete sentence and must never join that list.
+    // sentence marked. A2's remainder opens on the conditional \u00ab\u0625\u0646\u00bb, which heads a complete
+    // sentence and must never join that list.
+    //
+    // THE OWNER'S OWN SENTENCE NO LONGER REACHES THAT DOOR, and G1 below now expects the opposite
+    // verdict on his ruling: the capture that used to swallow his ruling into the name was
+    // narrowed (\u0639-\u0667\u0664/\u0623), so the remainder no longer breaks and the name is removed. The door
+    // itself is unchanged and G1b asserts it still fires on a remainder that really does break.
     const OWNER = '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629\u060c \u0644\u0623\u0646\u0647 \u0627\u0633\u062a\u0626\u0635\u0627\u0644 \u0644\u0644\u062d\u064a\u0629 \u0648\u0645\u062e\u0627\u0644\u0641\u0629 \u0644\u0644\u0633\u0646\u0629';
+    // \u2500\u2500 THE OWNER RULED: REMOVAL (M1 close, 2026-09-03) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    // THIS ROW EXPECTED THE OPPOSITE UNTIL TODAY, AND THE CHANGE IS THE OWNER'S, NOT THIS
+    // GUARD'S JUDGEMENT. It used to read: the remainder opens on a causal particle, so the credit
+    // is KEPT and the sentence marked. The owner's ruling is that an attribution to a named
+    // scholar with no evidence behind it does not stay in front of the reader even marked \u2014 the
+    // same thing \u0639-\u0665\u0665/\u0623 did in 1ed1803. So: the name goes, the ruling stays.
+    //
+    //   \u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629\u060c \u0644\u0623\u0646\u0647 \u2026  \u21d2  \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629\u060c \u0644\u0623\u0646\u0647 \u2026 + the mark
+    //
+    // WHAT MADE IT POSSIBLE is not a change to the fifth door \u2014 that door is untouched and is
+    // still asserted alive two rows below. It is \u0639-\u0667\u0664/\u0623: the capture used to swallow the ruling
+    // («\u0627\u0628\u0646 \u0628\u0627\u0632 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629» as the NAME), so removing it really did leave a headless
+    // clause. With the name bounded to «\u0627\u0628\u0646 \u0628\u0627\u0632», the remainder opens on its own ruling verb
+    // and nothing breaks. The door was never wrong; it was being asked about the wrong span.
     const owner = verdict(REV, OWNER, []);
-    ok('G1 \u00b7 the owner\u2019s sentence \u2192 not removed, and the delivered text does not open on \u00ab\u0644\u0623\u0646\u0647\u00bb',
-      owner.action !== REMOVED && owner.action === MARKED && owner.text.indexOf('\u0644\u0623\u0646\u0647') !== 0,
+    ok('G1 \u00b7 [OWNER RULING] the owner\u2019s sentence \u2192 REMOVED: the name goes, the ruling stays',
+      owner.action === REMOVED && owner.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') < 0
+        && owner.text.indexOf('\u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') === 0,
       'action=' + JSON.stringify(owner.action) + ' text=' + JSON.stringify(owner.text.slice(0, 80)));
+
+    // \ud83d\udd12 THE FIFTH DOOR IS NOT WEAKENED BY THAT RULING, AND HERE IS THE PROOF. A remainder
+    // that really does open on a causal particle still keeps its credit and is marked instead \u2014
+    // a broken delivered sentence is not a guard. Two spellings, one causal and one adversative.
+    const stillBreaks = ['\u0644\u0623\u0646\u0647', '\u0648\u0644\u0643\u0646'].map((particle) =>
+      verdict(REV, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632: ' + particle + ' \u0627\u0633\u062a\u0626\u0635\u0627\u0644 \u0644\u0644\u062d\u064a\u0629 \u0648\u0645\u062e\u0627\u0644\u0641\u0629 \u0644\u0644\u0633\u0646\u0629', []));
+    ok('G1b \u00b7 [RED] a remainder that DOES break is still kept and marked \u2014 the fifth door is alive',
+      stillBreaks.every((v) => v.action === MARKED && v.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') >= 0),
+      'actions=' + JSON.stringify(stillBreaks.map((v) => v.action)));
 
     const A2G = '\u0648\u0627\u0644\u0634\u064a\u062e \u0645\u062d\u0645\u062f \u0628\u0646 \u0635\u0627\u0644\u062d \u0627\u0644\u0639\u062b\u064a\u0645\u064a\u0646 \u0631\u062d\u0645\u0647 \u0627\u0644\u0644\u0647 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628 \u2014 \u0643\u0635\u0648\u0645 \u0639\u0631\u0641\u0629 \u0623\u0648 \u0639\u0627\u0634\u0648\u0631\u0627\u0621 \u0623\u0648 \u064a\u0648\u0645 \u0645\u0646 \u0623\u064a\u0627\u0645 \u0627\u0644\u0628\u064a\u0636 \u0623\u0648 \u0642\u0636\u0627\u0621 \u0623\u0648 \u0643\u0641\u0627\u0631\u0629 \u0623\u0648 \u0635\u064a\u0627\u0645 \u062f\u0627\u0648\u062f \u0641\u0648\u0627\u0641\u0642 \u0627\u0644\u0633\u0628\u062a \u2014 \u0641\u0644\u0627 \u0628\u0623\u0633 \u0628\u0647 \u0648\u0644\u0627 \u0643\u0631\u0627\u0647\u0629\u061b \u0648\u0625\u0646 \u0623\u0641\u0631\u062f\u0647 \u062a\u0639\u0638\u064a\u0645\u0627 \u0644\u0647 \u0645\u0646 \u063a\u064a\u0631 \u0633\u0628\u0628 \u0641\u0647\u0630\u0627 \u0645\u0648\u0636\u0639 \u0627\u0644\u0646\u0647\u064a.';
     const a2g = verdict(REV, A2G, []);
@@ -322,8 +351,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     // \u2500\u2500 M1+M2 night 3, task 1: THE SAME PARTICLES CARRIED BY A JOINED \u00ab\u0648\u00bb OR \u00ab\u0641\u00bb \u2500\u2500
     // Measured 2026-09-03: the door matched the bare forms only, so \u00ab\u0648\u0644\u0623\u0646\u0647\u00bb, \u00ab\u0641\u0644\u0623\u0646\u0647\u00bb and
     // \u00ab\u0648\u0644\u0643\u0646\u00bb still shipped headless \u2014 28 of the parity harness's rows were removals where the
-    // bare twin was a mark. G3 and G4 pin every joined form against its bare twin; nothing about
-    // G1 or G2 above is touched. G5 is the [RED] line: the conditional stays removable in all
+    // bare twin was a mark. G3 and G4 pin every joined form against its bare twin; G2 above is
+    // untouched, and G1 changed with G3 on the owner's ruling, not on this guard's judgement. G5 is the [RED] line: the conditional stays removable in all
     // three spellings, because each of the three heads a complete sentence (A-81/a, 5047d92).
     const JOIN_HEAD = '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629\u060c ';
     const JOIN_TAIL = ' \u0627\u0633\u062a\u0626\u0635\u0627\u0644 \u0644\u0644\u062d\u064a\u0629 \u0648\u0645\u062e\u0627\u0644\u0641\u0629 \u0644\u0644\u0633\u0646\u0629';
@@ -338,11 +367,16 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       const bare = joinV(p);
       for (const j of ['\u0648' + p, '\u0641' + p]) {
         const v = joinV(j);
-        if (v.action !== MARKED || v.text.indexOf(j) === 0) joinBad.push(j + '=' + v.action);
+        // [OWNER RULING] the verdict expected here changed from MARKED to REMOVED with G1 above,
+        // for the same reason and on the owner's word. What is asserted is unchanged in COUNT and
+        // stricter in content: the verdict, the name gone, and the delivered text opening on the
+        // ruling rather than on the particle.
+        if (v.action !== REMOVED || v.text.indexOf(j) === 0
+          || v.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') >= 0 || v.text.indexOf('\u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') !== 0) joinBad.push(j + '=' + v.action);
         if (v.action !== bare.action) joinDrift.push(j + '(' + v.action + ')!=' + p + '(' + bare.action + ')');
       }
     }
-    ok('G3 \u00b7 all 28 joined forms \u2192 kept and marked, and no delivered text opens on the particle',
+    ok('G3 \u00b7 [OWNER RULING] all 28 joined forms \u2192 REMOVED, name gone, text opens on the ruling',
       joinBad.length === 0, 'offenders: ' + JSON.stringify(joinBad));
     ok('G4 \u00b7 every joined form has the same verdict as its bare twin',
       joinDrift.length === 0, 'drift: ' + JSON.stringify(joinDrift));
