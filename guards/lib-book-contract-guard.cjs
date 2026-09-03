@@ -438,10 +438,13 @@ async function main() {
     parsed ? ascii(JSON.stringify(parsed.slice(1))) : 'no match');
 
   // MUTANT: reinstate the url filter that lost every book. The card must vanish.
+  // ع-٥٣ MOVED THIS SEAM AND THE MUTANT MOVED WITH IT. `pickBookCards` now walks the cited rows
+  // once to GROUP them by book id and once over the groups to build; the row-level `continue`
+  // that used to sit beside `buildCard(row)` is in the first walk. Same mutant, same property.
   const m1 = await mutantModule(temp, 'lib/free-brain/loop.js', 'book-url-filter', (src) => src.replace(
-    '    if (!row || row.kind !== LIB_BOOK_KIND) continue;\n    const card = buildCard(row);',
-    '    if (!row || row.kind !== LIB_BOOK_KIND) continue;\n    const card = row.url ? buildCard(row) : null;',
-  ), 'const card = row.url ? buildCard(row) : null;').then((mod) => ({ mod }), (error) => ({ error }));
+    '    if (!row || row.kind !== LIB_BOOK_KIND) continue;',
+    '    if (!row || row.kind !== LIB_BOOK_KIND || !row.url) continue; // mutant-url-filter',
+  ), '|| !row.url) continue; // mutant-url-filter').then((mod) => ({ mod }), (error) => ({ error }));
   if (m1.error) {
     ok('B8  MUTANT KILLED: a url filter over book rows loses every chip', false, m1.error.message);
   } else {
@@ -615,10 +618,12 @@ async function main() {
 
   // E3's mutant: the ceiling goes. A caller handing in more than the service can send would then
   // have all of it carried, and -- because the cut is measured by the slice -- carried in silence.
+  // ع-٥٣ MOVED THIS SEAM TOO: a card may now hold several passages, so the ceiling is applied
+  // per passage inside the map rather than once over one string. The mutant is the same removal.
   const askNoCeiling = await mutantModule(temp, 'api/ask.js', 'book-no-ceiling', (src) => src.replace(
-    '  const kept = matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);',
-    '  const kept = matn;  // mutant-no-ceiling',
-  ), 'const kept = matn;  // mutant-no-ceiling').then((mod) => ({ mod }), (error) => ({ error }));
+    '    const kept = text.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);',
+    '    const kept = text;  // mutant-no-ceiling',
+  ), 'const kept = text;  // mutant-no-ceiling').then((mod) => ({ mod }), (error) => ({ error }));
 
   // E5's mutant: the second half of the locator gate goes, so an automatically numbered atom
   // gets a printed page again -- and the panel would head a passage with a page nobody can open.
@@ -690,6 +695,103 @@ async function main() {
       )));
     } finally { briefMutantOffered = stub.offered; stub.restore(); }
   }
+
+  // ── ع-٥٣: THREE SLICES OF ONE BOOK, DRIVEN FROM THE SERVICE SHAPE ─────────
+  //
+  // MEASURED: `makeAtoms` numbers atoms `subjectId:section:slice` and carries `subject_id`
+  // beside them; lib/lib-service.js records it; lib/free-brain/tools.js's row DROPPED it. With
+  // no book key left, `pickBookCards` de-duplicated on the welded tag — into which api/ask.js
+  // writes the locator and the base64 passage — so three slices of ONE book produced three
+  // distinct tags and the reader was shown the same book three times.
+  //
+  // THE INPUT IS THE RECORDED SERVICE HIT AND NOT A ROW. Each of the three below is
+  // `hit_page_citable` with a different `atom_id` and a different page, which is exactly how
+  // three slices of one subject arrive on the wire; the row, the id, the group, the tag and the
+  // chip are all whatever the real code makes of them. A hand-written row shaped like what
+  // `pickBookCards` wants would be the mirror test the order forbids.
+  //
+  // AND THE FOURTH HIT IS THE TRAP. It carries the SAME `book_title` and the SAME `author` and a
+  // DIFFERENT `subject_id`: «صحيح البخاري» returned thirty-three matches in the measured corpus,
+  // so a title key would merge two different books and call it a repair.
+  const sliceOf = (atomId, pageStart, text) => Object.assign({}, HIT, {
+    atom_id: atomId, page_start: pageStart, page_end: pageStart + 1, text,
+  });
+  const ONE_BOOK = [
+    sliceOf('atom-000191', 7301, 'المقطعُ الأولُ من المغني.'),
+    sliceOf('atom-000192', 7311, 'المقطعُ الثاني من المغني.'),
+    sliceOf('atom-000193', 7321, 'المقطعُ الثالث من المغني.'),
+  ];
+  const OTHER_BOOK = Object.assign(sliceOf('atom-000900', 7401, 'مقطعٌ من كتابٍ آخرَ بالعنوانِ نفسِه.'),
+    { subject_id: 'salah' });
+  const servingMany = (hits) => async () => json({ hits, total: hits.length });
+
+  const trio = await runTurn(loop, {
+    rounds: [TOOL_ROUND('search_library', { query: 'الماء' }),
+      TEXT_ROUND('قال ابنُ قدامةَ في المغني كلامًا. [[1]] [[2]] [[3]]')],
+    lib: ON, libFetch: servingMany(ONE_BOOK),
+  });
+  const trioRows = (trio.out.cited || []).filter((row) => row.kind === 'lib_book');
+  ok('G1  three slices of one subject are three cited rows, and each carries the BOOK id',
+    trioRows.length === 3 && trioRows.every((row) => row.bookId === HIT.subject_id)
+      && new Set(trioRows.map((row) => row.recordId)).size === 3,
+    ascii(JSON.stringify(trioRows.map((row) => ({ id: row.recordId, bookId: row.bookId })))));
+  const trioCards = loop.pickBookCards(trio.out.cited, 3, ask.buildBookTag);
+  const trioTag = trioCards.length === 1 ? String(trioCards[0].tag) : 'NO-TAG';
+  ok('G2  ...and they become ONE card, not three', trioCards.length === 1,
+    ascii(JSON.stringify(trioCards.map((card) => card.tag))));
+  ok('G3  ...whose ref names all three places, in citation order',
+    /ref="([^"]*)"/.test(trioTag) && ['7301', '7311', '7321']
+      .every((page) => /ref="([^"]*)"/.exec(trioTag)[1].includes(page)),
+    ascii((/ref="([^"]*)"/.exec(trioTag) || ['', 'NONE'])[1]));
+  // A DIFFERENT SUBJECT DOES NOT MERGE, and the title being identical is the whole point of it.
+  const pair = await runTurn(loop, {
+    rounds: [TOOL_ROUND('search_library', { query: 'الماء' }),
+      TEXT_ROUND('قال ابنُ قدامةَ كلامًا. [[1]] [[2]]')],
+    lib: ON, libFetch: servingMany([ONE_BOOK[0], OTHER_BOOK]),
+  });
+  const pairRows = (pair.out.cited || []).filter((row) => row.kind === 'lib_book');
+  const pairCards = loop.pickBookCards(pair.out.cited, 3, ask.buildBookTag);
+  ok('G4  a DIFFERENT subject_id stays a separate card even though the title matches exactly',
+    pairRows.length === 2 && pairCards.length === 2
+      && pairRows[0].bookTitle === pairRows[1].bookTitle
+      && pairRows[0].bookId !== pairRows[1].bookId,
+    ascii(JSON.stringify({ cards: pairCards.length,
+      ids: pairRows.map((row) => row.bookId), titles: pairRows.map((row) => row.bookTitle) })));
+  // AND A BARE ROW STILL BUILDS THE TAG IT ALWAYS DID, which is what keeps every standing
+  // assertion in sections B and E measuring what it measured before ع-٥٣.
+  ok('G5  buildBookTag takes a bare row and a group of one to the same bytes',
+    String(ask.buildBookTag(trioRows[0]).tag) === String(ask.buildBookTag([trioRows[0]]).tag),
+    ascii(String(ask.buildBookTag(trioRows[0]).tag)));
+
+  // G-M1: the row stops carrying the id — the tree exactly as it stood at af12381.
+  const toolsNoBookId = await mutantModule(temp, 'lib/free-brain/tools.js', 'row-drops-book-id',
+    (src) => src.replace(
+      "      bookId: String(prov.subject_id == null ? '' : prov.subject_id).trim().slice(0, 120),",
+      "      bookId: '',  // mutant-row-no-book-id"),
+    'mutant-row-no-book-id').then((mod) => ({ mod }), (error) => ({ error }));
+  let noIdCards = -1;
+  if (toolsNoBookId.mod) {
+    const mutCtx = ctx({ libFlagValue: 'on', libToken: FIXTURE_TOKEN, fetchImpl: servingMany(ONE_BOOK) });
+    mutCtx.table = toolsNoBookId.mod.createEvidenceTable();
+    const mutOut = await quiet(() => toolsNoBookId.mod.runTool('search_library', { query: 'q' }, mutCtx));
+    noIdCards = loop.pickBookCards(mutOut.added, 3, ask.buildBookTag).length;
+  }
+  ok('G-M1 MUTANT KILLED: a row that drops subject_id shows one book as three cards again',
+    !toolsNoBookId.error && noIdCards === 3,
+    ascii(JSON.stringify({ cards: noIdCards, error: toolsNoBookId.error && toolsNoBookId.error.message })));
+
+  // G-M2: THE TITLE USED AS THE KEY. This is the repair that looks like a repair and is a worse
+  // defect: G1..G3 all stay green under it, and G4 is the only thing in the file that dies.
+  const loopTitleKey = await mutantModule(temp, 'lib/free-brain/loop.js', 'book-key-is-the-title',
+    (src) => src.replace(
+      "    const bookId = String(row.bookId == null ? '' : row.bookId).trim();",
+      "    const bookId = String(row.bookTitle || '').trim();  // mutant-title-key"),
+    'mutant-title-key').then((mod) => ({ mod }), (error) => ({ error }));
+  let titleKeyCards = -1;
+  if (loopTitleKey.mod) titleKeyCards = loopTitleKey.mod.pickBookCards(pair.out.cited, 3, ask.buildBookTag).length;
+  ok('G-M2 MUTANT KILLED: keying on the title merges two different books with one name',
+    !loopTitleKey.error && titleKeyCards === 1,
+    ascii(JSON.stringify({ cards: titleKeyCards, error: loopTitleKey.error && loopTitleKey.error.message })));
 
   // ── the client, booted once, over those strings ────────────────────────────
   const client = await quiet(() => bootClient());
@@ -821,6 +923,25 @@ async function main() {
   }
   ok('E6b MUTANT KILLED: bypassing the injected seam sends the library at the real global fetch',
     poisonReached === 1, 'poisoned fetch reached ' + poisonReached + ' time(s) by the mutant');
+
+  // ---- G6: ONE CARD ON THE SCREEN, AND ALL THREE PASSAGES INSIDE IT --------
+  // G2 says one TAG. That is not the same sentence as «the reader sees one card and loses
+  // nothing», and only rendering can say the second one: the server's own tag, through the
+  // client's own parser, into the client's own component, in a real DOM. app.jsx is untouched by
+  // ع-٥٣ and must be: the passages are joined with a blank line, which `bookMatnText` already
+  // renders under `whiteSpace: pre-wrap`, so the merge costs the client nothing and adds no word.
+  const shownTrio = showFor(trioTag);
+  shownTrio.open();
+  ok('G6  one chip on the screen for one book, and all THREE passages are inside it',
+    shownTrio.buttons === 1 && shownTrio.chips === 1
+      && ONE_BOOK.every((hit) => shownTrio.hasText(hit.text)),
+    ascii(JSON.stringify({ buttons: shownTrio.buttons, chips: shownTrio.chips,
+      missing: ONE_BOOK.filter((hit) => !shownTrio.hasText(hit.text)).map((hit) => hit.atom_id) })));
+  // …and the two DIFFERENT books stay two chips on the screen, not one.
+  const pairShown = client.show('جوابٌ قصير.\n\n' + pairCards.map((card) => card.tag).join('\n\n'));
+  ok('G7  ...while two books with one title stay two chips',
+    pairShown.chips === 2 && pairShown.buttons === 2,
+    ascii(JSON.stringify({ chips: pairShown.chips, buttons: pairShown.buttons })));
 
 
 

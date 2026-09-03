@@ -572,17 +572,33 @@ export function buildSourceTag(src) {
 // citation of nothing. The same grammar `buildSourceTag` satisfies is satisfied here, for the
 // same reason: the client parses these tags back out with `([^>]*)` and `["']([^"']+)["']`, so a
 // quote or an angle bracket inside an attribute would truncate the card silently.
-export function buildBookTag(row) {
+// ع-٥٣ — AND IT TAKES A ROW OR A WHOLE BOOK. `pickBookCards` now hands over the GROUP of cited
+// rows that share one `subject_id`, so a book quoted three times is one card. A single row is
+// still accepted and still yields byte-identical output, which is what keeps every standing
+// assertion in guards/lib-book-contract-guard.cjs measuring what it measured before.
+//
+// THE HEAD NAMES THE BOOK AND THE GROUP FILLS IT. Title and author are the book's, so they are
+// read off the first cited row; the places and the passages belong to the slices, so they are
+// collected across all of them, in citation order.
+export function buildBookTag(input) {
+  const rows = (Array.isArray(input) ? input : [input]).filter(Boolean);
+  const head = rows[0] || null;
   const attr = (value) => String(value == null ? '' : value)
     .replace(/["'<>]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, SOURCE_TITLE_MAX)
     .trim();
-  const title = attr(row && row.bookTitle);
-  if (!title) return dropCard('book-without-title', row && row.recordId);
-  const author = attr(row && row.author);
-  const where = attr(row && row.locator);
+  const title = attr(head && head.bookTitle);
+  if (!title) return dropCard('book-without-title', head && head.recordId);
+  const author = attr(head && head.author);
+  // Every place this card's passages came from, in citation order, de-duplicated: two slices
+  // off one page name that page once. The separator is the one the row already uses for its
+  // own volume-and-page pair, so nothing new is spelled here.
+  const places = rows.map((item) => String((item && item.locator) || '').trim())
+    .filter(Boolean)
+    .filter((value, index, all) => all.indexOf(value) === index);
+  const where = attr(places.join(' · '));
   const attrs = (author ? ` author="${author}"` : '') + (where ? ` ref="${where}"` : '');
   // ع-٤٩/د١ — THE MATN RIDES ON THE CARD, BASE64, AND THE ENCODING IS NOT DECORATION.
   //
@@ -599,10 +615,24 @@ export function buildBookTag(row) {
   // AND IT CANNOT EXCEED THE MEASURED CEILING, whatever a caller hands in. `cut` is true when
   // THIS slice dropped something or when the row already knew it was holding a cut passage
   // (lib/free-brain/tools.js), because a silent truncation is the defect either way.
-  const matn = typeof (row && row.text) === 'string' ? row.text : '';
-  const kept = matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);
+  // ع-٥٣ — THE CEILING IS PER PASSAGE AND STAYS PER PASSAGE. The constant is named
+  // ..._PER_HIT_DEFAULT and that is what it is: applying it to the joined string instead would
+  // cut the second and third passages off a card whose first passage happened to be long.
+  // THE PASSAGES ARE JOINED AND NEVER REWRITTEN. Each one is its own bytes, in citation order,
+  // with a blank line between them — a STRUCTURAL separator and not a word, because the
+  // contract of this attribute is that the reader sees what arrived letter for letter, and a
+  // caption this file wrote would be this application quoting a book in words the book did not
+  // use. The client renders it under `whiteSpace: pre-wrap`, so the break is what the reader
+  // sees. And a cut ANYWHERE on the card is a cut on the card: it is the same fact to a reader
+  // either way — «what you are looking at is not all of it».
+  const passages = rows.map((item) => {
+    const text = typeof (item && item.text) === 'string' ? item.text : '';
+    const kept = text.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);
+    return { kept, cut: kept.length < text.length || (item && item.matnCut === true) };
+  });
+  const kept = passages.map((piece) => piece.kept).filter((piece) => piece.trim()).join('\n\n');
   const carried = kept.trim() ? Buffer.from(kept, 'utf8').toString('base64') : '';
-  const cut = kept.length < matn.length || (row && row.matnCut === true);
+  const cut = passages.some((piece) => piece.cut);
   const matnAttrs = carried ? ` matn="${carried}"` + (cut ? ' cut="1"' : '') : '';
   return { tag: `<book${attrs}${matnAttrs}>${title}</book>` };
 }
