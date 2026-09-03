@@ -2114,6 +2114,121 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('MUTANT KILLED: a search noun behind a preposition is an adjunct and not a topic',
       adjunctMutant.loaded && adjunctMutant.survived === false, JSON.stringify(adjunctMutant));
 
+    // ── V-M37..39: THE THREE SHAPES THAT WERE STILL REACHING THE READER ──────
+    //
+    // MEASURED 3 September, PHASE34-MEASURE-REPORT-2026-09-03.md §٢.٢, on the real functions of
+    // this tree: all four of these came back with `announcement=false`, `report=false` and a
+    // batch text EQUAL TO THE INPUT. Three separate causes, each of which is a way for a filter
+    // to be present and not be consulted:
+    //
+    //   1. a spelling collision — «بأس» inside «بأسمائهم» read as a ruling, so the sentence was
+    //      an ANSWER before its own «سأبحثُ» was ever tested
+    //   2. a frame that admitted a conjunction for one arm and not for the next — «فدعني»
+    //   3. a class the line-level pre-filter never offered to any classifier at all
+    //
+    // THE WITNESSES ARE VERBATIM. An approximation here would let the exact bytes that shipped
+    // come back under a rule that covers something near them.
+    const MACHINE_PROSE_WITNESSES = Object.freeze([
+      'سأبحثُ في فتاوى هؤلاء العلماءِ بأسمائِهم تحديدًا.',     // the «بأس» collision
+      'فدعني أبحثُ لك عن أقوال العلماء الموثقة.',             // the فـ before «دعني»
+      'ظهرت المسألة الأولى…',                                  // the plan narration
+      'فدعني أبحثُ في كتب ابن تيمية.',                        // the same فـ, second witness
+    ]);
+    // AND THE KEEP-ANALOGUES, ONE PER CAUSE PLUS THE MIXED SENTENCE. Without these the section
+    // would bless «drop anything containing بأس or ظهر», which is a removal and not a repair:
+    // «بأسمائهم» is an ordinary word, «لا بأس» IS the ruling, and «ظهر أن…» is a finding.
+    const MACHINE_PROSE_KEEPS = Object.freeze([
+      'ورد ذكرهم بأسمائهم في هذه الفتوى.',                    // «بأسمائهم» outside any announcement
+      'لا بأس بذلك عند جمهور العلماء.',                       // the ruling the collision was named for
+      'ظهر أن الحكم جائز عند الجمهور.',                       // a FINDING, not a plan ordinal
+      'سأتحقق من المدة، والجمع للمسافر جائز عند الحاجة.',     // announces AND answers — whole
+    ]);
+    const dropsMachineProse = (mod) => MACHINE_PROSE_WITNESSES
+      .every((s) => mod.deliverableText(s).trim() === '');
+    const keepsMachineProseAnalogues = (mod) => MACHINE_PROSE_KEEPS
+      .every((s) => mod.deliverableText(s).trim() !== '');
+    ok('the three measured machine-prose shapes do not reach the reader in the BATCH path',
+      dropsMachineProse(loop),
+      JSON.stringify(MACHINE_PROSE_WITNESSES.map((s) => [s, loop.deliverableText(s)])));
+    ok('...and the four keep-analogues are delivered, the mixed one whole',
+      keepsMachineProseAnalogues(loop)
+        && loop.deliverableText(MACHINE_PROSE_KEEPS[3]) === MACHINE_PROSE_KEEPS[3],
+      JSON.stringify(MACHINE_PROSE_KEEPS.map((s) => [s, loop.deliverableText(s)])));
+    // ONE AUTHORITY, AND ITS ANSWER IS NAMED. `machineProseKind` is what the barrier consults,
+    // so the KIND is asserted and not only the emptiness: a witness dropped for the wrong reason
+    // is a witness that stops being dropped the moment that reason moves.
+    ok('...and each witness is named by the ONE classifier the barrier consults',
+      loop.machineProseKind(MACHINE_PROSE_WITNESSES[0]) === 'announcement'
+        && loop.machineProseKind(MACHINE_PROSE_WITNESSES[1]) === 'announcement'
+        && loop.machineProseKind(MACHINE_PROSE_WITNESSES[2]) === 'progress'
+        && loop.machineProseKind(MACHINE_PROSE_WITNESSES[3]) === 'announcement'
+        && MACHINE_PROSE_KEEPS.every((s) => loop.machineProseKind(s) === null),
+      JSON.stringify(MACHINE_PROSE_WITNESSES.concat(MACHINE_PROSE_KEEPS)
+        .map((s) => [s, loop.machineProseKind(s)])));
+
+    // THE STREAM IS PUSHED AND NOT ASSUMED. `createTerminalUnitStream` reaches the reader
+    // through `deliverableText` on its settled prefix, which is WHY the two paths agree — but
+    // «why» is an argument and this is a guard, so the units are actually driven. A witness
+    // released as an early unit has already been read by the time the batch text is built, and
+    // no later filter can take it back.
+    const streamReaderText = (mod, text) => {
+      const stream = mod.createTerminalUnitStream({
+        domain: 'fiqh', mode: '', onUnit: () => true,
+      });
+      for (const ch of text) stream.push(ch);
+      return stream.end();
+    };
+    const dropsMachineProseOnTheWire = (mod) => MACHINE_PROSE_WITNESSES.every((s) => {
+      const out = streamReaderText(mod, s + '\nوالحكم في هذه المسألة يجوز عند الجمهور.\n');
+      return !out.readerText.includes(s.slice(0, 12)) && !out.releasedPrefix.includes(s.slice(0, 12))
+        && out.readerText.includes('يجوز');
+    });
+    ok('...and none of the three shapes is RELEASED as a stream unit either',
+      dropsMachineProseOnTheWire(loop),
+      JSON.stringify(MACHINE_PROSE_WITNESSES.map((s) => streamReaderText(loop,
+        s + '\nوالحكم في هذه المسألة يجوز عند الجمهور.\n').readerText)));
+    ok('...while a keep-analogue IS released on the wire, so the stream is not simply mute',
+      MACHINE_PROSE_KEEPS.every((s) => streamReaderText(loop, s + '\n').readerText.includes(s.slice(0, 10))),
+      JSON.stringify(MACHINE_PROSE_KEEPS.map((s) => streamReaderText(loop, s + '\n').readerText)));
+
+    // ── V-M37: THE CONJUNCTION TAKEN BACK OUT OF THE PERMISSION FRAME. The exact state that
+    // shipped both «فدعني» witnesses: the لـ arm keeps its `[فو]?` and this one loses it, so the
+    // mutant is a one-particle regression and not a deletion of the class.
+    const cliticMutant = await loopMutant('permission-frame-loses-the-conjunction',
+      (source) => source.replace("'|[فو]?(?:دعني|", "'|(?:دعني|"),
+      dropsMachineProse);
+    ok('permission-conjunction mutant seam applied', cliticMutant.changed, cliticMutant.error);
+    ok('permission-conjunction mutant module loaded successfully', cliticMutant.loaded, cliticMutant.error);
+    ok('MUTANT KILLED: a frame that admits the conjunction for one arm only ships «فدعني» again',
+      cliticMutant.loaded && cliticMutant.survived === false, JSON.stringify(cliticMutant));
+
+    // ── V-M38: THE RULING WORDS BACK TO SUBSTRINGS. The bound removed and nothing else, which
+    // is the precise state in which «بأسمائهم» counted as a ruling. The probe is the DROP side:
+    // an unbounded ruling family cannot drop witness 1, whatever else it still gets right.
+    const boundMutant = await loopMutant('ruling-words-back-to-substrings',
+      (source) => source.replace(
+        "  + '|' + CLITIC_BEFORE + '(?:' + RULING_WORD_STEM + ')' + INFLECTION_AFTER",
+        "  + '|(?:' + RULING_WORD_STEM + ')' // mutant: the ruling family as substrings again"),
+      dropsMachineProse);
+    ok('ruling-bound mutant seam applied', boundMutant.changed, boundMutant.error);
+    ok('ruling-bound mutant module loaded successfully', boundMutant.loaded, boundMutant.error);
+    ok('MUTANT KILLED: an unbounded ruling family reads «بأسمائهم» as an answer and delivers the '
+      + 'announcement', boundMutant.loaded && boundMutant.survived === false, JSON.stringify(boundMutant));
+
+    // ── V-M39: THE THIRD ARM TAKEN OFF THE ONE AUTHORITY. Removing the arm rather than the
+    // pre-filter, because the pre-filter over-admits by design: this is the mutant that proves
+    // the DECISION is what drops the plan narration, and it must not disturb the other two.
+    const progressMutant = await loopMutant('plan-narration-arm-removed',
+      (source) => source.replace(
+        "  if (isToolProgressLine(sentence)) return 'progress';",
+        "  // mutant: the plan narration is delivered"),
+      async (twinModule) => dropsMachineProse(twinModule)
+        && keepsMachineProseAnalogues(twinModule));
+    ok('plan-narration mutant seam applied', progressMutant.changed, progressMutant.error);
+    ok('plan-narration mutant module loaded successfully', progressMutant.loaded, progressMutant.error);
+    ok('MUTANT KILLED: without the third arm «ظهرت المسألة الأولى» reaches the reader again',
+      progressMutant.loaded && progressMutant.survived === false, JSON.stringify(progressMutant));
+
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
