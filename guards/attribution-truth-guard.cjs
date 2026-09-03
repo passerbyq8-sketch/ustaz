@@ -586,6 +586,139 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       countOf(unvowelled(clean.text), unvowelled(MARK)) === 1,
       'count=' + countOf(unvowelled(clean.text), unvowelled(MARK)) + ' text=' + JSON.stringify(clean.text.slice(0, 90)));
   }
+  console.log('\n=== I. THE PERSON ASKED ABOUT IS THE PERSON ANSWERED ABOUT (E75) ===');
+  // Every check above asks «is this sourced?». None of them asks «is this the RIGHT MAN?», and
+  // that gap is what the owner met on his phone: the question named one scholar and the answer
+  // reported that it found no fatwa for a DIFFERENT scholar entirely. Nothing false was
+  // attributed. The PERSON was swapped, and no rule in lib/output-reviewer.js was broken.
+  //
+  // The detector fires ONLY when the plan actually carried a requested authority — api/ask.js
+  // gates that on the plan's post-veto `attributionMode`, so a question that merely mentions a
+  // scholar in passing arrives here as `null`. THE LAST FOUR CHECKS ARE THE OVER-BLOCKING RED
+  // LINE, and they are not decoration: a notice appended to a correct answer is a new defect.
+  {
+    const IBN_BAZ = { id: 'ibn-baz', name: '\u0627\u0628\u0646 \u0628\u0627\u0632', status: 'resolved', candidates: [] };
+    const HAJAR = {
+      id: '', name: '\u0627\u0628\u0646 \u062d\u062c\u0631', status: 'ambiguous',
+      candidates: ['\u0627\u0628\u0646 \u062d\u062c\u0631 \u0627\u0644\u0639\u0633\u0642\u0644\u0627\u0646\u064a',
+        '\u0627\u0628\u0646 \u062d\u062c\u0631 \u0627\u0644\u0647\u064a\u062a\u0645\u064a'],
+    };
+    const UNKNOWN = { id: '', name: '\u0641\u0644\u0627\u0646 \u0627\u0644\u0641\u0644\u0627\u0646\u064a', status: 'unresolved', candidates: [] };
+
+    // A LICENCE FOR THE OTHER MAN, so his name survives the attribution rule and the delivered
+    // text really does speak about him. Without it the reviewer strips him first and no swap ever
+    // reaches a reader — a different outcome, already guarded by section A, and a fixture that
+    // omitted this would be pinning the wrong thing while looking green.
+    const evFor = (scholar, host, body) => [{
+      id: 'e', scholar, title: '\u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u0623\u0644\u0629',
+      url: 'https://' + host + '/fatwas/1/x', date: '2020-01-01', text: body,
+    }];
+    const FAWZAN = '\u0635\u0627\u0644\u062d \u0627\u0644\u0641\u0648\u0632\u0627\u0646';
+    const BAZ = '\u0627\u0628\u0646 \u0628\u0627\u0632';
+    const UTH = '\u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646';
+    // «قال {name} إنّ الأمر جائز.»
+    const said = (who) => '\u0642\u0627\u0644 ' + who + ' \u0625\u0646\u0651 \u0627\u0644\u0623\u0645\u0631 \u062c\u0627\u0626\u0632.';
+    // «لم أعثر على فتوى للشيخ {name} في هذه المسألة.»
+    const noneFor = (who) => '\u0644\u0645 \u0623\u0639\u062b\u0631 \u0639\u0644\u0649 \u0641\u062a\u0648\u0649 \u0644\u0644\u0634\u064a\u062e '
+      + who + ' \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629.';
+    const body = (who) => '\u0642\u0627\u0644 ' + who
+      + ' \u0625\u0646 \u0627\u0644\u0623\u0645\u0631 \u062c\u0627\u0626\u0632 \u0648\u0644\u0627 \u062d\u0631\u062c \u0641\u064a\u0647 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u0639\u0644\u0649 \u0627\u0644\u062a\u0641\u0635\u064a\u0644 \u0627\u0644\u0645\u0630\u0643\u0648\u0631.';
+
+    const judge = (text, requestedIdentity, evidence) => {
+      const r = REV.reviewAnswer({ text, domain: 'fiqh', evidence: evidence || [], requestedIdentity });
+      return {
+        respected: r.verdict.requestedIdentityRespected,
+        reason: r.verdict.requestedIdentityReason,
+        text: String(r.text == null ? '' : r.text),
+      };
+    };
+
+    // ── THE FIELD IS ALWAYS PUBLISHED, so a caller can tell «respected» from «not checked» ──
+    const untouched = judge(said(BAZ), undefined, []);
+    ok('E75 \u00b7 the verdict always carries requestedIdentityRespected',
+      untouched.respected === true && untouched.reason === '',
+      JSON.stringify(untouched));
+
+    // ── 1. MISMATCH: asked about X, the answer speaks about a resolved Y ──
+    const swap = judge(said(FAWZAN), IBN_BAZ, evFor(FAWZAN, 'af.org.sa', body(FAWZAN)));
+    ok('E75 \u00b7 asked about one man, answered about another \u2014 caught',
+      swap.respected === false && swap.reason === 'mismatch-another-authority',
+      JSON.stringify(swap));
+
+    // ── 2. ABSENCE REPORTED ABOUT A DIFFERENT PERSON — the measured screenshot ──
+    // It credits nobody with anything, so every attribution check above is silent on it. That is
+    // exactly why this one is written in the owner's own shape rather than in a tidier fixture.
+    const wrongAbsence = judge(noneFor(FAWZAN), IBN_BAZ, []);
+    ok('E75 \u00b7 «no fatwa found for <someone else>» \u2014 caught',
+      wrongAbsence.respected === false && wrongAbsence.reason === 'mismatch-another-authority',
+      JSON.stringify(wrongAbsence));
+
+    // ── 3. AMBIGUOUS STAYS AMBIGUOUS, AND BOTH MEN ARE NAMED IN THE NOTICE ──
+    const oneOfTwo = judge(said(HAJAR.candidates[0]), HAJAR, []);
+    ok('E75 \u00b7 an ambiguous name answered about ONE of the two \u2014 caught',
+      oneOfTwo.respected === false && oneOfTwo.reason === 'ambiguous-not-both-named',
+      JSON.stringify(oneOfTwo));
+    ok('E75 \u00b7 ...and the notice NAMES both candidates, never picks one',
+      oneOfTwo.text.indexOf(HAJAR.candidates[0]) >= 0 && oneOfTwo.text.indexOf(HAJAR.candidates[1]) >= 0,
+      JSON.stringify(oneOfTwo.text.slice(-160)));
+
+    // ── 4. UNRESOLVED IS NOT ANSWERED WITH THE NEAREST MATCH ──
+    const nearest = judge(said(UTH), UNKNOWN, evFor(UTH, 'binothaimeen.net', body(UTH)));
+    ok('E75 \u00b7 an unidentified man answered about with a nearest match \u2014 caught',
+      nearest.respected === false && nearest.reason === 'unresolved-substituted',
+      JSON.stringify(nearest));
+
+    // ═══ THE OVER-BLOCKING RED LINE. A notice on a correct answer is a NEW DEFECT. ═══
+
+    // 🔒 5. THE RIGHT MAN, ANSWERED ABOUT BY NAME.
+    const right = judge(said(BAZ), IBN_BAZ, evFor(BAZ, 'binbaz.org.sa', body(BAZ)));
+    ok('E75 \u00b7 [RED] a correct answer about the right man is NOT caught',
+      right.respected === true && right.reason === '', JSON.stringify(right));
+
+    // 🔒 6. ABSENCE ABOUT THE RIGHT MAN. Clause (d): «say it about HIM by name» is the honest
+    // answer, not the defect, and it must never be marked as a swap.
+    const rightAbsence = judge(noneFor(BAZ), IBN_BAZ, []);
+    ok('E75 \u00b7 [RED] absence reported about the RIGHT man is NOT caught',
+      rightAbsence.respected === true, JSON.stringify(rightAbsence));
+
+    // 🔒 7. THE RIGHT MAN NAMED ALONGSIDE ANOTHER. An answer that says «قال ابن باز… وإليه ذهب
+    // الفوزان» is a normal sourced answer, not a swap: the man asked about IS in it. A detector
+    // keyed on «is any other scholar present» rather than «is HE absent» would fire here.
+    const alongside = judge(
+      said(BAZ).replace('.', '\u060c \u0648\u0625\u0644\u064a\u0647 \u0630\u0647\u0628 ' + FAWZAN + '.'),
+      IBN_BAZ, evFor(BAZ, 'binbaz.org.sa', body(BAZ) + ' ' + said(FAWZAN)),
+    );
+    ok('E75 \u00b7 [RED] the right man named ALONGSIDE another is NOT caught',
+      alongside.respected === true, JSON.stringify(alongside));
+
+    // 🔒 8. BOTH AMBIGUOUS CANDIDATES NAMED, THE SECOND BEHIND A WAW. «وابن حجر الهيتمي» is one
+    // word in Arabic, and a plain word boundary does not find him inside it — MEASURED, and it
+    // turned the one answer the order demands (a clarification naming both) into a false catch.
+    const bothNamed = judge(
+      HAJAR.candidates[0] + ' \u0648' + HAJAR.candidates[1]
+        + ' \u0643\u0644\u0627\u0647\u0645\u0627 \u062a\u0643\u0644\u0651\u0645 \u0641\u064a \u0627\u0644\u0645\u0633\u0623\u0644\u0629\u060c \u0641\u0623\u064a\u0651\u0647\u0645\u0627 \u062a\u0642\u0635\u062f\u061f',
+      HAJAR, [],
+    );
+    ok('E75 \u00b7 [RED] a clarification naming BOTH men is NOT caught',
+      bothNamed.respected === true, JSON.stringify(bothNamed));
+
+    // 🔒 9. A PASSING MENTION. The plan reports no requested authority for «ذكر لي صديقي أن ابن
+    // عثيمين…», so nothing is carried and nothing may fire — asserted here as the absent identity
+    // the handler would hand over.
+    const passing = judge(said(BAZ), null, evFor(BAZ, 'binbaz.org.sa', body(BAZ)));
+    ok('E75 \u00b7 [RED] a question that carried no requested authority is NOT caught',
+      passing.respected === true && passing.reason === '', JSON.stringify(passing));
+
+    // 🔒 10. AND A HALF-BUILT IDENTITY IS NOBODY. A shape the reviewer does not recognise must
+    // mean «not checked», never «checked and failed» — otherwise a plumbing slip upstream becomes
+    // a notice on every answer.
+    for (const junk of [{}, { name: '' }, { name: BAZ }, { name: BAZ, status: 'maybe' }, 'ابن باز', 7]) {
+      const r = judge(noneFor(FAWZAN), junk, []);
+      if (!ok('E75 \u00b7 [RED] a malformed identity is «not checked», not «failed» \u2014 '
+        + JSON.stringify(junk), r.respected === true && r.reason === '', JSON.stringify(r))) break;
+    }
+  }
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
