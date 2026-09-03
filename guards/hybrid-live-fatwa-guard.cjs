@@ -638,6 +638,21 @@ async function runHybridGuard() {
       && H.__hybridTest.stancesIn('ستر الوجه واجب على المرأة').forbid === true
       && H.__hybridTest.coversDisagreement(
         'النقاب واجب عند الجمهور، وذهب آخرون إلى أنه غير واجب') === true);
+  // NON-MIRROR PAIR, because a boundary that only ever says «no» is indistinguishable from
+  // deleting the word. «كبيرة» is the one member of the prohibition family that is a proper
+  // substring of an unrelated prayer word, so it must FAIL inside «تكبيرة» and still FIRE on
+  // its own — and a permission sentence that merely mentions the takbir must come back with
+  // one stance, not the forged pair that made coversDisagreement() report a خلاف.
+  ok('«تكبيرة» is not a كبيرة: the prohibition family does not match inside another stem',
+    H.__hybridTest.stancesIn('تكبيرة الركوع').forbid === false,
+    JSON.stringify(H.__hybridTest.stancesIn('تكبيرة الركوع')));
+  ok('«كبيرة» still reads as a prohibition standing alone and behind the article',
+    H.__hybridTest.stancesIn('هذه كبيرة من الكبائر').forbid === true
+      && H.__hybridTest.stancesIn('حكم مرتكب الكبيرة').forbid === true);
+  ok('a permission that names the takbir yields one stance, not a forged disagreement',
+    H.__hybridTest.stancesIn('يجوز رفع اليدين مع تكبيرة الركوع').permit === true
+      && H.__hybridTest.stancesIn('يجوز رفع اليدين مع تكبيرة الركوع').forbid === false
+      && H.__hybridTest.coversDisagreement('يجوز رفع اليدين مع تكبيرة الركوع') === false);
   const transcript = FSVC.__fatwaTest.normalizeRecord({
     id: 1336, uid: 'aljasser:1336', title: 'أرى النقاب واجبًا وأمي تمنعني',
     scholar: { id: 'aljasser' }, source: { canonicalUrl: 'https://youtube.com/watch?v=fixture' },
