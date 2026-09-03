@@ -307,6 +307,122 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
       tailVerbs, leadVerbs);
   }
 
+  // =========================================================================
+  // ع-٧٥ · WHOLE QUESTIONS, NOT SENTENCES. Everything above measures what the REVIEWER
+  // captures out of an answer. These rows measure the other end — what the REQUEST path
+  // decides a reader asked — because that is where one registered man came out as four
+  // different people. Three spellings of dr-mutlaq.com that the entity layer resolves
+  // identically, and three contracts that must not move because of them.
+  console.log('\n=== E. ع-٧٥ — ONE MAN, THREE SPELLINGS, ONE DOMAIN ===');
+  {
+    const PLAN = await esm('lib/ask-plan.js');
+    const planFor = (question) => PLAN.planAsk([{ role: 'user', content: question }], {});
+
+    // Every spelling here is an alias the registry already lists. What was broken was not the
+    // roster, it was which string got to ask it.
+    const SPELLINGS = [
+      ['the full name', 'ما رأي مطلق الجاسر في هذه المسألة؟'],
+      ['«الدكتور» + the given name', 'ما رأي الدكتور مطلق في هذه المسألة؟'],
+      ['«د.» + the given name', 'ما رأي د. مطلق في هذه المسألة؟'],
+    ];
+    for (const [label, question] of SPELLINGS) {
+      const plan = planFor(question);
+      ok('ع-٧٥ ' + label + ' reaches dr-mutlaq.com',
+        plan.officialDomain === 'dr-mutlaq.com' && plan.scholarStatus === 'resolved',
+        JSON.stringify({ named: plan.namedEntity, status: plan.scholarStatus, domain: plan.officialDomain }));
+      ok('ع-٧٥ ...and reports the canonical id with it — ' + label,
+        plan.requestedAuthorityId === 'mutlaq-aljasir' && plan.attributionMode === 'namedScholarOpinion',
+        JSON.stringify({ id: plan.requestedAuthorityId, mode: plan.attributionMode }));
+      ok('ع-٧٥ ...and never asks WHICH shaykh once he is resolved — ' + label,
+        plan.needsScholarIdentity === false, JSON.stringify(plan.needsScholarIdentity));
+    }
+
+    // THE ONE-WORD NAME IS STILL RESERVED. «مطلق» on its own is a common Arabic word, it is
+    // deliberately not an alias, and it must stay unresolved. The fix reads the entity layer's
+    // SURFACE, so if the surface were ever allowed to shrink to one word this row goes red.
+    const bare = planFor('ما رأي مطلق في هذه المسألة؟');
+    ok('ع-٧٥ the bare one-word «مطلق» is still reserved and resolves to nobody',
+      bare.officialDomain === '' && bare.scholarStatus !== 'resolved'
+        && bare.requestedAuthorityId === null,
+      JSON.stringify({ status: bare.scholarStatus, domain: bare.officialDomain }));
+
+    // ── THE THREE CONTRACTS THAT DO NOT MOVE ────────────────────────────────
+    // Asking WHO a man is is not asking what he holds.
+    const about = planFor('من هو مطلق الجاسر؟');
+    ok('ع-٧٥ a question about the PERSON is still not a request for his position',
+      about.attributionMode === 'none' && about.claimRelation === 'ABOUT_ENTITY'
+        && about.officialDomain === '',
+      JSON.stringify({ mode: about.attributionMode, relation: about.claimRelation }));
+
+    // Asking for MATERIAL from a site is not asking for a position either.
+    const material = planFor('أعطني مقالًا من موقع د. مطلق الجاسر');
+    ok('ع-٧٥ a request for material from a site is unchanged',
+      material.attributionMode !== 'namedScholarOpinion',
+      JSON.stringify({ mode: material.attributionMode }));
+
+    // Two registered men behind one name stay two.
+    const ambiguous = planFor('ما رأي ابن حجر في هذه المسألة؟');
+    ok('ع-٧٥ two men behind one name is still an ambiguity, not a pick',
+      ambiguous.scholarStatus === 'ambiguous' && ambiguous.needsScholarIdentity === true
+        && ambiguous.officialDomain === '' && ambiguous.scholarCandidates.length > 1,
+      JSON.stringify({ status: ambiguous.scholarStatus, candidates: ambiguous.scholarCandidates }));
+
+    // A man dead seven centuries has no official site, and must not be asked for one.
+    const historical = planFor('ما رأي ابن تيمية فيمن ترك الصلاة تكاسلًا؟');
+    ok('ع-٧٥ a historical authority is left on the era contract, not this one',
+      historical.officialDomain === '' && historical.authorityEra === 'historical'
+        && historical.requestedAuthorityId === 'ibn-taymiyyah',
+      JSON.stringify({ era: historical.authorityEra, domain: historical.officialDomain }));
+
+    // THE SURFACE AND THE ID COME FROM THE SAME ENTITY OR NEITHER IS TAKEN. The domain is
+    // resolved from the surface and the id is reported beside it; if a refactor ever let one be
+    // adopted without the other, these two would name two different men and this row goes red.
+    for (const [label, question] of SPELLINGS) {
+      const plan = planFor(question);
+      const fromId = REG.resolveScholar(plan.namedEntity);
+      ok('ع-٧٥ the reported id and the resolved domain are one man — ' + label,
+        plan.requestedAuthorityId === 'mutlaq-aljasir' && fromId.status === 'resolved'
+          && fromId.domain === plan.officialDomain,
+        JSON.stringify({ id: plan.requestedAuthorityId, named: plan.namedEntity, domain: plan.officialDomain, viaSurface: fromId.domain }));
+    }
+
+    // ── THE TWO THINGS THE FIRST CUT OF THIS FIX BROKE ──────────────────────
+    // Both were caught by gates smartretrieval and namepresence, and both are pinned here so the
+    // narrowing that repaired them cannot be undone by widening the clause again.
+    //
+    // (1) A CAPTURE THAT ALREADY NAMES A MAN KEEPS DECIDING. The entity surface carries the
+    //     honorific, so adopting it whenever one resolved person was present turned namedEntity
+    //     into «الشيخ ابن عثيمين» — and the post-search note into «للشيخ الشيخ ابن عثيمين».
+    const withTitle = planFor('ما رأي الشيخ ابن عثيمين في صلاة الوتر؟');
+    ok('ع-٧٥ a name the capture already resolves keeps the string the capture settled on, title unrepeated',
+      withTitle.namedEntity === 'ابن عثيمين' && withTitle.officialDomain === 'binothaimeen.net',
+      JSON.stringify({ named: withTitle.namedEntity, domain: withTitle.officialDomain }));
+
+    // (2) TWO REGISTERED MEN IN ONE QUESTION STAY TWO. The registry reads this as ambiguous; the
+    //     entity layer splits it into one authority and one subject, and taking the authority
+    //     would pick a man the reader never singled out.
+    const twoMen = planFor('ما رأي خالد المصلح خالد السبت في الطلاق؟');
+    ok('ع-٧٥ two registered men in one question is still an ambiguity, not a pick',
+      twoMen.scholarStatus === 'ambiguous' && twoMen.officialDomain === ''
+        && twoMen.needsScholarIdentity === true,
+      JSON.stringify({ status: twoMen.scholarStatus, named: twoMen.namedEntity }));
+
+    // (3) AND THE ENTITY MUST BE THE SAME MAN THE CAPTURE POINTED AT. Here the capture is a man
+    //     no registry knows, and the one resolved authority is named in the OTHER clause. Reading
+    //     that as his question answers somebody the reader did not ask about.
+    const otherClause = planFor('قال ابن باز إن القصر سنة، فما رأي فلان الفلاني في قصر الصلاة؟');
+    ok('ع-٧٥ a resolved man named in another clause never becomes the target',
+      otherClause.namedEntity === 'فلان الفلاني' && otherClause.officialDomain === ''
+        && otherClause.requestedAuthorityId === null,
+      JSON.stringify({ named: otherClause.namedEntity, domain: otherClause.officialDomain, id: otherClause.requestedAuthorityId }));
+
+    // A different registered contemporary must be untouched by all of the above.
+    const other = planFor('ما رأي الشيخ عبدالمحسن العباد في الطلاق؟');
+    ok('ع-٧٥ another registered contemporary is unchanged',
+      other.officialDomain === 'al-abbaad.com' && other.requestedAuthorityId === 'al-abbaad',
+      JSON.stringify({ domain: other.officialDomain, id: other.requestedAuthorityId }));
+  }
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
