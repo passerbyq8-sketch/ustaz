@@ -108,6 +108,19 @@ const KNOWN_PRE_EXISTING = Object.freeze([
     flavour: 'plain',
     captured: 'مطلق',
   }),
+  // M1+M2 night 3, task 3. «الدكتور مطلق» became an alias so defect 75’s last spelling
+  // resolves. The capture is unchanged by that row and still wrong in exactly one of its four
+  // combinations: the cue-first frame lists «الدكتور» among the honorifics it eats, so the
+  // name that reaches resolveScholar is the bare «مطلق» — which is not an alias, on purpose.
+  // Pinned, not excused: the vowelled twin passes, because a vowelled honorific is not the
+  // literal the frame eats, and the name-first shape passes in both flavours.
+  Object.freeze({
+    domain: 'dr-mutlaq.com',
+    alias: 'الدكتور مطلق',
+    shape: 'verb-first',
+    flavour: 'plain',
+    captured: 'مطلق',
+  }),
 ]);
 const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join(' | ');
 
