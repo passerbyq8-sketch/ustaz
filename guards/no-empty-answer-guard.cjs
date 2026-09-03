@@ -2229,6 +2229,151 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('MUTANT KILLED: without the third arm «ظهرت المسألة الأولى» reaches the reader again',
       progressMutant.loaded && progressMutant.survived === false, JSON.stringify(progressMutant));
 
+    // ── V-M40..42: ع-٥٤ — «لا أملكُ عرضَ نصِّ الصفحة» AND THEN A QUOTATION FROM IT ──
+    //
+    // MEASURED 3 September on a deterministic input, PHASE34-MEASURE-REPORT-2026-09-03 §٢.٤:
+    // both sentences were delivered and `detectSelfContradiction` reported `detected=false`.
+    // That reviewer stays a MEASURE — it knows `polarity` and `named-answer`, neither of which
+    // is this shape, and its own matrix guard pins that it does not edit the text. So the repair
+    // is here at the delivery barrier, and what is asserted below is the READER-VISIBLE outcome
+    // and never a flag.
+    //
+    // WHICH SENTENCE LOSES IS ITSELF THE ASSERTION. The excerpt carries material the reader can
+    // use; the denial carries a fact about the writer that the excerpt has already falsified. A
+    // repair that kept the denial and dropped the quotation would satisfy «no contradiction» and
+    // take the evidence away, so BOTH halves are pinned and not just the emptiness.
+    const PAGE_DENIAL = 'لا أملكُ عرضَ نصِّ الصفحة.';
+    const PAGE_EXCERPT = 'ثم جاء في الصفحة: «هذه فقرة كاملة من النص المنشور».';
+    // THE THREE KEEP-ANALOGUES, AND THE LAST TWO ARE THE ONLY ONES THAT COST ANYTHING. Each is
+    // placed BESIDE the same excerpt on purpose: a limit that is only ever tested without its
+    // trigger next to it is not a limit, it is a sentence nothing was going to touch anyway.
+    //   1. the qualification the order names — «الصفحة كاملةً», no «نصّ», so the denial shape
+    //      never fires on it at all
+    //   2. the SAME concession written over the denial shape itself — it matches, and only the
+    //      qualifier limit saves it (V-M40)
+    //   3. a denial that also carries a RULING — the standing law of the file is that a sentence
+    //      carrying one is an answer however it opened, and only that limit saves it (V-M42)
+    const PAGE_QUALIFIED = 'لا أستطيعُ عرضَ الصفحةِ كاملةً، لكنَّ المقتطفَ المتاحَ يقول إن الحكم جائز.';
+    const PAGE_QUALIFIED_HARD = 'لا أملكُ عرضَ نصِّ الصفحة كاملةً، لكنَّ المقتطفَ المتاحَ بين يديّ.';
+    const PAGE_DENIAL_WITH_RULING = 'لا أملكُ عرضَ نصِّ الصفحة، ولا يصح البناء على ما لم أره.';
+
+    const resolvesTheDenial = (mod) => {
+      const out = mod.deliverableText(PAGE_DENIAL + ' ' + PAGE_EXCERPT);
+      return !out.includes('لا أملك') && out.includes('فقرة كاملة');
+    };
+    const keepsTheLoneDenial = (mod) => mod.deliverableText(PAGE_DENIAL).includes('لا أملك');
+    // The keeps are measured BESIDE the excerpt, which is the only arrangement in which the two
+    // limits are load-bearing at all.
+    const keepsTheQualification = (mod) => {
+      const soft = mod.deliverableText(PAGE_QUALIFIED + ' ' + PAGE_EXCERPT);
+      const hard = mod.deliverableText(PAGE_QUALIFIED_HARD + ' ' + PAGE_EXCERPT);
+      return soft.includes('لا أستطيع') && soft.includes('فقرة كاملة')
+        && hard.includes('لا أملك') && hard.includes('المقتطف') && hard.includes('فقرة كاملة')
+        && mod.deliverableText(PAGE_QUALIFIED) === PAGE_QUALIFIED;
+    };
+    const keepsARulingDenial = (mod) => {
+      const out = mod.deliverableText(PAGE_DENIAL_WITH_RULING + ' ' + PAGE_EXCERPT);
+      return out.includes('لا يصح') && out.includes('فقرة كاملة');
+    };
+    ok('ع-٥٤ the falsified page-text denial is dropped and the quotation is kept (BATCH)',
+      resolvesTheDenial(loop),
+      JSON.stringify(loop.deliverableText(PAGE_DENIAL + ' ' + PAGE_EXCERPT)));
+    ok('ع-٥٤ ...and a denial that nothing contradicts SURVIVES', keepsTheLoneDenial(loop),
+      JSON.stringify(loop.deliverableText(PAGE_DENIAL)));
+    ok('ع-٥٤ ...and a QUALIFIED denial beside the same excerpt is not a contradiction',
+      keepsTheQualification(loop),
+      JSON.stringify(loop.deliverableText(PAGE_QUALIFIED_HARD + ' ' + PAGE_EXCERPT)));
+    ok('ع-٥٤ ...and a denial that also states a RULING is an answer, and stays',
+      keepsARulingDenial(loop),
+      JSON.stringify(loop.deliverableText(PAGE_DENIAL_WITH_RULING + ' ' + PAGE_EXCERPT)));
+
+    // THE WIRE, AND THIS IS THE HALF THAT MATTERS MOST. A denial released as a unit and deleted
+    // two sentences later is text WITHDRAWN from a reader who has already read it, which is
+    // worse than the contradiction it repairs. So the stream is driven and `releasedPrefix` —
+    // what actually left — is what is asserted, not the final text.
+    const wireOf = (mod, text) => {
+      const stream = mod.createTerminalUnitStream({ domain: 'fiqh', mode: '', onUnit: () => true });
+      for (const ch of text) stream.push(ch);
+      return stream.end();
+    };
+    const neverReleasesTheDenial = (mod) => {
+      const out = wireOf(mod, PAGE_DENIAL + '\n' + PAGE_EXCERPT + '\n');
+      return !out.releasedPrefix.includes('لا أملك') && !out.readerText.includes('لا أملك')
+        && out.readerText.includes('فقرة كاملة') && out.transformOpen === true;
+    };
+    ok('ع-٥٤ the denial is never RELEASED as a stream unit, and the excerpt still is',
+      neverReleasesTheDenial(loop),
+      JSON.stringify(wireOf(loop, PAGE_DENIAL + '\n' + PAGE_EXCERPT + '\n').readerText));
+    // …AND THE HOLD IS NOT A SILENCE. The lone denial must still be there when the provider ends,
+    // or the rule has simply deleted the sentence on a delay.
+    const loneOnTheWire = wireOf(loop, PAGE_DENIAL + '\n');
+    ok('ع-٥٤ ...while the LONE denial is delivered at end()',
+      loneOnTheWire.readerText.includes('لا أملك') || loneOnTheWire.finalText.includes('لا أملك'),
+      JSON.stringify(loneOnTheWire.readerText) + ' | ' + JSON.stringify(loneOnTheWire.finalText));
+    // …AND A CORRECT ANSWER IS NOT SLOWED DOWN, which is the declared risk of the hold. These
+    // three make no claim about a page, so their first unit must leave at exactly the character
+    // it left at before the rule existed. MEASURED on this tree against 52b1480: 78, 68, 44.
+    const NO_CLAIM_ANSWERS = Object.freeze([
+      ['الحكم في هذه المسألة أنه يجوز عند جمهور أهل العلم.\nوقد فصّل ابن تيمية في ذلك.\nوالله أعلم.\n', 78],
+      ['أولًا: المسح على الخفين جائز بالسنة.\nثانيًا: يشترط أن يكونا طاهرين.\nوهذا هو المشهور.\n', 68],
+      ['نعم، يصح ذلك.\nوقال بعض أهل العلم إنه مكروه.\nوالراجح الجواز.\n', 44],
+    ]);
+    const firstUnitAt = (mod, text) => {
+      const units = [];
+      const stream = mod.createTerminalUnitStream({
+        domain: 'fiqh', mode: '', onUnit: ({ unit }) => { units.push(unit); return true; },
+      });
+      let at = -1;
+      for (let index = 0; index < text.length; index += 1) {
+        stream.push(text[index]);
+        if (at < 0 && units.length) at = index + 1;
+      }
+      stream.end();
+      return at;
+    };
+    ok('ع-٥٤ an answer that makes no claim about a page releases its first unit unchanged',
+      NO_CLAIM_ANSWERS.every(([text, expected]) => firstUnitAt(loop, text) === expected),
+      JSON.stringify(NO_CLAIM_ANSWERS.map(([text]) => firstUnitAt(loop, text))));
+
+    // ── V-M40: THE QUALIFIER LIMIT REMOVED. Without it the honest sentence — the one that
+    // concedes the part and then names it — is deleted for being honest, and the reader is left
+    // with a bare quotation and no account of where it came from.
+    const qualifierMutant = await loopMutant('page-denial-ignores-the-qualification',
+      (source) => source.replace(
+        "    if (PAGE_TEXT_QUALIFIER_RE.test(folded)) return false;",
+        "    // mutant: a qualification counts as an absolute denial"),
+      keepsTheQualification);
+    ok('page-qualifier mutant seam applied', qualifierMutant.changed, qualifierMutant.error);
+    ok('page-qualifier mutant module loaded successfully', qualifierMutant.loaded, qualifierMutant.error);
+    ok('MUTANT KILLED: «لا أملكُ عرضَ نصِّ الصفحة كاملةً، لكنَّ المقتطفَ…» is not the contradiction',
+      qualifierMutant.loaded && qualifierMutant.survived === false, JSON.stringify(qualifierMutant));
+
+    // ── V-M41: THE STREAM HOLD REMOVED. The batch text is identical either way, which is exactly
+    // why this needs its own mutant: with the hold gone the denial LEAVES as a unit and is then
+    // deleted from the text behind it, and every batch assertion above stays green.
+    const holdMutant = await loopMutant('denial-released-before-it-is-decidable',
+      (source) => source.replace(
+        "  if (pendingDenial >= 0) cut = Math.min(cut, pendingDenial);",
+        "  // mutant: the denial leaves before the excerpt can falsify it"),
+      neverReleasesTheDenial);
+    ok('denial-hold mutant seam applied', holdMutant.changed, holdMutant.error);
+    ok('denial-hold mutant module loaded successfully', holdMutant.loaded, holdMutant.error);
+    ok('MUTANT KILLED: a denial that is deleted after it was released is text withdrawn from the '
+      + 'reader', holdMutant.loaded && holdMutant.survived === false, JSON.stringify(holdMutant));
+
+    // ── V-M42: THE STANDING LAW SUSPENDED FOR THIS CLASS. Every other class in this file keeps a
+    // sentence that carries a ruling, a citation or a number, whatever else it is shaped like.
+    // This mutant is that one line removed from the new class alone.
+    const rulingLimitMutant = await loopMutant('page-denial-ignores-answer-content',
+      (source) => source.replace(
+        "    if (ANSWER_CONTENT_RE.test(folded)) return false;\n    if (PAGE_TEXT_QUALIFIER_RE",
+        "    if (PAGE_TEXT_QUALIFIER_RE"),
+      keepsARulingDenial);
+    ok('page-ruling-limit mutant seam applied', rulingLimitMutant.changed, rulingLimitMutant.error);
+    ok('page-ruling-limit mutant module loaded successfully', rulingLimitMutant.loaded, rulingLimitMutant.error);
+    ok('MUTANT KILLED: a denial that also states a ruling cannot be dropped as machine prose',
+      rulingLimitMutant.loaded && rulingLimitMutant.survived === false, JSON.stringify(rulingLimitMutant));
+
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
