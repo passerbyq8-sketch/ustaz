@@ -467,6 +467,12 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       [[PLAIN, GENERAL].join(' '), 'mixed'],
       [[CREDIT, GENERAL].join(' '), 'mixed'],
       [[PLAIN, R2 + ' ' + '\u0645\u0627 \u062a\u0642\u062f\u0651\u0645 \u0641\u0647\u0645\u064c \u0645\u0628\u0646\u064a\u064c\u0651 \u0639\u0644\u0649 \u0645\u0627 \u0628\u064a\u0646 \u064a\u062f\u064a\u0651 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u062f\u0648\u0631\u0629.'].join('\n'), 'fiqh'],
+      // ع-٧٧ · the three duplicate-input shapes, so the stream drops the later copy exactly where
+      // the batch path drops it. A stream that de-duplicated differently would either ship a
+      // second tag the batch path removed, or withdraw one the reader already holds.
+      ['\u0627\u0644\u062d\u0643\u0645 \u0638\u0627\u0647\u0631 ' + R1 + ' \u0648\u0642\u062f \u0646\u0635 \u0639\u0644\u064a\u0647 \u063a\u064a\u0631 \u0648\u0627\u062d\u062f ' + R1, 'fiqh'],
+      ['\u0627\u0644\u062d\u0643\u0645 \u0638\u0627\u0647\u0631 ' + R1 + '. \u0648\u0647\u0630\u0627 \u0645\u0642\u0631\u0631 ' + R1, 'fiqh'],
+      ['\u0627\u0644\u062d\u0643\u0645 \u0638\u0627\u0647\u0631 \u0648\u0644\u0627 \u062e\u0644\u0627\u0641 \u0641\u064a\u0647. ' + R2 + ' \u0648\u0647\u0630\u0627 \u0643\u0630\u0644\u0643. ' + R2, 'fiqh'],
     ];
     const streamDrift = [];
     for (const [text, domain] of streamCases) {
@@ -476,6 +482,37 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     }
     ok('H10 \u00b7 the streaming path ships exactly what the batch path ships, and reports no violation',
       streamDrift.length === 0, 'drift: ' + JSON.stringify(streamDrift));
+
+    // ع-٧٧ · THE PREFIX IS STABLE. The reader holds what has already been sent, so a de-duplication
+    // that reached backwards would take a tag out of text already on the screen. Fed one chunk at
+    // a time, every intermediate emission must be a PREFIX of the final text — nothing rewritten,
+    // nothing withdrawn, only more added.
+    const prefixDrift = [];
+    for (const [text, domain] of [
+      ['\u0627\u0644\u062d\u0643\u0645 \u0638\u0627\u0647\u0631 ' + R1 + ' \u0648\u0642\u062f \u0646\u0635 \u0639\u0644\u064a\u0647 \u063a\u064a\u0631 \u0648\u0627\u062d\u062f ' + R1, 'fiqh'],
+      ['\u0627\u0644\u062d\u0643\u0645 \u0638\u0627\u0647\u0631 \u0648\u0644\u0627 \u062e\u0644\u0627\u0641 \u0641\u064a\u0647. ' + R2 + ' \u0648\u0647\u0630\u0627 \u0643\u0630\u0644\u0643. ' + R2, 'fiqh'],
+      [[CREDIT, CREDIT, CREDIT].join(' '), 'fiqh'],
+    ]) {
+      const st = REV.createReviewStream({ domain, evidence: [] });
+      let sent = '';
+      const seenPrefixes = [];
+      for (const chunk of String(text).match(/[\s\S]{1,17}/gu) || []) {
+        const piece = st.push(chunk);
+        if (typeof piece === 'string') sent += piece;
+        else if (piece && typeof piece.text === 'string') sent += piece.text;
+        seenPrefixes.push(sent);
+      }
+      const final = st.end();
+      const whole = typeof final === 'string' ? final : final.text;
+      for (const seen of seenPrefixes) {
+        if (seen && whole.indexOf(seen) !== 0) {
+          prefixDrift.push(domain + ' :: ' + JSON.stringify(seen.slice(0, 60)));
+          break;
+        }
+      }
+    }
+    ok('H10b \u00b7 [RED] every intermediate emission is a PREFIX of the final text \u2014 nothing is withdrawn',
+      prefixDrift.length === 0, 'drift: ' + JSON.stringify(prefixDrift));
 
     // (d) A review of an already-reviewed answer never ADDS a notice the first pass did not
     // write, and the text converges: pass 3 equals pass 2. It was not idempotent at all before \u2014
@@ -501,6 +538,53 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       grew.length === 0, 'grew: ' + JSON.stringify(grew));
     ok('H12 \u00b7 and the text converges: the third pass is byte-identical to the second',
       notConverged.length === 0, 'still moving: ' + JSON.stringify(notConverged));
+
+    // ── ع-٧٧ · WHAT ARRIVES DUPLICATED MUST NOT LEAVE DUPLICATED ──────────────
+    // ع-١٩ killed the repetition the reviewer PRODUCES; these two rows pin the other half, the
+    // one that was measured at 2 in / 2 out. The first copy keeps the harakat it arrived with and
+    // every later copy of the SAME TYPE goes — inline, and in the answer-level tail.
+    // The tag strings come from the module, never hand-typed: tag-honesty pins every spelling in
+    // this repository to the runtime code-point sequence, and a typed shadda lands in the other order.
+    const MARK = REV.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+    const NOTICE = REV.REVIEW_TAGS.FIQH_UNSOURCED;
+    const countOf = (haystack, needle) => haystack.split(needle).length - 1;
+    const unvowelled = (value) => value.replace(/[\u064B-\u0652\u0670]/gu, '');
+
+    const dupInline = verdict(REV, '\u0627\u0644\u062d\u0643\u0645 \u0641\u064a \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u0638\u0627\u0647\u0631 ' + MARK
+      + ' \u0648\u0642\u062f \u0646\u0635 \u0639\u0644\u064a\u0647 \u063a\u064a\u0631 \u0648\u0627\u062d\u062f ' + MARK, []);
+    ok('duplicate-input (inline) \u00b7 two sentence marks arrive, one is delivered',
+      countOf(unvowelled(dupInline.text), unvowelled(MARK)) === 1,
+      'count=' + countOf(unvowelled(dupInline.text), unvowelled(MARK)) + ' text=' + JSON.stringify(dupInline.text.slice(0, 90)));
+
+    const dupTail = verdict(REV, '\u0627\u0644\u062d\u0643\u0645 \u0641\u064a \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u0638\u0627\u0647\u0631 \u0648\u0644\u0627 \u062e\u0644\u0627\u0641 \u0641\u064a\u0647. ' + NOTICE
+      + ' \u0648\u0647\u0630\u0627 \u0643\u0630\u0644\u0643. ' + NOTICE, []);
+    ok('duplicate-input (tail) \u00b7 two answer-level notices arrive, one is delivered',
+      countOf(unvowelled(dupTail.text), unvowelled(NOTICE)) === 1,
+      'count=' + countOf(unvowelled(dupTail.text), unvowelled(NOTICE)) + ' text=' + JSON.stringify(dupTail.text.slice(0, 90)));
+
+    // THE FIRST COPY KEEPS ITS OWN SPELLING. A variant tashkeel is the SAME tag for the purpose of
+    // counting, and the one that survives is the one that arrived first, byte for byte.
+    const variant = MARK.replace(/[\u064B-\u0652\u0670]/gu, '');
+    const mixed = verdict(REV, '\u0627\u0644\u062d\u0643\u0645 \u0638\u0627\u0647\u0631 ' + variant + ' \u0648\u0642\u062f \u0646\u0635 \u0639\u0644\u064a\u0647 \u063a\u064a\u0631 \u0648\u0627\u062d\u062f ' + MARK, []);
+    ok('duplicate-input \u00b7 a variant tashkeel is the same tag, and the FIRST spelling survives',
+      countOf(unvowelled(mixed.text), unvowelled(MARK)) === 1 && mixed.text.indexOf(variant) >= 0,
+      'count=' + countOf(unvowelled(mixed.text), unvowelled(MARK)) + ' text=' + JSON.stringify(mixed.text.slice(0, 90)));
+
+    // IDEMPOTENCY: reviewing the delivered text again must add nothing and remove nothing.
+    const once = verdict(REV, '\u0627\u0644\u062d\u0643\u0645 \u0641\u064a \u0627\u0644\u0645\u0633\u0623\u0644\u0629 \u0638\u0627\u0647\u0631 ' + MARK + ' \u0648\u0642\u062f \u0646\u0635 \u0639\u0644\u064a\u0647 ' + MARK, []);
+    const twice = verdict(REV, once.text, []);
+    ok('duplicate-input \u00b7 idempotent \u2014 a second pass over the delivered text changes nothing',
+      twice.text === once.text, JSON.stringify({ once: once.text.slice(0, 80), twice: twice.text.slice(0, 80) }));
+
+    // 🔒 AND THE FLOOD THE REVIEWER ITSELF PRODUCES IS STILL VISIBLE. This de-duplication reads
+    // what ARRIVED, before anything is written, so a writer that stamps the notice onto every
+    // sentence is not absorbed here — that is what the mutant in tag-honesty catches, and it must
+    // keep catching it. Asserted from the outside: a plain answer carrying NO incoming tag is
+    // delivered with exactly the tags the reviewer decided on, no more and no fewer.
+    const clean = verdict(REV, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u0625\u0646 \u0627\u0644\u0623\u0645\u0631 \u062c\u0627\u0626\u0632', []);
+    ok('duplicate-input \u00b7 [RED] an answer with no incoming tag is untouched by the new reader',
+      countOf(unvowelled(clean.text), unvowelled(MARK)) === 1,
+      'count=' + countOf(unvowelled(clean.text), unvowelled(MARK)) + ' text=' + JSON.stringify(clean.text.slice(0, 90)));
   }
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
