@@ -286,6 +286,19 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
       patterns.slice(0, 2).filter((p) => !p.includes('{0,5}?')).length, 0);
     eq('...and no cue-first pattern carries a greedy bound',
       patterns.slice(0, 2).filter((p) => /\{0,5\}(?!\?)/u.test(p)).length, 0);
+    // ── ع-٧٤/ب · THE SEVENTH MAY ALSO END ON THE CLAIM ITSELF ─────────────
+    // MEASURED: «ابن قدامة فقال الأمر في هذا واسع» — a name, a joined verb, and prose with
+    // neither a colon nor «إن/أن/بأن» after it — matched NO pattern. The registry fallback then
+    // cut the bare name and left «فقال الأمر في هذا واسع», a verb with nobody in front of it;
+    // for an unregistered name nothing was cut at all. So the seventh gains a THIRD way to end:
+    // the claim beginning on an Arabic letter. Its own name class is untouched — narrowing it
+    // truncated «الشيخ محمد بن صالح العثيمين رحمه الله فصل» and flipped A2 back to marked, which
+    // is why the bounded class stayed on the two cue-first patterns and nowhere else.
+    eq('the seventh may end at a connector, at punctuation, or on the claim itself — three ways',
+      patterns.slice(6).filter((p) => !p.includes('|\\s+(?=[\\p{Script=Arabic}]))')).length, 0);
+    eq('...and the first six do NOT carry that third ending',
+      patterns.slice(0, 6).filter((p) => p.includes('|\\s+(?=[\\p{Script=Arabic}]))')).length, 0);
+
     eq('the stop list is exactly the fourteen verbs this guard names, in order',
       patterns.slice(0, 2).filter((p) => !p.includes(CUE_STOP)).length, 0);
     eq('...and every stop verb is checked as a whole word',
@@ -346,6 +359,19 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
   // decides a reader asked — because that is where one registered man came out as four
   // different people. Three spellings of dr-mutlaq.com that the entity layer resolves
   // identically, and three contracts that must not move because of them.
+  // ع-٧٤/ب, measured rather than read off the source: the frame ends AFTER the verb, and the
+  // claim survives whole. Both halves matter — a frame that stops before «فقال» leaves the verb
+  // stranded, and one that runs past it eats the claim.
+  {
+    const REV74 = await esm('lib/output-reviewer.js');
+    const r = REV74.reviewAnswer({ text: 'ابن قدامة فقال الأمر في هذا واسع', domain: 'fiqh', evidence: [] });
+    const hit = r.annotations.find((a) => typeof a.claimedAuthority === 'string');
+    ok('ع-٧٤/ب the span ends after «فقال», and «الأمر في هذا واسع» is still delivered',
+      !!hit && hit.claimedAuthority === 'ابن قدامة' && r.text.indexOf('الأمر في هذا واسع') === 0
+        && r.text.indexOf('فقال') < 0,
+      JSON.stringify({ name: hit && hit.claimedAuthority, text: r.text.slice(0, 70) }));
+  }
+
   console.log('\n=== E. ع-٧٥ — ONE MAN, THREE SPELLINGS, ONE DOMAIN ===');
   {
     const PLAN = await esm('lib/ask-plan.js');
