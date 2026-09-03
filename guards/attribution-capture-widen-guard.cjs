@@ -372,6 +372,56 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
       JSON.stringify({ name: hit && hit.claimedAuthority, text: r.text.slice(0, 70) }));
   }
 
+  // ── شاهد البراك · THE FIFTH CLASS, AND THE DESCRIPTION THAT MUST NOT JOIN IT ──
+  // The owner's literal witness, and the three things that must all hold at once: the sentence
+  // does not leave as tagged-fiqh-understanding with no claimedAuthority; the credited name is
+  // the WHOLE name, not the half the object was allowed to eat; and a descriptive statement about
+  // «العلماء» is not turned into a quotation from a man of that name.
+  {
+    const REVB = await esm('lib/output-reviewer.js');
+    const say = (text) => {
+      const r = REVB.reviewAnswer({ text, domain: 'fiqh', evidence: [] });
+      const hit = r.annotations.find((a) => typeof a.claimedAuthority === 'string');
+      return { action: (r.annotations[0] || {}).action, name: hit ? hit.claimedAuthority : null, text: r.text };
+    };
+    const barrak = say('ووصف الشيخ عبد الرحمن البراك هذا الاختيار بأنه «قول حسن فيه توسط»');
+    ok('البراك · the witness no longer leaves as tagged-fiqh-understanding with no claimedAuthority',
+      barrak.action !== 'tagged-fiqh-understanding' && barrak.name !== null,
+      JSON.stringify({ action: barrak.action, name: barrak.name }));
+    ok('البراك · ...and the object did not eat the name — the credit is «عبد الرحمن البراك» whole',
+      barrak.name === 'عبد الرحمن البراك', JSON.stringify(barrak.name));
+
+    // [RED] the control. Without the required title this row goes red, and a plain descriptive
+    // sentence about the scholars would be cut as a quotation from a man called «العلماء».
+    const plural = say('ووصف العلماء هذا الاختيار بأنه قول حسن');
+    ok('البراك · [RED] a descriptive «ووصف العلماء …» is NOT an ascription and is not cut',
+      plural.name === null && plural.text.indexOf('ووصف العلماء هذا الاختيار') >= 0,
+      JSON.stringify({ name: plural.name, text: plural.text.slice(0, 90) }));
+
+    // AND THE FRAME RIDES THE ORDINARY EVIDENCE CONTRACT — it is a shape the contract could not
+    // see, not a new licence. Asserted as an EQUIVALENCE rather than as a verdict: the same claim,
+    // the same evidence, once in the new «وصف» frame and once in a frame that has always been in
+    // the table. Whatever the contract decides, it must decide the same thing for both — which is
+    // what "no new licence" means, and it stays true however the support test is later tightened.
+    const SAME_EV = [{
+      id: 'ab-1', title: 'قول حسن', url: 'https://albarrak.islamlight.net/x',
+      scholar: 'عبد الرحمن البراك',
+      snippet: 'وصف الشيخ هذا الاختيار بأنه قول حسن فيه توسط.',
+    }];
+    const verdictOf = (text, evidence) => {
+      const r = REVB.reviewAnswer({ text, domain: 'fiqh', mode: 'عادي', evidence });
+      return (r.annotations[0] || {}).action;
+    };
+    const NEW_FRAME = 'ووصف الشيخ عبد الرحمن البراك هذا الاختيار بأنه قول حسن فيه توسط.';
+    const OLD_FRAME = 'قال الشيخ عبد الرحمن البراك إن هذا الاختيار قول حسن فيه توسط.';
+    ok('البراك · the new frame rides the SAME contract — same verdict as an old frame, with evidence',
+      verdictOf(NEW_FRAME, SAME_EV) === verdictOf(OLD_FRAME, SAME_EV),
+      JSON.stringify({ neu: verdictOf(NEW_FRAME, SAME_EV), old: verdictOf(OLD_FRAME, SAME_EV) }));
+    ok('البراك · ...and the same verdict as an old frame with NO evidence',
+      verdictOf(NEW_FRAME, []) === verdictOf(OLD_FRAME, []),
+      JSON.stringify({ neu: verdictOf(NEW_FRAME, []), old: verdictOf(OLD_FRAME, []) }));
+  }
+
   console.log('\n=== E. ع-٧٥ — ONE MAN, THREE SPELLINGS, ONE DOMAIN ===');
   {
     const PLAN = await esm('lib/ask-plan.js');
