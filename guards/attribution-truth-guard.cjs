@@ -318,6 +318,39 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     ok('G2 \u00b7 A2 did not flip: still removed, the delivered text still opens on \u00ab\u0625\u0646 \u0635\u0627\u0645\u0647\u00bb',
       a2g.action === REMOVED && a2g.text.indexOf('\u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628') === 0,
       'action=' + JSON.stringify(a2g.action) + ' text=' + JSON.stringify(a2g.text.slice(0, 60)));
+
+    // \u2500\u2500 M1+M2 night 3, task 1: THE SAME PARTICLES CARRIED BY A JOINED \u00ab\u0648\u00bb OR \u00ab\u0641\u00bb \u2500\u2500
+    // Measured 2026-09-03: the door matched the bare forms only, so \u00ab\u0648\u0644\u0623\u0646\u0647\u00bb, \u00ab\u0641\u0644\u0623\u0646\u0647\u00bb and
+    // \u00ab\u0648\u0644\u0643\u0646\u00bb still shipped headless \u2014 28 of the parity harness's rows were removals where the
+    // bare twin was a mark. G3 and G4 pin every joined form against its bare twin; nothing about
+    // G1 or G2 above is touched. G5 is the [RED] line: the conditional stays removable in all
+    // three spellings, because each of the three heads a complete sentence (A-81/a, 5047d92).
+    const JOIN_HEAD = '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629\u060c ';
+    const JOIN_TAIL = ' \u0627\u0633\u062a\u0626\u0635\u0627\u0644 \u0644\u0644\u062d\u064a\u0629 \u0648\u0645\u062e\u0627\u0644\u0641\u0629 \u0644\u0644\u0633\u0646\u0629';
+    const JOIN_BASE = [
+      '\u0644\u0623\u0646', '\u0644\u0623\u0646\u0647', '\u0644\u0623\u0646\u0647\u0627', '\u0644\u0623\u0646\u0647\u0645', '\u0644\u0643\u0648\u0646', '\u0625\u0630', '\u062d\u064a\u062b',
+      '\u0628\u0644', '\u062b\u0645', '\u0641\u0642\u062f', '\u0648\u0630\u0644\u0643', '\u0645\u0645\u0627', '\u0644\u0643\u0646', '\u0644\u0643\u0646\u0647',
+    ];
+    const joinV = (p) => verdict(REV, JOIN_HEAD + p + JOIN_TAIL, []);
+    const joinBad = [];
+    const joinDrift = [];
+    for (const p of JOIN_BASE) {
+      const bare = joinV(p);
+      for (const j of ['\u0648' + p, '\u0641' + p]) {
+        const v = joinV(j);
+        if (v.action !== MARKED || v.text.indexOf(j) === 0) joinBad.push(j + '=' + v.action);
+        if (v.action !== bare.action) joinDrift.push(j + '(' + v.action + ')!=' + p + '(' + bare.action + ')');
+      }
+    }
+    ok('G3 \u00b7 all 28 joined forms \u2192 kept and marked, and no delivered text opens on the particle',
+      joinBad.length === 0, 'offenders: ' + JSON.stringify(joinBad));
+    ok('G4 \u00b7 every joined form has the same verdict as its bare twin',
+      joinDrift.length === 0, 'drift: ' + JSON.stringify(joinDrift));
+
+    const innaSpellings = ['\u0625\u0646', '\u0648\u0625\u0646', '\u0641\u0625\u0646'];
+    const innaBad = innaSpellings.filter((p) => joinV(p).action !== REMOVED);
+    ok('G5 \u00b7 [RED] \u00ab\u0625\u0646\u00bb, \u00ab\u0648\u0625\u0646\u00bb and \u00ab\u0641\u0625\u0646\u00bb are NOT on the door \u2014 all three still removable',
+      innaBad.length === 0, 'joined the door: ' + JSON.stringify(innaBad));
   }
 
   console.log('\n' + (failures === 0
