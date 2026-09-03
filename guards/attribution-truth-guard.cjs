@@ -298,6 +298,28 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       'action=' + JSON.stringify(mixed.action) + ' text=' + JSON.stringify(mixed.text.slice(0, 80)));
   }
 
+  // =========================================================================
+  console.log('\n=== G. THE FIFTH DOOR \u2014 A REMAINDER CANNOT OPEN ON A CAUSAL PARTICLE (M1 night 2, task 2) ===');
+  {
+    // The owner's own sighting, reproduced 2026-09-02: \u00ab\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629\u060c \u0644\u0623\u0646\u0647 \u2026\u00bb lost its
+    // credit through the four doors (none fired) and the reader received \u00ab\u0644\u0623\u0646\u0647 \u0627\u0633\u062a\u0626\u0635\u0627\u0644 \u2026\u00bb \u2014 a
+    // causal clause with nothing before it. The fifth door: a remainder that opens on a
+    // particle that cannot begin a sentence breaks the sentence, so the credit is KEPT and the
+    // sentence marked. Two checks: the owner's sentence, and A2 \u2014 whose remainder opens on the
+    // conditional \u00ab\u0625\u0646\u00bb, which heads a complete sentence and must never join that list.
+    const OWNER = '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629\u060c \u0644\u0623\u0646\u0647 \u0627\u0633\u062a\u0626\u0635\u0627\u0644 \u0644\u0644\u062d\u064a\u0629 \u0648\u0645\u062e\u0627\u0644\u0641\u0629 \u0644\u0644\u0633\u0646\u0629';
+    const owner = verdict(REV, OWNER, []);
+    ok('G1 \u00b7 the owner\u2019s sentence \u2192 not removed, and the delivered text does not open on \u00ab\u0644\u0623\u0646\u0647\u00bb',
+      owner.action !== REMOVED && owner.action === MARKED && owner.text.indexOf('\u0644\u0623\u0646\u0647') !== 0,
+      'action=' + JSON.stringify(owner.action) + ' text=' + JSON.stringify(owner.text.slice(0, 80)));
+
+    const A2G = '\u0648\u0627\u0644\u0634\u064a\u062e \u0645\u062d\u0645\u062f \u0628\u0646 \u0635\u0627\u0644\u062d \u0627\u0644\u0639\u062b\u064a\u0645\u064a\u0646 \u0631\u062d\u0645\u0647 \u0627\u0644\u0644\u0647 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628 \u2014 \u0643\u0635\u0648\u0645 \u0639\u0631\u0641\u0629 \u0623\u0648 \u0639\u0627\u0634\u0648\u0631\u0627\u0621 \u0623\u0648 \u064a\u0648\u0645 \u0645\u0646 \u0623\u064a\u0627\u0645 \u0627\u0644\u0628\u064a\u0636 \u0623\u0648 \u0642\u0636\u0627\u0621 \u0623\u0648 \u0643\u0641\u0627\u0631\u0629 \u0623\u0648 \u0635\u064a\u0627\u0645 \u062f\u0627\u0648\u062f \u0641\u0648\u0627\u0641\u0642 \u0627\u0644\u0633\u0628\u062a \u2014 \u0641\u0644\u0627 \u0628\u0623\u0633 \u0628\u0647 \u0648\u0644\u0627 \u0643\u0631\u0627\u0647\u0629\u061b \u0648\u0625\u0646 \u0623\u0641\u0631\u062f\u0647 \u062a\u0639\u0638\u064a\u0645\u0627 \u0644\u0647 \u0645\u0646 \u063a\u064a\u0631 \u0633\u0628\u0628 \u0641\u0647\u0630\u0627 \u0645\u0648\u0636\u0639 \u0627\u0644\u0646\u0647\u064a.';
+    const a2g = verdict(REV, A2G, []);
+    ok('G2 \u00b7 A2 did not flip: still removed, the delivered text still opens on \u00ab\u0625\u0646 \u0635\u0627\u0645\u0647\u00bb',
+      a2g.action === REMOVED && a2g.text.indexOf('\u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628') === 0,
+      'action=' + JSON.stringify(a2g.action) + ' text=' + JSON.stringify(a2g.text.slice(0, 60)));
+  }
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
