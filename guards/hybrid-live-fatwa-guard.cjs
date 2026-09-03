@@ -907,6 +907,86 @@ async function runHybridGuard() {
     ok('MUTANT killed: deleting relevance admits an unrelated page', H.__hybridTest.liveEvidence(badPage, joinContext).length === 0
       && mRelevance.__hybridTest.liveEvidence(badPage, joinContext).length === 1);
 
+    // ── ع-٧٣: THE ROLE IN THE PRAYER IS THE QUESTION, AND THE SCORE COULD NOT SEE IT ──
+    //
+    // MEASURED 3 September: a «منفرد» probe in front of a card titled «المأموم» was ACCEPTED at
+    // score 28. The score is word overlap, and الصلاة / السهو / التكبيرة / الركوع are shared by
+    // both roles — so the number was HIGH BECAUSE the two cases look alike, which is exactly
+    // when the answer is wrong. The المأموم's sahw is borne by his imam; the المنفرد has no
+    // imam. No threshold can express that, so this is a gate and not a number.
+    //
+    // NON-MIRROR PAIR, and the KEEP side is the one that costs something. A rule that only ever
+    // says «no» is indistinguishable from dropping the class, and the declared risk here is
+    // rejecting a GENERAL fatwa that covers both roles — so the general card, the card that
+    // names both roles, and the same مأموم card in front of a question that named no role are
+    // all pinned as keeps beside the one rejection.
+    const roleCtx = (question) => ({ currentQuestion: question, resolvedTopic: '', resolvedScholar: null });
+    const ROLE_Q = 'ما حكم سهو المنفرد في الصلاة إذا ترك تكبيرة الركوع؟';
+    const ROLE_Q_NONE = 'ما حكم سجود السهو في الصلاة؟';
+    const CARD_MAMUM = {
+      title: 'سجود السهو للمأموم إذا ترك تكبيرة الركوع في الصلاة',
+      text: 'المأموم إذا ترك تكبيرة الركوع في الصلاة فلا سهو عليه، وسهوه يحمله الإمام.',
+    };
+    const CARD_BOTH = {
+      title: 'سجود السهو للمأموم والمنفرد في الصلاة',
+      text: 'المنفرد يسجد لسهوه، والمأموم يحمله عنه الإمام في تكبيرة الركوع وغيرها.',
+    };
+    const CARD_GENERAL = {
+      title: 'سجود السهو في الصلاة',
+      text: 'من ترك تكبيرة الركوع في الصلاة سهوا فحكمه كذا، ولا تبطل صلاته.',
+    };
+    const rel = (card, question) => H.__hybridTest
+      .evidenceRelevance(card.text, card.title, roleCtx(question));
+    ok('ع-٧٣ a مأموم card is refused for a منفرد question, and the OLD SCORE alone no longer decides',
+      rel(CARD_MAMUM, ROLE_Q).accepted === false && rel(CARD_MAMUM, ROLE_Q).score >= 28,
+      JSON.stringify(rel(CARD_MAMUM, ROLE_Q)));
+    ok('ع-٧٣ ...while a card naming BOTH roles is kept — a comparison is an answer',
+      rel(CARD_BOTH, ROLE_Q).accepted === true, JSON.stringify(rel(CARD_BOTH, ROLE_Q)));
+    ok('ع-٧٣ ...and a GENERAL fatwa that names no role at all is kept, which is the declared risk',
+      rel(CARD_GENERAL, ROLE_Q).accepted === true, JSON.stringify(rel(CARD_GENERAL, ROLE_Q)));
+    ok('ع-٧٣ ...and the same مأموم card is kept when the QUESTION named no role',
+      rel(CARD_MAMUM, ROLE_Q_NONE).accepted === true, JSON.stringify(rel(CARD_MAMUM, ROLE_Q_NONE)));
+    // ع-٦٩ (أ): AND THE SAME QUESTION IS ASKED AT ATTACHMENT. `evidenceRelevance` gates what
+    // enters the ranking; `quoteAddressesTopic` gates what gets stuck to an answer, and a card
+    // can reach the second without passing the first. Before this round nothing re-checked
+    // relevance at the moment of attachment at all.
+    const addresses = (card, question) => H.__hybridTest.quoteAddressesTopic(
+      card.text, roleCtx(question), { kind: 'fatwa_service', title: card.title });
+    ok('ع-٦٩ the attachment door asks the role question too, and answers it the same way',
+      addresses(CARD_MAMUM, ROLE_Q) === false
+        && addresses(CARD_BOTH, ROLE_Q) === true
+        && addresses(CARD_GENERAL, ROLE_Q) === true
+        && addresses(CARD_MAMUM, ROLE_Q_NONE) === true,
+      JSON.stringify([addresses(CARD_MAMUM, ROLE_Q), addresses(CARD_BOTH, ROLE_Q),
+        addresses(CARD_GENERAL, ROLE_Q), addresses(CARD_MAMUM, ROLE_Q_NONE)]));
+    // THE HAMZA IS NOT DECORATION. `normalizeArabic` folds أ إ آ ٱ together, which would make
+    // «إمام» (the man leading) and «أمام» (in front of) one token and hand this rule a role the
+    // text never named. The unpointed «امام» must therefore resolve to NO ROLE.
+    ok('ع-٧٣ «إمام» is a role and «أمام» is a preposition, and the bare «امام» is neither',
+      JSON.stringify(H.__hybridTest.participantRoles('حكم الإمام في الصلاة')) === JSON.stringify(['imam'])
+        && H.__hybridTest.participantRoles('وقف أمام الصف').length === 0
+        && H.__hybridTest.participantRoles('امام').length === 0,
+      JSON.stringify([H.__hybridTest.participantRoles('حكم الإمام في الصلاة'),
+        H.__hybridTest.participantRoles('وقف أمام الصف'),
+        H.__hybridTest.participantRoles('امام')]));
+    // MUTANT: the role gate removed from the ranking door alone. It is the state that shipped,
+    // and it kills the rejection while every keep above stays green.
+    const mRole = await mutant(temp, 'role-gate', (src) => src.replace(
+      '    accepted: overlapped && !roleConflict(context, title, text),',
+      '    accepted: overlapped, // mutant: the role gate deleted'));
+    ok('ع-٧٣ MUTANT killed: without the role gate the مأموم card is admitted on its score again',
+      rel(CARD_MAMUM, ROLE_Q).accepted === false
+        && mRole.__hybridTest.evidenceRelevance(CARD_MAMUM.text, CARD_MAMUM.title, roleCtx(ROLE_Q))
+          .accepted === true);
+    // MUTANT: the ASKED-role escape turned into a role COUNT, which is the plausible wrong
+    // reading of «or it compares the two roles» — and «المأموم يحمله الإمام» names two roles.
+    const mCount = await mutant(temp, 'role-count', (src) => src.replace(
+      '  return !found.some((role) => asked.includes(role));',
+      '  return found.length === 1; // mutant: a count instead of the asked role'));
+    ok('ع-٧٣ MUTANT killed: counting roles instead of finding the asked one readmits the card',
+      mCount.__hybridTest.evidenceRelevance(CARD_MAMUM.text, CARD_MAMUM.title, roleCtx(ROLE_Q))
+        .accepted === true);
+
     const mAttribution = await mutant(temp, 'attribution', (src) => src.replace(
       'if ((attributionLanguage || mentionsDifferentScholar(sentence, evidence)) && !evidence.directAttribution) continue;',
       '// mutant: direct-attribution gate deleted',
