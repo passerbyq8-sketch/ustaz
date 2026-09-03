@@ -353,6 +353,121 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       innaBad.length === 0, 'joined the door: ' + JSON.stringify(innaBad));
   }
 
+  console.log('\n=== H. THE WITNESS TAIL \u2014 ONE TAG, ONCE, AND A LADDER OF THREE (M1+M2 night 3, task 4) ===');
+  {
+    // The P2 packet measured five defects in the tail and the owner ruled on all of them:
+    // no cross-sentence de-duplication, no check against the incoming text, no ladder between
+    // the two answer-level notices, an exact-string de-duplication a variant tashkeel walks
+    // through, and no idempotency. Everything below is read off the DELIVERED text.
+    //
+    // [RED] The sentence-level mark is never removed by the ladder \u2014 H4 is that line. Rungs 2
+    // and 3 are the only pair the ladder decides.
+    const R1 = '\u3010\u0641\u0647\u0645\u064c \u0644\u0627 \u0646\u0635\u064c\u0651 \u0645\u0646\u0642\u0648\u0644\u3011';
+    const R2 = '\u3010\u0641\u0647\u0645\u064c \u0644\u0627 \u0641\u062a\u0648\u0649\u3011';
+    const R3 = '\u3010\u0645\u0639\u0631\u0641\u0629\u064c \u0645\u0633\u062a\u0642\u0631\u0629 \u063a\u064a\u0631 \u0645\u0646\u0642\u0648\u0644\u0629\u3011';
+    const MARKS = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/gu;
+    const bare = (value) => String(value).replace(MARKS, '');
+    const count = (text, needle) => bare(text).split(bare(needle)).length - 1;
+    const review = (text, domain, extra) => REV.reviewAnswer({
+      text, domain, evidence: [], ...(extra || {}),
+    }).text;
+
+    const CREDIT = '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u0625\u0646 \u0627\u0644\u0648\u0636\u0648\u0621 \u064a\u0628\u062f\u0623 \u0628\u0627\u0644\u0646\u064a\u0629.';
+    // A fiqh sentence that `sentenceDomain` scopes to fiqh in the `mixed` domain too — that is
+    // what makes H3 a real contradiction rather than a general answer with one notice.
+    const PLAIN = '\u0648\u0627\u0644\u0648\u0636\u0648\u0621 \u064a\u0628\u062f\u0623 \u0628\u0627\u0644\u0646\u064a\u0629.';
+    const GENERAL = '\u0627\u0644\u0645\u0627\u0621 \u064a\u063a\u0644\u064a \u0639\u0646\u062f \u0645\u0626\u0629 \u062f\u0631\u062c\u0629 \u0645\u0626\u0648\u064a\u0629.';
+
+    const dup2 = review([CREDIT, CREDIT].join(' '), 'fiqh');
+    ok('H1 \u00b7 two sentences that each lose a credit ship ONE sentence mark, not two',
+      count(dup2, R1) === 1, 'rung1=' + count(dup2, R1));
+
+    const dup4 = review([CREDIT, CREDIT, CREDIT, CREDIT].join(' '), 'fiqh');
+    ok('H2 \u00b7 four of them still ship ONE',
+      count(dup4, R1) === 1, 'rung1=' + count(dup4, R1));
+
+    const bothNotices = review([PLAIN, GENERAL].join(' '), 'mixed');
+    ok('H3 \u00b7 the two answer-level notices no longer contradict: rung 2 ships, rung 3 yields',
+      count(bothNotices, R2) === 1 && count(bothNotices, R3) === 0,
+      'rung2=' + count(bothNotices, R2) + ' rung3=' + count(bothNotices, R3));
+
+    const rung1and2 = review([CREDIT, PLAIN].join(' '), 'fiqh');
+    ok('H4 \u00b7 [RED] the sentence mark is NEVER removed by the ladder \u2014 rung 1 and rung 2 together',
+      count(rung1and2, R1) === 1 && count(rung1and2, R2) === 1,
+      'rung1=' + count(rung1and2, R1) + ' rung2=' + count(rung1and2, R2));
+
+    const rung3vs1 = review([CREDIT, GENERAL].join(' '), 'mixed');
+    ok('H5 \u00b7 rung 3 yields to a sentence carrying rung 1 \u2014 it cannot assert nothing was quoted',
+      count(rung3vs1, R1) === 1 && count(rung3vs1, R3) === 0,
+      'rung1=' + count(rung3vs1, R1) + ' rung3=' + count(rung3vs1, R3));
+
+    const echo2 = review([PLAIN, R2 + ' ' + '\u0645\u0627 \u062a\u0642\u062f\u0651\u0645 \u0641\u0647\u0645\u064c \u0645\u0628\u0646\u064a\u064c\u0651 \u0639\u0644\u0649 \u0645\u0627 \u0628\u064a\u0646 \u064a\u062f\u064a\u0651 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u062f\u0648\u0631\u0629.'].join('\n'), 'fiqh');
+    ok('H6 \u00b7 a rung-2 tag the model echoed suppresses the duplicate footer',
+      count(echo2, R2) === 1, 'rung2=' + count(echo2, R2));
+
+    const echo3 = review([GENERAL, R3 + ' ' + '\u0645\u0627 \u062a\u0642\u062f\u0651\u0645 \u0645\u0639\u0631\u0641\u0629\u064c \u0639\u0627\u0645\u0651\u0629\u064c \u0645\u0633\u062a\u0642\u0631\u0651\u0629.'].join('\n'), 'general');
+    ok('H7 \u00b7 and so does an echoed rung-3 tag',
+      count(echo3, R3) === 1, 'rung3=' + count(echo3, R3));
+
+    const echo2var = review([PLAIN, '\u3010\u0641\u0647\u0645 \u0644\u0627 \u0641\u062a\u0648\u0649\u3011' + ' ' + '\u0645\u0627 \u062a\u0642\u062f\u0645 \u0641\u0647\u0645 \u0645\u0628\u0646\u064a \u0639\u0644\u0649 \u0645\u0627 \u0628\u064a\u0646 \u064a\u062f\u064a \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u062f\u0648\u0631\u0629.'].join('\n'), 'fiqh');
+    ok('H8 \u00b7 the echo check is diacritic-insensitive \u2014 a variant tashkeel footer is still seen',
+      count(echo2var, R2) === 1, 'rung2=' + count(echo2var, R2));
+
+    // The variant form INSIDE the sentence being marked. The exact-string reader could not see
+    // it and stamped a second mark on the same sentence.
+    const variantInline = review('\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u0625\u0646 \u0627\u0644\u0648\u0636\u0648\u0621 \u3010\u0641\u0647\u0645 \u0644\u0627 \u0646\u0635 \u0645\u0646\u0642\u0648\u0644\u3011 \u064a\u0628\u062f\u0623 \u0628\u0627\u0644\u0646\u064a\u0629.', 'fiqh');
+    ok('H9 \u00b7 a sentence already carrying a variant-spelled rung 1 receives no second mark',
+      count(variantInline, R1) === 1, 'rung1=' + count(variantInline, R1));
+
+    // \u00a7\u0665/\u0661 \u2014 the stream may not withdraw text the reader holds, so de-duplication happens
+    // BEFORE emission: the ledger is consulted at each tag() call, and the footer assembler is
+    // literally the same function. The two paths must therefore agree byte for byte.
+    const streamed = (text, domain) => {
+      const st = REV.createReviewStream({ domain, evidence: [] });
+      st.push(text);
+      return st.end();
+    };
+    const streamCases = [
+      [[CREDIT, CREDIT].join(' '), 'fiqh'],
+      [[CREDIT, CREDIT, CREDIT, CREDIT].join(' '), 'fiqh'],
+      [[PLAIN, GENERAL].join(' '), 'mixed'],
+      [[CREDIT, GENERAL].join(' '), 'mixed'],
+      [[PLAIN, R2 + ' ' + '\u0645\u0627 \u062a\u0642\u062f\u0651\u0645 \u0641\u0647\u0645\u064c \u0645\u0628\u0646\u064a\u064c\u0651 \u0639\u0644\u0649 \u0645\u0627 \u0628\u064a\u0646 \u064a\u062f\u064a\u0651 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u062f\u0648\u0631\u0629.'].join('\n'), 'fiqh'],
+    ];
+    const streamDrift = [];
+    for (const [text, domain] of streamCases) {
+      const res = streamed(text, domain);
+      if (res.text !== review(text, domain)) streamDrift.push(domain + JSON.stringify(text.slice(0, 24)));
+      if (Array.isArray(res.violations) && res.violations.length) streamDrift.push(JSON.stringify(res.violations));
+    }
+    ok('H10 \u00b7 the streaming path ships exactly what the batch path ships, and reports no violation',
+      streamDrift.length === 0, 'drift: ' + JSON.stringify(streamDrift));
+
+    // (d) A review of an already-reviewed answer never ADDS a notice the first pass did not
+    // write, and the text converges: pass 3 equals pass 2. It was not idempotent at all before \u2014
+    // every pass added one more tag, without bound.
+    const idemCases = [
+      [CREDIT, 'fiqh'], [[CREDIT, CREDIT].join(' '), 'fiqh'], [[CREDIT, PLAIN].join(' '), 'fiqh'],
+      [PLAIN, 'fiqh'], [GENERAL, 'general'], [[PLAIN, GENERAL].join(' '), 'mixed'],
+    ];
+    const grew = [];
+    const notConverged = [];
+    for (const [text, domain] of idemCases) {
+      const p1 = review(text, domain);
+      const p2 = review(p1, domain);
+      const p3 = review(p2, domain);
+      for (const [name, tagText] of [['r1', R1], ['r2', R2], ['r3', R3]]) {
+        if (count(p2, tagText) > Math.max(1, count(p1, tagText))) {
+          grew.push(domain + '/' + name + ': ' + count(p1, tagText) + '->' + count(p2, tagText));
+        }
+      }
+      if (p3 !== p2) notConverged.push(domain + JSON.stringify(text.slice(0, 24)));
+    }
+    ok('H11 \u00b7 a second pass never ships a tag more than once \u2014 no notice is ever duplicated',
+      grew.length === 0, 'grew: ' + JSON.stringify(grew));
+    ok('H12 \u00b7 and the text converges: the third pass is byte-identical to the second',
+      notConverged.length === 0, 'still moving: ' + JSON.stringify(notConverged));
+  }
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
