@@ -987,6 +987,97 @@ async function runHybridGuard() {
       mCount.__hybridTest.evidenceRelevance(CARD_MAMUM.text, CARD_MAMUM.title, roleCtx(ROLE_Q))
         .accepted === true);
 
+    // ── ع-٤٣: ONE AUTHORITY, AND EVERY CARD IS THE CARD OF A SURVIVING CLAIM ───────
+    //
+    // MEASURED 3 September: the used set was frozen from the FIRST accepted claims, and the
+    // majority/tarjīḥ gate could then swap the whole validation object without rebuilding it —
+    // a probe came back with a summary drawn from evidence B, a card for evidence A, and A’s
+    // fatwa text underneath it. The three id lists a reader can compare — what the answer
+    // claims, what it used, and what it shows — must be ONE list.
+    //
+    // NON-MIRROR PAIR: the retry that is ADOPTED and the retry the VERIFIER refuses. The second
+    // is the half that could not happen before this round, because the majority regeneration
+    // never reached the verifier at all — it was the one model output nobody checked.
+    const CLAIM_A = fatwaEvidence({
+      id: 'fatwa:aladawy:701', url: 'https://mostafaaladwy.com/fatwa/701/x',
+      publisher: 'مصطفى العدوي', authorityId: 'mostafa-aladwy', scholarId: 'aladawy',
+      supportText: 'الجمع بين الصلاتين للمسافر يجوز عند الحاجة، والأفضل للنازل ترك الجمع.',
+      passage: 'الجمع بين الصلاتين للمسافر يجوز عند الحاجة، والأفضل للنازل ترك الجمع.', score: 95,
+    });
+    const CLAIM_B = fatwaEvidence({
+      id: 'fatwa:binbaz:702', url: 'https://binbaz.org.sa/fatwas/702/x',
+      title: 'الجمع بين الصلاتين في السفر',
+      supportText: 'يجوز للمسافر الجمع بين الصلاتين في السفر عند الحاجة، وهذا هو الثابت في السنة.',
+      passage: 'يجوز للمسافر الجمع بين الصلاتين في السفر عند الحاجة، وهذا هو الثابت في السنة.', score: 94,
+    });
+    // A majority phrase that appears in NEITHER record, so §7 must refuse the first summary.
+    const FORGED_JUMHUR = 'الجمع بين الصلاتين للمسافر يجوز عند الحاجة عند جمهور أهل العلم.';
+    const claimOn = (evidence, sentence) => JSON.stringify({
+      comparison: 'x', claims: [{ evidence_id: evidence.id, support_quote: evidence.supportText,
+        claim: evidence.supportText, sentence }],
+    });
+    const runSwap = (module_, verifier) => {
+      let generated = 0;
+      return module_.runHybridDeenTurn({
+        context: joinContext, band: 'adult', depth: 'normal', dailyBudget: budget,
+        localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+        fatwaSearch: async () => ({ calls: 1, records: [CLAIM_A, CLAIM_B] }),
+        liveRetrieve: async (_q, opts) => markLive(opts.diagnostics, { sources: [] }),
+        generate: async () => {
+          generated++;
+          return generated === 1 ? claimOn(CLAIM_A, FORGED_JUMHUR) : claimOn(CLAIM_B, CLAIM_B.supportText);
+        },
+        verify: verifier,
+      });
+    };
+    const ids = (result) => JSON.stringify({
+      claimed: result.validatedUsedEvidenceIds,
+      used: result.usedEvidence.map((entry) => entry.id),
+      shown: result.cards.map((card) => card.evidenceId),
+    });
+    const oneList = (result) => {
+      const parsed = JSON.parse(ids(result));
+      return JSON.stringify(parsed.claimed) === JSON.stringify(parsed.used)
+        && JSON.stringify(parsed.claimed) === JSON.stringify(parsed.shown);
+    };
+    const swapped = await runSwap(H, verifyIds(CLAIM_A.id, CLAIM_B.id));
+    ok('ع-٤٣ a majority regeneration that moves to B takes the card and the fatwa text with it',
+      swapped.outcome === 'ANSWER'
+        && JSON.stringify(swapped.validatedUsedEvidenceIds) === JSON.stringify([CLAIM_B.id])
+        && swapped.text.includes(CLAIM_B.supportText) && !swapped.text.includes(CLAIM_A.supportText)
+        && !swapped.text.includes('جمهور أهل العلم'),
+      ids(swapped));
+    ok('ع-٤٣ ...and what the answer claims, what it used and what it shows are ONE list',
+      oneList(swapped), ids(swapped));
+    // THE KEEP SIDE. The verifier refuses B, so the retry is NOT adopted, §7 falls to its
+    // deterministic rebuild, and the identity must still hold over whatever survives.
+    const refusedRetry = await runSwap(H, verifyIds(CLAIM_A.id));
+    ok('ع-٤٣ every model regeneration now meets the verifier: a refused retry is not adopted',
+      refusedRetry.outcome === 'ANSWER' && !refusedRetry.text.includes('جمهور أهل العلم')
+        && (refusedRetry.degraded || []).some((entry) => entry.startsWith('majority-unsupported'))
+        && oneList(refusedRetry), ids(refusedRetry) + JSON.stringify(refusedRetry.degraded));
+    // THE VISIBLE REFUSAL IS THE MODULE CONSTANT, never a copy typed into this file.
+    const nothingQualified = await H.runHybridDeenTurn({
+      context: joinContext, band: 'adult', depth: 'normal', dailyBudget: budget,
+      localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
+      fatwaSearch: async () => ({ calls: 1, records: [] }),
+      liveRetrieve: async (_q, opts) => markLive(opts.diagnostics, { sources: [] }),
+      generate: modelUsing(CLAIM_A.id, CLAIM_A.supportText), verify: verifyIds(CLAIM_A.id),
+    });
+    ok('ع-٤٣ an empty pack refuses in the module’s own words and shows no card',
+      nothingQualified.outcome === 'NO_HYBRID_EVIDENCE'
+        && nothingQualified.text === H.NO_HYBRID_EVIDENCE
+        && nothingQualified.cards.length === 0
+        && nothingQualified.validatedUsedEvidenceIds.length === 0,
+      JSON.stringify({ outcome: nothingQualified.outcome, cards: nothingQualified.cards.length }));
+    // MUTANT: the claims move and the used set stays behind — the exact state that shipped.
+    const mFrozenUsed = await mutant(temp, 'frozen-used-set', (src) => src.replace(
+      '        final = retry;',
+      '        final = { ...final, finalClaims: retry.finalClaims, summary: retry.summary };'));
+    const frozen = await runSwap(mFrozenUsed, verifyIds(CLAIM_A.id, CLAIM_B.id));
+    ok('ع-٤٣ MUTANT killed: freezing the used set again shows A’s card under B’s summary',
+      oneList(swapped) && !oneList(frozen), ids(frozen));
+
     const mAttribution = await mutant(temp, 'attribution', (src) => src.replace(
       'if ((attributionLanguage || mentionsDifferentScholar(sentence, evidence)) && !evidence.directAttribution) continue;',
       '// mutant: direct-attribution gate deleted',

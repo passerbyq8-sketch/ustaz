@@ -91,6 +91,18 @@ function runHybrid(H, sources) {
   });
 }
 
+// ع-٤٣ · IDENTITY, NOT ARITHMETIC. `used.length === cards.length` is satisfied by two lists
+// that name entirely different records, which is exactly the failure measured on 3 September:
+// a summary drawn from evidence B over a card for evidence A. Counting them agreed; the
+// reader was still shown the wrong source. The comparison is now between the IDS the answer
+// claims (`validatedUsedEvidenceIds`), the ids it used, and the ids it shows.
+const sameIds = (result) => {
+  const claimed = JSON.stringify(result.validatedUsedEvidenceIds || []);
+  const used = JSON.stringify((result.usedEvidence || []).map((entry) => entry.id));
+  const shown = JSON.stringify((result.cards || []).map((card) => card.evidenceId));
+  return claimed === used && claimed === shown;
+};
+
 async function sectionA() {
   console.log('\n--- A. lib/hybrid-deen.js: no used record without a card ---');
   const H = await esm(HYBRID);
@@ -103,9 +115,11 @@ async function sectionA() {
     'outcome=' + both.outcome);
 
   if (both.outcome === 'ANSWER') {
-    ok('A2 every used record is matched by a card the reader is shown',
-      both.usedEvidence.length === both.cards.length,
-      'used=' + both.usedEvidence.length + ' cards=' + both.cards.length);
+    ok('A2 every used record is matched by a card the reader is shown, by ID and not by count',
+      both.usedEvidence.length === both.cards.length && sameIds(both),
+      'used=' + JSON.stringify(both.usedEvidence.map((e) => e.id))
+        + ' cards=' + JSON.stringify(both.cards.map((c2) => c2.evidenceId))
+        + ' claimed=' + JSON.stringify(both.validatedUsedEvidenceIds));
     ok('A3 ...and no uncardable page survived into the used set',
       !both.usedEvidence.some((e) => String(e.url || '').startsWith('http://')),
       JSON.stringify(both.usedEvidence.map((e) => e.url)));
@@ -117,8 +131,10 @@ async function sectionA() {
   for (const bad of ['https://user:pass@binbaz.org.sa/f/1', 'https://BIN_BAZ.example/x', 'http://insecure.example/a']) {
     const r = await run([cardable(), { ...uncardable(), url: bad }]);
     ok('A4 invariant holds with an uncardable shape present — ' + bad.slice(0, 34),
-      r.outcome !== 'ANSWER' || r.usedEvidence.length === r.cards.length,
-      'used=' + r.usedEvidence.length + ' cards=' + r.cards.length);
+      r.outcome !== 'ANSWER' || (r.usedEvidence.length === r.cards.length && sameIds(r)),
+      'used=' + JSON.stringify(r.usedEvidence.map((e) => e.id))
+        + ' cards=' + JSON.stringify(r.cards.map((c2) => c2.evidenceId))
+        + ' claimed=' + JSON.stringify(r.validatedUsedEvidenceIds));
   }
 
   // And the enforcement is actually present, so the mutant below has something to remove.
@@ -137,8 +153,11 @@ async function sectionA() {
   const cleanOnly = await run([cardable()]);
   if (cleanOnly.outcome === 'ANSWER') {
     ok('A7 an ordinary cardable page is unaffected — it answers and carries its card',
-      cleanOnly.cards.length >= 1 && cleanOnly.usedEvidence.length === cleanOnly.cards.length,
-      'used=' + cleanOnly.usedEvidence.length + ' cards=' + cleanOnly.cards.length);
+      cleanOnly.cards.length >= 1 && cleanOnly.usedEvidence.length === cleanOnly.cards.length
+        && sameIds(cleanOnly),
+      'used=' + JSON.stringify(cleanOnly.usedEvidence.map((e) => e.id))
+        + ' cards=' + JSON.stringify(cleanOnly.cards.map((c2) => c2.evidenceId))
+        + ' claimed=' + JSON.stringify(cleanOnly.validatedUsedEvidenceIds));
     ok('A8 ...and reports no uncarded drop, because nothing was dropped',
       !(cleanOnly.degraded || []).some((d) => String(d).startsWith('uncarded-evidence-dropped')),
       JSON.stringify(cleanOnly.degraded));
