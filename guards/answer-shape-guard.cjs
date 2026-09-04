@@ -191,6 +191,89 @@ function answerShapeViolations(reply) {
   }
 
   // =========================================================================
+  console.log('\n=== A0/AA-72. A LIST DOES NOT BEGIN AT THE SECOND ===');
+  {
+    // WHAT THIS DEFENDS, AND WHICH RULE PRODUCED IT. `deliverableText` removes a line of
+    // machine narration whose script is not the reader's -- `isForeignScriptLine`, measured
+    // at share 1.000 on the line below. When that line wore a list marker, the marker went
+    // with it and items 2..n kept their numbers: the reader was handed a list beginning at
+    // the second. The item may not live (it is exactly the class that rule was measured to
+    // remove), so the numbering is renormalised instead.
+    //
+    // The three ordinary lists below are the other half of the claim: a run that lost
+    // nothing is rewritten to the numbers it already carried, so it comes out byte for byte
+    // identical -- which is what makes the renumbering safe to have at all.
+    const delivered2 = (value) => LOOP.deliverableText(value, []);
+    const EN_NARRATION = "I'll research each of these five questions in the authoritative sources.";
+    const A = '\u0627\u0644\u062d\u0643\u0645 \u062c\u0627\u0626\u0632.';
+    const B = '\u0627\u0644\u062f\u0644\u064a\u0644 \u0635\u062d\u064a\u062d.';
+    const C = '\u0648\u0627\u0644\u062e\u0644\u0627\u0635\u0629 \u0645\u0633\u062a\u062d\u0628.';
+
+    const BROKEN = '1. ' + EN_NARRATION + '\n2. ' + A + '\n3. ' + B;
+    eq('the list whose first item was machine narration begins at ONE',
+      delivered2(BROKEN), '1. ' + A + '\n2. ' + B);
+    eq('...and an Arabic-Indic list stays Arabic-Indic',
+      delivered2('\u0661. ' + EN_NARRATION + '\n\u0662. ' + A + '\n\u0663. ' + B),
+      '\u0661. ' + A + '\n\u0662. ' + B);
+    eq('...and a list the model deliberately began at three still begins at three',
+      delivered2('3. ' + EN_NARRATION + '\n4. ' + A + '\n5. ' + B),
+      '3. ' + A + '\n4. ' + B);
+
+    // THE THREE ORDINARY LISTS. Nothing is removed, so nothing may move.
+    const PLAIN_DOT = '1. ' + A + '\n2. ' + B + '\n3. ' + C;
+    const PLAIN_PAREN = '1) ' + A + '\n2) ' + B + '\n3) ' + C;
+    const PLAIN_TEN = Array.from({ length: 10 }, (_, i) => (i + 1) + '. ' + A).join('\n');
+    eq('an ordinary numbered list is byte-identical', delivered2(PLAIN_DOT), PLAIN_DOT);
+    eq('...with the other delimiter too', delivered2(PLAIN_PAREN), PLAIN_PAREN);
+    eq('...and across the two-digit boundary', delivered2(PLAIN_TEN), PLAIN_TEN);
+
+    // AND THE THINGS THAT ARE NOT LISTS.
+    eq('a bulleted list is untouched', delivered2('- ' + A + '\n- ' + B), '- ' + A + '\n- ' + B);
+    eq('two years at the head of two lines are not a run',
+      delivered2('2026. ' + A + '\n' + EN_NARRATION + '\n2027. ' + B),
+      '2026. ' + A + '\n\n2027. ' + B);
+    eq('a repeated marker (1, 1, 1) is not a run and is not renumbered',
+      delivered2('1. ' + A + '\n1. ' + EN_NARRATION + '\n1. ' + B),
+      '1. ' + A + '\n\n1. ' + B);
+  }
+
+  // =========================================================================
+  console.log('\n=== A0/AA-72 MUTANT ===');
+  {
+    // The twin carries the same source with the renumbering removed, its relative imports
+    // rewritten to absolute file URLs so nothing in lib/ is touched -- the idiom
+    // guards/truncated-tag-fallback-par-a-guard.cjs already uses.
+    const os = require('os');
+    const { pathToFileURL } = require('url');
+    const REL = 'lib/free-brain/loop.js';
+    const HOME = path.join(REPO, 'lib', 'free-brain');
+    const original = read(REL);
+    const SEAM = '  const renumbered = renumberBrokenRuns(lines, kept, prose);';
+    const changed = original.replace(SEAM, '  const renumbered = kept; // mutant: the stale numbering stands');
+    if (ok('AA-72 mutant seam applied', changed !== original, 'the seam moved: nothing was tested')) {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-aa72-mut-'));
+      const absolute = changed.replace(
+        /from\s+(['"])(\.[^'"]*)\1/gu,
+        (_all, quote, spec) => 'from ' + quote + pathToFileURL(path.resolve(HOME, spec)).href + quote,
+      );
+      const twin = path.join(dir, 'loop-aa72-mutant.mjs');
+      fs.writeFileSync(twin, absolute, 'utf8');
+      let alive = true;
+      try {
+        const M = await import(pathToFileURL(twin).href);
+        const EN_NARRATION = "I'll research each of these five questions in the authoritative sources.";
+        const A = '\u0627\u0644\u062d\u0643\u0645 \u062c\u0627\u0626\u0632.';
+        const B = '\u0627\u0644\u062f\u0644\u064a\u0644 \u0635\u062d\u064a\u062d.';
+        const out = M.deliverableText('1. ' + EN_NARRATION + '\n2. ' + A + '\n3. ' + B, []);
+        alive = out === '1. ' + A + '\n2. ' + B;
+      } catch (e) { alive = false; }
+      finally { fs.rmSync(dir, { recursive: true, force: true }); }
+      ok('MUTANT KILLED: without the renumbering the list begins at the second', !alive,
+        'the mutant survived -- this property is not guarded');
+    }
+  }
+
+  // =========================================================================
   console.log('\n=== A. THE GENERATOR IS RUN, NOT READ ===');
   // The measured range the owner's readers actually span: adult/fiqh, teen, child — each in the
   // typed and the spoken mode, and both personas. If the fork ever emits a preamble for ONE band
