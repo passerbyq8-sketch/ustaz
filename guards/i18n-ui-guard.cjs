@@ -126,66 +126,211 @@ function makeDeadStore() {
   return { getItem: boom, setItem: boom, removeItem: boom, clear: boom, _dump: () => ({}) };
 }
 
+// ===================== THE CONTEXT LIFECYCLE =============================
+// A context is BUILT, USED and TORN DOWN. It used to be only built, and that is why the four
+// request counters in this file were unreliable ("...and not one network request was made",
+// "...and without a request", "...and switching the language four times made no request at
+// all", "...and every request the app did make is same-origin and local").
+//
+// THE MECHANISM, NAMED EXACTLY. linkedom's window is not an object beside the process, it is
+// `new Proxy(globalThis, ...)` -- node_modules/linkedom/cjs/interface/document.js:78-92. So
+// every `window.x = v` in buildContext writes to the PROCESS. Each context therefore
+// overwrote the previous context's fetch, localStorage, history, alert and navigator, while
+// the applications those previous contexts had mounted were still alive and still running
+// their timers. All of them then issued their requests into the NEWEST context's recorder.
+// The counter was not counting the context under test; there was only ever one recorder and
+// every live application wrote into it.
+//
+// Three things are true now, and each of them is proved rather than asserted:
+//   1. destroy() unmounts the application, cuts the timers the context scheduled, and gives
+//      the process back every binding the context overwrote -- by descriptor, as found.
+//   2. Contexts are built and destroyed one at a time. Part N asserts that no two were ever
+//      alive together, which is what makes "this context's counter" mean anything at all.
+//   3. settle() closes the boot BEFORE a measurement window opens, so what a counter sees
+//      inside a window is what that window's own action caused. No window was widened: every
+//      click-to-assertion interval in this file is the length it always was.
+const NET_LEDGER = [];
+const LIVE = new Set();
+let liveAtOnce = 0;
+
+// THE HARNESS'S OWN CLOCK, captured before any context can touch it. A context replaces
+// globalThis.setTimeout for its lifetime (that is the point above), so a tick() that resolved
+// through whatever setTimeout happened to be installed would be running on the application's
+// clock -- and would be cancelled by the teardown that cancels the application's timers.
+const RAW_SET_TIMEOUT = setTimeout;
+const tick = (ms) => new Promise((r) => RAW_SET_TIMEOUT(r, ms || 40));
+
 let liveGen = 0;
 function buildContext(opts) {
   const o = opts || {};
   const gen = ++liveGen;
+  let destroyed = false;
   const { window } = parseHTML('<!DOCTYPE html><html lang="ar" dir="rtl"><body><div id="root"></div></body></html>');
-  window.self = window.self || window;
-  window.window = window.window || window;
-  window.globalThis = window.globalThis || window;
-  window.matchMedia = function (q) {
+
+  // EVERY KEY THIS FUNCTION WRITES IS RECORDED AS IT IS FOUND. put() is the only way a value
+  // is installed below, so the list of things to give back cannot drift from the list of
+  // things taken.
+  const borrowed = new Map();
+  const keep = (k) => { if (!borrowed.has(k)) borrowed.set(k, Object.getOwnPropertyDescriptor(global, k)); };
+  const put = (k, v) => { keep(k); window[k] = v; };
+
+  put('self', window.self || window);
+  put('window', window.window || window);
+  put('globalThis', window.globalThis || window);
+  put('matchMedia', function (q) {
     return { matches: false, media: String(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} };
-  };
-  window.scrollTo = window.scrollTo || function () {};
+  });
+  put('scrollTo', window.scrollTo || function () {});
+
+  // TIMERS BELONG TO THE CONTEXT THAT SCHEDULED THEM. Each is recorded with the moment it is
+  // due, which is what lets settle() know whether this context still has work coming, and what
+  // lets destroy() cut work that would otherwise fire into the next context.
+  const pending = new Map();
+  const intervals = new Set();
+  const rawSetTimeout = window.setTimeout, rawClearTimeout = window.clearTimeout;
+  const rawSetInterval = window.setInterval, rawClearInterval = window.clearInterval;
+  put('setTimeout', function (fn, ms) {
+    if (destroyed) return 0;
+    const args = Array.prototype.slice.call(arguments, 2);
+    const id = rawSetTimeout(function () {
+      pending.delete(id);
+      if (destroyed) return undefined;
+      return typeof fn === 'function' ? fn.apply(null, args) : undefined;
+    }, ms);
+    pending.set(id, Date.now() + (Number(ms) || 0));
+    return id;
+  });
+  put('clearTimeout', function (id) { pending.delete(id); return rawClearTimeout(id); });
+  put('setInterval', function (fn, ms) {
+    if (destroyed) return 0;
+    const args = Array.prototype.slice.call(arguments, 2);
+    const id = rawSetInterval(function () {
+      if (destroyed) return undefined;
+      return typeof fn === 'function' ? fn.apply(null, args) : undefined;
+    }, ms);
+    intervals.add(id);
+    return id;
+  });
+  put('clearInterval', function (id) { intervals.delete(id); return rawClearInterval(id); });
+
   const EP = window.Element && window.Element.prototype;
   if (EP && !EP.scrollIntoView) EP.scrollIntoView = function () {};
-  if (!window.crypto) { try { window.crypto = require('crypto').webcrypto; } catch (e) {} }
-  window.localStorage = o.store || makeStore(o.seed);
-  window.alert = function () {}; window.confirm = function () { return true; };
+  if (!window.crypto) { try { put('crypto', require('crypto').webcrypto); } catch (e) {} }
+  put('localStorage', o.store || makeStore(o.seed));
+  put('alert', function () {}); put('confirm', function () { return true; });
   const net = [];
-  window.fetch = function (u) {
+  put('fetch', function (u) {
+    // The ledger is shared and the array is not: `net` is THIS context's counter, and
+    // NET_LEDGER is where a request issued by a context that was already torn down would
+    // become visible instead of invisible. Part N asserts there are none.
+    NET_LEDGER.push({ gen: gen, url: String(u), afterDestroy: destroyed });
     net.push(String(u));
     return Promise.resolve({ ok: false, status: 0, headers: { get: () => null }, text: () => Promise.resolve(''), json: () => Promise.resolve({}) });
-  };
+  });
   // The navigator the app is allowed to see. `undefined` means "this environment reports no
   // language", which is a different fact from "a language that is not Arabic".
   try {
+    keep('navigator');
     Object.defineProperty(window, 'navigator', {
       configurable: true,
       value: ('nav' in o) ? o.nav : window.navigator,
     });
   } catch (e) {}
-  try { if (!window.TextDecoder) window.TextDecoder = TextDecoder; } catch (e) {}
-  try { if (!window.TextEncoder) window.TextEncoder = TextEncoder; } catch (e) {}
+  try { if (!window.TextDecoder) put('TextDecoder', TextDecoder); } catch (e) {}
+  try { if (!window.TextEncoder) put('TextEncoder', TextEncoder); } catch (e) {}
   try {
     const entries = [{}]; let at = 0;
-    window.history = {
+    put('history', {
       get length() { return entries.length; }, get state() { return entries[at]; },
       pushState: (st) => { entries.splice(at + 1); entries.push(st); at = entries.length - 1; },
       replaceState: (st) => { entries[at] = st; },
-      back: () => { if (at <= 0) return; at--; setTimeout(() => { try { window.dispatchEvent(new window.Event('popstate')); } catch (e) {} }, 0); },
-    };
+      back: () => { if (at <= 0) return; at--; window.setTimeout(() => { try { window.dispatchEvent(new window.Event('popstate')); } catch (e) {} }, 0); },
+    });
   } catch (e) {}
+  keep('navigator'); keep('window'); keep('document');
   global.navigator = window.navigator; global.window = window; global.document = window.document;
+  LIVE.add(gen);
+  if (LIVE.size > liveAtOnce) liveAtOnce = LIVE.size;
+
+  // WHAT THE APPLICATION ITSELF ADDS. A script run in a contextified sandbox declares its top
+  // level ON the sandbox -- which here is the process. React, ReactDOM and every top-level
+  // binding of the shipped block land on globalThis and would otherwise still be there, and
+  // still answering, when the next context runs. The names present before the application is
+  // evaluated are recorded so destroy() can remove the ones it added.
+  const beforeKeys = new Set(Object.getOwnPropertyNames(global));
 
   const ctx = vm.createContext(window);
   const loadUMD = (f) => vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   loadUMD('react.umd.js'); loadUMD('react-dom.umd.js');
   if (!window.React || !window.ReactDOM) { console.log('FAIL: React/ReactDOM did not load.'); process.exit(1); }
+  vm.runInContext('globalThis.__ezRoots = [];', ctx);
   if (!o.mount) vm.runInContext('ReactDOM.createRoot = function () { return { render: function () {}, unmount: function () {} }; };', ctx);
+  // A MOUNTED APPLICATION HAS TO BE UNMOUNTABLE, or destroy() can stop its timers but not its
+  // effects. Every root it creates is kept so destroy() can hand it back to React.
+  else vm.runInContext('(function () { var make = ReactDOM.createRoot; ReactDOM.createRoot = function () { var r = make.apply(this, arguments); globalThis.__ezRoots.push(r); return r; }; })();', ctx);
   window.addEventListener('error', () => {});
   window.console.error = () => {};
-  try { vm.runInContext(transformed, ctx, { filename: 'babel-block.jsx' }); }
+  // A MUTANT IS THE APPLICATION, CHANGED -- not a stub beside it. Part N rebuilds the shipped
+  // source with one edit and drives the same steps as the case it defends, so a counter that
+  // does not move under a mutant is a counter that has stopped looking.
+  const code = o.mutate ? BB.transformBabelBlock(Object.assign({}, block, { raw: o.mutate(rawCode) })) : transformed;
+  try { vm.runInContext(code, ctx, { filename: 'babel-block.jsx' }); }
   catch (e) { console.log('RUNTIME ERROR:\n' + String(e && e.stack ? e.stack : e)); process.exit(1); }
   const grab = (expr) => {
+    if (destroyed) throw new Error('i18n-ui-guard: context ' + gen + ' used after it was destroyed');
     if (gen !== liveGen) throw new Error('i18n-ui-guard: context ' + gen + ' used after ' + liveGen + ' replaced it');
     try { return vm.runInContext('(' + expr + ')', ctx, { filename: 'i18n-guard-api' }); } catch (e) { return undefined; }
   };
-  return { window, ctx, store: window.localStorage, grab, net: () => net.slice() };
+
+  // SETTLE -- the boot has finished doing what the boot scheduled.
+  // A mounted application prefetches the daily verse (app.jsx:9271-9287: requestIdleCallback,
+  // absent under linkedom, with setTimeout(go, 1200) as the fallback) and loadQuran re-fetches
+  // for every later caller, because its latch is cleared on a failed load (app.jsx:1698-1706)
+  // and the double above fails every request. Measured on this tree, a mounted context issues
+  // three requests, at roughly +100 ms, +300 ms and +1200 ms from its mount, and the counter
+  // read at "...and without a request" fell between the second and the third about one run in
+  // seven. THAT is the flake -- not a wait that was too short.
+  //
+  // settle() returns when this context has issued no request for QUIET ms AND has nothing it
+  // scheduled itself falling due within the next QUIET ms. It is not a longer wait inside a
+  // measurement window: it is what closes the boot before a window opens.
+  const QUIET = 250, SETTLE_CAP = 8000;
+  const settle = async () => {
+    const cap = Date.now() + SETTLE_CAP;
+    let quietSince = Date.now(), seen = net.length;
+    for (;;) {
+      await tick(40);
+      if (net.length !== seen) { seen = net.length; quietSince = Date.now(); }
+      const due = Array.from(pending.values()).some((at) => at - Date.now() < QUIET);
+      if (!due && Date.now() - quietSince >= QUIET) return true;
+      if (Date.now() > cap) return false;
+    }
+  };
+
+  // DESTROY -- and the order matters. React first, while its scheduler still has timers to
+  // run: an unmount runs the effect cleanups, which is where the application lets go of its
+  // own work. Then the timers are cut, then the process gets its bindings back.
+  const destroy = () => {
+    if (destroyed) return;
+    try { vm.runInContext('(function () { (globalThis.__ezRoots || []).forEach(function (r) { try { r.unmount(); } catch (e) {} }); globalThis.__ezRoots = []; })();', ctx); } catch (e) {}
+    destroyed = true;
+    for (const id of pending.keys()) { try { rawClearTimeout(id); } catch (e) {} }
+    pending.clear();
+    for (const id of intervals) { try { rawClearInterval(id); } catch (e) {} }
+    intervals.clear();
+    for (const k of Object.getOwnPropertyNames(global)) {
+      if (beforeKeys.has(k) || borrowed.has(k)) continue;
+      try { delete global[k]; } catch (e) {}
+    }
+    for (const [k, d] of borrowed) {
+      try { if (d) Object.defineProperty(global, k, d); else delete global[k]; } catch (e) {}
+    }
+    LIVE.delete(gen);
+  };
+
+  return { window, ctx, store: window.localStorage, grab, net: () => net.slice(), gen: gen, settle, destroy };
 }
 
-const tick = (ms) => new Promise((r) => setTimeout(r, ms || 40));
 function driver(window) {
   const root = window.document.getElementById('root');
   const all = (sel) => Array.prototype.slice.call(root.querySelectorAll(sel));
@@ -286,6 +431,7 @@ async function partA() {
       const pkg = JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8'));
       return Object.keys(pkg.dependencies || {}).length === 5 && Object.keys(pkg.devDependencies || {}).length === 5;
     })());
+  c.destroy();
 }
 
 /* ===================== B. THE DECISION =================================== */
@@ -385,19 +531,23 @@ function partB() {
     eq('a stored ' + JSON.stringify(stored) + ' is honoured', cc.grab('ezLangStored()'), stored);
     eq('...and is not rewritten by the boot', cc.store.getItem(S.LANG_KEY), stored);
     eq('...and the app runs in it', cc.grab('ezLangGet()'), stored);
+    cc.destroy();
   }
   for (const stored of ['', '   ', 'zz', 'AR', '{"lang":"en"}', 'null', 'undefined', '["ar"]']) {
     const cc = buildContext({ seed: { [S.LANG_KEY]: stored } });
     eq('a stored ' + JSON.stringify(stored) + ' is discarded and the slot repaired',
       cc.store.getItem(S.LANG_KEY), 'ar');
     eq('...and the app runs in Arabic', cc.grab('ezLangGet()'), 'ar');
+    cc.destroy();
   }
   const cDead = buildContext({ store: makeDeadStore() });
   eq('a storage that throws is not a stored choice', cDead.grab('ezLangStored()'), null);
   eq('...and the resolver still returns Arabic', cDead.grab('ezLangResolve()'), 'ar');
+  cDead.destroy();
   const cFirst = buildContext({ seed: {} });
   eq('a first run writes ar down, so the journey can agree with the app',
     cFirst.store.getItem(S.LANG_KEY), 'ar');
+  cFirst.destroy();
 }
 
 
@@ -463,6 +613,7 @@ async function partC() {
     langCss.length > 0 && !/#[0-9a-fA-F]{3,8}\b/.test(langCss.replace(/rgba\(0,0,0,[0-9.]+\)/g, '')));
   ok('...and names no bare element or universal selector',
     langCss.length > 0 && !/(^|\})\s*(\*|div|button|span|body|input)\s*\{/.test(langCss));
+  c.destroy();
 }
 
 /* ===================== D. THE CONTROLS =================================== */
@@ -480,7 +631,7 @@ async function partD0() {
 
   ok('a device with no profile lands on the first-run card', d.all('.ezonb-card').length === 1);
   const t = d.all('button[data-ez-lang-toggle]')[0];
-  if (!ok('...and that card carries the language control', !!t)) return;
+  if (!ok('...and that card carries the language control', !!t)) { c.destroy(); return; }
   ok('...INSIDE the card, not floating somewhere over the screen',
     !!(t.closest && t.closest('.ezonb-card')));
   eq('...as an explicit type="button", so it cannot submit the card', t.getAttribute('type'), 'button');
@@ -549,6 +700,8 @@ async function partD0() {
 
   // The language switch is driven on THIS card, before the one press that leaves it: what the
   // switch may not cost is now the card itself, since there is nothing typed left to lose.
+  // The boot is closed BEFORE the window opens; the window itself is untouched.
+  await c.settle();
   const beforeStore = JSON.stringify(c.store._dump());
   const beforeNet = c.net().length;
 
@@ -603,6 +756,7 @@ async function partD0() {
     made && made.age, plain(c.grab('ONBOARDING_DEFAULT_AGE')));
   ok('...and a birth year behind it, so the account ages instead of freezing',
     !!(made && Number.isInteger(made.birthYear) && new Date().getFullYear() - made.birthYear === made.age));
+  c.destroy();
 }
 
 /* D1. AFTER THE PROFILE EXISTS.
@@ -678,6 +832,9 @@ async function partD() {
       eq('...as a type="button"', navMenu.getAttribute('type'), 'button');
       eq('...named «القائمة»', navMenu.getAttribute('aria-label'), 'القائمة');
       ok('...drawn as an icon, with no text of its own', !String(navMenu.textContent || '').trim() && !!navMenu.querySelector('svg'));
+      // The boot is closed BEFORE the window opens; the window below is the same 180 ms
+      // it always was, and the click is the same click.
+      await c.settle();
       const before = { chats: c.store.getItem('ezik_chats_v1'), net: c.net().length };
       await d.click(navMenu);
       await tick(180);
@@ -910,6 +1067,7 @@ async function partD() {
   ok('...and the menu is built by mapping the list, not by two hardcoded rows',
     /EZ_LANGUAGES\.map\(/.test(block));
   ok('no flag stands in for a language', !/\uD83C[\uDDE6-\uDDFF]/.test(block));
+  c.destroy();
 }
 
 
@@ -931,6 +1089,7 @@ async function partE() {
   };
   const c = buildContext({ seed, nav: { languages: ['ar-KW'], language: 'ar-KW' }, mount: true });
   await tick(120);
+  await c.settle();
   const beforeStore = c.store._dump();
   const beforeNet = c.net().length;
   for (const l of ['en', 'ar', 'en', 'ar']) { c.grab("ezLangSet('" + l + "')"); await tick(50); }
@@ -1087,6 +1246,7 @@ async function partE() {
   ok('the secret scan actually has something to read', surface.length > 10000, surface.length + ' chars');
   ok('no key, token or secret appears in the pages this phase owns',
     !/(sk-[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{20,}|xox[baprs]-|-----BEGIN [A-Z ]*PRIVATE KEY)/.test(surface));
+  c.destroy();
 }
 
 /* ===================== F. WORSHIP SPEECH FAILURE ========================= */
@@ -1104,7 +1264,9 @@ async function partWorshipFailure() {
     const fallback = c.grab("ezT('errors.generic')");
     const raw = 'before <worship id="fixture">MODEL RAW MARKUP</worship> after';
     const resolved = await resolve(raw, band || 'adult');
-    return { fallback, raw, resolved, spoken: speak(resolved).trim() };
+    const out = { fallback, raw, resolved, spoken: speak(resolved).trim() };
+    c.destroy();
+    return out;
   };
   const rejectedFetch = async () => { throw new Error('local worship loader rejection'); };
   const malformedFetch = async () => ({ ok: true, json: async () => ({ cells: [] }) });
@@ -1234,6 +1396,105 @@ function partF() {
     (q.match(/<script[^>]*src=/gi) || []).length === 0);
 }
 
+/* ===================== N. THE COUNTERS THEMSELVES ======================== */
+// The four request counters in this file are the assertions the lifecycle at the top was
+// written for, and a counter that has stopped looking passes exactly as loudly as one that is
+// still watching. So each of them is driven again here against a MUTANT APPLICATION -- the
+// shipped source with one real edit, transformed and mounted by the same buildContext, taking
+// the same steps -- and the count must move. If a mutant leaves a counter still, that counter
+// has stopped being a gate and this part says so.
+//
+// Nothing is stubbed and nothing is simulated: the edits put a fetch() into the language
+// setter and into the home's menu button, which is precisely the thing each assertion forbids.
+async function partN() {
+  console.log('\n=== N. THE FOUR REQUEST COUNTERS, PROVED TO BITE ===');
+
+  // The three edits, each a single insertion into the shipped source.
+  const SETTER = 'function ezLangSet(v) {\n  if (!ezLangValid(v) || v === EZ_LANG) return;\n  EZ_LANG = v;';
+  const MENU_BTN = 'onClick={onOpenMenu} style={s.ezistNavBtn}';
+  const fetchOnSwitch = (url) => (src) => {
+    if (src.indexOf(SETTER) === -1) throw new Error('partN: the language setter moved; the mutant is stale');
+    return src.replace(SETTER, SETTER + "\n  fetch(" + url + ");");
+  };
+  const fetchOnMenu = (src) => {
+    if (src.indexOf(MENU_BTN) === -1) throw new Error('partN: the home menu button moved; the mutant is stale');
+    return src.replace(MENU_BTN, "onClick={(ev) => { fetch('/menu-open-ping'); return onOpenMenu(ev); }} style={s.ezistNavBtn}");
+  };
+  const LOCAL_DICT = "'/i18n/' + v + '.json'";
+  const REMOTE_DICT = "'https://i18n.example.test/' + v + '.json'";
+  const HOME_ENTRY = '\u0627\u0644\u0642\u0627\u0626\u0645\u0629';
+  const D1_SEED = () => ({
+    child_profile: JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: 'I18N-N', createdAt: '2026-01-01T00:00:00.000Z' }),
+    disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED('I18N-N'),
+  });
+
+  // --- N1. defends "...and not one network request was made" (D0, the first-run card) ---
+  {
+    const c = buildContext({ seed: {}, mount: true, mutate: fetchOnSwitch(LOCAL_DICT) });
+    await tick(150);
+    const d = driver(c.window);
+    await c.settle();
+    const before = c.net().length;
+    const t = d.all('button[data-ez-lang-toggle]')[0];
+    await d.click(t);
+    await d.click(d.all('.ezlang-menu button')[1]);
+    await tick(90);
+    ok('MUTANT killed: a first-run card that fetches a dictionary on the switch is COUNTED',
+      c.net().length > before, 'before=' + before + ' after=' + c.net().length);
+    c.destroy();
+  }
+
+  // --- N2. defends "...and without a request" (D1, the home's menu button) ---
+  {
+    const c = buildContext({ seed: D1_SEED(), mount: true, mutate: fetchOnMenu });
+    await tick(150);
+    const d = driver(c.window);
+    await d.click(d.all('.ezc-rail button.ezc-icon')[0]);
+    await tick(80);
+    const homeEntry = d.all('button').filter((b) => String(b.textContent || '').trim() === HOME_ENTRY)[0];
+    await d.click(homeEntry);
+    await tick(140);
+    const navMenu = d.all('.ezist-nav button')[0];
+    await c.settle();
+    const before = c.net().length;
+    await d.click(navMenu);
+    await tick(180);
+    ok('MUTANT killed: a menu button that pings on the way to opening is COUNTED',
+      c.net().length > before, 'before=' + before + ' after=' + c.net().length);
+    c.destroy();
+  }
+
+  // --- N3. defends "...and switching the language four times made no request at all" (E1) ---
+  {
+    const c = buildContext({ seed: D1_SEED(), mount: true, mutate: fetchOnSwitch(LOCAL_DICT) });
+    await tick(120);
+    await c.settle();
+    const before = c.net().length;
+    for (const l of ['en', 'ar', 'en', 'ar']) { c.grab("ezLangSet('" + l + "')"); await tick(50); }
+    ok('MUTANT killed: four switches that each fetch a dictionary are COUNTED',
+      c.net().slice(before).length > 0, JSON.stringify(c.net().slice(before)));
+    c.destroy();
+  }
+
+  // --- N4. defends "...and every request the app did make is same-origin and local" (E1) ---
+  {
+    const c = buildContext({ seed: D1_SEED(), mount: true, mutate: fetchOnSwitch(REMOTE_DICT) });
+    await tick(120);
+    await c.settle();
+    for (const l of ['en', 'ar', 'en', 'ar']) { c.grab("ezLangSet('" + l + "')"); await tick(50); }
+    ok('MUTANT killed: a dictionary fetched from another origin is SEEN as another origin',
+      c.net().filter((u) => !/^\//.test(u)).length > 0, JSON.stringify(c.net().filter((u) => !/^\//.test(u))));
+    c.destroy();
+  }
+
+  // --- and the lifecycle itself, which is what makes those four counts mean one context ---
+  eq('no request was ever recorded against a context that had been torn down',
+    NET_LEDGER.filter((r) => r.afterDestroy), []);
+  eq('and no two contexts were ever alive at the same moment', liveAtOnce, 1);
+  ok('...so every counter above counted one application and not a process',
+    LIVE.size === 0, 'contexts still live at the end: ' + LIVE.size);
+}
+
 /* ===================== main ============================================== */
 (async function main() {
   console.log('=== i18n-ui-guard (S116) — ' + htmlFile + ' ===');
@@ -1245,6 +1506,7 @@ function partF() {
   await partE();
   await partWorshipFailure();
   partF();
+  await partN();
   console.log('');
   // The skipped count is stated on its own and never folded into the total. A run that could not
   // reach git covered fewer things than a run that could, and the last line has to say so: the
