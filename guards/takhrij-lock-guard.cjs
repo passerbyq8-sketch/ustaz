@@ -1450,6 +1450,221 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     }
   }
 
+  console.log('\n=== AA-83 · A GRADE STANDS ONLY WHERE A SOURCE STANDS WITH IT ===');
+  {
+    // MEASURED IN PRODUCTION by the owner: «صحيح» printed under prophetic texts with no narrator
+    // and no source — three times in one answer, and once under a text well known to be weak. And
+    // it FLUCTUATED between modes, which reproduces from code: lib/anchor/units.js:181 empties the
+    // STRUCTURED `ruling=` field on the anchored route only (api/ask.js:3857), and nothing anywhere
+    // read a grade written as prose. The rule is at the seat for the reason AA-85 is.
+    const SEAT = await esm('lib/finalize-reader-text.js');
+    const LOCKM = await esm('lib/takhrij-lock.js');
+    const MATN = 'صلاةُ الجماعةِ تفضلُ صلاةَ الفذِّ بسبعٍ وعشرينَ درجة';
+    const SAYS = 'قال النبيُّ صلّى الله عليه وسلّم';
+    // The page that carries every attribution used below, so lib/takhrij-lock.js is satisfied and
+    // what these rows measure is THIS rule and not the lock’s own sentence drop.
+    const PAGES = [{ url: 'https://islamqa.info/ar/answers/1/x',
+      passage: 'رواه البخاري ومسلم متفق عليه صححه الألباني وأخرجه البخاري، ' + MATN }];
+    const sealG = (text, extra) => SEAT.finalizeReaderText(
+      { kind: 'answer', text, sources: PAGES, ...(extra || {}) });
+
+    // ── THE GRADE GOES, THE TEXT STAYS ──────────────────────────────────────
+    const ownersShape = SAYS + ': «' + MATN + '»، وهو حديثٌ صحيحٌ.'
+      + '\nوفي البابِ حديثٌ صحيحٌ آخر.\nوإسنادُه صحيحٌ.';
+    {
+      const out = sealG(ownersShape);
+      ok('AA-83 a grade with no source does not reach the reader',
+        !/صحيح/u.test(out.text) && out.problems.includes(SEAT.UNSOURCED_GRADE)
+          && out.degraded.includes('grade:no-source-with-it'),
+        JSON.stringify(out));
+      // AND THE PROPHETIC TEXT IS NEVER REMOVED. Deleting the hadith to delete its grade would be
+      // a far worse defect than the one being repaired, and this row is what says so.
+      ok('AA-83 ...and the prophetic text it was attached to is untouched',
+        out.text.includes(MATN) && out.text.includes(SAYS), JSON.stringify(out.text));
+    }
+    for (const [label, text, gone] of [
+      ['the matn shape', 'وهذا حديثٌ صحيحٌ عن النبيِّ صلّى الله عليه وسلّم.', 'وهذا حديثٌ عن النبيِّ صلّى الله عليه وسلّم.'],
+      ['the chain shape', 'الحكمُ ثابتٌ في البابِ. صحيحُ الإسنادِ.', 'الحكمُ ثابتٌ في البابِ.'],
+      ['the definite form with its conjunction', 'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.', 'والحديثُ في البابِ يدلُّ على ذلك.'],
+      ['a weak grading, equally unsourced', 'وهو حديثٌ ضعيفٌ.', 'وهو حديثٌ.'],
+    ]) {
+      ok('AA-83 ' + label + ': the grade goes and the rest is byte-identical',
+        sealG(text).text === gone, JSON.stringify(sealG(text).text));
+    }
+
+    // ── THE NEGATIVE, AND IT IS THE WHOLE RISK ──────────────────────────────
+    // A grade that DOES carry a source — a named collection, a card, a citation — is untouched.
+    const CARDTAG = '<source site="s" url="https://islamqa.info/ar/answers/1/x">T</source>';
+    for (const [label, text, extra] of [
+      ['a named collection', SAYS + ': «' + MATN + '»، رواه البخاريُّ، وهو حديثٌ صحيحٌ.', null],
+      ['a card in the block', 'وهو حديثٌ صحيحٌ.\n<hadith narrator="البخاري" ruling="صحيح">' + MATN + '</hadith>', null],
+      ['a numbered citation', 'وهو حديثٌ صحيحٌ (البخاري ٦٤٥).', null],
+      ['a link', 'وهو حديثٌ صحيحٌ — https://islamqa.info/ar/answers/1/x', null],
+      ['«متفق عليه» beside it', 'وهو حديثٌ صحيحٌ، متفقٌ عليه.', null],
+      ['a man graded it', 'وهو حديثٌ صحيحٌ صححه الألبانيُّ.', null],
+      ['the collection one sentence earlier in the same block',
+        SAYS + ': «' + MATN + '». رواه البخاريُّ. وهو حديثٌ صحيحٌ.', null],
+      ['the card the line introduces is the next block',
+        'وهو حديثٌ صحيحٌ:\n<hadith narrator="البخاري">' + MATN + '</hadith>', null],
+      ['a card is still to be appended, so the last block is left alone',
+        'وهو حديثٌ صحيحٌ.', { cards: [{ tag: CARDTAG }] }],
+    ]) {
+      const out = sealG(text, extra);
+      ok('AA-83 byte-identical, a grade with a source: ' + label,
+        out.text === text && !out.problems.includes(SEAT.UNSOURCED_GRADE), JSON.stringify(out.text));
+    }
+
+    // ...and «صحيح» is an ordinary Arabic word. These run through the rule directly, because the
+    // lock above would drop some of these sentences for its own reasons and hide what is measured.
+    for (const [label, text] of [
+      ['ordinary prose: «that is correct»', 'نعم، هذا كلامٌ صحيحٌ لا غبارَ عليه.'],
+      ['a bare «yes, that is correct»', 'نعم، هذا صحيحٌ.'],
+      ['the BOOK named, not a grade', 'أخرجه في صحيحِ البخاريِّ.'],
+      ['«صحيح ابن حبان»', 'وهو في صحيحِ ابنِ حبّانَ.'],
+      ['a man called al-Hasan', 'قال الحسنُ البصريُّ رحمه الله.'],
+      ['a man called Thabit', 'عن زيدِ بنِ ثابتٍ رضي الله عنه.'],
+      ['a correct OPINION, not a hadith', 'والرأيُ الصحيحُ عند الجمهورِ خلافُ ذلك.'],
+      ['an ayah, frozen', '﴿وَأَقِيمُوا الصَّلَاةَ﴾ وهذا أمرٌ صحيحٌ.'],
+      ['an answer that is NOTHING but a grading is left as it arrived', 'إسنادُه صحيحٌ.'],
+    ]) {
+      const out = LOCKM.dropUnsourcedGrades(text);
+      ok('AA-83 byte-identical, not a grade at all: ' + label,
+        out.text === text && out.removed.length === 0, JSON.stringify(out));
+    }
+
+    // ── AND THE SAME RULE ON THE STRUCTURED FIELD ───────────────────────────
+    // «with no narrator and no source» is a tag shape as well as a prose shape:
+    // `<hadith ruling="صحيح">متن</hadith>` prints the grade under the matn and no «رَوَى …» line
+    // at all. lib/anchor/units.js:181 already empties such a field, from ONE route
+    // (api/ask.js:3857) and only with the fetched pages in hand; this asks the narrower question
+    // that needs no pages — is there a chain or a source IN THE TAG.
+    {
+      const tagged = (attrs) => '<hadith' + attrs + '>' + MATN + '</hadith>';
+      {
+        const text = tagged(' ruling="صحيح"');
+        const out = sealG(text);
+        ok('AA-83 a structured grade with no chain does not reach the reader',
+          out.text === tagged(' ruling=""')
+            && out.problems.includes(SEAT.UNSOURCED_GRADE), JSON.stringify(out.text));
+        // THE TAG IS EMPTIED, NOT DROPPED — the same reason lib/anchor/units.js gives: the matn
+        // survives, and deleting the hadith to delete its grade is the worse defect.
+        ok('AA-83 ...and the tag is emptied, not dropped: the matn survives',
+          out.text.includes(MATN) && out.text.includes('<hadith'), JSON.stringify(out.text));
+      }
+      for (const [label, attrs] of [
+        ['a chain is named', ' narrator="البخاري" ruling="صحيح"'],
+        ['the ruling IS the source (the frozen shape, lib/closed-deen.js:141)',
+          ' ruling="أخرجه البخاري (1) ومسلم (1907)"'],
+        ['the ruling names a collection', ' ruling="رواه البخاري"'],
+        ['a bare tag, no ruling at all', ''],
+        ['a ruling already empty', ' narrator="" ruling=""'],
+      ]) {
+        const text = tagged(attrs);
+        ok('AA-83 byte-identical, a structured grade that stands: ' + label,
+          sealG(text).text === text, JSON.stringify(sealG(text).text));
+      }
+    }
+    // ── MUTANTS ─────────────────────────────────────────────────────────────
+    {
+      const lockPath = path.join(REPO, 'lib', 'takhrij-lock.js');
+      const lockSrc = read('lib/takhrij-lock.js');
+      const lockDir = path.dirname(lockPath);
+      const absolute = (source) => source.replace(
+        /from\s+(['"])(\.[^'"]*)\1/gu,
+        (_all, quote, spec) => 'from ' + quote
+          + 'file:///' + path.resolve(lockDir, spec).replace(/\\/g, '/') + quote,
+      );
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a83-mut-'));
+      const drive = async (name, apply, survives) => {
+        const changed = apply(lockSrc);
+        if (changed === lockSrc) {
+          ok('MUTANT ' + name, false, 'seam moved: the mutation did not apply, so nothing was tested');
+          return;
+        }
+        const file = path.join(dir, name.replace(/[^a-z0-9-]/gi, '_') + '.mjs');
+        fs.writeFileSync(file, absolute(changed), 'utf8');
+        let alive = true;
+        try { alive = await survives(await import('file:///' + file.replace(/\\/g, '/'))); }
+        catch { alive = false; }
+        ok('MUTANT KILLED: ' + name, !alive, 'the mutant survived — this property is not guarded');
+      };
+      try {
+        // M-F — the rule stops asking whether a source stands with the grade, and eats a grade
+        // that carries one. This is the direction that DELETES what the reader was entitled to.
+        await drive('grade-rule-stops-looking-for-the-source',
+          (src) => src.replace('  return takhrijSpans(block).length > 0',
+            '  return false && takhrijSpans(block).length > 0'),
+          async (mod) => {
+            const text = 'وهو حديثٌ صحيحٌ، متفقٌ عليه.';
+            return mod.dropUnsourcedGrades(text).text === text;
+          });
+
+        // M-G — the adjacency requirement goes, so any «صحيح» anywhere is read as a grading and
+        // ordinary Arabic prose loses a word. The other direction of the same damage.
+        await drive('grade-rule-stops-requiring-the-noun-beside-it',
+          (src) => src.replace('if (before && MATN_NOUNS.has(before))', 'if (before)'),
+          async (mod) => {
+            const text = 'نعم، هذا كلامٌ صحيحٌ لا غبارَ عليه.';
+            return mod.dropUnsourcedGrades(text).text === text;
+          });
+
+        // M-H — the rule removes the SENTENCE rather than the word, which deletes the prophetic
+        // text in order to delete its grade. Explicitly forbidden, so explicitly guarded.
+        await drive('grade-rule-removes-the-sentence-not-the-word',
+          (src) => src.replace('cuts.push(/[\\u0621-\\u064A]/u.test(rest) ? { start: sp.start, end: sp.end }',
+            'cuts.push(false ? { start: sp.start, end: sp.end }'),
+          async (mod) => {
+            // TWO LINES, deliberately. With one, cutting the sentence empties the answer and the
+            // rule’s own never-empty net hands the original back — which would mask the mutant.
+            const text = 'الحكمُ في البابِ ظاهرٌ.\n' + SAYS + ': «' + MATN + '»، وهو حديثٌ صحيحٌ.';
+            return mod.dropUnsourcedGrades(text).text.includes(MATN);
+          });
+
+        // M-I — the structured rule stops asking whether a chain is named, and empties the
+        // grade on a card that carries one. The deleting direction again.
+        await drive('tag-rule-stops-asking-for-the-chain',
+          (src) => src.replace('    if (narrator) return whole;', '    if (false) return whole;'),
+          async (mod) => {
+            const text = '<hadith narrator="البخاري" ruling="صحيح">' + MATN + '</hadith>';
+            return mod.dropUnsourcedGrades(text).text === text;
+          });
+
+        // M-J — the rule drops the whole tag instead of emptying the attribute, which deletes
+        // the prophetic text in order to delete its grade.
+        await drive('tag-rule-drops-the-card-instead-of-emptying-it',
+          (src) => src.replace(
+            "return '<hadith' + attrs.replace(/ruling\\s*=\\s*\"[^\"]*\"/u, 'ruling=\"\"') + '>';",
+            "return '';"),
+          async (mod) => {
+            const text = '<hadith ruling="صحيح">' + MATN + '</hadith>';
+            // The property is «emptied, not dropped»: the opening tag is still there and the
+            // matn with it. The regex matches only the opening tag, so the matn alone would
+            // survive even the mutation — the card is what the mutant destroys.
+            const got = mod.dropUnsourcedGrades(text).text;
+            return got.includes('<hadith') && got.includes(MATN);
+          });
+      } finally {
+        try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+
+    // ── AND THE SEAT IS WHERE IT RUNS, WHICH IS THE HALF A UNIT TEST CANNOT SEE ──
+    {
+      const seatSrc2 = read('lib/finalize-reader-text.js');
+      ok('AA-83 the seat imports the rule and records its own problem code',
+        /import \{ lockTakhrij, dropUnsourcedGrades \} from '\.\/takhrij-lock\.js';/u.test(seatSrc2)
+        && /export const UNSOURCED_GRADE = 'UNSOURCED_GRADE';/u.test(seatSrc2));
+      // ORDER IS THE CONTRACT. The lock and the screen drop whole sentences, and a sentence they
+      // drop may be the one that carried the source for the grade beside it. Asking before their
+      // cuts would license a grade whose source is about to be removed.
+      const atLock = seatSrc2.indexOf('const locked = lockTakhrij(original, sources);');
+      const atGrade = seatSrc2.indexOf('const grades = dropUnsourcedGrades(text,');
+      const atLeadIn = seatSrc2.indexOf('const leadIn = dropDanglingLeadIn(text, mayBeFollowed);');
+      ok('AA-83 ...and it runs AFTER the lock and BEFORE the lead-in check',
+        atLock > -1 && atGrade > atLock && atLeadIn > atGrade,
+        JSON.stringify({ atLock, atGrade, atLeadIn }));
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
