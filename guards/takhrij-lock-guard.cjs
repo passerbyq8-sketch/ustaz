@@ -1665,6 +1665,175 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         JSON.stringify({ atLock, atGrade, atLeadIn }));
     }
   }
+  console.log('\n=== AA-86 · A REMOVAL MUST NOT LEAVE AN ANSWER THAT IS ONLY ITS OWN MARKS ===');
+  {
+    // FOUND BY THE PRE-MERGE AUDIT (PRE-MERGE-AUDIT-2026-09-04.md §4, case C4), and found by
+    // COMBINING today's fixes rather than by testing any one of them. Each of AA-30, AA-83 and
+    // AA-85 refuses to empty an answer, and each is right on its own terms; between them they
+    // left a reply consisting of nothing but the reviewer's two marks, ok=true, outcome=CLEAN.
+    //
+    // The rows below drive the two real modules in the order a reader's request drives them —
+    // lib/output-reviewer.js, then lib/finalize-reader-text.js — because that composition IS
+    // the defect and neither module alone shows it.
+    const SEAT86 = await esm('lib/finalize-reader-text.js');
+    const REV86 = await esm('lib/output-reviewer.js');
+
+    // The audit's witness, byte for byte.
+    const W_IN = 'قال ابن قدامة إن إسناده صحيح.</source>\nوالدليل على ذلك:';
+    const reviewed = REV86.reviewAnswer(
+      { text: W_IN, evidence: [], domain: 'fiqh', mode: 'عادي' }).text;
+    const sealed86 = SEAT86.finalizeReaderText({ kind: 'answer', text: reviewed, sources: [] });
+
+    // THE PRECONDITION FIRST. A row that stopped producing the composition would otherwise go
+    // on passing in silence, which is the failure mode the AA-85 seat rows above are built to
+    // avoid. All three of today's removals must fire on this witness, or it is not the witness.
+    ok('AA-86 precondition: the reviewer leaves a mark-bearing answer whose one sentence is a grade',
+      reviewed.includes(REV86.REVIEW_TAGS.ATTRIBUTION_REMOVED)
+        && reviewed.includes(REV86.REVIEW_TAGS.FIQH_UNSOURCED),
+      JSON.stringify(reviewed));
+    ok('AA-86 precondition: all three of today\'s seat removals fire on it',
+      sealed86.problems.includes(SEAT86.ORPHAN_SOURCE_CLOSER)
+        && sealed86.problems.includes(SEAT86.UNSOURCED_GRADE)
+        && sealed86.problems.includes(SEAT86.DANGLING_LEAD_IN),
+      JSON.stringify(sealed86.problems));
+
+    // AND THE RULE ITSELF.
+    ok('AA-86 an answer stripped down to its own marks is REFUSED, not delivered',
+      sealed86.ok === false
+        && sealed86.problems.includes(SEAT86.ANSWER_WITHOUT_SUBSTANCE)
+        && sealed86.outcome === 'REFUSED',
+      JSON.stringify({ ok: sealed86.ok, problems: sealed86.problems, outcome: sealed86.outcome }));
+    ok('AA-86 ...and what the reader gets is a sentence, not two disclaimers about nothing',
+      sealed86.text === SEAT86.FINALIZER_REFUSAL
+        && !sealed86.text.includes(REV86.REVIEW_TAGS.ATTRIBUTION_REMOVED),
+      JSON.stringify(sealed86.text));
+    ok('AA-86 ...and the caller can see WHY, not only that it happened',
+      Array.isArray(sealed86.degraded) && sealed86.degraded.includes('answer:marks-only'),
+      JSON.stringify(sealed86.degraded));
+
+    // ── THE NEGATIVES, AND THEY ARE THE WHOLE RISK ──────────────────────────
+    // This rule REFUSES. Every row below is an answer it must not touch.
+    {
+      // One real sentence survives the same three removals: the answer ships, marks and all.
+      const keeps = 'المسح على الخفين جائز للمسافر ثلاثة أيام بلياليها.\n'
+        + 'قال ابن قدامة إن إسناده صحيح.</source>\nوالدليل على ذلك:';
+      const reviewedKeeps = REV86.reviewAnswer(
+        { text: keeps, evidence: [], domain: 'fiqh', mode: 'عادي' }).text;
+      const out = SEAT86.finalizeReaderText({ kind: 'answer', text: reviewedKeeps, sources: [] });
+      ok('AA-86 an answer with one surviving ruling is delivered, not refused',
+        out.ok === true
+          && !out.problems.includes(SEAT86.ANSWER_WITHOUT_SUBSTANCE)
+          && out.text.includes('ثلاثة أيام بلياليها'),
+        JSON.stringify({ ok: out.ok, problems: out.problems, text: out.text }));
+    }
+    {
+      // AN ANSWER THAT ARRIVED AS MARKS ALONE IS NOT NEWLY REFUSED. The rule forbids TURNING a
+      // substantial answer into an insubstantial one; it does not invent a refusal for input
+      // this function had no hand in shaping.
+      const marksOnly = REV86.REVIEW_TAGS.FIQH_UNSOURCED;
+      const out = SEAT86.finalizeReaderText({ kind: 'answer', text: marksOnly, sources: [] });
+      ok('AA-86 an answer that ARRIVED as marks alone leaves exactly as it arrived',
+        out.ok === true && out.text === marksOnly
+          && !out.problems.includes(SEAT86.ANSWER_WITHOUT_SUBSTANCE),
+        JSON.stringify({ ok: out.ok, text: out.text, problems: out.problems }));
+    }
+    {
+      // The AA-85 row above asserts this answer is left alone; here it is asserted that the new
+      // rule did not turn «left alone» into «refused».
+      const only = SEAT86.finalizeReaderText(
+        { kind: 'answer', text: 'قال النبيُّ صلّى الله عليه وسلّم:', sources: [] });
+      ok('AA-86 an answer that is nothing but a lead-in is still delivered',
+        only.ok === true && !only.problems.includes(SEAT86.ANSWER_WITHOUT_SUBSTANCE),
+        JSON.stringify(only));
+    }
+    {
+      // A PLAIN ANSWER WITH NO MARKS ON IT AT ALL is the commonest case by far, and the rule
+      // must be invisible to it.
+      const plain = 'المسح على الخفين جائز للمسافر ثلاثة أيام بلياليها.';
+      const out = SEAT86.finalizeReaderText({ kind: 'answer', text: plain, sources: [] });
+      ok('AA-86 a plain answer is byte-identical and untouched',
+        out.ok === true && out.text === plain && out.problems.length === 0,
+        JSON.stringify(out));
+    }
+
+    // ── ONE VOCABULARY, ONE OWNER ───────────────────────────────────────────
+    // The marks are lib/output-reviewer.js's wording. The seat asks the question and must not
+    // hold a second copy of the answer — the same rule that file states at its own foot for the
+    // three it already lends.
+    {
+      const seatSrc86 = read('lib/finalize-reader-text.js');
+      ok('AA-86 the seat borrows the predicate rather than copying the wording',
+        /carriesReaderSubstance,/u.test(seatSrc86)
+          && /from '\.\/output-reviewer\.js'/u.test(seatSrc86)
+          && !seatSrc86.includes(REV86.REVIEW_TAGS.FIQH_UNSOURCED)
+          && !seatSrc86.includes(REV86.REVIEW_TAGS.ATTRIBUTION_REMOVED));
+      ok('AA-86 the problem code is named once and exported for the guard to pin',
+        /export const ANSWER_WITHOUT_SUBSTANCE = 'ANSWER_WITHOUT_SUBSTANCE';/u.test(seatSrc86));
+      // ORDER IS THE CONTRACT, as it is for AA-83 above: the question can only be asked once
+      // every removal has been made, so it must stand below the lead-in check.
+      const atLeadIn86 = seatSrc86.indexOf('const leadIn = dropDanglingLeadIn(text, mayBeFollowed);');
+      const atSubstance = seatSrc86.indexOf('if (carriesReaderSubstance(original) && !carriesReaderSubstance(text))');
+      ok('AA-86 ...and it is asked AFTER every removal, not between them',
+        atLeadIn86 > -1 && atSubstance > atLeadIn86,
+        JSON.stringify({ atLeadIn86, atSubstance }));
+    }
+
+    // ── MUTANTS ─────────────────────────────────────────────────────────────
+    {
+      const seat86Path = path.join(REPO, 'lib', 'finalize-reader-text.js');
+      const seat86Src = read('lib/finalize-reader-text.js');
+      const seat86Dir = path.dirname(seat86Path);
+      const absolute86 = (source) => source.replace(
+        /from\s+(['"])(\.[^'"]*)\1/gu,
+        (_all, quote, spec) => 'from ' + quote
+          + 'file:///' + path.resolve(seat86Dir, spec).replace(/\\/g, '/') + quote,
+      );
+      const dir86 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a86-mut-'));
+      const drive86 = async (name, apply, survives) => {
+        const changed = apply(seat86Src);
+        if (changed === seat86Src) {
+          ok('MUTANT ' + name, false, 'seam moved: the mutation did not apply, so nothing was tested');
+          return;
+        }
+        const file = path.join(dir86, name.replace(/[^a-z0-9-]/gi, '_') + '.mjs');
+        fs.writeFileSync(file, absolute86(changed), 'utf8');
+        let alive = true;
+        try { alive = await survives(await import('file:///' + file.replace(/\\/g, '/'))); }
+        catch { alive = false; }
+        ok('MUTANT KILLED: ' + name, !alive, 'the mutant survived — this property is not guarded');
+      };
+      try {
+        // M-K — the seat stops asking, which is the tree exactly as the audit found it. `alive`
+        // is «the property still holds under the mutation», as everywhere else in this file:
+        // the property is «an answer of marks alone does not reach the reader».
+        await drive86('seat-stops-asking-whether-anything-is-left',
+          (s) => s.replace('if (carriesReaderSubstance(original) && !carriesReaderSubstance(text))',
+            'if (false && carriesReaderSubstance(original) && !carriesReaderSubstance(text))'),
+          async (mod) => {
+            const out = mod.finalizeReaderText({ kind: 'answer', text: reviewed, sources: [] });
+            return out.ok === false;
+          });
+
+        // M-L — the rule fires on every answer it touched at all, not only on the transition.
+        // This is the OVER-REFUSING direction, and it is the one that costs the reader an answer
+        // he was entitled to. The witness is the negative two blocks above.
+        await drive86('rule-fires-on-any-answer-it-touched',
+          (s) => s.replace('if (carriesReaderSubstance(original) && !carriesReaderSubstance(text))',
+            'if (text !== original)'),
+          async (mod) => {
+            const keeps = 'المسح على الخفين جائز للمسافر ثلاثة أيام بلياليها.\n'
+              + 'قال ابن قدامة إن إسناده صحيح.</source>\nوالدليل على ذلك:';
+            const reviewedKeeps = REV86.reviewAnswer(
+              { text: keeps, evidence: [], domain: 'fiqh', mode: 'عادي' }).text;
+            const out = mod.finalizeReaderText(
+              { kind: 'answer', text: reviewedKeeps, sources: [] });
+            return out.ok === true && out.text.includes('ثلاثة أيام بلياليها');
+          });
+      } finally {
+        try { fs.rmSync(dir86, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
