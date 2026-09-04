@@ -719,6 +719,306 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     }
   }
 
+  // =========================================================================
+  // E. THE SEAT — WHERE EVERY READER PASSES, NOT WHERE ONE IN FIFTY-SEVEN DOES
+  //
+  // ── WHY THIS SECTION IS IN *THIS* FILE AND NOT IN A GATE OF ITS OWN ──
+  // Sections A–D measure the identity rule at the reviewer, and the reviewer is reachable
+  // from EXACTLY ONE of api/ask.js's fifty-seven exits: lib/output-reviewer.js is imported
+  // at runtime only by lib/free-brain/review.js:39 and lib/sentence-stream.js:52, those only
+  // by lib/free-brain/loop.js:55 and :67, and that file only by api/ask.js:1522 — inside the
+  // branch opened at api/ask.js:1517. Every other exit reaches lib/finalize-reader-text.js
+  // instead. The seat is therefore the SAME rule at a second site, and a second gate for it
+  // would be two rosters free to drift apart — the very fault the code avoids by lending the
+  // decision instead of copying it. gates.json gains no row.
+  //
+  // ── THE THREE THINGS THAT MAY NOT SILENTLY REGRESS ──
+  //   E1  THE READ IS OUTSIDE THE consistencyContext BLOCK. api/ask.js:1408, :1538 and :1769
+  //       null that context ON PURPOSE, for reasons that have nothing to do with identity.
+  //       Folding the read back inside it would switch the check off for the exits that
+  //       answer the most readers — and every fixture in this section would still pass,
+  //       because a fixture can always supply a context. That is trap 81 exactly: a guard
+  //       green on everything except the symptom. So it is measured structurally AND killed
+  //       by a mutant that drives the case the three nulling exits actually produce.
+  //   E2  ONE WORDING. The seat must print the reviewer's own literal, never a copy of it.
+  //   E3  SILENCE IS THE GOVERNING DEFAULT. No carried identity means no notice, and a reply
+  //       that carries no ruling gets nothing said about it — which is what keeps the retired
+  //       deterministic interrogation buried (guards/shipped-reality-guard.cjs:301 and
+  //       guards/stored-deen-sub-suite.cjs:500 both caught its return on the first run of
+  //       this change, and both were right).
+  // =========================================================================
+  console.log('\n=== E. THE SEAT — the identity is read where every reader passes ===');
+  {
+    const os = require('os');
+    const FIN = await esm('lib/finalize-reader-text.js');
+    const finalizerFile = path.join(REPO, 'lib', 'finalize-reader-text.js');
+    const reviewerFile = path.join(REPO, 'lib', 'output-reviewer.js');
+    const finalizerSource = fs.readFileSync(finalizerFile, 'utf8');
+
+    // «قال {name} إنّ الأمر جائز.» — this section's own copy, because section D's is
+    // block-scoped to section D and a shared one would tie two sections together.
+    const saidE = (who) => 'قال ' + who + ' إنّ الأمر جائز.';
+
+    ok('E0 · the seat exposes the code an appended notice records',
+      FIN.IDENTITY_NOT_RESPECTED === 'REQUESTED_IDENTITY_NOT_RESPECTED',
+      'without the exported code a caller cannot tell an appended notice from a repair');
+    ok('E0 · the reviewer publishes the three names the seat borrows',
+      typeof REV.requestedIdentityRespected === 'function'
+        && typeof REV.identityView === 'function'
+        && typeof REV.noticeInsertionIndex === 'function',
+      'the seat would otherwise have to hold a copy of the decision, the shape or the placement');
+
+    // ── E1. PLACEMENT, MEASURED ON BRACE BALANCE AND NOT ON PROSE ─────────────
+    //
+    // Comments and string literals are blanked to spaces of EQUAL LENGTH first, so every
+    // offset survives and a brace inside a comment cannot close the block early. This is a
+    // structural reading of the file; it does not match on any sentence anybody wrote.
+    const blanked = (() => {
+      const src = finalizerSource;
+      const out = src.split('');
+      let i = 0;
+      while (i < src.length) {
+        const two = src.slice(i, i + 2);
+        if (two === '//') { while (i < src.length && src[i] !== '\n') { out[i] = ' '; i += 1; } continue; }
+        if (two === '/*') {
+          const end = src.indexOf('*/', i + 2);
+          const stop = end === -1 ? src.length : end + 2;
+          for (let j = i; j < stop; j += 1) if (src[j] !== '\n') out[j] = ' ';
+          i = stop; continue;
+        }
+        const quote = src[i];
+        if (quote === "'" || quote === '"' || quote === '`') {
+          out[i] = ' '; i += 1;
+          while (i < src.length && src[i] !== quote) {
+            if (src[i] === '\\') { out[i] = ' '; i += 1; }
+            if (i < src.length) { if (src[i] !== '\n') out[i] = ' '; i += 1; }
+          }
+          if (i < src.length) { out[i] = ' '; i += 1; }
+          continue;
+        }
+        i += 1;
+      }
+      return out.join('');
+    })();
+
+    const blockOpen = blanked.indexOf('if (input.consistencyContext) {');
+    let blockEnd = -1;
+    if (blockOpen >= 0) {
+      let depth = 0;
+      for (let i = blanked.indexOf('{', blockOpen); i < blanked.length; i += 1) {
+        if (blanked[i] === '{') depth += 1;
+        else if (blanked[i] === '}') { depth -= 1; if (depth === 0) { blockEnd = i; break; } }
+      }
+    }
+    ok('E1 · the consistencyContext block is located and closed',
+      blockOpen >= 0 && blockEnd > blockOpen, 'open@' + blockOpen + ' close@' + blockEnd);
+
+    const readOffsets = [];
+    for (let at = blanked.indexOf('input.requestedIdentity'); at >= 0;
+      at = blanked.indexOf('input.requestedIdentity', at + 1)) readOffsets.push(at);
+    ok('E1 · the seat reads input.requestedIdentity at all', readOffsets.length > 0,
+      'the field api/ask.js:1766 carries would be dead again');
+    ok('E1 · ...and EVERY read of it lies outside the consistencyContext block',
+      readOffsets.length > 0 && readOffsets.every((at) => at < blockOpen || at > blockEnd),
+      'reads at ' + JSON.stringify(readOffsets) + ' vs block [' + blockOpen + ',' + blockEnd + ']');
+
+    // ── THE MUTANT MECHANICS THE CHECKS BELOW SHARE ──────────────────────────
+    //
+    // lib/finalize-reader-text.js carries relative imports, so a copy in a temp directory
+    // cannot resolve them. They are rewritten to absolute file URLs — the same device
+    // guards/name-presence-guard.cjs:567 uses — and the reviewer import is then pointed at
+    // whichever reviewer a given mutant wants.
+    const fileUrl = (f) => 'file:///' + path.resolve(f).replace(/\\/g, '/');
+    const absoluteImports = (source, baseFile) => source.replace(
+      /from '(\.\.?\/[^']+)'/g,
+      (_m, r) => "from '" + fileUrl(path.resolve(path.dirname(baseFile), r)) + "'",
+    );
+    const mutantDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-e75-seat-'));
+    let mutantSerial = 0;
+    const buildSeat = async (name, { seat, reviewer } = {}) => {
+      let reviewerUrl = fileUrl(reviewerFile);
+      if (reviewer) {
+        const reviewerSource = fs.readFileSync(reviewerFile, 'utf8');
+        const mutated = reviewer(reviewerSource);
+        if (mutated === reviewerSource) return { seam: false };
+        const rf = path.join(mutantDir, name + '-reviewer.mjs');
+        fs.writeFileSync(rf, mutated, 'utf8');
+        reviewerUrl = fileUrl(rf);
+      }
+      const seatSource = seat ? seat(finalizerSource) : finalizerSource;
+      if (seat && seatSource === finalizerSource) return { seam: false };
+      mutantSerial += 1;
+      const wired = absoluteImports(seatSource, finalizerFile)
+        .split(fileUrl(reviewerFile)).join(reviewerUrl);
+      const sf = path.join(mutantDir, name + '-seat.mjs');
+      fs.writeFileSync(sf, wired, 'utf8');
+      return { seam: true, mod: await import(fileUrl(sf) + '?n=' + mutantSerial) };
+    };
+
+    try {
+      // THE FIXTURES ARE BUILT FROM THE REGISTRY, never retyped: a row that is renamed
+      // cannot leave this section quietly testing a man who is no longer in it.
+      const rows = REV.REVIEW_AUTHORITY_SOURCES;
+      const rowA = rows[0];
+      const rowB = rows.find((r) => r !== rowA
+        && !r.aliases.some((x) => rowA.aliases.some((y) => x.includes(y) || y.includes(x))));
+      ok('E · two disjoint registry rows are available for the fixtures', !!rowA && !!rowB);
+      const bareId = (row) => String((row.ids && row.ids[0]) || '').replace(/:$/u, '');
+      const askedA = { id: bareId(rowA), name: rowA.canonical, status: 'resolved', candidates: [] };
+      const aboutB = saidE(rowB.canonical);
+      const refusalLine = FIN.FINALIZER_REFUSAL;
+      // «فلان الفلاني» — a name no registry knows.
+      const NOBODY = 'فلان الفلاني';
+
+      // ── E2. ONE WORDING — THE SEAT PRINTS THE REVIEWER'S OWN LITERAL ─────────
+      for (const row of [
+        { label: 'resolved · another man', asked: askedA },
+        { label: 'unresolved · substituted', asked: { id: '', name: NOBODY, status: 'unresolved', candidates: [] } },
+        { label: 'ambiguous · not both named', asked: { id: '', name: rowA.canonical, status: 'ambiguous', candidates: [rowA.canonical, rowB.canonical] } },
+      ]) {
+        const expectedNotice = REV.requestedIdentityRespected(aboutB, REV.identityView(row.asked)).notice;
+        const out = FIN.finalizeReaderText({ text: aboutB, sources: [], requestedIdentity: row.asked });
+        ok('E2 · the seat prints the reviewer\'s own notice — ' + row.label,
+          !!expectedNotice && out.text.includes(expectedNotice)
+            && out.problems.includes(FIN.IDENTITY_NOT_RESPECTED),
+          JSON.stringify({ expectedNotice, text: out.text, problems: out.problems }));
+        ok('E2 · ...and it APPENDS rather than refuses — ' + row.label,
+          out.ok === true && out.text.startsWith(aboutB), JSON.stringify(out));
+        const twice = FIN.finalizeReaderText({
+          text: out.text, sources: [], requestedIdentity: row.asked,
+        });
+        ok('E2 · ...and never twice — ' + row.label,
+          twice.text.split(expectedNotice).length - 1 === 1, JSON.stringify(twice.text));
+      }
+
+      // MUTANT: change the wording at its ONE home and the seat must change with it. A seat
+      // holding its own copy survives this; a seat that borrows cannot.
+      const SENTINEL = 'SEAT_WORDING_SENTINEL';
+      const wordingMutant = await buildSeat('wording', {
+        reviewer: (s) => s.replace(/MISMATCH: '[^']*'/u, "MISMATCH: '" + SENTINEL + "'"),
+      });
+      ok('E2 · wording mutant seam applied', wordingMutant.seam,
+        'the MISMATCH literal moved off lib/output-reviewer.js:1244');
+      if (wordingMutant.seam) {
+        const mutated = wordingMutant.mod.finalizeReaderText({
+          text: aboutB, sources: [], requestedIdentity: askedA,
+        });
+        ok('MUTANT KILLED: the seat holds no copy of the wording, it follows the reviewer\'s literal',
+          mutated.text.includes(SENTINEL), JSON.stringify(mutated.text));
+      }
+
+      // ── E3. SILENCE IS THE GOVERNING DEFAULT ────────────────────────────────
+      //
+      // «Nobody in particular was asked about» is the commonest case by a wide margin. An
+      // over-refusal here would answer an ordinary question with a notice telling the reader
+      // the system does not know who they mean — worse than the defect this round exists for.
+      for (const row of [
+        { label: 'absent', junk: undefined },
+        { label: 'null', junk: null },
+        { label: 'empty object', junk: {} },
+        { label: 'empty name', junk: { id: '', name: '', status: 'resolved' } },
+        { label: 'whitespace name', junk: { id: '', name: '   ', status: 'resolved' } },
+        { label: 'no status', junk: { id: '', name: rowA.canonical } },
+        { label: 'unknown status', junk: { id: '', name: rowA.canonical, status: 'maybe' } },
+        { label: 'a bare string', junk: rowA.canonical },
+        { label: 'a number', junk: 7 },
+      ]) {
+        const out = FIN.finalizeReaderText({ text: aboutB, sources: [], requestedIdentity: row.junk });
+        ok('E3 · [RED] no carried identity means no notice — ' + row.label,
+          out.text === aboutB && out.problems.length === 0, JSON.stringify(out));
+      }
+      {
+        const right = saidE(rowA.canonical);
+        const out = FIN.finalizeReaderText({ text: right, sources: [], requestedIdentity: askedA });
+        ok('E3 · [RED] the right man named is silent',
+          out.text === right && out.problems.length === 0, JSON.stringify(out));
+      }
+      {
+        // «الحكمُ في هذه المسألةِ الجوازُ.» — names no registered man, so nobody was swapped.
+        const plain = 'الحكمُ في هذه المسألةِ الجوازُ.';
+        const out = FIN.finalizeReaderText({
+          text: plain, sources: [],
+          requestedIdentity: { id: '', name: NOBODY, status: 'unresolved', candidates: [] },
+        });
+        ok('E3 · [RED] an answer that names no registered man has swapped nobody',
+          out.text === plain && out.problems.length === 0, JSON.stringify(out));
+      }
+
+      // ── E3b. A REPLY WITH NO RULING UNDER IT GETS NOTHING SAID ABOUT IT ──────
+      //
+      // This is the clause that keeps the retired deterministic interrogation buried. The
+      // ambiguity notice ends in a question; appended to the stored path's «no evidence»
+      // line it IS that interrogation, wearing a new name.
+      const ambiguous = {
+        id: '', name: rowA.canonical, status: 'ambiguous',
+        candidates: [rowA.canonical, rowB.canonical],
+      };
+      for (const row of [
+        { label: 'the finalizer refusal', line: refusalLine },
+        { label: 'the caller\'s own fallback line', line: 'NO_STORED_EVIDENCE_STANDIN' },
+      ]) {
+        const out = FIN.finalizeReaderText({
+          text: row.line, sources: [], fallbackText: row.line, requestedIdentity: ambiguous,
+        });
+        ok('E3b · [RED] a reply carrying no ruling is not qualified — ' + row.label,
+          out.text === row.line && out.problems.length === 0, JSON.stringify(out));
+      }
+      {
+        // ...while the SAME identity over a real ruling still earns the one notice, so the
+        // clause above is a rule about the reply and not a hole in the check.
+        const expected = REV.requestedIdentityRespected(aboutB, REV.identityView(ambiguous)).notice;
+        const out = FIN.finalizeReaderText({
+          text: aboutB, sources: [], fallbackText: refusalLine, requestedIdentity: ambiguous,
+        });
+        ok('E3b · ...and the same identity over a real ruling is still caught',
+          out.text.includes(expected), JSON.stringify(out.text));
+      }
+
+      const rulingMutant = await buildSeat('ruling', {
+        seat: (s) => s.replace(
+          'const askedIdentity = carriesARuling ? identityView(input.requestedIdentity) : null;',
+          'const askedIdentity = identityView(input.requestedIdentity); // mutant: qualify a refusal too'),
+      });
+      ok('E3b · no-ruling mutant seam applied', rulingMutant.seam, 'the carriesARuling seam moved');
+      if (rulingMutant.seam) {
+        const out = rulingMutant.mod.finalizeReaderText({
+          text: refusalLine, sources: [], fallbackText: refusalLine, requestedIdentity: ambiguous,
+        });
+        ok('MUTANT KILLED: qualifying a refusal revives the retired interrogation',
+          out.text !== refusalLine, JSON.stringify(out.text));
+      }
+
+      // ── E1b. THE PLACEMENT MUTANT — THE ONE TRAP 81 WOULD HAVE MISSED ───────
+      //
+      // Every fixture above supplies no consistencyContext, so a seat folded back inside
+      // that block would pass all of them. This drives the case the three nulling exits
+      // actually produce: a carried identity AND a null context.
+      {
+        const expected = REV.requestedIdentityRespected(aboutB, REV.identityView(askedA)).notice;
+        const live = FIN.finalizeReaderText({
+          text: aboutB, sources: [], consistencyContext: null, requestedIdentity: askedA,
+        });
+        ok('E1b · a nulled consistencyContext does not silence the identity check',
+          live.text.includes(expected), JSON.stringify(live.text));
+      }
+      const placementMutant = await buildSeat('placement', {
+        seat: (s) => s.replace(
+          'const askedIdentity = carriesARuling ? identityView(input.requestedIdentity) : null;',
+          'const askedIdentity = (carriesARuling && input.consistencyContext)\n    ? identityView(input.requestedIdentity) : null; // mutant: folded back into the block'),
+      });
+      ok('E1b · placement mutant seam applied', placementMutant.seam, 'the askedIdentity seam moved');
+      if (placementMutant.seam) {
+        const out = placementMutant.mod.finalizeReaderText({
+          text: aboutB, sources: [], consistencyContext: null, requestedIdentity: askedA,
+        });
+        ok('MUTANT KILLED: gating the identity read on consistencyContext loses the three nulling exits',
+          out.text === aboutB, JSON.stringify(out.text));
+      }
+    } finally {
+      try { fs.rmSync(mutantDir, { recursive: true, force: true }); } catch (_) { /* temp only */ }
+    }
+  }
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
