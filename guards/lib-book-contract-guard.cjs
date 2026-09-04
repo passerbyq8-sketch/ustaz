@@ -438,10 +438,14 @@ async function main() {
     parsed ? ascii(JSON.stringify(parsed.slice(1))) : 'no match');
 
   // MUTANT: reinstate the url filter that lost every book. The card must vanish.
+  // AA-53 MOVED THIS SEAM AND DID NOT WEAKEN IT. `pickBookCards` no longer builds from the row
+  // directly -- it builds from the merged row of a book's group -- so the url filter is reinstated
+  // at the one line that still decides whether a card is built at all. What is being killed is
+  // unchanged: a rule that asks a book atom for a link it was designed never to have.
   const m1 = await mutantModule(temp, 'lib/free-brain/loop.js', 'book-url-filter', (src) => src.replace(
-    '    if (!row || row.kind !== LIB_BOOK_KIND) continue;\n    const card = buildCard(row);',
-    '    if (!row || row.kind !== LIB_BOOK_KIND) continue;\n    const card = row.url ? buildCard(row) : null;',
-  ), 'const card = row.url ? buildCard(row) : null;').then((mod) => ({ mod }), (error) => ({ error }));
+    '    const card = buildCard(mergedBookRow(group));',
+    '    const card = group.row.url ? buildCard(mergedBookRow(group)) : null;',
+  ), 'const card = group.row.url ? buildCard(mergedBookRow(group)) : null;').then((mod) => ({ mod }), (error) => ({ error }));
   if (m1.error) {
     ok('B8  MUTANT KILLED: a url filter over book rows loses every chip', false, m1.error.message);
   } else {
@@ -1008,6 +1012,171 @@ async function main() {
 
   ok('F9  the whole of section F ran with globalThis.fetch still poisoned',
     poisoned.calls === 0, 'poisoned fetch invoked ' + poisoned.calls + ' time(s)');
+
+  // ==========================================================================
+  section('G. AA-53 -- ONE BOOK IS ONE CARD, AND IT CARRIES EVERY PLACE');
+  // ==========================================================================
+  //
+  // THE DEFECT. Three atoms of ONE book became three chips -- same title, same author, three
+  // places -- because nothing on this path grouped by book: the evidence table de-duplicates on
+  // `url` and a book row has none, and `pickBookCards` de-duplicated on the WHOLE tag, which two
+  // chips differing by one `ref=` are not. And a passage the corpus cut at a page boundary came
+  // back as two atoms whose text overlapped, so the reader read one sentence twice.
+  //
+  // THE INPUT IS THE SERVICE WIRE, NOT A HAND-BUILT ROW. Every atom below is the recorded
+  // `hit_page_citable` shape with the fields this case varies -- text, pages, book -- changed and
+  // nothing else, fed through the real `runTool('search_library')`. The card is the real
+  // `pickBookCards` over the real `buildBookTag`. Nothing in this section is retyped from the
+  // code it tests.
+  //
+  // AND THE NEGATIVE IS THE HALF THAT MATTERS. Over-stitching DELETES a sentence from the
+  // reader's screen for good, so G4 gives two genuinely separate passages sixty pages apart the
+  // exact suffix/prefix shape a boundary split has, and requires that the wording alone does not
+  // weld them. G-M3 is the mutant that proves that refusal is a rule and not an accident.
+
+  // The volume is READ OFF the fixture, never retyped: a guard that hard-codes a locator
+  // proves only that its own copy equals itself.
+  const G_VOL = 'ج' + HIT.volume;
+  const bookHit = (over) => Object.assign({}, HIT, over);
+  const libServingMany = (hits) => async () => { libCalls += 1; return json({ hits, total: hits.length }); };
+  const rowsFor = async (hits) => {
+    const local = ctx({ libFlagValue: 'on', libToken: FIXTURE_TOKEN, fetchImpl: libServingMany(hits) });
+    await quiet(() => tools.runTool('search_library', { query: 'الماء' }, local));
+    return local.table.rows;
+  };
+  const refOf = (t) => { const m = /ref="([^"]*)"/.exec(String(t)); return m ? m[1] : ''; };
+  const matnOf = (t) => {
+    const m = /matn="([^"]*)"/.exec(String(t));
+    return m ? Buffer.from(m[1], 'base64').toString('utf8') : '';
+  };
+  const times = (hay, needle) => String(hay).split(needle).length - 1;
+  const oneTag = (cards) => (cards.length === 1 ? String(cards[0].tag) : 'NO-SINGLE-BOOK-CARD');
+
+  // One passage of المغني cut at the foot of p.150: G_A ends with the run G_B opens with.
+  const G_SHARED = 'فالطهورُ هو الباقي على أصلِ خِلقتِه';
+  const G_A = 'المياهُ ثلاثةُ أقسامٍ طهورٌ وطاهرٌ ونجس. ' + G_SHARED;
+  const G_B = G_SHARED + ' لم يخالطْه شيءٌ يسلبُه اسمَ الماءِ المطلق.';
+  const G_WHOLE = G_A + G_B.slice(G_SHARED.length);
+  // A second, genuinely separate passage sixty pages on -- and it ENDS with a formula the third
+  // passage OPENS with, which is the exact shape a boundary split wears.
+  const G_FORMULA = 'وهذا هو الصحيحُ من قولِ أهلِ العلمِ في هذه المسألةِ والله أعلم.';
+  const G_FAR = 'وأمّا الطاهرُ غيرُ المطهّرِ فهو ما خالطَه طاهرٌ فغيّرَ أحدَ أوصافِه. ' + G_FORMULA;
+  const G_LATER = G_FORMULA + ' ثمّ اختلفوا في الماءِ المستعملِ على قولين.';
+
+  const G_SLICES = [
+    bookHit({ atom_id: 'g-0147', page_start: 147, page_end: 150, text: G_A }),
+    bookHit({ atom_id: 'g-0150', page_start: 150, page_end: 150, text: G_B }),
+    bookHit({ atom_id: 'g-0207', page_start: 207, page_end: 208, text: G_FAR }),
+  ];
+
+  const gRows = await rowsFor(G_SLICES);
+  const gCards = loop.pickBookCards(gRows, 3, ask.buildBookTag);
+  const gTag = oneTag(gCards);
+  const gMatn = matnOf(gTag);
+  ok('G1  three atoms of one book reach the selection as three separate rows',
+    gRows.length === 3 && new Set(gRows.map((r) => r.bookTitle)).size === 1,
+    JSON.stringify({ rows: gRows.length, refs: gRows.map((r) => r.ref) }));
+  ok('G2  ...and become ONE card', gCards.length === 1, 'cards=' + gCards.length);
+  ok('G3  ...naming BOTH real places, both of them',
+    refOf(gTag).indexOf('147-150') !== -1 && refOf(gTag).indexOf('207-208') !== -1,
+    ascii(refOf(gTag)));
+  ok('G4  ...with the boundary-split sentence appearing exactly ONCE',
+    times(gMatn, G_SHARED) === 1, 'occurrences=' + times(gMatn, G_SHARED));
+  ok('G5  ...and no character of either passage lost to the stitch',
+    gMatn === G_WHOLE + '\n\n' + G_FAR,
+    'matn chars=' + gMatn.length + ' expected=' + (G_WHOLE + '\n\n' + G_FAR).length);
+  ok('G6  ...and the stitched halves print as ONE page range, not two places',
+    refOf(gTag) === G_VOL + ' · ص147-150 · ' + G_VOL + ' · ص207-208',
+    ascii(refOf(gTag)));
+
+  // THE NEGATIVE, TWICE.
+  const gOther = await rowsFor([
+    bookHit({ atom_id: 'g-b1', page_start: 147, page_end: 150, text: G_A }),
+    bookHit({ atom_id: 'g-b2', page_start: 147, page_end: 150, text: G_B,
+      book_title: 'مجموع الفتاوى', author: 'ابن تيمية' }),
+  ]);
+  const gOtherCards = loop.pickBookCards(gOther, 3, ask.buildBookTag);
+  ok('G7  NEGATIVE: two DIFFERENT books are still two cards',
+    gOtherCards.length === 2, 'cards=' + gOtherCards.length);
+  ok('G8  ...and neither of them lost its passage',
+    gOtherCards.length === 2 && matnOf(gOtherCards[0].tag) === G_A
+      && matnOf(gOtherCards[1].tag) === G_B, 'a passage changed');
+
+  const gShared = await rowsFor([
+    bookHit({ atom_id: 'g-c1', page_start: 207, page_end: 208, text: G_FAR }),
+    bookHit({ atom_id: 'g-c2', page_start: 266, page_end: 266, text: G_LATER }),
+  ]);
+  const gSharedCards = loop.pickBookCards(gShared, 3, ask.buildBookTag);
+  const gSharedTag = oneTag(gSharedCards);
+  const gSharedMatn = matnOf(gSharedTag);
+  ok('G9  NEGATIVE: two passages sixty pages apart that SHARE a phrase are one card...',
+    gSharedCards.length === 1, 'cards=' + gSharedCards.length);
+  ok('G10 ...but are NOT stitched -- the shared phrase stands twice and no text is deleted',
+    times(gSharedMatn, G_FORMULA) === 2 && gSharedMatn === G_FAR + '\n\n' + G_LATER,
+    'occurrences=' + times(gSharedMatn, G_FORMULA));
+  ok('G11 ...and both places are named, neither swallowed by the other',
+    refOf(gSharedTag) === G_VOL + ' · ص207-208 · ' + G_VOL + ' · ص266', ascii(refOf(gSharedTag)));
+
+  // THE IDENTITY CASE. A book cited once must come out of the merge exactly as the row itself
+  // builds -- byte for byte, not "equivalent". This is the check that would catch the merge
+  // rewriting a locator or re-encoding a passage on the ordinary single-slice path.
+  const gOne = await rowsFor([G_SLICES[2]]);
+  const gOneDirect = gOne.length === 1 ? ask.buildBookTag(gOne[0]) : null;
+  ok('G12 a book cited ONCE builds the same tag through the merge as from the row itself',
+    !!gOneDirect && oneTag(loop.pickBookCards(gOne, 3, ask.buildBookTag)) === String(gOneDirect.tag),
+    'the merged-path tag differs from the direct one');
+
+  // THE CEILING. Three slices of one book cost ONE slot now, so a second book is no longer
+  // evicted by a repeated one.
+  const gCap = await rowsFor(G_SLICES.concat([
+    bookHit({ atom_id: 'g-d1', page_start: 9, page_end: 9, text: 'نصٌّ من كتابٍ آخر.',
+      book_title: 'مجموع الفتاوى', author: 'ابن تيمية' }),
+  ]));
+  ok('G13 four rows of two books make two cards -- the repeat no longer evicts the distinct one',
+    loop.pickBookCards(gCap, 3, ask.buildBookTag).length === 2,
+    'cards=' + loop.pickBookCards(gCap, 3, ask.buildBookTag).length);
+
+  // -- the mutants -----------------------------------------------------------
+  //
+  // Each removes ONE line of the merge and names the row that has to notice. A mutant that flips
+  // nothing is a hole in this section, not a pass.
+  const gFlip = async (name, mutate, probe) => {
+    const twin = await mutantModule(temp, 'lib/free-brain/loop.js', name, mutate, probe)
+      .then((mod) => ({ mod }), (error) => ({ error }));
+    return twin;
+  };
+
+  const gM1 = await gFlip('book-no-grouping',
+    (s) => s.replace('function bookKeyOf(row) {\n  const title',
+      'function bookKeyOf(row) {\n  if (row) return null;  // mutant-book-no-grouping\n  const title'),
+    'mutant-book-no-grouping');
+  ok('G-M1 MUTANT KILLED: without the grouping one book is three cards again',
+    !gM1.error && gM1.mod.pickBookCards(gRows, 3, ask.buildBookTag).length === 3
+      && gCards.length === 1,
+    gM1.error ? gM1.error.message
+      : 'mutant cards=' + gM1.mod.pickBookCards(gRows, 3, ask.buildBookTag).length);
+
+  const gM2 = await gFlip('book-no-stitch',
+    (s) => s.replace('function bookStitch(passage, text, span) {\n  if (!passage.text || !text) return null;',
+      'function bookStitch(passage, text, span) {\n  if (passage) return null;  // mutant-book-no-stitch\n  if (!passage.text || !text) return null;'),
+    'mutant-book-no-stitch');
+  const gM2Matn = gM2.error ? '' : matnOf(oneTag(gM2.mod.pickBookCards(gRows, 3, ask.buildBookTag)));
+  ok('G-M2 MUTANT KILLED: without the stitch the reader reads the same sentence twice',
+    !gM2.error && times(gM2Matn, G_SHARED) === 2 && times(gMatn, G_SHARED) === 1,
+    gM2.error ? gM2.error.message : 'mutant occurrences=' + times(gM2Matn, G_SHARED));
+
+  const gM3 = await gFlip('book-no-page-test',
+    (s) => s.replace('  if (paged && !bookSpansTouch(passage.span, span)) return null;',
+      '  if (false) return null;  // mutant-book-no-page-test'),
+    'mutant-book-no-page-test');
+  const gM3Matn = gM3.error ? '' : matnOf(oneTag(gM3.mod.pickBookCards(gShared, 3, ask.buildBookTag)));
+  ok('G-M3 MUTANT KILLED: without the page test a shared phrase welds two passages and deletes one',
+    !gM3.error && times(gM3Matn, G_FORMULA) === 1 && times(gSharedMatn, G_FORMULA) === 2,
+    gM3.error ? gM3.error.message : 'mutant occurrences=' + times(gM3Matn, G_FORMULA));
+
+  ok('G14 every row in section G came from the injected library seam, none from the network',
+    poisoned.calls === 0, 'poisoned fetch invoked ' + poisoned.calls + ' time(s)');
+
   try { fs.rmSync(temp, { recursive: true, force: true }); } catch (error) { /* scratch only */ }
 
   console.log('\n=== lib-book-contract: ' + (checks - failures) + '/' + checks
