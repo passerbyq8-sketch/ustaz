@@ -1205,6 +1205,170 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     }
   }
 
+  console.log('\n=== AA-85 · THE SEAT IS THE DETECTOR\'S SECOND READER ===');
+  {
+    // The detector above has exactly ONE runtime importer: lib/takhrij-lock.js, for its own cut.
+    // BOOK-TEXT-REPORT-2026-09-04.md section 6 measured seven of nine post-generation cuts able to
+    // delete what a line announced while leaving the line. This section pins the SECOND importer:
+    // lib/finalize-reader-text.js, the seat every exit arrives at, where the shape is judged
+    // path-agnostically — which is the whole point, because the eighth path nobody enumerated
+    // arrives here too.
+    const SEAT = await esm('lib/finalize-reader-text.js');
+    const CPX = await esm('lib/colon-preamble.js');
+    const LOOP = await esm('lib/free-brain/loop.js');
+    const LOCK2 = await esm('lib/takhrij-lock.js');
+    const WRITER = await esm('lib/finalized-sse-writer.js');
+    const GATE = await esm('lib/policy/consistency-gate.js');
+
+    const INTRO = 'المسحُ على الخفّينِ جائزٌ للمقيمِ يومًا وليلةً.';
+    const LEAD = 'قال النبيُّ صلّى الله عليه وسلّم:';
+    const seal = (text, extra) => SEAT.finalizeReaderText(
+      { kind: 'answer', text, sources: [], ...(extra || {}) });
+    const endsOnLeadIn = (text) => {
+      const blocks = String(text).split('\n').map((line) => line.trim()).filter(Boolean);
+      return blocks.length > 0 && CPX.COLON_RE.test(blocks[blocks.length - 1]);
+    };
+
+    // Each row runs the PATH's own cut on a real answer and then hands the result to the seat.
+    // The precondition is asserted first: a row whose cut stopped producing the shape is not
+    // evidence that the seat works, and would otherwise go on passing in silence.
+    const SEAT_PATHS = [
+      ['P1 deliverableText, the script rule (loop.js:1018)',
+        'The Prophet said: whoever believes in Allah and the Last Day.',
+        (t) => LOOP.deliverableText(t), true],
+      ['P2 deliverableText, the sentence filter (loop.js:1024-1031)',
+        'سأبحثُ عن الحديثِ في المصادر.', (t) => LOOP.deliverableText(t), true],
+      ['P3 deliverableText, the protocol strip (loop.js:855)',
+        '<tool_use>{"name":"search_fatawa"}</tool_use>', (t) => LOOP.deliverableText(t), true],
+      ['P4a the takhrij lock, a preamble already orphaned on arrival (takhrij-lock.js:290)',
+        'رواه البخاريُّ ومسلمٌ في صحيحيهما عن أبي هريرة رضي الله عنه.',
+        (t) => LOCK2.lockTakhrij(t, []).text, true],
+      ['P7 the source-card strip (finalized-sse-writer.js:46)',
+        '<source site="s" url="https://islamqa.info/ar/answers/1/x">T</source>',
+        (t) => WRITER.stripUnownedSourceCards(t), true],
+      // [RED] P5 IS NOT COVERED, AND IT IS PINNED AS NOT COVERED. screenDraft joins what it keeps
+      // with a space, so the whole answer becomes ONE block and the colon is no longer at the end
+      // of a line the detector can point at. Removing the one block there is would leave nothing,
+      // and the seat refuses that. Whoever gives screenDraft back its line structure DELETES this
+      // row rather than editing it: it asserts the gap is still there.
+      ['P5 the consistency screen (consistency-gate.js:894)',
+        'قال ابنُ تيميةَ إنّ هذا جائزٌ في كلِّ حال.',
+        (t) => GATE.screenDraft(t, { notDirectlyVerified: true, entity: 'ابن تيمية' }).text, false],
+    ];
+    for (const [label, content, run, covered] of SEAT_PATHS) {
+      const input = INTRO + '\n' + LEAD + '\n' + content;
+      const cut = String(run(input) || '');
+      ok('AA-85 precondition: ' + label + ' still leaves the lead-in with nothing behind it',
+        endsOnLeadIn(cut), JSON.stringify(cut));
+      const sealed = seal(cut);
+      if (covered) {
+        ok('AA-85 the seat closes it: ' + label,
+          !endsOnLeadIn(sealed.text) && sealed.problems.includes(SEAT.DANGLING_LEAD_IN)
+            && sealed.text.trim() === INTRO,
+          JSON.stringify({ text: sealed.text, problems: sealed.problems }));
+      } else {
+        ok('AA-85 [RED] the seat does NOT close it, and that is recorded: ' + label,
+          endsOnLeadIn(sealed.text) && !sealed.problems.includes(SEAT.DANGLING_LEAD_IN),
+          JSON.stringify({ text: sealed.text, problems: sealed.problems }));
+      }
+    }
+
+    // THE NEGATIVES. A colon with real content behind it, a list introduced by a colon, and a
+    // heading with a body. These are the WIDE half of D1 and the seat must never act on them.
+    for (const [label, text] of [
+      ['a colon followed by real content',
+        LEAD + '\n' + '«إنّما الأعمالُ بالنيّاتِ»' + '\n' + 'وبهذا يتبيّنُ الحكمُ.'],
+      ['a list introduced by a colon', 'الأدلّةُ على ذلك:' + '\n' + '- الكتاب' + '\n' + '- السنّة'],
+      ['a heading with a body', '## الأدلّةُ من السنّة' + '\n' + 'حديثُ عائشةَ رضي الله عنها.'],
+      // The one the narrow half exists for: the content behind the colon is ORDINARY PROSE,
+      // which the WIDE half of D1 calls orphaned because prose is not a quote, an ayah, a card
+      // or a list item. Under `closing` it is untouched, and it is mutant M-C's witness.
+      ['a colon whose content is ordinary prose',
+        'الأدلّةُ من السنّة:' + '\n' + 'حديثُ عائشةَ رضي الله عنها.'],
+    ]) {
+      const sealed = seal(text);
+      ok('AA-85 byte-identical: ' + label,
+        sealed.text === text && !sealed.problems.includes(SEAT.DANGLING_LEAD_IN),
+        JSON.stringify({ text: sealed.text, problems: sealed.problems }));
+    }
+
+    // A CARD IS STILL TO BE APPENDED. lib/finalized-sse-writer.js:452 adds the owned card suffix
+    // AFTER the seat returns, so a lead-in that is last HERE may have its card behind it on the
+    // wire, and cutting it would delete the introduction of a card the reader DID receive.
+    {
+      const text = INTRO + '\n' + LEAD;
+      const CARD = '<source site="s" url="https://islamqa.info/ar/answers/1/x">T</source>';
+      const withCard = seal(text, { cards: [{ tag: CARD }] });
+      ok('AA-85 a lead-in whose card is still to be appended is untouched',
+        withCard.text === text && !withCard.problems.includes(SEAT.DANGLING_LEAD_IN),
+        JSON.stringify(withCard));
+      const withReaderCard = seal(text, { readerCards: [{ tag: CARD }] });
+      ok('AA-85 ...and the same for a reader card', withReaderCard.text === text,
+        JSON.stringify(withReaderCard));
+      const withSuffix = seal(text, { readerSuffix: 'ذيلٌ من الخادم' });
+      ok('AA-85 ...and the same when a server-owned suffix is in play', withSuffix.text === text,
+        JSON.stringify(withSuffix));
+    }
+
+    // AN ANSWER THAT IS NOTHING BUT A PROMISE IS LEFT ALONE. Removing the only line there is would
+    // hand the writer an empty approval, and lib/finalized-sse-writer.js:467 already has a name for
+    // that. Whether such an answer should be refused outright is a product decision, not taken here.
+    {
+      const only = seal(LEAD);
+      ok('AA-85 an answer that is nothing but a lead-in is left exactly as it arrived',
+        only.text === LEAD && !only.problems.includes(SEAT.DANGLING_LEAD_IN), JSON.stringify(only));
+    }
+
+    // ── MUTANTS ──────────────────────────────────────────────────────────────
+    const seatPath = path.join(REPO, 'lib', 'finalize-reader-text.js');
+    const seatSrc = read('lib/finalize-reader-text.js');
+    const seatDir = path.dirname(seatPath);
+    const absoluteSeatImports = (source) => source.replace(
+      /from\s+(['"])(\.[^'"]*)\1/gu,
+      (_all, quote, spec) => 'from ' + quote
+        + 'file:///' + path.resolve(seatDir, spec).replace(/\\/g, '/') + quote,
+    );
+    const seatMutantDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-seat-lead-in-mut-'));
+    const driveSeatMutant = async (name, apply, survives) => {
+      const changed = apply(seatSrc);
+      if (changed === seatSrc) {
+        ok('MUTANT ' + name, false, 'seam moved: the mutation did not apply, so nothing was tested');
+        return;
+      }
+      const file = path.join(seatMutantDir, name.replace(/[^a-z0-9-]/gi, '_') + '.mjs');
+      fs.writeFileSync(file, absoluteSeatImports(changed), 'utf8');
+      let alive = true;
+      try { alive = await survives(await import('file:///' + file.replace(/\\/g, '/'))); }
+      catch { alive = false; }
+      ok('MUTANT KILLED: ' + name, !alive, 'the mutant survived — this property is not guarded');
+    };
+    try {
+      // M-C — the seat takes the WIDE half of D1: any orphaned preamble, not only one with nothing
+      // behind it. Ordinary prose after a colon is not a quote, an ayah, a card or a list item, so
+      // a legitimate lead-in with its content behind it is eaten.
+      await driveSeatMutant('seat-acts-on-the-wide-half-of-D1',
+        (s) => s.replace('.find((preamble) => preamble.closing)',
+          '.find((preamble) => preamble.orphaned)'),
+        async (mod) => {
+          const text = 'الأدلّةُ من السنّة:' + '\n' + 'حديثُ عائشةَ رضي الله عنها.';
+          return mod.finalizeReaderText({ kind: 'answer', text, sources: [] }).text === text;
+        });
+
+      // M-D — the seat forgets that a card is still to be appended, and deletes the sentence that
+      // introduced a card the reader DID receive.
+      await driveSeatMutant('seat-forgets-the-card-still-to-be-appended',
+        (s) => s.replace('  if (mayBeFollowed) return', '  if (false && mayBeFollowed) return'),
+        async (mod) => {
+          const text = INTRO + '\n' + LEAD;
+          const CARD = '<source site="s" url="https://islamqa.info/ar/answers/1/x">T</source>';
+          return mod.finalizeReaderText({ kind: 'answer', text, sources: [],
+            cards: [{ tag: CARD }] }).text === text;
+        });
+    } finally {
+      try { fs.rmSync(seatMutantDir, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
