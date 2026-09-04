@@ -266,8 +266,18 @@ async function main() {
       const CGm = require('path').join(REPO, 'lib/policy/consistency-gate.js');
       const src = fs.readFileSync(CGm, 'utf8');
       ok('the trim is sentence-level, not a substring edit of the claim',
-        /const SENTENCE_SPLIT =/.test(src) && /kept\.join\(' '\)/.test(src),
+        /const SENTENCE_SPLIT =/.test(src) && /rejoinKept\(units, kept\)/.test(src),
         'editing inside a sentence leaves the same claim in a shorter form');
+      // AA-85/P5 — AND THE TRIM PUTS BACK WHAT IT KEPT AS IT FOUND IT. The rejoin was
+      // `kept.join(' ')`, which turned a three-line answer into one block and hid a dangling
+      // lead-in from every line-based reader downstream. A filter decides WHAT is kept; the
+      // shape of what it keeps is not its to change. The seam is read as CODE, not as text
+      // anywhere in the file — the comment above the rejoin quotes the old join by name.
+      ok('...and the trim does not re-shape what it keeps',
+        /\n\s+text: dropWhole \? '' : rejoinKept\(units, kept\),/.test(src)
+        && /function rejoinKept\(units, kept\)/.test(src)
+        && /lineBreaks\(units\[j\]\.sep\) > lineBreaks\(sep\)/.test(src),
+        'a space-join merges lines the model wrote separately');
     }
     ok('the gate sits BEFORE the streaming round 2',
       s.indexOf('const attributionProblems =') < s.indexOf('// ── ROUND 2: streamed, WITHOUT tools'));

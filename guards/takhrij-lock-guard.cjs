@@ -1235,42 +1235,37 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const SEAT_PATHS = [
       ['P1 deliverableText, the script rule (loop.js:1018)',
         'The Prophet said: whoever believes in Allah and the Last Day.',
-        (t) => LOOP.deliverableText(t), true],
+        (t) => LOOP.deliverableText(t)],
       ['P2 deliverableText, the sentence filter (loop.js:1024-1031)',
-        'سأبحثُ عن الحديثِ في المصادر.', (t) => LOOP.deliverableText(t), true],
+        'سأبحثُ عن الحديثِ في المصادر.', (t) => LOOP.deliverableText(t)],
       ['P3 deliverableText, the protocol strip (loop.js:855)',
-        '<tool_use>{"name":"search_fatawa"}</tool_use>', (t) => LOOP.deliverableText(t), true],
+        '<tool_use>{"name":"search_fatawa"}</tool_use>', (t) => LOOP.deliverableText(t)],
       ['P4a the takhrij lock, a preamble already orphaned on arrival (takhrij-lock.js:290)',
         'رواه البخاريُّ ومسلمٌ في صحيحيهما عن أبي هريرة رضي الله عنه.',
-        (t) => LOCK2.lockTakhrij(t, []).text, true],
+        (t) => LOCK2.lockTakhrij(t, []).text],
       ['P7 the source-card strip (finalized-sse-writer.js:46)',
         '<source site="s" url="https://islamqa.info/ar/answers/1/x">T</source>',
-        (t) => WRITER.stripUnownedSourceCards(t), true],
-      // [RED] P5 IS NOT COVERED, AND IT IS PINNED AS NOT COVERED. screenDraft joins what it keeps
-      // with a space, so the whole answer becomes ONE block and the colon is no longer at the end
-      // of a line the detector can point at. Removing the one block there is would leave nothing,
-      // and the seat refuses that. Whoever gives screenDraft back its line structure DELETES this
-      // row rather than editing it: it asserts the gap is still there.
-      ['P5 the consistency screen (consistency-gate.js:894)',
+        (t) => WRITER.stripUnownedSourceCards(t)],
+      // P5 WAS THE ONE GAP, AND IT IS CLOSED AT ITS CAUSE. screenDraft used to rejoin what it
+      // kept with a space (`kept.join(' ')`), so a three-line answer left it as ONE block and the
+      // colon was no longer at the end of a line the detector could point at. It now rejoins with
+      // the separators the source itself used (lib/policy/consistency-gate.js `rejoinKept`), the
+      // lead-in is a block again, and the seat closes it like every other path. The [RED] row that
+      // stood here asserting the gap was DELETED rather than edited.
+      ['P5 the consistency screen (consistency-gate.js:943)',
         'قال ابنُ تيميةَ إنّ هذا جائزٌ في كلِّ حال.',
-        (t) => GATE.screenDraft(t, { notDirectlyVerified: true, entity: 'ابن تيمية' }).text, false],
+        (t) => GATE.screenDraft(t, { notDirectlyVerified: true, entity: 'ابن تيمية' }).text],
     ];
-    for (const [label, content, run, covered] of SEAT_PATHS) {
+    for (const [label, content, run] of SEAT_PATHS) {
       const input = INTRO + '\n' + LEAD + '\n' + content;
       const cut = String(run(input) || '');
       ok('AA-85 precondition: ' + label + ' still leaves the lead-in with nothing behind it',
         endsOnLeadIn(cut), JSON.stringify(cut));
       const sealed = seal(cut);
-      if (covered) {
-        ok('AA-85 the seat closes it: ' + label,
-          !endsOnLeadIn(sealed.text) && sealed.problems.includes(SEAT.DANGLING_LEAD_IN)
-            && sealed.text.trim() === INTRO,
-          JSON.stringify({ text: sealed.text, problems: sealed.problems }));
-      } else {
-        ok('AA-85 [RED] the seat does NOT close it, and that is recorded: ' + label,
-          endsOnLeadIn(sealed.text) && !sealed.problems.includes(SEAT.DANGLING_LEAD_IN),
-          JSON.stringify({ text: sealed.text, problems: sealed.problems }));
-      }
+      ok('AA-85 the seat closes it: ' + label,
+        !endsOnLeadIn(sealed.text) && sealed.problems.includes(SEAT.DANGLING_LEAD_IN)
+          && sealed.text.trim() === INTRO,
+        JSON.stringify({ text: sealed.text, problems: sealed.problems }));
     }
 
     // THE NEGATIVES. A colon with real content behind it, a list introduced by a colon, and a
@@ -1317,6 +1312,50 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const only = seal(LEAD);
       ok('AA-85 an answer that is nothing but a lead-in is left exactly as it arrived',
         only.text === LEAD && !only.problems.includes(SEAT.DANGLING_LEAD_IN), JSON.stringify(only));
+    }
+
+    // ── AA-85/P5 · A FILTER DECIDES WHAT IS KEPT, NOT HOW IT IS SHAPED ───────
+    // The seat rows above prove the SYMPTOM is gone. These prove the CAUSE is: screenDraft
+    // hands back the separators the source used, so the line structure of what it keeps
+    // survives it. Asserted here, beside the path it unblocked, and not only in the
+    // consistency guard, because it is this section that regresses when it is undone.
+    {
+      const OFF = 'قال ابنُ تيميةَ إنّ هذا جائزٌ في كلِّ حال.';
+      const BODY = 'والدليلُ حديثُ المغيرةِ بنِ شعبةَ رضي الله عنه.';
+      const CTX = { notDirectlyVerified: true, entity: 'ابن تيمية' };
+      const screen = (t) => GATE.screenDraft(t, CTX).text;
+
+      // 1. three lines in, three lines out — the offending one dropped, the shape kept.
+      const three = screen(INTRO + '\n' + LEAD + '\n' + OFF + '\n' + BODY);
+      ok('AA-85/P5 screenDraft keeps the line structure of what it keeps',
+        three === INTRO + '\n' + LEAD + '\n' + BODY, JSON.stringify(three));
+
+      // 2. a paragraph break the source made is a paragraph break on the way out, even when
+      //    the dropped sentence is what stood between the two paragraphs.
+      const para = screen(INTRO + '\n\n' + OFF + '\n\n' + BODY);
+      ok('AA-85/P5 ...and a paragraph break survives a drop between the paragraphs',
+        para === INTRO + '\n\n' + BODY, JSON.stringify(para));
+
+      // 3. THE NEGATIVE, AND IT IS THE WHOLE RISK. An answer that genuinely was ONE line —
+      //    sentences split mid-line, where the join was right — must not gain a break it
+      //    never had. Byte for byte.
+      const oneLine = screen(INTRO + ' ' + OFF + ' ' + BODY);
+      ok('AA-85/P5 an answer that was one line stays one line, byte for byte',
+        oneLine === INTRO + ' ' + BODY && !oneLine.includes('\n'), JSON.stringify(oneLine));
+
+      // 4. ...and a clean draft is still handed back untouched, which is the older contract.
+      const clean = INTRO + '\n' + LEAD + '\n' + BODY;
+      ok('AA-85/P5 a clean draft is returned whole and untouched',
+        screen(clean) === clean, JSON.stringify(screen(clean)));
+
+      // 5. NOT ONE DECISION ABOUT WHAT IS KEPT CHANGED. The dropped sentence is the same
+      //    sentence, and what is left is the same set in the same order — only the
+      //    separators between them are the source's own now.
+      const r = GATE.screenDraft(INTRO + '\n' + OFF + '\n' + BODY, CTX);
+      ok('AA-85/P5 the kept set is unchanged — only the separators are',
+        r.droppedSentences.length === 1 && r.droppedSentences[0] === OFF
+          && r.text.replace(/\s+/gu, ' ') === INTRO + ' ' + BODY,
+        JSON.stringify(r));
     }
 
     // ── MUTANTS ──────────────────────────────────────────────────────────────
@@ -1366,6 +1405,48 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         });
     } finally {
       try { fs.rmSync(seatMutantDir, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+
+    // M-E — screenDraft goes back to joining what it keeps with a space. This is the exact
+    // shape AA-85/P5 stood in, and the witness must be the SEAT driven with a real screened
+    // draft: the seat itself never broke, the answer simply stopped reaching it as more than
+    // one block. A mutant judged on the gate alone would not show that.
+    {
+      const gatePath = path.join(REPO, 'lib', 'policy', 'consistency-gate.js');
+      const gateSrc = read('lib/policy/consistency-gate.js');
+      const gateDir = path.dirname(gatePath);
+      const absoluteGateImports = (source) => source.replace(
+        /from\s+(['"])(\.[^'"]*)\1/gu,
+        (_all, quote, spec) => 'from ' + quote
+          + 'file:///' + path.resolve(gateDir, spec).replace(/\\/g, '/') + quote,
+      );
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-p5-rejoin-mut-'));
+      try {
+        const mutated = gateSrc.replace("' : rejoinKept(units, kept),",
+          "' : kept.map((i) => units[i].text).join(' '),");
+        if (mutated === gateSrc) {
+          ok('MUTANT rejoin-becomes-a-space-join', false,
+            'seam moved: the mutation did not apply, so nothing was tested');
+        } else {
+          const file = path.join(dir, 'gate.mjs');
+          fs.writeFileSync(file, absoluteGateImports(mutated), 'utf8');
+          let alive = true;
+          try {
+            const mod = await import('file:///' + file.replace(/\\/g, '/'));
+            const OFF = 'قال ابنُ تيميةَ إنّ هذا جائزٌ في كلِّ حال.';
+            const cut = mod.screenDraft(INTRO + '\n' + LEAD + '\n' + OFF,
+              { notDirectlyVerified: true, entity: 'ابن تيمية' }).text;
+            // `alive` is the PROPERTY still holding under the mutation, as every mutant in this
+            // file reads it: the seat closes what the screen produced. Under the space-join it
+            // does not, so the mutant dies here and not in a row that only reads source text.
+            alive = !endsOnLeadIn(seal(cut).text);
+          } catch { alive = false; }
+          ok('MUTANT KILLED: rejoin-becomes-a-space-join', !alive,
+            'the mutant survived — the line structure screenDraft keeps is not guarded');
+        }
+      } finally {
+        try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
     }
   }
 
