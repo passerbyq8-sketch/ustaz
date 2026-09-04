@@ -1177,6 +1177,139 @@ async function main() {
   ok('G14 every row in section G came from the injected library seam, none from the network',
     poisoned.calls === 0, 'poisoned fetch invoked ' + poisoned.calls + ' time(s)');
 
+  // ==========================================================================
+  section('H. AA-63 -- A PARAGRAPH IN THE BOOK IS A PARAGRAPH ON THE SCREEN');
+  // ==========================================================================
+  //
+  // THE DEFECT. `clean` in lib/free-brain/tools.js folded EVERY whitespace run to one space, so a
+  // page written in paragraphs reached the reader as one unbroken block -- and for a library atom
+  // that block is what the book card's own panel shows, letter for letter.
+  //
+  // THE TENSION IS REAL AND IS RESOLVED BY A CENSUS, NOT BY TASTE. The same collapse also removes
+  // the ragged whitespace that would otherwise reach the reader as holes, so what the corpus
+  // actually contains decides the rule. H1 runs that census over all 3,045 records of
+  // lib/data/fiqh-search.json.gz rather than over a chosen page: four distinct whitespace shapes,
+  // 93% ordinary spaces, 7% paragraph breaks, and FOURTEEN bare line wraps in 342,678 runs. The
+  // rule follows from those numbers -- a run holding two or more newlines is a break, everything
+  // else is a space -- and H-M2 kills the mutant that would promote the fourteen.
+  //
+  // AND THE NEGATIVE IS THE WHOLE CORPUS, NOT A FIXTURE. H2 requires every newline-free record to
+  // come out byte-identical to what `clean` produced; H3 requires that folding the new breaks back
+  // out of a paragraphed record reproduces `clean`'s output exactly, so the ONLY thing that moved
+  // is the breaks.
+
+  const corpusPath = path.join(REPO, 'lib', 'data', 'fiqh-search.json.gz');
+  const corpus = JSON.parse(require('zlib').gunzipSync(fs.readFileSync(corpusPath)).toString('utf8'));
+  // The OLD rule, retyped here on purpose: it is the reference H2 and H3 measure against, and it
+  // no longer exists in the tree for them to import. `cleanPassage` -- the thing under test -- is
+  // taken from the module and never retyped.
+  const foldAll = (v, cap) => String(v == null ? '' : v).replace(/\s+/gu, ' ').trim().slice(0, cap);
+  const cleanPassage = tools.__toolsTest.cleanPassage;
+
+  const wsShapes = new Map();
+  let wsRuns = 0;
+  for (const record of corpus) {
+    for (const run of String(record.snippet || '').match(/\s+/gu) || []) {
+      wsShapes.set(run, (wsShapes.get(run) || 0) + 1);
+      wsRuns += 1;
+    }
+  }
+  const breakRuns = [...wsShapes.entries()]
+    .filter(([run]) => (run.match(/\n/gu) || []).length >= 2)
+    .reduce((sum, [, n]) => sum + n, 0);
+  const wrapRuns = [...wsShapes.entries()]
+    .filter(([run]) => (run.match(/\n/gu) || []).length === 1)
+    .reduce((sum, [, n]) => sum + n, 0);
+  const paragraphed = corpus.filter((r) => /\n\s*\n/u.test(String(r.snippet || ''))).length;
+  ok('H1  the census: the corpus really is written in paragraphs, in the majority of its records',
+    corpus.length > 3000 && paragraphed > corpus.length / 2 && breakRuns > 20000 && wrapRuns < 100,
+    JSON.stringify({ records: corpus.length, paragraphed, wsRuns, breakRuns, wrapRuns,
+      shapes: wsShapes.size }));
+
+  let plain = 0;
+  let plainIdentical = 0;
+  let folded = 0;
+  let foldedBack = 0;
+  for (const record of corpus) {
+    const rawText = String(record.snippet || '');
+    if (!/\n/u.test(rawText)) {
+      plain += 1;
+      if (cleanPassage(rawText, 1200) === foldAll(rawText, 1200)) plainIdentical += 1;
+      continue;
+    }
+    folded += 1;
+    const now = cleanPassage(rawText, Infinity);
+    if (now.split('\n\n').join(' ').replace(/\s+/gu, ' ').trim() === foldAll(rawText, Infinity)) {
+      foldedBack += 1;
+    }
+  }
+  ok('H2  NEGATIVE: every newline-free record is byte-identical to what the old rule produced',
+    plain > 500 && plainIdentical === plain, plainIdentical + '/' + plain);
+  ok('H3  ...and in a paragraphed record the ONLY change is the breaks: fold them back and the old output returns',
+    folded > 1000 && foldedBack === folded, foldedBack + '/' + folded);
+
+  // The reader-visible half, end to end over the real service wire: a two-paragraph atom, through
+  // the runner, the merge, the tag, base64, and back out.
+  const H_PARA = 'الفصلُ الأوّلُ في أقسامِ المياه.\n\nوالقسمُ الثاني الماءُ الطاهرُ غيرُ المطهّر.';
+  const hRows = await (async () => {
+    const local = ctx({ libFlagValue: 'on', libToken: FIXTURE_TOKEN,
+      fetchImpl: libServingMany([bookHit({ atom_id: 'h-1', text: H_PARA })]) });
+    await quiet(() => tools.runTool('search_library', { query: 'الماء' }, local));
+    return local.table.rows;
+  })();
+  const hTag = oneTag(loop.pickBookCards(hRows, 3, ask.buildBookTag));
+  const hMatn = matnOf(hTag);
+  const hB64 = (/matn="([^"]*)"/.exec(hTag) || [, ''])[1];
+  ok('H4  the break survives the row, the merge, the tag and base64 -- letter for letter',
+    hRows.length === 1 && hMatn === H_PARA && hMatn.indexOf('\n\n') !== -1,
+    JSON.stringify({ rowNewlines: (hRows[0] ? hRows[0].text.match(/\n/gu) || [] : []).length,
+      matnNewlines: (hMatn.match(/\n/gu) || []).length }));
+  ok('H5  ...and the tag grammar is intact: the attribute itself holds no whitespace at all',
+    hB64.length > 0 && !/\s/u.test(hB64), 'base64 attribute carries whitespace');
+  ok('H6  ...while the title and the author still fold to one space, as a card attribute must',
+    hRows.length === 1 && !/\n/u.test(hRows[0].title) && !/\n/u.test(hRows[0].publisher),
+    'a newline reached a card attribute');
+
+  // The prose half. The previous batch warned that lib/free-brain/loop.js:1035 collapses \n{3,},
+  // so a break that reached the model's own writing had to be shown to survive THAT too.
+  const hProse = 'الحكمُ في هذه المسألةِ ما يلي.\n\nوالقسمُ الثاني الماءُ الطاهرُ غيرُ المطهّر.';
+  ok('H7  a paragraph break in the delivered prose survives deliverableText, byte for byte',
+    loop.deliverableText(hProse) === hProse, 'the break was rewritten on the prose path');
+  ok('H8  ...and the \\n{3,} rule that closes a bigger gap leaves the break itself alone',
+    loop.deliverableText('أ.\n\n\n\nب.') === 'أ.\n\nب.',
+    JSON.stringify(loop.deliverableText('أ.\n\n\n\nب.')));
+
+  // -- the mutants -----------------------------------------------------------
+  const hM1 = await mutantModule(temp, 'lib/free-brain/tools.js', 'passage-folds-all',
+    (src) => src.replace(
+      "  .replace(/\\s+/gu, (run) => ((run.match(/\\n/gu) || []).length >= 2 ? '\\n\\n' : ' '))",
+      "  .replace(/\\s+/gu, ' ')  // mutant-passage-folds-all"),
+    'mutant-passage-folds-all').then((mod) => ({ mod }), (error) => ({ error }));
+  const hM1Row = hM1.error ? null : await (async () => {
+    const local = { table: hM1.mod.createEvidenceTable(), spend: [], degraded: [],
+      libFlagValue: 'on', libToken: FIXTURE_TOKEN,
+      fetchImpl: libServingMany([bookHit({ atom_id: 'h-m1', text: H_PARA })]) };
+    await quiet(() => hM1.mod.runTool('search_library', { query: 'الماء' }, local));
+    return local.table.rows[0] || null;
+  })();
+  ok('H-M1 MUTANT KILLED: fold every run again and the page reaches the reader as one block',
+    !hM1.error && !!hM1Row && hM1Row.text.indexOf('\n') === -1 && hMatn.indexOf('\n\n') !== -1,
+    hM1.error ? hM1.error.message : 'mutant row newlines='
+      + (hM1Row ? (hM1Row.text.match(/\n/gu) || []).length : 'no row'));
+
+  const hM2 = await mutantModule(temp, 'lib/free-brain/tools.js', 'passage-wrap-is-a-break',
+    (src) => src.replace('(run.match(/\\n/gu) || []).length >= 2',
+      '(run.match(/\\n/gu) || []).length >= 1  /* mutant-wrap-is-a-break */'),
+    'mutant-wrap-is-a-break').then((mod) => ({ mod }), (error) => ({ error }));
+  const WRAP = 'سطرٌ أوّلُ من فقرةٍ واحدة\nوتتمّتُه في السطرِ الذي يليه.';
+  ok('H-M2 MUTANT KILLED: promote the fourteen bare line wraps and a justified column becomes a poem',
+    !hM2.error && hM2.mod.__toolsTest.cleanPassage(WRAP, 1200).indexOf('\n\n') !== -1
+      && cleanPassage(WRAP, 1200).indexOf('\n') === -1,
+    hM2.error ? hM2.error.message : 'the wrap rule did not flip');
+
+  ok('H9  every row in section H came from the injected library seam, none from the network',
+    poisoned.calls === 0, 'poisoned fetch invoked ' + poisoned.calls + ' time(s)');
+
   try { fs.rmSync(temp, { recursive: true, force: true }); } catch (error) { /* scratch only */ }
 
   console.log('\n=== lib-book-contract: ' + (checks - failures) + '/' + checks
