@@ -781,6 +781,72 @@ function quantityContradiction(parts) {
     ok('MUTANT KILLED: a clean answer must retain the explicit false field',
       dropsFieldMutant.loaded && dropsFieldMutant.survived === false,
       JSON.stringify(dropsFieldMutant));
+
+    // -- AA-64: THE SOURCE IS NAMED ONCE, AND THE RICHER NAMING IS THE ONE THAT LIVES --------
+    //
+    // `sourceTail` welds a source line onto a sentence the reviewer has just kept, and it welds
+    // it beside a card head that already draws the same title (api/ask.js buildSourceTag /
+    // buildBookTag, selected later by pickReaderCards). Its only guard against repeating itself
+    // compared the URL and the DATE -- never the title -- so a sentence that already named its
+    // source got a second naming welded on, under a card head carrying a third.
+    //
+    // Three fixtures, and the middle one is the one that matters most: an answer whose sentence
+    // names nothing must come out with the tail it always had, byte for byte. A reader must
+    // never lose the only mention he had.
+    const AA64_TITLE = '\u0637\u0642\u0633 \u0627\u0644\u0643\u0648\u064a\u062a \u0627\u0644\u064a\u0648\u0645';
+    const AA64_URL = 'https://weather.example/kuwait/2026-08-16';
+    const AA64_DATE = '2026-08-16';
+    const AA64_SENTENCE = '\u062f\u0631\u062c\u0629 \u0627\u0644\u062d\u0631\u0627\u0631\u0629 \u0627\u0644\u064a\u0648\u0645 \u0641\u064a \u0627\u0644\u0643\u0648\u064a\u062a 38 \u0645\u0626\u0648\u064a\u0629.';
+    // the same sentence, with the source named inside it: "..., from <title>."
+    const AA64_NAMES_IT = '\u062f\u0631\u062c\u0629 \u0627\u0644\u062d\u0631\u0627\u0631\u0629 \u0627\u0644\u064a\u0648\u0645 \u0641\u064a \u0627\u0644\u0643\u0648\u064a\u062a 38 \u0645\u0626\u0648\u064a\u0629\u060c \u0645\u0646 ' + AA64_TITLE + '.';
+    // and again with a qualifier the card head does not carry: "... in its morning bulletin."
+    const AA64_RICHER = AA64_NAMES_IT.slice(0, -1) + ' \u0641\u064a \u0646\u0634\u0631\u062a\u0647 \u0627\u0644\u0635\u0628\u0627\u062d\u064a\u0629.';
+    const AA64_TAIL_HEAD = '\u0627\u0644\u0645\u0635\u062f\u0631: ';
+    const AA64_SEP = ' \u2014 ';
+    const AA64_EVIDENCE = [{
+      id: 'weather-20260816',
+      title: AA64_TITLE,
+      url: AA64_URL,
+      scholar: '\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0623\u0631\u0635\u0627\u062f \u0627\u0644\u062c\u0648\u064a\u0629',
+      snippet: AA64_SENTENCE,
+      date: AA64_DATE,
+    }];
+    const aa64Review = (mod, text) => mod.reviewAnswer({
+      text, evidence: AA64_EVIDENCE, domain: 'general', mode: '\u0639\u0627\u062f\u064a',
+    });
+
+    const aa64Named = aa64Review(module, AA64_NAMES_IT);
+    ok('AA-64: a sentence that already names its source is not made to name it twice',
+      occurrences(aa64Named.text, AA64_TITLE) === 1, JSON.stringify(aa64Named.text));
+    ok('AA-64: ...and the page and the date, which the sentence did NOT carry, still arrive',
+      aa64Named.text === AA64_NAMES_IT + '\n' + AA64_TAIL_HEAD + AA64_URL + AA64_SEP + AA64_DATE,
+      JSON.stringify(aa64Named.text));
+
+    const aa64Plain = aa64Review(module, AA64_SENTENCE);
+    ok('AA-64 NEGATIVE: a sentence that names nothing keeps the whole tail, byte for byte',
+      aa64Plain.text === AA64_SENTENCE + '\n' + AA64_TAIL_HEAD + AA64_TITLE + AA64_SEP + AA64_URL + AA64_SEP + AA64_DATE,
+      JSON.stringify(aa64Plain.text));
+
+    const aa64Richer = aa64Review(module, AA64_RICHER);
+    ok('AA-64: a naming richer than the head keeps its extra, and still names the source once',
+      aa64Richer.text === AA64_RICHER + '\n' + AA64_TAIL_HEAD + AA64_URL + AA64_SEP + AA64_DATE
+        && aa64Richer.text.includes('\u0641\u064a \u0646\u0634\u0631\u062a\u0647 \u0627\u0644\u0635\u0628\u0627\u062d\u064a\u0629')
+        && occurrences(aa64Richer.text, AA64_TITLE) === 1,
+      JSON.stringify(aa64Richer.text));
+
+    const aa64Mutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'aa64-duplicate-naming-revived',
+      transform: (source) => source.replace(
+        '  if (!named) parts.push(label);',
+        '  parts.push(label); // mutant: the title is welded on whatever the sentence already said'),
+      survives: (mutantModule) => occurrences(aa64Review(mutantModule, AA64_NAMES_IT).text, AA64_TITLE) === 1,
+    });
+    ok('AA-64 mutant seam applied', aa64Mutant.changed, aa64Mutant.error);
+    ok('AA-64 mutant module loaded successfully', aa64Mutant.loaded, aa64Mutant.error);
+    ok('MUTANT KILLED: the duplicate naming cannot come back',
+      aa64Mutant.loaded && aa64Mutant.survived === false, JSON.stringify(aa64Mutant));
+
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {
     fail++;
