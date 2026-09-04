@@ -1611,7 +1611,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         // M-H — the rule removes the SENTENCE rather than the word, which deletes the prophetic
         // text in order to delete its grade. Explicitly forbidden, so explicitly guarded.
         await drive('grade-rule-removes-the-sentence-not-the-word',
-          (src) => src.replace('cuts.push(/[\\u0621-\\u064A]/u.test(rest) ? { start: sp.start, end: sp.end }',
+          (src) => src.replace('cuts.push(leavesAStatement(rest) ? { start: sp.start, end: sp.end }',
             'cuts.push(false ? { start: sp.start, end: sp.end }'),
           async (mod) => {
             // TWO LINES, deliberately. With one, cutting the sentence empties the answer and the
@@ -1831,6 +1831,182 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           });
       } finally {
         try { fs.rmSync(dir86, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
+  console.log('\n=== AA-88 · A SCHOLAR IS NOT LEFT HOLDING HALF A SENTENCE ===');
+  {
+    // FOUND BY THE PRE-MERGE AUDIT (PRE-MERGE-AUDIT-2026-09-04.md §4/C4), reported there and
+    // not fixed there. The grade rule asked «is any Arabic letter left in this sentence?» before
+    // deciding whether to cut the grading word or the whole sentence, and on
+    // «قال ابن قدامة إن إسناده صحيح.» the letters that remained were the CREDIT FRAME. So it cut
+    // the word and shipped «قال ابن قدامة إن.» — a truncated sentence in a named scholar's mouth.
+    //
+    // What a frame IS was measured over 186,490 records of the classical library and the Ibn Bāz
+    // fatwa corpus before it was encoded; the shapes below are that measurement's own rows, and
+    // the block over `leavesAStatement` in lib/takhrij-lock.js carries the counts.
+    const LOCK88 = await esm('lib/takhrij-lock.js');
+    const SEAT88 = await esm('lib/finalize-reader-text.js');
+    const CARRY = 'المسح على الخفين جائز للمسافر ثلاثة أيام بلياليها.';
+    const CREDIT = 'قال ابن قدامة إن إسناده صحيح.';
+    const W88 = CREDIT + '</source>\nوالدليل على ذلك:';
+
+    // ── THE PRECONDITION ────────────────────────────────────────────────────
+    // A witness that stopped being the witness passes in silence. The sentence must still open a
+    // bare chain grade, or none of the rows below are measuring this rule.
+    ok('AA-88 precondition: the credit sentence still opens a bare chain grade',
+      LOCK88.bareGradeSpans(CREDIT).some((s) => s.shape === 'chain'),
+      JSON.stringify(LOCK88.bareGradeSpans(CREDIT)));
+    ok('AA-88 precondition: the question is exported, so it is pinned and not only its effect',
+      typeof LOCK88.leavesAStatement === 'function');
+
+    // ── 1 · THE AUDIT'S EXACT INPUT ─────────────────────────────────────────
+    {
+      const out = SEAT88.finalizeReaderText({ kind: 'answer', text: W88, sources: [] });
+      ok('AA-88 the truncated sentence is not shipped in a named scholar’s mouth',
+        !out.text.includes('قال ابن قدامة') && !out.text.includes('قدامة'),
+        JSON.stringify(out.text));
+    }
+    {
+      // AND THE SENTENCE GOES WHOLE, FRAME AND ALL, while a ruling beside it is untouched.
+      const out = LOCK88.dropUnsourcedGrades(CARRY + '\n' + CREDIT);
+      ok('AA-88 ...the whole sentence goes, and the ruling beside it is byte-identical',
+        out.text === CARRY + '\n' && out.removed.length === 1,
+        JSON.stringify(out));
+    }
+
+    // ── 2 · THE MEASURED FRAME SHAPES ───────────────────────────────────────
+    // Fourteen real sentences, taken verbatim from the corpus rows the rule was derived from.
+    // Each is carried by a ruling so that the module's never-empty net is not what is measured.
+    const FRAMES88 = [
+      'قال: إسناده ضعيف.',
+      'قال الذهبي: «وإسنادها صحيح».',
+      'وقال ابن حجر في التلخيص: إسناده حسن.',
+      'قَالَ التِّرْمِذِيُّ: حَدِيثٌ صَحِيحٌ.',
+      'قَالَ الْإِمَامُ أَحْمَدُ: حَدِيثٌ صَحِيحٌ.',
+      'وقال الدارقطنى: حديث منكر.',
+      'قال أحمد: حديث منكر)',
+      'فقال: هذا حديث منكر.',
+      'قال أبي: هذا حديث منكر.',
+      'وقال الذهبى: هذا حديث منكر)',
+      'وقال: هذِه أحاديث ضعاف.',
+      'قلت: إنها أحاديث صحاح؟',
+      'قَالَ أَبُو عِيسَى: هَذَا حَدِيثٌ صَحِيحٌ.',
+      'قَالَ التِّرْمِذِيُّ: هَذَا حَدِيثٌ حَسَنٌ صَحِيحٌ.',
+    ];
+    for (const shape of FRAMES88) {
+      const out = LOCK88.dropUnsourcedGrades(CARRY + '\n' + shape);
+      ok('AA-88 a credit closing on its grade goes whole: ' + shape,
+        out.text === CARRY + '\n', JSON.stringify(out.text));
+    }
+
+    // ── 3 · THE NEGATIVES, AND THEY ARE THE WHOLE RISK ──────────────────────
+    // A grade beside GENUINE CONTENT comes out exactly as it does today: the grading word goes
+    // and every other byte stays. All three are corpus sentences, not constructions.
+    for (const [label, text, expected] of [
+      ['a refusal stated before the grade',
+        'قال: لا يثبت عندي؛ إسناده ضعيف.', 'قال: لا يثبت عندي.'],
+      ['a second scholar agreeing, after the grade',
+        'وقال الحاكم: صحيح الإسناد، ووافقه الذهبي.', 'وقال الحاكم:، ووافقه الذهبي.'],
+      ['a reason and a correction standing with it',
+        'وقال الألباني: إسناده ضعيف مظلم، وصححه بالشواهد.', 'وقال الألباني: مظلم، وصححه بالشواهد.'],
+    ]) {
+      ok('AA-88 byte-identical, a grade beside real content: ' + label,
+        LOCK88.dropUnsourcedGrades(text).text === expected,
+        JSON.stringify(LOCK88.dropUnsourcedGrades(text).text));
+    }
+    // ...and the shapes the AA-83 rows above already pin are untouched by the new question.
+    for (const [label, text, expected] of [
+      ['no verb of saying anywhere: the matn shape', 'وهو حديثٌ ضعيفٌ.', 'وهو حديثٌ.'],
+      ['no verb of saying anywhere: the definite form',
+        'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.', 'والحديثُ في البابِ يدلُّ على ذلك.'],
+      ['a verb of saying with the whole narration behind it',
+        'قال النبيُّ صلّى الله عليه وسلّم: من صام رمضان إيمانًا واحتسابًا، وهو حديثٌ صحيحٌ.',
+        'قال النبيُّ صلّى الله عليه وسلّم: من صام رمضان إيمانًا واحتسابًا، وهو حديثٌ.'],
+      ['a verb of saying with a ruling behind the complementizer',
+        'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام وإسناده صحيح.',
+        'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام.'],
+    ]) {
+      ok('AA-88 byte-identical, ' + label,
+        LOCK88.dropUnsourcedGrades(text).text === expected,
+        JSON.stringify(LOCK88.dropUnsourcedGrades(text).text));
+    }
+
+    // ── 4 · THE PINS ────────────────────────────────────────────────────────
+    {
+      const lockSrc88 = read('lib/takhrij-lock.js');
+      const BS88 = String.fromCharCode(92);
+      ok('AA-88 the decision is the question, not the letters test',
+        lockSrc88.includes('cuts.push(leavesAStatement(rest) ?')
+          && !lockSrc88.includes('cuts.push(/[' + BS88 + 'u0621-' + BS88 + 'u064A]/u.test(rest)'));
+      ok('AA-88 the three sets are declared where the measurement that produced them is written',
+        lockSrc88.includes('const SAYING_VERBS = new Set([')
+          && lockSrc88.includes('const COMPLEMENTIZERS = new Set([')
+          && lockSrc88.includes('const FRAME_FILLERS = new Set([')
+          && lockSrc88.indexOf('A SCHOLAR IS NOT LEFT HOLDING HALF A SENTENCE')
+            < lockSrc88.indexOf('const SAYING_VERBS = new Set(['));
+      ok('AA-88 the fillers are the five words that were measured, and no others',
+        lockSrc88.includes("const FRAME_FILLERS = new Set(['هذا', 'هذه', 'هو', 'له', 'انها']);"));
+      // THE MODULE STILL IMPORTS NOTHING NEW. A list of names would have meant reaching for
+      // lib/attribution.js; the party credited is read off the sentence's own shape instead,
+      // deliberately, so that this stays true.
+      ok('AA-88 ...and no import was added to reach a list of names',
+        (lockSrc88.match(/^import /gum) || []).length === 3,
+        JSON.stringify(lockSrc88.match(/^import .*/gum)));
+    }
+
+    // ── 5 · MUTANTS ─────────────────────────────────────────────────────────
+    {
+      const lock88Path = path.join(REPO, 'lib', 'takhrij-lock.js');
+      const lock88Src = read('lib/takhrij-lock.js');
+      const lock88Dir = path.dirname(lock88Path);
+      const absolute88 = (source) => source.replace(
+        /from\s+(['"])(\.[^'"]*)\1/gu,
+        (_all, quote, spec) => 'from ' + quote
+          + 'file:///' + path.resolve(lock88Dir, spec).replace(/\\/g, '/') + quote,
+      );
+      const dir88 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a88-mut-'));
+      const drive88 = async (name, apply, survives) => {
+        const changed = apply(lock88Src);
+        if (changed === lock88Src) {
+          ok('MUTANT ' + name, false, 'seam moved: the mutation did not apply, so nothing was tested');
+          return;
+        }
+        const file = path.join(dir88, name.replace(/[^a-z0-9-]/gi, '_') + '.mjs');
+        fs.writeFileSync(file, absolute88(changed), 'utf8');
+        let alive = true;
+        try { alive = await survives(await import('file:///' + file.replace(/\\/g, '/'))); }
+        catch { alive = false; }
+        ok('MUTANT KILLED: ' + name, !alive, 'the mutant survived — this property is not guarded');
+      };
+      try {
+        // M-M — the letters test restored, which is the tree exactly as the audit found it.
+        // `alive` is «the property still holds under the mutation», as everywhere else in this
+        // file: the property is «a truncated sentence is not left in a named scholar's mouth».
+        await drive88('grade-rule-asks-for-letters-again',
+          (s) => s.replace('  const toks = tokenize(rest);\n',
+            '  return true;\n  const toks = tokenize(rest);\n'),
+          async (mod) => mod.dropUnsourcedGrades(CARRY + '\n' + CREDIT).text === CARRY + '\n');
+
+        // M-N — THE OVER-REACHING DIRECTION, and it is the one that costs the reader a sentence:
+        // what stands behind the introduction stops being looked at, so every credit is cut whole.
+        await drive88('what-stands-behind-the-credit-stops-counting',
+          (s) => s.replace(
+            '  for (const t of toks) if (t.start >= intro && isSubstantive(t.bare)) return true;\n'
+            + '  return false;',
+            '  return false;'),
+          async (mod) => mod.dropUnsourcedGrades('قال: لا يثبت عندي؛ إسناده ضعيف.').text
+            === 'قال: لا يثبت عندي.');
+
+        // M-O — a sentence with no credit in it at all starts being cut whole. The same
+        // over-reaching direction through the other door, and the AA-83 rows above are its
+        // witness: «وهو حديثٌ ضعيفٌ.» must lose its grade and keep its sentence.
+        await drive88('a-sentence-with-no-credit-is-cut-whole',
+          (s) => s.replace('  if (verb < 0) return true;', '  if (verb < 0) return false;'),
+          async (mod) => mod.dropUnsourcedGrades(CARRY + '\nوهو حديثٌ ضعيفٌ.').text
+            === CARRY + '\nوهو حديثٌ.');
+      } finally {
+        try { fs.rmSync(dir88, { recursive: true, force: true }); } catch { /* temp only */ }
       }
     }
   }
