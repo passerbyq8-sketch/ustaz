@@ -45,6 +45,15 @@ function ok(label, cond, detail) {
 }
 
 // ── Boot the shipped client block ───────────────────────────────────────────
+// AA-1 needs byte equality, not a predicate: an assertion that only says "no tag survived"
+// would pass on an empty string.
+function eqBytes(name, actual, expected) {
+  return ok(name, actual === expected,
+    'expected ' + JSON.stringify(expected) + '\n        actual   ' + JSON.stringify(actual));
+}
+// A tag is an angle bracket followed by a NAME. An ordinary comparison is not one.
+const AA1_TAG_RE = /<\/?[A-Za-z]/;
+
 function bootClient(source) {
   // ITEM 32. `source`, when given, is a MUTATED copy of the shipped JSX -- app.jsx, where the
   // application lives since the block left index.html. It used to be a mutated copy of the whole
@@ -537,6 +546,22 @@ function mutants() {
         !String(tts('وإن توضأ منها احتياطا فحسن لا واجب.' + m) || '').includes(m)),
     },
     {
+      name: 'the-parent-log-stops-sweeping-what-survived-its-rewrites',
+      // AA-1 removed. The seam is located by a substring of the sweep and replaced a LINE at a
+      // time, for the CRLF/LF reason recorded on the mutants above: an anchor that spans a line
+      // break matches in one checkout and not the other.
+      apply: (s) => s.split('\n')
+        .map((line) => (line.includes('[A-Za-z0-9-]*') && line.includes('t = t.replace')
+          ? '  // mutant: whatever survived the rewrites goes to the parent as it is' : line))
+        .join('\n'),
+      check: (parse, tts, log) => {
+        const TITLE = '\u0627\u0644\u0639\u0646\u0648\u0627\u0646';
+        const nested = '<source site="x" url="https://a.test/1"><source site="y" url="https://x.test/b">' + TITLE + '</source></source>';
+        const stray = '<b>' + TITLE + '</b> <source site="x" url="https://a.test/1">' + TITLE + '</source>';
+        return !AA1_TAG_RE.test(String(log(nested) || '')) && !AA1_TAG_RE.test(String(log(stray) || ''));
+      },
+    },
+    {
       name: 'the-review-mark-is-raw-characters-in-the-parent-log-again',
       // §٣ removed. This is the state A-3 declared and left open: the badge is on the screen, the
       // clipboard is clean, the voice is clean — and the parents' log still shows 【فهمٌ لا فتوى】
@@ -834,6 +859,51 @@ async function orphanCloser() {
   }
 }
 
+
+// -- AA-1: THE LOG LINE CLOSES WHAT IT OPENS ----------------------------------------
+//
+// `formatForLog` rewrites the tags it knows and then folds whitespace. It never swept for
+// one that got past those rewrites, and its sibling `formatForStreamPreview` always has --
+// the last thing it does before folding is exactly that sweep. The parents' log was the
+// reader left without it.
+//
+// Measured on this tree BEFORE the repair: a second card opened inside the first left a live
+// `<source ...>` and a bare `</source>` in the line; a stray `<b>...</b>` beside a card
+// survived whole; and a url carrying ">" ended the attribute region early, so `">` leaked
+// into the title a parent reads. Two of the six carried a tag into the log, a third the leak.
+//
+// AND THE TWO NEGATIVE CONTROLS ARE HALF THE POINT. An ordinary comparison is arithmetic a
+// parent may well be reading, and a sweep by bare bracket would eat it. The sweep is by NAME.
+function aa1LogClosesWhatItOpens(client, phase) {
+  console.log('\n--- AA-1. THE PARENTS LOG CLOSES WHAT IT OPENS ---');
+  const log = client.grab('formatForLog');
+  if (!ok(phase + ': formatForLog is on the page', typeof log === 'function')) return;
+  const TITLE = '\u0627\u0644\u0639\u0646\u0648\u0627\u0646';
+  const ARITH_GT = '\u0625\u0630\u0627 \u0643\u0627\u0646 3 > 2 \u0641\u0647\u0630\u0627 \u0635\u062d\u064a\u062d.';
+  const ARITH_LT = '\u0625\u0630\u0627 \u0643\u0627\u0646 2 < 3 \u0641\u0647\u0630\u0627 \u0635\u062d\u064a\u062d.';
+  const CARD = '<source site="x" url="https://a.test/1">' + TITLE + '</source>';
+  const NESTED = '<source site="x" url="https://a.test/1"><source site="y" url="https://x.test/b">' + TITLE + '</source></source>';
+  const ANGLE_URL = '<source site="x" url="https://a.test/2>">' + TITLE + '</source>';
+  const STRAY = '<b>' + TITLE + '</b> ' + CARD;
+  const CASES = [
+    ['a well-formed source card', CARD],
+    ['two source cards, the second opened INSIDE the first', NESTED],
+    ['a source card whose url carries an angle bracket', ANGLE_URL],
+    ['a stray unknown tag beside a source card', STRAY],
+    ['an arithmetic comparison, greater-than', ARITH_GT],
+    ['an arithmetic comparison, less-than', ARITH_LT],
+  ];
+  for (const [label, text] of CASES) {
+    const out = String(log(text) || '');
+    ok(phase + ' [AA-1] no tag reaches the log: ' + label, !AA1_TAG_RE.test(out), JSON.stringify(out));
+  }
+  eqBytes(phase + ' [AA-1] the greater-than comparison reaches the parent as written',
+    String(log(ARITH_GT) || ''), ARITH_GT);
+  eqBytes(phase + ' [AA-1] the less-than comparison reaches the parent as written',
+    String(log(ARITH_LT) || ''), ARITH_LT);
+  eqBytes(phase + ' [AA-1] a url carrying an angle bracket no longer leaks into the title',
+    String(log(ANGLE_URL) || ''), '[\u0627\u0644\u0645\u0635\u062f\u0631: ' + TITLE + ']');
+}
 (async function main() {
   console.log('=== truncated-tag-fallback-par-a-guard -- X-014: a cut tag must not empty the answer ===');
   try {
@@ -843,6 +913,7 @@ async function orphanCloser() {
     reviewMarkSuite(liveClient, 'live');
     codeSurvivesTheCut(liveClient, 'live');
     reviewMarkLogSuite(liveClient, 'live');
+    aa1LogClosesWhatItOpens(liveClient, 'live');
     serverStrip();
     await orphanCloser();
     if (process.argv.includes('--mutants')) mutants();

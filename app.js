@@ -1355,8 +1355,13 @@ t=t.replace(/\s+/g,' ').trim();for(const{token,url}of protectedUrls)t=t.split(to
 const formatForLog=text=>{if(!text)return'';// §٢ (C): والسجلُّ كذلك — الشارةُ للشاشةِ لا لِنصِّ السجلّ، ونزعُها هنا قبلَ التنظيفِ العامّ.
 // نفس التنظيف: لا نُظهِر للأهل في السجلّ أيّ وسم ناقص أو بقايا "<...>" خام
 let t=stripIncompleteTags(ezikStripIncomplete(text),{rescue:true});t=t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g,'');// المصدر: نُبقي عنوانه نصّاً مقروءاً في سجلّ الأهل (للتحقّق) ونُسقِط الرابط — لا نعرض URL خاماً
-t=t.replace(/<source[^>]*>([\s\S]*?)<\/source>/g,(_,title)=>{const s=(title||'').trim();return s?` [المصدر: ${s}] `:' ';});// ع-٤٩ — الكتابُ يُكتَبُ للأهلِ نصًّا كالمصدرِ سواء: هذا هو السطرُ الذي يتحقّقُ منه الوالدُ.
-t=t.replace(/<book([^>]*)>([\s\S]*?)<\/book>/g,(_,attrs,name)=>{const am=attrs.match(/author=["']([^"']+)["']/);const rm=attrs.match(/ref=["']([^"']+)["']/);const line=[(name||'').trim(),am?am[1].trim():'',rm?rm[1].trim():''].filter(Boolean).join(' \u2014 ');return line?` [الكتاب: ${line}] `:' ';});// الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
+// AA-1: read the tag's own attributes without stopping at a ">" inside a QUOTED value.
+// Measured on this tree: `<source site="x" url="https://a.test/2>">العنوان</source>`
+// came out as `[المصدر: ">العنوان]` -- the attribute region ended at the bracket inside the
+// url and the rest of it leaked into the title a parent reads.
+t=t.replace(/<source(?:"[^"]*"|'[^']*'|[^>"'])*>([\s\S]*?)<\/source>/g,(_,title)=>{const s=(title||'').trim();return s?` [المصدر: ${s}] `:' ';});// ع-٤٩ — الكتابُ يُكتَبُ للأهلِ نصًّا كالمصدرِ سواء: هذا هو السطرُ الذي يتحقّقُ منه الوالدُ.
+// AA-1: the same widening, and for the same reason -- `author` and `ref` are free text.
+t=t.replace(/<book((?:"[^"]*"|'[^']*'|[^>"'])*)>([\s\S]*?)<\/book>/g,(_,attrs,name)=>{const am=attrs.match(/author=["']([^"']+)["']/);const rm=attrs.match(/ref=["']([^"']+)["']/);const line=[(name||'').trim(),am?am[1].trim():'',rm?rm[1].trim():''].filter(Boolean).join(' \u2014 ');return line?` [الكتاب: ${line}] `:' ';});// الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
 // نعرض المرجع فقط. نتجاهل أيّ نصّ بداخل الوسم تماماً (قد يرسله النموذج خطأً).
 t=t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g,(_,attrs)=>{const sNum=resolveSurahNumber((attrs.match(/surah=["']([^"']+)["']/)||[])[1],(attrs.match(/surah_num=["']([^"']+)["']/)||[])[1]);const aNum=parseInt((attrs.match(/ayah=["']([^"']+)["']/)||[])[1],10);const name=sNum?SURAH_NAMES[sNum]:'';const ref=[name&&`سورة ${name}`,aNum>=1&&`آية ${aNum}`].filter(Boolean).join('، ');const canon=sNum&&aNum>=1?getVerseText(sNum,aNum):null;return canon?` «${canon}»${ref?` (${ref})`:''} `:ref?` [${ref}] `:' ';});// السورة: مرجعٌ مختصرٌ للأهل (الاسم + المدى إن كان جزئياً) — لا نصّ خام
 t=t.replace(/<surah([^>]*)>([\s\S]*?)<\/surah>/g,(_,attrs)=>{const sNum=resolveSurahNumber(undefined,(attrs.match(/num=["']([^"']+)["']/)||[])[1]);const name=sNum?SURAH_NAMES[sNum]:'';const from=parseInt((attrs.match(/from=["']([^"']+)["']/)||[])[1],10);const to=parseInt((attrs.match(/to=["']([^"']+)["']/)||[])[1],10);const rangePart=from>=1&&to>=1?`، الآيات ${from}–${to}`:'';return name?` [تلاوة سورة ${name}${rangePart}] `:' ';});// الحديث والخطوات: نفس تحويل الصوت كي يبقى السجلّ مقروءاً
@@ -1393,7 +1398,19 @@ t=t.replace(/<steps([^>]*)>([\s\S]*?)<\/steps>/g,(_,attrs,content)=>{const items
 //
 // SPACES ON BOTH SIDES, NOT NONE: `tag()` appends the mark straight after the full stop
 // («…لا واجبٌ.【فهمٌ لا نصٌّ منقول】»), and the whitespace fold below collapses the pair to one.
-t=t.replace(EZIK_NOTICE_ALL,(_all,label)=>' ['+String(label||'').trim()+'] ');t=t.replace(/\s+/g,' ').trim();return t;};// ============================================================
+t=t.replace(EZIK_NOTICE_ALL,(_all,label)=>' ['+String(label||'').trim()+'] ');// ── AA-1: A TAG THAT SURVIVED EVERY REWRITE ABOVE IS NOT PROSE ────────────────
+//
+// This function rewrites the tags it knows and then folds whitespace; it never swept for
+// one that got past them. Its sibling `formatForStreamPreview` does -- the last thing it
+// does before folding is exactly this -- and the parents' log was the reader left without
+// it. Measured on this tree before the sweep: a second card opened inside the first left
+// `<source site="y" url="https://x.test/b">` and a bare `</source>` on the line, and a
+// stray `<b>العنوان</b>` beside a card survived whole.
+//
+// BY NAME, NEVER BY BARE BRACKET. «3 > 2» and «2 < 3» are arithmetic a parent may well be
+// reading in the log, and they must live: the name must start with a letter, so neither is
+// touched. Quoted attribute values are consumed whole here as well, for the reason above.
+t=t.replace(/<\/?[A-Za-z][A-Za-z0-9-]*(?:\s(?:"[^"]*"|'[^']*'|[^>"'])*)?>/g,' ');t=t.replace(/\s+/g,' ').trim();return t;};// ============================================================
 // Live stream preview: clean prose only — hides all known tags and any leftover "<...>"
 // so no raw markup (<surah ...>/<verse ...>) flashes while streaming. Lightweight; display only.
 // ============================================================
