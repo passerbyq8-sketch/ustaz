@@ -2010,6 +2010,184 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  console.log('\n=== AA-89 · A MARK IS NOT THE CONTENT A LEAD-IN PROMISED ===');
+  {
+    // FOUND BY THE PRE-MERGE AUDIT (PRE-MERGE-AUDIT-2026-09-04.md §4/C2). The reviewer welds
+    // its ATTRIBUTION_REMOVED tag onto the sentence it stripped a credit from; when that
+    // sentence was a lead-in the line stops ending in a colon, `colonPreambles` returns nothing,
+    // and a promise with nothing behind it ships. It is a GAP, not a regression — on `main` the
+    // same answer shipped the same way — so the bar these rows hold is improvement with NO
+    // collateral, and the equivalence row below is what states that in one line.
+    const SEAT89 = await esm('lib/finalize-reader-text.js');
+    const REV89 = await esm('lib/output-reviewer.js');
+    const CPX89 = await esm('lib/colon-preamble.js');
+    const TAG89 = REV89.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+    const RULING89 = 'المسح على الخفين جائز للمسافر ثلاثة أيام بلياليها.';
+    const CREDITED_LEAD = 'وقد ذكر ابن قدامة أن الدليل على ذلك:';
+    const seal89 = (text, extra) => SEAT89.finalizeReaderText(
+      { kind: 'answer', text, sources: [], ...(extra || {}) });
+    const lastBlock = (text) => {
+      const blocks = String(text).split('\n').map((l) => l.trim()).filter(Boolean);
+      return blocks.length ? blocks[blocks.length - 1] : '';
+    };
+
+    // ── THE PRECONDITIONS ───────────────────────────────────────────────────
+    const reviewed89 = REV89.reviewAnswer(
+      { text: RULING89 + '\n' + CREDITED_LEAD, evidence: [], domain: 'fiqh', mode: 'عادي' }).text;
+    ok('AA-89 precondition: the reviewer still welds its tag after the colon',
+      lastBlock(reviewed89).endsWith(TAG89)
+        && /[:：]$/u.test(lastBlock(reviewed89).slice(0, -TAG89.length).trimEnd()),
+      JSON.stringify(reviewed89));
+    ok('AA-89 precondition: the detector is blind to that line as it stands',
+      CPX89.colonPreambles(reviewed89).length === 0,
+      JSON.stringify(CPX89.colonPreambles(reviewed89)));
+    // AND THE FOLD MOVES NO LINE. The index the detector points at is only usable on the
+    // original because no mark carries a newline; a mark that did would cut the wrong line.
+    ok('AA-89 precondition: folding the marks changes no line count and no line order',
+      REV89.foldReaderMarks(reviewed89).split('\n').length === reviewed89.split('\n').length,
+      JSON.stringify(REV89.foldReaderMarks(reviewed89)));
+
+    // ── THE RULE ────────────────────────────────────────────────────────────
+    {
+      const out = seal89(reviewed89);
+      ok('AA-89 a promise with nothing behind it does not reach the reader',
+        out.problems.includes(SEAT89.DANGLING_LEAD_IN)
+          && !out.text.includes('الدليل على ذلك:')
+          && out.text.includes('ثلاثة أيام بلياليها'),
+        JSON.stringify({ text: out.text, problems: out.problems }));
+      ok('AA-89 ...and the tag welded onto it goes with the line it qualified',
+        (out.text.match(new RegExp(TAG89.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&'), 'gu')) || []).length === 0,
+        JSON.stringify(out.text));
+    }
+    // P6 of the nine (BOOK-TEXT-REPORT-2026-09-04.md §6.1) is the path this closes: the
+    // reviewer's own attribution removal. It is the one the seat could not see.
+    {
+      const out = seal89(reviewed89);
+      ok('AA-89 P6 — the reviewer\'s attribution removal is now closed at the seat',
+        !/[:：]$/u.test(lastBlock(REV89.foldReaderMarks(out.text))),
+        JSON.stringify(out.text));
+    }
+
+    // ── THE NEGATIVES, AND THEY ARE THE WHOLE RISK ──────────────────────────
+    // A colon with REAL CONTENT behind it that happens to also carry a mark is untouched.
+    for (const [label, text] of [
+      ['a colon whose content is a quotation, and the quotation carries the mark',
+        'قال النبيُّ صلّى الله عليه وسلّم:\n«إنّما الأعمالُ بالنيّاتِ» ' + TAG89 + '\nوبهذا يتبيّنُ الحكمُ.'],
+      ['the content stands on the same line, after the colon, before the mark',
+        'الأدلّةُ على ذلك: الكتابُ والسنّةُ ' + TAG89],
+      ['a list introduced by a colon whose lead-in carries the mark',
+        'الأدلّةُ على ذلك: ' + TAG89 + '\n- الكتاب\n- السنّة'],
+      ['an answer that is nothing but a promise, mark and all',
+        'الدليل على ذلك: ' + TAG89],
+    ]) {
+      const out = seal89(text);
+      ok('AA-89 byte-identical: ' + label,
+        out.text === text && !out.problems.includes(SEAT89.DANGLING_LEAD_IN),
+        JSON.stringify({ text: out.text, problems: out.problems }));
+    }
+
+    // ── NO MORE AND NO LESS: THE EQUIVALENCE ────────────────────────────────
+    // The whole claim of this change in one row. A line carrying a mark behaves EXACTLY as the
+    // same line behaves without one. Anything else would be a widening, and a widening here
+    // costs the reader a sentence.
+    for (const [label, plain] of [
+      ['a lead-in that is last', RULING89 + '\nالدليل على ذلك:'],
+      ['a colon with prose behind it', 'الأدلّةُ من السنّة:\nحديثُ عائشةَ رضي الله عنها.'],
+      ['a colon with a list behind it', 'الأدلّةُ على ذلك:\n- الكتاب\n- السنّة'],
+      ['a heading with a body', '## الأدلّةُ من السنّة\nحديثُ عائشةَ رضي الله عنها.'],
+      ['a plain answer with no colon anywhere', RULING89],
+    ]) {
+      const lines = plain.split('\n');
+      lines[lines.length - 1] = lines[lines.length - 1] + ' ' + TAG89;
+      const tagged = lines.join('\n');
+      const a = seal89(plain);
+      const b = seal89(tagged);
+      ok('AA-89 the mark changes nothing: ' + label,
+        a.problems.includes(SEAT89.DANGLING_LEAD_IN)
+          === b.problems.includes(SEAT89.DANGLING_LEAD_IN),
+        JSON.stringify({ plain: a.text, tagged: b.text }));
+    }
+
+    // ── ONE VOCABULARY, ONE OWNER ───────────────────────────────────────────
+    {
+      const seatSrc89 = read('lib/finalize-reader-text.js');
+      const revSrc89 = read('lib/output-reviewer.js');
+      ok('AA-89 the seat borrows the folding rather than copying the wording',
+        /foldReaderMarks/u.test(seatSrc89)
+          && seatSrc89.includes('colonPreambles(foldReaderMarks(text))')
+          && !seatSrc89.includes(TAG89)
+          && !seatSrc89.includes(REV89.REVIEW_TAGS.FIQH_UNSOURCED));
+      ok('AA-89 ...and the reviewer folds ONCE, with the substance test written in terms of it',
+        revSrc89.includes('return !NO_CONTENT_RE.test(foldReaderMarks(text));')
+          && (revSrc89.match(/for \(const mark of READER_MARKS\)/gu) || []).length === 1,
+        JSON.stringify(revSrc89.match(/for \(const mark of READER_MARKS\).*/gu)));
+      ok('AA-89 ...and the folding is exported for the seat and for a guard to pin',
+        typeof REV89.foldReaderMarks === 'function');
+      // THE CUT IS MADE ON THE ORIGINAL. Only the reading is folded; a seat that cut from the
+      // folded text would ship an answer with every mark stripped off it.
+      ok('AA-89 the cut is made on the text as it stands, not on the folded reading',
+        seatSrc89.includes('const lines = text.split(\'\\n\');'),
+        JSON.stringify(seatSrc89.split(/\r?\n/).filter((l) => l.includes('text.split'))));
+    }
+
+    // ── MUTANTS ─────────────────────────────────────────────────────────────
+    {
+      const seat89Path = path.join(REPO, 'lib', 'finalize-reader-text.js');
+      const seat89Src = read('lib/finalize-reader-text.js');
+      const seat89Dir = path.dirname(seat89Path);
+      const absolute89 = (source) => source.replace(
+        /from\s+(['"])(\.[^'"]*)\1/gu,
+        (_all, quote, spec) => 'from ' + quote
+          + 'file:///' + path.resolve(seat89Dir, spec).replace(/\\/g, '/') + quote,
+      );
+      const dir89 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a89-mut-'));
+      const drive89 = async (name, apply, survives) => {
+        const changed = apply(seat89Src);
+        if (changed === seat89Src) {
+          ok('MUTANT ' + name, false, 'seam moved: the mutation did not apply, so nothing was tested');
+          return;
+        }
+        const file = path.join(dir89, name.replace(/[^a-z0-9-]/gi, '_') + '.mjs');
+        fs.writeFileSync(file, absolute89(changed), 'utf8');
+        let alive = true;
+        try { alive = await survives(await import('file:///' + file.replace(/\\/g, '/'))); }
+        catch { alive = false; }
+        ok('MUTANT KILLED: ' + name, !alive, 'the mutant survived — this property is not guarded');
+      };
+      try {
+        // M-P — the line is read with the mark on it again, which is the tree as the audit found
+        // it. `alive` is «the property still holds»: the property is «a promise with nothing
+        // behind it does not reach the reader».
+        await drive89('the-lead-in-is-read-with-the-mark-still-on-it',
+          (s) => s.replace('colonPreambles(foldReaderMarks(text))', 'colonPreambles(text)'),
+          async (mod) => mod.finalizeReaderText({ kind: 'answer', text: reviewed89, sources: [] })
+            .problems.includes(SEAT89.DANGLING_LEAD_IN));
+
+        // M-Q — THE FOLD ESCAPES FROM THE READING INTO THE PRODUCT: the cut is made on the
+        // folded text, so the answer ships with every mark stripped off it. This is the
+        // direction that costs the reader the honesty marks, and it is the reason the row
+        // above pins WHICH text the lines are taken from.
+        await drive89('the-fold-escapes-into-the-text-that-ships',
+          (s) => s.replace('  const lines = text.split(\'\\n\');',
+            '  const lines = foldReaderMarks(text).split(\'\\n\');'),
+          async (mod) => {
+            const out = mod.finalizeReaderText({ kind: 'answer', text: reviewed89, sources: [] });
+            return out.text.includes(REV89.REVIEW_TAGS.FIQH_UNSOURCED);
+          });
+
+        // M-R — the seat stops asking whether anything follows the lead-in and cuts every
+        // preamble it can see. The over-reaching direction: the negatives above are its witness.
+        await drive89('every-colon-is-cut-not-only-the-closing-one',
+          (s) => s.replace('.find((preamble) => preamble.closing)', '.find((preamble) => true)'),
+          async (mod) => {
+            const text = 'الأدلّةُ من السنّة:\nحديثُ عائشةَ رضي الله عنها.';
+            return mod.finalizeReaderText({ kind: 'answer', text, sources: [] }).text === text;
+          });
+      } finally {
+        try { fs.rmSync(dir89, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
