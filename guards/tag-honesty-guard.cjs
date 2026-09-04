@@ -426,6 +426,87 @@ const unsupportedIsTagged = (module) => {
     ok('MUTANT KILLED: the phrase cannot go back into the middle of a sentence',
       midMutant.loaded && midMutant.survived === false, JSON.stringify(midMutant));
 
+    // ── ع-٥٥/ب · WHAT CANNOT BE STOOD BEHIND IS REMOVED, NOT DECORATED ────
+    //
+    // On «he mentioned that» and «he said that» an unsupported credit came out MARKED rather
+    // than removed: the reader was shown a decorated attribution instead of none. Measured, the
+    // removal branch was never reached — removalBreaksSentence routed the sentence to the marked
+    // branch because `head` still ended on «وقد», a pre-verbal particle belonging to the very
+    // frame being removed. The repair is in attributionParts, one function earlier, and the seam
+    // test is untouched. Five phrasings, and the owner's own witness among them: a passage
+    // credited to a named book in a summary-mode answer.
+    for (const witness of [
+      { id: 'waqad-zakara-anna-book',
+        text: 'وقد ذكر ابن قدامة في المغني أن المسح على الخفين جائز.',
+        delivered: 'المسح على الخفين جائز.' },
+      { id: 'waqad-zakara-anna-mid',
+        text: 'المسألة فيها سعة، وقد ذكر ابن قدامة أن المسح على الخفين جائز.',
+        delivered: 'المسألة فيها سعة، المسح على الخفين جائز.' },
+      { id: 'waqad-qala-inna-summary',
+        text: 'خلاصة الجواب أن المسح جائز، وقد قال ابن قدامة إن مدته يوم وليلة.',
+        delivered: 'خلاصة الجواب أن المسح جائز، مدته يوم وليلة.' },
+      { id: 'faqad-zakara-anna',
+        text: 'الأمر واسع، فقد ذكر ابن قدامة أن المسح على الخفين جائز.',
+        delivered: 'الأمر واسع، المسح على الخفين جائز.' },
+      { id: 'qad-zakara-anna-head',
+        text: 'قد ذكر ابن قدامة أن المسح على الخفين جائز.',
+        delivered: 'المسح على الخفين جائز.' },
+    ]) {
+      const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      ok('ع-٥٥/ب ' + witness.id + ': the credit is REMOVED, not decorated',
+        out.annotations[0]?.action === 'removed-unsupported-attribution',
+        out.annotations[0]?.action + ' | ' + out.text);
+      ok('ع-٥٥/ب ' + witness.id + ': ...and the particle left with the frame it qualified',
+        out.text.startsWith(witness.delivered)
+          && out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED),
+        out.text);
+    }
+
+    // [RED] THE NEGATIVE, AND IT IS THE WHOLE RISK OF THIS CHANGE. A credit that IS verified
+    // must still be shown, and shown exactly as it is shown today. Three of them, each on its
+    // own official host, each carrying one of the phrasings above.
+    for (const witness of [
+      { id: 'ibn-baz', text: 'وقد ذكر ابن باز أن المسح على الخفين جائز.',
+        scholar: 'ابن باز', identifier: 'binbaz:1', host: 'binbaz.org.sa' },
+      { id: 'al-barrak', text: 'المسألة فيها سعة، وقد قال عبد الرحمن البراك إن المسح جائز.',
+        scholar: 'عبد الرحمن البراك', identifier: 'albarrak:1', host: 'sh-albarrak.com' },
+      { id: 'al-khathlan', text: 'خلاصة الجواب أن الأمر واسع، وقد ذكر سعد الخثلان أن المسح جائز.',
+        scholar: 'سعد الخثلان', identifier: 'alkhathlan:1', host: 'saadalkhathlan.com' },
+    ]) {
+      const out = module.reviewAnswer({
+        text: witness.text,
+        domain: 'fiqh',
+        mode: 'عادي',
+        evidence: [{
+          id: witness.identifier, identifier: witness.identifier, title: 'فتوى',
+          url: 'https://' + witness.host + '/x', scholar: witness.scholar,
+          snippet: 'المسح على الخفين جائز يوما وليلة للمقيم.',
+        }],
+      });
+      ok('ع-٥٥/ب [RED] a VERIFIED credit is still shown — ' + witness.id,
+        out.text === witness.text
+          && out.annotations[0]?.action === 'kept-sourced-attribution',
+        JSON.stringify({ action: out.annotations[0]?.action, text: out.text }));
+    }
+
+    // THE MUTANT. Take «قد» back out of the trailing-connector list and the owner's witness
+    // returns to the marked branch, with the credit standing in front of the reader.
+    const qadMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'a55b-qad-not-a-frame-particle',
+      transform: (source) => source.split('|قد|وقد|فقد)(?=').join(')(?='),
+      survives: (mod) => {
+        const out = mod.reviewAnswer({
+          text: 'خلاصة الجواب أن المسح جائز، وقد قال ابن قدامة إن مدته يوم وليلة.',
+          evidence: [], domain: 'fiqh', mode: 'عادي',
+        });
+        return out.annotations[0]?.action === 'removed-unsupported-attribution';
+      },
+    });
+    ok('ع-٥٥/ب mutant seam applied', qadMutant.changed, qadMutant.error);
+    ok('ع-٥٥/ب MUTANT KILLED: without «قد» the credit is decorated again, not removed',
+      qadMutant.loaded && qadMutant.survived === false, JSON.stringify(qadMutant));
+
     const mutant = await runMutant({
       sourceFile: REVIEWER,
       name: 'strip-unsupported-attribution-without-tag',
