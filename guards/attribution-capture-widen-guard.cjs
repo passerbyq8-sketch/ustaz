@@ -36,6 +36,11 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { runMutant } = require('./output-reviewer-mutant-lib.cjs');
+// Two characters this file must build rather than type: a newline, and the backslash-s of a
+// regex source. Both would otherwise be escapes inside the strings section F splices with.
+const LF = String.fromCharCode(10);
+const RX_S = String.fromCharCode(92) + 's';
 
 const REPO = path.join(__dirname, '..');
 let failures = 0, checks = 0;
@@ -91,8 +96,24 @@ const NAME_STARTS_ON_A_MARK = '(?<name>[\\p{Script=Arabic}\\p{M}]';
 const CUE_STOP_VERBS = ['يحرم', 'يجوز', 'يجب', 'يكره', 'يستحب', 'يصح', 'يبطل',
   'قال', 'ذكر', 'أفتى', 'أجاب', 'يرى', 'تقول', 'قالت'];
 const CUE_STOP = '(?:' + CUE_STOP_VERBS.join('|') + ')(?![\\p{Script=Arabic}\\p{M}])';
+// ── ع-٧٤/ج · THE RULING A NAME MAY NOT SWALLOW IS THE RULING WITH ITS NEGATION ──
+// MEASURED on 33accce: «قال الشيخ ابن باز لا يجوز حلق اللحية.» captured «ابن باز لا» — the
+// negation particle taken for the last word of the name — and delivered «يجوز حلق اللحية.»
+// to the reader, stamped as this answer's own understanding. The OPPOSITE fatwa. So the stop
+// list is consulted with the negation in front of it, in both places it is consulted: as a word
+// a name may not take, and as a place a frame may end. «ما» is deliberately absent — it is the
+// relative pronoun as often as the negative, and adding it cuts «قال فلان ما ذكره العلماء» down
+// to a noun phrase. The list is a fingerprint of the file, like CUE_STOP above it.
+const NEGATION_PARTICLES = ['لا', 'لم', 'لن', 'ليس'];
+const RULING_ONSET = '(?:(?:' + NEGATION_PARTICLES.join('|') + ')\\s+)?' + CUE_STOP;
+// ── ع-٧٤/ج · AND THE THIRD AND FOURTH FRAMES MAY END ON IT ────────────────
+// They were anchored on «:» or «،» and on nothing else, so «عند الشيخ فلان يحرم كذا» matched no
+// pattern at all, and when a comma appeared later the lazy class ran to it and swallowed the
+// ruling on the way. They now carry the SAME second ending the second pattern already had. Their
+// name class is NOT narrowed: ع-٧٤/ب measured that narrowing truncates a long honorific name.
+const ONSET_ENDING = '|\\s+(?=' + RULING_ONSET + '))';
 const CUE_FIRST_NAME_CLASS = '(?<name>[\\p{Script=Arabic}][\\p{Script=Arabic}\\p{M}]*'
-  + '(?:\\s+(?!' + CUE_STOP + ')[\\p{Script=Arabic}][\\p{Script=Arabic}\\p{M}]*){0,5}?)';
+  + '(?:\\s+(?!' + RULING_ONSET + ')[\\p{Script=Arabic}][\\p{Script=Arabic}\\p{M}]*){0,5}?)';
 
 // ── TWO MISMATCHES THAT PREDATE THIS PIECE, PINNED SO THEY CANNOT BE MISREAD AS ITS DOING ──
 // Both were measured on f8701c4 BEFORE the name class was widened, and both survive it
@@ -299,6 +320,18 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
     eq('...and the first six do NOT carry that third ending',
       patterns.slice(0, 6).filter((p) => p.includes('|\\s+(?=[\\p{Script=Arabic}]))')).length, 0);
 
+    // ── ع-٧٤/ج · FOUR ROWS, TWO FOR EACH HALF OF THE DEFECT ──────────────
+    // The stop list above is still asserted whole and in order; these say WHERE it is consulted
+    // from. A patch that drops the negation group leaves the fourteen verbs intact and this file
+    // would have gone on passing, which is why the two are separate rows and not one.
+    eq('the two cue-first patterns refuse a NEGATED ruling as a name word, not only a bare one',
+      patterns.slice(0, 2).filter((p) => !p.includes(RULING_ONSET)).length, 0);
+    eq('...and the second may end there too — «قال فلان لا يجوز» ends the name at «فلان»',
+      patterns.slice(1, 2).filter((p) => !p.includes(ONSET_ENDING)).length, 0);
+    eq('the third and fourth frames end on punctuation OR on a ruling onset — the colon anchor is gone',
+      patterns.slice(2, 4).filter((p) => !p.includes(ONSET_ENDING)).length, 0);
+    eq('...and the fifth, sixth and seventh did not quietly take that ending too',
+      patterns.slice(4).filter((p) => p.includes(ONSET_ENDING)).length, 0);
     eq('the stop list is exactly the fourteen verbs this guard names, in order',
       patterns.slice(0, 2).filter((p) => !p.includes(CUE_STOP)).length, 0);
     eq('...and every stop verb is checked as a whole word',
@@ -530,6 +563,97 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
     ok('ع-٧٥ another registered contemporary is unchanged',
       other.officialDomain === 'al-abbaad.com' && other.requestedAuthorityId === 'al-abbaad',
       JSON.stringify({ domain: other.officialDomain, id: other.requestedAuthorityId }));
+  }
+
+  console.log(LF + "=== F. ع-٧٤/ج — THE CAPTURE ENDS WHERE THE ATTRIBUTION ENDS, COLON OR NO COLON ===");
+  {
+    const REVC = await esm('lib/output-reviewer.js');
+    const say = (text) => {
+      const r = REVC.reviewAnswer({ text, domain: 'fiqh', evidence: [] });
+      const hit = r.annotations.find((a) => typeof a.claimedAuthority === 'string');
+      return { action: (r.annotations[0] || {}).action, name: hit ? hit.claimedAuthority : null, text: r.text };
+    };
+
+    // ── HALF ONE · THE CAPTURE NO LONGER RUNS INTO THE RULING ──────────────
+    // The colon shape was already correct and stays the control; the comma shape is the defect.
+    const withColon = say('عند الشيخ ابن باز: يحرم حلق اللحية.');
+    ok('ع-٧٤/ج a credit with a colon is captured, and the ruling is NOT inside the capture',
+      withColon.name === 'ابن باز' && withColon.text.startsWith('يحرم حلق اللحية.'),
+      JSON.stringify(withColon));
+    const swallowed = say('عند الشيخ ابن باز يحرم حلق اللحية، لأنه استئصال للحية.');
+    ok('ع-٧٤/ج ...and a comma further down the sentence no longer drags the ruling into the name',
+      swallowed.name === 'ابن باز'
+        && swallowed.text.startsWith('يحرم حلق اللحية، لأنه استئصال للحية.'),
+      JSON.stringify(swallowed));
+
+    // ── HALF TWO · AN ATTRIBUTION WITHOUT A COLON IS SEEN AT ALL ───────────
+    // The name is one no registry knows, on purpose: a registered name reaches the fallback below
+    // the pattern table and would go on passing this row with the patterns still broken.
+    for (const [label, text] of [['عند', 'عند الشيخ محمد الفلاني يحرم حلق اللحية.'],
+      ['بحسب', 'بحسب الشيخ محمد الفلاني يحرم حلق اللحية.']]) {
+      const bare = say(text);
+      ok('ع-٧٤/ج an unregistered credit with NO colon is now captured — ' + label,
+        bare.name === 'محمد الفلاني' && bare.text.startsWith('يحرم حلق اللحية.'),
+        JSON.stringify(bare));
+    }
+
+    // ── HALF TWO, THE SHARP EDGE · THE NEGATION IS PART OF THE RULING ──────
+    // The row that matters most in this file. Before: the delivered text began «يجوز حلق اللحية»
+    // — the OPPOSITE of what the credited man was said to hold — with the negation eaten by the
+    // name. There is no reading of this product in which shipping that is acceptable.
+    const negated = say('قال الشيخ ابن باز لا يجوز حلق اللحية.');
+    ok('ع-٧٤/ج the «لا» of a negated ruling is never taken for the last word of the name',
+      negated.name === 'ابن باز' && negated.text.startsWith('لا يجوز حلق اللحية.'),
+      JSON.stringify(negated));
+
+    // ── THE NEGATIVES · A COLON IS NOT AN ATTRIBUTION BOUNDARY BY ITSELF ───
+    // A list, a heading with a body, a time, and the tag-honesty witness — an adverbial «عند»
+    // that is a WHEN and not a WHO. All four keep their sentence byte for byte; what is appended
+    // after it is the answer-level notice, which is a different rung and not this one.
+    for (const [label, text] of [['a list introduced by a colon', 'الأدلة على ذلك: الكتاب والسنة والإجماع.'],
+      ['a heading with a body', 'الأدلة من السنة: حديث عائشة رضي الله عنها.'],
+      ['a time', 'يبدأ الدرس عند الساعة 3:30 في المسجد.'],
+      ['an adverbial «عند»', 'لأن العبرة بحاله عند المسح: وقد مسح وهو مقيم.']]) {
+      const kept = say(text);
+      ok('ع-٧٤/ج ' + label + ' is not read as a credit, and the sentence is byte-identical',
+        kept.name === null && kept.text.startsWith(text) && kept.action === 'tagged-fiqh-understanding',
+        JSON.stringify({ name: kept.name, action: kept.action, head: kept.text.slice(0, 60) }));
+    }
+    // AND A COLON INSIDE THE RULING ITSELF DOES NOT MOVE THE END OF THE CAPTURE.
+    const innerColon = say('عند الشيخ ابن باز: القاعدة هي: كل ما أسكر كثيره فقليله حرام.');
+    ok('ع-٧٤/ج a ruling that carries its own colon still loses only the credit',
+      innerColon.name === 'ابن باز'
+        && innerColon.text.startsWith('القاعدة هي: كل ما أسكر كثيره فقليله حرام.'),
+      JSON.stringify(innerColon));
+
+    // ── THE MUTANT · PUT THE COLON ANCHOR BACK AND THIS SECTION MUST DIE ───
+    // The seam is the third pattern`s ending. Restoring `))s*[:،]s*` is exactly the state
+    // measured on 33accce, and the no-colon credit must go uncaptured again.
+    {
+      const sourceFile = path.join(REPO, 'lib', 'output-reviewer.js');
+      const seam = ONSET_ENDING;
+      const mutant = await runMutant({
+        sourceFile,
+        name: 'a74-colon-anchor-restored',
+        transform: (text) => {
+          const rows = text.split(LF);
+          let done = 0;
+          for (let i = 0; i < rows.length; i += 1) {
+            if (!rows[i].includes(seam) || !rows[i].includes('بحسب')) continue;
+            rows[i] = rows[i].replace('(?:' + RX_S + '*[:،]' + RX_S + '*' + seam, RX_S + '*[:،]' + RX_S + '*');
+            done += 1;
+          }
+          return done === 1 ? rows.join(LF) : text;
+        },
+        survives: async (module) => {
+          const r = module.reviewAnswer({ text: 'عند الشيخ محمد الفلاني يحرم حلق اللحية.', domain: 'fiqh', evidence: [] });
+          return r.annotations.some((a) => a.claimedAuthority === 'محمد الفلاني');
+        },
+      });
+      ok('ع-٧٤/ج [MUTANT] restoring the colon anchor on the third frame loses the credit again',
+        mutant.changed && mutant.loaded && mutant.survived === false,
+        JSON.stringify({ changed: mutant.changed, loaded: mutant.loaded, survived: mutant.survived, error: mutant.error }));
+    }
   }
 
   console.log('\n' + (failures === 0
