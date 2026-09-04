@@ -23,6 +23,8 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const os = require('os');
+const { pathToFileURL } = require('url');
 const babel = require('@babel/core');
 const { parseHTML } = require('linkedom');
 // ITEM 32-b: the one place the shipped block is cut and the JSX runtime is settled.
@@ -652,7 +654,187 @@ function serverStrip() {
     'the old expression no longer differs from the new one, so C4/C5 prove nothing');
 }
 
-(function main() {
+// ── D. AA-30: A CLOSER WITH NO OPENER IS A STRAY BRACKET, NOT A CARD ────────
+//
+// THE SAME DEFECT AS SECTION C, ONE SHAPE FURTHER ALONG. Section C pinned the EXTENT of an
+// unclosed OPENER. This one pins the opposite shape: a closing tag that has no opener in front of
+// it at all. Every stripper in the repository was anchored on `<source\b` (or `<source[^>]*>`),
+// and a closing tag begins `</s` — the slash sits exactly where the `s` is looked for. Measured
+// before the repair: `BODY </source> TAIL` came out of the buffered writer, out of the streaming
+// filter, out of the seven hand-rolled copies in api/ask.js and out of the client's three
+// renderers COMPLETELY UNCHANGED; and the last net — lib/finalize-reader-text.js's
+// `original.includes('<source')` — is FALSE for the string `</source>`, so it did not even record
+// it. The reader was shown raw markup on every exit that carries model prose.
+//
+// WHY IT LIVES IN THIS GATE AND NOT IN A NEW ONE. This is the gate that already owns the two
+// modules: section C reads lib/finalized-sse-writer.js and names lib/route-classify.js as its twin
+// (C3), and .gitattributes records both files by name BECAUSE this guard mutates them. The
+// property is one sentence long — «a <source> tag, in any of its broken shapes, must never reach
+// the reader and must never eat the answer» — and splitting its two halves across two gates would
+// let one half move without the other, which is the very failure C3 exists to prevent.
+//
+// WHY THE FINALIZER STRIPS RATHER THAN REFUSES. lib/finalize-reader-text.js refuses by replacing
+// the WHOLE answer with FINALIZER_REFUSAL. An unstructured card carries a site and a url — an
+// attribution that cannot be verified locally — so refusing it is right. A bare `</source>`
+// carries no site, no url, no title and no claim; refusing it would trade a stray bracket for a
+// lost answer. D5 pins that it is repaired-and-shipped; D6 pins that a real card is STILL refused.
+//
+// Three mutants, one per site, each of them the pre-repair anchor restored.
+async function orphanCloser() {
+  console.log('\n--- D. AA-30: an orphan </source> must not reach the reader ---');
+  const LIB = path.join(ROOT, 'lib');
+  const esm = (rel) => import(pathToFileURL(path.join(ROOT, rel)).href);
+  const W = await esm('lib/finalized-sse-writer.js');
+  const R = await esm('lib/route-classify.js');
+  const F = await esm('lib/finalize-reader-text.js');
+
+  const streamed = (filter, text) => { const f = filter(); return f.push(text) + f.end(); };
+  const perChar = (filter, text) => {
+    const f = filter(); let out = '';
+    for (const ch of String(text)) out += f.push(ch);
+    return out + f.end();
+  };
+
+  const ORPHAN = 'BODY </source> TAIL';
+  const UPPER = 'BODY </SOURCE> TAIL';
+  const LINE = 'BODY\n</source>\nTAIL';
+  const AFTER_PAIR = 'BODY <source site="x" url="https://a/b">T</source> MID </source> TAIL';
+  const PAIR = 'BODY <source site="x" url="https://a/b">T</source> TAIL';
+  const UNCLOSED = 'BODY <source site="x" url="https://a/b">T TAIL';
+  const PROSE = 'BODY a < b TAIL';
+
+  // D1–D3 — the orphan is gone on the two strippers, and gone however the chunks fall.
+  ok('D1 the buffered writer strips an orphan closer',
+    W.stripUnownedSourceCards(ORPHAN) === 'BODY  TAIL', JSON.stringify(W.stripUnownedSourceCards(ORPHAN)));
+  ok('D2 the streaming filter strips an orphan closer',
+    streamed(R.createSourceFilter, ORPHAN) === 'BODY  TAIL',
+    JSON.stringify(streamed(R.createSourceFilter, ORPHAN)));
+  ok('D3 ...and it strips it however the chunks fall -- one character at a time',
+    perChar(R.createSourceFilter, ORPHAN) === 'BODY  TAIL',
+    JSON.stringify(perChar(R.createSourceFilter, ORPHAN)));
+
+  // D4 — the case variant. The existing expressions all carry the `i` flag; this one must not
+  // do less than they do, and must not do more.
+  ok('D4 the upper-case closer is stripped by both, exactly as the lower-case one is',
+    W.stripUnownedSourceCards(UPPER) === 'BODY  TAIL'
+      && streamed(R.createSourceFilter, UPPER) === 'BODY  TAIL',
+    JSON.stringify([W.stripUnownedSourceCards(UPPER), streamed(R.createSourceFilter, UPPER)]));
+
+  // D5/D6 — the finalizer: repaired, not refused; and a REAL card is still refused.
+  const orphanOut = F.finalizeReaderText({ text: ORPHAN, sources: [] });
+  ok('D5 the finalizer strips the orphan and ships the body -- it does not refuse',
+    orphanOut.ok === true && orphanOut.text === 'BODY  TAIL'
+      && orphanOut.problems.includes(F.ORPHAN_SOURCE_CLOSER),
+    JSON.stringify([orphanOut.ok, orphanOut.text, orphanOut.problems]));
+  const cardOut = F.finalizeReaderText({ text: PAIR, sources: [] });
+  ok('D6 a REAL unstructured card is STILL fatal -- the repair widened nothing',
+    cardOut.ok === false && cardOut.problems.includes('UNSTRUCTURED_SOURCE_CARD'),
+    JSON.stringify([cardOut.ok, cardOut.problems]));
+
+  // D7 — the pair is removed exactly as before, and the stray closer beside it is gone.
+  ok('D7 a pair followed by a stray closer: the pair as before, the stray gone',
+    W.stripUnownedSourceCards(AFTER_PAIR) === 'BODY  MID  TAIL'
+      && streamed(R.createSourceFilter, AFTER_PAIR) === 'BODY  MID  TAIL',
+    JSON.stringify([W.stripUnownedSourceCards(AFTER_PAIR), streamed(R.createSourceFilter, AFTER_PAIR)]));
+
+  // D8/D9 — THE NEGATIVE. Ordinary prose, a look-alike, a well-formed pair and an unclosed opener
+  // must come out of both sites byte for byte as the PRE-REPAIR expression produces them.
+  const before = (t) => String(t || '')
+    .replace(/<source\b[^>]*>[\s\S]*?<\/source>/giu, '')
+    .replace(/<source\b[^>]*>?[^<\n]*/giu, '');
+  const UNTOUCHED = [PAIR, UNCLOSED, PROSE, 'if x < 10 then y', 'BODY <sourced x> TAIL',
+    'first.\n<source site="x" url="https://a/b">t\nsecond, and it matters.'];
+  let moved = null;
+  for (const t of UNTOUCHED) {
+    if (W.stripUnownedSourceCards(t) !== before(t)) { moved = ['writer', t]; break; }
+    if (streamed(R.createSourceFilter, t) !== before(t)) { moved = ['stream', t]; break; }
+  }
+  ok('D8 NOTHING that is not an orphan closer moved: prose, a look-alike, a pair, an open tag',
+    moved === null, moved ? moved[0] + ' changed on ' + JSON.stringify(moved[1]) : '');
+  const proseOut = F.finalizeReaderText({ text: PROSE, sources: [] });
+  ok('D9 ...and ordinary prose carrying `<` is not marked as an orphan by the finalizer',
+    proseOut.ok === true && proseOut.text === PROSE
+      && !proseOut.problems.includes(F.ORPHAN_SOURCE_CLOSER),
+    JSON.stringify([proseOut.ok, proseOut.text, proseOut.problems]));
+
+  // D10 — the two wire shapes agree. A reader must not see a different answer because the answer
+  // happened to be streamed rather than buffered.
+  let diverged = null;
+  for (const t of [ORPHAN, UPPER, LINE, AFTER_PAIR, PAIR, UNCLOSED, PROSE,
+    '</source>', '</source></source>', 'A </source> B </source> C']) {
+    const w = W.stripUnownedSourceCards(t);
+    if (streamed(R.createSourceFilter, t) !== w || perChar(R.createSourceFilter, t) !== w) {
+      diverged = t; break;
+    }
+  }
+  ok('D10 the streamed text and the buffered text are the same bytes on every shape above',
+    diverged === null, diverged ? 'diverged on ' + JSON.stringify(diverged) : '');
+
+  // D11 — a closer on its own line leaves the shape a LEGITIMATE card already leaves today, and
+  // no wider hole than that. Measured against the pre-repair expression on the legitimate card.
+  const CARD_LINE = 'BODY\n<source site="x" url="https://a/b">T</source>\nTAIL';
+  ok('D11 a closer on its own line leaves exactly the hole a real card already leaves',
+    W.stripUnownedSourceCards(LINE) === before(CARD_LINE)
+      && !/\n{3}/.test(W.stripUnownedSourceCards(LINE)),
+    JSON.stringify([W.stripUnownedSourceCards(LINE), before(CARD_LINE)]));
+
+  // ── MUTANTS ───────────────────────────────────────────────────────────────
+  // Each is the pre-repair anchor restored, written to a twin module in a temp directory with its
+  // relative imports rewritten to absolute file URLs, exactly as guards/takhrij-lock-guard.cjs:1163
+  // does it, so nothing in lib/ is touched. A mutation that does not apply is reported as a FAILED
+  // mutation, never as a killed one.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-aa30-mut-'));
+  const absoluteImports = (source) => source.replace(
+    /from\s+(['"])(\.[^'"]*)\1/gu,
+    (_all, quote, spec) => 'from ' + quote + pathToFileURL(path.resolve(LIB, spec)).href + quote,
+  );
+  const driveMutant = async (name, rel, apply, survives) => {
+    const original = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+    const changed = apply(original);
+    if (changed === original) {
+      ok('MUTANT ' + name, false, 'seam moved: the mutation did not apply, so nothing was tested');
+      return;
+    }
+    const file = path.join(dir, name.replace(/[^a-z0-9-]/gi, '_') + '.mjs');
+    fs.writeFileSync(file, absoluteImports(changed), 'utf8');
+    let alive = true;
+    try { alive = await survives(await import(pathToFileURL(file).href)); } catch (e) { alive = false; }
+    ok('MUTANT KILLED: ' + name, !alive, 'the mutant survived -- this property is not guarded');
+  };
+
+  try {
+    await driveMutant('the writer keeps only the two <source\\b passes', 'lib/finalized-sse-writer.js',
+      (s) => s.replace("    .replace(/<\\/source>/giu, '');", '    ;'),
+      (m) => m.stripUnownedSourceCards(ORPHAN) === 'BODY  TAIL');
+
+    await driveMutant('the streaming filter scans for OPEN only', 'lib/route-classify.js',
+      (s) => s.replace(
+        '      if (j !== -1 && (i === -1 || j < i)) {',
+        '      if (false && j !== -1 && (i === -1 || j < i)) {'),
+      (m) => streamed(m.createSourceFilter, ORPHAN) === 'BODY  TAIL');
+
+    await driveMutant('the finalizer detects only includes(<source)', 'lib/finalize-reader-text.js',
+      (s) => s.replace('  if (/<\\/source>/iu.test(text)) {', '  if (false) {'),
+      (m) => {
+        const out = m.finalizeReaderText({ text: ORPHAN, sources: [] });
+        return out.ok === true && out.text === 'BODY  TAIL';
+      });
+
+    // D12 — the twins must move together. C3 pins the SECOND expression in the writer; this pins
+    // the THIRD, and pins that route-classify.js's own contract comment names it, so the two
+    // definitions cannot drift apart in silence the way they did before.
+    const WRITER = fs.readFileSync(path.join(LIB, 'finalized-sse-writer.js'), 'utf8');
+    const ROUTE = fs.readFileSync(path.join(LIB, 'route-classify.js'), 'utf8');
+    const inWriter = /\.replace\(\/<\\\/source>\/giu, ''\)/.test(WRITER);
+    const inContract = ROUTE.includes(".replace(/<\\/source>/gi, '')");
+    ok('D12 the writer carries the orphan pass, and route-classify\'s contract names it',
+      inWriter && inContract, JSON.stringify([inWriter, inContract]));
+  } finally {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch (e) {}
+  }
+}
+
+(async function main() {
   console.log('=== truncated-tag-fallback-par-a-guard -- X-014: a cut tag must not empty the answer ===');
   try {
     console.log('\n--- A/B. SHIPPED CLIENT, FINAL-TEXT READERS ---');
@@ -662,6 +844,7 @@ function serverStrip() {
     codeSurvivesTheCut(liveClient, 'live');
     reviewMarkLogSuite(liveClient, 'live');
     serverStrip();
+    await orphanCloser();
     if (process.argv.includes('--mutants')) mutants();
   } catch (e) {
     console.error('GUARD ERROR:', e && e.stack ? e.stack : e);
