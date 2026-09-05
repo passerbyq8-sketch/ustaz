@@ -620,3 +620,7 @@ guards/regex-dup-group-guard.cjs text eol=lf
 # lands inside every anchor it matches on, so an unpinned file is a guard that silently stops
 # finding the code it exists to run.
 guards/stream-partial-keep-guard.cjs text eol=lf
+
+# Layer 1 human-capture gate. Recon requires every registered gate script to be
+# pinned, and this guard mutates an exact source seam in the output reviewer.
+guards/layer1-human-capture-guard.cjs text eol=lf

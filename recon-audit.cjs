@@ -759,14 +759,19 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 104;  // 104th: streamkeep -- guards/stream-partial-keep-guard.cjs. A turn
-                               //       that has already delivered prose may not be erased by its
-                               //       own failure. Witnessed twice live: five lines of Arabic on
-                               //       screen, the stream broke, and the client replaced the whole
-                               //       turn with its friendly connection sentence. The guard runs
-                               //       the shipped exit code against a stubbed stream that breaks
-                               //       in each way production breaks, and six mutants restore the
-                               //       old behaviour one aspect at a time.
+  const GATES_EXPECTED = 105;  // 105th: layer1human -- guards/layer1-human-capture-guard.cjs. A
+                               //       captured authority must be a human name before any evidence
+                               //       verdict can cut, mark, keep, or annotate it. The guard pins
+                               //       measured nonhuman drops, human-name survival, and a bypass
+                               //       mutant at the production seam.
+                               //       104th: streamkeep -- guards/stream-partial-keep-guard.cjs. A
+                               //       turn that has already delivered prose may not be erased by
+                               //       its own failure. Witnessed twice live: five lines of Arabic
+                               //       on screen, the stream broke, and the client replaced the
+                               //       whole turn with its friendly connection sentence. The guard
+                               //       runs the shipped exit code against a stubbed stream that
+                               //       breaks in each way production breaks, and six mutants restore
+                               //       the old behaviour one aspect at a time.
                                //       103rd: regexdup -- guards/regex-dup-group-guard.cjs. A named capture
                                //       group may not be defined twice inside one pattern. ES2025
                                //       allows it across mutually exclusive alternatives and node 24

@@ -1,0 +1,37 @@
+{
+  "rejected": [
+    { "id": "theonym", "text": "قال الله تعالى: إن الأمر جائز." },
+    { "id": "prophet-reference", "text": "النبي قال إن الأمر جائز." },
+    { "id": "quran-reference", "text": "قال القرآن: إن الأمر جائز." },
+    { "id": "hadith-reference", "text": "قال الحديث: إن الأمر جائز." },
+    { "id": "particle", "text": "كما قال إن الأمر جائز." },
+    { "id": "verb", "text": "قال يقول: إن الأمر جائز." },
+    { "id": "pronoun", "text": "قال هو: إن الأمر جائز." },
+    { "id": "broken-clause", "text": "قال احلق لحيتك: إن الأمر جائز." }
+  ],
+  "nameBearing": [
+    { "id": "name-before-fragment", "text": "قال ابن القيم رحمه الله وغيره: إن الأمر جائز.", "claimed": "ابن القيم رحمه الله وغيره", "action": "removed-unsupported-attribution" },
+    { "id": "name-before-isnad-grade", "text": "قال ابن مفلح إسناده صحيح: إن الأمر جائز.", "claimed": "ابن مفلح إسناده صحيح", "action": "removed-unsupported-attribution" },
+    { "id": "leading-prose-before-name", "text": "هذا ابن القيم وغيره قال: إن الأمر جائز.", "claimed": "هذا ابن القيم وغيره", "action": "removed-unsupported-attribution" },
+    { "id": "ordinary-name-before-book", "text": "قال محمد الفلاني في كتابه: إن الأمر جائز.", "claimed": "محمد الفلاني في كتابه", "action": "removed-unsupported-attribution" }
+  ],
+  "sourceBearing": [
+    { "id": "named-book", "text": "قال المحرر في الفقه الحنبلي: (الأمر في هذا واسع) وهذا هو المعتمد", "claimed": "المحرر في الفقه الحنبلي", "action": "removed-unsupported-attribution" },
+    { "id": "compilation", "text": "قال صحيح مسلم: إن الأمر جائز.", "claimed": "صحيح مسلم", "action": "removed-unsupported-attribution" },
+    { "id": "institution", "text": "قالت الشرطة إن الأمر جائز.", "claimed": "الشرطة", "action": "removed-unsupported-attribution" },
+    { "id": "school", "text": "قال الحنابلة: إن الأمر جائز.", "claimed": "الحنابلة", "action": "removed-unsupported-attribution" },
+    { "id": "collective", "text": "قال العلماء: إن الأمر جائز.", "claimed": "العلماء", "action": "removed-unsupported-attribution" },
+    { "id": "majority", "text": "قال أكثر أهل العلم: إن الأمر جائز.", "claimed": "أكثر أهل العلم", "action": "removed-unsupported-attribution" },
+    { "id": "registered-institution-spelling", "text": "قال الإسلام سؤال وجواب: إن الأمر جائز.", "claimed": "الإسلام سؤال وجواب", "action": "removed-unsupported-attribution" }
+  ],
+  "passing": [
+    { "id": "registered-pattern", "text": "قال ابن باز: إن الأمر جائز.", "claimed": "ابن باز" },
+    { "id": "registered-fallback", "text": "ابن باز يحرم حلق اللحية.", "claimed": "ابن باز" },
+    { "id": "ordinary-name", "text": "قال محمد الفلاني: إن الأمر جائز.", "claimed": "محمد الفلاني" },
+    { "id": "kunya", "text": "قالت أم سلمة: إن الأمر جائز.", "claimed": "أم سلمة" },
+    { "id": "nasab", "text": "قال أبو عمر ابن عبدالبر: إن الأمر جائز.", "claimed": "أبو عمر ابن عبدالبر" },
+    { "id": "devotional-name", "text": "قال عبد الرحمن: إن الأمر جائز.", "claimed": "عبد الرحمن" },
+    { "id": "laqab", "text": "قال تقي الدين: إن الأمر جائز.", "claimed": "تقي الدين" },
+    { "id": "one-word-person", "text": "قال جابر: إن الأمر جائز.", "claimed": "جابر" }
+  ]
+}

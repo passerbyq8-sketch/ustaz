@@ -525,5 +525,10 @@
     "name": "streamkeep",
     "script": "guards/stream-partial-keep-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "layer1human",
+    "script": "guards/layer1-human-capture-guard.cjs",
+    "args": ""
   }
 ]
