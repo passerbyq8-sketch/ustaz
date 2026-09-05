@@ -2714,10 +2714,44 @@ const BOOK_MATN_LABEL = 'النصّ';
 //
 // TWO REGEXPS AND NOT ONE: `.test()` on a /g regexp carries `lastIndex` between calls, so the same
 // constant used for both would answer TRUE and FALSE alternately on the identical string.
-const EZIK_INCOMPLETE_STRIP = /<incomplete\s*\/?>/gi;
-const EZIK_INCOMPLETE_TEST = /<incomplete\s*\/?>/i;
+//
+// THE MARKER TAKES ATTRIBUTES NOW, AND THAT IS THE WHOLE OF THE WIDENING. The server still writes
+// the bare `<incomplete/>` and nothing about that changed; what changed is that the CLIENT may now
+// write the same marker with one attribute on it -- `cut` -- naming which of its own failures ended
+// the turn. It is the same tag, read by the same two constants, stripped by the same function in
+// the same three readers, and removed from the replayed history at the same one place. A second
+// tag would have been a second mechanism to keep in step, and a reader who saw the red line
+// without the button, or the button without the line, would be looking at the drift.
+const EZIK_INCOMPLETE_STRIP = /<incomplete\b[^>]*>/gi;
+const EZIK_INCOMPLETE_TEST = /<incomplete\b[^>]*>/i;
 const ezikStripIncomplete = (t) => String(t == null ? '' : t).replace(EZIK_INCOMPLETE_STRIP, '');
 const ezikAnswerIncomplete = (t) => typeof t === 'string' && EZIK_INCOMPLETE_TEST.test(t);
+
+// -- THE STREAM THAT BROKE AFTER IT HAD ALREADY SPOKEN ----------------------------------------
+// MEASURED LIVE, TWICE, BY THE OWNER: five lines of Arabic stood on the screen, the stream then
+// stopped, and the client replaced the WHOLE turn with its friendly connection line. The reader
+// kept nothing of what he had watched being written. Everything that had arrived was held in one
+// local `full` inside callAI, and both of its failure exits returned a sentence INSTEAD of it.
+//
+// The rule now is that text which reached the reader is the reader's. A turn that dies after one
+// character has landed commits that character and every one after it, wearing the marker above --
+// so the red line and the continue button appear on it exactly as they do on a server-side
+// truncation, because it IS one: an answer that stopped before its end.
+//
+// THE FAILURE IS STILL SAID OUT LOUD. `cut` names the bucket -- one of FRIENDLY_ERRORS' own keys
+// -- and the screen renders that bucket's sentence through getFriendlyError, in the reader's
+// gender. Not one word of the wording is new or altered; what is new is that it no longer arrives
+// as a REPLACEMENT for the answer. And nothing here retries anything.
+//
+// A bucket that is not in the table reads as no cut at all, so a marker mangled in storage draws
+// no line rather than an empty one.
+const EZIK_CUT_ATTR = /<incomplete\b[^>]*\bcut="([A-Za-z]+)"[^>]*>/i;
+const ezikCutMark = (bucket) => '\n<incomplete cut="' + bucket + '"/>';
+const ezikAnswerCutReason = (t) => {
+  if (typeof t !== 'string') return null;
+  const m = EZIK_CUT_ATTR.exec(t);
+  return (m && FRIENDLY_ERRORS[m[1]]) ? m[1] : null;
+};
 
 // تعقيمٌ آمنٌ للنصِّ الذي كان سيُمحى بالكامل: تُنزَع الأقواسُ الزاويّةُ وما بينها، ويبقى النثر.
 //
@@ -10790,6 +10824,17 @@ function App() {
     if (FAST_CHANNEL_ENABLED && mode === 'call' && (await __classifyFast()) === 'GEN') {
       endpoint = '/api/chat-fast';
     }
+    // EVERYTHING THAT HAS ARRIVED, AND IT IS DECLARED OUT HERE ON PURPOSE. It used to live
+    // beside the reader, inside the try below -- so the catch that handles a cut connection, the
+    // one exit that most needs to know whether anything had already reached the screen, could
+    // not see it and answered as though nothing had. Its life is otherwise untouched: the SSE
+    // handler still closes over it and it is still assigned nowhere else.
+    //
+    // ABOVE THE `try`, NOT MERELY ABOVE THE READER. `let` is scoped to its BLOCK, and a `catch`
+    // is a block of its own -- so a declaration anywhere inside the try is still invisible from
+    // the catch, and the repair would read as done while the network exit went on discarding
+    // everything. This line's position is the fix; moving it one line down undoes it silently.
+    let full = '';
     try {
       // Text and voice both enter /api/ask; the server's current-turn router decides GENERAL,
       // specialised local DEEN, or hybrid DEEN. `endpoint` may still be overridden by an explicit
@@ -10877,7 +10922,6 @@ function App() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let full = '';
       let streamError = null;
 
       const handleEvent = (block) => {
@@ -10914,8 +10958,12 @@ function App() {
         // Anthropic error event mid-stream (overloaded / rate / ...) — distinct message, not "weak connection".
         console.error('[Al-Murabbi] Stream error:', streamError);
         const sig = `${streamError.type || ''} ${streamError.message || ''}`;
-        if (/rate|429|overloaded/i.test(sig)) return getFriendlyError('rateLimit', p.gender);
-        return getFriendlyError('server', p.gender);
+        const bucket = /rate|429|overloaded/i.test(sig) ? 'rateLimit' : 'server';
+        // Text already delivered is kept and marked, and the bucket rides along so the screen can
+        // say WHICH failure it was in the very words this table has always used. With nothing
+        // delivered the two lines below are the shipped behaviour, unchanged and in the same order.
+        if (full) return full + ezikCutMark(bucket);
+        return getFriendlyError(bucket, p.gender);
       }
       // Return the full accumulated text so the existing parse + audio pipeline runs unchanged.
       //
@@ -10930,6 +10978,10 @@ function App() {
       if (e.name === 'AbortError') throw e; // cancelled by a new message — handled by the caller
       // Genuine network failure (offline browser, CORS, ...) — friendly message.
       console.error('[Al-Murabbi] Network error:', e);
+      // THE EXIT THE OWNER WATCHED. `full` is now in scope here, which is the whole of the
+      // repair: what had already been delivered is returned and marked, and only a turn that
+      // delivered nothing still answers with the sentence alone -- byte for byte the line below.
+      if (full) return full + ezikCutMark('network');
       return getFriendlyError('network', p.gender);
     }
   };
@@ -12153,6 +12205,19 @@ function App() {
             (`<incomplete/>`, appended only when the writing round ended on other than end_turn) and
             never from the length or the last character of the text: this client cannot tell a short
             answer from a cut one, and a client that guesses is the defect wearing our own face. */}
+        {/* THE FAILURE IS NOT SWALLOWED. When a turn dies after it had already delivered prose,
+            the answer is kept and marked, and THIS is where the reason is said -- as its own
+            line, in the reader's own gender, from the same FRIENDLY_ERRORS table and the same
+            getFriendlyError that used to hand the identical sentence over as the WHOLE turn.
+            No wording is new here and none is altered; only its place is.
+            It sits ABOVE the «lm yaktamil» line so the two read in the order they happened:
+            this is what went wrong, and that is what you may do next. Both are drawn under the
+            SAME visibility rule, so neither can ever appear without the other.
+            A server-side truncation carries no `cut`, so this line is silent on one -- the
+            server stopped the model, nothing failed, and there is nothing to report. */}
+        {quickActionsVisible && ezikAnswerCutReason(lastMsg.content) && (
+          <div style={s.streamCutNotice} role="status">{getFriendlyError(ezikAnswerCutReason(lastMsg.content), profile?.gender)}</div>
+        )}
         {quickActionsVisible && ezikAnswerIncomplete(lastMsg.content) && (
           <div style={s.incompleteNotice} role="status">{ezT('chat.qa.incomplete')}</div>
         )}
@@ -21689,6 +21754,11 @@ const s = {
   // §٢ (C) — سطرُ «لم يكتمل»، فوقَ الشريطِ مباشرةً وبعرضِه. كلُّ لونٍ هنا رمزٌ من رموزِ السمة،
   // فينتقلُ مع data-theme=dark كبقيّةِ ما يجاورُه. ليس زرّاً ولا يُنقَر: هو خبرٌ عن الجوابِ فوقَه.
   incompleteNotice: { alignSelf: 'stretch', padding: '8px 12px', marginTop: 2, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', borderRadius: 12, fontSize: 13, fontWeight: 700, lineHeight: 1.6 },
+  // --ink and not --muted: theme-coverage measured the quieter token at 4.27 on --tint in
+  // istana_33 light, below the 4.5 this app holds every text surface to. A sentence telling the
+  // reader why his answer stopped is not the place to spend contrast, so the distinction from the
+  // red line beside it is carried by weight and colour ROLE, not by fading the words.
+  streamCutNotice: { alignSelf: 'stretch', padding: '8px 12px', marginTop: 2, background: 'var(--tint)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 12, fontSize: 13, fontWeight: 600, lineHeight: 1.6 },
   quickBtn: { minHeight: 40, padding: '8px 14px', background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)', borderRadius: 999, fontSize: 13.5, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' },
   // The search box in the drawer, and the favourites screen. Both draw on --white over --page,
   // the same pair every other sheet in the app uses.

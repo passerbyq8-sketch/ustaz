@@ -520,5 +520,10 @@
     "name": "regexdup",
     "script": "guards/regex-dup-group-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "streamkeep",
+    "script": "guards/stream-partial-keep-guard.cjs",
+    "args": ""
   }
 ]
