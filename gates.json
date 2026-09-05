@@ -515,5 +515,10 @@
     "name": "attrtruth",
     "script": "guards/attribution-truth-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "regexdup",
+    "script": "guards/regex-dup-group-guard.cjs",
+    "args": ""
   }
 ]

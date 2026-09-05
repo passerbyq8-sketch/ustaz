@@ -759,7 +759,22 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 102;  // 101st: attrwiden -- guards/attribution-capture-widen-guard.cjs. The
+  const GATES_EXPECTED = 103;  // 103rd: regexdup -- guards/regex-dup-group-guard.cjs. A named capture
+                               //       group may not be defined twice inside one pattern. ES2025
+                               //       allows it across mutually exclusive alternatives and node 24
+                               //       implements it; node 22 -- the engine pinned in
+                               //       package.json#engines, and the one the deployed function runs
+                               //       on -- throws at MODULE LOAD, so /api/ask answered 500 to every
+                               //       call on a tree whose gates were 102/102 green. The guard never
+                               //       compiles a pattern to decide, because the local engine ACCEPTS
+                               //       what the server refuses: it reads the source text, finds every
+                               //       regex literal under api/, lib/ and guards/ with a hand-written
+                               //       lexer, and COUNTS the group names inside each one. The reader
+                               //       is exercised against synthetic sources first -- a duplicate it
+                               //       must catch, a lookbehind it must not read as a name, and
+                               //       duplicates written in a string, a comment and a template,
+                               //       which are not source at all.
+                               // 101st: attrwiden -- guards/attribution-capture-widen-guard.cjs. The
                                //       attribution capture in lib/output-reviewer.js reads a name
                                //       whether it stands before its verb or after it, and whether
                                //       or not it is vowelled. Two lists that had drifted apart

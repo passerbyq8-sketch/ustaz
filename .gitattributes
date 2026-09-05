@@ -606,3 +606,10 @@ guards/lib-book-contract-guard.cjs text eol=lf
 # core.autocrlf=true must get the same file this one measured.
 guards/attribution-capture-widen-guard.cjs text eol=lf
 guards/attribution-truth-guard.cjs text eol=lf
+
+# guards/regex-dup-group-guard.cjs (the duplicate-named-group scan, gate `regexdup`) -- pinned
+# first because recon requires a `text eol=lf` line for EVERY script named in gates.json, and
+# second because this guard reads SOURCE TEXT and reports line numbers. It counts characters
+# inside regex literals and locates them by line; a CR that a core.autocrlf=true checkout would
+# add is one more character in every body it scans and one more thing its lexer must not trip on.
+guards/regex-dup-group-guard.cjs text eol=lf
