@@ -515,6 +515,7 @@ async function mutate({ file, name, transform, check }) {
   // Both twins below are the SAME real loop with the SAME synthetic door. The only difference is
   // where the ceiling of the second door comes from: the shared budget, or a counter of its own.
   const LEDGER_PRINT = "  console.log('[free-brain/round-ledger]', JSON.stringify(roundLedger));";
+  const DOOR_BANNER = '  // \u2500\u2500 \u0642\u0665\u0667 \u00a7\u0664 \u2014 THE DOOR ON A TURN THAT HAS ALREADY EMITTED BYTES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
   const SECOND_DOOR_CALL = [
     '    await callProvider({ providerUrl, headers, signal,',
     '      body: { model, max_tokens: 64, system, messages: conversation, stream: false } });',
@@ -556,6 +557,39 @@ async function mutate({ file, name, transform, check }) {
     && shared.result.budget.remaining === 0
     && JSON.stringify(shared.result.budget.reasons) === JSON.stringify(['reject_retry']),
     JSON.stringify(shared.result && shared.result.budget));
+  // ── AND THE ORDER THE DOORS DRAW IN IS A DECISION, SO IT IS READABLE ────
+  // MEASURED on the same fixture with the synthetic door moved ABOVE the reject door: the reject
+  // door is then refused, the cut text ships, and the turn must say why. This is not a defect
+  // being fixed — it is the consequence of one budget, made legible for whoever writes the second
+  // door and has to choose which of the two goes first.
+  const firstDoor = [
+    '  // FIXTURE: a synthetic door drawing on the budget BEFORE the reject door.',
+    "  if (rewriteBudget.take('empty_retry')) {",
+    SECOND_DOOR_CALL,
+    '  }',
+    DOOR_BANNER,
+  ].join('\n');
+  const drawnFirst = await mutate({
+    file: LOOP,
+    name: 'second-door-draws-first',
+    transform: (src) => src.replace(DOOR_BANNER, firstDoor),
+    check: async (twin) => {
+      const t = await drive(twin, [TWO, TWO, 'ثالث']);
+      return {
+        calls: t.modelCalls, retries: t.rejectRetries, budget: t.rewriteBudget,
+        named: (t.degraded || []).some((d) => d === 'reject_retry:budget_spent:empty_retry'),
+      };
+    },
+  });
+  ok('G5 the «second door draws first» fixture applies and loads',
+    drawnFirst.changed && drawnFirst.loaded, drawnFirst.error);
+  ok('G6 a door refused because the budget is already spent still buys only one extra call',
+    drawnFirst.result && drawnFirst.result.calls === 2 && drawnFirst.result.retries === 0
+    && drawnFirst.result.budget && JSON.stringify(drawnFirst.result.budget.reasons) === JSON.stringify(['empty_retry']),
+    JSON.stringify(drawnFirst.result));
+  ok('G7 ...and it says so, naming the door that spent it, instead of failing in silence',
+    drawnFirst.result && drawnFirst.result.named === true, JSON.stringify(drawnFirst.result));
+
   // A turn nobody rewrote leaves the budget where it found it — so «spent» means spent.
   const untouched = await drive(loop, [SOUND_HEAD]);
   ok('G4 a turn no door opened on leaves the budget unspent',
