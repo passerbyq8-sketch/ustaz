@@ -2203,6 +2203,16 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       'READER = ' + JSON.stringify(l2.text) + ' · truncated=' + JSON.stringify(l2.truncated)
       + ' · ' + JSON.stringify(l2.degraded));
 
+    // ── §٥ — THE READER'S OWN TEXT, PRINTED AND NOT DESCRIBED ──────────────
+    // `ok()` prints its detail only when a check FAILS, so on a green run nothing above puts one
+    // character of the delivered answer in front of whoever reads this gate. These three lines do.
+    console.log('  [reader] what the model wrote, and what b2db553 delivered as an answer:');
+    console.log('           ' + JSON.stringify(V4_FRAME));
+    console.log('  [reader] the same turn now, when the one extra round fills it:');
+    console.log('           ' + JSON.stringify(l1.text));
+    console.log('  [reader] and when it does NOT — kept, and marked «لم يكتملْ» (truncated='
+      + JSON.stringify(l2.truncated) + '):');
+    console.log('           ' + JSON.stringify(l2.text));
     // ── L3 · THE ASK IS READ FROM THE CALLER'S ARRAY, NOT FROM `conversation` ──
     // MEASURED AS A REGRESSION BEFORE IT WAS A CHECK: after one tool round `conversation` ends
     // with a {role:'user'} turn carrying tool_result BLOCKS, so `lastUserText` returns '' and the
