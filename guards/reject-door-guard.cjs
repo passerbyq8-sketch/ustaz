@@ -728,6 +728,12 @@ async function mutate({ file, name, transform, check }) {
   // stream, so the reader lost EVERY byte after the head with nothing said to him. api/ask.js is
   // not this item's to edit, so the arm is closed by making its trigger unreachable: the twin
   // below removes BOTH upstream remedies at once and the last net still holds the promise.
+  //
+  // 🔴 AND «UNREACHABLE» IS TOO LARGE A WORD FOR WHAT THIS SECTION PROVES, WHICH IS WHY §L WAS
+  // ADDED BELOW IT. What H9 shows is that the text THIS LOOP RETURNS always opens with the bytes
+  // it sent — that trigger is closed. api/ask.js does not deliver that text: it delivers
+  // `seal(text)`, and the seal is `lockTakhrij`, which REMOVES sentences. A removal that lands
+  // inside the emitted prefix reopens the same arm from the other side, and §L drives it.
   const lastNet = await mutate({
     file: LOOP,
     name: 'pin-and-decision-both-gone',
@@ -754,6 +760,58 @@ async function mutate({ file, name, transform, check }) {
   // be a field that could never see the fault again.
   ok('H10 ...and the judgement still records that the prefix HAD been lost',
     lastNet.result && lastNet.result.judged === false, JSON.stringify(lastNet.result));
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== L. WHAT IS STILL OPEN, DRIVEN RATHER THAN ASSERTED AWAY ===');
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE OWNER’S SECOND WITNESS WAS NOT ANY EXIT OF THIS DOOR, and this section is where that is
+  // recorded instead of being left as a story in a report. «ما حكم صيام يوم عرفة لغير
+  // الحاج؟» came back as a sound opening, an announcement of evidence ending in a colon, and then
+  // nothing at all: no حديث, no card, and no «لم يكتملْ» line. §K closed the two exits of this
+  // door that were silent. NEITHER OF THEM PRODUCED THAT ANSWER.
+  //
+  // WHAT PRODUCED IT, MEASURED BELOW: the loop hands api/ask.js a text that opens with the bytes
+  // it streamed — ق٥٧ §٤/٣ holds, L1 — and api/ask.js then delivers `seal(text)`. The seal is
+  // `lockTakhrij`, which removes an unsupported تخريج AND the now-dangling sentence that
+  // announced it. Both of those lay INSIDE the emitted prefix, so the sealed text no longer
+  // opens with what was sent (L2), and finish() answers that with one `console.warn` and closes
+  // the stream on the head (L3). The reader keeps exactly what he had already read.
+  //
+  // `truncated` NEVER HAD A CHANCE AT IT, and that is the point worth writing down: the sentence
+  // was not cut by the reviewer and not withheld by this door. It was removed AFTER
+  // `runFreeBrainTurn` returned, in a file this item may not edit, and the «<incomplete/>» mark
+  // is itself part of the tail that arm discards. NOTHING IN lib/ CAN RAISE A FLAG ABOUT IT.
+
+  const L_S1 = 'صيام يوم عرفة لغير الحاج من أعظم أيام صيام التطوع أجرا، بل هو أفضل أيام السنة.';
+  const L_S2 = 'وقد ثبت عن النبي صلى الله عليه وسلم:';
+  const L_S3 = '«صيام يوم عرفة أحتسب على الله أن يكفر السنة التي قبله والسنة التي بعده» رواه مسلم.';
+  const L_S4 = 'وعليه فصيامه سنة مؤكدة لغير الحاج عند جمهور أهل العلم.';
+  const L_ANSWER = [L_S1, L_S2, L_S3, L_S4].join('\n');
+  const TK = await fresh(path.join(ROOT, 'lib', 'takhrij-lock.js'), 'reject-door-takhrij');
+  const lTurn = await drive(loop, [SEARCH, L_ANSWER], {
+    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+  });
+  const lSent = lTurn.streamedPrefix || '';
+  const lComposed = (lTurn.text || '') + (lTurn.truncated === true ? '\n<incomplete/>' : '');
+  // api/ask.js:1020 — `seal`, with the page list a turn that reached no web page actually has.
+  const lSealed = TK.lockTakhrij(lComposed, []).text;
+
+  ok('L1 the loop keeps its own promise: what it returns opens with the bytes it streamed',
+    lSent !== '' && (lTurn.text || '').startsWith(lSent) && lTurn.streamPrefixValid === true,
+    JSON.stringify([lSent.length, (lTurn.text || '').slice(0, 40)]));
+  ok('L2 ...and api/ask.js\u2019s own seal then removes a sentence that lay INSIDE those bytes',
+    lSealed !== '' && !lSealed.startsWith(lSent) && lSealed.includes(L_S1)
+    && !lSealed.includes(L_S2), JSON.stringify(lSealed.slice(0, 120)));
+  // THE ARM ITSELF IS READ AND NOT DRIVEN, because api/ask.js may not be edited or imported by
+  // this item. The check is that the comparison is still there and still the one described; a
+  // future item that answers the divergence differently changes this line and this prose with it.
+  const finishArm = /if \(sealed\.startsWith\(sent\)\) \{[\s\S]{0,600}?\} else \{/u.exec(askSource);
+  ok('L3 ...and api/ask.js still decides the whole tail on that one comparison',
+    Boolean(finishArm), finishArm && finishArm[0].slice(0, 80));
+  console.log('      [measure] the reader keeps ' + lSent.length + ' streamed chars and loses the '
+    + Math.max(0, lSealed.length - lSent.length) + ' sealed chars behind them, with no «لم يكتملْ» line:');
+  console.log('      [measure] READER = ' + JSON.stringify(lSent));
 
   // ═══════════════════════════════════════════════════════════════════════════
   console.log('\n=== D. THE NEGATIVE WITNESS: WITH THE REMEDY REMOVED, THIS GATE GOES RED ===');
