@@ -973,10 +973,12 @@ async function main() {
       .replace([
         '    const named = author === claimed',
         '      || containsWholeWords(author, claimed)',
-        '      || containsWholeWords(claimed, author);',
+        '      || containsWholeWords(claimed, author)',
+        '      || sameManByNameForm(item.author, attribution.claimed);',
       ].join('\n'),
         '    const named = author === claimed || author.includes(claimed)'
-        + ' || claimed.includes(author);  // mutant-attr-raw-contains'),
+        + ' || claimed.includes(author)  // mutant-attr-raw-contains\n'
+        + '      || sameManByNameForm(item.author, attribution.claimed);'),
     'mutant-attr-raw-contains', 'F3', F3[1], F3[2], 'STRIP');
   ok('F-Mb MUTANT KILLED: drop the empty test and the whole-word rule and an authorless atom'
     + ' licenses every name',
