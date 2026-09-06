@@ -15,15 +15,15 @@
 // KEEP/STRIP off the reviewer's own annotation and its own tag, never off a substring search for
 // the name. Section A reads the table out of the shipped source and pins it row by row and form by
 // form, because a closed list that nobody pins is a list that grows by accident. Section D is the
-// only section that does NOT speak about product output, and its titles say so in their first
-// words: it evaluates the shipped mechanism ALONE, for two facts that the product path cannot
-// carry today. Section E mutates the shipped file three times and each mutant flips exactly one
+// only section that does NOT speak about product output, and its title says so in its first
+// words: it evaluates the shipped mechanism ALONE, for the one fact the product path
+// contradicts. Section E mutates the shipped file three times and each mutant flips exactly one
 // row of the sections above; a mutant that flips nothing would be a hole reported as a pass.
 //
 // WHAT THIS GATE DOES NOT CLAIM, SAID OUT LOUD. `ع-١٠٠` -- «أبو ذر» credited to three different
 // men -- IS STILL OPEN. The third licence can only ADD (it is the last clause of an `||`), so the
 // unique-man condition inside it cannot withdraw what `containsWholeWords` granted before it, and
-// «أبو ذر» is granted there. D2 below therefore says «the mechanism refuses him» and says in the
+// «أبو ذر» is granted there. D1 below therefore says «the mechanism refuses him» and says in the
 // same breath that the product still accepts him. No check in this file asserts that ع-١٠٠ is
 // closed, because it is not.
 //
@@ -88,11 +88,21 @@ const EXPECTED_ROWS = [
 // rows measure the name rule and nothing else, and a turn holding a page that does not support
 // its sentence still loses the name at `supportsSentence` whatever this table says.
 const MATN = 'الوضوءُ من لحمِ الإبلِ واجبٌ عندَ جمهورِ أهلِ الحديثِ، وقد ثبتَ فيه الأمرُ.';
-const bookRow = (author) => ({
+const bookRow = (author, matn) => ({
   kind: 'lib_book', title: 'كتابُ الطهارة', url: '', publisher: author,
-  text: MATN, recordId: 'lib:nameform-1', bookTitle: 'كتابُ الطهارة',
+  text: matn, recordId: 'lib:nameform-1', bookTitle: 'كتابُ الطهارة',
   author, locator: '', matnCut: false, ref: 1,
 });
+
+// ONE ROW IS A RECORDED SENTENCE AND NOT THE FRAME, AND IT HAD TO BE. «قال X: ...» is a frame
+// invented for this file, and the capture class -- frozen by order, untouched here -- does not
+// record «قال الشيخ تقي الدين ... رحمه الله ...» as a claimed authority at all: measured, the
+// framed form returns NEITHER, no attribution ever reaching the name rule. The sentence the man
+// actually appears in does. So B12 drives record 1554 of the frozen بن باز corpus verbatim -- the
+// sentence whose credit the reviewer REMOVED before this licence existed
+// (action: removed-unsupported-attribution) -- rather than reporting a row the frame had silently
+// emptied. Nothing is generalised from that: the other eleven rows keep the frame.
+const RECORD_1554 = 'والشيخ تقي الدين أحمد بن تيمية رحمه الله ممن ينكر ذلك ويرى أنه بدعة.';
 
 // ── THE MECHANISM, LIFTED OUT OF THE SHIPPED FILE RATHER THAN RETYPED ───────
 //
@@ -148,16 +158,17 @@ async function main() {
   // KEEP / STRIP is read off the reviewer's own annotation and its own tag, never off a substring
   // search for the name: `generalizeAttribution` can leave a name standing in a sentence it also
   // marked, and «the name is still in the text» would have called that a keep.
-  const verdict = (RV, claimed, author) => {
+  const verdictOn = (RV, sentence, author, matn) => {
     const out = RV.reviewAnswer({
-      text: 'قال ' + claimed + ': ' + MATN,
-      evidence: [bookRow(author)].map(loop.reviewerEvidence),
+      text: sentence,
+      evidence: [bookRow(author, matn)].map(loop.reviewerEvidence),
       domain: 'fiqh',
     });
     const kept = out.annotations.some((a) => a.action === 'kept-sourced-attribution');
     const stripped = out.text.indexOf(STRIP_TAG) !== -1;
     return kept ? 'KEEP' : (stripped ? 'STRIP' : 'NEITHER');
   };
+  const verdict = (RV, claimed, author) => verdictOn(RV, 'قال ' + claimed + ': ' + MATN, author, MATN);
 
   // ==========================================================================
   section('A. THE TABLE IS CLOSED, AND EVERY ROW OF IT IS PINNED HERE');
@@ -206,8 +217,8 @@ async function main() {
   section('B. THE PRODUCT PATH, POSITIVE: the shelf form and the cited form are one man');
   // ==========================================================================
   //
-  // Eight of the nine men reach the reader through this path. The ninth (ابن تيمية) is carried by
-  // D1 instead and the reason is measured there, not assumed.
+  // All nine men reach the reader through this path. Eleven rows use the frame; B12 uses the
+  // recorded sentence, for the reason measured beside RECORD_1554 above.
 
   const POSITIVE = [
     ['B1  Ibn Abd al-Barr: «أبو عمر...» cited, «ابن عبد البر» on the shelf',
@@ -239,10 +250,17 @@ async function main() {
       'got ' + got + ' for claimed=' + claimed + ' author=' + author);
   }
 
-  ok('B12 and eight distinct men reach the reader this way -- not one man eleven times',
-    new Set(POSITIVE.map(([, claimed]) => mech.nameFormMan(claimed))).size === 8,
+  ok('B12 Ibn Taymiyya, in the sentence he was actually struck out of (corpus record 1554)'
+    + ' -> the name STANDS',
+    verdictOn(reviewer, RECORD_1554, 'ابن تيمية', RECORD_1554) === 'KEEP',
+    'got ' + verdictOn(reviewer, RECORD_1554, 'ابن تيمية', RECORD_1554));
+
+  ok('B13 and NINE distinct men reach the reader this way -- not one man twelve times',
+    new Set([...POSITIVE.map(([, claimed]) => claimed), 'الشيخ تقي الدين أحمد بن تيمية رحمه الله ممن ينكر ذلك']
+      .map((claimed) => mech.nameFormMan(claimed))).size === 9,
     'distinct men over the positive rows = '
-      + new Set(POSITIVE.map(([, c]) => mech.nameFormMan(c))).size);
+      + new Set([...POSITIVE.map(([, c]) => c), 'الشيخ تقي الدين أحمد بن تيمية رحمه الله ممن ينكر ذلك']
+        .map((c) => mech.nameFormMan(c))).size);
 
   // ==========================================================================
   section('C. THE PRODUCT PATH, NEGATIVE: a name that looks like his and is another man');
@@ -276,18 +294,10 @@ async function main() {
   section('D. THE MECHANISM ALONE -- NOT A CLAIM ABOUT WHAT THE READER SEES');
   // ==========================================================================
   //
-  // Both checks below evaluate `sameManByNameForm` on its own. NEITHER of them says anything about
-  // the answer the reader receives, and the second says the opposite out loud.
+  // The check below evaluates `sameManByNameForm` on its own. It says NOTHING about the answer the
+  // reader receives -- and it says the opposite out loud, because the reader still receives it.
 
-  ok('D1  MECHANISM ONLY (not product output): the mechanism pairs the long ابن تيمية clause'
-    + ' with his shelf form -- the product path never reaches it, because the capture class does not'
-    + ' record «الشيخ ... رحمه الله ...» as a claimed authority at all',
-    mech.sameManByNameForm('ابن تيمية', 'الشيخ تقي الدين أحمد بن تيمية رحمه الله ممن ينكر ذلك') === true
-      && verdict(reviewer, 'الشيخ تقي الدين أحمد بن تيمية رحمه الله ممن ينكر ذلك', 'ابن تيمية') === 'NEITHER',
-    'either the mechanism refused the pair, or the product path DID capture it (which would make'
-      + ' this check stale rather than wrong -- re-measure before editing it)');
-
-  ok('D2  MECHANISM ONLY (not product output): the mechanism refuses «أبو ذر» because he is'
+  ok('D1  MECHANISM ONLY (not product output): the mechanism refuses «أبو ذر» because he is'
     + ' not in the table -- AND THE PRODUCT STILL CREDITS HIM, so ع-100 IS OPEN, not closed',
     mech.nameFormMan('أبو ذر') === ''
       && mech.sameManByNameForm('أبو ذر القلموني', 'أبو ذر') === false
