@@ -530,5 +530,10 @@
     "name": "layer1human",
     "script": "guards/layer1-human-capture-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "nameform",
+    "script": "guards/name-form-match-guard.cjs",
+    "args": ""
   }
 ]

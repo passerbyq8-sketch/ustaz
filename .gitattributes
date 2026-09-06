@@ -624,3 +624,7 @@ guards/stream-partial-keep-guard.cjs text eol=lf
 # Layer 1 human-capture gate. Recon requires every registered gate script to be
 # pinned, and this guard mutates an exact source seam in the output reviewer.
 guards/layer1-human-capture-guard.cjs text eol=lf
+
+# Layer 2 name-form gate. Recon requires every registered gate script to be
+# pinned, and this guard mutates three exact source seams in the output reviewer.
+guards/name-form-match-guard.cjs text eol=lf
