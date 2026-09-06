@@ -615,9 +615,13 @@ async function mutate({ file, name, transform, check }) {
     '  const rejectionInsideEmitted = streamedThisTurn',
     '    && rejectionAt >= 0 && rejectionAt < emittedPrefix.length;',
   ].join('\n');
+  // ق٥٨ §١ MOVED THIS SEAM BY ONE LINE and the constant moved with it: the head is still pinned
+  // at index 0, and what changed is the TAIL — the part of it that merely restates the head is
+  // not carried a second time. §J drives that; this constant only has to match the tree.
   const PINNED_JOIN = [
     "      rewritten = deliverableText(emittedPrefix !== ''",
-    '        ? joinRoundTextsHeadPinned([emittedPrefix, textOf(rejectPayload.content)])',
+    '        ? joinRoundTextsHeadPinned([emittedPrefix,',
+    '          withoutRestatedHead(emittedPrefix, textOf(rejectPayload.content))])',
     '        : joinRoundTexts([textOf(rejectPayload.content)]));',
   ].join('\n');
   // FIXTURE, NOT MUTANT: it widens what was SENT, it does not remove a remedy. Through the real
@@ -803,9 +807,16 @@ async function mutate({ file, name, transform, check }) {
   });
   ok('D4 the «ship the second cut anyway» mutant applies', noWithhold.changed, noWithhold.error);
   ok('D5 ...and its twin loads', noWithhold.loaded, noWithhold.error);
-  ok('D6 RED WITHOUT THE REMEDY: C9, C10 and C11 all fail when the withholding is removed',
+  ok('D6 RED WITHOUT THE REMEDY: C9 and C10 fail when the withholding is removed',
     noWithhold.loaded && noWithhold.result
-    && !noWithhold.result.c9 && !noWithhold.result.c10 && !noWithhold.result.c11,
+    && !noWithhold.result.c9 && !noWithhold.result.c10,
+    JSON.stringify(noWithhold.result));
+  // AND C11 SURVIVES THIS MUTANT NOW, WHICH IS ق٥٨ §٢ WORKING AND NOT A HOLE. «The reader is
+  // told» used to be a consequence of the withholding path; it is now a fact about the TURN —
+  // the reviewer cut and no clean rewrite replaced what it cut — so removing the withholding
+  // takes the prefix away and leaves the telling in place. C11 has its own mutants in §K/D.
+  ok('D6b ...and the «لم يكتملْ» line survives it, because it no longer hangs on that path',
+    noWithhold.loaded && noWithhold.result && noWithhold.result.c11 === true,
     JSON.stringify(noWithhold.result));
 
   // D3 — THE SECOND REVIEW DROPPED. §٤/١: `proposedRows` and `readerText` are derived thirteen
@@ -923,6 +934,289 @@ async function mutate({ file, name, transform, check }) {
     noNet.error);
   ok('D23 RED WITHOUT THE REMEDY: H9 fails — the delivered text no longer opens with what was sent',
     noNet.loaded && noNet.result && noNet.result.holds === false, JSON.stringify(noNet.result));
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== J. ق٥٨ §١ — THE HEAD IS PINNED ONCE, NOT PUT IN FRONT OF ITSELF ===');
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE WITNESS, in the owner’s words and off his own battery, not out of a fixture: he asked
+  // for the ترجيح of a named shaykh, and what reached him opened with the same two sentences
+  // TWICE. `joinRoundTextsHeadPinned` names that price in its own doc comment — «if the
+  // finishing round restates the head, the reader now reads it twice» — and ق٥٧ §٤/١ accepted
+  // it. It came due on the first real battery.
+  //
+  // AND THE PIN IS NOT WHAT IS REMOVED. H4 above still holds: a rewrite that did NOT restate the
+  // head still reopens with the emitted bytes. What §J adds is the other half.
+
+  const J_H1 = 'لم أجد في المصادر المتاحة فتوى منسوبة للشيخ في هذه المسألة.';
+  const J_H2 = 'والذي وقفت عليه من ترجيحات أهل العلم فيها ثلاثة أقوال.';
+  const J_HEAD = J_H1 + '\n' + J_H2;
+  const J_FIRST = J_HEAD + '\n' + NAMED;
+  const J_CLEAN = 'والأول هو الراجح عند جمهور أهل العلم.';
+  const countOf = (hay, needle) => {
+    let n = 0;
+    let i = hay.indexOf(needle);
+    while (i >= 0) { n += 1; i = hay.indexOf(needle, i + 1); }
+    return n;
+  };
+
+  // ── J1-J3 · THE PREDICATE, DRIVEN ON ITS OWN ────────────────────────────
+  ok('J1 a tail that restates the whole head loses exactly the restatement',
+    loop.withoutRestatedHead(J_HEAD, J_HEAD + '\n' + J_CLEAN) === J_CLEAN,
+    JSON.stringify(loop.withoutRestatedHead(J_HEAD, J_HEAD + '\n' + J_CLEAN)));
+  ok('J2 ...and so does a tail that restates only PART of it, or restates it differently',
+    loop.withoutRestatedHead(J_HEAD, J_H1 + '\n' + J_CLEAN) === J_CLEAN
+    && loop.withoutRestatedHead(J_HEAD, J_H1 + '\n\n  ' + J_H2 + '\n' + J_CLEAN) === J_CLEAN
+    && loop.withoutRestatedHead(J_HEAD, J_H1 + ' [1]\n' + J_H2 + ' [2]\n' + J_CLEAN).includes(J_CLEAN)
+    && !loop.withoutRestatedHead(J_HEAD, J_H1 + ' [1]\n' + J_H2 + ' [2]\n' + J_CLEAN).includes(J_H2),
+    JSON.stringify(loop.withoutRestatedHead(J_HEAD, J_H1 + ' [1]\n' + J_H2 + ' [2]\n' + J_CLEAN)));
+  // THE SAFETY, AND IT IS THE WHOLE REASON THIS WORKS ON SENTENCES. A longest-common-prefix rule
+  // would cut «الصلاة ركن من أركان الإسلام.» against «الصلاة ركن عظيم.» after «الصلاة ركن » and
+  // hand the reader the fragment «عظيم.». Nothing here may ever return half a sentence.
+  ok('J3 ...and a tail that merely BEGINS like the head is not touched at all',
+    loop.withoutRestatedHead(SOUND_HEAD, 'الصلاة ركن عظيم.') === 'الصلاة ركن عظيم.'
+    && loop.withoutRestatedHead('', J_CLEAN) === J_CLEAN
+    && loop.withoutRestatedHead(J_HEAD, '') === '',
+    JSON.stringify(loop.withoutRestatedHead(SOUND_HEAD, 'الصلاة ركن عظيم.')));
+
+  // ── J4-J6 · AND ON THE REAL TURN, WHICH IS WHERE THE OWNER READ IT TWICE ──
+  const restated = await drive(loop, [SEARCH, J_FIRST, J_HEAD + '\n' + J_CLEAN], {
+    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+  });
+  ok('J4 the emitted head really is the two sentences the rewrite will restate',
+    restated.streamedPrefix === J_HEAD, JSON.stringify(restated.streamedPrefix));
+  ok('J5 ...and the reader reads each of them ONCE',
+    countOf(restated.text, J_H1) === 1 && countOf(restated.text, J_H2) === 1,
+    JSON.stringify([countOf(restated.text, J_H1), countOf(restated.text, J_H2), restated.text]));
+  // AND THE PROMISE ق٥٧ §٤/٣ BOUGHT IS NOT SOLD BACK TO PAY FOR THIS ONE.
+  ok('J6 ...and what the reader already read still opens the answer, byte for byte',
+    restated.text.startsWith(restated.streamedPrefix)
+    && restated.streamPrefixValid === true && restated.streamPrefixRepaired === false
+    && restated.rejectRetries === 1,
+    JSON.stringify([restated.streamPrefixValid, restated.text.slice(0, 60)]));
+  console.log('      [measure] a rewrite that restates a ' + J_HEAD.length
+    + '-char head now delivers ' + restated.text.length + ' chars where it delivered '
+    + (restated.text.length + J_HEAD.length + 1) + ' before');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== K. ق٥٨ §٢ — EVERY EXIT THAT HANDS THE READER LESS SAYS SO ===');
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE SECOND WITNESS: «رأسٌ سُلِّمَ وحدَه، والقارئُ لم يُخبَرْ». `truncated` read a chain of two
+  // named booleans — `rejectWithheld` and `streamPrefixRepaired` — so an exit that set neither
+  // was silent by default. TWO of the six exits at this site were exactly that.
+  //
+  // THE RULE IS NOW THE OTHER WAY ROUND, and §K proves it as a TABLE rather than as a list of
+  // flags: for every exit, «did the reviewer cut something this turn did not get rewritten» is
+  // the question, and the answer is what the reader is told. The one exception — an EMPTY
+  // delivery is not an answer that stopped short — is F4 above and is named in the source.
+
+  const K_S1 = 'صيام يوم عرفة لغير الحاج من أعظم أيام صيام التطوع أجرا.';
+  const K_S2 = 'وقد ثبت عن النبي صلى الله عليه وسلم:';
+  const K_WITNESS = K_S1 + '\n' + K_S2 + '\n' + NAMED;
+  const K_CLEAN = 'وصيامه سنة مؤكدة عند جمهور أهل العلم.';
+  const preSpend = (src) => src.replace(
+    '  const rewriteBudget = createRewriteBudget();',
+    '  const rewriteBudget = createRewriteBudget();\n'
+    + "  rewriteBudget.take('fixture_second_door'); // FIXTURE: another door drew first");
+
+  // K1 — THE ONE EXIT THAT MAY BE SILENT: the rewrite came back clean, so nothing is missing.
+  const kClean = await drive(loop, [K_WITNESS, K_S1 + '\n' + K_S2 + '\n' + K_CLEAN]);
+  ok('K1 a turn whose rejection WAS repaired says nothing about stopping short',
+    kClean.truncated === false && kClean.text.includes(K_CLEAN)
+    && !(kClean.degraded || []).some((d) => /^delivery_short:/u.test(d)),
+    JSON.stringify([kClean.truncated, kClean.degraded]));
+
+  // K2/K3 — the two exits that already told the reader, kept honest.
+  const kCut = await drive(loop, [K_WITNESS, K_WITNESS]);
+  const kThrew = await drive(loop, [K_WITNESS, THROW]);
+  ok('K2 a second round that was cut too tells the reader, and names it in the log',
+    kCut.truncated === true && (kCut.degraded || []).includes('delivery_short:reject_unrepaired'),
+    JSON.stringify([kCut.truncated, kCut.degraded]));
+  ok('K3 ...and so does a retry that never arrived',
+    kThrew.truncated === true && (kThrew.degraded || []).includes('delivery_short:reject_unrepaired'),
+    JSON.stringify([kThrew.truncated, kThrew.degraded]));
+
+  // K4 — THE FIRST OF THE TWO SILENT EXITS: the door refused because the rejection lay inside
+  // the bytes the reader already has. The sutured text ships — ق٥٥ §٨/ب, unchanged — and until
+  // ق٥٨ §٢ it shipped with `truncated:false` and nothing said.
+  const kInside = await mutate({
+    file: LOOP,
+    name: 'exit-rejection-inside-emitted',
+    transform: widenEmitted,
+    check: async (twin) => {
+      const t = await drive(twin, [SEARCH, K_WITNESS, K_CLEAN], {
+        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+      });
+      return {
+        truncated: t.truncated, retries: t.rejectRetries, withheld: t.rejectWithheld,
+        repaired: t.streamPrefixRepaired,
+        named: (t.degraded || []).includes('delivery_short:reject_unrepaired'),
+      };
+    },
+  });
+  ok('K4 the «rejection inside the emitted bytes» fixture applies and loads',
+    kInside.changed && kInside.loaded, kInside.error);
+  ok('K5 a door refused because the bytes were already sent still tells the reader',
+    kInside.result && kInside.result.truncated === true && kInside.result.named === true
+    // AND THE TWO OLD FLAGS ARE BOTH FALSE HERE, which is why the chain was silent.
+    && kInside.result.withheld === false && kInside.result.repaired === false
+    && kInside.result.retries === 0,
+    JSON.stringify(kInside.result));
+
+  // K6 — THE SECOND SILENT EXIT: the turn’s one rewriting call was spent by an earlier door.
+  // This is the shape ق٥٦ §٢ logged and layer (4) will actually produce.
+  const kSpent = await mutate({
+    file: LOOP,
+    name: 'exit-budget-already-spent',
+    transform: preSpend,
+    check: async (twin) => {
+      const t = await drive(twin, [K_WITNESS, K_CLEAN]);
+      return {
+        truncated: t.truncated, retries: t.rejectRetries, withheld: t.rejectWithheld,
+        named: (t.degraded || []).includes('delivery_short:reject_unrepaired'),
+        budget: (t.degraded || []).some((d) => /^reject_retry:budget_spent:/u.test(d)),
+      };
+    },
+  });
+  ok('K6 the «budget already spent» fixture applies and loads', kSpent.changed && kSpent.loaded,
+    kSpent.error);
+  ok('K7 a door refused by the budget still tells the reader',
+    kSpent.result && kSpent.result.truncated === true && kSpent.result.named === true
+    && kSpent.result.withheld === false && kSpent.result.retries === 0
+    && kSpent.result.budget === true,
+    JSON.stringify(kSpent.result));
+
+  // K8 — THE EXCEPTION, AND IT IS THE ONLY ONE. F3/F4 above measure the behaviour; this measures
+  // that the exception was TAKEN rather than that the rule simply never fired.
+  const kShell = await drive(loop, [CARD_THEN_NAMED, CARD_THEN_NAMED]);
+  ok('K8 an EMPTY delivery is the one shortfall the reader is NOT told about, and the log says so',
+    kShell.text === '' && kShell.truncated !== true
+    && (kShell.degraded || []).includes(
+      'delivery_short:reject_unrepaired:not_told_because_nothing_was_delivered'),
+    JSON.stringify([kShell.text, kShell.truncated, kShell.degraded]));
+
+  // ── K9-K11 · THE RULE IS WRITTEN IN THE CODE, NOT COUNTED IN THIS FILE ───
+  //
+  // §٢ of the order, letter for letter: «لا تعدُّ الأعلامَ واحدًا واحدًا في فحصٍ يمكنُ أن يُنسى،
+  // بل اجعلِ الافتراضَ «يُخبَرُ القارئُ» والاستثناءَ مُسمًّى». So the three text facts that make the
+  // default a default are read here — a check that enumerated exits would be the very thing the
+  // order forbids.
+  ok('K9 the returned flag reads the shortfall list and names no boolean of its own',
+    /^ {4}truncated: readerIsToldItStoppedShort \? true : \(truncatedAfterReject \?\? truncated\),$/mu
+      .test(loopSource)
+    && !/truncated: \(rejectWithheld/u.test(loopSource), 'the truncated line');
+  ok('K10 ...and the ONE way out of the default is assigned in exactly one place',
+    (loopSource.match(/(?<!let )rejectionRepaired = /gu) || []).length === 1
+    && loopSource.includes('        rejectionRepaired = rejectedSecond === 0;'),
+    JSON.stringify((loopSource.match(/(?<!let )rejectionRepaired = [^;]*/gu) || [])));
+  const firstLegAt = loopSource.indexOf("deliveryShortfall.push('reject_unrepaired')");
+  ok('K11 ...and the default is applied BELOW the door, so an exit the door never took is covered',
+    firstLegAt > doorAt && firstLegAt < printAt, JSON.stringify([doorAt, firstLegAt, printAt]));
+  // AND THE SECOND LEG IS A MEASUREMENT AND NOT A THIRD FLAG. `judgedForDelivery` is taken from
+  // the same `reviewed.text` the delivery is built from and folded the same way, so an ordinary
+  // turn scores zero and any later shortening scores the prose the reader lost.
+  ok('K12 ...and what actually goes out is measured against what the turn judged deliverable',
+    /^ {2}const judgedForDelivery = foldWs\(dropOrphanRefNumbers\(String\(reviewed\.text \|\| ''\)\)\);$/mu
+      .test(loopSource)
+    && /^ {2}if \(foldWs\(deliveredText\)\.length < judgedForDelivery\.length\) \{$/mu.test(loopSource)
+    && loopSource.indexOf('const judgedForDelivery') < loopSource.indexOf('const deliveredText ='),
+    'the second leg');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== D (continued). THE NEGATIVE WITNESSES FOR J AND K ===');
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // D9 — ق٥٨ §١ REMOVED. The tail goes in whole and the head is put in front of itself: the
+  // owner’s first witness, reproduced on a twin.
+  const restatedTwice = await mutate({
+    file: LOOP,
+    name: 'restated-head-joined-twice',
+    transform: (src) => src.replace('          withoutRestatedHead(emittedPrefix, textOf(rejectPayload.content))])',
+      '          textOf(rejectPayload.content)]) // mutant: the head goes in front of itself'),
+    check: async (twin) => {
+      const t = await drive(twin, [SEARCH, J_FIRST, J_HEAD + '\n' + J_CLEAN], {
+        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+      });
+      return { j5: countOf(t.text, J_H1) === 1 && countOf(t.text, J_H2) === 1, text: t.text };
+    },
+  });
+  ok('D24 the «head joined twice» mutant applies and loads',
+    restatedTwice.changed && restatedTwice.loaded, restatedTwice.error);
+  ok('D25 RED WITHOUT THE REMEDY: J5 fails and the reader reads the head twice',
+    restatedTwice.loaded && restatedTwice.result && restatedTwice.result.j5 === false,
+    JSON.stringify(restatedTwice.result));
+
+  // D10 — ق٥٨ §٢ REMOVED: the flag put back on the chain of two booleans it used to read. This
+  // is the tree as `d98f622` shipped it, and K5 and K7 are the two checks that go red on it.
+  const flagChain = await mutate({
+    file: LOOP,
+    name: 'truncated-back-on-the-flag-chain',
+    transform: (src) => preSpend(src).replace(
+      '    truncated: readerIsToldItStoppedShort ? true : (truncatedAfterReject ?? truncated),',
+      '    truncated: (rejectWithheld || streamPrefixRepaired) ? true : (truncatedAfterReject ?? truncated),'),
+    check: async (twin) => {
+      const t = await drive(twin, [K_WITNESS, K_CLEAN]);
+      return { k7: t.truncated === true, truncated: t.truncated };
+    },
+  });
+  ok('D26 the «flag chain» mutant applies and loads', flagChain.changed && flagChain.loaded,
+    flagChain.error);
+  ok('D27 RED WITHOUT THE REMEDY: K7 fails — a door refused by the budget goes out silent',
+    flagChain.loaded && flagChain.result && flagChain.result.k7 === false,
+    JSON.stringify(flagChain.result));
+
+  // D11 — AND THE CLAIM THE ORDER ACTUALLY MAKES: «مسلكٌ جديدٌ يُضافُ إلى هذا الموضعِ ولا يُدرَجُ في
+  // truncated يجبُ أن تحمرَّ به البوّابة». So a SEVENTH exit is spliced in — one that shortens the
+  // delivery and names no flag at all, the way layer (4) will add one — and the same twin is run
+  // twice: once against the rule as it now stands, and once with the flag back on the old chain.
+  // The first must still tell the reader; the second must not. That pair is the claim.
+  const NEW_EXIT = [
+    '  // FIXTURE: a seventh exit, added the way a new one would be, naming no flag whatever.',
+    '  if (rejectedFirst > 0 && String(reviewed.text || "").length > 40) {',
+    '    reviewed = { text: String(reviewed.text).slice(0, 40), annotations: reviewed.annotations,',
+    '      verdict: reviewed.verdict };',
+    '  }',
+  ].join('\n');
+  const spliceNewExit = (src) => src.replace(
+    '  const deliveredText = dropOrphanRefNumbers(reviewed.text) || reviewed.text;',
+    NEW_EXIT + '\n  const deliveredText = dropOrphanRefNumbers(reviewed.text) || reviewed.text;');
+  const newExitTold = await mutate({
+    file: LOOP,
+    name: 'a-seventh-exit-under-the-new-rule',
+    transform: spliceNewExit,
+    check: async (twin) => {
+      const t = await drive(twin, [K_WITNESS, K_S1 + '\n' + K_S2 + '\n' + K_CLEAN]);
+      return { told: t.truncated === true, len: (t.text || '').length };
+    },
+  });
+  const newExitSilent = await mutate({
+    file: LOOP,
+    name: 'a-seventh-exit-under-the-old-chain',
+    transform: (src) => spliceNewExit(src).replace(
+      '    truncated: readerIsToldItStoppedShort ? true : (truncatedAfterReject ?? truncated),',
+      '    truncated: (rejectWithheld || streamPrefixRepaired) ? true : (truncatedAfterReject ?? truncated),'),
+    check: async (twin) => {
+      const t = await drive(twin, [K_WITNESS, K_S1 + '\n' + K_S2 + '\n' + K_CLEAN]);
+      return { told: t.truncated === true, len: (t.text || '').length };
+    },
+  });
+  ok('D28 both «seventh exit» twins apply and load',
+    newExitTold.changed && newExitTold.loaded && newExitSilent.changed && newExitSilent.loaded,
+    JSON.stringify([newExitTold.error, newExitSilent.error]));
+  // AND NOTE WHICH LEG CATCHES IT. This twin repairs its rejection cleanly, so the first leg is
+  // silent by design — what tells the reader is the measurement of the delivery itself. That
+  // is the difference between a default and a longer list.
+  ok('D29 an exit nobody registered anywhere still tells the reader under the new rule',
+    newExitTold.result && newExitTold.result.told === true, JSON.stringify(newExitTold.result));
+  ok('D30 ...and goes out silent under the chain of flags it replaced',
+    newExitSilent.result && newExitSilent.result.told === false,
+    JSON.stringify(newExitSilent.result));
+  // Both twins cut the SAME delivery, so the only difference between them is the rule.
+  ok('D31 ...and the two twins differ in nothing but that rule',
+    newExitTold.result && newExitSilent.result
+    && newExitTold.result.len === newExitSilent.result.len,
+    JSON.stringify([newExitTold.result, newExitSilent.result]));
 
   // ═══════════════════════════════════════════════════════════════════════════
   console.log('\n=== E. THE ROSTER ===');
