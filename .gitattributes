@@ -628,3 +628,7 @@ guards/layer1-human-capture-guard.cjs text eol=lf
 # Layer 2 name-form gate. Recon requires every registered gate script to be
 # pinned, and this guard mutates three exact source seams in the output reviewer.
 guards/name-form-match-guard.cjs text eol=lf
+
+# ق٥٥ reject-door gate. Recon requires every registered gate script to be pinned,
+# and this guard mutates four exact source seams in lib/free-brain/loop.js.
+guards/reject-door-guard.cjs text eol=lf

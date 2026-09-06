@@ -1822,11 +1822,28 @@ const HUMAN_DIVINE_NAME_CASES = [
     ok('H1 FLIPPED — a named scholar with no page in hand is not answered with a refusal constant',
       !free.text.includes(FIN.FINALIZER_REFUSAL)
         && !/لم نقفْ على شخصيّةٍ معروفةٍ بهذا الاسم/.test(free.text), JSON.stringify(free.text));
-    ok('H2 ...the NAME is what is removed, and the claim survives without it',
-      !free.text.includes('ابن باز') && free.text === REVIEWED_CLAIM,
+    // ── ق٥٥ REPLACED THE LAW AGAIN, AND H2/H3 SAY THE NEW ONE ────────────
+    //
+    // WHAT THESE TWO USED TO ASSERT, and it was true of the tree until the reject door landed:
+    // that the delivered text was `REVIEWED_CLAIM` — the claim with the name cut out of it and
+    // the sentence mark glued on. That is the exact shape ق٥٥ abolishes by name: «لا يُمَدُّ مقصٌّ
+    // في نصٍّ عربيٍّ بعدَ اليوم … ولا يُسلَّمُ نصٌّ قُصَّ منه شيءٌ ثمّ خِيطَ». Left standing, these two
+    // checks would be a guard demanding the defect.
+    //
+    // WHAT DID NOT CHANGE, and it is the half that matters: the REVIEWER still removes the name
+    // and still keeps the claim. H4 below asserts that on the verdict, and H5–H7 assert it
+    // against the reviewer module directly. What moved is the DELIVERY: this fixture answers
+    // twice with the same unsupported attribution, so the door rejects it twice and the reader
+    // receives what stood before the point of rejection — which, on a one-sentence answer whose
+    // one sentence is the rejected one, is nothing at all.
+    ok('H2 ق٥٥ — the name is gone AND the sutured sentence is not delivered in its place',
+      !free.text.includes('ابن باز') && !free.text.includes(REVIEWED_CLAIM),
       JSON.stringify(free.text));
-    ok('H3 ...and the removal is stated to the reader rather than performed silently',
-      free.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED), JSON.stringify(free.text));
+    ok('H3 ...and the refusal is recorded rather than performed silently: one round, then withheld',
+      free.rejectRetries === 1
+        && (free.degraded || []).some((d) => /^reject_retry:still_cut:1$/u.test(d))
+        && (free.degraded || []).some((d) => /^reject_withheld:0$/u.test(d)),
+      JSON.stringify([free.text, free.rejectRetries, free.degraded]));
     ok('H4 ...and the turn records the strip as a reviewed action, not as a drop',
       (free.verdict && free.verdict.counts
         && free.verdict.counts['removed-unsupported-attribution'] === 1)

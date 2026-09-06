@@ -535,5 +535,10 @@
     "name": "nameform",
     "script": "guards/name-form-match-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "rejectdoor",
+    "script": "guards/reject-door-guard.cjs",
+    "args": ""
   }
 ]

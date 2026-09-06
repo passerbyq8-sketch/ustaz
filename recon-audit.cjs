@@ -759,7 +759,8 @@ head('14) GATE ROSTER (single source: gates.json)');
   //       is the kind of change whose errors are invisible -- a dropped diacritic reads the
   //       same to a reviewer and differently to the model -- so the port was GENERATED from
   //       index.html, not retyped, and this gate pins the output fingerprints.
-  const GATES_EXPECTED = 106;  // 106th: nameform -- guards/name-form-match-guard.cjs. One man
+  const GATES_EXPECTED = 107;  // 107th: rejectdoor -- guards/reject-door-guard.cjs. ق٥٥:
+  // the guard rules and does not edit -- a cut answer is rewritten, never delivered sutured.  // 106th: nameform -- guards/name-form-match-guard.cjs. One man
                                //       written two ways: «ابن عباس» is «عبد الله بن عباس» on the
                                //       shelf, and neither string is a whole-word run inside the
                                //       other, so a true credit was struck off a page the man
