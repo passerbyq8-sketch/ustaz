@@ -185,6 +185,9 @@ async function mutate({ file, name, transform, check }) {
   const loopSource = read(LOOP);
   const loop = await fresh(LOOP, 'reject-door');
   const RV = await fresh(REVIEWER, 'reject-door-reviewer');
+  // ق٥٧ §٤ — the module that decides what may leave early, read here so H3 measures the release
+  // rule itself rather than believing a comment about it.
+  const SS = await fresh(path.join(ROOT, 'lib', 'sentence-stream.js'), 'reject-door-stream');
 
   // ═══════════════════════════════════════════════════════════════════════════
   console.log('=== A. THE SHAPE OF THE DOOR (read as text, and named as such) ===');
@@ -245,9 +248,27 @@ async function mutate({ file, name, transform, check }) {
   const doorBody = loopSource.slice(doorAt, printAt);
   ok('A9 the retry body is written with `stream: false` and no `tools` key',
     /stream: false,/u.test(doorBody) && !/\btools:/u.test(doorBody));
+  // ق٥٧ §٤ — AND THE GATE IS NARROWER THAN IT WAS. It read «did this turn stream»; it now reads
+  // «was this sentence sent», and the two names it is built from are read here as text.
   ok('A10 the stream gate is named rather than inferred from control flow',
-    /^ {2}const rejectGateOpen = !streamedThisTurn;$/mu.test(loopSource)
+    /^ {2}const rejectGateOpen = !streamedThisTurn$/mu.test(loopSource)
+    && /^ {4}\|\| \(emittedPrefix !== '' && !rejectionInsideEmitted\);$/mu.test(loopSource)
     && /^ {2}if \(rejectGateOpen$/mu.test(loopSource));
+  ok('A15 the emitted bytes and the rejection boundary are both named, not inlined',
+    /^ {2}const emittedPrefix = streamedThisTurn$/mu.test(loopSource)
+    && /^ {2}const rejectionAt = rejectedFirst > 0 \? firstRejectionIndex\(reviewed\) : -1;$/mu
+      .test(loopSource)
+    && /^ {2}const rejectionInsideEmitted = streamedThisTurn$/mu.test(loopSource));
+  // ق٥٧ §٤/١ — the rewrite is joined by the SAME function that pins `collected`, not by a
+  // second rule that happens to agree with it today.
+  ok('A16 the rewrite head is pinned with the same join `collected` is pinned with',
+    /rewritten = deliverableText\(emittedPrefix !== ''[\s\S]{0,120}joinRoundTextsHeadPinned\(\[emittedPrefix,/u
+      .test(loopSource));
+  // ق٥٧ §٤/٢ — the predicate decides, and it decides BEFORE anything is committed.
+  ok('A17 the emitted-prefix test is the condition the rewrite is adopted on',
+    /^ {6}const rewriteKeepsEmitted = emittedPrefix === ''$/mu.test(loopSource)
+    && /^ {6}if \(rewriteKeepsEmitted\) \{$/mu.test(loopSource)
+    && loopSource.indexOf('const rewriteKeepsEmitted') < loopSource.indexOf('        reviewed = candidateReviewed;'));
 
   // ── A11-A14. ق٥٦ §٢ — ONE BUDGET, AND THE CITATION CEILING IS NOT IN IT ──
   //
@@ -397,25 +418,24 @@ async function mutate({ file, name, transform, check }) {
     failed.modelCalls === 1 && (failed.roundLedger || []).length === 1,
     JSON.stringify([failed.modelCalls, (failed.roundLedger || []).length]));
 
-  // C-E — §٤/٣ / P6: the one turn the door may not open. Bytes the reader has already watched
-  // arrive are the reader's, and withholding them is worse than either other exit.
-  //
-  // AND THE LIMIT OF ق٥٥ IS HERE, STATED RATHER THAN HIDDEN: on a turn that has streamed, the
-  // sutured text ships. §٤/٣ of the order chose that trade deliberately — withdrawing a sentence
-  // the reader watched arrive is the worse of two bad moves — so this check asserts the CUT TEXT
-  // IS DELIVERED, which is the one place in this file where that is the passing outcome.
-  const streamed = await drive(loop, [SEARCH, TWO], {
+  // C-E — THE STREAMED TURN. ق٥٥ §٨/ب closed this door on every turn that had emitted a byte,
+  // and said so in words: the sutured text shipped. THE ORDER OF ٢٠٢٦-٠٩-٠٦ ITEM (4) NARROWED
+  // THAT GATE from «did this turn stream» to «was this sentence sent» — the whole of a streamed
+  // turn is not sent, and a rejection lying after the emitted bytes has been read by nobody. What
+  // is inviolable is unchanged and is asserted below: the delivered answer opens with the bytes
+  // the reader already has, byte for byte.
+  const streamed = await drive(loop, [SEARCH, TWO, SOUND_HEAD + '\n' + CLEAN_REWRITE], {
     env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
   });
-  ok('C16 a turn that has already put bytes on the wire keeps its answer, cut and all',
-    streamed.streamedThisTurn === true && streamed.rejectRetries === 0
-    && streamed.rejectWithheld === false
-    && streamed.text.startsWith(SOUND_HEAD)
-    && streamed.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED),
+  ok('C16 a streamed turn whose rejection lies AFTER the emitted bytes is rewritten, not shipped cut',
+    streamed.streamedThisTurn === true && streamed.rejectRetries === 1
+    && !streamed.text.includes('ابن باز')
+    && !streamed.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED),
     JSON.stringify([streamed.streamedThisTurn, streamed.rejectRetries, streamed.text]));
-  ok('C17 ...and the suppression is recorded rather than passing in silence',
-    (streamed.degraded || []).includes('reject_retry:suppressed_on_stream'),
-    JSON.stringify(streamed.degraded));
+  ok('C17 ...and what the reader already read still opens the answer, byte for byte',
+    streamed.streamedPrefix !== '' && streamed.text.startsWith(streamed.streamedPrefix)
+    && streamed.streamPrefixValid === true,
+    JSON.stringify([streamed.streamedPrefix, streamed.text.slice(0, 40)]));
 
   // C-F — the two exits E6/E7 have nothing to rewrite. The reviewer's last rung is an honest
   // declaration, not a cut, and withholding it would replace silence with silence.
@@ -544,6 +564,160 @@ async function mutate({ file, name, transform, check }) {
     JSON.stringify(untouched.rewriteBudget));
 
   // ═══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== H. ق٥٧ §٤ — THE TURN THAT HAS ALREADY PUT BYTES ON THE WIRE ===');
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // WHAT MAY NOT BE TOUCHED IS `sent`, AND NOTHING WIDER. ق٥٥ §٨/ب closed the door on every
+  // streamed turn because it read «this turn streamed» as «the reader has all of it». He has
+  // the emitted prefix and no more.
+
+  // THE SEAMS THE FIXTURES BELOW USE, WRITTEN ONCE. §D reuses two of them so that the mutant
+  // twin and the fixture twin differ in exactly one rule.
+  const EMITTED_LINE = [
+    '  const emittedPrefix = streamedThisTurn',
+    "    ? String((streamResult && streamResult.acceptedPrefix) || acceptedStreamPrefix || '') : '';",
+  ].join('\n');
+  const INSIDE_RULE = [
+    '  const rejectionInsideEmitted = streamedThisTurn',
+    '    && rejectionAt >= 0 && rejectionAt < emittedPrefix.length;',
+  ].join('\n');
+  const PINNED_JOIN = [
+    "      rewritten = deliverableText(emittedPrefix !== ''",
+    '        ? joinRoundTextsHeadPinned([emittedPrefix, textOf(rejectPayload.content)])',
+    '        : joinRoundTexts([textOf(rejectPayload.content)]));',
+  ].join('\n');
+  // FIXTURE, NOT MUTANT: it widens what was SENT, it does not remove a remedy. Through the real
+  // unit stream the emitted prefix stops AT the sentence the reviewer will reject (H3 below
+  // measures exactly that), so a provider script alone cannot produce a rejection lying inside
+  // `sent`. Widening `emittedPrefix` to the whole reviewed text is the smallest honest way to
+  // put the rejected sentence behind the eye of the reader.
+  const widenEmitted = (src) => src.replace(EMITTED_LINE,
+    "  const emittedPrefix = streamedThisTurn ? String(reviewed.text || '') : ''; // FIXTURE");
+  const unpinHead = (src) => src.replace(PINNED_JOIN,
+    '      rewritten = deliverableText(joinRoundTexts([textOf(rejectPayload.content)]));');
+
+  // ── H1/H2 · A REJECTION INSIDE `sent` IS UNFIXABLE, AND THE DOOR DOES NOT TRY ──
+  const allSent = await mutate({
+    file: LOOP,
+    name: 'fixture-everything-was-sent',
+    transform: widenEmitted,
+    check: async (twin) => {
+      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
+        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+      });
+      return {
+        retries: t.rejectRetries, calls: t.modelCalls, text: t.text,
+        named: (t.degraded || []).some((d) => /^reject_retry:inside_emitted_bytes:\d+\/\d+$/u.test(d)),
+        budget: t.rewriteBudget,
+      };
+    },
+  });
+  ok('H1 the «everything was sent» fixture applies and loads', allSent.changed && allSent.loaded,
+    allSent.error);
+  // AND IT DOES NOT TRY: no second generation, no budget spent, and the sutured text ships
+  // exactly as ق٥٥ §٨/ب left it. There is no frame in this protocol that withdraws a byte.
+  ok('H2 a rejection lying inside the bytes already sent buys no rewrite at all',
+    // TWO calls and no third: the tool round and the write this turn always pays for.
+    allSent.result && allSent.result.retries === 0 && allSent.result.calls === 2
+    && allSent.result.budget && allSent.result.budget.spent === 0
+    && allSent.result.named,
+    JSON.stringify(allSent.result));
+
+  // ── H3 · AND THAT SHAPE DOES NOT ARISE THROUGH THE STREAM AS IT IS BUILT ──
+  // MEASURED, on the reviewer unit stream itself: a sentence whose attribution the reviewer will
+  // strip is never RELEASED as a unit — the release stops at it. So today the wire cannot carry
+  // the sentence the door would want back. The gate is still closed, because that is a property
+  // of another module which nothing here pins.
+  const relStream = SS.createSentenceStream({
+    evidence: [], domain: 'fiqh', mode: 'عادي', truncated: null, sources: [],
+  });
+  const releasedUnits = relStream.push(TWO + '\nوالله أعلم بالصواب في هذه المسألة.').join('\n');
+  relStream.end();
+  ok('H3 the unit stream never releases the sentence the reviewer is about to reject',
+    !releasedUnits.includes('ابن باز') && !releasedUnits.includes(CLAIM),
+    JSON.stringify(releasedUnits));
+
+  // ── H4 · THE HEAD OF THE REWRITE IS PINNED EXACTLY AS `collected` IS ──────
+  // The scripted rewrite below does NOT restate the emitted head. Without the pin the delivered
+  // text would not begin with what the reader already read; with it, it does.
+  const pinned = await drive(loop, [SEARCH, TWO, CLEAN_REWRITE], {
+    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+  });
+  ok('H4 a rewrite that did not restate the head still reopens with the emitted bytes',
+    pinned.streamedPrefix !== '' && pinned.text.startsWith(pinned.streamedPrefix)
+    && pinned.rejectRetries === 1 && pinned.streamPrefixValid === true
+    && pinned.streamPrefixRepaired === false,
+    JSON.stringify([pinned.streamedPrefix, pinned.text.slice(0, 60)]));
+  // AND THE PRICE IS PRINTED RATHER THAN HIDDEN: the pin is the same rule `collected` uses, and
+  // it carries the same cost — a rewrite that DOES restate the head puts it in twice.
+  console.log('      [measure] emitted = ' + pinned.streamedPrefix.length
+    + ' chars of a delivered ' + pinned.text.length
+    + ' = ' + (pinned.text.length ? (pinned.streamedPrefix.length / pinned.text.length * 100).toFixed(1) : '0')
+    + '% of the answer sat inside `sent`');
+
+  // ── H5 · `streamPrefixValid` IS THE CONDITION, NOT A NOTE ────────────────
+  // With the pin removed the rewrite loses the head. The rewrite is then NOT adopted: the reader
+  // keeps what he read, told that it stopped short. This is the fallback the order names.
+  const lostHead = await mutate({
+    file: LOOP,
+    name: 'rewrite-head-not-pinned',
+    transform: unpinHead,
+    check: async (twin) => {
+      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
+        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+      });
+      return {
+        text: t.text, sent: t.streamedPrefix, truncated: t.truncated,
+        outcome: (t.degraded || []).filter((d) => /reject_retry_prefix_lost|reject_stream_head_kept|reject_retry:stream_prefix_lost/.test(d)),
+      };
+    },
+  });
+  ok('H5 the «head not pinned» twin applies and loads', lostHead.changed && lostHead.loaded,
+    lostHead.error);
+  ok('H6 a rewrite that lost the emitted bytes is refused, and the reader keeps his head',
+    lostHead.result && lostHead.result.text === lostHead.result.sent
+    && lostHead.result.sent !== '' && lostHead.result.truncated === true,
+    JSON.stringify(lostHead.result));
+  ok('H7 ...and both halves of that decision are named in the log',
+    lostHead.result
+    && lostHead.result.outcome.some((d) => /^reject_retry_prefix_lost:\d+$/u.test(d))
+    && lostHead.result.outcome.some((d) => /^reject_stream_head_kept:\d+$/u.test(d)),
+    JSON.stringify(lostHead.result && lostHead.result.outcome));
+
+  // ── H8 · THE SILENT ELSE ARM IN api/ask.js IS CLOSED FROM THIS SIDE ──────
+  // WHAT IT COST WHILE IT WAS OPEN: finish() appends the remainder only when the sealed text
+  // still starts with what it sent; on anything else it writes one `console.warn` and ends the
+  // stream, so the reader lost EVERY byte after the head with nothing said to him. api/ask.js is
+  // not this item's to edit, so the arm is closed by making its trigger unreachable: the twin
+  // below removes BOTH upstream remedies at once and the last net still holds the promise.
+  const lastNet = await mutate({
+    file: LOOP,
+    name: 'pin-and-decision-both-gone',
+    transform: (src) => unpinHead(src)
+      .replace('      if (rewriteKeepsEmitted) {', '      if (true) { // mutant: adopt regardless'),
+    check: async (twin) => {
+      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
+        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+      });
+      return {
+        holds: t.streamedPrefix !== '' && t.text.startsWith(t.streamedPrefix),
+        judged: t.streamPrefixValid, repaired: t.streamPrefixRepaired, truncated: t.truncated,
+        named: (t.degraded || []).some((d) => /^stream_prefix_repaired:\d+\/\d+$/u.test(d)),
+      };
+    },
+  });
+  ok('H8 the «both remedies gone» twin applies and loads', lastNet.changed && lastNet.loaded,
+    lastNet.error);
+  ok('H9 the delivered text still opens with the emitted bytes, so the warn arm cannot fire',
+    lastNet.result && lastNet.result.holds === true && lastNet.result.repaired === true
+    && lastNet.result.truncated === true && lastNet.result.named === true,
+    JSON.stringify(lastNet.result));
+  // AND THE FAULT IS STILL VISIBLE. A field that reported the repair instead of the fault would
+  // be a field that could never see the fault again.
+  ok('H10 ...and the judgement still records that the prefix HAD been lost',
+    lastNet.result && lastNet.result.judged === false, JSON.stringify(lastNet.result));
+
+  // ═══════════════════════════════════════════════════════════════════════════
   console.log('\n=== D. THE NEGATIVE WITNESS: WITH THE REMEDY REMOVED, THIS GATE GOES RED ===');
   // ═══════════════════════════════════════════════════════════════════════════
   //
@@ -586,8 +760,8 @@ async function mutate({ file, name, transform, check }) {
     file: LOOP,
     name: 'second-cut-shipped-anyway',
     transform: (src) => src.replace(
-      '    if (rejectedCount(reviewed.verdict) > 0) {\n      const sound = textBeforeFirstRejection(reviewed);',
-      '    if (false) {\n      const sound = textBeforeFirstRejection(reviewed); // mutant: ship the second cut'),
+      '    } else if (rejectedCount(reviewed.verdict) > 0) {\n      const sound = textBeforeFirstRejection(reviewed);',
+      '    } else if (false) {\n      const sound = textBeforeFirstRejection(reviewed); // mutant: ship the second cut'),
     check: async (twin) => {
       const two = await drive(twin, [TWO, TWO]);
       return { c9: two.text === SOUND_HEAD, c10: !two.text.includes(CLAIM), c11: two.truncated === true };
@@ -606,9 +780,12 @@ async function mutate({ file, name, transform, check }) {
   const noSecondReview = await mutate({
     file: LOOP,
     name: 'rewrite-delivered-unreviewed',
+    // ق٥٧ §٤/٢ moved the second review into a CANDIDATE that is committed only if it holds, so
+    // the seam moved with it: the mutant now adopts the rewrite and keeps the first verdict,
+    // which is the same defect said in the shape the code now has.
     transform: (src) => src.replace(
-      '      reviewed = await reviewAnswer({\n        requestedIdentity,',
-      '      const staleVerdictKept = await reviewAnswer({ // mutant: judge the rewrite, then ignore it\n        requestedIdentity,'),
+      '        reviewed = candidateReviewed;',
+      '        // mutant: adopt the rewrite and judge it by the FIRST verdict'),
     check: async (twin) => {
       const stale = await drive(twin, [TWO, NAMED]);
       return { c9b: stale.text === '', text: stale.text };
@@ -620,24 +797,26 @@ async function mutate({ file, name, transform, check }) {
     noSecondReview.loaded && noSecondReview.result && !noSecondReview.result.c9b,
     JSON.stringify(noSecondReview.result));
 
-  // D4 — THE STREAM GATE REMOVED. P6 broken in the plainest way there is: text a reader has
-  // already watched arrive is replaced by a second draft, or withheld outright.
-  const noGate = await mutate({
+  // D4 — THE «ALREADY SENT» RULE REMOVED. P6 broken in the plainest way there is: the door tries
+  // to withdraw a sentence the reader has already watched arrive. The twin is built on the SAME
+  // widened-prefix fixture as §H so the two differ in exactly one rule.
+  const noInsideRule = await mutate({
     file: LOOP,
-    name: 'reject-door-opens-mid-stream',
-    transform: (src) => src.replace('  const rejectGateOpen = !streamedThisTurn;',
-      '  const rejectGateOpen = true; // mutant: withdraw text the reader already has'),
+    name: 'reject-door-withdraws-sent-bytes',
+    transform: (src) => widenEmitted(src).replace(INSIDE_RULE,
+      '  const rejectionInsideEmitted = false; // mutant: withdraw text the reader already has'),
     check: async (twin) => {
-      const s = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
+      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
         env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
       });
-      return { c16: s.rejectRetries === 0 && s.text.startsWith(SOUND_HEAD) };
+      return { h1: t.rejectRetries === 0, retries: t.rejectRetries };
     },
   });
-  ok('D10 the «open the door mid-stream» mutant applies', noGate.changed, noGate.error);
-  ok('D11 ...and its twin loads', noGate.loaded, noGate.error);
-  ok('D12 RED WITHOUT THE REMEDY: C16 fails once the stream gate is gone',
-    noGate.loaded && noGate.result && !noGate.result.c16, JSON.stringify(noGate.result));
+  ok('D10 the «withdraw sent bytes» mutant applies', noInsideRule.changed, noInsideRule.error);
+  ok('D11 ...and its twin loads', noInsideRule.loaded, noInsideRule.error);
+  ok('D12 RED WITHOUT THE REMEDY: H1 fails — the door tries to rewrite what was already sent',
+    noInsideRule.loaded && noInsideRule.result && !noInsideRule.result.h1,
+    JSON.stringify(noInsideRule.result));
 
   // D5 — «FARIGHA» MEASURED IN BYTES AGAIN. This is the tree as this branch shipped it before
   // the order of ٢٠٢٦-٠٩-٠٦ §١, and it is the defect the owner saw: the shell is delivered, and
@@ -688,6 +867,28 @@ async function mutate({ file, name, transform, check }) {
   ok('D21 ...and the shared budget is the ONLY difference between the two twins',
     shared.result && split.result && shared.result.rejectRetries === split.result.rejectRetries,
     JSON.stringify([shared.result, split.result]));
+
+  // D8 — THE LAST NET REMOVED. With the pin and the decision already gone, dropping the repair
+  // is what actually reaches the reader as «the head, and then nothing, and a warning nobody
+  // sees». This is the mutant for item (3), and it is measured on the same twin as H9.
+  const noNet = await mutate({
+    file: LOOP,
+    name: 'prefix-repair-removed',
+    transform: (src) => unpinHead(src)
+      .replace('      if (rewriteKeepsEmitted) {', '      if (true) { // mutant: adopt regardless')
+      .replace('    reviewed = { text: streamedPrefix, annotations: reviewed.annotations, verdict: reviewed.verdict };',
+        '    // mutant: only a console.warn stands between the reader and a lost tail'),
+    check: async (twin) => {
+      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
+        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+      });
+      return { holds: t.streamedPrefix !== '' && t.text.startsWith(t.streamedPrefix), text: t.text };
+    },
+  });
+  ok('D22 the «prefix repair removed» mutant applies and loads', noNet.changed && noNet.loaded,
+    noNet.error);
+  ok('D23 RED WITHOUT THE REMEDY: H9 fails — the delivered text no longer opens with what was sent',
+    noNet.loaded && noNet.result && noNet.result.holds === false, JSON.stringify(noNet.result));
 
   // ═══════════════════════════════════════════════════════════════════════════
   console.log('\n=== E. THE ROSTER ===');
