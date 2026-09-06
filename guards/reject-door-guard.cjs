@@ -62,6 +62,11 @@ const CLAIM = 'الجمع للمسافر جائز عند الحاجة.';
 const NAMED = 'قال ابن باز إن ' + CLAIM;
 const TWO = SOUND_HEAD + '\n' + NAMED;
 const CLEAN_REWRITE = 'الجمع للمسافر جائز عند الحاجة عند جمهور أهل العلم.';
+// ق٥٥ §١ — the owner witness, in fixture form: a QUOTED block and nothing else. The card is
+// what the reader saw; the prose is what he did not.
+const CARD = '<hadith narrator="مسلم" ruling="صحيح">مَنْ غَشَّنَا فَلَيْسَ مِنَّا</hadith>';
+// A card with the rejected sentence behind it: the prefix is 76 bytes and zero prose.
+const CARD_THEN_NAMED = CARD + '\n' + NAMED;
 
 const fresh = (file, label) => import(pathToFileURL(file).href
   + '?' + encodeURIComponent(label) + '=' + Date.now() + '-' + Math.random());
@@ -185,12 +190,16 @@ async function mutate({ file, name, transform, check }) {
   console.log('=== A. THE SHAPE OF THE DOOR (read as text, and named as such) ===');
   // ═══════════════════════════════════════════════════════════════════════════
 
-  ok('A1 the ceiling is a named constant set to one',
-    /^const MAX_REJECT_RETRIES = 1;$/mu.test(loopSource));
+  // ق٥٦ §٢ — AND THE CEILING IS NOW THE TURN'S, NOT THE DOOR'S. It was `MAX_REJECT_RETRIES`
+  // until the order of ٢٠٢٦-٠٩-٠٦ §٢ replaced two independent budgets with one: «ميزانيّةُ
+  // إعادةٍ واحدةٌ للدورِ كلِّه … سقفُها واحد». The name changed because the thing changed.
+  ok('A1 the turn has ONE rewriting ceiling and it is a named constant set to one',
+    /^const MAX_TURN_REWRITES = 1;$/mu.test(loopSource)
+    && !/MAX_REJECT_RETRIES/u.test(loopSource));
 
   // §٣-ب, letter for letter: «كتلةُ `if` لا `while` — نصًّا». A loop here is the one shape the
   // ceiling cannot bound from outside, because the block would re-enter after incrementing.
-  const doorHead = /^ {2}(if|while) \(rejectRetries < MAX_REJECT_RETRIES$/mu.exec(loopSource);
+  const doorHead = /^ {2}(if|while) \(rejectGateOpen$/mu.exec(loopSource);
   ok('A2 the door is an `if` block and not a loop', doorHead && doorHead[1] === 'if',
     doorHead && doorHead[0]);
 
@@ -200,8 +209,8 @@ async function mutate({ file, name, transform, check }) {
   ok('A3 M17\'s anchor line is untouched, byte for byte and space for space',
     loopSource.includes('\n  if (citationRetries < MAX_CITATION_RETRIES\n'));
   ok('A4 ...and the reject door is its own block, not an arm of that one',
-    loopSource.includes('\n  if (rejectRetries < MAX_REJECT_RETRIES\n')
-    && !/citationRetries < MAX_CITATION_RETRIES[\s\S]{0,400}rejectRetries </u.test(loopSource));
+    loopSource.includes('\n  if (rejectGateOpen\n')
+    && !/citationRetries < MAX_CITATION_RETRIES[\s\S]{0,400}rejectGateOpen/u.test(loopSource));
 
   // ── A5. THE THIRD DEFINITION OF «DESTRUCTIVE», AND ITS FIRST WITNESS ──────
   const reviewerSource = read(REVIEWER);
@@ -227,7 +236,7 @@ async function mutate({ file, name, transform, check }) {
   // §٤/٢ — the ledger print must sit BELOW the door, or the platform log shows fewer rows than
   // the turn paid model calls for. Position is a text fact; §C7 proves the consequence.
   const printAt = loopSource.indexOf("console.log('[free-brain/round-ledger]'");
-  const doorAt = loopSource.indexOf('  if (rejectRetries < MAX_REJECT_RETRIES');
+  const doorAt = loopSource.indexOf('  if (rejectGateOpen');
   ok('A8 the round-ledger print sits below the reject door', doorAt > 0 && printAt > doorAt,
     JSON.stringify([doorAt, printAt]));
 
@@ -238,7 +247,34 @@ async function mutate({ file, name, transform, check }) {
     /stream: false,/u.test(doorBody) && !/\btools:/u.test(doorBody));
   ok('A10 the stream gate is named rather than inferred from control flow',
     /^ {2}const rejectGateOpen = !streamedThisTurn;$/mu.test(loopSource)
-    && /^ {4}&& rejectGateOpen$/mu.test(loopSource));
+    && /^ {2}if \(rejectGateOpen$/mu.test(loopSource));
+
+  // ── A11-A14. ق٥٦ §٢ — ONE BUDGET, AND THE CITATION CEILING IS NOT IN IT ──
+  //
+  // The consequence is driven in §G; these four read the three text facts that make it true, so
+  // a reviewer can see the intent beside the number.
+  ok('A11 the budget is created once, above every door that can draw on it',
+    (loopSource.match(/createRewriteBudget\(\)/gu) || []).length === 1
+    && loopSource.indexOf('const rewriteBudget = createRewriteBudget();') < doorAt);
+  // «واحدةٌ تكفي» is a MUTATION, so it is written last in the condition that reads it. A door
+  // that asked for the call before deciding it wanted one would have spent the next door's.
+  ok('A12 the door draws on the budget LAST, after it has decided it wants the call',
+    /^ {2}if \(rejectGateOpen\n {4}&& rejectedFirst > 0\n {4}&& rewriteBudget\.take\('reject_retry'\)\) \{$/mu
+      .test(loopSource));
+  // §٢ of the order, by name: «وسقفُ إعادةِ الاستشهادِ MAX_CITATION_RETRIES لا يُمَسُّ ولا يُدمَجُ
+  // في هذه الميزانيّة». Its own ceiling, its own counter, and no draw on the shared budget.
+  // Bounded at the reject door's OWN banner and not at `doorAt`: the door's comment names the
+  // budget in prose, and a check that reads a comment as code proves nothing.
+  const citeBlock = loopSource.slice(
+    loopSource.indexOf('  if (citationRetries < MAX_CITATION_RETRIES'),
+    loopSource.indexOf('  // ── ق٥٥ §٣ — THE REJECT DOOR'));
+  ok('A13 the citation retry keeps its own ceiling and draws nothing from the shared budget',
+    /^const MAX_CITATION_RETRIES = 1;$/mu.test(loopSource)
+    && citeBlock.length > 0 && !citeBlock.includes('rewriteBudget'));
+  // The reasons stay distinct — what the order unified is the budget and not the naming.
+  ok('A14 ...and every draw is taken under a named reason',
+    !/rewriteBudget\.take\(\s*\)/u.test(loopSource)
+    && loopSource.includes("rewriteBudget.take('reject_retry')"));
 
   // ═══════════════════════════════════════════════════════════════════════════
   console.log('\n=== B. THE THREE PURE FUNCTIONS, DRIVEN ===');
@@ -389,6 +425,125 @@ async function mutate({ file, name, transform, check }) {
     && nothing.rejectWithheld === false, JSON.stringify(nothing.text));
 
   // ═══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== F. ق٥٥ §١ — WHAT «EMPTY» MEANS, MEASURED IN THE EYE OF THE READER ===');
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE WITNESS THIS SECTION EXISTS FOR, in the words of the owner: on a preview of this branch
+  // the question «ما درجة حديث «من غشنا فليس منا»؟ ومن أخرجه؟» returned a hadith card, a
+  // «فهمٌ لا فتوى» notice and a source link — and not one sentence of prose. Both of the door
+  // emptiness tests were BYTE tests, so a block of quoted material passed both while answering
+  // nothing. The rule in the order replaces them: «بادئةٌ لا تحملُ جملةَ نثرٍ واحدةً خارجَ كتلِ
+  // البطاقاتِ والوسومِ والاقتباساتِ المهيكَلةِ هي بادئةٌ فارغة».
+
+  ok('F1 the predicate: a card, a tag and a notice are not prose',
+    loop.carriesReaderProse(CARD) === false
+    && loop.carriesReaderProse(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED) === false
+    && loop.carriesReaderProse('') === false,
+    JSON.stringify([loop.carriesReaderProse(CARD),
+      loop.carriesReaderProse(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED)]));
+  // AND A COMPOSED BLOCK IS. `<steps>` carries what the model wrote, not what it quoted, and
+  // the measurement of layer (4) counts «عنصر <steps>» as an answer unit in so many words. A
+  // rule that folded it away would refuse the numbered answer that item exists to protect.
+  ok('F2 ...and a sentence, and a composed <steps> block, are',
+    loop.carriesReaderProse(SOUND_HEAD) === true
+    && loop.carriesReaderProse('<steps><item>اغسل وجهك</item></steps>') === true,
+    JSON.stringify([loop.carriesReaderProse(SOUND_HEAD),
+      loop.carriesReaderProse('<steps><item>اغسل وجهك</item></steps>')]));
+
+  // ── THE PAIR THE ORDER NAMES, DRIVEN ON THE REAL TURN ────────────────────
+  // «بادئةٌ كلُّها بطاقةٌ ⟹ لا تُسلَّمُ · وبادئةٌ فيها جملةُ نثرٍ ⟹ تُسلَّمُ مع «لم يكتملْ»».
+  const shell = await drive(loop, [CARD_THEN_NAMED, CARD_THEN_NAMED]);
+  ok('F3 a prefix that is nothing but a card is NOT handed to the reader as an answer',
+    shell.text === '', JSON.stringify(shell.text));
+  // AND NO «لم يكتملْ» OVER A SHELL. `truncated` is what draws that line and the «كمّل» button
+  // beside it, and offering to complete something that never began is the small lie this layer
+  // exists to end. api/ask.js hands an empty turn its class (ب) apology instead.
+  ok('F4 ...and the turn does not claim an answer stopped short when none started',
+    shell.truncated !== true && shell.rejectWithheld === false,
+    JSON.stringify([shell.truncated, shell.rejectWithheld]));
+  ok('F5 ...and the size of what was dropped is a number in the log, not a silence',
+    shell.degraded.some((d) => /^reject_prefix_marks_only:\d+$/u.test(d)),
+    JSON.stringify(shell.degraded));
+  const withProse = await drive(loop, [TWO, TWO]);
+  ok('F6 a prefix that carries a sentence of prose IS delivered, and says it stopped short',
+    withProse.text === SOUND_HEAD && withProse.truncated === true
+    && withProse.rejectWithheld === true,
+    JSON.stringify([withProse.text, withProse.truncated, withProse.rejectWithheld]));
+
+  // ── AND THE SAME MEASURE ON THE REWRITE ITSELF ───────────────────────────
+  // MEASURED, and this is the exit that actually reproduced the witness: a rewrite that answers
+  // the refusal by deleting its own prose and keeping the card it quoted reviews CLEAN — there
+  // is nothing left in it to reject — and shipped a shell with `truncated:false`, which is why
+  // no «لم يكتملْ» line appeared at all.
+  const rewriteShell = await drive(loop, [TWO, CARD]);
+  ok('F7 a rewrite that kept the card and deleted its prose is not adopted',
+    rewriteShell.text === SOUND_HEAD, JSON.stringify(rewriteShell.text));
+  ok('F8 ...and it is named under its own outcome, not folded into «withheld»',
+    rewriteShell.degraded.includes('reject_retry:rewrite_marks_only')
+    && rewriteShell.degraded.some((d) => /^reject_rewrite_marks_only:\d+$/u.test(d)),
+    JSON.stringify(rewriteShell.degraded));
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== G. ق٥٦ §٢ — TWO DOORS IN ONE TURN BUY ONE EXTRA CALL, NOT TWO ===');
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE DOOR THAT COMES AFTER THIS ONE DOES NOT EXIST YET, so it is BUILT HERE, as a fixture and
+  // named as one: a synthetic second door spliced into a copy of loop.js that asks for a
+  // rewriting call of its own. That is the only honest way to assert a property of two doors
+  // while one of them is still unwritten — and it is the shape layer (4) will land on.
+  //
+  // Both twins below are the SAME real loop with the SAME synthetic door. The only difference is
+  // where the ceiling of the second door comes from: the shared budget, or a counter of its own.
+  const LEDGER_PRINT = "  console.log('[free-brain/round-ledger]', JSON.stringify(roundLedger));";
+  const SECOND_DOOR_CALL = [
+    '    await callProvider({ providerUrl, headers, signal,',
+    '      body: { model, max_tokens: 64, system, messages: conversation, stream: false } });',
+    '    modelCalls += 1;',
+  ].join('\n');
+  const sharedDoor = [
+    '  // FIXTURE: a synthetic second door drawing on the budget of the turn.',
+    "  if (rewriteBudget.take('empty_retry')) {",
+    SECOND_DOOR_CALL,
+    '  }',
+    LEDGER_PRINT,
+  ].join('\n');
+  const splitDoor = [
+    '  // FIXTURE: the same door with a budget of its OWN — the shape the order forbids.',
+    '  let emptyRetries = 0;',
+    '  if (emptyRetries < 1) {',
+    '    emptyRetries += 1;',
+    SECOND_DOOR_CALL,
+    '  }',
+    LEDGER_PRINT,
+  ].join('\n');
+  const twoDoors = async (door, name) => mutate({
+    file: LOOP,
+    name,
+    transform: (src) => src.replace(LEDGER_PRINT, door),
+    check: async (twin) => {
+      const t = await drive(twin, [TWO, TWO, 'ثالث']);
+      return { calls: t.modelCalls, budget: t.rewriteBudget, rejectRetries: t.rejectRetries };
+    },
+  });
+  const shared = await twoDoors(sharedDoor, 'two-doors-one-budget');
+  ok('G1 the two-door fixture applies and loads', shared.changed && shared.loaded, shared.error);
+  // ONE WRITE + ONE REWRITE. The third generation the order names is the one that must not exist.
+  ok('G2 two doors asking for a rewrite in one turn buy ONE extra provider call, not two',
+    shared.result && shared.result.calls === 2, JSON.stringify(shared.result));
+  ok('G3 ...and the budget says which door spent it, so the reasons stay distinct',
+    shared.result && shared.result.budget
+    && shared.result.budget.max === 1 && shared.result.budget.spent === 1
+    && shared.result.budget.remaining === 0
+    && JSON.stringify(shared.result.budget.reasons) === JSON.stringify(['reject_retry']),
+    JSON.stringify(shared.result && shared.result.budget));
+  // A turn nobody rewrote leaves the budget where it found it — so «spent» means spent.
+  const untouched = await drive(loop, [SOUND_HEAD]);
+  ok('G4 a turn no door opened on leaves the budget unspent',
+    untouched.rewriteBudget && untouched.rewriteBudget.spent === 0
+    && untouched.rewriteBudget.remaining === 1,
+    JSON.stringify(untouched.rewriteBudget));
+
+  // ═══════════════════════════════════════════════════════════════════════════
   console.log('\n=== D. THE NEGATIVE WITNESS: WITH THE REMEDY REMOVED, THIS GATE GOES RED ===');
   // ═══════════════════════════════════════════════════════════════════════════
   //
@@ -483,6 +638,56 @@ async function mutate({ file, name, transform, check }) {
   ok('D11 ...and its twin loads', noGate.loaded, noGate.error);
   ok('D12 RED WITHOUT THE REMEDY: C16 fails once the stream gate is gone',
     noGate.loaded && noGate.result && !noGate.result.c16, JSON.stringify(noGate.result));
+
+  // D5 — «FARIGHA» MEASURED IN BYTES AGAIN. This is the tree as this branch shipped it before
+  // the order of ٢٠٢٦-٠٩-٠٦ §١, and it is the defect the owner saw: the shell is delivered, and
+  // a «لم يكتملْ» line is drawn over an answer that never started.
+  const bytesPrefix = await mutate({
+    file: LOOP,
+    name: 'prefix-emptiness-in-bytes',
+    transform: (src) => src.replace('      const soundProse = carriesReaderProse(sound);',
+      "      const soundProse = sound !== ''; // mutant: bytes, not prose"),
+    check: async (twin) => {
+      const t = await drive(twin, [CARD_THEN_NAMED, CARD_THEN_NAMED]);
+      return { f3: t.text === '', f4: t.truncated !== true && t.rejectWithheld === false, text: t.text };
+    },
+  });
+  ok('D13 the «emptiness in bytes» mutant applies', bytesPrefix.changed, bytesPrefix.error);
+  ok('D14 ...and its twin loads', bytesPrefix.loaded, bytesPrefix.error);
+  ok('D15 RED WITHOUT THE REMEDY: F3 and F4 both fail, and the shell reaches the reader',
+    bytesPrefix.loaded && bytesPrefix.result
+    && !bytesPrefix.result.f3 && !bytesPrefix.result.f4,
+    JSON.stringify(bytesPrefix.result));
+
+  // D6 — THE REWRITE ADOPTED ON BYTES. The other half of the same measure, and the exit that
+  // actually reproduced the witness: a card-only rewrite reviews clean and ships.
+  const bytesRewrite = await mutate({
+    file: LOOP,
+    name: 'rewrite-adopted-on-bytes',
+    transform: (src) => src.replace('    if (carriesReaderProse(rewritten)) {',
+      "    if (rewritten.trim() !== '') { // mutant: bytes, not prose"),
+    check: async (twin) => {
+      const t = await drive(twin, [TWO, CARD]);
+      return { f7: t.text === SOUND_HEAD, text: t.text };
+    },
+  });
+  ok('D16 the «rewrite adopted on bytes» mutant applies', bytesRewrite.changed, bytesRewrite.error);
+  ok('D17 ...and its twin loads', bytesRewrite.loaded, bytesRewrite.error);
+  ok('D18 RED WITHOUT THE REMEDY: F7 fails and the card-only rewrite is delivered as the answer',
+    bytesRewrite.loaded && bytesRewrite.result && !bytesRewrite.result.f7,
+    JSON.stringify(bytesRewrite.result));
+
+  // D7 — THE BUDGET SPLIT PER DOOR. §٢ of the order, exactly: «ويُشحَنُ بمطفِّرٍ يفصلُ الميزانيّةَ
+  // فيحمرُّ». The same synthetic second door as §G, given a counter of its own — and the third
+  // generation layer (4) computed on paper appears as a third provider call.
+  const split = await twoDoors(splitDoor, 'two-doors-split-budgets');
+  ok('D19 the «split budgets» mutant applies and loads', split.changed && split.loaded, split.error);
+  ok('D20 RED WITHOUT THE REMEDY: G2 fails — a split budget buys the third generation',
+    split.result && split.result.calls === 3 && !(split.result.calls === 2),
+    JSON.stringify(split.result));
+  ok('D21 ...and the shared budget is the ONLY difference between the two twins',
+    shared.result && split.result && shared.result.rejectRetries === split.result.rejectRetries,
+    JSON.stringify([shared.result, split.result]));
 
   // ═══════════════════════════════════════════════════════════════════════════
   console.log('\n=== E. THE ROSTER ===');
