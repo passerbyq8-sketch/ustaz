@@ -2114,6 +2114,300 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('MUTANT KILLED: a search noun behind a preposition is an adjunct and not a topic',
       adjunctMutant.loaded && adjunctMutant.survived === false, JSON.stringify(adjunctMutant));
 
+
+    // ═══════════════════════════════════════════════════════════════════════
+    console.log('\n=== V4. ق٥٦ · ع-٨٧ — A FRAME IS NOT AN ANSWER, AND IT NEVER SHIPS IN SILENCE ===');
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // WHY THIS SECTION IS HERE AND NOT IN A NEW GATE. §٢/١ of the order: this guard's own threshold
+    // is `text.trim().length > 0` — BYTES and not prose — and it says so: «فهو ليسَ آلةً دلاليّةً
+    // ناقصةً تُوسَّع؛ لا تُعالِجْ بتوسيعِ حدٍّ كهذا». That threshold is NOT touched by a byte here.
+    // What is added is a second question asked beside it: an answer can be a thousand bytes long,
+    // pass every zero test in this file, and still carry nothing the reader asked for.
+    //
+    // THE OWNER'S BASE WITNESS, DRIVEN. «اذكر لي خطوات الوضوء مرقمة» answered with a preamble, a
+    // «فهمٌ لا فتوى» notice and one sentence — «هذه صفة الوضوء كما وردت في السنة، فاعمل بها» — and
+    // not one step. Measured on b2db553 before any remedy: 12 rounds out of 12 delivered it with
+    // `truncated:false` and NOT ONE LINE in `degraded` about it.
+    const V4_QUESTION = 'اذكر لي خطوات الوضوء مرقمة';
+    const V4_PLAIN_QUESTION = 'ما حكم الجمع للمسافر؟';
+    const V4_FRAME = 'هذه صفة الوضوء كما وردت في السنة، فاعمل بها مطمئنا يا مساعد.';
+    const V4_HEAD = 'الوضوء عبادة عظيمة، وقد جاءت صفته في السنة على وجه معلوم.';
+    const V4_STEPS = ['1. غسل الكفين ثلاثا.', '2. المضمضة والاستنشاق.', '3. غسل الوجه ثلاثا.'].join('\n');
+    const V4_CARD = '<hadith>لا وضوء لمن لم يذكر اسم الله عليه</hadith>';
+    const V4_NAMED = 'قال ابن باز إن الجمع للمسافر جائز.';
+
+    // The scripted provider, in this file's own idiom: SSE when the body asks for a stream, JSON
+    // otherwise, and any host but the stub throws. The LAST entry is replayed for every call past
+    // the end of the script, so a two-entry script gives every extra round the same answer.
+    const v4Sse = (payload) => {
+      const frames = [{ type: 'message_start', message: { content: [] } }];
+      (payload.content || []).forEach((block, index) => {
+        frames.push({ type: 'content_block_start', index, content_block: { type: 'text', text: '' } });
+        frames.push({ type: 'content_block_delta', index, delta: { type: 'text_delta', text: block.text } });
+        frames.push({ type: 'content_block_stop', index });
+      });
+      frames.push({ type: 'message_delta', delta: { stop_reason: payload.stop_reason } });
+      frames.push({ type: 'message_stop' });
+      const chunk = new TextEncoder().encode(
+        frames.map((f) => 'data: ' + JSON.stringify(f) + '\n\n').join(''));
+      let sent = false;
+      return { getReader: () => ({ read: async () => (sent ? { done: true } : ((sent = true), { done: false, value: chunk })) }) };
+    };
+    async function v4Drive(loopModule, script, extra) {
+      const realFetch = globalThis.fetch;
+      const realLog = console.log;
+      let call = 0;
+      globalThis.fetch = async (input, init) => {
+        const url = String(input?.url || input);
+        if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+        const step = script[Math.min(call, script.length - 1)];
+        call += 1;
+        const payload = (step && typeof step === 'object' && step.tool)
+          ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't' + call, name: 'search_sources', input: { query: 'الوضوء' } }] }
+          : textPayload(step);
+        const body = JSON.parse(String(init?.body ?? '{}'));
+        if (body.stream === true) return { ok: true, status: 200, body: v4Sse(payload), text: async () => '' };
+        return { ok: true, status: 200, json: async () => payload };
+      };
+      console.log = () => {};
+      try {
+        return await loopModule.runFreeBrainTurn({
+          ...BASE, messages: [{ role: 'user', content: V4_QUESTION }], ...(extra || {}),
+        });
+      } finally { globalThis.fetch = realFetch; console.log = realLog; }
+    }
+    // `search_sources` and not this file's `search_fatawa`: the fatwa service is offline here, so
+    // that tool returns ZERO rows, `roundRulingWithoutCards` is true, and the turn streams nothing
+    // at all — which would leave the two streamed checks below asserting on an unstreamed turn.
+    const V4_TOOL = { tool: true };
+    const v4Deg = (turn, re) => (turn.degraded || []).filter((d) => re.test(d));
+
+    // ── L1 · THE WITNESS, AND THE READER'S OWN TEXT PRINTED RATHER THAN DESCRIBED ──
+    const l1 = await v4Drive(loop, [V4_FRAME, V4_STEPS]);
+    ok('L1 a frame answer to a question that asked for a list buys ONE writing round, and the reader gets the list',
+      l1.emptyRetries === 1 && l1.modelCalls === 2
+      && /غسل الكفين/u.test(l1.text) && /المضمضة/u.test(l1.text)
+      && v4Deg(l1, /^empty_answer:no_enumeration:/u).length === 1
+      && (l1.degraded || []).includes('empty_retry:filled'),
+      'READER = ' + JSON.stringify(l1.text) + ' · ' + JSON.stringify(l1.degraded));
+
+    // ── L2 · AND WHEN THE EXTRA ROUND COMES BACK JUST AS HOLLOW, THE READER IS TOLD ──
+    // §٤/٢: «والصمتُ ممنوع». The answer is KEPT — nothing a reader could read is thrown away —
+    // and `truncated` is true, so «لم يكتملْ» is drawn and «كمّل» is offered beside it.
+    const l2 = await v4Drive(loop, [V4_FRAME, V4_FRAME]);
+    ok('L2 a round that stays hollow is delivered TOLD, not silent — the answer kept and «لم يكتملْ» drawn',
+      l2.emptyRetries === 1 && l2.truncated === true
+      && l2.text.includes('هذه صفة الوضوء')
+      && (l2.degraded || []).includes('delivery_short:answer_without_substance:no_enumeration'),
+      'READER = ' + JSON.stringify(l2.text) + ' · truncated=' + JSON.stringify(l2.truncated)
+      + ' · ' + JSON.stringify(l2.degraded));
+
+    // ── L3 · THE ASK IS READ FROM THE CALLER'S ARRAY, NOT FROM `conversation` ──
+    // MEASURED AS A REGRESSION BEFORE IT WAS A CHECK: after one tool round `conversation` ends
+    // with a {role:'user'} turn carrying tool_result BLOCKS, so `lastUserText` returns '' and the
+    // ask leg went silently off on exactly the turns that had searched. Driven: the same hollow
+    // answer fired the door with no tools and did NOT fire it with one search round.
+    const l3 = await v4Drive(loop, [V4_TOOL, V4_FRAME, V4_STEPS]);
+    ok('L3 a turn that ran a tool round still knows what the reader asked for',
+      l3.emptyRetries === 1 && /غسل الكفين/u.test(l3.text),
+      'READER = ' + JSON.stringify(l3.text) + ' · ' + JSON.stringify(l3.degraded));
+
+    // ── L4 · AND ON A QUESTION THAT ASKED FOR NO LIST, THE LEG IS OFF ENTIRELY ──
+    // The same hollow text, the same tree, a different question. A door that fired here would be
+    // buying a provider call on every ordinary answer in the product.
+    const l4 = await v4Drive(loop, [V4_FRAME, V4_STEPS],
+      { messages: [{ role: 'user', content: V4_PLAIN_QUESTION }] });
+    ok('L4 the enumeration leg cannot fire on a question that asked for no enumeration',
+      l4.emptyRetries === 0 && l4.modelCalls === 1
+      && v4Deg(l4, /^empty_answer:/u).length === 0,
+      JSON.stringify([l4.emptyRetries, l4.modelCalls, l4.degraded]));
+
+    // ── L5 · AND AN ANSWER THAT DOES ENUMERATE IS LEFT ALONE, BYTE FOR BYTE ──
+    const l5 = await v4Drive(loop, [V4_STEPS, V4_FRAME]);
+    ok('L5 an answer that carries the list is not touched and buys nothing',
+      l5.emptyRetries === 0 && l5.modelCalls === 1 && /غسل الكفين/u.test(l5.text)
+      && v4Deg(l5, /^empty_answer:/u).length === 0,
+      JSON.stringify([l5.emptyRetries, l5.modelCalls, l5.text]));
+
+    // ── L6 · ONE BUDGET FOR THE WHOLE TURN, AND THE REFUSED DOOR SAYS SO ──
+    // ق٥٧'s report left the ORDER of the two draws to this item by name. The reject door draws
+    // FIRST — its failure is an unsupported attribution reaching the reader, and «لا يكذب» stands
+    // above «لا يخرجُ فارغًا». So on a turn where BOTH doors want a call, the turn buys ONE, and
+    // this door records the refusal under its own name instead of passing as silence. This is the
+    // shape ق٥٨ §٢ measured on a twin and called «سُدَّ قبلَ أن يُفتَح»; it is open now.
+    const l6 = await v4Drive(loop, [V4_NAMED, V4_FRAME]);
+    ok('L6 two doors wanting a rewrite in one turn buy ONE extra provider call, and the refusal is named',
+      l6.modelCalls === 2 && l6.rejectRetries === 1 && l6.emptyRetries === 0
+      && l6.rewriteBudget && l6.rewriteBudget.spent === 1
+      && JSON.stringify(l6.rewriteBudget.reasons) === JSON.stringify(['reject_retry'])
+      && (l6.degraded || []).includes('empty_retry:budget_spent:reject_retry'),
+      JSON.stringify([l6.modelCalls, l6.rejectRetries, l6.emptyRetries, l6.rewriteBudget, l6.degraded]));
+
+    // ── L7 · §٤/٤ — «ألحِقْ ولا تستبدلْ» ──
+    // On a turn that has put bytes on the wire the rewrite is APPENDED to them: the emitted prefix
+    // is pinned at index 0, the delivered text still opens with it, and `withoutRestatedHead` keeps
+    // a tail that says the head again from making the reader read it twice — which is exactly the
+    // defect ق٥٨ §١ was called in to fix on the door above.
+    const l7 = await v4Drive(loop, [V4_TOOL, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
+      { env: { STREAM_V1: 'on' }, onWriteUnit: () => true });
+    const l7Sent = String(l7.streamedPrefix || '');
+    const l7Head = (String(l7.text || '').match(/الوضوء عبادة عظيمة/gu) || []).length;
+    ok('L7 a streamed turn keeps the bytes the reader has, gains the list, and never reads the head twice',
+      l7Sent !== '' && String(l7.text).startsWith(l7Sent)
+      && l7Head === 1 && /غسل الكفين/u.test(l7.text) && l7.emptyRetries === 1,
+      'sent=' + JSON.stringify(l7Sent) + ' · READER = ' + JSON.stringify(l7.text));
+
+    // ── L8 · «لا نثرَ ألبتّة» GOES OUT EMPTY, AND api/ask.js SAYS THE WORD ──
+    // §٢/٤ of the order: «والدلوُ technical في FRIENDLY_ERRORS يصلحُ لحالِ الخواءِ بلا لمسِ العميل
+    // ⟹ لا دلوَ سادس». It is reached by DELIVERING NOTHING: api/ask.js:1755 substitutes
+    // «تعذَّر توليدُ الجوابِ الآن. أعِدْ إرسالَ سؤالِك من فضلك.» for an empty text, and app.jsx's
+    // own empty path already takes the `technical` line. Not one byte of the client is touched.
+    // AND «لم يكتملْ» IS NOT DRAWN OVER IT: an empty delivery is no answer, not a short one.
+    const l8 = await v4Drive(loop, [V4_CARD, V4_CARD],
+      { messages: [{ role: 'user', content: V4_PLAIN_QUESTION }] });
+    ok('L8 an answer with no prose at all is delivered EMPTY so the reader gets the explicit line',
+      l8.text === '' && l8.truncated !== true
+      && v4Deg(l8, /^empty_answer:no_prose:/u).length === 1
+      && v4Deg(l8, /^empty_answer_withheld:/u).length === 1,
+      JSON.stringify([l8.text, l8.truncated, l8.degraded]));
+
+    // ── L9 · AND A TURN WITH NOTHING TO REWRITE BUYS NOTHING ──
+    // E6/E7's precondition, restated for this door: posting an empty assistant turn earns a 400 on
+    // the one turn that is already in trouble, so the door reads the draft before it reads the
+    // budget, and names the refusal.
+    const l9 = await v4Drive(loop, [''],
+      { messages: [{ role: 'user', content: V4_QUESTION }] });
+    ok('L9 a turn whose draft is empty spends no call on rewriting nothing',
+      l9.emptyRetries === 0 && (l9.degraded || []).includes('empty_retry:nothing_to_rewrite'),
+      JSON.stringify([l9.emptyRetries, l9.text, l9.degraded]));
+
+    // ═══════════════════════════════════════════════════════════════════════
+    console.log('\n=== V4-M. THE NEGATIVE WITNESSES — EACH REMEDY PULLED OUT OF A TWIN ===');
+    // ═══════════════════════════════════════════════════════════════════════
+    // «بلا برهانٍ سالبٍ لا يُقبَلُ علاج.» Every one below removes ONE remedy from a COPY of
+    // loop.js and re-runs the very claim it is supposed to hold up. What does not go red proves
+    // nothing at all.
+
+    // ── V-M37: THE MEASURE ITSELF. `hollowAnswerReason` never finds anything, which is the tree
+    // exactly as it stood on b2db553 — and the witness ships hollow and silent again.
+    const hollowMutant = await loopMutant('emptiness-never-found',
+      (source) => source.replace(
+        "  if (ENUMERATION_ASK_RE.test(asked) && !carriesEnumeration(text)) return 'no_enumeration';",
+        "  if (false && ENUMERATION_ASK_RE.test(asked)) return 'no_enumeration'; // mutant: the leg is off"),
+      async (twin) => {
+        const t = await v4Drive(twin, [V4_FRAME, V4_STEPS]);
+        return t.emptyRetries === 1 && /غسل الكفين/u.test(t.text);
+      });
+    ok('M37 emptiness-measure mutant seam applied', hollowMutant.changed, hollowMutant.error);
+    ok('M37 mutant module loaded successfully', hollowMutant.loaded, hollowMutant.error);
+    ok('MUTANT KILLED: a frame answer cannot be delivered as though it answered the question',
+      hollowMutant.loaded && hollowMutant.survived === false, JSON.stringify(hollowMutant));
+
+    // ── V-M38: THE SHARED BUDGET SPLIT. §٤/٣: «وميزانيّةُ الإعادةِ واحدةٌ للدورِ كلِّه … فلا
+    // تُضاعِفْها ولا تفتحْ لنفسِك ميزانيّةً ثانية.» The mutant opens the second budget, and the
+    // turn that should have bought ONE extra call buys TWO.
+    const budgetMutant = await loopMutant('empty-door-private-budget',
+      (source) => source.replace(
+        "    && rewriteBudget.take('empty_retry')) {",
+        '    && emptyRetries < 1) { // mutant: a private ceiling, a second budget'),
+      async (twin) => {
+        const t = await v4Drive(twin, [V4_NAMED, V4_FRAME]);
+        return t.modelCalls === 2;
+      });
+    ok('M38 split-budget mutant seam applied', budgetMutant.changed, budgetMutant.error);
+    ok('M38 mutant module loaded successfully', budgetMutant.loaded, budgetMutant.error);
+    ok('MUTANT KILLED: a second door cannot open a second rewriting budget for one turn',
+      budgetMutant.loaded && budgetMutant.survived === false, JSON.stringify(budgetMutant));
+
+    // ── V-M39: THE SECOND ARM. The door still measures, still spends its call — and when the call
+    // does not fill the answer it hands the hollow text over without a word. That is «الصمتُ» by
+    // name, and it is the half of §٤/٢ a door is likeliest to be built without.
+    const silentMutant = await loopMutant('hollow-ships-silent',
+      (source) => source.replace(
+        "      deliveryShortfall.push(`answer_without_substance:${hollow}`);",
+        '      void hollow; // mutant: nothing is said to the reader'),
+      async (twin) => {
+        const t = await v4Drive(twin, [V4_FRAME, V4_FRAME]);
+        return t.truncated === true;
+      });
+    ok('M39 silent-shipping mutant seam applied', silentMutant.changed, silentMutant.error);
+    ok('M39 mutant module loaded successfully', silentMutant.loaded, silentMutant.error);
+    ok('MUTANT KILLED: an answer that stayed hollow cannot reach the reader without a word',
+      silentMutant.loaded && silentMutant.survived === false, JSON.stringify(silentMutant));
+
+    // ── V-M40: THE ASK READ FROM THE WRONG ARRAY. This is a REGRESSION THAT ACTUALLY HAPPENED
+    // during this item and was caught by driving rather than by reading: it costs nothing on a
+    // turn with no tools and silently disarms the whole door on every turn that searched.
+    const askMutant = await loopMutant('ask-read-from-conversation',
+      (source) => source.replace(
+        '  const readerAsked = lastUserText(messages);',
+        '  const readerAsked = lastUserText(conversation); // mutant: the tool_result turn hides it'),
+      async (twin) => {
+        const t = await v4Drive(twin, [V4_TOOL, V4_FRAME, V4_STEPS]);
+        return t.emptyRetries === 1;
+      });
+    ok('M40 ask-source mutant seam applied', askMutant.changed, askMutant.error);
+    ok('M40 mutant module loaded successfully', askMutant.loaded, askMutant.error);
+    ok('MUTANT KILLED: the door cannot go blind on the turns that ran a search',
+      askMutant.loaded && askMutant.survived === false, JSON.stringify(askMutant));
+
+    // ── V-M41: §٤/٤ IN ONE PROPERTY — «ألحِقْ ولا تستبدلْ». THE PIN AND THE PREFIX TEST ARE
+    // MEASURED TOGETHER, AND THAT IS SAID RATHER THAN HIDDEN: with the head pinned at index 0 the
+    // candidate always reopens with the emitted bytes, so removing the test ALONE changes not one
+    // character of what the reader gets — and a mutant that changes nothing proves nothing, which
+    // is the rule V-M35 above states in its own words. Driven, in this order:
+    //   the pin removed, the test standing → the rewrite is REFUSED and named, and the reader keeps
+    //     his bytes inside the «لم يكتملْ» frame (`empty_retry_prefix_lost:164`);
+    //   both removed → the delivery no longer opens with what was sent, ق٥٧ §٤/٣ cuts it back to
+    //     the 57 bytes on the screen, and THE WHOLE LIST THE READER ASKED FOR IS THROWN AWAY.
+    const prefixMutant = await loopMutant('empty-door-replaces-sent-bytes',
+      (source) => source.replace(
+        '        ? joinRoundTextsHeadPinned([emittedPrefix,\n'
+        + '          withoutRestatedHead(emittedPrefix, textOf(emptyPayload.content))])',
+        '        ? joinRoundTexts([textOf(emptyPayload.content)]) // mutant: the head is not pinned')
+        .replace(
+          '        const keepsEmitted = emittedPrefix === \'\'\n'
+          + '          || String(candidateReviewed.text || \'\').startsWith(emittedPrefix);',
+          '        const keepsEmitted = true; // mutant: the sent bytes are replaceable'),
+      async (twin) => {
+        const t = await v4Drive(twin, [V4_TOOL, V4_HEAD + '\n' + V4_FRAME, V4_STEPS],
+          { env: { STREAM_V1: 'on' }, onWriteUnit: () => true });
+        return /غسل الكفين/u.test(String(t.text || '')) && t.streamPrefixRepaired !== true;
+      });
+    ok('M41 emitted-prefix mutant seam applied', prefixMutant.changed, prefixMutant.error);
+    ok('M41 mutant module loaded successfully', prefixMutant.loaded, prefixMutant.error);
+    ok('MUTANT KILLED: a rewrite may be APPENDED to the bytes the reader has and never put in their place',
+      prefixMutant.loaded && prefixMutant.survived === false, JSON.stringify(prefixMutant));
+    // AND THE TEST IS THE CONDITION OF ADOPTION AND NOT A NOTE TAKEN AFTER IT — the same text fact
+    // A17 reads of the door above, read here of this one, because that ordering is what makes the
+    // refusal a refusal rather than a rollback of fields already assigned.
+    const v4Loop = fs.readFileSync(LOOP, 'utf8');
+    ok('M41-T the emitted-prefix test is read BEFORE one field of the candidate is committed',
+      v4Loop.indexOf('const keepsEmitted = emittedPrefix') > 0
+      && v4Loop.indexOf('const keepsEmitted = emittedPrefix')
+        < v4Loop.indexOf('          emptyOutcome = \'filled\';')
+      && /if \(keepsEmitted && stillHollow === '' && candidateCuts === 0\) \{/u.test(v4Loop),
+      'the adoption condition');
+    // ── V-M42: THE RESTATED HEAD. §٤/٥ by name: «واحذرْ ما وقعَ الليلة» — the door above was
+    // repaired and produced a doubled head because its note said «أعِدْ كتابةَ الجوابِ كاملاً».
+    // This door's note forbids restating, and `withoutRestatedHead` enforces it; the mutant
+    // removes the enforcement and the reader reads his opening twice.
+    const restateMutant = await loopMutant('empty-door-restates-the-head',
+      (source) => source.replace(
+        '        ? joinRoundTextsHeadPinned([emittedPrefix,\n'
+        + '          withoutRestatedHead(emittedPrefix, textOf(emptyPayload.content))])',
+        '        ? joinRoundTextsHeadPinned([emittedPrefix, textOf(emptyPayload.content)]) // mutant'),
+      async (twin) => {
+        const t = await v4Drive(twin, [V4_TOOL, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
+          { env: { STREAM_V1: 'on' }, onWriteUnit: () => true });
+        return (String(t.text || '').match(/الوضوء عبادة عظيمة/gu) || []).length === 1;
+      });
+    ok('M42 restated-head mutant seam applied', restateMutant.changed, restateMutant.error);
+    ok('M42 mutant module loaded successfully', restateMutant.loaded, restateMutant.error);
+    ok('MUTANT KILLED: a rewrite that says the head again does not make the reader read it twice',
+      restateMutant.loaded && restateMutant.survived === false, JSON.stringify(restateMutant));
+
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

@@ -530,9 +530,11 @@ async function mutate({ file, name, transform, check }) {
   ].join('\n');
   const splitDoor = [
     '  // FIXTURE: the same door with a budget of its OWN — the shape the order forbids.',
-    '  let emptyRetries = 0;',
-    '  if (emptyRetries < 1) {',
-    '    emptyRetries += 1;',
+    // `fixtureRetries` and not `emptyRetries`: layer (4)'s door now OWNS that name in
+    // loop.js, and `let` twice in one scope is a SyntaxError, not a budget being split.
+    '  let fixtureRetries = 0;',
+    '  if (fixtureRetries < 1) {',
+    '    fixtureRetries += 1;',
     SECOND_DOOR_CALL,
     '  }',
     LEDGER_PRINT,
@@ -936,10 +938,30 @@ async function mutate({ file, name, transform, check }) {
   });
   ok('D13 the «emptiness in bytes» mutant applies', bytesPrefix.changed, bytesPrefix.error);
   ok('D14 ...and its twin loads', bytesPrefix.loaded, bytesPrefix.error);
-  ok('D15 RED WITHOUT THE REMEDY: F3 and F4 both fail, and the shell reaches the reader',
-    bytesPrefix.loaded && bytesPrefix.result
-    && !bytesPrefix.result.f3 && !bytesPrefix.result.f4,
+  ok('D15 RED WITHOUT THE REMEDY: F4 fails — «لم يكتملْ» is drawn over an answer that never started',
+    bytesPrefix.loaded && bytesPrefix.result && !bytesPrefix.result.f4,
     JSON.stringify(bytesPrefix.result));
+  // D15b — AND THE OTHER HALF, WHICH NOW BELONGS TO THE DOOR BELOW THIS ONE. `f3` used to fall
+  // to the removal above; ق٥٦ catches the shell downstream, so it takes BOTH removals to put a
+  // card-and-mark shell in front of a reader. A guard that kept claiming the single removal did
+  // it would be reporting a kill it no longer has.
+  const bytesPrefixAndHollow = await mutate({
+    file: LOOP,
+    name: 'prefix-emptiness-in-bytes-and-no-hollow-door',
+    transform: (src2) => src2.replace('      const soundProse = carriesReaderProse(sound);',
+      "      const soundProse = sound !== ''; // mutant: bytes, not prose")
+      .replace("    if (hollow === 'no_prose' && !streamedThisTurn) {",
+        '    if (false) { // mutant: ق٥٦ does not catch the shell either'),
+    check: async (twin) => {
+      const t = await drive(twin, [CARD_THEN_NAMED, CARD_THEN_NAMED]);
+      return { f3: t.text === '', text: t.text };
+    },
+  });
+  ok('D15b the «bytes AND no hollow door» mutant applies and loads',
+    bytesPrefixAndHollow.changed && bytesPrefixAndHollow.loaded, bytesPrefixAndHollow.error);
+  ok('D15c RED WITHOUT EITHER REMEDY: F3 fails and the card-and-mark shell reaches the reader',
+    bytesPrefixAndHollow.loaded && bytesPrefixAndHollow.result && !bytesPrefixAndHollow.result.f3,
+    JSON.stringify(bytesPrefixAndHollow.result));
 
   // D6 — THE REWRITE ADOPTED ON BYTES. The other half of the same measure, and the exit that
   // actually reproduced the witness: a card-only rewrite reviews clean and ships.
