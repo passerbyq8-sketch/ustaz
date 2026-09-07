@@ -35,13 +35,25 @@
 // Both are asserted against the ROUTES AS THEY RUN -- the real handlers, driven with real
 // request and response objects -- and not against a description of them.
 //
-// AND IT CANNOT PASS BY DOING NOTHING. NINE MUTANTS are compiled at the end from the same lifted
-// source with one line changed each -- the draft filter removed from the list, the draft filter
-// removed from the by-slug read, the account key added to the public view, the default role
-// turned into `editor`, the owner check dropped from grantRole, an empty owner row read as
-// "everybody", the slug claim made to overwrite, the revoke made to not delete, and the
-// root-grant refusal removed -- and every one of them must be KILLED by a named case above. A
-// guard that cannot go red proves nothing.
+// AND THE THIRD PROPERTY, ADDED ON 2026-09-07 WITH THE EDITOR ROSTER:
+//
+//   3. A ROLE IS RESOLVED FROM THE BOARD ON EVERY SINGLE REQUEST AND IS NEVER REMEMBERED. Access
+//      now arrives by a second environment row, EZIK_EDITOR_ACCOUNTS, and the only way its owner
+//      can take that access away is to remove a digest from it. A role cached anywhere -- in a
+//      variable, in a record, across two calls -- would be a privilege that outlived its grant,
+//      which is the one failure the whole design exists to prevent. So a case below empties the
+//      row IN PLACE, inside one process, with no module reloaded and no session re-minted, and
+//      reads the refusal off the very next request.
+//
+// AND IT CANNOT PASS BY DOING NOTHING. FOURTEEN MUTANTS are compiled at the end from the same
+// lifted source with one line changed each -- the draft filter removed from the list, the draft
+// filter removed from the by-slug read, the account key added to the public view, the default
+// role turned into `editor`, the owner check dropped from grantRole, an empty owner row read as
+// "everybody", the slug claim made to overwrite, the revoke made to not delete, the root-grant
+// refusal removed, the verified-address check dropped, the editor row made to satisfy the OWNER
+// check, the resolved role cached across requests, an empty editor row read as "everybody", and
+// the roles door made to tell an editor apart from a stranger again -- and every one of them must
+// be KILLED by a named case above. A guard that cannot go red proves nothing.
 //
 // R5 OF THE DIRECTIVE: NOTHING HERE CONNECTS TO A STORE. The @upstash/redis module is never
 // loaded; the constructor the lifted modules see is this file's own. `git status` is as empty
@@ -550,6 +562,35 @@ async function createAs(g, session, section, title, body) {
   return res.body.article;
 }
 
+/**
+ * THE SECOND RUNG'S SCENE: an owner on the owner row, and a second person on the EDITOR ROW with
+ * NO STORED GRANT AT ALL. That last part is the point of this helper existing beside seeded():
+ * every case built on seeded() reaches `editor` through api/roles-admin.js and a store record, so
+ * none of them can tell whether the row is doing anything. Here `role:v1:<key>` is never written,
+ * and every right the person exercises has to have come off the board.
+ *
+ *   editorRow    the literal value of EZIK_EDITOR_ACCOUNTS. `null` leaves the row ABSENT --
+ *                which is not the same as empty, and both are measured below.
+ *   verified     false signs the editor in with an UNPROVED address, same digest, same row.
+ */
+async function rowEditorScene(options) {
+  const o = options || {};
+  const env = { EZIK_OWNER_ACCOUNTS: digestOf(FIXTURE.ownerEmail) };
+  const row = Object.prototype.hasOwnProperty.call(o, 'editorRow')
+    ? o.editorRow : digestOf(FIXTURE.editorEmail);
+  if (row !== null) env.EZIK_EDITOR_ACCOUNTS = row;
+
+  const g = buildGraph(Object.assign({ env }, o.graph || {}));
+  const owner = await g.signIn('google', FIXTURE.ownerSub, FIXTURE.ownerEmail, true);
+  const editor = await g.signIn('google', FIXTURE.editorSub, FIXTURE.editorEmail, o.verified !== false);
+  const stranger = await g.signIn('google', FIXTURE.strangerSub, FIXTURE.strangerEmail, true);
+
+  // NOT ONE GRANT IS WRITTEN HERE, and this asserts it rather than trusting the lines above.
+  const stored = await g.roles.grantedRole(editor.accountKey);
+  if (stored !== null) throw new Error('the row scene wrote a store grant, so it measures nothing');
+  return { g, owner, editor, stranger };
+}
+
 const ACCOUNT_KEY_SHAPE = /acct:v1:/;
 
 /* -- THE FIRST GATE PROPERTY: NO DRAFT REACHES A PUBLIC ROUTE ---------------- */
@@ -653,6 +694,9 @@ run('GATE no public route response contains an account key', async () => {
     is(text.indexOf(editor.accountKey) === -1, 'the ' + label + ' route emitted the author key');
     is(text.indexOf(FIXTURE.editorSub) === -1, 'the ' + label + ' route emitted the provider subject');
     is(text.indexOf('authorKey') === -1, 'the ' + label + ' route emitted an authorKey field');
+    // D-7: articles are published UNSIGNED, so there is no author field of any name out here.
+    is(text.indexOf('authorName') === -1, 'the ' + label + ' route emitted an authorName field');
+    is(text.indexOf('author') === -1, 'the ' + label + ' route emitted a field whose name says author');
     is(text.indexOf(FIXTURE.editorEmail) === -1, 'the ' + label + ' route emitted the address');
   }
   // ...and the article the store holds DOES carry the key, so the check above is not passing
@@ -663,20 +707,37 @@ run('GATE no public route response contains an account key', async () => {
     + Object.keys(getRes.body.article).join(',');
 });
 
-run('the public projection is a whitelist of six fields, and a tenth stored field cannot ride out on it', async () => {
+run('the public projection is a whitelist of five UNSIGNED fields, and a stored name cannot ride out on it', async () => {
   const { g } = await seeded();
-  eq(g.view.PUBLIC_FIELDS.slice(), ['slug', 'section', 'title', 'body', 'publishedAt', 'authorName'],
+  eq(g.view.PUBLIC_FIELDS.slice(), ['slug', 'section', 'title', 'body', 'publishedAt'],
     'the declared public fields');
   const emitted = g.view.publicArticle({
     id: 'x', slug: 's', section: 'articles', title: 't', body: 'b', status: 'published',
     authorKey: 'acct:v1:google:1', createdAt: 'c', updatedAt: 'u', publishedAt: 'p',
     // Two fields the record does not have today, offered anyway:
     authorEmail: 'must-not-appear', internalNote: 'must-not-appear',
+    // ...and a display name, offered by a record that has grown one. D-7 says it is not published.
+    authorName: 'must-not-appear',
   });
   eq(Object.keys(emitted), g.view.PUBLIC_FIELDS.slice(), 'the keys the projection built');
   is(JSON.stringify(emitted).indexOf('must-not-appear') === -1, 'an offered extra field was emitted');
-  eq(emitted.authorName, null, 'the display name resolves to something other than null');
-  return 'twelve fields offered, ' + Object.keys(emitted).length + ' emitted';
+
+  // DECISION D-7, AND IT IS ASSERTED ON THE KEYS RATHER THAN ON THEIR VALUES. Until 2026-09-07
+  // this projection carried an `authorName` that held null on every article in existence. A key
+  // holding null is precisely the shape D-7 rejected -- it promises a client that a name may one
+  // day arrive in it -- so "the value is null" is not the property to measure. The property is
+  // that the key IS NOT THERE.
+  for (const field of ['authorName', 'authorKey', 'author', 'byline']) {
+    is(!Object.prototype.hasOwnProperty.call(emitted, field),
+      'the projection still carries a ' + field + ' key');
+    is(g.view.PUBLIC_FIELDS.indexOf(field) === -1, field + ' is still on the whitelist');
+  }
+  // ...and the seam that used to resolve the name is gone with the field it fed, rather than left
+  // standing as an unused export that the next reader would take for a plan.
+  is(typeof g.view.resolveDisplayName === 'undefined', 'the display-name seam is still exported');
+
+  return 'thirteen fields offered, ' + Object.keys(emitted).length + ' emitted ('
+    + Object.keys(emitted).join(',') + '), no author field of any name';
 });
 
 /**
@@ -765,8 +826,18 @@ run('an editor cannot grant a role', async () => {
   const res = await callRoles(g, {
     session: editor.session, action: 'grant', accountKey: stranger.accountKey, sections: ['articles'],
   });
-  eq(res.statusCode, 403, 'the status an editor gets from the roles door');
-  eq(res.body.ok, false, 'the body an editor gets');
+
+  // D-5, TAKEN ON 2026-09-07: AN EDITOR GETS THE STRANGER'S OWN REFUSAL AND LEARNS NOTHING. The
+  // comparison is made against a REAL STRANGER'S REAL REPLY to the identical request rather than
+  // against two literals typed in here, so the day the two answers drift apart this case sees it
+  // -- which is the only way "identical" can be measured rather than asserted.
+  const strangerRes = await callRoles(g, {
+    session: stranger.session, action: 'grant', accountKey: stranger.accountKey, sections: ['articles'],
+  });
+  eq([res.statusCode, res.body], [strangerRes.statusCode, strangerRes.body],
+    'the editor and the stranger got different replies from the roles door');
+  eq(res.statusCode, 401, 'the status an editor gets from the roles door');
+  eq(res.body, { ok: false, error: 'roles-unauthenticated' }, 'the body an editor gets');
   const grant = await g.roles.grantedRole(stranger.accountKey);
   eq(grant, null, 'a grant was written by an editor');
 
@@ -780,7 +851,7 @@ run('an editor cannot grant a role', async () => {
     session: o2.session, action: 'grant', accountKey: s2.accountKey, sections: ['articles'],
   });
   eq(ok.statusCode, 200, 'the same grant refused for the owner too -- the case proves nothing');
-  return 'editor -> 403, owner -> 200 on the identical request';
+  return 'editor -> 401 (byte-identical to the stranger), owner -> 200 on the identical request';
 });
 
 run('an owner can grant and revoke, and a revoked editor loses write access on the very next request', async () => {
@@ -832,8 +903,8 @@ run('no route can mint an owner: `owner` is not grantable and is not read from t
   const escalate = await callRoles(g, {
     session: stranger.session, action: 'grant', accountKey: stranger.accountKey, sections: ['articles'],
   });
-  eq(escalate.statusCode, 403, 'the newly granted editor could grant');
-  return 'asked for owner, got editor; the editor then got 403 from the roles door';
+  eq(escalate.statusCode, 401, 'the newly granted editor could grant');
+  return 'asked for owner, got editor; the editor then got the stranger 401 from the roles door';
 });
 
 /* -- FAILING CLOSED --------------------------------------------------------- */
@@ -910,6 +981,314 @@ run('a store error resolves to no access, never to access', async () => {
   const list = await callList(readBroken, { section: 'articles' });
   eq(list.statusCode, 503, 'an unreadable index answered as an empty section');
   return 'GET-refusing and SET-refusing stores -> 401 on both writing doors; ZRANGE-refusing -> 503, not an empty list';
+});
+
+/* -- THE EDITOR ROSTER: THE SECOND RUNG ------------------------------------- */
+/**
+ * WHY THIS ROW EXISTS AT ALL, because a case list is not a reason. A stored grant is written
+ * against `acct:v1:<provider>:<sub>`, and NOTHING IN THIS SYSTEM EVER SHOWS THAT STRING TO ANY
+ * HUMAN. The owner therefore could not authorise anybody to write beside him: he could not learn
+ * their account key, and neither could they. EZIK_EDITOR_ACCOUNTS is the same mechanism as the
+ * owner row one rung lower -- a digest he can compute from an address he already knows.
+ *
+ * Every case below is built on rowEditorScene(), which writes NO store grant, so nothing here can
+ * pass on the strength of the grant path that already existed.
+ */
+
+run('an ABSENT EZIK_EDITOR_ACCOUNTS means zero editors, and the row is not created by this code', async () => {
+  const { g, editor } = await rowEditorScene({ editorRow: null });
+  is(!('EZIK_EDITOR_ACCOUNTS' in g.env), 'the row was not actually absent from the fixture env');
+  eq(g.roles.editorDigests(g.env).size, 0, 'digests parsed out of an absent row');
+
+  eq(await g.roles.isRootEditor(editor.accountKey), false, 'an editor existed with no row');
+  eq((await g.roles.roleFor(editor.accountKey)).role, 'none', 'the role with no row');
+  eq(await g.roles.resolveActor({ body: { session: editor.session } }), null, 'an actor resolved with no row');
+
+  const write = await callAdmin(g, {
+    session: editor.session, action: 'create', section: 'articles', title: 'x', body: 'y',
+  });
+  eq(write.statusCode, 401, 'the writing door with no editor row');
+
+  // ...and NOTHING IN THE TREE CREATES THE ROW. It is configuration, and the owner adds it by
+  // hand on the board; a default written anywhere in the source would be a roster nobody chose.
+  const offenders = [];
+  for (const rel of MODULES) {
+    const src2 = SOURCES[rel];
+    if (/EZIK_EDITOR_ACCOUNTS\s*=\s*['"`]/.test(src2)) offenders.push(rel + ' assigns the row a value');
+    if (/process\.env\.EZIK_EDITOR_ACCOUNTS\s*=/.test(src2)) offenders.push(rel + ' writes the row');
+  }
+  eq(offenders, [], 'a module sets the editor row itself');
+  return 'no row -> 0 digests, isRootEditor=false, roleFor=none, the writing door 401, and no module writes the row';
+});
+
+run('an EMPTY editor row is read as zero editors, never as everybody', async () => {
+  // The dangerous reading of an empty row is "no restriction", which is how a fail-open is
+  // usually written by accident. Four shapes of empty, and each must be zero people.
+  for (const empty of ['', '   ', ',', ',,,', ' , , ']) {
+    const { g, editor, stranger } = await rowEditorScene({ editorRow: empty });
+    eq(g.roles.editorDigests(g.env).size, 0, 'digests parsed out of ' + JSON.stringify(empty));
+    eq(await g.roles.isRootEditor(editor.accountKey), false, 'an empty row made an editor: ' + JSON.stringify(empty));
+    eq(await g.roles.isRootEditor(stranger.accountKey), false, 'an empty row made a stranger an editor');
+    const write = await callAdmin(g, {
+      session: editor.session, action: 'create', section: 'articles', title: 'x', body: 'y',
+    });
+    eq(write.statusCode, 401, 'the writing door with the empty row ' + JSON.stringify(empty));
+  }
+  return '5 shapes of empty row -> 0 digests, 0 editors, the writing door 401 on every one';
+});
+
+run('a digest in the editor row resolves to role editor, in BOTH sections, with no store grant', async () => {
+  const { g, editor } = await rowEditorScene();
+  eq(g.roles.editorDigests(g.env).size, 1, 'the digests parsed out of a one-entry row');
+  eq(await g.roles.isRootEditor(editor.accountKey), true, 'the digest on the row is not an editor');
+  eq(await g.roles.isRootOwner(editor.accountKey), false, 'the editor row bought owner');
+
+  const resolved = await g.roles.roleFor(editor.accountKey);
+  eq(resolved.role, 'editor', 'the role a row digest resolves to');
+  eq(resolved.sections.slice().sort(), g.articles.SECTIONS.slice().sort(), 'the sections a row editor holds');
+
+  const actor = await g.roles.resolveActor({ body: { session: editor.session } });
+  is(actor !== null, 'a row editor did not resolve to an actor');
+  eq(actor.role, 'editor', 'the actor role for a row editor');
+  eq(actor.accountKey, editor.accountKey, 'the actor account key');
+
+  // The grant path was not used and still holds nothing -- so this is the ROW answering.
+  eq(await g.roles.grantedRole(editor.accountKey), null, 'a store grant appeared from nowhere');
+  // ...and a person NOT on the row is still nobody, so the row is not simply admitting everyone.
+  const { g: g2, stranger } = await rowEditorScene();
+  eq((await g2.roles.roleFor(stranger.accountKey)).role, 'none', 'somebody not on the row got a role');
+  return 'row digest -> editor over [' + resolved.sections.join(',') + '], store grant still null; off-row -> none';
+});
+
+run('a digest in BOTH rows is an OWNER, not an editor -- the environment order is owner first', async () => {
+  const { g, owner } = await rowEditorScene({ editorRow: digestOf(FIXTURE.ownerEmail) });
+  eq(g.roles.ownerDigests(g.env).size, 1, 'the owner row');
+  eq(g.roles.editorDigests(g.env).size, 1, 'the editor row');
+  eq(await g.roles.isRootOwner(owner.accountKey), true, 'the shared digest is not an owner');
+  eq(await g.roles.isRootEditor(owner.accountKey), true, 'the shared digest is not on the editor row');
+
+  // Both rows say yes. THE RESOLVED ROLE IS OWNER, and it is asserted through the door that can
+  // tell the two apart: the roles surface answers an owner and refuses an editor.
+  const resolved = await g.roles.roleFor(owner.accountKey);
+  eq(resolved.role, 'owner', 'a digest in both rows resolved to something other than owner');
+  const { g: g3, owner: o3, stranger: s3 } = await rowEditorScene({ editorRow: digestOf(FIXTURE.ownerEmail) });
+  const door = await callRoles(g3, {
+    session: o3.session, action: 'grant', accountKey: s3.accountKey, sections: ['articles'],
+  });
+  eq(door.statusCode, 200, 'the person in both rows was refused by the roles door, so they are not an owner');
+  return 'in both rows -> role ' + resolved.role + ', roles door 200 -- owner wins over editor';
+});
+
+run('an UNVERIFIED address is nobody, even with its digest sitting in the editor row', async () => {
+  const { g, editor } = await rowEditorScene({ verified: false });
+  eq(g.roles.editorDigests(g.env).size, 1, 'the row the unproved account is listed in');
+  eq(await g.roles.isRootEditor(editor.accountKey), false, 'an unproved address bought editor');
+  eq((await g.roles.roleFor(editor.accountKey)).role, 'none', 'the role of an unproved address on the row');
+  eq(await g.roles.resolveActor({ body: { session: editor.session } }), null, 'an actor resolved on an unproved address');
+  const write = await callAdmin(g, {
+    session: editor.session, action: 'create', section: 'articles', title: 'x', body: 'y',
+  });
+  eq(write.statusCode, 401, 'the writing door for an unproved address on the row');
+
+  // THE IDENTICAL RECORD, PROVED, IS AN EDITOR -- so the refusal is about the proof and not the
+  // digest, the row, or anything else that happens to differ between two fixtures.
+  const { g: g2, editor: e2 } = await rowEditorScene();
+  eq(await g2.roles.isRootEditor(e2.accountKey), true, 'a proved address on the row is not an editor');
+  return 'emailVerified=false -> none; the identical record with emailVerified=true -> editor';
+});
+
+run('an editor is refused by the roles door with the SAME status and the SAME body a stranger gets', async () => {
+  const { g, editor, stranger } = await rowEditorScene();
+
+  // Three callers, one request shape, and the two that are not owners must be indistinguishable:
+  // a ROW editor, a stranger holding a live session and no role, and a caller with no session at
+  // all. If any of the three replies differs from the others, this door has just told somebody
+  // which rank they hold -- which is what D-5 forbids.
+  const shape = (session) => ({ session, action: 'grant', accountKey: stranger.accountKey, sections: ['articles'] });
+  const asEditor = await callRoles(g, shape(editor.session));
+  const asStranger = await callRoles(g, shape(stranger.session));
+  const asNobody = await callRoles(g, shape('no-such-session-at-all'));
+
+  eq([asEditor.statusCode, asEditor.body], [asStranger.statusCode, asStranger.body],
+    'the editor and the stranger got different replies');
+  eq([asEditor.statusCode, asEditor.body], [asNobody.statusCode, asNobody.body],
+    'the editor and an unauthenticated caller got different replies');
+  eq(asEditor.statusCode, 401, 'the status the roles door gives a non-owner');
+  eq(asEditor.body, { ok: false, error: 'roles-unauthenticated' }, 'the body the roles door gives a non-owner');
+
+  // AND THE REPLY MUST NOT NAME THE SURFACE. Nothing in it may say editor, owner, role, forbidden
+  // or permission -- an error string is a sentence, and a sentence about ranks is a map of them.
+  const text = JSON.stringify(asEditor.body).toLowerCase();
+  for (const word of ['editor', 'owner', 'forbidden', 'permission', 'grant', 'admin']) {
+    is(text.indexOf(word) === -1, 'the refusal named "' + word + '" to a non-owner');
+  }
+
+  // ...and it refused for real: nothing was granted and nothing was revoked.
+  eq(await g.roles.grantedRole(stranger.accountKey), null, 'an editor granted a role through the door');
+  const revoke = await callRoles(g, { session: editor.session, action: 'revoke', accountKey: editor.accountKey });
+  eq([revoke.statusCode, revoke.body], [asStranger.statusCode, asStranger.body],
+    'the editor got a different reply from revoke than a stranger gets from grant');
+
+  // The SAME door, for the owner, answers 200 -- so the refusal is about the role and not the shape.
+  const { g: g2, owner: o2, stranger: s2 } = await rowEditorScene();
+  const asOwner = await callRoles(g2, {
+    session: o2.session, action: 'grant', accountKey: s2.accountKey, sections: ['articles'],
+  });
+  eq(asOwner.statusCode, 200, 'the owner was refused too, so the case proves nothing');
+  return 'editor / stranger / no-session all -> ' + asEditor.statusCode + ' '
+    + JSON.stringify(asEditor.body) + '; owner -> 200';
+});
+
+run('a ROW editor can create, update, publish, unpublish and delete, in both sections', async () => {
+  const { g, editor } = await rowEditorScene();
+  const done = [];
+
+  for (const section of g.articles.SECTIONS) {
+    const created = await callAdmin(g, {
+      session: editor.session, action: 'create', section, title: 'A row editor wrote this', body: 'b',
+    });
+    eq(created.statusCode, 200, 'a row editor could not create in ' + section);
+    const id = created.body.article.id;
+
+    const updated = await callAdmin(g, {
+      session: editor.session, action: 'update', id, patch: { title: 'And then corrected it' },
+    });
+    eq(updated.statusCode, 200, 'a row editor could not update in ' + section);
+
+    const published = await callAdmin(g, { session: editor.session, action: 'publish', id });
+    eq(published.statusCode, 200, 'a row editor could not publish in ' + section);
+
+    // ...and it really is public afterwards, which is the point of publishing.
+    const seen = await callGet(g, { slug: created.body.article.slug });
+    eq(seen.statusCode, 200, 'the published article was not reachable in ' + section);
+
+    const unpublished = await callAdmin(g, { session: editor.session, action: 'unpublish', id });
+    eq(unpublished.statusCode, 200, 'a row editor could not unpublish in ' + section);
+    const gone = await callGet(g, { slug: created.body.article.slug });
+    eq(gone.statusCode, 404, 'the unpublished article was still reachable in ' + section);
+
+    const deleted = await callAdmin(g, { session: editor.session, action: 'delete', id });
+    eq(deleted.statusCode, 200, 'a row editor could not delete in ' + section);
+    eq(await g.articles.getArticleById(id), null, 'the deleted article survived in ' + section);
+    done.push(section);
+  }
+
+  // AND THE FIVE VERBS ARE THE WHOLE VOCABULARY -- a row editor holds no sixth one, and in
+  // particular holds nothing on the roles surface. That is asserted in its own case above.
+  eq(done, g.articles.SECTIONS.slice(), 'the sections a row editor got through');
+  return 'create/update/publish/unpublish/delete all 200 in ' + done.join(' and ')
+    + '; published -> 200 public, unpublished -> 404 public';
+});
+
+run('taking a digest OFF the editor row ends the access on the very next request, in one process', async () => {
+  const { g, editor } = await rowEditorScene();
+  const before = await callAdmin(g, {
+    session: editor.session, action: 'create', section: 'articles', title: 'While on the row', body: 'x',
+  });
+  eq(before.statusCode, 200, 'the row editor could not write while on the row');
+
+  // THE ROW IS EMPTIED IN PLACE. Same process, same module instances, same session, nothing
+  // reloaded and nothing re-minted -- which is the entire claim being measured: the roster is
+  // consulted on every request and no resolved role is remembered anywhere between two of them.
+  delete g.env.EZIK_EDITOR_ACCOUNTS;
+
+  const after = await callAdmin(g, {
+    session: editor.session, action: 'create', section: 'articles', title: 'After the row', body: 'x',
+  });
+  eq(after.statusCode, 401, 'the removed editor still had access on the next request');
+  eq(await g.roles.isRootEditor(editor.accountKey), false, 'isRootEditor still true after the row was emptied');
+  eq((await g.roles.roleFor(editor.accountKey)).role, 'none', 'the role after the row was emptied');
+  eq(await g.roles.resolveActor({ body: { session: editor.session } }), null, 'an actor survived the row edit');
+
+  // ...and the article they wrote while granted is still there and still theirs, because a
+  // revocation removes a right and not a person's work.
+  const kept = await g.articles.getArticleById(before.body.article.id);
+  is(kept !== null, 'the revoked editor\'s article was destroyed with their access');
+  eq(kept.authorKey, editor.accountKey, 'the stored record stopped naming its author');
+
+  // Putting the digest back works immediately too, so nothing broke permanently on the first edit.
+  g.env.EZIK_EDITOR_ACCOUNTS = digestOf(FIXTURE.editorEmail);
+  const again = await callAdmin(g, {
+    session: editor.session, action: 'create', section: 'articles', title: 'Back on the row', body: 'x',
+  });
+  eq(again.statusCode, 200, 'a re-added editor was still refused');
+  return 'on the row -> 200, row removed -> ' + after.statusCode + ', row restored -> 200, one process throughout';
+});
+
+run('a MALFORMED editor row grants nobody anything, and upper case is the same digest rather than a new one', async () => {
+  const good = digestOf(FIXTURE.editorEmail);
+
+  // Every element here is junk of one kind or another, INCLUDING a real digest with one character
+  // missing and one with a character too many. None of them may become a permission.
+  const junk = [
+    'not-a-hash',
+    'ABCDEF',
+    good.slice(0, 63),
+    good + 'a',
+    good.replace(/^../, 'zz'),
+    ' ',
+    '',
+  ];
+  for (const bad of junk) {
+    const { g, editor } = await rowEditorScene({ editorRow: bad });
+    eq(g.roles.editorDigests(g.env).size, 0, 'a malformed row produced digests: ' + JSON.stringify(bad));
+    eq(await g.roles.isRootEditor(editor.accountKey), false, 'a malformed row made an editor: ' + JSON.stringify(bad));
+  }
+
+  // A ROW MADE ENTIRELY OF JUNK, with the stray spaces and the empty element between two commas
+  // that a hand-typed row actually contains, is still zero people.
+  const messy = ' , not-a-hash ,, ABCDEF , ' + good.slice(0, 63) + ' ,';
+  const { g: gm, editor: em, stranger: sm } = await rowEditorScene({ editorRow: messy });
+  eq(gm.roles.editorDigests(gm.env).size, 0, 'the messy row produced digests');
+  eq((await gm.roles.roleFor(em.accountKey)).role, 'none', 'the messy row granted the editor');
+  eq((await gm.roles.roleFor(sm.accountKey)).role, 'none', 'the messy row granted a stranger');
+
+  // ...AND ONE GOOD DIGEST SURVIVES ITS NEIGHBOURS. A row is not all-or-nothing: the junk is
+  // dropped element by element, so a typo beside a correct entry does not silently cancel it.
+  const { g: gs, editor: es, stranger: ss } = await rowEditorScene({ editorRow: messy + ' ' + good + ' ,' });
+  eq(gs.roles.editorDigests(gs.env).size, 1, 'the good digest did not survive its junk neighbours');
+  eq((await gs.roles.roleFor(es.accountKey)).role, 'editor', 'the good digest in a messy row did not grant');
+  eq((await gs.roles.roleFor(ss.accountKey)).role, 'none', 'the messy row granted somebody it does not name');
+
+  // UPPER CASE IS A NORMALISATION, NOT A WIDENING, AND IT IS MEASURED RATHER THAN ASSUMED. A
+  // digest pasted in upper case is THE SAME PERSON's digest -- emailDigest() emits lower case, so
+  // folding can only ever match the value it already produced. It admits nobody new: the case
+  // above proves a stranger is still refused by a row that does not name them.
+  const { g: gu, editor: eu, stranger: su } = await rowEditorScene({ editorRow: good.toUpperCase() });
+  eq(gu.roles.editorDigests(gu.env).size, 1, 'an upper-case digest was dropped');
+  eq([...gu.roles.editorDigests(gu.env)][0], good, 'an upper-case digest parsed to something other than itself');
+  eq((await gu.roles.roleFor(eu.accountKey)).role, 'editor', 'an upper-case digest did not grant its own person');
+  eq((await gu.roles.roleFor(su.accountKey)).role, 'none', 'an upper-case digest granted somebody else');
+
+  return junk.length + ' junk elements -> 0 digests each; a messy row -> 0; the same row plus one '
+    + 'good digest -> exactly 1; upper case -> the identical lower-case digest and nobody new';
+});
+
+run('ONE parser and ONE hash serve both rows -- there is no second copy to drift', async () => {
+  const g0 = buildGraph({});
+  const src2 = SOURCES['lib/articles/roles.js'];
+  const code = codeOf(src2);
+
+  // The hash is IMPORTED, never re-typed. A second sha256 that trimmed or case-folded differently
+  // would make a grant fail with nothing at all on any screen to say why.
+  is(/import\s*\{[\s\S]*?emailDigest[\s\S]*?\}\s*from\s*'\.\.\/auth\/account\.js'/.test(code),
+    'roles.js no longer imports emailDigest from the account module');
+  is(code.indexOf('createHash') === -1, 'roles.js grew its own hash function');
+  is(code.indexOf("require('node:crypto')") === -1 && code.indexOf("from 'node:crypto'") === -1,
+    'roles.js reached for crypto directly');
+
+  // The 64-hex test appears exactly ONCE, so both rows are parsed by the same line.
+  const hexTests = (code.match(/\[0-9a-f\]\{64\}/g) || []).length;
+  eq(hexTests, 1, 'the 64-hex row test is written more than once');
+
+  // And the verified-address rule appears exactly once, for the same reason.
+  const verifiedTests = (code.match(/emailVerified\s*!==\s*true/g) || []).length;
+  eq(verifiedTests, 1, 'the verified-address rule is written more than once');
+
+  // The two row names are declared, and NEITHER is given a value anywhere in the tree.
+  eq(g0.roles.OWNER_ACCOUNTS_ENV, 'EZIK_OWNER_ACCOUNTS', 'the owner row name');
+  eq(g0.roles.EDITOR_ACCOUNTS_ENV, 'EZIK_EDITOR_ACCOUNTS', 'the editor row name');
+  return '1 hex test, 1 verified test, emailDigest imported, both row names declared and neither set';
 });
 
 /* -- THE STORE'S OWN CONTRACTS ---------------------------------------------- */
@@ -1134,10 +1513,13 @@ const MUTANTS = [
     to: '  if (!record) return null;',
   },
   {
+    // RE-ANCHORED ON 2026-09-07. This mutant used to hang off the `authorName` line, and D-7
+    // deleted that line. The mutant it performs is unchanged -- the account key is appended to
+    // the projection -- and it now hangs off the last field the whitelist actually has.
     name: 'M3 the account key joins the public view',
     file: 'lib/articles/public-view.js',
-    from: '    authorName: resolveDisplayName(record.authorKey),',
-    to: '    authorName: resolveDisplayName(record.authorKey),\n    authorKey: record.authorKey,',
+    from: "    publishedAt: typeof record.publishedAt === 'string' ? record.publishedAt : null,\n  };",
+    to: "    publishedAt: typeof record.publishedAt === 'string' ? record.publishedAt : null,\n    authorKey: record.authorKey,\n  };",
   },
   {
     name: 'M4 an account with no grant defaults to editor',
@@ -1174,6 +1556,67 @@ const MUTANTS = [
     file: 'lib/articles/roles.js',
     from: '  if (await isRootOwner(key)) return { ok: false, code: \'roles-root-grant\' };',
     to: '  if (false) return { ok: false, code: \'roles-root-grant\' };',
+  },
+
+  // ------------------------------------------------------------------------------------------
+  // THE EDITOR ROSTER'S OWN FIVE. Each is a way the second rung could be built wrong that would
+  // still pass every case that existed before 2026-09-07.
+  // ------------------------------------------------------------------------------------------
+  {
+    // The rule that separates a PROVED address from a CLAIMED one. Without it, any provider that
+    // asserts an address it never verified mints an editor -- or an owner.
+    name: 'M10 the verified-address check is dropped from provedDigest',
+    file: 'lib/articles/roles.js',
+    from: '  if (record.emailVerified !== true) return null;',
+    to: '  if (false) return null;',
+  },
+  {
+    // The precedence, inverted at its most dangerous point: the editor row starts satisfying the
+    // OWNER check, so everybody the owner let in to WRITE can also grant and revoke.
+    name: 'M11 the editor row also satisfies the owner check',
+    file: 'lib/articles/roles.js',
+    from: '  if (digests.size === 0) return false;\n  const digest = await provedDigest(key);\n'
+      + '  if (!digest) return false;\n  return digests.has(digest);',
+    to: '  if (digests.size === 0 && editorDigests().size === 0) return false;\n'
+      + '  const digest = await provedDigest(key);\n  if (!digest) return false;\n'
+      + '  return digests.has(digest) || editorDigests().has(digest);',
+  },
+  {
+    // A privilege that outlives its grant. The role is resolved once and remembered, so taking a
+    // digest off the row changes nothing until the process is replaced.
+    name: 'M12 the resolved role is cached across requests',
+    file: 'lib/articles/roles.js',
+    from: 'export async function roleFor(accountKeyString) {\n'
+      + '  const key = safeAccountKey(accountKeyString);\n'
+      + '  if (!key) return { role: ROLE_NONE, sections: [] };',
+    to: 'const __ROLE_CACHE = new Map();\n'
+      + 'export async function roleFor(accountKeyString) {\n'
+      + '  if (__ROLE_CACHE.has(accountKeyString)) return __ROLE_CACHE.get(accountKeyString);\n'
+      + '  const __answer = await __roleForUncached(accountKeyString);\n'
+      + '  __ROLE_CACHE.set(accountKeyString, __answer);\n'
+      + '  return __answer;\n'
+      + '}\n'
+      + 'async function __roleForUncached(accountKeyString) {\n'
+      + '  const key = safeAccountKey(accountKeyString);\n'
+      + '  if (!key) return { role: ROLE_NONE, sections: [] };',
+  },
+  {
+    // The fail-open. An unconfigured deployment -- which is this one, today -- would hand every
+    // signed-in reader in the world the right to write and delete articles.
+    name: 'M13 an empty editor row is read as "everybody"',
+    file: 'lib/articles/roles.js',
+    from: '  if (editors.size === 0) return false;',
+    to: '  if (editors.size === 0) return true;',
+  },
+  {
+    // D-5 undone: the roles door goes back to answering an editor differently from a stranger,
+    // which turns any session into an oracle for which rank it holds.
+    name: 'M14 the roles door tells an editor apart from a stranger again',
+    file: 'api/roles-admin.js',
+    from: '  if (!actor || actor.role !== ROLE_OWNER) {\n'
+      + "    return res.status(401).json({ ok: false, error: 'roles-unauthenticated' });\n  }",
+    to: "  if (!actor) return res.status(401).json({ ok: false, error: 'roles-unauthenticated' });\n"
+      + "  if (actor.role !== ROLE_OWNER) return res.status(403).json({ ok: false, error: 'roles-forbidden' });",
   },
 ];
 
