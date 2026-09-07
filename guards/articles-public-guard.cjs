@@ -45,14 +45,25 @@
 //      row IN PLACE, inside one process, with no module reloaded and no session re-minted, and
 //      reads the refusal off the very next request.
 //
-// AND IT CANNOT PASS BY DOING NOTHING. FOURTEEN MUTANTS are compiled at the end from the same
+// AND EVERY RUN OF THIS GUARD IS THE SAME RUN. Until 2026-09-07 every id under test came from
+// the real crypto.randomBytes, so this board rolled dice. An article id is base64url, about one
+// in thirty-two begins with '-' or '_', and until the fix of the same date such an id could not
+// be claimed as a slug -- so `npm run gates` went red roughly half the time for a reason that
+// had nothing to do with whatever was being tested. A gate that fails at random is worse than no
+// gate, because it teaches everyone who sees it to ignore red. So the byte source below is
+// SEEDED: every graph draws the same bytes in the same order on every run, session tokens and
+// article ids alike, and the two id shapes that used to arrive by luck are now DEMANDED BY NAME
+// in the one case that exists for them. Nothing here waits for a coin to land.
+//
+// AND IT CANNOT PASS BY DOING NOTHING. FIFTEEN MUTANTS are compiled at the end from the same
 // lifted source with one line changed each -- the draft filter removed from the list, the draft
 // filter removed from the by-slug read, the account key added to the public view, the default
 // role turned into `editor`, the owner check dropped from grantRole, an empty owner row read as
 // "everybody", the slug claim made to overwrite, the revoke made to not delete, the root-grant
 // refusal removed, the verified-address check dropped, the editor row made to satisfy the OWNER
 // check, the resolved role cached across requests, an empty editor row read as "everybody", and
-// the roles door made to tell an editor apart from a stranger again -- and every one of them must
+// the roles door made to tell an editor apart from a stranger again, and the id fallback stripped
+// of the prefix that makes it claimable -- and every one of them must
 // be KILLED by a named case above. A guard that cannot go red proves nothing.
 //
 // R5 OF THE DIRECTIVE: NOTHING HERE CONNECTS TO A STORE. The @upstash/redis module is never
@@ -235,6 +246,63 @@ function fakeClock(startMs) {
   return { now: () => now, advance: (ms) => { now += ms; }, Date: FakeDate };
 }
 
+/**
+ * A BYTE SOURCE THIS GUARD DRIVES, for the same reason fakeClock() exists: a fact the board
+ * depends on should be chosen here rather than drawn from the machine.
+ *
+ * `randomBytes` is the ONLY member replaced. Everything else on node:crypto -- createHash above
+ * all, which keys the owner and editor rows -- stays the real implementation, so the digests
+ * this guard measures are the digests production computes. The stream itself is real SHA-256
+ * over a counter, so it is deterministic without being a run of zeroes that no real id could
+ * ever have come out of.
+ *
+ * `forcedIds` is how a case DEMANDS a particular article id. A twelve-byte draw is the article
+ * id mint and nothing else among the modules lifted here -- lib/auth/account.js draws
+ * thirty-two for a session -- so the queue is consumed at that width alone, in order, and the
+ * seeded stream takes over once it is empty. Ids are written as the sixteen-character base64url
+ * strings a case wants to read, not as bytes, and every case that forces one asserts the id it
+ * got back, so a mistyped fixture cannot pass quietly.
+ */
+const ARTICLE_ID_BYTES = 12;
+
+function fakeCrypto(seed, forcedIds) {
+  const queue = (forcedIds || []).slice();
+  let counter = 0;
+  let pool = Buffer.alloc(0);
+  const seededBytes = (n) => {
+    while (pool.length < n) {
+      const block = nodeCrypto.createHash('sha256').update(seed + ':' + counter).digest();
+      counter++;
+      pool = Buffer.concat([pool, block]);
+    }
+    const out = Buffer.from(pool.subarray(0, n));
+    pool = Buffer.from(pool.subarray(n));
+    return out;
+  };
+  const randomBytes = (n) => {
+    if (n === ARTICLE_ID_BYTES && queue.length) {
+      const id = queue.shift();
+      const buf = Buffer.from(String(id), 'base64url');
+      if (buf.length !== ARTICLE_ID_BYTES) {
+        throw new Error('a forced article id is not twelve bytes of base64url: ' + id);
+      }
+      return buf;
+    }
+    return seededBytes(n);
+  };
+  // A proxy rather than a copy: a module reaching for any other member of node:crypto gets the
+  // real one, and `.default` is the facade itself, because the lifted `import crypto from` form
+  // reads it off the namespace this returns.
+  const facade = new Proxy(nodeCrypto, {
+    get(target, prop, receiver) {
+      if (prop === 'randomBytes') return randomBytes;
+      if (prop === 'default') return facade;
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+  return { facade, remaining: () => queue.length };
+}
+
 function fakeConsole() {
   const lines = [];
   const push = (kind) => (...a) => lines.push(kind + ' ' + a.map((x) => String(x)).join(' '));
@@ -388,6 +456,7 @@ function buildGraph(options) {
   const o = options || {};
   const clock = fakeClock(o.startMs || 1757000000000);
   const store = fakeStore(clock, { throwOn: o.storeThrowsOn ? new Set(o.storeThrowsOn) : null });
+  const crypto_ = fakeCrypto(o.seed || 'ezik-articles-guard-v1', o.articleIds);
   const console_ = fakeConsole();
 
   const env = Object.assign({
@@ -413,7 +482,7 @@ function buildGraph(options) {
   const shims = {};
 
   function dep(spec, fromRel) {
-    if (spec === 'node:crypto') return Object.assign({ default: nodeCrypto }, nodeCrypto);
+    if (spec === 'node:crypto') return crypto_.facade;
     if (spec === '@upstash/redis') return { Redis: store.Redis };
     if (spec.endsWith('/ratelimit.js')) return shims.ratelimit;
     if (spec.endsWith('/attempts.js')) return shims.attempts;
@@ -456,6 +525,7 @@ function buildGraph(options) {
   const g = {
     clock,
     store,
+    forcedIdsLeft: crypto_.remaining,
     env,
     console: console_,
     authStore: load('lib/auth/store.js'),
@@ -1316,25 +1386,46 @@ run('slug uniqueness holds when two articles share a title', async () => {
   return [a.slug, b.slug, c.slug].join(' / ') + '   arabic -> ' + arabic.slug;
 });
 
-run('a title that slugifies to nothing still gets a claimable slug, every time', async () => {
-  const { g, editor } = await seeded();
-  // The id fallback is base64url and carries '_' about two in five times, so ONE article proves
-  // nothing here -- the case that used to fail was the unlucky id, not the unusual title. Twenty
-  // of them make the underscore certain to appear, and every one must still be reachable.
+run('a title that slugifies to nothing gets a claimable slug FOR EVERY SHAPE OF ID, the two safeSlug refuses first included', async () => {
+  // THE IDS ARE NAMED HERE RATHER THAN DRAWN, AND THAT IS THE WHOLE POINT OF THIS CASE.
+  //
+  // A title made only of punctuation slugifies to nothing and falls back to the article id. That
+  // id is base64url, whose alphabet ends in '-' and '_', and safeSlug() takes neither as a FIRST
+  // character -- while the retry loop only ever appends '-2', '-3', so it can never change a
+  // first character. An id of that shape therefore used to refuse the article outright, fifty
+  // attempts deep, with `articles-slug-unavailable`: a refusal caused by the shape of an id THIS
+  // CODE minted, which no writer could have typed their way around. Found and fixed 2026-09-07.
+  //
+  // This case used to wait for that shape to turn up by chance among twenty draws -- a 47% coin
+  // flip -- so the gate that owned the defect was red half the time and green the other half, and
+  // neither answer meant anything. All three shapes are demanded by name now.
+  const SAFE_ID = 'ZmFsbGJhY2sxMjM0';
+  const HYPHEN_ID = '-allbackTWO12345';
+  const UNDER_ID = '_allbackTHREE123';
+  const forced = [SAFE_ID, HYPHEN_ID, UNDER_ID];
+  const { g, editor } = await seeded({ graph: { articleIds: forced } });
+
   const made = [];
-  for (let i = 0; i < 20; i++) {
+  for (const wanted of forced) {
     const article = await createAs(g, editor.session, 'articles', '؟؟؟ ... !!! ---');
+    eq(article.id, wanted, 'the forced id did not reach newArticleId');
     is(article.slug.length > 0, 'a punctuation-only title produced an empty slug');
-    eq(article.slug, article.id, 'the fallback slug is not the article id');
+    // The fallback is the id itself when the id may be a slug, and the id behind one ASCII letter
+    // when it may not. Both branches are asserted, so neither can quietly become the other.
+    eq(article.slug, wanted === SAFE_ID ? wanted : 'a' + wanted, 'the fallback slug for ' + wanted);
+    is(article.slug.indexOf(wanted) !== -1, 'the fallback slug no longer carries the id');
     await callAdmin(g, { session: editor.session, action: 'publish', id: article.id });
     const res = await callGet(g, { slug: article.slug });
     eq(res.statusCode, 200, 'a fallback slug did not resolve: ' + article.slug);
+    eq(res.body.article.slug, article.slug, 'a fallback slug resolved to a different article');
     made.push(article.slug);
   }
   eq(new Set(made).size, made.length, 'two fallback slugs collided');
-  const withUnderscore = made.filter((s) => s.indexOf('_') !== -1).length;
-  is(withUnderscore > 0, 'no id in twenty carried an underscore, so this case proved nothing');
-  return made.length + ' punctuation-only titles, all reachable; ' + withUnderscore + ' of the ids carried an underscore';
+  eq(g.forcedIdsLeft(), 0, 'a forced id was never drawn, so one of the shapes above went untested');
+  // ...and an id drawn the ordinary way, now the queue is empty, still gets a slug of its own.
+  const ordinary = await createAs(g, editor.session, 'articles', '؟؟؟ ... !!! ---');
+  is(made.indexOf(ordinary.slug) === -1, 'the fourth article took a slug already claimed');
+  return '3 named id shapes + 1 drawn, all claimable: ' + made.join(' / ') + ' / ' + ordinary.slug;
 });
 
 run('the slug is stable across edits -- a corrected title does not break a published link', async () => {
@@ -1607,6 +1698,16 @@ const MUTANTS = [
     file: 'lib/articles/roles.js',
     from: '  if (editors.size === 0) return false;',
     to: '  if (editors.size === 0) return true;',
+  },
+  {
+    // The 2026-09-07 fix undone. Without the prefix an id beginning with '-' or '_' is handed to
+    // safeSlug() as a slug root, refused, and refused again by all fifty retries, so an article is
+    // turned away for the shape of an id it was given rather than for anything its writer did.
+    // This is the mutant that was ALIVE in the tree until 2026-09-07.
+    name: 'M15 the id fallback loses the prefix that makes it claimable',
+    file: 'lib/articles/store.js',
+    from: 'function fallbackSlug(id) { return safeSlug(id) ? id : SLUG_FALLBACK_PREFIX + id; }',
+    to: 'function fallbackSlug(id) { return id; }',
   },
   {
     // D-5 undone: the roles door goes back to answering an editor differently from a stranger,
