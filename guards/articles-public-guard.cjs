@@ -55,7 +55,7 @@
 // article ids alike, and the two id shapes that used to arrive by luck are now DEMANDED BY NAME
 // in the one case that exists for them. Nothing here waits for a coin to land.
 //
-// AND IT CANNOT PASS BY DOING NOTHING. SEVENTEEN MUTANTS are compiled at the end from the same
+// AND IT CANNOT PASS BY DOING NOTHING. TWENTY-TWO MUTANTS are compiled at the end from the same
 // lifted source with one line changed each -- the draft filter removed from the list, the draft
 // filter removed from the by-slug read, the account key added to the public view, the default
 // role turned into `editor`, the owner check dropped from grantRole, an empty owner row read as
@@ -65,8 +65,12 @@
 // the roles door made to tell an editor apart from a stranger again, the id fallback stripped
 // of the prefix that makes it claimable, slugify made to stop stripping decoration so a vowelled
 // Arabic heading shatters into fragments again, and slugify made to keep the TATWEEL so a
-// stretched word and its unstretched twin mint two URLs again -- and every one of them must
-// be KILLED by a named case above. A guard that cannot go red proves nothing.
+// stretched word and its unstretched twin mint two URLs again, the body sanitiser removed from
+// the create path, the same sanitiser removed from the edit path, the sweep of bare angle
+// brackets dropped so an unterminated tag survives, the shape vocabulary opened so a caller
+// chooses the stored word, and `mine` stopped filtering to the acting account so one writer
+// reads another's drafts -- and every one of them must be KILLED by a named case above. A
+// guard that cannot go red proves nothing.
 //
 // R5 OF THE DIRECTIVE: NOTHING HERE CONNECTS TO A STORE. The @upstash/redis module is never
 // loaded; the constructor the lifted modules see is this file's own. `git status` is as empty
@@ -779,9 +783,14 @@ run('GATE no public route response contains an account key', async () => {
     + Object.keys(getRes.body.article).join(',');
 });
 
-run('the public projection is a whitelist of five UNSIGNED fields, and a stored name cannot ride out on it', async () => {
+run('the public projection is a whitelist of six UNSIGNED fields, and a stored name cannot ride out on it', async () => {
   const { g } = await seeded();
-  eq(g.view.PUBLIC_FIELDS.slice(), ['slug', 'section', 'title', 'body', 'publishedAt'],
+  // SIX SINCE 2026-09-07, not five: `kind` joined for decision D-11 -- the writer's own choice
+  // between a question-and-answer card and an article, which a reader's list has to draw
+  // differently and therefore has to be told. It is the ONLY field ever added to this list, it
+  // is one of two words both written in lib/articles/public-view.js, and it says nothing about
+  // who wrote the piece. Everything this case asserts about authorship is unchanged.
+  eq(g.view.PUBLIC_FIELDS.slice(), ['slug', 'section', 'kind', 'title', 'body', 'publishedAt'],
     'the declared public fields');
   const emitted = g.view.publicArticle({
     id: 'x', slug: 's', section: 'articles', title: 't', body: 'b', status: 'published',
@@ -1703,7 +1712,7 @@ run('the slug is stable across edits -- a corrected title does not break a publi
   return 'slug ' + a.slug + ' unchanged; updatedAt ' + a.updatedAt + ' -> ' + edited.body.article.updatedAt;
 });
 
-run('the record has exactly the nine declared fields, and a patch cannot add a tenth', async () => {
+run('the record has exactly the declared fields, and a patch cannot add one more', async () => {
   const { g, editor } = await seeded();
   const a = await callAdmin(g, {
     session: editor.session, action: 'create', section: 'articles', title: 'Nine fields', body: 'x',
@@ -1845,11 +1854,431 @@ run('paging returns every published article exactly once and never a draft', asy
   return '7 articles, 4 published, limit 2 -> ' + seen.length + ' distinct slugs across pages';
 });
 
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════
+ * ITEM 20, STAGE TWO -- THE SANITISER, THE SHAPE, AND THE WRITER'S OWN DOOR
+ *
+ * The screens landed on 2026-09-07 and brought three things into the server that a reader can
+ * now reach: a body that is SANITISED on the way in, a `kind` that says which of the two shapes
+ * a piece is, and a `mine` action that is the only door in the system a DRAFT may come out of.
+ *
+ * THE SANITISER IS THE ONE THAT MATTERS AND IT IS NOT A STYLE RULE. The readers of this
+ * application are children on a device a parent handed them, and the origin that renders an
+ * article also holds a live session, a founder token and the parental-code path. A stored
+ * <script> would not be a defaced page; it would be an attacker executing as the reader. So the
+ * cases below drive the REAL createArticle and the REAL updateArticle, with the real routes in
+ * front of them, and read what the store actually holds afterwards.
+ * ══════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** Creates with a chosen shape and body, through the route, and returns the stored record. */
+async function createShaped(g, session, section, kind, title, body) {
+  const res = await callAdmin(g, { session, action: 'create', section, kind, title, body });
+  if (res.statusCode !== 200) throw new Error('create refused: ' + JSON.stringify(res.body));
+  return res.body.article;
+}
+
+run('the sanitiser strips a script tag -- and its CONTENTS with it', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Script',
+    'before\n\n<script>alert(document.cookie)</script>\n\nafter');
+  is(a.body.indexOf('<script') === -1, 'a script tag survived: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('alert') === -1, 'the script BODY survived, which is the dangerous half: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('<') === -1 && a.body.indexOf('>') === -1,
+    'an angle bracket survived, so the stored text can still be re-parsed as markup: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('before') !== -1 && a.body.indexOf('after') !== -1,
+    'the writing around the script was destroyed too: ' + JSON.stringify(a.body));
+  return JSON.stringify(a.body);
+});
+
+run('NO angle bracket survives, tag or no tag -- the sweep is load-bearing', async () => {
+  const { g, editor } = await seeded();
+  // A LONE '>' IS THE CASE THAT MATTERS, and it is why the final sweep of bare brackets exists
+  // rather than being belt-and-braces over the tag stripper. The tag regexes need a PAIR: a
+  // '<...>' for the general one, and a trailing '<...' at the very end for the dangling one.
+  // A '>' with no '<' before it matches neither, so without the sweep it reaches the store --
+  // and with it, a stored body can still be re-parsed as markup by something downstream that
+  // this repository has not written yet: a mail template, an export, a feed.
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Brackets',
+    '2 > 1 and the reverse is false');
+  is(a.body.indexOf('>') === -1, 'a bare closing bracket survived: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('<') === -1, 'a bare opening bracket survived: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('and the reverse is false') !== -1,
+    'the words around the bracket were destroyed: ' + JSON.stringify(a.body));
+  // THE COST OF THIS IS STATED RATHER THAN HIDDEN: a writer cannot type a mathematical '<' or
+  // '>' in an article. That is a real loss and it was chosen, because what it buys is that no
+  // output of the sanitiser can be read as markup by anything at all.
+  const title = await createShaped(g, editor.session, 'articles', 'article', 'A > B', 'body');
+  is(title.title.indexOf('>') === -1, 'a bare bracket survived a title: ' + JSON.stringify(title.title));
+  return JSON.stringify(a.body) + '  /  ' + JSON.stringify(title.title);
+});
+
+run('the sanitiser strips an event-handler attribute, because it strips every attribute', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Handler',
+    '<div onclick="steal()" onerror="steal()">tap here</div>');
+  is(a.body.indexOf('onclick') === -1 && a.body.indexOf('onerror') === -1,
+    'an event handler survived: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('steal') === -1, 'the handler body survived: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('tap here') !== -1, 'the words inside the element were thrown away too');
+  return JSON.stringify(a.body);
+});
+
+run('the sanitiser strips a javascript: URL, in a link and as bare text', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Scheme',
+    'a [tap me](javascript:alert(1)) b\n\nand java script:alert(2) written out\n\n'
+    + '<a href="javascript:alert(3)">c</a>');
+  is(!/javascript\s*:/i.test(a.body), 'a javascript: URL survived: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('tap me') !== -1, 'the link LABEL was destroyed as well as the address');
+  is(a.body.indexOf('alert(1)') === -1, 'the link target survived: ' + JSON.stringify(a.body));
+  return JSON.stringify(a.body);
+});
+
+run('...and it KEEPS a paragraph, a heading, a list and emphasis', async () => {
+  const { g, editor } = await seeded();
+  const source = [
+    '## A heading',
+    '',
+    'A paragraph of ordinary words.',
+    '',
+    '- first item',
+    '- second item',
+    '',
+    '1. step one',
+    '2. step two',
+    '',
+    'with **strong** and *emphasis* in it',
+  ].join('\n');
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Kept', source);
+  const S = g.articles;
+  is(a.body.indexOf(S.BODY_HEADING + 'A heading') !== -1, 'the heading was lost: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('A paragraph of ordinary words.') !== -1, 'the paragraph was lost');
+  is(a.body.indexOf(S.BODY_BULLET + 'first item') !== -1, 'the list was lost');
+  is(a.body.indexOf(S.BODY_BULLET + 'second item') !== -1, 'the second list item was lost');
+  is(a.body.indexOf(S.BODY_NUMBER + 'step one') !== -1, 'the ordered list was lost');
+  is(a.body.indexOf('**strong**') !== -1, 'strong emphasis was lost');
+  is(a.body.indexOf('*emphasis*') !== -1, 'emphasis was lost');
+  // AND THE BLANK LINE BETWEEN BLOCKS SURVIVES, because that is what separates one paragraph
+  // from the next in the notation -- a sanitiser that collapsed them would run a whole article
+  // into one block and lose the writer's own shaping of it.
+  is(a.body.indexOf('\n\n') !== -1, 'every paragraph break was collapsed');
+  return JSON.stringify(a.body);
+});
+
+run('HTML that MEANS one of the kept shapes is folded into the notation, not deleted', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Folded',
+    '<h2>Heading</h2><p>One.</p><p>Two.</p><ul><li>x</li><li>y</li></ul><strong>S</strong> <em>E</em>');
+  const S = g.articles;
+  is(a.body.indexOf(S.BODY_HEADING + 'Heading') !== -1, 'an h2 did not become a heading: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('One.\n\nTwo.') !== -1, 'two paragraphs were run together: ' + JSON.stringify(a.body));
+  is(a.body.indexOf(S.BODY_BULLET + 'x\n' + S.BODY_BULLET + 'y') !== -1,
+    'two list items did not stay one list: ' + JSON.stringify(a.body));
+  is(a.body.indexOf('**S**') !== -1 && a.body.indexOf('*E*') !== -1, 'emphasis tags were dropped rather than folded');
+  return JSON.stringify(a.body);
+});
+
+run('an EDIT cannot smuggle back in what a create could not', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Clean', 'clean text');
+  const edited = await callAdmin(g, {
+    session: editor.session, action: 'update', id: a.id,
+    patch: { title: 'Still <script>x</script> clean', body: '<script>alert(1)</script>after the edit' },
+  });
+  eq(edited.statusCode, 200, 'the edit was refused');
+  const record = edited.body.article;
+  is(record.body.indexOf('<script') === -1 && record.body.indexOf('alert') === -1,
+    'the update path let a script through: ' + JSON.stringify(record.body));
+  is(record.title.indexOf('<') === -1,
+    'markup survived into a title on the update path: ' + JSON.stringify(record.title));
+  is(record.title.indexOf('Still') !== -1 && record.title.indexOf('clean') !== -1,
+    'the title text around the markup was destroyed: ' + JSON.stringify(record.title));
+  is(record.body.indexOf('after the edit') !== -1, 'the edit destroyed the words around the script');
+  return JSON.stringify({ title: record.title, body: record.body });
+});
+
+run('a title is one line of plain text -- no markup, no newline, no run of spaces', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article',
+    '  <b>A</b>   title\nsplit over <script>x</script> lines  ', 'body');
+  is(a.title.indexOf('<') === -1 && a.title.indexOf('>') === -1, 'markup survived a title: ' + JSON.stringify(a.title));
+  is(a.title.indexOf('\n') === -1, 'a newline survived a title: ' + JSON.stringify(a.title));
+  is(a.title.indexOf('  ') === -1, 'a run of spaces survived a title: ' + JSON.stringify(a.title));
+  is(a.title.indexOf('x') === -1, 'the script contents survived a title: ' + JSON.stringify(a.title));
+  return JSON.stringify(a.title);
+});
+
+run('a body that was nothing but markup does not become a title-less refusal -- it becomes empty', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Only markup',
+    '<script>everything</script><div></div>');
+  eq(a.body, '', 'a body of pure markup left residue');
+  eq(a.title, 'Only markup', 'the title was collateral damage');
+  return 'body emptied, title kept';
+});
+
+run('a title that sanitises away IS refused, and named as a title problem', async () => {
+  const { g, editor } = await seeded();
+  const res = await callAdmin(g, {
+    session: editor.session, action: 'create', section: 'articles',
+    title: '<script>only this</script>', body: 'x',
+  });
+  eq(res.statusCode, 400, 'an empty-after-sanitising title was accepted');
+  eq(res.body.error, 'articles-title', 'the code for a title that sanitises to nothing');
+  return 'refused 400 articles-title';
+});
+
+/* -- THE SHAPE (D-11) ---------------------------------------------------------------------- */
+
+run('the shape is stored, travels to the reader, and defaults to the plain article', async () => {
+  const { g, editor } = await seeded();
+  const qa = await createShaped(g, editor.session, 'articles', 'qa', 'A question?', 'The answer.');
+  const plainOne = await createShaped(g, editor.session, 'articles', 'article', 'A piece', 'Prose.');
+  const noKind = await createAs(g, editor.session, 'articles', 'No kind named');
+  eq(qa.kind, 'qa', 'the chosen shape was not stored');
+  eq(plainOne.kind, 'article', 'the plain shape was not stored');
+  eq(noKind.kind, 'article', 'a create that named no shape did not default to the plain one');
+
+  for (const record of [qa, plainOne, noKind]) {
+    const pub = await callAdmin(g, { session: editor.session, action: 'publish', id: record.id });
+    is(pub.statusCode === 200, 'the fixture publish was refused');
+  }
+  const list = await callList(g, { section: 'articles' });
+  eq(list.statusCode, 200, 'the list refused');
+  const kinds = {};
+  for (const item of list.body.items) kinds[item.slug] = item.kind;
+  eq(kinds[qa.slug], 'qa', 'the reader was not told this was a question');
+  eq(kinds[plainOne.slug], 'article', 'the reader was told the wrong shape');
+  return JSON.stringify(kinds);
+});
+
+run('a shape this version does not know is stored as the plain one, never as itself', async () => {
+  const { g, editor } = await seeded();
+  const odd = await createShaped(g, editor.session, 'articles', '<script>x</script>', 'Odd shape', 'body');
+  eq(odd.kind, 'article', 'an unknown shape word reached the record');
+  is(g.articles.KINDS.indexOf(odd.kind) !== -1, 'the stored kind is outside the frozen vocabulary');
+  // AND IT IS NOT A REFUSAL. Losing a writer's work over a vocabulary mismatch would be a worse
+  // answer than showing it under the wrong heading, which she can see and correct.
+  eq(odd.title, 'Odd shape', 'an unknown shape cost the writer her article');
+  return 'stored as ' + odd.kind;
+});
+
+run('the shape can be corrected by an edit, and the URL does not move when it is', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'article', 'Wrong shape at first', 'body');
+  const fixed = await callAdmin(g, { session: editor.session, action: 'update', id: a.id, patch: { kind: 'qa' } });
+  eq(fixed.statusCode, 200, 'the shape could not be corrected');
+  eq(fixed.body.article.kind, 'qa', 'the corrected shape was not stored');
+  eq(fixed.body.article.slug, a.slug, 'correcting the shape moved the published URL');
+  return a.slug + ' kept; article -> qa';
+});
+
+/* -- THE PUBLIC PROJECTION, AFTER THE SHAPE JOINED IT --------------------------------------- */
+
+run('the public view is exactly six named fields -- no author key, and no author name', async () => {
+  const { g, editor } = await seeded();
+  const a = await createShaped(g, editor.session, 'articles', 'qa', 'Public shape', 'text');
+  const pub = await callAdmin(g, { session: editor.session, action: 'publish', id: a.id });
+  is(pub.statusCode === 200, 'the fixture publish was refused');
+
+  const list = await callList(g, { section: 'articles' });
+  const one = await callGet(g, { slug: a.slug });
+  eq(list.statusCode, 200, 'the list refused');
+  eq(one.statusCode, 200, 'the by-slug route refused');
+  eq(Object.keys(list.body.items[0]), g.view.PUBLIC_FIELDS.slice(), 'the list projection keys, in order');
+  eq(Object.keys(one.body.article), g.view.PUBLIC_FIELDS.slice(), 'the by-slug projection keys, in order');
+  is(g.view.PUBLIC_FIELDS.indexOf('authorKey') === -1, 'authorKey entered the whitelist');
+  is(g.view.PUBLIC_FIELDS.indexOf('authorName') === -1, 'an author name entered the whitelist');
+  is(g.view.PUBLIC_FIELDS.indexOf('status') === -1, 'status entered the whitelist');
+
+  // AND NOT ONE BYTE OF EITHER RESPONSE LOOKS LIKE AN ACCOUNT KEY. Asserted on the serialised
+  // whole, not on the keys, so a key nested inside a value could not slip past the check above.
+  is(!ACCOUNT_KEY_SHAPE.test(JSON.stringify(list.body)), 'an account key is in the list response');
+  is(!ACCOUNT_KEY_SHAPE.test(JSON.stringify(one.body)), 'an account key is in the by-slug response');
+  return g.view.PUBLIC_FIELDS.join(', ');
+});
+
+/* -- `mine`: THE ONLY DOOR A DRAFT COMES OUT OF --------------------------------------------- */
+
+run('a draft is not returned by the list endpoint, and IS returned to its own writer by `mine`', async () => {
+  const { g, editor } = await seeded();
+  const draft = await createAs(g, editor.session, 'articles', 'Her unfinished piece');
+  const out = await createAs(g, editor.session, 'articles', 'Her published piece');
+  const pub = await callAdmin(g, { session: editor.session, action: 'publish', id: out.id });
+  is(pub.statusCode === 200, 'the fixture publish was refused');
+
+  const list = await callList(g, { section: 'articles' });
+  eq(list.statusCode, 200, 'the list refused');
+  eq(list.body.items.map((i) => i.slug), [out.slug], 'the slugs the PUBLIC list returned');
+  is(JSON.stringify(list.body).indexOf('Her unfinished piece') === -1,
+    'the draft title reached the public list');
+
+  const mine = await callAdmin(g, { session: editor.session, action: 'mine', section: 'articles' });
+  eq(mine.statusCode, 200, '`mine` refused its own writer');
+  eq(mine.body.items.map((i) => i.id).sort(), [draft.id, out.id].sort(), 'the ids `mine` returned');
+  eq(mine.body.role, 'editor', 'the role `mine` reported');
+  eq(mine.body.sections, ['articles'], 'the sections `mine` reported');
+  return 'public list ' + list.body.items.length + ' item(s); mine ' + mine.body.items.length;
+});
+
+run('`mine` shows a writer HER OWN work and nobody else\'s -- not even to the owner', async () => {
+  const { g, owner, editor } = await seeded();
+  const hers = await createAs(g, editor.session, 'articles', 'The editor wrote this');
+  const his = await createAs(g, owner.session, 'articles', 'The owner wrote this');
+
+  const editorSees = await callAdmin(g, { session: editor.session, action: 'mine', section: 'articles' });
+  const ownerSees = await callAdmin(g, { session: owner.session, action: 'mine', section: 'articles' });
+  eq(editorSees.statusCode, 200, '`mine` refused the editor');
+  eq(ownerSees.statusCode, 200, '`mine` refused the owner');
+  eq(editorSees.body.items.map((i) => i.id), [hers.id], 'the editor was shown somebody else\'s draft');
+  eq(ownerSees.body.items.map((i) => i.id), [his.id], 'the OWNER was shown the editor\'s draft');
+  return 'editor sees 1, owner sees 1, and they are different pieces';
+});
+
+run('an actor with no role is refused by the write endpoint, on every action including `mine`',
+  async () => {
+    const { g, stranger } = await seeded();
+    const attempts = [
+      ['create', { session: stranger.session, action: 'create', section: 'articles', title: 'No', body: 'x' }],
+      ['mine', { session: stranger.session, action: 'mine' }],
+      ['mine in a named section', { session: stranger.session, action: 'mine', section: 'articles' }],
+    ];
+    const codes = [];
+    for (const [what, body] of attempts) {
+      const res = await callAdmin(g, body);
+      eq(res.statusCode, 401, 'a stranger was not refused 401 on ' + what);
+      eq(res.body.error, 'articles-forbidden', 'the refusal code on ' + what);
+      codes.push(res.statusCode);
+    }
+    // AND WITH NO SESSION AT ALL, which is every reader in a browser today: the sign-in row
+    // draws only inside the native shell, so the client cannot hold a session to send.
+    const none = await callAdmin(g, { action: 'mine' });
+    eq(none.statusCode, 401, 'a request with no session at all was not refused');
+    return 'four refusals: ' + codes.join(', ') + ', 401';
+  });
+
+run('`mine` refuses a section the actor does not hold, and says so rather than hiding it', async () => {
+  const { g, editor } = await seeded();                       // granted `articles` only
+  const refused = await callAdmin(g, { session: editor.session, action: 'mine', section: 'women' });
+  eq(refused.statusCode, 403, 'an ungranted section was not refused');
+  eq(refused.body.error, 'articles-forbidden-section', 'the refusal code');
+  // Naming no section reads only the sections she holds -- never every section that exists.
+  const held = await createAs(g, editor.session, 'articles', 'In the section she holds');
+  const all = await callAdmin(g, { session: editor.session, action: 'mine' });
+  eq(all.statusCode, 200, '`mine` with no section refused');
+  eq(all.body.items.map((i) => i.section), ['articles'], 'the sections `mine` read without being asked');
+  eq(all.body.items.map((i) => i.id), [held.id], 'the ids');
+  return '403 on women; articles only when unasked';
+});
+
+run('a store that will not answer makes `mine` a 503, never a short list', async () => {
+  const broken = await seeded({ graph: { storeThrowsOn: ['zrange'] } });
+  const res = await callAdmin(broken.g, { session: broken.editor.session, action: 'mine', section: 'articles' });
+  eq(res.statusCode, 503, 'an unreadable index came back as something other than 503');
+  is(!res.body.items, 'a partial list was presented as a complete one');
+  return '503 ' + res.body.error;
+});
+
+/* -- THE NOTATION IS ONE CONTRACT ACROSS TWO FILES ------------------------------------------ */
+
+run('the client renderer and the server sanitiser agree on the four markers, byte for byte', async () => {
+  const S = require('fs').readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+  const g = buildGraph({});
+  const pairs = [
+    ['BODY_HEADING', 'EZIK_ART_HEADING'],
+    ['BODY_SUBHEADING', 'EZIK_ART_SUBHEADING'],
+    ['BODY_BULLET', 'EZIK_ART_BULLET'],
+    ['BODY_NUMBER', 'EZIK_ART_NUMBER'],
+  ];
+  const seen = [];
+  for (const [server, client] of pairs) {
+    const value = g.articles[server];
+    is(typeof value === 'string' && value.length > 0, server + ' is not a string on the server');
+    // Read the client's literal out of app.jsx rather than trusting a copy typed here: a guard
+    // that re-typed both sides would agree with itself and with neither file.
+    // The markers hold no quote and no backslash, so the literal is read whole between the
+    // two single quotes -- there is nothing to unescape and nothing to get wrong doing it.
+    const m = new RegExp("const " + client + " = '([^']*)';").exec(S);
+    is(!!m, 'the client does not declare ' + client);
+    eq(m[1], value, client + ' does not equal ' + server);
+    seen.push(client + '=' + JSON.stringify(value));
+  }
+  // AND THE CLIENT MUST NOT BE RENDERING A BODY AS MARKUP. This is the property the sanitiser
+  // exists to make sufficient rather than necessary -- with an innerHTML on this path, one
+  // mistake in the sanitiser would be script execution in every reader's application.
+  const at = S.indexOf('// ITEM 20 -- THE TWO READER SECTIONS');
+  const to = S.indexOf('// ITEM 20 -- END OF THE ARTICLES SECTIONS');
+  is(at !== -1 && to > at, 'the articles block could not be located in app.jsx');
+  // COMMENTS STRIPPED FIRST. This block's own prose says the words "dangerouslySetInnerHTML"
+  // in the paragraph explaining why there is none, and a check that read the comments would
+  // fail on the sentence promising the property it is testing for.
+  const code = S.slice(at, to)
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .split('\n').map((line) => line.replace(/^\s*\/\/.*$/, '')).join('\n');
+  is(code.indexOf('dangerouslySetInnerHTML') === -1,
+    'the articles screens render a stored body as MARKUP');
+  is(code.indexOf('EzikArticleBody') !== -1, 'the body renderer is not in the block');
+  return seen.join('  ');
+});
+
 // ---------------------------------------------------------------------------
 // THE MUTANTS -- the same lifted source with one line changed, each of which must be KILLED.
 // ---------------------------------------------------------------------------
 
 const MUTANTS = [
+  {
+    // ITEM 20, STAGE TWO. THE SANITISER TURNED OFF ON THE CREATE PATH -- which is what the code
+    // looked like the day before this batch, and the day a stored <script> would have reached
+    // every reader's application with a live session beside it.
+    name: 'M18 the sanitiser is removed from the create path',
+    file: 'lib/articles/store.js',
+    from: '  const title = sanitizeTitle(src.title);\n'
+      + "  if (title.length === 0 || title.length > MAX_TITLE_CHARS) return { ok: false, code: 'articles-title' };\n"
+      + '  const body = sanitizeBody(src.body);',
+    to: "  const title = typeof src.title === 'string' ? src.title.trim() : '';\n"
+      + "  if (title.length === 0 || title.length > MAX_TITLE_CHARS) return { ok: false, code: 'articles-title' };\n"
+      + "  const body = typeof src.body === 'string' ? src.body : '';",
+  },
+  {
+    // AND ON THE EDIT PATH, SEPARATELY. A create that sanitises and an update that does not is
+    // the shape this defect would most plausibly take: two call sites, one of them forgotten.
+    name: 'M19 the sanitiser is removed from the edit path',
+    file: 'lib/articles/store.js',
+    from: '    const body = sanitizeBody(src.body);\n'
+      + "    if (body.length > MAX_BODY_CHARS) return { ok: false, code: 'articles-body' };\n"
+      + '    record.body = body;',
+    to: "    if (src.body.length > MAX_BODY_CHARS) return { ok: false, code: 'articles-body' };\n"
+      + '    record.body = src.body;',
+  },
+  {
+    // THE NARROWEST POSSIBLE UNDO: every tag is still stripped, and only the final sweep of bare
+    // angle brackets is gone. It is the mutant that proves the sweep is load-bearing rather than
+    // belt-and-braces -- an unterminated '<script' with no '>' is not a tag to a tag-stripper.
+    name: 'M20 the bare angle brackets are left standing after the tags are stripped',
+    file: 'lib/articles/store.js',
+    // ANCHORED WITH THE LINE BELOW IT, because the identical sweep runs a second time inside
+    // sanitizeTitle and a mutant with two possible sites is a mutant that mutates neither.
+    from: "  t = t.replace(ANY_TAG, '').replace(TRAILING_TAG, '').replace(/[<>]/g, '');\n"
+      + '  // 4. Links keep their words and lose their addresses; then the schemes that execute, in case one',
+    to: "  t = t.replace(ANY_TAG, '').replace(TRAILING_TAG, '');\n"
+      + '  // 4. Links keep their words and lose their addresses; then the schemes that execute, in case one',
+  },
+  {
+    // D-11's vocabulary opened. safeKind() is what stops a caller's own word reaching the record
+    // and then the public projection, where a client would render whatever it was handed.
+    name: 'M21 safeKind stores whatever word the caller sent',
+    file: 'lib/articles/store.js',
+    from: "export function safeKind(v) { return (typeof v === 'string' && KINDS.includes(v)) ? v : KIND_ARTICLE; }",
+    to: "export function safeKind(v) { return typeof v === 'string' ? v : KIND_ARTICLE; }",
+  },
+  {
+    // THE ONE DOOR A DRAFT COMES OUT OF, opened onto everybody's. Without the author filter an
+    // editor reads the owner's unfinished writing, and the owner reads hers.
+    name: "M22 `mine` stops filtering to the acting account",
+    file: 'api/articles-admin.js',
+    from: '        if (record && record.authorKey === actor.accountKey) items.push(record);',
+    to: '        if (record) items.push(record);',
+  },
   {
     name: 'M1 the draft filter is removed from listSection',
     file: 'lib/articles/store.js',

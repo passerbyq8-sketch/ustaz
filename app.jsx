@@ -100,6 +100,10 @@ function ezLangRelabel() {
     EZH_TREASURE = ezT("module.treasure");
     EZH_FATWA = ezT("module.fatwa");
     EZH_LESSONS = ezT("module.lessons");
+    EZH_ARTICLES = ezT("module.articles");
+    EZH_WOMEN = ezT("module.women");
+    EZIST_SUB_ARTICLES = ezT("module.articles.sub");
+    EZIST_SUB_WOMEN = ezT("module.women.sub");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
     EZIST_SUB_ADHKAR = ezT("module.adhkar.sub");
     EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");
@@ -110,7 +114,7 @@ function ezLangRelabel() {
     // plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
     // replacement, so an id left out of it is not left at its old wording: it is deleted, and
     // the prayer card lost its second line on the first language switch of every session.
-    EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -544,6 +548,48 @@ const EZ_I18N = {
     'khatmah.labelWird': 'وِردي',
     'khatmah.labelHifz': 'حفظي',
     'khatmah.labelTadabbur': 'تدبُّري',
+    'module.articles': 'المقالات',
+    'module.articles.sub': 'مقالاتٌ وأجوبةٌ مختارة',
+    'module.women': 'ركن النساء',
+    'module.women.sub': 'مقالاتٌ وأجوبةٌ تخصُّ المرأة',
+    'articles.listAria': 'قائمة المنشور في هذا القسم',
+    'articles.qaMark': 'سؤال وجواب',
+    'articles.emptyTitle': 'هذا القسمُ جديد',
+    'articles.emptyBody': 'لم يُنشرْ فيه شيءٌ بعد. عُدْ إليه قريباً.',
+    'articles.error': 'تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.',
+    'articles.backToList': 'رجوع إلى القائمة',
+    'articles.readAria': 'نصُّ المقال',
+    'articles.questionLabel': 'السؤال',
+    'articles.answerLabel': 'الجواب',
+    'articles.write': 'اكتبْ',
+    'articles.writeTitle': 'الكتابة',
+    'articles.newPiece': 'كتابةٌ جديدة',
+    'articles.myWork': 'ما كتبتُه',
+    'articles.myWorkEmpty': 'لم تكتبْ شيئاً بعد.',
+    'articles.shape': 'الشكل',
+    'articles.shapeArticle': 'مقال',
+    'articles.shapeQa': 'سؤال وجواب',
+    'articles.sectionLabel': 'القسم',
+    'articles.fieldTitle': 'العنوان',
+    'articles.fieldBody': 'النصّ',
+    'articles.formatHint': 'تنسيقٌ محدود: فقرةٌ بسطرٍ فارغ، وعنوانٌ فرعيٌّ بـ ## في أوّل السطر، وقائمةٌ بـ - أو 1. ، وتأكيدٌ بـ **نصّ**. ما عدا ذلك يُزال في الخادم.',
+    'articles.saveDraft': 'حفظٌ كمسوَّدة',
+    'articles.publish': 'نشر',
+    'articles.unpublish': 'إلغاءُ النشر',
+    'articles.edit': 'تعديل',
+    'articles.deleteAsk': 'حذفٌ نهائيّ، ولا رجعةَ فيه. أمتأكِّد؟',
+    'articles.deleteYes': 'نعم، احذفْ',
+    'articles.statusDraft': 'مسوَّدة',
+    'articles.statusPublished': 'منشور',
+    'articles.errSignedOut': 'لستَ داخلاً إلى حسابك على هذا الجهاز. ادخلْ من الإعدادات ثمّ عُدْ إلى هنا.',
+    'articles.errNoRole': 'لا تملكُ صلاحيةَ الكتابةِ في هذا القسم.',
+    'articles.errNetwork': 'تعذَّر الاتصال. ما كتبتَه ما زال أمامك، أعِدِ المحاولة.',
+    'articles.errTitleEmpty': 'العنوانُ مطلوبٌ قبل الحفظ.',
+    'articles.errSaveFailed': 'تعذَّر الحفظ. ما كتبتَه لم يَضِعْ، أعِدِ المحاولة.',
+    'articles.savedDraft': 'حُفِظَتِ المسوَّدة.',
+    'articles.published': 'نُشِر. يراهُ القارئُ عند فتحِ القسم.',
+    'articles.unpublished': 'أُلغيَ النشر.',
+    'articles.deleted': 'حُذِف.',
     'khatmah.labelMuraja': 'مراجعتي',
   },
   en: {
@@ -899,6 +945,48 @@ const EZ_I18N = {
     'khatmah.labelWird': 'My wird',
     'khatmah.labelHifz': 'My memorising',
     'khatmah.labelTadabbur': 'My reflection',
+    'module.articles': 'Articles',
+    'module.articles.sub': 'Selected articles and answers',
+    'module.women': 'The women’s corner',
+    'module.women.sub': 'Articles and answers for women',
+    'articles.listAria': 'What has been published in this section',
+    'articles.qaMark': 'Question and answer',
+    'articles.emptyTitle': 'This section is new',
+    'articles.emptyBody': 'Nothing has been published here yet. Come back soon.',
+    'articles.error': 'This section could not be loaded. Check the connection, then try again.',
+    'articles.backToList': 'Back to the list',
+    'articles.readAria': 'The text of the article',
+    'articles.questionLabel': 'The question',
+    'articles.answerLabel': 'The answer',
+    'articles.write': 'Write',
+    'articles.writeTitle': 'Writing',
+    'articles.newPiece': 'Something new',
+    'articles.myWork': 'What I have written',
+    'articles.myWorkEmpty': 'You have not written anything yet.',
+    'articles.shape': 'Shape',
+    'articles.shapeArticle': 'An article',
+    'articles.shapeQa': 'A question and an answer',
+    'articles.sectionLabel': 'Section',
+    'articles.fieldTitle': 'Title',
+    'articles.fieldBody': 'Body',
+    'articles.formatHint': 'Limited formatting: a blank line for a paragraph, ## for a sub-heading, - or 1. for a list, **text** for emphasis. Everything else is stripped on the server.',
+    'articles.saveDraft': 'Save as a draft',
+    'articles.publish': 'Publish',
+    'articles.unpublish': 'Unpublish',
+    'articles.edit': 'Edit',
+    'articles.deleteAsk': 'A permanent deletion, with no way back. Are you sure?',
+    'articles.deleteYes': 'Yes, delete it',
+    'articles.statusDraft': 'Draft',
+    'articles.statusPublished': 'Published',
+    'articles.errSignedOut': 'You are not signed in on this device. Sign in from Settings, then come back here.',
+    'articles.errNoRole': 'You do not have permission to write in this section.',
+    'articles.errNetwork': 'The connection failed. What you wrote is still here; try again.',
+    'articles.errTitleEmpty': 'A title is needed before saving.',
+    'articles.errSaveFailed': 'The save failed. What you wrote is not lost; try again.',
+    'articles.savedDraft': 'The draft was saved.',
+    'articles.published': 'Published. A reader sees it the next time the section is opened.',
+    'articles.unpublished': 'It is no longer published.',
+    'articles.deleted': 'Deleted.',
     'khatmah.labelMuraja': 'My revision',
   },
 };
@@ -4610,6 +4698,21 @@ const EZH_ICON_FATWA = (
 const EZH_ICON_LESSONS = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 9h10" /><path d="M7 12h6" /><path d="M12 16v4" /><path d="M8 20h8" /></svg>
 );
+// ITEM 20. THE TWO SECTIONS THE OWNER AND HIS WIFE WRITE INTO. Both labels come through ezT
+// like the six above them, and both are rebound by ezLangRelabel() -- see the note there about
+// what happens to an id that is left out of the replacement table.
+let EZH_ARTICLES = ezT("module.articles");
+let EZH_WOMEN = ezT("module.women");
+// The two marks. Same 24x24 box, same 1.8 stroke and the same round caps as the seven beside
+// them: a written page with lines on it, and an open book with a rule under it -- so neither
+// reads as the mushaf (a closed book) nor as the fatwa document (a page with a seal). No new
+// artwork file, no image, no data URI.
+const EZH_ICON_ARTICLES = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8" /><path d="M8 12h8" /><path d="M8 16h5" /></svg>
+);
+const EZH_ICON_WOMEN = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6c-2-2-5-2.5-8-2v13c3-.5 6 0 8 2 2-2 5-2.5 8-2V4c-3-.5-6 0-8 2z" /><path d="M12 6v15" /></svg>
+);
 // The callout, the profile entry and the three navigation icons -- the same paths as before,
 // drawn as LINE icons on white. There is no face and no avatar image in either style.
 const EZH_ICON_SUN = (
@@ -4651,6 +4754,10 @@ const EZH_ICON_MENU = (
 function ezHomeModules(v) {
   const wird = v.wird ? (toArabicDigits(v.wird.done) + ' / ' + toArabicDigits(v.wird.target)) : null;
   return [
+    // ITEM 20 / D-9: the articles section first, the women's section directly after it, and the
+    // seven that were here keep the order and the positions they had relative to one another.
+    { id: 'articles', label: EZH_ARTICLES, icon: EZH_ICON_ARTICLES, onClick: v.onOpenArticles, meta: null },
+    { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null },
     { id: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
     { id: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
     { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
@@ -4689,9 +4796,11 @@ let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wir
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
 let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
 let EZIST_SUB_LESSONS = ezT("module.lessons.sub");
+let EZIST_SUB_ARTICLES = ezT("module.articles.sub");
+let EZIST_SUB_WOMEN = ezT("module.women.sub");
 let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
 let EZIST_SUB_LIBRARY = 'بحثٌ في نصوص المكتبة، بمصادرها';
-let EZIST_SUB = { memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -5355,6 +5464,12 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
   // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
   const [prayerOpen, setPrayerOpen] = useState(false);
+  // ITEM 20: which articles section is open over the home, or null. It is not a route either --
+  // the screen inventory is a cross-file contract, see the note above PrayerSheet -- but UNLIKE
+  // the prayer sheet it registers a back layer, so it owns one real history entry while it is
+  // open and the device button closes IT rather than leaving the home screen underneath it.
+  const [artSection, setArtSection] = useState(null);
+  useEzikBackLayer(!!artSection, () => setArtSection(null));
   // THE ARRANGEMENT IS THE OWNER'S, read from the device once on mount exactly as the wird and
   // the hijri date above are. The presentation component below is handed the result and never
   // opens the store itself.
@@ -5388,6 +5503,11 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenMushaf: onOpenMushaf,
     onOpenFatwa: onOpenFatwa,
     onOpenLessons: onOpenLessons,
+    // ITEM 20 / D-9. The two shelf entries open a layer over this screen, so their handlers are
+    // built here beside the prayer sheet's rather than being threaded down from the router: the
+    // section they open is not a screen and the router has nothing to route to.
+    onOpenArticles: () => setArtSection('articles'),
+    onOpenWomen: () => setArtSection('women'),
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
@@ -5413,6 +5533,19 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // keeps "deck", is not migrated, and sees the deck again the moment it selects qibla_13.
   // qibla_13 is untouched by this batch and still chooses between the two components below.
   if (prayerOpen) return <PrayerSheet onClose={() => setPrayerOpen(false)} />;
+  // ITEM 20. ONE component for both sections -- the section key and its title are all that
+  // differs, and two components would be two places for the empty state, the failure state and
+  // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
+  // and the hardware button spend the same entry and resolve through the same table.
+  if (artSection) {
+    return (
+      <EzikArticlesSection
+        section={artSection}
+        title={artSection === 'women' ? EZH_WOMEN : EZH_ARTICLES}
+        onHome={ezikGoBack}
+      />
+    );
+  }
   return <EzikIstanaHome {...home} />;
 }
 
@@ -5981,6 +6114,647 @@ function LessonsSection({ onHome }) {
   );
 }
 // ITEM 24-B -- END OF THE LESSONS SECTION
+
+// ============================================================
+// ITEM 20 -- THE TWO READER SECTIONS, AND THE SCREEN THE OWNER WRITES ON
+// ============================================================
+// WHAT THIS IS. The server half of item 20 shipped first: a store, a role seam and four routes.
+// Nothing could see any of it, because no screen existed. This is the whole loop the owner can
+// test with one finger -- write a piece, then read it as a reader -- and it is deliberately built
+// as ONE section component used TWICE rather than two components that will drift apart.
+//
+// WHY THESE ARE LAYERS OVER THE HOME AND NOT NEW `screen` KEYS. index.html's screen inventory is
+// a CROSS-FILE contract: theme-coverage-guard parses the `if (screen === '...')` ladder and
+// requires EZIK-THEME-33-HANDOFF.md's table and its Arabic screen count to match it. That is
+// exactly the reason the prayer sheet is a sheet (see PrayerSheet), and it holds here.
+//
+// BUT NOT THE WAY THE PRAYER SHEET DOES IT, AND THIS IS THE DIFFERENCE THAT MATTERS. That sheet
+// is held open by a plain useState and registers no back layer, so a device back pressed inside
+// it is resolved against `screen`, which is still 'home' -- and the reader is thrown out of the
+// sheet AND off the home screen by one press. Every layer here goes through useEzikBackLayer, so
+// each owns exactly one real history entry for as long as it is open, the visible back button and
+// the hardware button take the identical route, and one press closes exactly one level.
+//
+// THE LADDER IS THREE DEEP AND NEVER FOUR: section -> (an opened piece | the writing screen).
+// The two are mutually exclusive by construction -- an opened piece has no control that opens the
+// writer, and the writer has no control that opens a piece -- so at most one layer is registered
+// at any moment and "close the deepest" has only ever one candidate.
+
+const EZIK_ART_LIST_ROUTE = '/api/articles-list';
+const EZIK_ART_ADMIN_ROUTE = '/api/articles-admin';
+const EZIK_ART_TIMEOUT_MS = 12000;
+const EZIK_ART_LIMIT = 30;
+const EZIK_ART_IDLE = 'idle';
+const EZIK_ART_LOADING = 'loading';
+const EZIK_ART_DONE = 'done';
+const EZIK_ART_FAILED = 'failed';
+// The two shapes, and they are the two words lib/articles/store.js stores. D-11.
+const EZIK_ART_KIND_ARTICLE = 'article';
+const EZIK_ART_KIND_QA = 'qa';
+// THE CANONICAL BODY MARKERS. These four strings are the whole notation lib/articles/store.js
+// sanitises a body down to, and this file's renderer recognises these and nothing else. They are
+// repeated here because app.jsx imports nothing -- and a guard case asserts that the two files
+// still agree, because a marker that drifted would show the reader a heading's own '## ' as text.
+const EZIK_ART_HEADING = '## ';
+const EZIK_ART_SUBHEADING = '### ';
+const EZIK_ART_BULLET = '- ';
+const EZIK_ART_NUMBER = '1. ';
+
+/* ---- THE TWO CALLS, on the shape ezikLessonsScreenSearch established ---------------------- */
+
+// A row, whitelisted a second time on the way IN. The server's projection is the rule and this is
+// not a second filter that could drift from it -- it names the same fields and adds none. What it
+// is for is that a client which trusted whatever arrived would put an unexpected value straight
+// into the tree; every field here is coerced to the type the renderer expects, or dropped.
+function ezikArticleRows(items) {
+  const rows = [];
+  if (!Array.isArray(items)) return rows;
+  for (const item of items) {
+    if (!item || typeof item !== 'object') continue;
+    const slug = typeof item.slug === 'string' ? item.slug : '';
+    const title = typeof item.title === 'string' ? item.title.trim() : '';
+    if (!slug || !title) continue;
+    rows.push({
+      slug,
+      title,
+      body: typeof item.body === 'string' ? item.body : '',
+      kind: item.kind === EZIK_ART_KIND_QA ? EZIK_ART_KIND_QA : EZIK_ART_KIND_ARTICLE,
+      publishedAt: typeof item.publishedAt === 'string' ? item.publishedAt : '',
+    });
+  }
+  return rows;
+}
+
+// THE READER'S CALL. A discriminated result, for the reason the lessons search records: this
+// screen must be able to tell an EMPTY SECTION from a FAILED FETCH, and telling a reader "there
+// is nothing here" when the network died is a lie the application would be telling on its own
+// behalf. `ok:false` covers a status other than 200, an unreadable body, a cut connection and the
+// timeout alike; the server's own error text never reaches this screen and could not be printed.
+async function ezikArticlesFetchList(section, signal) {
+  try {
+    const url = EZIK_ART_LIST_ROUTE + '?section=' + encodeURIComponent(section)
+      + '&limit=' + EZIK_ART_LIMIT;
+    const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, signal });
+    if (response.status !== 200) return { ok: false, rows: [] };
+    const payload = await response.json();
+    if (!payload || payload.ok !== true) return { ok: false, rows: [] };
+    return { ok: true, rows: ezikArticleRows(payload.items) };
+  } catch (e) {
+    return { ok: false, rows: [] };
+  }
+}
+
+// THE WRITER'S CALL, AND IT KEEPS THE STATUS. The reader's call above throws every failure into
+// one bucket because a reader has one thing to do about any of them. A WRITER does not: "you are
+// not signed in", "you may not write here", "the connection died" and "the title is empty" are
+// four different facts and she can act on each of them differently. So this one carries the
+// status code back, and ezikArticleFailureKey below is the single place that turns it into words.
+// `status: 0` means the request never completed -- there is no such HTTP status, which is why it
+// is the one chosen for it.
+async function ezikArticlesAdmin(payload, signal) {
+  try {
+    const response = await fetch(EZIK_ART_ADMIN_ROUTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    let data = null;
+    try { data = await response.json(); } catch (e) {}
+    if (response.status === 200 && data && data.ok === true) return { ok: true, status: 200, data };
+    return { ok: false, status: response.status, data };
+  } catch (e) {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
+// EVERY FAILURE A WRITER CAN HIT, SAID IN HER OWN LANGUAGE, FROM ONE TABLE. There is no branch
+// anywhere below that words a failure itself, and none that leaves one silent: a save that failed
+// without saying so is the single worst outcome on this screen, because she has no way to know
+// her words are not safe.
+function ezikArticleFailureKey(res) {
+  if (!res) return 'articles.errSaveFailed';
+  if (res.status === 0) return 'articles.errNetwork';
+  if (res.status === 401) return 'articles.errSignedOut';
+  if (res.status === 403) return 'articles.errNoRole';
+  const code = res.data && typeof res.data.error === 'string' ? res.data.error : '';
+  if (code === 'articles-title') return 'articles.errTitleEmpty';
+  return 'articles.errSaveFailed';
+}
+
+/* ---- THE BODY, PARSED -- AND THIS IS WHY THERE IS NO innerHTML ON THIS PATH --------------- */
+//
+// A stored body is plain text in the closed notation lib/articles/store.js sanitises everything
+// down to. It is turned into React elements HERE, by reading it line by line, so every piece of
+// a body reaches the tree as a TEXT CHILD of an element this file chose. There is no
+// dangerouslySetInnerHTML anywhere on the articles path and there must never be one: with one,
+// the server's sanitiser would become the only thing standing between a stored string and script
+// execution in every reader's application, and a single mistake in it would be total. With none,
+// a body that somehow arrived carrying a tag is DISPLAYED as that tag's own characters, which is
+// wrong-looking and completely harmless.
+
+/** The blocks of a body, in order. Never throws and never returns null. */
+function ezikArticleBlocks(body) {
+  const out = [];
+  let para = [];
+  let list = null;
+  const flushPara = () => { if (para.length) { out.push({ t: 'p', text: para.join(' ') }); para = []; } };
+  const flushList = () => { if (list) { out.push(list); list = null; } };
+  const flush = () => { flushPara(); flushList(); };
+  for (const raw of String(body === null || body === undefined ? '' : body).split('\n')) {
+    const line = raw.replace(/\s+$/, '');
+    if (line.trim() === '') { flush(); continue; }
+    if (line.indexOf(EZIK_ART_SUBHEADING) === 0) {
+      flush(); out.push({ t: 'h3', text: line.slice(EZIK_ART_SUBHEADING.length) }); continue;
+    }
+    if (line.indexOf(EZIK_ART_HEADING) === 0) {
+      flush(); out.push({ t: 'h2', text: line.slice(EZIK_ART_HEADING.length) }); continue;
+    }
+    if (line.indexOf(EZIK_ART_NUMBER) === 0) {
+      flushPara();
+      if (!list || list.t !== 'ol') { flushList(); list = { t: 'ol', items: [] }; }
+      list.items.push(line.slice(EZIK_ART_NUMBER.length));
+      continue;
+    }
+    if (line.indexOf(EZIK_ART_BULLET) === 0) {
+      flushPara();
+      if (!list || list.t !== 'ul') { flushList(); list = { t: 'ul', items: [] }; }
+      list.items.push(line.slice(EZIK_ART_BULLET.length));
+      continue;
+    }
+    flushList();
+    para.push(line);
+  }
+  flush();
+  return out;
+}
+
+/**
+ * Emphasis, inside one line. `**x**` is strong and `*x*` is emphasis; an asterisk that pairs with
+ * nothing on its own line is left standing as the character the writer typed, which is the only
+ * honest thing to do with it -- inventing a closing mark would change her words.
+ */
+function ezikArticleInline(text) {
+  const src = String(text === null || text === undefined ? '' : text);
+  const parts = [];
+  const re = /(\*\*[^*\n]+\*\*|\*[^*\n]+\*)/g;
+  let last = 0;
+  let key = 0;
+  let m = re.exec(src);
+  while (m) {
+    if (m.index > last) parts.push(src.slice(last, m.index));
+    const token = m[0];
+    if (token.slice(0, 2) === '**') parts.push(<strong key={'b' + (key++)}>{token.slice(2, -2)}</strong>);
+    else parts.push(<em key={'i' + (key++)}>{token.slice(1, -1)}</em>);
+    last = m.index + token.length;
+    m = re.exec(src);
+  }
+  if (last < src.length) parts.push(src.slice(last));
+  return parts;
+}
+
+/** The rendered body. Paragraphs, two levels of sub-heading, two kinds of list, emphasis. */
+function EzikArticleBody({ body }) {
+  const blocks = ezikArticleBlocks(body);
+  if (blocks.length === 0) return null;
+  return (
+    <div style={s.artBody}>
+      {blocks.map((b, i) => {
+        if (b.t === 'h2') return <div key={i} style={s.artH2}>{ezikArticleInline(b.text)}</div>;
+        if (b.t === 'h3') return <div key={i} style={s.artH3}>{ezikArticleInline(b.text)}</div>;
+        if (b.t === 'ul') {
+          return <ul key={i} style={s.artProseList}>{b.items.map((x, j) => <li key={j} style={s.artListItem}>{ezikArticleInline(x)}</li>)}</ul>;
+        }
+        if (b.t === 'ol') {
+          return <ol key={i} style={s.artProseList}>{b.items.map((x, j) => <li key={j} style={s.artListItem}>{ezikArticleInline(x)}</li>)}</ol>;
+        }
+        return <p key={i} style={s.artPara}>{ezikArticleInline(b.text)}</p>;
+      })}
+    </div>
+  );
+}
+
+/**
+ * The day a piece was published, as a date and nothing more. NO TIME, and no "3 days ago": a
+ * relative reading has to be recomputed to stay true and is wrong the moment it is cached, and
+ * the hour a piece went out is not something a reader has any use for. Empty when the stored
+ * value cannot be read as a date, so a broken record shows no date rather than an invented one.
+ */
+function ezikArticleDate(iso) {
+  try {
+    const d = new Date(String(iso || ''));
+    const ms = d.getTime();
+    if (!Number.isFinite(ms)) return '';
+    const pad = (n) => (n < 10 ? '0' + n : String(n));
+    const plain = d.getFullYear() + '/' + pad(d.getMonth() + 1) + '/' + pad(d.getDate());
+    return ezLangGet() === 'ar' ? toArabicDigits(plain) : plain;
+  } catch (e) { return ''; }
+}
+
+/* ---- ONE ROW IN A SECTION ---------------------------------------------------------------- */
+// The title, the date, and -- for the question-and-answer shape and only for it -- a mark saying
+// so. THERE IS NO AUTHOR NAME ANYWHERE ON THIS ROW OR ON THE PIECE IT OPENS. Decision D-7:
+// articles are published unsigned, the store carries no display name, the public projection
+// carries no author field at all, and nothing here invents one.
+function EzikArticleRow({ row, onOpen }) {
+  const qa = row.kind === EZIK_ART_KIND_QA;
+  const date = ezikArticleDate(row.publishedAt);
+  return (
+    <button type="button" className="ezhome-focus" style={s.artRow} onClick={onOpen}>
+      <span style={s.artRowTitle}>{row.title}</span>
+      <span style={s.artRowMeta}>
+        {qa ? <span style={s.artQaMark}>{ezT('articles.qaMark')}</span> : null}
+        {date ? <span style={s.artRowDate}>{date}</span> : null}
+      </span>
+    </button>
+  );
+}
+
+/* ---- THE SECTION ------------------------------------------------------------------------- */
+
+function EzikArticlesSection({ section, title, onHome }) {
+  const [state, setState] = useState(EZIK_ART_IDLE);
+  const [rows, setRows] = useState([]);
+  const [openSlug, setOpenSlug] = useState(null);
+  const [writerOpen, setWriterOpen] = useState(false);
+  // THE GRANT, AND WHAT `null` MEANS. null is "this person is not a writer here" -- and that is
+  // also what a reader with no session, a reader whose session expired, and a failed probe all
+  // come to. There is no state in which the writing entry point is drawn on a guess: it is drawn
+  // only when the SERVER answered 200 to a request that resolveActor() had to authorise first.
+  const [grant, setGrant] = useState(null);
+  const listAbortRef = useRef(null);
+  const grantAbortRef = useRef(null);
+
+  const load = () => {
+    if (listAbortRef.current) { try { listAbortRef.current.abort(); } catch (e) {} }
+    const controller = new AbortController();
+    listAbortRef.current = controller;
+    setState(EZIK_ART_LOADING);
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_ART_TIMEOUT_MS);
+    ezikArticlesFetchList(section, controller.signal).then((outcome) => {
+      clearTimeout(timer);
+      if (listAbortRef.current !== controller) return;   // a newer load owns the screen
+      listAbortRef.current = null;
+      if (!outcome.ok) { setRows([]); setState(EZIK_ART_FAILED); return; }
+      setRows(outcome.rows);
+      setState(EZIK_ART_DONE);
+    });
+  };
+
+  // THE ROLE PROBE, AND IT DOES NOT RUN AT ALL WITHOUT A SESSION IN HAND. A reader who has never
+  // signed in -- which is EVERY reader in a browser tab today, because the sign-in row draws only
+  // inside the native shell -- costs the network nothing here and is never told that a writing
+  // door exists. See EzikSignInRow for why the browser has no door yet; item 8 is that door.
+  const probeGrant = () => {
+    const held = readAuthSession();
+    if (!held || typeof held.session !== 'string' || !held.session) { setGrant(null); return; }
+    if (grantAbortRef.current) { try { grantAbortRef.current.abort(); } catch (e) {} }
+    const controller = new AbortController();
+    grantAbortRef.current = controller;
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_ART_TIMEOUT_MS);
+    ezikArticlesAdmin({ session: held.session, action: 'mine', section }, controller.signal).then((res) => {
+      clearTimeout(timer);
+      if (grantAbortRef.current !== controller) return;
+      grantAbortRef.current = null;
+      // ANY refusal is "not a writer here". A 401, a 403, a 503 and a dead connection all land on
+      // the same answer, and the answer is the one that shows the fewest controls.
+      if (!res.ok || !res.data) { setGrant(null); return; }
+      const sections = Array.isArray(res.data.sections) ? res.data.sections.filter((x) => typeof x === 'string') : [];
+      if (sections.indexOf(section) === -1) { setGrant(null); return; }
+      setGrant({ session: held.session, role: String(res.data.role || ''), sections });
+    });
+  };
+
+  useEffect(() => {
+    load();
+    probeGrant();
+    return () => {
+      if (listAbortRef.current) { try { listAbortRef.current.abort(); } catch (e) {} }
+      if (grantAbortRef.current) { try { grantAbortRef.current.abort(); } catch (e) {} }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section]);
+
+  // ONE HISTORY ENTRY PER OPEN LAYER. Registered unconditionally, in a fixed order, so the hook
+  // order never changes between renders; each pushes its entry only while its own flag is true.
+  useEzikBackLayer(writerOpen, () => setWriterOpen(false));
+  useEzikBackLayer(!!openSlug, () => setOpenSlug(null));
+
+  const opened = openSlug ? rows.filter((r) => r.slug === openSlug)[0] : null;
+
+  // THE WRITING SCREEN. Drawn only with a grant in hand, so a reader without one never reaches it
+  // even by a race: the flag that opens it is set by a control that is not rendered without one.
+  if (writerOpen && grant) {
+    return (
+      <EzikArticleWriter
+        section={section}
+        grant={grant}
+        onBack={ezikGoBack}
+        onChanged={load}
+      />
+    );
+  }
+
+  // AN OPENED PIECE IS RENDERED FROM THE ROW THE READER TAPPED, and there is no second request.
+  // api/articles-get.js exists and is the by-slug door for a reader who arrives at a link -- the
+  // web path, item 8 -- but calling it here would add a second way for opening a piece to fail,
+  // in exchange for a body this screen is already holding. The reader taps and reads; nothing
+  // between the tap and the words can go wrong.
+  if (opened) {
+    const qa = opened.kind === EZIK_ART_KIND_QA;
+    return (
+      <EzShell title={title} onBack={ezikGoBack} backLabel={ezT('articles.backToList')}>
+        <article style={s.artRead} aria-label={ezT('articles.readAria')}>
+          {qa ? <div style={s.artFieldLabel}>{ezT('articles.questionLabel')}</div> : null}
+          <h2 style={s.artReadTitle}>{opened.title}</h2>
+          {ezikArticleDate(opened.publishedAt)
+            ? <div style={s.artReadDate}>{ezikArticleDate(opened.publishedAt)}</div> : null}
+          {qa ? <div style={s.artFieldLabel}>{ezT('articles.answerLabel')}</div> : null}
+          <EzikArticleBody body={opened.body} />
+        </article>
+      </EzShell>
+    );
+  }
+
+  return (
+    <EzShell
+      title={title}
+      onBack={onHome}
+      backLabel={A2_BACK}
+      actions={grant ? (
+        <button type="button" className="ezhome-focus" style={s.artWriteBtn}
+          onClick={() => setWriterOpen(true)}>{ezT('articles.write')}</button>
+      ) : null}
+    >
+      {/* STATE 1 of 4: the list is being fetched. */}
+      {state === EZIK_ART_LOADING ? (
+        <div role="status" aria-live="polite" style={s.artNote}>{ezT('common.loading')}</div>
+      ) : null}
+
+      {/* STATE 2 of 4: THE EMPTY SECTION, AND IT IS NOT AN AFTERTHOUGHT. Both sections are empty
+          on the day this ships and the first person to open them will be the one who has not
+          written in them yet. A section that looks broken is worse than no section, so this says
+          what is true -- the section is new and nothing has been published -- and says it in the
+          same shell, type and colour as everything else on the screen. */}
+      {state === EZIK_ART_DONE && rows.length === 0 ? (
+        <div role="status" style={s.artEmpty}>
+          <div style={s.artEmptyTitle}>{ezT('articles.emptyTitle')}</div>
+          <div style={s.artEmptyBody}>{ezT('articles.emptyBody')}</div>
+        </div>
+      ) : null}
+
+      {/* STATE 3 of 4: THE FETCH FAILED, AND IT SAYS SO. It is emphatically NOT the empty state:
+          telling a reader "nothing here" when the network died is the application lying about
+          the world on its own behalf, and it is a lie that a retry button would not undo. */}
+      {state === EZIK_ART_FAILED ? (
+        <div role="alert" style={s.artError}>
+          <span>{ezT('articles.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.artRetry}
+            onClick={load}>{ezT('common.retry')}</button>
+        </div>
+      ) : null}
+
+      {/* STATE 4 of 4: the section has published writing in it. Newest first -- and that order is
+          the STORE'S, read off a sorted index, never re-sorted here. */}
+      {state === EZIK_ART_DONE && rows.length > 0 ? (
+        <section style={s.artList} aria-label={ezT('articles.listAria')}>
+          {rows.map((row) => (
+            <EzikArticleRow key={row.slug} row={row} onOpen={() => setOpenSlug(row.slug)} />
+          ))}
+        </section>
+      ) : null}
+    </EzShell>
+  );
+}
+
+/* ---- THE WRITING SCREEN ------------------------------------------------------------------ */
+//
+// WHAT SURVIVES A FAILURE, AND IT IS THE MOST IMPORTANT PROPERTY ON THIS SCREEN. `title` and
+// `body` are cleared in EXACTLY ONE PLACE -- the control that starts a new piece -- and nowhere
+// else. Not on a failed save, not on a failed publish, not on a refused permission, not on a dead
+// connection, not when the list behind refreshes. A writer who loses a page she typed because a
+// tunnel ate the request does not try again; she stops using the thing.
+
+function EzikArticleWriter({ section, grant, onBack, onChanged }) {
+  const [target, setTarget] = useState(section);
+  const [kind, setKind] = useState(EZIK_ART_KIND_ARTICLE);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [editing, setEditing] = useState(null);       // the id being edited, or null for a new piece
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');                  // a failure, in her language
+  const [note, setNote] = useState('');                // a success, and never in the failure colour
+  const [mine, setMine] = useState([]);
+  const [mineState, setMineState] = useState(EZIK_ART_IDLE);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const abortRef = useRef(null);
+  const aliveRef = useRef(true);
+
+  useEffect(() => () => {
+    aliveRef.current = false;
+    if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
+  }, []);
+
+  const call = (payload) => {
+    if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_ART_TIMEOUT_MS);
+    return ezikArticlesAdmin(Object.assign({ session: grant.session }, payload), controller.signal)
+      .then((res) => { clearTimeout(timer); if (abortRef.current === controller) abortRef.current = null; return res; });
+  };
+
+  const loadMine = () => {
+    setMineState(EZIK_ART_LOADING);
+    ezikArticlesAdmin({ session: grant.session, action: 'mine' }, undefined).then((res) => {
+      if (!aliveRef.current) return;
+      if (!res.ok || !res.data || !Array.isArray(res.data.items)) { setMine([]); setMineState(EZIK_ART_FAILED); return; }
+      setMine(res.data.items);
+      setMineState(EZIK_ART_DONE);
+    });
+  };
+  useEffect(() => { loadMine(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  const isQa = kind === EZIK_ART_KIND_QA;
+  const titleLabel = isQa ? ezT('articles.fieldTitle') + ' — ' + ezT('articles.questionLabel') : ezT('articles.fieldTitle');
+  const bodyLabel = isQa ? ezT('articles.fieldBody') + ' — ' + ezT('articles.answerLabel') : ezT('articles.fieldBody');
+
+  // SAVE. Returns the stored record on success and null on any failure, having ALREADY said what
+  // went wrong -- so the two callers below (save, and publish) share one refusal path and cannot
+  // word the same failure two ways.
+  const save = async () => {
+    if (busy) return null;
+    if (!title.trim()) { setNote(''); setMsg(ezT('articles.errTitleEmpty')); return null; }
+    setBusy(true); setMsg(''); setNote('');
+    const res = editing
+      ? await call({ action: 'update', id: editing, patch: { title, body, kind } })
+      : await call({ action: 'create', section: target, kind, title, body });
+    setBusy(false);
+    if (!res.ok || !res.data || !res.data.article) { setMsg(ezT(ezikArticleFailureKey(res))); return null; }
+    // The piece now EXISTS, so the composer is holding an edit of it rather than a second copy of
+    // it: pressing save twice must not mint two articles. Her words stay exactly where they are.
+    setEditing(res.data.article.id);
+    return res.data.article;
+  };
+
+  const onSaveDraft = async () => {
+    const article = await save();
+    if (!article) return;
+    setNote(ezT('articles.savedDraft'));
+    loadMine();
+    onChanged();
+  };
+
+  // PUBLISH IS SAVE THEN PUBLISH, IN THAT ORDER, AND IT STOPS IF THE SAVE DID NOT LAND. Publishing
+  // what the store holds while the screen holds something newer would put the wrong version of her
+  // writing in front of every reader, and she would have no way of seeing that it had happened.
+  const onPublish = async () => {
+    const article = await save();
+    if (!article) return;
+    setBusy(true);
+    const res = await call({ action: 'publish', id: article.id });
+    setBusy(false);
+    if (!res.ok) { setMsg(ezT(ezikArticleFailureKey(res))); return; }
+    setNote(ezT('articles.published'));
+    loadMine();
+    onChanged();
+  };
+
+  const act = async (id, action) => {
+    if (busy) return;
+    setBusy(true); setMsg(''); setNote('');
+    const res = await call({ action, id });
+    setBusy(false);
+    if (!res.ok) { setMsg(ezT(ezikArticleFailureKey(res))); return; }
+    setNote(ezT(action === 'publish' ? 'articles.published'
+      : action === 'unpublish' ? 'articles.unpublished' : 'articles.deleted'));
+    if (action === 'delete' && editing === id) { setEditing(null); }
+    setPendingDelete(null);
+    loadMine();
+    onChanged();
+  };
+
+  const startNew = () => {
+    setEditing(null); setTitle(''); setBody(''); setKind(EZIK_ART_KIND_ARTICLE);
+    setTarget(section); setMsg(''); setNote(''); setPendingDelete(null);
+  };
+
+  const startEdit = (record) => {
+    setEditing(record.id);
+    setTitle(typeof record.title === 'string' ? record.title : '');
+    setBody(typeof record.body === 'string' ? record.body : '');
+    setKind(record.kind === EZIK_ART_KIND_QA ? EZIK_ART_KIND_QA : EZIK_ART_KIND_ARTICLE);
+    setTarget(typeof record.section === 'string' ? record.section : section);
+    setMsg(''); setNote(''); setPendingDelete(null);
+  };
+
+  const Choice = ({ on, label, onPick }) => (
+    <button type="button" className="ezhome-focus" aria-pressed={on} onClick={onPick}
+      style={on ? { ...s.artChoice, ...s.artChoiceOn } : s.artChoice}>{label}</button>
+  );
+
+  return (
+    <EzShell title={ezT('articles.writeTitle')} onBack={onBack} backLabel={A2_BACK}
+      actions={<button type="button" className="ezhome-focus" style={s.artWriteBtn}
+        onClick={startNew}>{ezT('articles.newPiece')}</button>}>
+
+      <EzShellGroup title={ezT('articles.shape')}>
+        <div style={s.artChoiceRow}>
+          <Choice on={!isQa} label={ezT('articles.shapeArticle')} onPick={() => setKind(EZIK_ART_KIND_ARTICLE)} />
+          <Choice on={isQa} label={ezT('articles.shapeQa')} onPick={() => setKind(EZIK_ART_KIND_QA)} />
+        </div>
+      </EzShellGroup>
+
+      {/* THE SECTION CHOOSER OFFERS THE SECTIONS SHE HOLDS AND NOT THE TWO THAT EXIST. Offering a
+          section the server will refuse would be a control whose only outcome is a refusal, and
+          she would have no way of telling that from a fault. It is disabled while EDITING because
+          the store does not move a piece between sections: see UPDATABLE_FIELDS. */}
+      <EzShellGroup title={ezT('articles.sectionLabel')}>
+        <div style={s.artChoiceRow}>
+          {grant.sections.map((sec) => (
+            <Choice key={sec} on={target === sec}
+              label={sec === 'women' ? ezT('module.women') : ezT('module.articles')}
+              onPick={() => { if (!editing) setTarget(sec); }} />
+          ))}
+        </div>
+      </EzShellGroup>
+
+      <EzShellGroup title={titleLabel}>
+        <input className="ezhome-focus" type="text" dir="auto" maxLength="200" value={title}
+          onChange={(e) => setTitle(e.target.value)} aria-label={titleLabel} style={s.artInput} />
+      </EzShellGroup>
+
+      <EzShellGroup title={bodyLabel} hint={ezT('articles.formatHint')}>
+        <textarea className="ezhome-focus" dir="auto" rows="12" value={body}
+          onChange={(e) => setBody(e.target.value)} aria-label={bodyLabel} style={s.artTextarea} />
+      </EzShellGroup>
+
+      {/* The two answers, and they are never the same colour: a refusal is drawn in the error
+          treatment and an outcome she asked for is not. */}
+      {msg ? <div role="alert" style={s.artError}><span>{msg}</span></div> : null}
+      {note ? <div role="status" style={s.artNote}>{note}</div> : null}
+
+      <EzShellGroup title={ezT('articles.newPiece')}>
+        <div style={s.artChoiceRow}>
+          <button type="button" className="ezhome-focus" disabled={busy} onClick={onSaveDraft}
+            style={{ ...s.artAction, opacity: busy ? 0.5 : 1 }}>{ezT('articles.saveDraft')}</button>
+          <button type="button" className="ezhome-focus" disabled={busy} onClick={onPublish}
+            style={{ ...s.artAction, ...s.artActionStrong, opacity: busy ? 0.5 : 1 }}>{ezT('articles.publish')}</button>
+        </div>
+      </EzShellGroup>
+
+      {/* HER OWN WORK, DRAFTS INCLUDED -- and nobody else's, because api/articles-admin.js filters
+          `mine` to the acting account. An owner does not read an editor's drafts here. */}
+      <EzShellGroup title={ezT('articles.myWork')}>
+        {mineState === EZIK_ART_LOADING ? <div role="status" style={s.artNote}>{ezT('common.loading')}</div> : null}
+        {mineState === EZIK_ART_FAILED ? (
+          <div role="alert" style={s.artError}>
+            <span>{ezT('articles.error')}</span>
+            <button type="button" className="ezhome-focus" style={s.artRetry} onClick={loadMine}>{ezT('common.retry')}</button>
+          </div>
+        ) : null}
+        {mineState === EZIK_ART_DONE && mine.length === 0
+          ? <div role="status" style={s.artNote}>{ezT('articles.myWorkEmpty')}</div> : null}
+        {mine.map((record) => {
+          const published = record.status === 'published';
+          return (
+            <div key={record.id} style={s.artMineRow}>
+              <div style={s.artMineHead}>
+                <span style={s.artRowTitle}>{record.title}</span>
+                <span style={s.artRowMeta}>
+                  <span style={s.artQaMark}>{ezT(published ? 'articles.statusPublished' : 'articles.statusDraft')}</span>
+                  {record.kind === EZIK_ART_KIND_QA ? <span style={s.artQaMark}>{ezT('articles.qaMark')}</span> : null}
+                </span>
+              </div>
+              <div style={s.artChoiceRow}>
+                <button type="button" className="ezhome-focus" disabled={busy} onClick={() => startEdit(record)}
+                  style={s.artSmall}>{ezT('articles.edit')}</button>
+                <button type="button" className="ezhome-focus" disabled={busy}
+                  onClick={() => act(record.id, published ? 'unpublish' : 'publish')}
+                  style={s.artSmall}>{ezT(published ? 'articles.unpublish' : 'articles.publish')}</button>
+                {/* DELETING ASKS ONCE, AND THE CONTROL THAT ACTUALLY DELETES IS NOT ON THE SCREEN
+                    UNTIL IT HAS. One press can never destroy a piece of writing. */}
+                {pendingDelete === record.id ? (
+                  <>
+                    <span style={s.artRowDate}>{ezT('articles.deleteAsk')}</span>
+                    <button type="button" className="ezhome-focus" disabled={busy}
+                      onClick={() => act(record.id, 'delete')} style={s.artSmall}>{ezT('articles.deleteYes')}</button>
+                    <button type="button" className="ezhome-focus" onClick={() => setPendingDelete(null)}
+                      style={s.artSmall}>{ezT('common.cancel')}</button>
+                  </>
+                ) : (
+                  <button type="button" className="ezhome-focus" disabled={busy}
+                    onClick={() => setPendingDelete(record.id)} style={s.artSmall}>{ezT('common.delete')}</button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </EzShellGroup>
+    </EzShell>
+  );
+}
+// ITEM 20 -- END OF THE ARTICLES SECTIONS AND THE WRITING SCREEN
 
 // ============================================================
 // OFFICIAL FATWA SEARCH -- READ ONLY
@@ -21974,6 +22748,40 @@ const s = {
   lessonsScholar: { fontSize: 12, color: 'var(--muted)' },
   // ITEM 24-B. The lessons SECTION. Every colour is an existing --a3-* token, the set EzShell
   // puts in scope through .ezhome, so this screen adds no theme value and overrides none.
+  // ---- ITEM 20: the two articles sections and the writing screen -------------------------
+  artNote: { display: 'flex', alignItems: 'center', gap: 6, padding: '10px 2px', color: 'var(--a3-muted)', fontSize: 14 },
+  artError: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 14 },
+  artRetry: { minHeight: 44, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 14, fontFamily: 'inherit', cursor: 'pointer' },
+  artEmpty: { display: 'flex', flexDirection: 'column', gap: 8, padding: '22px 16px', borderRadius: 14, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', textAlign: 'center' },
+  artEmptyTitle: { fontSize: 16, fontWeight: 700, lineHeight: 1.8 },
+  artEmptyBody: { fontSize: 14, color: 'var(--a3-muted)', lineHeight: 1.9 },
+  artList: { display: 'flex', flexDirection: 'column', gap: 8 },
+  artRow: { display: 'flex', flexDirection: 'column', gap: 5, minHeight: 44, justifyContent: 'center', padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'inherit', textAlign: 'start', cursor: 'pointer' },
+  artRowTitle: { fontSize: 15, fontWeight: 500, lineHeight: 1.8, overflowWrap: 'anywhere' },
+  artRowMeta: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  artQaMark: { fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)' },
+  artRowDate: { fontSize: 13, color: 'var(--a3-muted)' },
+  artWriteBtn: { minHeight: 44, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
+  artRead: { display: 'flex', flexDirection: 'column', gap: 10 },
+  artReadTitle: { fontSize: 19, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)', margin: 0, overflowWrap: 'anywhere' },
+  artReadDate: { fontSize: 13, color: 'var(--a3-muted)' },
+  artFieldLabel: { fontSize: 13, fontWeight: 700, color: 'var(--a3-muted)' },
+  artBody: { display: 'flex', flexDirection: 'column', gap: 10 },
+  artPara: { fontSize: 15.5, lineHeight: 2.1, color: 'var(--a3-ink)', margin: 0, overflowWrap: 'anywhere' },
+  artH2: { fontSize: 17, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)', marginTop: 6 },
+  artH3: { fontSize: 15.5, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)', marginTop: 4 },
+  artProseList: { margin: 0, paddingInlineStart: 22 },
+  artListItem: { fontSize: 15.5, lineHeight: 2.1, color: 'var(--a3-ink)', overflowWrap: 'anywhere' },
+  artInput: { width: '100%', minHeight: 44, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit', boxSizing: 'border-box' },
+  artTextarea: { width: '100%', minHeight: 220, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, lineHeight: 2, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' },
+  artChoiceRow: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' },
+  artChoice: { minHeight: 44, padding: '8px 16px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 14, fontFamily: 'inherit', cursor: 'pointer' },
+  artChoiceOn: { background: 'var(--a3-ice)', fontWeight: 700 },
+  artAction: { minHeight: 44, padding: '10px 18px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit', cursor: 'pointer' },
+  artActionStrong: { background: 'var(--a3-ice)', fontWeight: 700 },
+  artSmall: { minHeight: 44, padding: '8px 12px', borderRadius: 10, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 13.5, fontFamily: 'inherit', cursor: 'pointer' },
+  artMineRow: { display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)' },
+  artMineHead: { display: 'flex', flexDirection: 'column', gap: 5 },
   lsnForm: { display: 'flex', gap: 8, alignItems: 'stretch', flexWrap: 'wrap', marginBottom: 12 },
   lsnInput: { flex: '1 1 200px', minWidth: 0, minHeight: 44, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit' },
   lsnSubmit: { minHeight: 44, padding: '10px 18px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },

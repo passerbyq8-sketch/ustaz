@@ -1,8 +1,23 @@
 // api/articles-admin.js
 // POST /api/articles-admin   { session, action, ... }   ->   { ok, article } | { ok, id }
 //
-// EVERYTHING THAT WRITES AN ARTICLE, BEHIND ONE DOOR. Five actions -- create, update, publish,
-// unpublish, delete -- and one authorisation, taken once, at the top, from one function.
+// EVERYTHING THAT WRITES AN ARTICLE, BEHIND ONE DOOR. Six actions -- create, update, publish,
+// unpublish, delete, mine -- and one authorisation, taken once, at the top, from one function.
+//
+// 🔴 `mine` IS THE ONE ACTION THAT WRITES NOTHING, AND IT IS HERE RATHER THAN ON A PUBLIC ROUTE
+// FOR EXACTLY THAT REASON: it is the only door in the system through which a DRAFT is allowed
+// out, so it must be a door that already refuses everyone without a grant. It stands behind the
+// same resolveActor() as the five that write, and it answers with the caller's OWN work and
+// nobody else's -- `authorKey === actor.accountKey`, applied to every record, unconditionally.
+// An owner does not see an editor's drafts through it. That is decision B-8 read literally: a
+// draft is visible only to its writer, and "the owner may read anything" is not what it says.
+//
+// AND IT IS ALSO HOW A CLIENT LEARNS IT MAY WRITE AT ALL. There is no separate "what am I"
+// route, and there should not be: a route whose only job is to report a rank is an oracle, and
+// it would answer that question to anyone holding any session. `mine` answers it as a
+// side-effect of doing something useful -- 401 for a reader with no grant, and a list plus the
+// grant itself for a writer -- so the client can decide whether to draw a writing entry point
+// without a second round trip and without a second authorisation path to keep in step.
 //
 // 🔴 resolveActor() IS THE ONLY IDENTITY. It is called once per request and its answer is used
 // for the whole request. Nothing in the body names an account: no provider, no subject, no
@@ -48,9 +63,13 @@ import {
   unpublishArticle,
   deleteArticle,
   getArticleById,
+  listAllForEditor,
 } from '../lib/articles/store.js';
 
-export const ACTIONS = Object.freeze(['create', 'update', 'publish', 'unpublish', 'delete']);
+export const ACTIONS = Object.freeze(['create', 'update', 'publish', 'unpublish', 'delete', 'mine']);
+
+/** The most of her own pieces one `mine` call reads back per section. */
+export const MINE_PAGE = 50;
 
 /**
  * A store refusal -> a status code. Named explicitly rather than derived from the string, so a
@@ -98,9 +117,34 @@ export default async function handler(req, res) {
       return res.status(403).json({ ok: false, error: 'articles-forbidden-section' });
     }
     const out = await createArticle(
-      { section, title: body.title, body: body.body }, actor.accountKey);
+      { section, kind: body.kind, title: body.title, body: body.body }, actor.accountKey);
     if (!out.ok) return refuse(res, out.code);
     return res.status(200).json({ ok: true, article: out.record });
+  }
+
+  if (action === 'mine') {
+    // The sections asked for, intersected with the sections held. A named section this actor
+    // does not hold is a 403 on the same terms as create: nothing is hidden, the request named it.
+    const asked = typeof body.section === 'string' ? body.section : '';
+    if (asked && !actorMaySection(actor, asked)) {
+      return res.status(403).json({ ok: false, error: 'articles-forbidden-section' });
+    }
+    const sections = asked ? [asked] : actor.sections.slice();
+    const items = [];
+    for (const section of sections) {
+      const out = await listAllForEditor(section, { limit: MINE_PAGE });
+      // A store that would not answer is a 503 for the WHOLE call. A partial list presented as a
+      // complete one is how a writer concludes her draft was lost.
+      if (!out.ok) return refuse(res, out.code);
+      for (const record of out.items) {
+        if (record && record.authorKey === actor.accountKey) items.push(record);
+      }
+    }
+    // Newest first ACROSS sections, by the same instant the per-section index is scored on.
+    items.sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0));
+    return res.status(200).json({
+      ok: true, role: actor.role, sections: actor.sections, items,
+    });
   }
 
   // The four id-bearing actions. THE RECORD IS READ BEFORE ANYTHING IS DECIDED, because the
