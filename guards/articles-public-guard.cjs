@@ -35,6 +35,18 @@
 // Both are asserted against the ROUTES AS THEY RUN -- the real handlers, driven with real
 // request and response objects -- and not against a description of them.
 //
+// AND THE FOURTH PROPERTY, ADDED ON 2026-09-07 WITH THE DRAFT-PRIVACY RULE:
+//
+//   4. A DRAFT IS UNFINISHED PRIVATE WRITING AND IT BELONGS TO WHOEVER IS WRITING IT -- while a
+//      PUBLISHED piece stands under the app's name and the owner answers for it. The hinge is
+//      `status`, it is checked in lib/articles/store.js by actorMayWrite(), and the two halves it
+//      joins used to disagree: `mine` returned a writer only her own work while the four
+//      id-bearing write actions authorised on SECTION alone, so an owner could delete by id a
+//      draft that no door would admit existed. The cases below drive both directions through the
+//      real route -- an owner refused on an editor's draft, an owner obeyed on her published
+//      piece -- and prove the refusal is byte-identical to the answer for an article that is
+//      simply not there.
+//
 // AND THE THIRD PROPERTY, ADDED ON 2026-09-07 WITH THE EDITOR ROSTER:
 //
 //   3. A ROLE IS RESOLVED FROM THE BOARD ON EVERY SINGLE REQUEST AND IS NEVER REMEMBERED. Access
@@ -55,7 +67,7 @@
 // article ids alike, and the two id shapes that used to arrive by luck are now DEMANDED BY NAME
 // in the one case that exists for them. Nothing here waits for a coin to land.
 //
-// AND IT CANNOT PASS BY DOING NOTHING. TWENTY-TWO MUTANTS are compiled at the end from the same
+// AND IT CANNOT PASS BY DOING NOTHING. TWENTY-THREE MUTANTS are compiled at the end from the same
 // lifted source with one line changed each -- the draft filter removed from the list, the draft
 // filter removed from the by-slug read, the account key added to the public view, the default
 // role turned into `editor`, the owner check dropped from grantRole, an empty owner row read as
@@ -68,8 +80,9 @@
 // stretched word and its unstretched twin mint two URLs again, the body sanitiser removed from
 // the create path, the same sanitiser removed from the edit path, the sweep of bare angle
 // brackets dropped so an unterminated tag survives, the shape vocabulary opened so a caller
-// chooses the stored word, and `mine` stopped filtering to the acting account so one writer
-// reads another's drafts -- and every one of them must be KILLED by a named case above. A
+// chooses the stored word, `mine` stopped filtering to the acting account so one writer reads
+// another's drafts, and the status half of the write authorisation dropped so a section alone
+// reaches a draft again -- and every one of them must be KILLED by a named case above. A
 // guard that cannot go red proves nothing.
 //
 // R5 OF THE DIRECTIVE: NOTHING HERE CONNECTS TO A STORE. The @upstash/redis module is never
@@ -2135,6 +2148,227 @@ run('`mine` shows a writer HER OWN work and nobody else\'s -- not even to the ow
   return 'editor sees 1, owner sees 1, and they are different pieces';
 });
 
+/* -- A DRAFT BELONGS TO ITS WRITER; WHAT IS PUBLISHED BELONGS TO THE OWNER -------------------
+ *
+ * Item 20, stage two, part two. Until 2026-09-07 the four id-bearing actions authorised on
+ * SECTION alone while `mine` answered with the acting account's own work, so an owner could
+ * delete another writer's draft by id and could not be told by any door that it existed. The
+ * hinge is now `status`, checked in lib/articles/store.js by actorMayWrite(), and these cases
+ * drive it through the REAL route with the REAL store beneath it.
+ * ------------------------------------------------------------------------------------------ */
+
+run("a DRAFT is its writer's -- an OWNER can neither correct it, publish it nor delete it", async () => {
+  const { g, owner, editor } = await seeded();
+  const hers = await createAs(g, editor.session, 'articles', 'Her unfinished piece');
+
+  // THE OWNER REALLY DOES HOLD THE SECTION, and this asserts it rather than assuming it -- without
+  // this line the case would still pass if the fixture owner had quietly lost the grant, and it
+  // would then be measuring the section rule over again instead of the status rule.
+  const asOwner = await g.roles.resolveActor({ body: { session: owner.session } });
+  eq(asOwner.role, 'owner', 'the fixture owner did not resolve to owner');
+  eq(g.roles.actorMaySection(asOwner, 'articles'), true, 'the owner did not hold the section under test');
+
+  const statuses = [];
+  for (const [label, body] of [
+    ['update', { session: owner.session, action: 'update', id: hers.id, patch: { title: 'Rewritten by the owner' } }],
+    ['publish', { session: owner.session, action: 'publish', id: hers.id }],
+    ['delete', { session: owner.session, action: 'delete', id: hers.id }],
+  ]) {
+    const res = await callAdmin(g, body);
+    eq(res.statusCode, 404, 'the owner was not refused on ' + label);
+    eq(res.body, { ok: false, error: 'articles-not-found' }, 'the refusal body on ' + label);
+    statuses.push(label + '=' + res.statusCode);
+  }
+
+  // AND NOT ONE FIELD OF IT MOVED -- read off the store, not off the refusals.
+  const after = await g.articles.getArticleById(hers.id);
+  is(after !== null, 'the owner deleted the editor\'s draft');
+  eq(after.title, hers.title, 'the owner rewrote the editor\'s draft');
+  eq(after.status, 'draft', 'the owner published the editor\'s draft');
+  eq(after.authorKey, editor.accountKey, 'the record stopped naming its author');
+  return statuses.join(' ') + '; the draft is byte-for-byte where she left it';
+});
+
+run('PUBLISH is the hinge crossing, so only the AUTHOR can put her own writing into the world', async () => {
+  const { g, owner, editor } = await seeded();
+  const hers = await createAs(g, editor.session, 'articles', 'Hers to publish or not');
+
+  const byOwner = await callAdmin(g, { session: owner.session, action: 'publish', id: hers.id });
+  eq(byOwner.statusCode, 404, 'the owner published somebody else\'s unfinished writing');
+  eq((await g.articles.getArticleById(hers.id)).status, 'draft', 'the status after the owner tried');
+
+  const byHer = await callAdmin(g, { session: editor.session, action: 'publish', id: hers.id });
+  eq(byHer.statusCode, 200, 'the author could not publish her own draft');
+  eq((await g.articles.getArticleById(hers.id)).status, 'published', 'the status after she published');
+
+  // ...and it is public now, which is the whole meaning of the act she alone may perform.
+  const seen = await callGet(g, { slug: hers.slug });
+  eq(seen.statusCode, 200, 'the published piece was not reachable');
+  return 'owner -> 404 and still draft; author -> 200 and public';
+});
+
+run("a PUBLISHED piece stands under the app's NAME -- the owner may correct it, withdraw it, delete it", async () => {
+  const { g, owner, editor } = await seeded();
+  const one = await createAs(g, editor.session, 'articles', 'Her first piece');
+  const two = await createAs(g, editor.session, 'articles', 'Her second piece');
+  const three = await createAs(g, editor.session, 'articles', 'Her third piece');
+  // SHE publishes all three, because nobody else can -- which is the case above.
+  for (const a of [one, two, three]) {
+    const p = await callAdmin(g, { session: editor.session, action: 'publish', id: a.id });
+    eq(p.statusCode, 200, 'the fixture publish was refused');
+  }
+
+  const corrected = await callAdmin(g, {
+    session: owner.session, action: 'update', id: one.id, patch: { title: 'Corrected by the owner' },
+  });
+  eq(corrected.statusCode, 200, 'the owner could not correct a published piece');
+  const oneNow = await g.articles.getArticleById(one.id);
+  eq(oneNow.title, 'Corrected by the owner', 'the correction did not land');
+  // CORRECTING IS NOT CLAIMING. The record still names the person who wrote it, and the published
+  // URL does not move under a reader who already has it.
+  eq(oneNow.authorKey, editor.accountKey, 'the correction moved the authorship');
+  eq(oneNow.slug, one.slug, 'the correction moved the published URL');
+
+  const withdrawn = await callAdmin(g, { session: owner.session, action: 'unpublish', id: two.id });
+  eq(withdrawn.statusCode, 200, 'the owner could not withdraw a published piece');
+  eq((await callGet(g, { slug: two.slug })).statusCode, 404, 'the withdrawn piece was still public');
+
+  const deleted = await callAdmin(g, { session: owner.session, action: 'delete', id: three.id });
+  eq(deleted.statusCode, 200, 'the owner could not delete a published piece');
+  eq(await g.articles.getArticleById(three.id), null, 'the deleted piece survived');
+  return 'update 200 (author kept, slug kept), unpublish 200 -> public 404, delete 200';
+});
+
+run('WITHDRAWING HANDS THE PIECE BACK -- the owner who unpublished it can no longer edit or delete it', async () => {
+  const { g, owner, editor } = await seeded();
+  const hers = await createAs(g, editor.session, 'articles', 'Public, then not');
+  eq((await callAdmin(g, { session: editor.session, action: 'publish', id: hers.id })).statusCode, 200,
+    'the fixture publish was refused');
+
+  const withdrawn = await callAdmin(g, { session: owner.session, action: 'unpublish', id: hers.id });
+  eq(withdrawn.statusCode, 200, 'the owner could not withdraw it');
+  eq((await g.articles.getArticleById(hers.id)).status, 'draft', 'the status after withdrawal');
+
+  // THIS IS THE ONE PLACE THE RULE CAN TRAP A PERSON, AND IT IS PINNED HERE RATHER THAN LEFT TO BE
+  // DISCOVERED. The withdrawn piece is unfinished writing again, so it is HERS again, and the man
+  // who withdrew it a moment ago is now outside it. He keeps the power the rule exists to give
+  // him -- nothing of hers stands publicly without his leave, and he can withdraw it again the
+  // instant she republishes -- and he does not get the power to rewrite her writing in private.
+  for (const [label, body] of [
+    ['update', { session: owner.session, action: 'update', id: hers.id, patch: { title: 'Now let me fix it' } }],
+    ['delete', { session: owner.session, action: 'delete', id: hers.id }],
+    ['publish', { session: owner.session, action: 'publish', id: hers.id }],
+  ]) {
+    const res = await callAdmin(g, body);
+    eq(res.statusCode, 404, 'the owner still reached the withdrawn piece by ' + label);
+  }
+
+  // AND SHE CAN. The piece is not stranded; it is back in the hands it came from.
+  const her = await callAdmin(g, {
+    session: editor.session, action: 'update', id: hers.id, patch: { title: 'She fixed it herself' },
+  });
+  eq(her.statusCode, 200, 'the author could not edit her own withdrawn piece');
+  eq((await g.articles.getArticleById(hers.id)).title, 'She fixed it herself', 'her edit did not land');
+  return 'unpublish 200; owner update/delete/publish -> 404, 404, 404; author update -> 200';
+});
+
+run('an AUTHOR can do all four to her own draft, in the section she holds', async () => {
+  const { g, editor } = await seeded();
+  const a = await createAs(g, editor.session, 'articles', 'Entirely her own');
+
+  eq((await callAdmin(g, {
+    session: editor.session, action: 'update', id: a.id, patch: { title: 'Her own, corrected' },
+  })).statusCode, 200, 'update on her own draft');
+  eq((await callAdmin(g, { session: editor.session, action: 'publish', id: a.id })).statusCode, 200,
+    'publish on her own draft');
+  eq((await callAdmin(g, { session: editor.session, action: 'unpublish', id: a.id })).statusCode, 200,
+    'unpublish on her own piece');
+  eq((await callAdmin(g, { session: editor.session, action: 'delete', id: a.id })).statusCode, 200,
+    'delete on her own draft');
+  eq(await g.articles.getArticleById(a.id), null, 'her own delete did not take');
+  return 'update/publish/unpublish/delete all 200 for the author';
+});
+
+run('the refusal on somebody else\'s draft is BYTE-IDENTICAL to the one for an article that is not there',
+  async () => {
+    const { g, owner, editor } = await seeded();
+    const hers = await createAs(g, editor.session, 'articles', 'It exists and he must not learn so');
+
+    // The same actor, the same action, the same shape of id -- and the only difference is that one
+    // of these articles is real. ABSENT is the reference answer, because it is the answer that
+    // reveals nothing by definition.
+    const absentId = 'Zzzz9999Zzzz9999';
+    is(g.articles.safeArticleId(absentId) === absentId, 'the fabricated id is not a well-formed one');
+    is((await g.articles.getArticleById(absentId)) === null, 'the fabricated id names a real article');
+
+    const answers = [];
+    for (const action of ['update', 'publish', 'unpublish', 'delete']) {
+      const patch = action === 'update' ? { patch: { title: 'x' } } : {};
+      const real = await callAdmin(g, Object.assign({ session: owner.session, action, id: hers.id }, patch));
+      const absent = await callAdmin(g, Object.assign({ session: owner.session, action, id: absentId }, patch));
+      eq(real.statusCode, absent.statusCode, 'the STATUS differed on ' + action);
+      eq(real.body, absent.body, 'the BODY differed on ' + action);
+      answers.push(action + '=' + real.statusCode + ' ' + JSON.stringify(real.body));
+    }
+
+    // AND IDENTICAL TO THE CROSS-SECTION REFUSAL TOO -- the 404 an editor already gets for a piece
+    // in a section she does not hold. Three ways of being outside a record, one answer for all of
+    // them, so the answer carries no information about which way it was.
+    const outside = await createAs(g, owner.session, 'women', 'Where she may not go');
+    const cross = await callAdmin(g, { session: editor.session, action: 'publish', id: outside.id });
+    const own = await callAdmin(g, { session: owner.session, action: 'publish', id: hers.id });
+    eq(cross.statusCode, own.statusCode, 'the cross-section status differed from the not-your-draft one');
+    eq(cross.body, own.body, 'the cross-section body differed from the not-your-draft one');
+    return answers.join('; ') + '; cross-section identical';
+  });
+
+run('`mine` is unchanged, and the two rules now AGREE: what he cannot see he cannot destroy', async () => {
+  const { g, owner, editor } = await seeded();
+  const hers = await createAs(g, editor.session, 'articles', 'Hers alone');
+  const his = await createAs(g, owner.session, 'articles', 'His alone');
+
+  const ownerSees = await callAdmin(g, { session: owner.session, action: 'mine', section: 'articles' });
+  const editorSees = await callAdmin(g, { session: editor.session, action: 'mine', section: 'articles' });
+  eq(ownerSees.statusCode, 200, '`mine` refused the owner');
+  eq(editorSees.statusCode, 200, '`mine` refused the editor');
+  eq(ownerSees.body.items.map((i) => i.id), [his.id], 'the owner was shown work that is not his');
+  eq(editorSees.body.items.map((i) => i.id), [hers.id], 'the editor was shown work that is not hers');
+
+  // THE POINT OF THIS CASE, and the reason it stands here rather than inside the `mine` block: the
+  // SAME article is invisible through the reading door AND out of reach through every writing
+  // door, in both directions. Before this change those two doors disagreed.
+  for (const action of ['update', 'publish', 'delete']) {
+    const patch = action === 'update' ? { patch: { title: 'x' } } : {};
+    const res = await callAdmin(g, Object.assign({ session: owner.session, action, id: hers.id }, patch));
+    eq(res.statusCode, 404, 'the owner reached by id what `mine` would not show him: ' + action);
+    const back = await callAdmin(g, Object.assign({ session: editor.session, action, id: his.id }, patch));
+    eq(back.statusCode, 404, 'the editor reached by id what `mine` would not show her: ' + action);
+  }
+  return 'owner sees 1, editor sees 1; six cross-author writes, six 404s';
+});
+
+run('actorMayWrite() FAILS CLOSED on a status it does not recognise', async () => {
+  const { g, owner, editor } = await seeded();
+  const may = g.articles.actorMayWrite;
+  const hers = { status: 'draft', authorKey: editor.accountKey };
+  const published = { status: 'published', authorKey: editor.accountKey };
+
+  eq(may(hers, editor.accountKey), true, 'the author was locked out of her own draft');
+  eq(may(hers, owner.accountKey), false, 'a non-author reached a draft');
+  eq(may(published, owner.accountKey), true, 'a section-holder was locked out of a published piece');
+
+  // A record whose status is missing, empty, capitalised, spaced, or a word a later version
+  // writes is treated as PRIVATE WRITING. Only the exact stored word opens the section-only path.
+  for (const status of [undefined, null, '', 'Published', 'PUBLISHED', 'published ', 'archived', 'draft']) {
+    eq(may({ status, authorKey: editor.accountKey }, owner.accountKey), false,
+      'a non-author got through on status ' + JSON.stringify(status));
+  }
+  eq(may(null, editor.accountKey), false, 'a null record was writable');
+  eq(may(published, ''), false, 'an empty actor key was writable');
+  eq(may(published, 'not-an-account-key'), false, 'a malformed actor key was writable');
+  return 'author yes, non-author no, published yes; eight unrecognised statuses all refused';
+});
+
 run('an actor with no role is refused by the write endpoint, on every action including `mine`',
   async () => {
     const { g, stranger } = await seeded();
@@ -2278,6 +2512,17 @@ const MUTANTS = [
     file: 'api/articles-admin.js',
     from: '        if (record && record.authorKey === actor.accountKey) items.push(record);',
     to: '        if (record) items.push(record);',
+  },
+  {
+    // ITEM 20, STAGE TWO, PART TWO. THE STATUS HALF OF THE AUTHORISATION DROPPED, which restores
+    // exactly the rule the tree carried until 2026-09-07: SECTION ALONE. Every record then reads
+    // as public, so any holder of a section reaches every draft in it by id -- including the
+    // drafts `mine` refuses to show that same holder. It is the narrowest possible undo: the
+    // author comparison is still written on the line below and is simply never reached.
+    name: 'M23 the status half is dropped and authorisation goes back to the section alone',
+    file: 'lib/articles/store.js',
+    from: '  if (record.status === STATUS_PUBLISHED) return true;\n  return record.authorKey === actor;',
+    to: '  if (true) return true;\n  return record.authorKey === actor;',
   },
   {
     name: 'M1 the draft filter is removed from listSection',

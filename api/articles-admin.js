@@ -37,6 +37,18 @@
 // reach a piece in `women` by knowing its id. An owner holds every section, by
 // actorMaySection(), which is the one place that comparison is written.
 //
+// 🔴 AND THE SECTION IS ONLY HALF OF THE TEST. The other half is `status`, and it is checked in
+// lib/articles/store.js -- actorMayWrite() -- rather than on this page. A DRAFT may be updated,
+// published or deleted only by ITS AUTHOR, AN OWNER INCLUDED; a PUBLISHED piece stays open to
+// whoever holds its section, because the owner is answerable for what stands under the app's
+// name and must be able to correct it or withdraw it whoever wrote it. Both halves must hold.
+// The author half lives in the store for the reason the draft filter does: a future route must
+// not be able to leak by forgetting it, and the store already has the record in its hand. This
+// page keeps the section half, because that needs a grant the store knows nothing about.
+//
+// 🔴 THAT MAKES `mine` AND THE FOUR WRITE ACTIONS ONE RULE RATHER THAN TWO. Before it, an owner
+// could delete another writer's draft by id and could not be told by `mine` that it existed.
+//
 // 🔴 A MISSING ARTICLE AND A FORBIDDEN ONE ARE THE SAME ANSWER -- 404 for both. Returning 403 for
 // an article the actor may not touch would confirm that it exists, and a 404 for a real article
 // costs a legitimate editor nothing: an editor who may not see it has no use for the difference.
