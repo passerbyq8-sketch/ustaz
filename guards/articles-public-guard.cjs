@@ -55,7 +55,7 @@
 // article ids alike, and the two id shapes that used to arrive by luck are now DEMANDED BY NAME
 // in the one case that exists for them. Nothing here waits for a coin to land.
 //
-// AND IT CANNOT PASS BY DOING NOTHING. SIXTEEN MUTANTS are compiled at the end from the same
+// AND IT CANNOT PASS BY DOING NOTHING. SEVENTEEN MUTANTS are compiled at the end from the same
 // lifted source with one line changed each -- the draft filter removed from the list, the draft
 // filter removed from the by-slug read, the account key added to the public view, the default
 // role turned into `editor`, the owner check dropped from grantRole, an empty owner row read as
@@ -63,8 +63,9 @@
 // refusal removed, the verified-address check dropped, the editor row made to satisfy the OWNER
 // check, the resolved role cached across requests, an empty editor row read as "everybody", and
 // the roles door made to tell an editor apart from a stranger again, the id fallback stripped
-// of the prefix that makes it claimable, and slugify made to stop stripping combining marks so a
-// vowelled Arabic heading shatters into fragments again -- and every one of them must
+// of the prefix that makes it claimable, slugify made to stop stripping decoration so a vowelled
+// Arabic heading shatters into fragments again, and slugify made to keep the TATWEEL so a
+// stretched word and its unstretched twin mint two URLs again -- and every one of them must
 // be KILLED by a named case above. A guard that cannot go red proves nothing.
 //
 // R5 OF THE DIRECTIVE: NOTHING HERE CONNECTS TO A STORE. The @upstash/redis module is never
@@ -1477,31 +1478,154 @@ run('a harakah is decoration on a letter, not a boundary between two -- a vowell
   return 'U+' + HEX(VOWELLED) + '  ->  U+' + HEX(made.slug) + '  (was U+' + HEX(SIX_FRAGMENTS) + ')';
 });
 
-run('U+0640 tatweel never shattered a word and is not touched by the harakat fix', async () => {
-  // MEASURED, NOT ASSUMED, and the measurement is what decided the code. A tatweel is category
-  // Lm, so the letter class has always accepted it and it has NEVER produced a hyphen -- a
-  // stretched word slugs to one piece today exactly as it did before. Only a mark that SHATTERS
-  // a word is removed by slugify(); a decorative letter that shatters nothing is left where the
-  // writer put it. If a later change starts stripping tatweel, this case goes red and the
-  // decision gets taken again on purpose instead of by accident.
+/** A stretched word: three tatweels inside "sabr". */
+const STRETCHED = CP('0627 0644 0635 0640 0640 0640 0628 0631');
+/** The same word as anyone would type it, and what BOTH must now slug to. */
+const UNSTRETCHED = CP('0627 0644 0635 0628 0631');
+
+run('U+0640 tatweel is DECORATION and is stripped -- a stretched word and its bare twin mint ONE root', async () => {
+  // THIS CASE ASSERTED THE OPPOSITE UNTIL 2026-09-07, AND THAT IS THE POINT OF IT.
+  //
+  // The harakat fix removed combining marks and deliberately LEFT the tatweel, because the rule
+  // it was applying was "remove what SHATTERS a word" and a tatweel shatters nothing: it is
+  // category Lm, the letter class has always accepted it, and it has never produced a hyphen.
+  // That measurement still holds and is re-asserted below -- the tatweel is not being removed
+  // because it broke anything.
+  //
+  // It is removed because the RULE CHANGED, by the owner's decision, to "remove what is
+  // DECORATION". A writer stretches a word to fill a line; the reader sees one word either way.
+  // Left in, the two spellings below minted two different permanent URLs for one word.
   const { g, editor } = await seeded();
-  const STRETCHED = CP('0627 0644 0635 0640 0640 0640 0628 0631');
-  const UNSTRETCHED = CP('0627 0644 0635 0628 0631');
 
-  is(/\p{L}/u.test(CP('0640')), 'U+0640 stopped being a letter, so the reasoning above no longer holds');
-  is(!/\p{Mn}/u.test(CP('0640')), 'U+0640 is now Mn, so the mark stripper would swallow it');
+  // The measurement that decided the old behaviour, still true -- so this is a decision that was
+  // taken, not a category that moved under it.
+  is(/\p{L}/u.test(CP('0640')), 'U+0640 stopped being a letter');
+  is(/\p{Lm}/u.test(CP('0640')), 'U+0640 stopped being a modifier letter');
+  is(!/\p{Mn}/u.test(CP('0640')), 'U+0640 became Mn, so the harakat stripper would have taken it anyway');
 
-  eq(g.articles.slugify(STRETCHED), STRETCHED, 'the tatweel did not survive into the slug');
-  eq(g.articles.slugify(STRETCHED).indexOf('-'), -1, 'the tatweel produced a hyphen');
+  eq(g.articles.slugify(STRETCHED), UNSTRETCHED, 'the tatweel survived into the slug');
+  eq(g.articles.slugify(STRETCHED).indexOf(CP('0640')), -1, 'a tatweel is still in the slug');
+  eq(g.articles.slugify(STRETCHED).indexOf('-'), -1, 'the tatweel produced a hyphen -- it must be DELETED, not separated');
   eq(g.articles.slugify(STRETCHED).split('-').length, 1, 'the stretched word is no longer one piece');
-  is(g.articles.slugify(STRETCHED) !== g.articles.slugify(UNSTRETCHED),
-    'the tatweel is being stripped -- that is a URL change this fix did not make');
+  eq(g.articles.slugify(STRETCHED), g.articles.slugify(UNSTRETCHED),
+    'the stretched title and the bare title still take different roots -- two URLs for one word');
 
+  // A tatweel at the edges of a word, and a run of them, reach the same root.
+  for (const shape of [CP('0640') + UNSTRETCHED, UNSTRETCHED + CP('0640'),
+                       CP('0640 0640') + UNSTRETCHED + CP('0640 0640')]) {
+    eq(g.articles.slugify(shape), UNSTRETCHED, 'a tatweel at a word edge did not vanish: U+' + HEX(shape));
+  }
+
+  // And it survives the whole path: create, publish, read back by URL -- with the TITLE intact.
   const made = await createAs(g, editor.session, 'articles', STRETCHED);
-  eq(made.slug, STRETCHED, 'the stored slug dropped or moved the tatweel');
+  eq(made.slug, UNSTRETCHED, 'the stored slug kept the tatweel');
+  eq(made.title, STRETCHED, 'the stored TITLE lost its tatweels -- only the slug may drop them');
   await callAdmin(g, { session: editor.session, action: 'publish', id: made.id });
-  eq((await callGet(g, { slug: made.slug })).statusCode, 200, 'a tatweel slug did not resolve');
-  return 'U+' + HEX(STRETCHED) + '  ->  U+' + HEX(made.slug) + '  (one piece, tatweel kept)';
+  const res = await callGet(g, { slug: made.slug });
+  eq(res.statusCode, 200, 'the unstretched slug did not resolve');
+  eq(res.body.article.slug, UNSTRETCHED, 'the slug resolved to a different article');
+  eq(res.body.article.title, STRETCHED, 'the served title lost its tatweels');
+  return 'U+' + HEX(STRETCHED) + '  ->  U+' + HEX(made.slug) + '  (tatweel deleted, one piece)';
+});
+
+run('a stretched title and its unstretched twin collide, and the collision is absorbed by the -2 path', async () => {
+  // THE COST OF THE TATWEEL FIX, PAID DELIBERATELY, AND THE SAME COST THE HARAKAT FIX PAID: two
+  // spellings that used to want two URLs now want one. That is not a new failure mode -- it is
+  // the ordinary same-title collision claimSlug() has always handled NX -- and this case proves
+  // the second article reaches the -2 sibling rather than an error, and that each of the two
+  // opens ITS OWN writing.
+  const { g, editor } = await seeded();
+
+  const a = await createAs(g, editor.session, 'articles', STRETCHED, 'stretched');
+  const b = await createAs(g, editor.session, 'articles', UNSTRETCHED, 'bare');
+
+  eq(a.slug, UNSTRETCHED, 'the stretched title did not take the bare root');
+  eq(b.slug, UNSTRETCHED + '-2', 'the bare twin did not take the -2 sibling');
+  eq(new Set([a.slug, b.slug]).size, 2, 'two titles produced fewer than two slugs');
+  eq(new Set([a.id, b.id]).size, 2, 'two creates produced fewer than two articles');
+
+  for (const made of [a, b]) {
+    await callAdmin(g, { session: editor.session, action: 'publish', id: made.id });
+    const res = await callGet(g, { slug: made.slug });
+    eq(res.statusCode, 200, 'a sibling slug did not resolve: ' + HEX(made.slug));
+    eq(res.body.article.slug, made.slug, 'a sibling slug resolved to a different slug');
+    eq(res.body.article.body, made.body, 'a sibling slug resolved to a different article');
+    eq(res.body.article.title, made.title, 'a sibling slug resolved to a different title');
+  }
+  eq([a.body, b.body], ['stretched', 'bare'], 'the two articles are not two distinct pieces of writing');
+  return 'U+' + HEX(a.slug) + ' / +"-2", each resolving to its own article';
+});
+
+run('a tatweel BETWEEN two words still yields two words -- the hyphen comes from the SPACE', async () => {
+  // The harakat report measured that the hyphen in a two-word title comes from the SPACE and
+  // never from the tatweel. Deleting the tatweel must not change that, in either direction: the
+  // two words must stay two, and a tatweel with no space beside it must still fuse nothing.
+  const { g, editor } = await seeded();
+  const JAMIL = CP('062C 0645 064A 0644');
+  const BOTH_WORDS = UNSTRETCHED + '-' + JAMIL;
+
+  const shapes = [
+    ['a tatweel then the space', UNSTRETCHED + CP('0640') + ' ' + JAMIL],
+    ['the space then a tatweel', UNSTRETCHED + ' ' + CP('0640') + JAMIL],
+    ['a tatweel on both sides',  UNSTRETCHED + CP('0640') + ' ' + CP('0640') + JAMIL],
+    ['a tatweel ALONE between',  UNSTRETCHED + ' ' + CP('0640') + ' ' + JAMIL],
+    ['a run of five between',    UNSTRETCHED + ' ' + CP('0640 0640 0640 0640 0640') + ' ' + JAMIL],
+  ];
+  for (const [label, title] of shapes) {
+    eq(g.articles.slugify(title), BOTH_WORDS, 'not two words: ' + label);
+    eq(g.articles.slugify(title).split('-').length, 2, 'not two hyphen-separated pieces: ' + label);
+  }
+
+  // THE CONTROL THAT PROVES IT IS THE SPACE. Take the space away and leave the tatweel: the two
+  // words fuse into ONE piece. A tatweel has never been a boundary and is not one now -- it is
+  // simply gone.
+  const NO_SPACE = UNSTRETCHED + CP('0640') + JAMIL;
+  eq(g.articles.slugify(NO_SPACE), UNSTRETCHED + JAMIL, 'the tatweel between two words acted as a boundary');
+  eq(g.articles.slugify(NO_SPACE).split('-').length, 1, 'a tatweel with no space beside it produced a hyphen');
+  // ...and the plain two-word title, with no tatweel anywhere, is the same two words.
+  eq(g.articles.slugify(UNSTRETCHED + ' ' + JAMIL), BOTH_WORDS, 'the plain two-word title moved');
+
+  const made = await createAs(g, editor.session, 'articles', shapes[0][1]);
+  eq(made.slug, BOTH_WORDS, 'the stored slug for a tatweelled two-word title');
+  await callAdmin(g, { session: editor.session, action: 'publish', id: made.id });
+  eq((await callGet(g, { slug: made.slug })).statusCode, 200, 'the two-word slug did not resolve');
+  return 'U+' + HEX(shapes[3][1]) + '  ->  U+' + HEX(made.slug) + '  (2 pieces; without the space, 1)';
+});
+
+run('a title made ENTIRELY of tatweels empties, falls back to the id, and still creates', async () => {
+  // THE ONE SHAPE THIS FIX CAN NEWLY EMPTY. Before it, a row of tatweels was a row of letters and
+  // slugged to itself; after it there is nothing left, and slugify() returns ''. That path is
+  // exactly the one the 2026-09-07 fallback fix built for punctuation-only titles, so this case
+  // drives it with the SAME three id shapes that case names -- one safeSlug() takes as given, one
+  // beginning '-', one beginning '_' -- because an all-tatweel title must not be refused for the
+  // shape of an id it was handed.
+  const SAFE_ID = 'VGF0d2VlbDEyMzQ1';
+  const HYPHEN_ID = '-atweelTWO123456';
+  const UNDER_ID = '_atweelTHREE1234';
+  const forced = [SAFE_ID, HYPHEN_ID, UNDER_ID];
+  const { g, editor } = await seeded({ graph: { articleIds: forced } });
+
+  const ALL_TATWEEL = CP('0640 0640 0640 0640 0640');
+  eq(g.articles.slugify(ALL_TATWEEL), '', 'an all-tatweel title still slugifies to something');
+  eq(g.articles.slugify(CP('0640')), '', 'a single tatweel still slugifies to something');
+  eq(g.articles.slugify(CP('0640') + ' ' + CP('0640')), '', 'two spaced tatweels still slugify to something');
+
+  const made = [];
+  for (const wanted of forced) {
+    const article = await createAs(g, editor.session, 'articles', ALL_TATWEEL);
+    eq(article.id, wanted, 'the forced id did not reach newArticleId');
+    is(article.slug.length > 0, 'an all-tatweel title produced an empty slug');
+    eq(article.slug, wanted === SAFE_ID ? wanted : 'a' + wanted, 'the fallback slug for ' + wanted);
+    eq(article.title, ALL_TATWEEL, 'the stored TITLE was emptied -- only the slug may be');
+    await callAdmin(g, { session: editor.session, action: 'publish', id: article.id });
+    const res = await callGet(g, { slug: article.slug });
+    eq(res.statusCode, 200, 'an all-tatweel fallback slug did not resolve: ' + article.slug);
+    eq(res.body.article.title, ALL_TATWEEL, 'the served title is not the all-tatweel title');
+    made.push(article.slug);
+  }
+  eq(new Set(made).size, made.length, 'two all-tatweel articles collided on one slug');
+  eq(g.forcedIdsLeft(), 0, 'a forced id was never drawn, so one of the shapes above went untested');
+  return '3 id shapes, all claimable from an empty slug: ' + made.join(' / ');
 });
 
 run('two titles differing ONLY by diacritics collide, and the collision is absorbed by the -2 path rather than raised', async () => {
@@ -1845,15 +1969,25 @@ const MUTANTS = [
     to: 'function fallbackSlug(id) { return id; }',
   },
   {
-    // THE HARAKAT FIX UNDONE, 2026-09-07. Without the mark stripper every diacritic is a
-    // non-letter again, so slugify() cuts a vowelled Arabic word into pieces in the middle of
-    // itself and the D-4 title goes back to being six fragments of two words. This is the mutant
-    // that was ALIVE in the tree until this date, and it is killed by the harakat case, the
-    // collision case, and the tatweel case above.
-    name: 'M16 slugify stops stripping combining marks',
+    // THE HARAKAT FIX UNDONE, 2026-09-07. Without the stripper every diacritic is a non-letter
+    // again, so slugify() cuts a vowelled Arabic word into pieces in the middle of itself and
+    // the D-4 title goes back to being six fragments of two words. This is the mutant that was
+    // ALIVE in the tree until this date, and it is killed by the harakat case, the collision
+    // case, and the tatweel cases above.
+    name: 'M16 slugify stops stripping decoration altogether',
     file: 'lib/articles/store.js',
-    from: "    .trim().toLowerCase().replace(COMBINING_MARKS, '');",
+    from: "    .trim().toLowerCase().replace(DECORATION, '');",
     to: '    .trim().toLowerCase();',
+  },
+  {
+    // THE TATWEEL FIX UNDONE, 2026-09-07, AND ONLY THE TATWEEL HALF OF IT. The marks still go, so
+    // every harakat case above stays green and cannot be what kills this; what comes back is the
+    // stretched word minting a URL of its own, which is the defect this day's change exists for.
+    // The narrowest possible undo, so the cases that bite it have to be the tatweel cases.
+    name: 'M17 slugify keeps the tatweel again',
+    file: 'lib/articles/store.js',
+    from: 'const DECORATION = /[\\p{Mn}\\u0640]+/gu;',
+    to: 'const DECORATION = /[\\p{Mn}]+/gu;',
   },
   {
     // D-5 undone: the roles door goes back to answering an editor differently from a stranger,
