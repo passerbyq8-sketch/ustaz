@@ -1672,8 +1672,13 @@ if (qLifted) {
   // The whole app asks for a position exactly once, and it is this one.
   eq('108-a: the application calls getCurrentPosition exactly once',
     (SRC.match(/getCurrentPosition\(/g) || []).length, 1);
+  // RE-PINNED 2026-09-07, ASSERTION KEPT -- the same move this file already made once for the
+  // mushaf's exit (see the note in section H). The sheet's visible back was a direct
+  // setPrayerOpen(false); it is now ezikGoBack, because the sheet registers a back layer and a
+  // layer's visible way out has to SPEND the history entry the layer pushed. What this case
+  // claims is unchanged: the sheet opens from the home, over the home, and adds no route.
   ok('108-a: it opens from the home, over the home, without adding a route',
-    /if \(prayerOpen\) return <PrayerSheet onClose=\{\(\) => setPrayerOpen\(false\)\} \/>;/.test(SRC)
+    /if \(prayerOpen\) return <PrayerSheet onClose=\{ezikGoBack\} \/>;/.test(SRC)
     && SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("screen === 'qibla'") === -1);
   ok('108-a: ...and it is reached from a tile in the home\'s own module array',
     /\{ id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v\.onOpenPrayer,   meta: null \}/.test(SRC));

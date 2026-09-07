@@ -5466,10 +5466,16 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
   // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
   const [prayerOpen, setPrayerOpen] = useState(false);
+  // NIGHT RUN F1 -- THE SHEET REGISTERS ITS LAYER, like every other layer in this file. Without
+  // this line the sheet owned no history entry, so a hardware back press inside it resolved
+  // against `screen` -- still 'home' -- and ezikBackDestination sent the reader to the chat: ONE
+  // press closed the sheet AND left the home screen. It is still not a route; a layer is not a
+  // screen, and registering one gives it the single entry it was missing.
+  useEzikBackLayer(prayerOpen, () => setPrayerOpen(false));
   // ITEM 20: which articles section is open over the home, or null. It is not a route either --
-  // the screen inventory is a cross-file contract, see the note above PrayerSheet -- but UNLIKE
-  // the prayer sheet it registers a back layer, so it owns one real history entry while it is
-  // open and the device button closes IT rather than leaving the home screen underneath it.
+  // the screen inventory is a cross-file contract, see the note above PrayerSheet -- and LIKE
+  // the prayer sheet above it registers a back layer, so it owns one real history entry while it
+  // is open and the device button closes IT rather than leaving the home screen underneath it.
   const [artSection, setArtSection] = useState(null);
   useEzikBackLayer(!!artSection, () => setArtSection(null));
   // THE ARRANGEMENT IS THE OWNER'S, read from the device once on mount exactly as the wird and
@@ -5480,6 +5486,11 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // key, exactly as the prayer sheet above does and for the same reason -- the screen inventory is
   // a cross-file contract and a fourth route would move a document this batch does not own.
   const [arrangeOpen, setArrangeOpen] = useState(false);
+  // NIGHT RUN F1 -- and so does the arrange panel, for the identical reason and through the
+  // identical hook. Registration order is the order the layers were OPENED in, not the order
+  // these three lines sit in: the effect's dependency list is the boolean alone, so nothing is
+  // pushed while a panel is shut and the deepest entry is always the one opened last.
+  useEzikBackLayer(arrangeOpen, () => setArrangeOpen(false));
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -5516,7 +5527,12 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     widgets: widgets,
     onWidgets: setWidgets,
     arrangeOpen: arrangeOpen,
-    onArrange: setArrangeOpen,
+    // NIGHT RUN F1: the toggle still calls onArrange(!arrangeOpen) and is not edited -- what it
+    // is handed changed. CLOSING now spends the layer's history entry through the same pop the
+    // device button makes, and the closer registered above is what actually clears the state
+    // afterwards. ezikHistBack() answers false only when this app owns nothing on the stack, and
+    // then there is no entry to spend and the panel simply closes -- closeDrawerWith exactly.
+    onArrange: (next) => { if (!next && ezikHistBack()) return; setArrangeOpen(next); },
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
   // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
@@ -5534,7 +5550,11 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // for it. The layout key is still read above and still stored: a device that saved "deck"
   // keeps "deck", is not migrated, and sees the deck again the moment it selects qibla_13.
   // qibla_13 is untouched by this batch and still chooses between the two components below.
-  if (prayerOpen) return <PrayerSheet onClose={() => setPrayerOpen(false)} />;
+  // NIGHT RUN F1: the visible back spends the layer's entry instead of dropping it, which is the
+  // rule closeDrawerWith records -- an entry closed without a pop is an entry left on the stack
+  // for a later press to spend on nothing. Same door as the device button, same resolver. The
+  // sheet itself is untouched: it is handed a different function under the same prop name.
+  if (prayerOpen) return <PrayerSheet onClose={ezikGoBack} />;
   // ITEM 20. ONE component for both sections -- the section key and its title are all that
   // differs, and two components would be two places for the empty state, the failure state and
   // the writing door to drift apart. The back control presses ezikGoBack, so the visible button

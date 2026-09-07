@@ -662,7 +662,15 @@ const SEALED = {
   //                    table and the SW_PROSE mirror below both followed, and THIS digest is
   //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
   //                    the same store.
-  'sw.js': '1170d0dc275cd8c993ee33c094f1d1738d2837dff1588974476eccf9ef3a2000',
+  // THE TWO UNREGISTERED BACK LAYERS (2026-09-07, feat/night-run-20260907, phase 1).
+  //                    NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. The prayer sheet
+  //                    and the arrange panel each register a back layer now, and each visible
+  //                    way out of them spends the entry that registration pushes; app.js
+  //                    followed 1306083 -> 1307875 (+1792) and CORE_BYTES 2148930 -> 2150722
+  //                    is exactly that delta. The worker byte table and the SW_PROSE mirror
+  //                    below both followed, and THIS digest is re-cut last. CACHE is NOT
+  //                    bumped: install rewrites every CORE entry into the same store.
+  'sw.js': '65d03f72970dc83cde48d089d90845ff49f1a6540d6febef3a281015a371ab3f',
 };
 
 // ---------------------------------------------------------------------------
@@ -1773,7 +1781,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1306083, of: 'app.js' },
+      { n: 1307875, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

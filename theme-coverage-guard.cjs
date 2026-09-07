@@ -4949,5 +4949,78 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     'a file:line citation came back into the shipped client; name the symbol instead');
 }
 
+
+/* ===== NIGHT-F1. THE TWO LAYERS THAT NEVER REGISTERED (night run 2026-09-07) ==
+ * THE DEFECT. Home held prayerOpen and arrangeOpen as plain state. Neither called
+ * useEzikBackLayer, so neither owned a history entry and neither was ever in the registry -- and
+ * a hardware back press inside either therefore resolved against the SCREEN, which is still
+ * 'home'. goEzikBack found an empty registry, fell through to the destination table, and ONE
+ * press closed the panel AND left the home screen.
+ *
+ * WHY THERE IS A RUNTIME HALF AS WELL AS A SOURCE HALF. A pin on the two call sites proves the
+ * lines exist; it does not prove what a press DOES, and the property asked for is about a press.
+ * So the shipped registry and the shipped resolver are driven directly, in the same evaluated
+ * context section G reads -- no component is mounted, and neither is re-typed here. The DEFECT
+ * is reproduced FIRST, so the passing case is read against a case that genuinely fails rather
+ * than against nothing at all.
+ *
+ * AND THE RUNTIME HALF IS ANCHORED ON THE SOURCE HALF, for the reason section 106-b records at
+ * the top of this file: the registry and the resolver are shared machinery and would answer the
+ * same way whether or not these two panels ever joined them. Cutting each registration out of
+ * the shipped source and passing it to okOn() as an anchor is what stops these cases going quiet
+ * exactly when the thing they guard has been removed.
+ */
+{
+  const PRAYER_REG = (/useEzikBackLayer\(prayerOpen, \(\) => setPrayerOpen\(false\)\);/.exec(html) || [''])[0];
+  const ARRANGE_REG = (/useEzikBackLayer\(arrangeOpen, \(\) => setArrangeOpen\(false\)\);/.exec(html) || [''])[0];
+  const ANCHORS = [['the prayer sheet registration', PRAYER_REG], ['the arrange panel registration', ARRANGE_REG]];
+
+  ok('NIGHT-F1: the prayer sheet registers a back layer, like every other layer in the file',
+    PRAYER_REG.length > 0);
+  ok('NIGHT-F1: ...and its visible back SPENDS that entry rather than dropping it',
+    /if \(prayerOpen\) return <PrayerSheet onClose=\{ezikGoBack\} \/>;/.test(html)
+    && !/onClose=\{\(\) => setPrayerOpen\(false\)\}/.test(html),
+    'a layer closed without a pop leaves its entry on the stack for a later press to spend');
+  ok('NIGHT-F1: the arrange panel registers a back layer through the same hook',
+    ARRANGE_REG.length > 0);
+  ok('NIGHT-F1: ...and its toggle spends the entry when it CLOSES, the panel itself untouched',
+    /onArrange: \(next\) => \{ if \(!next && ezikHistBack\(\)\) return; setArrangeOpen\(next\); \},/.test(html)
+    && /onClick=\{\(\) => onArrange\(!arrangeOpen\)\}/.test(html));
+
+  const layers = evalIn('ezikBackLayers');
+  okOn('NIGHT-F1: the shipped registry is reachable and starts empty', ANCHORS,
+    Array.isArray(layers) && layers.length === 0);
+
+  // THE PRESS AS IT RESOLVED BEFORE TONIGHT. Nothing registered, so the resolver answers false,
+  // goEzikBack falls through to the destination table -- and on 'home' that table says 'chat'.
+  // That is the reader leaving the home screen on the press that was meant to close a panel.
+  okOn('NIGHT-F1: with NO layer registered a press on home falls through to the chat -- the defect',
+    ANCHORS,
+    evalIn('ezikCloseDeepestLayer()') === false
+    && evalIn("ezikBackTarget('home', null)") === 'chat');
+
+  // THE PRESS AS IT RESOLVES NOW, once for each panel. What is pushed is exactly what the
+  // matching registration above hands the hook: a closer that peels one level off that panel and
+  // nothing more. A registry entry that ANSWERS is what stops goEzikBack ever consulting the
+  // destination table, and that is the whole of "and leaves the reader on home".
+  for (const [panel, reg] of [['prayerOpen', PRAYER_REG], ['arrangeOpen', ARRANGE_REG]]) {
+    let open = true;
+    let calls = 0;
+    layers.push(() => { calls++; open = false; });
+    const handled = evalIn('ezikCloseDeepestLayer()');
+    okOn('NIGHT-F1: one press closes ' + panel + ' -- and is ANSWERED, so home is never left',
+      [[panel + ' registers a layer', reg]],
+      handled === true && calls === 1 && open === false,
+      'handled=' + handled + ' calls=' + calls + ' open=' + open);
+    layers.length = 0;
+  }
+
+  // AND A CLOSED PANEL CANNOT ANSWER A LATER PRESS. The hook's cleanup removes the entry by
+  // identity when the boolean goes false, so the registry is empty again and the next press
+  // resolves exactly as it did before the panel was ever opened.
+  okOn('NIGHT-F1: a closed panel answers nothing, so the screen table resumes', ANCHORS,
+    layers.length === 0 && evalIn('ezikCloseDeepestLayer()') === false);
+}
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
