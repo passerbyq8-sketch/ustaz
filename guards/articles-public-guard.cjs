@@ -55,15 +55,16 @@
 // article ids alike, and the two id shapes that used to arrive by luck are now DEMANDED BY NAME
 // in the one case that exists for them. Nothing here waits for a coin to land.
 //
-// AND IT CANNOT PASS BY DOING NOTHING. FIFTEEN MUTANTS are compiled at the end from the same
+// AND IT CANNOT PASS BY DOING NOTHING. SIXTEEN MUTANTS are compiled at the end from the same
 // lifted source with one line changed each -- the draft filter removed from the list, the draft
 // filter removed from the by-slug read, the account key added to the public view, the default
 // role turned into `editor`, the owner check dropped from grantRole, an empty owner row read as
 // "everybody", the slug claim made to overwrite, the revoke made to not delete, the root-grant
 // refusal removed, the verified-address check dropped, the editor row made to satisfy the OWNER
 // check, the resolved role cached across requests, an empty editor row read as "everybody", and
-// the roles door made to tell an editor apart from a stranger again, and the id fallback stripped
-// of the prefix that makes it claimable -- and every one of them must
+// the roles door made to tell an editor apart from a stranger again, the id fallback stripped
+// of the prefix that makes it claimable, and slugify made to stop stripping combining marks so a
+// vowelled Arabic heading shatters into fragments again -- and every one of them must
 // be KILLED by a named case above. A guard that cannot go red proves nothing.
 //
 // R5 OF THE DIRECTIVE: NOTHING HERE CONNECTS TO A STORE. The @upstash/redis module is never
@@ -1428,6 +1429,140 @@ run('a title that slugifies to nothing gets a claimable slug FOR EVERY SHAPE OF 
   return '3 named id shapes + 1 drawn, all claimable: ' + made.join(' / ') + ' / ' + ordinary.slug;
 });
 
+/**
+ * ARABIC IS WRITTEN HERE AS ESCAPED CODE POINTS, AND THAT IS NOT FUSSINESS.
+ *
+ * The four cases below turn on characters that are INVISIBLE beside the letter they sit on -- a
+ * fatha, a sukun, a tatweel. A raw literal carrying one can lose it to an editor, a paste, a
+ * normalising tool or a file round trip, and the case would go on looking exactly right while
+ * testing a different string from the one it names. Spelled in hex, what is under test is on the
+ * page, and a dropped mark is a syntax-visible change rather than a silent one.
+ */
+const CP = (hex) => hex.trim().split(/\s+/).map((h) => String.fromCodePoint(parseInt(h, 16))).join('');
+const HEX = (s) => [...s].map((c) => c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')).join(' ');
+
+/** The D-4 title -- "patience is beautiful", vowelled the way this app's two writers vowel a heading. */
+const VOWELLED = CP('0627 0644 0635 0651 064E 0628 0652 0631 064F 0020 062C 064E 0645 0650 064A 0644 064C');
+/** The same two words with no marks at all. */
+const BARE = CP('0627 0644 0635 0628 0631 0020 062C 0645 064A 0644');
+/** What both must now slug to: two words, one hyphen. */
+const TWO_WORDS = CP('0627 0644 0635 0628 0631') + '-' + CP('062C 0645 064A 0644');
+/** What the vowelled title used to slug to, until 2026-09-07: six fragments of two words. */
+const SIX_FRAGMENTS = CP('0627 0644 0635') + '-' + CP('0628') + '-' + CP('0631') + '-'
+  + CP('062C') + '-' + CP('0645') + '-' + CP('064A 0644');
+
+run('a harakah is decoration on a letter, not a boundary between two -- a vowelled title slugs to WHOLE WORDS', async () => {
+  // THE DEFECT THIS CASE OWNS. A harakah is Unicode category Mn, which is not a letter, so
+  // slugify()'s "anything that is not a letter or a digit becomes a hyphen" rule used to cut a
+  // vowelled word apart IN THE MIDDLE OF ITSELF. Two words came out as six fragments, and the
+  // URL of every article this app's owner and his wife are about to write would have carried it.
+  const { g, editor } = await seeded();
+
+  eq(g.articles.slugify(VOWELLED), TWO_WORDS, 'the vowelled title did not slug to two whole words');
+  is(g.articles.slugify(VOWELLED) !== SIX_FRAGMENTS, 'the vowelled title still shatters into six fragments');
+  eq(g.articles.slugify(VOWELLED).split('-').length, 2, 'the vowelled slug is not two hyphen-separated pieces');
+
+  // The mark is REMOVED, not separated: the vowelled title and its bare twin reach the same root.
+  eq(g.articles.slugify(VOWELLED), g.articles.slugify(BARE), 'the vowelled title and the bare title took different roots');
+
+  // And it survives the whole path, not just the function: create, publish, read back by URL.
+  const made = await createAs(g, editor.session, 'articles', VOWELLED);
+  eq(made.slug, TWO_WORDS, 'the stored slug is not the two-word slug');
+  eq(made.title, VOWELLED, 'the stored TITLE lost its marks -- only the slug may drop them');
+  await callAdmin(g, { session: editor.session, action: 'publish', id: made.id });
+  const res = await callGet(g, { slug: made.slug });
+  eq(res.statusCode, 200, 'the two-word slug did not resolve');
+  eq(res.body.article.slug, TWO_WORDS, 'the slug resolved to a different article');
+  eq(res.body.article.title, VOWELLED, 'the served title lost its marks');
+  return 'U+' + HEX(VOWELLED) + '  ->  U+' + HEX(made.slug) + '  (was U+' + HEX(SIX_FRAGMENTS) + ')';
+});
+
+run('U+0640 tatweel never shattered a word and is not touched by the harakat fix', async () => {
+  // MEASURED, NOT ASSUMED, and the measurement is what decided the code. A tatweel is category
+  // Lm, so the letter class has always accepted it and it has NEVER produced a hyphen -- a
+  // stretched word slugs to one piece today exactly as it did before. Only a mark that SHATTERS
+  // a word is removed by slugify(); a decorative letter that shatters nothing is left where the
+  // writer put it. If a later change starts stripping tatweel, this case goes red and the
+  // decision gets taken again on purpose instead of by accident.
+  const { g, editor } = await seeded();
+  const STRETCHED = CP('0627 0644 0635 0640 0640 0640 0628 0631');
+  const UNSTRETCHED = CP('0627 0644 0635 0628 0631');
+
+  is(/\p{L}/u.test(CP('0640')), 'U+0640 stopped being a letter, so the reasoning above no longer holds');
+  is(!/\p{Mn}/u.test(CP('0640')), 'U+0640 is now Mn, so the mark stripper would swallow it');
+
+  eq(g.articles.slugify(STRETCHED), STRETCHED, 'the tatweel did not survive into the slug');
+  eq(g.articles.slugify(STRETCHED).indexOf('-'), -1, 'the tatweel produced a hyphen');
+  eq(g.articles.slugify(STRETCHED).split('-').length, 1, 'the stretched word is no longer one piece');
+  is(g.articles.slugify(STRETCHED) !== g.articles.slugify(UNSTRETCHED),
+    'the tatweel is being stripped -- that is a URL change this fix did not make');
+
+  const made = await createAs(g, editor.session, 'articles', STRETCHED);
+  eq(made.slug, STRETCHED, 'the stored slug dropped or moved the tatweel');
+  await callAdmin(g, { session: editor.session, action: 'publish', id: made.id });
+  eq((await callGet(g, { slug: made.slug })).statusCode, 200, 'a tatweel slug did not resolve');
+  return 'U+' + HEX(STRETCHED) + '  ->  U+' + HEX(made.slug) + '  (one piece, tatweel kept)';
+});
+
+run('two titles differing ONLY by diacritics collide, and the collision is absorbed by the -2 path rather than raised', async () => {
+  // THE COST OF THE FIX, PAID DELIBERATELY AND PINNED HERE. Removing the marks means a vowelled
+  // heading and its bare twin now want the SAME slug. That is not a new failure mode -- it is
+  // the ordinary same-title collision claimSlug() has always handled NX -- and this case proves
+  // it is reached rather than an error: three spellings of one phrase get a slug, a -2 and a -3,
+  // and each one still opens ITS OWN article.
+  const { g, editor } = await seeded();
+  const THIRD = CP('0627 0644 0635 0651 0628 0631 0020 062C 0645 0650 064A 0644');
+
+  const a = await createAs(g, editor.session, 'articles', VOWELLED, 'first');
+  const b = await createAs(g, editor.session, 'articles', BARE, 'second');
+  const c = await createAs(g, editor.session, 'articles', THIRD, 'third');
+
+  eq(a.slug, TWO_WORDS, 'the first article did not take the two-word root');
+  eq(b.slug, TWO_WORDS + '-2', 'the bare twin did not take the -2 sibling');
+  eq(c.slug, TWO_WORDS + '-3', 'the third vowelling did not take the -3 sibling');
+  eq(new Set([a.slug, b.slug, c.slug]).size, 3, 'three titles produced fewer than three slugs');
+  eq(new Set([a.id, b.id, c.id]).size, 3, 'three creates produced fewer than three articles');
+
+  // The public projection is a five-field whitelist with no id in it -- see the case above --
+  // so each sibling is identified by the writing it carries, which is what a reader would see.
+  for (const made of [a, b, c]) {
+    await callAdmin(g, { session: editor.session, action: 'publish', id: made.id });
+    const res = await callGet(g, { slug: made.slug });
+    eq(res.statusCode, 200, 'a sibling slug did not resolve: ' + HEX(made.slug));
+    eq(res.body.article.slug, made.slug, 'a sibling slug resolved to a different slug');
+    eq(res.body.article.body, made.body, 'a sibling slug resolved to a different article');
+    eq(res.body.article.title, made.title, 'a sibling slug resolved to a different title');
+  }
+  eq([a, b, c].map((made) => made.body), ['first', 'second', 'third'],
+    'the three articles are not three distinct pieces of writing');
+  return '3 vowellings of one phrase -> U+' + HEX(a.slug) + ' / +"-2" / +"-3", each resolving to its own article';
+});
+
+run('a plain Arabic title is byte-identical after the harakat fix, alef-hamza included', async () => {
+  // THE PROMISE THE FIX MAKES TO EVERY TITLE THAT HAS NO MARKS IN IT: nothing moves. The title
+  // here opens with U+0623, alef with hamza above -- a LETTER an Arabic writer chose, not a mark
+  // they added. NFD decomposes it to U+0627 + U+0654 and U+0654 is itself Mn, so a fix that
+  // normalised before stripping would quietly rewrite it to a bare alef and change the URL of
+  // ordinary unvowelled titles. slugify() takes the string as given, so this case pins that
+  // U+0623 is still U+0623 in the slug and would go red the day someone adds a .normalize().
+  const { g, editor } = await seeded();
+  const PLAIN = CP('0623 062E 0644 0627 0642 0020 062A 0631 0628 064A 0629');
+  const EXPECTED = CP('0623 062E 0644 0627 0642') + '-' + CP('062A 0631 0628 064A 0629');
+
+  eq(g.articles.slugify(PLAIN), EXPECTED, 'a plain Arabic title moved');
+  is(g.articles.slugify(PLAIN).indexOf(CP('0623')) !== -1, 'the alef-hamza was decomposed away');
+  is(!/\p{Mn}/u.test(PLAIN), 'the fixture stopped being a mark-free title, so it proves nothing');
+  eq(PLAIN.indexOf(CP('0640')), -1, 'the fixture grew a tatweel, so it proves nothing');
+
+  const made = await createAs(g, editor.session, 'articles', PLAIN);
+  eq(made.slug, EXPECTED, 'the stored slug for a plain Arabic title moved');
+  await callAdmin(g, { session: editor.session, action: 'publish', id: made.id });
+  const res = await callGet(g, { slug: made.slug });
+  eq(res.statusCode, 200, 'a plain Arabic slug did not resolve');
+  eq(res.body.article.slug, EXPECTED, 'a plain Arabic slug resolved to a different article');
+  return 'U+' + HEX(PLAIN) + '  ->  U+' + HEX(made.slug) + '  (unchanged by this fix)';
+});
+
 run('the slug is stable across edits -- a corrected title does not break a published link', async () => {
   const { g, editor } = await seeded();
   const a = await createAs(g, editor.session, 'articles', 'Teh first title');
@@ -1708,6 +1843,17 @@ const MUTANTS = [
     file: 'lib/articles/store.js',
     from: 'function fallbackSlug(id) { return safeSlug(id) ? id : SLUG_FALLBACK_PREFIX + id; }',
     to: 'function fallbackSlug(id) { return id; }',
+  },
+  {
+    // THE HARAKAT FIX UNDONE, 2026-09-07. Without the mark stripper every diacritic is a
+    // non-letter again, so slugify() cuts a vowelled Arabic word into pieces in the middle of
+    // itself and the D-4 title goes back to being six fragments of two words. This is the mutant
+    // that was ALIVE in the tree until this date, and it is killed by the harakat case, the
+    // collision case, and the tatweel case above.
+    name: 'M16 slugify stops stripping combining marks',
+    file: 'lib/articles/store.js',
+    from: "    .trim().toLowerCase().replace(COMBINING_MARKS, '');",
+    to: '    .trim().toLowerCase();',
   },
   {
     // D-5 undone: the roles door goes back to answering an editor differently from a stranger,
