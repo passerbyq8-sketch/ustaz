@@ -472,6 +472,13 @@ const EZ_I18N = {
     'auth.groupTitle': 'الحساب',
     'auth.signIn': 'تسجيل الدخول بحساب Google',
     'auth.signOut': 'خروج',
+    'auth.grantCheck': 'افحصْ صلاحيةَ الكتابة',
+    'auth.grantHeld': 'أنتَ كاتبٌ في: {sections}',
+    'auth.grantSessionDead': 'الجلسةُ على هذا الجهازِ لم تعُدْ حيّة. اخرجْ ثمّ ادخلْ من جديد.',
+    'auth.grantUnreadable': 'تعذَّرَ قراءةُ سجلِّ الحساب. المشكلةُ في المخزنِ لا في الصلاحية؛ أعِدِ المحاولةَ بعد قليل.',
+    'auth.grantUnproved': 'بريدُ هذا الحسابِ غيرُ مُوَثَّق، ولا يُطابَقُ به أيُّ صفٍّ في اللوحة.',
+    'auth.grantNoRow': 'الجلسةُ حيّةٌ والبريدُ موثَّق، ولا يحملُ أيُّ صفٍّ بصمتَك. قارِنْ هذه البصمةَ بصفِّ اللوحة:',
+    'auth.grantUnknown': 'جوابٌ غيرُ متوقَّعٍ من الخادم. لا يمكنُ الحكمُ من هنا.',
     'auth.badPayload': 'تعذَّرَ تجهيزُ طلبِ الدخول.',
     'auth.badUrl': 'وجهةُ الدخولِ غيرُ مقبولة.',
     'auth.unsupported': 'لا سبيلَ إلى فتحِ صفحةِ الدخولِ على هذا الجهاز. افتحْ ezik.app في المتصفِّح.',
@@ -878,6 +885,13 @@ const EZ_I18N = {
     'auth.groupTitle': 'Account',
     'auth.signIn': 'Sign in with Google',
     'auth.signOut': 'Sign out',
+    'auth.grantCheck': 'Check my writing permission',
+    'auth.grantHeld': 'You are a writer in: {sections}',
+    'auth.grantSessionDead': 'The session on this device is no longer live. Sign out and sign in again.',
+    'auth.grantUnreadable': 'The account record could not be read. That is the store, not your permission -- try again shortly.',
+    'auth.grantUnproved': 'This account\u2019s address was never proved, so no board row can ever match it.',
+    'auth.grantNoRow': 'The session is live and the address is proved, and no row holds your digest. Compare this with your board row:',
+    'auth.grantUnknown': 'The server answered something unexpected. Nothing can be concluded from here.',
     'auth.badPayload': 'The sign-in request could not be prepared.',
     'auth.badUrl': 'The sign-in destination was refused.',
     'auth.unsupported': 'This device cannot open the sign-in page. Open ezik.app in a browser.',
@@ -6412,6 +6426,31 @@ async function ezikArticlesAdmin(payload, signal) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       signal,
+    });
+    let data = null;
+    try { data = await response.json(); } catch (e) {}
+    if (response.status === 200 && data && data.ok === true) return { ok: true, status: 200, data };
+    return { ok: false, status: response.status, data };
+  } catch (e) {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
+// PHASE 4 -- THE GRANT CHECK'S OWN CALL, AND IT IS THE SAME ROUTE AND THE SAME ACTION AS THE ONE
+// ABOVE. What differs is three headers: capHeaders() carries the device id and the founder token,
+// and the founder token is what api/articles-admin.js requires before it will say anything about
+// the caller's own account. Every other admin call on this screen is left exactly as it was --
+// they need no token, and sending one from every one of them would put a privilege header on
+// requests that neither ask for a privilege nor would be given one.
+//
+// IT IS A SEPARATE FUNCTION RATHER THAN A FLAG ON ezikArticlesAdmin, because a flag is a thing a
+// later caller can set by accident. This one is called from exactly one press.
+async function ezikGrantCheck(session) {
+  try {
+    const response = await fetch(EZIK_ART_ADMIN_ROUTE, {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, capHeaders()),
+      body: JSON.stringify({ session: session, action: 'mine' }),
     });
     let data = null;
     try { data = await response.json(); } catch (e) {}
@@ -18496,6 +18535,12 @@ function EzikSignInRow() {
   // error.
   const [armed, setArmed] = useState(false);
   const [done, setDone] = useState(false);
+  // PHASE 4 / F18 -- THE CHECK'S OWN TWO PIECES OF STATE. A sentence, and the digest when there
+  // is one. They are separate because the digest is the one thing on this screen a reader has to
+  // be able to select and copy, and a sentence with a 64-character hex string inside it is not a
+  // sentence anybody can copy the useful half out of.
+  const [checkLine, setCheckLine] = useState('');
+  const [checkDigest, setCheckDigest] = useState('');
   // The press's own state and the teardown for its listener. Both refs: neither is drawn, and the
   // client state must not outlive the press it belongs to.
   const csRef = useRef('');
@@ -18558,6 +18603,52 @@ function EzikSignInRow() {
     stopRef.current = ezikAuthAsk(bridge, ezikAuthStartUrl(csRef.current, getDeviceId()), finish);
   };
 
+  // PHASE 4 / F16, F18 -- WHY A WRITER IS BEING REFUSED, ASKED FROM INSIDE THE APPLICATION.
+  //
+  // THE PROBLEM IT ENDS. Every reason for refusing a writer returns the same 401 with the same
+  // two fields. That is right for a stranger and it is what stops this door being used to map who
+  // holds what -- but it meant the OWNER could not tell "you have no grant" from "your session is
+  // dead" from "your address was never proved" from "the board row does not match you", and
+  // separating those four cost him an evening, three rounds and a wasted deployment.
+  //
+  // IT MAKES NO SECOND REQUEST AND ADDS NO SECOND ROUTE. It presses the very door that refuses --
+  // /api/articles-admin, action 'mine', with no section named -- and reads the answer it gets.
+  // A diagnostic that asked a different question than the one that failed would eventually answer
+  // about a different thing than the one that is broken.
+  //
+  // THE FOUR READINGS, AND THE ONE THAT IS AN ABSENCE:
+  //   200                  -- he IS a writer, and the sections he holds are named.
+  //   401 with no `self`   -- the session he is holding is not live. The server tells nobody this
+  //                           directly; it is deduced from silence, which is exactly why the
+  //                           server can afford to say nothing to a caller who is not him.
+  //   401, address unproved-- the account exists and its address was never proved, so no board
+  //                           row could ever match it. This one is invisible from every other
+  //                           surface in the application.
+  //   401, digest returned -- everything about him is in order and no row holds his digest. The
+  //                           hex string is shown so he can compare it with his own board.
+  const runCheck = () => {
+    if (busy) return;
+    const held = session;
+    if (!held || typeof held.session !== 'string' || !held.session) return;
+    setBusy(true);
+    setCheckLine('');
+    setCheckDigest('');
+    ezikGrantCheck(held.session).then((res) => {
+      setBusy(false);
+      if (res.ok && res.data && Array.isArray(res.data.sections)) {
+        setCheckLine(ezT('auth.grantHeld', { sections: res.data.sections.join(' + ') }));
+        return;
+      }
+      const self = (res.data && res.data.self && typeof res.data.self === 'object') ? res.data.self : null;
+      if (res.status !== 401) { setCheckLine(ezT('auth.grantUnknown')); return; }
+      if (!self) { setCheckLine(ezT('auth.grantSessionDead')); return; }
+      if (self.account !== 'read') { setCheckLine(ezT('auth.grantUnreadable')); return; }
+      if (self.addressProved !== true) { setCheckLine(ezT('auth.grantUnproved')); return; }
+      setCheckLine(ezT('auth.grantNoRow'));
+      setCheckDigest(typeof self.digest === 'string' ? self.digest : '');
+    });
+  };
+
   // "Sign out" is a LOCAL erasure and deliberately not a call. The session key on the server
   // expires on its own and revoking it is a separate lever; what a reader means by this button is
   // "not on this device any more", which is exactly and only what it does.
@@ -18600,6 +18691,20 @@ function EzikSignInRow() {
         ? (<>
             <div style={s.settingsHint}>{session.email}</div>
             <button type="button" onClick={signOut} style={s.settingsSaveBtn}>{ezT('auth.signOut')}</button>
+            {/* PHASE 4 / F18 -- REACHABLE BY SOMEBODY WHO DOES NOT USE A CONSOLE, and drawn for
+                the one person the server will answer. hasFounderToken() is read AT RENDER, never
+                from a cached flag -- the rule the PIN control above this row already follows --
+                and it is a VISIBILITY rule and not the lock: api/articles-admin.js verifies the
+                token itself and would say nothing to a page that drew this button anyway. The
+                digest gets its own line, LTR and monospaced, because it is a value to be copied
+                and compared with a board row rather than read. */}
+            {hasFounderToken() ? (<>
+            <button type="button" onClick={runCheck} disabled={busy}
+              data-ezik-grant-check="button"
+              style={{ ...s.settingsSaveBtn, opacity: busy ? 0.5 : 1 }}>{ezT('auth.grantCheck')}</button>
+            {checkLine ? <div style={s.settingsHint}>{checkLine}</div> : null}
+            {checkDigest ? <div style={s.authDigest}>{checkDigest}</div> : null}
+            </>) : null}
             {/* THE DELETE CONTROL IS DRAWN ONLY INSIDE THIS BRANCH -- the branch that exists
                 only when there is a live session. A reader who is not signed in is never
                 shown a control for deleting an account they do not have. */}
@@ -22742,6 +22847,11 @@ const s = {
   // <style> and are still measured by the guard, because the next batch needs them back.
   vtActiveRow: { display: 'flex', alignItems: 'center', gap: 12, minHeight: 56, padding: '10px 12px', borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-blue)' },
   vtActiveMark: { width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-blue)' },
+  // PHASE 4: the digest, on its own line. LTR and monospaced because it is a hex string to be
+  // compared with a board row character by character, and `anywhere` because 64 characters do
+  // not fit a phone and a clipped value is worse than a wrapped one. No fontSize: this line
+  // scales with the reading preferences like everything else on the screen.
+  authDigest: { direction: 'ltr', textAlign: 'left', fontFamily: 'monospace', overflowWrap: 'anywhere', color: 'var(--a3-muted)' },
   vtActiveBody: { display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 },
   vtActiveName: { fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)' },
   vtActiveState: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-blue)' },

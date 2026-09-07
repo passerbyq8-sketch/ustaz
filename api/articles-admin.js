@@ -66,8 +66,8 @@
 
 import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
-import { DEVICE_HEADER } from '../lib/daycap.js';
-import { resolveActor, actorMaySection } from '../lib/articles/roles.js';
+import { DEVICE_HEADER, FOUNDER_HEADER, hasUnrevokedFounderToken } from '../lib/daycap.js';
+import { resolveActor, actorMaySection, selfFacts } from '../lib/articles/roles.js';
 import {
   createArticle,
   updateArticle,
@@ -103,7 +103,11 @@ export default async function handler(req, res) {
   applyCorsOrigin(req, res);
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + DEVICE_HEADER);
+    // The founder header joins the two that were already allowed, for the ONE request that
+    // carries it: the grant check below. Allowing a header is not granting anything -- the token
+    // inside it is verified, and every other action on this route ignores it entirely.
+    res.setHeader('Access-Control-Allow-Headers',
+      'Content-Type, ' + DEVICE_HEADER + ', ' + FOUNDER_HEADER);
     return res.status(204).end();
   }
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
@@ -118,7 +122,36 @@ export default async function handler(req, res) {
   if (!ACTIONS.includes(action)) return res.status(400).json({ ok: false, error: 'articles-action' });
 
   const actor = await resolveActor(req);
-  if (!actor) return res.status(401).json({ ok: false, error: 'articles-forbidden' });
+  if (!actor) {
+    // THE REFUSAL IS BYTE FOR BYTE WHAT IT ALWAYS WAS FOR EVERYBODY BUT THE OWNER. A stranger, a
+    // signed-in reader with no grant, an editor, a signed-out reader and somebody guessing session
+    // strings all receive the same two fields they received before this branch existed -- the
+    // `self` key is ADDED AFTER the object is built rather than written into the literal, so
+    // nothing about the shape they get can be changed by a line below this one.
+    //
+    // 🔴 THE OWNER ALONE, AND THAT IS WHY IT IS THE FOUNDER TOKEN AND NOT THE SESSION.
+    //
+    // The diagnostic report written earlier on 2026-09-07 proposed returning these facts to any
+    // caller holding a live session, on the reasoning that a live session IS the proof of being
+    // that person and the facts are about nobody else. That reasoning still holds. What decided
+    // against it is the constraint written over this phase: a stranger, an editor and a signed-out
+    // reader must all still see exactly what they saw, BYTE FOR BYTE -- and "stranger" there
+    // cannot be read as "everyone except the holder of a live session", because a signed-in
+    // reader with no grant is precisely who this route calls a stranger. Under the session
+    // reading, that person's answer changes. Under this one, nobody's does but the owner's.
+    //
+    // hasUnrevokedFounderToken() is the FULL check every site that grants a privilege calls --
+    // well-formed, unexpired, bound to the device that presents it, and not on the revocation
+    // list. It is not a second authorisation path invented here: it is the one the PIN control in
+    // Settings already stands behind, and the owner already carries it on his own device.
+    //
+    // AND IT IS ASKED FIRST, so a caller with no token costs the store nothing: selfFacts() is
+    // never reached, never reads an account, and never touches a session.
+    const self = (await hasUnrevokedFounderToken(req)) ? await selfFacts(req) : null;
+    const refusal = { ok: false, error: 'articles-forbidden' };
+    if (self) refusal.self = self;
+    return res.status(401).json(refusal);
+  }
 
   res.setHeader('Cache-Control', 'private, no-store');
 

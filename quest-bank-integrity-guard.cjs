@@ -688,7 +688,15 @@ const SEALED = {
   //                    2158748 -> 2163925 is exactly that delta. The worker byte table and the
   //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last.
   //                    CACHE is NOT bumped: install rewrites every CORE entry into the same store.
-  'sw.js': 'bd5a0f416c576000764a8b8ffc05e48d079c0e79b831b6e1fe7b1a9943c3870b',
+  // THE GRANT CHECK (2026-09-07, feat/night-run-20260907, phase 4). NO CHANGE IN THE WORKER
+  //                    ITSELF BEYOND ITS BYTE TABLE. One control in Settings, drawn only where a
+  //                    founder token is held, that presses the very door that refuses a writer and
+  //                    says which of the four refusals it was; app.js followed 1321078 -> 1327772
+  //                    (+6694) and CORE_BYTES 2163925 -> 2170619 is exactly that delta. The
+  //                    worker byte table and the SW_PROSE mirror below both followed, and THIS
+  //                    digest is re-cut last. CACHE is NOT bumped: install rewrites every CORE
+  //                    entry into the same store.
+  'sw.js': '9b74747960631daa73e7e431614e60b4568162ad8569110bb37c09263235b4aa',
 };
 
 // ---------------------------------------------------------------------------
@@ -1799,7 +1807,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1321078, of: 'app.js' },
+      { n: 1327772, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

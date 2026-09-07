@@ -96,6 +96,12 @@
 const fs = require('fs');
 const path = require('path');
 const nodeCrypto = require('node:crypto');
+// PHASE 4: the founder verifier reads FOUNDER_SECRET off the real environment, so a fixture one
+// is set HERE, before any module text is lifted. It is seven characters and it is not a secret
+// of anything: it exists so that founderTokenFor() and verifyFounder() -- the same two functions
+// production uses -- can agree inside this process. A deployment value is never read and never
+// written; an environment that already carries one is left exactly as it was.
+if (!process.env.FOUNDER_SECRET) process.env.FOUNDER_SECRET = 'fs-nite';
 
 const REPO = path.join(__dirname, '..');
 const parser = require(path.join(REPO, 'node_modules', '@babel', 'parser'));
@@ -246,7 +252,17 @@ const RATELIMIT_AUTH_TEXT = liftNames('lib/ratelimit.js', RATELIMIT,
   ['ALLOWED_ORIGINS', 'applyCorsOrigin', 'AUTH_FAIL_OPEN', 'AUTH_PER_IP_MIN', 'AUTH_PER_IP_DAY',
     'AUTH_WINDOWS', 'checkAuthLimit']);
 const ATTEMPTS_TEXT = liftNames('lib/attempts.js', ATTEMPTS, ['clientAddress']);
-const DAYCAP_TEXT = liftNames('lib/daycap.js', DAYCAP, ['DEVICE_HEADER', 'safeId']);
+// PHASE 4 -- THE FOUNDER CHAIN IS LIFTED WHOLE, NOT STUBBED. api/articles-admin.js asks
+// hasUnrevokedFounderToken() before it will say anything about a caller's own account, and a
+// shim that answered that question for it would be a guard testing its own opinion. So the real
+// verifier comes across: the header name, the shape/expiry/MAC check, the token minter that
+// produces a token it will accept, and the revocation reader with its two different "no"s.
+// crypto is passed in below, exactly as Ratelimit and redis are for the throttle.
+const DAYCAP_TEXT = liftNames('lib/daycap.js', DAYCAP,
+  ['DEVICE_HEADER', 'safeId', 'FOUNDER_HEADER', 'FOUNDER_TOKEN_TTL_SECONDS', 'FOUNDER_REVOKED_KEY',
+    'FOUNDER_TOKEN_VERSION', 'founderMacInput', 'founderTokenFor', 'founderTokenNonce',
+    'verifyFounder', '_redis', 'client', 'revocationStoreConfigured', 'isFounderTokenRevoked',
+    'hasValidFounderToken', 'hasUnrevokedFounderToken']);
 
 // ---------------------------------------------------------------------------
 // THE FAKES.
@@ -538,7 +554,9 @@ function buildGraph(options) {
       + '\n;return { ALLOWED_ORIGINS, applyCorsOrigin, checkAuthLimit, AUTH_FAIL_OPEN,'
       + ' AUTH_PER_IP_MIN, AUTH_PER_IP_DAY, AUTH_WINDOWS };')(Ratelimit, {}, console_);
     shims.attempts = new Function(ATTEMPTS_TEXT + '\n;return { clientAddress };')();
-    shims.daycap = new Function(DAYCAP_TEXT + '\n;return { DEVICE_HEADER, safeId };')();
+    shims.daycap = new Function('crypto', 'Redis', 'console', DAYCAP_TEXT
+      + '\n;return { DEVICE_HEADER, safeId, FOUNDER_HEADER, founderTokenFor,'
+      + ' verifyFounder, hasValidFounderToken, hasUnrevokedFounderToken };')(nodeCrypto, class {}, console_);
   }
 
   const g = {
@@ -547,6 +565,7 @@ function buildGraph(options) {
     forcedIdsLeft: crypto_.remaining,
     env,
     console: console_,
+    daycap: shims.daycap,
     authStore: load('lib/auth/store.js'),
     account: load('lib/auth/account.js'),
     articles: load('lib/articles/store.js'),
@@ -590,8 +609,13 @@ async function callGet(g, query) {
   return res;
 }
 
-async function callAdmin(g, body) {
-  const req = fakeReq({ method: 'POST', body, headers: { 'x-forwarded-for': '198.51.100.7' } });
+// PHASE 4: the optional third argument carries the device id and the founder token for the ONE
+// case that needs them. Every existing caller passes two arguments and gets exactly the request
+// it got before -- no device header, no founder header -- which is what makes those cases a fair
+// reading of what a caller WITHOUT a token receives.
+async function callAdmin(g, body, extraHeaders) {
+  const req = fakeReq({ method: 'POST', body,
+    headers: Object.assign({ 'x-forwarded-for': '198.51.100.7' }, extraHeaders || {}) });
   const res = fakeRes();
   await g.admin.default(req, res);
   return res;
@@ -2391,6 +2415,104 @@ run('an actor with no role is refused by the write endpoint, on every action inc
     return 'four refusals: ' + codes.join(', ') + ', 401';
   });
 
+// ---------------------------------------------------------------------------
+// PHASE 4 (night run 2026-09-07) -- THE ONE THING THE OWNER MAY LEARN, AND THE FIVE PEOPLE WHO
+// MAY NOT.
+//
+// Every reason for refusing a writer answers the same 401 with the same two fields. That is the
+// property these cases exist to keep: it is what stops the door being used to map who holds what.
+// What was added is a THIRD field, present only when the request carries a valid, unexpired,
+// unrevoked founder token bound to the device that presented it -- and it says three things about
+// THAT CALLER'S OWN ACCOUNT and about nothing else.
+//
+// THE BYTES ARE THE ASSERTION. Each case below compares JSON.stringify of the whole body against
+// the exact two-field object, rather than checking that `error` is still right and letting a new
+// key ride along unnoticed beside it. A guard that reads one field cannot see a second appear.
+// ---------------------------------------------------------------------------
+const REFUSAL_BYTES = JSON.stringify({ ok: false, error: 'articles-forbidden' });
+
+/** The owner's own device, and a token this deployment's verifier will accept from it. */
+function founderHeaders(g, device) {
+  const id = device || 'nightrun-device-1';
+  const token = g.daycap.founderTokenFor(id);
+  if (!token) throw new Error('the fixture could not mint a founder token -- FOUNDER_SECRET unset?');
+  return { 'x-murabbi-device': id, 'x-murabbi-founder': token };
+}
+
+run('the refusal is BYTE FOR BYTE unchanged for everybody who does not hold the founder token',
+  async () => {
+    const { g, stranger, editor } = await seeded();
+    const seen = [];
+    // A SIGNED-IN READER WITH NO GRANT. He holds a LIVE session and the account behind it is his
+    // own -- and he still learns nothing, because a live session is not the thing that unlocks it.
+    const withSession = await callAdmin(g, { session: stranger.session, action: 'mine' });
+    eq(withSession.statusCode, 401, 'a signed-in reader with no grant was not refused');
+    eq(JSON.stringify(withSession.body), REFUSAL_BYTES, 'the bytes a signed-in reader receives');
+    seen.push('live session');
+    // NO SESSION AT ALL -- every reader in a browser today.
+    const noSession = await callAdmin(g, { action: 'mine' });
+    eq(JSON.stringify(noSession.body), REFUSAL_BYTES, 'the bytes a signed-out reader receives');
+    seen.push('no session');
+    // A GUESSED SESSION STRING. Nothing about it is live, and the answer must not say so.
+    const guessed = await callAdmin(g, { session: 'not-a-session-key', action: 'mine' });
+    eq(JSON.stringify(guessed.body), REFUSAL_BYTES, 'the bytes a guess receives');
+    seen.push('guessed session');
+    // A FOUNDER TOKEN AND NO SESSION. The token opens the field; it does not invent an account to
+    // describe, and selfFacts() answers null with nothing to read.
+    const tokenOnly = await callAdmin(g, { action: 'mine' }, founderHeaders(g));
+    eq(JSON.stringify(tokenOnly.body), REFUSAL_BYTES, 'the bytes a token with no session receives');
+    seen.push('token, no session');
+    // A MALFORMED TOKEN, presented from the right device. The verifier refuses it and the answer
+    // is the ordinary one -- there is no partial credit for holding something token-shaped.
+    const badToken = await callAdmin(g, { session: stranger.session, action: 'mine' },
+      { 'x-murabbi-device': 'nightrun-device-1', 'x-murabbi-founder': 'v2.1.2.3' });
+    eq(JSON.stringify(badToken.body), REFUSAL_BYTES, 'the bytes a malformed token receives');
+    seen.push('malformed token');
+    // AND AN EDITOR IS UNTOUCHED IN BOTH DIRECTIONS: her 200 carries no `self`, and the section
+    // she does not hold refuses her with the 403 it always did.
+    const held = await callAdmin(g, { session: editor.session, action: 'mine', section: 'articles' });
+    eq(held.statusCode, 200, 'the editor lost her own sections');
+    eq(Object.prototype.hasOwnProperty.call(held.body, 'self'), false, 'a 200 carried self');
+    const notHers = await callAdmin(g, { session: editor.session, action: 'mine', section: 'women' });
+    eq(JSON.stringify(notHers.body),
+      JSON.stringify({ ok: false, error: 'articles-forbidden-section' }), 'the editor 403 bytes');
+    seen.push('editor 200 and 403');
+    return seen.join(' / ') + ' -- all unchanged';
+  });
+
+run('the owner, and only the owner, is told which of the four he is hitting', async () => {
+  const { g, stranger } = await seeded();
+  const res = await callAdmin(g, { session: stranger.session, action: 'mine' }, founderHeaders(g));
+  eq(res.statusCode, 401, 'the refusal itself moved');
+  eq(res.body.error, 'articles-forbidden', 'the refusal code moved');
+  const self = res.body.self;
+  is(!!self && typeof self === 'object', 'the owner was told nothing at all');
+  // THE THREE FIELDS AND NO FOURTH. A field added to the account record later must not arrive
+  // here on its own, so the shape is asserted whole rather than field by field.
+  eq(Object.keys(self).sort().join(','), 'account,addressProved,digest', 'the fields returned');
+  eq(self.account, 'read', 'the account behind a live session was not read');
+  eq(self.addressProved, true, 'a proved address was reported unproved');
+  // AND THE DIGEST IS THE ONE THE BOARD ROW HOLDS. That is the whole of its usefulness: he pastes
+  // it beside his own row and "no row for me" and "a row that does not match me" come apart.
+  eq(self.digest, digestOf(FIXTURE.strangerEmail), 'the digest is not the board row digest');
+  return 'account=read addressProved=true digest matches the board row form';
+});
+
+run('an unproved address is named as such, and carries no digest to match against', async () => {
+  const g = buildGraph({ env: { EZIK_OWNER_ACCOUNTS: digestOf(FIXTURE.ownerEmail) } });
+  // The SAME fixture address, signed in WITHOUT the provider proving it. This is the candidate
+  // that is invisible from every other surface in the application: the account exists, the
+  // session is live, the board row may even hold the right digest -- and no row can ever match,
+  // because provedDigest() refuses an unproved address by design.
+  const unproved = await g.signIn('google', FIXTURE.strangerSub, FIXTURE.strangerEmail, false);
+  const res = await callAdmin(g, { session: unproved.session, action: 'mine' }, founderHeaders(g));
+  eq(res.statusCode, 401, 'the refusal itself moved');
+  eq(res.body.self.account, 'read', 'the record was not read');
+  eq(res.body.self.addressProved, false, 'an unproved address was reported proved');
+  eq(res.body.self.digest, '', 'a digest was emitted for an address nobody proved');
+  return 'addressProved=false, and no digest -- which is exactly what the board would match on';
+});
+
 run('`mine` refuses a section the actor does not hold, and says so rather than hiding it', async () => {
   const { g, editor } = await seeded();                       // granted `articles` only
   const refused = await callAdmin(g, { session: editor.session, action: 'mine', section: 'women' });
@@ -2460,6 +2582,18 @@ run('the client renderer and the server sanitiser agree on the four markers, byt
 // ---------------------------------------------------------------------------
 
 const MUTANTS = [
+  {
+    // PHASE 4 (night run 2026-09-07). THE LEAK THIS FIELD WAS ONE LINE AWAY FROM BEING. Drop the
+    // founder check and the three facts go to ANY caller holding a live session -- which is every
+    // signed-in reader, every editor whose session is alive, and anyone who has lifted a session
+    // key out of a device. Nothing else about the route changes and no existing case notices: the
+    // status is still 401 and `error` is still 'articles-forbidden'. It is caught only by reading
+    // the WHOLE body, which is why the cases above compare bytes rather than fields.
+    name: 'M24 the refusal names the reason to anybody holding a session',
+    file: 'api/articles-admin.js',
+    from: '    const self = (await hasUnrevokedFounderToken(req)) ? await selfFacts(req) : null;',
+    to: '    const self = await selfFacts(req);',
+  },
   {
     // ITEM 20, STAGE TWO. THE SANITISER TURNED OFF ON THE CREATE PATH -- which is what the code
     // looked like the day before this batch, and the day a stored <script> would have reached
