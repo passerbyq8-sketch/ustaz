@@ -160,6 +160,15 @@ const FN_ENTRY_ANSWERED = topFunction('ezikEntryAnswered');
 const C_DEFAULT_AGE = topConst('ONBOARDING_DEFAULT_AGE');
 const FN_NATIVE_ENTRY = topFunction('useEzikNativeAuthEntry');
 const FN_ONBOARDING = topFunction('Onboarding');
+// PHASE 4 (night run 2026-09-07). THE GRANT CHECK LIVES INSIDE THE ROW, so the row cannot be
+// mounted without the four names it now closes over. All four are LIFTED FROM app.jsx rather
+// than stubbed here: hasFounderToken() is what decides whether the control is drawn at all, and
+// a harness that answered that question on the file's behalf would be proving its own opinion.
+const C_FOUNDER_KEY = topConst('FOUNDER_TOKEN_KEY');
+const FN_TOKEN_ALIVE = topConst('founderTokenAlive');
+const FN_HAS_FOUNDER = topConst('hasFounderToken');
+const C_ADMIN_ROUTE = topConst('EZIK_ART_ADMIN_ROUTE');
+const FN_GRANT_CHECK = topFunction('ezikGrantCheck');
 const FN_ROW = topFunction('EzikSignInRow');
 const FN_SETTINGS = topFunction('SettingsSheet');
 
@@ -203,9 +212,13 @@ const HARNESS_PARTS = [
   text(C_OUTCOME_LINES), text(FN_OUTCOME_LINE), text(FN_OUTCOME_OF), text(C_APPLE_WAIT),
   text(FN_APPLE_ASK),
   text(C_HIDE_FLAG), text(FN_HIDES), text(FN_DOORS),
+  text(C_FOUNDER_KEY), text(FN_TOKEN_ALIVE), text(FN_HAS_FOUNDER),
+  text(C_ADMIN_ROUTE), text(FN_GRANT_CHECK),
   text(FN_ROW),
   'return {',
   '  EzikSignInRow: EzikSignInRow,',
+  '  hasFounderToken: hasFounderToken, ezikGrantCheck: ezikGrantCheck,',
+  '  FOUNDER_TOKEN_KEY: FOUNDER_TOKEN_KEY, EZIK_ART_ADMIN_ROUTE: EZIK_ART_ADMIN_ROUTE,',
   '  ezikAuthBridge: ezikAuthBridge, ezikAuthReason: ezikAuthReason,',
   '  ezikAuthClass: ezikAuthClass, ezikAuthLine: ezikAuthLine,',
   '  ezikAuthClientState: ezikAuthClientState, ezikAuthStartUrl: ezikAuthStartUrl,',
@@ -472,6 +485,11 @@ function scene(opts) {
     : (o.shell === 'throwing' ? throwingBridge() : recordingBridge(sent));
   const win = fakeWindow(bridge);
   const storage = fakeStorage();
+  // PHASE 4: a scene may start with something already on the device. Only the grant-check cases
+  // use it, and they use it for one key -- the founder token, which is what decides whether that
+  // control is drawn at all. Written through the store's own setItem, so a seeded device is
+  // indistinguishable from one that reached the same state by using the application.
+  for (const k of Object.keys(o.seed || {})) storage.setItem(k, o.seed[k]);
   const fetchFn = fakeFetch((o.fetchPlan || []).slice());
   const env = {
     window: win,
@@ -893,6 +911,92 @@ run('after a successful sign-in the ADDRESS is shown and nothing else is', async
     'everything the row draws');
   return 'address + sign-out + delete, and literally nothing else';
 });
+
+// ---------------------------------------------------------------------------
+// PHASE 4 (night run 2026-09-07) -- THE GRANT CHECK.
+//
+// It is the one control on this row that is NOT offered to every signed-in reader: the server
+// will say nothing to a request that does not carry a founder token, so a button that asked
+// anyway would be a button that always answered "nothing to report" and taught a reader to
+// distrust it. hasFounderToken() is read AT RENDER, the rule the PIN control follows, and the
+// case above -- "everything the row draws" -- is what proves a reader without one sees no
+// change at all, because it compares the WHOLE drawn text against three named things.
+// ---------------------------------------------------------------------------
+
+// A v2 token this file's own clock will call alive. It is not a signed token and does not need to
+// be: hasFounderToken() reads SHAPE and EXPIRY only -- the browser holds no FOUNDER_SECRET and
+// deliberately does not pretend to verify -- and the server is the one that judges the MAC.
+const LIVE_FOUNDER = 'v2.' + Math.floor(FIXED_NOW / 1000 + 86400) + '.nite.mac';
+const DEAD_FOUNDER = 'v2.' + Math.floor(FIXED_NOW / 1000 - 1) + '.nite.mac';
+
+/** The row, signed in, with whatever the device is holding. */
+async function signedIn(seed, fetchPlan) {
+  const p = press({ seed: seed, fetchPlan: fetchPlan });
+  const cs = new URL(JSON.parse(p.sent[0]).url).searchParams.get('cs');
+  p.win.dispatch(CONTRACT.SHELL_AUTH_RESULT,
+    reply(CONTRACT, sentId(p), { ok: true, url: 'ezik://auth/return?ticket=' + FIXTURE.ticket + '&state=' + cs }));
+  await flush();
+  return p;
+}
+const LBL_CHECK = CONTRACT.EZ_I18N.ar['auth.grantCheck'];
+
+run('the grant check is offered to the founder and to nobody else', async () => {
+  const without = await signedIn({});
+  is(textOf(nodesOf(without.m.tree())).indexOf(LBL_CHECK) === -1,
+    'a reader with no founder token was offered the grant check');
+  const expired = await signedIn({ [CONTRACT.FOUNDER_TOKEN_KEY]: DEAD_FOUNDER });
+  is(textOf(nodesOf(expired.m.tree())).indexOf(LBL_CHECK) === -1,
+    'an EXPIRED founder token still drew the grant check');
+  const held = await signedIn({ [CONTRACT.FOUNDER_TOKEN_KEY]: LIVE_FOUNDER });
+  const drawn = textOf(nodesOf(held.m.tree()));
+  is(drawn.indexOf(LBL_CHECK) !== -1, 'the founder was not offered the grant check');
+  // TOTAL, exactly as the case above this one is total: four things, named, and nothing else.
+  eq(drawn, FIXTURE.email + CONTRACT.EZ_I18N.ar['auth.signOut'] + LBL_CHECK
+    + CONTRACT.EZ_I18N.ar['auth.delete'], 'everything the row draws for the founder');
+  return 'absent: no; expired: no; live: yes, and the row draws four things';
+});
+
+run('the grant check reads all four refusals, and shows the digest only on the fourth',
+  async () => {
+    const seed = { [CONTRACT.FOUNDER_TOKEN_KEY]: LIVE_FOUNDER };
+    const T = CONTRACT.EZ_I18N.ar;
+    const digest = '0'.repeat(64);
+    const cases = [
+      ['a writer', { status: 200, body: { ok: true, role: 'editor', sections: ['articles'] } },
+        T['auth.grantHeld'].replace('{sections}', 'articles'), false],
+      ['a dead session', { status: 401, body: { ok: false, error: 'articles-forbidden' } },
+        T['auth.grantSessionDead'], false],
+      ['an unreadable record', { status: 401, body: { ok: false, error: 'articles-forbidden',
+        self: { account: 'unreadable', addressProved: false, digest: '' } } },
+        T['auth.grantUnreadable'], false],
+      ['an unproved address', { status: 401, body: { ok: false, error: 'articles-forbidden',
+        self: { account: 'read', addressProved: false, digest: '' } } },
+        T['auth.grantUnproved'], false],
+      ['no row holding his digest', { status: 401, body: { ok: false, error: 'articles-forbidden',
+        self: { account: 'read', addressProved: true, digest: digest } } },
+        T['auth.grantNoRow'], true],
+    ];
+    const said = [];
+    for (const [what, answer, line, showsDigest] of cases) {
+      // The sign-in itself spends the first planned answer, so the check's answer is second.
+      const p = await signedIn(seed, [undefined, answer]);
+      const btn = findTags(nodesOf(p.m.tree()), 'button')
+        .filter((b) => textOf([b]) === LBL_CHECK)[0];
+      is(!!btn, 'the grant check was not on the screen for ' + what);
+      btn.props.onClick();
+      await flush();
+      const drawn = textOf(nodesOf(p.m.tree()));
+      is(drawn.indexOf(line) !== -1, 'the wrong line for ' + what + ': ' + drawn);
+      eq(drawn.indexOf(digest) !== -1, showsDigest, 'the digest was drawn wrongly for ' + what);
+      // AND THE REQUEST IS THE DOOR THAT REFUSES, not a route invented for the diagnostic.
+      const call = p.fetch.calls[p.fetch.calls.length - 1];
+      eq(call.url, CONTRACT.EZIK_ART_ADMIN_ROUTE, 'the grant check called something else');
+      eq(JSON.parse(call.init.body).action, 'mine', 'the grant check asked a different question');
+      is(!!call.init.headers['x-murabbi-device'], 'the check went out without capHeaders()');
+      said.push(what);
+    }
+    return said.join(' / ');
+  });
 
 run('signing out removes the key locally and calls nothing', async () => {
   const p = press({});
@@ -1644,6 +1748,25 @@ mutant('م١١ the settings row goes back to reading the bridge alone',
     const m = mountRow(scn, f);
     eq(countNodes(nodesOf(m.tree())), 0,
       'nodes drawn in Settings under the declaration');
+  });
+
+mutant('م١٦ the grant check is offered to every signed-in reader',
+  '            {hasFounderToken() ? (<>', '            {true ? (<>',
+  (f) => {
+    // THE VISIBILITY RULE, PROVED LOAD-BEARING. Without it every signed-in reader is handed a
+    // control that presses a door the server will tell them nothing through -- a button that can
+    // only ever answer "nothing to report", which is how a reader learns to distrust one.
+    //
+    // The session is SEEDED rather than signed in for, because the mutant runner is synchronous
+    // and a sign-in is not. readAuthSession() reads this exact key at mount, so the row draws its
+    // signed-in branch on the first render with nothing to await.
+    const scn = scene({ seed: { [CONTRACT.AUTH_SESSION_KEY]: JSON.stringify({
+      session: FIXTURE.session, email: FIXTURE.email, provider: FIXTURE.provider }) } });
+    const m = mountRow(scn, f);
+    const drawn = textOf(nodesOf(m.tree()));
+    is(drawn.indexOf(FIXTURE.email) !== -1, 'the fixture did not reach the signed-in branch');
+    is(drawn.indexOf(CONTRACT.EZ_I18N.ar['auth.grantCheck']) === -1,
+      'a reader with no founder token was offered the grant check');
   });
 
 /** The same mutation discipline, over the entry card's own lift. */
