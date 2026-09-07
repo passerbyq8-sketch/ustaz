@@ -937,6 +937,27 @@ run('slug uniqueness holds when two articles share a title', async () => {
   return [a.slug, b.slug, c.slug].join(' / ') + '   arabic -> ' + arabic.slug;
 });
 
+run('a title that slugifies to nothing still gets a claimable slug, every time', async () => {
+  const { g, editor } = await seeded();
+  // The id fallback is base64url and carries '_' about two in five times, so ONE article proves
+  // nothing here -- the case that used to fail was the unlucky id, not the unusual title. Twenty
+  // of them make the underscore certain to appear, and every one must still be reachable.
+  const made = [];
+  for (let i = 0; i < 20; i++) {
+    const article = await createAs(g, editor.session, 'articles', '؟؟؟ ... !!! ---');
+    is(article.slug.length > 0, 'a punctuation-only title produced an empty slug');
+    eq(article.slug, article.id, 'the fallback slug is not the article id');
+    await callAdmin(g, { session: editor.session, action: 'publish', id: article.id });
+    const res = await callGet(g, { slug: article.slug });
+    eq(res.statusCode, 200, 'a fallback slug did not resolve: ' + article.slug);
+    made.push(article.slug);
+  }
+  eq(new Set(made).size, made.length, 'two fallback slugs collided');
+  const withUnderscore = made.filter((s) => s.indexOf('_') !== -1).length;
+  is(withUnderscore > 0, 'no id in twenty carried an underscore, so this case proved nothing');
+  return made.length + ' punctuation-only titles, all reachable; ' + withUnderscore + ' of the ids carried an underscore';
+});
+
 run('the slug is stable across edits -- a corrected title does not break a published link', async () => {
   const { g, editor } = await seeded();
   const a = await createAs(g, editor.session, 'articles', 'Teh first title');
