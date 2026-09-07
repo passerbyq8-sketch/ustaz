@@ -762,7 +762,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   // 108th: articles -- guards/articles-public-guard.cjs. Item 20, stage item 2: the articles
   // store and the role seam. It pins the two properties a public content path cannot be allowed
   // to lose -- no draft is reachable through a public route, and no public route response
-  // carries an account key -- and it kills nine mutants to prove it can go red.
+  // carries an account key -- and it kills fifteen mutants to prove it can go red.
   const GATES_EXPECTED = 108;  // 107th: rejectdoor -- guards/reject-door-guard.cjs. ق٥٥:
   // the guard rules and does not edit -- a cut answer is rewritten, never delivered sutured.  // 106th: nameform -- guards/name-form-match-guard.cjs. One man
                                //       written two ways: «ابن عباس» is «عبد الله بن عباس» on the
