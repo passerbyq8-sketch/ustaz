@@ -632,3 +632,18 @@ guards/name-form-match-guard.cjs text eol=lf
 # ق٥٥ reject-door gate. Recon requires every registered gate script to be pinned,
 # and this guard mutates four exact source seams in lib/free-brain/loop.js.
 guards/reject-door-guard.cjs text eol=lf
+
+# Item 20 articles gate. Recon requires every registered gate script to be pinned, and this
+# guard LIFTS the shipped source of nine ES modules and mutates nine exact anchors inside three
+# of them. A CR that a core.autocrlf=true checkout would insert lands inside every anchor it
+# matches on, so an unpinned file is a guard that silently stops finding the code it exists to
+# run. The seven modules it lifts that this item introduced are pinned with it, for the same
+# reason; the two under lib/auth/ were already pinned by the sign-in phase.
+guards/articles-public-guard.cjs text eol=lf
+lib/articles/store.js text eol=lf
+lib/articles/roles.js text eol=lf
+lib/articles/public-view.js text eol=lf
+api/articles-list.js text eol=lf
+api/articles-get.js text eol=lf
+api/articles-admin.js text eol=lf
+api/roles-admin.js text eol=lf

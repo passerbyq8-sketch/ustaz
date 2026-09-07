@@ -1,0 +1,83 @@
+// api/roles-admin.js
+// POST /api/roles-admin   { session, action, accountKey, sections }   ->   { ok, ... }
+//
+// GRANTING AND REVOKING THE RIGHT TO WRITE. Two actions, and only an owner reaches either.
+//
+// 🔴 OWNER, NOT MERELY AN ACTOR. resolveActor() returning an object is not enough on this page:
+// an editor is a valid actor everywhere else and must not be one here. The role is compared to
+// `owner` explicitly, and an editor is refused with 403 -- a different status from the 401 an
+// unknown caller gets, because an editor IS known and is simply not permitted, and telling them
+// so is not a leak: they already know they can write articles.
+//
+// 🔴 AN OWNER MAY NOT REVOKE A ROOT GRANT, THEIR OWN OR ANYONE'S, BECAUSE IT DOES NOT LIVE IN THE
+// STORE. It is a digest in the EZIK_OWNER_ACCOUNTS row and the only place it can be withdrawn is
+// the board. lib/articles/roles.js refuses it by name rather than deleting a store key that was
+// never there and reporting a success that changed nothing.
+//
+// 🔴 AND NO ROUTE CAN MINT AN OWNER. grantRole() writes `editor` and only `editor`; `owner` is
+// not in GRANTABLE_ROLES and is not accepted from the body -- the body is not even read for a
+// role. So emptying the environment row is absolute: no store key can contradict it.
+//
+// 🔴 THE ROW IS NEVER READ BACK OUT OF HERE. No response on this page carries a digest, the row's
+// contents, or its length. A caller learns whether THEY are an owner by whether their request
+// succeeded, and learns nothing about anybody else.
+//
+// ZERO NEW STORE VARIABLES on this page, and the one environment variable it depends on --
+// EZIK_OWNER_ACCOUNTS -- is read inside lib/articles/roles.js and is NOT created by this code.
+// Absent means zero owners, which means this route refuses everyone. That is the intended
+// behaviour of an unconfigured deployment.
+
+import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
+import { clientAddress } from '../lib/attempts.js';
+import { DEVICE_HEADER } from '../lib/daycap.js';
+import { resolveActor, grantRole, revokeRole, ROLE_OWNER } from '../lib/articles/roles.js';
+
+export const ROLE_ACTIONS = Object.freeze(['grant', 'revoke']);
+
+const CLIENT_ERRORS = Object.freeze([
+  'roles-target', 'roles-sections', 'roles-no-such-account', 'roles-root-grant',
+]);
+
+function refuse(res, code) {
+  if (code === 'roles-forbidden') return res.status(403).json({ ok: false, error: code });
+  if (CLIENT_ERRORS.includes(code)) return res.status(400).json({ ok: false, error: code });
+  return res.status(503).json({ ok: false, error: code });
+}
+
+export default async function handler(req, res) {
+  applyCorsOrigin(req, res);
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + DEVICE_HEADER);
+    return res.status(204).end();
+  }
+  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
+
+  const rl = await checkAuthLimit(clientAddress(req, 'unknown'));
+  if (!rl.ok) return res.status(429).json({ ok: false, error: 'roles-rate-limited' });
+
+  const body = (req.body && typeof req.body === 'object') ? req.body : {};
+  const action = typeof body.action === 'string' ? body.action : '';
+  if (!ROLE_ACTIONS.includes(action)) return res.status(400).json({ ok: false, error: 'roles-action' });
+
+  const actor = await resolveActor(req);
+  if (!actor) return res.status(401).json({ ok: false, error: 'roles-unauthenticated' });
+  if (actor.role !== ROLE_OWNER) return res.status(403).json({ ok: false, error: 'roles-forbidden' });
+
+  res.setHeader('Cache-Control', 'private, no-store');
+
+  const target = typeof body.accountKey === 'string' ? body.accountKey : '';
+
+  if (action === 'grant') {
+    const sections = Array.isArray(body.sections) ? body.sections : [];
+    // The role is NOT taken from the body. grantRole() writes `editor`, and that is the whole
+    // vocabulary -- see the head of this file.
+    const out = await grantRole(target, sections, actor);
+    if (!out.ok) return refuse(res, out.code);
+    return res.status(200).json({ ok: true, accountKey: out.accountKey, grant: out.record });
+  }
+
+  const out = await revokeRole(target, actor);
+  if (!out.ok) return refuse(res, out.code);
+  return res.status(200).json({ ok: true, accountKey: out.accountKey, removed: out.removed });
+}

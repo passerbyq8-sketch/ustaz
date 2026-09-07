@@ -540,5 +540,10 @@
     "name": "rejectdoor",
     "script": "guards/reject-door-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "articles",
+    "script": "guards/articles-public-guard.cjs",
+    "args": ""
   }
 ]
