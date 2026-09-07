@@ -696,7 +696,15 @@ const SEALED = {
   //                    worker byte table and the SW_PROSE mirror below both followed, and THIS
   //                    digest is re-cut last. CACHE is NOT bumped: install rewrites every CORE
   //                    entry into the same store.
-  'sw.js': '9b74747960631daa73e7e431614e60b4568162ad8569110bb37c09263235b4aa',
+  // ITEM 8 -- THE BROWSER DOOR (2026-09-07, feat/night-run-20260907, phase 7). NO CHANGE IN THE
+  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. api/auth-return.js gained a second
+  //                    destination for a flow that started in a tab, and the page gained the press,
+  //                    the per-tab state and the return leg that walk it; app.js followed
+  //                    1327772 -> 1336442 (+8670) and CORE_BYTES 2170619 -> 2179289 is
+  //                    exactly that delta. The worker byte table and the SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
+  //                    rewrites every CORE entry into the same store.
+  'sw.js': 'bdb0f8a25035d2b2b294e9dd870028576f4d36251368df2cf59daca499b774b3',
 };
 
 // ---------------------------------------------------------------------------
@@ -1807,7 +1815,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1327772, of: 'app.js' },
+      { n: 1336442, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

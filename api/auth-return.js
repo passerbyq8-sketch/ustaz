@@ -24,11 +24,20 @@
 // it would 403 every sign-in at the moment of return, after the reader had already consented at
 // the provider. And nothing on this path reaches an AI vendor.
 //
-// 🔴 EVERY EXIT IS A REDIRECT TO ezik://auth/return. Including the failures. The shell's auth
-// session resolves ONLY when it sees that URL; an error page here leaves the reader staring at
-// a browser sheet until they close it, which the contract then reports as `dismissed` -- a
-// silent, unattributable failure. So a refusal travels as `?error=<code>&state=<state>` and the
-// page can say what happened. The codes are short fixed strings and never carry a value.
+// 🔴 EVERY EXIT IS A REDIRECT, INCLUDING THE FAILURES, AND THERE ARE NOW TWO DESTINATIONS. The
+// shell's auth session resolves ONLY when it sees ezik://auth/return; an error page there leaves
+// the reader staring at a browser sheet until they close it, which the contract then reports as
+// `dismissed` -- a silent, unattributable failure. So a refusal travels as
+// `?error=<code>&state=<state>` and the page can say what happened. The codes are short fixed
+// strings and never carry a value.
+//
+// ITEM 8 ADDED THE SECOND DESTINATION AND NOT A SECOND ROUTE. A browser tab cannot follow a
+// custom scheme, so a flow that STARTED in a tab ends at WEB_RETURN_URL instead -- same codes,
+// same parameters, same shape, one constant swapped. WHICH ONE IS READ OUT OF THE STATE RECORD
+// api/auth-start.js wrote, never off this request: the provider hands this leg nothing but
+// `code` and `state`, and a destination taken off that would be an open redirect on the one
+// route that holds an authorization code. A record we cannot read is the shell, which is what
+// this route did before item 8 existed.
 
 import crypto from 'node:crypto';
 
@@ -53,8 +62,18 @@ import { upsertAccount, indexVerifiedEmail } from '../lib/auth/account.js';
 // Same source of randomness as everything else on this path: node:crypto, never Math.random.
 function randomTicket() { return crypto.randomBytes(32).toString('base64url'); }
 
-/** The one destination, built from the shell's scheme. Everything leaves through here. */
+/** The shell's destination, built from its scheme. */
 export const APP_RETURN_URL = 'ezik://auth/return';
+
+/**
+ * ITEM 8 -- THE BROWSER'S DESTINATION, AND IT IS A CONSTANT FOR THE SAME REASON REDIRECT_URI IS.
+ *
+ * It is NEVER built from the Host header and never from anything on the request. A browser flow
+ * ends where this file says it ends: the application's own origin, the one the provider console
+ * has registered and the one lib/auth/oidc.js already writes out whole. A destination assembled
+ * from a header on the return leg is an open redirect on the route that spends our client secret.
+ */
+export const WEB_RETURN_URL = 'https://ezik.app/';
 
 export const TICKET_RECORD_VERSION = 1;
 
@@ -86,8 +105,8 @@ function paramsOf(req) {
  * press it made -- exactly as the contract requires the web half to do -- and a failure carries
  * a code and never a value.
  */
-function toApp(res, params) {
-  const u = new URL(APP_RETURN_URL);
+function toApp(res, params, web) {
+  const u = new URL(web === true ? WEB_RETURN_URL : APP_RETURN_URL);
   for (const [k, v] of Object.entries(params)) {
     if (typeof v === 'string' && v.length > 0) u.searchParams.set(k, v);
   }
@@ -115,6 +134,9 @@ export default async function handler(req, res) {
   const state = typeof scalar(query.state) === 'string' ? scalar(query.state) : '';
   const code = typeof scalar(query.code) === 'string' ? scalar(query.code) : '';
 
+  // The one exit ABOVE the record read, and therefore the one that cannot know which end
+  // started the flow. It keeps the shell destination it always had: without a state there is
+  // no record to consult, and a browser that reaches this line has lost the press anyway.
   if (!state) return toApp(res, { error: 'auth-state-missing' });
 
   // The reader pressed "cancel" at the provider, or the provider refused. Its `error` value is
@@ -129,6 +151,12 @@ export default async function handler(req, res) {
   // both see the record. An expired state is the same answer as a spent one.
   const record = await takeOnce(stateKey(state));
 
+  // ITEM 8: WHICH END STARTED THIS, read out of the record api/auth-start.js wrote and out of
+  // nothing else. A record we could not read -- a replay, an expiry, a state nobody minted --
+  // is "false", which is the SHELL destination: that is the behaviour this route has always had,
+  // so a flow we cannot identify is answered exactly as it was before this line existed.
+  const web = !!(record && record.web === true);
+
   // THE STATE HANDED BACK IS THE PAGE'S OWN, NOT OURS. `state` above is the opaque value that
   // travelled to the provider; the page never saw it and cannot match it against the press it is
   // waiting on. What the page minted and put on the start URL comes back under the same name --
@@ -137,26 +165,26 @@ export default async function handler(req, res) {
   const echo = (record && typeof record.clientState === 'string' && record.clientState)
     ? record.clientState : state;
 
-  if (denied) return toApp(res, { error: 'auth-provider-denied', state: echo });
-  if (!record || typeof record !== 'object') return toApp(res, { error: 'auth-state-invalid', state: echo });
-  if (!code) return toApp(res, { error: 'auth-code-missing', state: echo });
+  if (denied) return toApp(res, { error: 'auth-provider-denied', state: echo }, web);
+  if (!record || typeof record !== 'object') return toApp(res, { error: 'auth-state-invalid', state: echo }, web);
+  if (!code) return toApp(res, { error: 'auth-code-missing', state: echo }, web);
 
   const conf = providerConfig(record.provider, process.env);
-  if (!conf.ok) return toApp(res, { error: conf.code, state: echo });
+  if (!conf.ok) return toApp(res, { error: conf.code, state: echo }, web);
   const cfg = conf.cfg;
 
   // THE EXCHANGE. The verifier comes out of the state record -- it never travelled with the
   // reader -- and the client secret never leaves this process.
   const exchanged = await exchangeCode(cfg, { code, codeVerifier: record.codeVerifier });
-  if (!exchanged.ok) return toApp(res, { error: exchanged.code, state: echo });
+  if (!exchanged.ok) return toApp(res, { error: exchanged.code, state: echo }, web);
 
   const jwks = await fetchJwks(cfg);
-  if (!jwks.ok) return toApp(res, { error: jwks.code, state: echo });
+  if (!jwks.ok) return toApp(res, { error: jwks.code, state: echo }, web);
 
   // Signature, issuer, audience, expiry, nonce. The nonce is the one that ties this token to
   // the start WE minted; without it any valid token for this client would be accepted here.
   const verified = verifyIdToken(cfg, exchanged.idToken, { keys: jwks.keys, nonce: record.nonce });
-  if (!verified.ok) return toApp(res, { error: verified.code, state: echo });
+  if (!verified.ok) return toApp(res, { error: verified.code, state: echo }, web);
 
   const claims = verified.claims;
 
@@ -168,7 +196,7 @@ export default async function handler(req, res) {
     email: claims.email,
     emailVerified: claims.emailVerified,
   });
-  if (!account.ok) return toApp(res, { error: account.code, state: echo });
+  if (!account.ok) return toApp(res, { error: account.code, state: echo }, web);
 
   // The seam between two providers, and it opens on a PROVED address only. An unverified sign-in
   // reaches this line and writes nothing -- it still has its own account.
@@ -182,7 +210,7 @@ export default async function handler(req, res) {
     deviceId: typeof record.deviceId === 'string' ? record.deviceId : '',
     createdAt: Date.now(),
   }, TICKET_TTL_SECONDS);
-  if (!written) return toApp(res, { error: 'auth-store-unavailable', state: echo });
+  if (!written) return toApp(res, { error: 'auth-store-unavailable', state: echo }, web);
 
-  return toApp(res, { ticket, state: echo });
+  return toApp(res, { ticket, state: echo }, web);
 }

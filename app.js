@@ -3457,7 +3457,10 @@ const openEzikSheet=target=>{sheetOriginRef.current.push(screenRef.current);setS
 // second one keeps one entry per layer, so the parental screen's back lands on الإعدادات and
 // leaves no spent entry behind to swallow a later press.
 const replaceEzikScreen=target=>{histReplaceRef.current=true;setScreen(target);};// S91: publish this resolver so a nested layer's own back button presses the same one.
-useEffect(()=>{ezikBackHandler=goEzikBack;});// ===== S92 -- THE SIDE MENU IS A BACK LAYER =====
+useEffect(()=>{ezikBackHandler=goEzikBack;});// ITEM 8: the browser's return leg, run once at the root. In the shell it does nothing at all --
+// there is a bridge, and the shell's own channel answers -- so this costs a native reader one
+// accessor call at boot and nothing else.
+useEzikWebAuthReturn();// ===== S92 -- THE SIDE MENU IS A BACK LAYER =====
 // The device back button has to CLOSE THE MENU FIRST, and the chat is a root screen: it owns no
 // history entry of its own, so a press there would otherwise reach the platform and leave the
 // app with the menu still on screen. Registering the menu here gives it one real entry for
@@ -4358,7 +4361,13 @@ try{localStorage.removeItem(EZIK_ART_SEEN_KEY);}catch(e){}// ITEM 9 -- AND THE R
 // device to the default the section ships with, which is VISIBLE TO EVERYONE (D-10): the
 // next reader is not handed a home screen arranged by a person who has gone. Entered on the
 // roster in tools/delete-truth-measure.cjs in the same commit as this line.
-try{localStorage.removeItem(EZIK_HIDE_WOMEN_KEY);}catch(e){}// HIJRI_OFFSET_KEY IS DELIBERATELY ABSENT. delete.html promises it nowhere, in neither
+try{localStorage.removeItem(EZIK_HIDE_WOMEN_KEY);}catch(e){}// ITEM 8 -- AND THE ONE THING THIS BUTTON SWEEPS THAT IS NOT IN localStorage. A browser
+// sign-in in flight leaves its own random state in THIS TAB's sessionStorage, and a reader
+// who presses "delete all my data" in the middle of one would otherwise leave it standing
+// for the rest of the tab. It is not on the roster in tools/delete-truth-measure.cjs, and
+// that is written down there rather than left to be noticed: that roster is about the
+// DEVICE store, and this key is not in it. Swept here for completeness, not for a promise.
+try{window.sessionStorage.removeItem(WEB_AUTH_CS_KEY);}catch(e){}// HIJRI_OFFSET_KEY IS DELIBERATELY ABSENT. delete.html promises it nowhere, in neither
 // language, and erasing what was never promised widens this button rather than repairs it.
 // It stays until a sentence on that page asks for it.
 setDirectConvoLocked(false);setProfile(null);voiceProfileRef.current=null;// غ‑٣: حذفُ البيانات يُعيد الحاجزَ إلى المقفول
@@ -5585,7 +5594,58 @@ const AUTH_SESSION_KEY='ezik_auth_session_v1';function readAuthSession(){try{con
 // never ask for it again' true the day the shell forwards one. It is refused exactly as the
 // address is -- a non-string is '' -- and it is not a fourth condition: a payload without a
 // name is a lawful payload and always was.
-const SHELL_AUTH_SESSION='ezik:auth:session';/**
+// ============================================================
+// ITEM 8 -- THE BROWSER'S OWN DOOR
+// ============================================================
+// WHAT WAS MISSING, AND IT WAS ONE CONSTANT. Every leg of this flow already existed and already
+// ran in production: /api/auth-start mints the state and redirects, the provider returns to
+// /api/auth-return, that route spends our client secret and leaves a sixty-second ticket, and
+// /api/auth-exchange turns the ticket into a session. What stopped a BROWSER from walking it was
+// the last hop: auth-return ended every exit at ezik://auth/return, a scheme a tab cannot follow.
+// So the flow now RECORDS which end started it -- on the server, in the state record -- and the
+// return leg ends on https for a flow that began in a tab. Nothing about the handshake, the
+// state, the PKCE, the ticket or the exchange moved.
+//
+// 🔴 NOTHING WAS RELAXED TO MAKE THIS WORK. Same client id, same client secret, same registered
+// redirect_uri, same nonce check, same signature check, same device binding at the exchange, same
+// rate limits. The provider console was not touched and did not need to be: the redirect_uri it
+// already holds IS /api/auth-return, and Google does not know or care whether the user agent is a
+// system sheet or a tab.
+//
+// 🔴 AND A READER WHO DOES NOT SIGN IN SEES NOTHING NEW. Both reader sections stay readable
+// without a session, the writing door stays shut without a grant, and nothing is asked of anybody:
+// the door is one control inside Settings that a reader may press or never find.
+// THE PRESS'S OWN STATE, ACROSS A NAVIGATION. In the shell this value lives in a ref for the life
+// of one press, because the page never goes away. A browser press DOES take the page away, so the
+// value has to survive it -- and sessionStorage is the smallest store that does: it is scoped to
+// THIS TAB, it dies when the tab closes, and it is not localStorage, which would outlive the press
+// and be readable by anything else on this origin for as long as the device lasts. It is taken
+// once and deleted in the same breath on the way back, so a second load of the same address
+// matches nothing.
+const WEB_AUTH_CS_KEY='ezik_auth_cs_v1';function writeWebAuthState(cs){try{window.sessionStorage.setItem(WEB_AUTH_CS_KEY,cs);return true;}catch(e){return false;}}function takeWebAuthState(){try{const v=window.sessionStorage.getItem(WEB_AUTH_CS_KEY);window.sessionStorage.removeItem(WEB_AUTH_CS_KEY);return typeof v==='string'?v:'';}catch(e){return'';}}// THE PRESS. A top-level navigation, not a fetch: the reader has to end up AT Google, in a window
+// with an address bar he can read, which is the whole security property of a redirect flow. The
+// start URL is built by the same function the shell's press uses, with one parameter added --
+// api/auth-start.js records it and api/auth-return.js reads it back off the record.
+function ezikWebAuthStart(clientState,provider){const u=new URL(ezikAuthStartUrl(clientState,getDeviceId(),provider||SHELL_AUTH_PROVIDER));u.searchParams.set('web','1');window.location.assign(u.toString());}/** What came back in the address bar, or null when this is an ordinary open. */function ezikWebAuthReturn(search){try{const p=new URLSearchParams(typeof search==='string'?search:window.location.search);const ticket=p.get('ticket')||'';const error=p.get('error')||'';if(!ticket&&!error)return null;return{ticket:ticket,error:error,state:p.get('state')||''};}catch(e){return null;}}// AND THE ADDRESS BAR IS CLEANED WHATEVER THE OUTCOME, before the ticket is spent and before
+// anything is judged. A ticket is worthless sixty seconds later and worthless from another
+// device, but it has no business sitting in a history entry, in a bookmark, or in whatever the
+// reader pastes into a message. replaceState leaves no extra entry for a back press to find.
+function ezikWebAuthClean(){try{const u=new URL(window.location.href);let touched=false;for(const k of['ticket','state','error']){if(u.searchParams.has(k)){u.searchParams.delete(k);touched=true;}}if(!touched)return false;const q=u.searchParams.toString();window.history.replaceState(null,'',u.pathname+(q?'?'+q:'')+u.hash);return true;}catch(e){return false;}}// THE RETURN, MOUNTED AT THE ROOT AND RUN ONCE. The reader lands back on the application's own
+// address, which is whatever screen he would have seen anyway -- there is no interstitial and no
+// screen of its own for this. It writes through writeAuthSession(), the SAME function both other
+// doors write through, into the same key, in the same shape, so resetAll(), delete.html and
+// tools/delete-truth-measure.cjs go on being right without a letter changing in any of them.
+//
+// IT IS NOT ezikNativeAuthReceive(). That one is the SHELL channel's judge and refuses anything
+// arriving without window.ReactNativeWebView -- which is the provenance test for a message the
+// shell claims to have sent. Nothing here is claimed by anybody: the ticket was spent against our
+// own server and the answer came back over TLS from it.
+function useEzikWebAuthReturn(){useEffect(()=>{if(ezikAuthBridge())return;// the shell has its own return leg
+const got=ezikWebAuthReturn();ezikWebAuthClean();if(!got)return;const mine=takeWebAuthState();// THE STATE COMPARISON, BEFORE THE ERROR AND BEFORE THE TICKET, exactly as the shell's half
+// does it: an answer we cannot tie to a press this tab made is not an answer at all, whatever
+// else it happens to carry. A tab that made no press has no stored value and matches nothing.
+if(!mine||got.state!==mine)return;if(!got.ticket)return;// a refusal: the press simply stands again
+ezikAuthExchange(got.ticket).then(session=>{if(!session)return;writeAuthSession(session);EZIK_NATIVE_AUTH_SUBS.forEach(fn=>{try{fn(session);}catch(e){}});});},[]);}const SHELL_AUTH_SESSION='ezik:auth:session';/**
  * The session the shell handed over, or null. It writes nothing and throws in no branch: the
  * caller is told what arrived, and a message that is not one is refused in silence exactly as
  * every other malformed message on every other channel is.
@@ -6092,7 +6152,11 @@ const EZ_AIS_PROVIDERS_LABEL='الجهات:';const EZ_AIS_PROVIDERS_NAMES='Anthr
 // rank, no ceiling: signing in BUYS NOTHING today, and a badge would promise something this round
 // does not deliver. Nothing else could be drawn even if we wanted to -- no name and no picture was
 // ever carried as far as the account record, and /api/auth-exchange returns four fields.
-function EzikSignInRow(){const bridge=ezikAuthBridge();const[session,setSession]=useState(readAuthSession);const[busy,setBusy]=useState(false);const[line,setLine]=useState('');// THE SECOND STEP, AND IT IS A STATE RATHER THAN A confirm(). `armed` is false until the
+function EzikSignInRow(){const bridge=ezikAuthBridge();// ITEM 8: a tab has no bridge, and now that is a DIFFERENT PRESS rather than no row. The two
+// presses share the client state, the start URL, the exchange and the session; what differs is
+// that one opens a sheet and waits for an answer, and the other navigates and is answered on
+// the next load by useEzikWebAuthReturn().
+const web=!bridge;const[session,setSession]=useState(readAuthSession);const[busy,setBusy]=useState(false);const[line,setLine]=useState('');// THE SECOND STEP, AND IT IS A STATE RATHER THAN A confirm(). `armed` is false until the
 // reader has pressed the delete control ONCE and read the sentence it opens; only then is
 // the control that actually deletes on the screen at all. One press can never delete an
 // account. `done` is the notice left behind afterwards, and it is deliberately not `line`:
@@ -6104,7 +6168,7 @@ const[armed,setArmed]=useState(false);const[done,setDone]=useState(false);// PHA
 // sentence anybody can copy the useful half out of.
 const[checkLine,setCheckLine]=useState('');const[checkDigest,setCheckDigest]=useState('');// The press's own state and the teardown for its listener. Both refs: neither is drawn, and the
 // client state must not outlive the press it belongs to.
-const csRef=useRef('');const stopRef=useRef(null);useEffect(()=>()=>{if(stopRef.current){stopRef.current();stopRef.current=null;}},[]);if(!bridge)return null;// AND THE SAME DECLARATION THAT TAKES THE TWO DOORS OFF THE ENTRY SCREEN TAKES THIS ROW WITH
+const csRef=useRef('');const stopRef=useRef(null);useEffect(()=>()=>{if(stopRef.current){stopRef.current();stopRef.current=null;}},[]);// AND THE SAME DECLARATION THAT TAKES THE TWO DOORS OFF THE ENTRY SCREEN TAKES THIS ROW WITH
 // THEM. Apple 4.8 is a rule about what is OFFERED, and this row offers the very thing the
 // entry card was made to stop offering -- one Google door, standing alone, on the platform
 // whose own door is shut. Hiding it there and leaving it here would have moved the exposure
@@ -6120,7 +6184,17 @@ const csRef=useRef('');const stopRef=useRef(null);useEffect(()=>()=>{if(stopRef.
 // address, the sign-out and the delete control. Withdrawing those would sign nobody out and
 // would only take away the one screen that says what is held and the one control that ends it.
 // The two live in one row today, so the row is split HERE, by the state that tells them apart.
-if(!session&&ezikShellHidesSocialSignIn())return null;// EVERY FAILURE BRANCH RELEASES THE BUTTON THROUGH HERE. There is no timer, so this is the ONLY
+// ITEM 8 SCOPED THIS TO THE SHELL, and it is a narrowing rather than a weakening. The flag is a
+// NATIVE PLATFORM'S word about what its own store requires -- Apple 4.8, read off a window the
+// shell injects it on -- and it was written when this row existed only inside the shell, so
+// "the row" and "the row in the shell" were the same sentence. They are not any more. A browser
+// tab is not an app store, sets no such flag of its own, and must not have its door taken away
+// by a value that only the other end ever writes.
+//
+// IT IS STILL THE SAME FUNCTION AND NOT A SECOND READING OF THE FLAG: ezikShellHidesSocialSignIn()
+// is untouched and remains the one place that decides what a declaration IS -- the literal true
+// and nothing else. What is added beside it is WHERE the declaration applies.
+if(!session&&bridge&&ezikShellHidesSocialSignIn())return null;// EVERY FAILURE BRANCH RELEASES THE BUTTON THROUGH HERE. There is no timer, so this is the ONLY
 // thing that can ever release it -- which is why it is one function rather than a line repeated
 // at six exits, where the seventh exit added later is the one that forgets.
 const settle=msg=>{setBusy(false);setLine(msg);};const finish=d=>{stopRef.current=null;if(!d||d.ok!==true){// `dismissed` IS SILENCE. The class decides that, and the line is empty for exactly that
@@ -6128,7 +6202,16 @@ const settle=msg=>{setBusy(false);setLine(msg);};const finish=d=>{stopRef.curren
 settle(ezikAuthLine(d&&d.reason));return;}const p=ezikAuthReturnParams(d.url);if(!p){settle(ezT('auth.badReturn'));return;}// THE STATE COMPARISON, CHECKED BEFORE THE ERROR AND BEFORE THE TICKET. An answer we cannot
 // tie to the press that is waiting is not an answer at all, whatever else it happens to
 // carry, so nothing further in the URL is read until this holds.
-if(p.get('state')!==csRef.current){settle(ezT('auth.stateMismatch'));return;}if(p.get('error')){settle(ezT('auth.refused'));return;}const ticket=p.get('ticket');if(!ticket){settle(ezT('auth.badReturn'));return;}ezikAuthExchange(ticket).then(got=>{if(!got){settle(ezT('auth.exchangeFailed'));return;}writeAuthSession(got);setSession(got);settle('');});};const press=()=>{if(busy)return;setBusy(true);setLine('');csRef.current=ezikAuthClientState();stopRef.current=ezikAuthAsk(bridge,ezikAuthStartUrl(csRef.current,getDeviceId()),finish);};// PHASE 4 / F16, F18 -- WHY A WRITER IS BEING REFUSED, ASKED FROM INSIDE THE APPLICATION.
+if(p.get('state')!==csRef.current){settle(ezT('auth.stateMismatch'));return;}if(p.get('error')){settle(ezT('auth.refused'));return;}const ticket=p.get('ticket');if(!ticket){settle(ezT('auth.badReturn'));return;}ezikAuthExchange(ticket).then(got=>{if(!got){settle(ezT('auth.exchangeFailed'));return;}writeAuthSession(got);setSession(got);settle('');});};const press=()=>{if(busy)return;setBusy(true);setLine('');csRef.current=ezikAuthClientState();// ITEM 8: THE BROWSER'S PRESS LEAVES. There is no listener to arm and no answer to wait for --
+// this page is about to stop existing -- so the client state is handed to the tab's own store
+// instead of a ref, and the button is left BUSY: the navigation is the feedback, and a second
+// press while the first is still leaving would mint a second state and orphan the first.
+//
+// A STORE THAT REFUSES IS A PRESS THAT DOES NOT HAPPEN. Without the client state on the way
+// back there is nothing to match the answer against, and matching it is not optional: it is
+// what stops an answer belonging to somebody else's press being accepted by this tab. So the
+// reader is told, and nothing is navigated.
+if(web){if(!writeWebAuthState(csRef.current)){settle(ezT('auth.browserFailed'));return;}ezikWebAuthStart(csRef.current);return;}stopRef.current=ezikAuthAsk(bridge,ezikAuthStartUrl(csRef.current,getDeviceId()),finish);};// PHASE 4 / F16, F18 -- WHY A WRITER IS BEING REFUSED, ASKED FROM INSIDE THE APPLICATION.
 //
 // THE PROBLEM IT ENDS. Every reason for refusing a writer returns the same 401 with the same
 // two fields. That is right for a stranger and it is what stops this door being used to map who

@@ -30,7 +30,7 @@
 // no key file, no fixture, no temporary directory. `git status` is as empty after this tool as
 // before it.
 //
-// AND IT CANNOT PASS BY DOING NOTHING. SIX MUTANTS are compiled at the end from the same lifted
+// AND IT CANNOT PASS BY DOING NOTHING. SEVEN MUTANTS are compiled at the end from the same lifted
 // source with one line changed each -- the state delete dropped, the nonce check dropped,
 // `email_verified` believed whenever it is a string, a sixth field written into the record, the
 // redirect_uri built from the Host header, and the throttle made to fail open -- and every one
@@ -643,6 +643,7 @@ const CONTRACT = {
   FIELDS: BASE.account.ACCOUNT_FIELDS,
   PROVIDERS: Object.keys(BASE.oidc.PROVIDERS),
   APP_RETURN_URL: BASE.ret.APP_RETURN_URL,
+  WEB_RETURN_URL: BASE.ret.WEB_RETURN_URL,
 };
 
 /* -- RULING 1: the account key carries the provider ------------------------- */
@@ -1000,6 +1001,91 @@ run('R9 the redirect_uri is the constant, whatever the Host header claims', asyn
   const bodies = g.provider.calls.map((c) => c.body).join('\n');
   is(bodies.indexOf('evil.example') === -1, 'a hostile host reached the token exchange');
   return CONTRACT.REDIRECT_URI + ' both times';
+});
+
+/* -- ITEM 8: TWO DESTINATIONS, AND WHICH ONE IS NOT THE CALLER'S TO CHOOSE --- */
+
+// WHAT ITEM 8 CHANGED, AND IT IS SMALLER THAN IT SOUNDS. api/auth-return.js used to end every one
+// of its exits at ezik://auth/return -- a scheme a browser tab cannot follow, which is the single
+// reason a tab could not walk this flow. It now ends a flow that STARTED IN A TAB on https
+// instead. Nothing else about the leg moved: same code exchange, same client secret, same nonce,
+// same signature check, same ticket, same sixty seconds, same device binding at the exchange.
+//
+// 🔴 AND THE CHOICE IS THE RECORD'S. api/auth-start.js writes a BOOLEAN into the state record;
+// api/auth-return.js reads it out of the record it consumes. The provider's return leg carries
+// only `code` and `state`, and a destination taken off THAT leg would be an open redirect on the
+// one route in this application that holds an authorization code. The three cases below are that
+// sentence made checkable: the record decides, the query cannot, and a record we could not read
+// falls back to the behaviour this route had before item 8 existed.
+
+run('R14 the browser destination is a constant, and a flow marked web ends there', async () => {
+  eq(CONTRACT.WEB_RETURN_URL, 'https://ezik.app/', 'the declared browser destination');
+  eq(CONTRACT.APP_RETURN_URL, 'ezik://auth/return', 'the declared shell destination');
+
+  const g = buildGraph({});
+  // fullFlow() signs an identity token against the nonce the START leg minted, which is the only
+  // way the return leg gets past verifyIdToken() -- the same helper every other success case here
+  // uses, so this one is not a second idea of what a completed flow is.
+  const { returned: back } = await fullFlow(g, { startQuery: { provider: 'google', cs: 'presscs', web: '1' } });
+  eq(back.url.origin + back.url.pathname, 'https://ezik.app/', 'where a web flow was sent back');
+  is(!!back.params.get('ticket'), 'a web flow came back without a ticket');
+  eq(back.params.get('state'), 'presscs', 'the page state a web flow carries back');
+  return 'https://ezik.app/ with a ticket and the page state';
+});
+
+run('R14 a flow NOT marked web is untouched, and the query cannot mark it', async () => {
+  const g = buildGraph({});
+  // 1 -- the shell's flow, exactly as before.
+  const shell = await legStart(g, { query: { provider: 'google', cs: 'shellcs' } });
+  const backShell = await legReturn(g, { query: { code: FIXTURE.code, state: shell.params.get('state') } });
+  eq(backShell.url.protocol, 'ezik:', 'the shell flow left through something other than the scheme');
+
+  // 2 -- THE ATTACK. A second shell flow, whose RETURN leg is handed web=1 and a destination of
+  // its own. The record says otherwise, and the record is what is read.
+  const g2 = buildGraph({});
+  const shell2 = await legStart(g2, { query: { provider: 'google', cs: 'shellcs2' } });
+  const forged = await legReturn(g2, { query: {
+    code: FIXTURE.code, state: shell2.params.get('state'),
+    web: '1', return: 'https://evil.example/', redirect_uri: 'https://evil.example/',
+  } });
+  eq(forged.url.protocol, 'ezik:', 'the return leg took its destination off its own query');
+  is(String(locationOf(forged.res)).indexOf('evil.example') === -1,
+    'a caller-supplied host reached the redirect');
+
+  // 3 -- AND A STATE NOBODY MINTED FALLS BACK TO THE SHELL, which is what this route did before
+  // item 8 existed: no record, no claim about which end started anything.
+  const g3 = buildGraph({});
+  const orphan = await legReturn(g3, { query: { code: FIXTURE.code, state: 'never-minted', web: '1' } });
+  eq(orphan.url.protocol, 'ezik:', 'an unreadable record chose the browser destination');
+  eq(orphan.params.get('error'), 'auth-state-invalid', 'the refusal an orphan state gets');
+  return 'shell stays shell; a forged web=1 and a forged host are both ignored; an orphan is shell';
+});
+
+run('R14 every refusal on a web flow comes back to the browser, not to the scheme', async () => {
+  const seen = [];
+  // A DENIAL, which is the one a reader actually meets: they press cancel at the provider. If a
+  // refusal went to the custom scheme the tab would be left on a page that cannot resolve, with
+  // the press still marked busy and no sentence anywhere.
+  {
+    const g = buildGraph({});
+    const started = await legStart(g, { query: { provider: 'google', cs: 'cs1', web: '1' } });
+    const back = await legReturn(g, { query: { error: 'access_denied', state: started.params.get('state') } });
+    eq(back.url.origin + back.url.pathname, 'https://ezik.app/', 'where a denied web flow went');
+    eq(back.params.get('error'), 'auth-provider-denied', 'the code a denial carries');
+    is(back.params.get('error').indexOf('access_denied') === -1,
+      "the provider's own error text was echoed into a URL we build");
+    seen.push('denied');
+  }
+  // A CODE THAT NEVER ARRIVED.
+  {
+    const g = buildGraph({});
+    const started = await legStart(g, { query: { provider: 'google', cs: 'cs2', web: '1' } });
+    const back = await legReturn(g, { query: { state: started.params.get('state') } });
+    eq(back.url.origin + back.url.pathname, 'https://ezik.app/', 'where a codeless web flow went');
+    eq(back.params.get('error'), 'auth-code-missing', 'the code a missing code carries');
+    seen.push('no code');
+  }
+  return seen.join(' / ') + ' -- both to the browser, both with a fixed code';
 });
 
 /* -- RULING 10: the consent gate is deliberately absent, and said so -------- */
@@ -1482,6 +1568,24 @@ function mutant(name, file, from, to, killedBy) {
 }
 const mutantQueue = [];
 
+// ITEM 8. THE ONE LINE THAT WOULD MAKE THE SECOND DESTINATION AN OPEN REDIRECT: read "which end
+// started this" off the RETURN LEG'S QUERY instead of off the record. The provider hands that leg
+// nothing this server minted, so anybody who can get a reader to follow a link can then choose
+// where the reader lands -- on the one route in this application that has just spent our client
+// secret and is holding a ticket. Every other case in this file still passes under it.
+mutant('م٧ the return destination is taken off the request instead of the record',
+  'api/auth-return.js',
+  '  const web = !!(record && record.web === true);',
+  "  const web = scalar(query.web) === '1';",
+  async () => {
+    const g = buildGraph({ mutate: MUT });
+    const shell = await legStart(g, { query: { provider: 'google', cs: 'shellcs' } });
+    const forged = await legReturn(g, { query: {
+      code: FIXTURE.code, state: shell.params.get('state'), web: '1',
+    } });
+    eq(forged.url.protocol, 'ezik:', 'the return leg took its destination off its own query');
+  });
+
 mutant('م١ the state delete is dropped from the consume script',
   'lib/auth/store.js',
   '  "if v then redis.call(\'DEL\', KEYS[1]) end",\n',
@@ -1574,7 +1678,7 @@ let MUT = null;
 
   results.push((function () {
     try {
-      is(mutants.length === 6, 'six mutants were named and ' + mutants.length + ' ran');
+      is(mutants.length === 7, 'seven mutants were named and ' + mutants.length + ' ran');
       const notApplied = mutants.filter((m) => !m.applied).map((m) => m.name + ': ' + m.note);
       eq(notApplied, [], 'mutants that could not be applied');
       const survivors = mutants.filter((m) => !m.killed).map((m) => m.name + ': ' + m.note);

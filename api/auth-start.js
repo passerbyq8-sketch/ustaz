@@ -70,6 +70,29 @@ function pageState(req) {
   return /^[A-Za-z0-9_-]+$/.test(raw) ? raw : '';
 }
 
+/**
+ * ITEM 8 -- WHICH END STARTED THIS FLOW, RECORDED HERE AND NOWHERE ELSE.
+ *
+ * THE SHELL'S RETURN IS A CUSTOM SCHEME. api/auth-return.js has always ended every one of its
+ * exits at ezik://auth/return, because the shell's auth session resolves ONLY when it sees that
+ * URL. A BROWSER TAB CANNOT FOLLOW THAT: there is no application registered for the scheme on a
+ * desktop, and on a phone it would leave the tab and open the app. So a browser flow needs the
+ * return leg to end on https, and the return leg has to be told which one it is serving.
+ *
+ * 🔴 AND IT IS TOLD BY THE RECORD, NEVER BY THE RETURN REQUEST. This value is written into the
+ * state record, which lives in the store for ten minutes and which api/auth-return.js CONSUMES.
+ * The provider hands the return leg nothing but "code" and "state", and a destination taken off
+ * that leg's query would be a destination an attacker could choose -- the classic open redirect,
+ * on the one route that holds an authorization code. The reader who pressed the button is the
+ * only person who can put a value here, and even he can only choose between two fixed strings
+ * that this file owns.
+ */
+function startedInBrowser(req) {
+  const q = (req && req.query) || {};
+  const raw = Array.isArray(q.web) ? q.web[0] : q.web;
+  return raw === '1';
+}
+
 function startDevice(req) {
   const headers = (req && req.headers) || {};
   const fromHeader = safeId(headers[DEVICE_HEADER]);
@@ -110,6 +133,9 @@ export default async function handler(req, res) {
     codeVerifier,
     deviceId: startDevice(req) || '',
     clientState: pageState(req),
+    // ITEM 8: a BOOLEAN, not a URL. What it selects is one of two constants in
+    // api/auth-return.js; nothing a caller sends is ever built into the destination.
+    web: startedInBrowser(req),
     createdAt: Date.now(),
   }, STATE_TTL_SECONDS);
 

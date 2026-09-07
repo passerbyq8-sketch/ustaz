@@ -169,6 +169,15 @@ const FN_TOKEN_ALIVE = topConst('founderTokenAlive');
 const FN_HAS_FOUNDER = topConst('hasFounderToken');
 const C_ADMIN_ROUTE = topConst('EZIK_ART_ADMIN_ROUTE');
 const FN_GRANT_CHECK = topFunction('ezikGrantCheck');
+// ITEM 8 -- THE BROWSER HALF, LIFTED WHOLE. The press, the per-tab state, the address-bar reader,
+// the cleaner and the return hook all come out of app.jsx; nothing about them is re-typed here.
+const C_WEB_CS_KEY = topConst('WEB_AUTH_CS_KEY');
+const FN_WEB_WRITE = topFunction('writeWebAuthState');
+const FN_WEB_TAKE = topFunction('takeWebAuthState');
+const FN_WEB_START = topFunction('ezikWebAuthStart');
+const FN_WEB_RETURN = topFunction('ezikWebAuthReturn');
+const FN_WEB_CLEAN = topFunction('ezikWebAuthClean');
+const FN_WEB_HOOK = topFunction('useEzikWebAuthReturn');
 const FN_ROW = topFunction('EzikSignInRow');
 const FN_SETTINGS = topFunction('SettingsSheet');
 
@@ -212,6 +221,8 @@ const HARNESS_PARTS = [
   text(C_OUTCOME_LINES), text(FN_OUTCOME_LINE), text(FN_OUTCOME_OF), text(C_APPLE_WAIT),
   text(FN_APPLE_ASK),
   text(C_HIDE_FLAG), text(FN_HIDES), text(FN_DOORS),
+  text(C_WEB_CS_KEY), text(FN_WEB_WRITE), text(FN_WEB_TAKE), text(FN_WEB_START),
+  text(FN_WEB_RETURN), text(FN_WEB_CLEAN), text(FN_WEB_HOOK),
   text(C_FOUNDER_KEY), text(FN_TOKEN_ALIVE), text(FN_HAS_FOUNDER),
   text(C_ADMIN_ROUTE), text(FN_GRANT_CHECK),
   text(FN_ROW),
@@ -219,6 +230,10 @@ const HARNESS_PARTS = [
   '  EzikSignInRow: EzikSignInRow,',
   '  hasFounderToken: hasFounderToken, ezikGrantCheck: ezikGrantCheck,',
   '  FOUNDER_TOKEN_KEY: FOUNDER_TOKEN_KEY, EZIK_ART_ADMIN_ROUTE: EZIK_ART_ADMIN_ROUTE,',
+  '  WEB_AUTH_CS_KEY: WEB_AUTH_CS_KEY, ezikWebAuthStart: ezikWebAuthStart,',
+  '  ezikWebAuthReturn: ezikWebAuthReturn, ezikWebAuthClean: ezikWebAuthClean,',
+  '  writeWebAuthState: writeWebAuthState, takeWebAuthState: takeWebAuthState,',
+  '  useEzikWebAuthReturn: useEzikWebAuthReturn,',
   '  ezikAuthBridge: ezikAuthBridge, ezikAuthReason: ezikAuthReason,',
   '  ezikAuthClass: ezikAuthClass, ezikAuthLine: ezikAuthLine,',
   '  ezikAuthClientState: ezikAuthClientState, ezikAuthStartUrl: ezikAuthStartUrl,',
@@ -308,6 +323,22 @@ function fakeWindow(bridge) {
       for (const l of snapshot) { if (l.type === type) l.fn({ type: type, detail: detail }); }
     },
     live(type) { return listeners.filter((l) => l.type === type).length; },
+  };
+  // ITEM 8: the three things a BROWSER press touches and a shell press never does -- the tab's own
+  // store, the address bar, and the navigation itself. Every one of them RECORDS rather than acts,
+  // so a case can read what the press did instead of watching a page disappear.
+  w.sessionStorage = fakeStorage();
+  w.location = {
+    href: 'https://ezik.app/',
+    pathname: '/',
+    search: '',
+    hash: '',
+    assigned: [],
+    assign(u) { this.assigned.push(String(u)); },
+  };
+  w.history = {
+    replaced: [],
+    replaceState(a, b, url) { this.replaced.push(String(url)); },
   };
   if (bridge) w.ReactNativeWebView = bridge;
   return w;
@@ -809,11 +840,18 @@ run('a matching return is exchanged, and the exchange carries the device header'
 
 /* -- WHAT IS DRAWN --------------------------------------------------------- */
 
-run('OUTSIDE THE SHELL THE ROW DRAWS NOTHING AT ALL -- not a hidden node, none', () => {
+// ITEM 8 -- THE DECISION THIS CASE HELD HAS CHANGED, AND SO HAS THE CASE. It used to read
+// "outside the shell the row draws nothing at all", and it was right: a tab had nothing on the
+// far side to answer a press, and a control that nothing answers is worse than none. A tab now
+// has an answer -- api/auth-return.js ends a flow that started in a tab on https -- so the row
+// draws its door there too. WHAT IS KEPT, and it is the load-bearing half, is that the two
+// presses are told apart by the INJECTED BRIDGE and never by the user agent.
+run('the row draws in BOTH ends now, and the two are told apart by the injected bridge', () => {
   const outside = scene({ shell: false });
   const m = mountRow(outside);
-  eq(m.tree(), null, 'what the row returns in a browser tab');
-  eq(countNodes(nodesOf(m.tree())), 0, 'nodes drawn in a browser tab');
+  is(countNodes(nodesOf(m.tree())) > 0, 'the row still draws nothing in a browser tab');
+  is(textOf(nodesOf(m.tree())).indexOf(CONTRACT.EZ_I18N.ar['auth.signIn']) !== -1,
+    'the tab drew a row with no sign-in offer in it');
   const inside = scene({});
   const m2 = mountRow(inside);
   is(countNodes(nodesOf(m2.tree())) > 0, 'the row drew nothing inside the shell either');
@@ -821,7 +859,8 @@ run('OUTSIDE THE SHELL THE ROW DRAWS NOTHING AT ALL -- not a hidden node, none',
   const body = text(FN_BRIDGE);
   is(body.indexOf('userAgent') === -1, 'the bridge test consults navigator.userAgent');
   is(body.indexOf('ReactNativeWebView') !== -1, 'the bridge test no longer reads the injected bridge');
-  return '0 nodes in a tab, ' + countNodes(nodesOf(m2.tree())) + ' in the shell';
+  return countNodes(nodesOf(m.tree())) + ' nodes in a tab, '
+    + countNodes(nodesOf(m2.tree())) + ' in the shell';
 });
 
 run('the shell can ask for the settings row to go, and it goes whole -- account kept', () => {
@@ -855,12 +894,18 @@ run('the shell can ask for the settings row to go, and it goes whole -- account 
       'the row went away for a flag set to ' + JSON.stringify(junk) + ' -- not a declaration');
   }
 
-  // 3 -- A BROWSER TAB IS UNAFFECTED IN BOTH DIRECTIONS. It drew nothing before the flag existed
-  // and draws nothing now; the switch must not have become a second bridge.
-  for (const declared of [false, true]) {
-    const tab = scene({ shell: false });
-    if (declared) tab.win[flag] = true;
-    eq(countNodes(nodesOf(mountRow(tab).tree())), 0, 'nodes in a tab, declared=' + declared);
+  // 3 -- A BROWSER TAB IS UNAFFECTED IN BOTH DIRECTIONS, and that is still the property even
+  // though what a tab draws has changed. The declaration is a SHELL platform's word about what
+  // its own store requires; a tab is not that platform, sets no such flag of its own, and must
+  // draw exactly the same thing whether or not somebody put one on the window. Asserting the two
+  // are EQUAL rather than both zero is what keeps this case true across item 8 and after it.
+  {
+    const plain = countNodes(nodesOf(mountRow(scene({ shell: false })).tree()));
+    is(plain > 0, 'the tab drew nothing at all, so this case is comparing two zeroes');
+    const declaredTab = scene({ shell: false });
+    declaredTab.win[flag] = true;
+    eq(countNodes(nodesOf(mountRow(declaredTab).tree())), plain,
+      'the shell declaration reached into a browser tab');
   }
 
   // 4 -- THE ACCOUNT IS NOT THE INVITATION. A session handed over by the native door stands on
@@ -997,6 +1042,114 @@ run('the grant check reads all four refusals, and shows the digest only on the f
     }
     return said.join(' / ');
   });
+
+// ---------------------------------------------------------------------------
+// ITEM 8 -- THE BROWSER'S DOOR, END TO END EXCEPT FOR THE PROVIDER.
+//
+// WHAT CANNOT BE PROVED HERE AND IS NOT PRETENDED. The hop through Google, and the hop back
+// through api/auth-return.js, need a deployment; this file has neither and claims neither. What
+// it does prove is every step on THIS side of that hop: what the press sends the reader to, what
+// it leaves behind so the answer can be matched to it, what it does when the tab's store refuses,
+// what the return leg accepts, what it refuses, and that the ticket leaves the address bar.
+// ---------------------------------------------------------------------------
+
+/** A component that is nothing but the return hook, mounted in a scene of its own. */
+function mountHook(scn) {
+  return mountRow(scn, null, (mod) => function EzikWebReturnProbe() {
+    mod.useEzikWebAuthReturn();
+    return null;
+  });
+}
+
+run('the browser press navigates to our own start route, marked as a web flow', () => {
+  const tab = scene({ shell: false });
+  const m = mountRow(tab);
+  findTags(nodesOf(m.tree()), 'button')[0].props.onClick();
+  eq(tab.win.location.assigned.length, 1, 'navigations the press made');
+  const u = new URL(tab.win.location.assigned[0]);
+  eq(u.origin + u.pathname, CONTRACT.SHELL_AUTH_ORIGIN + CONTRACT.SHELL_AUTH_START_PATH,
+    'where the press sent the reader');
+  eq(u.searchParams.get('web'), '1', 'the flow is not marked as a web flow');
+  eq(u.searchParams.get('provider'), CONTRACT.SHELL_AUTH_PROVIDER, 'the provider on the start URL');
+  eq(u.searchParams.get('device'), FIXTURE.device, 'the device the flow started on');
+  // AND THE PRESS LEFT ITS OWN STATE BEHIND, IN THE TAB'S STORE AND NOT THE DEVICE'S.
+  const cs = tab.win.sessionStorage.getItem(CONTRACT.WEB_AUTH_CS_KEY);
+  eq(u.searchParams.get('cs'), cs, 'the state on the URL is not the state that was kept');
+  is(/^[0-9a-f]{32}$/.test(String(cs)), 'the client state is not 32 hex characters: ' + cs);
+  eq(tab.storage.keys(), [], 'the press wrote to the DEVICE store');
+  // AND NOTHING WAS FETCHED. A redirect flow is a navigation; a fetch here would mean the reader
+  // never sees the provider's own address bar, which is the whole security property.
+  eq(tab.fetch.calls.length, 0, 'requests the press made');
+  return 'one navigation, web=1, state kept in the tab and nowhere else';
+});
+
+run('a tab whose own store refuses does not navigate, and says so', () => {
+  const tab = scene({ shell: false });
+  tab.win.sessionStorage.setItem = () => { throw new Error('denied'); };
+  const m = mountRow(tab);
+  findTags(nodesOf(m.tree()), 'button')[0].props.onClick();
+  eq(tab.win.location.assigned.length, 0,
+    'the reader was sent to a provider with nothing to match the answer against');
+  is(textOf(nodesOf(m.tree())).indexOf(CONTRACT.EZ_I18N.ar['auth.browserFailed']) !== -1,
+    'the reader was told nothing');
+  return 'no navigation, and the failure is on the screen';
+});
+
+run('the browser return accepts only an answer to a press THIS tab made', async () => {
+  const T = FIXTURE.ticket;
+  const cs = 'a'.repeat(32);
+  const cases = [
+    ['the matching answer', '?ticket=' + T + '&state=' + cs, cs, true],
+    ['an answer to another press', '?ticket=' + T + '&state=' + 'b'.repeat(32), cs, false],
+    ['an answer with no press waiting', '?ticket=' + T + '&state=' + cs, '', false],
+    ['a refusal', '?error=auth-provider-denied&state=' + cs, cs, false],
+    ['an ordinary open', '', cs, false],
+  ];
+  const said = [];
+  for (const [what, search, kept, expected] of cases) {
+    const tab = scene({ shell: false });
+    tab.win.location.search = search;
+    tab.win.location.href = 'https://ezik.app/' + search;
+    if (kept) tab.win.sessionStorage.setItem(CONTRACT.WEB_AUTH_CS_KEY, kept);
+    const m = mountHook(tab);
+    await flush();
+    const wrote = tab.storage.getItem(CONTRACT.AUTH_SESSION_KEY);
+    eq(!!wrote, expected, 'a session was written for ' + what);
+    if (expected) eq(JSON.parse(wrote).session, FIXTURE.session, 'the session written for ' + what);
+    // THE ADDRESS BAR IS CLEANED WHATEVER THE OUTCOME, and it is cleaned by replaceState so no
+    // second history entry is left for a back press to land on.
+    if (search) {
+      eq(tab.win.history.replaced.length, 1, 'the address bar was not cleaned for ' + what);
+      is(tab.win.history.replaced[0].indexOf('ticket') === -1
+        && tab.win.history.replaced[0].indexOf('state') === -1,
+        'the ticket or the state survived in the address bar for ' + what);
+    } else {
+      eq(tab.win.history.replaced.length, 0, 'an ordinary open rewrote its own address');
+    }
+    // AND THE PRESS IS SPENT ONCE, BY AN ANSWER. A second load of the same address matches
+    // nothing. An ORDINARY OPEN is not an answer and must NOT spend it: a reader who opens a
+    // second tab on the same origin while a press is in flight would otherwise destroy the state
+    // the first tab is waiting to match against.
+    eq(tab.win.sessionStorage.getItem(CONTRACT.WEB_AUTH_CS_KEY), search ? null : (kept || null),
+      'the client state after ' + what);
+    said.push(what);
+    void m;
+  }
+  return said.join(' / ');
+});
+
+run('the return leg does nothing at all inside the shell', async () => {
+  const inside = scene({});
+  inside.win.location.search = '?ticket=' + FIXTURE.ticket + '&state=' + 'a'.repeat(32);
+  inside.win.sessionStorage.setItem(CONTRACT.WEB_AUTH_CS_KEY, 'a'.repeat(32));
+  mountHook(inside);
+  await flush();
+  eq(inside.storage.getItem(CONTRACT.AUTH_SESSION_KEY), null,
+    'the browser return leg wrote a session inside the shell');
+  eq(inside.fetch.calls.length, 0, 'the browser return leg made a request inside the shell');
+  eq(inside.win.history.replaced.length, 0, 'the browser return leg rewrote the shell address');
+  return 'no write, no request, no rewrite -- the shell keeps its own channel';
+});
 
 run('signing out removes the key locally and calls nothing', async () => {
   const p = press({});
@@ -1691,12 +1844,33 @@ mutant('م٥ `dismissed` is drawn as a red line like every other refusal',
       'what is drawn after the reader simply closed the sheet');
   });
 
-mutant('م٦ the button is drawn outside the shell as well',
-  '  if (!bridge) return null;', '  if (false) return null;',
+// م٦ WAS RETIRED BY ITEM 8, AND HERE IS ITS NAME AND ITS REASON. It read "the button is drawn
+// outside the shell as well" and it mutated `if (!bridge) return null;` out of EzikSignInRow --
+// the line that made a tab draw nothing. That line is GONE from app.jsx, deliberately: a tab now
+// has a door, because api/auth-return.js can end a flow that started in a tab on https. A mutant
+// whose subject has been decided the other way is not a weakened mutant; it is a mutant about a
+// decision nobody holds any more, and leaving it would report SURVIVED for ever.
+//
+// WHAT REPLACES IT GUARDS THE PROPERTY THE NEW DOOR ACTUALLY DEPENDS ON: that an answer is
+// matched to the press THIS TAB made. Drop that comparison and any answer would be spent -- one
+// belonging to another press, or one a reader was handed in a link.
+//
+// IT IS KILLED SYNCHRONOUSLY, on the REQUEST rather than on the stored session, because this
+// runner does not await: ezikAuthExchange() issues its fetch on the same tick it is called, so a
+// request that should never have been made is visible at once and a session that should never
+// have been written is not.
+mutant('م٦ the browser return stops matching the answer to this tab own press',
+  '    if (!mine || got.state !== mine) return;', '    if (!mine) return;',
   (f) => {
-    const outside = scene({ shell: false });
-    const m = mountRow(outside, f);
-    eq(countNodes(nodesOf(m.tree())), 0, 'nodes drawn in a browser tab');
+    const tab = scene({ shell: false });
+    tab.win.location.search = '?ticket=' + FIXTURE.ticket + '&state=' + 'b'.repeat(32);
+    tab.win.location.href = 'https://ezik.app/' + tab.win.location.search;
+    tab.win.sessionStorage.setItem('ezik_auth_cs_v1', 'a'.repeat(32));
+    mountRow(tab, f, (mod) => function EzikWebReturnProbe() {
+      mod.useEzikWebAuthReturn();
+      return null;
+    });
+    eq(tab.fetch.calls.length, 0, 'requests made for an answer belonging to another press');
   });
 
 // م٧ ANCHORS ON THE FUNCTION SIGNATURE AND NOT ON THE GUARD ALONE. ezikNativeOutcomeOf opens
@@ -1741,7 +1915,10 @@ mutant('م٩ the hide flag accepts anything truthy',
   });
 
 mutant('م١١ the settings row goes back to reading the bridge alone',
-  '  if (!session && ezikShellHidesSocialSignIn()) return null;', '  if (false) return null;',
+  // RE-PINNED BY ITEM 8: the line gained `bridge &&` when the declaration was scoped to the
+  // platform that makes it. What the mutant performs is unchanged -- the whole guard removed --
+  // and what kills it is unchanged: a shell that declared the flag still draws no row.
+  '  if (!session && bridge && ezikShellHidesSocialSignIn()) return null;', '  if (false) return null;',
   (f) => {
     const scn = scene({});
     scn.win['EZIK_SHELL_HIDE_SOCIAL_SIGNIN'] = true;

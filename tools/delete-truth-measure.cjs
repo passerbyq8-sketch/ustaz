@@ -209,6 +209,21 @@ const KEY_CONST = /_(KEY|PREFIX)(_[A-Z0-9]+)?$/;
 const NOT_A_STORAGE_KEY = {
   ADHAN_BODY_KEY: 'a key into the interface dictionary, not into the store -- it names the'
     + ' sentence the notification body is written from, and nothing ever hands it to localStorage',
+  // ITEM 8. IT IS A KEY INTO A STORE, JUST NOT THIS ONE -- and the case below is what holds that
+  // sentence to account: it fails the moment this literal is handed to localStorage anywhere in
+  // app.jsx. What it names is sessionStorage, which is scoped to ONE BROWSER TAB and is gone when
+  // that tab closes; it is not on the device in the sense delete.html speaks about, and it is not
+  // something one reader could hand to the next.
+  //
+  // WHAT IT HOLDS FOR THE FEW SECONDS IT EXISTS: 32 hex characters of randomness minted for one
+  // press, carried to the provider and back so the answer can be matched to the press that is
+  // waiting. It names nobody, it is not a credential, and it is deleted by the return leg itself
+  // -- read and removed in the same breath -- so the ordinary end of a sign-in leaves nothing.
+  // resetAll() sweeps it anyway, from sessionStorage, so a reader who presses the button in the
+  // middle of a press does not leave an abandoned one behind for the rest of that tab.
+  WEB_AUTH_CS_KEY: 'a key into sessionStorage -- one browser tab, gone when the tab closes -- and'
+    + ' never handed to localStorage. It holds one press\u2019s own random state for the length of'
+    + ' one redirect, the return leg deletes it, and resetAll() sweeps it from sessionStorage too',
 };
 
 /** `const X_KEY = 'literal'` at the top level -> the literal. */
