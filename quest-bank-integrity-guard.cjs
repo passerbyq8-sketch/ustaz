@@ -655,12 +655,14 @@ const SEALED = {
   //                    NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. The server half of
   //                    item 20 had been live since 2e33456 and no screen existed, so nobody could
   //                    see any of it; the two reader sections, the reading view and the writing
-  //                    screen landed in app.jsx and app.js followed 1265332 -> 1305731 (+40399),
-  //                    and CORE_BYTES 2108179 -> 2148578 is exactly that delta. The worker byte
+  //                    screen landed in app.jsx and app.js followed 1265332 -> 1306083 (+40751
+  //                    across two commits: +40399 for the screens, +352 for a locked section
+  //                    chooser that says it is locked), and CORE_BYTES 2108179 -> 2148930 is
+  //                    exactly that delta. The worker byte
   //                    table and the SW_PROSE mirror below both followed, and THIS digest is
   //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
   //                    the same store.
-  'sw.js': 'b070cee41f9112c01f9c48c1740f213b565b647f7fed7d30554273539af4b416',
+  'sw.js': '1170d0dc275cd8c993ee33c094f1d1738d2837dff1588974476eccf9ef3a2000',
 };
 
 // ---------------------------------------------------------------------------
@@ -1771,7 +1773,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1305731, of: 'app.js' },
+      { n: 1306083, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

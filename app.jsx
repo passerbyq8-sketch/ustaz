@@ -571,6 +571,7 @@ const EZ_I18N = {
     'articles.shapeQa': 'سؤال وجواب',
     'articles.sectionLabel': 'القسم',
     'articles.fieldTitle': 'العنوان',
+    'articles.sectionLocked': 'القسمُ لا يتغيّر بعد أوّلِ حفظ، لأنّ الرابطَ المنشورَ مبنيٌّ عليه.',
     'articles.fieldBody': 'النصّ',
     'articles.formatHint': 'تنسيقٌ محدود: فقرةٌ بسطرٍ فارغ، وعنوانٌ فرعيٌّ بـ ## في أوّل السطر، وقائمةٌ بـ - أو 1. ، وتأكيدٌ بـ **نصّ**. ما عدا ذلك يُزال في الخادم.',
     'articles.saveDraft': 'حفظٌ كمسوَّدة',
@@ -968,6 +969,7 @@ const EZ_I18N = {
     'articles.shapeQa': 'A question and an answer',
     'articles.sectionLabel': 'Section',
     'articles.fieldTitle': 'Title',
+    'articles.sectionLocked': 'The section does not change after the first save, because the published link is built on it.',
     'articles.fieldBody': 'Body',
     'articles.formatHint': 'Limited formatting: a blank line for a paragraph, ## for a sub-heading, - or 1. for a list, **text** for emphasis. Everything else is stripped on the server.',
     'articles.saveDraft': 'Save as a draft',
@@ -6648,9 +6650,9 @@ function EzikArticleWriter({ section, grant, onBack, onChanged }) {
     setMsg(''); setNote(''); setPendingDelete(null);
   };
 
-  const Choice = ({ on, label, onPick }) => (
-    <button type="button" className="ezhome-focus" aria-pressed={on} onClick={onPick}
-      style={on ? { ...s.artChoice, ...s.artChoiceOn } : s.artChoice}>{label}</button>
+  const Choice = ({ on, label, onPick, off }) => (
+    <button type="button" className="ezhome-focus" aria-pressed={on} onClick={onPick} disabled={!!off}
+      style={{ ...s.artChoice, ...(on ? s.artChoiceOn : null), ...(off ? { opacity: 0.5 } : null) }}>{label}</button>
   );
 
   return (
@@ -6669,12 +6671,13 @@ function EzikArticleWriter({ section, grant, onBack, onChanged }) {
           section the server will refuse would be a control whose only outcome is a refusal, and
           she would have no way of telling that from a fault. It is disabled while EDITING because
           the store does not move a piece between sections: see UPDATABLE_FIELDS. */}
-      <EzShellGroup title={ezT('articles.sectionLabel')}>
+      <EzShellGroup title={ezT('articles.sectionLabel')}
+        hint={editing ? ezT('articles.sectionLocked') : null}>
         <div style={s.artChoiceRow}>
           {grant.sections.map((sec) => (
-            <Choice key={sec} on={target === sec}
+            <Choice key={sec} on={target === sec} off={!!editing}
               label={sec === 'women' ? ezT('module.women') : ezT('module.articles')}
-              onPick={() => { if (!editing) setTarget(sec); }} />
+              onPick={() => setTarget(sec)} />
           ))}
         </div>
       </EzShellGroup>
@@ -6694,7 +6697,7 @@ function EzikArticleWriter({ section, grant, onBack, onChanged }) {
       {msg ? <div role="alert" style={s.artError}><span>{msg}</span></div> : null}
       {note ? <div role="status" style={s.artNote}>{note}</div> : null}
 
-      <EzShellGroup title={ezT('articles.newPiece')}>
+      <EzShellGroup title={ezT('common.save')}>
         <div style={s.artChoiceRow}>
           <button type="button" className="ezhome-focus" disabled={busy} onClick={onSaveDraft}
             style={{ ...s.artAction, opacity: busy ? 0.5 : 1 }}>{ezT('articles.saveDraft')}</button>
