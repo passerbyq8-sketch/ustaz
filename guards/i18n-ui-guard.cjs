@@ -966,10 +966,22 @@ async function partD() {
     const fields = q('input');
     eq('...and it asks for a name and a year, exactly the two the card asked for', fields.length, 2);
     const radios = q('button[role="radio"]');
-    eq('...with the two forms of address between them, as a radiogroup', radios.length, 2);
+    // ITEM 9 / F10 -- THREE, NOT TWO. The third answer is «prefer not to say», and it is not
+    // decoration: without it a reader who does not want to answer must either name a word that
+    // is not true of him or leave the whole block alone, and an abandoned block says nothing
+    // about anybody. It writes the SAME null the account has always spelt «not stated» as, so
+    // no value downstream of this row moved -- only the number of ways to reach it.
+    eq('...with the three forms of address between them, as a radiogroup', radios.length, 3);
     eq('...seeded from the account rather than blank', [fields[0].value, fields[1].value], ['Noor', '1996']);
     eq('...and the form of address it already holds is the one marked',
-      radios.map((b) => b.getAttribute('aria-checked')), ['true', 'false']);
+      radios.map((b) => b.getAttribute('aria-checked')), ['true', 'false', 'false']);
+    // D-10, ON THE SCREEN THAT COULD BREAK IT. The control that hides the women's section is in
+    // this same group and it is a SWITCH the reader presses -- nothing above it decides for him.
+    // A reader marked «male» is looking at a switch that is OFF, which is the whole of the rule.
+    const hideSw = q('button[data-ezik-hide-women="switch"]');
+    eq('...and the hide control is in the same block, one switch', hideSw.length, 1);
+    eq('...and declaring a form of address has NOT pressed it (D-10)',
+      hideSw[0].getAttribute('aria-checked'), 'false');
     const save = () => q('button').filter((b) =>
       String(b.textContent || '').trim() === String(c.grab("ezT('settings.profileSave')")))[0];
     ok('...and a save control that is live to begin with', !!save() && !save().hasAttribute('disabled'));

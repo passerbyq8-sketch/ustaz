@@ -679,7 +679,16 @@ const SEALED = {
   //                    that delta. The worker byte table and the SW_PROSE mirror below both
   //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
   //                    rewrites every CORE entry into the same store.
-  'sw.js': '98cb6e5ad824f6d0a9c909d21a0516ab1c79bbac7e8b4949866786f890d5eb67',
+  // ITEM 9 -- THE PROFILE BLOCK AND THE HIDE CONTROL (2026-09-07, feat/night-run-20260907,
+  //                    phase 3). NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. A third
+  //                    form of address that says "prefer not to say" out loud instead of being
+  //                    reached by pressing a word twice, and one switch that hides the women
+  //                    section from the shelf on this device and puts it back from the same
+  //                    place; app.js followed 1315901 -> 1321078 (+5177) and CORE_BYTES
+  //                    2158748 -> 2163925 is exactly that delta. The worker byte table and the
+  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last.
+  //                    CACHE is NOT bumped: install rewrites every CORE entry into the same store.
+  'sw.js': 'bd5a0f416c576000764a8b8ffc05e48d079c0e79b831b6e1fe7b1a9943c3870b',
 };
 
 // ---------------------------------------------------------------------------
@@ -1790,7 +1799,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1315901, of: 'app.js' },
+      { n: 1321078, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

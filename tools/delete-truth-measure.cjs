@@ -347,6 +347,13 @@ const MUST_GO_ALREADY = [
   // reader's to the next. Nothing on delete.html is edited to make room for it: the page's
   // promise is that everything goes, and this goes.
   { c: 'EZIK_ART_SEEN_KEY' },
+  // ITEM 9 -- the reader's own decision to hide the women's section from the shelf. Same rule,
+  // same reading: it is a preference of one person on one device, not a permission the system
+  // granted and not an answer delete.html promises to keep. Wiped, the device returns to the
+  // DEFAULT the section ships with -- visible to everyone, D-10 -- which is the right outcome
+  // of "delete all my data" and not a regression: nobody is left looking at a shelf arranged
+  // by a reader who has gone.
+  { c: 'EZIK_HIDE_WOMEN_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is

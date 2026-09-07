@@ -827,11 +827,14 @@ const SET_CTRL = [
   ['PIN change', /onClick=\{savePin\}/, /autoComplete="new-password"/],
 ];
 for (const [name, a, b] of SET_CTRL) ok('Settings keeps its ' + name + ' control', a.test(html) && b.test(html));
-// FIVE now: the font-size radios share one className in a map, the two switches, reset -- and
-// the form-of-address pair that Apple 4.0.0 moved off the first-run card into Settings, which is
-// a radiogroup like the font-size one and is drawn from the same className for the same reason.
+// SIX now: the font-size radios share one className in a map, the two switches, reset, the
+// form-of-address radiogroup that Apple 4.0.0 moved off the first-run card into Settings -- and,
+// since item 9, the switch that hides the women's section from the shelf. IT IS A COUNT OF THE
+// LITERAL AND NOT OF THE CONTROLS: the form-of-address group grew from two buttons to three in
+// the same commit as that switch and this number moved by one, not by two, because both radios
+// and all three of them are drawn from one className inside one map.
 ok('...and the a11y controls are still keyboard-reachable buttons with the focus ring',
-  (html.match(/className="ez-a11y-opt"/g) || []).length === 5 && /\.ez-a11y-opt:focus-visible/.test(css));
+  (html.match(/className="ez-a11y-opt"/g) || []).length === 6 && /\.ez-a11y-opt:focus-visible/.test(css));
 ok('the theme control still writes the SAME key with the SAME two values',
   /localStorage\.setItem\(THEME_KEY, v\)/.test(html) && /t === 'dark' \|\| t === 'light'/.test(html));
 ok('the accessibility preferences are still profile-scoped',
@@ -5137,6 +5140,113 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     /ezistCardNew: \{ width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'var\(--a3-blue\)' \}/.test(html));
   okOn('NIGHT-F2/F5: opening a section marks it seen from the page the reader is looking at', A,
     /const seenNow = ezikArtNewest\(outcome\.rows\);\s*\r?\n\s*EZIK_ART_NEWEST\[section\] = seenNow;\s*\r?\n\s*writeArtSeen\(section, seenNow\);/.test(html));
+}
+
+/* ===== NIGHT-F3. ITEM 9 -- THE HIDE CONTROL, AND WHAT IT MAY NOT TOUCH =======
+ * D-10 IS THE PROPERTY UNDER TEST, and it is a property about what does NOT happen: the women's
+ * section is visible to everyone by default, and NOTHING A READER DECLARES ABOUT HIMSELF hides
+ * it. Only his own press on the control does. So the cases below run the shipped reader, the
+ * shipped writer and the shipped module builder, and then read the whole of item 9's block for
+ * the words that would have to be in it if any declaration had been wired to it.
+ *
+ * F15 is the other half: hiding removes THE TILE. It does not change the request, it does not
+ * change what the server returns, and it does not reach into the section screen -- which is why
+ * the filter is applied to the descriptor array and to nothing else.
+ *
+ * The mounted half of this item -- that the control is in the same block as the three fields,
+ * and that a reader marked "male" is looking at a switch that is OFF -- is in
+ * guards/i18n-ui-guard.cjs, which has a real DOM to read it from.
+ */
+{
+  const HIDE_KEY = (/const EZIK_HIDE_WOMEN_KEY = 'ezik_hide_women_v1';/.exec(html) || [''])[0];
+  const A = [['the hide key', HIDE_KEY]];
+  ok('NIGHT-F3: the decision has one device key, declared once in the shipped client',
+    HIDE_KEY.length > 0);
+
+  const mapStore = () => {
+    const m = new Map();
+    return { data: m,
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => { m.set(k, String(v)); },
+      removeItem: (k) => { m.delete(k); }, clear: () => m.clear(), key: () => null, length: 0 };
+  };
+
+  // D-10: ABSENT MEANS VISIBLE. A device that has never met this control -- which is every
+  // device today -- sees the section exactly as it did before the control existed.
+  {
+    const store = mapStore();
+    withStore(store);
+    okOn('NIGHT-F3/D-10: with nothing stored the section is VISIBLE, for everyone', A,
+      evalIn('readHideWomen()') === false);
+    evalIn('writeHideWomen(true)');
+    okOn("NIGHT-F3/F14: the reader own press hides it, on this device, under one key", A,
+      evalIn('readHideWomen()') === true
+      && [...store.data.keys()].join(',') === 'ezik_hide_women_v1', 'wrote ' + [...store.data.keys()].join(','));
+    evalIn('writeHideWomen(false)');
+    okOn('NIGHT-F3/F14: ...and the same control puts it back, leaving no third value behind', A,
+      evalIn('readHideWomen()') === false && store.data.size === 0);
+    withStore(throwStore);
+    let threw = false;
+    try { evalIn('readHideWomen()'); evalIn('writeHideWomen(true)'); } catch (e) { threw = true; }
+    okOn('NIGHT-F3/F14: a store that refuses leaves the section VISIBLE and throws nothing', A,
+      threw === false && evalIn('readHideWomen()') === false);
+    withStore(stubStore(null));
+  }
+
+  // F15: WHAT THE SHELF DRAWS, AND ONLY THAT. The module builder is run both ways and the two
+  // answers are compared -- one tile fewer, that tile is the women's, and every other tile keeps
+  // the id and the position D-9 gave it.
+  {
+    const ids = (hide) => JSON.parse(evalIn(
+      'JSON.stringify(ezHomeModules({ hideWomen: ' + (hide ? 'true' : 'false') + ' }).map(function (m) { return m.id; }))'));
+    const shown = ids(false);
+    const hidden = ids(true);
+    okOn('NIGHT-F3/D-9: with the control off the shelf is unchanged, articles then women first', A,
+      shown[0] === 'articles' && shown[1] === 'women');
+    okOn("NIGHT-F3/F15: hiding removes exactly ONE tile, and it is the womens one", A,
+      hidden.length === shown.length - 1 && hidden.indexOf('women') === -1,
+      JSON.stringify(hidden));
+    okOn('NIGHT-F3/F15: ...and every other tile keeps its id and its position', A,
+      JSON.stringify(hidden) === JSON.stringify(shown.filter((x) => x !== 'women')));
+  }
+
+  // D-10 AND F13, READ OFF THE SOURCE OF THE THING ITSELF. Item 9's block must name nothing a
+  // reader declares -- no gender, no age, no birth year -- because the moment it does, one of
+  // them is deciding what he may see. F13 forbids the age being wired into ANY content rule
+  // tonight, and this is that forbidding made checkable at the one place it could have happened.
+  {
+    const at = html.indexOf("// ITEM 9 / F14 -- THE READER'S OWN DECISION TO HIDE THE WOMEN'S SECTION");
+    const to = html.indexOf("const EZIK_ART_KIND_ARTICLE = 'article';", at);
+    // THE PROSE IS CUT AWAY FIRST. This block explains itself at length, and the explanation
+    // names the very words the CODE is being forbidden -- the gate there is no gate, the route
+    // whose answer does not move. A check that read the comments would be measuring the writing
+    // rather than the thing written, and would go red for saying clearly what it does.
+    const ITEM9ALL = (at >= 0 && to > at) ? html.slice(at, to) : '';
+    const ITEM9 = ITEM9ALL.split('\n').filter((l) => l.trim().indexOf('//') !== 0).join(' ');
+    // WHOLE WORDS. A substring scan reports "age" inside localStorage and inside every message
+    // in the block, which is a guard failing for a reason that has nothing to do with what it
+    // guards -- and a guard that cries wolf is a guard somebody eventually weakens.
+    const declared = [/\bgender\b/, /\bage\b/, /\bbirthYear\b/, /child_profile/, /\bprofile\b/];
+    okOn('NIGHT-F3/D-10: nothing a reader declares is named anywhere in item 9',
+      [['the item 9 block', ITEM9ALL]],
+      declared.every((r) => !r.test(ITEM9)),
+      'found: ' + declared.filter((r) => r.test(ITEM9)).map(String).join(', '));
+    okOn('NIGHT-F3/F15: ...and it reaches no route, no request and no section screen',
+      [['the item 9 block', ITEM9ALL]],
+      ['fetch', '/api/', 'ezikArticlesFetchList', 'EzikArticlesSection', 'setArtSection']
+        .every((w) => ITEM9.indexOf(w) === -1));
+  }
+
+  // F10. THE THIRD ANSWER WRITES THE SAME null "not stated" THE ACCOUNT HAS ALWAYS HELD, so no
+  // value downstream of that row moved -- only the number of ways a reader can reach it. The
+  // press SELECTS rather than toggling now, because the state the toggle used to reach is the
+  // state the third button says out loud.
+  ok("NIGHT-F3/F10: the third form of address is the account own not-stated, not a new value",
+    /const PF_UNSPECIFIED = null;/.test(html)
+    && /\[PF_UNSPECIFIED, ezT\('onboarding\.genderUnspecified'\)\]/.test(html));
+  ok('NIGHT-F3/F10: ...and a press now selects rather than clearing what was already chosen',
+    /onClick=\{\(\) => \{ setPfGender\(v\); setPfMsg\(''\); \}\}/.test(html)
+    && !/setPfGender\(pfGender === v \? null : v\)/.test(html));
 }
 
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');

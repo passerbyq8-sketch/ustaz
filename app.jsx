@@ -202,6 +202,8 @@ const EZ_I18N = {
     'settings.profile': 'ملفُّك',
     'settings.profileHint': 'اختياريٌّ كلُّه. بلا سنةِ ميلادٍ يُعامَلُ الحسابُ معاملةَ بالغٍ فوقَ الثامنةَ عشرة، ويُحفظُ على هذا الجهاز.',
     'settings.profileSave': 'احفظْ',
+    'settings.hideWomen': 'إخفاءُ قسمِ النساءِ من الرئيسة',
+    'settings.hideWomenHint': 'على هذا الجهازِ وحدَه، ويُعادُ من هنا متى شئت. لا يُرسَلُ عنه شيء.',
     'settings.profileSaved': 'حُفِظ.',
     'settings.profileSaveFailed': 'لم يُحفظْ على هذا الجهاز، وهو قائمٌ في هذه الجلسةِ وحدَها.',
     'settings.enter': 'زر الإدخال',
@@ -522,6 +524,7 @@ const EZ_I18N = {
     'home.arrange.saveFailed': 'لم يُحفَظِ الاختيارُ على هذا الجهاز، وهو قائمٌ في هذه الجلسة وحدَها.',
     'onboarding.male': 'ذكر',
     'onboarding.female': 'أنثى',
+    'onboarding.genderUnspecified': 'أفضِّلُ عدمَ الإجابة',
     'onboarding.yearError': 'اكتب سنةَ ميلادك بأربعة أرقام — مثل ٢٠١٥',
     'onboarding.name': 'الاسم',
     'onboarding.birthYear': 'سنة الميلاد — مثال ٢٠١٥',
@@ -624,6 +627,8 @@ const EZ_I18N = {
     'settings.profile': 'Your profile',
     'settings.profileHint': 'All of it is optional. With no year of birth the account is treated as an adult over eighteen, and what you write here is kept on this device.',
     'settings.profileSave': 'Save',
+    'settings.hideWomen': 'Hide the women\u2019s section from the home',
+    'settings.hideWomenHint': 'On this device only, and put back from here whenever you like. Nothing about it is sent anywhere.',
     'settings.profileSaved': 'Saved.',
     'settings.profileSaveFailed': 'This was not saved on the device; it holds for this session alone.',
     'settings.enter': 'The Enter key',
@@ -921,6 +926,7 @@ const EZ_I18N = {
     'home.arrange.saveFailed': 'The choice was not saved on this device; it holds for this session alone.',
     'onboarding.male': 'Boy',
     'onboarding.female': 'Girl',
+    'onboarding.genderUnspecified': 'Prefer not to say',
     'onboarding.yearError': 'Write your birth year as four digits — for example 2015',
     'onboarding.name': 'Name',
     'onboarding.birthYear': 'Year of birth — for example 2015',
@@ -4757,6 +4763,13 @@ const EZH_ICON_MENU = (
 // counts the modules. `meta` is a genuine local reading or it is null.
 function ezHomeModules(v) {
   const wird = v.wird ? (toArabicDigits(v.wird.done) + ' / ' + toArabicDigits(v.wird.target)) : null;
+  // ITEM 9 / F14, F15. HIDING REMOVES THE TILE AND DOES NOTHING ELSE. The descriptor is filtered
+  // out of the one array both presentations map, so the shelf draws eight cards instead of nine
+  // and there is no invisible node left behind. What is NOT touched: the section component, the
+  // route the reader may already be on, the request /api/articles-list would answer, and the
+  // «seen» record item 7 keeps for that section -- a reader who puts the section back finds it
+  // exactly where he left it. It is filtered LAST, over the finished array, so the order D-9
+  // fixed is the order that survives.
   return [
     // ITEM 20 / D-9: the articles section first, the women's section directly after it, and the
     // seven that were here keep the order and the positions they had relative to one another.
@@ -4772,7 +4785,7 @@ function ezHomeModules(v) {
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
     { id: 'lessons',  label: EZH_LESSONS,  icon: EZH_ICON_LESSONS,  onClick: v.onOpenLessons,  meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
-  ];
+  ].filter((m) => !(m.id === 'women' && v.hideWomen));
 }
 
 // ---- S101 ISTANA HOME START --------------------------------------------------------------
@@ -5493,6 +5506,10 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // screen already learnt -- so the first paint costs no request and no suspense. The probe below
   // may make it true afterwards; nothing it does can make the home screen late.
   const [artFresh, setArtFresh] = useState(ezikArtFreshNow);
+  // ITEM 9 / F14: read from the DEVICE once at mount, exactly as the widget arrangement above
+  // is. The control that writes it lives in Settings, and reaching Settings unmounts this screen,
+  // so a reader who presses it is looking at a freshly read value when he comes back.
+  const [hideWomen] = useState(readHideWomen);
   // F5: and it is recomputed on the way BACK OUT of a section, because the section that was just
   // read has written its own "seen" mark by then and the tile underneath must stop claiming
   // otherwise. The probe runs at most once per app run; the memo is what makes the second visit
@@ -5551,6 +5568,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     // ITEM 7 / F4: the reading, handed down like every other reading on this screen. The
     // presentation components read the device for nothing, here as everywhere else.
     artFresh: artFresh,
+    // ITEM 9 / F14: handed down like every other device reading on this screen.
+    hideWomen: hideWomen,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
@@ -6296,6 +6315,32 @@ function ezikArtProbe(onDone) {
     });
   }
   if (waiting === 0) onDone(ezikArtFreshNow());
+}
+
+// ITEM 9 / F14 -- THE READER'S OWN DECISION TO HIDE THE WOMEN'S SECTION
+// ============================================================
+// D-10 IS THE WHOLE OF THE RULE HERE. The section is visible to EVERYONE by default: there is no
+// gender gate, and an ABSENT key means VISIBLE, so a device that has never met this control sees
+// the section exactly as it did before the control existed. Nothing a reader declares about
+// himself touches this value -- it moves only when he presses the control, and the same press in
+// the same place puts the section back.
+//
+// IT IS ON THE DEVICE AND ON NOTHING ELSE. It is not a field on the account record, it is not
+// sent with any request, and the server's answer to /api/articles-list is byte for byte what it
+// was: what changes is which tile the SHELF draws (F15). A reader who has a piece open when he
+// presses it still has that piece open, and the link he already followed still resolves.
+const EZIK_HIDE_WOMEN_KEY = 'ezik_hide_women_v1';
+function readHideWomen() {
+  try { return localStorage.getItem(EZIK_HIDE_WOMEN_KEY) === '1'; } catch (e) { return false; }
+}
+// ON writes the one literal; OFF REMOVES THE KEY rather than writing a second literal, so the
+// default and "put it back" are the same state on the device and there is no third value a
+// future reader of this key could have to interpret.
+function writeHideWomen(on) {
+  try {
+    if (on) localStorage.setItem(EZIK_HIDE_WOMEN_KEY, '1');
+    else localStorage.removeItem(EZIK_HIDE_WOMEN_KEY);
+  } catch (e) {}
 }
 
 const EZIK_ART_KIND_ARTICLE = 'article';
@@ -12721,6 +12766,11 @@ function App() {
       // still has it whether or not either section is holding anything today -- and entered on
       // the roster in tools/delete-truth-measure.cjs in the same commit as this line.
       try { localStorage.removeItem(EZIK_ART_SEEN_KEY); } catch (e) {}
+      // ITEM 9 -- AND THE READER'S OWN ARRANGEMENT OF THE SHELF WITH IT. Wiping it returns the
+      // device to the default the section ships with, which is VISIBLE TO EVERYONE (D-10): the
+      // next reader is not handed a home screen arranged by a person who has gone. Entered on the
+      // roster in tools/delete-truth-measure.cjs in the same commit as this line.
+      try { localStorage.removeItem(EZIK_HIDE_WOMEN_KEY); } catch (e) {}
       // HIJRI_OFFSET_KEY IS DELIBERATELY ABSENT. delete.html promises it nowhere, in neither
       // language, and erasing what was never promised widens this button rather than repairs it.
       // It stays until a sentence on that page asks for it.
@@ -18790,10 +18840,21 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // the first-run card's arithmetic verbatim (4..99 derived from the year typed), and it holds
   // the SAVE button and nothing else: a reader who types nothing saves nothing wrong, and an
   // empty year returns the account to the adult default rather than being a refusal.
+  // ITEM 9 / F10. THE THIRD ANSWER IS null, WHICH IS WHAT THE ACCOUNT HAS ALWAYS SPELT «not
+  // stated» AS -- so nothing downstream moves: the friendly errors, the voice and the parents'
+  // log already read a missing gender and already have an answer for it. What changes is that a
+  // reader who does not want to answer can now SAY SO, instead of having to leave the row alone
+  // and hope, or press a word that is not true of him. Without it the whole block is one a
+  // person either lies to or abandons, and an abandoned block tells us nothing either.
+  const PF_UNSPECIFIED = null;
   const [pfName, setPfName] = useState(() => String((profile && profile.name) || ''));
   const [pfGender, setPfGender] = useState(() => (profile && profile.gender) || null);
   const [pfYear, setPfYear] = useState(() => (profile && profile.birthYear != null ? String(profile.birthYear) : ''));
   const [pfMsg, setPfMsg] = useState('');
+  // ITEM 9 / F14: read once at mount from the one reader and written through the one writer --
+  // the rule the watermark and the Enter preference above already follow, so what is on the
+  // screen and what is on the device cannot disagree.
+  const [hideWomen, setHideWomen] = useState(readHideWomen);
   const pfYearNum = parseInt(ezikLatinDigits(pfYear).trim(), 10);
   const pfDerived = new Date().getFullYear() - pfYearNum;
   const pfYearOk = !(pfYear.trim() && !(Number.isInteger(pfYearNum) && pfDerived >= 4 && pfDerived <= 99));
@@ -18863,14 +18924,19 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         <EzShellGroup title={ezT('settings.profile')} hint={ezT('settings.profileHint')}>
           <input value={pfName} onChange={(e) => { setPfName(e.target.value); setPfMsg(''); }}
             placeholder={ezT('onboarding.name')} aria-label={ezT('onboarding.name')} style={s.welcomeInput} />
+          {/* ITEM 9 / F10 -- THREE CHOICES, and the third is not decoration. A press now SELECTS
+              rather than toggling: pressing the chosen word a second time used to clear the row
+              to null, which is the state the third button now says out loud, so the toggle was
+              a way of reaching an answer without being told that is what it was. */}
           <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.profile')}>
-            {[['male', ezT('onboarding.male')], ['female', ezT('onboarding.female')]].map(([v, label]) => (
+            {[['male', ezT('onboarding.male')], ['female', ezT('onboarding.female')],
+              [PF_UNSPECIFIED, ezT('onboarding.genderUnspecified')]].map(([v, label]) => (
               <button
-                key={v}
+                key={v === PF_UNSPECIFIED ? 'unspecified' : v}
                 type="button"
                 role="radio"
                 aria-checked={pfGender === v ? 'true' : 'false'}
-                onClick={() => { setPfGender(pfGender === v ? null : v); setPfMsg(''); }}
+                onClick={() => { setPfGender(v); setPfMsg(''); }}
                 className="ez-a11y-opt"
                 style={{ ...s.a11yOpt, ...(pfGender === v ? s.themeOptActive : {}) }}
               >
@@ -18885,6 +18951,32 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           <button type="button" onClick={savePf} disabled={!pfYearOk}
             style={{ ...s.welcomePrimaryBtn, opacity: pfYearOk ? 1 : 0.4 }}>{ezT('settings.profileSave')}</button>
           {pfMsg ? <div style={s.a11ySwitchHint}>{pfMsg}</div> : null}
+          {/* ITEM 9 / F14 -- THE ONE CONTROL THAT HIDES THE WOMEN'S SECTION, AND IT IS AVAILABLE
+              TO EVERYONE. D-10: the section is visible by default and no declaration above this
+              row touches it -- a reader who chose «male» a line ago still has the section, and
+              only this press takes it away. The same press in the same place puts it back, which
+              is why it is a switch and not a one-way «hide» button. It writes the DEVICE and
+              nothing else: no field on the account, nothing in any request, and the server's
+              answer for that section is unchanged (F15). It sits under the SAVE row deliberately
+              -- it is not part of the profile that button writes, and pressing it takes effect
+              at once rather than waiting for a save the reader might not make. */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hideWomen ? 'true' : 'false'}
+            onClick={() => { const next = !hideWomen; writeHideWomen(next); setHideWomen(next); }}
+            className="ez-a11y-opt"
+            data-ezik-hide-women="switch"
+            style={s.a11ySwitchRow}
+          >
+            <span style={s.a11ySwitchText}>
+              <span style={s.a11ySwitchTitle}>{ezT('settings.hideWomen')}</span>
+              <span style={s.a11ySwitchHint}>{ezT('settings.hideWomenHint')}</span>
+            </span>
+            <span style={{ ...s.a11ySwitch, ...(hideWomen ? s.a11ySwitchOn : {}) }} aria-hidden="true">
+              <span style={{ ...s.a11yKnob, ...(hideWomen ? s.a11yKnobOn : {}) }} />
+            </span>
+          </button>
         </EzShellGroup>
         <EzShellGroup title={A_APPEARANCE} hint={ezT('settings.savedOnDevice')}>
           <div style={s.themeRow}>
