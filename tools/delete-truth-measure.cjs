@@ -340,6 +340,13 @@ const MUST_GO_ALREADY = [
   // ONE REMOVAL TAKES ALL FOUR, because all four live in one record. And the switches come back
   // as they ship -- off -- which is the right outcome of "delete all my data", not a regression.
   { c: 'REMINDERS_KEY' },
+  // ITEM 7 -- the per-section record of what this reader has already been shown. Classified by
+  // the same owner's rule the reminder hours are classified by: any new device key is entered
+  // here and is wiped with the button. It is not a permission and it is not an answer the page
+  // promises to keep -- it is a reading record, and "delete all my data" must not hand one
+  // reader's to the next. Nothing on delete.html is edited to make room for it: the page's
+  // promise is that everything goes, and this goes.
+  { c: 'EZIK_ART_SEEN_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is

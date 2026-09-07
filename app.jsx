@@ -553,6 +553,7 @@ const EZ_I18N = {
     'module.women': 'ركن النساء',
     'module.women.sub': 'مقالاتٌ وأجوبةٌ تخصُّ المرأة',
     'articles.listAria': 'قائمة المنشور في هذا القسم',
+    'articles.freshMark': 'فيهِ جديد',
     'articles.qaMark': 'سؤال وجواب',
     'articles.emptyTitle': 'هذا القسمُ جديد',
     'articles.emptyBody': 'لم يُنشرْ فيه شيءٌ بعد. عُدْ إليه قريباً.',
@@ -951,6 +952,7 @@ const EZ_I18N = {
     'module.women': 'The women’s corner',
     'module.women.sub': 'Articles and answers for women',
     'articles.listAria': 'What has been published in this section',
+    'articles.freshMark': 'Something new',
     'articles.qaMark': 'Question and answer',
     'articles.emptyTitle': 'This section is new',
     'articles.emptyBody': 'Nothing has been published here yet. Come back soon.',
@@ -4758,8 +4760,11 @@ function ezHomeModules(v) {
   return [
     // ITEM 20 / D-9: the articles section first, the women's section directly after it, and the
     // seven that were here keep the order and the positions they had relative to one another.
-    { id: 'articles', label: EZH_ARTICLES, icon: EZH_ICON_ARTICLES, onClick: v.onOpenArticles, meta: null },
-    { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null },
+    // ITEM 7 / F4: `fresh` rides on the descriptor beside `meta`, so the card decides nothing --
+    // it draws what the owner's one array says. Only these two sections can carry it; the seven
+    // below are handed no such field and cannot grow one by accident.
+    { id: 'articles', label: EZH_ARTICLES, icon: EZH_ICON_ARTICLES, onClick: v.onOpenArticles, meta: null, fresh: !!(v.artFresh && v.artFresh.articles) },
+    { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null, fresh: !!(v.artFresh && v.artFresh.women) },
     { id: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
     { id: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
     { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
@@ -4925,6 +4930,12 @@ function EzistModuleCard({ m }) {
         <span style={feature ? s.ezistFeatureTitle : s.ezistCardTitle}>{m.label}</span>
         <span style={s.ezistCardSub}>{EZIST_SUB[m.id]}</span>
       </span>
+      {/* ITEM 7 / F4. A MARK, NOT A COUNT (F6) -- one dot, in the token the active-design row
+          already uses, beside whatever the card was already ending with rather than instead of
+          it. It carries its own accessible name: a bare coloured dot says nothing at all to a
+          reader who cannot see it, and this is the one piece of information on the card that is
+          not already spelt out in the title beside it. */}
+      {m.fresh ? <span style={s.ezistCardNew} role="img" aria-label={ezT('articles.freshMark')} /> : null}
       {m.meta ? <span style={s.ezistMeta}>{m.meta}</span>
               : <span style={s.ezistGo} aria-hidden="true">{EZH_ICON_GO}</span>}
     </button>
@@ -5477,6 +5488,22 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // the prayer sheet above it registers a back layer, so it owns one real history entry while it
   // is open and the device button closes IT rather than leaving the home screen underneath it.
   const [artSection, setArtSection] = useState(null);
+  // ITEM 7 / F9. THE SHELF DRAWS FROM THIS AND NEVER WAITS FOR IT. The initial value is computed
+  // from the DEVICE alone -- what is remembered as seen, against what a previous visit to this
+  // screen already learnt -- so the first paint costs no request and no suspense. The probe below
+  // may make it true afterwards; nothing it does can make the home screen late.
+  const [artFresh, setArtFresh] = useState(ezikArtFreshNow);
+  // F5: and it is recomputed on the way BACK OUT of a section, because the section that was just
+  // read has written its own "seen" mark by then and the tile underneath must stop claiming
+  // otherwise. The probe runs at most once per app run; the memo is what makes the second visit
+  // to this screen free.
+  const artAliveRef = useRef(true);
+  useEffect(() => () => { artAliveRef.current = false; }, []);
+  useEffect(() => {
+    if (artSection) return;
+    setArtFresh(ezikArtFreshNow());
+    ezikArtProbe((next) => { if (artAliveRef.current) setArtFresh(next); });
+  }, [artSection]);
   useEzikBackLayer(!!artSection, () => setArtSection(null));
   // THE ARRANGEMENT IS THE OWNER'S, read from the device once on mount exactly as the wird and
   // the hijri date above are. The presentation component below is handed the result and never
@@ -5521,6 +5548,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     // section they open is not a screen and the router has nothing to route to.
     onOpenArticles: () => setArtSection('articles'),
     onOpenWomen: () => setArtSection('women'),
+    // ITEM 7 / F4: the reading, handed down like every other reading on this screen. The
+    // presentation components read the device for nothing, here as everywhere else.
+    artFresh: artFresh,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
@@ -6171,6 +6201,103 @@ const EZIK_ART_LOADING = 'loading';
 const EZIK_ART_DONE = 'done';
 const EZIK_ART_FAILED = 'failed';
 // The two shapes, and they are the two words lib/articles/store.js stores. D-11.
+// ITEM 7 -- THE MARK ON A SECTION THAT HOLDS SOMETHING THIS READER HAS NOT SEEN
+// ============================================================
+// THE TWO SECTIONS, NAMED ONCE. The shelf, the probe and the "seen" record all read this array,
+// so none of them can come to hold a different idea of how many sections there are than the
+// other two do. It is the client's half of lib/articles/roles.js SECTIONS.
+const EZIK_ART_SECTIONS = ['articles', 'women'];
+
+// F5 -- "SEEN" IS PER READER, PER SECTION, AND IT LIVES ON THE DEVICE. One key holding one small
+// object, each value the publishedAt of the newest piece that section has already had in front of
+// this reader. NOTHING IS SENT ANYWHERE: no request carries it, no field on the account record
+// could hold it, and the server is never told who read what. It is written through localStorage
+// inside a try/catch exactly as every other device preference in this file is, so a locked or
+// full store degrades to "no memory of what was seen" and never to a broken shelf.
+const EZIK_ART_SEEN_KEY = 'ezik_art_seen_v1';
+function readArtSeen() {
+  try {
+    const raw = localStorage.getItem(EZIK_ART_SEEN_KEY);
+    if (!raw) return {};
+    const o = JSON.parse(raw);
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+  } catch (e) { return {}; }
+}
+// It only ever moves FORWARD. A section whose index order changed, or a piece that was withdrawn,
+// must not be able to walk this value backwards and re-mark something the reader has already had
+// on the screen -- so a value that is not newer than the one held is not written at all.
+function writeArtSeen(section, at) {
+  if (typeof at !== 'string' || !at) return;
+  try {
+    const o = readArtSeen();
+    if (typeof o[section] === 'string' && o[section] >= at) return;
+    o[section] = at;
+    localStorage.setItem(EZIK_ART_SEEN_KEY, JSON.stringify(o));
+  } catch (e) {}
+}
+
+// The newest publishedAt in a page of rows. listPublished answers newest-first, but the MAXIMUM
+// is read rather than rows[0] because a mark that could move backwards on a re-ordered index is
+// a mark that lies. An empty section answers '' -- there is no date to invent for it.
+function ezikArtNewest(rows) {
+  let top = '';
+  for (const r of (rows || [])) {
+    const at = (r && typeof r.publishedAt === 'string') ? r.publishedAt : '';
+    if (at > top) top = at;
+  }
+  return top;
+}
+
+// F4 AND F7 IN ONE LINE. A mark iff the section holds a piece newer than the newest one this
+// device has seen. An empty section answers '' from the reader above, and '' is never greater
+// than anything, so A SECTION THAT HAS ALWAYS BEEN EMPTY CARRIES NO MARK ON A DEVICE THAT HAS
+// NEVER STORED A THING -- which is the case that would otherwise make every fresh install look
+// like it had unread mail. A section that has never been probed holds null and answers false
+// too: not knowing is not the same as knowing there is something, and it shows the less.
+function ezikArtHasFresh(newest, seen) {
+  if (typeof newest !== 'string' || newest.length === 0) return false;
+  return !(typeof seen === 'string' && seen >= newest);
+}
+
+// F6 -- IT IS A MARK AND NOT A COUNT, and the reason is that the count is not free. The public
+// projection carries no total; the list is capped at EZIK_ART_LIMIT rows, so any count derived
+// from it stops being true the moment a section passes that many unseen pieces -- and a number
+// that is right for a while and then quietly wrong is worse than a dot that is always right.
+//
+// THE ANSWER PER SECTION, MEMOISED AT MODULE SCOPE. null means "not asked yet"; a string is the
+// newest publishedAt the server last showed us. It is here rather than in a component so that
+// walking in and out of the home twenty times costs two requests rather than forty.
+const EZIK_ART_NEWEST = { articles: null, women: null };
+
+/** What the shelf should draw right now, from what is already known. Reads no network. */
+function ezikArtFreshNow() {
+  const seen = readArtSeen();
+  const out = {};
+  for (const sec of EZIK_ART_SECTIONS) out[sec] = ezikArtHasFresh(EZIK_ART_NEWEST[sec], seen[sec]);
+  return out;
+}
+
+// F9 -- THE SHELF NEVER WAITS ON THIS, AND THIS IS HOW. The home screen draws from a state that
+// starts at "nothing new" and is never suspended on a request: the two lists are asked for AFTER
+// the first paint, from an effect, and a mark can only ever APPEAR later. A dead network, a 429,
+// a timeout and an unreadable body are all "no mark" -- the reading that shows the fewest things.
+//
+// F8 -- AND NOTHING IS SCHEDULED. No notification is requested, none is posted, no permission is
+// asked for and no background work is started. This is two GETs on a screen the reader is already
+// looking at, and the mark it may produce is drawn inside the app or not at all (D-8).
+function ezikArtProbe(onDone) {
+  let waiting = 0;
+  for (const sec of EZIK_ART_SECTIONS) {
+    if (EZIK_ART_NEWEST[sec] !== null) continue;
+    waiting += 1;
+    ezikArticlesFetchList(sec).then((outcome) => {
+      if (outcome.ok) EZIK_ART_NEWEST[sec] = ezikArtNewest(outcome.rows);
+      onDone(ezikArtFreshNow());
+    });
+  }
+  if (waiting === 0) onDone(ezikArtFreshNow());
+}
+
 const EZIK_ART_KIND_ARTICLE = 'article';
 const EZIK_ART_KIND_QA = 'qa';
 // THE CANONICAL BODY MARKERS. These four strings are the whole notation lib/articles/store.js
@@ -6420,6 +6547,14 @@ function EzikArticlesSection({ section, title, onHome }) {
       if (!outcome.ok) { setRows([]); setState(EZIK_ART_FAILED); return; }
       setRows(outcome.rows);
       setState(EZIK_ART_DONE);
+      // F5: OPENING THE SECTION MARKS IT SEEN, and it is marked from the page the reader is
+      // actually looking at rather than from a second request. A FAILED load never reaches this
+      // line: a section we could not read is not a section the reader has seen, and marking it
+      // would silently swallow the very piece the mark exists to announce. The memo is refreshed
+      // beside the record so the shelf underneath agrees the moment the reader walks back out.
+      const seenNow = ezikArtNewest(outcome.rows);
+      EZIK_ART_NEWEST[section] = seenNow;
+      writeArtSeen(section, seenNow);
     });
   };
 
@@ -12579,6 +12714,13 @@ function App() {
       // somebody else gave. It is classified MUST_GO in tools/delete-truth-measure.cjs, which is
       // the roster this line is entered on.
       try { localStorage.removeItem(ENTRY_CHOICE_KEY); } catch (e) {}
+      // ITEM 7 -- WHAT THIS READER HAS ALREADY BEEN SHOWN. It is a reading record, on exactly
+      // the terms ADHKAR_PLACE_KEY and the four reminder hours are: a note of what one person
+      // has had in front of them, of no use to anybody else and not something to hand to
+      // whoever sets this device up next. Removed unconditionally -- a device that has the key
+      // still has it whether or not either section is holding anything today -- and entered on
+      // the roster in tools/delete-truth-measure.cjs in the same commit as this line.
+      try { localStorage.removeItem(EZIK_ART_SEEN_KEY); } catch (e) {}
       // HIJRI_OFFSET_KEY IS DELIBERATELY ABSENT. delete.html promises it nowhere, in neither
       // language, and erasing what was never promised widens this button rather than repairs it.
       // It stays until a sentence on that page asks for it.
@@ -22299,6 +22441,10 @@ const s = {
   ezistFeatureTitle: { fontSize: 18, fontWeight: 800, color: 'var(--a3-ink)' },
   ezistCardSub: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', lineHeight: 1.6 },
   ezistGo: { flexShrink: 0, display: 'inline-flex', color: 'var(--a3-muted)' },
+  // ITEM 7: the mark on a section holding something unseen. The same 10px dot in the same token
+  // the active-design row draws (vtActiveMark), so nothing new is introduced to the palette and
+  // it resolves in both modes for free.
+  ezistCardNew: { width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-blue)' },
   ezistMeta: { flexShrink: 0, padding: '5px 10px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800 },
   // the featured Quran panel. The marks sit in the head row, never over the text.
   ezistQuran: { padding: '16px 18px 18px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },

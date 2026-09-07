@@ -5022,5 +5022,122 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     layers.length === 0 && evalIn('ezikCloseDeepestLayer()') === false);
 }
 
+/* ===== NIGHT-F2. ITEM 7 -- THE MARK ON A SECTION HOLDING SOMETHING NEW =======
+ * WHAT IS PROVED HERE AND WHY IT IS RUN RATHER THAN READ. The judgement behind the mark is three
+ * small pure functions and one device record, and every one of them is reachable in the context
+ * section G already evaluates. So they are CALLED -- with the cases the requirement names, and
+ * with the store stubbed the way section G stubs it -- rather than being matched as text. A
+ * regex over ezikArtHasFresh would pass on a function that answered true for everything.
+ *
+ * THE ONE CASE THAT MATTERS MOST IS F7: a reader who has never opened the app must see no mark
+ * on a section that has ALWAYS been empty. Getting it wrong makes every fresh install look like
+ * it has unread mail, and it is the case a "has this changed?" implementation gets wrong.
+ */
+{
+  const ART_SECTIONS = (/const EZIK_ART_SECTIONS = \['articles', 'women'\];/.exec(html) || [''])[0];
+  const ART_KEY = (/const EZIK_ART_SEEN_KEY = 'ezik_art_seen_v1';/.exec(html) || [''])[0];
+  const A = [['the section list', ART_SECTIONS], ['the seen key', ART_KEY]];
+
+  ok('NIGHT-F2: the two sections and the device key are declared once, in the shipped client',
+    ART_SECTIONS.length > 0 && ART_KEY.length > 0);
+
+  // A store that really stores, so the writer can be read back. section G's stubStore answers one
+  // value for every key, which cannot tell "wrote the right key" from "wrote any key at all".
+  const mapStore = () => {
+    const m = new Map();
+    return { data: m,
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => { m.set(k, String(v)); },
+      removeItem: (k) => { m.delete(k); }, clear: () => m.clear(), key: () => null, length: 0 };
+  };
+  const fresh = (newest, seen) => evalIn('ezikArtHasFresh(' + JSON.stringify(newest) + ', ' + JSON.stringify(seen) + ')');
+
+  // F7. A section that has always been empty, on a device that has never stored anything.
+  okOn('NIGHT-F2/F7: an always-empty section carries NO mark on a device that has seen nothing', A,
+    fresh('', undefined) === false && fresh('', '') === false);
+  // ...and one that was never probed at all is "not knowing", which shows the less.
+  okOn('NIGHT-F2/F7: a section that was never asked about carries no mark either', A,
+    fresh(null, undefined) === false);
+
+  // F4. Something published that this device has not had in front of it.
+  okOn('NIGHT-F2/F4: a piece newer than anything seen puts the mark up', A,
+    fresh('2026-09-07T10:00:00.000Z', undefined) === true
+    && fresh('2026-09-07T10:00:00.000Z', '2026-09-01T10:00:00.000Z') === true);
+  okOn('NIGHT-F2/F4: ...and nothing newer than what was seen takes it down again', A,
+    fresh('2026-09-07T10:00:00.000Z', '2026-09-07T10:00:00.000Z') === false
+    && fresh('2026-09-01T10:00:00.000Z', '2026-09-07T10:00:00.000Z') === false);
+
+  // The reading of a page of rows. The MAXIMUM, not rows[0]: a mark that can move backwards on a
+  // re-ordered index is a mark that lies, and an empty page has no date to invent.
+  okOn('NIGHT-F2: the newest date is the maximum over the page, and an empty page has none', A,
+    evalIn("ezikArtNewest([])") === ''
+    && evalIn("ezikArtNewest([{publishedAt:'2026-09-01T00:00:00.000Z'},{publishedAt:'2026-09-09T00:00:00.000Z'},{publishedAt:'2026-09-05T00:00:00.000Z'}])")
+       === '2026-09-09T00:00:00.000Z'
+    && evalIn("ezikArtNewest([{},{publishedAt:7},{publishedAt:'2026-09-02T00:00:00.000Z'}])")
+       === '2026-09-02T00:00:00.000Z');
+
+  // F5. THE RECORD IS ON THE DEVICE, UNDER ONE KEY, AND IT ONLY MOVES FORWARD.
+  {
+    const store = mapStore();
+    withStore(store);
+    evalIn("writeArtSeen('articles', '2026-09-05T00:00:00.000Z')");
+    const keys = [...store.data.keys()];
+    okOn('NIGHT-F2/F5: opening a section writes ONE device key and no other', A,
+      keys.length === 1 && keys[0] === 'ezik_art_seen_v1', 'wrote ' + JSON.stringify(keys));
+    evalIn("writeArtSeen('articles', '2026-09-01T00:00:00.000Z')");
+    okOn('NIGHT-F2/F5: ...and an older date can never walk that record backwards', A,
+      JSON.parse(store.data.get('ezik_art_seen_v1')).articles === '2026-09-05T00:00:00.000Z');
+    evalIn("writeArtSeen('women', '2026-09-06T00:00:00.000Z')");
+    const rec = JSON.parse(store.data.get('ezik_art_seen_v1'));
+    okOn('NIGHT-F2/F5: ...and the two sections are remembered separately', A,
+      rec.articles === '2026-09-05T00:00:00.000Z' && rec.women === '2026-09-06T00:00:00.000Z');
+    okOn('NIGHT-F2/F5: what the shelf then draws follows that record, per section', A,
+      JSON.stringify(evalIn('JSON.stringify(ezikArtFreshNow())')) === JSON.stringify('{"articles":false,"women":false}'));
+  }
+  // A STORE THAT REFUSES IS NOT A BROKEN SHELF. Every touch is inside its own try/catch, so a
+  // locked or full device degrades to "no memory of what was seen" and never to a throw.
+  {
+    withStore(throwStore);
+    let threw = false;
+    try { evalIn("writeArtSeen('articles', '2026-09-05T00:00:00.000Z')"); evalIn('ezikArtFreshNow()'); }
+    catch (e) { threw = true; }
+    okOn('NIGHT-F2/F5: a store that throws costs the shelf nothing', A, threw === false);
+    withStore(stubStore(null));
+  }
+
+  // F8. NO PHONE NOTIFICATION -- nothing scheduled, no permission asked for, no background work.
+  // The whole of item 7's client half is cut out and read for the words that would be there if
+  // any of that had been done, INCLUDING the app's own scheduler bridge.
+  {
+    const at = html.indexOf('// ITEM 7 -- THE MARK ON A SECTION THAT HOLDS SOMETHING THIS READER HAS NOT SEEN');
+    const to = html.indexOf("const EZIK_ART_KIND_ARTICLE = 'article';", at);
+    const ITEM7 = (at >= 0 && to > at) ? html.slice(at, to) : '';
+    const forbidden = ['Notification', 'requestPermission', 'ezikSchedSend', 'ezikSchedBridge',
+      'serviceWorker', 'showTrigger', 'setInterval', 'postMessage'];
+    okOn('NIGHT-F2/F8: item 7 schedules nothing and asks for no permission (D-8)',
+      [['the item 7 block', ITEM7]],
+      forbidden.every((w) => ITEM7.indexOf(w) === -1),
+      'found: ' + forbidden.filter((w) => ITEM7.indexOf(w) !== -1).join(', '));
+    // F9. The value the FIRST PAINT is drawn from is computed with no request in it at all. The
+    // probe is a separate function, called from an effect, and it is the only one that fetches.
+    const now = (/function ezikArtFreshNow\(\)[\s\S]*?\n\}/.exec(ITEM7) || [''])[0];
+    okOn('NIGHT-F2/F9: the shelf draws from a reading that touches no network', [['ezikArtFreshNow', now]],
+      now.indexOf('fetch') === -1 && now.indexOf('await') === -1 && now.indexOf('then(') === -1);
+    okOn('NIGHT-F2/F9: ...and the request that may raise a mark is made AFTER the paint, from an effect',
+      A, /useEffect\(\(\) => \{\s*\r?\n\s*if \(artSection\) return;[\s\S]{0,320}?ezikArtProbe\(/.test(html));
+  }
+
+  // F4, ON THE CARD. The descriptor carries the reading; the card draws what it is handed and
+  // decides nothing -- and only the two sections that can have unseen writing are handed it.
+  okOn('NIGHT-F2/F4: the mark rides on the two section descriptors and on no other', A,
+    (html.match(/fresh: !!\(v\.artFresh && v\.artFresh\.(articles|women)\)/g) || []).length === 2);
+  okOn('NIGHT-F2/F4: the card draws the mark from the descriptor, with an accessible name', A,
+    /\{m\.fresh \? <span style=\{s\.ezistCardNew\} role="img" aria-label=\{ezT\('articles\.freshMark'\)\} \/> : null\}/.test(html));
+  okOn('NIGHT-F2/F6: it is a MARK and not a count -- the dot carries no number', A,
+    /ezistCardNew: \{ width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'var\(--a3-blue\)' \}/.test(html));
+  okOn('NIGHT-F2/F5: opening a section marks it seen from the page the reader is looking at', A,
+    /const seenNow = ezikArtNewest\(outcome\.rows\);\s*\r?\n\s*EZIK_ART_NEWEST\[section\] = seenNow;\s*\r?\n\s*writeArtSeen\(section, seenNow\);/.test(html));
+}
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);
