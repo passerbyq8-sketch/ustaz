@@ -858,8 +858,8 @@ async function partD() {
       // opposite answer, which is what a reversed rule is supposed to look like.
       eq('...and the women corner is NOT on his shelf, because this account answered «male»',
         shelfIds.indexOf('women'), -1);
-      eq('...and the eight that remain are these, in the order the shelf order fixed', shelfIds,
-        ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+      eq('...and the nine that remain are these, in the order the shelf order fixed', shelfIds,
+        ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'asmaa']);
       // ITEM 20 / §1 -- THE NAME, READ OFF THE TILE THAT DRAWS IT. A dictionary entry no card
       // renders is a string nobody sees, so the shelf itself is asked what it says.
       const artTile = mosaic.querySelector('[data-ezik-home-module="articles"]');
@@ -1174,9 +1174,9 @@ async function partD() {
       ok('\u00a73: the women corner is BACK on his shelf, for the answer he just saved',
         back.indexOf('women') !== -1, JSON.stringify(back));
       eq('\u00a72: ...and it is back LAST, not where it used to be', back[back.length - 1], 'women');
-      eq('\u00a73: ...and the eight it joins are the eight that were there, in their order',
+      eq('\u00a73: ...and the nine it joins are the nine that were there, in their order',
         back.slice(0, -1),
-        ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+        ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'asmaa']);
       eq('\u00a73: ...and the account it read is the one the save wrote',
         JSON.parse(c.store.getItem('child_profile')).gender, 'female');
       // AND THE ABANDONED KEY PLAYED NO PART IN IT. The device never held one in this run, and
