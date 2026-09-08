@@ -102,6 +102,7 @@ function ezLangRelabel() {
     EZH_LESSONS = ezT("module.lessons");
     EZH_ARTICLES = ezT("module.articles");
     EZH_WOMEN = ezT("module.women");
+    EZH_ASMAA = ezT("asmaa.title");
     EZIST_SUB_ARTICLES = ezT("module.articles.sub");
     EZIST_SUB_WOMEN = ezT("module.women.sub");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
@@ -110,11 +111,11 @@ function ezLangRelabel() {
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
     EZIST_SUB_FATWA = ezT("module.fatwa.sub");
     EZIST_SUB_LESSONS = ezT("module.lessons.sub");
-    // The two entries below are NOT relabelled -- EZIST_SUB_PRAYER and EZIST_SUB_LIBRARY are
-    // plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
+    // The three entries below are NOT relabelled -- EZIST_SUB_ASMAA, EZIST_SUB_PRAYER and
+    // EZIST_SUB_LIBRARY are plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
     // replacement, so an id left out of it is not left at its old wording: it is deleted, and
     // the prayer card lost its second line on the first language switch of every session.
-    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -4892,6 +4893,18 @@ const EZH_ICON_ARTICLES = (
 const EZH_ICON_WOMEN = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6c-2-2-5-2.5-8-2v13c3-.5 6 0 8 2 2-2 5-2.5 8-2V4c-3-.5-6 0-8 2z" /><path d="M12 6v15" /></svg>
 );
+// ITEM 26 / THE TILE (8 September). THE NAME IS THE ONE THE SECTION ALREADY HAS. It is read
+// from asmaa.title -- the same dictionary key the section's own header reads -- so the card
+// and the screen it opens can never disagree, and it is rebound by ezLangRelabel() beside the
+// nine above it. No new dictionary key was added for the shelf.
+let EZH_ASMAA = ezT("asmaa.title");
+// The mark. Same 24x24 box, same 1.8 stroke and the same round caps as the nine beside it,
+// and it is the SAME path the menu row for this section already draws -- a page with a ribbon
+// in it, so it reads as neither the mushaf (a closed book) nor the fatwa document (a page
+// with a seal). No new artwork file, no image, no data URI.
+const EZH_ICON_ASMAA = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h9a2 2 0 0 1 2 2v16l-6.5-4L4 21V5a2 2 0 0 1 2-2z" /></svg>
+);
 // The callout, the profile entry and the three navigation icons -- the same paths as before,
 // drawn as LINE icons on white. There is no face and no avatar image in either style.
 const EZH_ICON_SUN = (
@@ -4963,7 +4976,7 @@ function ezWomenSectionHidden(gender) { return gender === 'male'; }
 function ezHomeModules(v) {
   const wird = v.wird ? (toArabicDigits(v.wird.done) + ' / ' + toArabicDigits(v.wird.target)) : null;
   // ITEM 20 / §3, AND F15. NOT DRAWING THE TILE IS THE WHOLE EFFECT. The descriptor is filtered
-  // out of the one array both presentations map, so the shelf draws eight cards instead of nine
+  // out of the one array both presentations map, so the shelf draws nine cards instead of ten
   // and there is no invisible node left behind. What is NOT touched: the section component, the
   // route the reader may already be on, the request /api/articles-list would answer, and the
   // «seen» record item 7 keeps for that section -- a reader who puts the section back finds it
@@ -4996,6 +5009,18 @@ function ezHomeModules(v) {
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
     { id: 'lessons',  label: EZH_LESSONS,  icon: EZH_ICON_LESSONS,  onClick: v.onOpenLessons,  meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
+    // ITEM 26 (8 September) -- أسماء الله الحسنى, SECOND TO LAST AND FOR ONE REASON.
+    // The owner has ruled the tile onto the shelf and ruled its place: immediately BEFORE
+    // the women's corner, so «ركن النساء» stays LAST exactly as item 20 §2 fixed it.
+    // NOTHING ABOVE IT MOVED -- the eight rows before this one keep the ids, the order and
+    // the positions they had, and the row below keeps the end of the shelf and the filter
+    // that can remove it.
+    //
+    // Its handler is threaded from App exactly as onOpenLessons is, not built here: the state it
+    // sets lives in App because the menu row for the same section already sets it, and one
+    // section may not own two pieces of navigation state. It reads no store and carries no
+    // `meta` and no `fresh` -- there is no local reading about this section to report.
+    { id: 'asmaa',    label: EZH_ASMAA,    icon: EZH_ICON_ASMAA,    onClick: v.onOpenAsmaa,    meta: null },
     { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null, fresh: !!(v.artFresh && v.artFresh.women) },
   ].filter((m) => !(m.id === 'women' && ezWomenSectionHidden(v.gender)));
 }
@@ -5030,9 +5055,10 @@ let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
 let EZIST_SUB_LESSONS = ezT("module.lessons.sub");
 let EZIST_SUB_ARTICLES = ezT("module.articles.sub");
 let EZIST_SUB_WOMEN = ezT("module.women.sub");
+let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها';
 let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
 let EZIST_SUB_LIBRARY = 'بحثٌ في نصوص المكتبة، بمصادرها';
-let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -5691,7 +5717,7 @@ function EzikHomeWidgetArea({ widgets, nav, arrangeOpen, onArrange, onWidgets })
   );
 }
 
-function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenSettings }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -5775,6 +5801,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenMushaf: onOpenMushaf,
     onOpenFatwa: onOpenFatwa,
     onOpenLessons: onOpenLessons,
+    // ITEM 26: handed straight on, like the six above it. The layer this opens is owned by App,
+    // which is where the menu row that opens the same section already sets it.
+    onOpenAsmaa: onOpenAsmaa,
     // ITEM 20 / D-9. The two shelf entries open a layer over this screen, so their handlers are
     // built here beside the prayer sheet's rather than being threaded down from the router: the
     // section they open is not a screen and the router has nothing to route to.
@@ -13608,7 +13637,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenSettings={() => openEzikSheet('settings')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} />
       {ezikDrawer()}
     </>
   );
