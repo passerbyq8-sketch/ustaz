@@ -13488,10 +13488,15 @@ function App() {
               <span style={{ flex: 1, minWidth: 0 }}>{EZIK_FAV_TITLE}</span>
               {myFavs.length > 0 && <span style={s.drawerBadge}>{myFavs.length}</span>}
             </button>
-            {/* ITEM 26: أسماء الله الحسنى. It is opened from the menu because the menu is the one
-                door BOTH the home screen and the chat already draw, and because the home shelf's
-                exact contents are a frozen contract this item is not permitted to re-cut -- see
-                the report. Like every other row it hands its action to closeDrawerWith, so the
+            {/* ITEM 26: أسماء الله الحسنى, AND THIS IS NOW THE SECOND DOOR, NOT THE ONLY ONE.
+                It was the only one while the home shelf's contents were a contract this item
+                could not re-cut; the owner has since ruled the tile onto the shelf and
+                authorised the census re-cut, so ezHomeModules carries an `asmaa` row too.
+                THIS ROW STAYS, and it stays for the reason it was written: the menu is the one
+                door BOTH the home screen and the chat draw, and a reader in a conversation
+                should not have to go to the home first. Both doors set the SAME asmaaOpen --
+                two openers, one piece of state, one closer -- so neither can drift from the
+                other. Like every other row it hands its action to closeDrawerWith, so the
                 menu's own history entry is spent before the section pushes its own. */}
             <button onClick={() => closeDrawerWith(() => setAsmaaOpen(true))} style={s.drawerItem} className="ezik-focus">
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
